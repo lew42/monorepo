@@ -1,0 +1,238 @@
+diff --git a/Server/Tunnel.mjs b/Server/Tunnel.mjs
+new file mode 100644
+index 000000000..e4355d490
+--- /dev/null
++++ b/Server/Tunnel.mjs
+@@ -0,0 +1,78 @@
++import fs from "fs";
++import path from "path";
++import http from "http";
++import { spawn, execFileSync } from "child_process";
++import { fileURLToPath } from "url";
++
++/* node Server/Tunnel.mjs up|down|status — a free Cloudflare quick tunnel to Servex's /mcp/remote ONLY.
++ * cloudflared forwards every path of its origin, so it points at a tiny gateway (below) that passes
++ * the one path and 404s the rest. Doc: public/framework/ux/Dictate/doc/voice-bridge.md. */
++export default class Tunnel {
++    static DIR = path.join(process.env.LOCALAPPDATA ?? "", "lew42", "servex");
++    static PATH = "/mcp/remote";
++
++    constructor({ servex_port = Number(process.env.SERVEX_PORT) || 8090 } = {}){
++        this.servex_port = servex_port;
++        this.state_file = path.join(Tunnel.DIR, "remote.tunnel.json");
++        this.url_file = path.join(Tunnel.DIR, "remote.url");
++    }
++
++    state(){ try { return JSON.parse(fs.readFileSync(this.state_file, "utf8")); } catch { return null; } }
++    alive(pid){ try { process.kill(pid, 0); return true; } catch { return false; } }
++
++    // passes exactly /mcp/remote to Servex on loopback; every other path is a 404 that never reaches Servex
++    gateway(){
++        return http.createServer((req, res) => {
++            if (new URL(req.url, "http://x").pathname !== Tunnel.PATH) return res.writeHead(404).end();
++            const up = http.request({ host: "127.0.0.1", port: this.servex_port, path: Tunnel.PATH, method: req.method,
++                headers: { authorization: req.headers.authorization ?? "", "content-type": req.headers["content-type"] ?? "" } },
++                r => { res.writeHead(r.statusCode, { "content-type": r.headers["content-type"] ?? "application/json" }); r.pipe(res); });
++            up.on("error", () => res.writeHead(502).end());
++            req.pipe(up);
++        });
++    }
++
++    async up(){
++        const s = this.state();
++        if (s && this.alive(s.pid)) return console.log(`already up: ${fs.readFileSync(this.url_file, "utf8")}`);
++        fs.mkdirSync(Tunnel.DIR, { recursive: true });
++        const gw = this.gateway();
++        await new Promise(r => gw.listen(0, "127.0.0.1", r));
++        const port = gw.address().port;
++        const child = spawn("npx", ["--yes", "cloudflared", "tunnel", "--url", `http://127.0.0.1:${port}`], { shell: true, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
++        const url = await new Promise((resolve, reject) => {
++            const t = setTimeout(() => reject(new Error("no tunnel URL after 90 s")), 90000);
++            const scan = b => { const m = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(String(b)); if (m){ clearTimeout(t); resolve(m[0]); } };
++            child.stdout.on("data", scan); child.stderr.on("data", scan);
++            child.on("exit", c => reject(new Error(`cloudflared exited ${c}`)));
++        }).catch(e => { this.kill(child.pid); console.error(e.message); process.exit(1); });
++        const full = url + Tunnel.PATH;
++        fs.writeFileSync(this.url_file, full);
++        fs.writeFileSync(this.state_file, JSON.stringify({ pid: process.pid, child: child.pid, port, at: new Date().toISOString() }));
++        console.log(full);
++        const stop = () => { this.kill(child.pid); try { fs.unlinkSync(this.state_file); } catch {} process.exit(0); };
++        process.on("SIGINT", stop); process.on("SIGTERM", stop);
++        child.on("exit", stop);
++    }
++
++    kill(pid){ try { execFileSync("taskkill", ["/pid", String(pid), "/t", "/f"], { windowsHide: true, stdio: "ignore" }); } catch {} }
++
++    down(){
++        const s = this.state();
++        if (!s) return console.log("not running");
++        this.kill(s.child); this.kill(s.pid);
++        try { fs.unlinkSync(this.state_file); fs.unlinkSync(this.url_file); } catch {}
++        console.log("down");
++    }
++
++    status(){
++        const s = this.state();
++        console.log(s && this.alive(s.pid) ? `up: ${fs.readFileSync(this.url_file, "utf8")}` : "down");
++    }
++}
++
++if (process.argv[1] === fileURLToPath(import.meta.url)){
++    const verb = process.argv[2];
++    if (!["up", "down", "status"].includes(verb)){ console.log("usage: node Server/Tunnel.mjs up|down|status"); process.exit(1); }
++    await new Tunnel()[verb]();
++}
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 034338d7d..0b5e738f4 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -22,6 +22,7 @@ import Pool from "./Pool.js";
+ import Lifecycle from "./Lifecycle.js";
+ import Follow from "./Follow.js";
+ import MCP, { loopback } from "./MCP.js";
++import RemoteMCP from "./ext/remote/RemoteMCP.js";
+ import PortRegistry from "./PortRegistry.js";
+ import Process from "./Process.js";
+ import Project from "./Project.js";
+@@ -299,6 +300,7 @@ export default class Servex extends Events {
+ 
+         this.agents.revive();   // agents alive at the last boot come back (resume, same id); the rest are marked gone
+         this.routes();
++        this.remote = new RemoteMCP({ servex: this, root: REPO, router: this.dashboard.router });   // /mcp/remote, bearer token (voice-bridge.md)
+         this.tools();
+ 
+         /* Servex is the first project in its own list — it eats its own cooking,
+diff --git a/Servex/ext/remote/RemoteMCP.js b/Servex/ext/remote/RemoteMCP.js
+new file mode 100644
+index 000000000..713862014
+--- /dev/null
++++ b/Servex/ext/remote/RemoteMCP.js
+@@ -0,0 +1,111 @@
++import fs from "fs";
++import os from "os";
++import path from "path";
++import crypto from "crypto";
++import express from "express";
++
++/* A tiny remote MCP endpoint (POST /mcp/remote) with ONE tool, `ask_mastermind`, behind a bearer token.
++ * Why and how to use it: public/framework/ux/Dictate/doc/voice-bridge.md. Reached through Server/Tunnel.mjs,
++ * whose gateway forwards this one path and nothing else. */
++export default class RemoteMCP {
++    static PATH = "/mcp/remote";
++    static DIR = path.join(process.env.LOCALAPPDATA ?? path.join(os.homedir(), "AppData", "Local"), "lew42", "servex");
++    static TOKEN_FILE = path.join(RemoteMCP.DIR, "remote.token");
++    static VERSION = "2025-03-26";
++    static TOOL = {
++        name: "ask_mastermind",
++        description: "Ask the project's mastermind (the AI that coordinates this codebase) a question and wait up to a minute for its answer.",
++        inputSchema: { type: "object", properties: { question: { type: "string", description: "What to ask." } }, required: ["question"] },
++    };
++
++    /* servex: needs .agents (send, list, registry_list, task_dir_for); root: repo root; wait_ms: reply timeout */
++    constructor({ servex, root, router, token_file = RemoteMCP.TOKEN_FILE, wait_ms = 60000, target } = {}){
++        Object.assign(this, { servex, root, token_file, wait_ms, target });
++        this.token = this.load_token();
++        if (router) this.mount(router);
++    }
++
++    // random 32 bytes, written once, never logged
++    load_token(){
++        try { return fs.readFileSync(this.token_file, "utf8").trim(); } catch {}
++        const token = crypto.randomBytes(32).toString("hex");
++        fs.mkdirSync(path.dirname(this.token_file), { recursive: true });
++        fs.writeFileSync(this.token_file, token, { mode: 0o600 });
++        return token;
++    }
++
++    mount(router){
++        const p = RemoteMCP.PATH;
++        router.post(p, express.json({ limit: "256kb" }), (req, res) => this.post(req, res));
++        router.all(p, (req, res) => res.status(405).set("Allow", "POST").end());
++    }
++
++    authed(req){
++        const m = /^Bearer (.+)$/.exec(req.headers.authorization ?? "");
++        if (!m) return false;
++        const a = Buffer.from(m[1]), b = Buffer.from(this.token);
++        return a.length === b.length && crypto.timingSafeEqual(a, b);
++    }
++
++    async post(req, res){
++        if (!this.authed(req)) return res.status(401).set("WWW-Authenticate", "Bearer").json({ error: "bearer token required" });
++        const { id, method, params } = req.body ?? {};
++        const ok = result => res.json({ jsonrpc: "2.0", id, result });
++        const bad = (code, message) => res.json({ jsonrpc: "2.0", id, error: { code, message } });
++        if (id === undefined) return res.status(202).end();   // a notification (notifications/initialized)
++        if (method === "initialize") return ok({ protocolVersion: params?.protocolVersion ?? RemoteMCP.VERSION, capabilities: { tools: {} }, serverInfo: { name: "lew42-remote", version: "1" } });
++        if (method === "ping") return ok({});
++        if (method === "tools/list") return ok({ tools: [RemoteMCP.TOOL] });
++        if (method === "tools/call"){
++            if (params?.name !== RemoteMCP.TOOL.name) return bad(-32602, "unknown tool");
++            const question = String(params.arguments?.question ?? "").trim().slice(0, 4000);
++            if (!question) return bad(-32602, "question is required");
++            const started = Date.now();
++            let text;
++            try { text = await this.ask(question); } catch (e) { text = `could not reach the mastermind: ${e.message}`; }
++            this.log(question, Date.now() - started);
++            return ok({ content: [{ type: "text", text }] });
++        }
++        return bad(-32601, "method not found");
++    }
++
++    // the live mastermind: an explicit target, else the first live agent named mastermind*
++    mastermind(){
++        const a = this.servex.agents;
++        const id = this.target ?? a.list().find(c => /^mastermind/.test(c.id) && c.state !== "stopped")?.id;
++        if (!id) throw new Error("no live mastermind");
++        return { id, dir: a.task_dir_for(a.registry_list().find(r => r.id === id) ?? { id }) };
++    }
++
++    async ask(question){
++        const { id, dir } = this.mastermind();
++        const qid = crypto.randomBytes(4).toString("hex");
++        const file = dir ? path.resolve(this.root, dir, "task.jsonl") : null;
++        const link = dir ? "/" + String(dir).replace(/\\/g, "/").replace(/^\/+/, "") + "/" : "its task page";
++        if (file) fs.appendFileSync(file, JSON.stringify({ chat: { from: "owner (voice)", id: qid, text: question, at: new Date().toISOString() } }) + "\n");
++        this.servex.agents.send(id, `The owner asks by voice (question ${qid}): "${question}"\nAnswer in two or three plain sentences, easy to hear aloud. Reply by appending ONE line to ${file ?? "your task.jsonl"}: {"voice_reply":{"id":"${qid}","text":"<your answer>"}} (node .claude/hooks/append.mjs).`, { from: "owner (voice)", priority: "now" });
++        const until = Date.now() + this.wait_ms;
++        while (Date.now() < until){
++            await new Promise(r => setTimeout(r, 500));
++            const hit = file && this.reply(file, qid);
++            if (hit) return hit;
++        }
++        return `the mastermind is busy; the question is logged at ${link}`;
++    }
++
++    reply(file, qid){
++        let raw = "";
++        try { raw = fs.readFileSync(file, "utf8"); } catch { return null; }
++        for (const line of raw.split("\n").reverse().slice(0, 200)){
++            if (!line.includes(qid) || !line.includes("voice_reply")) continue;
++            try { const r = JSON.parse(line).voice_reply; if (r?.id === qid) return String(r.text); } catch {}
++        }
++        return null;
++    }
++
++    // one line per call, never the token
++    log(question, ms){
++        const line = JSON.stringify({ remote_mcp: { who: "owner (voice)", tool: "ask_mastermind", what: question.slice(0, 200), at: new Date().toISOString(), ms } }) + "\n";
++        try { fs.appendFileSync(path.join(this.root, "public/framework/ai/log.jsonl"), line); } catch {}
++    }
++}
+diff --git a/public/framework/ux/Dictate/doc/voice-bridge.md b/public/framework/ux/Dictate/doc/voice-bridge.md
+index 8bd6bacf5..a8e6da1c3 100644
+--- a/public/framework/ux/Dictate/doc/voice-bridge.md
++++ b/public/framework/ux/Dictate/doc/voice-bridge.md
+@@ -31,3 +31,12 @@ The phone sheet and the drawer already have Whisper in and a smart assistant (So
+ ## Decision
+ 
+ Build Road 1 as a one-tool test first (`ask_mastermind`: send a question, wait up to 60 s, return the answer). If voice mode on the phone can call it, add the three read tools. Road 2 is a half-day fallback. The browser bridge is not built.
++
++## Try it
++
++Built: `Servex/ext/remote/RemoteMCP.js` (`class RemoteMCP`, `POST /mcp/remote`, one tool `ask_mastermind`, bearer token) and `Server/Tunnel.mjs` (`up`, `down`, `status`: a free Cloudflare quick tunnel). The tunnel points at a small gateway that passes only `/mcp/remote`; every other path is a 404. The token is `%LOCALAPPDATA%\lew42\servex\remote.token`, the URL `...\remote.url` (it changes each time the tunnel starts).
++
++1. In the Claude app: Settings, Connectors, Add custom connector. Paste the URL from `remote.url`; send the token from `remote.token` as the bearer.
++2. In a voice chat, say "ask the mastermind what landed today".
++
++**Unknown:** whether voice mode on the phone can call a custom connector at all. Look for the chat showing a tool call to `ask_mastermind`; if voice mode answers without one, try the same sentence typed. Each call is one line in `ai/log.jsonl` (`remote_mcp`), and the question and the answer land in the mastermind's `task.jsonl`.
