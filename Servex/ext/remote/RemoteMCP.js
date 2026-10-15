@@ -121,8 +121,8 @@ export default class RemoteMCP {
         const when = `${day} ${now.toTimeString().slice(0, 5)}`;
         let card;
         try { card = JSON.parse(await this.servex.cards.tools().find(t => t.name === "create_card").handler({ title: `Voice session ${when}`, type: "note", by: "remote-mcp" })).id; } catch {}
-        const prompt = `You are this voice session's mastermind (session ${sid}). The owner talks to you by voice through a phone connector; each question arrives as a message and you answer by writing plain text to the file it names. Answer from public/framework/ai/handover.md, the readme chain and the site's pages, never from memory, in two or three plain sentences easy to hear aloud. The gateway already logs every question and answer as chat lines in your task.jsonl (${dir}/task.jsonl), so do not duplicate them; log your own work there (node .claude/hooks/append.mjs). A real ask (build this, fix that) goes through module_inbox or spawn_agent as a task mastermind: do it, then say in the answer what you did. Wait for the first question.`;
-        const agent = this.servex.agents.spawn({ role: "mastermind", name: `voice-${short}`, prompt, model: "claude-sonnet-5-5", dormant_after: 600, permission_mode: "bypassPermissions", task: { dir, ...(card ? { card } : {}) } });
+        const prompt = `Load the voice-mastermind skill first. You are the mastermind of voice session ${sid}. Your task dir is ${dir}/ (task.jsonl is already open)${card ? ` and your card is ${card}` : ""}. Each owner question arrives as a message that names a reply file: answer by writing plain text to it. The gateway already writes the question and answer chat lines into your task.jsonl, so skip that part of the skill and log your own work (agents, decisions) there. Wait for the first question.`;
+        const agent = this.servex.agents.spawn({ role: "mastermind", name: `voice-${short}`, prompt, model: "claude-opus-5-5", dormant_after: 600, permission_mode: "bypassPermissions", task: { dir, ...(card ? { card } : {}) } });
         Object.assign(s, { agent: agent.id, dir });
         this.save_sessions();
         return { id: agent.id, dir };
