@@ -34,7 +34,7 @@ Note on wording: the earlier "keys to the castle" worry was about the **Cloudfla
 Judged by one question: *if a stranger held the token, what is the worst this does?* Reads and narrow writes pass.
 
 **Read-only, mark `remote`:**
-`list_agents`, `list_cards`, `read_card`, `card_summary`, `list_pages`, `read_page`, `page_read`, `list_waiting`, `list_claims`, `list_follows`, `list_experts`, `list_servers`, `heartbeat_status`, `task_loop_status`, `system_health`, `session_summary`, `session_line`, `inbox`, `module_inbox`, `readme_modules`, `server_logs`, `job_result`, `dir_log`, `check_page`, `wait_for_agent`, `list_agents`.
+`list_agents`, `list_cards`, `read_card`, `card_summary`, `list_pages`, `read_page`, `page_read`, `list_waiting`, `list_claims`, `list_follows`, `list_experts`, `list_servers`, `heartbeat_status`, `task_loop_status`, `system_health`, `session_summary`, `session_line`, `inbox`, `module_inbox`, `readme_modules`, `server_logs`, `job_result`, `dir_log`, `check_page`, `wait_for_agent`.
 
 **Narrow writes (one card, one note, one line), mark `remote` with the path fixed or checked:**
 `page_add`, `page_log`, `page_note`, `page_reply`, `owner_note`, `card_reply`, `card_ask`, `card_set`, `attach_card`, `create_card`, `set_focus`, `add_item`.
