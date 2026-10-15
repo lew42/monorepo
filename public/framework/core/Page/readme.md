@@ -20,7 +20,7 @@ export default new Page({
 2. Add `"hello"` to the PARENT page's `children:` (for example `children: "hello"`). A page nobody declares still opens by its url (`Page.child()` imports its `page.js`), but it is missing from the parent's tabs, menus and cards.
 3. Open `/<parent path>/hello/`.
 
-**Working on this module?** Start at [`doc/start-here.md`](doc/start-here.md) (the inbox, the work log, the tests, what is next door) and [`doc/classes.md`](doc/classes.md) (the 23 files, one line each). This module has an expert: ask it with `ask_expert core/Page …` (Servex).
+**Working on this module?** Start at [`doc/start-here.md`](doc/start-here.md) (the inbox, the work log, the tests, what is next door) [`doc/class-block.md`](doc/class-block.md) (Item, List, Page in one code block) and [`doc/classes.md`](doc/classes.md) (the 23 files, one line each). This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 
 **When to reach for which:** a #List when something is ordered and needs watching
 (events are built in); an #Item when it is a thing (an icon, a title, saved); a

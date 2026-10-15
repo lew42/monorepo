@@ -2,6 +2,8 @@
 
 ## The class architecture: Item, List, Page
 
+The full skeleton, every member with a one-line comment and what each Page owns: [class-block.md](class-block.md).
+
 An `Item` is a thing with an id, data and events. A `List` is an Item that holds other Items in order. A `Page` is an Item with a url, and it owns two Lists: its child pages and its content.
 
 ```js
