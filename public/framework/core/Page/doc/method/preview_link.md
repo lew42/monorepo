@@ -1,6 +1,6 @@
 The card's label: an icon, a title, and the card's only real link.
 
-**Usage** — `preview_card()` (`Page.class.js:180`). Public so an override that builds its
+**Usage** — `preview_card()` (`Page.class.js:678`). Public so an override that builds its
 own shell still ends with the same clickable label.
 
 **Necessity** — small, and it earns its place twice. It is the one element in the card

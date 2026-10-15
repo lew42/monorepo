@@ -81,6 +81,8 @@ build one, and check the page with `node Server/layout-check.mjs --bands <url>`.
 
 **Asks** — [`doc/asks.md`](./doc/asks.md) (the owner's repeated asks about the page system, merged, open first)
 
+**Vision** — [`doc/vision.md`](./doc/vision.md) (the page as the core data item, debug views of any instance; back-burner ideas kept)
+
 - Notes (history and lessons moved out of the code comments): [doc/Frame-notes.md](doc/Frame-notes.md) · [doc/Page-notes.md](doc/Page-notes.md) · [doc/page-js-notes.md](doc/page-js-notes.md)
 
 ## Also here (readme audit, 2026-10-13)
