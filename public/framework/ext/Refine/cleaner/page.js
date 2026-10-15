@@ -14,7 +14,7 @@ export default new Page({
 
 	content(){
 		md("**`class Cleaner`** (`ext/Refine/Cleaner.js`) turns one dictated chunk into numbered sentences that stay as close to what was said as possible: capitals, punctuation and filler words are fixed, nothing else is removed.");
-		md("```js\nconst c = new Cleaner({ model: \"\" });\nc.quick_clean(raw);        // instant, no model: fillers out, capitals, ? or .\nawait c.clean(raw);        // the model, then a faithfulness check\nc.sentences                // [{ n, text }]   c.mode  c.status  c.ms  c.flags\n```");
+		md("```js\nconst c = new Cleaner({ model: \"\" });\nc.quick_clean(raw);   // instant, no model\nawait c.clean(raw);   // the model + check\nc.sentences           // [{ n, text }]\nc.mode  c.status  c.ms  c.flags\n```");
 		p(() => { span("Callers: "); a("RefineSystem").href("/framework/ext/Refine/RefineSystem.js"); span(" (instant text on every chunk), "); a("Revise").href("/framework/ux/Revise/"); span(" and Servex's Echo (the model). The old function names live on in "); a("engine.js").href("/framework/ext/Refine/engine.js"); span("."); });
 
 		const cleaner = new Cleaner();
