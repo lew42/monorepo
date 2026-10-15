@@ -1,10 +1,12 @@
 # public/framework/core/Page — work log by month
 
-275 items: 43 landed-and-committed · 1 committed-never-closed · 32 never-started · 199 orphan commits (no task)
+311 items: 79 landed-and-committed · 9 committed-never-closed · 3 never-started · 52 landed-no-path-commit · 168 orphan commits (no task)
 
 ## 2026-10
 
-- · 2026-10-15 **orphan-commit** tasks-dashboard: landing line and review — c788f414e
+- ✅ 2026-10-15 **landed-and-committed** [voice session: factual maps of the AI and page systems](/framework/ai/sessions/2026/10/15/voice-20261015/) — 86c75498f
+- ⚠️ 2026-10-15 **committed-never-closed** [page-system](/framework/ai/sessions/2026/10/15/voice-20261015/page-system/) — 86c75498f
+- ✅ 2026-10-15 **landed-and-committed** [Tasks: in flight, queued and landed today, one live page](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/tasks-dashboard/) — c788f414e
 - · 2026-10-15 **orphan-commit** Dictate: anchor the fast gate to an address; drop stray files.jsonl; docs for the lean sma — 6d9d00df3
 - · 2026-10-15 **orphan-commit** Dictate: no page.jsonl 404 on open, no stale Mic line after stop, sheet defaults to 60dvh; — f3da24a46
 - · 2026-10-14 **orphan-commit** Navigation model: wide tables scroll in their own box, so at 400 px the page no longer scr — 1b1c3efb1
@@ -22,8 +24,9 @@
 - · 2026-10-14 **orphan-commit** one-tree: land the branch's tree (merge.mjs's commit 843c0e2c9 recorded main's old tree wi — db48e1be4
 - · 2026-10-14 **orphan-commit** Merge branch 'worktree/one-tree' into michael/dev — 843c0e2c9
 - · 2026-10-14 **orphan-commit** one-tree: relink 165 mentions in 122 md/js files to the cards' new folders (TaskMove --rel — a56fde962
+- ✅ 2026-10-14 **landed-and-committed** [AITask: moved from ext/ into ai/, with the rule for what goes in ai/](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/ai-modules-home/) — 337e4b683
+- ⬜ 2026-10-13 **never-started** [templates](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/templates/)
 - ✅ 2026-10-13 **landed-and-committed** [Inbox: one record per thing, and the inbox as a timeline of big things](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-data/) — 6a4fba6e6 46beace1f 5791de3c4 d8a266fdf
-- · 2026-10-13 **orphan-commit** AITask: moved from ext/AITask to ai/AITask by Server/ModuleMove.mjs (223 files relinked, m — 337e4b683
 - · 2026-10-13 **orphan-commit** Inbox timeline: ?debug counts sources from all rows (the removed 'all' threw) — 2c1ffff8a
 - · 2026-10-13 **orphan-commit** Inbox timeline: seen rows leave the view (Seen too, Mark all seen, never deleted), Today/Y — 156ffc44d
 - · 2026-10-13 **orphan-commit** Inbox timeline: detail title as plain text (a path title became a mention chip) — 2b1379639
@@ -34,12 +37,13 @@
 - · 2026-10-13 **orphan-commit** Inbox timeline: the card's own chat beside the detail (TimelineTalk), debug-only score/sou — 0e46ded05
 - · 2026-10-13 **orphan-commit** Inbox timeline: Landings index, InboxSources map, Timeline data class, TimelinePage rail + — d1082f4d0
 - ✅ 2026-10-13 **landed-and-committed** [Page storage: class architecture for many stores (design)](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/storage-design/) — 37834b679 27b52e071
-- ⬜ 2026-10-13 **never-started** [AI Inbox: one ranking rule, importance plus recency, with a debug view](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-ranking/)
+- ⚠️ 2026-10-13 **committed-never-closed** [docs-check](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/storage-design/docs-check/) — 37834b679
+- ◻️ 2026-10-13 **landed-no-path-commit** [AI Inbox: one ranking rule, importance plus recency, with a debug view](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-ranking/)
 - · 2026-10-13 **orphan-commit** Inbox review fixes: heading level, doc numbers — 93460a038
 - · 2026-10-13 **orphan-commit** Inbox.rank: importance + recency ranking, new/kind cues, debug view — 4bc63ad21
+- ⬜ 2026-10-13 **never-started** [transcribe](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/transcribe/)
 - · 2026-10-13 **orphan-commit** clean tree: commit task records and logs left by 2026-10-12 agents; gitignore root strays, — 434dd0d04
-- · 2026-10-13 **orphan-commit** readme-audit: move oversized readme bodies verbatim to doc/, index every child module — 373aa4757
-- · 2026-10-13 **orphan-commit** readme-audit: index missing modules and new systems, fix dead links — 00ffa2d3c
+- ✅ 2026-10-13 **landed-and-committed** [Readmes: all under 100 lines, every module indexed](/framework/ai/sessions/2026/10/12/session-87bec773/readme-audit/) — 373aa4757 00ffa2d3c
 - · 2026-10-13 **orphan-commit** Fix dead links after the moves: 53 real 404s down to 3 — 040b82753
 - · 2026-10-13 **orphan-commit** Property.of(item, name): live Item binding; session detail model/effort/cost bound with it — e8698c0d2
 - · 2026-10-13 **orphan-commit** prune: readme links to the new notes docs (round 3) — 64760df95
@@ -48,35 +52,32 @@
 - · 2026-10-13 **orphan-commit** prune: core/Page/page.js comments, history to core/Page/doc/page-js-notes.md — 0a629fc11
 - · 2026-10-13 **orphan-commit** prune: core/Page/Page.class.js comments, history to core/Page/doc/Page-notes.md — bc95d09d7
 - · 2026-10-13 **orphan-commit** prune: core/Page/ext/Inbox/Rail.js comments, history to core/Page/ext/Inbox/doc/InboxRail- — 0823b0660
+- · 2026-10-13 **orphan-commit** prune: core/Page/generator/export.js comments, history to core/Page/generator/doc/generato — b43ca44f9
 - · 2026-10-13 **orphan-commit** prune: core/Page/generator/tree.js comments, history to core/Page/generator/doc/generator- — 218bb74d0
 - · 2026-10-13 **orphan-commit** core/Page/generator/page.js: prune comments — ab0df225d
-- · 2026-10-12 **orphan-commit** server-query: Sessions rows from a node query over the dev socket (ext/Query, QueryServer, — 932fb3b57
+- ✅ 2026-10-12 **landed-and-committed** [Sessions: rows come from a node query, not every file](/framework/ai/sessions/2026/10/12/session-87bec773/server-query/) — 932fb3b57
 - · 2026-10-12 **orphan-commit** Page inbox: keep core/Page's strip as is (wraps to 3 rows); inbox stays at inbox/ — 2db7728b4
 - · 2026-10-12 **orphan-commit** library: widen docs, source-page links, sections filter — 11a6c7f97
 - · 2026-10-12 **orphan-commit** PageInbox: stay silent on page.jsonl lines that are not notes — c53ab4557
 - · 2026-10-12 **orphan-commit** Page inbox tab: every Doc page gets an Inbox tab, every page an inbox/ route; unread first — 77f999143
+- ✅ 2026-10-12 **landed-and-committed** [Layout catalog: 14 layouts ranked, matched to content](/framework/ai/sessions/2026/10/12/session-87bec773/layout-catalog/) — fa549a2b7
 - · 2026-10-12 **orphan-commit** core/Page/doc/binding.md: the binding system, each owner question decided with its alterna — 0ffbd4763
 - · 2026-10-12 **orphan-commit** core/Property, Page/Template: hard copy (copy) beside the linked clone, overrides(prefix)  — f75afec76
 - · 2026-10-12 **orphan-commit** core/Page/Template: a middle clone's override or unset redraws every clone reading through — aa1bddc7d
 - · 2026-10-12 **orphan-commit** binding: 1,000-row benchmark (Property vs Item change vs re-render) + Template.test.mjs, f — 14a1cc67e
+- ✅ 2026-10-12 **landed-and-committed** [Task folders: moved into the sessions store](/framework/ai/sessions/2026/10/12/session-e456f109/task-folders/) — 02b42fe87
 - · 2026-10-12 **orphan-commit** core/Property, Page/Template: pages say what they are (review findings 1-2) — 2651ac502
-- · 2026-10-12 **orphan-commit** task-folders: relink every md/js/html mention of a moved task to its sessions-store path ( — 02b42fe87
 - · 2026-10-12 **orphan-commit** core/Page/Template: Template, BigCard, demo, readme, templates doc — aff047c73
 - · 2026-10-12 **orphan-commit** Sessions on ext/DataGrid: one grid, table or rail (a setting), 50-row first page — 0c3eab110
-- · 2026-10-12 **orphan-commit** layout-catalog: ranked catalog page, census script, content-to-layout guide, colour scheme — fa549a2b7
+- ⚠️ 2026-10-12 **committed-never-closed** [past-work](/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/past-work/) — 4c74b6ae8
+- ✅ 2026-10-12 **landed-and-committed** [Style library: four grounds, one card](/framework/ai/sessions/2026/10/12/session-cbdc3ef5/style-system/) — 4c74b6ae8
+- ⬜ 2026-10-12 **never-started** [live-server](/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/live-server/)
 - · 2026-10-12 **orphan-commit** sessions detail: tabs, hourly cost log, chat fills view, compact fresh open-tasks chip, do — dd6299d46
 - · 2026-10-12 **orphan-commit** ui/card: the one card page (grounds, nesting, other card pages linked) — 1e1d5f9a0
-- · 2026-10-12 **orphan-commit** style-system: --prim → --prime and --bg → --dark by script (alias kept), --light/--shadow  — 4c74b6ae8
-- · 2026-10-12 **orphan-commit** part-link: fill title and summary through .el — 85dec0d2b
-- · 2026-10-12 **orphan-commit** part-link: description on promote, docs — a42d85f01
-- · 2026-10-12 **orphan-commit** part-link: demo page and proof script — f0eccdb7c
-- · 2026-10-12 **orphan-commit** page: part-link kind, Promote script, #id scroll — 18813e794
-- · 2026-10-12 **orphan-commit** content-list: tick step 1 on the Order line, note take_content — 9f9a3cbc2
-- · 2026-10-12 **orphan-commit** content-list: fixture folder content-shapes with meta and a linked index (review fixes) — c199e6add
-- · 2026-10-12 **orphan-commit** content-list: docs, STATE.md, A/B tooling (fixed clock, URL filter) — 6e7ee4768
+- ✅ 2026-10-12 **landed-and-committed** [Page: part-link cards, promote script, #id scroll](/framework/ai/sessions/2026/10/12/session-78a7b293/part-link/) — 85dec0d2b a42d85f01 f0eccdb7c 18813e794
+- ✅ 2026-10-12 **landed-and-committed** [Page content: always one List](/framework/ai/sessions/2026/10/12/session-707f57ee/content-list/) — 9f9a3cbc2 c199e6add 6e7ee4768 709aae058
 - · 2026-10-12 **orphan-commit** Page: content is always a PageContent List; code, address and paragraph are items with Vie — 628d8092d
-- · 2026-10-12 **orphan-commit** content-list: fixtures page (every content shape) and baseline scripts, before any change — 709aae058
-- · 2026-10-12 **orphan-commit** page-split-3: answer review (stale text, task page links) — 419a069e1
+- ✅ 2026-10-12 **landed-and-committed** [Page: jsonl replay and files move to Jsonl.js (split complete)](/framework/ai/sessions/2026/10/12/session-1c7d9e04/page-split-3/) — 419a069e1
 - · 2026-10-12 **orphan-commit** Page: jsonl replay and file steps move to Jsonl.js (split step 7, split complete) — 87bf94aec
 - · 2026-10-12 **orphan-commit** Page Links: call md_file/md_url/md_page through the page's class so a subclass override st — 7448402e5
 - · 2026-10-12 **orphan-commit** Page split 5-6: STATE.md with measures and proof, split-plan steps 5 and 6 ticked — ef7c47182
@@ -89,12 +90,12 @@
 - · 2026-10-12 **orphan-commit** Page.class.js split 2/4: PageChildren, Reader, Listing, Prefs move to own files — e6a659778
 - · 2026-10-12 **orphan-commit** ai: overview.js becomes class AIOverview (detectTabs, tabPage, readmeChain, heading, rende — d6e51cdab
 - · 2026-10-12 **orphan-commit** Page.class.js split 1/4: comments become one-line pointers (2270 -> 1617 lines) — 23ef8acf7
+- ✅ 2026-10-12 **landed-and-committed** [Page columns: layout-columns-spacing ask checked](/framework/ai/sessions/2026/10/12/session-92b11b57/page-columns-asks/) — 6b614a5b9
 - · 2026-10-12 **orphan-commit** Inbox: blocking / review / fyi chips (?cat=), checked at 400/1200/1920/3440 — c439c71aa
 - · 2026-10-12 **orphan-commit** Sidebar search: docs, asks #4 ticked (unloaded pages found) — 52d76dd1d
 - · 2026-10-12 **orphan-commit** Trim public/framework/core/Page/readme.md to an index; sections moved verbatim to doc/ — c0b8fa1c0
-- · 2026-10-12 **orphan-commit** page-ai-api: session page lists its subpages as links; fresh-Haiku live proof recorded in  — 6af9e1eff
-- · 2026-10-12 **orphan-commit** asks-by-module: page and AI asks docs, STATE, readme links, dead path fix — ea002d1b4
-- · 2026-10-12 **orphan-commit** page-ai-api: review fixes — name check on rename/remove, readme links to ai-api.md, doc ex — d9acd7841
+- ✅ 2026-10-12 **landed-and-committed** [Page AI API: one tool writes pages, cards and subpages](/framework/ai/sessions/2026/10/12/session-cb7ffa45/page-ai-api/) — 6af9e1eff d9acd7841
+- ✅ 2026-10-12 **landed-and-committed** [Asks by module: page and AI asks merged and checked](/framework/ai/sessions/2026/10/12/session-d4cd44ab/asks-by-module/) — ea002d1b4
 - · 2026-10-12 **orphan-commit** ai-api.md: live proof results, how the session page draws parts and subpages — 4d7c0d32c
 - · 2026-10-12 **orphan-commit** core/Page: ai-api.md, the page API for AIs (target model: page_set + page_read, pages.add  — 0ca227795
 - · 2026-10-12 **orphan-commit** core/Page split plan: comment step first, per-block table — 2a3a1eab9
@@ -116,6 +117,7 @@
 - · 2026-10-12 **orphan-commit** core/Page/parts: Part classes, PartsPage, seed page.jsonl (first slice) — f1af74773
 - ✅ 2026-10-09 **landed-and-committed** [core/Page: agents add tabs to any page live; docs cleaned](/framework/ai/sessions/2026/10/09/session-060cdfff/page-mastermind/) — 15c49b762 1e6c8d903 df3b7bdbe 776e4aa3e +1
 - · 2026-10-09 **orphan-commit** core/Page docs: archive 4 superseded docs (scripted, links kept), drop stale line numbers  — bcd47cf12
+- ◻️ 2026-10-09 **landed-no-path-commit** [code-mastermind](/framework/ai/sessions/2026/10/09/session-2c32c17c/code-mastermind/)
 - · 2026-10-09 **orphan-commit** core/Page: children skip List's name guard, so core/Page's Overview, Files and Settings ta — 796b7137b
 - · 2026-10-09 **orphan-commit** AI docs consolidated: ai/doc and sessions/doc grouped into subsystem folders (scripted mov — bbec8f981
 - · 2026-10-09 **orphan-commit** core/Page: add streaming.md, one overview of page storage and live streaming — 1a2edec3c
@@ -125,22 +127,32 @@
 - · 2026-10-09 **orphan-commit** page tool doc: owner addendum (live content list, blind append vs method, OO + architectur — bad9ea5dd
 - · 2026-10-09 **orphan-commit** page tool note (core/Page + ai readmes); briefs for the page and AI masterminds — 60e97e914
 - · 2026-10-09 **orphan-commit** indexing doc: sidebar search gap, the 16 MB directory.json cause and fix, derived nav-inde — dd94e441b
-- · 2026-10-09 **orphan-commit** ai2-merge: leave comment-only edits in two core/Page pages alone — cc222ed67
-- · 2026-10-09 **orphan-commit** ai: merge AI 2 into AI (code to ai/cards + ai/rail, docs to ai/doc/ai2, shims at old paths — 3485d0085
+- ✅ 2026-10-09 **landed-and-committed** [AI: merged AI 2 into AI with shims at every old path](/framework/ai/sessions/2026/10/09/session-6784f3f5/ai2-merge/) — cc222ed67 3485d0085
 - ✅ 2026-10-08 **landed-and-committed** [task-system-design](/framework/ai/sessions/2026/10/08/task-system-design/task-system-design/) — dccda6eee a64059714
 - · 2026-10-06 **orphan-commit** docs(core/Page): audit and freshen Page docs, fold-in references, and property docs — cc8f953f8
 - · 2026-10-06 **orphan-commit** Fix card layout wraps: mini-pages 3-card wide row and card index 3+3 balance at 1920 — ecb81c6d4
 - · 2026-10-06 **orphan-commit** Layout system: main pages audit, contact sheets and Page.class.js fix (DONE) — ada01ac99
+- ◻️ 2026-10-03 **landed-no-path-commit** [prompt-refine](/framework/ai/sessions/2026/10/03/26075318-fb11-4162-97af-dbc4f1802545/prompt-refine/)
 - ✅ 2026-10-03 **landed-and-committed** [Styles: card widths lab found the real full-width bug; adaptive backgrounds lab](/framework/ai/sessions/2026/10/03/359a1799-85ab-4eb1-99a8-22dd16ab651a/card-measure-colors/) — afd8ff577 9c0ede73f d29697b9a c4cc54660 +5
 - ✅ 2026-10-03 **landed-and-committed** [AI inbox: page_set data corruption, the your-prompts 404, Activity-tab nav break](/framework/ai/sessions/2026/10/03/71eead80-a869-421f-83bb-eba7ff83510e/inbox-cards-work/) — afd8ff577 9c0ede73f d29697b9a c4cc54660 +5
+- ✅ 2026-10-03 **landed-and-committed** [Content rows: a row can BE a page reference, drawn as its dark class card](/framework/ai/sessions/2026/10/03/list-events/ref-content-rows/) — afd8ff577
 - ✅ 2026-10-03 **landed-and-committed** [Console-clean: 404 storm stopped, smoke.mjs gates on noise, soak test found the ](/framework/ai/sessions/2026/10/03/8261071d-a510-4b6b-a3b2-07c3ceca36ac/console-clean/) — 4b79c09e4
 - ✅ 2026-10-03 **landed-and-committed** [core/Item+Page: no `at` key, List extends Item, id rules, all data in `data`](/framework/ai/sessions/2026/10/03/list-events/drop-at-key/) — 9f66f0dbb e7f5a7149
+- ⚠️ 2026-10-03 **committed-never-closed** [page-tools](/framework/ai/sessions/2026/10/02/page-tools/) — a377158a6
 - ✅ 2026-10-03 **landed-and-committed** [core/Page: PageLog folded away, Page extends Item directly](/framework/ai/sessions/2026/10/03/list-events/page-no-log/) — 9f66f0dbb a377158a6 e7f5a7149 2fe922777 +1
+- ✅ 2026-10-03 **landed-and-committed** [AI cost on every page: a script, a reader, a header line](/framework/ai/sessions/2026/10/03/list-events/page-ai-cost/) — 2fe922777
+- ✅ 2026-10-03 **landed-and-committed** [core/Task: a DOM-free unit of work, with subtasks that gate finish()](/framework/ai/sessions/2026/10/03/list-events/task-class/) — 2fe922777
 - ✅ 2026-10-03 **landed-and-committed** [List gets events; LiveList is gone](/framework/ai/sessions/2026/10/03/list-events/list-events/) — a377158a6 e7f5a7149 e8c34f811
+- ◻️ 2026-10-03 **landed-no-path-commit** [model-weights](/framework/ai/sessions/2026/10/03/model-weights/model-weights/)
 - · 2026-10-03 **orphan-commit** framework: write the manual weight bumps through page-refs.mjs, not by hand — e6aa037f5
+- ✅ 2026-10-03 **landed-and-committed** [core/Item: Page extends Item, live lists saved line by line](/framework/ai/sessions/2026/10/02/page-extends-item/page-extends-item/) — e8c34f811 e44930ad9
+- ✅ 2026-10-03 **landed-and-committed** [Framework home: sections from the sidebar's own tree, dark class cards, sprawl](/framework/ai/sessions/2026/10/02/framework-home/) — 1c6945309 fbe000a68
+- ✅ 2026-10-03 **landed-and-committed** [The card pipeline: every major ask gets a readable card, by node](/framework/ai/sessions/2026/10/03/card-pipeline/card-pipeline/) — 1c6945309
 - ✅ 2026-10-03 **landed-and-committed** [page-on-item](/framework/ai/sessions/2026/10/02/page-extends-item/page-extends-item/page-on-item/) — e44930ad9 fbe000a68
 - ⚠️ 2026-10-02 **committed-never-closed** [minion-build](/framework/ai/sessions/2026/10/02/framework-home/minion-build/) — 0bc1bdda9 1c6945309 e44930ad9 fbe000a68
 - ✅ 2026-10-02 **landed-and-committed** [core/Page/ext/Inbox: one class Inbox, two statics Rail + Compact](/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/part1b-inbox-restructure/) — 78ee50978 410077363
+- ⚠️ 2026-10-02 **committed-never-closed** [panel2-sessions](/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/) — 78ee50978 410077363
+- ⚠️ 2026-10-02 **committed-never-closed** [item-core](/framework/ai/sessions/2026/10/02/page-extends-item/page-extends-item/item-core/) — e8c34f811
 - · 2026-10-02 **orphan-commit** Merge tabs from worktree/inbox-ext (4a8befd9, 5dcfd04f, 4aba4318): /framework/ai/'s tabs a — d8026332e
 - · 2026-10-01 **orphan-commit** The AI page opens on the inbox: Inbox · Log · System, the same AIRail as AI 2 — f610afdb1
 - · 2026-10-01 **orphan-commit** Inbox docs: the AI page's Inbox and Log tabs are the next merge, not this one — 876406258
@@ -148,52 +160,66 @@
 ## 2026-09
 
 - · 2026-09-30 **orphan-commit** core/Page/ext: demo leads with what an extension is; relative times; no pad on cards; Inbo — 6ed15590c
+- ⚠️ 2026-09-30 **committed-never-closed** [inbox-ext](/framework/ai/sessions/2026/09/30/inbox-ext/) — cc38d1093
+- ✅ 2026-09-30 **landed-and-committed** [Cards: a card system at core/Page/card, and logs shown as nested cards](/framework/ai/sessions/2026/09/30/cards-and-logs/cards-and-logs/) — 3d4aa09a6
+- ◻️ 2026-09-30 **landed-no-path-commit** [walkthrough](/framework/ai/sessions/2026/09/30/review/review/walkthrough/)
 - ✅ 2026-09-30 **landed-and-committed** [core/Page: card wired in, its index page finally shows itself](/framework/ai/sessions/2026/09/30/cards-and-logs/cards-and-logs/wire/) — 3d4aa09a6
 - · 2026-09-30 **orphan-commit** core/Page/audit/design: the ranked findings (12 rows, 3 fixed) on the page — 35540bb83
 - ✅ 2026-09-30 **landed-and-committed** [Page system: layout, navigation, new-page, storage](/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/) — 3d4aa09a6 45355ddca 04a7800bf 6e566f42d +20
 - · 2026-09-30 **orphan-commit** design-bands: three band fixes on /framework/core/Page/ and /framework/ — f5e13e788
-- ⬜ 2026-09-30 **never-started** [Whisper debug log: a real Transcriber.Whisper run, logged tick by tick](/framework/ai/sessions/2026/09/30/cards-and-logs/cards-and-logs/whisper/)
+- ◻️ 2026-09-30 **landed-no-path-commit** [Whisper debug log: a real Transcriber.Whisper run, logged tick by tick](/framework/ai/sessions/2026/09/30/cards-and-logs/cards-and-logs/whisper/)
+- ◻️ 2026-09-30 **landed-no-path-commit** [Card inventory: 9 kinds found, 8 shot, grounds/padding findings logged](/framework/ai/sessions/2026/09/30/cards-and-logs/cards-and-logs/inventory/)
+- ✅ 2026-09-30 **landed-and-committed** [readme_chain(dir): every directory-bound agent starts already knowing where it i](/framework/ai/sessions/2026/09/29/readme-chain/readme-chain/) — aacb2ee61
 - · 2026-09-30 **orphan-commit** Fix region demo tab-default link that 404'd at /doc/ — d83036f10
+- ✅ 2026-09-30 **landed-and-committed** [Page files: each folder lists its own files](/framework/ai/sessions/2026/09/29/page-files-log/page-files-log/) — 48dcd1903 206c3a2d1
 - ✅ 2026-09-29 **landed-and-committed** [Screenshots: AI 2 cards at phone width](/framework/ai/sessions/2026/09/24/servex-mastermind-opus/card-mobile/) — afd8ff577 d29697b9a 9f6bf7ec0 b87eb7699 +20
 - · 2026-09-29 **orphan-commit** Migration: list-only page.jsonl renamed to files.jsonl (2,430 folders; jsonl pages keep th — 80a7c5cba
+- ✅ 2026-09-29 **landed-and-committed** [Mobile: the ☰ is the page nav again, plus an ✦ AI that answers from the phone](/framework/ai/sessions/2026/09/29/mobile-nav/mobile-nav/) — 08caba06a
+- ✅ 2026-09-29 **landed-and-committed** [File system: File and Directory objects, /fs beside the nav, links to a line](/framework/ai/sessions/2026/09/29/file-system/file-system/) — 0001a763a acd9cd4c1
 - · 2026-09-29 **orphan-commit** switcher: real code in the tree skin, pattern above the fold, no panel chrome, sticky-head — 29c953bbd
 - · 2026-09-29 **orphan-commit** core/Page/layout/switcher: sticky-header label, declutter rail, use the width at 1920/3440 — e7cb389e5
-- · 2026-09-29 **orphan-commit** core/Page/layout/switcher: the Switcher pattern, a CSS-only proof it needn't monkey-patch  — acd9cd4c1
 - ✅ 2026-09-29 **landed-and-committed** [Slow AI 2 cards: gzip the dev server, stop it fighting for connections](/framework/ai/sessions/2026/09/29/slow-card-fix/slow-card-fix/) — 58f5952e0 848fc7760 0001a763a 48dcd1903 +1
 - · 2026-09-29 **orphan-commit** fix jsonl page tile links (md/doc/ not doc/) — 98ee21083
 - · 2026-09-29 **orphan-commit** core/Page/weight/: each page's weight (1 + references + manual), Server/page-refs.mjs, the — 51a8ea8fb
 - · 2026-09-29 **orphan-commit** core/Page: the live page instance (page_object) on the Overview; weight as a child and a t — 9becbedaa
 - · 2026-09-29 **orphan-commit** core/Page/jsonl/: retitled page.jsonl, system tiles first as an even grid, the v1 note bel — a37fc4753
 - · 2026-09-29 **orphan-commit** core/Page/navigation/: concept cards as one even row in the wide track, the first twice as — 2b5b853e5
+- ✅ 2026-09-29 **landed-and-committed** [Module experts: a ready Page expert, measured four ways](/framework/ai/sessions/2026/09/29/dd9065c6-974a-48d3-92e4-4706532c807f/module-experts/) — fa59ca425 aacb2ee61
 - · 2026-09-29 **orphan-commit** dynamic/: drop the Folder-chip explanation — it's framework chrome on every page — 86f46bcef
 - · 2026-09-29 **orphan-commit** dynamic/: fix round — meaning line per tile, weight tile 2, explain the Folder chip — 02ab8aa31
 - · 2026-09-29 **orphan-commit** core/Page/navigation/: review fixes + connect-the-dots + familiar-structure pass — 2f2cf44fd
 - · 2026-09-29 **orphan-commit** core/Page/page.js: fix bar() so the Navigation tab actually shows — 6f3003797
 - · 2026-09-29 **orphan-commit** layout hub: absolute href for the floating page card — d7dec7cf5
 - · 2026-09-29 **orphan-commit** layout readme: absolute links, so a crawl that reads them before md.resolve() runs still l — 2a654bdd9
-- · 2026-09-29 **orphan-commit** module-experts: fix review findings 1, 2, 3, 6, 8, 10 — aacb2ee61
 - · 2026-09-29 **orphan-commit** core/Page/navigation/: persistent vs switching, the levels that stack, the go-to (ext/Doc  — 6c89eace3
 - · 2026-09-29 **orphan-commit** create_page does the whole mechanical job (description, readme stub, parent context); page — 8f173f377
+- ✅ 2026-09-29 **landed-and-committed** [Dictation to brief: refine.mjs, coverage audit, and an honest check of the tab's](/framework/ai/sessions/2026/09/29/a918d03d-6afe-4958-b425-20e9eba998ef/prompt-refine/) — 08caba06a
 - · 2026-09-29 **orphan-commit** Module experts: four-way proof results (fork vs load_module vs preload vs cold, blind Opus — 7be878502
 - · 2026-09-29 **orphan-commit** Module experts: core/Page recipe, experts.js (load_module, readme, build, fresh, ask), fou — fa99e96e7
-- · 2026-09-29 **orphan-commit** Fix review findings: variant C consistency, walkthrough counts/links, H1 order, floating n — 9891431cc
 - · 2026-09-29 **orphan-commit** Floating page: scope the full-height rule off the ui/section diagram — bcfc67c41
-- · 2026-09-29 **orphan-commit** Floating page: make the demo BE a floating page, full viewport — c05f204c4
-- · 2026-09-29 **orphan-commit** Floating page: core/Page layout word, gray well + white page + left nav — 05cedd892
 - · 2026-09-29 **orphan-commit** core/Page + dev/Socket: land jsonl/full, layout/, make/, overview/folders/, and the day's  — b0bc051e5
-- ⬜ 2026-09-28 **never-started** [review-fixes](/framework/ai/sessions/2026/09/28/ce1cbe96-a28c-43d3-897e-4629ae753aeb/source-library/review-fixes/)
-- · 2026-09-28 **orphan-commit** Add <any path>/fs/, the full-screen file view — ad417e411
+- ◻️ 2026-09-28 **landed-no-path-commit** [review-fixes](/framework/ai/sessions/2026/09/28/ce1cbe96-a28c-43d3-897e-4629ae753aeb/source-library/review-fixes/)
+- ⚠️ 2026-09-28 **committed-never-closed** [file-explorer-fs](/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/) — ad417e411
 - · 2026-09-28 **orphan-commit** API tab card draws from a live example instance; readme names both link options — 69f2bacf3
 - · 2026-09-28 **orphan-commit** Review fixes: one address per member on the API tab, a readable instance demo, doc note — c35ec0189
+- ◻️ 2026-09-28 **landed-no-path-commit** [Dictate: a playground with raw, corrections and live views](/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/)
+- ✅ 2026-09-28 **landed-and-committed** [Dictation playground walkthrough: Next / Next through the real pipeline](/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/walkthrough/) — 9891431cc c05f204c4 05cedd892
 - · 2026-09-28 **orphan-commit** Object card: declared properties for a class, chip methods, capped lists, skip undefined/O — 232ee0b6b
 - · 2026-09-28 **orphan-commit** Fix: reimplement api_section() directly instead of calling super — c17fd0e4f
 - · 2026-09-28 **orphan-commit** Add ux/Content/Object: a card that shows a live object's class, properties and methods — f820c7817
+- ◻️ 2026-09-28 **landed-no-path-commit** [playground](/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/playground/)
 - · 2026-09-25 **orphan-commit** Page overview: flow rhythm between blocks, no doubled top air under tabs — b2903e126
 - · 2026-09-25 **orphan-commit** Page overview: intro and two code blocks as three equal columns — d152a9a2f
 - · 2026-09-25 **orphan-commit** docs: readme indexes across the framework, census page, stub readmes — 38af5a497
 - · 2026-09-25 **orphan-commit** Route everything: swapped docs get a url; Page routing + skill line (card.js hunk left in  — 93aef089e
+- ◻️ 2026-09-25 **landed-no-path-commit** [page-system](/framework/ai/sessions/2026/09/25/page-system/)
 - · 2026-09-25 **orphan-commit** core/Page: level-1 readme, short landing, one-topic docs (api, watch-out, navigation, layo — 15291daab
-- · 2026-09-24 **orphan-commit** core-columns: columns freeze at a third of the row; fill yields to an open child — 23b07fa3f
+- ◻️ 2026-09-25 **landed-no-path-commit** [layout-check](/framework/ai/sessions/2026/09/25/54c0290c-57e1-4a9d-8eeb-6736c575bcdd/layout-check/)
+- ◻️ 2026-09-24 **landed-no-path-commit** [card-folders](/framework/ai/sessions/2026/09/24/card-folders/card-folders/)
+- ◻️ 2026-09-24 **landed-no-path-commit** [Every task shows what it cost](/framework/ai/sessions/2026/09/24/ai2-cost-fill/task-cost/)
+- ◻️ 2026-09-24 **landed-no-path-commit** [inventory](/framework/ai/sessions/2026/09/24/inventory/inventory/)
+- ◻️ 2026-09-24 **landed-no-path-commit** [page-jsonl](/framework/ai/sessions/2026/09/24/page-jsonl/page-jsonl/)
+- ✅ 2026-09-24 **landed-and-committed** [core-columns](/framework/ai/sessions/2026/09/24/core-columns/core-columns/) — 23b07fa3f
 - · 2026-09-24 **orphan-commit** Docs: core/Page/doc/open.md; readmes point at open_link() — df95e131b
 - · 2026-09-24 **orphan-commit** The page decides where a clicked link opens — 67eb7d4ee
 - · 2026-09-24 **orphan-commit** page.jsonl: demo log block wraps; docs for the file lines and the live redraw — 5cd0f4fd5
@@ -201,67 +227,77 @@
 - · 2026-09-24 **orphan-commit** page.jsonl: set(), loader, file/place lines, demo page — f90c8a684
 - · 2026-09-24 **orphan-commit** Docs: core/Page/doc/markdown.md, readmes point at md/ — 22cd13341
 - · 2026-09-24 **orphan-commit** Every page has md/: its markdown files render as pages — a791d8141
-- · 2026-09-23 **orphan-commit** Servex day: the always-on agent host, the loop, AI 2, worktrees, the padding law — 604c2c326
+- ◻️ 2026-09-23 **landed-no-path-commit** [mastermind-servex](/framework/ai/sessions/2026/09/22/e2b82220-72fd-4fec-b8a6-5f985c9cbefa/mastermind-servex/)
+- ✅ 2026-09-23 **landed-and-committed** [system-retro](/framework/ai/sessions/2026/10/09/session-9d1f0c2e/system-retro/) — 604c2c326
+- ◻️ 2026-09-22 **landed-no-path-commit** [agent-host](/framework/ai/sessions/2026/09/22/session-e69d8104/agent-host/)
 - · 2026-09-22 **orphan-commit** yea — 3e9536d4d
-- ⬜ 2026-09-20 **never-started** [reset-restore](/framework/ai/sessions/2026/09/19/reset-restore/)
-- ⬜ 2026-09-18 **never-started** [cleanup-2](/framework/ai/sessions/2026/09/18/cleanup-2/)
-- ⬜ 2026-09-18 **never-started** [imagine-move-2](/framework/ai/sessions/2026/09/18/imagine-move-2/)
-- ⬜ 2026-09-18 **never-started** [related-sidebar](/framework/ai/sessions/2026/09/18/related-sidebar/)
-- ⬜ 2026-09-18 **never-started** [link-tracking](/framework/ai/sessions/2026/09/18/link-tracking/)
-- ⬜ 2026-09-18 **never-started** [imagine-move-3](/framework/ai/sessions/2026/09/18/imagine-move-3/)
-- ⬜ 2026-09-18 **never-started** [cleanup-1](/framework/ai/sessions/2026/09/17/cleanup-1/)
+- ◻️ 2026-09-20 **landed-no-path-commit** [reset-restore](/framework/ai/sessions/2026/09/19/reset-restore/)
+- ◻️ 2026-09-18 **landed-no-path-commit** [cleanup-2](/framework/ai/sessions/2026/09/18/cleanup-2/)
+- ◻️ 2026-09-18 **landed-no-path-commit** [imagine-move-2](/framework/ai/sessions/2026/09/18/imagine-move-2/)
+- ◻️ 2026-09-18 **landed-no-path-commit** [related-sidebar](/framework/ai/sessions/2026/09/18/related-sidebar/)
+- ◻️ 2026-09-18 **landed-no-path-commit** [link-tracking](/framework/ai/sessions/2026/09/18/link-tracking/)
+- ◻️ 2026-09-18 **landed-no-path-commit** [imagine-move-3](/framework/ai/sessions/2026/09/18/imagine-move-3/)
+- ◻️ 2026-09-18 **landed-no-path-commit** [cleanup-1](/framework/ai/sessions/2026/09/17/cleanup-1/)
 - · 2026-09-17 **orphan-commit** yea — 8b4ced8e3
+- ◻️ 2026-09-14 **landed-no-path-commit** [importance](/framework/ai/sessions/2026/09/13/self-evident-fixes-2/importance/)
+- ◻️ 2026-09-14 **landed-no-path-commit** [importance](/framework/ai/sessions/2026/09/13/self-evident-fixes/importance/)
+- ◻️ 2026-09-14 **landed-no-path-commit** [importance](/framework/ai/sessions/2026/09/13/importance/)
 - ✅ 2026-09-06 **landed-and-committed** [docs-after-size](/framework/ai/sessions/2026/09/06/docs-after-size/) — 8a18b1918
 - ✅ 2026-09-06 **landed-and-committed** [graduate-3](/framework/ai/sessions/2026/09/06/graduate-3/) — 96b5671f5 e5f48b989 ff6a88dfd cfb711dd5 +1
 - ✅ 2026-09-06 **landed-and-committed** [bleed-gutter](/framework/ai/sessions/2026/09/06/bleed-gutter/) — 96b5671f5 e5f48b989 ff6a88dfd 8d18080b0
 - ✅ 2026-09-06 **landed-and-committed** [graduate-2](/framework/ai/sessions/2026/09/06/graduate-2/) — e5f48b989 ff6a88dfd cfb711dd5 8d18080b0
+- ✅ 2026-09-06 **landed-and-committed** [mastermind-day](/framework/ai/sessions/2026/09/05/mastermind-day/) — c1b7372ce ba7c392d8 561581359 4f7099fd6
 - ✅ 2026-09-05 **landed-and-committed** [core-fixes](/framework/ai/sessions/2026/09/05/core-fixes/) — c1b7372ce
-- · 2026-09-05 **orphan-commit** Components read the spacing ramps: 365 rules across 69 files (the old value and date on ev — ba7c392d8
+- ✅ 2026-09-05 **landed-and-committed** [paging-v3](/framework/ai/sessions/2026/09/05/paging-v3/) — 4f7099fd6
 - ✅ 2026-09-05 **landed-and-committed** [columns-polish](/framework/ai/sessions/2026/09/05/columns-polish/) — 561581359 4f7099fd6
-- · 2026-09-05 **orphan-commit** Night wave B lands: paging mechanisms v2 (a visible stage for every swap, four swap visual — 76e821dfe
-- ⬜ 2026-09-04 **never-started** [paging-explorer](/framework/ai/sessions/2026/09/04/paging-explorer/)
+- ✅ 2026-09-05 **landed-and-committed** [mastermind-night](/framework/ai/sessions/2026/09/05/mastermind-night/) — 76e821dfe
+- ✅ 2026-09-05 **landed-and-committed** [mastermind-platform](/framework/ai/sessions/2026/09/04/mastermind-platform/) — 60a471b93
+- ◻️ 2026-09-04 **landed-no-path-commit** [paging-explorer](/framework/ai/sessions/2026/09/04/paging-explorer/)
 - ✅ 2026-09-04 **landed-and-committed** [table-equal](/framework/ai/sessions/2026/09/04/table-equal/) — 60a471b93
 - ✅ 2026-09-01 **landed-and-committed** [spacing-clamp](/framework/ai/sessions/2026/09/01/spacing-clamp/) — 26cfd674a
 ## 2026-08
 
 - ✅ 2026-08-31 **landed-and-committed** [improve-generator](/framework/ai/sessions/2026/08/31/improve-generator/) — 05a96363e ecc00a553 e06401b59
 - ✅ 2026-08-31 **landed-and-committed** [drafts-and-glass](/framework/ai/sessions/2026/08/31/drafts-and-glass/) — be59d3b83
-- ✅ 2026-08-31 **landed-and-committed** [generator-export](/framework/ai/sessions/2026/08/31/generator-export/) — b43ca44f9 05a96363e ecc00a553 e06401b59
+- ✅ 2026-08-31 **landed-and-committed** [generator-export](/framework/ai/sessions/2026/08/31/generator-export/) — 05a96363e ecc00a553 e06401b59
 - ✅ 2026-08-31 **landed-and-committed** [generator-round-2](/framework/ai/sessions/2026/08/31/generator-round-2/) — 05a96363e ecc00a553 e06401b59
 - ✅ 2026-08-31 **landed-and-committed** [page-store](/framework/ai/sessions/2026/08/31/page-store/) — 958806a16
 - ✅ 2026-08-31 **landed-and-committed** [alpha-flip](/framework/ai/sessions/2026/08/30/alpha-flip/) — 98adc092c
 - ✅ 2026-08-30 **landed-and-committed** [streaming-pages](/framework/ai/sessions/2026/08/30/streaming-pages/) — 295adf070
+- ✅ 2026-08-30 **landed-and-committed** [color-stacks](/framework/ai/sessions/2026/08/30/color-stacks/) — 98adc092c 295adf070
 - ✅ 2026-08-30 **landed-and-committed** [lazy-children](/framework/ai/sessions/2026/08/30/lazy-children/) — 295adf070
 - ✅ 2026-08-30 **landed-and-committed** [demo-clips](/framework/ai/sessions/2026/08/30/demo-clips/) — aab137ab3 343d720cd
 - ✅ 2026-08-30 **landed-and-committed** [simplify-audit](/framework/ai/sessions/2026/08/30/simplify-audit/) — aab137ab3 343d720cd
-- ⬜ 2026-08-29 **never-started** [imagine-tidy](/framework/ai/sessions/2026/08/29/imagine-tidy/)
-- ⬜ 2026-08-29 **never-started** [core-pass-3](/framework/ai/sessions/2026/08/29/core-pass-3/)
-- ⬜ 2026-08-29 **never-started** [core-fixes](/framework/ai/sessions/2026/08/29/core-fixes/)
-- ⬜ 2026-08-29 **never-started** [vary-labs](/framework/ai/sessions/2026/08/29/vary-labs/)
-- ⬜ 2026-08-29 **never-started** [gen-widths](/framework/ai/sessions/2026/08/29/gen-widths/)
-- ⬜ 2026-08-28 **never-started** [select-chevron-auto](/framework/ai/sessions/2026/08/28/select-chevron-auto/)
-- ⬜ 2026-08-27 **never-started** [column-polish](/framework/ai/sessions/2026/08/27/column-polish/)
+- ◻️ 2026-08-29 **landed-no-path-commit** [imagine-tidy](/framework/ai/sessions/2026/08/29/imagine-tidy/)
+- ◻️ 2026-08-29 **landed-no-path-commit** [core-pass-3](/framework/ai/sessions/2026/08/29/core-pass-3/)
+- ◻️ 2026-08-29 **landed-no-path-commit** [core-fixes](/framework/ai/sessions/2026/08/29/core-fixes/)
+- ◻️ 2026-08-29 **landed-no-path-commit** [vary-labs](/framework/ai/sessions/2026/08/29/vary-labs/)
+- ◻️ 2026-08-29 **landed-no-path-commit** [gen-widths](/framework/ai/sessions/2026/08/29/gen-widths/)
+- ◻️ 2026-08-28 **landed-no-path-commit** [select-chevron-auto](/framework/ai/sessions/2026/08/28/select-chevron-auto/)
+- ◻️ 2026-08-27 **landed-no-path-commit** [column-polish](/framework/ai/sessions/2026/08/27/column-polish/)
 - ✅ 2026-08-27 **landed-and-committed** [gen-controls](/framework/ai/sessions/2026/08/27/gen-controls/) — b7d0f40cd
 - ✅ 2026-08-27 **landed-and-committed** [column-uses](/framework/ai/sessions/2026/08/27/column-uses/) — b7d0f40cd
 - ✅ 2026-08-27 **landed-and-committed** [gen-semantics](/framework/ai/sessions/2026/08/27/gen-semantics/) — b7d0f40cd
-- ⬜ 2026-08-26 **never-started** [grids-lab](/framework/ai/sessions/2026/08/26/grids-lab/)
-- ⬜ 2026-08-26 **never-started** [looks-lab](/framework/ai/sessions/2026/08/26/looks-lab/)
-- ⬜ 2026-08-26 **never-started** [page-generator](/framework/ai/sessions/2026/08/26/page-generator/)
-- ⬜ 2026-08-26 **never-started** [column-core](/framework/ai/sessions/2026/08/26/column-core/)
-- ⬜ 2026-08-26 **never-started** [ux-inner-tabs](/framework/ai/sessions/2026/08/26/ux-inner-tabs/)
+- ◻️ 2026-08-27 **landed-no-path-commit** [page-refs](/framework/ai/sessions/2026/08/27/page-refs/)
+- ◻️ 2026-08-26 **landed-no-path-commit** [grids-lab](/framework/ai/sessions/2026/08/26/grids-lab/)
+- ◻️ 2026-08-26 **landed-no-path-commit** [looks-lab](/framework/ai/sessions/2026/08/26/looks-lab/)
+- ◻️ 2026-08-26 **landed-no-path-commit** [page-generator](/framework/ai/sessions/2026/08/26/page-generator/)
+- ◻️ 2026-08-26 **landed-no-path-commit** [column-core](/framework/ai/sessions/2026/08/26/column-core/)
+- ◻️ 2026-08-26 **landed-no-path-commit** [ux-inner-tabs](/framework/ai/sessions/2026/08/26/ux-inner-tabs/)
 - ✅ 2026-08-19 **landed-and-committed** [page-docs-mastermind](/framework/ai/sessions/2026/08/19/page-docs-mastermind/) — 670ae1a72
-- ⬜ 2026-08-19 **never-started** [page-docs-wall](/framework/ai/sessions/2026/08/19/page-docs-wall/)
-- ✅ 2026-08-19 **landed-and-committed** [page-columns](/framework/ai/sessions/2026/08/18/page-columns/) — 6b614a5b9 670ae1a72 1093fffbe
-- ⬜ 2026-08-19 **never-started** [md-routes](/framework/ai/sessions/2026/08/18/md-routes/)
+- ◻️ 2026-08-19 **landed-no-path-commit** [page-docs-wall](/framework/ai/sessions/2026/08/19/page-docs-wall/)
+- ✅ 2026-08-19 **landed-and-committed** [page-columns](/framework/ai/sessions/2026/08/18/page-columns/) — 670ae1a72 1093fffbe
+- ◻️ 2026-08-19 **landed-no-path-commit** [md-routes](/framework/ai/sessions/2026/08/18/md-routes/)
+- ◻️ 2026-08-18 **landed-no-path-commit** [mastermind-night](/framework/ai/sessions/2026/08/18/mastermind-night/)
 - · 2026-08-18 **orphan-commit** yea — e92692ce7
-- ⬜ 2026-08-18 **never-started** [wall-polish](/framework/ai/sessions/2026/08/17/wall-polish/)
-- ⬜ 2026-08-18 **never-started** [layout-wave-3](/framework/ai/sessions/2026/08/17/layout-wave-3/)
-- ⬜ 2026-08-17 **never-started** [layout-primitives](/framework/ai/sessions/2026/08/17/layout-primitives/)
-- ⬜ 2026-08-17 **never-started** [layout-wave-2](/framework/ai/sessions/2026/08/17/layout-wave-2/)
-- ⬜ 2026-08-17 **never-started** [readme-retreat](/framework/ai/sessions/2026/08/17/readme-retreat/)
-- ⬜ 2026-08-17 **never-started** [task-status](/framework/ai/sessions/2026/08/17/task-status/)
+- ◻️ 2026-08-18 **landed-no-path-commit** [wall-polish](/framework/ai/sessions/2026/08/17/wall-polish/)
+- ◻️ 2026-08-18 **landed-no-path-commit** [layout-wave-3](/framework/ai/sessions/2026/08/17/layout-wave-3/)
+- ◻️ 2026-08-17 **landed-no-path-commit** [layout-primitives](/framework/ai/sessions/2026/08/17/layout-primitives/)
+- ◻️ 2026-08-17 **landed-no-path-commit** [layout-wave-2](/framework/ai/sessions/2026/08/17/layout-wave-2/)
+- ◻️ 2026-08-17 **landed-no-path-commit** [readme-retreat](/framework/ai/sessions/2026/08/17/readme-retreat/)
+- ◻️ 2026-08-17 **landed-no-path-commit** [task-status](/framework/ai/sessions/2026/08/17/task-status/)
 - ✅ 2026-08-17 **landed-and-committed** [layout-generator-rules](/framework/ai/sessions/2026/08/16/layout-generator-rules/) — 45b5a04ca
-- ⬜ 2026-08-16 **never-started** [browse-grids](/framework/ai/sessions/2026/08/16/browse-grids/)
+- ◻️ 2026-08-16 **landed-no-path-commit** [browse-grids](/framework/ai/sessions/2026/08/16/browse-grids/)
 - · 2026-08-15 **orphan-commit** yea — d553fd103
 - · 2026-08-13 **orphan-commit** yea — 29c239b15
 - · 2026-08-12 **orphan-commit** yea — 8d373178f

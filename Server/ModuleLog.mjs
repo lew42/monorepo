@@ -2,7 +2,7 @@
 // Server/ModuleLog.mjs — the work on ONE module/folder, by day/week/month, each item graded. Script only, no AI reads.
 // Doc: .claude/skills/past-work/SKILL.md (part of the past-work system; reuses SessionIndex + LandingCheck, adds the git join).
 //   node Server/ModuleLog.mjs <repo path> [--by day|week|month] [--since YYYY-MM-DD] [--json]     e.g. public/framework/core/Page
-// Grades: landed-and-committed · committed-never-closed · never-started (task opened, no commit of the path ties to it).
+// Grades: landed-and-committed · committed-never-closed · never-started (not landed, no commit ties to it) · landed-no-path-commit (landed, but no commit of this path ties to it).
 // A commit belongs to a task when a task action file it touches matches (time window), or its message names the task slug/branch.
 // Commits that tie to no task are listed as orphans.
 import fs from "node:fs";
@@ -20,7 +20,7 @@ export default class ModuleLog {
 	constructor(target, { since = "" } = {}) { this.path = norm(target); this.since = since; }
 
 	/** Task records that touched the path: an action file inside it, a Fence/outcome/title naming it. Each carries its matched files. */
-	tasks() {
+	tasks(msgs = "") {
 		const out = [];
 		for (const f of PastWork.walk(path.join(REPO, "public/framework/ai"))) {
 			if (path.basename(f) !== "task.jsonl") continue;
@@ -28,6 +28,7 @@ export default class ModuleLog {
 			const dir = norm(path.relative(REPO, path.dirname(f))), r = SessionIndex.reduce(dir, text), files = new Set();
 			for (const l of text.split("\n")) { if (!l.startsWith("{")) continue; try { for (const x of JSON.parse(l).action?.files ?? []) if (inside(x, this.path)) files.add(norm(x)); } catch {} }
 			let how = files.size ? "files" : "";
+			if (!how && r.slug.length > 8 && msgs.includes(r.slug)) how = "message";   // a commit on this path names the task
 			if (!how) {
 				let req = ""; try { req = fs.readFileSync(path.join(REPO, dir, "requirements.md"), "utf8").split("\n").find(l => /^\s*(\*\*)?Fence/i.test(l)) ?? ""; } catch {}
 				if ([r.outcome, r.title, req].some(s => s.replaceAll("\\", "/").includes(this.path))) how = "named";
@@ -50,17 +51,17 @@ export default class ModuleLog {
 
 	/** Tie each commit to a task (action file + time window, or slug/branch in the message). Returns the log rows. */
 	build() {
-		const tasks = this.tasks(), commits = this.commits(), rows = [], tied = new Set();
+		const commits = this.commits(), tasks = this.tasks(commits.map(c => c.subject + " " + c.body).join(" ")), rows = [], tied = new Set();
 		for (const t of tasks) {
 			t.commits = commits.filter(c => {
 				const msg = c.subject + " " + c.body;
-				if (t.slug.length > 8 && msg.includes(t.slug) || t.branch && msg.includes(t.branch)) return true;
 				const from = (t.started || t.last) - HOUR, to = Math.max(t.landed_at, t.last) + 2 * HOUR;
+				if ((t.slug.length > 8 && msg.includes(t.slug) || t.branch && msg.includes(t.branch)) && c.at >= from && c.at <= to + 24 * HOUR) return true;   // a name in the message counts only near the task's own dates
 				return t.touched.some(f => c.files.includes(f)) && c.at >= from && c.at <= to;
 			});
 			t.commits.forEach(c => tied.add(c.sha));
 			let grade = !t.commits.length ? "never-started" : t.landed ? "landed-and-committed" : "committed-never-closed";
-			if (grade === "never-started" && t.landed && t.branch && LandingCheck.verify(t.dir).landed) grade = "landed-and-committed";   // merge.mjs applied the diff, no per-file commit
+			if (grade === "never-started" && t.landed) grade = t.branch && LandingCheck.verify(t.dir).landed ? "landed-and-committed" : "landed-no-path-commit";   // landed, but no commit of this path ties to it (named only, or the merge applied the diff)
 			rows.push({ kind: "task", at: t.when, grade, title: t.title || t.slug, url: t.url, how: t.how, commits: t.commits.map(c => c.sha), outcome: t.outcome });
 		}
 		for (const c of commits) if (!tied.has(c.sha)) rows.push({ kind: "orphan", at: c.at, grade: "orphan-commit", title: c.subject, url: "", how: "", commits: [c.sha], outcome: "" });
@@ -77,12 +78,12 @@ export default class ModuleLog {
 
 	format(rows, by = "week") {
 		const n = g => rows.filter(r => r.grade === g).length, L = [`# ${this.path} — work log by ${by}`, "",
-			`${rows.length} items: ${n("landed-and-committed")} landed-and-committed · ${n("committed-never-closed")} committed-never-closed · ${n("never-started")} never-started · ${n("orphan-commit")} orphan commits (no task)`, ""];
+			`${rows.length} items: ${n("landed-and-committed")} landed-and-committed · ${n("committed-never-closed")} committed-never-closed · ${n("never-started")} never-started · ${n("landed-no-path-commit")} landed-no-path-commit · ${n("orphan-commit")} orphan commits (no task)`, ""];
 		let last = "";
 		for (const r of rows) {
 			const b = ModuleLog.bucket(r.at, by);
 			if (b !== last) L.push(`## ${b}`, ""), last = b;
-			const mark = { "landed-and-committed": "✅", "committed-never-closed": "⚠️", "never-started": "⬜", "orphan-commit": "·" }[r.grade];
+			const mark = { "landed-and-committed": "✅", "committed-never-closed": "⚠️", "never-started": "⬜", "landed-no-path-commit": "◻️", "orphan-commit": "·" }[r.grade];
 			L.push(`- ${mark} ${new Date(r.at).toISOString().slice(0, 10)} **${r.grade}** ${r.url ? `[${r.title.slice(0, 80)}](${r.url})` : r.title.slice(0, 90)}${r.commits.length ? ` — ${r.commits.slice(0, 4).join(" ")}${r.commits.length > 4 ? ` +${r.commits.length - 4}` : ""}` : ""}`);
 		}
 		return L.join("\n") + "\n";

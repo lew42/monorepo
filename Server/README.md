@@ -15,6 +15,8 @@ The owner-facing server also starts `whisper-server` for dictation on its own â€
 [`plugins/Whisper.js`](./plugins/Whisper.js), `NO_WHISPER=1` to opt out; see
 [`ux/Dictate`](/framework/ux/Dictate/).
 
+**`node Server/ModuleLog.mjs <path> [--by day|week|month]`** prints one folder's work log: tasks graded landed-and-committed, committed-never-closed, never-started or landed-no-path-commit, plus commits that belong to no task. It joins `SessionIndex`, `LandingCheck` and `git log`, beside `PastWork.mjs` (topic search); see the `past-work` skill.
+
 **`node Server/health.mjs`** is a separate, optional "is it working" watcher â€” not a
 plugin, no port of its own, safe to run beside any of these servers or none: it
 headless-checks a page after the file that could have broken it changes, and tells
