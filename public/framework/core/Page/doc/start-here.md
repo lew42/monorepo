@@ -1,6 +1,6 @@
-# You own core/Page: where to start
+# core/Page: start here
 
-If you were just told "you own `core/Page`", this is your first page. It lists where the work comes in, what has been done, how to test, and what is next door. Each item is one line and a link.
+If you are about to work on `core/Page` (as its mastermind, a minion, or a new reader), this is your first page. It lists where the work comes in, what has been done, how to test, and what is next door. Each item is one line and a link.
 
 ## 1. Read, in this order
 

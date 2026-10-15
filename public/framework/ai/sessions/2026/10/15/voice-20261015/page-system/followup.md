@@ -60,7 +60,7 @@ Answers to the page questions in [ask-0f679acf.md](../ask-0f679acf.md), from the
 
 **Fixed and merged** (`85f15281c`, docs only): five unlisted subfolders (`ai`, `card`, `ext`, `jsonl`, `old`) are now indexed; the split-plan line now says the file is 721 lines; the `page.js` count is current; a wrong line reference in `words.md`; and the type of `page.unknown` in `jsonl.md`.
 
-**Done 2026-10-15 (later merge):** the class map ([doc/classes.md](/framework/core/Page/doc/classes.md)), the start doc ([doc/owner.md](/framework/core/Page/doc/owner.md)), the core/Router link, and the Notes fold. A claim-by-claim check of the readme fixed 6 stale lines ([claims.md](readme-claims/claims.md)). The first three rows below are closed.
+**Done 2026-10-15 (later merge):** the class map ([doc/classes.md](/framework/core/Page/doc/classes.md)), the start doc ([doc/start-here.md](/framework/core/Page/doc/start-here.md), first named owner.md), the core/Router link, and the Notes fold. A claim-by-claim check of the readme fixed 6 stale lines ([claims.md](readme-claims/claims.md)). The first three rows below are closed.
 
 **Still missing (each needs more than one line, and the readme is at its 100-line limit):**
 
