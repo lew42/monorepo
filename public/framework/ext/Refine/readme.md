@@ -50,6 +50,8 @@ pulling a sample straight from a recent voice session — no index of raw dictat
 today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
 
 ## More
+- [Audit 2026-10-15](doc/audit-2026-10-15.md) — the owner's rules checked against the code (present / partial / missing), why a first sentence vanished, the S1. leak and the clipped box, 400 px screenshots; and [the redesign proposal](doc/redesign.md): one compact page, raw then clean then refined (`doc/audit-2026-10-15.md`, `doc/redesign.md`)
+- [Cleaner](/framework/ext/Refine/cleaner/) — the class that cleans a chunk (`Cleaner.js`): instant `quick_clean`, model `clean`, live demo with its instance; `engine.js` keeps the old function names
 - [How it works](doc/how-it-works.md) — the classes, the two steps (clean, then refine), how Dictate feeds it, and what is known broken
 - [Voice to refine (proposal)](doc/voice-to-refine.md) — a long dictated prompt through the voice tunnel, refined onto `/live/`; a proposal, nothing built
 - [Refined asks](doc/asks.md) — each refined ask becomes a line in its session's `asks.jsonl`, a per-module `doc/refined-asks.md`, and (if not done) a module inbox line (`Server/AskIndex.mjs`)

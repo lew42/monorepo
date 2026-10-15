@@ -127,7 +127,7 @@ Prompt.View = class extends View {
 	/** Each stage names itself: a number, a plain title, what it is in one line, and the class that makes it. */
 	static STAGES = {
 		said:    { title: "1 · Said",    what: "Exactly what Whisper heard. Type here too.", by: "Dictate", href: "/framework/ux/Dictate/" },
-		clean:   { title: "2 · Cleaned", what: "Your words, fixed: fillers out, sentences numbered. Nothing reworded.", by: "Cleaner", href: "/framework/ext/Refine/md/doc/refine-engine/" },
+		clean:   { title: "2 · Cleaned", what: "Your words, fixed: fillers out, sentences numbered. Nothing reworded.", by: "Cleaner", href: "/framework/ext/Refine/cleaner/" },
 		refined: { title: "3 · Outline", what: "The same ideas as a short outline. Click an S1 chip to jump to its sentence.", by: "Structurer", href: "/framework/ext/Refine/structure.js" },
 		scores:  { title: "4 · Scores",  what: "How clear each sentence is (1 = clear). ⚑ marks a sentence worth a second look.", by: "ClarityScorer", href: "/framework/ext/Refine/md/doc/prompt/" },
 	};
