@@ -2,3 +2,4 @@
 {"log":{"at":"2026-10-15T15:53:05-05:00","msg":"usage-now.mjs smoke: 'At 19% of pace with 6 days 6 hours left (room to spend)' then detail line, exit 0. Commit e03a9918e on branch worktree/qf-4"}}
 {"log":{"at":"2026-10-15T15:58:16-05:00","heartbeat":"check","msg":"status check sent to minion-usage-pace-line"}}
 {"log":{"at":"2026-10-15T15:58:50-05:00","heartbeat":"answered","msg":"I'm finished, and I'm not doing anything now. The change is committed as `e03a9918e` on branch `worktree/qf-4`, and the smoke test is logged in the task's `task.jsonl`.\n\n`Server/usage-now.mjs` now pri"}}
+{"log":{"at":"2026-10-15T16:10:10-05:00","msg":"task-loop chase 1 of 2: woke minion-usage-pace-line","chase":1}}
