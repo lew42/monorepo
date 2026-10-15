@@ -164,9 +164,9 @@ ${text}` };
 		{ from: "assistant-X", may: "message manager-X, master-assistant, mastermind-servex; spawn nothing" },
 		{ from: "manager-X", may: "message assistant-X, mastermind-servex; spawn anything except task-mastermind, manager, mastermind, master-assistant, assistant, page-mastermind, page-assistant" },
 		{ from: "master-assistant", may: "message any assistant, mastermind-servex; spawn nothing" },
-		{ from: "task-mastermind-*", may: "message mastermind-servex(-N) and another task mastermind (its parent gets a copy); spawn like a manager" },
+		{ from: "task-mastermind-*", may: "message mastermind-servex(-N) and another task mastermind (its parent gets a copy); spawn like a manager, and also a mastermind" },
 		{ from: "session-smart-*", may: "spawn task-mastermind, manager, minion, helper and the rest, except assistants and mastermind" },
-		{ from: "mastermind-X, task-mastermind-X", may: "spawn mastermind, minion and helper" },
+		{ from: "mastermind-X", may: "spawn mastermind, minion and helper" },
 		{ from: "worker", may: "spawn only minion and helper" }
 	]; }
 }
