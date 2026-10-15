@@ -168,7 +168,7 @@ export default class RefineQueue {
 		const item = { ...RefinedCard.item({ ref, parsed, count, brief: this.brief, model: r.model, usd: run.usd, tokens }), uuid: p.uuid, minion: r.session_id };
 		if (p.session) await page_add({ path: `/framework/ai/sessions/${p.session}/`, item }, { caller: RefineQueue.CALLER });
 		for (const a of parsed.asks) RefineQueue.append(RefineQueue.ASKS, { session: ref.session, line: ref.line, at: ref.at, id: a.id, ask: a.text.slice(0, 200), key: a.key, module: a.module, kind: a.kind, brief: this.brief });
-		if (p.session) run.filed = new AskIndex({ root: RefineQueue.main_root() }).after_refine(ref, parsed);   // record + cross off / module inbox (ext/Refine/doc/asks.md)
+		if (p.session) try { run.filed = new AskIndex({ root: RefineQueue.main_root() }).after_refine(ref, parsed); } catch (e){ run.filed_error = String(e.message ?? e).slice(0, 200); }   // record + cross off / module inbox (ext/Refine/doc/asks.md)
 		this.done++;
 		return run;
 	}
