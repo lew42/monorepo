@@ -1679,3 +1679,5 @@
 {"log":{"at":"2026-10-16T17:31:47-05:00","session":6,"weekly_all":17,"weekly_scoped":16,"resets_at":"2026-10-17T02:10:00.159255+00:00"}}
 {"log":{"at":"2026-10-16T17:46:47-05:00","session":6,"weekly_all":17,"weekly_scoped":16,"resets_at":"2026-10-17T02:10:00.121788+00:00"}}
 {"log":{"at":"2026-10-16T18:01:47-05:00","session":7,"weekly_all":17,"weekly_scoped":16,"resets_at":"2026-10-17T02:10:00.124486+00:00"}}
+{"log":{"at":"2026-10-16T18:16:47-05:00","session":7,"weekly_all":17,"weekly_scoped":16,"resets_at":"2026-10-17T02:10:00.291847+00:00"}}
+{"log":{"at":"2026-10-16T18:31:47-05:00","session":7,"weekly_all":17,"weekly_scoped":17,"resets_at":"2026-10-17T02:10:00.291850+00:00"}}
