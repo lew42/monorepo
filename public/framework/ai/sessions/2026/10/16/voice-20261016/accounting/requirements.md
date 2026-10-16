@@ -12,3 +12,5 @@ The owner's asks for this task, dictated 2026-10-16 to the voice agent. Source: 
 8. **The MCP tool surface: pages are the unit.** Relayed by the voice agent on 2026-10-16. The owner says this repeats an ask from yesterday. Verbatim:
 
    > "We must not add a new tool set every time we add a data type. Tasks, cards, live pages, sessions, projects, users are all just PAGES: a page is the unit, addressable by APP PATH (not file path), nestable, and sub-page items without a file path are addressable too. So the tool surface should be: one page tool with a method parameter (read/set/add/reply/log/...), one file-system tool, one server/Servex tool, one agent tool; the ask_* family is unclear and may not be needed."
+
+9. **The cloud voice session logs itself.** Relayed by the voice agent on 2026-10-16: every owner message in the cloud voice session is relayed automatically by the Servex MCP into a session log on disk, timestamped and flagged as a cloud session, so the voice agent never re-types the owner's words. Proposal: [cloud-voice-log.md](cloud-voice-log.md).
