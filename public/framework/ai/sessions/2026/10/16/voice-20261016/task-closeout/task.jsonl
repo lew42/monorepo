@@ -1,0 +1,10 @@
+{"assign":{"session_id":"65eaa74e-0208-4b15-9390-1a5a172cb734","agent":"mastermind-task-closeout","card":"2026/10/15/voice-session-2026-10-16-19-06","brief":"public/framework/ai/sessions/2026/10/16/voice-20261016/task-closeout/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/16/voice-20261016","requested_at":"2026-10-15T21:11:24-05:00","now":"starting","steps":[],"step":1}}
+{"action":{"at":"2026-10-15T21:12:46-05:00","did":"edit","files":["public/live/TaskState.js"]}}
+{"action":{"at":"2026-10-15T21:12:56-05:00","did":"edit","files":["Server/task-closeout.mjs"]}}
+{"assign":{"landed_at":"2026-10-15T21:13:40-05:00","title":"live: Today card shows done vs waiting on X","outcome":"**Today has 4 tasks done and 3 waiting; two finished tasks are now closed.**\n\n- Waiting: `handover-query` (snoozed until 2026-10-18 by mastermind-voice-20261016), `task-closeout` (in flight), `voice-20261016` (parent, agent active).\n- Closed with a landing line: `live-feed`, `subpages` (the cost is in each outcome).\n- The Today card shows done or \"waiting on X\" per task, with counts; done tasks are dimmed.\n- The re-prompt loop is not built; noted in `public/live/doc/notes.md` as the owner's direction.\n- Commits `0cebfcb6b` and `99cca128d`.","links":[{"url":"/live/","label":"Today card"}]}}
+{"log":{"at":"2026-10-15T21:13:42-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-15T21:13:42-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-15T21:13:42-05:00","msg":"doc-check: 1 module — clean"}}
+{"log":{"at":"2026-10-15T21:13:42-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-15T21:13:45-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-15T21:13:45-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
