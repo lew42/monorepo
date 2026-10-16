@@ -10,11 +10,12 @@
 	.live-one, .live-one .live-screen { padding: 0; background: none; max-width: none; }
 	.live-one .live-full, .live:not(.live-one) > .live-screen > .live-full { border-radius: 0; box-shadow: none; padding: 1rem .75rem; }
 	body:has(.live-one) { background: #fff; }
-	.page:has(> .live-one) { padding: 0; gap: 0; background: #fff; }
-	.page:has(> .live-one) > .page-title { display: none; }
+	.page:has(.live-one) { padding: 0; gap: 0; background: #fff; }
+	.page:has(.live-one) > .page-title { display: none; }
 	/* Code runs edge to edge in an opened card: cancel the card padding, keep a small inner one. */
 	.live-one .live-full pre { margin-inline: -.75rem; padding-inline: .75rem; border-radius: 0; }
-	.live-back { font-size: .8em; }
+	.live-back { font-size: .8em; line-height: 1; align-self: flex-start; }
+	.live-one .live-full { padding-top: .5rem; gap: .5rem; }
 	.live-row > * { margin: 0; }
 	.live-card-title { font-weight: 700; display: block; font-size: 1.25em; }
 	.live-heading { font-weight: 700; font-size: 1.5em; }
