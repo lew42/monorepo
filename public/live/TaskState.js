@@ -17,12 +17,18 @@ export default class TaskState {
 		if (assigns.some(a => a.landed_at)) return { state: "done", on: null, why: "landed" };
 
 		const logs = lines.map(l => l.log).filter(Boolean);
-		const said = logs.filter(l => this.DONE.test(l.msg ?? "") || this.DONE.test(l.msg?.split("\n")[0] ?? ""));
+		// finished = the LAST thing the agent itself said is a done report (bookkeeping lines don't count)
+		const book = l => l.heartbeat === "check" || /^(session (ended|resumed)|task-loop|status check)/.test(l.msg ?? "");
+		const own = logs.filter(l => !book(l));
+		const said = this.DONE.test(own.at(-1)?.msg ?? "") ? [own.at(-1)] : [];
 		const all = JSON.stringify(logs);
 		if (said.length && this.COMMIT.test(all)) return { state: "finished", on: null, why: "its own log says done and names a commit" };
 
 		const snooze = lines.map(l => l.snooze).filter(Boolean).at(-1);
 		if (snooze && Date.parse(snooze.until) > now) return { state: "waiting", on: `the snooze until ${snooze.until.slice(0, 10)} (set by ${snooze.by})`, why: "snoozed" };
+
+		if (own.at(-1)?.heartbeat === "answered" && /(idle|waiting for)/i.test(own.at(-1).msg))
+			return { state: "waiting", on: "the next question (its own report: idle, open on purpose)", why: "standing" };
 
 		const esc = logs.filter(l => l.chase === "escalated").at(-1);
 		if (esc) return { state: "waiting", on: "the owner (task-loop escalated it to the card)", why: "escalated" };

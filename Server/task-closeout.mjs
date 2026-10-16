@@ -21,7 +21,11 @@ function* walk(dir){
 
 const index = JSON.parse(readFileSync(join(base, "index.json"), "utf8"));
 const usd_of = id => index.snapshots.find(s => s.id === id)?.tree_usd;
-const rows = [...walk(base)].map(file => {
+// every task any of the day's sessions worked on, wherever it lives under sessions/ (matched by session id or agent name, as LiveToday does)
+const today = index.snapshots.filter(s => s.first_at);
+const ids = new Set(today.map(s => s.id)), agents = new Set(today.map(s => s.agent).filter(Boolean));
+const mine = file => { const a = TaskState.parse(readFileSync(file, "utf8")).flatMap(l => [l.assign, l.agent].filter(Boolean)); return a.some(x => ids.has(x.session_id) || agents.has(x.agent ?? x.id)); };
+const rows = [...walk(join(root, "public/framework/ai/sessions")) ].filter(f => f.startsWith(base) || mine(f)).map(file => {
 	const lines = TaskState.parse(readFileSync(file, "utf8"));
 	const a = lines.map(l => l.assign).filter(Boolean);
 	const dir = relative(root, join(file, ".."));
@@ -35,6 +39,11 @@ const rows = [...walk(base)].map(file => {
 	return live && r.state !== "done" ? { ...r, state: "waiting", on: "its own agent (still active)" } : r;
 });
 
+const by = new Map();   // session -> its tasks
+for (const r of rows) for (const sn of today.filter(sn => sn.id === r.sid || (sn.agent && sn.agent === r.agent))) (by.get(sn) ?? by.set(sn, []).get(sn)).push(r);
+if (process.argv.includes("--sessions")){
+	for (const sn of today) console.log(`${(sn.agent ?? sn.id.slice(0, 8)).padEnd(32)} ${(by.get(sn) ?? []).map(r => r.state === "waiting" ? `waiting on ${r.on}` : r.state).join("; ") || "no task"}`);
+}
 const count = s => rows.filter(r => r.state === s).length;
 console.log(`${day}: ${count("done")} done, ${count("finished")} finished-not-landed, ${count("waiting")} waiting`);
 for (const r of rows) console.log(`${r.state.padEnd(8)} ${r.dir.split("/").slice(-2).join("/")}  ${TaskState.label(r)}`);
