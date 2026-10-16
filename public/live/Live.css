@@ -14,3 +14,16 @@
 	.live pre { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; }
 	.live pre code { white-space: inherit; }
 }
+
+@layer site {
+	.live-today { display: flex; flex-direction: column; gap: .5rem; font-size: .8em; }
+	.live-today-sum { opacity: .6; }
+	.live-today-session { display: flex; flex-direction: column; gap: .15rem; border-top: 1px solid #0001; padding-top: .35rem; }
+	.live-today-row, .live-today-task { display: flex; flex-wrap: wrap; gap: .25rem .75rem; align-items: baseline; }
+	.live-today-task { margin-left: 1.25rem; opacity: .85; }
+	.live-today-row .live-today-name { font-weight: 700; }
+	.live-today-model, .live-today-parent { opacity: .6; }
+	.live-today-state { margin-left: auto; font-size: .85em; padding: 0 .4em; border-radius: .4em; background: #0001; }
+	.live-today-state.is-active, .live-today-state.is-running { background: #cfe8ff; }
+	.live-today-state.is-landed { background: #d5f0d5; }
+}

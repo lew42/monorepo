@@ -2,6 +2,7 @@ import { Page, div, span, a, p, md } from "/app.js";
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { View } from "/framework/core/View/View.js";
+import LiveToday from "./LiveToday.js";
 
 View.stylesheet(import.meta, "Live.css");
 
@@ -28,8 +29,8 @@ class LiveLog extends JSONL {
 	skip(k, entry){
 		const item = this.items.get(k), v = entry?.[k];
 		if (item && v && typeof v === "object" && !Array.isArray(v)){
-			const { text, title, type, preview } = v;
-			this.items.set(k, { ...item, ...(text !== undefined && { text }), ...(title !== undefined && { title }), ...(type !== undefined && { type }), ...(preview !== undefined && { preview }) });
+			const { text, title, type, preview, live } = v;
+			this.items.set(k, { ...item, ...(live !== undefined && { live }), ...(text !== undefined && { text }), ...(title !== undefined && { title }), ...(type !== undefined && { type }), ...(preview !== undefined && { preview }) });
 		}
 	}
 	reset(){ super.reset(); this.items = new Map(); this.seq = 0; this.last_ts = undefined; return this; }
@@ -81,13 +82,28 @@ class Tail {
 
 /* One feed item as a small Page: preview() is the stock preview card (Page.preview -> preview_card), full() the whole content. */
 class LiveCard extends Page {
-	static of(row){ return new this({ id: row.id, title: row.title, label: row.preview ?? row.title ?? row.id, text: row.text, url: `/live/?card=${encodeURIComponent(row.id)}` }); }
+	static live = { today: LiveToday };   // a card {type:"part-live", live:"<name>"} is drawn by this class, from live data, not from its text
 
-	preview(nav){ return this.preview_card(nav); }
+	static of(row){
+		const card = new this({ id: row.id, title: row.title, label: row.preview ?? row.title ?? row.id, text: row.text, url: `/live/?card=${encodeURIComponent(row.id)}` });
+		if (row.type === "part-live") card.live_name = row.live;
+		return card;
+	}
+
+	get renderer(){ return this.constructor.live[this.live_name]; }
+
+	preview(nav){
+		if (!this.renderer) return this.preview_card(nav);
+		return div.c("page-preview live-live", () => {
+			a.c("live-card-title", this.title).href(this.url).ac("page-preview-link");
+			this.renderer.into(div.c("live-live-body"));
+		});
+	}
 	full(){
 		return div.c("live-full", () => {
 			a.c("live-back", "← Live").href("/live/");
 			if (this.title) span.c("live-card-title", this.title);
+			if (this.renderer) return void this.renderer.into(div.c("live-live-body"));
 			md(Live.pretty(this.text ?? ""));
 		});
 	}
