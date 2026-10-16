@@ -8,6 +8,7 @@ import express from "express";
 import RemoteMCP from "./RemoteMCP.js";
 import MCP from "../../MCP.js";
 import { page_tools } from "../../agents/page_tools.js";
+import FileTools from "../../files.js";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "remote-test-"));
 fs.mkdirSync(path.join(root, "public/framework/ai"), { recursive: true });
@@ -15,6 +16,7 @@ const token_file = path.join(root, "state", "remote.token");
 const spawned = [], sent = [];
 const mcp = new MCP({ router: express.Router() });   // the REAL registry class; the real page tools and one marker tool go in through its own seam
 for (const tool of page_tools()) mcp.tool(tool);
+for (const tool of FileTools.tools()) mcp.tool(tool);
 mcp.tool({ name: "whoami_test", description: "test", handler: (a, ctx) => `caller=${ctx.caller}` });
 const servex = {
     mcp,
@@ -87,11 +89,25 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     const list = (await rpc({ id: 5, method: "tools/list" })).json.result.tools.map(t => t.name);
     assert.equal(list[0], "ask_mastermind");
     assert.ok(list.includes("page_add") && list.includes("whoami_test"), "page_add and the registry's own tools are listed");
-    assert.equal(list.length, mcp.tools.length + 1, "tool count = registry + ask_mastermind");
+    assert.equal(list.length, mcp.tools.length + 2, "tool count = registry + ask_mastermind + call");
     assert.equal(new Set(list).size, list.length, "no duplicates");
     const call = (name, args) => rpc({ id: 6, method: "tools/call", params: { name, arguments: args } });
     assert.equal((await call("whoami_test", {})).json.result.content[0].text, "caller=voice-app");
     assert.equal((await call("nope_tool", {})).json.error.code, -32602, "unknown tool is an error");
+    const text = r => r.json.result.content[0].text;
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ft-"));
+    const w = JSON.parse(text(await call("write_file", { root: dir, path: "a/b.txt", content: "one two" })));
+    assert.ok(w.ok);
+    assert.ok(JSON.parse(text(await call("edit_file", { root: dir, path: "a/b.txt", old_string: "two", new_string: "2" }))).ok);
+    assert.equal(JSON.parse(text(await call("read_file", { root: dir, path: "a/b.txt" }))).text, "one 2");
+    assert.ok(JSON.parse(text(await call("glob", { root: dir, pattern: "**/*.txt" }))).matches.includes("a/b.txt"));
+    assert.deepEqual(JSON.parse(text(await call("list_dir", { root: dir }))).entries, ["a/"]);
+    assert.equal(JSON.parse(text(await call("write_file", { root: dir, path: "x.jsonl", content: "{}" }))).ok, false, "jsonl write refused");
+    const sh = JSON.parse(text(await call("shell", { root: dir, command: "echo hi" })));
+    assert.ok(sh.ok && sh.stdout.trim() === "hi" && sh.exit_code === 0, "shell runs");
+    assert.equal(JSON.parse(text(await call("shell", { command: "sleep 5", timeout_s: 0.3 }))).timed_out, true, "timeout kills");
+    assert.equal(text(await call("call", { tool: "whoami_test", args: {} })), "caller=voice-app", "generic call dispatches");
+    fs.rmSync(dir, { recursive: true, force: true });
     const file = path.join(fileURLToPath(new URL("../../../public/" + live_dir + "/page.jsonl", import.meta.url)));
     try {
         const out = JSON.parse((await call("page_add", { path: `/${live_dir}/`, item: { type: "part-card", title: "Hello", text: "from the voice app" } })).json.result.content[0].text);

@@ -4,3 +4,4 @@
 
 - Why one registry, fully exposed (and the shelved `local`/`remote` split): [doc/mcp-unify.md](doc/mcp-unify.md)
 - The voice path end to end: [voice-bridge.md](../../../public/framework/ux/Dictate/doc/voice-bridge.md)
+- File and shell tools (`read_file`, `write_file`, `edit_file`, `list_dir`, `glob`, `shell`) and the generic `call` door: [doc/remote-tools.md](doc/remote-tools.md)
