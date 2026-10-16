@@ -3,6 +3,9 @@
 //
 //   PWENTRY=<path to playwright/index.mjs> node public/framework/ext/Refine/test/composer-flow.mjs <base-url> [shot.png]
 //
+// HARD CAPS (each /api/refine call is a real Haiku session, 64 of them ran in 3 minutes on 2026-10-16): at most MAX_REFINE_CALLS
+// (env, default 6) refine requests per run, the rest are aborted at the browser; the whole run is killed after MAX_SECONDS (default 90).
+//
 // Needs the local Whisper server (:8178) and Servex for the refine call. Headless only: never the owner's tabs.
 import { pathToFileURL } from "url";
 
@@ -12,6 +15,10 @@ const { chromium } = await import(pathToFileURL(process.env.PWENTRY).href);
 const browser = await chromium.launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
 const ctx = await browser.newContext({ viewport: { width: 400, height: 1000 }, permissions: ["microphone"] });
 const page = await ctx.newPage();
+const MAX_CALLS = +(process.env.MAX_REFINE_CALLS ?? 6), MAX_SECONDS = +(process.env.MAX_SECONDS ?? 90);
+let calls = 0, aborted = 0;
+await page.route("**/api/refine**", route => { if (route.request().method() !== "POST") return route.continue(); if (++calls > MAX_CALLS){ aborted++; return route.abort(); } route.continue(); });
+const kill = setTimeout(() => { console.log("FAIL run longer than MAX_SECONDS, killed"); process.exit(2); }, MAX_SECONDS * 1000);
 const errors = [];
 page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
 
@@ -51,5 +58,7 @@ else if (before.some((t, i) => after[i] !== t && !/^$/.test(t)) && !after.join("
 else console.log("ok 2: typed send added sentences, earlier ones kept:", JSON.stringify(after));
 
 if (shot) await page.screenshot({ path: shot, fullPage: true });
+clearTimeout(kill);
 await browser.close();
+console.log(`refine calls: ${Math.min(calls, MAX_CALLS)} sent, ${aborted} aborted (cap ${MAX_CALLS})`);
 if (!process.exitCode) console.log("PASS");
