@@ -30,3 +30,7 @@ The `Tail` fix works (headless tab over `10.0.0.135:3104`: a new line shows in 3
 3. **Server-side page instances** may be needed for 1 and 2. Whether the dev server or Servex owns them is open. The design so far is [core/Page/doc/server-instance.md](../../framework/core/Page/doc/server-instance.md); its first step is a `PageDoc` class that rebuilds a page's true state from its log.
 
 **Why:** the voice agent and the page should talk both ways, so the owner can follow along on the phone and steer by tapping, not by speaking. Source: voice question 39c069fe, logged in [voice-20261016/task.jsonl](../../framework/ai/sessions/2026/10/16/voice-20261016/task.jsonl).
+
+## Code on cards (the owner, by voice, 2026-10-16 ~02:42Z)
+
+When the voice agent talks about code, the card it posts shows the code in real fenced code blocks, never paraphrased in prose. Code blocks scroll sideways by default; a `wrap` word in the fence info opts a block in to wrapping (being built, voice question 25f15826).
