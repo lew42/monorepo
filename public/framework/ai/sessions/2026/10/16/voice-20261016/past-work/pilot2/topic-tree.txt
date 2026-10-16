@@ -1,0 +1,31 @@
+# MODULE PATHS (tier/Name; a session is tagged with the deepest one it touched)
+ai2/ : ai overview
+audio/ : LevelMeter mic-to-text MicPicker MicStream push-to-talk PushToTalk Recorder sound-recorder Transcriber v1 Voice Whisper
+audit/ : browsable modules overview
+catalog/ : thumbs
+code/ : css dos-and-donts objects patterns performance
+core/ : App Events Item Layout List new Page Property Router Search Section Session Shell Sidebar Task track View
+design/ : color content layout navigation ui
+dev/ : Claim DevBar DevShell mobile Socket
+doc/
+ext/ : ai AITask Ask catalog Chat Classify Collab CSSDoc DataGrid demo depth DesignTool Doc Draggable drawer Dropdown editor ErrorLog Figma files filesystem grip highlight JSONL layout markdown Mention Omnibox Panel panel2 Query Refine Research Saver Session Shots sprawl System tabs Timeline toc
+faq/
+lab/ : EventLog LiveView NotificationManager notifications WorkerHost
+library/ : screenshots
+log/
+old/
+research/ : ai harness livereload
+sandbox/ : quick-fix
+servex/ : fs lifecycle
+sources/ : claude-agent-sdk opencode openrouter
+start/ : example
+styles/ : elements layers layouts rules sections stacks system widths
+ui/ : accordion ai alert avatar background badge card controls crumbs datagrid decision dialog field icon item kbd menu pagination panel progress scale section stats table tags timeline toolbar tooltip tree words
+util/ : is markup source
+ux/ : ai Auth Browse Card Content Course Dictate Filter Hotkeys Inbox Menu Objects Pagination Popover Rename Revise Tags Tree Understand Wizard
+versus/
+ai/ : ai AISession AITask asks audits cards classes collab council dashboard errors health local models process quick-fix rail review sessions system systems talk tasks v whisper
+Server/ Servex/ Servex/agents Servex/ext public/live public/web public/layouts
+
+# TOPICS (name(landed tasks))
+layout(119), pages(101), ai-ops(88), web-ui(57), ai-log(53), panels(51), paging(50), review(30), servex(30), vision(24), platform(22), websites(16), ai2(11), playground(10), dictate(9), page-item(9), apps(8), imagine-review(8), design(8), ux(8), ai-dashboard(8), minion(8), ai-server(7), instructions(7), notes(7), page(7), figma(5), refine(5), docs(4), research(4), codrops(4), playwright(4), voice(4), source-library(4), Chat(4), Servex(4), Voice sessions(4), Sessions(4), Page(4), loose(3), spacing-census(3), system-design(3), page-system(3), Cards(3), core/Page(3), Dictate(3), Voice(3), panel2-sessions(3), prompt-refine(3), server(2), importance(2), imagine-moves(2), site-study(2), mastermind-servex(2), harness(2), page-drawer(2), content(2), recursive-pairs(2), Lifecycle(2), Dictation(2), audio(2), card(2), session(2), sheet(2), framework-home(2), task(2), Now card(2), Token accounting(2), Refine(2), Figma(2), Page content(2), Style library(1), devbar(1), process(1), meta(1), audit-fixes(1), doc-system(1), portfolio(1), framework(1), task-status(1), fans(1), name(1), core(1), spacing(1), imagine(1), imagine-integration(1), minion-skill(1), design-system(1), cleanup-2(1), dead-nav(1), edit-mode(1), list(1), memery(1), design-nesting(1), overlap-study(1), page-cms(1), related-sidebar(1), sidebar-filter(1), site-sidebar-tree(1), steps-demo(1), tree-fixes(1), assistant-stream(1), background-layer(1), card-replies(1), dashboard-next(1), devbar-chat(1), page-health(1), popovers(1), assistant-loop(1), reload-hold(1), server-self(1), ai-v3(1), whisper-autostart(1), whisper-local(1), worktree-minions(1), servex-log-model(1), servex-agents(1), ux-subpages(1), ai-agents(1), local-ai(1), ai(1), css(1), audits(1), landing(1), agent-work-on-every-page(1), collab(1), smoke-links(1), page-mastermind(1), organization(1), files(1), Review turns(1), task-loop(1), commit-live-system(1), content-ui(1), Lifecycle page(1), Lifecycle efficiency study(1), Nested tasks(1), servex-docs-tab(1), harness-research(1), drawer-ai(1), cause(1), node_modules(1), dictation(1), AI 2 cards on a phone(1), audio/ done(1), Round 2(1), ChatPanel(1), chat(1), Chat HITL(1), HITL widgets(1), Chat widget(1), Clean transcription mode(1), Census(1), Object views(1), dictate-spacing(1), File system(1), drawer(1), Card-page phone load(1), writer(1), page-files-log(1), readme-chain(1), Loose-ends audit(1), Skills audit(1), graph(1), ai2-soak-leak(1), Card inventory(1), logger(1), decided(1), AI 2(1), Mention(1), Servex reliability(1), One widget(1), layout-check gains --bands(1), Layout map(1), Page inbox(1), Pool(1), probes.mjs(1), Probe tasks(1), monitor(1), proposal(1), Logs(1), voice-sessions(1), Review(1), walkthrough(1), Mic send delay(1), Phone chat sheet(1), core/System(1), ui(1), Mobile rail fullscreen chat(1), Nested sheet example(1), Fixer(1), quick(1), token-efficiency(1), Voice sheet header(1), Line art(1), ai-system-docs(1), Recovery(1), inspect(1), Delete guard(1), jsonl(1), core/Page/ext/Inbox(1), sessions(1), token(1), Browser launches(1), Refine engine(1), Styles(1), ai-system(1), AI inbox(1), Echo(1), Console-clean(1), The card pipeline(1), Drawer(1), page-flash(1), mention-auto-sync(1), model-weights(1), push-to-talk(1), build(1), Sessions tab(1), stalled(1), task-audit(1), Day cards(1), Day overview(1), land(1), Local brain(1), Models tab(1), OpenRouter cost(1), Spend tree(1), Dictate round 2(1), Local model hunt(1), Doc header(1), Dev server(1), Session class(1), Cache(1), Docs-vs-code audit(1), Task audit(1), Cheap-model routing(1), mobile(1), code(1), Refine and Dictate(1), production(1), AI(1), card-to-task(1), system-retro(1), Code(1), Agent rules(1), AI system(1), Server perf(1), tasks(1), Inbox(1), Live-page error(1), CLAUDE.md(1), Page parts(1), readme(1), Sidebar search(1), Sidebar(1), Models(1), Page.class.js(1), skill(1), System(1), smoke(1), Page columns(1), AI code as classes(1), Servex relay(1), Skill audit(1), Docs and handover(1), Page AI API(1), Night audit(1), Owner inbox(1), Refine asks(1), Asks by module(1), relay(1), Skill prune(1), Server(1), Sessions grid(1), phone(1), Sessions detail(1), openrouter(1)
