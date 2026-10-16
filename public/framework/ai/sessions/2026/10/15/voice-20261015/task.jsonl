@@ -227,3 +227,5 @@
 {"log":{"at":"2026-10-15T19:45:52-05:00","msg":"task-loop escalated: {\n  \"ok\": true,\n  \"id\": \"2026/10/15/voice-session-2026-10-15-18-41\",\n  \"ask\": \"d-mva8y3oqr3\"\n}","chase":"escalated"}}
 {"log":{"at":"2026-10-15T19:56:54-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-20261015"}}
 {"log":{"at":"2026-10-15T19:57:27-05:00","heartbeat":"answered","msg":"I'm still idle and waiting for the next voice question, with no helpers running. The only open item is the Servex restart, which waits on you because it drops the voice call."}}
+{"log":{"at":"2026-10-15T20:09:37-05:00","heartbeat":"revive-queued","msg":"mastermind-voice-20261015 its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-15T20:09:39-05:00","heartbeat":"revive","msg":"revived mastermind-voice-20261015 from session ec7470e9-1ff3-49d0-a33a-ad354fdedcd3, with its unread inbox"}}
