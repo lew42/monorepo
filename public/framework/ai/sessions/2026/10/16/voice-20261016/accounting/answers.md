@@ -53,4 +53,9 @@ Servex appends one line per turn to the session's `usage.jsonl` (tokens, and eit
 ## R13. Is there one Session class, like Page? {#r13}
 
 - **Not yet.** `core/Session/Session.js` (`class Session`), with `AISession extends Session`, only finds folders (`scan`, `locate`, `dir_url`). It has no `read`, `set` or `log`, and it is not a `Page` or an `Item`.
-- **Proposal:** make `Session extends Page`. A session is then a page addressed by its app path (`/framework/ai/sessions/2026/10/16/<id>/`), and its log is that page's own `.jsonl`. The four-tool surface (requirement 8) works on sessions with no new tools: `page({path, method: "log"})` writes a line, and `page({path, method: "read"})` returns the running total. This depends on the server-side Page instance in [core/Page/doc/server-instance.md](/framework/core/Page/doc/server-instance.md).
+- **Proposal (revised 2026-10-16 with mastermind-page, following the owner):** `Session extends Item`, and a session HAS a page. The reason: `Page.class.js` imports `View` and cannot load in node, but Servex writes usage in node, and `Item` already runs there (`core/Item/Item.test.mjs` passes).
+- **Two files per session folder:**
+  - `session.jsonl` (`static file` on `Session`) holds the data: id, parent, model, turns, and `usage` lines. Only code writes it.
+  - `page.jsonl` holds what agents draw.
+- **Children are Lists:** `subsessions/` and `tasks/` become Lists named `sessions` and `tasks` on the Item.
+- **One tool:** `item({path, method, target, args})`, with the `page_*` tools kept as aliases. This replaces the earlier `Session extends Page` idea.
