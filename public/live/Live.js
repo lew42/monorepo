@@ -1,4 +1,4 @@
-import { Page, div, span, p, md } from "/app.js";
+import { Page, div, span, a, p, md } from "/app.js";
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { View } from "/framework/core/View/View.js";
@@ -28,8 +28,8 @@ class LiveLog extends JSONL {
 	skip(k, entry){
 		const item = this.items.get(k), v = entry?.[k];
 		if (item && v && typeof v === "object" && !Array.isArray(v)){
-			const { text, title, type } = v;
-			this.items.set(k, { ...item, ...(text !== undefined && { text }), ...(title !== undefined && { title }), ...(type !== undefined && { type }) });
+			const { text, title, type, preview } = v;
+			this.items.set(k, { ...item, ...(text !== undefined && { text }), ...(title !== undefined && { title }), ...(type !== undefined && { type }), ...(preview !== undefined && { preview }) });
 		}
 	}
 	reset(){ super.reset(); this.items = new Map(); this.seq = 0; this.last_ts = undefined; return this; }
@@ -79,7 +79,22 @@ class Tail {
 	}
 }
 
+/* One feed item as a small Page: preview() is the stock preview card (Page.preview -> preview_card), full() the whole content. */
+class LiveCard extends Page {
+	static of(row){ return new this({ id: row.id, title: row.title, label: row.preview ?? row.title ?? row.id, text: row.text, url: `/live/?card=${encodeURIComponent(row.id)}` }); }
+
+	preview(nav){ return this.preview_card(nav); }
+	full(){
+		return div.c("live-full", () => {
+			a.c("live-back", "← Live").href("/live/");
+			if (this.title) span.c("live-card-title", this.title);
+			md(Live.pretty(this.text ?? ""));
+		});
+	}
+}
+
 export default class Live extends Page {
+	static Card = LiveCard;
 	static Log = LiveLog;
 	static Tail = Tail;
 
@@ -90,30 +105,46 @@ export default class Live extends Page {
 		});
 	}
 
-	// The screen: the cards added since the last clear, in the order they were added.
+	// Newest first (pull-to-refresh lands on the newest); a card naming `after` sits right under that card.
 	rows(){
-		return [...this.stream.items.values()].map(i => ({ ...i, kind: i.type?.replace("part-", "") ?? "text" }));
+		const list = [...this.stream.items.values()].map(i => ({ ...i, kind: i.type?.replace("part-", "") ?? "text" })).reverse();
+		list.filter(r => r.after).forEach(r => {
+			if (!list.some(o => o.id === r.after)) return;
+			list.splice(list.indexOf(r), 1);
+			list.splice(list.findIndex(o => o.id === r.after) + 1, 0, r);
+		});
+		return list;
 	}
+
+	// The card id in the address (?card=id); none means the feed.
+	get open(){ return new URLSearchParams(location.search).get("card"); }
 
 	render(){
 		return this.view ??= div.c("page live", () => {
 			this.$feed = div.c("live-screen");
 			this.stream ??= new this.constructor.Log({ url: import.meta.resolve("./page.jsonl") });
 			const draw = () => this.draw();
+			addEventListener("popstate", draw);
+			this.$feed.el.addEventListener("click", e => {
+				const link = e.target.closest?.("a.page-preview-link, a.live-back");
+				if (!link || e.metaKey || e.ctrlKey) return;
+				e.preventDefault(); e.stopPropagation();
+				history.pushState({}, "", link.getAttribute("href"));
+				draw(); scrollTo(0, 0);
+			}, true);
 			(Socket.singleton().disabled || location.search.includes("poll"))
 				? new this.constructor.Tail(this.stream, draw).start()
 				: this.stream.live(draw).then(draw);   // the socket resubscribes from its offset when it reconnects
 		});
 	}
 
+	// The feed: a preview card per item. With ?card=id: that one card in full.
 	draw(){
 		this.$feed?.empty(() => {
-			const rows = this.rows();
+			const rows = this.rows(), one = rows.find(r => r.id === this.open);
+			if (one) return void this.constructor.Card.of(one).full();
 			if (!rows.length) return void div.c("live-empty", "Nothing on screen. The voice agent shows what you are discussing here.");
-			rows.forEach(r => div.c(`live-row live-${r.kind}`, () => {
-												if (r.title) span.c("live-card-title", r.title);
-				md(this.constructor.pretty(r.text ?? ""));
-			}));
+			rows.forEach(r => { const card = this.constructor.Card.of(r); card.preview(card.nav()); });
 		});
 	}
 }
