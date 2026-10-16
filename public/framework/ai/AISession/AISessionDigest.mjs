@@ -109,5 +109,23 @@ export class AISessionDigest {
 			prompts: this.prompts.map(p => ({ at: p.at, t: p.t.length > 1200 ? p.t.slice(0, 900) + " … " + p.t.slice(-250) : p.t })), result: this.result.length > 1500 ? this.result.slice(0, 1500) + " …" : this.result, edited: [...new Set(this.edited)] };
 	}
 
+	/** Write digest.json into a session folder. Add only: an existing file is never touched. Returns "wrote" or "kept". */
+	write(dir){
+		const file = path.join(dir, "digest.json"); if (fs.existsSync(file)) return "kept";
+		fs.writeFileSync(file, JSON.stringify({ ...this.toJSON(), digested_at: new Date().toISOString() }, null, 1), { flag: "wx" }); return "wrote";
+	}
+
+	/** Procedural tags, no AI: kind, model family, the modules edited most, the task folder. Each is "group/name" (a sub-tag), at most 40 characters. */
+	tags(){
+		const t = new Set(), top = {};
+		t.add(this.agent ? "kind/agent" : "kind/owner");
+		const fam = Object.keys(this.models).map(m => /opus/.test(m) ? "opus" : /haiku/.test(m) ? "haiku" : /sonnet/.test(m) ? "sonnet" : "").find(Boolean); if (fam) t.add("model/" + fam);
+		if (!this.edited.length) t.add("work/read-only");
+		for (const f of this.edited){ const m = f.match(/^public\/framework\/((?:core|ext|ux|ui|ai|web|styles)\/[A-Za-z0-9_-]+)/) || f.match(/^(Server|Servex|\.claude\/(?:hooks|skills)\/[\w-]+)/); if (m) top[m[1]] = (top[m[1]] || 0) + 1; }
+		for (const [m] of Object.entries(top).sort((a, b) => b[1] - a[1]).slice(0, 3)) t.add(("mod/" + m).slice(0, 40));
+		const task = this.task.match(/sessions\/\d{4}\/\d\d\/\d\d\/[\w.-]+\/([\w.-]+)/) || this.task.match(/sessions\/\d{4}\/\d\d\/\d\d\/([\w.-]+)/); if (task) t.add(("task/" + task[1]).slice(0, 40));
+		return [...t];
+	}
+
 	static quantiles(a, qs = [.1, .5, .9, .99]){ const s = [...a].sort((x, y) => x - y); return Object.fromEntries(qs.map(q => ["p" + Math.round(q * 100), s[Math.min(s.length - 1, Math.floor(s.length * q))] ?? 0]).concat([["max", s.at(-1) ?? 0]])); }
 }

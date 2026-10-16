@@ -1,0 +1,32 @@
+{
+ "id": "4b2da2d0-b968-4705-b6f6-7371ed21919a",
+ "first": "2026-10-14T00:38:05.617Z",
+ "last": "2026-10-14T00:43:17.975Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/first-reply",
+ "models": {
+  "claude-sonnet-5-5": 26
+ },
+ "sizes": {
+  "raw": 231853,
+  "content": 47307,
+  "stripped": 10295,
+  "owner_only": 0
+ },
+ "usd": 0.979031,
+ "usd_main": 0.979031,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 52,
+  "output": 15983,
+  "cache_read": 2286206,
+  "cache_write": 90464,
+  "w5": 0,
+  "w1": 90464
+ },
+ "messages": 26,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The first reply to a spoken sentence now takes about 1.6–2.8 s on a private Servex, down from 8.1 s. One cold run took 4.7 s. It's committed on `michael/dev` (`a0d113505`) but won't take effect until the live Servex restarts, which is your call.\n\n- **Biggest hop:** the cause was a deliberate 8 s wait in `Servex/agents/Sessions.js` before showing the fast assistant's reply. Spawning the agent and the model turn took only about 2.2 s. The two numbers agree: 8126 ms from the browser-side stamp, and 34 + 2173 + ~5900 ms from the hops.\n- **Fix:** I cut that wait to 1.5 s, and the fast agent now starts when the drawer opens instead of at the first sentence.\n- **Result:** the reply arrives in 1.6–1.7 s when the drawer has been open a few seconds, and 2.8–4.7 s with no warm-up. That is under 5 s each time.\n- **Floor:** about 1.2 s, one small model turn after your pause.\n- **Trade-off:** you'll occasionally get two acknowledgements instead of one. `SERVEX_SESSION_FAST_WAIT_MS=8000` restores the old wait.\n- **Not covered:** I did not measure Whisper's first text or the browser drawing the reply. I also did not run `merge.mjs`, because I committed straight to `michael/dev`.\n\nThe before/after table is in `ux/Dictate/doc/latency.md`, linked from the Dictate readme. The landing line is checked with `tail -1` on `task.jsonl`.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.209Z"
+}

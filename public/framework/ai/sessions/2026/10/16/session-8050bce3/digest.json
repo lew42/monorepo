@@ -1,0 +1,31 @@
+{
+ "id": "8050bce3-8395-4026-8124-5bcb64dcbfe7",
+ "first": "2026-10-16T01:09:38.140Z",
+ "last": "2026-10-16T01:10:10.271Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 94979,
+  "content": 41,
+  "stripped": 41,
+  "owner_only": 0
+ },
+ "usd": 0.026511,
+ "usd_main": 0.026511,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 95,
+  "cache_read": 38561,
+  "cache_write": 11089,
+  "w5": 0,
+  "w1": 11089
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "On standby. Waiting for your next words.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.249Z"
+}

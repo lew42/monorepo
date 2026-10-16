@@ -1,0 +1,34 @@
+{
+ "id": "54e1981b-3c9a-4780-9851-39d26efbc87f",
+ "first": "2026-10-13T22:02:11.021Z",
+ "last": "2026-10-13T22:02:48.487Z",
+ "agent": "reviewer-inbox-docs-check",
+ "models": {
+  "claude-sonnet-5-5": 5
+ },
+ "sizes": {
+  "raw": 110838,
+  "content": 9592,
+  "stripped": 3275,
+  "owner_only": 0
+ },
+ "usd": 0.229685,
+ "usd_main": 0.229685,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 10,
+  "output": 4001,
+  "cache_read": 224877,
+  "cache_write": 36170,
+  "w5": 0,
+  "w1": 36170
+ },
+ "messages": 5,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "I couldn't write `docs-check.md`: permission to write to `C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\sessions\\2026\\10\\13\\session-730e8a7b\\mastermind-repo-slim\\inbox-data\\` was denied. `load_module` was also denied, so I read `readme.md` and `doc/inbox-data.md` directly and skipped the parent readmes. I changed nothing and am stopping here, as asked.\n\nThe docs do answer your three questions in about two reads.\n- **Record vs cache:** the record is each writer's own file: a card's `page.jsonl` and a task's `task.jsonl` landing line. `ai/cards.jsonl` and `timeline/landings.jsonl` are caches of those. `ai/board.jsonl` is retired and read-only (`doc/inbox-data.md:7-9`).\n- **Where the data lives:** the table at `doc/inbox-data.md:22-31` lists every source with its writer and reader.\n- **Refreshing the timeline:** run `node Landings.mjs --append` (`readme.md:100`).\n\nFindings, each with its line:\n1. **Wording of the decision.** `doc/inbox-data.md:8` says \"computed indexes\" but never says \"cache\", which the table at lines 24-28 uses. `ai/cards.jsonl` there is also a bare path with no link, unlike `landings.jsonl` beside it.\n2. **Refresh command has no path.** `readme.md:100` gives `node Landings.mjs --append` with no directory. `doc/inbox-data.md:19` says \"from the main tree\" without saying where `InboxSources.mjs` lives or whether a worktree can run it.\n3. **Refresh status is unclear.** `doc/inbox-data.md:52-53` says \"Until then, run it yourself\" but not whether the `Server/on-landing …",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-data/docs-check.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.351Z"
+}

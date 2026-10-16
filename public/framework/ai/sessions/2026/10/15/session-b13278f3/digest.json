@@ -1,0 +1,36 @@
+{
+ "id": "b13278f3-b920-44f8-b662-fed27c6d204e",
+ "first": "2026-10-15T22:53:00.153Z",
+ "last": "2026-10-15T22:53:01.838Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 17095,
+  "content": 55,
+  "stripped": 55,
+  "owner_only": 14
+ },
+ "usd": 0.017397,
+ "usd_main": 0.017397,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 57,
+  "cache_read": 0,
+  "cache_write": 8555,
+  "w5": 0,
+  "w1": 8555
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T22:53:00.169Z",
+   "t": "SENTENCE: Kind of models are being used."
+  }
+ ],
+ "result": "{\"clarity\": 0.35, \"why\": \"Likely meant 'What kind of models'; 'Kind of' is a dictation slip, meaning mostly inferable\"}",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.276Z"
+}

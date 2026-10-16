@@ -1,0 +1,40 @@
+{
+ "id": "6e999e95-40e1-484f-aadd-c2df9a61d5aa",
+ "first": "2026-10-13T22:18:00.268Z",
+ "last": "2026-10-13T22:34:15.412Z",
+ "models": {
+  "claude-sonnet-5-5": 4
+ },
+ "sizes": {
+  "raw": 139194,
+  "content": 315,
+  "stripped": 151,
+  "owner_only": 76
+ },
+ "usd": 0.219958,
+ "usd_main": 0.219958,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 8,
+  "output": 362,
+  "cache_read": 202251,
+  "cache_write": 43968,
+  "w5": 0,
+  "w1": 43968
+ },
+ "messages": 4,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-13T22:18:00.364Z",
+   "t": "[from: owner]\n[on /framework/] Can you hit or me?\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-13T22:34:12.905Z",
+   "t": "[from: owner]\n(now on /framework/)\n[on /framework/ at 2026-10-13T17:34:11.133-05:00] Timing test: please reply with one short line."
+  }
+ ],
+ "result": "Got it, the timing test came through and this is my reply.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.238Z"
+}

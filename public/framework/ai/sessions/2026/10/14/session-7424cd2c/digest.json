@@ -1,0 +1,36 @@
+{
+ "id": "7424cd2c-edb1-4fdf-9e40-4b7c55607d7e",
+ "first": "2026-10-14T00:41:39.862Z",
+ "last": "2026-10-14T00:42:16.509Z",
+ "models": {
+  "claude-sonnet-5-5": 2
+ },
+ "sizes": {
+  "raw": 116050,
+  "content": 169,
+  "stripped": 99,
+  "owner_only": 42
+ },
+ "usd": 0.160047,
+ "usd_main": 0.160047,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 4,
+  "output": 224,
+  "cache_read": 83093,
+  "cache_write": 35295,
+  "w5": 0,
+  "w1": 35295
+ },
+ "messages": 2,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-14T00:42:09.589Z",
+   "t": "[from: owner]\n[on /framework/] Can you tell me which page lists all the sessions?\n(the owner has stopped: quiet for 3.0 s)"
+  }
+ ],
+ "result": "### Sessions list `/framework/ai/sessions/`\nIt's the AI sessions index (`public/framework/ai/sessions/page.js`). Each session is a folder under it, grouped by date.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.241Z"
+}

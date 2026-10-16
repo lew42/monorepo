@@ -1,0 +1,80 @@
+{
+ "id": "13402be5-3bba-4f36-9017-35bd9407970e",
+ "first": "2026-10-14T03:46:21.973Z",
+ "last": "2026-10-14T03:53:43.155Z",
+ "models": {
+  "claude-haiku-5-5": 12
+ },
+ "sizes": {
+  "raw": 17301,
+  "content": 618,
+  "stripped": 618,
+  "owner_only": 508
+ },
+ "usd": 0.009075,
+ "usd_main": 0.009075,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 24,
+  "output": 130,
+  "cache_read": 22733,
+  "cache_write": 3064,
+  "w5": 0,
+  "w1": 3064
+ },
+ "messages": 12,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-14T03:46:21.993Z",
+   "t": "[from: owner]\n[on /framework/] This is\n(the owner has stopped: the mic is off)"
+  },
+  {
+   "at": "2026-10-14T03:46:27.236Z",
+   "t": "[from: owner]\n[on /framework/] This is an end-to-end test of the dictation.\n[on /framework/] flow.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:46:40.386Z",
+   "t": "[from: owner]\n[on /framework/] Smart Assistant, which page lists all the sessions.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:46:55.852Z",
+   "t": "[from: owner]\n[on /framework/] The sheet should show every bubble in the order I set it.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:47:09.955Z",
+   "t": "[from: owner]\n[on /framework/] Smart Assistant, please reply with one short line to end the test.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:47:42.072Z",
+   "t": "[from: owner]\n[on /framework/] an end-to-end test of the dictation flow.\n(the owner has stopped: the mic went off)"
+  },
+  {
+   "at": "2026-10-14T03:49:22.521Z",
+   "t": "[from: owner]\n[on /framework/] This is an end-to-end test of the dictation flow.\n(the owner has stopped: no quiet event for 8 s)"
+  },
+  {
+   "at": "2026-10-14T03:49:29.321Z",
+   "t": "[from: owner]\n[on /framework/] Smart Assistant, which page lists all the sessions.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:49:44.825Z",
+   "t": "[from: owner]\n[on /framework/] The sheet should show every bubble in the order I set it.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:50:01.958Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, please reply with one short line to end the test.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:50:31.386Z",
+   "t": "[from: owner]\n[on /framework/] This is an end-to-end test of the dictation flow.\n(the owner has stopped: the mic went off)"
+  },
+  {
+   "at": "2026-10-14T03:53:41.869Z",
+   "t": "[from: owner]\n(the owner moved to /framework/)\n[on /framework/] This is a\n(the owner has stopped: the mic is off)"
+  }
+ ],
+ "result": "(listening)",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.178Z"
+}

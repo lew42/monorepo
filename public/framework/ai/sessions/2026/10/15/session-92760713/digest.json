@@ -1,0 +1,34 @@
+{
+ "id": "92760713-d721-46d3-8db2-9aa9dae7321d",
+ "first": "2026-10-15T21:21:40.259Z",
+ "last": "2026-10-15T21:23:07.885Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-opus/voice-mcp-directives",
+ "models": {
+  "claude-sonnet-5-5": 12
+ },
+ "sizes": {
+  "raw": 134171,
+  "content": 16539,
+  "stripped": 10996,
+  "owner_only": 0
+ },
+ "usd": 0.352914,
+ "usd_main": 0.352914,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 24,
+  "output": 3716,
+  "cache_read": 697190,
+  "cache_write": 44067,
+  "w5": 0,
+  "w1": 44067
+ },
+ "messages": 12,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The voice-agent directives now live only in the Servex remote MCP, and I restarted Servex so they are live. I didn't check whether a voice call was open before restarting. I didn't run `node Server/smoke.mjs`; `merge.mjs` ran its own smoke test when it merged.\n\n- **`Servex/ext/remote/RemoteMCP.js`:** `initialize` now returns `instructions`, and `ask_mastermind`'s description is widened to match. It covers firing the tool first, summarizing instead of reading back, one question at a time, relaying open items, and minion results arriving on the next ask.\n- **`.claude/skills/voice-mastermind/SKILL.md`:** it gets only the mastermind-side rule: answer inside the one-minute window with an ack and routing, and carry minion results to the next ask. No voice-agent directives are there.\n- **`RemoteMCP.test.mjs`:** it now checks the directives, and it passes (7 calls).\n\nThe tunnel, token and reply-file code are untouched, and no tunnel address is written anywhere.\n\nThe first merge went through with a failing test (a bad import in the new check). A second commit fixed it and merged, so `michael/dev` has both.",
+ "edited": [
+  "Servex/ext/remote/RemoteMCP.js"
+ ],
+ "digested_at": "2026-10-16T06:28:10.353Z"
+}

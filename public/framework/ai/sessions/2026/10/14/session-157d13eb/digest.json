@@ -1,0 +1,32 @@
+{
+ "id": "157d13eb-feb3-43d9-8745-22df82e9c241",
+ "first": "2026-10-14T03:44:41.697Z",
+ "last": "2026-10-14T03:44:55.915Z",
+ "agent": "proof-c",
+ "models": {
+  "claude-sonnet-5": 1
+ },
+ "sizes": {
+  "raw": 189113,
+  "content": 63061,
+  "stripped": 63061,
+  "owner_only": 0
+ },
+ "usd": 0.340784,
+ "usd_main": 0.340784,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 1074,
+  "cache_read": 20739,
+  "cache_write": 81473,
+  "w5": 0,
+  "w1": 81473
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Routing for a page.jsonl page's children happens in two layers:\n\n**1. Discovery at load time — `Page.fetch_listing(url)` (Page.class.js, via `Page.listing`/`Page.loaded_listing`)**\n\nFor a jsonl page already loaded, `Page.page_listing(url)` builds the listing straight from `page.listed` (the jsonl page's own in-memory map of file lines) — no fetch. That's the \"my folder's own page.jsonl, IF something already loaded it\" path described in `doc/declaring.md`'s moved comment (*was Page.class.js line 857*).\n\n**2. Resolution at click/walk time — `Page.prototype.child(name, levels)` (Page.class.js)**\n\nThis is the actual router. For a jsonl page's child the relevant branch is:\n\n```js\nif (this.child_kinds?.get(name) === \"jsonl\") {\n    const page = await Page.jsonl(this.url + name + \"/\");\n    return page && this.add(name, page).load_all_children(levels);\n}\n```\n\n`child_kinds` is populated by **Step 2 in `doc/jsonl.md`** — \"a child page is LINKED, automatically\": a line like `{\"file\": \"kid/page.jsonl\"}` or `{\"file\": \"kid/page.js\"}` calls `link_child(name)` (`Page.prototype.link_child`, delegating to `new this.constructor.Jsonl({page: this}).link_child(name)` in `Jsonl.js`), which records that `kid` is a jsonl child — keyed by the first path segment, so `kid/` and `kid/page.jsonl` are one entry and the latest line wins (per `doc/jsonl.md`'s \"Three steps\" section, point 2).\n\nSo when the Router (`Router.js`, `load_segments()`) walks into `kid`, it calls `page.child(\"kid\")`. `child()` checks  …",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.180Z"
+}

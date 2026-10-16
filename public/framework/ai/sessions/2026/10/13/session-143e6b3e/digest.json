@@ -1,0 +1,59 @@
+{
+ "id": "143e6b3e-fad6-48e3-ae98-2a5e08c2a306",
+ "first": "2026-10-13T23:51:42.277Z",
+ "last": "2026-10-14T01:02:30.090Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store-apply",
+ "models": {
+  "claude-opus-5-5": 282
+ },
+ "sizes": {
+  "raw": 2514868,
+  "content": 218835,
+  "stripped": 13638,
+  "owner_only": 23
+ },
+ "usd": 41.612348,
+ "usd_main": 41.612348,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 564,
+  "output": 194866,
+  "cache_read": 85013049,
+  "cache_write": 463444,
+  "w5": 0,
+  "w1": 463444
+ },
+ "messages": 282,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-14T00:25:31.755Z",
+   "t": "Continue from where you left off."
+  },
+  {
+   "at": "2026-10-14T01:00:07.236Z",
+   "t": "Continue from where you left off."
+  }
+ ],
+ "result": "The cleanup is done: `ai/2026/` is gone, and every Inbox card now lives in `ai/sessions/YYYY/MM/DD/cards/`. A card's address didn't change, so old links still open it in the Inbox.\n\n---\n\n### Leftovers after the restart\n- ✅ The old Servex wrote a few things into the old tree before it restarted (one new card folder, two re-made index pages, one prompt line). I merged them into their new copies and moved the card folder. The check found 0 bad files, and nothing was lost.\n- ⚠️ I did **not** move `sessions/2026/10/14/feedback-council/`. The council script already uses the same day function as TaskDirs (`TaskDirs.dir()`). TaskDirs and the whole session store file things by the UTC day on purpose (`sessions/doc/data/layout.md`), and the folder was made at 01:00 UTC on 10-14, so it is in the right place.\n- ⚠️ The one writer that uses the local day is `Cards.day_id()`. After 19:00 local, a card's day folder is one day behind that evening's tasks. Switching cards to UTC would change what the Inbox shows under \"Today\", so I logged it as a decision instead of changing it. The alternative, switching TaskDirs to the local day, would break the store's own rule, so I didn't take it.\n\n---\n\n### The task, as landed\n- 664 card folders and 49 single files moved by script. Every run checked out with 0 bad files, and the undo was proven on a worktree copy first.\n- One function now turns a card id into its folder, [`cards/CardDir.js`](/framework/ai/cards/CardDir.js); `Cards.dir(id)` uses it in Serv …",
+ "edited": [
+  "public/framework/ai/cards/CardDir.js",
+  "Servex/cards/Cards.js",
+  "Servex/cards/test.mjs",
+  "Servex/agents/Layers.js",
+  "Servex/agents/Sessions.js",
+  "Server/day-prompts-refine.mjs",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store-apply/card-move-plan.mjs",
+  "Server/TaskMove.mjs",
+  ".gitignore",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store-apply/servex-proof.mjs",
+  "Servex/doc/readme-chain.md",
+  "public/framework/ai/doc/task-folders.md",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store-apply/docs-check.md",
+  "Server/merge.mjs",
+  "Server/TaskDirs.mjs",
+  "public/framework/ai/sessions/2026/09/28/cards/figma-sept-2026/7-task-management-ai-patterns/ai.css",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store-apply/card-fold.mjs"
+ ],
+ "digested_at": "2026-10-16T06:28:10.180Z"
+}

@@ -1,0 +1,72 @@
+{
+ "id": "d8b8952b-bd34-4f94-9662-9087c21dc036",
+ "first": "2026-10-14T03:46:22.526Z",
+ "last": "2026-10-14T03:53:51.308Z",
+ "models": {
+  "claude-sonnet-5-5": 13
+ },
+ "sizes": {
+  "raw": 136051,
+  "content": 1008,
+  "stripped": 737,
+  "owner_only": 404
+ },
+ "usd": 0.308614,
+ "usd_main": 0.308614,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 26,
+  "output": 957,
+  "cache_read": 749239,
+  "cache_write": 37286,
+  "w5": 0,
+  "w1": 37286
+ },
+ "messages": 13,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-14T03:46:52.210Z",
+   "t": "[from: owner]\n[on /framework/] This is\n(the owner has stopped: the mic is off)"
+  },
+  {
+   "at": "2026-10-14T03:47:09.959Z",
+   "t": "[from: owner]\n[on /framework/] Smart Assistant, please reply with one short line to end the test.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:47:42.077Z",
+   "t": "[from: owner]\n[on /framework/] an end-to-end test of the dictation flow.\n(the owner has stopped: the mic went off)"
+  },
+  {
+   "at": "2026-10-14T03:49:22.535Z",
+   "t": "[from: owner]\n[on /framework/] This is an end-to-end test of the dictation flow.\n(the owner has stopped: no quiet event for 8 s)"
+  },
+  {
+   "at": "2026-10-14T03:49:29.323Z",
+   "t": "[from: owner]\n[on /framework/] Smart Assistant, which page lists all the sessions.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:49:44.830Z",
+   "t": "[from: owner]\n[on /framework/] The sheet should show every bubble in the order I set it.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:50:01.960Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, please reply with one short line to end the test.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:50:31.389Z",
+   "t": "[from: owner]\n[on /framework/] This is an end-to-end test of the dictation flow.\n(the owner has stopped: the mic went off)"
+  },
+  {
+   "at": "2026-10-14T03:53:41.867Z",
+   "t": "[from: owner]\n(now on /framework/)\n[on /framework/] This is a\n(the owner has stopped: the mic is off)"
+  },
+  {
+   "at": "2026-10-14T03:53:48.333Z",
+   "t": "[Your previous response had no visible output. Please continue and produce a user-visible response.]"
+  }
+ ],
+ "result": "👍",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.296Z"
+}

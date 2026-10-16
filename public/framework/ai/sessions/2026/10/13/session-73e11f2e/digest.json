@@ -1,0 +1,32 @@
+{
+ "id": "73e11f2e-9537-4cde-abc9-6aa51cbdfd71",
+ "first": "2026-10-13T19:58:53.458Z",
+ "last": "2026-10-13T21:50:27.054Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-lab",
+ "models": {
+  "claude-sonnet-5-5": 41
+ },
+ "sizes": {
+  "raw": 756721,
+  "content": 48237,
+  "stripped": 10679,
+  "owner_only": 0
+ },
+ "usd": 1.834454,
+ "usd_main": 1.834454,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 82,
+  "output": 38660,
+  "cache_read": 4670530,
+  "cache_write": 128396,
+  "w5": 0,
+  "w1": 128396
+ },
+ "messages": 41,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Same as before: finished and idle, nothing running. The task is complete, with its report at `kit/tidy-lab.md` (067e48ffd). You can close or stop this agent.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.241Z"
+}

@@ -1,0 +1,34 @@
+{
+ "id": "57513da5-ccdc-4620-8bb7-56ec1ca90d64",
+ "first": "2026-10-13T01:44:01.098Z",
+ "last": "2026-10-13T20:56:15.358Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/web-controls",
+ "models": {
+  "claude-sonnet-5-5": 63
+ },
+ "sizes": {
+  "raw": 1096314,
+  "content": 40180,
+  "stripped": 11243,
+  "owner_only": 0
+ },
+ "usd": 3.353715,
+ "usd_main": 3.353715,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 126,
+  "output": 21303,
+  "cache_read": 4346947,
+  "cache_write": 567761,
+  "w5": 0,
+  "w1": 567761
+ },
+ "messages": 63,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Idle: the controls are merged into `michael/dev` and the report is at `kit/web-controls.md`. The only open item is removing the `fig-controls` worktree, which waits on its generated `files.jsonl` edits.",
+ "edited": [
+  "public/framework/ext/Figma/tokens/FigmaTokens.mjs"
+ ],
+ "digested_at": "2026-10-16T06:28:10.214Z"
+}

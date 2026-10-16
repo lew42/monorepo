@@ -1,0 +1,32 @@
+{
+ "id": "49b40fbe-24c3-460d-a4a7-a4b61f3addae",
+ "first": "2026-10-13T01:23:37.862Z",
+ "last": "2026-10-13T22:15:12.730Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-lists-cards",
+ "models": {
+  "claude-sonnet-5-5": 50
+ },
+ "sizes": {
+  "raw": 1075157,
+  "content": 58173,
+  "stripped": 11456,
+  "owner_only": 0
+ },
+ "usd": 9.522786,
+ "usd_main": 9.522786,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 100,
+  "output": 50278,
+  "cache_read": 4081128,
+  "cache_write": 2050895,
+  "w5": 0,
+  "w1": 2050895
+ },
+ "messages": 50,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Idle and finished. Both Figma pages are built, and the report with the two open questions (dark colour, fixed or fluid Resolution) is committed as d4e9f20b2. Nothing is running.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.208Z"
+}

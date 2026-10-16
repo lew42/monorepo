@@ -1,0 +1,34 @@
+{
+ "id": "842d4c92-d940-47ed-8630-6675ee53849a",
+ "first": "2026-10-13T02:02:43.297Z",
+ "last": "2026-10-13T21:22:14.228Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/componentize",
+ "models": {
+  "claude-sonnet-5-5": 81
+ },
+ "sizes": {
+  "raw": 1412384,
+  "content": 71192,
+  "stripped": 10367,
+  "owner_only": 0
+ },
+ "usd": 5.526354,
+ "usd_main": 5.526354,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 162,
+  "output": 57914,
+  "cache_read": 7937951,
+  "cache_write": 839825,
+  "w5": 0,
+  "w1": 839825
+ },
+ "messages": 81,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Still idle. The componentize task is finished and committed (`kit/componentize.md`), and nothing is waiting on you.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/componentize.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.251Z"
+}

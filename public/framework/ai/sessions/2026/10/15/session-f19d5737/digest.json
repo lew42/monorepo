@@ -1,0 +1,36 @@
+{
+ "id": "f19d5737-52bc-4628-9aa8-79eaec806cad",
+ "first": "2026-10-15T22:52:55.606Z",
+ "last": "2026-10-15T22:52:57.227Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 17277,
+  "content": 121,
+  "stripped": 121,
+  "owner_only": 78
+ },
+ "usd": 0.017524,
+ "usd_main": 0.017524,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 58,
+  "cache_read": 0,
+  "cache_write": 8616,
+  "w5": 0,
+  "w1": 8616
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T22:52:55.626Z",
+   "t": "Before: So I guess I'm just going to talk a little bit about what I'm seeing here.\nSENTENCE: It seems like the UI is a little bit broken, right?\nAfter: The way these sticky things are working is definitely a little bit broken."
+  }
+ ],
+ "result": "{\"clarity\": 0.6, \"why\": \"Refers to 'the UI' vaguely; 'broken' is clear but the referent is only loosely tied to the sentence\"}",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.312Z"
+}

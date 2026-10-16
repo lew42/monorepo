@@ -1,0 +1,36 @@
+{
+ "id": "eeb742bf-2ff9-4025-8627-c03b582cac43",
+ "first": "2026-10-15T22:52:10.039Z",
+ "last": "2026-10-15T22:52:11.758Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 17144,
+  "content": 35,
+  "stripped": 35,
+  "owner_only": 10
+ },
+ "usd": 0.017369,
+ "usd_main": 0.017369,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 43,
+  "cache_read": 0,
+  "cache_write": 8576,
+  "w5": 0,
+  "w1": 8576
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T22:52:10.051Z",
+   "t": "0: Testing, can you hear me?"
+  }
+ ],
+ "result": "{\"notes\":[{\"i\":0,\"alternates\":[\"Can you hear me?\"],\"names\":[],\"tags\":[]}]}",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.309Z"
+}

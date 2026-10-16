@@ -1,0 +1,52 @@
+{
+ "id": "f1ec9963-eb6d-4777-b404-da32c623b27d",
+ "first": "2026-10-14T03:53:56.421Z",
+ "last": "2026-10-14T03:55:36.759Z",
+ "models": {
+  "claude-sonnet-5-5": 9
+ },
+ "sizes": {
+  "raw": 129753,
+  "content": 1281,
+  "stripped": 619,
+  "owner_only": 225
+ },
+ "usd": 0.263972,
+ "usd_main": 0.263972,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 18,
+  "output": 1374,
+  "cache_read": 504879,
+  "cache_write": 37305,
+  "w5": 0,
+  "w1": 37305
+ },
+ "messages": 9,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-14T03:53:56.795Z",
+   "t": "[from: owner]\n[on /framework/] This is an end-to-end test of the dictation.\n(the owner has stopped: quiet for 7.9 s)"
+  },
+  {
+   "at": "2026-10-14T03:54:04.795Z",
+   "t": "[from: owner]\n[on /framework/] flow.\n[on /framework/] Smart Assistant, which page lists all the sessions.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:54:16.984Z",
+   "t": "[from: owner]\n[on /framework/] The sheet should show every bubble in the order I set it.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:54:30.953Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, please reply with one short line to end the test.\n(the owner has stopped: quiet for 2.5 s)"
+  },
+  {
+   "at": "2026-10-14T03:55:03.568Z",
+   "t": "[from: owner]\n[on /framework/] This is a an end-to-end test of the dictation flow.\n(the owner has stopped: the mic went off)"
+  }
+ ],
+ "result": "The task mastermind found two causes in the shared chat controller. Bubbles with the same timestamp were being dropped, and live lines could land out of file order. It's editing in a worktree now. I'll say when it lands.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.312Z"
+}

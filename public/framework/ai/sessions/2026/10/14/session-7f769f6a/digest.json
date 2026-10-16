@@ -1,0 +1,32 @@
+{
+ "id": "7f769f6a-e8fc-413a-9447-7e2b733ddeb3",
+ "first": "2026-10-14T03:44:36.290Z",
+ "last": "2026-10-14T03:44:39.065Z",
+ "agent": "expert-core-page",
+ "models": {
+  "claude-sonnet-5": 1
+ },
+ "sizes": {
+  "raw": 188016,
+  "content": 62075,
+  "stripped": 62075,
+  "owner_only": 0
+ },
+ "usd": 0.408668,
+ "usd_main": 0.408668,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 4,
+  "cache_read": 0,
+  "cache_write": 102156,
+  "w5": 0,
+  "w1": 102156
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "READY",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.248Z"
+}

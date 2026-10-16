@@ -1,0 +1,37 @@
+{
+ "id": "f7d87dba-ea4e-4fb5-83f4-c921d6f1add0",
+ "first": "2026-10-14T03:24:04.075Z",
+ "last": "2026-10-14T03:25:26.437Z",
+ "agent": "minion-arch6-core-search",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md/minion-brief.md",
+ "models": {
+  "claude-haiku-5-5": 10
+ },
+ "sizes": {
+  "raw": 160629,
+  "content": 24802,
+  "stripped": 6796,
+  "owner_only": 0
+ },
+ "usd": 0.20714,
+ "usd_main": 0.20714,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 20,
+  "output": 7242,
+  "cache_read": 604739,
+  "cache_write": 55218,
+  "w5": 0,
+  "w1": 55218
+ },
+ "messages": 10,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "- File: `public/framework/core/Search/doc/architecture.md`, 76 lines, committed as `f08bf905f` with the readme `More` line and the `page.js` notes entry.\n- ⚠ Code mismatch: `corpus.md` and the readme say five prefixes are skipped, including `/arya/`. `Search.prototype.skip` has four and omits `/arya/`, whose `Page.js` restyles `<body>` at import. Fix is to add it to `skip` or correct the docs; I did not change the code.\n- ⚠ Doc mismatch: `decisions.md` says the box position is stored with `Page.Store` under `lew42:omnibox`. The code uses `Page.Prefs` with `store_key: \"omnibox\"`. Behaviour matches.",
+ "edited": [
+  "public/framework/core/Search/doc/architecture.md",
+  "public/framework/core/Search/readme.md",
+  "public/framework/core/Search/page.js"
+ ],
+ "digested_at": "2026-10-16T06:28:10.344Z"
+}

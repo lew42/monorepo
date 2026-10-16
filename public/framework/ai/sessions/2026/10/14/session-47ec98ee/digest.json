@@ -1,0 +1,34 @@
+{
+ "id": "47ec98ee-f201-496d-9bae-7b421e270c54",
+ "first": "2026-10-14T23:40:47.058Z",
+ "last": "2026-10-15T00:28:11.571Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/foundations",
+ "models": {
+  "claude-sonnet-5-5": 50
+ },
+ "sizes": {
+  "raw": 1151281,
+  "content": 48303,
+  "stripped": 11104,
+  "owner_only": 0
+ },
+ "usd": 2.27311,
+ "usd_main": 2.27311,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 100,
+  "output": 38546,
+  "cache_read": 5856771,
+  "cache_write": 179024,
+  "w5": 0,
+  "w1": 179024
+ },
+ "messages": 50,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Done and idle. `Foundations · Layouts` is built (7 layouts plus the dark row, checked at 400, 1000 and 1920) and the report is committed in [kit/foundations.md](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/foundations.md). I'm not working on anything now. The one open item is swapping the cards for the `Card / …` components once `kit/essentials.md` exists.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/foundations.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.206Z"
+}

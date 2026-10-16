@@ -1,0 +1,35 @@
+{
+ "id": "e5bbf063-51f5-42db-8ae1-2d49093a752b",
+ "first": "2026-10-15T00:34:16.497Z",
+ "last": "2026-10-15T00:35:47.627Z",
+ "agent": "reviewer-voice-connector",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-connector/requirements.md",
+ "models": {
+  "claude-opus-5-5": 7
+ },
+ "sizes": {
+  "raw": 130590,
+  "content": 13883,
+  "stripped": 3163,
+  "owner_only": 0
+ },
+ "usd": 0.621996,
+ "usd_main": 0.621996,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 14,
+  "output": 4283,
+  "cache_read": 355360,
+  "cache_write": 49267,
+  "w5": 0,
+  "w1": 49267
+ },
+ "messages": 7,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "My verdict is **fix**: the owner probably can't do the first of the two steps. The \"Try it\" section in `voice-bridge.md` says to paste a bearer token into the Claude app, but as far as I know the \"Add custom connector\" dialog has only a URL field and optional OAuth settings, with no place for a token. I haven't tried the dialog myself.\n\nThe full review is in `voice-connector/review.md`.\n\n---\n\n### Must change: `Servex/ext/remote/RemoteMCP.js`\n- ⚠️ **Token has no field:** the simplest fix is to put the token in the URL (`/mcp/remote/<token>`). `Tunnel.mjs` then writes that full URL to `remote.url`, so the owner only pastes one URL.\n- ⚠️ **Polling a file under `public/`:** while it waits for an answer, it re-reads the mastermind's `task.jsonl` every half second for up to a minute. On Windows, reading a file can trigger the live site's file watcher, so one voice question could cause about 120 change events. It should listen for the reply on the Servex stream.\n\n---\n\n### Worth a look\n- **Which mastermind answers:** it asks the first live agent whose id starts with `mastermind`, which may be `mastermind-servex` (the systems architect) rather than the one running the work.\n- **Broken link:** the \"busy\" message can link to `/C:/Code/...`, which is not a site URL.\n- **No record of tests or landing:** the task log has only its opening line, with no curl tests, landing line or card update.\n- **Terminal must stay open:** `Tunnel.mjs up` runs in the foreground, and the doc doesn't say so.\n …",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-connector/review.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.303Z"
+}

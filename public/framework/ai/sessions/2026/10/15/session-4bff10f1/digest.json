@@ -1,0 +1,34 @@
+{
+ "id": "4bff10f1-6460-4d1f-a421-26bcc2c0125f",
+ "first": "2026-10-15T00:33:33.883Z",
+ "last": "2026-10-15T00:37:17.820Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/schemes",
+ "models": {
+  "claude-sonnet-5-5": 23
+ },
+ "sizes": {
+  "raw": 732453,
+  "content": 37461,
+  "stripped": 10264,
+  "owner_only": 0
+ },
+ "usd": 1.061659,
+ "usd_main": 1.061659,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 46,
+  "output": 23880,
+  "cache_read": 2149797,
+  "cache_write": 98202,
+  "w5": 0,
+  "w1": 98202
+ },
+ "messages": 23,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "`Colour · Schemes` is built and the report is committed as `kit/schemes.md`. The two screenshots are gitignored, so they exist only on this machine.\n\n- **Built:** I made the `Schemes · sample` master and a 1920 `Page · Colour · Schemes` component. The component holds five copies (white, light gray, prime, dark, near-black), and each copy sets only its Text mode. Near-black also overrides the fill with `dark` plus 50% black.\n- **Edit once:** I swapped one card on the master (Plain to Feature) and all five copies followed.\n- **Weak spots:** I ran the contrast script and wrote the weak spots in words in the file's Notes. The main one is that accent labels on prime are faint, because `accent` in `Prime BG` resolves to the mid-brown `dark`. I left the tokens alone.\n- **Quick switching:** the Notes recommend changing the page frame's Text mode (one click) over a `Scheme` variant.\n\nI took the full-page screenshot at 100% but checked it only at 1920, not at the other three widths. I also didn't run the docs smoke-test or review agents, so the page hasn't been through a review.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/schemes.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.210Z"
+}

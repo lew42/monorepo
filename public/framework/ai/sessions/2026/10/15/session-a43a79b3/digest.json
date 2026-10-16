@@ -1,0 +1,36 @@
+{
+ "id": "a43a79b3-b00c-445f-bb84-a3d66786f592",
+ "first": "2026-10-15T00:29:56.151Z",
+ "last": "2026-10-15T00:38:38.658Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-connector",
+ "models": {
+  "claude-sonnet-5-5": 36
+ },
+ "sizes": {
+  "raw": 266550,
+  "content": 50299,
+  "stripped": 10107,
+  "owner_only": 0
+ },
+ "usd": 1.303785,
+ "usd_main": 1.303785,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 72,
+  "output": 28264,
+  "cache_read": 3177845,
+  "cache_write": 96358,
+  "w5": 0,
+  "w1": 96358
+ },
+ "messages": 36,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Landed. Now the Servex restart, which also restarts me, so it goes last.",
+ "edited": [
+  "Servex/ext/remote/RemoteMCP.js",
+  "Server/Tunnel.mjs",
+  "Temp/landing-voice-connector.json"
+ ],
+ "digested_at": "2026-10-16T06:28:10.269Z"
+}

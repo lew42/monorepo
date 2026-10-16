@@ -1,0 +1,32 @@
+{
+ "id": "8f866486-fd7c-4858-a4ec-5beceae2145f",
+ "first": "2026-10-15T20:52:09.023Z",
+ "last": "2026-10-15T21:22:50.998Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-opus/usage-pace-line",
+ "models": {
+  "claude-sonnet-5-5": 12
+ },
+ "sizes": {
+  "raw": 131698,
+  "content": 15254,
+  "stripped": 11351,
+  "owner_only": 0
+ },
+ "usd": 0.339272,
+ "usd_main": 0.339272,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 24,
+  "output": 2964,
+  "cache_read": 684740,
+  "cache_write": 43159,
+  "w5": 0,
+  "w1": 43159
+ },
+ "messages": 12,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Done and idle. Commit `e03a9918e` on branch `worktree/qf-4` is waiting for mastermind-voice-opus to review and merge it.\n\nI haven't landed the task in `task.jsonl`, because the brief leaves the merge to the parent. The smoke-test output is already logged there.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.353Z"
+}

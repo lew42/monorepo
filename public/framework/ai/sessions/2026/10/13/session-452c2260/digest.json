@@ -1,0 +1,49 @@
+{
+ "id": "452c2260-8c71-40b5-a310-7ba0f6ae5e2b",
+ "first": "2026-10-13T22:14:40.562Z",
+ "last": "2026-10-13T23:46:30.552Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-pipeline",
+ "models": {
+  "claude-opus-5-5": 205
+ },
+ "sizes": {
+  "raw": 2892674,
+  "content": 210105,
+  "stripped": 13434,
+  "owner_only": 23
+ },
+ "usd": 29.064554,
+ "usd_main": 29.064554,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 410,
+  "output": 142798,
+  "cache_read": 57049166,
+  "cache_write": 423411,
+  "w5": 0,
+  "w1": 423411
+ },
+ "messages": 205,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-13T22:17:20.121Z",
+   "t": "Continue from where you left off."
+  },
+  {
+   "at": "2026-10-13T23:30:03.026Z",
+   "t": "Continue from where you left off."
+  }
+ ],
+ "result": "The refine queue is live: Haiku refines your past prompts one at a time, and each session page has a new Coverage tab listing every ask, with a click-through to your raw words ([doc](/framework/ext/Refine/doc/refine-queue.md)).\n\n⚠️ **Not finished:** the week's run stopped at its $5 budget. About 460 of the week's prompts are still unrefined (~$45 more). Running `node Server/RefineQueue.mjs --days 7 --budget N` picks up where it stopped. I gave the run only $5 because my own session had already used most of the $30 budget.\n\n---\n\n### Refine queue `Server/RefineQueue.mjs`\n- ✅ 71 prompts refined: 10 for the review below, 61 in the week run.\n- ✅ $0.094 a prompt; the biggest call was 20,287 tokens, well under 100k.\n- ✅ A cheap Haiku call made from the repo folder loads ~8k tokens of project memory ($0.066 a call instead of $0.002). The queue now runs from a temp folder. Echo still makes its calls from the repo, and the same one-word change would save there too; that's in your Inbox.\n\n---\n\n### Opus review of Haiku's work [`haiku-review.md`](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-pipeline/haiku-review.md)\n- ✅ I read 10 refined prompts against your raw words. The first brief kept 0.90 of your asks faithfully; the improved brief keeps 0.96, and that's the one the queue uses.\n- Haiku seldom dropped detail. It distorted it: it treated what you described seeing as an ask, and ignored your corrections of yourself. The new brief has a rule for each of …",
+ "edited": [
+  "public/framework/ext/Refine/RefinedCard.js",
+  "Server/RefineQueue.mjs",
+  "public/framework/ai/AISession/AISessionCoverage.js",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-pipeline/review.md",
+  "public/framework/ext/Refine/doc/refine-queue.md",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-pipeline/docs-check.md",
+  "public/framework/ai/AISession/AISessionDetail.js"
+ ],
+ "digested_at": "2026-10-16T06:28:10.205Z"
+}

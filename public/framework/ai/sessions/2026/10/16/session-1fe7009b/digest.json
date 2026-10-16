@@ -1,0 +1,62 @@
+{
+ "id": "1fe7009b-f872-4525-ba19-6622106594f8",
+ "first": "2026-10-16T04:01:26.246Z",
+ "last": "2026-10-16T06:28:03.826Z",
+ "task": "public/framework/ai/sessions/2026/10/16/voice-20261016/past-work",
+ "models": {
+  "claude-sonnet-5-5": 249
+ },
+ "sizes": {
+  "raw": 1948897,
+  "content": 265503,
+  "stripped": 10826,
+  "owner_only": 0
+ },
+ "usd": 10.676693,
+ "usd_main": 10.676693,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 498,
+  "output": 200309,
+  "cache_read": 26382675,
+  "cache_write": 849018,
+  "w5": 0,
+  "w1": 849018
+ },
+ "messages": 249,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Starting steps 3 and 4: first the add-only `digest.json` writer in the class.",
+ "edited": [
+  "C:/Users/mike/AppData/Local/Temp/pw/coverage.mjs",
+  "C:/Users/mike/AppData/Local/Temp/pw/nest.mjs",
+  "C:/Users/mike/AppData/Local/Temp/pw/sid.mjs",
+  "C:/Users/mike/AppData/Local/Temp/pw/tree.mjs",
+  "C:/Users/mike/AppData/Local/Temp/pw/pick.mjs",
+  "CLAUDE.md",
+  "public/framework/core/Page/doc/query.md",
+  "public/framework/core/Page/readme.md",
+  "C:/Users/mike/AppData/Local/Temp/pw/landing-past-work.json",
+  "C:/Users/mike/AppData/Local/Temp/pw/strip.mjs",
+  "C:/Users/mike/AppData/Local/Temp/pw/words.mjs",
+  "C:/Users/mike/AppData/Local/Temp/pw/kinds.mjs",
+  "C:/Users/mike/AppData/Local/Temp/pw/real.mjs",
+  "C:/Users/mike/AppData/Local/Temp/pw/classify.mjs",
+  "C:/Users/mike/AppData/Local/Temp/pw/estimate.mjs",
+  "C:/Users/mike/AppData/Local/Temp/pw/classify2.mjs",
+  "C:/Users/mike/AppData/Local/Temp/pw/pickpack.mjs",
+  "C:/Users/mike/AppData/Local/Temp/pw/words2.mjs",
+  "public/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot2/readme.md",
+  "C:/Users/mike/AppData/Local/Temp/pw/section9.md",
+  "public/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot2/filesTouched.mjs",
+  "public/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot2/extract.mjs",
+  "public/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot2/tag.mjs",
+  "public/framework/ai/AISession/AISessionDigest.mjs",
+  "public/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot2/sizes.mjs",
+  "public/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot2/reconcile.mjs",
+  "public/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot2/repeats.mjs",
+  "public/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot2/report.mjs",
+  "public/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot2/digest-write.mjs"
+ ],
+ "digested_at": "2026-10-16T06:28:10.185Z"
+}

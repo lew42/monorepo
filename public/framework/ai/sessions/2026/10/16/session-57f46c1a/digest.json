@@ -1,0 +1,35 @@
+{
+ "id": "57f46c1a-1543-447e-936f-3972f27cdea0",
+ "first": "2026-10-15T22:12:05.802Z",
+ "last": "2026-10-15T22:14:49.945Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/readme-claims/requirements.md.",
+ "models": {
+  "claude-sonnet-5-5": 25
+ },
+ "sizes": {
+  "raw": 227396,
+  "content": 31331,
+  "stripped": 623,
+  "owner_only": 0
+ },
+ "usd": 0.855179,
+ "usd_main": 0.855179,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 50,
+  "output": 11984,
+  "cache_read": 2058493,
+  "cache_write": 80885,
+  "w5": 0,
+  "w1": 80885
+ },
+ "messages": 25,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "`claims.md` is written: 19 claims checked, 12 correct, 3 stale (load order, \"Also here\" `dynamic` line, claim 19's unnamed files) and 3 wrong (undeclared pages, `AITask` extends `Page`, `Page.css`/`page.js` description). I appended all 19 log lines to `task.jsonl` with `append.mjs`; nothing is committed.\n\n- **Wrong:** An undeclared page does not 404, because `child()` still imports its `page.js`. It only misses the parent's tabs and cards. `AITask` and `AISessionDetail` both extend `Page`. And `Page.css` is not the only home of `.page-*` rules, since 35+ other CSS files have them.\n- **Stale:** The load order omits `inbox/` and the step that finds a `page.jsonl` in the folder listing. The readme's `dynamic` line actually describes `generator/`.\n- **Claim 19:** 21 `.js` files in `core/Page/` are never named. I marked this \"unclear\" because it's an omission, not an error.\n\nIn claims 14 and 16, the verdict column says \"wrong\" and the suggested fix is the corrected readme text.",
+ "edited": [
+  "C:/Code/lew42/wt-page-owner-docs/public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/readme-claims/lines.json",
+  "C:/Code/lew42/wt-page-owner-docs/public/framework/ai/sessions/2026/10/15/voice-20261015/page-system/readme-claims/gen.mjs"
+ ],
+ "digested_at": "2026-10-16T06:28:10.358Z"
+}

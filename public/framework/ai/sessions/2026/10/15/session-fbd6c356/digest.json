@@ -1,0 +1,36 @@
+{
+ "id": "fbd6c356-bcd3-4c85-8b48-cf765fd5baa4",
+ "first": "2026-10-15T22:53:00.187Z",
+ "last": "2026-10-15T22:53:03.077Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 18286,
+  "content": 41,
+  "stripped": 41,
+  "owner_only": 11
+ },
+ "usd": 0.018787,
+ "usd_main": 0.018787,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 327,
+  "cache_read": 0,
+  "cache_write": 8575,
+  "w5": 0,
+  "w1": 8575
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T22:53:00.202Z",
+   "t": "0: Kind of models are being used."
+  }
+ ],
+ "result": "{\"notes\":[{\"i\":0,\"alternates\":[\"What models are being used?\"],\"names\":[],\"tags\":[]}]}",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.318Z"
+}

@@ -1,0 +1,36 @@
+{
+ "id": "7b50d85b-e764-4c94-acde-9e33a80637e8",
+ "first": "2026-10-13T22:52:33.022Z",
+ "last": "2026-10-13T22:54:22.071Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 125721,
+  "content": 15964,
+  "stripped": 15964,
+  "owner_only": 9698
+ },
+ "usd": 0.216991,
+ "usd_main": 0.216991,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 28824,
+  "cache_read": 20671,
+  "cache_write": 35401,
+  "w5": 0,
+  "w1": 35401
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-13T22:52:33.073Z",
+   "t": "Below is a brief (numbered asks a mastermind would act on) refined from the owner's raw words, then the raw words. For EACH numbered ask, give two confidences.\nScale (a probability that the statement is right): 0.5 = not sure (your default; start there). Below 0.3 = probably wrong. Above 0.7 ONLY with evidence: name what in the raw words makes it unmistakable. Never answer 0.9 out of habit.\n- ask_clear: how sure are we what was actually requested?\n- outcome_clear: how sure are we what a finished job would look like (a checkable end state)? Often lower than ask_clear.\nReply with ONLY a JSON array, one object per ask: {\"n\":<ask number>,\"kind\":\"command\"|\"question\"|\"directive\",\"ask\":\"<under 15 words>\",\"quote\":\"<6-12 words copied from the raw>\",\"ask_clear\":{\"p\":<0-1>,\"evidence\":\"<under 15 words>\"},\"outcome_clear\":{\"p\":<0-1>,\"evidence\":\"<under 15 words>\"}}\n\nBRIEF:\n1. Checker job: have five che … stant says it never sees that selected context when the message is sent; wire the selection through to the prompt. (last verdict: not checked; last evidence: (none))\n- **E7**: Build a three-column layout explorer: left = layout categories (one/tw\n\"\"\""
+  }
+ ],
+ "result": "[{\"n\":1,\"kind\":\"command\",\"ask\":\"Five checkers verify their own asks on monorepo.localhost, never localhost\",\"quote\":\"The live site: http://monorepo.localhost (never http://localhost/)\",\"ask_clear\":{\"p\":0.85,\"evidence\":\"Raw names the host, forbids localhost, and lists five checker files\"},\"outcome_clear\":{\"p\":0.7,\"evidence\":\"Each checker writes votes/checker-N.json covering its ids\"}},{\"n\":2,\"kind\":\"command\",\"ask\":\"Checkers read the card, ask history and run folder first\",\"quote\":\"No new words landed today (`words.jsonl` is empty)\",\"ask_clear\":{\"p\":0.8,\"evidence\":\"Read-first list of three locations is explicit in each file\"},\"outcome_clear\":{\"p\":0.5,\"evidence\":\"Reading leaves no visible artifact; only its effect shows in votes\"}},{\"n\":3,\"kind\":\"directive\",\"ask\":\"Each checker verifies its own asks; prior verdicts are only pointers\",\"quote\":\"prior verdict/evidence shown is NOT truth, just a pointer\",\"ask_clear\":{\"p\":0.85,\"evidence\":\"Raw says prior verdicts are not truth, only pointers, in every file\"},\"outcome_clear\":{\"p\":0.6,\"evidence\":\"Votes must reflect fresh checks, not copied prior verdicts\"}},{\"n\":4,\"kind\":\"command\",\"ask\":\"Give every ask one verdict with evidence; search the repo before 'missing'\",\"quote\":\"Prove before you call something missing\",\"ask_clear\":{\"p\":0.85,\"evidence\":\"Four verdict labels and the search-first rule are stated explicitly\"},\"outcome_clear\":{\"p\":0.75,\"evidence\":\"Votes hold one verdict and evidence per id, checkable by file\"}},{\"n\":5,\"kind\":\"command\" …",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.355Z"
+}

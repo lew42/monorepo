@@ -1,0 +1,34 @@
+{
+ "id": "3e6deacb-3960-4caa-9457-7f441cd33414",
+ "first": "2026-10-13T02:46:48.369Z",
+ "last": "2026-10-13T22:00:13.838Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/titles",
+ "models": {
+  "claude-sonnet-5-5": 42
+ },
+ "sizes": {
+  "raw": 1211090,
+  "content": 54719,
+  "stripped": 10367,
+  "owner_only": 0
+ },
+ "usd": 8.310975,
+ "usd_main": 8.310975,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 84,
+  "output": 41166,
+  "cache_read": 3651256,
+  "cache_write": 1792224,
+  "w5": 0,
+  "w1": 1792224
+ },
+ "messages": 42,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Idle, nothing in progress. The title-layouts task is landed (4b19a9b48, `kit/titles.md`).",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/titles.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.202Z"
+}

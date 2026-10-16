@@ -1,0 +1,34 @@
+{
+ "id": "c69fde26-a11f-45f6-a5bd-a9b2c8f2e5cf",
+ "first": "2026-10-15T00:04:18.511Z",
+ "last": "2026-10-15T00:33:14.310Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-topic-index",
+ "models": {
+  "claude-sonnet-5-5": 64
+ },
+ "sizes": {
+  "raw": 362807,
+  "content": 67550,
+  "stripped": 10684,
+  "owner_only": 0
+ },
+ "usd": 2.455225,
+ "usd_main": 2.455225,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 128,
+  "output": 41700,
+  "cache_read": 7501327,
+  "cache_write": 134426,
+  "w5": 0,
+  "w1": 134426
+ },
+ "messages": 64,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Refined asks are now recorded, indexed per module and routed, and merged into `michael/dev`. I did one thing wrong along the way (below).\n\n- **Counts:** 1,080 asks recorded, 19 crossed off as done, 612 sent to their module's inbox. 449 stay open because they are site-wide or have no module folder.\n- **Where it lives:**\n  - The record is one line per ask in each session's `asks.jsonl`.\n  - The per-module lists are `doc/refined-asks.md`, and the overview is [asks-by-module](/framework/ai/doc/asks-by-module.md).\n  - [How it works](/framework/ext/Refine/doc/asks.md) is linked from the Refine readme. `Server/AskIndex.mjs` does the filing, and `RefineQueue` calls it after each refined prompt.\n- **Page name differs from the brief:** it is `refined-asks.md`, not `asks.md`. Four modules already had a hand-merged `asks.md`, and I didn't want to overwrite them.\n- **Tested:**\n  - A re-run adds nothing, both in `node Server/AskIndex.test.mjs` and on `ux/Dictate` (19 inbox lines, unchanged on the second run).\n  - A live refine of three of today's prompts recorded the new asks.\n  - I did not check the page layouts at the four widths. These are generated markdown pages, with no new UI.\n- **Done is deliberately strict.** It only counts when AskTally judged the feature done and one of that feature's asks came from the same prompt. I did not search landing lines separately.\n- **`ai/sessions` gap:** its inbox is written, but `ModuleInbox.modules()` skips any folder named `sessions`, so `ModuleRe …",
+ "edited": [
+  "Server/AskIndex.mjs"
+ ],
+ "digested_at": "2026-10-16T06:28:10.288Z"
+}

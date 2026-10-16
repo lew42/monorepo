@@ -1,0 +1,35 @@
+{
+ "id": "6a78c3cb-dbf7-4731-8477-9111f300cee6",
+ "first": "2026-10-15T00:00:00.845Z",
+ "last": "2026-10-15T00:02:00.607Z",
+ "agent": "reviewer-scripts-rename-5",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-rename-5/requirements.md",
+ "models": {
+  "claude-opus-5-5": 10
+ },
+ "sizes": {
+  "raw": 621926,
+  "content": 25533,
+  "stripped": 2831,
+  "owner_only": 0
+ },
+ "usd": 0.896519,
+ "usd_main": 0.896519,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 20,
+  "output": 5392,
+  "cache_read": 619257,
+  "cache_write": 67612,
+  "w5": 0,
+  "w1": 67612
+ },
+ "messages": 10,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The review says **fix** (two problems). The report is at `scripts-rename-5/review/report.md`.\n\n- ⚠️ **`Server/doc/scripts.md` contradicts itself.**\n  - The summary line now counts \"live\" twice.\n  - The heading says \"0 live remain\" when it means none are misnamed.\n  - The table still marks Collab and Decide as misnamed.\n- ⚠️ **The decision line saying the plan waits on you is missing.** The plan itself is in `Servex/agents/doc/class-plan.md` and is fine.\n\nOnly `ask-each.mjs` kept a one-line stand-in under the old name. On Windows, `browser.mjs` and `Browser.mjs` are the same file, so the other three old files were deleted and every caller was moved to the new path. That includes a few lines inside Servex, which then needs the restart it was already due.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-rename-5/review/report.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.236Z"
+}

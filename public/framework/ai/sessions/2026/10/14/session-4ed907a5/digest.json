@@ -1,0 +1,35 @@
+{
+ "id": "4ed907a5-6ed2-4aa9-b790-f647157c3acd",
+ "first": "2026-10-14T02:37:36.328Z",
+ "last": "2026-10-14T02:39:04.116Z",
+ "agent": "reviewer-scripts-rename-1",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-rename-1/requirements.md",
+ "models": {
+  "claude-opus-5-5": 8
+ },
+ "sizes": {
+  "raw": 171395,
+  "content": 27261,
+  "stripped": 2944,
+  "owner_only": 0
+ },
+ "usd": 0.822032,
+ "usd_main": 0.822032,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 16,
+  "output": 4186,
+  "cache_read": 486401,
+  "cache_write": 67961,
+  "w5": 0,
+  "w1": 67961
+ },
+ "messages": 8,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The verdict is **fix**: the files were renamed correctly, but the instructions for restoring the archived pictures still name the deleted `archive-sessions.mjs`, so following them would fail. The review is in [review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-rename-1/review.md).\n\nTwo things must change:\n- **Restore instructions:** [picture-archive.md](/framework/ai/sessions/doc/picture-archive.md) and the August and September readmes in the sessions folder still give the old command. The new rename script skips everything under the sessions folder, so it never updated them. Batches 2–5 would miss callers the same way unless that skip is narrowed.\n- **Todo list:** `todo.md` still lists the five as rename candidates, now under their new names. They should have been removed, since only the other 21 should stay listed.\n\nEverything else the brief asked for is done: the five picked with their callers logged, `git mv` renames, classes with the old exports kept for a week, and undo tested on a copy first. `Servex.js` changed, so Servex still needs the mastermind's restart.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-rename-1/review.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.211Z"
+}

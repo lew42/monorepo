@@ -1,0 +1,50 @@
+{
+ "id": "7560754c-b3f2-4135-9ea0-1b6da99d7bae",
+ "first": "2026-10-13T23:14:30.155Z",
+ "last": "2026-10-13T23:34:32.939Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task-log-race",
+ "models": {
+  "claude-sonnet-5-5": 98
+ },
+ "sizes": {
+  "raw": 680267,
+  "content": 109747,
+  "stripped": 10989,
+  "owner_only": 11
+ },
+ "usd": 3.776283,
+ "usd_main": 3.776283,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 196,
+  "output": 70821,
+  "cache_read": 10182005,
+  "cache_write": 257820,
+  "w5": 0,
+  "w1": 257820
+ },
+ "messages": 98,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-13T23:30:08.054Z",
+   "t": "Continue from where you left off."
+  }
+ ],
+ "result": "The lines were lost by a plain `git merge --no-ff` run in the dirty main tree at 17:38:07, and that is now blocked. I recovered 301 lost lines, including the `figma-to-code`, `model-switch` and `session-dup-check` landing lines. Nothing needs a Servex restart.\n\n- **Mechanism:** a plain `git merge --no-ff worktree/assistant-chain` was run in the dirty main tree after `merge.mjs` refused.\n  - Git parked the 197 dirty files in a hidden commit (`0283e997`) and hard-reset the tree.\n  - The put-back then failed with \"Index was not unstashed. Merge with strategy ort failed\", leaving every uncommitted line only in that hidden commit.\n  - The old `Server/merge.mjs` (line 563) ran the same `git merge` in its no-overlap path.\n  - It was not an autostash or a pull, and committed history never lost a line.\n- **Fix:** the git-guard hook now refuses `git merge`, `git pull`, `git rebase` and `--autostash` in the main checkout. `merge.mjs` no longer runs `git merge` at all and lands every branch by three-way write. `git merge --abort` and the `merge-base`/`merge-tree`/`merge-file` commands stay open, and `merge.mjs` now refuses cleanly when given a branch name instead of a folder.\n- **Test:** `node Server/task-log-race.test.mjs` has 13 checks and passes.\n  - It reproduces the loss with a smudge filter standing in for the live writer.\n  - Run against the old `merge.mjs`, one check fails (\"no hidden WIP commit was left behind\"); I confirmed this once.\n  - The guard has its own cases in `git-gua …",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task-log-race/loss-scan.mjs",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task-log-race/find-merge-cmd.mjs",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task-log-race/recover.mjs",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task-log-race/recover-apply.mjs",
+  ".claude/hooks/git-guard.mjs",
+  ".claude/hooks/git-guard.test.mjs",
+  "Server/merge.mjs",
+  "C:/Users/mike/AppData/Local/Temp/fixmerge.cjs",
+  "Server/task-log-race.test.mjs",
+  "public/framework/ai/sessions/doc/commit-rule.md",
+  "public/framework/ext/JSONL/readme.md",
+  "C:/Users/mike/AppData/Local/Temp/landing-task-log-race.json"
+ ],
+ "digested_at": "2026-10-16T06:28:10.242Z"
+}

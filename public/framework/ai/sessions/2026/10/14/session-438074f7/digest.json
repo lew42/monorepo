@@ -1,0 +1,32 @@
+{
+ "id": "438074f7-12fb-40a6-8cd2-48a65aa47ea1",
+ "first": "2026-10-14T23:52:09.095Z",
+ "last": "2026-10-15T00:04:17.601Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/branch-audit-merge",
+ "models": {
+  "claude-sonnet-5-5": 28
+ },
+ "sizes": {
+  "raw": 214079,
+  "content": 38634,
+  "stripped": 10799,
+  "owner_only": 0
+ },
+ "usd": 0.922086,
+ "usd_main": 0.922086,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 56,
+  "output": 14114,
+  "cache_read": 2288090,
+  "cache_write": 80804,
+  "w5": 0,
+  "w1": 80804
+ },
+ "messages": 28,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The landing line is now in `task.jsonl`, and I've replied on the card. The reply says 1 branch landed (`worktree/orphans`, `1d2ebd6d4`), 26 superseded, 17 set aside and 97 records-only, with nothing deleted. It links to `review.md`. I haven't re-checked the card since posting the reply.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.204Z"
+}

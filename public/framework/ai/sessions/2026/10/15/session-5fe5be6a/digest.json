@@ -1,0 +1,36 @@
+{
+ "id": "5fe5be6a-376d-4790-8a31-57ae8fd89914",
+ "first": "2026-10-15T22:53:08.747Z",
+ "last": "2026-10-15T22:53:10.406Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 17379,
+  "content": 159,
+  "stripped": 159,
+  "owner_only": 53
+ },
+ "usd": 0.017893,
+ "usd_main": 0.017893,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 131,
+  "cache_read": 0,
+  "cache_write": 8618,
+  "w5": 0,
+  "w1": 8618
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T22:53:08.764Z",
+   "t": "0: I keep getting this refining with a model, usually about 8 seconds and about 3 cents.\n1: The clean text is already usable. Pretty useless to be honest."
+  }
+ ],
+ "result": "{\"notes\":[{\"i\":0,\"alternates\":[\"Refining with a model takes about 8 seconds and costs about 3 cents each time.\"],\"names\":[\"Refine cost\"],\"tags\":[\"ext/Refine\"]},{\"i\":1,\"alternates\":[\"The clean text is already usable.\",\"The refined output adds little value.\"],\"names\":[\"Refine value\"],\"tags\":[\"ext/Refine\"]}]}",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.219Z"
+}

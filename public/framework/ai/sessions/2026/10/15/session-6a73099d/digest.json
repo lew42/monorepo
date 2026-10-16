@@ -1,0 +1,32 @@
+{
+ "id": "6a73099d-818c-41f2-9ea9-6f82bd0e2e14",
+ "first": "2026-10-15T20:39:46.419Z",
+ "last": "2026-10-16T05:27:26.156Z",
+ "task": "public/framework/ai/sessions/2026/10/15/voice-today",
+ "models": {
+  "claude-sonnet-5-5": 25
+ },
+ "sizes": {
+  "raw": 826876,
+  "content": 12819,
+  "stripped": 9413,
+  "owner_only": 0
+ },
+ "usd": 1.544247,
+ "usd_main": 1.544247,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 50,
+  "output": 1976,
+  "cache_read": 962154,
+  "cache_write": 332989,
+  "w5": 0,
+  "w1": 332989
+ },
+ "messages": 25,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Idle on `voice-today`: no voice question has come in, and nothing is in progress. I'm waiting for the next one, and I'll answer it from the handover and log it.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.235Z"
+}

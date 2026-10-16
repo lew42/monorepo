@@ -1,0 +1,34 @@
+{
+ "id": "adc04497-b5fb-459d-ad92-5a77501e9fe6",
+ "first": "2026-10-14T00:14:07.429Z",
+ "last": "2026-10-14T00:22:40.685Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-rows",
+ "models": {
+  "claude-sonnet-5-5": 53
+ },
+ "sizes": {
+  "raw": 1449645,
+  "content": 59763,
+  "stripped": 10190,
+  "owner_only": 0
+ },
+ "usd": 2.47881,
+ "usd_main": 2.47881,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 106,
+  "output": 50559,
+  "cache_read": 6075001,
+  "cache_write": 189502,
+  "w5": 0,
+  "w1": 189502
+ },
+ "messages": 53,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "All 11 DS pages are now on the section-rows layout in Figma, and I landed the task. The report is `kit/ds-rows.md`, committed by path.\n\n- **Layout:** each section is a row with its title and description in a 400-wide left column and the existing specimens moved (not copied) into the right. Every node id is kept, so the Index still works.\n- **Template choice:** I used the same auto layout, not a template instance, because a slot can't hold moved nodes.\n- **Reactions:** 0 before and 0 after on the nine pages I counted. I did not count Elements or Icons; I only moved nodes there.\n- **Side fixes:**\n  - Single-stat block for 280 sidebars: `277:104073`.\n  - Overview thumbnails: now 314 high, so none are clipped.\n  - Stat master: gained a 1 px stroke, so it reads on the gray rail.\n- **Left over:**\n  - The three-phone rows render as two phones plus one full-width one.\n  - Pages are taller (Elements went from 5773 to 8673).\n  - I screenshot-checked only Buttons, Elements, Inputs & controls, 3 Sections and the Icons Core set. The other pages were checked by script and measured heights.\n- **Not done:** I skipped the review step (`Server/review.mjs`) because the change is Figma-only. There is no kit readme, so nothing links the report yet; it is reachable only by its path.",
+ "edited": [
+  "C:/Users/mike/AppData/Local/Temp/landing-fig-ds-rows.json"
+ ],
+ "digested_at": "2026-10-16T06:28:10.273Z"
+}

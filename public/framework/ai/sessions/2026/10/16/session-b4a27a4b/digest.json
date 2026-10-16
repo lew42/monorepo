@@ -1,0 +1,36 @@
+{
+ "id": "b4a27a4b-efad-40a3-9b6e-920cd5f8fd2b",
+ "first": "2026-10-16T06:09:49.789Z",
+ "last": "2026-10-16T06:09:51.277Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 17182,
+  "content": 75,
+  "stripped": 75,
+  "owner_only": 41
+ },
+ "usd": 0.001085,
+ "usd_main": 0.001085,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 45,
+  "cache_read": 8578,
+  "cache_write": 0,
+  "w5": 0,
+  "w1": 0
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-16T06:09:49.802Z",
+   "t": "SENTENCE: And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."
+  }
+ ],
+ "result": "{\"clarity\": 0.95, \"why\": \"Famous JFK quote, complete and self-contained; meaning is unmistakable.\"}",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.278Z"
+}

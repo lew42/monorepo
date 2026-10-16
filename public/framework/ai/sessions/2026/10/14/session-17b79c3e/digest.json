@@ -1,0 +1,35 @@
+{
+ "id": "17b79c3e-b4b5-4384-b970-e0a78cb2974d",
+ "first": "2026-10-14T03:00:33.462Z",
+ "last": "2026-10-14T03:03:00.749Z",
+ "agent": "reviewer-review-site-pages",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/review-site-pages/requirements.md",
+ "models": {
+  "claude-opus-5-5": 9
+ },
+ "sizes": {
+  "raw": 1830855,
+  "content": 18276,
+  "stripped": 3061,
+  "owner_only": 0
+ },
+ "usd": 0.987998,
+ "usd_main": 0.987998,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 18,
+  "output": 8163,
+  "cache_read": 563884,
+  "cache_write": 74889,
+  "w5": 0,
+  "w1": 74889
+ },
+ "messages": 9,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The verdict is **fix**: the [Catalog](/framework/catalog/) page doesn't yet meet the owner's preview ask. I wrote the [report](public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/review-site-pages/review/report.md); I was given all four widths for every page, and the catalog was shot on the main site only.\n\n### Catalog `/framework/catalog/`\n- ⚠️ No preview card shows on the first screen at any width; it starts with text, three links and three class cards.\n- ⚠️ The \"40 previews in under 2 s\" test is not met. The page's own `doc/next.md` says live iframes can't meet it and records the next brief.\n- ⚠️ At 1920 and 3440 the page stays in a narrow column, about 75% of the screen empty. It is 16 screens long at 1920 and 75 at 400.\n- ⚠️ The \"Refine\" class card is empty, with no \"extends\" line and no methods.\n\n---\n\n### Object `/framework/ux/Content/Object/`\n- ⚠️ The new InstanceTree tab pushes the tab bar onto 2 rows at 1200.\n- The page is blank on the main site at all four widths, but the worktree build renders. Check it again after the merge.\n\n---\n\n### Surfaces, tokens, InstanceTree\n- ✅ [Voice and chat surfaces](/framework/ux/Dictate/surfaces/) says, for every surface, where it is, its file, who answers and where it writes.\n- ✅ [Figma tokens](/framework/ext/Figma/tokens/) shows the pairs of Figma variable and site property, with colour swatches.\n- ✅ [InstanceTree](/framework/ux/Content/Object/instance-tree/) shows the demo beside the live tree.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/review-site-pages/review/report.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.182Z"
+}

@@ -1,0 +1,37 @@
+{
+ "id": "7c2c3708-8d01-4176-b143-88aa77f96b15",
+ "first": "2026-10-14T03:17:56.576Z",
+ "last": "2026-10-14T08:25:57.218Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/sessions-next",
+ "models": {
+  "claude-sonnet-5-5": 70
+ },
+ "sizes": {
+  "raw": 1272688,
+  "content": 51658,
+  "stripped": 11731,
+  "owner_only": 11
+ },
+ "usd": 2.487454,
+ "usd_main": 2.487454,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 142,
+  "output": 25631,
+  "cache_read": 6177900,
+  "cache_write": 248820,
+  "w5": 0,
+  "w1": 248820
+ },
+ "messages": 70,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-14T03:26:03.380Z",
+   "t": "Continue from where you left off."
+  }
+ ],
+ "result": "Idle: the task is landed (`bcc2f48fd`). The Coverage list is flat, with 12 rows above the fold at 1920. The session name now shows on first paint. Still undone: the shots card, and I haven't looked at the 1200 and 3440 shots.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.245Z"
+}

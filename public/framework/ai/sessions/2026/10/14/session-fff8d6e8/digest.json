@@ -1,0 +1,34 @@
+{
+ "id": "fff8d6e8-3cbe-49df-b8cf-67ebaa52cff1",
+ "first": "2026-10-14T02:33:56.440Z",
+ "last": "2026-10-14T02:39:51.284Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-rename-1",
+ "models": {
+  "claude-sonnet-5-5": 34
+ },
+ "sizes": {
+  "raw": 236076,
+  "content": 42401,
+  "stripped": 10427,
+  "owner_only": 0
+ },
+ "usd": 1.115025,
+ "usd_main": 1.115025,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 68,
+  "output": 19691,
+  "cache_read": 2856153,
+  "cache_write": 86687,
+  "w5": 0,
+  "w1": 86687
+ },
+ "messages": 34,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "✅ Five scripts are renamed to their class names and merged into `michael/dev`: `CardCheck`, `ArchiveSessions`, `HttpsCert`, `AntigravityUsage` and `BrowserCheck`, all in `Server/`.\n\n⚠️ `Servex/Servex.js` now imports `BrowserCheck.mjs`, so the live Servex needs a `sustain.mjs --restart` before it picks that up. That restart is yours as mastermind.\n\n- **Rename script:** `Server/RenameScript.mjs` does the move and rewrites the callers. It writes a manifest and has `--undo`. I proved undo on a worktree copy. The first undo left one wrong line in `scripts.md`; I changed the manifest to store the original files, and the second run restored everything exactly. It is ready for batches 2–5.\n- **Classes:** The three function bags (`CardCheck`, `AntigravityUsage`, `BrowserCheck`) are now classes with static methods. The old named exports stay as one-line aliases until 2026-10-20, which is recorded as a `decision` line in `task.jsonl`.\n- **Skipped:** I did not take `retire-files.mjs`, because another task touched it within the last hour.\n- **Review:** The full review found two real misses. Live docs under `public/framework/ai/sessions/` still named the old `archive-sessions.mjs`, and five stale \"Rename candidate\" lines were left in `todo.md`. I fixed both and answered all six findings. The merge passed.\n- **`scripts.md`:** The five are marked renamed at `1a56eebd0` and the other 21 stay listed in `Server/doc/scripts.md`. The landing line checks out with `tail -1`.\n- **Archive-drive READM …",
+ "edited": [
+  "Server/RenameScript.mjs"
+ ],
+ "digested_at": "2026-10-16T06:28:10.320Z"
+}

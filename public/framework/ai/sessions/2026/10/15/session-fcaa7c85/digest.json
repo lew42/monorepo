@@ -1,0 +1,36 @@
+{
+ "id": "fcaa7c85-ef11-45a2-a455-adf4ca0f3e19",
+ "first": "2026-10-15T22:52:10.093Z",
+ "last": "2026-10-15T22:52:11.303Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 17089,
+  "content": 46,
+  "stripped": 46,
+  "owner_only": 12
+ },
+ "usd": 0.017324,
+ "usd_main": 0.017324,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 42,
+  "cache_read": 0,
+  "cache_write": 8556,
+  "w5": 0,
+  "w1": 8556
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T22:52:10.104Z",
+   "t": "SENTENCE: Testing, can you hear me?"
+  }
+ ],
+ "result": "{\"clarity\": 0.85, \"why\": \"Complete, unambiguous question; a reader knows exactly what is asked.\"}",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.319Z"
+}

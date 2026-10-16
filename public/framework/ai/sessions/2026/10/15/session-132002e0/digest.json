@@ -1,0 +1,64 @@
+{
+ "id": "132002e0-9541-421b-a850-8151750a1935",
+ "first": "2026-10-15T00:07:11.851Z",
+ "last": "2026-10-15T00:09:06.333Z",
+ "models": {
+  "claude-haiku-5-5": 8
+ },
+ "sizes": {
+  "raw": 13724,
+  "content": 370,
+  "stripped": 370,
+  "owner_only": 339
+ },
+ "usd": 0.008108,
+ "usd_main": 0.008108,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 16,
+  "output": 48,
+  "cache_read": 15122,
+  "cache_write": 3170,
+  "w5": 0,
+  "w1": 3170
+ },
+ "messages": 8,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-15T00:07:11.866Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, which page lists all the sessions?\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:07:28.572Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, what does the Dictate sheet do on a phone?\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:07:47.800Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, where is the fast assistant's prompt?\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:08:02.568Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, how many bubbles does the half sheet show?\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:08:27.046Z",
+   "t": "[from: owner]\n[on /framework/] The sheet should show every bubble in order.\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:08:39.696Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, is there a page for the inbox?\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:08:52.937Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, what is a voice session?\n(the owner has stopped: quiet for 3.0 s)"
+  },
+  {
+   "at": "2026-10-15T00:09:05.618Z",
+   "t": "[from: owner]\n[on /framework/] Smart assistant, which file holds the Dictate widget?\n(the owner has stopped: quiet for 3.0 s)"
+  }
+ ],
+ "result": "(listening)",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.348Z"
+}

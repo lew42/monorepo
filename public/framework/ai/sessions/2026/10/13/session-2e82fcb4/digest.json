@@ -1,0 +1,35 @@
+{
+ "id": "2e82fcb4-7754-400d-9b34-326f0dccc9c6",
+ "first": "2026-10-13T23:13:14.887Z",
+ "last": "2026-10-13T23:13:39.684Z",
+ "agent": "reviewer-one-store-docs",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store/doc/one-tree.md.",
+ "models": {
+  "claude-sonnet-5-5": 4
+ },
+ "sizes": {
+  "raw": 109033,
+  "content": 8953,
+  "stripped": 2866,
+  "owner_only": 0
+ },
+ "usd": 0.20483,
+ "usd_main": 0.20483,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 8,
+  "output": 2652,
+  "cache_read": 177329,
+  "cache_write": 35707,
+  "w5": 0,
+  "w1": 35707
+ },
+ "messages": 4,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "I wrote the check to `docs-check.md`. One link is broken, and two of your four cases (a script's record and an Inbox card) have no clear rule yet.\n\n- **New task folder:** clear. `node Server/TaskDirs.mjs --new <slug>` puts it at `ai/sessions/YYYY/MM/DD/<session>/<slug>/`.\n- **Script record:** partly clear. The day log is `day.jsonl` in that day's folder. No file says where a free-standing record goes, or that a script should build its path with `TaskDirs.dir()`.\n- **Module doc:** the files only say it lives in the module's folder. The `doc/*.md` detail is in CLAUDE.md, not in these three files.\n- **Inbox card:** the files agree, but they don't say what to do now. Cards are at `ai/YYYY/MM/DD/<card>/` today and will move to `sessions/.../cards/`. The practical rule would be to write them through `create_card` and never hand-pick a path, but no file says so.\n- **Broken link:** line 3 of `task-folders.md` points to `../2026-10-12/task-folders/requirements.md`, which no longer exists. It is now at `sessions/2026/10/12/session-e456f109/task-folders/requirements.md`.\n\nEvery other relative link exists.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-store/docs-check.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.193Z"
+}

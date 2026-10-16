@@ -1,0 +1,36 @@
+{
+ "id": "174740ca-7bcc-479f-a9fd-d4d37da4d704",
+ "first": "2026-10-16T06:08:43.623Z",
+ "last": "2026-10-16T06:08:44.809Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 17265,
+  "content": 90,
+  "stripped": 90,
+  "owner_only": 38
+ },
+ "usd": 0.001187,
+ "usd_main": 0.001187,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 65,
+  "cache_read": 8598,
+  "cache_write": 0,
+  "w5": 0,
+  "w1": 0
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-16T06:08:43.637Z",
+   "t": "0: And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."
+  }
+ ],
+ "result": "{\"notes\":[{\"i\":0,\"alternates\":[\"Ask not what your country can do for you.\",\"Ask what you can do for your country.\"],\"names\":[\"Civic ask\"],\"tags\":[]}]}",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.182Z"
+}

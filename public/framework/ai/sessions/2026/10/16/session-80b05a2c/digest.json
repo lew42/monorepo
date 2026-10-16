@@ -1,0 +1,36 @@
+{
+ "id": "80b05a2c-a260-4fc6-aea7-477d0f96668e",
+ "first": "2026-10-16T06:09:51.184Z",
+ "last": "2026-10-16T06:09:52.877Z",
+ "models": {
+  "claude-haiku-5-5": 1
+ },
+ "sizes": {
+  "raw": 17111,
+  "content": 73,
+  "stripped": 73,
+  "owner_only": 20
+ },
+ "usd": 0.001236,
+ "usd_main": 0.001236,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 2,
+  "output": 75,
+  "cache_read": 8585,
+  "cache_write": 0,
+  "w5": 0,
+  "w1": 0
+ },
+ "messages": 1,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-16T06:09:51.195Z",
+   "t": "0: Now the second line is typed.\n1: It has two sentences."
+  }
+ ],
+ "result": "{\"notes\":[{\"i\":0,\"alternates\":[\"The second line is typed now.\"],\"names\":[],\"tags\":[]},{\"i\":1,\"alternates\":[\"It has two sentences.\"],\"names\":[],\"tags\":[]}]}",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.250Z"
+}

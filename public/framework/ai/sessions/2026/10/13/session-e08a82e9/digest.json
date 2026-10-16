@@ -1,0 +1,34 @@
+{
+ "id": "e08a82e9-d6ef-42be-91eb-15b61a073d09",
+ "first": "2026-10-13T22:07:25.114Z",
+ "last": "2026-10-13T22:12:54.195Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/model-switch",
+ "models": {
+  "claude-sonnet-5-5": 42
+ },
+ "sizes": {
+  "raw": 707264,
+  "content": 60296,
+  "stripped": 10643,
+  "owner_only": 0
+ },
+ "usd": 1.5754,
+ "usd_main": 1.5754,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 84,
+  "output": 24470,
+  "cache_read": 4339259,
+  "cache_write": 115670,
+  "w5": 0,
+  "w1": 115670
+ },
+ "messages": 42,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The assistants are already on Claude, and OpenRouter cost $0 in the last 24 hours. The code changes are committed (`e33baa3f1`) but take effect only at the next Servex restart, which I did not do.\n\n- **What you were told:** this was stale. The voice pair ran on OpenRouter (`openai/gpt-6-luna`) until midday 10-12, and the registry still lists 105 parked Echo rows on `google/gemini-3.8-flash` from 10-08. None are running.\n- **Echo, live now:** the last Gemini echo route logged was 10-08, so the live Servex has its OpenRouter pause on and echoes run on Claude. I could not read the running process's environment, so this comes from the log, not the process.\n- **Changed:**\n  - The fast tier is now Haiku 5.5.\n  - The Echo uses the scan tier (Haiku) and the Gemini trial code is gone.\n  - Reviewer, checker, voter, clarity and `session-smart` moved to the manager tier so they stay on Sonnet.\n- **Wall switch:** `node Server/models-now.mjs --backend openrouter|anthropic` writes or deletes the switch file and prints each tier's before and after. The switch file now also lifts the OpenRouter spawn pause; without that, flipping it would have refused every spawn. The five-line guide is in `Servex/ext/openrouter/readme.md`.\n- **Table:** `/framework/ai/models` shows roles, registry rows and the current backend, with Claude at 4% of the 5-hour window and 48% of the week. The agent count matches the registry (2602 of 2602).\n- **Caveats:**\n  - The table is a snapshot of `now.json` and refreshes o …",
+ "edited": [
+  "Server/models-now.mjs"
+ ],
+ "digested_at": "2026-10-16T06:28:10.299Z"
+}

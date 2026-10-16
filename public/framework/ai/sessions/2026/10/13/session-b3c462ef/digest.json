@@ -1,0 +1,45 @@
+{
+ "id": "b3c462ef-5dc9-4967-88bb-dab603e0a1a6",
+ "first": "2026-10-13T21:38:16.116Z",
+ "last": "2026-10-13T22:40:39.821Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes",
+ "models": {
+  "claude-opus-5-5": 81
+ },
+ "sizes": {
+  "raw": 673096,
+  "content": 93312,
+  "stripped": 11415,
+  "owner_only": 23
+ },
+ "usd": 7.073132,
+ "usd_main": 7.073132,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 166,
+  "output": 63810,
+  "cache_read": 10654070,
+  "cache_write": 191830,
+  "w5": 0,
+  "w1": 191830
+ },
+ "messages": 81,
+ "subagent_files": 0,
+ "prompts": [
+  {
+   "at": "2026-10-13T22:01:19.238Z",
+   "t": "Continue from where you left off."
+  },
+  {
+   "at": "2026-10-13T22:23:18.153Z",
+   "t": "Continue from where you left off."
+  }
+ ],
+ "result": "I found 859 asks in your 1,990 typed prompts since 09-15 and grouped them into 309 features. 101 are done and 118 partly; 79 of those you asked for again after something landed. 90 have no evidence of landing. The page is [asks-outcomes.md](/framework/ai/doc/asks-outcomes.md), and the [ai readme](/framework/ai/readme.md) links to it.\n\n⚠️ I spot-checked 10 verdicts myself and 7 were right. So read \"not done\" as \"no evidence found\", not proof: the search for evidence misses some landings.\n\n### Asked most, not finished\n1. session system: 47 asks\n2. task system: 33\n3. dashboard: 21, asked again\n4. class architecture: 19, asked again\n5. system architecture: 18, asked again\n6. page jsonl format: 15, asked again\n7. cost tracking: 13, asked again\n8. code quality: 13, asked again\n9. prompt refinement: 13\n10. servex system: 12, asked again\n\n---\n\n### Confidence scale\nThe top of the page says it: 0.5 = not sure (the default), 0 = no idea, 1 = certain. Haiku typing its own numbers still gave 0.8–1.0 to most asks, so the script computes them from four yes/no answers per ask: does it name the thing, does it say what done looks like, is it hedged, does it contradict. Each ask runs raw words → what was asked → command, question or directive → outcome needed → the two confidences.\n\n---\n\n### Caveats\n- **Broad groups:** some features are still too wide (\"session system\", \"task system\"), so they can only come out \"partly\".\n- **Contradictions:** this list is noisy; about half are open questions ra …",
+ "edited": [
+  "Server/AskTally.mjs",
+  "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/prompt-outcomes/spotcheck.json",
+  "C:/Users/mike/AppData/Local/Temp/asktally/page-method.txt"
+ ],
+ "digested_at": "2026-10-16T06:28:10.278Z"
+}

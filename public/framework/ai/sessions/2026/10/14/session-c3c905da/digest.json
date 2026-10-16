@@ -1,0 +1,35 @@
+{
+ "id": "c3c905da-dd45-4965-8980-3bc26c0aa978",
+ "first": "2026-10-14T23:39:14.651Z",
+ "last": "2026-10-14T23:49:22.138Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/demo",
+ "models": {
+  "claude-sonnet-5-5": 47
+ },
+ "sizes": {
+  "raw": 935826,
+  "content": 63549,
+  "stripped": 10682,
+  "owner_only": 0
+ },
+ "usd": 2.288289,
+ "usd_main": 2.288289,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 94,
+  "output": 62192,
+  "cache_read": 4632526,
+  "cache_write": 184919,
+  "w5": 0,
+  "w1": 184919
+ },
+ "messages": 47,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "✅ `Demo · Site` is built. It has ten 1920×1080 screens covering all four nav schemes, plus the flow, the ▶ PROTOTYPE badge and a Notes frame. A script that lists every reaction found no dead links, and every screen links back to Home. Scheme A (the dark sidebar with the gray inner sidebar attached to a white page) reads best.\n\nI haven't looked at Docs ×2, Settings, Templates or Why slots since the last edits. The Reading screens' footer buttons show a leading \"+\" icon, and their right column still shows sample session names. Report: `kit/demo.md`, committed and the task closed.",
+ "edited": [
+  "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/demo/build-a.js",
+  "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/demo.md"
+ ],
+ "digested_at": "2026-10-16T06:28:10.285Z"
+}

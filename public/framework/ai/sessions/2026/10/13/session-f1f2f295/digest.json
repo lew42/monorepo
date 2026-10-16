@@ -1,0 +1,32 @@
+{
+ "id": "f1f2f295-7314-426f-806d-b05d27b0e8bf",
+ "first": "2026-10-13T19:58:53.019Z",
+ "last": "2026-10-13T21:50:25.737Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/tidy-ds",
+ "models": {
+  "claude-sonnet-5-5": 23
+ },
+ "sizes": {
+  "raw": 445542,
+  "content": 30822,
+  "stripped": 10500,
+  "owner_only": 0
+ },
+ "usd": 1.001824,
+ "usd_main": 1.001824,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 46,
+  "output": 16793,
+  "cache_read": 2205952,
+  "cache_write": 98153,
+  "w5": 0,
+  "w1": 98153
+ },
+ "messages": 23,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Finished and idle. The 14 DS pages are wrapped, the report is committed at `kit/tidy-ds.md`, and I'm waiting on the mastermind's Index step. The Servex and site connections have dropped, but I don't need them for anything now.",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.313Z"
+}

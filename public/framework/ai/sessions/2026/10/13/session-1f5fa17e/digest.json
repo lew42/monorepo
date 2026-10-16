@@ -1,0 +1,32 @@
+{
+ "id": "1f5fa17e-3c0b-462d-a610-807598fcf146",
+ "first": "2026-10-13T01:34:37.779Z",
+ "last": "2026-10-13T22:08:14.092Z",
+ "task": "public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/ds-toggles",
+ "models": {
+  "claude-sonnet-5-5": 39
+ },
+ "sizes": {
+  "raw": 700190,
+  "content": 51391,
+  "stripped": 10718,
+  "owner_only": 0
+ },
+ "usd": 8.000768,
+ "usd_main": 8.000768,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 78,
+  "output": 29203,
+  "cache_read": 2885829,
+  "cache_write": 1782854,
+  "w5": 0,
+  "w1": 1782854
+ },
+ "messages": 39,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "Idle, nothing running. `ds-toggles` is finished and committed (`5ab01db32`).",
+ "edited": [],
+ "digested_at": "2026-10-16T06:28:10.185Z"
+}

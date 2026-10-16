@@ -1,0 +1,34 @@
+{
+ "id": "9b322d86-6014-4a13-aade-7cc3e7217a7b",
+ "first": "2026-10-14T01:47:25.571Z",
+ "last": "2026-10-14T02:01:30.365Z",
+ "task": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/asks-tally-rerun",
+ "models": {
+  "claude-sonnet-5-5": 44
+ },
+ "sizes": {
+  "raw": 303128,
+  "content": 57964,
+  "stripped": 10259,
+  "owner_only": 0
+ },
+ "usd": 1.659752,
+ "usd_main": 1.659752,
+ "usd_sub": 0,
+ "tokens": {
+  "input": 88,
+  "output": 29295,
+  "cache_read": 4503052,
+  "cache_write": 116504,
+  "w5": 0,
+  "w1": 116504
+ },
+ "messages": 44,
+ "subagent_files": 0,
+ "prompts": [],
+ "result": "The asks tally is re-run, and [the page](/framework/ai/doc/asks-outcomes) now opens with \"What changed today\". I didn't open the page in a browser or screenshot it; I only generated it and read the markdown.\n\n- **Counts:** 316 features in the data file and 316 rows on the page. Before it was 101 done, 118 partly, 90 not done. Now it is 86 done, 137 partly, 93 not done.\n- **How much was re-judged:** 101 features were re-judged, the ones whose evidence moved or that got a new ask. 58 asks from today's dictations were added.\n- **Moved to done:** only 5 features moved to done.\n- **Spot-check:** Haiku overcredited. I read 17 changed verdicts against their landing lines and only 8 held, so I corrected the other 9 to \"partly\".\n- **Asked today and already landed:** the page reports none.\n\nThe new `rejudge` and `record` commands are in `Server/AskTally.mjs`, committed as `bf0e17cb9`. The owner note is posted (kind `decision`). I checked the landing line in `task.jsonl` with `tail -1`.",
+ "edited": [
+  "Server/AskTally.mjs"
+ ],
+ "digested_at": "2026-10-16T06:28:10.266Z"
+}
