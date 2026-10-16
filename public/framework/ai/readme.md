@@ -54,6 +54,8 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - [systems-map.md](systems-map.md): where every major system lives, how long its readme is, and when it last changed.
 - **[doc/readme.md](doc/readme.md): the index of every AI-system doc**, by subsystem (design, agents, tokens, logs, tasks, ai2, meta). Sessions docs: [sessions/doc/readme.md](sessions/doc/readme.md).
 - [doc/architecture.md](doc/architecture.md): the decisions behind this folder, and where they came from.
+- [doc/tool-collapse.md](doc/tool-collapse.md): recommended next, fewer tools with a generic `call` as step one (plan only).
+- [doc/cleanup.md](doc/cleanup.md): cleanup items the owner noticed (duplicate task folders, session names that are not links).
 - Servex SDK: how an agent is started ([`Servex/doc/sdk.md`](/framework/servex/doc/sdk.md)) and Servex's own decisions ([`Servex/doc/architecture.md`](/framework/servex/doc/architecture.md)).
 - [doc/design/systems-overview.md](doc/design/systems-overview.md): full AI architecture, persistence, triggers, and MCP tool/session logging audit.
 - [todo.md](todo.md): what's waiting, in priority order, and what only you can do.

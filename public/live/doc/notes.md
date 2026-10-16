@@ -13,3 +13,9 @@ The dev `Socket` only opens on `localhost`, `127.0.0.1` and `*.localhost` (an RC
 ## Why the phone stopped, again (2026-10-15 late)
 
 The `Tail` fix works (headless tab over `10.0.0.135:3104`: a new line shows in 3 s). The phone tab had been opened before it landed, so it still ran the old `Live.js`, and an open tab never fetches new code. Fixes: `Tail.fresh()` reloads the tab once when `Live.js` changes (ETag), a line that names a card id now edits that card, `json` code blocks are pretty-printed and other code wraps. The old tab needs one manual refresh.
+
+## Scrapping a rough card (the owner, by voice, 2026-10-16): considered, not now
+
+/live only ever appends lines, so throwing away a rough card is awkward: the card stays until a `clear` blanks the whole screen. The owner is open to fixing this, but not now. Two options:
+- **Rewrite the last line.** The owner's suggestion. Simple, but it is a rewrite, and the rule is to append, never rewrite.
+- **A `drop` line naming the card id.** `Live.js` hides that card. History is kept, and it fits the append rule. This is the leaning, if it is built.
