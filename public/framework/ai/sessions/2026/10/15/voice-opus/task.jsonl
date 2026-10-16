@@ -111,3 +111,14 @@
 {"log":{"at":"2026-10-15T19:45:55-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T19:46:27-05:00","heartbeat":"answered","msg":"I'm idle, waiting for the next voice question, and no minions are running. I'll include the three past-work audit findings in my next voice reply."}}
 {"log":{"at":"2026-10-15T19:49:57-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T20:09:39-05:00","heartbeat":"revive-queued","msg":"mastermind-voice-opus its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-15T20:10:34-05:00","heartbeat":"revive","msg":"revived mastermind-voice-opus from session 0368b7c5-e780-4c45-b78e-fe7a0a432adb"}}
+{"log":{"at":"2026-10-15T20:10:37-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T20:10:37-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T20:10:37-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T20:11:07-05:00","heartbeat":"answered","msg":"I'm still idle, waiting for the next voice question, with no minions running. I'm leaving voice-opus open on purpose until the end of the day, so it won't get a landing line before then. The three pas"}}
+{"log":{"at":"2026-10-15T20:14:35-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T20:25:34-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-opus"}}
+{"log":{"at":"2026-10-15T20:25:37-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T20:26:08-05:00","heartbeat":"answered","msg":"I'm idle, waiting for the next voice question, and no minions are running. My next voice reply will include the three past-work audit findings. The Gmail connector won't work until it's authorized in "}}
+{"log":{"at":"2026-10-15T20:29:38-05:00","msg":"session ended (other) without landing"}}

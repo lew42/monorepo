@@ -67,3 +67,14 @@
 {"log":{"at":"2026-10-15T19:44:55-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T19:45:28-05:00","heartbeat":"answered","msg":"Idle on `voice-today`: no voice question has come in through `ask_mastermind`, so nothing is in flight. The task stays open on purpose, and I'll answer and log the next question when it arrives."}}
 {"log":{"at":"2026-10-15T19:48:57-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T20:09:39-05:00","heartbeat":"revive-queued","msg":"mastermind-voice-today its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-15T20:11:34-05:00","heartbeat":"revive","msg":"revived mastermind-voice-today from session 6a73099d-818c-41f2-9ea9-6f82bd0e2e14"}}
+{"log":{"at":"2026-10-15T20:11:38-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T20:11:38-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T20:11:38-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T20:12:09-05:00","heartbeat":"answered","msg":"Waiting on `voice-today`. No voice question has arrived through `ask_mastermind`, so I have nothing to answer or log. The task is open on purpose, and I'll pick up the next question when it arrives."}}
+{"log":{"at":"2026-10-15T20:15:38-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T20:26:34-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-today"}}
+{"log":{"at":"2026-10-15T20:26:36-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T20:27:08-05:00","heartbeat":"answered","msg":"Idle on `voice-today`: no voice question has come in through `ask_mastermind`. The task is open on purpose, and I'll answer, log and reply to the next one when it arrives."}}
+{"log":{"at":"2026-10-15T20:30:38-05:00","msg":"session ended (other) without landing"}}
