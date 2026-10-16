@@ -11,3 +11,9 @@
 {"log":{"at":"2026-10-15T22:02:36-05:00","heartbeat":"check","msg":"status check sent to mastermind-live-cards"}}
 {"log":{"at":"2026-10-15T22:02:39-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T22:03:09-05:00","heartbeat":"answered","msg":"All three code-block changes are done and committed: `tab-size: 3` in `md.css` (`3fe868d29`), edge-to-edge code in an opened `/live` card in `Live.css` (`0bb9952df`), and the live-classes card text re"}}
+{"log":{"at":"2026-10-15T22:14:35-05:00","msg":"task-loop chase 1 of 2: woke mastermind-live-cards","chase":1}}
+{"log":{"at":"2026-10-15T22:20:36-05:00","heartbeat":"check","msg":"status check sent to mastermind-live-cards"}}
+{"log":{"at":"2026-10-15T22:20:40-05:00","heartbeat":"answered","msg":"Both parts of the opened-card ask are done and committed. The extra space was a 42px top margin on the card box (`.live.live-one`). It came from `.page-title + *` in `framework.css`, and I've cancelle"}}
+{"log":{"at":"2026-10-15T22:29:35-05:00","msg":"task-loop chase 2 of 2: woke mastermind-live-cards","chase":2}}
+{"log":{"at":"2026-10-15T22:35:36-05:00","heartbeat":"check","msg":"status check sent to mastermind-live-cards"}}
+{"log":{"at":"2026-10-15T22:35:39-05:00","heartbeat":"answered","msg":"Both fixes on `/live/<id>/` are committed and I'm idle, with nothing in progress. The 42px top gap is gone (`cc9b46175`), and \"← Live\" is off behind `static back = false` in `Live.js` (`8c2628fd0`). I"}}
