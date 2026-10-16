@@ -7,4 +7,10 @@ The pilot for [page/query section 9](/framework/core/Page/doc/query.md). Not the
 3. `node estimate.mjs`: packs the real sessions into calls and prices them (Haiku 4.5, $1 in and $5 out per million tokens).
 4. `node classify2.mjs claude-haiku-4-5 <a>.jsonl <b>.jsonl ...`: one `claude -p` call on one or more stripped sessions; prints tags, summary and the real cost.
 
+Round 3 (no AI at all, all re-runnable for free):
+
+5. `node filesTouched.mjs`: how many `task.jsonl` logs name files, by month, week, day, and how many modules they touch.
+6. `node extract.mjs [days]`: owner prompts, final result, agent name and named task folder for every real transcript; writes `%TEMP%/pw/extract.json` and prints the size per session (about 54 s for all 9,603 transcripts).
+7. `node tag.mjs [days]`: how far script signals alone can tag (files, task join, task folder, keywords), and the Haiku fallback cost for the sessions left over.
+
 `runs/` holds the outputs the doc quotes. `topic-tree.txt` is the module list plus the topic names (about 1,700 tokens).

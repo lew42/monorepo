@@ -4,7 +4,7 @@
 
 ## On one screen
 
-- **Round 2 (the way forward) is [section 9](#9-the-way-forward-recommendation-round-2).** Tag every finished session once, by script plus one cheap Haiku call on a stripped transcript, store the tags where SessionIndex already reads, and query live. Measured: about $0.006 a session, about $20 for the whole 3,145-session backlog, about $20 a month at today's pace.
+- **Rounds 2 and 3 (the way forward) are [section 9](#9-the-way-forward-recommendation-revised-in-round-3).** A plain script extracts each session's owner prompts and final result for free; the result goes on the session snapshot that already carries cost (its `tags` field is empty today); Haiku is only a bounded fallback, newest first. Measured: the whole fallback is about $5.65 (round 2 said $19.47), the last 3 days $0.71.
 
 - **The query already exists and is live.** `Server/SessionIndex.mjs` holds one row per `task.jsonl` in memory, `fs.watch` keeps it current, and it answers filters in plain JavaScript. It is also ext/Query's `tasks` source. No page asks it yet.
 - **The tags are the weak part.** Module tags come from the files a task edited (`action.files`). The pilot shows that is thin: a whole day of core/Page, ext/Refine and Servex work was tagged just `ai`. The owner's own words are where the topics are.
@@ -114,15 +114,101 @@ Session: the 2026-10-15 voice root (`voice-20261015/task.jsonl`, 148 KB, 235 lin
 
 ## 8. The owner's open decisions
 
-1. **One pipeline for past and new prompts** (the owner's idea 13): approve building it as `SessionIndex` plus a script-stripped Haiku classifier that writes `topics` and path tags, run on every task close and retroactively over 851 sessions? Measured cost in section 9: about $20 for the whole backlog, about $8 for the 759 sessions that have a task log.
-2. **Where the tags go:** a `topics`/`tags` line appended to each `task.jsonl` (survives, in git) versus recomputed in memory only. This doc recommends the appended line.
+1. **One pipeline for past and new prompts** (the owner's idea 13): approve building it as `SessionIndex` plus a script-stripped Haiku classifier that writes `topics` and path tags, run on every task close and retroactively? Round 3 (section 9): a free script pass first, Haiku only for sessions it cannot place, about $5.65 for everything and $0.71 for the last 3 days.
+2. **Where the tags go:** revised in round 3: into the `tags` field of the session snapshot that `AISessionIndex` already writes (cost and `usd` live beside it), not a new line in each `task.jsonl`. The round 2 text below that proposed `task.jsonl` lines is superseded.
 3. **Raw voice prompts:** approve the `raw` argument on `ask_mastermind` (section 6).
 4. **Retire the three stale snapshots** (`sessions.json`, `session-index.json`, `session-tree.json`) once the Sessions page gets its spend from a live source; archive them under `ai/archive/`, never delete.
 
 
-## 9. The way forward: recommendation (round 2)
+## 9. The way forward: recommendation (revised in round 3)
 
-**The answer, in one paragraph.** Keep SessionIndex as the one live query. Fix the weak part, the tags, by tagging each session once when it is done: a node script strips its Claude transcript to the useful 1%, one cheap Haiku call (Haiku 4.5, no thinking) returns a summary and tags, and a script checks the tags against the real folders before they are saved. The same code runs on the 3,145 past sessions, on every new one, and on a schedule. Nothing calls an AI at query time. Measured: **about $0.006 a session, about $20 for the whole backlog, about $20 a month at today's pace.** Pilot files and outputs: [`pilot2/`](/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot2/readme.md).
+**Round 3 changes the plan in one sentence: extract with a plain script first (free, re-runnable), put the result on the session snapshot that already carries cost, and call Haiku only for the sessions the script cannot place.** Everything below the round 3 blocks is round 2 and is kept as the record; where a round 3 block disagrees, round 3 wins.
+
+### Round 3 A: do task logs tell us what was touched? (computed, `pilot2/filesTouched.mjs`)
+
+Of the 1,629 `task.jsonl` logs, **962 (59%) name at least one file and 667 (41%) name none.** Files are less common lately:
+
+| Window (ending 2026-10-16) | Task logs | With files | None |
+|---|---|---|---|
+| Last day | 10 | 5 (50%) | 5 |
+| Last 7 days | 283 | 148 (52%) | 135 |
+| Last 30 days | 1,051 | 563 (54%) | 488 |
+| All (2026-08 to 2026-10) | 1,629 | 962 (59%) | 667 |
+
+By month it is 63%, 64%, 52% (Aug, Sep, Oct); the dip is 10-12, where 84 of 142 logs have no files. **For the 962 logs with files, "one clean module" is the common case but not the rule:**
+
+- Counting `ai/` as a module: 54% touch exactly one module, 21% two, 19% three to five, 6% six or more. In 64% one module holds at least 80% of the files; the median top module holds 100%.
+- Ignoring `ai/` (a task's own log and brief, which says nothing about topic): **36% of the logs touch only `ai/`**, so they get no module tag at all; of the other 614, 47% touch one module, 71% touch at most two, and in 58% one module holds at least 80% of the files. Median files per log is 4, p90 is 14, largest 238.
+
+**Verdict: tagging by files touched is a workable fallback for about half the tasks, and a poor one for the rest.** It names a module for about 38% of all logs (614 of 1,629 have non-`ai/` files), is silent for the other 62%, and is noisy for the 21% that touch three or more. Use it as one signal, never as the only one.
+
+### Round 3 B1: the plain-script extraction pass (no AI; `pilot2/extract.mjs`, `tag.mjs`)
+
+`extract.mjs` reads every Claude transcript, skips machine pipeline calls, and keeps four things: the owner's real prompts (harness noise dropped), the last assistant message (the final result), the name of the Servex agent that was spawned (`[You are Servex agent clarity-unreferenced-census-fix.]`, which is a task slug), and the task folder its brief names. **It never keeps tool output or the assistant's middle turns.**
+
+| Measured over all 9,603 transcripts | Result |
+|---|---|
+| Time | 54 to 71 seconds, one core, no model; it can run on every session, every day |
+| Real sessions kept (machine calls skipped) | 4,403 |
+| **Extracted size per session** | **median 765 characters (about 260 tokens), p90 2,453 (about 850 tokens)**, largest 409k (a pasted wall of text; capped at 30k in the cost model) |
+| All sessions together | 7.4 MB, against 6.6 GB of raw transcripts |
+| Sessions with at least one owner prompt | 1,660 (38%) |
+| Sessions that only have a Servex brief and a result | 2,738 (62%); 2,173 of all sessions carry an agent name |
+
+What this means: **38% of sessions contain words the owner or a person typed; 62% are agents working from a brief.** For those, the brief's task folder, the agent name and the final result are the content, and they are short.
+
+How far the script alone can tag (`tag.mjs`, three signals): a module from the files the session edited (not counting `ai/`, scratch folders or worktree prefixes), a module from the task log that names the session (the `session_id` join SessionIndex already does), the task folder its brief names, and module-name keywords from the topic tree.
+
+| | All 4,403 | Last 7 days (1,143) | Last 3 days (530) |
+|---|---|---|---|
+| Strong signal: edited non-`ai/` files, or its task log's files, or a named task folder | 1,136 (26%) | 351 (31%) | 245 (46%) |
+| Named by a `task.jsonl` | 802 (18%) | 292 (26%) | 187 (35%) |
+| Any keyword hit (two or more) | 2,609 (59%) | 61% | |
+| No signal of any kind | 1,573 (36%) | 396 (35%) | 113 (21%) |
+
+**Keywords are weak: when a session has both a keyword tag and an edited-file module, they agree only 28% of the time** (174 of 613), because the vocabulary is short and generic words leak in. So **the script alone resolves about a quarter of sessions with a strong tag and gives a rough hint for about another third. It is a good first pass and a good filter, not a replacement for a summary.** The remaining three quarters need either the model or an honest "untagged".
+
+### Round 3 B2: cost and topic filters (confirmed, nothing to build for cost)
+
+**Per-session cost already exists, live, and nearly every session has it.** `AISessionIndex` keeps one snapshot per session with `usd`, `tree_usd` (the session plus its children), `tokens`, `model`, `children`, `day`, `title`, `core` (modules from edited files), `category` and **`tags`, which is an empty array on all 9,381 snapshots today.** The snapshots are written into 35 day files, `sessions/YYYY/MM/DD/index.json` (2026-09-01 to 2026-10-16), and per-session `index.json`. Measured: **9,381 snapshots, 6,573 with a cost, $16,624 of list price in total; 4,342 of the 4,403 real sessions have a snapshot and 4,262 of those have a cost.** The old `session-index.json` is a stale copy of the same thing (2,707 rows, generated 2026-10-09).
+
+So the wiring is small:
+
+- **Cost filter:** add `usd_min`, `usd_max` and `tree` (use `tree_usd`) to the sessions query beside `since`, `text`, `agent` and `module`. The data is already there; it is one `filter` line and a sort key.
+- **Topic filter:** fill the snapshot's `tags` field (Mention syntax, `#core/Page`). `AISessionIndex` is the one writer of those snapshots, so the tags go through it, not into a second file. The query filter on `tags` is then the same line as the cost one.
+- **Both together** ("what did dictation work cost this week?") is `tags includes #ux/Dictate && day >= …`, summed on `usd`, computed in memory. No AI at query time.
+
+### Round 3 B3: when Haiku is needed, and what it now costs
+
+The extraction shrinks the model's input from the stripped 39M characters to **7.4M**, because the owner's prompts and the final result are the useful part and everything else is dropped. Same formula as before (2.9 characters per token, 100k characters a call, 2,200 tokens of fixed prompt, Haiku 4.5 at $1 in and $5 out per million) but with **150 output tokens a session** (one summary line and the tags) and each session capped at 30k characters (`tag.mjs`):
+
+| Scope | Sessions | Haiku cost |
+|---|---|---|
+| Last 3 days (pilot) | 530 all, 285 without a strong signal | **$0.71 all, $0.30 for the 285** |
+| Last 7 days | 1,143 all, 792 without | $1.38 all, **$0.79** |
+| Everything (all 4,403; nearly all fall in the last 30 days) | 3,267 without a strong signal | **$5.65 all, $3.70 for the 3,267** |
+
+This replaces round 2's $19.47 backlog: **about a third of the cost, and it needs no extra budget approval, because nothing is large.** The fallback runs only on sessions the script cannot place (the "no strong signal" row), on the **extracted text** (about 260 tokens a session), never on the full strip. Sessions with a strong signal still get their summary free from the result text; Haiku is for the rest. Sessions whose extracted text is under about 80 characters (an "OK" or an empty reply) are tagged `untagged` by the script and never sent.
+
+### Round 3 B4: newest first, bounded
+
+Do not process the whole history up front. **Run in this order, and stop between steps to look at 20 results:** the last 3 days (530 sessions, $0.71 all, or $0.30 for the ones without a strong signal), then the week ($1.38), then the month. The cheap extraction can be re-run over everything at any time, because it is free; only the Haiku step is bounded. Note that nearly all the 4,403 real sessions are from the last 30 days already (the day files start 2026-09-01), so "six months of history" is, today, about six weeks.
+
+### Round 3 plan, in order (replaces "Build order" below)
+
+1. **Move `extract.mjs` and `tag.mjs` into one class, `SessionTagger`** (`Server/SessionTagger.mjs`, beside `SessionIndex`): `extract(file)`, `tag(extract)` (the script signals), `resolve()` (which sessions still need the model), `call(packed)` (Haiku), `validate(tags)` (snap to real folders, drop invented ones), `store(tags)` (writes the snapshot's `tags` through `AISessionIndex`).
+2. **Run the script over the last 3 days, then store the tags.** Look at 20 sessions against what the work was. Stop if they are not clearly better than the file tags in `core`.
+3. **Add the cost filter** (`usd_min`, `usd_max`, `tree`) and the `tags` filter to the sessions query and to the Sessions grid.
+4. **Haiku fallback on the last 3 days' unresolved sessions ($0.30),** look again, then the week ($0.79), then the month.
+5. Call `SessionTagger` from `finish-task` for the closing session, plus a daily sweep for sessions that never finished.
+6. **`load({ since })`** day-window in SessionIndex, and retire the stale snapshots (`session-index.json` and friends) once the grid reads spend from the live snapshots.
+7. The `raw` argument on `ask_mastermind` (section 6), so the voice agent's own words reach the next transcript.
+
+**The decision needed from the owner:** approve step 2 (the script pass over the last 3 days, which costs nothing) and the Haiku fallback with a ceiling of **$5 in total**. Everything else follows from what those 20 results look like.
+
+### Round 2, kept as the record
+
+**Round 2's answer.** Keep SessionIndex as the one live query. Fix the weak part, the tags, by tagging each session once when it is done: a node script strips its Claude transcript to the useful 1%, one cheap Haiku call (Haiku 4.5, no thinking) returns a summary and tags, and a script checks the tags against the real folders before they are saved. The same code runs on the 3,145 past sessions, on every new one, and on a schedule. Nothing calls an AI at query time. Measured: **about $0.006 a session, about $20 for the whole backlog, about $20 a month at today's pace.** Pilot files and outputs: [`pilot2/`](/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot2/readme.md).
 
 ### What the transcripts really are (measured by script)
 
@@ -153,7 +239,7 @@ The settings that matter, all in `classify2.mjs`: `MAX_THINKING_TOKENS=0` (no th
 
 **The model proposes, a script disposes.** In the packed run, **5 of 20 module tags did not exist** (`design/controls`, `ext/Previews`; also files, not directories: `core/Page/PageContent`, `Servex/agents/page_tools`). A validator must check every tag against the real folder tree, snap a file to its directory, and drop anything unknown into `new_topics`. The single run: 12 of 12 real.
 
-### The cost, before anything big runs
+### The cost, before anything big runs (round 2; superseded by round 3 B3, which prices the extracted text, not the full strip)
 
 Formula (`estimate.mjs`): input tokens at about 2.9 characters each, packed up to 100k characters a call, 2,200 tokens of fixed prompt per call, 300 output tokens per session. Haiku 4.5 at $1 in and $5 out per million.
 
@@ -189,13 +275,15 @@ A script lowercased every human-looking prompt in the 4,401 sessions, dropped st
 7. **One pipeline for past, current and future.** One class, `SessionTagger` (home: `Server/SessionTagger.mjs`, beside `SessionIndex`): `strip(file)`, `pack(sessions)`, `call(packed)`, `validate(tags)`, `store(tags)`. Past: a loop over the transcripts. Current and future: `finish-task` calls it for the closing session (about half a cent), and a sweep catches sessions that never finished. It is the Refine idea applied to logs; it does not need the Refine queue.
 8. **Cost.** Table above. Nothing big runs until the $8 task-linked pass has been eyeballed on about 20 results against what the log says.
 
-### Where the tags are saved (a name and a home, per law 8)
+### Where the tags are saved (round 2; superseded: round 3 B2 stores them in the snapshot's `tags` field)
+
+The name `tags` and the Mention-syntax strings still stand; only the home changed, from `task.jsonl` and `tags.jsonl` to the existing session snapshot.
 
 - **Name:** `tags`. One line per session: `{"tags":{"session":"<id>","summary":"...","modules":["core/Page"],"topics":["dictate"],"asks":["..."],"confidence":"high","by":"haiku-4-5","at":"..."}}`.
 - **Home:** for a session a task log names, **appended to that `task.jsonl`** (SessionIndex's watcher reads it live, git keeps it, the line is append-only so nothing is overwritten). For a session with no task folder: one `tags.jsonl` per day folder (`sessions/YYYY/MM/DD/tags.jsonl`), written with `.claude/hooks/append.mjs`, never by hand. SessionIndex gains one reader for each. `module_of()` then prefers the saved `modules` over the file-list guess, which is what ends "everything is `ai`".
 - A tag is never edited; a re-run appends a newer line, and the index uses the latest.
 
-### Build order, and what stops it
+### Build order, and what stops it (round 2; superseded by "Round 3 plan, in order" above)
 
 1. **`SessionTagger` + validator + the tags line + SessionIndex reads it.** About a day of work; run it on the last 7 days of task-linked sessions (under $2). Check 20 results by eye against `PastWork`. *Stop here if the tags are not clearly better than the file tags.*
 2. **`finish-task` and a sweep call it** for new sessions.
