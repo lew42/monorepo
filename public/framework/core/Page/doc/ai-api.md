@@ -34,6 +34,7 @@ The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`
 | move a card | `{"content":{"move":{"id":"c1","after":"h1"}}}` |
 | remove a card | `{"content":{"remove":"c1"}}` |
 | reorder all cards | `{"content":{"order":["h1","c2","c1"]}}` |
+| clear every card | `{"content":{"clear":true}}` (history stays in the log; the page's own `content(){}` code is kept) |
 | call any method | `{"<id or property>":{"<method>":<argument>}}`, e.g. add an answer to question card k2: `{"k2":{"answers":{"add":{…}}}}` |
 | **create a subpage** | `{"pages":{"add":{"name":"notes","title":"Notes","icon":"📝","description":"One line."}}}` |
 | add a link card to a subpage | `{"content":{"add":{"type":"part-link","path":"./notes/","title":"Notes"}}}` ([part-link.md](part-link.md)) |

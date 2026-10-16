@@ -37,6 +37,8 @@ export default class PageContent extends List {
 		return this;
 	}
 
+	clearable(item){ return !item.transient; }
+
 	adopted(item){ if (!item.transient) this.drop_fallback(); }
 	drop_fallback(){ this.items.filter(item => item.fallback).forEach(item => this.release(item)); }
 
@@ -135,7 +137,7 @@ PageContent.View = class PageContentView extends PageContentItem.View {
 		});
 
 		const redraw = () => { $rows.empty(() => { list.forEach(draw_row); }); this.scroll_to_hash(); };
-		["add", "remove", "move", "order"].forEach(verb => list.on(verb, redraw));
+		["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, redraw));
 		this.scroll_to_hash();
 		window.addEventListener("hashchange", () => this.scroll_to_hash());
 

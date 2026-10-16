@@ -223,6 +223,16 @@ export class List extends Item {
 		return this;
 	}
 
+	// Every member out, one line: `{"clear": true}`. `clearable(x)` lets a subclass keep some (PageContent keeps the page's own code).
+	clear(){
+		const gone = this.items.filter(x => this.clearable(x));
+		if (!gone.length) return this;
+		gone.forEach(x => this.release(x));
+		this.announce("clear", true);
+		return this;
+	}
+	clearable(x){ return true; }
+
 	/* Two forms, told apart by which option arrives. `before` (a member, or null) is
 	   the node-relative drag form a Sortable calls; `after` (an id) is the line form
 	   replay calls. `from` — the List the member is leaving, when it changes lists —
@@ -280,7 +290,7 @@ export class List extends Item {
 
 	// No own `set()` any more (2026-10-03) — `List extends Item` now, and Item's
 	// own `apply()` already does exactly this: a key naming a method (`add`,
-	// `remove`, `move`, `order`) calls it; an array of such deltas applies in
+	// `remove`, `move`, `order`, `clear`) calls it; an array of such deltas applies in
 	// order. One rule, not two.
 
 	toJSON(){ return [...this.items]; }

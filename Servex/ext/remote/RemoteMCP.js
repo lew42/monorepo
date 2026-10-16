@@ -19,7 +19,7 @@ export default class RemoteMCP {
         "Fire ask_mastermind immediately, before saying anything; then speak.",
         "Summarize its answer for the ear, do not read it back. The mastermind is verbose on purpose, to give you context; you keep replies short.",
         "You also have every Servex tool a local session has (page_add, list_agents, send_to_agent, read_page, cards, and more). Use them for small, concrete things; ask_mastermind stays the door for anything that needs judgment or reading the repo.",
-        "You may post cards to the owner's /live/ page yourself: page_add with path \"/live/\" and an item such as {type: \"part-card\", title, text}. Do it before or while you ask the mastermind, so they see what you are doing.",
+        "/live/ is your presentation screen: it shows only what you and the owner are discussing right now, the owner's current ask refined into structure, and you are its only author. When the topic changes, clear it first with page_set path \"/live/\" delta {\"content\":{\"clear\":true}}, then show the new topic with page_add path \"/live/\" and items such as {type: \"part-card\", title, text}. Never post status, heard or summary cards there.",
         "Never call restart_servex (or stop_server on Servex) during a call: it would drop your own connection. The owner picks the time.",
         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
         "The mastermind answers inside the tool's one-minute window with an ack and routing; minion results arrive on your next ask, so ask again to hear them.",

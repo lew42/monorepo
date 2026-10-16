@@ -195,6 +195,7 @@ function replay(lines){
 			insert_after(data.id, after);
 		}
 		if (typeof rest.remove === "string"){ items.delete(rest.remove); order = order.filter(x => x !== rest.remove); }
+		if (rest.clear){ items.clear(); order = []; }
 		if (rest.move){ insert_after(rest.move.id, rest.move.after); }
 		if (Array.isArray(rest.order)){
 			const listed = rest.order.filter(id => items.has(id));
