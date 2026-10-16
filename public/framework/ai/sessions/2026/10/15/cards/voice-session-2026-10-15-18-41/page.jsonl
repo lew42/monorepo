@@ -1,0 +1,2 @@
+{"class":"/framework/ai/cards/card.js","title":"Voice session 2026-10-15 18:41","type":"note","id":"2026/10/15/voice-session-2026-10-15-18-41","created":"2026-10-15T18:41:52-05:00","by":"remote-mcp","tags":[]}
+{"message":{"by":"servex-heartbeat","text":"helper-live-stream: The outcome line is now in the task log, so the task counts as landed. The `/live` fix is committed on `michael/dev` as `21dce95ce`, and the phone needs one manual refresh.","kind":"reply","at":"2026-10-15T19:06:19-05:00","id":"m-mva7j8yo7e"}}

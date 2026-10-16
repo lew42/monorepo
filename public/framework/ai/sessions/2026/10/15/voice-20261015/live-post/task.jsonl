@@ -11,3 +11,5 @@
 {"log":{"at":"2026-10-15T18:17:54-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
 {"log":{"at":"2026-10-15T18:21:55-05:00","heartbeat":"deliberate","msg":"helper-live-post its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:16:35-05:00; not revived."}}
 {"log":{"at":"2026-10-15T18:32:54-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-15T18:38:53-05:00","heartbeat":"deliberate","msg":"helper-live-post its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:16:35-05:00; not revived."}}
+{"log":{"at":"2026-10-15T18:48:31-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"remote MCP: live_post writes cards to /live\\\"\"\n}","chase":"escalated"}}

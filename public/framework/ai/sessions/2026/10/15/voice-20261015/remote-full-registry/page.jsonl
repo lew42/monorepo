@@ -1,2 +1,4 @@
 {"inbox":{"id":"n-68fq413p","from":"servex-heartbeat","text":"helper-remote-registry its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:23:50-05:00; not revived.","at":"2026-10-15T18:29:55.612-05:00"}}
 {"file":"task.jsonl"}
+{"inbox":{"id":"n-6jzloxro","from":"servex-heartbeat","text":"helper-remote-registry its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:23:50-05:00; not revived.","at":"2026-10-15T18:38:54.588-05:00"}}
+{"inbox":{"id":"n-797ub56c","from":"servex-task-loop","text":"voice-20261015/remote-full-registry has been quiet since 2026-10-15T18:43:31-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-15T18:58:31.667-05:00"}}

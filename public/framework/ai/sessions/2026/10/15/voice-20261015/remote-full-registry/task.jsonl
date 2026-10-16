@@ -3,3 +3,6 @@
 {"landed_at":"2026-10-15T18:25:00-05:00","commit":"786ea8aad"}
 {"log":{"at":"2026-10-15T18:27:54-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
 {"log":{"at":"2026-10-15T18:29:55-05:00","heartbeat":"deliberate","msg":"helper-remote-registry its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:23:50-05:00; not revived."}}
+{"log":{"at":"2026-10-15T18:38:54-05:00","heartbeat":"deliberate","msg":"helper-remote-registry its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:23:50-05:00; not revived."}}
+{"log":{"at":"2026-10-15T18:43:31-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-15T18:58:31-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"remote MCP: serve the full servex registry\\\"\"\n}","chase":"escalated"}}
