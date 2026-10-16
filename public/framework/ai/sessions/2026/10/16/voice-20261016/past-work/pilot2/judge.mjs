@@ -1,0 +1,14 @@
+// Round 4 step 3d: for the top repeated asks, one Haiku call reads the last asks plus the git commits whose subject matches, and says open / fixed / unclear (with the evidence it used).
+// node judge.mjs [days=30] [top=18]  -> runs/r4-repeated-asks.json (the ranked list, with source-session links)
+import fs from "node:fs"; import path from "node:path"; import { spawnSync } from "node:child_process"; import { haiku, json, spent } from "./haiku.mjs";
+const days = +process.argv[2] || 30, top = +process.argv[3] || 18, T = path.join(process.env.TEMP, "pw");
+const cl = JSON.parse(fs.readFileSync(path.join(T, `clusters-${days}d.json`), "utf8")).filter(g => g.asked >= 6).slice(0, top);
+const git = (since, words) => { const args = ["log", "--since=" + since.slice(0, 10), "--format=%h %ad %s", "--date=short", "-i", "-E", "--grep=" + words.filter(w => w.length > 3).join("|")]; const r = spawnSync("git", args, { cwd: path.resolve(import.meta.dirname, "../../../../../../../../.."), encoding: "utf8" }); return (r.stdout || "").split("\n").filter(Boolean).slice(0, 12).map(l => l.slice(0, 140)); };
+const block = cl.map((g, i) => { g.commits = git(g.first, g.grep || []); const lastAsks = g.asks.slice(-3).map(a => `   ${a.at}: ${a.text.slice(0, 190)}`).join("\n");
+	return `#${i + 1} ${g.topic} | asked ${g.asked}x on ${g.days} days, ${g.first.slice(0, 10)} to ${g.last.slice(0, 10)}\n  last asks:\n${lastAsks}\n  commits whose subject matches (${(g.grep || []).join(", ")}), newest first:\n${g.commits.map(c => "   " + c).join("\n") || "   (none)"}`; }).join("\n\n");
+const SYS = `You judge whether a thing the owner kept asking for has been dealt with. For each numbered item you get the dates and text of the last asks and git commit subjects that match its keywords. Judge ONLY from that evidence.
+Reply with ONE JSON array and nothing else: [{"n":1,"status":"open"|"fixed"|"unclear","why":"one plain sentence: the deciding date or commit"}]. "fixed" needs a commit after the LAST ask that plainly addresses it; a commit before the last ask means the ask came back, so "open". No matching commit means "open" if recently asked, else "unclear".`;
+const r = haiku(SYS, block, { cap: 1.5 }), v = json(r.text);
+const out = cl.map((g, i) => { const j = v.find(x => x.n === i + 1) || {}; return { rank: i + 1, topic: g.topic, asked: g.asked, days: g.days, sessions: g.sessions, first: g.first.slice(0, 10), last: g.last.slice(0, 10), status: j.status || "unclear", why: j.why || "", commits: g.commits.slice(0, 4), sources: [...new Set(g.asks.map(a => a.sid))].slice(0, 6) }; });
+fs.writeFileSync(path.join(import.meta.dirname, "runs", "r4-repeated-asks.json"), JSON.stringify(out, null, 1)); console.log(`judge $${r.usd.toFixed(3)}, Haiku total $${spent()}`);
+for (const o of out) console.log(String(o.rank).padStart(2), o.status.padEnd(7), String(o.asked).padStart(3) + "x", o.days + "d", o.last.slice(5), o.topic, "::", o.why.slice(0, 110));

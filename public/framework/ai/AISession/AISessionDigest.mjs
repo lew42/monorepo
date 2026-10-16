@@ -9,7 +9,7 @@ import { price_for } from "./AISessionAudit.mjs";
 // machine pipeline calls (dictation cleaners, judges): not a real session
 const MACHINE = /^(You clean up|Read this numbered|Current outline|The prompt, one numbered|You are cleaning|Turn this outline|These sentences|You judge|You are reading prompts|Call the SendMessage)/;
 // text a harness or Servex injects into the user turn: not the owner's words
-const NOISE = /^(This session is being continued|\[Request interrupted|Stop hook feedback|\[Image|\[Servex|<task|<command-|<local-command|Caveat:|Base directory for this skill|\[from |Current outline|The user hasn't heard|Original image)/i;
+const NOISE = /^(This session is being continued|\[Request interrupted|Stop hook feedback|\[Image|\[Servex|<task|<command-|<local-command|Caveat:|Base directory for this skill|\[from: (?!owner)|Current outline|The user hasn't heard|Original image)/i;
 const BRIEF = /^(Where you are|You are |Load the |Your brief)/;   // a Servex-written brief: not the owner typing
 const EDIT = /^(Edit|Write|MultiEdit|NotebookEdit)$/;
 const chars_of = c => typeof c === "string" ? c.length : Array.isArray(c) ? c.reduce((n, b) => n + chars_of(b?.text ?? b?.content ?? ""), 0) : 0;

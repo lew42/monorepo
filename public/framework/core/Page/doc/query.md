@@ -194,6 +194,15 @@ This replaces round 2's $19.47 backlog: **about a third of the cost, and it need
 
 Do not process the whole history up front. **Run in this order, and stop between steps to look at 20 results:** the last 3 days (530 sessions, $0.71 all, or $0.30 for the ones without a strong signal), then the week ($1.38), then the month. The cheap extraction can be re-run over everything at any time, because it is free; only the Haiku step is bounded. Note that nearly all the 4,403 real sessions are from the last 30 days already (the day files start 2026-09-01), so "six months of history" is, today, about six weeks.
 
+### Round 4: the session pipeline exists, and the first deliverable is in
+
+The class is [`AISessionDigest`](/framework/ai/AISession/AISessionDigest.mjs) (node only, no AI): one transcript in, its sizes, exact usage and cost, owner prompts and result out. Full result with tables and the ranked "asked N times" list: [round4-result.md](/framework/ai/sessions/2026/10/16/voice-20261016/past-work/round4-result.md). In short, over the last 3 days (573 sessions):
+
+- **Stripping is enough on its own.** 355 sessions are over 100k tokens raw; after stripping, 1 is. The stripped text is 2% of raw and 23% of the content blocks (tool results are 50% of the content, tool calls 27%). Median stripped session: 3,250 tokens.
+- **Cost: the transcript's own `usage` is the truth.** Two independent parsers agree on 571 of 571 sessions. The live snapshots over-count 7 replayed sessions by $186 of $1,392, because `AISession.js` remembers only `RING = 40` message ids (**fix, not applied: keep every id in a Set, recompute those snapshots**). The Servex registry `cost` grows with turns (2.85x the real figure at 2-3 turns, 16x at 21+), so it is not a billed total. The "5-5" model rates in the price table are off (Sonnet 1.55x, Opus 0.87x, Haiku 3.3x against the registry on one-turn agents). **Two decisions for the owner: apply the `RING` fix, and replace the registry cost with the digest.**
+- **The repeated-asks detector works.** 18 recurring topics over 30 days, found by one Haiku cluster pass ($0.16 for the whole round). Haiku's open/fixed read is a lead, not a verdict: the chat-bubble dedup entry was checked by hand (fixed in code 10-09 in `b87834ba2`, both headless proofs pass, not re-reported since) and the rest are labelled unverified.
+- **Not covered by transcripts:** the owner's words to a voice agent that never reached one, and sessions with no task folder (`Server/Transcripts.mjs`, from the helper, has the 72 sessions that do; 1,480 do not, and five of them hold 562 of the owner's typed prompts). A name and home for those is still open.
+
 ### Round 3 plan, in order (replaces "Build order" below)
 
 1. **Move `extract.mjs` and `tag.mjs` into one class, `SessionTagger`** (`Server/SessionTagger.mjs`, beside `SessionIndex`): `extract(file)`, `tag(extract)` (the script signals), `resolve()` (which sessions still need the model), `call(packed)` (Haiku), `validate(tags)` (snap to real folders, drop invented ones), `store(tags)` (writes the snapshot's `tags` through `AISessionIndex`).

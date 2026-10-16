@@ -14,3 +14,10 @@ Round 3 (no AI at all, all re-runnable for free):
 7. `node tag.mjs [days]`: how far script signals alone can tag (files, task join, task folder, keywords), and the Haiku fallback cost for the sessions left over.
 
 `runs/` holds the outputs the doc quotes. `topic-tree.txt` is the module list plus the topic names (about 1,700 tokens).
+
+Round 4 (the class is `ai/AISession/AISessionDigest.mjs`; results in `../round4-result.md`, rebuilt by step 12):
+
+8. `node sizes.mjs [days]`: tokens before and after stripping, as distributions.
+9. `node reconcile.mjs [days]`: per-session cost from the transcript's own `usage`, against the audit, the snapshot and the Servex registry.
+10. `node prompts.mjs [days]`, `node asks.mjs prep|chunks|merge`, `node judge.mjs`: the owner's relayed prompts, a Haiku cluster pass, then a judge pass (`haiku.mjs` keeps the $2 ledger). `repeats.mjs` is the no-AI exploration (noisy: templates dominate).
+12. `node report.mjs`: writes `round4-result.md` from `runs/r4-*.json`.
