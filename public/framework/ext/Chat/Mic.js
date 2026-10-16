@@ -489,7 +489,8 @@ export class ComposerMic extends Dictate {
 			return;
 		}
 		this.chunk_start ??= performance.now();
-		if (SETTINGS.sentences_per_send | 0) this.send_sentences(SETTINGS.sentences_per_send | 0); else this.check_chunk();
+		const per = this.sentences_per_send ?? SETTINGS.sentences_per_send;   // a caller can set one mic apart from the gear panel (`composer({ per_sentence })`)
+		if (per | 0) this.send_sentences(per | 0); else this.check_chunk();
 	}
 
 	// Safety chunk: words past chunk_ms or chunk_chars go out at the next sentence end.

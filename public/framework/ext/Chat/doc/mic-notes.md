@@ -286,6 +286,8 @@ that will never be theirs to send.
 
 ## send_sentences
 
+`composer({ per_sentence: true })` sets this mic's `sentences_per_send` to 1, apart from the gear panel: every finished sentence goes out at once while the next is still being heard (the Refine page; `ext/Refine/test/composer-flow.mjs`).
+
 The finished sentences among the held words go out now, `sentences_per_send` to a message; the
 
 

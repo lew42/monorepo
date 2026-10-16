@@ -5,7 +5,7 @@ import { quick_clean } from "./engine.js";
 
 /**
  * class RefineSystem — the boss of the refine system (`doc/architecture.md`). It owns ONE live
- * `Prompt` and runs it through the steps: text in (typed, or from the dictation source) →
+ * `Prompt` (built from `chunks`, one per send, so earlier sentences are never replaced) and runs it through the steps: text in (typed, or from the dictation source) →
  * Servex `/api/refine` (the Cleaner, then the Structurer) → `Prompt.load()` (which runs the
  * `Scorer`). A page only ever talks to this class:
  *
@@ -60,6 +60,10 @@ export default class RefineSystem {
 	model = "";                                     // empty: the server picks (Haiku, or OpenRouter when session-backend.txt says so): ai/doc/models.md
 	session_id = RefineSystem.session_id();            // the session whose log keeps this page's prompts (ai/AISession/PromptLog.js)
 	prompt_id = RefineSystem.new_prompt_id();          // names this prompt on the session page (`voice-<id>`); a new one per prompt
+	chunks = [];            // one per SENT utterance { raw, clean, refined, subject, runs, stages, ms, status }: the transcript gains one each send, nothing is overwritten
+	pending = "";           // the words still in the box (not sent yet)
+	sending = null;         // { text, sections }: sent, but its chunk does not exist yet (Mic.js waits on a last live call first)
+	live_sections = [];     // the live outline of the box (local sentence numbers)
 	history = [];                                   // finished prompts of this page visit (plain summaries), newest last
 
 	constructor(...args){
@@ -101,38 +105,100 @@ export default class RefineSystem {
 		}, 150);
 	}
 
-	/** Show the cleaned text NOW, with no model: the instant stage. Cheap enough to run on every chunk. */
+	/** The words still in the box, cleaned instantly with no model. Cheap enough to run on every chunk. Empty text clears the box's share. */
 	quick(text){
 		const t0 = performance.now();
-		const prompt = this.prompt;
-		if (prompt.status === "done") return;   // a finished result is not overwritten by later chunks
-		prompt.raw = text;
-		prompt.load_quick(quick_clean(text), +(performance.now() - t0).toFixed(2));
-		this.stream(text);
+		this.pending = this.unsent(String(text ?? "").trim());
+		this.compose(+(performance.now() - t0).toFixed(2));
+		if (this.pending) this.stream(this.pending);
 	}
 
-	/** Refine one prompt. Never throws: a failure becomes `prompt.status === "error"`. */
-	async go(text, { url } = {}){
+	/** The box empties a moment AFTER a sentence is delivered, so a box event in between still holds the words just sent: leave those out. */
+	unsent(text){
+		const last = this.chunks.at(-1);
+		if (!last || !text || performance.now() - last.at > 5000) return text;
+		const w = t => t.split(/\s+/).filter(Boolean), norm = x => x.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+		const sent = w(last.raw), now = w(text);
+		return sent.length && sent.every((x, i) => norm(x) === norm(now[i] ?? "")) ? now.slice(sent.length).join(" ") : text;
+	}
+
+	/** A send has started (Mic.js waits on a last live call before `deliver`): keep those words on the page meanwhile. */
+	sending_start(text){
+		text = String(text ?? "").trim();
+		if (!text) return;
+		this.sending = { text, sections: this.live_sections };
+		clearTimeout(this._sending_timer);
+		this._sending_timer = setTimeout(() => { if (this.sending){ this.sending = null; this.compose(); } }, 20000);   // a send dropped as a duplicate never reaches go()
+		this.compose();
+	}
+
+	/** The live outline of the box (`/api/refine/live`), kept apart so a sent chunk can take it along. */
+	set_live(out){
+		this.live_sections = out?.outline?.sections ?? this.live_sections;
+		this.compose();
+	}
+
+	/** Shift every S-number in a card tree: a chunk's local sentence numbers become the transcript's. */
+	static shift(cards, d){ return (cards ?? []).map(c => ({ ...c, cites: (c.cites ?? []).map(n => n + d), cards: RefineSystem.shift(c.cards, d) })); }
+
+	static rows(text){ return quick_clean(text).map(t => ({ n: t.n, text: t.text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" })); }
+
+	/** Rebuild the one `Prompt` from every sent chunk, then the sentence in flight, then the box: sentences only ever get added. */
+	compose(quick_ms){
+		const clean = [], refined = [], raws = [];
+		let at = 0, working = false, error = "", ms = 0;
+		const add = (sentences, sections) => {
+			sentences.forEach(s => clean.push({ ...s, n: s.n + at }));
+			refined.push(...RefineSystem.shift(sections, at));
+			at += sentences.length;
+		};
+		for (const c of this.chunks){ raws.push(c.raw); add(c.clean, c.refined); working ||= c.status === "working"; error = c.error || error; ms += c.ms; }
+		if (this.sending){ raws.push(this.sending.text); add(RefineSystem.rows(this.sending.text), this.sending.sections); }
+		if (this.pending){ raws.push(this.pending); add(RefineSystem.rows(this.pending), this.live_sections); }
+		const last = this.chunks.at(-1);
+		const status = working ? "working" : error ? "error" : this.chunks.length ? "done" : "empty";
 		const prompt = this.prompt;
+		prompt.timings = { ...prompt.timings, ...(quick_ms != null ? { quick_ms } : {}) };
+		prompt.set({
+			status, raw: raws.join(" "), clean, refined, error, ms,
+			quick: !!(this.sending || this.pending) || working,
+			subject: this.chunks.find(c => c.subject)?.subject ?? "",
+			runs: this.chunks.flatMap(c => c.runs), stages: last?.stages ?? {}, model: this.model,
+			prompt_id: last?.prompt_id ?? "", session: last ? this.session_id : "",
+		});
+	}
+
+	/** Refine one SENT utterance: it becomes a chunk, its sentences numbered after the ones already there.
+	 *  Never throws: a failure is shown on the page and the chunk keeps its instant clean. */
+	async go(text, { url } = {}){
+		text = String(text ?? "").trim();
+		if (!text) return this.prompt;
 		const t_start = performance.now();
-			if (!prompt.quick || prompt.raw !== text) this.quick(text);
-			prompt.set({ status: "working", model: this.model, raw: text, subject: "", refined: [], error: "", ms: 0, runs: [], stages: {} });
+		const chunk = { raw: text, clean: RefineSystem.rows(text), refined: this.sending?.text === text ? this.sending.sections : this.live_sections, subject: "", runs: [], stages: {}, ms: 0, status: "working", error: "", prompt_id: this.prompt_id, at: performance.now() };
+		this.chunks.push(chunk);
+		this.sending = null; this.pending = ""; this.live_sections = [];
+		this.prompt_id = RefineSystem.new_prompt_id();   // the next utterance is its own prompt on the session page
+		this.compose();
 		try {
 			if (!url){
 				const { servex_url } = await import("/framework/dev/servex_url.js");
 				url = servex_url("/api/refine");
 			}
-			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model || undefined, session: this.session_id, prompt: this.prompt_id, source: this.source ?? "typed" }) });
+			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model || undefined, session: this.session_id, prompt: chunk.prompt_id, source: this.source ?? "typed" }) });
 			const out = await res.json();
 			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
-			prompt.load(out);
-			prompt.timings = { ...prompt.timings, total_ms: Math.round(performance.now() - t_start) };
-			this.history.push({ at: new Date().toISOString(), words: text.split(/\s+/).length, total_ms: prompt.timings.total_ms, cost_usd: +prompt.runs.reduce((a, r) => a + r.cost_usd, 0).toFixed(4), runs: prompt.runs.length });
+			const one = new Prompt();   // scores this chunk alone (`Prompt.load`), then compose() renumbers it into the transcript
+			one.load(out);
+			Object.assign(chunk, { clean: one.clean, refined: one.refined, subject: one.subject, runs: one.runs, stages: one.stages, ms: one.ms, status: "done" });
+			const total_ms = Math.round(performance.now() - t_start);
+			this.prompt.timings = { ...this.prompt.timings, total_ms };
+			this.history.push({ at: new Date().toISOString(), words: text.split(/\s+/).length, total_ms, cost_usd: +one.runs.reduce((a, r) => a + r.cost_usd, 0).toFixed(4), runs: one.runs.length });
 		} catch (e){
-			prompt.set({ status: "error", error: String(e?.message ?? e) });
+			Object.assign(chunk, { status: "failed", error: String(e?.message ?? e) });
 			ErrorLog.report(e, { where: "RefineSystem.go" });
 		}
-		return prompt;
+		this.compose();
+		return this.prompt;
 	}
 
 	/** Live refine for THIS prompt (`RefineSystem.post_live()` above): keeps only the newest `seq` (a reply
@@ -146,13 +212,14 @@ export default class RefineSystem {
 		if ((out.seq ?? 0) < (this._live_seq ?? -1)) return null;
 		this._live_seq = out.seq ?? 0;
 		this.live_md = out.md; this.live_outline = out.outline; this.live_slots = out.slots;
-		if (out.outline) this.prompt.set({ subject: out.outline.subject ?? this.prompt.subject, refined: out.outline.sections ?? this.prompt.refined });
+		if (out.outline) this.set_live(out);
 		return out;
 	}
 
 	/** Start over: the same Prompt object, emptied (so the debug tree keeps showing the live one). */
 	next(){
 		this.prompt_id = RefineSystem.new_prompt_id();
+		this.chunks = []; this.pending = ""; this.sending = null; this.live_sections = [];
 		this.prompt.set({ status: "empty", raw: "", subject: "", clean: [], refined: [], error: "", ms: 0, runs: [], stages: {}, timings: {}, quick: false });
 	}
 }

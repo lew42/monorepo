@@ -23,6 +23,7 @@ export function composer({
 	session,           // this mount's own session id (a string, or a function read fresh) — forwarded to `ComposerMic`'s live-refine
 	                    // calls (`Mic.js`'s `refine_tick`/`refine_final`) so the outline lands under `/framework/ai/sessions/<id>/`
 	                    // same as every other stage (`contract.md`). Unset is fine — the live call just has no session to attach to.
+	per_sentence,      // true: every finished sentence leaves the box at once while the next is still being transcribed (`ComposerMic.sentences_per_send`, Mic.js); unset follows the gear setting
 	on_refine_live,    // (answer) => … — forwarded straight to `ComposerMic`'s own `on_refine_live`: the live `/api/refine/live`
 	                    // answer (`{ md, outline, slots, … }`), the instant one arrives, for a host that draws the growing outline
 	                    // (the Refine demo feeds `answer.md`/`outline` into its own `Prompt.View`).
@@ -46,6 +47,7 @@ export function composer({
 				on_send_start,
 				on_meter, device_id,
 				on_refine_live,
+				sentences_per_send: per_sentence ? 1 : undefined,
 				refine_session_id: typeof session === "function" ? session : () => session,
 				field: $input,
 				on_error: e => console.warn("[dictate] composer:", e),

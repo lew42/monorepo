@@ -3,7 +3,7 @@
 Read this first. One system, a handful of small classes, one boss. Written before the demo was reshaped (owner rule, 2026-10-08); the demo's class card draws this same table from `RefineSystem.parts`.
 
 ## The boss: `RefineSystem`
-`RefineSystem` (`ext/Refine/RefineSystem.js`) orchestrates one prompt at a time. It **composes** the parts below, owns the one live `Prompt`, and is the only thing a page talks to: `go(text)`, `next()`, `prompt`. The demo page is just a view of it.
+`RefineSystem` (`ext/Refine/RefineSystem.js`) orchestrates one prompt at a time. It **composes** the parts below, owns the one live `Prompt` (the sum of its `chunks`, one per `go(text)`, so a second send adds sentences and never replaces the first), and is the only thing a page talks to: `go(text)`, `quick(text)`, `next()`, `prompt`. The demo page is just a view of it.
 
 ## The parts
 

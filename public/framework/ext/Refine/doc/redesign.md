@@ -1,4 +1,6 @@
-# Refine redesign: one compact page, raw then clean then refined (proposal, not built)
+# Refine redesign: one compact page, raw then clean then refined (slice built 2026-10-16)
+
+**Built 2026-10-16** ([task](/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/)): steps 1, 2 and 4 below, plus the per-sentence flow: `RefineSystem` keeps one chunk per send so every sentence stays (`chunks`), the composer's `per_sentence` option sends each finished sentence out of the box while the next is still heard, and `test/composer-flow.mjs` proves it with a fake microphone. **Not done:** the page `h1` still sits above the toolbar (step 3), the stage titles are still "1 · Said / 2 · Cleaned / 3 · Outline / 4 · Scores", and a one-sentence utterance gets its live outline only about 8 s after the send. The rest of this page is the original proposal.
 
 Asked by the owner's voice sessions 6e9eb755, a7df214f and 29c40ff7. Facts behind it: [audit-2026-10-15.md](audit-2026-10-15.md). What the page looks like today at phone width (400 px):
 
@@ -67,4 +69,4 @@ Each step is one commit, and each can be viewed alone.
 3. Toolbar and footer `bleed`; the title moves into the toolbar row.
 4. Accumulate utterances in `RefineSystem` (the fix for the vanishing first sentence). This is the only step with risk; it comes last and gets a live-mic test.
 
-**Not in the slice:** mentions (`@`, `/`, `!` plus a path becoming a linked block; today nothing produces them, see the audit), a per-sentence clean call, and the page padding change.
+**Not in the slice (still true):** mentions (`@`, `/`, `!` plus a path becoming a linked block; today nothing produces them, see the audit), a per-sentence clean call, and the page padding change.
