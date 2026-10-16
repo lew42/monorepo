@@ -1065,3 +1065,7 @@
 {"at":"2026-10-16T04:08:51.310Z","target":"public/framework/ai/sessions/2026/10/16/voice-20261016/past-work","verdict":"skipped","what":"a sub-task: its parent task gets the one check"}
 {"at":"2026-10-16T06:24:42.664Z","target":"public/framework/ai/sessions/2026/10/16/voice-20261016/inbox-labels","verdict":"skipped","what":"a sub-task: its parent task gets the one check"}
 {"at":"2026-10-16T06:42:04.439Z","target":"public/framework/ai/sessions/2026/10/16/voice-20261016/refine-build","verdict":"skipped","what":"a sub-task: its parent task gets the one check"}
+{"at":"2026-10-16T07:33:26.589Z","target":"public/framework/ai/sessions/2026/10/16/voice-20261016","verdict":"queued","kind":"landing"}
+{"at":"2026-10-16T07:33:26.683Z","target":"public/framework/ai/sessions/2026/10/16/voice-20261016","verdict":"spawned","to":"clarity-voice-20261016"}
+{"at":"2026-10-16T02:40:00-05:00","target":"public/framework/ai/sessions/2026/10/16/voice-20261016","verdict":"sent","what":"text-check flags (long paragraphs, owner-words 1164 words no picture) and card-check missing state/preview/checklist; rewrite sent","to":"mastermind-voice-20261016"}
+{"at":"2026-10-16T02:45:00-05:00","target":"public/framework/ai/sessions/2026/10/16/voice-20261016","verdict":"rewrote","what":"owner unreachable (send refused); appended checklist outcome; long paragraphs in owner-words/overnight/inbox-diagnosis still need splitting","to":"task.jsonl"}
