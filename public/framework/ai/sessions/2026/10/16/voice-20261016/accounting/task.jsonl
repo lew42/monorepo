@@ -65,3 +65,4 @@
 {"log":{"at":"2026-10-16T16:36:47-05:00","msg":"task-loop chase 1 of 2: woke helper-accounting","chase":1}}
 {"log":{"at":"2026-10-16T16:36:50-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T16:37:27-05:00","msg":"status: idle by design. Waiting on the owner's approval of shape.md (one session folder, R1-R17) before any build; who builds the Item/tool side is still to be agreed with mastermind-page."}}
+{"log":{"at":"2026-10-16T16:40:53-05:00","msg":"session ended (other) without landing"}}
