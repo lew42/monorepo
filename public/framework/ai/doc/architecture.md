@@ -3,7 +3,7 @@
 The AI system is everything that lets agents do work here and lets the owner see it: Servex runs the agents, the readme chain tells them what exists, each task is a folder with a JSONL log, and the cards on `/framework/ai/` are the owner's surface. Terms: a card is one row on the AI board, a mastermind is the agent that owns a task, a minion is an agent it hands a piece to. The pattern: state lives in appended files, node drives the sequence, the model supplies judgment. Components, one line each, computed from the readme index: the System tab, [`/framework/ai/system/`](/framework/ai/system/). An earlier, shorter version of this file is in git history (it also said the System tab shows class cards: it still does). Servex's own decisions: [Servex/doc/architecture.md](/framework/servex/doc/architecture.md).
 
 ## Fewer tools, a generic `call` first (recommended 2026-10-16, not built)
-**Recommended:** collapse the ~81 Servex tools; step one is one `call(tool, args)` that dispatches by name and validates against each handler's schema. **Detail:** [doc/tool-collapse.md](tool-collapse.md#recommendation-the-owner-by-voice-2026-10-16)
+**Recommended:** collapse the ~81 Servex tools; step one is one `call(tool, args)` that dispatches by name and validates against each handler's schema. **End state (direction, 2026-10-16):** Servex as an `Item`, so `Item.set` is the one call for tools and page deltas alike. **Detail:** [doc/tool-collapse.md](tool-collapse.md#recommendation-the-owner-by-voice-2026-10-16)
 
 ## The readme chain is the AI's memory
 **Decided:** every agent reads CLAUDE.md, then the readmes root to leaf; each readme is a short index (under ~100 lines) pointing into `doc/`.

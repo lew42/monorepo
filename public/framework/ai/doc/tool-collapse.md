@@ -60,6 +60,8 @@ So the cheapest changes are the ones that need no restart: skill text, and role 
 
 **Recommended, not built:** fewer tools, with a generic `call` as step one. One listed tool, `call(tool, args)`, dispatches to any registered handler by name. The handlers stay as they are, and each one's own schema still validates `args` server-side, so this is not the loose `{any}` tool warned against below: a wrong name or bad args gets a clear error naming the right schema. Then the small tools stop being listed, role by role (stage 2 onward). **Why it is still plan-only:** a tool-list change needs a Servex restart, which never happens during a voice call, and nobody has yet measured how well models pick a tool name from skill text instead of from the tool list. **The alternative:** the role-scoped lists in stage 2 come first, with no new dispatcher.
 
+**The end state (the owner, by voice, 2026-10-16, direction only):** `Item.set` is already the universal call: a method key calls the method, a child key walks into that child, and anything else is data. If Servex itself were an `Item`, a tool call and a page delta would be the same `set` on one engine. That supersedes the generic `call` as the end state; `call` stays a possible stepping stone. Related: the server-side page instance design, [core/Page/doc/server-instance.md](../../core/Page/doc/server-instance.md).
+
 ## Staged migration (everything keeps working at every stage)
 
 1. **Measure and keep measuring.** Done: the script. Rerun it after each stage and put the numbers next to the stage in this doc.
