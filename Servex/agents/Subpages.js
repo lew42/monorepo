@@ -37,7 +37,7 @@ export default class Subpages {
 		const first = { title: title ?? name, ...(icon ? { icon } : {}), ...(description ? { description } : {}), ...more };
 		const plan = { action: "add", name, make: rel(dir + "/page.jsonl"), first, link: this.link_plan(kind, name) };
 		if (this.dry) return { ok: true, dry: true, ...plan };
-				fs.mkdirSync(dir, { recursive: true });
+		fs.mkdirSync(dir, { recursive: true });
 		fs.writeFileSync(path.join(dir, "page.jsonl"), JSON.stringify(first) + "\n");
 		this.append({ file: `${name}/page.jsonl` });
 		return { ok: true, ...plan };

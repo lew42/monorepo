@@ -378,6 +378,7 @@ export class Page extends Item {
 		const claimed = known === undefined && is.fn(this.route) && this.route(name);
 		if (claimed) return this.add(name, claimed).load_all_children(levels);
 
+		await Page.listing(this.url);   // a child named only in this folder's page.jsonl / files.jsonl (doc/subpages.md)
 		const [listing, docs] = [Page.loaded_listing(this.url), Page.loaded_listing(this.md_dir())];
 		const kind = listing?.pages.get(name);
 		const md = !listing?.folder(name) && docs?.files.includes(name + ".md");
