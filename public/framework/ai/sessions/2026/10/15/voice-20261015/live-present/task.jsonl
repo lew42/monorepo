@@ -9,3 +9,13 @@
 {"action":{"at":"2026-10-15T19:01:43-05:00","did":"edit","files":["public/live/doc/presentation.md"]}}
 {"action":{"at":"2026-10-15T19:01:44-05:00","did":"edit","files":["public/framework/core/Page/doc/ai-api.md"]}}
 {"log":{"at":"2026-10-15T19:05:38-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T19:11:34-05:00","heartbeat":"check","msg":"status check sent to helper-live-present"}}
+{"log":{"at":"2026-10-15T19:11:38-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T19:12:06-05:00","heartbeat":"answered","msg":"Done. I have nothing running now. `/live/` is a one-screen presentation, committed on michael/dev as `1b96fb2b4`.\n\nThe clear call is `page_set` with `path: \"/live/\"` and `delta: {\"content\":{\"clear\":tr"}}
+{"log":{"at":"2026-10-15T19:15:41-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T19:20:59-05:00","heartbeat":"revive-queued","msg":"helper-live-present its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-15T19:21:00-05:00","heartbeat":"revive","msg":"revived helper-live-present from session 2275eb6b-2233-4cec-a41e-84d2b04f8927"}}
+{"log":{"at":"2026-10-15T19:21:04-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T19:21:04-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T19:21:06-05:00","msg":"session ended (other) without landing"}}
+{"assign":{"landed_at":"2026-10-16T00:21:48.992Z","title":"live: one-screen presentation + shared clear verb","outcome":"**/live is now a one-screen presentation, cleared, and the voice agent clears it with page_set path \"/live/\" delta {\"content\":{\"clear\":true}}.**\n- [x] clear /live without deleting history: the line was appended; old cards and both Probe cards are gone from the screen\n- [x] single-screen renderer: only cards added since the last clear (Live.js, Live.css); reconnect and self-reload kept\n- [x] shared clear convention: List.clear(), page_tools replay, ai-api.md row\n- [x] rule recorded: public/live/readme.md and public/live/doc/presentation.md\n- [x] RemoteMCP text updated; needs one Servex restart (not done)\nCommit 1b96fb2b4 on michael/dev.","links":["/live/","/live/doc/presentation.md","/framework/core/Page/doc/ai-api.md"]}}
