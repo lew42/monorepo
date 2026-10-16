@@ -6,3 +6,12 @@
 {"decision":{"at":"2026-10-16T01:24:25-05:00","msg":"Kept Server/health.mjs unchanged: its page-down alert goes to the retired board.jsonl, not cards.jsonl, so it never reaches Waiting on you; alternative was status working."}}
 {"log":{"at":"2026-10-16T01:24:25-05:00","msg":"Merged (review size none, own read). Relabelled 40 cards via Servex /card/append; waiting 133 -> 12 (11 needs-you notes + 1 real widget kept). Needs Servex restart: owner_note tool description."}}
 {"assign":{"landed_at":"2026-10-16T01:24:25-05:00","outcome":"Waiting on you 133 -> 12; source rule, tool text and two skills fixed"}}
+{"log":{"at":"2026-10-16T01:24:42-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-16T01:24:42-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-16T01:24:42-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-16T01:24:42-05:00","msg":"owner-note: posted 1 decision to the Inbox"}}
+{"log":{"at":"2026-10-16T01:24:45-05:00","msg":"worktree-down: inbox-labels - worktree-down: server stopped. The worktree and its branch (worktree/inbox-labels) are left on disk at C:\\Code\\lew42\\worktrees\\inbox-labels — remove them yourself once you've dealt with those changes (`git -C C:\\Code\\lew42\\monorepo worktree remove C:\\Code\\lew42\\worktrees\\inbox-labels` once it's clean)."}}
+{"log":{"at":"2026-10-16T01:24:48-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-16T01:24:48-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"action":{"at":"2026-10-16T01:25:39-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/inbox-labels/owner-check.md"]}}
+{"log":{"at":"2026-10-16T01:25:44-05:00","msg":"owner-check: 26 items, 8 done, 13 partly, 5 missing — owner-check.md"}}

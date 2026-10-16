@@ -4,3 +4,4 @@
 {"inbox":{"id":"n-797ub56c","from":"servex-task-loop","text":"voice-20261015/remote-full-registry has been quiet since 2026-10-15T18:43:31-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-15T18:58:31.667-05:00"}}
 {"inbox":{"id":"n-823xmmj6","from":"servex-heartbeat","text":"helper-remote-registry its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:23:50-05:00; not revived.","at":"2026-10-15T19:20:59.626-05:00"}}
 {"inbox":{"id":"n-9sojgfdg","from":"servex-heartbeat","text":"helper-remote-registry its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:23:50-05:00; not revived.","at":"2026-10-15T20:09:39.004-05:00"}}
+{"file":"essence.jsonl"}

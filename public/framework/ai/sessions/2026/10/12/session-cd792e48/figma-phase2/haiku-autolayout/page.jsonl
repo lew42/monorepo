@@ -6,3 +6,4 @@
 {"inbox":{"id":"n-ztaxykat","from":"servex-heartbeat","text":"minion-figma-autolayout its agent is not running: it was stopped on purpose by in-process at 2026-10-12T03:20:25-05:00; not revived.","at":"2026-10-12T03:31:20.998-05:00"}}
 {"inbox":{"id":"n-0lr9g2sy","from":"servex-heartbeat","text":"minion-figma-autolayout its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-12T03:53:28.516-05:00"}}
 {"inbox":{"id":"n-0xc074w2","from":"servex-heartbeat","text":"minion-figma-autolayout its agent is not running, and was already revived 2 times this hour (2 today). Servex could not fix it; please look.","at":"2026-10-12T04:02:28.615-05:00"}}
+{"file":"essence.jsonl"}

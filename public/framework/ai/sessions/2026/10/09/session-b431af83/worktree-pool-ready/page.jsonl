@@ -2,3 +2,4 @@
 {"file":"spend.json"}
 {"file":"task.jsonl"}
 {"inbox":{"id":"n-lh02ezbh","from":"servex-heartbeat","text":"task-mastermind-worktree-pool-ready its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-09T18:26:33.878-05:00"}}
+{"file":"essence.jsonl"}

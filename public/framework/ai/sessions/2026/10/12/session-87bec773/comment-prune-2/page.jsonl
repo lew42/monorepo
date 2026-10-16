@@ -3,3 +3,4 @@
 {"file":"STATE.md"}
 {"inbox":{"id":"n-ym57pxcb","from":"servex","text":"mastermind-comment-prune-2 (claude-sonnet-5-5) has spent $8.50, $0.58 of it since its last result, and reached its $8.00 allowance, so Servex paused it. Produced: commit: command=sed -i 's#\\[`1/doc/notes.md`\\](./1/doc/notes.md)#[`doc/notes.md`](./doc/notes.md)#' public/framework/core/new/re…; commit: command=T=public/framework/ai/sessions/2026/10/12/session-87bec773/comment-prune-2; node .claude/hooks/append.mjs $T/tas…. Last read: C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\sessions\\2026\\10\\12\\session-87bec773\\comment-prune-2\\requirements.md. Continue gives it $5 more; Stop ends it.","at":"2026-10-12T19:45:33.542-05:00"}}
 {"file":"layout-check/"}
+{"file":"essence.jsonl"}
