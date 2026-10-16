@@ -200,3 +200,14 @@
 {"log":{"at":"2026-10-16T14:03:12-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T14:03:47-05:00","heartbeat":"answered","msg":"I'm idle, waiting for the next voice question, and no minions are running. My next voice reply will include the three past-work audit findings I owe."}}
 {"log":{"at":"2026-10-16T14:07:15-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T15:16:52-05:00","heartbeat":"revive-queued","msg":"mastermind-voice-opus its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-16T15:16:52-05:00","heartbeat":"revive","msg":"revived mastermind-voice-opus from session 0368b7c5-e780-4c45-b78e-fe7a0a432adb"}}
+{"log":{"at":"2026-10-16T15:16:56-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T15:16:56-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T15:16:57-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T15:17:26-05:00","heartbeat":"answered","msg":"I'm idle between voice questions and no minions are running. My next voice reply will include the three past-work audit findings I still owe."}}
+{"log":{"at":"2026-10-16T15:21:47-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T15:32:47-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-opus"}}
+{"log":{"at":"2026-10-16T15:32:49-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T15:33:27-05:00","heartbeat":"answered","msg":"I'm idle between voice questions and no minions are running; my next voice reply will include the three past-work audit findings I still owe. Gmail is still unavailable until you authorize it in the c"}}
+{"log":{"at":"2026-10-16T15:36:51-05:00","msg":"session ended (other) without landing"}}
