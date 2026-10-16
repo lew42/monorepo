@@ -19,3 +19,10 @@
 {"log":{"at":"2026-10-15T19:21:04-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T19:21:06-05:00","msg":"session ended (other) without landing"}}
 {"assign":{"landed_at":"2026-10-16T00:21:48.992Z","title":"live: one-screen presentation + shared clear verb","outcome":"**/live is now a one-screen presentation, cleared, and the voice agent clears it with page_set path \"/live/\" delta {\"content\":{\"clear\":true}}.**\n- [x] clear /live without deleting history: the line was appended; old cards and both Probe cards are gone from the screen\n- [x] single-screen renderer: only cards added since the last clear (Live.js, Live.css); reconnect and self-reload kept\n- [x] shared clear convention: List.clear(), page_tools replay, ai-api.md row\n- [x] rule recorded: public/live/readme.md and public/live/doc/presentation.md\n- [x] RemoteMCP text updated; needs one Servex restart (not done)\nCommit 1b96fb2b4 on michael/dev.","links":["/live/","/live/doc/presentation.md","/framework/core/Page/doc/ai-api.md"]}}
+{"log":{"at":"2026-10-15T19:21:53-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-15T19:21:53-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-15T19:21:54-05:00","msg":"doc-check: 3 modules — clean"}}
+{"log":{"at":"2026-10-15T19:21:54-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-15T19:22:00-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-15T19:22:10-05:00","msg":"layout-check: 2 pages at 1280/1920/2560/3440 — /live/: empty 0.97 at 2560, empty 0.974 at 3440, narrow_share 1 at 3440; /live: empty 0.97 at 2560, empty 0.974 at 3440, narrow_share 1 at 3440; sheets in layout-check/"}}
+{"log":{"at":"2026-10-15T19:22:36-05:00","msg":"padding-check: 2 pages — clean"}}

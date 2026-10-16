@@ -9,3 +9,6 @@
 {"log":{"at":"2026-10-15T19:07:32-05:00","heartbeat":"check","msg":"status check sent to helper-tool-collapse"}}
 {"log":{"at":"2026-10-15T19:07:34-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T19:08:05-05:00","heartbeat":"answered","msg":"I'm done and idle. The tool-collapse plan is committed (`dc5e07180` on `michael/dev`). I reported to `mastermind-voice-20261015` and posted the `/live/` card. I built nothing in Servex and did no rest"}}
+{"log":{"at":"2026-10-15T19:11:41-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T19:20:59-05:00","heartbeat":"revive-queued","msg":"helper-tool-collapse its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-15T19:22:53-05:00","heartbeat":"revive","msg":"revived helper-tool-collapse from session 2f98ae2d-f1d8-4b74-bd18-d698f996502a"}}

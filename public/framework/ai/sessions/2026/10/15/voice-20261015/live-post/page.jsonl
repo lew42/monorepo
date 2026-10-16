@@ -2,3 +2,5 @@
 {"file":"task.jsonl"}
 {"inbox":{"id":"n-6jyzx9c6","from":"servex-heartbeat","text":"helper-live-post its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:16:35-05:00; not revived.","at":"2026-10-15T18:38:53.805-05:00"}}
 {"inbox":{"id":"n-6wcv8afv","from":"servex-task-loop","text":"voice-20261015/live-post has been quiet since 2026-10-15T18:38:53-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-15T18:48:31.652-05:00"}}
+{"file":"review/"}
+{"inbox":{"id":"n-823incha","from":"servex-heartbeat","text":"helper-live-post its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:16:35-05:00; not revived.","at":"2026-10-15T19:20:59.087-05:00"}}
