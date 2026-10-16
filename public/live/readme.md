@@ -4,7 +4,7 @@ Open [/live/](/live/). It shows only the current topic, your latest ask refined 
 
 - `page.js` + [`Live.js`](Live.js): draws the page, then tails `page.jsonl` live (with a phone-safe poll fallback).
 - `page.jsonl`: the log the page tools append to; never hand-write it. History stays in the file; `{"content":{"clear":true}}` only blanks the screen.
-- [doc/notes.md](doc/notes.md): why it is a page.js and page.jsonl together, and the phone-stream fixes.
+- [doc/notes.md](doc/notes.md): why it is a page.js and page.jsonl together, the phone-stream fixes, and the owner's direction (a two-way page, walk-through mode, UI-first).
 
 ## The feed (2026-10-16)
 

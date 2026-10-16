@@ -20,3 +20,13 @@ The `Tail` fix works (headless tab over `10.0.0.135:3104`: a new line shows in 3
 - **Rewrite the last line.** The owner's suggestion. Simple, but it is a rewrite, and the rule is to append, never rewrite.
 - **A `drop` line naming the card id.** `Live.js` hides that card. History is kept, and it fits the append rule. This is the leaning, if it is built.
 - **The re-prompt loop for waiting tasks is not built (the owner's direction, 2026-10-16, by voice).** The Today card now shows each task as done or "waiting on X" (`TaskState.js`, `Server/task-closeout.mjs`); a loop that re-prompts the waiting ones is the owner's next step, with Servex's TaskLoop the likely home.
+
+## Direction: a two-way page and a walk-through mode (the owner, by voice, 2026-10-16 ~02:30Z): not built
+
+**The ask, summarized:** before building any feature, mock its UX on /live first (UI-first). The direction has three parts.
+
+1. **A two-way socket.** Page deltas get pushed through the dev-server socket instead of the roughly 3-second tail, in one universal way that doesn't depend on the adapter. Page UI events, such as a tap on a button or on a paragraph, go back up to Servex so the voice agent receives them.
+2. **Walk-through mode.** The voice agent reads a card aloud section by section. A "stop" button on the page interrupts it, and tapping a paragraph means "resume here". The agent highlights the section being read by sending a delta that toggles a CSS class: the state lives on the page and the UI reacts to it.
+3. **Server-side page instances** may be needed for 1 and 2. Whether the dev server or Servex owns them is open. The design so far is [core/Page/doc/server-instance.md](../../framework/core/Page/doc/server-instance.md); its first step is a `PageDoc` class that rebuilds a page's true state from its log.
+
+**Why:** the voice agent and the page should talk both ways, so the owner can follow along on the phone and steer by tapping, not by speaking. Source: voice question 39c069fe, logged in [voice-20261016/task.jsonl](../../framework/ai/sessions/2026/10/16/voice-20261016/task.jsonl).
