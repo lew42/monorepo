@@ -61,7 +61,7 @@ export default class RefineDemo extends View {
 			// change (below); Send (or the mic's own pause auto-send) runs the real Refine (`go()`).
 			this.$compose = composer({
 				placeholder: "speak with the mic, or type or paste a prompt here…",
-				mic: true, revise: "clean",
+				mic: true, revise: "clean", per_sentence: true,   // each finished sentence goes out and into the transcript while the next is still being heard
 				// `entry.text` is captured BEFORE `Composer.js`'s own `send()` clears the box (typed) or
 				// `consume_sent()` empties it (dictated) — reading `this.transcript()` here instead would
 				// see an already-empty box, so this runs the real Refine straight off what was sent.

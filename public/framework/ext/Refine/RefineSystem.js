@@ -108,9 +108,18 @@ export default class RefineSystem {
 	/** The words still in the box, cleaned instantly with no model. Cheap enough to run on every chunk. Empty text clears the box's share. */
 	quick(text){
 		const t0 = performance.now();
-		this.pending = String(text ?? "").trim();
+		this.pending = this.unsent(String(text ?? "").trim());
 		this.compose(+(performance.now() - t0).toFixed(2));
 		if (this.pending) this.stream(this.pending);
+	}
+
+	/** The box empties a moment AFTER a sentence is delivered, so a box event in between still holds the words just sent: leave those out. */
+	unsent(text){
+		const last = this.chunks.at(-1);
+		if (!last || !text || performance.now() - last.at > 5000) return text;
+		const w = t => t.split(/\s+/).filter(Boolean), norm = x => x.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+		const sent = w(last.raw), now = w(text);
+		return sent.length && sent.every((x, i) => norm(x) === norm(now[i] ?? "")) ? now.slice(sent.length).join(" ") : text;
 	}
 
 	/** A send has started (Mic.js waits on a last live call before `deliver`): keep those words on the page meanwhile. */
@@ -165,7 +174,7 @@ export default class RefineSystem {
 		text = String(text ?? "").trim();
 		if (!text) return this.prompt;
 		const t_start = performance.now();
-		const chunk = { raw: text, clean: RefineSystem.rows(text), refined: this.sending?.text === text ? this.sending.sections : this.live_sections, subject: "", runs: [], stages: {}, ms: 0, status: "working", error: "", prompt_id: this.prompt_id };
+		const chunk = { raw: text, clean: RefineSystem.rows(text), refined: this.sending?.text === text ? this.sending.sections : this.live_sections, subject: "", runs: [], stages: {}, ms: 0, status: "working", error: "", prompt_id: this.prompt_id, at: performance.now() };
 		this.chunks.push(chunk);
 		this.sending = null; this.pending = ""; this.live_sections = [];
 		this.prompt_id = RefineSystem.new_prompt_id();   // the next utterance is its own prompt on the session page
