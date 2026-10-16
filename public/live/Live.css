@@ -6,6 +6,11 @@
 	.live-screen { width: 100%; display: flex; flex-direction: column; gap: 1.25rem; font-size: clamp(1rem, 1.2vw + .75rem, 1.6rem); }
 	.live .page-preview, .live-full { max-width: none; background: #fff; border-radius: .5rem; padding: 1rem .75rem; box-shadow: 0 1px 2px #0002; margin: 0; }
 	.live-full { width: auto; max-width: none; display: flex; flex-direction: column; gap: .75rem; }
+	/* One opened card (/live/<id>/): the card is the page, edge to edge. No gray frame, no title above it, no double padding. */
+	.live-one, .live-one .live-screen { padding: 0; background: none; max-width: none; }
+	.live-one .live-full, .live:not(.live-one) > .live-screen > .live-full { border-radius: 0; box-shadow: none; padding: 1rem .75rem; }
+	.page:has(> .live-one) { padding: 0; }
+	.page:has(> .live-one) > .page-title { display: none; }
 	.live-back { font-size: .8em; }
 	.live-row > * { margin: 0; }
 	.live-card-title { font-weight: 700; display: block; font-size: 1.25em; }
