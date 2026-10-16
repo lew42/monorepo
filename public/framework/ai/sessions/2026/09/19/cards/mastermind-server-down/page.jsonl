@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"icon":"dns"}
 {"text":"The mastermind's own dev server is down, and five node processes are sitting idle with no port at all. Your port 80 is fine and untouched. I cannot stop processes from this session, so they need one command from you."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

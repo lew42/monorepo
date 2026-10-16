@@ -30,7 +30,7 @@ const new_waits = c => !CLOSED.has(c.status) && (c.status === "needs-you" || c.o
 // Real open Decision/Question widgets, as Servex's own NeedsRule finds them.
 let real = new Set();
 try { real = new Set((await (await fetch("http://127.0.0.1:8090/waiting", { signal: AbortSignal.timeout(5000) })).json()).map(w => w.card)); }
-catch { console.error("Servex /waiting not answering: aborting rather than guess which are real."); process.exit(1); }
+catch (e) { console.error(e?.message, "Servex /waiting not answering: aborting rather than guess which are real."); process.exit(1); }
 
 // A card folder is CardDir.rel(id) under ai/ (the one rule); the old tree is the fallback.
 const find_file = id => [CardDir.rel(id), CardDir.old(id)].map(r => path.join(AI, ...r.split("/"), "page.jsonl")).find(f => fs.existsSync(f)) ?? null;

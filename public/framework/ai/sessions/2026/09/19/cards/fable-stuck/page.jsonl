@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"icon":"stop_circle"}
 {"text":"It has been running 32 minutes, cannot write anything, and is the most expensive thing on the machine. I am not allowed to stop processes. One command ends it: Stop-Process -Id 34532 -Force"}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

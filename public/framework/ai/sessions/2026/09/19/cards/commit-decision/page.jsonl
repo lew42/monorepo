@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"icon":"looks_one"}
 {"text":"An accidental stash has wiped a day of uncommitted work twice in two days. Either commit michael/dev regularly yourself, or hand me a branch I may commit to. It outranks everything else on the list."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

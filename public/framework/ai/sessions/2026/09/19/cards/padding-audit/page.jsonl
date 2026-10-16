@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"text":"The pad token is fine for page regions but gives a nested card only 15 to 18 px at any width, and no skill says what a card's padding is. Recommended: one card class, padded by definition. Four decisions wait for you."}
 {"icon":"straighten"}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

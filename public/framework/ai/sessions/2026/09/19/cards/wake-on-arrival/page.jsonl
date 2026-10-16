@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"icon":"notifications"}
 {"text":"There was a 34-minute stretch tonight where nothing was running and nobody was checking your inbox. That is the one stage worth fixing, and the prompt hook that would fix it is built and switched off, waiting on one line from you."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

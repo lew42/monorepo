@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"icon":"person_search"}
 {"text":"It has happened twice, on the 18th and the 19th. If it is the Stash all changes button in the source control panel, that explains it entirely and nothing is wrong. Two files need a human decision too - see the report."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

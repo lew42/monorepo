@@ -4,3 +4,5 @@
 {"icon":"speed"}
 {"text":"You described this before and I have not built it. Writing it up as a proposal you can click into and mark up, rather than guessing. The open question you raised - one shared Playwright context or a separate monitor minion - is the part I want your steer on."}
 {"links":[{"url":"/framework/ai/2026-09-21/safe-rollout/","label":"Nearest work in flight"}]}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

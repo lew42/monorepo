@@ -4,3 +4,5 @@
 {"text":"A small plugin on your dev server hands any <name>.localhost to Servex's proxy, so servex.localhost, monorepo.localhost and wt-<slug>.localhost work with no :8080. Proven on a private server; it goes live the next time you restart your server (Ctrl-C, node server.js)."}
 {"status":"needs-you"}
 {"links":[{"url":"/framework/ai/2026-09-22/mastermind-servex/","label":"decision localhost-names-on-80"}]}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

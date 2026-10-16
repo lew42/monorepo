@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"icon":"search"}
 {"text":"The same shape that broke the CSS: rebuilt from transcripts last night, incomplete, then kept because it looked newer. An audit of the 57 skipped files found two truncated task logs and some docs worth a look. Named, not touched."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

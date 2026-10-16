@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"icon":"block"}
 {"text":"One did it again today and burned a core for half an hour before catching itself. Four agents in seventeen days, every one of them having read the rule not to. A written rule is not working; one settings entry would refuse the command outright."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

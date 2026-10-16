@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"icon":"bug_report"}
 {"text":"console: Access to fetch at 'http://127.0.0.1:8090/cards?view=all' from origin 'http://monorepo.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

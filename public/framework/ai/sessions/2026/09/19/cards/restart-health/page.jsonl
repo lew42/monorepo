@@ -4,3 +4,5 @@
 {"icon":"looks_two"}
 {"focus":true}
 {"text":"Stop-Process -Id 34924 -Force. Checked just now: still running, still holding back two watcher rules that were fixed twelve hours ago."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

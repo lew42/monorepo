@@ -4,3 +4,5 @@
 {"icon":"speed"}
 {"focus":true}
 {"text":"From the assistant's own record of your last 29 prompts: your words reach the log about 3 seconds after you send, its answer card about 6. The file-to-screen hop is 13 thousandths. To cut it: say yes to the prompt hook, and the echo drops to a tenth of a second with no model involved."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

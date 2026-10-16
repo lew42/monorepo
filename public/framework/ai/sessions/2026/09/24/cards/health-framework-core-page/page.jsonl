@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"icon":"bug_report"}
 {"text":"blank: no .page element is drawing more than 50px tall"}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

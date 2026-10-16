@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"icon":"engineering"}
 {"text":"Every role you described is written down. What is missing is the plumbing that makes them real: starting a session, messaging it, forking it, seeing what is alive, and somebody whose job is fixing the skills when they fail. That is the gap, not the descriptions."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

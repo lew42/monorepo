@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"icon":"warning"}
 {"text":"The verbatim log of what you said today starts at 15:36, when the relay was built. Before that the only record is what the audit agent typed down from memory. Worth knowing before you trust any grade on an early request."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

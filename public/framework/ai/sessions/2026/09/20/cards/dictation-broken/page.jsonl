@@ -5,3 +5,5 @@
 {"text":"It was broken by last night's revert and fixed at 10:39 this morning, before you reported it. A tab open since before then still runs the old code. Driven four ways headless with real audio and it transcribed every time."}
 {"focus":true}
 {"links":[{"url":"/framework/ai/2026-09-20/dictate-fix/","label":"the proof shots"}]}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

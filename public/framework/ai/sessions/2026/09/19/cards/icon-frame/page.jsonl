@@ -2,3 +2,5 @@
 {"legacy":"icon-frame"}
 {"status":"needs-you"}
 {"text":"The sidebar's icons now sit in a square frame sized in em, centred both ways, as you described. Making that the default for every icon on the site is the right direction, but icon() has 300 call sites in 131 files and icons have no width today, so every tab, button and breadcrumb would shift a little at once.\nMy recommendation: do it as its own task with a before and after sweep of the forty most visited pages, and a critic. Say go and it starts; say nothing and it waits behind the critic sweep."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

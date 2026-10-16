@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"text":"Fixed and proven. On Windows, just reading a file counted as a change, so loading a page reloaded it.\nRestart node server.js once (1 minute). After that the server restarts itself whenever its own code changes."}
 {"links":[{"url":"/framework/ai/2026-09-19/server-self/","label":"the fix and its proofs"}]}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

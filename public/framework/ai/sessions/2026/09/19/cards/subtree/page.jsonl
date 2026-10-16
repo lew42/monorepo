@@ -3,3 +3,5 @@
 {"status":"needs-you"}
 {"icon":"call_split"}
 {"text":"A study this afternoon proved git worktrees work here and that the uncommitted tree carries in cleanly. Nothing connects them to the task flow yet. There is one thing only you can decide, below."}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}

@@ -4,3 +4,5 @@
 {"icon":"bolt"}
 {"text":"Correction: no restart needed. Your server follows server changes by itself now, so the demo should work for you already. Open the demo, type or talk, and watch the reply type itself out. First word in about 3 seconds."}
 {"focus":true}
+{"status":"open"}
+{"relabel":{"was":"needs-you","why":"a status update, not a question for the owner (inbox-labels 2026-10-16)","by":"inbox-labels","at":"2026-10-16T06:23:58.168Z"}}
