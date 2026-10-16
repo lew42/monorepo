@@ -56,7 +56,7 @@ The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`
 
 ## How a subpage is stored
 
-`pages.add` makes `<page folder>/<name>/page.jsonl` (line 1: title, icon, description) and links it from the parent: one `{"file":"<name>/page.jsonl"}` line in a `page.jsonl` parent, or the name added to a `page.js` parent's `children:` string. `rename` moves the folder and writes a `gone` line for the old name and a `file` line for the new one. `remove` moves the folder to `<page folder>/_removed/<name>-<time>/` and writes a `gone` line. The code is `Servex/agents/Subpages.js`.
+`pages.add` makes `<page folder>/<name>/page.jsonl` (line 1: title, icon, description) and links it from the parent: one `{"file":"<name>/page.jsonl"}` line in the parent's `page.jsonl` (made if the parent only has a `page.js`; no `page.js` is ever edited). More: [subpages.md](subpages.md). `rename` moves the folder and writes a `gone` line for the old name and a `file` line for the new one. `remove` moves the folder to `<page folder>/_removed/<name>-<time>/` and writes a `gone` line. The code is `Servex/agents/Subpages.js`.
 
 ## Decisions, and the alternatives
 

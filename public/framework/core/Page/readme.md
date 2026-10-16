@@ -41,7 +41,7 @@ The classes and the decisions (log growth, big collections, file vs database): [
 **Where the lines can be kept** (files today; a Durable Object, D1 or an archive later; the `Store` backends, costs and the first slice): [`doc/storage.md`](doc/storage.md).
 **A page body as a list of parts** (heading, text, card; each one a line in `page.jsonl`): [`parts/`](parts/readme.md), [architecture](parts/doc/architecture.md). **Pages, content, parts: one way each, and the plan for `children` and `content`:** [`doc/content.md`](doc/content.md); step 1 built: [`doc/content-list-step-1.md`](doc/content-list-step-1.md).
 **Templates** (one layout rendered many times from its own data, bound to live `Property` values): [`doc/templates.md`](doc/templates.md), demo [Template](./Template/). **Binding** (a view that follows its data: subscribe and unbind, linked clone vs hard copy, when a value is a Property; measured on 1,000 rows): [`doc/binding.md`](doc/binding.md).
-**Agents change any page with one tool**, `page_set(path, delta)`: a property, a card, a subpage; `page_read(path)` shows the result. The model and the "to do X, send delta Y" table: [`doc/ai-api.md`](doc/ai-api.md). Live demo: [tool](./tool/).
+**Agents change any page with one tool**, `page_set(path, delta)`: a property, a card, a subpage; `page_read(path)` shows the result. The model and the "to do X, send delta Y" table: [`doc/ai-api.md`](doc/ai-api.md). **Subpages are `page.jsonl` lines, never a `page.js` edit** (embedded vs referenced): [`doc/subpages.md`](doc/subpages.md). Live demo: [tool](./tool/).
 
 - **Architecture** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#architecture), verbatim.
 ## How a page loads
