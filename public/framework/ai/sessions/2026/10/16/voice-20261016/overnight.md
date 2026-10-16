@@ -1,4 +1,5 @@
 # Overnight
+The log is the record: `../task.jsonl` holds every fact below as a timestamped line; this page only summarises it.
 
 ✅ Refine build merged (c82cae958): sentences stay in the structure and send while the next is heard; Dictate makes 1 bubble per sentence. ⬜ Live outline lags ~8 s on one-sentence utterances.
 ✅ Inbox "Waiting on you" 133 → 12 (7d9e342d6).
