@@ -225,3 +225,5 @@
 {"log":{"at":"2026-10-15T19:41:52-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-20261015"}}
 {"log":{"at":"2026-10-15T19:42:26-05:00","heartbeat":"answered","msg":"I'm idle between voice questions, with no helpers running. Each helper landed its work in its own task folder, and the session logs are committed in acb54e49e.\n\nThe one open item is a Servex restart, "}}
 {"log":{"at":"2026-10-15T19:45:52-05:00","msg":"task-loop escalated: {\n  \"ok\": true,\n  \"id\": \"2026/10/15/voice-session-2026-10-15-18-41\",\n  \"ask\": \"d-mva8y3oqr3\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-15T19:56:54-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-20261015"}}
+{"log":{"at":"2026-10-15T19:57:27-05:00","heartbeat":"answered","msg":"I'm still idle and waiting for the next voice question, with no helpers running. The only open item is the Servex restart, which waits on you because it drops the voice call."}}

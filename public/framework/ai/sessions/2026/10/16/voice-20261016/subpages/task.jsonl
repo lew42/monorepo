@@ -7,3 +7,4 @@
 {"log":{"at":"2026-10-15T19:40:52-05:00","msg":"task-loop chase 2 of 2: woke helper-page-subpages","chase":2}}
 {"log":{"at":"2026-10-15T19:41:43-05:00","msg":"step 3 committed: deep-delta rule in doc/subpages.md; deep_merge in page_tools replay (needs Servex restart). Item.set_one browser merge proposed, not built. Next: step 4 template."}}
 {"log":{"at":"2026-10-15T19:41:55-05:00","msg":"step 4 committed: Template.clone exists (Template only, not Page); jsonl-line template not built. All 5 steps done; landing report next."}}
+{"log":{"at":"2026-10-15T19:55:56-05:00","msg":"task-loop escalated: {\n  \"ok\": true,\n  \"id\": \"2026/10/15/voice-session-2026-10-16-19-06\",\n  \"ask\": \"d-mva9b160zi\"\n}","chase":"escalated"}}
