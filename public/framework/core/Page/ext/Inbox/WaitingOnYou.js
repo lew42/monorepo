@@ -10,7 +10,6 @@ export default class WaitingOnYou extends Browse.Pinned {
 	static AI = "/framework/ai/";
 	static CLOSED = new Set(["done", "archived"]);
 	static ASK_WAITING = new Set(["waiting", "parked", "needs-you"]);
-	static WORDS = /\bfor you\b|\bdecision\b/i;
 
 	title = "Waiting on you";
 	key = "waiting-on-you";
@@ -43,11 +42,12 @@ export default class WaitingOnYou extends Browse.Pinned {
 		return [...cards, ...asks].sort((a, b) => (Date.parse(b.at) || 0) - (Date.parse(a.at) || 0));
 	}
 
-	/** A card waits on the owner while it is open and is an owner note, a needs-you card, or says "for you" / "decision". */
+	/** A card waits on the owner while it is open and has status `needs-you`, or carries an owner note of kind `needs-you`
+	 *  (something only the owner can do: a key, a login, money). A `decision` or `risk` note is an FYI: it stays in the
+	 *  Timeline feed and does not wait. The words "for you" / "decision" no longer count (2026-10-16: doc/next.md). */
 	static waits(c){
 		if (WaitingOnYou.CLOSED.has(c.status)) return false;
-		if (c.owner_note || c.status === "needs-you") return true;
-		return WaitingOnYou.WORDS.test([c.title, c.preview, c.state].filter(Boolean).join(" "));
+		return c.status === "needs-you" || c.owner_note?.kind === "needs-you";
 	}
 
 	static line(text){ return String(text).replace(/\s+/g, " ").trim().slice(0, 200); }

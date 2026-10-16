@@ -550,11 +550,11 @@ export default class Cards {
 				}),
 
 			this.tool("owner_note",
-				"THE ONE WAY to tell the owner something. They do not read chat and you never wait on an answer: a decision you made on their behalf, a risk, or something only they can do goes HERE, as a card pinned at the top of the AI Inbox until they open or archive it. Post it, then keep going. Returns `{ok, id, url}`.",
+				"THE ONE WAY to tell the owner something. They do not read chat and you never wait on an answer: post it here, then keep going. Kinds `decision` (you chose for them) and `risk` are FYIs: they go to the Inbox feed to be read and do NOT count as waiting on the owner. Only kind `needs-you` (something only the owner can do: a key, a login, money) lands in the Waiting on you list, so never use it for a status update. Returns `{ok, id, url}`.",
 				{
 					title: { type: "string", description: "What happened and why it matters, in plain words (the row's title)." },
 					text: { type: "string", description: "One or two plain sentences: what you decided or found, and the alternative if you chose for them." },
-					kind: { type: "string", enum: OWNER_NOTE_KINDS, description: "`decision` (you chose for them), `risk` (something may go wrong), `needs-you` (only they can do it). Default decision." },
+					kind: { type: "string", enum: OWNER_NOTE_KINDS, description: "`decision` (FYI: you chose for them), `risk` (FYI: something may go wrong), `needs-you` (WAITS on them: only they can do it, e.g. a key, a login, money; never a status update). Default decision." },
 					links: { type: "array", items: { type: "string" }, description: "Page or file urls, e.g. `/framework/ai/2026-10-12/my-task/`." },
 					by: { type: "string", description: "Your own agent id." }
 				},
