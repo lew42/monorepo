@@ -141,3 +141,8 @@
 {"chat":{"at":"2026-10-15T22:23:07-05:00","from":"owner (voice)","id":"11311844","text":"Q15: current usage and cost: today's total spend, the pace line, and the top sessions by cost today."}}
 {"chat":{"at":"2026-10-15T22:23:07-05:00","from":"voice-mastermind","id":"11311844","text":"Pace (usage-now.mjs): 11% of the week used, 14.5% gone, 76% of pace (steady), 5h window 11%. Today's total and top sessions promised for the next ask."}}
 {"log":{"at":"2026-10-15T22:23:07-05:00","msg":"Q15 computed: since local midnight (2026-10-15T05:00Z), 65 Servex agents started, $436.29 API-equivalent (registry.json cost, per agent, by started_at). Top: mastermind-voice-opus $136.32 (Opus), mastermind-voice-20261016 $95.24 (Opus), mastermind-voice-20261015 $40.22 (Opus), mastermind-voice-today $34.30 (Sonnet), helper-page-system $13.25 (Opus). Tool gaps: week-cost.mjs --from/--to returned $0 for today's window; DaySpend.mjs reads only the old ai/<date>/ folders."}}
+{"log":{"at":"2026-10-15T22:26:42-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T22:29:42-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T22:33:42-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-15T22:35:42-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T22:36:23-05:00","msg":"Stopped mastermind-live-cards (idle, kept re-sending the same Q13 report; $9.96 total). Revivable with send_to_agent revive:true for the next /live ask."}}
