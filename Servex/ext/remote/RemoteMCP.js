@@ -24,6 +24,12 @@ export default class RemoteMCP {
         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
         "The mastermind answers inside the tool's one-minute window with an ack and routing; minion results arrive on your next ask, so ask again to hear them.",
     ].join("\n");
+    // One generic door that never changes: the app approves it once, and any tool added later is reachable through it (doc/remote-tools.md).
+    static CALL = {
+        name: "call",
+        description: "Call any Servex tool by name, including ones added after this connector was approved: call({tool: \"shell\", args: {command: \"git status\"}}). tool \"list\" returns every tool name with its description and input schema.",
+        inputSchema: { type: "object", properties: { tool: { type: "string" }, args: { type: "object" } }, required: ["tool"] },
+    };
     static SESSIONS_FILE = "remote.sessions.json";
     static CALLER = "voice-app";
     static TOOL = {
@@ -76,7 +82,7 @@ export default class RemoteMCP {
 
     async post(req, res){
         if (!this.authed(req)) return res.status(401).set("WWW-Authenticate", "Bearer").json({ error: "bearer token required" });
-        const { id, method, params } = req.body ?? {};
+        let { id, method, params } = req.body ?? {};
         const ok = result => res.json({ jsonrpc: "2.0", id, result });
         const bad = (code, message) => res.json({ jsonrpc: "2.0", id, error: { code, message } });
         if (id === undefined) return res.status(202).end();   // a notification (notifications/initialized)
@@ -90,6 +96,13 @@ export default class RemoteMCP {
         if (method === "ping") return ok({});
         if (method === "tools/list") return ok({ tools: this.tools() });
         if (method === "tools/call"){
+            if (params?.name === RemoteMCP.CALL.name){
+                const { tool, args } = params.arguments ?? {};
+                if (tool === "list") return ok({ content: [{ type: "text", text: JSON.stringify(this.tools().map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))) }] });
+                if (tool === RemoteMCP.TOOL.name) params = { name: tool, arguments: args };
+                else try { return ok(await this.servex.mcp.call(tool, args ?? {}, { caller: RemoteMCP.CALLER })); }
+                catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
+            }
             if (params?.name !== RemoteMCP.TOOL.name){
                 // every other tool is the servex registry's own handler; the caller is this app, so writes say who made them
                 try { return ok(await this.servex.mcp.call(params?.name, params?.arguments ?? {}, { caller: RemoteMCP.CALLER })); }
@@ -110,7 +123,7 @@ export default class RemoteMCP {
 
     // the one registry (servex.mcp, read at call time so late registrations show up) with ask_mastermind on top
     tools(){
-        return [RemoteMCP.TOOL, ...(this.servex.mcp?.tools ?? []).filter(t => t.name !== RemoteMCP.TOOL.name)];
+        return [RemoteMCP.TOOL, RemoteMCP.CALL, ...(this.servex.mcp?.tools ?? []).filter(t => t.name !== RemoteMCP.TOOL.name && t.name !== RemoteMCP.CALL.name)];
     }
 
     // REMOTE_MCP_TARGET / this.target / the file remote.target still override everything: one fixed agent for every session
