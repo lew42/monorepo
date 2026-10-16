@@ -77,5 +77,6 @@
 	/* The demo is a page-level bleed (edge to edge); its result band keeps its own side padding. */
 	.refine-demo > .refine-result { padding-inline: .6em; }
 	.refine-demo .refine-prompt-raw { font-size: .9em; margin: 0; }
-	.refine-demo .refine-prompt-h { font-size: .85em; text-transform: uppercase; letter-spacing: .04em; opacity: .7; }
+	.refine-demo .refine-prompt-h { display: flex; flex-wrap: wrap; gap: 0 .6em; align-items: baseline; font-size: .85em; text-transform: uppercase; letter-spacing: .04em; }
+	.refine-demo .refine-prompt-h > span:first-child { opacity: .7; }
 }

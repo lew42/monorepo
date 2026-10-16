@@ -72,20 +72,19 @@ export default class RefineDemo extends View {
 					if (!text) return (this.$note.text("Nothing to refine yet."), false);
 					this.system.source = entry.via === "whisper" ? "dictated" : "typed";
 					this.$note.text("");
-					if (this.prompt.status === "done") this.system.next();   // a new Refine starts a new prompt
 					this.system.go(text);
 					return true;
 				},
 				on_live: undefined,   // real box, not a ghost chat bubble — this demo shows raw IN the box, like before
 				on_text: () => this.quick(),
 				on_revised: () => this.quick(),
-				on_send_start: () => this.quick(),
+				on_send_start: text => text ? this.system.sending_start(text) : this.quick(),   // sent words stay on the page while the last live call runs
 				on_meter: () => {},
 				session: () => this.system.session_id,
 				// THE LIVE OUTLINE (law 2): `Mic.js`'s own `refine_tick`/`refine_final` already posted this —
 				// write it onto the SAME `Prompt` `RefineSystem.live()` would, so `draw()` below redraws it
 				// through the one `on_change` path, never a second.
-				on_refine_live: out => this.system.prompt.set({ subject: out.outline?.subject ?? this.prompt.subject, refined: out.outline?.sections ?? this.prompt.refined }),
+				on_refine_live: out => this.system.set_live(out),
 			});
 			this.dictate = this.$compose.mic;   // a `ComposerMic` (`Dictate` subclass) — same shape `VoiceStrip.dictate` was
 			this.$box = this.$compose.$input;
@@ -110,18 +109,13 @@ export default class RefineDemo extends View {
 		this.draw_whisper();
 	}
 
-	/** The one transcript the owner sees: whatever Dictate has committed into the box, plus the
-	 *  grey still-moving guess if the mic has not settled it yet. */
-	transcript(){
-		const boxed = this.$box.el.value.trim();
-		const guess = (this.dictate?.partial_text || "").trim();
-		return guess && !boxed.endsWith(guess) ? (boxed + " " + guess).trim() : boxed;
-	}
+	/** The words in the box. The composer's mic already types its still-moving guess INTO the box, and its `partial_text` keeps the
+	 *  guess of a sentence that was just sent, so adding it here repeated that sentence (found with the fake-mic run). */
+	transcript(){ return this.$box.el.value.trim(); }
 
 	/** Instant stage: show the cleaned text now, with no model. */
 	quick(){
-		const text = this.transcript();
-		if (text) this.system.quick(text);
+		this.system.quick(this.transcript());   // empty text clears the box's share, the sent sentences stay
 	}
 
 	async go(){
@@ -133,7 +127,7 @@ export default class RefineDemo extends View {
 		const text = this.transcript();
 		if (!text) return this.$note.text("Nothing to refine yet.");
 		this.$note.text("");
-		if (this.prompt.status === "done") this.system.next();   // a new Refine starts a new prompt
+		this.$box.el.value = "";   // sent: the words now live in the transcript, not the box
 		this.system.go(text);
 	}
 
