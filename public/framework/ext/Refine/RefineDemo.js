@@ -54,7 +54,7 @@ export default class RefineDemo extends View {
 					this.$model.el.addEventListener("change", () => { this.system.model = this.$model.el.value; });
 				});
 				this.$cost = span.c("refine-cost");
-				a("↗").href(this.system.page_url).ac("refine-watch").attr("title", "Watch it on the session page").attr("aria-label", "Watch it on the session page");
+				a("Watch live ↗").href(this.system.page_url).ac("refine-watch").attr("title", "Watch it on the session page").attr("aria-label", "Watch it on the session page");
 			});
 			this.$note = div.c("refine-input-note");
 			// THE composer: mic, gear, Send. Typing or dictating runs the instant `quick()` clean on every

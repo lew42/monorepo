@@ -156,7 +156,7 @@ Prompt.View = class extends View {
 
 		if (working) p.c("refine-working", `Refining with ${prompt.model || "a model"}… usually about 8 s and about 3 cents. The cleaned text is already usable.`);
 		if (prompt.status === "error") p.c("refine-error", "Could not refine: " + prompt.error);
-		if (this.show_raw !== false) section("said", "", () => p.c("refine-prompt-raw", prompt.raw));
+		if (this.show_raw !== false) section("said", "", () => prompt.raw ? p.c("refine-prompt-raw", prompt.raw) : p.c("refine-empty", "Nothing said yet."));
 
 		section("clean", empty ? "" : prompt.quick || working ? `instant, ${prompt.timings.quick_ms ?? 0} ms, no model` : `by ${prompt.model || "a model"}, ${secs(prompt.stages.clean_ms ?? 0)}`, () => {
 			if (empty) return p.c("refine-empty", "Waiting for words.");
