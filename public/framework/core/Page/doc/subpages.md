@@ -20,7 +20,6 @@ It did not (404). `Page.child()` only knew a folder's listing if something else 
 ## Open questions (not built)
 
 - **Navigation.** Does a jsonl-declared child appear in the parent's sidebar/tabs, and in what order next to `children:` names? The route works; the nav was not checked.
-- **Parent as template, step 4.** Next.
 
 ## Deep deltas: pass exactly what changed
 
@@ -35,3 +34,9 @@ It did not (404). `Page.child()` only knew a folder's listing if something else 
 **Proposed, not built:** the same plain-object merge in `Item.set_one` (browser), so a live page also keeps untouched nested keys. It touches the core class every page uses, so it waits for a decision rather than riding on this task.
 
 Related: [ai-api.md](ai-api.md) (the tool and its table), [jsonl-pages.md](jsonl-pages.md) (how a page.jsonl names its children), [composition.md](composition.md).
+
+## A child that uses its parent as a template
+
+**What came of the past `page.clone` request** ([owner notes](/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/owner-notes-3.md)): it was built on `Template` only, not on `Page`. `core/Page/Template/Template.js` has `clone(data)` (`Object.create(this)`: reads through to the template, writes only to the clone, so a base change flows to every clone) and `copy(data)` (a hard copy, no link). `Page.class.js` has no `clone`.
+
+**So, can a child use its parent?** Yes when the parent is a `Template` (a Template is a Page): `parent.clone({...})` is the child, as a page.js page. Not yet from a jsonl line: a line like `{"template":"../"}` in the child's `page.jsonl` would need the loader to find the parent's Template and call `clone`. **Not built**; it is a separate decision because it makes a child's content depend on its parent's code, and the two storage variants above already cover pages that stand alone.
