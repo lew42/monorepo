@@ -85,7 +85,7 @@ class LiveCard extends Page {
 	static live = { today: LiveToday };   // a card {type:"part-live", live:"<name>"} is drawn by this class, from live data, not from its text
 
 	static of(row){
-		const card = new this({ id: row.id, title: row.title, label: row.preview ?? row.title ?? row.id, text: row.text, url: `/live/?card=${encodeURIComponent(row.id)}` });
+		const card = new this({ id: row.id, title: row.title, label: row.preview ?? row.title ?? row.id, text: row.text, url: `/live/${encodeURIComponent(row.id)}/`, path: `/live/${encodeURIComponent(row.id)}/` });
 		if (row.type === "part-live") card.live_name = row.live;
 		return card;
 	}
@@ -132,35 +132,48 @@ export default class Live extends Page {
 		return list;
 	}
 
-	// The card id in the address (?card=id); none means the feed.
-	get open(){ return new URLSearchParams(location.search).get("card"); }
+	// The card id in the address: /live/<id>/ (a child page, route() below); the old ?card=<id> is redirected to it.
+	get open(){ return this.card_id ?? null; }
+
+	// One card's page at /live/<id>/. The card lives as a line in this page.jsonl; `path` is where it can later own a dir.
+	route(id){
+		if (id.includes(".")) return;
+		const live = this;
+		return new Page({ title: id, url: this.url + id + "/", classes: "hides-nav", content(){ live.mount(div.c("live live-one"), id); } });
+	}
+
+	// The shared stream, started once; `changed` redraws whatever is mounted.
+	start(){
+		if (this.stream) return;
+		this.stream = new this.constructor.Log({ url: import.meta.resolve("./page.jsonl") });
+		const changed = () => this.views.forEach(v => v());
+		(Socket.singleton().disabled || location.search.includes("poll"))
+			? new this.constructor.Tail(this.stream, changed).start()
+			: this.stream.live(changed).then(changed);   // the socket resubscribes from its offset when it reconnects
+	}
+	views = new Set();
+
+	// Draw one card (id) or the feed (no id) into a box, and keep it drawn as lines arrive.
+	mount(box, id){
+		this.start();
+		const draw = () => box.empty(() => this.paint(id));
+		this.views.add(draw);
+		draw();
+		return box;
+	}
+
+	paint(id){
+		const rows = this.rows(), one = id && rows.find(r => r.id === id);
+		if (id) return one ? void this.constructor.Card.of(one).full() : void div.c("live-empty", rows.length ? "No such card." : "Loading…");
+		if (!rows.length) return void div.c("live-empty", "Nothing on screen. The voice agent shows what you are discussing here.");
+		rows.forEach(r => { const card = this.constructor.Card.of(r); card.preview(card.nav()); });
+	}
 
 	render(){
 		return this.view ??= div.c("page live", () => {
-			this.$feed = div.c("live-screen");
-			this.stream ??= new this.constructor.Log({ url: import.meta.resolve("./page.jsonl") });
-			const draw = () => this.draw();
-			addEventListener("popstate", draw);
-			this.$feed.el.addEventListener("click", e => {
-				const link = e.target.closest?.("a.page-preview-link, a.live-back");
-				if (!link || e.metaKey || e.ctrlKey) return;
-				e.preventDefault(); e.stopPropagation();
-				history.pushState({}, "", link.getAttribute("href"));
-				draw(); scrollTo(0, 0);
-			}, true);
-			(Socket.singleton().disabled || location.search.includes("poll"))
-				? new this.constructor.Tail(this.stream, draw).start()
-				: this.stream.live(draw).then(draw);   // the socket resubscribes from its offset when it reconnects
-		});
-	}
-
-	// The feed: a preview card per item. With ?card=id: that one card in full.
-	draw(){
-		this.$feed?.empty(() => {
-			const rows = this.rows(), one = rows.find(r => r.id === this.open);
-			if (one) return void this.constructor.Card.of(one).full();
-			if (!rows.length) return void div.c("live-empty", "Nothing on screen. The voice agent shows what you are discussing here.");
-			rows.forEach(r => { const card = this.constructor.Card.of(r); card.preview(card.nav()); });
+			const old = new URLSearchParams(location.search).get("card");
+			if (old) history.replaceState({}, "", `${this.url}${encodeURIComponent(old)}/`);   // ?card= -> /live/<id>/, back still works
+			this.mount(div.c("live-screen"), old);
 		});
 	}
 }
