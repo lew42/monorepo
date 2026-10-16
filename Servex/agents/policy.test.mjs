@@ -1,6 +1,8 @@
 import assert from "node:assert";
 import { Policy } from "./policy.js";
 
+process.env.SERVEX_POLICY = "on"; // the rules are off by default (2026-10-16); test them switched on
+
 let n = 0;
 const t = (v, msg) => { assert.ok(v, msg); n++; };
 const live = new Map([["minion-a", { parent: "task-mastermind-x" }], ["task-mastermind-x", { parent: null }]]);
@@ -102,7 +104,7 @@ t(Array.isArray(p.rules()) && p.rules()[0].from, "rules");
 // off
 process.env.SERVEX_POLICY = "off";
 t(m("assistant-a", "manager-b").rule === "off" && p.spawn("assistant-a", "manager").rule === "off", "policy off");
-delete process.env.SERVEX_POLICY;
+process.env.SERVEX_POLICY = "on";
 console.log(`policy: ${n} checks passed`);
 
 // relay-bypass: owner/tab -> task-mastermind is logged, never refused; other routes are not counted

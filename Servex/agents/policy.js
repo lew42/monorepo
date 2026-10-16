@@ -1,5 +1,6 @@
 /* Who may message and spawn whom. Kept as one small class so the rules are data
- * a page can show (`rules()`) and a test can walk. `SERVEX_POLICY=off` disables it. */
+ * a page can show (`rules()`) and a test can walk. OFF by default (owner, 2026-10-16: voice-app
+ * must spawn masterminds of its own); `SERVEX_POLICY=on` turns the rules back on. */
 
 const REPLY_MS = 30 * 60 * 1000;
 /* `page-assistant` / `page-mastermind` are the recursive-pairs words for the same
@@ -20,7 +21,7 @@ export class Policy {
 	assign(...args){ return Object.assign(this, ...args); }
 	defaults(){ return { agents: null, told: new Map(), refused: [], onrefuse: null, bypasses: [], onbypass: null }; }
 
-	off(){ return process.env.SERVEX_POLICY === "off"; }
+	off(){ return process.env.SERVEX_POLICY !== "on"; }
 
 	/* A registered external id (`External.js`, D8: a VS Code tab) — read from the
 	 * SAME registry Global.js's `registry_row()` reads, never a copy. Checked
