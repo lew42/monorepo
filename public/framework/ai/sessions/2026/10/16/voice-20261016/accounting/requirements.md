@@ -21,4 +21,14 @@ The owner's asks for this task, dictated 2026-10-16 to the voice agent. Source: 
 
 14. **The raw transcript is the single source of truth.** The raw Claude SDK transcript (`~/.claude/projects`) is the single source of truth for what happened in a session. Servex must NOT keep its own parallel session log of prompts, replies or usage; the `%LOCALAPPDATA%` `agent-<id>.jsonl` path is a candidate to scrap. Instead, a reliable script processes the raw transcript, and the session folder in the repo holds only derived, human-facing things: requirements, summaries, decisions, the running cost total and links. Answer: [answers.md](answers.md#r14).
 
+15. **Decided: rename `task.jsonl` to `session.jsonl` in session folders.** Plan: [shape.md §4](shape.md).
+16. **What `session.jsonl` holds, for its session:**
+    - its requirements, fulfilled and checked (the task system's requirements);
+    - tags of the core files and modules worked on (insurance for finding past work);
+    - the aggregate running cost, derived from the raw transcript and never duplicating it;
+    - knowledge of every task and sub-session inside it.
+
+    Raw prompts: the owner is unsure whether to copy them, summarise them or just link them, and prompt refinement is low-confidence and may be skipped. One recommendation was asked for: link ([shape.md §2](shape.md)).
+17. **Keep `public/framework/ai/sessions/readme.md` current** whenever a decision or the structure changes. This task owns it.
+
 Also asked, and answered in [answers.md](answers.md): **Q1**, the agent logs in `%LOCALAPPDATA%`, and **Q2**, the three counters and which ones to delete. The owner's rule behind both: everything that exists is indexed in a readme, with no duplicate, stale or parallel data stores.

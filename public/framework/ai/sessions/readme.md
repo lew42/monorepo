@@ -7,6 +7,7 @@ standalone **CLI** run. Click a row to see that session's own prompts, in order,
 prompts live inside their session, never a separate log page, and on a wide screen the detail
 opens as a side peek beside the grid instead of replacing it.
 
+- **The session folder (proposed 2026-10-16, awaiting the owner's approval):** one folder per session, named by its agent id, with child folders for its tasks and sub-sessions. `session.jsonl` holds requirements and their checks, module tags, the derived running cost and its children; `page.jsonl` holds the session's page. The raw transcript is the one record of what was said. Decided: the session folder's `task.jsonl` is renamed `session.jsonl`. [shape.md](2026/10/16/voice-20261016/accounting/shape.md) · [requirements R1–R17](2026/10/16/voice-20261016/accounting/requirements.md). This readme is kept current by the accounting task (R17).
 - **The grid is [ext/DataGrid](/framework/ext/DataGrid/)**: a table or a rail of cards (the Table / Rail toggle, `?view=rail`, default in `settings.jsonl`); rows are `AISessionView`, order and nesting are `AISessionsPage.arrange()`.
 - **Detail classes** live in [ai/AISession](/framework/ai/AISession/); the old `ai/sessions/Session*.js` shims are retired to `ai/archive/retired/2026-10-13/sessions/` (manifest + `ai/archive/retire-shims.mjs --undo`).
 - **Routine sessions are hidden** (prompt cleaning, short headless runs, clarity, reviews, helpers): one chip per kind with its count, click to show them; the search finds every session; [doc/buckets.md](doc/buckets.md).
