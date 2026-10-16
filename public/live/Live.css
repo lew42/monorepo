@@ -16,8 +16,6 @@
 	.live-card-title { font-weight: 700; display: block; font-size: 1.25em; }
 	.live-heading { font-weight: 700; font-size: 1.5em; }
 	.live-empty { opacity: .5; text-align: center; }
-	.live pre { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; }
-	.live pre code { white-space: inherit; }
 }
 
 @layer site {

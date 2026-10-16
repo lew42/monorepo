@@ -44,9 +44,11 @@ const fenced = marked.Renderer.prototype.code;
 marked.use({ renderer: {
 	code(token){
 		const html = fenced.call(this, token);
-		const file = (token.lang ?? "").trim().split(/\s+/)[1];
+		const [, ...words] = (token.lang ?? "").trim().split(/\s+/);
+		const wrap = words.includes("wrap"), file = words.find(w => w !== "wrap");   // "js wrap" wraps long lines; code scrolls sideways otherwise (md.css)
+		const attrs = (wrap ? ` class="wrap"` : "") + (file ? ` data-file="${file.replaceAll('"', "&quot;")}"` : "");
 
-		return file ? html.replace("<pre>", `<pre data-file="${file.replaceAll('"', "&quot;")}">`) : html;
+		return attrs ? html.replace("<pre>", `<pre${attrs}>`) : html;
 	},
 } });
 

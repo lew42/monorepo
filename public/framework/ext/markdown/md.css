@@ -3,6 +3,10 @@
    belong to framework.css. readme.md records what was handed back. */
 @layer theme {
 
+    /* Code scrolls sideways; a fence "```js wrap" (class .wrap, md.js) wraps instead. */
+    pre { white-space: pre; overflow-x: auto; }
+    pre.wrap, pre.wrap code { white-space: pre-wrap; overflow-wrap: anywhere; }
+
     .md-error { color: var(--error); }
 
     /* Its own margin, deliberately: an end-of-page rule, not a block in the flow. */
