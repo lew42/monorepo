@@ -230,6 +230,15 @@ async function clean_text(text, { prev = "", onFlag, call, cwd, model } = {}){
 }
 
 // Instant clean (no model): drop fillers + stutters, capitalise, add punctuation
+// "the the" is a stutter; "had had" and "very very" are real words said twice (a comma between, "so, so", is a stutter either way).
+function stutter(word, rest){ return /,/.test(rest) || (word.length <= 3 && word.toLowerCase() !== "had"); }
+
+// Only a short sentence that opens like a question is one ("what I want is a page..." is a statement, and so is a long chunk).
+function is_question(x){
+	if (x.split(/\s+/).length > 20) return false;
+	return /^(is|are|do|does|did|can|could|should|would|will)\b/i.test(x) || /^(who|what|when|where|why|how)\s+(is|are|do|does|did|can|could|should|would|will)\b/i.test(x);
+}
+
 function quick_clean_text(text){
 	const t = String(text ?? "").replace(/\s+/g, " ").trim();
 	if (!t) return [];
@@ -237,13 +246,14 @@ function quick_clean_text(text){
 		.replace(/\b(?:um+|uh+|ah+|er+|erm|hmm+)\b[,.]?\s*/gi, "")
 		.replace(/\byou know,?\s*/gi, "")
 		.replace(/\blike,\s*/gi, "")
-		.replace(/\b(\w+)(?:,?\s+\1\b)+/gi, "$1")
+		.replace(/\b(\w+)((?:,?\s+\1\b)+)/gi, (all, w, rest) => stutter(w, rest) ? w : all)
 		.replace(/\s+([,.!?;:])/g, "$1")
+		.replace(/,+\s*([.!?])/g, "$1")
 		.replace(/\s+/g, " ").trim();
 	return mechanicalSplit(cleaned).map((s, i) => {
-		let x = s.replace(/^[\s,;:-]+/, "");
+		let x = s.replace(/^[\s,;:-]+/, "").replace(/[\s,;:-]+$/, "");
 		x = x.charAt(0).toUpperCase() + x.slice(1);
-		if (!/[.!?]$/.test(x)) x += /^(who|what|when|where|why|how|is|are|do|does|can|could|should|would)\b/i.test(x) ? "?" : ".";
+		if (!/[.!?]$/.test(x)) x += is_question(x) ? "?" : ".";
 		return { n: i + 1, text: x };
 	}).filter(s => s.text.length > 1);
 }

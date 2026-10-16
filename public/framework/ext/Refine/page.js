@@ -14,7 +14,7 @@ export default new Page({
 	children: "try ladder runs cleaner",
 
 	content(){
-		new RefineDemo().ac("wide");
+		new RefineDemo().ac("bleed");
 		p(() => {
 			a("Saved long run (ladder)").href(new URL("ladder/", import.meta.url).pathname);
 			span(" · ");

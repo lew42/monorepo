@@ -149,7 +149,7 @@ Prompt.View = class extends View {
 			const st = Prompt.View.STAGES[key];
 			return div.c("refine-section", () => {
 				h4.c("refine-prompt-h", () => { span(st.title); if (note) span.c("refine-s-scores", note); });
-				p.c("refine-what", () => { span(st.what + " "); a(st.by).href(st.href).ac("refine-class-key"); });
+				if (!this.compact) p.c("refine-what", () => { span(st.what + " "); a(st.by).href(st.href).ac("refine-class-key"); });   // `compact`: the stage title is the only label
 				fn();
 			});
 		};

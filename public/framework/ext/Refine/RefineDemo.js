@@ -56,9 +56,8 @@ export default class RefineDemo extends View {
 				this.$cost = span.c("refine-cost");
 			});
 			div.c("refine-said", () => {
-				span.c("refine-said-label", "1 · Said: speak, or type or paste here — the same input as everywhere else");
 				this.$note = span.c("refine-input-note");
-				a("Watch it on the session page →").href(this.system.page_url).ac("refine-watch");
+				a("↗").href(this.system.page_url).ac("refine-watch").attr("title", "Watch it on the session page").attr("aria-label", "Watch it on the session page");
 			});
 			// THE composer: mic, gear, Send. Typing or dictating runs the instant `quick()` clean on every
 			// change (below); Send (or the mic's own pause auto-send) runs the real Refine (`go()`).
@@ -148,7 +147,7 @@ export default class RefineDemo extends View {
 
 	draw(){
 		const prompt = this.prompt;
-		this.$result.empty(() => new Prompt.View({ subject: prompt, show_raw: false }));
+		this.$result.empty(() => new Prompt.View({ subject: prompt, show_raw: true, compact: true }));
 		const st = prompt.status;
 		this.conn?.set("refine", st === "done" ? "ok" : st === "error" ? "bad" : st === "working" ? "wait" : "idle",
 			st === "done" ? `done, ${(prompt.ms / 1000).toFixed(1)} s` : st === "error" ? "error: " + String(prompt.error).slice(0, 60) : st === "working" ? "working…" : "not yet");
