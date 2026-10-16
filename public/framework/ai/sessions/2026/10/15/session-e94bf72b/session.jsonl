@@ -1,0 +1,5 @@
+{"tag":"kind/agent","at":"2026-10-16T06:30:57.001Z","by":"digest-pipeline","session":"e94bf72b-a9b2-494d-a4d9-8424e82ec288"}
+{"tag":"model/opus","at":"2026-10-16T06:30:57.001Z","by":"digest-pipeline","session":"e94bf72b-a9b2-494d-a4d9-8424e82ec288"}
+{"tag":"work/read-only","at":"2026-10-16T06:30:57.002Z","by":"digest-pipeline","session":"e94bf72b-a9b2-494d-a4d9-8424e82ec288"}
+{"tag":"task/spawn-policy","at":"2026-10-16T06:30:57.002Z","by":"digest-pipeline","session":"e94bf72b-a9b2-494d-a4d9-8424e82ec288"}
+{"tag":"servex/policy","at":"2026-10-16T06:31:29.840Z","by":"digest-pipeline","session":"e94bf72b-a9b2-494d-a4d9-8424e82ec288"}

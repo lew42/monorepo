@@ -1,0 +1,5 @@
+{"tag":"kind/agent","at":"2026-10-16T06:30:56.940Z","by":"digest-pipeline","session":"d75b6d76-8917-4dbe-8184-935d014b6c9a"}
+{"tag":"model/sonnet","at":"2026-10-16T06:30:56.940Z","by":"digest-pipeline","session":"d75b6d76-8917-4dbe-8184-935d014b6c9a"}
+{"tag":"work/read-only","at":"2026-10-16T06:30:56.941Z","by":"digest-pipeline","session":"d75b6d76-8917-4dbe-8184-935d014b6c9a"}
+{"tag":"task/remote-full-registry","at":"2026-10-16T06:30:56.941Z","by":"digest-pipeline","session":"d75b6d76-8917-4dbe-8184-935d014b6c9a"}
+{"tag":"servex/remote-tools","at":"2026-10-16T06:31:19.432Z","by":"digest-pipeline","session":"d75b6d76-8917-4dbe-8184-935d014b6c9a"}

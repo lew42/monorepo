@@ -1,0 +1,5 @@
+{"tag":"kind/agent","at":"2026-10-16T06:30:56.953Z","by":"digest-pipeline","session":"f2708f57-d807-47a6-bd75-17567f29a193"}
+{"tag":"model/sonnet","at":"2026-10-16T06:30:56.954Z","by":"digest-pipeline","session":"f2708f57-d807-47a6-bd75-17567f29a193"}
+{"tag":"work/read-only","at":"2026-10-16T06:30:56.954Z","by":"digest-pipeline","session":"f2708f57-d807-47a6-bd75-17567f29a193"}
+{"tag":"task/refine-audit","at":"2026-10-16T06:30:56.955Z","by":"digest-pipeline","session":"f2708f57-d807-47a6-bd75-17567f29a193"}
+{"tag":"framework/refine","at":"2026-10-16T06:31:19.436Z","by":"digest-pipeline","session":"f2708f57-d807-47a6-bd75-17567f29a193"}

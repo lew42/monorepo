@@ -21,3 +21,5 @@ Round 4 (the class is `ai/AISession/AISessionDigest.mjs`; results in `../round4-
 9. `node reconcile.mjs [days]`: per-session cost from the transcript's own `usage`, against the audit, the snapshot and the Servex registry.
 10. `node prompts.mjs [days]`, `node asks.mjs prep|chunks|merge`, `node judge.mjs`: the owner's relayed prompts, a Haiku cluster pass, then a judge pass (`haiku.mjs` keeps the $2 ledger). `repeats.mjs` is the no-AI exploration (noisy: templates dominate).
 12. `node report.mjs`: writes `round4-result.md` from `runs/r4-*.json`.
+13. `node digest-write.mjs [days] [--dry]`: writes `digest.json` beside each session folder (add only; a re-run keeps what exists). 587 of 607 sessions in the last 3 days; 20 have no folder yet.
+14. `node tag-run.mjs [days] [capUsd] [--dry]`: fills empty `tags`, newest first. Procedural tags (`AISessionDigest.tags()`: `kind/` `model/` `mod/` `task/`) then Haiku `topic/sub` tags in batches of 25; appended to `session.jsonl` through `AISession.log` (by `digest-pipeline`), which the live snapshot reads. Haiku: $0.11 a run.
