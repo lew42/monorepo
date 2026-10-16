@@ -19,3 +19,4 @@ The `Tail` fix works (headless tab over `10.0.0.135:3104`: a new line shows in 3
 /live only ever appends lines, so throwing away a rough card is awkward: the card stays until a `clear` blanks the whole screen. The owner is open to fixing this, but not now. Two options:
 - **Rewrite the last line.** The owner's suggestion. Simple, but it is a rewrite, and the rule is to append, never rewrite.
 - **A `drop` line naming the card id.** `Live.js` hides that card. History is kept, and it fits the append rule. This is the leaning, if it is built.
+- **The re-prompt loop for waiting tasks is not built (the owner's direction, 2026-10-16, by voice).** The Today card now shows each task as done or "waiting on X" (`TaskState.js`, `Server/task-closeout.mjs`); a loop that re-prompts the waiting ones is the owner's next step, with Servex's TaskLoop the likely home.

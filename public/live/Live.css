@@ -25,5 +25,7 @@
 	.live-today-model, .live-today-parent { opacity: .6; }
 	.live-today-state { margin-left: auto; font-size: .85em; padding: 0 .4em; border-radius: .4em; background: #0001; }
 	.live-today-state.is-active, .live-today-state.is-running { background: #cfe8ff; }
+	.live-today-task.is-done { opacity: .45; }
+	.live-today-state.is-waiting { background: #fde7c2; }
 	.live-today-state.is-landed { background: #d5f0d5; }
 }
