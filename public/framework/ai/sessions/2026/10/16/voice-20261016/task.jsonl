@@ -71,3 +71,4 @@
 {"log":{"at":"2026-10-16T02:04:00Z","msg":"Q6 docs written in b4f5024a1: the tool-collapse recommendation (ai/doc/tool-collapse.md, with a pointer in architecture.md and the readme), the new ai/doc/cleanup.md, and the scrap-a-card note in live/doc/notes.md. Recommended next: (1) a Servex restart at the owner's time, (2) tool collapse step one, a generic call, (3) cleanup, then the handover query."}}
 {"log":{"at":"2026-10-16T02:06:00Z","msg":"mastermind-live-today landed 056eb9fa6: a live Today card on /live/ (LiveToday.js, part-live type). Sessions from the day index, tasks from tree_for_day; redraws every 30 s. Open: names are plain links, not ext/Mention; plan-only/reverted states not in the data; parent is plain text."}}
 {"chat":{"at":"2026-10-16T02:06:00Z","role":"assistant","from":"voice-mastermind","text":"Today card landed (056eb9fa6); relay on the next ask."}}
+{"log":{"at":"2026-10-15T21:08:39-05:00","msg":"session ended (other) without landing"}}
