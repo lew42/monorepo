@@ -122,3 +122,7 @@ Not in the slice: `app(path, delta)`, notify, the dot-path sugar, moving `page_n
 **Cost to watch:** a cached instance holds the log in memory. Logs past about 1 MB (10 files; the largest 7.2 MB) should be compacted first or kept out of the cache; a cap of a few hundred instances, least recently used first, keeps it bounded.
 
 Related: [storage.md](storage.md) (Store, Journal, the Durable Object path), [streaming.md](streaming.md) (a line's journey), [server.md](server.md) (the query-source form of a server-side page), [ai-api.md](ai-api.md) (the tool).
+
+## 9. Direction: a swappable transport (the owner, by voice, 2026-10-16 ~03:20Z; direction only, nothing built)
+
+A page's data source is already a seam: its data half can live in node as a `QueryServer` source ([server.md](server.md)). The direction is to make the **transport** swappable behind that seam. Today it is JSONL appends plus the dev socket's push; later it could be a Cloudflare Durable Object holding the same page. The page logic stays the same either way: `set(url, delta, by)` and `read(url)` don't care which transport carries the deltas. Source: voice question 0fe2fc0f in [voice-20261016](../../../ai/sessions/2026/10/16/voice-20261016/task.jsonl).
