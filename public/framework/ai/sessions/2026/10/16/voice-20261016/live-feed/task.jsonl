@@ -4,3 +4,4 @@
 {"log":{"at":"2026-10-15T20:59:38-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T21:00:08-05:00","heartbeat":"answered","msg":"Done, nothing in flight. The `/live/` feed is built and committed as `47a321ec0`, and the live-reload hold is released.\n\n- **Render method:** `Live.draw()` in `public/live/Live.js` builds a `Live.Card"}}
 {"log":{"at":"2026-10-15T21:03:39-05:00","msg":"session ended (other) without landing"}}
+{"assign":{"landed_at":"2026-10-15T21:13:09-05:00","title":"live: /live/ becomes a feed of preview cards","outcome":"**live: /live/ becomes a feed of preview cards** — closed out by mastermind-task-closeout: the task's own log says it finished and names its commit, but no landing line was written. Cost $0.55 (session 132c71e9). The log has the details.","closed_by":"mastermind-task-closeout"}}
