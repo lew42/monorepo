@@ -12,6 +12,8 @@
 	body:has(.live-one) { background: #fff; }
 	.page:has(> .live-one) { padding: 0; gap: 0; background: #fff; }
 	.page:has(> .live-one) > .page-title { display: none; }
+	/* Code runs edge to edge in an opened card: cancel the card padding, keep a small inner one. */
+	.live-one .live-full pre { margin-inline: -.75rem; padding-inline: .75rem; border-radius: 0; }
 	.live-back { font-size: .8em; }
 	.live-row > * { margin: 0; }
 	.live-card-title { font-weight: 700; display: block; font-size: 1.25em; }
