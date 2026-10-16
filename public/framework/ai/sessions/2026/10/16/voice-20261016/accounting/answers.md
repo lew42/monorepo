@@ -50,6 +50,27 @@ Servex appends one line per turn to the session's `usage.jsonl` (tokens, and eit
   - 129 differ in some other way (`minion-structure` and `b-structure`).
 - **Proposed rule:** the folder name IS the agent id, as minted by `Agents.name()` (including any `-2`). The full SDK session id goes on line 1 of `session.jsonl`, and an index row maps each id to its folder. Old folders keep their names and stay reachable through `task-moves.jsonl`.
 
+## R14. What breaks "the raw transcript is the one record" {#r14}
+
+Measured with `node Server/session-dup.mjs`, which compares the text and finds the same words in the 10,472 SDK files (7.9 GB). The earlier audit is [sessions/doc/data-sources.md](/framework/ai/sessions/doc/data-sources.md).
+
+**Servex's own parallel logs (to scrap):**
+1. **`%LOCALAPPDATA%/lew42/servex/logs/agent-<id>.jsonl`:** 3,019 files, 158 MB. It holds prompts, streamed text, tool calls, and results with cost. Its readers are `Servex/agents/Agents.js` (which re-adds `turn_cost`), `External.js`, `Jobs.js` and `ai/v/3/AgentsStrip.js`. ⚠️ The live dashboard stream (`delta` lines) needs a replacement that reads the transcript, or that streams from memory without writing a file.
+2. **The registry's `cost` and `turns`:** another usage store, and wrong (Q2).
+3. **The remote door's copies:** the `chat` lines it writes into the mastermind's `task.jsonl`, and the `remote_mcp` lines in `ai/log.jsonl`. The owner's question is already in the mastermind's own transcript.
+
+**Hook copies of the owner's prompts (already measured):**
+4. **`prompt-relay.mjs:248`:** `Prompt` items in session `page.jsonl` files. 4,990 files, 184 MB, of which 180 MB appears word for word in the SDK files. These stay on this PC only; just 13 KB is in git.
+5. **`.claude/prompts/<day>.jsonl`:** 6.1 MB, 5.6 MB of it a copy.
+6. **`owner-prompts.jsonl` and `words.jsonl`:** 8 MB inside git, almost all of it a copy.
+7. **`reply-relay.mjs` `chat` lines:** 84 KB. Small, but still a copy of replies.
+
+**Allowed (derived, for people):** `requirements.md` and briefs, `digest.json`, the `session.jsonl` tag lines, `essence.jsonl` (`Server/Transcripts.mjs`), summaries, the running total and links.
+
+**⚠️ Conflicts this creates:**
+- **R14 against R4, R10 and the `usage` line kind.** "Servex writes a usage line per turn" is exactly the kind of parallel usage log R14 forbids. The fix: on each result, Servex only *triggers* the counter (`AISessionDigest`, reading the end of the transcript from where it last stopped), and stores just the session's running total.
+- **Cloud sessions have no SDK transcript on this PC.** The claude.ai conversation is never written to `~/.claude/projects`. So for a cloud voice or text session, the per-prompt MCP log ([cloud-voice-log.md](cloud-voice-log.md)) is the only record, not a copy.
+
 ## R13. Is there one Session class, like Page? {#r13}
 
 - **Not yet.** `core/Session/Session.js` (`class Session`), with `AISession extends Session`, only finds folders (`scan`, `locate`, `dir_url`). It has no `read`, `set` or `log`, and it is not a `Page` or an `Item`.

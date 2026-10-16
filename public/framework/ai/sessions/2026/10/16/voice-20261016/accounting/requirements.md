@@ -19,4 +19,6 @@ The owner's asks for this task, dictated 2026-10-16 to the voice agent. Source: 
 12. **Folder slug and agent id match 1:1.** Today the role prefix is dropped (folder `voice-20261016`, agent `mastermind-voice-20261016`). Answer: [answers.md](answers.md#r12).
 13. **One data system.** Sessions should be Page instances, with the same read/set/log methods, so no new tools or storage rules are needed. Answer: [answers.md](answers.md#r13).
 
+14. **The raw transcript is the single source of truth.** The raw Claude SDK transcript (`~/.claude/projects`) is the single source of truth for what happened in a session. Servex must NOT keep its own parallel session log of prompts, replies or usage; the `%LOCALAPPDATA%` `agent-<id>.jsonl` path is a candidate to scrap. Instead, a reliable script processes the raw transcript, and the session folder in the repo holds only derived, human-facing things: requirements, summaries, decisions, the running cost total and links. Answer: [answers.md](answers.md#r14).
+
 Also asked, and answered in [answers.md](answers.md): **Q1**, the agent logs in `%LOCALAPPDATA%`, and **Q2**, the three counters and which ones to delete. The owner's rule behind both: everything that exists is indexed in a readme, with no duplicate, stale or parallel data stores.
