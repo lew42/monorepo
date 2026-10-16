@@ -35,7 +35,7 @@ prompt_modes({ raw, sentences, structured, fallback_text });   // see its own do
 - **Dropped rows are warm (`--warn`), never `--error`/`--hot`.** A dropped sentence is worth a look, not a failure — the owner's rule for the whole view.
 
 ## Architectural Recommendations
-1. **Refine as a Formal Class (`class Refine extends View`):** Currently a functional factory. Transitioning to a standard class with `ext/Doc` integration gives the page proper method/property documentation and API exploration tabs.
+1. **The ladder view as a class (`class Refine extends View`):** `Refine.js` is still a functional factory (the live demo is already classes: `RefineSystem`, `Prompt`, `RefineDemo`). A class gives it `ext/Doc` method tabs.
 2. **Server-Side Grouped Outline Emission:** `Server/refine.mjs` prompt specifies `## Subheading` markers, but models occasionally drop headers under token pressure. Enforce markdown header AST parsing or synthetic topic clustering to guarantee hierarchical trees rather than flat bullet lists.
 3. **Dropped & Flagged Drawer:** Elevate the strip into a collapsable sidebar drawer with one-click sentence filter toggles.
 
@@ -71,7 +71,7 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) 
 - [Refine style](/framework/ext/Refine/md/doc/refine-style-2026-10-12/) — the one shared rule fragment (`RefineStyle.js`) every refine prompt uses, so refined prompts read as short, iconned, ordered overviews (`doc/refine-style-2026-10-12.md`)
 - [Voice stages on the session page](/framework/ext/Refine/stages/readme.md) — raw, clean, structure, refined and cards drawn live on `/framework/ai/sessions/<id>/` as you speak or type (`stages/readme.md`, `stages/doc/voice-to-page.md`); try it on a phone: [`ux/Dictate/doc/try-it.md`](/framework/ux/Dictate/doc/try-it/)
 - [Echo](../../../../Servex/doc/echo.md) — the running pipeline that uses this engine on every prompt you type in VS Code: triggers, output, cost, and the gaps against the vision (`Servex/doc/echo.md`)
-- [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
+- [Saved-run ladder](/framework/ext/Refine/ladder/) (was the page's Overview before the live demo took over) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
 - `doc/vision-2026-10-08.md` — the owner's intended pipeline (raw → clean → refined cards, every sentence accounted, context cards); check the built state against it
 - `doc/raw-match.md` — the word-overlap heuristic that lights up Raw, worked example
 - `Server/doc/refine.md` — what `refine.mjs` writes, and why each file looks the way it does
