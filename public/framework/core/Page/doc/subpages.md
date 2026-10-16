@@ -20,7 +20,18 @@ It did not (404). `Page.child()` only knew a folder's listing if something else 
 ## Open questions (not built)
 
 - **Navigation.** Does a jsonl-declared child appear in the parent's sidebar/tabs, and in what order next to `children:` names? The route works; the nav was not checked.
-- **Deep deltas, step 3.** `page_set` merges shallowly by top-level id today. Proposal comes next in this file.
-- **Parent as template, step 4.** Also next.
+- **Parent as template, step 4.** Next.
+
+## Deep deltas: pass exactly what changed
+
+**The rule:** a line carries only what changed, at any depth. A key that names an item id walks into that item; a key that names a nested plain object merges into it key by key; arrays and scalars replace.
+
+**What already works.** In the browser, `Item.apply` already walks by id one level per key (`{"k2":{"answers":{"add":{…}}}}`), so nesting is the path. The caller never needs a path string.
+
+**The gap.** Two places merged only the top level: a nested *plain-data* object inside an item was replaced whole by `put`, and the tools' own replay behind `page_read` (`replay()` in `Servex/agents/page_tools.js`) did `{...old, ...delta}`, so `page_read` disagreed with a line that changed one nested key.
+
+**Built (smallest slice):** `deep_merge()` in `page_tools.js`, used by the replay, so `page_read` shows the same state as the deep delta describes. Ids are unchanged (`stamp_ids` stamps every `add` at any depth).
+
+**Proposed, not built:** the same plain-object merge in `Item.set_one` (browser), so a live page also keeps untouched nested keys. It touches the core class every page uses, so it waits for a decision rather than riding on this task.
 
 Related: [ai-api.md](ai-api.md) (the tool and its table), [jsonl-pages.md](jsonl-pages.md) (how a page.jsonl names its children), [composition.md](composition.md).

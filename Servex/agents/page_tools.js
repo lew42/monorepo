@@ -149,6 +149,18 @@ function stamp_ids(value, ids){
 	return out;
 }
 
+/* A delta carries exactly what changed, at any depth: a nested plain object merges into the old one
+ * key by key instead of replacing it (core/Page/doc/subpages.md, "Deep deltas"). Arrays and scalars replace. */
+export function deep_merge(old, delta){
+	if (!is_plain(old) || !is_plain(delta)) return delta;
+	const out = { ...old };
+	for (const [k, v] of Object.entries(delta)){
+		if (k === "__proto__" || k === "constructor") continue;
+		out[k] = is_plain(v) && is_plain(old[k]) ? deep_merge(old[k], v) : v;
+	}
+	return out;
+}
+
 const now = () => new Date().toISOString();
 const is_plain = v => !!v && typeof v === "object" && !Array.isArray(v);
 
@@ -215,7 +227,7 @@ function replay(lines){
 			if (key === "tab" && is_plain(value) && value.name){ (page.tabs ??= {})[value.name] = { ...page.tabs?.[value.name], ...value }; continue; }
 			if (page.tabs?.[key] && is_plain(value)){ const t = page.tabs[key]; if (is_plain(value.content?.add)) (t.items ??= []).push(value.content.add); continue; }
 			if (key === "by" || key === "ts") continue;
-			if (items.has(key) && is_plain(value)){ items.set(key, { ...items.get(key), ...value }); continue; }
+			if (items.has(key) && is_plain(value)){ items.set(key, deep_merge(items.get(key), value)); continue; }
 			page[key] = value;
 		}
 	};
