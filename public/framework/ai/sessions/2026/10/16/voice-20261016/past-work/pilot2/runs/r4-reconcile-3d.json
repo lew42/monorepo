@@ -1,0 +1,168 @@
+{
+ "window": "last 3 days",
+ "sessions": 590,
+ "with digest cost > 0": 588,
+ "digest vs audit (older pass, same rule, own parser)": {
+  "compared": 571,
+  "agree": 571,
+  "differ": 0,
+  "sum digest": 1206.41,
+  "sum audit": 1206.41,
+  "worst": []
+ },
+ "digest vs snapshot usd": {
+  "compared": 569,
+  "agree": 563,
+  "differ": 6,
+  "sum digest": 1206.41,
+  "sum snap": 1392.14,
+  "worst": [
+   {
+    "id": "87bec773",
+    "digest": 103.76,
+    "snap": 223.77,
+    "delta": 120.01,
+    "model": "claude-opus-5-5",
+    "subs": 0
+   },
+   {
+    "id": "f155ecbd",
+    "digest": 107.72,
+    "snap": 151.54,
+    "delta": 43.82,
+    "model": "claude-opus-5-5",
+    "subs": 1
+   },
+   {
+    "id": "c57d1c4b",
+    "agent": "page-system",
+    "digest": 17.87,
+    "snap": 32.52,
+    "delta": 14.64,
+    "model": "claude-opus-5-5",
+    "subs": 8
+   },
+   {
+    "id": "b14b29a8",
+    "agent": "live-cards",
+    "digest": 3.07,
+    "snap": 6.76,
+    "delta": 3.69,
+    "model": "claude-sonnet-5-5",
+    "subs": 0
+   },
+   {
+    "id": "075e32ed",
+    "digest": 1.68,
+    "snap": 3.92,
+    "delta": 2.24,
+    "model": "claude-sonnet-5-5",
+    "subs": 0
+   },
+   {
+    "id": "6097c76b",
+    "agent": "architecture-md-6",
+    "digest": 1.92,
+    "snap": 3.34,
+    "delta": 1.42,
+    "model": "claude-sonnet-5-5",
+    "subs": 0
+   }
+  ]
+ },
+ "digest vs registry cost (SDK billed, spawned agents only)": {
+  "compared": 258,
+  "agree": 5,
+  "differ": 253,
+  "sum digest": 360.62,
+  "sum reg": 877.65,
+  "worst": [
+   {
+    "id": "24f68eac",
+    "agent": "voice-20261016",
+    "digest": 15.71,
+    "reg": 215.27,
+    "delta": 199.56,
+    "model": "claude-opus-5-5",
+    "subs": 0
+   },
+   {
+    "id": "0368b7c5",
+    "agent": "voice-opus",
+    "digest": 9.47,
+    "reg": 153.19,
+    "delta": 143.72,
+    "model": "claude-opus-5-5",
+    "subs": 0
+   },
+   {
+    "id": "3b2ce1d8",
+    "agent": "mastermind-servex-10",
+    "digest": 49.26,
+    "reg": 0,
+    "delta": -49.26,
+    "model": "claude-opus-5-5",
+    "subs": 1
+   },
+   {
+    "id": "143e6b3e",
+    "agent": "one-store-apply",
+    "digest": 41.61,
+    "reg": 1.62,
+    "delta": -39.99,
+    "model": "claude-opus-5-5",
+    "subs": 0
+   },
+   {
+    "id": "6a73099d",
+    "agent": "voice-today",
+    "digest": 1.54,
+    "reg": 41.52,
+    "delta": 39.97,
+    "model": "claude-sonnet-5-5",
+    "subs": 0
+   },
+   {
+    "id": "ec7470e9",
+    "agent": "voice-20261015",
+    "digest": 4.27,
+    "reg": 40.22,
+    "delta": 35.95,
+    "model": "claude-opus-5-5",
+    "subs": 0
+   },
+   {
+    "id": "47ec98ee",
+    "agent": "fig-foundations",
+    "digest": 2.27,
+    "reg": 15.37,
+    "delta": 13.1,
+    "model": "claude-sonnet-5-5",
+    "subs": 0
+   },
+   {
+    "id": "5bae46a9",
+    "agent": "fig-captions",
+    "digest": 2.12,
+    "reg": 12.56,
+    "delta": 10.44,
+    "model": "claude-sonnet-5-5",
+    "subs": 0
+   }
+  ]
+ },
+ "snapshot missing for a session that cost > $0.05": {
+  "n": 18,
+  "usd": 1.74
+ },
+ "snapshot tokens / digest tokens (is it the same total?)": {
+  "n": 567,
+  "p10": 1,
+  "p50": 1,
+  "p90": 1
+ },
+ "usd_source of snapshots": {
+  "claude": 569,
+  "undefined": 21
+ }
+}

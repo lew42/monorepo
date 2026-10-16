@@ -38,7 +38,7 @@ export class AISessionDigest {
 		this.usage = { main: this.zero(), sub: this.zero(), subfiles: 0 };
 		this.models = {}; this.prompts = []; this.result = ""; this.agent = ""; this.task = ""; this.edited = [];
 	}
-	zero(){ return { messages: 0, input: 0, output: 0, cache_read: 0, cache_write: 0, usd: 0 }; }
+	zero(){ return { messages: 0, input: 0, output: 0, cache_read: 0, cache_write: 0, w5: 0, w1: 0, usd: 0 }; }
 
 	read(){
 		const text = fs.readFileSync(this.file, "utf8"); this.raw_bytes = Buffer.byteLength(text);
@@ -86,7 +86,7 @@ export class AISessionDigest {
 				const model = (m.model || "unknown").replace(/-\d{8}$/, ""), p = price_for(model);
 				const w5 = u.cache_creation?.ephemeral_5m_input_tokens ?? 0, w1 = u.cache_creation ? (u.cache_creation.ephemeral_1h_input_tokens ?? 0) : (u.cache_creation_input_tokens || 0);
 				const usd = ((u.input_tokens || 0) * p.in + (u.output_tokens || 0) * p.out + (u.cache_read_input_tokens || 0) * p.cache_read + w5 * p.cache_write_5m + w1 * p.cache_write_1h) / 1e6;
-				bucket.messages++; bucket.input += u.input_tokens || 0; bucket.output += u.output_tokens || 0; bucket.cache_read += u.cache_read_input_tokens || 0; bucket.cache_write += w5 + w1; bucket.usd += usd;
+				bucket.messages++; bucket.input += u.input_tokens || 0; bucket.output += u.output_tokens || 0; bucket.cache_read += u.cache_read_input_tokens || 0; bucket.cache_write += w5 + w1; bucket.w5 += w5; bucket.w1 += w1; bucket.usd += usd;
 				this.models[model] = (this.models[model] || 0) + 1;
 			}
 		});
@@ -100,7 +100,7 @@ export class AISessionDigest {
 		return { raw: t(this.raw_bytes), content: t(content), stripped: t(stripped), owner_only: t(c.owner) };
 	}
 	usd(){ return this.usage.main.usd + this.usage.sub.usd; }
-	tokens(){ const a = this.usage.main, b = this.usage.sub; return { input: a.input + b.input, output: a.output + b.output, cache_read: a.cache_read + b.cache_read, cache_write: a.cache_write + b.cache_write }; }
+	tokens(){ const a = this.usage.main, b = this.usage.sub; return { input: a.input + b.input, output: a.output + b.output, cache_read: a.cache_read + b.cache_read, cache_write: a.cache_write + b.cache_write, w5: a.w5 + b.w5, w1: a.w1 + b.w1 }; }
 
 	/** The small thing written beside the session: no tool bodies, no thinking. */
 	toJSON(){
