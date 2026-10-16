@@ -16,3 +16,10 @@
 {"log":{"at":"2026-10-15T19:22:57-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T19:22:57-05:00","msg":"session ended (other) without landing"}}
 {"assign":{"landed_at":"2026-10-15T18:50:00-05:00","title":"AI: tool context bloat, collapse plan","outcome":"Plan only, nothing built or restarted. The 81 Servex tools are about 18,000 tokens per Servex-spawned agent; 65 were called in 14 days, 16 never. First step: scope tools by role, no new tool, one restart. [tool-collapse.md](../../../../../doc/tool-collapse.md), script and data in this folder, commit dc5e07180.","links":["public/framework/ai/doc/tool-collapse.md","ToolCollapse.mjs"]}}
+{"log":{"at":"2026-10-15T19:23:37-05:00","heartbeat":"answered","msg":"The task was still open only because I hadn't written its landing line. That line is now in its `task.jsonl` (commit `1284d7d74`), so the task shows as landed.\n\nThe plan itself is unchanged and nothin"}}
+{"log":{"at":"2026-10-15T19:23:37-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-15T19:23:37-05:00","msg":"card-check: card-check: path not found: C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\AI: tool context bloat, collapse plan"}}
+{"log":{"at":"2026-10-15T19:23:37-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-15T19:23:37-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-15T19:23:39-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-15T19:23:39-05:00","msg":"layout-check: skipped — the landing names no site pages"}}

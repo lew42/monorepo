@@ -64,3 +64,5 @@
 {"file":"data/","gone":true}
 {"file":"data/"}
 {"file":"live/page.js"}
+{"file":"zz-probe/page.js"}
+{"file":"zz-probe/page.js","gone":true}
