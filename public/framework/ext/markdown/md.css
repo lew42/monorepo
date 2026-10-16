@@ -4,7 +4,7 @@
 @layer theme {
 
     /* Code scrolls sideways; a fence "```js wrap" (class .wrap, md.js) wraps instead. */
-    pre { white-space: pre; overflow-x: auto; }
+    pre { white-space: pre; overflow-x: auto; tab-size: 3; }
     pre.wrap, pre.wrap code { white-space: pre-wrap; overflow-wrap: anywhere; }
 
     .md-error { color: var(--error); }
