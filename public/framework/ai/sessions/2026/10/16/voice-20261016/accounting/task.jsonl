@@ -80,3 +80,11 @@
 {"log":{"at":"2026-10-16T17:02:20-05:00","heartbeat":"answered","msg":"Nothing has changed: I'm idle and waiting for your approval of [shape.md](/framework/ai/sessions/2026/10/16/voice-20261016/accounting/shape.md). The latest commit is `c8fc3c5be`."}}
 {"log":{"at":"2026-10-16T17:05:53-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-16T17:06:47-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"Session token accounting + past work\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-16T17:16:48-05:00","heartbeat":"check","msg":"status check sent to helper-accounting"}}
+{"log":{"at":"2026-10-16T17:16:51-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T17:17:21-05:00","heartbeat":"answered","msg":"Nothing has changed: I'm still idle, waiting for your approval of [shape.md](/framework/ai/sessions/2026/10/16/voice-20261016/accounting/shape.md), and the latest commit is still `c8fc3c5be`."}}
+{"log":{"at":"2026-10-16T17:20:54-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T17:41:48-05:00","heartbeat":"check","msg":"status check sent to helper-accounting"}}
+{"log":{"at":"2026-10-16T17:41:51-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T17:42:21-05:00","heartbeat":"answered","msg":"Still idle with no new work: waiting for your approval of [shape.md](/framework/ai/sessions/2026/10/16/voice-20261016/accounting/shape.md), latest commit `c8fc3c5be`."}}
+{"log":{"at":"2026-10-16T17:45:54-05:00","msg":"session ended (other) without landing"}}
