@@ -241,3 +241,7 @@
 {"log":{"at":"2026-10-16T02:07:38-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-20261016"}}
 {"log":{"at":"2026-10-16T02:07:40-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T02:08:13-05:00","heartbeat":"answered","msg":"I'm still idle and nothing has changed since the last check. All tonight's agents are stopped, and the \"Overnight\" card on /live has the full summary."}}
+{"log":{"at":"2026-10-16T02:11:47-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T02:32:38-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-20261016"}}
+{"log":{"at":"2026-10-16T02:32:40-05:00","msg":"session resumed"}}
+{"assign":{"step":99,"title":"Voice call 10-16: Refine build, inbox labels, past-work round 4","landed_at":"2026-10-16T07:33:22.210Z","outcome":"**The overnight orders are done; see the Overnight card on /live.** Report: [overnight.md](overnight.md).\n\n- [x] Refine build merged `c82cae958` (asks 1, 3, 4; ask 2 partial)\n- [x] Inbox Waiting on you 133 → 12 `7d9e342d6`\n- [x] Past-work round 4 `b8e19cbf3`, digests + tags `bd39fad93`\n- [ ] Owner: RING cost fix, registry cost, Servex restart, Gmail re-auth"}}
