@@ -12,6 +12,8 @@
 	body:has(.live-one) { background: #fff; }
 	.page:has(.live-one) { padding: 0; gap: 0; background: #fff; }
 	.page:has(.live-one) > .page-title { display: none; }
+	/* The 42px band: framework.css `.page-title + * { margin-block-start: calc(var(--flow) * 1.5) }` still matches the card box after the hidden title. */
+	.page:has(.live-one) > .live-one { margin-block: 0; }
 	/* Code runs edge to edge in an opened card: cancel the card padding, keep a small inner one. */
 	.live-one .live-full pre { margin-inline: -.75rem; padding-inline: .75rem; border-radius: 0; }
 	.live-back { font-size: .8em; line-height: 1; align-self: flex-start; }
