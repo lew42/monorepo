@@ -129,3 +129,4 @@
 {"log":{"at":"2026-10-15T21:35:36-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-opus"}}
 {"log":{"at":"2026-10-15T21:35:38-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T21:36:09-05:00","heartbeat":"answered","msg":"I'm idle, waiting for the next voice question, and no minions are running. My next voice reply will include the three past-work audit findings."}}
+{"log":{"at":"2026-10-15T21:39:40-05:00","msg":"session ended (other) without landing"}}
