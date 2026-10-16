@@ -37,6 +37,13 @@ export default new Doc({
 			md("```js /app.js\nimport App from \"/app.js\";\n```");
 		}, "A fence's info string can carry a second word — the file it's from. It's kept as `data-file` on the `<pre>` and drawn as a label, same look as `code.js(src, \"/app.js\")`. Added 2026-08-15.");
 
+		h2("Long lines scroll; `wrap` wraps");
+
+		demo(() => {
+			md("```js\nconst line = \"this long line scrolls sideways instead of wrapping, so code keeps its shape\";\n```");
+			md("```js wrap\nconst line = \"this long line wraps, because the fence says wrap after the language\";\n```");
+		}, "Code scrolls sideways by default. Add the word `wrap` after the language (```` ```js wrap ````) to wrap that one block.");
+
 		h2("From a file");
 
 		demo(() => md.file(import.meta, "example.md"),

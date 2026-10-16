@@ -9,7 +9,8 @@
 	/* One opened card (/live/<id>/): the card is the page, edge to edge. No gray frame, no title above it, no double padding. */
 	.live-one, .live-one .live-screen { padding: 0; background: none; max-width: none; }
 	.live-one .live-full, .live:not(.live-one) > .live-screen > .live-full { border-radius: 0; box-shadow: none; padding: 1rem .75rem; }
-	.page:has(> .live-one) { padding: 0; }
+	body:has(.live-one) { background: #fff; }
+	.page:has(> .live-one) { padding: 0; gap: 0; background: #fff; }
 	.page:has(> .live-one) > .page-title { display: none; }
 	.live-back { font-size: .8em; }
 	.live-row > * { margin: 0; }
