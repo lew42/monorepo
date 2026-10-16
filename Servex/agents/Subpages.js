@@ -8,8 +8,7 @@ const NAME = /^[a-z0-9-]+$/;
 
 /* The subpages of ONE parent folder: add, rename, remove. The one implementation behind
  * `page_set({pages:{add|rename|remove}})` and `create_page` (doc: core/Page/doc/ai-api.md,
- * "How a subpage is stored"). A page.jsonl parent is linked by appended `file` lines, a
- * page.js parent by editing its `children:` string. Nothing is deleted: remove moves the
+ * "How a subpage is stored"). The parent is always linked by appended `file`/`gone` lines in ITS page.jsonl (made if missing); no page.js is ever edited. Nothing is deleted: remove moves the
  * folder to `<parent>/_removed/<name>-<time>/`. `dry: true` returns the plan and touches nothing.
  * CLI: node Servex/agents/Subpages.js <add|rename|remove> <parent-url> <name> [to] [--dry] [--root <tree>] */
 export default class Subpages {
@@ -38,10 +37,9 @@ export default class Subpages {
 		const first = { title: title ?? name, ...(icon ? { icon } : {}), ...(description ? { description } : {}), ...more };
 		const plan = { action: "add", name, make: rel(dir + "/page.jsonl"), first, link: this.link_plan(kind, name) };
 		if (this.dry) return { ok: true, dry: true, ...plan };
-		const edit = kind === "page.js" ? this.js_edit(s => this.js_children(s, list => [...list, `${name}/page.jsonl`])) : null;   // fails before any write
-		fs.mkdirSync(dir, { recursive: true });
+				fs.mkdirSync(dir, { recursive: true });
 		fs.writeFileSync(path.join(dir, "page.jsonl"), JSON.stringify(first) + "\n");
-		this.link(kind, edit, { file: `${name}/page.jsonl` });
+		this.append({ file: `${name}/page.jsonl` });
 		return { ok: true, ...plan };
 	}
 
@@ -53,12 +51,9 @@ export default class Subpages {
 		if (fs.existsSync(dest)) throw new Error(`${to} already exists under ${this.dir}`);
 		const plan = { action: "rename", moves: [{ from: rel(from), to: rel(dest) }] };
 		if (this.dry) return { ok: true, dry: true, ...plan };
-		const edit = kind === "page.js" ? this.js_edit(s => this.js_children(s, list => list.map(t => t.split("/")[0] === name ? to + t.slice(name.length) : t))) : null;
 		fs.renameSync(from, dest);
-		if (kind === "page.jsonl"){
-			this.append({ file: `${name}/page.jsonl`, gone: true });
-			this.append({ file: `${to}/page.jsonl` });
-		} else this.link(kind, edit);
+		this.append({ file: `${name}/page.jsonl`, gone: true });
+		this.append({ file: `${to}/page.jsonl` });
 		return { ok: true, ...plan };
 	}
 
@@ -70,11 +65,9 @@ export default class Subpages {
 		const dest = path.join(this.dir, "_removed", `${name}-${stamp()}`);
 		const plan = { action: "remove", moves: [{ from: rel(from), to: rel(dest) }] };
 		if (this.dry) return { ok: true, dry: true, ...plan };
-		const edit = kind === "page.js" ? this.js_edit(s => this.js_children(s, list => list.filter(t => t.split("/")[0] !== name))) : null;
 		fs.mkdirSync(path.dirname(dest), { recursive: true });
 		fs.renameSync(from, dest);
-		if (kind === "page.jsonl") this.append({ file: `${name}/page.jsonl`, gone: true });
-		else this.link(kind, edit);
+		this.append({ file: `${name}/page.jsonl`, gone: true });
 		return { ok: true, ...plan };
 	}
 
@@ -100,16 +93,13 @@ export default class Subpages {
 
 	check_name(name){ if (!NAME.test(name || "")) throw new Error("name must be a-z0-9- only"); }
 
-	link_plan(kind, name){ return kind === "page.js" ? { in: "page.js children", add: `${name}/page.jsonl` } : { in: "page.jsonl", line: { file: `${name}/page.jsonl` } }; }
+	link_plan(kind, name){ return { in: "page.jsonl", line: { file: `${name}/page.jsonl` } }; }
 
-	link(kind, edit, line){
-		if (kind === "page.jsonl") this.append(line);
-		else fs.writeFileSync(edit.file, edit.next);
-	}
+	link(kind, edit, line){ if (line) this.append(line); }
 
 	// A targeted append that makes sure the file ended with a newline first; never a rewrite.
 	append(obj){
-		const file = path.join(this.dir, "page.jsonl"), text = fs.readFileSync(file, "utf8");
+		const file = path.join(this.dir, "page.jsonl"), text = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
 		fs.appendFileSync(file, (text.length && !text.endsWith("\n") ? "\n" : "") + JSON.stringify(obj) + "\n");
 	}
 
