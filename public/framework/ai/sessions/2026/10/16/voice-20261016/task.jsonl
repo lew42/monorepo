@@ -25,3 +25,5 @@
 {"log":{"at":"2026-10-15T19:20:08-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T19:21:00-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T19:22:02-05:00","msg":"Servex restarted (~00:20Z): remote tools (read_file, write_file, edit_file, list_dir, glob, shell) and the create_page fix 17c696fa6 are now live. helper-handover-query was blocked on git permissions (acceptEdits mode); fast-forwarded its worktree to michael/dev, and it now writes steps while the mastermind commits them."}}
+{"log":{"at":"2026-10-15T19:27:06-05:00","msg":"handover-query plan landed and merged 376f792f7: /framework/ai/doc/handover-query.md. Recommendation: keep task.jsonl. Build waits for the owner to see the plan."}}
+{"log":{"at":"2026-10-15T19:27:06-05:00","msg":"helper-page-subpages: step 2 (storage variants doc, core/Page/doc/subpages.md) committed 7b9e2f32f. Now on step 3, the deep-delta proposal, then step 4. Sidebar nav for jsonl-only children is untested."}}
