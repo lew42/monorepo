@@ -17,7 +17,7 @@ The AI system: Servex runs the agents, the readme chain is their memory, each ta
 Accounting first. Each link is that system's own short readme; follow it to go one level deeper.
 
 - **Tasks** (in flight, queued, landed today, live): [tasks/readme.md](tasks/readme.md) · [/framework/ai/tasks/](/framework/ai/tasks/)
-- **Accounting**: [token accounting](doc/tokens/tokens.md) · [spend per session](sessions/readme.md) · [budgets](/framework/servex/doc/budget.md)
+- **Accounting**: [token accounting](doc/tokens/tokens.md) · [spend per session](sessions/readme.md) · [budgets](/framework/servex/doc/budget.md) · agent logs: `%LOCALAPPDATA%/lew42/servex/logs/agent-<id>.jsonl`, one per Servex agent, with a `turn_cost` line per turn since 2026-10-13 ([what is in them](sessions/2026/10/16/voice-20261016/accounting/answers.md))
 - **Cloudflare** (what we would use, what it costs, the token you give us, the runaway guard): [doc/cloudflare.md](doc/cloudflare.md)
 - **Skills proposals** (what to add or retire, 2026-10-13): [doc/skills-proposals-2026-10-13.md](doc/skills-proposals-2026-10-13.md)
 - **Repo size** (what git holds, what should be committed, the plan to slim it): [doc/repo-size.md](doc/repo-size.md) · `node Server/RepoSize.mjs`
