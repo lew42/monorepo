@@ -30,4 +30,6 @@ ever appeared — no error, no clue why.
 
 ## More
 
+- **Sentence-per-send on the shared composer** (2026-10-16): `composer({ per_sentence: true })` makes each finished sentence leave the box while the next is still heard; the Refine page uses it, this page's `chat()` keeps the default (pause mode already sends each sentence as a bubble). Proof: `ext/Refine/test/composer-flow.mjs` and a fake-mic run of this page.
+
 - [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why

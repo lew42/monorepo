@@ -5,7 +5,7 @@ import { quick_clean } from "./engine.js";
 
 /**
  * class RefineSystem — the boss of the refine system (`doc/architecture.md`). It owns ONE live
- * `Prompt` and runs it through the steps: text in (typed, or from the dictation source) →
+ * `Prompt` (built from `chunks`, one per send, so earlier sentences are never replaced) and runs it through the steps: text in (typed, or from the dictation source) →
  * Servex `/api/refine` (the Cleaner, then the Structurer) → `Prompt.load()` (which runs the
  * `Scorer`). A page only ever talks to this class:
  *
