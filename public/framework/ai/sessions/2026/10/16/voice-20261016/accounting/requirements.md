@@ -9,3 +9,6 @@ The owner's asks for this task, dictated 2026-10-16 to the voice agent. Source: 
 5. **One session database.** All records go in the year/month/day folders under `public/framework/ai/sessions/`, with no separate parallel data structures. `Server/spend-tree.mjs` has the right design, but it is run by hand and its output has been stale since Oct 4.
 6. **Past work.** Thousands of sessions are linked to the module or path they worked on. They can be found without copying whole transcripts. Open question: should sessions live inside module folders instead of one sessions folder?
 7. **Honesty.** Confirm what actually works. No patches on a broken system.
+8. **The MCP tool surface: pages are the unit.** Relayed by the voice agent on 2026-10-16. The owner says this repeats an ask from yesterday. Verbatim:
+
+   > "We must not add a new tool set every time we add a data type. Tasks, cards, live pages, sessions, projects, users are all just PAGES: a page is the unit, addressable by APP PATH (not file path), nestable, and sub-page items without a file path are addressable too. So the tool surface should be: one page tool with a method parameter (read/set/add/reply/log/...), one file-system tool, one server/Servex tool, one agent tool; the ask_* family is unclear and may not be needed."
