@@ -74,8 +74,9 @@
 }
 
 @layer site {
-	/* The demo is a page-level bleed (edge to edge); its result band keeps its own side padding. */
-	.refine-demo > .refine-result { padding-inline: .6em; }
+	/* The demo is a page-level bleed (edge to edge); everything but the toolbar and footer keeps a side padding. */
+	.refine-demo > :not(.refine-toolbar, .refine-foot) { padding-inline: .6em; }
+	.refine-input-note:empty { display: none; }
 	.refine-demo .refine-prompt-raw { font-size: .9em; margin: 0; }
 	.refine-demo .refine-prompt-h { display: flex; flex-wrap: wrap; gap: 0 .6em; align-items: baseline; font-size: .85em; text-transform: uppercase; letter-spacing: .04em; }
 	.refine-demo .refine-prompt-h > span:first-child { opacity: .7; }
