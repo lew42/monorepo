@@ -2,6 +2,13 @@
 
 Detail moved out of [shape.md](shape.md), unchanged.
 
+| Fact | Where it lives | Count |
+|---|---|---|
+| (a) tasks are made | `Server/TaskDirs.mjs --new`, `open_task()` | 2 ways |
+| (b) quiet-task reminder | `Servex/TaskLoop.js` | every 5 min |
+| (c) spawn options | `Agent.options()` | Servex mints `sessionId` |
+| (d) migration | the day folders | 12,647 folders, ~1,000 to nest |
+
 - **(a) How tasks are made.**
   - Two ways: the `new-task` skill runs the node script `Server/TaskDirs.mjs --new <slug>`, or Servex's `spawn_agent` calls `open_task()` (`Servex/agents/Agents.js:775`).
   - Lines are stamped by code, not the AI: `.claude/hooks/append.mjs` replaces `"NOW"` with the clock, adds `at` when it is missing, and refuses lines in the wrong shape. Servex's `append_log` is the other writer.

@@ -25,5 +25,8 @@ sessions/2026/10/16/
 - **One optional argument, `heard`, on every tool the door lists.** It holds the owner's last message, word for word. The door's instructions tell the voice model to include it on its first tool call of each turn.
 - **The door takes it out and writes it.** Before the call runs, `RemoteMCP.post()` removes `heard` and appends one `owner` line (skipped when it repeats the previous one). It also appends a `call` line for every tool call. This is about 20 lines in `RemoteMCP.js`. Code writes the lines, and the server stamps the time.
 - **Rejected: a separate `log_owner` tool.** It would be one more call the model can forget, while `heard` travels on calls the model already makes.
-- **Noted for later (the owner, 2026-10-16):** every "Claude session" (a cloud voice or text session using the Servex MCP) gets its own session folder, with a per-prompt hook that logs the owner's prompts through the MCP. This is the proposal above, widened from voice to every cloud session. Not built. Unlike a local session, a cloud session has no SDK transcript on this PC, so this log is its only record ([R14](answers.md#r14)).
+- **Noted for later (the owner, 2026-10-16):** every cloud "Claude session" gets its own session folder. Not built.
+  - A per-prompt hook logs the owner's prompts through the MCP.
+  - It is this proposal, widened from voice to every cloud session.
+  - The log is its only record: a cloud session has no transcript on this PC ([R14](answers.md#r14)).
 - **⚠️ The caveat:** "word for word" still depends on the voice model copying the owner's words. The true record is the claude.ai conversation, and this PC cannot read it.

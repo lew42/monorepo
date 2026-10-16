@@ -1,6 +1,6 @@
 # One session folder: proposed shape
 
-A proposal for requirements R1–R17 ([requirements.md](requirements.md)). Nothing is built until the owner approves it. It builds on the owner's earlier decisions in [sessions/doc/data/data-architecture.md](/framework/ai/sessions/doc/data/data-architecture.md) (§9, §11 and §12) and on the line kinds already defined in [record-spec.md](/framework/ai/sessions/doc/data/record-spec.md). mastermind-page (core/Page) agreed to every point here on 2026-10-16. Facts and counts are in [facts.md](facts.md) and [answers.md](answers.md).
+A proposal for requirements R1–R17 ([requirements.md](../requirements.md)). Nothing is built until the owner approves it. It builds on the owner's earlier decisions in [sessions/doc/data/data-architecture.md](/framework/ai/sessions/doc/data/data-architecture.md) (§9, §11 and §12) and on the line kinds already defined in [record-spec.md](/framework/ai/sessions/doc/data/record-spec.md). mastermind-page (core/Page) agreed to every point here on 2026-10-16. Facts and counts are in [facts.md](../facts.md) and [answers.md](answers-full.md).
 
 ## 1. The folder
 
@@ -40,7 +40,7 @@ sessions/2026/10/16/
 - **Every writer is code.** That means `append.mjs`, `append_log`, `log_session` and the `item` tool. The item tool refuses agent writes of `session`, `child` and `cost`, which only spawn code, new-task and the Digest may write (law 7).
 - **None of these line names collides with an `Item` member** (`set`, `get`, `apply`, `find`, `walk`, `remove`, `save`, ...).
 - **Roll-up is a tree walk.** A session's total is its latest `cost` line plus its child sessions' totals, kept separately for Claude and OpenRouter. A grid reads `index.json` and never re-sums transcripts. The detail page re-runs the Digest over the transcript as a live audit, and a mismatch is a bug (R10).
-- **Recommendation for raw prompts: link, do not copy (R16).** A `prompt` line points at the transcript line, and the page shows the text by reading the transcript (`/ai-logs/<id>#<line>`). Skip prompt refinement for now. The one exception is a cloud session, which has no transcript on this PC: its MCP log keeps the text, because that log is the only record ([cloud-voice-log.md](cloud-voice-log.md)).
+- **Recommendation for raw prompts: link, do not copy (R16).** A `prompt` line points at the transcript line, and the page shows the text by reading the transcript (`/ai-logs/<id>#<line>`). Skip prompt refinement for now. The one exception is a cloud session, which has no transcript on this PC: its MCP log keeps the text, because that log is the only record ([cloud-voice-log.md](../cloud-voice-log.md)).
 
 ## 3. When to open a task
 
@@ -67,4 +67,4 @@ Each of these goes in its own scripted, reversible commit, after the step above 
 - the prompt-relay `Prompt` text
 - the `owner-prompts` and `words` copies
 
-Detail: [answers.md#r14](answers.md#r14).
+Detail: [answers.md#r14](answers-full.md#r14).

@@ -1,6 +1,6 @@
 # Accounting: answers to the owner's questions, 2026-10-16
 
-Each answer is checked against the real files: node scripts read the logs, the registry and git. The questions are in [requirements.md](requirements.md); the evidence is logged in [task.jsonl](task.jsonl).
+Each answer is checked against the real files: node scripts read the logs, the registry and git. The questions are in [requirements.md](../requirements.md); the evidence is logged in [task.jsonl](../task.jsonl).
 
 ## Q1. The agent logs: `%LOCALAPPDATA%/lew42/servex/logs/agent-<id>.jsonl`
 
@@ -20,11 +20,11 @@ Each answer is checked against the real files: node scripts read the logs, the r
 - **Keep Digest and Audit.** They are the exact counter, and they agree with each other (559 of 559).
 - **Delete the AISession snapshot's own cost tally.** It double-counts any message replayed beyond its 40-id memory, up to 2x. The page should show the session's running total instead (R10).
 - **Delete the registry `cost` as it is computed today.** It sums a figure that is already cumulative, so it inflates with every turn: 2.85x at 2–3 turns, and 16x at 21 turns or more. Its replacement is R10's running total, written per turn with the Digest's own counting rule.
-- **Also stale:** `Server/spend-tree.mjs` output (not refreshed since Oct 4) is a fourth copy. It should become the tree walk in [shape.md](shape.md), not a second store.
+- **Also stale:** `Server/spend-tree.mjs` output (not refreshed since Oct 4) is a fourth copy. It should become the tree walk in [shape-full.md](shape-full.md), not a second store.
 
 ## R10. One running total per session
 
-Servex appends one line per turn to the session's `usage.jsonl` (tokens, and either `claude_usd` or `openrouter_usd`). It keeps the running sum in the session's index row, so a grid of 100 sessions reads 100 numbers. The detail page re-runs `AISessionDigest` over the raw transcript and flags any mismatch. This is the same design as [shape.md](shape.md), section 2.
+Servex appends one line per turn to the session's `usage.jsonl` (tokens, and either `claude_usd` or `openrouter_usd`). It keeps the running sum in the session's index row, so a grid of 100 sessions reads 100 numbers. The detail page re-runs `AISessionDigest` over the raw transcript and flags any mismatch. This is the same design as [shape-full.md](shape-full.md), section 2.
 
 ## R11. Renaming a session folder's `task.jsonl` to `session.jsonl` {#r11}
 
@@ -69,7 +69,7 @@ Measured with `node Server/session-dup.mjs`, which compares the text and finds t
 
 **⚠️ Conflicts this creates:**
 - **R14 against R4, R10 and the `usage` line kind.** "Servex writes a usage line per turn" is exactly the kind of parallel usage log R14 forbids. The fix: on each result, Servex only *triggers* the counter (`AISessionDigest`, reading the end of the transcript from where it last stopped), and stores just the session's running total.
-- **Cloud sessions have no SDK transcript on this PC.** The claude.ai conversation is never written to `~/.claude/projects`. So for a cloud voice or text session, the per-prompt MCP log ([cloud-voice-log.md](cloud-voice-log.md)) is the only record, not a copy.
+- **Cloud sessions have no SDK transcript on this PC.** The claude.ai conversation is never written to `~/.claude/projects`. So for a cloud voice or text session, the per-prompt MCP log ([cloud-voice-log.md](../cloud-voice-log.md)) is the only record, not a copy.
 
 ## R13. Is there one Session class, like Page? {#r13}
 
