@@ -79,6 +79,8 @@ build one, and check the page with `node Server/layout-check.mjs --bands <url>`.
 
 **Reference** — [doc](./doc/) (every method, property and topic in full, on its own tab) — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/data-children.md`](./doc/data-children.md) (children from data) · [`doc/property/related.md`](./doc/property/related.md) (related pages) · [`doc/indexing-2026-10-08.md`](./doc/indexing-2026-10-08.md) (open: directory deltas, session index, querying) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/architecture.md`](./doc/architecture.md) (the classes and decisions), [`doc/decisions.md`](./doc/decisions.md) (older history) · Files: `Page.class.js` (the class), `Page.css` (the core `.page-*` rules; other modules keep their own beside them), `page.js` (this module's Doc page; its Overview tab is the palette), `tools/links.mjs` (a link-checking script, not a page)
 
+**Query (page/query)** — [`doc/query.md`](./doc/query.md) (finding past work: the in-memory task query, every index and its verdict, task vs session, the pilot; the owner's open decisions)
+
 **Asks** — [`doc/asks.md`](./doc/asks.md) (the owner's repeated asks about the page system, merged, open first)
 
 **Vision** — [`doc/vision.md`](./doc/vision.md) (the page as the core data item, debug views of any instance; back-burner ideas kept)
