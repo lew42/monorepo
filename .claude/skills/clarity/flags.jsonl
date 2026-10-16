@@ -1080,3 +1080,4 @@
 {"at":"2026-10-16T15:46:00-05:00","target":"public/framework/ai/sessions/2026/10/16/voice-20261016/accounting","verdict":"sent","what":"requirements.md clear; answers/shape/cloud-voice-log too long, facts/handoff lack a picture","to":"helper-accounting"}
 {"at":"2026-10-16T20:46:40.277Z","target":"public/framework/core/Page","verdict":"queued","kind":"landing"}
 {"at":"2026-10-16T20:46:40.411Z","target":"public/framework/core/Page","verdict":"spawned","to":"clarity-page"}
+{"at":"2026-10-16T16:10:00-05:00","target":"public/framework/core/Page","verdict":"rewrote","what":"outcome to a checklist; readme long paragraphs split into bullets (prose 1062 to ~850 words, still over 500)","to":"public/framework/core/Page/readme.md"}
