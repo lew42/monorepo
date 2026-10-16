@@ -65,7 +65,7 @@
 }
 
 @layer site {
-	.refine-toolbar, .refine-foot { padding-inline: clamp(.4em, 1vw, .9em); }
+	.refine-toolbar, .refine-foot { padding-inline: max(clamp(.4em, 1vw, .9em), calc((100% - 90em) / 2)); }
 	/* The Whisper log grows with every chunk; uncapped it covered the Refine button on a phone (voice-verify walk, 2026-10-12). */
 	.refine-foot { max-block-size: 30vh; overflow: auto; }
 	@media (max-width: 700px) { .refine-foot { position: static; } }
@@ -75,7 +75,7 @@
 
 @layer site {
 	/* The demo is a page-level bleed (edge to edge); everything but the toolbar and footer keeps a side padding. */
-	.refine-demo > :not(.refine-toolbar, .refine-foot) { padding-inline: clamp(.4em, 1vw, .9em); }
+	.refine-demo > :not(.refine-toolbar, .refine-foot) { padding-inline: max(clamp(.4em, 1vw, .9em), calc((100% - 90em) / 2)); }
 	.refine-input-note:empty { display: none; }
 	.refine-demo .refine-prompt-raw { font-size: .9em; margin: 0; }
 	.refine-demo .refine-prompt-h { display: flex; flex-wrap: wrap; gap: 0 .6em; align-items: baseline; font-size: .85em; text-transform: uppercase; letter-spacing: .04em; }
