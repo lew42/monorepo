@@ -1,6 +1,6 @@
 // Server/Transcripts.mjs — condense raw Claude SDK transcripts into a factual essence.jsonl beside each task's task.jsonl. No LLM calls.
 // Doc: Server/doc/transcripts.md. Join key: task.jsonl line 1 `assign.session_id` == the transcript file name (SessionIndex reads both).
-//   node Server/Transcripts.mjs [--since YYYY-MM-DD] [--limit N] [--dry-run] [--session <uuid>] [--grep <regex>] [--force]
+//   node Server/Transcripts.mjs [--all (with --grep: agent briefs too)] [--since YYYY-MM-DD] [--limit N] [--dry-run] [--session <uuid>] [--grep <regex>] [--force]
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
@@ -24,7 +24,15 @@ export default class Transcripts {
 
 	static TEXT_CAP = 600;       // assistant text per block
 	static PROMPT_CAP = 8000;    // a prompt past this is cut (the owner's own prompts are far shorter)
+	static OTHER_CAP = 2000;     // agent briefs and system notices: kept shorter than the owner words
 	static CMD_CAP = 200;
+
+	/** Who wrote a prompt: "owner" (typed in VS Code, or relayed by the voice agent as "[from: owner"), "system" (task notifications, schedules), else "agent" (a dispatcher or parent brief). */
+	static who(text, o) {
+		if (o.turnOrigin === "human" || text.startsWith("[from: owner")) return "owner";
+		if (o.turnOrigin === "task_notification" || o.turnOrigin === "scheduled" || o.promptSource === "system") return "system";
+		return "agent";
+	}
 	static FILE_TOOLS = new Set(["Read", "Edit", "Write", "MultiEdit"]);
 	static WRITE_TOOLS = new Set(["Edit", "Write", "MultiEdit"]);
 	static SEARCH_TOOLS = new Set(["Glob", "Grep"]);
@@ -63,13 +71,15 @@ export default class Transcripts {
 		const events = [], seen = new Set();
 		const msgs = new Map();                               // message.id -> { model, usage } (a message is written once per content block; usage repeats)
 		const tools = {}, edited = {}, read = {}, dirs = {};
-		let cwd = "", first = "", last = "", prompts = 0, cost_state = null, branch = "", preamble = 0;
-		const add_prompt = (at, text, src) => {
+		let owner_prompts = 0, cwd = "", first = "", last = "", prompts = 0, cost_state = null, branch = "", preamble = 0;
+		const add_prompt = (at, text, src, o = {}) => {
 			const c = Transcripts.clean_prompt(text); text = c.text.trim(); if (!text) return;
 			const key = text.slice(0, 300); if (seen.has(key)) return; seen.add(key);
 			preamble ||= c.pre; prompts++;
-			const e = { at, k: "prompt", src, text: text.slice(0, Transcripts.PROMPT_CAP) };
-			if (text.length > Transcripts.PROMPT_CAP) { e.truncated = true; e.len = text.length; }
+			const from = Transcripts.who(text, o), cap = from === "owner" ? Transcripts.PROMPT_CAP : Transcripts.OTHER_CAP;
+			if (from === "owner") owner_prompts++;
+			const e = { at, k: "prompt", from, src, text: text.slice(0, cap) };
+			if (text.length > cap) { e.truncated = true; e.len = text.length; }
 			events.push(e);
 		};
 		let raw_bytes = 0;
@@ -84,9 +94,9 @@ export default class Transcripts {
 			if (o.type === "user" && !o.isMeta) {
 				const c = o.message?.content;
 				const text = typeof c === "string" ? c : Array.isArray(c) ? c.filter(b => b.type === "text").map(b => b.text).join("\n") : "";
-				if (text && !/^<local-command-|^<command-(name|message|args)>/.test(text)) add_prompt(at, text, "user");
+				if (text && !/^<local-command-|^<command-(name|message|args)>/.test(text)) add_prompt(at, text, "user", o);
 			} else if (o.type === "attachment" && o.attachment?.type === "queued_command" && typeof o.attachment.prompt === "string") {
-				add_prompt(at, o.attachment.prompt, "queued");
+				add_prompt(at, o.attachment.prompt, "queued", {});
 			} else if (o.type === "cost-state") {
 				cost_state = o;
 			} else if (o.type === "assistant" && o.message) {
@@ -134,7 +144,7 @@ export default class Transcripts {
 		const top = (o, n) => Object.fromEntries(Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, n));
 		const summary = {
 			session_id: session, task, cwd, branch, models: Object.keys(by_model), first, last,
-			prompts, assistant_turns: msgs.size, preamble_chars: preamble || undefined,
+			prompts, owner_prompts, assistant_turns: msgs.size, preamble_chars: preamble || undefined,
 			raw_bytes, essence_bytes: 0, est_tokens_raw: Math.round(raw_bytes / 4), est_tokens_essence: 0,
 			modules_edited: top(edited, 20), modules_read: top(read, 20), dirs: top(dirs, 15), tools: top(tools, 20),
 			usage: by_model, est_usd, recorded_usd: recorded?.usd ?? null, recorded_by_model: recorded?.by_model ?? null,
@@ -197,7 +207,7 @@ export default class Transcripts {
 	static median(a) { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
 
 	/** --grep: the owner's prompts in every essence.jsonl already written. */
-	static grep(pattern) {
+	static grep(pattern, all = false) {
 		const re = new RegExp(pattern, "i"), hits = [];
 		const walk = dir => {
 			let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
@@ -209,7 +219,7 @@ export default class Transcripts {
 					for (const l of lines) {
 						if (!l.startsWith("{")) continue; let o; try { o = JSON.parse(l); } catch { continue; }
 						if (o.summary) { sum = o.summary; continue; }
-						if (o.k !== "prompt") continue;
+						if (o.k !== "prompt" || (!all && o.from !== "owner")) continue;
 						for (const t of o.text.split("\n")) if (re.test(t)) { hits.push({ at: o.at, session: sum?.session_id, task: path.relative(REPO, path.dirname(p)).replace(/\\/g, "/"), line: t.trim().slice(0, 240) }); break; }
 					}
 				}
@@ -224,7 +234,7 @@ export default class Transcripts {
 	static async main(argv) {
 		const grep = Transcripts.arg(argv, "--grep");
 		if (grep) {
-			const hits = Transcripts.grep(grep);
+			const hits = Transcripts.grep(grep, argv.includes("--all"));
 			for (const h of hits) console.log(`${(h.at ?? "").slice(0, 10)}  ${h.session?.slice(0, 8) ?? "?"}  ${h.task}\n    ${h.line}`);
 			console.log(`\n${hits.length} prompt(s) match /${grep}/i`);
 			return;
@@ -242,7 +252,12 @@ export default class Transcripts {
 		files.sort((a, b) => b.mtime - a.mtime);
 		const withTask = files.filter(f => tasks.has(f.id)), without = files.filter(f => !tasks.has(f.id));
 		let tests = 0, other = 0;
-		for (const f of without) { if ((await Transcripts.first_prompt(f.p)).startsWith("Current outline")) tests++; else other++; }
+		const prefixes = {};
+		for (const f of without) {
+			const fp = await Transcripts.first_prompt(f.p);
+			if (fp.startsWith("Current outline")) tests++;
+			else { other++; const k = fp.slice(0, 40).replace(/\s+/g, " "); prefixes[k] = (prefixes[k] ?? 0) + 1; }
+		}
 		const rows = [];
 		let done = 0, skipped = 0;
 		for (const f of withTask) {
@@ -265,7 +280,8 @@ export default class Transcripts {
 		for (const r of rows) for (const [m, usd] of Object.entries(r.recorded_by_model ?? Object.fromEntries(Object.entries(r.usage).map(([k, v]) => [k, v.est_usd])))) cost_by_model[m] = +((cost_by_model[m] ?? 0) + usd).toFixed(2);
 		const report = {
 			since: new Date(since).toISOString().slice(0, 10), transcripts_in_range: files.length, with_task_folder: withTask.length, without_task_folder: without.length,
-			without_refine_dictate_tests: tests, without_other: other, processed: rows.length, skipped_unchanged: skipped,
+			without_refine_dictate_tests: tests, without_other: other,
+			without_other_top_first_prompts: Object.fromEntries(Object.entries(prefixes).sort((a, b) => b[1] - a[1]).slice(0, 6)), processed: rows.length, skipped_unchanged: skipped,
 			raw_kb_median: kb(Transcripts.median(rows.map(r => r.raw_bytes))), raw_kb_max: kb(Math.max(0, ...rows.map(r => r.raw_bytes))),
 			essence_kb_median: kb(Transcripts.median(rows.map(r => r.essence_bytes))), essence_kb_max: kb(Math.max(0, ...rows.map(r => r.essence_bytes))),
 			raw_mb_total: +(sum(rows, r => r.raw_bytes) / 1048576).toFixed(1), essence_mb_total: +(sum(rows, r => r.essence_bytes) / 1048576).toFixed(2),
