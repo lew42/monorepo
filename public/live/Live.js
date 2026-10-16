@@ -82,6 +82,7 @@ class Tail {
 
 /* One feed item as a small Page: preview() is the stock preview card (Page.preview -> preview_card), full() the whole content. */
 class LiveCard extends Page {
+	static back = false;   // true shows a "← Live" link above an opened card (the owner uses the browser back button)
 	static live = { today: LiveToday };   // a card {type:"part-live", live:"<name>"} is drawn by this class, from live data, not from its text
 
 	static of(row){
@@ -101,7 +102,7 @@ class LiveCard extends Page {
 	}
 	full(){
 		return div.c("live-full", () => {
-			a.c("live-back", "← Live").href("/live/");
+			if (this.constructor.back) a.c("live-back", "← Live").href("/live/");
 			if (this.title) span.c("live-card-title", this.title);
 			if (this.renderer) return void this.renderer.into(div.c("live-live-body"));
 			md(Live.pretty(this.text ?? ""));
