@@ -19,3 +19,5 @@
 {"log":{"at":"2026-10-15T22:35:39-05:00","heartbeat":"answered","msg":"Both fixes on `/live/<id>/` are committed and I'm idle, with nothing in progress. The 42px top gap is gone (`cc9b46175`), and \"← Live\" is off behind `static back = false` in `Live.js` (`8c2628fd0`). I"}}
 {"log":{"at":"2026-10-15T22:44:35-05:00","msg":"task-loop escalated: {\n  \"ok\": true,\n  \"id\": \"2026/10/15/voice-session-2026-10-16-19-06\",\n  \"ask\": \"d-mvafbxnrtz\"\n}","chase":"escalated"}}
 {"log":{"at":"2026-10-15T22:46:36-05:00","heartbeat":"deliberate","msg":"mastermind-live-cards its agent is not running: it was stopped on purpose by mastermind-voice-20261016 at 2026-10-15T22:36:15-05:00; not revived."}}
+{"log":{"at":"2026-10-16T09:21:36-05:00","heartbeat":"deliberate","msg":"mastermind-live-cards its agent is not running: it was stopped on purpose by mastermind-voice-20261016 at 2026-10-15T22:36:15-05:00; not revived."}}
+{"log":{"at":"2026-10-16T09:44:07-05:00","heartbeat":"deliberate","msg":"mastermind-live-cards its agent is not running: it was stopped on purpose by mastermind-voice-20261016 at 2026-10-15T22:36:15-05:00; not revived."}}

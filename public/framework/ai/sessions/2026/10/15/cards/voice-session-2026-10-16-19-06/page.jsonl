@@ -43,3 +43,6 @@
 {"message":{"by":"servex-heartbeat","text":"helper-past-work-pilot: Idle. The pilot reply is delivered and I have no open work.","kind":"reply","at":"2026-10-16T04:55:15-05:00","id":"m-mvasklvg3n"}}
 {"message":{"by":"servex-heartbeat","text":"helper-past-work-pilot: Idle. The pilot reply is delivered, and I'm not running anything.","kind":"reply","at":"2026-10-16T06:20:16-05:00","id":"m-mvavlxtw7z"}}
 {"message":{"by":"servex-heartbeat","text":"helper-past-work-pilot: Idle. The pilot reply is delivered, and I'm not running anything.","kind":"reply","at":"2026-10-16T07:45:16-05:00","id":"m-mvayn9fbn7"}}
+{"message":{"by":"servex-heartbeat","text":"helper-past-work-pilot: Idle. The pilot reply is delivered, and I'm not running anything.","kind":"reply","at":"2026-10-16T09:10:17-05:00","id":"m-mvb1olotbk"}}
+{"message":{"by":"servex-heartbeat","text":"mastermind-live-cards its agent is not running: it was stopped on purpose by mastermind-voice-20261016 at 2026-10-15T22:36:15-05:00; not revived.","kind":"reply","at":"2026-10-16T09:21:36-05:00","id":"m-mvb2351ka0"}}
+{"message":{"by":"servex-heartbeat","text":"mastermind-live-cards its agent is not running: it was stopped on purpose by mastermind-voice-20261016 at 2026-10-15T22:36:15-05:00; not revived.","kind":"reply","at":"2026-10-16T09:44:07-05:00","id":"m-mvb2w3m0cp"}}
