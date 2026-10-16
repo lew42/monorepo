@@ -1,0 +1,2 @@
+{"assign":{"at":"2026-10-15T19:09:57-05:00","now":"queued","brief":"public/framework/ai/sessions/2026/10/16/voice-20261016/remote-tools/requirements.md"}}
+{"assign":{"session_id":"3232cd48-ab87-431d-919e-ff9c3a9821e1","agent":"helper-remote-tools","card":"2026/10/15/voice-session-2026-10-16-19-06","brief":"public/framework/ai/sessions/2026/10/16/voice-20261016/remote-tools/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/16/voice-20261016","requested_at":"2026-10-15T19:10:02-05:00","now":"starting","steps":[],"step":1}}
