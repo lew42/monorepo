@@ -1,4 +1,8 @@
 import Events from "../../Events.js";
+import { loopback } from "../MCP.js";
+
+// A non-loopback (LAN) peer may say hello and subscribe to jsonl tails. Nothing else.
+const LAN_OK = new Set(["hello", "subscribe", "unsubscribe"]);
 
 // Socket gets created by SocketServer
 
@@ -10,6 +14,7 @@ export default class Socket extends Events {
 
     initialize() {
 		console.log("New socket initialized");
+        this.local = loopback(this.req?.socket?.remoteAddress);   // false = LAN peer: push traffic only
         this.ws.on("message", this.message.bind(this));
         this.ws.on("close", this.close.bind(this));
 
@@ -22,6 +27,11 @@ export default class Socket extends Events {
     message(data) {
         try {
             const message = JSON.parse(data.toString());
+            if (!this.local && !LAN_OK.has(message.method)){
+                console.warn(`socket: REFUSED ${message.method ?? "message"} from LAN peer ${this.req?.socket?.remoteAddress}`);
+                if (message.index !== undefined) this.send({ method: "refused", args: [message.method], index: message.index });
+                return;
+            }
             if (process.env.SOCKET_LOG === "on") console.log("Socket message", message);   // off by default: it grew monorepo.out to 36 MB
             this.emit("message", message);
 

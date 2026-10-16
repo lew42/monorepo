@@ -10,7 +10,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 
 ## Watch out
 
-- Connects on localhost only, by design — that is what keeps production purely static and keeps the eval/write door shut. Suggestion, not law: a deployment that wants it live has to solve auth first (`Server/README.md`). [doc/localhost.md](./doc/localhost.md)
+- Connects on localhost (full) and on a private LAN host (push traffic only, every command refused server-side). [doc/lan.md](./doc/lan.md) Never a public host: that is what keeps production purely static and keeps the eval/write door shut. Suggestion, not law: a deployment that wants it live has to solve auth first (`Server/README.md`). [doc/localhost.md](./doc/localhost.md)
 - Never reject `.ready` — a `send()` awaiting a server restart must land, not throw; a rejected `ready` breaks every later `send()` for the life of the page. [doc/backoff.md](./doc/backoff.md)
 - Reconnect from `close` only — a failed connect fires `error` *and* `close`; acting on both made a connection storm. [doc/backoff.md](./doc/backoff.md)
 - `reload()`, `changed()`, `eval()` are called BY the server through `message()` — a grep finds no callers; they are the live path, not dead code. [doc/wire.md](./doc/wire.md)
@@ -34,6 +34,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 - [/framework/ai/sessions/2026/09/22/f875ec48-d91a-4890-b15f-db197b55aa13/reload-rethink/](/framework/ai/sessions/2026/09/22/f875ec48-d91a-4890-b15f-db197b55aa13/reload-rethink/) — why `changed()` grew a `data` branch: the day it reloaded 215 times, what still needs a reload and why
 - [/framework/dev/Socket/](/framework/dev/Socket/) — the page: guard, server-calls-you, what a save does
 - [doc/decisions.md](./doc/decisions.md) — the record: who uses this, the singleton, the reconnect storm, three proposed cuts (none applied)
+- [doc/lan.md](./doc/lan.md) — a phone on the LAN gets reload and tails, never commands
 - [doc/localhost.md](./doc/localhost.md) — the gate is inside the socket, and why
 - [doc/backoff.md](./doc/backoff.md) — reconnecting without a storm
 - [doc/wire.md](./doc/wire.md) — the whole protocol, both directions: Claude → `POST /mcp` → frame → tab

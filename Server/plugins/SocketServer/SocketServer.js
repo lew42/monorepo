@@ -1,7 +1,7 @@
 import Events from "../../Events.js";
 import { WebSocketServer } from "ws";
 import Socket from "./Socket.js";
-import { loopback } from "../MCP.js";
+import { loopback, lan } from "../MCP.js";
 
 /* Two checks, two different attackers. This wire carries `rpc:cmd` (exec),
  * `rpc:write` and `rpc:ask` (a Claude turn), so both have to stand.
@@ -18,13 +18,18 @@ import { loopback } from "../MCP.js";
  * every `*.localhost` name to loopback by itself, so no remote page can wear it. */
 const LOCAL = /^https?:\/\/(([a-z0-9-]+\.)*localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
 
+/* A private-LAN peer (a phone on 10.* / 192.168.* / 172.16-31.*) may connect, but Socket.js gives
+ * it PUSH TRAFFIC ONLY: every command or write is refused there. Loopback keeps full power.
+ * Doc: public/framework/dev/Socket/doc/lan.md. */
+const LAN_ORIGIN = /^https?:\/\/(10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+)(:\d+)?$/;
+
 function local_only({ origin, req }){
     const from = req.socket.remoteAddress;
-    if (!loopback(from)){
-        console.warn(`socket: REFUSED an upgrade from ${from} — loopback only.`);
+    if (!lan(from)){
+        console.warn(`socket: REFUSED an upgrade from ${from} — loopback or private LAN only.`);
         return false;
     }
-    if (origin && !LOCAL.test(origin)){
+    if (origin && !(loopback(from) ? LOCAL : LAN_ORIGIN).test(origin)){
         console.warn(`socket: REFUSED an upgrade from origin ${origin}.`);
         return false;
     }

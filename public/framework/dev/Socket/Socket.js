@@ -47,8 +47,11 @@ export default class Socket {
 
 		this.restore();
 
-		// ⚠ LOCALHOST ONLY — RCE risk if widened to LAN (socket carries rpc:cmd/write)
-		if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname.endsWith(".localhost")) {
+		// ⚠ localhost = full socket. A private LAN host (phone on the Wi-Fi) also connects, but the server
+		//   gives it push traffic only (reload, deltas, tails) and refuses every command. doc/lan.md
+		const host = window.location.hostname;
+		const lan = /^(10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(host);
+		if (host === "localhost" || host === "127.0.0.1" || host.endsWith(".localhost") || lan) {
 			this.connect();
 		} else {
 			this.disabled = true;
