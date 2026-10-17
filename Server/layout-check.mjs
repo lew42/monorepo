@@ -39,13 +39,14 @@
 import { browser as launch } from "./Browser.mjs";
 import fs from "node:fs";
 import path from "node:path";
+import OutPath from "./OutPath.mjs";
 
 const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf("--" + name); if (i < 0) return def; const v = argv[i + 1]; argv.splice(i, 2); return v; };
 const flag = name => { const i = argv.indexOf("--" + name); if (i < 0) return false; argv.splice(i, 1); return true; };
 const bandsMode = flag("bands");
 const widths = opt("widths", bandsMode ? "400,1200,1920,3440" : "1280,1920,2560,3440").split(",").map(Number);
-const out = path.resolve(opt("out", "layout-check-out"));
+const out = (() => { try { return OutPath.resolve(opt("out", "layout-check-out")); } catch (e) { console.error(e.message); process.exit(2); } })();
 const height = Number(opt("height", 1000));
 const urls = argv.filter(a => !a.startsWith("--"));
 if (!urls.length){ console.error("usage: node Server/layout-check.mjs <url...> [--widths 1280,1920,2560,3440] [--bands]"); process.exit(2); }
