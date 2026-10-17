@@ -24,3 +24,6 @@
 {"log":{"at":"2026-10-17T13:54:03-05:00","heartbeat":"answered","msg":"I'm done and idle: the Dictate Overview wide layout is merged to `michael/dev` (`5545ac4a8`), and the empty share at 3440 fell from 0.74 to 0.42. The only things left are the stray `C:\\c\\Code\\...` fol"}}
 {"log":{"at":"2026-10-17T13:57:42-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-17T14:38:32-05:00","heartbeat":"check","msg":"status check sent to helper-dictate-wide"}}
+{"log":{"at":"2026-10-17T14:38:36-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T14:39:04-05:00","heartbeat":"answered","msg":"I'm idle: the task is finished and merged to `michael/dev` (`5545ac4a8`), with the empty share at 3440 down from 0.74 to 0.42. The stray `C:\\c\\Code\\...` folder and the `dictate-wide` worktree are stil"}}
+{"log":{"at":"2026-10-17T14:43:05-05:00","msg":"session ended (other) without landing"}}
