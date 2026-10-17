@@ -248,6 +248,19 @@ export class Item extends Events(Object) {
 
 	static new_id(){ return crypto.randomUUID(); }
 
+	// What a caller may put in a delta for this class: {class, fields, methods:[{name, doc}]}; doc is "" here (the item tool fills it from source).
+	static describe(){
+		const methods = new Map(), fields = new Set(this.fields ?? []);
+		for (let proto = this.prototype; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto))
+			for (const name of Object.getOwnPropertyNames(proto)){
+				if (name === "constructor" || name.startsWith("_") || methods.has(name)) continue;
+				const d = Object.getOwnPropertyDescriptor(proto, name);
+				if (d.get || d.set){ if (!d.get?.is_field_accessor) fields.add(name); continue; }
+				if (typeof d.value === "function") methods.set(name, { name, doc: "" });
+			}
+		return { class: this.name, fields: [...fields], methods: [...methods.values()] };
+	}
+
 	/* Tolerant of every malformed input: warn, keep the node, never throw. Reads
 	   BOTH shapes a caller ever hands it:
 	     - the whole-document envelope `{type, id, data, <listname>: [...]}` (what
