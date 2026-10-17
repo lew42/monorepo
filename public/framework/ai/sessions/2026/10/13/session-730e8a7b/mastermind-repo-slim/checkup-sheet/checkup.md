@@ -1,12 +1,12 @@
 # Checkup: the AI sheet (2026-10-17)
 
-The AI sheet is the one AI surface for phone and desktop ([`ext/drawer`](/framework/ext/drawer/), `class Sheet extends View`). The open question is decided: the sheet is routed at **`<path>/ai/`**. mastermind-sheet is building steps 2 to 4; steps 5 to 10 are queued as briefs.
+The AI sheet is the one AI surface for phone and desktop ([`ext/drawer`](/framework/ext/drawer/), `class Sheet extends View`). The open question is decided: the sheet is routed at **`<path>/ai/`**. Steps 2 to 4 are merged (one class, ☰ = navigation, three sizes); steps 5 to 10 are queued as briefs.
 
 | Task | State | What is open | Decision | Next |
 |---|---|---|---|---|
-| [sheet](/framework/ai/sessions/2026/10/16/voice-20261016/sheet/) (mastermind-sheet) | Step 1 landed on dev (58270f2e3, `rail.js` → `Sheet.js`); audit, proposal and five variants committed; stray shots ignored and records committed (1ac400fc1) | Steps 2 to 10 | Route `<path>/ai/`; layout pick stands | Handed the go for steps 2 to 4, one commit each |
-| [sheet-steps-2-4](sheet-steps-2-4/requirements.md) | ✅ step 2 merged (7dfc96309: `Sheet.Panel` is one class, old chain in `ext/drawer/archive/`, same DOM and shots; drawer page loads clean) · ✅ step 3 merged (4b8890bda: the strip's ☰ Menu opens the Sidebar tree from the bottom, the desktop's drawer button is ✦; drawer page loads clean) · ⬜ step 4 building | Three sizes | Three commits | Each step merged and checked at 400 and 1200 |
-| [sheet-route](sheet-route/requirements.md) · step 5 | ⬜ queued, $6 | `AIPage` at `<path>/ai/`, the hook in `Page.child()` | A real `ai` child wins | After step 4 |
+| [sheet](/framework/ai/sessions/2026/10/16/voice-20261016/sheet/) (mastermind-sheet) | Step 1 landed on dev (58270f2e3, `rail.js` → `Sheet.js`); audit, proposal and five variants committed; stray shots ignored and records committed (1ac400fc1) | Steps 5 to 10 | Route `<path>/ai/`; layout pick stands | Steps 2 to 4 merged; stopped there, step 5 is a queued brief |
+| [sheet-steps-2-4](sheet-steps-2-4/requirements.md) | ✅ step 2 merged (7dfc96309: `Sheet.Panel` is one class, old chain in `ext/drawer/archive/`, same DOM and shots; drawer page loads clean) · ✅ step 3 merged (4b8890bda: the strip's ☰ Menu opens the Sidebar tree from the bottom, the desktop's drawer button is ✦; drawer page loads clean) · ✅ step 4 merged (5a8caeed9: `Sheet.Size` = strip 100 px with the last line said, split, full; drag both ways, back steps down; drawer page and `/framework/core/` load clean) | Nothing | Three commits | ✅ done, about $4 of $9 for the last turn |
+| [sheet-route](sheet-route/requirements.md) · step 5 | ⬜ queued, $6 | `AIPage` at `<path>/ai/`, the hook in `Page.child()` | A real `ai` child wins | Next, when budget allows |
 | [sheet-dock](sheet-dock/requirements.md) · step 6 | ⬜ queued, $4 | Desktop sidebar, open at 1920+ | | After step 5 |
 | [sheet-feed](sheet-feed/requirements.md) · step 7 | ⬜ queued, $5 | `AIFeed`: chat + page events, streamed | No All/Chat/Live switch yet | After step 5 |
 | [sheet-handoff](sheet-handoff/requirements.md) · step 8 | ⬜ queued, $4 | "File a task / ask this page's expert" → the page's `Layers` pair | One global conversation | After step 7 |
