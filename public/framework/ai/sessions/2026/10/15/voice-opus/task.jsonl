@@ -229,3 +229,4 @@
 {"log":{"at":"2026-10-16T19:06:56-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-16T19:11:39-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T19:12:16-05:00","msg":"Relay from mastermind-task-system: task system steps 1-2 landed on michael/dev (8935e1c77): Task.replay + the waiting state; TaskLoop now chases only running tasks. Its review fixed one bug (assign lines with `at` were dropped); all 1,638 real task logs replay to the same open/landed/closed state. Servex runs the new TaskLoop only after its next restart (owner's call). Steps 3-11 wait on the owner (a `wait` line on its task). Relay on next voice ask."}}
+{"log":{"at":"2026-10-16T19:15:56-05:00","msg":"session ended (other) without landing"}}
