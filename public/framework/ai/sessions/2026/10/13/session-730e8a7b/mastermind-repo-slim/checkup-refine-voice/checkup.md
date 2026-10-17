@@ -6,9 +6,9 @@
 | [Inbox labels](/framework/ai/sessions/2026/10/16/voice-20261016/inbox-labels/) | landed | nothing | "Waiting on you" shows 12 | closed |
 | [Page UI templates](/framework/ai/sessions/2026/10/15/voice-opus/page-ui-templates/) | partly exists | nothing | Convention written: a `ui/` folder beside `page.js`, one `Template` per file | [core/Page templates doc](/framework/core/Page/doc/templates.md) |
 | [Voice bridge doc](/framework/ux/Dictate/doc/voice-bridge.md) | landed, doc was stale | nothing | Doc now says what is exposed today and who holds the address | closed |
-| [Refine task home](/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/) | 6 subtasks ranked | all 6 | Placement step first | placement minion queued ([brief](/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/a-placement-step-per-sentence-after-clea/)) |
-| [Raw Whisper reply](/framework/audio/Whisper/doc/raw-log.md) | answered: not saved before, except on the Refine demo | the save itself | Save every reply to the Servex `whisper` log | raw-save minion queued |
-| [Rolling voice session](/framework/ux/Dictate/) | brief written | the test and doc | One rolling session is the direction; the New session button stays as the escape hatch | sessions minion queued |
+| [Refine task home](/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/) | 6 subtasks ranked; the first one is built | 5 left | Placement first | [Placement](/framework/ext/Refine/doc/placement.md) landed (rules only, `to: same / paragraph` for the voice assistant too); next is "the input box shows Whisper typing", then interactive cards |
+| [Raw Whisper reply](/framework/audio/Whisper/doc/raw-log.md) | landed (2c9ed4a65) | nothing | Every reply is saved to the Servex `whisper-raw` log; finals carry timings and confidence | closed; the proof is in `audio/Whisper/doc/` |
+| [Rolling voice session](/framework/ux/Dictate/doc/sessions.md) | landed (merged) | the kept-mount (✦ sheet) headless test; running the chunker over all sessions | One rolling session is the direction; the New session button stays as the escape hatch | New session tested headless on the demo (passes); a bug fixed: the demo overwrote the shared session key; `chunk-session.mjs` dry-run manifest in the doc |
 
 ## Decisions made for the owner
 
@@ -17,6 +17,13 @@
 - **Sessions:** one rolling session, chunked later by script. Alternative: several sessions with a working button, when you want a clean slate each time.
 - **Page UI pieces:** a `ui/` folder beside the page, no new system. Alternative: a shared ui-piece system, only when a second page needs the same piece.
 - **Refine order:** placement first. Alternative: interactive cards first (more visible, but they need to know where a card goes).
+- **Placement:** rules, no model call (a question or a cue word starts a paragraph, unsure appends). Alternative: ask the model for every unsure sentence (more accurate, one more call each).
+
+## Open warnings
+
+- The task home's subtask pages are not named in a `children:` list ("unreachable from the nav" at merge). They live under `core/Task`'s `TaskPage`, which is outside this checkup's fence.
+- `audio/Whisper` is not named in its parent's `children:` (outside the fence).
+- Placement's `composer-flow.mjs` and `nothing-to-refine.mjs` runs were not done: they need Whisper and make real model calls.
 
 ## Needs the owner
 
