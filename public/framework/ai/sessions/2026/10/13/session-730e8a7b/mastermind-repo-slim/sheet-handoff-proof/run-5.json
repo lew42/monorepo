@@ -1,0 +1,51 @@
+{
+ "page": "/framework/ext/drawer/",
+ "session_file": "/framework/ext/drawer/ai/v-519tckm.jsonl",
+ "owner_sentences": [
+  "Please file a task for this page.",
+  "The page's README should link its architecture doc."
+ ],
+ "seconds_from_last_sentence": {
+  "place_line": 4.2,
+  "task_folder": null,
+  "ai_log_line": null,
+  "feed_row": null
+ },
+ "seconds_by_file_stamps": {
+  "place_line": 4.1,
+  "task_log_line": null
+ },
+ "task_folder": null,
+ "feed_text": null,
+ "new_log_lines": [
+  {
+   "session": {
+    "id": "v-519tckm",
+    "event": "started",
+    "title": null,
+    "file": "/framework/ext/drawer/ai/v-519tckm.jsonl",
+    "at": "2026-10-17T13:22:41.587-05:00"
+   }
+  },
+  {
+   "session": {
+    "id": "v-xtcntyl",
+    "event": "ended",
+    "title": null,
+    "file": "/framework/ext/drawer/ai/v-xtcntyl.jsonl",
+    "at": "2026-10-17T13:22:41.721-05:00"
+   }
+  },
+  {
+   "session": {
+    "id": "v-ypn9wa4",
+    "event": "ended",
+    "title": "Drawer README links architecture doc",
+    "file": "/framework/ext/drawer/ai/v-ypn9wa4.jsonl",
+    "at": "2026-10-17T13:23:41.992-05:00"
+   }
+  }
+ ],
+ "new_chat_lines": [],
+ "errors": []
+}

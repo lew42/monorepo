@@ -21,7 +21,10 @@ const home = path.join(PUBLIC, PAGE.replace(/^\//, ""));   // the page's module 
 const wav = path.join(os.tmpdir(), "handoff-ask.wav");
 import { browser as launch, close } from "../../../../../Server/Browser.mjs";
 
-execFileSync("powershell", ["-NoProfile", "-File", path.join(here, "handoff-wav.ps1"), "-out", wav], { windowsHide: true });
+// a fresh topic each run: the smart assistant rightly answers "already filed" to a repeat of an open task
+const colour = ["amber", "teal", "violet", "crimson", "olive", "indigo", "coral", "ivory"][Math.floor(Math.random() * 8)];
+const topic = process.env.TOPIC ?? `The page should show a ${colour} badge when its readme is stale.`;
+execFileSync("powershell", ["-NoProfile", "-File", path.join(here, "handoff-wav.ps1"), "-out", wav, "-topic", topic], { windowsHide: true });
 const browser = await launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
 const kill = setTimeout(() => { console.log("FAIL killed after 300 s"); process.exit(2); }, 300000);
 const lines = f => { try { return fs.readFileSync(f, "utf8").split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return { bad: l }; } }); } catch { return []; } };

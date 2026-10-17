@@ -13,3 +13,5 @@
 {"finish":{"at":"2026-10-17T13:18:55-05:00","outcome":"Real headless run at 400 on /framework/ext/drawer/ai/, seconds from the last sentence: place line 3.7, task log line 5.9, feed row 5.9, task folder none (session-smart rule 4b writes only a dir_log line). Exact edit, outside the fence: edit-session-smart.md, in Servex/agents' inbox. Proof: ux/Dictate/test/handoff.mjs."}}
 {"commit":"186fced90c7a"}
 {"commit":"fde58dde5cdd"}
+{"commit":"f3ea1c98508f"}
+{"commit":"28e240987d8c"}

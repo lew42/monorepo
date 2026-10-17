@@ -1,0 +1,41 @@
+{
+ "page": "/framework/ext/drawer/",
+ "session_file": "/framework/ext/drawer/ai/v-8sqhbnl.jsonl",
+ "owner_sentences": [
+  "Please file a task for this page.",
+  "The page should show a coral badge when its README is staying."
+ ],
+ "seconds_from_last_sentence": {
+  "place_line": 4.7,
+  "task_folder": 7.9,
+  "ai_log_line": 9.2,
+  "feed_row": 9.2
+ },
+ "seconds_by_file_stamps": {
+  "place_line": 4.8,
+  "task_log_line": 9.2
+ },
+ "task_folder": "coral-badge-when-readme-is-staying",
+ "feed_text": "☑opened: Coral badge when README is staying10-17 13:25",
+ "new_log_lines": [
+  {
+   "session": {
+    "id": "v-8sqhbnl",
+    "event": "started",
+    "title": null,
+    "file": "/framework/ext/drawer/ai/v-8sqhbnl.jsonl",
+    "at": "2026-10-17T13:25:37.147-05:00"
+   }
+  },
+  {
+   "task": {
+    "dir": "public/framework/ext/drawer/tasks/coral-badge-when-readme-is-staying",
+    "event": "opened",
+    "title": "Coral badge when README is staying",
+    "at": "2026-10-17T13:25:49.740-05:00"
+   }
+  }
+ ],
+ "new_chat_lines": [],
+ "errors": []
+}
