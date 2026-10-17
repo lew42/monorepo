@@ -34,4 +34,24 @@ assert.deepEqual(d.totals, { done: 2, undone: 2, unroutable: 1 }, "a1 done by it
 const dict = d.modules.find(m => m.module === "ux/Dictate");
 assert.equal(dict.asks.find(a => a.text.startsWith("Stream")).where.kind, "inbox", "an undone refined ask sits in its module inbox");
 assert.equal(dict.asks.find(a => a.text.startsWith("Stream")).days, 2);
+// keep_owned: a rebuild over a file holding verdicts and task links keeps both; an ask that vanished lands in `retired`
+const file = path.join(root, "undone.json");
+const first = JSON.parse(JSON.stringify(d)), gone = { id: "gone000001", state: "undone", text: "An ask whose prompt was edited away", verified: "undone", task: "public/framework/x/tasks/gone/" };
+const stream = first.modules.find(m => m.module === "ux/Dictate").asks.find(a => a.text.startsWith("Stream"));
+Object.assign(stream, { verified: "undone", verified_evidence: "looked in Dictate", verified_by: "test", task: "public/framework/ux/Dictate/tasks/stream/" });
+first.modules.find(m => m.module === "ux/Dictate").asks.push(gone);
+fs.writeFileSync(file, JSON.stringify(first));
+const again = await new UndoneAsks({ root, now: Date.parse("2026-10-18T00:00:00Z") }).build();
+const res = UndoneAsks.keep_owned(again, file);
+const kept = again.modules.find(m => m.module === "ux/Dictate").asks.find(a => a.text.startsWith("Stream"));
+assert.equal(kept.verified, "undone", "the verdict survives the rebuild");
+assert.equal(kept.task, "public/framework/ux/Dictate/tasks/stream/", "the task link survives the rebuild");
+assert.deepEqual(res, { kept: 1, retired: 1 });
+assert.equal(again.retired[0].id, "gone000001", "the vanished ask is kept, not dropped");
+assert.equal(again.retired[0].task, gone.task);
+assert.equal(again.retired[0].retired_at, again.generated_at, "with the date it left");
+assert.equal(again.retired[0].module, "ux/Dictate");
+assert.equal(UndoneAsks.keep_owned(again, file).retired, 1, "a second pass keeps the retired row once");
+fs.writeFileSync(file, JSON.stringify(again));
+assert.equal(UndoneAsks.keep_owned(await new UndoneAsks({ root, now: Date.parse("2026-10-19T00:00:00Z") }).build(), file).retired, 1, "retired rows survive the next rebuild too");
 console.log("UndoneAsks: ok");

@@ -31,7 +31,7 @@ export default class UndoneAsks {
 	static MIN_SHARED = 3;     // words an ask and a task title must share before the task counts as "the same work"
 	static MIN_SHARE = 0.5;    // ... and that share of the ask's own words
 	static DAY = 86400000;
-	static VERIFIED = ["verified", "verified_evidence", "verified_looked", "verified_at", "verified_by"];   // written by Server/UndoneVerify.mjs, carried across rebuilds by ask id
+	static OWNED = ["verified", "verified_evidence", "verified_looked", "verified_at", "verified_by", "task"];   // written by Server/UndoneVerify.mjs and UndoneToTasks.mjs, carried across rebuilds by ask id (keep_owned)
 
 	/** A stable id for an ask: the same prompt line and wording gives the same id on every rebuild. */
 	static ask_id(r){ return crypto.createHash("sha1").update([r.kind, r.source, r.text_full].join("|")).digest("hex").slice(0, 10); }
@@ -185,17 +185,28 @@ export default class UndoneAsks {
 			sources: { refined: rows.filter(r => r.kind === "refined").length, routed: rows.filter(r => r.kind === "routed").length, tasks: tasks.length, inboxes: [...this._inbox.values()].filter(m => m.size).length, inbox_lines: [...this._inbox.values()].reduce((n, m) => n + m.size, 0) }, modules };
 	}
 
-	/** Carry the verifier's fields from the last written file onto a fresh build, by ask id (a rebuild never overwrites a verdict). */
-	static carry(d, file){
-		let old; try { old = JSON.parse(fs.readFileSync(file, "utf8")); } catch { return 0; }
-		const had = new Map(old.modules.flatMap(m => m.asks).filter(a => a.verified).map(a => [a.id, a]));
-		let n = 0;
+	/**
+	 * keep_owned: the daily rebuild keeps what later steps wrote. Reads the last written file, indexes its asks by ask id, and carries every
+	 * field a later step owns (OWNED: the verifier's verdict fields and `task`) onto the rebuilt rows. A row whose ask no longer exists moves
+	 * to `d.retired` with the date it left (nothing lost). Brief: ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/undone-rebuild/requirements.md
+	 * Returns { kept, retired } counts.
+	 */
+	static keep_owned(d, file){
+		let old; try { old = JSON.parse(fs.readFileSync(file, "utf8")); } catch { return { kept: 0, retired: 0 }; }
+		const had = new Map(old.modules.flatMap(m => m.asks.map(a => [a.id, { ...a, module: m.module }])));
+		const now = new Set(d.modules.flatMap(m => m.asks.map(a => a.id)));
+		let kept = 0;
 		for (const a of d.modules.flatMap(m => m.asks)){
 			const o = had.get(a.id); if (!o) continue;
-			for (const k of UndoneAsks.VERIFIED) if (o[k] !== undefined) a[k] = o[k];
-			n++;
+			let any = false;
+			for (const k of UndoneAsks.OWNED) if (o[k] !== undefined){ a[k] = o[k]; any = true; }
+			if (any) kept++;
 		}
-		return n;
+		const gone = (old.retired ?? []).filter(r => !now.has(r.id));
+		const seen = new Set(gone.map(r => r.id)), at = d.generated_at;
+		for (const [id, o] of had) if (!now.has(id) && !seen.has(id)) gone.push({ ...o, retired_at: at });
+		d.retired = gone;
+		return { kept, retired: gone.length };
 	}
 
 	// ---- output ------------------------------------------------------------------------------------
@@ -215,8 +226,8 @@ export default class UndoneAsks {
 		if (argv.includes("--json")){
 			const out = path.resolve(val("--out") ?? path.join(HERE, UndoneAsks.OUT));
 			fs.mkdirSync(path.dirname(out), { recursive: true });
-			const kept = UndoneAsks.carry(d, out);
-			if (kept) console.log("kept " + kept + " verified verdicts");
+			const { kept, retired } = UndoneAsks.keep_owned(d, out);
+			console.log(`kept ${kept} rows with verdicts or task links; ${retired} retired`);
 			fs.writeFileSync(out, JSON.stringify(d, null, 1));
 			console.log("wrote " + out);
 		}

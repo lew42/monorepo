@@ -2,6 +2,8 @@
 
 The page is [/framework/ai/asks/undone/](/framework/ai/asks/undone/); the numbers come from `node Server/UndoneAsks.mjs --json` (class `UndoneAsks`, rebuilt by TaskLoop once a day), never from memory. Your words: asks 1 to 3 of [requirements-15](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-15.md) and ask 3 of [requirements-14](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/requirements-14.md).
 
+The daily rebuild keeps verdicts and task links: `UndoneAsks.keep_owned` carries `verified*` and `task` onto each rebuilt row by ask id, and an ask that disappears moves to `retired` with its date, so nothing is lost (brief: [undone-rebuild](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/undone-rebuild/requirements.md)).
+
 ## The count
 
 - **1,150 asks** exist: 1,080 refined from your prompts ([asks-by-module](asks-by-module.md)) and 70 routed to masterminds ([the ledger](/framework/ai/asks/)).

@@ -34,7 +34,7 @@ assert.deepEqual(u.write_batches(path.join(root, "again")).map(b => b.asks), [13
 
 // carry: a rebuild keeps verdicts by id
 const fresh = { modules: [{ module: "ux/Dictate", asks: [{ id: ids[0], state: "undone" }, { id: "new" }] }] };
-assert.equal(UndoneAsks.carry(fresh, u.file), 1);
+assert.equal(UndoneAsks.keep_owned(fresh, u.file).kept, 1);
 assert.equal(fresh.modules[0].asks[0].verified, "done");
 assert.equal(fresh.modules[0].asks[1].verified, undefined);
 assert.equal(UndoneAsks.ask_id({ kind: "a", source: "s", text_full: "t" }), UndoneAsks.ask_id({ kind: "a", source: "s", text_full: "t" }));
