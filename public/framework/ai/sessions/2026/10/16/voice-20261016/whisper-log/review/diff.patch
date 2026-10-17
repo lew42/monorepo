@@ -1,0 +1,778 @@
+diff --git a/public/framework/audio/Whisper/WhisperLog.css b/public/framework/audio/Whisper/WhisperLog.css
+new file mode 100644
+index 000000000..1d570cb07
+--- /dev/null
++++ b/public/framework/audio/Whisper/WhisperLog.css
+@@ -0,0 +1,35 @@
++@layer base, theme, site, util;
++
++@layer site {
++	.wl { display: grid; gap: .4em; font-size: .85em; inline-size: clamp(20rem, 100vw - 24rem, 160rem); max-inline-size: none; }   /* the page measure is too narrow for a seven-column table */
++	.wl-head { display: flex; flex-wrap: wrap; gap: .3em .8em; align-items: baseline; }
++	.wl-stat { opacity: .7; }
++	.wl-run { font: inherit; padding: .05em .5em; border: 1px solid color-mix(in srgb, currentColor 25%, transparent); border-radius: 1em; background: none; color: inherit; cursor: pointer; }
++	.wl-run.is-on { background: color-mix(in srgb, seagreen 25%, transparent); }
++	.wl-rows { max-block-size: 70vh; overflow: auto; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: .4em; }
++	.wl-row { display: grid; grid-template-columns: 2.5em 8em 5.5em 10.5em 15em minmax(24em, 1fr); min-inline-size: 66em; gap: .5em; padding: .15em .4em; align-items: baseline; cursor: pointer; border-block-end: 1px solid color-mix(in srgb, currentColor 8%, transparent); }
++	.wl-headrow { z-index: 1; position: sticky; inset-block-start: 0; background: Canvas; font-weight: 600; cursor: default; }
++	.wl-seq, .wl-clock, .wl-gap, .wl-origin { font-variant-numeric: tabular-nums; opacity: .75; }
++	.wl-gap { display: block; opacity: .5; }
++	.wl-chip { display: inline-block; white-space: nowrap; padding: 0 .5em; border-radius: 1em; background: color-mix(in srgb, gray 25%, transparent); margin-inline-end: .3em; }
++	.wl-row.k-interim, .wl-row.k-guess { opacity: .65; }
++	.wl-row.k-final .wl-chip, .wl-row.k-commit .wl-chip { background: color-mix(in srgb, seagreen 35%, transparent); }
++	.wl-row.k-deliver .wl-chip, .wl-row.k-go .wl-chip, .wl-row.k-chunk .wl-chip { background: color-mix(in srgb, royalblue 30%, transparent); }
++	.wl-row.k-stale .wl-chip, .wl-row.k-commit-dropped .wl-chip { background: color-mix(in srgb, goldenrod 40%, transparent); }
++	.wl-chip.wl-amend { background: color-mix(in srgb, orange 45%, transparent); }
++	.wl-chip.wl-dupchip { background: color-mix(in srgb, crimson 45%, transparent); }
++	.wl-row.is-dup { background: color-mix(in srgb, crimson 12%, transparent); }
++	.wl-row.c-amend { background: color-mix(in srgb, orange 12%, transparent); }
++	.wl-w.wl-add { background: color-mix(in srgb, seagreen 30%, transparent); }
++	.wl-w.wl-del { background: color-mix(in srgb, crimson 25%, transparent); text-decoration: line-through; }
++	.wl-note { opacity: .5; }
++	.wl-detail { padding: .3em .6em; background: color-mix(in srgb, currentColor 5%, transparent); }
++	.wl-json { white-space: pre-wrap; word-break: break-word; font-family: monospace; max-block-size: 20em; overflow: auto; }
++	.wl-legend { opacity: .65; }
++	@media (max-width: 48rem) {
++		.wl-headrow { display: none; }
++		.wl-row { grid-template-columns: 2.5em 7.5em 4.5em 1fr; min-inline-size: 0; }
++		.wl-origin, .wl-text { grid-column: 2 / -1; }
++	}
++	.wl-empty { padding: .8em; }
++}
+diff --git a/public/framework/audio/Whisper/WhisperLog.js b/public/framework/audio/Whisper/WhisperLog.js
+new file mode 100644
+index 000000000..7c1c0e7e3
+--- /dev/null
++++ b/public/framework/audio/Whisper/WhisperLog.js
+@@ -0,0 +1,192 @@
++import { View, div, span, button } from "../../core/View/View.js";
++import JSONL from "../../ext/JSONL/JSONL.js";
++import FsFile from "../../ext/filesystem/FsFile.js";
++import Rows from "./WhisperLogRows.js";
++
++View.stylesheet(import.meta, "WhisperLog.css");
++
++/**
++ * class WhisperLog — the one log of everything between the microphone and the page, one line per event,
++ * every line numbered in the order it happened.
++ *
++ *   WhisperLog.event("composer", "deliver", { msg: "What is it?", req: 4 });   // anyone can add a line
++ *   WhisperLog.attach(mic, system);                                            // wires the downstream events (below)
++ *   new WhisperLog();                                                          // the view: a table that tails the file
++ *
++ * A line: `{ seq, run, t, at, src, kind, msg, ...whatever else }`. `seq` counts up per page load (`run` names it, so
++ * two tabs never mix); `src` is where it came from, `kind` what happened:
++ *
++ *   server   interim | final   whisper-server's own reply to one request: `msg` is its text, `server` its WHOLE
++ *                              answer (segments, word probabilities, no_speech_prob), `req`, `segment`, `ms`
++ *   dictate  guess | commit | stale   what `ux/Dictate` did with a reply (a reply dropped as out of date is "stale")
++ *   composer commit-in | commit-dropped | enqueue | post | send-check | deliver    the box and the send queue (`ext/Chat/Mic.js`)
++ *   refine   sending | go | chunk | done | sentences    `RefineSystem`: the send to the cleaner, the chunk, the sentence list
++ *
++ * Stored in `/framework/ai/whisper/<date>.jsonl`, the day file `WhisperSession` already wrote (one store, one writer,
++ * tailed by `JSONL.live()`); old lines have no `seq` and the table skips them. Nothing records unless a page wires
++ * it: `WhisperSession.record` (the server lines) and `attach()` (the rest). Reading rules: `WhisperLogRows.js`.
++ * Doc: `audio/Whisper/readme.md`.
++ */
++export default class WhisperLog extends View {
++	static icon = "receipt_long";
++	static dir = "/framework/ai/whisper/";
++	static path(){ return `${WhisperLog.dir}${new Date().toISOString().slice(0, 10)}.jsonl`; }
++
++	static run = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
++	static seq = 0;
++	static where = globalThis.location?.pathname ?? "";
++
++	/** An ISO time as local time (the file keeps UTC): `19:08:55.880`, or with `date` false `10-16 19:08:50`. */
++	static local(at, ms = false){
++		const d = new Date(at);
++		if (isNaN(d)) return "";
++		const p = (n, w = 2) => String(n).padStart(w, "0"), clock = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
++		return ms ? `${clock}.${p(d.getMilliseconds(), 3)}` : `${p(d.getMonth() + 1)}-${p(d.getDate())} ${clock}`;
++	}
++
++	/** Add one line. Returns its `seq` at once; the write is not awaited and never throws. */
++	static event(src, kind, fields = {}){
++		const seq = ++WhisperLog.seq;
++		const t = globalThis.performance ? +(performance.timeOrigin + performance.now()).toFixed(2) : Date.now();
++		const line = { seq, run: WhisperLog.run, t, at: new Date().toISOString(), src, kind, ...fields };
++		if (seq === 1) line.page = WhisperLog.where;
++		try { FsFile.append(WhisperLog.path(), line).catch(() => {}); } catch {}
++		return seq;
++	}
++
++	/** One whisper-server reply, in the shape `Dictate.on_whisper` and `WhisperSession.record` use. */
++	static record({ kind, text, body, ...rest }){
++		return WhisperLog.event("server", kind, { msg: text ?? "", server: body, ...rest });
++	}
++
++	/** Wire the downstream half: `mic` is a `ComposerMic`/`Dictate`, `system` a `RefineSystem` (either may be omitted).
++	 *  Only wraps methods on these two instances; each wrapper logs, then calls the original and returns its result. */
++	static attach(mic, system){
++		const E = WhisperLog.event;
++		const wrap = (obj, name, before, after) => {
++			const orig = obj[name];
++			if (typeof orig !== "function" || orig.wl) return;
++			const fn = function(...args){
++				try { before?.(args); } catch {}
++				const out = orig.apply(this, args);
++				try { after?.(args, out); } catch {}
++				return out;
++			};
++			fn.wl = true;
++			obj[name] = fn;
++		};
++		if (mic){
++			mic.on_trace = (kind, f) => E("dictate", kind, f);
++			mic.response_format = "verbose_json";   // the log wants everything the server says; ~70 ms slower per reply, so only a mic that is logged
++			const guess = mic.on_guess;
++			mic.on_guess = text => { E("dictate", "guess", { msg: text }); return guess?.call(mic, text); };
++			let pushed = 0;
++			wrap(mic, "commit", ([text, reason]) => { pushed = 0; E("composer", "commit-in", { msg: String(text ?? ""), reason }); },
++				([text]) => { if (!pushed) E("composer", "commit-dropped", { msg: String(text ?? ""), why: "stripped as already sent, or an annotation" }); });
++			wrap(mic, "push_to_target", ([text, reason, chunk]) => { pushed++; E("dictate", "commit", { msg: String(text ?? ""), reason, chunk }); });
++			wrap(mic, "enqueue", ([items]) => (items ?? []).forEach(it => E("composer", "enqueue", { msg: typeof it === "string" ? it : it.text, raw: it?.raw ?? undefined })));
++			wrap(mic, "post_held", ([item]) => E("composer", "post", { msg: typeof item === "string" ? item : item?.text, raw: item?.raw ?? undefined }));
++			wrap(mic, "same_as_last_send", null, (a, dup) => E("composer", "send-check", { msg: String(a[0] ?? ""), dup }));
++			const deliver = mic.deliver;
++			if (typeof deliver === "function") mic.deliver = (entry, ...r) => { E("composer", "deliver", { msg: entry?.text, raw: entry?.raw, via: entry?.via }); return deliver.call(mic, entry, ...r); };
++		}
++		if (system){
++			wrap(system, "sending_start", ([text]) => E("refine", "sending", { msg: String(text ?? "") }));
++			wrap(system, "go", ([text]) => E("refine", "go", { msg: String(text ?? "").trim() }),
++				([text], p) => {
++					E("refine", "chunk", { msg: String(text ?? "").trim(), n: system.chunks.length });
++					Promise.resolve(p).then(() => { const c = system.chunks.at(-1); if (c) E("refine", "done", { msg: c.raw, status: c.status, ms: c.ms, error: c.error || undefined }); }).catch(() => {});
++				});
++			let before = "";
++			wrap(system, "compose", null, () => {
++				const sentences = (system.prompt?.clean ?? []).map(s => s.text), key = sentences.join("\u0001");
++				if (key === before || !sentences.length) return;
++				before = key;
++				const repeats = sentences.filter((s, i) => i && Rows.norm(s) && Rows.norm(s) === Rows.norm(sentences[i - 1])).length;
++				E("refine", "sentences", { msg: sentences.at(-1), n: sentences.length, all: sentences, repeats: repeats || undefined });
++			});
++		}
++		return WhisperLog;
++	}
++
++	// ---- the view ----
++
++	render(){
++		this.ac("wl");
++		this.only_problems = false;
++		this.$head = div.c("wl-head");
++		div.c("wl-legend", "req = the request number sent to whisper-server · seg = which segment · conf = the average word confidence (1 is sure) · nospeech = the chance the audio was not speech · click a row for everything it recorded.");
++		this.$rows = div.c("wl-rows");
++		this.log = new JSONL({ url: WhisperLog.path() });
++		this.log.live(() => this.draw()).then(() => this.draw());   // live() calls back for later lines only; the first replay resolves the promise
++		this.draw();
++	}
++
++	lines(){ return (this.log?.logs ?? []).filter(l => l && l.seq != null); }
++
++	draw(){
++		const all = this.lines(), runs = Rows.runs(all);
++		this.run ??= runs.at(-1);
++		if (this.run && !runs.includes(this.run)) this.run = runs.at(-1);
++		let rows = Rows.annotate(all.filter(l => l.run === this.run));
++		const sum = Rows.summary(rows);
++		if (this.only_problems) rows = rows.filter(r => r.change === "amend" || r.dup_of != null);
++		this.$head.empty(() => {
++			h4.c("wl-title", "Whisper log: every event, in order");
++			span.c("wl-stat", `${sum.rows} events · ${sum.amends} amended · ${sum.dups} duplicates`);
++			runs.forEach(r => button.c(`wl-run${r === this.run ? " is-on" : ""}`, this.run_label(r, all)).click(() => { this.run = r; this.draw(); }));
++			button.c(`wl-run${this.only_problems ? " is-on" : ""}`, "problems only").click(() => { this.only_problems = !this.only_problems; this.draw(); });
++		});
++		const stick = this.$rows.el.scrollTop + this.$rows.el.clientHeight >= this.$rows.el.scrollHeight - 40;
++		this.$rows.empty(() => {
++			if (!rows.length) return div.c("wl-empty muted", "Nothing yet. Speak into a page that wires the log (the Refine page does).");
++			div.c("wl-row wl-headrow", () => { ["#", "time", "src", "kind", "origin", "text (changed words vs the previous line)"].forEach(t => span.c("wl-h", t)); });
++			let prev_t = null;
++			rows.forEach(r => {
++				const gap = prev_t == null ? "" : `+${Math.round(r.t - prev_t)} ms`;
++				prev_t = r.t;
++				const box = div.c(`wl-row is-${r.src} k-${r.kind} c-${r.change}${r.dup_of != null ? " is-dup" : ""}`, () => {
++					span.c("wl-seq", String(r.seq));
++					span.c("wl-at", () => { span.c("wl-clock", WhisperLog.local(r.at, true)); span.c("wl-gap", gap); });
++					span.c("wl-src", r.src);
++					span.c("wl-kind", () => {
++						span.c("wl-chip", r.kind);
++						if (r.change === "amend") span.c("wl-chip wl-amend", "amended");
++						if (r.dup_of != null) span.c("wl-chip wl-dupchip", `same as #${r.dup_of}`);
++					});
++					span.c("wl-origin", this.origin(r));
++					span.c("wl-text", () => {
++						if (r.diff && r.change !== "same") r.diff.forEach(d => span.c(`wl-w wl-${d.op}`, d.w + " "));
++						else span.c("wl-w", r.msg ?? "");
++						if (r.change === "same" && r.prev_seq != null) span.c("wl-note", ` (unchanged from #${r.prev_seq})`);
++					});
++				});
++				const detail = div.c("wl-detail", () => { div.c("wl-json", JSON.stringify(this.detail(r), null, 1)); });
++				detail.el.hidden = true;
++				box.el.addEventListener("click", () => { detail.el.hidden = !detail.el.hidden; });
++			});
++		});
++		if (stick) this.$rows.el.scrollTop = this.$rows.el.scrollHeight;
++	}
++
++	/** A run button reads as its start time and size, so a run is findable without knowing its id. */
++	run_label(run, all){
++		const mine = all.filter(l => l.run === run);
++		return `${WhisperLog.local(mine[0]?.at)} · ${mine.length}`;
++	}
++
++	/** The ids that say where a line came from, so a duplicate shows two different origins. */
++	origin(r){
++		const bits = [];
++		if (r.req != null) bits.push(`req ${r.req}`);
++		if (r.segment != null) bits.push(`seg ${r.segment}`);
++		if (r.chunk) bits.push(`chunk ${String(r.chunk).slice(0, 6)}`);
++		if (r.n != null) bits.push(`n ${r.n}`);
++		if (r.ms != null) bits.push(`${r.ms} ms`);
++		const s = r.server?.segments;
++		if (s?.length) bits.push(`conf ${(s.reduce((a, x) => a + Math.exp(x.avg_logprob ?? 0), 0) / s.length).toFixed(2)}`, `nospeech ${Math.max(...s.map(x => x.no_speech_prob ?? 0)).toExponential(0)}`);
++		return bits.join(" · ");
++	}
++
++	detail(r){ const { diff, ...rest } = r; return rest; }
++}
+diff --git a/public/framework/audio/Whisper/WhisperLogRows.js b/public/framework/audio/Whisper/WhisperLogRows.js
+new file mode 100644
+index 000000000..3170db014
+--- /dev/null
++++ b/public/framework/audio/Whisper/WhisperLogRows.js
+@@ -0,0 +1,84 @@
++/**
++ * class WhisperLogRows — the pure half of the Whisper log: how to read a list of log lines. No DOM, so
++ * `node --test` runs it. `WhisperLog.View` draws what `annotate()` returns.
++ *
++ *   const rows = WhisperLogRows.annotate(lines);   // sorted; each row gains .change .diff .dup_of
++ *
++ * `change` says what a row did to the previous row of its lane (same segment of Whisper replies, or the same
++ * stage downstream): "new", "same", "grow" (only words added at the end), "amend" (an earlier word changed).
++ * `dup_of` is the `seq` of an earlier row at the same stage with the same words: the duplicate to look for.
++ * Doc: `audio/Whisper/readme.md`.
++ */
++export default class WhisperLogRows {
++
++	/** Stages where the same words appearing twice means a duplicate. A grey interim guess repeating is normal, so it is not here. */
++	static DUP_STAGES = new Set(["server:final", "dictate:commit", "composer:enqueue", "composer:post", "composer:deliver", "refine:go", "refine:chunk", "chat:bubble"]);
++
++	static norm(t){ return String(t ?? "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim(); }
++	static words(t){ return String(t ?? "").trim().split(/\s+/).filter(Boolean); }
++	static stage(row){ return `${row.src}:${row.kind}`; }
++
++	/** The lane a row is compared inside: Whisper replies of one segment, else the same stage. */
++	static lane(row){ return row.src === "server" && row.segment != null ? `server:${row.segment}` : WhisperLogRows.stage(row); }
++
++	/** Word diff of `b` against `a` (LCS, case and trailing punctuation ignored): [{w, op: "same"|"add"|"del"}]. */
++	static diff(a, b){
++		const A = WhisperLogRows.words(a), B = WhisperLogRows.words(b), n = (w) => w.toLowerCase().replace(/[.,!?;:]+$/, "");
++		const L = Array.from({ length: A.length + 1 }, () => new Array(B.length + 1).fill(0));
++		for (let i = A.length - 1; i >= 0; i--) for (let j = B.length - 1; j >= 0; j--)
++			L[i][j] = n(A[i]) === n(B[j]) ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
++		const out = [];
++		let i = 0, j = 0;
++		while (i < A.length && j < B.length){
++			if (n(A[i]) === n(B[j])){ out.push({ w: B[j], op: "same" }); i++; j++; }
++			else if (L[i + 1][j] >= L[i][j + 1]) out.push({ w: A[i++], op: "del" });
++			else out.push({ w: B[j++], op: "add" });
++		}
++		while (i < A.length) out.push({ w: A[i++], op: "del" });
++		while (j < B.length) out.push({ w: B[j++], op: "add" });
++		return out;
++	}
++
++	/** "new" | "same" | "grow" | "amend": what `text` did to the `before` text of its lane. */
++	static change(before, text){
++		if (before == null) return "new";
++		const d = WhisperLogRows.diff(before, text);
++		if (d.every(x => x.op === "same")) return "same";
++		const shared = d.filter(x => x.op === "same").length, shorter = Math.min(WhisperLogRows.words(before).length, WhisperLogRows.words(text).length);
++		if (shared < shorter / 2) return "new";   // a different sentence in the same lane, not a rewrite of the last one
++		const del = d.some(x => x.op === "del");
++		if (!del) return "grow";
++		// the last word of a guess is still forming: a lone changed last word is a tweak, not an amend of earlier words
++		const cut = d.findLastIndex(x => x.op === "same");
++		const tail_only = !d.slice(0, cut + 1).some(x => x.op !== "same");
++		return tail_only && d.filter(x => x.op === "del").length <= 1 ? "grow" : "amend";
++	}
++
++	/** Sort by time then seq, and mark every row: change, diff against its lane's previous row, dup_of. */
++	static annotate(lines){
++		const rows = [...lines].filter(l => l && l.seq != null).sort((a, b) => (a.t ?? 0) - (b.t ?? 0) || a.seq - b.seq);
++		const last = new Map(), seen = new Map();
++		return rows.map(r => {
++			const row = { ...r }, text = r.msg ?? "", lane = WhisperLogRows.lane(r);
++			const prev = last.get(lane);
++			row.change = text ? WhisperLogRows.change(prev?.msg, text) : "none";
++			row.diff = text && prev?.msg ? WhisperLogRows.diff(prev.msg, text) : null;
++			row.prev_seq = prev?.seq ?? null;
++			if (text) last.set(lane, r);
++			const stage = WhisperLogRows.stage(r), key = `${r.run}|${stage}|${WhisperLogRows.norm(text)}`;
++			if (text && WhisperLogRows.DUP_STAGES.has(stage) && WhisperLogRows.norm(text).length > 1){
++				if (seen.has(key)) row.dup_of = seen.get(key); else seen.set(key, r.seq);
++			}
++			return row;
++		});
++	}
++
++	static runs(lines){ return [...new Set(lines.filter(l => l?.run).map(l => l.run))]; }
++
++	/** One line of facts: how many replies, how many amended, how many duplicates, per stage. */
++	static summary(rows){
++		const by = {};
++		for (const r of rows){ const s = WhisperLogRows.stage(r); by[s] = (by[s] ?? 0) + 1; }
++		return { rows: rows.length, amends: rows.filter(r => r.change === "amend").length, dups: rows.filter(r => r.dup_of != null).length, by };
++	}
++}
+diff --git a/public/framework/audio/Whisper/WhisperLogRows.test.mjs b/public/framework/audio/Whisper/WhisperLogRows.test.mjs
+new file mode 100644
+index 000000000..285035e35
+--- /dev/null
++++ b/public/framework/audio/Whisper/WhisperLogRows.test.mjs
+@@ -0,0 +1,51 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import Rows from "./WhisperLogRows.js";
++
++const line = (seq, src, kind, msg, extra = {}) => ({ seq, t: seq * 10, run: "r1", src, kind, msg, ...extra });
++
++test("diff marks added and removed words", () => {
++	const d = Rows.diff("and so my fellow", "and so, my fellow Americans");
++	assert.deepEqual(d.filter(x => x.op !== "same").map(x => x.w), ["Americans"]);
++});
++
++test("change: new, same, grow, amend", () => {
++	assert.equal(Rows.change(null, "hello there"), "new");
++	assert.equal(Rows.change("hello there", "Hello there."), "same");
++	assert.equal(Rows.change("hello there", "hello there my friend"), "grow");
++	assert.equal(Rows.change("what is the county doing", "what is the country doing today"), "amend");
++	assert.equal(Rows.change("It has two sentences.", "And so, my fellow Americans"), "new");   // another sentence, not a rewrite
++});
++
++test("annotate: an interim amended inside one segment is flagged against the previous reply of that segment", () => {
++	const rows = Rows.annotate([
++		line(1, "server", "interim", "so there is interim", { segment: 0 }),
++		line(2, "server", "interim", "so there's interim and final", { segment: 0 }),
++		line(3, "server", "final", "So there's interim and final.", { segment: 0 }),
++	]);
++	assert.equal(rows[0].change, "new");
++	assert.equal(rows[1].change, "amend");
++	assert.equal(rows[2].change, "same");
++	assert.equal(rows[2].prev_seq, 2);
++});
++
++test("annotate: the same words at the same downstream stage twice is a duplicate with its origin", () => {
++	const rows = Rows.annotate([
++		line(1, "composer", "deliver", "What is minion-kaq?", { req: 4 }),
++		line(2, "composer", "deliver", "what is minion kaq", { req: 5 }),
++		line(3, "composer", "enqueue", "What is minion-kaq?"),
++	]);
++	assert.equal(rows[0].dup_of, undefined);
++	assert.equal(rows[1].dup_of, 1);
++	assert.equal(rows[2].dup_of, undefined);   // a different stage is the normal path, not a duplicate
++});
++
++test("annotate: repeated interim guesses are never duplicates", () => {
++	const rows = Rows.annotate([line(1, "server", "interim", "okay", { segment: 0 }), line(2, "server", "interim", "okay", { segment: 1 })]);
++	assert.equal(rows.filter(r => r.dup_of != null).length, 0);
++});
++
++test("summary counts", () => {
++	const rows = Rows.annotate([line(1, "server", "final", "yes sir"), line(2, "server", "final", "yes sir")]);
++	assert.deepEqual(Rows.summary(rows).dups, 1);
++});
+diff --git a/public/framework/audio/Whisper/WhisperSession.js b/public/framework/audio/Whisper/WhisperSession.js
+index 4bed7122b..ad1813fe4 100644
+--- a/public/framework/audio/Whisper/WhisperSession.js
++++ b/public/framework/audio/Whisper/WhisperSession.js
+@@ -1,5 +1,5 @@
+ import { View, div, span, h4 } from "../../core/View/View.js";
+-import FsFile from "../../ext/filesystem/FsFile.js";
++import WhisperLog from "./WhisperLog.js";
+ 
+ View.stylesheet(import.meta, "Whisper.css");
+ 
+@@ -24,8 +24,8 @@ const norm = w => w.toLowerCase().replace(/[.,!?;:]+$/, "");
+ export default class WhisperSession {
+ 
+ 	static icon = "graphic_eq";
+-	static dir = "/framework/ai/whisper/";
+-	static path(){ return `${WhisperSession.dir}${new Date().toISOString().slice(0, 10)}.jsonl`; }
++	static dir = WhisperLog.dir;
++	static path(){ return WhisperLog.path(); }
+ 
+ 	name = "";
+ 	started_at = "";
+@@ -38,7 +38,7 @@ export default class WhisperSession {
+ 		this.started_at ||= new Date().toISOString();
+ 	}
+ 
+-	record({ kind, ms, text, raw, bytes = 0, seconds = 0 }){
++	record({ kind, ms, text, raw, bytes = 0, seconds = 0, req, segment, body }){
+ 		if (!text) return;
+ 		const now = Date.now();
+ 		const prev = this.requests.at(-1);
+@@ -47,7 +47,7 @@ export default class WhisperSession {
+ 		if (change){ row.amended = true; this.amendments.push({ at: row.at, request: this.requests.length, ...change }); }
+ 		this.last_guess = kind === "interim" ? text : "";
+ 		this.requests.push(row);
+-		FsFile.append(WhisperSession.path(), { at: row.at, session: this.name, kind, ms, bytes, seconds: row.seconds, gap_ms: row.gap_ms, msg: text, raw, amended: row.amended || undefined }).catch(() => {});
++		WhisperLog.record({ kind, text, body, session: this.name, ms, bytes, seconds: row.seconds, gap_ms: row.gap_ms, raw, req, segment, amended: row.amended || undefined });   // the one writer: audio/Whisper/WhisperLog.js
+ 		this.on_change?.(this);
+ 	}
+ 
+diff --git a/public/framework/audio/Whisper/doc/proof-2026-10-16.jsonl b/public/framework/audio/Whisper/doc/proof-2026-10-16.jsonl
+new file mode 100644
+index 000000000..fa26c078e
+--- /dev/null
++++ b/public/framework/audio/Whisper/doc/proof-2026-10-16.jsonl
+@@ -0,0 +1,39 @@
++{"seq":1,"run":"mvbn28wlej8","t":1792195730211.5,"at":"2026-10-17T00:08:50.211Z","src":"server","kind":"interim","msg":"And so, my fellow American","server":{"task":"transcribe","language":"english","duration":1.968000054359436,"text":" And so, my fellow American\n","segments":[{"id":0,"text":" And so, my fellow American","start":0.1,"end":1.98,"tokens":[400,370,11,452,7177,2665],"words":[{"word":" And","start":0.03,"end":0.32,"t_dtw":-1,"probability":0.721247673034668},{"word":" so","start":0.33,"end":0.48,"t_dtw":-1,"probability":0.9935739040374756},{"word":",","start":0.76,"end":0.77,"t_dtw":-1,"probability":0.8115046620368958},{"word":" my","start":0.77,"end":0.91,"t_dtw":-1,"probability":0.983550488948822},{"word":" fellow","start":0.99,"end":1.67,"t_dtw":-1,"probability":0.9987114667892456},{"word":" American","start":1.67,"end":1.67,"t_dtw":-1,"probability":0.6272466778755188}],"temperature":0,"avg_logprob":-0.12829697132110596,"no_speech_prob":1.6580710329033854e-12}],"detected_language":"english","detected_language_probability":0.9998347759246826,"language_probabilities":{"en":0.9998347759246826}},"session":"Refine demo","ms":314,"bytes":63020,"seconds":1.97,"gap_ms":0,"raw":" And so, my fellow American\n","req":1,"segment":0,"page":"/framework/ext/Refine/"}
++{"seq":2,"run":"mvbn28wlej8","t":1792195730217.8,"at":"2026-10-17T00:08:50.217Z","src":"refine","kind":"sentences","msg":"And so, my fellow American.","n":1,"all":["And so, my fellow American."]}
++{"seq":3,"run":"mvbn28wlej8","t":1792195730218,"at":"2026-10-17T00:08:50.218Z","src":"dictate","kind":"guess","msg":"And so, my fellow American"}
++{"seq":4,"run":"mvbn28wlej8","t":1792195731038.1,"at":"2026-10-17T00:08:51.038Z","src":"server","kind":"interim","msg":"And so, my fellow Americans, asked","server":{"task":"transcribe","language":"english","duration":2.9679999351501465,"text":" And so, my fellow Americans, asked\n","segments":[{"id":0,"text":" And so, my fellow Americans, asked","start":0.1,"end":2.98,"tokens":[400,370,11,452,7177,6280,11,2351],"words":[{"word":" And","start":0.03,"end":0.25,"t_dtw":-1,"probability":0.734188437461853},{"word":" so","start":0.25,"end":0.41000000000000003,"t_dtw":-1,"probability":0.9967000484466553},{"word":",","start":0.41000000000000003,"end":0.48,"t_dtw":-1,"probability":0.9257709383964539},{"word":" my","start":0.73,"end":0.73,"t_dtw":-1,"probability":0.9633879065513611},{"word":" fellow","start":0.76,"end":1.22,"t_dtw":-1,"probability":0.9986333847045898},{"word":" Americans","start":1.22,"end":1.8900000000000001,"t_dtw":-1,"probability":0.9926306009292603},{"word":",","start":2.12,"end":2.12,"t_dtw":-1,"probability":0.8522682785987854},{"word":" asked","start":2.27,"end":2.57,"t_dtw":-1,"probability":0.8596541881561279}],"temperature":0,"avg_logprob":-0.07465658336877823,"no_speech_prob":5.797618786961001e-13}],"detected_language":"english","detected_language_probability":0.9998583197593689,"language_probabilities":{"en":0.9998583197593689}},"session":"Refine demo","ms":142,"bytes":95020,"seconds":2.97,"gap_ms":827,"raw":" And so, my fellow Americans, asked\n","req":2,"segment":0}
++{"seq":5,"run":"mvbn28wlej8","t":1792195731043,"at":"2026-10-17T00:08:51.043Z","src":"refine","kind":"sentences","msg":"And so, my fellow Americans, asked.","n":1,"all":["And so, my fellow Americans, asked."]}
++{"seq":6,"run":"mvbn28wlej8","t":1792195731043,"at":"2026-10-17T00:08:51.043Z","src":"dictate","kind":"guess","msg":"And so, my fellow Americans, asked"}
++{"seq":7,"run":"mvbn28wlej8","t":1792195732040,"at":"2026-10-17T00:08:52.040Z","src":"server","kind":"interim","msg":"And so, my fellow Americans, ask not what your country","server":{"task":"transcribe","language":"english","duration":3.9679999351501465,"text":" And so, my fellow Americans, ask not what your country\n","segments":[{"id":0,"text":" And so, my fellow Americans, ask not what your country","start":0.1,"end":3.97,"tokens":[400,370,11,452,7177,6280,11,1029,406,437,428,1941],"words":[{"word":" And","start":0.03,"end":0.18,"t_dtw":-1,"probability":0.7631593346595764},{"word":" so","start":0.2,"end":0.32,"t_dtw":-1,"probability":0.9954841136932373},{"word":",","start":0.33,"end":0.46,"t_dtw":-1,"probability":0.897122859954834},{"word":" my","start":0.46,"end":0.5,"t_dtw":-1,"probability":0.9788315892219543},{"word":" fellow","start":0.76,"end":1,"t_dtw":-1,"probability":0.9983629584312439},{"word":" Americans","start":1,"end":1.59,"t_dtw":-1,"probability":0.9868220090866089},{"word":",","start":1.6600000000000001,"end":1.8,"t_dtw":-1,"probability":0.9689947962760925},{"word":" ask","start":1.8,"end":1.9000000000000001,"t_dtw":-1,"probability":0.9128857254981995},{"word":" not","start":2.27,"end":2.3000000000000003,"t_dtw":-1,"probability":0.9820808172225952},{"word":" what","start":2.3000000000000003,"end":2.63,"t_dtw":-1,"probability":0.9962989687919617},{"word":" your","start":2.63,"end":2.9,"t_dtw":-1,"probability":0.9976605176925659},{"word":" country","start":2.95,"end":3.5500000000000003,"t_dtw":-1,"probability":0.99440997838974}],"temperature":0,"avg_logprob":-0.040861062705516815,"no_speech_prob":4.772467143698833e-13}],"detected_language":"english","detected_language_probability":0.9997237324714661,"language_probabilities":{"en":0.9997237324714661}},"session":"Refine demo","ms":141,"bytes":127020,"seconds":3.97,"gap_ms":1001,"raw":" And so, my fellow Americans, ask not what your country\n","req":3,"segment":0}
++{"seq":8,"run":"mvbn28wlej8","t":1792195732045.2,"at":"2026-10-17T00:08:52.045Z","src":"refine","kind":"sentences","msg":"And so, my fellow Americans, ask not what your country.","n":1,"all":["And so, my fellow Americans, ask not what your country."]}
++{"seq":9,"run":"mvbn28wlej8","t":1792195732045.2,"at":"2026-10-17T00:08:52.045Z","src":"dictate","kind":"guess","msg":"And so, my fellow Americans, ask not what your country"}
++{"seq":10,"run":"mvbn28wlej8","t":1792195733057.9,"at":"2026-10-17T00:08:53.057Z","src":"server","kind":"interim","msg":"And so, my fellow Americans, ask not what your country can do for you,","server":{"task":"transcribe","language":"english","duration":4.9679999351501465,"text":" And so, my fellow Americans, ask not what your country can\n do for you,\n","segments":[{"id":0,"text":" And so, my fellow Americans, ask not what your country can","start":0.1,"end":4.23,"tokens":[400,370,11,452,7177,6280,11,1029,406,437,428,1941,393],"words":[{"word":" And","start":0.03,"end":0.18,"t_dtw":-1,"probability":0.8852633833885193},{"word":" so","start":0.2,"end":0.31,"t_dtw":-1,"probability":0.9980677962303162},{"word":",","start":0.32,"end":0.45,"t_dtw":-1,"probability":0.9566138982772827},{"word":" my","start":0.45,"end":0.5,"t_dtw":-1,"probability":0.9924119114875793},{"word":" fellow","start":0.76,"end":0.91,"t_dtw":-1,"probability":0.9995728731155396},{"word":" Americans","start":0.99,"end":1.56,"t_dtw":-1,"probability":0.9969262480735779},{"word":",","start":1.56,"end":1.72,"t_dtw":-1,"probability":0.9776831269264221},{"word":" ask","start":1.72,"end":1.9000000000000001,"t_dtw":-1,"probability":0.896520733833313},{"word":" not","start":2.24,"end":2.24,"t_dtw":-1,"probability":0.9931836128234863},{"word":" what","start":2.27,"end":2.58,"t_dtw":-1,"probability":0.997002363204956},{"word":" your","start":2.59,"end":2.9,"t_dtw":-1,"probability":0.9973275661468506},{"word":" country","start":2.95,"end":3.5500000000000003,"t_dtw":-1,"probability":0.997647225856781},{"word":" can","start":3.65,"end":3.7800000000000002,"t_dtw":-1,"probability":0.9960766434669495}],"temperature":0,"avg_logprob":-0.02356358990073204,"no_speech_prob":1.3615293788238336e-12},{"id":1,"text":" do for you,","start":4.23,"end":4.96,"tokens":[360,337,291,11],"words":[{"word":" do","start":3.83,"end":3.98,"t_dtw":-1,"probability":0.9984353184700012},{"word":" for","start":4.0600000000000005,"end":4.25,"t_dtw":-1,"probability":0.998298168182373},{"word":" you","start":4.25,"end":4.39,"t_dtw":-1,"probability":0.9993669390678406},{"word":",","start":4.5600000000000005,"end":4.5600000000000005,"t_dtw":-1,"probability":0.7549259662628174}],"temperature":0,"avg_logprob":-0.057007599622011185,"no_speech_prob":0}],"detected_language":"english","detected_language_probability":0.9995505213737488,"language_probabilities":{"en":0.9995505213737488}},"session":"Refine demo","ms":162,"bytes":159020,"seconds":4.97,"gap_ms":1018,"raw":" And so, my fellow Americans, ask not what your country can\n do for you,\n","req":4,"segment":0}
++{"seq":11,"run":"mvbn28wlej8","t":1792195733062.8,"at":"2026-10-17T00:08:53.062Z","src":"refine","kind":"sentences","msg":"And so, my fellow Americans, ask not what your country can do for you.","n":1,"all":["And so, my fellow Americans, ask not what your country can do for you."]}
++{"seq":12,"run":"mvbn28wlej8","t":1792195733062.8,"at":"2026-10-17T00:08:53.062Z","src":"dictate","kind":"guess","msg":"And so, my fellow Americans, ask not what your country can do for you,"}
++{"seq":13,"run":"mvbn28wlej8","t":1792195734063.9,"at":"2026-10-17T00:08:54.064Z","src":"server","kind":"interim","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can","server":{"task":"transcribe","language":"english","duration":5.9679999351501465,"text":" And so, my fellow Americans, ask not what your country can\n do for you, ask what you can\n","segments":[{"id":0,"text":" And so, my fellow Americans, ask not what your country can","start":0.1,"end":4.22,"tokens":[400,370,11,452,7177,6280,11,1029,406,437,428,1941,393],"words":[{"word":" And","start":0.03,"end":0.23,"t_dtw":-1,"probability":0.8583098649978638},{"word":" so","start":0.23,"end":0.38,"t_dtw":-1,"probability":0.9976738095283508},{"word":",","start":0.38,"end":0.48,"t_dtw":-1,"probability":0.9647587537765503},{"word":" my","start":0.68,"end":0.68,"t_dtw":-1,"probability":0.9906427264213562},{"word":" fellow","start":0.76,"end":1.1400000000000001,"t_dtw":-1,"probability":0.9983972311019897},{"word":" Americans","start":1.1400000000000001,"end":1.83,"t_dtw":-1,"probability":0.9923191666603088},{"word":",","start":1.83,"end":1.9000000000000001,"t_dtw":-1,"probability":0.9557822942733765},{"word":" ask","start":2.21,"end":2.21,"t_dtw":-1,"probability":0.9775302410125732},{"word":" not","start":2.27,"end":2.44,"t_dtw":-1,"probability":0.9881404042243958},{"word":" what","start":2.44,"end":2.71,"t_dtw":-1,"probability":0.997546374797821},{"word":" your","start":2.75,"end":3.06,"t_dtw":-1,"probability":0.9972819089889526},{"word":" country","start":3.06,"end":3.5500000000000003,"t_dtw":-1,"probability":0.9966601133346558},{"word":" can","start":3.65,"end":3.7800000000000002,"t_dtw":-1,"probability":0.9992335438728333}],"temperature":0,"avg_logprob":-0.02134888432919979,"no_speech_prob":1.4989826871078527e-12},{"id":1,"text":" do for you, ask what you can","start":4.22,"end":5.96,"tokens":[360,337,291,11,1029,437,291,393],"words":[{"word":" do","start":3.83,"end":3.98,"t_dtw":-1,"probability":0.9991859197616577},{"word":" for","start":3.98,"end":4.21,"t_dtw":-1,"probability":0.9993422031402588},{"word":" you","start":4.21,"end":4.39,"t_dtw":-1,"probability":0.9995918869972229},{"word":",","start":4.59,"end":4.59,"t_dtw":-1,"probability":0.8728312849998474},{"word":" ask","start":4.72,"end":4.82,"t_dtw":-1,"probability":0.9963389039039612},{"word":" what","start":4.82,"end":5.12,"t_dtw":-1,"probability":0.9993307590484619},{"word":" you","start":5.13,"end":5.44,"t_dtw":-1,"probability":0.9994184374809265},{"word":" can","start":5.44,"end":5.44,"t_dtw":-1,"probability":0.5228092670440674}],"temperature":0,"avg_logprob":-0.0879279226064682,"no_speech_prob":0}],"detected_language":"english","detected_language_probability":0.9998420476913452,"language_probabilities":{"en":0.9998420476913452}},"session":"Refine demo","ms":168,"bytes":191020,"seconds":5.97,"gap_ms":1007,"raw":" And so, my fellow Americans, ask not what your country can\n do for you, ask what you can\n","req":5,"segment":0}
++{"seq":14,"run":"mvbn28wlej8","t":1792195734068.9,"at":"2026-10-17T00:08:54.069Z","src":"refine","kind":"sentences","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can.","n":1,"all":["And so, my fellow Americans, ask not what your country can do for you, ask what you can."]}
++{"seq":15,"run":"mvbn28wlej8","t":1792195734069.1,"at":"2026-10-17T00:08:54.069Z","src":"dictate","kind":"guess","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can"}
++{"seq":16,"run":"mvbn28wlej8","t":1792195735074.7,"at":"2026-10-17T00:08:55.074Z","src":"server","kind":"interim","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","server":{"task":"transcribe","language":"english","duration":6.9679999351501465,"text":" And so, my fellow Americans, ask not what your country can\n do for you, ask what you can do for your country.\n","segments":[{"id":0,"text":" And so, my fellow Americans, ask not what your country can","start":0.1,"end":4.09,"tokens":[400,370,11,452,7177,6280,11,1029,406,437,428,1941,393],"words":[{"word":" And","start":0.03,"end":0.25,"t_dtw":-1,"probability":0.8775787949562073},{"word":" so","start":0.25,"end":0.42,"t_dtw":-1,"probability":0.9943872094154358},{"word":",","start":0.42,"end":0.49,"t_dtw":-1,"probability":0.8954902291297913},{"word":" my","start":0.76,"end":0.76,"t_dtw":-1,"probability":0.9851040840148926},{"word":" fellow","start":0.76,"end":1.27,"t_dtw":-1,"probability":0.9987229108810425},{"word":" Americans","start":1.27,"end":1.8900000000000001,"t_dtw":-1,"probability":0.9911218285560608},{"word":",","start":2.24,"end":2.24,"t_dtw":-1,"probability":0.9559317827224731},{"word":" ask","start":2.27,"end":2.42,"t_dtw":-1,"probability":0.9049380421638489},{"word":" not","start":2.42,"end":2.59,"t_dtw":-1,"probability":0.9831828474998474},{"word":" what","start":2.59,"end":2.84,"t_dtw":-1,"probability":0.990230917930603},{"word":" your","start":2.84,"end":3.08,"t_dtw":-1,"probability":0.9897475242614746},{"word":" country","start":3.08,"end":3.49,"t_dtw":-1,"probability":0.9906975030899048},{"word":" can","start":3.49,"end":3.7,"t_dtw":-1,"probability":0.9827291369438171}],"temperature":0,"avg_logprob":-0.034329481422901154,"no_speech_prob":4.242680425731171e-13},{"id":1,"text":" do for you, ask what you can do for your country.","start":4.09,"end":6.96,"tokens":[360,337,291,11,1029,437,291,393,360,337,428,1941,13],"words":[{"word":" do","start":3.7,"end":3.7800000000000002,"t_dtw":-1,"probability":0.993729293346405},{"word":" for","start":3.83,"end":3.98,"t_dtw":-1,"probability":0.9938032031059265},{"word":" you","start":4.0600000000000005,"end":4.23,"t_dtw":-1,"probability":0.9944592714309692},{"word":",","start":4.23,"end":4.37,"t_dtw":-1,"probability":0.9083577394485474},{"word":" ask","start":4.37,"end":4.41,"t_dtw":-1,"probability":0.7985113263130188},{"word":" what","start":4.72,"end":4.91,"t_dtw":-1,"probability":0.9901365041732788},{"word":" you","start":5,"end":5.28,"t_dtw":-1,"probability":0.9931267499923706},{"word":" can","start":5.28,"end":5.46,"t_dtw":-1,"probability":0.6054447293281555},{"word":" do","start":5.46,"end":5.66,"t_dtw":-1,"probability":0.9033799171447754},{"word":" for","start":5.66,"end":5.82,"t_dtw":-1,"probability":0.9655982255935669},{"word":" your","start":5.82,"end":6,"t_dtw":-1,"probability":0.9935056567192078},{"word":" country","start":6.09,"end":6.43,"t_dtw":-1,"probability":0.9974321722984314},{"word":".","start":6.44,"end":6.44,"t_dtw":-1,"probability":0.9420866370201111}],"temperature":0,"avg_logprob":-0.07593937963247299,"no_speech_prob":0}],"detected_language":"english","detected_language_probability":0.9995708465576172,"language_probabilities":{"en":0.9995708465576172}},"session":"Refine demo","ms":178,"bytes":223020,"seconds":6.97,"gap_ms":1010,"raw":" And so, my fellow Americans, ask not what your country can\n do for you, ask what you can do for your country.\n","req":6,"segment":0}
++{"seq":17,"run":"mvbn28wlej8","t":1792195735079.9,"at":"2026-10-17T00:08:55.079Z","src":"refine","kind":"sentences","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","n":1,"all":["And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."]}
++{"seq":18,"run":"mvbn28wlej8","t":1792195735080,"at":"2026-10-17T00:08:55.080Z","src":"dictate","kind":"guess","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."}
++{"seq":19,"run":"mvbn28wlej8","t":1792195735683.8,"at":"2026-10-17T00:08:55.683Z","src":"refine","kind":"sending","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."}
++{"seq":20,"run":"mvbn28wlej8","t":1792195735684.3,"at":"2026-10-17T00:08:55.684Z","src":"refine","kind":"sentences","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","n":2,"all":["And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."],"repeats":1}
++{"seq":21,"run":"mvbn28wlej8","t":1792195735688,"at":"2026-10-17T00:08:55.688Z","src":"refine","kind":"sentences","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","n":1,"all":["And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."]}
++{"seq":22,"run":"mvbn28wlej8","t":1792195735694.1,"at":"2026-10-17T00:08:55.694Z","src":"composer","kind":"enqueue","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","raw":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."}
++{"seq":23,"run":"mvbn28wlej8","t":1792195735694.1,"at":"2026-10-17T00:08:55.694Z","src":"composer","kind":"post","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","raw":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."}
++{"seq":24,"run":"mvbn28wlej8","t":1792195735694.4,"at":"2026-10-17T00:08:55.694Z","src":"composer","kind":"send-check","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","dup":false}
++{"seq":25,"run":"mvbn28wlej8","t":1792195735694.4,"at":"2026-10-17T00:08:55.694Z","src":"composer","kind":"deliver","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","via":"whisper"}
++{"seq":26,"run":"mvbn28wlej8","t":1792195735694.5,"at":"2026-10-17T00:08:55.694Z","src":"refine","kind":"go","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."}
++{"seq":27,"run":"mvbn28wlej8","t":1792195735695,"at":"2026-10-17T00:08:55.695Z","src":"refine","kind":"chunk","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","n":1}
++{"seq":28,"run":"mvbn28wlej8","t":1792195735705.5,"at":"2026-10-17T00:08:55.705Z","src":"refine","kind":"done","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","status":"failed","ms":0,"error":"Failed to fetch"}
++{"seq":29,"run":"mvbn28wlej8","t":1792195735877.2,"at":"2026-10-17T00:08:55.877Z","src":"server","kind":"final","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","server":{"task":"transcribe","language":"english","duration":7.76800012588501,"text":" And so, my fellow Americans, ask not what your country can\n do for you, ask what you can do for your country.\n","segments":[{"id":0,"text":" And so, my fellow Americans, ask not what your country can","start":0.1,"end":4.03,"tokens":[400,370,11,452,7177,6280,11,1029,406,437,428,1941,393],"words":[{"word":" And","start":0.03,"end":0.18,"t_dtw":-1,"probability":0.9738454818725586},{"word":" so","start":0.2,"end":0.31,"t_dtw":-1,"probability":0.9996147751808167},{"word":",","start":0.32,"end":0.45,"t_dtw":-1,"probability":0.9894228577613831},{"word":" my","start":0.45,"end":0.5,"t_dtw":-1,"probability":0.996947169303894},{"word":" fellow","start":0.76,"end":0.91,"t_dtw":-1,"probability":0.9998836517333984},{"word":" Americans","start":0.99,"end":1.56,"t_dtw":-1,"probability":0.9987781643867493},{"word":",","start":1.56,"end":1.72,"t_dtw":-1,"probability":0.9956758618354797},{"word":" ask","start":1.72,"end":1.9000000000000001,"t_dtw":-1,"probability":0.952211320400238},{"word":" not","start":2.18,"end":2.18,"t_dtw":-1,"probability":0.9981154203414917},{"word":" what","start":2.27,"end":2.46,"t_dtw":-1,"probability":0.998513400554657},{"word":" your","start":2.5300000000000002,"end":2.8000000000000003,"t_dtw":-1,"probability":0.9985590577125549},{"word":" country","start":2.8000000000000003,"end":3.33,"t_dtw":-1,"probability":0.9983381628990173},{"word":" can","start":3.36,"end":3.5500000000000003,"t_dtw":-1,"probability":0.9975615739822388}],"temperature":0,"avg_logprob":-0.007438591681420803,"no_speech_prob":1.149702403592523e-12},{"id":1,"text":" do for you, ask what you can do for your country.","start":4.03,"end":6.9,"tokens":[360,337,291,11,1029,437,291,393,360,337,428,1941,13],"words":[{"word":" do","start":3.64,"end":3.72,"t_dtw":-1,"probability":0.9992907047271729},{"word":" for","start":3.72,"end":3.95,"t_dtw":-1,"probability":0.9987248182296753},{"word":" you","start":3.95,"end":4.17,"t_dtw":-1,"probability":0.9996147751808167},{"word":",","start":4.17,"end":4.37,"t_dtw":-1,"probability":0.9841753840446472},{"word":" ask","start":4.37,"end":4.41,"t_dtw":-1,"probability":0.7800198197364807},{"word":" what","start":4.72,"end":5.01,"t_dtw":-1,"probability":0.9991306066513062},{"word":" you","start":5.01,"end":5.29,"t_dtw":-1,"probability":0.9993574023246765},{"word":" can","start":5.36,"end":5.46,"t_dtw":-1,"probability":0.7917640209197998},{"word":" do","start":5.46,"end":5.66,"t_dtw":-1,"probability":0.9419375061988831},{"word":" for","start":5.66,"end":5.84,"t_dtw":-1,"probability":0.9784050583839417},{"word":" your","start":5.84,"end":5.99,"t_dtw":-1,"probability":0.9740869998931885},{"word":" country","start":5.99,"end":6.26,"t_dtw":-1,"probability":0.9995194673538208},{"word":".","start":6.26,"end":6.37,"t_dtw":-1,"probability":0.9913780093193054}],"temperature":0,"avg_logprob":-0.0442003533244133,"no_speech_prob":0}],"detected_language":"english","detected_language_probability":0.998865008354187,"language_probabilities":{"en":0.998865008354187}},"session":"Refine demo","ms":179,"bytes":248620,"seconds":7.77,"gap_ms":803,"raw":" And so, my fellow Americans, ask not what your country can\n do for you, ask what you can do for your country.\n","req":7,"segment":0}
++{"seq":30,"run":"mvbn28wlej8","t":1792195735880.4,"at":"2026-10-17T00:08:55.880Z","src":"composer","kind":"commit-in","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","reason":"pause"}
++{"seq":31,"run":"mvbn28wlej8","t":1792195735880.8,"at":"2026-10-17T00:08:55.880Z","src":"composer","kind":"commit-dropped","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","why":"stripped as already sent, or an annotation"}
++{"seq":32,"run":"mvbn28wlej8","t":1792195735979.8,"at":"2026-10-17T00:08:55.979Z","src":"dictate","kind":"guess","msg":""}
++{"seq":33,"run":"mvbn28wlej8","t":1792195738495.6,"at":"2026-10-17T00:08:58.495Z","src":"refine","kind":"sentences","msg":"It has two sentences.","n":3,"all":["And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","Now the second line is typed.","It has two sentences."]}
++{"seq":34,"run":"mvbn28wlej8","t":1792195738528.8,"at":"2026-10-17T00:08:58.528Z","src":"refine","kind":"sentences","msg":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","n":1,"all":["And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country."]}
++{"seq":35,"run":"mvbn28wlej8","t":1792195738528.9,"at":"2026-10-17T00:08:58.528Z","src":"refine","kind":"sending","msg":"Now the second line is typed. It has two sentences."}
++{"seq":36,"run":"mvbn28wlej8","t":1792195738529,"at":"2026-10-17T00:08:58.529Z","src":"refine","kind":"sentences","msg":"It has two sentences.","n":3,"all":["And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","Now the second line is typed.","It has two sentences."]}
++{"seq":37,"run":"mvbn28wlej8","t":1792195738529,"at":"2026-10-17T00:08:58.529Z","src":"refine","kind":"go","msg":"Now the second line is typed. It has two sentences."}
++{"seq":38,"run":"mvbn28wlej8","t":1792195738529.2,"at":"2026-10-17T00:08:58.529Z","src":"refine","kind":"chunk","msg":"Now the second line is typed. It has two sentences.","n":2}
++{"seq":39,"run":"mvbn28wlej8","t":1792195738546.9,"at":"2026-10-17T00:08:58.546Z","src":"refine","kind":"done","msg":"Now the second line is typed. It has two sentences.","status":"failed","ms":0,"error":"Failed to fetch"}
+diff --git a/public/framework/audio/Whisper/doc/whisper-log.md b/public/framework/audio/Whisper/doc/whisper-log.md
+new file mode 100644
+index 000000000..426cdf608
+--- /dev/null
++++ b/public/framework/audio/Whisper/doc/whisper-log.md
+@@ -0,0 +1,42 @@
++# Whisper log: every event, numbered (2026-10-16)
++
++**What it is.** [`WhisperLog`](/framework/audio/Whisper/log/) (`WhisperLog.js`) writes one line for everything between the microphone and the Cleaned list, and a page shows those lines as a table, newest last. Open it at `/framework/audio/Whisper/log/`. It exists so a duplicate in the transcript can be found by eye: the same words twice, with two different origins.
++
++**Which store.** The day file `ai/whisper/<date>.jsonl` that `WhisperSession` already wrote, through the same `FsFile.append`, tailed by `JSONL.live()`. One store and one writer (`WhisperSession.record` now calls `WhisperLog.record`). Old lines have no `seq`; the table skips them. The file is git-ignored; the proof run is kept in `doc/proof-2026-10-16.jsonl`.
++
++**Size.** A logged mic writes every interim (the old `record` skipped repeats) and the whole `verbose_json` body, so the day file grows fast; it is a debugging tool, and it is git-ignored. `ux/Dictate/WhisperLog.css` is now unused (kept, never destructive).
++
++## A line
++
++`{ seq, run, t, at, src, kind, msg, ...extras }` — `seq` counts up in the order things happened (per page load; `run` names the load, so two tabs never mix).
++
++| src | kind | meaning |
++|---|---|---|
++| server | interim, final | whisper-server's reply to one request: `msg` its text, `server` its whole answer (`verbose_json`), `req`, `segment`, `ms` |
++| dictate | guess, commit, stale | what `ux/Dictate` did with the reply; **stale** is a reply dropped as out of date (it never reached the page before) |
++| composer | commit-in, commit-dropped, enqueue, post, send-check, deliver | the box and the send queue in `ext/Chat/Mic.js`; **commit-dropped** is a final stripped as "already sent" |
++| refine | sending, go, chunk, done, sentences | `RefineSystem`: the send, the chunk, the cleaned-sentence list |
++
++Wired by `WhisperLog.attach(mic, system)` (Refine does it): it wraps instance methods, so `Mic.js` and `RefineSystem.js` are untouched. Anyone can add a line: `WhisperLog.event("chat", "bubble", { msg })` (`chat:bubble` is already in the duplicate stages; no chat page calls it yet).
++
++## Reading it (`WhisperLogRows.js`, pure, tested)
++
++- **diff**: each row's text against the previous row of its lane (Whisper replies of one segment; else the same stage). Green added, red struck removed.
++- **amended** (orange): a reply changed words it had already said. A changed last word alone is a tweak, not an amend.
++- **same as #N** (red): the same words at the same stage, in the same run, earlier. Interim guesses never count. A duplicate shows two rows with two different `req` / `chunk` ids.
++
++## What Whisper sends, and what it does not
++
++- `response_format=json` is the text only (what we used). `verbose_json` adds `segments` (each with `avg_logprob`, `no_speech_prob`, `temperature`, timestamps) and per-word probabilities. It costs about 70 ms per 8 s clip (0.11 s vs 0.187 s, measured 2026-10-16), so only a mic that is logged asks for it: `WhisperLog.attach()` sets `mic.response_format`. The default in `ux/Dictate/Dictate.js` stays `json`.
++- **No field says "fixing" or "finished".** whisper-server is stateless: every reply re-transcribes the whole audio window it is given. "Interim" and "final" are our own words (`partial_tick` and `close_segment` in Dictate), not Whisper's. A reply that rewrites earlier words shows as amended.
++- The server splits one spoken sentence into several `segments` and puts a `\n` inside `text` between them; `transcribe()` collapses it to a space.
++
++## Proof, one fake-mic pass (jfk.wav, headless, `ext/Refine/test/composer-flow.mjs`)
++
++Whisper `:8178` was up. Lines: `doc/proof-2026-10-16.jsonl` (39 events). It shows:
++
++- Six interims (req 1 to 6) grew one phrase at a time ("American" to "Americans, asked" to "ask not what your country" ...), and the **final** (req 7, `#29`) is word for word the last interim (`#16`): nothing was amended.
++- The mic **auto-sent the sentence before the final arrived** (`#19` to `#25`, deliver at `#25`); the final then came back as `commit-in` (`#30`) and was **dropped** (`#31`) by the already-sent strip. No duplicate reached the Cleaned list in this pass. That window (send first, final after) is where a double would come from, and today only that strip guards it.
++- Not a product bug: the test's refine cap (6 POSTs) was used up by the live outline ticks (`/api/refine/live`, one per interim), so both chunks ended `failed: Failed to fetch` on this private server.
++
++A real dictation that does duplicate will show as a red "same as #N" at `composer enqueue`, `post`, `deliver` or `refine go`; one fake-mic pass of one sentence does not reproduce it. Run the log on your own dictation and open the page.
+diff --git a/public/framework/audio/Whisper/log/page.js b/public/framework/audio/Whisper/log/page.js
+new file mode 100644
+index 000000000..f347b9a16
+--- /dev/null
++++ b/public/framework/audio/Whisper/log/page.js
+@@ -0,0 +1,13 @@
++import { Page } from "/app.js";
++import WhisperLog from "../WhisperLog.js";
++
++export default new Page({
++	meta: import.meta,
++	title: "Whisper log",
++	description: "Every event between the microphone and the page, in order: Whisper's own replies (interim and final, with everything the server sends), then what each stage did with them.",
++	icon: "receipt_long",
++
++	content(){
++		new WhisperLog();
++	},
++});
+diff --git a/public/framework/audio/Whisper/page.js b/public/framework/audio/Whisper/page.js
+index 51048127a..b91244a3a 100644
+--- a/public/framework/audio/Whisper/page.js
++++ b/public/framework/audio/Whisper/page.js
+@@ -6,6 +6,7 @@ export default new Page({
+ 	title: "Whisper",
+ 	description: "The local whisper-server as an object, and one logged session per dictation surface.",
+ 	icon: "mic",
++	children: "log",
+ 
+ 	content(){
+ 		const whisper = Whisper.shared;
+diff --git a/public/framework/audio/Whisper/readme.md b/public/framework/audio/Whisper/readme.md
+index 18170007a..4e3472a89 100644
+--- a/public/framework/audio/Whisper/readme.md
++++ b/public/framework/audio/Whisper/readme.md
+@@ -4,5 +4,6 @@ The local whisper-server as objects, and a log of every request to it.
+ 
+ - `Whisper.js`: `class Whisper` (url, status up/down, ping, restarts seen, its sessions) and `Whisper.View`. `Whisper.shared` is one per page.
+ - `WhisperSession.js`: `class WhisperSession`, one per dictation surface. `record(line)` logs each request (audio size, seconds, reply, latency) and notes revisions where an earlier word changed. Lines are appended to a per-day log under `ai/whisper/`. Has `WhisperSession.View`.
++- `WhisperLog.js`, `WhisperLogRows.js`: the one numbered log of every Whisper reply and every step to the Cleaned list, and its table at [Whisper log](/framework/audio/Whisper/log/) (`log/page.js`). `WhisperSession.record` writes through it. Doc and a real proof run: `doc/whisper-log.md`.
+ - Not the same as `audio/Transcriber` (the engine that sends audio).
+ - Used by [Refine](/framework/ext/Refine/). Details and open gaps: `ext/Refine/doc/refine-v3-2026-10-09.md`.
+diff --git a/public/framework/audio/Whisper/test-whisper-log.mjs b/public/framework/audio/Whisper/test-whisper-log.mjs
+new file mode 100644
+index 000000000..58ea3cd4b
+--- /dev/null
++++ b/public/framework/audio/Whisper/test-whisper-log.mjs
+@@ -0,0 +1,32 @@
++/* `node test-whisper-log.mjs <base url> [shots dir]` (PW_ROOT = a folder under Playwright node_modules).
++ * Drives the real Dictate.transcribe() on the Refine page with a stubbed whisper-server reply, then opens the Whisper log page
++ * (/framework/audio/Whisper/log/) and checks it shows an interim row and a final row, numbered, read back from the day file. */
++import { createRequire } from "module";
++const { chromium } = createRequire(process.env.PW_ROOT + "/")("playwright");
++const base = process.argv[2], dir = process.argv[3];
++const b = await chromium.launch(); let fail = 0;
++for (const w of [400, 1920]) {
++	const p = await b.newPage({ viewport: { width: w, height: 1000 } });
++	const errs = []; p.on("pageerror", e => errs.push(String(e)));
++	await p.route("**/ux/Dictate/Dictate.js", async r => {
++		const res = await r.fetch(); let t = await res.text();
++		t += "\n;{const s=Dictate.prototype.render;Dictate.prototype.render=function(...a){(window.__ds??=[]).push(this);return s.apply(this,a)}}";
++		await r.fulfill({ response: res, body: t });
++	});
++	await p.route("**/inference", r => r.fulfill({ json: { text: " Testing the mic,\n it works." } }));
++	await p.goto(base + "/framework/ext/Refine/", { waitUntil: "networkidle" });
++	await p.evaluate(async () => { const d = window.__ds[0];
++		d.mic = { wav: () => new Blob(["x"]) }; d.dump = () => {};
++		await d.transcribe(new Float32Array(10), "interim");
++		await d.transcribe(new Float32Array(10), "final"); });
++	await p.waitForTimeout(1500);
++	await p.goto(base + "/framework/audio/Whisper/log/", { waitUntil: "networkidle" });
++	await p.waitForSelector(".wl-row.k-final", { timeout: 8000 }).catch(() => {});
++	const rows = await p.locator(".wl-row:not(.wl-headrow)").allInnerTexts();
++	const ok = rows.some(r => /interim/.test(r)) && rows.some(r => /final/.test(r) && /it works\./.test(r));
++	console.log(w, ok ? "PASS" : "FAIL", JSON.stringify({ rows, errs }));
++	if (!ok || errs.length) fail++;
++	if (dir){ await p.locator(".wl").scrollIntoViewIfNeeded(); await p.screenshot({ path: `${dir}/whisper-${w}.png` }); }
++	await p.close();
++}
++await b.close(); process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ext/Refine/RefineDemo.js b/public/framework/ext/Refine/RefineDemo.js
+index 70eaf067e..745be49ae 100644
+--- a/public/framework/ext/Refine/RefineDemo.js
++++ b/public/framework/ext/Refine/RefineDemo.js
+@@ -2,6 +2,7 @@ import { View, div, span, a, button, select, option, label } from "../../core/Vi
+ import ErrorLog from "../ErrorLog/ErrorLog.js";
+ import { composer } from "../Chat/Composer.js";
+ import Whisper from "../../audio/Whisper/Whisper.js";
++import WhisperLog from "../../audio/Whisper/WhisperLog.js";
+ import Prompt from "./Prompt.js";
+ import RefineSystem from "./RefineSystem.js";
+ import RefineExplorer from "./RefineExplorer.js";
+@@ -87,6 +88,7 @@ export default class RefineDemo extends View {
+ 			this.dictate = this.$compose.mic;   // a `ComposerMic` (`Dictate` subclass) — same shape `VoiceStrip.dictate` was
+ 			this.$box = this.$compose.$input;
+ 			this.dictate.on_whisper = line => this.system.session.record(line);
++			WhisperLog.attach(this.dictate, this.system);   // every event from Whisper's reply to the cleaner, numbered: /framework/audio/Whisper/log/
+ 			this.$box.el.addEventListener("input", () => this.quick());
+ 			// the ✦ chat (drawer or phone sheet) heard something: show the same words here, one result everywhere
+ 			this.voice = new VoiceFollow({ on_text: (text, v) => {
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index 4747dc946..9b0055c1d 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -463,7 +463,7 @@ export default class Dictate extends View {
+ 		let text;
+ 		try { text = await this.inflight; } catch { return; } finally { this.inflight = null; }
+ 		// Stale answers are dropped (epoch + ticket). see doc/notes.md#duplicate-bubble-race
+-		if (epoch !== this.segment_epoch || seq <= this.applied_seq) return;
++		if (epoch !== this.segment_epoch || seq <= this.applied_seq){ this.on_trace?.("stale", { kind: "interim", req: seq, msg: text }); return; }
+ 		this.applied_seq = seq;
+ 		this.partial_text = text; this.draw_caption(); this.on_guess?.(text);
+ 	}
+@@ -500,6 +500,7 @@ export default class Dictate extends View {
+ 		finally { this.inflight = null; }
+ 		// Never commit a stale or out-of-order answer. see doc/notes.md#duplicate-bubble-race
+ 		if (epoch !== this.segment_epoch || seq <= this.applied_seq){
++			this.on_trace?.("stale", { kind: "final", req: seq, msg: text });
+ 			this.clear_guess();
+ 			return;
+ 		}
+@@ -527,7 +528,8 @@ export default class Dictate extends View {
+ 		this.dump(wav, samples);
+ 		const form = new FormData();
+ 		form.append("file", wav, "segment.wav");
+-		form.append("response_format", "json");
++		form.append("response_format", this.response_format);
++		const req = this.req_seq, segment = kind === "final" ? this.segment_epoch - 1 : this.segment_epoch;   // read before any await
+ 		const t_sent = performance.now();
+ 		const url = this.whisper_url + "/inference";
+ 		let r;
+@@ -542,7 +544,7 @@ export default class Dictate extends View {
+ 		else { this.steps.whisper = reply; this.draw_diag(); this.on_step?.("whisper", reply); }   // every answer updates the line; only the first is console-logged
+ 		// Whisper puts "\n" between its own segments; collapse them (real breaks come from real pauses).
+ 		const text = (body.text ?? "").replace(/\s+/g, " ").trim();
+-		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000) });
++		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000), req, segment, body });
+ 		return text;
+ 	}
+ 
+@@ -748,6 +750,7 @@ Dictate.prototype.whisper_url = default_whisper_url();
+ Dictate.prototype.log_url = servex_url("/log/prompts");       // Servex's single-writer log — not always up yet
+ Dictate.prototype.log_fallback_file = "framework/ai/prompts.jsonl";    // dev-server rpc:append fallback, relative under public/
+ Dictate.prototype.lang = "en-US";
++Dictate.prototype.response_format = "json";   // text only. "verbose_json" adds segments, word probabilities, no_speech_prob but costs ~70 ms per 8 s of audio (measured 2026-10-16): WhisperLog.attach() switches one mic to it
+ Dictate.prototype.pause_ms = 700;        // silence this long closes a segment
+ Dictate.prototype.max_segment_ms = 15000; // or this much talking, whichever comes first
+ Dictate.prototype.skip_partial_after_ms = 300;  // no resend once the speaker has been quiet this long — the final is next
+diff --git a/public/framework/ux/Dictate/WhisperLog.js b/public/framework/ux/Dictate/WhisperLog.js
+index 0c4702730..fc17a71c9 100644
+--- a/public/framework/ux/Dictate/WhisperLog.js
++++ b/public/framework/ux/Dictate/WhisperLog.js
+@@ -1,56 +1,2 @@
+-import { View, div, span, h4 } from "../../core/View/View.js";
+-import JSONL from "../../ext/JSONL/JSONL.js";
+-import FsFile from "../../ext/filesystem/FsFile.js";
+-
+-View.stylesheet(import.meta, "WhisperLog.css");
+-
+-/**
+- * class WhisperLog — every answer Whisper gives, as it gives it: each interim guess and each
+- * final chunk, with a time and how long Whisper took, as a stream.
+- *
+- *   new Dictate({ on_whisper: line => WhisperLog.record(line) });   // the writer (opt-in)
+- *   new WhisperLog();                                                // the view: tails the file
+- *
+- * Wire: `Dictate.transcribe()` is the one place Whisper's reply passes, and calls `on_whisper`
+- * with `{kind, ms, text, raw}`. `record()` appends one line to `/framework/ai/whisper/<date>.jsonl`
+- * through the one file API; the view tails that file with `JSONL.live()`, so a row shows in about
+- * 100 ms. Nothing records unless a caller wires `on_whisper`, so ordinary pages write nothing.
+- * `raw` is what whisper-server returned before our whitespace tidy-up: if it already ends in a
+- * period, Whisper put it there. Doc: `doc/whisper-log.md`.
+- */
+-export default class WhisperLog extends View {
+-	static dir = "/framework/ai/whisper/";
+-	static path(){ return `${WhisperLog.dir}${new Date().toISOString().slice(0, 10)}.jsonl`; }
+-
+-	/** Append one Whisper answer. Never throws. Interim guesses repeat, so an identical one is skipped. */
+-	static record({ kind, ms, text, raw }){
+-		if (!text || (kind === "interim" && text === WhisperLog.last)) return;
+-		WhisperLog.last = kind === "interim" ? text : null;
+-		FsFile.append(WhisperLog.path(), { at: new Date().toISOString(), kind, ms, msg: text, raw }).catch(() => {});
+-	}
+-
+-	render(){
+-		this.ac("whisper-log");
+-		h4.c("whisper-log-h", "Whisper log — what Whisper said, as it said it");
+-		this.$rows = div.c("whisper-log-rows");
+-		this.log = new JSONL({ url: WhisperLog.path() });
+-		// Make sure today's file exists so the stream has something to attach to.
+-		FsFile.append(WhisperLog.path(), { at: new Date().toISOString(), kind: "open", msg: "log opened" }).catch(() => {});
+-		this.log.live(() => this.draw());
+-		this.draw();
+-	}
+-
+-	draw(){
+-		const lines = (this.log?.logs ?? []).slice(-60);
+-		this.$rows.empty(() => {
+-			if (!lines.length) return div.c("whisper-log-empty muted", "Nothing yet. Press the mic and speak.");
+-			lines.forEach(l => div.c(`whisper-log-row is-${l.kind}`, () => {
+-				span.c("whisper-log-at", (l.at ?? "").slice(11, 23));
+-				span.c("whisper-log-kind", l.kind);
+-				span.c("whisper-log-ms", l.ms != null ? l.ms + " ms" : "");
+-				span.c("whisper-log-text", l.msg ?? "");
+-			}));
+-		});
+-		this.$rows.el.scrollTop = this.$rows.el.scrollHeight;
+-	}
+-}
++// The Whisper log moved to audio/Whisper/WhisperLog.js (one log, one class). This path stays so old imports and docs keep working.
++export { default } from "../../audio/Whisper/WhisperLog.js";
+diff --git a/public/framework/ux/Dictate/doc/whisper-log.md b/public/framework/ux/Dictate/doc/whisper-log.md
+index c16a62579..38ae88e94 100644
+--- a/public/framework/ux/Dictate/doc/whisper-log.md
++++ b/public/framework/ux/Dictate/doc/whisper-log.md
+@@ -1,5 +1,7 @@
+ # Whisper log, and where the period comes from (2026-10-09)
+ 
++> Moved 2026-10-16: `WhisperLog` now lives in `audio/Whisper/` and logs every step, not only the replies; see `audio/Whisper/doc/whisper-log.md`. `ux/Dictate/WhisperLog.js` re-exports it. The text below is the original.
++
+ **What it is.** `WhisperLog` (`ux/Dictate/WhisperLog.js`) shows every answer Whisper gives: each grey interim guess and each final chunk, with a time and how long Whisper took. It is on the [Refine](/framework/ext/Refine/) page, under the class card. Dictate calls `on_whisper({kind, ms, text, raw})` from `transcribe()`, the one place Whisper's reply passes; `WhisperLog.record()` appends it to `/framework/ai/whisper/<date>.jsonl`; the view tails that file with `JSONL.live()`. Nothing is written unless a page wires `on_whisper`.
+ 
+ **The period.** Nothing in our path adds one. `transcribe()` returns Whisper's own text with only whitespace collapsed (newlines between Whisper's segments become spaces). So a sentence-ending period comes from **Whisper itself**: it punctuates as it transcribes, and the grey interim guess shows it too. Check it yourself: the log keeps `raw`, exactly what whisper-server sent, before our tidy-up. The one other stage that could change text is Refine's `clean()` (an LLM step, only after you press Refine), which never touches the box.
+diff --git a/public/framework/ux/Dictate/test-whisper-log.mjs b/public/framework/ux/Dictate/test-whisper-log.mjs
+deleted file mode 100644
+index a572dfe71..000000000
+--- a/public/framework/ux/Dictate/test-whisper-log.mjs
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/* `node test-whisper-log.mjs <base url> [shots dir]` (PW_ROOT = a folder under Playwright's node_modules).
+- * Drives the real Dictate.transcribe() with a stubbed whisper-server reply and checks that the
+- * Whisper log view shows an interim row and a final row, streamed in from the log file. */
+-import { createRequire } from "module";
+-const { chromium } = createRequire(process.env.PW_ROOT + "/")("playwright");
+-const base = process.argv[2], dir = process.argv[3];
+-const b = await chromium.launch(); let fail = 0;
+-for (const w of [400, 1920]) {
+-	const p = await b.newPage({ viewport: { width: w, height: 1000 } });
+-	const errs = []; p.on("pageerror", e => errs.push(String(e)));
+-	await p.route("**/ux/Dictate/Dictate.js", async r => {
+-		const res = await r.fetch(); let t = await res.text();
+-		t += "\n;{const s=Dictate.prototype.render;Dictate.prototype.render=function(...a){(window.__ds??=[]).push(this);return s.apply(this,a)}}";
+-		await r.fulfill({ response: res, body: t });
+-	});
+-	await p.route("**/inference", r => r.fulfill({ json: { text: " Testing the mic,\n it works." } }));
+-	await p.goto(base + "/framework/ext/Refine/", { waitUntil: "networkidle" });
+-	await p.evaluate(async () => { const d = window.__ds[0];
+-		d.mic = { wav: () => new Blob(["x"]) }; d.dump = () => {};
+-		await d.transcribe(new Float32Array(10), "interim");
+-		await d.transcribe(new Float32Array(10), "final"); });
+-	await p.waitForTimeout(1500);
+-	const rows = await p.locator(".whisper-log-row").allInnerTexts();
+-	const ok = rows.some(r => /interim/.test(r)) && rows.some(r => /final/.test(r) && /it works\./.test(r));
+-	console.log(w, ok ? "PASS" : "FAIL", JSON.stringify({ rows, errs }));
+-	if (!ok || errs.length) fail++;
+-	if (dir){ await p.locator(".whisper-log").scrollIntoViewIfNeeded(); await p.screenshot({ path: `${dir}/whisper-${w}.png` }); }
+-	await p.close();
+-}
+-await b.close(); process.exit(fail ? 1 : 0);
