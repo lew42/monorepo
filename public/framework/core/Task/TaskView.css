@@ -12,5 +12,8 @@
 	.task-seg.is-lit { background: var(--ok, currentColor); }
 	.task-row-kids { display: flex; flex-direction: column; gap: .35em; padding-left: 1.5em; border-left: 2px solid var(--line); margin-left: .6em; }
 	.task-row-more { color: var(--subtle); font-size: .85em; }
+	.tasks-page { display: flex; flex-direction: column; gap: 1.5rem; }
+	.tasks-group { display: flex; flex-direction: column; gap: .5em; }
+	.tasks-group-head { display: inline-flex; align-items: center; gap: .3em; font-size: .85em; color: var(--subtle); text-decoration: none; }
 	.task-card-kids { display: flex; flex-direction: column; gap: .4em; margin-top: .75em; }
 }

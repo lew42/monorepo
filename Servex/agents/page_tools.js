@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Subpages from "./Subpages.js";
 import Promote from "./Promote.js";
+import TaskHomes from "../../Server/TaskHomes.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -456,7 +457,10 @@ function make_child(parent_dir, add, ctx, home){
 	fs.writeFileSync(path.join(dir, "page.js"), PAGE_JS);
 	if (list){
 		const file = path.join(list.dir, "task.jsonl");
-		if (!fs.existsSync(file)) write_line(file, { id: "tasks", path: app_path(list.dir), title: `${list.module} tasks`, mode: "parallel" }, true);
+		if (!fs.existsSync(file)){
+			write_line(file, { id: "tasks", path: app_path(list.dir), title: `${list.module} tasks`, mode: "parallel" }, true);
+			TaskHomes.add(app_path(list.dir), ctx.caller ?? "agent");   // the new home joins /tasks/ (Server/TaskHomes.mjs)
+		}
 		write_line(file, { task: url, by: ctx.caller ?? "agent", ts: now() }, true);
 	}
 	return { id: slug, path: url };

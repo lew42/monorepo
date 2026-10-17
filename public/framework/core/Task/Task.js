@@ -288,11 +288,12 @@ export class Task extends Item {
 	static resolving = new Set();
 	static from_ref(ref){
 		const lines = !this.resolving.has(ref) && this.resolver ? this.resolver(ref) : null;
-		const id = String(ref).replace(/\/+$/, "").split("/").pop();
+		const id = this.ref_id(ref);
 		let kid;
 		if (lines?.length){
 			this.resolving.add(ref);   // a cycle of references stops here
 			try { kid = this.replay(lines); } finally { this.resolving.delete(ref); }
+			if (kid.id === "tasks") kid.id = id;   // a module list's line 1 says "tasks": a property name, and the same for every module
 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
 			kid = new this({ id });
 			kid.put("title", id);
@@ -303,6 +304,12 @@ export class Task extends Item {
 		if (kid.data.path === undefined) kid.put("path", ref);
 		kid._own_file = ref;   // a referenced child lives in its own file: the parent Store never records its changes (Store.js owned_below)
 		return kid;
+	}
+
+	// A reference's id is its folder name; a module's list (/framework/core/Task/tasks/) is "core-Task-tasks", so lists side by side (/tasks/) never collide.
+	static ref_id(ref){
+		const segs = String(ref).split("/").filter(Boolean);
+		return segs.at(-1) === "tasks" && segs.length > 1 ? segs.slice(segs[0] === "framework" ? 1 : 0).join("-") : segs.at(-1) ?? "";
 	}
 
 	// Browser only: open the child's file through the shared Store, then attach (replay + live tail) onto the stub.

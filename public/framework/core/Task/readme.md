@@ -44,6 +44,10 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 [`TaskPage.js`](./TaskPage.js) (`class TaskPage extends Page`) is the thin route for a task folder: it opens that folder's `task.jsonl` and shows `Task.View` full-size, with no task logic of its own. Demo: [core/Task/page/](/framework/core/Task/page/). The legacy `ai/AITask` viewer is unchanged.
 
+## TasksPage
+
+[`TasksPage.js`](./TasksPage.js) (`class TasksPage extends Page`) is the page for a `tasks/` **directory** (TaskPage is one task folder). `Page.child` mounts it on any `tasks/` with no page of its own; a Doc module's Tasks tab draws the same view (`TasksPage.into`). It shows every task as `TaskView.row`, grouped by module, ranked by `Task.rank`. [/tasks/](/tasks/) is the index of every task home: `public/tasks/task.jsonl` holds one reference per home, found by walking files.jsonl (`node Server/TaskHomes.mjs --write`; the item tool adds a new home itself). `TasksPage.counts()` gives the open and running counts the `/live/` Tasks card shows. Test: `node TasksPage.test.mjs [site url]` (headless). A module list's reference id is `core-Task-tasks` (`Task.ref_id`), so lists side by side never collide. Not the same as `ai/tasks/TasksPage.js`, the AI board's task browser, which keeps its own `page.js`.
+
 ## Watch out
 
 - **`complete()` refuses while a subtask is open** — it warns ("… isn't complete yet —

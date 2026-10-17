@@ -388,6 +388,8 @@ export class Page extends Item {
 			if (page) return this.add(name, page).load_all_children(levels);
 		}
 
+		if (name === "tasks" && kind !== "js") return this.add(name, await this.tasks_folder()).load_all_children(levels);   // a tasks/ with no page.js of its own: no import probe, no 404 (core/Task/readme.md)
+
 		const doc = md && await this.child_md(name, levels);
 		if (doc) return doc;
 
@@ -395,6 +397,12 @@ export class Page extends Item {
 		if (page) return this.add(name, page).load_all_children(levels);
 
 		return md ? null : this.child_md(name, levels);
+	}
+
+	// ⚠ Imported on first use, like md_folder: core/Task imports Page.
+	async tasks_folder(){
+		const { default: TasksPage } = await import("../Task/TasksPage.js");
+		return new TasksPage({ title: "Tasks", icon: "task_alt" });
 	}
 
 	async child_md(name, levels){
