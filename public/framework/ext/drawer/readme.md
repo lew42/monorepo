@@ -36,6 +36,7 @@ drawer.showing();     // boolean
 - [`doc/decisions.md`](./doc/decisions.md) — Sizing tokens, push math, z-index, and traps.
 - [`doc/tabs.md`](./doc/tabs.md) — Tab model, routing, and session header.
 - [`doc/sheet.md`](./doc/sheet.md) — Mobile sheet resizing, gestures, and state.
+- [`doc/owner-2026-10-16-sheet.md`](./doc/owner-2026-10-16-sheet.md) — the owner's 2026-10-16 asks for the sheet, the ☰ and a routed `<path>/ai/`; links the audit and the proposal.
 - [`doc/inbox.md`](./doc/inbox.md) — Coordination inbox per page.
 - [`doc/select.md`](./doc/select.md) — Element selection and AI context chips.
 - [`doc/rail-notes.md`](./doc/rail-notes.md) — comments pruned from `rail.js`: history, lessons and design reasons, verbatim.
