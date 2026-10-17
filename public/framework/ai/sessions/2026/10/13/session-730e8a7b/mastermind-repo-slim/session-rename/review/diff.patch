@@ -403,7 +403,7 @@ index f313fdda7..dad1e5aea 100644
  			let l; try { l = JSON.parse(raw); } catch { return []; }
  			const c = l.chat;
 diff --git a/Server/SessionIndex.mjs b/Server/SessionIndex.mjs
-index 82e5b6bf5..b1f749491 100644
+index 82e5b6bf5..856819420 100644
 --- a/Server/SessionIndex.mjs
 +++ b/Server/SessionIndex.mjs
 @@ -2,6 +2,7 @@
@@ -414,16 +414,17 @@ index 82e5b6bf5..b1f749491 100644
  import os from "node:os";
  import path from "node:path";
  import { fileURLToPath } from "node:url";
-@@ -70,7 +71,7 @@ export default class SessionIndex {
+@@ -70,7 +71,8 @@ export default class SessionIndex {
  	/** Seal a record after lines were applied: sorted module list, a start time, the landing day. */
  	static seal(r) {
  		r.started ||= r.last;
 -		r.raw = { task: r.url + "task.jsonl", transcript: (r.session && SessionIndex.transcripts().get(r.session)) || null };   // the raw logs to click through to (the transcript only if it is on this machine)
-+		r.raw = { task: r.url + (SessionRecord.log_file(path.join(REPO, r.dir)) ? path.basename(SessionRecord.log_file(path.join(REPO, r.dir))) : "task.jsonl"), transcript: (r.session && SessionIndex.transcripts().get(r.session)) || null };   // the raw logs to click through to (the transcript only if it is on this machine)
++		const log = SessionRecord.log_file(path.join(REPO, r.dir));
++		r.raw = { task: r.url + (log ? path.basename(log) : "task.jsonl"), transcript: (r.session && SessionIndex.transcripts().get(r.session)) || null };   // the raw logs to click through to (the transcript only if it is on this machine)
  		r.modules = [...r._mods].sort();
  		r.landed_day = r.landed_at ? new Date(r.landed_at).toISOString().slice(0, 10) : "";
  		r.text = `${r.title} ${r.request} ${r.outcome} ${r.slug} ${r.group}`.toLowerCase();
-@@ -122,13 +123,14 @@ export default class SessionIndex {
+@@ -122,13 +124,14 @@ export default class SessionIndex {
  			if (e.name === "node_modules" || e.name === ".git") continue;
  			const p = path.join(dir, e.name);
  			if (e.isDirectory()) yield* this.walk(p);
@@ -439,7 +440,7 @@ index 82e5b6bf5..b1f749491 100644
  		let ent = this.files.get(file);
  		if (ent && st.size < ent.size) ent = null;                       // rewritten shorter: start over
  		if (!ent) { const dir = path.relative(REPO, path.dirname(file)).replace(/\\/g, "/"); ent = { rec: SessionIndex.blank(dir), size: 0, fence: false }; }
-@@ -148,7 +150,7 @@ export default class SessionIndex {
+@@ -148,7 +151,7 @@ export default class SessionIndex {
  	watch() {
  		try {
  			this.watcher = fs.watch(this.root, { recursive: true }, (_, name) => {
@@ -1579,8 +1580,29 @@ index ad8333033..3cf1e08b6 100644
  		this.host?.store().append("servex", { type: "landing-nag", agent: this.id, task: dir }).catch(() => {});
  		this.send(`Your work is merged but your task has no landing line. Append it now: {"assign": {"landed_at": "NOW", "title": …, "outcome": …, "links": […]}} via \`node .claude/hooks/append.mjs ${file} <lines.json>\`, then \`card_reply\` one screen.`, { from: "servex-landing-nag" });
  		this.host?.register?.(this);
+diff --git a/Servex/agents/Global.js b/Servex/agents/Global.js
+index 360d9a24d..6bc66000e 100644
+--- a/Servex/agents/Global.js
++++ b/Servex/agents/Global.js
+@@ -14,6 +14,7 @@ import { Policy } from "./policy.js";
+ import { queued } from "./Layers.js";
+ import { STANDING } from "./Agents.js";
+ import { execFile } from "child_process";
++import SessionRecord from "../../Server/SessionRecord.mjs";
+ 
+ /* Every claude.exe: pid, working set in MB, command line. [] when PowerShell fails. */
+ export function claude_processes(){
+@@ -511,7 +512,7 @@ export default class Global {
+ 
+ 	tools(){
+ 		for (const tool of this.claims().tools()) this.servex.mcp.tool(tool.name === "claim_topic" ? this.logged(tool) : tool);
+-		for (const tool of page_tools(id => { const a = this.servex.agents; const dir = id && a ? a.task_dir_for(a.reg().read()[id] ?? { id }) : null; return dir ? path.join(dir, "task.jsonl") : null; })) this.servex.mcp.tool(tool);
++		for (const tool of page_tools(id => { const a = this.servex.agents; const dir = id && a ? a.task_dir_for(a.reg().read()[id] ?? { id }) : null; return dir ? SessionRecord.log_or_old(dir) : null; })) this.servex.mcp.tool(tool);
+ 		for (const tool of FileTools.tools()) this.servex.mcp.tool(tool);   // read_file ... shell: ext/remote/doc/remote-tools.md
+ 		for (const tool of ModuleInbox.tools()) this.servex.mcp.tool(tool);   // module_inbox: Servex/doc/module-inbox.md
+ 		this.servex.mcp.tool({
 diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
-index f4943c7d7..70d41af38 100644
+index f4943c7d7..e71de6d20 100644
 --- a/Servex/agents/page_tools.js
 +++ b/Servex/agents/page_tools.js
 @@ -1,4 +1,5 @@
@@ -1589,6 +1611,15 @@ index f4943c7d7..70d41af38 100644
  import path from "node:path";
  import { fileURLToPath } from "node:url";
  import Subpages from "./Subpages.js";
+@@ -376,7 +377,7 @@ function expand_dots(delta){
+ 
+ function class_of(file){
+ 	const first = parse_lines(file)[0];
+-	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
++	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? (SessionRecord.log_file(path.dirname(file)) === file ? "Task" : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
+ }
+ 
+ // describe() with each method's doc filled: the first `//` line of the comment block above it, from the class's source.
 @@ -478,7 +479,7 @@ export function link_refs(Task){
  	Task.resolver ??= ref => {
  		const dir = path.resolve(PUBLIC, String(ref).replace(/^[\/]+/, ""));
@@ -1626,6 +1657,36 @@ index eafee5a5e..5a033fd40 100644
  	for (const raw of text.replace(/^﻿/, "").split(/\r?\n/)){
  		if (!raw.trim()) continue;
  		let obj; try { obj = JSON.parse(raw); } catch { continue; }
+diff --git a/Servex/asks/Asks.js b/Servex/asks/Asks.js
+index e29f50079..68dcd20ba 100644
+--- a/Servex/asks/Asks.js
++++ b/Servex/asks/Asks.js
+@@ -5,6 +5,7 @@ import { stamp } from "../home.js";
+ import { AskFold } from "../../public/framework/ai/asks/AskFold.js";
+ import { stalled } from "./stalled.js";
+ import { build_tasks, write_tasks_json } from "./tasks.js";
++import SessionRecord from "../../Server/SessionRecord.mjs";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const DEFAULT_FILE = path.resolve(HERE, "../../public/framework/ai/asks.jsonl");
+@@ -170,7 +171,7 @@ export default class Asks {
+ 	 * already uses: a non-empty `outcome` alongside `landed_at`. */
+ 	task_state(dir){
+ 		let text;
+-		try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { return { last_at: null, landed: false }; }
++		try { text = fs.readFileSync(SessionRecord.log_or_old(dir), "utf8"); } catch { return { last_at: null, landed: false }; }
+ 		const state = {};
+ 		let last_at = null;
+ 		for (const raw of text.split("\n")){
+@@ -212,7 +213,7 @@ export default class Asks {
+ 		const root = this.servex?.task_loop?.root ?? process.cwd();
+ 		const abs = path.isAbsolute(dir) ? dir : path.join(root, dir);
+ 		let text;
+-		try { text = fs.readFileSync(path.join(abs, "task.jsonl"), "utf8"); } catch { return; }
++		try { text = fs.readFileSync(SessionRecord.log_or_old(abs), "utf8"); } catch { return; }
+ 		let agent = null;
+ 		for (const raw of text.split("\n")){
+ 			if (!raw.trim()) continue;
 diff --git a/Servex/asks/tasks.js b/Servex/asks/tasks.js
 index ee07ab97e..68551976a 100644
 --- a/Servex/asks/tasks.js
@@ -1737,17 +1798,17 @@ index 7728d14cb..46fc0e174 100644
  
 diff --git a/public/framework/ai/sessions/doc/session-record.md b/public/framework/ai/sessions/doc/session-record.md
 new file mode 100644
-index 000000000..9f4478523
+index 000000000..541aeb1fb
 --- /dev/null
 +++ b/public/framework/ai/sessions/doc/session-record.md
-@@ -0,0 +1,78 @@
+@@ -0,0 +1,80 @@
 +# A session folder's one record: `session.jsonl`
 +
 +A session folder (`ai/sessions/YYYY/MM/DD/<session or agent id>/`) keeps **one** record file, `session.jsonl`. A task folder keeps `task.jsonl`. This page is the rule, how a reader tells them apart, and how the move was done and can be undone.
 +
 +## The rule
 +
-+- `session.jsonl` holds two kinds of line in one file, told apart by their verb:
++- `session.jsonl` holds two kinds of line in one file, told apart by their verb (one verb is shared: `note` is also a task verb, so a log `{"note":…}` line is counted as a record note by `AISession.record()`; harmless, listed so nobody is surprised):
 +  - the session's own log, what `task.jsonl` held there: `assign`, `log`, `agent`, `chat` and the other task verbs;
 +  - the digest lines, what `session.jsonl` held before: `tag`, `summary`, `note`, `alert`, `weight`, `closed`, `question`, `links`.
 +- A task folder (a child of a session folder, or any folder whose `task.jsonl` line 1 has no `session_id` of its own) **keeps `task.jsonl`**, and the move never touches it.
@@ -1813,6 +1874,8 @@ index 000000000..9f4478523
 +
 +## What is not done yet
 +
++- `ai/AISession/AISessionIndex.mjs` (the category join) still reads `ai/<id>/task.jsonl` of the old audit folder, a path that no longer holds sessions.
++- `ai/AISession/StoreFolder.js` routes any folder holding the record to a task page; a folder with digest tags only is checked in the render pass.
 +- **Writers still create `task.jsonl`:** `Server/TaskDirs.mjs --new` and `spawn_agent`'s first task line (`Servex/agents/Agents.js`, the initial `assign` write). A new session folder starts with the old name; re-running `--apply` moves it once it has been quiet for an hour. Switching the writers to `session.jsonl` for a new *session* folder is the follow-up.
 +- **`Servex/LogSweeper.js`** already allows `session.jsonl` under a session folder, so the log sweeper keeps committing moved records.
 +- **A running Servex needs a restart** to read the new Servex readers (logged as `needs_restart`).
