@@ -10,3 +10,4 @@
 {"log":{"at":"2026-10-17T14:32:02-05:00","msg":"Proof: layout-check http://localhost:55079/framework/ai/ --widths 1280 --out /c/Code/lew42/worktrees/layout-check-path/<this task dir>/proof wrote 1280.png, sheet.png and layout.json inside that dir; no c folder exists at the C: drive root before or after; --out /c/Users/stray-test was refused with one line, exit 2. Proof PNGs deleted (screenshots are never committed)."}}
 {"decision":{"at":"2026-10-17T14:32:02-05:00","msg":"merged with --no-review: a 3-line change plus a 30-line class, self-reviewed; the alternative was a paid review.mjs run, not worth it. Todo line closed in ai/todo.md."}}
 {"finish":{"at":"2026-10-17T14:32:02-05:00","summary":"OutPath class lands; layout-check --out resolves git-bash paths and refuses outside the repo or temp. Merged into michael/dev."}}
+{"commit":"bdc3d223ea4d"}
