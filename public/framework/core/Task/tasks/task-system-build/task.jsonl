@@ -1,0 +1,23 @@
+{"id":"task-system-build","path":"/framework/core/Task/tasks/task-system-build/","parent":"/framework/ai/sessions/2026/10/16/voice-20261016/","title":"Task system build","source":"/framework/core/Task/doc/owner-2026-10-16-task-system.md","module":"core/Task","by":"voice-app","ts":"2026-10-17T01:30:40.797Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-1-task-replay-and-the-waiting-state/","by":"voice-app","ts":"2026-10-17T01:30:49.124Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-2-taskloop-and-taskstate-read-state/","by":"voice-app","ts":"2026-10-17T01:30:49.140Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-3-fields-expected-priority-commits/","by":"voice-app","ts":"2026-10-17T01:30:49.149Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-3b-complete-the-verdicts-series-or/","by":"voice-app","ts":"2026-10-17T01:30:49.159Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-4-task-view-renders-a-task/","by":"voice-app","ts":"2026-10-17T01:30:49.169Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-5-the-item-tool-item-path-delta/","by":"voice-app","ts":"2026-10-17T01:30:49.182Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-6-commit-lines-from-a-post-commit-h/","by":"voice-app","ts":"2026-10-17T01:30:49.194Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-7-session-extends-item-with-tasks-a/","by":"voice-app","ts":"2026-10-17T01:30:49.207Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-8-refine-makes-a-task-for-each-refi/","by":"voice-app","ts":"2026-10-17T01:30:49.221Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-9-module-homes-module-tasks-listed/","by":"voice-app","ts":"2026-10-17T01:30:49.236Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-10-the-skills-and-readmes-use-the-i/","by":"voice-app","ts":"2026-10-17T01:30:49.251Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-11-taskpage-the-thin-route-over-a-t/","by":"voice-app","ts":"2026-10-17T01:30:49.264Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-12-the-item-tool-in-process-for-loc/","by":"voice-app","ts":"2026-10-17T01:30:49.280Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-13-item-owns-replay-tags-expected-a/","by":"voice-app","ts":"2026-10-17T01:30:49.299Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-14a-task-homes-node-side-the-child/","by":"voice-app","ts":"2026-10-17T01:30:49.319Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-14b-browser-references-the-module-t/","by":"voice-app","ts":"2026-10-17T01:30:49.339Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-15-task-view-as-a-checkbox-row-with/","by":"voice-app","ts":"2026-10-17T01:30:49.359Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-16-the-item-tool-files-the-caller-s/","by":"voice-app","ts":"2026-10-17T01:30:49.378Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/step-17-proof-data-today-s-dictations-as/","by":"voice-app","ts":"2026-10-17T01:30:49.400Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/cost-per-task-is-the-sum-of-the-agents-t/","by":"voice-app","ts":"2026-10-17T01:30:49.432Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/live-a-presentation-mode-and-a-prioritis/","by":"voice-app","ts":"2026-10-17T01:30:49.462Z"}
+{"task":"/framework/core/Task/tasks/task-system-build/complete-checks-each-expected-string-yes/","by":"voice-app","ts":"2026-10-17T01:30:49.491Z"}
