@@ -26,6 +26,18 @@
 		.drawer-rail-compact { padding-block: 0.2em calc(0.2em + env(safe-area-inset-bottom, 0px)); }
 	}
 
+	/* ☰ on the strip (Sheet.open_nav) opens the page's Sidebar tree from the BOTTOM, just above the strip;
+	   a page with no sidebar has no ☰ (its drawer tabs live in the full sheet). */
+	@media (max-width: 52em) {
+		.sidebar.open.sidebar-from-strip .sidebar-menu {
+			position: fixed; top: auto; inset-inline: 0;
+			inset-block-end: var(--strip-h, 3.5rem);
+			border-bottom: 0; border-top: 1px solid var(--line);
+			box-shadow: 0 -0.4em 1.2em rgb(0 0 0 / 0.18);
+		}
+		.app:not(:has(.sidebar)) .drawer-rail-menu { display: none; }
+	}
+
 	.drawer-rail-home, .drawer-rail-ai, .drawer-rail-menu {
 		flex: 1 1 0;
 		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1em;

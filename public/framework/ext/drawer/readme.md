@@ -18,7 +18,7 @@ drawer.showing();     // boolean
 
 ## Core concepts
 
-- **The ☰ menu**: Opens the drawer on routed tabs (AI chat, Dictation, Settings, and contextual Element) · [`doc/tabs.md`](./doc/tabs.md).
+- **The ✦ button** (was ☰ until 2026-10-16; ☰ now always means navigation): Opens the drawer on routed tabs (AI chat, Dictation, Settings, and contextual Element) · [`doc/tabs.md`](./doc/tabs.md).
 - **Mobile rail**: A pinned bottom bar on phones offering voice chat sheet and drawer access · [`doc/sheet.md`](./doc/sheet.md).
 - **Page inbox**: Per-page note drops for agent coordination (`inbox.js`) · [`doc/inbox.md`](./doc/inbox.md).
 - **Selection**: Selecting page content inspects element attributes (`select.js`) · [`doc/select.md`](./doc/select.md).
@@ -26,7 +26,7 @@ drawer.showing();     // boolean
 ## Files that matter
 
 - `drawer.js` / `drawer.css`: Shell, push layout, ✕ close, and `--drawer-w` token.
-- `menu.js`: The top-right ☰ button.
+- `menu.js`: The top-right ✦ button. On a phone the strip's ☰ Menu opens the page's Sidebar tree from the bottom (`Sheet.open_nav()`).
 - `tabs.js`: Tab switcher routing (`AI`, `Dictate`, `Settings`, `Element`).
 - `Sheet.js` / `rail.css`: the phone's bottom strip and the voice sheet it raises, `export default class Sheet extends View` (`Sheet.of(app)`). It was `rail.js` / `DrawerRail` until 2026-10-16; `rail.js` now only re-exports it, so old imports keep working. **The mobile sheet for dictation is `Sheet.Panel`** (`class SheetPanel extends View`, one class since 2026-10-16; the old four-class chain `DrawerRailSheetV1` → `DrawerRailSheetChat` is kept in [`archive/sheet-chain-2026-10-16.js`](./archive/sheet-chain-2026-10-16.js), opt-in).
 - `page.js`: Live interactive demo.
