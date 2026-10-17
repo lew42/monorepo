@@ -41,7 +41,7 @@ Why a maximum: the SDK writes early lines of a message with a partial `output_to
 | `5f3ca544` | $31.045 | $62.09 | $5.802 |
 | `d9427ae3` | $54.386 | $108.77 | $30.697 |
 
-Day totals before the recost (index snapshot vs the canonical counter): 2026-10-16 $284.86 vs $278.25; 2026-10-17 $132.29 vs $82.87.
+Day totals, snapshot vs canonical counter. Before the recost: 2026-10-16 $284.86 vs $278.25; 2026-10-17 $132.29 vs $82.87. After `--recost` on the live data: 2026-10-16 $278.25 = $278.25 (counter = audit); 2026-10-17 $84.81 vs $84.97 (the gap is the session still running when the snapshot was taken). The 264 sessions of both days fell from $419.25 to $363.06.
 
 ## State version
 
