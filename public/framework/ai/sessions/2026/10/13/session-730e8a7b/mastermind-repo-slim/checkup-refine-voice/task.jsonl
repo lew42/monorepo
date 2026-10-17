@@ -13,3 +13,4 @@
 {"decision":{"at":"2026-10-17T00:10:13-05:00","topic":"sessions minion stalled","chose":"stopped it and finished the doc, the dry-run chunker and the test myself","options":[{"option":"wait longer for the minion","caveat":"it had written nothing for 10 minutes except a fix and a test that hung"}],"why":"the small steps cost less to finish than to chase"}}
 {"action":{"at":"2026-10-17T00:10:13-05:00","did":"built Placement.js and the RefineSystem wiring; reviewed (test 6 of 6) and merged"}}
 {"log":{"at":"2026-10-17T00:10:13-05:00","msg":"landed: placement (merge of checkup/refine-placement), sessions decision + New session test + chat.js key fix + chunk-session.mjs (merge of checkup/sessions-decision); check_page clean on /framework/ux/Dictate/ and /framework/ext/Refine/; worktrees removed"}}
+{"finish":{"at":"2026-10-17T00:10:20-05:00"}}
