@@ -350,10 +350,10 @@ const LOADERS = {
 };
 const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"] };
 // Fields a Session line may carry: its identity, a title, and its tasks.
-const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "by", "ts", "class"];
+const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class"];
 
 // Fields a Task line may carry beyond its getters (plan section 2) and the legacy line keys Task.replay reads.
-const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tags", "tasks", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];
+const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tags", "tasks", "task", "path", "parent", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];
 
 const KEYS = { Task: TASK_KEYS, Session: SESSION_KEYS };
 
@@ -397,6 +397,46 @@ async function instructions_for(kind, Class){
 	return Class ? { ...describe_class(Class), task_keys: KEYS[kind], grammar: GRAMMAR } : { class: kind, grammar: GRAMMAR };
 }
 
+
+/* ---------- task homes (plan step 14a) ----------
+ * `tasks.add` on a parent makes the child its own folder + task.jsonl and writes ONE reference line `{"task": "<app path>"}`
+ * on the parent; replay resolves the reference (Task.from_ref). Home: <module>/tasks/<slug>/ when public/framework/<module>/
+ * already exists (never created here), else <parent folder>/<slug>/. ctx.module_root overrides the module root (tests). */
+const FRAMEWORK = path.join(PUBLIC, "framework");
+const MODULE_NAME = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
+const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/") + "/";
+const slug_of = text => String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task";
+
+// Which folder a new child lives in, and its slug (-2, -3 when taken).
+function task_home(parent_dir, add, root = FRAMEWORK){
+	const mod = typeof add.module === "string" ? add.module.replace(/^\/+|\/+$/g, "") : "";
+	const mod_dir = MODULE_NAME.test(mod) ? path.join(root, mod) : null;
+	const base = mod_dir && fs.existsSync(mod_dir) && fs.statSync(mod_dir).isDirectory() ? path.join(mod_dir, "tasks") : parent_dir;
+	const slug0 = slug_of(add.title ?? add.id);
+	let slug = slug0;
+	for (let n = 2; fs.existsSync(path.join(base, slug)); n++) slug = `${slug0}-${n}`.replace(/^(.{0,40})(-\d+)$/, (_, a, b) => a.slice(0, 40 - b.length) + b);
+	return { slug, dir: path.join(base, slug) };
+}
+
+// One add -> child folder with line 1, returns { id, path }. Fields come from the add (a legacy `data` object is flattened).
+function make_child(parent_dir, add, ctx){
+	const { type: _t, id: _i, after: _a, data, ...fields } = add;
+	const { slug, dir } = task_home(parent_dir, add, ctx.module_root);
+	const child = path.join(dir, "task.jsonl"), url = app_path(dir);
+	write_line(child, { id: slug, path: url, parent: app_path(parent_dir), ...data, ...fields, by: ctx.caller ?? "agent", ts: now() }, true);
+	return { id: slug, path: url };
+}
+
+// Node's resolver for Task.from_ref: an app path -> that folder's parsed task.jsonl, or null.
+export function link_refs(Task){
+	Task.resolver ??= ref => {
+		const dir = path.resolve(PUBLIC, String(ref).replace(/^[\/]+/, ""));
+		if (!dir.startsWith(PUBLIC + path.sep)) return null;
+		const file = path.join(dir, "task.jsonl");
+		return fs.existsSync(file) ? parse_lines(file) : null;
+	};
+}
+
 // The file replayed by the class itself: the same code a browser runs on the same lines.
 function task_of(Task, file){ return Task.replay(parse_lines(file)); }
 
@@ -432,6 +472,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 
 	const kind = class_of(at.file);
 	const Class = LOADERS[kind] ? await LOADERS[kind]().catch(() => null) : null;
+	if (Class) link_refs(await LOADERS.Task());   // references on a parent resolve to live children
 	const first_time = () => !told.has(`${ctx.caller}|${kind}`) && told.set(`${ctx.caller}|${kind}`, true);
 	const state = () => Class?.replay ? task_state(Class, at.file) : (fs.existsSync(at.file) ? render_markdown(replay(parse_lines(at.file)), Subpages.listed(at.file).map(name => ({ name, url: String(url).replace(/\/?$/, "/") + name + "/" }))) : null);
 	const extra = async () => alias ? {} : { ...(first_time() ? { instructions: await instructions_for(kind, Class) } : {}), state: state() };
@@ -450,13 +491,27 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	const made = pages === undefined ? null : apply_pages(at, pages, url);
 	if (made?.why) return { ok: false, why: made.why, done: made.done };
 
-	const ids = [];
+	const ids = [], homes = [];
 	let line = null, size;
-	if (pages === undefined || Object.keys(rest).length){
-		line = nest(at.target, { ...stamp_ids(pages === undefined ? flat : rest, ids), by: ctx.caller ?? "agent", ts: now() });
+	// Task or Session parent: each `tasks.add` becomes a child folder plus one `{"task": path}` reference line here.
+	let body = pages === undefined ? flat : rest;
+	if (Class?.replay && !at.target.length && is_plain(body.tasks) && body.tasks.add !== undefined){
+		const { add, ...others } = body.tasks;
+		for (const a of [].concat(add)){
+			if (!is_plain(a)) return { ok: false, why: "`tasks.add` takes an object (the new task's fields)" };
+			const home = make_child(path.dirname(at.file), a, ctx);
+			homes.push(home); ids.push(home.id);
+			line = { task: home.path, by: ctx.caller ?? "agent", ts: now() };
+			size = write_line(at.file, line, true);
+		}
+		const { tasks: _t, ...more } = body;
+		body = Object.keys(others).length ? { ...more, tasks: others } : more;
+	}
+	if ((pages === undefined && !homes.length) || Object.keys(body).length){
+		line = nest(at.target, { ...stamp_ids(body, ids), by: ctx.caller ?? "agent", ts: now() });
 		size = write_line(at.file, line, !!Class?.replay);
-	} else size = size_of(at.file);
-	return { ok: true, ids, line, size, ...(made ? { pages: made.done } : {}), ...(Class?.replay || !alias ? await extra() : {}) };
+	} else if (size === undefined) size = size_of(at.file);
+	return { ok: true, ids, line, size, ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(Class?.replay || !alias ? await extra() : {}) };
 }
 
 /* ---------- the six tools ---------- */
