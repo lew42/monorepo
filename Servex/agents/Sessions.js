@@ -337,7 +337,7 @@ export default class Sessions {
 			 * it, to this one role only. */
 			try {
 					this.wake(s, from.role);
-					if (last_owner) from.role === "fast" && this.voice_seat(s) ? this.voice_say(s, [last_owner]) : this.send(s, from.role, last_owner.text);
+					if (last_owner) from.role === "fast" && this.voice_seat() ? this.voice_say(s, [last_owner]) : this.send(s, from.role, last_owner.text);
 				}
 			catch (e){ console.error(`sessions: fallback respawn failed: ${e.message}`); }
 		});
@@ -357,7 +357,6 @@ export default class Sessions {
 		} catch {}
 		return null;
 	}
-	last_owner_text(s){ return this.last_owner_line(s)?.text ?? null; }
 
 	/* THE VOICE SEAT: is this session's `fast` agent the voice assistant? */
 	voice_seat(){ return this.assistant === "voice"; }
