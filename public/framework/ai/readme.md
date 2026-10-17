@@ -31,7 +31,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Audits** (every audit we ran, with a verdict and whether it was followed up): [audits/readme.md](audits/readme.md)
 - **Transcription**: [ux/Dictate](/framework/ux/Dictate/)
 - **Class cards, live** ([classes](/framework/ai/classes/)): a class, its API, and a debug tree of a live instance beside its rendered view. First: Session.
-- **Prompt refinement** (Echo, running now): [Servex/doc/echo.md](/framework/servex/doc/echo.md) · [ext/Refine live demo + Prompt class](/framework/ext/Refine/) · [vision](/framework/ext/Refine/doc/vision-2026-10-08.md) · [dictation connection map](/framework/ai/doc/design/dictation-refine-connection-map.md)
+- **Prompt refinement** (Echo, running now): [Servex/doc/echo.md](/framework/servex/doc/echo.md) · [ext/Refine live demo + Prompt class](/framework/ext/Refine/) · [vision](/framework/ext/Refine/doc/vision-2026-10-08.md) · [dictation connection map](/framework/ai/doc/design/dictation-refine-connection-map.md) · **new 2026-10-16, owner notes:** [card types + the plan → proposal → task lifecycle](/framework/ext/Refine/doc/card-types.md)
 - **Page system**: [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/)
 - **Handover as a query** (plan: handover computed at read time from the task logs, not hand-written): [doc/handover-query.md](doc/handover-query.md)
 - **Past work** (look before you build): [past-work-index.md](past-work-index.md), generated from every landed task; search a topic with `node Server/PastWork.mjs <topic>` (the `past-work` skill)
