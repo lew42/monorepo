@@ -1,6 +1,6 @@
-# rail.js comment notes
+# Sheet.js comment notes (the file was rail.js until 2026-10-16)
 
-Comments pruned from `rail.js` (2026-10-12), kept verbatim, in file order. Each section's heading names the code that followed the comment; `rail.js` points here with `// ⚠ doc/rail-notes.md#<heading>` where a comment warned of a trap.
+Comments pruned from `rail.js`, now `Sheet.js` (2026-10-12), kept verbatim, in file order. The headings keep the old names (`DrawerRail` is `Sheet` now) so every `#anchor` link still lands. Each section's heading names the code that followed the comment; `rail.js` points here with `// ⚠ doc/rail-notes.md#<heading>` where a comment warned of a trap.
 
 ### c1 import as Session from framework ext Ses
 

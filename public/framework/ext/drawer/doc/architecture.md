@@ -1,6 +1,6 @@
 # drawer architecture — one rail that pushes the page, filled by whoever is talking
 
-`ext/drawer` is the site's one right-hand rail, for context, tools and help beside the page. Its main entry is `drawer(fn)` in [`drawer.js`](../drawer.js), which fills two slots and gives back the rail. On phones the same tabs live in a bottom bar and voice sheet, [`rail.js`](../rail.js). Each tab is a class-free fill function in [`tabs/`](../tabs/), and the rail never decides what it shows.
+`ext/drawer` is the site's one right-hand rail, for context, tools and help beside the page. Its main entry is `drawer(fn)` in [`drawer.js`](../drawer.js), which fills two slots and gives back the rail. On phones the same tabs live in a bottom bar and voice sheet, [`Sheet.js`](../Sheet.js) (class `Sheet`, was `rail.js`). Each tab is a class-free fill function in [`tabs/`](../tabs/), and the rail never decides what it shows.
 
 ## The rail pushes the page, it never covers it
 

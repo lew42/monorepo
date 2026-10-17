@@ -73,11 +73,11 @@ async voice_deliver(entry){
 
 		md("The rail's own second button changed once already — it launched as a second ☰ \"Menu,\" and the task mastermind judged that a repeated glyph reads as \"do this again,\" not \"here's something else,\" now that the page's own ☰ lives at the top. Nothing was deleted: `menu_icon`/`menu_label`/`menu_title` are prototype fields, and `DrawerRail.V1` is the old look, kept as a subclass rather than a comment saying what used to be here:");
 
-		code.js(`import { DrawerRail } from "/framework/ext/drawer/rail.js";
+		code.js(`import Sheet from "/framework/ext/drawer/Sheet.js";
 
-// menu.js calls \`rail(app)\`, which builds \`new DrawerRail({ app })\`.
+// menu.js calls \`Sheet.of(app)\`, which builds \`new Sheet({ app })\` once.
 // A caller that wants the old look builds the variant class instead:
-new DrawerRail.V1({ app });   // ☰ "Menu", verbatim`);
+new Sheet.V1({ app });   // ☰ "Menu", verbatim`);
 
 		h2("Why a normal flex row, not position: fixed");
 
