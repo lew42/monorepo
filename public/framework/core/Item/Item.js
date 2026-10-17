@@ -313,6 +313,18 @@ export class Item extends Events(Object) {
 		return Class;
 	}
 
+	// Replay: ONE path for every Item, in node (`replay(lines)`) and in the browser (Store.read calls
+	// `replay_line` per entry). A subclass overrides `replay_new` (what line 1 builds), `replay_line`
+	// (its legacy line shapes) and `replay_end` (anything inferred once all lines are in).
+	static replay_new(lines){ return new this(); }
+	static replay(lines){
+		const item = this.replay_new(lines);
+		for (const line of lines) if (line && typeof line === "object") item.replay_line(line);
+		item.replay_end?.();
+		return item;
+	}
+	replay_line(line){ return this.set(line); }
+
 	// A string is a .jsonl url: one Store per file, opened, the host built from its
 	// first line, attached. A Saver object keeps the existing whole-JSON path.
 	static async open(src){

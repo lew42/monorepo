@@ -353,7 +353,7 @@ const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Sessio
 const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "by", "ts", "class"];
 
 // Fields a Task line may carry beyond its getters (plan section 2) and the legacy line keys Task.replay reads.
-const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tasks", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];
+const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tags", "tasks", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];
 
 const KEYS = { Task: TASK_KEYS, Session: SESSION_KEYS };
 
