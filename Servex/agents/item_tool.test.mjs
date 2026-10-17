@@ -79,6 +79,12 @@ try {
 		ok(lines().length === before + 1 && lines().at(-1).task === app(home) && !lines().at(-1).tasks && Object.keys(lines().at(-1)).length === 3, "the parent gains exactly one {task} line");
 		ok(r.state.tasks.length === 2 && r.state.tasks.find(t => t.id === "module-job").title === "Module job" && r.state.tasks.find(t => t.id === "module-job").state === "idle", "reading the parent lists the child with its own state");
 		ok(!fs.existsSync(path.join(MODS, "nomod")), "no module folder made");
+		const list = path.join(MOD, "tasks", "task.jsonl"), list_lines = () => fs.readFileSync(list, "utf8").trim().split(String.fromCharCode(10)).map(l => JSON.parse(l));
+		ok(list_lines()[0].id === "tasks" && list_lines()[0].path === app(path.join(MOD, "tasks")) && list_lines()[0].title === "fakemod tasks" && list_lines()[0].mode === "parallel", "module list: line 1 once");
+		ok(list_lines().length === 2 && list_lines()[1].task === app(home), "module list: one reference per child");
+		ok(/TaskPage/.test(fs.readFileSync(path.join(home, "page.js"), "utf8")), "child folder gets a TaskPage page.js");
+		await add({ tasks: { add: { title: "Second job", module: "fakemod" } } });
+		ok(list_lines().filter(l => l.id === "tasks").length === 1 && list_lines().length === 3, "second child: no second line 1, one more reference");
 
 		r = await add({ tasks: { add: { title: "Plain job", module: "nomod" } } });
 		ok(fs.existsSync(path.join(DIR, "plain-job", "task.jsonl")) && !fs.existsSync(path.join(MODS, "nomod")), "no module folder: <parent>/<slug>/, module folder not created");
@@ -91,11 +97,20 @@ try {
 		ok(r.state.tasks.find(t => t.id === "module-job").state === "running" && r.state.completion === 0, "parent sees the child running");
 		await call("item", { path: app(home), delta: { complete: {} } });
 		r = await call("item", { path: URL });
-		ok(r.state.completion === 1 / 4, "parent completion changes after the child completes");
+		ok(r.state.completion === 1 / 5, "parent completion changes after the child completes");
 
 		fs.appendFileSync(FILE, JSON.stringify({ task: "/framework/ai/sessions/2026/10/16/no-such-" + process.pid + "/" }) + "\n");
 		r = await call("item", { path: URL });
 		ok(r.ok && r.state.tasks.some(t => t.state === "missing"), "a missing child file is a stub, no throw");
 	} finally { fs.rmSync(MODS, { recursive: true, force: true }); }
+	// ---- Task.rank: recency x weight ----
+	{
+		const { Task } = await import("../../public/framework/core/Task/Task.js");
+		const day = 864e5, now = Date.parse("2026-10-16T12:00:00Z"), at = d => new Date(now - d * day).toISOString();
+		const mk = (id, ts, score, kids) => Task.replay([{ id, ts }, ...(score ? [{ priority: { score } }] : []), ...Array.from({ length: kids ?? 0 }, (_, i) => ({ tasks: { add: { id: id + i, type: "Task" } } }))]);
+		const old_heavy = mk("old", at(9), 8), fresh = mk("fresh", at(0.5)), mid_kids = mk("mid", at(3), 1, 3);
+		// old: 8 x 0.5^3 = 1; fresh: ~0.89; mid: (1+3) x 0.5 = 2
+		ok(Task.rank([old_heavy, fresh, mid_kids], now).map(t => t.id).join() === "mid,old,fresh", "Task.rank: weight x recency order");
+	}
 	console.log(`item_tool: ${n} checks passed`);
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }

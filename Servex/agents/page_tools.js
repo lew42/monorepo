@@ -415,15 +415,24 @@ function task_home(parent_dir, add, root = FRAMEWORK){
 	const slug0 = slug_of(add.title ?? add.id);
 	let slug = slug0;
 	for (let n = 2; fs.existsSync(path.join(base, slug)); n++) slug = `${slug0}-${n}`.replace(/^(.{0,40})(-\d+)$/, (_, a, b) => a.slice(0, 40 - b.length) + b);
-	return { slug, dir: path.join(base, slug) };
+	return { slug, dir: path.join(base, slug), list: base === parent_dir ? null : { dir: base, module: mod } };
 }
+
+const PAGE_JS = ['import { TaskPage } from "/framework/core/Task/TaskPage.js";', "export default new TaskPage({ meta: import.meta });", ""].join(String.fromCharCode(10));
 
 // One add -> child folder with line 1, returns { id, path }. Fields come from the add (a legacy `data` object is flattened).
 function make_child(parent_dir, add, ctx){
 	const { type: _t, id: _i, after: _a, data, ...fields } = add;
-	const { slug, dir } = task_home(parent_dir, add, ctx.module_root);
+	const { slug, dir, list } = task_home(parent_dir, add, ctx.module_root);
 	const child = path.join(dir, "task.jsonl"), url = app_path(dir);
 	write_line(child, { id: slug, path: url, parent: app_path(parent_dir), ...data, ...fields, by: ctx.caller ?? "agent", ts: now() }, true);
+	// Step 14b: the child's folder routes (TaskPage), and the module's list task holds a second reference to it.
+	fs.writeFileSync(path.join(dir, "page.js"), PAGE_JS);
+	if (list){
+		const file = path.join(list.dir, "task.jsonl");
+		if (!fs.existsSync(file)) write_line(file, { id: "tasks", path: app_path(list.dir), title: `${list.module} tasks`, mode: "parallel" }, true);
+		write_line(file, { task: url, by: ctx.caller ?? "agent", ts: now() }, true);
+	}
 	return { id: slug, path: url };
 }
 

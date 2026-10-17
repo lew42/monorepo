@@ -279,7 +279,9 @@ export class Task extends Item {
 	}
 
 	// ---- References: a parent's `{"task": "<app path>"}` line is a live child replayed from its own file ----
-	// Node sets `Task.resolver = path => parsed lines | null` (Servex/agents/page_tools.js link_refs); the browser's Store does it in step 14b.
+	// ONE from_ref. Node sets `Task.resolver = path => parsed lines | null` (Servex/agents/page_tools.js link_refs): sync, read from disk.
+	// With no resolver, the browser gets a stub titled by its path's last segment ("loading"); `open_ref` then replays the child's own
+	// task.jsonl into that stub through the Store (the way TaskPage does) and tails it live. "missing" only after a 404.
 	static resolver = null;
 	static resolving = new Set();
 	static from_ref(ref){
@@ -289,18 +291,48 @@ export class Task extends Item {
 		if (lines?.length){
 			this.resolving.add(ref);   // a cycle of references stops here
 			try { kid = this.replay(lines); } finally { this.resolving.delete(ref); }
-		} else {   // missing file: a stub, never a throw
+		} else {   // no file (node), or not read yet (browser): a stub, never a throw
 			kid = new this({ id });
 			kid.put("title", id);
-			kid.put("state", "missing");
+			const browser = !this.resolver && typeof document !== "undefined" && !this.resolving.has(ref);
+			kid.put("state", browser ? "loading" : "missing");
+			if (browser) kid.ready = this.open_ref(kid, ref);   // a promise: resolves once the file is read (or 404s)
 		}
 		if (kid.data.path === undefined) kid.put("path", ref);
 		return kid;
 	}
 
+	// Browser only: open the child's file through the shared Store, then attach (replay + live tail) onto the stub.
+	static async open_ref(kid, ref){
+		const store = this.Store.for(String(ref).replace(/\/?$/, "/") + "task.jsonl");
+		try { await store.open(); } catch { /* treated as missing below */ }
+		if (store.host){   // another reader (TaskPage) is already attached and live: this stub takes a snapshot of the same file
+			const res = await fetch(store.url).catch(() => null);
+			const entries = res?.ok ? store.parse(await res.text()) : [];
+			if (!entries.length) kid.set({ state: "missing" });
+			else { kid.put("state", "idle"); for (const e of entries) kid.replay_line(e); }
+			return;
+		}
+		if (!store.count){ kid.set({ state: "missing" }); return; }
+		kid.put("state", "idle");   // the file's own verb lines take it from here
+		store.attach(kid);
+	}
+
+	// The tasks sorted by recency x weight, biggest first. Weight = priority.score (1 if missing) x (1 + children);
+	// recency halves every 3 days since the task's last line `ts` (else `at`). `now` is injectable for tests.
+	static rank(list, now = Date.now()){
+		const score = t => {
+			const when = Date.parse(t._last_ts ?? t.data.ts ?? t.data.at ?? "") || now;
+			const weight = (Number(t.priority?.score) || 1) * (1 + [...(t._tasks ?? [])].length);
+			return weight * 0.5 ** (Math.max(0, now - when) / (3 * 864e5));
+		};
+		return [...(list ?? [])].map(t => [t, score(t)]).sort((a, b) => b[1] - a[1]).map(([t]) => t);
+	}
+
 	// Time comes from the lines (`at`, `assign.at|landed_at|requested_at`), never the wall clock.
 	replay_line(line){
 		const rp = this._rp ??= { at: null, explicit: false };
+		if (typeof (line.ts ?? line.at) === "string") this._last_ts = line.ts ?? line.at;   // for Task.rank
 		const a = line.assign && typeof line.assign === "object" ? line.assign : null;
 		const verb = VERBS.find(v => line[v] && typeof line[v] === "object");
 		rp.at = line.at ?? a?.at ?? a?.landed_at ?? a?.requested_at ?? line[verb]?.at ?? rp.at;
