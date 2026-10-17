@@ -42,3 +42,16 @@ Precedent: deferred tools in the Claude harness, where only a name is in context
 ## The item tool, decided (same day, later)
 
 Item tool over task tool. One tool: a path and a method. Any class extending Item has its public methods callable through it, so a new class never needs a new tool; the class definition is the documentation. Pass this to whoever builds the task system and the Page AI API.
+
+## The item tool is set() (owner, same evening)
+
+One system, not two. Whatever loads an item, instantiates it and applies its deltas must behave the same whether the delta comes from a JSONL file or from a tool. So the item tool takes a path and ONE DELTA, the same object a page.jsonl line holds and the same object Item.set(delta) takes:
+
+    item({ path: "/framework/.../task-system/", delta: { "start": {} } })
+    item({ path: "/live/", delta: { "now": { "preview": "Now" } } })
+
+A method is just a key in the delta whose value is its arguments; a property is a key whose value is the value; set_one already tells them apart. No separate "method" field. Nested objects reach children (set recurses); a dot path like "now.preview" may be accepted as sugar that expands to the nested form, never a second mechanism. page_set is this tool for pages already; the item tool is page_set for any Item class. First call still returns the class's instructions.
+
+### Dot paths and nested objects, both (owner, later)
+
+The dot path exists because it is less for the model to generate in a tool call: `"now.preview": "Now"` instead of a correctly nested JSON object. The nested object exists because that is what the object side produces on its own: a child's delta bubbles up through its parents (item -> list -> owner) and the store writes one nested line; nobody formats a path. Both are accepted; one mechanism: a dot path is expanded to the nested form before `set()`, never a second apply. Do not commit to only one.
