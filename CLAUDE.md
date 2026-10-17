@@ -112,3 +112,7 @@ The owner works on the running site while agents write to it. Before a batch of 
 - Resolve URLs against `import.meta`, never the document.
 - Only `p()`/`h1`–`h6` read backticks; one backtick inside `` css(`…`) `` kills every page.
 - Imports flow down; a parent↔child import cycle breaks only on deep reload.
+
+## Law: code streams, AI does not (owner, 2026-10-16)
+
+Never rely on an agent to keep the UI current. The UI plugs into raw data (a JSONL file, a log) and code streams the change to the screen. A card an agent has to rewrite is not live. If a view needs an agent to refresh it, the view is wrong: give it a store.
