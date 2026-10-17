@@ -10,7 +10,7 @@ export default class LiveNow extends LiveToday {
 	static LANDED = 5;
 	static WAITING = 6;
 	static FLIGHT = 8;
-	static STALE = 2 * 36e5;   // an "active" session quiet for this long is not in flight
+	static STALE = 30 * 6e4;   // an "active" session quiet for this long is not in flight
 
 	static async load(){
 		const now = new Date(), day = n => this.day(new Date(now - n * 864e5));
@@ -32,9 +32,9 @@ export default class LiveNow extends LiveToday {
 		return url ? a.c("live-today-name", name).href(url) : span.c("live-today-name", name);
 	}
 
-	// The feed tile: one line that opens the full view (/live/now/), like the Tasks card.
+	// The feed tile: its title, which opens the full view (/live/now/), like the Tasks card.
 	static line(box){ return this.into(box, "tile"); }
-	static tile({ rows, landed, waiting }){ a.c("live-tasks-line", `Now · ${rows.length} in flight · ${landed.length} landed · ${waiting.length} waiting`).href("/live/now/"); }
+	static tile(){ a.c("live-tasks-line", "Now").href("/live/now/"); }   // the tile is its title (doc/notes.md, 2026-10-16); the counts are on the page
 
 	static draw({ rows, landed, waiting }){
 		const group = (title, count, body) => div.c("live-now-group", () => { span.c("live-now-head", `${title} (${count})`); body(); });
