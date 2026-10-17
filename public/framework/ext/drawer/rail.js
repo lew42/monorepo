@@ -1,5 +1,5 @@
 // DrawerRail: the phone's bottom rail (✦ AI, ⋯ More) and its voice sheet. Notes: doc/rail-notes.md
-import { View, div, span, button } from "/framework/core/View/View.js";
+import { View, div, span, button, a, img } from "/framework/core/View/View.js";
 import Dictate from "/framework/ux/Dictate/Dictate.js";
 import grip from "/framework/ext/grip/grip.js";
 import floor from "/framework/ux/Dictate/floor.js";
@@ -24,6 +24,7 @@ export class DrawerRail extends View {
 	// ⚠ see doc/rail-notes.md#c5-render
 	render(){
 		this.ac(this.compact === false ? "drawer-rail-full" : "drawer-rail-compact");
+		this.home_button();
 		this.ai_button();
 		this.menu_button();
 		this.watch_breakpoint();
@@ -113,6 +114,18 @@ export class DrawerRail extends View {
 			if (this.routed() === "closed") this.replace("open");
 			this.apply(this.routed());
 		});
+	}
+
+	/* Home (owner, 2026-10-16): from /live there was no way to the web root and the framework
+	 * pages. A plain link, the sidebar's M logo (public/assets/img/m_svg.svg), far left by
+	 * CSS `order` like the other two. */
+	home_button(){
+		return a.c("drawer-rail-home").href("/")
+			.attr("title", "Home").attr("aria-label", "Home")
+			.append(() => {
+				span.c("drawer-rail-home-icon").append(() => img().attr("src", "/assets/img/m_svg.svg").attr("alt", ""));
+				span.c("drawer-rail-home-label", "Home");
+			});
 	}
 
 	ai_button(){

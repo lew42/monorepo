@@ -26,7 +26,7 @@
 		.drawer-rail-compact { padding-block: 0.2em calc(0.2em + env(safe-area-inset-bottom, 0px)); }
 	}
 
-	.drawer-rail-ai, .drawer-rail-menu {
+	.drawer-rail-home, .drawer-rail-ai, .drawer-rail-menu {
 		flex: 1 1 0;
 		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1em;
 		min-block-size: 0;   /* the theme gives every button a 44px touch floor */
@@ -39,8 +39,10 @@
 		cursor: pointer;
 		position: relative;
 	}
-	.drawer-rail-ai:hover, .drawer-rail-menu:hover { background: var(--fill-a08); }
-	.drawer-rail-ai-icon, .drawer-rail-menu-icon { font-size: 1.3em; line-height: 1; position: relative; }
+	.drawer-rail-home:hover, .drawer-rail-ai:hover, .drawer-rail-menu:hover { background: var(--fill-a08); }
+	.drawer-rail-home-icon, .drawer-rail-ai-icon, .drawer-rail-menu-icon { font-size: 1.3em; line-height: 1; position: relative; }
+	.drawer-rail-home { text-decoration: none; }
+	.drawer-rail-home-icon img { display: block; block-size: 1.3em; inline-size: 1.3em; }
 	.drawer-rail-ai { color: var(--prime); }
 	.drawer-rail-ai-label, .drawer-rail-menu-label { font-weight: 600; }
 
@@ -52,8 +54,10 @@
 	   `rail.js`'s own DOM order (✦ is built first, `.drawer-rail-menu` second),
 	   so `DrawerRail.V2` below only has to say "use source order" to get the
 	   original ✦-on-the-left layout back, not rebuild the markup. */
+	.drawer-rail-compact .drawer-rail-home-label,
 	.drawer-rail-compact .drawer-rail-ai-label,
 	.drawer-rail-compact .drawer-rail-menu-label { display: none; }
+	.drawer-rail-compact .drawer-rail-home { order: 0; }
 	.drawer-rail-compact .drawer-rail-ai { order: 2; }
 	.drawer-rail-compact .drawer-rail-menu { order: 1; }
 	/* A comfortable thumb target (the owner, 2026-09-29: "only 15 pixels… hard to click"):
