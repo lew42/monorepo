@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-17T15:41:47.377Z",
+ "generated_at": "2026-10-17T16:21:02.059Z",
  "counted": 1150,
  "classified": 1150,
  "agree": true,
@@ -11,7 +11,7 @@
  "sources": {
   "refined": 1080,
   "routed": 70,
-  "tasks": 238,
+  "tasks": 468,
   "inboxes": 19,
   "inbox_lines": 607
  },
@@ -174,13 +174,13 @@
      "evidence": "ledger status landed"
     },
     {
-     "id": "e0ff1b2eac",
+     "id": "fc49764175",
      "kind": "routed",
      "state": "unroutable",
      "text": "Merge candidates: one minion per core dir (later, when tokens allow)",
      "at": "2026-09-30T14:18:58-05:00",
      "days": 16,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/09/30/ai-page/",
      "status": "parked",
      "where": {
       "kind": "ledger",
@@ -220,13 +220,13 @@
      "evidence": "ledger status landed"
     },
     {
-     "id": "2225185917",
+     "id": "51d14e8db4",
      "kind": "routed",
      "state": "unroutable",
      "text": "AI 2 merges into /framework/ai/ (later)",
      "at": "2026-09-30T14:36:58-05:00",
      "days": 16,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/09/30/ai2-inbox-read/",
      "status": "parked",
      "where": {
       "kind": "ledger",
@@ -251,13 +251,13 @@
      "evidence": "ledger status dropped"
     },
     {
-     "id": "208b99884e",
+     "id": "97ea927249",
      "kind": "routed",
      "state": "done",
      "text": "Dictation: ONE system everywhere (rail, sidebar, drawer, card) on the fast/smart pair; old per-card assistant retires",
      "at": "2026-09-30T14:50:33-05:00",
      "days": 16,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/09/30/audio-consolidate/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -472,13 +472,13 @@
      "evidence": null
     },
     {
-     "id": "19db3a9c91",
+     "id": "77cf7425d4",
      "kind": "routed",
      "state": "done",
      "text": "Console: clean on /ai/live; smoke fails on console noise and 404s",
      "at": "2026-10-03T12:33:36-05:00",
      "days": 13,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/10/03/console-clean/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -1428,8 +1428,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Make the chat window a live preview of the whole page tool system, where the…",
+      "url": "/framework/ai/tasks/make-the-chat-window-a-live-preview-of-t/"
      },
      "evidence": null
     },
@@ -2283,8 +2284,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3516",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Harmonize the designs we currently have on the site",
+      "url": "/framework/ext/Figma/tasks/harmonize-the-designs-we-currently-have/"
      },
      "evidence": null
     },
@@ -2613,8 +2615,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4252",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Decide whether a page can hold child pages, items and content, or only one kind",
+      "url": "/framework/core/Page/tasks/decide-whether-a-page-can-hold-child-pag/"
      },
      "evidence": null
     },
@@ -3003,8 +3006,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1652",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Use color scheme breakout to explore lighten and darken patterns wherever…",
+      "url": "/framework/ext/Figma/tasks/use-color-scheme-breakout-to-explore-lig/"
      },
      "evidence": null
     },
@@ -3168,8 +3172,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4177",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Use color scheme breakout to explore lighten and darken patterns wherever…",
+      "url": "/framework/ext/Figma/tasks/use-color-scheme-breakout-to-explore-lig/"
      },
      "evidence": null
     },
@@ -4338,8 +4343,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3786",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Use default pad X and pad Y tokens for standard container padding, with card…",
+      "url": "/framework/core/Page/tasks/use-default-pad-x-and-pad-y-tokens-for-s/"
      },
      "evidence": null
     },
@@ -4638,8 +4644,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p560",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Make the Miller columns more compact, since their list items have two lines of…",
+      "url": "/framework/ext/Refine/tasks/make-the-miller-columns-more-compact-sin/"
      },
      "evidence": null
     },
@@ -4668,8 +4675,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p560",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Explore list UI styles, especially a tree of layers, made mobile friendly",
+      "url": "/framework/ext/Refine/tasks/explore-list-ui-styles-especially-a-tree/"
      },
      "evidence": null
     },
@@ -4683,8 +4691,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p560",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Put the layer tree in a small mobile sheet, where selecting an item selects it…",
+      "url": "/framework/ext/Refine/tasks/put-the-layer-tree-in-a-small-mobile-she/"
      },
      "evidence": null
     },
@@ -4698,8 +4707,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Take a screenshot of the session grid to review its current layout",
+      "url": "/framework/ai/tasks/take-a-screenshot-of-the-session-grid-to/"
      },
      "evidence": null
     },
@@ -4743,8 +4753,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Pull the SVG logo the website uses into the top-left of the Figma sidebar",
+      "url": "/framework/ext/Figma/tasks/pull-the-svg-logo-the-website-uses-into/"
      },
      "evidence": null
     },
@@ -5298,8 +5309,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4962",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Build screenshotting into the templating and page system at component…",
+      "url": "/framework/core/Page/tasks/build-screenshotting-into-the-templating/"
      },
      "evidence": null
     },
@@ -6558,8 +6570,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1184",
      "status": "open",
      "where": {
-      "kind": "none",
-      "label": "open: no inbox line, no task"
+      "kind": "task",
+      "label": "task open: Make the Miller columns more compact, since their list items have two lines of…",
+      "url": "/framework/ext/Refine/tasks/make-the-miller-columns-more-compact-sin/"
      },
      "evidence": null
     },
@@ -7568,9 +7581,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3752",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make the Figma design preview open to show the actual UI elements rendered",
+      "url": "/framework/ext/Figma/tasks/make-the-figma-design-preview-open-to-sh/"
      },
      "evidence": null,
      "verified": "undone",
@@ -7594,9 +7607,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3752",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Find out whether the embeds cause the laggy clicking on Figma items",
+      "url": "/framework/ext/Figma/tasks/find-out-whether-the-embeds-cause-the-la/"
      },
      "evidence": null,
      "verified": "undone",
@@ -7784,9 +7797,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Design widgets and data grid tables, getting filter placement right, partly in…",
+      "url": "/framework/ext/Figma/tasks/design-widgets-and-data-grid-tables-gett/"
      },
      "evidence": null,
      "verified": "undone",
@@ -7834,9 +7847,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10902",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Flag primary-background usage as an important callout that needs…",
+      "url": "/framework/ext/Figma/tasks/flag-primary-background-usage-as-an-impo/"
      },
      "evidence": null,
      "verified": "undone",
@@ -7884,9 +7897,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10902",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Use the white/light and dark schemes, stacking dark mode where it gives better…",
+      "url": "/framework/ext/Figma/tasks/use-the-white-light-and-dark-schemes-sta/"
      },
      "evidence": null,
      "verified": "undone",
@@ -7958,9 +7971,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10710",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Maybe get Figma to design a new layout for the sessions page",
+      "url": "/framework/ext/Figma/tasks/maybe-get-figma-to-design-a-new-layout-f/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8008,9 +8021,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3516",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Pull the SVG logo the website uses into the top-left of the Figma sidebar",
+      "url": "/framework/ext/Figma/tasks/pull-the-svg-logo-the-website-uses-into/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8057,9 +8070,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3516",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Isolate the core building blocks into a section card per element, documented…",
+      "url": "/framework/ext/Figma/tasks/isolate-the-core-building-blocks-into-a/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8276,9 +8289,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2943",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Work on layouts and Figma title-card design, with title casing as one factor",
+      "url": "/framework/ext/Figma/tasks/work-on-layouts-and-figma-title-card-des/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8302,9 +8315,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2943",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Study Netflix and Amazon Prime Video title cards for reference",
+      "url": "/framework/ext/Figma/tasks/study-netflix-and-amazon-prime-video-tit/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8327,9 +8340,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2943",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Build raw text layouts for two, three and five word titles, showing where the…",
+      "url": "/framework/ext/Figma/tasks/build-raw-text-layouts-for-two-three-and/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8352,9 +8365,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2943",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Auto-layout two-line titles with the top line bottom-aligned and the bottom…",
+      "url": "/framework/ext/Figma/tasks/auto-layout-two-line-titles-with-the-top/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8377,9 +8390,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2943",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make filler words like the, of, a smaller and place them strategically so main…",
+      "url": "/framework/ext/Figma/tasks/make-filler-words-like-the-of-a-smaller/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8402,9 +8415,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2943",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Try centered, left or right, top or bottom, or combined alignments",
+      "url": "/framework/ext/Figma/tasks/try-centered-left-or-right-top-or-bottom/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8427,9 +8440,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2943",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Explore how word count and filler size change overall positioning and…",
+      "url": "/framework/ext/Figma/tasks/explore-how-word-count-and-filler-size-c/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8452,9 +8465,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2943",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Explore these text layouts for mobile and video presentation cards",
+      "url": "/framework/ext/Figma/tasks/explore-these-text-layouts-for-mobile-an/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8477,9 +8490,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2943",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Identify which size and style combinations work well together",
+      "url": "/framework/ext/Figma/tasks/identify-which-size-and-style-combinatio/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8502,9 +8515,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2943",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Build robust reusable layouts combining alignment, size, scale and positioning",
+      "url": "/framework/ext/Figma/tasks/build-robust-reusable-layouts-combining/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8527,9 +8540,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2943",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Judge how filler-word alignment reads from a bird's-eye view against bigger…",
+      "url": "/framework/ext/Figma/tasks/judge-how-filler-word-alignment-reads-fr/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8600,9 +8613,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2665",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Produce a responsive video schematic covering mobile shorts and desktop, with…",
+      "url": "/framework/ext/Figma/tasks/produce-a-responsive-video-schematic-cov/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8698,9 +8711,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1713",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Experiment with building auto-layout based flowcharts or diagrams in Figma…",
+      "url": "/framework/ext/Figma/tasks/experiment-with-building-auto-layout-bas/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8724,9 +8737,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1713",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Find out whether a zigzag path can fill a parent container or distribute…",
+      "url": "/framework/ext/Figma/tasks/find-out-whether-a-zigzag-path-can-fill/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8750,9 +8763,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1713",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Consider using Figma's default arrow tool arrows as connectors, since they are…",
+      "url": "/framework/ext/Figma/tasks/consider-using-figma-s-default-arrow-too/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8776,9 +8789,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1713",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Try linking flowchart nodes with auto-layout arrows that follow card height…",
+      "url": "/framework/ext/Figma/tasks/try-linking-flowchart-nodes-with-auto-la/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8802,9 +8815,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1713",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Consider splitting arrow lines so one part sits in one element and another…",
+      "url": "/framework/ext/Figma/tasks/consider-splitting-arrow-lines-so-one-pa/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8828,9 +8841,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4219",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Explore whether Figma auto-layout based flowcharts or logical diagrams are…",
+      "url": "/framework/ext/Figma/tasks/explore-whether-figma-auto-layout-based/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8854,9 +8867,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4219",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Find out what is possible for a zigzag path that fills a parent container or…",
+      "url": "/framework/ext/Figma/tasks/find-out-what-is-possible-for-a-zigzag-p/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8880,9 +8893,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4219",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Build flowchart arrows that automatically follow the height and sizing of…",
+      "url": "/framework/ext/Figma/tasks/build-flowchart-arrows-that-automaticall/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8906,9 +8919,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4219",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Consider splitting connector lines into segments that join separate auto…",
+      "url": "/framework/ext/Figma/tasks/consider-splitting-connector-lines-into/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8932,9 +8945,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4219",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Consider using Figma's default arrow tool for connectors, since its simple…",
+      "url": "/framework/ext/Figma/tasks/consider-using-figma-s-default-arrow-t-2/"
      },
      "evidence": null,
      "verified": "undone",
@@ -9103,9 +9116,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3908",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Reproduce the Figma layout tokens on the web so layouts match pixel for pixel",
+      "url": "/framework/ext/Figma/tasks/reproduce-the-figma-layout-tokens-on-the/"
      },
      "evidence": null,
      "verified": "undone",
@@ -9129,9 +9142,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3908",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Merge the custom CSS ported over for the ext/Figma designs into the framework…",
+      "url": "/framework/ext/Figma/tasks/merge-the-custom-css-ported-over-for-the/"
      },
      "evidence": null,
      "verified": "undone",
@@ -9179,9 +9192,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1251",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: During the sync, review the UI elements, CSS and tokens",
+      "url": "/framework/ext/Figma/tasks/during-the-sync-review-the-ui-elements-c/"
      },
      "evidence": null,
      "verified": "undone",
@@ -9204,9 +9217,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1251",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Consider reproducing the Figma layout token system on the web for…",
+      "url": "/framework/ext/Figma/tasks/consider-reproducing-the-figma-layout-to/"
      },
      "evidence": null,
      "verified": "undone",
@@ -9230,9 +9243,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1251",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Merge the custom CSS of the ext/Figma designs, currently ported as linked…",
+      "url": "/framework/ext/Figma/tasks/merge-the-custom-css-of-the-ext-figma-de/"
      },
      "evidence": null,
      "verified": "undone",
@@ -9401,9 +9414,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p921",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Work out how to harmonise the Figma design and the browser UI",
+      "url": "/framework/ext/Figma/tasks/work-out-how-to-harmonise-the-figma-desi/"
      },
      "evidence": null,
      "verified": "undone",
@@ -9474,9 +9487,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Try uploading the logo SVG to Figma and make the sidebar match the actual site…",
+      "url": "/framework/ext/Figma/tasks/try-uploading-the-logo-svg-to-figma-and/"
      },
      "evidence": null,
      "verified": "undone",
@@ -9500,9 +9513,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Harmonize the designs we currently have on the site",
+      "url": "/framework/ext/Figma/tasks/harmonize-the-designs-we-currently-have/"
      },
      "evidence": null,
      "verified": "undone",
@@ -9549,9 +9562,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Isolate the core building blocks into a section card per element, documented…",
+      "url": "/framework/ext/Figma/tasks/isolate-the-core-building-blocks-into-a/"
      },
      "evidence": null,
      "verified": "done",
@@ -9573,9 +9586,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make filler words like the, of, a smaller and place them strategically so main…",
+      "url": "/framework/ext/Figma/tasks/make-filler-words-like-the-of-a-smaller/"
      },
      "evidence": null,
      "verified": "done",
@@ -9739,9 +9752,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Consider a runnable prototype for the overview page",
+      "url": "/framework/ext/Figma/tasks/consider-a-runnable-prototype-for-the-ov/"
      },
      "evidence": null,
      "verified": "undone",
@@ -9910,9 +9923,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Find out how to join the Figma file \"September 2026\" as an agent",
+      "url": "/framework/ext/Figma/tasks/find-out-how-to-join-the-figma-file-sept/"
      },
      "evidence": null,
      "verified": "done",
@@ -9958,9 +9971,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Work on layouts and Figma title-card design, with title casing as one factor",
+      "url": "/framework/ext/Figma/tasks/work-on-layouts-and-figma-title-card-des/"
      },
      "evidence": null,
      "verified": "done",
@@ -10127,9 +10140,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3051",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Find out how to join the Figma file \"September 2026\" as an agent",
+      "url": "/framework/ext/Figma/tasks/find-out-how-to-join-the-figma-file-sept/"
      },
      "evidence": null,
      "verified": "done",
@@ -10390,9 +10403,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3051",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Read the root frame on page seven for the approved color stacking, and note…",
+      "url": "/framework/ext/Figma/tasks/read-the-root-frame-on-page-seven-for-th/"
      },
      "evidence": null,
      "verified": "done",
@@ -10415,9 +10428,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3051",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Define which color tokens and text schemes work on each background color",
+      "url": "/framework/ext/Figma/tasks/define-which-color-tokens-and-text-schem/"
      },
      "evidence": null,
      "verified": "undone",
@@ -10441,9 +10454,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3051",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Limit the color pairings to a specific small number of approved combinations",
+      "url": "/framework/ext/Figma/tasks/limit-the-color-pairings-to-a-specific-s/"
      },
      "evidence": null,
      "verified": "undone",
@@ -10630,9 +10643,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5288",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Use auto layout properly for page templates so the index page shows exactly…",
+      "url": "/framework/ext/Figma/tasks/use-auto-layout-properly-for-page-templa/"
      },
      "evidence": null,
      "verified": "undone",
@@ -10845,9 +10858,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5144",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Fix clipped content in specimen cards, including progress bars, and check…",
+      "url": "/framework/ext/Figma/tasks/fix-clipped-content-in-specimen-cards-in/"
      },
      "evidence": null,
      "verified": "undone",
@@ -10871,9 +10884,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5144",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Create index2 under the index page with full-size page instances stacked in a…",
+      "url": "/framework/ext/Figma/tasks/create-index2-under-the-index-page-with/"
      },
      "evidence": null,
      "verified": "undone",
@@ -10922,9 +10935,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5144",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Create more page layouts, starting with the simplest, and place the simplest…",
+      "url": "/framework/ext/Figma/tasks/create-more-page-layouts-starting-with-t/"
      },
      "evidence": null,
      "verified": "undone",
@@ -10948,9 +10961,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5144",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Build two-column 1920 layouts with variations in colour per side, space…",
+      "url": "/framework/ext/Figma/tasks/build-two-column-1920-layouts-with-varia/"
      },
      "evidence": null,
      "verified": "undone",
@@ -10974,9 +10987,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5144",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make each page layout a copy-paste template with slots and navigation set up…",
+      "url": "/framework/ext/Figma/tasks/make-each-page-layout-a-copy-paste-templ/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11212,9 +11225,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5015",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: If the Figma MCP handoff includes the variant name, identify each icon by that…",
+      "url": "/framework/ext/Figma/tasks/if-the-figma-mcp-handoff-includes-the-va/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11331,9 +11344,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4731",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Document in the Figma skill: avoid overwriting components unless absolutely…",
+      "url": "/framework/ext/Figma/tasks/document-in-the-figma-skill-avoid-overwr/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11381,9 +11394,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4731",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Build screenshotting into the templating and page system at component…",
+      "url": "/framework/core/Page/tasks/build-screenshotting-into-the-templating/"
      },
      "evidence": null,
      "verified": "done",
@@ -11477,9 +11490,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4731",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Use color scheme breakout to explore lighten and darken patterns wherever…",
+      "url": "/framework/ext/Figma/tasks/use-color-scheme-breakout-to-explore-lig/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11503,9 +11516,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4731",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Explore the prime background in both light and dark modes",
+      "url": "/framework/ext/Figma/tasks/explore-the-prime-background-in-both-lig/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11529,9 +11542,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4731",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Maybe use two primary columns",
+      "url": "/framework/ext/Figma/tasks/maybe-use-two-primary-columns/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11554,9 +11567,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4731",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Possibly duplicate the four-column system on page seven to make a fifth column",
+      "url": "/framework/ext/Figma/tasks/possibly-duplicate-the-four-column-syste/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11603,9 +11616,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4776",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Work only in Figma, not code, and never create work trees",
+      "url": "/framework/ext/Figma/tasks/work-only-in-figma-not-code-and-never-cr/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11651,9 +11664,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4776",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Review all files Claude created, look at the root structure, and reorganise it",
+      "url": "/framework/ext/Figma/tasks/review-all-files-claude-created-look-at/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11677,9 +11690,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4776",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Always apply auto layout with correct spacing between headers and content, and…",
+      "url": "/framework/ext/Figma/tasks/always-apply-auto-layout-with-correct-sp/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11703,9 +11716,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4776",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: On the Wizard Step frame, place the Next and Back buttons on the same line…",
+      "url": "/framework/ext/Figma/tasks/on-the-wizard-step-frame-place-the-next/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11776,9 +11789,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4776",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Decide whether to bring in the entire Google icon set or only the icons needed",
+      "url": "/framework/ext/Figma/tasks/decide-whether-to-bring-in-the-entire-go/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11802,9 +11815,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4776",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Explain the workflow: what becomes a component, how compound components are…",
+      "url": "/framework/ext/Figma/tasks/explain-the-workflow-what-becomes-a-comp/"
      },
      "evidence": null,
      "verified": "undone",
@@ -11946,9 +11959,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4471",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Consider the one-click 'claude plugin install figma@claude-plugins-official'…",
+      "url": "/framework/ext/Figma/tasks/consider-the-one-click-claude-plugin-ins/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12043,9 +12056,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4359",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Web search the Figma API for collaboration functions",
+      "url": "/framework/ext/Figma/tasks/web-search-the-figma-api-for-collaborati/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12069,9 +12082,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4359",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Find out how to join the Figma file \"September 2026\" as an agent",
+      "url": "/framework/ext/Figma/tasks/find-out-how-to-join-the-figma-file-sept/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12095,9 +12108,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4359",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Open the file \"September 2026\" so the owner can see the agent has joined",
+      "url": "/framework/ext/Figma/tasks/open-the-file-september-2026-so-the-owne/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12120,9 +12133,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4359",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Investigate why the agent's avatar was visible yesterday but is not visible now",
+      "url": "/framework/ext/Figma/tasks/investigate-why-the-agent-s-avatar-was-v/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12146,9 +12159,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4359",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Web search for Figma APIs for team collaboration, including shared cursor mode…",
+      "url": "/framework/ext/Figma/tasks/web-search-for-figma-apis-for-team-colla/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12172,9 +12185,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4359",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Determine whether Figma exposes shared cursor data through its API, given the…",
+      "url": "/framework/ext/Figma/tasks/determine-whether-figma-exposes-shared-c/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12246,9 +12259,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1184",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Consider reproducing the Figma layout token system on the web for…",
+      "url": "/framework/ext/Figma/tasks/consider-reproducing-the-figma-layout-to/"
      },
      "evidence": null,
      "verified": "unclear",
@@ -12318,9 +12331,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p6207",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make prototypes fixed height with a scrolling container that acts like a…",
+      "url": "/framework/ext/Figma/tasks/make-prototypes-fixed-height-with-a-scro/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12438,9 +12451,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p6207",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Figma/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make everything an instance of a component wherever possible",
+      "url": "/framework/ext/Figma/tasks/make-everything-an-instance-of-a-compone/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12597,9 +12610,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p2689",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: If feasible, write a script that goes through all sessions and pairs those…",
+      "url": "/framework/ai/tasks/if-feasible-write-a-script-that-goes-thr/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12623,9 +12636,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p2689",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Treat session merging as order- and time-dependent chains, not a plain append…",
+      "url": "/framework/ai/tasks/treat-session-merging-as-order-and-time/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12745,9 +12758,9 @@
      "source": "/framework/ai/sessions/7efd07d5-7a58-434d-8847-1a1d7b640390/?tab=coverage#p603",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Have the AI mastermind and the page mastermind exchange session IDs so they…",
+      "url": "/framework/ai/tasks/have-the-ai-mastermind-and-the-page-mast/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12844,9 +12857,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10670",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Keep the in-flight list live and separate current sessions from entries older…",
+      "url": "/framework/ai/tasks/keep-the-in-flight-list-live-and-separat/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12917,9 +12930,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10670",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Consider hiding or separating cost entries older than three days so current…",
+      "url": "/framework/ai/tasks/consider-hiding-or-separating-cost-entri/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12991,9 +13004,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11150",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Let sessions pull in references to things and display their content",
+      "url": "/framework/ai/tasks/let-sessions-pull-in-references-to-thing/"
      },
      "evidence": null,
      "verified": "undone",
@@ -13017,9 +13030,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11044",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Build a unified, indexed, filterable template library modelled on the 5,000…",
+      "url": "/framework/ai/tasks/build-a-unified-indexed-filterable-templ/"
      },
      "evidence": null,
      "verified": "undone",
@@ -13067,9 +13080,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10950",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Try buffering by cloning the data grid container, swapping in the clone…",
+      "url": "/framework/ai/tasks/try-buffering-by-cloning-the-data-grid-c/"
      },
      "evidence": null,
      "verified": "undone",
@@ -13316,9 +13329,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10769",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make the chat window a live preview of the whole page tool system, where the…",
+      "url": "/framework/ai/tasks/make-the-chat-window-a-live-preview-of-t/"
      },
      "evidence": null,
      "verified": "undone",
@@ -13436,9 +13449,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10769",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Find out whether refinement can be added to this chat window",
+      "url": "/framework/ai/tasks/find-out-whether-refinement-can-be-added/"
      },
      "evidence": null,
      "verified": "undone",
@@ -13557,9 +13570,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10745",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Keep the fast assistant on Haiku, under 100K tokens, auto-compacting or…",
+      "url": "/framework/ai/tasks/keep-the-fast-assistant-on-haiku-under-1/"
      },
      "evidence": null,
      "verified": "done",
@@ -13581,9 +13594,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10693",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Fix the session grid columns so the title and cost columns are not cut off…",
+      "url": "/framework/ai/tasks/fix-the-session-grid-columns-so-the-titl/"
      },
      "evidence": null,
      "verified": "undone",
@@ -13606,9 +13619,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10693",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make the title cell grow to fit a flag, either by auto-growing the row or…",
+      "url": "/framework/ai/tasks/make-the-title-cell-grow-to-fit-a-flag-e/"
      },
      "evidence": null,
      "verified": "undone",
@@ -13655,9 +13668,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10693",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Take a screenshot of the session grid to review its current layout",
+      "url": "/framework/ai/tasks/take-a-screenshot-of-the-session-grid-to/"
      },
      "evidence": null,
      "verified": "undone",
@@ -13752,9 +13765,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10693",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Add insight into what was spent and on what, with sessions tagged by the work…",
+      "url": "/framework/ai/tasks/add-insight-into-what-was-spent-and-on-w/"
      },
      "evidence": null,
      "verified": "undone",
@@ -13873,9 +13886,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10693",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Fix the model label on the night mastermind session so it shows Opus, not…",
+      "url": "/framework/ai/tasks/fix-the-model-label-on-the-night-masterm/"
      },
      "evidence": null,
      "verified": "undone",
@@ -13922,9 +13935,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10710",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Take screenshots of the sessions and detail pages at 3440 width and fix…",
+      "url": "/framework/ai/tasks/take-screenshots-of-the-sessions-and-det/"
      },
      "evidence": null,
      "verified": "undone",
@@ -13995,9 +14008,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10710",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Run a performance audit of the sessions page, including the JavaScript that…",
+      "url": "/framework/ai/tasks/run-a-performance-audit-of-the-sessions/"
      },
      "evidence": null,
      "verified": "undone",
@@ -14186,9 +14199,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10710",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Fix the detail page layout problems so the columns, sidebar and chat area are…",
+      "url": "/framework/ai/tasks/fix-the-detail-page-layout-problems-so-t/"
      },
      "evidence": null,
      "verified": "undone",
@@ -14306,9 +14319,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10710",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Show logged costs newest first",
+      "url": "/framework/ai/tasks/show-logged-costs-newest-first/"
      },
      "evidence": null,
      "verified": "undone",
@@ -14332,9 +14345,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10710",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Condense the very granular logged costs into a more compact representation…",
+      "url": "/framework/ai/tasks/condense-the-very-granular-logged-costs/"
      },
      "evidence": null,
      "verified": "undone",
@@ -14357,9 +14370,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10710",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Widen the right sidebar, which is about 300px, and redistribute space so the…",
+      "url": "/framework/ai/tasks/widen-the-right-sidebar-which-is-about-3/"
      },
      "evidence": null,
      "verified": "undone",
@@ -14406,9 +14419,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10710",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Give the chat area its own padding and background, and put the scrollbar…",
+      "url": "/framework/ai/tasks/give-the-chat-area-its-own-padding-and-b/"
      },
      "evidence": null,
      "verified": "undone",
@@ -14430,9 +14443,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10710",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Reduce the excess padding above the chat area header",
+      "url": "/framework/ai/tasks/reduce-the-excess-padding-above-the-chat/"
      },
      "evidence": null,
      "verified": "undone",
@@ -14455,9 +14468,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10710",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Keep the split bar defaulting to 50% with double-click reset to 50%",
+      "url": "/framework/ai/tasks/keep-the-split-bar-defaulting-to-50-with/"
      },
      "evidence": null,
      "verified": "undone",
@@ -14480,9 +14493,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10710",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Fix the usage item sidebar so it shows its full content, not just the heading",
+      "url": "/framework/ai/tasks/fix-the-usage-item-sidebar-so-it-shows-i/"
      },
      "evidence": null,
      "verified": "undone",
@@ -14621,9 +14634,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3516",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Take a screenshot of monorepo.localhost/framework/ai/sessions at 3440 px",
+      "url": "/framework/ai/tasks/take-a-screenshot-of-monorepo-localhost/"
      },
      "evidence": null,
      "verified": "undone",
@@ -14670,9 +14683,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3516",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Use headless Playwright to scroll the sessions data grid and verify the fix",
+      "url": "/framework/ai/tasks/use-headless-playwright-to-scroll-the-se/"
      },
      "evidence": null,
      "verified": "undone",
@@ -14812,9 +14825,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Fix the model label on the night mastermind session so it shows Opus, not…",
+      "url": "/framework/ai/tasks/fix-the-model-label-on-the-night-masterm/"
      },
      "evidence": null,
      "verified": "unclear",
@@ -14860,9 +14873,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Take a screenshot of monorepo.localhost/framework/ai/sessions at 3440 px",
+      "url": "/framework/ai/tasks/take-a-screenshot-of-monorepo-localhost/"
      },
      "evidence": null,
      "verified": "unclear",
@@ -14884,9 +14897,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Use headless Playwright to scroll the sessions data grid and verify the fix",
+      "url": "/framework/ai/tasks/use-headless-playwright-to-scroll-the-se/"
      },
      "evidence": null,
      "verified": "unclear",
@@ -15217,9 +15230,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1184",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Decide whether the date-based view belongs in the sessions directory",
+      "url": "/framework/ai/tasks/decide-whether-the-date-based-view-belon/"
      },
      "evidence": null,
      "verified": "undone",
@@ -15387,9 +15400,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1184",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Use the navigation rail for documentation and alternative dashboard versions",
+      "url": "/framework/ai/tasks/use-the-navigation-rail-for-documentatio/"
      },
      "evidence": null,
      "verified": "undone",
@@ -15533,9 +15546,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Skip re-auditing tasks already audited, reusing prior audit results",
+      "url": "/framework/ai/tasks/skip-re-auditing-tasks-already-audited-r/"
      },
      "evidence": null,
      "verified": "undone",
@@ -15584,9 +15597,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Document every prompt and its outcome, including contradictions, so prompts…",
+      "url": "/framework/ai/tasks/document-every-prompt-and-its-outcome-in/"
      },
      "evidence": null,
      "verified": "undone",
@@ -15683,9 +15696,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p551",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Design a dynamic index where querying and file-structure granularity are…",
+      "url": "/framework/ai/tasks/design-a-dynamic-index-where-querying-an/"
      },
      "evidence": null,
      "verified": "undone",
@@ -15757,9 +15770,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p34",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Reduce how many sessions are saved",
+      "url": "/framework/ai/tasks/reduce-how-many-sessions-are-saved/"
      },
      "evidence": null,
      "verified": "undone",
@@ -15783,9 +15796,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p34",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/sessions/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Find an archive process for old sessions, such as Cloudflare static hosting…",
+      "url": "/framework/ai/tasks/find-an-archive-process-for-old-sessions/"
      },
      "evidence": null,
      "verified": "undone",
@@ -15940,13 +15953,13 @@
      "evidence": "ledger status landed"
     },
     {
-     "id": "ece16345d2",
+     "id": "cad44d4d12",
      "kind": "routed",
      "state": "done",
      "text": "AI 2: Inbox read/unread, archive, auto-resolve, search; Needs you hidden",
      "at": "2026-09-30T14:36:58-05:00",
      "days": 16,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/09/30/ai2-inbox-read/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -15955,13 +15968,13 @@
      "evidence": "ledger status landed"
     },
     {
-     "id": "41c7280983",
+     "id": "1a6e330649",
      "kind": "routed",
      "state": "done",
      "text": "AI system docs: the System tab now explains the whole thing",
      "at": "2026-10-02T18:12:43-05:00",
      "days": 14,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/10/02/ai-system-docs/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -15994,9 +16007,9 @@
      "source": "/framework/ai/sessions/2026/10/03/ai-git-context-cost/requirements.md",
      "status": "queued",
      "where": {
-      "kind": "ledger",
-      "label": "ledger: queued",
-      "url": null
+      "kind": "task",
+      "label": "task open: AI systems: git, context, cost pages collecting how we work",
+      "url": "/framework/ai/tasks/ai-systems-git-context-cost-pages-collec/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16138,9 +16151,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Consider structuring rules as a weighted tree of statements per subsection",
+      "url": "/framework/ai/tasks/consider-structuring-rules-as-a-weighted/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16163,9 +16176,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Decide whether rules become skills or live in a directory outside the skill…",
+      "url": "/framework/ai/tasks/decide-whether-rules-become-skills-or-li/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16188,9 +16201,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Lean away from skills toward a more accessible location than the Claude…",
+      "url": "/framework/ai/tasks/lean-away-from-skills-toward-a-more-acce/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16236,9 +16249,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Audit session logs for how often each skill is used and why skipped skills go…",
+      "url": "/framework/ai/tasks/audit-session-logs-for-how-often-each-sk/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16262,9 +16275,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Consider a multi-AI setup where several models answer and a weighted consensus…",
+      "url": "/framework/ai/tasks/consider-a-multi-ai-setup-where-several/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16287,9 +16300,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Address that a single provider's models agree on many things because of shared…",
+      "url": "/framework/ai/tasks/address-that-a-single-provider-s-models/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16360,9 +16373,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Let the AI read live streaming pages and data in real time",
+      "url": "/framework/ai/tasks/let-the-ai-read-live-streaming-pages-and/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16408,9 +16421,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10835",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Rail has no outer padding; each rail item is padded and reads as a stacked card",
+      "url": "/framework/ai/tasks/rail-has-no-outer-padding-each-rail-item/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16526,9 +16539,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Keep the fast assistant on Haiku, under 100K tokens, auto-compacting or…",
+      "url": "/framework/ai/tasks/keep-the-fast-assistant-on-haiku-under-1/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16552,9 +16565,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Let code, not AI memory, close worktrees and move to the next task; the node…",
+      "url": "/framework/ai/tasks/let-code-not-ai-memory-close-worktrees-a/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16577,9 +16590,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Build a pre-programmed node loop that starts after mastermind approval and…",
+      "url": "/framework/ai/tasks/build-a-pre-programmed-node-loop-that-st/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16627,9 +16640,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: The fast assistant speaks only when called by name, replying with a short…",
+      "url": "/framework/ai/tasks/the-fast-assistant-speaks-only-when-call/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16676,9 +16689,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Clarifying questions time out, then proceed with the top-ranked decisions from…",
+      "url": "/framework/ai/tasks/clarifying-questions-time-out-then-proce/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16725,9 +16738,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Revisit the AI model testing system and what it shows models are good at",
+      "url": "/framework/ai/models/tasks/revisit-the-ai-model-testing-system-and/"
      },
      "evidence": null,
      "verified": "unclear",
@@ -16748,9 +16761,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Fast assistant cleans each chunk: punctuation, filler removal, and path links…",
+      "url": "/framework/ai/tasks/fast-assistant-cleans-each-chunk-punctua/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16773,9 +16786,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Fast assistant does not reply in chat; it answers only when addressed by name",
+      "url": "/framework/ai/tasks/fast-assistant-does-not-reply-in-chat-it/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16798,9 +16811,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Only the smart assistant replies in chat; the fast assistant stays a quiet…",
+      "url": "/framework/ai/tasks/only-the-smart-assistant-replies-in-chat/"
      },
      "evidence": null,
      "verified": "done",
@@ -16822,9 +16835,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Smart assistant does prompt refinement, checks sense, and asks clarifying…",
+      "url": "/framework/ai/tasks/smart-assistant-does-prompt-refinement-c/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16847,9 +16860,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: If the owner does not answer a question, time out and proceed with the…",
+      "url": "/framework/ai/tasks/if-the-owner-does-not-answer-a-question/"
      },
      "evidence": null,
      "verified": "undone",
@@ -16985,9 +16998,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1092",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Fix the inbox items so each links to its correct, consistent location",
+      "url": "/framework/ai/tasks/fix-the-inbox-items-so-each-links-to-its/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17011,9 +17024,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1092",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Remove the framework/ai/2026-10-13/ date directory pattern from the AI folder",
+      "url": "/framework/ai/tasks/remove-the-framework-ai-2026-10-13-date/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17037,9 +17050,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1092",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Merge AI/2026 and AI/sessions/2026 into one year-based structure",
+      "url": "/framework/ai/tasks/merge-ai-2026-and-ai-sessions-2026-into/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17157,9 +17170,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1184",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Let the owner browse past items by entity, such as inbox cards for today and…",
+      "url": "/framework/ai/tasks/let-the-owner-browse-past-items-by-entit/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17182,9 +17195,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1184",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Filter the inbox by date to see what happened today or yesterday",
+      "url": "/framework/ai/tasks/filter-the-inbox-by-date-to-see-what-hap/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17256,9 +17269,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1184",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Remove or relocate the out-of-place expansion item showing open tasks",
+      "url": "/framework/ai/tasks/remove-or-relocate-the-out-of-place-expa/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17282,9 +17295,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p551",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Use one global assistant rather than per-page or per-card assistants, because…",
+      "url": "/framework/ai/tasks/use-one-global-assistant-rather-than-per/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17308,9 +17321,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p551",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Have a fast assistant transcribe each Whisper sentence immediately, and a…",
+      "url": "/framework/ai/tasks/have-a-fast-assistant-transcribe-each-wh/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17357,9 +17370,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p551",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Send the refined prompt to a mastermind once it is available, not per sentence",
+      "url": "/framework/ai/tasks/send-the-refined-prompt-to-a-mastermind/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17508,13 +17521,13 @@
      "evidence": "ledger status landed"
     },
     {
-     "id": "83228fcc52",
+     "id": "07b415857f",
      "kind": "routed",
      "state": "done",
      "text": "Page: AI cost line broke /framework/ai/ title (fixed db0e77af); links styled everywhere; merge gate fails on text touching its edge",
      "at": "2026-10-03T12:53:07-05:00",
      "days": 13,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/10/03/layout-gate/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -17774,9 +17787,9 @@
      "source": "/framework/ai/sessions/7efd07d5-7a58-434d-8847-1a1d7b640390/?tab=coverage#p603",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Document every path-based and per-directory convention under the page system",
+      "url": "/framework/core/Page/tasks/document-every-path-based-and-per-direct/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17800,9 +17813,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Instantiate the page on the server side so a node tool can act on it quickly",
+      "url": "/framework/core/Page/tasks/instantiate-the-page-on-the-server-side/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17825,9 +17838,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Decide which page functions actually need a full live instance with current…",
+      "url": "/framework/core/Page/tasks/decide-which-page-functions-actually-nee/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17849,9 +17862,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Instantiate the page in the browser with the same data structure the page tool…",
+      "url": "/framework/core/Page/tasks/instantiate-the-page-in-the-browser-with/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17874,9 +17887,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make the headless server-side instance skip rendering",
+      "url": "/framework/core/Page/tasks/make-the-headless-server-side-instance-s/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17899,9 +17912,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11150",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Allow server-side page instances to be used by tools, possibly making the page…",
+      "url": "/framework/core/Page/tasks/allow-server-side-page-instances-to-be-u/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17924,9 +17937,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11150",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Document in the page class whether any server-side instantiation happens",
+      "url": "/framework/core/Page/tasks/document-in-the-page-class-whether-any-s/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17949,9 +17962,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11150",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make the client not auto-load everything when the same page class runs on…",
+      "url": "/framework/core/Page/tasks/make-the-client-not-auto-load-everything/"
      },
      "evidence": null,
      "verified": "undone",
@@ -17974,9 +17987,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11150",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Let the server trigger a full load asynchronously on a query command, then…",
+      "url": "/framework/core/Page/tasks/let-the-server-trigger-a-full-load-async/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18038,9 +18051,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11150",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make the inbox a secondary page, not the default, showing recent or unseen…",
+      "url": "/framework/core/Page/tasks/make-the-inbox-a-secondary-page-not-the/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18090,9 +18103,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11044",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make the assembler block or suggest a fix when a template is placed in the…",
+      "url": "/framework/core/Page/tasks/make-the-assembler-block-or-suggest-a-fi/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18132,9 +18145,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11044",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Decide whether a page can hold child pages, items and content, or only one kind",
+      "url": "/framework/core/Page/tasks/decide-whether-a-page-can-hold-child-pag/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18158,9 +18171,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11044",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Decide whether a page dropped into a page becomes a child page or an item…",
+      "url": "/framework/core/Page/tasks/decide-whether-a-page-dropped-into-a-pag/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18209,9 +18222,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Investigate whether specific templates can be screenshotted by crop at…",
+      "url": "/framework/core/Page/tasks/investigate-whether-specific-templates-c/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18261,9 +18274,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Build screenshotting into the templating and page system at component…",
+      "url": "/framework/core/Page/tasks/build-screenshotting-into-the-templating/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18287,9 +18300,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Let certain cards be sub-pages where it makes sense, not every element",
+      "url": "/framework/core/Page/tasks/let-certain-cards-be-sub-pages-where-it/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18385,9 +18398,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Skip screenshots of max-width content that stops changing layout once it…",
+      "url": "/framework/core/Page/tasks/skip-screenshots-of-max-width-content-th/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18411,9 +18424,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Rank templates by how frequently they are used, and mark the good ones",
+      "url": "/framework/core/Page/tasks/rank-templates-by-how-frequently-they-ar/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18437,9 +18450,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Allow a newly created template to be marked as good",
+      "url": "/framework/core/Page/tasks/allow-a-newly-created-template-to-be-mar/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18560,9 +18573,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10835",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: A page can change its layout, background, and color scheme, and can be a card…",
+      "url": "/framework/core/Page/tasks/a-page-can-change-its-layout-background/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18663,9 +18676,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10902",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Pages define a render method that wraps a view class, rendered on import",
+      "url": "/framework/core/Page/tasks/pages-define-a-render-method-that-wraps/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18737,9 +18750,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10902",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Add a page.clone that records duplicates, instead of extending instances",
+      "url": "/framework/core/Page/tasks/add-a-page-clone-that-records-duplicates/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18763,9 +18776,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10902",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Work out how linked clones stay in sync when linkage toggles and events fire",
+      "url": "/framework/core/Page/tasks/work-out-how-linked-clones-stay-in-sync/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18788,9 +18801,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10902",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Wrap each page preview in its own Template wrapper, reusing a small set of…",
+      "url": "/framework/core/Page/tasks/wrap-each-page-preview-in-its-own-templa/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18861,9 +18874,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1016",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Use default pad X and pad Y tokens for standard container padding, with card…",
+      "url": "/framework/core/Page/tasks/use-default-pad-x-and-pad-y-tokens-for-s/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18886,9 +18899,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5322",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Give each page a background color distinct from the global canvas so its start…",
+      "url": "/framework/core/Page/tasks/give-each-page-a-background-color-distin/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18933,9 +18946,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4776",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Lay out each page inside a 1920px-wide wrapper that is vertically scrollable…",
+      "url": "/framework/core/Page/tasks/lay-out-each-page-inside-a-1920px-wide-w/"
      },
      "evidence": null,
      "verified": "undone",
@@ -18983,9 +18996,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Add a per-page inbox in page.jsonl, and in class.jsonl for classes, where…",
+      "url": "/framework/core/Page/tasks/add-a-per-page-inbox-in-page-jsonl-and-i/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19055,9 +19068,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Page/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Let page types store data as JSON snapshot, JSONL log, local or remote SQLite…",
+      "url": "/framework/core/Page/tasks/let-page-types-store-data-as-json-snapsh/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19315,9 +19328,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10745",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Fall back to Open Router when Claude tokens run out",
+      "url": "/framework/ext/Refine/tasks/fall-back-to-open-router-when-claude-tok/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19365,9 +19378,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10745",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make refinement real-time, processing cleaned sentences as they arrive",
+      "url": "/framework/ext/Refine/tasks/make-refinement-real-time-processing-cle/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19391,9 +19404,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10745",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Amend the refined prompt incrementally as detail is added",
+      "url": "/framework/ext/Refine/tasks/amend-the-refined-prompt-incrementally-a/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19464,9 +19477,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10745",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make refinement real-time, processing cleaned sentences as they arrive",
+      "url": "/framework/ext/Refine/tasks/make-refinement-real-time-processing-cle/"
      },
      "evidence": null,
      "verified": "unclear",
@@ -19488,9 +19501,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1016",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Harmonize framework sidebars with the site UI system",
+      "url": "/framework/ext/Refine/tasks/harmonize-framework-sidebars-with-the-si/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19514,9 +19527,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3786",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Harmonize the framework sidebars with the site's sidebars, which look very…",
+      "url": "/framework/ext/Refine/tasks/harmonize-the-framework-sidebars-with-th/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19540,9 +19553,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3462",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make the Miller columns more compact, since their list items have two lines of…",
+      "url": "/framework/ext/Refine/tasks/make-the-miller-columns-more-compact-sin/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19589,9 +19602,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3462",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Explore list UI styles, especially a tree of layers, made mobile friendly",
+      "url": "/framework/ext/Refine/tasks/explore-list-ui-styles-especially-a-tree/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19614,9 +19627,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3462",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Put the layer tree in a small mobile sheet, where selecting an item selects it…",
+      "url": "/framework/ext/Refine/tasks/put-the-layer-tree-in-a-small-mobile-she/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19662,9 +19675,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5322",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Wrap each group on the full-size index page in a wrapper, possibly black at…",
+      "url": "/framework/ext/Refine/tasks/wrap-each-group-on-the-full-size-index-p/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19687,9 +19700,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5322",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Enlarge group headings on index pages so they stay readable when zoomed far…",
+      "url": "/framework/ext/Refine/tasks/enlarge-group-headings-on-index-pages-so/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19713,9 +19726,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4916",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Upgrade the refined prompt so each sentence moves up into it",
+      "url": "/framework/ext/Refine/tasks/upgrade-the-refined-prompt-so-each-sente/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19787,9 +19800,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4916",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Once context is on screen, work out the symbology or flowchart layout that…",
+      "url": "/framework/ext/Refine/tasks/once-context-is-on-screen-work-out-the-s/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19813,9 +19826,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4916",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Expand the pill frame (padding, icon, name) into a context card that can hold…",
+      "url": "/framework/ext/Refine/tasks/expand-the-pill-frame-padding-icon-name/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19839,9 +19852,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4916",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make context cards linkable with a launch arrow to a custom view about the…",
+      "url": "/framework/ext/Refine/tasks/make-context-cards-linkable-with-a-launc/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19888,9 +19901,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Run refinement, structure and card creation in real time, per chunk",
+      "url": "/framework/ext/Refine/tasks/run-refinement-structure-and-card-creati/"
      },
      "evidence": null,
      "verified": "undone",
@@ -19913,9 +19926,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Run prompt refinement on past sessions, day by day in reverse, from verbatim…",
+      "url": "/framework/ext/Refine/tasks/run-prompt-refinement-on-past-sessions-d/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20011,9 +20024,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Test all of these refinement and confidence changes",
+      "url": "/framework/ext/Refine/tasks/test-all-of-these-refinement-and-confide/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20036,9 +20049,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Run prompt refinement on past sessions, day by day in reverse, from verbatim…",
+      "url": "/framework/ext/Refine/tasks/run-prompt-refinement-on-past-sessions-d/"
      },
      "evidence": null,
      "verified": "done",
@@ -20060,9 +20073,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Layer each prompt: verbatim, then what was needed, then the outcome",
+      "url": "/framework/ext/Refine/tasks/layer-each-prompt-verbatim-then-what-was/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20156,9 +20169,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Re-check existing confidence weights, since many do not match the owner's…",
+      "url": "/framework/ext/Refine/tasks/re-check-existing-confidence-weights-sin/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20204,9 +20217,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make prompt refinement output JSON streamed to the UI, not markdown",
+      "url": "/framework/ext/Refine/tasks/make-prompt-refinement-output-json-strea/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20229,9 +20242,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/Refine/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Use the refined prompt as the handoff source of truth, with deltas rather than…",
+      "url": "/framework/ext/Refine/tasks/use-the-refined-prompt-as-the-handoff-so/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20263,9 +20276,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make the refinement loop: screenshot, read, change, reread, compare to the…",
+      "url": "/framework/ai/tasks/make-the-refinement-loop-screenshot-read/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20314,9 +20327,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Have the mastermind read all the images and weigh in on whether each change is…",
+      "url": "/framework/ai/tasks/have-the-mastermind-read-all-the-images/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20340,9 +20353,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Run parallel agents that each refine a layout, then compare the results",
+      "url": "/framework/ai/tasks/run-parallel-agents-that-each-refine-a-l/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20366,9 +20379,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make the task process structured: the AI designer chooses the right procedure…",
+      "url": "/framework/ai/tasks/make-the-task-process-structured-the-ai/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20392,9 +20405,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Automate the process so it does not depend on the mastermind remembering to do…",
+      "url": "/framework/ai/tasks/automate-the-process-so-it-does-not-depe/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20418,9 +20431,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Nudge the agent through every step of the approved process, including strongly…",
+      "url": "/framework/ai/tasks/nudge-the-agent-through-every-step-of-th/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20493,9 +20506,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Nudge the minion within a minute or two if that matches the expected window…",
+      "url": "/framework/ai/tasks/nudge-the-minion-within-a-minute-or-two/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20519,9 +20532,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Attach special instructions to task types, such as UI, that involve screenshots",
+      "url": "/framework/ai/tasks/attach-special-instructions-to-task-type/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20739,13 +20752,13 @@
      "evidence": "ledger status landed"
     },
     {
-     "id": "6011a0a6b6",
+     "id": "d4be1c65e6",
      "kind": "routed",
      "state": "done",
      "text": "Servex: Playwright Chrome logged + reaped; one warm shared browser with check_page",
      "at": "2026-10-03T12:33:36-05:00",
      "days": 13,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/10/03/playwright-reap/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -20763,9 +20776,9 @@
      "source": "/framework/ai/asks/",
      "status": "stalled",
      "where": {
-      "kind": "ledger",
-      "label": "ledger: stalled",
-      "url": null
+      "kind": "task",
+      "label": "task open: Servex: worktree pool stuck (qf-6, qf-9 held 17h by finished agents)",
+      "url": "/framework/servex/tasks/servex-worktree-pool-stuck-qf-6-qf-9-hel/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20788,9 +20801,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "recorded as inboxed, line not found",
-      "url": null
+      "kind": "task",
+      "label": "task open: Use Node tool functions for all tool calls instead of MCP",
+      "url": "/framework/servex/tasks/use-node-tool-functions-for-all-tool-cal/"
      },
      "evidence": null,
      "verified": "undone",
@@ -20981,9 +20994,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11044",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "recorded as inboxed, line not found",
-      "url": null
+      "kind": "task",
+      "label": "task open: Shade a layout red by CSS when it needs padding inside an unpadded container…",
+      "url": "/framework/servex/tasks/shade-a-layout-red-by-css-when-it-needs/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21006,9 +21019,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p2665",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "recorded as inboxed, line not found",
-      "url": null
+      "kind": "task",
+      "label": "task open: Investigate wiring an MCP for Fal, Higgs Field or another AI image generator…",
+      "url": "/framework/servex/tasks/investigate-wiring-an-mcp-for-fal-higgs/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21031,9 +21044,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "recorded as inboxed, line not found",
-      "url": null
+      "kind": "task",
+      "label": "task open: Support backups to an external hard drive or Google Drive",
+      "url": "/framework/servex/tasks/support-backups-to-an-external-hard-driv/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21056,9 +21069,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "recorded as inboxed, line not found",
-      "url": null
+      "kind": "task",
+      "label": "task open: Evaluate Cloudflare Durable Objects, D1 and KV for real-time storage, choosing…",
+      "url": "/framework/servex/tasks/evaluate-cloudflare-durable-objects-d1-a/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21151,9 +21164,9 @@
      "source": "/framework/ai/asks/",
      "status": "stalled",
      "where": {
-      "kind": "ledger",
-      "label": "ledger: stalled",
-      "url": "/framework/ai2/2026/10/15/voice-opus/"
+      "kind": "task",
+      "label": "task open: Servex restart plan: a restart must not drop the voice call; a fresh…",
+      "url": "/framework/servex/tasks/servex-restart-plan-a-restart-must-not-d/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21185,9 +21198,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4916",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ux/Dictate/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Build permutations of dictation/transcription that simulate real-time…",
+      "url": "/framework/ux/Dictate/tasks/build-permutations-of-dictation-transcri/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21262,9 +21275,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4916",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ux/Dictate/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Show before/after states of the streaming UI, including half-finished vs…",
+      "url": "/framework/ux/Dictate/tasks/show-before-after-states-of-the-streamin/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21288,9 +21301,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ux/Dictate/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Find why dictation is routed to OpenRouter tokens, restore Claude as intended…",
+      "url": "/framework/ux/Dictate/tasks/find-why-dictation-is-routed-to-openrout/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21339,9 +21352,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ux/Dictate/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make the sidebar and mobile sheet run the same dictation code, so desktop and…",
+      "url": "/framework/ux/Dictate/tasks/make-the-sidebar-and-mobile-sheet-run-th/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21487,9 +21500,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ux/Dictate/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Show a prioritized list of past Cloudflare work while transcribing",
+      "url": "/framework/ux/Dictate/tasks/show-a-prioritized-list-of-past-cloudfla/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21536,9 +21549,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ux/Dictate/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Stream transcription in the mobile rail sheet using Whisper",
+      "url": "/framework/ux/Dictate/tasks/stream-transcription-in-the-mobile-rail/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21690,9 +21703,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10988",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Property/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make properties bindable so UI controls update them without manual wiring",
+      "url": "/framework/core/Property/tasks/make-properties-bindable-so-ui-controls/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21716,9 +21729,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10988",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Property/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Bind one property to another with expression, condition or script callbacks in…",
+      "url": "/framework/core/Property/tasks/bind-one-property-to-another-with-expres/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21741,9 +21754,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10988",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Property/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make properties bindable so UI controls update them without manual wiring",
+      "url": "/framework/core/Property/tasks/make-properties-bindable-so-ui-controls/"
      },
      "evidence": null,
      "verified": "done",
@@ -21788,9 +21801,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10988",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Property/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Mark bindable by instanceof Property, or by item.bind with a property name…",
+      "url": "/framework/core/Property/tasks/mark-bindable-by-instanceof-property-or/"
      },
      "evidence": null,
      "verified": "undone",
@@ -21814,9 +21827,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10988",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Property/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Keep a thousand-item data grid with tens of thousands of bindable elements…",
+      "url": "/framework/core/Property/tasks/keep-a-thousand-item-data-grid-with-tens/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22018,9 +22031,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10988",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make Field extend Property with its own set method and a field type such as…",
+      "url": "/framework/core/tasks/make-field-extend-property-with-its-own/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22044,9 +22057,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10988",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Let clone take a POJO and assign to any property or field",
+      "url": "/framework/core/tasks/let-clone-take-a-pojo-and-assign-to-any/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22104,9 +22117,9 @@
      "source": "/framework/ai/sessions/2026/09/30/ui-system/",
      "status": "queued",
      "where": {
-      "kind": "ledger",
-      "label": "ledger: queued",
-      "url": null
+      "kind": "task",
+      "label": "task open: UI: System class; /framework/ui/ library of approved blocks; class pills…",
+      "url": "/framework/ui/tasks/ui-system-class-framework-ui-library-of/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22131,9 +22144,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11044",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ui/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Build a browsable mobile UI collection where the kit is designed with itself…",
+      "url": "/framework/ui/tasks/build-a-browsable-mobile-ui-collection-w/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22173,9 +22186,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11044",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ui/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Let the related items rail be configurable, possibly driven by an algorithm",
+      "url": "/framework/ui/tasks/let-the-related-items-rail-be-configurab/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22200,9 +22213,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3516",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ui/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Integrate framework/ui and framework/ux into Figma with cohesion between Figma…",
+      "url": "/framework/ui/tasks/integrate-framework-ui-and-framework-ux/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22226,9 +22239,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3516",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ui/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Harmonize the framework UI system with these designs",
+      "url": "/framework/ui/tasks/harmonize-the-framework-ui-system-with-2/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22252,9 +22265,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ui/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Integrate framework/UI and framework/UX with cohesion between Figma and our UI",
+      "url": "/framework/ui/tasks/integrate-framework-ui-and-framework-u-2/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22278,9 +22291,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ui/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Harmonize the framework UI system with these designs",
+      "url": "/framework/ui/tasks/harmonize-the-framework-ui-system-with-2/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22339,9 +22352,9 @@
      "source": "/framework/ai/sessions/2026/09/30/inbox-ext/owner-words.md",
      "status": "stalled",
      "where": {
-      "kind": "ledger",
-      "label": "ledger: stalled",
-      "url": "/framework/ai2/2026/10/02/inbox-priority-50-only-log-everything-a/"
+      "kind": "task",
+      "label": "task open: Inbox: priority 50+ only; Log everything; a priority filter; stalled asks…",
+      "url": "/framework/ux/Inbox/tasks/inbox-priority-50-only-log-everything-a/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22433,9 +22446,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p551",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ux/Inbox/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Store inbox cards as an appendable JSONL data set that is loaded and sorted…",
+      "url": "/framework/ux/Inbox/tasks/store-inbox-cards-as-an-appendable-jsonl/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22460,9 +22473,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p551",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ux/Inbox/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Reuse the existing data grid class's concepts in the inbox rendered view…",
+      "url": "/framework/ux/Inbox/tasks/reuse-the-existing-data-grid-class-s-con/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22512,9 +22525,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p551",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ux/Inbox/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Give each inbox card a right sidebar to talk to it with its context",
+      "url": "/framework/ux/Inbox/tasks/give-each-inbox-card-a-right-sidebar-to/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22547,9 +22560,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/models/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: When Claude tokens are available, especially near expiry, run the fast and…",
+      "url": "/framework/ai/models/tasks/when-claude-tokens-are-available-especia/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22648,9 +22661,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p728",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/models/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Revisit the AI model testing system and what it shows models are good at",
+      "url": "/framework/ai/models/tasks/revisit-the-ai-model-testing-system-and/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22906,9 +22919,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10988",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Events/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Unsubscribe from changes when objects are garbage collected, with no memory…",
+      "url": "/framework/core/Events/tasks/unsubscribe-from-changes-when-objects-ar/"
      },
      "evidence": null,
      "verified": "undone",
@@ -22933,9 +22946,9 @@
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10988",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/core/Events/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Do not create more events or subscriptions than necessary; keep the event…",
+      "url": "/framework/core/Events/tasks/do-not-create-more-events-or-subscriptio/"
      },
      "evidence": null,
      "verified": "undone",
@@ -23058,9 +23071,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1184",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ext/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Move the dictation extension into the AI directory",
+      "url": "/framework/ext/tasks/move-the-dictation-extension-into-the-ai/"
      },
      "evidence": null,
      "verified": "undone",
@@ -23093,9 +23106,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1092",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/cards/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Explain prompt-refinement cards using terms and references the owner already…",
+      "url": "/framework/ai/cards/tasks/explain-prompt-refinement-cards-using-te/"
      },
      "evidence": null,
      "verified": "undone",
@@ -23122,9 +23135,9 @@
      "source": "/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1092",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/ai/cards/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Make prompt-refinement cards familiar and visible so the owner can see what is…",
+      "url": "/framework/ai/cards/tasks/make-prompt-refinement-cards-familiar-an/"
      },
      "evidence": null,
      "verified": "undone",
@@ -23175,9 +23188,9 @@
      "source": "/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5144",
      "status": "inboxed",
      "where": {
-      "kind": "inbox",
-      "label": "module inbox (unread)",
-      "url": "/framework/design/inbox.jsonl"
+      "kind": "task",
+      "label": "task open: Document generic design guidance such as fluid vs fixed width, whitespace…",
+      "url": "/framework/design/tasks/document-generic-design-guidance-such-as/"
      },
      "evidence": null,
      "verified": "undone",
@@ -23461,13 +23474,13 @@
    "unroutable": 0,
    "asks": [
     {
-     "id": "795c759d06",
+     "id": "42a86f1fa6",
      "kind": "routed",
      "state": "done",
      "text": "Drawer: tight header, one scroll area, composer footer flush with default padding",
      "at": "2026-10-03T13:17:14-05:00",
      "days": 13,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/10/03/drawer-cleanup/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -23509,13 +23522,13 @@
    "unroutable": 0,
    "asks": [
     {
-     "id": "1b210d1a13",
+     "id": "05822d7200",
      "kind": "routed",
      "state": "done",
      "text": "Styles: cards + prose on one measure/margin (lab); default padding rule; adaptive bg-lighten/darken + text/accent tokens (lab)",
      "at": "2026-10-03T13:17:14-05:00",
      "days": 13,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/10/03/card-measure-colors/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -23524,6 +23537,180 @@
      "evidence": "ledger status landed"
     }
    ]
+  }
+ ],
+ "retired": [
+  {
+   "id": "e0ff1b2eac",
+   "kind": "routed",
+   "state": "unroutable",
+   "text": "Merge candidates: one minion per core dir (later, when tokens allow)",
+   "at": "2026-09-30T14:18:58-05:00",
+   "days": 16,
+   "source": "/framework/ai/asks/",
+   "status": "parked",
+   "where": {
+    "kind": "ledger",
+    "label": "ledger: parked",
+    "url": null
+   },
+   "evidence": null,
+   "module": "(no module folder)",
+   "retired_at": "2026-10-17T16:21:02.059Z"
+  },
+  {
+   "id": "2225185917",
+   "kind": "routed",
+   "state": "unroutable",
+   "text": "AI 2 merges into /framework/ai/ (later)",
+   "at": "2026-09-30T14:36:58-05:00",
+   "days": 16,
+   "source": "/framework/ai/asks/",
+   "status": "parked",
+   "where": {
+    "kind": "ledger",
+    "label": "ledger: parked",
+    "url": null
+   },
+   "evidence": null,
+   "module": "(no module folder)",
+   "retired_at": "2026-10-17T16:21:02.059Z"
+  },
+  {
+   "id": "208b99884e",
+   "kind": "routed",
+   "state": "done",
+   "text": "Dictation: ONE system everywhere (rail, sidebar, drawer, card) on the fast/smart pair; old per-card assistant retires",
+   "at": "2026-09-30T14:50:33-05:00",
+   "days": 16,
+   "source": "/framework/ai/asks/",
+   "status": "landed",
+   "where": {
+    "kind": "ledger",
+    "label": "ledger status landed"
+   },
+   "evidence": "ledger status landed",
+   "module": "(no module folder)",
+   "retired_at": "2026-10-17T16:21:02.059Z"
+  },
+  {
+   "id": "19db3a9c91",
+   "kind": "routed",
+   "state": "done",
+   "text": "Console: clean on /ai/live; smoke fails on console noise and 404s",
+   "at": "2026-10-03T12:33:36-05:00",
+   "days": 13,
+   "source": "/framework/ai/asks/",
+   "status": "landed",
+   "where": {
+    "kind": "ledger",
+    "label": "ledger status landed"
+   },
+   "evidence": "ledger status landed",
+   "module": "(no module folder)",
+   "retired_at": "2026-10-17T16:21:02.059Z"
+  },
+  {
+   "id": "ece16345d2",
+   "kind": "routed",
+   "state": "done",
+   "text": "AI 2: Inbox read/unread, archive, auto-resolve, search; Needs you hidden",
+   "at": "2026-09-30T14:36:58-05:00",
+   "days": 16,
+   "source": "/framework/ai/asks/",
+   "status": "landed",
+   "where": {
+    "kind": "ledger",
+    "label": "ledger status landed"
+   },
+   "evidence": "ledger status landed",
+   "module": "ai",
+   "retired_at": "2026-10-17T16:21:02.059Z"
+  },
+  {
+   "id": "41c7280983",
+   "kind": "routed",
+   "state": "done",
+   "text": "AI system docs: the System tab now explains the whole thing",
+   "at": "2026-10-02T18:12:43-05:00",
+   "days": 14,
+   "source": "/framework/ai/asks/",
+   "status": "landed",
+   "where": {
+    "kind": "ledger",
+    "label": "ledger status landed"
+   },
+   "evidence": "ledger status landed",
+   "module": "ai",
+   "retired_at": "2026-10-17T16:21:02.059Z"
+  },
+  {
+   "id": "83228fcc52",
+   "kind": "routed",
+   "state": "done",
+   "text": "Page: AI cost line broke /framework/ai/ title (fixed db0e77af); links styled everywhere; merge gate fails on text touching its edge",
+   "at": "2026-10-03T12:53:07-05:00",
+   "days": 13,
+   "source": "/framework/ai/asks/",
+   "status": "landed",
+   "where": {
+    "kind": "ledger",
+    "label": "ledger status landed"
+   },
+   "evidence": "ledger status landed",
+   "module": "core/Page",
+   "retired_at": "2026-10-17T16:21:02.059Z"
+  },
+  {
+   "id": "6011a0a6b6",
+   "kind": "routed",
+   "state": "done",
+   "text": "Servex: Playwright Chrome logged + reaped; one warm shared browser with check_page",
+   "at": "2026-10-03T12:33:36-05:00",
+   "days": 13,
+   "source": "/framework/ai/asks/",
+   "status": "landed",
+   "where": {
+    "kind": "ledger",
+    "label": "ledger status landed"
+   },
+   "evidence": "ledger status landed",
+   "module": "servex",
+   "retired_at": "2026-10-17T16:21:02.059Z"
+  },
+  {
+   "id": "795c759d06",
+   "kind": "routed",
+   "state": "done",
+   "text": "Drawer: tight header, one scroll area, composer footer flush with default padding",
+   "at": "2026-10-03T13:17:14-05:00",
+   "days": 13,
+   "source": "/framework/ai/asks/",
+   "status": "landed",
+   "where": {
+    "kind": "ledger",
+    "label": "ledger status landed"
+   },
+   "evidence": "ledger status landed",
+   "module": "ext/drawer",
+   "retired_at": "2026-10-17T16:21:02.059Z"
+  },
+  {
+   "id": "1b210d1a13",
+   "kind": "routed",
+   "state": "done",
+   "text": "Styles: cards + prose on one measure/margin (lab); default padding rule; adaptive bg-lighten/darken + text/accent tokens (lab)",
+   "at": "2026-10-03T13:17:14-05:00",
+   "days": 13,
+   "source": "/framework/ai/asks/",
+   "status": "landed",
+   "where": {
+    "kind": "ledger",
+    "label": "ledger status landed"
+   },
+   "evidence": "ledger status landed",
+   "module": "styles",
+   "retired_at": "2026-10-17T16:21:02.059Z"
   }
  ]
 }
