@@ -34,10 +34,10 @@ export default class Sheet extends View {
 
 	watch_breakpoint(){
 		const mq = globalThis.matchMedia?.("(max-width: 52em)");
-		mq?.addEventListener?.("change", e => e.matches ? this.apply(this.routed()) : this.$sheet?.hide());
+		mq?.addEventListener?.("change", e => e.matches ? this.apply(this.routed()) : this.$sheet?.release());   // wider: the page or the dock holds the chat now
 	}
 
-	small(){ return !!globalThis.matchMedia?.("(max-width: 52em)")?.matches; }
+	small(){ return AIPage.small(); }
 
 	static KEY = "sheet";   // history.state's size word; the url says only open (<path>/ai/) or closed (<path>)
 
@@ -407,6 +407,17 @@ export class SheetPanel extends View {
 		return this;
 	}
 
+	// Hide, and give the chat, the feed and the dictation bars back: the sheet keeps none while the page or the dock holds the chat.
+	release(){
+		this.hide();
+		this.mount?.remove();
+		this.feed?.stop();
+		this.$slot.empty();
+		this.$live.el.querySelectorAll("[data-dictation-bar], .dictation-bar").forEach(el => el.remove());
+		this.mount = this.panel = this.feed = null;
+		return this;
+	}
+
 	stop_mic(){ this.panel?.stop_mic(); }
 
 	start_mic(){
@@ -493,7 +504,7 @@ export class SheetDock {
 
 	// menu.js calls this once, after the styles are in; a window widened past AT opens it too.
 	static start(){
-		const open = () => { if (this.wide() && !this.shut() && !tabs.mine()) tabs.open("ai"); };
+		const open = () => { if (this.wide() && !this.shut() && !tabs.mine() && !AIPage.current) tabs.open("ai"); };   // the routed AI page already shows the chat
 		window.addEventListener("drawer-close", () => { if (this.wide()) this.remember(true); });
 		this.query()?.addEventListener?.("change", open);
 		open();

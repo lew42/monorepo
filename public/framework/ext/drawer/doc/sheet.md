@@ -20,6 +20,10 @@ Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
 - Old links are rewritten once with `replaceState`: `?sheet=open` becomes `<path>/ai/`, and `?drawer=dictation` becomes `<path>/ai/dictation/` (`AIPage.old_link()`).
 - ⚠ A page that writes `history.replaceState(null, …)` wipes the sheet's size. Pass `history.state` instead (the Dictate playground did this until 2026-10-17).
 
+## One chat, one feed (2026-10-17)
+
+The sheet, the dock's AI tab and the routed `AIPage` all show the same conversation, so only one of them mounts it: `AIPage.holder()` answers `"sheet"` (below 52em), `"dock"` (the AI tab is open) or `"page"`. The chat view of `AIPage` mounts only as the page holder and otherwise shows a one-line pointer; a window crossing 52em hands the chat over (`Sheet.Panel.release()` gives back the chat, the feed and the dictation bars; the page mounts or lets go). `Sheet.Dock.start()` does not auto-open the dock while an `AIPage` is showing. `tabs/ai.js` disposes the feed with its chat. Before this, the hidden page on a phone mounted a second chat and feed (2 and 2), and `<path>/ai/` at 1920 px mounted one in the page and one in the dock. Proof: `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/sheet-double-mount/probe.mjs`.
+
 ## The desktop dock (2026-10-17, sheet step 6)
 
 Above 52em the AI is the right drawer (`drawer(fn)` filled by the `DrawerTabs`), which pushes the page instead of covering it. `Sheet.Dock` opens it by default at 1920 px and wider; ✕ shuts it and that is remembered (`lew42-sheet-dock-shut`), and ✦ opens it again and forgets. Below 1920 it starts shut and ✦ opens it. `drawer(fn)` stays the plain right-hand container any module can fill.
