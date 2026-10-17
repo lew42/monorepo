@@ -1,0 +1,242 @@
+[
+ {
+  "batch": "01-ext-figma-1",
+  "module": "ext/Figma",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/01-ext-figma-1/brief.md"
+ },
+ {
+  "batch": "02-ext-figma-2",
+  "module": "ext/Figma",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/02-ext-figma-2/brief.md"
+ },
+ {
+  "batch": "03-ext-figma-3",
+  "module": "ext/Figma",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/03-ext-figma-3/brief.md"
+ },
+ {
+  "batch": "04-ext-figma-4",
+  "module": "ext/Figma",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/04-ext-figma-4/brief.md"
+ },
+ {
+  "batch": "05-ext-figma-5",
+  "module": "ext/Figma",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/05-ext-figma-5/brief.md"
+ },
+ {
+  "batch": "06-ext-figma-6",
+  "module": "ext/Figma",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/06-ext-figma-6/brief.md"
+ },
+ {
+  "batch": "07-ext-figma-7",
+  "module": "ext/Figma",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/07-ext-figma-7/brief.md"
+ },
+ {
+  "batch": "08-ext-figma-8",
+  "module": "ext/Figma",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/08-ext-figma-8/brief.md"
+ },
+ {
+  "batch": "09-ext-figma-9",
+  "module": "ext/Figma",
+  "asks": 19,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/09-ext-figma-9/brief.md"
+ },
+ {
+  "batch": "10-ai-sessions-1",
+  "module": "ai/sessions",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/10-ai-sessions-1/brief.md"
+ },
+ {
+  "batch": "11-ai-sessions-2",
+  "module": "ai/sessions",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/11-ai-sessions-2/brief.md"
+ },
+ {
+  "batch": "12-ai-sessions-3",
+  "module": "ai/sessions",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/12-ai-sessions-3/brief.md"
+ },
+ {
+  "batch": "13-ai-sessions-4",
+  "module": "ai/sessions",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/13-ai-sessions-4/brief.md"
+ },
+ {
+  "batch": "14-ai-sessions-5",
+  "module": "ai/sessions",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/14-ai-sessions-5/brief.md"
+ },
+ {
+  "batch": "15-ai-sessions-6",
+  "module": "ai/sessions",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/15-ai-sessions-6/brief.md"
+ },
+ {
+  "batch": "16-ai-1",
+  "module": "ai",
+  "asks": 21,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/16-ai-1/brief.md"
+ },
+ {
+  "batch": "17-ai-2",
+  "module": "ai",
+  "asks": 21,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/17-ai-2/brief.md"
+ },
+ {
+  "batch": "18-ai-3",
+  "module": "ai",
+  "asks": 19,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/18-ai-3/brief.md"
+ },
+ {
+  "batch": "19-core-page-1",
+  "module": "core/Page",
+  "asks": 20,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/19-core-page-1/brief.md"
+ },
+ {
+  "batch": "20-core-page-2",
+  "module": "core/Page",
+  "asks": 20,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/20-core-page-2/brief.md"
+ },
+ {
+  "batch": "21-core-page-3",
+  "module": "core/Page",
+  "asks": 20,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/21-core-page-3/brief.md"
+ },
+ {
+  "batch": "22-ext-refine-1",
+  "module": "ext/Refine",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/22-ext-refine-1/brief.md"
+ },
+ {
+  "batch": "23-ext-refine-2",
+  "module": "ext/Refine",
+  "asks": 23,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/23-ext-refine-2/brief.md"
+ },
+ {
+  "batch": "24-ai-tasks",
+  "module": "ai/tasks",
+  "asks": 17,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/24-ai-tasks/brief.md"
+ },
+ {
+  "batch": "25-servex",
+  "module": "servex",
+  "asks": 17,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/25-servex/brief.md"
+ },
+ {
+  "batch": "26-ux-dictate",
+  "module": "ux/Dictate",
+  "asks": 16,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/26-ux-dictate/brief.md"
+ },
+ {
+  "batch": "27-core-property",
+  "module": "core/Property",
+  "asks": 10,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/27-core-property/brief.md"
+ },
+ {
+  "batch": "28-core",
+  "module": "core",
+  "asks": 9,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/28-core/brief.md"
+ },
+ {
+  "batch": "29-ui",
+  "module": "ui",
+  "asks": 8,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/29-ui/brief.md"
+ },
+ {
+  "batch": "30-ux-inbox",
+  "module": "ux/Inbox",
+  "asks": 8,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/30-ux-inbox/brief.md"
+ },
+ {
+  "batch": "31-ai-models",
+  "module": "ai/models",
+  "asks": 5,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/31-ai-models/brief.md"
+ },
+ {
+  "batch": "32-core-item",
+  "module": "core/Item",
+  "asks": 4,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/32-core-item/brief.md"
+ },
+ {
+  "batch": "33-ext-ai",
+  "module": "ext/ai",
+  "asks": 4,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/33-ext-ai/brief.md"
+ },
+ {
+  "batch": "34-core-events",
+  "module": "core/Events",
+  "asks": 3,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/34-core-events/brief.md"
+ },
+ {
+  "batch": "35-ext",
+  "module": "ext",
+  "asks": 3,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/35-ext/brief.md"
+ },
+ {
+  "batch": "36-ai-cards",
+  "module": "ai/cards",
+  "asks": 2,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/36-ai-cards/brief.md"
+ },
+ {
+  "batch": "37-design",
+  "module": "design",
+  "asks": 2,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/37-design/brief.md"
+ },
+ {
+  "batch": "38-ext-layout",
+  "module": "ext/layout",
+  "asks": 2,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/38-ext-layout/brief.md"
+ },
+ {
+  "batch": "39-dev",
+  "module": "dev",
+  "asks": 1,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/39-dev/brief.md"
+ },
+ {
+  "batch": "40-ext-grip",
+  "module": "ext/grip",
+  "asks": 1,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/batches/40-ext-grip/brief.md"
+ }
+]

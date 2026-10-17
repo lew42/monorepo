@@ -14,6 +14,7 @@
  * landed/dropped, or its card is done/archived. UNROUTABLE: not done, and no module folder could carry it. Everything else is UNDONE.
  */
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import AskIndex from "./AskIndex.mjs";
@@ -30,6 +31,10 @@ export default class UndoneAsks {
 	static MIN_SHARED = 3;     // words an ask and a task title must share before the task counts as "the same work"
 	static MIN_SHARE = 0.5;    // ... and that share of the ask's own words
 	static DAY = 86400000;
+	static VERIFIED = ["verified", "verified_evidence", "verified_looked", "verified_at", "verified_by"];   // written by Server/UndoneVerify.mjs, carried across rebuilds by ask id
+
+	/** A stable id for an ask: the same prompt line and wording gives the same id on every rebuild. */
+	static ask_id(r){ return crypto.createHash("sha1").update([r.kind, r.source, r.text_full].join("|")).digest("hex").slice(0, 10); }
 
 	constructor({ root = HERE, now = Date.now() } = {}){
 		this.root = root; this.now = now;
@@ -169,7 +174,7 @@ export default class UndoneAsks {
 			totals[c.state]++;
 			const m = by.get(mod) ?? by.set(mod, { module: mod, url: r.module ? UndoneAsks.url(r.module) : null, done: 0, undone: 0, unroutable: 0, asks: [] }).get(mod);
 			m[c.state]++;
-			m.asks.push({ kind: r.kind, state: c.state, text: r.text, at: r.at, days: this.days(r.at), source: r.source, status: r.status, where: c.where, evidence: c.evidence });
+			m.asks.push({ id: UndoneAsks.ask_id(r), kind: r.kind, state: c.state, text: r.text, at: r.at, days: this.days(r.at), source: r.source, status: r.status, where: c.where, evidence: c.evidence });
 		}
 		for (const m of by.values()) m.asks.sort((a, b) => (b.days ?? -1) - (a.days ?? -1));
 		const modules = [...by.values()].sort((a, b) => (b.undone + b.unroutable) - (a.undone + a.unroutable) || a.module.localeCompare(b.module));
@@ -178,6 +183,19 @@ export default class UndoneAsks {
 		const classified = totals.done + totals.undone + totals.unroutable;
 		return { generated_at: new Date(this.now).toISOString(), counted, classified, agree: counted === classified, totals,
 			sources: { refined: rows.filter(r => r.kind === "refined").length, routed: rows.filter(r => r.kind === "routed").length, tasks: tasks.length, inboxes: [...this._inbox.values()].filter(m => m.size).length, inbox_lines: [...this._inbox.values()].reduce((n, m) => n + m.size, 0) }, modules };
+	}
+
+	/** Carry the verifier's fields from the last written file onto a fresh build, by ask id (a rebuild never overwrites a verdict). */
+	static carry(d, file){
+		let old; try { old = JSON.parse(fs.readFileSync(file, "utf8")); } catch { return 0; }
+		const had = new Map(old.modules.flatMap(m => m.asks).filter(a => a.verified).map(a => [a.id, a]));
+		let n = 0;
+		for (const a of d.modules.flatMap(m => m.asks)){
+			const o = had.get(a.id); if (!o) continue;
+			for (const k of UndoneAsks.VERIFIED) if (o[k] !== undefined) a[k] = o[k];
+			n++;
+		}
+		return n;
 	}
 
 	// ---- output ------------------------------------------------------------------------------------
@@ -197,6 +215,8 @@ export default class UndoneAsks {
 		if (argv.includes("--json")){
 			const out = path.resolve(val("--out") ?? path.join(HERE, UndoneAsks.OUT));
 			fs.mkdirSync(path.dirname(out), { recursive: true });
+			const kept = UndoneAsks.carry(d, out);
+			if (kept) console.log("kept " + kept + " verified verdicts");
 			fs.writeFileSync(out, JSON.stringify(d, null, 1));
 			console.log("wrote " + out);
 		}
