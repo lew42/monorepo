@@ -42,32 +42,40 @@ export default class SocketServer extends Events {
         server.on("http", () => {
             server.socket_server = new this({ server });
         });
+        // The https listener (HttpsLan.js) comes up later; a phone on https needs wss on it, behind the same gate.
+        server.on("https", () => server.socket_server?.attach(server.https));
     }
 
     initialize() {
 		console.log(this.constructor.name + " initialized");
         this.sockets = [];
 
-        this.wss = new WebSocketServer({
-            server: this.server.http,
+        this.wss = this.attach(this.server.http);
+    }
+
+    // One WebSocketServer per listener (http, https); every peer joins the same `sockets` list and passes the same local_only gate.
+    attach(listener) {
+        const wss = new WebSocketServer({
+            server: listener,
             perMessageDeflate: false,
             verifyClient: local_only
         });
 
-        this.wss.on("connection", (ws, req) => {
+        wss.on("connection", (ws, req) => {
             this.sockets.push(
-				new SocketServer.Socket({ 
-					ws,
-					req,
+                new SocketServer.Socket({
+                    ws,
+                    req,
 
-					// socket.server === main Server instance
-					server: this.server,
+                    // socket.server === main Server instance
+                    server: this.server,
 
-					// socket.socket_server === SocketServer instance
-					socket_server: this
-				})
-			);
+                    // socket.socket_server === SocketServer instance
+                    socket_server: this
+                })
+            );
         });
+        return wss;
     }
 }
 

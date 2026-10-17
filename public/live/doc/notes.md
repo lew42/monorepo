@@ -4,11 +4,11 @@
 
 **Tradeoff.** A pure `page.jsonl` page would get the tools' full model for free but is not found without the parent naming it, and cannot drop the default chrome. Here `Live.js` understands only `log`, `title` and `content` add/remove; other deltas are ignored until needed.
 
-## Why the phone stopped (2026-10-15)
+## Why the phone stopped (2026-10-15), and what is true now (2026-10-17)
 
-The dev `Socket` only opens on `localhost`, `127.0.0.1` and `*.localhost` (an RCE guard, `framework/dev/Socket/Socket.js:51`). On the phone (LAN IP or tunnel) it is disabled, so `JSONL.live()` falls back to ONE `fetch` and never updates. Fix: `Live.js` has a `Tail` that, when the socket is disabled, asks only for the new bytes of `page.jsonl` (a `Range` request, whole lines only) every 3 s while the tab is visible, and again on becoming visible, on focus, on `online` and on `pageshow`. Off the phone the socket stream is unchanged and resubscribes from its offset after a reconnect. `?poll` on the url forces the Tail, to test it on localhost.
+The dev `Socket` used to open only on `localhost`, `127.0.0.1`, `*.localhost` and the LAN IPs, and the https address (`wss`) never connected because the https listener had no socket. So on the phone `JSONL.live()` fell back to ONE `fetch`, and `Live.js` grew a `Tail` that asks for the new bytes of `page.jsonl` (a `Range` request, whole lines only) every 3 s while the tab is visible, and again on becoming visible, on focus, on `online` and on `pageshow`. `?poll` on the url forces the Tail.
 
-**Tradeoff:** off localhost this is a timer, against the stream rule, because a public stream means opening the socket to the LAN. Order: strictly by `ts`, newest first; a line with no `ts` is placed at the last `ts` seen before it, then by line order. Nothing is dropped.
+**Now:** the client connects on every host and the server decides (`framework/dev/Socket/doc/lan.md`); the https listener carries the socket too. On the phone `JSONL.live()` streams, and the `Tail` timer runs only where the socket is refused or down (a static host, a tunnel). Order: strictly by `ts`, newest first; a line with no `ts` is placed at the last `ts` seen before it, then by line order. Nothing is dropped.
 
 ## Why the phone stopped, again (2026-10-15 late)
 
@@ -56,6 +56,6 @@ The law (CLAUDE.md): code streams the UI, never an agent. A card is agent-writte
 
 **Views that exist:** Now, Tasks, Today (`LiveToday.js`, the full session list; no card draws it now, add `{"type":"part-live","live":"today"}` to show it).
 
-**Decision (checkup):** Now reads `LiveToday.load` for today and yesterday (UTC), so one reader serves both cards. It keeps the 30 s timer it inherits until the session writer exposes a stream; the better fix is a socket tail of the session index, which is larger and would win once that index is a JSONL.
+**Decision (checkup, updated 2026-10-17):** Now reads `LiveToday.load` for today and yesterday (UTC). `LiveToday.into` redraws it when a tailed log grows: `LiveNow.load` returns `logs`, the `cache.jsonl` in each in-flight session's folder (it grows on every model turn), tailed with `JSONL.live()` over the socket (proof on the LAN and https addresses: about 1.3 s, of which 0.8 s is a debounce). The 30 s timer runs only where the socket is down or nothing is tailed (the Today card), plus a 2-minute backstop, because the dev watcher ignores `.json` (`Server/watch.js`), so `sessions/**/index.json` never pushes. **Open:** one line in `Server/watch.js` letting that index through, or a `.jsonl` the session writer appends, would drop the backstop and also show a brand-new session with nothing else running. Also open: the task tree (`tree_for_day`) asks `QueryClient` over the socket, which refuses LAN peers (`query`) and is skipped off `localhost`, so on the phone Last landed and Waiting come from the frozen `directory.json` and stay empty.
 
 **New cards from the voice agent** should be pointers (title, one sentence, links) or a `part-live` view; text that will change belongs in the log of whatever produces it.

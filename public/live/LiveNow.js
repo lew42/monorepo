@@ -5,7 +5,7 @@ import TaskState from "./TaskState.js";
 
 /* The "Now" card: what is in flight, the last landings and what waits, computed from the session index and the task logs
  * (LiveToday.load), never typed by an agent. Spans today and yesterday (UTC) so the midnight roll drops nothing.
- * A card {type:"part-live", live:"now"} draws this (Live.js). The refresh is LiveToday's 30 s timer; a stream replaces it when the session writer exposes one (doc/notes.md). */
+ * A card {type:"part-live", live:"now"} draws this (Live.js). Redrawn by LiveToday.into: a tail of each in-flight task log (any host with the dev socket), a timer only as backstop (doc/notes.md). */
 export default class LiveNow extends LiveToday {
 	static LANDED = 5;
 	static WAITING = 6;
@@ -17,7 +17,10 @@ export default class LiveNow extends LiveToday {
 		const days = (await Promise.all([day(0), day(1)].map(d => super.load(d).catch(() => null)))).filter(Boolean);
 		const tasks = days.flatMap(d => [...d.tasks.values()].flat());
 		const rows = days.flatMap(d => d.rows).filter(r => r.state === "active" && now - Date.parse(r.last_activity ?? 0) < this.STALE);
+		// Each session folder's cache.jsonl grows on every model turn, so tailing it (LiveToday.into) is the stream; the folder is the card's dir, else the day's.
+		const logs = days.flatMap(d => d.rows.filter(r => rows.includes(r) && r.folder).map(r => (r.links?.card?.replace(/[^/]*$/, "") ?? `/framework/ai/sessions/${d.day.replaceAll("-", "/")}/${r.folder}/`) + "cache.jsonl"));
 		return {
+			logs,
 			rows,
 			landed: tasks.filter(t => t.closeout.state === "done" && t.end).sort((x, y) => this.when(y) - this.when(x)).slice(0, this.LANDED),
 			waiting: tasks.filter(t => t.closeout.state !== "done"),

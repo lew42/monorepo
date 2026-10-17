@@ -1,3 +1,5 @@
+> **Superseded 2026-10-17.** The client no longer checks the host: it connects everywhere and the server's gate decides ([lan.md](./lan.md)). The reasoning below about where the check lives still holds, with the check now on the server.
+
 # The gate is inside the socket
 
 ```js

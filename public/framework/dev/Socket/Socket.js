@@ -47,16 +47,10 @@ export default class Socket {
 
 		this.restore();
 
-		// ⚠ localhost = full socket. A private LAN host (phone on the Wi-Fi) also connects, but the server
-		//   gives it push traffic only (reload, deltas, tails) and refuses every command. doc/lan.md
-		const host = window.location.hostname;
-		const lan = /^(10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(host);
-		if (host === "localhost" || host === "127.0.0.1" || host.endsWith(".localhost") || lan) {
-			this.connect();
-		} else {
-			this.disabled = true;
-			this.ready.resolve();
-		}
+		// The client tries every host (wss on https); the SERVER decides what a peer may do: loopback gets
+		// everything, a private LAN peer gets push traffic only, anything else is refused at the upgrade.
+		// A refused socket backs off and says so once. doc/lan.md
+		this.connect();
 	}
 	connect() {
 		if (this.disabled) return;
@@ -70,7 +64,7 @@ export default class Socket {
 
 		// ⚠ Failed connect fires "error" AND THEN "close" — reconnect only on "close"
 		this.ws.addEventListener("close", () => this.reconnect());
-		this.ws.addEventListener("error", () => console.warn("Socket error."));
+		this.ws.addEventListener("error", () => {});
 	}
 	open() {
 		console.log("%cSocket connected.", "color: green; font-weight: bold;");
@@ -99,8 +93,9 @@ export default class Socket {
 
 		if (this.ever_connected) this.show_reconnecting();
 
-		const delay = Math.min(250 * 2 ** this.fails++, 10000);
-		console.warn(`Socket closed, reconnecting in ${delay}ms.`);
+		// Never connected here (a static host, a refused peer): back off to a minute and say so once.
+		const delay = Math.min(250 * 2 ** this.fails++, this.ever_connected ? 10000 : 60000);
+		if (!this.warned) { this.warned = true; console.warn("Socket not connected; retrying quietly in the background."); }
 		this.retry = setTimeout(() => this.connect(), delay);
 	}
 
