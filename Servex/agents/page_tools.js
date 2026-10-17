@@ -447,7 +447,8 @@ function task_home(parent_dir, add, root = FRAMEWORK, from_path = ""){
 export const PAGE_JS = ['import { TaskPage } from "/framework/core/Task/TaskPage.js";', "export default new TaskPage({ meta: import.meta });", ""].join(String.fromCharCode(10));
 
 // Who asked, for line 1 of a new task: an explicit ctx.source (voice-app | vscode | dictate), else the calling agent. Node fills it; an agent never types it.
-const source_of = ctx => ctx?.source ?? ((ctx?.caller && ctx.caller !== "owner" ? ctx.caller : process.env.SERVEX_AGENT) ? `servex:${ctx?.caller && ctx.caller !== "owner" ? ctx.caller : process.env.SERVEX_AGENT}` : undefined);
+const SOURCES = ["voice-app", "vscode", "dictate"];
+const source_of = ctx => { const who = ctx?.caller && ctx.caller !== "owner" ? ctx.caller : process.env.SERVEX_AGENT; return ctx?.source ?? (SOURCES.includes(who) ? who : who ? `servex:${who}` : undefined); };
 
 // One add -> child folder with line 1, returns { id, path }. Fields come from the add (a legacy `data` object is flattened).
 function make_child(parent_dir, add, ctx, home){
