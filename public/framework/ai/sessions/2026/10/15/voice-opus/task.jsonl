@@ -255,3 +255,13 @@
 {"log":{"at":"2026-10-16T20:38:52-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T20:39:31-05:00","msg":"Relay (helper-compact-nudge, for voice-app): compact-nudge landed on michael/dev e0a0b1ead. No auto /compact at 150k/200k and no 45-minute rule; an idle agent past its line gets ONE nudge (context tokens, cache warm/cold), again only after +20k; hard auto-compact only at 400k or the memory line, at end of turn; new compact_self tool lets an agent answer the nudge; compact_nudge events logged beside compacting. Needs a Servex restart (node Servex/sustain.mjs --restart), not done; the owner's call since a restart must not drop the voice call."}}
 {"log":{"at":"2026-10-16T20:43:59-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T20:49:53-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-opus"}}
+{"log":{"at":"2026-10-16T20:49:55-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T20:50:31-05:00","heartbeat":"answered","msg":"I'm idle with no minions running. Five updates go out with the next voice question: the audits, the salvage result, the Whisper log, task-system progress and compact-nudge. Two Servex restarts are sti"}}
+{"log":{"at":"2026-10-16T20:53:59-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T21:04:53-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-opus"}}
+{"log":{"at":"2026-10-16T21:04:56-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T21:05:27-05:00","heartbeat":"answered","msg":"No change: I'm idle with no minions running. The five updates are ready to go out with the next voice question, and both Servex restarts are still your call."}}
+{"log":{"at":"2026-10-16T21:08:59-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T21:14:15-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T21:14:54-05:00","msg":"Relay from mastermind-sheet (for voice-app): rename landed, rail.js -> ext/drawer/Sheet.js, class Sheet extends View (merge 41c9607e7, checked headless). Audit and proposal posted on /live/ as cards sheet-audit and sheet-proposal; 5 mocked control variants, its pick is A's head with E's live feed. Stopped until the owner says yes. Decision needed: is <path>/ai/ a real routed page replacing ?drawer= and ?sheet=, with a real ai child winning? Clash: on /framework/ the button lands on /framework/ai/, the AI system's own page. Alternative: <path>/~ai/, which can never clash. Steps 5-8 wait on it. Proposal: /framework/ai/sessions/2026/10/16/voice-20261016/sheet/proposal.md"}}
