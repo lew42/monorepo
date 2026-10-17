@@ -33,6 +33,10 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - `waiting` is a sixth state: `wait({on, what})` (from idle, running, paused) and `approve({by, note})` (back to idle). `stop` and `finish` accept it.
 - `tasks` is made on first use, so a task with no subtasks costs no `List`.
 
+## render() and TaskView
+
+`task.render()` returns `new Task.View({task})`. `Task.js` stays DOM-free: [`TaskView.js`](./TaskView.js) (`class TaskView extends View`) sets `Task.View` when a browser loads it; in node `render()` warns once and returns `undefined`. `TaskView.chip(task)`, `.row(task)`, `.card(task)` draw the three sizes (icon + title; + state and complete %; + expected, priority, commits, session, module, link). A view reads the live task and redraws on its `change` events; a card also redraws on `tasks` add/remove/reorder. A subclass overrides `render()` to draw itself. This retires the display `Task` that was in `ai/objects.js`.
+
 ## Watch out
 
 - **`finish()` refuses while a subtask is open** — it warns ("… isn't finished yet —

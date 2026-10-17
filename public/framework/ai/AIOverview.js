@@ -5,7 +5,9 @@ import { Page, md, div, a, span, small, strong, icon, h2, h3 } from "/app.js";
 import { code } from "/framework/ext/highlight/highlight.js";
 import { file_link } from "/framework/ext/filesystem/file_link.js";
 import { CONCEPTS, GROUPS, FLOW } from "./concepts.js";
-import { Skill, Ask, Task } from "./objects.js";
+import { Skill, Ask } from "./objects.js";
+import Task from "../core/Task/Task.js";
+import TaskView from "../core/Task/TaskView.js";
 import { cards, card, flow } from "/framework/ux/Content/structure/Structure.js";
 import { table } from "/framework/ui/table/table.js";
 import { page_settings } from "/framework/core/Page/settings/settings.js";
@@ -243,9 +245,8 @@ export class AIOverview {
 					show("Skill", "One `.claude/skills/<name>/SKILL.md`.", box => AIOverview.later(box, base + "skills.json", JSON.parse, list => list.slice(0, 3).forEach(s => three(new Skill(s)))));
 					show("Ask", "One line of `ai/asks.jsonl`: what you asked, and who owns it.", box => AIOverview.later(box, base + "asks.jsonl", AIOverview.jsonl, lines => lines.map(l => l.ask).filter(Boolean).slice(-3).reverse().forEach(x => three(new Ask(x)))));
 					show("Task", "The first line of a task's `task.jsonl`: the ask, the plan, the step.", box => AIOverview.later(box, base + "2026-09-30/ai-page/task.jsonl", AIOverview.jsonl, lines => {
-						const first = lines.find(l => l.assign)?.assign ?? {};
-						const last = lines.filter(l => l.assign).map(l => l.assign).reduce((o, x) => ({ ...o, ...x }), {});
-						three(new Task({ ...first, ...last, date: "2026-09-30", slug: "ai-page" }));
+						const task = Task.replay(lines);
+						div.c("flex v gap-50", () => { small.c("muted", "chip"); TaskView.chip(task); small.c("muted", "row"); TaskView.row(task); small.c("muted", "card"); TaskView.card(task); });
 					}));
 					AIOverview.heading("Next: Agent and Card", "Their data lives in Servex while they run; they get the same three views next. Proposed with a skill for designing objects this way: [the proposal](" + base + "2026-09-30/ai-page/object-design-proposal.md).");
 				},

@@ -18,6 +18,7 @@ import { breakdown } from "./cost.js";
 import { streamed as reply_streamed } from "../../ext/Ask/reply.js";
 import { fold } from "./message.js";
 import TaskViews from "./TaskViews.js";
+import Task from "../../core/Task/Task.js";
 import { tree_for_task } from "./tree.js";
 
 View.stylesheet(import.meta, "ai.css");
@@ -101,6 +102,10 @@ export class AITask extends Page {
 
 	async session(){
 		const t = new TaskJSONL({ url: this.base() + "task.jsonl" });
+		// Keep the parsed lines the stream already read, so this.task replays them without a second fetch.
+		const read = t.read.bind(t), reset = t.reset.bind(t);
+		t.read = entries => { (t.entries ??= []).push(...entries); this.task = Task.replay(t.entries); return read(entries); };
+		t.reset = () => { t.entries = []; return reset(); };
 		await t.live(() => this.streamed(t));
 		if (t.loaded) return t;
 
@@ -186,6 +191,7 @@ export class AITask extends Page {
 	}
 
 	status(m){
+		if (this.task) span.c("ai-task-state muted", this.task.state);
 		const now = !m.landed_at && current(m);
 		if (now && now !== progress(m)?.current) div.c("flex gap v-center", () => {
 			span.c("ai-dot live");
@@ -229,7 +235,7 @@ export class AITask extends Page {
 
 		div.c("ai-checklist-head flex split v-baseline", () => {
 			span.c("ai-group-title muted", "Steps");
-			span.c("muted", pr.done + " of " + pr.total + " done");
+			span.c("muted", pr.done + " of " + pr.total + " done" + (this.task ? " · " + Math.round(this.task.complete * 100) + "%" : ""));
 		});
 		segments(pr);
 		div.c("ai-checklist", () => pr.steps.forEach((s, i) =>
