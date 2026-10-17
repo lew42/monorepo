@@ -236,7 +236,7 @@ window.addEventListener("drawer-close", dispose_chat);
 
 /**
  * THE DEFAULT — `ux/Dictate/chat.js`'s ONE mount, the exact same call the mobile ✦
- * sheet makes (`rail.js`'s `DrawerRailSheetChat`), filling the drawer's full height
+ * sheet makes (`Sheet.js`'s `Sheet.Panel`), filling the drawer's full height
  * (`.drawer-ai-panel`, `drawer.css`). "One of everything; don't repeat yourself"
  * (CLAUDE.md law 6, 2026-09-30): no model chooser, no small hint text, no per-card
  * rebuild — `chat.js` owns the ONE global session and redraws its whole history on
