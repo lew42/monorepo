@@ -34,6 +34,7 @@ drawer.showing();     // boolean
 
 ## Doc topics
 
+- [`doc/architecture.md`](./doc/architecture.md) — the design record: every decision that holds today, each as *Decided · Why · Instead*. Start here.
 - [`doc/decisions.md`](./doc/decisions.md) — Sizing tokens, push math, z-index, and traps.
 - [`doc/tabs.md`](./doc/tabs.md) — Tab model, routing, and session header.
 - [`doc/sheet.md`](./doc/sheet.md) — Mobile sheet resizing, gestures, and state.
@@ -42,9 +43,6 @@ drawer.showing();     // boolean
 - [`doc/select.md`](./doc/select.md) — Element selection and AI context chips.
 - [`doc/rail-notes.md`](./doc/rail-notes.md) — comments pruned from `rail.js`: history, lessons and design reasons, verbatim.
 - [`doc/ai-tab-notes.md`](./doc/ai-tab-notes.md) — comments pruned from `tabs/ai.js`, verbatim.
-
-## More
-- [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 
 ## Also here (readme audit, 2026-10-13)
 - [walkthrough](./walkthrough/)
