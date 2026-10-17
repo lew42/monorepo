@@ -93,3 +93,38 @@ TaskState adds a `waiting` group to `state.jsonl`, so `/framework/ai/tasks/` sho
 | 12 | The item tool in-process for local SDK agents: same function, same name, no network ("one toolset, two pathways", [tools note](/Servex/doc/owner-2026-10-16-tools.md)); run right after step 5 | Sonnet | $3 |
 
 The total is about $33, inside a $35 budget. Steps 1 and 2 landed as `8935e1c77`; each later step's commit is a `commit` line in this folder's `task.jsonl`.
+
+## Amendments (2026-10-16, evening)
+
+Two owner notes arrived after steps 1 to 4 landed: [card-types.md](/framework/ext/Refine/doc/card-types.md) (the vocabulary and the lifecycle prompt → plan → proposal → approval → task → complete) and [owner-2026-10-16-composition.md](/framework/core/Task/doc/owner-2026-10-16-composition.md) (series vs parallel, content, events). Step 3 had already merged, so they become **step 3b**, built next, before step 5. The names below are decided.
+
+**1. The word is complete.**
+- The state `finished` becomes `complete`, and `finish()` becomes `complete()`; `finished_at` becomes `completed_at`.
+- The 0-to-1 getter that was called `complete` is renamed `completion`, because `complete()` is now the verb. `progress()` stays `{done, total}`.
+- Old folders keep working: replay reads `{"finish":…}` lines, `state: "finished"`, `finished_at` and a numeric `complete` as the new names. `finish()` stays as an alias that calls `complete()`; nothing new writes it.
+
+**2. Proposals and verdicts.** A proposal is a task that waits for approval (`wait({on})`, `waiting_on`). There are three verdict methods, and each one is a log line `{"verdict":{"is","note","by"}}`:
+- `approve(note?)`: waiting → idle. Approval with a caveat is `approve(note)`.
+- `improve(note)`: waiting → running, back to whoever proposed it, to revise and then `wait()` again.
+- `reject(note)`: waiting → stopped, with the note as the reason.
+
+**3. Children run in series or in parallel.**
+- Children are `tasks`, recursive. There is no step type.
+- The field `mode` is `"parallel"` (the default) or `"series"`, and modes nest.
+- `start()` on a parent starts its children: in series, the first child that isn't complete; in parallel, every idle child.
+- **Node drives every step.** A parent listens to each child's change events. When a child completes, a series parent starts the next child. When the last child completes, the parent completes itself.
+- **Tracking across async parallel children.** `completion` is computed on read (the share of children that are complete) and never stored, so there is no counter to race. Events within one process run one at a time. Across processes, each child is its own folder and log, and TaskState recomputes the parent by replaying the children.
+
+**4. A task has content.** `task.content` is a `List`, like `Page.content`, made on first use. The same `{"content":{"add":{…}}}` line grammar as `page.jsonl` adds a note, a decision or a log line to a task. A Decision (a ranked List of Options) can sit in it; building Decision is not part of this plan. The card view draws the content below the task's facts.
+
+**5. Events, plus one promise.** Events are the mechanism. `task.settled()` returns a Promise that resolves with the task when it completes or stops, for a caller that wants to `await`. Task is not made thenable: that breaks when a task is returned from an async function.
+
+**6. Two rules become tests.**
+- **Never drop a task:** every state is either closed (`complete`, `stopped`) or in one of TaskState's open groups. A test fails if any state is in neither.
+- **Node drives every step:** a test runs a series parent with three children and a parallel parent with two, completing each child, and checks that the next child starts and the parent completes, without any other call.
+
+| # | Step | Model | Budget |
+|---|---|---|---|
+| 3b | `finished` → `complete`, `completion`, the verdicts, `mode` (series/parallel) with node-driven starts, `content`, `settled()`; callers: TaskLoop, TaskState, TaskView, AITask, `core/Task/live`; tests | Sonnet | $4 |
+
+The budget stays $35 in total. Step 3b is paid for out of what steps 1 to 4 came in under.

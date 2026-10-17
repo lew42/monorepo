@@ -24,3 +24,8 @@
 {"commit":"506001bed"}
 {"assign":{"at":"2026-10-16T19:30:19-05:00","now":"step 3 landed (506001bed); building step 4, Task.View"}}
 {"action":{"at":"2026-10-16T19:30:38-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-view/requirements.md"]}}
+{"log":{"at":"2026-10-16T19:31:36-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T19:31:37-05:00","msg":"session resumed"}}
+{"commit":"9deda921e"}
+{"assign":{"at":"2026-10-16T19:36:06-05:00","now":"step 4 landed (9deda921e); plan amended (3b: complete, verdicts, series/parallel, content, settled); building 3b"}}
+{"action":{"at":"2026-10-16T19:36:30-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-complete/requirements.md"]}}
