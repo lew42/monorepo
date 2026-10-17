@@ -215,7 +215,7 @@ export default class TaskLoop {
         const landed = task.state === "complete", closed = task.state === "stopped";
         return { state, task_state: task.state, waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, waiting_what: d.waiting_what ?? null,
             parent_task: lines.find(l => l.assign)?.assign?.parent_task ?? null,
-            agent_cfg: cfg, template: d.template ?? null, first_by: lines[0]?.by ?? null, approved_by: d.approved_by ?? null, spawned, queued,
+            agent_cfg: cfg, template: d.template ?? null, first_by: lines[0]?.by ?? null, approved_by: d.approved_by ?? lines.findLast(l => l.approve)?.by ?? null, spawned, queued,
             follow_ups: mine, last_chase, last_chase_at, escalated, landed, closed };
     }
 
