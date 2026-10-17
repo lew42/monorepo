@@ -51,11 +51,11 @@ export class Blog extends Page {
 			.style({ width: "100%", height: "100%", objectFit: "cover" }));
 	}
 
-	// `hides-nav` (/styles.css) takes the site's strip away: the blog's own rail IS
+	// the site has had no top strip since 2026-09-18: the blog's own rail IS
 	// the navigation, and a second site rail beside it is two rails saying different
 	// things. That is the first verdict this lab reaches.
 	render(){
-		return this.view ??= div.c("page blogx hides-nav", () => {
+		return this.view ??= div.c("page blogx", () => {
 			this.rail?.();
 			this.main();
 			this.aside?.();

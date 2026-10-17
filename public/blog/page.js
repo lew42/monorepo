@@ -31,8 +31,8 @@ class BlogNav extends Sidebar {
  *
  * The rail and the region are built ONCE, here, and `$pages` is mine — so a section
  * index and a post mount inside this view and the rail beside them never moves. The
- * same shape `/framework/` uses; `hides-nav` because a second site strip over a rail
- * that already says where you are is two navigations to resolve.
+ * same shape `/framework/` uses (it once carried a nav-hiding class: a second site strip over a rail
+ * that already says where you are is two navigations to resolve; the strip went 2026-09-18).
  *
  * The front itself is the MAGAZINE: the lead, then every other post as a card, then a
  * rail of topics. At 3440 that is the whole archive above the fold, and the extra
@@ -47,7 +47,7 @@ export default new Page({
 	description: "Notes on building a web framework with no build step.",
 
 	// Inert: /styles.css decides what it means, and Router.mark() unsets it.
-	classes: "hides-nav",
+	classes: "",   // no class word: not "standard" (a dead nav word was removed here 2026-10-17)
 
 	/* The three sections and the notes — a post is NOT declared, and that is the
 	 * design: a declared child is imported eagerly, so declaring six posts would run

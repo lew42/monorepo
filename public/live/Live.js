@@ -144,7 +144,7 @@ export default class Live extends Page {
 	route(id){
 		if (id.includes(".")) return;
 		const live = this;
-		return new Page({ title: id, url: this.url + id + "/", classes: "hides-nav", content(){ live.mount(div.c("live live-one"), id); } });
+		return new Page({ title: id, url: this.url + id + "/", classes: "", content(){ live.mount(div.c("live live-one"), id); } });
 	}
 
 	// What an empty feed says; the archive says something else.

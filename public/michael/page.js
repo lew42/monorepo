@@ -21,7 +21,7 @@ export default new Page({
 	children: [previews, pageDoc, pagerDoc, columnPagerDoc, routerDoc, elements, layout, components, sections, branding],
 
 	// Its own nav beside its own region — the shape /framework/ uses.
-	classes: "hides-nav",
+	classes: "",   // no class word: not "standard" (a dead nav word was removed here 2026-10-17)
 
 	render(){
 		return this.view ??= div.c("page topic flex fill", () => {

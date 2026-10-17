@@ -74,7 +74,7 @@ const mini_shell = new Shell({
 
 mini_shell.parent = shells_index;
 
-/* ⚠ `Shell.render()` IS NOT CALLED, and cannot be: it stamps `hides-nav` (which takes
+/* ⚠ `Shell.render()` IS NOT CALLED, and cannot be: it stamps the shell page (which once took
      the site's own strip away) and attaches a window keydown listener, both of which
      belong to a shell that owns the screen. The five lines below are its body without
      those two — and `Shell.css`'s grid is keyed on `.page.shell`, while `.page` is

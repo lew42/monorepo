@@ -25,7 +25,7 @@ export default new Page({
 	description: "A web framework with no build step — and the site it builds.",
 
 	// I bring my own sidebar, so the global nav would just say it twice.
-	classes: "page-homepage hides-nav",
+	classes: "page-homepage",
 
 	/* Same layout as a topic: brand, sidebar, one region.
 	 *

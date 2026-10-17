@@ -161,7 +161,7 @@ export default new Page({
 	icon: "widgets",
 
 	// Inert: /styles.css decides what the class means, and Router.mark() unsets it.
-	classes: "hides-nav",
+	classes: "",   // no class word: not "standard" (a dead nav word was removed here 2026-10-17)
 
 	children: "start ai research faq versus core styles ui ux audio ext util dev servex audit sources design code sandbox lab old library catalog",
 
@@ -223,6 +223,6 @@ export default new Page({
 					});
 				});
 			});
-		}).ac(this.classes);   // `classes: "hides-nav"` still applies
+		}).ac(this.classes);
 	},
 });

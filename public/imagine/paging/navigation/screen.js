@@ -34,13 +34,13 @@ export class PagingNavScreen extends Page {
 	container(){ return this.mounts_in(this.app.$pages, "app.$pages — a full screen is not a column"); }
 
 	// ⚠ Overriding render() is ALSO what skips core's `render_column()`.
-	//   `hides-nav` (/styles.css) takes the site's own strip away.
+	//   the site has had no top strip since 2026-09-18.
 	render(){
 		if (this.view) return this.view;
 
 		this.regions = new Map();
 
-		this.view = div.c("page paging-nav-screen hides-nav", () => {
+		this.view = div.c("page paging-nav-screen", () => {
 			this.rail();
 			this.$centre = div.c("paging-nav-centre");
 		});

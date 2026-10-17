@@ -31,7 +31,7 @@ export default new Page({
 	preview(nav){ return this.preview_card(nav, () => div.c("sidebar variant-thumb", () => { header(); navPreview(Core); })); },
 
 	render(){
-		return this.view ??= div.c("page sidebar-variant-b topic flex fill hides-nav", () => {
+		return this.view ??= div.c("page sidebar-variant-b topic flex fill", () => {
 
 			new Sidebar({ app: this.app, header, root: Core });
 

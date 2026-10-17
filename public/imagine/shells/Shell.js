@@ -40,7 +40,7 @@ export class Shell extends Page {
 
 	// ⚠ Overriding render() is ALSO what skips core's `render_column()` — a page in
 	//   a columns tree renders as a column unless it draws itself.
-	// `hides-nav` (/styles.css) takes the site's own strip away, so the only chrome
+	// the site has had no top strip since 2026-09-18, so the only chrome
 	// on screen is the chrome this page drew.
 	//
 	// ⚠ The keyboard listener attaches HERE, once, rather than in activated() /
@@ -54,7 +54,7 @@ export class Shell extends Page {
 	render(){
 		const first = !this.view;
 
-		this.view ??= div.c("page shell hides-nav", () => {
+		this.view ??= div.c("page shell", () => {
 			this.head?.();
 			this.left?.();
 			this.main();
