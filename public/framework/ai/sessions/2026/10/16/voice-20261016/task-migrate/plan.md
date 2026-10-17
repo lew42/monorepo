@@ -20,7 +20,7 @@
 
 | Where | What | Why |
 |---|---|---|
-| `<module>/tasks/<slug>/task.jsonl` (new) | line 1: `{id, path, parent, title, module, tags, source, sessions, by:"task-migrate", ts}` | the task's identity in the new system |
+| `<module>/tasks/<slug>/task.jsonl` (new) | line 1: `{id, path, parent, title, module, tags, sessions, by:"task-migrate", ts}`, then `{"set":{…, brief}}` | the task's identity in the new system |
 | same file | `{"set":{…}}`: the old task's replayed data (outcome, landed_at, steps, cost, model, card, …) | the facts, copied by code, not retyped |
 | same file | `{"commit":"<hash>"}` per commit | `Task.commits` |
 | same file | one verb line with the **original** time: `complete` (landed), `stop` (closed, or open and stale, with a why) | the state, with the right timestamps |
@@ -32,7 +32,7 @@
 | `ai/sessions/task-migrations.jsonl` | one ledger line: old path, home, module, signals, the old file's sha256 and line count | the record of what was done |
 
 - **`sessions`** (new field, added to `Task.FIELDS`): `[{"id":"<session uuid or null>","task":"<old app path>"}]`. **`home`** is a new string field and a new `task.jsonl` verb in `jsonl-schema.mjs`, so the old folder's replay carries `data.home`.
-- **`source`** follows today's homes (the brief's app path, else the old folder). Amendment 4 wants `source` to name who asked; when step 3d lands, the migration's line 1 can gain that without a rewrite.
+- **`source`** is not written. Step 3d makes `source` mean who asked (voice-app, vscode, servex:<id>), filled in by node, so the brief's app path goes in `brief` instead (task-system confirmed, 2026-10-16). An old doc-path `source` is kept as `brief` when there is no brief.
 - **Not `{"task":…}` in the old file:** in `Task.replay` that line makes a *child*, so the old task would show itself as its own subtask. `home` says "this task lives there now".
 
 ## 3. Open old tasks

@@ -242,14 +242,16 @@ export default class TaskMigrate {
 		const old = Task.replay(t.lines);
 		const data = { ...old.data };
 		const brief = TaskMigrate.framework_rel(d.signals.brief ? data.brief : "") || (t.requirements != null ? path.relative(this.framework, path.join(t.dir, "requirements.md")).split(path.sep).join("/") : "");
+		// No `source`: it now means WHO asked (task-system step 3d). The brief's path goes in data.brief; an old doc-path `source` too.
 		const line1 = {
 			id: d.slug, path: d.url, parent: d.list, title: d.title, module: d.module,
 			...(d.tags.length ? { tags: d.tags } : {}),
-			source: brief ? `/framework/${brief}` : t.url,
 			sessions: [{ id: old.session ?? null, task: t.url }],
 			by: TaskMigrate.BY, ts: new Date(this.now).toISOString(),
 		};
 		const set = Object.fromEntries(Object.entries(data).filter(([k]) => !TaskMigrate.OWN_KEYS.has(k)));
+		if (brief) set.brief = `/framework/${brief}`;
+		else if (typeof data.source === "string" && data.source.includes("/")) set.brief = data.source;
 		const out = [line1];
 		if (Object.keys(set).length) out.push({ set });
 		const hashes = [...old.commits];

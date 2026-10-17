@@ -63,6 +63,7 @@ test("apply: every move gets a home, the old file only grows by one line, the ro
 		const hl = lines(path.join(dir_of(root, home), "task.jsonl"));
 		assert.deepEqual(hl[0].sessions.map(s => s.task), [t.old]);
 		assert.equal(hl[0].module, t.module);
+		assert.equal(hl[0].source, undefined, "source means who asked (step 3d); the migration never writes it");
 		assert.ok(fs.existsSync(path.join(dir_of(root, home), "page.js")));
 		const list = lines(path.join(path.dirname(dir_of(root, home)), "task.jsonl"));
 		assert.equal(list[0].id, "tasks");
