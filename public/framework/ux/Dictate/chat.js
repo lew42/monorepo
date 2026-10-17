@@ -69,7 +69,7 @@ function create_controller({ persist }){
 			// fresh: after New session, never resume the last hour's session on this page (doc/chat.md#new-session-and-the-mic-indicator)
 			ctl.starting = Session.start({ path: target.path, card: target.card, fresh: ctl.fresh }).then(made => {
 				ctl.session = made.session; ctl.file = made.file; ctl.fresh = false;
-				write_saved({ session: made.session, file: made.file });
+				if (persist) write_saved({ session: made.session, file: made.file });
 				broadcast();
 			}).finally(() => { ctl.starting = null; });
 		}
@@ -91,13 +91,13 @@ function create_controller({ persist }){
 	async function resume_to(session){
 		const made = await Session.resume(session);
 		ctl.session = made.session; ctl.file = made.file;
-		write_saved({ session: made.session, file: made.file });
+		if (persist) write_saved({ session: made.session, file: made.file });
 		broadcast();
 	}
 
 	function reset(){
 		ctl.session = null; ctl.file = null; ctl.starting = null; ctl.fresh = true;
-		write_saved({ fresh: true });
+		if (persist) write_saved({ fresh: true });   // a keep:false demo must not overwrite the global key
 		broadcast();
 	}
 
