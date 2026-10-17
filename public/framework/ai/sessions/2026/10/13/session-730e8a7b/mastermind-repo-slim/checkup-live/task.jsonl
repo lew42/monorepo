@@ -6,3 +6,12 @@
 {"decision":{"at":"2026-10-17T00:00:00-05:00","question":"what makes the Now card live","chose":"LiveNow reuses LiveToday.load (session index and task logs), in flight = active in the last 30 min","options":[{"option":"list_agents","caveat":"only the server can call it; the static page cannot"},{"option":"socket tail of the session index","caveat":"the better fix, needs the session writer to expose a stream; noted in doc/notes.md"}]}}
 {"decision":{"at":"2026-10-17T00:00:00-05:00","question":"live-pointers: build now or defer","chose":"neither: it had landed (b9cf153f8); the archive move plus the Now view finish it","options":[{"option":"build a second pointer card system","caveat":"a second version of the same thing (law 6)"},{"option":"defer","caveat":"leaves the blank slate undone"}]}}
 {"assign":{"landed_at":"2026-10-17T00:05:00-05:00","title":"checkup: the /live page","outcome":"/live is a blank slate (Now, Tasks, Archive views); old cards kept at /live/archive/; five tasks verified and closed; see checkup.md","closed_by":"mastermind-checkup-live"}}
+{"log":{"at":"2026-10-16T23:48:54-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-16T23:48:54-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-16T23:48:54-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-16T23:48:57-05:00","msg":"owner-note: posted 4 decisions to the Inbox"}}
+{"log":{"at":"2026-10-16T23:48:57-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-16T23:49:00-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-16T23:49:06-05:00","msg":"layout-check: 2 pages at 1280/1920/2560/3440 — /live: empty 0.974 at 2560, empty 0.98 at 3440, narrow_share 1 at 3440; /live/archive/: empty 0.927 at 2560, empty 0.94 at 3440; sheets in layout-check/"}}
+{"log":{"at":"2026-10-16T23:49:26-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T23:49:32-05:00","msg":"padding-check: /live/archive/ 400: not measured (no ink on the page: it did not render); /live/archive/ 1280: not measured (no ink on the page: it did not render); /live/archive/ 1920: not measured (no ink on the page: it did not render); /live/archive/ 3440: not measured (no ink on the page: it did not render)"}}
