@@ -345,3 +345,4 @@
 {"log":{"at":"2026-10-17T08:09:46-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-17T08:10:18-05:00","heartbeat":"answered","msg":"I'm idle with no minions running and nothing uncommitted, waiting for the next voice question."}}
 {"log":{"at":"2026-10-17T08:13:49-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T09:17:43-05:00","heartbeat":"escalated","msg":"mastermind-voice-opus its agent is not running, and was already revived 0 times this hour (5 today)"}}
