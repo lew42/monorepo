@@ -1,5 +1,6 @@
 import ErrorLog from "../ErrorLog/ErrorLog.js";
 import Prompt from "./Prompt.js";
+import Placement from "./Placement.js";
 import Whisper from "../../audio/Whisper/Whisper.js";
 import { quick_clean } from "./engine.js";
 
@@ -65,6 +66,8 @@ export default class RefineSystem {
 	sending = null;         // { text, sections }: sent, but its chunk does not exist yet (Mic.js waits on a last live call first)
 	live_sections = [];     // the live outline of the box (local sentence numbers)
 	history = [];                                   // finished prompts of this page visit (plain summaries), newest last
+	placement = new Placement();                    // after the Cleaner: each sentence joins the last paragraph or starts one (`doc/placement.md`)
+	paragraphs = Placement.state();                 // the paragraphs so far: [[text, …], …], fed sentence by sentence
 
 	constructor(...args){
 		Object.assign(this, ...args);
@@ -190,6 +193,7 @@ export default class RefineSystem {
 			const one = new Prompt();   // scores this chunk alone (`Prompt.load`), then compose() renumbers it into the transcript
 			one.load(out);
 			Object.assign(chunk, { clean: one.clean, refined: one.refined, subject: one.subject, runs: one.runs, stages: one.stages, ms: one.ms, status: "done" });
+			for (const s of chunk.clean) s.placed = await this.placement.add(s, this.paragraphs);   // the placement step: one decision per sentence, in order
 			const total_ms = Math.round(performance.now() - t_start);
 			this.prompt.timings = { ...this.prompt.timings, total_ms };
 			this.history.push({ at: new Date().toISOString(), words: text.split(/\s+/).length, total_ms, cost_usd: +one.runs.reduce((a, r) => a + r.cost_usd, 0).toFixed(4), runs: one.runs.length });
@@ -219,7 +223,7 @@ export default class RefineSystem {
 	/** Start over: the same Prompt object, emptied (so the debug tree keeps showing the live one). */
 	next(){
 		this.prompt_id = RefineSystem.new_prompt_id();
-		this.chunks = []; this.pending = ""; this.sending = null; this.live_sections = [];
+		this.chunks = []; this.pending = ""; this.sending = null; this.live_sections = []; this.paragraphs = Placement.state();
 		this.prompt.set({ status: "empty", raw: "", subject: "", clean: [], refined: [], error: "", ms: 0, runs: [], stages: {}, timings: {}, quick: false });
 	}
 }
