@@ -5,10 +5,10 @@ import Browse from "/framework/ux/Browse/Browse.js";
 const DATA = new URL("../undone.json", import.meta.url).href;
 const slug = module => module.replaceAll("/", "~");
 
-// The verifier's verdict on an undone ask (Server/UndoneVerify.mjs): found built / confirmed missing / unclear / not checked yet.
+// The verifier's verdict on an undone ask (Server/UndoneVerify.mjs): found built / confirmed missing / not work / needs the owner / unclear / not checked yet.
 const KIND = a => a.state === "done" ? "done" : a.verified === "done" ? "found" : a.verified ?? "unchecked";
-const FILTERS = [["all", "all"], ["undone", "verified undone"], ["found", "found built"], ["unclear", "unclear"], ["unchecked", "not checked"]];
-const LABEL = { found: "✅ found built", undone: "⬜ verified undone", unclear: "unclear", unchecked: "not checked yet" };
+const FILTERS = [["all", "all"], ["undone", "verified undone"], ["found", "found built"], ["retired", "not work"], ["needs-owner", "needs you"], ["unclear", "unclear"], ["unchecked", "not checked"]];
+const LABEL = { found: "✅ found built", undone: "⬜ verified undone", retired: "not work (kept, retired)", "needs-owner": "❓ needs you", unclear: "unclear", unchecked: "not checked yet" };
 /** The first repo path in the evidence text as a site link (files under public/ are served), else null. */
 const evidence_href = text => { const m = String(text ?? "").match(/(?:public\/)?(?:framework|layouts|imagine|web|notes)\/[\w@./~-]+\.(?:js|md|json|jsonl|css|html)/); return m ? "/" + m[0].replace(/^public\//, "") : null; };
 
@@ -47,7 +47,7 @@ export default class UndoneAsksPage extends Page {
 				span.c("muted").text(`= ${d.totals.done} done + ${d.totals.undone} undone + ${d.totals.unroutable} unroutable (no module folder)`);
 				span.c("muted").text(d.agree ? "✅ the two numbers agree" : "⚠️ the two numbers disagree");
 				const asks = d.modules.flatMap(m => m.asks), v = k => asks.filter(x => KIND(x) === k).length;
-				if (v("found") + v("undone") + v("unclear")) span.c("muted").text(`checked against the repo: ${v("undone")} verified undone · ${v("found")} found already built · ${v("unclear")} unclear · ${v("unchecked")} not checked yet`);
+				if (v("found") + v("undone") + v("unclear")) span.c("muted").text(`checked against the repo: ${v("undone")} verified undone · ${v("found")} found already built · ${v("retired")} not work · ${v("needs-owner")} need you · ${v("unclear")} unclear · ${v("unchecked")} not checked yet`);
 				a.c("page-link").href("/framework/ai/doc/undone-asks-2026-10-17.md").text("what this means");
 			}));
 		});
@@ -79,6 +79,7 @@ export default class UndoneAsksPage extends Page {
 						});
 						if (x.verified) div.c("flex wrap gap-25 muted", () => {
 							span(`${LABEL[KIND(x)]}: ${x.verified_evidence}`);
+							if (x.owner_question) span.c("muted").text("Question for you: " + x.owner_question);
 							const href = evidence_href(x.verified_evidence);
 							if (href) a.c("page-link").href(href).text("evidence file");
 						});

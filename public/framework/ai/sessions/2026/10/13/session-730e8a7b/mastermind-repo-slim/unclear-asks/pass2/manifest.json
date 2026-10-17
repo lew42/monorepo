@@ -1,0 +1,56 @@
+[
+ {
+  "batch": "01-work",
+  "kind": "work",
+  "asks": 18,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/01-work/brief.md"
+ },
+ {
+  "batch": "02-work",
+  "kind": "work",
+  "asks": 18,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/02-work/brief.md"
+ },
+ {
+  "batch": "03-work",
+  "kind": "work",
+  "asks": 18,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/03-work/brief.md"
+ },
+ {
+  "batch": "04-work",
+  "kind": "work",
+  "asks": 18,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/04-work/brief.md"
+ },
+ {
+  "batch": "05-work",
+  "kind": "work",
+  "asks": 18,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/05-work/brief.md"
+ },
+ {
+  "batch": "06-work",
+  "kind": "work",
+  "asks": 18,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/06-work/brief.md"
+ },
+ {
+  "batch": "07-path",
+  "kind": "path",
+  "asks": 17,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/07-path/brief.md"
+ },
+ {
+  "batch": "08-concrete",
+  "kind": "concrete",
+  "asks": 18,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/08-concrete/brief.md"
+ },
+ {
+  "batch": "09-look",
+  "kind": "look",
+  "asks": 8,
+  "brief": "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/09-look/brief.md"
+ }
+]
