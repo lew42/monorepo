@@ -9,3 +9,4 @@
 {"note":"proof ran at 2026-10-17T15:43:12Z","by":"helper","ts":"2026-10-17T15:43:15.402Z"}
 {"sessions":[{"id":"voice-app","task":"/framework/core/Task/tasks/templates-live-proof/"},{"id":"helper","task":"/framework/core/Task/tasks/templates-live-proof/"}],"by":"helper","ts":"2026-10-17T15:43:15.527Z"}
 {"complete":{},"by":"helper","ts":"2026-10-17T15:43:15.744Z"}
+{"log":{"at":"2026-10-17T10:46:58-05:00","msg":"session ended (other) without landing"}}
