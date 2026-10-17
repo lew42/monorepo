@@ -5,6 +5,7 @@ import "./TaskView.js";   // sets Task.View (and loads TaskView.css, which style
 /* The page for a tasks/ DIRECTORY: every task beneath it as TaskView.row, grouped by module, ranked by Task.rank.
  * Page.child mounts it on any `tasks/` with no page of its own; /tasks/ is the index of every task home (Server/TaskHomes.mjs). doc: readme.md */
 export class TasksPage extends Page {
+	static SHOW = 5;   // open rows a module group shows before "+ N more open" (a module can hold dozens of idle tasks)
 	static open(t){ return t.state !== "complete" && t.state !== "stopped"; }
 	static is_list(t){ return /\/tasks\/$/.test(t.data.path ?? ""); }
 	static module_of(list){ return String(list.data.path ?? "").replace(/^\/framework\//, "").replace(/\/?tasks\/$/, "") || "/"; }
@@ -50,9 +51,10 @@ export class TasksPage extends Page {
 			const open = tasks.filter(t => this.open(t)), done = tasks.filter(t => !this.open(t));
 			const $group = div.c("tasks-group"), fill = all => $group.empty(() => {
 				a.c("tasks-group-head", () => { icon("folder"); span(module); }).href(module === "/" ? "/" : `/framework/${module}/`);
-				open.forEach(t => Task.View.row(t));
+				const shown = all ? open : open.slice(0, this.SHOW), rest = open.length - shown.length;
+				shown.forEach(t => Task.View.row(t));
 				if (all) done.forEach(t => Task.View.row(t));
-				else if (done.length) small.c("task-row-more", `+ ${done.length} done`).click(() => fill(true));
+				else if (rest || done.length) small.c("task-row-more", [rest && `+ ${rest} more open`, done.length && `+ ${done.length} done`].filter(Boolean).join(" · ")).click(() => fill(true));
 			});
 			fill(false);
 		}
