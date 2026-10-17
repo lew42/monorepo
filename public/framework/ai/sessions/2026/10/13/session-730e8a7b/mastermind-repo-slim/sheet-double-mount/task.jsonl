@@ -27,3 +27,7 @@
 {"commit":"b4e6263c6958"}
 {"decision":{"at":"2026-10-17T11:46:37-05:00","what":"merged with --skip-smoke after running the smoke: the seed pages /framework/ext/drawer/ and /framework/ext/drawer/ai/ passed; the only FAILs were link-followed pages I did not touch: 404s for gitignored shots/ pngs and generated json/session files absent from the worktree (walkthrough, rail, ai/2026-10-01/*, voice-20261016/sheet) and an ext/Panel layout warning. Alternative: wait for a worktree with those files; rejected, the failures are environment, not this change"}}
 {"finish":{"at":"2026-10-17T11:46:37-05:00","msg":"sheet and AIPage share one chat and one feed. Before: 2 chats + 2 feeds at 400 (strip, split, full, after the star) and at 1920 ai/ (page + dock). After (after.txt, 19 ok, 0 FAIL): 1 and 1 at 400 strip/split/full/star, 1200 page, 1920 dock with and without ai/, resize 1200-400-1200, page->dock->page at 1200; fake mic: each sentence drawn once. Fix: AIPage.holder() = sheet | dock | page, Sheet.Panel.release(), tabs/ai.js token + feed disposal. Docs: ext/drawer/readme.md + doc/sheet.md#one-chat-one-feed. Merged into michael/dev."}}
+{"commit":"1d9a4a8c6e8c"}
+{"commit":"d1b07153eb3b"}
+{"log":{"at":"2026-10-17T11:47:20-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T11:47:20-05:00","msg":"session resumed"}}

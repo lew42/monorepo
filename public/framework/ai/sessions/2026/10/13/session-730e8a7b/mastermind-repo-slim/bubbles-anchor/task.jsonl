@@ -17,3 +17,9 @@
 {"log":{"at":"2026-10-17T11:26:26-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
 {"log":{"at":"2026-10-17T11:26:29-05:00","msg":"session resumed"}}
 {"finish":{"at":"2026-10-17T11:27:11-05:00","msg":"landed in 60b9771dd: split 0 stream moves at 400 (was 27-38), 5 page turns; scrolled-up 0 moves 0 turns; strip 0. Proof ux/Dictate/test/anchor.mjs; rule in ux/Dictate/doc/voice-assistant.md#nothing-jumps"}}
+{"log":{"at":"2026-10-17T11:27:19-05:00","heartbeat":"answered","msg":"The work is finished and merged (`60b9771dd`). At 400 wide with the fake mic, the chat thread on the phone sheet now moves no older lines while you read: 0 moves in split (it was 27–38), 0 when you've"}}
+{"log":{"at":"2026-10-17T11:30:32-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T11:41:26-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T11:41:29-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T11:41:59-05:00","heartbeat":"answered","msg":"Nothing is running: the bubbles-anchor work is merged (`60b9771dd`), the closing `finish` line is the last line of my `task.jsonl`, and the worktree is removed. The caveats are in my last report: the "}}
+{"log":{"at":"2026-10-17T11:45:34-05:00","msg":"session ended (other) without landing"}}
