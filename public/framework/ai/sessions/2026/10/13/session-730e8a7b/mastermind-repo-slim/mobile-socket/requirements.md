@@ -10,3 +10,7 @@ Budget: $6. Sonnet. Load the `minion` and `code` skills. The owner (2026-10-17 0
 4. Docs: `dev/Socket/doc/lan.md` gets the new rule in two lines (the client tries everywhere; the server decides); the Socket readme's one line about hosts updated if it has one. Worktree, `node --check`, `Server/smoke.mjs` clean, `check_page` on `/live/` at 400, `merge.mjs` (if the review gate cannot see this 2026-10-13 task dir, run `Server/review.mjs` and name the review with `--no-review`), landing line checked with `tail -1`, `git status` clean for your paths. Never restart the dev server or Servex (log `needs_restart` if `Server/` changed); never drive the owner's tabs.
 
 Fence: `public/framework/dev/Socket/Socket.js` and its `doc/`, `public/live/doc/notes.md` (the stale lines), `public/live/*.js` only if the timer fallback needs a one-line change to prefer the tail, this task dir. Not `Server/` (the guard stays as it is).
+
+## Follow-up (2026-10-17, from mastermind-repo-slim, budget $3)
+
+Closes the second open box: Last landed and Waiting stay empty on the phone because the task tree's `query` is refused to LAN peers. The follow-up lifts the "not `Server/`" fence for exactly this: a read-only `query` (only the `sessions` and `tasks` sources, files under `public/`, never a command) is allowed for a non-loopback peer through the one list in `Server/plugins/SocketServer/Socket.js` (`LAN_OK`, `LAN_QUERY`); commands stay refused. Proved from the LAN address; `needs_restart` is logged for the dev server.

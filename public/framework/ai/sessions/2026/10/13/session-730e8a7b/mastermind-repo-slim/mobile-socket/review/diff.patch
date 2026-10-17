@@ -1,0 +1,98 @@
+diff --git a/Server/doc/mobile-lan.md b/Server/doc/mobile-lan.md
+index 2b7cb079f..72871b345 100644
+--- a/Server/doc/mobile-lan.md
++++ b/Server/doc/mobile-lan.md
+@@ -11,7 +11,7 @@ When opening the site from a phone (`http://192.168.x.x` or through Tailscale):
+    - Audio dictation sends plain HTTP POST requests to `/whisper/inference` and works reliably from mobile devices.
+ 
+ 2. **Dev WebSocket (`local_only` gate in `SocketServer.js`, on both the http and the https listener):**
+-   - Loopback keeps every command; a private-LAN peer (a phone) may connect but the server answers only `hello`, `subscribe` and `unsubscribe` and refuses the rest (`rpc:cmd` shell execution, `rpc:write` ...); anything else is refused at the upgrade.
++   - Loopback keeps every command; a private-LAN peer (a phone) may connect but the server answers only `hello`, `subscribe`, `unsubscribe` and a read-only `query` of the `sessions` and `tasks` sources (the list is `LAN_OK`/`LAN_QUERY` in `Server/plugins/SocketServer/Socket.js`) and refuses the rest (`rpc:cmd` shell execution, `rpc:write` ...); anything else is refused at the upgrade.
+    - The client tries every host and the server decides ([doc](/framework/dev/Socket/doc/lan.md)), so the phone gets reload and JSONL tails over `ws` or, on the https address, `wss`.
+ 
+ ## Common Symptoms & What They Mean
+diff --git a/Server/plugins/SocketServer/Socket.js b/Server/plugins/SocketServer/Socket.js
+index 09ee60b14..6c4f3aec3 100644
+--- a/Server/plugins/SocketServer/Socket.js
++++ b/Server/plugins/SocketServer/Socket.js
+@@ -1,8 +1,11 @@
+ import Events from "../../Events.js";
+ import { loopback } from "../MCP.js";
+ 
+-// A non-loopback (LAN) peer may say hello and subscribe to jsonl tails. Nothing else.
+-const LAN_OK = new Set(["hello", "subscribe", "unsubscribe"]);
++// THE one list of what a non-loopback (LAN) peer may send: hello, jsonl tails, and read-only queries.
++// `query` answers from an in-memory index of files under public/ and never runs or writes anything, but only
++// for the sources named in LAN_QUERY (a new source is not exposed until it is added here). Doc: dev/Socket/doc/lan.md
++const LAN_OK = new Set(["hello", "subscribe", "unsubscribe", "query"]);
++const LAN_QUERY = new Set(["sessions", "tasks"]);
+ 
+ // Socket gets created by SocketServer
+ 
+@@ -27,7 +30,7 @@ export default class Socket extends Events {
+     message(data) {
+         try {
+             const message = JSON.parse(data.toString());
+-            if (!this.local && !LAN_OK.has(message.method)){
++            if (!this.local && !(LAN_OK.has(message.method) && (message.method !== "query" || LAN_QUERY.has(message.args?.[0]?.source)))){
+                 console.warn(`socket: REFUSED ${message.method ?? "message"} from LAN peer ${this.req?.socket?.remoteAddress}`);
+                 if (message.index !== undefined) this.send({ method: "refused", args: [message.method], index: message.index });
+                 return;
+diff --git a/public/framework/dev/Socket/doc/lan.md b/public/framework/dev/Socket/doc/lan.md
+index 3c546be86..4398072bd 100644
+--- a/public/framework/dev/Socket/doc/lan.md
++++ b/public/framework/dev/Socket/doc/lan.md
+@@ -3,9 +3,9 @@
+ The dev socket carries `rpc:cmd` (runs a shell command) and file writes, so it must never be open to the network. A phone on the home Wi-Fi still needs reload and live updates, so the server splits the two:
+ 
+ - **Loopback** (this machine) keeps everything.
+-- **A private LAN address** (`10.*`, `192.168.*`, `172.16`–`172.31`) may connect, but `Server/plugins/SocketServer/Socket.js` only lets it send `hello`, `subscribe` and `unsubscribe`. Every other message (`cmd`, `write`, `append`, `ask`, `rm`, `move`, `query`…) is refused, logged as `socket: REFUSED …`, and answered with a `refused` reply so a waiting `send()` does not hang.
++- **A private LAN address** (`10.*`, `192.168.*`, `172.16`–`172.31`) may connect, but `Server/plugins/SocketServer/Socket.js` only lets it send what is in its one list, `LAN_OK`: `hello`, `subscribe`, `unsubscribe` and `query`, and a `query` only for a source in `LAN_QUERY` (`sessions`, `tasks`). Every other message (`cmd`, `write`, `append`, `ask`, `rm`, `move`, a `query` of any other source…) is refused, logged as `socket: REFUSED …`, and answered with a `refused` reply so a waiting `send()` does not hang.
+ - **Anything else** (a public address, a forged origin) is refused at the upgrade, as before.
+ 
+-**The rule (2026-10-17): the client tries everywhere; the server decides.** `Socket.js` connects on every host (`wss:` on https) and has no allow-list. A peer the server refuses (a static host, a tunnel, a forged origin) backs off to a minute, says so once on the console, stays quiet, and gives up after about five minutes; `send()` and `request()` return at once where there is no socket, so nothing parks. Reload, CSS swaps and JSONL tails go server to client, so the phone gets them without a poll. Widening what a LAN peer may *send* is a security change: add only read-only, push-style methods.
++**The rule (2026-10-17): the client tries everywhere; the server decides.** `Socket.js` connects on every host (`wss:` on https) and has no allow-list. A peer the server refuses (a static host, a tunnel, a forged origin) backs off to a minute, says so once on the console, stays quiet, and gives up after about five minutes; `send()` and `request()` return at once where there is no socket, so nothing parks. Reload, CSS swaps and JSONL tails go server to client, so the phone gets them without a poll. Widening what a LAN peer may *send* is a security change: add only read-only methods that return data from files under `public/` and never run or write anything. `query` is one: it reads an in-memory index (`ext/Query`), which is the same data the phone can already fetch as `index.json`; a new query source stays closed to the LAN until it is added to `LAN_QUERY`. Proof, 2026-10-17, headless from `http://10.0.0.135`: a `tasks` query returned rows, `/live/now/` showed Last landed, `cmd` and a query of an unknown source were both `refused`.
+ 
+ **https too.** A phone needs https for the mic, so the dev server also attaches the socket to its https listener (`Server/plugins/HttpsLan.js` emits `https`, `SocketServer.attach()` adds a second `WebSocketServer` behind the same `local_only` gate). Before that, `wss://<lan-ip>:<port+10000>` got a plain 200 and never connected. Proof, 2026-10-17, headless over `https://10.0.0.135:<port+10000>`: connected on `wss`, `cmd` answered `refused`, a JSONL tail arrived in 9 ms, the `/live/now/` view redrew 1.3 s after a session folder's `cache.jsonl` grew; a forged `https://evil.example` origin got 401.
+diff --git a/public/framework/dev/Socket/readme.md b/public/framework/dev/Socket/readme.md
+index 2f0e52bea..47cfc5a6a 100644
+--- a/public/framework/dev/Socket/readme.md
++++ b/public/framework/dev/Socket/readme.md
+@@ -10,7 +10,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
+ 
+ ## Watch out
+ 
+-- Tries every host (`wss` on https); the server decides: loopback gets everything, a private LAN peer push traffic only, anything else is refused and the client retries quietly. [doc/lan.md](./doc/lan.md) Production stays static: with no server behind it the socket never opens. [doc/localhost.md](./doc/localhost.md)
++- Tries every host (`wss` on https); the server decides: loopback gets everything, a private LAN peer push traffic and read-only queries (`LAN_OK`, `LAN_QUERY`), anything else is refused and the client retries quietly. [doc/lan.md](./doc/lan.md) Production stays static: with no server behind it the socket never opens. [doc/localhost.md](./doc/localhost.md)
+ - Never reject `.ready` — a `send()` awaiting a server restart must land, not throw; a rejected `ready` breaks every later `send()` for the life of the page. [doc/backoff.md](./doc/backoff.md)
+ - Reconnect from `close` only — a failed connect fires `error` *and* `close`; acting on both made a connection storm. [doc/backoff.md](./doc/backoff.md)
+ - `reload()`, `changed()`, `eval()` are called BY the server through `message()` — a grep finds no callers; they are the live path, not dead code. [doc/wire.md](./doc/wire.md)
+diff --git a/public/framework/ext/Query/QueryClient.js b/public/framework/ext/Query/QueryClient.js
+index a04bdaea5..a7676c3aa 100644
+--- a/public/framework/ext/Query/QueryClient.js
++++ b/public/framework/ext/Query/QueryClient.js
+@@ -9,10 +9,9 @@ export default class QueryClient {
+ 	static current = null;
+ 	static counter = 0;
+ 
+-	/** The dev socket, or null off localhost (a static host): the caller falls back to reading files. */
++	/** The dev socket, or null where there is none (a static host): the caller falls back to reading files. A LAN peer (a phone) gets it too; the server allows it `query` on read-only sources only (Server/plugins/SocketServer/Socket.js). */
+ 	static socket() {
+-		if (typeof location === "undefined" || !/^(localhost|127\.0\.0\.1|.*\.localhost)$/.test(location.hostname)) return null;
+-		try { return Socket.singleton(); } catch { return null; }
++		try { const socket = Socket.singleton(); return socket.disabled ? null : socket; } catch { return null; }
+ 	}
+ 
+ 	constructor(source, { row, stale } = {}) {
+diff --git a/public/live/doc/notes.md b/public/live/doc/notes.md
+index 413736031..1ce2553f2 100644
+--- a/public/live/doc/notes.md
++++ b/public/live/doc/notes.md
+@@ -56,6 +56,6 @@ The law (CLAUDE.md): code streams the UI, never an agent. A card is agent-writte
+ 
+ **Views that exist:** Now, Tasks, Today (`LiveToday.js`, the full session list; no card draws it now, add `{"type":"part-live","live":"today"}` to show it).
+ 
+-**Decision (checkup, updated 2026-10-17):** Now reads `LiveToday.load` for today and yesterday (UTC). `LiveToday.into` redraws it when a tailed log grows: `LiveNow.load` returns `logs`, the `cache.jsonl` in each in-flight session's folder (it grows on every model turn), tailed with `JSONL.live()` over the socket (proof on the LAN and https addresses: about 1.3 s, of which 0.8 s is a debounce). The 30 s timer runs only where the socket is down or nothing is tailed (the Today card), plus a 2-minute backstop, because the dev watcher ignores `.json` (`Server/watch.js`), so `sessions/**/index.json` never pushes. **Open:** one line in `Server/watch.js` letting that index through, or a `.jsonl` the session writer appends, would drop the backstop and also show a brand-new session with nothing else running. Also open: the task tree (`tree_for_day`) asks `QueryClient` over the socket, which refuses LAN peers (`query`) and is skipped off `localhost`, so on the phone Last landed and Waiting come from the frozen `directory.json` and stay empty.
++**Decision (checkup, updated 2026-10-17):** Now reads `LiveToday.load` for today and yesterday (UTC). `LiveToday.into` redraws it when a tailed log grows: `LiveNow.load` returns `logs`, the `cache.jsonl` in each in-flight session's folder (it grows on every model turn), tailed with `JSONL.live()` over the socket (proof on the LAN and https addresses: about 1.3 s, of which 0.8 s is a debounce). The 30 s timer runs only where the socket is down or nothing is tailed (the Today card), plus a 2-minute backstop, because the dev watcher ignores `.json` (`Server/watch.js`), so `sessions/**/index.json` never pushes. **Open:** one line in `Server/watch.js` letting that index through, or a `.jsonl` the session writer appends, would drop the backstop and also show a brand-new session with nothing else running. The task tree (`tree_for_day`) asks `QueryClient` over the socket's `query`; since 2026-10-17 a LAN peer may do that for the read-only sources `sessions` and `tasks` (`LAN_QUERY` in `Server/plugins/SocketServer/Socket.js`), and `QueryClient.socket()` no longer skips non-`localhost` hosts, so Last landed and Waiting fill on the phone (proof: 5 rows of 1732 from `http://10.0.0.135`, `cmd` still refused). Where there is no socket at all (a static host) it still falls back to the frozen `directory.json`.
+ 
+ **New cards from the voice agent** should be pointers (title, one sentence, links) or a `part-live` view; text that will change belongs in the log of whatever produces it.
