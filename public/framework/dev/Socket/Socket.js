@@ -93,7 +93,12 @@ export default class Socket {
 
 		if (this.ever_connected) this.show_reconnecting();
 
-		// Never connected here (a static host, a refused peer): back off to a minute and say so once.
+		// Never connected here (a static host, a refused peer): back off to a minute, say so once, let
+		// send()/request() return instead of parking, and give up after about five minutes.
+		if (!this.ever_connected) {
+			this.ready.resolve();
+			if (this.fails >= 12) { this.disabled = true; return; }
+		}
 		const delay = Math.min(250 * 2 ** this.fails++, this.ever_connected ? 10000 : 60000);
 		if (!this.warned) { this.warned = true; console.warn("Socket not connected; retrying quietly in the background."); }
 		this.retry = setTimeout(() => this.connect(), delay);
@@ -317,10 +322,13 @@ export default class Socket {
 		return true;
 	}
 
+	// true once the frame is on the wire; false where there is no socket (disabled, or never reachable) so callers never park.
 	async send(obj) {
-		if (this.disabled) return;
+		if (this.disabled) return false;
 		await this.ready;
+		if (this.ws?.readyState !== WebSocket.OPEN) return false;
 		this.ws.send(JSON.stringify(obj));
+		return true;
 	}
 
 	async request(obj) {
@@ -329,7 +337,7 @@ export default class Socket {
 			obj.index = this.requests.push(resolve) - 1;
 		});
 
-		await this.send(obj);
+		if (!(await this.send(obj))) return;
 
 		return response;
 	}
