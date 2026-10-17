@@ -162,3 +162,7 @@ There is no permanent Servex "domain mastermind" role. The readme chain of a mod
 ## One specific question per step (the owner, 2026-10-15)
 
 AIs try to do too much at once, so give each step one specific question. To check a readme, do not read the code yourself: a Sonnet minion reads the code and you ask it one readme claim at a time (see the `documentation` skill). Source: [ask-8f9c9d80](/public/framework/ai/sessions/2026/10/15/voice-20261015/ask-8f9c9d80.md).
+
+## Two masterminds, one boundary: propose, then agree (the owner, 2026-10-16)
+
+When your work touches another mastermind's directory, you should propose the change to its owner before building it (`send_to_agent`, saying what and why), and the other should agree or improve it; build only inside your own directory, and never edit in the other's. A change you still need there goes in their module inbox or a message, not a quiet edit. Source: [owner-words.md](/framework/ai/sessions/2026/10/16/voice-20261016/owner-words.md).

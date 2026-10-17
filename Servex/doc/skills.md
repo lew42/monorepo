@@ -20,3 +20,9 @@ Numbers: `public/framework/ai/sessions/2026/10/12/session-78fdc37f/skill-reliabi
 ## Tools
 
 Skills are injected by node, but the Servex tools are all loaded for every agent (81, about 18k tokens). Measured and planned: [`public/framework/ai/doc/tool-collapse.md`](/framework/ai/doc/tool-collapse.md).
+
+## The `skill` tool, for connectors (2026-10-17)
+
+The Claude app's voice session has tools but no Skill tool and no MCP prompts. `skill({name})` (`skill_tools()` in `Servex/agents/tools.js`, reading through the same `skill_text()` as the role injection) returns that skill's text, frontmatter removed; with no name, or an unknown one, it lists every skill with a one-line description. Test: `node Servex/agents/skill-tool.test.mjs`. It is live after the next Servex restart.
+
+**`task.home` at spawn:** `spawn_agent`'s `task` object takes an optional `home` (a site path such as `/framework/core/Page/`), written into the `assign` line 1 by `open_task()` in `Agents.js`, so a task and its session carry their module from the first line. Nothing reads it yet beyond the line itself; the task system's `TasksPage` and `Server/TaskHomes.mjs` can group by it.

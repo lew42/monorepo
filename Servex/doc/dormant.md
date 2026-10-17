@@ -146,3 +146,7 @@ calling `register()` before the caller's own `send()` could push its message use
 idle clock and go straight back to sleep in the same tick, closing the brand-new queue first. Fixed
 (the idle clock now resets inside `awaken()`, plus a 60 s belt in `sleep()`, plus a `held_messages`
 fallback that makes losing it this way harmless even so): [`never-lose-a-wake.md`](./never-lose-a-wake.md).
+
+## Expensive dormant agents: read them, don't wake them (decided 2026-10-17)
+
+A dormant agent costs nothing until a message wakes it, and a wake reloads its whole context on the next turn. `mastermind-voice-opus` ($694) and `mastermind-task-system` ($272 and more) are the cases this was decided for. **Decision: leave them dormant, do not stop them.** Stopping adds nothing (a stopped agent also resumes by session id) and loses the "revivable" row in `list_agents`. The rule, as a should: an agent past about $100 should be read (its files, its `task.jsonl`, its card), and woken only to hand it a decision it is waiting on, with `send_to_agent {revive: true}` and a message that names the one question. The alternative, stopping them, would win only if the registry row itself became a problem (a long `list_agents`); the `list_agents` live-only default already handles that.

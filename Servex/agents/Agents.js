@@ -806,7 +806,7 @@ function open_task(task, { session_id, agent, model, worktree, parent_dir }){
 	// `after` is task dirs in the same form as parent_task, so the tree matches them exactly.
 	const after = Array.isArray(task.after) && task.after.length ? task.after.map(rel) : undefined;
 	const line = JSON.stringify({ assign: strip({ session_id, agent, card: task.card, brief: task.brief,
-		model, worktree: task.worktree ?? worktree, parent_task, after, requested_at: stamp(), now: "starting" }) });
+		model, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
 	fs.appendFileSync(path.join(dir, "task.jsonl"), line + "\n");
 	return dir;
 }
