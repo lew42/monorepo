@@ -51,7 +51,7 @@ Run `new-task` inside the task dir your brief names — it already exists; you w
 
 ## While working
 
-Your plan is the `steps` of your launch line. As each step starts, append `assign` with `step`, `now` and `"at":"NOW"` (each step written `"do it (N min)"`, so the [Step runner](../../../Servex/doc/steps.md) nudges you once at 2x); append a `decision` (alternative named) or a `log` caveat **the moment it happens**, never at the end — if your session dies, a fresh agent resumes from the log plus the readme. Append with `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` (stamps `"NOW"`, re-parses the file). Never write a `findings.md`; the task log is the only findings file. Token cost is written by Servex.
+Your plan is your child tasks (the item tool's `tasks`, see [new-task](../new-task/SKILL.md)). As each step starts, call `item` with `{"start": {}}` on it and set its `now`; append a `decision` (alternative named) or a `log` caveat **the moment it happens**, never at the end — if your session dies, a fresh agent resumes from the log plus the readme. Append with `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` (stamps `"NOW"`, re-parses the file). Never write a `findings.md`; the task log is the only findings file. Token cost is written by Servex.
 
 ## The reload hold — seconds, never minutes
 

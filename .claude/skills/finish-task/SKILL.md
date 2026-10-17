@@ -53,6 +53,8 @@ board renders it in place of the generic viewer.
 
 ## 3. The landing line — one append to `task.jsonl`
 
+Mark the task done with the item tool first: `item({path: "<task>", delta: {"complete": {}}})` sets `state: complete` and `completed_at`. Do not use `finish`, the old alias. The report below stays in the same log as before; `outcome` is still the landing report.
+
 **First, run `git status --short` and look for every file this task touched.** If any is still uncommitted, commit it (by exact path) before you land, or the next merge sweeps it into someone else's commit (2026-09-29).
 
 ```json

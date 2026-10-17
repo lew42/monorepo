@@ -6,7 +6,7 @@ description: Open a task — create its folder with node Server/TaskDirs.mjs --n
 # New task
 
 Anything that changes the repo is a **task**: a folder inside your session's folder in the sessions store,
-`public/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/`, whose append-only `task.jsonl` the board renders live. **Never type the path:** `node Server/TaskDirs.mjs --new <slug>` makes it and prints it (your session id comes from `$CLAUDE_CODE_SESSION_ID`; a child task: add `--parent <parent dir>`). Why: [`ai/doc/task-folders.md`](/framework/ai/doc/task-folders.md). The old flat `ai/<YYYY-MM-DD>/` day folders are retired; an old path still works for appends (`append.mjs` follows it). Open it **before the first edit**. Format: `ext/JSONL/readme.md`; viewer: `ai/AITask/readme.md`.
+`public/framework/ai/sessions/YYYY/MM/DD/<session>/<slug>/`, whose append-only `task.jsonl` the board renders live. **Never type the path:** `node Server/TaskDirs.mjs --new <slug>` makes it and prints it (your session id comes from `$CLAUDE_CODE_SESSION_ID`; a child task: add `--parent <parent dir>`). A task is made and changed through the **item tool**, not by hand-writing JSON: `item({path, delta})`. A child is one call on its parent: `item({path: "<parent>", delta: {"tasks": {"add": {"title": "…", "expected": "…"}}}})`. Its home is `<module>/tasks/<slug>/`, or the parent's folder when there is no module. Detail: [core/Task](/framework/core/Task/). Why the folders: [`ai/doc/task-folders.md`](/framework/ai/doc/task-folders.md). The old flat `ai/<YYYY-MM-DD>/` day folders are retired; an old path still works for appends (`append.mjs` follows it). Open it **before the first edit**. Format: `ext/JSONL/readme.md`; viewer: `ai/AITask/readme.md`.
 
 **Where a new file goes** (the owner, 2026-10-13: "creating a new file, what its name is and what goes in it" are the most important questions): a file about a module lives in that module's folder; a record lives in the store at its date path (`ai/sessions/YYYY/MM/DD/…`, made by `TaskDirs`); nothing else is created under `ai/`. A path the old way (`ai/<YYYY-MM-DD>/`) is refused by `append.mjs`.
 
@@ -29,7 +29,7 @@ If your brief names a task dir, Servex already opened it: log there and skip ste
 {"assign": {"session_id": "<$env:CLAUDE_CODE_SESSION_ID>", "tab": "<window label>", "group": "<the effort>", "request": "<the ask, verbatim>", "requested_at": "<ISO now, local offset>", "model": "<your model>", "window": {"before": <FRACTION of the 5h window used — percent / 100, e.g. 0.12>}, "now": "scoping", "steps": ["<step>", "<step>", …], "step": 1}}
 ```
 
-**`group` is the effort** — the thread this belongs to, which outlives the day; reuse an existing slug (`ai-log`, `layout`, `panels`, `vision`, `apps`, `web-ui`), or omit it and the task files under *loose*. ⚠ **`session_id` is not optional** — without it the detail page has no transcript and renders no log at all.
+**`group` is the effort** — the thread this belongs to, which outlives the day; reuse an existing slug (`ai-log`, `layout`, `panels`, `vision`, `apps`, `web-ui`), or omit it and the task files under *loose*. ⚠ **`session_id` is not optional** (the launch line keeps that name: Servex reads it; `Task.session` reads either) — without it the detail page has no transcript and renders no log at all.
 
 **Append with the helper — it is what makes the encoding traps stop mattering.** `node .claude/hooks/append.mjs <target.jsonl> <lines.json>` appends the objects in a JSON array as one line each, turns every string value that is exactly `"NOW"` into the local clock at the moment of the append, sniffs the trailing newline, then re-parses the whole file and exits non-zero naming any bad line. Write `<lines.json>` with the **Write tool** — never a heredoc, never a shell string. That one route closes the BOM, ANSI-byte, em-dash and hand-typed-clock traps.
 
@@ -40,9 +40,9 @@ on an `ask` — is [`ext/JSONL/doc/task-jsonl.md`](/framework/ext/JSONL/doc/task
 ⚠ `note` is the one exception: it is `/framework/ai/v/2/`'s own board verb and renders as nothing
 on any other task's log.
 
-**`steps` — write the plan now, before the first edit.** `steps` is the outline (5–10 short steps, from `requirements.md`); `step` is the 1-based index of the one underway. The card's bar and checklist derive from those two fields.
+**The plan is child tasks, written now, before the first edit.** Add 5–10 short steps from `requirements.md` as `tasks` of the task (one `item` call each, the grouping rule in [core/Task](/framework/core/Task/)). No new task writes `steps`; old folders with `steps` still read.
 
-**Keep state current as you go, so losing this session loses nothing.** When a step starts, append `{"assign": {"step": N, "now": "<what is happening inside it>"}}`. A fresh agent must be able to continue from the log plus the readme alone. Land with `step` at the last index.
+**Keep state current as you go, so losing this session loses nothing.** When a step starts, call `item({path: "<step>", delta: {"start": {}}})` and set its line with `{"now": "<what is happening inside it>"}`. A fresh agent must be able to continue from the log plus the readme alone. A finished step is `{"complete": {}}`.
 
 - `day.jsonl` — the DAY's log, in the day's folder of the store (`node Server/TaskDirs.mjs --day` prints it, e.g. `public/framework/ai/sessions/2026/10/12`; ⚠ not the stale `ai/day.jsonl`). Same route as your task log — `node .claude/hooks/append.mjs <day dir>/day.jsonl <lines.json>`:
 
@@ -75,6 +75,8 @@ The detail lives here and in `doc/`; the page shows the thing, never the log.
 
 **Nothing crawls the filesystem.** Before landing, every page this task created is linked from `links` **and** from somewhere a reader already is — its parent's `children:`, the page it is about, or the day page's `content()`.
 Verify by loading the parent and clicking through, not by loading the page's own URL.
+
+**Grouping rule:** subtasks live in the parent's `task.jsonl`. A child gets its own folder only when it needs one (its own page, proofs, a `requirements.md`). A refinement of an existing task goes into that task; a new task is only for a new ask.
 
 ## 4. Land — with the `finish-task` skill
 

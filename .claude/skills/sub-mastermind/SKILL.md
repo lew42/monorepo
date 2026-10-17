@@ -100,7 +100,7 @@ Research searches the web in round one. Design votes on the whole signature firs
 - **To tell the owner anything** (a decision made on their behalf, a risk, something only they can do): call `owner_note({title, text, kind: "decision"|"risk"|"needs-you", links})`, never chat. `decision` and `risk` are FYIs (read in the Inbox, not counted as waiting); only `needs-you` (a key, a login, money: only the owner can do it) waits, so never use it for a status update. Keep working; Servex also posts one for the `decision` lines in your `task.jsonl` when you land.
 - **Landed:** one screen: the headline, then plain sentences with links.
 
-Everything else lives in `task.jsonl` ([`new-task`](../new-task/SKILL.md)): the plan as `steps` (`"do it (N min)"`, [Step runner](../../../Servex/doc/steps.md)), a `decision` line (alternative named) and a `log` caveat the moment each happens, `step`/`now` bumped as each step starts, so a fresh mastermind can resume from the log. Ask each minion to do the same. Append with `node .claude/hooks/append.mjs`.
+Everything else lives in `task.jsonl` ([`new-task`](../new-task/SKILL.md)): the plan as child tasks, made with the item tool (`tasks.add`, grouping rule in [new-task](../new-task/SKILL.md)), a `decision` line (alternative named) and a `log` caveat the moment each happens, each step started with `{"start": {}}` and its `now` bumped, so a fresh mastermind can resume from the log. Ask each minion to do the same. Append with `node .claude/hooks/append.mjs`.
 
 ## Never
 
