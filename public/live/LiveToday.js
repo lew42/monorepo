@@ -3,9 +3,11 @@ import { tree_for_day } from "/framework/ai/AITask/tree.js";
 import { TaskTree } from "/framework/ai/AITask/nested.js";
 import TaskState from "./TaskState.js";
 import AISessionRows from "/framework/ai/AISession/AISessionRows.js";
+import Socket from "/framework/dev/Socket/Socket.js";
+import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 
 /* The "Today" card: today's sessions (the day index the session writer keeps) with each session's tasks (tree_for_day) under it.
- * Read at render time, redrawn every 30 s. A Live card of type "part-live" with live:"today" draws this (Live.js). */
+ * Read at render time. A view that names `logs` (LiveNow: the task logs of what is in flight) is redrawn when one of them grows (a JSONL tail over the dev socket, any host); the 30 s timer runs only where the socket is down or a view has no logs to tail, and every 2 min as a backstop (the watcher does not push .json, so a new session shows by a tail or the backstop). A Live card of type "part-live" with live:"today" draws this (Live.js). */
 export default class LiveToday {
 	static STATE = { running: "in flight", landed: "landed", waiting: "waiting", stopped: "stopped" };
 
@@ -55,16 +57,24 @@ export default class LiveToday {
 		});
 	}
 
-	// Fills `box` (a View) now and again every 30 s while it is on the page.
+	// Fills `box` (a View) now, when a tailed log grows (draw -> data.logs), and on the timer (see the class comment).
 	static into(box, view = "draw"){
-		let first = true;
+		let first = true, ticks = 0, later;
+		const socket = Socket.singleton(), tails = new Map();   // task log url -> its JSONL tail
+		const stop = () => { clearInterval(timer); clearTimeout(later); tails.forEach(j => j.unsubscribe()); };
+		const tail = logs => (logs ?? []).forEach(url => {
+			if (tails.has(url)) return;
+			const log = new JSONL({ url });
+			tails.set(url, log);
+			log.live(() => { clearTimeout(later); later = setTimeout(go, 800); });   // fires on lines appended after the first replay
+		});
 		const go = async () => {
-			if (!first && !box.el.isConnected) return clearInterval(timer);   // the card was redrawn away
+			if (!first && !box.el.isConnected) return stop();   // the card was redrawn away
 			first = false;
-			try { const data = await this.load(); box.empty(() => this[view](data)); }
+			try { const data = await this.load(); box.empty(() => this[view](data)); if (!socket.disabled) tail(data.logs); }
 			catch (e) { box.empty(() => span("Could not read today's sessions: " + e.message)); }
 		};
-		const timer = setInterval(go, 30000);
+		const timer = setInterval(() => (!socket.connected || !tails.size || ++ticks % 4 === 0) && go(), 30000);
 		return go();
 	}
 }

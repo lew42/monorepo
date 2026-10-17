@@ -16,6 +16,7 @@ export default class HttpsLan {
             if (!(https_port > 0 && https_port < 65536)) return console.log(`[https] skipped: ${https_port} is not a port (http is on ${port}); set HTTPS_PORT.`);
             server.https = https.createServer(creds, server.app);
             server.https.on("error", e => console.log(`[https] not listening on ${https_port}: ${e.code || e.message}`));
+            server.emit("https");   // SocketServer attaches wss to it
             try { server.https.listen(https_port, host, () => console.log(`[https] listening on ${host}:${https_port}`)); }
             catch (e) { console.log(`[https] not listening on ${https_port}: ${e.code || e.message}`); }
         });

@@ -10,7 +10,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 
 ## Watch out
 
-- Connects on localhost (full) and on a private LAN host (push traffic only, every command refused server-side). [doc/lan.md](./doc/lan.md) Never a public host: that is what keeps production purely static and keeps the eval/write door shut. Suggestion, not law: a deployment that wants it live has to solve auth first (`Server/README.md`). [doc/localhost.md](./doc/localhost.md)
+- Tries every host (`wss` on https); the server decides: loopback gets everything, a private LAN peer push traffic only, anything else is refused and the client retries quietly. [doc/lan.md](./doc/lan.md) Production stays static: with no server behind it the socket never opens. [doc/localhost.md](./doc/localhost.md)
 - Never reject `.ready` — a `send()` awaiting a server restart must land, not throw; a rejected `ready` breaks every later `send()` for the life of the page. [doc/backoff.md](./doc/backoff.md)
 - Reconnect from `close` only — a failed connect fires `error` *and* `close`; acting on both made a connection storm. [doc/backoff.md](./doc/backoff.md)
 - `reload()`, `changed()`, `eval()` are called BY the server through `message()` — a grep finds no callers; they are the live path, not dead code. [doc/wire.md](./doc/wire.md)

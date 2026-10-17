@@ -47,16 +47,10 @@ export default class Socket {
 
 		this.restore();
 
-		// ⚠ localhost = full socket. A private LAN host (phone on the Wi-Fi) also connects, but the server
-		//   gives it push traffic only (reload, deltas, tails) and refuses every command. doc/lan.md
-		const host = window.location.hostname;
-		const lan = /^(10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(host);
-		if (host === "localhost" || host === "127.0.0.1" || host.endsWith(".localhost") || lan) {
-			this.connect();
-		} else {
-			this.disabled = true;
-			this.ready.resolve();
-		}
+		// The client tries every host (wss on https); the SERVER decides what a peer may do: loopback gets
+		// everything, a private LAN peer gets push traffic only, anything else is refused at the upgrade.
+		// A refused socket backs off and says so once. doc/lan.md
+		this.connect();
 	}
 	connect() {
 		if (this.disabled) return;
@@ -70,7 +64,7 @@ export default class Socket {
 
 		// ⚠ Failed connect fires "error" AND THEN "close" — reconnect only on "close"
 		this.ws.addEventListener("close", () => this.reconnect());
-		this.ws.addEventListener("error", () => console.warn("Socket error."));
+		this.ws.addEventListener("error", () => {});
 	}
 	open() {
 		console.log("%cSocket connected.", "color: green; font-weight: bold;");
@@ -99,8 +93,14 @@ export default class Socket {
 
 		if (this.ever_connected) this.show_reconnecting();
 
-		const delay = Math.min(250 * 2 ** this.fails++, 10000);
-		console.warn(`Socket closed, reconnecting in ${delay}ms.`);
+		// Never connected here (a static host, a refused peer): back off to a minute, say so once, let
+		// send()/request() return instead of parking, and give up after about five minutes.
+		if (!this.ever_connected) {
+			this.ready.resolve();
+			if (this.fails >= 12) { this.disabled = true; return; }
+		}
+		const delay = Math.min(250 * 2 ** this.fails++, this.ever_connected ? 10000 : 60000);
+		if (!this.warned) { this.warned = true; console.warn("Socket not connected; retrying quietly in the background."); }
 		this.retry = setTimeout(() => this.connect(), delay);
 	}
 
@@ -322,10 +322,13 @@ export default class Socket {
 		return true;
 	}
 
+	// true once the frame is on the wire; false where there is no socket (disabled, or never reachable) so callers never park.
 	async send(obj) {
-		if (this.disabled) return;
+		if (this.disabled) return false;
 		await this.ready;
+		if (this.ws?.readyState !== WebSocket.OPEN) return false;
 		this.ws.send(JSON.stringify(obj));
+		return true;
 	}
 
 	async request(obj) {
@@ -334,7 +337,7 @@ export default class Socket {
 			obj.index = this.requests.push(resolve) - 1;
 		});
 
-		await this.send(obj);
+		if (!(await this.send(obj))) return;
 
 		return response;
 	}
