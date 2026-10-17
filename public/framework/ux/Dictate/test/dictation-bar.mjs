@@ -3,12 +3,14 @@
 // Opens the sheet at 400 (split), starts the fake mic (jfk.wav looping), waits for three delivered sentences, and counts
 // LAYOUT JUMPS: elements whose top moved between two 50 ms samples. "chrome" = the sheet outside the thread
 // (head, bar, composer); "thread" = bubbles, measured from the thread's own content top (a new line may push the older ones).
+// --strip: the strip size (the chat mounts in split, then the sheet drops to the strip; the compact bar is the only control).
 // --before: skip the bar checks (the old controls). Exit 1 on any failure.
 import { pathToFileURL } from "url";
 
 const args = process.argv.slice(2).filter(a => !a.startsWith("--"));
 const [base = "http://monorepo.localhost", shots] = args;
-const before = process.argv.includes("--before");
+const before = process.argv.includes("--before"), strip = process.argv.includes("--strip");
+const SIZE = strip ? "compact" : "full";
 const PW = process.env.PWENTRY ?? "C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
 import fs from "fs";
 const here = new URL("../../../ai/recordings/jfk.wav", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
@@ -39,6 +41,7 @@ await page.waitForSelector(".drawer-rail-ai", { timeout: 20000 });
 await page.evaluate(async () => { const { default: Sheet } = await import("/framework/ext/drawer/Sheet.js"); window.$sheet = Sheet.of(); await window.$sheet.to("split", { listen: false }); });
 await page.waitForSelector(".drawer-rail-sheet.on .ux-dictate-widget", { timeout: 20000 });
 await page.waitForTimeout(800);
+if (strip){ await page.evaluate(() => window.$sheet.to("strip", { listen: false })); await page.waitForTimeout(600); }
 
 // the jump sampler: every 50 ms, the top of every box in the sheet
 await page.evaluate(() => {
@@ -66,38 +69,41 @@ await page.evaluate(() => {
 	}, 50);
 });
 
-const mic = page.locator(".drawer-rail-sheet .dictation-bar-mic, .drawer-rail-sheet .chatbox-mic .ux-dictate-btn").first();
+const mic = page.locator(before ? ".drawer-rail-sheet .chatbox-mic .ux-dictate-btn" : `.drawer-rail-sheet .dictation-bar[data-size=${SIZE}] .dictation-bar-mic`).first();
 await mic.click();
 const labels = new Set();
 const t0 = Date.now();
 while (said.length < 3 && Date.now() - t0 < 110000){
 	await page.waitForTimeout(400);
-	if (!before) labels.add(await page.locator(".dictation-bar-word").first().innerText().catch(() => ""));
+	if (!before) labels.add(await page.locator(`.dictation-bar[data-size=${SIZE}] .dictation-bar-word`).first().innerText().catch(() => ""));
 }
 const j = await page.evaluate(() => {
 	const sum = m => ({ elements: m.size, moves: [...m.values()].reduce((a, e) => a + e.moves, 0), first: [...m.values()].slice(0, 6).map(e => e.name + "×" + e.moves) });
 	return { chrome: sum($J.chrome), thread: sum($J.thread) };
 });
-if (shots) await page.screenshot({ path: `${shots}/${before ? "before" : "after"}-400-split.png` });
+if (shots) await page.screenshot({ path: `${shots}/${before ? "before" : "after"}-400-${strip ? "strip" : "split"}.png` });
 console.log(JSON.stringify({ sentences: said, labels: [...labels], jumps: j }));
 check(said.length >= 3, `three sentences were delivered (${said.length})`);
-if (!before){
-	check(await page.locator(".dictation-bar-mic").count() > 0, "the dictation bar is on the sheet");
+if (!before && strip){
+	check(await page.locator(`.dictation-bar[data-size=compact]`).first().isVisible(), "the compact bar shows in the strip");
+	check(j.chrome.elements === 0, `nothing in the strip jumped (${j.chrome.elements} elements moved)`);
+} else if (!before){
+	check(await page.locator(`.dictation-bar[data-size=${SIZE}] .dictation-bar-mic`).count() > 0, "the dictation bar is on the sheet");
 	check(await page.locator(".chatbox-compose-send:visible").count() === 0, "no Send button shows");
 	check([...labels].some(l => /listening/i.test(l)), `the mic says what it is doing (${[...labels].join(", ")})`);
 	check(j.chrome.elements === 0, `nothing in the bar or head jumped (${j.chrome.elements} elements moved, ${j.chrome.moves} moves)`);
 
 	// Type reveals the box in place; the bar's mic keeps its top
-	const top = async () => (await page.locator(".dictation-bar-mic").first().boundingBox())?.y;
-	await page.locator(".dictation-bar-mic").first().click();   // pause
+	const top = async () => (await page.locator(`.dictation-bar[data-size=${SIZE}] .dictation-bar-mic`).first().boundingBox())?.y;
+	await page.locator(`.dictation-bar[data-size=${SIZE}] .dictation-bar-mic`).first().click();   // pause
 	const t1 = await top();
 	await page.locator(".dictation-bar-type").first().click();
 	await page.waitForTimeout(300);
-	const box = page.locator(".chatbox-compose-input").first();
+	const box = page.locator("[data-dictation-bar] .chatbox-compose-input").first();
 	check(await box.isVisible(), "Type shows the text box");
 	if (shots) await page.screenshot({ path: `${shots}/after-400-type.png` });
 	check(Math.abs((await top()) - t1) <= 1, `the mic did not move when the box opened (${t1} -> ${await top()})`);
-	await page.locator(".dictation-bar-word").first().innerText().then(w => check(/paused|off/i.test(w), `the label says it stopped (${w})`));
+	await page.locator(`.dictation-bar[data-size=${SIZE}] .dictation-bar-word`).first().innerText().then(w => check(/paused|off/i.test(w), `the label says it stopped (${w})`));
 }
 check(!errors.length, "no page errors " + errors.join(" "));
 clearTimeout(kill);

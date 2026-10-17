@@ -18,7 +18,7 @@ export default class DictationBar extends View {
 
 	static HOLD_MS = 600;
 	static WATCHED = ["set_state", "set_error", "send_screen", "send_sentences", "enqueue"];   // the mic's methods that change what the word says
-	static HINTS = { starting: "connecting…", listening: "sends when you pause", sending: "sending…", paused: "tap to talk", off: "tap to talk" };
+	static HINTS = { starting: "connecting…", listening: "sends when you pause", sending: "one moment", paused: "tap to talk", off: "tap to talk" };
 
 	/** Put the bar in the widget's composer (full size) and, if `live` is given, a compact one in that row (the strip size). */
 	static mount(widget, live){
@@ -28,8 +28,14 @@ export default class DictationBar extends View {
 		const box = compose.querySelector(".chatbox-compose-input");
 		if (box) box.placeholder = "type, then Enter to send";
 		const bars = [];
-		new View({ el: compose, capture: false }).append(() => bars.push(new this({ mic, compose })));
-		if (live) new View({ el: live.el ?? live, capture: false }).append(() => bars.push(new this({ mic, compose, compact: true })));
+		new View({ el: compose, capture: false }).append(() => { bars.push(new this({ mic, compose })); });
+		if (live){
+			const row = live.el ?? live;
+			new View({ el: row, capture: false }).append(() => { bars.push(new this({ mic, compose, compact: true })); });
+			row.prepend(bars.at(-1).el);   // the mic leads the strip, the last line said fills the middle
+			const said = row.querySelector(".drawer-rail-sheet-said");
+			if (said?.textContent === "listening…") said.textContent = "say something";   // the bar says whether it is listening
+		}
 		return bars;
 	}
 
