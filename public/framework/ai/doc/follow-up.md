@@ -1,8 +1,8 @@
 # Follow-up: what fell through the cracks
 
-Computed 2026-10-16 05:04 UTC by `node Server/FollowUp.mjs --write` from every task folder of the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
+Computed 2026-10-17 05:01 UTC by `node Server/FollowUp.mjs --write` from every task folder of the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
 
-**0 landed with unmerged commits · 0 merged but never landed · 25 quiet over 2 h · 3 landed with no outcome · 17 open asks with no live owner · 125 healthy of 153.**
+**2 landed with unmerged commits · 0 merged but never landed · 25 quiet over 2 h · 3 landed with no outcome · 17 open asks with no live owner · 135 healthy of 165.**
 
 ## ⚠️ The owner decides: `michael/property-of`
 
@@ -19,31 +19,38 @@ public/framework/ai/AISession/AISessionDetail.js   |  22 +++++++++++--
  8 files changed, 93 insertions(+), 6 deletions(-)
 ```
 
+## unmerged: 2
+
+landed, but commits are not on michael/dev: review the diff, then `merge.mjs`.
+
+- [sidebar-index](/framework/ai/sessions/2026/10/12/session-65e9c7eb/sidebar-index/) (`worktree/qf-4`, 1 ahead): mastermind-mastermind-sidebar-index, last log 4 d ago, step 1/0, agent gone
+- [figma-phase2](/framework/ai/sessions/2026/10/12/session-cd792e48/figma-phase2/) (`worktree/qf-4`, 1 ahead): mastermind-figma-phase2, last log 5 d ago, step 1/0, agent dormant
+
 ## quiet: 25
 
 no log for over 2 h and no live agent: resume it or close it.
 
-- [handover-query](/framework/ai/sessions/2026/10/16/voice-20261016/handover-query/): minion-handover-query, last log 4 h ago, step 1/0, agent dormant
-- [live-page](/framework/ai/sessions/2026/10/15/voice-20261015/live-page/): helper-live-page, last log 4 h ago, step 1/0, agent stopped
-- [live-post](/framework/ai/sessions/2026/10/15/voice-20261015/live-post/): helper-live-post, last log 4 h ago, step 1/0, agent stopped
-- [loose-ends](/framework/ai/sessions/2026/10/15/voice-20261015/loose-ends/): helper-loose-ends, last log 4 h ago, step 1/0, agent stopped
-- [page-system](/framework/ai/sessions/2026/10/15/voice-20261015/page-system/): helper-page-system, last log 4 h ago, step 1/0, agent stopped
-- [past-work-log](/framework/ai/sessions/2026/10/15/voice-20261015/past-work-log/): helper-past-work-log, last log 4 h ago, step 1/0, agent stopped
-- [past-work-map](/framework/ai/sessions/2026/10/15/voice-20261015/past-work-map/): helper-past-work-map, last log 4 h ago, step 1/0, agent stopped
-- [refine-audit](/framework/ai/sessions/2026/10/15/voice-20261015/refine-audit/): helper-refine-audit, last log 4 h ago, step 1/0, agent stopped
-- [refine-explain](/framework/ai/sessions/2026/10/15/voice-20261015/refine-explain/): helper-refine-explain, last log 4 h ago, step 1/0, agent stopped
-- [sessions-data](/framework/ai/sessions/2026/10/15/voice-20261015/sessions-data/): helper-sessions-data, last log 4 h ago, step 1/0, agent stopped
-- [spawn-policy](/framework/ai/sessions/2026/10/15/voice-20261015/spawn-policy/): helper-spawn-policy, last log 4 h ago, step 1/0, agent stopped
-- [mastermind-repo-slim](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/): 730e8a7b, last log 4 h ago, step 28/11, agent unknown
+- [accounting](/framework/ai/sessions/2026/10/16/voice-20261016/accounting/): helper-accounting, last log 6 h ago, step 1/0, agent stopped
+- [handover-query](/framework/ai/sessions/2026/10/16/voice-20261016/handover-query/): minion-handover-query, last log 28 h ago, step 1/0, agent dormant
+- [live-page](/framework/ai/sessions/2026/10/15/voice-20261015/live-page/): helper-live-page, last log 9 h ago, step 1/0, agent stopped
+- [live-post](/framework/ai/sessions/2026/10/15/voice-20261015/live-post/): helper-live-post, last log 9 h ago, step 1/0, agent stopped
+- [loose-ends](/framework/ai/sessions/2026/10/15/voice-20261015/loose-ends/): helper-loose-ends, last log 9 h ago, step 1/0, agent stopped
+- [page-system](/framework/ai/sessions/2026/10/15/voice-20261015/page-system/): helper-page-system, last log 9 h ago, step 1/0, agent stopped
+- [past-work-log](/framework/ai/sessions/2026/10/15/voice-20261015/past-work-log/): helper-past-work-log, last log 9 h ago, step 1/0, agent stopped
+- [past-work-map](/framework/ai/sessions/2026/10/15/voice-20261015/past-work-map/): helper-past-work-map, last log 9 h ago, step 1/0, agent stopped
+- [refine-audit](/framework/ai/sessions/2026/10/15/voice-20261015/refine-audit/): helper-refine-audit, last log 9 h ago, step 1/0, agent stopped
+- [refine-explain](/framework/ai/sessions/2026/10/15/voice-20261015/refine-explain/): helper-refine-explain, last log 9 h ago, step 1/0, agent stopped
+- [sessions-data](/framework/ai/sessions/2026/10/15/voice-20261015/sessions-data/): helper-sessions-data, last log 9 h ago, step 1/0, agent stopped
+- [spawn-policy](/framework/ai/sessions/2026/10/15/voice-20261015/spawn-policy/): helper-spawn-policy, last log 9 h ago, step 1/0, agent stopped
 - …13 more in [follow-up-full.md](follow-up-full.md)
 
 ## no-outcome: 3
 
 landed with no outcome text: add one line saying what shipped.
 
-- [remote-full-registry](/framework/ai/sessions/2026/10/15/voice-20261015/remote-full-registry/): helper-remote-registry, last log 4 h ago, step 1/0, agent stopped
-- [session-detail-live](/framework/ai/sessions/2026/10/09/session-ca11999b/session-detail-live/): minion-session-detail-live, last log 5 d ago, step 1/0, agent dormant
-- [checker-1](/framework/ai/sessions/2026/10/07/feedback-council/checker-1/): minion-checker-1, last log 7 d ago, step 1/0, agent stopped
+- [remote-full-registry](/framework/ai/sessions/2026/10/15/voice-20261015/remote-full-registry/): helper-remote-registry, last log 9 h ago, step 1/0, agent stopped
+- [session-detail-live](/framework/ai/sessions/2026/10/09/session-ca11999b/session-detail-live/): minion-session-detail-live, last log 6 d ago, step 1/0, agent dormant
+- [checker-1](/framework/ai/sessions/2026/10/07/feedback-council/checker-1/): minion-checker-1, last log 8 d ago, step 1/0, agent stopped
 
 ## open asks with no live owner: 17
 
@@ -63,4 +70,4 @@ An ask in `asks.jsonl` still building, routed, queued or stalled whose owner age
 
 ## Check
 
-Tasks counted 153, `TaskDirs --list 10` 153: agree. 183 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
+Tasks counted 165, `TaskDirs --list 10` 165: agree. 191 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).

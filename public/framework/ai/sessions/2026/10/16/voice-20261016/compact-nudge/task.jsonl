@@ -42,3 +42,9 @@
 {"log":{"at":"2026-10-16T23:21:03-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-16T23:45:28-05:00","needs_restart":"compaction nudge applies only after a Servex restart","msg":"needs_restart: e0a0b1ead (idle compaction nudge, compact_self tool) is on michael/dev but applies only after node Servex/sustain.mjs --restart; also pending for the same restart: the skill tool and task.home (9b4b5e3df, 170473c4b). Restart when no agent is mid-step."}}
 {"log":{"at":"2026-10-16T23:45:28-05:00","msg":"checkup-servex verified: code on dev (e0a0b1ead, 7 files, test compact-nudge.test.mjs), review.md verdict pass (docs-only after merge, no review needed), review records committed. Closed by the checkup; helper-compact-nudge stays dormant."}}
+{"log":{"at":"2026-10-17T00:12:53-05:00","heartbeat":"revive-queued","msg":"helper-compact-nudge its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-17T00:12:56-05:00","heartbeat":"revive","msg":"revived helper-compact-nudge from session b888b2f3-cc10-4b1a-9429-6b658e3e860e"}}
+{"log":{"at":"2026-10-17T00:13:00-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T00:13:00-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T00:13:02-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T00:13:30-05:00","heartbeat":"answered","msg":"Idle, nothing in progress. The compaction change is merged on `michael/dev` (`e0a0b1ead`). I left the task open because the Servex restart (`node Servex/sustain.mjs --restart`) hasn't been run, so the"}}
