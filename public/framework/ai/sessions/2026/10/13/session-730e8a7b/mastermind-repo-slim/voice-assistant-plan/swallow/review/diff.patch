@@ -1,0 +1,316 @@
+diff --git a/.claude/skills/voice-assistant/SKILL.md b/.claude/skills/voice-assistant/SKILL.md
+index 3f1f1d790..7613fb319 100644
+--- a/.claude/skills/voice-assistant/SKILL.md
++++ b/.claude/skills/voice-assistant/SKILL.md
+@@ -19,6 +19,7 @@ item({ path: "<the session file you were given>", delta: { place: { re: "<the ne
+ - **`where`** (only with `card`): `inside` the previous card (a detail of it) · `beside` it (a sibling) · `up` (a different topic altogether). The screen nests only `inside` today; say what you mean anyway.
+ - **`edit`**: `nothing` (default) · `move` · `improve` (add `text`: the sentence cleaned, never shorter in meaning) · `both`.
+ - `title` (only with `card`): two to five words naming it.
++- **`summary`** (optional, once a card holds two or more sentences): `item({ path, delta: { summary: { card: "<the card's first sentence at>", text: "<what the card says, keeping every point>" } } })`. The screen folds the card's own lines under it; never drop a detail from the summary.
+ 
+ Always write the line, even for `same` and `nothing`: one line per sentence is how a node check tells "decided same" from "never answered".
+ 
+diff --git a/public/framework/ext/Refine/doc/placement.md b/public/framework/ext/Refine/doc/placement.md
+index ab1d77a4e..bfe51a6e0 100644
+--- a/public/framework/ext/Refine/doc/placement.md
++++ b/public/framework/ext/Refine/doc/placement.md
+@@ -14,6 +14,8 @@ of a sent chunk, after the server's answer loads, and stores the result on the s
+ 
+ `action` and `to` mean the same thing (`same` = `append`, `paragraph` = `new`). The chat bubble uses `to`.
+ 
++A card of two or more sentences may also get `{ summary: { card, text } }`: the chat folds the card's own lines under that text (`ux/Dictate/doc/voice-assistant.md#raw-and-refined`).
++
+ ## The rules, in order
+ 
+ 1. Empty text: no change (`confidence` 0).
+diff --git a/public/framework/ux/Dictate/Widget.css b/public/framework/ux/Dictate/Widget.css
+index f6fa1a8a3..3ab4090b8 100644
+--- a/public/framework/ux/Dictate/Widget.css
++++ b/public/framework/ux/Dictate/Widget.css
+@@ -247,4 +247,10 @@
+ 	.ux-dictate-placed-card { border-inline-start: 3px solid var(--prime); }
+ 	.ux-dictate-placed-card[data-where="inside"] { margin-inline-start: var(--gap, 1em); }
+ 	.ux-dictate-placed-title { font-weight: 600; }
++	/* RAW LOOKS RAW, A SUMMARY SWALLOWS (doc/voice-assistant.md#raw-and-refined): unrefined Whisper words are muted monospace; a card with a summary folds its lines */
++	.ux-dictate-raw, .ux-dictate-swallowed > [data-re] { font-family: ui-monospace, Consolas, monospace; font-size: 0.9em; opacity: 0.7; }
++	.ux-dictate-swallowed:not(.open) > [data-re] { display: none; }
++	.ux-dictate-summary-text { font-weight: 500; }
++	.ux-dictate-fold-toggle { font: inherit; font-size: 0.85em; opacity: 0.7; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline dotted; }
++	.ux-dictate-swallowed.open > .ux-dictate-summary { margin-block-end: 0.5em; }
+ }
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index 9797b9763..b54e8e5c9 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -225,6 +225,8 @@ Widget.Thread = class WidgetThread extends View {
+ 		this.widget.$thread = this;
+ 		this.lines = new Map();   // at -> {bubble, text, ref}; bubble is shared once sentences merge (see doc/widget-notes.md#thread-state)
+ 		this.lives = new Map();   // "stream:"+who -> {el, text}, kept out of speak() merging
++		this.settled = new Set();     // sentence ids a {place} or {refined} line points at: not raw any more (doc/voice-assistant.md#raw-and-refined)
++		this.summaries = new Map();   // card id -> summary text; a view over the card's own lines, nothing is rewritten
+ 		this.$empty = div.c("ux-dictate-widget-empty muted", "Say something, or press the mic. Your words show up here.");
+ 		this.$bubbles = div.c("ux-dictate-widget-bubbles flex v gap");
+ 		// this.el scrolls, not $bubbles (see doc/widget-notes.md#sticky-scroll)
+@@ -247,6 +249,7 @@ Widget.Thread = class WidgetThread extends View {
+ 		if (entry?.type === "ask") return this.follow(() => this.draw_ask(entry));
+ 		if (entry?.type === "refined") return this.draw_refined(entry);
+ 		if (entry?.place) return this.place(entry.place);
++		if (entry?.summary) return this.summarise(entry.summary);
+ 		const para = entry?.para ?? (entry?.type === "para" ? entry : null);
+ 		if (para?.re) return this.split_paragraph(para.re);
+ 		const chat = entry?.chat;
+@@ -271,12 +274,61 @@ Widget.Thread = class WidgetThread extends View {
+ 		// the new piece is always the bubble's last child
+ 		const text_node = bubble.lastElementChild;
+ 		const ref = { id: at };
+-		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text });   // `said`: the raw words, kept when a placement improves the text
++		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text, spoken: !assistant && (chat.via === "voice" || chat.via === "whisper") });   // `said`: the raw words, kept when a placement improves the text
++		this.refresh();
+ 		this.scroll.pin();
+ 		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks)
+ 		if (!assistant && this.widget.marks) this.mark(chat.text, bubble, ref);
+ 	}
+ 
++	/** Re-apply the two views over the lines (a redraw of a bubble rebuilds its nodes): raw look, and folded cards. Idempotent. */
++	refresh(){
++		for (const [at, line] of this.lines){
++			const node = line.bubble?.querySelector(`:scope > [data-re="${CSS.escape(String(at))}"]`);
++			node?.classList.toggle("ux-dictate-raw", !!line.spoken && !this.settled.has(at));
++		}
++		for (const card of this.summaries.keys()) this.fold(card);
++	}
++
++	/** {summary:{card, text}} from the voice assistant: the card shows `text` and folds its own lines under it (doc/voice-assistant.md#raw-and-refined). */
++	summarise({ card, text } = {}){
++		if (!card || !text) return false;
++		this.summaries.set(card, String(text));
++		this.fold(card);
++		this.scroll.pin();
++		return true;
++	}
++
++	/** The card's summary box with an "N raw lines" toggle; needs two or more lines, else the card is left as it is. */
++	fold(card){
++		const b = this.lines.get(card)?.bubble;
++		if (!b) return;
++		const n = b.querySelectorAll(":scope > [data-re]").length;
++		let box = b.querySelector(":scope > .ux-dictate-summary");
++		if (n < 2){ box?.remove(); b.classList.remove("ux-dictate-swallowed", "open"); return; }
++		if (!box){
++			box = document.createElement("div");
++			box.className = "ux-dictate-summary";
++			const t = document.createElement("div");
++			t.className = "ux-dictate-summary-text";
++			const toggle = document.createElement("button");
++			toggle.type = "button";
++			toggle.className = "ux-dictate-fold-toggle";
++			toggle.addEventListener("click", () => { b.classList.toggle("open"); this.fold_label(b, toggle); });
++			box.append(t, toggle);
++			b.insertBefore(box, b.querySelector(":scope > [data-re]"));
++		}
++		b.classList.add("ux-dictate-swallowed");
++		box.firstElementChild.textContent = this.summaries.get(card);
++		this.fold_label(b, box.lastElementChild);
++	}
++
++	fold_label(b, toggle){
++		const n = b.querySelectorAll(":scope > [data-re]").length;
++		toggle.textContent = `${n} raw lines ${b.classList.contains("open") ? "▾" : "▸"}`;
++		toggle.setAttribute("aria-expanded", String(b.classList.contains("open")));
++	}
++
+ 	/** A choice-button question, same as WidgetThreadV1.draw_ask(); called through follow(). */
+ 	draw_ask(e){
+ 		this.$empty.hide();
+@@ -319,6 +371,8 @@ Widget.Thread = class WidgetThread extends View {
+ 			}).el;
+ 		});
+ 		line.bubble.insertAdjacentElement("afterend", node);
++		this.settled.add(entry.re);
++		this.refresh();
+ 		this.scroll.pin();
+ 	}
+ 
+@@ -390,6 +444,7 @@ Widget.Thread = class WidgetThread extends View {
+ 	place({ re, to = "same", where = "beside", edit = "nothing", text, title } = {}){
+ 		const hit = this.lines.get(re);
+ 		if (!hit) return false;
++		this.settled.add(re);   // a placed line is no longer raw
+ 		if (text && (edit === "improve" || edit === "both")) patch_piece(hit.bubble, hit.ref.id, { text });
+ 		if (to === "paragraph" || to === "card") this.split_paragraph(re);
+ 		if (to === "card"){
+@@ -403,6 +458,7 @@ Widget.Thread = class WidgetThread extends View {
+ 				b.prepend(t);
+ 			}
+ 		}
++		this.refresh();
+ 		this.scroll.pin();
+ 		return true;
+ 	}
+@@ -422,6 +478,7 @@ Widget.Thread = class WidgetThread extends View {
+ 			const m = out?.marks?.[0];
+ 			if (!m) return;
+ 			patch_piece(bubble, ref.id, { mark: m });
++			this.refresh();
+ 		}).catch(() => {});
+ 	}
+ 
+@@ -429,6 +486,7 @@ Widget.Thread = class WidgetThread extends View {
+ 		const line = this.lines.get(at);
+ 		if (!line) return;
+ 		patch_piece(line.bubble, line.ref.id, { failed: true });
++		this.refresh();
+ 	}
+ 
+ 	retag(old_at, new_at){
+@@ -438,6 +496,9 @@ Widget.Thread = class WidgetThread extends View {
+ 		this.lines.set(new_at, line);
+ 		retag_piece(line.bubble, line.ref.id, new_at);   // so a pending mark()/mark_failed() under the new id still finds the piece
+ 		line.ref.id = new_at;
++		if (this.settled.delete(old_at)) this.settled.add(new_at);
++		if (this.summaries.has(old_at)){ this.summaries.set(new_at, this.summaries.get(old_at)); this.summaries.delete(old_at); }
++		this.refresh();
+ 	}
+ 
+ 	/** Move paragraph `re` and the ones merged after it into a new bubble, then repoint this.lines (see doc/widget-notes.md#paragraph-split). */
+@@ -453,6 +514,7 @@ Widget.Thread = class WidgetThread extends View {
+ 			line.bubble = moved_node ? made : old_bubble;
+ 			line.text = moved_node ?? old_bubble.querySelector(`[data-re="${at}"]`) ?? line.text;
+ 		}
++		this.refresh();
+ 		this.scroll.pin();
+ 	}
+ 
+@@ -461,6 +523,8 @@ Widget.Thread = class WidgetThread extends View {
+ 	reset(){
+ 		this.lines = new Map();
+ 		this.lives = new Map();
++		this.settled = new Set();
++		this.summaries = new Map();
+ 		this.draft = null;
+ 		this.$bubbles.empty();
+ 		this.$empty.show();
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index 88c0adf22..5eda09a88 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -167,6 +167,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		if (line?.react) return void panel.say({ react: line.react });
+ 		if (line?.para) return void panel.say({ para: line.para });
+ 		if (line?.place) return void panel.say({ place: line.place });   // the voice assistant's placement (doc/voice-assistant.md)
++		if (line?.summary) return void panel.say({ summary: line.summary });   // a card's summary swallows its raw lines (doc/voice-assistant.md#raw-and-refined)
+ 		if (line?.refined) return void panel.say(Session.entry(line));
+ 		if (!line?.chat) return;
+ 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
+diff --git a/public/framework/ux/Dictate/doc/voice-assistant.md b/public/framework/ux/Dictate/doc/voice-assistant.md
+index 66853f8a9..4cb7bdd6b 100644
+--- a/public/framework/ux/Dictate/doc/voice-assistant.md
++++ b/public/framework/ux/Dictate/doc/voice-assistant.md
+@@ -78,4 +78,18 @@ In live mode the words you are saying grow in a **separate draft bubble** at the
+   3. `voice`.
+ 
+   To go back to the fast assistant, write `fast` into that file and restart Servex.
+-- ⬜ **Then:** raw versus refined look and the context card that swallows raw lines into its summary (ask 5). Half of it exists: a `{refined}` line already replaces a bubble's raw paragraphs with sections, and a click shows the raw words (`ext/Chat/Chat.js`, `refine()`).
++- ✅ **e. Raw looks raw, a summary swallows** (ask 5): below.
++
++---
++
++## Raw and refined
++
++**What you see.** Words straight from Whisper that nobody has placed or refined yet are muted and monospace (class `ux-dictate-raw`). When a `{place}` or `{refined}` line points at a sentence, it loses that look. When a card holds two or more sentences and the voice assistant writes `{"summary": {"card": <the card's first sentence at>, "text": "..."}}`, the card shows the summary text and folds its own lines under it, with a "N raw lines" toggle; one click shows the raw words in place.
++
++**How it is built** (`Widget.Thread`, `chat.js` routes the `summary` line like any other): `refresh()` re-applies the raw class and the folds after every draw, because redrawing a bubble rebuilds its nodes. The fold is a CSS rule (`.ux-dictate-swallowed:not(.open) > [data-re]` is hidden), a view over the same lines: nothing is deleted, rewritten or copied. A card with fewer than two lines is left alone. The summary is held per card id, so a later `place`, `refined` or retag never loses it.
++
++**Proof:** `node ux/Dictate/test/swallow.mjs <site>`: the fake mic's sentence is drawn raw; five raw lines, one placed card; a `summary` line folds the card in a few milliseconds (it goes through `Thread.draw()`, the call the chat tail makes, with no timer); the toggle shows the raw words; all at 400 and 1200. The proof uses a bare Widget with no Servex, so nothing is posted.
++
++**Rejected:** drawing the summary as a second rendered copy of the text. It would need its own state and could drift from the lines; the fold keeps the one-source rule (the session file's lines are the only data).
++
++**Not done yet:** the voice assistant does not write `summary` lines on its own yet (the skill now allows it), and a raw line arriving after the summary is hidden with the others until the next summary.
+diff --git a/public/framework/ux/Dictate/test/swallow.mjs b/public/framework/ux/Dictate/test/swallow.mjs
+new file mode 100644
+index 000000000..70f80dccf
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/swallow.mjs
+@@ -0,0 +1,82 @@
++// Proof for "raw looks raw, a summary swallows" (doc/voice-assistant.md#raw-and-refined). Headless only, never the owner's tabs.
++//   PWENTRY=<playwright/index.mjs> node public/framework/ux/Dictate/test/swallow.mjs <base-url> [shots dir]
++// Fake mic (jfk.wav) dictates one sentence into a bare Widget (no Servex, no agents, nothing posted): it is drawn raw.
++// Then three sentences are placed into one card, and a {summary} line arrives through the same Thread.draw() the chat tail calls:
++// the card must fold within a second, show the summary and "N raw lines", and the toggle must unfold the raw words. No line is lost.
++import { pathToFileURL } from "url";
++
++const [base = "http://monorepo.localhost", shots] = process.argv.slice(2);
++const wav = process.env.WAV ?? new URL("../../../ai/recordings/jfk.wav", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
++const { chromium } = await import(pathToFileURL(process.env.PWENTRY).href);
++const browser = await chromium.launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
++const kill = setTimeout(() => { console.log("FAIL killed after 200 s"); process.exit(2); }, 200000);
++let failed = 0;
++const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
++
++for (const width of [400, 1200]){
++	const ctx = await browser.newContext({ viewport: { width, height: 900 }, permissions: ["microphone"] });
++	const page = await ctx.newPage();
++	const errors = [];
++	page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
++	await page.goto(base + "/framework/start/", { waitUntil: "domcontentloaded" }).catch(() => {});
++	await page.evaluate(async () => {
++		document.body.innerHTML = '<div id="box" style="max-width:40em;margin:1em auto"></div>';
++		const { View } = await import("/framework/core/View/View.js");
++		const { default: Widget } = await import("/framework/ux/Dictate/Widget.js");
++		window.sent = [];
++		new View({ el: document.getElementById("box"), capture: false }).append(() => {
++			window.w = new Widget({ placeholder: "say something", deliver: e => { window.sent.push(e.text); return true; } });
++		});
++	});
++
++	// 1. dictate through the fake mic: the settled sentence is raw
++	await page.locator(".chatbox-mic .ux-dictate-btn, .chatbox-mic button").first().click();
++	for (let i = 0; i < 160; i++){ await page.waitForTimeout(250); if (await page.evaluate(() => window.sent.length)) break; }
++	const dictated = await page.evaluate(() => ({ n: window.sent.length, raw: document.querySelectorAll(".ux-dictate-raw").length }));
++	await page.locator(".chatbox-mic .ux-dictate-btn, .chatbox-mic button").first().click().catch(() => {});
++	check(dictated.n > 0 && dictated.raw >= 1, `${width}: a sentence from the fake mic is drawn raw (${dictated.raw} raw)`);
++
++	// 2. three raw lines into one card; a refined/placed line loses `raw`
++	const t = await page.evaluate(async () => {
++		w.reset();
++		const at = n => `2026-10-17T00:00:0${n}.000-05:00`;
++		const words = ["The sheet should open at sixty percent.", "And it should remember the height I drag it to.", "Separately, the inbox labels need a count.",
++			"Each label shows how many notes wait.", "The count turns zero when you read them."];
++		words.forEach((text, i) => w.say({ chat: { at: at(i), from: { kind: "owner" }, via: "voice", text } }));
++		const raw_all = document.querySelectorAll(".ux-dictate-raw").length;
++		w.say({ place: { re: at(0), to: "same" } });
++		const raw_after_place = document.querySelectorAll(".ux-dictate-raw").length;
++		w.say({ place: { re: at(2), to: "card", where: "up", title: "Inbox labels" } });
++		w.say({ place: { re: at(3), to: "same" } }); w.say({ place: { re: at(4), to: "same" } });
++		const card = [...document.querySelectorAll(".ux-dictate-placed-card")];
++		const before = { visible: card[0].querySelectorAll("[data-re]").length, summary: !!card[0].querySelector(".ux-dictate-summary") };
++		const t0 = performance.now();
++		w.say({ summary: { card: at(2), text: "Inbox labels show an unread count that resets when read." } });
++		await new Promise(r => requestAnimationFrame(() => r()));
++		const b = document.querySelector(".ux-dictate-placed-card");
++		const hidden = [...b.querySelectorAll("[data-re]")].every(n => getComputedStyle(n).display === "none");
++		return { raw_all, raw_after_place, before, ms: Math.round(performance.now() - t0), hidden,
++			summary: b.querySelector(".ux-dictate-summary-text")?.textContent, toggle: b.querySelector(".ux-dictate-fold-toggle")?.textContent,
++			count: b.querySelectorAll("[data-re]").length };
++	});
++	check(t.raw_all === 5 && t.raw_after_place === 4, `${width}: five raw lines, and a placed one loses the look (${t.raw_all} -> ${t.raw_after_place})`);
++	check(!t.before.summary && t.before.visible === 3, `${width}: before the summary the card shows its ${t.before.visible} lines`);
++	check(t.hidden && t.ms < 1000 && /^Inbox labels show/.test(t.summary ?? ""), `${width}: the summary folded the lines in ${t.ms} ms`);
++	check(t.toggle?.startsWith("3 raw lines"), `${width}: the toggle says "${t.toggle}"`);
++	if (shots) await page.screenshot({ path: `${shots}/swallow-folded-${width}.png` });
++
++	// 3. the toggle unfolds the raw words in place; nothing was deleted
++	await page.locator(".ux-dictate-fold-toggle").click();
++	const open = await page.evaluate(() => {
++		const b = document.querySelector(".ux-dictate-placed-card");
++		return { shown: [...b.querySelectorAll("[data-re]")].filter(n => getComputedStyle(n).display !== "none").length, text: b.textContent, toggle: b.querySelector(".ux-dictate-fold-toggle").textContent };
++	});
++	if (shots) await page.screenshot({ path: `${shots}/swallow-open-${width}.png` });
++	check(open.shown === 3 && /Separately, the inbox labels need a count\./.test(open.text) && /turns zero/.test(open.text), `${width}: a click shows the raw words (${open.shown} lines, ${open.toggle})`);
++	check(!errors.length, `${width}: no page errors ${errors.join(" ")}`);
++	await ctx.close();
++}
++clearTimeout(kill);
++await browser.close();
++console.log(failed ? `${failed} failed` : "all passed");
++process.exit(failed ? 1 : 0);
