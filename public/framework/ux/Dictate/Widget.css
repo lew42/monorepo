@@ -240,4 +240,11 @@
 		transform: scale(calc(1 + var(--ux-dictate-widget-pulse-level, 0) * 1.6));
 		transition: transform 90ms linear;
 	}
+
+	/* THE VOICE ASSISTANT (2026-10-17, doc/voice-assistant.md): the draft is the last piece of the bubble it joins; a placed card */
+	.ux-dictate-draft-piece .chatbox-text { white-space: pre-wrap; }
+	.chatbox-text + .ux-dictate-draft-piece { margin-block-start: 0.5em; }   /* the gap the settled piece will have (Chat.css: .chatbox-text + .chatbox-text) */
+	.ux-dictate-placed-card { border-inline-start: 3px solid var(--prime); }
+	.ux-dictate-placed-card[data-where="inside"] { margin-inline-start: var(--gap, 1em); }
+	.ux-dictate-placed-title { font-weight: 600; }
 }

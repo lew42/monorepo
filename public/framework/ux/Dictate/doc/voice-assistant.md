@@ -51,7 +51,7 @@ Widget.Thread       ux/Dictate/Widget.js            draws the bubbles; live() = 
 
 ## Why it jumps today (ask 3)
 
-In live mode the words you are saying grow in a **separate draft bubble** at the bottom. When the sentence is sent, `speak()` redraws the same words **inside the bubble above** (they merge as one paragraph), and the draft bubble does not vanish: it fades to a "sent" copy that stays up to 15 seconds, because the server's echo of your line only renames the piece and never removes the copy. So you see the words twice, then the copy drops out and everything below shifts. A second jump follows 1.5 to 3 s later, when the fast assistant's `(new paragraph)` moves the text into a new bubble. **The fix (small, slice b):** draw the draft as the last piece of the bubble it will join, and swap it for the settled piece in the same step, so the words never move.
+In live mode the words you are saying grow in a **separate draft bubble** at the bottom. When the sentence is sent, `speak()` redraws the same words **inside the bubble above** (they merge as one paragraph), and the draft bubble does not vanish: it fades to a "sent" copy that stays up to 15 seconds, because the server's echo of your line only renames the piece and never removes the copy. So you see the words twice, then the copy drops out and everything below shifts. A second jump follows 1.5 to 3 s later, when the fast assistant's `(new paragraph)` moves the text into a new bubble. **The fix (slice b, done):** the draft is drawn as the last piece of the bubble it will join, and swapped for the settled piece in the same step, so the words never move. The second jump goes away when the voice assistant places sentences only when sure (`same` by default).
 
 ---
 
@@ -69,7 +69,8 @@ In live mode the words you are saying grow in a **separate draft bubble** at the
 ## The slices
 
 - ✅ **a.** The `voice-assistant` row in `roles.js` and its skill; the fast rows marked retired, not deleted.
-- ⬜ **b.** A sentence settles in place in the bubble (no draft bubble, no faded copy).
-- ⬜ **c.** `{place}` lines applied by the chat, default `same`; headless proof at 400 and 1200.
+- ✅ **b.** A sentence settles in place in the bubble: the draft is the last piece of the bubble it joins, and the settled piece takes its exact spot (measured: same top, same bubble count, no faded copy). Every chat surface now writes your words into the bubble (`Widget.MODES.dictate`), unless the mic's gear says "into: box".
+- ✅ **c.** `{place}` lines applied by the chat (`Widget.Thread.place()`, routed by `chat.js`), default `same`.
+- **Proof:** `node ux/Dictate/test/in-place.mjs <site>` (fake mic, no agents), all checks pass at 400 and 1200.
 - ⬜ **Next brief (Servex, needs a restart):** `Sessions.js` wakes the voice assistant in the fast seat with the whole prompt plus the sentence ([brief](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/sessions-brief.md)).
-- ⬜ **Then:** raw versus refined look, the context card that swallows raw lines into its summary, a click on the summary shows the raw words (ask 5).
+- ⬜ **Then:** raw versus refined look and the context card that swallows raw lines into its summary (ask 5). Half of it exists: a `{refined}` line already replaces a bubble's raw paragraphs with sections, and a click shows the raw words (`ext/Chat/Chat.js`, `refine()`).
