@@ -25,6 +25,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Dev server**: [Server/readme.md](/framework/dev/)
 - **MCP tools**: [doc/agents/mcp.md](doc/agents/mcp.md)
 - **Models**: [system/models](system/models/) · [OpenRouter](/framework/servex/) · local
+- **Usage pace** (how fast the week's limits are being spent against the clock, three meter variants beside today's): [usage/](usage/readme.md) · `node Server/usage-now.mjs`
 - **Asks tally** (every ask you typed since 09-15, counted by feature, with what landed and what never did): [doc/asks-outcomes.md](doc/asks-outcomes.md) · `node Server/AskTally.mjs page`
 - **Follow-up** (what fell through the cracks, computed; plus unused-file census): [doc/follow-up.md](doc/follow-up.md) · [doc/unreferenced.md](doc/unreferenced.md) · `node Server/FollowUp.mjs --write`
 - **Sessions** (VS Code tabs, browser voice agents): [sessions/](sessions/readme.md) · [conversations](doc/logs/conversations.md)
