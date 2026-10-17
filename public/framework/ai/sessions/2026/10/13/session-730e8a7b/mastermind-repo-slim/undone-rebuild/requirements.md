@@ -1,6 +1,14 @@
-# The daily rebuild of undone.json keeps the verdicts and the task links
+# Undone rebuild keeps verdicts and task links
 
-Budget: $3. Sonnet. Load the `minion` and `code` skills. The gap (`../undone-to-tasks/task.jsonl`, landing 11:13, last box): `node Server/UndoneAsks.mjs --json` rebuilds `public/framework/ai/asks/undone.json` and does not carry the `task` field that `UndoneToTasks` wrote, and TaskLoop runs that rebuild daily (`Servex/agents/TaskLoop.js`, `undone_asks_daily`), so tomorrow's rebuild would drop 229 task links. `UndoneVerify --merge` already merges `verified`, `evidence`, `verified_at`, `verified_by` by ask id (`Server/UndoneVerify.mjs`; `UndoneAsks.mjs` was changed 10-17 to carry ids across rebuilds, commit 281431dc0): read both. Your log is this dir's `task.jsonl`.
+Budget: $3. Sonnet. Load the `minion` and `code` skills.
+
+## The gap
+
+The gap (`../undone-to-tasks/task.jsonl`, landing 11:13, last box): `node Server/UndoneAsks.mjs --json` rebuilds `public/framework/ai/asks/undone.json` and drops the `task` field that `UndoneToTasks` wrote.
+
+TaskLoop runs that rebuild daily (`Servex/agents/TaskLoop.js`, `undone_asks_daily`), so tomorrow's rebuild would drop 229 task links.
+
+`UndoneVerify --merge` already merges `verified`, `evidence`, `verified_at`, `verified_by` by ask id (`Server/UndoneVerify.mjs`; `UndoneAsks.mjs` was changed 10-17 to carry ids across rebuilds, commit 281431dc0): read both. Your log is this dir's `task.jsonl`.
 
 ## Deliverable
 

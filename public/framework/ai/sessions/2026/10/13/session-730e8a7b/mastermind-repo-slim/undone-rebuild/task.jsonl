@@ -11,3 +11,4 @@
 {"commit":"b7a687d2d13e"}
 {"log":{"at":"2026-10-17T11:21:31-05:00","msg":"landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}."}}
 {"assign":{"at":"2026-10-17T11:21:34-05:00","outcome":"**The daily undone.json rebuild now keeps verdicts and task links** — UndoneAsks.keep_owned carries verified* and task by ask id and moves vanished asks to a retired list; real rebuild verified 620 -> 620, task 229 -> 229, 1150 counted = 1150 classified, 10 retired."}}
+{"commit":"96b0b90a94ed"}

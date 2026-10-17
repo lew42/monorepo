@@ -1,0 +1,14 @@
+     400 ai/ strip: widgets 1 (visible 0) feeds 1 (visible 0) in sheet
+ok   400 /framework/ext/drawer/ai/ at strip: one chat, one feed
+     400 ai/ split: widgets 1 (visible 1) feeds 1 (visible 1) in sheet
+ok   400 /framework/ext/drawer/ai/ at split: one chat, one feed
+     400 ai/ full: widgets 1 (visible 1) feeds 1 (visible 1) in sheet
+ok   400 /framework/ext/drawer/ai/ at full: one chat, one feed
+     400 tap ✦: widgets 1 (visible 0) feeds 1 (visible 0) in sheet
+ok   400 tapping ✦: one chat, one feed
+     400 then full: widgets 1 (visible 1) feeds 1 (visible 1) in sheet
+ok   400 ✦ then full: one chat, one feed
+     400 core/Page/ai/: widgets 0 (visible 0) feeds 0 (visible 0) in 
+ok   400 core/Page/ai/: at most one chat, one feed
+     1200 drawer ai/ 1200: widgets 1 (visible 1) feeds 1 (visible 1) in page
+ok   1200 drawer ai/ 1200: at most one chat, one feed
