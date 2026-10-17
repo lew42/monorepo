@@ -40,3 +40,7 @@
 {"log":{"at":"2026-10-17T12:11:31-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-17T12:12:01-05:00","heartbeat":"answered","msg":"Nothing running: the task is finished and merged, with the `finish` line and the `card_reply` both in. The only loose ends are the leftover worktree at `C:\\Code\\lew42\\worktrees\\sheet-double-mount` and"}}
 {"log":{"at":"2026-10-17T12:15:36-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T12:36:29-05:00","heartbeat":"check","msg":"status check sent to helper-sheet-double-mount"}}
+{"log":{"at":"2026-10-17T12:36:32-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T12:37:02-05:00","heartbeat":"answered","msg":"Still idle, nothing new since the last check: the sheet and the routed `<path>/ai/` page share one chat and one feed, it's merged, and the `finish` line and `card_reply` are in. The leftover worktree "}}
+{"log":{"at":"2026-10-17T12:40:36-05:00","msg":"session ended (other) without landing"}}
