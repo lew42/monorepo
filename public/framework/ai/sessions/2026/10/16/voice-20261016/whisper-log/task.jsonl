@@ -32,3 +32,7 @@
 {"log":{"at":"2026-10-16T20:54:54-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T20:55:24-05:00","heartbeat":"answered","msg":"Finished and idle. The Whisper log is on michael/dev (`3cecf3724`), with its page at `/framework/audio/Whisper/log/`. The fake-mic pass showed no duplicate, so the next step is a live dictation with t"}}
 {"log":{"at":"2026-10-16T20:58:59-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T21:19:51-05:00","heartbeat":"check","msg":"status check sent to helper-whisper-log"}}
+{"log":{"at":"2026-10-16T21:19:54-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T21:20:24-05:00","heartbeat":"answered","msg":"Finished and idle. The Whisper log is on michael/dev (`3cecf3724`), and its page is at `/framework/audio/Whisper/log/`. The fake-mic pass showed no duplicate, so the next step is a live dictation with"}}
+{"log":{"at":"2026-10-16T21:24:01-05:00","msg":"session ended (other) without landing"}}

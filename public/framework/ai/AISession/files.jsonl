@@ -23,3 +23,6 @@
 {"file":"page.js"}
 {"file":"readme.md"}
 {"file":"AISessionDigest.mjs"}
+{"file":"AISessionCost.mjs"}
+{"file":"AISessionCost.test.mjs"}
+{"file":"doc/"}
