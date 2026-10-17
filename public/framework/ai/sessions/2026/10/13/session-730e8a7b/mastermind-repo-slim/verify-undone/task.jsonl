@@ -6,3 +6,8 @@
 {"experiment":{"at":"2026-10-17T10:43:59-05:00","try":"batch 01 (ext/Figma, 23 asks) on Haiku low effort","measure":"cost and verdict mix","result":"$0.85, 11 done / 9 undone / 3 unclear; every verdict cites a path:line or the places searched; about $0.037 per ask so 620 asks is near $23-30 against the $12 budget"}}
 {"decision":{"at":"2026-10-17T10:43:59-05:00","msg":"Finish all 40 batches although the cost is about 2x the $12 estimate: the owner asked for all 620 checked and the evidence quality is good; alternative was to check only the oldest 300. Logged here; the per-ask cost goes on the card."}}
 {"commit":"da20d4d4da98"}
+{"experiment":{"at":"2026-10-17T10:54:01-05:00","try":"Spot check of ten Haiku verdicts after 20 of 40 batches (443 asks): five done, five undone, opened the cited files","measure":"verdicts right per kind","result":"done 5/5 (one weak: the storyboard page is only claimed by the doc, not seen in Figma), undone 5/5 (each ask still shows as an open line in the module's refined-asks.md and a grep finds no build). Above the 80% bar, so the evidence rule stays."}}
+{"log":{"at":"2026-10-17T10:54:01-05:00","msg":"Fan-out: all 40 batches spawned, 24 finished; Servex's 5-agent cap slows the queue. Page import bug (button) fixed and committed in the worktree."}}
+{"commit":"7923dcf311ea"}
+{"commit":"750be6cd1f59"}
+{"commit":"debddb6bae46"}

@@ -26,3 +26,5 @@
 {"file":"smoke.md"}
 {"file":"task.jsonl"}
 {"file":"unexamined.md"}
+{"file":"task.jsonl","gone":true}
+{"file":"session.jsonl"}

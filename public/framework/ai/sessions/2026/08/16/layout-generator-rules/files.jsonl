@@ -14,3 +14,5 @@
 {"file":"hunt.json"}
 {"file":"hunt2.json"}
 {"file":"hunt3.json"}
+{"file":"task.jsonl","gone":true}
+{"file":"session.jsonl"}

@@ -2,3 +2,5 @@
 {"file":"sample.mjs"}
 {"file":"task.jsonl"}
 {"file":"audit.json"}
+{"file":"task.jsonl","gone":true}
+{"file":"session.jsonl"}
