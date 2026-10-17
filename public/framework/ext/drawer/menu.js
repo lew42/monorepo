@@ -4,7 +4,7 @@ import select from "./select.js";
 import Sheet from "./Sheet.js";
 import MicIndicator from "/framework/ux/Dictate/MicIndicator.js";
 
-/* THE ☰ — a menu button in the top right of every page (the owner, 2026-09-28: "each
+/* THE ✦ (was ☰ until 2026-10-16) — a button in the top right of every page (the owner, 2026-09-28: "each
    page could have like a little menu button in the top right… that kind of makes it
    look obvious that when you click over there the right sidebar appears").
 
@@ -22,10 +22,10 @@ export default function menu(app){
 	// selected (select.js); shut, the page reads exactly as before.
 	select.start();
 
-	const $menu = button.c("drawer-menu", "☰")
+	const $menu = button.c("drawer-menu", "✦")   // ✦ = AI, ☰ = navigation (doc/owner-2026-10-16-sheet.md)
 		.attr("type", "button")
-		.attr("title", "Menu — AI, dictation, settings")
-		.attr("aria-label", "Open the page menu")
+		.attr("title", "AI — chat, dictation, settings")
+		.attr("aria-label", "Open the AI drawer")
 		.click(() => tabs.toggle());
 	new MicIndicator({ compact: true, capture: false }).append_to($menu);   // mic open while the drawer is shut
 

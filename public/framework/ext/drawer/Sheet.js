@@ -1,4 +1,4 @@
-// Sheet: the phone's bottom strip (Home, ✦ AI, ⋯ More) and the voice sheet it raises; was rail.js / DrawerRail (renamed 2026-10-16). Notes: doc/rail-notes.md
+// Sheet: the phone's bottom strip (Home, ✦ AI, ☰ Menu) and the voice sheet it raises; was rail.js / DrawerRail (renamed 2026-10-16). Notes: doc/rail-notes.md
 import { View, div, span, button, a, img } from "/framework/core/View/View.js";
 import grip from "/framework/ext/grip/grip.js";
 import MicIndicator from "/framework/ux/Dictate/MicIndicator.js";
@@ -25,6 +25,7 @@ export default class Sheet extends View {
 		this.menu_button();
 		this.watch_breakpoint();
 		this.watch_history();
+		this.watch_nav();
 		this.restore();
 	}
 
@@ -141,7 +142,23 @@ export default class Sheet extends View {
 				span.c("drawer-rail-menu-icon", this.menu_icon);
 				span.c("drawer-rail-menu-label", this.menu_label);
 			})
-			.click(() => tabs.toggle());
+			.click(() => this.open_nav());
+	}
+
+	// ☰ = navigation, ✦ = AI (doc/owner-2026-10-16-sheet.md): the page's Sidebar tree opens from the bottom, in thumb reach (rail.css).
+	open_nav(){
+		const sb = [...document.querySelectorAll(".sidebar")].find(s => s.offsetHeight);   // the visible one: a page can hold a hidden second
+		if (!sb) return;
+		const on = !sb.classList.contains("open");
+		sb.style.setProperty("--strip-h", this.el.offsetHeight + "px");
+		sb.classList.toggle("sidebar-from-strip", on);
+		sb.classList.toggle("open", on);
+		sb.querySelector(".sidebar-toggle")?.setAttribute("aria-expanded", String(on));
+	}
+
+	// The Sidebar's own top ☰ opens the menu in its usual place, under its bar.
+	watch_nav(){
+		document.addEventListener("click", e => e.target.closest?.(".sidebar-toggle")?.closest(".sidebar")?.classList.remove("sidebar-from-strip"), true);
 	}
 
 	sheet(){
@@ -382,12 +399,13 @@ Sheet.Panel = SheetPanel;
 Sheet.Sheet = SheetPanel;   // the old name for the same part
 
 
-// ⚠ see doc/rail-notes.md#c81-drawerrailprototypemenu_icon
-Sheet.prototype.menu_icon = "⋯";
-Sheet.prototype.menu_label = "More";
-Sheet.prototype.menu_title = "AI sessions, dictation, settings, admin";
+// ☰ Menu = this site's pages (was ⋯ More, which opened the drawer's tabs; those live in the full sheet now). doc/rail-notes.md#c81-drawerrailprototypemenu_icon
+Sheet.prototype.menu_icon = "☰";
+Sheet.prototype.menu_label = "Menu";
+Sheet.prototype.menu_title = "Menu — this site's pages";
 
-export class DrawerRailV1 extends Sheet {}
+// The earlier ☰ strip, whose ☰ opened the drawer's tabs (kept reachable).
+export class DrawerRailV1 extends Sheet { open_nav(){ tabs.toggle(); } }
 DrawerRailV1.prototype.menu_icon = "☰";
 DrawerRailV1.prototype.menu_label = "Menu";
 DrawerRailV1.prototype.menu_title = "Menu — AI, sessions, dictation, settings";

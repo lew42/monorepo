@@ -4,7 +4,7 @@ import tabs from "./tabs.js";
 export default new Doc({
 	meta: import.meta,
 	title: "Drawer",
-	description: "The right rail — one per document, opened by the ☰ on every page or by anything else, shut only by its own ✕.",
+	description: "The right rail — one per document, opened by the ✦ on every page or by anything else, shut only by its own ✕.",
 	// ⚠ Measured against the loaded font, not guessed: `right_panel_open` is not in this
 	// Material Icons build and rendered as 384px of literal word, which forced the whole
 	// framework sidebar from 231px to 344px through `min-width: auto`.
@@ -16,9 +16,9 @@ export default new Doc({
 
 	content(){
 
-		h2("The ☰ and its tabs");
+		h2("The ✦ and its tabs");
 
-		md("Every page has a **☰** in its top right. It opens this drawer on three tabs (a fourth, Element, appears while something is selected), and the open tab is in the url (`?drawer=ai`), so a reload lands on it. Try them:");
+		md("Every page has a **✦** in its top right (it was ☰ until 2026-10-16; ☰ now always means the site's navigation). It opens this drawer on three tabs (a fourth, Element, appears while something is selected), and the open tab is in the url (`?drawer=ai`), so a reload lands on it. Try them:");
 
 		div.c("flex gap wrap", () => {
 			tabs.shown().filter(t => t.name !== "element").forEach(t => button.c("btn", t.label).click(() => tabs.open(t.name)));
@@ -30,7 +30,7 @@ export default new Doc({
 
 		h2("On a phone");
 
-		md("Below 52em the ☰ in the corner steps aside — a page with its own left-side sidebar draws its own ☰ there instead, so mobile nav and this drawer stop fighting for the same corner. A small bar at the bottom of the screen is the drawer's other way in: [Mobile bottom rail](/framework/ext/drawer/rail/) — the ✦ button, a voice-to-cards sheet, screenshots and the layout decision behind it.");
+		md("Below 52em the ✦ in the corner steps aside on a page with its own left-side sidebar, whose ☰ sits there instead; the bottom strip's ☰ Menu opens that same navigation from the bottom, in thumb reach. A small bar at the bottom of the screen is the drawer's other way in: [Mobile bottom rail](/framework/ext/drawer/rail/) — the ✦ button, a voice-to-cards sheet, screenshots and the layout decision behind it.");
 
 		h2("Fill it yourself");
 
