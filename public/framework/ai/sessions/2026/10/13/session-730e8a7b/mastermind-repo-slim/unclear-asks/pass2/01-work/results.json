@@ -1,0 +1,20 @@
+[
+{"id":"1efa25fdc9","work":"no","reason":"A working rule for how masterminds decide and use minions, not a file change."},
+{"id":"f930aeb2be","work":"no","reason":"A decision: how many rule systems there should be and what they are called."},
+{"id":"4f41c7afdc","work":"no","reason":"A question about whether AI skill choice is reliable enough; a judgment, not a change."},
+{"id":"303c9a27d0","work":"no","reason":"A report request on node tool work and how the SDK defines tools; a chat answer."},
+{"id":"1978b57ea0","work":"no","reason":"An operating instruction to keep minions running while under pace."},
+{"id":"097747c2a6","work":"no","reason":"A lookup of a session ID on the session record; no repo file changes."},
+{"id":"3053aa934b","work":"no","reason":"A live status question about what the fast assistant is doing now."},
+{"id":"b1122ab68c","work":"no","reason":"A status report request on the AI model testing system."},
+{"id":"f335443cb4","work":"no","reason":"An opinion on whether the smart assistant ranks options with a mastermind."},
+{"id":"db74429be4","work":"no","reason":"An opinion: keep the smart assistant quick and light."},
+{"id":"dd0fc759af","work":"no","reason":"Ask text is cut off, so no complete decision or change can be named."},
+{"id":"81d1ab9ef2","work":"no","reason":"A 'possibly' idea to make the smart assistant a monitoring variant; a suggestion, not a deliverable."},
+{"id":"c6f67dbda6","work":"no","reason":"A 'possibly' idea about choosing the model per task; a decision to weigh, not a change."},
+{"id":"c6adcf7143","work":"yes","reason":"Find where the transcription and refinement pipeline stands and get it working; finishing it changes pipeline files."},
+{"id":"cc8bce2fc0","work":"yes","reason":"Verify the minion tuning (Servex/agents/tiers.js and handover.md) and record the answers; check-and-record changes files."},
+{"id":"0fe11f89bb","work":"no","reason":"A decision: whether sessions merge case by case or in bulk."},
+{"id":"e7b39cc2ef","work":"no","reason":"A decision on how session data should be handled."},
+{"id":"be8399c861","work":"no","reason":"A status report on session data work; the report is not a build."}
+]

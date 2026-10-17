@@ -16,6 +16,7 @@
  *   --batches <dir> --only work-yes --question look    the asks the "work" question called work, asked "is it built?"
  *   --merge <dir>                reads the kind from <dir>/manifest.json; first-pass fields move to verified_first, retired/needs-owner appear
  *   --route                      every ask still unclear after its second pass becomes needs-owner (nothing is deleted)
+ *   --doc                        print the dated markdown section for the verdict doc (counts, table, owner questions)
  *   --counts2                    the second-pass numbers that must agree: unclear-before = done + undone + retired + needs-owner (+ pending)
  *
  * A "done" verdict is accepted only if its evidence names a path:line that exists in the repo (checked here, not by the model);
@@ -310,6 +311,33 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 		return { unclear_before: mine.length, ...c, sum, agree: sum === mine.length, final: c.unclear === 0 };
 	}
 
+	/** The markdown section for the verdict doc: how the 151 split, what each question produced, and the owner questions grouped by module. Computed, never typed. */
+	doc_section(d = this.load(), { date = new Date().toISOString().slice(0, 10) } = {}){
+		const mine = d.modules.flatMap(m => m.asks.map(a => ({ ...a, module: m.module }))).filter(a => a.verified_first);
+		const c = this.counts2(d), by = {};
+		for (const a of mine){ const k = UndoneVerify.group({ verified_evidence: a.verified_first.verified_evidence }); (by[k] ??= { n: 0, done: 0, undone: 0, retired: 0, "needs-owner": 0 }).n++; by[k][a.verified]++; }
+		const rows = Object.entries(by).map(([k, r]) => "| " + k + " | " + r.n + " | " + r.done + " | " + r.undone + " | " + r.retired + " | " + r["needs-owner"] + " |");
+		const owners = {};
+		for (const a of mine.filter(x => x.verified === "needs-owner")) (owners[a.module] ??= []).push(a);
+		return [
+			"### The 151 unclear asks, a second look (" + date + ")",
+			"",
+			"The first pass could not tell whether " + c.unclear_before + " asks were done. Each was grouped by the reason in its evidence (`node Server/UndoneVerify.mjs --groups`), and a Haiku answered ONE question per group (`--only unclear --question path|work|concrete|look`). Asks that turned out to be work were then asked one more question, \"is it built?\" (`--only work-yes --question look`). The first-pass verdict is kept on each ask as `verified_first`.",
+			"",
+			"**" + c.unclear_before + " = " + c.done + " done + " + c.undone + " undone + " + c.retired + " not work (retired) + " + c["needs-owner"] + " need you** (sum " + c.sum + ", " + (c.agree ? "the numbers agree" : "THEY DISAGREE") + ").",
+			"",
+			"| Why it was unclear | Asks | Now done | Now undone | Retired (not work) | Needs you |",
+			"|---|---|---|---|---|---|",
+			...rows,
+			"",
+			"- The " + c.undone + " undone asks became idle tasks in their module homes (`node Server/UndoneToTasks.mjs --apply`). Retired asks stay on [Undone asks](/framework/ai/asks/undone/) under the \"not work\" chip; nothing was deleted.",
+			"",
+			"#### Questions for you (" + c["needs-owner"] + ", answer ten at a time by voice)",
+			"",
+			...Object.entries(owners).flatMap(([m, l]) => ["**" + m + "**", "", ...l.map(a => "- `" + a.id + "` " + a.owner_question), ""]),
+		].join("\n");
+	}
+
 	/** { group -> count } for the asks the first pass left unclear. */
 	groups(d = this.load()){
 		const g = {};
@@ -323,7 +351,9 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 	static async main(argv){
 		const val = f => argv.includes(f) ? argv[argv.indexOf(f) + 1] : null;
 		const u = new UndoneVerify({ root: path.resolve(val("--root") ?? HERE) });
-		if (argv.includes("--groups")){
+		if (argv.includes("--doc")){
+			console.log(u.doc_section());
+		} else if (argv.includes("--groups")){
 			const g = u.groups(); console.log(Object.entries(g).map(([k, n]) => k.padEnd(10) + " " + n).join("\n") + "\ntotal " + Object.values(g).reduce((x, y) => x + y, 0));
 		} else if (argv.includes("--counts2")){
 			console.log(u.counts2());

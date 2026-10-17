@@ -258,3 +258,15 @@
 {"log":{"at":"2026-10-17T11:13:24-05:00","msg":"layout-check: 1 pages at 1280/1920/2560/3440 — no flags; sheets in layout-check/"}}
 {"log":{"at":"2026-10-17T11:13:37-05:00","msg":"padding-check: 1 pages — clean"}}
 {"log":{"at":"2026-10-17T11:13:51-05:00","msg":"session resumed"}}
+{"task":"/framework/ext/Figma/tasks/analyse-the-edit-that-clobbered-the-mobi/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.589Z"}
+{"task":"/framework/ext/Figma/tasks/if-under-pace-when-finished-synchronize/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.604Z"}
+{"task":"/framework/ext/Figma/tasks/if-on-pace-when-finished-sync-the-figma/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.613Z"}
+{"task":"/framework/ext/Figma/tasks/look-through-other-pages-such-as-page-se/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.625Z"}
+{"task":"/framework/ai/tasks/investigate-whether-updates-can-be-buffe/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.634Z"}
+{"task":"/framework/ai/tasks/bind-data-held-by-sessions-tasks-message/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.643Z"}
+{"task":"/framework/core/Page/tasks/make-page-data-structure-the-go-to-wrapp/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.653Z"}
+{"task":"/framework/core/Page/tasks/solve-the-page-boundary-problem-through/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.661Z"}
+{"task":"/framework/ext/Refine/tasks/use-a-single-consistent-preview-scale-or/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.670Z"}
+{"task":"/framework/ext/Refine/tasks/build-a-tree-ui-with-icons-from-the-goog/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.679Z"}
+{"task":"/framework/ai/tasks/build-a-named-system-that-defines-its-ow/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.689Z"}
+{"task":"/framework/core/Item/tasks/decide-later-how-to-prioritise-data-bind/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.699Z"}

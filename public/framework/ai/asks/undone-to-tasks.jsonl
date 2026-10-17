@@ -227,3 +227,15 @@
 {"ask":"6bd51d1f55","task":"/framework/ai/cards/tasks/explain-prompt-refinement-cards-using-te/","module":"ai/cards","at":"2026-10-17T16:10:05.968Z"}
 {"ask":"a2963bb311","task":"/framework/ai/cards/tasks/make-prompt-refinement-cards-familiar-an/","module":"ai/cards","at":"2026-10-17T16:10:05.968Z"}
 {"ask":"27257c9039","task":"/framework/design/tasks/document-generic-design-guidance-such-as/","module":"design","at":"2026-10-17T16:10:05.968Z"}
+{"ask":"d026c28da6","task":"/framework/ext/Figma/tasks/analyse-the-edit-that-clobbered-the-mobi/","module":"ext/Figma","at":"2026-10-17T17:58:17.704Z"}
+{"ask":"4f4d5e0752","task":"/framework/ext/Figma/tasks/if-under-pace-when-finished-synchronize/","module":"ext/Figma","at":"2026-10-17T17:58:17.704Z"}
+{"ask":"df60f98797","task":"/framework/ext/Figma/tasks/if-on-pace-when-finished-sync-the-figma/","module":"ext/Figma","at":"2026-10-17T17:58:17.704Z"}
+{"ask":"cd0f220be1","task":"/framework/ext/Figma/tasks/look-through-other-pages-such-as-page-se/","module":"ext/Figma","at":"2026-10-17T17:58:17.704Z"}
+{"ask":"29beb2654d","task":"/framework/ai/tasks/investigate-whether-updates-can-be-buffe/","module":"ai","at":"2026-10-17T17:58:17.704Z"}
+{"ask":"c429eeb08d","task":"/framework/ai/tasks/bind-data-held-by-sessions-tasks-message/","module":"ai","at":"2026-10-17T17:58:17.704Z"}
+{"ask":"ef710ac885","task":"/framework/core/Page/tasks/make-page-data-structure-the-go-to-wrapp/","module":"core/Page","at":"2026-10-17T17:58:17.704Z"}
+{"ask":"6471b08f1c","task":"/framework/core/Page/tasks/solve-the-page-boundary-problem-through/","module":"core/Page","at":"2026-10-17T17:58:17.704Z"}
+{"ask":"0c1a95902e","task":"/framework/ext/Refine/tasks/use-a-single-consistent-preview-scale-or/","module":"ext/Refine","at":"2026-10-17T17:58:17.704Z"}
+{"ask":"c0eca69ee6","task":"/framework/ext/Refine/tasks/build-a-tree-ui-with-icons-from-the-goog/","module":"ext/Refine","at":"2026-10-17T17:58:17.704Z"}
+{"ask":"50697317c6","task":"/framework/ai/tasks/build-a-named-system-that-defines-its-ow/","module":"ai","at":"2026-10-17T17:58:17.704Z"}
+{"ask":"0a7367fd1e","task":"/framework/core/Item/tasks/decide-later-how-to-prioritise-data-bind/","module":"core/Item","at":"2026-10-17T17:58:17.704Z"}

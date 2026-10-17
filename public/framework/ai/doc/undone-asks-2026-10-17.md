@@ -47,7 +47,7 @@ Refined asks only reach back to 2026-10-09, when the refiner started, so the old
 A Haiku checked every one of the 620 undone asks against the repo and had to show its evidence: the file and line that does it, or the places it looked and found nothing. The result: **229 verified undone, 240 found already built, 151 unclear** (229 + 240 + 151 = 620, and 620 asks carry a verdict, so the two numbers agree).
 
 - **240 are built and nothing said so.** The hand check above was right: the count was an upper bound, and about two in five of the "undone" asks already exist. A "done" is believed only when its evidence names a path that exists; the merge script checks that, not the model.
-- **151 cannot be tested.** They are questions, opinions or rules about how to work ("make results evident"). They stay on the page so you can say what they should become.
+- **151 cannot be tested.** (Second look: [the 151 unclear asks](#the-151-unclear-asks-a-second-look-2026-10-17).) They are questions, opinions or rules about how to work ("make results evident"). They stay on the page so you can say what they should become.
 - **I spot-checked ten verdicts** by opening the cited files: five "done" and five "undone" were all right (one "done" rests on a doc that says the Figma page exists, not on the page itself). Evidence from the minions that admit a search they did not run is still on the page; read those rows as provisional.
 - **See it:** [Undone asks](/framework/ai/asks/undone/) now has a chip row on each module: all / verified undone / found built / unclear / not checked. Each verdict shows its evidence, with a link to the file. `?v=undone` in the address opens a filter directly.
 - **Rebuilds keep it.** Every ask has an id (a hash of its kind, source and text); `node Server/UndoneAsks.mjs --json` carries the verdicts over by id. Re-run the check with `node Server/UndoneVerify.mjs --batches <dir>` (only asks with no verdict) and merge with `--merge <dir>`. The batches and answers are kept in [verify-undone](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/).
@@ -67,3 +67,86 @@ A Haiku checked every one of the 620 undone asks against the repo and had to sho
 8. Document every path-based and per-directory convention under the page system ([2026-10-09, source](/framework/ai/sessions/7efd07d5-7a58-434d-8847-1a1d7b640390/?tab=coverage#p603)). *Found:* No single doc lists every path and per-directory convention. Built: doc/decisions.md (partial) and doc/readme-full-2026-10-12.md. Missing: a convention list. Places looke
 9. Make the Figma design preview open to show the actual UI elements rendered. ([2026-10-12, source](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3752)). *Found:* Built: the browse preview shows a Figma screenshot thumbnail (data/.../thumbs/*.jpg) and a Built page link. Missing: the preview itself does not render the built UI; it s
 10. Find out whether the embeds cause the laggy clicking on Figma items. ([2026-10-12, source](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3752)). *Found:* public/framework/ext/Figma/doc/observations.md:13 - browse clicks measured ~35 ms; observations.md:14 - "Not yet checked: Figma embed responsiveness". Embeds were never m
+
+### The 151 unclear asks, a second look (2026-10-17)
+
+The first pass could not tell whether 151 asks were done. Each was grouped by the reason in its evidence (`node Server/UndoneVerify.mjs --groups`), and a Haiku answered ONE question per group (`--only unclear --question path|work|concrete|look`). Asks that turned out to be work were then asked one more question, "is it built?" (`--only work-yes --question look`). The first-pass verdict is kept on each ask as `verified_first`.
+
+**151 = 12 done + 12 undone + 92 not work (retired) + 35 need you** (sum 151, the numbers agree).
+
+| Why it was unclear | Asks | Now done | Now undone | Retired (not work) | Needs you |
+|---|---|---|---|---|---|
+| no-path | 17 | 9 | 1 | 0 | 7 |
+| not-work | 108 | 1 | 5 | 92 | 10 |
+| vague | 18 | 0 | 4 | 0 | 14 |
+| ran-out | 8 | 2 | 2 | 0 | 4 |
+
+- The 12 undone asks became idle tasks in their module homes (`node Server/UndoneToTasks.mjs --apply`). Retired asks stay on [Undone asks](/framework/ai/asks/undone/) under the "not work" chip; nothing was deleted.
+
+#### Questions for you (35, answer ten at a time by voice)
+
+**ext/Figma**
+
+- `878f5feabb` Is this still wanted, and what should it become? “Confirm whether you can access the September 2026 page.”
+- `12a5b52ed0` Should each design result carry a visible label or note inside its Figma frame?
+- `cc5a01b0a9` Is done a rule that every new Figma frame must reuse an existing component, checked by a list of frames with no unique parts?
+
+**ai/sessions**
+
+- `83b2c033e1` Should the sessions tab be called Sessions everywhere, yes or no?
+- `50895c9f4a` Should the right sidebar scroll on its own, separate from the page, yes or no?
+- `afdc30ec2b` Does the Haiku refine link on the chat bubble still open the wrong page, yes or no?
+- `fffc8104c7` Is this still wanted, and what should it become? “Check how sessions are indexed and whether indexing is correct”
+- `ff81c3fefe` Is this still wanted, and what should it become? “Surface stored session information that is not shown in the table, without redoing the task and session audits”
+- `57dacfd063` Is the night mastermind session still running, and should it be stopped or resumed?
+- `a9e07c29e8` Are the session cost numbers right as they show today, yes or no?
+- `3a72a31aa0` Is this still wanted, and what should it become? “Remove the 'All sessions' back button on the detail page; the close button already returns to the sessions pag”
+- `3a5903dc42` Is the detail page now showing only the session ID as its title, with no repeated ID line above the tabs?
+- `48a22399cb` Which sessions page shows the load error after refresh, and what does the message say?
+- `309613f33c` Does 'all sessions items' mean every row in the sessions data grid, with each row opening its session?
+- `95b02c7b13` Is this about the sessions page only, or every page on the site?
+- `36de0de1d6` Does the sessions tab look clear enough now, yes or no?
+- `4e1b8d8f84` Did you see every session in the list clickable in the live site, or is a fresh check needed?
+- `725a20941d` Is the goal a report of the most common asks across sessions, or something a page shows live?
+
+**ai**
+
+- `2bb4e4c01c` Should the AI page that shows the board be called Inbox, and the one that shows the daily log be called Log?
+- `314eec080e` Is this still wanted, and what should it become? “Remove the useless 'inbox one, one new' link at the bottom”
+- `c6adcf7143` Is the transcription and refinement pipeline working end to end today, yes or no?
+- `99f4432968` Is this still wanted, and what should it become? “Log the backup location as a checkable AI inbox item.”
+
+**core/Page**
+
+- `a90087394d` Should paths resolve through the pages route even for a folder with no page.jsonl, as a new walk-up rule?
+- `a35455a5f8` Is this still wanted, and what should it become? “Let inbox items be read, then archived or cleared”
+- `58d91620ab` Is the shrunken page class the Template class in core/Page/Template?
+- `6cab9e0155` Is a page setting persisted properly when, after a reload, the same value is read back from settings.jsonl?
+- `75774baa20` Is it right that a template's mock data is rewired to real data through its expand(data) step, and should templates.md say so in writing?
+- `7246c112ac` Is the top of each page now the most important content, yes or no?
+
+**ext/Refine**
+
+- `637b56292b` Should base updates reach extensions by copying the change into each extension, or by the extension reading the base at load time?
+- `b9ec96eb3a` Which of the Refine ideas should be tested first, and what result counts as a pass?
+
+**servex**
+
+- `1ec7d01891` Should the headless browser run inside the Servex server rather than through the dev socket?
+
+**core/Property**
+
+- `f0506cbf0e` Is done a test that changes a Property and checks the bound render updates within one event, with no stale value left?
+
+**ui**
+
+- `8309c41534` Is the ui overhaul meant to change the four bands of components, or only the single-page layout?
+
+**ai/models**
+
+- `cc8bce2fc0` Are the current minion settings (model, effort, count) right as they stand, yes or no?
+
+**ext/ai**
+
+- `a2d01a32d6` Should the AI task system review be done now, yes or no?
+
