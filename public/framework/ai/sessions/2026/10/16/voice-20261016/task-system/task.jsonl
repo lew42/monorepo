@@ -101,3 +101,5 @@
 {"commit":"62bd07b96"}
 {"commit":"6e27eff74"}
 {"log":{"at":"2026-10-16T20:58:19-05:00","msg":"Step 3c landed: the item tool keeps one live root per file in node (re-read on outside edits), subtasks nest in the parent's task.jsonl ({\"folder\":id} gives one its own folder, recorded as {\"file\"}), an existing slug is refused with -2 offered (TaskDirs.make too), new folders get a files.jsonl line, and page tools on a task folder write the task, not a stray page.jsonl. Follow-up fix: a referenced child owns its file, so the parent's Store never records its changes; the real server now logs 0 refused appends on the task page and /live/tasks/. The item tool change runs inside Servex: it takes effect at the next Servex restart (the owner's call)."}}
+{"commit":"8ad330102ab8"}
+{"log":{"at":"2026-10-16T20:59:02-05:00","msg":"Budget stop: Servex counts this mastermind at $72.74 ($100.57 with minions), past the $45 report point. Paused before 3d. Left: 3d (Sonnet ~$2), 10 (Haiku ~$1), the ai/tasks/ rebuild, landing the parent task. Reported on the /live/ task-system-plan card (voice-app is not a Servex agent, so send_to_agent could not reach it)."}}
