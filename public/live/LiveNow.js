@@ -10,12 +10,13 @@ export default class LiveNow extends LiveToday {
 	static LANDED = 5;
 	static WAITING = 6;
 	static FLIGHT = 8;
+	static STALE = 2 * 36e5;   // an "active" session quiet for this long is not in flight
 
 	static async load(){
 		const now = new Date(), day = n => this.day(new Date(now - n * 864e5));
 		const days = (await Promise.all([day(0), day(1)].map(d => super.load(d).catch(() => null)))).filter(Boolean);
 		const tasks = days.flatMap(d => [...d.tasks.values()].flat());
-		const rows = days.flatMap(d => d.rows).filter(r => r.state === "active");
+		const rows = days.flatMap(d => d.rows).filter(r => r.state === "active" && now - Date.parse(r.last_activity ?? 0) < this.STALE);
 		return {
 			rows,
 			landed: tasks.filter(t => t.closeout.state === "done" && t.end).sort((x, y) => this.when(y) - this.when(x)).slice(0, this.LANDED),
@@ -30,6 +31,10 @@ export default class LiveNow extends LiveToday {
 		const url = TaskTree.url(t), name = t.title || t.agent || "task";
 		return url ? a.c("live-today-name", name).href(url) : span.c("live-today-name", name);
 	}
+
+	// The feed tile: one line that opens the full view (/live/now/), like the Tasks card.
+	static line(box){ return this.into(box, "tile"); }
+	static tile({ rows, landed, waiting }){ a.c("live-tasks-line", `Now · ${rows.length} in flight · ${landed.length} landed · ${waiting.length} waiting`).href("/live/now/"); }
 
 	static draw({ rows, landed, waiting }){
 		const group = (title, count, body) => div.c("live-now-group", () => { span.c("live-now-head", `${title} (${count})`); body(); });

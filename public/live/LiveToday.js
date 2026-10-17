@@ -56,12 +56,12 @@ export default class LiveToday {
 	}
 
 	// Fills `box` (a View) now and again every 30 s while it is on the page.
-	static into(box){
+	static into(box, view = "draw"){
 		let first = true;
 		const go = async () => {
 			if (!first && !box.el.isConnected) return clearInterval(timer);   // the card was redrawn away
 			first = false;
-			try { const data = await this.load(); box.empty(() => this.draw(data)); }
+			try { const data = await this.load(); box.empty(() => this[view](data)); }
 			catch (e) { box.empty(() => span("Could not read today's sessions: " + e.message)); }
 		};
 		const timer = setInterval(go, 30000);
