@@ -147,6 +147,9 @@ export default class Live extends Page {
 		return new Page({ title: id, url: this.url + id + "/", classes: "hides-nav", content(){ live.mount(div.c("live live-one"), id); } });
 	}
 
+	// What an empty feed says; the archive says something else.
+	get empty_text(){ return "Nothing on screen. The voice agent shows what you are discussing here."; }
+
 	// The log this page folds; archive/LiveArchive.js points it at its own copy.
 	get log_url(){ return import.meta.resolve("./page.jsonl"); }
 
@@ -173,7 +176,7 @@ export default class Live extends Page {
 	paint(id){
 		const rows = this.rows(), one = id && rows.find(r => r.id === id);
 		if (id) return one ? void this.constructor.Card.of(one, this.url).full() : void div.c("live-empty", rows.length ? "No such card." : "Loading…");
-		if (!rows.length) return void div.c("live-empty", "Nothing on screen. The voice agent shows what you are discussing here.");
+		if (!rows.length) return void div.c("live-empty", this.empty_text);
 		rows.forEach(r => { const card = this.constructor.Card.of(r, this.url); card.preview(card.nav()); });
 	}
 
