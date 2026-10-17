@@ -25,6 +25,8 @@ const CAN = {
 // Plain fields a top-level line may set (the item tool's {"expected":"…"}); legacy lines keep them under `assign`.
 const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent"];
 
+// Keys replay_line reads itself; any other object-valued key may name a nested subtask.
+const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags"]);
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
 
 export class Task extends Item {
@@ -353,6 +355,23 @@ export class Task extends Item {
 		if (line.content && typeof line.content === "object") this.content.set(line.content);
 		if (line.tasks && typeof line.tasks === "object" && !Array.isArray(line.tasks)) this.tasks.set(line.tasks);
 		for (const k of FIELDS) if (line[k] !== undefined) this.put(k, line[k]);   // a plain field line, e.g. one the item tool wrote
+		if (line.set && typeof line.set === "object") for (const [k, v] of Object.entries(line.set)) this.put(k, v);   // the browser Store's own change line
+		// A subtask given its own folder: {"file":"<child>/task.jsonl"} swaps the nested child for that file's task (same id).
+		if (typeof line.file === "string" && line.file.endsWith("/task.jsonl") && typeof this.data.path === "string"){
+			const kid = Task.from_ref(this.data.path.replace(/\/?$/, "/") + line.file.slice(0, -"task.jsonl".length));
+			const had = this.tasks.find(kid.id);
+			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
+			this.adopt_child(kid);
+		}
+		// A nested subtask changed: {"<child id>":{…}} goes to that child, the way a page line goes to a content item.
+		for (const k of Object.keys(line)) {
+			const v = line[k];
+			if (!v || typeof v !== "object" || Array.isArray(v) || LINE_KEYS.has(k) || !this._tasks) continue;
+			const kid = this._tasks.find(k);
+			if (!kid?.replay_line) continue;
+			kid.replay_line(v);
+			if (typeof v.state === "string" && !VERBS.some(w => v[w])) kid.put("state", v.state);
+		}
 		const verdict = line.verdict && typeof line.verdict === "object" && ["approve", "improve", "reject"].includes(line.verdict.is) && !verb ? line.verdict : null;
 		if (verdict || verb){
 			if (!rp.explicit){ rp.explicit = true; this.replay_legacy(true); }

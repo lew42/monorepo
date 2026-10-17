@@ -31,6 +31,10 @@ export default class Session extends Item {
 		if (typeof delta.task === "string"){ this.tasks.insert(Task.from_ref(delta.task)); delete delta.task; }   // a reference line: the live child
 		if (delta.tasks && typeof delta.tasks === "object") this.tasks.set(delta.tasks);
 		delete delta.tasks;
+		for (const k of Object.keys(delta)){   // a nested task changed: {"<task id>":{…}} goes to that task
+			const kid = delta[k] && typeof delta[k] === "object" ? this._tasks?.find(k) : undefined;
+			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }
+		}
 		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.put(k, v);
 		return this;
 	}

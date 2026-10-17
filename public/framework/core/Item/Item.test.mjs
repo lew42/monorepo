@@ -45,4 +45,24 @@ assert.throws(
 );
 n++;
 
+// A change from a child that has its OWN store belongs to that store: the parent's Store skips it.
+{
+	const { default: List } = await import("../List/List.js");
+	const parent = new Foo({ id: "p" }), kid = new Foo({ id: "k" });
+	parent.kids = new List({ owner: parent, name: "kids" });
+	parent.kids.insert(kid);
+	const seen = [];
+	const mine = new Item.Store({ url: "/x/p.jsonl" }), theirs = new Item.Store({ url: "/x/k.jsonl" });
+	mine.append = line => seen.push(line);
+	mine.attach(parent);
+	theirs.host = kid; kid.store = theirs;
+	kid.set({ title: "own file" });
+	t(seen.length === 0, "a child with its own store: the parent's Store appends nothing");
+	parent.set({ title: "mine" });
+	t(seen.length === 1, "a change on the parent itself is still appended");
+	kid.store = undefined;
+	kid.set({ title: "no store" });
+	t(seen.length === 2, "a child with no store of its own still bubbles to the parent's Store");
+}
+
 console.log(`ok — ${n} assertions passed`);
