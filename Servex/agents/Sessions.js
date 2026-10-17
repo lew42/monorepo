@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { place } from "../home.js";
+import { place, HOME } from "../home.js";
 import Usage from "../Usage.js";
 import { model as tier_model } from "./tiers.js";
 import { page_path } from "./Layers.js";
@@ -64,11 +64,22 @@ export const LONE_EMOJI = /^\p{Extended_Pictographic}[\uFE0F\u{1F3FB}-\u{1F3FF}]
 
 const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };
 
-/* WHO SITS IN THE FAST SEAT (voice-assistant-plan, 2026-10-17; ux/Dictate/doc/voice-assistant.md): `fast` = the old
- * session-fast chatter (default until proven), `voice` = the voice-assistant role, woken per sentence to write one {place}
- * line. Set SERVEX_SESSION_ASSISTANT=voice and restart Servex to switch. */
+/* WHO SITS IN THE FAST SEAT (voice-assistant-plan, 2026-10-17; ux/Dictate/doc/voice-assistant.md): `voice` = the
+ * voice-assistant role, woken per sentence to write one {place} line (the default since 2026-10-17: the owner, "drop the
+ * fast assistant for now"); `fast` = the old session-fast chatter, kept as the escape hatch. Read once at boot, first match wins:
+ *   1. %LOCALAPPDATA%\lew42\servex\session-assistant.txt (HOME/session-assistant.txt): the word fast or voice. This is the
+ *      switch that survives a restart, because sustain.mjs relaunches Servex through WMI and pins only SERVEX_HOME and
+ *      SERVEX_API_PORT, so an env var never reaches the new process (same pattern as session-backend.txt below).
+ *   2. the env var SERVEX_SESSION_ASSISTANT (a hand-started Servex or a private test one).
+ *   3. `voice`.
+ * To go back to fast: write `fast` into the file and restart Servex. */
 export const ASSISTANTS = ["fast", "voice"];
-const pick_assistant = v => ASSISTANTS.includes(String(v ?? "").trim().toLowerCase()) ? String(v).trim().toLowerCase() : "fast";
+const pick_assistant = v => { const w = String(v ?? "").trim().toLowerCase(); return ASSISTANTS.includes(w) ? w : null; };
+export function session_assistant(home = HOME){
+	let file = null;
+	try { file = pick_assistant(fs.readFileSync(path.join(home, "session-assistant.txt"), "utf8")); } catch {}   // no file yet, or an unreadable one: fall through
+	return file ?? pick_assistant(process.env.SERVEX_SESSION_ASSISTANT) ?? "voice";
+}
 
 /* IS A LINE WORTH A MODEL CALL? (review finding 5, 2026-10-03): a real voice session writes
  * one owner line per sentence or two, not per paragraph -- the owner's own evidence file had
@@ -222,7 +233,7 @@ export default class Sessions {
 		/* fast_wait_ms: the fast assistant's reply waits this long after the owner spoke,
 		 * so that, when the smart one answers (or reacts) first, only ONE acknowledgement
 		 * goes out (the owner, 2026-09-30). `hold_fast()` below. */
-		return { repo: REPO, file: process.env.SERVEX_SESSIONS_FILE || null, assistant: pick_assistant(process.env.SERVEX_SESSION_ASSISTANT), quiet_ms: env("SERVEX_SESSION_QUIET_MS", 1500),
+		return { repo: REPO, file: process.env.SERVEX_SESSIONS_FILE || null, assistant: session_assistant(), quiet_ms: env("SERVEX_SESSION_QUIET_MS", 1500),
 			/* 1500, was 8000 (first-reply, 2026-10-13): the smart one never answered inside 8 s, so the wait only delayed
 			 * the first reply; ai/.../first-reply/ and ux/Dictate/doc/latency.md. Set the env to 8000 for the old pace. */
 			fast_wait_ms: env("SERVEX_SESSION_FAST_WAIT_MS", 1500), prewarm: env("SERVEX_SESSION_PREWARM", 1),

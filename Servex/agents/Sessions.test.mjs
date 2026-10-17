@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import Sessions, { PAUSE_PHASES, FALLBACK_MODEL, ASSISTANTS } from "./Sessions.js";
+import Sessions, { PAUSE_PHASES, FALLBACK_MODEL, ASSISTANTS, session_assistant } from "./Sessions.js";
 
 let checks = 0;
 const check = (name, fn) => { fn(); checks++; };
@@ -43,7 +43,7 @@ const agents = {
 // reads the same file back in, and a `create()` within the hour would silently RESUME them.
 let n = 0;
 function make(){
-	const s = new Sessions({ repo, file: path.join(repo, `sessions-${++n}.json`) });
+	const s = new Sessions({ repo, file: path.join(repo, `sessions-${++n}.json`), assistant: "fast" });   // the default is `voice`, and a real session-assistant.txt may exist: pin fast for the tests below that are about the fast seat
 	s.load();
 	s.servex = { agents };
 	return s;
@@ -220,8 +220,31 @@ check("voice roles run on Claude by default, even with OpenRouter ready; a Claud
 });
 
 // ── the voice seat (voice-assistant-plan, 2026-10-17): SERVEX_SESSION_ASSISTANT=voice ─────────────
-check("the assistant switch defaults to fast, and only `voice` changes it", () => {
-	assert.equal(make().assistant, "fast");
+check("the assistant switch: session-assistant.txt, else the env var, else voice (2026-10-17: the default flipped to voice)", () => {
+	const home = fs.mkdtempSync(path.join(os.tmpdir(), "servex-home-"));   // a scratch SERVEX_HOME
+	const saved = process.env.SERVEX_SESSION_ASSISTANT;
+	const file = path.join(home, "session-assistant.txt");
+	try {
+		delete process.env.SERVEX_SESSION_ASSISTANT;
+		assert.equal(session_assistant(home), "voice", "no file, no env: voice");
+		process.env.SERVEX_SESSION_ASSISTANT = "fast";
+		assert.equal(session_assistant(home), "fast", "no file: the env var");
+		process.env.SERVEX_SESSION_ASSISTANT = "nonsense";
+		assert.equal(session_assistant(home), "voice", "a bad env word falls back to voice");
+		fs.writeFileSync(file, " Fast \r\n");
+		process.env.SERVEX_SESSION_ASSISTANT = "voice";
+		assert.equal(session_assistant(home), "fast", "the file (trimmed, any case) beats the env var");
+		fs.writeFileSync(file, "voice\n");
+		process.env.SERVEX_SESSION_ASSISTANT = "fast";
+		assert.equal(session_assistant(home), "voice", "the file beats the env var both ways");
+		fs.writeFileSync(file, "garbage");
+		assert.equal(session_assistant(home), "fast", "a bad file word falls through to the env var");
+		assert.equal(session_assistant(path.join(home, "missing")), "fast", "a missing folder falls through too");
+	} finally {
+		if (saved === undefined) delete process.env.SERVEX_SESSION_ASSISTANT; else process.env.SERVEX_SESSION_ASSISTANT = saved;
+		fs.rmSync(home, { recursive: true, force: true });
+	}
+	assert.equal(make().assistant, "fast", "make() pins fast for the fast-seat tests");
 	assert.equal(make().voice_seat(), false);
 	assert.deepEqual(ASSISTANTS, ["fast", "voice"]);
 });

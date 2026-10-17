@@ -72,5 +72,10 @@ In live mode the words you are saying grow in a **separate draft bubble** at the
 - ✅ **b.** A sentence settles in place in the bubble: the draft is the last piece of the bubble it joins, and the settled piece takes its exact spot (measured: same top, same bubble count, no faded copy). Every chat surface now writes your words into the bubble (`Widget.MODES.dictate`), unless the mic's gear says "into: box". This is the widest change: the proof covers a bare Widget, not yet the ✦ sheet or the rail (those use `ext/Chat`'s own `live()`, which is unchanged).
 - ✅ **c.** `{place}` lines applied by the chat (`Widget.Thread.place()`, routed by `chat.js`), default `same`.
 - **Proof:** `node ux/Dictate/test/in-place.mjs <site>` (fake mic, no agents), all checks pass at 400 and 1200.
-- ⬜ **Next brief (Servex, needs a restart):** `Sessions.js` wakes the voice assistant in the fast seat with the whole prompt plus the sentence ([brief](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/sessions-brief.md)).
+- ✅ **d. Servex wakes it (live after a Servex restart):** `Servex/agents/Sessions.js` wakes the voice assistant in the fast seat with the whole prompt plus the sentence ([brief](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/sessions-brief.md)). **It is the default.** Servex reads the switch once at boot, first match wins:
+  1. the file `%LOCALAPPDATA%\lew42\servex\session-assistant.txt`, holding the word `fast` or `voice` (this one survives a restart, because the restart pins only `SERVEX_HOME` and `SERVEX_API_PORT`);
+  2. the env var `SERVEX_SESSION_ASSISTANT` (`fast` or `voice`), for a hand-started or private Servex;
+  3. `voice`.
+
+  To go back to the fast assistant, write `fast` into that file and restart Servex.
 - ⬜ **Then:** raw versus refined look and the context card that swallows raw lines into its summary (ask 5). Half of it exists: a `{refined}` line already replaces a bubble's raw paragraphs with sections, and a click shows the raw words (`ext/Chat/Chat.js`, `refine()`).
