@@ -1,4 +1,4 @@
-# The chat thread never pushes older lines: new text grows away from what you are reading
+# Chat thread: new text never pushes older lines
 
 Budget: $5. Sonnet. Load the `minion`, `code`, `page` and `ui-test` skills. The owner's words: `../requirements-17.md` ask 3 ("as few jumps as possible… it still seems a little jumpy sometimes"). What was measured (`../sheet-controls/task.jsonl`, landing 10:36): the bar and head no longer move (177 moves to 0 at 400), but "thread bubbles still move (new text pushes older lines)". Older rule from the `talk` task (2026-09-22, `ai/sessions/2026/09/22/…/talk/`): one card filling with the owner's words, the top edge never moves. Read `ux/Dictate/readme.md`, `doc/voice-assistant.md` (in-place transcription), `doc/streaming-ui.md`, the chat widget (`ux/Dictate/chat.js`, `Widget.js`), `ext/drawer/Sheet.js` (the sheet's scroll box in strip and split sizes), and `ux/Dictate/test/` (the fake-mic proofs, `in-place.mjs`, `swallow.mjs`, the bar's `--strip` proof). Your log is this dir's `task.jsonl`.
 

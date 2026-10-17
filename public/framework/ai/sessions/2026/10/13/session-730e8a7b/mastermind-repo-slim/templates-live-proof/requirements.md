@@ -1,6 +1,10 @@
-# Proof on the live Servex: an approved task with an agent spec spawns its own agent
+# Task templates: prove approve spawns the agent
 
-Budget: $3. Sonnet. Load the `minion` and `code` skills. The owner's ask (`../requirements-15.md` ask 4): when a proposal is accepted the task starts or queues and spawns its agent itself, with time, ids, author and session id written by code. Built 10-17 00:00 by `minion-approve-spawns` (`../checkup-task-system/approve-spawns/`, landing: "An approved task whose line 1 has template and agent now spawns that agent once (TaskLoop.launch, trigger in the item tool, retry on the tick). Unit test passes; private-port proof showed the spawn line matches list_agents. Live after the next Servex restart."). Servex has restarted four times since. Read `core/Task/doc/templates.md`, `core/Task/doc/owner-2026-10-17-node-driven.md`, `Servex/agents/TaskLoop.js` (`launch`), the item tool's `approve` path (`Servex/agents/page_tools.js` or where `approve-spawns` put the trigger), and the approve-spawns task dir. Your log is this dir's `task.jsonl`.
+Budget: $3. Sonnet. Load the `minion` and `code` skills.
+
+**The ask** (`../requirements-15.md` ask 4): approving a proposal starts or queues the task and spawns its agent, with time, ids, author and session id written by code.
+
+**What was built** 10-17 00:00 by `minion-approve-spawns` (`../checkup-task-system/approve-spawns/`). Its landing said: "An approved task whose line 1 has template and agent now spawns that agent once (TaskLoop.launch, trigger in the item tool, retry on the tick). Unit test passes; private-port proof showed the spawn line matches list_agents. Live after the next Servex restart."). Servex has restarted four times since. Read `core/Task/doc/templates.md`, `core/Task/doc/owner-2026-10-17-node-driven.md`, `Servex/agents/TaskLoop.js` (`launch`), the item tool's `approve` path (`Servex/agents/page_tools.js` or where `approve-spawns` put the trigger), and the approve-spawns task dir. Your log is this dir's `task.jsonl`.
 
 ## Deliverable
 

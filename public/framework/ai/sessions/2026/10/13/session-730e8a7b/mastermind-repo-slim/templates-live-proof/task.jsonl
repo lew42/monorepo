@@ -17,3 +17,11 @@
 {"log":{"at":"2026-10-17T10:48:28-05:00","msg":"Merged worktree/approve-string-verb into michael/dev (review pass, in public/framework/ai/sessions/2026/10/17/approve-string-verb/ because merge.mjs scans only the last four days of session folders). The proof itself needed no restart; the two fixes go live at the next Servex restart.","needs_restart":"item tool bare-string verbs, TaskLoop.read_task approved_by"}}
 {"assign":{"landed_at":"2026-10-17T10:48:28-05:00","outcome":"Live proof passed: on the running Servex, approve on a waiting template-doc task wrote the spawn line about 1.5 s later (15:42:33.0 to 15:42:34 UTC), and the spawned Haiku agent wrote its note and completed the task 41 s after the spawn (proof: core/Task/tasks/templates-live-proof/). Cause of the first no-fire: approve acts only from waiting and a bare-string approve was ignored on replay; fixed in the item tool and in the spawn line's approved_by (merged, live after the next Servex restart)."}}
 {"commit":"29a0f4eca482"}
+{"commit":"8dc0857e18f8"}
+{"log":{"at":"2026-10-17T10:48:39-05:00","msg":"text-check: outcome: a 80-word paragraph (\"Live proof passed: on the running Servex, approve …\"); review.md: 360 words and no picture"}}
+{"log":{"at":"2026-10-17T10:48:39-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-17T10:48:39-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-17T10:48:39-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-17T10:48:45-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-17T10:48:45-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-17T10:49:21-05:00","msg":"session resumed"}}
