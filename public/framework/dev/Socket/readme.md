@@ -10,7 +10,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 
 ## Watch out
 
-- Tries every host (`wss` on https); the server decides: loopback gets everything, a private LAN peer push traffic only, anything else is refused and the client retries quietly. [doc/lan.md](./doc/lan.md) Production stays static: with no server behind it the socket never opens. [doc/localhost.md](./doc/localhost.md)
+- Tries every host (`wss` on https); the server decides: loopback gets everything, a private LAN peer push traffic and read-only queries (`LAN_OK`, `LAN_QUERY`), anything else is refused and the client retries quietly. [doc/lan.md](./doc/lan.md) Production stays static: with no server behind it the socket never opens. [doc/localhost.md](./doc/localhost.md)
 - Never reject `.ready` — a `send()` awaiting a server restart must land, not throw; a rejected `ready` breaks every later `send()` for the life of the page. [doc/backoff.md](./doc/backoff.md)
 - Reconnect from `close` only — a failed connect fires `error` *and* `close`; acting on both made a connection storm. [doc/backoff.md](./doc/backoff.md)
 - `reload()`, `changed()`, `eval()` are called BY the server through `message()` — a grep finds no callers; they are the live path, not dead code. [doc/wire.md](./doc/wire.md)
