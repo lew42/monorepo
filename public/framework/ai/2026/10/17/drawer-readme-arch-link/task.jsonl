@@ -14,3 +14,18 @@
 {"log":{"at":"2026-10-17T13:37:34-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-17T13:38:19-05:00","heartbeat":"answered","msg":"The `cd` got reset — git may have run in the wrong tree. Let me check both trees explicitly."}}
 {"log":{"at":"2026-10-17T13:38:42-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T13:49:31-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-drawer-readme-arch-link"}}
+{"log":{"at":"2026-10-17T13:49:34-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T13:50:21-05:00","heartbeat":"answered","msg":"Commit is exactly the readme (1 file, +1/−3). Running the merge now."}}
+{"commit":"faaed1587217"}
+{"assign":{"landed_at":"2026-10-17T13:52:41-05:00","title":"drawer: the README links its architecture doc","outcome":"doc/architecture.md was linked only as a lone bullet under a trailing '## More' and was the one doc in doc/ missing from the README's own '## Doc topics' index. Promoted to the front of that index with a one-line description; the orphan '## More' block dropped. One-file README change, merged to michael/dev as faaed1587 (merge commit).","links":["/framework/ext/drawer/","/framework/ext/drawer/doc/architecture.md"]}}
+{"log":{"at":"2026-10-17T13:53:13-05:00","msg":"LANDED: merged faaed1587 into michael/dev — readme.md only (+1/-3), smoke green. The README now leads '## Doc topics' with doc/architecture.md; the orphan '## More' block is gone. Worktree removed, branch worktree/drawer-readme-arch-link deleted."}}
+{"log":{"at":"2026-10-17T13:53:13-05:00","msg":"Observation, left alone (ask was README-only): page.js notes:'tabs select inbox sheet decisions' drives the page's DOCS tab and still omits architecture — the DOCS tab shows 5 docs while the readme index now shows 9. Possible small follow-up for the drawer page owner."}}
+{"log":{"at":"2026-10-17T13:53:13-05:00","msg":"Merge gotcha for the record: merge.mjs smoke-tests the worktree's own server, and a fresh worktree lacks gitignored assets (*/shots/, public/data/), so pages linking shots 404 and smoke false-fails. Copying those dirs from the main tree into the worktree made it green."}}
+{"log":{"at":"2026-10-17T13:53:18-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-17T18:53:18.460Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-17T13:53:18-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-17T13:53:18-05:00","msg":"owner-note: posted 1 decision to the Inbox"}}
+{"log":{"at":"2026-10-17T13:53:18-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-17T13:53:23-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-17T13:53:23-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
