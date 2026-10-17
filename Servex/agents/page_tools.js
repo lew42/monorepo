@@ -43,10 +43,15 @@ try { ({ check } = await import("../../.claude/hooks/jsonl-schema.mjs")); } catc
 /* `url` is a page's address ("/framework/ai/sessions/2026/10/02/page-tools/demo/"); its page.jsonl
  * sits one join away. Refuses anything that resolves outside public/ — the same gate
  * Append.js and Tail.js keep on the browser's own writes. */
-function resolve_file(url){
-	const pathname = String(url ?? "").replace(/^[\\/]+/, "");
+function resolve_file(url, item = false){
+	let pathname = String(url ?? "").replace(/^[\\/]+/, "");
+	const named = /\.jsonl$/.test(pathname) ? path.basename(pathname) : null;   // a url may name the log itself
+	if (named) pathname = path.dirname(pathname);
 	const dir = path.resolve(PUBLIC, pathname);
 	if (dir !== PUBLIC && !dir.startsWith(PUBLIC + path.sep)) return null;
+	if (named) return path.join(dir, named);
+	// Item tool only: task.jsonl beside a page.jsonl means a TASK folder (the page is its view); then session.jsonl; else the page.
+	if (item) for (const name of ["task.jsonl", "session.jsonl"]) if (fs.existsSync(path.join(dir, name))) return path.join(dir, name);
 	return path.join(dir, "page.jsonl");
 }
 
@@ -62,7 +67,7 @@ function resolve_file(url){
 const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-async function resolve(url, target = []){
+async function resolve(url, target = [], item = false){
 	const hit = SESSION_ROUTE.exec(String(url ?? ""));
 	if (hit && !/^\d{4}$/.test(hit[1])){
 		const file = await session_file(hit[1]);
@@ -73,7 +78,7 @@ async function resolve(url, target = []){
 			return { file: at, target: [...rest, ...(target ?? [])] };
 		}
 	}
-	const file = resolve_file(url);
+	const file = resolve_file(url, item);
 	return file ? { file, target: target ?? [] } : null;
 }
 
@@ -112,9 +117,10 @@ function nest(target, payload){
  * line, so a page written by an agent and a page written by a live tab are written
  * identically. Throws with the refusal reason; the tool handlers turn that into
  * `{ok:false, why}` rather than letting the SDK wrap a raw exception. */
-function write_line(file, line){
+function write_line(file, line, own_check = false){
 	let why = null;
-	try { why = check(file, line); } catch (e) { console.error("page_tools: check() threw, writing anyway:", e.message); }
+	// own_check: the item tool already validated this line against its class (the task.jsonl schema is one-verb-per-line and has no by/ts).
+	if (!own_check) try { why = check(file, line); } catch (e) { console.error("page_tools: check() threw, writing anyway:", e.message); }
 	if (why) throw new Error(`refused: ${why}`);
 
 	fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -330,6 +336,123 @@ function apply_pages(at, pages, url){
 	return { done };
 }
 
+/* ---------- the item tool (plan section 4): page_set generalised to any Item class ----------
+ * A delta is ONE log line, the object Item.set() takes; the file is replayed through the same
+ * class code a browser would use. Only Task can be imported in node (Page touches the DOM,
+ * Session arrives in step 7), so only Task gets the key refusals. */
+const ITEM_PATH = { type: "string", description: "The item's url, e.g. a task folder \"/framework/ai/sessions/…/<slug>/\" (task.jsonl there wins over page.jsonl) or a page. Omit = your own session page." };
+const ITEM_DESCRIPTION = "THE ITEM TOOL: `item({path, delta})`. `delta` is ONE log line, the exact object Item.set(delta) takes: a key naming a method calls it with the value as its arguments (`{\"start\":{}}`, `{\"wait\":{\"on\":\"owner\"}}`), a key naming a child walks into it (`{\"tasks\":{\"add\":{\"title\":\"x\"}}}`), any other key assigns. `\"a.b\": v` is shorthand for `{a:{b:v}}`. No `delta` = the current state. The first call per class also returns `instructions`; `{\"help\":{}}` returns them again.";
+
+const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jsonl": "Page" };
+const LOADERS = { Task: async () => (await import("../../public/framework/core/Task/Task.js")).default };
+const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"] };
+// Fields a Task line may carry beyond its getters (plan section 2) and the legacy line keys Task.replay reads.
+const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tasks", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];
+
+const told = new Map();   // `${caller}|${class}` -> true once its instructions went out
+
+// "a.b": v -> {a: {b: v}}, the only dot handling there is.
+function expand_dots(delta){
+	const out = {};
+	for (const [key, value] of Object.entries(delta)){
+		const parts = key.split(".");
+		if (parts.length < 2 || parts.some(p => !p)){ out[key] = value; continue; }
+		let at = out;
+		for (const p of parts.slice(0, -1)) at = at[p] = is_plain(at[p]) ? at[p] : {};
+		at[parts.at(-1)] = value;
+	}
+	return out;
+}
+
+function class_of(file){
+	const first = parse_lines(file)[0];
+	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
+}
+
+// describe() with each method's doc filled: the first `//` line of the comment block above it, from the class's source.
+function describe_class(Class){
+	const d = Class.describe();
+	const text = (CLASS_SOURCES[d.class] ?? []).map(f => { try { return fs.readFileSync(path.join(PUBLIC, "framework", f), "utf8"); } catch { return ""; } }).join("\n");
+	const lines = text.split("\n");
+	for (const m of d.methods){
+		const at = lines.findIndex(l => new RegExp(`^\\s*(static\\s+)?(async\\s+)?${m.name}\\s*\\(`).test(l));
+		let top = at;
+		while (top > 0 && /^\s*\/\//.test(lines[top - 1])) top--;
+		if (at > 0 && top < at) m.doc = lines[top].replace(/^\s*\/\/\s?/, "");
+	}
+	return d;
+}
+
+const GRAMMAR = "delta = one log line. A key naming a method calls it with the value as arguments; a key naming a child item walks into it; any other key assigns. Keys starting with _ are refused.";
+
+async function instructions_for(kind, Class){
+	return Class ? { ...describe_class(Class), task_keys: kind === "Task" ? TASK_KEYS : undefined, grammar: GRAMMAR } : { class: kind, grammar: GRAMMAR };
+}
+
+// Task.replay + the `tasks` list (Task.replay does not read a `tasks` line yet; same call it makes for `content`).
+function task_of(Task, file){
+	const lines = parse_lines(file), task = Task.replay(lines);
+	for (const line of lines) if (is_plain(line?.tasks)) task.tasks.set(line.tasks);
+	return task;
+}
+
+function task_state(Task, file){
+	const task = task_of(Task, file);
+	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data },
+		tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state })) };
+}
+
+function refusal(why, Class){
+	const d = describe_class(Class);
+	return { ok: false, why, exists: [...d.methods.map(m => m.name), ...new Set([...d.fields, ...TASK_KEYS])] };
+}
+
+// Task only: a top-level key must be a public method, a known field, or an existing child.
+function validate(Task, file, delta){
+	const task = task_of(Task, file), known = new Set([...Task.describe().fields, ...TASK_KEYS]);
+	for (const key of Object.keys(delta)){
+		if (key === "help") continue;
+		if (key.startsWith("_")) return refusal(`"${key}" starts with _ (private)`, Task);
+		if (typeof task[key] === "function" || known.has(key) || task.get(key) !== undefined) continue;
+		return refusal(`"${key}" names no method, field or child of Task`, Task);
+	}
+	return null;
+}
+
+async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
+	url ??= own_page(ctx);
+	const at = await resolve(url, target, true);
+	if (!at) return { ok: false, why: `"${url}" is not a page under public/` };
+
+	const kind = class_of(at.file);
+	const Class = LOADERS[kind] ? await LOADERS[kind]().catch(() => null) : null;
+	const first_time = () => !told.has(`${ctx.caller}|${kind}`) && told.set(`${ctx.caller}|${kind}`, true);
+	const state = () => Class?.replay ? task_state(Class, at.file) : (fs.existsSync(at.file) ? render_markdown(replay(parse_lines(at.file)), Subpages.listed(at.file).map(name => ({ name, url: String(url).replace(/\/?$/, "/") + name + "/" }))) : null);
+	const extra = async () => alias ? {} : { ...(first_time() ? { instructions: await instructions_for(kind, Class) } : {}), state: state() };
+
+	if (delta === undefined) return { ok: true, ...(await extra()), ...(alias ? { state: state() } : {}) };
+	if (!is_plain(delta)) return { ok: false, why: "`delta` must be one object (a log line)" };
+	const flat = expand_dots(delta);
+	if (Object.keys(flat).length === 1 && flat.help){
+		told.set(`${ctx.caller}|${kind}`, true);
+		return { ok: true, instructions: await instructions_for(kind, Class) };
+	}
+	if (Class?.replay){ const no = validate(Class, at.file, flat); if (no) return no; }
+
+	// `pages` is the one key the tool handles itself: a folder is made on disk (Subpages.js).
+	const { pages, ...rest } = flat;
+	const made = pages === undefined ? null : apply_pages(at, pages, url);
+	if (made?.why) return { ok: false, why: made.why, done: made.done };
+
+	const ids = [];
+	let line = null, size;
+	if (pages === undefined || Object.keys(rest).length){
+		line = nest(at.target, { ...stamp_ids(pages === undefined ? flat : rest, ids), by: ctx.caller ?? "agent", ts: now() });
+		size = write_line(at.file, line, !!Class?.replay);
+	} else size = size_of(at.file);
+	return { ok: true, ids, line, size, ...(made ? { pages: made.done } : {}), ...(Class?.replay || !alias ? await extra() : {}) };
+}
+
 /* ---------- the six tools ---------- */
 
 export function page_tools(){
@@ -390,24 +513,12 @@ export function page_tools(){
 			{ path: PAGE_PATH, target: TARGET,
 				delta: { type: "object", description: "The fields to change, e.g. {\"answer\": \"42\"} or {\"title\": \"Renamed\"}." } },
 			["delta"],
-			async ({ path: url, target, delta }, ctx = {}) => {
-				url ??= own_page(ctx);
-				const at = await resolve(url, target);
-				if (!at) return not_a_page(url);
+			async (args, ctx = {}) => JSON.stringify(await run_item(args, ctx, true))),
 
-				// `pages` is the one key the tool handles itself: a folder is made on disk (Subpages.js).
-				const { pages, ...rest } = is_plain(delta) ? delta : {};
-				const made = pages === undefined ? null : apply_pages(at, pages, url);
-				if (made?.why) return JSON.stringify({ ok: false, why: made.why, done: made.done });
-
-				const ids = [];
-				let line = null, size;
-				if (pages === undefined || Object.keys(rest).length){
-					line = nest(at.target, { ...stamp_ids(pages === undefined ? delta : rest, ids), by: ctx.caller ?? "agent", ts: now() });
-					size = write_line(at.file, line);
-				} else size = size_of(at.file);
-				return JSON.stringify({ ok: true, ids, line, size, ...(made ? { pages: made.done } : {}) });
-			}),
+		tool("item", ITEM_DESCRIPTION,
+			{ path: ITEM_PATH, delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." } },
+			[],
+			async (args, ctx = {}) => JSON.stringify(await run_item(args, ctx))),
 
 		tool("page_log",
 			"Alias of page_set `{\"log\":{\"text\":…}}`: the \"now doing X\" line, overwritten each time; post it BEFORE a long step (core/Page/doc/ai-api.md).",
