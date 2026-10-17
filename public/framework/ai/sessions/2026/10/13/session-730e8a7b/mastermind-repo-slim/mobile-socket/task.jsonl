@@ -15,3 +15,4 @@
 {"review":{"at":"2026-10-17T08:51:27-05:00","answer":{"n":4,"reply":"noted: index.json cannot push because Server/watch.js ignores .json; the cache.jsonl tail is the stream, reason in notes.md."}}}
 {"review":{"at":"2026-10-17T08:51:27-05:00","answer":{"n":5,"reply":"noted: the QueryClient/query gate for LAN peers is open and logged; outside this fence."}}}
 {"review":{"at":"2026-10-17T08:51:27-05:00","answer":{"n":6,"reply":"noted: reviewed from commits; the proof ran in the worktree."}}}
+{"commit":"5f384aefd794"}
