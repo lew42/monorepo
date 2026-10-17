@@ -36,6 +36,10 @@ A task with no `agent` field is approved as before and nobody is spawned, so eve
 
 Later slices, one each: the `code` worktree, the review gate at `complete`, the link check for `doc`.
 
+## Proven live
+
+**2026-10-17:** on the running Servex, `approve` at 15:42:33.0 UTC wrote the `spawn` line at 15:42:34 (about 1.5 s, line times are whole seconds); the spawned Haiku agent wrote its note and `complete` by 15:43:15 (41 s after the spawn). Proof task: [templates-live-proof](../tasks/templates-live-proof/). Two traps found: `approve` only acts on a `waiting` task (write `wait` first), and a bare-string `approve` was ignored on replay (fixed, see the proof task's log).
+
 ## Decided, with the alternative
 
 - **Trigger: the approve line, not a timer.** Alternative: TaskLoop finds approved tasks on its 5-minute tick. That is simpler, but it adds up to five minutes of delay and is the poll the streaming law rules out; the tick stays only as the retry for queued tasks.
