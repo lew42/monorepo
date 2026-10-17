@@ -47,3 +47,13 @@ The proof of each guard, run on scratch copies: [guards/proof.md](/framework/ai/
 ## A merge never rewrites a live log
 
 An append-only `*.jsonl` (a `task.jsonl`, `cards.jsonl`) can gain a line while `merge.mjs` runs, for example the landing line of the task being merged. When the main tree has uncommitted edits, `merge.mjs` plans each file first and writes it afterwards. At write time it reads every `.jsonl` again and keeps any line that was appended in between, and it never deletes a live log. Proof: `node Server/jsonl-keep.mjs --proof`. Why: on 2026-09-29 a merge reset readme-chain's `task.jsonl` and lost its landing line.
+
+## Clear out landed worktrees: `node Server/Worktrees.mjs`
+
+`--plan` prints one line per worktree that is not a `qf-*` pool slot (the pool frees its own, see `Servex/doc/pool.md`): path, branch, commits ahead of `michael/dev`, whether `git diff michael/dev...<branch>` is empty, and uncommitted files counted as *regenerated* (`files.jsonl`, `index.json`, `cache.jsonl`, `*.png`, `shots/`, `layout-check/`) or *real*.
+
+- **REMOVE:** its work is on `michael/dev` (nothing ahead, an empty diff, or the same file contents there, the test `Pool.landed()` uses) and nothing *real* is uncommitted.
+- **KEEP:** unmerged commits, a real uncommitted file, a live agent in it, a lock, a detached head with commits, or Servex not answering. The line names the branch so a person can look.
+- **`--apply`** runs `git worktree remove` on each REMOVE (`--force` only when every uncommitted file is regenerated, and the line says so), then `git worktree prune`. It never touches a KEEP and never deletes a branch.
+- **Manifest:** each removal is one line in `public/framework/ai/sessions/worktree-removals.jsonl` (`path`, `branch`, `sha`, `at`, `why`, `restore`).
+- **Recreate one:** `git worktree add <path> <branch>` (or `git worktree add --detach <path> <sha>`); the `restore` field holds the exact command. Test: `node Server/Worktrees.test.mjs`.
