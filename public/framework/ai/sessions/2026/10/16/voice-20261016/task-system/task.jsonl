@@ -57,3 +57,8 @@
 {"action":{"at":"2026-10-16T20:09:52-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-homes/requirements.md"]}}
 {"commit":"07f860988"}
 {"assign":{"at":"2026-10-16T20:10:00-05:00","now":"Step 11 landed (core/Task/TaskPage.js, demo at /framework/core/Task/page/). Step 14a building: task homes, node side."}}
+{"commit":"1ecbf75977b7"}
+{"action":{"at":"2026-10-16T20:15:05-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-homes-browser/requirements.md"]}}
+{"commit":"d8b6e5f04"}
+{"assign":{"at":"2026-10-16T20:15:18-05:00","now":"Step 14a landed (task homes + reference lines, node). Step 14b building: browser resolves references, module tasks list, Doc Tasks tab."}}
+{"decision":{"at":"2026-10-16T20:15:18-05:00","what":"A module's task list is <module>/tasks/task.jsonl (a list Task of references), shown by a Tasks tab on every Doc page","why":"reuses Task, Store, Task.View and the Doc Inbox-tab pattern; no index script, no edits to module page.js files","alternative":"a node-built index under ai/tasks/"}}
