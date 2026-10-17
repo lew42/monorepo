@@ -43,7 +43,8 @@ export const ROLES = {
 	"task-mastermind":  { skills: ["sub-mastermind", "page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* mastermind: bypassPermissions too (2026-10-12, asks #6): it calls spawn_agent/page tools and edits, and nobody can approve a prompt overnight. */
 	mastermind:         { skill: "servex-mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
-	assistant:          { skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
+	/* The fast assistant (every-prompt) is retired for voice as of 2026-10-17 (`voice-assistant` below); its skill files stay on disk and this row stays for the callers that still name it. */
+	assistant:          { retired: "voice-assistant", skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
 	/* ONE PAIR ON EVERY PAGE (recursive-pairs, 2026-09-25/28): a page-assistant, root page
 	 * included, and a page-mastermind — the same two roles Layers.js now spawns for a card
 	 * OR any other page, scoped to a directory given in the first message (doc/page-roles.md).
@@ -78,7 +79,13 @@ export const ROLES = {
 	 * with `task-mastermind` (both `every-prompt` and `sub-mastermind` carry it), but never its
 	 * judging-against-the-owner's-sentence or landing parts — it spawns a task mastermind to do
 	 * those instead of doing them itself. Detail: tiers-design/doc/roles.md. */
-	"session-fast":     { prefix: "session-fast",     tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
+	/* RETIRED 2026-10-17 (the owner: "drop the fast assistant for now"; plan: public/framework/ux/Dictate/doc/voice-assistant.md):
+	 * `voice-assistant` below takes this seat. The row stays, unchanged, because Sessions.js still spawns it by name until
+	 * the Sessions brief lands (voice-assistant-plan/sessions-brief.md); `retired` names the row that replaces it. */
+	"session-fast":     { retired: "voice-assistant", prefix: "session-fast",     tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
+	/* THE VOICE ASSISTANT (2026-10-17, ux/Dictate/doc/voice-assistant.md): one plain assistant per voice session, the fast seat.
+	 * Per sentence it writes ONE placement, {"place":{re, to, where, edit}}, into the session file with the item tool. */
+	"voice-assistant":  { skill: "voice-assistant",  prefix: "voice-assistant",  tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
 	"session-smart":    { prefix: "session-smart",    tier: "manager",   model: model("manager"),   /* Sonnet, not Opus: the owner, 2026-10-05, saving credits; the one mastermind above the sessions stays Opus */    effort: "medium", permission_mode: "bypassPermissions" },
 	/* A FRESH mastermind for one folder (Servex/agents/directory.js, `ask_directory`): the task
 	 * mastermind's posture, opened with the folder's plain files as its first message. Spawned by
