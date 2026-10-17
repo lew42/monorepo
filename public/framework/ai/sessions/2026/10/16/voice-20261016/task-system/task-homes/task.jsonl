@@ -1,3 +1,4 @@
 {"assign":{"session_id":"a3794640-fdbf-4236-8c9c-16191dfc52fd","agent":"minion-task-homes","card":"task-system-plan","brief":"public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-homes/requirements.md","model":"claude-sonnet-5-5","worktree":"C:/Code/lew42/worktrees/task-homes","parent_task":"public/framework/ai/sessions/2026/10/16/voice-20261016/task-system","requested_at":"2026-10-16T20:10:06-05:00","now":"starting","steps":[],"step":1}}
 {"log":{"at":"2026-10-16T20:19:54-05:00","heartbeat":"check","msg":"status check sent to minion-task-homes"}}
 {"log":{"at":"2026-10-16T20:24:54-05:00","heartbeat":"orphaned","msg":"minion-task-homes it did not answer the status check: its working directory C:/Code/lew42/worktrees/task-homes no longer exists; not revived."}}
+{"assign":{"landed_at":"2026-10-16T20:14:11-05:00","title":"Task homes, node side: step 14a of the task system plan","outcome":"Landed on michael/dev as d8b6e5f04."}}
