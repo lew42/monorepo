@@ -55,6 +55,12 @@ In live mode the words you are saying grow in a **separate draft bubble** at the
 
 ---
 
+## Nothing jumps
+
+The chat thread is anchored on the **top of the newest bubble**, not on the bottom edge. Words growing inside a bubble never scroll the box, so the lines above them stay where you are reading them. The box turns a page only twice: when a new bubble starts with less than 75% of a box left under it (`Widget.HEADROOM`), and when one bubble grows taller than the box (its tail then lands mid-box, half a box at a time). If you scrolled up, nothing moves at all. The code is `Widget.Thread.anchor()` in `Widget.js` (it sets `data-turns` on the thread for the proof); the proof is `test/anchor.mjs` (fake mic, five sentences at 400): before, 27 to 38 older-line moves in the split size; after, 0 while words stream in, 5 page turns, and 0 when the reader had scrolled up. The strip has no thread to move. **Rejected:** pinning the newest line to the bottom (`overflow-anchor` plus scroll-to-bottom), because every added line shifts every older bubble up; and pinning the newest line at the very top at every turn, because it hides the reply you were reading the moment you speak.
+
+---
+
 ## Alternatives rejected, one line each
 
 - **Keep a fast and a smart assistant:** the owner dropped it; the fast one mostly said "listening".

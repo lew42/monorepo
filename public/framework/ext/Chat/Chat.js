@@ -308,7 +308,7 @@ export function card_of(b){
 }
 
 /** One sticky-bottom scroll for every chat log; call `pin()` after drawing. See doc/notes.md#sticky-scroll */
-export function sticky_scroll(box){
+export function sticky_scroll(box, { observe = true } = {}){   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
 	let locked = true, last = 0;
 	const at_bottom = () => box.scrollHeight - box.scrollTop - box.clientHeight < 4;
 	const $btn = document.createElement("button");
@@ -329,7 +329,7 @@ export function sticky_scroll(box){
 		last = top;
 	}, { passive: true });
 	const pin = () => { if (locked) go_down(); };
-	if (typeof ResizeObserver === "function") new ResizeObserver(pin).observe(box);
+	if (observe && typeof ResizeObserver === "function") new ResizeObserver(pin).observe(box);
 	return { pin, locked: () => locked };
 }
 
