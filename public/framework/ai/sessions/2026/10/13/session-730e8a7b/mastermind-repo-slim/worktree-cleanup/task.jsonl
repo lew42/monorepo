@@ -36,3 +36,4 @@
 {"log":{"at":"2026-10-17T10:15:49-05:00","msg":"not done: worktrees with 1 real uncommitted file (mostly one page.jsonl line from a dev server) stay KEEP because page.jsonl is not in the brief's regenerated set; adding it to Worktrees.REGENERATED would clear about 10 more. Also the worktree-cleanup worktree itself remains until its dev server stops."}}
 {"assign":{"landed_at":"2026-10-17T10:15:49-05:00","title":"Worktrees: a plan-first script removed 6 landed worktrees, kept 23","outcome":"node Server/Worktrees.mjs --plan lists the 30 non-pool worktrees with a verdict. --apply removed the 6 whose work is on michael/dev (2 forced over regenerated files only) and left 23 alone: 3 with unmerged commits and 19 with real uncommitted files. No branch was deleted. Each removal is a line in ai/sessions/worktree-removals.jsonl. Doc: Server/doc/worktrees.md."}}
 {"commit":"6349195afce2"}
+{"commit":"c105b9be35b9"}
