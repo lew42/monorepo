@@ -227,7 +227,7 @@ export default class Playground {
 		view.tab = name;
 		view.$tabs.forEach((t, i) => t.rc("active muted").ac(TABS[i] === name ? "active" : "muted"));
 		TABS.forEach(tab_name => { view["$" + tab_name].el.hidden = tab_name !== name; });
-		if (location.hash.slice(1) !== name) history.replaceState(null, "", location.pathname + location.search + "#" + name);
+		if (location.hash.slice(1) !== name) history.replaceState(history.state, "", location.pathname + location.search + "#" + name);   // keep the state: the Sheet keeps its size there
 	}
 
 	// ---- the audio source panel: which mic, and its level while listening ---

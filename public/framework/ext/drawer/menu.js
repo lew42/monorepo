@@ -29,10 +29,7 @@ export default function menu(app){
 		.click(() => tabs.toggle());
 	new MicIndicator({ compact: true, capture: false }).append_to($menu);   // mic open while the drawer is shut
 
-	// A url that names a tab opens on it, once the styles are in (so the rail never paints
-	// unstyled and slides) — `tabs.open()` itself remaps an old `?drawer=sessions` to "ai".
-	const routed = tabs.routed();
-	if (routed) app.styles_loaded().then(() => tabs.open(routed));
+	// An old ?drawer=x url is now <path>/ai/x/ (AIPage.old_link, rewritten by the Sheet below): the route opens it.
 
 	// The mobile sheet (Sheet.js) — the drawer's other way in below 52em, on
 	// every page. Hidden entirely above that breakpoint (rail.css), so this is
