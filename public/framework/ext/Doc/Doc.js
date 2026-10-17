@@ -159,11 +159,7 @@ export class Doc extends Page {
 		await Promise.all(kids.map(k => k.ready));   // each child reads its own file first, so the ranking sees real dates
 		box.empty(() => {
 			if (!kids.length) return div.c("muted", "No tasks yet");
-			for (const kid of Task.rank(kids))
-				div.c("doc-task flex gap-50", () => {
-					kid.render();
-					if (kid.data.path) a("Open").href(kid.data.path);
-				});
+			for (const kid of Task.rank(kids)) div.c("doc-task", () => Task.View.row(kid));
 		});
 	}
 
