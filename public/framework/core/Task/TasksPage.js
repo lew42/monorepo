@@ -1,4 +1,4 @@
-import { Page, div, a, span, icon } from "/app.js";
+import { Page, div, a, span, small, icon } from "/app.js";
 import Task from "./Task.js";
 import "./TaskView.js";   // sets Task.View (and loads TaskView.css, which styles the groups too)
 
@@ -45,10 +45,17 @@ export class TasksPage extends Page {
 
 	static draw(groups){
 		if (!groups.some(g => g.tasks.length)) return void div.c("muted", "No tasks yet");
-		for (const { module, tasks } of groups) if (tasks.length) div.c("tasks-group", () => {
-			a.c("tasks-group-head", () => { icon("folder"); span(module); }).href(module === "/" ? "/" : `/framework/${module}/`);
-			tasks.forEach(t => Task.View.row(t));
-		});
+		// Open tasks first; finished ones fold under "+ N done" (the migration filled /tasks/ with 211 mostly-finished tasks).
+		for (const { module, tasks } of groups) if (tasks.length){
+			const open = tasks.filter(t => this.open(t)), done = tasks.filter(t => !this.open(t));
+			const $group = div.c("tasks-group"), fill = all => $group.empty(() => {
+				a.c("tasks-group-head", () => { icon("folder"); span(module); }).href(module === "/" ? "/" : `/framework/${module}/`);
+				open.forEach(t => Task.View.row(t));
+				if (all) done.forEach(t => Task.View.row(t));
+				else if (done.length) small.c("task-row-more", `+ ${done.length} done`).click(() => fill(true));
+			});
+			fill(false);
+		}
 	}
 }
 
