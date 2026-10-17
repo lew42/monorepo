@@ -20,3 +20,7 @@
 {"decision":{"id":"plan-approved-build-series","at":"2026-10-16T19:26:32-05:00","say":"Build steps 3-11 in series, one Sonnet helper per step, each in its own worktree off michael/dev; tests green before merge; one commit per step; budget $35 total, tell voice-app at $30. 2-hour follow-up dropped.","alternative":"parallel helpers; rejected because each step builds on the previous one"}}
 {"assign":{"at":"2026-10-16T19:26:32-05:00","now":"building step 3 of 11"}}
 {"action":{"at":"2026-10-16T19:27:19-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-fields/requirements.md"]}}
+{"log":{"at":"2026-10-16T19:28:54-05:00","msg":"session resumed"}}
+{"commit":"506001bed"}
+{"assign":{"at":"2026-10-16T19:30:19-05:00","now":"step 3 landed (506001bed); building step 4, Task.View"}}
+{"action":{"at":"2026-10-16T19:30:38-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-view/requirements.md"]}}
