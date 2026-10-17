@@ -6,12 +6,14 @@ import { pace } from "../AITask/usage.js";
  * 100% of pace = exactly on the clock. Doc: readme.md. */
 export default class UsagePace {
 
-	static KINDS = { session: "5-hour session", weekly_all: "weekly, all models", weekly_scoped: "weekly, one model" };
+	/* The same names usage_rail uses, so one limit has one name on the page. */
+	static KINDS = { session: "5h session", weekly_all: "weekly — all models" };
+	static label(l){ return UsagePace.KINDS[l.kind] ?? (l.kind === "weekly_scoped" ? "weekly — " + (l.scope?.model?.display_name ?? "scoped") : l.kind); }
 
 	/* One limit -> the numbers every variant draws. `ratio` is null in the first tenth of a window (noise, same rule as usage_rail). */
 	static of(limit, now = Date.now()){
 		const s = pace(limit, now), at = (s.elapsed ?? 0) * 100;
-		return { label: UsagePace.KINDS[limit.kind] ?? limit.kind, used: limit.percent, at, gap: limit.percent - at,
+		return { label: UsagePace.label(limit), used: limit.percent, at, gap: limit.percent - at,
 			ratio: s.elapsed > 0.1 ? limit.percent / at : null, tone: s.tone, remaining: s.remaining };
 	}
 

@@ -19,7 +19,7 @@ export default class UsagePage extends Page {
 			p("The bar is spend; the ▼ is the clock. Early in a window the bar is a few pixels wide, so being ahead or behind is hard to see.");
 			usage_rail(u);
 			h2("A. Used ÷ pace");
-			p("The bar is how far ahead of the clock you are. The line in the middle is on pace; empty is idle, full is double pace.");
+			p("The bar is your spend divided by the clock. The line in the middle is on pace; empty is idle, full is double pace.");
 			div.c("up-set", () => nums.forEach(n => UsagePace.ratio(n)));
 			h2("B. The gap from pace");
 			p("The bar grows left of the line when you are under pace and right of it when you are over. Its scale zooms to the gap, so a small gap is still visible.");
