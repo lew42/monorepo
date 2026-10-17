@@ -15,3 +15,4 @@
 {"log":{"at":"2026-10-17T00:15:00-05:00","msg":"mastermind-sheet: 40 min after the go, no edit in its worktree and no transcript line since 23:33; interrupted (its turn had cost $7.5), told to stand down"}}
 {"agent":{"task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/checkup-sheet/sheet-steps-2-4","id":"minion-sheet-steps","model":"claude-sonnet-5-5","at":"2026-10-17T00:15:00-05:00","sent":"steps 2, 3, 4 of the sheet proposal, one commit and merge each, $9"}}
 {"log":{"at":"2026-10-17T00:15:00-05:00","msg":"checkup.md written; clarity agents' checklist rewrites of sheet-cleanup and sheet-dictation-mocks kept"}}
+{"log":{"at":"2026-10-16T23:37:00-05:00","msg":"correction: the 'stall' was a misread MCP call timeout (the go went out at 23:31; it was 23:35). minion-sheet-steps stopped before it started; steps 2 to 4 handed back to mastermind-sheet. Trap noted in .claude/skills/sub-mastermind/improvements.md"}}
