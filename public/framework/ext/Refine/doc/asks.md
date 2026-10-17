@@ -19,3 +19,7 @@ Code: `class AskIndex` in [`Server/AskIndex.mjs`](/Server/AskIndex.mjs), called 
 ## Watch out
 - `ModuleInbox.modules()` skips folders named `sessions`, so `ai/sessions`'s inbox is written but `ModuleReview` does not list it yet.
 - Run the backfill from the main tree: a worktree does not hold the session folders that are still untracked there.
+
+## Asks are also Tasks (step 8 of the task system plan)
+
+`AskIndex.after_refine` now also adds one `Task` per newly recorded ask to the heard session's `task.jsonl`, through the item tool (`caller: refine-queue`; `source: {session, line, id}` links back to the ask, and a repeat call adds none). `AskIndex.tasks_view(dir)` lists those tasks read-only: the start of asks.jsonl becoming a view. Test: `Server/AskIndex-tasks.test.mjs`.

@@ -425,7 +425,7 @@ function validate(Task, file, delta){
 	return null;
 }
 
-async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
+export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
 	url ??= own_page(ctx);
 	const at = await resolve(url, target, true);
 	if (!at) return { ok: false, why: `"${url}" is not a page under public/` };

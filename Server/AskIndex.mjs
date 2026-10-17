@@ -164,13 +164,59 @@ export default class AskIndex {
 
 	/** After one prompt is refined (RefineQueue.one): record each ask, then route it. Returns {recorded, done, inboxed}. */
 	after_refine(ref, parsed){
-		const have = this.records(), n = { recorded: 0, done: 0, inboxed: 0 };
+		const have = this.records(), n = { recorded: 0, done: 0, inboxed: 0 }, fresh = [];
 		parsed.asks.forEach((a, i) => {
 			const row = this.record({ session: ref.session, line: ref.line, at: ref.at, id: a.id ?? "a" + (i + 1), ask: a.text, module: a.module }, have);
-			if (!row) return; n.recorded++;
+			if (!row) return; n.recorded++; fresh.push(row);
 			const s = this.route(row); if (s === "done") n.done++; else if (s === "inboxed") n.inboxed++;
 		});
+		// Each new ask is also a Task. Async, so a hidden promise: n keeps its shape; await n.tasks for {added, skipped, no_folder}.
+		Object.defineProperty(n, "tasks", { value: this.make_tasks(fresh) });
 		return n;
+	}
+
+	// ---- asks as tasks (step 8 of the task system plan; doc: ext/Refine/doc/asks.md) -----------------
+
+	/** The folder of a session's task file, as { dir, url, file } (url is relative to public/), or null. */
+	task_home(session){
+		const dir = this.session_dir(session);
+		for (const name of ["task.jsonl", "session.jsonl"]){
+			const file = path.join(dir, name), rel = path.relative(path.join(this.root, "public"), dir).split(path.sep).join("/");
+			if (fs.existsSync(file) && !rel.startsWith("..")) return { dir, file, url: "/" + rel + "/" };
+		}
+		return null;
+	}
+
+	/** Ask rows → Tasks through the item tool. Never throws. Returns { added, skipped, no_folder }. */
+	async make_tasks(rows){
+		const out = { added: 0, skipped: 0, no_folder: 0 };
+		try {
+			const { run_item } = await import("../Servex/agents/page_tools.js");
+			for (const row of rows){
+				const line = Number(row.prompt_ref.split("#")[1]), home = this.task_home(row.session);
+				if (!home){ out.no_folder++; continue; }
+				const source = { session: row.session, line, id: row.id }, key = AskIndex.source_key(source);
+				if ((await AskIndex.tasks_view(home.dir, this.root)).some(t => AskIndex.source_key(t.source) === key)){ out.skipped++; continue; }
+				const title = String(row.ask).replace(/\s+/g, " ").trim().slice(0, 100);
+				const add = { type: "Task", title, expected: row.ask, module: row.module, source, ...(row.priority ? { priority: row.priority } : {}) };
+				const r = await run_item({ path: home.url, delta: { tasks: { add } } }, { caller: "refine-queue" });
+				r.ok ? out.added++ : out.no_folder++;
+			}
+		} catch (e){ out.error = String(e?.message ?? e); }
+		return out;
+	}
+
+	static source_key(s){ return s ? `${s.session}|${s.line}|${s.id}` : ""; }
+
+	/** Read-only: a session folder's tasks that came from an ask: [{ title, state, module, source }]. */
+	static async tasks_view(dir, root = ROOT){
+		const file = ["task.jsonl", "session.jsonl"].map(n => path.join(dir, n)).find(f => fs.existsSync(f));
+		if (!file) return [];
+		const lines = AskIndex.read(file);
+		const { Task } = await import(pathToFileURL(path.join(root, FW, "core/Task/Task.js")).href);
+		const { default: Session } = await import(pathToFileURL(path.join(root, FW, "core/Session/Session.js")).href);
+		const top = path.basename(file) === "session.jsonl" ? Session.replay(lines) : Task.replay(lines);
+		return [...(top._tasks ?? [])].map(t => ({ title: t.get_one("title"), state: t.state, module: t.get_one("module"), source: t.get_one("source") })).filter(t => t.source);
 	}
 
 	// ---- backfill from the refine loop's flat index -------------------------------------------------
