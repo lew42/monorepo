@@ -1,0 +1,3 @@
+{"id":"phone-server","path":"/framework/servex/tasks/phone-server/","parent":"/framework/servex/tasks/","title":"Servex: the phone site (port 8137) is always up, started by Servex","module":"servex","sessions":[{"id":null,"task":"/framework/ai/sessions/2026/10/03/phone-server/"}],"by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"set":{"now":"queued","brief":"/framework/ai/sessions/2026/10/03/phone-server/requirements.md","owner":"mastermind-servex","queue":"top: an owner ask (vscode-mastermind, 2026-10-03 23:00)","model":"claude-sonnet-5","effort":"medium"}}
+{"stop":{"at":null,"why":"migrated: never landed or closed; last line unknown"}}

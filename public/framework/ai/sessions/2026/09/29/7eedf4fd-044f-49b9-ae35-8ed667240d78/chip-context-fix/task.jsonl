@@ -24,3 +24,4 @@
 {"log":{"at":"2026-09-29T15:02:57-05:00","msg":"text-check: outcome: a 93-word paragraph (\"- [x] prove it end to end, headless, both send pat…\"); outcome: a 86-word paragraph (\"**Left deliberately:** no fresh-eyes Opus review r…\"); outcome: 286 words (120 at most; move the rest one click down)"}}
 {"log":{"at":"2026-09-29T15:02:57-05:00","msg":"doc-check: 0 modules — clean"}}
 {"assign":{"cost_usd":1.9192,"cost":{"root":"minion-chip-context-fix","agents":[{"id":"minion-chip-context-fix","model":"claude-sonnet-5","role":"minion","usd":1.9192}],"own_usd":1.92,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-09-29T13:43:26-05:00","to":"2026-09-29T15:02:48-05:00"},"at":"2026-09-29T15:03:02-05:00"}}}
+{"home":"/framework/ext/drawer/tasks/chip-context-fix/"}

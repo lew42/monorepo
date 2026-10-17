@@ -1,0 +1,22 @@
+{"id":"tasks","path":"/framework/ux/Dictate/tasks/","title":"ux/Dictate tasks","mode":"parallel"}
+{"task":"/framework/ux/Dictate/tasks/whisper-autostart/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/dictate-silence/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/dictation-playground/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/minion-workbench/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/card-threaded-replies/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/chat-autoscroll/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/chat-duplicate-messages/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/chat-menu-merge/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/clean-dictate-mode/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/context-card-type/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/rail-fullscreen-textarea/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/dictate-pulse-dot/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/dictate-stop-sound/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/nested-sheet-example/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/sheet-chrome-autohide/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/sheet-close-keep-mic/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/voice-sheet-header/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/push-to-talk/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/dictate-fixes/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/dictate-live-state/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/dictate-one-engine/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}

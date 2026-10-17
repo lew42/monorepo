@@ -51,3 +51,4 @@
 {"assign":{"cost_usd":12.3619,"cost":{"root":"task-mastermind-panel2-sessions","agents":[{"id":"task-mastermind-panel2-sessions","model":"sonnet","role":"task-mastermind","usd":4.2949},{"id":"minion-panel2","model":"claude-sonnet-5","role":"minion","usd":8.067},{"id":"minion-inbox-restructure","model":"claude-sonnet-5","role":"minion","usd":null},{"id":"minion-panel2-2","model":"claude-sonnet-5","role":"minion","usd":null}],"own_usd":4.29,"minions_usd":8.07,"parent_task":null,"open":2,"window":{"from":"2026-10-02T18:18:55-05:00","to":null},"at":"2026-10-02T19:58:59-05:00"}}}
 {"action":{"at":"2026-10-02T20:03:13-05:00","did":"edit","files":[".gitignore"]}}
 {"action":{"at":"2026-10-02T19:14:10-05:00","did":"edit","files":["public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs"]}}
+{"home":"/framework/ext/panel2/tasks/panel2-sessions/"}

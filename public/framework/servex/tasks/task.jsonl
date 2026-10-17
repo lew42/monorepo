@@ -1,2 +1,18 @@
 {"id":"tasks","path":"/framework/servex/tasks/","title":"servex tasks","mode":"parallel"}
 {"task":"/framework/servex/tasks/servex-tools-and-live-agent-control/","by":"voice-app","ts":"2026-10-17T01:30:49.524Z"}
+{"task":"/framework/servex/tasks/follow/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/restart-outside-tree/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/dormant-idle/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/known-issues/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/node-reap/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/stamped-logs/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/standing-voice-pair/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/main-branch-guard/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/node-reap-run/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/perf-audit/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/phone-server/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/pool-unstick/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/restart-keeps-agents/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/spawn-logs-ask/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/spend-shape/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/worktree-servers-revive/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}

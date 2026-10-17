@@ -37,3 +37,4 @@
 {"action":{"at":"2026-08-29T14:59:23-05:00","did":"edit","files":["public/imagine/feeds/page.js"]}}
 {"action":{"at":"2026-08-29T14:59:24-05:00","did":"edit","files":["public/imagine/page.js"]}}
 {"assign":{"highlight":{"icon":"explore","title":"Ten app shells","line":"Ten ways an app frames itself, each taking the whole screen.","url":"/imagine/shells/"}}}
+{"home":"/framework/styles/tasks/shells-lab/"}

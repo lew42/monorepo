@@ -47,3 +47,4 @@
 {"log":{"at":"2026-10-03T16:57:36-05:00","msg":"Proof: curl 200, node Server/layout-check.mjs ok with no overflow/console errors at all 4 widths; screenshot shows three real rows including \"Toggle (demoggle) -- Ctrl+Shift+M\". Commit 7483ff78."}}
 {"assign":{"now":"landed (follow-up: modifier keys)","links":[{"url":"/framework/ux/Hotkeys/","label":"Hotkeys — live settings UI + demo, now with Ctrl+Shift+M"},{"url":"/framework/ux/Hotkeys/doc/decisions/","label":"doc/decisions.md — modifier semantics"}]}}
 {"action":{"at":"2026-10-03T16:57:38-05:00","did":"edit","files":["public/framework/ai/2026-10-03/push-to-talk/hotkeys-module/day-followup.json"]}}
+{"home":"/framework/ux/Hotkeys/tasks/hotkeys-module/"}

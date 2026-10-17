@@ -1,0 +1,13 @@
+{"id":"tasks","path":"/framework/ai/v/3/tasks/","title":"ai/v/3 tasks","mode":"parallel"}
+{"task":"/framework/ai/v/3/tasks/whisper-local/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ai/v/3/tasks/approve-loop/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ai/v/3/tasks/front-door-today/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ai/v/3/tasks/head-mobile/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ai/v/3/tasks/live-select/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ai/v/3/tasks/v3-ways-out/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ai/v/3/tasks/board-from-events/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ai/v/3/tasks/board-declutter/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ai/v/3/tasks/prompt-lifecycle/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ai/v/3/tasks/talk-to-assistant/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ai/v/3/tasks/days-view/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ai/v/3/tasks/worktree-proof/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}

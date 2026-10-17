@@ -21,3 +21,4 @@
 {"log":{"at":"2026-09-22T17:35:51-05:00","msg":"skill: fans"}}
 {"log":{"at":"2026-09-22T17:36:47-05:00","msg":"CORRECTION: node server.js is a supervisor that forks run.js as a child and holds the actual listening socket - killing only that child PID (what netstat shows as LISTENING) leaves the supervisor alive, and it respawned a fresh child on 8098 a minute later. Found it via netstat again post-landing, killed both my supervisor trees for real this time with taskkill /PID <supervisor> /T /F (31536 and 22092, the two node server.js top-level PIDs matching my own launch times), confirmed port 8098 free for 3s after. Next time: kill the SUPERVISOR pid (node.exe \"server.js\", not node.exe Server/run.js), with /T, not the child netstat happens to show."}}
 {"log":{"at":"2026-09-22T17:36:48-05:00","msg":"skill: skill-improvement"}}
+{"home":"/framework/ai/v/3/tasks/talk-to-assistant/"}

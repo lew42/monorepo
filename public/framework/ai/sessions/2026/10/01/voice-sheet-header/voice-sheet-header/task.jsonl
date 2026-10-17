@@ -18,3 +18,4 @@
 {"assign":{"cost_usd":4.2639,"cost":{"root":"minion-voice-sheet-header","agents":[{"id":"minion-voice-sheet-header","model":"claude-sonnet-5","role":"minion","usd":4.2639}],"own_usd":4.26,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-01T15:03:35-05:00","to":"2026-10-01T15:21:00-05:00"},"at":"2026-10-01T15:17:56-05:00"}}}
 {"log":{"at":"2026-10-01T15:18:00-05:00","msg":"layout-check: 2 pages at 1280/1920/2560/3440 — /framework/ext/drawer/: empty 0.719 at 2560, empty 0.792 at 3440, narrow_share 0.849 at 3440; /framework/ext/drawer/doc/decisions/: no result; sheets in layout-check/"}}
 {"log":{"at":"2026-10-01T15:18:26-05:00","msg":"padding-check: 2 pages — clean"}}
+{"home":"/framework/ux/Dictate/tasks/voice-sheet-header/"}

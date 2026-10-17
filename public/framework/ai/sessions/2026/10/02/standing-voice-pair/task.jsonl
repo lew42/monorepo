@@ -1,2 +1,3 @@
 {"assign":{"now":"queued","title":"Servex: one standing voice pair, recycled like fixer-1","brief":"public/framework/ai/2026-10-02/standing-voice-pair/requirements.md","owner":"mastermind-servex","queue":"after known-issues (checkpoint-11 item 2c)","model":"claude-sonnet-5","effort":"high"}}
 {"action":{"at":"2026-10-02T23:08:31-05:00","did":"edit","files":["public/framework/ai/2026-10-02/standing-voice-pair/requirements.md"]}}
+{"home":"/framework/servex/tasks/standing-voice-pair/"}

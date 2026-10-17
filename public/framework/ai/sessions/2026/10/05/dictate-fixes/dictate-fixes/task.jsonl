@@ -52,3 +52,4 @@
 {"log":{"at":"2026-10-04T21:39:33-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-04T21:39:39-05:00","msg":"done: dictate-fixes landed on michael/dev, finish-task complete (outcome, screenshot, day log closed). Opened dictate-followups as a separate task for the owner's 4 newer asks (budget reset) rather than absorbing them here. Idle now."}}
 {"assign":{"cost_usd":20.6033,"cost":{"root":"task-mastermind-dictate-fixes","agents":[{"id":"task-mastermind-dictate-fixes","model":"claude-sonnet-5","role":"task-mastermind","usd":20.6033,"usd_breakdown":{"in":0,"out":2.3346,"cache_read":15.1107,"cache_write":3.876},"cache_read_pct":70.8667}],"own_usd":20.6,"minions_usd":0,"parent_task":"2026-10-03/prompt-relay-skip-agents","open":0,"window":{"from":"2026-10-04T20:53:51-05:00","to":"2026-10-04T21:33:36-05:00"},"at":"2026-10-04T21:39:47-05:00"}}}
+{"home":"/framework/ux/Dictate/tasks/dictate-fixes/"}

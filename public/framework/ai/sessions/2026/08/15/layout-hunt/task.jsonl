@@ -42,3 +42,4 @@
 {"action":{"at":"2026-08-15T20:29:14-05:00","did":"edit","files":["public/framework/ext/LayoutTool/doc/file/report.js.md"]}}
 {"action":{"at":"2026-08-15T20:29:21-05:00","did":"edit","files":["public/framework/dev/DevBar/doc/file/layout.js.md"]}}
 {"log":{"at":"2026-08-16T09:22:35-05:00","msg":"session resumed"}}
+{"home":"/framework/dev/DevBar/tasks/layout-hunt/"}

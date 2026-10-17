@@ -13,3 +13,4 @@
 {"log":{"at":"2026-10-01T15:38:19-05:00","msg":"skill: finish-task"}}
 {"log":{"at":"2026-10-01T15:38:51-05:00","msg":"skill: documentation"}}
 {"log":{"at":"2026-10-01T15:38:59-05:00","msg":"skill: check-claude-usage"}}
+{"home":"/framework/ux/Dictate/tasks/sheet-close-keep-mic/"}

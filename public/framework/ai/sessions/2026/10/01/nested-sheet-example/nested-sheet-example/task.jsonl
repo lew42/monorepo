@@ -18,3 +18,4 @@
 {"log":{"at":"2026-10-01T15:25:22-05:00","msg":"lifecycle: nothing of this task's was left running"}}
 {"assign":{"cost_usd":4.1775,"cost":{"root":"minion-nested-sheet-example","agents":[{"id":"minion-nested-sheet-example","model":"claude-sonnet-5","role":"minion","usd":4.1775}],"own_usd":4.18,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-01T15:07:34-05:00","to":"2026-10-01T15:26:00-05:00"},"at":"2026-10-01T15:25:27-05:00"}}}
 {"log":{"at":"2026-10-01T15:25:31-05:00","msg":"layout-check: 2 pages at 1280/1920/2560/3440 — /framework/ext/drawer/doc/sheet/: empty 0.731 at 2560, empty 0.784 at 3440, narrow_share 0.794 at 3440; /framework/ai/2026-10-01/nested-sheet-example/: errors, empty 0.689 at 2560, empty 0.76 at 3440, narrow_share 0.926 at 3440; sheets in layout-check/"}}
+{"home":"/framework/ux/Dictate/tasks/nested-sheet-example/"}

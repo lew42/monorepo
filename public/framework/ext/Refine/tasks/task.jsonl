@@ -1,2 +1,5 @@
 {"id":"tasks","path":"/framework/ext/Refine/tasks/","title":"ext/Refine tasks","mode":"parallel"}
 {"task":"/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/","by":"voice-app","ts":"2026-10-17T01:30:49.748Z"}
+{"task":"/framework/ext/Refine/tasks/minion-core/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Refine/tasks/clean-test-page/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Refine/tasks/refine-v3/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}

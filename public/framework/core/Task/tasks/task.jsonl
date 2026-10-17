@@ -1,2 +1,3 @@
 {"id":"tasks","path":"/framework/core/Task/tasks/","title":"core/Task tasks","mode":"parallel"}
 {"task":"/framework/core/Task/tasks/task-system-build/","by":"voice-app","ts":"2026-10-17T01:30:40.800Z"}
+{"task":"/framework/core/Task/tasks/task-class/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}

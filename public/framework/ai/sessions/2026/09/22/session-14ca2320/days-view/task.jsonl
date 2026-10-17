@@ -22,3 +22,4 @@
 {"log":{"at":"2026-09-22T15:43:15-05:00","msg":"skill: finish-task"}}
 {"assign":{"highlight":{"icon":"build","title":"Days view, the new default","line":"The AI board now opens on a short report of what landed each day, not a wall of activity.","url":"/framework/ai/"}}}
 {"log":{"at":"2026-09-22T15:43:54-05:00","msg":"skill: skill-improvement"}}
+{"home":"/framework/ai/v/3/tasks/days-view/"}

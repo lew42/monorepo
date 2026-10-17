@@ -1,0 +1,3 @@
+{"id":"context-card-type","path":"/framework/ux/Dictate/tasks/context-card-type/","parent":"/framework/ux/Dictate/tasks/","title":"context card type","module":"ux/Dictate","sessions":[{"id":"04c17745-04f0-4ca9-902c-0439cafdf042","task":"/framework/ai/sessions/2026/10/01/context-card-type/context-card-type/"}],"by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"set":{"agent":"minion-context-card-type","card":"context-card-type","brief":"/framework/ux/Dictate/","model":"claude-sonnet-5","requested_at":"2026-10-01T15:38:04-05:00","now":"reading the readme chain and the chat/card content systems","steps":[],"step":1,"session":"04c17745-04f0-4ca9-902c-0439cafdf042"}}
+{"stop":{"at":"2026-10-03T03:35:11.000Z","why":"migrated: never landed or closed; last line 2026-10-03"}}

@@ -30,3 +30,4 @@
 {"action": {"at": "2026-09-18T14:29:27-05:00", "did": "edit", "files": ["public/imagine/paging/page.js"]}}
 {"log": {"at": "2026-09-18T14:29:27-05:00", "msg": "verified headless (port 8142, restarted for this addendum, killed by its real PID 17508 after): /imagine/paging/ and /imagine/paging/made/ both load with zero 404s and zero console/page errors; document.title reads 'Paging' and 'Made' respectively, confirming both pages keep their titles."}}
 {"assign": {"step": 7, "links": [{"url": "/framework/ext/toc/", "label": "ext/toc — the fixed component"}, {"url": "/framework/ext/toc/doc/decisions.md", "label": "ext/toc decisions — full record"}, {"url": "/imagine/cms/json/edit/", "label": "cms/json edit — converted to edit()"}, {"url": "/imagine/importance/", "label": "importance — converted to edit()"}, {"url": "/imagine/paging/made/", "label": "paging/made — the fourth item, now 404-free"}]}}
+{"home":"/framework/ext/toc/tasks/dead-nav/"}

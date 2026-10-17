@@ -35,3 +35,4 @@
 {"log":{"at":"2026-09-29T16:52:59-05:00","msg":"doc-check: 0 modules — clean"}}
 {"log":{"at":"2026-09-29T16:52:59-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
 {"assign":{"cost_usd":2.849,"cost":{"root":"task-mastermind-restart-outside-tree","agents":[{"id":"task-mastermind-restart-outside-tree","model":"claude-sonnet-5","role":"task-mastermind","usd":2.849}],"own_usd":2.85,"minions_usd":0,"parent_task":null,"open":0,"window":{"from":"2026-09-29T16:24:24-05:00","to":"2026-09-29T16:52:46-05:00"},"at":"2026-09-29T16:53:07-05:00"}}}
+{"home":"/framework/servex/tasks/restart-outside-tree/"}

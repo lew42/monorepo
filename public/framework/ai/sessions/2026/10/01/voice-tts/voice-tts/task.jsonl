@@ -27,3 +27,4 @@
 {"assign":{"cost_usd":4.7785,"cost":{"root":"minion-voice-tts","agents":[{"id":"minion-voice-tts","model":"claude-sonnet-5","role":"minion","usd":4.7785}],"own_usd":4.78,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-01T15:30:59-05:00","to":"2026-10-01T15:55:00-05:00"},"at":"2026-10-01T15:47:01-05:00"}}}
 {"log":{"at":"2026-10-01T15:47:05-05:00","msg":"layout-check: 2 pages at 1280/1920/2560/3440 — /framework/audio/Voice/: empty 0.765 at 2560, empty 0.832 at 3440, narrow_share 1 at 3440; /framework/audio/: empty 0.672 at 2560, empty 0.791 at 3440, narrow_share 0.884 at 3440; sheets in layout-check/"}}
 {"log":{"at":"2026-10-01T15:47:30-05:00","msg":"padding-check: 2 pages — clean"}}
+{"home":"/framework/audio/Voice/tasks/voice-tts/"}

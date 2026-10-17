@@ -7,3 +7,4 @@
 {"log":{"at":"2026-09-24T19:44:18-05:00","msg":"compose.js: held segments now also wait while last_loud_at is recent (flush_when_quiet), so speech mid-sentence is never cut; stop still flushes at once. Page loads with zero console errors."}}
 {"assign":{"cost_usd":0.5665,"cost":{"root":"minion-voice-wait","agents":1,"own_usd":0.57,"minions_usd":0,"parent_task":null,"open":0,"at":"2026-09-24T19:44:28-05:00"}}}
 {"assign":{"cost_usd":0.5665,"cost":{"root":"minion-voice-wait","agents":[{"id":"minion-voice-wait","model":"claude-sonnet-5","role":"minion","usd":0.5665}],"own_usd":0.57,"minions_usd":0,"parent_task":null,"open":0,"window":{"from":"2026-09-24T19:43:22-05:00","to":"2026-09-24T19:43:50-05:00"},"at":"2026-09-24T20:09:07-05:00"}}}
+{"home":"/framework/ai2/tasks/voice-wait-for-pause/"}

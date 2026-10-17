@@ -1,0 +1,3 @@
+{"id":"tasks","path":"/framework/ext/Draggable/tasks/","title":"ext/Draggable tasks","mode":"parallel"}
+{"task":"/framework/ext/Draggable/tasks/draggable-layer-fix/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Draggable/tasks/ghost-theme-fix/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}

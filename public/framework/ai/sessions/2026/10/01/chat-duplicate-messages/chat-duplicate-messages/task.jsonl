@@ -21,3 +21,4 @@
 {"log":{"at":"2026-10-01T15:01:45-05:00","msg":"lifecycle: nothing of this task's was left running"}}
 {"log":{"at":"2026-10-01T15:01:45-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
 {"assign":{"cost_usd":3.1393,"cost":{"root":"minion-chat-duplicate-messages","agents":[{"id":"minion-chat-duplicate-messages","model":"claude-sonnet-5","role":"minion","usd":3.1393}],"own_usd":3.14,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-01T14:50:24-05:00","to":"2026-10-01T15:00:51-05:00"},"at":"2026-10-01T15:01:50-05:00"}}}
+{"home":"/framework/ux/Dictate/tasks/chat-duplicate-messages/"}

@@ -1,0 +1,3 @@
+{"id":"spend-shape","path":"/framework/servex/tasks/spend-shape/","parent":"/framework/servex/tasks/","title":"Servex: spend goes where results are, and you can see who spawned whom","module":"servex","tags":["ai"],"sessions":[{"id":null,"task":"/framework/ai/sessions/2026/10/03/spend-shape/"}],"by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"set":{"now":"queued","brief":"/framework/ai/sessions/2026/10/03/spend-shape/requirements.md","owner":"mastermind-servex","queue":"top, with merge-commits (vscode-mastermind, owner ask 2026-10-03 23:40)","model":"claude-sonnet-5","effort":"medium"}}
+{"stop":{"at":null,"why":"migrated: never landed or closed; last line unknown"}}

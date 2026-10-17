@@ -1,0 +1,4 @@
+{"id":"tasks","path":"/framework/ext/panel2/tasks/","title":"ext/panel2 tasks","mode":"parallel"}
+{"task":"/framework/ext/panel2/tasks/panel2-sessions/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/panel2/tasks/part1-panel2/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/panel2/tasks/sessions-grid-v2/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}

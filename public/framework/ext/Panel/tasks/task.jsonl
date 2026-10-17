@@ -1,0 +1,11 @@
+{"id":"tasks","path":"/framework/ext/Panel/tasks/","title":"ext/Panel tasks","mode":"parallel"}
+{"task":"/framework/ext/Panel/tasks/framework-clock/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Panel/tasks/panel-ui-overhaul/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Panel/tasks/panel-simplify/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Panel/tasks/panel-document/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Panel/tasks/panel-bar-sweep/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Panel/tasks/panel-demos/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Panel/tasks/panel-flow-sizing/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Panel/tasks/panel-groups/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Panel/tasks/panel-selection/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Panel/tasks/audit-fixes/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}

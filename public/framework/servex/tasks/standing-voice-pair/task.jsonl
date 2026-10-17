@@ -1,0 +1,3 @@
+{"id":"standing-voice-pair","path":"/framework/servex/tasks/standing-voice-pair/","parent":"/framework/servex/tasks/","title":"Servex: one standing voice pair, recycled like fixer-1","module":"servex","tags":["ai"],"sessions":[{"id":null,"task":"/framework/ai/sessions/2026/10/02/standing-voice-pair/"}],"by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"set":{"now":"queued","brief":"/framework/ai/sessions/2026/10/02/standing-voice-pair/requirements.md","owner":"mastermind-servex","queue":"after known-issues (checkpoint-11 item 2c)","model":"claude-sonnet-5","effort":"high"}}
+{"stop":{"at":"2026-10-03T04:08:31.000Z","why":"migrated: never landed or closed; last line 2026-10-03"}}

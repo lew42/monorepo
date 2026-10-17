@@ -1,0 +1,3 @@
+{"id":"stamped-logs","path":"/framework/servex/tasks/stamped-logs/","parent":"/framework/servex/tasks/","title":"Servex: logs stamped by code, never typed by an AI","module":"servex","tags":["ai"],"sessions":[{"id":null,"task":"/framework/ai/sessions/2026/10/02/stamped-logs/"}],"by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"set":{"now":"queued","brief":"/framework/ai/sessions/2026/10/02/stamped-logs/requirements.md","owner":"mastermind-servex","queue":"after token-reduction, before card-pipeline-2; replaces checkpoint-10's JSONL gaps 2-5","model":"claude-sonnet-5","effort":"high"}}
+{"stop":{"at":"2026-10-03T02:43:14.000Z","why":"migrated: never landed or closed; last line 2026-10-03"}}

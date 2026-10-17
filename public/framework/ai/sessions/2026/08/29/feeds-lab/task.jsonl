@@ -29,3 +29,4 @@
 {"action":{"at":"2026-08-29T15:49:32-05:00","did":"edit","files":["public/imagine/mag/page.js"]}}
 {"action":{"at":"2026-08-29T15:49:34-05:00","did":"edit","files":["public/imagine/page.js"]}}
 {"assign":{"highlight":{"icon":"explore","title":"Three feeds","line":"Three ways to stream a list of things, each judged at four widths.","url":"/imagine/feeds/"}}}
+{"home":"/framework/styles/tasks/feeds-lab/"}

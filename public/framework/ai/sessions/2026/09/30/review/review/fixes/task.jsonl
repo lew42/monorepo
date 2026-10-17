@@ -12,3 +12,4 @@
 {"log":{"at":"2026-09-30T13:42:03-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
 {"log":{"at":"2026-09-30T13:45:04-05:00","heartbeat":"deliberate","msg":"minion-review-fixes its agent is not running: it was stopped on purpose by task-mastermind-review at 2026-09-30T13:39:59-05:00; not revived."}}
 {"log":{"at":"2026-09-30T13:45:06-05:00","heartbeat":"deliberate","msg":"minion-review-fixes its agent is not running: it was stopped on purpose by task-mastermind-review at 2026-09-30T13:39:59-05:00; not revived."}}
+{"home":"/framework/ai/review/tasks/fixes/"}

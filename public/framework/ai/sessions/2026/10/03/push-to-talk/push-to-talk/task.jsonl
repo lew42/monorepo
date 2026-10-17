@@ -102,3 +102,4 @@
 {"log":{"at":"2026-10-04T20:59:02-05:00","heartbeat":"deliberate","msg":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived."}}
 {"log":{"at":"2026-10-04T21:45:36-05:00","heartbeat":"deliberate","msg":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived."}}
 {"log":{"at":"2026-10-04T23:25:40-05:00","heartbeat":"deliberate","msg":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived."}}
+{"home":"/framework/ux/Dictate/tasks/push-to-talk/"}

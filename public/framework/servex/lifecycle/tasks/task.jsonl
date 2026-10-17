@@ -1,0 +1,4 @@
+{"id":"tasks","path":"/framework/servex/lifecycle/tasks/","title":"servex/lifecycle tasks","mode":"parallel"}
+{"task":"/framework/servex/lifecycle/tasks/lifecycle/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/lifecycle/tasks/build/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/lifecycle/tasks/fix-page/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}

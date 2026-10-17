@@ -21,3 +21,4 @@
 {"log":{"at":"2026-09-29T15:53:27-05:00","msg":"text-check: outcome: 151 words (120 at most; move the rest one click down)"}}
 {"log":{"at":"2026-09-29T15:53:27-05:00","msg":"doc-check: public/framework/ux/Content/Disclosure/variants: no readme, no doc/"}}
 {"assign":{"cost_usd":3.4076,"cost":{"root":"minion-summary-styles","agents":[{"id":"minion-summary-styles","model":"claude-sonnet-5","role":"minion","usd":3.4076}],"own_usd":3.41,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-09-29T15:37:55-05:00","to":"2026-09-29T15:51:51-05:00"},"at":"2026-09-29T15:53:33-05:00"}}}
+{"home":"/framework/ux/Content/Disclosure/tasks/summary-styles/"}

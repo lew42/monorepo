@@ -44,3 +44,4 @@
 {"log":{"at":"2026-10-02T19:58:53-05:00","msg":"doc-check: 1 module — clean"}}
 {"log":{"at":"2026-10-02T19:58:54-05:00","msg":"lifecycle: nothing of this task's was left running"}}
 {"log":{"at":"2026-10-02T19:58:54-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"home":"/framework/ext/panel2/tasks/part1-panel2/"}

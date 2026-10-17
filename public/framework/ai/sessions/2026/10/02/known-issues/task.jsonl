@@ -1,3 +1,4 @@
 {"assign":{"now":"queued","title":"Servex: Known issues, one live list","brief":"public/framework/ai/2026-10-02/known-issues/requirements.md","owner":"mastermind-servex","queue":"right after token-reduction (it shares the start-line hook, item 2); ahead of card-pipeline-2","model":"claude-sonnet-5","effort":"high"}}
 {"action":{"at":"2026-10-02T22:08:10-05:00","did":"edit","files":["public/framework/ai/2026-10-02/known-issues/seed.json"]}}
 {"action":{"at":"2026-10-02T22:08:15-05:00","did":"edit","files":["public/framework/ai/2026-10-02/known-issues/requirements.md"]}}
+{"home":"/framework/servex/tasks/known-issues/"}

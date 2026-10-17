@@ -29,3 +29,4 @@
 {"log":{"at":"2026-10-01T23:22:23-05:00","msg":"doc-check: public/framework/ux/Content/Object: 3 dead links (/framework/ux/Content/Object/doc/shape/, /framework/ux/Content/Object/doc/default-view/, /framework/core/Page/api/)"}}
 {"log":{"at":"2026-10-02T04:22:23.991Z","msg":"clarity: queued (once per task)"}}
 {"log":{"at":"2026-10-01T23:22:24-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"home":"/framework/ux/Content/Object/tasks/minion-part1/"}
