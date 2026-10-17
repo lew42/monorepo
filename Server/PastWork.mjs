@@ -4,6 +4,7 @@
 //   node Server/PastWork.mjs <topic words...> [--limit 12] [--json]   one-screen candidate list for the topic
 //   node Server/PastWork.mjs --index                                   write public/framework/ai/past-work-index.md
 //   node Server/PastWork.mjs --brief "<question>" [--dir <path>]       print the Haiku searcher's brief: the question, the readme chain with its size, the answer shape
+//   node Server/PastWork.mjs --task <task dir>                          search on the dir's requirements.md title and write <dir>/past-work.md (computed, so every brief starts from it)
 // Sources: task.jsonl (title, request, outcome, group, landed_at), ai/asks.jsonl, doc/*.md + readme.md, git log --grep.
 import fs from "node:fs";
 import path from "node:path";
@@ -209,6 +210,14 @@ export default class PastWork {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
 	const argv = process.argv.slice(2);
 	if (argv.includes("--index")) console.log(JSON.stringify(PastWork.index()));
+	else if (argv.includes("--task")){
+		const dir = argv[argv.indexOf("--task") + 1], req = path.resolve(REPO, dir, "requirements.md");
+		const text = fs.existsSync(req) ? fs.readFileSync(req, "utf8") : "", title = (text.match(/^#\s+(.+)$/m) || [])[1] || path.basename(dir);
+		const res = PastWork.search(title.replace(/[^\w ]+/g, " "), 8), out = path.join(path.dirname(req), "past-work.md");
+		const note = "<!-- computed by node Server/PastWork.mjs --task; do not hand-edit. The judging step is in .claude/skills/past-work/SKILL.md -->";
+		fs.writeFileSync(out, [note, PastWork.format(res), "", "## If the title is not the thing's name", "", "```", PastWork.brief(title), "```", ""].join("\n"));
+		console.log(rel(out), res.tasks.length + " tasks," , res.modules.length + " modules,", (res.sessions || []).length + " sessions");
+	}
 	else if (argv.includes("--brief")){ const i = argv.indexOf("--brief"), di = argv.indexOf("--dir"); console.log(PastWork.brief(argv[i + 1], di >= 0 ? argv[di + 1] : undefined)); }
 	else {
 		const li = argv.indexOf("--limit"), limit = li >= 0 ? +argv.splice(li, 2)[1] : 12;
