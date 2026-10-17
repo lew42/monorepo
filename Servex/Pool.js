@@ -202,7 +202,8 @@ export default class Pool extends Events {
             // merge.mjs APPLIED this branch (over the owner's edits, or as a diff): its commits are not ancestors of
             // michael/dev, so a fast-forward would not bring it current. Remove it; make a fresh one. The commits stay
             // reachable on landed/<slot>-<date>, because worktree-down deletes the slot's own branch.
-            await this.git(slot.path, ["branch", "-f", `landed/${id}-${stamp().slice(0, 10)}`, "HEAD"]);
+            const sha = (await this.git(slot.path, ["rev-parse", "--short", "HEAD"])).out;
+            await this.git(slot.path, ["branch", "-f", `landed/${id}-${stamp().slice(0, 10)}-${sha}`, "HEAD"]);
             this.remove(slot);
             this.top_up();
             this.say(`pool: ${id} returned; its branch was applied, not merged, so it is removed and a fresh one made`, { id });

@@ -124,7 +124,7 @@ A taken slot is freed at once, with no grace wait, when its holder is `stopped` 
 - the branch has **no commits ahead** of `michael/dev` and the tree is clean; or
 - the commits ahead are **already on `michael/dev`**. `merge.mjs` lands a branch as a diff, so its commits are not ancestors. The test is by content: every file the branch changed must read the same on `michael/dev`, and a `.jsonl` log counts when every line the branch added is somewhere in the base's copy (a log only grows).
 
-Nothing is thrown away. The slot's folder goes, and its commits stay on `landed/<slot>-<date>`. A slot that truly holds unmerged commits or uncommitted files stays held, and its line names the branch (`1 unmerged commit(s) on worktree/qf-3`); after its holder has been stopped 30 minutes it is salvaged to `salvage/<slot>-<date>` as before.
+Nothing is thrown away. The slot's folder goes, and its commits stay on `landed/<slot>-<date>-<sha>`. A slot that truly holds unmerged commits or uncommitted files stays held, and its line names the branch (`1 unmerged commit(s) on worktree/qf-3`); after its holder has been stopped 30 minutes it is salvaged to `salvage/<slot>-<date>` as before.
 
 **A stale hold lets go.** `fixer-1` held `qf-8` with `hold()` for days after it was `gone`. A hold now stops counting once its holder has been `stopped` or `gone` for 12 h. A holder that vanished minutes ago (a registry blip) still holds.
 
