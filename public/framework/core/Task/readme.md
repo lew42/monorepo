@@ -73,6 +73,8 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 ## More
 
+- **Templates** (`template: "code" | "doc" | "scan"` on line 1; an approved task with an `agent` spawns itself): [doc/templates.md](doc/templates.md) · the owner's ask, and whether `task.jsonl` became `session.jsonl`: [doc/owner-2026-10-17-node-driven.md](doc/owner-2026-10-17-node-driven.md)
+- **The owner's words, 2026-10-16:** [task system](doc/owner-2026-10-16-task-system.md) · [composition](doc/owner-2026-10-16-composition.md) · [top-down](doc/owner-2026-10-16-top-down.md) · [UI](doc/owner-2026-10-16-ui.md) · [node side](doc/owner-2026-10-16-node-side.md) · [migration](doc/owner-2026-10-16-migration.md)
 - [Overview](/framework/core/Task/) · [Live](/framework/core/Task/live/) — start, pause,
   stop and complete a task with subtasks, live, no reload
 - [`Task.js`](./Task.js) · [`Task.test.mjs`](./Task.test.mjs) — the state machine, the

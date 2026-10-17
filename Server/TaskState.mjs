@@ -2,7 +2,7 @@
 // Reads Servex's agent registry (GET /agents) and each task.jsonl; appends one line to ai/tasks/state.jsonl
 // only when the picture changed, so /framework/ai/tasks/ tails it live. Doc: public/framework/ai/tasks/doc/architecture.md
 //   node Server/TaskState.mjs --print    one snapshot to stdout
-//   node Server/TaskState.mjs --watch    append on change (re-checks every 5 s; the registry has no push to subscribe to)
+//   node Server/TaskState.mjs --watch    append on change (re-checks every 5 s; the registry has no push to subscribe to). Servex runs one in TaskLoop; the newest watcher wins
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -133,9 +133,22 @@ export default class TaskState {
 		return s;
 	}
 
-	static async watch(every = 5000){
-		let prev = null;
-		for (;;){ try { prev = await this.write(OUT, prev); } catch (e) { console.error("TaskState:", e.message); } await new Promise(r => setTimeout(r, every)); }
+	/** One writer per state.jsonl: the newest watcher claims the lock and an older one stops at its next beat (a hand-started
+	 *  watcher from 10-14 ran stale code for days). `handle.stop()` ends it; Servex's TaskLoop starts one as its child. */
+	static watch(every = 5000, { out = OUT, lock = out + ".lock" } = {}){
+		const me = `${process.pid}:${Date.now()}`, handle = { stopped: false, stop(){ this.stopped = true; } };
+		fs.mkdirSync(path.dirname(lock), { recursive: true });
+		fs.writeFileSync(lock, me);
+		handle.done = (async () => {
+			let prev = null;
+			while (!handle.stopped){
+				let owner = null; try { owner = fs.readFileSync(lock, "utf8"); } catch {}
+				if (owner !== me){ console.error("TaskState: a newer watcher took over; stopping"); break; }
+				try { prev = await this.write(out, prev); } catch (e) { console.error("TaskState:", e.message); }
+				await new Promise(r => setTimeout(r, every));
+			}
+		})();
+		return handle;
 	}
 }
 
