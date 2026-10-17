@@ -5,3 +5,11 @@
 {"action":{"at":"2026-10-16T19:01:53-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-replay/requirements.md"]}}
 {"decision":{"at":"2026-10-16T19:02:16-05:00","id":"steps-1-2-approved","say":"voice-app approved steps 1-2 (Task.replay + waiting state; TaskLoop/TaskState read it). Spawned minion-task-replay (Sonnet, $6) in worktree C:/Code/lew42/worktrees/task-replay on worktree/task-replay. Steps 3-11 still wait on the owner.","brief":"task-replay/requirements.md"}}
 {"assign":{"at":"2026-10-16T19:02:16-05:00","now":"steps 1-2 building (minion-task-replay); steps 3-11 waiting on owner"}}
+{"commit":"a5c500aa0"}
+{"commit":"2c7dd6e1a"}
+{"commit":"a792fec9f"}
+{"commit":"9d964a1cc"}
+{"commit":"8935e1c77"}
+{"log":{"at":"2026-10-16T19:11:20-05:00","msg":"steps 1-2 landed on michael/dev as 8935e1c77. Review found one bug: assign lines with `at` were dropped by Item.set(); fixed in a792fec9f. All 1,638 real task.jsonl logs replay to the same state as before (412 open, 1,220 landed, 6 closed). Worktree removed; branch worktree/task-replay kept. Servex runs the new TaskLoop only after its next restart (the owner picks the time)."}}
+{"assign":{"at":"2026-10-16T19:11:20-05:00","now":"steps 1-2 landed (8935e1c77); steps 3-11 waiting on owner"}}
+{"wait":{"at":"2026-10-16T19:11:20-05:00","on":"owner","what":"approval of task system plan steps 3-11"}}
