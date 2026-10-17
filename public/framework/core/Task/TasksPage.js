@@ -33,7 +33,7 @@ export class TasksPage extends Page {
 		return { open: tasks.filter(t => this.open(t)).length, running: tasks.filter(t => t.state === "running").length };
 	}
 
-	render_content(){ return this.constructor.into(div(), this.url); }
+	render_content(){ return this.constructor.into(div().ac("wide"), this.url); }   // .wide: out of the 40em reading column, so the CSS columns have room
 
 	// Fill `box` with the groups under `url` (a tasks/ folder). The one drawing: this page, and the Tasks tab of every Doc (ext/Doc).
 	static into(box, url){
