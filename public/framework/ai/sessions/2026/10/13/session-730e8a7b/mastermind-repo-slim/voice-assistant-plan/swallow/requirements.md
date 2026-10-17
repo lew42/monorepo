@@ -1,4 +1,4 @@
-# Voice: raw transcript lines look raw, and a forming summary swallows them
+# Voice: raw lines look raw, summaries swallow them
 
 Budget: $8. Sonnet. Load the `minion`, `code` and `page` skills. The plan this continues: `ux/Dictate/doc/voice-assistant.md` (read it first; the sections on appearance and the next slice). The owner's words: `../../requirements-17.md`, ask 5, verbatim at the bottom of that file: raw transcription lines should look raw; a context card renders around them; as a summary forms, the raw lines are swallowed into it, without over-summarising and losing detail; a click on the summary shows the raw words; all in real time, sentence by sentence. The voice assistant now writes one `{place}` line per sentence (`Servex/agents/Sessions.js`, the `voice-assistant` role, `ext/Refine/doc/placement.md`); the chat widget is `ux/Dictate` (`chat.js`, the Widget). Your log is this dir's `task.jsonl`.
 
