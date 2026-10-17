@@ -497,7 +497,8 @@ function validate(Task, file, delta){
 
 export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
 	url ??= own_page(ctx);
-	const caller_log = ctx.caller_log ?? ctx.resolve_log?.(ctx.caller) ?? null;
+	let caller_log = ctx.caller_log ?? null;
+	try { caller_log ??= ctx.resolve_log?.(ctx.caller) ?? null; } catch { caller_log = null; }   // a broken resolver never breaks the call
 	const at = await resolve(url, target, true);
 	if (!at) return { ok: false, why: `"${url}" is not a page under public/` };
 

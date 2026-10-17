@@ -19,11 +19,11 @@ import { server as sdk_server } from "./tools.js";   // cycle with tools.js is f
 const MAIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");   // Servex runs from the main tree
 import { page_tools } from "./page_tools.js";
 
-/* id -> that agent's own task.jsonl (its task dir), or null: lets the item tool file a reference there. */
-function agent_log(agents){
-	return id => {
-		const dir = id ? agents.task_dir_for(agents.reg().read()[id] ?? { id }) : null;
-		return dir ? path.join(dir, "task.jsonl") : null;
+/* The in-process caller is the agent itself: its own task.jsonl (its task dir), or null; the item tool files a reference there. */
+function agent_log(agent){
+	return () => {
+		const dir = agent.task?.dir ?? agent.task_dir ?? null;
+		return dir ? path.resolve(MAIN_ROOT, dir, "task.jsonl") : null;
 	};
 }
 
