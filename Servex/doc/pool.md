@@ -114,3 +114,18 @@ Names run `qf-1` to `qf-9`. A name held only by a leftover (a merged `worktree/q
 queued minion spawn reaches the front of the spawn gate's queue. That used to drop the spec
 outright, with nobody told. It is re-queued at the head instead, with its held messages, and the
 pool is asked to top itself up: [`../never-lose-a-wake.md`](../never-lose-a-wake.md).
+
+## When a slot is freed (2026-10-17)
+
+**Look first: `node Servex/pool-status.mjs`.** One line per slot: holder and its state, branch, commits ahead of `michael/dev`, uncommitted files, and the verdict `reclaim()` gives it (`FREE` or `KEPT`, with the reason and the branch). It frees nothing.
+
+A taken slot is freed at once, with no grace wait, when its holder is `stopped` or `gone` (or a `dormant` one idle 12 h), nobody works in the slot, and either:
+
+- the branch has **no commits ahead** of `michael/dev` and the tree is clean; or
+- the commits ahead are **already on `michael/dev`**. `merge.mjs` lands a branch as a diff, so its commits are not ancestors. The test is by content: every file the branch changed must read the same on `michael/dev`, and a `.jsonl` log counts when every line the branch added is somewhere in the base's copy (a log only grows).
+
+Nothing is thrown away. The slot's folder goes, and its commits stay on `landed/<slot>-<date>`. A slot that truly holds unmerged commits or uncommitted files stays held, and its line names the branch (`1 unmerged commit(s) on worktree/qf-3`); after its holder has been stopped 30 minutes it is salvaged to `salvage/<slot>-<date>` as before.
+
+**A stale hold lets go.** `fixer-1` held `qf-8` with `hold()` for days after it was `gone`. A hold now stops counting once its holder has been `stopped` or `gone` for 12 h. A holder that vanished minutes ago (a registry blip) still holds.
+
+**What still keeps a slot** (the measurement of 2026-10-17, in [the task log](../../public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/pool-reclaim/task.jsonl)): a holder that is only `dormant` (a mastermind that may wake and write there). That is the case where a human or the holder calls `return_worktree`. Test: `node Servex/Pool.test.mjs`.
