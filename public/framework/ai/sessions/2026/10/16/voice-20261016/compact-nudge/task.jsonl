@@ -48,3 +48,8 @@
 {"log":{"at":"2026-10-17T00:13:00-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-17T00:13:02-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-17T00:13:30-05:00","heartbeat":"answered","msg":"Idle, nothing in progress. The compaction change is merged on `michael/dev` (`e0a0b1ead`). I left the task open because the Servex restart (`node Servex/sustain.mjs --restart`) hasn't been run, so the"}}
+{"log":{"at":"2026-10-17T00:16:53-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T00:27:50-05:00","heartbeat":"check","msg":"status check sent to helper-compact-nudge"}}
+{"log":{"at":"2026-10-17T00:27:52-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T00:28:22-05:00","heartbeat":"answered","msg":"Idle; nothing in progress. The compaction change is merged (`e0a0b1ead`) but isn't active until the Servex restart (`node Servex/sustain.mjs --restart`), which I haven't run."}}
+{"log":{"at":"2026-10-17T00:31:59-05:00","msg":"session ended (other) without landing"}}

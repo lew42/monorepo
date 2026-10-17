@@ -293,3 +293,16 @@
 {"log":{"at":"2026-10-16T23:08:58-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T23:09:39-05:00","heartbeat":"answered","msg":"Idle, with no minions running. The next voice reply carries every update that's waiting on you: the cost fix passed review, and the Sheet address choice and three Servex restarts are still yours to de"}}
 {"log":{"at":"2026-10-16T23:14:03-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T00:12:55-05:00","heartbeat":"revive-queued","msg":"mastermind-voice-opus its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-17T00:13:51-05:00","heartbeat":"revive","msg":"revived mastermind-voice-opus from session 0368b7c5-e780-4c45-b78e-fe7a0a432adb"}}
+{"log":{"at":"2026-10-17T00:13:55-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T00:13:55-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T00:13:55-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T00:14:26-05:00","heartbeat":"answered","msg":"I'm idle with no minions running, and everything is committed. My next voice reply will carry every update that's waiting on you, including the Sheet address choice, the three Servex restarts, and the"}}
+{"log":{"at":"2026-10-17T00:14:53-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T00:14:54-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T00:18:59-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T00:29:51-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-opus"}}
+{"log":{"at":"2026-10-17T00:29:55-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T00:30:25-05:00","heartbeat":"answered","msg":"I'm idle, with no minions running and everything committed. My next voice reply will carry every update that's waiting on you, mainly the Sheet address choice and the three Servex restarts."}}
+{"log":{"at":"2026-10-17T00:33:59-05:00","msg":"session ended (other) without landing"}}
