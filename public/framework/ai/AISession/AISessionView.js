@@ -29,7 +29,7 @@ export default class AISessionView extends View {
 	initialize(){
 		super.initialize();
 		const ses = AISession.all.get(this.row.session_id || this.row.id);
-		if (ses?.subs) this.unsubscribe = ses.on(() => this.changed(ses));
+		if (ses?.subs) this.unsubscribe = ses.subscribe(() => this.changed(ses));
 	}
 
 	/** A row whose element left the page (the grid was redrawn) quietly drops its subscription instead of leaking it. */

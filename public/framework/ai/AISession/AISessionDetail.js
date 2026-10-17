@@ -240,7 +240,7 @@ export default class AISessionDetail extends Page {
 			};
 			// the folder name (a card slug, not the id) arrives with the live feed; draw again the moment it does
 			fill();
-			if (!AISession.slugs.has(session_id)){ const off = AISession.of(session_id).on((_, fields) => { if (fields.includes("folder")){ off(); fill(); } }); }
+			if (!AISession.slugs.has(session_id)){ const off = AISession.of(session_id).subscribe((_, fields) => { if (fields.includes("folder")){ off(); fill(); } }); }
 
 			// Only a Servex agent is in the spend tree; any other row's section just stays empty.
 			AISessionRows.load_spend_tree(url).then(spend => {
@@ -256,7 +256,7 @@ export default class AISessionDetail extends Page {
 	static live_item(session_id, row){
 		const ses = AISession.of(session_id), pick = (src, keys) => Object.fromEntries(keys.filter(k => src?.[k] != null).map(k => [k, src[k]]));
 		const KEYS = ["model", "effort", "usd"], item = new Item({ data: { ...pick(row, KEYS), ...pick(ses.ix, KEYS) } });
-		const off = ses.on((_, fields) => item.set(pick(ses.ix, fields.filter(k => KEYS.includes(k)))));
+		const off = ses.subscribe((_, fields) => item.set(pick(ses.ix, fields.filter(k => KEYS.includes(k)))));
 		return { item, off };
 	}
 

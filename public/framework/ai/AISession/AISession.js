@@ -401,7 +401,7 @@ export default class AISession extends Session {
 	}
 
 	/** Subscribe to this session's changes: fn(session, changed_field_names). Returns the unsubscribe function. */
-	on(fn){ this.subs.add(fn); return () => this.subs.delete(fn); }
+	subscribe(fn){ this.subs.add(fn); return () => this.subs.delete(fn); }
 
 	// ---- its view (browser) -------------------------------------------------------------------------------------
 	// The house pattern: the class owns its template. `AISession.View` is unset on the server (this file imports no browser code);

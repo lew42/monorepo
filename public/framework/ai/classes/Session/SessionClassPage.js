@@ -45,7 +45,7 @@ export default class SessionClassPage extends Page {
 		this.session = this.latest();
 		if (!this.session) return void note.text("No sessions found.");
 		note.text("");
-		this.session.on(() => this.draw());
+		this.session.subscribe(() => this.draw());
 		this.draw();
 	}
 
