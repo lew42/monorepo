@@ -71,6 +71,7 @@ export default class TaskLoop {
             for (const file of this.find_task_files()){
                 const info = this.read_task(file);
                 if (!info) continue;
+                if (info.queued && !info.spawned) await this.launch(file).catch(() => {});   // the retry for a task the slot check held back (templates.md)
                 // task-replay, 2026-10-16: the state comes from Task.replay. Only `running` is chased; waiting-on-owner gets reminders; the rest are left alone.
                 if (info.task_state === "waiting"){
                     if (info.waiting_on === "owner" && this.servex.heartbeat?.opted_in(info.state)) await this.follow_up(file, info, registry, now);
@@ -159,12 +160,14 @@ export default class TaskLoop {
         let text;
         try { text = fs.readFileSync(file, "utf8"); } catch { return null; }
         const lines = [], follow_ups = [];
-        let last_chase = 0, last_chase_at = null, escalated = false;
+        let last_chase = 0, last_chase_at = null, escalated = false, spawned = false, queued = false;
         for (const raw of text.split("\n")){
             if (!raw.trim()) continue;
             let obj; try { obj = JSON.parse(raw); } catch { continue; }
             lines.push(obj);
             if (obj.follow_up) follow_ups.push(obj.follow_up);
+            if (obj.spawn) spawned = true;
+            if (obj.queue) queued = true;
             const chase = obj.log?.chase;
             if (chase === "escalated") escalated = true;
             else if (chase !== undefined){
@@ -173,12 +176,15 @@ export default class TaskLoop {
             }
         }
         const task = Task.replay(lines), d = task.data;
-        const state = { ...d, ...(d.session !== undefined ? { session_id: d.session } : {}) };
+        // `agent` is a spawn config (an object, templates.md) on a templated task but an agent id (a string) everywhere else: the readers below want the id.
+        const cfg = d.agent && typeof d.agent === "object" ? d.agent : null;
+        const state = { ...d, ...(cfg ? { agent: undefined } : {}), ...(d.session !== undefined ? { session_id: d.session } : {}) };
         const since = Date.parse(d.waiting_since) || 0;
         const mine = follow_ups.filter(f => (Date.parse(f.at) || 0) >= since);   // a later wait starts a fresh count
         const landed = task.state === "complete", closed = task.state === "stopped";
         return { state, task_state: task.state, waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, waiting_what: d.waiting_what ?? null,
             parent_task: lines.find(l => l.assign)?.assign?.parent_task ?? null,
+            agent_cfg: cfg, template: d.template ?? null, first_by: lines[0]?.by ?? null, approved_by: d.approved_by ?? null, spawned, queued,
             follow_ups: mine, last_chase, last_chase_at, escalated, landed, closed };
     }
 
@@ -193,6 +199,46 @@ export default class TaskLoop {
         const id = this.owning_agent_id(state, registry);
         const row = id && registry.find(r => r.id === id);
         return !row || row.state === "stopped" || row.state === "gone";
+    }
+
+
+    /* templates.md, first slice: an APPROVED task whose line 1 carries `agent: {role, model, effort, brief}` starts that agent itself. The
+     * item tool calls this right after it writes `approve`; the tick calls it again for a task that has a `queue` line and no `spawn` line.
+     * Does nothing unless the task is `running`, has an `agent` config and no `spawn` line, so an old task behaves exactly as before.
+     * Every id and time in the `spawn` line is read from node (the spawned agent, the files), never typed. */
+    async launch(file){
+        file = path.resolve(file);
+        if (this.launching?.has(file)) return { ok: false, why: "already launching" };
+        (this.launching ??= new Set()).add(file);
+        try {
+            const info = this.read_task(file);
+            if (!info?.agent_cfg || info.task_state !== "running" || info.spawned) return { ok: false, why: "nothing to launch" };
+            const dir = path.dirname(file), cfg = info.agent_cfg, tpl = Task.TEMPLATES[info.template] ?? {};
+            // what already exists on this topic, beside the brief (skipped quietly when the script is absent)
+            const past = path.join(this.root, "Server", "PastWork.mjs");
+            if (fs.existsSync(past)) await new Promise(done => execFile(process.execPath, [past, "--task", dir], { cwd: this.root, windowsHide: true, timeout: 60000 }, () => done()));
+            const hot = this.servex.monitor?.flag?.reason;
+            if (hot){
+                if (!info.queued) await this.write_line(file, { queue: { at: stamp(), why: hot } });
+                return { ok: false, queued: true, why: hot };
+            }
+            const registry = this.servex.agents.registry_list();
+            const parent = info.first_by && registry.some(r => r.id === info.first_by && r.state !== "stopped" && r.state !== "gone") ? info.first_by : undefined;
+            const spec = {
+                role: cfg.role ?? "minion",
+                model: cfg.model ?? tpl.model, effort: cfg.effort, permission_mode: cfg.permission_mode ?? tpl.permission_mode,
+                prompt: cfg.prompt ?? `Your brief is at ${cfg.brief}. Work and land it as the brief says.`,
+                task: { dir: this.relative(dir), brief: cfg.brief },
+                ...(parent ? { parent } : {}),
+            };
+            for (const k of Object.keys(spec)) if (spec[k] === undefined) delete spec[k];
+            const agent = this.servex.agents.spawn(spec);
+            await this.write_line(file, { spawn: { at: stamp(), agent: agent.id, session_id: agent.session_id ?? null, by: "TaskLoop", author: info.first_by, approved_by: info.approved_by } });
+            return { ok: true, agent: agent.id };
+        } catch (e){
+            this.servex.say?.(`task-loop: launch failed for ${this.slug(file)}: ${e.message || e}`);
+            return { ok: false, why: String(e.message || e) };
+        } finally { this.launching.delete(file); }
     }
 
     /* ── acting ───────────────────────────────────────────────────────── */
