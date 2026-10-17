@@ -11,3 +11,6 @@
 {"decision":{"at":"2026-10-17T14:32:02-05:00","msg":"merged with --no-review: a 3-line change plus a 30-line class, self-reviewed; the alternative was a paid review.mjs run, not worth it. Todo line closed in ai/todo.md."}}
 {"finish":{"at":"2026-10-17T14:32:02-05:00","summary":"OutPath class lands; layout-check --out resolves git-bash paths and refuses outside the repo or temp. Merged into michael/dev."}}
 {"commit":"bdc3d223ea4d"}
+{"log":{"at":"2026-10-17T14:34:11-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T14:34:11-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T14:38:05-05:00","msg":"session ended (other) without landing"}}
