@@ -63,14 +63,4 @@ export class Ask extends AIObject {
 	href(){ return this.card ? "/framework/ai/" + this.card + "/" : null; }
 }
 
-/* A task: the first `assign` line of an ai/<date>/<slug>/task.jsonl. */
-export class Task extends AIObject {
-	static icon = "task_alt";
-	static kind = "Task";
-	name(){ return this.slug; }
-	fact(){ return `step ${this.step ?? "?"} of ${this.steps?.length ?? "?"}`; }
-	facts(){ return [["now", this.now], ["step", this.fact()], ["model", this.model]]; }
-	href(){ return "/framework/ai/" + this.date + "/" + this.slug + "/"; }
-}
-
-export default { AIObject, Skill, Ask, Task };
+export default { AIObject, Skill, Ask };

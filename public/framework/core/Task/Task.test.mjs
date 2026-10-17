@@ -170,6 +170,14 @@ check("replay: commit lines on a legacy open file stay running", () => {
 	return t.state === "running" && t.commits[0] === "abc";
 });
 
+check("render() with no DOM returns undefined and warns once", () => {
+	const warns = []; const w = console.warn; console.warn = m => warns.push(m);
+	const t = new Task({ id: "r" });
+	const out = [t.render(), t.render()];
+	console.warn = w;
+	return out.every(x => x === undefined) && warns.length === 1;
+});
+
 const passed = results.filter(Boolean).length;
 console.log(`\n${passed} / ${results.length} passing`);
 if (passed !== results.length) process.exit(1);
