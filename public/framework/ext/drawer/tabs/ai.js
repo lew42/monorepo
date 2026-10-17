@@ -227,17 +227,21 @@ function session_header({ card }){
 let live_chat = null;
 let live_header = null;
 let live_feed = null;   // the feed goes with its chat: one pair, never a feed left behind
+let live_slot = null;   // the box the chat mounted in: emptied with it, so a shut dock keeps no hidden second widget
 function dispose_chat(){
 	const handle = live_chat;
 	live_chat = null;
 	handle?.remove();
 	live_feed?.stop();
 	live_feed = null;
+	live_slot?.replaceChildren();
+	live_slot = null;
 	live_header?.stop();
 	live_header = null;
 }
 window.addEventListener("drawer-close", dispose_chat);
-export { dispose_chat as release_chat };   // AIPage lets go of its chat when the sheet or the dock holds it (doc/sheet.md)
+// AIPage lets go of the chat it mounted (the token ai() returned), never one the dock mounted since (doc/sheet.md#one-chat-one-feed)
+export function release_chat(token){ if (token && live_chat === token) dispose_chat(); }
 
 /**
  * THE DEFAULT — `ux/Dictate/chat.js`'s ONE mount, the exact same call the mobile ✦
@@ -253,11 +257,13 @@ export { dispose_chat as release_chat };   // AIPage lets go of its chat when th
 export default function ai({ page, card, tabs }){
 	dispose_chat();   // this refill replaces whatever this tab built last time
 	const inbox = new Inbox.Compact({ page });
+	let mine = null;
 	div.c("drawer-ai flex v", () => {
 		inbox.view();
 		live_header = session_header({ card });
 		const $slot = div.c("drawer-ai-panel");
-		const handle = live_chat = chat($slot.el, {
+		live_slot = $slot.el;
+		const handle = mine = live_chat = chat($slot.el, {
 			path: page,
 			card: card?.id,
 			placeholder: card ? "talk into this card" : "say something",
@@ -280,6 +286,8 @@ export default function ai({ page, card, tabs }){
 			mo.observe(host, { childList: true });
 		}
 	});
+	window.dispatchEvent(new CustomEvent("drawer-chat", { detail: mine }));   // a surface that mounted the chat before this one lets go of its box
+	return mine;
 }
 
 /**

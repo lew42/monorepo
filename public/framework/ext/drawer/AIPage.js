@@ -56,7 +56,13 @@ export default class AIPage extends Page {
 			this.release();
 			return $box.empty(() => { span.c("muted", this.constructor.NOTES[holder]); });
 		}
-		load().then(m => $box.empty(() => { if (name === "chat") this.held = true; m.default(this.context()); }))
+		if (name === "chat" && this.held) return;
+		load().then(m => $box.empty(() => {
+			if (name !== "chat") return m.default(this.context());
+			this.mounting = true;
+			try { this.token = m.default(this.context()); } finally { this.mounting = false; }
+			this.held = true;
+		}))
 			.catch(e => $box.empty(() => { span.c("muted", "This view could not load: " + e.message); }));
 	}
 
@@ -64,8 +70,19 @@ export default class AIPage extends Page {
 	release(){
 		if (!this.held) return;
 		this.held = false;
-		import("./tabs/ai.js").then(m => m.release_chat());
+		const token = this.token; this.token = null;
+		import("./tabs/ai.js").then(m => m.release_chat(token));
 	}
+
+	// The dock mounted the chat after this page did (✦ at 1200): its ai() took the page's box; the page points to the dock.
+	moved = () => {
+		if (this.mounting || !this.held) return;
+		this.held = false; this.token = null;
+		this.chat_box?.el.isConnected && this.chat_box.empty(() => { span.c("muted", this.constructor.NOTES.dock); });
+	};
+
+	// The dock shut: the chat comes back to the page.
+	shut = () => setTimeout(this.resized);
 
 	// A window crossing 52em moves the chat between the sheet and the page; the page follows.
 	resized = () => {
@@ -79,11 +96,15 @@ export default class AIPage extends Page {
 		this.constructor.current = this;
 		this.mq = globalThis.matchMedia?.(this.constructor.SMALL);
 		this.mq?.addEventListener?.("change", this.resized);
+		window.addEventListener("drawer-chat", this.moved);
+		window.addEventListener("drawer-close", this.shut);
 		drawer.page(this.about);
 	}
 
 	deactivated(){
 		this.mq?.removeEventListener?.("change", this.resized);
+		window.removeEventListener("drawer-chat", this.moved);
+		window.removeEventListener("drawer-close", this.shut);
 		this.release();
 		if (this.constructor.current !== this) return;
 		this.constructor.current = null;

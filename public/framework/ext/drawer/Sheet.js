@@ -412,8 +412,8 @@ export class SheetPanel extends View {
 		this.hide();
 		this.mount?.remove();
 		this.feed?.stop();
-		this.$slot.empty();
-		this.$live.el.querySelectorAll("[data-dictation-bar], .dictation-bar").forEach(el => el.remove());
+		this.$slot?.empty();
+		this.$live?.el.querySelectorAll(".dictation-bar").forEach(el => el.remove());
 		this.mount = this.panel = this.feed = null;
 		return this;
 	}
