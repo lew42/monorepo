@@ -1,0 +1,5 @@
+{"session":{"id":"v-fixture","home":"/framework/ux/Dictate/","at":"2026-10-17T00:00:00.000-05:00","project":"monorepo","host":"monorepo.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"chat":{"at":"2026-10-17T00:00:01.000-05:00","session":"v-fixture","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"The sheet should open at sixty percent."}}
+{"chat":{"at":"2026-10-17T00:00:04.000-05:00","session":"v-fixture","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"And it should remember the height I drag it to."}}
+{"chat":{"at":"2026-10-17T00:00:09.000-05:00","session":"v-fixture","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"Separately, the inbox labels need a count."}}
+{"place":{"re":"2026-10-17T00:00:09.000-05:00","to":"paragraph","edit":"nothing"},"by":"voice-assistant-test","ts":"2026-10-17T04:53:12.819Z"}

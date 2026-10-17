@@ -5,7 +5,7 @@ import { pg } from "./playground/Playground.js";
 import { marks as fetch_marks } from "../Understand/Understand.js";
 import { md_into } from "../../ext/Chat/md.js";
 import { who_label } from "../../ext/Chat/roles.js";
-import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll } from "../../ext/Chat/Chat.js";
+import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll, mergeable } from "../../ext/Chat/Chat.js";
 import { composer } from "../../ext/Chat/Composer.js";
 
 View.stylesheet(import.meta, "Widget.css");
@@ -23,7 +23,7 @@ export function model(value){
 /** One dictation widget for every surface, configured by options (see doc/widget-notes.md#widget-options-and-parts). */
 // A mode is a named row, never a second code path (see doc/widget-notes.md#mode-presets).
 const MODES = {
-	dictate: {},
+	dictate: { bubble: true },   // in place (the owner, 2026-10-17): words grow in the chat bubble; the gear's "into: box" still wins
 	live: { into: "chat", bubble: true },
 };
 
@@ -64,6 +64,7 @@ export default class Widget extends View {
 	submit(text, via){
 		this.on_text?.(text);
 		const at = new Date().toISOString();
+		this.$thread?.settle_draft?.();
 		this.$thread?.draw({ chat: { at, from: { kind: "owner" }, via, text } });
 		if (typeof this.deliver !== "function") return;
 		// `at` rides along so a caller can retag() the bubble (see doc/widget-notes.md#retag-after-deliver)
@@ -74,6 +75,7 @@ export default class Widget extends View {
 	/** The new composer's deliver; entry is {text, via, at?, raw?, level?}; returns true/false (or a promise). */
 	submit_entry(entry){
 		const at = entry.at ?? new Date().toISOString();
+		this.$thread?.settle_draft?.();   // the settled piece takes the draft's exact spot: nothing moves (doc/voice-assistant.md)
 		this.$thread?.draw({ chat: { at, from: { kind: "owner" }, text: entry.text, via: entry.via } });
 		if (typeof this.deliver !== "function") return true;
 		const full = { ...entry, at };
@@ -231,8 +233,11 @@ Widget.Thread = class WidgetThread extends View {
 
 	/** Lifts live bubbles out while fn runs so mergeable() never takes one for the last real bubble. */
 	follow(fn){
+		const own = this.draft && !this.draft.host ? this.draft.el : null;   // a draft in its own bubble is not "the last real bubble" either
+		own?.remove();
 		for (const l of this.lives.values()) l.el.remove();
 		const result = fn();
+		if (own) this.$bubbles.el.append(own);
 		for (const l of this.lives.values()) this.$bubbles.el.append(l.el);
 		return result;
 	}
@@ -241,6 +246,7 @@ Widget.Thread = class WidgetThread extends View {
 	draw(entry){
 		if (entry?.type === "ask") return this.follow(() => this.draw_ask(entry));
 		if (entry?.type === "refined") return this.draw_refined(entry);
+		if (entry?.place) return this.place(entry.place);
 		const para = entry?.para ?? (entry?.type === "para" ? entry : null);
 		if (para?.re) return this.split_paragraph(para.re);
 		const chat = entry?.chat;
@@ -255,12 +261,6 @@ Widget.Thread = class WidgetThread extends View {
 		// a settled reply replaces a live bubble from the same sender
 		if (assistant) this.drop_live("stream:" + (chat.from?.id ?? "assistant"));
 
-		// mode "live": the settled owner line replaces the faded "sent:" draft
-		if (!assistant){
-			const sent_key = [...this.lives.keys()].find(k => k.startsWith("sent:"));
-			if (sent_key) this.drop_live(sent_key);
-		}
-
 		const sender = chat.from?.id || chat.from?.kind || (assistant ? "assistant" : "owner");
 		const who = chat.from?.id ?? (assistant ? "assistant" : "owner");
 		const bubble = this.follow(() => speak(this.$bubbles, {
@@ -271,7 +271,7 @@ Widget.Thread = class WidgetThread extends View {
 		// the new piece is always the bubble's last child
 		const text_node = bubble.lastElementChild;
 		const ref = { id: at };
-		this.lines.set(at, { bubble, text: text_node, ref });
+		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text });   // `said`: the raw words, kept when a placement improves the text
 		this.scroll.pin();
 		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks)
 		if (!assistant && this.widget.marks) this.mark(chat.text, bubble, ref);
@@ -341,37 +341,70 @@ Widget.Thread = class WidgetThread extends View {
 		this.scroll.pin();
 	}
 
-	/** Mode "live" only: the owner's words growing in a bubble instead of the box (see doc/widget-notes.md#live-bubble). */
-	live({ text = "", settled = text, guess = "", sent = false } = {}){
-		if (!text){
-			const hit = this.lives.get("draft");
-			if (!hit) return;
-			if (!sent) return this.drop_live("draft");
-			this.lives.delete("draft");
-			hit.el.classList.add("chatbox-live-sent");
-			this.live_sent_n = (this.live_sent_n ?? 0) + 1;
-			const key = "sent:" + this.live_sent_n;
-			hit.timer = setTimeout(() => this.drop_live(key), 15000);
-			this.lives.set(key, hit);
-			return;
-		}
+	/** The owner's words growing in the chat while they talk (doc/voice-assistant.md#the-flow-one-sentence-at-a-time).
+	 * In place: the draft is the LAST PIECE of the owner bubble it will join (or its own bubble when none can be joined),
+	 * and settle_draft() swaps it for the settled piece in the same step, so the words never move. */
+	live({ text = "", settled = text, guess = "" } = {}){
+		if (!text) return this.drop_draft();   // sent (the settled piece already took its spot) or cancelled
 		this.$empty.hide();
-		this.follow(() => {
-			let hit = this.lives.get("draft");
-			if (!hit){
-				let node, text_el;
-				this.$bubbles.append(() => {
-					node = div.c("chatbox chatbox-you chatbox-live chatbox-draft", () => {
-						who_label("owner");
-						text_el = div.c("chatbox-text").el;
-					}).el;
-				});
-				this.lives.set("draft", hit = { el: node, text: text_el });
-			}
-			hit.text.textContent = settled;
-			if (guess) hit.text.append(span.c("chatbox-guess").text((settled ? " " : "") + guess).el);
-		});
+		let d = this.draft;
+		if (!d){
+			const host = this.widget.join ? this.follow(() => mergeable(this.$bubbles, "owner", Date.now())) : null;
+			let el, text_el;
+			if (host){
+				el = document.createElement("div");
+				el.className = "ux-dictate-draft-piece";
+				text_el = document.createElement("div");
+				text_el.className = "chatbox-text";
+				el.append(text_el);
+				host.append(el);
+			} else this.$bubbles.append(() => {
+				el = div.c("chatbox chatbox-you chatbox-live chatbox-draft", () => {
+					who_label("owner");
+					text_el = div.c("chatbox-text").el;
+				}).el;
+			});
+			d = this.draft = { el, text: text_el, host };
+		}
+		if (d.host && d.host.lastElementChild !== d.el) d.host.append(d.el);   // a redraw of the host (a mark) appended pieces after it
+		d.text.textContent = settled;
+		if (guess) d.text.append(span.c("chatbox-guess").text((settled ? " " : "") + guess).el);
 		this.scroll.pin();
+	}
+
+	/** The sentence is being sent: drop the draft so the settled piece lands where it was (its host stays mergeable). */
+	settle_draft(){
+		const d = this.draft;
+		if (!d) return;
+		if (d.host) d.host.dataset.at = String(Date.now());   // still talking: the 10 s merge gap counts from now, not from the last piece
+		this.drop_draft();
+	}
+
+	drop_draft(){
+		this.draft?.el.remove();
+		this.draft = null;
+	}
+
+	/** One placement from the voice assistant, {re, to, where, edit, text, title} (doc/voice-assistant.md); the latest per sentence wins.
+	 * `same` changes nothing; `paragraph` splits the bubble at `re`; `card` does that and marks the bubble a card. Raw words stay in `said`. */
+	place({ re, to = "same", where = "beside", edit = "nothing", text, title } = {}){
+		const hit = this.lines.get(re);
+		if (!hit) return false;
+		if (text && (edit === "improve" || edit === "both")) patch_piece(hit.bubble, hit.ref.id, { text });
+		if (to === "paragraph" || to === "card") this.split_paragraph(re);
+		if (to === "card"){
+			const b = this.lines.get(re).bubble;
+			b.classList.add("ux-dictate-placed-card");
+			b.dataset.where = where;
+			if (title && !b.querySelector(":scope > .ux-dictate-placed-title")){
+				const t = document.createElement("div");
+				t.className = "ux-dictate-placed-title";
+				t.textContent = title;
+				b.prepend(t);
+			}
+		}
+		this.scroll.pin();
+		return true;
 	}
 
 	/** Remove a live bubble and clear its fade timer. */
@@ -428,6 +461,7 @@ Widget.Thread = class WidgetThread extends View {
 	reset(){
 		this.lines = new Map();
 		this.lives = new Map();
+		this.draft = null;
 		this.$bubbles.empty();
 		this.$empty.show();
 	}
