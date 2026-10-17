@@ -41,3 +41,5 @@
 {"commit":"a9509d1a9"}
 {"assign":{"at":"2026-10-16T19:51:58-05:00","now":"step 6 landed (a9509d1a9: SERVEX_TASK on spawn + shared post-commit hook writes commit lines); next step 7, Session extends Item"}}
 {"commit":"b06b57f047dc"}
+{"commit":"6858167bc"}
+{"assign":{"at":"2026-10-16T19:57:03-05:00","now":"step 7 landed (6858167bc: Session extends Item, tasks + progress via Task.progress_of, item tool maps session.jsonl; AISession.on renamed subscribe); next step 8, refine makes tasks"}}
