@@ -35,6 +35,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Page system**: [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/)
 - **Handover as a query** (plan: handover computed at read time from the task logs, not hand-written): [doc/handover-query.md](doc/handover-query.md)
 - **Past work** (look before you build): [past-work-index.md](past-work-index.md), generated from every landed task; search a topic with `node Server/PastWork.mjs <topic>` (the `past-work` skill)
+- **Finding past work** (owner asks 1 to 3, 2026-10-17: where the query stands, "does it exist" before a build, how readme indexing works): [doc/owner-2026-10-17-finding-past-work.md](doc/owner-2026-10-17-finding-past-work.md) · [salvage branches decided](doc/salvage-2026-10-17.md)
 - **Skills and CLAUDE.md**: [skills](../../../.claude/skills/)
 - **Dashboard, Log, Inbox**: the tabs above · [AI 2 (merged into this folder, old address kept)](/framework/ai2/readme.md)
 - **AITask** (one task's log, a day, the board; moved here from `ext/`, 2026-10-13): [AITask/readme.md](AITask/readme.md)
