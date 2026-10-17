@@ -84,3 +84,13 @@
 {"commit":"bdbcbf80c"}
 {"log":{"at":"2026-10-16T20:34:27-05:00","msg":"Step 17 landed: 47 tasks (5 module goals, 42 children) through run_item; Task system build at 16/22 complete, computed from commit lines. Tests green (item_tool 40, Task 47, Session 5, Item 5); seed rerun 0 made. The four core/Task owner notes were untracked, so their source links 404'd; committed in fe4105adb. Known: the ai module's list sits in the ai/tasks/ code folder beside TasksPage; revisit with the ai/tasks/ index rebuild."}}
 {"assign":{"at":"2026-10-16T20:34:27-05:00","now":"Step 17 landed (today's dictations as tasks). Step 15 building: Task.View with stage icons and the /live/ Tasks card."}}
+{"commit":"cae8c8983379"}
+{"action":{"at":"2026-10-16T20:35:01-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-rows/requirements.md"]}}
+{"commit":"06146972b319"}
+{"log":{"at":"2026-10-16T20:38:44-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T20:38:44-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T20:39:59-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T20:40:00-05:00","msg":"session resumed"}}
+{"commit":"eb104a70a"}
+{"commit":"51ebc4b51"}
+{"log":{"at":"2026-10-16T20:46:19-05:00","msg":"Step 15 landed: Task.View rows (checkbox, stage icon, title link, segmented bar; a parent previews 3 open children and expands), the module Tasks tab, and the /live/ Tasks card (live:\"tasks\", posted). Fix 51ebc4b51: the card draws preview and full, so each list opens once. Found: a browser child stub's change bubbles to the parent Store, which tries to append {\"<child>\":{...}} lines; the server refuses them (no damage). Folded into step 3c."}}
