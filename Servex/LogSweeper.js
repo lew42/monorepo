@@ -34,9 +34,11 @@ export default class LogSweeper {
         /^public\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/(day|day-files)\.jsonl$/, // a day's own stream, one level up from the sessions
         /^public\/framework\/ai\/sessions\/(\d{4}(\/\d{2}){0,2}\/)?index\.json$/, // day/month/year composites: tracked, rewritten by the sessions indexer
         /^public\/framework\/ai\/doc\/follow-up(-full)?\.md$/, // the daily FollowUp output (TaskLoop.follow_up_daily): computed, committed so the day's list is in history
+        /^public\/framework\/ai\/handover\.md$/, // its NOW block is written daily by Server/HandoverNow.mjs (TaskLoop.handover_daily)
+        /^public\/.+\/(page|inbox|prompts|essence|review|files)\.jsonl$|^public\/framework\/ai\/sessions\/.+\/digest\.json$/, // session records (sessions/doc/commit-rule.md, 2026-10-17); caches (cache.jsonl, index.json) stay out
     ];
     /* Never swept, even if an ALLOW pattern would match. */
-    static DENY = [/^(?!public\/framework\/ai\/doc\/follow-up(-full)?\.md$).*\.(js|mjs|css|html|md)$/, /(^|\/)index\.tmp\.json$/, /node_modules/];
+    static DENY = [/^(?!public\/framework\/ai\/(doc\/follow-up(-full)?|handover)\.md$).*\.(js|mjs|css|html|md)$/, /(^|\/)index\.tmp\.json$/, /node_modules/];
 
     constructor(...args){ Object.assign(this, ...args); this.initialize(); }
 

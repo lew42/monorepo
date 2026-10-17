@@ -69,3 +69,5 @@ To add a log type, add one pattern to `LogSweeper.ALLOW`.
 **Applied 2026-10-17:** one commit by path took the untracked session folders (`session-*`, 10/16) and the module `files.jsonl` / `inbox.jsonl` / `page.jsonl` records.
 
 **Still open, handed to the Servex checkup:** `Servex/LogSweeper.js` `ALLOW` does not match `prompts|inbox|essence|review.jsonl`, `digest.json`, `page.jsonl` or `inbox.jsonl` outside `ai/`, or `files.jsonl` outside `ai/` and `doc/`; those stay modified or untracked until a person commits them. Add one pattern: `/^public\/.+\/(page|inbox|prompts|essence|review|files)\.jsonl$|^public\/framework\/ai\/sessions\/.+\/digest\.json$/` (needs a Servex restart; run `node Servex/LogSweeper.test.mjs`).
+
+**Closed 2026-10-17 (Servex checkup):** `LogSweeper.ALLOW` now carries the pattern above, so the sweeper commits `page|inbox|prompts|essence|review|files.jsonl` under `public/` and a session's `digest.json`; caches stay out. It also allows `ai/handover.md` (its NOW block is computed daily, see `Servex/doc/task-loop.md`). Test: `node Servex/LogSweeper.test.mjs`. Live after the next Servex restart.

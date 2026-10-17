@@ -25,3 +25,12 @@ Everything below is committed on `michael/dev`. Three Servex changes (the nudge,
 ## Needs the owner
 
 Nothing. (One Servex restart is queued in `compact-nudge/task.jsonl` as `needs_restart`.)
+
+## Hand-offs from the sessions checkup (2026-10-17)
+
+| Hand-off | State | Proof |
+|---|---|---|
+| Session-record regex in `LogSweeper.ALLOW` | Done: `page\|inbox\|prompts\|essence\|review\|files.jsonl` under `public/` plus a session's `digest.json`; caches stay out. Also allowed `ai/handover.md` (and carved it out of the `.md` DENY) so the computed block gets committed | `LogSweeper.test.mjs`, new `allowed()` checks for 10 yes and 6 no paths |
+| `HandoverNow` once a day from `TaskLoop` | Done: `handover_daily()` beside `follow_up_daily()`, judged by the block's own `computed <date>` stamp | new `TaskLoop-handover.test.mjs` (runs once, not again today, nothing without the file) |
+
+Both apply after the one queued Servex restart. Alternative for the second: the file mtime, rejected because people edit `handover.md` by hand. Sweeping `handover.md` commits the whole file, hand edits included.

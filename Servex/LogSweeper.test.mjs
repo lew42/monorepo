@@ -33,3 +33,15 @@ assert.match(git("status", "--short"), /Servex\/x\.js/, "code untouched");
 assert.equal(s.sweep().committed, 0, "idempotent");
 assert.match(new LogSweeper({ root: dir, branch: "other" }).sweep().skipped, /not other/);
 console.log("LogSweeper: ok");
+
+// session records (doc/commit-rule.md, 2026-10-17) are allowed; caches and code stay out; handover.md is the one swept .md besides follow-up
+{
+    const a = new LogSweeper({ root: dir, branch: "main" });
+    const S = "public/framework/ai/sessions/2026/10/16/session-ab12cd34/";
+    for (const p of [S + "page.jsonl", S + "prompts.jsonl", S + "inbox.jsonl", S + "essence.jsonl", S + "review.jsonl", S + "digest.json",
+        "public/framework/ux/Dictate/inbox.jsonl", "public/framework/ux/Dictate/page.jsonl", "public/framework/ux/Dictate/files.jsonl", "public/framework/ai/handover.md"])
+        assert.ok(a.allowed(p), "allowed: " + p);
+    for (const p of [S + "cache.jsonl", S + "index.json", S + "index.tmp.json", "public/framework/ux/Dictate/Dictate.js", "public/framework/ux/Dictate/readme.md", "Servex/page.jsonl"])
+        assert.ok(!a.allowed(p), "not allowed: " + p);
+    console.log("LogSweeper ALLOW (session records): ok");
+}

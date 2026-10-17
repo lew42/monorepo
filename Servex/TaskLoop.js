@@ -65,6 +65,7 @@ export default class TaskLoop {
             // worktree-down, 2026-09-29: a landed+merged task's dev server goes down (Server/worktree-sweep.mjs), hidden child so it never blocks this tick.
             try { spawn(process.execPath, [path.join(this.root, "Server", "worktree-sweep.mjs")], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
             this.follow_up_daily();
+            this.handover_daily();
             const now = Date.now(), registry = this.servex.agents.registry_list();
             let open = 0, quiet = 0, escalations = 0;
 
@@ -122,6 +123,21 @@ export default class TaskLoop {
             const c = (out.match(/\{[\s\S]*?\}/) || [""])[0]; let n = {}; try { n = JSON.parse(c.replace(/'/g, "").replace(/([\w-]+):/g, '"$1":')); } catch {}
             const flagged = ["unmerged", "merged-not-landed", "quiet", "no-outcome", "asks"].reduce((t, k) => t + (n[k] || 0), 0);
             this.servex?.cards?.owner_note?.({ title: `Follow-up ${day}: ${flagged} flagged`, text: `${flagged} rows fell through today (${n.healthy ?? "?"} healthy): see the list`, kind: "risk", links: ["/framework/ai/doc/follow-up.md"], by: "task-loop" })?.catch?.(() => {});
+        });
+    }
+
+    /* handover-daily, 2026-10-17: once per UTC day, run Server/HandoverNow.mjs --write so the NOW block at the top of handover.md stays computed.
+     * "Done today" = the date in the block's own "computed <date>" stamp (the file is hand-edited too, so its mtime says nothing); a restart never repeats it.
+     * LogSweeper (ALLOW) commits handover.md. Doc: Servex/doc/task-loop.md */
+    handover_daily(){
+        const file = path.join(this.root, "public", "framework", "ai", "handover.md");
+        let text = ""; try { text = fs.readFileSync(file, "utf8"); } catch { return; }
+        const done = (text.match(/## NOW \(computed (\d{4}-\d{2}-\d{2})/) || [])[1];
+        if (done === new Date().toISOString().slice(0, 10) || this.handover_busy) return;
+        this.handover_busy = true;
+        execFile(process.execPath, [path.join(this.root, "Server", "HandoverNow.mjs"), "--write"], { cwd: this.root, windowsHide: true, timeout: 120000 }, err => {
+            this.handover_busy = false;
+            if (err) this.servex?.log?.append("servex", { type: "task-loop-error", error: "handover-now: " + String(err.message || err) }).catch(() => {});
         });
     }
 
