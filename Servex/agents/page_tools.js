@@ -51,7 +51,8 @@ function resolve_file(url, item = false){
 	if (dir !== PUBLIC && !dir.startsWith(PUBLIC + path.sep)) return null;
 	if (named) return path.join(dir, named);
 	// Item tool only: task.jsonl beside a page.jsonl means a TASK folder (the page is its view); then session.jsonl; else the page.
-	if (item) for (const name of ["task.jsonl", "session.jsonl"]) if (fs.existsSync(path.join(dir, name))) return path.join(dir, name);
+	// A folder with a task.jsonl and no page.jsonl is a task for EVERY page tool (page_set, page_call, page_log): never a stray page.jsonl beside it.
+	if (item || !fs.existsSync(path.join(dir, "page.jsonl"))) for (const name of ["task.jsonl", "session.jsonl"]) if (fs.existsSync(path.join(dir, name))) return path.join(dir, name);
 	return path.join(dir, "page.jsonl");
 }
 
@@ -428,26 +429,28 @@ function module_of(url, root = FRAMEWORK){
 	return "";
 }
 
-// Which folder a new child lives in, and its slug (-2, -3 when taken).
+// Which folder a new module task lives in, and its slug. Never suffixes: `taken` is true when the folder exists, and the caller refuses (offering `free`).
+// A child gets a folder only under a real module (explicit `module`, or the module the call's path sits in); everything else nests in the parent's task.jsonl.
 function task_home(parent_dir, add, root = FRAMEWORK, from_path = ""){
-	// A call made on a path already inside a `tasks/` folder (a goal's own folder, a module list) keeps the child in the parent's folder: no flat pile in the module list.
+	// A call made on a path already inside a `tasks/` folder (a goal's own folder, a module list) is a subtask: it nests.
 	const inside_tasks = /(^|\/)tasks(\/|$)/.test(String(from_path ?? ""));
 	const mod = typeof add.module === "string" ? add.module.replace(/^\/+|\/+$/g, "") : inside_tasks ? "" : module_of(from_path, root);
 	const mod_dir = MODULE_NAME.test(mod) ? path.join(root, mod) : null;
-	const base = mod_dir && fs.existsSync(mod_dir) && fs.statSync(mod_dir).isDirectory() ? path.join(mod_dir, "tasks") : parent_dir;
-	const slug0 = slug_of(add.title ?? add.id);
-	let slug = slug0;
-	for (let n = 2; fs.existsSync(path.join(base, slug)); n++) slug = `${slug0}-${n}`.replace(/^(.{0,40})(-\d+)$/, (_, a, b) => a.slice(0, 40 - b.length) + b);
-	return { slug, dir: path.join(base, slug), list: base === parent_dir ? null : { dir: base, module: mod } };
+	if (!(mod_dir && fs.existsSync(mod_dir) && fs.statSync(mod_dir).isDirectory())) return null;
+	const base = path.join(mod_dir, "tasks"), slug = slug_of(add.id ?? add.title);
+	let free = slug;
+	for (let n = 2; fs.existsSync(path.join(base, free)); n++) free = `${slug}-${n}`.replace(/^(.{0,40})(-\d+)$/, (_, a, b) => a.slice(0, 40 - b.length) + b);
+	return { slug, free, taken: free !== slug, dir: path.join(base, slug), list: { dir: base, module: mod } };
 }
 
 const PAGE_JS = ['import { TaskPage } from "/framework/core/Task/TaskPage.js";', "export default new TaskPage({ meta: import.meta });", ""].join(String.fromCharCode(10));
 
 // One add -> child folder with line 1, returns { id, path }. Fields come from the add (a legacy `data` object is flattened).
-function make_child(parent_dir, add, ctx, from_path){
+function make_child(parent_dir, add, ctx, home){
 	const { type: _t, id: _i, after: _a, data, ...fields } = add;
-	const { slug, dir, list } = task_home(parent_dir, add, ctx.module_root, from_path);
+	const { slug, dir, list } = home;
 	const child = path.join(dir, "task.jsonl"), url = app_path(dir);
+	if (fs.existsSync(child)) throw new Error(`refused: ${app_path(dir)} already holds a task`);   // never overwrite
 	write_line(child, { id: slug, path: url, parent: app_path(parent_dir), ...data, ...fields, by: ctx.caller ?? "agent", ts: now() }, true);
 	// Step 14b: the child's folder routes (TaskPage), and the module's list task holds a second reference to it.
 	fs.writeFileSync(path.join(dir, "page.js"), PAGE_JS);
@@ -459,25 +462,45 @@ function make_child(parent_dir, add, ctx, from_path){
 	return { id: slug, path: url };
 }
 
-// Node's resolver for Task.from_ref: an app path -> that folder's parsed task.jsonl, or null.
+// Node's resolver for Task.from_ref: an app path -> that folder's parsed task.jsonl, or null. While a root is being replayed, `collect` gathers every child file it read.
+let collect = null;
+const sig = file => { try { const st = fs.statSync(file); return `${st.size}:${st.mtimeMs}`; } catch { return "none"; } };
 export function link_refs(Task){
 	Task.resolver ??= ref => {
 		const dir = path.resolve(PUBLIC, String(ref).replace(/^[\/]+/, ""));
 		if (!dir.startsWith(PUBLIC + path.sep)) return null;
 		const file = path.join(dir, "task.jsonl");
+		collect?.push([file, sig(file)]);
 		return fs.existsSync(file) ? parse_lines(file) : null;
 	};
 }
 
-// The file replayed by the class itself: the same code a browser runs on the same lines.
-function task_of(Task, file){ return Task.replay(parse_lines(file)); }
+/* ONE LIVE INSTANCE PER FILE (plan, Amendments 4): the root is replayed once into `Item.Store.for(url)` and every later call on the
+ * path reaches that same object. It is advanced with the line the tool just wrote (the same replay_line a browser's Store.read runs),
+ * never re-read, unless the file (or a child file it replayed) changed on disk from outside: size/mtime differ -> replay again. */
+function live_root(Class, file){
+	const store = Class.Store.for("/" + path.relative(PUBLIC, file).split(path.sep).join("/"));
+	if (store.host && store.sig === sig(file) && store.deps.every(([f, s]) => sig(f) === s)) return store.host;
+	const deps = [];
+	collect = deps;
+	let root;
+	try { root = Class.replay(parse_lines(file)); } finally { collect = null; }
+	Object.assign(store, { host: root, sig: sig(file), deps, file });
+	root.store = store;
+	return root;
+}
 
-function task_state(Task, file){
-	const task = task_of(Task, file);
-	if (Task.name === "Session") return { class: "Session", completion: task.completion, progress: task.progress(), data: { ...task.data },
-		tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state })) };
-	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data },
-		tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state })) };
+// The line was appended; move the cached root forward with it and re-stamp the file's signature.
+function advance(root, line){
+	collect = root.store.deps;   // a {task} / {file} line reads a child file: watch it too
+	try { root.replay_line(line); } catch (e) { root.store.host = null; throw e; } finally { collect = null; }
+	root.store.sig = sig(root.store.file);
+}
+
+function task_state(Task, task){
+	const tasks = [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state }));
+	if (Task.name === "Session") return { class: "Session", completion: task.completion, progress: task.progress(), data: { ...task.data }, tasks };
+	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
 }
 
 function refusal(why, Class){
@@ -486,8 +509,8 @@ function refusal(why, Class){
 }
 
 // Task and Session: a top-level key must be a public method, a known field, or an existing child.
-function validate(Task, file, delta){
-	const task = task_of(Task, file), known = new Set([...Task.describe().fields, ...(KEYS[Task.name] ?? [])]);
+function validate(Task, task, delta){
+	const known = new Set([...Task.describe().fields, ...(KEYS[Task.name] ?? []), "folder"]);
 	for (const key of Object.keys(delta)){
 		if (key === "help") continue;
 		if (key.startsWith("_")) return refusal(`"${key}" starts with _ (private)`, Task);
@@ -495,6 +518,37 @@ function validate(Task, file, delta){
 		return refusal(`"${key}" names no method, field or child of ${Task.name}`, Task);
 	}
 	return null;
+}
+
+// A new folder is one more line in its parent's files.jsonl, through ModuleLog (a failure here never fails the write).
+async function record_new_folder(parent, name){
+	try { (await import("../../Server/ModuleLog.mjs")).default.record(parent, `${name}/page.js`); } catch {}
+}
+
+/* `{"folder":"<child id>"}`: a nested subtask gets its OWN folder on demand. The child's line 1 carries its current data; the parent
+ * records {"file":"<id>/task.jsonl"} and replay swaps the nested child for that file. A child with subtasks of its own is refused (give those a folder first). */
+async function give_folder(root, at, ids, ctx){
+	const parent_dir = path.dirname(at.file), made = [], by = ctx.caller ?? "agent";
+	for (const id of [].concat(ids)){
+		const kid = root._tasks?.find(String(id));
+		if (!kid) return { why: `"${id}" is not a subtask of this task` };
+		if ([...(kid._tasks ?? [])].length) return { why: `"${id}" has subtasks of its own; give them folders first` };
+		const slug = slug_of(kid.id), dir = path.join(parent_dir, slug);
+		if (fs.existsSync(dir)) return { why: `${app_path(dir)} already exists` };
+		if (root.data.path === undefined){   // the parent must know where it lives for the {"file"} line to resolve
+			const own = { path: app_path(parent_dir), by, ts: now() };
+			write_line(at.file, own, true);
+			advance(root, own);
+		}
+		write_line(path.join(dir, "task.jsonl"), { id: kid.id, path: app_path(dir), parent: root.data.path, set: { ...kid.data, path: app_path(dir) }, by, ts: now() }, true);
+		fs.writeFileSync(path.join(dir, "page.js"), PAGE_JS);
+		const line = { file: `${slug}/task.jsonl`, by, ts: now() };
+		write_line(at.file, line, true);
+		advance(root, line);
+		await record_new_folder(parent_dir, slug);
+		made.push({ id: kid.id, path: app_path(dir) });
+	}
+	return { made };
 }
 
 export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
@@ -507,8 +561,9 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	const kind = class_of(at.file);
 	const Class = LOADERS[kind] ? await LOADERS[kind]().catch(() => null) : null;
 	if (Class) link_refs(await LOADERS.Task());   // references on a parent resolve to live children
+	const root = () => live_root(Class, at.file);
 	const first_time = () => !told.has(`${ctx.caller}|${kind}`) && told.set(`${ctx.caller}|${kind}`, true);
-	const state = () => Class?.replay ? task_state(Class, at.file) : (fs.existsSync(at.file) ? render_markdown(replay(parse_lines(at.file)), Subpages.listed(at.file).map(name => ({ name, url: String(url).replace(/\/?$/, "/") + name + "/" }))) : null);
+	const state = () => Class?.replay ? task_state(Class, root()) : (fs.existsSync(at.file) ? render_markdown(replay(parse_lines(at.file)), Subpages.listed(at.file).map(name => ({ name, url: String(url).replace(/\/?$/, "/") + name + "/" }))) : null);
 	const extra = async () => alias ? {} : { ...(first_time() ? { instructions: await instructions_for(kind, Class) } : {}), state: state() };
 
 	if (delta === undefined) return { ok: true, ...(await extra()), ...(alias ? { state: state() } : {}) };
@@ -518,34 +573,58 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		told.set(`${ctx.caller}|${kind}`, true);
 		return { ok: true, instructions: await instructions_for(kind, Class) };
 	}
-	if (Class?.replay){ const no = validate(Class, at.file, flat); if (no) return no; }
+	if (Class?.replay){ const no = validate(Class, root(), flat); if (no) return no; }
 
-	// `pages` is the one key the tool handles itself: a folder is made on disk (Subpages.js).
-	const { pages, ...rest } = flat;
+	// `pages` and `folder` are the keys the tool handles itself: a folder is made on disk (Subpages.js, give_folder).
+	const { pages, folder, ...rest } = flat;
 	const made = pages === undefined ? null : apply_pages(at, pages, url);
 	if (made?.why) return { ok: false, why: made.why, done: made.done };
 
-	const ids = [], homes = [];
+	const ids = [], homes = [], by = ctx.caller ?? "agent";
 	let line = null, size;
-	// Task or Session parent: each `tasks.add` becomes a child folder plus one `{"task": path}` reference line here.
-	let body = pages === undefined ? flat : rest;
+	// Every write to a Task/Session goes through here: append the line, then advance the live root with it.
+	const put = (l, own = true) => { const live = Class?.replay ? root() : null; size = write_line(at.file, l, own); if (live) advance(live, l); line = l; };   // root BEFORE the write: after it the file's size differs and root() would re-read
+
+	let body = pages === undefined && folder === undefined ? flat : rest;
 	if (Class?.replay && !at.target.length && is_plain(body.tasks) && body.tasks.add !== undefined){
 		const { add, ...others } = body.tasks;
+		// Check everything first: a refused slug writes nothing at all.
+		const plan = [];
 		for (const a of [].concat(add)){
 			if (!is_plain(a)) return { ok: false, why: "`tasks.add` takes an object (the new task's fields)" };
-			const home = make_child(path.dirname(at.file), a, ctx, url);
-			homes.push(home); ids.push(home.id);
-			line = { task: home.path, by: ctx.caller ?? "agent", ts: now() };
-			size = write_line(at.file, line, true);
-			// Step 16: the caller's own log gets the same reference (never the parent twice, never an error).
-			if (caller_log && path.resolve(caller_log) !== path.resolve(at.file)) try { write_line(caller_log, line, true); } catch {}
+			const home = task_home(path.dirname(at.file), a, ctx.module_root, url);
+			if (home?.taken) return { ok: false, why: `a task "${home.slug}" already exists under ${home.list.module}/tasks/; nothing was written. Use the id "${home.free}" (or a different title), or work on the existing one.`, suggest: home.free };
+			const id = home ? null : slug_of(a.id ?? a.title);
+			if (id && (root()._tasks?.find(id) || plan.some(p => p.id === id)))
+				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Use the id "${id}-2" (or a different title), or change the existing one.`, suggest: id + "-2" };
+			plan.push({ a, home, id });
+		}
+		for (const { a, home, id } of plan){
+			if (home){
+				const h = make_child(path.dirname(at.file), a, ctx, home);
+				homes.push(h); ids.push(h.id);
+				put({ task: h.path, by, ts: now() });
+				await record_new_folder(path.dirname(home.dir), home.slug);
+				// Step 16: the caller's own log gets the same reference (never the parent twice, never an error).
+				if (caller_log && path.resolve(caller_log) !== path.resolve(at.file)) try { write_line(caller_log, line, true); } catch {}
+			} else {
+				// A subtask nests in this file: {"tasks":{"add":{…}}}, no folder.
+				const { type: _t, data, ...fields } = a;
+				ids.push(id);
+				put({ tasks: { add: { type: "Task", ...data, ...stamp_ids(fields, ids), id } }, by, ts: now() });
+			}
 		}
 		const { tasks: _t, ...more } = body;
 		body = Object.keys(others).length ? { ...more, tasks: others } : more;
 	}
-	if ((pages === undefined && !homes.length) || Object.keys(body).length){
-		line = nest(at.target, { ...stamp_ids(body, ids), by: ctx.caller ?? "agent", ts: now() });
-		size = write_line(at.file, line, !!Class?.replay);
+	if (folder !== undefined && Class?.replay){
+		const g = await give_folder(root(), at, folder, ctx);
+		if (g.why) return { ok: false, why: g.why };
+		homes.push(...g.made);
+		size = size_of(at.file);
+	}
+	if ((pages === undefined && folder === undefined && !homes.length && !ids.length) || Object.keys(body).length){
+		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: now() }), !!Class?.replay);
 	} else if (size === undefined) size = size_of(at.file);
 	return { ok: true, ids, line, size, ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(Class?.replay || !alias ? await extra() : {}) };
 }
@@ -566,8 +645,9 @@ export function page_tools(resolve_log = null){
 			["method"],
 			async ({ path: url, target, method, args }, ctx = {}) => {
 				url ??= own_page(ctx);
-				const at = await resolve(url, target);
+				const at = await resolve(url, target, true);
 				if (!at) return not_a_page(url);
+				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, target, delta: { [method]: is_plain(args) ? args : {} } }, { resolve_log, ...ctx }, true));   // a task / session: the item path
 
 				const stamped = is_plain(args) ? { ...(method === "add" ? { id: crypto.randomUUID() } : {}), ...stamp_ids(args), by: ctx.caller ?? "agent", ts: now() } : args;
 				const line = nest(at.target, { [method]: stamped });
@@ -584,8 +664,9 @@ export function page_tools(resolve_log = null){
 			["item"],
 			async ({ path: url, item, after }, ctx = {}) => {
 				url ??= own_page(ctx);
-				const at = await resolve(url, ["content"]);
+				const at = await resolve(url, ["content"], true);
 				if (!at) return not_a_page(url);
+				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, delta: { content: { add: { ...item, ...(after !== undefined ? { after } : {}) } } } }, { resolve_log, ...ctx }, true));
 
 				const id = item?.id ?? crypto.randomUUID();
 				const add = { ...item, id, by: ctx.caller ?? "agent", ts: now(), ...(after !== undefined ? { after } : {}) };
@@ -625,8 +706,9 @@ export function page_tools(resolve_log = null){
 			["text"],
 			async ({ path: url, text }, ctx = {}) => {
 				url ??= own_page(ctx);
-				const at = await resolve(url);
+				const at = await resolve(url, undefined, true);
 				if (!at) return not_a_page(url);
+				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, delta: { now: { preview: text } } }, { resolve_log, ...ctx }, true));   // a task has no page log: its "now"
 
 				const line = nest(at.target, { log: { text, by: ctx.caller ?? "agent", ts: now() } });
 				const size = write_line(at.file, line);

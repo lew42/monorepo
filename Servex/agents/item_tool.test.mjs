@@ -57,7 +57,7 @@ try {
 	fs.writeFileSync(path.join(SDIR, "session.jsonl"), JSON.stringify({ session: "fixture-session" }) + "\n");
 	try {
 		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "a" } } } });
-		await call("item", { path: r.homes[0].path, delta: { complete: {} } });
+		await call("item", { path: SURL, delta: { a: { complete: {} } } });   // a nested task: addressed by its id
 		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "b" } } } });
 		ok(r.ok && r.state.class === "Session" && r.state.completion === 0.5 && r.state.progress.total === 2, "session.jsonl -> Session, tasks.add, completion 1/2");
 		r = await call("item", { path: SURL, delta: { nonsense_key: 1 } });
@@ -87,9 +87,13 @@ try {
 		ok(list_lines().filter(l => l.id === "tasks").length === 1 && list_lines().length === 3, "second child: no second line 1, one more reference");
 
 		r = await add({ tasks: { add: { title: "Plain job", module: "nomod" } } });
-		ok(fs.existsSync(path.join(DIR, "plain-job", "task.jsonl")) && !fs.existsSync(path.join(MODS, "nomod")), "no module folder: <parent>/<slug>/, module folder not created");
+		ok(r.ok && !fs.existsSync(path.join(DIR, "plain-job")) && !fs.existsSync(path.join(MODS, "nomod")) && lines().at(-1).tasks.add.id === "plain-job", "no module folder: the subtask nests in the parent's file, no folder, module folder not created");
+		const n_before = lines().length;
 		r = await add({ tasks: { add: { title: "Plain job" } } });
-		ok(fs.existsSync(path.join(DIR, "plain-job-2", "task.jsonl")), "repeated title gets -2");
+		ok(r.ok === false && r.suggest === "plain-job-2" && /plain-job-2/.test(r.why) && lines().length === n_before, "a repeated subtask id is refused, offers -2, writes nothing");
+		r = await add({ tasks: { add: { title: "Module job", module: "fakemod" } } });
+		ok(r.ok === false && r.suggest === "module-job-2", "an existing module slug is refused with a -2 offer");
+		ok(fs.existsSync(path.join(MOD, "tasks", "module-job", "task.jsonl")) && !fs.existsSync(path.join(MOD, "tasks", "module-job-2")), "refusal overwrote nothing and made nothing");
 
 		r = await call("item", { path: app(home), delta: { start: {} } });
 		ok(r.state.state === "running", "start the child through its own path");
@@ -97,7 +101,7 @@ try {
 		ok(r.state.tasks.find(t => t.id === "module-job").state === "running" && r.state.completion === 0, "parent sees the child running");
 		await call("item", { path: app(home), delta: { complete: {} } });
 		r = await call("item", { path: URL });
-		ok(r.state.completion === 1 / 5, "parent completion changes after the child completes");
+		ok(r.state.completion === 1 / 4, "parent completion changes after the child completes");
 
 		fs.appendFileSync(FILE, JSON.stringify({ task: "/framework/ai/sessions/2026/10/16/no-such-" + process.pid + "/" }) + "\n");
 		r = await call("item", { path: URL });
@@ -115,16 +119,16 @@ try {
 		try {
 			const run = (url, delta, ctx = {}) => run_item({ path: url, delta }, { caller: "t1", ...ctx }).then(x => JSON.parse(JSON.stringify(x)));
 			const clines = () => fs.readFileSync(CLOG, "utf8").trim().split("\n").map(l => JSON.parse(l));
-			r = await run(URL, { tasks: { add: { title: "Ref job" } } }, { caller_log: CLOG });
+			r = await run(URL, { tasks: { add: { title: "Ref job", module: MODN } } }, { caller_log: CLOG });
 			ok(clines().length === 2 && clines()[1].task === r.homes[0].path && clines()[1].by === "t1" && clines()[1].ts, "caller log: exactly one reference line");
-			r = await run(URL, { tasks: { add: { title: "Resolver job" } } }, { resolve_log: id => id === "t1" ? CLOG : null });
+			r = await run(URL, { tasks: { add: { title: "Resolver job", module: MODN } } }, { resolve_log: id => id === "t1" ? CLOG : null });
 			ok(clines().length === 3 && clines()[2].task === r.homes[0].path, "resolve_log(caller) finds the log");
 			const n0 = clines().length, f0 = lines().length;
-			r = await run(URL, { tasks: { add: { title: "No log job" } } });
+			r = await run(URL, { tasks: { add: { title: "No log job", module: MODN } } });
 			ok(r.ok && clines().length === n0 && lines().length === f0 + 1, "no caller log: nothing extra written");
-			r = await run(URL, { tasks: { add: { title: "Self job" } } }, { caller_log: FILE });
+			r = await run(URL, { tasks: { add: { title: "Self job", module: MODN } } }, { caller_log: FILE });
 			ok(r.ok && lines().length === f0 + 2, "caller log is the parent: no duplicate line");
-			r = await run(URL, { tasks: { add: { title: "Broken log job" } } }, { caller_log: path.join(CLOG_DIR, "no", "such", "x.jsonl") });
+			r = await run(URL, { tasks: { add: { title: "Broken log job", module: MODN } } }, { caller_log: path.join(CLOG_DIR, "no", "such", "x.jsonl") });
 			ok(r.ok, "an unwritable caller log never errors");
 
 			r = await run(`/framework/${MODN}/sub/`, { tasks: { add: { title: "Module from path" } } });
@@ -134,9 +138,9 @@ try {
 			const list_refs = () => fs.readFileSync(path.join(MDIR, "tasks", "task.jsonl"), "utf8").trim().split(String.fromCharCode(10)).filter(l => JSON.parse(l).task).length;
 			const refs0 = list_refs();
 			r = await run(`/framework/${MODN}/tasks/module-from-path/`, { tasks: { add: { title: "Goal child" } } });
-			ok(r.ok && fs.existsSync(path.join(GOAL, "goal-child", "task.jsonl")) && !fs.existsSync(path.join(MDIR, "tasks", "goal-child")) && list_refs() === refs0, "a call inside tasks/: the child homes in the parent's folder, not the module list");
+			ok(r.ok && !fs.existsSync(path.join(GOAL, "goal-child")) && !fs.existsSync(path.join(MDIR, "tasks", "goal-child")) && list_refs() === refs0 && r.state.tasks.some(t => t.id === "goal-child"), "a call inside tasks/: the subtask nests in the goal's own file, no folder, no module-list reference");
 			r = await run(URL, { tasks: { add: { title: "Dated outside" } } });
-			ok(fs.existsSync(path.join(DIR, "dated-outside", "task.jsonl")), "a dated ai/sessions path keeps the parent's folder");
+			ok(!fs.existsSync(path.join(DIR, "dated-outside")) && r.state.tasks.some(t => t.id === "dated-outside"), "a dated ai/sessions path: the subtask nests, no folder");
 
 			r = await call("item", { path: URL, delta: { help: {} } }, "rules-caller");
 			ok(Array.isArray(r.instructions.rules) && r.instructions.rules.length === 5, "first-call instructions include rules");
@@ -144,6 +148,50 @@ try {
 			fs.rmSync(MDIR, { recursive: true, force: true });
 			fs.rmSync(CLOG_DIR, { recursive: true, force: true });
 		}
+	// ---- step 3c: one live instance per file, nested subtasks, a folder on demand ----
+	{
+		const { Task } = await import("../../public/framework/core/Task/Task.js");
+		const { link_refs } = await import("./page_tools.js");
+		link_refs(Task);
+		const NDIR = DIR + "-live", NURL = URL.replace(/\/$/, "") + "-live/", NFILE = path.join(NDIR, "task.jsonl");
+		fs.mkdirSync(NDIR, { recursive: true });
+		fs.writeFileSync(NFILE, JSON.stringify({ id: "live-parent", path: NURL, title: "Live parent" }) + "\n");
+		const nlines = () => fs.readFileSync(NFILE, "utf8").trim().split("\n").map(l => JSON.parse(l));
+		const stored = () => Task.Store.instances.get(NURL + "task.jsonl")?.host;
+		try {
+			await call("item", { path: NURL, delta: { start: {} } });
+			const first = stored();
+			await call("item", { path: NURL, delta: { expected: "same object" } });
+			await call("item", { path: NURL });
+			ok(first && stored() === first && first.data.expected === "same object", "two calls on one path reach the same instance");
+
+			fs.appendFileSync(NFILE, JSON.stringify({ title: "edited outside" }) + "\n");
+			r = await call("item", { path: NURL });
+			ok(r.state.data.title === "edited outside" && stored() !== first, "a change made outside the tool is re-read, never served stale");
+
+			r = await call("item", { path: NURL, delta: { tasks: { add: { title: "Nested one" } } } });
+			ok(r.ok && !r.homes && nlines().at(-1).tasks.add.id === "nested-one" && !fs.existsSync(path.join(NDIR, "nested-one")), "a subtask nests in the parent's file: {tasks:{add}}, no folder");
+			await call("item", { path: NURL, delta: { "nested-one": { start: {} } } });
+			ok(nlines().at(-1)["nested-one"].start && stored().tasks.find("nested-one").state === "running", "a later change is written as {<child id>:{…}} and applied to the live child");
+			const replayed = Task.replay(nlines());
+			ok(replayed.tasks.find("nested-one")?.state === "running" && replayed.tasks.find("nested-one").get_one("title") === "Nested one", "the nested add + change replay the same way from the file (node)");
+
+			r = await call("item", { path: NURL, delta: { folder: "nested-one" } });
+			const kid_file = path.join(NDIR, "nested-one", "task.jsonl");
+			ok(r.ok && fs.existsSync(kid_file) && nlines().at(-1).file === "nested-one/task.jsonl", "a folder on demand: the parent records {file}");
+			const again = Task.replay(nlines());
+			ok(again.tasks.find("nested-one")?.state === "running" && [...again.tasks].length === 1, "the folder variant replays: same child, same state, not doubled");
+			await call("item", { path: NURL + "nested-one/", delta: { complete: {} } });
+			r = await call("item", { path: NURL });
+			ok(r.state.tasks[0].state === "complete", "after the folder move, the parent sees the child's own file");
+
+			// page_set / page_call / page_log on a task folder (task.jsonl, no page.jsonl) never make a stray page.jsonl.
+			await call("page_set", { path: NURL, delta: { title: "via page_set" } });
+			await call("page_log", { path: NURL, text: "now doing" });
+			await call("page_call", { path: NURL, method: "pause", args: {} });
+			ok(!fs.existsSync(path.join(NDIR, "page.jsonl")) && stored().data.title === "via page_set", "page tools on a task folder go to the task, no stray page.jsonl");
+		} finally { fs.rmSync(NDIR, { recursive: true, force: true }); }
+	}
 	// ---- Task.rank: recency x weight ----
 	{
 		const { Task } = await import("../../public/framework/core/Task/Task.js");

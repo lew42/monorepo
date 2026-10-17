@@ -103,7 +103,7 @@ export class Store {
 		host.store = this;
 
 		host.on("delta", (line, origin) => {
-			if (this.replaying) return;
+			if (this.replaying || owned_below(origin, host)) return;
 			this.append(this.line_for(line, origin, host));
 		});
 
@@ -202,6 +202,12 @@ function address(node, host){
 	}
 
 	return address(parent, host);
+}
+
+// A change whose origin sits inside a descendant that has its OWN store belongs to that store (a Task.open_ref stub replaying its own file).
+function owned_below(node, host){
+	for (let n = is_list(node) ? node.owner : node; n && n !== host; n = n.parent) if (n.store && n.store.host === n) return true;
+	return false;
 }
 
 /* The chain of NAMES from `host` down to `node`, each one a child's id — never a

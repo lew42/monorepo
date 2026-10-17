@@ -57,8 +57,13 @@ export default class TaskDirs {
 		return path.join(this.day_dir(day), slug);
 	}
 
-	/** Make it. Returns the absolute dir. */
-	static make(spec){ const d = this.dir(spec); fs.mkdirSync(d, { recursive: true }); return d; }
+	/** Make it. Returns the absolute dir. Refuses a folder that already holds a task (never two tasks in one log). */
+	static make(spec){
+		const d = this.dir(spec);
+		if (fs.existsSync(path.join(d, "task.jsonl"))) throw new Error(`refused: ${rel(d)} already holds a task. Pick another slug (e.g. ${path.basename(d)}-2).`);
+		fs.mkdirSync(d, { recursive: true });
+		return d;
+	}
 
 	/** An old-shaped dir (ai/YYYY-MM-DD/<slug>[/rest]) that does not exist and never moved -> its new home, for writers
 	 *  (Servex open_task) handed an old-style path by a brief. Anything else comes back resolved but unchanged. */

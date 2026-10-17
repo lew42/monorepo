@@ -68,6 +68,19 @@ export default class ModuleLog {
 		return rows.filter(r => r.at && new Date(r.at).toISOString().slice(0, 10) >= this.since).sort((a, b) => b.at - a.at);
 	}
 
+	/** A new file or folder in `dir` (absolute) is one line in that folder's files.jsonl, the same line PageFiles.js writes ({"file":"kid/page.js"}).
+	 *  Only a folder that already keeps a files.jsonl: PageFiles lists the rest itself. Repeat-safe: no line if the latest one for the name is the same. */
+	static record(dir, rel) {
+		const log = path.join(dir, "files.jsonl");
+		if (!fs.existsSync(log)) return false;
+		const key = rel.split("/")[0], text = fs.readFileSync(log, "utf8");
+		let last = null;
+		for (const l of text.split(String.fromCharCode(10))) { try { const o = JSON.parse(l); if (String(o.file ?? "").split("/")[0] === key) last = o; } catch {} }
+		if (last && !last.gone) return false;
+		fs.appendFileSync(log, JSON.stringify({ file: rel }) + String.fromCharCode(10));
+		return true;
+	}
+
 	static bucket(ms, by) {
 		const d = new Date(ms), day = d.toISOString().slice(0, 10);
 		if (by === "day") return day;
