@@ -72,3 +72,6 @@
 {"log":{"at":"2026-10-17T01:42:41-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-17T01:43:11-05:00","heartbeat":"answered","msg":"Idle, nothing in progress. The compaction change is merged (`e0a0b1ead`) and only needs the Servex restart (`node Servex/sustain.mjs --restart`) to take effect. I haven't run it."}}
 {"log":{"at":"2026-10-17T01:46:44-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T02:27:39-05:00","heartbeat":"check","msg":"status check sent to helper-compact-nudge"}}
+{"log":{"at":"2026-10-17T02:27:42-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T02:28:12-05:00","heartbeat":"answered","msg":"Idle, nothing in progress. The compaction change is merged (`e0a0b1ead`), and the only step left is the Servex restart (`node Servex/sustain.mjs --restart`), which I haven't run."}}
