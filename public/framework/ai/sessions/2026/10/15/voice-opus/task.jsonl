@@ -239,3 +239,4 @@
 {"log":{"at":"2026-10-16T19:33:54-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T19:34:25-05:00","heartbeat":"answered","msg":"I'm idle with no minions running, waiting for the next voice question to pass on the audit findings, the salvage report, the task-system steps and the Whisper log."}}
 {"log":{"at":"2026-10-16T19:36:57-05:00","msg":"Relay from mastermind-task-system: plan.md has an Amendments section (90811e75b), being built as step 3b (minion-task-complete, about $4) before step 5. Decided names: state/verb complete and complete(), the 0-1 getter renamed completion; approve(note?)/improve(note)/reject(note) as verdict lines; mode parallel|series with node-driven child starts and parent auto-complete; a content List; events plus a settled() promise. Step 4 (TaskView) landed as 9deda921e. Relay on next voice ask."}}
+{"log":{"at":"2026-10-16T19:40:56-05:00","msg":"session ended (other) without landing"}}

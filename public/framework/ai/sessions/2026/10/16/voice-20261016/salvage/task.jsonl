@@ -7,3 +7,8 @@
 {"log":{"at":"2026-10-16T19:12:50-05:00","heartbeat":"check","msg":"status check sent to helper-salvage"}}
 {"log":{"at":"2026-10-16T19:12:52-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T19:13:22-05:00","heartbeat":"answered","msg":"I'm done and idle. The audit is committed (`ad8bafbe2`, `salvage/audit.md`). The dup-bubbles fix was already on `michael/dev`, so nothing was merged. The report went to `mastermind-voice-opus` because"}}
+{"log":{"at":"2026-10-16T19:16:56-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T19:27:50-05:00","heartbeat":"check","msg":"status check sent to helper-salvage"}}
+{"log":{"at":"2026-10-16T19:27:52-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T19:28:22-05:00","heartbeat":"answered","msg":"Nothing has changed since my last update: I'm finished and idle, with no work running. The audit is at `public/framework/ai/sessions/2026/10/16/voice-20261016/salvage/audit.md` (commit `ad8bafbe2`). d"}}
+{"log":{"at":"2026-10-16T19:31:56-05:00","msg":"session ended (other) without landing"}}
