@@ -11,3 +11,8 @@
 {"commit":"7923dcf311ea"}
 {"commit":"750be6cd1f59"}
 {"commit":"debddb6bae46"}
+{"commit":"a1f145e19c92"}
+{"review":{"at":"2026-10-17T11:02:39-05:00","found":1,"real":1,"fixed":1,"by":"mastermind-verify-undone self-review (no fresh agent: the gate cannot see this task dir)","note":"page used button without importing it; filter chip highlight used a class that does not exist; both fixed and shown at 400"}}
+{"decision":{"at":"2026-10-17T11:02:39-05:00","what":"Landed with the full 620 checked at about $25 (budget $12)","alternative":"check only the oldest 300 for about $12; chose all so the page has no unchecked rows","why":"Haiku runs carry about $0.5 fixed overhead each, so cost was per batch more than per ask"}}
+{"log":{"at":"2026-10-17T11:02:39-05:00","msg":"Landed a1f145e19: 620 undone asks checked = 229 verified undone + 240 found built + 151 unclear (the two numbers agree); spot check 10/10 right; page shows chips + evidence links; doc section appended; owner_note posted. Docs smoke-test agent skipped (cost); card_set refused for the sibling card, so the owner_note carries the numbers."}}
+{"finish":{"at":"2026-10-17T11:02:39-05:00"}}
