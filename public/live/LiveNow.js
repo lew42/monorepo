@@ -33,7 +33,7 @@ export default class LiveNow extends LiveToday {
 	}
 
 	// The feed tile: its title, which opens the full view (/live/now/), like the Tasks card.
-	static line(box){ return this.into(box, "tile"); }
+	static line(box){ return box.empty(() => this.tile()); }
 	static tile(){ a.c("live-tasks-line", "Now").href("/live/now/"); }   // the tile is its title (doc/notes.md, 2026-10-16); the counts are on the page
 
 	static draw({ rows, landed, waiting }){
