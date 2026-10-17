@@ -367,3 +367,10 @@
 	.drawer-rail-sheet-tabbody { flex: 1 1 auto; min-block-size: 0; overflow: auto; }
 	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { flex: 0 0 auto; }
 }
+
+/* AIPage (<path>/ai/): a page above 52em; below it the Sheet shows it, so the page behind stays the one it is about. */
+@layer theme {
+	.drawer-ai-page-views { gap: .5em 1em; align-items: baseline; margin-block-end: 1em; }
+	.drawer-ai-page-view.on { font-weight: 600; text-decoration: none; }
+	@media (max-width: 52em) { .page.drawer-ai-page { display: none !important; } }
+}

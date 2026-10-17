@@ -6,6 +6,7 @@ import chat, { new_session_button as chat_new_session_button } from "/framework/
 import Inbox from "./inbox.js";
 import tabs from "./tabs.js";
 import drawer from "./drawer.js";
+import AIPage from "./AIPage.js";
 
 View.stylesheet(import.meta, "rail.css");
 
@@ -36,57 +37,86 @@ export default class Sheet extends View {
 
 	small(){ return !!globalThis.matchMedia?.("(max-width: 52em)")?.matches; }
 
-	static KEY = "sheet";
+	static KEY = "sheet";   // history.state's size word; the url says only open (<path>/ai/) or closed (<path>)
 
-	// ?sheet=strip|split|full; an old ?sheet=open link lands on split.
+	// Open while an AIPage (<path>/ai/…) is the page showing, at history's size (split on a fresh arrival).
+	// A page whose own ai/ is a real page (/framework/ai/) opens in place: same url, the size in history only.
 	routed(){
-		const m = new URLSearchParams(location.search).get(this.constructor.KEY);
-		if (m === "open") return "split";
-		return m in this.constructor.Size.RANK && m !== "closed" ? m : "closed";
+		const ai = AIPage.current, st = history.state ?? {}, m = st[this.constructor.KEY];
+		const open = ai?.url && location.pathname.startsWith(ai.url) || st.here === location.pathname;
+		if (!open) return "closed";
+		return m in this.constructor.Size.RANK && m !== "closed" ? m : "split";
 	}
 
-	url(mode){
-		const url = new URL(location.href);
-		mode === "closed" ? url.searchParams.delete(this.constructor.KEY) : url.searchParams.set(this.constructor.KEY, mode);
-		return url;
-	}
-
-	// ⚠ see doc/rail-notes.md#c8-push-mode
+	// depth = how many sheet entries sit above the closed one, so a step down is a history.back().
 	push(mode){
 		const st = history.state ?? {};
-		const depth = mode === "strip" ? 1 : (st.depth ? st.depth + 1 : null);
-		history.pushState({ ...st, sheet: mode, depth }, "", this.url(mode));
+		history.pushState({ ...st, sheet: mode, depth: st.depth ? st.depth + 1 : null }, "", location.href);
 	}
 
 	replace(mode){
-		const { sheet, depth, ...st } = history.state ?? {};
-		history.replaceState(mode === "closed" ? st : { ...st, sheet: mode, depth: null }, "", this.url(mode));
+		history.replaceState({ ...(history.state ?? {}), sheet: mode, depth: null }, "", location.href);
 	}
 
 	watch_history(){
 		window.addEventListener("popstate", () => this.apply(this.routed()));
 	}
 
+	// An old ?drawer=x or ?sheet=… link becomes <path>/ai/x/ once, before the Router's first load reads the path.
 	restore(){
-		const mode = this.routed();
-		if (mode === "closed" || !this.small()) return;
-		this.app?.styles_loaded?.().then(() => {
-			this.replace("closed");
-			this.constructor.Size.between("closed", mode).forEach(m => this.push(m));
-			this.apply(mode);
-		});
+		const url = AIPage.old_link();
+		if (url) history.replaceState(history.state, "", url);
 	}
 
 	to(mode, { listen = false } = {}){
 		const from = this.mode ?? "closed";
 		if (mode === from){ this.apply(mode, listen); return Promise.resolve(); }
+		if (from === "closed") return this.open_at(mode, listen);
 		const Size = this.constructor.Size, R = Size.RANK, st = history.state ?? {};
 		const steps = R[from] - R[mode];
+		if (mode === "closed") return st.depth ? this.back(st.depth) : this.leave();
 		if (steps > 0 && st.depth === R[from]) return this.back(steps);
 		// up: one history entry per size, so the phone's back button steps down one size
 		steps < 0 ? Size.between(from, mode).forEach(m => this.push(m)) : this.replace(mode);
 		this.apply(mode, listen);
 		return Promise.resolve();
+	}
+
+	// From closed: go to <path>/ai/ (arrive() then writes the sizes into history). A real ai/ child opens in place.
+	open_at(mode, listen){
+		const router = this.app?.router, here = router?.active;
+		const real = here?.children?.has("ai") && !(here.children.get("ai") instanceof AIPage);
+		if (real || !router){
+			const sizes = this.constructor.Size.between("closed", mode);
+			sizes.forEach((m, i) => history.pushState({ ...(history.state ?? {}), sheet: m, depth: i + 1, here: location.pathname }, "", location.href));
+			this.apply(mode, listen);
+			return Promise.resolve();
+		}
+		this.pending = { mode, listen };
+		return router.go(drawer.page().replace(/\/?$/, "/") + "ai/");
+	}
+
+	// Closed with no history to step back through: go to the page the sheet was about.
+	leave(){
+		const ai = AIPage.current;
+		if (!ai || !this.app?.router){ this.replace("closed"); this.apply("closed"); return Promise.resolve(); }
+		return this.app.router.go(ai.about);
+	}
+
+	// The first time history reaches <path>/ai/ (✦, a reload, a link): one entry over <path>, so back closes.
+	arrive(){
+		const ai = AIPage.current, st = history.state ?? {};
+		if (!ai?.url || !location.pathname.startsWith(ai.url) || st.sheet) return;
+		const pending = this.pending; this.pending = null;
+		if (!pending && this.mode && this.mode !== "closed") return this.replace(this.mode);   // a link inside the open sheet (ai/ → ai/live/)
+		const mode = pending?.mode ?? "split";
+		if (pending) history.replaceState({ ...st, sheet: mode, depth: 1 }, "", location.href);
+		else {
+			const here = location.href;
+			history.replaceState({}, "", ai.about);   // a reload or a link: <path> goes underneath
+			history.pushState({ sheet: mode, depth: 1 }, "", here);
+		}
+		this.listen_next = !!pending?.listen;
 	}
 
 	back(steps){
@@ -105,12 +135,14 @@ export default class Sheet extends View {
 		sheet.state(mode);
 	}
 
+	// Router → app.navigated → here, after the Router's own pushState (hence the timeout).
 	navigated(){
 		this.$sheet?.update_path?.();
 		this.$sheet?.navigated?.();
-		if (this.mode && this.mode !== "closed") setTimeout(() => {
-			if (this.routed() === "closed") this.replace(this.mode);
-			this.apply(this.routed());
+		setTimeout(() => {
+			this.arrive();
+			const listen = this.listen_next; this.listen_next = false;
+			this.apply(this.routed(), listen);
 		});
 	}
 

@@ -388,6 +388,8 @@ export class Page extends Item {
 			if (page) return this.add(name, page).load_all_children(levels);
 		}
 
+		if (name === "ai" && known === undefined && !kind && !this.no_ai) return this.add(name, await this.ai_page()).load_all_children(levels);   // <path>/ai/: the Sheet about this page; a real ai/ page wins (ext/drawer/doc/sheet.md)
+
 		if (name === "tasks" && kind !== "js") return this.add(name, await this.tasks_folder()).load_all_children(levels);   // a tasks/ with no page.js of its own: no import probe, no 404 (core/Task/readme.md)
 
 		const doc = md && await this.child_md(name, levels);
@@ -403,6 +405,12 @@ export class Page extends Item {
 	async tasks_folder(){
 		const { default: TasksPage } = await import("../Task/TasksPage.js");
 		return new TasksPage({ title: "Tasks", icon: "task_alt" });
+	}
+
+	// ⚠ Imported on first use, like tasks_folder: AIPage extends Page.
+	async ai_page(){
+		const { default: AIPage } = await import("../../ext/drawer/AIPage.js");
+		return AIPage.route(this);
 	}
 
 	async child_md(name, levels){
