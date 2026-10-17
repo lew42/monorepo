@@ -1,5 +1,6 @@
 // Visibility check for ext/Figma: lists every page.js under it that no parent declares in `children:`,
 // so a built page cannot exist and still be unreachable by clicking. Exit code 1 if any is hidden.
+// tasks/ is skipped: its pages are the module's tasks, listed on the /tasks/ dashboard, not declared by a parent page.js.
 //   node public/framework/ext/Figma/visibility.mjs
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
@@ -7,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const ext = dirname(here);
-const walk = dir => readdirSync(dir, { withFileTypes: true }).flatMap(e => e.isDirectory() && e.name !== "data" ? walk(join(dir, e.name)) : e.name === "page.js" ? [join(dir, e.name)] : []);
+const walk = dir => readdirSync(dir, { withFileTypes: true }).flatMap(e => e.isDirectory() && e.name !== "data" && e.name !== "tasks" ? walk(join(dir, e.name)) : e.name === "page.js" ? [join(dir, e.name)] : []);
 const children = dir => {
 	const f = join(dir, "page.js");
 	if (!existsSync(f)) return [];
