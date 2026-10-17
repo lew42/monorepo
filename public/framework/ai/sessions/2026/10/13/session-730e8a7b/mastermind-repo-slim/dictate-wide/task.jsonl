@@ -6,3 +6,6 @@
 {"review":{"at":"2026-10-17T13:02:18-05:00","self":"checked DOM geometry of 30 elements vs main at 400 and 1200 (0 and 1 two-px diff), padding-check clean at 400/1200/1920/3440, layout-check sheets seen at 3440"}}
 {"commit":"5545ac4a8ab8"}
 {"finish":{"at":"2026-10-17T13:03:42-05:00","merged":"5545ac4a8 on michael/dev (branch commit 168676ea9)","checked":"padding-check clean at 400,1200,1920,3440 (closest text 25.6/38.4/54.4/90px); DOM geometry vs main identical at 400 and 1200 except a 2px bleed width","empty_before":"0.342/0.564/0.602/0.736 at 400/1200/1920/3440","empty_after":"0.342/0.543/0.459/0.416 at 400/1200/1920/3440","caveat":"merged with --no-review (self-review above); a stray C:\\c\\Code\\... folder was made by layout-check's --out with a git-bash path; the guard blocked deleting it"}}
+{"commit":"eacc7bdd4dce"}
+{"log":{"at":"2026-10-17T13:04:34-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T13:04:35-05:00","msg":"session resumed"}}

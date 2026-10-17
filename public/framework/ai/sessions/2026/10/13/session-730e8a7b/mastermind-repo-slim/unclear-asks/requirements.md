@@ -1,6 +1,16 @@
 # The 151 unclear asks: a second look with a tighter question, then the rest become tasks or get retired
 
-Budget: $7 (about $4 of it Haiku). Load the `sub-mastermind` and `code` skills. After `../verify-undone/` (10-17 11:02): of 620 undone asks, Haiku found 240 built, 229 undone (now idle tasks in their module homes, `../undone-to-tasks/`), and **151 unclear**: the Haiku could not tell whether the ask was done. The owner's theme: asks never done should be findable and tracked (`../requirements-15.md`). What exists: `Server/UndoneVerify.mjs` (batches, the evidence rubric, `--merge` by ask id), `Server/UndoneToTasks.mjs` (`--plan`/`--apply`, verified-undone asks → idle tasks), `ai/asks/undone.json` (each ask's `verified`, `evidence`), the page `/framework/ai/asks/undone/`, the verdict doc `ai/doc/undone-asks-2026-10-17.md`. CLAUDE.md: "One specific question per step". Your log is this dir's `task.jsonl`.
+Budget: $7 (about $4 of it Haiku). Load the `sub-mastermind` and `code` skills. Your log is this dir's `task.jsonl`.
+
+**Where it stands** (after `../verify-undone/`, 10-17 11:02): of 620 undone asks, Haiku found 240 built, 229 undone (now idle tasks, `../undone-to-tasks/`), and **151 unclear**, meaning it could not tell whether the ask was done. The owner's theme: asks never done must be findable and tracked (`../requirements-15.md`).
+
+**What exists:**
+- `Server/UndoneVerify.mjs`: batches, the evidence rubric, `--merge` by ask id.
+- `Server/UndoneToTasks.mjs`: `--plan`/`--apply`, undone asks → idle tasks.
+- `ai/asks/undone.json`: each ask's `verified` and `evidence`.
+- Page `/framework/ai/asks/undone/`; verdict doc `ai/doc/undone-asks-2026-10-17.md`.
+
+CLAUDE.md: "One specific question per step".
 
 ## Deliverable
 
