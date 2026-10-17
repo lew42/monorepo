@@ -38,6 +38,8 @@ ever appeared — no error, no clue why.
 
 ## More
 
+- **Wide screens** (2026-10-17): [`page.js`](./page.js) wraps the Overview in `.ux-dictate-page`; below 1920 it is the single 40em column it always was, from 1920 up the workbench sits on the left and the rest flows into 28em CSS columns (`Dictate.css`), like [/tasks/](/tasks/). Empty share at 3440: 0.74 before, 0.42 after. The alternative, a Browse view, needs more code.
+
 - **Sentence-per-send on the shared composer** (2026-10-16): `composer({ per_sentence: true })` makes each finished sentence leave the box while the next is still heard; the Refine page uses it, this page's `chat()` keeps the default (pause mode already sends each sentence as a bubble). Proof: `ext/Refine/test/composer-flow.mjs` and a fake-mic run of this page.
 
 - [`doc/sessions.md`](./doc/sessions.md) — one rolling voice session or many: the New session button tested, the decision (one rolling session is the direction, the button stays), and the dry-run chunker `chunk-session.mjs`

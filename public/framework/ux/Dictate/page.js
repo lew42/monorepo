@@ -165,63 +165,69 @@ export default new Doc({
 		// Widget(...)` any more, but a real `chat()` mount (`demo_mount()`, above): say
 		// something here and the fast/smart pair actually answers, same as every other
 		// surface. See `demo_mount()`'s own doc for why `keep: false`.
-		demo_mount();
+		// WIDE (doc/wide.md): below 1920 this wrapper is the same single 40em column as before;
+		// from 1920 up the workbench sits left and the rest flows into columns (Dictate.css).
+		div.c("wide flow ux-dictate-page", () => {
+			div.c("flow ux-dictate-lead", () => {
+			demo_mount();
 
-		md("**The same widget as the ✦ sheet, now actually answered** — say something, or talk into the mic. [Docs](doc/) has the rest.");
+			md("**The same widget as the ✦ sheet, now actually answered** — say something, or talk into the mic. [Docs](doc/) has the rest.");
 
-		h2("How it works");
-		md("**Dictation, assembled from four parts.** Talk into a mic; Whisper turns the sound into raw text; Revise cleans, edits or summarizes it; then it lands wherever it's going — a card, a composer, a prompt log.");
+			h2("How it works");
+			md("**Dictation, assembled from four parts.** Talk into a mic; Whisper turns the sound into raw text; Revise cleans, edits or summarizes it; then it lands wherever it's going — a card, a composer, a prompt log.");
 
-		pipeline_tiles();
+			pipeline_tiles();
+			});
+			div.c("flow ux-dictate-rest", () => {
+				// The overview: what the dictation system is made of, shown before anything else.
+				div.c("wide flex auto gap", () => {
+					CONCEPTS.forEach(c => a.c("card flex v gap-35").href(c.href)
+						.style({ textDecoration: "none", color: "var(--ink)" })
+						.append(() => {
+							icon(c.icon).style({ fontSize: "2rem" });
+							span(c.name).style({ fontWeight: "700" });
+							small.c("muted", c.blurb);
+						}));
+				}).style("--column", "14rem");
 
-		// The overview: what the dictation system is made of, shown before anything else.
-		div.c("wide flex auto gap", () => {
-			CONCEPTS.forEach(c => a.c("card flex v gap-35").href(c.href)
-				.style({ textDecoration: "none", color: "var(--ink)" })
-				.append(() => {
-					icon(c.icon).style({ fontSize: "2rem" });
-					span(c.name).style({ fontWeight: "700" });
-					small.c("muted", c.blurb);
+				// page_work() (core/Page/ai/work.js) — the system's own open work, right
+				// after the overview it belongs to. A one-line strip (View B): this
+				// page's main topic is the mic, not its own AI tasks, so it stays
+				// closed until asked for (page-work-data.md names the match method
+				// and why it's a keyword guess, not a real field, today). `page: this`
+				// walks `page.parent` up to the root for the collapsed "Parent: …"
+				// rows — no more hand-typed `ancestors:` that stopped at "ux" and
+				// never showed Framework's own work (review-2.md finding 7).
+				h2("What's in flight");
+				div.c("card pad", $box => page_work_strip($box, {
+					match: ["dictat", "mic", "whisper"],
+					page: this,
 				}));
-		}).style("--column", "14rem");
 
-		// page_work() (core/Page/ai/work.js) — the system's own open work, right
-		// after the overview it belongs to. A one-line strip (View B): this
-		// page's main topic is the mic, not its own AI tasks, so it stays
-		// closed until asked for (page-work-data.md names the match method
-		// and why it's a keyword guess, not a real field, today). `page: this`
-		// walks `page.parent` up to the root for the collapsed "Parent: …"
-		// rows — no more hand-typed `ancestors:` that stopped at "ux" and
-		// never showed Framework's own work (review-2.md finding 7).
-		h2("What's in flight");
-		div.c("card pad", $box => page_work_strip($box, {
-			match: ["dictat", "mic", "whisper"],
-			page: this,
-		}));
+				md("**Press 🎤 and talk.** With `whisper-server` running on this machine nothing else shows; without it, the small text beside the button says `the browser's recognizer`. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
 
-		md("**Press 🎤 and talk.** With `whisper-server` running on this machine nothing else shows; without it, the small text beside the button says `the browser's recognizer`. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
+				md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. Want a different LOOK on top of the same mic — a wall of prompt cards, a one-line compact toolbar mic? See [Variants](/framework/ux/Dictate/variants/). Want to see the SAME `chat()` widget live on every real surface — the ✦ sheet, the drawer, a card, the dev bar — side by side, saying the same thing at once? See [Surfaces](/framework/ux/Dictate/surfaces/). The same box under `ui-contrast ui-compact` is at [words](words/); the [old Overview](v1/) (the five-tab playground leading) is still one click away.");
 
-		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. Want a different LOOK on top of the same mic — a wall of prompt cards, a one-line compact toolbar mic? See [Variants](/framework/ux/Dictate/variants/). Want to see the SAME `chat()` widget live on every real surface — the ✦ sheet, the drawer, a card, the dev bar — side by side, saying the same thing at once? See [Surfaces](/framework/ux/Dictate/surfaces/). The same box under `ui-contrast ui-compact` is at [words](words/); the [old Overview](v1/) (the five-tab playground leading) is still one click away.");
+				demo.exhibit({
+					page: this,
+					stage: steer => demo.stage(demo_box, steer).ac("bleed"),
+					def: demo_box,
+					file: new URL("page.js", import.meta.url).pathname,
+					note: "**idle → listening → (a pause) → transcribing → idle**, or **error** the moment either engine says something is wrong — never silence. Off `localhost`, or with neither engine reachable, no 🎤 is drawn at all.",
+				});
 
-		demo.exhibit({
-			page: this,
-			stage: steer => demo.stage(demo_box, steer).ac("bleed"),
-			def: demo_box,
-			file: new URL("page.js", import.meta.url).pathname,
-			note: "**idle → listening → (a pause) → transcribing → idle**, or **error** the moment either engine says something is wrong — never silence. Off `localhost`, or with neither engine reachable, no 🎤 is drawn at all.",
+				md("## Why it was silent before");
+
+				md("`ext/Ask/mic.js` (the old control) already called `on_error` when the browser fired an `error` event — but Chrome can finish a WHOLE session hearing nothing, firing neither a result NOR an error, and that is exactly what this control's watchdog catches now: six seconds of silence with nothing heard becomes a plain sentence, not nothing. The engine order also changed: whisper — private, and answering a 10-second clip in well under a tenth of a second on this GPU — is tried first; the browser is the fallback, not the only path.");
+
+				md("## What actually moved");
+
+				md("Whisper is not streaming, so **live** is faked on purpose: the growing recording is re-sent to `whisper-server` about every 1.5s while the owner keeps talking, shown grey after the settled text, and replaced with the real answer the moment a ~700ms pause (or 15s) closes that segment — full mechanics, the epoch guard that stops a stale answer from painting over a newer segment, and the RMS numbers behind the level meter: [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/).");
+
+				md("**`ext/Ask/reply.js`'s reply mic and dictate box now build this instead of the old `Mic` class** — same call shape (`dictate(() => this.$input, opts)`), so neither call site needed to change beyond the import.");
+					md.details(import.meta, "readme.md", "Readme");
+			});
 		});
-
-		md("## Why it was silent before");
-
-		md("`ext/Ask/mic.js` (the old control) already called `on_error` when the browser fired an `error` event — but Chrome can finish a WHOLE session hearing nothing, firing neither a result NOR an error, and that is exactly what this control's watchdog catches now: six seconds of silence with nothing heard becomes a plain sentence, not nothing. The engine order also changed: whisper — private, and answering a 10-second clip in well under a tenth of a second on this GPU — is tried first; the browser is the fallback, not the only path.");
-
-		md("## What actually moved");
-
-		md("Whisper is not streaming, so **live** is faked on purpose: the growing recording is re-sent to `whisper-server` about every 1.5s while the owner keeps talking, shown grey after the settled text, and replaced with the real answer the moment a ~700ms pause (or 15s) closes that segment — full mechanics, the epoch guard that stops a stale answer from painting over a newer segment, and the RMS numbers behind the level meter: [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/).");
-
-		md("**`ext/Ask/reply.js`'s reply mic and dictate box now build this instead of the old `Mic` class** — same call shape (`dictate(() => this.$input, opts)`), so neither call site needed to change beyond the import.");
-
-		md.details(import.meta, "readme.md", "Readme");
 	},
 
 	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", demo_box)); },

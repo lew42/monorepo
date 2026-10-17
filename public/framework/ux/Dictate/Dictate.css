@@ -44,4 +44,31 @@
 	/* ---- the page's own pipeline tiles (page.js) ------------------------------ */
 	.ux-dictate-pipeline-tile { min-width: 10em; text-decoration: none; color: inherit; }
 	.ux-dictate-pipeline-arrow { align-self: center; font-size: 1.3em; }
+
+	/* ---- wide layout (page.js; doc/wide.md) ------------------------------------
+	 * Below 1920 the wrapper repeats the page shell's own two tracks (a 40em reading column
+	 * and the wide track beside it) and lead/rest vanish into it (`contents`), so every child
+	 * sits where it did before the wrapper existed. From 1920 up the workbench sits on the
+	 * left and the rest flows into 28em columns. */
+	.ux-dictate-page { display: grid; grid-template-columns: [bleed-start wide-start main-start] min(40em, 100%) [main-end] minmax(0, 1fr) [wide-end bleed-end]; align-content: start; }
+	.ux-dictate-page > *, .ux-dictate-lead > *, .ux-dictate-rest > * { grid-column: main; min-width: 0; }
+	.ux-dictate-page .wide { grid-column: wide; }
+	.ux-dictate-page .bleed { grid-column: bleed; margin-inline: calc(var(--gutter-x) * -1); }
+	.ux-dictate-lead, .ux-dictate-rest { display: contents; }
+	@media (min-width: 1920px) {
+		.ux-dictate-page { grid-template-columns: minmax(0, 30em) minmax(0, 1fr); gap: 3rem; align-items: start; }
+		.ux-dictate-lead, .ux-dictate-rest { display: block; grid-column: auto; }
+		.ux-dictate-page > .ux-dictate-lead { grid-column: 1; }
+		.ux-dictate-page > .ux-dictate-rest { grid-column: 2; }
+		.ux-dictate-lead > *, .ux-dictate-rest > * { grid-column: auto; }
+		.ux-dictate-rest { columns: 28em; column-gap: 3rem; }
+		.ux-dictate-rest > * { break-inside: avoid; }
+		.ux-dictate-rest > :is(h2, h3) { break-after: avoid; }
+	}
+}
+
+/* util layer: the util `:first-child { margin: 0 }` reset beats theme. Below 1920 the rest begins a block the lead's `.flow` used to space; from 1920 it is a column top. */
+@layer util {
+	.ux-dictate-rest > :first-child { margin-block-start: var(--flow); }
+	@media (min-width: 1920px) { .ux-dictate-lead > :first-child, .ux-dictate-rest > :first-child { margin-block-start: 0; } }
 }
