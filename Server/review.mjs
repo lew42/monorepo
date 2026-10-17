@@ -73,6 +73,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import SessionRecord from "./SessionRecord.mjs";
 
 const BASE = "michael/dev";
 const MCP = "http://127.0.0.1:8090/mcp";
@@ -95,7 +96,7 @@ function readJsonl(file) {
 	try { return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
 	catch { return []; }
 }
-function readTaskJsonl(taskDir) { return readJsonl(path.join(taskDir, "task.jsonl")); }
+function readTaskJsonl(taskDir) { return readJsonl(SessionRecord.log_or_old(taskDir)); }
 
 /* Phase 1 (findings) written to review.jsonl, from the SAME `review` object that goes into
  * task.jsonl's `{"review":…}` line (never a second source of truth for verdict/findings/cost).

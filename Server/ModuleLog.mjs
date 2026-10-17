@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import SessionIndex from "./SessionIndex.mjs";
 import LandingCheck from "./LandingCheck.mjs";
 import PastWork from "./PastWork.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 const REPO = LandingCheck.REPO, HOUR = 3600e3;
 const norm = p => String(p).replaceAll("\\", "/").replace(/^[A-Za-z]:.*?monorepo\//, "").replace(/^\.?\//, "").replace(/\/+$/, "");
@@ -23,7 +24,7 @@ export default class ModuleLog {
 	tasks(msgs = "") {
 		const out = [];
 		for (const f of PastWork.walk(path.join(REPO, "public/framework/ai"))) {
-			if (path.basename(f) !== "task.jsonl") continue;
+			if (!SessionRecord.is_log_entry(path.dirname(f), path.basename(f))) continue;
 			let text; try { text = fs.readFileSync(f, "utf8"); } catch { continue; }
 			const dir = norm(path.relative(REPO, path.dirname(f))), r = SessionIndex.reduce(dir, text), files = new Set();
 			for (const l of text.split("\n")) { if (!l.startsWith("{")) continue; try { for (const x of JSON.parse(l).action?.files ?? []) if (inside(x, this.path)) files.add(norm(x)); } catch {} }

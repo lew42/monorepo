@@ -2,6 +2,7 @@
 // Doc: Server/doc/session-index.md. Extends ext/Query's node side: it registers the "tasks" QueryServer source, so the browser asks it
 // over the dev socket exactly like "sessions". PastWork.mjs and FollowUp.mjs read task.jsonl through SessionIndex.reduce (one reader).
 import fs from "node:fs";
+import SessionRecord from "./SessionRecord.mjs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -70,7 +71,8 @@ export default class SessionIndex {
 	/** Seal a record after lines were applied: sorted module list, a start time, the landing day. */
 	static seal(r) {
 		r.started ||= r.last;
-		r.raw = { task: r.url + "task.jsonl", transcript: (r.session && SessionIndex.transcripts().get(r.session)) || null };   // the raw logs to click through to (the transcript only if it is on this machine)
+		const log = SessionRecord.log_file(path.join(REPO, r.dir));
+		r.raw = { task: r.url + (log ? path.basename(log) : "task.jsonl"), transcript: (r.session && SessionIndex.transcripts().get(r.session)) || null };   // the raw logs to click through to (the transcript only if it is on this machine)
 		r.modules = [...r._mods].sort();
 		r.landed_day = r.landed_at ? new Date(r.landed_at).toISOString().slice(0, 10) : "";
 		r.text = `${r.title} ${r.request} ${r.outcome} ${r.slug} ${r.group}`.toLowerCase();
@@ -122,13 +124,14 @@ export default class SessionIndex {
 			if (e.name === "node_modules" || e.name === ".git") continue;
 			const p = path.join(dir, e.name);
 			if (e.isDirectory()) yield* this.walk(p);
-			else if (e.name === "task.jsonl") yield p;
+			else if (SessionRecord.is_log_entry(dir, e.name)) yield p;
 		}
 	}
 
 	/** Read the bytes appended since last time (the whole file the first time or after a shrink); only complete lines count. */
 	read(file, quiet = false) {
 		let st; try { st = fs.statSync(file); } catch { return this.files.delete(file) && this.emit(null); }
+		if (!SessionRecord.is_log_entry(path.dirname(file), path.basename(file))) return;   // a tag-only session.jsonl is not a task
 		let ent = this.files.get(file);
 		if (ent && st.size < ent.size) ent = null;                       // rewritten shorter: start over
 		if (!ent) { const dir = path.relative(REPO, path.dirname(file)).replace(/\\/g, "/"); ent = { rec: SessionIndex.blank(dir), size: 0, fence: false }; }
@@ -148,7 +151,7 @@ export default class SessionIndex {
 	watch() {
 		try {
 			this.watcher = fs.watch(this.root, { recursive: true }, (_, name) => {
-				if (!name || path.basename(String(name)) !== "task.jsonl") return;
+				if (!name || !SessionRecord.is_record(path.basename(String(name)))) return;
 				const file = path.join(this.root, String(name));
 				clearTimeout(this.timers?.get(file)); (this.timers ??= new Map()).set(file, setTimeout(() => { this.timers.delete(file); try { this.read(file); } catch (e) { this.log("SessionIndex: " + e.message); } }, 50));
 			});

@@ -1,4 +1,5 @@
 import fs from "fs";
+import SessionRecord from "../Server/SessionRecord.mjs";
 import path from "path";
 import { spawn, execFile } from "child_process";
 import { stamp } from "./home.js";
@@ -161,7 +162,7 @@ export default class TaskLoop {
     /* The sessions store (ai/sessions/YYYY/MM/DD/..., Server/TaskDirs.mjs) PLUS the old ai/YYYY-MM-DD/ walk, de-duplicated. */
     find_task_files(){
         const today = new Date(), out = [];
-        try { for (const t of TaskDirs.list(2)) out.push(path.join(t.dir, "task.jsonl")); } catch {}
+        try { for (const t of TaskDirs.list(2)) out.push((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl"))); } catch {}
         for (const d of [today, new Date(today.getTime() - 86400000)])
             this.walk(path.join(this.root, "public", "framework", "ai", this.date_id(d)), out);
         return [...new Set(out.map(f => path.resolve(f)))];
@@ -174,7 +175,7 @@ export default class TaskLoop {
             if (e.name.startsWith(".") || e.name === "node_modules") continue;
             const p = path.join(dir, e.name);
             if (e.isDirectory()) this.walk(p, out);
-            else if (e.name === "task.jsonl") out.push(p);
+            else if (SessionRecord.is_log_entry(dir, e.name)) out.push(p);
         }
     }
 
@@ -326,7 +327,7 @@ export default class TaskLoop {
         const p = info.parent_task;
         if (p){
             for (const base of [this.root, path.join(this.root, "public", "framework", "ai"), path.join(this.root, "public", "framework", "ai", "sessions")]){
-                const f = path.join(path.isAbsolute(p) ? p : path.join(base, p), "task.jsonl"), up = this.read_task(f);
+                const pd = path.isAbsolute(p) ? p : path.join(base, p), f = SessionRecord.log_file(pd) ?? path.join(pd, "task.jsonl"), up = this.read_task(f);
                 const id = up && this.owning_agent_id(up.state, registry);
                 if (id) return id;
             }
@@ -374,7 +375,7 @@ export default class TaskLoop {
      * (Servex.js) calls straight into this. */
     async close_task({ dir, why } = {}){
         if (!dir) return { ok: false, why: "dir is required" };
-        const file = path.join(path.isAbsolute(dir) ? dir : path.join(this.root, dir), "task.jsonl");
+        const cdir = path.isAbsolute(dir) ? dir : path.join(this.root, dir), file = SessionRecord.log_file(cdir) ?? path.join(cdir, "task.jsonl");
         if (!fs.existsSync(file)) return { ok: false, why: `no task.jsonl at "${dir}"` };
         const at = stamp();
         await this.write_line(file, { assign: { closed_by: "owner", closed_at: at, closed_why: why ?? null } });

@@ -8,6 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import PastWork from "./PastWork.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUTCOMES = path.join(REPO, "public/framework/ai/doc/asks-outcomes.jsonl");
@@ -37,7 +38,7 @@ export default class Asked {
 	decisions(tasks) {
 		const out = [];
 		for (const t of tasks) {
-			let text; try { text = fs.readFileSync(path.join(REPO, t.dir, "task.jsonl"), "utf8"); } catch { continue; }
+			let text; try { text = fs.readFileSync(SessionRecord.log_or_old(REPO, t.dir), "utf8"); } catch { continue; }
 			for (const l of text.split("\n")) {
 				if (!l.includes('"decision"')) continue;
 				let d; try { d = JSON.parse(l).decision; } catch { continue; }

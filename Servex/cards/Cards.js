@@ -1,4 +1,5 @@
 import fs from "fs";
+import SessionRecord from "../../Server/SessionRecord.mjs";
 import path from "path";
 import express from "express";
 import { fileURLToPath } from "url";
@@ -211,7 +212,7 @@ export default class Cards {
 		let status = "proposed", next_step = "not started yet", page_url = null;
 		if (task_dir){
 			let text = null;
-			try { text = await fs.promises.readFile(path.join(this.root, task_dir, "task.jsonl"), "utf8"); } catch {}
+			try { text = await fs.promises.readFile(SessionRecord.log_file(path.join(this.root, task_dir)) ?? path.join(this.root, task_dir, "task.jsonl"), "utf8"); } catch {}
 			if (text){
 				let landed = false, last_log = null;
 				for (const raw of text.split("\n")){

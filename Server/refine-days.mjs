@@ -35,7 +35,7 @@ function ownerWords(day){
 			const v = t.search(/^#{1,3}\s.*\bverbatim\b.*$/im);
 			t = v >= 0 ? t.slice(v).replace(/^.*\n/, "") : t;
 			if (t.trim().length > 200) items.push({ source: rel, text: t.trim() });
-		} else if (f.endsWith("task.jsonl")){
+		} else if (/(^|[\\/])(task|session)\.jsonl$/.test(f)){
 			for (const line of fs.readFileSync(f, "utf8").split(/\r?\n/)){
 				if (!line.includes('"owner"')) continue;
 				try { const c = JSON.parse(line).chat; if (c?.from === "owner" && c.text?.length > 40) items.push({ source: rel, text: c.text, verbatim: true }); } catch {}

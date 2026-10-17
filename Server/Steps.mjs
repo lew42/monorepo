@@ -11,6 +11,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import TaskDirs from "./TaskDirs.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const SHOTS = "/framework/ext/Shots/";
@@ -108,7 +109,7 @@ export default class Steps {
 		const r = { tasks: 0, with_steps: 0, with_estimates: 0, landed: 0, all_reported: 0, followed_fully: 0, rate: null, rate_all_with_steps: null };
 		let fully_steps = 0;
 		for (const t of TaskDirs.list(days)){
-			const info = this.read(path.join(t.dir, "task.jsonl"));
+			const info = this.read((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl")));
 			if (!info) continue;
 			r.tasks++;
 			if (!info.steps.length) continue;

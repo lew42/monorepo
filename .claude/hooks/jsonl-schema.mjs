@@ -142,6 +142,10 @@ export const schemas = {
 	},
 };
 
+// A session folder's one record (Server/SessionRecord.mjs, sessions/doc/session-record.md): the task log's verbs, plus the digest `tag` line.
+schemas["session.jsonl"] = { ...schemas["task.jsonl"], what: "a session folder's record (public/framework/ai/sessions/YYYY/MM/DD/<session>/session.jsonl): the task log's lines plus the digest tags",
+	verbs: { ...schemas["task.jsonl"].verbs, tag: { type: "string", eg: "kind/agent" } }, pending: [...(schemas["task.jsonl"].pending ?? []), "tag"] };   // tag lines: read by AISession.record(), not by the task reader
+
 /* Servex's `append_log` writes its OWN named logs (under SERVEX_HOME, never a repo file), and
  * every one of those is an event: one flat object with a string `type`. */
 export const servex_event = {

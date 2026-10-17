@@ -22,6 +22,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { links_into_main } from "./junction-guard.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 // `ROOT` is normally this script's own repo (Server/.. — a worktree's copy sweeps that
 // worktree's own Servex state). `--root <dir>` (proof only, same idea as merge.mjs's `--main`)
@@ -49,7 +50,7 @@ function all_task_files(root = ROOT){
 			if (e.name.startsWith(".") || e.name === "node_modules") continue;
 			const p = path.join(dir, e.name);
 			if (e.isDirectory()) walk(p);
-			else if (e.name === "task.jsonl") out.push(p);
+			else if (SessionRecord.is_log_entry(dir, e.name)) out.push(p);
 		}
 	})(ai_dir(root));
 	return out;
@@ -57,7 +58,7 @@ function all_task_files(root = ROOT){
 
 /** Every `assign` line merged, later wins — same rule TaskLoop.js's read_task() uses. */
 export function task_state(dir){
-	let text; try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { return null; }
+	let text; try { text = fs.readFileSync(SessionRecord.log_or_old(dir), "utf8"); } catch { return null; }
 	const state = {};
 	for (const raw of text.split("\n")){
 		if (!raw.trim()) continue;

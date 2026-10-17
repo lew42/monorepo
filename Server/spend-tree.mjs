@@ -27,6 +27,7 @@ import TaskDirs from "./TaskDirs.mjs";
 import { join, resolve, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { find_transcript, cost_of_transcript } from "../public/framework/ai/AISession/AISessionAudit.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVEX = join(process.env.LOCALAPPDATA || "", "lew42", "servex");
@@ -59,12 +60,12 @@ function allTaskDirs(){
 		for (const t of readdirSync(day, { withFileTypes: true })) {
 			if (!t.isDirectory()) continue;
 			const dir = TaskDirs.follow(join(day, t.name));
-			if (existsSync(join(dir, "task.jsonl"))) out.push(dir);
+			if (existsSync((SessionRecord.log_file(dir) ?? join(dir, "task.jsonl")))) out.push(dir);
 			// one level of sub-task dirs (minion briefs, part2-*, etc.) also carry their own task.jsonl
 			for (const sub of readdirSync(dir, { withFileTypes: true })) {
 				if (!sub.isDirectory()) continue;
 				const subdir = join(dir, sub.name);
-				if (existsSync(join(subdir, "task.jsonl"))) out.push(subdir);
+				if (existsSync((SessionRecord.log_file(subdir) ?? join(subdir, "task.jsonl")))) out.push(subdir);
 			}
 		}
 	}
@@ -73,7 +74,7 @@ function allTaskDirs(){
 const taskKey = dir => dir.slice(AI.length + 1).replace(/\\/g, "/");
 
 const tasks = allTaskDirs().map(dir => {
-	const lines = readJsonl(join(dir, "task.jsonl"));
+	const lines = readJsonl((SessionRecord.log_file(dir) ?? join(dir, "task.jsonl")));
 	const first = lines[0]?.assign || {};
 	let lastCost = null;
 	for (const o of lines) if (o.assign?.cost) lastCost = o.assign.cost;

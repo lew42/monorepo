@@ -9,6 +9,7 @@
 - `AISessionDigest.mjs` — one transcript boiled down by plain Node: sizes, exact cost, owner prompts, result, `digest.json` and procedural `tags()` ([round 4](sessions/2026/10/16/voice-20261016/past-work/round4-result.md)).
 - `AISessionIndex.mjs` · `AISessionSource.mjs` · `AISessionTailer.mjs` · `AISessionAudit.mjs` — node side: index, source, tail, cost audit.
 - `AISessionCost.mjs` — the canonical node cost counter (one log, one number); rule, pipeline and before/after in `doc/cost-accounting.md`, test in `AISessionCost.test.mjs`.
+- A session folder's one record is `session.jsonl`; a task folder keeps `task.jsonl`: [../sessions/doc/session-record.md](../sessions/doc/session-record.md).
 - Decisions: [doc/accounting-decision.md](doc/accounting-decision.md) — the session-folder shape is folded into the task system; each ask's verdict.
 - `PromptLog.js` · `StoreFolder.js` — prompts of a session, and the folder one lives in.
 

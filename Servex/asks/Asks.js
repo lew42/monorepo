@@ -5,6 +5,7 @@ import { stamp } from "../home.js";
 import { AskFold } from "../../public/framework/ai/asks/AskFold.js";
 import { stalled } from "./stalled.js";
 import { build_tasks, write_tasks_json } from "./tasks.js";
+import SessionRecord from "../../Server/SessionRecord.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_FILE = path.resolve(HERE, "../../public/framework/ai/asks.jsonl");
@@ -170,7 +171,7 @@ export default class Asks {
 	 * already uses: a non-empty `outcome` alongside `landed_at`. */
 	task_state(dir){
 		let text;
-		try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { return { last_at: null, landed: false }; }
+		try { text = fs.readFileSync(SessionRecord.log_or_old(dir), "utf8"); } catch { return { last_at: null, landed: false }; }
 		const state = {};
 		let last_at = null;
 		for (const raw of text.split("\n")){
@@ -212,7 +213,7 @@ export default class Asks {
 		const root = this.servex?.task_loop?.root ?? process.cwd();
 		const abs = path.isAbsolute(dir) ? dir : path.join(root, dir);
 		let text;
-		try { text = fs.readFileSync(path.join(abs, "task.jsonl"), "utf8"); } catch { return; }
+		try { text = fs.readFileSync(SessionRecord.log_or_old(abs), "utf8"); } catch { return; }
 		let agent = null;
 		for (const raw of text.split("\n")){
 			if (!raw.trim()) continue;

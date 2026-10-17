@@ -18,6 +18,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import SessionRecord from "./SessionRecord.mjs";
 
 const ROOT = path.resolve(fileURLToPath(import.meta.url), "../..");
 
@@ -27,7 +28,7 @@ const lines = file => { try { return fs.readFileSync(file, "utf8").split("\n"); 
 function touched_files(dir){
 	const files = [];
 	const seen = new Set();
-	for (const l of lines(path.join(dir, "task.jsonl"))) {
+	for (const l of lines(SessionRecord.log_or_old(dir))) {
 		if (!l.trim()) continue;
 		let e; try { e = JSON.parse(l); } catch { continue; }
 		for (const f of e.action?.files || []) if (!seen.has(f)) { seen.add(f); files.push(f); }

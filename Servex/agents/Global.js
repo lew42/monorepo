@@ -14,6 +14,7 @@ import { Policy } from "./policy.js";
 import { queued } from "./Layers.js";
 import { STANDING } from "./Agents.js";
 import { execFile } from "child_process";
+import SessionRecord from "../../Server/SessionRecord.mjs";
 
 /* Every claude.exe: pid, working set in MB, command line. [] when PowerShell fails. */
 export function claude_processes(){
@@ -511,7 +512,7 @@ export default class Global {
 
 	tools(){
 		for (const tool of this.claims().tools()) this.servex.mcp.tool(tool.name === "claim_topic" ? this.logged(tool) : tool);
-		for (const tool of page_tools(id => { const a = this.servex.agents; const dir = id && a ? a.task_dir_for(a.reg().read()[id] ?? { id }) : null; return dir ? path.join(dir, "task.jsonl") : null; })) this.servex.mcp.tool(tool);
+		for (const tool of page_tools(id => { const a = this.servex.agents; const dir = id && a ? a.task_dir_for(a.reg().read()[id] ?? { id }) : null; return dir ? SessionRecord.log_or_old(dir) : null; })) this.servex.mcp.tool(tool);
 		for (const tool of FileTools.tools()) this.servex.mcp.tool(tool);   // read_file ... shell: ext/remote/doc/remote-tools.md
 		for (const tool of ModuleInbox.tools()) this.servex.mcp.tool(tool);   // module_inbox: Servex/doc/module-inbox.md
 		this.servex.mcp.tool({

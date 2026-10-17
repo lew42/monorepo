@@ -6,6 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import SessionRecord from "./SessionRecord.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FW = path.join(REPO, "public", "framework");
@@ -41,7 +42,7 @@ export default class ArchitectureCensus {
 	static decisions(mods){
 		const counts = new Map(mods.map(m => [m.key, 0]));
 		for (const f of this.walkAll(path.join(FW, "ai"))){
-			if (path.basename(f) !== "task.jsonl") continue;
+			if (!SessionRecord.is_log_entry(path.dirname(f), path.basename(f))) continue;
 			let t; try { t = fs.readFileSync(f, "utf8"); } catch { continue; }
 			for (const l of t.split("\n")) if (l.startsWith('{"decision"')) for (const m of mods) if (l.includes(m.key + "/") || l.includes(m.key + "`") || l.includes(m.key + " ")) counts.set(m.key, counts.get(m.key) + 1);
 		}
@@ -57,7 +58,7 @@ export default class ArchitectureCensus {
 	static extract(key){
 		const out = [];
 		for (const f of this.walkAll(path.join(FW, "ai"))){
-			if (path.basename(f) !== "task.jsonl") continue;
+			if (!SessionRecord.is_log_entry(path.dirname(f), path.basename(f))) continue;
 			let t; try { t = fs.readFileSync(f, "utf8"); } catch { continue; }
 			for (const l of t.split(String.fromCharCode(10))) if (l.startsWith('{"decision"') && (l.includes(key + "/") || l.includes(key + "`") || l.includes(key + " "))){
 				let d; try { d = JSON.parse(l).decision; } catch { continue; }

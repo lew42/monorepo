@@ -9,6 +9,7 @@ import { execFileSync } from "node:child_process";
 import TaskDirs from "./TaskDirs.mjs";
 import SessionIndex from "./SessionIndex.mjs";
 import LandingCheck from "./LandingCheck.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 const QUIET_H = 2, OPEN_ASK = new Set(["building", "routed", "queued", "stalled", undefined]), LIVE = new Set(["working", "idle", "dormant"]);
 const DOC = path.join(TaskDirs.AI, "doc"), ts = s => { const t = Date.parse(s); return Number.isNaN(t) ? 0 : t; };
@@ -46,9 +47,9 @@ export default class FollowUp {
 	}
 
 	read_task(t){
-		const x = SessionIndex.reduce(t.key, fs.readFileSync(path.join(t.dir, "task.jsonl"), "utf8"));   // the one task.jsonl reader: Server/SessionIndex.mjs
+		const x = SessionIndex.reduce(t.key, fs.readFileSync((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl")), "utf8"));   // the one task.jsonl reader: Server/SessionIndex.mjs
 		const r = { key: t.key, day: t.day, slug: t.slug, group: x.group, session: x.session, agent: x.agent, model: x.model, branch: x.branch, started: x.started, last: x.last, step: x.step, steps: x.steps, landed: x.landed, landed_at: x.landed_at, outcome: !!x.outcome };
-		if (!r.last) r.last = fs.statSync(path.join(t.dir, "task.jsonl")).mtimeMs;
+		if (!r.last) r.last = fs.statSync((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl"))).mtimeMs;
 		r.started ||= r.last;
 		r.ahead = r.branch ? this.ahead(r.branch) : null;
 		const ag = this.by_id.get(r.agent) ?? this.by_session.get(r.session);

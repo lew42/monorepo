@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import SessionRecord from "./SessionRecord.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SESSIONS = path.join(ROOT, "public/framework/ai/sessions");
@@ -98,7 +99,7 @@ export default class Compact {
 
 	// plan(taskDir) -> what compaction would do. Reads one file, writes nothing.
 	static plan(taskDir, { now = Date.now(), git = false } = {}) {
-		const file = path.join(taskDir, "task.jsonl");
+		const file = SessionRecord.log_or_old(taskDir);
 		const text = fs.readFileSync(file, "utf8");
 		const lines = Compact.parse(text);
 		const verdicts = Compact.classify(lines);
@@ -133,7 +134,7 @@ export default class Compact {
 	static taskDirs(ym) {
 		const found = [];
 		const walk = d => {
-			if (fs.existsSync(path.join(d, "task.jsonl"))) found.push(d);
+			if (fs.existsSync(SessionRecord.log_or_old(d))) found.push(d);
 			for (const e of fs.readdirSync(d, { withFileTypes: true })) if (e.isDirectory()) walk(path.join(d, e.name));
 		};
 		walk(path.join(SESSIONS, ym));

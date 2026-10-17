@@ -17,12 +17,13 @@ import { doc_check } from "./doc-check.mjs";
 import { can_stop, entry_for_task_dir } from "./worktree-sweep.mjs";
 import TaskDirs from "./TaskDirs.mjs";
 import Cards from "../Servex/cards/Cards.js";
+import SessionRecord from "./SessionRecord.mjs";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
 // servex-mastermind's own task log for today, found in the store (Server/TaskDirs.mjs), never a hand-joined ai/<date>/ path
 const arch_log = () => { const d = TaskDirs.find("servex-mastermind", 1); return d ? path.join(d, "task.jsonl") : ""; };
 const dir = path.resolve(process.argv[2] || ".");
-const task = path.join(dir, "task.jsonl");
+const task = SessionRecord.log_or_old(dir);
 const HOST = "http://monorepo.localhost";
 const WIDTHS = "1280,1920,2560,3440";
 

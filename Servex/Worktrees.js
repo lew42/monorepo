@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import Events from "../Server/Events.js";
 import { stamp, place } from "./home.js";
 import TaskDirs from "../Server/TaskDirs.mjs";
+import SessionRecord from "../Server/SessionRecord.mjs";
 
 /* WORKTREE CLEAN-UP — a worktree is temporary (process-monitor, 2026-09-30).
  *
@@ -223,7 +224,7 @@ export default class Worktrees extends Events {
 		const out = new Map();
 		for (const { dir, day, slug } of TaskDirs.list(21)){   // both shapes: the sessions store and old day folders (ai/doc/task-folders.md)
 			{
-				let text; try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { continue; }
+				let text; try { text = fs.readFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), "utf8"); } catch { continue; }
 				if (!text.includes("\"worktree\"")) continue;
 				const state = {};
 				for (const line of text.split("\n")){

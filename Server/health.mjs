@@ -62,6 +62,7 @@ import MtimeFilter from "./MtimeFilter.js";
 import * as Hold from "./hold.mjs";
 import { check_page } from "./padding-check.mjs";
 import { browser as launch } from "./Browser.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 /* The widths this watcher checks the padding law at. 1280 is the viewport it
    already loads every page in, so it costs one evaluate and no re-layout; 3440
@@ -679,7 +680,7 @@ const landed = entries => !!Object.assign({}, ...entries.filter(e => e.assign).m
 function* task_files(dir, max_depth = 3, depth = 0){
 	let entries; try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
 	for (const e of entries){
-		if (e.isFile() && e.name === "task.jsonl") yield path.join(dir, e.name);
+		if (e.isFile() && SessionRecord.is_log_entry(dir, e.name)) yield path.join(dir, e.name);
 		else if (e.isDirectory() && depth < max_depth && e.name !== "shots" && e.name !== "node_modules" && e.name[0] !== ".") yield* task_files(path.join(dir, e.name), max_depth, depth + 1);
 	}
 }
@@ -725,7 +726,7 @@ function newest_task(tasks, rel_file){
 function task_for(rel_file){
 	let dir = path.dirname(path.join(ROOT, rel_file));
 	while (dir.startsWith(AI_DIR + path.sep)){
-		const t = path.join(dir, "task.jsonl");
+		const t = (SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl"));
 		if (fs.existsSync(t)){ const info = task_info(t); return info && !info.landed ? t : null; }
 		dir = path.dirname(dir);
 	}

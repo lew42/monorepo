@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import SessionRecord from "../../Server/SessionRecord.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Subpages from "./Subpages.js";
@@ -376,7 +377,7 @@ function expand_dots(delta){
 
 function class_of(file){
 	const first = parse_lines(file)[0];
-	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
+	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? (SessionRecord.log_file(path.dirname(file)) === file ? "Task" : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
 }
 
 // describe() with each method's doc filled: the first `//` line of the comment block above it, from the class's source.
@@ -478,7 +479,7 @@ export function link_refs(Task){
 	Task.resolver ??= ref => {
 		const dir = path.resolve(PUBLIC, String(ref).replace(/^[\/]+/, ""));
 		if (!dir.startsWith(PUBLIC + path.sep)) return null;
-		const file = path.join(dir, "task.jsonl");
+		const file = SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl");
 		collect?.push([file, sig(file)]);
 		return fs.existsSync(file) ? parse_lines(file) : null;
 	};

@@ -44,9 +44,25 @@ export class Store {
 	open(){
 		const host = globalThis.location?.hostname;
 		const local = host === "localhost" || host === "127.0.0.1" || !!host?.endsWith(".localhost");
-		if (!local) return this.load();
+		if (!local) return this.moved().then(() => this.load());
 
-		return import("../../ext/JSONL/live.js").then(live => live.stream(this, () => this.changed()));
+		return this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
+	}
+
+	// A session folder's record moved from task.jsonl to its new name (ai/sessions/doc/session-record.md).
+	async moved(){ this.url = await Store.record_url(this.url); return this; }
+
+	// `<folder>/task.jsonl` when it is there; else the moved record beside it when THAT is; else the url
+	// unchanged (the file may be about to be written). Shared with ext/JSONL.
+	static async record_url(url){
+		if (!url.endsWith("/task.jsonl")) return url;
+		const there = async u => {
+			const res = await fetch(u, { method: "HEAD" }).catch(() => null);
+			return !!res?.ok && !res.headers.get("content-type")?.includes("html");
+		};
+		if (await there(url)) return url;
+		const alt = url.replace(/task\.jsonl$/, "session.jsonl");
+		return await there(alt) ? alt : url;
 	}
 
 	// A torn line is skipped with a warning, never the whole log. The dev server's

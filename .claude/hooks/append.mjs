@@ -15,6 +15,7 @@ import { readFileSync, appendFileSync, existsSync, statSync, openSync, readSync,
 import { check, shape } from "./jsonl-schema.mjs";
 import { resolve as resolve_path, dirname, basename, join } from "node:path";
 import TaskDirs from "../../Server/TaskDirs.mjs";
+import SessionRecord from "../../Server/SessionRecord.mjs";
 
 const pad = n => String(n).padStart(2, "0");
 function nowLocal(){
@@ -39,6 +40,8 @@ if (!target || !source) { console.error("usage: node append.mjs <target.jsonl> <
 	catch (e){ console.error(e.message + "\nNothing was written."); process.exit(3); }
 	if (now !== abs){ mkdirSync(dirname(now), { recursive: true }); console.error(`(old path followed: ${target} -> ${now})`); target = now; }
 }
+// A session folder moved to session.jsonl (Server/SessionRecord.mjs): a log line meant for its old task.jsonl goes to the moved record, never a second file.
+if (basename(target) === "task.jsonl" && !existsSync(target)) { const moved = SessionRecord.log_file(dirname(resolve_path(target))); if (moved && basename(moved) === "session.jsonl") { console.error(`(session record followed: ${target} -> ${moved})`); target = moved; } }
 const strip_bom = s => s.replace(/^﻿/, "");
 const items = JSON.parse(strip_bom(readFileSync(source, "utf8")));
 const list = Array.isArray(items) ? items : [items];

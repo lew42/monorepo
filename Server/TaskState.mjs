@@ -4,6 +4,7 @@
 //   node Server/TaskState.mjs --print    one snapshot to stdout
 //   node Server/TaskState.mjs --watch    append on change (re-checks every 5 s; the registry has no push to subscribe to). Servex runs one in TaskLoop; the newest watcher wins
 import fs from "node:fs";
+import SessionRecord from "./SessionRecord.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Task from "../public/framework/core/Task/Task.js";
@@ -35,7 +36,7 @@ export default class TaskState {
 	static dir_of(id){ return path.join(SESS, ...id.split("~")); }
 
 	static lines(dir){
-		let text; try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { return []; }
+		let text; try { text = fs.readFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), "utf8"); } catch { return []; }
 		return text.split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
 	}
 
@@ -49,7 +50,7 @@ export default class TaskState {
 			const at = e.at ?? a.landed_at ?? a.requested_at ?? e.log?.at ?? e.decision?.at ?? e.action?.at ?? e.step?.at;
 			if (at && !(Date.parse(at) < Date.parse(f.last))) f.last = at;
 		}
-		if (!f.last) try { f.last = new Date(fs.statSync(path.join(dir, "task.jsonl")).mtimeMs).toISOString(); } catch {}
+		if (!f.last) try { f.last = new Date(fs.statSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl"))).mtimeMs).toISOString(); } catch {}
 		f.title ??= path.basename(dir).replaceAll("-", " ");
 		return f;
 	}
@@ -66,7 +67,7 @@ export default class TaskState {
 			let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
 			for (const e of ents){
 				if (e.isDirectory()) walk(path.join(dir, e.name));
-				else if (e.name === "task.jsonl" && fs.statSync(path.join(dir, e.name)).mtimeMs >= mid.getTime()) out.push(dir);
+				else if (SessionRecord.is_log_entry(dir, e.name) && fs.statSync(path.join(dir, e.name)).mtimeMs >= mid.getTime()) out.push(dir);
 			}
 		};
 		const d = new Date(this.now), p2 = n => String(n).padStart(2, "0");
@@ -85,7 +86,7 @@ export default class TaskState {
 			let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
 			for (const e of ents){
 				if (e.isDirectory()) walk(path.join(dir, e.name));
-				else if (e.name === "task.jsonl"){
+				else if (SessionRecord.is_log_entry(dir, e.name)){
 					const t = Task.replay(TaskState.lines(dir));
 					if (t.state === "waiting" && t.data.waiting_on === "owner")
 						out.push({ id: TaskState.id(dir), title: TaskState.facts(dir).title, waiting_on: "owner", since: t.data.waiting_since ?? null, url: TaskState.url(dir) });

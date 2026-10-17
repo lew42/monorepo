@@ -1,4 +1,5 @@
 import { query, getSessionInfo, getSessionMessages } from "@anthropic-ai/claude-agent-sdk";
+import SessionRecord from "../../Server/SessionRecord.mjs";
 import fs from "node:fs";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -24,7 +25,7 @@ import { page_tools } from "./page_tools.js";
 function agent_log(agent){
 	return () => {
 		const dir = agent.task?.dir ?? agent.task_dir ?? null;
-		return dir ? path.resolve(MAIN_ROOT, dir, "task.jsonl") : null;
+		return dir ? (SessionRecord.log_file(path.resolve(MAIN_ROOT, dir)) ?? path.resolve(MAIN_ROOT, dir, "task.jsonl")) : null;
 	};
 }
 
@@ -771,7 +772,7 @@ export class Agents {
 		try {
 			const up = child.task?.dir && path.dirname(path.resolve(child.task.dir));
 			const dir = this.task_dir_of?.(child.parent) ?? this.live.get(child.parent)?.task?.dir
-				?? (up && fs.existsSync(path.join(up, "task.jsonl")) ? up : null);
+				?? (up && fs.existsSync((SessionRecord.log_file(up) ?? path.join(up, "task.jsonl"))) ? up : null);
 			if (dir) fs.appendFileSync(path.join(dir, "inbox.jsonl"), JSON.stringify({ at: stamp(), from: child.id, kind, text: text ?? null }) + "\n");
 		} catch (e){ this.store().append("servex", { type: "inbox-failed", child: child.id, error: String(e.message || e) }).catch(() => {}); }
 	}
@@ -831,7 +832,7 @@ export function next_briefs(dir){
 	let names; try { names = fs.readdirSync(path.dirname(path.resolve(dir)), { withFileTypes: true }); } catch { return out; }
 	for (const e of names){
 		if (!e.isDirectory()) continue;
-		const sib = path.join(path.dirname(path.resolve(dir)), e.name), file = path.join(sib, "task.jsonl");
+		const sib = path.join(path.dirname(path.resolve(dir)), e.name), file = (SessionRecord.log_file(sib) ?? path.join(sib, "task.jsonl"));
 		let state = {}; try { for (const raw of fs.readFileSync(file, "utf8").split("\n")){ const o = raw.trim() && JSON.parse(raw); if (o?.assign) Object.assign(state, o.assign); } } catch { continue; }
 		if (state.agent || !Array.isArray(state.after) || !state.after.includes(here)) continue;
 		if (!state.after.every(a => task_landed(path.resolve(a)))) continue;
@@ -843,7 +844,7 @@ export function next_briefs(dir){
 /* A task has landed: any assign merged says landed_at + a non-empty outcome,
  * or closed_by — or a bare top-level landed_at line (minion-audit-tools, 09-29). */
 export function task_landed(dir){
-	let text; try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { return false; }
+	let text; try { text = fs.readFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), "utf8"); } catch { return false; }
 	const state = {};
 	for (const raw of text.split("\n")){
 		let o; try { o = raw.trim() && JSON.parse(raw); } catch {}
@@ -1097,7 +1098,7 @@ Agents.Agent = class Agent {
 			: this.provider === "local" ? local_env_for("local") : null;   // ext/local/provider.js: same trick, points at Servex's own proxy instead
 		const url = this.mcp_url ?? this.host?.mcp_url;
 		/* SERVEX_TASK: absolute path of this agent's task.jsonl in the MAIN tree (Servex runs there), read by Server/git-hooks/post-commit.mjs. */
-		const task_env = this.task?.dir ? { SERVEX_TASK: path.resolve(MAIN_ROOT, this.task.dir, "task.jsonl") } : null;
+		const task_env = this.task?.dir ? { SERVEX_TASK: SessionRecord.log_file(path.resolve(MAIN_ROOT, this.task.dir)) ?? path.resolve(MAIN_ROOT, this.task.dir, "task.jsonl") } : null;
 		/* a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process
 		 * servers, and still needs the env — `(or_env || this.env)`, not just `or_env` (review
 		 * finding 1, dictate-without-claude 2026-10-04): the old check dropped a spec's own
@@ -1343,7 +1344,7 @@ Agents.Agent = class Agent {
 		if (!dir || this.landing_nagged || this.one_shot || !/^(task-mastermind|mastermind|sub-mastermind)/.test(this.role ?? "")) return;
 		if (task_landed(dir) || !/\b(merged|merge commit|landed)\b/i.test(this.words ?? this.last_text ?? "")) return;
 		this.landing_nagged = true;
-		try { fs.appendFileSync(path.join(dir, "task.jsonl"), JSON.stringify({ log: { at: stamp(), msg: "agent stopped with the work merged but no landing line; too late to nag, the parent's harvest lands it" } }) + "\n"); } catch {}
+		try { fs.appendFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), JSON.stringify({ log: { at: stamp(), msg: "agent stopped with the work merged but no landing line; too late to nag, the parent's harvest lands it" } }) + "\n"); } catch {}
 	}
 
 	card(){
@@ -1854,7 +1855,7 @@ Agents.Agent = class Agent {
 		if (this.landing_flagged === key) return false;
 		this.landing_flagged = key;
 		const msg = LandingCheck.sentence(v);
-		try { fs.appendFileSync(path.join(dir, "task.jsonl"), JSON.stringify({ log: { at: stamp(), msg } }) + "\n"); } catch {}
+		try { fs.appendFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), JSON.stringify({ log: { at: stamp(), msg } }) + "\n"); } catch {}
 		this.host?.store().append("servex", { type: "landing-unmerged", agent: this.id, task: dir, branch: v.branch, missing: v.missing.length }).catch(() => {});
 		const card = this.task?.card;
 		if (card) try { this.host?.servex?.assistant?.card_reply({ card, from: "servex-landing-check", text: msg }); } catch {}
@@ -1876,7 +1877,7 @@ Agents.Agent = class Agent {
 		const kids = [...(this.host?.live?.values() ?? [])].filter(a => a.parent === this.id && (a.state === "working" || a.state === "starting"));
 		if (kids.length) return false;
 		this.landing_nagged = true;
-		const file = path.join(dir, "task.jsonl").split(path.sep).join("/");
+		const file = (SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")).split(path.sep).join("/");
 		this.host?.store().append("servex", { type: "landing-nag", agent: this.id, task: dir }).catch(() => {});
 		this.send(`Your work is merged but your task has no landing line. Append it now: {"assign": {"landed_at": "NOW", "title": …, "outcome": …, "links": […]}} via \`node .claude/hooks/append.mjs ${file} <lines.json>\`, then \`card_reply\` one screen.`, { from: "servex-landing-nag" });
 		this.host?.register?.(this);

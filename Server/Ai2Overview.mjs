@@ -15,6 +15,7 @@
 import fs from "node:fs";
 import TaskDirs from "./TaskDirs.mjs";
 import path from "node:path";
+import SessionRecord from "./SessionRecord.mjs";
 
 const ROOT = process.cwd(); // must be the repo root — see the header comment
 const AI_DIR = path.join(ROOT, "public/framework/ai");
@@ -72,7 +73,7 @@ const FIELDS = ["request", "requested_at", "landed_at", "outcome", "cost_usd", "
 
 function findTaskFiles() {
 	// Every task folder, both shapes (the sessions store and old day folders): TaskDirs is the one place that knows them.
-	return TaskDirs.list(3650).map(t => ({ date: t.day, slug: t.slug, file: path.join(t.dir, "task.jsonl") }));
+	return TaskDirs.list(3650).map(t => ({ date: t.day, slug: t.slug, file: SessionRecord.log_or_old(t.dir) }));
 }
 
 function readTask({ date, slug, file }) {

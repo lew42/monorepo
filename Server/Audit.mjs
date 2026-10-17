@@ -23,6 +23,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { execFileSync } from "node:child_process";
+import SessionRecord from "./SessionRecord.mjs";
 
 const args = process.argv.slice(2);
 const out_path = args.includes("--out") ? args[args.indexOf("--out") + 1] : null;
@@ -107,7 +108,7 @@ const ROOT = join(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z
 const results = [];
 for (const dir of taskdirs){
 	const abs_dir = join(ROOT, dir);
-	const task_lines = read_jsonl(join(abs_dir, "task.jsonl"));
+	const task_lines = read_jsonl(SessionRecord.log_or_old(abs_dir));
 	const audit_lines = dedupe_by_model(read_jsonl(join(abs_dir, "audit.jsonl")).map(l => l.audit).filter(Boolean));
 	const req_md = existsSync(join(abs_dir, "requirements.md")) ? readFileSync(join(abs_dir, "requirements.md"), "utf8") : "";
 

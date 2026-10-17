@@ -7,6 +7,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import SessionRecord from "./SessionRecord.mjs";
 
 const PARA = 60, OUTCOME = 120, FILE = 500, BARE = 200;
 
@@ -36,7 +37,7 @@ export function text_flags(dir){
 		return total;
 	};
 	try {
-		const lines = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
+		const lines = fs.readFileSync(SessionRecord.log_or_old(dir), "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
 		const outcome = String(lines.filter(e => e.assign?.landed_at).pop()?.assign?.outcome || "");
 		if (outcome) { const n = long("outcome", outcome); if (n > OUTCOME) flags.push(`outcome: ${n} words (${OUTCOME} at most; move the rest one click down)`); }
 	} catch {}

@@ -9,6 +9,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import SessionRecord from "./SessionRecord.mjs";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
 const dir = path.join(root, ".claude/skills/clarity");
@@ -34,7 +35,7 @@ async function main(){
 	// landing, which multiplied agents under memory pressure. A sub-task (its parent dir has a
 	// task.jsonl) is checked with its parent; a task whose log already has a clarity line is skipped.
 	if (kind === "landing") {
-		const own = path.join(arg, "task.jsonl");
+		const own = SessionRecord.log_or_old(arg);
 		if (fs.existsSync(path.join(path.dirname(path.resolve(arg)), "task.jsonl"))) return note({ target, verdict: "skipped", what: "a sub-task: its parent task gets the one check" });
 		try { if (fs.readFileSync(own, "utf8").includes('"clarity: ')) return note({ target, verdict: "skipped", what: "this task already had its clarity check" }); } catch {}
 		try { fs.appendFileSync(own, JSON.stringify({ log: { at: new Date().toISOString(), msg: "clarity: queued (once per task)" } }) + "\n"); } catch {}
@@ -58,7 +59,7 @@ async function main(){
 	const slug = kind === "look" ? "look-" + arg : path.basename(kind === "landing" ? arg : path.dirname(arg)).replace(/[^a-z0-9-]+/gi, "-").slice(0, 30);
 	let pages = [];
 	if (kind === "landing") try {
-		const lines = fs.readFileSync(path.join(arg, "task.jsonl"), "utf8");
+		const lines = fs.readFileSync(SessionRecord.log_or_old(arg), "utf8");
 		const out = String(lines.split("\n").map(l => { try { return JSON.parse(l); } catch { return {}; } }).filter(e => e.assign?.landed_at).pop()?.assign?.outcome || "");
 		pages = [...out.matchAll(/\]\((\/framework\/[^)\s#?]*\/)\)/g)].map(m => m[1]);
 		if (/framework\/ai2\//.test(lines)) pages.unshift("/framework/ai2/");

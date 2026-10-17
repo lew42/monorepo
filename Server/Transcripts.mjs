@@ -2,6 +2,7 @@
 // Doc: Server/doc/transcripts.md. Join key: task.jsonl line 1 `assign.session_id` == the transcript file name (SessionIndex reads both).
 //   node Server/Transcripts.mjs [--all (with --grep: agent briefs too)] [--since YYYY-MM-DD] [--limit N] [--dry-run] [--session <uuid>] [--grep <regex>] [--force]
 import fs from "node:fs";
+import SessionRecord from "./SessionRecord.mjs";
 import path from "node:path";
 import readline from "node:readline";
 import { fileURLToPath } from "node:url";
@@ -173,7 +174,7 @@ export default class Transcripts {
 			for (const e of ents) {
 				const p = path.join(dir, e.name);
 				if (e.isDirectory()) walk(p);
-				else if (e.name === "task.jsonl") {
+				else if (SessionRecord.is_log_entry(dir, e.name)) {
 					try {
 						const fd = fs.openSync(p, "r"), buf = Buffer.alloc(16384), n = fs.readSync(fd, buf, 0, buf.length, 0); fs.closeSync(fd);
 						for (const l of buf.toString("utf8", 0, n).split("\n").slice(0, 3)) {

@@ -1,6 +1,7 @@
 import { Page, div, span, small, p, a, button } from "/app.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { load as raw_transcript_lines } from "/framework/ai/AITask/replay.js";
+import { AITask } from "/framework/ai/AITask/AITask.js";
 import AISessionRows from "./AISessionRows.js";
 import AISessionView from "./AISessionView.js";
 import AISessionFollow from "./AISessionFollow.js";
@@ -233,7 +234,8 @@ export default class AISessionDetail extends Page {
 			// Raw: the session's own task log and its transcript (/ai-logs is dev-server only), on every session, row or not
 				$box.append(() => div.c("flex gap-50 v-center muted", () => {
 					small("Raw");
-					a.c("", "task.jsonl").href(own_dir + "task.jsonl");
+					const record = AITask.has(own_dir + "session.jsonl") ? "session.jsonl" : "task.jsonl";
+					a.c("", record).href(own_dir + record);
 					a.c("", "transcript").href("/ai-logs/" + session_id);
 				}));
 				$trace.empty(() => { if (trace) AISessionTrace.render(trace); });

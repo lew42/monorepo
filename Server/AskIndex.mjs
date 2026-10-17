@@ -16,6 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import ModuleInbox from "../Servex/agents/ModuleInbox.js";
+import SessionRecord from "./SessionRecord.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FW = "public/framework";
@@ -210,13 +211,14 @@ export default class AskIndex {
 
 	/** Read-only: a session folder's tasks that came from an ask: [{ title, state, module, source }]. */
 	static async tasks_view(dir, root = ROOT){
-		const file = ["task.jsonl", "session.jsonl"].map(n => path.join(dir, n)).find(f => fs.existsSync(f));
+		const log = SessionRecord.log_file(dir);   // a task log by either name; a tag-only digest file is not one
+		const file = log ?? ["task.jsonl", "session.jsonl"].map(n => path.join(dir, n)).find(f => fs.existsSync(f));
 		if (!file) return [];
 		const lines = AskIndex.read(file);
 		const { Task } = await import(pathToFileURL(path.join(root, FW, "core/Task/Task.js")).href);
 		const { default: Session } = await import(pathToFileURL(path.join(root, FW, "core/Session/Session.js")).href);
 		(await import("../Servex/agents/page_tools.js")).link_refs(Task);   // a {"task": path} line resolves to its child folder, so dedupe sees every child
-		const top = path.basename(file) === "session.jsonl" ? Session.replay(lines) : Task.replay(lines);
+		const top = !log && path.basename(file) === "session.jsonl" ? Session.replay(lines) : Task.replay(lines);
 		return [...(top._tasks ?? [])].map(t => ({ title: t.get_one("title"), state: t.state, module: t.get_one("module"), source: t.get_one("source") })).filter(t => t.source);
 	}
 

@@ -1,4 +1,5 @@
 import { stream, drop } from "./live.js";
+import { Store } from "../../core/Item/Store.js";
 
 // History and reasons: doc/JSONL-notes.md
 export class JSONL {
@@ -46,7 +47,8 @@ export class JSONL {
 	}
 
 	// Streams over dev socket; falls back to load() off localhost (see live.js).
-	live(changed){ return stream(this, changed); }
+	// A moved session record is followed first: core/Item/Store.js record_url().
+	live(changed){ return Store.record_url(this.url).then(url => { this.url = url; return stream(this, changed); }); }
 
 	// Stop streaming (reader done or file will not exist).
 	unsubscribe(){ drop(this); return this; }

@@ -16,6 +16,7 @@
 //
 // Read the full rule in Servex/asks/readme.md before changing anything here.
 import fs from "node:fs";
+import SessionRecord from "../../Server/SessionRecord.mjs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { stalled } from "./stalled.js";
@@ -51,7 +52,7 @@ export function task_dirs(days = DAYS, now = new Date(), ai_dir = AI){
 		for (const t of fs.readdirSync(date_dir, { withFileTypes: true })){
 			if (!t.isDirectory()) continue;
 			const dir = path.join(date_dir, t.name);
-			if (fs.existsSync(path.join(dir, "task.jsonl"))) out.push(dir);
+			if (fs.existsSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")))) out.push(dir);
 		}
 	}
 	return out;
@@ -86,7 +87,7 @@ function spent_of(dir){
  * separate for now rather than this file reaching into Asks.js to share one. If they drift
  * further, that line in both files should move to one shared helper. */
 export function task_facts(dir, root = ROOT){
-	const lines = read_lines(path.join(dir, "task.jsonl"));
+	const lines = read_lines((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")));
 	const first = lines[0]?.assign ?? {};
 	const facts = {
 		dir: path.relative(root, dir).split(path.sep).join("/"),

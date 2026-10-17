@@ -11,6 +11,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import SessionIndex from "./SessionIndex.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(here, "..");
@@ -40,7 +41,7 @@ export default class PastWork {
 	static tasks(){
 		const out = [];
 		for (const f of this.walk(AI)){
-			if (path.basename(f) !== "task.jsonl") continue;
+			if (!SessionRecord.is_log_entry(path.dirname(f), path.basename(f))) continue;
 			let text; try { text = fs.readFileSync(f, "utf8"); } catch { continue; }
 			const x = SessionIndex.reduce(rel(path.dirname(f)), text);   // the one task.jsonl reader: Server/SessionIndex.mjs
 			const r = { dir: x.dir, slug: x.slug, title: x.title, request: x.request, outcome: x.outcome, group: x.group, landed: x.assign_landed, links: x.links, topics: x.topics };

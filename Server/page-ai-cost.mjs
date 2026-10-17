@@ -32,6 +32,7 @@ import fs from "node:fs";
 import TaskDirs from "./TaskDirs.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import SessionRecord from "./SessionRecord.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
@@ -65,7 +66,7 @@ function all_task_dirs(){
 		for (const t of fs.readdirSync(day_dir, { withFileTypes: true })){
 			if (!t.isDirectory()) continue;
 			const dir = TaskDirs.follow(path.join(day_dir, t.name));
-			if (fs.existsSync(path.join(dir, "task.jsonl"))) out.push(dir);
+			if (fs.existsSync(SessionRecord.log_or_old(dir))) out.push(dir);
 		}
 	}
 	return out;
@@ -74,7 +75,7 @@ function all_task_dirs(){
 // The task's own cost_usd — the latest assign line that carries one. Never recomputed here.
 function task_cost(dir){
 	let cost = null;
-	for (const obj of read_lines(path.join(dir, "task.jsonl")))
+	for (const obj of read_lines(SessionRecord.log_or_old(dir)))
 		if (obj.assign && typeof obj.assign.cost_usd === "number") cost = obj.assign.cost_usd;
 	return cost;
 }
@@ -104,7 +105,7 @@ function page_folder_for(file){
 // Every distinct page folder this task's `action` lines touched.
 function pages_touched(dir){
 	const found = new Set();
-	for (const obj of read_lines(path.join(dir, "task.jsonl"))){
+	for (const obj of read_lines(SessionRecord.log_or_old(dir))){
 		const files = obj.action?.files;
 		if (!Array.isArray(files)) continue;
 		for (const file of files){

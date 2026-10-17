@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import SessionIndex from "./SessionIndex.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 const REPO = path.resolve(import.meta.dirname, "..");
 
@@ -19,7 +20,7 @@ export default class LandingCheck {
 
 	/** A branch name, or a task dir (absolute, or relative to the repo) whose task.jsonl names its branch. */
 	static branch_of(arg){
-		const dir = path.resolve(LandingCheck.REPO, arg), file = path.join(dir, "task.jsonl");
+		const dir = path.resolve(LandingCheck.REPO, arg), file = SessionRecord.log_or_old(dir);
 		if (fs.existsSync(file)) return SessionIndex.reduce(path.basename(dir), fs.readFileSync(file, "utf8")).branch || null;
 		return arg;
 	}

@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
 import { find_transcript, cost_of_transcript } from "../public/framework/ai/AISession/AISessionAudit.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVEX = join(process.env.LOCALAPPDATA || "", "lew42", "servex");
@@ -44,7 +45,7 @@ function allTasks(){
 		for (const t of readdirSync(join(AI, d.name), { withFileTypes: true })) {
 			if (!t.isDirectory()) continue;
 			const dir = TaskDirs.follow(join(AI, d.name, t.name));   // a finished task may now sit inside its session folder
-			if (existsSync(join(dir, "task.jsonl"))) out.push(dir);
+			if (existsSync((SessionRecord.log_file(dir) ?? join(dir, "task.jsonl")))) out.push(dir);
 		}
 	}
 	return out;
@@ -62,7 +63,7 @@ for (const r of rows) if (r.parent) (children.get(r.parent) || children.set(r.pa
 // The window: line 1's `requested_at` → the last `landed_at` (none yet = still open).
 function rootOf(dir){
 	let first = {}, landed = "";
-	const all = lines(join(dir, "task.jsonl"));
+	const all = lines((SessionRecord.log_file(dir) ?? join(dir, "task.jsonl")));
 	first = all[0]?.assign || {};
 	for (const o of all) if (o.assign?.landed_at) landed = o.assign.landed_at;
 	const row = (first.session_id && rows.find(r => r.session_id === first.session_id)) || (first.tab && byId.get(first.tab));
@@ -272,7 +273,7 @@ function cost(dir){
 // The figure the task already carries (later assign lines win).
 function current(dir){
 	const merged = {};
-	for (const o of lines(join(dir, "task.jsonl"))) if (o.assign) Object.assign(merged, o.assign);
+	for (const o of lines((SessionRecord.log_file(dir) ?? join(dir, "task.jsonl")))) if (o.assign) Object.assign(merged, o.assign);
 	return merged;
 }
 
@@ -313,7 +314,7 @@ if (agent && !byId.has(agent)) { console.error(`task-cost: unknown agent ${agent
 const dirs = agent
 	? (() => { const chain = new Set([agent, ...ancestors(agent)]); return recentDirs(7).filter(d => chain.has(rootOf(d).root)); })()
 	: date
-	? (existsSync(join(AI, date)) ? readdirSync(join(AI, date), { withFileTypes: true }).filter(d => d.isDirectory() && existsSync(join(AI, date, d.name, "task.jsonl"))).map(d => join(AI, date, d.name)) : [])
+	? (existsSync(join(AI, date)) ? readdirSync(join(AI, date), { withFileTypes: true }).filter(d => d.isDirectory() && existsSync((SessionRecord.log_file(join(AI, date, d.name)) ?? join(AI, date, d.name, "task.jsonl")))).map(d => join(AI, date, d.name)) : [])
 	: [resolve(args[0])];
 
 const $ = n => "$" + n.toFixed(2);

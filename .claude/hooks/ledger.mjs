@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import SessionRecord from "../../Server/SessionRecord.mjs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,7 +16,7 @@ try { ({ check } = await import("./jsonl-schema.mjs")); } catch {}
 const root = path.resolve(process.env.LEDGER_ROOT || path.join(fileURLToPath(import.meta.url), "../../.."));
 
 // Appending to any of these from PostToolUse would log the log, forever.
-const skip = new Set(["task.jsonl", "day.jsonl", "usage.jsonl", "usage.json"]);
+const skip = new Set(["task.jsonl", "session.jsonl", "day.jsonl", "usage.jsonl", "usage.json"]);
 
 const now = () => {
 	const d = new Date(), o = -d.getTimezoneOffset(), pad = n => String(Math.floor(Math.abs(n))).padStart(2, "0");
@@ -58,7 +59,7 @@ const walk = function* (dir) {
 	let entries;
 	try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
 	for (const e of entries) {
-		if (!e.isDirectory()) { if (e.name === "task.jsonl") yield path.join(dir, e.name); continue; }
+		if (!e.isDirectory()) { if (SessionRecord.is_log_entry(dir, e.name)) yield path.join(dir, e.name); continue; }
 		if (e.name === "node_modules" || e.name[0] === ".") continue;
 		yield* walk(path.join(dir, e.name));
 	}
@@ -69,8 +70,8 @@ const walk = function* (dir) {
 const find_task_by_path = file => {
 	let dir = path.dirname(path.resolve(file));
 	while (dir === root || dir.startsWith(root + path.sep)) {
-		const candidate = path.join(dir, "task.jsonl");
-		if (fs.existsSync(candidate)) return candidate;
+		const candidate = SessionRecord.log_file(dir);
+		if (candidate) return candidate;
 		if (path.dirname(dir) === dir) return null;
 		dir = path.dirname(dir);
 	}
@@ -253,7 +254,7 @@ const run = async () => {
 			const d = path.dirname(task);
 			const live_child = fs.readdirSync(d, { withFileTypes: true }).some(e => {
 				if (!e.isDirectory()) return false;
-				const f = path.join(d, e.name, "task.jsonl");
+				const f = SessionRecord.log_file(path.join(d, e.name)) ?? path.join(d, e.name, "task.jsonl");
 				if (!fs.existsSync(f)) return fs.existsSync(path.join(d, e.name, "requirements.md")); // briefed, still in the spawn queue
 				return !state(f).landed_at;
 			});

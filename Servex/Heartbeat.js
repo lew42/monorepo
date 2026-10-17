@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { place, stamp } from "./home.js";
 import Budget from "./Budget.js";
+import SessionRecord from "../Server/SessionRecord.mjs";
 
 /* THE HEARTBEAT — a task's owner that goes quiet is asked how it is doing; one
  * that died is revived; only when that fails does the owner of the machine hear.
@@ -147,7 +148,7 @@ export default class Heartbeat {
         let rows = {}; try { rows = this.agents.reg?.().read() ?? {}; } catch {}
         for (const a of this.agents.live.values()){
             const dir = a.task?.dir ?? (a.state !== "stopped" ? rows[a.id]?.task_dir : null);
-            if (dir) out.add(path.join(dir, "task.jsonl"));
+            if (dir) out.add((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")));
         }
         /* ONE ROW PER TASK: the task loop gives absolute paths, an agent's task.dir is often
          * repo-relative, so the same file came in twice (mastermind-servex-9, 2026-09-30). */

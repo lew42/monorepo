@@ -17,6 +17,7 @@ import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { askOnce } from "./AskEach.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const HAIKU = "claude-haiku-4-5-20251001";
@@ -241,7 +242,7 @@ ASKS:
 		const walk = d => { for (const e of fs.readdirSync(d, { withFileTypes: true })){
 			const p = path.join(d, e.name);
 			if (e.isDirectory()){ if (!["node_modules", "shots", ".git"].includes(e.name)) walk(p); }
-			else if (e.name === "task.jsonl"){
+			else if (SessionRecord.is_log_entry(d, e.name)){
 				for (const l of fs.readFileSync(p, "utf8").split("\n")){
 					if (!/"(landed_at|outcome|landed)"/.test(l)) continue;
 					let o; try { o = JSON.parse(l); } catch { continue; }

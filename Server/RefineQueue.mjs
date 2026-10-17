@@ -25,6 +25,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
 import AskIndex from "./AskIndex.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..");
@@ -98,7 +99,7 @@ export default class RefineQueue {
 
 	/** The owner's chat lines in a task.jsonl: `ref.session` is the task dir, its link is the task log. */
 	static from_task(dir){
-		const file = path.resolve(ROOT, dir, "task.jsonl");
+		const file = SessionRecord.log_or_old(path.resolve(ROOT, dir));
 		return fs.readFileSync(file, "utf8").split("\n").flatMap((raw, i) => {
 			let l; try { l = JSON.parse(raw); } catch { return []; }
 			const c = l.chat;

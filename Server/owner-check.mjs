@@ -52,6 +52,7 @@ import os from "node:os";
 import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { HOME } from "../Servex/home.js";
+import SessionRecord from "./SessionRecord.mjs";
 
 const ROOT = path.resolve(fileURLToPath(import.meta.url), "../..");
 const MCP = `http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/mcp`;
@@ -63,7 +64,7 @@ function read_jsonl(file){
 }
 function merged_assign(dir){
 	const state = {};
-	for (const e of read_jsonl(path.join(dir, "task.jsonl"))) if (e.assign) Object.assign(state, e.assign);
+	for (const e of read_jsonl(SessionRecord.log_or_old(dir))) if (e.assign) Object.assign(state, e.assign);
 	return state;
 }
 
@@ -154,7 +155,7 @@ export function split_items(text){
  * the commit the outcome names as the merge ("… (merge 1ebc924e)", the convention every landed
  * task's outcome already uses). No merge named, or `git show` fails: diff is just left out. */
 function landing_of(taskDir){
-	const entries = read_jsonl(path.join(taskDir, "task.jsonl"));
+	const entries = read_jsonl(SessionRecord.log_or_old(taskDir));
 	const outcome = entries.filter(e => e.assign?.landed_at).pop()?.assign?.outcome ?? null;
 	if (!outcome) return { outcome: null, diffStat: null };
 	const sha = /\bmerge\s+([0-9a-f]{7,40})\b/i.exec(outcome)?.[1];
@@ -205,7 +206,7 @@ async function card_nag(taskDir, text){
 
 async function main(){
 	const taskDir = path.resolve(process.argv[2] || ".");
-	const taskJsonl = path.join(taskDir, "task.jsonl");
+	const taskJsonl = SessionRecord.log_or_old(taskDir);
 	const found = find_owner_words(taskDir);
 	if (!found){ log_line(taskJsonl, "owner-check: no owner words found"); return; }
 

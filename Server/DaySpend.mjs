@@ -9,6 +9,7 @@
 import { readFileSync, readdirSync, existsSync, writeFileSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import SessionRecord from "./SessionRecord.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(here, "..");
@@ -34,7 +35,7 @@ function allTaskJsonl(dir){
 	const walk = d => { for (const e of readdirSync(d, { withFileTypes: true })){
 		const p = join(d, e.name);
 		if (e.isDirectory()) walk(p);
-		else if (e.name === "task.jsonl") out.push(p);
+		else if (SessionRecord.is_log_entry(d, e.name)) out.push(p);
 	} };
 	walk(dir);
 	return out;
@@ -83,7 +84,7 @@ function splitAgents(agents){
 function dayDirTasks(dateDir){
 	if (!existsSync(dateDir)) return [];
 	return readdirSync(dateDir, { withFileTypes: true })
-		.filter(d => d.isDirectory() && existsSync(join(dateDir, d.name, "task.jsonl")))
+		.filter(d => d.isDirectory() && existsSync((SessionRecord.log_file(join(dateDir, d.name)) ?? join(dateDir, d.name, "task.jsonl"))))
 		.map(d => ({ name: d.name, dir: join(dateDir, d.name) }));
 }
 
@@ -97,7 +98,7 @@ function build(date){
 	const keys = new Set(taskDirs.map(keyOf));
 
 	const tasks = taskDirs.map(t => {
-		const m = current(join(t.dir, "task.jsonl"));
+		const m = current((SessionRecord.log_file(t.dir) ?? join(t.dir, "task.jsonl")));
 		const tracked = typeof m.cost_usd === "number";
 		const split = tracked ? splitAgents(m.cost?.agents) : { claude_usd: 0, real_usd: 0 };
 		const modules = [...new Set(filesTouched(t.dir).map(moduleOf).filter(Boolean))];

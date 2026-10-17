@@ -32,6 +32,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { place, stamp } from "./home.js";
 import { task_state, task_for_worktree } from "../Server/worktree-sweep.mjs";
+import SessionRecord from "../Server/SessionRecord.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const norm = p => p ? path.resolve(String(p)).replace(/\\/g, "/").toLowerCase() : "";
@@ -118,7 +119,7 @@ export default class Lifecycle {
 	/** take_worktree: the taker's task log learns its worktree, and the log a start line. */
 	took(slot, caller){
 		const t = task_of_agent(caller);
-		if (t) try { fs.appendFileSync(path.join(t.dir, "task.jsonl"), JSON.stringify({ assign: { worktree: slot.path, branch: slot.branch } }) + "\n"); } catch {}
+		if (t) try { fs.appendFileSync((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl")), JSON.stringify({ assign: { worktree: slot.path, branch: slot.branch } }) + "\n"); } catch {}
 		this.record({ kind: "worktree", id: slot.id, path: slot.path, port: slot.port, owner_task: t?.key ?? null, owner_agent: caller ?? null, event: "start" });
 	}
 
@@ -168,7 +169,7 @@ export default class Lifecycle {
 		return (this.tasks ??= new Map()).get(key) ?? this.tasks.set(key, (() => {
 			const dir = path.join(ai_dir(), key), state = task_state(dir);
 			if (!state) return null;
-			let mtime = 0; try { mtime = fs.statSync(path.join(dir, "task.jsonl")).mtimeMs; } catch {}
+			let mtime = 0; try { mtime = fs.statSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl"))).mtimeMs; } catch {}
 			return { key, dir, ...state, landed: !!(state.landed_at && String(state.outcome ?? "").trim()), mtime };
 		})()).get(key);
 	}
@@ -344,7 +345,7 @@ function recent_tasks(){
 	const walk = (dir, depth) => {
 		let list; try { list = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
 		for (const e of list) if (e.isDirectory() && !e.name.startsWith(".") && depth < 4) walk(path.join(dir, e.name), depth + 1);
-			else if (e.name === "task.jsonl") try { out.push({ dir, mtime: fs.statSync(path.join(dir, e.name)).mtimeMs }); } catch {}
+			else if (SessionRecord.is_log_entry(dir, e.name)) try { out.push({ dir, mtime: fs.statSync(path.join(dir, e.name)).mtimeMs }); } catch {}
 	};
 	for (const d of [0, 1]) { const [y, m, dd] = day(d); walk(path.join(ai_dir(), `${y}-${m}-${dd}`), 0); walk(path.join(ai_dir(), y, m, dd), 0); }
 	return out.sort((a, b) => b.mtime - a.mtime);

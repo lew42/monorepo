@@ -1,4 +1,5 @@
 import { createSdkMcpServer, tool as sdk_tool } from "@anthropic-ai/claude-agent-sdk";
+import SessionRecord from "../../Server/SessionRecord.mjs";
 import { z } from "zod";
 import fs from "node:fs";
 import path from "node:path";
@@ -95,7 +96,7 @@ export function query_sessions_tool(){
  * twice. Throws with append.mjs's own stderr on a refusal, so the tool's handler can report it. */
 function append_task_line(dir, obj){
 	const abs = path.isAbsolute(dir) ? dir : path.join(ROOT, dir);
-	const target = path.join(abs, "task.jsonl");
+	const target = (SessionRecord.log_file(abs) ?? path.join(abs, "task.jsonl"));
 	if (!fs.existsSync(target)) throw new Error(`no task.jsonl at ${target}`);
 	const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "task-verb-")), "line.json");
 	fs.writeFileSync(tmp, JSON.stringify([obj]));
@@ -108,7 +109,7 @@ function append_task_line(dir, obj){
 function task_owner(dir){
 	const abs = path.isAbsolute(dir) ? dir : path.join(ROOT, dir);
 	let text;
-	try { text = fs.readFileSync(path.join(abs, "task.jsonl"), "utf8"); } catch { return null; }
+	try { text = fs.readFileSync((SessionRecord.log_file(abs) ?? path.join(abs, "task.jsonl")), "utf8"); } catch { return null; }
 	for (const raw of text.replace(/^﻿/, "").split(/\r?\n/)){
 		if (!raw.trim()) continue;
 		let obj; try { obj = JSON.parse(raw); } catch { continue; }

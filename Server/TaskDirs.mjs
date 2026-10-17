@@ -13,6 +13,7 @@
 // Old paths keep working: every move is a line in ai/sessions/task-moves.jsonl (Server/TaskMove.mjs) or the 2026-10-10
 // ai/sessions/task-manifest.json; follow(), alias() and redirect() chain through both. The 2026-10-10 mover (plan/apply/verify/undo) is below.
 import fs from "node:fs";
+import SessionRecord from "./SessionRecord.mjs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -60,7 +61,7 @@ export default class TaskDirs {
 	/** Make it. Returns the absolute dir. Refuses a folder that already holds a task (never two tasks in one log). */
 	static make(spec){
 		const d = this.dir(spec);
-		if (fs.existsSync(path.join(d, "task.jsonl"))) throw new Error(`refused: ${rel(d)} already holds a task. Pick another slug (e.g. ${path.basename(d)}-2).`);
+		if (fs.existsSync((SessionRecord.log_file(d) ?? path.join(d, "task.jsonl")))) throw new Error(`refused: ${rel(d)} already holds a task. Pick another slug (e.g. ${path.basename(d)}-2).`);
 		fs.mkdirSync(d, { recursive: true });
 		return d;
 	}
@@ -79,7 +80,7 @@ export default class TaskDirs {
 	/** Every task folder (holds task.jsonl) of the last `days` days, both shapes: [{dir, day:"YYYY-MM-DD", slug, key}]. Newest day first. */
 	static list(days = 7, now = new Date()){
 		const out = [], cut = new Date(now.getTime() - days * 864e5).toISOString().slice(0, 10);
-		const push = (dir, day) => { if (fs.existsSync(path.join(dir, "task.jsonl"))) out.push({ dir, day, slug: path.basename(dir), key: slash(path.relative(AI, dir)) }); };
+		const push = (dir, day) => { if (fs.existsSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")))) out.push({ dir, day, slug: path.basename(dir), key: slash(path.relative(AI, dir)) }); };
 		for (const y of ls(SESS).filter(n => /^\d{4}$/.test(n))) for (const m of ls(path.join(SESS, y))) for (const d of ls(path.join(SESS, y, m))){
 			const day = `${y}-${m}-${d}`; if (day < cut) continue;
 			const dd = path.join(SESS, y, m, d);
@@ -116,9 +117,9 @@ export default class TaskDirs {
 	/** The task folder named `slug` on `day` ("YYYY-MM-DD") anywhere in that day of the store (inside a session, a parent
 	 *  task, up to 4 levels), newest first; null if none. What an old /framework/ai/<day>/<slug>/ guess meant. */
 	static locate(day, slug, store = SESS){
-		const hits = [], walk = (d, n) => { for (const e of ls(d)){ const f = path.join(d, e); if (e === slug && fs.existsSync(path.join(f, "task.jsonl"))) hits.push(f); if (n < 4) walk(f, n + 1); } };
+		const hits = [], walk = (d, n) => { for (const e of ls(d)){ const f = path.join(d, e); if (e === slug && fs.existsSync((SessionRecord.log_file(f) ?? path.join(f, "task.jsonl")))) hits.push(f); if (n < 4) walk(f, n + 1); } };
 		walk(path.join(store, ...this.ymd(day).split("/")), 1);
-		return hits.sort((a, b) => fs.statSync(path.join(b, "task.jsonl")).mtimeMs - fs.statSync(path.join(a, "task.jsonl")).mtimeMs)[0] ?? null;
+		return hits.sort((a, b) => fs.statSync((SessionRecord.log_file(b) ?? path.join(b, "task.jsonl"))).mtimeMs - fs.statSync((SessionRecord.log_file(a) ?? path.join(a, "task.jsonl"))).mtimeMs)[0] ?? null;
 	}
 
 	/** An old-shaped path (dir or file) -> where it is: a moved folder, else the same slug found in that day of the store; else itself. */

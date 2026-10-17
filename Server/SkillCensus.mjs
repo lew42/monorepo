@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import SessionRecord from "./SessionRecord.mjs";
 
 class SkillCensus {
 	static repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -71,7 +72,7 @@ class SkillCensus {
 	static ls(d) { try { return fs.readdirSync(d).filter(n => /^\d+$/.test(n)); } catch { return []; } }
 	static tasks(d) {
 		return fs.readdirSync(d, { withFileTypes: true }).flatMap(e =>
-			e.isDirectory() ? SkillCensus.tasks(path.join(d, e.name)) : e.name === "task.jsonl" ? [path.join(d, e.name)] : []);
+			e.isDirectory() ? SkillCensus.tasks(path.join(d, e.name)) : SessionRecord.is_log_entry(d, e.name) ? [path.join(d, e.name)] : []);
 	}
 
 	get totals() {

@@ -38,6 +38,7 @@ import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { refuse_links_into_main } from "./junction-guard.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const REGISTRY = path.join(ROOT, ".worktrees.json");
@@ -211,7 +212,7 @@ try {
 	if (task_arg) {
 		const dir = path.isAbsolute(task_arg) ? task_arg : path.join(ROOT, task_arg);
 		fs.mkdirSync(dir, { recursive: true });
-		fs.appendFileSync(path.join(dir, "task.jsonl"), JSON.stringify({ assign: { worktree: target, branch } }) + "\n");
+		fs.appendFileSync(SessionRecord.log_or_old(dir), JSON.stringify({ assign: { worktree: target, branch } }) + "\n");
 	}
 	await lc.record({ kind: "worktree", id: name, path: target, port, pid: child.pid, owner_task: task_arg ? lc.task_key(task_arg) : null, owner_agent: process.env.LEW_AGENT || null, event: "start" });
 } catch {}

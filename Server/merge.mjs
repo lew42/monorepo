@@ -64,6 +64,7 @@ import { keepLive } from "./jsonl-keep.mjs";
 import TaskDirs from "./TaskDirs.mjs";
 import { OrphanCheck } from "./OrphanCheck.mjs";
 import { refuse_links_into_main } from "./junction-guard.mjs";
+import SessionRecord from "./SessionRecord.mjs";
 
 const BASE = "michael/dev";
 const argv = process.argv.slice(2);
@@ -184,7 +185,7 @@ function reviewGate(branch, head){
 		for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
 			const p = path.join(dir, e.name);
 			if (e.isDirectory()) out.push(...taskLogs(p));
-			else if (e.name === "task.jsonl") out.push(p);
+			else if (SessionRecord.is_log_entry(dir, e.name)) out.push(p);
 		}
 		return out;
 	}

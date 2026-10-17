@@ -6,6 +6,7 @@ import { join, relative } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
 import TaskState from "../public/live/TaskState.js";
+import SessionRecord from "./SessionRecord.mjs";
 
 const root = join(import.meta.dirname, "..");
 const day = process.argv.find(a => /^\d{4}-\d{2}-\d{2}$/.test(a)) ?? new Date().toISOString().slice(0, 10);
@@ -15,7 +16,7 @@ const base = join(root, "public/framework/ai/sessions", y, m, d);
 function* walk(dir){
 	for (const e of readdirSync(dir, { withFileTypes: true })){
 		if (e.isDirectory()) yield* walk(join(dir, e.name));
-		else if (e.name === "task.jsonl") yield join(dir, e.name);
+		else if (SessionRecord.is_log_entry(dir, e.name)) yield join(dir, e.name);
 	}
 }
 
