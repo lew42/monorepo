@@ -301,6 +301,7 @@ export class Task extends Item {
 			if (browser) kid.ready = this.open_ref(kid, ref);   // a promise: resolves once the file is read (or 404s)
 		}
 		if (kid.data.path === undefined) kid.put("path", ref);
+		kid._own_file = ref;   // a referenced child lives in its own file: the parent Store never records its changes (Store.js owned_below)
 		return kid;
 	}
 

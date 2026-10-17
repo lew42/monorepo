@@ -204,9 +204,9 @@ function address(node, host){
 	return address(parent, host);
 }
 
-// A change whose origin sits inside a descendant that has its OWN store belongs to that store (a Task.open_ref stub replaying its own file).
+// A change whose origin sits inside a descendant that has its OWN store belongs to that store (a Task.open_ref stub replaying its own file), or that is marked `_own_file` (a referenced child, even a snapshot copy).
 function owned_below(node, host){
-	for (let n = is_list(node) ? node.owner : node; n && n !== host; n = n.parent) if (n.store && n.store.host === n) return true;
+	for (let n = is_list(node) ? node.owner : node; n && n !== host; n = n.parent) if (n._own_file || (n.store && n.store.host === n)) return true;
 	return false;
 }
 
