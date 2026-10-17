@@ -29,7 +29,7 @@ export default class LiveRefine {
 
 	static BUDGET_TOKENS = 60000;
 	static MIN_BATCH = 3;             // pacing: an amend waits for this many new sentences...
-	static MAX_WAIT_MS = 6000;        // ...or this long after the oldest one queued, whichever comes first (measure/summary.md)
+	static MAX_WAIT_MS = 2000;        // ...or this long after the oldest one queued, whichever comes first (was 6000: one sentence took 8.5 s, 2026-10-17)
 	static MAX_BATCH = 12;            // sentences per amend call: more and the model stops citing them all (measure/summary.md)
 	static CLEAN_MIN_OVERLAP = 0.6;   // a model clean that keeps less of the raw's words than this is dropped
 	static DROP_AFTER_MS = 5 * 60 * 1000;   // dropped some minutes after final (or after going quiet)
