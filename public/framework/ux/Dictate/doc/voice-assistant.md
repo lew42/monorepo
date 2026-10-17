@@ -78,4 +78,18 @@ In live mode the words you are saying grow in a **separate draft bubble** at the
   3. `voice`.
 
   To go back to the fast assistant, write `fast` into that file and restart Servex.
-- ⬜ **Then:** raw versus refined look and the context card that swallows raw lines into its summary (ask 5). Half of it exists: a `{refined}` line already replaces a bubble's raw paragraphs with sections, and a click shows the raw words (`ext/Chat/Chat.js`, `refine()`).
+- ✅ **e. Raw looks raw, a summary swallows** (ask 5): below.
+
+---
+
+## Raw and refined
+
+**What you see.** Words straight from Whisper that nobody has placed or refined yet are muted and monospace (class `ux-dictate-raw`). When a `{place}` or `{refined}` line points at a sentence, it loses that look. When a card holds two or more sentences and the voice assistant writes `{"summary": {"card": <the card's first sentence at>, "text": "..."}}`, the card shows the summary text and folds its own lines under it, with a "N raw lines" toggle; one click shows the raw words in place.
+
+**How it is built** (`Widget.Thread`, `chat.js` routes the `summary` line like any other): `refresh()` re-applies the raw class and the folds after every draw, because redrawing a bubble rebuilds its nodes. The fold is a CSS rule (`.ux-dictate-swallowed:not(.open) > [data-re]` is hidden), a view over the same lines: nothing is deleted, rewritten or copied. A card with fewer than two lines is left alone. The summary is held per card id, so a later `place`, `refined` or retag never loses it.
+
+**Proof:** `node ux/Dictate/test/swallow.mjs <site>`: the fake mic's sentence is drawn raw; five raw lines, one placed card; a `summary` line folds the card in a few milliseconds (it goes through `Thread.draw()`, the call the chat tail makes, with no timer); the toggle shows the raw words; all at 400 and 1200. The proof uses a bare Widget with no Servex, so nothing is posted.
+
+**Rejected:** drawing the summary as a second rendered copy of the text. It would need its own state and could drift from the lines; the fold keeps the one-source rule (the session file's lines are the only data).
+
+**Not done yet:** the voice assistant does not write `summary` lines on its own yet (the skill now allows it), and a raw line arriving after the summary is hidden with the others until the next summary.
