@@ -16,3 +16,5 @@
 {"commit":"1072e5c0aa8c"}
 {"log":{"at":"2026-10-17T13:03:19-05:00","msg":"cost: the ten Haiku minions came to about $10.6 (path 2.11, concrete 1.20, look 1.22, 2b 0.77, six work ~0.9 each), over the $4 Haiku / $7 budget; each minion context was 66-87k, past the 60k cap, because Servex loads the full tool list into every agent"}}
 {"finish":{"at":"2026-10-17T13:03:19-05:00","summary":"151 = 12 done + 12 undone + 92 retired + 35 needs-owner (landed 3272ecfd3)","counts":{"done":12,"undone":12,"retired":92,"needs-owner":35,"total":151}}}
+{"commit":"0fb9f928f75c"}
+{"assign":{"landed_at":"2026-10-17T13:03:31-05:00","title":"The 151 unclear asks: a second look","outcome":"151 = 12 done + 12 undone (idle tasks) + 92 retired (not work) + 35 needs-owner; page filters 'not work' and 'needs you'; owner questions in the verdict doc","links":["/framework/ai/asks/undone/","/framework/ai/doc/undone-asks-2026-10-17.md"]}}
