@@ -129,6 +129,12 @@ try {
 
 			r = await run(`/framework/${MODN}/sub/`, { tasks: { add: { title: "Module from path" } } });
 			ok(r.ok && fs.existsSync(path.join(MDIR, "tasks", "module-from-path", "task.jsonl")), "path inside a module, no module field: homes under <module>/tasks/");
+			// Step 17: a call on a path inside a tasks/ folder keeps the child in the parent's folder, and the module list gets no second reference.
+			const GOAL = path.join(MDIR, "tasks", "module-from-path");
+			const list_refs = () => fs.readFileSync(path.join(MDIR, "tasks", "task.jsonl"), "utf8").trim().split(String.fromCharCode(10)).filter(l => JSON.parse(l).task).length;
+			const refs0 = list_refs();
+			r = await run(`/framework/${MODN}/tasks/module-from-path/`, { tasks: { add: { title: "Goal child" } } });
+			ok(r.ok && fs.existsSync(path.join(GOAL, "goal-child", "task.jsonl")) && !fs.existsSync(path.join(MDIR, "tasks", "goal-child")) && list_refs() === refs0, "a call inside tasks/: the child homes in the parent's folder, not the module list");
 			r = await run(URL, { tasks: { add: { title: "Dated outside" } } });
 			ok(fs.existsSync(path.join(DIR, "dated-outside", "task.jsonl")), "a dated ai/sessions path keeps the parent's folder");
 

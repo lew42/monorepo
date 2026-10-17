@@ -430,7 +430,9 @@ function module_of(url, root = FRAMEWORK){
 
 // Which folder a new child lives in, and its slug (-2, -3 when taken).
 function task_home(parent_dir, add, root = FRAMEWORK, from_path = ""){
-	const mod = typeof add.module === "string" ? add.module.replace(/^\/+|\/+$/g, "") : module_of(from_path, root);
+	// A call made on a path already inside a `tasks/` folder (a goal's own folder, a module list) keeps the child in the parent's folder: no flat pile in the module list.
+	const inside_tasks = /(^|\/)tasks(\/|$)/.test(String(from_path ?? ""));
+	const mod = typeof add.module === "string" ? add.module.replace(/^\/+|\/+$/g, "") : inside_tasks ? "" : module_of(from_path, root);
 	const mod_dir = MODULE_NAME.test(mod) ? path.join(root, mod) : null;
 	const base = mod_dir && fs.existsSync(mod_dir) && fs.statSync(mod_dir).isDirectory() ? path.join(mod_dir, "tasks") : parent_dir;
 	const slug0 = slug_of(add.title ?? add.id);
