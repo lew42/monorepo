@@ -53,3 +53,7 @@
 {"commit":"32802eecc"}
 {"assign":{"at":"2026-10-16T20:05:48-05:00","now":"Step 13 landed (Item owns replay; tags, expected, approve starts). Step 11 building: TaskPage as a thin route."}}
 {"decision":{"at":"2026-10-16T20:05:48-05:00","what":"Step 11 is a thin core/Task/TaskPage.js, not a 134-file rename of AITask","why":"voice-app's clarification: TaskPage holds no task logic; AITask.js is 300 lines of AI viewer logic","alternative":"scripted rename AITask -> TaskPage"}}
+{"commit":"0b821f8a4707"}
+{"action":{"at":"2026-10-16T20:09:52-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-homes/requirements.md"]}}
+{"commit":"07f860988"}
+{"assign":{"at":"2026-10-16T20:10:00-05:00","now":"Step 11 landed (core/Task/TaskPage.js, demo at /framework/core/Task/page/). Step 14a building: task homes, node side."}}
