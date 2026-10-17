@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./Registry.js";
@@ -15,6 +16,7 @@ import LandingCheck from "../../Server/LandingCheck.mjs";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 import { server as sdk_server } from "./tools.js";   // cycle with tools.js is fine: used only at call time
+const MAIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");   // Servex runs from the main tree
 import { page_tools } from "./page_tools.js";
 
 /* The in-process page tools for one agent, and the names of their HTTP twins. */
@@ -1073,12 +1075,14 @@ Agents.Agent = class Agent {
 		const or_env = this.provider === "openrouter" ? env_for("openrouter")
 			: this.provider === "local" ? local_env_for("local") : null;   // ext/local/provider.js: same trick, points at Servex's own proxy instead
 		const url = this.mcp_url ?? this.host?.mcp_url;
+		/* SERVEX_TASK: absolute path of this agent's task.jsonl in the MAIN tree (Servex runs there), read by Server/git-hooks/post-commit.mjs. */
+		const task_env = this.task?.dir ? { SERVEX_TASK: path.resolve(MAIN_ROOT, this.task.dir, "task.jsonl") } : null;
 		/* a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process
 		 * servers, and still needs the env — `(or_env || this.env)`, not just `or_env` (review
 		 * finding 1, dictate-without-claude 2026-10-04): the old check dropped a spec's own
 		 * `this.env` whenever there was no provider env to merge it with, silently losing it on
 		 * today's default Claude path. */
-		if (!url) return strip({ mcpServers: this.mcp_servers, env: (or_env || this.env) ? { ...process.env, ...or_env, ...this.env } : undefined });
+		if (!url) return strip({ mcpServers: this.mcp_servers, env: (or_env || this.env || task_env) ? { ...process.env, ...or_env, ...task_env, ...this.env } : undefined });
 
 		/* The page tools in-process, as `mcp__local__*` (step 12, Servex/doc/item-tool.md); the HTTP twins are
 		 * disallowed so each tool shows once. `SERVEX_LOCAL_TOOLS=0` keeps HTTP only. */
@@ -1086,7 +1090,7 @@ Agents.Agent = class Agent {
 		return {
 			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...(local ? { local: local.server } : {}), ...this.mcp_servers },
 			...(local ? { disallowedTools: local.twins } : {}),
-			env: { ...process.env, SERVEX_MCP: url, ...(or_env ?? {}), ...this.env }
+			env: { ...process.env, SERVEX_MCP: url, ...(or_env ?? {}), ...task_env, ...this.env }
 		};
 	}
 
