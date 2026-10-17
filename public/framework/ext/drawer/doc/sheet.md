@@ -20,6 +20,10 @@ Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
 - Old links are rewritten once with `replaceState`: `?sheet=open` becomes `<path>/ai/`, and `?drawer=dictation` becomes `<path>/ai/dictation/` (`AIPage.old_link()`).
 - ⚠ A page that writes `history.replaceState(null, …)` wipes the sheet's size. Pass `history.state` instead (the Dictate playground did this until 2026-10-17).
 
+## The desktop dock (2026-10-17, sheet step 6)
+
+Above 52em the AI is the right drawer (`drawer(fn)` filled by the `DrawerTabs`), which pushes the page instead of covering it. `Sheet.Dock` opens it by default at 1920 px and wider; ✕ shuts it and that is remembered (`lew42-sheet-dock-shut`), and ✦ opens it again and forgets. Below 1920 it starts shut and ✦ opens it. `drawer(fn)` stays the plain right-hand container any module can fill.
+
 ## Before 2026-10-17: the `?sheet=` url (kept for history)
 
 

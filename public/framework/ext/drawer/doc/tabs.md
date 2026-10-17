@@ -19,7 +19,7 @@
 
 ## The route word
 
-The open tab is in the url: `?drawer=ai`. Clicking a tab rewrites it with `history.replaceState`, so a reload opens the same tab and the back button is not filled with tab clicks. A url with no `?drawer` opens with the drawer shut. **An old `?drawer=sessions` link still works** — `tabs.js`'s `open()` remaps the name to `"ai"` before anything else runs, so a bookmark or a shared link from before the merge lands on the AI tab, not a 404 or a blank tab.
+**Since 2026-10-17 the url is `<path>/ai/`** (an `AIPage`, [sheet.md](sheet.md)); `?drawer=` is no longer written, and an old `?drawer=x` link is rewritten once to `<path>/ai/x/`. At 1920 px and wider the drawer opens docked by default until you shut it with ✕ (`Sheet.Dock`, remembered in localStorage). Until then (kept for history): the open tab was in the url: `?drawer=ai`. Clicking a tab rewrites it with `history.replaceState`, so a reload opens the same tab and the back button is not filled with tab clicks. A url with no `?drawer` opens with the drawer shut. **An old `?drawer=sessions` link still works** — `tabs.js`'s `open()` remaps the name to `"ai"` before anything else runs, so a bookmark or a shared link from before the merge lands on the AI tab, not a 404 or a blank tab.
 
 ⚠ A page that rewrites its own url and drops the query (the Space realm's `space/page.js` does) also drops the route word. The drawer stays open; only a reload forgets it.
 

@@ -145,10 +145,11 @@ export class DrawerTabs {
 
 	/* The route word, written back into the url without a new history entry.
 	   ⚠ `history.state` is carried over as-is — Router keeps its own entry there. */
+	// Since 2026-10-17 (sheet step 5) the AI's route is <path>/ai/, so this only clears an old word.
 	write(name){
 		const url = new URL(location.href);
-		if ((url.searchParams.get(this.constructor.KEY) ?? null) === name) return;
-		name ? url.searchParams.set(this.constructor.KEY, name) : url.searchParams.delete(this.constructor.KEY);
+		if (!url.searchParams.has(this.constructor.KEY)) return;
+		url.searchParams.delete(this.constructor.KEY);
 		history.replaceState(history.state, "", url);
 	}
 
