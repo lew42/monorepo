@@ -528,7 +528,8 @@ export default class Dictate extends View {
 		this.dump(wav, samples);
 		const form = new FormData();
 		form.append("file", wav, "segment.wav");
-		form.append("response_format", this.response_format);
+		// finals ask for segments + confidence when they will be saved; interims stay text only. see audio/Whisper/doc/raw-log.md
+		form.append("response_format", kind === "final" && this.log_raw ? "verbose_json" : this.response_format);
 		const req = this.req_seq, segment = kind === "final" ? this.segment_epoch - 1 : this.segment_epoch;   // read before any await
 		const t_sent = performance.now();
 		const url = this.whisper_url + "/inference";
@@ -545,7 +546,15 @@ export default class Dictate extends View {
 		// Whisper puts "\n" between its own segments; collapse them (real breaks come from real pauses).
 		const text = (body.text ?? "").replace(/\s+/g, " ").trim();
 		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000), req, segment, body });
+		if (this.log_raw) this.log_whisper({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000), req, segment, body });
 		return text;
+	}
+
+	/** Save the raw Whisper reply: one line in Servex's single-writer `whisper-raw` log, fire and forget, never throws. see audio/Whisper/doc/raw-log.md */
+	log_whisper({ body, ...line }){
+		const session = typeof this.session === "function" ? this.session() : this.session;
+		const segments = Array.isArray(body?.segments) ? body.segments.map(({ start, end, text, avg_logprob, no_speech_prob }) => ({ start, end, text, avg_logprob, no_speech_prob })) : undefined;
+		post_prompt({ type: "whisper", ...line, session: session || "", ...(segments && { segments }) }, this.whisper_log_url);
 	}
 
 	/** Debug seam: `window.$DICTATE_DUMP = true` also writes each WAV to dump_file. see doc/notes.md#debug-dump */
@@ -747,6 +756,8 @@ function default_whisper_url(){
 floor.post = (state, owner) => post_prompt({ type: "floor", state }, owner?.log_url);
 
 Dictate.prototype.whisper_url = default_whisper_url();
+Dictate.prototype.whisper_log_url = servex_url("/log/whisper-raw");
+Dictate.prototype.log_raw = true;   // save every raw Whisper reply (finals with segments) to the Servex whisper-raw log
 Dictate.prototype.log_url = servex_url("/log/prompts");       // Servex's single-writer log — not always up yet
 Dictate.prototype.log_fallback_file = "framework/ai/prompts.jsonl";    // dev-server rpc:append fallback, relative under public/
 Dictate.prototype.lang = "en-US";
