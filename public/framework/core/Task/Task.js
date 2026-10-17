@@ -24,7 +24,7 @@ const CAN = {
 // The state verbs a `task.jsonl` line may name: `{"stop":{"why":"…"}}`.
 // Plain fields a top-level line may set (the item tool's {"expected":"…"}); legacy lines keep them under `assign`.
 // `sessions` [{id, task}] and `home` (an old folder's pointer to its module home): Server/TaskMigrate.mjs writes them.
-const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home"];
+const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent"];
 
 // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
 const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags"]);
@@ -420,6 +420,13 @@ export class Task extends Item {
 
 Task.STATES = STATES;
 Task.FIELDS = FIELDS;
+
+// Routine procedure per kind of work (doc/templates.md): TaskLoop.launch fills an approved task's `agent` from these; the browser card reads the same words.
+Task.TEMPLATES = {
+	code: { worktree: true, commit: true, review: true, model: "claude-sonnet-5-5", permission_mode: "bypassPermissions" },
+	doc: { worktree: false, commit: true, review: false, model: "claude-sonnet-5-5", permission_mode: "bypassPermissions" },
+	scan: { worktree: false, commit: false, review: false, model: "claude-haiku-5-5", permission_mode: "plan" },
+};
 
 export default Task;
 

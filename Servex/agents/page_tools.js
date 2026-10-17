@@ -560,6 +560,9 @@ async function give_folder(root, at, ids, ctx){
 	return { made };
 }
 
+/* templates.md: Servex sets this to `file => task_loop.launch(file)`; run_item calls it right after an `approve` line lands. */
+export const hooks = { approved: null };
+
 export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
 	url ??= own_page(ctx);
 	let caller_log = ctx.caller_log ?? null;
@@ -635,6 +638,8 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	if ((pages === undefined && folder === undefined && !homes.length && !ids.length) || Object.keys(body).length){
 		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: now() }), !!Class?.replay);
 	} else if (size === undefined) size = size_of(at.file);
+	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.
+	if (Class?.replay && !at.target.length && body.approve !== undefined && hooks.approved) try { Promise.resolve(hooks.approved(at.file)).catch(() => {}); } catch {}
 	// Node records who worked on the task: one appended line carrying the full list, only when the caller is new to it.
 	if (Class?.replay && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
 		const live = root(), list = live.sessions;
