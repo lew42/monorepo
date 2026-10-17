@@ -68,7 +68,7 @@ export default class UndoneAsksPage extends Page {
 				const $list = div.c("flow");
 				const show = k => {
 					history.replaceState(null, "", k === "all" ? location.pathname : "?v=" + k);
-					Object.entries(chips).forEach(([c, b]) => b.el.classList.toggle("active", c === k));
+					Object.entries(chips).forEach(([c, b]) => b.el.classList.toggle("sessions-chip-on", c === k));
 					$list.empty(() => open.filter(x => k === "all" || KIND(x) === k).forEach(x => div.c("card pad flow", () => {
 						span(x.text);
 						div.c("flex wrap gap-25 muted", () => {
