@@ -32,3 +32,7 @@
 {"log":{"at":"2026-10-16T22:06:55-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T22:07:25-05:00","heartbeat":"answered","msg":"Still idle, nothing in progress. The compaction change is on `michael/dev` (`e0a0b1ead`), and the only open step is the Servex restart (`node Servex/sustain.mjs --restart`), which waits for the task-s"}}
 {"log":{"at":"2026-10-16T22:11:03-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T22:31:52-05:00","heartbeat":"check","msg":"status check sent to helper-compact-nudge"}}
+{"log":{"at":"2026-10-16T22:31:55-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T22:32:25-05:00","heartbeat":"answered","msg":"Still idle, nothing in progress. The compaction change is on `michael/dev` (`e0a0b1ead`). The Servex restart (`node Servex/sustain.mjs --restart`) hasn't been run, so the change isn't active yet."}}
+{"log":{"at":"2026-10-16T22:36:03-05:00","msg":"session ended (other) without landing"}}
