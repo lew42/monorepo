@@ -1,0 +1,159 @@
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index 95d77a9c6..b2da57d8a 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -30,7 +30,7 @@ export default new Page({
+ 	leaf: true,
+ 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
+ 	classes: v1() ? undefined : "full fill",
+-	children: "tasks classes AISession quick-fix asks process review council audits tests local models",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
++	children: "tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
+ 
+ 	// `board_drawn` stays true so the board's own hand-back (v/3/page.js) never paints it here. Doc: doc/ai-page-notes.md.
+ 	board_drawn: true,
+diff --git a/public/framework/ai/usage/UsagePace.js b/public/framework/ai/usage/UsagePace.js
+new file mode 100644
+index 000000000..756c4d3ce
+--- /dev/null
++++ b/public/framework/ai/usage/UsagePace.js
+@@ -0,0 +1,44 @@
++import { div, span } from "../../core/View/View.js";
++import { pace } from "../AITask/usage.js";
++
++/* Usage against pace, three ways. `ai/AITask/usage.js` (usage_rail) keeps the meter that shows spend with a clock marker;
++ * these variants show spend RELATIVE to the clock, so early in a window (when 3% of the bar is all there is) the answer is still readable.
++ * 100% of pace = exactly on the clock. Doc: readme.md. */
++export default class UsagePace {
++
++	static KINDS = { session: "5-hour session", weekly_all: "weekly, all models", weekly_scoped: "weekly, one model" };
++
++	/* One limit -> the numbers every variant draws. `ratio` is null in the first tenth of a window (noise, same rule as usage_rail). */
++	static of(limit, now = Date.now()){
++		const s = pace(limit, now), at = (s.elapsed ?? 0) * 100;
++		return { label: UsagePace.KINDS[limit.kind] ?? limit.kind, used: limit.percent, at, gap: limit.percent - at,
++			ratio: s.elapsed > 0.1 ? limit.percent / at : null, tone: s.tone, remaining: s.remaining };
++	}
++
++	static words(n){ return n.ratio == null ? "too early to tell" : Math.round(n.ratio * 100) + "% of pace"; }
++
++	/* A: the bar IS used ÷ pace. The middle line is "on pace"; the track is 0–200%. */
++	static ratio(n){
++		return div.c("up-meter", () => {
++			span.c("up-head", () => { span(n.label); span.c("up-num", UsagePace.words(n)); });
++			div.c("up-track up-ratio", () => div.c("up-fill " + n.tone).style("--w", Math.min(100, (n.ratio ?? 0) * 50) + "%"));
++		}).attr("title", `${n.used}% used, ${Math.round(n.at)}% of the window gone`);
++	}
++
++	/* B: the bar is the GAP in points from the clock. Left of the centre = under pace, right = over. The scale zooms to the gap (at least ±10 points). */
++	static gap(n){
++		const range = Math.max(10, Math.abs(n.gap)), w = Math.abs(n.gap) / range * 50;
++		return div.c("up-meter", () => {
++			span.c("up-head", () => { span(n.label); span.c("up-num", (n.gap > 0 ? "+" : "") + Math.round(n.gap) + " points"); });
++			div.c("up-track up-gap", () => div.c("up-fill " + n.tone + (n.gap < 0 ? " under" : " over")).style("--w", w + "%"));
++		}).attr("title", `${n.used}% used, ${Math.round(n.at)}% of the window gone`);
++	}
++
++	/* C: one big word, no bar. */
++	static chip(n){
++		return div.c("up-meter up-chip", () => {
++			span.c("up-head", () => span(n.label));
++			span.c("up-big " + n.tone, UsagePace.words(n));
++		}).attr("title", `${n.used}% used, ${Math.round(n.at)}% of the window gone`);
++	}
++}
+diff --git a/public/framework/ai/usage/UsagePage.js b/public/framework/ai/usage/UsagePage.js
+new file mode 100644
+index 000000000..381723d86
+--- /dev/null
++++ b/public/framework/ai/usage/UsagePage.js
+@@ -0,0 +1,32 @@
++import { Page, div, p, h2 } from "/app.js";
++import { View } from "../../core/View/View.js";
++import { usage_rail } from "../AITask/usage.js";
++import UsagePace from "./UsagePace.js";
++
++View.stylesheet(import.meta, "usage.css");
++
++/* The existing meter, then three pace-relative variants of the SAME limits, so you compare them on one screen. Doc: readme.md. */
++export default class UsagePage extends Page {
++	static DATA = new URL("../usage.json", import.meta.url);
++
++	content(){
++		const $box = div.c("block wide");   // captured now, filled after the fetch (no DOM after an await)
++		fetch(UsagePage.DATA).then(r => r.json()).catch(() => null).then(u => $box.append(() => {
++			const limits = u?.utilization?.limits;
++			if (!limits?.length) return p("No usage.json yet.");
++			const nums = limits.map(l => UsagePace.of(l));
++			h2("Today's meter (unchanged)");
++			p("The bar is spend; the ▼ is the clock. Early in a window the bar is a few pixels wide, so being ahead or behind is hard to see.");
++			usage_rail(u);
++			h2("A. Used ÷ pace");
++			p("The bar is how far ahead of the clock you are. The line in the middle is on pace; empty is idle, full is double pace.");
++			div.c("up-set", () => nums.forEach(n => UsagePace.ratio(n)));
++			h2("B. The gap from pace");
++			p("The bar grows left of the line when you are under pace and right of it when you are over. Its scale zooms to the gap, so a small gap is still visible.");
++			div.c("up-set", () => nums.forEach(n => UsagePace.gap(n)));
++			h2("C. One word");
++			p("No bar, only the answer.");
++			div.c("up-set", () => nums.forEach(n => UsagePace.chip(n)));
++		}));
++	}
++}
+diff --git a/public/framework/ai/usage/files.jsonl b/public/framework/ai/usage/files.jsonl
+new file mode 100644
+index 000000000..b39e01b2c
+--- /dev/null
++++ b/public/framework/ai/usage/files.jsonl
+@@ -0,0 +1,5 @@
++{"file":"page.js"}
++{"file":"usage.css"}
++{"file":"UsagePace.js"}
++{"file":"UsagePage.js"}
++{"file":"readme.md"}
+diff --git a/public/framework/ai/usage/page.js b/public/framework/ai/usage/page.js
+new file mode 100644
+index 000000000..b3778efb8
+--- /dev/null
++++ b/public/framework/ai/usage/page.js
+@@ -0,0 +1,2 @@
++import UsagePage from "./UsagePage.js";
++export default new UsagePage({ meta: import.meta, title: "Usage pace", icon: "speed", description: "Spend against the clock: today's meter and three pace-relative variants." });
+diff --git a/public/framework/ai/usage/readme.md b/public/framework/ai/usage/readme.md
+new file mode 100644
+index 000000000..6154b3c63
+--- /dev/null
++++ b/public/framework/ai/usage/readme.md
+@@ -0,0 +1,9 @@
++# Usage pace: spend against the clock
++
++`ai/AITask/usage.js` (`usage_rail`) is today's meter and stays as it is. This page puts three pace-relative variants beside it, drawn from the same `ai/usage.json`:
++
++- `UsagePace.js` — `UsagePace.of(limit)` computes used, clock, gap and ratio; `ratio`, `gap` and `chip` draw them.
++- `UsagePage.js` — the page: the old meter, then variants A (used ÷ pace), B (gap in points), C (one word).
++- `usage.css` — `.up-*` rules, inside the `theme` layer.
++
++Why: early in a window the used share is a few pixels, so "ahead or behind" cannot be seen. The text line already says "At N% of pace" (`Server/usage-now.mjs`); these bars say the same thing visually. Brief: [usage-pace-meter](/framework/ai/sessions/2026/10/15/voice-opus/usage-pace-meter/requirements.md). Open: pick the winner and move it into `usage_rail` (the owner's call; today's meter is untouched until then).
+diff --git a/public/framework/ai/usage/usage.css b/public/framework/ai/usage/usage.css
+new file mode 100644
+index 000000000..6982eaed1
+--- /dev/null
++++ b/public/framework/ai/usage/usage.css
+@@ -0,0 +1,18 @@
++@layer theme {
++	/* Pace meters: a bar that reads "used ÷ pace" (doc: readme.md). `.up-*` stays inside ai/usage. */
++	.up-set { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(18em, 100%), 1fr)); gap: var(--gap) var(--flow); }
++	.up-meter { display: flex; flex-direction: column; gap: .15em; min-width: 0; }
++	.up-head { display: flex; justify-content: space-between; gap: 1em; }
++	.up-num { font-weight: 700; font-variant-numeric: tabular-nums; }
++	.up-track { position: relative; height: .6em; border-radius: 999px; background: color-mix(in srgb, currentColor 12%, transparent); overflow: hidden; }
++	.up-track::after { content: ""; position: absolute; inset-block: 0; left: 50%; width: 2px; translate: -50% 0; background: currentColor; opacity: .7; }
++	.up-fill { height: 100%; width: var(--w, 0%); background: var(--prime); transition: width .3s ease; }
++	.up-gap .up-fill { position: absolute; left: 50%; }
++	.up-gap .up-fill.under { left: auto; right: 50%; }
++	.up-fill.calm { background: var(--ok); }
++	.up-fill.warm { background: var(--warn); }
++	.up-fill.hot { background: var(--hot); }
++	.up-fill.burning { background: var(--error); }
++	.up-big { font-size: 1.6em; font-weight: 700; }
++	.up-big.calm { color: var(--ok); } .up-big.warm { color: var(--warn); } .up-big.hot { color: var(--hot); } .up-big.burning { color: var(--error); }
++}
