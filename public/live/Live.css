@@ -38,3 +38,9 @@
 	.live-today-state.is-waiting { background: #fde7c2; }
 	.live-today-state.is-landed { background: #d5f0d5; }
 }
+
+@layer site {
+	.live-tasks { display: flex; flex-direction: column; gap: 1rem; }
+	.live-task { display: flex; flex-direction: column; gap: .35em; }
+	.live-task-mod { display: inline-flex; align-items: center; gap: .3em; font-size: .8em; color: var(--subtle); text-decoration: none; }
+}

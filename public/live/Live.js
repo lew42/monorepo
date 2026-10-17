@@ -3,6 +3,7 @@ import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { View } from "/framework/core/View/View.js";
 import LiveToday from "./LiveToday.js";
+import LiveTasks from "./LiveTasks.js";
 
 View.stylesheet(import.meta, "Live.css");
 
@@ -83,7 +84,7 @@ class Tail {
 /* One feed item as a small Page: preview() is the stock preview card (Page.preview -> preview_card), full() the whole content. */
 class LiveCard extends Page {
 	static back = false;   // true shows a "← Live" link above an opened card (the owner uses the browser back button)
-	static live = { today: LiveToday };   // a card {type:"part-live", live:"<name>"} is drawn by this class, from live data, not from its text
+	static live = { today: LiveToday, tasks: LiveTasks };   // a card {type:"part-live", live:"<name>"} is drawn by this class, from live data, not from its text
 
 	static of(row){
 		const card = new this({ id: row.id, title: row.title, label: row.preview ?? row.title ?? row.id, text: row.text, url: `/live/${encodeURIComponent(row.id)}/`, path: `/live/${encodeURIComponent(row.id)}/` });

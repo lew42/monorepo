@@ -38,6 +38,8 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 `task.render()` returns `new Task.View({task})`. `Task.js` stays DOM-free: [`TaskView.js`](./TaskView.js) (`class TaskView extends View`) sets `Task.View` when a browser loads it; in node `render()` warns once and returns `undefined`. `TaskView.chip(task)`, `.row(task)`, `.card(task)` draw the three sizes (icon + title; + state and complete %; + expected, priority, commits, session, module, link). A view reads the live task and redraws on its `change` events; a card also redraws on `tasks` add/remove/reorder. A subclass overrides `render()` to draw itself. This retires the display `Task` that was in `ai/objects.js`.
 
+**The row** (`TaskView.row`, `TaskView.css`) is the one look everywhere: checkbox, stage icon (`TaskView.STAGE`), title link, one bar segment per child; a parent is bigger, previews 3 open children, and a click expands them all. The card shows its children as rows. Used by the module Tasks tab and the `/live/` Tasks card (`live/LiveTasks.js`).
+
 ## TaskPage
 
 [`TaskPage.js`](./TaskPage.js) (`class TaskPage extends Page`) is the thin route for a task folder: it opens that folder's `task.jsonl` and shows `Task.View` full-size, with no task logic of its own. Demo: [core/Task/page/](/framework/core/Task/page/). The legacy `ai/AITask` viewer is unchanged.
