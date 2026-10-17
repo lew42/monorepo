@@ -1,0 +1,1886 @@
+diff --git a/.claude/hooks/append.mjs b/.claude/hooks/append.mjs
+index bc99d470c..a6fbaaf89 100644
+--- a/.claude/hooks/append.mjs
++++ b/.claude/hooks/append.mjs
+@@ -15,6 +15,7 @@ import { readFileSync, appendFileSync, existsSync, statSync, openSync, readSync,
+ import { check, shape } from "./jsonl-schema.mjs";
+ import { resolve as resolve_path, dirname, basename, join } from "node:path";
+ import TaskDirs from "../../Server/TaskDirs.mjs";
++import SessionRecord from "../../Server/SessionRecord.mjs";
+ 
+ const pad = n => String(n).padStart(2, "0");
+ function nowLocal(){
+@@ -39,6 +40,8 @@ if (!target || !source) { console.error("usage: node append.mjs <target.jsonl> <
+ 	catch (e){ console.error(e.message + "\nNothing was written."); process.exit(3); }
+ 	if (now !== abs){ mkdirSync(dirname(now), { recursive: true }); console.error(`(old path followed: ${target} -> ${now})`); target = now; }
+ }
++// A session folder moved to session.jsonl (Server/SessionRecord.mjs): a log line meant for its old task.jsonl goes to the moved record, never a second file.
++if (basename(target) === "task.jsonl" && !existsSync(target)) { const moved = SessionRecord.log_file(dirname(resolve_path(target))); if (moved && basename(moved) === "session.jsonl") { console.error(`(session record followed: ${target} -> ${moved})`); target = moved; } }
+ const strip_bom = s => s.replace(/^﻿/, "");
+ const items = JSON.parse(strip_bom(readFileSync(source, "utf8")));
+ const list = Array.isArray(items) ? items : [items];
+diff --git a/.claude/hooks/jsonl-schema.mjs b/.claude/hooks/jsonl-schema.mjs
+index d6fb24f4c..4b1e90a52 100644
+--- a/.claude/hooks/jsonl-schema.mjs
++++ b/.claude/hooks/jsonl-schema.mjs
+@@ -142,6 +142,10 @@ export const schemas = {
+ 	},
+ };
+ 
++// A session folder's one record (Server/SessionRecord.mjs, sessions/doc/session-record.md): the task log's verbs, plus the digest `tag` line.
++schemas["session.jsonl"] = { ...schemas["task.jsonl"], what: "a session folder's record (public/framework/ai/sessions/YYYY/MM/DD/<session>/session.jsonl): the task log's lines plus the digest tags",
++	verbs: { ...schemas["task.jsonl"].verbs, tag: { type: "string", eg: "kind/agent" } }, pending: [...(schemas["task.jsonl"].pending ?? []), "tag"] };   // tag lines: read by AISession.record(), not by the task reader
++
+ /* Servex's `append_log` writes its OWN named logs (under SERVEX_HOME, never a repo file), and
+  * every one of those is an event: one flat object with a string `type`. */
+ export const servex_event = {
+diff --git a/.claude/hooks/ledger.mjs b/.claude/hooks/ledger.mjs
+index ba5437596..17b1eac09 100644
+--- a/.claude/hooks/ledger.mjs
++++ b/.claude/hooks/ledger.mjs
+@@ -1,4 +1,5 @@
+ import fs from "node:fs";
++import SessionRecord from "../../Server/SessionRecord.mjs";
+ import os from "node:os";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+@@ -15,7 +16,7 @@ try { ({ check } = await import("./jsonl-schema.mjs")); } catch {}
+ const root = path.resolve(process.env.LEDGER_ROOT || path.join(fileURLToPath(import.meta.url), "../../.."));
+ 
+ // Appending to any of these from PostToolUse would log the log, forever.
+-const skip = new Set(["task.jsonl", "day.jsonl", "usage.jsonl", "usage.json"]);
++const skip = new Set(["task.jsonl", "session.jsonl", "day.jsonl", "usage.jsonl", "usage.json"]);
+ 
+ const now = () => {
+ 	const d = new Date(), o = -d.getTimezoneOffset(), pad = n => String(Math.floor(Math.abs(n))).padStart(2, "0");
+@@ -58,7 +59,7 @@ const walk = function* (dir) {
+ 	let entries;
+ 	try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+ 	for (const e of entries) {
+-		if (!e.isDirectory()) { if (e.name === "task.jsonl") yield path.join(dir, e.name); continue; }
++		if (!e.isDirectory()) { if (SessionRecord.is_log_entry(dir, e.name)) yield path.join(dir, e.name); continue; }
+ 		if (e.name === "node_modules" || e.name[0] === ".") continue;
+ 		yield* walk(path.join(dir, e.name));
+ 	}
+@@ -69,8 +70,8 @@ const walk = function* (dir) {
+ const find_task_by_path = file => {
+ 	let dir = path.dirname(path.resolve(file));
+ 	while (dir === root || dir.startsWith(root + path.sep)) {
+-		const candidate = path.join(dir, "task.jsonl");
+-		if (fs.existsSync(candidate)) return candidate;
++		const candidate = SessionRecord.log_file(dir);
++		if (candidate) return candidate;
+ 		if (path.dirname(dir) === dir) return null;
+ 		dir = path.dirname(dir);
+ 	}
+@@ -253,7 +254,7 @@ const run = async () => {
+ 			const d = path.dirname(task);
+ 			const live_child = fs.readdirSync(d, { withFileTypes: true }).some(e => {
+ 				if (!e.isDirectory()) return false;
+-				const f = path.join(d, e.name, "task.jsonl");
++				const f = SessionRecord.log_file(path.join(d, e.name)) ?? path.join(d, e.name, "task.jsonl");
+ 				if (!fs.existsSync(f)) return fs.existsSync(path.join(d, e.name, "requirements.md")); // briefed, still in the spawn queue
+ 				return !state(f).landed_at;
+ 			});
+diff --git a/Server/Ai2Overview.mjs b/Server/Ai2Overview.mjs
+index 189fc44cd..955e447d8 100644
+--- a/Server/Ai2Overview.mjs
++++ b/Server/Ai2Overview.mjs
+@@ -15,6 +15,7 @@
+ import fs from "node:fs";
+ import TaskDirs from "./TaskDirs.mjs";
+ import path from "node:path";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const ROOT = process.cwd(); // must be the repo root — see the header comment
+ const AI_DIR = path.join(ROOT, "public/framework/ai");
+@@ -72,7 +73,7 @@ const FIELDS = ["request", "requested_at", "landed_at", "outcome", "cost_usd", "
+ 
+ function findTaskFiles() {
+ 	// Every task folder, both shapes (the sessions store and old day folders): TaskDirs is the one place that knows them.
+-	return TaskDirs.list(3650).map(t => ({ date: t.day, slug: t.slug, file: path.join(t.dir, "task.jsonl") }));
++	return TaskDirs.list(3650).map(t => ({ date: t.day, slug: t.slug, file: SessionRecord.log_or_old(t.dir) }));
+ }
+ 
+ function readTask({ date, slug, file }) {
+diff --git a/Server/ArchitectureCensus.mjs b/Server/ArchitectureCensus.mjs
+index b00f452b3..391523fe7 100644
+--- a/Server/ArchitectureCensus.mjs
++++ b/Server/ArchitectureCensus.mjs
+@@ -6,6 +6,7 @@
+ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const FW = path.join(REPO, "public", "framework");
+@@ -41,7 +42,7 @@ export default class ArchitectureCensus {
+ 	static decisions(mods){
+ 		const counts = new Map(mods.map(m => [m.key, 0]));
+ 		for (const f of this.walkAll(path.join(FW, "ai"))){
+-			if (path.basename(f) !== "task.jsonl") continue;
++			if (!SessionRecord.is_log_entry(path.dirname(f), path.basename(f))) continue;
+ 			let t; try { t = fs.readFileSync(f, "utf8"); } catch { continue; }
+ 			for (const l of t.split("\n")) if (l.startsWith('{"decision"')) for (const m of mods) if (l.includes(m.key + "/") || l.includes(m.key + "`") || l.includes(m.key + " ")) counts.set(m.key, counts.get(m.key) + 1);
+ 		}
+@@ -57,7 +58,7 @@ export default class ArchitectureCensus {
+ 	static extract(key){
+ 		const out = [];
+ 		for (const f of this.walkAll(path.join(FW, "ai"))){
+-			if (path.basename(f) !== "task.jsonl") continue;
++			if (!SessionRecord.is_log_entry(path.dirname(f), path.basename(f))) continue;
+ 			let t; try { t = fs.readFileSync(f, "utf8"); } catch { continue; }
+ 			for (const l of t.split(String.fromCharCode(10))) if (l.startsWith('{"decision"') && (l.includes(key + "/") || l.includes(key + "`") || l.includes(key + " "))){
+ 				let d; try { d = JSON.parse(l).decision; } catch { continue; }
+diff --git a/Server/AskIndex.mjs b/Server/AskIndex.mjs
+index 55af662fd..505b54580 100644
+--- a/Server/AskIndex.mjs
++++ b/Server/AskIndex.mjs
+@@ -16,6 +16,7 @@ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+ import ModuleInbox from "../Servex/agents/ModuleInbox.js";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const FW = "public/framework";
+@@ -210,13 +211,14 @@ export default class AskIndex {
+ 
+ 	/** Read-only: a session folder's tasks that came from an ask: [{ title, state, module, source }]. */
+ 	static async tasks_view(dir, root = ROOT){
+-		const file = ["task.jsonl", "session.jsonl"].map(n => path.join(dir, n)).find(f => fs.existsSync(f));
++		const log = SessionRecord.log_file(dir);   // a task log by either name; a tag-only digest file is not one
++		const file = log ?? ["task.jsonl", "session.jsonl"].map(n => path.join(dir, n)).find(f => fs.existsSync(f));
+ 		if (!file) return [];
+ 		const lines = AskIndex.read(file);
+ 		const { Task } = await import(pathToFileURL(path.join(root, FW, "core/Task/Task.js")).href);
+ 		const { default: Session } = await import(pathToFileURL(path.join(root, FW, "core/Session/Session.js")).href);
+ 		(await import("../Servex/agents/page_tools.js")).link_refs(Task);   // a {"task": path} line resolves to its child folder, so dedupe sees every child
+-		const top = path.basename(file) === "session.jsonl" ? Session.replay(lines) : Task.replay(lines);
++		const top = !log && path.basename(file) === "session.jsonl" ? Session.replay(lines) : Task.replay(lines);
+ 		return [...(top._tasks ?? [])].map(t => ({ title: t.get_one("title"), state: t.state, module: t.get_one("module"), source: t.get_one("source") })).filter(t => t.source);
+ 	}
+ 
+diff --git a/Server/AskTally.mjs b/Server/AskTally.mjs
+index 053f8a506..da2d0245a 100644
+--- a/Server/AskTally.mjs
++++ b/Server/AskTally.mjs
+@@ -17,6 +17,7 @@ import crypto from "node:crypto";
+ import { execFileSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ import { askOnce } from "./AskEach.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const HAIKU = "claude-haiku-4-5-20251001";
+@@ -241,7 +242,7 @@ ASKS:
+ 		const walk = d => { for (const e of fs.readdirSync(d, { withFileTypes: true })){
+ 			const p = path.join(d, e.name);
+ 			if (e.isDirectory()){ if (!["node_modules", "shots", ".git"].includes(e.name)) walk(p); }
+-			else if (e.name === "task.jsonl"){
++			else if (SessionRecord.is_log_entry(d, e.name)){
+ 				for (const l of fs.readFileSync(p, "utf8").split("\n")){
+ 					if (!/"(landed_at|outcome|landed)"/.test(l)) continue;
+ 					let o; try { o = JSON.parse(l); } catch { continue; }
+diff --git a/Server/Asked.mjs b/Server/Asked.mjs
+index a9fcaf8cf..0f65a8df8 100644
+--- a/Server/Asked.mjs
++++ b/Server/Asked.mjs
+@@ -8,6 +8,7 @@ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import PastWork from "./PastWork.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const OUTCOMES = path.join(REPO, "public/framework/ai/doc/asks-outcomes.jsonl");
+@@ -37,7 +38,7 @@ export default class Asked {
+ 	decisions(tasks) {
+ 		const out = [];
+ 		for (const t of tasks) {
+-			let text; try { text = fs.readFileSync(path.join(REPO, t.dir, "task.jsonl"), "utf8"); } catch { continue; }
++			let text; try { text = fs.readFileSync(SessionRecord.log_or_old(REPO, t.dir), "utf8"); } catch { continue; }
+ 			for (const l of text.split("\n")) {
+ 				if (!l.includes('"decision"')) continue;
+ 				let d; try { d = JSON.parse(l).decision; } catch { continue; }
+diff --git a/Server/Audit.mjs b/Server/Audit.mjs
+index b4340a1fd..acd31f3c6 100644
+--- a/Server/Audit.mjs
++++ b/Server/Audit.mjs
+@@ -23,6 +23,7 @@
+ import { readFileSync, writeFileSync, existsSync } from "node:fs";
+ import { join, dirname } from "node:path";
+ import { execFileSync } from "node:child_process";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const args = process.argv.slice(2);
+ const out_path = args.includes("--out") ? args[args.indexOf("--out") + 1] : null;
+@@ -107,7 +108,7 @@ const ROOT = join(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z
+ const results = [];
+ for (const dir of taskdirs){
+ 	const abs_dir = join(ROOT, dir);
+-	const task_lines = read_jsonl(join(abs_dir, "task.jsonl"));
++	const task_lines = read_jsonl(SessionRecord.log_or_old(abs_dir));
+ 	const audit_lines = dedupe_by_model(read_jsonl(join(abs_dir, "audit.jsonl")).map(l => l.audit).filter(Boolean));
+ 	const req_md = existsSync(join(abs_dir, "requirements.md")) ? readFileSync(join(abs_dir, "requirements.md"), "utf8") : "";
+ 
+diff --git a/Server/Compact.mjs b/Server/Compact.mjs
+index bc0e447c2..5a45e5de5 100644
+--- a/Server/Compact.mjs
++++ b/Server/Compact.mjs
+@@ -5,6 +5,7 @@ import fs from "node:fs";
+ import path from "node:path";
+ import { execFileSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const SESSIONS = path.join(ROOT, "public/framework/ai/sessions");
+@@ -98,7 +99,7 @@ export default class Compact {
+ 
+ 	// plan(taskDir) -> what compaction would do. Reads one file, writes nothing.
+ 	static plan(taskDir, { now = Date.now(), git = false } = {}) {
+-		const file = path.join(taskDir, "task.jsonl");
++		const file = SessionRecord.log_or_old(taskDir);
+ 		const text = fs.readFileSync(file, "utf8");
+ 		const lines = Compact.parse(text);
+ 		const verdicts = Compact.classify(lines);
+@@ -133,7 +134,7 @@ export default class Compact {
+ 	static taskDirs(ym) {
+ 		const found = [];
+ 		const walk = d => {
+-			if (fs.existsSync(path.join(d, "task.jsonl"))) found.push(d);
++			if (fs.existsSync(SessionRecord.log_or_old(d))) found.push(d);
+ 			for (const e of fs.readdirSync(d, { withFileTypes: true })) if (e.isDirectory()) walk(path.join(d, e.name));
+ 		};
+ 		walk(path.join(SESSIONS, ym));
+diff --git a/Server/DaySpend.mjs b/Server/DaySpend.mjs
+index 33c0c6b66..1ecefbd7b 100644
+--- a/Server/DaySpend.mjs
++++ b/Server/DaySpend.mjs
+@@ -9,6 +9,7 @@
+ import { readFileSync, readdirSync, existsSync, writeFileSync, statSync } from "node:fs";
+ import { join, dirname } from "node:path";
+ import { fileURLToPath } from "node:url";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const here = dirname(fileURLToPath(import.meta.url));
+ const ROOT = join(here, "..");
+@@ -34,7 +35,7 @@ function allTaskJsonl(dir){
+ 	const walk = d => { for (const e of readdirSync(d, { withFileTypes: true })){
+ 		const p = join(d, e.name);
+ 		if (e.isDirectory()) walk(p);
+-		else if (e.name === "task.jsonl") out.push(p);
++		else if (SessionRecord.is_log_entry(d, e.name)) out.push(p);
+ 	} };
+ 	walk(dir);
+ 	return out;
+@@ -83,7 +84,7 @@ function splitAgents(agents){
+ function dayDirTasks(dateDir){
+ 	if (!existsSync(dateDir)) return [];
+ 	return readdirSync(dateDir, { withFileTypes: true })
+-		.filter(d => d.isDirectory() && existsSync(join(dateDir, d.name, "task.jsonl")))
++		.filter(d => d.isDirectory() && existsSync((SessionRecord.log_file(join(dateDir, d.name)) ?? join(dateDir, d.name, "task.jsonl"))))
+ 		.map(d => ({ name: d.name, dir: join(dateDir, d.name) }));
+ }
+ 
+@@ -97,7 +98,7 @@ function build(date){
+ 	const keys = new Set(taskDirs.map(keyOf));
+ 
+ 	const tasks = taskDirs.map(t => {
+-		const m = current(join(t.dir, "task.jsonl"));
++		const m = current((SessionRecord.log_file(t.dir) ?? join(t.dir, "task.jsonl")));
+ 		const tracked = typeof m.cost_usd === "number";
+ 		const split = tracked ? splitAgents(m.cost?.agents) : { claude_usd: 0, real_usd: 0 };
+ 		const modules = [...new Set(filesTouched(t.dir).map(moduleOf).filter(Boolean))];
+diff --git a/Server/FollowUp.mjs b/Server/FollowUp.mjs
+index 808841cf1..c956df5e3 100644
+--- a/Server/FollowUp.mjs
++++ b/Server/FollowUp.mjs
+@@ -9,6 +9,7 @@ import { execFileSync } from "node:child_process";
+ import TaskDirs from "./TaskDirs.mjs";
+ import SessionIndex from "./SessionIndex.mjs";
+ import LandingCheck from "./LandingCheck.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const QUIET_H = 2, OPEN_ASK = new Set(["building", "routed", "queued", "stalled", undefined]), LIVE = new Set(["working", "idle", "dormant"]);
+ const DOC = path.join(TaskDirs.AI, "doc"), ts = s => { const t = Date.parse(s); return Number.isNaN(t) ? 0 : t; };
+@@ -46,9 +47,9 @@ export default class FollowUp {
+ 	}
+ 
+ 	read_task(t){
+-		const x = SessionIndex.reduce(t.key, fs.readFileSync(path.join(t.dir, "task.jsonl"), "utf8"));   // the one task.jsonl reader: Server/SessionIndex.mjs
++		const x = SessionIndex.reduce(t.key, fs.readFileSync((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl")), "utf8"));   // the one task.jsonl reader: Server/SessionIndex.mjs
+ 		const r = { key: t.key, day: t.day, slug: t.slug, group: x.group, session: x.session, agent: x.agent, model: x.model, branch: x.branch, started: x.started, last: x.last, step: x.step, steps: x.steps, landed: x.landed, landed_at: x.landed_at, outcome: !!x.outcome };
+-		if (!r.last) r.last = fs.statSync(path.join(t.dir, "task.jsonl")).mtimeMs;
++		if (!r.last) r.last = fs.statSync((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl"))).mtimeMs;
+ 		r.started ||= r.last;
+ 		r.ahead = r.branch ? this.ahead(r.branch) : null;
+ 		const ag = this.by_id.get(r.agent) ?? this.by_session.get(r.session);
+diff --git a/Server/LandingCheck.mjs b/Server/LandingCheck.mjs
+index 4a3d0f3c1..89e9d5434 100644
+--- a/Server/LandingCheck.mjs
++++ b/Server/LandingCheck.mjs
+@@ -5,6 +5,7 @@ import fs from "node:fs";
+ import path from "node:path";
+ import { execFileSync } from "node:child_process";
+ import SessionIndex from "./SessionIndex.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const REPO = path.resolve(import.meta.dirname, "..");
+ 
+@@ -19,7 +20,7 @@ export default class LandingCheck {
+ 
+ 	/** A branch name, or a task dir (absolute, or relative to the repo) whose task.jsonl names its branch. */
+ 	static branch_of(arg){
+-		const dir = path.resolve(LandingCheck.REPO, arg), file = path.join(dir, "task.jsonl");
++		const dir = path.resolve(LandingCheck.REPO, arg), file = SessionRecord.log_or_old(dir);
+ 		if (fs.existsSync(file)) return SessionIndex.reduce(path.basename(dir), fs.readFileSync(file, "utf8")).branch || null;
+ 		return arg;
+ 	}
+diff --git a/Server/ModuleLog.mjs b/Server/ModuleLog.mjs
+index daa5e61f6..c2a423cbc 100644
+--- a/Server/ModuleLog.mjs
++++ b/Server/ModuleLog.mjs
+@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
+ import SessionIndex from "./SessionIndex.mjs";
+ import LandingCheck from "./LandingCheck.mjs";
+ import PastWork from "./PastWork.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const REPO = LandingCheck.REPO, HOUR = 3600e3;
+ const norm = p => String(p).replaceAll("\\", "/").replace(/^[A-Za-z]:.*?monorepo\//, "").replace(/^\.?\//, "").replace(/\/+$/, "");
+@@ -23,7 +24,7 @@ export default class ModuleLog {
+ 	tasks(msgs = "") {
+ 		const out = [];
+ 		for (const f of PastWork.walk(path.join(REPO, "public/framework/ai"))) {
+-			if (path.basename(f) !== "task.jsonl") continue;
++			if (!SessionRecord.is_log_entry(path.dirname(f), path.basename(f))) continue;
+ 			let text; try { text = fs.readFileSync(f, "utf8"); } catch { continue; }
+ 			const dir = norm(path.relative(REPO, path.dirname(f))), r = SessionIndex.reduce(dir, text), files = new Set();
+ 			for (const l of text.split("\n")) { if (!l.startsWith("{")) continue; try { for (const x of JSON.parse(l).action?.files ?? []) if (inside(x, this.path)) files.add(norm(x)); } catch {} }
+diff --git a/Server/PastWork.mjs b/Server/PastWork.mjs
+index 211621ec8..99e284453 100644
+--- a/Server/PastWork.mjs
++++ b/Server/PastWork.mjs
+@@ -11,6 +11,7 @@ import path from "node:path";
+ import { execFileSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ import SessionIndex from "./SessionIndex.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const here = path.dirname(fileURLToPath(import.meta.url));
+ const REPO = path.resolve(here, "..");
+@@ -40,7 +41,7 @@ export default class PastWork {
+ 	static tasks(){
+ 		const out = [];
+ 		for (const f of this.walk(AI)){
+-			if (path.basename(f) !== "task.jsonl") continue;
++			if (!SessionRecord.is_log_entry(path.dirname(f), path.basename(f))) continue;
+ 			let text; try { text = fs.readFileSync(f, "utf8"); } catch { continue; }
+ 			const x = SessionIndex.reduce(rel(path.dirname(f)), text);   // the one task.jsonl reader: Server/SessionIndex.mjs
+ 			const r = { dir: x.dir, slug: x.slug, title: x.title, request: x.request, outcome: x.outcome, group: x.group, landed: x.assign_landed, links: x.links, topics: x.topics };
+diff --git a/Server/RefineQueue.mjs b/Server/RefineQueue.mjs
+index f313fdda7..dad1e5aea 100644
+--- a/Server/RefineQueue.mjs
++++ b/Server/RefineQueue.mjs
+@@ -25,6 +25,7 @@ import { spawnSync } from "node:child_process";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+ import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
+ import AskIndex from "./AskIndex.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const ROOT = path.resolve(HERE, "..");
+@@ -98,7 +99,7 @@ export default class RefineQueue {
+ 
+ 	/** The owner's chat lines in a task.jsonl: `ref.session` is the task dir, its link is the task log. */
+ 	static from_task(dir){
+-		const file = path.resolve(ROOT, dir, "task.jsonl");
++		const file = SessionRecord.log_or_old(path.resolve(ROOT, dir));
+ 		return fs.readFileSync(file, "utf8").split("\n").flatMap((raw, i) => {
+ 			let l; try { l = JSON.parse(raw); } catch { return []; }
+ 			const c = l.chat;
+diff --git a/Server/SessionIndex.mjs b/Server/SessionIndex.mjs
+index 82e5b6bf5..b1f749491 100644
+--- a/Server/SessionIndex.mjs
++++ b/Server/SessionIndex.mjs
+@@ -2,6 +2,7 @@
+ // Doc: Server/doc/session-index.md. Extends ext/Query's node side: it registers the "tasks" QueryServer source, so the browser asks it
+ // over the dev socket exactly like "sessions". PastWork.mjs and FollowUp.mjs read task.jsonl through SessionIndex.reduce (one reader).
+ import fs from "node:fs";
++import SessionRecord from "./SessionRecord.mjs";
+ import os from "node:os";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+@@ -70,7 +71,7 @@ export default class SessionIndex {
+ 	/** Seal a record after lines were applied: sorted module list, a start time, the landing day. */
+ 	static seal(r) {
+ 		r.started ||= r.last;
+-		r.raw = { task: r.url + "task.jsonl", transcript: (r.session && SessionIndex.transcripts().get(r.session)) || null };   // the raw logs to click through to (the transcript only if it is on this machine)
++		r.raw = { task: r.url + (SessionRecord.log_file(path.join(REPO, r.dir)) ? path.basename(SessionRecord.log_file(path.join(REPO, r.dir))) : "task.jsonl"), transcript: (r.session && SessionIndex.transcripts().get(r.session)) || null };   // the raw logs to click through to (the transcript only if it is on this machine)
+ 		r.modules = [...r._mods].sort();
+ 		r.landed_day = r.landed_at ? new Date(r.landed_at).toISOString().slice(0, 10) : "";
+ 		r.text = `${r.title} ${r.request} ${r.outcome} ${r.slug} ${r.group}`.toLowerCase();
+@@ -122,13 +123,14 @@ export default class SessionIndex {
+ 			if (e.name === "node_modules" || e.name === ".git") continue;
+ 			const p = path.join(dir, e.name);
+ 			if (e.isDirectory()) yield* this.walk(p);
+-			else if (e.name === "task.jsonl") yield p;
++			else if (SessionRecord.is_log_entry(dir, e.name)) yield p;
+ 		}
+ 	}
+ 
+ 	/** Read the bytes appended since last time (the whole file the first time or after a shrink); only complete lines count. */
+ 	read(file, quiet = false) {
+ 		let st; try { st = fs.statSync(file); } catch { return this.files.delete(file) && this.emit(null); }
++		if (!SessionRecord.is_log_entry(path.dirname(file), path.basename(file))) return;   // a tag-only session.jsonl is not a task
+ 		let ent = this.files.get(file);
+ 		if (ent && st.size < ent.size) ent = null;                       // rewritten shorter: start over
+ 		if (!ent) { const dir = path.relative(REPO, path.dirname(file)).replace(/\\/g, "/"); ent = { rec: SessionIndex.blank(dir), size: 0, fence: false }; }
+@@ -148,7 +150,7 @@ export default class SessionIndex {
+ 	watch() {
+ 		try {
+ 			this.watcher = fs.watch(this.root, { recursive: true }, (_, name) => {
+-				if (!name || path.basename(String(name)) !== "task.jsonl") return;
++				if (!name || !SessionRecord.is_record(path.basename(String(name)))) return;
+ 				const file = path.join(this.root, String(name));
+ 				clearTimeout(this.timers?.get(file)); (this.timers ??= new Map()).set(file, setTimeout(() => { this.timers.delete(file); try { this.read(file); } catch (e) { this.log("SessionIndex: " + e.message); } }, 50));
+ 			});
+diff --git a/Server/SessionRecord.mjs b/Server/SessionRecord.mjs
+new file mode 100644
+index 000000000..1ec3a1510
+--- /dev/null
++++ b/Server/SessionRecord.mjs
+@@ -0,0 +1,205 @@
++// A session folder's one record is session.jsonl (doc: public/framework/ai/sessions/doc/session-record.md).
++//   node Server/SessionRecord.mjs --plan [--root <repo>] [--quiet <min>]    print the plan (counts, folders, skips). Writes nothing.
++//   node Server/SessionRecord.mjs --apply [--root <repo>] [--quiet <min>]   do it; appends the manifest; stages (never commits) the paths
++//   node Server/SessionRecord.mjs --undo <manifest.jsonl> [--run <id>] [--root <repo>]   reverse one run (default: the last)
++// As a module: SessionRecord.file(dir) is the record a reader opens (session.jsonl first, task.jsonl while a folder is not moved yet).
++import fs from "node:fs";
++import path from "node:path";
++import crypto from "node:crypto";
++import { execFileSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++
++const SELF_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++const sha = buf => crypto.createHash("sha256").update(buf).digest("hex");
++const nlines = buf => { const s = buf.toString("utf8"); return s === "" ? 0 : s.split("\n").length - (s.endsWith("\n") ? 1 : 0); };
++const slash = p => String(p).replaceAll("\\", "/");
++
++export default class SessionRecord {
++	static NEW = "session.jsonl";
++	static OLD = "task.jsonl";
++	static STORE = "public/framework/ai/sessions";
++	static MANIFEST = "public/framework/ai/sessions/session-record-moves.jsonl";
++	/** The verbs of the digest/record lines that session.jsonl held before the rename (AISession.LINE_TYPES, plus the digest `summary`). */
++	static TAG_VERBS = ["tag", "note", "alert", "weight", "closed", "question", "links", "summary"];
++
++	/** The record file a reader opens in a session or task folder: session.jsonl, else task.jsonl, else null. */
++	static file(dir){
++		for (const n of [this.NEW, this.OLD]){ const f = path.join(dir, n); if (fs.existsSync(f)) return f; }
++		return null;
++	}
++	/** Every record file in the folder, new name first (a folder caught mid-move can hold both). */
++	static files(dir){ return [this.NEW, this.OLD].map(n => path.join(dir, n)).filter(f => fs.existsSync(f)); }
++	/** The folder's task/session LOG (assign, log, agent… lines), or null: a folder holding only digest tag lines has no log. */
++	static log_file(dir){
++		for (const n of [this.NEW, this.OLD]){
++			const f = path.join(dir, n); if (!fs.existsSync(f)) continue;
++			let first = ""; try { const fd = fs.openSync(f, "r"), b = Buffer.alloc(2048), k = fs.readSync(fd, b, 0, 2048, 0); fs.closeSync(fd); first = b.toString("utf8", 0, k).split("\n", 1)[0]; } catch {}
++			let o = null; try { o = JSON.parse(first); } catch {}
++			if (!(o && this.is_tag_line(o))) return f;
++		}
++		return null;
++	}
++	/** The log to read or append to: the one that exists (either name), else the old name for a brand-new folder. */
++	static log_or_old(dir){ return this.log_file(dir) ?? path.join(dir, this.OLD); }
++	/** For a directory walker: is this entry (dir, file name) the folder's log? Counts each folder once, whichever name it holds. */
++	static is_log_entry(dir, name){ return this.is_record(name) && this.log_file(dir) === path.join(dir, name); }
++	/** The record's name in a url or a path: `…/x/task.jsonl` and `…/x/session.jsonl` are the same record. */
++	static is_record(name){ return name === this.NEW || name === this.OLD; }
++	/** A tag-file line: a tag, note, alert, weight, closed, question, links or summary line, and nothing a task log holds. */
++	static is_tag_line(l){ return l && typeof l === "object" && this.TAG_VERBS.some(v => v in l) && !("assign" in l || "log" in l || "agent" in l || "chat" in l); }
++	/** A session folder (not a task) has its own session id on line 1: {"assign":{"session_id":…}}. */
++	static own_session(line1){ try { return JSON.parse(line1)?.assign?.session_id ?? null; } catch { return null; } }
++
++	constructor({ root = SELF_ROOT, quiet = 60, now = Date.now() } = {}){
++		this.root = path.resolve(root); this.quiet = quiet; this.now = now;
++		this.store = path.join(this.root, SessionRecord.STORE);
++		this.manifest = path.join(this.root, SessionRecord.MANIFEST);
++	}
++	git(...a){ return execFileSync("git", ["-C", this.root, ...a], { encoding: "utf8", windowsHide: true, maxBuffer: 1 << 28 }); }
++	rel(p){ return slash(path.relative(this.root, p)); }
++
++	/** Every folder directly under a day (YYYY/MM/DD/<name>/): the only place a session folder can be. */
++	*day_children(){
++		const dirs = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name).sort(); } catch { return []; } };
++		for (const y of dirs(this.store)) if (/^\d{4}$/.test(y))
++			for (const m of dirs(path.join(this.store, y))) if (/^\d\d$/.test(m))
++				for (const d of dirs(path.join(this.store, y, m))) if (/^\d\d$/.test(d))
++					for (const c of dirs(path.join(this.store, y, m, d))) yield path.join(this.store, y, m, d, c);
++	}
++
++	/** Task logs below a day child (depth 5+): counted as skipped children, never touched. */
++	count_children(dir){
++		let n = 0; const walk = d => { for (const e of fs.readdirSync(d, { withFileTypes: true })){
++			if (e.isDirectory()){ if (!["node_modules", "screenshots", "transcripts"].includes(e.name)) walk(path.join(d, e.name)); }
++			else if (e.name === SessionRecord.OLD) n++; } };
++		try { walk(dir); } catch {}
++		return n;
++	}
++
++	/** Pure reading. Returns { counts, folders: [{dir, action, why?}], children_skipped }. Actions: rename, merge, fold, skip. */
++	plan(){
++		const folders = [], counts = { rename: 0, merge: 0, fold: 0, skip: 0, already: 0 };
++		let children_skipped = 0;
++		for (const dir of this.day_children()){
++			const T = path.join(dir, SessionRecord.OLD), S = path.join(dir, SessionRecord.NEW), hasT = fs.existsSync(T), hasS = fs.existsSync(S);
++			children_skipped += this.count_children(dir) - (hasT ? 1 : 0);
++			if (!hasT){ if (hasS) counts.already++; continue; }
++			const buf = fs.readFileSync(T), first = buf.toString("utf8").split("\n", 1)[0];
++			const sid = SessionRecord.own_session(first) ?? (hasS ? SessionRecord.own_session(fs.readFileSync(S, "utf8").split("\n", 1)[0]) : null);   // fold: a folder moved earlier whose old name a writer reopened
++			if (!sid){ let k = "?"; try { k = Object.keys(JSON.parse(first))[0]; } catch {}
++				folders.push({ dir, action: "skip", why: `task folder: line 1 is "${k}" with no own session_id` }); counts.skip++; continue; }
++			const age = (this.now - fs.statSync(T).mtimeMs) / 60000;
++			if (age < this.quiet){ folders.push({ dir, action: "skip", why: `active: task.jsonl changed ${Math.round(age)} min ago (< ${this.quiet}); a later run takes it` }); counts.skip++; continue; }
++			let action = "rename";
++			if (hasS){
++				const ls = fs.readFileSync(S, "utf8").split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } });
++				action = ls.every(l => SessionRecord.is_tag_line(l)) ? "merge" : "fold";
++			}
++			folders.push({ dir, action, session_id: sid }); counts[action]++;
++		}
++		return { counts, folders, children_skipped };
++	}
++
++	/** Do one folder's move. Returns the manifest line. Never deletes a file whose full content is not in the new one. */
++	move_one(f, run){
++		const T = path.join(f.dir, SessionRecord.OLD), S = path.join(f.dir, SessionRecord.NEW);
++		const A = fs.readFileSync(T);
++		const line = { run, op: f.action, old: this.rel(T), new: this.rel(S), lines_before: nlines(A), sha_before: sha(A), bytes_before: A.length };
++		if (f.action === "rename"){
++			if (fs.existsSync(S)) throw new Error("session.jsonl appeared: " + this.rel(S));
++			fs.renameSync(T, S);
++		} else {
++			const B = fs.readFileSync(S);
++			Object.assign(line, { tag_old: this.rel(S), tag_lines: nlines(B), tag_sha: sha(B), tag_bytes: B.length });
++			// merge: task lines then the tag lines (spec). fold: a writer recreated task.jsonl after an earlier move, so session.jsonl holds the log and the new task lines go on its end.
++			const [first, second] = f.action === "merge" ? [A, B] : [B, A];
++			const glue = first.length && first[first.length - 1] !== 10 ? Buffer.from("\n") : Buffer.alloc(0);
++			const out = Buffer.concat([first, glue, second]);
++			line.glue = glue.length;
++			if (nlines(out) !== nlines(first) + nlines(second)) throw new Error("line count mismatch " + this.rel(S));
++			if (!out.subarray(0, first.length).equals(first) || !out.subarray(first.length + glue.length).equals(second)) throw new Error("byte check failed " + this.rel(S));
++			const tmp = S + ".moving"; fs.writeFileSync(tmp, out); fs.renameSync(tmp, S); fs.unlinkSync(T);
++		}
++		const N = fs.readFileSync(S);
++		Object.assign(line, { lines_after: nlines(N), sha_after: sha(N), bytes_after: N.length });
++		if (f.action === "rename" && line.sha_after !== line.sha_before) line.grew_during_move = true;   // a writer appended between read and rename: nothing lost, the file is the longer one
++		if (fs.existsSync(T)) line.task_recreated = true;                                                   // a writer reopened the old name; a later run folds it in
++		return line;
++	}
++
++	/** Apply a plan: move each folder, append the manifest, stage the paths in git (`git add -A --`, so renames show as renames). */
++	apply({ plan = this.plan() } = {}){
++		const run = "run-" + new Date(this.now).toISOString().replace(/[-:.TZ]/g, "").slice(0, 14) + "-" + crypto.randomBytes(2).toString("hex");
++		const lines = [], paths = [], errors = [];
++		for (const f of plan.folders){
++			if (f.action === "skip") continue;
++			try { const l = this.move_one(f, run); lines.push(l); paths.push(l.old, l.new); if (l.tag_old) paths.push(l.tag_old); }
++			catch (e){ errors.push({ dir: this.rel(f.dir), error: String(e.message) }); }
++		}
++		const head = { run, header: true, at: new Date(this.now).toISOString(), counts: plan.counts, children_skipped: plan.children_skipped, moved: lines.length, errors: errors.length };
++		fs.mkdirSync(path.dirname(this.manifest), { recursive: true });
++		fs.appendFileSync(this.manifest, [head, ...lines].map(l => JSON.stringify(l)).join("\n") + "\n");
++		this.stage([...paths, this.rel(this.manifest)]);
++		return { run, moved: lines.length, errors, manifest: this.rel(this.manifest) };
++	}
++
++	/** `git add -A` for these paths, those git knows or that exist (a path git never saw and that is gone is not an error). */
++	stage(paths){
++		const tracked = new Set(this.git("ls-files", "-z", "--", SessionRecord.STORE).split("\0").filter(Boolean));
++		const list = [...new Set(paths)].filter(p => tracked.has(p) || fs.existsSync(path.join(this.root, p)));
++		if (!list.length) return;
++		const spec = path.join(this.root, ".git-session-record-paths"); fs.writeFileSync(spec, list.join("\0"));
++		try { this.git("add", "-A", "--pathspec-from-file=" + spec, "--pathspec-file-nul"); } finally { fs.unlinkSync(spec); }
++	}
++
++	/** Reverse one run from a manifest: rename back, or split a merge back into its two files. Lines written after the move stay (they go to task.jsonl). */
++	undo(manifest = this.manifest, run = null){
++		const all = fs.readFileSync(manifest, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++		const heads = all.filter(l => l.header); run ??= heads[heads.length - 1]?.run;
++		const mine = all.filter(l => l.run === run && !l.header).reverse(), done = [], paths = [];
++		if (!mine.length) throw new Error("no lines for run " + run);
++		for (const l of mine){
++			const T = path.join(this.root, l.old), S = path.join(this.root, l.new);
++			if (l.op === "rename"){
++				if (fs.existsSync(T)) throw new Error("task.jsonl exists again, will not overwrite: " + l.old);
++				fs.renameSync(S, T);
++			} else {
++				const cur = fs.readFileSync(S), text = cur.toString("utf8");
++				const parts = text.split("\n"); if (parts[parts.length - 1] === "") parts.pop();
++				const nA = l.lines_before, nB = l.tag_lines;
++				const ls = l.op === "merge"
++					? { task: [...parts.slice(0, nA), ...parts.slice(nA + nB)], tags: parts.slice(nA, nA + nB) }
++					: { tags: parts.slice(0, nB), task: parts.slice(nB) };      // fold: session.jsonl = its own lines, then the recreated task lines
++				if (fs.existsSync(T)) throw new Error("task.jsonl exists again, will not overwrite: " + l.old);
++				// (merge: the original session.jsonl was the tag file; fold: the original session.jsonl was the log; the manifest names which)
++				const [fileT, fileS] = [ls.task, ls.tags];
++				const w = (p, arr) => fs.writeFileSync(p, arr.length ? arr.join("\n") + "\n" : "");
++				w(T, fileT); w(S, fileS);
++				// byte-exact unless a glue newline was added; the sha check below says which
++			}
++			const back = fs.readFileSync(T);
++			done.push({ old: l.old, new: l.new, sha_back: sha(back), same_as_before: sha(back) === l.sha_before });
++			paths.push(l.old, l.new);
++		}
++		this.stage(paths);
++		return { run, restored: done.length, exact: done.filter(d => d.same_as_before).length, differs: done.filter(d => !d.same_as_before).map(d => d.old) };
++	}
++}
++
++// ---- command line -------------------------------------------------------------------------------------
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const argv = process.argv.slice(2), opt = n => { const i = argv.indexOf(n); return i < 0 ? null : argv[i + 1]; };
++	const sr = new SessionRecord({ root: opt("--root") ?? SELF_ROOT, quiet: Number(opt("--quiet") ?? 60) });
++	if (argv.includes("--undo")){
++		console.log(JSON.stringify(sr.undo(path.resolve(opt("--undo")), opt("--run")), null, 1));
++	} else if (argv.includes("--apply")){
++		const plan = sr.plan(); console.log("plan:", JSON.stringify(plan.counts), "children skipped:", plan.children_skipped);
++		console.log(JSON.stringify(sr.apply({ plan }), null, 1));
++	} else {
++		const plan = sr.plan();
++		console.log("counts:", JSON.stringify(plan.counts), "| folders holding only session.jsonl (already moved, or digest tags; nothing to do):", plan.counts.already, "| child task logs (depth 5+) skipped:", plan.children_skipped);
++		const by = {}; for (const f of plan.folders) if (f.action === "skip") (by[f.why.replace(/changed \d+ min ago/, "changed N min ago").replace(/line 1 is "[^"]*"/, 'line 1 is "<verb>"')] ??= []).push(sr.rel(f.dir));
++		for (const [why, list] of Object.entries(by)) console.log(`skip ${list.length}: ${why}\n   e.g. ${list.slice(0, 3).join("  ")}`);
++		if (argv.includes("--list")) for (const f of plan.folders) console.log(f.action, sr.rel(f.dir), f.why ?? "");
++	}
++}
+diff --git a/Server/SessionRecord.test.mjs b/Server/SessionRecord.test.mjs
+new file mode 100644
+index 000000000..7f5ebb59c
+--- /dev/null
++++ b/Server/SessionRecord.test.mjs
+@@ -0,0 +1,105 @@
++// node Server/SessionRecord.test.mjs — plan, apply and undo on a throwaway git repo (never the real store).
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { execFileSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++import SessionRecord from "./SessionRecord.mjs";
++
++const root = fs.mkdtempSync(path.join(os.tmpdir(), "session-record-test-"));
++const git = (...a) => execFileSync("git", ["-C", root, ...a], { encoding: "utf8", windowsHide: true });
++git("init", "-q"); git("config", "user.email", "t@t"); git("config", "user.name", "t");
++
++const day = path.join(root, SessionRecord.STORE, "2026/10/05");
++const j = (...ls) => ls.map(l => JSON.stringify(l)).join("\n") + "\n";
++const put = (rel, text, old = true) => {
++	const f = path.join(day, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, text);
++	if (old){ const t = new Date(Date.now() - 5 * 3600e3); fs.utimesSync(f, t, t); }
++	return f;
++};
++const own = id => ({ assign: { session_id: id, title: "s" } });
++put("s-rename/task.jsonl", j(own("a1"), { log: { text: "one" } }));
++put("s-rename/child/task.jsonl", j({ assign: { title: "a child task" } }));
++put("s-merge/task.jsonl", j(own("b2"), { log: { text: "two" } }));
++put("s-merge/session.jsonl", j({ tag: "kind/agent" }, { summary: "digest" }));
++put("s-fold/session.jsonl", j(own("c3"), { log: { text: "moved earlier" } }));
++put("s-fold/task.jsonl", j({ log: { text: "a writer recreated this" } }));
++put("t-task/task.jsonl", j({ assign: { title: "a task, not a session" } }));
++put("s-active/task.jsonl", j(own("d4")), false);
++put("s-tags/session.jsonl", j({ tag: "kind/voice" }));
++put("s-nonl/task.jsonl", JSON.stringify(own("e5")) + "\n" + JSON.stringify({ log: { text: "no final newline" } }));
++git("add", "-A"); git("commit", "-qm", "fixture");
++
++// readers: names
++const D = n => path.join(day, n);
++assert.equal(SessionRecord.log_file(D("s-tags")), null);                       // digest tags only: not a log
++assert.equal(SessionRecord.log_file(D("s-rename")), D("s-rename/task.jsonl"));  // not moved yet
++assert.ok(SessionRecord.is_log_entry(D("s-rename"), "task.jsonl"));
++assert.ok(!SessionRecord.is_log_entry(D("s-tags"), "session.jsonl"));
++assert.equal(SessionRecord.file(D("s-tags")), D("s-tags/session.jsonl"));
++assert.ok(SessionRecord.is_tag_line({ tag: "x" }) && !SessionRecord.is_tag_line({ assign: {}, tag: "x" }));
++
++// plan: counts, reasons, nothing written
++const sr = new SessionRecord({ root });
++const plan = sr.plan();
++assert.deepEqual(plan.counts, { rename: 2, merge: 1, fold: 1, skip: 2, already: 1 });
++assert.equal(plan.children_skipped, 1);
++assert.match(plan.folders.find(f => f.dir.endsWith("t-task")).why, /task folder/);
++assert.match(plan.folders.find(f => f.dir.endsWith("s-active")).why, /active/);
++assert.ok(!fs.existsSync(sr.manifest));
++
++// apply
++const before = Object.fromEntries(["s-rename", "s-merge", "s-fold", "s-nonl"].map(n => [n, fs.readdirSync(D(n)).sort()]));
++const bytes = n => fs.readFileSync(D(n));
++const was = { rename: bytes("s-rename/task.jsonl"), mergeT: bytes("s-merge/task.jsonl"), mergeS: bytes("s-merge/session.jsonl"), foldS: bytes("s-fold/session.jsonl"), foldT: bytes("s-fold/task.jsonl"), nonl: bytes("s-nonl/task.jsonl") };
++const res = sr.apply({ plan });
++assert.equal(res.moved, 4); assert.deepEqual(res.errors, []);
++
++assert.ok(!fs.existsSync(D("s-rename/task.jsonl")) && bytes("s-rename/session.jsonl").equals(was.rename));
++assert.ok(bytes("s-rename/child/task.jsonl").length > 0);                               // a task folder is never touched
++assert.ok(bytes("s-merge/session.jsonl").equals(Buffer.concat([was.mergeT, was.mergeS])) && !fs.existsSync(D("s-merge/task.jsonl")));
++assert.ok(bytes("s-fold/session.jsonl").equals(Buffer.concat([was.foldS, was.foldT])) && !fs.existsSync(D("s-fold/task.jsonl")));
++assert.ok(bytes("t-task/task.jsonl").length > 0 && bytes("s-active/task.jsonl").length > 0);   // skipped folders stay
++const glued = bytes("s-nonl/session.jsonl").toString("utf8");
++assert.equal(glued, was.nonl.toString("utf8"));                                          // a plain rename keeps even a missing final newline
++
++// manifest: header + one line per move, with counts and shas
++const man = fs.readFileSync(sr.manifest, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++assert.equal(man.filter(l => l.header).length, 1);
++const mv = man.filter(l => !l.header);
++assert.equal(mv.length, 4);
++for (const l of mv) assert.ok(l.sha_before && l.sha_after && l.lines_before > 0 && l.lines_after >= l.lines_before, l.old);
++assert.equal(mv.find(l => l.op === "merge").lines_after, 4);
++
++// a second apply has nothing left to move except what the first skipped
++const again = sr.plan();
++assert.deepEqual(again.counts, { rename: 0, merge: 0, fold: 0, skip: 2, already: 5 });
++
++// the new name is staged as a rename
++assert.match(git("status", "--short"), /R|A|D/);
++git("add", "-A"); git("commit", "-qm", "apply");
++
++// undo restores every original byte, file by file
++const out = sr.undo(sr.manifest);
++assert.equal(out.restored, 4);
++assert.ok(bytes("s-rename/task.jsonl").equals(was.rename));
++assert.ok(bytes("s-merge/task.jsonl").equals(was.mergeT) && bytes("s-merge/session.jsonl").equals(was.mergeS));
++assert.ok(bytes("s-fold/task.jsonl").equals(was.foldT) && bytes("s-fold/session.jsonl").equals(was.foldS));
++assert.ok(bytes("s-nonl/task.jsonl").equals(was.nonl));
++for (const n of Object.keys(before)) assert.deepEqual(fs.readdirSync(D(n)).sort(), before[n], n);
++
++// undo will not overwrite a task.jsonl that is back
++sr.apply({ plan: sr.plan() });
++fs.writeFileSync(D("s-rename/task.jsonl"), "{}\n");
++assert.throws(() => sr.undo(sr.manifest), /will not overwrite/);
++
++// append.mjs follows a moved record: a line meant for the old task.jsonl lands in session.jsonl, and the old name is not recreated
++const lines = path.join(root, "lines.json"); fs.writeFileSync(lines, JSON.stringify([{ log: { at: "NOW", msg: "after the move" } }]));
++const hook = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", ".claude", "hooks", "append.mjs");
++execFileSync(process.execPath, [hook, D("s-nonl/task.jsonl"), lines], { windowsHide: true, stdio: "pipe" });
++assert.ok(!fs.existsSync(D("s-nonl/task.jsonl")));
++assert.match(bytes("s-nonl/session.jsonl").toString("utf8"), /after the move/);
++
++fs.rmSync(root, { recursive: true, force: true });
++console.log("SessionRecord: ok");
+diff --git a/Server/SkillCensus.mjs b/Server/SkillCensus.mjs
+index e4eb78f9b..7c1cd0822 100644
+--- a/Server/SkillCensus.mjs
++++ b/Server/SkillCensus.mjs
+@@ -5,6 +5,7 @@ import fs from "node:fs";
+ import path from "node:path";
+ import { execFileSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ class SkillCensus {
+ 	static repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+@@ -71,7 +72,7 @@ class SkillCensus {
+ 	static ls(d) { try { return fs.readdirSync(d).filter(n => /^\d+$/.test(n)); } catch { return []; } }
+ 	static tasks(d) {
+ 		return fs.readdirSync(d, { withFileTypes: true }).flatMap(e =>
+-			e.isDirectory() ? SkillCensus.tasks(path.join(d, e.name)) : e.name === "task.jsonl" ? [path.join(d, e.name)] : []);
++			e.isDirectory() ? SkillCensus.tasks(path.join(d, e.name)) : SessionRecord.is_log_entry(d, e.name) ? [path.join(d, e.name)] : []);
+ 	}
+ 
+ 	get totals() {
+diff --git a/Server/Steps.mjs b/Server/Steps.mjs
+index 3a1b1e2b7..f2dbacf3a 100644
+--- a/Server/Steps.mjs
++++ b/Server/Steps.mjs
+@@ -11,6 +11,7 @@ import path from "node:path";
+ import { spawnSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ import TaskDirs from "./TaskDirs.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const here = path.dirname(fileURLToPath(import.meta.url));
+ const SHOTS = "/framework/ext/Shots/";
+@@ -108,7 +109,7 @@ export default class Steps {
+ 		const r = { tasks: 0, with_steps: 0, with_estimates: 0, landed: 0, all_reported: 0, followed_fully: 0, rate: null, rate_all_with_steps: null };
+ 		let fully_steps = 0;
+ 		for (const t of TaskDirs.list(days)){
+-			const info = this.read(path.join(t.dir, "task.jsonl"));
++			const info = this.read((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl")));
+ 			if (!info) continue;
+ 			r.tasks++;
+ 			if (!info.steps.length) continue;
+diff --git a/Server/TaskDirs.mjs b/Server/TaskDirs.mjs
+index 577139c1c..52c0f5e27 100644
+--- a/Server/TaskDirs.mjs
++++ b/Server/TaskDirs.mjs
+@@ -13,6 +13,7 @@
+ // Old paths keep working: every move is a line in ai/sessions/task-moves.jsonl (Server/TaskMove.mjs) or the 2026-10-10
+ // ai/sessions/task-manifest.json; follow(), alias() and redirect() chain through both. The 2026-10-10 mover (plan/apply/verify/undo) is below.
+ import fs from "node:fs";
++import SessionRecord from "./SessionRecord.mjs";
+ import path from "node:path";
+ import crypto from "node:crypto";
+ import { fileURLToPath } from "node:url";
+@@ -60,7 +61,7 @@ export default class TaskDirs {
+ 	/** Make it. Returns the absolute dir. Refuses a folder that already holds a task (never two tasks in one log). */
+ 	static make(spec){
+ 		const d = this.dir(spec);
+-		if (fs.existsSync(path.join(d, "task.jsonl"))) throw new Error(`refused: ${rel(d)} already holds a task. Pick another slug (e.g. ${path.basename(d)}-2).`);
++		if (fs.existsSync((SessionRecord.log_file(d) ?? path.join(d, "task.jsonl")))) throw new Error(`refused: ${rel(d)} already holds a task. Pick another slug (e.g. ${path.basename(d)}-2).`);
+ 		fs.mkdirSync(d, { recursive: true });
+ 		return d;
+ 	}
+@@ -79,7 +80,7 @@ export default class TaskDirs {
+ 	/** Every task folder (holds task.jsonl) of the last `days` days, both shapes: [{dir, day:"YYYY-MM-DD", slug, key}]. Newest day first. */
+ 	static list(days = 7, now = new Date()){
+ 		const out = [], cut = new Date(now.getTime() - days * 864e5).toISOString().slice(0, 10);
+-		const push = (dir, day) => { if (fs.existsSync(path.join(dir, "task.jsonl"))) out.push({ dir, day, slug: path.basename(dir), key: slash(path.relative(AI, dir)) }); };
++		const push = (dir, day) => { if (fs.existsSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")))) out.push({ dir, day, slug: path.basename(dir), key: slash(path.relative(AI, dir)) }); };
+ 		for (const y of ls(SESS).filter(n => /^\d{4}$/.test(n))) for (const m of ls(path.join(SESS, y))) for (const d of ls(path.join(SESS, y, m))){
+ 			const day = `${y}-${m}-${d}`; if (day < cut) continue;
+ 			const dd = path.join(SESS, y, m, d);
+@@ -116,9 +117,9 @@ export default class TaskDirs {
+ 	/** The task folder named `slug` on `day` ("YYYY-MM-DD") anywhere in that day of the store (inside a session, a parent
+ 	 *  task, up to 4 levels), newest first; null if none. What an old /framework/ai/<day>/<slug>/ guess meant. */
+ 	static locate(day, slug, store = SESS){
+-		const hits = [], walk = (d, n) => { for (const e of ls(d)){ const f = path.join(d, e); if (e === slug && fs.existsSync(path.join(f, "task.jsonl"))) hits.push(f); if (n < 4) walk(f, n + 1); } };
++		const hits = [], walk = (d, n) => { for (const e of ls(d)){ const f = path.join(d, e); if (e === slug && fs.existsSync((SessionRecord.log_file(f) ?? path.join(f, "task.jsonl")))) hits.push(f); if (n < 4) walk(f, n + 1); } };
+ 		walk(path.join(store, ...this.ymd(day).split("/")), 1);
+-		return hits.sort((a, b) => fs.statSync(path.join(b, "task.jsonl")).mtimeMs - fs.statSync(path.join(a, "task.jsonl")).mtimeMs)[0] ?? null;
++		return hits.sort((a, b) => fs.statSync((SessionRecord.log_file(b) ?? path.join(b, "task.jsonl"))).mtimeMs - fs.statSync((SessionRecord.log_file(a) ?? path.join(a, "task.jsonl"))).mtimeMs)[0] ?? null;
+ 	}
+ 
+ 	/** An old-shaped path (dir or file) -> where it is: a moved folder, else the same slug found in that day of the store; else itself. */
+diff --git a/Server/TaskState.mjs b/Server/TaskState.mjs
+index 04cb686c4..b120bde4c 100644
+--- a/Server/TaskState.mjs
++++ b/Server/TaskState.mjs
+@@ -4,6 +4,7 @@
+ //   node Server/TaskState.mjs --print    one snapshot to stdout
+ //   node Server/TaskState.mjs --watch    append on change (re-checks every 5 s; the registry has no push to subscribe to). Servex runs one in TaskLoop; the newest watcher wins
+ import fs from "node:fs";
++import SessionRecord from "./SessionRecord.mjs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import Task from "../public/framework/core/Task/Task.js";
+@@ -35,7 +36,7 @@ export default class TaskState {
+ 	static dir_of(id){ return path.join(SESS, ...id.split("~")); }
+ 
+ 	static lines(dir){
+-		let text; try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { return []; }
++		let text; try { text = fs.readFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), "utf8"); } catch { return []; }
+ 		return text.split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+ 	}
+ 
+@@ -49,7 +50,7 @@ export default class TaskState {
+ 			const at = e.at ?? a.landed_at ?? a.requested_at ?? e.log?.at ?? e.decision?.at ?? e.action?.at ?? e.step?.at;
+ 			if (at && !(Date.parse(at) < Date.parse(f.last))) f.last = at;
+ 		}
+-		if (!f.last) try { f.last = new Date(fs.statSync(path.join(dir, "task.jsonl")).mtimeMs).toISOString(); } catch {}
++		if (!f.last) try { f.last = new Date(fs.statSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl"))).mtimeMs).toISOString(); } catch {}
+ 		f.title ??= path.basename(dir).replaceAll("-", " ");
+ 		return f;
+ 	}
+@@ -66,7 +67,7 @@ export default class TaskState {
+ 			let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+ 			for (const e of ents){
+ 				if (e.isDirectory()) walk(path.join(dir, e.name));
+-				else if (e.name === "task.jsonl" && fs.statSync(path.join(dir, e.name)).mtimeMs >= mid.getTime()) out.push(dir);
++				else if (SessionRecord.is_log_entry(dir, e.name) && fs.statSync(path.join(dir, e.name)).mtimeMs >= mid.getTime()) out.push(dir);
+ 			}
+ 		};
+ 		const d = new Date(this.now), p2 = n => String(n).padStart(2, "0");
+@@ -85,7 +86,7 @@ export default class TaskState {
+ 			let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+ 			for (const e of ents){
+ 				if (e.isDirectory()) walk(path.join(dir, e.name));
+-				else if (e.name === "task.jsonl"){
++				else if (SessionRecord.is_log_entry(dir, e.name)){
+ 					const t = Task.replay(TaskState.lines(dir));
+ 					if (t.state === "waiting" && t.data.waiting_on === "owner")
+ 						out.push({ id: TaskState.id(dir), title: TaskState.facts(dir).title, waiting_on: "owner", since: t.data.waiting_since ?? null, url: TaskState.url(dir) });
+diff --git a/Server/Transcripts.mjs b/Server/Transcripts.mjs
+index af18a4afa..bbaa5e61d 100644
+--- a/Server/Transcripts.mjs
++++ b/Server/Transcripts.mjs
+@@ -2,6 +2,7 @@
+ // Doc: Server/doc/transcripts.md. Join key: task.jsonl line 1 `assign.session_id` == the transcript file name (SessionIndex reads both).
+ //   node Server/Transcripts.mjs [--all (with --grep: agent briefs too)] [--since YYYY-MM-DD] [--limit N] [--dry-run] [--session <uuid>] [--grep <regex>] [--force]
+ import fs from "node:fs";
++import SessionRecord from "./SessionRecord.mjs";
+ import path from "node:path";
+ import readline from "node:readline";
+ import { fileURLToPath } from "node:url";
+@@ -173,7 +174,7 @@ export default class Transcripts {
+ 			for (const e of ents) {
+ 				const p = path.join(dir, e.name);
+ 				if (e.isDirectory()) walk(p);
+-				else if (e.name === "task.jsonl") {
++				else if (SessionRecord.is_log_entry(dir, e.name)) {
+ 					try {
+ 						const fd = fs.openSync(p, "r"), buf = Buffer.alloc(16384), n = fs.readSync(fd, buf, 0, buf.length, 0); fs.closeSync(fd);
+ 						for (const l of buf.toString("utf8", 0, n).split("\n").slice(0, 3)) {
+diff --git a/Server/clarity.mjs b/Server/clarity.mjs
+index b6f1f2928..a894d9546 100644
+--- a/Server/clarity.mjs
++++ b/Server/clarity.mjs
+@@ -9,6 +9,7 @@
+ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const root = path.resolve(fileURLToPath(import.meta.url), "../..");
+ const dir = path.join(root, ".claude/skills/clarity");
+@@ -34,7 +35,7 @@ async function main(){
+ 	// landing, which multiplied agents under memory pressure. A sub-task (its parent dir has a
+ 	// task.jsonl) is checked with its parent; a task whose log already has a clarity line is skipped.
+ 	if (kind === "landing") {
+-		const own = path.join(arg, "task.jsonl");
++		const own = SessionRecord.log_or_old(arg);
+ 		if (fs.existsSync(path.join(path.dirname(path.resolve(arg)), "task.jsonl"))) return note({ target, verdict: "skipped", what: "a sub-task: its parent task gets the one check" });
+ 		try { if (fs.readFileSync(own, "utf8").includes('"clarity: ')) return note({ target, verdict: "skipped", what: "this task already had its clarity check" }); } catch {}
+ 		try { fs.appendFileSync(own, JSON.stringify({ log: { at: new Date().toISOString(), msg: "clarity: queued (once per task)" } }) + "\n"); } catch {}
+@@ -58,7 +59,7 @@ async function main(){
+ 	const slug = kind === "look" ? "look-" + arg : path.basename(kind === "landing" ? arg : path.dirname(arg)).replace(/[^a-z0-9-]+/gi, "-").slice(0, 30);
+ 	let pages = [];
+ 	if (kind === "landing") try {
+-		const lines = fs.readFileSync(path.join(arg, "task.jsonl"), "utf8");
++		const lines = fs.readFileSync(SessionRecord.log_or_old(arg), "utf8");
+ 		const out = String(lines.split("\n").map(l => { try { return JSON.parse(l); } catch { return {}; } }).filter(e => e.assign?.landed_at).pop()?.assign?.outcome || "");
+ 		pages = [...out.matchAll(/\]\((\/framework\/[^)\s#?]*\/)\)/g)].map(m => m[1]);
+ 		if (/framework\/ai2\//.test(lines)) pages.unshift("/framework/ai2/");
+diff --git a/Server/doc-check.mjs b/Server/doc-check.mjs
+index ea57a921e..7086e92d8 100644
+--- a/Server/doc-check.mjs
++++ b/Server/doc-check.mjs
+@@ -18,6 +18,7 @@
+ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const ROOT = path.resolve(fileURLToPath(import.meta.url), "../..");
+ 
+@@ -27,7 +28,7 @@ const lines = file => { try { return fs.readFileSync(file, "utf8").split("\n");
+ function touched_files(dir){
+ 	const files = [];
+ 	const seen = new Set();
+-	for (const l of lines(path.join(dir, "task.jsonl"))) {
++	for (const l of lines(SessionRecord.log_or_old(dir))) {
+ 		if (!l.trim()) continue;
+ 		let e; try { e = JSON.parse(l); } catch { continue; }
+ 		for (const f of e.action?.files || []) if (!seen.has(f)) { seen.add(f); files.push(f); }
+diff --git a/Server/health.mjs b/Server/health.mjs
+index 21276734d..8ef914115 100644
+--- a/Server/health.mjs
++++ b/Server/health.mjs
+@@ -62,6 +62,7 @@ import MtimeFilter from "./MtimeFilter.js";
+ import * as Hold from "./hold.mjs";
+ import { check_page } from "./padding-check.mjs";
+ import { browser as launch } from "./Browser.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ /* The widths this watcher checks the padding law at. 1280 is the viewport it
+    already loads every page in, so it costs one evaluate and no re-layout; 3440
+@@ -679,7 +680,7 @@ const landed = entries => !!Object.assign({}, ...entries.filter(e => e.assign).m
+ function* task_files(dir, max_depth = 3, depth = 0){
+ 	let entries; try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+ 	for (const e of entries){
+-		if (e.isFile() && e.name === "task.jsonl") yield path.join(dir, e.name);
++		if (e.isFile() && SessionRecord.is_log_entry(dir, e.name)) yield path.join(dir, e.name);
+ 		else if (e.isDirectory() && depth < max_depth && e.name !== "shots" && e.name !== "node_modules" && e.name[0] !== ".") yield* task_files(path.join(dir, e.name), max_depth, depth + 1);
+ 	}
+ }
+@@ -725,7 +726,7 @@ function newest_task(tasks, rel_file){
+ function task_for(rel_file){
+ 	let dir = path.dirname(path.join(ROOT, rel_file));
+ 	while (dir.startsWith(AI_DIR + path.sep)){
+-		const t = path.join(dir, "task.jsonl");
++		const t = (SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl"));
+ 		if (fs.existsSync(t)){ const info = task_info(t); return info && !info.landed ? t : null; }
+ 		dir = path.dirname(dir);
+ 	}
+diff --git a/Server/landing-audit.mjs b/Server/landing-audit.mjs
+index 99ddeb245..b1860dd64 100644
+--- a/Server/landing-audit.mjs
++++ b/Server/landing-audit.mjs
+@@ -5,9 +5,10 @@ import path from "node:path";
+ import LandingCheck from "./LandingCheck.mjs";
+ import TaskDirs from "./TaskDirs.mjs";
+ import SessionIndex from "./SessionIndex.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ const NOISE = /(\.(jsonl?|png|patch|log|txt)$)|(^|\/)(review|\.scratch[^/]*|scratch)\//;
+ const tasks = new Map();
+-for (const t of TaskDirs.list(120)) { try { const x = SessionIndex.reduce(t.key, fs.readFileSync(path.join(t.dir, "task.jsonl"), "utf8")); const own = { key: t.key, landed: x.landed }; if (x.branch) tasks.set(x.branch, own); tasks.has("worktree/" + t.slug) || tasks.set("worktree/" + t.slug, own); } catch {} }
++for (const t of TaskDirs.list(120)) { try { const x = SessionIndex.reduce(t.key, fs.readFileSync((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl")), "utf8")); const own = { key: t.key, landed: x.landed }; if (x.branch) tasks.set(x.branch, own); tasks.has("worktree/" + t.slug) || tasks.set("worktree/" + t.slug, own); } catch {} }
+ const names = (LandingCheck.git("branch", "--no-merged", LandingCheck.BASE) ?? "").split("\n").map(s => s.replace(/^[*+ ]+/, "").trim()).filter(b => /^(worktree|michael)\//.test(b));
+ const rows = names.map(b => { const v = LandingCheck.verify(b); v.code = v.missing.filter(f => !NOISE.test(f)); v.task = tasks.get(b); return v; });
+ const real = rows.filter(v => v.code.length && v.task?.landed);
+diff --git a/Server/merge.mjs b/Server/merge.mjs
+index 7db99fef4..9fe81a28d 100644
+--- a/Server/merge.mjs
++++ b/Server/merge.mjs
+@@ -64,6 +64,7 @@ import { keepLive } from "./jsonl-keep.mjs";
+ import TaskDirs from "./TaskDirs.mjs";
+ import { OrphanCheck } from "./OrphanCheck.mjs";
+ import { refuse_links_into_main } from "./junction-guard.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const BASE = "michael/dev";
+ const argv = process.argv.slice(2);
+@@ -184,7 +185,7 @@ function reviewGate(branch, head){
+ 		for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+ 			const p = path.join(dir, e.name);
+ 			if (e.isDirectory()) out.push(...taskLogs(p));
+-			else if (e.name === "task.jsonl") out.push(p);
++			else if (SessionRecord.is_log_entry(dir, e.name)) out.push(p);
+ 		}
+ 		return out;
+ 	}
+diff --git a/Server/on-landing.mjs b/Server/on-landing.mjs
+index 3314ab79b..f52e73ee6 100644
+--- a/Server/on-landing.mjs
++++ b/Server/on-landing.mjs
+@@ -17,12 +17,13 @@ import { doc_check } from "./doc-check.mjs";
+ import { can_stop, entry_for_task_dir } from "./worktree-sweep.mjs";
+ import TaskDirs from "./TaskDirs.mjs";
+ import Cards from "../Servex/cards/Cards.js";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const root = path.resolve(fileURLToPath(import.meta.url), "../..");
+ // servex-mastermind's own task log for today, found in the store (Server/TaskDirs.mjs), never a hand-joined ai/<date>/ path
+ const arch_log = () => { const d = TaskDirs.find("servex-mastermind", 1); return d ? path.join(d, "task.jsonl") : ""; };
+ const dir = path.resolve(process.argv[2] || ".");
+-const task = path.join(dir, "task.jsonl");
++const task = SessionRecord.log_or_old(dir);
+ const HOST = "http://monorepo.localhost";
+ const WIDTHS = "1280,1920,2560,3440";
+ 
+diff --git a/Server/owner-check.mjs b/Server/owner-check.mjs
+index 476404b30..f2f4acc3e 100644
+--- a/Server/owner-check.mjs
++++ b/Server/owner-check.mjs
+@@ -52,6 +52,7 @@ import os from "node:os";
+ import { execFileSync, spawnSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ import { HOME } from "../Servex/home.js";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const ROOT = path.resolve(fileURLToPath(import.meta.url), "../..");
+ const MCP = `http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/mcp`;
+@@ -63,7 +64,7 @@ function read_jsonl(file){
+ }
+ function merged_assign(dir){
+ 	const state = {};
+-	for (const e of read_jsonl(path.join(dir, "task.jsonl"))) if (e.assign) Object.assign(state, e.assign);
++	for (const e of read_jsonl(SessionRecord.log_or_old(dir))) if (e.assign) Object.assign(state, e.assign);
+ 	return state;
+ }
+ 
+@@ -154,7 +155,7 @@ export function split_items(text){
+  * the commit the outcome names as the merge ("… (merge 1ebc924e)", the convention every landed
+  * task's outcome already uses). No merge named, or `git show` fails: diff is just left out. */
+ function landing_of(taskDir){
+-	const entries = read_jsonl(path.join(taskDir, "task.jsonl"));
++	const entries = read_jsonl(SessionRecord.log_or_old(taskDir));
+ 	const outcome = entries.filter(e => e.assign?.landed_at).pop()?.assign?.outcome ?? null;
+ 	if (!outcome) return { outcome: null, diffStat: null };
+ 	const sha = /\bmerge\s+([0-9a-f]{7,40})\b/i.exec(outcome)?.[1];
+@@ -205,7 +206,7 @@ async function card_nag(taskDir, text){
+ 
+ async function main(){
+ 	const taskDir = path.resolve(process.argv[2] || ".");
+-	const taskJsonl = path.join(taskDir, "task.jsonl");
++	const taskJsonl = SessionRecord.log_or_old(taskDir);
+ 	const found = find_owner_words(taskDir);
+ 	if (!found){ log_line(taskJsonl, "owner-check: no owner words found"); return; }
+ 
+diff --git a/Server/page-ai-cost.mjs b/Server/page-ai-cost.mjs
+index 2d7045b47..b5284d1fe 100644
+--- a/Server/page-ai-cost.mjs
++++ b/Server/page-ai-cost.mjs
+@@ -32,6 +32,7 @@ import fs from "node:fs";
+ import TaskDirs from "./TaskDirs.mjs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ 
+@@ -65,7 +66,7 @@ function all_task_dirs(){
+ 		for (const t of fs.readdirSync(day_dir, { withFileTypes: true })){
+ 			if (!t.isDirectory()) continue;
+ 			const dir = TaskDirs.follow(path.join(day_dir, t.name));
+-			if (fs.existsSync(path.join(dir, "task.jsonl"))) out.push(dir);
++			if (fs.existsSync(SessionRecord.log_or_old(dir))) out.push(dir);
+ 		}
+ 	}
+ 	return out;
+@@ -74,7 +75,7 @@ function all_task_dirs(){
+ // The task's own cost_usd — the latest assign line that carries one. Never recomputed here.
+ function task_cost(dir){
+ 	let cost = null;
+-	for (const obj of read_lines(path.join(dir, "task.jsonl")))
++	for (const obj of read_lines(SessionRecord.log_or_old(dir)))
+ 		if (obj.assign && typeof obj.assign.cost_usd === "number") cost = obj.assign.cost_usd;
+ 	return cost;
+ }
+@@ -104,7 +105,7 @@ function page_folder_for(file){
+ // Every distinct page folder this task's `action` lines touched.
+ function pages_touched(dir){
+ 	const found = new Set();
+-	for (const obj of read_lines(path.join(dir, "task.jsonl"))){
++	for (const obj of read_lines(SessionRecord.log_or_old(dir))){
+ 		const files = obj.action?.files;
+ 		if (!Array.isArray(files)) continue;
+ 		for (const file of files){
+diff --git a/Server/plugins/CardAnswer.js b/Server/plugins/CardAnswer.js
+index cffd1eb8d..ddd35b401 100644
+--- a/Server/plugins/CardAnswer.js
++++ b/Server/plugins/CardAnswer.js
+@@ -5,6 +5,7 @@ import fs from "fs";
+ import path from "path";
+ import stamp from "../stamp.js";
+ import Assistant from "./Assistant.js";
++import SessionRecord from "../SessionRecord.mjs";
+ 
+ const now = () => stamp();
+ 
+@@ -199,7 +200,7 @@ export default class CardAnswer {
+ 	static mastermind_run(){
+ 		// both task shapes, newest day first: the sessions store and any old ai/YYYY-MM-DD/ (Server/TaskDirs.mjs)
+ 		for (const { dir: d } of TaskDirs.list(30).filter(t => t.slug.startsWith("mastermind-"))){
+-			const file = path.join(d, "task.jsonl");
++			const file = SessionRecord.log_or_old(d);
+ 			if (!fs.existsSync(file)) continue;
+ 			const lines = fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
+ 			const state = Object.assign({}, ...lines.filter(e => e.assign).map(e => e.assign));
+diff --git a/Server/refine-days.mjs b/Server/refine-days.mjs
+index de3e1d618..9879bb2ee 100644
+--- a/Server/refine-days.mjs
++++ b/Server/refine-days.mjs
+@@ -35,7 +35,7 @@ function ownerWords(day){
+ 			const v = t.search(/^#{1,3}\s.*\bverbatim\b.*$/im);
+ 			t = v >= 0 ? t.slice(v).replace(/^.*\n/, "") : t;
+ 			if (t.trim().length > 200) items.push({ source: rel, text: t.trim() });
+-		} else if (f.endsWith("task.jsonl")){
++		} else if (/(^|[\\/])(task|session)\.jsonl$/.test(f)){
+ 			for (const line of fs.readFileSync(f, "utf8").split(/\r?\n/)){
+ 				if (!line.includes('"owner"')) continue;
+ 				try { const c = JSON.parse(line).chat; if (c?.from === "owner" && c.text?.length > 40) items.push({ source: rel, text: c.text, verbatim: true }); } catch {}
+diff --git a/Server/review.mjs b/Server/review.mjs
+index 560d17e59..8e226797a 100644
+--- a/Server/review.mjs
++++ b/Server/review.mjs
+@@ -73,6 +73,7 @@ import fs from "node:fs";
+ import path from "node:path";
+ import { spawnSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const BASE = "michael/dev";
+ const MCP = "http://127.0.0.1:8090/mcp";
+@@ -95,7 +96,7 @@ function readJsonl(file) {
+ 	try { return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
+ 	catch { return []; }
+ }
+-function readTaskJsonl(taskDir) { return readJsonl(path.join(taskDir, "task.jsonl")); }
++function readTaskJsonl(taskDir) { return readJsonl(SessionRecord.log_or_old(taskDir)); }
+ 
+ /* Phase 1 (findings) written to review.jsonl, from the SAME `review` object that goes into
+  * task.jsonl's `{"review":…}` line (never a second source of truth for verdict/findings/cost).
+diff --git a/Server/spend-tree.mjs b/Server/spend-tree.mjs
+index 1e3c234ce..f351b3857 100644
+--- a/Server/spend-tree.mjs
++++ b/Server/spend-tree.mjs
+@@ -27,6 +27,7 @@ import TaskDirs from "./TaskDirs.mjs";
+ import { join, resolve, dirname, basename } from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { find_transcript, cost_of_transcript } from "../public/framework/ai/AISession/AISessionAudit.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const here = dirname(fileURLToPath(import.meta.url));
+ const SERVEX = join(process.env.LOCALAPPDATA || "", "lew42", "servex");
+@@ -59,12 +60,12 @@ function allTaskDirs(){
+ 		for (const t of readdirSync(day, { withFileTypes: true })) {
+ 			if (!t.isDirectory()) continue;
+ 			const dir = TaskDirs.follow(join(day, t.name));
+-			if (existsSync(join(dir, "task.jsonl"))) out.push(dir);
++			if (existsSync((SessionRecord.log_file(dir) ?? join(dir, "task.jsonl")))) out.push(dir);
+ 			// one level of sub-task dirs (minion briefs, part2-*, etc.) also carry their own task.jsonl
+ 			for (const sub of readdirSync(dir, { withFileTypes: true })) {
+ 				if (!sub.isDirectory()) continue;
+ 				const subdir = join(dir, sub.name);
+-				if (existsSync(join(subdir, "task.jsonl"))) out.push(subdir);
++				if (existsSync((SessionRecord.log_file(subdir) ?? join(subdir, "task.jsonl")))) out.push(subdir);
+ 			}
+ 		}
+ 	}
+@@ -73,7 +74,7 @@ function allTaskDirs(){
+ const taskKey = dir => dir.slice(AI.length + 1).replace(/\\/g, "/");
+ 
+ const tasks = allTaskDirs().map(dir => {
+-	const lines = readJsonl(join(dir, "task.jsonl"));
++	const lines = readJsonl((SessionRecord.log_file(dir) ?? join(dir, "task.jsonl")));
+ 	const first = lines[0]?.assign || {};
+ 	let lastCost = null;
+ 	for (const o of lines) if (o.assign?.cost) lastCost = o.assign.cost;
+diff --git a/Server/task-closeout.mjs b/Server/task-closeout.mjs
+index 136fb15fb..a82cf4c35 100644
+--- a/Server/task-closeout.mjs
++++ b/Server/task-closeout.mjs
+@@ -6,6 +6,7 @@ import { join, relative } from "node:path";
+ import { tmpdir } from "node:os";
+ import { execFileSync } from "node:child_process";
+ import TaskState from "../public/live/TaskState.js";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const root = join(import.meta.dirname, "..");
+ const day = process.argv.find(a => /^\d{4}-\d{2}-\d{2}$/.test(a)) ?? new Date().toISOString().slice(0, 10);
+@@ -15,7 +16,7 @@ const base = join(root, "public/framework/ai/sessions", y, m, d);
+ function* walk(dir){
+ 	for (const e of readdirSync(dir, { withFileTypes: true })){
+ 		if (e.isDirectory()) yield* walk(join(dir, e.name));
+-		else if (e.name === "task.jsonl") yield join(dir, e.name);
++		else if (SessionRecord.is_log_entry(dir, e.name)) yield join(dir, e.name);
+ 	}
+ }
+ 
+diff --git a/Server/task-cost.mjs b/Server/task-cost.mjs
+index e7ebfcb4b..f551502da 100644
+--- a/Server/task-cost.mjs
++++ b/Server/task-cost.mjs
+@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
+ import { tmpdir } from "node:os";
+ import { execFileSync } from "node:child_process";
+ import { find_transcript, cost_of_transcript } from "../public/framework/ai/AISession/AISessionAudit.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const here = dirname(fileURLToPath(import.meta.url));
+ const SERVEX = join(process.env.LOCALAPPDATA || "", "lew42", "servex");
+@@ -44,7 +45,7 @@ function allTasks(){
+ 		for (const t of readdirSync(join(AI, d.name), { withFileTypes: true })) {
+ 			if (!t.isDirectory()) continue;
+ 			const dir = TaskDirs.follow(join(AI, d.name, t.name));   // a finished task may now sit inside its session folder
+-			if (existsSync(join(dir, "task.jsonl"))) out.push(dir);
++			if (existsSync((SessionRecord.log_file(dir) ?? join(dir, "task.jsonl")))) out.push(dir);
+ 		}
+ 	}
+ 	return out;
+@@ -62,7 +63,7 @@ for (const r of rows) if (r.parent) (children.get(r.parent) || children.set(r.pa
+ // The window: line 1's `requested_at` → the last `landed_at` (none yet = still open).
+ function rootOf(dir){
+ 	let first = {}, landed = "";
+-	const all = lines(join(dir, "task.jsonl"));
++	const all = lines((SessionRecord.log_file(dir) ?? join(dir, "task.jsonl")));
+ 	first = all[0]?.assign || {};
+ 	for (const o of all) if (o.assign?.landed_at) landed = o.assign.landed_at;
+ 	const row = (first.session_id && rows.find(r => r.session_id === first.session_id)) || (first.tab && byId.get(first.tab));
+@@ -272,7 +273,7 @@ function cost(dir){
+ // The figure the task already carries (later assign lines win).
+ function current(dir){
+ 	const merged = {};
+-	for (const o of lines(join(dir, "task.jsonl"))) if (o.assign) Object.assign(merged, o.assign);
++	for (const o of lines((SessionRecord.log_file(dir) ?? join(dir, "task.jsonl")))) if (o.assign) Object.assign(merged, o.assign);
+ 	return merged;
+ }
+ 
+@@ -313,7 +314,7 @@ if (agent && !byId.has(agent)) { console.error(`task-cost: unknown agent ${agent
+ const dirs = agent
+ 	? (() => { const chain = new Set([agent, ...ancestors(agent)]); return recentDirs(7).filter(d => chain.has(rootOf(d).root)); })()
+ 	: date
+-	? (existsSync(join(AI, date)) ? readdirSync(join(AI, date), { withFileTypes: true }).filter(d => d.isDirectory() && existsSync(join(AI, date, d.name, "task.jsonl"))).map(d => join(AI, date, d.name)) : [])
++	? (existsSync(join(AI, date)) ? readdirSync(join(AI, date), { withFileTypes: true }).filter(d => d.isDirectory() && existsSync((SessionRecord.log_file(join(AI, date, d.name)) ?? join(AI, date, d.name, "task.jsonl")))).map(d => join(AI, date, d.name)) : [])
+ 	: [resolve(args[0])];
+ 
+ const $ = n => "$" + n.toFixed(2);
+diff --git a/Server/text-check.mjs b/Server/text-check.mjs
+index b0f842fb5..f70ac2092 100644
+--- a/Server/text-check.mjs
++++ b/Server/text-check.mjs
+@@ -7,6 +7,7 @@
+ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const PARA = 60, OUTCOME = 120, FILE = 500, BARE = 200;
+ 
+@@ -36,7 +37,7 @@ export function text_flags(dir){
+ 		return total;
+ 	};
+ 	try {
+-		const lines = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
++		const lines = fs.readFileSync(SessionRecord.log_or_old(dir), "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
+ 		const outcome = String(lines.filter(e => e.assign?.landed_at).pop()?.assign?.outcome || "");
+ 		if (outcome) { const n = long("outcome", outcome); if (n > OUTCOME) flags.push(`outcome: ${n} words (${OUTCOME} at most; move the rest one click down)`); }
+ 	} catch {}
+diff --git a/Server/worktree-sweep.mjs b/Server/worktree-sweep.mjs
+index c543dff76..42f9ccaf4 100644
+--- a/Server/worktree-sweep.mjs
++++ b/Server/worktree-sweep.mjs
+@@ -22,6 +22,7 @@ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { links_into_main } from "./junction-guard.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ // `ROOT` is normally this script's own repo (Server/.. — a worktree's copy sweeps that
+ // worktree's own Servex state). `--root <dir>` (proof only, same idea as merge.mjs's `--main`)
+@@ -49,7 +50,7 @@ function all_task_files(root = ROOT){
+ 			if (e.name.startsWith(".") || e.name === "node_modules") continue;
+ 			const p = path.join(dir, e.name);
+ 			if (e.isDirectory()) walk(p);
+-			else if (e.name === "task.jsonl") out.push(p);
++			else if (SessionRecord.is_log_entry(dir, e.name)) out.push(p);
+ 		}
+ 	})(ai_dir(root));
+ 	return out;
+@@ -57,7 +58,7 @@ function all_task_files(root = ROOT){
+ 
+ /** Every `assign` line merged, later wins — same rule TaskLoop.js's read_task() uses. */
+ export function task_state(dir){
+-	let text; try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { return null; }
++	let text; try { text = fs.readFileSync(SessionRecord.log_or_old(dir), "utf8"); } catch { return null; }
+ 	const state = {};
+ 	for (const raw of text.split("\n")){
+ 		if (!raw.trim()) continue;
+diff --git a/Server/worktree-up.mjs b/Server/worktree-up.mjs
+index 286af2b7f..179c41c85 100644
+--- a/Server/worktree-up.mjs
++++ b/Server/worktree-up.mjs
+@@ -38,6 +38,7 @@ import net from "node:net";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { refuse_links_into_main } from "./junction-guard.mjs";
++import SessionRecord from "./SessionRecord.mjs";
+ 
+ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const REGISTRY = path.join(ROOT, ".worktrees.json");
+@@ -211,7 +212,7 @@ try {
+ 	if (task_arg) {
+ 		const dir = path.isAbsolute(task_arg) ? task_arg : path.join(ROOT, task_arg);
+ 		fs.mkdirSync(dir, { recursive: true });
+-		fs.appendFileSync(path.join(dir, "task.jsonl"), JSON.stringify({ assign: { worktree: target, branch } }) + "\n");
++		fs.appendFileSync(SessionRecord.log_or_old(dir), JSON.stringify({ assign: { worktree: target, branch } }) + "\n");
+ 	}
+ 	await lc.record({ kind: "worktree", id: name, path: target, port, pid: child.pid, owner_task: task_arg ? lc.task_key(task_arg) : null, owner_agent: process.env.LEW_AGENT || null, event: "start" });
+ } catch {}
+diff --git a/Servex/Heartbeat.js b/Servex/Heartbeat.js
+index 8085bbcd3..094f6d583 100644
+--- a/Servex/Heartbeat.js
++++ b/Servex/Heartbeat.js
+@@ -2,6 +2,7 @@ import fs from "fs";
+ import path from "path";
+ import { place, stamp } from "./home.js";
+ import Budget from "./Budget.js";
++import SessionRecord from "../Server/SessionRecord.mjs";
+ 
+ /* THE HEARTBEAT — a task's owner that goes quiet is asked how it is doing; one
+  * that died is revived; only when that fails does the owner of the machine hear.
+@@ -147,7 +148,7 @@ export default class Heartbeat {
+         let rows = {}; try { rows = this.agents.reg?.().read() ?? {}; } catch {}
+         for (const a of this.agents.live.values()){
+             const dir = a.task?.dir ?? (a.state !== "stopped" ? rows[a.id]?.task_dir : null);
+-            if (dir) out.add(path.join(dir, "task.jsonl"));
++            if (dir) out.add((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")));
+         }
+         /* ONE ROW PER TASK: the task loop gives absolute paths, an agent's task.dir is often
+          * repo-relative, so the same file came in twice (mastermind-servex-9, 2026-09-30). */
+diff --git a/Servex/Lifecycle.js b/Servex/Lifecycle.js
+index 4afdb9d82..3fd8a7466 100644
+--- a/Servex/Lifecycle.js
++++ b/Servex/Lifecycle.js
+@@ -32,6 +32,7 @@ import { execFileSync, spawnSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ import { place, stamp } from "./home.js";
+ import { task_state, task_for_worktree } from "../Server/worktree-sweep.mjs";
++import SessionRecord from "../Server/SessionRecord.mjs";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const norm = p => p ? path.resolve(String(p)).replace(/\\/g, "/").toLowerCase() : "";
+@@ -118,7 +119,7 @@ export default class Lifecycle {
+ 	/** take_worktree: the taker's task log learns its worktree, and the log a start line. */
+ 	took(slot, caller){
+ 		const t = task_of_agent(caller);
+-		if (t) try { fs.appendFileSync(path.join(t.dir, "task.jsonl"), JSON.stringify({ assign: { worktree: slot.path, branch: slot.branch } }) + "\n"); } catch {}
++		if (t) try { fs.appendFileSync((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl")), JSON.stringify({ assign: { worktree: slot.path, branch: slot.branch } }) + "\n"); } catch {}
+ 		this.record({ kind: "worktree", id: slot.id, path: slot.path, port: slot.port, owner_task: t?.key ?? null, owner_agent: caller ?? null, event: "start" });
+ 	}
+ 
+@@ -168,7 +169,7 @@ export default class Lifecycle {
+ 		return (this.tasks ??= new Map()).get(key) ?? this.tasks.set(key, (() => {
+ 			const dir = path.join(ai_dir(), key), state = task_state(dir);
+ 			if (!state) return null;
+-			let mtime = 0; try { mtime = fs.statSync(path.join(dir, "task.jsonl")).mtimeMs; } catch {}
++			let mtime = 0; try { mtime = fs.statSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl"))).mtimeMs; } catch {}
+ 			return { key, dir, ...state, landed: !!(state.landed_at && String(state.outcome ?? "").trim()), mtime };
+ 		})()).get(key);
+ 	}
+@@ -344,7 +345,7 @@ function recent_tasks(){
+ 	const walk = (dir, depth) => {
+ 		let list; try { list = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+ 		for (const e of list) if (e.isDirectory() && !e.name.startsWith(".") && depth < 4) walk(path.join(dir, e.name), depth + 1);
+-			else if (e.name === "task.jsonl") try { out.push({ dir, mtime: fs.statSync(path.join(dir, e.name)).mtimeMs }); } catch {}
++			else if (SessionRecord.is_log_entry(dir, e.name)) try { out.push({ dir, mtime: fs.statSync(path.join(dir, e.name)).mtimeMs }); } catch {}
+ 	};
+ 	for (const d of [0, 1]) { const [y, m, dd] = day(d); walk(path.join(ai_dir(), `${y}-${m}-${dd}`), 0); walk(path.join(ai_dir(), y, m, dd), 0); }
+ 	return out.sort((a, b) => b.mtime - a.mtime);
+diff --git a/Servex/TaskLoop.js b/Servex/TaskLoop.js
+index f045c6e36..cdbba3a7b 100644
+--- a/Servex/TaskLoop.js
++++ b/Servex/TaskLoop.js
+@@ -1,4 +1,5 @@
+ import fs from "fs";
++import SessionRecord from "../Server/SessionRecord.mjs";
+ import path from "path";
+ import { spawn, execFile } from "child_process";
+ import { stamp } from "./home.js";
+@@ -147,7 +148,7 @@ export default class TaskLoop {
+     /* The sessions store (ai/sessions/YYYY/MM/DD/..., Server/TaskDirs.mjs) PLUS the old ai/YYYY-MM-DD/ walk, de-duplicated. */
+     find_task_files(){
+         const today = new Date(), out = [];
+-        try { for (const t of TaskDirs.list(2)) out.push(path.join(t.dir, "task.jsonl")); } catch {}
++        try { for (const t of TaskDirs.list(2)) out.push((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl"))); } catch {}
+         for (const d of [today, new Date(today.getTime() - 86400000)])
+             this.walk(path.join(this.root, "public", "framework", "ai", this.date_id(d)), out);
+         return [...new Set(out.map(f => path.resolve(f)))];
+@@ -160,7 +161,7 @@ export default class TaskLoop {
+             if (e.name.startsWith(".") || e.name === "node_modules") continue;
+             const p = path.join(dir, e.name);
+             if (e.isDirectory()) this.walk(p, out);
+-            else if (e.name === "task.jsonl") out.push(p);
++            else if (SessionRecord.is_log_entry(dir, e.name)) out.push(p);
+         }
+     }
+ 
+@@ -312,7 +313,7 @@ export default class TaskLoop {
+         const p = info.parent_task;
+         if (p){
+             for (const base of [this.root, path.join(this.root, "public", "framework", "ai"), path.join(this.root, "public", "framework", "ai", "sessions")]){
+-                const f = path.join(path.isAbsolute(p) ? p : path.join(base, p), "task.jsonl"), up = this.read_task(f);
++                const pd = path.isAbsolute(p) ? p : path.join(base, p), f = SessionRecord.log_file(pd) ?? path.join(pd, "task.jsonl"), up = this.read_task(f);
+                 const id = up && this.owning_agent_id(up.state, registry);
+                 if (id) return id;
+             }
+@@ -360,7 +361,7 @@ export default class TaskLoop {
+      * (Servex.js) calls straight into this. */
+     async close_task({ dir, why } = {}){
+         if (!dir) return { ok: false, why: "dir is required" };
+-        const file = path.join(path.isAbsolute(dir) ? dir : path.join(this.root, dir), "task.jsonl");
++        const cdir = path.isAbsolute(dir) ? dir : path.join(this.root, dir), file = SessionRecord.log_file(cdir) ?? path.join(cdir, "task.jsonl");
+         if (!fs.existsSync(file)) return { ok: false, why: `no task.jsonl at "${dir}"` };
+         const at = stamp();
+         await this.write_line(file, { assign: { closed_by: "owner", closed_at: at, closed_why: why ?? null } });
+diff --git a/Servex/Worktrees.js b/Servex/Worktrees.js
+index 0fd70070a..a7afbbe3b 100644
+--- a/Servex/Worktrees.js
++++ b/Servex/Worktrees.js
+@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
+ import Events from "../Server/Events.js";
+ import { stamp, place } from "./home.js";
+ import TaskDirs from "../Server/TaskDirs.mjs";
++import SessionRecord from "../Server/SessionRecord.mjs";
+ 
+ /* WORKTREE CLEAN-UP — a worktree is temporary (process-monitor, 2026-09-30).
+  *
+@@ -223,7 +224,7 @@ export default class Worktrees extends Events {
+ 		const out = new Map();
+ 		for (const { dir, day, slug } of TaskDirs.list(21)){   // both shapes: the sessions store and old day folders (ai/doc/task-folders.md)
+ 			{
+-				let text; try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { continue; }
++				let text; try { text = fs.readFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), "utf8"); } catch { continue; }
+ 				if (!text.includes("\"worktree\"")) continue;
+ 				const state = {};
+ 				for (const line of text.split("\n")){
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index ad8333033..3cf1e08b6 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -1,4 +1,5 @@
+ import { query, getSessionInfo, getSessionMessages } from "@anthropic-ai/claude-agent-sdk";
++import SessionRecord from "../../Server/SessionRecord.mjs";
+ import fs from "node:fs";
+ import { spawn } from "node:child_process";
+ import { randomUUID } from "node:crypto";
+@@ -24,7 +25,7 @@ import { page_tools } from "./page_tools.js";
+ function agent_log(agent){
+ 	return () => {
+ 		const dir = agent.task?.dir ?? agent.task_dir ?? null;
+-		return dir ? path.resolve(MAIN_ROOT, dir, "task.jsonl") : null;
++		return dir ? (SessionRecord.log_file(path.resolve(MAIN_ROOT, dir)) ?? path.resolve(MAIN_ROOT, dir, "task.jsonl")) : null;
+ 	};
+ }
+ 
+@@ -771,7 +772,7 @@ export class Agents {
+ 		try {
+ 			const up = child.task?.dir && path.dirname(path.resolve(child.task.dir));
+ 			const dir = this.task_dir_of?.(child.parent) ?? this.live.get(child.parent)?.task?.dir
+-				?? (up && fs.existsSync(path.join(up, "task.jsonl")) ? up : null);
++				?? (up && fs.existsSync((SessionRecord.log_file(up) ?? path.join(up, "task.jsonl"))) ? up : null);
+ 			if (dir) fs.appendFileSync(path.join(dir, "inbox.jsonl"), JSON.stringify({ at: stamp(), from: child.id, kind, text: text ?? null }) + "\n");
+ 		} catch (e){ this.store().append("servex", { type: "inbox-failed", child: child.id, error: String(e.message || e) }).catch(() => {}); }
+ 	}
+@@ -831,7 +832,7 @@ export function next_briefs(dir){
+ 	let names; try { names = fs.readdirSync(path.dirname(path.resolve(dir)), { withFileTypes: true }); } catch { return out; }
+ 	for (const e of names){
+ 		if (!e.isDirectory()) continue;
+-		const sib = path.join(path.dirname(path.resolve(dir)), e.name), file = path.join(sib, "task.jsonl");
++		const sib = path.join(path.dirname(path.resolve(dir)), e.name), file = (SessionRecord.log_file(sib) ?? path.join(sib, "task.jsonl"));
+ 		let state = {}; try { for (const raw of fs.readFileSync(file, "utf8").split("\n")){ const o = raw.trim() && JSON.parse(raw); if (o?.assign) Object.assign(state, o.assign); } } catch { continue; }
+ 		if (state.agent || !Array.isArray(state.after) || !state.after.includes(here)) continue;
+ 		if (!state.after.every(a => task_landed(path.resolve(a)))) continue;
+@@ -843,7 +844,7 @@ export function next_briefs(dir){
+ /* A task has landed: any assign merged says landed_at + a non-empty outcome,
+  * or closed_by — or a bare top-level landed_at line (minion-audit-tools, 09-29). */
+ export function task_landed(dir){
+-	let text; try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { return false; }
++	let text; try { text = fs.readFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), "utf8"); } catch { return false; }
+ 	const state = {};
+ 	for (const raw of text.split("\n")){
+ 		let o; try { o = raw.trim() && JSON.parse(raw); } catch {}
+@@ -1097,7 +1098,7 @@ Agents.Agent = class Agent {
+ 			: this.provider === "local" ? local_env_for("local") : null;   // ext/local/provider.js: same trick, points at Servex's own proxy instead
+ 		const url = this.mcp_url ?? this.host?.mcp_url;
+ 		/* SERVEX_TASK: absolute path of this agent's task.jsonl in the MAIN tree (Servex runs there), read by Server/git-hooks/post-commit.mjs. */
+-		const task_env = this.task?.dir ? { SERVEX_TASK: path.resolve(MAIN_ROOT, this.task.dir, "task.jsonl") } : null;
++		const task_env = this.task?.dir ? { SERVEX_TASK: SessionRecord.log_file(path.resolve(MAIN_ROOT, this.task.dir)) ?? path.resolve(MAIN_ROOT, this.task.dir, "task.jsonl") } : null;
+ 		/* a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process
+ 		 * servers, and still needs the env — `(or_env || this.env)`, not just `or_env` (review
+ 		 * finding 1, dictate-without-claude 2026-10-04): the old check dropped a spec's own
+@@ -1343,7 +1344,7 @@ Agents.Agent = class Agent {
+ 		if (!dir || this.landing_nagged || this.one_shot || !/^(task-mastermind|mastermind|sub-mastermind)/.test(this.role ?? "")) return;
+ 		if (task_landed(dir) || !/\b(merged|merge commit|landed)\b/i.test(this.words ?? this.last_text ?? "")) return;
+ 		this.landing_nagged = true;
+-		try { fs.appendFileSync(path.join(dir, "task.jsonl"), JSON.stringify({ log: { at: stamp(), msg: "agent stopped with the work merged but no landing line; too late to nag, the parent's harvest lands it" } }) + "\n"); } catch {}
++		try { fs.appendFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), JSON.stringify({ log: { at: stamp(), msg: "agent stopped with the work merged but no landing line; too late to nag, the parent's harvest lands it" } }) + "\n"); } catch {}
+ 	}
+ 
+ 	card(){
+@@ -1854,7 +1855,7 @@ Agents.Agent = class Agent {
+ 		if (this.landing_flagged === key) return false;
+ 		this.landing_flagged = key;
+ 		const msg = LandingCheck.sentence(v);
+-		try { fs.appendFileSync(path.join(dir, "task.jsonl"), JSON.stringify({ log: { at: stamp(), msg } }) + "\n"); } catch {}
++		try { fs.appendFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), JSON.stringify({ log: { at: stamp(), msg } }) + "\n"); } catch {}
+ 		this.host?.store().append("servex", { type: "landing-unmerged", agent: this.id, task: dir, branch: v.branch, missing: v.missing.length }).catch(() => {});
+ 		const card = this.task?.card;
+ 		if (card) try { this.host?.servex?.assistant?.card_reply({ card, from: "servex-landing-check", text: msg }); } catch {}
+@@ -1876,7 +1877,7 @@ Agents.Agent = class Agent {
+ 		const kids = [...(this.host?.live?.values() ?? [])].filter(a => a.parent === this.id && (a.state === "working" || a.state === "starting"));
+ 		if (kids.length) return false;
+ 		this.landing_nagged = true;
+-		const file = path.join(dir, "task.jsonl").split(path.sep).join("/");
++		const file = (SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")).split(path.sep).join("/");
+ 		this.host?.store().append("servex", { type: "landing-nag", agent: this.id, task: dir }).catch(() => {});
+ 		this.send(`Your work is merged but your task has no landing line. Append it now: {"assign": {"landed_at": "NOW", "title": …, "outcome": …, "links": […]}} via \`node .claude/hooks/append.mjs ${file} <lines.json>\`, then \`card_reply\` one screen.`, { from: "servex-landing-nag" });
+ 		this.host?.register?.(this);
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index f4943c7d7..70d41af38 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -1,4 +1,5 @@
+ import fs from "node:fs";
++import SessionRecord from "../../Server/SessionRecord.mjs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import Subpages from "./Subpages.js";
+@@ -478,7 +479,7 @@ export function link_refs(Task){
+ 	Task.resolver ??= ref => {
+ 		const dir = path.resolve(PUBLIC, String(ref).replace(/^[\/]+/, ""));
+ 		if (!dir.startsWith(PUBLIC + path.sep)) return null;
+-		const file = path.join(dir, "task.jsonl");
++		const file = SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl");
+ 		collect?.push([file, sig(file)]);
+ 		return fs.existsSync(file) ? parse_lines(file) : null;
+ 	};
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index eafee5a5e..5a033fd40 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -1,4 +1,5 @@
+ import { createSdkMcpServer, tool as sdk_tool } from "@anthropic-ai/claude-agent-sdk";
++import SessionRecord from "../../Server/SessionRecord.mjs";
+ import { z } from "zod";
+ import fs from "node:fs";
+ import path from "node:path";
+@@ -95,7 +96,7 @@ export function query_sessions_tool(){
+  * twice. Throws with append.mjs's own stderr on a refusal, so the tool's handler can report it. */
+ function append_task_line(dir, obj){
+ 	const abs = path.isAbsolute(dir) ? dir : path.join(ROOT, dir);
+-	const target = path.join(abs, "task.jsonl");
++	const target = (SessionRecord.log_file(abs) ?? path.join(abs, "task.jsonl"));
+ 	if (!fs.existsSync(target)) throw new Error(`no task.jsonl at ${target}`);
+ 	const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "task-verb-")), "line.json");
+ 	fs.writeFileSync(tmp, JSON.stringify([obj]));
+@@ -108,7 +109,7 @@ function append_task_line(dir, obj){
+ function task_owner(dir){
+ 	const abs = path.isAbsolute(dir) ? dir : path.join(ROOT, dir);
+ 	let text;
+-	try { text = fs.readFileSync(path.join(abs, "task.jsonl"), "utf8"); } catch { return null; }
++	try { text = fs.readFileSync((SessionRecord.log_file(abs) ?? path.join(abs, "task.jsonl")), "utf8"); } catch { return null; }
+ 	for (const raw of text.replace(/^﻿/, "").split(/\r?\n/)){
+ 		if (!raw.trim()) continue;
+ 		let obj; try { obj = JSON.parse(raw); } catch { continue; }
+diff --git a/Servex/asks/tasks.js b/Servex/asks/tasks.js
+index ee07ab97e..68551976a 100644
+--- a/Servex/asks/tasks.js
++++ b/Servex/asks/tasks.js
+@@ -16,6 +16,7 @@
+ //
+ // Read the full rule in Servex/asks/readme.md before changing anything here.
+ import fs from "node:fs";
++import SessionRecord from "../../Server/SessionRecord.mjs";
+ import path from "node:path";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+ import { stalled } from "./stalled.js";
+@@ -51,7 +52,7 @@ export function task_dirs(days = DAYS, now = new Date(), ai_dir = AI){
+ 		for (const t of fs.readdirSync(date_dir, { withFileTypes: true })){
+ 			if (!t.isDirectory()) continue;
+ 			const dir = path.join(date_dir, t.name);
+-			if (fs.existsSync(path.join(dir, "task.jsonl"))) out.push(dir);
++			if (fs.existsSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")))) out.push(dir);
+ 		}
+ 	}
+ 	return out;
+@@ -86,7 +87,7 @@ function spent_of(dir){
+  * separate for now rather than this file reaching into Asks.js to share one. If they drift
+  * further, that line in both files should move to one shared helper. */
+ export function task_facts(dir, root = ROOT){
+-	const lines = read_lines(path.join(dir, "task.jsonl"));
++	const lines = read_lines((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")));
+ 	const first = lines[0]?.assign ?? {};
+ 	const facts = {
+ 		dir: path.relative(root, dir).split(path.sep).join("/"),
+diff --git a/Servex/cards/Cards.js b/Servex/cards/Cards.js
+index 4ae9db8c6..a5db432e7 100644
+--- a/Servex/cards/Cards.js
++++ b/Servex/cards/Cards.js
+@@ -1,4 +1,5 @@
+ import fs from "fs";
++import SessionRecord from "../../Server/SessionRecord.mjs";
+ import path from "path";
+ import express from "express";
+ import { fileURLToPath } from "url";
+@@ -211,7 +212,7 @@ export default class Cards {
+ 		let status = "proposed", next_step = "not started yet", page_url = null;
+ 		if (task_dir){
+ 			let text = null;
+-			try { text = await fs.promises.readFile(path.join(this.root, task_dir, "task.jsonl"), "utf8"); } catch {}
++			try { text = await fs.promises.readFile(SessionRecord.log_file(path.join(this.root, task_dir)) ?? path.join(this.root, task_dir, "task.jsonl"), "utf8"); } catch {}
+ 			if (text){
+ 				let landed = false, last_log = null;
+ 				for (const raw of text.split("\n")){
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 29b33e901..747158692 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -1,6 +1,7 @@
+ import { Page, div, span, small, p, a, button } from "/app.js";
+ import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
+ import { load as raw_transcript_lines } from "/framework/ai/AITask/replay.js";
++import { AITask } from "/framework/ai/AITask/AITask.js";
+ import AISessionRows from "./AISessionRows.js";
+ import AISessionView from "./AISessionView.js";
+ import AISessionFollow from "./AISessionFollow.js";
+@@ -233,7 +234,8 @@ export default class AISessionDetail extends Page {
+ 			// Raw: the session's own task log and its transcript (/ai-logs is dev-server only), on every session, row or not
+ 				$box.append(() => div.c("flex gap-50 v-center muted", () => {
+ 					small("Raw");
+-					a.c("", "task.jsonl").href(own_dir + "task.jsonl");
++					const record = AITask.has(own_dir + "session.jsonl") ? "session.jsonl" : "task.jsonl";
++					a.c("", record).href(own_dir + record);
+ 					a.c("", "transcript").href("/ai-logs/" + session_id);
+ 				}));
+ 				$trace.empty(() => { if (trace) AISessionTrace.render(trace); });
+diff --git a/public/framework/ai/AISession/StoreFolder.js b/public/framework/ai/AISession/StoreFolder.js
+index 8059c66dc..7c4047179 100644
+--- a/public/framework/ai/AISession/StoreFolder.js
++++ b/public/framework/ai/AISession/StoreFolder.js
+@@ -102,7 +102,7 @@ export default class StoreFolder extends Page {
+ 		if (tasks.has(bare)) return pages.has(bare) ? undefined : task();   // undefined: Page.child() loads the folder's own page.js
+ 		for (const t of tasks) if (t.startsWith(url)) return next();        // a session folder holding moved tasks
+ 		if (AITask.has(url + "page.js")) return;                             // unknown (a task made after the move): probe
+-		if (AITask.has(url + "task.jsonl")) return task();
++		if (AITask.has(url + "task.jsonl") || AITask.has(url + "session.jsonl")) return task();
+ 		return next();
+ 	}
+ 
+diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
+index 509338aca..a263b8e30 100644
+--- a/public/framework/ai/AISession/readme.md
++++ b/public/framework/ai/AISession/readme.md
+@@ -9,6 +9,7 @@
+ - `AISessionDigest.mjs` — one transcript boiled down by plain Node: sizes, exact cost, owner prompts, result, `digest.json` and procedural `tags()` ([round 4](sessions/2026/10/16/voice-20261016/past-work/round4-result.md)).
+ - `AISessionIndex.mjs` · `AISessionSource.mjs` · `AISessionTailer.mjs` · `AISessionAudit.mjs` — node side: index, source, tail, cost audit.
+ - `AISessionCost.mjs` — the canonical node cost counter (one log, one number); rule, pipeline and before/after in `doc/cost-accounting.md`, test in `AISessionCost.test.mjs`.
++- A session folder's one record is `session.jsonl`; a task folder keeps `task.jsonl`: [../sessions/doc/session-record.md](../sessions/doc/session-record.md).
+ - Decisions: [doc/accounting-decision.md](doc/accounting-decision.md) — the session-folder shape is folded into the task system; each ask's verdict.
+ - `PromptLog.js` · `StoreFolder.js` — prompts of a session, and the folder one lives in.
+ 
+diff --git a/public/framework/ai/AITask/AITask.js b/public/framework/ai/AITask/AITask.js
+index 7728d14cb..46fc0e174 100644
+--- a/public/framework/ai/AITask/AITask.js
++++ b/public/framework/ai/AITask/AITask.js
+@@ -81,7 +81,7 @@ export class AITask extends Page {
+ 		const at = this.url?.match(/\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/.+?)\/?$/)?.[1];
+ 		const list = at ? names(`${at}/${sub}`) : null;
+ 		if (list ? (!list.includes("task.jsonl") || list.includes("page.js"))
+-			: (!AITask.has(this.url + sub + "/task.jsonl") || AITask.has(this.url + sub + "/page.js"))) return;   // the sessions store: no listing, so ask the server
++			: (!(AITask.has(this.url + sub + "/task.jsonl") || AITask.has(this.url + sub + "/session.jsonl")) || AITask.has(this.url + sub + "/page.js"))) return;   // the sessions store: no listing, so ask the server
+ 		return new AITask({ title: sub, icon: "receipt_long", url: this.url + sub + "/", src: this.url + sub + "/session.json" });
+ 	}
+ 
+diff --git a/public/framework/ai/sessions/doc/session-record.md b/public/framework/ai/sessions/doc/session-record.md
+new file mode 100644
+index 000000000..9f4478523
+--- /dev/null
++++ b/public/framework/ai/sessions/doc/session-record.md
+@@ -0,0 +1,78 @@
++# A session folder's one record: `session.jsonl`
++
++A session folder (`ai/sessions/YYYY/MM/DD/<session or agent id>/`) keeps **one** record file, `session.jsonl`. A task folder keeps `task.jsonl`. This page is the rule, how a reader tells them apart, and how the move was done and can be undone.
++
++## The rule
++
++- `session.jsonl` holds two kinds of line in one file, told apart by their verb:
++  - the session's own log, what `task.jsonl` held there: `assign`, `log`, `agent`, `chat` and the other task verbs;
++  - the digest lines, what `session.jsonl` held before: `tag`, `summary`, `note`, `alert`, `weight`, `closed`, `question`, `links`.
++- A task folder (a child of a session folder, or any folder whose `task.jsonl` line 1 has no `session_id` of its own) **keeps `task.jsonl`**, and the move never touches it.
++- A file is one record, so appends are still append-only. Nothing is rewritten: a move is a rename, or an append plus a rename.
++
++## Telling a session folder from a task folder
++
++| Question | Session folder | Task folder |
++|---|---|---|
++| Where is it? | directly under a day: `YYYY/MM/DD/<name>/` | deeper, inside a session folder |
++| Line 1 | `{"assign":{"session_id":"…"}}` (its own id) | `{"assign":{"title":…}}`, no own `session_id` |
++| Record file | `session.jsonl` (`task.jsonl` until moved) | `task.jsonl` |
++
++A folder that holds only digest lines in `session.jsonl` (588 of them, no log) is a session folder with no log yet; `SessionRecord.log_file(dir)` returns `null` for it, so it never shows up as a phantom task.
++
++## The script: `Server/SessionRecord.mjs`
++
++```
++class SessionRecord
++  static file(dir)            the record to open: session.jsonl, else task.jsonl
++  static log_file(dir)        the log (not a tag-only file), by either name, or null
++  static is_log_entry(dir, n) for a directory walker: is this entry the folder's log?
++  plan() / apply() / undo(manifest)
++```
++
++```
++node Server/SessionRecord.mjs --plan                  counts, skips and why (writes nothing)
++node Server/SessionRecord.mjs --apply                 does it, stages (never commits) old + new paths
++node Server/SessionRecord.mjs --undo <manifest>       reverses the last run (or --run <id>)
++```
++
++- **rename:** `task.jsonl` becomes `session.jsonl` (`git` sees a rename).
++- **merge** (both files, `session.jsonl` is tags only): the tag lines are appended to the end of `task.jsonl`, byte for byte and in order, then it is renamed over; the line count and the bytes are checked before the old tag file goes. None existed on the day of the move.
++- **fold** (`session.jsonl` already holds the log and a writer recreated `task.jsonl`): the new lines go on the end of `session.jsonl`. This is what a later run does for a writer that still uses the old name.
++- **skip** (listed with the reason): task folders, and any folder whose `task.jsonl` changed in the last `--quiet` minutes (default 60), so a running agent's log is never renamed under it. A later run takes those.
++- **Manifest:** `ai/sessions/session-record-moves.jsonl`, one header line per run plus one line per move: old path, new path, lines and bytes before and after, sha before and after. `--undo` reads it; it renames back, and splits a merge by the recorded line counts. It refuses to overwrite a `task.jsonl` that is back.
++- Tests: `node Server/SessionRecord.test.mjs` (throwaway git repo: plan, rename, merge, fold, skip, manifest, undo, and `append.mjs` following the move).
++
++## The counts (2026-10-17, main tree, before the move)
++
++| | Folders |
++|---|---|
++| rename only | 699 |
++| merge then rename (both files) | 0 |
++| fold | 0 |
++| skipped: task folders (line 1 has no own `session_id`) | 57 |
++| skipped: active (changed within 60 min) | 1 |
++| already hold only `session.jsonl` (digest tags) | 588 |
++| child task logs below a session folder, never touched | 929 |
++
++The brief expected 588 folders holding both files; there are none. The 588 digest-only folders have no `task.jsonl` at all, so the move is a pure rename and the rename "collision" does not occur.
++
++## Readers: every one accepts both names
++
++A reader opens `SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")` and a directory walker asks `SessionRecord.is_log_entry(dir, name)`. `task.jsonl` stays accepted (a folder not yet moved, an old branch).
++
++- **Node:** `Server/TaskState.mjs`, `Transcripts.mjs`, `SessionIndex.mjs`, `TaskDirs.mjs`, `AskIndex.mjs` (replay), `merge.mjs`, `DaySpend.mjs`, `health.mjs`, `task-closeout.mjs`, `PastWork.mjs`, `FollowUp.mjs`, `Steps.mjs`, `task-cost.mjs`, `spend-tree.mjs`, `landing-audit.mjs`; `Servex/TaskLoop.js`, `Heartbeat.js`, `Lifecycle.js`, `Worktrees.js`, `asks/tasks.js`, `agents/tools.js`, `agents/Agents.js`, `agents/page_tools.js`, `cards/Cards.js`.
++- **Hooks:** `.claude/hooks/append.mjs` (a line meant for a moved `task.jsonl` lands in the `session.jsonl`; the old name is never recreated), `ledger.mjs`, `jsonl-schema.mjs` (`session.jsonl` has the task schema plus the `tag` verb).
++- **Browser:** `core/Item/Store.js` (`Store.record_url`: when `<folder>/task.jsonl` is missing and `session.jsonl` is there, read that), `ext/JSONL/JSONL.js` (`live()` uses the same), `ai/AITask/AITask.js`, `ai/AISession/StoreFolder.js`, `ai/AISession/AISessionDetail.js`. The Task, TaskPage, TasksPage and AITask readers go through those two.
++
++- **Also patched in the second pass** (a reader of a session log, now `SessionRecord.log_or_old(dir)`, which gives the log by either name, or `task.jsonl` for a brand-new folder): `Server/on-landing.mjs`, `LandingCheck.mjs`, `review.mjs`, `Ai2Overview.mjs`, `Asked.mjs`, `Audit.mjs`, `Compact.mjs`, `clarity.mjs`, `doc-check.mjs`, `owner-check.mjs`, `page-ai-cost.mjs`, `text-check.mjs`, `worktree-sweep.mjs`, `worktree-up.mjs`, `RefineQueue.mjs`, `plugins/CardAnswer.js`; walkers `ArchitectureCensus.mjs`, `ModuleLog.mjs`, `AskTally.mjs`, `SkillCensus.mjs`, `refine-days.mjs`.
++- **Checked and left alone, on purpose:** `TaskHomes.mjs`, `TaskMigrate.mjs`, `TaskMove.mjs` (task homes and task folders, which keep `task.jsonl`); `Start.js` and `plugins/Ask.js` (they create a new thread/task, never a moved session record); `Council.mjs` (its own output dir); `session-migrate.mjs` and `session-patterns.mjs` (they read the old `ai/<date>/` layout, not the sessions store), `session-dup.mjs` (a duplicate-line census by file name; follow-up to count `session.jsonl` too), `RepoSize.mjs` (only reports file kinds); every `*.test.mjs`.
++
++## What is not done yet
++
++- **Writers still create `task.jsonl`:** `Server/TaskDirs.mjs --new` and `spawn_agent`'s first task line (`Servex/agents/Agents.js`, the initial `assign` write). A new session folder starts with the old name; re-running `--apply` moves it once it has been quiet for an hour. Switching the writers to `session.jsonl` for a new *session* folder is the follow-up.
++- **`Servex/LogSweeper.js`** already allows `session.jsonl` under a session folder, so the log sweeper keeps committing moved records.
++- **A running Servex needs a restart** to read the new Servex readers (logged as `needs_restart`).
++- The per-day `index.json` files mention `task.jsonl` only inside titles, and the `files.jsonl` listings are written by the dev server itself, so no index needed rebuilding by hand.
++
++Back: [Sessions readme](../readme.md) · [AISession readme](../../AISession/readme.md)
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 63dbd7811..f7ecddf2a 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -7,7 +7,7 @@ standalone **CLI** run. Click a row to see that session's own prompts, in order,
+ prompts live inside their session, never a separate log page, and on a wide screen the detail
+ opens as a side peek beside the grid instead of replacing it.
+ 
+-- **The session folder shape (decided 2026-10-16):** not built as its own project; the task system (`Task extends Item`) carries it and `Session` piggybacks. What shipped (the exact cost counter) and what moves to the task-system plan, ask by ask: [AISession/doc/accounting-decision.md](/framework/ai/AISession/doc/accounting-decision.md). Source proposal: [shape.md](2026/10/16/voice-20261016/accounting/shape.md). Open fact: 588 session folders already have a digest log of that name, so the `task.jsonl` rename must not collide.
++- **The session folder shape (decided 2026-10-16):** not built as its own project; the task system (`Task extends Item`) carries it and `Session` piggybacks. What shipped (the exact cost counter) and what moves to the task-system plan, ask by ask: [AISession/doc/accounting-decision.md](/framework/ai/AISession/doc/accounting-decision.md). Source proposal: [shape.md](2026/10/16/voice-20261016/accounting/shape.md). The session folder's one record is `session.jsonl` (the rule, the move script, its undo and the counts: [doc/session-record.md](doc/session-record.md)).
+ - **The grid is [ext/DataGrid](/framework/ext/DataGrid/)**: a table or a rail of cards (the Table / Rail toggle, `?view=rail`, default in `settings.jsonl`); rows are `AISessionView`, order and nesting are `AISessionsPage.arrange()`.
+ - **Detail classes** live in [ai/AISession](/framework/ai/AISession/); the old `ai/sessions/Session*.js` shims are retired to `ai/archive/retired/2026-10-13/sessions/` (manifest + `ai/archive/retire-shims.mjs --undo`).
+ - **Routine sessions are hidden** (prompt cleaning, short headless runs, clarity, reviews, helpers): one chip per kind with its count, click to show them; the search finds every session, and matches a session's tags too (`page/live-cards`, `task/…`, `topic/…`; the tagged digests are `session.jsonl` lines, [round 4](2026/10/16/voice-20261016/past-work/round4-result.md)); [doc/buckets.md](doc/buckets.md).
+diff --git a/public/framework/core/Item/Store.js b/public/framework/core/Item/Store.js
+index ef8348fad..c75e5fb2f 100644
+--- a/public/framework/core/Item/Store.js
++++ b/public/framework/core/Item/Store.js
+@@ -44,9 +44,25 @@ export class Store {
+ 	open(){
+ 		const host = globalThis.location?.hostname;
+ 		const local = host === "localhost" || host === "127.0.0.1" || !!host?.endsWith(".localhost");
+-		if (!local) return this.load();
++		if (!local) return this.moved().then(() => this.load());
+ 
+-		return import("../../ext/JSONL/live.js").then(live => live.stream(this, () => this.changed()));
++		return this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
++	}
++
++	// A session folder's record moved from task.jsonl to its new name (ai/sessions/doc/session-record.md).
++	async moved(){ this.url = await Store.record_url(this.url); return this; }
++
++	// `<folder>/task.jsonl` when it is there; else the moved record beside it when THAT is; else the url
++	// unchanged (the file may be about to be written). Shared with ext/JSONL.
++	static async record_url(url){
++		if (!url.endsWith("/task.jsonl")) return url;
++		const there = async u => {
++			const res = await fetch(u, { method: "HEAD" }).catch(() => null);
++			return !!res?.ok && !res.headers.get("content-type")?.includes("html");
++		};
++		if (await there(url)) return url;
++		const alt = url.replace(/task\.jsonl$/, "session.jsonl");
++		return await there(alt) ? alt : url;
+ 	}
+ 
+ 	// A torn line is skipped with a warning, never the whole log. The dev server's
+diff --git a/public/framework/ext/JSONL/JSONL.js b/public/framework/ext/JSONL/JSONL.js
+index 4fff5eed1..b41cc4018 100644
+--- a/public/framework/ext/JSONL/JSONL.js
++++ b/public/framework/ext/JSONL/JSONL.js
+@@ -1,4 +1,5 @@
+ import { stream, drop } from "./live.js";
++import { Store } from "../../core/Item/Store.js";
+ 
+ // History and reasons: doc/JSONL-notes.md
+ export class JSONL {
+@@ -46,7 +47,8 @@ export class JSONL {
+ 	}
+ 
+ 	// Streams over dev socket; falls back to load() off localhost (see live.js).
+-	live(changed){ return stream(this, changed); }
++	// A moved session record is followed first: core/Item/Store.js record_url().
++	live(changed){ return Store.record_url(this.url).then(url => { this.url = url; return stream(this, changed); }); }
+ 
+ 	// Stop streaming (reader done or file will not exist).
+ 	unsubscribe(){ drop(this); return this; }

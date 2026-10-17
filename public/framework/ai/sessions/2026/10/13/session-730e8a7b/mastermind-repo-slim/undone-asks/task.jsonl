@@ -22,3 +22,7 @@
 {"log":{"at":"2026-10-17T09:42:32-05:00","msg":"merge.mjs smoke crawl refused first: the asks page linked ledger cards whose folders do not exist or whose card page references moved files. Fixed in asks/page.js: link a card only when its folder exists and the ask is not landed; AskRows.js uses /framework/ai/<card>/ instead of the retired /framework/ai2/. Merged with --no-review and a stated reason (the brief allows it). Landing line: three-way merge committed 714d53e19."}}
 {"log":{"at":"2026-10-17T09:42:32-05:00","msg":"Made out of date and updated: ai/asks/readme.md, ai/readme.md (one line), Servex/doc/task-loop.md. return_worktree(qf-6) refused because public/framework/ai/board.jsonl is dirty in the worktree and is not mine; left for the mastermind. Servex restart needed for the daily rebuild (needs_restart logged above)."}}
 {"finish":{"at":"2026-10-17T09:42:32-05:00"}}
+{"commit":"98a5d137f6a7"}
+{"log":{"at":"2026-10-17T09:43:07-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T09:43:08-05:00","msg":"session resumed"}}
+{"action":{"at":"2026-10-17T09:44:12-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/undone-asks/landing.json"]}}

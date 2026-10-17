@@ -1,4 +1,4 @@
-# Your asks that are still undone, by module: one computed page
+# Undone Asks: one computed page by module
 
 Budget: $7. Sonnet; Haiku for any reading of raw prompts. Load the `minion` and `code` skills. The owner's words: `../requirements-15.md` ask 1 to 3 and `../requirements-14.md` ask 3 ("going back through all the old prompts, because I feel like there's a million things I've asked for that haven't been done"). What exists, reuse it: `ai/asks.jsonl` (the routed-asks ledger: owner agent, card, status), `ext/Refine/doc/asks.md` and `ai/doc/asks-by-module.md` (1,080 asks recorded, 612 sent to module inboxes, built 2026-10-14 by `Server/AskIndex.mjs`), the module inboxes (`<module>/inbox.jsonl`, `Servex/doc/module-inbox.md`), the task homes (`<module>/tasks/*/task.jsonl`, `/tasks/`, `Server/TaskHomes.mjs`), `ai/doc/owner-2026-10-17-finding-past-work.md`, `core/Page/doc/query.md`. CLAUDE.md law 7: compute, don't recall. Your log is this dir's `task.jsonl`.
 
