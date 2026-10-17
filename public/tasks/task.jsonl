@@ -73,3 +73,11 @@
 {"task":"/framework/core/Router/tasks/","by":"task-migrate","ts":"2026-10-17T04:29:45.775Z"}
 {"task":"/framework/core/List/tasks/","by":"task-migrate","ts":"2026-10-17T04:29:45.794Z"}
 {"task":"/framework/ux/Hotkeys/tasks/","by":"task-migrate","ts":"2026-10-17T04:29:45.856Z"}
+{"task":"/framework/ext/Figma/tasks/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:03.927Z"}
+{"task":"/framework/core/Property/tasks/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.744Z"}
+{"task":"/framework/core/tasks/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.776Z"}
+{"task":"/framework/ui/tasks/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.793Z"}
+{"task":"/framework/ai/models/tasks/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.893Z"}
+{"task":"/framework/core/Events/tasks/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.912Z"}
+{"task":"/framework/ext/tasks/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.932Z"}
+{"task":"/framework/design/tasks/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.962Z"}

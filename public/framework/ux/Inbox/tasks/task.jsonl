@@ -1,2 +1,6 @@
 {"id":"tasks","path":"/framework/ux/Inbox/tasks/","title":"ux/Inbox tasks","mode":"parallel"}
 {"task":"/framework/ux/Inbox/tasks/inbox-ext/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Inbox/tasks/inbox-priority-50-only-log-everything-a/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.854Z"}
+{"task":"/framework/ux/Inbox/tasks/store-inbox-cards-as-an-appendable-jsonl/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.863Z"}
+{"task":"/framework/ux/Inbox/tasks/reuse-the-existing-data-grid-class-s-con/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.873Z"}
+{"task":"/framework/ux/Inbox/tasks/give-each-inbox-card-a-right-sidebar-to/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.882Z"}

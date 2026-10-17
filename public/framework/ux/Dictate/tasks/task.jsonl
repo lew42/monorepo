@@ -27,3 +27,10 @@
 {"task":"/framework/ux/Dictate/tasks/transcribe-in-place-in-the-chat-bubble/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:28.007Z"}
 {"task":"/framework/ux/Dictate/tasks/place-each-sentence-paragraph-new-paragr/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:29.073Z"}
 {"task":"/framework/ux/Dictate/tasks/raw-lines-get-swallowed-into-a-refined-s/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:30.073Z"}
+{"task":"/framework/ux/Dictate/tasks/build-permutations-of-dictation-transcri/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.670Z"}
+{"task":"/framework/ux/Dictate/tasks/show-before-after-states-of-the-streamin/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.681Z"}
+{"task":"/framework/ux/Dictate/tasks/find-why-dictation-is-routed-to-openrout/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.691Z"}
+{"task":"/framework/ux/Dictate/tasks/make-the-sidebar-and-mobile-sheet-run-th/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.701Z"}
+{"task":"/framework/ux/Dictate/tasks/test-chunk-boundaries-sentence-as-baseli/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.711Z"}
+{"task":"/framework/ux/Dictate/tasks/show-a-prioritized-list-of-past-cloudfla/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.722Z"}
+{"task":"/framework/ux/Dictate/tasks/stream-transcription-in-the-mobile-rail/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.731Z"}

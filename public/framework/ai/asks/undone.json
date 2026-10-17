@@ -7581,7 +7581,8 @@
       "public/framework/ext/Figma/readme.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/make-the-figma-design-preview-open-to-sh/"
     },
     {
      "id": "9a3c41a806",
@@ -7605,7 +7606,8 @@
       "git log -n 5 -S\"embed\" -- public/framework/ext/Figma"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/find-out-whether-the-embeds-cause-the-la/"
     },
     {
      "id": "a6611b4914",
@@ -7795,7 +7797,8 @@
       "public/framework/ext/DataGrid/readme.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/design-widgets-and-data-grid-tables-gett/"
     },
     {
      "id": "9b80c90a1b",
@@ -7844,7 +7847,8 @@
       "public/framework/ext/Figma/doc/refined-asks.md:21"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/flag-primary-background-usage-as-an-impo/"
     },
     {
      "id": "464e59974c",
@@ -7893,7 +7897,8 @@
       "public/framework/ai/handover.md:101"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/use-the-white-light-and-dark-schemes-sta/"
     },
     {
      "id": "bfba1f6579",
@@ -7966,7 +7971,8 @@
       "public/framework/ext/Figma/doc/refined-asks.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/maybe-get-figma-to-design-a-new-layout-f/"
     },
     {
      "id": "3c382b1a02",
@@ -8015,7 +8021,8 @@
       "git log -n 5 -S\"logo\" -- public/framework/ext/Figma"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/pull-the-svg-logo-the-website-uses-into/"
     },
     {
      "id": "2d2dabebba",
@@ -8063,7 +8070,8 @@
       "public/framework/ext/Figma/doc/file-map.md:21"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/isolate-the-core-building-blocks-into-a/"
     },
     {
      "id": "a959707ee1",
@@ -8281,7 +8289,8 @@
       "grep 'title' in readme.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/work-on-layouts-and-figma-title-card-des/"
     },
     {
      "id": "3f9e33ef13",
@@ -8305,7 +8314,8 @@
       "grep 'netflix|prime' in doc/ and readme.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/study-netflix-and-amazon-prime-video-tit/"
     },
     {
      "id": "67c4e70c36",
@@ -8329,7 +8339,8 @@
       "public/framework/ext/Figma/doc/file-map.md:35"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/build-raw-text-layouts-for-two-three-and/"
     },
     {
      "id": "442c0ad13a",
@@ -8353,7 +8364,8 @@
       "grep 'bottom|top line' in doc/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/auto-layout-two-line-titles-with-the-top/"
     },
     {
      "id": "20cd13766b",
@@ -8377,7 +8389,8 @@
       "public/framework/ext/Figma/doc/file-map.md:35"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/make-filler-words-like-the-of-a-smaller/"
     },
     {
      "id": "3603fcb547",
@@ -8401,7 +8414,8 @@
       "grep 'centre|left|top or bottom' in doc/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/try-centered-left-or-right-top-or-bottom/"
     },
     {
      "id": "81edc1b368",
@@ -8425,7 +8439,8 @@
       "grep 'word count' in ext/Figma"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/explore-how-word-count-and-filler-size-c/"
     },
     {
      "id": "985bd08996",
@@ -8449,7 +8464,8 @@
       "public/framework/ext/Figma/doc/video-kit.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/explore-these-text-layouts-for-mobile-an/"
     },
     {
      "id": "05753355a4",
@@ -8473,7 +8489,8 @@
       "public/framework/ext/Figma/doc/video-kit.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/identify-which-size-and-style-combinatio/"
     },
     {
      "id": "ba3733d783",
@@ -8497,7 +8514,8 @@
       "public/framework/ext/Figma/doc/file-map.md:35"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/build-robust-reusable-layouts-combining/"
     },
     {
      "id": "2bc044bb36",
@@ -8521,7 +8539,8 @@
       "grep 'bird' in ext/Figma/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/judge-how-filler-word-alignment-reads-fr/"
     },
     {
      "id": "a576963397",
@@ -8594,7 +8613,8 @@
       "grep 'responsive' in ext/Figma/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/produce-a-responsive-video-schematic-cov/"
     },
     {
      "id": "04bd20e66f",
@@ -8691,7 +8711,8 @@
       "public/framework/ext/Figma/inbox.jsonl:110"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/experiment-with-building-auto-layout-bas/"
     },
     {
      "id": "1d5e7f34e4",
@@ -8716,7 +8737,8 @@
       "public/framework/ext/Figma/readme.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/find-out-whether-a-zigzag-path-can-fill/"
     },
     {
      "id": "6c23270fa3",
@@ -8741,7 +8763,8 @@
       "public/framework/ext/Figma/inbox.jsonl:112"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/consider-using-figma-s-default-arrow-too/"
     },
     {
      "id": "36f6ad339c",
@@ -8766,7 +8789,8 @@
       "public/framework/ext/Figma/inbox.jsonl:113"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/try-linking-flowchart-nodes-with-auto-la/"
     },
     {
      "id": "41d1510060",
@@ -8791,7 +8815,8 @@
       "public/framework/ext/Figma/inbox.jsonl:114"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/consider-splitting-arrow-lines-so-one-pa/"
     },
     {
      "id": "36dc51eeaf",
@@ -8816,7 +8841,8 @@
       "public/framework/ext/Figma/inbox.jsonl:115"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/explore-whether-figma-auto-layout-based/"
     },
     {
      "id": "c9bd699e43",
@@ -8841,7 +8867,8 @@
       "public/framework/ext/Figma/readme.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/find-out-what-is-possible-for-a-zigzag-p/"
     },
     {
      "id": "f9baf0afa0",
@@ -8866,7 +8893,8 @@
       "public/framework/ext/Figma/inbox.jsonl:116"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/build-flowchart-arrows-that-automaticall/"
     },
     {
      "id": "2123977b25",
@@ -8891,7 +8919,8 @@
       "public/framework/ext/Figma/inbox.jsonl:118"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/consider-splitting-connector-lines-into/"
     },
     {
      "id": "011ac3b274",
@@ -8916,7 +8945,8 @@
       "public/framework/ext/Figma/inbox.jsonl:119"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/consider-using-figma-s-default-arrow-t-2/"
     },
     {
      "id": "612215b0c9",
@@ -9086,7 +9116,8 @@
       "public/framework/ext/Figma/doc/layouts.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/reproduce-the-figma-layout-tokens-on-the/"
     },
     {
      "id": "37cd50374c",
@@ -9111,7 +9142,8 @@
       "public/framework/framework.css:67"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/merge-the-custom-css-ported-over-for-the/"
     },
     {
      "id": "df60f98797",
@@ -9159,7 +9191,8 @@
       "public/framework/ext/Figma/tokens/measure.mjs"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/during-the-sync-review-the-ui-elements-c/"
     },
     {
      "id": "e7e5644260",
@@ -9184,7 +9217,8 @@
       "public/framework/ext/Figma/doc/layouts.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/consider-reproducing-the-figma-layout-to/"
     },
     {
      "id": "2857d837c5",
@@ -9210,7 +9244,8 @@
       "Grep Figma.css|scheme.css|palette.css|framework.css"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/merge-the-custom-css-of-the-ext-figma-de/"
     },
     {
      "id": "0bb8a94943",
@@ -9379,7 +9414,8 @@
       "grep 'harmoni' ext/Figma"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/work-out-how-to-harmonise-the-figma-desi/"
     },
     {
      "id": "436866f0cc",
@@ -9451,7 +9487,8 @@
       "grep 'logo' ext/Figma/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/try-uploading-the-logo-svg-to-figma-and/"
     },
     {
      "id": "46ade5b118",
@@ -9475,7 +9512,8 @@
       "public/framework/ext/Figma/doc/token-sync.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/harmonize-the-designs-we-currently-have/"
     },
     {
      "id": "cc5a01b0a9",
@@ -9714,7 +9752,8 @@
       "public/framework/ext/Figma/doc/figma-pages.md:8"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/consider-a-runnable-prototype-for-the-ov/"
     },
     {
      "id": "0c77da6553",
@@ -10027,7 +10066,8 @@
       "public/framework/ext/Figma/doc/refined-asks.md:27"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/read-the-root-frame-on-page-seven-for-th/"
     },
     {
      "id": "fd5d25ba1e",
@@ -10388,7 +10428,8 @@
       "public/framework/ext/Figma/doc/scheme.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/define-which-color-tokens-and-text-schem/"
     },
     {
      "id": "93087eecbb",
@@ -10413,7 +10454,8 @@
       "public/framework/ext/Figma/doc/refined-asks.md:26"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/limit-the-color-pairings-to-a-specific-s/"
     },
     {
      "id": "3d6088cd50",
@@ -10601,7 +10643,8 @@
       "public/framework/ext/Figma/doc/figma-layout.md:5"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/use-auto-layout-properly-for-page-templa/"
     },
     {
      "id": "1ff76d4742",
@@ -10815,7 +10858,8 @@
       "public/framework/ext/Figma/doc/haiku-builds.md:48"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/fix-clipped-content-in-specimen-cards-in/"
     },
     {
      "id": "832bfc9e65",
@@ -10840,7 +10884,8 @@
       "public/framework/ext/Figma/doc/refined-asks.md:174"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/create-index2-under-the-index-page-with/"
     },
     {
      "id": "425220237b",
@@ -10890,7 +10935,8 @@
       "grep simplest in ext/Figma/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/create-more-page-layouts-starting-with-t/"
     },
     {
      "id": "a930aebb3d",
@@ -10915,7 +10961,8 @@
       "grep two-column / metadata in ext/Figma"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/build-two-column-1920-layouts-with-varia/"
     },
     {
      "id": "ab8b0f44b8",
@@ -10940,7 +10987,8 @@
       "grep slot|variant in ext/Figma"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/make-each-page-layout-a-copy-paste-templ/"
     },
     {
      "id": "1060e3f4a1",
@@ -11177,7 +11225,8 @@
       "grep \"node id|by id\" in ext/Figma/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/if-the-figma-mcp-handoff-includes-the-va/"
     },
     {
      "id": "fce66a5154",
@@ -11295,7 +11344,8 @@
       "grep overwrit in ext/Figma"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/document-in-the-figma-skill-avoid-overwr/"
     },
     {
      "id": "eed6d0ccd3",
@@ -11440,7 +11490,8 @@
       "public/framework/ext/Figma/doc/refined-asks.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/use-color-scheme-breakout-to-explore-lig/"
     },
     {
      "id": "55a385dd29",
@@ -11465,7 +11516,8 @@
       "public/framework/ext/Figma/guide/page.js:22"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/explore-the-prime-background-in-both-lig/"
     },
     {
      "id": "9e3c18116e",
@@ -11489,7 +11541,8 @@
       "public/framework/ext/Figma/doc/refined-asks.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/maybe-use-two-primary-columns/"
     },
     {
      "id": "8c6502c0d4",
@@ -11514,7 +11567,8 @@
       "grep 'fifth|five-column' in ext/Figma"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/possibly-duplicate-the-four-column-syste/"
     },
     {
      "id": "d94b2ee961",
@@ -11561,7 +11615,8 @@
       "public/framework/ext/Figma/doc/refined-asks.md:142"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/work-only-in-figma-not-code-and-never-cr/"
     },
     {
      "id": "82a07ea317",
@@ -11609,7 +11664,8 @@
       "grep 'reorgani' in ext/Figma/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/review-all-files-claude-created-look-at/"
     },
     {
      "id": "dacd831a60",
@@ -11634,7 +11690,8 @@
       "grep 'header' in ext/Figma/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/always-apply-auto-layout-with-correct-sp/"
     },
     {
      "id": "efeb860f9c",
@@ -11659,7 +11716,8 @@
       "grep 'Wizard' in ext/Figma/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/on-the-wizard-step-frame-place-the-next/"
     },
     {
      "id": "9795df0ed9",
@@ -11731,7 +11789,8 @@
       "public/framework/ext/Figma/doc/refined-asks.md:136"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/decide-whether-to-bring-in-the-entire-go/"
     },
     {
      "id": "fba3b5663a",
@@ -11756,7 +11815,8 @@
       "grep 'compound' in ext/Figma/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/explain-the-workflow-what-becomes-a-comp/"
     },
     {
      "id": "32eccca1d5",
@@ -11899,7 +11959,8 @@
       "public/framework/ext/Figma/inbox.jsonl:81"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/consider-the-one-click-claude-plugin-ins/"
     },
     {
      "id": "239f4ff4b3",
@@ -11995,7 +12056,8 @@
       "grep 'collaborat' public/framework/ext/Figma"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/web-search-the-figma-api-for-collaborati/"
     },
     {
      "id": "d98eb5eac7",
@@ -12020,7 +12082,8 @@
       "grep 'join' public/framework/ext/Figma"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/find-out-how-to-join-the-figma-file-sept/"
     },
     {
      "id": "f8a727bfb5",
@@ -12044,7 +12107,8 @@
       "public/framework/ext/Figma/inbox.jsonl (i-mv8szpfclcx)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/open-the-file-september-2026-so-the-owne/"
     },
     {
      "id": "98048f6beb",
@@ -12069,7 +12133,8 @@
       "public/framework/ext/Figma/inbox.jsonl (i-mv8szpfdygl)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/investigate-why-the-agent-s-avatar-was-v/"
     },
     {
      "id": "af40bdc1d9",
@@ -12094,7 +12159,8 @@
       "public/framework/ext/Figma/inbox.jsonl (i-mv8szpfep2u)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/web-search-for-figma-apis-for-team-colla/"
     },
     {
      "id": "df4c26e513",
@@ -12119,7 +12185,8 @@
       "grep 'cursor' public/framework/ext/Figma"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/determine-whether-figma-exposes-shared-c/"
     },
     {
      "id": "edd2b6e042",
@@ -12264,7 +12331,8 @@
       "public/framework/ext/Figma/inbox.jsonl (i-mv8t0gcdmx3)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/make-prototypes-fixed-height-with-a-scro/"
     },
     {
      "id": "c67ff794c7",
@@ -12383,7 +12451,8 @@
       "public/framework/ext/Figma/readme.md:33"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Figma/tasks/make-everything-an-instance-of-a-compone/"
     },
     {
      "id": "8bb1e87196",
@@ -12541,7 +12610,8 @@
       "rg pair|dedupe in Server/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/if-feasible-write-a-script-that-goes-thr/"
     },
     {
      "id": "34da2039d7",
@@ -12566,7 +12636,8 @@
       "rg chain in Server/session-migrate.mjs and sessions doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/treat-session-merging-as-order-and-time/"
     },
     {
      "id": "e7b39cc2ef",
@@ -12687,7 +12758,8 @@
       "rg exchange|session id in doc/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/have-the-ai-mastermind-and-the-page-mast/"
     },
     {
      "id": "aa4c5e64e3",
@@ -12785,7 +12857,8 @@
       "public/framework/ai/sessions/doc/live/realtime.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/keep-the-in-flight-list-live-and-separat/"
     },
     {
      "id": "83b2c033e1",
@@ -12857,7 +12930,8 @@
       "public/framework/ai/sessions/doc/buckets.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/consider-hiding-or-separating-cost-entri/"
     },
     {
      "id": "66c9f1efbe",
@@ -12930,7 +13004,8 @@
       "rg references|pull in in sessions doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/let-sessions-pull-in-references-to-thing/"
     },
     {
      "id": "e188dd3e5e",
@@ -12955,7 +13030,8 @@
       "rg 'template library' in public/framework/ai"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/build-a-unified-indexed-filterable-templ/"
     },
     {
      "id": "29beb2654d",
@@ -13005,7 +13081,8 @@
       "grep clone|swap|buffer in ext/DataGrid"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/try-buffering-by-cloning-the-data-grid-c/"
     },
     {
      "id": "64556c2abd",
@@ -13252,7 +13329,8 @@
       "grep preview in AISession/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/make-the-chat-window-a-live-preview-of-t/"
     },
     {
      "id": "a0dee5ac02",
@@ -13370,7 +13448,8 @@
       "public/framework/ai/AISession/AISessionCoverage.js"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/find-out-whether-refinement-can-be-added/"
     },
     {
      "id": "57433b31d9",
@@ -13514,7 +13593,8 @@
       "public/framework/ai/sessions/sessions.css:195 (cost grid columns)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/fix-the-session-grid-columns-so-the-titl/"
     },
     {
      "id": "14e91bf939",
@@ -13538,7 +13618,8 @@
       "public/framework/ai/sessions/sessions.css:319"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/make-the-title-cell-grow-to-fit-a-flag-e/"
     },
     {
      "id": "bf53494c95",
@@ -13587,7 +13668,8 @@
       "rg 'screenshot' sessions/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/take-a-screenshot-of-the-session-grid-to/"
     },
     {
      "id": "91797d8544",
@@ -13683,7 +13765,8 @@
       "rg 'by tag' public/framework/ai/AISession"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/add-insight-into-what-was-spent-and-on-w/"
     },
     {
      "id": "423c602aff",
@@ -13802,7 +13885,8 @@
       "public/framework/ai/sessions/doc/refined-asks.md:36"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/fix-the-model-label-on-the-night-masterm/"
     },
     {
      "id": "57dacfd063",
@@ -13851,7 +13935,8 @@
       "public/framework/ai/sessions/doc/refined-asks.md:34"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/take-screenshots-of-the-sessions-and-det/"
     },
     {
      "id": "00f4fded93",
@@ -13922,7 +14007,8 @@
       "public/framework/ai/sessions/doc/live/grid-loading.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/run-a-performance-audit-of-the-sessions/"
     },
     {
      "id": "bb4a568a60",
@@ -14112,7 +14198,8 @@
       "public/framework/ai/sessions/doc/ui/detail-layout.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/fix-the-detail-page-layout-problems-so-t/"
     },
     {
      "id": "332726707f",
@@ -14232,7 +14319,8 @@
       "grep 'newest' in public/framework/ai/sessions"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/show-logged-costs-newest-first/"
     },
     {
      "id": "4ad57644db",
@@ -14256,7 +14344,8 @@
       "public/framework/ai/sessions/doc/asks/decisions.md:119,436"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/condense-the-very-granular-logged-costs/"
     },
     {
      "id": "11ab7def8e",
@@ -14280,7 +14369,8 @@
       "public/framework/ai/sessions/doc/ui/compact-layout.md:10"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/widen-the-right-sidebar-which-is-about-3/"
     },
     {
      "id": "3157c2e51c",
@@ -14327,7 +14417,8 @@
       "public/framework/ai/sessions/sessions.css:200"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/give-the-chat-area-its-own-padding-and-b/"
     },
     {
      "id": "eabccbc61e",
@@ -14351,7 +14442,8 @@
       "public/framework/ai/sessions/doc/ui/compact-layout.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/reduce-the-excess-padding-above-the-chat/"
     },
     {
      "id": "96e89916c4",
@@ -14375,7 +14467,8 @@
       "public/framework/ext/DataGrid/DataGridTable.js:109"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/keep-the-split-bar-defaulting-to-50-with/"
     },
     {
      "id": "d212d78dc1",
@@ -14399,7 +14492,8 @@
       "grep usage-item|usage_rail in sessions.css"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/fix-the-usage-item-sidebar-so-it-shows-i/"
     },
     {
      "id": "dc439fbc2a",
@@ -14539,7 +14633,8 @@
       "public/framework/ai/sessions/doc/asks/decisions.md:161"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/take-a-screenshot-of-monorepo-localhost/"
     },
     {
      "id": "b64380dd1e",
@@ -14587,7 +14682,8 @@
       "public/framework/ai/sessions/doc/asks/decisions.md:580"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/use-headless-playwright-to-scroll-the-se/"
     },
     {
      "id": "e6911b3957",
@@ -15134,7 +15230,8 @@
       "public/framework/ai/sessions/doc/refined-asks.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/decide-whether-the-date-based-view-belon/"
     },
     {
      "id": "bb0f62d1d9",
@@ -15303,7 +15400,8 @@
       "public/framework/ai/sessions/doc/refined-asks.md:102"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/use-the-navigation-rail-for-documentatio/"
     },
     {
      "id": "1365018906",
@@ -15448,7 +15546,8 @@
       "public/framework/ai/sessions/doc/data/*.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/skip-re-auditing-tasks-already-audited-r/"
     },
     {
      "id": "959f7ff74f",
@@ -15498,7 +15597,8 @@
       "public/framework/ai/sessions/doc/data/record-spec.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/document-every-prompt-and-its-outcome-in/"
     },
     {
      "id": "8fe2c0b2c2",
@@ -15596,7 +15696,8 @@
       "public/framework/ai/sessions/doc/asks/asks.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/design-a-dynamic-index-where-querying-an/"
     },
     {
      "id": "4d62a7ee21",
@@ -15669,7 +15770,8 @@
       "Server/Compact.mjs"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/reduce-how-many-sessions-are-saved/"
     },
     {
      "id": "9b8a36fe94",
@@ -15693,7 +15795,8 @@
       "public/framework/ai/sessions/doc/archive/moved.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/find-an-archive-process-for-old-sessions/"
     },
     {
      "id": "0bd8ebb7de",
@@ -15904,7 +16007,8 @@
       "Glob public/framework/ai/**/*git*"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/ai-systems-git-context-cost-pages-collec/"
     },
     {
      "id": "1efa25fdc9",
@@ -16046,7 +16150,8 @@
       "Grep \"weighted tree\" in public/framework/ai"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/consider-structuring-rules-as-a-weighted/"
     },
     {
      "id": "b70986310a",
@@ -16070,7 +16175,8 @@
       "public/framework/ai/doc/skills-proposals-2026-10-13.md (grep only)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/decide-whether-rules-become-skills-or-li/"
     },
     {
      "id": "f716c5816c",
@@ -16094,7 +16200,8 @@
       "Glob .claude/skills/*/SKILL.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/lean-away-from-skills-toward-a-more-acce/"
     },
     {
      "id": "4f41c7afdc",
@@ -16142,7 +16249,8 @@
       "Grep \"Skill\" in .claude/hooks"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/audit-session-logs-for-how-often-each-sk/"
     },
     {
      "id": "eeddbe06f9",
@@ -16166,7 +16274,8 @@
       "Grep \"consensus|weighted\" in public/framework/ai/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/consider-a-multi-ai-setup-where-several/"
     },
     {
      "id": "f1016b5edf",
@@ -16190,7 +16299,8 @@
       "Grep \"shared training\" in public/framework/ai/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/address-that-a-single-provider-s-models/"
     },
     {
      "id": "303c9a27d0",
@@ -16262,7 +16372,8 @@
       "CLAUDE.md \"Pages are live\""
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/let-the-ai-read-live-streaming-pages-and/"
     },
     {
      "id": "f1779e0504",
@@ -16309,7 +16420,8 @@
       "Grep \"padding\" in public/framework/ai/rail/rail.css"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/rail-has-no-outer-padding-each-rail-item/"
     },
     {
      "id": "1978b57ea0",
@@ -16427,7 +16539,8 @@
       "Servex/agents/doc/owner-2026-10-16-compaction.md (named by roles.js:23)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/keep-the-fast-assistant-on-haiku-under-1/"
     },
     {
      "id": "a715741e88",
@@ -16451,7 +16564,8 @@
       "Servex/doc/steps.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/let-code-not-ai-memory-close-worktrees-a/"
     },
     {
      "id": "4923a051e2",
@@ -16475,7 +16589,8 @@
       "Grep approv in steps.md (no match for approval trigger)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/build-a-pre-programmed-node-loop-that-st/"
     },
     {
      "id": "27c5f21da2",
@@ -16499,7 +16614,8 @@
       "Servex/agents/Sessions.js:69"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/only-the-smart-assistant-replies-in-chat/"
     },
     {
      "id": "b6beca8793",
@@ -16523,7 +16639,8 @@
       "Grep 'by name|addressed' in ux/Dictate/doc and skill (no match)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/the-fast-assistant-speaks-only-when-call/"
     },
     {
      "id": "18697ca79b",
@@ -16571,7 +16688,8 @@
       "public/framework/ux/Dictate/doc/voice-assistant.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/clarifying-questions-time-out-then-proce/"
     },
     {
      "id": "71564a8295",
@@ -16642,7 +16760,8 @@
       "Grep 'filler|path link' in public/framework/ai (only unrelated hits)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/fast-assistant-cleans-each-chunk-punctua/"
     },
     {
      "id": "823b97abd3",
@@ -16666,7 +16785,8 @@
       "voice-assistant/SKILL.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/fast-assistant-does-not-reply-in-chat-it/"
     },
     {
      "id": "731509b3c7",
@@ -16714,7 +16834,8 @@
       "Glob public/framework/ai/sessions/2026/10/17/**/session-smart.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/smart-assistant-does-prompt-refinement-c/"
     },
     {
      "id": "c39737e074",
@@ -16738,7 +16859,8 @@
       "Servex/agents/roles.js"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/if-the-owner-does-not-answer-a-question/"
     },
     {
      "id": "f335443cb4",
@@ -16876,7 +16998,8 @@
       "core/Page/ext/Inbox/doc/next.md (Grep link|path)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/fix-the-inbox-items-so-each-links-to-its/"
     },
     {
      "id": "fd4111262d",
@@ -16901,7 +17024,8 @@
       "ls public/framework/ai/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/remove-the-framework-ai-2026-10-13-date/"
     },
     {
      "id": "eb9ef7c60c",
@@ -16926,7 +17050,8 @@
       "ls public/framework/ai/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/merge-ai-2026-and-ai-sessions-2026-into/"
     },
     {
      "id": "a36addf62a",
@@ -17044,7 +17169,8 @@
       "grep day|yesterday public/framework/core/Page/ext/Inbox/timeline/page.js"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/let-the-owner-browse-past-items-by-entit/"
     },
     {
      "id": "da4ddec77e",
@@ -17069,7 +17195,8 @@
       "public/framework/core/Page/ext/Inbox/readme.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/filter-the-inbox-by-date-to-see-what-hap/"
     },
     {
      "id": "c08dfb8655",
@@ -17142,7 +17269,8 @@
       "public/framework/ai/todo.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/remove-or-relocate-the-out-of-place-expa/"
     },
     {
      "id": "3b90bbbfd2",
@@ -17167,7 +17295,8 @@
       "public/framework/ux/Dictate/readme.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/use-one-global-assistant-rather-than-per/"
     },
     {
      "id": "63e8c5c86c",
@@ -17192,7 +17321,8 @@
       "public/framework/ai/doc/architecture.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/have-a-fast-assistant-transcribe-each-wh/"
     },
     {
      "id": "81d1ab9ef2",
@@ -17240,7 +17370,8 @@
       "public/framework/ext/Refine/readme.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/send-the-refined-prompt-to-a-mastermind/"
     },
     {
      "id": "c6f67dbda6",
@@ -17656,7 +17787,8 @@
       "grep -i convention core/Page/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/document-every-path-based-and-per-direct/"
     },
     {
      "id": "8e40aa83d4",
@@ -17680,7 +17812,8 @@
       "grep -rln \"PageHost|PageDoc\" public Servex Server"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/instantiate-the-page-on-the-server-side/"
     },
     {
      "id": "bc29325828",
@@ -17703,7 +17836,8 @@
       "public/framework/core/Page/doc/server-instance.md:46-56"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/decide-which-page-functions-actually-nee/"
     },
     {
      "id": "12bfb89441",
@@ -17727,7 +17861,8 @@
       "grep PageDoc in public/ Servex/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/instantiate-the-page-in-the-browser-with/"
     },
     {
      "id": "f1b077fafd",
@@ -17751,7 +17886,8 @@
       "grep PageHost|PageDoc in public/ Servex/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/make-the-headless-server-side-instance-s/"
     },
     {
      "id": "e8bd02f993",
@@ -17775,7 +17911,8 @@
       "public/framework/core/Page/doc/ai-api.md:22"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/allow-server-side-page-instances-to-be-u/"
     },
     {
      "id": "e42e374435",
@@ -17799,7 +17936,8 @@
       "public/framework/core/Page/doc/server-instance.md:46"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/document-in-the-page-class-whether-any-s/"
     },
     {
      "id": "55fb788d93",
@@ -17823,7 +17961,8 @@
       "grep auto-load in core/Page/doc"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/make-the-client-not-auto-load-everything/"
     },
     {
      "id": "209af86443",
@@ -17847,7 +17986,8 @@
       "grep -i timeout core/Page/doc/server.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/let-the-server-trigger-a-full-load-async/"
     },
     {
      "id": "ec4b46e8f4",
@@ -17912,7 +18052,8 @@
       "grep secondary|unseen in core/Page/ext/Inbox"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/make-the-inbox-a-secondary-page-not-the/"
     },
     {
      "id": "a35455a5f8",
@@ -17963,7 +18104,8 @@
       "grep wrong|placement|misplac"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/make-the-assembler-block-or-suggest-a-fi/"
     },
     {
      "id": "e88ec40b69",
@@ -18003,7 +18145,8 @@
       "grep can hold|child page|item or"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/decide-whether-a-page-can-hold-child-pag/"
     },
     {
      "id": "4012d61ca3",
@@ -18028,7 +18171,8 @@
       "core/Page/doc/architecture.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/decide-whether-a-page-dropped-into-a-pag/"
     },
     {
      "id": "58d91620ab",
@@ -18078,7 +18222,8 @@
       "ext/Shots/Shots.mjs"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/investigate-whether-specific-templates-c/"
     },
     {
      "id": "d76c3c870d",
@@ -18103,7 +18248,8 @@
       "core/Page/doc/refined-asks.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/store-screenshots-in-a-per-page-or-per-s/"
     },
     {
      "id": "05504ec382",
@@ -18128,7 +18274,8 @@
       "core/Page/Template/Template.js"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/build-screenshotting-into-the-templating/"
     },
     {
      "id": "f8dac383fb",
@@ -18153,7 +18300,8 @@
       "grep card.*subpage"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/let-certain-cards-be-sub-pages-where-it/"
     },
     {
      "id": "e07f48a20c",
@@ -18250,7 +18398,8 @@
       "grep max-width"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/skip-screenshots-of-max-width-content-th/"
     },
     {
      "id": "fb75e302de",
@@ -18275,7 +18424,8 @@
       "core/Page/doc/templates.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/rank-templates-by-how-frequently-they-ar/"
     },
     {
      "id": "db9194bd85",
@@ -18300,7 +18450,8 @@
       "grep \"good\" in core/Page ext/Shots styles/layouts"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/allow-a-newly-created-template-to-be-mar/"
     },
     {
      "id": "0eedc38924",
@@ -18422,7 +18573,8 @@
       "rg -i 'color.?scheme|scheme' core/Page/settings core/Page/Prefs.js core/Page/Page.class.js"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/a-page-can-change-its-layout-background/"
     },
     {
      "id": "6cab9e0155",
@@ -18524,7 +18676,8 @@
       "core/Page/doc/architecture.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/pages-define-a-render-method-that-wraps/"
     },
     {
      "id": "b34cec1466",
@@ -18597,7 +18750,8 @@
       "public/framework/core/Page/doc/subpages.md:40"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/add-a-page-clone-that-records-duplicates/"
     },
     {
      "id": "43fd411a13",
@@ -18621,7 +18775,8 @@
       "core/Page/doc/binding.md:139"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/work-out-how-linked-clones-stay-in-sync/"
     },
     {
      "id": "d019b14726",
@@ -18646,7 +18801,8 @@
       "public/framework/core/Page/Listing.js"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/wrap-each-page-preview-in-its-own-templa/"
     },
     {
      "id": "ab7447a9f8",
@@ -18717,7 +18873,8 @@
       "rg 'padX|pad-x|padY|pad-y' styles core/Page"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/use-default-pad-x-and-pad-y-tokens-for-s/"
     },
     {
      "id": "207395ec61",
@@ -18740,7 +18897,8 @@
       "public/framework/core/Page/Page.css:894-899"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/give-each-page-a-background-color-distin/"
     },
     {
      "id": "6471b08f1c",
@@ -18788,7 +18946,8 @@
       "core/Page/doc/layout.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/lay-out-each-page-inside-a-1920px-wide-w/"
     },
     {
      "id": "7246c112ac",
@@ -18836,7 +18995,8 @@
       "rg 'class.jsonl' core/Page core/Item"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/add-a-per-page-inbox-in-page-jsonl-and-i/"
     },
     {
      "id": "ebbf6ef00e",
@@ -18907,7 +19067,8 @@
       "rg 'home' core/Item ext/JSONL"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Page/tasks/let-page-types-store-data-as-json-snapsh/"
     }
    ]
   },
@@ -19167,7 +19328,8 @@
       "ext/Refine/queue/asks.jsonl"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/fall-back-to-open-router-when-claude-tok/"
     },
     {
      "id": "83ea0cf790",
@@ -19216,7 +19378,8 @@
       "ext/Refine/readme.md:54"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/make-refinement-real-time-processing-cle/"
     },
     {
      "id": "76cf20cdd0",
@@ -19241,7 +19404,8 @@
       "rg incremental ext/Refine"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/amend-the-refined-prompt-incrementally-a/"
     },
     {
      "id": "a9fddccc0d",
@@ -19337,7 +19501,8 @@
       "rg sidebar public/framework/styles"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/harmonize-framework-sidebars-with-the-si/"
     },
     {
      "id": "475575f733",
@@ -19362,7 +19527,8 @@
       "rg sidebar public/framework/styles"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/harmonize-the-framework-sidebars-with-th/"
     },
     {
      "id": "793754b63d",
@@ -19386,7 +19552,8 @@
       "rg miller core/Page"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/make-the-miller-columns-more-compact-sin/"
     },
     {
      "id": "c0eca69ee6",
@@ -19434,7 +19601,8 @@
       "rg \"layer tree\" public/framework"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/explore-list-ui-styles-especially-a-tree/"
     },
     {
      "id": "700297c608",
@@ -19458,7 +19626,8 @@
       "rg \"mobile sheet|split-screen\" public/framework"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/put-the-layer-tree-in-a-small-mobile-she/"
     },
     {
      "id": "328d10384f",
@@ -19505,7 +19674,8 @@
       "rg rgba black 0.1 public/framework/ai"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/wrap-each-group-on-the-full-size-index-p/"
     },
     {
      "id": "5a0edfd81d",
@@ -19530,7 +19700,8 @@
       "public/framework/ext/Refine/doc/refined-asks.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/enlarge-group-headings-on-index-pages-so/"
     },
     {
      "id": "3042912002",
@@ -19555,7 +19726,8 @@
       "public/framework/ext/Refine/doc/refined-asks.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/upgrade-the-refined-prompt-so-each-sente/"
     },
     {
      "id": "de7962203f",
@@ -19628,7 +19800,8 @@
       "public/framework/ext/Refine/doc/refined-asks.md:31"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/once-context-is-on-screen-work-out-the-s/"
     },
     {
      "id": "62581f577b",
@@ -19653,7 +19826,8 @@
       "public/framework/ext/Refine/doc/refined-asks.md:30"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/expand-the-pill-frame-padding-icon-name/"
     },
     {
      "id": "802fe5d5c7",
@@ -19678,7 +19852,8 @@
       "grep 'launch' in public/framework/ext/Refine"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/make-context-cards-linkable-with-a-launc/"
     },
     {
      "id": "4f3fac829c",
@@ -19725,7 +19900,8 @@
       "public/framework/ext/Refine/doc/how-it-works.md:47"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/run-refinement-structure-and-card-creati/"
     },
     {
      "id": "54ca04e286",
@@ -19750,7 +19926,8 @@
       "public/framework/ext/Refine/doc/refined-asks.md:53"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/run-prompt-refinement-on-past-sessions-d/"
     },
     {
      "id": "9fa8a6d799",
@@ -19846,7 +20023,8 @@
       "public/framework/ext/Refine/doc/confidence.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/test-all-of-these-refinement-and-confide/"
     },
     {
      "id": "e2a605ec78",
@@ -19894,7 +20072,8 @@
       "public/framework/ext/Refine/doc/refined-asks.md:45-53"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/layer-each-prompt-verbatim-then-what-was/"
     },
     {
      "id": "9042f3bfcd",
@@ -19989,7 +20168,8 @@
       "public/framework/ext/Refine/runs/2026-10-13/confidence.json"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/re-check-existing-confidence-weights-sin/"
     },
     {
      "id": "b9ec96eb3a",
@@ -20036,7 +20216,8 @@
       "public/framework/ext/Refine/stages/doc/voice-to-page.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/make-prompt-refinement-output-json-strea/"
     },
     {
      "id": "6df15ff89d",
@@ -20060,7 +20241,8 @@
       "public/framework/ext/Refine/doc/vision-2026-10-08.md:10"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/Refine/tasks/use-the-refined-prompt-as-the-handoff-so/"
     }
    ]
   },
@@ -20094,7 +20276,8 @@
       "grep 'refinement loop|prior run|improved' public/framework/ext/DesignTool"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/make-the-refinement-loop-screenshot-read/"
     },
     {
      "id": "e2f85cfcc5",
@@ -20144,7 +20327,8 @@
       ".claude/skills/mastermind/SKILL.md grep image"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/have-the-mastermind-read-all-the-images/"
     },
     {
      "id": "c6954fe70f",
@@ -20169,7 +20353,8 @@
       "grep 'refine loop|before and after' ext/DesignTool"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/run-parallel-agents-that-each-refine-a-l/"
     },
     {
      "id": "71015c55f0",
@@ -20194,7 +20379,8 @@
       "public/framework/ai/tasks/readme.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/make-the-task-process-structured-the-ai/"
     },
     {
      "id": "82b5d9c4ce",
@@ -20219,7 +20405,8 @@
       "Servex/doc/task-loop.md:25"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/automate-the-process-so-it-does-not-depe/"
     },
     {
      "id": "bf055744be",
@@ -20244,7 +20431,8 @@
       "Servex/TaskLoop.js:295"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/nudge-the-agent-through-every-step-of-th/"
     },
     {
      "id": "c7de8bf520",
@@ -20318,7 +20506,8 @@
       "Servex/TaskLoop.js:89"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/nudge-the-minion-within-a-minute-or-two/"
     },
     {
      "id": "57b654e5d3",
@@ -20343,7 +20532,8 @@
       "Servex/doc/steps.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/tasks/attach-special-instructions-to-task-type/"
     },
     {
      "id": "12856e0590",
@@ -20585,7 +20775,8 @@
       "grep held_by|stale in Servex/pool.js"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/servex/tasks/servex-worktree-pool-stuck-qf-6-qf-9-hel/"
     },
     {
      "id": "02d6a3f094",
@@ -20609,7 +20800,8 @@
       "Servex/readme.md:37"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/servex/tasks/use-node-tool-functions-for-all-tool-cal/"
     },
     {
      "id": "1ec7d01891",
@@ -20801,7 +20993,8 @@
       "grep red|padding in public/framework/servex/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/servex/tasks/shade-a-layout-red-by-css-when-it-needs/"
     },
     {
      "id": "3f267fe4d0",
@@ -20825,7 +21018,8 @@
       "grep Fal|Higgs in public/framework/servex/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/servex/tasks/investigate-wiring-an-mcp-for-fal-higgs/"
     },
     {
      "id": "aef5cfaba7",
@@ -20849,7 +21043,8 @@
       "grep backup in public/framework/ai/doc/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/servex/tasks/support-backups-to-an-external-hard-driv/"
     },
     {
      "id": "09eeb410fe",
@@ -20873,7 +21068,8 @@
       "grep Durable|D1|Cloudflare in public/framework/servex/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/servex/tasks/evaluate-cloudflare-durable-objects-d1-a/"
     },
     {
      "id": "614fc0ccbe",
@@ -20967,7 +21163,8 @@
       "grep restart in Servex/ext/remote/"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/servex/tasks/servex-restart-plan-a-restart-must-not-d/"
     }
    ]
   },
@@ -21002,7 +21199,8 @@
       "public/framework/ux/Dictate/chunk-session.mjs"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ux/Dictate/tasks/build-permutations-of-dictation-transcri/"
     },
     {
      "id": "b375a44af1",
@@ -21077,7 +21275,8 @@
       "public/framework/ux/Dictate/surfaces/page.js (not opened for states)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ux/Dictate/tasks/show-before-after-states-of-the-streamin/"
     },
     {
      "id": "b5251c1c06",
@@ -21102,7 +21301,8 @@
       "public/framework/ext/Refine/engine.js"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ux/Dictate/tasks/find-why-dictation-is-routed-to-openrout/"
     },
     {
      "id": "e867b6d403",
@@ -21152,7 +21352,8 @@
       "public/framework/ux/Dictate/chat.js"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ux/Dictate/tasks/make-the-sidebar-and-mobile-sheet-run-th/"
     },
     {
      "id": "ef3b21a46b",
@@ -21249,7 +21450,8 @@
       "public/framework/ux/Dictate/doc/sessions.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ux/Dictate/tasks/test-chunk-boundaries-sentence-as-baseli/"
     },
     {
      "id": "8651dfbdb2",
@@ -21297,7 +21499,8 @@
       "grep cloudflare in ux/Dictate (only refined-asks.md, voice-bridge.md, https-lan.md, inbox.jsonl)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ux/Dictate/tasks/show-a-prioritized-list-of-past-cloudfla/"
     },
     {
      "id": "e291bb2cf1",
@@ -21345,7 +21548,8 @@
       "public/framework/ux/Dictate/doc/https-lan.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ux/Dictate/tasks/stream-transcription-in-the-mobile-rail/"
     },
     {
      "id": "6ef1b9b48e",
@@ -21499,7 +21703,8 @@
       "grep Property in public/framework/ui and ext/DataGrid"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Property/tasks/make-properties-bindable-so-ui-controls/"
     },
     {
      "id": "56ea5ae632",
@@ -21523,7 +21728,8 @@
       "public/framework/core/Property/Property.js"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Property/tasks/bind-one-property-to-another-with-expres/"
     },
     {
      "id": "ed7ff59c42",
@@ -21595,7 +21801,8 @@
       "public/framework/core/Property/readme.md:10"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Property/tasks/mark-bindable-by-instanceof-property-or/"
     },
     {
      "id": "3a9ce98164",
@@ -21620,7 +21827,8 @@
       "public/framework/ext/DataGrid/DataGrid.js"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Property/tasks/keep-a-thousand-item-data-grid-with-tens/"
     }
    ]
   },
@@ -21823,7 +22031,8 @@
       "public/framework/core/Property/Property.js"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/tasks/make-field-extend-property-with-its-own/"
     },
     {
      "id": "5446456224",
@@ -21848,7 +22057,8 @@
       "public/framework/core/Page/doc/binding.md:142"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/tasks/let-clone-take-a-pojo-and-assign-to-any/"
     }
    ]
   },
@@ -21908,7 +22118,8 @@
       "git log -n 5 -S\"System\" -- public/framework/ui"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ui/tasks/ui-system-class-framework-ui-library-of/"
     },
     {
      "id": "b0360d781a",
@@ -21934,7 +22145,8 @@
       "public/framework/library/readme.md:9"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ui/tasks/build-a-browsable-mobile-ui-collection-w/"
     },
     {
      "id": "f514e34830",
@@ -21975,7 +22187,8 @@
       "public/framework/ui/doc/refined-asks.md:7"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ui/tasks/let-the-related-items-rail-be-configurab/"
     },
     {
      "id": "bbf71904ff",
@@ -22000,7 +22213,8 @@
       "grep -rn \"figma\" public/framework/ui -i"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ui/tasks/integrate-framework-ui-and-framework-ux/"
     },
     {
      "id": "5b417fbfb8",
@@ -22025,7 +22239,8 @@
       "grep -rn \"harmoni\" public/framework/ui -i"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ui/tasks/harmonize-the-framework-ui-system-with-t/"
     },
     {
      "id": "7a88554c1c",
@@ -22050,7 +22265,8 @@
       "public/framework/ui/inbox.jsonl"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ui/tasks/integrate-framework-ui-and-framework-u-2/"
     },
     {
      "id": "8a1b7a0c95",
@@ -22075,7 +22291,8 @@
       "grep -rn \"harmoni\" public/framework/ui -i"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ui/tasks/harmonize-the-framework-ui-system-with-2/"
     }
    ]
   },
@@ -22136,7 +22353,8 @@
       "public/framework/ux/Inbox/readme.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ux/Inbox/tasks/inbox-priority-50-only-log-everything-a/"
     },
     {
      "id": "8c49a941c9",
@@ -22229,7 +22447,8 @@
       "rg 'inbox.jsonl' in ux/Inbox and core/Page/ext/Inbox"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ux/Inbox/tasks/store-inbox-cards-as-an-appendable-jsonl/"
     },
     {
      "id": "c8acae6ab6",
@@ -22255,7 +22474,8 @@
       "public/framework/ux/Inbox/doc/refined-asks.md:9 (still open)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ux/Inbox/tasks/reuse-the-existing-data-grid-class-s-con/"
     },
     {
      "id": "dac1d2fef6",
@@ -22305,7 +22525,8 @@
       "public/framework/ux/Inbox/doc/refined-asks.md"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ux/Inbox/tasks/give-each-inbox-card-a-right-sidebar-to/"
     }
    ]
   },
@@ -22339,7 +22560,8 @@
       "git log -n 5 -S\"wall switch\" -- Servex/ext/openrouter"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/models/tasks/when-claude-tokens-are-available-especia/"
     },
     {
      "id": "b76eabc306",
@@ -22440,7 +22662,8 @@
       "public/framework/ai/doc/models.md (grep best|good|bench|verdict)"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/models/tasks/revisit-the-ai-model-testing-system-and/"
     }
    ]
   },
@@ -22697,7 +22920,8 @@
       "grep WeakRef|FinalizationRegistry|weak|garbage in core/Events"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Events/tasks/unsubscribe-from-changes-when-objects-ar/"
     },
     {
      "id": "148f18f340",
@@ -22723,7 +22947,8 @@
       "grep _on in core/Events"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/core/Events/tasks/do-not-create-more-events-or-subscriptio/"
     },
     {
      "id": "78c3a470a6",
@@ -22846,7 +23071,8 @@
       "git log --oneline -n 5 -S\"Dictate\" -- public/framework/ux public/framework/ai public/framework/ext"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ext/tasks/move-the-dictation-extension-into-the-ai/"
     }
    ]
   },
@@ -22883,7 +23109,8 @@
       "git log --oneline -n 5 -S refine -- public/framework/ai/cards"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/cards/tasks/explain-prompt-refinement-cards-using-te/"
     },
     {
      "id": "a2963bb311",
@@ -22911,7 +23138,8 @@
       "rg -i refine in public/framework/ai/cards"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/ai/cards/tasks/make-prompt-refinement-cards-familiar-an/"
     }
    ]
   },
@@ -22963,7 +23191,8 @@
       "grep 'whitespace|alignment' in public/framework/design/layout"
      ],
      "verified_at": "2026-10-17T15:58:12.693Z",
-     "verified_by": "claude-haiku-5-5"
+     "verified_by": "claude-haiku-5-5",
+     "task": "/framework/design/tasks/document-generic-design-guidance-such-as/"
     },
     {
      "id": "1c72f44b5a",
