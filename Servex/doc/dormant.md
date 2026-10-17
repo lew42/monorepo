@@ -120,9 +120,12 @@ of RAM given back this way.
 
 ## Compaction
 
-- At the end of a turn, `Agent.oversized()` checks the context (`SERVEX_COMPACT_TOKENS`, 200000)
-  and the process memory (`SERVEX_COMPACT_MB`, 500). Over either, the agent runs `/compact` as a
-  turn of its own. That turn wakes no parent and keeps the last turn's words.
+- At the end of a turn an idle agent past its line (a mastermind 150k, others `SERVEX_NUDGE_TOKENS` 200k) gets ONE
+  nudge message with its context size and whether its cache is warm; it compacts itself (`compact_self`) or not.
+  See `agents/doc/lifecycle.md`, "Compaction".
+- `Agent.oversized()` is only the safety net: past `SERVEX_COMPACT_TOKENS` (400000) or the process memory
+  (`SERVEX_COMPACT_MB`, 500) the agent runs `/compact` as a turn of its own. That turn wakes no parent and keeps
+  the last turn's words.
 - Memory is read every 5 minutes (`Global.measure()`): each claude.exe's working set, matched to
   its agent by the session id on its command line.
 - Compacted **for memory**, the process is also restarted from the compacted session

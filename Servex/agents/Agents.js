@@ -1250,24 +1250,56 @@ Agents.Agent = class Agent {
 		return true;
 	}
 
-	/* Why this agent should compact now, or null. Once per turn: a summary still
-	 * over the line is not compacted again until it has done more work. */
+	/* Why this agent MUST compact now, or null: only the safety ceiling (the model window) and the
+	 * process memory. Once per turn: a summary still over the line is not compacted again until it
+	 * has done more work. Everything softer is `nudge()` (doc/owner-2026-10-16-compaction.md). */
 	oversized(){
-		const tokens = this.host?.compact_tokens ?? (Number(process.env.SERVEX_COMPACT_TOKENS) || 200000);
+		const ceiling = this.host?.compact_tokens ?? (Number(process.env.SERVEX_COMPACT_TOKENS) || 400000);
 		const mb = this.host?.compact_mb ?? (Number(process.env.SERVEX_COMPACT_MB) || 500);
 		/* The front desk is never compacted: Layers.js restarts a page's assistant and manager
 		 * FRESH from a checkpoint instead ("fresh, not compacted" — the owner). */
 		if (this.one_shot || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return null;
-		/* roles.js `compact_after` (2026-10-13): masterminds 150k tokens or 45 min; minions never. */
-		const after = role_compact_after(this.role);
-		if (after === null) return null;
-		if (after){
-			if ((this.context ?? 0) > after.tokens) return "context";
-			if (Date.parse(this.compacted_at ?? this.started_at) < Date.now() - after.minutes * 60000 && (this.context ?? 0) > 20000) return "age";
-		}
-		if ((this.context ?? 0) > tokens) return "context";
+		/* roles.js `compact_after`: minions never. */
+		if (role_compact_after(this.role) === null) return null;
+		if ((this.context ?? 0) > ceiling) return "context";
 		if ((this.rss_mb ?? 0) > mb) return "memory";
 		return null;
+	}
+
+	/* THE COMPACT NUDGE (2026-10-16): past the role's threshold (roles.js `compact_after.tokens`, else
+	 * SERVEX_NUDGE_TOKENS 200k) an idle agent is told its context size ONCE and asked to compact if
+	 * nothing in flight needs it; it decides, node never cuts in mid-flight. Again only after the
+	 * context grew `NUDGE_GROWTH` since the last nudge (the nudge turn itself adds far less).
+	 * Returns the message text, or null. Pure decision: `nudge_send()` does the sending. */
+	nudge(now = Date.now()){
+		if (this.state !== "idle" || this.one_shot || this.compacting || STANDING.test(this.id ?? "")) return null;
+		const after = role_compact_after(this.role);
+		if (after === null) return null;
+		const limit = after?.tokens ?? this.host?.nudge_tokens ?? (Number(process.env.SERVEX_NUDGE_TOKENS) || 200000);
+		const context = this.context ?? 0;
+		if (context <= limit) return null;
+		if (this.nudged_context != null && context < this.nudged_context + NUDGE_GROWTH) return null;
+		const ended = this.turn_ended_at ?? (this.last_at ? Date.parse(this.last_at) : now);
+		const minutes = Math.max(0, Math.round((now - ended) / 60000));
+		const warm = minutes < 5;
+		this.nudge_info = { context, cache: warm ? "warm" : "cold", minutes };
+		return `Context: ${context.toLocaleString("en-US")} tokens, cache ${warm ? "warm" : "cold"} (last turn ${minutes} minute${minutes === 1 ? "" : "s"} ago). You are idle. Compact now unless something in flight needs this context.`;
+	}
+
+	/* The agent's answer to the nudge (the `compact_self` tool): compact when this turn ends. */
+	request_compact(){
+		this.compact_requested = true;
+		return { ok: true, note: "Compaction runs when this turn ends; end your turn now." };
+	}
+
+	nudge_send(){
+		const text = this.nudge();
+		if (!text) return false;
+		this.nudged_context = this.context ?? 0;
+		this.nudge_pending = true;
+		this.emit({ type: "compact_nudge", context: this.nudge_info.context, cache: this.nudge_info.cache });
+		this.send(text, { from: "servex-compact-nudge" });
+		return true;
 	}
 
 	/* Three things end a session, and a long-lived host needs all three: close the
@@ -1338,7 +1370,10 @@ Agents.Agent = class Agent {
 		 * its turn ended. Only a child cut off mid-turn wakes the parent, as
 		 * `stopped: …` (2026-09-24: five finished minions, stopped, each re-sent
 		 * its old "done"). */
-		if (event.type === "result" && !(event.stopped && !event.mid_turn)) this.host?.wake_parent?.(this,
+		/* The turn that answers a compact nudge is housekeeping, not news: its "done" wakes nobody. */
+		const nudge_turn = event.type === "result" && !event.stopped && this.nudge_pending;
+		if (nudge_turn) this.nudge_pending = false;
+		if (event.type === "result" && !nudge_turn && !(event.stopped && !event.mid_turn)) this.host?.wake_parent?.(this,
 			event.stopped ? "stopped"
 			: this.one_shot && event.ok === false ? "error"
 			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done");
@@ -1764,6 +1799,7 @@ Agents.Agent = class Agent {
 				cache_creation_input_tokens: u.cache_creation_input_tokens ?? 0, output_tokens: u.output_tokens ?? 0 }
 		});
 		this.usage = u;
+		this.turn_ended_at = Date.now();
 		/* CONTEXT — the tokens this agent holds now, i.e. what its next request
 		 * re-sends: the LAST main-thread response's input + cache_read +
 		 * cache_creation + output (the SDK's own definition of `context_tokens`,
@@ -1784,7 +1820,12 @@ Agents.Agent = class Agent {
 		 * session stays resumable — a message still wakes it (no `stopped_by`). */
 		else if (ONE_PASS.includes(this.role) && this.state === "idle") setImmediate(() => { if (this.state === "idle") this.stop(); });
 		/* Grown past a threshold: compact before anything else arrives. */
-		else if (this.state === "idle"){ const why = this.oversized(); if (why) setImmediate(() => this.compact(why)); }
+		else if (this.state === "idle"){
+			const why = this.compact_requested ? "requested" : this.oversized();
+			this.compact_requested = false;
+			if (why) setImmediate(() => this.compact(why));
+			else setImmediate(() => { if (this.state === "idle") this.nudge_send(); });
+		}
 		if (this.state === "idle") { this.landing_nag(); this.landing_check(); }
 	}
 
@@ -1835,6 +1876,7 @@ Agents.Agent = class Agent {
 		this.compacting = null;
 		this.compacted_turn = this.turns;
 		this.compacted_at = stamp();
+		this.nudged_context = null;   // a fresh idle period: the next growth past the line is nudged again
 		if (this.provider === "openrouter") this.refresh_or_cost();
 		else this.add_cost(message);
 		this.queued = message.queued_turn_count ?? 0;
@@ -1849,6 +1891,9 @@ Agents.Agent = class Agent {
 		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")) this.awaken("compaction");
 	}
 };
+
+/* A nudged agent that declined is nudged again only after its context grew this much. */
+export const NUDGE_GROWTH = 20000;
 
 export const ONE_PASS = ["reviewer", "clarity", "checker"];
 

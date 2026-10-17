@@ -20,10 +20,12 @@ import { model, provider } from "./tiers.js";
  * DERIVED from the tier, so moving a tier to another model is one line in tiers.js.
  * ⚠ 2026-09-24: `mastermind` and `master-assistant` were Fable rows; the tier table has
  * no Fable tier, so they now run on the architect and fast tiers. */
-/* COMPACTION POLICY (2026-10-13, doc/lifecycle.md): `compact_after` on a row is {tokens, minutes}: the agent runs
- * `/compact` at the end of a turn once its context passes `tokens` or it is `minutes` old (since start or last
- * compaction). `null` = never (minions live 10-30 min). A row with no field keeps the host default (200k tokens). */
-export const MASTERMIND_COMPACT = { tokens: 150000, minutes: 45 };
+/* COMPACTION POLICY (2026-10-16, doc/lifecycle.md, agents/doc/owner-2026-10-16-compaction.md): `compact_after` on a row
+ * is {tokens}: once an IDLE agent's context passes `tokens`, Servex sends it ONE nudge (context size, cache warm/cold)
+ * and the agent decides, answering with the `compact_self` tool; it never auto-compacts mid-flight. Age is no reason.
+ * `null` = never (minions live 10-30 min). A row with no field uses the host default (SERVEX_NUDGE_TOKENS, 200k).
+ * Everyone (but minions and the front desk) is auto-compacted at turn end only past the safety ceiling (400k) or memory. */
+export const MASTERMIND_COMPACT = { tokens: 150000 };
 export function compact_after(role){ const r = ROLES[canonical(role)]; return r && "compact_after" in r ? r.compact_after : undefined; }
 
 export const ROLES = {

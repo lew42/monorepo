@@ -409,6 +409,19 @@ return [
 		["id"],
 		async ({ id }) => card(await agents.interrupt(id))),
 
+	tool("compact_self",
+		"Compact your own context, after this turn ends. Servex tells you when your context is large and you are idle"
+		+ " (\"Context: N tokens ... Compact now unless something in flight needs this context\"); answer that by calling"
+		+ " this tool as your LAST action, then stop. Your conversation is summarised and you continue from the summary."
+		+ " Do not call it while you still need files you have read or decisions you have not written down.",
+		{},
+		[],
+		async (args, ctx = {}) => {
+			const agent = ctx.caller ? agents.live?.get(ctx.caller) : null;
+			if (!agent?.request_compact) return JSON.stringify({ ok: false, why: "Servex does not hold you as a live agent, so it cannot compact you." });
+			return JSON.stringify(agent.request_compact());
+		}),
+
 	tool("list_agents",
 		"Every agent Servex has ever registered: its id, role, name, topics, page, state, who can"
 		+ " see it, its session uuid for `claude --resume`, when it started and its parent — the"
