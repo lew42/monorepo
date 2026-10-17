@@ -38,3 +38,24 @@ When the voice agent talks about code, the card it posts shows the code in real 
 ## 2026-10-16 — the feed tile says what the page says (owner)
 
 A card's tile in the /live feed is navigation. Its text must be the card's title, nothing else: when I click "Now" I land on a page whose first heading is "Now". No mismatch between the link and what it links to. The `preview` field is not a place for a subtitle or a summary; if it differs from `title` it is wrong. (Said after the Now card showed "Done, in flight, waiting on you" in the feed.)
+
+## Every card that was on /live, and its plan (checkup, 2026-10-16)
+
+The law (CLAUDE.md): code streams the UI, never an agent. A card is agent-written text (stale the moment the work moves on) or a view (code reads the data). All twelve old cards were moved to [/live/archive/](/live/archive/) by `archive/ArchiveMove.mjs`; [archive/readme.md](../archive/readme.md) says how, and `archive/manifest.json` lists them.
+
+| Card | Kind | Plan |
+|---|---|---|
+| now | agent text, edited by hand six times | replaced by the **Now** view (`LiveNow.js`) |
+| tasks | view (`LiveTasks.js`) | kept, on the new /live |
+| task-system-plan | agent text, rewritten about 15 times | archived; the plan lives in the task-system task folder, the status in `core/Task` |
+| task-migrate | agent text | archived; status is the migration task's own `task.jsonl` |
+| sheet-audit, sheet-proposal | agent text | archived; the sheet task folders and `ext/drawer` docs hold the substance |
+| class-architecture | agent text (a design note) | archived; it belongs in `core/Item/doc/` (its owner could move it there) |
+| live-classes | agent text about `Live.js` | archived; this module's readme supersedes it |
+| task-audits, transcripts, chat bubbles, overnight | pointers already (data moved by the live-pointers task) | archived |
+
+**Views that exist:** Now, Tasks, Today (`LiveToday.js`, the full session list; no card draws it now, add `{"type":"part-live","live":"today"}` to show it).
+
+**Decision (checkup):** Now reads `LiveToday.load` for today and yesterday (UTC), so one reader serves both cards. It keeps the 30 s timer it inherits until the session writer exposes a stream; the better fix is a socket tail of the session index, which is larger and would win once that index is a JSONL.
+
+**New cards from the voice agent** should be pointers (title, one sentence, links) or a `part-live` view; text that will change belongs in the log of whatever produces it.

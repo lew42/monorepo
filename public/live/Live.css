@@ -43,3 +43,9 @@
 	.live-tasks-line { font-weight: 600; color: inherit; text-decoration: none; }
 	.live-tasks-line:hover { text-decoration: underline; }
 }
+
+@layer site {
+	.live-now-group { display: flex; flex-direction: column; gap: .15rem; }
+	.live-now-group + .live-now-group { border-top: 1px solid #0001; padding-top: .35rem; }
+	.live-now-head { font-weight: 700; }
+}
