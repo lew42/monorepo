@@ -23,6 +23,8 @@ const GROUP_ORDER = ["stalled", "building", "routed", "queued", "parked", "lande
 const GROUP_LABEL = { stalled: "Stalled", building: "Building", routed: "Routed", queued: "Queued", parked: "Parked", landed: "Landed", dropped: "Dropped" };
 const GROUP_ICON = { stalled: "hourglass_disabled", building: "construction", routed: "call_split", queued: "schedule", parked: "local_parking", landed: "task_alt", dropped: "cancel" };
 
+// Cards that still exist (ai/cards.jsonl); a ledger ask may name a card that was never filed, and linking it is a dead page.
+const CARD_IDS = new Set();
 const read_text = url => fetch(url, { cache: "no-store" }).then(r => (r.ok ? r.text() : "")).catch(() => "");
 const parse_lines = text => String(text ?? "").split(/\r?\n/).filter(l => l.trim())
 	.map(l => { try { return JSON.parse(l); } catch { return null; } });
@@ -87,7 +89,7 @@ function ask_row(ask){
 		});
 		div.c("asks-row-meta flex wrap gap-25 muted", () => {
 			small.c("asks-row-owner").text("owner " + (ask.owner || "—"));
-			if (ask.card) a.c("page-link").href("/framework/ai/" + ask.card + "/").text("card");
+			if (ask.card && CARD_IDS.has(ask.card)) a.c("page-link").href("/framework/ai/" + ask.card + "/").text("card");
 			if (words) a.c("page-link").href(words).text("words");
 			else if (ask.words) small.c("asks-row-owner").text(ask.words);
 		});
@@ -119,6 +121,7 @@ export default new Page({
 		$groups.style("--column", "22em");
 		div.c("card pad", $box => page_work_strip($box, { match: ["ask", "stalled", "ledger"], page: this }));
 
+		parse_lines(await read_text("/framework/ai/cards.jsonl")).forEach(c => c?.id && CARD_IDS.add(c.id));
 		const text = await read_text(ASKS_URL);
 		const asks = Object.values(AskFold.fold(parse_lines(text)));
 
