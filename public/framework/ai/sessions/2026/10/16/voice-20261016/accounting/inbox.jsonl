@@ -1,0 +1,1 @@
+{"at":"2026-10-16T15:34:50-05:00","from":"helper-spawn-test","kind":"done","text":"Servex is the always-on process on this machine that keeps the dev servers and Claude agents running, owns every log file, and answers MCP requests."}

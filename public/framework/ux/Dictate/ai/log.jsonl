@@ -44,3 +44,20 @@
 {"decision":{"text":"Whisper quiet incident at 17:01 was transient: local endpoint answered HTTP 200 shortly after, and subsequent owner dictations arrived; no restart performed.","file":"public/framework/ai/v-yxnts4l.jsonl","at":"2026-10-05T17:02:53.989-05:00"}}
 {"decision":{"text":"At 17:23 Whisper health root and monorepo same-origin proxy both return HTTP 200 from desktop; microphone capture and inference path remain unverified.","file":"public/framework/ai/v-yxnts4l.jsonl","at":"2026-10-05T17:24:11.266-05:00"}}
 {"session":{"id":"v-js3vqn5","event":"started","title":null,"file":"/framework/ux/Dictate/ai/v-js3vqn5.jsonl","at":"2026-10-12T07:07:53.611-05:00"}}
+{"session":{"id":"v-8053d33","event":"started","title":null,"file":"/framework/ux/Dictate/ai/v-8053d33.jsonl","at":"2026-10-16T01:01:30.040-05:00"}}
+{"session":{"id":"v-8053d33","event":"started","title":"Dictate page speech test","file":"/framework/ux/Dictate/ai/v-8053d33.jsonl","at":"2026-10-16T01:01:46.259-05:00"}}
+{"session":{"id":"v-8053d33","event":"ended","title":"Dictate page speech test","file":"/framework/ux/Dictate/ai/v-8053d33.jsonl","at":"2026-10-16T01:07:43.333-05:00"}}
+{"session":{"id":"v-8053d33","event":"started","title":"Dictate page speech test","file":"/framework/ux/Dictate/ai/v-8053d33.jsonl","at":"2026-10-16T01:15:36.340-05:00"}}
+{"session":{"id":"v-tsaxzkm","event":"started","title":null,"file":"/framework/ux/Dictate/ai/v-tsaxzkm.jsonl","at":"2026-10-16T01:18:26.314-05:00"}}
+{"session":{"id":"v-tsaxzkm","event":"started","title":"Dictate page voice check","file":"/framework/ux/Dictate/ai/v-tsaxzkm.jsonl","at":"2026-10-16T01:18:50.124-05:00"}}
+{"session":{"id":"v-4eumhe6","event":"started","title":null,"file":"/framework/ux/Dictate/ai/v-4eumhe6.jsonl","at":"2026-10-16T01:26:42.095-05:00"}}
+{"session":{"id":"v-8053d33","event":"ended","title":"Dictate page speech test","file":"/framework/ux/Dictate/ai/v-8053d33.jsonl","at":"2026-10-16T01:26:42.160-05:00"}}
+{"session":{"id":"v-4eumhe6","event":"started","title":"Dictate voice check","file":"/framework/ux/Dictate/ai/v-4eumhe6.jsonl","at":"2026-10-16T01:26:58.744-05:00"}}
+{"session":{"id":"v-tsaxzkm","event":"ended","title":"Dictate page voice check","file":"/framework/ux/Dictate/ai/v-tsaxzkm.jsonl","at":"2026-10-16T01:31:46.335-05:00"}}
+{"session":{"id":"v-4eumhe6","event":"ended","title":"Dictate voice check","file":"/framework/ux/Dictate/ai/v-4eumhe6.jsonl","at":"2026-10-16T01:32:46.374-05:00"}}
+{"session":{"id":"v-f4eh22m","event":"started","title":null,"file":"/framework/ux/Dictate/ai/v-f4eh22m.jsonl","at":"2026-10-16T01:35:01.771-05:00"}}
+{"session":{"id":"v-f4eh22m","event":"started","title":"Dictate test: JFK quote","file":"/framework/ux/Dictate/ai/v-f4eh22m.jsonl","at":"2026-10-16T01:35:17.550-05:00"}}
+{"session":{"id":"v-f4eh22m","event":"ended","title":"Dictate test: JFK quote","file":"/framework/ux/Dictate/ai/v-f4eh22m.jsonl","at":"2026-10-16T01:40:46.405-05:00"}}
+{"session":{"id":"v-mu0xaq1","event":"started","title":null,"file":"/framework/ux/Dictate/ai/v-mu0xaq1.jsonl","at":"2026-10-16T01:41:01.571-05:00"}}
+{"session":{"id":"v-mu0xaq1","event":"started","title":"Dictate page voice test","file":"/framework/ux/Dictate/ai/v-mu0xaq1.jsonl","at":"2026-10-16T01:41:16.664-05:00"}}
+{"session":{"id":"v-mu0xaq1","event":"ended","title":"Dictate page voice test","file":"/framework/ux/Dictate/ai/v-mu0xaq1.jsonl","at":"2026-10-16T01:46:46.498-05:00"}}

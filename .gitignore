@@ -194,3 +194,7 @@ public/framework/catalog/thumbs/
 # Committed only when a person chose it: a doc/ folder, public/blog/, public/notes/, an assets/img/ folder.
 # thumbs/ stays committed: the decks and Figma pages render those 1 MB of jpgs on the live site.
 **/shots/
+
+# voice logs under ai/ai/ are machine output like ai/v-*.jsonl above (commit-rule.md, 2026-10-17)
+public/framework/ai/ai/v-*.jsonl
+public/framework/ai/ai/v-*.summary.json

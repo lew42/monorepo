@@ -3,3 +3,12 @@
 {"file":"Whisper.css"}
 {"file":"readme.md"}
 {"file":"page.js"}
+{"file":"log/"}
+{"file":"log/","gone":true}
+{"file":"doc/"}
+{"file":"log/page.js"}
+{"file":"test-whisper-log.mjs"}
+{"file":"WhisperLog.css"}
+{"file":"WhisperLog.js"}
+{"file":"WhisperLogRows.js"}
+{"file":"WhisperLogRows.test.mjs"}
