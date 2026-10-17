@@ -60,7 +60,7 @@ const BUCKETS = ["preamble", "user", "tool_result", "assistant", "thinking", "ot
 const zero = () => Object.fromEntries(BUCKETS.map(k => [k, 0]));
 const sum = o => Object.values(o).reduce((n, v) => n + v, 0);
 const add_to = (a, b) => { for (const k in b) a[k] = (a[k] || 0) + b[k]; return a; };
-const RING = 40;                   // recent message ids remembered, so a re-read line is never counted twice
+const STATE_V = 2;                 // bump to make every cached session re-read its log once (v1 deduped with a 40-slot ring: doc/cost-accounting.md)
 const ACTIVE_GAP_MS = 5 * 60000;   // a gap longer than the cache TTL is idle, not active
 
 const PURPOSE_LABELS = {
@@ -84,7 +84,7 @@ export default class AISession extends Session {
 
 	static blank(id){
 		return {
-			v: 1, id, provider: "claude",
+			v: STATE_V, id, provider: "claude",
 			cursor: {},                                   // part -> { off }  byte offset of the last complete line read
 			first_at: null, last_at: null, active_ms: 0, last_main_at: null,
 			messages: 0, prompts: 0, resets: 0,
@@ -97,7 +97,7 @@ export default class AISession extends Session {
 			unknown_models: [],
 			purpose: { tokens: zero(), usd: zero() },
 			configured: null, flags: [],
-			state: { ring: [], prev: {}, comp: {}, pend: {}, tu: {} },
+			state: { seen: {}, tool_seen: {}, prev: {}, comp: {}, pend: {}, tu: {} },   // seen: every message id counted so far -> its tokens (never trimmed)
 		};
 	}
 
@@ -177,19 +177,20 @@ export default class AISession extends Session {
 			w5: split ? (cw5 || 0) : 0, w1: split ? (cw1 || 0) : cw_total };       // no split reported: price as 1-hour (what this machine uses)
 		const think = u.output_tokens_details?.thinking_tokens || 0;
 
-		const ring = s.state.ring, at = ring.findIndex(r => r[0] === id);
-		if (at >= 0){
-			const old = this._entry(ring[at]);
-			if (old.input === e.input && old.output === e.output && old.cread === e.cread && old.w5 === e.w5 && old.w1 === e.w1) return;   // a repeat line
+		const key = part === "main" ? id : part + "|" + id, seen = s.state.seen;
+		if (seen[key]){
+			const old = this._entry(key, seen[key]), top = AISession.merge_usage(old, e);
+			if (top === old) return;                          // a repeat line, or a replayed copy with zeroed usage: nothing to add
+			e.input = top.input; e.output = top.output; e.cread = top.cread; e.w5 = top.w5; e.w1 = top.w1;
 			const before = this._tally(old, -1); const after = this._tally(e, +1);
-			ring[at] = this._store(e);
+			seen[key] = this._store(e);
 			const pv = s.state.prev[part];                   // the next call's growth uses this reply's final size
 			if (pv && pv.id === id){ pv.out = e.output; pv.think = think; }
 			s.purpose.usd.assistant += (after.out - before.out) * (1 - (e.output ? Math.min(1, think / e.output) : 0));
 			s.purpose.usd.thinking += (after.out - before.out) * (e.output ? Math.min(1, think / e.output) : 0);
 			return;
 		}
-		ring.push(this._store(e)); if (ring.length > RING) ring.shift();
+		seen[key] = this._store(e);
 		if (!split) s.tokens.cache_write_unsplit += cw_total;
 		const usd = this._tally(e, +1);
 		s.messages++;
@@ -203,8 +204,17 @@ export default class AISession extends Session {
 		this._purpose(part, { id, input: e.input, output: e.output, cread: e.cread, cw: e.w5 + e.w1, usd, think });
 	}
 
-	_store(e){ return [e.id, e.model, e.effort, e.side ? 1 : 0, e.part, e.input, e.output, e.cread, e.w5, e.w1]; }
-	_entry(r){ return { id: r[0], model: r[1], effort: r[2], side: !!r[3], part: r[4], input: r[5], output: r[6], cread: r[7], w5: r[8], w1: r[9] }; }
+	_store(e){ return [e.model, e.effort, e.side ? 1 : 0, e.part, e.input, e.output, e.cread, e.w5, e.w1]; }
+	_entry(key, r){ return { id: key, model: r[0], effort: r[1], side: !!r[2], part: r[3], input: r[4], output: r[5], cread: r[6], w5: r[7], w1: r[8] }; }
+
+	/** THE dedupe rule (one place; AISessionCost, the audit and the digest use the same): one API message counts once, and each token field is
+	 *  the LARGEST value any of its lines carries. Early lines hold a partial output count; the SDK also replays old messages with zeroed usage
+	 *  (after a compaction or resume). A maximum survives both, and it does not depend on line order, so a tail and the whole log agree.
+	 *  Returns `old` itself when `e` adds nothing. */
+	static merge_usage(old, e){
+		const m = { ...old, input: Math.max(old.input, e.input), output: Math.max(old.output, e.output), cread: Math.max(old.cread, e.cread), w5: Math.max(old.w5, e.w5), w1: Math.max(old.w1, e.w1) };
+		return m.input === old.input && m.output === old.output && m.cread === old.cread && m.w5 === old.w5 && m.w1 === old.w1 ? old : m;
+	}
 	_unit(e){
 		const key = e.model + "|" + (e.effort ?? "?");
 		return (this.s.units[key] ||= { model: e.model, effort: e.effort, n: 0, usd: 0, input: 0, output: 0, cache_read: 0, cache_write: 0 });
@@ -228,10 +238,10 @@ export default class AISession extends Session {
 
 	// tool_use blocks: count each tool call once (ids seen recently are skipped), remember id -> name for its result.
 	_blocks(m){
-		const s = this.s, seen = (s.state.tu_seen ||= []);
+		const s = this.s, seen = (s.state.tool_seen ||= {});
 		for (const b of Array.isArray(m.content) ? m.content : []){
-			if (b.type !== "tool_use" || seen.includes(b.id)) continue;
-			seen.push(b.id); if (seen.length > 80) seen.shift();
+			if (b.type !== "tool_use" || seen[b.id]) continue;
+			seen[b.id] = 1;
 			(s.tools[b.name] ||= { n: 0, result_tokens: 0 }).n++;
 			s.state.tu[b.id] = b.name;
 			const fp = b.input?.file_path ?? b.input?.notebook_path;
@@ -504,6 +514,7 @@ export default class AISession extends Session {
 	async update(files){
 		const fs = await import("node:fs/promises"), s = this.s;
 		let new_lines = 0;
+		if (s.messages && (s.v ?? 1) < STATE_V) return this.reset_and_update(files);   // counted with the 40-slot ring: read the log again, once
 		for (const { part, path } of files){
 			let size; try { size = (await fs.stat(path)).size; } catch { continue; }
 			let off = s.cursor[part]?.off ?? 0;
@@ -610,4 +621,4 @@ export default class AISession extends Session {
 }
 
 // The helpers other files need ride on the class: AISession.price_for(model), AISession.PRICES, ...
-Object.assign(AISession, { DEFAULT_MODEL, UNPRICED, PRICES, price_for, model_label, provider_of, PURPOSE_LABELS, PURPOSE_METHOD });
+Object.assign(AISession, { STATE_V, DEFAULT_MODEL, UNPRICED, PRICES, price_for, model_label, provider_of, PURPOSE_LABELS, PURPOSE_METHOD });

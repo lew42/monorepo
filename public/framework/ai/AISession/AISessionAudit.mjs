@@ -85,9 +85,19 @@ export function cost_of_transcript(path){
 	// message and repeats the whole message.usage on each, so pricing every line counted a message
 	// 2-5x. Measured against the SDK's own billed total on 25 finished agents (session-class/
 	// dedupe-truth.mjs): per-line was 2.03x the SDK, one-per-message.id was 0.998x. Count each id once.
+	// FIXED 2026-10-17 (cost-fix): "the LAST line wins" is wrong when the SDK replays an old message with zeroed usage (after a compaction
+	// or resume): the zeros overwrote the real count. Each token field is now the LARGEST any line of the message carries (own code, same rule
+	// as AISession.merge_usage; ai/AISession/doc/cost-accounting.md). `peak` holds that per id; the message is priced once, at its last line.
 	const all = lines_of(path);
-	const last_line_of = new Map();
-	all.forEach((o, i) => { if (o.type === "assistant" && o.message?.usage) last_line_of.set(o.message.id || o.uuid, i); });
+	const last_line_of = new Map(), peak = new Map();
+	all.forEach((o, i) => {
+		const u = o.type === "assistant" && o.message?.usage; if (!u) return;
+		const k = o.message.id || o.uuid, p = peak.get(k) ?? peak.set(k, { in: 0, out: 0, cr: 0, cw: 0, w5: 0, w1: 0 }).get(k);
+		p.in = Math.max(p.in, u.input_tokens || 0); p.out = Math.max(p.out, u.output_tokens || 0); p.cr = Math.max(p.cr, u.cache_read_input_tokens || 0);
+		p.cw = Math.max(p.cw, u.cache_creation_input_tokens || 0); p.w5 = Math.max(p.w5, u.cache_creation?.ephemeral_5m_input_tokens ?? 0);
+		p.w1 = Math.max(p.w1, u.cache_creation ? (u.cache_creation.ephemeral_1h_input_tokens ?? 0) : (u.cache_creation_input_tokens || 0));
+		last_line_of.set(k, i);
+	});
 	let messages = 0;
 	for (const [i, o] of all.entries()){
 		if (o.type === "user" && !o.isSidechain && o.turnOrigin !== "task_notification"){
@@ -102,9 +112,8 @@ export function cost_of_transcript(path){
 		const g = current ?? group_for("unknown");
 		const model = o.message?.model ?? g.model ?? "unknown";
 		const price = price_for(model, unknown_models);
-		const input = usage.input_tokens || 0, output = usage.output_tokens || 0;
-		const cache_read = usage.cache_read_input_tokens || 0, cache_write = usage.cache_creation_input_tokens || 0;
-		const w5 = usage.cache_creation?.ephemeral_5m_input_tokens ?? 0, w1 = usage.cache_creation ? (usage.cache_creation.ephemeral_1h_input_tokens ?? 0) : cache_write;
+		const pk = peak.get(o.message.id || o.uuid);
+		const input = pk.in, output = pk.out, cache_read = pk.cr, cache_write = pk.cw, w5 = pk.w5, w1 = pk.w1;
 		const usd_in = input * price.in / 1e6, usd_out = output * price.out / 1e6;
 		const usd_cache_read = cache_read * price.cache_read / 1e6, usd_cache_write = (w5 * price.cache_write_5m + w1 * price.cache_write_1h) / 1e6;
 		g.usd += usd_in + usd_out + usd_cache_read + usd_cache_write;

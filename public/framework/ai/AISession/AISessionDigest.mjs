@@ -50,11 +50,16 @@ export class AISessionDigest {
 	}
 
 	scan(text, bucket, main){
-		const rows = [], last_line = new Map();
+		const rows = [], last_line = new Map(), peak = new Map();   // peak: per message id, the largest of each token field (the cost rule, doc/cost-accounting.md)
 		for (const line of text.split("\n")){
 			if (line.charCodeAt(0) !== 123) continue;
 			let o; try { o = JSON.parse(line); } catch { continue; }
-			if (o.type === "assistant" && o.message?.usage) last_line.set(o.message.id || o.uuid, rows.length);
+			if (o.type === "assistant" && o.message?.usage){
+				const u = o.message.usage, k = o.message.id || o.uuid, p = peak.get(k) ?? peak.set(k, { in: 0, out: 0, cr: 0, w5: 0, w1: 0 }).get(k);
+				p.in = Math.max(p.in, u.input_tokens || 0); p.out = Math.max(p.out, u.output_tokens || 0); p.cr = Math.max(p.cr, u.cache_read_input_tokens || 0);
+				p.w5 = Math.max(p.w5, u.cache_creation?.ephemeral_5m_input_tokens ?? 0); p.w1 = Math.max(p.w1, u.cache_creation ? (u.cache_creation.ephemeral_1h_input_tokens ?? 0) : (u.cache_creation_input_tokens || 0));
+				last_line.set(k, rows.length);
+			}
 			rows.push(o);
 		}
 		rows.forEach((o, i) => {
@@ -84,9 +89,9 @@ export class AISessionDigest {
 				}
 				const u = m.usage; if (!u || m.model === "<synthetic>" || last_line.get(m.id || o.uuid) !== i) return;
 				const model = (m.model || "unknown").replace(/-\d{8}$/, ""), p = price_for(model);
-				const w5 = u.cache_creation?.ephemeral_5m_input_tokens ?? 0, w1 = u.cache_creation ? (u.cache_creation.ephemeral_1h_input_tokens ?? 0) : (u.cache_creation_input_tokens || 0);
-				const usd = ((u.input_tokens || 0) * p.in + (u.output_tokens || 0) * p.out + (u.cache_read_input_tokens || 0) * p.cache_read + w5 * p.cache_write_5m + w1 * p.cache_write_1h) / 1e6;
-				bucket.messages++; bucket.input += u.input_tokens || 0; bucket.output += u.output_tokens || 0; bucket.cache_read += u.cache_read_input_tokens || 0; bucket.cache_write += w5 + w1; bucket.w5 += w5; bucket.w1 += w1; bucket.usd += usd;
+				const pk = peak.get(m.id || o.uuid), w5 = pk.w5, w1 = pk.w1;
+				const usd = (pk.in * p.in + pk.out * p.out + pk.cr * p.cache_read + w5 * p.cache_write_5m + w1 * p.cache_write_1h) / 1e6;
+				bucket.messages++; bucket.input += pk.in; bucket.output += pk.out; bucket.cache_read += pk.cr; bucket.cache_write += w5 + w1; bucket.w5 += w5; bucket.w1 += w1; bucket.usd += usd;
 				this.models[model] = (this.models[model] || 0) + 1;
 			}
 		});

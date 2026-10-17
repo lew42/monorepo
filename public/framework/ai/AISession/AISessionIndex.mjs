@@ -107,6 +107,17 @@ export default class AISessionIndex {
 		});
 		this.link_all();
 		this.freeze();
+		this.heal();
+	}
+
+	/** A snapshot counted under an older rule (no `cost_v`, or lower) is re-read once, for the last three days (older days: `--recost`). Runs behind the page, one session at a time. */
+	heal(){
+		if (this.no_heal) return;
+		const since = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10), days = new Set();
+		for (const s of this.snaps.values()) if ((s.cost_v ?? 1) < AISession.STATE_V && AISessionIndex.day_of(s) >= since) days.add(AISessionIndex.day_of(s));
+		if (!days.size) return;
+		this.log("AISessionIndex: re-reading " + [...days].join(", ") + " with the current cost rule");
+		this.busy = this.busy.then(() => this.recost([...days])).then(r => this.log("AISessionIndex: recost " + JSON.stringify(r))).catch(e => this.log("AISessionIndex: recost failed — " + e.message));
 	}
 
 	/** Every snapshot gets its `links` (card, task, brief, report, parent, children), computed from the real folders; rewritten only when they changed. */
@@ -201,7 +212,7 @@ export default class AISessionIndex {
 		const own = keep_real || keep_old ? r4(prev.usd) : r4(pv.usd), usd_source = keep_real ? "openrouter" : keep_old ? "unverified" : pv.usd_source, below = prev ? Math.max(0, (prev.tree_usd ?? 0) - (prev.usd ?? 0)) : 0;   // the descendants, which the transcript alone cannot give
 		const snap = {
 			id, state: age < AISessionIndex.ACTIVE_MS ? "active" : "idle", model: pv.model === "unknown" ? null : pv.model, effort: pv.effort ?? null,
-			provider: pv.provider === "openrouter" ? "openrouter" : "claude", usd: own, usd_source, tree_usd: r4(own + below),
+			provider: pv.provider === "openrouter" ? "openrouter" : "claude", usd: own, usd_source, cost_v: AISession.STATE_V, tree_usd: r4(own + below),
 			children: prev?.children ?? 0, wall_ms: Math.round(pv.wall_ms), flags: pv.flags.length, tokens, first_at: s.first_at ?? null, last_activity: s.last_at ?? null,
 			day: AISession.day(s.first_at) ?? prev?.day ?? null, folder: this.dirs.has(id) ? path.basename(this.dirs.get(id)) : (this.snaps.get(id)?.folder ?? null), tags: prev?.tags ?? [], alerts: prev?.alerts ?? 0,
 			parent: reg?.parent ?? prev?.parent ?? null, agent: reg?.id ?? prev?.agent ?? null,
@@ -396,6 +407,33 @@ export default class AISessionIndex {
 		return n;
 	}
 
+	/** Re-read the logs of every session whose last activity is in `days` ("YYYY-MM-DD"), from byte 0, with the current counting rule (AISession STATE_V),
+	 *  and rewrite its snapshot, its ancestors' tree totals and the day files. Needed once after the rule changes: a session nobody touches is never re-read on its own.
+	 *  Returns { sessions, before, after } in Claude dollars. Rule: ai/AISession/doc/cost-accounting.md. */
+	async recost(days){
+		const { find_transcript } = await import("./AISessionAudit.mjs");
+		let sessions = 0, before = 0, after = 0;
+		for (const snap of [...this.snaps.values()]){
+			if (!days.includes(AISessionIndex.day_of(snap))) continue;
+			const main = find_transcript(snap.id); if (!main) continue;
+			const old = snap.usd ?? 0;
+			await this.process(snap.id, main);
+			const now = this.snaps.get(snap.id), delta = (now.usd ?? 0) - old;
+			sessions++; if (now.provider !== "openrouter"){ before += old; after += now.usd ?? 0; }
+			for (let p = now.parent, hops = 0; delta && p && this.snaps.has(p) && hops < 20; p = this.snaps.get(p).parent, hops++){   // ancestors' totals carry the child's dollars
+				const up = this.snaps.get(p); this.snaps.set(p, { ...up, tree_usd: r4(Math.max(0, (up.tree_usd ?? 0) + delta)) }); this.queue(p);
+			}
+			await this.save(this.entries.get(snap.id)); this.entries.delete(snap.id);   // the summary on disk is the new one; the entry's totals can be re-read later
+		}
+		for (const id of [...this.writes.keys()]) await this.write(id);
+		for (const day of days){
+			let closed = false; try { closed = !!JSON.parse(fs.readFileSync(AISessionIndex.day_file(day, this.root), "utf8")).closed; } catch {}
+			await this.write_day(day, closed);
+		}
+		AISessionIndex.roll(this.root);
+		return { sessions, before: r4(before), after: r4(after) };
+	}
+
 	/** The audit: the month and year totals must equal what the day files say. Returns the names that differ. */
 	static check(root = SESSIONS_DIR){
 		const bad = [];
@@ -409,12 +447,17 @@ export default class AISessionIndex {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
 	// node ai/AISession/AISessionIndex.mjs --build   write every missing index.json, freeze the closed days, rebuild the totals
+	// node ai/AISession/AISessionIndex.mjs --recost [day...]   re-read those days' logs with the current counting rule (doc/cost-accounting.md)
 	// node ai/AISession/AISessionIndex.mjs --check   audit: month/year totals match the day files; every cached session has an index.json
 	const cmd = process.argv[2];
 	if (cmd === "--build"){
 		const ix = new AISessionIndex({ log: console.log }); await ix.load(); for (const id of [...ix.writes.keys()]) await ix.write(id);
 		const days = new Set([...ix.snaps.values()].map(AISessionIndex.day_of)); for (const d of days) await ix.write_day(d);
 		console.log(`${ix.snaps.size} snapshots; froze ${ix.freeze().length} day(s); ${AISessionIndex.roll()} total file(s) written`);
+	} else if (cmd === "--recost"){      // node ai/AISession/AISessionIndex.mjs --recost [YYYY-MM-DD ...]   (default: yesterday and today, UTC)
+		const days = process.argv.slice(3).length ? process.argv.slice(3) : [new Date(Date.now() - 864e5).toISOString().slice(0, 10), new Date().toISOString().slice(0, 10)];
+		const ix = new AISessionIndex({ log: console.log }); ix.no_heal = true; await ix.load();
+		console.log(JSON.stringify({ days, ...await ix.recost(days) }));
 	} else if (cmd === "--check"){
 		const bad = AISessionIndex.check(), ix = new AISessionIndex({ log: () => {} }), dirs = await ix.session_dirs();
 		// A cache-only folder whose id already has an index.json in another folder is a leftover from the rename (the rest of the session moved), not a missing snapshot.
@@ -423,5 +466,5 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 		console.log(bad.length ? "totals out of date:\n  " + bad.join("\n  ") : "month and year totals match the day files");
 		console.log(`${dirs.length} session folders, ${missing} cached without an index.json (${leftovers} more are cache-only leftovers of a renamed session; left in place)`);
 		process.exit(bad.length || missing ? 3 : 0);
-	} else console.log("usage: node ai/AISession/AISessionIndex.mjs --build | --check");
+	} else console.log("usage: node ai/AISession/AISessionIndex.mjs --build | --recost [day...] | --check");
 }
