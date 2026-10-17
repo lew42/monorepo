@@ -25,7 +25,7 @@ Any prompt — anything you might say to an LLM — can be refined into structur
 
 **Work** (things with a lifecycle)
 - **Task** — something with a completion: a checkbox. Done, move on. Not done, it still has to be resolved.
-- **Subtask** — a task inside a task.
+- **Step** — a task inside a task. Tasks are recursive: add a task to a task and it is a step. There is no separate subtask type. (was "Subtask"; corrected by the owner, 2026-10-16, later)
 - **Plan** — the output of the planning phase.
 - **Proposal** — the refined plan with an order of operations. A parent task that waits for approval.
 - **Decision** — a fork in the road: it could go one way or the other, and the AI picks one.
@@ -90,3 +90,64 @@ Either way, a proposal turns into a task when approved, and the data is never co
 - [ ] Does `Proposal` extend `Task`, or convert into one?
 - [ ] What subtypes of Task exist?
 - [ ] Which words fold together: Outcome vs Requirement, Recommendation vs Suggestion, Directive vs Request?
+
+## Addendum (owner, 2026-10-16, later, Claude mobile app) — purpose, decisions, more words, referencing, context cards
+
+### Purpose is an aspect of every card, not a card type
+
+- Prompt interpretation asks: is it clear, what does it mean, can the LLM make sense of it? That is really a question of **purpose**: what is the purpose of each statement?
+- So any card can carry a `purpose`, with a confidence (weight) for how well we understand it. Usually it is trivial ("it is asking a question") and the purpose is clear.
+- The deeper why ("why are they asking this?") is something the LLM does on its own. Don't build systems around it.
+- This sits beside the clarity score and confidence scale in `doc/vision-2026-10-08.md` (addendum 2) and `doc/confidence.md`.
+
+### A decision has options; options are a ranked live list
+
+- A **Decision** holds a list of **Options**. Lists in this framework are live (they fire events; views bind to them and update), so use `List` for it.
+- Options are **ranked** by a weight. Three ways to get the weights: a vote, a consensus, or one LLM that documents the options and weights them in a single pass. Start with the single pass.
+- The high-level view is the ranked list: "this is a fork in the road, here are the options, this is how they rank". Seeing that an alternative existed is most of the value.
+- A pros-and-cons **breakdown** per option is on demand (click into an option; or revisit a decision later: "was this the right call?"). Don't generate it for every decision.
+- **Confidence on every decision.** Clearly right: just do it, write it down, mark it confident. Could go either way: do your best, mark it uncertain. Record the important decisions clearly; not every small one.
+- **Decisions nest.** A composite decision is built of smaller decisions, or of **factors**. A factor may not have discrete options at all (different techniques, flavors, approaches); it is a concept identified as contributing to the design. Words that mean about the same thing here: option, factor, alternative, caveat. Pick one name per idea and lean into it.
+- The UI is first a **record** (a decision tree of nested factors, a log); interactive in real time later, if we get there.
+- Open: how decisions flow from prompt through plan to proposal.
+
+### More words (candidates; not all of them need a card type)
+
+- **Claim** — a statement that may be factual but is not verified yet. Don't be overconfident about claims.
+- **Comment**, **Note**, **Reminder**, **Log**, **Paragraph**.
+- **Source / Reference** — where something came from.
+- **FAQ** — a kind of Question; it need not look different.
+- **Dispute / Objection / Dissent** — disagreement with a statement or a decision.
+- **Confidence / Weight** — an aspect any card can carry, not a card.
+- **Breakdown** — breaking a thing into its sub-pieces.
+- **Command** — the same as a Directive.
+- **Request**, **Response**, **Prompt** — the chat-level units.
+- **Step** — a child task (see the Work list above).
+- The rule: define the important ones in a structured way, choose the right names, get comfortable with them, then use exactly those names. Organize into lists where it clearly fits; don't force a word into the wrong category.
+
+### Referencing: every card can mention anything
+
+- `ext/Mention` turns control characters in text (`#`, `@`, `/`, `!`) into namespaced references, like hashtags. The index for each namespace could live in one global file that is always loaded, so anything can be referenced quickly.
+- Any card may reference anything through a mention. A universal markdown processor that wraps the markdown extension and turns references into links was being built; its status is unknown as of 2026-10-16. Check `ext/Mention` and the markdown extension before building another.
+- Open: does referencing work for view-built content (the JavaScript helpers), or only for markdown?
+
+### Cards are items; the selected card is the voice context
+
+- Each card is an `Item`, so it can be selected. When the selection changes, a small system message tells the LLM which card is selected, so the reply is contextual, and the dictated response could be transcribed straight into that card.
+- Still to decide for cards: the CSS, the UI, the interaction stages.
+
+### Context cards: the pattern, and what already exists
+
+- A context card is **not** a new card type with its own icon. It piggybacks on any class, page or module that already has an icon and a title (reached through a mention) and wraps a container for content that is unique to this session or instance: messages, a conversation, log lines, anything the item/page tools can show for that path.
+- The point: frame every idea inside its primary context, so the whole conversation makes more sense.
+- Past work found with `node Server/PastWork.mjs "context card"` (2026-10-16):
+  - the owner's context-card and streaming-UI ideas, 2026-10-13: `/framework/ux/Dictate/doc/streaming-ui.md`
+  - the ref row — an inline `#Page` chip upgraded to a full-width card, landed 2026-10-03: `/framework/ai/sessions/2026/10/03/list-events/ref-row-context-card/`
+  - structured card types for AI board cards, owner 2026-10-01: `/framework/ai/sessions/2026/10/01/context-card-type/context-card-type/`
+  - voice card types, amend, icon chip, proposals, 2026-10-05: `/framework/ai/sessions/2026/10/05/voice-chat-cards-and-model-context/`
+  - content cards audit, 2026-09-28: `/framework/ai/sessions/2026/09/28/content-cards-audit/content-cards-audit/`
+  - modules that exist now: `ui/card` (23 importers), `ux/Card` (3)
+
+### The design smell the owner named
+
+"Why don't we have clear procedures for putting ideas?" The procedure exists (CLAUDE.md law 5: a `doc/*.md` beside the module, linked from its readme); the gap is knowing which module, because Refine moved recently. Candidate fix: a "where ideas go" line at the top of `ai/readme.md` that names the home module per topic.
