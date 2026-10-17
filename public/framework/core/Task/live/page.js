@@ -28,8 +28,8 @@ export default new Page({
 	render_content(){
 		let $status, $message, $tree;
 
-		const row = (task, { indent } = {}) => div.c("flex gap v-center pad surface", () => {
-			span(task.get("title") ?? task.id).style("flex", "1");
+		const row = (task, { indent } = {}) => div.c("flex wrap gap v-center pad surface", () => {
+			span(task.get("title") ?? task.id).style("flex", "1 1 10em");
 			span.c("muted", task.state);
 			button("Start").click(() => { task.start(); draw(); });
 			button("Pause").click(() => { task.pause(); draw(); });
