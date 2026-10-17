@@ -11,7 +11,7 @@ When opening the site from a phone (`http://192.168.x.x` or through Tailscale):
    - Audio dictation sends plain HTTP POST requests to `/whisper/inference` and works reliably from mobile devices.
 
 2. **Dev WebSocket (`local_only` gate in `SocketServer.js`, on both the http and the https listener):**
-   - Loopback keeps every command; a private-LAN peer (a phone) may connect but the server answers only `hello`, `subscribe` and `unsubscribe` and refuses the rest (`rpc:cmd` shell execution, `rpc:write` ...); anything else is refused at the upgrade.
+   - Loopback keeps every command; a private-LAN peer (a phone) may connect but the server answers only `hello`, `subscribe`, `unsubscribe` and a read-only `query` of the `sessions` and `tasks` sources (the list is `LAN_OK`/`LAN_QUERY` in `Server/plugins/SocketServer/Socket.js`) and refuses the rest (`rpc:cmd` shell execution, `rpc:write` ...); anything else is refused at the upgrade.
    - The client tries every host and the server decides ([doc](/framework/dev/Socket/doc/lan.md)), so the phone gets reload and JSONL tails over `ws` or, on the https address, `wss`.
 
 ## Common Symptoms & What They Mean

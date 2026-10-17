@@ -9,10 +9,9 @@ export default class QueryClient {
 	static current = null;
 	static counter = 0;
 
-	/** The dev socket, or null off localhost (a static host): the caller falls back to reading files. */
+	/** The dev socket, or null where there is none (a static host): the caller falls back to reading files. A LAN peer (a phone) gets it too; the server allows it `query` on read-only sources only (Server/plugins/SocketServer/Socket.js). */
 	static socket() {
-		if (typeof location === "undefined" || !/^(localhost|127\.0\.0\.1|.*\.localhost)$/.test(location.hostname)) return null;
-		try { return Socket.singleton(); } catch { return null; }
+		try { const socket = Socket.singleton(); return socket.disabled ? null : socket; } catch { return null; }
 	}
 
 	constructor(source, { row, stale } = {}) {

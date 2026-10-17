@@ -1,8 +1,11 @@
 import Events from "../../Events.js";
 import { loopback } from "../MCP.js";
 
-// A non-loopback (LAN) peer may say hello and subscribe to jsonl tails. Nothing else.
-const LAN_OK = new Set(["hello", "subscribe", "unsubscribe"]);
+// THE one list of what a non-loopback (LAN) peer may send: hello, jsonl tails, and read-only queries.
+// `query` answers from an in-memory index of files under public/ and never runs or writes anything, but only
+// for the sources named in LAN_QUERY (a new source is not exposed until it is added here). Doc: dev/Socket/doc/lan.md
+const LAN_OK = new Set(["hello", "subscribe", "unsubscribe", "query"]);
+const LAN_QUERY = new Set(["sessions", "tasks"]);
 
 // Socket gets created by SocketServer
 
@@ -27,7 +30,7 @@ export default class Socket extends Events {
     message(data) {
         try {
             const message = JSON.parse(data.toString());
-            if (!this.local && !LAN_OK.has(message.method)){
+            if (!this.local && !(LAN_OK.has(message.method) && (message.method !== "query" || LAN_QUERY.has(message.args?.[0]?.source)))){
                 console.warn(`socket: REFUSED ${message.method ?? "message"} from LAN peer ${this.req?.socket?.remoteAddress}`);
                 if (message.index !== undefined) this.send({ method: "refused", args: [message.method], index: message.index });
                 return;
