@@ -8,10 +8,11 @@ Read these first:
 
 Step 14a landed: `tasks.add` through the item tool gives each new task its own folder (`<module>/tasks/<slug>/`, or `<parent>/<slug>/`). The parent's log gets one `{"task": "<app path>"}` reference line, and node resolves it through `Task.resolver` (`Servex/agents/page_tools.js` `link_refs`; `Task.from_ref` in `core/Task/Task.js`).
 
-**Build only step 14b,** in three parts:
+**Build only step 14b,** in four parts:
 1. The browser follows those references.
 2. A module's task list.
 3. A Tasks tab on every Doc page.
+4. Each child folder routes (a page of its own).
 
 ## What to build
 

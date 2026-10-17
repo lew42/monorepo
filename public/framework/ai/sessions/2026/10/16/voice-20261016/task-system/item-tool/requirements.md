@@ -2,7 +2,11 @@
 
 Budget: $5
 
-This task builds step 5 of the [task system plan](../plan.md): **section 4, "The item tool"**, which was corrected on 2026-10-16. Read that section first, then the owner's note in `Servex/doc/owner-2026-10-16-tools.md`, under "The item tool is set()". The plan file is at `C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/plan.md`. **Build only step 5.** The in-process path for local SDK agents is step 12, a separate step.
+This task builds step 5 of the [task system plan](../plan.md): **section 4, "The item tool"** (corrected 2026-10-16). **Build only step 5.**
+
+Read first: that section, then the owner's note in `Servex/doc/owner-2026-10-16-tools.md`, under "The item tool is set()".
+
+Not this task: the in-process path for local SDK agents is step 12.
 
 ## The one idea
 
