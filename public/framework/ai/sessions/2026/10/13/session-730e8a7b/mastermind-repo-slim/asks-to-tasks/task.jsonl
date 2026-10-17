@@ -31,3 +31,11 @@
 {"decision":{"at":"2026-10-17T00:18:21-05:00","msg":"Marked complete only where a checkup.md or landed task shows it landed tonight; 14.3, 15.4, 15.6, 17.4 and 17.5 stay idle with a note of what is done and what is open."}}
 {"assign":{"title":"Asks to tasks: 22 asks from requirements-14 to -17 are tracked","landed_at":"2026-10-17T00:18:21-05:00","outcome":"**22 of the owner's asks are now real tasks in their module homes, and 17 are already complete.** Each links its requirements file and ask number in `source` and carries a note of which agent took it. See [/tasks/](/tasks/).\n\n- [x] ai (10), core/Task (4), ux/Dictate (7), servex (1): made by the item tool, none hand-written\n- [x] 17 complete from the checkup records; 5 idle with a note: old prompts (14.3), templates later slices (15.4), the session.jsonl rename (15.6), per-sentence wake (17.4), raw swallowed into summary (17.5)\n- [x] skipped 14.6 and 16.4 (not work items)\n- [x] committed by path","links":[{"url":"/tasks/","label":"All tasks"}]}}
 {"commit":"f1d5bcd50e05"}
+{"commit":"45acec9c2d45"}
+{"log":{"at":"2026-10-17T00:18:41-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-17T00:18:42-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-17T00:18:42-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-17T00:18:42-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-17T00:18:45-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-17T00:18:55-05:00","msg":"layout-check: 1 pages at 1280/1920/2560/3440 — /tasks/: empty 0.986 at 2560, empty 0.99 at 3440, narrow_share 1 at 3440; sheets in layout-check/"}}
+{"log":{"at":"2026-10-17T00:19:11-05:00","msg":"padding-check: /tasks/ 400: 1 at an edge (\"span.task-meter-fill\"); /tasks/ 1280: 1 at an edge (\"span.task-meter-fill\"); /tasks/ 1920: 1 at an edge (\"span.task-meter-fill\"); /tasks/ 3440: 1 at an edge (\"span.task-meter-fill\")"}}
