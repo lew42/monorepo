@@ -55,6 +55,7 @@
 2. `Server/TaskMigrate.mjs` (class `TaskMigrate`: `scan → classify → plan → apply → check`), dry run by default.
 3. `fixture.json` + `Server/TaskMigrate.test.mjs`: dry run counts, apply, idempotent rerun, clash refusal, round trip, prefix check.
 4. Dry run on the real tree → [`dry-run.md`](dry-run.md). Report to voice-app; stop.
+5. ✅ Real run, 2026-10-17: 211 moved, 0 check problems → [`result.md`](result.md).
 
 ## 6. Approval
 
