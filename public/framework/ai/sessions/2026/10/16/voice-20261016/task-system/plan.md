@@ -1,6 +1,6 @@
-# Task system: the plan (awaits the owner's approval)
+# Task system: the plan (approved, building)
 
-One `Task` class tracks the progress of all work. A task **has** a page and **belongs to** a session; it is neither of them. Nothing in this plan gets built until the owner approves it. Sources: [the owner's words](/framework/core/Task/doc/owner-2026-10-16-task-system.md) · [tool notes](/Servex/doc/owner-2026-10-16-tools.md) · [d-render-method](/framework/core/doc/decisions.md) · the 2026-10-08 [task-system-design](/framework/ai/sessions/2026/10/08/task-system-design/task-system-design/design.md), which this plan builds on and updates (the item tool replaces its seven `task_*` tools).
+One `Task` class tracks the progress of all work. A task **has** a page and **belongs to** a session; it is neither of them. Approved whole, steps 1 to 11, on 2026-10-16 (voice-app, on the owner's standing rule: "if it looks good, do it"), with two improvements folded in below: `complete` comes only from subtasks, and the item tool also serves local SDK agents in-process (step 12). Sources: [the owner's words](/framework/core/Task/doc/owner-2026-10-16-task-system.md) · [tool notes](/Servex/doc/owner-2026-10-16-tools.md) · [d-render-method](/framework/core/doc/decisions.md) · the 2026-10-08 [task-system-design](/framework/ai/sessions/2026/10/08/task-system-design/task-system-design/design.md), which this plan builds on and updates (the item tool replaces its seven `task_*` tools).
 
 ## 1. The classes
 
@@ -15,7 +15,7 @@ One `Task` class tracks the progress of all work. A task **has** a page and **be
 | Field | What it is |
 |---|---|
 | `expected` | The outcome the task should produce, written before it starts. A new name, because `outcome` already means the landing report (1,499 lines use it). |
-| `complete` | A getter, never a stored number (law 7). With subtasks: the share of subtasks that are finished. With `steps` ([Server/Steps.mjs](/Server/Steps.mjs)): steps done ÷ steps. Otherwise a value from 0 to 1 set by the agent, which `finish()` sets to 1. When the owner checks a task off, that is final (`checked_by`). |
+| `complete` | A getter, never a stored number (law 7). The only computed form is from subtasks: the share of subtasks that are finished. `steps` ([Server/Steps.mjs](/Server/Steps.mjs)) stays only as a fallback for old folders; no new task writes `steps`. Otherwise a value from 0 to 1 set by the agent, which `finish()` sets to 1. When the owner checks a task off, that is final (`checked_by`). |
 | `state` | `idle running paused waiting stopped finished`. `waiting` is new, and `waiting_on` names who it waits for (`owner`, or an agent id). It comes from lines in the log, never from timestamps. |
 | `priority` | The existing `{"priority":{score,why,by}}` line ([reprioritise_task](/Servex/agents/tools.js)), read as the field. |
 | `commits` | Short git hashes (12 characters), one `{"commit":"…"}` line each, so a task's actual changes can be traced from the task. |
@@ -90,5 +90,6 @@ TaskState adds a `waiting` group to `state.jsonl`, so `/framework/ai/tasks/` sho
 | 9 | Module homes: `<module>/tasks/`, listed on the module's page | Haiku | $1 |
 | 10 | The skills (`new-task`, `finish-task`) and the readmes move to the item tool | Haiku | $1 |
 | 11 | Scripted rename `AITask` to `TaskPage`, with a dry run and a manifest | Sonnet | $2 |
+| 12 | The item tool in-process for local SDK agents: same function, same name, no network ("one toolset, two pathways", [tools note](/Servex/doc/owner-2026-10-16-tools.md)); run right after step 5 | Sonnet | $3 |
 
-The total is about $30.
+The total is about $33, inside a $35 budget. Steps 1 and 2 landed as `8935e1c77`; each later step's commit is a `commit` line in this folder's `task.jsonl`.
