@@ -8,7 +8,25 @@ ok   400 /framework/ext/drawer/ai/ at full: one chat, one feed
 ok   400 tapping ✦: one chat, one feed
      400 then full: widgets 1 (visible 1) feeds 1 (visible 1) in sheet
 ok   400 ✦ then full: one chat, one feed
-     400 core/Page/ai/: widgets 0 (visible 0) feeds 0 (visible 0) in 
-ok   400 core/Page/ai/: at most one chat, one feed
+     400 ext/JSONL/ai/: widgets 1 (visible 1) feeds 1 (visible 1) in sheet
+ok   400 ext/JSONL/ai/: at most one chat, one feed
      1200 drawer ai/ 1200: widgets 1 (visible 1) feeds 1 (visible 1) in page
 ok   1200 drawer ai/ 1200: at most one chat, one feed
+     1200 ext/JSONL/ai/ 1200: widgets 1 (visible 1) feeds 1 (visible 1) in page
+ok   1200 ext/JSONL/ai/ 1200: at most one chat, one feed
+     1920 dock 1920: widgets 1 (visible 1) feeds 1 (visible 1) in dock
+ok   1920 dock 1920: at most one chat, one feed
+     1920 dock 1920 ai/: widgets 1 (visible 1) feeds 1 (visible 1) in dock
+ok   1920 dock 1920 ai/: at most one chat, one feed
+ok   fake mic said 3 sentences
+     bubbles: ["a-i-feed.drawer-ai-feed:◆Chrome's toolbar auto-hide cannot reach the ✦ sheet — position:fixed is the real wall, not the nested scroll thread alo","chatbox.chatbox-you:👤And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country. ✓ And so,"]
+     said 3 sentences; the first one's words appear 2 times in the chat ( And so, my fellow Americans, a | And so, my fellow Americans, a | And so, )
+ok   each sentence appears once (2 said, 2 drawn)
+     400 after dictation: widgets 1 (visible 1) feeds 1 (visible 1) in sheet
+ok   400 after dictation: one chat, one feed
+     resize to 1200: widgets 1 (visible 1) feeds 1 (visible 1) in page
+ok   resized to 1200: one chat, one feed
+     resize to 400: widgets 1 (visible 1) feeds 1 (visible 1) in sheet
+ok   resized to 400: one chat, one feed
+     resize to 1200: widgets 1 (visible 1) feeds 1 (visible 1) in page
+ok   resized to 1200: one chat, one feed
