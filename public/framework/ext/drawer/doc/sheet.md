@@ -20,7 +20,7 @@ A reload or a shared link at `?sheet=full` opens the sheet at full height, and f
 
 ## The drag
 
-Letting go settles the sheet by where it was let go. At 85% of the screen or more (`full_at`), it goes full. Below 28% (`close_at`), it closes. Anywhere between, it stays where you let go, and that height is remembered. Both numbers are prototype fields on the sheet class, so a variant can change them.
+Letting go settles the sheet by where it was let go, through `Sheet.Size.settle()` (2026-10-16; it replaced `full_at` 85% and `close_at` 28%). At 90% of the screen or more, it goes full. Under half the strip (50 px), it closes. Under about halfway from the strip to 30% of the screen, it is the strip (100 px). Anywhere else it is split at the height you let go, and that height is remembered (kept between 30% and 88%). The numbers are static fields on `Sheet.Size`.
 
 While you drag, the sheet has a real height (`.drawer-rail-sheet-sized`), not only a ceiling. With only `max-block-size`, a drag above the sheet's own content did nothing: the finger moved and the sheet stayed where it was. The edge stays under the finger (measured within 1 px) because `ext/grip` now remembers where in the strip the finger landed, on the y axis only.
 

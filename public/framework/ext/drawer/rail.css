@@ -150,6 +150,18 @@
 	.drawer-rail-sheet-collapsed .ux-dictate-widget-thread,
 	.drawer-rail-sheet-collapsed .ux-dictate-widget-empty { display: none !important; }
 
+	/* THE STRIP (Sheet.Size, 2026-10-16): about 100 px, ABOVE the bottom bar so ⌂ ✦ ☰ stay in reach, and
+	   one line: the mic dot, the last line said, ⌃ up to split (variant A). Everything else is hidden, not
+	   removed: the chat stays mounted, so the mic keeps running. `!important` where a child wears `.flex`. */
+	.drawer-rail-sheet-live { display: none; }
+	.drawer-rail-sheet-strip { inset-block-end: var(--rail-bar-h, 0px); padding-block-end: 0.6em; }
+	.drawer-rail-sheet-strip > :not(.drawer-rail-sheet-live, .grip) { display: none !important; }
+	.drawer-rail-sheet-strip .drawer-rail-sheet-live { display: flex; align-items: center; gap: 0.6em; flex: 1 1 auto; min-block-size: 0; }
+	.drawer-rail-sheet-said { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+	.app .drawer-rail-sheet-up { min-block-size: 0; padding: 0.2em 0.6em; font-size: 1.2em; line-height: 1; }
+	/* A drag down on the head steps one size down (Sheet.Panel.head_drag): the head must not pan the page. */
+	.drawer-rail-sheet-head { touch-action: none; }
+
 	/* The sheet's own top-edge grip (`rail.js`'s `handle()`) is absolutely
 	   positioned, so it sits in whatever dead space the top padding above already
 	   reserves — the same trick both side rails use (grip.css's own note: "the dead
