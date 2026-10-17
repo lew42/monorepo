@@ -25,7 +25,7 @@ task.duration()  //  ms of RUNNING time — pausing stops the clock
 task.progress()  //  {done, total} — computed from task.tasks, never stored
 task.tasks       //  a List of subtasks (core/List/)`);
 
-		md("A **Task** is anything with a start, a middle and an end. It's an [Item](/framework/core/Item/) plus five states, timestamps, and a `tasks: List` of subtasks whose own finish **gates the parent's** — `finish()` refuses while any subtask isn't finished yet, and names the one that's blocking it. No throw: every illegal transition just warns and leaves the state alone.");
+		md("A **Task** is anything with a start, a middle and an end. It's an [Item](/framework/core/Item/) plus six states (`waiting` is the newest), timestamps, and a `tasks: List` of subtasks whose own finish **gates the parent's** — `finish()` refuses while any subtask isn't finished yet, and names the one that's blocking it. No throw: every illegal transition just warns and leaves the state alone.");
 
 		h2("The states");
 

@@ -94,6 +94,50 @@ check("Task.register()'d — hydrates from a type:\"Task\" line", () => {
 	return back instanceof Task && back.tasks.length === 1 && back.tasks.find("a") instanceof Task;
 });
 
+// ── replay ──
+const A = { assign: { title: "T", agent: "m1", session_id: "s1", steps: ["a (1 min)"], step: 1, requested_at: "2026-10-16T10:00:00Z" } };
+const landed = { assign: { landed_at: "2026-10-16T11:00:00Z", outcome: "Done." } };
+
+check("replay: legacy landed file is finished; session_id maps to session", () => {
+	const t = Task.replay([A, landed]);
+	return t.state === "finished" && t.data.finished_at === "2026-10-16T11:00:00Z" && t.data.session === "s1" && t.data.step === 1 && t.data.steps.length === 1;
+});
+check("replay: an assign line with `at` (append.mjs stamps one) still counts; a key naming a method is data", () => {
+	const t = Task.replay([{ assign: { at: "2026-10-16T10:00:00Z", title: "x", progress: 3 } }, { assign: { at: "2026-10-16T11:00:00Z", landed_at: "2026-10-16T11:00:00Z", outcome: "Done." } }]);
+	return t.state === "finished" && t.data.title === "x" && t.data.progress === 3;
+});
+check("replay: landed_at with an empty outcome is still running", () => Task.replay([A, { assign: { landed_at: "2026-10-16T11:00:00Z", outcome: " " } }]).state === "running");
+check("replay: legacy closed file is stopped", () => Task.replay([A, { assign: { closed_by: "owner", closed_at: "2026-10-16T12:00:00Z" } }]).state === "stopped");
+check("replay: legacy open file is running", () => Task.replay([A, { log: { at: "2026-10-16T10:05:00Z", msg: "x" } }]).state === "running");
+check("replay: explicit wait then approve", () => {
+	const lines = [A, { wait: { on: "owner", what: "pick one", at: "2026-10-16T10:30:00Z" } }];
+	const w = Task.replay(lines);
+	if (w.state !== "waiting" || w.data.waiting_on !== "owner" || w.data.waiting_since !== "2026-10-16T10:30:00Z") return false;
+	const t = Task.replay([...lines, { approve: { by: "owner", note: "go", at: "2026-10-16T10:40:00Z" } }]);
+	return t.state === "idle" && t.data.waiting_on === null && t.data.approved_by === "owner";
+});
+check("replay: wait after legacy lines overrides them, even a later legacy landing only adds data", () => {
+	const t = Task.replay([A, { wait: { on: "agent-9", at: "2026-10-16T10:30:00Z" } }, landed]);
+	return t.state === "waiting" && t.data.landed_at === "2026-10-16T11:00:00Z";
+});
+check("replay: an illegal transition warns and does not throw", () => {
+	const t = Task.replay([A, { start: {} }, { approve: { by: "owner" } }]);   // approve from running is illegal
+	return t.state === "running";
+});
+check("replay: stop and finish accept waiting", () => {
+	const w = [A, { wait: { on: "owner", at: "2026-10-16T10:30:00Z" } }];
+	return Task.replay([...w, { stop: { why: "no" } }]).state === "stopped" && Task.replay([...w, { finish: {} }]).state === "finished";
+});
+check("replay: deterministic, uses line times not the wall clock", () => {
+	const lines = [A, { start: {}, at: "2026-10-16T10:00:00Z" }, { pause: {}, at: "2026-10-16T10:10:00Z" }, { finish: {}, at: "2026-10-16T10:20:00Z" }];
+	const a = Task.replay(lines), b = Task.replay(lines);
+	return JSON.stringify(a) === JSON.stringify(b) && a.data.ran_ms === 600000 && a.data.finished_at === "2026-10-16T10:20:00Z";
+});
+check("tasks is made on first use; progress() works before it", () => {
+	const t = Task.replay([A]);
+	return t._tasks === undefined && t.progress().total === 1 && t.tasks.length === 0 && t._tasks !== undefined;
+});
+
 const passed = results.filter(Boolean).length;
 console.log(`\n${passed} / ${results.length} passing`);
 if (passed !== results.length) process.exit(1);

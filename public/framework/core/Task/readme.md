@@ -3,7 +3,7 @@
 ## What it is
 
 A `Task` is anything with a start, a middle and an end — a build step, a chore, a
-process. It's an `Item` (core/Item/) plus five states (`idle running paused stopped
+process. It's an `Item` (core/Item/) plus six states (`idle running paused waiting stopped
 finished`), timestamps, a running-time clock that pauses with the task, and a
 `tasks: List` of subtasks whose own finish gates the parent's.
 
@@ -25,6 +25,13 @@ build.duration();         // ms of RUNNING time — pausing stops the clock
 ```
 
 Watch it live: [core/Task/live/](/framework/core/Task/live/).
+
+## Replay, waiting, subtasks
+
+- `Task.replay(lines)` builds a task from parsed `task.jsonl` objects, using each line's own time (`at`, `assign.at|landed_at|requested_at`), never the wall clock, so the same file always gives the same task. Explicit lines (`{"start":{}}`, `pause`, `resume`, `stop`, `finish`, `wait`, `approve`) call the method of that name; once one appears, they decide the state.
+- No explicit line (an old file): `landed_at` + a non-empty `outcome` is `finished`, `closed_by` is `stopped`, anything else is `running`. `assign` fields merge into `data` (latest wins; `session_id` becomes `session`).
+- `waiting` is a sixth state: `wait({on, what})` (from idle, running, paused) and `approve({by, note})` (back to idle). `stop` and `finish` accept it.
+- `tasks` is made on first use, so a task with no subtasks costs no `List`.
 
 ## Watch out
 
@@ -51,5 +58,5 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - [Overview](/framework/core/Task/) · [Live](/framework/core/Task/live/) — start, pause,
   stop and finish a task with subtasks, live, no reload
 - [`Task.js`](./Task.js) · [`Task.test.mjs`](./Task.test.mjs) — the state machine, the
-  subtask-blocks-finish rule, duration math; `node Task.test.mjs`, 11/11 passing
+  subtask-blocks-finish rule, duration math; `node Task.test.mjs`, 21/21 passing
 - [Item](/framework/core/Item/) — the base class · [List](/framework/core/List/) — what `tasks` is

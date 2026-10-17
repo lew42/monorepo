@@ -1,0 +1,3 @@
+{"assign":{"agent":"minion-x","session_id":"s1","heartbeat":true,"requested_at":"@AGO_300@"}}
+{"wait":{"on":"owner","what":"pick a name","at":"@AGO_150@"}}
+{"approve":{"by":"owner","at":"@AGO_100@"}}

@@ -48,8 +48,20 @@ export const schemas = {
 			snooze:     { fields: ["at", "until", "by"], eg: { at: "NOW", until: "2026-10-03T09:00:00-05:00", by: "owner" } },
 			kill:       { fields: ["at", "why", "by"], eg: { at: "NOW", why: "duplicate of another task", by: "owner" } },
 			priority:   { fields: ["at", "score", "why", "by"], eg: { at: "NOW", score: 95, why: "owner asked for this first", by: "owner" } },
+			// The Task state verbs (task-replay, 2026-10-16): each calls the core/Task method of the same name in Task.replay().
+			start:      { fields: ["at"], eg: { at: "NOW" } },
+			pause:      { fields: ["at"], eg: { at: "NOW" } },
+			resume:     { fields: ["at"], eg: { at: "NOW" } },
+			stop:       { fields: ["at"], eg: { at: "NOW", why: "…" } },
+			finish:     { fields: ["at"], eg: { at: "NOW" } },
+			wait:       { fields: ["at", "on"], eg: { at: "NOW", on: "owner", what: "approval of steps 3-11" } },
+			approve:    { fields: ["at", "by"], eg: { at: "NOW", by: "owner", note: "…" } },
+			// Written by Servex/TaskLoop.js: one line per reminder to a task waiting on the owner.
+			follow_up:  { fields: ["n", "at"], eg: { n: 1, to: "agent-id", at: "NOW" } },
+			// A short git hash this task produced.
+			commit:     { type: "string", eg: "a5c500aa0" },
 		},
-		pending: ["snooze", "kill", "priority"],
+		pending: ["snooze", "kill", "priority", "start", "pause", "resume", "stop", "finish", "wait", "approve", "follow_up", "commit"],
 	},
 	"day.jsonl": {
 		what: "a day's log (public/framework/ai/sessions/YYYY/MM/DD/day.jsonl)",

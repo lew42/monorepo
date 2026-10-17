@@ -5,6 +5,7 @@ import { stamp } from "./home.js";
 import { CHECK } from "./Heartbeat.js";
 import Steps from "../Server/Steps.mjs";
 import TaskDirs from "../Server/TaskDirs.mjs";
+import Task from "../public/framework/core/Task/Task.js";
 
 /* THE TASK LOOP — nobody should have to remember to land a task.
  *
@@ -33,6 +34,8 @@ export default class TaskLoop {
         this.quiet_min ??= Number(process.env.SERVEX_TASKLOOP_QUIET_MIN) || 10;
         this.gap_min ??= Number(process.env.SERVEX_TASKLOOP_GAP_MIN) || 15;
         this.max_escalations ??= 5;
+        this.followup_min ??= Number(process.env.SERVEX_TASKLOOP_FOLLOWUP_MIN) || 120;   // a task waiting on the owner: first reminder after this
+        this.followup_again_min ??= 24 * 60;                                              // then one more this often
         this.root ??= process.cwd();
         this.queues = new Map();      // task.jsonl path -> write chain, one writer per file
         this.totals = { chased: 0, escalated: 0, nudged: 0 };
@@ -64,7 +67,13 @@ export default class TaskLoop {
 
             for (const file of this.find_task_files()){
                 const info = this.read_task(file);
-                if (!info || info.landed || info.closed) continue;
+                if (!info) continue;
+                // task-replay, 2026-10-16: the state comes from Task.replay. Only `running` is chased; waiting-on-owner gets reminders; the rest are left alone.
+                if (info.task_state === "waiting"){
+                    if (info.waiting_on === "owner" && this.servex.heartbeat?.opted_in(info.state)) await this.follow_up(file, info, registry, now);
+                    continue;
+                }
+                if (info.task_state !== "running") continue;
                 // taskloop-gate, 2026-09-29: only a task that opted in (same test as Heartbeat's
                 // boot sweep) is chased — never wake a task from before this feature existed.
                 if (!this.servex.heartbeat?.opted_in(info.state)) continue;
@@ -140,18 +149,19 @@ export default class TaskLoop {
         return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     }
 
-    /* Every `assign` line merged (latest field wins), plus what this loop's own
-     * `chase` log lines say about where a task stands, read back from the file
-     * itself — so a Servex restart loses no count. */
+    /* The file replayed through Task.replay: `task_state` is the Task's state (running = chased as always; a file with no state line
+     * maps legacy landed/closed/open, see core/Task/readme.md). `state` is the merged data (latest field wins, `session_id` kept) that
+     * the owner and opt-in checks read. Plus what this loop's own `chase` and `follow_up` lines say, read back so a restart loses no count. */
     read_task(file){
         let text;
         try { text = fs.readFileSync(file, "utf8"); } catch { return null; }
-        const state = {};
+        const lines = [], follow_ups = [];
         let last_chase = 0, last_chase_at = null, escalated = false;
         for (const raw of text.split("\n")){
             if (!raw.trim()) continue;
             let obj; try { obj = JSON.parse(raw); } catch { continue; }
-            if (obj.assign && typeof obj.assign === "object") Object.assign(state, obj.assign);
+            lines.push(obj);
+            if (obj.follow_up) follow_ups.push(obj.follow_up);
             const chase = obj.log?.chase;
             if (chase === "escalated") escalated = true;
             else if (chase !== undefined){
@@ -159,8 +169,14 @@ export default class TaskLoop {
                 if (Number.isFinite(n) && n >= last_chase){ last_chase = n; last_chase_at = obj.log.at ?? last_chase_at; }
             }
         }
-        const landed = !!state.landed_at && !!String(state.outcome ?? "").trim();
-        return { state, last_chase, last_chase_at, escalated, landed, closed: !!state.closed_by };
+        const task = Task.replay(lines), d = task.data;
+        const state = { ...d, ...(d.session !== undefined ? { session_id: d.session } : {}) };
+        const since = Date.parse(d.waiting_since) || 0;
+        const mine = follow_ups.filter(f => (Date.parse(f.at) || 0) >= since);   // a later wait starts a fresh count
+        const landed = task.state === "finished", closed = task.state === "stopped";
+        return { state, task_state: task.state, waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, waiting_what: d.waiting_what ?? null,
+            parent_task: lines.find(l => l.assign)?.assign?.parent_task ?? null,
+            follow_ups: mine, last_chase, last_chase_at, escalated, landed, closed };
     }
 
     /* Line-1 `agent`, else the registry row whose `session_id` matches — the
@@ -208,17 +224,55 @@ export default class TaskLoop {
         this.totals.nudged++;
     }
 
+    /* task-replay, 2026-10-16: a task waiting on the OWNER is reminded, never chased. After `followup_min` from waiting_since one
+     * reminder, then one every 24 h; each is a `follow_up` line in the file, read back next tick. It goes to the parent task's agent
+     * (line 1 `parent_task`, else the owning agent), never revives a stopped one, and also rides the escalation card path. */
+    async follow_up(file, info, registry, now){
+        const n = info.follow_ups.length, since = Date.parse(info.waiting_since) || now;
+        const last = n ? Math.max(...info.follow_ups.map(f => Date.parse(f.at) || 0)) : since;
+        if (now - last < (n ? this.followup_again_min : this.followup_min) * 60000) return;
+        const to = this.parent_agent(info, registry);
+        const text = `Task ${this.slug(file)} is waiting on the owner since ${this.at(since)}: ${info.waiting_what ?? "(no reason given)"}.`;
+        if (to && !this.agent_gone({ agent: to }, registry)){
+            try { this.servex.agents.send(to, text, { from: "servex-task-loop" }); } catch {}
+        }
+        await this.post_card(file, info, text);
+        await this.write_line(file, { follow_up: { n: n + 1, to: to ?? null, at: stamp() } });
+        this.totals.followed = (this.totals.followed ?? 0) + 1;
+    }
+
+    /* The agent of the parent task (its task.jsonl, found from root or the sessions store), else this task's owning agent. */
+    parent_agent(info, registry){
+        const p = info.parent_task;
+        if (p){
+            for (const base of [this.root, path.join(this.root, "public", "framework", "ai"), path.join(this.root, "public", "framework", "ai", "sessions")]){
+                const f = path.join(path.isAbsolute(p) ? p : path.join(base, p), "task.jsonl"), up = this.read_task(f);
+                const id = up && this.owning_agent_id(up.state, registry);
+                if (id) return id;
+            }
+        }
+        return this.owning_agent_id(info.state, registry);
+    }
+
     /* `card_ask` (waiting-on-you) called in-process once it registers a handler
      * on the same MCP door every tool here goes through; a plain card message
      * until then — exactly as interfaces.md agrees. */
     async escalate(file, info, mtime){
-        const slug = this.slug(file), card = info.state.card || "live";
+        const slug = this.slug(file);
         const question = `${slug} has been quiet since ${this.at(mtime)} and did not land after 2 chases. Close it, or keep chasing?`;
+        const said = await this.post_card(file, info, question, ["close it", "keep chasing"]);
+        await this.write_line(file, { log: { at: stamp(), msg: `task-loop escalated: ${String(said).slice(0, 200)}`, chase: "escalated" } });
+        this.totals.escalated++;
+    }
+
+    /* The one card path: card_ask when it exists (with options), else a plain card message; the Inbox fallback when the card is missing. */
+    async post_card(file, info, question, options){
+        const card = info.state.card || "live";
         const ask = this.servex.mcp?.handlers?.get("card_ask");
         let said;
         try {
             said = ask
-                ? await ask({ card, question, options: ["close it", "keep chasing"], from: info.state.agent }, { caller: "servex-task-loop" })
+                ? await ask({ card, question, options: options ?? ["noted"], from: info.state.agent }, { caller: "servex-task-loop" })
                 : await this.servex.assistant.card_reply({ card, from: "servex-task-loop", text: question });
         } catch (e){ said = `not delivered: ${e.message || e}`; }
         /* NEVER-LOSE-A-WAKE, item 4 (2026-10-01): `card` defaults to "live" when a task names
@@ -233,8 +287,7 @@ export default class TaskLoop {
                 this.servex.say?.(`task-loop: no card to post to (${parsed.why}) — left a note on ${out?.file ?? path.dirname(file)}`);
             } catch (e){ this.servex.say?.(`task-loop: could not reach the inbox either: ${e.message || e}`); }
         }
-        await this.write_line(file, { log: { at: stamp(), msg: `task-loop escalated: ${String(said).slice(0, 200)}`, chase: "escalated" } });
-        this.totals.escalated++;
+        return said;
     }
 
     /* The only other way a task leaves the loop — the owner's `close_task` tool

@@ -6,6 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import Task from "../public/framework/core/Task/Task.js";
 
 const ROOT = process.env.TASKSTATE_ROOT ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SESS = path.join(ROOT, "public", "framework", "ai", "sessions");
@@ -76,6 +77,27 @@ export default class TaskState {
 			.map(f => ({ id: TaskState.id(f.dir), title: f.title, line: TaskState.first_sentence(f.outcome), landed_at: f.landed_at, url: TaskState.url(f.dir) }));
 	}
 
+	/** Tasks waiting on the owner (state from Task.replay), from today's and yesterday's folders. */
+	waiting(){
+		const out = [], walk = dir => {
+			let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+			for (const e of ents){
+				if (e.isDirectory()) walk(path.join(dir, e.name));
+				else if (e.name === "task.jsonl"){
+					const t = Task.replay(TaskState.lines(dir));
+					if (t.state === "waiting" && t.data.waiting_on === "owner")
+						out.push({ id: TaskState.id(dir), title: TaskState.facts(dir).title, waiting_on: "owner", since: t.data.waiting_since ?? null, url: TaskState.url(dir) });
+				}
+			}
+		};
+		const d = new Date(this.now), p2 = n => String(n).padStart(2, "0");
+		for (const back of [0, 1]){
+			const day = new Date(d.getTime() - back * 864e5);
+			walk(path.join(this.sess, String(day.getFullYear()), p2(day.getMonth() + 1), p2(day.getDate())));
+		}
+		return out.sort((a, b) => Date.parse(a.since) - Date.parse(b.since));
+	}
+
 	row(a){
 		const dir = a.task_dir && fs.existsSync(a.task_dir) ? a.task_dir : null;
 		const f = dir ? TaskState.facts(dir) : null;
@@ -90,12 +112,12 @@ export default class TaskState {
 		const in_flight = live.filter(a => a.state === "working").map(a => ({ ...this.row(a), quiet: this.row(a).quiet_min >= TaskState.QUIET_MIN }))
 			.sort((a, b) => (b.quiet - a.quiet) || (b.quiet_min - a.quiet_min));
 		const queued = live.filter(a => a.state === "queued").map(a => this.row(a));
-		const landed = this.landed_today();
-		return { at: new Date(this.now).toISOString(), in_flight, queued, landed, counts: { in_flight: in_flight.length, queued: queued.length, landed: landed.length } };
+		const landed = this.landed_today(), waiting = this.waiting();
+		return { at: new Date(this.now).toISOString(), in_flight, queued, waiting, landed, counts: { in_flight: in_flight.length, queued: queued.length, waiting: waiting.length, landed: landed.length } };
 	}
 
 	/** The picture without its clock, to tell whether anything changed. */
-	static sig(s){ return JSON.stringify([s.in_flight.map(r => [r.agent, r.quiet_min, r.title]), s.queued.map(r => r.agent), s.landed.map(r => r.id)]); }
+	static sig(s){ return JSON.stringify([s.in_flight.map(r => [r.agent, r.quiet_min, r.title]), s.queued.map(r => r.agent), (s.waiting ?? []).map(r => [r.id, r.since]), s.landed.map(r => r.id)]); }
 
 	static async now(){ return new TaskState({ registry: await this.fetch_registry() }).snapshot(); }
 
