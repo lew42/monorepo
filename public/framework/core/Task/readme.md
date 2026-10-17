@@ -68,7 +68,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
   `ai/sessions/2026/10/03/list-events/task-class/requirements.md` for what's deliberately left: folding
   in `ai/objects.js`'s display `Task`, `ai/AITask`'s page renderer, `ext/JSONL`'s
   `TaskJSONL`, and `ai/AITask/nested.js`'s `TaskTree`.
-- **Fields** (getters that read data, never stored numbers): `expected`, `module`, `session` (`session ?? session_id`), `priority` (latest `{priority:{score,why,by}}` line or `null`), `commits` (short hashes from `{"commit":"…"}` lines, no duplicates; `commit(hash)` appends one). Replay reads both lines without leaving the legacy mapping.
+- **Fields** (getters that read data, never stored numbers): `expected`, `module`, `session` (`session ?? session_id`), `priority` (latest `{priority:{score,why,by}}` line or `null`), `commits` (short hashes from `{"commit":"…"}` lines, no duplicates; `commit(hash)` appends one). Replay reads both lines without leaving the legacy mapping. `sessions` ([{id, task}], node appends it), `source` (voice-app | vscode | dictate | servex:<id>; an old `/` doc path reads as `doc`) and `cost` (USD, computed from the agents on this task via `Task.cost_resolver`, wired in `Servex/agents/Agents.js`).
 - **`completion`** (0 to 1): `checked_by` set (`check({by})`, final) is 1; else the share of complete subtasks (the only computed form); else old `steps`/`step` logs; else the agent's `data.completion`, or 1 when complete. New tasks no longer write `steps`.
 
 ## More

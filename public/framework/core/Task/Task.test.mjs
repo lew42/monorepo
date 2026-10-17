@@ -283,6 +283,23 @@ check("settled() resolves at once when already complete, and later when it compl
 	return before === null && got === t;
 });
 
+check("sessions: empty when absent, replayed from a line", () => {
+	const t = Task.replay([A]), u = Task.replay([A, { sessions: [{ id: "s1", task: "/x/" }] }]);
+	return t.sessions.length === 0 && u.sessions[0].id === "s1";
+});
+
+check("source: a name is the source; an old doc path is `doc`, source undefined", () => {
+	const a = Task.replay([A, { source: "servex:m1" }]), b = Task.replay([A, { source: "/framework/ai/plan.md" }]);
+	return a.source === "servex:m1" && a.doc === undefined && b.source === undefined && b.doc === "/framework/ai/plan.md" && b.data.source === "/framework/ai/plan.md";
+});
+
+check("cost: computed through Task.cost_resolver, 0 without one", () => {
+	const t = Task.replay([A, { path: "/p/" }]), none = t.cost;
+	Task.cost_resolver = p => p === "/p/" ? 1.5 : 0;
+	const got = t.cost; Task.cost_resolver = null;
+	return none === 0 && got === 1.5;
+});
+
 const passed = results.filter(Boolean).length;
 console.log(`\n${passed} / ${results.length} passing`);
 if (passed !== results.length) process.exit(1);

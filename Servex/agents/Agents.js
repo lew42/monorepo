@@ -11,6 +11,7 @@ import Registry, { alive } from "./Registry.js";
 import { defaults as role_defaults, opening, injected, compact_after as role_compact_after } from "./roles.js";
 import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
+import Task from "../../public/framework/core/Task/Task.js";
 import TaskDirs from "../../Server/TaskDirs.mjs";
 import LandingCheck from "../../Server/LandingCheck.mjs";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
@@ -47,7 +48,7 @@ export class Agents {
 
 	/* `boot` names THIS host process — every registry row it writes carries it,
 	 * so the next boot can tell "alive a moment ago" from "long dead". */
-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); }
+	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); }
 	assign(...args){ return Object.assign(this, ...args); }
 
 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
@@ -542,6 +543,18 @@ export class Agents {
 		return this.spawn(strip({ ...base, cwd, model: base.model ?? facts.model,
 			id: row.id, started_at: row.started_at, resume: row.session_id,
 			cost: Math.max(Number(row.cost) || 0, this.logged_cost(row.id)), turns: row.turns ?? 0 }));
+	}
+
+	/* A task's cost: logged_cost summed over the agents whose task dir is this task's (`task` = its app path or dir). Task.cost reads it. */
+	task_cost(task){
+		if (!task) return 0;
+		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.join(MAIN_ROOT, "public", task) : path.resolve(MAIN_ROOT, task);
+		let sum = 0;
+		for (const row of Object.values(this.reg().read())){
+			let dir = null; try { dir = this.task_dir_for(row); } catch {}
+			if (dir && path.resolve(MAIN_ROOT, dir) === want) sum += this.logged_cost(row.id);
+		}
+		return sum;
 	}
 
 	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */

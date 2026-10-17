@@ -153,6 +153,14 @@ export class Task extends Item {
 		return [...new Set(all.filter(t => typeof t === "string" && t.trim()))];
 	}
 	get module(){ return this.get_one("module"); }
+	// Every session that created or worked on the task, [{id, task}]: node appends it (page_tools.js), an agent never types it.
+	get sessions(){ const s = this.get_one("sessions"); return Array.isArray(s) ? [...s] : []; }
+	// Who asked: voice-app | vscode | dictate | servex:<agent id>. Old lines kept a doc path here: that is `doc`, and `source` is then undefined.
+	get source(){ const s = this.get_one("source"); return typeof s === "string" && !s.startsWith("/") ? s : undefined; }
+	get doc(){ const s = this.get_one("source"); return typeof s === "string" && s.startsWith("/") ? s : undefined; }
+	// USD, computed and never stored: the turn_cost of the agents whose task this is. Node wires `Task.cost_resolver` (Servex/agents/Agents.js).
+	static cost_resolver = null;
+	get cost(){ return this.constructor.cost_resolver?.(this.get_one("path")) ?? 0; }
 	get session(){ return this.get_one("session") ?? this.get_one("session_id"); }
 	get priority(){ return this.get_one("priority") ?? null; }
 	get commits(){ return [...(this.data.commits ?? [])]; }
