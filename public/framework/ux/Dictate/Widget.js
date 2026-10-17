@@ -123,6 +123,7 @@ Widget.prototype.marks = false;
 Widget.prototype.v1 = false;         // true = the OLD thread (one bubble per sentence) + composer (Dictate's own open mic)
 Widget.prototype.mode = "dictate";
 Widget.MODES = MODES;
+Widget.HEADROOM = 0.75;   // a new bubble keeps this share of the box under it before the page turns (doc/voice-assistant.md#nothing-jumps)
 
 /** The old thread (v1: true): one bubble per line, never merged. */
 Widget.ThreadV1 = class WidgetThreadV1 extends View {
@@ -230,7 +231,23 @@ Widget.Thread = class WidgetThread extends View {
 		this.$empty = div.c("ux-dictate-widget-empty muted", "Say something, or press the mic. Your words show up here.");
 		this.$bubbles = div.c("ux-dictate-widget-bubbles flex v gap");
 		// this.el scrolls, not $bubbles (see doc/widget-notes.md#sticky-scroll)
-		this.scroll = sticky_scroll(this.el);
+		this.scroll = sticky_scroll(this.el, { observe: false });   // its resize re-pin is bottom-only; anchor() answers a resize itself
+		if (typeof ResizeObserver === "function") new ResizeObserver(() => this.anchor()).observe(this.el);
+	}
+
+	/** The anchor is the NEWEST bubble's top: growing never moves older lines. The box turns the page (once, as a bubble starts)
+	 * when under HEADROOM of a box is left below it, and again, half a box at a time, for a bubble taller than the box. A reader who
+	 * scrolled up is never moved. Rule and the alternative: doc/voice-assistant.md#nothing-jumps */
+	anchor(){
+		const box = this.el, host = this.$bubbles.el, b = host.lastElementChild;
+		if (!b || !this.scroll.locked()) return;
+		const r = b.getBoundingClientRect(), top = r.top - box.getBoundingClientRect().top + box.scrollTop, view = box.clientHeight;
+		const room = b !== this.newest ? Math.max(r.height, view * Widget.HEADROOM) : r.height;   // a bubble that just started asks for room to grow
+		this.newest = b;
+		if (top + room <= box.scrollTop + view) return;   // fits: nothing moves
+		if (this.pad !== view){ host.style.paddingBlockEnd = view + "px"; this.pad = view; }   // blank page under the newest bubble: its top can reach the box top, and shrinking text never clamps the scroll
+		box.scrollTop = r.height < view ? top : top + r.height - view / 2;   // a page turn: a tall bubble's tail lands mid-box and grows into the blank below
+		box.dataset.turns = (+box.dataset.turns || 0) + 1;   // for the proof (test/anchor.mjs) and for anyone debugging a jump
 	}
 
 	/** Lifts live bubbles out while fn runs so mergeable() never takes one for the last real bubble. */
@@ -276,7 +293,7 @@ Widget.Thread = class WidgetThread extends View {
 		const ref = { id: at };
 		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text, spoken: !assistant && (chat.via === "voice" || chat.via === "whisper") });   // `said`: the raw words, kept when a placement improves the text
 		this.refresh();
-		this.scroll.pin();
+		this.anchor();
 		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks)
 		if (!assistant && this.widget.marks) this.mark(chat.text, bubble, ref);
 	}
@@ -295,7 +312,7 @@ Widget.Thread = class WidgetThread extends View {
 		if (!card || !text) return false;
 		this.summaries.set(card, String(text));
 		this.fold(card);
-		this.scroll.pin();
+		this.anchor();
 		return true;
 	}
 
@@ -351,7 +368,7 @@ Widget.Thread = class WidgetThread extends View {
 				});
 			});
 		});
-		this.scroll.pin();
+		this.anchor();
 	}
 
 	/** Collapsed <details> after the owner bubble `re` for a {refined} line; skipped if that bubble is not drawn. */
@@ -373,7 +390,7 @@ Widget.Thread = class WidgetThread extends View {
 		line.bubble.insertAdjacentElement("afterend", node);
 		this.settled.add(entry.re);
 		this.refresh();
-		this.scroll.pin();
+		this.anchor();
 	}
 
 	/** A reply still being written: its own bubble in this.lives, redrawn whole on every call. */
@@ -392,7 +409,7 @@ Widget.Thread = class WidgetThread extends View {
 			this.lives.set(key, hit = { el: node, text: text_el });
 		}
 		md_into(hit.text, text, true);
-		this.scroll.pin();
+		this.anchor();
 	}
 
 	/** The owner's words growing in the chat while they talk (doc/voice-assistant.md#the-flow-one-sentence-at-a-time).
@@ -423,7 +440,7 @@ Widget.Thread = class WidgetThread extends View {
 		if (d.host && d.host.lastElementChild !== d.el) d.host.append(d.el);   // a redraw of the host (a mark) appended pieces after it
 		d.text.textContent = settled;
 		if (guess) d.text.append(span.c("chatbox-guess").text((settled ? " " : "") + guess).el);
-		this.scroll.pin();
+		this.anchor();
 	}
 
 	/** The sentence is being sent: drop the draft so the settled piece lands where it was (its host stays mergeable). */
@@ -459,7 +476,7 @@ Widget.Thread = class WidgetThread extends View {
 			}
 		}
 		this.refresh();
-		this.scroll.pin();
+		this.anchor();
 		return true;
 	}
 
@@ -515,7 +532,7 @@ Widget.Thread = class WidgetThread extends View {
 			line.text = moved_node ?? old_bubble.querySelector(`[data-re="${at}"]`) ?? line.text;
 		}
 		this.refresh();
-		this.scroll.pin();
+		this.anchor();
 	}
 
 	add(text){ this.draw({ chat: { at: new Date().toISOString(), from: { kind: "owner" }, text } }); }
@@ -527,6 +544,7 @@ Widget.Thread = class WidgetThread extends View {
 		this.summaries = new Map();
 		this.draft = null;
 		this.$bubbles.empty();
+		this.$bubbles.el.style.paddingBlockEnd = ""; this.pad = 0; this.newest = null;
 		this.$empty.show();
 	}
 };
