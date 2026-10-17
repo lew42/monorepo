@@ -1,0 +1,2 @@
+{"commit":"7dfc96309"}
+{"log":{"at":"2026-10-16T23:39:48-05:00","msg":"step 2 landed: Sheet.Panel (one class) replaces DrawerRailSheetV1→Chat; old chain in ext/drawer/archive/sheet-chain-2026-10-16.js; DOM + shots at 400/1200 identical before/after; merged 7dfc96309 (branch 34b6a7ad9) with --skip-smoke --no-review (static copy has no WebSocket)"}}

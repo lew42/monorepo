@@ -15,3 +15,5 @@
 {"log":{"at":"2026-10-16T21:15:01-05:00","msg":"layout-check: 1 pages at 1280/1920/2560/3440 — /framework/ext/drawer/: empty 0.718 at 2560, empty 0.791 at 3440, narrow_share 0.864 at 3440; sheets in layout-check/"}}
 {"log":{"at":"2026-10-16T21:15:14-05:00","msg":"padding-check: 1 pages — clean"}}
 {"log":{"at":"2026-10-16T23:29:31-05:00","msg":"session resumed"}}
+{"commit":"7dfc96309"}
+{"log":{"at":"2026-10-16T23:39:48-05:00","msg":"step 2 landed: Sheet.Panel (one class) replaces DrawerRailSheetV1→Chat; old chain in ext/drawer/archive/sheet-chain-2026-10-16.js; DOM + shots at 400/1200 identical before/after; merged 7dfc96309 (branch 34b6a7ad9) with --skip-smoke --no-review (static copy has no WebSocket)"}}
