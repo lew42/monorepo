@@ -37,7 +37,7 @@ try {
 	assert.equal(view.length, 2);
 	assert.deepEqual(view.map(t => t.state), ["idle", "idle"]);
 	assert.deepEqual(view[0].source, { session: SESSION, line: 3, id: "a1" });
-	assert.equal(view[1].module, "ext/Refine");
+	assert.equal(view[1].module, "test/no-such-module-b");
 	assert.equal(view[0].title, "Make the mic dot bigger");
 
 	const none = new AskIndex({ root: ROOT }); none._dirs.set("cccccccc-0", path.join(DAY, "missing"));

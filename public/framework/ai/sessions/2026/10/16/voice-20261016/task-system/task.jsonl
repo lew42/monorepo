@@ -45,3 +45,6 @@
 {"assign":{"at":"2026-10-16T19:57:03-05:00","now":"step 7 landed (6858167bc: Session extends Item, tasks + progress via Task.progress_of, item tool maps session.jsonl; AISession.on renamed subscribe); next step 8, refine makes tasks"}}
 {"commit":"5fd480ca9c4c"}
 {"decision":{"at":"2026-10-16T19:58:59-05:00","what":"Amendments 2 from owner-2026-10-16-top-down.md: TaskPage not AITask (rename moves up), replay to Item/Item.Store (step 13), expected string|string[], tags, one home per task + task reference lines (step 14 absorbs 9), approve starts at once, checkbox row (step 15), Names table. Step 8 keeps building: it already creates via the parent's tasks.add.","by":"mastermind-task-system"}}
+{"commit":"a8e507198736"}
+{"commit":"6dd3e7c85"}
+{"assign":{"at":"2026-10-16T20:00:51-05:00","now":"step 8 landed (6dd3e7c85: each new refined ask becomes an idle Task via the item tool, source {session,line,id}; AskIndex.tasks_view); fixed a /s+/ title regex and a test that wrote real module inboxes. Next step 13: replay moves to Item"}}
