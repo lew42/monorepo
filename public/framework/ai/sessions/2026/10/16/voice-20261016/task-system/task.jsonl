@@ -32,3 +32,6 @@
 {"action":{"at":"2026-10-16T19:41:08-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/item-tool/requirements.md"]}}
 {"commit":"d48111cb2"}
 {"assign":{"at":"2026-10-16T19:41:11-05:00","now":"step 3b landed (d48111cb2); building step 5, the item tool item({path, delta})"}}
+{"action":{"at":"2026-10-16T19:45:35-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/item-local/requirements.md"]}}
+{"commit":"fd37b6efe"}
+{"assign":{"at":"2026-10-16T19:45:38-05:00","now":"step 5 landed (fd37b6efe, item({path, delta}); replay reads tasks and field lines); building step 12, the item tool in-process"}}
