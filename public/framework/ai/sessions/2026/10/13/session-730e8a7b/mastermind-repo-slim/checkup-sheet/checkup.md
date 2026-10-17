@@ -5,7 +5,7 @@ The AI sheet is the one AI surface for phone and desktop ([`ext/drawer`](/framew
 | Task | State | What is open | Decision | Next |
 |---|---|---|---|---|
 | [sheet](/framework/ai/sessions/2026/10/16/voice-20261016/sheet/) (mastermind-sheet) | Step 1 landed on dev (58270f2e3, `rail.js` → `Sheet.js`); audit, proposal and five variants committed; stray shots ignored and records committed (1ac400fc1) | Steps 2 to 10 | Route `<path>/ai/`; layout pick stands | Handed the go for steps 2 to 4, one commit each |
-| [sheet-steps-2-4](sheet-steps-2-4/requirements.md) | ⬜ mastermind-sheet building | One class (`Sheet.Panel`), ☰ = navigation, three sizes | Three commits | Each step merged and checked at 400 and 1200 |
+| [sheet-steps-2-4](sheet-steps-2-4/requirements.md) | ✅ step 2 merged (7dfc96309: `Sheet.Panel` is one class, old chain in `ext/drawer/archive/`, same DOM and shots; drawer page loads clean) · ⬜ steps 3 and 4 building | ☰ = navigation, three sizes | Three commits | Each step merged and checked at 400 and 1200 |
 | [sheet-route](sheet-route/requirements.md) · step 5 | ⬜ queued, $6 | `AIPage` at `<path>/ai/`, the hook in `Page.child()` | A real `ai` child wins | After step 4 |
 | [sheet-dock](sheet-dock/requirements.md) · step 6 | ⬜ queued, $4 | Desktop sidebar, open at 1920+ | | After step 5 |
 | [sheet-feed](sheet-feed/requirements.md) · step 7 | ⬜ queued, $5 | `AIFeed`: chat + page events, streamed | No All/Chat/Live switch yet | After step 5 |
