@@ -15,7 +15,7 @@ fs.writeFileSync(path.join(DIR, "task.jsonl"), JSON.stringify({ assign: { slug: 
 try {
 	const idx = new AskIndex({ root: ROOT });
 	idx._dirs.set(SESSION, DIR);   // pin the fixture folder; real sessions are never touched
-	const parsed = { asks: [{ id: "a1", text: "Make the mic dot bigger", module: "ux/Dictate" }, { id: "a2", text: "Log each prompt once", module: "ext/Refine" }] };
+	const parsed = { asks: [{ id: "a1", text: "Make the mic dot bigger", module: "test/no-such-module-a" }, { id: "a2", text: "Log each prompt once", module: "test/no-such-module-b" }] };
 	const ref = { session: SESSION, line: 3, at: "2026-10-16T10:00:00Z" };
 
 	const n = idx.after_refine(ref, parsed);

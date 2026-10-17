@@ -197,7 +197,7 @@ export default class AskIndex {
 				if (!home){ out.no_folder++; continue; }
 				const source = { session: row.session, line, id: row.id }, key = AskIndex.source_key(source);
 				if ((await AskIndex.tasks_view(home.dir, this.root)).some(t => AskIndex.source_key(t.source) === key)){ out.skipped++; continue; }
-				const title = String(row.ask).replace(/s+/g, " ").trim().slice(0, 100);
+				const title = String(row.ask).replace(/\s+/g, " ").trim().slice(0, 100);
 				const add = { type: "Task", title, expected: row.ask, module: row.module, source, ...(row.priority ? { priority: row.priority } : {}) };
 				const r = await run_item({ path: home.url, delta: { tasks: { add } } }, { caller: "refine-queue" });
 				r.ok ? out.added++ : out.no_folder++;
