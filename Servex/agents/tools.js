@@ -11,6 +11,7 @@ import { ops_tools } from "./ops.js";
 import { job_tools } from "./Jobs.js";
 import { expert_tools } from "./Experts.js";
 import { page_tools } from "./page_tools.js";
+import { skill_text, SKILLS_DIR } from "./roles.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -63,7 +64,7 @@ const card = agent => JSON.stringify(agent.card(), null, 2);
  * Servex.js, `for (const tool of tools(servex.agents)) servex.mcp.tool(tool)`,
  * wires them all, and `server(host)` hands all of them to an in-process agent. */
 export function tools(agents = singleton){
-	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents), ...task_tools(agents), ...page_tools()];
+	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents), ...task_tools(agents), ...page_tools(), ...skill_tools()];
 }
 
 /* query_sessions: find past sessions by tag, system, date, model or cost, with totals. NOT in tools(): it is opt-in, so it costs no
@@ -117,6 +118,27 @@ function task_owner(dir){
 }
 
 const TASK_DIR = { type: "string", description: "The task's directory, as tasks.json's own `dir` field gives it (e.g. `public/framework/ai/2026-10-02/stalled-and-budgets`)." };
+
+/* `skill`: a skill's text as a tool result, for connectors that have tools but no MCP prompts or Skill tool
+ * (the Claude app's voice session). Same reader Servex uses to inline a role's skills (roles.js skill_text);
+ * with no `name` (or an unknown one) it lists every skill with its one-line description. */
+function skill_tools(){
+	const list = () => fs.readdirSync(SKILLS_DIR, { withFileTypes: true }).filter(d => d.isDirectory() && fs.existsSync(path.join(SKILLS_DIR, d.name, "SKILL.md"))).map(d => {
+		const raw = fs.readFileSync(path.join(SKILLS_DIR, d.name, "SKILL.md"), "utf8");
+		const head = raw.slice(0, Math.max(raw.indexOf("\n---", 4), 0));
+		return `- ${d.name}: ${(head.match(/^description:\s*(.+)$/m)?.[1] ?? "").replace(/^["']|["']$/g, "").slice(0, 160)}`;
+	}).join("\n");
+	return [tool("skill",
+		"Return the full text of a skill (`.claude/skills/<name>/SKILL.md`, frontmatter removed) so you can follow it: `skill({name: \"voice-mastermind\"})`."
+		+ " Call it with no `name`, or an unknown one, to list every skill with its one-line description.",
+		{ name: { type: "string", description: "The skill's folder name, e.g. `voice-mastermind`. Omit to list all." } },
+		[],
+		({ name } = {}) => {
+			const safe = /^[\w-]+$/.test(name ?? "") ? name : null;
+			const text = safe ? skill_text(safe) : null;
+			return text ?? `${name ? `No skill named "${name}". ` : ""}Skills:\n${list()}`;
+		})];
+}
 
 function task_tools(agents){
 	return [

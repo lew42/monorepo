@@ -154,10 +154,10 @@ export function injected(role){
 	return skills.every(s => skill_text(s) !== null) ? skills : [];
 }
 
-const SKILLS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.claude/skills");
+export const SKILLS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.claude/skills");
 
 /* SKILL.md without its frontmatter, or null when the skill has no file. */
-function skill_text(name){
+export function skill_text(name){
 	try { return fs.readFileSync(path.join(SKILLS_DIR, name, "SKILL.md"), "utf8").replace(/^---[\s\S]*?\n---\r?\n/, "").trim(); }
 	catch { return null; }
 }
