@@ -4,10 +4,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { page_tools, run_item } from "./page_tools.js";
+import TaskHomes from "../../Server/TaskHomes.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const REL = "public/framework/ai/sessions/2026/10/16/.item-tool-test-" + process.pid;
 const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "task.jsonl");
+TaskHomes.INDEX = DIR + "-homes/task.jsonl";   // never the real /tasks/ index
 const URL = "/" + REL.slice("public/".length) + "/";
 const tools = Object.fromEntries(page_tools().map(t => [t.name, t]));
 const call = async (name, args, caller = "t1") => JSON.parse(await tools[name].handler(args, { caller }));
@@ -74,6 +76,7 @@ try {
 		r = await add({ tasks: { add: { type: "Task", title: "Module job", module: "fakemod", expected: "it works" } } });
 		const home = path.join(MOD, "tasks", "module-job");
 		ok(r.ok && fs.existsSync(path.join(home, "task.jsonl")), "module task: <module>/tasks/<slug>/task.jsonl");
+		ok(TaskHomes.listed().has(app(path.join(MOD, "tasks"))), "a new module list joins the /tasks/ index");
 		const l1 = JSON.parse(fs.readFileSync(path.join(home, "task.jsonl"), "utf8").split("\n")[0]);
 		ok(l1.id === "module-job" && l1.path === app(home) && l1.parent === URL && l1.module === "fakemod" && l1.expected === "it works", "line 1 has id, path, parent, fields");
 		ok(lines().length === before + 1 && lines().at(-1).task === app(home) && !lines().at(-1).tasks && Object.keys(lines().at(-1)).length === 3, "the parent gains exactly one {task} line");
@@ -202,4 +205,4 @@ try {
 		ok(Task.rank([old_heavy, fresh, mid_kids], now).map(t => t.id).join() === "mid,old,fresh", "Task.rank: weight x recency order");
 	}
 	console.log(`item_tool: ${n} checks passed`);
-} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
+} finally { fs.rmSync(DIR, { recursive: true, force: true }); fs.rmSync(DIR + "-homes", { recursive: true, force: true }); }

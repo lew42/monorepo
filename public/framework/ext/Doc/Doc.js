@@ -150,17 +150,10 @@ export class Doc extends Page {
 		});
 	}
 
+	// The tab draws what the module's tasks/ page draws: TasksPage.into (core/Task/TasksPage.js), imported when the tab opens.
 	async tasks_into(box){
-		const [{ default: Task }] = await Promise.all([import("../../core/Task/Task.js"), import("../../core/Task/TaskView.js")]);
-		const store = Task.Store.for(this.url + "tasks/task.jsonl");
-		if (!store.host){ await store.open(); if (store.count) store.attach(Task.replay_new(store.entries)); }
-		const list = store.host;
-		const kids = list ? [...list.tasks] : [];
-		await Promise.all(kids.map(k => k.ready));   // each child reads its own file first, so the ranking sees real dates
-		box.empty(() => {
-			if (!kids.length) return div.c("muted", "No tasks yet");
-			for (const kid of Task.rank(kids)) div.c("doc-task", () => Task.View.row(kid));
-		});
+		const { default: TasksPage } = await import("../../core/Task/TasksPage.js");
+		return TasksPage.into(box, this.url + "tasks/");
 	}
 
 	// See doc/Doc-notes.md for files_section layout (one view, custom render).
