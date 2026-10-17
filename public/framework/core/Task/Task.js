@@ -22,6 +22,9 @@ const CAN = {
 };
 
 // The state verbs a `task.jsonl` line may name: `{"stop":{"why":"…"}}`.
+// Plain fields a top-level line may set (the item tool's {"expected":"…"}); legacy lines keep them under `assign`.
+const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by"];
+
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
 
 export class Task extends Item {
@@ -286,6 +289,8 @@ Task.replay = function(lines){
 			task.put("priority", { score, why, by });
 		}
 		if (line.content && typeof line.content === "object") task.content.set(line.content);
+		if (line.tasks && typeof line.tasks === "object" && !Array.isArray(line.tasks)) task.tasks.set(line.tasks);
+		for (const k of FIELDS) if (line[k] !== undefined) task.put(k, line[k]);   // a plain field line, e.g. one the item tool wrote
 		if (line.verdict && typeof line.verdict === "object" && ["approve", "improve", "reject"].includes(line.verdict.is) && !verb){
 			if (!explicit){ explicit = true; legacy(true); }
 			task._at = at;
@@ -304,6 +309,7 @@ Task.replay = function(lines){
 };
 
 Task.STATES = STATES;
+Task.FIELDS = FIELDS;
 
 export default Task;
 

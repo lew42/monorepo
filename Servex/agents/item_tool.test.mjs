@@ -48,5 +48,7 @@ try {
 	const before = lines().length;
 	r = await call("page_set", { path: URL, delta: { pause: {} } });
 	ok(r.ok && lines().length === before + 1 && lines().at(-1).pause, "page_set is the same function");
+	r = await call("item", { path: URL, delta: { expected: "a field line" } });
+	ok(r.state.data.expected === "a field line", "a plain field line replays through Task.replay");
 	console.log(`item_tool: ${n} checks passed`);
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }

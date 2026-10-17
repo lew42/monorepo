@@ -389,12 +389,8 @@ async function instructions_for(kind, Class){
 	return Class ? { ...describe_class(Class), task_keys: kind === "Task" ? TASK_KEYS : undefined, grammar: GRAMMAR } : { class: kind, grammar: GRAMMAR };
 }
 
-// Task.replay + the `tasks` list (Task.replay does not read a `tasks` line yet; same call it makes for `content`).
-function task_of(Task, file){
-	const lines = parse_lines(file), task = Task.replay(lines);
-	for (const line of lines) if (is_plain(line?.tasks)) task.tasks.set(line.tasks);
-	return task;
-}
+// The file replayed by the class itself: the same code a browser runs on the same lines.
+function task_of(Task, file){ return Task.replay(parse_lines(file)); }
 
 function task_state(Task, file){
 	const task = task_of(Task, file);
