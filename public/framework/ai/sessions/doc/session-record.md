@@ -71,7 +71,8 @@ A reader opens `SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")` and
 ## What is not done yet
 
 - `ai/AISession/AISessionIndex.mjs` (the category join) still reads `ai/<id>/task.jsonl` of the old audit folder, a path that no longer holds sessions.
-- `ai/AISession/StoreFolder.js` routes any folder holding the record to a task page; a folder with digest tags only is checked in the render pass.
+- `ai/AISession/StoreFolder.js` routes any folder holding the record to a task page; a folder with digest tags only (no log yet) opens as an empty task-style page.
+- New session folders still start as `task.jsonl` until the two writers change: [the follow-up](../2026/10/13/session-730e8a7b/mastermind-repo-slim/session-rename/follow-up.md).
 - **Writers still create `task.jsonl`:** `Server/TaskDirs.mjs --new` and `spawn_agent`'s first task line (`Servex/agents/Agents.js`, the initial `assign` write). A new session folder starts with the old name; re-running `--apply` moves it once it has been quiet for an hour. Switching the writers to `session.jsonl` for a new *session* folder is the follow-up.
 - **`Servex/LogSweeper.js`** already allows `session.jsonl` under a session folder, so the log sweeper keeps committing moved records.
 - **A running Servex needs a restart** to read the new Servex readers (logged as `needs_restart`).
