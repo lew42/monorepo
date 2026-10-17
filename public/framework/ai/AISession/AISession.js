@@ -514,7 +514,7 @@ export default class AISession extends Session {
 	async update(files){
 		const fs = await import("node:fs/promises"), s = this.s;
 		let new_lines = 0;
-		if (s.messages && (s.v ?? 1) < STATE_V) return this.reset_and_update(files);   // counted with the 40-slot ring: read the log again, once
+		if ((s.v ?? 1) < STATE_V) return this.reset_and_update(files);   // saved before v2 (40-slot ring, or no messages yet): read the log again, once
 		for (const { part, path } of files){
 			let size; try { size = (await fs.stat(path)).size; } catch { continue; }
 			let off = s.cursor[part]?.off ?? 0;
