@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import Sessions, { PAUSE_PHASES, FALLBACK_MODEL } from "./Sessions.js";
+import Sessions, { PAUSE_PHASES, FALLBACK_MODEL, ASSISTANTS } from "./Sessions.js";
 
 let checks = 0;
 const check = (name, fn) => { fn(); checks++; };
@@ -217,6 +217,84 @@ check("voice roles run on Claude by default, even with OpenRouter ready; a Claud
 	assert.ok(String(s.session_model(row, "smart")).startsWith("claude"));
 	row.fallback = { fast: true };   // Claude was refused once for this session: it stays on OpenRouter
 	assert.equal(s.session_model(row, "fast"), FALLBACK_MODEL);
+});
+
+// ── the voice seat (voice-assistant-plan, 2026-10-17): SERVEX_SESSION_ASSISTANT=voice ─────────────
+check("the assistant switch defaults to fast, and only `voice` changes it", () => {
+	assert.equal(make().assistant, "fast");
+	assert.equal(make().voice_seat(), false);
+	assert.deepEqual(ASSISTANTS, ["fast", "voice"]);
+});
+
+check("voice seat: the voice-assistant role is spawned (not session-fast) with the skill as its system text", () => {
+	const spawned = [];
+	const real = agents.spawn;
+	agents.spawn = spec => { spawned.push(spec); return real(spec); };
+	const s = make(); s.assistant = "voice";
+	const made = s.create({ path: "/a/" });
+	s.say({ session: made.session, path: "/a/", text: "first sentence", via: "text" });
+	agents.spawn = real;
+	const spec = spawned.find(x => x.role === "voice-assistant");
+	assert.ok(spec, "a voice-assistant agent was spawned");
+	assert.equal(spec.name, made.session, "named by the session so Agents.name() mints voice-assistant-<session>");
+	assert.equal("id" in spec, false, "no id on the first spawn: Agents.name() mints it");
+	assert.match(spec.system, /Voice assistant: place each sentence/);
+	assert.equal(s.map[made.session].fast, `voice-assistant-${made.session}`);
+	assert.equal(s.map[made.session].fast_seat, "voice");
+	assert.equal(spawned.some(x => x.role === "session-fast"), false);
+});
+
+check("voice seat: each sentence sends the whole prompt so far, the new sentence with its at, and the session file", () => {
+	const s = make(); s.assistant = "voice";
+	const made = s.create({ path: "/a/" });
+	const at1 = s.say({ session: made.session, path: "/a/", text: "one", via: "text" }).at;
+	const at2 = s.say({ session: made.session, path: "/a/", text: "two", via: "text" }).at;
+	const text = sent.filter(c => c.id.startsWith("voice-assistant")).at(-1).text;
+	assert.match(text, new RegExp(`The prompt so far:\\n\\[${at1.replace(/[+.]/g, "\\$&")}\\] one\\n`));
+	assert.match(text, new RegExp(`New sentence to place[^\\n]*\\n\\[${at2.replace(/[+.]/g, "\\$&")}\\] two\\n`));
+	assert.ok(text.endsWith(`Session file: ${made.file}`));
+	assert.equal(text.includes("[on /a/]"), false, "not the fast-mode shape");
+});
+
+check("voice seat: a held spoken thought is sent as ALL its new sentences at once", () => {
+	const s = make(); s.assistant = "voice";
+	const made = s.create({ path: "/a/" });
+	const a = s.say({ session: made.session, path: "/a/", text: "alpha", via: "voice", floor: "speaking" }).at;
+	const b = s.say({ session: made.session, path: "/a/", text: "beta", via: "voice", floor: "done" }).at;   // releases the thought
+	const text = sent.filter(c => c.id.startsWith("voice-assistant")).at(-1).text;
+	assert.match(text, /New sentences to place/);
+	assert.ok(text.includes(`[${a}] alpha`) && text.includes(`[${b}] beta`));
+	assert.match(text, /prompt so far:[^\n]*\(nothing yet\)/i);
+});
+
+check("voice seat: its turn's final text is never written as a chat line, a skip or a para", () => {
+	const s = make(); s.assistant = "voice";
+	const made = s.create({ path: "/a/" });
+	s.say({ session: made.session, path: "/a/", text: "hello", via: "text" });
+	const before = lines(path.join(repo, "public", made.file.replace(/^\//, ""))).length;
+	s.heard({ type: "result", text: "(new paragraph) Placed it." }, { id: s.map[made.session].fast });
+	assert.equal(lines(path.join(repo, "public", made.file.replace(/^\//, ""))).length, before);
+});
+
+check("a session that sat in the fast seat gets a fresh voice agent (new id, no resume) when the switch flips", () => {
+	const s = make();
+	const made = s.create({ path: "/a/" });
+	s.say({ session: made.session, path: "/a/", text: "hi", via: "text" });
+	const row = s.map[made.session];
+	assert.equal(row.fast, `session-fast-${made.session}`);
+	agents.live.get(row.fast).state = "stopped";
+	row.backing.fast = "old-claude-uuid";
+	s.assistant = "voice";
+	s.wake(row, "fast");
+	assert.equal(row.fast, `voice-assistant-${made.session}`);
+	assert.equal(row.fast_seat, "voice");
+});
+
+check("fast mode is untouched: it still sends `[on <path>] <text>` to session-fast", () => {
+	const s = make();
+	const made = s.create({ path: "/a/" });
+	s.say({ session: made.session, path: "/a/", text: "plain again", via: "text" });
+	assert.equal(last_sent("fast"), "[on /a/] plain again");
 });
 
 console.log(`Sessions.test.mjs: ${checks} checks passed`);

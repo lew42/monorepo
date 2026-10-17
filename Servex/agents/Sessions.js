@@ -64,6 +64,12 @@ export const LONE_EMOJI = /^\p{Extended_Pictographic}[\uFE0F\u{1F3FB}-\u{1F3FF}]
 
 const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };
 
+/* WHO SITS IN THE FAST SEAT (voice-assistant-plan, 2026-10-17; ux/Dictate/doc/voice-assistant.md): `fast` = the old
+ * session-fast chatter (default until proven), `voice` = the voice-assistant role, woken per sentence to write one {place}
+ * line. Set SERVEX_SESSION_ASSISTANT=voice and restart Servex to switch. */
+export const ASSISTANTS = ["fast", "voice"];
+const pick_assistant = v => ASSISTANTS.includes(String(v ?? "").trim().toLowerCase()) ? String(v).trim().toLowerCase() : "fast";
+
 /* IS A LINE WORTH A MODEL CALL? (review finding 5, 2026-10-03): a real voice session writes
  * one owner line per sentence or two, not per paragraph -- the owner's own evidence file had
  * 20 lines in 4 minutes, several of them just "Hello." or "Can you hear me?". Running `refine()`
@@ -216,7 +222,7 @@ export default class Sessions {
 		/* fast_wait_ms: the fast assistant's reply waits this long after the owner spoke,
 		 * so that, when the smart one answers (or reacts) first, only ONE acknowledgement
 		 * goes out (the owner, 2026-09-30). `hold_fast()` below. */
-		return { repo: REPO, file: process.env.SERVEX_SESSIONS_FILE || null, quiet_ms: env("SERVEX_SESSION_QUIET_MS", 1500),
+		return { repo: REPO, file: process.env.SERVEX_SESSIONS_FILE || null, assistant: pick_assistant(process.env.SERVEX_SESSION_ASSISTANT), quiet_ms: env("SERVEX_SESSION_QUIET_MS", 1500),
 			/* 1500, was 8000 (first-reply, 2026-10-13): the smart one never answered inside 8 s, so the wait only delayed
 			 * the first reply; ai/.../first-reply/ and ux/Dictate/doc/latency.md. Set the env to 8000 for the old pace. */
 			fast_wait_ms: env("SERVEX_SESSION_FAST_WAIT_MS", 1500), prewarm: env("SERVEX_SESSION_PREWARM", 1),
@@ -322,14 +328,17 @@ export default class Sessions {
 						text: "Claude's login failed mid-session, so every voice session switched to OpenRouter automatically. Fix: log Claude back in (`claude /login`)." } }))
 				.catch(() => {});
 		}
-		const last_owner = this.last_owner_text(s);   // the line Claude refused to answer — read now, before anything respawns
+		const last_owner = this.last_owner_line(s);   // the line Claude refused to answer — read now, before anything respawns
 		setImmediate(() => {
 			try { this.servex.agents.stop(s[from.role]); } catch {}
 			/* `wake()` gives the fresh agent the session's tail as CONTEXT, but context alone
 			 * starts no new turn, so without this the owner hears nothing until they speak
 			 * again, to an agent that never actually answered them (review finding 4). Re-send
 			 * it, to this one role only. */
-			try { this.wake(s, from.role); if (last_owner) this.send(s, from.role, last_owner); }
+			try {
+					this.wake(s, from.role);
+					if (last_owner) from.role === "fast" && this.voice_seat(s) ? this.voice_say(s, [last_owner]) : this.send(s, from.role, last_owner.text);
+				}
 			catch (e){ console.error(`sessions: fallback respawn failed: ${e.message}`); }
 		});
 	}
@@ -337,16 +346,47 @@ export default class Sessions {
 	/* The text of the most recent owner chat line in this session's file — what a freshly
 	 * respawned agent (`woken()` above) needs re-sent, since its own context tail is history,
 	 * not a live turn. */
-	last_owner_text(s){
+	last_owner_line(s){
 		try {
 			const lines = fs.readFileSync(this.disk(s.file), "utf8").split("\n");
 			for (let i = lines.length - 1; i >= 0; i--){
 				if (!lines[i].trim()) continue;
 				let j; try { j = JSON.parse(lines[i]); } catch { continue; }
-				if (j.chat?.from?.kind === "owner") return j.chat.text;
+				if (j.chat?.from?.kind === "owner") return j.chat;
 			}
 		} catch {}
 		return null;
+	}
+	last_owner_text(s){ return this.last_owner_line(s)?.text ?? null; }
+
+	/* THE VOICE SEAT: is this session's `fast` agent the voice assistant? */
+	voice_seat(){ return this.assistant === "voice"; }
+
+	/* Every owner sentence of the session so far, oldest first, as `{at, text, selection?}` (a refined line is the
+	 * assistant's, so only `from.kind === "owner"` lines count). */
+	owner_lines(s){
+		const out = [];
+		try {
+			for (const l of fs.readFileSync(this.disk(s.file), "utf8").split("\n")){
+				if (!l.trim()) continue;
+				let j; try { j = JSON.parse(l); } catch { continue; }
+				if (j.chat?.from?.kind === "owner") out.push(j.chat);
+			}
+		} catch {}
+		return out;
+	}
+
+	/* WAKE THE VOICE ASSISTANT (voice-assistant-plan): the whole prompt so far (each owner line with its `at`), then the
+	 * new sentence(s), then the session file to write into. It answers by writing one {"place"} line per new sentence
+	 * with the item tool; it writes no chat reply (`heard()` drops its text). */
+	voice_say(s, fresh){
+		const news = new Set(fresh.map(l => l.at));
+		const said = l => `[${l.at}] ${selected_prefix(l.selection)}${l.text}`;
+		const before = this.owner_lines(s).filter(l => !news.has(l.at));
+		const text = (before.length ? `The prompt so far:\n${before.map(said).join("\n")}\n\n` : "The prompt so far: (nothing yet)\n\n")
+			+ `New sentence${fresh.length === 1 ? "" : "s"} to place (one {place} line each, \`re\` = its \`at\`):\n${fresh.map(said).join("\n")}\n\n`
+			+ `Session file: ${s.file}`;
+		this.send(s, "fast", text);
 	}
 
 	// ── state ────────────────────────────────────────────────────────────────
@@ -816,7 +856,8 @@ export default class Sessions {
 		} else {
 			s.fast_re = s.fast_thought_at = line.at;
 			s.fast_heard = text;
-			this.send(s, "fast", `${selected_prefix(selection)}[on ${site}] ${text}`);
+			if (this.voice_seat()) this.voice_say(s, [line]);
+			else this.send(s, "fast", `${selected_prefix(selection)}[on ${site}] ${text}`);
 			this.gather(s, line);
 		}
 		return { ok: true, at: line.at, answered_by: [
@@ -961,7 +1002,8 @@ export default class Sessions {
 		s.fast_thought_at = h.lines[0].at;   // the FIRST owner line of this thought — a `(new paragraph)` marker's `re`
 		this.save();
 		this.wake(s, "fast");
-		this.send(s, "fast", said + tail);
+		if (this.voice_seat()) this.voice_say(s, h.lines);
+		else this.send(s, "fast", said + tail);
 		this.wake(s, "smart");
 		this.send(s, "smart", nav + said + tail);
 		return true;
@@ -1010,6 +1052,13 @@ export default class Sessions {
 
 	brief(role){ return fs.readFileSync(path.join(HERE, `session-${role}.md`), "utf8"); }
 
+	/* The voice assistant's whole system text: the `voice-assistant` skill, minus its front matter. */
+	voice_brief(){
+		const file = [this.repo, REPO].map(r => path.join(r, ".claude", "skills", "voice-assistant", "SKILL.md")).find(f => fs.existsSync(f));
+		if (!file) throw new Error("the voice-assistant skill (.claude/skills/voice-assistant/SKILL.md) is missing");
+		return fs.readFileSync(file, "utf8").replace(/^---[\s\S]*?\n---\s*/, "").trim();
+	}
+
 	/* The model one ROLE of one SESSION spawns on: the setting (`session_backend()`), unless
 	 * this session's own `fallback` map already says Claude refused it (`woken()` above) —
 	 * that always wins, session by session, until the pair is stopped for good. */
@@ -1031,7 +1080,18 @@ export default class Sessions {
 			+ (!s.card ? "" : role === "fast" ? `\n\nThis session is about card ${s.card}.`
 				: `\n\nThis session is about card ${s.card}. Its record is public${s.home}page.jsonl; read that file first for the card's history.`)
 			+ (context ? `\n\nThis session ran before you; its last lines follow (the whole record is public${s.file}):\n${context}` : "");
-		const spec = role === "fast" ? {
+		const voice = role === "fast" && this.voice_seat();
+		const spec = voice ? {
+			/* THE VOICE ASSISTANT in the fast seat: same lean process (no settings, no memory, no built-in tools) but WITH Servex's
+			 * door, because its one job is the item tool (`mcp__local__item`). `name: s.id` makes Agents.name() mint
+			 * `voice-assistant-<session>`; the id is then kept in `s.fast` and reused, so it never respawns per sentence. */
+			role: "voice-assistant", name: s.id, model: this.session_model(s, "fast"), effort: "low", urgent: true,
+			permission_mode: "bypassPermissions", cwd: this.repo, setting_sources: [],
+			system: this.voice_brief() + where,
+			env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
+			sdk: { tools: [] },
+			parent: "sessions"
+		} : role === "fast" ? {
 			/* LEAN like the Layers page assistant: no settings, no connectors, no memory,
 			 * no tools, and no Servex door (`mcp_url: ""`). Its brief is its whole system prompt. */
 			role: "session-fast", name: s.id, model: this.session_model(s, "fast"), effort: "low", urgent: true,
@@ -1084,6 +1144,11 @@ export default class Sessions {
 		if (this.awake(s, role)) return false;
 		if (!this.awake(s, "fast") && !this.awake(s, "smart")) this.room(s);
 		const target_model = this.session_model(s, role);
+		/* A change of WHO SITS in the fast seat (SERVEX_SESSION_ASSISTANT flipped across a restart): the old agent's id and Claude
+		 * session belong to the other role, so drop both. The fresh voice agent gets a name from Agents.name(), plus the tail. */
+		const seat = role === "fast" ? (this.voice_seat() ? "voice" : "fast") : null;
+		const reseat = !!(seat && (s.fast || s.backing?.fast) && (s.fast_seat ?? "fast") !== seat);
+		if (reseat){ s.fast = null; (s.backing ??= {}).fast = null; }
 		const old = s.backing?.[role];
 		/* Only a change of PROVIDER forces a fresh spawn (review finding 5): the default Claude
 		 * path already switches `smart` between Sonnet and Opus on its own (`Usage.pick()`,
@@ -1100,11 +1165,12 @@ export default class Sessions {
 		 * this runs, so `old` alone would miss the fallback case). A true brand-new session has
 		 * no tail: the owner's first line is about to be sent as the real prompt by `say()`
 		 * right after this returns, and a tail that already quoted it would show it twice. */
-		const give_context = old || s.fallback?.[role];
+		const give_context = old || s.fallback?.[role] || reseat;
 		let agent;
 		try { agent = this.spawn(s, role, can ? { resume: old } : { context: give_context ? this.tail(s, 40) : "" }); }
 		catch (e){ this.sleep(s, "failed revive"); throw e; }
 		s[role] = agent.id;
+		if (seat) s.fast_seat = seat;
 		this.by_agent.set(agent.id, { id: s.id, role });
 		(s.backing ??= {})[role] = agent.session_id ?? null;
 		(s.backing_model ??= {})[role] = agent.model ?? target_model;
@@ -1171,6 +1237,8 @@ export default class Sessions {
 		if (event.type !== "result") return;
 		this.streaming(s, who.role, agent.id, null);
 		if (event.stopped) return;
+		/* The voice assistant answers with a {place} line (item tool), never in chat: whatever text its turn ends on is dropped. */
+		if (who.role === "fast" && s.fast_seat === "voice") return;
 		let text = String(event.text ?? agent.last_text ?? "").trim();
 		if (!text) return;
 		const re = s[`${who.role}_re`];
