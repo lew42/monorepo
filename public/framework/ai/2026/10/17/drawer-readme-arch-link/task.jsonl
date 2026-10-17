@@ -1,0 +1,2 @@
+{"assign":{"session_id":"5330ac32-f61b-4d57-bc47-f9533d8da0dc","agent":"task-mastermind-drawer-readme-arch-link","brief":"The drawer README should link its architecture doc.","model":"deepseek/deepseek-v4.1-flash","home":"/framework/ext/drawer/","requested_at":"2026-10-17T13:12:06-05:00","now":"starting"}}
+{"log":{"at":"2026-10-17T13:13:06-05:00","msg":"session ended (other) without landing"}}
