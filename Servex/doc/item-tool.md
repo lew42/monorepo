@@ -9,3 +9,4 @@
 - **Instructions:** first call per caller and class returns `Item.describe()` (plus first comment lines); `{"help":{}}` repeats them.
 - **Decision:** the `jsonl-schema.mjs` check is skipped for Task lines (the tool validates them; the schema forbids `by`/`ts`).
 - Test: `node Servex/agents/item_tool.test.mjs`. Servex must restart to load the tool.
+- **In-process (step 12):** Servex-spawned agents also get this tool as `mcp__local__item` (same function, no HTTP; the `mcp__servex__` twin is disallowed). Off with `SERVEX_LOCAL_TOOLS=0`; test `Servex/agents/item-local.test.mjs`.
