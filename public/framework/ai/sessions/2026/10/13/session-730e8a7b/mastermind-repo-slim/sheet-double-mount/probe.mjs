@@ -104,5 +104,16 @@ for (const [w, url, label] of [[400, "/framework/ext/JSONL/ai/", "ext/JSONL/ai/"
 	}
 	await page.context().close();
 }
+// 6. at 1200 on <path>/ai/ the page holds the chat; the top-right star opens the dock (the chat moves, never doubles); shutting it brings it back
+{
+	const page = await open(1200, PATH + "ai/");
+	await page.waitForSelector(".drawer-menu", { timeout: 20000 }); await settle(page);
+	let n = await count(page); show(page, "1200 ai/ page", n); check(n.widgets === 1 && n.feeds === 1 && n.where[0] === "page", "1200 ai/: the page holds one chat, one feed");
+	await page.click(".drawer-menu"); await settle(page);
+	n = await count(page); show(page, "1200 then the star (dock)", n); check(n.widgets === 1 && n.feeds === 1 && n.where[0] === "dock", "1200 star: the dock holds one chat, one feed");
+	await page.click(".drawer-x"); await settle(page);
+	n = await count(page); show(page, "1200 dock shut", n); check(n.widgets === 1 && n.feeds === 1 && n.where[0] === "page", "1200 dock shut: back in the page, one chat, one feed");
+	await page.context().close();
+}
 await browser.close();
 process.exit(failed ? 1 : 0);

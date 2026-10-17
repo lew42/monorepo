@@ -30,3 +30,9 @@ ok   resized to 1200: one chat, one feed
 ok   resized to 400: one chat, one feed
      resize to 1200: widgets 1 (visible 1) feeds 1 (visible 1) in page
 ok   resized to 1200: one chat, one feed
+     1200 ai/ page: widgets 1 (visible 1) feeds 1 (visible 1) in page
+ok   1200 ai/: the page holds one chat, one feed
+     1200 then the star (dock): widgets 1 (visible 1) feeds 1 (visible 1) in dock
+ok   1200 star: the dock holds one chat, one feed
+     1200 dock shut: widgets 1 (visible 1) feeds 1 (visible 1) in page
+ok   1200 dock shut: back in the page, one chat, one feed
