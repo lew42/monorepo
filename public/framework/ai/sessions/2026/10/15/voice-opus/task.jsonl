@@ -248,3 +248,9 @@
 {"log":{"at":"2026-10-16T20:02:55-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T20:03:36-05:00","heartbeat":"answered","msg":"I'm idle with no minions running. Four updates go out on the next voice question: the audit findings, the salvage report, task-system progress and the Whisper log. The Gmail connector won't work until"}}
 {"log":{"at":"2026-10-16T20:06:58-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T20:27:53-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-opus"}}
+{"log":{"at":"2026-10-16T20:27:55-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T20:28:26-05:00","heartbeat":"answered","msg":"No change: I'm idle with no minions running, holding four updates (audits, salvage, task-system progress, Whisper log) for the next voice question."}}
+{"log":{"at":"2026-10-16T20:31:58-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T20:38:52-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T20:39:31-05:00","msg":"Relay (helper-compact-nudge, for voice-app): compact-nudge landed on michael/dev e0a0b1ead. No auto /compact at 150k/200k and no 45-minute rule; an idle agent past its line gets ONE nudge (context tokens, cache warm/cold), again only after +20k; hard auto-compact only at 400k or the memory line, at end of turn; new compact_self tool lets an agent answer the nudge; compact_nudge events logged beside compacting. Needs a Servex restart (node Servex/sustain.mjs --restart), not done; the owner's call since a restart must not drop the voice call."}}
