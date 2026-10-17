@@ -1,2 +1,16 @@
 {"assign":{"session_id":"5330ac32-f61b-4d57-bc47-f9533d8da0dc","agent":"task-mastermind-drawer-readme-arch-link","brief":"The drawer README should link its architecture doc.","model":"deepseek/deepseek-v4.1-flash","home":"/framework/ext/drawer/","requested_at":"2026-10-17T13:12:06-05:00","now":"starting"}}
 {"log":{"at":"2026-10-17T13:13:06-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T13:18:31-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-drawer-readme-arch-link"}}
+{"log":{"at":"2026-10-17T13:18:33-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T13:19:24-05:00","heartbeat":"answered","msg":"Found it. The readme links `doc/architecture.md` only as an orphan bullet under a trailing `## More` — it's the **only** doc in `doc/` missing from the readme's `## Doc topics` index. That's what the "}}
+{"log":{"at":"2026-10-17T13:19:42-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T13:30:31-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-drawer-readme-arch-link"}}
+{"log":{"at":"2026-10-17T13:30:34-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T13:31:21-05:00","heartbeat":"answered","msg":"While the worktree builds, let me sort the logging format."}}
+{"log":{"at":"2026-10-17T13:31:35-05:00","msg":"diagnosed from readme.md, doc/architecture.md, page.js and the voice session: the readme ALREADY links doc/architecture.md, but only as a lone bullet under a trailing '## More' — it is the only doc in doc/ missing from the '## Doc topics' index, which is what the owner saw. Fix: promote doc/architecture.md into '## Doc topics' with a real one-line description, drop the orphan '## More' block."}}
+{"decision":{"at":"2026-10-17T13:31:35-05:00","question":"Where should the README's architecture link live?","options":["leave it as the trailing '## More' bullet","promote it into the '## Doc topics' index the reader scans"],"chose":"promote into '## Doc topics'","why":"the owner pointed at the README not linking its architecture doc; the link existed but sat in a throwaway 'More' section as the only doc absent from the readme's own doc index."}}
+{"commit":"735489b7067d"}
+{"log":{"at":"2026-10-17T13:37:31-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-drawer-readme-arch-link"}}
+{"log":{"at":"2026-10-17T13:37:34-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T13:38:19-05:00","heartbeat":"answered","msg":"The `cd` got reset — git may have run in the wrong tree. Let me check both trees explicitly."}}
+{"log":{"at":"2026-10-17T13:38:42-05:00","msg":"session ended (other) without landing"}}
