@@ -47,10 +47,13 @@ export default class TaskLoop {
         this.timer = setInterval(() => this.tick().catch(e =>
             this.servex?.log?.append("servex", { type: "task-loop-error", error: String(e?.message || e) }).catch(() => {})), this.every_min * 60000);
         this.timer.unref();
+        // /framework/ai/tasks/ tails state.jsonl: its writer is a child of Servex (a snapshot blocks ~100 ms), so it restarts with Servex; the newest watcher wins its lock
+        const watcher = path.join(this.root, "Server", "TaskState.mjs");
+        if (!process.env.SERVEX_NO_TASKSTATE && fs.existsSync(watcher)) try { this.state_watch = spawn(process.execPath, [watcher, "--watch"], { stdio: "ignore", windowsHide: true }); this.state_watch.on("error", () => {}); } catch {}
         return this;
     }
 
-    stop(){ clearInterval(this.timer); }
+    stop(){ clearInterval(this.timer); try { this.state_watch?.kill(); } catch {} }
     status(){ return this.status_now; }
 
     /* ── one tick ─────────────────────────────────────────────────────── */

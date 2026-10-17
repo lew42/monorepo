@@ -188,6 +188,7 @@ public/framework/ai/**/owner-prompts.jsonl
 public/framework/ai/**/words.jsonl
 public/ai/v-*.jsonl
 public/framework/ai/tasks/state.jsonl
+public/framework/ai/tasks/state.jsonl.lock
 public/framework/catalog/thumbs/
 
 # automated pictures: every shots/ folder, anywhere, is machine output (2026-10-14, ai/sessions/doc/commit-rule.md).
