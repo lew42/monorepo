@@ -34,3 +34,4 @@
 {"log":{"at":"2026-10-17T14:16:31-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
 {"log":{"at":"2026-10-17T14:16:34-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-17T14:17:04-05:00","heartbeat":"answered","msg":"Idle and finished. The bubbles-anchor task landed in `60b9771dd`, and its `finish` line with the measurement is in my `task.jsonl`."}}
+{"log":{"at":"2026-10-17T14:20:42-05:00","msg":"session ended (other) without landing"}}

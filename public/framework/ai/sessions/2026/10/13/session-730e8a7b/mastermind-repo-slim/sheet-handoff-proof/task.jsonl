@@ -32,3 +32,4 @@
 {"log":{"at":"2026-10-17T14:15:32-05:00","heartbeat":"check","msg":"status check sent to helper-sheet-handoff-proof"}}
 {"log":{"at":"2026-10-17T14:15:35-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-17T14:16:04-05:00","heartbeat":"answered","msg":"I'm done and idle, with nothing in progress. The rule 4b edit is merged and the proof passed: the task folder appears 7.9 s after the last sentence and the feed row at 9.2 s. No Servex restart was nee"}}
+{"log":{"at":"2026-10-17T14:19:42-05:00","msg":"session ended (other) without landing"}}
