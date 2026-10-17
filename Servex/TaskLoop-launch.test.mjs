@@ -57,19 +57,24 @@ const c = make("c", [{ assign: { agent: "minion-old", requested_at: "2026-10-17T
 await loop.launch(b); await loop.launch(c);
 assert.equal(spawned.length, 1, "a task with no agent config spawns nothing");
 
+// approved_by comes from the approve line's own author when the verb carries no `by` (the item tool stamps `by` on the line)
+const e = make("e", [head(), wait, { approve: { note: "ok" }, by: "voice-app" }]);
+await loop.launch(e);
+assert.equal(spawn_lines(e)[0].approved_by, "voice-app", "approved_by falls back to the approve line's by");
+
 // hot: queue, not spawn; then the tick retry spawns once it clears
 const d = make("d", [head(), wait, approve]);
 servex.monitor.flag = { reason: "CPU above 90%" };
 const h = await loop.launch(d);
 assert.equal(h.queued, true);
-assert.equal(spawned.length, 1);
+assert.equal(spawned.length, 2);
 assert.equal(spawn_lines(d).length, 0);
 assert.equal(fs.readFileSync(d, "utf8").split("\n").filter(l => l.includes('"queue"')).length, 1);
 await loop.launch(d);
 assert.equal(fs.readFileSync(d, "utf8").split("\n").filter(l => l.includes('"queue"')).length, 1, "queued once");
 servex.monitor.flag = null;
 await loop.tick();
-assert.equal(spawned.length, 2, "the tick retries a queued task");
+assert.equal(spawned.length, 3, "the tick retries a queued task");
 assert.equal(spawn_lines(d).length, 1);
 
 try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
