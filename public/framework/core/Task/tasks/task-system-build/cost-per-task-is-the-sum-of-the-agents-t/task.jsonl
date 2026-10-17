@@ -1,1 +1,3 @@
 {"id":"cost-per-task-is-the-sum-of-the-agents-t","path":"/framework/core/Task/tasks/task-system-build/cost-per-task-is-the-sum-of-the-agents-t/","parent":"/framework/core/Task/tasks/task-system-build/","title":"Cost per task is the sum of the agents that ran on it","source":"/framework/core/Task/doc/owner-2026-10-16-ui.md#where-and-the-session-reference","by":"voice-app","ts":"2026-10-17T01:30:49.430Z"}
+{"commit":"04bea0291","complete":{},"by":"mastermind-task-system","ts":"2026-10-17T04:50:31.900Z"}
+{"sessions":[{"id":"mastermind-task-system","task":"/framework/core/Task/tasks/task-system-build/cost-per-task-is-the-sum-of-the-agents-t/"}],"by":"mastermind-task-system","ts":"2026-10-17T04:50:31.902Z"}
