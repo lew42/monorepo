@@ -16,7 +16,7 @@ function fresh(){
 export default new Page({
 	meta: import.meta,
 	title: "Live",
-	description: "Start, pause and finish a real Task with subtasks — no reload. Try to finish it too early and watch it refuse.",
+	description: "Start, pause and complete a real Task with subtasks — no reload. Try to complete it too early and watch it refuse.",
 	icon: "checklist",
 	width: "large",
 
@@ -34,11 +34,11 @@ export default new Page({
 			button("Start").click(() => { task.start(); draw(); });
 			button("Pause").click(() => { task.pause(); draw(); });
 			button("Resume").click(() => { task.resume(); draw(); });
-			button("Finish").click(() => {
+			button("Complete").click(() => {
 				const before = task.state;
-				task.finish();
-				this.message = task.state === before && before !== "finished"
-					? (task === this.root ? "Refused — a subtask isn't finished yet." : `Refused — can't finish from "${before}".`)
+				task.complete();
+				this.message = task.state === before && before !== "complete"
+					? (task === this.root ? "Refused — a subtask isn't complete yet." : `Refused — can't complete from "${before}".`)
 					: "";
 				draw();
 			});
@@ -60,7 +60,7 @@ export default new Page({
 		};
 
 		const $page = div.c("flex v gap wide", () => {
-			p.c("page-content-lede", "Start the parent, then press its Finish before both subtasks are finished — it refuses and says why, right here. Finish both subtasks, then Finish the parent again: it works.");
+			p.c("page-content-lede", "Start the parent (it starts both subtasks), then press its Complete before both subtasks are complete — it refuses and says why, right here. Complete both subtasks and the parent completes itself.");
 			div.c("flex gap", () => button("Reset").click(() => { this.root = fresh(); this.message = ""; draw(); }));
 			$status = div.c("flex gap wrap");
 			$message = div.c("flex gap");

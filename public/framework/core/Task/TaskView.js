@@ -15,12 +15,13 @@ export default class TaskView extends View {
 		if (this.size !== "card") this.style({ display: "flex", gap: ".5em", alignItems: "center" });
 		this.redraw();
 		this.task.on("change", this.redraw);
-		if (this.size === "card") this.task.tasks.on("delta", this.redraw);   // add, remove, reorder only; a subtask view redraws itself
+		if (this.size === "card") this.task.tasks.on("delta", this.redraw);
+		if (this.size === "card") this.task.content.on("delta", this.redraw);   // add, remove, reorder only; a subtask view redraws itself
 	}
 
 	title(){ return this.task.get("title") ?? this.task.id ?? "?"; }
 	url(){ return this.task.get("url") ?? this.task.get("href") ?? null; }
-	percent(){ return Math.round(this.task.complete * 100) + "%"; }
+	percent(){ return Math.round(this.task.completion * 100) + "%"; }
 
 	chip(){
 		icon(this.task.get("icon") ?? "task_alt");
@@ -39,6 +40,10 @@ export default class TaskView extends View {
 		div.c("flex gap-50", () => { icon(t.get("icon") ?? "task_alt").style({ fontSize: "2rem" }); strong(this.title()); small.c("muted task-state", t.state); });
 		const facts = [["complete", this.percent()], ["expected", t.expected], ["priority", t.priority?.score], ["commits", t.commits.map(h => h.slice(0, 7)).join(" ")], ["session", t.session], ["module", t.module]];
 		for (const [k, v] of facts) if (v !== undefined && v !== null && v !== "") div(() => { small.c("muted", k + ": "); span(String(v)); });
+		for (const item of t._content ?? []){
+			const text = item.get?.("text") ?? item.get?.("title") ?? item.data?.text ?? item.data?.title;
+			if (text) div.c("task-content", String(text));
+		}
 		if (this.url()) a("Open").attr("href", this.url());
 	}
 }

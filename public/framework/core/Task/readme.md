@@ -4,8 +4,8 @@
 
 A `Task` is anything with a start, a middle and an end — a build step, a chore, a
 process. It's an `Item` (core/Item/) plus six states (`idle running paused waiting stopped
-finished`), timestamps, a running-time clock that pauses with the task, and a
-`tasks: List` of subtasks whose own finish gates the parent's.
+complete`), timestamps, a running-time clock that pauses with the task, and a
+`tasks: List` of subtasks whose own completion gates the parent's.
 
 ## Use
 
@@ -17,8 +17,8 @@ const step1 = new Task({ id: "s1", data: { title: "Compile" } });
 build.tasks.add(step1);
 
 build.start();
-step1.start(); step1.finish();
-build.finish();           // only works once every subtask is finished
+step1.start(); step1.complete();
+build.complete();           // only works once every subtask is complete
 
 build.progress();         // { done: 1, total: 1 } — computed from tasks, never stored
 build.duration();         // ms of RUNNING time — pausing stops the clock
@@ -28,9 +28,9 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 ## Replay, waiting, subtasks
 
-- `Task.replay(lines)` builds a task from parsed `task.jsonl` objects, using each line's own time (`at`, `assign.at|landed_at|requested_at`), never the wall clock, so the same file always gives the same task. Explicit lines (`{"start":{}}`, `pause`, `resume`, `stop`, `finish`, `wait`, `approve`) call the method of that name; once one appears, they decide the state.
-- No explicit line (an old file): `landed_at` + a non-empty `outcome` is `finished`, `closed_by` is `stopped`, anything else is `running`. `assign` fields merge into `data` (latest wins; `session_id` becomes `session`).
-- `waiting` is a sixth state: `wait({on, what})` (from idle, running, paused) and `approve({by, note})` (back to idle). `stop` and `finish` accept it.
+- `Task.replay(lines)` builds a task from parsed `task.jsonl` objects, using each line's own time (`at`, `assign.at|landed_at|requested_at`), never the wall clock, so the same file always gives the same task. Explicit lines (`{"start":{}}`, `pause`, `resume`, `stop`, `complete` (old `finish` too), `wait`, `approve`, `improve`, `reject`) call the method of that name; once one appears, they decide the state.
+- No explicit line (an old file): `landed_at` + a non-empty `outcome` is `complete`, `closed_by` is `stopped`, anything else is `running`. `assign` fields merge into `data` (latest wins; `session_id` becomes `session`).
+- `waiting` is a sixth state: `wait({on, what})` (from idle, running, paused), then a verdict, each stored as `verdict: {is, note, by}`: `approve(note?)` (to idle), `improve(note)` (to running, to revise and wait again), `reject(note)` (to stopped). `stop` and `complete` accept it.
 - `tasks` is made on first use, so a task with no subtasks costs no `List`.
 
 ## render() and TaskView
@@ -39,8 +39,8 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 ## Watch out
 
-- **`finish()` refuses while a subtask is open** — it warns ("… isn't finished yet —
-  finish that first") and leaves the state unchanged, never throws. Every illegal
+- **`complete()` refuses while a subtask is open** — it warns ("… isn't complete yet —
+  complete that first") and leaves the state unchanged, never throws. Every illegal
   transition (`pause()` on an idle task) behaves the same way.
 - **Every transition is one `set()` call**, so it's one replayable delta line and
   fires the same `change`/`delta` events `Item.set_one()` already does — nothing
@@ -49,7 +49,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
   open running span lives in memory (`_ran_since`), not in the saved data, so a
   reload mid-run loses only that open span's few seconds, never the banked total.
 - **`progress()` is always computed**, never a stored number (CLAUDE.md law 7). No
-  subtasks yet reads as `{done: 0, total: 1}` (or `1/1` once finished), so a progress
+  subtasks yet reads as `{done: 0, total: 1}` (or `1/1` once complete), so a progress
   bar still means something before the first subtask exists.
 - **This is the base class only.** `AITask extends Task` (brief, asks, agents,
   sessions, cost vs budget, review) is a later pass — see
@@ -57,12 +57,19 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
   in `ai/objects.js`'s display `Task`, `ai/AITask`'s page renderer, `ext/JSONL`'s
   `TaskJSONL`, and `ai/AITask/nested.js`'s `TaskTree`.
 - **Fields** (getters that read data, never stored numbers): `expected`, `module`, `session` (`session ?? session_id`), `priority` (latest `{priority:{score,why,by}}` line or `null`), `commits` (short hashes from `{"commit":"…"}` lines, no duplicates; `commit(hash)` appends one). Replay reads both lines without leaving the legacy mapping.
-- **`complete`** (0 to 1): `checked_by` set (`check({by})`, final) is 1; else the share of finished subtasks (the only computed form); else old `steps`/`step` logs; else the agent's `data.complete`, or 1 when finished. New tasks no longer write `steps`.
+- **`completion`** (0 to 1): `checked_by` set (`check({by})`, final) is 1; else the share of complete subtasks (the only computed form); else old `steps`/`step` logs; else the agent's `data.completion`, or 1 when complete. New tasks no longer write `steps`.
 
 ## More
 
 - [Overview](/framework/core/Task/) · [Live](/framework/core/Task/live/) — start, pause,
-  stop and finish a task with subtasks, live, no reload
+  stop and complete a task with subtasks, live, no reload
 - [`Task.js`](./Task.js) · [`Task.test.mjs`](./Task.test.mjs) — the state machine, the
-  subtask-blocks-finish rule, duration math; `node Task.test.mjs`, 28/28 passing
+  subtask-blocks-complete rule, duration math; `node Task.test.mjs`, 28/28 passing
 - [Item](/framework/core/Item/) — the base class · [List](/framework/core/List/) — what `tasks` is
+
+## Composition (step 3b)
+
+- **`complete`** replaces `finished`: state `complete`, verb `complete()`, field `completed_at`. Replay reads old `finish` lines, `finished_at`, `state: "finished"` and a numeric `complete`; `finish()` is an alias.
+- **`mode`**: `"parallel"` (default) or `"series"`. `start()` on a parent starts its children (series: the first not complete; parallel: every idle one). A parent hears each child's state change (wired when a child joins `tasks`): a series parent starts the next child, and the last child completing completes the parent. No polling.
+- **`content`**: a `List` made on first use; a replay line `{"content":{"add":{"text":"…"}}}` adds to it, as on a Page. The card draws each item's `text` or `title`.
+- **`settled()`**: a Promise that resolves with the task at `complete` or `stopped`.

@@ -10,7 +10,7 @@ export default new Doc({
 
 	subject: Task,
 	properties: "state tasks",
-	methods: "start pause resume stop finish duration progress",
+	methods: "start pause resume stop complete approve improve reject settled duration progress",
 	files: "Task.js Task.test.mjs readme.md page.js live/page.js",
 
 	initialize(){
@@ -20,13 +20,13 @@ export default new Doc({
 
 	content(){
 
-		code.js(`task.start()  task.pause()  task.resume()  task.stop(why)  task.finish({complete})
-task.state       //  "idle" | "running" | "paused" | "stopped" | "finished"
+		code.js(`task.start()  task.pause()  task.resume()  task.stop(why)  task.complete({completion})
+task.state       //  "idle" | "running" | "paused" | "stopped" | "complete"
 task.duration()  //  ms of RUNNING time — pausing stops the clock
 task.progress()  //  {done, total} — computed from task.tasks, never stored
 task.tasks       //  a List of subtasks (core/List/)`);
 
-		md("A **Task** is anything with a start, a middle and an end. It's an [Item](/framework/core/Item/) plus six states (`waiting` is the newest), timestamps, and a `tasks: List` of subtasks whose own finish **gates the parent's** — `finish()` refuses while any subtask isn't finished yet, and names the one that's blocking it. No throw: every illegal transition just warns and leaves the state alone.");
+		md("A **Task** is anything with a start, a middle and an end. It's an [Item](/framework/core/Item/) plus six states (`waiting` is the newest), timestamps, and a `tasks: List` of subtasks whose own finish **gates the parent's** — `complete()` refuses while any subtask isn't complete yet, and names the one that's blocking it. No throw: every illegal transition just warns and leaves the state alone.");
 
 		h2("render() — the task drawn at three sizes");
 		const demo = Task.replay([
@@ -38,12 +38,12 @@ task.tasks       //  a List of subtasks (core/List/)`);
 			span("chip"); TaskView.chip(demo); span("row"); TaskView.row(demo); span("card"); TaskView.card(demo);
 		});
 		code.js(`task.render()  //  new Task.View({task}) — TaskView draws chip / row / card and redraws on change
-Task.replay(lines)  //  the demo above: ${demo.state}, ${Math.round(demo.complete * 100)}% complete`);
+Task.replay(lines)  //  the demo above: ${demo.state}, ${Math.round(demo.completion * 100)}% complete`);
 
 		h2("The states");
 
 		code.js(`idle → running → paused → running → stopped
-                      ↘ finished  (only once every subtask is finished)`);
+                      ↘ complete  (only once every subtask is complete)`);
 
 		md("`duration()` counts RUNNING time only — pausing stops the clock, so time spent paused is never duration. `progress()` is always computed from `task.tasks`' own states, never stored (CLAUDE.md law 7).");
 
