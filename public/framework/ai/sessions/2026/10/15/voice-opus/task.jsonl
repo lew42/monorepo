@@ -280,3 +280,8 @@
 {"log":{"at":"2026-10-16T21:42:55-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-opus"}}
 {"log":{"at":"2026-10-16T21:42:57-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T21:43:29-05:00","heartbeat":"answered","msg":"I'm idle with no minions running, and the cost review is landed with its bug fixed. Pool worktrees qf-4 and qf-7 are stuck on stray log lines, which I've logged for Servex. Eight updates go out with t"}}
+{"log":{"at":"2026-10-16T21:47:02-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T21:57:55-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-opus"}}
+{"log":{"at":"2026-10-16T21:57:57-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T21:58:37-05:00","heartbeat":"answered","msg":"I'm idle with no minions running. The next voice reply carries all the waiting updates: the Sheet address choice, three Servex restarts that are your call, and two stuck worktrees I've logged for Serv"}}
+{"log":{"at":"2026-10-16T22:02:03-05:00","msg":"session ended (other) without landing"}}
