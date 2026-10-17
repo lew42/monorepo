@@ -220,10 +220,10 @@ export default class AISessionsPage extends Page {
 		});
 	}
 
-	/** Everything a search matches: the name shown, the registered agent, the id, role, model and folder. */
+	/** Everything a search matches: the name shown, the registered agent, the id, role, model, folder and the session's tags (`page/live-cards`, `task/…`). */
 	static haystack(r){
 		const ix = AISession.all.get(r.session_id || r.id)?.ix ?? {};
-		return [AISessionRows.display_name(r, AISessionRows.tree).text, r.title, r.agent, r.session_id, r.id, r.role, r.model, ix.agent, ix.title, ix.folder].filter(Boolean).join(" ").toLowerCase();
+		return [AISessionRows.display_name(r, AISessionRows.tree).text, r.title, r.agent, r.session_id, r.id, r.role, r.model, ix.agent, ix.title, ix.folder, ...(ix.tags ?? [])].filter(Boolean).join(" ").toLowerCase();
 	}
 
 	/** The plan's meters as progress bars with the pace marker (ai/AITask/usage.js), then one line of counts. */
@@ -263,7 +263,7 @@ export default class AISessionsPage extends Page {
 		}).attr("title", title);
 		this.$controls.empty(() => {
 			div.c("sessions-filters flex gap-100 v-center wrap", () => {   // one compact row: search, closed, attention, in flight, dates
-				const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model")
+				const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model, tag")
 					.attr("title", "Searches every loaded session, routine and closed ones too, whatever the other filters say. Older days: \"show 30 more days\".");
 				$q.el.value = this.search ?? "";
 				let wait;
@@ -509,7 +509,7 @@ export default class AISessionsPage extends Page {
 	// ---- remote mode: node holds the sessions, the browser asks for the rows it shows (ext/Query, doc/server-query.md) --------------
 
 	static SORT_FIELD = { state: "state", name: "title", cost: "usd", updated: "last_activity", duration: "wall_ms", role: "agent", source: "provider", model: "model" };
-	static SEARCH_FIELDS = ["title", "agent", "id", "folder", "model", "role"];
+	static SEARCH_FIELDS = ["title", "agent", "id", "folder", "model", "role", "tags"];
 
 	/** True when the dev socket answers the first query (the default); `?source=files`, no socket or no source on this server: false, and the page reads files. */
 	async start_remote(){
@@ -596,7 +596,7 @@ export default class AISessionsPage extends Page {
 			this[key + "_text"] = span(text);
 		}).attr("title", title);
 		this.$controls.empty(() => { div.c("sessions-filters flex gap-100 v-center wrap", () => {
-			const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model")
+			const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model, tag")
 				.attr("title", "Searches every session in node (ext/Query `contains`), routine and closed ones too, whatever the other filters say.");
 			let t = null;
 			$q.on("input", () => { clearTimeout(t); t = setTimeout(() => { this.remote.search = $q.el.value.trim(); this.remote_ask(); }, 250); });
