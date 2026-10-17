@@ -37,11 +37,12 @@ export default class Sheet extends View {
 	small(){ return !!globalThis.matchMedia?.("(max-width: 52em)")?.matches; }
 
 	static KEY = "sheet";
-	static RANK = { closed: 0, open: 1, full: 2 };
 
+	// ?sheet=strip|split|full; an old ?sheet=open link lands on split.
 	routed(){
 		const m = new URLSearchParams(location.search).get(this.constructor.KEY);
-		return m === "open" || m === "full" ? m : "closed";
+		if (m === "open") return "split";
+		return m in this.constructor.Size.RANK && m !== "closed" ? m : "closed";
 	}
 
 	url(mode){
@@ -53,7 +54,7 @@ export default class Sheet extends View {
 	// ⚠ see doc/rail-notes.md#c8-push-mode
 	push(mode){
 		const st = history.state ?? {};
-		const depth = mode === "open" ? 1 : (st.depth ? st.depth + 1 : null);
+		const depth = mode === "strip" ? 1 : (st.depth ? st.depth + 1 : null);
 		history.pushState({ ...st, sheet: mode, depth }, "", this.url(mode));
 	}
 
@@ -71,8 +72,7 @@ export default class Sheet extends View {
 		if (mode === "closed" || !this.small()) return;
 		this.app?.styles_loaded?.().then(() => {
 			this.replace("closed");
-			this.push("open");
-			if (mode === "full") this.push("full");
+			this.constructor.Size.between("closed", mode).forEach(m => this.push(m));
 			this.apply(mode);
 		});
 	}
@@ -80,10 +80,11 @@ export default class Sheet extends View {
 	to(mode, { listen = false } = {}){
 		const from = this.mode ?? "closed";
 		if (mode === from){ this.apply(mode, listen); return Promise.resolve(); }
-		const R = this.constructor.RANK, st = history.state ?? {};
+		const Size = this.constructor.Size, R = Size.RANK, st = history.state ?? {};
 		const steps = R[from] - R[mode];
 		if (steps > 0 && st.depth === R[from]) return this.back(steps);
-		steps < 0 ? this.push(mode) : this.replace(mode);
+		// up: one history entry per size, so the phone's back button steps down one size
+		steps < 0 ? Size.between(from, mode).forEach(m => this.push(m)) : this.replace(mode);
 		this.apply(mode, listen);
 		return Promise.resolve();
 	}
@@ -108,7 +109,7 @@ export default class Sheet extends View {
 		this.$sheet?.update_path?.();
 		this.$sheet?.navigated?.();
 		if (this.mode && this.mode !== "closed") setTimeout(() => {
-			if (this.routed() === "closed") this.replace("open");
+			if (this.routed() === "closed") this.replace(this.mode);
 			this.apply(this.routed());
 		});
 	}
@@ -166,9 +167,10 @@ export default class Sheet extends View {
 		return this.$sheet;
 	}
 
+	// ✦ opens the strip, listening (doc/owner-2026-10-16-sheet.md); an open sheet just starts listening.
 	open_sheet(){
-		if (this.mode === "open" || this.mode === "full") this.sheet().show({ listen: true });
-		else this.to("open", { listen: true });
+		if (this.mode && this.mode !== "closed") this.sheet().show({ listen: true });
+		else this.to("strip", { listen: true });
 		return this.$sheet;
 	}
 }
@@ -180,12 +182,45 @@ export class SheetPanel extends View {
 	render(){
 		this.head();
 		this.handle();
+		this.live_row();
 		new Inbox.Compact({ page: drawer.page() }).view();
 		this.$slot = div.c("drawer-rail-sheet-panel");
 		this.$links = this.links().ac("drawer-rail-sheet-links-folded");
 	}
 
+	// The strip's one line: mic dot, the last line said, ⌃ up to split (variant A).
+	live_row(){
+		return div.c("drawer-rail-sheet-live", () => {
+			new MicIndicator({ compact: true });
+			this.$said = span.c("drawer-rail-sheet-said muted", "listening…");
+			button.c("drawer-rail-sheet-up", "⌃").attr("type", "button").attr("title", "Bigger").attr("aria-label", "Bigger")
+				.click(() => this.to("split"));
+		});
+	}
+
+	said(text){ if (text) this.$said?.text(text); }
+
+	to(mode){ return this.rail ? this.rail.to(mode) : Promise.resolve(this.state(mode)); }
+
+	// A drag down on the head steps one size down: full → split → strip.
+	head_drag($head){
+		let y = null;
+		$head.on("pointerdown", e => { if (e.target.closest("button")) return; y = e.clientY; $head.el.setPointerCapture?.(e.pointerId); });   // captured: the release lands below the head
+		$head.on("pointerup", e => {
+			if (y === null) return;
+			const dy = e.clientY - y; y = null;
+			if (dy > 30 && this.mode !== "strip") this.to(this.constructor.Size.down(this.mode));
+		});
+		$head.on("pointercancel", () => { y = null; });
+	}
+
 	head(){
+		const $head = this.head_row();
+		this.head_drag($head);
+		return $head;
+	}
+
+	head_row(){
 		return div.c("drawer-rail-sheet-head flex v-center", () => {
 			div.c("drawer-rail-sheet-heading flex v-center wrap", () => {
 				span.c("drawer-rail-sheet-title", this.title);
@@ -237,31 +272,21 @@ export class SheetPanel extends View {
 		return grip({
 			axis: "y",
 			write: px => {
-				const h = Math.min(Math.max(px, this.collapse_h()), innerHeight);
+				const Size = this.constructor.Size, h = Math.min(Math.max(px, 0), innerHeight);   // below half the strip closes
 				this.size_to(h + "px");
-				this.el.classList.toggle("drawer-rail-sheet-collapsed", h <= this.collapse_h() + 4);
+				this.el.classList.toggle("drawer-rail-sheet-strip", h < Size.strip_below(innerHeight));
 				return h;
 			},
 			done: h => this.settle(h),
 		});
 	}
 
-	collapse_h(){ return 84; }
-
-	collapse(){
-		this.el.classList.remove("drawer-rail-sheet-full");
-		this.el.classList.add("drawer-rail-sheet-collapsed");
-		this.size_to(this.collapse_h() + "px");
-		return this;
-	}
-
+	// Where a released drag lands is Sheet.Size's call; a split height is remembered. The state is
+	// re-applied after: a drag that ends on the size it started from still has to snap.
 	settle(h){
-		const H = innerHeight;
-		if (h >= H * this.full_at) return this.rail ? this.rail.to("full").then(() => this.state("full")) : this.state("full");
-		if (h <= this.collapse_h() + 4) return this.collapse();
-		if (h < H * this.close_at) return this.rail ? this.rail.to("closed") : this.hide();
-		this.remember_height(this.clamp_height(h));
-		return this.rail?.mode === "full" ? this.rail.to("open") : this.state("open");
+		const mode = this.constructor.Size.settle(h, innerHeight);
+		if (mode === "split") this.remember_height(this.clamp_height(h));
+		return this.to(mode).then(() => { if (mode !== "closed" && this.showing()) this.state(mode); });
 	}
 
 	size_to(h){
@@ -271,9 +296,13 @@ export class SheetPanel extends View {
 
 	// Full state = the whole sidebar: the chat above stays mounted (mic keeps running), the drawer's own tab row and tab body sit below it.
 	state(mode){
+		this.mode = mode;
 		this.el.classList.toggle("drawer-rail-sheet-full", mode === "full");
-		this.el.classList.remove("drawer-rail-sheet-collapsed");
-		mode === "full" ? this.size_to("100dvh") : this.size();
+		this.el.classList.toggle("drawer-rail-sheet-strip", mode === "strip");
+		this.style("--rail-bar-h", (this.rail?.el.offsetHeight ?? 0) + "px");   // the strip sits above the bottom bar
+		if (mode === "full") this.size_to("100dvh");
+		else if (mode === "strip") this.size_to(this.constructor.Size.STRIP + "px");
+		else this.size();
 		mode === "full" ? this.mount_tabs() : this.unmount_tabs();
 		return this;
 	}
@@ -284,9 +313,7 @@ export class SheetPanel extends View {
 		return this.rail ? this.rail.to("closed") : Promise.resolve(this.hide({ keep_mic: true }));
 	}
 
-	clamp_height(px){
-		return Math.min(Math.max(px, window.innerHeight * 0.4), window.innerHeight * 0.92);
-	}
+	clamp_height(px){ return this.constructor.Size.clamp(px, innerHeight); }
 
 	sheet_height_key(){ return "lew42-drawer-rail-sheet-h-2"; }
 
@@ -303,7 +330,6 @@ export class SheetPanel extends View {
 	}
 
 	size(){
-		this.el.classList.remove("drawer-rail-sheet-collapsed");
 		const saved = this.read_height();
 		if (saved){ this.size_to(this.clamp_height(saved) + "px"); return; }
 		this.size_to("60dvh");   // a real default height, about four bubbles (dictate-next-4)
@@ -323,6 +349,8 @@ export class SheetPanel extends View {
 			placeholder: this.card_ref ? "talk into this card" : "say something",
 		});
 		this.panel = this.mount.panel;
+		const heard = this.panel.on_text;
+		this.panel.on_text = text => { heard?.(text); this.said(text); };   // the strip's last line said
 		return this.mount;
 	}
 
@@ -333,7 +361,6 @@ export class SheetPanel extends View {
 		this.ensure_mount();
 		this.sync_card();
 		this.start_mic();
-		this.size();
 		return this;
 	}
 
@@ -390,11 +417,32 @@ export class SheetPanel extends View {
 }
 
 SheetPanel.prototype.title = "AI";   // the ✦ AI button's own word
-SheetPanel.prototype.full_at = 0.85;
-SheetPanel.prototype.close_at = 0.28;
 // The old chain's stamped names, kept so the DOM is unchanged (rail.css keys on drawer-rail-sheet; nothing keys on the other three).
 SheetPanel.prototype.classes = "drawer-rail-sheet drawer-rail-sheet-v1 drawer-rail-sheet-panel drawer-rail-sheet-chat";
 
+// Sheet.Size: the one size machine, closed | strip | split | full (replaces 84 px / 28% / 85%). doc/owner-2026-10-16-sheet.md
+export class SheetSize {
+	static RANK = { closed: 0, strip: 1, split: 2, full: 3 };
+	static MODES = ["closed", "strip", "split", "full"];
+	static STRIP = 100;                       // px: the strip, about 100 px (variant A)
+	static FULL_AT = 0.9;                     // a drag released past 90% of the screen snaps to full
+	static SPLIT_MIN = 0.3;                   // a split's remembered height stays between these shares
+	static SPLIT_MAX = 0.88;
+
+	// Below this height a drag reads as the strip; under half the strip, as closed.
+	static strip_below(H){ return (this.STRIP + H * this.SPLIT_MIN) / 2; }
+	static settle(h, H){
+		if (h >= H * this.FULL_AT) return "full";
+		if (h < this.STRIP / 2) return "closed";
+		return h < this.strip_below(H) ? "strip" : "split";
+	}
+	static clamp(px, H){ return Math.min(Math.max(px, H * this.SPLIT_MIN), H * this.SPLIT_MAX); }
+	static down(mode){ return this.MODES[Math.max(this.RANK[mode] - 1, 0)]; }
+	// The sizes after from, up to and including to (empty when to is not bigger).
+	static between(from, to){ return this.MODES.slice(this.RANK[from] + 1, this.RANK[to] + 1); }
+}
+
+Sheet.Size = SheetPanel.Size = SheetSize;
 Sheet.Panel = SheetPanel;
 Sheet.Sheet = SheetPanel;   // the old name for the same part
 
