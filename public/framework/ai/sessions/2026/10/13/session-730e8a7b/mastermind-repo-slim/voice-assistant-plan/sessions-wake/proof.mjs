@@ -40,7 +40,8 @@ try {
 	const places = lines.filter(l => l.place).map(l => l.place);
 	out.owner = owner.length; out.places = places;
 	out.agents = (await get("/api/agents")).filter(a => /voice-assistant|session-/.test(a.id ?? "")).map(a => ({ id: a.id, role: a.role, model: a.model, state: a.state }));
-	out.assistant_chat = lines.filter(l => l.chat?.from?.kind === "assistant").length;
+	out.assistant_chat = lines.filter(l => l.chat?.from?.kind === "assistant" && /^voice-assistant/.test(l.chat.from.agent ?? "")).length;   // the smart assistant may still answer; the voice one must not
+	out.smart_chat = lines.filter(l => l.chat?.from?.kind === "assistant" && /^session-smart/.test(l.chat.from.agent ?? "")).length;
 	out.pass = owner.length === 3 && places.length >= 1 && places.length <= 3 && places.every(p => owner.includes(p.re))
 		&& out.agents.some(a => a.role === "voice-assistant") && !out.agents.some(a => a.role === "session-fast") && out.assistant_chat === 0;
 } finally { child.kill(); await sleep(800); try { fs.rmSync(local, { recursive: true, force: true }); } catch {} }
