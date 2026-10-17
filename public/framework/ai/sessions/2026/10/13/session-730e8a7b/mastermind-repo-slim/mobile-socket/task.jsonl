@@ -8,3 +8,10 @@
 {"log":{"at":"2026-10-17T08:49:07-05:00","msg":"needs_restart: Server/plugins/HttpsLan.js and SocketServer/SocketServer.js changed: restart the dev server to get wss on the https listener."}}
 {"commit":"5099ae709890"}
 {"action":{"at":"2026-10-17T08:50:30-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/mobile-socket/review.md"]}}
+{"commit":"fb612b7cf987"}
+{"review":{"at":"2026-10-17T08:51:27-05:00","answer":{"n":1,"reply":"fixed: Socket.js resolves ready after the first failed attempt on a never-connected host, send() returns false when the socket is not open, request() returns at once; proof: a page with every upgrade failing got request undefined in 0 ms and one console line."}}}
+{"review":{"at":"2026-10-17T08:51:27-05:00","answer":{"n":2,"reply":"fixed: the client gives up (disabled) after 12 failed attempts on a never-connected host, about five minutes."}}}
+{"review":{"at":"2026-10-17T08:51:27-05:00","answer":{"n":3,"reply":"noted: Server/ restart needed for wss on https, logged as needs_restart."}}}
+{"review":{"at":"2026-10-17T08:51:27-05:00","answer":{"n":4,"reply":"noted: index.json cannot push because Server/watch.js ignores .json; the cache.jsonl tail is the stream, reason in notes.md."}}}
+{"review":{"at":"2026-10-17T08:51:27-05:00","answer":{"n":5,"reply":"noted: the QueryClient/query gate for LAN peers is open and logged; outside this fence."}}}
+{"review":{"at":"2026-10-17T08:51:27-05:00","answer":{"n":6,"reply":"noted: reviewed from commits; the proof ran in the worktree."}}}
