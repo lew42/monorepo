@@ -239,3 +239,35 @@ Source: the fourth owner note, [owner-2026-10-16-ui.md](../../../../../../../cor
 | 17 | The proof data: today's dictations as tasks under goal tasks per module, the task-system goal included | Sonnet | $2 |
 | 15 | `Task.View`: checkbox row, bigger parents, segmented progress, expand in place; the /live/ Tasks card; checked against step 17's data | Sonnet | $3 |
 | 10 | The skills and readmes use the item tool, these names and the grouping rule | Haiku | $1 |
+
+## Amendments 4 (2026-10-16, late): the node side
+
+Source: the fifth owner note, [owner-2026-10-16-node-side.md](../../../../../../../core/Task/doc/owner-2026-10-16-node-side.md). The browser and node use one `Task` class, and one instance in memory per file.
+
+### What changes
+
+1. **The item tool works on live instances.** It instantiates the parent Item in node (`Item.Store.for(url)`, one cached root per file, so every call on a path reaches the same instance) and calls `parent.set(delta)`.
+   - `page_tools.js` `deep_merge` retires for the item tool path; `page_set` stays as an alias through the same instance.
+   - This corrects step 5, which merged with the plain-object merge.
+2. **Subtasks live in the parent's `task.jsonl`** as nested deltas (`{"tasks":{"add":{…}}}`, then `{"<child id>":{…}}`), like content in a page.jsonl.
+   - A child gets its own folder only on demand (a page.jsonl, proofs, a requirements.md), and the parent records `{"file":"<child>/task.jsonl"}`, the same two variants subpages have.
+   - The child folders steps 14 and 17 already made stay as they are: they are the second variant, so nothing migrates.
+3. **Flat slugs under `<module>/tasks/`.** The tool refuses a slug that exists and offers `<slug>-2`; it never overwrites. Today the tool silently picks `-2` (`task_home`); that becomes a refusal. Check once whether `TaskDirs.new` overwrites, and fix it if so.
+4. **New fields** (step 3 has merged, so they are step 3d):
+   - `sessions`: every session that created or worked on the task.
+   - `source`: who asked: `voice-app`, `vscode`, `dictate` or `servex:<agent id>`, filled by node from the `as=` id or `SERVEX_AGENT`.
+   - `cost`: computed, the sum of the `turn_cost` spend of the agents whose task is this task.
+5. **Stage icons in `Task.View`** (step 15): one icon per state (idle, waiting, running, paused, stopped, complete), next to the checkbox.
+6. **Discovery:** a new task folder is one more line in its parent's `files.jsonl` (`Server/ModuleLog.mjs`), and node rebuilds `ai/tasks/` from those. No hand-kept index.
+
+### Order from here (budget raised to $50)
+
+| Step | What | Model | Budget |
+|------|------|-------|--------|
+| 17 | The proof data (building) | Sonnet | $2 |
+| 15 | `Task.View` with stage icons, and the /live/ Tasks card: the owner sees tasks tonight | Sonnet | $3 |
+| 3c | The item tool on live instances: `Item.Store` roots, nested subtasks, a child folder only on demand, slug refusal, the `files.jsonl` line | Sonnet | $5 |
+| 3d | `sessions`, `source`, `cost` | Sonnet | $2 |
+| 10 | The skills and readmes use the item tool, these names and the grouping rule | Haiku | $1 |
+
+Rebuilding `ai/tasks/` from `files.jsonl` comes after 3c if the budget allows; otherwise it is the first item of the next run.

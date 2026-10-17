@@ -73,3 +73,8 @@
 {"commit":"e2c55b77c"}
 {"log":{"at":"2026-10-16T20:25:50-05:00","msg":"Step 16 review caught agent_log(this) passing an Agent (no task_dir_for/reg): every in-process item call would have thrown after a restart. Fixed in 75cbc267e: the resolver reads the agent's own task dir, and a broken resolver never breaks the call. item-local 6/6 in the main tree."}}
 {"assign":{"at":"2026-10-16T20:25:50-05:00","now":"Step 16 landed (caller's reference, module from path, grouping rules). Step 17 building: today's dictations as tasks, one goal task per module."}}
+{"commit":"5b30410b1119"}
+{"action":{"at":"2026-10-16T20:26:43-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/proof-data/requirements.md"]}}
+{"log":{"at":"2026-10-16T20:27:47-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T20:27:48-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T20:30:00-05:00","msg":"Fifth owner note (node side) folded into plan.md as Amendments 4: live instances via Item.Store, nested subtasks with a folder only on demand, slug refusal, sessions/source/cost as 3d, stage icons in step 15. Budget raised to $50; order 17, 15, 3c, 3d, 10."}}
