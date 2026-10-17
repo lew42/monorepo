@@ -17,6 +17,8 @@ export default class TaskState {
 	static REGISTRY = process.env.SERVEX_URL ?? "http://localhost:8090";
 	static QUIET_MIN = 5;      // a working agent with no log line for this long is marked ⚠
 	static BEAT = 60000;       // the longest the file goes without a line while the watcher runs
+	static CLOSED = ["complete", "stopped"];   // a Task state in none of these groups nor CLOSED would vanish from the dashboard; Task.test.mjs checks
+	static OPEN = { running: "in_flight", paused: "in_flight", idle: "queued", waiting: "waiting" };
 	static KEEP = 200;         // state.jsonl is rewritten down to this many lines when it passes twice that
 
 	constructor({ registry = null, now = Date.now(), sess = SESS } = {}){ Object.assign(this, { registry, now, sess }); }

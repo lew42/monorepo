@@ -1,5 +1,6 @@
 // Node test for Task — no DOM, no server. Run: `node Task.test.mjs`.
 import Task from "./Task.js";
+import TaskState from "../../../../Server/TaskState.mjs";
 
 const results = [];
 const check = (title, fn) => {
@@ -31,24 +32,24 @@ check("an illegal transition warns and is a no-op, never a throw", () => {
 	return t.state === "idle";
 });
 
-check("finish() refuses while a subtask is open, naming it", () => {
+check("complete() refuses while a subtask is open, naming it", () => {
 	const t = new Task({ id: "t", data: { title: "Parent" } });
 	const a = new Task({ id: "a", data: { title: "Sub A" } });
 	t.tasks.add(a);
 	t.start();
-	t.finish();
+	t.complete();
 	return t.state === "running";   // refused — a is still idle, not finished
 });
 
-check("finish() succeeds once every subtask is finished", () => {
+check("complete() succeeds once every subtask is finished", () => {
 	const t = new Task({ id: "t" });
 	const a = new Task({ id: "a" }), b = new Task({ id: "b" });
 	t.tasks.add(a); t.tasks.add(b);
 	t.start();
-	a.start(); a.finish();
-	b.start(); b.finish();
-	t.finish();
-	return t.state === "finished" && typeof t.data.finished_at === "string";
+	a.start(); a.complete();
+	b.start(); b.complete();
+	t.complete();
+	return t.state === "complete" && typeof t.data.completed_at === "string";
 });
 
 check("progress() reflects finished subtasks, computed not stored", () => {
@@ -56,14 +57,14 @@ check("progress() reflects finished subtasks, computed not stored", () => {
 	const a = new Task({ id: "a" }), b = new Task({ id: "b" });
 	t.tasks.add(a); t.tasks.add(b);
 	if (JSON.stringify(t.progress()) !== JSON.stringify({ done: 0, total: 2 })) return false;
-	a.start(); a.finish();
+	a.start(); a.complete();
 	return JSON.stringify(t.progress()) === JSON.stringify({ done: 1, total: 2 });
 });
 
 check("progress() with no subtasks is 0/1, then 1/1 once finished", () => {
 	const t = new Task({ id: "t" });
 	if (JSON.stringify(t.progress()) !== JSON.stringify({ done: 0, total: 1 })) return false;
-	t.start(); t.finish();
+	t.start(); t.complete();
 	return JSON.stringify(t.progress()) === JSON.stringify({ done: 1, total: 1 });
 });
 
@@ -100,11 +101,11 @@ const landed = { assign: { landed_at: "2026-10-16T11:00:00Z", outcome: "Done." }
 
 check("replay: legacy landed file is finished; session_id maps to session", () => {
 	const t = Task.replay([A, landed]);
-	return t.state === "finished" && t.data.finished_at === "2026-10-16T11:00:00Z" && t.data.session === "s1" && t.data.step === 1 && t.data.steps.length === 1;
+	return t.state === "complete" && t.data.completed_at === "2026-10-16T11:00:00Z" && t.data.session === "s1" && t.data.step === 1 && t.data.steps.length === 1;
 });
 check("replay: an assign line with `at` (append.mjs stamps one) still counts; a key naming a method is data", () => {
 	const t = Task.replay([{ assign: { at: "2026-10-16T10:00:00Z", title: "x", progress: 3 } }, { assign: { at: "2026-10-16T11:00:00Z", landed_at: "2026-10-16T11:00:00Z", outcome: "Done." } }]);
-	return t.state === "finished" && t.data.title === "x" && t.data.progress === 3;
+	return t.state === "complete" && t.data.title === "x" && t.data.progress === 3;
 });
 check("replay: landed_at with an empty outcome is still running", () => Task.replay([A, { assign: { landed_at: "2026-10-16T11:00:00Z", outcome: " " } }]).state === "running");
 check("replay: legacy closed file is stopped", () => Task.replay([A, { assign: { closed_by: "owner", closed_at: "2026-10-16T12:00:00Z" } }]).state === "stopped");
@@ -126,12 +127,12 @@ check("replay: an illegal transition warns and does not throw", () => {
 });
 check("replay: stop and finish accept waiting", () => {
 	const w = [A, { wait: { on: "owner", at: "2026-10-16T10:30:00Z" } }];
-	return Task.replay([...w, { stop: { why: "no" } }]).state === "stopped" && Task.replay([...w, { finish: {} }]).state === "finished";
+	return Task.replay([...w, { stop: { why: "no" } }]).state === "stopped" && Task.replay([...w, { complete: {} }]).state === "complete";
 });
 check("replay: deterministic, uses line times not the wall clock", () => {
 	const lines = [A, { start: {}, at: "2026-10-16T10:00:00Z" }, { pause: {}, at: "2026-10-16T10:10:00Z" }, { finish: {}, at: "2026-10-16T10:20:00Z" }];
 	const a = Task.replay(lines), b = Task.replay(lines);
-	return JSON.stringify(a) === JSON.stringify(b) && a.data.ran_ms === 600000 && a.data.finished_at === "2026-10-16T10:20:00Z";
+	return JSON.stringify(a) === JSON.stringify(b) && a.data.ran_ms === 600000 && a.data.completed_at === "2026-10-16T10:20:00Z";
 });
 check("tasks is made on first use; progress() works before it", () => {
 	const t = Task.replay([A]);
@@ -148,22 +149,22 @@ check("fields: expected, module, session, priority, commits", () => {
 });
 check("complete: checked_by wins, check() is final", () => {
 	const t = new Task({ id: "t" }); t.check({ by: "owner" });
-	return t.complete === 1 && t.data.checked_by === "owner";
+	return t.completion === 1 && t.data.checked_by === "owner";
 });
 check("complete: subtasks are the share finished", () => {
 	const t = new Task({ id: "t" });
 	t.tasks.add(new Task({ id: "a" })); t.tasks.add(new Task({ id: "b" }));
-	t.tasks.find("a").finish();
-	return t.complete === 0.5;
+	t.tasks.find("a").complete();
+	return t.completion === 0.5;
 });
 check("complete: legacy steps, step is the current one", () => {
 	const t = Task.replay([{ assign: { steps: ["a", "b", "c", "d"], step: 3 } }]);
-	return t.complete === 0.5;
+	return t.completion === 0.5;
 });
 check("complete: agent value, finished, and unset", () => {
 	const a = new Task({ id: "a" }); a.put("complete", 0.3);
-	const f = Task.replay([A, { finish: {} }]), n = new Task({ id: "n" });
-	return a.complete === 0.3 && f.complete === 1 && n.complete === 0;
+	const f = Task.replay([A, { complete: {} }]), n = new Task({ id: "n" });
+	return a.completion === 0.3 && f.completion === 1 && n.completion === 0;
 });
 check("replay: commit lines on a legacy open file stay running", () => {
 	const t = Task.replay([{ assign: { title: "T", requested_at: "2026-10-16T10:00:00Z" } }, { commit: "abc" }]);
@@ -176,6 +177,83 @@ check("render() with no DOM returns undefined and warns once", () => {
 	const out = [t.render(), t.render()];
 	console.warn = w;
 	return out.every(x => x === undefined) && warns.length === 1;
+});
+
+
+const family = (mode, n) => {
+	const p = new Task({ id: "p" }); p.put("mode", mode);
+	for (let i = 1; i <= n; i++) p.tasks.add(new Task({ id: "c" + i }));
+	return [p, ...[...p.tasks]];
+};
+
+check("never drop a task: every state is closed or in an open TaskState group", () =>
+	Task.STATES.every(s => TaskState.CLOSED.includes(s) || s in TaskState.OPEN));
+
+check("node drives every step: series starts child 1 only, then each next, then the parent completes", () => {
+	const [p, a, b, c] = family("series", 3);
+	p.start();
+	const s1 = [a, b, c].map(t => t.state).join();
+	a.start === a.start && a.complete();
+	const s2 = [a, b, c].map(t => t.state).join();
+	b.complete();
+	const s3 = [a, b, c].map(t => t.state).join();
+	c.complete();
+	return s1 === "running,idle,idle" && s2 === "complete,running,idle" && s3 === "complete,complete,running" && p.state === "complete" && p.completion === 1;
+});
+
+check("node drives every step: parallel starts both children, parent completes after both", () => {
+	const [p, a, b] = family("parallel", 2);
+	p.start();
+	if (a.state !== "running" || b.state !== "running") return false;
+	a.complete();
+	if (p.state !== "running") return false;
+	b.complete();
+	return p.state === "complete";
+});
+
+check("mode defaults to parallel", () => new Task({ id: "m" }).mode === "parallel" && Task.replay([{ assign: { mode: "series" } }]).mode === "series");
+
+check("replay of an old folder: finish / finished_at become complete / completed_at", () => {
+	const t = Task.replay([A, { start: {}, at: "2026-10-16T10:00:00Z" }, { finish: {}, at: "2026-10-16T10:05:00Z" }]);
+	const u = Task.replay([{ assign: { title: "o", finished_at: "2026-10-16T11:00:00Z", complete: 0.5 } }, { start: {} }]);
+	return t.state === "complete" && t.data.completed_at === "2026-10-16T10:05:00Z" && !("finished_at" in t.data) && u.data.completed_at === "2026-10-16T11:00:00Z" && u.completion === 0.5;
+});
+
+check("a stored state of finished reads as complete", () => (() => { const t = new Task({ id: "o" }); t.put("state", "finished"); return t.state === "complete"; })());
+
+const waiting = () => Task.replay([A, { start: {} }, { wait: { on: "owner", what: "ok?" } }]);
+check("approve(note): waiting -> idle, verdict recorded", () => {
+	const t = waiting().approve("fine, but mind X");
+	return t.state === "idle" && t.data.verdict.is === "approve" && t.data.verdict.note === "fine, but mind X";
+});
+check("improve(note): waiting -> running", () => {
+	const t = waiting().improve({ note: "redo", by: "owner" });
+	return t.state === "running" && t.data.verdict.is === "improve" && t.data.verdict.by === "owner";
+});
+check("reject(note): waiting -> stopped, note is the reason", () => {
+	const t = waiting().reject("no");
+	return t.state === "stopped" && t.data.why === "no" && t.data.verdict.is === "reject";
+});
+check("verdicts replay as verbs and as verdict lines", () => {
+	const a = Task.replay([A, { start: {} }, { wait: { on: "owner" } }, { reject: { note: "x" } }]);
+	const b = Task.replay([A, { start: {} }, { wait: { on: "owner" } }, { verdict: { is: "improve", note: "y", by: "o" } }]);
+	return a.state === "stopped" && b.state === "running" && b.data.verdict.note === "y";
+});
+check("a verdict outside waiting warns and changes nothing", () => new Task({ id: "v" }).approve("x").state === "idle");
+
+check("content.add through replay, drawn data kept", () => {
+	const t = Task.replay([A, { content: { add: { id: "n1", text: "a note" } } }, { content: { add: { id: "n2", title: "a decision" } } }]);
+	return t.content.length === 2 && t.content.find("n1").get("text") === "a note";
+});
+
+check("settled() resolves at once when already complete, and later when it completes", async () => {
+	const done = new Task({ id: "d" }); done.start(); done.complete();
+	const t = new Task({ id: "s" }); t.start();
+	const p = t.settled(); let got = null; p.then(x => got = x);
+	await done.settled();
+	const before = got; t.stop("why");
+	await p;
+	return before === null && got === t;
 });
 
 const passed = results.filter(Boolean).length;

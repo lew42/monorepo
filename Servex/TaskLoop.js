@@ -173,7 +173,7 @@ export default class TaskLoop {
         const state = { ...d, ...(d.session !== undefined ? { session_id: d.session } : {}) };
         const since = Date.parse(d.waiting_since) || 0;
         const mine = follow_ups.filter(f => (Date.parse(f.at) || 0) >= since);   // a later wait starts a fresh count
-        const landed = task.state === "finished", closed = task.state === "stopped";
+        const landed = task.state === "complete", closed = task.state === "stopped";
         return { state, task_state: task.state, waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, waiting_what: d.waiting_what ?? null,
             parent_task: lines.find(l => l.assign)?.assign?.parent_task ?? null,
             follow_ups: mine, last_chase, last_chase_at, escalated, landed, closed };
