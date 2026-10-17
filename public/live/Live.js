@@ -96,6 +96,7 @@ class LiveCard extends Page {
 
 	preview(nav){
 		if (!this.renderer) return this.preview_card(nav);
+		if (this.renderer.line) return div.c("page-preview live-live live-line", () => this.renderer.line(div.c("live-live-body")));   // a one-line card: the line is its own title and link
 		return div.c("page-preview live-live", () => {
 			a.c("live-card-title", this.title).href(this.url).ac("page-preview-link");
 			this.renderer.into(div.c("live-live-body"));

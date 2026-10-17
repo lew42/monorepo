@@ -58,7 +58,7 @@ export default class TaskView extends View {
 		const shown = this.expanded ? kids : open.slice(0, this.constructor.PREVIEW);
 		div.c("task-row-kids", () => {
 			shown.forEach(k => this.constructor.row(k));
-			if (!this.expanded && open.length > shown.length) small.c("task-row-more", `+ ${open.length - shown.length} more open`);
+			if (!this.expanded && open.length > shown.length) small.c("task-row-more", `+ ${open.length - shown.length} more open`).click(() => { this.expanded = true; this.redraw(); });
 		});
 	}
 
