@@ -202,3 +202,40 @@ The budget stays $35 in total. Steps have come in well under budget so far.
   - **14a, node, $3** ([brief](task-homes/requirements.md)): the home, the `task` reference line, and resolving references in node.
   - **14b, browser, $2:** the Store resolves references, and a module's `tasks/` page lists its tasks.
   - A module folder that doesn't exist is never created; the task falls back to its parent's folder.
+
+## Amendments 3 (2026-10-16, night): seeing tasks
+
+Source: the fourth owner note, [owner-2026-10-16-ui.md](../../../../../../../core/Task/doc/owner-2026-10-16-ui.md). The point is to see what was asked, what is done, and to keep working on what isn't.
+
+### What changes
+
+1. **Priority order: `Task.rank`.** One static ranks any list by recency × weight, so what just happened rises, what matters stays up, and old, light things fall off.
+   - **Weight:** `priority.score`, or 1 if there is none, multiplied by (1 + the number of children). Big tasks rank bigger.
+   - **Recency:** the last line's `ts`, decaying with a half-life of 3 days.
+   - **Where it's used:** the module Tasks tab (14b) and the /live/ Tasks card (15).
+2. **Task.View** (old step 4, now step 15).
+   - A checkbox row.
+   - A parent with children renders bigger and previews its children.
+   - **Segmented progress:** N small bars, one per child, each lit when its child completes. A single-step task gets no bar.
+   - It expands in place.
+   - **/live/** gets a card with id `tasks`, title "Tasks" and preview "Tasks". It lists the open tasks in `Task.rank` order, each wrapped in its module context (the icon and the title, as a mention), biggest first.
+3. **The tool files the references** (old step 6, now step 16).
+   - **The caller's session:** on every create, the item tool appends a `{"task": "<app path>"}` line to the caller's session log, finding the session from the agent id the MCP call carries.
+   - **The home:** when the add names no module, the module comes from the path the call was made on.
+   - The agent never writes either by hand.
+   - **Instructions:** the first-call instructions carry the grouping rule. A refinement of an existing task goes into that task. New tasks are only for new asks. One goal task per module holds the long-lived work.
+4. **A Tasks tab on each module page** (old step 9). This is step 14b, which is building, plus `Task.rank` order.
+5. **The proof is real data** (step 17). Today's dictations become tasks, grouped under one goal task per module, made through the item tool by a node script.
+   - **The sources:** the five owner notes in `core/Task/doc/`, `Servex/doc/owner-2026-10-16-tools.md`, `audio/Voice/doc/owner-2026-10-16-voice-conversation.md`, `Servex/agents/doc/owner-2026-10-16-realtime-interrupt.md`, `ai/doc/owner-2026-10-16-indexing.md` and `ext/Refine/doc/card-types.md`.
+   - **The task-system build:** it is one of the goal tasks, with its steps as children, and their states come from this `task.jsonl`'s commit lines, so you can watch it progress.
+   - **Not every line is a to-do:** an idea stays a note beside its module.
+
+### Order from here
+
+| Step | What | Model | Budget |
+|------|------|-------|--------|
+| 14b | Browser references, the module tasks list, the Doc Tasks tab, and `Task.rank` (building) | Sonnet | $3 |
+| 16 | The item tool writes the caller's session reference, takes the module from the path, and gives the grouping rule in its instructions | Sonnet | $2 |
+| 17 | The proof data: today's dictations as tasks under goal tasks per module, the task-system goal included | Sonnet | $2 |
+| 15 | `Task.View`: checkbox row, bigger parents, segmented progress, expand in place; the /live/ Tasks card; checked against step 17's data | Sonnet | $3 |
+| 10 | The skills and readmes use the item tool, these names and the grouping rule | Haiku | $1 |
