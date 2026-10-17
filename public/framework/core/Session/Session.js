@@ -28,6 +28,7 @@ export default class Session extends Item {
 	static replay_new(lines){ return new this(lines.find(l => l?.session)?.session ?? lines.find(l => l?.id)?.id); }
 	replay_line(line){
 		const { by, ts, at, session: _s, ...delta } = line;
+		if (typeof delta.task === "string"){ this.tasks.insert(Task.from_ref(delta.task)); delete delta.task; }   // a reference line: the live child
 		if (delta.tasks && typeof delta.tasks === "object") this.tasks.set(delta.tasks);
 		delete delta.tasks;
 		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.put(k, v);

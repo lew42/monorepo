@@ -215,6 +215,7 @@ export default class AskIndex {
 		const lines = AskIndex.read(file);
 		const { Task } = await import(pathToFileURL(path.join(root, FW, "core/Task/Task.js")).href);
 		const { default: Session } = await import(pathToFileURL(path.join(root, FW, "core/Session/Session.js")).href);
+		(await import("../Servex/agents/page_tools.js")).link_refs(Task);   // a {"task": path} line resolves to its child folder, so dedupe sees every child
 		const top = path.basename(file) === "session.jsonl" ? Session.replay(lines) : Task.replay(lines);
 		return [...(top._tasks ?? [])].map(t => ({ title: t.get_one("title"), state: t.state, module: t.get_one("module"), source: t.get_one("source") })).filter(t => t.source);
 	}

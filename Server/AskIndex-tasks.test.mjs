@@ -23,7 +23,8 @@ try {
 	assert.deepEqual(await n.tasks, { added: 2, skipped: 0, no_folder: 0 });
 	const lines = fs.readFileSync(path.join(DIR, "task.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l)).slice(1);
 	assert.equal(lines.length, 2);
-	for (const l of lines) assert.ok(l.by === "refine-queue" && l.ts && l.tasks.add.source, "stamped, with source");
+	for (const l of lines) assert.ok(l.by === "refine-queue" && l.ts && l.task.startsWith("/framework/ai/sessions/"), "stamped reference line, no copied data");
+	for (const slug of ["make-the-mic-dot-bigger", "log-each-prompt-once"]) assert.ok(JSON.parse(fs.readFileSync(path.join(DIR, slug, "task.jsonl"), "utf8").split("\n")[0]).source, "the child holds the source");
 
 	const again = idx.after_refine(ref, parsed);
 	assert.equal(again.recorded, 0);

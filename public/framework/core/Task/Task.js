@@ -23,7 +23,7 @@ const CAN = {
 
 // The state verbs a `task.jsonl` line may name: `{"stop":{"why":"…"}}`.
 // Plain fields a top-level line may set (the item tool's {"expected":"…"}); legacy lines keep them under `assign`.
-const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags"];
+const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent"];
 
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
 
@@ -273,7 +273,29 @@ export class Task extends Item {
 	// ---- Replay: Item.replay / Item.Store.read drive these; only the legacy mapping lives here ----
 	static replay_new(lines){
 		const first = lines.find(l => l?.assign)?.assign ?? {};
-		return new this({ id: first.slug ?? first.task ?? "task" });
+		// A home-made child (plan step 14a) has no `assign`: line 1 holds its own `id`.
+		const own = first.slug ?? first.task ?? (typeof lines[0]?.id === "string" ? lines[0].id : null);
+		return new this({ id: own ?? "task" });
+	}
+
+	// ---- References: a parent's `{"task": "<app path>"}` line is a live child replayed from its own file ----
+	// Node sets `Task.resolver = path => parsed lines | null` (Servex/agents/page_tools.js link_refs); the browser's Store does it in step 14b.
+	static resolver = null;
+	static resolving = new Set();
+	static from_ref(ref){
+		const lines = !this.resolving.has(ref) && this.resolver ? this.resolver(ref) : null;
+		const id = String(ref).replace(/\/+$/, "").split("/").pop();
+		let kid;
+		if (lines?.length){
+			this.resolving.add(ref);   // a cycle of references stops here
+			try { kid = this.replay(lines); } finally { this.resolving.delete(ref); }
+		} else {   // missing file: a stub, never a throw
+			kid = new this({ id });
+			kid.put("title", id);
+			kid.put("state", "missing");
+		}
+		if (kid.data.path === undefined) kid.put("path", ref);
+		return kid;
 	}
 
 	// Time comes from the lines (`at`, `assign.at|landed_at|requested_at`), never the wall clock.
@@ -289,6 +311,8 @@ export class Task extends Item {
 				this.put(k === "finished_at" ? "completed_at" : k === "complete" && typeof v === "number" ? "completion" : k, v);   // old folders
 			if (session_id !== undefined) this.put("session", session_id);
 		}
+		if (typeof line.task === "string"){ const kid = Task.from_ref(line.task); this.tasks.insert(kid); this.adopt_child(kid); }
+		if (line.id !== undefined && !a) rp.fresh = true;   // a home-made task's line 1: idle until a verb line says otherwise
 		if (typeof line.commit === "string") this.commit(line.commit);
 		if (line.priority && typeof line.priority === "object"){
 			const { score, why, by } = line.priority;
@@ -311,7 +335,7 @@ export class Task extends Item {
 
 	// No explicit verb line anywhere: infer the state from the old fields.
 	replay_end(){
-		if (!this._rp?.explicit) this.replay_legacy();
+		if (!this._rp?.explicit) this.replay_legacy(!!this._rp?.fresh);
 		this._at = null;
 		this._rp = null;
 		return this;
