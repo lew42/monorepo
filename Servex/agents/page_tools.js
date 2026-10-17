@@ -446,13 +446,17 @@ function task_home(parent_dir, add, root = FRAMEWORK, from_path = ""){
 
 export const PAGE_JS = ['import { TaskPage } from "/framework/core/Task/TaskPage.js";', "export default new TaskPage({ meta: import.meta });", ""].join(String.fromCharCode(10));
 
+// Who asked, for line 1 of a new task: an explicit ctx.source (voice-app | vscode | dictate), else the calling agent. Node fills it; an agent never types it.
+const source_of = ctx => ctx?.source ?? ((ctx?.caller && ctx.caller !== "owner" ? ctx.caller : process.env.SERVEX_AGENT) ? `servex:${ctx?.caller && ctx.caller !== "owner" ? ctx.caller : process.env.SERVEX_AGENT}` : undefined);
+
 // One add -> child folder with line 1, returns { id, path }. Fields come from the add (a legacy `data` object is flattened).
 function make_child(parent_dir, add, ctx, home){
 	const { type: _t, id: _i, after: _a, data, ...fields } = add;
 	const { slug, dir, list } = home;
 	const child = path.join(dir, "task.jsonl"), url = app_path(dir);
 	if (fs.existsSync(child)) throw new Error(`refused: ${app_path(dir)} already holds a task`);   // never overwrite
-	write_line(child, { id: slug, path: url, parent: app_path(parent_dir), ...data, ...fields, by: ctx.caller ?? "agent", ts: now() }, true);
+	const source = source_of(ctx), sess = ctx.caller && ctx.caller !== "owner" ? [{ id: ctx.caller, task: url }] : undefined;
+	write_line(child, { id: slug, path: url, parent: app_path(parent_dir), ...(source ? { source } : {}), ...(sess ? { sessions: sess } : {}), ...data, ...fields, by: ctx.caller ?? "agent", ts: now() }, true);
 	// Step 14b: the child's folder routes (TaskPage), and the module's list task holds a second reference to it.
 	fs.writeFileSync(path.join(dir, "page.js"), PAGE_JS);
 	if (list){
@@ -630,6 +634,11 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	if ((pages === undefined && folder === undefined && !homes.length && !ids.length) || Object.keys(body).length){
 		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: now() }), !!Class?.replay);
 	} else if (size === undefined) size = size_of(at.file);
+	// Node records who worked on the task: one appended line carrying the full list, only when the caller is new to it.
+	if (Class?.replay && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
+		const live = root(), list = live.sessions;
+		if (!list.some(s => s?.id === ctx.caller)) { const keep = line; put({ sessions: [...list, { id: ctx.caller, task: live.get_one("path") ?? app_path(path.dirname(at.file)) }], by, ts: now() }); line = keep; }
+	} catch {}
 	return { ok: true, ids, line, size, ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(Class?.replay || !alias ? await extra() : {}) };
 }
 

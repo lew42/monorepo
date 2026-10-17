@@ -24,7 +24,10 @@ try {
 	let r = await call("item", { path: URL, delta: { start: {} } });
 	ok(r.ok && r.state.state === "running", "start -> running");
 	ok(r.instructions?.methods.some(m => m.name === "start"), "first call has instructions");
-	ok(lines().length === 2 && lines()[1].by === "t1" && lines()[1].ts, "one stamped line");
+	ok(lines()[1].by === "t1" && lines()[1].ts, "one stamped line");
+	ok(lines().length === 3 && JSON.stringify(lines()[2].sessions) === JSON.stringify([{ id: "t1", task: URL }]), "the first call by a new caller appends ONE sessions line");
+	await call("item", { path: URL, delta: { now: "again" } });
+	ok(lines().filter(l => l.sessions).length === 1, "the same caller is never added twice");
 
 	r = await call("item", { path: URL, delta: { tasks: { add: { title: "x" } } } });
 	ok(r.state.completion === 0 && r.state.tasks.length === 1, "tasks.add -> one child, completion 0");
@@ -79,7 +82,9 @@ try {
 		ok(TaskHomes.listed().has(app(path.join(MOD, "tasks"))), "a new module list joins the /tasks/ index");
 		const l1 = JSON.parse(fs.readFileSync(path.join(home, "task.jsonl"), "utf8").split("\n")[0]);
 		ok(l1.id === "module-job" && l1.path === app(home) && l1.parent === URL && l1.module === "fakemod" && l1.expected === "it works", "line 1 has id, path, parent, fields");
-		ok(lines().length === before + 1 && lines().at(-1).task === app(home) && !lines().at(-1).tasks && Object.keys(lines().at(-1)).length === 3, "the parent gains exactly one {task} line");
+		ok(l1.source === "servex:t1" && JSON.stringify(l1.sessions) === JSON.stringify([{ id: "t1", task: app(home) }]), "node fills source and sessions on line 1 of a new task");
+		ok(lines().length === before + 1 && lines().filter(l => l.task === app(home)).length === 1, "the parent gains one {task} line (t1 is already in sessions)");
+		ok(lines().length === before + 1 && lines().find(l => l.task === app(home)) && !lines().at(-1).tasks, "the parent gains exactly one {task} line");
 		ok(r.state.tasks.length === 2 && r.state.tasks.find(t => t.id === "module-job").title === "Module job" && r.state.tasks.find(t => t.id === "module-job").state === "idle", "reading the parent lists the child with its own state");
 		ok(!fs.existsSync(path.join(MODS, "nomod")), "no module folder made");
 		const list = path.join(MOD, "tasks", "task.jsonl"), list_lines = () => fs.readFileSync(list, "utf8").trim().split(String.fromCharCode(10)).map(l => JSON.parse(l));
