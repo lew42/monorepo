@@ -52,3 +52,20 @@ To add a log type, add one pattern to `LogSweeper.ALLOW`.
 **The test.** `node Server/task-log-race.test.mjs` builds scratch repos, makes a git smudge filter play the live writer inside the hard-reset window, and checks: (1) a plain `git merge` loses the lines, (2) `merge.mjs` lands the same branch and loses none, (3) a no-overlap `merge.mjs` leaves no hidden WIP commit, (4) the guard blocks the command. Case 3 fails against the old `merge.mjs` (`MERGE_UNDER_TEST=<old copy>`).
 
 **If lines go missing anyway.** The hidden commit is not in the stash list. `git fsck --no-reflog` lists it as dangling; the task's `recover.mjs <commit>` prints the record lines it holds that the disk lacks and `recover-apply.mjs` appends them back (idempotent, append only). Pin a find with `git update-ref refs/salvage/<name> <commit>` so garbage collection cannot take it. The 2026-10-13 incident is recovered; the manifest is `lost-0283e997.applied.txt` in the task dir `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task-log-race/`.
+
+## Session files, untracked ones included (decided 2026-10-17)
+
+57 session paths sat untracked because the sweeper's allowlist did not know them. One rule closes it: **a record is committed, a cache is ignored.**
+
+| File | Class | Rule |
+|---|---|---|
+| `page.jsonl`, `prompts.jsonl`, `inbox.jsonl`, `essence.jsonl`, `review.jsonl`, `digest.json`, `session.jsonl`, `task.jsonl` in a session, task or module folder | record | committed |
+| `files.jsonl` anywhere under `public/` (outside `ai/sessions/`, where it is ignored) | record, noisy | committed; the static site reads it |
+| `cache.jsonl`, `index.json`, `index.tmp.json` | cache (rebuildable) | gitignored since 2026-10-12 (`.gitignore` lines 119-130) |
+| `ai/ai/v-*.jsonl`, `v-*.summary.json` (voice logs) | machine output | gitignored (same as `ai/v-*`; added 2026-10-17) |
+
+**Why `prompts.jsonl` is committed:** it holds the owner's dictations as refined cards; the committed repo is the one source of truth (CLAUDE.md law 5). The raw `owner-prompts.jsonl` and transcripts stay ignored. Alternative: ignore `prompts.jsonl` too; it wins only if the repo becomes public.
+
+**Applied 2026-10-17:** one commit by path took the untracked session folders (`session-*`, 10/16) and the module `files.jsonl` / `inbox.jsonl` / `page.jsonl` records.
+
+**Still open, handed to the Servex checkup:** `Servex/LogSweeper.js` `ALLOW` does not match `prompts|inbox|essence|review.jsonl`, `digest.json`, `page.jsonl` or `inbox.jsonl` outside `ai/`, or `files.jsonl` outside `ai/` and `doc/`; those stay modified or untracked until a person commits them. Add one pattern: `/^public\/.+\/(page|inbox|prompts|essence|review|files)\.jsonl$|^public\/framework\/ai\/sessions\/.+\/digest\.json$/` (needs a Servex restart; run `node Servex/LogSweeper.test.mjs`).
