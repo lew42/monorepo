@@ -4,8 +4,12 @@ Budget: $5. Sonnet. Load the `minion`, `code`, `layout` and `page` skills. The f
 
 ## Deliverable
 
-1. **Wide screens**: at 1920 and up `/tasks/` uses the width: either the rows flow into two or three columns by module (CSS columns or a grid on the module groups), or the page becomes a Browse view (modules on the left, the module's tasks on the right). Pick the one that keeps the row look identical and needs the least new code; say the alternative in a `decision` line. Check with `check_page` at 400, 1200, 1920, 3440 and `node Server/padding-check.mjs <url>` at the same widths: no text at an edge, empty share under 0.6 at 3440.
-2. **The meter**: `span.task-meter-fill` is the filled part of the progress bar; it is at the edge because the bar's own box has no inset. Give the bar (not the fill) the inset so the fill can touch the bar's edges and the bar never touches the page's; one CSS change in `TaskView.css`.
-3. `core/Task/readme.md` gets one line under "The row" or "TasksPage" saying how the page lays out wide. Worktree, `node --check`, `Server/smoke.mjs` clean, `merge.mjs` (name your review with `--no-review` if the gate cannot see this 2026-10-13 task dir), landing line checked with `tail -1`, shots in this dir never committed, `git status` clean for your paths. Never drive the owner's tabs; never restart servers.
+- [ ] **Wide screens.** At 1920 and up, `/tasks/` uses the width. Pick one: rows flow into 2–3 columns by module (CSS columns or grid), or the page becomes a Browse view (modules left, tasks right). Keep the row look identical with the least new code; name the other option in a `decision` line.
+- [ ] **Checked at 400, 1200, 1920, 3440.** `check_page` passes; `node Server/padding-check.mjs <url>` shows no text at an edge and an empty share under 0.6 at 3440.
+- [ ] **The meter.** `span.task-meter-fill` (the filled part of the bar) sits at the edge because the bar's own box has no inset. Give the bar, not the fill, the inset: one CSS change in `TaskView.css`.
+- [ ] **Readme.** One line in `core/Task/readme.md` under "The row" or "TasksPage" saying how the page lays out wide.
+- [ ] **Landing.** Worktree; `node --check`; `Server/smoke.mjs` clean; `merge.mjs` (`--no-review` if the gate cannot see this 2026-10-13 dir); `tail -1` the landing line; shots never committed; `git status` clean for your paths.
+
+Never drive the owner's tabs; never restart servers.
 
 Fence: `core/Task/TasksPage.js`, `core/Task/TaskView.css`, one readme line, this task dir. Not `TaskView.js` logic, not `ux/Browse`.
