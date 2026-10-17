@@ -192,3 +192,8 @@ Source: [owner-2026-10-16-top-down.md](/framework/core/Task/doc/owner-2026-10-16
 | 10 | The skills (`new-task`, `finish-task`) and the readmes use the item tool and these names | Haiku | $1 |
 
 The budget stays $35 in total. Steps have come in well under budget so far.
+
+### Clarifications (2026-10-16, late)
+
+- **TaskPage holds no task logic.** It is only the route that mounts `Task.View` full-size, because routing goes through Page subclasses today. `Task.View` renders the task everywhere: list row, expanded in place, full-size. A task's `page.jsonl` is made on demand, only when someone adds page content. Steps 11 and 15 follow this. Source: [owner-2026-10-16-top-down.md](../../../../../../core/Task/doc/owner-2026-10-16-top-down.md), "Page vs view".
+- **The item tool takes both forms:** a dot path (`"now.preview": "Now"`) and a nested object. The dot path expands to the nested form before `set()`, so there is one apply. Both stay. Source: `Servex/doc/owner-2026-10-16-tools.md`, "Dot paths and nested objects".
