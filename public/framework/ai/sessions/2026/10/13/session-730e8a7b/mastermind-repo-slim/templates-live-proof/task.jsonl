@@ -12,3 +12,7 @@
 {"review":{"at":"2026-10-17T10:46:39-05:00","answer":{"n":4,"reply":"noted: thanks"}}}
 {"review":{"at":"2026-10-17T10:46:39-05:00","answer":{"n":5,"reply":"declined: Task.js is outside this brief's fence; kept the TaskLoop fallback and logged the Task.replay_line idea as a follow-up"}}}
 {"review":{"at":"2026-10-17T10:46:39-05:00","answer":{"n":6,"reply":"noted: kept in the sessions tree like item_tool.test.mjs does; it cleans up in finally"}}}
+{"commit":"615e3b051de5"}
+{"commit":"8c675c740a92"}
+{"log":{"at":"2026-10-17T10:48:28-05:00","msg":"Merged worktree/approve-string-verb into michael/dev (review pass, in public/framework/ai/sessions/2026/10/17/approve-string-verb/ because merge.mjs scans only the last four days of session folders). The proof itself needed no restart; the two fixes go live at the next Servex restart.","needs_restart":"item tool bare-string verbs, TaskLoop.read_task approved_by"}}
+{"assign":{"landed_at":"2026-10-17T10:48:28-05:00","outcome":"Live proof passed: on the running Servex, approve on a waiting template-doc task wrote the spawn line about 1.5 s later (15:42:33.0 to 15:42:34 UTC), and the spawned Haiku agent wrote its note and completed the task 41 s after the spawn (proof: core/Task/tasks/templates-live-proof/). Cause of the first no-fire: approve acts only from waiting and a bare-string approve was ignored on replay; fixed in the item tool and in the spawn line's approved_by (merged, live after the next Servex restart)."}}
