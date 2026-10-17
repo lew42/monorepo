@@ -78,3 +78,9 @@
 {"log":{"at":"2026-10-16T20:27:47-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-16T20:27:48-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T20:30:00-05:00","msg":"Fifth owner note (node side) folded into plan.md as Amendments 4: live instances via Item.Store, nested subtasks with a folder only on demand, slug refusal, sessions/source/cost as 3d, stage icons in step 15. Budget raised to $50; order 17, 15, 3c, 3d, 10."}}
+{"commit":"09f426926b43"}
+{"action":{"at":"2026-10-16T20:30:17-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/proof-data/seed.json"]}}
+{"action":{"at":"2026-10-16T20:30:37-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/proof-data/seed.mjs"]}}
+{"commit":"bdbcbf80c"}
+{"log":{"at":"2026-10-16T20:34:27-05:00","msg":"Step 17 landed: 47 tasks (5 module goals, 42 children) through run_item; Task system build at 16/22 complete, computed from commit lines. Tests green (item_tool 40, Task 47, Session 5, Item 5); seed rerun 0 made. The four core/Task owner notes were untracked, so their source links 404'd; committed in fe4105adb. Known: the ai module's list sits in the ai/tasks/ code folder beside TasksPage; revisit with the ai/tasks/ index rebuild."}}
+{"assign":{"at":"2026-10-16T20:34:27-05:00","now":"Step 17 landed (today's dictations as tasks). Step 15 building: Task.View with stage icons and the /live/ Tasks card."}}
