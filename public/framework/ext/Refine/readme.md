@@ -81,3 +81,4 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) 
 - [Confidence scale](/framework/ext/Refine/md/doc/confidence/) — 0.5 = not sure, over 0.7 needs evidence (`doc/confidence.md`); [past days refined, in reverse](/framework/ext/Refine/runs/) (`Server/refine-days.mjs`, input capped at 20k characters a day, so each day is a sample).
 
 - **Hears the ✦ chat** — `VoiceFollow.js` watches this tab's voice session (`lew42-voice-session`) and shows the owner's dictated lines on the demo as the raw text, so the ✦ chat (phone sheet or desktop drawer, same tab) and this page agree. Its own composer mic is the shared `ComposerMic`. Proof: `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/bubble-order/mic-proof.mjs`.
+- **Task home** (the owner's 2026-10-16 dictation as six ranked subtasks, first one started): [tasks/refine-dictation-to-cards-and-tasks/readme.md](tasks/refine-dictation-to-cards-and-tasks/readme.md).

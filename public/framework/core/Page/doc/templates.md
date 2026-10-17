@@ -43,6 +43,10 @@ What composes what: a template's `map` holds plain values (`data`) and `Property
 
 A Property wakes only the views of its own value, each binding carries its own unbind, and it never bubbles; it is the right shape for a single value shared through clones. For a record that is already an `Item`, its own `change` event measured just as well: [binding.md](binding.md#3-a-property-only-where-it-pays). Item is unchanged: Property is opt-in.
 
+## Where a page's own UI pieces live (convention, 2026-10-17)
+
+A page keeps the pieces only it uses in a `ui/` folder beside its `page.js`: one `Template` subclass per file, the file named for the class (`ui/UsageMeter.js` holds `class UsageMeter extends Template`). The parent's `children:` lists the ones that have a page of their own, so they show in its index; a piece that is only drawn, never visited, is just imported. `ui/readme.md` is the short index. A piece that a second page needs moves up to `public/framework/ui/` (the shared catalogue), it is not copied. No page uses this yet; the first will be the usage meter variants ([brief](/framework/ai/sessions/2026/10/15/voice-opus/page-ui-templates/requirements.md)).
+
 ## Watch out
 
 - A template's own `render()` never caches: each call is a new view. Code that wants one view keeps the one it got.
