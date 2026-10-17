@@ -1180,3 +1180,4 @@
 {"at":"2026-10-17T04:45:07.935Z","target":"public/framework/ai/todo.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-10-17T04:46:12.185Z","target":"public/framework/ai/todo.md","verdict":"spawned","to":"clarity-ai"}
 {"at":"2026-10-17T04:46:15.778Z","target":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/checkup-servex","verdict":"skipped","what":"a sub-task: its parent task gets the one check"}
+{"at":"2026-10-16T12:00:00Z","target":"public/framework/ai/todo.md","verdict":"rewrote","what":"split two over-60-word entries (path bugs, past-work leftovers) into short entries/checklist","to":"public/framework/ai/todo.md"}
