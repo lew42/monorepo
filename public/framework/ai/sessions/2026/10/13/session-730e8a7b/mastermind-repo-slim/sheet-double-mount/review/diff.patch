@@ -1,0 +1,269 @@
+diff --git a/public/framework/ext/drawer/AIPage.js b/public/framework/ext/drawer/AIPage.js
+index 5395102e6..291ed1a1f 100644
+--- a/public/framework/ext/drawer/AIPage.js
++++ b/public/framework/ext/drawer/AIPage.js
+@@ -6,6 +6,8 @@ import { div, span, p, a } from "/framework/core/View/View.js";
+ import drawer from "./drawer.js";
+ import tabs from "./tabs.js";
+ 
++const VIEWS_CHAT = () => import("./tabs/ai.js");
++
+ export default class AIPage extends Page {
+ 
+ 	// [name, label, the tab file that draws it]; chat is the default (`ai/` itself and `ai/chat/`).
+@@ -20,6 +22,12 @@ export default class AIPage extends Page {
+ 	// The AI page showing now, or null: Sheet.routed() reads it.
+ 	static current = null;
+ 
++	// ONE chat and ONE feed per tab (doc/sheet.md): holder() names the surface that mounts them. The other surfaces mount nothing.
++	static SMALL = "(max-width: 52em)";
++	static small(){ return !!globalThis.matchMedia?.(this.SMALL)?.matches; }
++	static holder(){ return this.small() ? "sheet" : tabs.mine() && tabs.current?.name === "ai" ? "dock" : "page"; }
++	static NOTES = { sheet: "The chat is in the sheet.", dock: "The chat is in the panel on the right." };
++
+ 	static route(page){
+ 		const ai = new this({ title: "AI", about: page.url, no_inbox: true, no_ai: true, classes: "standard drawer-ai-page" });
+ 		ai.content = () => ai.body("chat");
+@@ -37,18 +45,67 @@ export default class AIPage extends Page {
+ 		});
+ 		const $box = div.c("drawer-ai-page-body", () => { span.c("muted", "loading…"); });
+ 		if (!load) return $box.empty(() => { p.c("muted", "The live feed (this page's events beside the chat) arrives with AIFeed, sheet step 7."); });
+-		load().then(m => $box.empty(() => { m.default(this.context()); }))
++		if (name === "chat") this.chat_box = $box;
++		this.fill($box, name, load);
++	}
++
++	// The chat view mounts the chat only when this page is the holder; otherwise the sheet or the dock already has it.
++	fill($box, name, load){
++		const holder = this.constructor.holder();
++		if (name === "chat" && holder !== "page"){
++			this.release();
++			return $box.empty(() => { span.c("muted", this.constructor.NOTES[holder]); });
++		}
++		if (name === "chat" && this.held) return;
++		load().then(m => $box.empty(() => {
++			if (name !== "chat") return m.default(this.context());
++			this.mounting = true;
++			try { this.token = m.default(this.context()); } finally { this.mounting = false; }
++			this.held = true;
++		}))
+ 			.catch(e => $box.empty(() => { span.c("muted", "This view could not load: " + e.message); }));
+ 	}
+ 
++	// Let go of the chat this page mounted (the tab's own ai.js remembers it).
++	release(){
++		if (!this.held) return;
++		this.held = false;
++		const token = this.token; this.token = null;
++		import("./tabs/ai.js").then(m => m.release_chat(token));
++	}
++
++	// The dock mounted the chat after this page did (✦ at 1200): its ai() took the page's box; the page points to the dock.
++	moved = () => {
++		if (this.mounting || !this.held) return;
++		this.held = false; this.token = null;
++		this.chat_box?.el.isConnected && this.chat_box.empty(() => { span.c("muted", this.constructor.NOTES.dock); });
++	};
++
++	// The dock shut: the chat comes back to the page.
++	shut = () => setTimeout(this.resized);
++
++	// A window crossing 52em moves the chat between the sheet and the page; the page follows.
++	resized = () => {
++		const $box = this.chat_box;
++		if ($box?.el.isConnected) this.fill($box, "chat", VIEWS_CHAT);
++	};
++
+ 	context(){ return { app: this.app, tabs, page: this.about, card: null }; }
+ 
+ 	activated(){
+ 		this.constructor.current = this;
++		this.mq = globalThis.matchMedia?.(this.constructor.SMALL);
++		this.mq?.addEventListener?.("change", this.resized);
++		window.addEventListener("drawer-chat", this.moved);
++		window.addEventListener("drawer-close", this.shut);
+ 		drawer.page(this.about);
+ 	}
+ 
+ 	deactivated(){
++		this.mq?.removeEventListener?.("change", this.resized);
++		window.removeEventListener("drawer-chat", this.moved);
++		window.removeEventListener("drawer-close", this.shut);
++		this.release();
+ 		if (this.constructor.current !== this) return;
+ 		this.constructor.current = null;
+ 		drawer.page(null);
+diff --git a/public/framework/ext/drawer/Sheet.js b/public/framework/ext/drawer/Sheet.js
+index 8c46d01e3..340f34329 100644
+--- a/public/framework/ext/drawer/Sheet.js
++++ b/public/framework/ext/drawer/Sheet.js
+@@ -34,10 +34,10 @@ export default class Sheet extends View {
+ 
+ 	watch_breakpoint(){
+ 		const mq = globalThis.matchMedia?.("(max-width: 52em)");
+-		mq?.addEventListener?.("change", e => e.matches ? this.apply(this.routed()) : this.$sheet?.hide());
++		mq?.addEventListener?.("change", e => e.matches ? this.apply(this.routed()) : this.$sheet?.release());   // wider: the page or the dock holds the chat now
+ 	}
+ 
+-	small(){ return !!globalThis.matchMedia?.("(max-width: 52em)")?.matches; }
++	small(){ return AIPage.small(); }
+ 
+ 	static KEY = "sheet";   // history.state's size word; the url says only open (<path>/ai/) or closed (<path>)
+ 
+@@ -407,6 +407,17 @@ export class SheetPanel extends View {
+ 		return this;
+ 	}
+ 
++	// Hide, and give the chat, the feed and the dictation bars back: the sheet keeps none while the page or the dock holds the chat.
++	release(){
++		this.hide();
++		this.mount?.remove();
++		this.feed?.stop();
++		this.$slot?.empty();
++		this.$live?.el.querySelectorAll(".dictation-bar").forEach(el => el.remove());
++		this.mount = this.panel = this.feed = null;
++		return this;
++	}
++
+ 	stop_mic(){ this.panel?.stop_mic(); }
+ 
+ 	start_mic(){
+@@ -493,7 +504,7 @@ export class SheetDock {
+ 
+ 	// menu.js calls this once, after the styles are in; a window widened past AT opens it too.
+ 	static start(){
+-		const open = () => { if (this.wide() && !this.shut() && !tabs.mine()) tabs.open("ai"); };
++		const open = () => { if (this.wide() && !this.shut() && !tabs.mine() && !AIPage.current) tabs.open("ai"); };   // the routed AI page already shows the chat
+ 		window.addEventListener("drawer-close", () => { if (this.wide()) this.remember(true); });
+ 		this.query()?.addEventListener?.("change", open);
+ 		open();
+diff --git a/public/framework/ext/drawer/doc/sheet.md b/public/framework/ext/drawer/doc/sheet.md
+index 1dedf8ce2..b43af2f17 100644
+--- a/public/framework/ext/drawer/doc/sheet.md
++++ b/public/framework/ext/drawer/doc/sheet.md
+@@ -20,6 +20,10 @@ Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
+ - Old links are rewritten once with `replaceState`: `?sheet=open` becomes `<path>/ai/`, and `?drawer=dictation` becomes `<path>/ai/dictation/` (`AIPage.old_link()`).
+ - ⚠ A page that writes `history.replaceState(null, …)` wipes the sheet's size. Pass `history.state` instead (the Dictate playground did this until 2026-10-17).
+ 
++## One chat, one feed (2026-10-17)
++
++The sheet, the dock's AI tab and the routed `AIPage` all show the same conversation, so only one of them mounts it: `AIPage.holder()` answers `"sheet"` (below 52em), `"dock"` (the AI tab is open) or `"page"`. The chat view of `AIPage` mounts only as the page holder and otherwise shows a one-line pointer; a window crossing 52em hands the chat over (`Sheet.Panel.release()` gives back the chat, the feed and the dictation bars; the page mounts or lets go). `Sheet.Dock.start()` does not auto-open the dock while an `AIPage` is showing. `tabs/ai.js` disposes the feed and the box with its chat, tells the others when it mounts (`drawer-chat`), and `AIPage` points to the dock when ✦ opens it after the page mounted, taking the chat back when the dock shuts. Before this, the hidden page on a phone mounted a second chat and feed (2 and 2), and `<path>/ai/` at 1920 px mounted one in the page and one in the dock. Proof: `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/sheet-double-mount/probe.mjs`.
++
+ ## The desktop dock (2026-10-17, sheet step 6)
+ 
+ Above 52em the AI is the right drawer (`drawer(fn)` filled by the `DrawerTabs`), which pushes the page instead of covering it. `Sheet.Dock` opens it by default at 1920 px and wider; ✕ shuts it and that is remembered (`lew42-sheet-dock-shut`), and ✦ opens it again and forgets. Below 1920 it starts shut and ✦ opens it. `drawer(fn)` stays the plain right-hand container any module can fill.
+diff --git a/public/framework/ext/drawer/rail/shots/files.jsonl b/public/framework/ext/drawer/rail/shots/files.jsonl
+index 46f2bb87a..4cd6643ad 100644
+--- a/public/framework/ext/drawer/rail/shots/files.jsonl
++++ b/public/framework/ext/drawer/rail/shots/files.jsonl
+@@ -22,3 +22,11 @@
+ {"file":"sheet-4-after-back.png"}
+ {"file":"sheet-5-closed.png"}
+ {"file":"sheet-cards-400.png"}
++{"file":"desktop-1920-no-rail.png","gone":true}
++{"file":"rail-400.png","gone":true}
++{"file":"sheet-cards-400.png","gone":true}
++{"file":"sheet-1-open.png","gone":true}
++{"file":"sheet-2-dragged.png","gone":true}
++{"file":"sheet-3-full.png","gone":true}
++{"file":"sheet-4-after-back.png","gone":true}
++{"file":"sheet-5-closed.png","gone":true}
+diff --git a/public/framework/ext/drawer/readme.md b/public/framework/ext/drawer/readme.md
+index bb232b00c..5be18323b 100644
+--- a/public/framework/ext/drawer/readme.md
++++ b/public/framework/ext/drawer/readme.md
+@@ -26,6 +26,7 @@ drawer.showing();     // boolean
+ ## Files that matter
+ 
+ - `drawer.js` / `drawer.css`: Shell, push layout, ✕ close, and `--drawer-w` token.
++- **One chat, one feed** (2026-10-17): the sheet, the dock and the routed `AIPage` never mount two. `AIPage.holder()` names who holds them (the sheet below 52em, the dock when its AI tab is open, else the page); the others mount nothing · [`doc/sheet.md`](./doc/sheet.md#one-chat-one-feed).
+ - `menu.js`: The top-right ✦ button. On a phone the strip's ☰ Menu opens the page's Sidebar tree from the bottom (`Sheet.open_nav()`).
+ - `tabs.js`: Tab switcher routing (`AI`, `Dictate`, `Settings`, `Element`).
+ - `Sheet.js` / `rail.css`: the phone's bottom strip and the voice sheet it raises, `export default class Sheet extends View` (`Sheet.of(app)`). It was `rail.js` / `DrawerRail` until 2026-10-16; `rail.js` now only re-exports it, so old imports keep working. **The mobile sheet for dictation is `Sheet.Panel`** (`class SheetPanel extends View`, one class since 2026-10-16; the old four-class chain `DrawerRailSheetV1` → `DrawerRailSheetChat` is kept in [`archive/sheet-chain-2026-10-16.js`](./archive/sheet-chain-2026-10-16.js), opt-in). Its sizes are one machine, `Sheet.Size`: ✦ opens the **strip** (about 100 px, above the bottom bar, the last line said and ⌃), drag up to **split**, past 90% to **full** (✕ and the drawer tabs); a drag down on the head steps one size down, and back steps down too Open means the url is `<path>/ai/`, an [`AIPage`](./AIPage.js) (`class AIPage extends Page`, minted by `Page.child()` for any page without a real `ai/` child; its views chat, live, sessions, dictation and settings were the drawer's tabs). Old `?sheet=` and `?drawer=` links are rewritten once. On a desktop, `Sheet.Dock` opens the drawer docked by default at 1920 px and wider. [`AIFeed`](./AIFeed.js) streams the page's `ai/log.jsonl` events into the chat as one stream. [doc/sheet.md](doc/sheet.md).
+diff --git a/public/framework/ext/drawer/tabs/ai.js b/public/framework/ext/drawer/tabs/ai.js
+index 1b67d8d76..41107bcd0 100644
+--- a/public/framework/ext/drawer/tabs/ai.js
++++ b/public/framework/ext/drawer/tabs/ai.js
+@@ -226,14 +226,22 @@ function session_header({ card }){
+  * see that function's own doc for why it needs disposing at all. */
+ let live_chat = null;
+ let live_header = null;
++let live_feed = null;   // the feed goes with its chat: one pair, never a feed left behind
++let live_slot = null;   // the box the chat mounted in: emptied with it, so a shut dock keeps no hidden second widget
+ function dispose_chat(){
+ 	const handle = live_chat;
+ 	live_chat = null;
+ 	handle?.remove();
++	live_feed?.stop();
++	live_feed = null;
++	live_slot?.replaceChildren();
++	live_slot = null;
+ 	live_header?.stop();
+ 	live_header = null;
+ }
+ window.addEventListener("drawer-close", dispose_chat);
++// AIPage lets go of the chat it mounted (the token ai() returned), never one the dock mounted since (doc/sheet.md#one-chat-one-feed)
++export function release_chat(token){ if (token && live_chat === token) dispose_chat(); }
+ 
+ /**
+  * THE DEFAULT — `ux/Dictate/chat.js`'s ONE mount, the exact same call the mobile ✦
+@@ -249,16 +257,18 @@ window.addEventListener("drawer-close", dispose_chat);
+ export default function ai({ page, card, tabs }){
+ 	dispose_chat();   // this refill replaces whatever this tab built last time
+ 	const inbox = new Inbox.Compact({ page });
++	let mine = null;
+ 	div.c("drawer-ai flex v", () => {
+ 		inbox.view();
+ 		live_header = session_header({ card });
+ 		const $slot = div.c("drawer-ai-panel");
+-		const handle = live_chat = chat($slot.el, {
++		live_slot = $slot.el;
++		const handle = mine = live_chat = chat($slot.el, {
+ 			path: page,
+ 			card: card?.id,
+ 			placeholder: card ? "talk into this card" : "say something",
+ 		});
+-		const feed = AIFeed.on($slot.el, page);   // this page's events among the bubbles (sheet step 7)
++		const feed = live_feed = AIFeed.on($slot.el, page);   // this page's events among the bubbles (sheet step 7)
+ 		// The OTHER way this mount's content can leave the drawer: a different tab's
+ 		// own refill clears $slot's own parent out from under it (see the doc above).
+ 		const host = $slot.el.closest(".drawer-body");
+@@ -268,6 +278,7 @@ export default function ai({ page, card, tabs }){
+ 				mo.disconnect();
+ 				feed.stop();
+ 				handle.remove();
++				if (live_feed === feed) live_feed = null;
+ 				if (live_chat === handle) live_chat = null;
+ 				live_header?.stop();
+ 				live_header = null;
+@@ -275,6 +286,8 @@ export default function ai({ page, card, tabs }){
+ 			mo.observe(host, { childList: true });
+ 		}
+ 	});
++	window.dispatchEvent(new CustomEvent("drawer-chat", { detail: mine }));   // a surface that mounted the chat before this one lets go of its box
++	return mine;
+ }
+ 
+ /**
+diff --git a/public/framework/ext/drawer/walkthrough/shots/files.jsonl b/public/framework/ext/drawer/walkthrough/shots/files.jsonl
+index d8f57a37f..652da7373 100644
+--- a/public/framework/ext/drawer/walkthrough/shots/files.jsonl
++++ b/public/framework/ext/drawer/walkthrough/shots/files.jsonl
+@@ -43,3 +43,17 @@
+ {"file":"select-paragraph-properties-1920.png"}
+ {"file":"tab-dictation-1280.png"}
+ {"file":"thread-resumed-1280.png"}
++{"file":"chip-in-input-1920.png","gone":true}
++{"file":"menu-3440-devbar.png","gone":true}
++{"file":"phone-mic-error-400.png","gone":true}
++{"file":"phone-nav-400.png","gone":true}
++{"file":"phone-rail-400.png","gone":true}
++{"file":"phone-sheet-cards-400.png","gone":true}
++{"file":"plain-ai-1920.png","gone":true}
++{"file":"reload-sessions.png","gone":true}
++{"file":"select-paragraph-properties-1920.png","gone":true}
++{"file":"tab-dictation-1280.png","gone":true}
++{"file":"thread-resumed-1280.png","gone":true}
++{"file":"inbox-authors-400.png","gone":true}
++{"file":"inbox-coordinated-400.png","gone":true}
++{"file":"inbox-note-1920.png","gone":true}
