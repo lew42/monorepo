@@ -214,14 +214,15 @@ export default class TaskLoop {
             const info = this.read_task(file);
             if (!info?.agent_cfg || info.task_state !== "running" || info.spawned) return { ok: false, why: "nothing to launch" };
             const dir = path.dirname(file), cfg = info.agent_cfg, tpl = Task.TEMPLATES[info.template] ?? {};
-            // what already exists on this topic, beside the brief (skipped quietly when the script is absent)
-            const past = path.join(this.root, "Server", "PastWork.mjs");
-            if (fs.existsSync(past)) await new Promise(done => execFile(process.execPath, [past, "--task", dir], { cwd: this.root, windowsHide: true, timeout: 60000 }, () => done()));
+            // the slot check first, so a queued task does not rerun PastWork on every tick while the machine stays hot
             const hot = this.servex.monitor?.flag?.reason;
             if (hot){
                 if (!info.queued) await this.write_line(file, { queue: { at: stamp(), why: hot } });
                 return { ok: false, queued: true, why: hot };
             }
+            // what already exists on this topic, beside the brief (skipped quietly when the script is absent)
+            const past = path.join(this.root, "Server", "PastWork.mjs");
+            if (fs.existsSync(past)) await new Promise(done => execFile(process.execPath, [past, "--task", dir], { cwd: this.root, windowsHide: true, timeout: 60000 }, () => done()));
             const registry = this.servex.agents.registry_list();
             const parent = info.first_by && registry.some(r => r.id === info.first_by && r.state !== "stopped" && r.state !== "gone") ? info.first_by : undefined;
             const spec = {

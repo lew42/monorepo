@@ -425,7 +425,7 @@ Task.FIELDS = FIELDS;
 Task.TEMPLATES = {
 	code: { worktree: true, commit: true, review: true, model: "claude-sonnet-5-5", permission_mode: "bypassPermissions" },
 	doc: { worktree: false, commit: true, review: false, model: "claude-sonnet-5-5", permission_mode: "bypassPermissions" },
-	scan: { worktree: false, commit: false, review: false, model: "claude-haiku-4-5", permission_mode: "plan" },
+	scan: { worktree: false, commit: false, review: false, model: "claude-haiku-5-5", permission_mode: "plan" },
 };
 
 export default Task;
