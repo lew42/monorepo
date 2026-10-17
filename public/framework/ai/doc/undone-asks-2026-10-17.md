@@ -51,6 +51,8 @@ A Haiku checked every one of the 620 undone asks against the repo and had to sho
 - **Rebuilds keep it.** Every ask has an id (a hash of its kind, source and text); `node Server/UndoneAsks.mjs --json` carries the verdicts over by id. Re-run the check with `node Server/UndoneVerify.mjs --batches <dir>` (only asks with no verdict) and merge with `--merge <dir>`. The batches and answers are kept in [verify-undone](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone/).
 - **Cost:** about $0.04 an ask, roughly $25 for all 620 (each Haiku run spends about $0.5 before it reads a single ask, so 23-ask batches were the cheaper size).
 
+- **2026-10-17, tracked:** the 229 verified-undone asks are now 229 idle tasks in their module homes (`<module>/tasks/`), made by `node Server/UndoneToTasks.mjs --apply` through the item tool. 0 were already tracked, 0 had no module. Each ask on the [Undone asks](/framework/ai/asks/undone/) page links "its task"; the ask-to-task map is `ai/asks/undone-to-tasks.jsonl`, and the new tasks are listed on [/tasks/](/tasks/). A rebuild of `undone.json` (`UndoneAsks.mjs --json`) does not yet carry the `task` field over; the manifest keeps the map.
+
 ### The ten oldest asks that are verified still undone
 
 1. UI: System class; /framework/ui/ library of approved blocks; class pills; masonry; sibling/child rails ([2026-09-30, source](/framework/ai/sessions/2026/09/30/ui-system/)). *Found:* Partly built: public/framework/library/readme.md:1 - "# Library — browse everything we built in three columns" (approved blocks, sibling and related rails). Missing: no `

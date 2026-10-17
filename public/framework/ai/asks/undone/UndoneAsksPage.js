@@ -75,6 +75,7 @@ export default class UndoneAsksPage extends Page {
 							small(`${x.days ?? "?"} d old · ${x.kind}`);
 							a.c("page-link").href(x.source).text("source prompt");
 							x.where.url ? a.c("page-link").href(x.where.url).text(x.where.label) : small(x.where.label);
+							if (x.task) a.c("page-link").href(x.task).text("its task");
 						});
 						if (x.verified) div.c("flex wrap gap-25 muted", () => {
 							span(`${LABEL[KIND(x)]}: ${x.verified_evidence}`);
