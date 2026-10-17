@@ -35,6 +35,7 @@ export default class LogSweeper {
         /^public\/framework\/ai\/sessions\/(\d{4}(\/\d{2}){0,2}\/)?index\.json$/, // day/month/year composites: tracked, rewritten by the sessions indexer
         /^public\/framework\/ai\/doc\/follow-up(-full)?\.md$/, // the daily FollowUp output (TaskLoop.follow_up_daily): computed, committed so the day's list is in history
         /^public\/framework\/ai\/handover\.md$/, // its NOW block is written daily by Server/HandoverNow.mjs (TaskLoop.handover_daily)
+        /^public\/framework\/ai\/asks\/undone\.json$/, // written daily by Server/UndoneAsks.mjs (TaskLoop.undone_asks_daily)
         /^public\/.+\/(page|inbox|prompts|essence|review|files)\.jsonl$|^public\/framework\/ai\/sessions\/.+\/digest\.json$/, // session records (sessions/doc/commit-rule.md, 2026-10-17); caches (cache.jsonl, index.json) stay out
     ];
     /* Never swept, even if an ALLOW pattern would match. */

@@ -4,6 +4,13 @@ Every ask the owner made, who owns it, and whether it landed — the answer to "
 are getting kind of left in limbo" (the owner, 2026-09-30). The live page is
 [`/framework/ai/asks/`](/framework/ai/asks/); this folder is its code.
 
+## The three ask records, and the page that joins them
+
+- **The routed ledger** (`ai/asks.jsonl`, this page): asks sent to a mastermind, with a status.
+- **The refined asks** (each session's `asks.jsonl`, [asks-by-module](/framework/ai/doc/asks-by-module.md)): one per sentence of your prompts, with the module inbox it went to.
+- **The task homes** (`<module>/tasks/`, [/tasks/](/tasks/)): the work.
+- **[Undone asks](/framework/ai/asks/undone/)** joins all three by module and says which asks have no landing: [`undone/UndoneAsksPage.js`](undone/UndoneAsksPage.js) reads `undone.json`, written by `node Server/UndoneAsks.mjs --json` (TaskLoop runs it daily). The verdict: [doc/undone-asks-2026-10-17.md](../doc/undone-asks-2026-10-17.md).
+
 ## What
 
 - [`AskFold.js`](AskFold.js) — the ledger's own reading, `AskFold.id(ask)` and `AskFold.fold(lines)`. Pure

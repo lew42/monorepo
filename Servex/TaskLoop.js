@@ -66,6 +66,7 @@ export default class TaskLoop {
             try { spawn(process.execPath, [path.join(this.root, "Server", "worktree-sweep.mjs")], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
             this.follow_up_daily();
             this.handover_daily();
+            this.undone_asks_daily();
             const now = Date.now(), registry = this.servex.agents.registry_list();
             let open = 0, quiet = 0, escalations = 0;
 
@@ -139,6 +140,19 @@ export default class TaskLoop {
         execFile(process.execPath, [path.join(this.root, "Server", "HandoverNow.mjs"), "--write"], { cwd: this.root, windowsHide: true, timeout: 120000 }, err => {
             this.handover_busy = false;
             if (err) this.servex?.log?.append("servex", { type: "task-loop-error", error: "handover-now: " + String(err.message || err) }).catch(() => {});
+        });
+    }
+
+    /* undone-asks-daily, 2026-10-17: once per UTC day (the date in undone.json's own generated_at is not today) run Server/UndoneAsks.mjs --json.
+     * LogSweeper (ALLOW) commits undone.json. Doc: public/framework/ai/asks/readme.md */
+    undone_asks_daily(){
+        const file = path.join(this.root, "public", "framework", "ai", "asks", "undone.json");
+        let at = ""; try { at = JSON.parse(fs.readFileSync(file, "utf8")).generated_at ?? ""; } catch {}
+        if (at.slice(0, 10) === new Date().toISOString().slice(0, 10) || this.undone_busy) return;
+        this.undone_busy = true;
+        execFile(process.execPath, [path.join(this.root, "Server", "UndoneAsks.mjs"), "--json"], { cwd: this.root, windowsHide: true, timeout: 120000 }, err => {
+            this.undone_busy = false;
+            if (err) this.servex?.log?.append("servex", { type: "task-loop-error", error: "undone-asks: " + String(err.message || err) }).catch(() => {});
         });
     }
 

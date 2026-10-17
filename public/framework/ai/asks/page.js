@@ -108,10 +108,11 @@ export default new Page({
 	title: "Asks",
 	icon: "inbox",
 	description: "Every ask you made, who owns it, and whether it landed.",
-	leaf: true,
+	children: "undone",
 
 	async content(){
 		p("Every ask you made, who owns it, and whether it landed.");
+		p.c("muted").append(() => { a.c("page-link").href("/framework/ai/asks/undone/").text("Still undone, by module"); });
 
 		const $count = div.c("asks-count flex wrap gap-25");
 		const $groups = div.c("asks-groups wide wall");
