@@ -1,6 +1,13 @@
 # Salvage audit: what is stranded on unmerged branches (2026-10-16)
 
-**Read this first:** 422 local branches besides `main` and `michael/dev`. **239** have nothing that dev lacks. **183** carry commits not on dev, and of those **75** are pure noise (only `*.jsonl`, `index.json`, `*.log`). Another 11 change non-noise files but no source (`.js .mjs .css .md` outside `sessions/`). **97** touch real source, but dev has rewritten almost all of it: of the files they changed, only a handful are cleanly missing on dev (the single clean one is a `salvage/qf-6` branch, 1 file). So this is mostly superseded history, not lost work.
+**Read this first:**
+
+- 422 local branches besides `main` and `michael/dev`.
+- **239** have nothing that dev lacks.
+- **183** carry commits not on dev, and of those **75** are pure noise (only `*.jsonl`, `index.json`, `*.log`).
+- Another 11 change non-noise files but no source (`.js .mjs .css .md` outside `sessions/`).
+- **97** touch real source, but dev has rewritten almost all of it: of the files they changed, only a handful are cleanly missing on dev (the single clean one is a `salvage/qf-6` branch, 1 file).
+- So this is mostly superseded history, not lost work.
 
 Method: `git rev-list --count michael/dev..B`; changed files from `git diff michael/dev...B`. "same/div/gone" = of the branch's source files, how many are now byte-identical on dev / changed on both sides / absent on dev.
 
