@@ -8,6 +8,7 @@ import tabs from "./tabs.js";
 import drawer from "./drawer.js";
 import AIPage from "./AIPage.js";
 import AIFeed from "./AIFeed.js";
+import DictationBar from "/framework/ux/Dictate/DictationBar.js";
 
 View.stylesheet(import.meta, "rail.css");
 
@@ -215,7 +216,7 @@ export class SheetPanel extends View {
 	render(){
 		this.head();
 		this.handle();
-		this.live_row();
+		this.$live = this.live_row();
 		new Inbox.Compact({ page: drawer.page() }).view();
 		this.$slot = div.c("drawer-rail-sheet-panel");
 		this.$links = this.links().ac("drawer-rail-sheet-links-folded");
@@ -383,6 +384,7 @@ export class SheetPanel extends View {
 			placeholder: this.card_ref ? "talk into this card" : "say something",
 		});
 		this.panel = this.mount.panel;
+		DictationBar.mount(this.panel, this.$live);   // the phone sheet's one big mic; delete this line to get the old controls back (doc: ux/Dictate/doc/refine-dictate-tasks.md#the-bar)
 		const heard = this.panel.on_text;
 		this.panel.on_text = text => { heard?.(text); this.said(text); };   // the strip's last line said
 		this.feed = AIFeed.on(this.$slot.el, drawer.page());   // this page's events among the bubbles (step 7)

@@ -24,3 +24,12 @@ Written 2026-10-17, before the dictation redesign (sheet step 10), so the redesi
 
 - **Two things are called "task".** A task folder (`task.jsonl`, the AI board) is a unit of AI work. [`core/Task`](/framework/core/Task/) is a DOM-free `Task` class with a state machine. They are not connected.
 - **Refine runs in two places.** It runs on the server for a brief (`refine.mjs`), and on the `ext/Refine` page as a live demo. The demo's compact panel is `VoiceStrip`, which the live sheet does not use (decision `d-voicestrip`, 2026-10-17).
+
+## The bar
+
+Sheet step 10 picked variant **D, fewer controls** for the phone sheet, so the sheet now shows `DictationBar` ([`DictationBar.js`](/framework/ux/Dictate/DictationBar.js)): one big mic whose caption is the engine's state in one word (starting, listening, sending, paused, off), a **Type** button that opens the text box in place, and no Send and no gear. Tap the mic to talk or pause, hold it for 0.6 s to turn it off.
+
+- **No second engine.** It drives the composer's own mic (`ComposerMic`, a `Dictate`) and hides the composer's row with CSS. Its height is fixed, so a changing word moves nothing.
+- **Both sizes.** Split shows the big bar in the composer; the strip shows a small round mic and the word in the strip's row.
+- **Proof.** `node public/framework/ux/Dictate/test/dictation-bar.mjs <base-url> [shots dir] [--strip] [--before]` drives three sentences from the fake mic at 400 and counts elements whose top moves (numbers in the task log).
+- **The alternative, A compact** (the old mic row with a Send button): delete the one `DictationBar.mount(...)` line in `ext/drawer/Sheet.js`. `VoiceStrip` stays in the tree and is untouched.
