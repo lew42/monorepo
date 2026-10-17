@@ -15,3 +15,8 @@
 {"log":{"at":"2026-10-16T23:46:15-05:00","msg":"owner-check: no owner words found"}}
 {"log":{"at":"2026-10-16T23:46:19-05:00","msg":"lifecycle: nothing of this task's was left running"}}
 {"log":{"at":"2026-10-16T23:46:19-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-16T23:51:21-05:00","msg":"session resumed"}}
+{"action":{"at":"2026-10-16T23:52:22-05:00","did":"edit","files":["Servex/LogSweeper.js"]}}
+{"action":{"at":"2026-10-16T23:52:28-05:00","did":"edit","files":["Servex/TaskLoop.js"]}}
+{"action":{"at":"2026-10-16T23:53:36-05:00","did":"edit","files":["Servex/TaskLoop-handover.test.mjs"]}}
+{"log":{"at":"2026-10-16T23:53:53-05:00","needs_restart":"LogSweeper.ALLOW session records and TaskLoop.handover_daily apply after node Servex/sustain.mjs --restart","msg":"hand-offs from the sessions checkup done in 6750b81c9: ALLOW pattern (LogSweeper.test.mjs) and handover_daily (TaskLoop-handover.test.mjs); appended to checkup.md; no restart run"}}
