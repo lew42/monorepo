@@ -123,6 +123,8 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 
 - **directory.json per folder (later)** (the owner, 2026-09-30): split a big folder's file listing out of its page.jsonl into its own `directory.json`, so page.jsonl stays light. Not now.
 
+- **Voice: Sessions wakes the voice assistant** (the owner, 2026-10-17): the [voice assistant plan](../ux/Dictate/doc/voice-assistant.md) landed (role row, skill, sentences in place, `{place}` lines drawn). Last step: `Servex/agents/Sessions.js` spawns `voice-assistant` in the fast seat. Sonnet, $4, needs a Servex restart. [Brief](sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/sessions-brief.md)
+
 ## 2. Only you can do
 
 - A Cloudflare login (about 5 minutes).
