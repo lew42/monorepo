@@ -7,7 +7,8 @@ View.stylesheet(import.meta, "TaskView.css");
 export default class TaskView extends View {
 	static sizes = ["chip", "row", "card"];
 	static PREVIEW = 3;   // a parent row previews this many open children
-	static STAGE = { idle: "radio_button_unchecked", waiting: "hourglass_empty", running: "play_circle", paused: "pause_circle", stopped: "stop_circle", complete: "check_circle", loading: "hourglass_top", missing: "error_outline" };
+	static STAGE = { idle: "check_box_outline_blank", waiting: "hourglass_empty", running: "play_circle", paused: "pause_circle", stopped: "stop_circle", complete: "check_box", loading: "hourglass_top", missing: "error_outline" };   // the row's one control: its stage IS its checkbox
+	static SEGMENTS = 8;   // past this many children the bar is one meter and a count, so the title keeps the room
 	static chip(task){ return new this({ task, size: "chip" }); }
 	static row(task){ return new this({ task, size: "row" }); }
 	static card(task){ return new this({ task, size: "card" }); }
@@ -42,13 +43,12 @@ export default class TaskView extends View {
 		span(this.title());
 	}
 
-	// The one row look: checkbox, stage icon, title link, segmented bar. A parent is bigger and previews open children; a click expands all.
+	// The one row look: one stage checkbox, title link, segmented bar. A parent is bigger and previews open children; a click expands all.
 	row(){
 		const t = this.task, kids = this.kids(), open = kids.filter(k => k.state !== "complete");
 		this.expanded ??= false;
 		this.ac(kids.length ? "is-parent" : "is-leaf");
 		div.c("task-row-head", () => {
-			icon(t.state === "complete" ? "check_box" : "check_box_outline_blank");
 			icon(this.constructor.STAGE[t.state] ?? "help").ac("task-state-icon", "is-" + t.state).attr("title", t.state);
 			const link = this.url() ?? t.data.path;
 			(link ? a.c("task-row-title", this.title()).href(link) : strong.c("task-row-title", this.title())).click(e => e.stopPropagation());
@@ -65,7 +65,12 @@ export default class TaskView extends View {
 	bar(kids){
 		if (!kids.length) return;
 		const done = kids.filter(k => k.state === "complete").length;
-		div.c("task-bar", () => kids.forEach(k => span.c("task-seg").ac(k.state === "complete" ? "is-lit" : "task-seg-off"))).attr("title", `${done} of ${kids.length} complete`);
+		const tip = `${done} of ${kids.length} complete`;
+		if (kids.length > this.constructor.SEGMENTS) return void div.c("task-bar is-meter", () => {
+			span.c("task-meter", () => span.c("task-meter-fill").style({ width: Math.round(done / kids.length * 100) + "%" }));
+			small.c("task-count", `${done}/${kids.length}`);
+		}).attr("title", tip);
+		div.c("task-bar", () => kids.forEach(k => span.c("task-seg").ac(k.state === "complete" ? "is-lit" : "task-seg-off"))).attr("title", tip);
 	}
 
 	card(){

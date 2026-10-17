@@ -1,13 +1,16 @@
 @layer site {
 	.task-row { display: flex; flex-direction: column; gap: .25em; }
 	.task-row-head { display: flex; align-items: center; gap: .5em; cursor: pointer; }
-	.task-row-title { color: inherit; text-decoration: none; flex: 0 1 auto; }
+	.task-row-title { color: inherit; text-decoration: none; flex: 1 1 auto; min-width: 0; }
 	.task-row-title:hover { text-decoration: underline; }
 	.task-row.is-parent > .task-row-head .task-row-title { font-size: 1.25em; font-weight: 600; }
-	.task-state-icon { color: var(--subtle); }
+	.task-state-icon { color: var(--subtle); flex: 0 0 auto; }
 	.task-state-icon.is-running { color: var(--ok, currentColor); }
 	.task-state-icon.is-complete { color: var(--ok, currentColor); }
-	.task-bar { display: flex; gap: 2px; margin-left: auto; flex: 0 0 auto; }
+	.task-bar { display: flex; align-items: center; gap: 2px; margin-left: auto; flex: 0 0 auto; max-width: 7em; }
+	.task-meter { width: 4em; height: .4em; border-radius: 1px; background: var(--line); overflow: hidden; }
+	.task-meter-fill { display: block; height: 100%; background: var(--ok, currentColor); }
+	.task-count { margin-left: .4em; color: var(--subtle); font-size: .8em; white-space: nowrap; }
 	.task-seg { width: .7em; height: .4em; border-radius: 1px; background: var(--line); }
 	.task-seg.is-lit { background: var(--ok, currentColor); }
 	.task-row-kids { display: flex; flex-direction: column; gap: .35em; padding-left: 1.5em; border-left: 2px solid var(--line); margin-left: .6em; }
