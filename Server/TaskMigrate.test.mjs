@@ -53,6 +53,7 @@ test("apply: every move gets a home, the old file only grows by one line, the ro
 	const old_raw = Object.fromEntries(MOVES.map(t => [t.old, fs.readFileSync(path.join(dir_of(root, t.old), "task.jsonl"), "utf8")]));
 	const moved = m.apply();
 	assert.equal(moved.length, MOVES.length);
+	let briefs = 0;
 	for (const t of MOVES){
 		const now = fs.readFileSync(path.join(dir_of(root, t.old), "task.jsonl"), "utf8");
 		assert.ok(now.startsWith(old_raw[t.old]), "old content is a prefix");
@@ -64,6 +65,7 @@ test("apply: every move gets a home, the old file only grows by one line, the ro
 		assert.deepEqual(hl[0].sessions.map(s => s.task), [t.old]);
 		assert.equal(hl[0].module, t.module);
 		assert.equal(hl[0].source, undefined, "source means who asked (step 3d); the migration never writes it");
+		if (Task.replay(hl).data.brief) briefs++;
 		assert.ok(fs.existsSync(path.join(dir_of(root, home), "page.js")));
 		const list = lines(path.join(path.dirname(dir_of(root, home)), "task.jsonl"));
 		assert.equal(list[0].id, "tasks");
@@ -71,6 +73,7 @@ test("apply: every move gets a home, the old file only grows by one line, the ro
 		const index = lines(path.join(root, "tasks", "task.jsonl"));
 		assert.ok(index.some(l => l.task === hl[0].parent), "the module list is in /tasks/");
 	}
+	assert.ok(briefs > 0, "the brief path lands in data.brief");
 	const c = m.check();
 	assert.equal(c.checked, MOVES.length);
 	assert.deepEqual(c.problems, []);
