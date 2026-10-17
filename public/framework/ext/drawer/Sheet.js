@@ -7,6 +7,7 @@ import Inbox from "./inbox.js";
 import tabs from "./tabs.js";
 import drawer from "./drawer.js";
 import AIPage from "./AIPage.js";
+import AIFeed from "./AIFeed.js";
 
 View.stylesheet(import.meta, "rail.css");
 
@@ -297,6 +298,7 @@ export class SheetPanel extends View {
 
 	update_path(){
 		this.$path?.text(" · " + drawer.page());
+		this.feed?.follow(drawer.page());
 	}
 
 	// ⚠ see doc/rail-notes.md#c26-handle
@@ -383,6 +385,7 @@ export class SheetPanel extends View {
 		this.panel = this.mount.panel;
 		const heard = this.panel.on_text;
 		this.panel.on_text = text => { heard?.(text); this.said(text); };   // the strip's last line said
+		this.feed = AIFeed.on(this.$slot.el, drawer.page());   // this page's events among the bubbles (step 7)
 		return this.mount;
 	}
 

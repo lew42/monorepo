@@ -1,4 +1,5 @@
 import { div, span, label, select, option, small, button, a } from "/framework/core/View/View.js";
+import AIFeed from "../AIFeed.js";
 import md from "/framework/ext/markdown/md.js";
 import Widget, { model, MODELS } from "/framework/ux/Dictate/Widget.js";
 import chat, { ago } from "/framework/ux/Dictate/chat.js";
@@ -257,6 +258,7 @@ export default function ai({ page, card, tabs }){
 			card: card?.id,
 			placeholder: card ? "talk into this card" : "say something",
 		});
+		const feed = AIFeed.on($slot.el, page);   // this page's events among the bubbles (sheet step 7)
 		// The OTHER way this mount's content can leave the drawer: a different tab's
 		// own refill clears $slot's own parent out from under it (see the doc above).
 		const host = $slot.el.closest(".drawer-body");
@@ -264,6 +266,7 @@ export default function ai({ page, card, tabs }){
 			const mo = new MutationObserver(() => {
 				if ($slot.el.isConnected) return;
 				mo.disconnect();
+				feed.stop();
 				handle.remove();
 				if (live_chat === handle) live_chat = null;
 				live_header?.stop();

@@ -24,6 +24,10 @@ Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
 
 Above 52em the AI is the right drawer (`drawer(fn)` filled by the `DrawerTabs`), which pushes the page instead of covering it. `Sheet.Dock` opens it by default at 1920 px and wider; ✕ shuts it and that is remembered (`lew42-sheet-dock-shut`), and ✦ opens it again and forgets. Below 1920 it starts shut and ✦ opens it. `drawer(fn)` stays the plain right-hand container any module can fill.
 
+## The live space: `AIFeed` (2026-10-17, sheet step 7)
+
+[`AIFeed`](../AIFeed.js) (`class AIFeed extends View`) streams the page's own `ai/log.jsonl` with `live()` (never a timed refresh) and puts each event (a task opened, a decision, a log line) as a quiet one-line row in the chat's own bubble column, so the chat and the page's events read as one stream, newest at the bottom. When the chat opens, the last five events sit at the top. The phone's sheet and the desktop AI tab both use it, and the sheet follows the page when you navigate. There is no All / Chat / Live switch yet.
+
 ## Before 2026-10-17: the `?sheet=` url (kept for history)
 
 
