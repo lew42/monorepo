@@ -1,0 +1,68 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dictation controls: five mocks</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;color:#1d2433;background:#e9ecf1}
+header{padding:16px 22px 0;max-width:72em}h1{margin:0;font-size:20px}header p{margin:6px 0 0;color:#5b6475}
+.row{display:flex;flex-wrap:wrap;gap:26px;padding:18px 22px 30px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:8px;width:330px}.col>b{font-size:13px;color:#5b6475;text-transform:uppercase;letter-spacing:.05em}.col>p{margin:0;font-size:13px;color:#5b6475}
+.col.pick>b{color:#c2410c}.col.pick>b::after{content:" · the pick"}
+.phone{position:relative;width:330px;height:640px;border-radius:26px;background:#f3f4f6;overflow:hidden;box-shadow:0 0 0 7px #1d2433,0 8px 30px #0003;margin:7px}
+.pg{padding:16px 18px}.pg i{display:block;height:10px;border-radius:5px;background:#dde1e8;margin:10px 0}.pg i.s{width:60%}
+.sheet{position:absolute;inset:auto 0 0 0;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -6px 22px #0002;display:flex;flex-direction:column}
+.grab{width:42px;height:5px;border-radius:3px;background:#cfd5de;margin:8px auto 2px}
+.head{display:flex;align-items:center;gap:8px;padding:6px 14px;font-size:14px}.head .t{font-weight:700}.head .p{color:#8a93a3;font-size:12px;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.btn{border:1px solid #d5dae2;background:#f4f6f9;border-radius:8px;padding:5px 10px;font-size:13px;white-space:nowrap}.btn.o{background:#ff8a5c;border-color:#ff8a5c;color:#fff}.btn.ghost{border-color:transparent;background:none;color:#5b6475}
+.x{color:#5b6475;font-size:18px;padding:0 4px}
+.feed{flex:1;overflow:hidden;padding:6px 14px;display:flex;flex-direction:column;gap:8px;justify-content:flex-end}
+.b{align-self:flex-end;max-width:82%;background:#e8f0ff;border-radius:14px 14px 4px 14px;padding:7px 11px;font-size:14px}.b.a{align-self:flex-start;background:#f1f2f4;border-radius:14px 14px 14px 4px}
+.ev{font-size:12px;color:#7a8394;display:flex;gap:6px}.live{font-size:15px;color:#9aa3b2}.live em{color:#1d2433;font-style:normal}
+.comp{padding:10px 14px 14px;display:flex;flex-direction:column;gap:8px;border-top:1px solid #eef0f3}
+.in{flex:1;border:1px solid #d5dae2;border-radius:10px;padding:8px 10px;color:#9aa3b2;font-size:14px;background:#fafbfc}
+.line{display:flex;align-items:center;gap:8px}.st{font-size:12px;color:#7a8394}
+.mic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#f4f6f9;border:1px solid #d5dae2;font-size:17px;flex:none}.mic.on{background:#16a34a;border-color:#16a34a;color:#fff;box-shadow:0 0 0 5px #16a34a33}
+.dot{width:8px;height:8px;border-radius:50%;background:#16a34a;display:inline-block}
+.chip{font-size:12px;border-radius:999px;padding:3px 9px;background:#eef1f6;color:#4b5565;white-space:nowrap}.chip.on{background:#1d2433;color:#fff}
+.big{width:96px;height:96px;border-radius:50%;margin:4px auto 0;display:grid;place-items:center;font-size:38px;background:#16a34a;color:#fff;box-shadow:0 0 0 12px #16a34a2a,0 0 0 24px #16a34a14}
+.cap{text-align:center;font-size:13px;color:#4b5565}
+.pill{align-self:center;display:flex;gap:6px;background:#1d2433;color:#fff;border-radius:999px;padding:6px 8px}.pill span{padding:4px 10px;border-radius:999px;font-size:13px}.pill span.on{background:#16a34a}
+</style>
+<header><h1>Dictation controls: five mocks</h1>
+<p>The same dictation sheet on a phone, at split size, five ways: compact, verbose, more controls, fewer controls, more space. Each one shows the same moment: you are talking, one line has been sent, and the page's feed has one event. Today's sheet has a head (AI · path, New session, More, ✕), the chat, a text box, 🎤, ⚙ and Send, and a status line. <a href="/framework/ux/Dictate/doc/refine-dictate-tasks.md">How Dictate, Refine and tasks connect</a>.</p></header>
+<div class="row">
+
+<div class="col"><b>A · Compact</b><p>One row: the mic, the box and a send arrow. The mic's colour is the status. New session and the rest sit under ⋯.</p>
+<div class="phone"><div class="pg"><i></i><i class="s"></i><i></i></div><div class="sheet" style="height:62%"><div class="grab"></div>
+<div class="head"><span class="t">AI</span><span class="p">/framework/ext/drawer/</span><span class="btn ghost">⋯</span><span class="x">✕</span></div>
+<div class="feed"><div class="ev">☑ task opened: sheet step 10</div><div class="b">make the mic bigger on the phone</div><div class="b a">Heard. I'll put it in the brief.</div><div class="live"><em>and the send button</em> should…</div></div>
+<div class="comp"><div class="line"><span class="mic on">🎤</span><span class="in">say something</span><span class="btn o">↑</span></div></div></div></div></div>
+
+<div class="col"><b>B · Verbose</b><p>Every control says what it does, in words, and the status is a sentence. The easiest to learn; it takes the most room.</p>
+<div class="phone"><div class="pg"><i></i><i class="s"></i></div><div class="sheet" style="height:70%"><div class="grab"></div>
+<div class="head"><span class="t">AI</span><span class="p">about /framework/ext/drawer/</span><span class="btn">New session</span><span class="btn">More</span><span class="x">✕</span></div>
+<div class="feed"><div class="ev">☑ task opened: sheet step 10</div><div class="b">make the mic bigger on the phone</div><div class="b a">Heard. I'll put it in the brief.</div><div class="live"><em>and the send button</em> should…</div></div>
+<div class="comp"><span class="in">Type here, or talk</span><div class="line"><span class="btn" style="background:#16a34a;color:#fff;border-color:#16a34a">🎤 Listening: tap to stop</span><span class="btn">⚙</span><span style="flex:1"></span><span class="btn o">Send</span></div>
+<span class="st">The mic is on. Whisper is connected. Each sentence is sent when you pause.</span></div></div></div></div>
+
+<div class="col"><b>C · More controls</b><p>Adds what you might want to change mid-talk: send each sentence or hold, fast or smart, and chips for this page and what is selected.</p>
+<div class="phone"><div class="pg"><i></i></div><div class="sheet" style="height:76%"><div class="grab"></div>
+<div class="head"><span class="t">AI</span><span class="p">/framework/ext/drawer/</span><span class="btn">New</span><span class="btn">More</span><span class="x">✕</span></div>
+<div class="feed"><div class="ev">☑ task opened: sheet step 10</div><div class="b">make the mic bigger on the phone</div><div class="b a">Heard. I'll put it in the brief.</div><div class="live"><em>and the send button</em> should…</div></div>
+<div class="comp"><div class="line"><span class="chip on">this page</span><span class="chip">+ selected: “Send”</span><span class="chip">smart</span></div>
+<div class="line"><span class="mic on">🎤</span><span class="in">say something</span><span class="btn o">Send</span></div>
+<div class="line"><span class="chip on">per sentence</span><span class="chip">hold</span><span style="flex:1"></span><span class="st"><span class="dot"></span> Whisper</span><span class="btn ghost">⚙</span></div></div></div></div></div>
+
+<div class="col pick"><b>D · Fewer controls</b><p>Built for talking: one big mic that says what it is doing. Each sentence goes when you pause, so there is no Send. ⌨ opens the box for typing.</p>
+<div class="phone"><div class="pg"><i></i><i class="s"></i></div><div class="sheet" style="height:68%"><div class="grab"></div>
+<div class="head"><span class="t">AI</span><span class="p">/framework/ext/drawer/</span><span class="x">✕</span></div>
+<div class="feed"><div class="ev">☑ task opened: sheet step 10</div><div class="b">make the mic bigger on the phone</div><div class="b a">Heard. I'll put it in the brief.</div><div class="live"><em>and the send button</em> should…</div></div>
+<div class="comp" style="border:0"><div class="big">🎤</div><div class="cap">Listening · sends when you pause</div><div class="line" style="justify-content:space-between"><span class="btn ghost">⌨ Type</span><span class="btn ghost">New session</span></div></div></div></div></div>
+
+<div class="col"><b>E · More space</b><p>The words get the room: a big live text area where sentences settle and move up, and the controls fold into one pill at the bottom.</p>
+<div class="phone"><div class="sheet" style="height:100%;border-radius:0"><div class="grab"></div>
+<div class="head"><span class="t">AI</span><span class="p">/framework/ext/drawer/</span><span class="st"><span class="dot"></span> listening</span><span class="x">✕</span></div>
+<div class="feed" style="gap:10px"><div class="ev">☑ task opened: sheet step 10</div><div class="b">make the mic bigger on the phone</div><div class="b a">Heard. I'll put it in the brief.</div>
+<div style="font-size:22px;line-height:1.35;color:#1d2433;padding:6px 2px">and the send button should be easier to hit<span style="color:#9aa3b2"> with my thumb, maybe at the</span></div></div>
+<div class="comp" style="border:0"><div class="pill"><span class="on">🎤 on</span><span>⌨</span><span>New</span><span>⋯</span></div></div></div></div></div>
+
+</div>
+<header style="padding-bottom:30px"><p><b>The pick: D, fewer controls.</b> The owner dictates on a phone while moving between pages, and this module's one promise is a mic that always shows what is happening. D makes that the biggest thing on the sheet and drops Send, because pause mode already sends each sentence. <b>The alternative is A, compact</b>, which keeps typing first-class in the same space. B and C add more words and switches to a sheet the owner already finds wonky; E is the best for reading back long dictation and could be D's full size. Building it is a later step.</p></header>
