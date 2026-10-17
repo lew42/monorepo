@@ -19,9 +19,17 @@ import { server as sdk_server } from "./tools.js";   // cycle with tools.js is f
 const MAIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");   // Servex runs from the main tree
 import { page_tools } from "./page_tools.js";
 
+/* id -> that agent's own task.jsonl (its task dir), or null: lets the item tool file a reference there. */
+function agent_log(agents){
+	return id => {
+		const dir = id ? agents.task_dir_for(agents.reg().read()[id] ?? { id }) : null;
+		return dir ? path.join(dir, "task.jsonl") : null;
+	};
+}
+
 /* The in-process page tools for one agent, and the names of their HTTP twins. */
-function local_page_tools(id){
-	const list = page_tools();
+function local_page_tools(id, resolve_log){
+	const list = page_tools(resolve_log);
 	return { server: sdk_server(undefined, { caller: id }, list), twins: list.map(t => "mcp__servex__" + t.name) };
 }
 
@@ -1086,7 +1094,7 @@ Agents.Agent = class Agent {
 
 		/* The page tools in-process, as `mcp__local__*` (step 12, Servex/doc/item-tool.md); the HTTP twins are
 		 * disallowed so each tool shows once. `SERVEX_LOCAL_TOOLS=0` keeps HTTP only. */
-		const local = process.env.SERVEX_LOCAL_TOOLS === "0" ? null : local_page_tools(this.id);
+		const local = process.env.SERVEX_LOCAL_TOOLS === "0" ? null : local_page_tools(this.id, agent_log(this));
 		return {
 			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...(local ? { local: local.server } : {}), ...this.mcp_servers },
 			...(local ? { disallowedTools: local.twins } : {}),

@@ -394,8 +394,17 @@ function describe_class(Class){
 const GRAMMAR = "delta = one log line. A key naming a method calls it with the value as arguments; a key naming a child item walks into it; any other key assigns. Keys starting with _ are refused.";
 
 async function instructions_for(kind, Class){
-	return Class ? { ...describe_class(Class), task_keys: KEYS[kind], grammar: GRAMMAR } : { class: kind, grammar: GRAMMAR };
+	return Class ? { ...describe_class(Class), task_keys: KEYS[kind], grammar: GRAMMAR, rules: RULES } : { class: kind, grammar: GRAMMAR };
 }
+
+// The owner's grouping rules (Servex/doc/item-tool.md), returned beside describe() on the first call.
+export const RULES = [
+	"A refinement of an existing task goes into that task: add to its `tasks`, or set its fields. It does not become a new task.",
+	"New tasks are only for new asks.",
+	"One goal task per module holds the long-lived work; new related work goes under it.",
+	"An idea to keep beside a module while designing is a note, not a task.",
+	"The tool files the session reference and picks the home folder; never write either by hand.",
+];
 
 
 /* ---------- task homes (plan step 14a) ----------
@@ -407,9 +416,21 @@ const MODULE_NAME = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
 const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/") + "/";
 const slug_of = text => String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task";
 
+// The module an app path sits in: the nearest folder under public/framework/ with a readme.md. Never a dated ai/sessions/ folder.
+function module_of(url, root = FRAMEWORK){
+	const m = /^\/?framework\/(.+?)\/?$/.exec(String(url ?? ""));
+	if (!m || /(^|\/)ai\/sessions(\/|$)/.test(m[1])) return "";
+	const parts = m[1].split("/");
+	for (; parts.length; parts.pop()){
+		const rel = parts.join("/");
+		if (MODULE_NAME.test(rel) && fs.existsSync(path.join(root, rel, "readme.md"))) return rel;
+	}
+	return "";
+}
+
 // Which folder a new child lives in, and its slug (-2, -3 when taken).
-function task_home(parent_dir, add, root = FRAMEWORK){
-	const mod = typeof add.module === "string" ? add.module.replace(/^\/+|\/+$/g, "") : "";
+function task_home(parent_dir, add, root = FRAMEWORK, from_path = ""){
+	const mod = typeof add.module === "string" ? add.module.replace(/^\/+|\/+$/g, "") : module_of(from_path, root);
 	const mod_dir = MODULE_NAME.test(mod) ? path.join(root, mod) : null;
 	const base = mod_dir && fs.existsSync(mod_dir) && fs.statSync(mod_dir).isDirectory() ? path.join(mod_dir, "tasks") : parent_dir;
 	const slug0 = slug_of(add.title ?? add.id);
@@ -421,9 +442,9 @@ function task_home(parent_dir, add, root = FRAMEWORK){
 const PAGE_JS = ['import { TaskPage } from "/framework/core/Task/TaskPage.js";', "export default new TaskPage({ meta: import.meta });", ""].join(String.fromCharCode(10));
 
 // One add -> child folder with line 1, returns { id, path }. Fields come from the add (a legacy `data` object is flattened).
-function make_child(parent_dir, add, ctx){
+function make_child(parent_dir, add, ctx, from_path){
 	const { type: _t, id: _i, after: _a, data, ...fields } = add;
-	const { slug, dir, list } = task_home(parent_dir, add, ctx.module_root);
+	const { slug, dir, list } = task_home(parent_dir, add, ctx.module_root, from_path);
 	const child = path.join(dir, "task.jsonl"), url = app_path(dir);
 	write_line(child, { id: slug, path: url, parent: app_path(parent_dir), ...data, ...fields, by: ctx.caller ?? "agent", ts: now() }, true);
 	// Step 14b: the child's folder routes (TaskPage), and the module's list task holds a second reference to it.
@@ -476,6 +497,7 @@ function validate(Task, file, delta){
 
 export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
 	url ??= own_page(ctx);
+	const caller_log = ctx.caller_log ?? ctx.resolve_log?.(ctx.caller) ?? null;
 	const at = await resolve(url, target, true);
 	if (!at) return { ok: false, why: `"${url}" is not a page under public/` };
 
@@ -508,10 +530,12 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		const { add, ...others } = body.tasks;
 		for (const a of [].concat(add)){
 			if (!is_plain(a)) return { ok: false, why: "`tasks.add` takes an object (the new task's fields)" };
-			const home = make_child(path.dirname(at.file), a, ctx);
+			const home = make_child(path.dirname(at.file), a, ctx, url);
 			homes.push(home); ids.push(home.id);
 			line = { task: home.path, by: ctx.caller ?? "agent", ts: now() };
 			size = write_line(at.file, line, true);
+			// Step 16: the caller's own log gets the same reference (never the parent twice, never an error).
+			if (caller_log && path.resolve(caller_log) !== path.resolve(at.file)) try { write_line(caller_log, line, true); } catch {}
 		}
 		const { tasks: _t, ...more } = body;
 		body = Object.keys(others).length ? { ...more, tasks: others } : more;
@@ -525,7 +549,8 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 
 /* ---------- the six tools ---------- */
 
-export function page_tools(){
+/* resolve_log(agent id) -> that agent's task.jsonl path or null; the host supplies it (Agents.task_dir_for). */
+export function page_tools(resolve_log = null){
 	const not_a_page = url => JSON.stringify({ ok: false, why: `"${url}" is not a page under public/` });
 
 	return [
@@ -583,12 +608,12 @@ export function page_tools(){
 			{ path: PAGE_PATH, target: TARGET,
 				delta: { type: "object", description: "The fields to change, e.g. {\"answer\": \"42\"} or {\"title\": \"Renamed\"}." } },
 			["delta"],
-			async (args, ctx = {}) => JSON.stringify(await run_item(args, ctx, true))),
+			async (args, ctx = {}) => JSON.stringify(await run_item(args, { resolve_log, ...ctx }, true))),
 
 		tool("item", ITEM_DESCRIPTION,
 			{ path: ITEM_PATH, delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." } },
 			[],
-			async (args, ctx = {}) => JSON.stringify(await run_item(args, ctx))),
+			async (args, ctx = {}) => JSON.stringify(await run_item(args, { resolve_log, ...ctx }))),
 
 		tool("page_log",
 			"Alias of page_set `{\"log\":{\"text\":…}}`: the \"now doing X\" line, overwritten each time; post it BEFORE a long step (core/Page/doc/ai-api.md).",

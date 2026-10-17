@@ -103,6 +103,41 @@ try {
 		r = await call("item", { path: URL });
 		ok(r.ok && r.state.tasks.some(t => t.state === "missing"), "a missing child file is a stub, no throw");
 	} finally { fs.rmSync(MODS, { recursive: true, force: true }); }
+
+		// ---- step 16: caller's own log, module from the path, rules ----
+		const MODN = "zz-item-tool-test-" + process.pid, MDIR = path.join(ROOT, "public", "framework", MODN);
+		const CLOG_DIR = DIR + "-caller", CLOG = path.join(CLOG_DIR, "task.jsonl");
+		fs.mkdirSync(path.join(MDIR, "sub"), { recursive: true });
+		fs.mkdirSync(CLOG_DIR, { recursive: true });
+		fs.writeFileSync(path.join(MDIR, "readme.md"), "# fixture\n");
+		fs.writeFileSync(path.join(MDIR, "sub", "task.jsonl"), JSON.stringify({ id: "sub", title: "Sub" }) + "\n");
+		fs.writeFileSync(CLOG, JSON.stringify({ id: "caller" }) + "\n");
+		try {
+			const run = (url, delta, ctx = {}) => run_item({ path: url, delta }, { caller: "t1", ...ctx }).then(x => JSON.parse(JSON.stringify(x)));
+			const clines = () => fs.readFileSync(CLOG, "utf8").trim().split("\n").map(l => JSON.parse(l));
+			r = await run(URL, { tasks: { add: { title: "Ref job" } } }, { caller_log: CLOG });
+			ok(clines().length === 2 && clines()[1].task === r.homes[0].path && clines()[1].by === "t1" && clines()[1].ts, "caller log: exactly one reference line");
+			r = await run(URL, { tasks: { add: { title: "Resolver job" } } }, { resolve_log: id => id === "t1" ? CLOG : null });
+			ok(clines().length === 3 && clines()[2].task === r.homes[0].path, "resolve_log(caller) finds the log");
+			const n0 = clines().length, f0 = lines().length;
+			r = await run(URL, { tasks: { add: { title: "No log job" } } });
+			ok(r.ok && clines().length === n0 && lines().length === f0 + 1, "no caller log: nothing extra written");
+			r = await run(URL, { tasks: { add: { title: "Self job" } } }, { caller_log: FILE });
+			ok(r.ok && lines().length === f0 + 2, "caller log is the parent: no duplicate line");
+			r = await run(URL, { tasks: { add: { title: "Broken log job" } } }, { caller_log: path.join(CLOG_DIR, "no", "such", "x.jsonl") });
+			ok(r.ok, "an unwritable caller log never errors");
+
+			r = await run(`/framework/${MODN}/sub/`, { tasks: { add: { title: "Module from path" } } });
+			ok(r.ok && fs.existsSync(path.join(MDIR, "tasks", "module-from-path", "task.jsonl")), "path inside a module, no module field: homes under <module>/tasks/");
+			r = await run(URL, { tasks: { add: { title: "Dated outside" } } });
+			ok(fs.existsSync(path.join(DIR, "dated-outside", "task.jsonl")), "a dated ai/sessions path keeps the parent's folder");
+
+			r = await call("item", { path: URL, delta: { help: {} } }, "rules-caller");
+			ok(Array.isArray(r.instructions.rules) && r.instructions.rules.length === 5, "first-call instructions include rules");
+		} finally {
+			fs.rmSync(MDIR, { recursive: true, force: true });
+			fs.rmSync(CLOG_DIR, { recursive: true, force: true });
+		}
 	// ---- Task.rank: recency x weight ----
 	{
 		const { Task } = await import("../../public/framework/core/Task/Task.js");

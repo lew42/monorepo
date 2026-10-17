@@ -511,7 +511,7 @@ export default class Global {
 
 	tools(){
 		for (const tool of this.claims().tools()) this.servex.mcp.tool(tool.name === "claim_topic" ? this.logged(tool) : tool);
-		for (const tool of page_tools()) this.servex.mcp.tool(tool);
+		for (const tool of page_tools(id => { const a = this.servex.agents; const dir = id && a ? a.task_dir_for(a.reg().read()[id] ?? { id }) : null; return dir ? path.join(dir, "task.jsonl") : null; })) this.servex.mcp.tool(tool);
 		for (const tool of FileTools.tools()) this.servex.mcp.tool(tool);   // read_file ... shell: ext/remote/doc/remote-tools.md
 		for (const tool of ModuleInbox.tools()) this.servex.mcp.tool(tool);   // module_inbox: Servex/doc/module-inbox.md
 		this.servex.mcp.tool({
