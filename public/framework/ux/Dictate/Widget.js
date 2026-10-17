@@ -225,6 +225,8 @@ Widget.Thread = class WidgetThread extends View {
 		this.widget.$thread = this;
 		this.lines = new Map();   // at -> {bubble, text, ref}; bubble is shared once sentences merge (see doc/widget-notes.md#thread-state)
 		this.lives = new Map();   // "stream:"+who -> {el, text}, kept out of speak() merging
+		this.settled = new Set();     // sentence ids a {place} or {refined} line points at: not raw any more (doc/voice-assistant.md#raw-and-refined)
+		this.summaries = new Map();   // card id -> summary text; a view over the card's own lines, nothing is rewritten
 		this.$empty = div.c("ux-dictate-widget-empty muted", "Say something, or press the mic. Your words show up here.");
 		this.$bubbles = div.c("ux-dictate-widget-bubbles flex v gap");
 		// this.el scrolls, not $bubbles (see doc/widget-notes.md#sticky-scroll)
@@ -247,6 +249,7 @@ Widget.Thread = class WidgetThread extends View {
 		if (entry?.type === "ask") return this.follow(() => this.draw_ask(entry));
 		if (entry?.type === "refined") return this.draw_refined(entry);
 		if (entry?.place) return this.place(entry.place);
+		if (entry?.summary) return this.summarise(entry.summary);
 		const para = entry?.para ?? (entry?.type === "para" ? entry : null);
 		if (para?.re) return this.split_paragraph(para.re);
 		const chat = entry?.chat;
@@ -271,10 +274,59 @@ Widget.Thread = class WidgetThread extends View {
 		// the new piece is always the bubble's last child
 		const text_node = bubble.lastElementChild;
 		const ref = { id: at };
-		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text });   // `said`: the raw words, kept when a placement improves the text
+		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text, spoken: !assistant && (chat.via === "voice" || chat.via === "whisper") });   // `said`: the raw words, kept when a placement improves the text
+		this.refresh();
 		this.scroll.pin();
 		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks)
 		if (!assistant && this.widget.marks) this.mark(chat.text, bubble, ref);
+	}
+
+	/** Re-apply the two views over the lines (a redraw of a bubble rebuilds its nodes): raw look, and folded cards. Idempotent. */
+	refresh(){
+		for (const [at, line] of this.lines){
+			const node = line.bubble?.querySelector(`:scope > [data-re="${CSS.escape(String(at))}"]`);
+			node?.classList.toggle("ux-dictate-raw", !!line.spoken && !this.settled.has(at));
+		}
+		for (const card of this.summaries.keys()) this.fold(card);
+	}
+
+	/** {summary:{card, text}} from the voice assistant: the card shows `text` and folds its own lines under it (doc/voice-assistant.md#raw-and-refined). */
+	summarise({ card, text } = {}){
+		if (!card || !text) return false;
+		this.summaries.set(card, String(text));
+		this.fold(card);
+		this.scroll.pin();
+		return true;
+	}
+
+	/** The card's summary box with an "N raw lines" toggle; needs two or more lines, else the card is left as it is. */
+	fold(card){
+		const b = this.lines.get(card)?.bubble;
+		if (!b) return;
+		const n = b.querySelectorAll(":scope > [data-re]").length;
+		let box = b.querySelector(":scope > .ux-dictate-summary");
+		if (n < 2){ box?.remove(); b.classList.remove("ux-dictate-swallowed", "open"); return; }
+		if (!box){
+			box = document.createElement("div");
+			box.className = "ux-dictate-summary";
+			const t = document.createElement("div");
+			t.className = "ux-dictate-summary-text";
+			const toggle = document.createElement("button");
+			toggle.type = "button";
+			toggle.className = "ux-dictate-fold-toggle";
+			toggle.addEventListener("click", () => { b.classList.toggle("open"); this.fold_label(b, toggle); });
+			box.append(t, toggle);
+			b.insertBefore(box, b.querySelector(":scope > [data-re]"));
+		}
+		b.classList.add("ux-dictate-swallowed");
+		box.firstElementChild.textContent = this.summaries.get(card);
+		this.fold_label(b, box.lastElementChild);
+	}
+
+	fold_label(b, toggle){
+		const n = b.querySelectorAll(":scope > [data-re]").length;
+		toggle.textContent = `${n} raw lines ${b.classList.contains("open") ? "▾" : "▸"}`;
+		toggle.setAttribute("aria-expanded", String(b.classList.contains("open")));
 	}
 
 	/** A choice-button question, same as WidgetThreadV1.draw_ask(); called through follow(). */
@@ -319,6 +371,8 @@ Widget.Thread = class WidgetThread extends View {
 			}).el;
 		});
 		line.bubble.insertAdjacentElement("afterend", node);
+		this.settled.add(entry.re);
+		this.refresh();
 		this.scroll.pin();
 	}
 
@@ -390,6 +444,7 @@ Widget.Thread = class WidgetThread extends View {
 	place({ re, to = "same", where = "beside", edit = "nothing", text, title } = {}){
 		const hit = this.lines.get(re);
 		if (!hit) return false;
+		this.settled.add(re);   // a placed line is no longer raw
 		if (text && (edit === "improve" || edit === "both")) patch_piece(hit.bubble, hit.ref.id, { text });
 		if (to === "paragraph" || to === "card") this.split_paragraph(re);
 		if (to === "card"){
@@ -403,6 +458,7 @@ Widget.Thread = class WidgetThread extends View {
 				b.prepend(t);
 			}
 		}
+		this.refresh();
 		this.scroll.pin();
 		return true;
 	}
@@ -422,6 +478,7 @@ Widget.Thread = class WidgetThread extends View {
 			const m = out?.marks?.[0];
 			if (!m) return;
 			patch_piece(bubble, ref.id, { mark: m });
+			this.refresh();
 		}).catch(() => {});
 	}
 
@@ -429,6 +486,7 @@ Widget.Thread = class WidgetThread extends View {
 		const line = this.lines.get(at);
 		if (!line) return;
 		patch_piece(line.bubble, line.ref.id, { failed: true });
+		this.refresh();
 	}
 
 	retag(old_at, new_at){
@@ -438,6 +496,9 @@ Widget.Thread = class WidgetThread extends View {
 		this.lines.set(new_at, line);
 		retag_piece(line.bubble, line.ref.id, new_at);   // so a pending mark()/mark_failed() under the new id still finds the piece
 		line.ref.id = new_at;
+		if (this.settled.delete(old_at)) this.settled.add(new_at);
+		if (this.summaries.has(old_at)){ this.summaries.set(new_at, this.summaries.get(old_at)); this.summaries.delete(old_at); }
+		this.refresh();
 	}
 
 	/** Move paragraph `re` and the ones merged after it into a new bubble, then repoint this.lines (see doc/widget-notes.md#paragraph-split). */
@@ -453,6 +514,7 @@ Widget.Thread = class WidgetThread extends View {
 			line.bubble = moved_node ? made : old_bubble;
 			line.text = moved_node ?? old_bubble.querySelector(`[data-re="${at}"]`) ?? line.text;
 		}
+		this.refresh();
 		this.scroll.pin();
 	}
 
@@ -461,6 +523,8 @@ Widget.Thread = class WidgetThread extends View {
 	reset(){
 		this.lines = new Map();
 		this.lives = new Map();
+		this.settled = new Set();
+		this.summaries = new Map();
 		this.draft = null;
 		this.$bubbles.empty();
 		this.$empty.show();

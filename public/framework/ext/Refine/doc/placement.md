@@ -14,6 +14,8 @@ of a sent chunk, after the server's answer loads, and stores the result on the s
 
 `action` and `to` mean the same thing (`same` = `append`, `paragraph` = `new`). The chat bubble uses `to`.
 
+A card of two or more sentences may also get `{ summary: { card, text } }`: the chat folds the card's own lines under that text (`ux/Dictate/doc/voice-assistant.md#raw-and-refined`).
+
 ## The rules, in order
 
 1. Empty text: no change (`confidence` 0).

@@ -19,6 +19,7 @@ item({ path: "<the session file you were given>", delta: { place: { re: "<the ne
 - **`where`** (only with `card`): `inside` the previous card (a detail of it) · `beside` it (a sibling) · `up` (a different topic altogether). The screen nests only `inside` today; say what you mean anyway.
 - **`edit`**: `nothing` (default) · `move` · `improve` (add `text`: the sentence cleaned, never shorter in meaning) · `both`.
 - `title` (only with `card`): two to five words naming it.
+- **`summary`** (optional, once a card holds two or more sentences): `item({ path, delta: { summary: { card: "<the card's first sentence at>", text: "<what the card says, keeping every point>" } } })`. The screen folds the card's own lines under it; never drop a detail from the summary.
 
 Always write the line, even for `same` and `nothing`: one line per sentence is how a node check tells "decided same" from "never answered".
 

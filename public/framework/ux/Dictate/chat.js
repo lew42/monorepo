@@ -167,6 +167,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		if (line?.react) return void panel.say({ react: line.react });
 		if (line?.para) return void panel.say({ para: line.para });
 		if (line?.place) return void panel.say({ place: line.place });   // the voice assistant's placement (doc/voice-assistant.md)
+		if (line?.summary) return void panel.say({ summary: line.summary });   // a card's summary swallows its raw lines (doc/voice-assistant.md#raw-and-refined)
 		if (line?.refined) return void panel.say(Session.entry(line));
 		if (!line?.chat) return;
 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
