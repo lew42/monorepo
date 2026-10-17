@@ -463,7 +463,7 @@ export default class Dictate extends View {
 		let text;
 		try { text = await this.inflight; } catch { return; } finally { this.inflight = null; }
 		// Stale answers are dropped (epoch + ticket). see doc/notes.md#duplicate-bubble-race
-		if (epoch !== this.segment_epoch || seq <= this.applied_seq) return;
+		if (epoch !== this.segment_epoch || seq <= this.applied_seq){ this.on_trace?.("stale", { kind: "interim", req: seq, msg: text }); return; }
 		this.applied_seq = seq;
 		this.partial_text = text; this.draw_caption(); this.on_guess?.(text);
 	}
@@ -500,6 +500,7 @@ export default class Dictate extends View {
 		finally { this.inflight = null; }
 		// Never commit a stale or out-of-order answer. see doc/notes.md#duplicate-bubble-race
 		if (epoch !== this.segment_epoch || seq <= this.applied_seq){
+			this.on_trace?.("stale", { kind: "final", req: seq, msg: text });
 			this.clear_guess();
 			return;
 		}
@@ -527,7 +528,8 @@ export default class Dictate extends View {
 		this.dump(wav, samples);
 		const form = new FormData();
 		form.append("file", wav, "segment.wav");
-		form.append("response_format", "json");
+		form.append("response_format", this.response_format);
+		const req = this.req_seq, segment = kind === "final" ? this.segment_epoch - 1 : this.segment_epoch;   // read before any await
 		const t_sent = performance.now();
 		const url = this.whisper_url + "/inference";
 		let r;
@@ -542,7 +544,7 @@ export default class Dictate extends View {
 		else { this.steps.whisper = reply; this.draw_diag(); this.on_step?.("whisper", reply); }   // every answer updates the line; only the first is console-logged
 		// Whisper puts "\n" between its own segments; collapse them (real breaks come from real pauses).
 		const text = (body.text ?? "").replace(/\s+/g, " ").trim();
-		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000) });
+		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000), req, segment, body });
 		return text;
 	}
 
@@ -748,6 +750,7 @@ Dictate.prototype.whisper_url = default_whisper_url();
 Dictate.prototype.log_url = servex_url("/log/prompts");       // Servex's single-writer log — not always up yet
 Dictate.prototype.log_fallback_file = "framework/ai/prompts.jsonl";    // dev-server rpc:append fallback, relative under public/
 Dictate.prototype.lang = "en-US";
+Dictate.prototype.response_format = "json";   // text only. "verbose_json" adds segments, word probabilities, no_speech_prob but costs ~70 ms per 8 s of audio (measured 2026-10-16): WhisperLog.attach() switches one mic to it
 Dictate.prototype.pause_ms = 700;        // silence this long closes a segment
 Dictate.prototype.max_segment_ms = 15000; // or this much talking, whichever comes first
 Dictate.prototype.skip_partial_after_ms = 300;  // no resend once the speaker has been quiet this long — the final is next

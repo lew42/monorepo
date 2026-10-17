@@ -6,6 +6,7 @@ export default new Page({
 	title: "Whisper",
 	description: "The local whisper-server as an object, and one logged session per dictation surface.",
 	icon: "mic",
+	children: "log",
 
 	content(){
 		const whisper = Whisper.shared;

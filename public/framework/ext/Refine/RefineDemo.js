@@ -2,6 +2,7 @@ import { View, div, span, a, button, select, option, label } from "../../core/Vi
 import ErrorLog from "../ErrorLog/ErrorLog.js";
 import { composer } from "../Chat/Composer.js";
 import Whisper from "../../audio/Whisper/Whisper.js";
+import WhisperLog from "../../audio/Whisper/WhisperLog.js";
 import Prompt from "./Prompt.js";
 import RefineSystem from "./RefineSystem.js";
 import RefineExplorer from "./RefineExplorer.js";
@@ -87,6 +88,7 @@ export default class RefineDemo extends View {
 			this.dictate = this.$compose.mic;   // a `ComposerMic` (`Dictate` subclass) — same shape `VoiceStrip.dictate` was
 			this.$box = this.$compose.$input;
 			this.dictate.on_whisper = line => this.system.session.record(line);
+			WhisperLog.attach(this.dictate, this.system);   // every event from Whisper's reply to the cleaner, numbered: /framework/audio/Whisper/log/
 			this.$box.el.addEventListener("input", () => this.quick());
 			// the ✦ chat (drawer or phone sheet) heard something: show the same words here, one result everywhere
 			this.voice = new VoiceFollow({ on_text: (text, v) => {

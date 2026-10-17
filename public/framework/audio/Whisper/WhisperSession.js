@@ -1,5 +1,5 @@
 import { View, div, span, h4 } from "../../core/View/View.js";
-import FsFile from "../../ext/filesystem/FsFile.js";
+import WhisperLog from "./WhisperLog.js";
 
 View.stylesheet(import.meta, "Whisper.css");
 
@@ -24,8 +24,8 @@ const norm = w => w.toLowerCase().replace(/[.,!?;:]+$/, "");
 export default class WhisperSession {
 
 	static icon = "graphic_eq";
-	static dir = "/framework/ai/whisper/";
-	static path(){ return `${WhisperSession.dir}${new Date().toISOString().slice(0, 10)}.jsonl`; }
+	static dir = WhisperLog.dir;
+	static path(){ return WhisperLog.path(); }
 
 	name = "";
 	started_at = "";
@@ -38,7 +38,7 @@ export default class WhisperSession {
 		this.started_at ||= new Date().toISOString();
 	}
 
-	record({ kind, ms, text, raw, bytes = 0, seconds = 0 }){
+	record({ kind, ms, text, raw, bytes = 0, seconds = 0, req, segment, body }){
 		if (!text) return;
 		const now = Date.now();
 		const prev = this.requests.at(-1);
@@ -47,7 +47,7 @@ export default class WhisperSession {
 		if (change){ row.amended = true; this.amendments.push({ at: row.at, request: this.requests.length, ...change }); }
 		this.last_guess = kind === "interim" ? text : "";
 		this.requests.push(row);
-		FsFile.append(WhisperSession.path(), { at: row.at, session: this.name, kind, ms, bytes, seconds: row.seconds, gap_ms: row.gap_ms, msg: text, raw, amended: row.amended || undefined }).catch(() => {});
+		WhisperLog.record({ kind, text, body, session: this.name, ms, bytes, seconds: row.seconds, gap_ms: row.gap_ms, raw, req, segment, amended: row.amended || undefined });   // the one writer: audio/Whisper/WhisperLog.js
 		this.on_change?.(this);
 	}
 
