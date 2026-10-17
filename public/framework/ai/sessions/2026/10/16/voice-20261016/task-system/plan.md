@@ -37,14 +37,15 @@ A subtask is a child folder (`<task>/<sub>/`). The task index (`ai/tasks/`, writ
 
 ## 4. The item tool
 
-One tool: `item({path, method, args})`. `path` is an app path (`/framework/ai/sessions/…/task-system/`). With no `method`, the tool returns the item's current state.
+One tool: `item({path, delta})`. `path` is an app path (`/framework/ai/sessions/…/task-system/`), and `delta` is **one JSONL line**: the exact object `Item.set(delta)` takes and `page.jsonl` holds. With no `delta`, the tool returns the item's current state. One system, not two: a delta from a file and a delta from a tool go through the same code ([the owner's correction](/Servex/doc/owner-2026-10-16-tools.md), "The item tool is set()").
 
-- **Resolving the class:** the tool finds the item's log file (`task.jsonl` means `Task`, `page.jsonl` means `Page`, `session.jsonl` means `Session`, or a `class` key on line 1). It then checks `method` against that class. Only public methods are allowed: no `_` prefix and no getters. An unknown method is refused, and the refusal lists the methods that exist.
-- **Writing:** the tool appends `{[method]: args, by, ts}`, the same stamping `page_set` does. `page_set` becomes an alias of `item`.
-- **Creating a task:** `item({path: <session, module or task>, method: "tasks.add", args: {title, expected, priority, module}})`. TaskDirs makes the folder and writes line 1.
-- **Editing a task:** `start`, `wait`, `approve`, `finish`, `set`, `commit`, `priority`, `note`.
+- **What a key does:** this is `set_one`'s grammar, unchanged. A key that names a method calls it, with the value as its arguments. A key that names a child Item walks into it. Any other key assigns.
+- **Build it from `page_set`, don't write a second apply.** `page_set` is already this tool for pages. Generalise its resolve step to any Item class: `task.jsonl` means `Task`, `session.jsonl` means `Session`, `page.jsonl` means `Page`, or a `class` key on line 1. Then append the line, stamped with `by` and `ts`, and call `set`. `page_set` becomes an alias of `item`.
+- **Dot paths:** `{"now.preview": x}` may be accepted as shorthand. It expands to `{"now": {"preview": x}}` before `set`, never as a second code path.
+- **Refusals:** a key that names a method starting with `_` is refused. So is a key that names no method and no property on the class. Each refusal lists what exists.
+- **Examples:** `item({path: <task>, delta: {"start": {}}})`, `{"wait": {"on": "owner"}}`, `{"commit": "9deda921e"}`, `{"tasks": {"add": {title, expected, priority, module}}}` (TaskDirs makes the folder and writes line 1), and `{"content": {"add": {…}}}`.
 
-**Tool instructions on the first call.** The first `item` call an agent makes on each class returns `instructions` beside the result. The instructions are computed from the class by `Item.describe()`: its fields, its methods with the first comment line of each, and the path grammar. Later calls return only the result, and `method: "help"` returns the instructions again.
+**Tool instructions on the first call.** The first `item` call an agent makes on each class returns `instructions` beside the result. The instructions are computed from the class by `Item.describe()`: its fields, its methods with the first comment line of each, and the delta grammar. Later calls return only the result, and `{"help": {}}` returns the instructions again.
 
 ## 5. TaskLoop and TaskState
 
@@ -83,7 +84,7 @@ TaskState adds a `waiting` group to `state.jsonl`, so `/framework/ai/tasks/` sho
 | 2 | TaskLoop and TaskState read state through `Task.replay`; idle, paused and waiting are not chased; the waiting follow-up; tested on fixture folders | Sonnet | $3 |
 | 3 | Fields `expected`, `priority`, `commits`, `session`, `module`, and the `complete` getter; tests | Sonnet | $2 |
 | 4 | `render()` returns `Task.View` (chip, row, card); the `ai/objects.js` Task retires to it; `AITask` gets `this.task` | Sonnet | $4 |
-| 5 | The item tool: path to class to method, stamping, `Item.describe()` instructions on first call, `page_set` as an alias | Sonnet | $5 |
+| 5 | The item tool `item({path, delta})`: `page_set`'s resolve step generalised to any Item class, then the same `set()`; dot-path shorthand, refusals, `Item.describe()` instructions on the first call, `page_set` as an alias ([section 4](#4-the-item-tool), corrected 2026-10-16) | Sonnet | $5 |
 | 6 | Commits: Servex sets `SERVEX_TASK` on spawn, and a post-commit hook appends `{"commit":…}` to that task | Sonnet | $2 |
 | 7 | `class Session extends Item`, with `tasks` and a computed progress (coordinated with the accounting task) | Sonnet | $3 |
 | 8 | Refine to tasks: the refine queue calls `tasks.add` through the item tool; `asks.jsonl` becomes a view | Sonnet + Haiku runs | $4 |
