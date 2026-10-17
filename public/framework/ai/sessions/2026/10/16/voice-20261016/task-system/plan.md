@@ -129,3 +129,66 @@ Two owner notes arrived after steps 1 to 4 landed: [card-types.md](/framework/ex
 | 3b | `finished` → `complete`, `completion`, the verdicts, `mode` (series/parallel) with node-driven starts, `content`, `settled()`; callers: TaskLoop, TaskState, TaskView, AITask, `core/Task/live`; tests | Sonnet | $4 |
 
 The budget stays $35 in total. Step 3b is paid for out of what steps 1 to 4 came in under.
+
+## Amendments 2 (2026-10-16, night): the task system read top-down
+
+Source: [owner-2026-10-16-top-down.md](/framework/core/Task/doc/owner-2026-10-16-top-down.md), with voice-app's decisions where the owner left a point open. Steps 1 to 7 and 12 had landed; step 8 was building. What changes:
+
+1. **TaskPage, not AITask.** Nothing on the AI side extends Page to be a task. `AITask extends Page` becomes `TaskPage extends Page`, which **has** a `task`. The AI system uses `core/Task` directly, and there is no `AITask extends Task` until a concrete need appears. The scripted rename (old step 11) moves up to step 11 below, and new code never uses the name AITask.
+2. **Item owns replay.** `replay` lives on `Item` / `Item.Store` (one store per JSONL file, streamed by `ext/JSONL/live.js`), the same for every Item. `Task` only adds the legacy field mapping for old folders. Steps 1 and 3b put `replay` on Task, so step 13 moves it and keeps every test.
+3. **`expected` is `string | string[]`** for now; a List of cards later. At `complete()`, the reviewer checks each string as a yes/no.
+4. **`tags`**, hierarchical: a parent's tags apply to its children. `module` stays a field (old folders have it) and is always the first tag.
+5. **Creating is the parent's add.** `item({path: <parent>, delta: {"tasks": {"add": {"type": "Task", …}}}})`; there is no separate create. Step 8 already creates tasks this way, so it keeps building.
+6. **One home, references elsewhere.**
+   - A task with a module lives at `<module>/tasks/<slug>/`. A task with no module lives in its parent's folder (`<parent>/<slug>/`).
+   - The parent, a session or a task, gets a `{"task": "<app path>"}` line, which is a reference with no copied data. Replay resolves it to the live child.
+   - Every new task's line 1 carries its app path, so the node-built index (`ai/tasks/`) finds it. This absorbs old step 9.
+7. **Approval starts the task.** `approve(note?)` goes waiting → running at once, unless a queue delays it (then idle). This replaces item 2's waiting → idle above.
+8. **`Task.View` is a checkbox row.** A row with children expands in place, and a row without children opens its page.
+9. **A task's content lives in its `task.jsonl`,** never in a `page.jsonl`. TaskPage reads the task's log.
+
+**Plan small:** each step is planned once the step before it has landed and works.
+
+### Names (the vocabulary from now on; the code is the truth)
+
+| Name | Type | What it is |
+|---|---|---|
+| `Task` | class, `extends Item` | One unit of work, in `core/Task/Task.js`. Generic: it also runs a plain project list. |
+| `TaskPage` | class, `extends Page` | The page over one task; it **has** a `task`. Was `AITask`. |
+| `Task.View` | class (`TaskView`) | The task drawn as a checkbox row (also chip and card). |
+| `Session` | class, `extends Item` | One working session; it references its tasks. |
+| `title` | string | The task in a few words. |
+| `expected` | string \| string[] | Outcomes the review checks, yes or no, at `complete()`. |
+| `state` | `idle` `running` `paused` `waiting` `stopped` `complete` | Where the task is; the truth is its log. |
+| `mode` | `parallel` (default) \| `series` | How its `tasks` run. |
+| `tasks` | List of Task | Its children, which may be references to their own folders. |
+| `task` | log line, app path | A reference to a task that lives elsewhere. |
+| `content` | List | Notes, decisions, forms on the task, stored in its `task.jsonl`. |
+| `tags` | string[] | Hierarchical labels; `module` first; inherited from the parent. |
+| `module` | string | The module the work belongs to, and the task's home. |
+| `priority` | number | How soon. |
+| `session` | string | The session that worked on it (was `session_id`). |
+| `source` | `{session, line, id}` | The prompt and ask it came from: a link, not a copy. |
+| `commit` | log line, hash | One per commit, written by the post-commit hook. |
+| `now` | string | What it is doing right now. |
+| `waiting_on` | string | Who it waits for, when `waiting`. |
+| `verdict` | `{is, note, by}` | The last approve / improve / reject. |
+| `checked_by` | string | Who confirmed it complete. |
+| `completion` | getter, 0..1 | The share of its `tasks` that are complete, computed on read. |
+| `progress()` | `{done, total}` | The same count, as numbers. |
+| `start` `pause` `resume` `stop` `complete` `wait` | methods | Move the state. `finish` is an old alias for `complete`. |
+| `approve(note?)` `improve(note)` `reject(note)` | methods | The verdicts on a waiting task. |
+| `settled()` | Promise | Resolves when the task is complete or stopped. |
+
+### The sequence from here
+
+| # | Step | Model | Budget |
+|---|---|---|---|
+| 8 | Refine makes tasks through the parent's `tasks.add` (building) | Sonnet | $4 |
+| 13 | `replay` moves to Item / Item.Store, and Task keeps only the legacy mapping; `tags`, `expected` as `string \| string[]`, `approve()` starts the task | Sonnet | $3 |
+| 11 | Scripted rename `AITask` → `TaskPage extends Page` with a `task`, with a dry run and a manifest (moved up) | Sonnet | $2 |
+| 14 | Homes: `tasks.add` on any parent makes `<module>/tasks/<slug>/` (or `<parent>/<slug>/`) with its app path on line 1, and writes a `task` reference line on the parent; replay resolves references; a module page lists its tasks (absorbs 9) | Sonnet | $4 |
+| 15 | `Task.View` as a checkbox row: expands in place, or opens the page | Sonnet | $2 |
+| 10 | The skills (`new-task`, `finish-task`) and the readmes use the item tool and these names | Haiku | $1 |
+
+The budget stays $35 in total. Steps have come in well under budget so far.
