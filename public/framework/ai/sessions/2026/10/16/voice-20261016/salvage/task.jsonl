@@ -16,3 +16,9 @@
 {"log":{"at":"2026-10-16T19:46:50-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T19:47:26-05:00","msg":"skill: finish-task"}}
 {"assign":{"step":1,"landed_at":"2026-10-16T19:47:35-05:00","title":"Salvage: unmerged branch audit, dup-bubbles already on dev","outcome":"**Audit done; nothing needed merging.** [audit.md](/framework/ai/sessions/2026/10/16/voice-20261016/salvage/audit.md)\n\n- [x] Audit every branch: 422 checked, 239 fully merged, 183 ahead, 75 pure noise (listed, nothing deleted)\n- [x] Top 5 for a human look: page-extends-item, server-query-builder, chat-revision-pairs-wip, design-code, framework-home\n- [x] dup-bubbles: its code is already on dev (b87834ba2); the branch adds only proof screenshots that dev untracks. prove-dup-send and prove-dup-bubble pass 6/6 on dev. No merge commit made.\n- [x] voice-fixes: already covered on dev\n- [ ] The owner's new double text is likely the rebuilt Refine path (per_sentence composer), not covered by these proofs","links":[{"url":"/framework/ai/sessions/2026/10/16/voice-20261016/salvage/audit.md","label":"Salvage audit"}],"window":{"before":null,"after":0.17},"tokens":null}}
+{"log":{"at":"2026-10-16T19:47:45-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-16T19:47:45-05:00","msg":"card-check: card-check: path not found: C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\Salvage branches: what is unmerged"}}
+{"log":{"at":"2026-10-16T19:47:45-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-16T19:47:45-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-16T19:47:47-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-16T19:47:47-05:00","msg":"layout-check: skipped — the landing names no site pages"}}

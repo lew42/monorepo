@@ -64,3 +64,4 @@
 {"decision":{"at":"2026-10-16T20:15:18-05:00","what":"A module's task list is <module>/tasks/task.jsonl (a list Task of references), shown by a Tasks tab on every Doc page","why":"reuses Task, Store, Task.View and the Doc Inbox-tab pattern; no index script, no edits to module page.js files","alternative":"a node-built index under ai/tasks/"}}
 {"commit":"1f207885eb10"}
 {"decision":{"at":"2026-10-16T20:16:15-05:00","what":"Amendments 3 (seeing tasks): Task.rank, Task.View segmented progress + /live/ Tasks card (step 15), item tool files the caller's session reference + module from path + grouping rule (step 16), proof data (step 17)","why":"fourth owner note, core/Task/doc/owner-2026-10-16-ui.md, via voice-app","alternative":"none; folded into the existing sequence, order 14b, 16, 17, 15, 10"}}
+{"action":{"at":"2026-10-16T20:16:39-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/tool-files-refs/requirements.md"]}}

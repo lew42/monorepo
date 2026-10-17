@@ -12,3 +12,9 @@
 {"log":{"at":"2026-10-16T19:28:54-05:00","heartbeat":"answered","msg":"Nothing is in progress. The Whisper log landed on `michael/dev` (`3cecf3724`) and the page is at `/framework/audio/Whisper/log/`. I reproduced no duplicate. The log shows the final reply arriving afte"}}
 {"log":{"at":"2026-10-16T19:39:50-05:00","heartbeat":"check","msg":"status check sent to helper-whisper-log"}}
 {"log":{"at":"2026-10-16T19:39:55-05:00","heartbeat":"answered","msg":"The Whisper log is built and merged to `michael/dev` (`3cecf3724`), and the page is live at `/framework/audio/Whisper/log/`. The fake-mic pass reproduced no duplicate: the final reply arrived after th"}}
+{"log":{"at":"2026-10-16T19:51:47-05:00","msg":"task-loop chase 1 of 2: woke helper-whisper-log","chase":1}}
+{"log":{"at":"2026-10-16T19:57:51-05:00","heartbeat":"check","msg":"status check sent to helper-whisper-log"}}
+{"log":{"at":"2026-10-16T19:57:57-05:00","heartbeat":"answered","msg":"The Whisper log task is finished and merged to `michael/dev` (`3cecf3724`), with the page at `/framework/audio/Whisper/log/`. The fake-mic run didn't reproduce the duplicate, because the final reply c"}}
+{"log":{"at":"2026-10-16T20:06:47-05:00","msg":"task-loop chase 2 of 2: woke helper-whisper-log","chase":2}}
+{"log":{"at":"2026-10-16T20:12:51-05:00","heartbeat":"check","msg":"status check sent to helper-whisper-log"}}
+{"log":{"at":"2026-10-16T20:12:54-05:00","heartbeat":"answered","msg":"Finished and idle. The Whisper log is on `michael/dev` (`3cecf3724`), and the page is at `/framework/audio/Whisper/log/`. The fake-mic run didn't reproduce the duplicate. The only duplicate window it "}}
