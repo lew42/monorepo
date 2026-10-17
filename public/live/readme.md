@@ -11,6 +11,10 @@ Open [/live/](/live/). It shows only the current topic, your latest ask refined 
 `/live/` is a feed of white preview cards on light gray, newest on top. Each card shows `preview` (else `title`); a tap opens `/live/?card=<id>` with the full `text` (back and reload work). Render: `Live.draw()` builds a `Live.Card` (a small `Page`) per item and calls its stock `preview()` → `preview_card()` (Previews.js); `Card.full()` renders the whole card. Add one with `page_add` on `/live/`:
 `{"type":"part-card","id":"example","title":"Full title","preview":"Short label","text":"Full **markdown** body"}`; `page_set {"<id>":{"preview":"…"}}` retitles. `after: "<id>"` places a card under another.
 
+## The blank slate, Now and the archive (2026-10-16)
+
+`/live/` starts empty except for three cards that are **views**, so nothing on it needs an agent to rewrite it: **Now** ([`LiveNow.js`](LiveNow.js): what is in flight, the last landings and what waits, read from the session index and task logs), **Tasks** ([`LiveTasks.js`](LiveTasks.js): one line from the task system) and **Archive** (a link). The old cards are at [/live/archive/](/live/archive/) ([archive/readme.md](archive/readme.md)). The plan for every old card is in [doc/notes.md](doc/notes.md).
+
 ## The answer goes on a card (the owner, 2026-10-16)
 
 When the owner asks a question, the voice agent puts the answer on `/live/` as a card first, says "take a look", and keeps the spoken reply to one or two sentences. A status answer ("what's running") is a card listing each agent's id, state, what it is on and its cost: shown, not spoken. The voice agent's copy of this rule is in [`RemoteMCP.js`](../../Servex/ext/remote/RemoteMCP.js) (it takes effect after a Servex restart).

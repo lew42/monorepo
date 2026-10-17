@@ -4,6 +4,7 @@ import Socket from "/framework/dev/Socket/Socket.js";
 import { View } from "/framework/core/View/View.js";
 import LiveToday from "./LiveToday.js";
 import LiveTasks from "./LiveTasks.js";
+import LiveNow from "./LiveNow.js";
 
 View.stylesheet(import.meta, "Live.css");
 
@@ -84,10 +85,11 @@ class Tail {
 /* One feed item as a small Page: preview() is the stock preview card (Page.preview -> preview_card), full() the whole content. */
 class LiveCard extends Page {
 	static back = false;   // true shows a "← Live" link above an opened card (the owner uses the browser back button)
-	static live = { today: LiveToday, tasks: LiveTasks };   // a card {type:"part-live", live:"<name>"} is drawn by this class, from live data, not from its text
+	static live = { today: LiveToday, tasks: LiveTasks, now: LiveNow };   // a card {type:"part-live", live:"<name>"} is drawn by this class, from live data, not from its text
 
-	static of(row){
-		const card = new this({ id: row.id, title: row.title, label: row.preview ?? row.title ?? row.id, text: row.text, url: `/live/${encodeURIComponent(row.id)}/`, path: `/live/${encodeURIComponent(row.id)}/` });
+	static of(row, base = "/live/"){
+		const url = `${base}${encodeURIComponent(row.id)}/`;   // base: the page that owns the log (/live/ or /live/archive/)
+		const card = new this({ id: row.id, title: row.title, label: row.preview ?? row.title ?? row.id, text: row.text, url, path: url });
 		if (row.type === "part-live") card.live_name = row.live;
 		return card;
 	}
@@ -145,10 +147,16 @@ export default class Live extends Page {
 		return new Page({ title: id, url: this.url + id + "/", classes: "hides-nav", content(){ live.mount(div.c("live live-one"), id); } });
 	}
 
+	// What an empty feed says; the archive says something else.
+	get empty_text(){ return "Nothing on screen. The voice agent shows what you are discussing here."; }
+
+	// The log this page folds; archive/LiveArchive.js points it at its own copy.
+	get log_url(){ return import.meta.resolve("./page.jsonl"); }
+
 	// The shared stream, started once; `changed` redraws whatever is mounted.
 	start(){
 		if (this.stream) return;
-		this.stream = new this.constructor.Log({ url: import.meta.resolve("./page.jsonl") });
+		this.stream = new this.constructor.Log({ url: this.log_url });
 		const changed = () => this.views.forEach(v => v());
 		(Socket.singleton().disabled || location.search.includes("poll"))
 			? new this.constructor.Tail(this.stream, changed).start()
@@ -167,9 +175,9 @@ export default class Live extends Page {
 
 	paint(id){
 		const rows = this.rows(), one = id && rows.find(r => r.id === id);
-		if (id) return one ? void this.constructor.Card.of(one).full() : void div.c("live-empty", rows.length ? "No such card." : "Loading…");
-		if (!rows.length) return void div.c("live-empty", "Nothing on screen. The voice agent shows what you are discussing here.");
-		rows.forEach(r => { const card = this.constructor.Card.of(r); card.preview(card.nav()); });
+		if (id) return one ? void this.constructor.Card.of(one, this.url).full() : void div.c("live-empty", rows.length ? "No such card." : "Loading…");
+		if (!rows.length) return void div.c("live-empty", this.empty_text);
+		rows.forEach(r => { const card = this.constructor.Card.of(r, this.url); card.preview(card.nav()); });
 	}
 
 	render(){

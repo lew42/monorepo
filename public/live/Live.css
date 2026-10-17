@@ -43,3 +43,12 @@
 	.live-tasks-line { font-weight: 600; color: inherit; text-decoration: none; }
 	.live-tasks-line:hover { text-decoration: underline; }
 }
+
+@layer site {
+	.live-now-group { display: flex; flex-direction: column; gap: .15rem; }
+	.live-now-group + .live-now-group { border-top: 1px solid #0001; padding-top: .35rem; }
+	.live-now-head { font-weight: 700; }
+	.live-now-group .live-today-row, .live-now-group .live-today-task { flex-wrap: nowrap; }
+	.live-now-group .live-today-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.live-now-group .live-today-model, .live-now-group .live-today-cost, .live-now-group .live-today-state { white-space: nowrap; }
+}
