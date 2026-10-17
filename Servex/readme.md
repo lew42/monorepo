@@ -55,6 +55,7 @@ Everything binds `127.0.0.1` and every route refuses a non-loopback caller
 twice over. These tools start processes; nothing here is for a network.
 
 - **Class plan for the two cores** — `Agents.js` and `directory.js` as classes, a plan awaiting the owner: [agents/doc/class-plan.md](agents/doc/class-plan.md)
+- **The quick-fix pool** — `node Servex/pool-status.mjs` shows every slot, its holder and why reclaim frees or keeps it: [doc/pool.md](doc/pool.md#when-a-slot-is-freed-2026-10-17).
 - **The Step runner** — a task's steps carry estimates; node prompts each next step and nudges once at 2x: [doc/steps.md](doc/steps.md).
 - **Landing check** — a landing line is flagged when the branch's files are not on michael/dev, by content: [doc/landing.md](doc/landing.md).
 - **The six parts** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-six-parts), verbatim.

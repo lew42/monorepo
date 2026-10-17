@@ -199,8 +199,11 @@ export default class Pool extends Events {
             + dirty.map(d => d.file).join("\n"));
         const unmerged = (await this.git(slot.path, ["log", "--oneline", `${this.base}..HEAD`])).out;
         if (unmerged && await this.landed(slot)){
-            // merge.mjs APPLIED this branch over the owner's uncommitted edits: its commits are in the main
-            // working tree but not in michael/dev, so a fast-forward would not bring it current. Remove it; make a fresh one.
+            // merge.mjs APPLIED this branch (over the owner's edits, or as a diff): its commits are not ancestors of
+            // michael/dev, so a fast-forward would not bring it current. Remove it; make a fresh one. The commits stay
+            // reachable on landed/<slot>-<date>, because worktree-down deletes the slot's own branch.
+            const sha = (await this.git(slot.path, ["rev-parse", "--short", "HEAD"])).out;
+            await this.git(slot.path, ["branch", "-f", `landed/${id}-${stamp().slice(0, 10)}-${sha}`, "HEAD"]);
             this.remove(slot);
             this.top_up();
             this.say(`pool: ${id} returned; its branch was applied, not merged, so it is removed and a fresh one made`, { id });
@@ -263,7 +266,7 @@ export default class Pool extends Events {
                 reclaimed.push(slot.id);
                 this.say(`pool: ${slot.id} reclaimed from ${holder}, which has stopped`, { id: slot.id, from: holder });
             } catch (e) {
-                const why = String(e.message).split("\n")[0].replace(/^Refused: \S+ /, "").replace(/\.+$/, "");
+                const why = String(e.message).split("\n")[0].replace(/^Refused: \S+ /, "").replace(/\.+$/, "") + ` (branch ${slot.branch})`;
                 kept.push({ id: slot.id, holder, why });
                 this.once(slot, `pool: ${slot.id} is held by stopped ${holder} but kept — ${why}. Nothing was moved; salvage by hand if it is truly abandoned: node Servex/Lifecycle.js --salvage ${slot.id}`, holder);
             }
@@ -281,7 +284,13 @@ export default class Pool extends Events {
     /* Why a taken slot is still held, or null when rules 1 and 2 above let it go.
      * `dead` is true when only rule 2 keeps it (the holder itself has stopped). */
     held(slot, rows, queued = []){
-        if (slot.held_by) return { why: `held by ${slot.held_by}` };   // an explicit hold wins outright — see hold() above
+        /* An explicit hold wins — see hold() above — until its holder has been stopped or gone for ORPHAN_HOURS (fixer-1, gone since
+         * 2026-10-14, kept qf-8 for days). A registry blip lasts minutes, so a day of "gone" is evidence, not a blip. */
+        if (slot.held_by){
+            const h = rows.find(r => r.id === slot.held_by || r.name === slot.held_by);
+            const away = h && (h.state === "stopped" || h.state === "gone") && (Date.now() - Date.parse(h.last_at || h.stopped_at || Date.now())) / 3600000 > Pool.ORPHAN_HOURS;
+            if (!away) return { why: `held by ${slot.held_by}` };
+        }
         const LIVE = ["idle", "working", "queued", "starting"];
         const row = rows.find(r => r.id === slot.taken_by || r.name === slot.taken_by);
         if (!row){
@@ -564,8 +573,54 @@ export default class Pool extends Events {
      * (recorded in .merge-landed.json at the main root): as good as merged. */
     async landed(slot){
         const head = (await this.git(slot.path, ["rev-parse", "HEAD"])).out;
-        try { return JSON.parse(fs.readFileSync(path.join(this.main, ".merge-landed.json"), "utf8")).some(e => e.head === head); }
-        catch { return false; }
+        try { if (JSON.parse(fs.readFileSync(path.join(this.main, ".merge-landed.json"), "utf8")).some(e => e.head === head)) return true; }
+        catch {}
+        return this.on_base(slot);
+    }
+
+    /* True when everything this branch changed is already in the base, though its commits are not ancestors (merge.mjs lands a
+     * branch as a diff). Each file the branch changed since it left the base (`base...HEAD`) must read the same in the base
+     * and in the branch (`base HEAD` shows no difference in it). If the base changed such a file again later the answer is
+     * no: a slot is kept, never freed on a guess. Doc: doc/pool.md "When a slot is freed". */
+    async on_base(slot){
+        const mine = await this.git(slot.path, ["diff", "--name-only", `${this.base}...HEAD`]);
+        const apart = await this.git(slot.path, ["diff", "--name-only", this.base, "HEAD"]);
+        if (!mine.ok || !apart.ok) return false;
+        const differ = new Set(apart.out.split("\n").filter(Boolean));
+        for (const f of mine.out.split("\n").filter(Boolean)){
+            if (!differ.has(f)) continue;
+            if (!(f.endsWith(".jsonl") && await this.lines_on_base(slot, f))) return false;
+        }
+        return true;
+    }
+
+    /* A log (.jsonl) only grows, so the base moves on from the branch's copy. It counts as landed when every line the
+     * branch added is somewhere in the base's copy. */
+    async lines_on_base(slot, file){
+        const add = await this.git(slot.path, ["diff", "-U0", `${this.base}...HEAD`, "--", file]);
+        const there = await this.git(slot.path, ["show", `${this.base}:${file}`]);
+        if (!add.ok || !there.ok) return false;
+        const have = new Set(there.out.split("\n"));
+        return add.out.split("\n").filter(l => l.startsWith("+") && !l.startsWith("+++")).every(l => have.has(l.slice(1).trim()) || have.has(l.slice(1)));
+    }
+
+    /* A slot's standing against the base: commits ahead, files changed beyond the baseline, and whether the commits' work is on the base. */
+    async standing(slot){
+        const ahead = (await this.git(slot.path, ["log", "--oneline", `${this.base}..HEAD`])).out.split("\n").filter(Boolean);
+        const own = await this.own_dirt(slot);
+        return { ahead, own, on_base: ahead.length ? await this.landed(slot) : true };
+    }
+
+    /* What reclaim() does with one slot, as data: { free, why }. `free` = handed back at once, no grace wait. A slot that is
+     * not free but holds work is salvaged (never discarded) once its holder has been stopped GRACE_MIN minutes. */
+    async verdict(slot, rows = this.holders(), queued = this.queued_cwds()){
+        const held = this.held(slot, rows, queued);
+        if (held) return { free: false, why: held.why };
+        const { ahead, own, on_base } = await this.standing(slot);
+        if (own.length) return { free: false, work: true, why: `${own.length} uncommitted file(s) on ${slot.branch}` };
+        if (!ahead.length) return { free: true, why: "stopped, clean, nothing ahead of the base" };
+        if (on_base) return { free: true, why: `${ahead.length} commit(s) on ${slot.branch}, already on the base` };
+        return { free: false, work: true, why: `${ahead.length} unmerged commit(s) on ${slot.branch}` };
     }
 
     git(cwd, args){
