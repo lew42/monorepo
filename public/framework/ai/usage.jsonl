@@ -1765,3 +1765,5 @@
 {"log":{"at":"2026-10-17T14:32:27-05:00","session":4,"weekly_all":35,"weekly_scoped":30,"resets_at":"2026-10-17T23:00:00.319604+00:00"}}
 {"log":{"at":"2026-10-17T14:47:40-05:00","session":4,"weekly_all":35,"weekly_scoped":31,"resets_at":"2026-10-17T22:59:59.653027+00:00"}}
 {"log":{"at":"2026-10-17T15:02:45-05:00","session":4,"weekly_all":35,"weekly_scoped":31,"resets_at":"2026-10-17T22:59:59.656102+00:00"}}
+{"log":{"at":"2026-10-17T15:17:41-05:00","session":4,"weekly_all":35,"weekly_scoped":31,"resets_at":"2026-10-17T23:00:00.027666+00:00"}}
+{"log":{"at":"2026-10-17T15:32:36-05:00","session":4,"weekly_all":35,"weekly_scoped":31,"resets_at":"2026-10-17T22:59:59.855656+00:00"}}
