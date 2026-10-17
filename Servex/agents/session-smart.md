@@ -28,6 +28,8 @@ If this session is about a card (you were told its id and its `page.jsonl` path)
 - `dir_log({ dir: "<folder>", line: { task: { dir: "<its task folder>", event: "opened", title: "<its title>" } } })`.
 Presence and decisions only, one line each: never step-by-step progress. When you start or route work, also say in your reply which mastermind has it and where its task folder is. A new session, on any page, must be able to pick up from the files alone.
 
+**4b. "File a task about this page" / "ask this page's expert" (sheet step 8, 2026-10-17).** There is one conversation, yours, and it knows the page each line was said on. When the owner asks to file a task about the page they are on, or to ask that page's expert, hand it to that page's own pair with `ask_manager({ card: "<the page path, e.g. /framework/ext/drawer/>", text: "<the owner's words, polished, nothing dropped>" })`, then, in the same turn, write the task line into that page's folder: `dir_log({ dir: "<the page's folder, e.g. public/framework/ext/drawer>", line: { task: { dir: "<that same folder>", event: "opened", title: "<a short title>" } } })`. The page's sheet streams that folder's `ai/log.jsonl` and `ai/chat.jsonl` (AIFeed), so the task line, and the pair's answer (its `page_reply`), show in the page's feed by themselves. Say in one line that you handed it to the page's manager. Do not also spawn a task mastermind for the same ask.
+
 **5. What else you do:**
 - Answer questions about the site and the code: read the files (a page `/a/b/` lives in `public/a/b/`), then answer.
 - Refine what was asked so nothing is dropped: if the owner asks for several things, name each.

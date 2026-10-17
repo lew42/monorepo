@@ -26,7 +26,11 @@ Above 52em the AI is the right drawer (`drawer(fn)` filled by the `DrawerTabs`),
 
 ## The live space: `AIFeed` (2026-10-17, sheet step 7)
 
-[`AIFeed`](../AIFeed.js) (`class AIFeed extends View`) streams the page's own `ai/log.jsonl` with `live()` (never a timed refresh) and puts each event (a task opened, a decision, a log line) as a quiet one-line row in the chat's own bubble column, so the chat and the page's events read as one stream, newest at the bottom. When the chat opens, the last five events sit at the top. The phone's sheet and the desktop AI tab both use it, and the sheet follows the page when you navigate. There is no All / Chat / Live switch yet.
+[`AIFeed`](../AIFeed.js) (`class AIFeed extends View`) streams the page's own `ai/log.jsonl` with `live()` (never a timed refresh) and puts each event (a task opened, a decision, a log line) as a quiet one-line row in the chat's own bubble column, so the chat and the page's events read as one stream, newest at the bottom. When the chat opens, the last five events sit at the top. The phone's sheet and the desktop AI tab both use it, and the sheet follows the page when you navigate. It also streams the page's own `ai/chat.jsonl`, where the page's pair answers (`page_reply`), shown as ↩ rows. There is no All / Chat / Live switch yet.
+
+## Page hand-off (2026-10-17, sheet step 8)
+
+There is one conversation (the voice session's smart assistant), and it knows the page each line was said on. "File a task about this page" or "ask this page's expert" goes to that page's own `Layers` pair with `ask_manager({card: <page path>, text})`, and the assistant writes the task line into the page's folder with `dir_log` (`task`, event `opened`). The feed shows both: the task line from `ai/log.jsonl`, and the pair's answer from `ai/chat.jsonl`. The rule is in `Servex/agents/session-smart.md` (4b), which is read at every spawn, so no Servex restart. The alternative, a This page / Everywhere switch with two conversations, was not taken.
 
 ## Before 2026-10-17: the `?sheet=` url (kept for history)
 

@@ -1,4 +1,5 @@
-// AIFeed: the live space. This page's events (<page>ai/log.jsonl, streamed with live(), never a timed refresh)
+// AIFeed: the live space. This page's events and its own pair's answers (ai/log.jsonl and ai/chat.jsonl beside the page,
+// streamed with live(), never a timed refresh)
 // as rows in the chat's own bubble column, so the chat and the page's events are one stream, newest at the bottom.
 // Used by the phone's Sheet.Panel and the desktop AI tab. doc/sheet.md
 import { View, div, span, a } from "/framework/core/View/View.js";
@@ -21,7 +22,8 @@ export default class AIFeed extends View {
 
 	static BACKLOG = 5;   // the last few events shown above the chat when it opens
 	static feeds = new Set();   // the feeds open now (the probe and the page's debug view read it)
-	static ICONS = { task: "☑", decision: "◆", log: "·", note: "✎", merge: "⇄", reference: "↗", ask: "?" };
+	static FILES = ["log.jsonl", "chat.jsonl"];   // the page's events, and its own pair's answers (Layers page_reply)
+	static ICONS = { message: "↩", task: "☑", decision: "◆", log: "·", note: "✎", merge: "⇄", reference: "↗", ask: "?" };
 
 	// One feed inside a chat mount's box, about one page.
 	static on(box, page){
@@ -35,10 +37,11 @@ export default class AIFeed extends View {
 	// {task:{title, event, dir, at}}, {decision:{what, at}}, {log:{msg, at}}… → {verb, text, at, dir}, or null.
 	static event(entry){
 		const verb = Object.keys(entry ?? {})[0], value = entry?.[verb];
-		if (!verb || verb === "chat" || !value || typeof value !== "object") return null;
+		if (!verb || verb === "chat" || verb === "prompt" || !value || typeof value !== "object") return null;
 		const text = value.title ?? value.what ?? value.msg ?? value.text ?? value.summary;
 		if (!text) return null;
-		return { verb, text: value.event ? `${value.event}: ${text}` : String(text), at: value.at ?? entry.at, dir: value.dir };
+		const said = verb === "message" && value.by ? `${value.by}: ${text}` : String(text);   // the page's pair answering (ai/chat.jsonl)
+		return { verb, text: value.event ? `${value.event}: ${said}` : said, at: value.at ?? entry.at, dir: value.dir };
 	}
 
 	// The backlog sits at the top of the chat's bubble column; the widget may redraw it, so it is put back.
@@ -58,17 +61,19 @@ export default class AIFeed extends View {
 
 	// Switch to another page's log (the sheet followed a navigation).
 	follow(page){
-		const url = String(page ?? "/").replace(/\/?$/, "/") + "ai/log.jsonl";
-		if (this.log?.url === url) return this;
-		this.log?.unsubscribe();
+		const dir = String(page ?? "/").replace(/\/?$/, "/") + "ai/";
+		if (this.dir === dir) return this;
+		this.logs?.forEach(log => log.unsubscribe());
 		this.empty();
-		const log = this.log = new AIFeedLog({ url });
+		this.dir = dir;
+		const logs = this.logs = this.constructor.FILES.map(file => new AIFeedLog({ url: dir + file }));
 		let replayed = false;
-		log.added = event => { if (replayed && log === this.log) this.bubbles?.append(this.row(event).el); };
-		log.live().then(() => {
-			if (log !== this.log) return;
+		logs.forEach(log => log.added = event => { if (replayed && logs === this.logs) this.bubbles?.append(this.row(event).el); });
+		Promise.all(logs.map(log => log.live())).then(() => {
+			if (logs !== this.logs) return;
 			replayed = true;
-			log.events.slice(-this.constructor.BACKLOG).forEach(event => this.el.append(this.row(event).el));
+			logs.flatMap(log => log.events).sort((x, y) => String(x.at ?? "").localeCompare(String(y.at ?? "")))
+				.slice(-this.constructor.BACKLOG).forEach(event => this.el.append(this.row(event).el));
 		});
 		return this;
 	}
@@ -86,7 +91,7 @@ export default class AIFeed extends View {
 
 	stop(){
 		this.constructor.feeds.delete(this);
-		this.log?.unsubscribe();
+		this.logs?.forEach(log => log.unsubscribe());
 		this.watch?.disconnect();
 		this.el.remove();
 	}
