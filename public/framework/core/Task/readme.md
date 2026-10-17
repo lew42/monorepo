@@ -52,11 +52,13 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
   `ai/sessions/2026/10/03/list-events/task-class/requirements.md` for what's deliberately left: folding
   in `ai/objects.js`'s display `Task`, `ai/AITask`'s page renderer, `ext/JSONL`'s
   `TaskJSONL`, and `ai/AITask/nested.js`'s `TaskTree`.
+- **Fields** (getters that read data, never stored numbers): `expected`, `module`, `session` (`session ?? session_id`), `priority` (latest `{priority:{score,why,by}}` line or `null`), `commits` (short hashes from `{"commit":"…"}` lines, no duplicates; `commit(hash)` appends one). Replay reads both lines without leaving the legacy mapping.
+- **`complete`** (0 to 1): `checked_by` set (`check({by})`, final) is 1; else the share of finished subtasks (the only computed form); else old `steps`/`step` logs; else the agent's `data.complete`, or 1 when finished. New tasks no longer write `steps`.
 
 ## More
 
 - [Overview](/framework/core/Task/) · [Live](/framework/core/Task/live/) — start, pause,
   stop and finish a task with subtasks, live, no reload
 - [`Task.js`](./Task.js) · [`Task.test.mjs`](./Task.test.mjs) — the state machine, the
-  subtask-blocks-finish rule, duration math; `node Task.test.mjs`, 21/21 passing
+  subtask-blocks-finish rule, duration math; `node Task.test.mjs`, 28/28 passing
 - [Item](/framework/core/Item/) — the base class · [List](/framework/core/List/) — what `tasks` is

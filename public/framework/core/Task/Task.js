@@ -84,6 +84,40 @@ export class Task extends Item {
 		return { done: [...this._tasks].filter(t => t.state === "finished").length, total };
 	}
 
+	// Fields: plain data, read where they are written (readme: Fields).
+	get expected(){ return this.get_one("expected"); }
+	get module(){ return this.get_one("module"); }
+	get session(){ return this.get_one("session") ?? this.get_one("session_id"); }
+	get priority(){ return this.get_one("priority") ?? null; }
+	get commits(){ return [...(this.data.commits ?? [])]; }
+	commit(hash){
+		const h = String(hash ?? "").trim();
+		if (!h || (this.data.commits ?? []).includes(h)) return this;
+		this.put("commits", [...(this.data.commits ?? []), h]);
+		return this;
+	}
+
+	// The owner checking the task off is final.
+	check({ by } = {}){
+		this.put("checked_by", by ?? "owner");
+		return this;
+	}
+
+	// 0..1. Order: owner check, subtasks (the one computed form), old `steps`, agent's value.
+	get complete(){
+		if (this.data.checked_by) return 1;
+		const total = this._tasks?.length;
+		if (total) return [...this._tasks].filter(t => t.state === "finished").length / total;
+		const steps = this.data.steps;
+		if (Array.isArray(steps) && steps.length){
+			const step = Math.max(1, Math.min(Number(this.data.step) || 1, steps.length));
+			return (this.state === "finished" ? steps.length : step - 1) / steps.length;
+		}
+		const c = this.data.complete;
+		if (typeof c === "number") return Math.max(0, Math.min(1, c));
+		return this.state === "finished" ? 1 : 0;
+	}
+
 	start(){
 		if (!CAN.start.has(this.state)) return this.warn(`start(): can't start from "${this.state}"`);
 		this._ran_since = this.ms();
@@ -173,6 +207,11 @@ Task.replay = function(lines){
 			const { state, session_id, at: _t, ...rest } = a;
 			for (const [k, v] of Object.entries(rest)) task.put(k, v);
 			if (session_id !== undefined) task.put("session", session_id);
+		}
+		if (typeof line.commit === "string") task.commit(line.commit);
+		if (line.priority && typeof line.priority === "object"){
+			const { score, why, by } = line.priority;
+			task.put("priority", { score, why, by });
 		}
 		if (verb){
 			if (!explicit){ explicit = true; legacy(true); }

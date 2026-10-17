@@ -138,6 +138,38 @@ check("tasks is made on first use; progress() works before it", () => {
 	return t._tasks === undefined && t.progress().total === 1 && t.tasks.length === 0 && t._tasks !== undefined;
 });
 
+check("fields: expected, module, session, priority, commits", () => {
+	const t = Task.replay([{ assign: { expected: "x", module: ["core/Task"], session_id: "s9" } },
+		{ priority: { score: 5, why: "w", by: "owner" } }, { priority: { score: 7, why: "v", by: "m" } },
+		{ commit: "abc" }, { commit: "def" }, { commit: "abc" }]);
+	return t.expected === "x" && t.module[0] === "core/Task" && t.session === "s9"
+		&& t.priority.score === 7 && t.priority.by === "m" && t.commits.join() === "abc,def"
+		&& new Task({ id: "n" }).priority === null && new Task({ id: "n" }).commit("z").commits[0] === "z";
+});
+check("complete: checked_by wins, check() is final", () => {
+	const t = new Task({ id: "t" }); t.check({ by: "owner" });
+	return t.complete === 1 && t.data.checked_by === "owner";
+});
+check("complete: subtasks are the share finished", () => {
+	const t = new Task({ id: "t" });
+	t.tasks.add(new Task({ id: "a" })); t.tasks.add(new Task({ id: "b" }));
+	t.tasks.find("a").finish();
+	return t.complete === 0.5;
+});
+check("complete: legacy steps, step is the current one", () => {
+	const t = Task.replay([{ assign: { steps: ["a", "b", "c", "d"], step: 3 } }]);
+	return t.complete === 0.5;
+});
+check("complete: agent value, finished, and unset", () => {
+	const a = new Task({ id: "a" }); a.put("complete", 0.3);
+	const f = Task.replay([A, { finish: {} }]), n = new Task({ id: "n" });
+	return a.complete === 0.3 && f.complete === 1 && n.complete === 0;
+});
+check("replay: commit lines on a legacy open file stay running", () => {
+	const t = Task.replay([{ assign: { title: "T", requested_at: "2026-10-16T10:00:00Z" } }, { commit: "abc" }]);
+	return t.state === "running" && t.commits[0] === "abc";
+});
+
 const passed = results.filter(Boolean).length;
 console.log(`\n${passed} / ${results.length} passing`);
 if (passed !== results.length) process.exit(1);
