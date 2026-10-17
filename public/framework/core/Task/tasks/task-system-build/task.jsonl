@@ -24,3 +24,5 @@
 {"tasks":{"add":{"type":"Task","id":"step-3c","title":"Step 3c: The item tool on live instances: nested subtasks, slug refusal, files.jsonl"}},"by":"mastermind-task-system","ts":"2026-10-17T01:58:19.464Z"}
 {"tasks":{"add":{"type":"Task","id":"step-3d","title":"Step 3d: sessions, source and cost on every task"}},"by":"mastermind-task-system","ts":"2026-10-17T01:58:19.466Z"}
 {"step-3c":{"complete":{}},"by":"mastermind-task-system","ts":"2026-10-17T01:58:19.475Z"}
+{"step-3d":{"commit":"04bea0291","complete":{}},"by":"mastermind-task-system","ts":"2026-10-17T04:48:37.367Z"}
+{"sessions":[{"id":"mastermind-task-system","task":"/framework/core/Task/tasks/task-system-build/"}],"by":"mastermind-task-system","ts":"2026-10-17T04:48:37.370Z"}
