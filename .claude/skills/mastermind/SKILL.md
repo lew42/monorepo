@@ -39,7 +39,7 @@ Nobody else can reach or reopen an in-process agent. Servex agents are MCP-addre
 - **Warm time:** `dormant_after` (seconds). Minions, reviewers and task masterminds default to 0 (a cold resume loads in 0.15 s). Use `60` only when you will read the reply and may ask a follow-up.
 - **Fallback when Servex is down:** `claude --session-id <uuid> -p "<prompt naming the brief>" --model <full id> --effort <level> --permission-mode acceptEdits --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill,WebFetch,WebSearch" --output-format json` from the repo root; `claude --resume <id> -p` to follow up; forks are the `fork-claude-session` skill. ⚠ Those permission flags are the whole difference between a minion that works and one that writes nothing.
 - **Ask, don't read:** a question about one module goes to its expert (`list_experts`, `ask_expert`); several modules, a mastermind with `readme_modules`.
-- **Record** the agent's id and `session_id` in the brief and the task's `task.jsonl` launch line; that makes the work resumable.
+- **Record** the agent's id and `session` in the brief and the task's `task.jsonl` launch line; that makes the work resumable.
 - **Keep everything moving.** `spawn_agent` returns at once. From a tab (not a Servex agent), run a background watcher on the child's state so its "done" still reaches you. Long helpers (servers, `Server/health-supervisor.mjs`, Playwright) run in the background and report.
 
 ### Grouping (judgment calls)
