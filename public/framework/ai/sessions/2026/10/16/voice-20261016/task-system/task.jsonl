@@ -35,3 +35,5 @@
 {"action":{"at":"2026-10-16T19:45:35-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/item-local/requirements.md"]}}
 {"commit":"fd37b6efe"}
 {"assign":{"at":"2026-10-16T19:45:38-05:00","now":"step 5 landed (fd37b6efe, item({path, delta}); replay reads tasks and field lines); building step 12, the item tool in-process"}}
+{"commit":"1f4481407"}
+{"assign":{"at":"2026-10-16T19:48:59-05:00","now":"step 12 landed (1f4481407, page tools in-process as mcp__local__*, off with SERVEX_LOCAL_TOOLS=0); building step 6, commit lines from a post-commit hook"}}
