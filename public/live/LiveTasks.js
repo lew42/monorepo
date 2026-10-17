@@ -16,9 +16,8 @@ export default class LiveTasks {
 	// Each module's goal tasks (its list's children), read through the shared Store, open ones only.
 	static async load(){
 		const lists = await Promise.all(this.MODULES.map(async mod => {
-			const store = Task.Store.for(`/framework/${mod.path}/tasks/task.jsonl`);
-			if (!store.host){ await store.open().catch(() => {}); if (store.count) store.attach(Task.replay_new(store.entries)); }
-			const kids = store.host ? [...store.host.tasks] : [];
+			const host = await this.host(`/framework/${mod.path}/tasks/task.jsonl`);
+			const kids = host ? [...host.tasks] : [];
 			await Promise.all(kids.map(k => k.ready));
 			await Promise.all(kids.flatMap(k => [...(k._tasks ?? [])].map(g => g.ready)));   // the steps under each goal
 			return kids.map(task => ({ mod, task }));
@@ -26,6 +25,13 @@ export default class LiveTasks {
 		const rows = lists.flat().filter(r => r.task.state !== "complete");
 		const order = Task.rank(rows.map(r => r.task));
 		return order.map(t => rows.find(r => r.task === t));
+	}
+
+	// The module list's Task, opened ONCE per file: the card draws more than once, and a second open() streams the file twice.
+	static host(url){
+		const store = Task.Store.for(url);
+		return store.live_tasks ??= store.host ? Promise.resolve(store.host)
+			: store.open().catch(() => {}).then(() => store.host ?? (store.count ? store.attach(Task.replay_new(store.entries)).host : null));
 	}
 
 	static draw(rows){
