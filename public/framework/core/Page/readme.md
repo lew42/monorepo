@@ -59,13 +59,7 @@ A url is resolved one folder name at a time: memory, `page.jsonl`, `route()`, `p
 - **The sub-systems** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-sub-systems), verbatim.
 ## Making a page: reuse a layout first
 
-Load the `page` skill and let `create_page` make the files.
-
-- **Match content first:** [content → layout](/framework/styles/layouts/catalog/doc/matching.md), [catalog](/framework/styles/layouts/catalog/).
-- **Pick a layout** from [the audit](./audit/): most-used first. Doc pages (top tabs) and column pages cover most modules; a child starts from its parent's layout.
-- **Don't drift:** no own tab strip or shell, no one-page CSS tweak on a shared layout. Propose a new layout first.
-- **Check:** `node Server/layout-check.mjs --bands <url>`.
-
+Load the `page` skill and let `create_page` make the files; pick a layout from the catalog and don't drift: [`doc/readme-moved-2026-10-17.md`](./doc/readme-moved-2026-10-17.md#making-a-page-reuse-a-layout-first).
 - **Five ways to make a page** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#five-ways-to-make-a-page), verbatim.
 ## Read next
 
@@ -73,11 +67,7 @@ Load the `page` skill and let `create_page` make the files.
 
 **Navigation** — [navigation](./navigation/) (the pattern: persistent vs switching) · [one model](./navigation/model/) (the four questions answered, live) · [`doc/navigation.md`](./doc/navigation.md) (children, menus, where links open) · [`doc/labels.md`](./doc/labels.md) (title, label, icon) · [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) (`.md` files as pages, and where a click opens)
 
-**Agents change pages** — [`doc/architecture.md`](./doc/architecture.md) (path + delta through `page_set`, `Servex/agents/page_tools.js`; tabs, layout words and session pages work live) · the ask: [`doc/page-tool-2026-10-09.md`](./doc/page-tool-2026-10-09.md)
-
-**A thing has a page** — [`doc/composition.md`](./doc/composition.md) (the rule: a thing holds a page by reference; today `AITask` and `AISessionDetail` still extend `Page`; page CRUD/move is a known gap)
-
-**Content inside a page** — icon items, sections, outlines: [ux/Content/structure](/framework/ux/Content/structure/)
+**Also** — agents change pages, a thing holds a page, content inside a page: [`doc/readme-moved-2026-10-17.md`](./doc/readme-moved-2026-10-17.md#agents-change-pages-a-thing-has-a-page-content-inside-a-page).
 
 **Split plan** — [`doc/split-plan.md`](./doc/split-plan.md) (why the file was 2,270 lines, half of it comments, and how it was split; `Page.class.js` is 721 lines since 2026-10-12)
 
@@ -89,13 +79,7 @@ Load the `page` skill and let `create_page` make the files.
 - [`indexing-2026-10-08.md`](./doc/indexing-2026-10-08.md) open: directory deltas, session index
 - Files: `Page.class.js` (the class), `Page.css` (core `.page-*` rules), `page.js` (this module's Doc page)
 
-**Query (page/query)** — [`doc/query.md`](./doc/query.md) (finding past work: the in-memory task query, every index and its verdict, task vs session, the pilot; the owner's open decisions)
-
-**Asks** — [`doc/asks.md`](./doc/asks.md) (the owner's repeated asks about the page system, merged, open first)
-
-**Vision** — [`doc/vision.md`](./doc/vision.md) (the page as the core data item, debug views of any instance; back-burner ideas kept)
-
-- Notes (history and lessons moved out of the code comments): [doc/Frame-notes.md](doc/Frame-notes.md) · [doc/Page-notes.md](doc/Page-notes.md) · [doc/page-js-notes.md](doc/page-js-notes.md)
+**Query** ([`doc/query.md`](./doc/query.md)) · **Asks** ([`doc/asks.md`](./doc/asks.md)) · **Vision** ([`doc/vision.md`](./doc/vision.md)) · Notes: [Frame](doc/Frame-notes.md) · [Page](doc/Page-notes.md) · [page.js](doc/page-js-notes.md). The original lines: [`doc/readme-moved-2026-10-17.md`](./doc/readme-moved-2026-10-17.md#query-asks-vision-notes).
 
 ## Also here (readme audit, 2026-10-13)
 - [content-shapes](./content-shapes/) — every shape a page's content can take
