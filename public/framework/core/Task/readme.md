@@ -84,3 +84,5 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - **Commits are computed:** a task's `commit` lines come from the `post-commit` git hook via `SERVEX_TASK`, never typed by hand. See `Server/readme.md`, "Git hooks".
 
 - **`source`** field: `{session, line, id}`, set on a Task made from a refined ask (`Server/AskIndex.mjs`, `AskIndex.tasks_view`).
+
+- **References in the browser (step 14b):** `Task.from_ref` returns a "loading" stub that opens the child's own `task.jsonl` through the Store and tails it live ("missing" only after a 404); `Task.rank(list)` sorts by recency x weight.

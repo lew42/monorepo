@@ -27,6 +27,7 @@ export class Doc extends Page {
 		this.api_section();
 		this.docs_section();
 		this.files_section();
+		this.tasks_section();
 		this.inbox_section();
 		return this;
 	}
@@ -131,6 +132,39 @@ export class Doc extends Page {
 		const section = this.section("inbox", "Inbox", { render(){ return this.view ??= div.c("page doc-section", () => mailbox.view()).ac("page--inbox"); } });
 		mailbox.section = section;
 		return section;
+	}
+
+	// Every Doc page gets a Tasks tab: the module's own `tasks/task.jsonl` list Task (step 14a/14b), ranked by Task.rank.
+	// `no_tasks: true` opts out. Built only when the tab opens (render() runs then), so no page load fetches it.
+	tasks_section(){
+		if (this.no_tasks) return;
+
+		const doc = this;
+		return this.section("tasks", "Tasks", {
+			render(){
+				return this.view ??= div.c("page doc-section doc-tasks", () => {
+					const box = div.c("doc-tasks-list", "Loading tasks…");
+					doc.tasks_into(box);
+				}).ac("page--tasks");
+			},
+		});
+	}
+
+	async tasks_into(box){
+		const [{ default: Task }] = await Promise.all([import("../../core/Task/Task.js"), import("../../core/Task/TaskView.js")]);
+		const store = Task.Store.for(this.url + "tasks/task.jsonl");
+		if (!store.host){ await store.open(); if (store.count) store.attach(Task.replay_new(store.entries)); }
+		const list = store.host;
+		const kids = list ? [...list.tasks] : [];
+		await Promise.all(kids.map(k => k.ready));   // each child reads its own file first, so the ranking sees real dates
+		box.empty(() => {
+			if (!kids.length) return div.c("muted", "No tasks yet");
+			for (const kid of Task.rank(kids))
+				div.c("doc-task flex gap-50", () => {
+					kid.render();
+					if (kid.data.path) a("Open").href(kid.data.path);
+				});
+		});
 	}
 
 	// See doc/Doc-notes.md for files_section layout (one view, custom render).
@@ -270,7 +304,7 @@ export class Doc extends Page {
 			.filter(name => this.tab_visible(name))
 			.sort((a, b) => this.tab_order(a) - this.tab_order(b));
 
-		return ["overview", ...middle, "api", "doc", "files", "inbox"]
+		return ["overview", ...middle, "api", "doc", "files", "tasks", "inbox"]
 			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	}
 
@@ -325,7 +359,7 @@ function note_rows(node, base){
 }
 
 // See doc/Doc-notes.md (derived sections: read by bar() and wall()).
-Doc.SECTIONS = ["overview", "api", "doc", "files", "inbox"];
+Doc.SECTIONS = ["overview", "api", "doc", "files", "tasks", "inbox"];
 
 Doc.names = names => (names ?? "").trim().split(/\s+/).filter(Boolean);
 
