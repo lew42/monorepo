@@ -18,7 +18,7 @@ export default new Doc({
 
 		h2("The ✦ and its tabs");
 
-		md("Every page has a **✦** in its top right (it was ☰ until 2026-10-16; ☰ now always means the site's navigation). It opens this drawer on three tabs (a fourth, Element, appears while something is selected), and the open tab is in the url (`?drawer=ai`), so a reload lands on it. Try them:");
+		md("Every page has a **✦** in its top right (it was ☰ until 2026-10-16; ☰ now always means the site's navigation). It opens this drawer on three tabs (a fourth, Element, appears while something is selected), and at 1920 px and wider it is docked open beside the page until you shut it (`Sheet.Dock`). Its own url is the page's `ai/` (an `AIPage`, [doc/sheet.md](doc/sheet.md)). Try them:");
 
 		div.c("flex gap wrap", () => {
 			tabs.shown().filter(t => t.name !== "element").forEach(t => button.c("btn", t.label).click(() => tabs.open(t.name)));

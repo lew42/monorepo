@@ -476,6 +476,28 @@ export class SheetSize {
 
 Sheet.Size = SheetPanel.Size = SheetSize;
 Sheet.Panel = SheetPanel;
+
+// Sheet.Dock: above 52em the AI sits docked in the right drawer (drawer(fn), the DrawerTabs), pushing the page.
+// Open by default at 1920 px and wider until you shut it with ✕; ✦ (menu.js) opens it below that. doc/sheet.md
+export class SheetDock {
+	static AT = 1920;
+	static KEY = "lew42-sheet-dock-shut";
+
+	static query(){ return globalThis.matchMedia?.(`(min-width: ${this.AT}px)`); }
+	static wide(){ return !!this.query()?.matches; }
+
+	// menu.js calls this once, after the styles are in; a window widened past AT opens it too.
+	static start(){
+		const open = () => { if (this.wide() && !this.shut() && !tabs.mine()) tabs.open("ai"); };
+		window.addEventListener("drawer-close", () => { if (this.wide()) this.remember(true); });
+		this.query()?.addEventListener?.("change", open);
+		open();
+	}
+
+	static shut(){ try { return localStorage.getItem(this.KEY) === "1"; } catch { return false; } }
+	static remember(shut){ try { shut ? localStorage.setItem(this.KEY, "1") : localStorage.removeItem(this.KEY); } catch {} }
+}
+Sheet.Dock = SheetDock;
 Sheet.Sheet = SheetPanel;   // the old name for the same part
 
 

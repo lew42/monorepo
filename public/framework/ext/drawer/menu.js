@@ -26,7 +26,7 @@ export default function menu(app){
 		.attr("type", "button")
 		.attr("title", "AI — chat, dictation, settings")
 		.attr("aria-label", "Open the AI drawer")
-		.click(() => tabs.toggle());
+		.click(() => { tabs.toggle(); if (tabs.mine()) Sheet.Dock.remember(false); });
 	new MicIndicator({ compact: true, capture: false }).append_to($menu);   // mic open while the drawer is shut
 
 	// An old ?drawer=x url is now <path>/ai/x/ (AIPage.old_link, rewritten by the Sheet below): the route opens it.
@@ -36,6 +36,7 @@ export default function menu(app){
 	// free to call here unconditionally rather than app.js needing to know about
 	// a second piece of drawer chrome.
 	Sheet.of(app);
+	app.styles_loaded().then(() => Sheet.Dock.start());   // docked open at 1920 px and wider (Sheet.Dock)
 
 	return $menu;
 }
