@@ -90,7 +90,7 @@ function ask_row(ask){
 		});
 		div.c("asks-row-meta flex wrap gap-25 muted", () => {
 			small.c("asks-row-owner").text("owner " + (ask.owner || "—"));
-			if (ask.card && CARD_IDS.has(ask.card)) a.c("page-link").href("/framework/ai/" + ask.card + "/").text("card");
+			if (ask.card && ask.status !== "landed" && CARD_IDS.has(ask.card)) a.c("page-link").href("/framework/ai/" + ask.card + "/").text("card");
 			if (words) a.c("page-link").href(words).text("words");
 			else if (ask.words) small.c("asks-row-owner").text(ask.words);
 		});
