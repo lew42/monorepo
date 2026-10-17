@@ -1,5 +1,12 @@
 # Talking to the mastermind through the Claude app's voice mode
 
+## What is exposed today (checked 2026-10-17)
+
+- **Everything.** `POST /mcp/remote` (`Servex/ext/remote/RemoteMCP.js`) serves the **whole Servex tool registry** (the same tools every local session has: pages, cards, agents, `read_file`, `write_file`, `edit_file`, `list_dir`, `glob`, `shell`), plus `ask_mastermind` and a generic `call({tool, args})` door. Calls run as caller `voice-app`. Decision and the shelved `local`/`remote` split: `Servex/ext/remote/doc/mcp-unify.md`; the file and shell tools: `Servex/ext/remote/doc/remote-tools.md`.
+- **The voice agent's directives** (fire `ask_mastermind` first, answer on `/live/` as a card, one question at a time, never restart Servex mid-call) live only in `RemoteMCP.INSTRUCTIONS`, sent as the server instructions on `initialize`.
+- **Who holds the address.** The owner's Claude app holds the connector URL. The machine holds the secret: `%LOCALAPPDATA%\lew42\servexemote.url` (the whole URL, token in its path) and `remote.token`. The free Cloudflare quick tunnel (`Server/Tunnel.mjs up`) gives a new URL each time it starts, so the connector must be re-pasted after a restart of the tunnel. Anyone with the URL can use every tool, shell included: never paste it anywhere public.
+- Older sections below say "one tool" and "four tools": those were the first test, kept for history.
+
 **The ask (2026-10-14, the owner):** the Claude app's live voice mode is very helpful, but a Claude Code session opened through Remote Control only has a dictate button (the orange up arrow sends; there is no live-mode button). Could the mastermind connect to a normal voice session so the two agents talk in the background, and the owner just talks? One idea: the mastermind drives a browser tab logged into claude.ai, reads the voice transcript and types replies in.
 
 ## The short answer

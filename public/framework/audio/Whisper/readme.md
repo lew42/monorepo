@@ -7,3 +7,4 @@ The local whisper-server as objects, and a log of every request to it.
 - `WhisperLog.js`, `WhisperLogRows.js`: the one numbered log of every Whisper reply and every step to the Cleaned list, and its table at [Whisper log](/framework/audio/Whisper/log/) (`log/page.js`). `WhisperSession.record` writes through it. Doc and a real proof run: `doc/whisper-log.md`.
 - Not the same as `audio/Transcriber` (the engine that sends audio).
 - Used by [Refine](/framework/ext/Refine/). Details and open gaps: `ext/Refine/doc/refine-v3-2026-10-09.md`.
+- **Is the raw reply saved?** Plain answer, what was lost and how it is now saved: `doc/raw-log.md`.
