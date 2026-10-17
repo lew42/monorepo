@@ -19,11 +19,11 @@ item({ path: "<session file>", delta: { place: { re: "<the sentence's at>", to: 
 ```
 
    - `to`: `same` (the default, and the answer whenever unsure) · `paragraph` · `card`
-   - `where` (cards only): `inside` the previous card · `beside` it · `up` a level (a new topic)
-   - `edit`: `nothing` (default) · `move` · `improve` (a cleaned `text`; the raw words are kept) · `both`
+   - `where` (cards only): `inside` the previous card · `beside` it · `up` a level (a new topic). Today `inside` is indented and `up` draws like `beside`; nesting comes next.
+   - `edit`: `nothing` (default) · `move` · `improve` (a cleaned `text`; the raw words are kept) · `both`. Today `move` is recorded but not drawn; it comes with nesting.
 6. **The chat applies it** (`Widget.Thread.place()`): `same` does nothing, `paragraph` splits the bubble there, `card` makes that paragraph a card of its own. The latest `place` line for a sentence wins.
 
-**Coverage, by code:** a sentence is never deleted, only moved or given a cleaned text beside its raw words. A node check reads the session file and confirms every owner sentence appears exactly once in the structure.
+**Coverage, by code:** a sentence is never deleted, only moved or given a cleaned text beside its raw words. Today the check is in the browser proof (`test/in-place.mjs`): every owner sentence appears exactly once in the thread. Next, a node check reads a real session file and does the same, so it can run on every session.
 
 ---
 
@@ -69,7 +69,7 @@ In live mode the words you are saying grow in a **separate draft bubble** at the
 ## The slices
 
 - ✅ **a.** The `voice-assistant` row in `roles.js` and its skill; the fast rows marked retired, not deleted.
-- ✅ **b.** A sentence settles in place in the bubble: the draft is the last piece of the bubble it joins, and the settled piece takes its exact spot (measured: same top, same bubble count, no faded copy). Every chat surface now writes your words into the bubble (`Widget.MODES.dictate`), unless the mic's gear says "into: box".
+- ✅ **b.** A sentence settles in place in the bubble: the draft is the last piece of the bubble it joins, and the settled piece takes its exact spot (measured: same top, same bubble count, no faded copy). Every chat surface now writes your words into the bubble (`Widget.MODES.dictate`), unless the mic's gear says "into: box". This is the widest change: the proof covers a bare Widget, not yet the ✦ sheet or the rail (those use `ext/Chat`'s own `live()`, which is unchanged).
 - ✅ **c.** `{place}` lines applied by the chat (`Widget.Thread.place()`, routed by `chat.js`), default `same`.
 - **Proof:** `node ux/Dictate/test/in-place.mjs <site>` (fake mic, no agents), all checks pass at 400 and 1200.
 - ⬜ **Next brief (Servex, needs a restart):** `Sessions.js` wakes the voice assistant in the fast seat with the whole prompt plus the sentence ([brief](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/sessions-brief.md)).

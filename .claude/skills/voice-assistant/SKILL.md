@@ -16,11 +16,11 @@ item({ path: "<the session file you were given>", delta: { place: { re: "<the ne
 ```
 
 - **`to`**: `same` = stays in the current paragraph. **This is the default, and the answer whenever you are unsure.** `paragraph` = a new thought on the same topic starts here. `card` = a new task or topic starts here.
-- **`where`** (only with `card`): `inside` the previous card (a detail of it) · `beside` it (a sibling) · `up` (a different topic altogether).
+- **`where`** (only with `card`): `inside` the previous card (a detail of it) · `beside` it (a sibling) · `up` (a different topic altogether). The screen nests only `inside` today; say what you mean anyway.
 - **`edit`**: `nothing` (default) · `move` · `improve` (add `text`: the sentence cleaned, never shorter in meaning) · `both`.
 - `title` (only with `card`): two to five words naming it.
 
-When `to` is `same` and `edit` is `nothing`, you may skip the write: that is what the screen already shows.
+Always write the line, even for `same` and `nothing`: one line per sentence is how a node check tells "decided same" from "never answered".
 
 ## Never
 

@@ -10,7 +10,8 @@ import fs from "fs";
 const [base = "http://monorepo.localhost", shots] = process.argv.slice(2);
 const wav = process.env.WAV ?? new URL("../../../ai/recordings/jfk.wav", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const fixture = new URL("../../../ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/fixture/v-fixture.jsonl", import.meta.url);
-const lines = fs.readFileSync(fixture, "utf8").trim().split("\n").map(l => JSON.parse(l)).filter(l => l.chat);
+const all = fs.readFileSync(fixture, "utf8").trim().split("\n").map(l => JSON.parse(l));
+const lines = all.filter(l => l.chat), places = all.filter(l => l.place).map(l => l.place);
 const { chromium } = await import(pathToFileURL(process.env.PWENTRY).href);
 const browser = await chromium.launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
 const kill = setTimeout(() => { console.log("FAIL killed after 200 s"); process.exit(2); }, 200000);
@@ -63,19 +64,23 @@ for (const width of [400, 1200]){
 	await page.locator(".chatbox-mic .ux-dictate-btn, .chatbox-mic button").first().click().catch(() => {});
 
 	// c. the fixture, then placements
-	const out = await page.evaluate(lines => {
+	const out = await page.evaluate(([lines, places]) => {
+		const count = () => document.querySelectorAll(".ux-dictate-widget-bubbles > .chatbox").length;
 		w.reset();
 		lines.forEach(l => w.say({ chat: l.chat }));
-		const n0 = document.querySelectorAll(".ux-dictate-widget-bubbles > .chatbox").length;
+		const n0 = count();
 		w.say({ place: { re: lines[1].chat.at, to: "same" } });
-		const n1 = document.querySelectorAll(".ux-dictate-widget-bubbles > .chatbox").length;
+		const n1 = count();
+		places.forEach(p => w.say({ place: p }));   // the fixture's own line, written by the item tool: "paragraph" on the third
+		const np = count();
 		w.say({ place: { re: lines[2].chat.at, to: "card", where: "up", title: "Inbox labels" } });
 		const bubbles = [...document.querySelectorAll(".ux-dictate-widget-bubbles > .chatbox")];
 		const text = bubbles.map(b => b.textContent).join(" | ");
-		return { n0, n1, n2: bubbles.length, card: bubbles.filter(b => b.classList.contains("ux-dictate-placed-card")).length, text };
-	}, lines);
+		return { n0, n1, np, n2: bubbles.length, card: bubbles.filter(b => b.classList.contains("ux-dictate-placed-card")).length, text };
+	}, [lines, places]);
 	if (shots) await page.screenshot({ path: `${shots}/placed-${width}.png` });
 	check(out.n0 === 1 && out.n1 === 1, `${width}: three close sentences join one bubble; "same" changes nothing`);
+	check(out.np === 2, `${width}: the fixture's item-tool line ("paragraph") split the third sentence off (${out.np} bubbles)`);
 	check(out.n2 === 2 && out.card === 1, `${width}: "card" moved the third sentence into a card of its own`);
 	const missing = lines.filter(l => out.text.split(l.chat.text).length !== 2);
 	check(!missing.length, `${width}: coverage, every sentence appears exactly once${missing.length ? " (missing: " + missing.map(l => l.chat.text).join("; ") + ")" : ""}`);
