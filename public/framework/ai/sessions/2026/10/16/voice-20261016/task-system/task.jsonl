@@ -67,3 +67,9 @@
 {"action":{"at":"2026-10-16T20:16:39-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/tool-files-refs/requirements.md"]}}
 {"commit":"b357c1895"}
 {"assign":{"at":"2026-10-16T20:21:54-05:00","now":"Step 14b landed (browser references, module tasks list, Doc Tasks tab, Task.rank). Step 16 building: the item tool files the caller's reference, module from path, grouping rule."}}
+{"commit":"56b9f151382a"}
+{"log":{"at":"2026-10-16T20:23:48-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T20:23:48-05:00","msg":"session resumed"}}
+{"commit":"e2c55b77c"}
+{"log":{"at":"2026-10-16T20:25:50-05:00","msg":"Step 16 review caught agent_log(this) passing an Agent (no task_dir_for/reg): every in-process item call would have thrown after a restart. Fixed in 75cbc267e: the resolver reads the agent's own task dir, and a broken resolver never breaks the call. item-local 6/6 in the main tree."}}
+{"assign":{"at":"2026-10-16T20:25:50-05:00","now":"Step 16 landed (caller's reference, module from path, grouping rules). Step 17 building: today's dictations as tasks, one goal task per module."}}
