@@ -40,3 +40,4 @@
 {"log":{"at":"2026-10-16T19:50:02-05:00","msg":"The repeated 'claude.exe exists but failed to launch' errors come from Servex waking a finished minion whose worktree (its spawn cwd) was removed after the merge, not from a broken binary. Harmless; new spawns work."}}
 {"commit":"a9509d1a9"}
 {"assign":{"at":"2026-10-16T19:51:58-05:00","now":"step 6 landed (a9509d1a9: SERVEX_TASK on spawn + shared post-commit hook writes commit lines); next step 7, Session extends Item"}}
+{"commit":"b06b57f047dc"}
