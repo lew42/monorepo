@@ -1,0 +1,59 @@
+{
+ "page": "/framework/ext/drawer/",
+ "session_file": "/framework/ext/drawer/ai/v-ypn9wa4.jsonl",
+ "owner_sentences": [
+  "Please file a task for this page.",
+  "The page's README should link its architecture doc."
+ ],
+ "seconds_from_last_sentence": {
+  "place_line": 3.6,
+  "task_folder": null,
+  "ai_log_line": 5.9,
+  "feed_row": 5.9
+ },
+ "seconds_by_file_stamps": {
+  "place_line": 3.7,
+  "task_log_line": 5.9
+ },
+ "task_folder": null,
+ "feed_text": "☑opened: README links the architecture doc10-17 13:17",
+ "new_log_lines": [
+  {
+   "session": {
+    "id": "v-ypn9wa4",
+    "event": "started",
+    "title": null,
+    "file": "/framework/ext/drawer/ai/v-ypn9wa4.jsonl",
+    "at": "2026-10-17T13:17:46.583-05:00"
+   }
+  },
+  {
+   "session": {
+    "id": "v-w49myh4",
+    "event": "ended",
+    "title": "Drawer README architecture link",
+    "file": "/framework/ext/drawer/ai/v-w49myh4.jsonl",
+    "at": "2026-10-17T13:17:46.701-05:00"
+   }
+  },
+  {
+   "session": {
+    "id": "v-ypn9wa4",
+    "event": "started",
+    "title": "Drawer README links architecture doc",
+    "file": "/framework/ext/drawer/ai/v-ypn9wa4.jsonl",
+    "at": "2026-10-17T13:17:56.674-05:00"
+   }
+  },
+  {
+   "task": {
+    "dir": "public/framework/ext/drawer",
+    "event": "opened",
+    "title": "README links the architecture doc",
+    "at": "2026-10-17T13:17:58.995-05:00"
+   }
+  }
+ ],
+ "new_chat_lines": [],
+ "errors": []
+}
