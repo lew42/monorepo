@@ -1,51 +1,16 @@
-import { div, span, a, icon } from "/app.js";
-import Task from "/framework/core/Task/Task.js";
-import "/framework/core/Task/TaskView.js";
+import { a, span } from "/app.js";
+import TasksPage from "/framework/core/Task/TasksPage.js";
 
-/* The "Tasks" card: the open goal tasks of every module list, ranked, each wrapped in its module (icon + title link).
- * A Live card {type:"part-live", live:"tasks"} draws this (Live.js). Step 3c replaces MODULES with the node-built index. */
+/* The "Tasks" card: one line, "Tasks · N open · M running", linking to /tasks/ (TasksPage holds the rows; one of everything).
+ * A Live card {type:"part-live", live:"tasks"} draws this (Live.js): line() is its preview, into() its full view. */
 export default class LiveTasks {
-	static MODULES = [
-		{ path: "core/Task", title: "core/Task", icon: "task_alt" },
-		{ path: "servex", title: "servex", icon: "dns" },
-		{ path: "audio/Voice", title: "audio/Voice", icon: "mic" },
-		{ path: "ai", title: "ai", icon: "smart_toy" },
-		{ path: "ext/Refine", title: "ext/Refine", icon: "auto_fix_high" },
-	];
+	static URL = "/tasks/";
 
-	// Each module's goal tasks (its list's children), read through the shared Store, open ones only.
-	static async load(){
-		const lists = await Promise.all(this.MODULES.map(async mod => {
-			const host = await this.host(`/framework/${mod.path}/tasks/task.jsonl`);
-			const kids = host ? [...host.tasks] : [];
-			await Promise.all(kids.map(k => k.ready));
-			await Promise.all(kids.flatMap(k => [...(k._tasks ?? [])].map(g => g.ready)));   // the steps under each goal
-			return kids.map(task => ({ mod, task }));
-		}));
-		const rows = lists.flat().filter(r => r.task.state !== "complete");
-		const order = Task.rank(rows.map(r => r.task));
-		return order.map(t => rows.find(r => r.task === t));
-	}
-
-	// The module list's Task, opened ONCE per file: the card draws more than once, and a second open() streams the file twice.
-	static host(url){
-		const store = Task.Store.for(url);
-		return store.live_tasks ??= store.host ? Promise.resolve(store.host)
-			: store.open().catch(() => {}).then(() => store.host ?? (store.count ? store.attach(Task.replay_new(store.entries)).host : null));
-	}
-
-	static draw(rows){
-		div.c("live-tasks", () => {
-			if (!rows.length) return void span.c("muted", "No open goals.");
-			rows.forEach(({ mod, task }) => div.c("live-task", () => {
-				a.c("live-task-mod", () => { icon(mod.icon); span(mod.title); }).href(`/framework/${mod.path}/`);
-				Task.View.row(task);
-			}));
-		});
-	}
-
-	static into(box){
-		return this.load().then(rows => box.empty(() => this.draw(rows)))
+	static line(box){
+		return TasksPage.counts(this.URL)
+			.then(({ open, running }) => box.empty(() => a.c("live-tasks-line", `Tasks · ${open} open · ${running} running`).href(this.URL)))
 			.catch(e => box.empty(() => span("Could not read tasks: " + e.message)));
 	}
+
+	static into(box){ return this.line(box); }
 }
