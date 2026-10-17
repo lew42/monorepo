@@ -43,3 +43,4 @@
 {"commit":"d61ff6a53aeb"}
 {"commit":"361dc7aaa19c"}
 {"assign":{"landed_at":"2026-10-17T08:59:35-05:00","title":"Socket: a phone may run read-only queries, so Last landed and Waiting fill","outcome":"**A LAN peer can now ask the socket for the task tree; commands are still refused.**\n\n- [x] one list in [Socket.js](/framework/dev/Socket/): `LAN_OK` gains `query`, and `LAN_QUERY` names the only two sources a phone may ask (`sessions`, `tasks`); rule in [lan.md](/framework/dev/Socket/doc/lan.md)\n- [x] from the LAN address, headless: a `tasks` query returned rows, [Now](/live/now/) showed Last landed, `cmd` and a query of an unknown source were both refused\n- [x] [notes.md](/live/doc/notes.md) corrected\n- [ ] the dev server must restart for the allowlist (Server/ changed); logged as needs_restart","links":["/framework/dev/Socket/doc/lan.md","/live/doc/notes.md"]}}
+{"commit":"0309088b56b0"}
