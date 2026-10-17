@@ -21,3 +21,6 @@
 {"task":"/framework/core/Task/tasks/task-system-build/cost-per-task-is-the-sum-of-the-agents-t/","by":"voice-app","ts":"2026-10-17T01:30:49.432Z"}
 {"task":"/framework/core/Task/tasks/task-system-build/live-a-presentation-mode-and-a-prioritis/","by":"voice-app","ts":"2026-10-17T01:30:49.462Z"}
 {"task":"/framework/core/Task/tasks/task-system-build/complete-checks-each-expected-string-yes/","by":"voice-app","ts":"2026-10-17T01:30:49.491Z"}
+{"tasks":{"add":{"type":"Task","id":"step-3c","title":"Step 3c: The item tool on live instances: nested subtasks, slug refusal, files.jsonl"}},"by":"mastermind-task-system","ts":"2026-10-17T01:58:19.464Z"}
+{"tasks":{"add":{"type":"Task","id":"step-3d","title":"Step 3d: sessions, source and cost on every task"}},"by":"mastermind-task-system","ts":"2026-10-17T01:58:19.466Z"}
+{"step-3c":{"complete":{}},"by":"mastermind-task-system","ts":"2026-10-17T01:58:19.475Z"}

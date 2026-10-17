@@ -95,3 +95,9 @@
 {"commit":"51ebc4b51"}
 {"log":{"at":"2026-10-16T20:46:19-05:00","msg":"Step 15 landed: Task.View rows (checkbox, stage icon, title link, segmented bar; a parent previews 3 open children and expands), the module Tasks tab, and the /live/ Tasks card (live:\"tasks\", posted). Fix 51ebc4b51: the card draws preview and full, so each list opens once. Found: a browser child stub's change bubbles to the parent Store, which tries to append {\"<child>\":{...}} lines; the server refuses them (no damage). Folded into step 3c."}}
 {"commit":"097a29296f09"}
+{"action":{"at":"2026-10-16T20:47:01-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-system/item-live/requirements.md"]}}
+{"commit":"b9d28c3412da"}
+{"commit":"37e96d071"}
+{"commit":"62bd07b96"}
+{"commit":"6e27eff74"}
+{"log":{"at":"2026-10-16T20:58:19-05:00","msg":"Step 3c landed: the item tool keeps one live root per file in node (re-read on outside edits), subtasks nest in the parent's task.jsonl ({\"folder\":id} gives one its own folder, recorded as {\"file\"}), an existing slug is refused with -2 offered (TaskDirs.make too), new folders get a files.jsonl line, and page tools on a task folder write the task, not a stray page.jsonl. Follow-up fix: a referenced child owns its file, so the parent's Store never records its changes; the real server now logs 0 refused appends on the task page and /live/tasks/. The item tool change runs inside Servex: it takes effect at the next Servex restart (the owner's call)."}}
