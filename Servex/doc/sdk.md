@@ -51,3 +51,7 @@ Every line in a session file carries an `entrypoint`. `sdk-ts` means the session
 
 - Whether `Servex/agents/Sessions.js` reads the SDK session files. Its own text covers the `ai/log.jsonl` index and session pages, and it does not touch `~/.claude`.
 - The exact resume path through `wake()` and `reopen()`, beyond the `resume:` option shown in `Agents.js`.
+
+## In-process page tools (step 12)
+
+`Agents.js` `door()` also gives each agent an in-process SDK server named `local` (`mcp__local__item`, `page_set`, `page_add`, `page_log`, `page_read`, `page_call`: same functions as the HTTP ones, no network, `ctx.caller` = the agent id). The six `mcp__servex__` twins go into `disallowedTools` so each tool shows once. `SERVEX_LOCAL_TOOLS=0` turns it off. Test: `node Servex/agents/item-local.test.mjs`.

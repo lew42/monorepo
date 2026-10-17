@@ -14,6 +14,14 @@ import TaskDirs from "../../Server/TaskDirs.mjs";
 import LandingCheck from "../../Server/LandingCheck.mjs";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
+import { server as sdk_server } from "./tools.js";   // cycle with tools.js is fine: used only at call time
+import { page_tools } from "./page_tools.js";
+
+/* The in-process page tools for one agent, and the names of their HTTP twins. */
+function local_page_tools(id){
+	const list = page_tools();
+	return { server: sdk_server(undefined, { caller: id }, list), twins: list.map(t => "mcp__servex__" + t.name) };
+}
 
 /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
  * What lands here is the PROJECTION: one typed event per SDK message, written
@@ -1010,8 +1018,8 @@ Agents.Agent = class Agent {
 			 * `...this.sdk` so it always applies even when a spec sets its own
 			 * disallowedTools for an unrelated reason. */
 			...(this.provider === "openrouter" && disallowed_tools_for(this.model).length
-				? { disallowedTools: [...new Set([...(this.sdk?.disallowedTools ?? []), ...disallowed_tools_for(this.model)])] }
-				: {}),
+				? { disallowedTools: [...new Set([...(this.sdk?.disallowedTools ?? []), ...(door.disallowedTools ?? []), ...disallowed_tools_for(this.model)])] }
+				: door.disallowedTools ? { disallowedTools: [...new Set([...(this.sdk?.disallowedTools ?? []), ...door.disallowedTools])] } : {}),
 			...(this.one_shot ? this.refusal() : {})
 		};
 	}
@@ -1072,8 +1080,12 @@ Agents.Agent = class Agent {
 		 * today's default Claude path. */
 		if (!url) return strip({ mcpServers: this.mcp_servers, env: (or_env || this.env) ? { ...process.env, ...or_env, ...this.env } : undefined });
 
+		/* The page tools in-process, as `mcp__local__*` (step 12, Servex/doc/item-tool.md); the HTTP twins are
+		 * disallowed so each tool shows once. `SERVEX_LOCAL_TOOLS=0` keeps HTTP only. */
+		const local = process.env.SERVEX_LOCAL_TOOLS === "0" ? null : local_page_tools(this.id);
 		return {
-			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...this.mcp_servers },
+			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...(local ? { local: local.server } : {}), ...this.mcp_servers },
+			...(local ? { disallowedTools: local.twins } : {}),
 			env: { ...process.env, SERVEX_MCP: url, ...(or_env ?? {}), ...this.env }
 		};
 	}
