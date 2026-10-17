@@ -1,2 +1,12 @@
 {"id":"tasks","path":"/framework/ai/tasks/","title":"ai tasks","mode":"parallel"}
 {"task":"/framework/ai/tasks/indexing-and-finding-past-work/","by":"voice-app","ts":"2026-10-17T01:30:49.670Z"}
+{"task":"/framework/ai/tasks/judge-whether-the-two-voice-agents-clean/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:16:53.597Z"}
+{"task":"/framework/ai/tasks/find-lost-past-work-and-mine-old-prompts/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:11.157Z"}
+{"task":"/framework/ai/tasks/a-fresh-checkup-mastermind-for-each-voic/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:12.125Z"}
+{"task":"/framework/ai/tasks/never-wait-on-the-owner-decide-document/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:12.958Z"}
+{"task":"/framework/ai/tasks/where-the-past-work-query-stands/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:16.864Z"}
+{"task":"/framework/ai/tasks/ask-does-it-already-exist-before-any-age/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:17.800Z"}
+{"task":"/framework/ai/tasks/readme-indexing-as-the-discovery-mechani/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:18.711Z"}
+{"task":"/framework/ai/tasks/rename-the-session-log-task-jsonl-to-ses/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:21.571Z"}
+{"task":"/framework/ai/tasks/overview-done-needed-and-in-flight/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:22.513Z"}
+{"task":"/framework/ai/tasks/overview-of-this-dictation-and-all-asks/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:31.973Z"}

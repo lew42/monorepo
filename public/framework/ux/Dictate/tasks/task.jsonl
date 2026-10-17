@@ -20,3 +20,10 @@
 {"task":"/framework/ux/Dictate/tasks/dictate-fixes/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
 {"task":"/framework/ux/Dictate/tasks/dictate-live-state/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
 {"task":"/framework/ux/Dictate/tasks/dictate-one-engine/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ux/Dictate/tasks/save-the-raw-whisper-replies/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:23.408Z"}
+{"task":"/framework/ux/Dictate/tasks/where-a-whisper-log-fits-item-list-and-p/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:24.306Z"}
+{"task":"/framework/ux/Dictate/tasks/one-rolling-voice-session-or-many/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:25.207Z"}
+{"task":"/framework/ux/Dictate/tasks/does-each-whisper-dictation-have-a-sessi/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:26.140Z"}
+{"task":"/framework/ux/Dictate/tasks/transcribe-in-place-in-the-chat-bubble/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:28.007Z"}
+{"task":"/framework/ux/Dictate/tasks/place-each-sentence-paragraph-new-paragr/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:29.073Z"}
+{"task":"/framework/ux/Dictate/tasks/raw-lines-get-swallowed-into-a-refined-s/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:30.073Z"}

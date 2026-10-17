@@ -1,0 +1,32 @@
+{"assign":{"session_id":"89ffce54-a2ab-4de6-b813-e297496e2ec3","agent":"helper-asks-to-tasks","card":"2026/10/16/checkup-on-everything-the-voice-sessions","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim","requested_at":"2026-10-17T00:15:38-05:00","now":"starting"}}
+{"log":{"at":"2026-10-17T00:16:11-05:00","msg":"skill: minion"}}
+{"task":"/framework/ai/tasks/judge-whether-the-two-voice-agents-clean/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:16:53.598Z"}
+{"sessions":[{"id":"helper-asks-to-tasks","task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/asks-to-tasks/"}],"by":"helper-asks-to-tasks","ts":"2026-10-17T05:16:53.601Z"}
+{"task":"/framework/core/Task/tasks/get-caught-up-on-the-task-system-and-the/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:10.255Z"}
+{"task":"/framework/ai/tasks/find-lost-past-work-and-mine-old-prompts/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:11.159Z"}
+{"task":"/framework/ai/tasks/a-fresh-checkup-mastermind-for-each-voic/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:12.126Z"}
+{"task":"/framework/ai/tasks/never-wait-on-the-owner-decide-document/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:12.967Z"}
+{"task":"/framework/ai/tasks/where-the-past-work-query-stands/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:16.865Z"}
+{"task":"/framework/ai/tasks/ask-does-it-already-exist-before-any-age/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:17.801Z"}
+{"task":"/framework/ai/tasks/readme-indexing-as-the-discovery-mechani/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:18.712Z"}
+{"task":"/framework/core/Task/tasks/task-templates-node-carries-out-the-rout/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:19.672Z"}
+{"task":"/framework/core/Task/tasks/check-the-task-system-its-views-and-modu/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:20.648Z"}
+{"task":"/framework/ai/tasks/rename-the-session-log-task-jsonl-to-ses/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:21.571Z"}
+{"task":"/framework/ai/tasks/overview-done-needed-and-in-flight/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:22.514Z"}
+{"task":"/framework/ux/Dictate/tasks/save-the-raw-whisper-replies/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:23.409Z"}
+{"task":"/framework/ux/Dictate/tasks/where-a-whisper-log-fits-item-list-and-p/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:24.307Z"}
+{"task":"/framework/ux/Dictate/tasks/one-rolling-voice-session-or-many/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:25.208Z"}
+{"task":"/framework/ux/Dictate/tasks/does-each-whisper-dictation-have-a-sessi/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:26.142Z"}
+{"task":"/framework/servex/tasks/drop-the-fast-assistant-for-one-plain-vo/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:27.041Z"}
+{"task":"/framework/ux/Dictate/tasks/transcribe-in-place-in-the-chat-bubble/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:28.008Z"}
+{"task":"/framework/ux/Dictate/tasks/place-each-sentence-paragraph-new-paragr/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:29.074Z"}
+{"task":"/framework/ux/Dictate/tasks/raw-lines-get-swallowed-into-a-refined-s/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:30.074Z"}
+{"task":"/framework/core/Task/tasks/the-item-tool-s-delta-design-studied-and/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:31.109Z"}
+{"task":"/framework/ai/tasks/overview-of-this-dictation-and-all-asks/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:31.974Z"}
+{"action":{"at":"2026-10-17T00:18:12-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/asks-to-tasks/lines-1.json"]}}
+{"action":{"at":"2026-10-17T00:18:18-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/asks-to-tasks/lines-2.json"]}}
+{"log":{"at":"2026-10-17T00:18:21-05:00","msg":"read the four requirements files, the checkups and core/Task docs; created 22 tasks through the item tool (ai 10, core/Task 4, ux/Dictate 7, servex 1); 17 complete, 5 idle"}}
+{"decision":{"at":"2026-10-17T00:18:21-05:00","msg":"Skipped two non-work items: 14.6 ('more chunks follow') and 16.4 (feedback that a reply took ten minutes). Alternative: make them tasks; they have nothing to check off, so they would sit open forever."}}
+{"decision":{"at":"2026-10-17T00:18:21-05:00","msg":"Parent of every new task is this task, so the item tool filed each under asks-to-tasks and wrote the reference line here; source is the requirements file plus #ask-N. Alternative: parent each under its module goal task; rejected, the asks are new asks and the grouping rule says one goal task per module holds long-lived work, which needs the owner's judgement."}}
+{"decision":{"at":"2026-10-17T00:18:21-05:00","msg":"Marked complete only where a checkup.md or landed task shows it landed tonight; 14.3, 15.4, 15.6, 17.4 and 17.5 stay idle with a note of what is done and what is open."}}
+{"assign":{"title":"Asks to tasks: 22 asks from requirements-14 to -17 are tracked","landed_at":"2026-10-17T00:18:21-05:00","outcome":"**22 of the owner's asks are now real tasks in their module homes, and 17 are already complete.** Each links its requirements file and ask number in `source` and carries a note of which agent took it. See [/tasks/](/tasks/).\n\n- [x] ai (10), core/Task (4), ux/Dictate (7), servex (1): made by the item tool, none hand-written\n- [x] 17 complete from the checkup records; 5 idle with a note: old prompts (14.3), templates later slices (15.4), the session.jsonl rename (15.6), per-sentence wake (17.4), raw swallowed into summary (17.5)\n- [x] skipped 14.6 and 16.4 (not work items)\n- [x] committed by path","links":[{"url":"/tasks/","label":"All tasks"}]}}

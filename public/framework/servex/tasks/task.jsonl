@@ -16,3 +16,4 @@
 {"task":"/framework/servex/tasks/spawn-logs-ask/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
 {"task":"/framework/servex/tasks/spend-shape/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
 {"task":"/framework/servex/tasks/worktree-servers-revive/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/tasks/drop-the-fast-assistant-for-one-plain-vo/","by":"helper-asks-to-tasks","ts":"2026-10-17T05:17:27.040Z"}
