@@ -1,1 +1,24 @@
 {"assign":{"session_id":"0a18f3aa-9de1-4bfb-9801-c2a2609540ab","agent":"helper-undone-asks","card":"2026/10/16/checkup-on-everything-the-voice-sessions","brief":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/undone-asks/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim","requested_at":"2026-10-17T09:18:23-05:00","now":"starting"}}
+{"log":{"at":"2026-10-17T09:18:56-05:00","msg":"skill: minion"}}
+{"log":{"at":"2026-10-17T09:18:58-05:00","msg":"skill: code"}}
+{"action":{"at":"2026-10-17T09:26:01-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/undone-asks/lines1.json"]}}
+{"log":{"at":"2026-10-17T09:26:43-05:00","msg":"Spot-check, rows 1 to 3 of 5: opened the source prompts and searched the repo and task homes; all three are genuinely undone (no landed task or card, nothing in the repo does it)."}}
+{"log":{"at":"2026-10-17T09:26:43-05:00","msg":"Spot-check 4 of 5: dark-mode sidebars in the dev shell with Ctrl+backslash. WRONG: dev/DevShell already ships it. False undone; nothing records it as done."}}
+{"log":{"at":"2026-10-17T09:26:43-05:00","msg":"Spot-check 5 of 5: apply the code-driven loop principle. WRONG: it is already a law at the bottom of CLAUDE.md. False undone. So the undone count is an upper bound (3 of 5 correct); the doc says so."}}
+{"decision":{"at":"2026-10-17T09:26:43-05:00","what":"Task-to-ask join is strict wording overlap (3 or more shared words and 50 percent of the ask's words); no existing task carries an ask source, so only 1 matched.","alternative":"A 34-40 percent share found 9 to 19 matches but mostly false ones; rejected so 'done' is never guessed."}}
+{"decision":{"at":"2026-10-17T09:26:43-05:00","what":"Unroutable = not done and no module folder: 449 refined asks (module site or unknown) plus 16 ledger asks whose title names no module. Refined and routed asks are two kinds that sum to the total; a dropped ledger ask counts as done.","alternative":"Fold unroutable into undone; rejected because no inbox or module can own them."}}
+{"decision":{"at":"2026-10-17T09:26:43-05:00","what":"Added a second Servex line: LogSweeper.ALLOW commits ai/asks/undone.json so the daily rebuild is not a loose dirty file.","alternative":"Leave it dirty; rejected as a loose end."}}
+{"log":{"at":"2026-10-17T09:26:43-05:00","msg":"needs_restart: Servex must restart for TaskLoop.undone_asks_daily() and the LogSweeper allow line to take effect. I did not restart anything."}}
+{"log":{"at":"2026-10-17T09:26:43-05:00","msg":"Counts: 1150 asks counted = 65 done + 620 undone + 465 unroutable; the two numbers agree (UndoneAsks exits 1 if they ever do not). node Server/UndoneAsks.test.mjs ok."}}
+{"log":{"at":"2026-10-17T09:26:43-05:00","msg":"check_page found a.href / span.text is not a function (bare tag chaining); fixed to a.c(...).href and span(text). The 404s in the same run are other pages' weight/page.jsonl probes, not this page."}}
+{"commit":"7aa41498fe0e"}
+{"commit":"a5b69c856121"}
+{"commit":"224b369b7911"}
+{"commit":"011df1cdbfd0"}
+{"commit":"f1bd527f9128"}
+{"commit":"6c51cce50109"}
+{"commit":"714d53e19ecb"}
+{"action":{"at":"2026-10-17T09:42:24-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/undone-asks/lines2.json"]}}
+{"log":{"at":"2026-10-17T09:42:32-05:00","msg":"merge.mjs smoke crawl refused first: the asks page linked ledger cards whose folders do not exist or whose card page references moved files. Fixed in asks/page.js: link a card only when its folder exists and the ask is not landed; AskRows.js uses /framework/ai/<card>/ instead of the retired /framework/ai2/. Merged with --no-review and a stated reason (the brief allows it). Landing line: three-way merge committed 714d53e19."}}
+{"log":{"at":"2026-10-17T09:42:32-05:00","msg":"Made out of date and updated: ai/asks/readme.md, ai/readme.md (one line), Servex/doc/task-loop.md. return_worktree(qf-6) refused because public/framework/ai/board.jsonl is dirty in the worktree and is not mine; left for the mastermind. Servex restart needed for the daily rebuild (needs_restart logged above)."}}
+{"finish":{"at":"2026-10-17T09:42:32-05:00"}}
