@@ -1,3 +1,4 @@
 {"assign":{"session_id":"5f5eeae3-7b16-4d37-8169-6fc15bcbf114","agent":"minion-uv-14","model":"claude-haiku-5-5","worktree":"C:\\Code\\lew42\\worktrees\\verify-undone","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone","requested_at":"2026-10-17T10:50:26-05:00","now":"starting"}}
 {"log":{"at":"2026-10-17T10:56:51-05:00","heartbeat":"check","msg":"status check sent to minion-uv-14"}}
 {"log":{"at":"2026-10-17T10:57:24-05:00","heartbeat":"answered","msg":"Done: `results.json` is written with all 23 asks checked. I edited nothing else, and I did not log to `task.jsonl`, so the brief's logging step is still open."}}
+{"log":{"at":"2026-10-17T11:13:56-05:00","heartbeat":"deliberate","msg":"minion-uv-14 its agent is not running: it was stopped on purpose by lifecycle at 2026-10-17T11:03:05-05:00; not revived."}}

@@ -78,3 +78,8 @@
 {"at":"2026-10-17T11:03:29-05:00","from":"minion-uv-34","kind":"done","text":"Done: `results.json` is written for batch 34 (core/Events), with all three asks checked. Nothing else is in progress."}
 {"at":"2026-10-17T11:03:30-05:00","from":"minion-uv-35","kind":"done","text":"Done: `results.json` is written in `batches/35-ext/` with verdicts for all three asks (two done, one undone), and I edited nothing else. I'm not doing anything further."}
 {"at":"2026-10-17T11:03:30-05:00","from":"minion-uv-36","kind":"done","text":"Done: `results.json` is written and parses. Both asks are marked undone, with evidence in the file. Nothing else is in progress."}
+{"at":"2026-10-17T11:14:30-05:00","from":"minion-uv-31","kind":"done","text":"Still done, nothing running: `results.json` is written for the five ai/models asks, and the task is ready to land."}
+{"at":"2026-10-17T11:14:33-05:00","from":"minion-uv-33","kind":"done","text":"Finished. `results.json` is written in `batches/33-ext-ai/` and I'm idle. I haven't touched any other file."}
+{"at":"2026-10-17T11:15:29-05:00","from":"minion-uv-35","kind":"done","text":"Finished: `results.json` is written, and I'm idle with nothing else to run."}
+{"at":"2026-10-17T11:15:30-05:00","from":"minion-uv-34","kind":"done","text":"Finished. `results.json` for batch 34 is written, and I'm not doing anything else."}
+{"at":"2026-10-17T11:15:32-05:00","from":"minion-uv-36","kind":"done","text":"Finished. `results.json` is written and validated, and I'm not doing anything else."}

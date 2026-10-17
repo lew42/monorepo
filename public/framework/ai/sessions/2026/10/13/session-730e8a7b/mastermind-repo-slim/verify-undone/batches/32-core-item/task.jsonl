@@ -1,3 +1,4 @@
 {"assign":{"session_id":"d6ae8e80-187d-4eb5-a40f-3870b32f1156","agent":"minion-uv-32","model":"claude-haiku-5-5","worktree":"C:\\Code\\lew42\\worktrees\\verify-undone","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone","requested_at":"2026-10-17T10:55:41-05:00","now":"starting"}}
 {"log":{"at":"2026-10-17T11:02:00-05:00","heartbeat":"check","msg":"status check sent to minion-uv-32"}}
 {"log":{"at":"2026-10-17T11:02:36-05:00","heartbeat":"answered","msg":"Done: `results.json` is written at the batch path in the brief, and I'm stopped. No further work is pending on my side."}}
+{"log":{"at":"2026-10-17T11:13:57-05:00","heartbeat":"deliberate","msg":"minion-uv-32 its agent is not running: it was stopped on purpose by lifecycle at 2026-10-17T11:03:06-05:00; not revived."}}

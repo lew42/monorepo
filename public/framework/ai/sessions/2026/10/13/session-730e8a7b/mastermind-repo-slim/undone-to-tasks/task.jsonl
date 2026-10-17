@@ -249,3 +249,12 @@
 {"commit":"737955601"}
 {"commit":"1495bb9de"}
 {"assign":{"title":"Undone to tasks: 229 verified-undone asks are idle tasks in their module homes","landed_at":"2026-10-17T11:13:06-05:00","outcome":"**229 tasks created and 229 asks now link to them (229 minus 0 that already had one).** 0 were already tracked, 0 had no module. Each ask on the undone-asks page links its task; /tasks/ shows them folded per module.\n\n- [x] `node Server/UndoneToTasks.mjs --plan` / `--apply` (class UndoneToTasks, test passes); created through the item tool\n- [x] manifest `ai/asks/undone-to-tasks.jsonl`, `task` field in undone.json, /tasks/ index updated\n- [x] /tasks/ no longer a wall: a module group shows 5 open rows, the rest fold; padding-check clean at four widths\n- [x] verdict doc has a dated line; committed by path\n- [ ] `UndoneAsks.mjs --json` rebuild does not carry `task` yet (outside this fence)","links":[{"url":"/tasks/","label":"All tasks"},{"url":"/framework/ai/asks/undone/","label":"Undone asks"}]}}
+{"commit":"09de33071014"}
+{"log":{"at":"2026-10-17T11:13:13-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-17T11:13:13-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-17T11:13:13-05:00","msg":"doc-check: public/framework/core/Task: 2 dead links (/Server/TaskMigrate.mjs, /Servex/doc/item-tool.md)"}}
+{"log":{"at":"2026-10-17T11:13:13-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-17T11:13:19-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-17T11:13:24-05:00","msg":"layout-check: 1 pages at 1280/1920/2560/3440 — no flags; sheets in layout-check/"}}
+{"log":{"at":"2026-10-17T11:13:37-05:00","msg":"padding-check: 1 pages — clean"}}
+{"log":{"at":"2026-10-17T11:13:51-05:00","msg":"session resumed"}}

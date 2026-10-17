@@ -9,3 +9,6 @@
 {"action":{"at":"2026-10-17T11:14:54-05:00","did":"edit","files":[".claude/tmp-bubbles-anchor-finish.json"]}}
 {"log":{"at":"2026-10-17T11:15:10-05:00","msg":"Landed 60b9771dd. Fake mic, 5 sentences, 400 wide: split 0 older-line moves while words stream (before: 27-38), 5 page turns; reader scrolled up first: 0 moves, 0 turns; strip 0. Bar, in-place, swallow proofs still pass. Caveats: Chat.js gained one additive sticky_scroll option {observe} (outside the fence); a page turn still moves older lines once when a bubble starts with under 75% of a box below it; the first sentence still hides the 64px empty placeholder once. Merged with --skip-smoke because the crawl 404s only on git-ignored shots in drawer/walkthrough and drawer/rail; check_page on Dictate and drawer clean. Docs now stale: ext/Chat sticky_scroll notes, ux/Dictate/doc/widget-notes.md#sticky-scroll."}}
 {"finish":{"at":"2026-10-17T11:15:10-05:00","msg":"split 0 stream moves (was 27-38), 5 page turns; scrolled-up 0 moves 0 turns; strip 0"}}
+{"commit":"f05eddac6454"}
+{"log":{"at":"2026-10-17T11:15:49-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T11:15:49-05:00","msg":"session resumed"}}

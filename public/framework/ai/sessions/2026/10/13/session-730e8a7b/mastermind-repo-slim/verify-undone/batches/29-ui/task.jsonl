@@ -1,3 +1,4 @@
 {"assign":{"session_id":"e5b9996f-7c0b-475d-be37-d31ea10ca7ab","agent":"minion-uv-29","model":"claude-haiku-5-5","worktree":"C:\\Code\\lew42\\worktrees\\verify-undone","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone","requested_at":"2026-10-17T10:54:42-05:00","now":"starting"}}
 {"log":{"at":"2026-10-17T11:00:59-05:00","heartbeat":"check","msg":"status check sent to minion-uv-29"}}
 {"log":{"at":"2026-10-17T11:01:32-05:00","heartbeat":"answered","msg":"Done: `results.json` is written at `batches/29-ui/results.json`, covering all 8 UI asks. Nothing else is in progress, and I edited no other repo files."}}
+{"log":{"at":"2026-10-17T11:13:57-05:00","heartbeat":"deliberate","msg":"minion-uv-29 its agent is not running: it was stopped on purpose by lifecycle at 2026-10-17T11:03:05-05:00; not revived."}}

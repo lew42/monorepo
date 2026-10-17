@@ -1,3 +1,4 @@
 {"assign":{"session_id":"e9604c2e-b4fc-41e9-b72e-e82ca4c344a2","agent":"minion-uv-25","model":"claude-haiku-5-5","worktree":"C:\\Code\\lew42\\worktrees\\verify-undone","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/verify-undone","requested_at":"2026-10-17T10:46:07-05:00","now":"starting"}}
 {"log":{"at":"2026-10-17T10:52:51-05:00","heartbeat":"check","msg":"status check sent to minion-uv-25"}}
 {"log":{"at":"2026-10-17T10:53:24-05:00","heartbeat":"answered","msg":"Done: `results.json` is written with verdicts for all 17 asks, and I have not edited anything else. Nothing is still running."}}
+{"log":{"at":"2026-10-17T11:13:56-05:00","heartbeat":"deliberate","msg":"minion-uv-25 its agent is not running: it was stopped on purpose by lifecycle at 2026-10-17T11:03:04-05:00; not revived."}}
