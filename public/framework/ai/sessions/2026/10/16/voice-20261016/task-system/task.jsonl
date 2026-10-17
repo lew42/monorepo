@@ -94,3 +94,4 @@
 {"commit":"eb104a70a"}
 {"commit":"51ebc4b51"}
 {"log":{"at":"2026-10-16T20:46:19-05:00","msg":"Step 15 landed: Task.View rows (checkbox, stage icon, title link, segmented bar; a parent previews 3 open children and expands), the module Tasks tab, and the /live/ Tasks card (live:\"tasks\", posted). Fix 51ebc4b51: the card draws preview and full, so each list opens once. Found: a browser child stub's change bubbles to the parent Store, which tries to append {\"<child>\":{...}} lines; the server refuses them (no damage). Folded into step 3c."}}
+{"commit":"097a29296f09"}

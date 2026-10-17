@@ -18,3 +18,13 @@
 {"log":{"at":"2026-10-16T20:06:47-05:00","msg":"task-loop chase 2 of 2: woke helper-whisper-log","chase":2}}
 {"log":{"at":"2026-10-16T20:12:51-05:00","heartbeat":"check","msg":"status check sent to helper-whisper-log"}}
 {"log":{"at":"2026-10-16T20:12:54-05:00","heartbeat":"answered","msg":"Finished and idle. The Whisper log is on `michael/dev` (`3cecf3724`), and the page is at `/framework/audio/Whisper/log/`. The fake-mic run didn't reproduce the duplicate. The only duplicate window it "}}
+{"log":{"at":"2026-10-16T20:21:47-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"Whisper log: the raw stream, structured\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-16T20:23:51-05:00","heartbeat":"check","msg":"status check sent to helper-whisper-log"}}
+{"log":{"at":"2026-10-16T20:23:55-05:00","heartbeat":"answered","msg":"Finished and idle. The Whisper log is on `michael/dev` (`3cecf3724`), and the page is at `/framework/audio/Whisper/log/`. The fake-mic run didn't reproduce the duplicate, so the next step is a live di"}}
+{"log":{"at":"2026-10-16T20:30:36-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T20:30:37-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T20:33:58-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T20:39:51-05:00","heartbeat":"check","msg":"status check sent to helper-whisper-log"}}
+{"log":{"at":"2026-10-16T20:39:53-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T20:40:24-05:00","heartbeat":"answered","msg":"The Whisper log work is finished and idle. It's on michael/dev as `3cecf3724`, and the page is at `/framework/audio/Whisper/log/`. The fake-mic pass reproduced no duplicate, so the next test is a live"}}
+{"log":{"at":"2026-10-16T20:43:59-05:00","msg":"session ended (other) without landing"}}

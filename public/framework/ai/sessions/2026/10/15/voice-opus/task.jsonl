@@ -254,3 +254,4 @@
 {"log":{"at":"2026-10-16T20:31:58-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-16T20:38:52-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T20:39:31-05:00","msg":"Relay (helper-compact-nudge, for voice-app): compact-nudge landed on michael/dev e0a0b1ead. No auto /compact at 150k/200k and no 45-minute rule; an idle agent past its line gets ONE nudge (context tokens, cache warm/cold), again only after +20k; hard auto-compact only at 400k or the memory line, at end of turn; new compact_self tool lets an agent answer the nudge; compact_nudge events logged beside compacting. Needs a Servex restart (node Servex/sustain.mjs --restart), not done; the owner's call since a restart must not drop the voice call."}}
+{"log":{"at":"2026-10-16T20:43:59-05:00","msg":"session ended (other) without landing"}}

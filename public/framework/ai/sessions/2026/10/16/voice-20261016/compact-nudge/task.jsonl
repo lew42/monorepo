@@ -2,3 +2,6 @@
 {"decision":{"at":"2026-10-16T20:37:23-05:00","question":"review size","computed":"full","chose":"none","why":"mastermind read: helper read its whole diff (Agents.js nudge/oversized, tools.js compact_self, roles.js, docs); 23-check unit test passes; pre-existing 4 test failures identical on main"}}
 {"review":{"at":"2026-10-16T20:37:23-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/compact-nudge","head":"14f3b35edf27226ff55690e086a24e49d664b200","model":null,"cost":0,"file":"review.md"}}
 {"log":{"at":"2026-10-16T20:40:00-05:00","msg":"compact-nudge landed on michael/dev e0a0b1ead: idle nudge replaces auto /compact; 400k/memory ceiling; compact_self tool; docs; test (23 checks). RESTART NEEDED to apply: node Servex/sustain.mjs --restart (not done; task-system build is running)."}}
+{"log":{"at":"2026-10-16T20:39:29-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-16T20:39:29-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-16T20:43:04-05:00","msg":"session ended (other) without landing"}}
