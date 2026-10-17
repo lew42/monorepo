@@ -125,7 +125,7 @@ export class JSONL {
 
 // History and reasons: doc/JSONL-notes.md (TaskJSONL schema and semantics).
 export class TaskJSONL extends JSONL {
-	static verbs = [...JSONL.verbs, "agent", "chat", "shot", "ask", "decision", "verdict", "rank", "note", "experiment", "review", "shots", "bands"];
+	static verbs = [...JSONL.verbs, "agent", "chat", "shot", "ask", "decision", "verdict", "rank", "note", "experiment", "review", "shots", "bands", "home"];
 
 	// `shots` verb uses static lines to avoid field/array collision (see doc/JSONL-notes.md).
 	static lines = {
@@ -225,6 +225,9 @@ export class TaskJSONL extends JSONL {
 		const msg = value.msg ?? `bands: round ${value.round ?? 1}, ${value.read?.length ?? 0} read`;
 		this.logs.push({ ...value, msg });
 	}
+
+	// {"home":"<module task url>"}: this old folder's task now lives in a module home (Server/TaskMigrate.mjs).
+	home(value){ this.logs.push({ msg: `this task's home is now ${value}`, home: value }); }
 
 	reset(){
 		this.agents = [];

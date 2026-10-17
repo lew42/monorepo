@@ -60,6 +60,8 @@ export const schemas = {
 			follow_up:  { fields: ["n", "at"], eg: { n: 1, to: "agent-id", at: "NOW" } },
 			// A short git hash this task produced.
 			commit:     { type: "string", eg: "a5c500aa0" },
+			// An old session folder's pointer to the task's module home (Server/TaskMigrate.mjs); replay keeps it as data.home.
+			home:       { type: "string", eg: "/framework/core/Task/tasks/task-system-build/" },
 		},
 		pending: ["snooze", "kill", "priority", "start", "pause", "resume", "stop", "finish", "wait", "approve", "follow_up", "commit"],
 	},

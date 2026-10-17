@@ -416,7 +416,7 @@ export const RULES = [
 const FRAMEWORK = path.join(PUBLIC, "framework");
 const MODULE_NAME = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
 const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/") + "/";
-const slug_of = text => String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task";
+export const slug_of = text => String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task";
 
 // The module an app path sits in: the nearest folder under public/framework/ with a readme.md. Never a dated ai/sessions/ folder.
 function module_of(url, root = FRAMEWORK){
@@ -444,7 +444,7 @@ function task_home(parent_dir, add, root = FRAMEWORK, from_path = ""){
 	return { slug, free, taken: free !== slug, dir: path.join(base, slug), list: { dir: base, module: mod } };
 }
 
-const PAGE_JS = ['import { TaskPage } from "/framework/core/Task/TaskPage.js";', "export default new TaskPage({ meta: import.meta });", ""].join(String.fromCharCode(10));
+export const PAGE_JS = ['import { TaskPage } from "/framework/core/Task/TaskPage.js";', "export default new TaskPage({ meta: import.meta });", ""].join(String.fromCharCode(10));
 
 // One add -> child folder with line 1, returns { id, path }. Fields come from the add (a legacy `data` object is flattened).
 function make_child(parent_dir, add, ctx, home){
