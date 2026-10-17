@@ -63,3 +63,7 @@ that ships.
   it was extracted from. Recorded as a real open question for the owner in the
   2026-08-16 documentation audit (`/framework/audit/overview/priorities/`, "6 —
   Structural, and needing the owner"), not yet resolved either way.
+
+## d-render-method (owner, 2026-10-16, dictated)
+
+Any class may have a `render()` method, and when a class makes DOM it should be called `render`, so it is abundantly clear that this method creates DOM. `render()` returns a new `<Class>.View` and is what a subclass overrides to change how its kind renders. Other DOM-making methods may have their own names (`preview()`), but the main one is `render`.

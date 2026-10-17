@@ -34,3 +34,7 @@ The `Tail` fix works (headless tab over `10.0.0.135:3104`: a new line shows in 3
 ## Code on cards (the owner, by voice, 2026-10-16 ~02:42Z)
 
 When the voice agent talks about code, the card it posts shows the code in real fenced code blocks, never paraphrased in prose. Code blocks scroll sideways by default; a `wrap` word in the fence info opts a block in to wrapping (being built, voice question 25f15826).
+
+## 2026-10-16 — the feed tile says what the page says (owner)
+
+A card's tile in the /live feed is navigation. Its text must be the card's title, nothing else: when I click "Now" I land on a page whose first heading is "Now". No mismatch between the link and what it links to. The `preview` field is not a place for a subtitle or a summary; if it differs from `title` it is wrong. (Said after the Now card showed "Done, in flight, waiting on you" in the feed.)

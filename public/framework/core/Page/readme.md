@@ -20,7 +20,7 @@ export default new Page({
 2. Add `"hello"` to the PARENT page's `children:` (for example `children: "hello"`). A page nobody declares still opens by its url (`Page.child()` imports its `page.js`), but it is missing from the parent's tabs, menus and cards.
 3. Open `/<parent path>/hello/`.
 
-**Working on this module?** Start at [`doc/start-here.md`](doc/start-here.md) (the inbox, the work log, the tests, what is next door) [`doc/class-block.md`](doc/class-block.md) (Item, List, Page in one code block) and [`doc/classes.md`](doc/classes.md) (the 23 files, one line each). This module has an expert: ask it with `ask_expert core/Page …` (Servex).
+**Working on this module?** Start at [`doc/start-here.md`](doc/start-here.md) (the inbox, the work log, the tests, what is next door) [`doc/class-block.md`](doc/class-block.md) (Item, List, Page in one code block) and [`doc/classes.md`](doc/classes.md) (the 23 files, one line each). Its inbox: `module_inbox core/Page` (Servex); no standing expert is registered as of 2026-10-16 (`list_experts` is empty).
 
 **When to reach for which:** a #List when something is ordered and needs watching
 (events are built in); an #Item when it is a thing (an icon, a title, saved); a
@@ -36,31 +36,35 @@ A page is a folder, and the folder is its storage:
 
 A Page whose data lives in node (a query source, loaded on first use, unloaded when idle): [`doc/server.md`](doc/server.md). **A cached server-side instance per page that the tools call `set(delta)` on, and why not "the whole App" (design, not built):** [`doc/server-instance.md`](doc/server-instance.md).
 
-How a line travels from a writer to the screen, and who may write: [`doc/streaming.md`](doc/streaming.md).
-The classes and the decisions (log growth, big collections, file vs database): [`doc/architecture.md`](doc/architecture.md).
-**Where the lines can be kept** (files today; a Durable Object, D1 or an archive later; the `Store` backends, costs and the first slice): [`doc/storage.md`](doc/storage.md).
-**A page body as a list of parts** (heading, text, card; each one a line in `page.jsonl`): [`parts/`](parts/readme.md), [architecture](parts/doc/architecture.md). **Pages, content, parts: one way each, and the plan for `children` and `content`:** [`doc/content.md`](doc/content.md); step 1 built: [`doc/content-list-step-1.md`](doc/content-list-step-1.md).
-**Templates** (one layout rendered many times from its own data, bound to live `Property` values): [`doc/templates.md`](doc/templates.md), demo [Template](./Template/). **Binding** (a view that follows its data: subscribe and unbind, linked clone vs hard copy, when a value is a Property; measured on 1,000 rows): [`doc/binding.md`](doc/binding.md).
-**Agents change any page with one tool**, `page_set(path, delta)`: a property, a card, a subpage; `page_read(path)` shows the result. The model and the "to do X, send delta Y" table: [`doc/ai-api.md`](doc/ai-api.md). **Subpages are `page.jsonl` lines, never a `page.js` edit** (embedded vs referenced): [`doc/subpages.md`](doc/subpages.md). Live demo: [tool](./tool/).
+- **Streaming** — a line from writer to screen, and who may write: [`doc/streaming.md`](doc/streaming.md).
+- **Decisions** — classes, log growth, big collections: [`doc/architecture.md`](doc/architecture.md).
+- **Storage** — where lines can be kept, today and later: [`doc/storage.md`](doc/storage.md).
+- **Parts** — a page body as a list (heading, text, card), one `page.jsonl` line each: [`parts/`](parts/readme.md), [architecture](parts/doc/architecture.md).
+- **Content** — pages, content, parts: one way each: [`doc/content.md`](doc/content.md); step 1 built: [`doc/content-list-step-1.md`](doc/content-list-step-1.md).
+- **Templates** — one layout rendered many times from its data: [`doc/templates.md`](doc/templates.md), demo [Template](./Template/).
+- **Binding** — a view that follows its data: [`doc/binding.md`](doc/binding.md).
+- **Agents change a page** with `page_set(path, delta)`; `page_read(path)` shows the result: [`doc/ai-api.md`](doc/ai-api.md), live demo [tool](./tool/).
+- **Subpages** are `page.jsonl` lines, never a `page.js` edit: [`doc/subpages.md`](doc/subpages.md).
 
 - **Architecture** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#architecture), verbatim.
 ## How a page loads
 
-A url is resolved one folder name at a time: memory → a declared `page.jsonl` → `md/`/`fs/`/`inbox/` →
-`route()` → a `page.jsonl` in the loaded folder listing → `page.js` → a bare `.md` file → not found. The full order, with a code line for
-each step and the two traps that catch people, is [`doc/loading.md`](./doc/loading.md). The page.js vs page.jsonl handoff, how a page.jsonl names its children, and one real file line by line, in verbatim code: [`doc/jsonl-pages.md`](./doc/jsonl-pages.md).
+A url is resolved one folder name at a time: memory, `page.jsonl`, `route()`, `page.js`, a bare `.md`, else not found.
+
+- **Full order** with code and the two traps: [`doc/loading.md`](./doc/loading.md).
+- **page.js vs page.jsonl** handoff, one real file line by line: [`doc/jsonl-pages.md`](./doc/jsonl-pages.md).
+
 [core/Router](/framework/core/Router/) ([readme](../Router/readme.md)) walks the url and calls `page.child(name)` once per folder name; this module decides what each name resolves to.
 
 - **The sub-systems** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-sub-systems), verbatim.
 ## Making a page: reuse a layout first
 
-Load the `page` skill (what, where, layout, content) and let `create_page` make the files.
-**Match your content first:** [content → layout](/framework/styles/layouts/catalog/doc/matching.md) (ranked [catalog](/framework/styles/layouts/catalog/), with use counts). Then pick the layout from **[the audit](./audit/)**: the layouts the site already uses, most-used
-first, each with its one opt-in call. Doc pages (top tabs) and column pages are the two that
-cover most modules. A child starts from its parent's layout. Pages drift two ways: building
-their own tab strip, sidebar or shell, or a one-page CSS tweak on top of a shared layout (a
-local `order` rule is what pushed the AI 2 tabs flush right). Propose a new layout before you
-build one, and check the page with `node Server/layout-check.mjs --bands <url>`.
+Load the `page` skill and let `create_page` make the files.
+
+- **Match content first:** [content → layout](/framework/styles/layouts/catalog/doc/matching.md), [catalog](/framework/styles/layouts/catalog/).
+- **Pick a layout** from [the audit](./audit/): most-used first. Doc pages (top tabs) and column pages cover most modules; a child starts from its parent's layout.
+- **Don't drift:** no own tab strip or shell, no one-page CSS tweak on a shared layout. Propose a new layout first.
+- **Check:** `node Server/layout-check.mjs --bands <url>`.
 
 - **Five ways to make a page** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#five-ways-to-make-a-page), verbatim.
 ## Read next
@@ -77,7 +81,13 @@ build one, and check the page with `node Server/layout-check.mjs --bands <url>`.
 
 **Split plan** — [`doc/split-plan.md`](./doc/split-plan.md) (why the file was 2,270 lines, half of it comments, and how it was split; `Page.class.js` is 721 lines since 2026-10-12)
 
-**Reference** — [doc](./doc/) (every method, property and topic in full, on its own tab) — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/data-children.md`](./doc/data-children.md) (children from data) · [`doc/property/related.md`](./doc/property/related.md) (related pages) · [`doc/indexing-2026-10-08.md`](./doc/indexing-2026-10-08.md) (open: directory deltas, session index, querying) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/architecture.md`](./doc/architecture.md) (the classes and decisions), [`doc/decisions.md`](./doc/decisions.md) (older history) · Files: `Page.class.js` (the class), `Page.css` (the core `.page-*` rules; other modules keep their own beside them), `page.js` (this module's Doc page; its Overview tab is the palette), `tools/links.mjs` (a link-checking script, not a page)
+**Reference** — [doc](./doc/) holds every method, property and topic on its own tab:
+
+- [`words.md`](./doc/words.md) the six page words · [`api.md`](./doc/api.md) every method and property · [`jsonl.md`](./doc/jsonl.md) the log format
+- [`data-children.md`](./doc/data-children.md) children from data · [`property/related.md`](./doc/property/related.md) related pages
+- [`watch-out.md`](./doc/watch-out.md) the traps · [`architecture.md`](./doc/architecture.md) decisions · [`decisions.md`](./doc/decisions.md) older history
+- [`indexing-2026-10-08.md`](./doc/indexing-2026-10-08.md) open: directory deltas, session index
+- Files: `Page.class.js` (the class), `Page.css` (core `.page-*` rules), `page.js` (this module's Doc page)
 
 **Query (page/query)** — [`doc/query.md`](./doc/query.md) (finding past work: the in-memory task query, every index and its verdict, task vs session, the pilot; the owner's open decisions)
 

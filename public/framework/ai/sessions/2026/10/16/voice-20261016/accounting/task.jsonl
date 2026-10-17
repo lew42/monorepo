@@ -92,3 +92,4 @@
 {"log":{"at":"2026-10-16T18:26:51-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T18:27:21-05:00","heartbeat":"answered","msg":"Still idle with no new work: waiting for your approval of [shape.md](/framework/ai/sessions/2026/10/16/voice-20261016/accounting/shape.md), latest commit `c8fc3c5be`."}}
 {"log":{"at":"2026-10-16T18:30:54-05:00","msg":"session ended (other) without landing"}}
+{"assign":{"closed_by":"owner","closed_at":"2026-10-16T18:53:57-05:00","closed_why":"voice-app decision (owner delegated, 2026-10-16 17:40): shape.md is not built now. The owner's task-system dictation today makes Task extends Item the progress mechanism and Session an Item that piggybacks on its tasks; shape.md + requirements.md R1-R17 become input to the task-system plan (core/Task/doc/owner-2026-10-16-task-system.md). 18 heartbeat wakes answered \"nothing changed\" at $94 total; that loop stops here."}}
