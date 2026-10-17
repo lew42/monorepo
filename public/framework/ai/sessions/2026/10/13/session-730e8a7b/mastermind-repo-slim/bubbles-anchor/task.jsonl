@@ -14,3 +14,6 @@
 {"log":{"at":"2026-10-17T11:15:49-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-17T11:17:26-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-17T11:20:27-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T11:26:26-05:00","heartbeat":"check","msg":"status check sent to helper-bubbles-anchor"}}
+{"log":{"at":"2026-10-17T11:26:29-05:00","msg":"session resumed"}}
+{"finish":{"at":"2026-10-17T11:27:11-05:00","msg":"landed in 60b9771dd: split 0 stream moves at 400 (was 27-38), 5 page turns; scrolled-up 0 moves 0 turns; strip 0. Proof ux/Dictate/test/anchor.mjs; rule in ux/Dictate/doc/voice-assistant.md#nothing-jumps"}}
