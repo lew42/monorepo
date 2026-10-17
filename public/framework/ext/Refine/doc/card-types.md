@@ -151,3 +151,37 @@ Either way, a proposal turns into a task when approved, and the data is never co
 ### The design smell the owner named
 
 "Why don't we have clear procedures for putting ideas?" The procedure exists (CLAUDE.md law 5: a `doc/*.md` beside the module, linked from its readme); the gap is knowing which module, because Refine moved recently. Candidate fix: a "where ideas go" line at the top of `ai/readme.md` that names the home module per topic.
+
+## Addendum 2 (owner, 2026-10-16, later still, Claude mobile app) — interactive cards, proposal verdicts, weight words, classes
+
+### Interactive cards: controls, forms, and data saved against the card
+
+- Cards need buttons, forms and small UI controls on them.
+- The goal is a **systematic** way to add properties to a card and save data against it. Pre-built form fields that a card composes (a question with its response, for example), so you can build dynamic cards without new code each time.
+- Whatever is saved belongs to that card, and the card can be referenced from anywhere (through a mention).
+- The right data structure is not decided. It depends on the open Item / Page / List persistence question: JSONL appends with the `live()` tail, or a move toward a live database. That is up in the air as of 2026-10-16.
+
+### Proposal verdicts: approve, improve, reject
+
+For any proposal, the reviewer (usually an AI) gives one of:
+- **Approve** — go.
+- **Approve with a caveat** — go, but note this.
+- **Improve** — suggest improvements without approving; judge it again when it comes back.
+- **Reject** — no.
+
+### More words
+
+- **Query** — a question, or a request for data.
+- **Request / Response** — the familiar server pair.
+- **Assertion** — goes in the bucket with Claim and Statement.
+- **Fact vs Opinion** — maybe not two card types; maybe one Statement with a weight. Not sure.
+- **Subject / Object** — for naming the things a card is about.
+- **Research** — a research system existed; its UI is one of many possible programs here.
+
+### Weight words
+
+A weighting system can mean any of: **confidence**, **probability**, **importance**, **relevance**, **bias**, **impact**, **influence**. Pick which ones a card actually carries; don't use them interchangeably.
+
+### The system is dynamic, so it is classes
+
+There are endless programs you could build here: ways to deal with each kind of content, its UI, cards, controls, feedback, workflows. The system has to expand without limit, so it is object-oriented: lean into classes. When you see a class you should always know where it is defined, be able to see the class architecture (which classes are nearby and how the whole fits), and once you know that, the structure itself is how you understand the system. (CLAUDE.md "Classes are the structure" and "Design the class architecture before you build".)
