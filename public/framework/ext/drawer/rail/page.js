@@ -59,7 +59,7 @@ export default new Page({
 
 		h2("What a plain page's sentence goes through");
 
-		md("The default sheet is a class chain, each link kept reachable rather than deleted when the next one landed: `DrawerRailSheetV1` (opening, closing, wiring the mic, and the one thing that never changed — a CARD page's sentence always goes straight into that card's own persisted thread) → `DrawerRailSheet` adds the links footer and **New session** → `DrawerRailSheetPanel`, today's default, swaps the hand-wired mic-only build for [`ux/Dictate`'s `Widget`](/framework/ux/Dictate/) and, on a PLAIN page only, sends the sentence into a real voice session instead of the old page-ai bridge:");
+		md("The sheet is one class today, `Sheet.Panel` (folded 2026-10-16), which fills itself with [`ux/Dictate`'s `chat()`](/framework/ux/Dictate/). Before that it was a class chain, now kept in `ext/drawer/archive/sheet-chain-2026-10-16.js`: `DrawerRailSheetV1` (opening, closing, wiring the mic, and the one thing that never changed — a CARD page's sentence always goes straight into that card's own persisted thread) → `DrawerRailSheet` adds the links footer and **New session** → `DrawerRailSheetPanel`, today's default, swaps the hand-wired mic-only build for [`ux/Dictate`'s `Widget`](/framework/ux/Dictate/) and, on a PLAIN page only, sends the sentence into a real voice session instead of the old page-ai bridge:");
 
 		code.js(`// ext/drawer/rail.js — DrawerRailSheetPanel, the plain-page path
 async voice_deliver(entry){
