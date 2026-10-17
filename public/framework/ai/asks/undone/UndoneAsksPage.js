@@ -5,6 +5,13 @@ import Browse from "/framework/ux/Browse/Browse.js";
 const DATA = new URL("../undone.json", import.meta.url).href;
 const slug = module => module.replaceAll("/", "~");
 
+// The verifier's verdict on an undone ask (Server/UndoneVerify.mjs): found built / confirmed missing / unclear / not checked yet.
+const KIND = a => a.state === "done" ? "done" : a.verified === "done" ? "found" : a.verified ?? "unchecked";
+const FILTERS = [["all", "all"], ["undone", "verified undone"], ["found", "found built"], ["unclear", "unclear"], ["unchecked", "not checked"]];
+const LABEL = { found: "✅ found built", undone: "⬜ verified undone", unclear: "unclear", unchecked: "not checked yet" };
+/** The first repo path in the evidence text as a site link (files under public/ are served), else null. */
+const evidence_href = text => { const m = String(text ?? "").match(/(?:public\/)?(?:framework|layouts|imagine|web|notes)\/[\w@./~-]+\.(?:js|md|json|jsonl|css|html)/); return m ? "/" + m[0].replace(/^public\//, "") : null; };
+
 /** Modules on the left (most undone first), the clicked module's asks on the right. */
 class UndoneModules extends Browse {
 	key = "undone-asks";
@@ -39,6 +46,8 @@ export default class UndoneAsksPage extends Page {
 				span(`${d.counted} asks counted`);
 				span.c("muted").text(`= ${d.totals.done} done + ${d.totals.undone} undone + ${d.totals.unroutable} unroutable (no module folder)`);
 				span.c("muted").text(d.agree ? "✅ the two numbers agree" : "⚠️ the two numbers disagree");
+				const asks = d.modules.flatMap(m => m.asks), v = k => asks.filter(x => KIND(x) === k).length;
+				if (v("found") + v("undone") + v("unclear")) span.c("muted").text(`checked against the repo: ${v("undone")} verified undone · ${v("found")} found already built · ${v("unclear")} unclear · ${v("unchecked")} not checked yet`);
 				a.c("page-link").href("/framework/ai/doc/undone-asks-2026-10-17.md").text("what this means");
 			}));
 		});
@@ -53,14 +62,28 @@ export default class UndoneAsksPage extends Page {
 				const m = d.modules.find(x => x.module === module);
 				if (!m) return p("No such module in the data.");
 				p.c("muted").text(`${m.undone + m.unroutable} undone, ${m.done} done`);
-				m.asks.filter(x => x.state !== "done").forEach(x => div.c("card pad flow", () => {
-					span(x.text);
-					div.c("flex wrap gap-25 muted", () => {
-						small(`${x.days ?? "?"} d old · ${x.kind}`);
-						a.c("page-link").href(x.source).text("source prompt");
-						x.where.url ? a.c("page-link").href(x.where.url).text(x.where.label) : small(x.where.label);
-					});
-				}));
+				const open = m.asks.filter(x => x.state !== "done"), chips = {};
+				const count = k => k === "all" ? open.length : open.filter(x => KIND(x) === k).length;
+				div.c("sessions-tabs flex gap-50 wrap", () => FILTERS.forEach(([k, label]) => chips[k] = button.c("sessions-chip", `${label} (${count(k)})`).on("click", () => show(k))));
+				const $list = div.c("flow");
+				const show = k => {
+					history.replaceState(null, "", k === "all" ? location.pathname : "?v=" + k);
+					Object.entries(chips).forEach(([c, b]) => b.el.classList.toggle("active", c === k));
+					$list.empty(() => open.filter(x => k === "all" || KIND(x) === k).forEach(x => div.c("card pad flow", () => {
+						span(x.text);
+						div.c("flex wrap gap-25 muted", () => {
+							small(`${x.days ?? "?"} d old · ${x.kind}`);
+							a.c("page-link").href(x.source).text("source prompt");
+							x.where.url ? a.c("page-link").href(x.where.url).text(x.where.label) : small(x.where.label);
+						});
+						if (x.verified) div.c("flex wrap gap-25 muted", () => {
+							span(`${LABEL[KIND(x)]}: ${x.verified_evidence}`);
+							const href = evidence_href(x.verified_evidence);
+							if (href) a.c("page-link").href(href).text("evidence file");
+						});
+					})));
+				};
+				show(new URLSearchParams(location.search).get("v") ?? "all");
 			}));
 		} });
 	}
