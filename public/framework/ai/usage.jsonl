@@ -1763,3 +1763,5 @@
 {"log":{"at":"2026-10-17T14:02:27-05:00","session":3,"weekly_all":34,"weekly_scoped":30,"resets_at":"2026-10-17T23:00:00.380094+00:00"}}
 {"log":{"at":"2026-10-17T14:17:27-05:00","session":3,"weekly_all":34,"weekly_scoped":30,"resets_at":"2026-10-17T23:00:00.284773+00:00"}}
 {"log":{"at":"2026-10-17T14:32:27-05:00","session":4,"weekly_all":35,"weekly_scoped":30,"resets_at":"2026-10-17T23:00:00.319604+00:00"}}
+{"log":{"at":"2026-10-17T14:47:40-05:00","session":4,"weekly_all":35,"weekly_scoped":31,"resets_at":"2026-10-17T22:59:59.653027+00:00"}}
+{"log":{"at":"2026-10-17T15:02:45-05:00","session":4,"weekly_all":35,"weekly_scoped":31,"resets_at":"2026-10-17T22:59:59.656102+00:00"}}
