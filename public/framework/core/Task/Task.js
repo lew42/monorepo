@@ -130,9 +130,14 @@ export class Task extends Item {
 	// 0/1 (or 1/1 once complete), so a progress bar still means something before
 	// the first subtask exists.
 	progress(){
-		const total = this._tasks?.length ?? 0;
-		if (!total) return { done: this.state === "complete" ? 1 : 0, total: 1 };
-		return { done: [...this._tasks].filter(t => t.state === "complete").length, total };
+		const p = Task.progress_of(this._tasks);
+		return p.total ? p : { done: this.state === "complete" ? 1 : 0, total: 1 };
+	}
+
+	// `{done, total}` over any List of tasks: the one counting code (Session calls it too).
+	static progress_of(list){
+		const tasks = [...(list ?? [])];
+		return { done: tasks.filter(t => t.state === "complete").length, total: tasks.length };
 	}
 
 	// Fields: plain data, read where they are written (readme: Fields).
@@ -157,8 +162,8 @@ export class Task extends Item {
 	// 0..1. Order: owner check, subtasks (the one computed form), old `steps`, agent's value.
 	get completion(){
 		if (this.data.checked_by) return 1;
-		const total = this._tasks?.length;
-		if (total) return [...this._tasks].filter(t => t.state === "complete").length / total;
+		const { done, total } = Task.progress_of(this._tasks);
+		if (total) return done / total;
 		const steps = this.data.steps;
 		if (Array.isArray(steps) && steps.length){
 			const step = Math.max(1, Math.min(Number(this.data.step) || 1, steps.length));

@@ -50,5 +50,17 @@ try {
 	ok(r.ok && lines().length === before + 1 && lines().at(-1).pause, "page_set is the same function");
 	r = await call("item", { path: URL, delta: { expected: "a field line" } });
 	ok(r.state.data.expected === "a field line", "a plain field line replays through Task.replay");
+
+	// A session folder: session.jsonl alone means class Session.
+	const SDIR = DIR + "-session", SURL = URL.replace(/\/$/, "") + "-session/";
+	fs.mkdirSync(SDIR, { recursive: true });
+	fs.writeFileSync(path.join(SDIR, "session.jsonl"), JSON.stringify({ session: "fixture-session" }) + "\n");
+	try {
+		await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", id: "a", data: { state: "complete" } } } } });
+		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", id: "b" } } } });
+		ok(r.ok && r.state.class === "Session" && r.state.completion === 0.5 && r.state.progress.total === 2, "session.jsonl -> Session, tasks.add, completion 1/2");
+		r = await call("item", { path: SURL, delta: { nonsense_key: 1 } });
+		ok(r.ok === false && /Session/.test(r.why), "Session refuses unknown keys");
+	} finally { fs.rmSync(SDIR, { recursive: true, force: true }); }
 	console.log(`item_tool: ${n} checks passed`);
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }

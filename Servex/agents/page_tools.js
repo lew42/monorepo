@@ -339,15 +339,23 @@ function apply_pages(at, pages, url){
 /* ---------- the item tool (plan section 4): page_set generalised to any Item class ----------
  * A delta is ONE log line, the object Item.set() takes; the file is replayed through the same
  * class code a browser would use. Only Task can be imported in node (Page touches the DOM,
- * Session arrives in step 7), so only Task gets the key refusals. */
+ * Page touches the DOM), so Task and Session get the key refusals. */
 const ITEM_PATH = { type: "string", description: "The item's url, e.g. a task folder \"/framework/ai/sessions/…/<slug>/\" (task.jsonl there wins over page.jsonl) or a page. Omit = your own session page." };
 const ITEM_DESCRIPTION = "THE ITEM TOOL: `item({path, delta})`. `delta` is ONE log line, the exact object Item.set(delta) takes: a key naming a method calls it with the value as its arguments (`{\"start\":{}}`, `{\"wait\":{\"on\":\"owner\"}}`), a key naming a child walks into it (`{\"tasks\":{\"add\":{\"title\":\"x\"}}}`), any other key assigns. `\"a.b\": v` is shorthand for `{a:{b:v}}`. No `delta` = the current state. The first call per class also returns `instructions`; `{\"help\":{}}` returns them again.";
 
 const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jsonl": "Page" };
-const LOADERS = { Task: async () => (await import("../../public/framework/core/Task/Task.js")).default };
-const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"] };
+const LOADERS = {
+	Task: async () => (await import("../../public/framework/core/Task/Task.js")).default,
+	Session: async () => (await import("../../public/framework/core/Session/Session.js")).default,
+};
+const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"] };
+// Fields a Session line may carry: its identity, a title, and its tasks.
+const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "by", "ts", "class"];
+
 // Fields a Task line may carry beyond its getters (plan section 2) and the legacy line keys Task.replay reads.
 const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tasks", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];
+
+const KEYS = { Task: TASK_KEYS, Session: SESSION_KEYS };
 
 const told = new Map();   // `${caller}|${class}` -> true once its instructions went out
 
@@ -386,7 +394,7 @@ function describe_class(Class){
 const GRAMMAR = "delta = one log line. A key naming a method calls it with the value as arguments; a key naming a child item walks into it; any other key assigns. Keys starting with _ are refused.";
 
 async function instructions_for(kind, Class){
-	return Class ? { ...describe_class(Class), task_keys: kind === "Task" ? TASK_KEYS : undefined, grammar: GRAMMAR } : { class: kind, grammar: GRAMMAR };
+	return Class ? { ...describe_class(Class), task_keys: KEYS[kind], grammar: GRAMMAR } : { class: kind, grammar: GRAMMAR };
 }
 
 // The file replayed by the class itself: the same code a browser runs on the same lines.
@@ -394,23 +402,25 @@ function task_of(Task, file){ return Task.replay(parse_lines(file)); }
 
 function task_state(Task, file){
 	const task = task_of(Task, file);
+	if (Task.name === "Session") return { class: "Session", completion: task.completion, progress: task.progress(), data: { ...task.data },
+		tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state })) };
 	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data },
 		tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state })) };
 }
 
 function refusal(why, Class){
 	const d = describe_class(Class);
-	return { ok: false, why, exists: [...d.methods.map(m => m.name), ...new Set([...d.fields, ...TASK_KEYS])] };
+	return { ok: false, why, exists: [...d.methods.map(m => m.name), ...new Set([...d.fields, ...(KEYS[Class.name] ?? [])])] };
 }
 
-// Task only: a top-level key must be a public method, a known field, or an existing child.
+// Task and Session: a top-level key must be a public method, a known field, or an existing child.
 function validate(Task, file, delta){
-	const task = task_of(Task, file), known = new Set([...Task.describe().fields, ...TASK_KEYS]);
+	const task = task_of(Task, file), known = new Set([...Task.describe().fields, ...(KEYS[Task.name] ?? [])]);
 	for (const key of Object.keys(delta)){
 		if (key === "help") continue;
 		if (key.startsWith("_")) return refusal(`"${key}" starts with _ (private)`, Task);
 		if (typeof task[key] === "function" || known.has(key) || task.get(key) !== undefined) continue;
-		return refusal(`"${key}" names no method, field or child of Task`, Task);
+		return refusal(`"${key}" names no method, field or child of ${Task.name}`, Task);
 	}
 	return null;
 }

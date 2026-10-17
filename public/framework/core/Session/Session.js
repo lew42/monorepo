@@ -4,12 +4,38 @@
 // `days`, `slugs` and `scanned` (statics inherit by reference, so a shared map would mix two kinds of session). Everything here
 // reads `this`, never a class name. See core/Page/doc/architecture.md ("Session") and ai/sessions/doc/data/layout.md.
 
-export default class Session {
+import Item from "../Item/Item.js";
+import List from "../List/List.js";
+import Task from "../Task/Task.js";
+
+export default class Session extends Item {
 	static days = new Map();     // id -> "2026/10/03"
 	static slugs = new Map();    // id -> folder name; a session with no slug is in an old uuid-named folder
 	static scanned = false;
 
-	constructor(id){ this.id = id; }
+	// super() with no args: Item assigns its args onto itself, and a string id would spread into characters.
+	constructor(id){ super(); if (id !== undefined) this.id = id; }
+
+	// A session HAS tasks, made on first use like Task.tasks; its progress is counted from them on read, never stored.
+	get tasks(){ return this._tasks ??= new List({ owner: this, name: "tasks" }); }
+	set tasks(list){ this._tasks = list; }
+	lists(){ const { _tasks, ...rest } = super.lists(); return { ...rest, ...(_tasks ? { tasks: _tasks } : {}) }; }
+
+	progress(){ return Task.progress_of(this._tasks); }
+	get completion(){ const { done, total } = this.progress(); return total ? done / total : 0; }
+
+	// Build a Session from parsed session.jsonl lines, through set(), the way Task.replay does.
+	static replay(lines){
+		const session = new this(lines.find(l => l?.session)?.session ?? lines.find(l => l?.id)?.id);
+		for (const line of lines){
+			if (!line || typeof line !== "object") continue;
+			const { by, ts, at, session: _s, ...delta } = line;
+			if (delta.tasks && typeof delta.tasks === "object") session.tasks.set(delta.tasks);
+			delete delta.tasks;
+			for (const [k, v] of Object.entries(delta)) if (k !== "class") session.put(k, v);
+		}
+		return session;
+	}
 
 	// The folder every session of this kind lives under. Override in the subclass.
 	static root_url(){ return new URL("../../ai/sessions/", import.meta.url); }
@@ -57,3 +83,5 @@ export default class Session {
 		return this.dir_url(id);
 	}
 }
+
+Item.register(Session, "Session");
