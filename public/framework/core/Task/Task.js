@@ -23,7 +23,7 @@ const CAN = {
 
 // The state verbs a `task.jsonl` line may name: `{"stop":{"why":"…"}}`.
 // Plain fields a top-level line may set (the item tool's {"expected":"…"}); legacy lines keep them under `assign`.
-const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by"];
+const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source"];
 
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
 

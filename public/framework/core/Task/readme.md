@@ -76,3 +76,5 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - **The `item` tool** writes a Task: `item({path, delta})` appends one `task.jsonl` line (`{"start":{}}`, `{"tasks":{"add":{…}}}`) and answers with the replayed state. Refuses `_` keys and unknown keys. See [Servex/doc/item-tool.md](/Servex/doc/item-tool.md). `Task.replay` reads the same lines (`tasks`, `content`, and the plain fields in `Task.FIELDS`), so a tool write and a file read run the same code.
 
 - **Commits are computed:** a task's `commit` lines come from the `post-commit` git hook via `SERVEX_TASK`, never typed by hand. See `Server/readme.md`, "Git hooks".
+
+- **`source`** field: `{session, line, id}`, set on a Task made from a refined ask (`Server/AskIndex.mjs`, `AskIndex.tasks_view`).

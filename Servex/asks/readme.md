@@ -63,3 +63,5 @@ fold, it will disagree with this one the moment the ledger grows an update line.
   those write the one line `tasks.js` reads back.
 - **Servex writes to the main tree's `tasks.json` too**, same as `asks.jsonl` above — a
   worktree's own copy goes stale the moment Servex ticks in the main tree instead.
+
+- **Later:** retire the `asks.jsonl` writers here once asks are read from tasks (`AskIndex.tasks_view`, ext/Refine/doc/asks.md); it touches a dozen callers.
