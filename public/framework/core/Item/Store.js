@@ -55,13 +55,14 @@ export class Store {
 	// `<folder>/task.jsonl` when it is there; else the moved record beside it when THAT is; else the url
 	// unchanged (the file may be about to be written). Shared with ext/JSONL.
 	static async record_url(url){
-		if (!url.endsWith("/task.jsonl")) return url;
+		if (!/\/sessions\/\d{4}\/\d\d\/\d\d\/.+\/task\.jsonl$/.test(url)) return url;   // only the sessions store has moved records
 		const there = async u => {
 			const res = await fetch(u, { method: "HEAD" }).catch(() => null);
 			return !!res?.ok && !res.headers.get("content-type")?.includes("html");
 		};
-		if (await there(url)) return url;
 		const alt = url.replace(/task\.jsonl$/, "session.jsonl");
+		if (/\/sessions\/\d{4}\/\d\d\/\d\d\/[^/]+\/task\.jsonl$/.test(url) && await there(alt)) return alt;   // a session folder: moved, so ask the new name first (no 404 in the console)
+		if (await there(url)) return url;
 		return await there(alt) ? alt : url;
 	}
 
