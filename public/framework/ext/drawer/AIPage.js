@@ -6,6 +6,8 @@ import { div, span, p, a } from "/framework/core/View/View.js";
 import drawer from "./drawer.js";
 import tabs from "./tabs.js";
 
+const VIEWS_CHAT = () => import("./tabs/ai.js");
+
 export default class AIPage extends Page {
 
 	// [name, label, the tab file that draws it]; chat is the default (`ai/` itself and `ai/chat/`).
@@ -19,6 +21,12 @@ export default class AIPage extends Page {
 
 	// The AI page showing now, or null: Sheet.routed() reads it.
 	static current = null;
+
+	// ONE chat and ONE feed per tab (doc/sheet.md): holder() names the surface that mounts them. The other surfaces mount nothing.
+	static SMALL = "(max-width: 52em)";
+	static small(){ return !!globalThis.matchMedia?.(this.SMALL)?.matches; }
+	static holder(){ return this.small() ? "sheet" : tabs.mine() && tabs.current?.name === "ai" ? "dock" : "page"; }
+	static NOTES = { sheet: "The chat is in the sheet.", dock: "The chat is in the panel on the right." };
 
 	static route(page){
 		const ai = new this({ title: "AI", about: page.url, no_inbox: true, no_ai: true, classes: "standard drawer-ai-page" });
@@ -37,18 +45,67 @@ export default class AIPage extends Page {
 		});
 		const $box = div.c("drawer-ai-page-body", () => { span.c("muted", "loading…"); });
 		if (!load) return $box.empty(() => { p.c("muted", "The live feed (this page's events beside the chat) arrives with AIFeed, sheet step 7."); });
-		load().then(m => $box.empty(() => { m.default(this.context()); }))
+		if (name === "chat") this.chat_box = $box;
+		this.fill($box, name, load);
+	}
+
+	// The chat view mounts the chat only when this page is the holder; otherwise the sheet or the dock already has it.
+	fill($box, name, load){
+		const holder = this.constructor.holder();
+		if (name === "chat" && holder !== "page"){
+			this.release();
+			return $box.empty(() => { span.c("muted", this.constructor.NOTES[holder]); });
+		}
+		if (name === "chat" && this.held) return;
+		load().then(m => $box.empty(() => {
+			if (name !== "chat") return m.default(this.context());
+			this.mounting = true;
+			try { this.token = m.default(this.context()); } finally { this.mounting = false; }
+			this.held = true;
+		}))
 			.catch(e => $box.empty(() => { span.c("muted", "This view could not load: " + e.message); }));
 	}
+
+	// Let go of the chat this page mounted (the tab's own ai.js remembers it).
+	release(){
+		if (!this.held) return;
+		this.held = false;
+		const token = this.token; this.token = null;
+		import("./tabs/ai.js").then(m => m.release_chat(token));
+	}
+
+	// The dock mounted the chat after this page did (✦ at 1200): its ai() took the page's box; the page points to the dock.
+	moved = () => {
+		if (this.mounting || !this.held) return;
+		this.held = false; this.token = null;
+		this.chat_box?.el.isConnected && this.chat_box.empty(() => { span.c("muted", this.constructor.NOTES.dock); });
+	};
+
+	// The dock shut: the chat comes back to the page.
+	shut = () => setTimeout(this.resized);
+
+	// A window crossing 52em moves the chat between the sheet and the page; the page follows.
+	resized = () => {
+		const $box = this.chat_box;
+		if ($box?.el.isConnected) this.fill($box, "chat", VIEWS_CHAT);
+	};
 
 	context(){ return { app: this.app, tabs, page: this.about, card: null }; }
 
 	activated(){
 		this.constructor.current = this;
+		this.mq = globalThis.matchMedia?.(this.constructor.SMALL);
+		this.mq?.addEventListener?.("change", this.resized);
+		window.addEventListener("drawer-chat", this.moved);
+		window.addEventListener("drawer-close", this.shut);
 		drawer.page(this.about);
 	}
 
 	deactivated(){
+		this.mq?.removeEventListener?.("change", this.resized);
+		window.removeEventListener("drawer-chat", this.moved);
+		window.removeEventListener("drawer-close", this.shut);
+		this.release();
 		if (this.constructor.current !== this) return;
 		this.constructor.current = null;
 		drawer.page(null);

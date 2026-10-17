@@ -226,14 +226,22 @@ function session_header({ card }){
  * see that function's own doc for why it needs disposing at all. */
 let live_chat = null;
 let live_header = null;
+let live_feed = null;   // the feed goes with its chat: one pair, never a feed left behind
+let live_slot = null;   // the box the chat mounted in: emptied with it, so a shut dock keeps no hidden second widget
 function dispose_chat(){
 	const handle = live_chat;
 	live_chat = null;
 	handle?.remove();
+	live_feed?.stop();
+	live_feed = null;
+	live_slot?.replaceChildren();
+	live_slot = null;
 	live_header?.stop();
 	live_header = null;
 }
 window.addEventListener("drawer-close", dispose_chat);
+// AIPage lets go of the chat it mounted (the token ai() returned), never one the dock mounted since (doc/sheet.md#one-chat-one-feed)
+export function release_chat(token){ if (token && live_chat === token) dispose_chat(); }
 
 /**
  * THE DEFAULT — `ux/Dictate/chat.js`'s ONE mount, the exact same call the mobile ✦
@@ -249,16 +257,18 @@ window.addEventListener("drawer-close", dispose_chat);
 export default function ai({ page, card, tabs }){
 	dispose_chat();   // this refill replaces whatever this tab built last time
 	const inbox = new Inbox.Compact({ page });
+	let mine = null;
 	div.c("drawer-ai flex v", () => {
 		inbox.view();
 		live_header = session_header({ card });
 		const $slot = div.c("drawer-ai-panel");
-		const handle = live_chat = chat($slot.el, {
+		live_slot = $slot.el;
+		const handle = mine = live_chat = chat($slot.el, {
 			path: page,
 			card: card?.id,
 			placeholder: card ? "talk into this card" : "say something",
 		});
-		const feed = AIFeed.on($slot.el, page);   // this page's events among the bubbles (sheet step 7)
+		const feed = live_feed = AIFeed.on($slot.el, page);   // this page's events among the bubbles (sheet step 7)
 		// The OTHER way this mount's content can leave the drawer: a different tab's
 		// own refill clears $slot's own parent out from under it (see the doc above).
 		const host = $slot.el.closest(".drawer-body");
@@ -268,6 +278,7 @@ export default function ai({ page, card, tabs }){
 				mo.disconnect();
 				feed.stop();
 				handle.remove();
+				if (live_feed === feed) live_feed = null;
 				if (live_chat === handle) live_chat = null;
 				live_header?.stop();
 				live_header = null;
@@ -275,6 +286,8 @@ export default function ai({ page, card, tabs }){
 			mo.observe(host, { childList: true });
 		}
 	});
+	window.dispatchEvent(new CustomEvent("drawer-chat", { detail: mine }));   // a surface that mounted the chat before this one lets go of its box
+	return mine;
 }
 
 /**
