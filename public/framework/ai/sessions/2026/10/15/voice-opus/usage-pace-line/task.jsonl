@@ -11,3 +11,5 @@
 {"log":{"at":"2026-10-15T16:22:19-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-15T16:22:19-05:00","msg":"session ended (other) without landing"}}
 {"assign":{"step":1,"landed_at":"2026-10-15T16:24:33-05:00","outcome":"**usage-now prints its pace first** — the first line reads 'At N% of pace with T left' (e03a9918e). Landed by the parent.","links":[{"url":"/framework/ai/sessions/2026/10/15/voice-opus/usage-pace-line/","label":"usage-pace-line"}],"window":null,"tokens":null}}
+{"log":{"at":"2026-10-15T16:23:24-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-15T16:23:28-05:00","msg":"session ended (other) without landing"}}
