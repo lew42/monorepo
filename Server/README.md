@@ -112,7 +112,3 @@ The supervisor, watching `public/`, holding reloads, what a browser can ask, the
 - [`RefineQueue.mjs`](../public/framework/ext/Refine/doc/refine-queue.md) — refines the owner's past prompts, one Haiku call per prompt, N at once, onto each session page's Coverage tab (`public/framework/ext/Refine/doc/refine-queue.md`)
 
 - **Scripts census** (what every script under `Server/`, `Servex/`, `.claude/hooks/` is, who uses it, which are stale): [doc/scripts.md](doc/scripts.md)
-
-## Git hooks (`Server/git-hooks/`)
-
-- `node Server/git-hooks/install.mjs` writes the shared `.git/hooks/post-commit` (refuses a foreign one). It runs `post-commit.mjs`, which appends `{"commit":"<12 hash>"}` to the file named by `SERVEX_TASK` (set per agent by `Agents.js` `door()`), once per hash, never failing a commit. Test: `post-commit.test.mjs`.
