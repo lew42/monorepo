@@ -4,6 +4,49 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
+<!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
+## NOW (computed 2026-10-17 04:38 UTC, last 24 h)
+
+**Pace:** At 91% of pace with 4 days 22 hours left (slow down)
+
+**Landed (27):**
+- [Whisper log page](/framework/ai/sessions/2026/10/16/voice-20261016/whisper-log/) (helper-whisper-log)
+- [Task migration: 211 old tasks moved to module homes](/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/) (mastermind-task-migrate)
+- [live: card subpaths, full-width card, side-scrolling code](/framework/ai/sessions/2026/10/16/voice-20261016/live-cards/) (mastermind-live-cards)
+- [live-pointers: /live cards become pointers; their data moves to the logs](/framework/ai/sessions/2026/10/16/voice-20261016/live-pointers/) (helper-live-pointers)
+- [Sheet: rail.js renamed to class Sheet; audit and proposal posted](/framework/ai/sessions/2026/10/16/voice-20261016/sheet/) (mastermind-sheet)
+- [Step 3c: the item tool works on live instances](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/item-live/) (minion-item-live)
+- [See the tasks: step 15 of the task system plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-rows/) (minion-task-rows)
+- [Today's dictations as tasks: step 17 of the task system plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/proof-data/) (minion-proof-data)
+- [The item tool files the references: step 16 of the task system plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/tool-files-refs/) (minion-tool-files-refs)
+- [Task homes, browser side: step 14b of the task system plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-homes-browser/) (minion-task-homes-browser)
+- [Task homes, node side: step 14a of the task system plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-homes/) (minion-task-homes)
+- [TaskPage, the thin route: step 11 of the task system plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-page/) (minion-task-page)
+- …and 15 more (the [task list](/framework/ai/tasks/))
+
+**Open, touched in the window (6):**
+- [task-system](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/) (mastermind-task-system)
+- [compact-nudge](/framework/ai/sessions/2026/10/16/voice-20261016/compact-nudge/) (helper-compact-nudge)
+- [research](/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/research/) (minion-task-migrate-research)
+- [accounting](/framework/ai/sessions/2026/10/16/voice-20261016/accounting/) (helper-accounting)
+- [transcripts](/framework/ai/sessions/2026/10/16/voice-20261016/past-work/transcripts/) (helper-transcripts)
+- [pilot](/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot/) (helper-past-work-pilot)
+
+**Latest commits on this branch:**
+```
+978f39bf8 Merge branch 'worktree/ck-task-system' into michael/dev
+003df92fe core/Task: templates design + owner note 2026-10-17 (node-driven tasks; task.jsonl→session.jsonl not done: 757 vs 588 tag files); TaskState watcher: newest wins its lock, Servex's TaskLoop starts it as a child
+7596dcdea checkup past-work: landing line
+85c4b2d8e checkup past-work: finding-past-work doc, salvage note, audit leftovers, whisper-log closed
+c68d63880 checkup-sheet: landing line
+1a6d8125f checkup-sheet: steps 2-4 back with mastermind-sheet (misread timeout); wait_for_agent trap noted
+c02c46759 task-migrate: landed
+6b27bdc94 checkup-sheet: checkup.md; steps 2-4 to a Sonnet minion; clarity rewrites of two briefs
+```
+
+The dated sections below are written by hand and go stale; this block does not.
+<!-- NOW:end -->
+
 ## LATEST, 2026-10-16 23:15: voice-app hands off to a VS Code sidebar session
 
 **Who wrote this:** `voice-app`, the owner's Claude mobile-app voice session (about 15:00 to 23:15 on 2026-10-16, through the Servex MCP). **There is no local SDK session file for it**: the record is this session dir [`sessions/2026/10/16/voice-20261016/`](sessions/2026/10/16/voice-20261016/) (`task.jsonl`, 320 decision lines; `inbox.jsonl`; the per-task dirs), the owner notes listed below, and the git log (170 commits since 15:00). The owner's prompts were not logged verbatim; the dictations were captured as the notes.
@@ -31,6 +74,16 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **Landed tonight (voice-app's share):** Task system (Task extends Item, item tool, task homes, TaskPage, TasksPage, TaskView chip/row/card, today's dictations as real tasks); Whisper duplicate log 3cecf3724; salvage audit; Home link on the phone sheet 753083190; cost fix; Sheet rename; compaction nudge; laws in CLAUDE.md (8c5dc7928 / 09c5ebb29).
 
 **The owner's words tonight, by module (read before touching):** `core/Task/doc/owner-2026-10-16-{task-system,composition,top-down,ui,node-side,migration}.md`; `Servex/doc/owner-2026-10-16-tools.md`; `Servex/agents/doc/owner-2026-10-16-{realtime-interrupt,compaction}.md`; `ext/drawer/doc/owner-2026-10-16-sheet.md`; `ext/Refine/doc/card-types.md` (night addendum: one assistant, one pass, by sentence; question blocks); `audio/Voice/doc/owner-2026-10-16-voice-conversation.md` (barge-in); `ai/doc/owner-2026-10-16-indexing.md`; `core/doc/decisions.md` d-render-method; `live/doc/notes.md`.
+
+## 2026-10-17 00:30: the OTHER voice-app session (Claude app, text + voice, 2026-10-15 evening → 2026-10-16 afternoon) hands off
+*Companion to the 23:15 section above, which covers the daytime window and the in-flight agents; this one covers the earlier window, the owner's decisions, and loose ends nobody owns. It does not repeat the section above.*
+
+- **Record of this session:** no SDK file (cloud session). The owner's direction, close to verbatim, 26 items: [voice-20261016/owner-words.md](sessions/2026/10/16/voice-20261016/owner-words.md). The accounting helper's requirements R1–R17 and its proposed session-folder shape: [accounting/requirements.md](sessions/2026/10/16/voice-20261016/accounting/requirements.md), [accounting/shape.md](sessions/2026/10/16/voice-20261016/accounting/shape.md) (+ `answers.md`, `facts.md`, `cloud-voice-log.md`). Overnight results, one screen: [overnight.md](sessions/2026/10/16/voice-20261016/overnight.md). The mastermind's own log: `voice-20261016/task.jsonl`.
+- **Landed in this window:** /live card UI (a card opens at `/live/<id>/`, full-bleed code, `wrap` fence word, tab-size 3: add327dae…f76c0f54e); socket push on the LAN instead of the 3 s poll (1586998e7, `dev/Socket/Socket.js`); live-page direction notes (fe36103cc, `public/live/doc/notes.md`); overnight: refine build merged (c82cae958, one bubble per sentence), inbox "waiting on you" 133 → 12 (7d9e342d6), past-work round 4 (b8e19cbf3) with summaries + tags for 588 sessions (bd39fad93, dd56406da), `Server/Transcripts.mjs` + `Server/doc/transcripts.md` (raw SDK transcript → `essence.jsonl` per task folder, no LLM), `ai/audits/index.jsonl` (verdict per audit), [core/Page/doc/query.md](/framework/core/Page/doc/query.md) (every query/index/audit piece, keep/scrap), spawn policy OFF + Servex restart (voice-app may now spawn masterminds).
+- **Decisions the owner made (binding; details in owner-words.md and R1–R17):** the raw SDK transcript is the single source of truth, no parallel Servex session logs; the repo folder holds only derived things (requirements, summaries, running total). /live and the inbox are VIEWS; data is logged by the thing that produced it, timestamped, in its own file; cards are pointers. One pre-computed running cost total per session, re-audited live on the detail page; Claude-plan dollars and OpenRouter dollars kept apart; children roll up into the parent. Rename session-level `task.jsonl` → `session.jsonl`; folder slug = agent id. `Session extends Item` and *has* a page; one item tool (the page tool generalised); deltas applied to a server-side instance; one data flow (no `call` beside `set`). Sessions stay in ONE `ai/sessions` tree (per-module scatter rejected). Tags at directory granularity, not per file. Masterminds: propose before building, the other agrees or improves, decide the owner together, never edit in the other's directory (standing rule, not yet in the mastermind skill). Card titles short; never wait on the owner; every new .md gets an inbound link.
+- **Waiting on the owner:** approve [accounting/shape.md](sessions/2026/10/16/voice-20261016/accounting/shape.md) (one folder per SDK session, children inside the parent, cost as lines in session.jsonl; both masterminds agreed); choose the tool collapse: the owner's one-tool-per-domain-with-method-parameter vs the tiered plan in `ai/doc/tool-collapse.md` (87 tools today; the generic `call` tool is NOT the owner's pattern); from overnight.md: the RING cost double-count fix, drop the registry cost figure; carried: Gmail re-auth, enable R2, the unpushed history rewrite, the CLAUDE.md judgment-call line, the Figma dark/fluid token.
+- **Loose ends nobody owns yet (until now only in the voice agent's memory):** (1) a per-prompt hook so every owner prompt from the Claude app lands timestamped in the session log (helper-accounting proposed; is `append_prompt_event` / `log_session` already the door? unanswered); (2) MCP piggyback: every tool result carries "lines since your last call" (byte offset per voice session), asked of mastermind-page, no answer seen; (3) a `skill` MCP tool that returns a skill's text (claude.ai connectors use tools only, not MCP prompts); (4) enforce the link-every-new-markdown rule mechanically at finish-task; (5) the coordination rule into the mastermind skill; (6) the Page streaming doc wrongly says phones never stream; (7) server-side page instances are design only; (8) recursive id'd card content ("massage, not clobber") not built; (9) a `home` path field at spawn so sessions and tasks are tagged by module up front; (10) inbox as a Page extension (today `ai/inbox.jsonl` = 77 refine-queue one-liners mined from 4 dictations, not agent messages; two things share one name); (11) the /live dead-band + back-link helper never reported; (12) 57 open Refine/Dictate inbox notes, live outline lags ~8 s; (13) mastermind-voice-opus has spent $674 and mastermind-task-system $248 on Opus: check before waking either.
+- **Harness facts a successor should not relearn:** `ask_mastermind` blocks ~1 min and a timeout loses the reply (the directive still lands); `send_to_agent` is fire-and-forget, answers come only via `wait_for_agent` or the agent's task.jsonl; the Servex `shell` tool strips `$` variables and dies past ~30 s; voice-app may only message its parent, its own children, and anyone who messaged it in the last 30 min.
 
 ## 2026-10-15 17:10 (previous latest): the repo-slim mastermind run, day 2 (Fable tab 730e8a7b, run task [mastermind-repo-slim](sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/))
 - **The owner's words, verbatim, fifteen dictations:** `requirements.md` through `requirements-13.md` in the run task dir; each lists the asks at the top with the task that took it. Read those before anything else about this run.
