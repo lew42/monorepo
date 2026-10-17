@@ -51,16 +51,16 @@ export class Task extends Item {
 	stamp(){ return this._at ?? new Date().toISOString(); }
 	ms(){ return this._at ? Date.parse(this._at) : Date.now(); }
 
-	// `get_one`, not `get` (2026-10-03): `get("state")`'s own first step checks
-	// `this["state"]` for a real instance property — which THIS GETTER IS,
-	// so calling it from inside itself recurses forever. `get_one` is the
-	// plain data seam underneath, exactly what a bare field lookup needs.
 	// The view is wired in by TaskView.js (browser only), like Item.view; a subclass overrides render() to draw itself.
 	render(){
 		if (!this.constructor.View){ Item.warned.has("task-render") || (Item.warned.add("task-render"), console.warn("Task — render(): no View wired in (no DOM here)")); return undefined; }
 		return new this.constructor.View({ task: this });
 	}
 
+	// `get_one`, not `get` (2026-10-03): `get("state")`'s own first step checks
+	// `this["state"]` for a real instance property — which THIS GETTER IS,
+	// so calling it from inside itself recurses forever. `get_one` is the
+	// plain data seam underneath, exactly what a bare field lookup needs.
 	get state(){ return this.get_one("state") ?? "idle"; }
 
 	// Warn like `Item`'s own `locate()`/`hydrate()` do: once per distinct message,
