@@ -3,6 +3,7 @@
 // Doc: .claude/skills/past-work/SKILL.md
 //   node Server/PastWork.mjs <topic words...> [--limit 12] [--json]   one-screen candidate list for the topic
 //   node Server/PastWork.mjs --index                                   write public/framework/ai/past-work-index.md
+//   node Server/PastWork.mjs --brief "<question>" [--dir <path>]       print the Haiku searcher's brief: the question, the readme chain with its size, the answer shape
 // Sources: task.jsonl (title, request, outcome, group, landed_at), ai/asks.jsonl, doc/*.md + readme.md, git log --grep.
 import fs from "node:fs";
 import path from "node:path";
@@ -114,6 +115,38 @@ export default class PastWork {
 		return { checked: ok + gone.length, exist: ok, missing: gone.slice(0, 3) };
 	}
 
+	/** Sessions whose saved tags (session.jsonl, mirrored into each day's index.json) contain a search word, best first; the tags are filled by the digest pipeline (ai/AISession/AISessionDigest.mjs). */
+	static sessions(words, limit = 6){
+		const root = path.join(AI, "sessions"), out = [];
+		const dirs = n => { try { return fs.readdirSync(n, { withFileTypes: true }).filter(e => e.isDirectory() && /^\d+$/.test(e.name)).map(e => path.join(n, e.name)); } catch { return []; } };
+		for (const y of dirs(root)) for (const m of dirs(y)) for (const d of dirs(m)){
+			let snaps; try { snaps = JSON.parse(fs.readFileSync(path.join(d, "index.json"), "utf8")).snapshots; } catch { continue; }
+			const day = slash(path.relative(root, d));
+			for (const sn of Array.isArray(snaps) ? snaps : Object.values(snaps ?? {})){
+				const tags = (sn.tags ?? []).join(" ").toLowerCase(), hit = words.filter(w => tags.includes(w)).length;
+				if (hit) out.push({ id: sn.id, day, title: sn.title || sn.agent || sn.folder, tags: sn.tags.slice(0, 6), usd: sn.usd ?? 0, hit, url: "/framework/ai/sessions/" + day + "/" + (sn.folder ?? sn.id) + "/" });
+			}
+		}
+		return out.sort((a, b) => b.hit - a.hit || (b.day > a.day ? 1 : -1)).slice(0, limit);
+	}
+
+	/** The brief for a throwaway Haiku searcher: the question, the readme chain (root to the directory) with its measured size, the answer shape. A script lists the files so nobody retypes them. */
+	static brief(question, dir = "public/framework"){
+		const chain = ["CLAUDE.md", "readme.md"];
+		let cur = "";
+		for (const part of slash(dir).split("/").filter(Boolean)){ cur += part + "/"; chain.push(cur + "readme.md"); }
+		const files = [...new Set([...chain, "public/framework/ai/readme.md", "public/framework/ai/past-work-index.md"])].filter(f => fs.existsSync(path.join(REPO, f)));
+		const bytes = files.reduce((n, f) => n + fs.statSync(path.join(REPO, f)).size, 0), tokens = Math.round(bytes / 3);
+		return [`Brief for a throwaway Haiku searcher (about ${tokens.toLocaleString()} tokens of reading${tokens > 60000 ? ", TOO BIG: narrow --dir" : ", under the 100k limit"}).`, "",
+			`Question: ${question}`, "",
+			"Read these, in order, then follow at most 5 links that look relevant (a readme's own Docs line, a module's readme):", ...files.map(f => "- " + f), "",
+			`Also run: node Server/PastWork.mjs ${JSON.stringify(question)}`, "",
+			"Check live code with Grep before you trust a landed note. Reply in at most 12 lines, starting with one word:",
+			"- EXISTS at <path or url> (what it does, in one line; who uses it)",
+			"- PARTLY at <path or url> (what is there, what is missing)",
+			"- NEW (nothing found; the readmes you read, so the next searcher skips them)"].join("\n");
+	}
+
 	static search(topic, limit = 12){
 		const words = this.words(topic);
 		const tasks = this.tasks().map(r => ({ r, s: this.score(words, r.title + " " + r.slug + " " + r.group + " " + r.topics.join(" "), r.request + " " + r.outcome) }))
@@ -122,7 +155,7 @@ export default class PastWork {
 		tasks.sort((a, b) => (b.s - a.s > 2 || a.s - b.s > 2) ? b.s - a.s : (b.r.date > a.r.date ? 1 : -1));
 		const asks = this.asks().map(a => ({ a, s: this.score(words, a.title || "", a.owner || "") })).filter(x => x.s).sort((a, b) => b.s - a.s).slice(0, 5);
 		const docs = this.docs().map(d => ({ d, s: this.score(words, d.title + " " + d.file, d.text) })).filter(x => x.s).sort((a, b) => b.s - a.s).slice(0, 8);
-		return { topic, words, tasks: tasks.slice(0, limit).map(x => ({ ...x.r, score: x.s, live: this.live(x.r) })), asks: asks.map(x => x.a), docs: docs.map(x => x.d), commits: this.git(words), modules: this.modules(words) };
+		return { topic, words, tasks: tasks.slice(0, limit).map(x => ({ ...x.r, score: x.s, live: this.live(x.r) })), asks: asks.map(x => x.a), docs: docs.map(x => x.d), commits: this.git(words), modules: this.modules(words), sessions: this.sessions(words) };
 	}
 
 	static format(res){
@@ -134,6 +167,7 @@ export default class PastWork {
 		if (res.modules.length){ L.push("", "## Modules that exist now (files outside the module that import it)"); for (const m of res.modules) L.push(`- [${m.dir}](${m.url}) — used by ${m.users} files${m.readme ? "" : ", no readme"}`); }
 		L.push("", "## Docs and readmes");
 		for (const d of res.docs) L.push(`- [${clip(d.title, 60)}](${d.url}) — ${clip(d.text, 140)}`);
+		if (res.sessions?.length){ L.push("", "## Sessions tagged with these words"); for (const x of res.sessions) L.push(`- ${x.day} [${clip(x.title, 50)}](${x.url}) — ${x.tags.join(" ")} · $${x.usd.toFixed(2)}`); }
 		if (res.asks.length){ L.push("", "## Owner asks"); for (const a of res.asks) L.push(`- ${(a.at || "").slice(0, 10)} ${clip(a.title, 90)} (${a.owner || "?"}, ${a.status || "?"})`); }
 		if (res.commits.length){ L.push("", "## Commits"); for (const c of res.commits) L.push(`- ${clip(c, 120)}`); }
 		return L.join("\n");
@@ -175,6 +209,7 @@ export default class PastWork {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
 	const argv = process.argv.slice(2);
 	if (argv.includes("--index")) console.log(JSON.stringify(PastWork.index()));
+	else if (argv.includes("--brief")){ const i = argv.indexOf("--brief"), di = argv.indexOf("--dir"); console.log(PastWork.brief(argv[i + 1], di >= 0 ? argv[di + 1] : undefined)); }
 	else {
 		const li = argv.indexOf("--limit"), limit = li >= 0 ? +argv.splice(li, 2)[1] : 12;
 		const json = argv.includes("--json"), topic = argv.filter(a => a !== "--json").join(" ");
