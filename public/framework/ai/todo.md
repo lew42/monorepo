@@ -225,3 +225,5 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 - **Done 2026-10-17** — the pool entry above: `node Servex/pool-status.mjs`, reclaim frees landed-by-diff and stale-hold slots, kept slots name their branch (needs a Servex restart): [Servex/doc/pool.md](/framework/servex/doc/pool.md#when-a-slot-is-freed-2026-10-17).
 
 - **/tasks/ at wide widths** (2026-10-17 00:19, from the asks-to-tasks landing): layout-check reports the page 99% empty at 2560 and 3440 and `span.task-meter-fill` at an edge at every width. Owner: core/Task (`TasksPage`). Record: `public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/asks-to-tasks/layout-check/`.
+
+- **The Dictate page at wide widths** (2026-10-17 10:37, layout-check during the dictation bar landing): `/framework/ux/Dictate/` is 65% empty at 2560 and 72% at 3440, narrow share 0.94 at 3440. Owner: ux/Dictate. The same column treatment /tasks/ got (`core/Task/TasksPage.js`, 10-17) would do. Record: `public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/sheet-controls/task.jsonl`.
