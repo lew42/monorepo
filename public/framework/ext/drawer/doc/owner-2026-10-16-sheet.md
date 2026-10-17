@@ -33,4 +33,16 @@ Audit and document → past-work check → proposal with mocked variants as card
 
 - ✅ The rename landed: `rail.js` is [`Sheet.js`](../Sheet.js), `class Sheet extends View` (merge 41c9607e7).
 - ✅ The audit: [audit.md](../../../ai/sessions/2026/10/16/voice-20261016/sheet/audit.md).
-- ⬜ The proposal and its variants: [proposal.md](../../../ai/sessions/2026/10/16/voice-20261016/sheet/proposal.md), waiting for the owner's yes, one step at a time.
+- ✅ The proposal and its variants: [proposal.md](../../../ai/sessions/2026/10/16/voice-20261016/sheet/proposal.md). The owner's rule of 2026-10-17 replaces "waiting for the owner's yes": steps 2 onward are built one commit at a time, each checked at 400 and 1200.
+
+## Decision, 2026-10-17: the sheet is routed at `<path>/ai/`
+
+Decided by the checkup mastermind for the owner (decision `d-sheet-route` in [its log](../../../ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/checkup-sheet/task.jsonl)); revisable.
+
+- **Chosen: `<path>/ai/`.** `<path>/ai/` opens the sheet on the chat; `<path>/ai/sessions/` (and the other views) opens it on that view. The size (strip, split, full) stays out of the url; each size step adds a history entry, so back steps down one size. Old `?drawer=` and `?sheet=` links are rewritten once.
+- **Why.** It is the owner's own word ("any path can have an `ai/` subdirectory"). Every page already gets `md/`, `fs/` and `inbox/` this way: `Page.child()` serves them only when no declared child has that name, so "a real `ai` child wins" is the existing rule, not a new one. And Servex already saves each page's chat to `<page>ai/chat.jsonl`, so the route lands on the folder that holds the data (CLAUDE.md: data lives with its page).
+- **The one cost.** On a page with a real `ai` child (`/framework/` and `/framework/core/Page/` today), ✦ opens the sheet about that page without a url of its own.
+- **Alternative: keep `?drawer=` / `?sheet=`.** Not a route, and two parameters for one surface. It would win only if per-page sub-routes broke static hosting; they do not, because the Router mints pages in the browser.
+- **Alternative: `<path>/~ai/`.** It can never collide, but it is not the owner's word and does not match where the data lives. It would win only if a page ever needed a real `ai` child and a routed sheet at once.
+
+**The control layout:** A's head with E's feed stands. A's head (title, path, ✕) is the shortest on a phone; E's feed puts the page's events (a task filed, a reference, a merge) into the chat, which is "the sheet as the live space"; the strip keeps A's last line said, the "unobtrusive transcription widget". E's All / Chat / Live switch is left out until the feed is busy enough to need it.
