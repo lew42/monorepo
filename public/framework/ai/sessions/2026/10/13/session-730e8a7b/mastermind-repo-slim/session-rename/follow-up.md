@@ -1,18 +1,18 @@
-# Follow-up: new session folders should start with `session.jsonl`
+# Follow-up: new session folders start with `session.jsonl`
 
-The move is done: 699 existing session folders now hold `session.jsonl` ([the rule](../../../../../doc/session-record.md)). Two writers still make new folders the old way, so every new session folder starts with `task.jsonl` until someone changes them.
+The move is done: 699 existing session folders now hold `session.jsonl` ([the rule](../../../../../doc/session-record.md)). This follow-up made the writers match, so no folder created after 2026-10-17 needs the move script.
 
-## What to change
+## Done
 
-- `Server/TaskDirs.mjs --new`: when it creates a session folder (a depth-4 folder under a day), write the first line to `session.jsonl`. A task folder deeper down keeps `task.jsonl`.
-- `Servex/agents/Agents.js`: the initial `assign` line for a new session goes to `session.jsonl` the same way.
-- A sweep that swaps the spelled-out "task.jsonl, else session.jsonl" expression in readers for `SessionRecord.log_or_old(dir)`. The behaviour is the same; the code gets shorter.
+- `SessionRecord.start_file(dir, first)` picks the file for a line: the log that exists, else `session.jsonl` for a new session folder (directly under a day, own `session_id` on line 1), else `task.jsonl`.
+- `Servex/agents/Agents.js` (`open_task`, the launch line of `spawn_agent`) and `.claude/hooks/append.mjs` (every `new-task` launch line) ask it. A task folder inside a session keeps `task.jsonl`.
+- `Server/review.mjs` appends to the folder's existing log, so it no longer recreates `task.jsonl` in a moved folder.
+- Tests: `Server/SessionRecord.test.mjs` and the new `Servex/agents/open-task.test.mjs`.
 
-## Until then
+## Left, by name
 
-`node Server/SessionRecord.mjs --apply` is safe to re-run: it folds any new `task.jsonl` in a session folder into `session.jsonl` (idempotent, manifest appended, `--undo` reverses the run). Run `--plan` first to see the counts.
-
-## Also left, by name
-
+- `Server/TaskDirs.mjs --new` only makes the folder; it never wrote a record, so it needed no change. The `new-task` skill still says `<dir>/task.jsonl`; the hook redirects it, and the skill text is the mastermind's to refresh.
+- Swap the spelled-out `log_file(dir) ?? path.join(dir, "task.jsonl")` expressions in readers for `SessionRecord.log_or_old(dir)`. Same behaviour, shorter code.
 - `ai/AISession/AISessionIndex.mjs` still reads the old audit path for its category join.
-- A folder with digest tag lines only (no log yet) opens as an empty task-style page. See "What is not done yet" in the rule doc.
+- A folder with digest tag lines only (no log yet) opens as an empty task-style page.
+- A running Servex needs a restart to use the new `open_task`.

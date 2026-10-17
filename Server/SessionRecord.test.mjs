@@ -101,5 +101,22 @@ execFileSync(process.execPath, [hook, D("s-nonl/task.jsonl"), lines], { windowsH
 assert.ok(!fs.existsSync(D("s-nonl/task.jsonl")));
 assert.match(bytes("s-nonl/session.jsonl").toString("utf8"), /after the move/);
 
+// writers: a NEW session folder (directly under a day, own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl
+const launch = { assign: { session_id: "f6", title: "new session" } }, taskline = { assign: { title: "a task" } };
+assert.ok(SessionRecord.is_session_dir(D("fresh")) && !SessionRecord.is_session_dir(D("fresh/child")));
+assert.equal(SessionRecord.start_file(D("fresh"), launch), D("fresh/session.jsonl"));
+assert.equal(SessionRecord.start_file(D("fresh"), taskline), D("fresh/task.jsonl"));              // a day-level task with no own session_id
+assert.equal(SessionRecord.start_file(D("fresh/child"), launch), D("fresh/child/task.jsonl"));     // a task inside a session, even with a session_id
+assert.equal(SessionRecord.start_file(D("s-tags"), taskline), D("s-tags/session.jsonl"));          // digest tags only: that file is the record
+assert.equal(SessionRecord.start_file(D("t-task"), launch), D("t-task/task.jsonl"));               // an existing task log is never renamed under a writer
+const put_line = (dir, line) => { fs.writeFileSync(lines, JSON.stringify([line])); execFileSync(process.execPath, [hook, path.join(dir, "task.jsonl"), lines], { windowsHide: true, stdio: "pipe" }); };
+fs.mkdirSync(D("fresh"), { recursive: true }); fs.mkdirSync(D("fresh/child"), { recursive: true });
+put_line(D("fresh"), launch); put_line(D("fresh"), { log: { at: "NOW", msg: "second line" } });
+assert.ok(!fs.existsSync(D("fresh/task.jsonl")));
+assert.equal(fs.readFileSync(D("fresh/session.jsonl"), "utf8").trim().split("\n").length, 2);
+put_line(D("fresh/child"), launch);
+assert.ok(fs.existsSync(D("fresh/child/task.jsonl")) && !fs.existsSync(D("fresh/child/session.jsonl")));
+assert.equal(sr.plan().counts.rename, 0, "a folder started as session.jsonl needs no move");
+
 fs.rmSync(root, { recursive: true, force: true });
 console.log("SessionRecord: ok");

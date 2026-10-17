@@ -40,11 +40,12 @@ if (!target || !source) { console.error("usage: node append.mjs <target.jsonl> <
 	catch (e){ console.error(e.message + "\nNothing was written."); process.exit(3); }
 	if (now !== abs){ mkdirSync(dirname(now), { recursive: true }); console.error(`(old path followed: ${target} -> ${now})`); target = now; }
 }
-// A session folder moved to session.jsonl (Server/SessionRecord.mjs): a log line meant for its old task.jsonl goes to the moved record, never a second file.
-if (basename(target) === "task.jsonl" && !existsSync(target)) { const moved = SessionRecord.log_file(dirname(resolve_path(target))); if (moved && basename(moved) === "session.jsonl") { console.error(`(session record followed: ${target} -> ${moved})`); target = moved; } }
 const strip_bom = s => s.replace(/^﻿/, "");
 const items = JSON.parse(strip_bom(readFileSync(source, "utf8")));
 const list = Array.isArray(items) ? items : [items];
+// A session folder's record is session.jsonl (Server/SessionRecord.mjs): a line meant for its task.jsonl goes to the moved record, and a NEW
+// session folder (directly under a day, first line carries its own session_id) starts as session.jsonl. A task folder keeps task.jsonl.
+if (basename(target) === "task.jsonl" && !existsSync(target)) { const to = SessionRecord.start_file(dirname(resolve_path(target)), list[0]); if (basename(to) === "session.jsonl") { console.error(`(session record: ${target} -> ${to})`); target = to; } }
 const t = nowLocal();
 // Every line gets a time even when the writer forgot "NOW": an object body with no `at` (or landed_at / requested_at) gets `at` (ai-system/logging.md).
 const stamp = o => {

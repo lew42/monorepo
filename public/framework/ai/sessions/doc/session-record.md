@@ -57,6 +57,16 @@ node Server/SessionRecord.mjs --undo <manifest>       reverses the last run (or 
 
 The brief expected 588 folders holding both files; there are none. The 588 digest-only folders have no `task.jsonl` at all, so the move is a pure rename and the rename "collision" does not occur.
 
+## Writers: a new session folder starts as `session.jsonl`
+
+`SessionRecord.start_file(dir, first)` answers "which file does this line go to?" so no writer types the name:
+
+- the log that already exists, by either name; else
+- `session.jsonl`, when `dir` is directly under a day (`YYYY/MM/DD/<name>/`) and the first line is `{"assign":{"session_id":…}}`; else
+- `task.jsonl` (any task folder, deeper in a session).
+
+Two writers ask it: `Servex/agents/Agents.js` (`open_task`, the launch line of `spawn_agent`) and `.claude/hooks/append.mjs` (every agent's `new-task` launch line, which still names `<dir>/task.jsonl`; the hook redirects it). `node Server/TaskDirs.mjs --new` only makes the folder, never a record. `Server/review.mjs` appends to the existing log. `Server/plugins/Start.js` makes a task folder inside a session, so it keeps `task.jsonl`. A folder made this way needs no move: `--plan` counts it as nothing to do. Tests: `Server/SessionRecord.test.mjs`, `Servex/agents/open-task.test.mjs`.
+
 ## Readers: every one accepts both names
 
 A reader opens `SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")` and a directory walker asks `SessionRecord.is_log_entry(dir, name)`. `task.jsonl` stays accepted (a folder not yet moved, an old branch).
@@ -72,8 +82,7 @@ A reader opens `SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")` and
 
 - `ai/AISession/AISessionIndex.mjs` (the category join) still reads `ai/<id>/task.jsonl` of the old audit folder, a path that no longer holds sessions.
 - `ai/AISession/StoreFolder.js` routes any folder holding the record to a task page; a folder with digest tags only (no log yet) opens as an empty task-style page.
-- New session folders still start as `task.jsonl` until the two writers change: [the follow-up](../2026/10/13/session-730e8a7b/mastermind-repo-slim/session-rename/follow-up.md).
-- **Writers still create `task.jsonl`:** `Server/TaskDirs.mjs --new` and `spawn_agent`'s first task line (`Servex/agents/Agents.js`, the initial `assign` write). A new session folder starts with the old name; re-running `--apply` moves it once it has been quiet for an hour. Switching the writers to `session.jsonl` for a new *session* folder is the follow-up.
+- Spelled-out `log_file(dir) ?? path.join(dir, "task.jsonl")` expressions are still in many readers; they work, and swapping them for `SessionRecord.log_or_old(dir)` is a tidy-up with no change in behaviour ([the follow-up](../2026/10/13/session-730e8a7b/mastermind-repo-slim/session-rename/follow-up.md)).
 - **`Servex/LogSweeper.js`** already allows `session.jsonl` under a session folder, so the log sweeper keeps committing moved records.
 - **A running Servex needs a restart** to read the new Servex readers (logged as `needs_restart`).
 - The per-day `index.json` files mention `task.jsonl` only inside titles, and the `files.jsonl` listings are written by the dev server itself, so no index needed rebuilding by hand.

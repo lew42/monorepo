@@ -350,7 +350,7 @@ export function questionsCmd(root) {
  * ones that must change. */
 export function status(taskDir) {
 	let entries;
-	try { entries = fs.readFileSync(path.join(taskDir, "task.jsonl"), "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
+	try { entries = fs.readFileSync(SessionRecord.log_or_old(taskDir), "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
 	catch { return "not reviewed"; }
 	const reviews = entries.filter(e => e.review && e.review.verdict && !e.review.answer);
 	if (!reviews.length) return "not reviewed";
@@ -589,7 +589,7 @@ export async function writeNoReviewPass(root, taskDir, { size, note, branch, hea
 	fs.mkdirSync(taskDir, { recursive: true });
 	fs.writeFileSync(path.join(taskDir, "review.md"), `verdict: pass\n\n${note}\n`);
 	const review = { at: now(), size, verdict: "pass", findings: [], branch, head, model: null, cost: 0, file: "review.md" };
-	appendJSON(path.join(taskDir, "task.jsonl"), { review });
+	appendJSON(SessionRecord.log_or_old(taskDir), { review });
 	writePhase1(taskDir, review);
 	await postReviewToCard(root, taskDir, review);
 	return review;
@@ -701,11 +701,11 @@ async function main() {
 	if (sizeArg) {
 		const rank = { none: 0, light: 1, full: 2 };
 		if (rank[sizeArg] < rank[computed] && !why) { console.error(`refused: lowering size from ${computed} to ${sizeArg} needs --why`); process.exit(1); }
-		if (rank[sizeArg] !== rank[computed]) appendJSON(path.join(taskDir, "task.jsonl"), { decision: { at: now(), question: "review size", computed, chose: sizeArg, why: why ?? "raised, no reason needed" } });
+		if (rank[sizeArg] !== rank[computed]) appendJSON(SessionRecord.log_or_old(taskDir), { decision: { at: now(), question: "review size", computed, chose: sizeArg, why: why ?? "raised, no reason needed" } });
 		size = sizeArg;
 	}
 
-	const taskJsonl = path.join(taskDir, "task.jsonl");
+	const taskJsonl = SessionRecord.log_or_old(taskDir);
 	if (size === "none") {
 		const note = `No review needed: only CSS/docs changed (${numstat.reduce((n, r) => n + r.added + r.deleted, 0)} line(s)), no new file.`;
 		await writeNoReviewPass(root, taskDir, { size, note, branch, head });

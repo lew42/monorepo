@@ -204,7 +204,7 @@ export class Agents {
 		}
 		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
 		const prompt = spec.task
-			? `${base}\n\nYour task is already open at ${spec.task.dir}/task.jsonl; don't run new-task, log there.`
+			? `${base}\n\nYour task is already open at ${path.relative(process.cwd(), SessionRecord.log_or_old(path.resolve(spec.task.dir))).split(path.sep).join("/")}; don't run new-task, log there.`
 			: base;
 		const agent = new this.constructor.Agent({
 			...role_defaults(spec.role), ...spec, id, prompt, provider,
@@ -804,7 +804,7 @@ function directory_of(spec){
  * a caller opened earlier (or a sibling agent shares), it just adds one more
  * assign line with the same facts, exactly like every other `assign` a task
  * log collects over its life — never touching what came before it. */
-function open_task(task, { session_id, agent, model, worktree, parent_dir }){
+export function open_task(task, { session_id, agent, model, worktree, parent_dir }){
 	// An old-shaped dir (ai/YYYY-MM-DD/<slug>/) from a brief goes to the task store instead (Server/TaskDirs.mjs,
 	// ai/doc/task-folders.md); task.dir is rewritten so everything after this (directory_of, the inbox) sees the real place.
 	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
@@ -821,7 +821,8 @@ function open_task(task, { session_id, agent, model, worktree, parent_dir }){
 	const after = Array.isArray(task.after) && task.after.length ? task.after.map(rel) : undefined;
 	const line = JSON.stringify({ assign: strip({ session_id, agent, card: task.card, brief: task.brief,
 		model, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
-	fs.appendFileSync(path.join(dir, "task.jsonl"), line + "\n");
+	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
+	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
 	return dir;
 }
 
