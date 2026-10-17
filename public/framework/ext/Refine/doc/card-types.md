@@ -185,3 +185,9 @@ A weighting system can mean any of: **confidence**, **probability**, **importanc
 ### The system is dynamic, so it is classes
 
 There are endless programs you could build here: ways to deal with each kind of content, its UI, cards, controls, feedback, workflows. The system has to expand without limit, so it is object-oriented: lean into classes. When you see a class you should always know where it is defined, be able to see the class architecture (which classes are nearby and how the whole fits), and once you know that, the structure itself is how you understand the system. (CLAUDE.md "Classes are the structure" and "Design the class architecture before you build".)
+
+## Owner, 2026-10-16 night: one assistant, one pass, by sentence
+
+- Drop the smart-and-fast two-agent listening pair; it got out of hand. One assistant does the whole pass.
+- Chunk by period: each Whisper sentence goes to the assistant once: clean, then structure, then place (task / note / question), leaning on the new task system. Speed of the answer is the point.
+- A question the owner asks is shown as a question block: quote the owner, answer beneath it, visibly a response to that question. What gets read aloud is a separate decision (audio/Voice).

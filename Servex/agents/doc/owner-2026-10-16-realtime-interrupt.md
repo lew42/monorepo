@@ -27,3 +27,10 @@ If four updates arrive while the agent is mid-turn, it should get all four, not 
 ## Node-prompted procedures
 
 Tasks should follow specific procedures reliably, prompted by node, so the process is managed and finished programmatically rather than by the model remembering. The mechanism exists (a queued message at the right moment, as the heartbeat does); what is missing is triggers (e.g. a commit that touches code → "run the documentation skill") and a task outcome/state to check against.
+
+## Addendum, later that night: queue by default, interrupt only for voice
+
+- Subscriptions live in node, never in the agent: node (any function, a WebSocket, a UI event) pushes a message into the agent's prompt queue. Servex/Follow.js already does this for file changes (follow/unfollow, one message per 2 s burst); extend the same path to any node event, including browser events relayed over the socket (navigation, clicks, resize, which task the owner tapped).
+- Queue is the default. The SDK pulls the next message only at the end of a turn, which is what we want: batching, and no half-finished steps.
+- Interrupt is dangerous for working agents: a single file write is atomic, but a SEQUENCE (write three files, test, commit) cut in the middle leaves a half-landed step. Reserve interrupt (send_to_agent priority now, interrupt_agent, SDK query.interrupt()) for voice barge-in: the user started talking, the rest of the spoken answer is moot. Any agent that may be interrupted logs each step as it lands so the next turn can resume.
+- The MCP could never push; the SDK queue fixes that. Do not rebuild polling.

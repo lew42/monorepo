@@ -28,3 +28,7 @@ Spoken text needs things spelled out, pronounced properly, verbally articulated 
 ## Status
 
 Keep notes; not much AI-voice work is wanted right now. A past-work inquiry on AI voice was asked for; the index now points here.
+
+## Addendum: barge-in
+
+A voice agent reads its output aloud as it generates. When the user starts speaking, interrupt immediately (the only case where interrupt beats queue): the rest of the answer may no longer apply and the reply will adjust. The agent's instructions must make it hands-free: speak, do not write files, so an interrupt never cuts a sequence.
