@@ -16,6 +16,7 @@ export default new Doc({
 	initialize(){
 		Doc.prototype.initialize.call(this);
 		this.declare("live");
+		this.declare("page");
 	},
 
 	content(){
