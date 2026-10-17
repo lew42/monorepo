@@ -115,7 +115,7 @@ check("replay: explicit wait then approve", () => {
 	const w = Task.replay(lines);
 	if (w.state !== "waiting" || w.data.waiting_on !== "owner" || w.data.waiting_since !== "2026-10-16T10:30:00Z") return false;
 	const t = Task.replay([...lines, { approve: { by: "owner", note: "go", at: "2026-10-16T10:40:00Z" } }]);
-	return t.state === "idle" && t.data.waiting_on === null && t.data.approved_by === "owner";
+	return t.state === "running" && t.data.waiting_on === null && t.data.approved_by === "owner";
 });
 check("replay: wait after legacy lines overrides them, even a later legacy landing only adds data", () => {
 	const t = Task.replay([A, { wait: { on: "agent-9", at: "2026-10-16T10:30:00Z" } }, landed]);
@@ -222,9 +222,9 @@ check("replay of an old folder: finish / finished_at become complete / completed
 check("a stored state of finished reads as complete", () => (() => { const t = new Task({ id: "o" }); t.put("state", "finished"); return t.state === "complete"; })());
 
 const waiting = () => Task.replay([A, { start: {} }, { wait: { on: "owner", what: "ok?" } }]);
-check("approve(note): waiting -> idle, verdict recorded", () => {
+check("approve(note): waiting -> running, verdict recorded", () => {
 	const t = waiting().approve("fine, but mind X");
-	return t.state === "idle" && t.data.verdict.is === "approve" && t.data.verdict.note === "fine, but mind X";
+	return t.state === "running" && t.data.verdict.is === "approve" && t.data.verdict.note === "fine, but mind X";
 });
 check("improve(note): waiting -> running", () => {
 	const t = waiting().improve({ note: "redo", by: "owner" });
@@ -240,6 +240,33 @@ check("verdicts replay as verbs and as verdict lines", () => {
 	return a.state === "stopped" && b.state === "running" && b.data.verdict.note === "y";
 });
 check("a verdict outside waiting warns and changes nothing", () => new Task({ id: "v" }).approve("x").state === "idle");
+
+// ---- step 13: Item owns replay ----
+const OLD = [{ assign: { slug: "old", title: "Old", module: "core/Task", requested_at: "2026-10-16T10:00:00Z", finished_at: "2026-10-16T11:00:00Z", complete: 1, session_id: "s1" } },
+	{ commit: "abc1234" }, { assign: { landed_at: "2026-10-16T11:00:00Z", outcome: "done" } }];
+check("a Store-style replay_line per line matches Task.replay on an old folder", () => {
+	const a = Task.replay(OLD);
+	const b = new Task({ id: "old" });
+	for (const line of OLD) b.replay_line(line);   // what Item.Store.read does for each entry
+	b.replay_end();
+	return a.state === "complete" && b.state === a.state && JSON.stringify(b.data) === JSON.stringify(a.data);
+});
+check("replay_line never leaves the clock pinned (live Store.read)", () => {
+	const t = new Task({ id: "p" });
+	t.replay_line({ start: { at: "2026-10-16T10:00:00Z" } });
+	return t.state === "running" && t.data.started_at === "2026-10-16T10:00:00Z" && t._at === null;
+});
+check("tags: [module, own tags, parent tags], no duplicates or empties", () => {
+	const parent = Task.replay([{ assign: { slug: "p", module: "core/Task" } }, { tags: ["plan", "", "core/Task"] }]);
+	parent.tasks.set({ add: { type: "Task", id: "kid", data: { module: "core/Item", tags: ["plan", "x"] } } });
+	const kid = parent.tasks.find("kid");
+	return JSON.stringify(kid.tags) === JSON.stringify(["core/Item", "plan", "x", "core/Task"]) && JSON.stringify(new Task({ id: "n" }).tags) === "[]";
+});
+check("expected as an array survives replay; a string stays a string", () => {
+	const a = Task.replay([A, { expected: ["one", "two"] }]), b = Task.replay([A, { expected: "just one" }]);
+	return Array.isArray(a.expected) && a.expected.length === 2 && b.expected === "just one";
+});
+check("approve goes to running (not idle)", () => waiting().approve("go").state === "running");
 
 check("content.add through replay, drawn data kept", () => {
 	const t = Task.replay([A, { content: { add: { id: "n1", text: "a note" } } }, { content: { add: { id: "n2", title: "a decision" } } }]);

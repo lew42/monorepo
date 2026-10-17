@@ -38,8 +38,9 @@ export default class TaskView extends View {
 	card(){
 		const t = this.task;
 		div.c("flex gap-50", () => { icon(t.get("icon") ?? "task_alt").style({ fontSize: "2rem" }); strong(this.title()); small.c("muted task-state", t.state); });
-		const facts = [["complete", this.percent()], ["expected", t.expected], ["priority", t.priority?.score], ["commits", t.commits.map(h => h.slice(0, 7)).join(" ")], ["session", t.session], ["module", t.module]];
+		const facts = [["complete", this.percent()], ["priority", t.priority?.score], ["commits", t.commits.map(h => h.slice(0, 7)).join(" ")], ["session", t.session], ["module", t.module]];
 		for (const [k, v] of facts) if (v !== undefined && v !== null && v !== "") div(() => { small.c("muted", k + ": "); span(String(v)); });
+		for (const line of [t.expected].flat()) if (line) div(() => { small.c("muted", "expected: "); span(String(line)); });   // string | string[]: one line each
 		for (const item of t._content ?? []){
 			const text = item.get?.("text") ?? item.get?.("title") ?? item.data?.text ?? item.data?.title;
 			if (text) div.c("task-content", String(text));

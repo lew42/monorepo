@@ -28,9 +28,9 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 ## Replay, waiting, subtasks
 
-- `Task.replay(lines)` builds a task from parsed `task.jsonl` objects, using each line's own time (`at`, `assign.at|landed_at|requested_at`), never the wall clock, so the same file always gives the same task. Explicit lines (`{"start":{}}`, `pause`, `resume`, `stop`, `complete` (old `finish` too), `wait`, `approve`, `improve`, `reject`) call the method of that name; once one appears, they decide the state.
+- `Task.replay(lines)` is `Item.replay` (inherited): `Item.Store.read` runs the same `replay_line` per entry in the browser. Task only overrides `replay_new`, `replay_line` and `replay_end` for the legacy mapping. It builds a task from parsed `task.jsonl` objects, using each line's own time (`at`, `assign.at|landed_at|requested_at`), never the wall clock, so the same file always gives the same task. Explicit lines (`{"start":{}}`, `pause`, `resume`, `stop`, `complete` (old `finish` too), `wait`, `approve`, `improve`, `reject`) call the method of that name; once one appears, they decide the state.
 - No explicit line (an old file): `landed_at` + a non-empty `outcome` is `complete`, `closed_by` is `stopped`, anything else is `running`. `assign` fields merge into `data` (latest wins; `session_id` becomes `session`).
-- `waiting` is a sixth state: `wait({on, what})` (from idle, running, paused), then a verdict, each stored as `verdict: {is, note, by}`: `approve(note?)` (to idle), `improve(note)` (to running, to revise and wait again), `reject(note)` (to stopped). `stop` and `complete` accept it.
+- `waiting` is a sixth state: `wait({on, what})` (from idle, running, paused), then a verdict, each stored as `verdict: {is, note, by}`: `approve(note?)` (to running; a queue that delays it to idle does not exist yet), `improve(note)` (to running, to revise and wait again), `reject(note)` (to stopped). `stop` and `complete` accept it.
 - `tasks` is made on first use, so a task with no subtasks costs no `List`.
 
 ## render() and TaskView
@@ -71,6 +71,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 - **`complete`** replaces `finished`: state `complete`, verb `complete()`, field `completed_at`. Replay reads old `finish` lines, `finished_at`, `state: "finished"` and a numeric `complete`; `finish()` is an alias.
 - **`mode`**: `"parallel"` (default) or `"series"`. `start()` on a parent starts its children (series: the first not complete; parallel: every idle one). A parent hears each child's state change (wired when a child joins `tasks`): a series parent starts the next child, and the last child completing completes the parent. No polling.
+- **`tags`** (getter): `[module, ...own tags, ...the parent task's tags]`, no duplicates or empties; own tags are a `tags` string array. **`expected`** is a string or an array of strings (the card draws one line each).
 - **`content`**: a `List` made on first use; a replay line `{"content":{"add":{"text":"…"}}}` adds to it, as on a Page. The card draws each item's `text` or `title`.
 - **`settled()`**: a Promise that resolves with the task at `complete` or `stopped`.
 - **The `item` tool** writes a Task: `item({path, delta})` appends one `task.jsonl` line (`{"start":{}}`, `{"tasks":{"add":{…}}}`) and answers with the replayed state. Refuses `_` keys and unknown keys. See [Servex/doc/item-tool.md](/Servex/doc/item-tool.md). `Task.replay` reads the same lines (`tasks`, `content`, and the plain fields in `Task.FIELDS`), so a tool write and a file read run the same code.

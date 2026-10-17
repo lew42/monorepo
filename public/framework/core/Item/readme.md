@@ -8,7 +8,7 @@
 Item = Events(Object)                 // ✅ landed 2026-10-02 — on/off/emit come from the Events mixin
   id, data: {}                        // get(key), put(key, value) — seams over `data`; Page overrides both
   set(a, b)                           // ✅ one delta: a method key calls it, a nested .set() recurses, else data + emits "change"/"delta"
-  store: Item.Store                   // ✅ a Store attached (core/Item/Store.js) replays/appends/tails one .jsonl file — it writes through FsFile.send, the one file API (ext/filesystem)
+  store: Item.Store                   // ✅ a Store attached (core/Item/Store.js) replays (each entry through `host.replay_line`, default `set`; `Item.replay(lines)` is the node twin) / appends / tails one .jsonl file — it writes through FsFile.send, the one file API (ext/filesystem)
   view                                // getter/setter; lazy `new constructor.View({item})` once core grows one
   remove(), root(), contains(item), walk(fn), find(id), save(), delete()
   toJSON(), static hydrate(json), static register(Class, name), static open(src)

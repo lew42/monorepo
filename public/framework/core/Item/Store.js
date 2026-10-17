@@ -67,7 +67,7 @@ export class Store {
 		});
 	}
 
-	// Host attached → replay each entry through `host.set(entry)`, flagged so nothing
+	// Host attached → replay each entry through `host.replay_line(entry)` (default `set`), flagged so nothing
 	// it does gets recorded again. No host yet → hold the entries for `attach()`.
 	// Echo skip: an entry that is — character for character — a line THIS store sent
 	// and has not yet seen come back is dropped instead of replayed a second time;
@@ -78,7 +78,7 @@ export class Store {
 
 			if (this.host){
 				this.replaying = true;
-				try { this.host.set(entry); } finally { this.replaying = false; }
+				try { this.host.replay_line(entry); } finally { this.replaying = false; }
 			} else {
 				this.entries.push(entry);
 			}

@@ -23,7 +23,7 @@ const CAN = {
 
 // The state verbs a `task.jsonl` line may name: `{"stop":{"why":"…"}}`.
 // Plain fields a top-level line may set (the item tool's {"expected":"…"}); legacy lines keep them under `assign`.
-const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source"];
+const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags"];
 
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
 
@@ -141,7 +141,14 @@ export class Task extends Item {
 	}
 
 	// Fields: plain data, read where they are written (readme: Fields).
+	// string | string[]; the yes/no check of each string at complete() is a later step (plan.md, Amendments 2 item 3).
 	get expected(){ return this.get_one("expected"); }
+	// [module, ...own tags, ...the parent's tags]: no duplicates, no empties.
+	get tags(){
+		const own = this.get_one("tags");
+		const all = [this.module, ...(Array.isArray(own) ? own : [own]), ...(this.parent?.tags ?? [])];
+		return [...new Set(all.filter(t => typeof t === "string" && t.trim()))];
+	}
 	get module(){ return this.get_one("module"); }
 	get session(){ return this.get_one("session") ?? this.get_one("session_id"); }
 	get priority(){ return this.get_one("priority") ?? null; }
@@ -228,10 +235,11 @@ export class Task extends Item {
 		this.set({ waiting_on: null, ...extra, ran_ms, state });
 		return this;
 	}
-	// approve: back to idle (start() it again). Approval with a caveat is approve(note).
+	// approve: the task starts at once (waiting -> running). Approval with a caveat is approve(note).
+	// TODO(plan step 13+): a queue that delays the start (then "idle") doesn't exist yet.
 	approve(arg){
 		const o = typeof arg === "object" && arg ? arg : { note: arg };
-		return this.verdict("approve", arg, "idle", { approved_by: o.by ?? null, approved_note: o.note ?? null });
+		return this.verdict("approve", arg, "running", { approved_by: o.by ?? null, approved_note: o.note ?? null });
 	}
 	// improve: back to whoever proposed it, to revise and wait() again.
 	improve(arg){ return this.verdict("improve", arg, "running"); }
@@ -261,57 +269,62 @@ export class Task extends Item {
 
 	// Old name, kept for old callers and old logs; nothing new writes it.
 	finish(args){ return this.complete(args); }
-}
 
-// Build a Task from parsed `task.jsonl` lines (see readme: Replay). Time comes from the
-// lines (`at`, `assign.at|landed_at|requested_at`), never the wall clock.
-Task.replay = function(lines){
-	const first = lines.find(l => l?.assign)?.assign ?? {};
-	const task = new Task({ id: first.slug ?? first.task ?? "task" });
-	let at = null, explicit = false;
-	const legacy = (partial) => {   // landed -> complete, closed -> stopped, else running (today's chasing)
-		const d = task.data;
-		if (d.landed_at && String(d.outcome ?? "").trim()) task.set({ state: "complete", completed_at: d.landed_at });
-		else if (d.closed_by) task.set({ state: "stopped", stopped_at: d.closed_at ?? at });
-		else if (!partial) task.set({ state: "running" });   // before an explicit line, an open legacy task stays idle so `start` is legal
-	};
-	for (const line of lines){
-		if (!line || typeof line !== "object") continue;
+	// ---- Replay: Item.replay / Item.Store.read drive these; only the legacy mapping lives here ----
+	static replay_new(lines){
+		const first = lines.find(l => l?.assign)?.assign ?? {};
+		return new this({ id: first.slug ?? first.task ?? "task" });
+	}
+
+	// Time comes from the lines (`at`, `assign.at|landed_at|requested_at`), never the wall clock.
+	replay_line(line){
+		const rp = this._rp ??= { at: null, explicit: false };
 		const a = line.assign && typeof line.assign === "object" ? line.assign : null;
 		const verb = VERBS.find(v => line[v] && typeof line[v] === "object");
-		at = line.at ?? a?.at ?? a?.landed_at ?? a?.requested_at ?? line[verb]?.at ?? at;
+		rp.at = line.at ?? a?.at ?? a?.landed_at ?? a?.requested_at ?? line[verb]?.at ?? rp.at;
 		if (a){
 			// put(), not set(): set() reads `at` as a path (and drops the line) and calls any key that names a method.
 			const { state, session_id, at: _t, ...rest } = a;
-			for (const [k, v] of Object.entries(rest)){
-					task.put(k === "finished_at" ? "completed_at" : k === "complete" && typeof v === "number" ? "completion" : k, v);   // old folders
-				}
-			if (session_id !== undefined) task.put("session", session_id);
+			for (const [k, v] of Object.entries(rest))
+				this.put(k === "finished_at" ? "completed_at" : k === "complete" && typeof v === "number" ? "completion" : k, v);   // old folders
+			if (session_id !== undefined) this.put("session", session_id);
 		}
-		if (typeof line.commit === "string") task.commit(line.commit);
+		if (typeof line.commit === "string") this.commit(line.commit);
 		if (line.priority && typeof line.priority === "object"){
 			const { score, why, by } = line.priority;
-			task.put("priority", { score, why, by });
+			this.put("priority", { score, why, by });
 		}
-		if (line.content && typeof line.content === "object") task.content.set(line.content);
-		if (line.tasks && typeof line.tasks === "object" && !Array.isArray(line.tasks)) task.tasks.set(line.tasks);
-		for (const k of FIELDS) if (line[k] !== undefined) task.put(k, line[k]);   // a plain field line, e.g. one the item tool wrote
-		if (line.verdict && typeof line.verdict === "object" && ["approve", "improve", "reject"].includes(line.verdict.is) && !verb){
-			if (!explicit){ explicit = true; legacy(true); }
-			task._at = at;
-			task[line.verdict.is]({ by: line.verdict.by, note: line.verdict.note });
+		if (line.content && typeof line.content === "object") this.content.set(line.content);
+		if (line.tasks && typeof line.tasks === "object" && !Array.isArray(line.tasks)) this.tasks.set(line.tasks);
+		for (const k of FIELDS) if (line[k] !== undefined) this.put(k, line[k]);   // a plain field line, e.g. one the item tool wrote
+		const verdict = line.verdict && typeof line.verdict === "object" && ["approve", "improve", "reject"].includes(line.verdict.is) && !verb ? line.verdict : null;
+		if (verdict || verb){
+			if (!rp.explicit){ rp.explicit = true; this.replay_legacy(true); }
+			this._at = rp.at;
+			try {
+				if (verdict) this[verdict.is]({ by: verdict.by, note: verdict.note });
+				else { const { at: _a, ...args } = line[verb]; this[verb](verb === "stop" ? args.why : args); }
+			} finally { this._at = null; }   // so a live Store.read never leaves the clock pinned
 		}
-		if (verb){
-			if (!explicit){ explicit = true; legacy(true); }
-			task._at = at;
-			const { at: _a, ...args } = line[verb];
-			task[verb](verb === "stop" ? args.why : args);
-		}
+		return this;
 	}
-	if (!explicit) legacy();
-	task._at = null;
-	return task;
-};
+
+	// No explicit verb line anywhere: infer the state from the old fields.
+	replay_end(){
+		if (!this._rp?.explicit) this.replay_legacy();
+		this._at = null;
+		this._rp = null;
+		return this;
+	}
+
+	// landed -> complete, closed -> stopped, else running (today's chasing)
+	replay_legacy(partial){
+		const d = this.data;
+		if (d.landed_at && String(d.outcome ?? "").trim()) this.set({ state: "complete", completed_at: d.landed_at });
+		else if (d.closed_by) this.set({ state: "stopped", stopped_at: d.closed_at ?? this._rp?.at });
+		else if (!partial) this.set({ state: "running" });   // before an explicit line, an open legacy task stays idle so `start` is legal
+	}
+}
 
 Task.STATES = STATES;
 Task.FIELDS = FIELDS;

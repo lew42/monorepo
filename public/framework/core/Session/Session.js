@@ -24,17 +24,14 @@ export default class Session extends Item {
 	progress(){ return Task.progress_of(this._tasks); }
 	get completion(){ const { done, total } = this.progress(); return total ? done / total : 0; }
 
-	// Build a Session from parsed session.jsonl lines, through set(), the way Task.replay does.
-	static replay(lines){
-		const session = new this(lines.find(l => l?.session)?.session ?? lines.find(l => l?.id)?.id);
-		for (const line of lines){
-			if (!line || typeof line !== "object") continue;
-			const { by, ts, at, session: _s, ...delta } = line;
-			if (delta.tasks && typeof delta.tasks === "object") session.tasks.set(delta.tasks);
-			delete delta.tasks;
-			for (const [k, v] of Object.entries(delta)) if (k !== "class") session.put(k, v);
-		}
-		return session;
+	// Item.replay does the loop; a session only needs its id from line 1 and its own line shape.
+	static replay_new(lines){ return new this(lines.find(l => l?.session)?.session ?? lines.find(l => l?.id)?.id); }
+	replay_line(line){
+		const { by, ts, at, session: _s, ...delta } = line;
+		if (delta.tasks && typeof delta.tasks === "object") this.tasks.set(delta.tasks);
+		delete delta.tasks;
+		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.put(k, v);
+		return this;
 	}
 
 	// The folder every session of this kind lives under. Override in the subclass.
