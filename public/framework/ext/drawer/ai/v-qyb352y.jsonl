@@ -28,3 +28,4 @@
 {"quiet":{"at":"2026-10-17T13:15:17.240-05:00","ms":2500,"path":"/framework/ext/drawer/ai/"}}
 {"react":{"at":"2026-10-17T13:15:18.473-05:00","session":"v-qyb352y","re":"2026-10-17T13:15:15.695-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-qyb352y"}}}
 {"place":{"re":"2026-10-17T13:15:15.695-05:00","to":"same","edit":"nothing"},"by":"voice-assistant-v-qyb352y","ts":"2026-10-17T18:15:19.065Z"}
+{"chat":{"at":"2026-10-17T23:25:34.062-05:00","session":"v-qyb352y","path":"/framework/ext/drawer/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-17T13:15:15.695-05:00"}}
