@@ -1,8 +1,8 @@
 # Follow-up: what fell through the cracks
 
-Counted by the one state ([one-state.md](one-state.md), `Server/State.mjs`): every task below is a row of `ai/state.json`. Computed 2026-10-18 14:12 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
+Counted by the one state ([one-state.md](one-state.md), `Server/State.mjs`): every task below is a row of `ai/state.json`. Computed 2026-10-18 14:19 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
 
-**0 landed with unmerged commits · 0 merged but never landed · 65 quiet over 2 h · 46 landed with no outcome · 0 open asks with no live owner · 909 healthy of 1020.**
+**0 landed with unmerged commits · 0 merged but never landed · 65 quiet over 2 h · 0 landed with no outcome · 0 open asks with no live owner · 956 healthy of 1021.**
 
 ## quiet: 65
 
@@ -22,23 +22,9 @@ the state calls it in_flight or stale and its log is silent for over 2 h: resume
 - [refine-audit](/framework/ai/sessions/2026/10/15/voice-20261015/refine-audit/): helper-refine-audit, last log 22 h ago, step 1/0, agent stopped
 - …53 more in [follow-up-full.md](follow-up-full.md)
 
-## no-outcome: 46
-
-landed with no outcome text: add one line saying what shipped.
-
-- [property-of-merge](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/property-of-merge/): helper-property-of-merge, last log 1 h ago, step 0/0, agent stopped
-- [session-day](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/session-day/): helper-session-day, last log 1 h ago, step 0/0, agent stopped
-- [dictate-wide](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-wide/): helper-dictate-wide, last log 10 h ago, step 0/0, agent stopped
-- [sheet-handoff-proof](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/sheet-handoff-proof/): helper-sheet-handoff-proof, last log 11 h ago, step 0/0, agent stopped
-- [templates-live-proof](/framework/core/Task/tasks/templates-live-proof/): helper, last log 22 h ago, step 0/0, agent dormant
-- [tasks-wide](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/tasks-wide/): helper-tasks-wide, last log 22 h ago, step 0/0, agent stopped
-- [swallow](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/swallow/): helper-voice-swallow, last log 24 h ago, step 0/0, agent stopped
-- [overview-of-this-dictation-and-all-asks](/framework/ai/tasks/overview-of-this-dictation-and-all-asks/): helper-a, last log 33 h ago, step 0/0, agent unknown
-- …38 more in [follow-up-full.md](follow-up-full.md)
-
 ## Check
 
-909 healthy + 111 flagged = 1020; the state lists 1020 tasks in the same 10 days: agree. The state's own self-check is ok. Source: a fresh State snapshot. 200 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
+956 healthy + 65 flagged = 1021; the state lists 1021 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/state.json (under a minute old). 201 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
 
 ## How each row is counted
 
