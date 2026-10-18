@@ -21,7 +21,7 @@ import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(process.env.LEDGER_ROOT || path.resolve(here, "..")), AI = path.join(REPO, "public", "framework", "ai"), SESS = path.join(AI, "sessions");
-const MANIFEST = path.join(SESS, "task-manifest.json"), MOVES = path.join(SESS, "task-moves.jsonl"), STUB = "moved.json", QUIET_MIN = 240;
+const MANIFEST = path.join(SESS, "task-manifest.json"), MOVES = path.join(SESS, "task-moves.jsonl"), DAY_MOVES = path.join(SESS, "session-day-moves.jsonl"), STUB = "moved.json", QUIET_MIN = 240;
 const slash = p => p.split(path.sep).join("/"), rel = p => slash(path.relative(REPO, p));
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const ls = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch { return []; } };
@@ -98,11 +98,16 @@ export default class TaskDirs {
 
 	/** old repo-relative path -> {to}, from both manifests, chains resolved (old -> 10-10 task/ -> <slug>/). Cached by mtimes. */
 	static map(){
-		const mt = f => { try { return fs.statSync(f).mtimeMs; } catch { return 0; } }, key = mt(MANIFEST) + ":" + mt(MOVES);
+		const mt = f => { try { return fs.statSync(f).mtimeMs; } catch { return 0; } }, key = mt(MANIFEST) + ":" + mt(MOVES) + ":" + mt(DAY_MOVES);
 		if (key !== this.#cache.key){
 			const map = new Map();
 			try { for (const e of JSON.parse(fs.readFileSync(MANIFEST, "utf8")).moves) map.set(e.from, e); } catch {}
 			try { for (const l of fs.readFileSync(MOVES, "utf8").split("\n")) if (l.trim()) try { const e = JSON.parse(l); if (e.from && e.to && !e.undone && !(e.kind === "stub" && map.get(e.from)?.kind === "redirect")) map.set(e.from, e); } catch {} } catch {}   // a stub's archive copy never beats the redirect to the real folder
+			try {   // Server/SessionDayMove.mjs: planned {old,new}, in force once a `done` line follows and no `undone` does
+				const rows = fs.readFileSync(DAY_MOVES, "utf8").split(String.fromCharCode(10)).filter(l => l.startsWith("{")).map(l => { try { return JSON.parse(l); } catch { return {}; } });
+				const on = new Set(); for (const r of rows){ if (r.done) on.add(r.done); if (r.undone) on.delete(r.undone); }
+				for (const r of rows) if (r.old && r.new && on.has(r.old)) map.set(r.old, { kind: "rename", from: r.old, to: r.new });
+			} catch {}
 			for (const [from, e] of map){ let to = e.to, n = 0; while (map.has(to) && n++ < 9) to = map.get(to).to; if (to !== e.to) map.set(from, { ...e, to }); }
 			this.#cache = { key, map };
 		}
