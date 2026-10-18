@@ -196,6 +196,8 @@ export class Agents {
 		/* Minted here for every fresh spawn (the constructor would mint the same thing later), so
 		 * the first-turn line can tell the agent its own page, /framework/ai/sessions/<session_id>/. */
 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
+		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
+		if (spec.task === undefined && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task }; }
 		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
 		const fresh = !again && !spec.system;
@@ -225,6 +227,31 @@ export class Agents {
 		this.register(agent);
 		try { this.servex?.lifecycle?.agent_started(agent, spec); } catch {}   // lifecycle.jsonl: Servex/Lifecycle.js
 		return agent;
+	}
+
+	/* THE DEFAULT TASK DIR (todo 178, 2026-10-18): a spawn with no `task` option still gets one, or the agent is invisible to
+	 * Server/State.mjs, Servex/Landed.js, the follow-up and /tasks/. Returns the `task` spec for open_task, or null when this
+	 * spawn is not a work agent: a resume, `task: false` (a throwaway probe), a standing desk (STANDING ids), a page-bound
+	 * agent (its page is its home), a fork, or any agent with its own `system` brief, `sdk`, in-process tools or no settings.
+	 *
+	 * HOME: ai/sessions/<local day>/<caller's session folder, else "spawned">/<agent id slug>/ (TaskDirs.dir). The alternative,
+	 * nesting under the caller's own task dir (CLAUDE.md: a child task lives inside its parent), is not taken because a caller
+	 * with no task, a Dispatcher or a voice session has none, and one rule beats two; the line 1 `parent_task` still links
+	 * the caller's task when it has one. Servex's gate may queue a spawn: then the dir opens when it starts, not when it is held.
+	 * Side effect worth knowing: a task dir puts the agent under the results-gated spend guard (gated_role). */
+	default_task(spec, id){
+		if (spec.task === false || spec.resume || spec.system || spec.sdk || spec.mcp_servers || spec.one_shot || spec.page || !spec.prompt) return null;
+		if (STANDING.test(id ?? "") || (Array.isArray(spec.setting_sources) && !spec.setting_sources.length)) return null;
+		try {
+			const slug = String(id).toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^[^a-z0-9]+/, "").slice(0, 60) || "agent";
+			const caller = spec.parent && this.live.get(spec.parent);
+			const in_session = caller?.session_id && fs.existsSync(TaskDirs.session_dir(caller.session_id));
+			const base = in_session ? TaskDirs.dir({ slug, session_id: caller.session_id }) : path.join(TaskDirs.day_dir(), "spawned", slug);
+			let dir = base, n = 1;
+			while (fs.existsSync(path.join(dir, "task.jsonl")) || fs.existsSync(path.join(dir, "session.jsonl"))) dir = `${base}-${++n}`;
+			const title = String(spec.prompt).split(/\r?\n/).find(l => l.trim())?.trim().slice(0, 120);
+			return { dir: path.relative(process.cwd(), dir).split(path.sep).join("/"), brief: null, ...(title ? { title } : {}) };
+		} catch (e){ this.store().append("servex", { type: "default-task-failed", agent: id, error: String(e.message || e) }).catch(() => {}); return null; }
 	}
 
 	/* "Does it already exist" at birth: writes <task dir>/past-work.md (Server/PastWork.mjs) before the first turn; returns its path, or null. Never fails a spawn. */
@@ -831,7 +858,7 @@ export function open_task(task, { session_id, agent, model, worktree, parent_dir
 	const parent_task = rel(task.parent_task ?? parent_dir);
 	// `after` is task dirs in the same form as parent_task, so the tree matches them exactly.
 	const after = Array.isArray(task.after) && task.after.length ? task.after.map(rel) : undefined;
-	const line = JSON.stringify({ assign: strip({ session_id, agent, card: task.card, brief: task.brief,
+	const line = JSON.stringify({ assign: strip({ session_id, agent, card: task.card, brief: task.brief, title: task.title,
 		model, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
