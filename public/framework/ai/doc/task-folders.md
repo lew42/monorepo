@@ -14,6 +14,8 @@ ai/sessions/YYYY/MM/DD/<task slug>/                      a task with no known se
 ai/sessions/YYYY/MM/DD/day.jsonl                         the day's log (was ai/YYYY-MM-DD/day.jsonl)
 ```
 
+**Which day (2026-10-18):** `YYYY/MM/DD` is the owner's **local** day, the same as `State.day`: one rule, `TaskDirs.day()` (it calls `Day.of` in [core/Session/Day.js](../../core/Session/Day.js)). Until 10-17 folders were filed by the UTC day, so a session started after 19:00 local sat under the next day. [`Server/SessionDayMove.mjs`](/Server/SessionDayMove.mjs) re-filed the 116 folders from 10-17 on (`--plan`, `--apply`, `--undo`; every move is a line in [session-day-moves.jsonl](../sessions/session-day-moves.jsonl), and `TaskDirs.follow()` reads it); older days stay as filed.
+
 - **One class builds the path:** `TaskDirs` (`Server/TaskDirs.mjs`). `TaskDirs.dir({slug, session_id, day})` says where a new task goes; `TaskDirs.find(slug)` finds an existing one; `TaskDirs.follow(old)` maps any old path to its new home. Nobody types `ai/<date>/` again.
 - **A minion's task nests in its parent's task** (`parent/child/`), as before.
 - **Old addresses keep working:** every move is in a manifest; the dev server and the router redirect an old `/framework/ai/YYYY-MM-DD/<task>/` URL to the new one, and `append.mjs` follows an old `task.jsonl` path to its new file, so an agent holding an old path keeps writing to the right log.

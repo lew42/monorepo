@@ -106,17 +106,23 @@ export default class SessionDayMove {
 			} catch (e){ left.push([m.old, e.message.split("\n")[0]]); }
 		}
 		console.log(`apply: moved ${moved.length}, left ${left.length}`); for (const l of left.slice(0, 10)) console.log("  left", l.join(" — "));
-		if (moved.length){
-			const idx = moved.flatMap(m => [m.old, m.new].map(f => f.split("/").slice(0, -1).join("/") + "/index.json")).filter(f => fs.existsSync(path.join(REPO, f)));
-			const paths = [...new Set([...moved.map(m => m.new), ...moved.filter(m => m.tracked).map(m => m.old), rel(MANIFEST), ...idx])];
-			try { git("add", "-A", "--", ...paths.filter(f => fs.existsSync(path.join(REPO, f))));
-				git("commit", "-q", "-m", `Re-file ${moved.length} session folders under their local start day (Server/SessionDayMove.mjs --apply)
-
-Co-Authored-By: Claude Code <noreply@anthropic.com>`, "--", ...paths); console.log("committed"); }
-			catch (e){ console.log("commit failed (moves are on disk, commit by hand):", String(e.stderr || e.message).slice(0, 200)); }
-		}
+		if (moved.length) this.commit(moved);
 		return { moved, left };
 	}
+
+	/** Commit the applied moves (exact paths only; the tree is shared). `moved` defaults to every applied line of the manifest. */
+	static commit(moved){
+		moved ??= this.read().planned.filter(m => this.read().done.has(m.old)).map(m => ({ ...m, tracked: this.in_head(m.old) }));
+		const ignored = f => { try { git("check-ignore", "-q", "--", f); return true; } catch { return false; } };
+		const idx = moved.flatMap(m => [m.old, m.new].map(f => f.split("/").slice(0, -1).join("/") + "/index.json")).filter(f => fs.existsSync(path.join(REPO, f)));
+		const paths = [...new Set([...moved.map(m => m.new), ...moved.filter(m => m.tracked).map(m => m.old), rel(MANIFEST), ...idx])].filter(f => this.in_head(f) || this.tracked(path.join(REPO, f))).filter(f => !ignored(f));   // ignored session folders are on disk only; git never sees them
+		try { git("add", "-A", "--", ...paths.filter(f => fs.existsSync(path.join(REPO, f))));
+			git("commit", "-q", "-m", `Re-file ${moved.length} session folders under their local start day (Server/SessionDayMove.mjs --apply)
+
+Co-Authored-By: Claude Code <noreply@anthropic.com>`, "--", ...paths); console.log("committed"); }
+		catch (e){ console.log("commit failed (moves are on disk, run --commit):", String(e.stderr || e.message).slice(0, 300)); }
+	}
+	static in_head(f){ try { return git("ls-tree", "-r", "--name-only", "HEAD", "--", f).trim().length > 0; } catch { return false; } }
 
 	static undo_cli(){
 		const { planned, done } = this.read(); let n = 0;
@@ -136,6 +142,7 @@ if (import.meta.url === `file:///${process.argv[1]?.replace(/\\/g, "/")}`){
 	const a = process.argv.slice(2), arg = k => a.includes(k) ? a[a.indexOf(k) + 1] : undefined;
 	if (a.includes("--plan")) SessionDayMove.plan_cli(arg("--since"), a.includes("--dry"));
 	else if (a.includes("--apply")) SessionDayMove.apply_cli(arg("--quiet-min") === undefined ? 10 : Number(arg("--quiet-min")));
+	else if (a.includes("--commit")) SessionDayMove.commit();
 	else if (a.includes("--undo")) SessionDayMove.undo_cli();
-	else console.log("usage: node Server/SessionDayMove.mjs --plan [--since YYYY-MM-DD] [--dry] | --apply [--quiet-min N] | --undo");
+	else console.log("usage: node Server/SessionDayMove.mjs --plan [--since YYYY-MM-DD] [--dry] | --apply [--quiet-min N] | --commit | --undo");
 }
