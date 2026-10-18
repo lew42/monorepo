@@ -6,3 +6,4 @@
 {"commit":"653f7c4a16b4"}
 {"decision":{"at":"2026-10-17T23:11:21-05:00","chose":"Task.test.mjs's stale case (TaskState.CLOSED/OPEN no longer exist after one-state) rewritten to check the six states; State.test's break-on-purpose now uses a start line after a finish, since the old break (finish after a filed child) is exactly what rule 3 fixed","rejected":"leave the stale case failing (it failed before this task)"}}
 {"finish":{"at":"2026-10-17T23:11:21-05:00","outcome":"Three Task.replay rules fixed (ts as time, landed_at alone completes, a recorded finish stands after a filed child), a test each. Landed today: State 45, plain walk 45, check.ok true, no differing ids. Task.test 53/53, State.test ok, smoke clean, merged to michael/dev, inbox line closed, readme Watch out line added.","landed_today":{"state":45,"walk":45}}}
+{"commit":"129735b465cc"}
