@@ -3,6 +3,7 @@ import os from "os";
 import path from "path";
 import crypto from "crypto";
 import express from "express";
+import TaskDirs from "../../../Server/TaskDirs.mjs";
 
 /* The remote MCP endpoint (POST /mcp/remote), behind a bearer token. It serves the SAME tool registry every local Claude
  * session gets (`servex.mcp`, read live, never copied) plus `ask_mastermind` on top; calls run as caller "voice-app".
@@ -152,7 +153,7 @@ export default class RemoteMCP {
     // 1:1 — a fresh mastermind for this session, with a task dir under ai/sessions/YYYY/MM/DD/ and a card
     async spawn(sid, s){
         const short = sid.replace(/^voice-/, "").replace(/-/g, "").slice(0, 8);
-        const now = new Date(), day = now.toISOString().slice(0, 10), [y, m, d] = day.split("-");
+        const now = new Date(), day = TaskDirs.day(now), [y, m, d] = day.split("-");
         const dir = `public/framework/ai/sessions/${y}/${m}/${d}/voice-${short}`;
         const when = `${day} ${now.toTimeString().slice(0, 5)}`;
         let card;

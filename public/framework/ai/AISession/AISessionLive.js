@@ -1,5 +1,6 @@
 import Socket from "/framework/dev/Socket/Socket.js";
 import AISession from "./AISession.js";
+import Day from "../../core/Session/Day.js";
 import AISessionRows from "./AISessionRows.js";
 
 // The browser end of the live index (doc/realtime.md). Every day has ONE real file, so a static host serves it unchanged:
@@ -19,8 +20,8 @@ export default class AISessionLive {
 		this.count = 0;
 	}
 
-	/** The UTC day of a Date as "YYYY/MM/DD". */
-	static ymd(date){ return date.toISOString().slice(0, 10).replace(/-/g, "/"); }
+	/** The owner's local day of a Date as "YYYY/MM/DD" (Day.js). */
+	static ymd(date){ return Day.path(date); }
 
 	/** The day-file URLs between two "YYYY-MM-DD" dates (inclusive), oldest first: closed days from the roll-ups, and today's live file. */
 	static async days(root, from, to){
