@@ -1,0 +1,14 @@
+# merge.mjs never drops a NEW file, and LandingCheck counts an untracked new file as missing
+
+Budget: $5. Sonnet. Load the `minion` and `code` skills. Your log is this dir's `task.jsonl`.
+
+**Why (three sightings):** `public/framework/ai/todo.md` lines 211 and 213: on 2026-10-14 `Server/ShotsPurge.mjs`, then `ui/card`, `ui/stats` and `ui/words` `doc/architecture.md`, were in a branch commit and in the landing line, and reached `michael/dev` **untracked**: `Server/merge.mjs`'s apply-by-diff path writes new files to the tree without staging them, and `LandingCheck.verify` did not flag the miss because it compares changed files, not new ones. Each time a human committed by hand. The one state now gates a landing on the branch being merged (`Servex/Landed.js`, 10-18), so this is the last hole: a merge that silently leaves a file untracked. Read `Server/merge.mjs` (the apply-by-diff path: `grep -n "apply\|diff" Server/merge.mjs | head -30`), `Server/LandingCheck.mjs` (`verify`), and their tests if any (`ls Server/*.test.mjs | grep -i "merge\|landing"`). CLAUDE.md: commit after every working step; a clean git status always.
+
+## Deliverable
+
+1. **merge.mjs:** on the apply-by-diff path, every path the diff touched is staged (`git add -A -- <paths>` or `git apply --index`), so a new file lands tracked in the merge commit; after the commit, `git status --porcelain -- <paths>` must be empty or the merge fails with one clear line naming the untracked files. A `decision` line says which of the two you chose and why.
+2. **LandingCheck.verify:** a file that the branch commit added and that is untracked (or absent) on `michael/dev` counts as missing, same as a changed file that differs; the message names it as "new file not on dev".
+3. **Tests, with a new file:** in a scratch repo (`git init` under `os.tmpdir()`), a branch adds a new file and changes one; the merge lands both tracked (assert `git ls-files` lists the new one and `git status --porcelain` is empty); a second case where the new file is left untracked on purpose makes `LandingCheck.verify` report it. Put the cases in the existing test files or `Server/merge.test.mjs` / `Server/LandingCheck.test.mjs`; `node` runs them green: print the counts.
+4. `node --check`, `Server/smoke.mjs` clean, worktree, `merge.mjs` (`--no-review` naming your review if the gate cannot see this 2026-10-13 task dir; your own merge is the first live test: say in the finish line that `git status` was clean after it), a `finish` line with the test counts checked with `tail -1`, `git status` clean for your paths; strike todo lines 211 and 213 (`~~`, the landing commit named). Never restart servers; never drive the owner's tabs.
+
+Fence: `Server/merge.mjs`, `Server/LandingCheck.mjs`, their tests, one line in `Server/doc/*.md` where merge is described, the two todo lines, this task dir. Not `Servex/`, not the pages.
