@@ -143,6 +143,7 @@ export default class FollowUp {
 		"**merged but never landed**: any bucket but `landed`, its branch is already on `michael/dev`.",
 		"**landed with no outcome**: bucket `landed` and the state's `line` is empty.",
 		"**open asks with no live owner**: `asks.jsonl` as before, joined on the state's `agents`.",
+		"**an orphaned ask is re-filed, not reopened**: `node Server/OrphanAsks.mjs --plan` lists these same asks with the module home each belongs to; `--apply` makes (or matches) an idle task there and appends a `tracked` line to `asks.jsonl`, which drops it from this list (manifest `ai/asks/orphan-asks.jsonl`).",
 		"First run 2026-10-18: of the 30 rows the old reader called quiet, 26 survive (all `stale`: no finish line, no working agent) and 4 drop out (bucket `stopped`, an explicit stop).",
 	];
 
