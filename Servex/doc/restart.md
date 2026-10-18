@@ -26,3 +26,5 @@ if the pid is still alive, logs loudly and retries with a plain (non-tree) kill.
 Proved on a private stand-in Servex (own `SERVEX_HOME`, stub entry script, own API port): a
 caller nested inside that fake Servex's own tree asked for a restart, and its pid changed even
 though the caller died along with the rest of that tree. No window ever appeared.
+
+**The revive sweep skips an agent with nothing to resume** (2026-10-18): at boot `Agents.revive()` leaves alone, and does not tell "Servex restarted mid-turn", any agent that started after this boot, or has no completed turn and no session file (`Agents.revive_skip`, test `agents/revive-skip.test.mjs`, proof `public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/restart-sweep/proof-fixed.txt`). Such an agent is marked gone and logged once (`revive-skip` in `servex.jsonl`); a second restart seconds after a spawn used to resume a session that did not exist yet and kill the agent at $0, so respawn it.

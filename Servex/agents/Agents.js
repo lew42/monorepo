@@ -379,7 +379,8 @@ export class Agents {
 	revive({ window_min = 30 } = {}){
 		const reg = this.reg(), prev = reg.last_boot();
 		reg.mark_boot(this.boot);
-		const out = { revived: [], told: [], gone: [], legacy: [] };
+		const out = { revived: [], told: [], gone: [], legacy: [], skipped: [] };
+		const boot_at = parseInt(String(this.boot).split("-")[0], 36) || Date.now();   // `boot` = <base36 ms>-<pid>
 		this.mark_legacy_stops(reg);
 		for (const row of reg.list()){
 			/* A DORMANT row had no process to lose: it stays dormant, and the first
@@ -404,6 +405,14 @@ export class Agents {
 			let agent = null;
 			const no = ours && this.blocked(row);
 			if (no){ out.refused = [...(out.refused ?? []), { id: row.id, why: no.why }]; if (row.state !== "gone") out.gone.push(row.id); continue; }
+			/* doc/restart.md "The revive sweep skips…": never tell, or resume, an agent that has no turn to lose. */
+			const skip = ours && Agents.revive_skip(row, { boot_at, has_session: !!(row.session_id && session_facts(row.session_id).file) });
+			if (skip){
+				out.skipped.push({ id: row.id, why: skip.why });
+				this.store().append("servex", { type: "revive-skip", id: row.id, why: skip.why }).catch(() => {});
+				if (skip.dead && row.state !== "gone") out.gone.push(row.id);
+				continue;
+			}
 			if (ours && (legacy || row.revivable) && row.session_id)
 				try { agent = this.reopen(row); } catch {}
 			if (!agent){
@@ -422,6 +431,18 @@ export class Agents {
 		reg.bury(out.gone, "servex restarted");
 		this.store().append("servex", { type: "revive", boot: this.boot, previous: prev?.boot ?? null, ...out }).catch(() => {});
 		return out;
+	}
+
+	/* THE TWO REVIVE SKIPS (pure; Servex/agents/revive-skip.test.mjs). Null = revive and tell as usual.
+	 *   started after this boot  — born under the new host, nothing of it crossed a restart (never buried).
+	 *   no turn yet, no session  — `turns` counts COMPLETED turns and the SDK writes the session file
+	 *                              only once a turn has begun, so `resume` can only fail ("No conversation
+	 *                              found"); a first turn that did get far enough to leave a file is revived. */
+	static revive_skip(row, { boot_at = Date.now(), has_session = false } = {}){
+		const started = Date.parse(row.started_at ?? "");
+		if (started > boot_at) return { why: "started after this boot", dead: false };
+		if (!(row.turns > 0) && !has_session) return { why: "no completed turn and no session file to resume", dead: true };
+		return null;
 	}
 
 	/* Rows stopped BEFORE the revive guard existed carry no `stopped_by` key at

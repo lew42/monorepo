@@ -1,0 +1,11 @@
++  0s tree C:/Code/lew42/monorepo, home C:\Users\mike\AppData\Local\Temp\restart-sweep-proof-8293
++  1s boot 1 up
++ 42s P finished a real turn: {"agent":"minion-p","process_started":1,"restart_messages":0,"results":["ok:true api_turns:1"],"errors":[],"registry_state":"idle"}
++ 46s boot 1 KILLED 1 s after F spawned: F row state=working turns=0 session_id=dd00ed3f-50e9-40a5-adee-f5117044e5a5
++ 46s planted: minion-p registered as working, started_at 2026-10-18T23:04:38.370Z, turns 1
++ 47s boot 2 up: the revive sweep has run
++105s servex.jsonl: {"at":"2026-10-18T18:04:33-05:00","type":"revive","boot":"mvefndal-13700","previous":null,"revived":[],"told":[],"gone":[],"legacy":[]}
++105s servex.jsonl: {"at":"2026-10-18T18:05:19-05:00","type":"revive","boot":"mvefocmu-30464","previous":"mvefndal-13700","revived":["minion-p","minion-f"],"told":["minion-p","minion-f"],"gone":[],"legacy":[]}
++105s F (killed before its first turn): {"agent":"minion-f","process_started":2,"restart_messages":1,"results":["ok:false api_turns:0"],"errors":["Claude Code returned an error result: No conversation found with session ID: dd00ed3f-50e9-40a5-adee-f5117044e5a5"],"registry_state":"stopped"}
++105s P (planted working, started before boot): {"agent":"minion-p","process_started":2,"restart_messages":1,"results":["ok:true api_turns:1","ok:true api_turns:9"],"errors":[],"registry_state":"idle"}
++144s G (spawned on boot 2, bare prompt): {"agent":"minion-g","process_started":1,"restart_messages":0,"results":["ok:true api_turns:1"],"errors":[],"registry_state":"idle"}
