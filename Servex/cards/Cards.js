@@ -4,6 +4,7 @@ import path from "path";
 import express from "express";
 import { fileURLToPath } from "url";
 import { stamp } from "../home.js";
+import Landed from "../Landed.js";
 import { Fold } from "../../public/framework/ai/cards/Fold.js";
 import { NeedsRule } from "../../public/framework/ai/rail/NeedsRule.js";
 import CardDir from "../../public/framework/ai/cards/CardDir.js";
@@ -222,6 +223,7 @@ export default class Cards {
 					if (obj.assign?.links?.length) page_url = obj.assign.links[0].url ?? page_url;
 					if (obj.log?.msg) last_log = obj.log.msg;
 				}
+				landed = landed || Landed.of_dir(path.join(this.root, task_dir));   // the one rule (Servex/Landed.js)
 				status = landed ? "landed" : "building";
 				next_step = landed ? "landed" : (last_log ?? "working — no log line yet");
 			} else { status = "proposed"; next_step = "not started yet — no task.jsonl found"; }

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { stamp } from "./home.js";
+import Landed from "./Landed.js";
 
 /* BUDGETS, ENFORCED (node-reliability, 2026-09-29). Overruns were systemic:
  * audio spent $75 against $15, prompt-refine $47 against $10, the page
@@ -95,7 +96,7 @@ export default class Budget {
 		const capped = new Map();
 		for (const file of this.hb.files()){
 			const t = read_task(file);
-			if (!t || (t.state.landed_at && String(t.state.outcome ?? "").trim()) || t.state.closed_by) continue;
+			if (!t || Landed.of_file(file)) continue;
 			const named = t.state.agent;
 			if (!named || !this.hb.opted_in(t.state)) continue;
 			const owner = this.agents.successor?.(named) ?? named;   // a resumed session's old id means its new one

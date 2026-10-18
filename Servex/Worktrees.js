@@ -6,6 +6,7 @@ import Events from "../Server/Events.js";
 import { stamp, place } from "./home.js";
 import TaskDirs from "../Server/TaskDirs.mjs";
 import SessionRecord from "../Server/SessionRecord.mjs";
+import Landed from "./Landed.js";
 
 /* WORKTREE CLEAN-UP — a worktree is temporary (process-monitor, 2026-09-30).
  *
@@ -232,7 +233,7 @@ export default class Worktrees extends Events {
 					if (a) Object.assign(state, a);
 				}
 				if (!state.worktree) continue;
-				const landed = !!(state.landed_at && String(state.outcome ?? "").trim()) || !!state.closed_by;
+				const landed = Landed.of_dir(dir);
 				out.set(norm(state.worktree), { key: `${day}/${slug}`, landed, paused: !!state.paused, agent: state.agent ?? null, worktree: state.worktree });
 			}
 		}

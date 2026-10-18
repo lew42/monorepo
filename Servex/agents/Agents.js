@@ -15,6 +15,7 @@ import { first_prompt } from "./readme-chain.js";
 import Task from "../../public/framework/core/Task/Task.js";
 import TaskDirs from "../../Server/TaskDirs.mjs";
 import LandingCheck from "../../Server/LandingCheck.mjs";
+import Landed from "../Landed.js";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 import { server as sdk_server } from "./tools.js";   // cycle with tools.js is fine: used only at call time
@@ -842,19 +843,8 @@ export function next_briefs(dir){
 	return out;
 }
 
-/* A task has landed: any assign merged says landed_at + a non-empty outcome,
- * or closed_by — or a bare top-level landed_at line (minion-audit-tools, 09-29). */
-export function task_landed(dir){
-	let text; try { text = fs.readFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), "utf8"); } catch { return false; }
-	const state = {};
-	for (const raw of text.split("\n")){
-		let o; try { o = raw.trim() && JSON.parse(raw); } catch {}
-		if (!o) continue;
-		if (o.assign) Object.assign(state, o.assign);
-		if (o.landed_at) state.landed_at = o.landed_at, state.outcome ??= o.outcome ?? "landed";
-	}
-	return (!!state.landed_at && !!String(state.outcome ?? "").trim()) || !!state.closed_by;
-}
+/* A task has landed: its log replays (Task.replay) to complete or stopped. The one rule is Servex/Landed.js. */
+export function task_landed(dir){ return Landed.of_dir(dir); }
 
 /* The worktree a cwd sits in (C:/Code/lew42/worktrees/<slug>/...), or undefined. */
 function worktree_of(cwd){
@@ -1146,6 +1136,8 @@ Agents.Agent = class Agent {
 	 * it first, before anything else. */
 	send(text, { from, reply_to, priority } = {}){
 		if (this.state === "stopped") throw new Error(`Agent ${this.id} has stopped.`);
+		const skip = this.watchdog_refusal(from);
+		if (skip) return this.watchdog_skipped(from, skip);
 		if (this.state === "dormant") this.awaken(from);
 		this.emit({ type: "agent_msg", from: from ?? null, reply_to: reply_to ?? null, priority: priority ?? null, text });
 		const turn = this.turn(this.envelope(text, { from, reply_to }), priority);
@@ -1288,6 +1280,7 @@ Agents.Agent = class Agent {
 	 * Returns the message text, or null. Pure decision: `nudge_send()` does the sending. */
 	nudge(now = Date.now()){
 		if (this.state !== "idle" || this.one_shot || this.compacting || STANDING.test(this.id ?? "")) return null;
+		if (this.task?.dir && task_landed(this.task.dir)) return null;
 		const after = role_compact_after(this.role);
 		if (after === null) return null;
 		const limit = after?.tokens ?? this.host?.nudge_tokens ?? (Number(process.env.SERVEX_NUDGE_TOKENS) || 200000);
@@ -1305,6 +1298,29 @@ Agents.Agent = class Agent {
 	request_compact(){
 		this.compact_requested = true;
 		return { ok: true, note: "Compaction runs when this turn ends; end your turn now." };
+	}
+
+	/* THE WATCHDOG GUARD (2026-10-17, Servex/doc/heartbeat.md): the heartbeat, the compact nudge and the landing check wake an
+	 * agent on their own. They never wake one whose task has landed, and never one whose wake would take it past its budget
+	 * (the brief's `Budget: $N`, else ceiling_usd()). Null = go ahead; else {why, text}. */
+	watchdog_refusal(from){
+		if (!this.constructor.WATCHDOGS.has(from)) return null;
+		const dir = this.task?.dir;
+		if (dir && task_landed(dir)) return { why: "landed", text: `its task ${path.basename(dir)} has landed` };
+		const cap = this.estimate_usd() ?? this.ceiling_usd(), spent = this.spent_usd(), turn = Number(this.turn_cost) || 0;
+		if (spent + turn > cap) return { why: "spend", text: `a wake costs about $${turn.toFixed(2)} and it has spent $${spent.toFixed(2)} of $${cap.toFixed(2)}` };
+		return null;
+	}
+
+	/* One log line per agent and reason, not one per tick. */
+	watchdog_skipped(from, skip){
+		const key = skip.why;
+		if (this.watchdog_told !== key){
+			this.watchdog_told = key;
+			this.host?.store?.().append("servex", { type: "heartbeat-skipped", agent: this.id, from, why: skip.why, text: skip.text }).catch(() => {});
+			try { this.host?.servex?.say?.(`heartbeat: skipped, ${skip.why}: ${this.id} (${skip.text})`); } catch {}
+		}
+		return this;
 	}
 
 	nudge_send(){
@@ -1835,6 +1851,7 @@ Agents.Agent = class Agent {
 		 * session stays resumable — a message still wakes it (no `stopped_by`). */
 		else if (ONE_PASS.includes(this.role) && this.state === "idle") setImmediate(() => { if (this.state === "idle") this.stop(); });
 		/* Grown past a threshold: compact before anything else arrives. */
+		else if (this.state === "idle" && this.task?.dir && !STANDING.test(this.id ?? "") && task_landed(this.task.dir)) setImmediate(() => { if (this.state === "idle") this.sleep("landed"); });
 		else if (this.state === "idle"){
 			const why = this.compact_requested ? "requested" : this.oversized();
 			this.compact_requested = false;
@@ -1906,6 +1923,8 @@ Agents.Agent = class Agent {
 		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")) this.awaken("compaction");
 	}
 };
+
+Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
 
 /* A nudged agent that declined is nudged again only after its context grew this much. */
 export const NUDGE_GROWTH = 20000;

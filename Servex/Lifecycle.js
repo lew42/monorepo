@@ -33,6 +33,7 @@ import { fileURLToPath } from "node:url";
 import { place, stamp } from "./home.js";
 import { task_state, task_for_worktree } from "../Server/worktree-sweep.mjs";
 import SessionRecord from "../Server/SessionRecord.mjs";
+import Landed from "./Landed.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const norm = p => p ? path.resolve(String(p)).replace(/\\/g, "/").toLowerCase() : "";
@@ -170,7 +171,7 @@ export default class Lifecycle {
 			const dir = path.join(ai_dir(), key), state = task_state(dir);
 			if (!state) return null;
 			let mtime = 0; try { mtime = fs.statSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl"))).mtimeMs; } catch {}
-			return { key, dir, ...state, landed: !!(state.landed_at && String(state.outcome ?? "").trim()), mtime };
+			return { key, dir, ...state, landed: Landed.of_dir(dir), mtime };
 		})()).get(key);
 	}
 

@@ -3,13 +3,14 @@ import path from "path";
 import { place, stamp } from "./home.js";
 import Budget from "./Budget.js";
 import SessionRecord from "../Server/SessionRecord.mjs";
+import Landed from "./Landed.js";
 
 /* THE HEARTBEAT — a task's owner that goes quiet is asked how it is doing; one
  * that died is revived; only when that fails does the owner of the machine hear.
  * Doc: Servex/doc/task-loop.md, "The heartbeat". Plain node over agent events
  * (`agents.watch`) and messages (`agents.send`), so any harness can feed it.
  *
- * Watched: every OPEN task (no landed_at + outcome, no closed_by) that opted in —
+ * Watched: every OPEN task (Landed.js: not complete or stopped) that opted in —
  * line 1 dated at/after SERVEX_HEARTBEAT_SINCE, or line 1 `heartbeat: true` — so
  * the boot sweep never wakes weeks-old tasks. Only its owner is watched: the latest assign's
  * agent (a fresh session that took over writes one), or that id's resumed successor. */
@@ -113,7 +114,7 @@ export default class Heartbeat {
             for (const file of [...this.watch.keys()]) if (!files.includes(file)) this.watch.delete(file);
             for (const file of files){
                 const t = this.read(file);
-                if (!t || t.done){ this.watch.delete(file); continue; }
+                if (!t || t.done){ this.watch.delete(file); if (t?.done) await this.skipped(file, t); continue; }
                 const w = this.watch.get(file) ?? {};
                 this.watch.set(file, Object.assign(w, { owner: t.owner, card: t.card }));
                 if (t.escalated || this.queued_revive(file)) continue;
@@ -141,6 +142,14 @@ export default class Heartbeat {
         } finally { this.busy = false; }
     }
 
+    /* A landed task's owner is never asked anything: one `heartbeat: skipped, landed` line the first time, then silence. */
+    async skipped(file, t){
+        if (t.skipped) return;
+        const live = this.agents.live.get(t.owner);
+        if (!live || live.state === "stopped") return;   // nothing running to have woken; no line needed
+        await this.log(file, "skipped", "heartbeat: skipped, landed");
+    }
+
     files(){
         const out = new Set(this.servex.task_loop?.find_task_files() ?? []);
         /* A RESUMED agent has no `task` spec: its task dir is on its registry row (kept for the same
@@ -160,7 +169,7 @@ export default class Heartbeat {
     /* Line 1 names the owner and the opt-in; every assign merged says landed,
      * closed or paused; this loop's own `heartbeat` lines count its revives. */
     read(file){
-        let text, first, state = {}, revives = [], escalated = false;
+        let text, first, state = {}, revives = [], escalated = false, skipped = false;
         try { text = fs.readFileSync(file, "utf8"); } catch { return null; }
         for (const raw of text.split("\n")){
             let o; try { o = raw.trim() && JSON.parse(raw); } catch {}
@@ -168,6 +177,7 @@ export default class Heartbeat {
             if (o.assign){ first ??= o.assign; Object.assign(state, o.assign); }
             if (o.log?.heartbeat === "revive") revives.push(Date.parse(o.log.at));
             if (o.log?.heartbeat === "escalated") escalated = true;
+            if (o.log?.heartbeat === "skipped") skipped = true;
         }
         if (!this.opted_in(first)) return null;
         /* The LATEST assign's agent owns it (a fresh session that took the task over writes its own
@@ -177,8 +187,8 @@ export default class Heartbeat {
         if (!owner) return null;
         // the OWNER's session: its registry row first, so a revive never resumes line 1's old session under a new id
         const session_id = this.agents.reg?.().read()?.[owner]?.session_id ?? state.session_id ?? first.session_id;
-        const done = (!!state.landed_at && !!String(state.outcome ?? "").trim()) || !!state.closed_by;
-        return { owner, session_id, card: state.card, paused: !!state.paused, done, escalated, revives,
+        const done = Landed.of_file(file);   // the one rule: Task.replay says complete or stopped
+        return { owner, session_id, card: state.card, paused: !!state.paused, done, skipped, escalated, revives,
             mtime: fs.statSync(file).mtimeMs, slug: this.servex.task_loop?.slug(file) ?? path.basename(path.dirname(file)) };
     }
 

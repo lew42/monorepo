@@ -17,6 +17,7 @@
 // Read the full rule in Servex/asks/readme.md before changing anything here.
 import fs from "node:fs";
 import SessionRecord from "../../Server/SessionRecord.mjs";
+import Landed from "../Landed.js";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { stalled } from "./stalled.js";
@@ -110,7 +111,7 @@ export function task_facts(dir, root = ROOT){
 			?? line.snooze?.at ?? line.kill?.at ?? line.priority?.at;
 		if (at) facts.last_line_at = at;
 	}
-	facts.landed = !!facts.landed_at;
+	facts.landed = Landed.of_dir(dir);   // the one rule (Servex/Landed.js); landed_at stays as the date shown
 	facts.budget = budget_of(dir);
 	facts.spent = spent_of(dir);
 	facts.over = (facts.budget && facts.spent != null) ? Number((facts.spent / facts.budget).toFixed(2)) : null;

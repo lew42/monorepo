@@ -6,6 +6,7 @@ import { AskFold } from "../../public/framework/ai/asks/AskFold.js";
 import { stalled } from "./stalled.js";
 import { build_tasks, write_tasks_json } from "./tasks.js";
 import SessionRecord from "../../Server/SessionRecord.mjs";
+import Landed from "../Landed.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_FILE = path.resolve(HERE, "../../public/framework/ai/asks.jsonl");
@@ -182,7 +183,7 @@ export default class Asks {
 			const at = obj.at ?? obj.assign?.at ?? obj.assign?.landed_at ?? obj.log?.at ?? obj.action?.at ?? obj.decision?.at;
 			if (at) last_at = at;
 		}
-		return { last_at, landed: !!state.landed_at && !!String(state.outcome ?? "").trim() };
+		return { last_at, landed: Landed.of_dir(dir) };
 	}
 
 	/* ---------- close_task wraps: landing a task lands the asks its agent owned ---------- */

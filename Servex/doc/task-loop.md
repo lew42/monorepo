@@ -77,6 +77,13 @@ plain node over `agents.watch` and `agents.send`, so any harness can feed it. Th
 - Every check, answer, revive and escalation is one `{"log": {"heartbeat": …, "msg"}}` line in the task's own log. `heartbeat_status` lists who is being watched and how long each has been silent; `SERVEX_NO_HEARTBEAT=1` turns it off.
 - **A post with no card to reach falls back to the owner's Inbox** (2026-10-01): a task with no card named, or a named card that answers "no card", used to just go nowhere — logged, but never shown anywhere a person would look. `Heartbeat.post()` now drops the same note on the task's own page via `agents/inbox.js`: [`never-lose-a-wake.md`](./never-lose-a-wake.md).
 
+**Done (2026-10-17): the heartbeat never wakes a landed agent.** A helper that ended its work with a `{"finish":{…}}` or `{"complete":{…}}` line (the task system's own verbs) was "not landed" to `task_landed()`, which only knew `landed_at` plus an outcome, so the status check, the landing nag and the compact nudge woke it every few minutes all day; each wake re-read a 70–110k context (`helper-bubbles-anchor` $72.68, `sheet-double-mount` $62.20, `sheet-handoff-proof` $51.56, `dictate-wide` $39.39, `readme-trim` $21.46, `layout-check-path` $20.24, against $3–4 budgets; `helper-compact-nudge` $194.95 over 40 turns). Now:
+
+- **One rule.** [`Landed.js`](../Landed.js) folds the log through `Task.replay`; `complete` or `stopped` is landed (the old `landed_at` + outcome answer survives only as the fallback if replay throws). `task_landed()`, `Heartbeat.read`, `Budget`, `Worktrees`, `Lifecycle`, `Asks`, `asks/tasks.js` and `Cards` all ask it. [one-state.md](/framework/ai/doc/one-state.md).
+- **No watchdog wake.** `Agent.send` refuses `servex-heartbeat` and `servex-compact-nudge` messages for an agent whose task has landed, and logs `heartbeat: skipped, landed` once (the heartbeat writes it once to the task's log; the agent logs one `heartbeat-skipped` event per reason). A person's message, `wake_parent` and `revive: true` are unchanged. A landed agent that ends a turn sleeps (`dormant`).
+- **Spend.** A watchdog wake is refused when `spent + the last turn's cost` would pass the brief's `Budget: $N` (else `ceiling_usd()`): a $4 helper at $0.70 a wake is woken five times and refused the sixth. The agent's own work is still not capped (budgets stay advisory, 2026-10-08).
+- Test: `node Servex/Heartbeat-landed.test.mjs`.
+
 ## Worktree servers
 
 A task built in its own worktree (`Server/worktree-up.mjs`) also has its own private dev server,
