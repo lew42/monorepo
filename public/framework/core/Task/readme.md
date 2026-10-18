@@ -35,6 +35,10 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - `tasks` is made on first use, so a task with no subtasks costs no `List`.
 - **Migration:** [`Server/TaskMigrate.mjs`](/Server/TaskMigrate.mjs) gives an old session task whose module is clear a home here. The home's `sessions` field (`[{id, task}]`) names the old folder, and the old folder gains one `{"home":"<url>"}` line, kept as `data.home`. It runs as a dry run by default and never deletes. [Plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/plan.md) · [dry run](/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/dry-run.md).
 
+## State: counting across tasks
+
+`Task.js` decides one task's state. Counting across all of them (how many landed today, what is in flight) is done once, in node, by [`Server/State.mjs`](/Server/State.mjs): it replays every task in both stores (the sessions store and every `tasks/` home) through `Task.replay` and writes `public/framework/ai/state.json`, with a self-check that a second, separate count must agree with. Nothing else counts tasks. Design: [Server/doc/state.md](/Server/doc/state.md). Two of this file's rules disagree with what the logs mean (an item-tool line stamps `ts`, which replay does not read; `landed_at` alone does not count as landed); the edits are in that doc's decision line.
+
 ## render() and TaskView
 
 `task.render()` returns `new Task.View({task})`. `Task.js` stays DOM-free: [`TaskView.js`](./TaskView.js) (`class TaskView extends View`) sets `Task.View` when a browser loads it; in node `render()` warns once and returns `undefined`. `TaskView.chip(task)`, `.row(task)`, `.card(task)` draw the three sizes (icon + title; + state and complete %; + expected, priority, commits, session, module, link). A view reads the live task and redraws on its `change` events; a card also redraws on `tasks` add/remove/reorder. A subclass overrides `render()` to draw itself. This retires the display `Task` that was in `ai/objects.js`.

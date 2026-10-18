@@ -35,11 +35,11 @@ Each task's lines go through `Task.replay` (`core/Task/Task.js`), with `Task.res
 
 ## The second count
 
-`State.walk_landed(day)` shares no code with the fold. It walks the sessions store with a plain `readdir`, and finds the module homes from the `/tasks/task.jsonl` index, following each `{"task": …}` line. For each file it reads the landing straight from the lines: the last state verb is `complete` or `finish` (its time is the line's own), or there are no verb lines and the task has `landed_at` and an outcome. Two counts that use different discovery and different code agreeing is the proof; when they differ, the ids say exactly where.
+`State.walk_landed(day)` shares no code with the fold (only `SessionRecord.log_file`, which picks a folder's log file). It walks the sessions store with a plain `readdir`, and finds the module homes from the `/tasks/task.jsonl` index, following each `{"task": …}` line. For each file it reads the landing straight from the lines: the last state verb is `complete` or `finish` (its time is the line's own), or there are no verb lines and the task has `landed_at` and an outcome. Two counts that use different discovery and different code agreeing is the proof; when they differ, the ids say exactly where.
 
 ## Speed
 
-A full build walks both stores and replays every file (about 3 seconds for 2,300 files). After that, `fs.watch` marks a changed file and a tick re-folds only that file, plus the registry read: milliseconds. Each file's fold is cached by its size and mtime. A full re-walk runs every ten minutes as a safety net. Both times are printed by `node Server/State.mjs --time`.
+A full build walks both stores and replays every file (5.7 s for 2,276 files on 10-17). After that, `fs.watch` marks a changed file and a tick re-folds only that file, plus the registry read: milliseconds. Each file's fold is cached by its size and mtime. A full re-walk runs every ten minutes as a safety net. Both times are printed by `node Server/State.mjs --time`.
 
 ## What it replaces
 
@@ -50,7 +50,21 @@ A full build walks both stores and replays every file (about 3 seconds for 2,300
 
 ## Decision
 
-`{"decision":"one class, State, in node, folding every task through Task.replay; its output is the only place a count comes from","rejected":["keep the three readers and reconcile them: three rule sets drift (they already disagreed on 71 tasks), and a reconciler is a fourth","put the structure in the browser only: a model, a script and the handover cannot read a browser, and every tab would walk 2,300 files","keep SessionIndex.reduce as the rule set: it has no state machine (no stopped, waiting, idle), so it cannot bucket a task; it becomes a caller"],"task_js_edits":["Task.replay_line: rp.at = line.at ?? line.ts ?? … (the item tool writes ts; today completed_at falls back to the wall clock)","Task.replay_legacy: landed_at alone means complete, without requiring an outcome (33 old session tasks have assign.landed_at and no outcome; today they replay as running and count as stale)"]}`
+`{"decision":"one class, State, in node, folding every task through Task.replay; its output is the only place a count comes from","rejected":["keep the three readers and reconcile them: three rule sets drift (they already disagreed on 71 tasks), and a reconciler is a fourth","put the structure in the browser only: a model, a script and the handover cannot read a browser, and every tab would walk 2,300 files","keep SessionIndex.reduce as the rule set: it has no state machine (no stopped, waiting, idle), so it cannot bucket a task; it becomes a caller"],"task_js_edits":["Task.replay_line: rp.at = line.at ?? line.ts ?? … (the item tool writes ts; today completed_at falls back to the wall clock)","Task.replay_legacy: landed_at alone means complete, without requiring an outcome (33 old session tasks have assign.landed_at and no outcome; today they replay as running and count as stale)","Task.complete: during a replay (this._rp set) a recorded complete/finish line is a fact, so it is not refused for an open subtask; the refusal stays for live calls. A session task that files a module task writes a {task: ref} line, replay makes that filed task its subtask, and the worker’s own finish line is then refused (sheet-handoff-proof, 10-17: the only disagreement in the real check)"]}`
+
+## The real numbers (2026-10-17, 23:05)
+
+| Day | Landed (State) | Landed (plain walk) |
+|---|---|---|
+| 10-17 (today) | 43 (25 session, 18 module) | 44 |
+| 10-16 | 52 | 52 |
+| 10-15 | 19 | 19 |
+| 10-14 | 18 | 18 |
+| 10-13 | 66 | 66 |
+| 10-12 | 71 | 71 |
+| 10-11 | 0 | 0 |
+
+All 2,065 tasks: 1,310 landed, 1 in flight, 275 idle, 37 stopped, 442 stale, 0 queued, 0 waiting (sum 2,065); 2,276 log files = 2,065 tasks + 211 moved to a module home. **The check fails today by one task**, `sheet-handoff-proof` (session-730e8a7b): it wrote `finish` twice, but it also filed a module task (`ext/drawer/tasks/readme-links-the-architecture-doc`) with a `{"task": …}` line, and `Task.replay` refuses a finish while that "subtask" is idle. The plain walk counts it landed. The fix is the third `Task.js` edit above; until it lands, the dashboard says so in red, which is the point. Full build 5.7 s, a tick 4.6 ms.
 
 ## Run it
 

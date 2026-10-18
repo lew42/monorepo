@@ -46,6 +46,7 @@ export default class TasksPage extends Browse {
 		const s = this.log.state;
 		this.$rows.empty(() => {
 			if (s && TasksPage.age_min(s) >= 3) div.c("tasks-note tasks-stale", () => span(`Not live: the last update was ${TasksPage.age_min(s)} min ago. Start node Server/TaskState.mjs --watch.`));
+			if (s?.check?.ok === false) TasksPage.bad(s.check);
 			if (!s) return div.c("tasks-note muted", () => span("No live task state yet: this page tails ai/tasks/state.jsonl, written while the dev server runs (node Server/TaskState.mjs --watch)."));
 			TasksPage.GROUPS.forEach(g => this.group(g, this.rows(s, g.key)));
 		});
@@ -62,8 +63,14 @@ export default class TasksPage extends Browse {
 		});
 	}
 
+	/** State's self-check failed (Server/doc/state.md): the two numbers in red, never a quiet wrong count. */
+	static bad(c){
+		const l = c.landed_today ?? {}, ids = [...(l.only_state ?? []), ...(l.only_walk ?? [])];
+		div.c("tasks-note tasks-check-bad", () => span(`Counts disagree: landed today is ${l.state} by the task rules but ${l.walk} by a plain walk${ids.length ? " (" + ids.join(", ") + ")" : ""}; ${c.total} tasks, ${c.sum} in buckets.`)).el.style.color = "#c62828";
+	}
+
 	row(kind, r){
-		const href = r.id ? this.url + r.id + "/" : null;
+		const href = r.home === "module" ? r.url : r.id ? this.url + r.id + "/" : null;   // a module task opens its own page
 		(href ? a.c("inbox-row tasks-row").href(href) : div.c("inbox-row tasks-row")).append(() => {
 			div.c("inbox-row-head flex gap-25", () => {
 				if (r.quiet) span.c("tasks-warn").attr("title", `quiet for ${r.quiet_min} min`).text("⚠");

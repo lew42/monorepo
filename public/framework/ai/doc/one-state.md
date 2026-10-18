@@ -32,3 +32,12 @@ Three readers means three answers. The counts on 10-17 at 22:45: SessionIndex 27
 5. **The proof:** a test that plants six task folders (session home, module home, assign.landed_at, finish line, complete line, idle) and asserts the one structure counts all six correctly, by day, in local time.
 
 What this is not: a new page. The UI stays what it is until the state is right; then any view is a filter over `state.json`.
+
+## Built (2026-10-17, 23:10)
+
+[`Server/State.mjs`](/Server/State.mjs) is the one reader ([design](/Server/doc/state.md), test `Server/State.test.mjs`). It folds all 2,276 task logs in both stores through `Task.replay` and writes `ai/state.json`; the tasks dashboard's stream (`ai/tasks/state.jsonl`) now comes from it, and `TaskState`, `SessionIndex`'s landed answer and `TaskHomes.sync` call it.
+
+- **Landed, counted two separate ways:** today 43 vs 44, then 52, 19, 18, 66, 71, 0 for 10-16 back to 10-11, the same both ways. The one difference today is `sheet-handoff-proof`: it filed a module task, `Task.replay` makes that its subtask and refuses the worker's finish. The dashboard shows it in red until the `Task.js` edit lands.
+- **Every task in one bucket:** 2,065 tasks = 1,310 landed + 1 in flight + 275 idle + 37 stopped + 442 stale (started, never landed, nobody on it); 211 more logs are old copies of tasks that moved to a module home, counted once.
+- **What the old readers got wrong:** `TaskState` said 26 today (it missed the 18 module tasks); `SessionIndex` said 56 today because it grouped by the UTC day (34 now, in its ai/-only scope), and it counted 24 tasks landed that `Task.js` does not. Three `Task.js` rules need an edit, all in core/Task's inbox: the item tool's `ts` is not read as a time (37 module tasks got the wall clock as their landing), `landed_at` with no outcome is not landed, and a recorded finish is refused when the task filed another.
+- Full build 5.7 s, a tick 4.6 ms.
