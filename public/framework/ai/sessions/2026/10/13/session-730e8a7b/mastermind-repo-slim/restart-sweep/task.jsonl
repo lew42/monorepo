@@ -8,3 +8,11 @@
 {"log":{"at":"2026-10-18T18:08:49-05:00","msg":"Landed on michael/dev as 0b530a1da (code 9f99894f4, todo strike 698d1e658) with --no-review (the gate cannot see this 2026-10-13 task dir; self-reviewed). The live Servex was NOT restarted: the mastermind restarts it after this merge. Worktree C:/Code/lew42/worktrees/restart-sweep left on disk (generated files.jsonl dirt only)."}}
 {"finish":{"at":"2026-10-18T18:08:49-05:00","text":"Live Servex not restarted; the mastermind restarts it after merge 0b530a1da. Proof agents checked with tail -1 (private home): minion-g (spawned on boot 2) result ok:true api_turns 1, no restart message; minion-p (planted working) result ok:true after exactly one restart message."}}
 {"assign":{"landed_at":"2026-10-18T18:08:49-05:00","outcome":"**The revive sweep no longer touches an agent that cannot be resumed.** Proof agents (tail -1 of their logs in the private home): minion-g result ok:true api_turns 1 after boot 2 with no restart message; minion-p result ok:true after being told once. Live Servex not restarted; the mastermind restarts it after merge 0b530a1da.\n\n- [x] rule: Agents.revive_skip (started after boot; no completed turn and no session file), one revive-skip line per agent\n- [x] proof: private Servex, old code as control reproduces the bug, `Servex/agents/revive-skip.test.mjs` 6 checks\n- [x] restart doc line, todo struck with 9f99894f4"}}
+{"commit":"729645e0ca59"}
+{"log":{"at":"2026-10-18T18:09:01-05:00","msg":"text-check: past-work.md: 801 words of prose (500 at most)"}}
+{"log":{"at":"2026-10-18T18:09:01-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-18T18:09:01-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-18T18:09:01-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-18T18:09:09-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-18T18:09:09-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-18T18:09:14-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

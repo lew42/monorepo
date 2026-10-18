@@ -197,3 +197,8 @@
 {"log":{"at":"2026-10-18T17:48:03-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-18T17:48:35-05:00","heartbeat":"answered","msg":"Idle, nothing in progress. The compaction change is merged (`e0a0b1ead`) and Servex has restarted since. I haven't seen a nudge fire."}}
 {"log":{"at":"2026-10-18T17:52:22-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-18T17:58:13-05:00","heartbeat":"revive-queued","msg":"helper-compact-nudge its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-18T17:58:14-05:00","heartbeat":"revive","msg":"revived helper-compact-nudge from session b888b2f3-cc10-4b1a-9429-6b658e3e860e"}}
+{"log":{"at":"2026-10-18T17:58:19-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-18T18:04:14-05:00","heartbeat":"revive-queued","msg":"helper-compact-nudge it did not answer the status check; a revive is queued"}}
+{"log":{"at":"2026-10-18T18:04:16-05:00","heartbeat":"escalated","msg":"helper-compact-nudge it did not answer the status check, but a revive is refused: a wake costs about $0.00 and it has spent $205.48 of $100.00"}}
