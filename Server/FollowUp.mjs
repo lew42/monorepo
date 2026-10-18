@@ -55,7 +55,7 @@ export default class FollowUp {
 	/** One row = one state task (its bucket, landed_at, line) plus the log facts the state does not hold (group, model, branch, steps): one read of the listed dir. */
 	read_task(t){
 		const file = SessionRecord.log_file(path.join(TaskDirs.REPO, t.dir)) ?? path.join(TaskDirs.REPO, t.dir, "task.jsonl");
-		const x = SessionIndex.reduce(path.basename(t.dir), fs.readFileSync(file, "utf8"));   // metadata only: whether it landed is the state's call
+		let x; try { x = SessionIndex.reduce(path.basename(t.dir), fs.readFileSync(file, "utf8")); } catch { x = SessionIndex.blank(t.dir); }   // metadata only: whether it landed is the state's call
 		const landed = t.bucket === "landed", last = ts(t.last), r = { key: t.id, dir: t.dir, url: t.url, bucket: t.bucket, group: x.group, session: t.session ?? x.session, agent: t.agent ?? x.agent, model: x.model, branch: x.branch, started: ts(t.started) || last, last, step: x.step, steps: x.steps, landed, landed_at: t.landed_at, outcome: !!t.line };
 		r.ahead = r.branch ? this.ahead(r.branch) : null;
 		const ag = this.by_dir.get(t.dir) ?? this.by_id.get(r.agent);
