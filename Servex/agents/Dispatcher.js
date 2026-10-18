@@ -14,6 +14,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { model } from "./tiers.js";
+import TaskDirs from "../../Server/TaskDirs.mjs";
 
 /* The pause switch — a file, so the owner can flip it with no restart and see it in a
  * directory listing: `%LOCALAPPDATA%/lew42/servex/dispatch.off`. While it exists a
@@ -114,7 +115,12 @@ export default class Dispatcher {
 		const { topics } = await this.context(task);
 		const post = (state, now) => `append_log({name: "prompts", entry: {type: "task", id: "${task.id}",`
 			+ ` state: "${state}", now: "${now}"}})`;
-		const opening = "you own this task; open your task folder with `new-task` (`node Server/TaskDirs.mjs --new <slug>`; it lands in ai/sessions/YYYY/MM/DD/); a"
+		const name = task.id.replace(/^t-/, "");
+		/* The dir is made by open_task (Agents.spawn's `task` option), which writes line 1 in the same step: a task dir never exists without its first line (todo 165). */
+		let dir = TaskDirs.dir({ slug: name }), n = 1;
+		while (fs.existsSync(path.join(dir, "task.jsonl")) || fs.existsSync(path.join(dir, "session.jsonl"))) dir = TaskDirs.dir({ slug: `${name}-${++n}` });
+		const rel = path.relative(process.cwd(), dir).split(path.sep).join("/");
+		const opening = `you own this task; your task folder is already open at ${rel}/ (its task.jsonl line 1 is written; log there, never run new-task); a`
 			+ " worktree if you edit site files; land with `finish-task`. Separately from your own"
 			+ " task.jsonl, post your progress on THIS log — call the MCP tool"
 			+ ` \`${post("working", "<one line>")}\` as you start, again with state "blocked" if you`
@@ -126,12 +132,12 @@ export default class Dispatcher {
 
 		const agent = this.servex.agents.spawn({
 			role: "task-mastermind",
-			name: task.id.replace(/^t-/, ""),
+			name,
+			task: { dir: rel, ...(task.card ? { card: task.card } : {}) },
 			model: model("manager"), effort: "medium",
 			prompt: `${task.brief}\n\n${opening}`,
 			parent: this.id,
-			// no `page` here: this spawn has no real directory yet (it opens its own with
-			// `new-task` on its first turn) — passing one would give `Agents.spawn()`'s
+			// no `page` here: this spawn has no real directory yet (its task folder is opened above, by `task`) — passing one would give `Agents.spawn()`'s
 			// readme-chain wiring a directory to prepend, and it would always be wrong
 			// (found by review, 2026-09-29: `context()` below used to hand back a fixed
 			// stub, "/framework/ai2/", read by nothing until directory_of() started
