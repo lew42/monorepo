@@ -49,13 +49,13 @@ assert.deepEqual([s.check.landed_today.state, s.check.landed_today.walk], [2, 2]
 assert.equal(s.check.ok, true, JSON.stringify(s.check));
 assert.equal(s.counts.landed, 2); assert.equal(s.landed.length, 3);   // the dashboard's window holds the week, its count is today
 
-// Break one on purpose (the real case of 10-17): the finished task files a module task, so Task.js refuses its finish while that child is idle.
-put(S + "t-finish", { assign: { session_id: "s1", title: "Landed by finish", requested_at: "2026-10-17T09:00:00-05:00" } },
-	{ task: "/framework/mod/X/tasks/t-idle/" }, { finish: { at: "2026-10-18T03:30:00Z", outcome: "Done tonight." } });
+// Break one on purpose: a start line after the finish. Task.js refuses it (a complete task cannot start), so State counts the task landed; the plain walk reads the last state verb as start and does not.
+put(S + "t-finish", { assign: { session_id: "s1", title: "Landed then restarted", requested_at: "2026-10-17T09:00:00-05:00" } },
+	{ finish: { at: "2026-10-18T03:30:00Z", outcome: "Done tonight." } }, { start: { at: "2026-10-18T03:40:00Z" } });
 const b = new State({ root, registry, now }).snapshot();
 assert.equal(b.check.ok, false);
-assert.deepEqual([b.check.landed_today.state, b.check.landed_today.walk], [1, 2]);
-assert.deepEqual(b.check.landed_today.only_walk, ["2026~10~17~sess-a~t-finish"]);
+assert.deepEqual([b.check.landed_today.state, b.check.landed_today.walk], [2, 1]);
+assert.deepEqual(b.check.landed_today.only_state, ["2026~10~17~sess-a~t-finish"]);
 
 fs.rmSync(root, { recursive: true, force: true });
-console.log("State: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 1 vs 2)");
+console.log("State: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 2 vs 1)");

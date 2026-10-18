@@ -29,7 +29,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 ## Replay, waiting, subtasks
 
 - `Task.replay(lines)` is `Item.replay` (inherited): `Item.Store.read` runs the same `replay_line` per entry in the browser. Task only overrides `replay_new`, `replay_line` and `replay_end` for the legacy mapping. It builds a task from parsed `task.jsonl` objects, using each line's own time (`at`, `assign.at|landed_at|requested_at`), never the wall clock, so the same file always gives the same task. Explicit lines (`{"start":{}}`, `pause`, `resume`, `stop`, `complete` (old `finish` too), `wait`, `approve`, `improve`, `reject`) call the method of that name; once one appears, they decide the state.
-- No explicit line (an old file): `landed_at` + a non-empty `outcome` is `complete`, `closed_by` is `stopped`, anything else is `running`. `assign` fields merge into `data` (latest wins; `session_id` becomes `session`).
+- No explicit line (an old file): `landed_at` alone is `complete`, `closed_by` is `stopped`, anything else is `running`. `assign` fields merge into `data` (latest wins; `session_id` becomes `session`).
 - `waiting` is a sixth state: `wait({on, what})` (from idle, running, paused), then a verdict, each stored as `verdict: {is, note, by}`: `approve(note?)` (to running; a queue that delays it to idle does not exist yet), `improve(note)` (to running, to revise and wait again), `reject(note)` (to stopped). `stop` and `complete` accept it.
 - **Homes and references (step 14a):** `tasks.add` through the item tool makes the child its own folder, `<module>/tasks/<slug>/` when `public/framework/<module>/` exists (never created), else `<parent folder>/<slug>/`. Line 1 is `{id, path, parent, title, module, …}`; the parent gets one `{"task": "<app path>"}` line and no copied data. Replay turns each such line into a live child with `Task.from_ref(path)`, using `Task.resolver` (node sets it, `page_tools.link_refs`); a missing file gives a stub child with `state: "missing"`. Old inline `{"tasks":{"add":…}}` lines still replay inline. The browser Store resolving them is step 14b.
 - `tasks` is made on first use, so a task with no subtasks costs no `List`.
@@ -37,7 +37,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 ## State: counting across tasks
 
-`Task.js` decides one task's state. Counting across all of them (how many landed today, what is in flight) is done once, in node, by [`Server/State.mjs`](/Server/State.mjs): it replays every task in both stores (the sessions store and every `tasks/` home) through `Task.replay` and writes `public/framework/ai/state.json`, with a self-check that a second, separate count must agree with. Nothing else counts tasks. Design: [Server/doc/state.md](/Server/doc/state.md). Two of this file's rules disagree with what the logs mean (an item-tool line stamps `ts`, which replay does not read; `landed_at` alone does not count as landed); the edits are in that doc's decision line.
+`Task.js` decides one task's state. Counting across all of them (how many landed today, what is in flight) is done once, in node, by [`Server/State.mjs`](/Server/State.mjs): it replays every task in both stores (the sessions store and every `tasks/` home) through `Task.replay` and writes `public/framework/ai/state.json`, with a self-check that a second, separate count must agree with. Nothing else counts tasks. Design: [Server/doc/state.md](/Server/doc/state.md). The three rules State's self-check found wrong are fixed (see Watch out).
 
 ## render() and TaskView
 
@@ -55,6 +55,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 ## Watch out
 
+- **Three replay rules, set by `Server/State.mjs`'s self-check** ([Server/doc/state.md](/Server/doc/state.md), "Decision"): a line's time is `at`, else the item tool's `ts`; `landed_at` alone means `complete` (outcome or not); during replay `complete()` never refuses a recorded finish because a filed `{task: ref}` child is idle (live calls still refuse). Each has a test in `Task.test.mjs`.
 - **`complete()` refuses while a subtask is open** — it warns ("… isn't complete yet —
   complete that first") and leaves the state unchanged, never throws. Every illegal
   transition (`pause()` on an idle task) behaves the same way.

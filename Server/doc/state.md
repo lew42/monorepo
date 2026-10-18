@@ -11,7 +11,7 @@
 
 ## The one rule set
 
-Each task's lines go through `Task.replay` (`core/Task/Task.js`), with `Task.resolver` reading a child's own file from disk. The state it gives decides the bucket. State adds no rule of its own, with one input fix: a line with no `at` but a `ts` gets `at: ts` before replay, because the item tool stamps `ts` and `Task.replay` reads only `at`. Without it, 37 module tasks got the wall clock as their `completed_at` and counted as "landed today" on every run. The one-line edit to `Task.js` that makes the fix unnecessary is in the `decision` line below and in `core/Task`'s inbox.
+Each task's lines go through `Task.replay` (`core/Task/Task.js`), with `Task.resolver` reading a child's own file from disk. The state it gives decides the bucket. State adds no rule of its own. The three edits in the `decision` line below are in `Task.js` (2026-10-18, `task-rules`), each with a test: the input workaround State once had for `ts` is gone, because replay itself reads `at ?? ts`.
 
 | Task state | Bucket |
 |---|---|
@@ -65,6 +65,8 @@ A full build walks both stores and replays every file (5.7 s for 2,276 files on 
 | 10-11 | 0 | 0 |
 
 All 2,065 tasks: 1,310 landed, 1 in flight, 275 idle, 37 stopped, 442 stale, 0 queued, 0 waiting (sum 2,065); 2,276 log files = 2,065 tasks + 211 moved to a module home. **The check fails today by one task**, `sheet-handoff-proof` (session-730e8a7b): it wrote `finish` twice, but it also filed a module task (`ext/drawer/tasks/readme-links-the-architecture-doc`) with a `{"task": …}` line, and `Task.replay` refuses a finish while that "subtask" is idle. The plain walk counts it landed. The fix is the third `Task.js` edit above; until it lands, the dashboard says so in red, which is the point. Full build 5.7 s, a tick 4.6 ms.
+
+**After the three `Task.js` edits (2026-10-18):** the check is green. Landed today, State 45 and the plain walk 45, no ids on either side only. `State.test.mjs` now breaks a copy on purpose with a `start` line after a `finish`.
 
 ## Run it
 

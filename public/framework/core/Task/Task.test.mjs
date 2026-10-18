@@ -1,6 +1,5 @@
 // Node test for Task — no DOM, no server. Run: `node Task.test.mjs`.
 import Task from "./Task.js";
-import TaskState from "../../../../Server/TaskState.mjs";
 
 const results = [];
 const check = (title, fn) => {
@@ -107,7 +106,10 @@ check("replay: an assign line with `at` (append.mjs stamps one) still counts; a 
 	const t = Task.replay([{ assign: { at: "2026-10-16T10:00:00Z", title: "x", progress: 3 } }, { assign: { at: "2026-10-16T11:00:00Z", landed_at: "2026-10-16T11:00:00Z", outcome: "Done." } }]);
 	return t.state === "complete" && t.data.title === "x" && t.data.progress === 3;
 });
-check("replay: landed_at with an empty outcome is still running", () => Task.replay([A, { assign: { landed_at: "2026-10-16T11:00:00Z", outcome: " " } }]).state === "running");
+check("replay: landed_at alone is complete, outcome or not (Server/doc/state.md)", () => { const t = Task.replay([A, { assign: { landed_at: "2026-10-16T11:00:00Z" } }]); return t.state === "complete" && t.data.completed_at === "2026-10-16T11:00:00Z"; });
+check("replay: a line with `ts` and no `at` sets the time (the item tool stamps ts)", () => { const t = Task.replay([{ id: "x", ts: "2026-10-16T10:00:00Z" }, { start: {}, ts: "2026-10-16T10:05:00Z" }, { complete: {}, ts: "2026-10-16T11:00:00Z" }]); return t.state === "complete" && t.data.completed_at === "2026-10-16T11:00:00Z"; });
+check("replay: a recorded finish stands after the worker filed an idle {task: ref} child", () => { const t = Task.replay([A, { task: "/framework/mod/x/tasks/filed/", at: "2026-10-16T10:10:00Z" }, { finish: { at: "2026-10-16T11:00:00Z", outcome: "Done." } }]); return t.state === "complete" && t.data.completed_at === "2026-10-16T11:00:00Z"; });
+check("complete(): live calls still refuse while a subtask is open", () => { const t = Task.replay([A, { start: {} }, { task: "/framework/mod/x/tasks/filed/" }]); t.complete(); return t.state === "running"; });
 check("replay: legacy closed file is stopped", () => Task.replay([A, { assign: { closed_by: "owner", closed_at: "2026-10-16T12:00:00Z" } }]).state === "stopped");
 check("replay: legacy open file is running", () => Task.replay([A, { log: { at: "2026-10-16T10:05:00Z", msg: "x" } }]).state === "running");
 check("replay: explicit wait then approve", () => {
@@ -186,8 +188,9 @@ const family = (mode, n) => {
 	return [p, ...[...p.tasks]];
 };
 
-check("never drop a task: every state is closed or in an open TaskState group", () =>
-	Task.STATES.every(s => TaskState.CLOSED.includes(s) || s in TaskState.OPEN));
+// State (Server/State.mjs) buckets exactly these states; its check.unbucketed names any new one (Server/doc/state.md).
+check("never drop a task: every state is one State buckets", () =>
+	Task.STATES.every(s => ["complete", "stopped", "waiting", "running", "paused", "idle"].includes(s)) && Task.STATES.length === 6);
 
 check("node drives every step: series starts child 1 only, then each next, then the parent completes", () => {
 	const [p, a, b, c] = family("series", 3);
