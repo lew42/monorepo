@@ -143,3 +143,4 @@
 {"file":"quickfix-home/"}
 {"file":"exists-at-creation/"}
 {"file":"quickfix-home/","gone":true}
+{"file":"spawn-always-task/"}

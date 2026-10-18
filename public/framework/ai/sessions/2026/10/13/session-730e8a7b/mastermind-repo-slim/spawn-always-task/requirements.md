@@ -1,8 +1,16 @@
-# Every spawn has a task dir: a spawn without a `task` option gets one opened by Servex, so no agent is ever outside the one state
+# Spawn always opens a task dir
+
+A spawn with no `task` option gets a task dir from Servex anyway, so no agent works outside the one state.
 
 Budget: $5. Sonnet. Load the `minion` and `code` skills. Your log is this dir's `task.jsonl`.
 
-**Why (`public/framework/ai/todo.md` line 178, 2026-10-01):** a spawn without `task:` leaves the agent with no task dir, so its work is invisible to the one state (`Server/State.mjs`), the heartbeat's landed rule (`Servex/Landed.js`), the follow-up and the `/tasks/` dashboard, and the minion skill has to carry a "no brief, no task dir" line because every model skips `new-task` when the prompt is rough. Since 10-18 a task dir opened at spawn also gets its `past-work.md` (`Servex/agents/Agents.js`, `spawn` right after `open_task`) and the dispatcher opens dirs with a first line (`Servex/agents/Dispatcher.js`). Read `Servex/agents/Agents.js` (`spawn`, `open_task`: `grep -n "open_task" Servex/agents/*.js`), `Servex/agents/tools.js` (the `spawn_agent` `task` option's shape: `dir`, `card`, `brief`, `parent_task`), `Server/TaskDirs.mjs` (`dir`, `day` through `Day.of`), `ai/doc/task-folders.md`, and `.claude/skills/minion/SKILL.md` (the line to delete). CLAUDE.md laws 6, 7 and 8.
+**Why** (`public/framework/ai/todo.md` line 178, 2026-10-01):
+
+- Without a task dir the agent is invisible to `Server/State.mjs`, `Servex/Landed.js`, the follow-up and `/tasks/`.
+- The minion skill carries a "no brief, no task dir" line only because models skip `new-task`.
+- Since 10-18 a dir opened at spawn also gets `past-work.md` (`Servex/agents/Agents.js`, `spawn` after `open_task`); the dispatcher writes a first line (`Servex/agents/Dispatcher.js`).
+
+**Read:** `Servex/agents/Agents.js` (`spawn`, `open_task`: `grep -n "open_task" Servex/agents/*.js`), `Servex/agents/tools.js` (the `spawn_agent` `task` option's shape: `dir`, `card`, `brief`, `parent_task`), `Server/TaskDirs.mjs` (`dir`, `day` through `Day.of`), `ai/doc/task-folders.md`, and `.claude/skills/minion/SKILL.md` (the line to delete). CLAUDE.md laws 6, 7 and 8.
 
 ## Deliverable
 
