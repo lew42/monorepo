@@ -93,6 +93,17 @@ export default class Cards {
 		return found ? this.folder(found) : null;
 	}
 
+	/* A card named by id or slug, else by its exact title ("Compaction: nudge, not cut"); null when neither matches.
+	 * A task log's `card` may hold either (2026-10-18: the heartbeat built a log name from a title). */
+	async by_name(name){
+		const found = this.canonical(name);
+		if (found) return found;
+		const want = String(name ?? "").trim();
+		if (!want) return null;
+		const hits = (await this.list({ view: "all" })).filter(r => r.title === want);
+		return hits.length ? hits[0].id : null;   // newest activity first (list() sorts), so a repeated title answers with its latest card
+	}
+
 	/* ---------- dates ---------- */
 
 	pad(n){ return String(n).padStart(2, "0"); }

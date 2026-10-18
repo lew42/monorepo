@@ -289,6 +289,17 @@ export default class Heartbeat {
      * one piece every caller above already has and the inbox needs when there is no card. */
     async post(card, text, ask, task_dir){
         if (!card) return this.to_inbox(task_dir, text);
+        /* a task log may name its card by TITLE: resolve it through the cards index (id/slug, else exact title);
+         * no match = one line naming the task, no post, and no log name built from the title. */
+        const cards = this.servex.cards;
+        if (cards?.by_name){
+            let found = null; try { found = await cards.by_name(card); } catch {}
+            if (!found && !/^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*$/.test(String(card))){
+                this.servex.say?.(`heartbeat: task ${task_dir ? path.basename(task_dir) : "?"} names card "${card}", which is no card id and matches no card title; nothing posted`, { event: "heartbeat-nocard" });
+                return null;
+            }
+            if (found) card = found;
+        }
         const h = this.servex.mcp?.handlers, a = ask && h?.get("card_ask"), ctx = { caller: FROM };
         let out;
         try {
