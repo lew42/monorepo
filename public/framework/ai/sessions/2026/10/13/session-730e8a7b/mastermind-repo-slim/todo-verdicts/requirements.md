@@ -2,7 +2,9 @@
 
 Budget: $2. Haiku. Load the `minion` skill. Your log is this dir's `task.jsonl`. Stay under 60k tokens: read only the files named here.
 
-**Why:** a scout on 10-18 10:21 read the 73 open-looking lines of `public/framework/ai/todo.md` and reported 25 done, 23 valid, 25 unclear, but logged no per-line verdicts, so the done lines could not be struck (`../todo-scout/task.jsonl`). This pass writes the verdict list as a file so a script can strike the done lines. The four lines struck since then (154, 176, 177, 207 and the two near the end) are already `~~` and are skipped.
+**Why:** an earlier scout (`../todo-scout/task.jsonl`) judged the open lines of `public/framework/ai/todo.md`: 25 done, 23 valid, 25 unclear. It logged no per-line verdicts, so a script cannot strike the done lines yet. This pass writes those verdicts to a file.
+
+Skip lines already struck with `~~` (lines 154, 176, 177, 207 and the last two).
 
 ## Deliverable
 
