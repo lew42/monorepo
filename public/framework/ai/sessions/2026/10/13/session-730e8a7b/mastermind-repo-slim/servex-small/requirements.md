@@ -1,6 +1,8 @@
-# Four small Servex fixes from the todo list, tested on a private Servex before the live one restarts
+# Servex: four small fixes, tested privately
 
-Budget: $7. Sonnet. Load the `minion` and `code` skills. Your log is this dir's `task.jsonl`. Read `Servex/readme.md` and `Servex/agents/readme.md` first (how to boot a private Servex from a worktree on another port: `SERVEX_API_PORT`, `SERVEX_HOME`), then only the functions named below. Each item is one small change with one check; land all four in one worktree, one commit each. The source lines are `public/framework/ai/todo.md` 154, 176, 177 and 207 (quoted here so you need not open it).
+Budget: $7. Sonnet. Load the `minion` and `code` skills. Your log is this dir's `task.jsonl`.
+
+Test every fix on a private Servex before the live one restarts. Read `Servex/readme.md` and `Servex/agents/readme.md` first (how to boot a private Servex from a worktree on another port: `SERVEX_API_PORT`, `SERVEX_HOME`), then only the functions named below. Each item is one small change with one check; land all four in one worktree, one commit each. The source lines are `public/framework/ai/todo.md` 154, 176, 177 and 207 (quoted here so you need not open it).
 
 ## Deliverable
 
