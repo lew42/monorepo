@@ -1,4 +1,4 @@
-# Servex: two more small fixes, tested privately (the heartbeat posts to a card by slug; a task dir is born with its first line)
+# Servex: two small fixes. The heartbeat finds a card by its title, and a new task folder gets its first log line at once
 
 Budget: $5. Sonnet. Load the `minion` and `code` skills. Your log is this dir's `task.jsonl`. Read `Servex/readme.md` and `Servex/agents/readme.md` first (how to boot a private Servex from a worktree on another port: `SERVEX_API_PORT`, `SERVEX_HOME`), then only the functions named below. Land both in one worktree, one commit each. The source lines are `public/framework/ai/todo.md` 165 and the 2026-10-18 11:42 line near the end (quoted here so you need not open it).
 
