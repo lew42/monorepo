@@ -242,3 +242,9 @@ known limit, not a defended-against case.
 `--model <id>` is already there so the reviewer can one day be a different model family
 (via OpenRouter) — the strongest version of fresh eyes, since it never trained alongside the
 author. Not wired up yet.
+
+**A merge never leaves a new file untracked** (2026-10-18). Every landed path is staged with `git add -A -- <paths>`
+whether or not `merge.mjs` commits, and after landing `git status` must show no `??` among those paths, or the merge
+exits 5 naming them. `LandingCheck.verify` also checks every file the branch ADDED against `michael/dev`'s tree even when
+`.merge-landed.json` vouches for the head (the ledger is written before the commit), and reports it as "new file not on dev".
+Tests: `node Server/merge.test.mjs`.

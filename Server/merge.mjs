@@ -53,7 +53,7 @@
  * `--asked <iso>` is the moment the fix was asked for (voice → smart assistant), so the final
  * line's `ms` is the owner-felt latency, not just this script's own run time. The LAST line of
  * stdout, only on a landed `--quick`, is one JSON object: `{"merged","shot","width","ms","asked_at"}`.
- * Exit: 0 landed (or dry run clean), 1 refused or smoke failed, 2 too big for --quick, 3 lock wait timed out, 4 would conflict (nothing touched). */
+ * Exit: 0 landed (or dry run clean), 1 refused or smoke failed, 2 too big for --quick, 3 lock wait timed out, 4 would conflict (nothing touched), 5 landed but a file is still untracked (a new file is staged with `git add -A` on every landed path; see Server/doc/review.md). */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -410,6 +410,11 @@ function writeAll(plan) {
 	}
 }
 
+/* git add / status on a long path list, 200 at a time (Windows caps a command line). */
+const chunks = list => Array.from({ length: Math.ceil(list.length / 200) }, (_, i) => list.slice(i * 200, i * 200 + 200));
+const stagePaths = list => chunks(list).every(c => { const a = git(MAIN, "add", "-A", "--", ...c); if (a.status) console.error(`git add failed: ${a.stderr.trim()}`); return !a.status; });
+const untrackedAmong = list => chunks(list).flatMap(c => lines(git(MAIN, "status", "--porcelain", "--untracked-files=all", "--", ...c).stdout).filter(l => l.startsWith("??")).map(l => l.slice(3)));
+
 const printPlan = plan => console.log(plan.map(p => `  ${p.action.toUpperCase().padEnd(8)} ${p.f} — ${p.why}`).join("\n"));
 
 if (skipSmoke) console.warn("\n!!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!\n");
@@ -488,25 +493,33 @@ try {
 				let landed; try { landed = JSON.parse(fs.readFileSync(ledger, "utf8")); } catch { landed = []; }
 				landed.push({ branch, head, at: new Date().toISOString(), files: changed });
 				fs.writeFileSync(ledger, JSON.stringify(landed, null, "\t"));
+				/* Stage every landed path whatever happens next: a new file written to the tree but never `add`ed
+				 * reached michael/dev untracked three times (2026-10-14; Server/doc/review.md). */
+				let committed = false;
 				if (!staged.length) {
 					const gitDir = path.resolve(MAIN, git(MAIN, "rev-parse", "--git-dir").stdout.trim());
 					const mergeHead = path.join(gitDir, "MERGE_HEAD");
 					const mergeMsg = path.join(gitDir, "MERGE_MSG");
 					try {
-						git(MAIN, "add", "-A", "--", ...changed);
-						fs.writeFileSync(mergeHead, head + "\n");
-						fs.writeFileSync(mergeMsg, `Merge branch '${branch}' into ${BASE}\n`);
-						const c = git(MAIN, "commit", "--no-edit");
-						if (c.status === 0) {
-							console.log(`three-way merge committed: Merge branch '${branch}' into ${BASE}`);
-							return;
+						if (stagePaths(changed)) {
+							fs.writeFileSync(mergeHead, head + "\n");
+							fs.writeFileSync(mergeMsg, `Merge branch '${branch}' into ${BASE}\n`);
+							committed = git(MAIN, "commit", "--no-edit").status === 0;
 						}
 					} catch {}
-					try { if (fs.existsSync(mergeHead)) fs.unlinkSync(mergeHead); } catch {}
-					try { if (fs.existsSync(mergeMsg)) fs.unlinkSync(mergeMsg); } catch {}
-					git(MAIN, "reset", "HEAD", "--", ...changed);
+					if (committed) console.log(`three-way merge committed: Merge branch '${branch}' into ${BASE}`);
+					else {
+						try { if (fs.existsSync(mergeHead)) fs.unlinkSync(mergeHead); } catch {}
+						try { if (fs.existsSync(mergeMsg)) fs.unlinkSync(mergeMsg); } catch {}
+					}
 				}
-				console.log(`left uncommitted in main tree: ${changed.join(", ")}`);
+				if (!committed) {   // someone else's staged work, or a failed commit: stage ONLY our paths and leave them for that commit
+					stagePaths(changed);
+					console.log(`left staged, uncommitted in main tree: ${changed.join(", ")}`);
+				}
+				// the check: nothing the diff touched may be untracked now (a modified live .jsonl is the site's own append, not a miss)
+				const untracked = untrackedAmong(changed);
+				if (untracked.length) { console.error(`merge FAILED: ${untracked.length} landed file(s) are untracked in the main tree: ${untracked.join(", ")}`); code = 5; }
 			}
 		};
 		const overlap = changed.filter(f => dirty.has(f));
