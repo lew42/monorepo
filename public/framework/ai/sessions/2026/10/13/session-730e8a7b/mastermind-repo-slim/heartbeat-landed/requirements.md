@@ -1,4 +1,4 @@
-# The heartbeat never wakes a landed agent: Servex reads "landed" from the one task rules, and a wake-up cannot spend past the budget
+# Heartbeat: stop waking landed agents
 
 Budget: $8. Sonnet. Load the `minion` and `code` skills. Your log is this dir's `task.jsonl`.
 
