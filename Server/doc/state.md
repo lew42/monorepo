@@ -1,0 +1,62 @@
+# State: one structure for every task, from both stores, with a check that fails loudly
+
+`class State` (`Server/State.mjs`) reads every task there is, folds each one through the one set of rules in `core/Task/Task.js`, and writes the result to `public/framework/ai/state.json`. Every surface, a page or a model, reads that file (or the `state.jsonl` stream beside the tasks dashboard) instead of working out the counts itself. The owner's ask and why it was needed: [`ai/doc/one-state.md`](../../public/framework/ai/doc/one-state.md).
+
+## Where it reads
+
+| Store | Which files are tasks |
+|---|---|
+| The sessions store, `public/framework/ai/sessions/**` | every folder whose log is `task.jsonl` or `session.jsonl` (`SessionRecord.is_log_entry`), except a folder that has a `{"home": …}` line: that task moved to a module home, so it is counted there, once, and listed in `check.aliases` |
+| The module homes, `public/framework/**/tasks/<slug>/task.jsonl` | every task folder below a `tasks/` folder (not the `tasks/task.jsonl` list file itself) |
+
+## The one rule set
+
+Each task's lines go through `Task.replay` (`core/Task/Task.js`), with `Task.resolver` reading a child's own file from disk. The state it gives decides the bucket. State adds no rule of its own, with one input fix: a line with no `at` but a `ts` gets `at: ts` before replay, because the item tool stamps `ts` and `Task.replay` reads only `at`. Without it, 37 module tasks got the wall clock as their `completed_at` and counted as "landed today" on every run. The one-line edit to `Task.js` that makes the fix unnecessary is in the `decision` line below and in `core/Task`'s inbox.
+
+| Task state | Bucket |
+|---|---|
+| `complete` | `landed` |
+| `running`, `paused`, and a working agent in Servex's registry holds the folder | `in_flight` |
+| `running`, `paused`, and no agent holds it | `stale` (started, never landed, nobody on it) |
+| `idle`, and a queued agent holds it | `queued` |
+| `idle` otherwise | `idle` |
+| `waiting` | `waiting` |
+| `stopped` | `stopped` |
+
+## The structure (`state.json`)
+
+- `at`: when it was computed. `today`: the owner's local calendar day (`YYYY-MM-DD`, this machine's clock). `tz`: the offset.
+- `tasks`: one row per task: `id` (the dashboard's route id; `~` for `/`), `home` (`session` or `module`), `dir` (repo path), `url` (its page), `title`, `state` (the Task state), `bucket`, `started` and `landed_at` (ISO stamps from the lines, never the clock), `day` (the local day it landed, else the day it started), `agent`, `session`, `module`, `line` (one sentence: the outcome when landed, else the latest `now`).
+- `sessions`: one row per session id: how many tasks, how many landed, the last landing.
+- `agents`: Servex's registry as it was read (`id state task_dir model cost`).
+- `counts`: `tasks` (each bucket), `landed_by_day` (the last seven local days), and the dashboard's own four (`in_flight queued waiting landed`).
+- `check`: `ok`; `total` (rows) and `sum` (all buckets added up), which must be equal; `files` (task logs found) = `total` + `aliases`; `landed_today`: `{state, walk, only_state, only_walk}`, today's landed tasks counted a second way and the ids each count has that the other does not; `unbucketed` (ids whose state has no bucket). Any mismatch sets `ok: false`.
+- The tasks dashboard's keys stay as they were: `in_flight queued waiting landed counts today`, in each line of `ai/tasks/state.jsonl` (the stream it tails). That line carries `check` too, and the page draws `check.ok === false` in red with the two numbers.
+
+## The second count
+
+`State.walk_landed(day)` shares no code with the fold. It walks the sessions store with a plain `readdir`, and finds the module homes from the `/tasks/task.jsonl` index, following each `{"task": …}` line. For each file it reads the landing straight from the lines: the last state verb is `complete` or `finish` (its time is the line's own), or there are no verb lines and the task has `landed_at` and an outcome. Two counts that use different discovery and different code agreeing is the proof; when they differ, the ids say exactly where.
+
+## Speed
+
+A full build walks both stores and replays every file (about 3 seconds for 2,300 files). After that, `fs.watch` marks a changed file and a tick re-folds only that file, plus the registry read: milliseconds. Each file's fold is cached by its size and mtime. A full re-walk runs every ten minutes as a safety net. Both times are printed by `node Server/State.mjs --time`.
+
+## What it replaces
+
+- `Server/TaskState.mjs` keeps its name and flags (`--watch`, `--once`, `--print`, so `Servex/TaskLoop.js` is unchanged), but its snapshot is now `State`'s.
+- `SessionIndex.reduce` and `SessionIndex.read` keep their metadata fold (files, modules, links, chats) for `PastWork`, `FollowUp`, `ModuleLog`, `LandingCheck`, the Sessions grid; whether a task landed, and when, now comes from `State.fold`.
+- `TaskHomes.sync` finds the homes with `State.homes()` (the disk walk) instead of walking `files.jsonl` listings.
+- `Task.js` stays the rules. The browser keeps replaying a single task through it; counting across tasks is `State`'s job only.
+
+## Decision
+
+`{"decision":"one class, State, in node, folding every task through Task.replay; its output is the only place a count comes from","rejected":["keep the three readers and reconcile them: three rule sets drift (they already disagreed on 71 tasks), and a reconciler is a fourth","put the structure in the browser only: a model, a script and the handover cannot read a browser, and every tab would walk 2,300 files","keep SessionIndex.reduce as the rule set: it has no state machine (no stopped, waiting, idle), so it cannot bucket a task; it becomes a caller"],"task_js_edits":["Task.replay_line: rp.at = line.at ?? line.ts ?? … (the item tool writes ts; today completed_at falls back to the wall clock)","Task.replay_legacy: landed_at alone means complete, without requiring an outcome (33 old session tasks have assign.landed_at and no outcome; today they replay as running and count as stale)"]}`
+
+## Run it
+
+```
+node Server/State.mjs            write state.json and append state.jsonl when the picture changed
+node Server/State.mjs --print    the counts and the check, to stdout
+node Server/State.mjs --time     a full build and a tick, both timed
+node Server/State.test.mjs       six planted tasks, every bucket, then one broken on purpose
+```

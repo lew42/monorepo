@@ -7,6 +7,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import State from "./State.mjs";
 
 const NL = String.fromCharCode(10);
 
@@ -46,8 +47,9 @@ export default class TaskHomes {
 		return true;
 	}
 
+	// The homes come from State.homes() (a walk of the disk, the same one state.json counts from); scan() stays for TaskMigrate.
 	static sync({ write = false } = {}){
-		const homes = this.scan(), have = this.listed(), missing = homes.filter(h => !have.has(h));
+		const homes = new State({ root: path.dirname(this.PUBLIC) }).homes(), have = this.listed(), missing = homes.filter(h => !have.has(h));
 		if (write) missing.forEach(h => this.add(h));
 		return { homes, missing, wrote: write };
 	}

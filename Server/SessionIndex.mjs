@@ -1,8 +1,10 @@
 // Server/SessionIndex.mjs — every task record (and, when given, every live session snapshot) in memory, queried with plain JavaScript.
 // Doc: Server/doc/session-index.md. Extends ext/Query's node side: it registers the "tasks" QueryServer source, so the browser asks it
-// over the dev socket exactly like "sessions". PastWork.mjs and FollowUp.mjs read task.jsonl through SessionIndex.reduce (one reader).
+// over the dev socket exactly like "sessions". PastWork.mjs and FollowUp.mjs read task.jsonl through SessionIndex.reduce. Whether and when a task
+// landed is not decided here: State.fold (Server/State.mjs, Task.js's rules) decides it for every caller (Server/doc/state.md).
 import fs from "node:fs";
 import SessionRecord from "./SessionRecord.mjs";
+import State from "./State.mjs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,7 +31,7 @@ export default class SessionIndex {
 	static blank(dir) {
 		const m = dir.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
 		return { id: dir, kind: "task", dir, slug: path.basename(dir), url: "/" + dir.replace(/^public\//, "") + "/", day: m ? `${m[1]}-${m[2]}-${m[3]}` : "",
-			assign_landed: "", title: "", request: "", brief: "", outcome: "", group: "", agent: "", session: "", model: "", branch: "",
+			assign_landed: "", state: "", title: "", request: "", brief: "", outcome: "", group: "", agent: "", session: "", model: "", branch: "",
 			started: 0, last: 0, step: 0, steps: 0, landed: false, landed_at: 0, usd: 0, links: [], topics: [], modules: [], files: 0, chats: 0, reviews: 0, _mods: new Set() };
 	}
 
@@ -45,7 +47,6 @@ export default class SessionIndex {
 	/** Fold one task.jsonl line into a record (the merge PastWork and FollowUp both did by hand). */
 	static apply(r, o) {
 		if (typeof o.group === "string") r.group ||= o.group;
-		if (o.landed_at) { r.landed = true; r.landed_at = ts(o.landed_at); }
 		if (o.outcome && typeof o.outcome === "string") r.outcome = o.outcome;
 		const a = o.assign;
 		if (a) {
@@ -56,18 +57,22 @@ export default class SessionIndex {
 			r.group ||= a.group ?? ""; r.session ||= a.session_id ?? ""; r.agent ||= a.agent ?? ""; r.model ||= a.model ?? ""; r.branch ||= a.branch ?? "";
 			if (Array.isArray(a.steps) && a.steps.length) r.steps = a.steps.length;
 			if (a.step) r.step = a.step;
-			if (a.landed_at) { r.landed = true; r.landed_at = ts(a.landed_at) || r.landed_at; r.assign_landed = a.landed_at; }
 			if (Array.isArray(a.links)) r.links = a.links;
 			if (Array.isArray(a.topics)) r.topics = a.topics;
 			if (typeof a.cost_usd === "number") r.usd = a.cost_usd;
 			r.started ||= ts(a.requested_at);
 		}
-		const fin = o.finish ?? o.complete;   // a worker that ends with a finish/complete line has landed, even with no assign.landed_at (ai/doc/task-folders.md)
-		if (fin?.at) { r.landed = true; r.landed_at = ts(fin.at) || r.landed_at; r.assign_landed ||= fin.at; }
 		if (o.action?.files) for (const f of o.action.files) { r.files++; const m = SessionIndex.module_of(f); if (m) r._mods.add(m); }
 		if (o.chat) r.chats++;
 		if (o.review?.verdict) r.reviews++;
 		for (const v of [o.at, o.log?.at, o.decision?.at, o.action?.at, o.note?.at, o.review?.at, o.shots?.at, a?.requested_at]) r.last = Math.max(r.last, ts(v));
+	}
+
+	/** Whether and when it landed, from State.fold (Task.js's rules): the same answer the tasks dashboard and state.json give. */
+	static land(r, lines) {
+		const f = State.fold(lines);
+		r.state = f.state; r.landed = f.state === "complete"; r.landed_at = ts(f.landed_at); r.assign_landed = f.landed_at ?? "";
+		return r;
 	}
 
 	/** Seal a record after lines were applied: sorted module list, a start time, the landing day. */
@@ -76,16 +81,16 @@ export default class SessionIndex {
 		const log = SessionRecord.log_file(path.join(REPO, r.dir));
 		r.raw = { task: r.url + (log ? path.basename(log) : "task.jsonl"), transcript: (r.session && SessionIndex.transcripts().get(r.session)) || null };   // the raw logs to click through to (the transcript only if it is on this machine)
 		r.modules = [...r._mods].sort();
-		r.landed_day = r.landed_at ? new Date(r.landed_at).toISOString().slice(0, 10) : "";
+		r.landed_day = r.landed_at ? State.day(r.landed_at) : "";   // the owner's local day
 		r.text = `${r.title} ${r.request} ${r.outcome} ${r.slug} ${r.group}`.toLowerCase();
 		return r;
 	}
 
 	/** Read a whole task.jsonl text into a record (no index needed: the shim PastWork and FollowUp use). */
 	static reduce(dir, text) {
-		const r = SessionIndex.blank(dir);
-		for (const l of text.split("\n")) { if (!l.startsWith("{")) continue; try { SessionIndex.apply(r, JSON.parse(l)); } catch {} }
-		return SessionIndex.seal(r);
+		const r = SessionIndex.blank(dir), lines = State.parse(text);
+		for (const o of lines) { try { SessionIndex.apply(r, o); } catch {} }
+		return SessionIndex.seal(SessionIndex.land(r, lines));
 	}
 
 	/** The brief's `Fence:` line names the directories a task owned: add their modules too. */
@@ -145,6 +150,7 @@ export default class SessionIndex {
 		for (const l of text.slice(0, end).split("\n")) { if (!l.startsWith("{")) continue; try { SessionIndex.apply(ent.rec, JSON.parse(l)); } catch {} }
 		ent.size += Buffer.byteLength(text.slice(0, end));
 		if (!ent.fence) { SessionIndex.fence_modules(ent.rec.dir, ent.rec); ent.fence = true; }
+		SessionIndex.land(ent.rec, State.read_lines(file));
 		SessionIndex.seal(ent.rec);
 		this.files.set(file, ent);
 		if (!quiet) this.emit(ent.rec);
