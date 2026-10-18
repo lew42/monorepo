@@ -9,3 +9,6 @@
 {"commit":"48718d15d286"}
 {"commit":"a85890272f99"}
 {"finish":{"at":"2026-10-18T08:03:38-05:00","outcome":"StaleClose closed 370 abandoned tasks (stop line each, manifest ai/stale-closes.jsonl, --undo appends start). stale bucket 437 -> 67, stopped 37 -> 407, check.ok true; follow-up quiet 192 -> 65. Runs daily before the follow-up in TaskLoop.follow_up_daily: needs a Servex restart (not done). Merged a85890272 is the records commit; code merged via worktree/stale-close (b878752be). No todo line about stale tasks existed to close.","closed":370,"stale_before":437,"stale_after":67,"quiet_before":192,"quiet_after":65}}
+{"commit":"c7b31cac5e87"}
+{"log":{"at":"2026-10-18T08:03:42-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-18T08:03:47-05:00","msg":"session ended (other) without landing"}}
