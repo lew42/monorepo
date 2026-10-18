@@ -265,7 +265,8 @@ export class Task extends Item {
 	complete({ completion, complete } = {}){
 		if (this.state === "complete") return this;
 
-		const open = [...(this._tasks ?? [])].find(t => t.state !== "complete");
+		// A recorded finish is a fact during replay (this._rp): a {task: ref} child the worker only filed is not a reason to refuse it. Server/doc/state.md
+		const open = this._rp ? null : [...(this._tasks ?? [])].find(t => t.state !== "complete");
 		if (open) return this.warn(`complete(): "${open.get("title") ?? open.id}" isn't complete yet — complete that first`);
 
 		if (!CAN.complete.has(this.state)) return this.warn(`complete(): can't complete from "${this.state}"`);
@@ -348,13 +349,13 @@ export class Task extends Item {
 		return [...(list ?? [])].map(t => [t, score(t)]).sort((a, b) => b[1] - a[1]).map(([t]) => t);
 	}
 
-	// Time comes from the lines (`at`, `assign.at|landed_at|requested_at`), never the wall clock.
+	// Time comes from the lines (`at`, else the item tool's `ts`, `assign.at|landed_at|requested_at`), never the wall clock. Server/doc/state.md
 	replay_line(line){
 		const rp = this._rp ??= { at: null, explicit: false };
 		if (typeof (line.ts ?? line.at) === "string") this._last_ts = line.ts ?? line.at;   // for Task.rank
 		const a = line.assign && typeof line.assign === "object" ? line.assign : null;
 		const verb = VERBS.find(v => line[v] && typeof line[v] === "object");
-		rp.at = line.at ?? a?.at ?? a?.landed_at ?? a?.requested_at ?? line[verb]?.at ?? rp.at;
+		rp.at = line.at ?? line.ts ?? a?.at ?? a?.landed_at ?? a?.requested_at ?? line[verb]?.at ?? rp.at;
 		if (a){
 			// put(), not set(): set() reads `at` as a path (and drops the line) and calls any key that names a method.
 			const { state, session_id, at: _t, ...rest } = a;
@@ -409,10 +410,10 @@ export class Task extends Item {
 		return this;
 	}
 
-	// landed -> complete, closed -> stopped, else running (today's chasing)
+	// landed -> complete (landed_at alone, outcome or not: Server/doc/state.md), closed -> stopped, else running (today's chasing)
 	replay_legacy(partial){
 		const d = this.data;
-		if (d.landed_at && String(d.outcome ?? "").trim()) this.set({ state: "complete", completed_at: d.landed_at });
+		if (d.landed_at) this.set({ state: "complete", completed_at: d.landed_at });
 		else if (d.closed_by) this.set({ state: "stopped", stopped_at: d.closed_at ?? this._rp?.at });
 		else if (!partial) this.set({ state: "running" });   // before an explicit line, an open legacy task stays idle so `start` is legal
 	}

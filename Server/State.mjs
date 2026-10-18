@@ -43,8 +43,6 @@ export default class State {
 	static day(t){ const d = new Date(typeof t === "number" ? t : Date.parse(t ?? "")); return isNaN(d) ? "" : `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`; }
 	static parse(text){ return String(text).split(/\r?\n/).filter(l => l.startsWith("{")).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
 	static read_lines(file){ try { return this.parse(fs.readFileSync(file, "utf8")); } catch { return []; } }
-	/** The one input fix: the item tool stamps `ts`, Task.replay reads `at` (else it falls back to the wall clock). Doc: "The one rule set". */
-	static line(o){ return o && o.at === undefined && typeof o.ts === "string" ? { ...o, at: o.ts } : o; }
 	static first_sentence(md){
 		const s = String(md ?? "").replace(/^[#*\s>-]+/, "").replace(/\*\*/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").split(/\n/)[0];
 		return (s.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? s).trim().slice(0, 200);
@@ -98,9 +96,9 @@ export default class State {
 	/** Task.replay over the lines, a child's own file read from this root; console quiet (a refused verb warns once per message). */
 	static replay(lines, pub = path.join(SELF, "public")){
 		const keep = [Task.resolver, console.warn];
-		Task.resolver = ref => { const ls = this.read_lines(path.join(pub, String(ref).replace(/^\//, ""), "task.jsonl")); return ls.length ? ls.map(l => this.line(l)) : null; };
+		Task.resolver = ref => { const ls = this.read_lines(path.join(pub, String(ref).replace(/^\//, ""), "task.jsonl")); return ls.length ? ls : null; };
 		console.warn = () => {};
-		try { return Task.replay(lines.map(l => this.line(l))); } finally { [Task.resolver, console.warn] = keep; }
+		try { return Task.replay(lines); } finally { [Task.resolver, console.warn] = keep; }
 	}
 
 	/** The state facts of a task from its lines alone: what SessionIndex.reduce and every other caller asks. */
@@ -108,7 +106,7 @@ export default class State {
 		const t = this.replay(lines, pub), d = t.data, state = t.state;
 		const fin = [...lines].reverse().find(l => (l.finish ?? l.complete) && typeof (l.finish ?? l.complete) === "object");
 		const f = fin ? (fin.finish ?? fin.complete) : {};
-		const times = lines.map(l => this.line(l)).map(l => l.at ?? l.assign?.landed_at ?? l.assign?.requested_at ?? l.log?.at ?? l.action?.at).filter(v => !isNaN(Date.parse(v)));
+		const times = lines.map(l => l.at ?? l.ts ?? l.assign?.landed_at ?? l.assign?.requested_at ?? l.log?.at ?? l.action?.at).filter(v => !isNaN(Date.parse(v)));
 		const landed_at = state === "complete" ? (d.completed_at ?? null) : null;
 		const agent = typeof d.agent === "string" ? d.agent : d.agent?.id ?? null;
 		return { state, landed_at, started: d.started_at ?? d.requested_at ?? times[0] ?? null, last: times.length ? times.reduce((a, b) => Date.parse(b) > Date.parse(a) ? b : a) : null,
