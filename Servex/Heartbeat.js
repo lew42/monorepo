@@ -133,6 +133,8 @@ export default class Heartbeat {
                     else if (w.told !== "tool"){ w.told = "tool"; await this.log(file, "mid-tool", `${t.owner} is mid-tool; left alone`); }
                     continue;
                 }
+                const no = live.watchdog_refusal?.(FROM);   // landed, or a wake it cannot afford: Agent.watchdog_refusal
+                if (no){ if (w.told !== "refused-" + no.why){ w.told = "refused-" + no.why; await this.log(file, "refused", `status check not sent to ${t.owner}: ${no.text}`); } continue; }
                 try { this.agents.send(t.owner, CHECK, { from: FROM }); w.check_at = now; await this.log(file, "check", `status check sent to ${t.owner}`); }
                 catch (e){ await this.triage(file, t, w, `the status check could not be sent: ${e.message || e}`); }
             }
@@ -247,6 +249,8 @@ export default class Heartbeat {
         const dir = path.dirname(job.file), unread = this.inbox(dir);
         const text = `Servex heartbeat: your task ${t.slug} is still open and ${job.why}. ${CHECK}`
             + (unread ? `\n\nWhile you were away, your children reported (from ${path.join(dir, "inbox.jsonl")}):\n${unread}` : "");
+        const known = this.agents.live.get(t.owner), no = known?.watchdog_refusal?.(FROM);
+        if (no) return this.escalate(job.file, t, `${t.owner} ${job.why}, but a revive is refused: ${no.text}`);
         try {
             // a registry row is woken by send(); a task whose agent left no row is resumed from line 1's session id
             if (this.agents.live.has(t.owner) || this.agents.reg().read()[t.owner]) this.agents.send(t.owner, text, { from: FROM });

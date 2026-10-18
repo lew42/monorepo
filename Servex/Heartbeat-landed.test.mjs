@@ -40,7 +40,7 @@ const sent = [], logged = [], live = new Map();
 const servex = {
 	say: m => logged.push(m), queue: [],
 	task_loop: {
-		find_task_files: () => [...Object.values(cases), plant("open2", launch("open2"), { log: { at: now } })].map(d => path.join(d, "task.jsonl")),
+		find_task_files: () => [...Object.values(cases), plant("open2", launch("open2"), { log: { at: now } }), plant("broke", launch("broke"), { log: { at: now } })].map(d => path.join(d, "task.jsonl")),
 		slug: f => path.basename(path.dirname(f)),
 		write_line: async (f, line) => fs.appendFileSync(f, JSON.stringify(line) + "\n"),
 	},
@@ -51,11 +51,13 @@ const servex = {
 	},
 };
 for (const name of ["finish", "complete", "landed-only", "closed", "stopped", "open2"]) live.set("helper-" + name, { id: "helper-" + name, state: "idle" });
+live.set("helper-broke", { id: "helper-broke", state: "idle", watchdog_refusal: () => ({ why: "spend", text: "over budget" }) });
 const hb = new Heartbeat({ servex, silent_ms: 1 });
 hb.booted = 0;
 await hb.tick();
 const checked = sent.filter(s => s.text === CHECK).map(s => s.id);
-assert.deepEqual(checked, ["helper-open2"], "only the open task's owner gets a status check");
+assert.deepEqual(checked, ["helper-open2"], "only the open task's owner gets a status check (not the landed ones, not the over-budget one)");
+assert.match(fs.readFileSync(path.join(home, "broke", "task.jsonl"), "utf8"), /"heartbeat":"refused"/, "the over-budget refusal is logged");
 for (const dir of Object.values(cases)){
 	const text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8");
 	assert.equal((text.match(/"heartbeat":"skipped"/g) ?? []).length, 1, "one skipped line in " + path.basename(dir));
@@ -67,7 +69,6 @@ console.log("ok  Heartbeat.tick: status check to the open task only; landed task
 
 /* 3. the watchdog guard on the agent itself, and the spend gate on resumes */
 const Agent = Agents.Agent;
-const sent_to_agent = [];
 const make = (extra = {}) => Object.assign(Object.create(Agent.prototype), { id: "helper-x", provider: "anthropic", cost: 0, state: "dormant", host: { store: () => ({ append: async () => {} }), servex: { say: m => logged.push(m) } } }, extra);
 const landed = make({ task: { dir: cases.finish } });
 assert.equal(landed.watchdog_refusal("servex-heartbeat")?.why, "landed");
