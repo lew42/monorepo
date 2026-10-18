@@ -43,6 +43,9 @@ first message, so it knows "where it is" before it does anything — the owner's
 own ask, 2026-09-29. `readme-chain.js`; the seam, the token cap, where it's
 wired in and left out: [`doc/readme-chain.md`](../doc/readme-chain.md).
 
+Since 2026-10-18 the same spawn also writes `<task dir>/past-work.md` (what already exists on the
+brief's title, `Agents.past_work()` calling `PastWork.task()`) and tells the agent to read it first. No title: skipped, one log line.
+
 ## The Dispatcher — a card becomes a task mastermind
 
 When the assistant decides a sentence asked for something built, fixed, changed or looked

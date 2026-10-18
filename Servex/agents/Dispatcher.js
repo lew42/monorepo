@@ -133,7 +133,7 @@ export default class Dispatcher {
 		const agent = this.servex.agents.spawn({
 			role: "task-mastermind",
 			name,
-			task: { dir: rel, ...(task.card ? { card: task.card } : {}) },
+			task: { dir: rel, title: String(task.brief || "").split("\n")[0].slice(0, 120), ...(task.card ? { card: task.card } : {}) },   // title: what past-work.md searches on (the first line of the ask)
 			model: model("manager"), effort: "medium",
 			prompt: `${task.brief}\n\n${opening}`,
 			parent: this.id,
