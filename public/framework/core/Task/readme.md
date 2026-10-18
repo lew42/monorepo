@@ -56,6 +56,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 ## Watch out
 
 - **Three replay rules, set by `Server/State.mjs`'s self-check** ([Server/doc/state.md](/Server/doc/state.md), "Decision"): a line's time is `at`, else the item tool's `ts`; `landed_at` alone means `complete` (outcome or not); during replay `complete()` never refuses a recorded finish because a filed `{task: ref}` child is idle (live calls still refuse). Each has a test in `Task.test.mjs`.
+- **Abandoned tasks are closed by script:** [`Server/StaleClose.mjs`](/Server/StaleClose.mjs) appends a `stop` line (`by: StaleClose`) to every `stale` task silent over 24 h, daily from `Servex/TaskLoop.js`; the manifest is `ai/stale-closes.jsonl`, `--undo` appends `start` (`resume` is refused from `stopped`). [Server/doc/stale-close.md](/Server/doc/stale-close.md)
 - **`complete()` refuses while a subtask is open** — it warns ("… isn't complete yet —
   complete that first") and leaves the state unchanged, never throws. Every illegal
   transition (`pause()` on an idle task) behaves the same way.

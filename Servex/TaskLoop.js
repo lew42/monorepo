@@ -112,7 +112,7 @@ export default class TaskLoop {
         } finally { this.busy = false; }
     }
 
-    /* follow-up-daily, 2026-10-13: once per local day, run Server/FollowUp.mjs --write (what fell through the cracks) and post ONE owner_note row for the day.
+    /* follow-up-daily, 2026-10-13: once per local day, run Server/StaleClose.mjs --apply, then Server/FollowUp.mjs --write (what fell through the cracks) and post ONE owner_note row for the day.
      * "Done today" = follow-up.md's mtime is today, so a restart never repeats it. LogSweeper (ALLOW) commits the two files. Doc: Servex/doc/task-loop.md */
     follow_up_daily(){
         const file = path.join(this.root, "public", "framework", "ai", "doc", "follow-up.md");
@@ -120,13 +120,15 @@ export default class TaskLoop {
         const day = this.date_id(new Date());
         if (this.date_id(new Date(m)) === day || this.follow_up_busy) return;
         this.follow_up_busy = true;
-        execFile(process.execPath, [path.join(this.root, "Server", "FollowUp.mjs"), "--write"], { cwd: this.root, windowsHide: true, timeout: 120000 }, (err, out) => {
+        const run = (script, args, done) => execFile(process.execPath, [path.join(this.root, "Server", script), ...args], { cwd: this.root, windowsHide: true, timeout: 120000 }, done);
+        // the step before it, 2026-10-18: StaleClose --apply stops the stale tasks silent over StaleClose.HOURS, so the follow-up does not list them (Server/doc/stale-close.md)
+        run("StaleClose.mjs", ["--apply"], () => run("FollowUp.mjs", ["--write"], (err, out) => {
             this.follow_up_busy = false;
             if (err) return this.servex?.log?.append("servex", { type: "task-loop-error", error: "follow-up: " + String(err.message || err) }).catch(() => {});
             const c = (out.match(/\{[\s\S]*?\}/) || [""])[0]; let n = {}; try { n = JSON.parse(c.replace(/'/g, "").replace(/([\w-]+):/g, '"$1":')); } catch {}
             const flagged = ["unmerged", "merged-not-landed", "quiet", "no-outcome", "asks"].reduce((t, k) => t + (n[k] || 0), 0);
             this.servex?.cards?.owner_note?.({ title: `Follow-up ${day}: ${flagged} flagged`, text: `${flagged} rows fell through today (${n.healthy ?? "?"} healthy): see the list`, kind: "risk", links: ["/framework/ai/doc/follow-up.md"], by: "task-loop" })?.catch?.(() => {});
-        });
+        }));
     }
 
     /* handover-daily, 2026-10-17: once per UTC day, run Server/HandoverNow.mjs --write so the NOW block at the top of handover.md stays computed.

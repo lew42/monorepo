@@ -138,6 +138,7 @@ export default class FollowUp {
 	/** Each follow-up kind is a reading of the state (Server/State.mjs, bucket + dir + landed + line); the only other inputs are git and asks.jsonl. */
 	static RULES = [
 		"**quiet**: the state's bucket is `in_flight` or `stale` and the last log line is over 2 h old. A `landed` task is never quiet.",
+		"**closed as abandoned**: a `stale` task silent over 24 h gets a `stop` line from `Server/StaleClose.mjs` (run just before this, daily) and leaves `quiet`; the manifest is `ai/stale-closes.jsonl`: [stale-close.md](/Server/doc/stale-close.md).",
 		"**landed with unmerged commits**: bucket `landed`, its branch (read from the state's listed dir) has commits and its files are not on `michael/dev` (`LandingCheck`).",
 		"**merged but never landed**: any bucket but `landed`, its branch is already on `michael/dev`.",
 		"**landed with no outcome**: bucket `landed` and the state's `line` is empty.",
