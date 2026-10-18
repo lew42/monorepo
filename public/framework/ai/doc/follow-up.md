@@ -1,47 +1,40 @@
 # Follow-up: what fell through the cracks
 
-Computed 2026-10-18 05:00 UTC by `node Server/FollowUp.mjs --write` from every task folder of the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
+Counted by the one state ([one-state.md](one-state.md), `Server/State.mjs`): every task below is a row of `ai/state.json`. Computed 2026-10-18 12:55 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
 
-**0 landed with unmerged commits · 0 merged but never landed · 30 quiet over 2 h · 1 landed with no outcome · 17 open asks with no live owner · 133 healthy of 164.**
+**0 landed with unmerged commits · 0 merged but never landed · 192 quiet over 2 h · 46 landed with no outcome · 17 open asks with no live owner · 743 healthy of 981.**
 
-## ⚠️ The owner decides: `michael/property-of`
+## quiet: 192
 
-Its commits are code and not on `michael/dev`; this task does not merge it.
-```
-public/framework/ai/AISession/AISessionDetail.js   |  22 +++++++++++--
- .../10/12/session-87bec773/property-of/STATE.md    |   3 ++
- .../property-of/proof/pof-after.png                | Bin 0 -> 119092 bytes
- .../property-of/proof/pof-before.png               | Bin 0 -> 108449 bytes
- public/framework/core/Page/doc/binding.md          |   6 ++--
- public/framework/core/Property/Property.js         |  35 +++++++++++++++++++++
- public/framework/core/Property/Property.test.mjs   |  31 ++++++++++++++++++
- public/framework/core/Property/readme.md           |   2 ++
- 8 files changed, 93 insertions(+), 6 deletions(-)
-```
+the state calls it in_flight or stale and its log is silent for over 2 h: resume it or close it.
 
-## quiet: 30
+- [task-system](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/): mastermind-task-system, last log 8 h ago, step 1/0, agent dormant
+- [01-work](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/01-work/): minion-unclear-01-work, last log 19 h ago, step 0/0, agent stopped
+- [02-work](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/02-work/): minion-unclear-02-work, last log 19 h ago, step 0/0, agent stopped
+- [03-work](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/03-work/): minion-unclear-03-work, last log 19 h ago, step 0/0, agent stopped
+- [04-work](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/04-work/): minion-unclear-04-work, last log 19 h ago, step 0/0, agent stopped
+- [05-work](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/05-work/): minion-unclear-05-work, last log 19 h ago, step 0/0, agent stopped
+- [06-work](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/06-work/): minion-unclear-06-work, last log 19 h ago, step 0/0, agent stopped
+- [08-concrete](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/08-concrete/): minion-unclear-08-concrete, last log 19 h ago, step 0/0, agent stopped
+- [09-look](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/09-look/): minion-unclear-09-look, last log 19 h ago, step 0/0, agent stopped
+- [07-path](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/07-path/): minion-unclear-07-path, last log 19 h ago, step 0/0, agent stopped
+- [01-look](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2b/01-look/): minion-unclear-2b-look, last log 19 h ago, step 0/0, agent stopped
+- [refine-audit](/framework/ai/sessions/2026/10/15/voice-20261015/refine-audit/): helper-refine-audit, last log 21 h ago, step 1/0, agent stopped
+- …180 more in [follow-up-full.md](follow-up-full.md)
 
-no log for over 2 h and no live agent: resume it or close it.
-
-- [approve-string-verb](/framework/ai/sessions/2026/10/17/approve-string-verb/): no agent, last log 13 h ago, step 0/0, agent unknown
-- [usage-pace-review](/framework/ai/sessions/2026/10/17/session-1f11e74d/usage-pace-review/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [live-archive](/framework/ai/sessions/2026/10/17/session-36cc2e8a/live-archive/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [accounting](/framework/ai/sessions/2026/10/16/voice-20261016/accounting/): helper-accounting, last log 29 h ago, step 1/0, agent stopped
-- [handover-query](/framework/ai/sessions/2026/10/16/voice-20261016/handover-query/): minion-handover-query, last log 2 d ago, step 1/0, agent dormant
-- [live-page](/framework/ai/sessions/2026/10/15/voice-20261015/live-page/): helper-live-page, last log 13 h ago, step 1/0, agent stopped
-- [live-post](/framework/ai/sessions/2026/10/15/voice-20261015/live-post/): helper-live-post, last log 13 h ago, step 1/0, agent stopped
-- [loose-ends](/framework/ai/sessions/2026/10/15/voice-20261015/loose-ends/): helper-loose-ends, last log 13 h ago, step 1/0, agent stopped
-- [page-system](/framework/ai/sessions/2026/10/15/voice-20261015/page-system/): helper-page-system, last log 13 h ago, step 1/0, agent stopped
-- [past-work-log](/framework/ai/sessions/2026/10/15/voice-20261015/past-work-log/): helper-past-work-log, last log 13 h ago, step 1/0, agent stopped
-- [past-work-map](/framework/ai/sessions/2026/10/15/voice-20261015/past-work-map/): helper-past-work-map, last log 13 h ago, step 1/0, agent stopped
-- [refine-audit](/framework/ai/sessions/2026/10/15/voice-20261015/refine-audit/): helper-refine-audit, last log 13 h ago, step 1/0, agent stopped
-- …18 more in [follow-up-full.md](follow-up-full.md)
-
-## no-outcome: 1
+## no-outcome: 46
 
 landed with no outcome text: add one line saying what shipped.
 
-- [session-detail-live](/framework/ai/sessions/2026/10/09/session-ca11999b/session-detail-live/): minion-session-detail-live, last log 7 d ago, step 1/0, agent dormant
+- [property-of-merge](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/property-of-merge/): helper-property-of-merge, last log 0 h ago, step 0/0, agent stopped
+- [session-day](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/session-day/): helper-session-day, last log 0 h ago, step 0/0, agent stopped
+- [dictate-wide](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-wide/): helper-dictate-wide, last log 9 h ago, step 0/0, agent stopped
+- [sheet-handoff-proof](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/sheet-handoff-proof/): helper-sheet-handoff-proof, last log 10 h ago, step 0/0, agent stopped
+- [templates-live-proof](/framework/core/Task/tasks/templates-live-proof/): helper, last log 21 h ago, step 0/0, agent dormant
+- [tasks-wide](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/tasks-wide/): helper-tasks-wide, last log 21 h ago, step 0/0, agent stopped
+- [swallow](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/swallow/): helper-voice-swallow, last log 23 h ago, step 0/0, agent stopped
+- [overview-of-this-dictation-and-all-asks](/framework/ai/tasks/overview-of-this-dictation-and-all-asks/): helper-a, last log 32 h ago, step 0/0, agent unknown
+- …38 more in [follow-up-full.md](follow-up-full.md)
 
 ## open asks with no live owner: 17
 
@@ -61,4 +54,13 @@ An ask in `asks.jsonl` still building, routed, queued or stalled whose owner age
 
 ## Check
 
-Tasks counted 164, `TaskDirs --list 10` 164: agree. 197 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
+743 healthy + 238 flagged = 981; the state lists 981 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/state.json (under a minute old). 198 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
+
+## How each row is counted
+
+- **quiet**: the state's bucket is `in_flight` or `stale` and the last log line is over 2 h old. A `landed` task is never quiet.
+- **landed with unmerged commits**: bucket `landed`, its branch (read from the state's listed dir) has commits and its files are not on `michael/dev` (`LandingCheck`).
+- **merged but never landed**: any bucket but `landed`, its branch is already on `michael/dev`.
+- **landed with no outcome**: bucket `landed` and the state's `line` is empty.
+- **open asks with no live owner**: `asks.jsonl` as before, joined on the state's `agents`.
+- First run 2026-10-18: of the 30 rows the old reader called quiet, 26 survive (all `stale`: no finish line, no working agent) and 4 drop out (bucket `stopped`, an explicit stop).
