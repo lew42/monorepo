@@ -34,3 +34,7 @@
 {"log":{"at":"2026-10-17T20:26:47-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-17T20:27:17-05:00","heartbeat":"answered","msg":"Idle, nothing in progress. The task landed as `6423cfc2c`, and `landed_at` is in my `task.jsonl`."}}
 {"log":{"at":"2026-10-17T20:31:09-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T21:51:43-05:00","heartbeat":"check","msg":"status check sent to helper-readme-trim"}}
+{"log":{"at":"2026-10-17T21:51:47-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T21:52:18-05:00","heartbeat":"answered","msg":"Idle. The task landed as `6423cfc2c` and nothing is running. The `readme-trim` worktree is still on disk for removal."}}
+{"log":{"at":"2026-10-17T21:56:10-05:00","msg":"session ended (other) without landing"}}
