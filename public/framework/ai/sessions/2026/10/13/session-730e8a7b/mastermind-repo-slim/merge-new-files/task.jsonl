@@ -9,3 +9,6 @@
 {"commit":"be9978647914"}
 {"log":{"at":"2026-10-18T17:19:53-05:00","msg":"landed as be9978647 on michael/dev via merge.mjs --no-review (task dir not found from branch worktree/qf-6; self-reviewed). git status --porcelain was clean for every non-.jsonl path after the merge (merge.mjs's own first live run of the new staging + untracked check); Server/merge.test.mjs is tracked. Todo lines 211 and 213 struck. Doc line added to Server/doc/review.md (made out of date: the merge.mjs header comment's 'otherwise leaves them in the working tree' paragraph now reads 'stages them')."}}
 {"finish":{"at":"2026-10-18T17:19:53-05:00","msg":"merge.mjs stages every landed path and exits 5 on an untracked one; LandingCheck.verify flags a new file not on dev even when the ledger vouches. Tests: merge.test.mjs 4 passed, 0 failed; LandingCheck.test.mjs ok. Landing commit be9978647."}}
+{"commit":"fdbbf36630d4"}
+{"log":{"at":"2026-10-18T17:20:01-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-18T17:20:16-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
