@@ -25,7 +25,7 @@ to a file. About ninety seconds and $0.09, nothing mocked.
 stop and tell me what you found
 ```
 
-Plain text on purpose: the agent has to understand it with no schema and no training. The
+A `reply to` target is answered once, in the turn that answers that message, never after it unless a new message arrives (the envelope says so). Plain text on purpose: the agent has to understand it with no schema and no training. The
 message **waits its turn** by default; `{priority: "now"}` cancels what the agent is saying
 and lands immediately. `interrupt` stops it mid-sentence and leaves the session idle and
 alive. `stop` ends it, and it stays listed as `stopped`.

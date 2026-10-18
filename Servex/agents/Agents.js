@@ -1121,7 +1121,7 @@ Agents.Agent = class Agent {
 	 * who asked and where the answer goes. Plain text on purpose: the agent has
 	 * to understand it with no schema and no training. */
 	envelope(text, { from, reply_to } = {}){
-		const head = [from && `from: ${from}`, reply_to && `reply to: ${reply_to}`].filter(Boolean).join(" · ");
+		const head = [from && `from: ${from}`, reply_to && `reply to: ${reply_to} (once: in the turn that answers this message, never after it unless a new message arrives)`].filter(Boolean).join(" · ");
 		return head ? `[${head}]\n${text}` : text;
 	}
 
