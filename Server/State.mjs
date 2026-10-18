@@ -48,6 +48,15 @@ export default class State {
 		const s = String(md ?? "").replace(/^[#*\s>-]+/, "").replace(/\*\*/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").split(/\n/)[0];
 		return (s.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? s).trim().slice(0, 200);
 	}
+	/** The landing line, one rule (Server/doc/state.md): assign.outcome, else the finish/complete line's first non-empty of these keys, else the last log msg. The brief's heading is the row's last resort. */
+	static NO_SUMMARY = "Completed; the log records no summary.";   // an empty complete line: said plainly, never blank
+	static LANDING_KEYS = ["outcome", "msg", "text", "summary", "merged", "checked"];
+	static landing_text(d, f, lines){
+		const ok = v => typeof v === "string" && v.trim() ? v : null;
+		const fin = this.LANDING_KEYS.map(k => ok(f[k])).find(Boolean);
+		const logs = [...lines].reverse().map(l => ok(l.log?.msg)).find(Boolean);
+		return ok(d.outcome) ?? fin ?? logs ?? null;
+	}
 	/** The route id on /framework/ai/tasks/: the folder below `sessions/` (or below `framework/` for a module home), `/` as `~`. */
 	static id(rel){ const r = slash(rel); return (r.includes("/ai/sessions/") ? r.split("/ai/sessions/").pop() : r.replace(/^public\/framework\//, "")).replaceAll("/", "~"); }
 	static url(rel){ return "/" + slash(rel).replace(/^public\//, "") + "/"; }
@@ -112,9 +121,12 @@ export default class State {
 		const agent = typeof d.agent === "string" ? d.agent : d.agent?.id ?? null;
 		return { state, landed_at, started: d.started_at ?? d.requested_at ?? times[0] ?? null, last: times.length ? times.reduce((a, b) => Date.parse(b) > Date.parse(a) ? b : a) : null,
 			title: d.title ?? null, agent, session: t.session ?? d.sessions?.[0]?.id ?? null, module: d.module ?? null,
-			outcome: d.outcome ?? f.msg ?? f.summary ?? f.outcome ?? null, now: typeof d.now === "string" ? d.now : null,
+			outcome: State.landing_text(d, f, lines), now: typeof d.now === "string" ? d.now : null,
 			waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, alias: lines.find(l => typeof l.home === "string")?.home ?? null };
 	}
+
+	/** The first heading of the task dir's requirements.md, or null. */
+	static brief_heading(file){ try { return fs.readFileSync(path.join(path.dirname(file), "requirements.md"), "utf8").split(/\r?\n/).find(l => /^#+\s+\S/.test(l)) ?? null; } catch { return null; } }
 
 	/** One row, cached by the file's size and mtime. */
 	row(file){
@@ -127,7 +139,7 @@ export default class State {
 		const row = { id: State.id(rel), home, dir: rel, url: State.url(rel), title: f.title ?? path.basename(rel).replaceAll("-", " "), state: f.state, bucket: null,
 			started, landed_at: f.landed_at, last: f.last ?? new Date(st.mtimeMs).toISOString(), day: State.day(f.landed_at ?? started),
 			agent: f.agent, session: f.session, module: f.module ?? (home === "module" ? rel.replace(/^public\/framework\//, "").split("/tasks/")[0] : null),
-			line: State.first_sentence(f.state === "complete" ? f.outcome : f.now), waiting_on: f.waiting_on, waiting_since: f.waiting_since, alias: home === "session" ? f.alias : null };
+			line: State.first_sentence(f.state === "complete" ? (f.outcome ?? State.brief_heading(file) ?? State.NO_SUMMARY) : f.now), waiting_on: f.waiting_on, waiting_since: f.waiting_since, alias: home === "session" ? f.alias : null };
 		this.cache.set(file, { size: st.size, mtime: st.mtimeMs, row });
 		return row;
 	}

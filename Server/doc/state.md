@@ -26,7 +26,7 @@ Each task's lines go through `Task.replay` (`core/Task/Task.js`), with `Task.res
 ## The structure (`state.json`)
 
 - `at`: when it was computed. `today`: the owner's local calendar day (`YYYY-MM-DD`, this machine's clock). `tz`: the offset.
-- `tasks`: one row per task: `id` (the dashboard's route id; `~` for `/`), `home` (`session` or `module`), `dir` (repo path), `url` (its page), `title`, `state` (the Task state), `bucket`, `started` and `landed_at` (ISO stamps from the lines, never the clock), `day` (the local day it landed, else the day it started), `agent`, `session`, `module`, `line` (one sentence: the outcome when landed, else the latest `now`).
+- `tasks`: one row per task: `id` (the dashboard's route id; `~` for `/`), `home` (`session` or `module`), `dir` (repo path), `url` (its page), `title`, `state` (the Task state), `bucket`, `started` and `landed_at` (ISO stamps from the lines, never the clock), `day` (the local day it landed, else the day it started), `agent`, `session`, `module`, `line` (one sentence, 200 characters at most: when landed, `assign.outcome`, else the finish/complete line's first non-empty of `outcome msg text summary merged checked`, else the last `log` msg, else the brief's first heading, else "Completed; the log records no summary."; in flight, the latest `now`).
 - `sessions`: one row per session id: how many tasks, how many landed, the last landing.
 - `agents`: Servex's registry as it was read (`id state task_dir model cost`).
 - `counts`: `tasks` (each bucket), `landed_by_day` (the last seven local days), and the dashboard's own four (`in_flight queued waiting landed`).

@@ -57,5 +57,15 @@ assert.equal(b.check.ok, false);
 assert.deepEqual([b.check.landed_today.state, b.check.landed_today.walk], [2, 1]);
 assert.deepEqual(b.check.landed_today.only_state, ["2026~10~17~sess-a~t-finish"]);
 
+// The landing line (one rule): finish text keys, then the last log msg, then the brief heading, then the plain no-summary sentence.
+put(S + "t-key", { assign: { session_id: "s1", title: "Key", requested_at: "2026-10-17T09:00:00-05:00" } }, { finish: { at: "2026-10-17T10:00:00-05:00", merged: "Merged the fix. More." } });
+put(S + "t-log", { assign: { session_id: "s1", title: "Log", requested_at: "2026-10-17T09:00:00-05:00" } }, { log: { at: "2026-10-17T09:30:00-05:00", msg: "last words" } }, { finish: { at: "2026-10-17T10:00:00-05:00" } });
+const hd = put(S + "t-head", { assign: { session_id: "s1", title: "Head", requested_at: "2026-10-17T09:00:00-05:00" } }, { finish: { at: "2026-10-17T10:00:00-05:00" } });
+fs.writeFileSync(path.join(hd, "requirements.md"), "# The brief heading\n\nbody\n");
+put(S + "t-bare", { assign: { session_id: "s1", title: "Bare", requested_at: "2026-10-17T09:00:00-05:00" } }, { complete: {} });
+const c = new State({ root, registry, now }).snapshot(), crow = id => c.tasks.find(r => r.id.endsWith(id));
+assert.equal(crow("t-key").line, "Merged the fix."); assert.equal(crow("t-log").line, "last words");
+assert.equal(crow("t-head").line, "The brief heading"); assert.equal(crow("t-bare").line, State.NO_SUMMARY);
+
 fs.rmSync(root, { recursive: true, force: true });
 console.log("State: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 2 vs 1)");
