@@ -154,3 +154,5 @@
 {"log":{"at":"2026-10-17T23:25:39-05:00","heartbeat":"revive-queued","msg":"mastermind-task-system its agent is not running; a revive is queued"}}
 {"log":{"at":"2026-10-17T23:25:40-05:00","heartbeat":"revive","msg":"revived mastermind-task-system from session d9427ae3-a75e-4d92-a407-cdc1b7315f4a, with its unread inbox"}}
 {"log":{"at":"2026-10-17T23:25:43-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T23:31:36-05:00","heartbeat":"revive-queued","msg":"mastermind-task-system it did not answer the status check; a revive is queued"}}
+{"log":{"at":"2026-10-17T23:31:36-05:00","heartbeat":"escalated","msg":"mastermind-task-system it did not answer the status check, but a revive is refused: a wake costs about $0.00 and it has spent $394.45 of $100.00"}}
