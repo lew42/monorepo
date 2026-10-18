@@ -490,17 +490,18 @@ export default class Cards {
 
 	/* ---------- HTTP and MCP ---------- */
 
-	routes(router, cors = (req, res, next) => next()){
+	routes(router, cors = (req, res, next) => next(), append_cors = cors){   // append_cors: /card/append's own, localhost-only
 		const json = express.json({ limit: "1mb" });
 		const reply = (res, out, bad = 400) => res.status(out && out.ok !== false ? 200 : bad).json(out ?? { ok: false, why: "not found" });
 
-		for (const p of ["/cards", "/card", "/card/create", "/card/append", "/owner_note", "/waiting"]) router.options(p, cors, (req, res) => res.status(204).end());
+		for (const p of ["/cards", "/card", "/card/create", "/owner_note", "/waiting"]) router.options(p, cors, (req, res) => res.status(204).end());
+		router.options("/card/append", append_cors, (req, res) => res.status(204).end());
 		router.get("/cards", cors, async (req, res) => res.json(await this.list({ view: req.query.view || "today", tag: req.query.tag || undefined })));
 		router.post("/owner_note", cors, json, async (req, res) => reply(res, await this.owner_note(req.body ?? {})));
 		router.get("/waiting", cors, async (req, res) => res.json(await this.waiting()));
 		router.get("/card", cors, async (req, res) => reply(res, await this.fold(String(req.query.id ?? "")), 404));
 		router.post("/card/create", cors, json, async (req, res) => reply(res, await this.create(req.body ?? {})));
-		router.post("/card/append", cors, json, async (req, res) => {
+		router.post("/card/append", append_cors, json, async (req, res) => {
 			const out = await this.append(String(req.query.id ?? ""), req.body ?? {});
 			if (out.ok && out.fresh) out.forwarded = await this.forward(out.id, out.line.prompt);
 			reply(res, out);

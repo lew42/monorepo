@@ -554,6 +554,14 @@ export default class Servex extends Events {
             next();
         };
 
+        /* /card/append answers only a localhost origin (localhost, 127.0.0.1, *.localhost): the origin is echoed
+         * back, so a worktree page on localhost:5xxxx can read the answer (todo 177). */
+        const local_cors = (req, res, next) => {
+            const origin = req.get("origin");
+            if (this.local_origin(origin)) res.set({ "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Headers": "content-type", "Access-Control-Max-Age": "600", "Vary": "Origin" });
+            next();
+        };
+
         router.options("/log/:name", cors, (req, res) => res.status(204).end());
 
         /* The naming rules live in `Log.append()` itself (see its own comment) —
@@ -599,9 +607,9 @@ export default class Servex extends Events {
         router.use("/card", (req, res, next) => {
             const via = req.method === "POST" && this.via(req);
             if (!via) return next();
-            res.json({ ok: true, stubbed: true, via, note: "a worktree page's post: nothing written to the main tree's cards, nobody woken" });
+            local_cors(req, res, () => res.json({ ok: true, stubbed: true, via, note: "a worktree page's post: nothing written to the main tree's cards, nobody woken" }));
         });
-        this.cards.routes(router, cors);
+        this.cards.routes(router, cors, local_cors);
         this.inbox.routes(router, cors, express.json({ limit: "64kb" }));   // POST /api/inbox/drop|clear, GET /api/inbox
 
         /* THE FAST TIDY CALL (dictation-playground, 2026-09-28) — one no-tools
@@ -1083,6 +1091,10 @@ export default class Servex extends Events {
         let reg = {}; try { reg = JSON.parse(fs.readFileSync(path.resolve(HERE, "..", ".worktrees.json"), "utf8")); } catch {}
         const hit = Object.values(reg).find(e => (u.port && String(e.port) === u.port) || u.hostname === `${e.name}.localhost`);
         return hit ? `worktree:${hit.name}` : null;
+    }
+    local_origin(origin){
+        try { const u = new URL(origin); return /^https?:$/.test(u.protocol) && (u.hostname === "localhost" || u.hostname === "127.0.0.1" || u.hostname.endsWith(".localhost")); }
+        catch { return false; }
     }
     stamp_via(req){
         const body = req.body ?? {}, via = this.via(req);
