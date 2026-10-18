@@ -140,3 +140,6 @@
 {"file":"servex-small-2/"}
 {"file":"todo-verdicts/"}
 {"file":"merge-new-files/"}
+{"file":"quickfix-home/"}
+{"file":"exists-at-creation/"}
+{"file":"quickfix-home/","gone":true}
