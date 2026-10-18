@@ -188,3 +188,12 @@
 {"log":{"at":"2026-10-18T14:53:00-05:00","heartbeat":"deliberate","msg":"helper-compact-nudge its agent is not running: it was stopped on purpose by owner at 2026-10-17T23:16:52-05:00; not revived."}}
 {"log":{"at":"2026-10-18T14:58:13-05:00","heartbeat":"deliberate","msg":"helper-compact-nudge its agent is not running: it was stopped on purpose by owner at 2026-10-17T23:16:52-05:00; not revived."}}
 {"log":{"at":"2026-10-18T17:32:37-05:00","heartbeat":"deliberate","msg":"helper-compact-nudge its agent is not running: it was stopped on purpose by owner at 2026-10-17T23:16:52-05:00; not revived."}}
+{"log":{"at":"2026-10-18T17:38:02-05:00","heartbeat":"deliberate","msg":"helper-compact-nudge its agent is not running: it was stopped on purpose by owner at 2026-10-17T23:16:52-05:00; not revived."}}
+{"log":{"at":"2026-10-18T17:42:10-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-18T17:42:21-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-18T17:42:21-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-18T17:47:44-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-18T17:48:02-05:00","heartbeat":"check","msg":"status check sent to helper-compact-nudge"}}
+{"log":{"at":"2026-10-18T17:48:03-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-18T17:48:35-05:00","heartbeat":"answered","msg":"Idle, nothing in progress. The compaction change is merged (`e0a0b1ead`) and Servex has restarted since. I haven't seen a nudge fire."}}
+{"log":{"at":"2026-10-18T17:52:22-05:00","msg":"session ended (other) without landing"}}
