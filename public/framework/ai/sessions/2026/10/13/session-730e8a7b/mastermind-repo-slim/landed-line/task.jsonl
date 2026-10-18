@@ -1,3 +1,5 @@
 {"assign":{"session_id":"e14bb793-4310-49d4-a64a-935cb4d689d7","agent":"helper-landed-line","card":"2026/10/18/follow-up-2026-10-18-48-flagged","brief":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/landed-line/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim","requested_at":"2026-10-18T09:14:37-05:00","now":"starting"}}
 {"commit":"8320030677c5"}
 {"decision":{"at":"2026-10-18T10:00:00-05:00","msg":"Landing line order: assign.outcome, finish/complete keys outcome msg text summary merged checked, last log msg, brief heading, then a plain no-summary sentence. Computed in State only; first_sentence was already one copy in State (TaskState delegates). 49 empty landed lines (this tree) to 0; FollowUp no-outcome 0."}}
+{"commit":"e9d4c2fef74e"}
+{"finish":{"at":"2026-10-18T09:20:00-05:00","outcome":"Landed rows with an empty line: 49 to 0 (FollowUp no-outcome 0, check.ok true, State.test and smoke pass). Merged to michael/dev; TaskState --watch and Servex need a restart to use the new rule (mastermind restarts). check_page at 400/1200 not run."}}
