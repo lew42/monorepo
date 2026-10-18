@@ -7,6 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import SessionRecord from "./SessionRecord.mjs";
+import Day from "../public/framework/core/Session/Day.js";
 import Task from "../public/framework/core/Task/Task.js";
 
 const SELF = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -40,7 +41,7 @@ export default class State {
 
 	// ---- small rules -----------------------------------------------------------------------------------------------
 	/** The owner's local calendar day of a time (this machine's clock). */
-	static day(t){ const d = new Date(typeof t === "number" ? t : Date.parse(t ?? "")); return isNaN(d) ? "" : `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`; }
+	static day(t){ return Day.of(t); }   // the same rule TaskDirs.day uses
 	static parse(text){ return String(text).split(/\r?\n/).filter(l => l.startsWith("{")).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
 	static read_lines(file){ try { return this.parse(fs.readFileSync(file, "utf8")); } catch { return []; } }
 	static first_sentence(md){

@@ -14,6 +14,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import Day from "../public/framework/core/Session/Day.js";
 
 const { chromium } = await import("file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs");
 const repo = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -29,7 +30,7 @@ const server = spawn(process.execPath, ["server.js"], { cwd: repo, windowsHide: 
 const url = `http://localhost:${port}/framework/ai/sessions/`;
 for (let i = 0; i < 100; i++){ try { if ((await fetch(url)).ok) break; } catch {} await new Promise(r => setTimeout(r, 300)); }
 
-const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, "/");
+const stamp = Day.path();
 const own = path.join(repo, "public/framework/ai/sessions", stamp, id, "index.json");
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1920, height: 1000 } });

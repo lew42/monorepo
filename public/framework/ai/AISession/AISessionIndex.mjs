@@ -14,6 +14,7 @@ import fsp from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import Day from "../../core/Session/Day.js";
 import AISession from "./AISession.js";
 import { files_of, registry_rows } from "../../../../Server/session-summary.mjs";
 import { links_of, children_map } from "../../../../Server/session-links.mjs";
@@ -113,7 +114,7 @@ export default class AISessionIndex {
 	/** A snapshot counted under an older rule (no `cost_v`, or lower) is re-read once, for the last three days (older days: `--recost`). Runs behind the page, one session at a time. */
 	heal(){
 		if (this.no_heal) return;
-		const since = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10), days = new Set();
+		const since = Day.of(Date.now() - 2 * 864e5), days = new Set();
 		for (const s of this.snaps.values()) if ((s.cost_v ?? 1) < AISession.STATE_V && AISessionIndex.day_of(s) >= since) days.add(AISessionIndex.day_of(s));
 		if (!days.size) return;
 		this.log("AISessionIndex: re-reading " + [...days].join(", ") + " with the current cost rule");
@@ -229,8 +230,8 @@ export default class AISessionIndex {
 		snap.tags = rec.tags; snap.alerts = rec.alerts; snap.closed = !!rec.closed;
 	}
 
-	/** The UTC day a snapshot is bundled under: the day of its last activity. */
-	static day_of(snap){ return (snap.last_activity ?? snap.first_at ?? new Date().toISOString()).slice(0, 10); }
+	/** The owner's local day (Day.js) a snapshot is bundled under: the day of its last activity. */
+	static day_of(snap){ return Day.of(snap.last_activity ?? snap.first_at ?? Date.now()); }
 
 	/** Store a snapshot if anything changed. Tells the listeners (with the changed keys) and queues the file. Returns the changed keys. */
 	set(snap){
@@ -353,7 +354,7 @@ export default class AISessionIndex {
 
 	/** Close every day before today that has no active session: its `index.json` is written once more with `closed:true`, and is never rewritten after. Returns the days closed. */
 	freeze(){
-		const today = new Date().toISOString().slice(0, 10), by = new Map();
+		const today = Day.of(), by = new Map();
 		for (const s of this.snaps.values()) (by.get(AISessionIndex.day_of(s)) ?? by.set(AISessionIndex.day_of(s), []).get(AISessionIndex.day_of(s))).push(s);
 		const written = [];
 		for (const [day, list] of by){
@@ -454,8 +455,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 		const ix = new AISessionIndex({ log: console.log }); await ix.load(); for (const id of [...ix.writes.keys()]) await ix.write(id);
 		const days = new Set([...ix.snaps.values()].map(AISessionIndex.day_of)); for (const d of days) await ix.write_day(d);
 		console.log(`${ix.snaps.size} snapshots; froze ${ix.freeze().length} day(s); ${AISessionIndex.roll()} total file(s) written`);
-	} else if (cmd === "--recost"){      // node ai/AISession/AISessionIndex.mjs --recost [YYYY-MM-DD ...]   (default: yesterday and today, UTC)
-		const days = process.argv.slice(3).length ? process.argv.slice(3) : [new Date(Date.now() - 864e5).toISOString().slice(0, 10), new Date().toISOString().slice(0, 10)];
+	} else if (cmd === "--recost"){      // node ai/AISession/AISessionIndex.mjs --recost [YYYY-MM-DD ...]   (default: yesterday and today, local)
+		const days = process.argv.slice(3).length ? process.argv.slice(3) : [Day.of(Date.now() - 864e5), Day.of()];
 		const ix = new AISessionIndex({ log: console.log }); ix.no_heal = true; await ix.load();
 		console.log(JSON.stringify({ days, ...await ix.recost(days) }));
 	} else if (cmd === "--check"){

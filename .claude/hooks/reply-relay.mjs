@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import Day from "../../public/framework/core/Session/Day.js";
 
 /* reply-relay.mjs — the Stop hook that logs the owner's side of the chat too (2026-10-02).
  *
@@ -72,7 +73,7 @@ const session_marker_file = sid => path.join(os.tmpdir(), `claude-session-page-$
 function transcript_start_day(transcript_path){
 	try {
 		const first = fs.readFileSync(transcript_path, "utf8").split("\n").find(l => l.trim());
-		return JSON.parse(first)?.timestamp?.slice(0, 10) ?? null;
+		const at = JSON.parse(first)?.timestamp; return at ? Day.of(at) : null;   // the owner's local day, like the folder
 	} catch { return null; }
 }
 function session_page_url(session_id, { transcript_path } = {}){

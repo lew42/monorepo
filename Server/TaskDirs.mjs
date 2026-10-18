@@ -2,7 +2,7 @@
 // Server/TaskDirs.mjs — WHERE A TASK FOLDER LIVES. The one class every writer and reader asks; nobody types ai/<date>/ by hand.
 // Decision: public/framework/ai/doc/task-folders.md (2026-10-12). A task lives in the sessions store, inside the session that ran it:
 //   ai/sessions/YYYY/MM/DD/<session folder>/<slug>/   (no known session: ai/sessions/YYYY/MM/DD/<slug>/; a child task: <parent>/<slug>/)
-// The day is the UTC day, like the session store (core/Session/Session.js). The day's log is ai/sessions/YYYY/MM/DD/day.jsonl.
+// The day is the owner's LOCAL day (TaskDirs.day, one rule in core/Session/Day.js), like State.day; folders filed by UTC before 2026-10-18 were moved by Server/SessionDayMove.mjs. The day's log is ai/sessions/YYYY/MM/DD/day.jsonl.
 //
 //   node Server/TaskDirs.mjs --new <slug> [--session <uuid>] [--parent <dir>]   make the folder, print its repo-relative path
 //   node Server/TaskDirs.mjs --day                print today's day folder (where day.jsonl goes)
@@ -14,6 +14,7 @@
 // ai/sessions/task-manifest.json; follow(), alias() and redirect() chain through both. The 2026-10-10 mover (plan/apply/verify/undo) is below.
 import fs from "node:fs";
 import SessionRecord from "./SessionRecord.mjs";
+import Day from "../public/framework/core/Session/Day.js";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -34,15 +35,17 @@ export default class TaskDirs {
 	static STUB = STUB;
 	static #cache = { key: "", map: new Map() };
 
-	/** "YYYY/MM/DD" of a Date (UTC, like the session store) or of a "YYYY-MM-DD" string. */
-	static ymd(day = new Date()){ return (typeof day === "string" ? day : day.toISOString().slice(0, 10)).replace(/-/g, "/"); }
+	/** THE day rule: the local "YYYY-MM-DD" of a time (Date, ms or ISO string; now by default). State.day is this same function. */
+	static day(date = new Date()){ return Day.of(date); }
+	/** "YYYY/MM/DD" of a time, or of a "YYYY-MM-DD" string as given. */
+	static ymd(day = new Date()){ return (typeof day === "string" && /^\d{4}-\d\d-\d\d$/.test(day) ? day : this.day(day)).replace(/-/g, "/"); }
 	/** The day's folder in the store, where day.jsonl lives. Absolute. */
 	static day_dir(day){ return path.join(SESS, ...this.ymd(day).split("/")); }
 
 	/** A session's folder without the async full scan: `session-<id8>` or the uuid, on the given day or up to 3 days before;
 	 *  else the folder Session.locate() would make (`session-<id8>` under the day). Absolute. */
 	static session_dir(id, day = new Date()){
-		const t = typeof day === "string" ? new Date(day + "T12:00:00Z") : day;
+		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day;
 		for (let back = 0; back < 4; back++){
 			const d = this.day_dir(new Date(t.getTime() - back * 864e5));
 			for (const name of [id, "session-" + id.slice(0, 8)]) if (fs.existsSync(path.join(d, name))) return path.join(d, name);
@@ -79,7 +82,7 @@ export default class TaskDirs {
 
 	/** Every task folder (holds task.jsonl) of the last `days` days, both shapes: [{dir, day:"YYYY-MM-DD", slug, key}]. Newest day first. */
 	static list(days = 7, now = new Date()){
-		const out = [], cut = new Date(now.getTime() - days * 864e5).toISOString().slice(0, 10);
+		const out = [], cut = this.day(new Date(now.getTime() - days * 864e5));
 		const push = (dir, day) => { if (fs.existsSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")))) out.push({ dir, day, slug: path.basename(dir), key: slash(path.relative(AI, dir)) }); };
 		for (const y of ls(SESS).filter(n => /^\d{4}$/.test(n))) for (const m of ls(path.join(SESS, y))) for (const d of ls(path.join(SESS, y, m))){
 			const day = `${y}-${m}-${d}`; if (day < cut) continue;

@@ -17,6 +17,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import ModuleInbox from "../Servex/agents/ModuleInbox.js";
 import SessionRecord from "./SessionRecord.mjs";
+import TaskDirs from "./TaskDirs.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FW = "public/framework";
@@ -55,7 +56,7 @@ export default class AskIndex {
 			const names = ls(path.join(this.sessions, y, m, d));
 			for (const w of want) if (names.includes(w) && (!found || w === session)) found = path.join(this.sessions, y, m, d, w);
 		}
-		if (!found){ found = path.join(this.sessions, String(day ?? new Date().toISOString().slice(0, 10)).slice(0, 10).replace(/-/g, "/"), "session-" + session.slice(0, 8)); fs.mkdirSync(found, { recursive: true }); }
+		if (!found){ found = path.join(this.sessions, TaskDirs.ymd(String(day ?? TaskDirs.day()).slice(0, 10)), "session-" + session.slice(0, 8)); fs.mkdirSync(found, { recursive: true }); }
 		this._dirs.set(session, found);
 		return found;
 	}

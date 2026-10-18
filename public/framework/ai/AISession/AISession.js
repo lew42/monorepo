@@ -366,10 +366,9 @@ export default class AISession extends Session {
 	// ---- cache I/O (the server writes it, the browser reads it) -----------------------------
 
 	// ---- where a session's folder lives (doc/layout.md) ---------------------------------------
-	// sessions/YYYY/MM/DD/<id>/ , the day the session FIRST appeared (UTC), the same year/month/day tree the ai cards use.
+	// sessions/YYYY/MM/DD/<id>/ , the day the session FIRST appeared (the owner's local day, Session.day -> Day.js), the same year/month/day tree the ai cards use.
 	// Old flat folders (sessions/<id>/) are still read, and are moved into their day the first time a node writer touches them.
 	static days = new Map();                       // id -> "2026/10/03", filled from the index (browser) or the disk (node)
-	static day(first_at){ const d = new Date(first_at); return first_at && !isNaN(d) ? d.toISOString().slice(0, 10).replace(/-/g, "/") : null; }
 	static use_index(index){
 		const i = index?.columns?.indexOf("day"); if (i >= 0) for (const [id, v] of Object.entries(index.rows)) if (v[i]) AISession.days.set(id, v[i]);
 		if (index?.columns && typeof document !== "undefined") for (const [id, v] of Object.entries(index.rows)) AISession.from_index(id, v, index.columns);

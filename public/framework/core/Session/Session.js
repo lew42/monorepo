@@ -5,6 +5,7 @@
 // reads `this`, never a class name. See core/Page/doc/architecture.md ("Session") and ai/sessions/doc/data/layout.md.
 
 import Item from "../Item/Item.js";
+import Day from "./Day.js";
 import List from "../List/List.js";
 import Task from "../Task/Task.js";
 
@@ -42,7 +43,7 @@ export default class Session extends Item {
 	// The folder every session of this kind lives under. Override in the subclass.
 	static root_url(){ return new URL("../../ai/sessions/", import.meta.url); }
 
-	static day(first_at){ const d = new Date(first_at); return first_at && !isNaN(d) ? d.toISOString().slice(0, 10).replace(/-/g, "/") : null; }
+	static day(first_at){ return (first_at && Day.path(first_at)) || null; }   // the owner's local day (Day.js), "YYYY/MM/DD"
 
 	// Sync: the dated folder when the day is known, else the old flat one.
 	static dir_url(id, day = this.days.get(id)){ return new URL(day ? `./${day}/${this.slugs.get(id) ?? id}/` : `./${id}/`, this.root_url()); }
