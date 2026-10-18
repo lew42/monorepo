@@ -62,6 +62,8 @@ export default class SessionIndex {
 			if (typeof a.cost_usd === "number") r.usd = a.cost_usd;
 			r.started ||= ts(a.requested_at);
 		}
+		const fin = o.finish ?? o.complete;   // a worker that ends with a finish/complete line has landed, even with no assign.landed_at (ai/doc/task-folders.md)
+		if (fin?.at) { r.landed = true; r.landed_at = ts(fin.at) || r.landed_at; r.assign_landed ||= fin.at; }
 		if (o.action?.files) for (const f of o.action.files) { r.files++; const m = SessionIndex.module_of(f); if (m) r._mods.add(m); }
 		if (o.chat) r.chats++;
 		if (o.review?.verdict) r.reviews++;

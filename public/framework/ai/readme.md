@@ -25,6 +25,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Dev server**: [Server/readme.md](/framework/dev/)
 - **MCP tools**: [doc/agents/mcp.md](doc/agents/mcp.md)
 - **Models**: [system/models](system/models/) · [OpenRouter](/framework/servex/) · local
+- **Landed** (what got done today, yesterday and this week, computed from the task logs; a prioritized weekly doc beside it): [landed/](landed/readme.md) · `node Server/Landed.mjs`
 - **Usage pace** (how fast the week's limits are being spent against the clock, three meter variants beside today's): [usage/](usage/readme.md) · `node Server/usage-now.mjs`
 - **Undone asks** (every ask with no landed task or card, by module, computed daily): [asks/undone](/framework/ai/asks/undone/) · [verdict](doc/undone-asks-2026-10-17.md) · `node Server/UndoneAsks.mjs`
 - **Asks tally** (every ask you typed since 09-15, counted by feature, with what landed and what never did): [doc/asks-outcomes.md](doc/asks-outcomes.md) · `node Server/AskTally.mjs page`
