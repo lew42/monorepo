@@ -1,4 +1,7 @@
-import { View, div, a, span, small, h2 } from "/framework/core/View/View.js";
+import { View, div, a, span, small, h2, button } from "/framework/core/View/View.js";
+
+/** Local YYYY-MM-DD of a time, the same rule Server/TaskState.mjs uses for each row's `day`. */
+const local_day = t => { const d = new Date(t), p2 = n => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`; };
 import Browse from "/framework/ux/Browse/Browse.js";
 import TaskStateLog from "./TaskStateLog.js";
 
@@ -12,8 +15,18 @@ export default class TasksPage extends Browse {
 	static GROUPS = [
 		{ key: "in_flight", title: "In flight", empty: "Nothing is working right now." },
 		{ key: "queued", title: "Queued", empty: "Nothing is waiting." },
-		{ key: "landed", title: "Landed today", empty: "Nothing has landed yet today." },
+		{ key: "landed", title: "Landed", empty: "Nothing has landed in this window." },
 	];
+	/** The landed group's window chips; the state carries seven days, each row with its local `day`. */
+	static WINDOWS = [["today", "Today"], ["yesterday", "Yesterday"], ["week", "This week"]];
+	window = new URLSearchParams(location.search).get("landed") ?? "today";
+
+	/** The rows of a group under the current window (only the landed group is filtered). */
+	rows(s, key){
+		if (key !== "landed") return s[key] ?? [];
+		const day = back => local_day(Date.parse(s.today + "T12:00:00") - back * 864e5);
+		return (s.landed ?? []).filter(r => this.window === "week" || r.day === day(this.window === "yesterday" ? 1 : 0));
+	}
 
 	static when(iso){ return iso ? new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : ""; }
 	static age_min(s){ return Math.round((Date.now() - Date.parse(s.at)) / 60000); }
@@ -34,7 +47,7 @@ export default class TasksPage extends Browse {
 		this.$rows.empty(() => {
 			if (s && TasksPage.age_min(s) >= 3) div.c("tasks-note tasks-stale", () => span(`Not live: the last update was ${TasksPage.age_min(s)} min ago. Start node Server/TaskState.mjs --watch.`));
 			if (!s) return div.c("tasks-note muted", () => span("No live task state yet: this page tails ai/tasks/state.jsonl, written while the dev server runs (node Server/TaskState.mjs --watch)."));
-			TasksPage.GROUPS.forEach(g => this.group(g, s[g.key] ?? []));
+			TasksPage.GROUPS.forEach(g => this.group(g, this.rows(s, g.key)));
 		});
 		this.router?.mark_links?.();
 	}
@@ -42,6 +55,8 @@ export default class TasksPage extends Browse {
 	group(g, rows){
 		div.c("tasks-group", () => {
 			h2.c("tasks-group-head", () => { span(g.title); small.c("inbox-badge").text(String(rows.length)).el.hidden = !rows.length; });
+			if (g.key === "landed") div.c("sessions-tabs flex gap-50 wrap", () => TasksPage.WINDOWS.forEach(([k, label]) =>
+				button.c("sessions-chip" + (this.window === k ? " sessions-chip-on" : ""), label).on("click", () => { this.window = k; history.replaceState(null, "", k === "today" ? location.pathname : "?landed=" + k); this.draw(); })));
 			if (!rows.length) return small.c("tasks-empty muted", g.empty);
 			rows.forEach(r => this.row(g.key, r));
 		});
@@ -53,7 +68,7 @@ export default class TasksPage extends Browse {
 			div.c("inbox-row-head flex gap-25", () => {
 				if (r.quiet) span.c("tasks-warn").attr("title", `quiet for ${r.quiet_min} min`).text("⚠");
 				span.c("inbox-row-title").text(r.title);
-				small.c("inbox-row-when muted").text(kind === "landed" ? TasksPage.when(r.landed_at) : kind === "in_flight" ? TasksPage.quiet(r) : "");
+				small.c("inbox-row-when muted").text(kind === "landed" ? (this.window === "today" ? "" : r.day + " ") + TasksPage.when(r.landed_at) : kind === "in_flight" ? TasksPage.quiet(r) : "");
 			});
 			const line = kind === "landed" ? r.line : [r.model, r.cost ? "$" + r.cost.toFixed(2) : null].filter(Boolean).join(" · ");
 			if (line) div.c("inbox-row-foot", () => small.c("inbox-row-line muted").text(line));

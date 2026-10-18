@@ -18,9 +18,10 @@ export default class TaskLanes {
 		this.$box.empty(() => {
 			if (!s) return div.c("tasks-note muted", () => span("No live task state yet (node Server/TaskState.mjs --watch)."));
 			TasksPage.GROUPS.forEach(g => div.c("tasks-lane", () => {
-				h2.c("tasks-group-head", () => { span(g.title); small.c("inbox-badge").text(String(s[g.key].length)); });
-				if (!s[g.key].length) small.c("tasks-empty muted", g.empty);
-				s[g.key].forEach(r => a.c("tasks-card" + (r.quiet ? " tasks-quiet" : "")).href(this.base + r.id + "/").append(() => {
+				const rows = g.key === "landed" ? (s.landed ?? []).filter(r => !r.day || r.day === s.today) : (s[g.key] ?? []);   // the lanes show today only
+				h2.c("tasks-group-head", () => { span(g.key === "landed" ? "Landed today" : g.title); small.c("inbox-badge").text(String(rows.length)); });
+				if (!rows.length) small.c("tasks-empty muted", g.empty);
+				rows.forEach(r => a.c("tasks-card" + (r.quiet ? " tasks-quiet" : "")).href(this.base + r.id + "/").append(() => {
 					span.c("tasks-card-title").text((r.quiet ? "⚠ " : "") + r.title);
 					small.c("muted").text(g.key === "landed" ? `${TasksPage.when(r.landed_at)} · ${r.line}` : g.key === "in_flight" ? TasksPage.quiet(r) : r.agent);
 				}));

@@ -47,6 +47,8 @@ export default class TaskState {
 			const a = e.assign ?? {};
 			f.title = a.title ?? f.title;
 			if (a.landed_at){ f.landed_at = a.landed_at; f.outcome = a.outcome ?? f.outcome; }
+			const fin = e.finish ?? e.complete;   // a worker that ends with a finish/complete line has landed, even with no assign.landed_at (8 of 27 on 10-17 were invisible)
+			if (fin?.at && !f.landed_at){ f.landed_at = fin.at; f.outcome = fin.msg ?? fin.summary ?? fin.merged ?? f.outcome; }
 			const at = e.at ?? a.landed_at ?? a.requested_at ?? e.log?.at ?? e.decision?.at ?? e.action?.at ?? e.step?.at;
 			if (at && !(Date.parse(at) < Date.parse(f.last))) f.last = at;
 		}
@@ -60,25 +62,36 @@ export default class TaskState {
 		return (s.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? s).trim().slice(0, 200);
 	}
 
-	/** Every task.jsonl under the sessions store whose file changed since local midnight (any depth). */
-	landed_today(){
-		const mid = new Date(this.now); mid.setHours(0, 0, 0, 0);
-		const out = [], walk = dir => {
+	static DAYS = 7;           // the landed window the page can filter: today, yesterday, this week
+	static WEEK_CACHE = { at: 0, sess: null, rows: [] };   // the week walk is the expensive part; it is redone once a BEAT, not every tick
+
+	/** Local calendar day of a stamp, as the owner's clock shows it. */
+	static day(iso){ const d = new Date(iso), p2 = n => String(n).padStart(2, "0"); return isNaN(d) ? "" : `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`; }
+
+	/** Every task landed in the last DAYS days, newest first, each row with its local `day`. The whole sessions store is walked (a task
+	 *  landed today often lives in a session folder from days ago: walking only today's folder showed 0 of 27 on 10-17), reading only
+	 *  log files changed inside the window. */
+	landed_window(days = TaskState.DAYS){
+		const c = TaskState.WEEK_CACHE;
+		if (this.now - c.at < TaskState.BEAT && c.sess === this.sess) return c.rows;
+		const since = this.now - days * 864e5, out = [];
+		const walk = dir => {
 			let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
 			for (const e of ents){
 				if (e.isDirectory()) walk(path.join(dir, e.name));
-				else if (SessionRecord.is_log_entry(dir, e.name) && fs.statSync(path.join(dir, e.name)).mtimeMs >= mid.getTime()) out.push(dir);
+				else if (SessionRecord.is_log_entry(dir, e.name) && fs.statSync(path.join(dir, e.name)).mtimeMs >= since) out.push(dir);
 			}
 		};
-		const d = new Date(this.now), p2 = n => String(n).padStart(2, "0");
-		for (const back of [0, 1]){   // yesterday's folder too: a session started yesterday lands tasks today
-			const day = new Date(d.getTime() - back * 864e5);
-			walk(path.join(this.sess, String(day.getFullYear()), p2(day.getMonth() + 1), p2(day.getDate())));
-		}
-		return out.map(dir => TaskState.facts(dir)).filter(f => f.landed_at && Date.parse(f.landed_at) >= mid.getTime())
+		walk(this.sess);
+		const rows = out.map(dir => TaskState.facts(dir)).filter(f => f.landed_at && Date.parse(f.landed_at) >= since)
 			.sort((a, b) => Date.parse(b.landed_at) - Date.parse(a.landed_at))
-			.map(f => ({ id: TaskState.id(f.dir), title: f.title, line: TaskState.first_sentence(f.outcome), landed_at: f.landed_at, url: TaskState.url(f.dir) }));
+			.map(f => ({ id: TaskState.id(f.dir), title: f.title, line: TaskState.first_sentence(f.outcome), landed_at: f.landed_at, day: TaskState.day(f.landed_at), url: TaskState.url(f.dir) }));
+		Object.assign(c, { at: this.now, sess: this.sess, rows });
+		return rows;
 	}
+
+	/** Today's slice of the window (what the Lanes view and the counts show). */
+	landed_today(){ const today = TaskState.day(this.now); return this.landed_window().filter(r => r.day === today); }
 
 	/** Tasks waiting on the owner (state from Task.replay), from today's and yesterday's folders. */
 	waiting(){
@@ -115,8 +128,8 @@ export default class TaskState {
 		const in_flight = live.filter(a => a.state === "working").map(a => ({ ...this.row(a), quiet: this.row(a).quiet_min >= TaskState.QUIET_MIN }))
 			.sort((a, b) => (b.quiet - a.quiet) || (b.quiet_min - a.quiet_min));
 		const queued = live.filter(a => a.state === "queued").map(a => this.row(a));
-		const landed = this.landed_today(), waiting = this.waiting();
-		return { at: new Date(this.now).toISOString(), in_flight, queued, waiting, landed, counts: { in_flight: in_flight.length, queued: queued.length, waiting: waiting.length, landed: landed.length } };
+		const landed = this.landed_window(), waiting = this.waiting(), today = TaskState.day(this.now);
+		return { at: new Date(this.now).toISOString(), today, in_flight, queued, waiting, landed, counts: { in_flight: in_flight.length, queued: queued.length, waiting: waiting.length, landed: landed.filter(r => r.day === today).length } };
 	}
 
 	/** The picture without its clock, to tell whether anything changed. */
