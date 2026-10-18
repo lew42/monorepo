@@ -24,3 +24,7 @@
 {"task":"/framework/servex/tasks/support-backups-to-an-external-hard-driv/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.637Z"}
 {"task":"/framework/servex/tasks/evaluate-cloudflare-durable-objects-d1-a/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.647Z"}
 {"task":"/framework/servex/tasks/servex-restart-plan-a-restart-must-not-d/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.659Z"}
+{"task":"/framework/servex/tasks/merges-approval-for-foundational-merges/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.134Z"}
+{"task":"/framework/servex/tasks/servex-process-monitor-pids-ram-cpu-per/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.158Z"}
+{"task":"/framework/servex/tasks/monitor-a-playwright-agent-on-main-templ/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.180Z"}
+{"task":"/framework/servex/tasks/worktrees-remove-merged-ones-servex-drop/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.194Z"}

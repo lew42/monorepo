@@ -1,6 +1,6 @@
 # Follow-up: every task of the last 10 days
 
-1004 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
+1020 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
 
 | task | group | session | model | started | last log | step | state bucket | outcome | branch | agent | flags |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -115,6 +115,25 @@
 | [step-1-task-replay-and-the-waiting-state](/framework/core/Task/tasks/task-system-build/step-1-task-replay-and-the-waiting-state/) | - | - | - | 10-17 01:30 | 10-17 01:30 | 0/0 | landed | no | - | unknown | no-outcome |
 | [session-detail-live](/framework/ai/sessions/2026/10/09/session-ca11999b/session-detail-live/) | - | ca11999b | sonnet-5-5 | 10-09 21:39 | 10-11 14:00 | 1/0 | landed | no | - | dormant | no-outcome |
 | [checker-1](/framework/ai/sessions/2026/10/07/feedback-council/checker-1/) | - | a784b7fc | sonnet-5 | 10-08 03:44 | 10-09 03:53 | 1/0 | landed | no | - | stopped | no-outcome |
+| [orphan-asks](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/orphan-asks/) | - | 1046ffed | sonnet-5-5 | 10-18 14:07 | 10-18 14:12 | 0/0 | in_flight | yes | - | working | ok |
+| [now-card-topics-as-nested-sub-cards-from](/framework/ai/tasks/now-card-topics-as-nested-sub-cards-from/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [ai-2-finish-the-retirement-now-nav-entry](/framework/ai/tasks/ai-2-finish-the-retirement-now-nav-entry/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [dictation-one-configurable-widget-everyw](/framework/ux/Dictate/tasks/dictation-one-configurable-widget-everyw/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [shell-header-sidebars-footer-the-dark-de](/framework/dev/tasks/shell-header-sidebars-footer-the-dark-de/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [worktrees-remove-merged-ones-servex-drop](/framework/servex/tasks/worktrees-remove-merged-ones-servex-drop/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [logs-unknown-verbs-on-ai-2-the-validator](/framework/ext/JSONL/tasks/logs-unknown-verbs-on-ai-2-the-validator/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [logs-validated-writes-only-shell-appends](/framework/ext/JSONL/tasks/logs-validated-writes-only-shell-appends/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [monitor-a-playwright-agent-on-main-templ](/framework/servex/tasks/monitor-a-playwright-agent-on-main-templ/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [padding-percentage-padding-a-wrapper-per](/framework/styles/tasks/padding-percentage-padding-a-wrapper-per/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [task-pages-grey-checkboxes-full-width-ba](/framework/core/Task/tasks/task-pages-grey-checkboxes-full-width-ba/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [selection-tap-to-select-and-drill-down-o](/framework/ux/tasks/selection-tap-to-select-and-drill-down-o/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [servex-process-monitor-pids-ram-cpu-per](/framework/servex/tasks/servex-process-monitor-pids-ram-cpu-per/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [logs-page-jsonl-curated-vs-log-jsonl-eve](/framework/ext/JSONL/tasks/logs-page-jsonl-curated-vs-log-jsonl-eve/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [templates-weight-per-use-use-template-sk](/framework/core/Page/tasks/templates-weight-per-use-use-template-sk/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [merges-approval-for-foundational-merges](/framework/servex/tasks/merges-approval-for-foundational-merges/) | - | OrphanAs | - | 10-18 14:12 | 10-18 14:12 | 0/0 | idle | no | - | unknown | ok |
+| [mastermind-repo-slim](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/) | ai-ops | 730e8a7b | fable-5-1 | 10-13 20:50 | 10-18 14:08 | 28/11 | stale | yes | - | stopped | ok |
+| [compact-nudge](/framework/ai/sessions/2026/10/16/voice-20261016/compact-nudge/) | - | b888b2f3 | sonnet-5-5 | 10-17 01:32 | 10-18 13:05 | 1/0 | stale | yes | - | stopped | ok |
+| [stale-close](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/stale-close/) | - | 5fd75685 | sonnet-5-5 | 10-18 12:58 | 10-18 13:03 | 0/0 | landed | yes | - | stopped | ok |
 | [usage-pace-review](/framework/ai/sessions/2026/10/16/session-1f11e74d/usage-pace-review/) | - | - | - | 10-18 13:03 | 10-18 13:03 | 0/0 | stopped | no | - | unknown | ok |
 | [seen-day](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-data/seen-day/) | - | - | - | 10-18 13:03 | 10-18 13:03 | 0/0 | stopped | no | - | unknown | ok |
 | [task-record-class](/framework/ai/sessions/2026/10/09/session-a07780b9/system-architect/oo-census/task-record-class/) | - | - | sonnet-5-5 | 10-18 13:02 | 10-18 13:02 | 0/0 | stopped | yes | - | unknown | ok |
@@ -149,11 +168,8 @@
 | [gate-proof](/framework/ai/sessions/2026/09/28/b6fa1bc1-fad0-4bdd-9b20-8cd1cd20afb4/fresh-eyes-review/proof/gate-proof/) | - | - | - | 10-18 13:02 | 10-18 13:02 | 0/0 | stopped | no | - | unknown | ok |
 | [full-task-cost](/framework/ai/sessions/2026/09/28/b6fa1bc1-fad0-4bdd-9b20-8cd1cd20afb4/fresh-eyes-review/proof/full-task-cost/) | - | - | - | 10-18 13:02 | 10-18 13:02 | 0/0 | stopped | no | - | unknown | ok |
 | [chat-ext-scroll](/framework/ai/sessions/2026/09/24/chat-ext-scroll/) | - | minion-c | - | 10-18 13:02 | 10-18 13:02 | 3/3 | stopped | yes | - | unknown | ok |
-| [stale-close](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/stale-close/) | - | 5fd75685 | sonnet-5-5 | 10-18 12:58 | 10-18 13:01 | 0/0 | in_flight | yes | - | working | ok |
-| [mastermind-repo-slim](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/) | ai-ops | 730e8a7b | fable-5-1 | 10-13 20:50 | 10-18 12:58 | 28/11 | stale | yes | - | stopped | ok |
 | [followup-state](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/followup-state/) | - | 90df89a5 | sonnet-5-5 | 10-18 12:50 | 10-18 12:56 | 4/0 | landed | yes | - | stopped | ok |
 | [property-of](/framework/ai/sessions/2026/10/12/session-87bec773/property-of/) | - | 6f9e671f | sonnet-5-5 | 10-13 01:30 | 10-18 12:48 | 1/0 | landed | yes | - | dormant | ok |
-| [compact-nudge](/framework/ai/sessions/2026/10/16/voice-20261016/compact-nudge/) | - | b888b2f3 | sonnet-5-5 | 10-17 01:32 | 10-18 12:46 | 1/0 | stale | yes | - | stopped | ok |
 | [heartbeat-landed](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/heartbeat-landed/) | - | 2b711b08 | sonnet-5-5 | 10-18 04:17 | 10-18 04:24 | 0/0 | landed | yes | - | stopped | ok |
 | [task-rules](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/task-rules/) | - | 460a80d9 | sonnet-5-5 | 10-18 04:05 | 10-18 04:20 | 0/0 | landed | yes | - | stopped | ok |
 | [layout-check-path](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/layout-check-path/) | - | 0703aa6f | sonnet-5-5 | 10-17 19:29 | 10-18 04:14 | 0/0 | landed | yes | - | stopped | ok |
@@ -1011,20 +1027,3 @@
 
 ## Open asks with no live owner
 
-- Merges: approval for foundational merges, reversible from the card (queued, owner `mastermind-servex (proposal-flow, 10 PM)` no such agent, card )
-- Templates: weight per use, use-template skill/tool, one library (queued, owner `mastermind-servex (proposal-flow, 10 PM)` no such agent, card )
-- Logs: page.jsonl curated vs log.jsonl everything (recommendation) (queued, owner `mastermind-servex (proposal-flow, 10 PM)` no such agent, card )
-- UI: System class; /framework/ui/ library of approved blocks; class pills; masonry; sibling/child rails (queued, owner `servex-mastermind-opus (spawn after the 10 PM weekly reset)` no such agent, card )
-- Servex: process monitor (PIDs, RAM/CPU per task, graph, orphans) (building, owner `task-mastermind-dormant-idle` gone, card )
-- Selection: tap to select and drill down on mobile; the AI knows the element (queued, owner `servex-mastermind-opus (spawn after the 4:50 PM reset)` no such agent, card )
-- Task pages: grey checkboxes, full-width bars, reports as free content (queued, owner `ui-system brief (after the System class)` no such agent, card )
-- Padding: percentage padding, a wrapper per grid item, the rule in the layout system (queued, owner `servex-mastermind-opus (spawn at the 10 PM reset)` no such agent, card )
-- Monitor: a Playwright agent on main; template changes get console + screenshot + stall checks (queued, owner `mastermind-servex (10 PM, first in the task)` no such agent, card )
-- Logs: validated writes only; shell appends to .jsonl blocked (queued, owner `mastermind-servex (10 PM task, item 11): make the validated route the default, then wire the guard` no such agent, card )
-- Logs: unknown verbs on AI 2; the validator checks the schema; register experiment and review (queued, owner `mastermind-servex (10 PM task, item 12)` no such agent, card )
-- Worktrees: remove merged ones; Servex drops their subdomains (building, owner `task-mastermind-dormant-idle` gone, card )
-- Shell: header, sidebars, footer; the dark dev shell on Ctrl+\ (queued, owner `task-mastermind-dev-shell (restart at 4:50 PM)` no such agent, card )
-- Dictation: one configurable widget everywhere; widget first on the page (queued, owner `task-mastermind-audio-consolidate (restart at 4:50 PM)` no such agent, card )
-- AI 2: finish the retirement now (nav entry + ai2/ dir, Git keeps history) (building, owner `mastermind-ai-3` gone, card )
-- Now card: topics as nested sub-cards from refined prompts (raw → clean → structured), subtle 'updated' marks, Now card in the inbox list (queued, owner `vscode-mastermind` gone, card )
-- AI systems: git, context, cost pages collecting how we work (queued, owner `vscode-mastermind` gone, card )

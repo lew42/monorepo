@@ -1,1 +1,23 @@
 {"assign":{"session_id":"1046ffed-f4a1-4963-8f74-11bfe345b540","agent":"helper-orphan-asks","card":"2026/10/18/follow-up-2026-10-18-48-flagged","brief":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/orphan-asks/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim","requested_at":"2026-10-18T09:07:29-05:00","now":"starting"}}
+{"commit":"9f165a50443a"}
+{"decision":{"at":"2026-10-18T09:11:33-05:00","msg":"OrphanAsks is a subclass of UndoneToTasks (Server/OrphanAsks.mjs), not a --orphans mode: it reuses the homes scan, overlap match and the item-tool create, and adds only which asks (FollowUp's own list) and where (module home). Alternative: a mode flag inside UndoneToTasks, which would put two source shapes in one class. One edit to the base: create() takes caller from this.constructor.BY."}}
+{"decision":{"at":"2026-10-18T09:11:33-05:00","msg":"Orphan set = FollowUp.run().asks, so the plan and the follow-up page can never disagree. The ledger rows carry no module, so the home comes from the title label (OrphanAsks.HINTS), else word overlap with a module readme, else ai. Alternative: ask a model to route; rejected (law 7)."}}
+{"decision":{"at":"2026-10-18T09:11:33-05:00","msg":"Already-tracked match uses the larger of two-way overlap and coverage of the ask's words by a task's title+description+request, over 60% and 3 shared words; this finds the 2 asks (UI System class, AI systems) a 10-17 task already holds. Alternative: two-way overlap only, which missed both because task descriptions are long."}}
+{"decision":{"at":"2026-10-18T09:11:33-05:00","msg":"Code merges from the worktree first; --apply then runs in the main tree (the ledger, manifest and task folders are records appended in place by Servex too), and those records are committed by exact path. Alternative: apply inside the worktree, which would conflict on the ledger tail."}}
+{"commit":"29073d937422"}
+{"task":"/framework/servex/tasks/merges-approval-for-foundational-merges/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.136Z"}
+{"sessions":[{"id":"OrphanAsks","task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/orphan-asks/"}],"by":"OrphanAsks","ts":"2026-10-18T14:12:02.140Z"}
+{"task":"/framework/core/Page/tasks/templates-weight-per-use-use-template-sk/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.147Z"}
+{"task":"/framework/ext/JSONL/tasks/logs-page-jsonl-curated-vs-log-jsonl-eve/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.154Z"}
+{"task":"/framework/servex/tasks/servex-process-monitor-pids-ram-cpu-per/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.159Z"}
+{"task":"/framework/ux/tasks/selection-tap-to-select-and-drill-down-o/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.166Z"}
+{"task":"/framework/core/Task/tasks/task-pages-grey-checkboxes-full-width-ba/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.170Z"}
+{"task":"/framework/styles/tasks/padding-percentage-padding-a-wrapper-per/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.176Z"}
+{"task":"/framework/servex/tasks/monitor-a-playwright-agent-on-main-templ/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.180Z"}
+{"task":"/framework/ext/JSONL/tasks/logs-validated-writes-only-shell-appends/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.185Z"}
+{"task":"/framework/ext/JSONL/tasks/logs-unknown-verbs-on-ai-2-the-validator/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.190Z"}
+{"task":"/framework/servex/tasks/worktrees-remove-merged-ones-servex-drop/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.194Z"}
+{"task":"/framework/dev/tasks/shell-header-sidebars-footer-the-dark-de/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.201Z"}
+{"task":"/framework/ux/Dictate/tasks/dictation-one-configurable-widget-everyw/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.205Z"}
+{"task":"/framework/ai/tasks/ai-2-finish-the-retirement-now-nav-entry/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.211Z"}
+{"task":"/framework/ai/tasks/now-card-topics-as-nested-sub-cards-from/","by":"OrphanAsks","ts":"2026-10-18T14:12:02.216Z"}
