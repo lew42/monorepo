@@ -170,3 +170,6 @@
 {"log":{"at":"2026-10-17T19:49:44-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-17T19:50:13-05:00","heartbeat":"answered","msg":"Idle, nothing in progress. The compaction change is merged (`e0a0b1ead`) and Servex has restarted since. I haven't seen a nudge fire."}}
 {"log":{"at":"2026-10-17T19:54:08-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-17T21:14:41-05:00","heartbeat":"check","msg":"status check sent to helper-compact-nudge"}}
+{"log":{"at":"2026-10-17T21:14:44-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-17T21:15:13-05:00","heartbeat":"answered","msg":"Idle, nothing in progress. The compaction change is merged (`e0a0b1ead`) and Servex has restarted since. I haven't seen a nudge fire."}}
