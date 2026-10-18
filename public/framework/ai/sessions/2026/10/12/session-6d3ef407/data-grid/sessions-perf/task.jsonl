@@ -8,3 +8,4 @@
 {"action":{"at":"2026-10-12T15:33:57-05:00","did":"edit","files":["public/framework/ai/2026-10-12/data-grid/sessions-perf/probe-redraw.mjs"]}}
 {"log":{"at":"2026-10-12T15:35:45-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"data-grid\\\"\"\n}","chase":"escalated"}}
 {"action":{"at":"2026-10-12T16:54:14-05:00","did":"edit","files":["public/framework/ai/2026-10-12/data-grid/sessions-perf/probe-scroll.mjs"]}}
+{"stop":{"at":"2026-10-18T08:02:57-05:00","why":"abandoned: no agent since 2026-10-12T16:54:14-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

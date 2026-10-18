@@ -8,3 +8,4 @@
 {"log":{"at":"2026-10-12T17:19:41-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-12T17:19:48-05:00","heartbeat":"answered","msg":"Nothing is running: the CONTROLS group is finished. The \"Kit · Controls\" Figma page is built, and the report `kit/controls.md` is committed (b7b70271e). I'm not doing anything further unless you send "}}
 {"log":{"at":"2026-10-12T17:20:51-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:03:00-05:00","why":"abandoned: no agent since 2026-10-12T17:20:51-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

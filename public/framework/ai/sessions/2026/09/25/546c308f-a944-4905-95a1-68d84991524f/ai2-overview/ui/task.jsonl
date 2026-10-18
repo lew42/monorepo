@@ -8,3 +8,4 @@
 {"assign":{"step":6,"now":"landed; commit 24386606 on worktree/ai2-overview, for the parent to merge"}}
 {"landed_at":"2026-09-28T23:57:32-05:00","outcome":"AI 2 now has two tabs under its title, Inbox and Overview. The Overview shows one big icon card per concept, with its open asks, and the done ones folded into a single Completed line. Pictures: [Overview at 1920](overview-1920.png) · [at 3440](overview-3440.png) · [timeline on](overview-1920-timeline.png) · [Inbox tab](inbox-1920.png). Commit 24386606 on worktree/ai2-overview, not merged yet: the parent merges it."}
 {"log":{"at":"2026-09-29T00:00:02-05:00","msg":"Follow-up 2 done: N today became N in 24 h (landed_at within the last 24 hours), on the count line and the Completed summary. Page loads with no errors from AI 2."}}
+{"stop":{"at":"2026-10-18T08:02:29-05:00","why":"abandoned: no agent since 2026-09-29T00:00:02-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

@@ -16,3 +16,4 @@
 {"review":{"answer":{"n":3,"reply":"noted."}}}
 {"review":{"answer":{"n":4,"reply":"fixed: 6827cae8, aborted/no-speech never show an error, on a stop either."}}}
 {"review":{"answer":{"n":5,"reply":"noted: pre-existing, out of scope."}}}
+{"stop":{"at":"2026-10-18T08:02:35-05:00","why":"abandoned: no agent since 2026-10-02T04:19:32.083Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}

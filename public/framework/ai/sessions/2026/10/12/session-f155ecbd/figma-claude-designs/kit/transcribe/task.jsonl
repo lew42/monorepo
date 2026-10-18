@@ -26,3 +26,4 @@
 {"log":{"at":"2026-10-13T16:50:12-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T16:50:23-05:00","heartbeat":"answered","msg":"Still idle: the task is landed (`03256814c`, update `eccf4b617`) and I have no open work."}}
 {"log":{"at":"2026-10-13T16:51:27-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:03:03-05:00","why":"abandoned: no agent since 2026-10-13T16:51:27-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

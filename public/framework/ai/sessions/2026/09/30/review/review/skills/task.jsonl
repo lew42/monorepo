@@ -13,3 +13,4 @@
 {"log":{"at":"2026-09-30T13:02:43-05:00","heartbeat":"deliberate","msg":"minion-review-skills its agent is not running: it was stopped on purpose by task-mastermind-review at 2026-09-30T12:58:07-05:00; not revived."}}
 {"log":{"at":"2026-09-30T13:17:07-05:00","heartbeat":"deliberate","msg":"minion-review-skills its agent is not running: it was stopped on purpose by task-mastermind-review at 2026-09-30T12:57:17-05:00; not revived."}}
 {"log":{"at":"2026-09-30T13:32:03-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"stop":{"at":"2026-10-18T08:02:37-05:00","why":"abandoned: no agent since 2026-09-30T13:32:03-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

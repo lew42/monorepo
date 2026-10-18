@@ -72,3 +72,4 @@
 {"log":{"at":"2026-10-13T17:11:10-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T17:11:39-05:00","heartbeat":"answered","msg":"Done and idle. The DS 2.6 Dropdowns & menus page is built and its report is committed (`746623c90`). The one thing I haven't checked is playing the prototype in Present mode."}}
 {"log":{"at":"2026-10-13T17:12:29-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:03:00-05:00","why":"abandoned: no agent since 2026-10-13T17:12:29-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

@@ -9,3 +9,4 @@
 {"log":{"at":"2026-10-05T15:14:55-05:00","heartbeat":"deliberate","msg":"task-mastermind-local-model-hunt its agent is not running: its task local-model-hunt has landed; not revived."}}
 {"log":{"at":"2026-10-05T16:25:40-05:00","heartbeat":"deliberate","msg":"task-mastermind-local-model-hunt its agent is not running: its task local-model-hunt has landed; not revived."}}
 {"log":{"at":"2026-10-05T18:43:15-05:00","heartbeat":"deliberate","msg":"task-mastermind-local-model-hunt its agent is not running: its task local-model-hunt has landed; not revived."}}
+{"stop":{"at":"2026-10-18T08:02:54-05:00","why":"abandoned: no agent since 2026-10-05T18:43:15-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

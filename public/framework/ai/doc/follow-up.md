@@ -1,14 +1,14 @@
 # Follow-up: what fell through the cracks
 
-Counted by the one state ([one-state.md](one-state.md), `Server/State.mjs`): every task below is a row of `ai/state.json`. Computed 2026-10-18 12:55 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
+Counted by the one state ([one-state.md](one-state.md), `Server/State.mjs`): every task below is a row of `ai/state.json`. Computed 2026-10-18 13:03 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
 
-**0 landed with unmerged commits · 0 merged but never landed · 192 quiet over 2 h · 46 landed with no outcome · 17 open asks with no live owner · 743 healthy of 981.**
+**0 landed with unmerged commits · 0 merged but never landed · 65 quiet over 2 h · 46 landed with no outcome · 17 open asks with no live owner · 893 healthy of 1004.**
 
-## quiet: 192
+## quiet: 65
 
 the state calls it in_flight or stale and its log is silent for over 2 h: resume it or close it.
 
-- [task-system](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/): mastermind-task-system, last log 8 h ago, step 1/0, agent dormant
+- [task-system](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/): mastermind-task-system, last log 9 h ago, step 1/0, agent dormant
 - [01-work](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/01-work/): minion-unclear-01-work, last log 19 h ago, step 0/0, agent stopped
 - [02-work](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/02-work/): minion-unclear-02-work, last log 19 h ago, step 0/0, agent stopped
 - [03-work](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/03-work/): minion-unclear-03-work, last log 19 h ago, step 0/0, agent stopped
@@ -20,7 +20,7 @@ the state calls it in_flight or stale and its log is silent for over 2 h: resume
 - [07-path](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2/07-path/): minion-unclear-07-path, last log 19 h ago, step 0/0, agent stopped
 - [01-look](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2b/01-look/): minion-unclear-2b-look, last log 19 h ago, step 0/0, agent stopped
 - [refine-audit](/framework/ai/sessions/2026/10/15/voice-20261015/refine-audit/): helper-refine-audit, last log 21 h ago, step 1/0, agent stopped
-- …180 more in [follow-up-full.md](follow-up-full.md)
+- …53 more in [follow-up-full.md](follow-up-full.md)
 
 ## no-outcome: 46
 
@@ -54,11 +54,12 @@ An ask in `asks.jsonl` still building, routed, queued or stalled whose owner age
 
 ## Check
 
-743 healthy + 238 flagged = 981; the state lists 981 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/state.json (under a minute old). 198 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
+893 healthy + 111 flagged = 1004; the state lists 1004 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/state.json (under a minute old). 198 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
 
 ## How each row is counted
 
 - **quiet**: the state's bucket is `in_flight` or `stale` and the last log line is over 2 h old. A `landed` task is never quiet.
+- **closed as abandoned**: a `stale` task silent over 24 h gets a `stop` line from `Server/StaleClose.mjs` (run just before this, daily) and leaves `quiet`; the manifest is `ai/stale-closes.jsonl`: [stale-close.md](/Server/doc/stale-close.md).
 - **landed with unmerged commits**: bucket `landed`, its branch (read from the state's listed dir) has commits and its files are not on `michael/dev` (`LandingCheck`).
 - **merged but never landed**: any bucket but `landed`, its branch is already on `michael/dev`.
 - **landed with no outcome**: bucket `landed` and the state's `line` is empty.

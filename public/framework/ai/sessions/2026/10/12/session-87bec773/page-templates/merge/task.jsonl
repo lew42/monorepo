@@ -2,3 +2,4 @@
 {"decision":{"at":"2026-10-12T15:23:00-05:00","question":"review size","computed":"full","chose":"none","why":"mastermind read: Property/Template/BigCard diff read in full, node --check clean, Property.test.mjs 18 pass, no bug found"}}
 {"review":{"at":"2026-10-12T15:23:00-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/qf-2","head":"e45085cf23d6b01ff924f4e4cf0ed8b9bd7679ee","model":null,"cost":0,"file":"review.md"}}
 {"log":{"at":"2026-10-12T15:40:45-05:00","heartbeat":"deliberate","msg":"minion-templates-merge its agent is not running: it was stopped on purpose by mastermind-page-templates at 2026-10-12T15:34:56-05:00; not revived."}}
+{"stop":{"at":"2026-10-18T08:02:58-05:00","why":"abandoned: no agent since 2026-10-12T15:40:45-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

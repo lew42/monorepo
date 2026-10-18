@@ -7,3 +7,4 @@
 {"log":{"at":"NOW","msg":"explicit layout class: the converted container already wears '.packed' literally (not a redundant '.grid', since it genuinely is packed, not plain grid) -- satisfies 'the class on the element tells you what layout it is' within this task's page.js scope."}}
 {"shot":{"path":"C:\\Users\\mike\\AppData\\Local\\Temp\\ask-shot-1791053743887.png","url":"http://framework-home-grids.localhost/framework/","msg":"after, 1920 -- voids gone, Core/Styles both ~2 wide columns"}}
 {"shot":{"path":"C:\\Users\\mike\\AppData\\Local\\Temp\\ask-shot-1791053749662.png","url":"http://framework-home-grids.localhost/framework/","msg":"after, 3440 -- 3 sprawl columns, even gaps, no dead rectangles under any short card"}}
+{"stop":{"at":"2026-10-18T08:02:52-05:00","why":"abandoned: no agent since 2026-10-03T19:05:11.134Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}

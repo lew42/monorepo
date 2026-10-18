@@ -3,3 +3,4 @@
 {"action":{"at":"2026-10-16T23:03:32-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/research/research.md"]}}
 {"log":{"at":"2026-10-16T23:03:38-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-16T23:12:59-05:00","heartbeat":"deliberate","msg":"minion-task-migrate-research its agent is not running: it was stopped on purpose by mastermind-task-migrate at 2026-10-16T23:07:08-05:00; not revived."}}
+{"stop":{"at":"2026-10-18T08:03:08-05:00","why":"abandoned: no agent since 2026-10-16T23:12:59-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

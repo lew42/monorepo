@@ -5,3 +5,4 @@
 {"log":{"at":"2026-10-09T07:18:06-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
 {"log":{"at":"2026-10-09","msg":"Re-checked: words.jsonl still empty, so no new asks. Live re-verification of the 23 non-done asks needs a council run with checkers; not run here."}}
 {"log":{"at":"2026-10-09T23:25:40.616Z","msg":"words.jsonl had 2 lines (prompt-mechanics-2): turned into asks W1-W3 in council/asks.jsonl, all done by code/http check. The 23 older non-done asks were not re-verified live this run."}}
+{"stop":{"at":"2026-10-18T08:02:56-05:00","why":"abandoned: no agent since 2026-10-09T23:25:40.616Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}

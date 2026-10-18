@@ -3,3 +3,4 @@
 {"assign":{"step":5,"now":"landed; shots in shots/"}}
 {"log":{"at":"2026-09-25T16:23:48-05:00","msg":"Outline view live: outline.js + card.js/ai2.css edits; test prompt lines removed from servex/page.jsonl; add_item tool needs a Servex restart (not run). Shots before-/after- at 1920 and 3440, zero console errors."}}
 {"action":{"at":"2026-09-25T16:36:31-05:00","did":"edit","files":["public/framework/ai/2026/09/25/cards-that-show-the-thing/about.md"]}}
+{"stop":{"at":"2026-10-18T08:02:29-05:00","why":"abandoned: no agent since 2026-09-25T16:36:31-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

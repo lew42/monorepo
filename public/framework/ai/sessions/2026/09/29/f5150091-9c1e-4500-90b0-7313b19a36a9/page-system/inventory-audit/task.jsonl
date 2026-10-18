@@ -22,3 +22,4 @@
 {"log":{"at":"2026-09-30T13:26:13-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-09-30T00:00:00-05:00","msg":"finalized: all 97 urls checked (0 unchecked); added cards-and-logs note per owner's 20:40 ruling (card = jsonl line, no folder by default); landing report to parent page-system task"}}
 {"log":{"at":"2026-09-30T13:27:50-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:02:33-05:00","why":"abandoned: no agent since 2026-09-30T13:27:50-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

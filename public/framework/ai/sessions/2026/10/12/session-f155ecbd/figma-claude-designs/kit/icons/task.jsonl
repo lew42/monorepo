@@ -27,3 +27,4 @@
 {"log":{"at":"2026-10-13T16:33:08-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T16:33:14-05:00","heartbeat":"answered","msg":"Idle and unchanged: everything is committed (latest `63ea89660`). Three things are still open: the docs-check agent, the review, and a screenshot of the variant grid after my last spacing fix. Also, `"}}
 {"log":{"at":"2026-10-13T16:34:26-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:03:02-05:00","why":"abandoned: no agent since 2026-10-13T17:16:29-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

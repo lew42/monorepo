@@ -1,1 +1,2 @@
 {"landed_at":"2026-10-03T01:13:22-05:00","outcome":"system-overhead probe: mechanical PASS"}
+{"stop":{"at":"2026-10-18T08:02:52-05:00","why":"abandoned: no agent since 2026-10-03T06:13:22.544Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}

@@ -1,1 +1,2 @@
 {"assign":{"now":"session","agent":"unknown-session","at":"2026-09-30T14:34:28-05:00","brief":"owner-words.md","note":"backfilled by voice-dir-404: the session id that wrote owner-words.md here was never recorded, so this folder's own log can't name it."}}
+{"stop":{"at":"2026-10-18T08:02:37-05:00","why":"abandoned: no agent since 2026-09-30T19:35:19.270Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}

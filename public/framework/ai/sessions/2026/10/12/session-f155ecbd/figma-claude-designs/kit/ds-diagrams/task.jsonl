@@ -69,3 +69,4 @@
 {"log":{"at":"2026-10-13T16:00:10-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T16:00:22-05:00","heartbeat":"answered","msg":"Still idle, and the task is done. The \"DS · 5 Diagrams & charts\" page (`164:1067`) is built and its report `kit/ds-diagrams.md` is committed as `3aa63d4f2`. The Overview page still has no link to the "}}
 {"log":{"at":"2026-10-13T16:01:26-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:03:00-05:00","why":"abandoned: no agent since 2026-10-13T16:01:26-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

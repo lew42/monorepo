@@ -13,3 +13,4 @@
 {"log":{"at":"2026-09-30T13:29:05-05:00","heartbeat":"revive","msg":"revived minion-page-crawl from session 90303cc4-2aea-47b0-a5dd-0ef98d351ebd"}}
 {"log":{"at":"2026-09-30T13:29:06-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-09-30T13:29:07-05:00","heartbeat":"answered","msg":""}}
+{"stop":{"at":"2026-10-18T08:02:36-05:00","why":"abandoned: no agent since 2026-09-30T13:29:07-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

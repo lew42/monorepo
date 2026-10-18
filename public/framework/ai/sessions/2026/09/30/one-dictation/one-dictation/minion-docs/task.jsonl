@@ -32,3 +32,4 @@
 {"log":{"at":"2026-10-01T20:36:26-05:00","heartbeat":"deliberate","msg":"minion-docs its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-09-30T23:01:05-05:00; not revived."}}
 {"log":{"at":"2026-10-01T21:42:05-05:00","heartbeat":"deliberate","msg":"minion-docs its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-09-30T23:01:05-05:00; not revived."}}
 {"log":{"at":"2026-10-01T14:50:39-05:00","msg":"health: 6 pages — 15 errors, 0 stalls, worst /framework/ai/, shots /framework/ai/health/shots/2026-10-01/ — first: status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
+{"stop":{"at":"2026-10-18T08:02:35-05:00","why":"abandoned: no agent since 2026-10-01T21:42:05-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

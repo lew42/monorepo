@@ -15,3 +15,4 @@
 {"log":{"at":"2026-09-29T20:12:58-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
 {"log":{"at":"2026-09-29T20:40:53-05:00","heartbeat":"escalated","msg":"minion-voice-slice1 its agent is not running, and the revive failed: Agent minion-voice-slice1 was not woken: its task a-slice1 has landed. Pass revive: true to wake it anyway."}}
 {"log":{"at":"2026-09-29T20:51:32-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"stop":{"at":"2026-10-18T08:02:38-05:00","why":"abandoned: no agent since 2026-09-29T20:51:32-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

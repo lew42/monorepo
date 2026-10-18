@@ -5,3 +5,4 @@
 {"log":{"at":"2026-10-01T23:27:02-05:00","heartbeat":"deliberate","msg":"minion-icon-audit its agent is not running: it was stopped on purpose by task-mastermind-icon-system at 2026-09-30T13:25:17-05:00; not revived."}}
 {"log":{"at":"2026-10-01T23:39:25-05:00","heartbeat":"deliberate","msg":"minion-icon-audit its agent is not running: it was stopped on purpose by task-mastermind-icon-system at 2026-09-30T13:25:17-05:00; not revived."}}
 {"log":{"at":"2026-10-01T23:54:11-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"stop":{"at":"2026-10-18T08:02:35-05:00","why":"abandoned: no agent since 2026-10-01T23:54:11-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

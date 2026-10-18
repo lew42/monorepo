@@ -379,3 +379,4 @@
 {"log":{"at":"2026-10-01T23:39:13-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-01T23:39:14-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-01T23:39:32-05:00","msg":"Servex restarted (pid 9672), so the cost fix cf1992ae is live. reconcile.mjs: OpenRouter billed $3.94 for 2026-10-02 UTC and the ledger shows $3.94, 0.0% drift. lf-deepseek really cost $0.58 (corrected from the $0.42 token estimate); ml-deepseek $0.30. The Sol accounting ask is done."}}
+{"stop":{"at":"2026-10-18T08:02:46-05:00","why":"abandoned: no agent since 2026-10-01T23:39:32-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

@@ -130,3 +130,4 @@
 {"log":{"at":"2026-10-16T09:38:08-05:00","heartbeat":"answered","msg":"Idle on `voice-today`. No voice question has come in and nothing is running. When one arrives I'll read `public/framework/ai/handover.md` first, then answer on the Now card."}}
 {"log":{"at":"2026-10-16T09:41:40-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-16T09:47:05-05:00","heartbeat":"escalated","msg":"mastermind-voice-today its agent is not running, and was already revived 1 times this hour (5 today)"}}
+{"stop":{"at":"2026-10-18T08:03:07-05:00","why":"abandoned: no agent since 2026-10-16T09:47:05-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

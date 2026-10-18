@@ -1,1 +1,2 @@
 {"assign":{"session_id":"5620da02-9f9f-49e8-a1e3-585ec32ee722","agent":"minion-asks-backend","brief":"ai/2026-09-30/asks-ledger/backend/requirements.md","model":"claude-sonnet-5","worktree":"C:\\Code\\lew42\\worktrees\\asks-ledger","parent_task":"public/framework/ai/2026-09-30/asks-ledger","requested_at":"2026-09-30T13:52:43-05:00","now":"starting","steps":[],"step":1}}
+{"stop":{"at":"2026-10-18T08:02:34-05:00","why":"abandoned: no agent since 2026-09-30T13:52:43-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

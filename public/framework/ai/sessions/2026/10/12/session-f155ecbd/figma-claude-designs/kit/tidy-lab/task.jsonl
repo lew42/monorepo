@@ -27,3 +27,4 @@
 {"log":{"at":"2026-10-13T16:50:11-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T16:50:27-05:00","heartbeat":"answered","msg":"Same as before: finished and idle, nothing running. The task is complete, with its report at `kit/tidy-lab.md` (067e48ffd). You can close or stop this agent."}}
 {"log":{"at":"2026-10-13T16:51:27-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:03:03-05:00","why":"abandoned: no agent since 2026-10-13T16:51:27-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

@@ -61,3 +61,4 @@
 {"log":{"at":"2026-10-02T19:50:26-05:00","msg":"task-loop escalated: {\n  \"ok\": true,\n  \"id\": \"2026/10/02/framework-home-sections-dark-class-cards\",\n  \"ask\": \"d-murodwcfw9\"\n}","chase":"escalated"}}
 {"log":{"at":"2026-10-02T20:12:27-05:00","heartbeat":"check","msg":"status check sent to minion-framework-home-2"}}
 {"log":{"at":"2026-10-02T20:12:31-05:00","heartbeat":"answered","msg":"All four review rounds' fixes are done, verified, and committed (latest `7e387f89`) — reported to `task-mastermind-framework-home` and now just waiting on their landing review, no action pending on my"}}
+{"stop":{"at":"2026-10-18T08:02:51-05:00","why":"abandoned: no agent since 2026-10-02T20:12:31-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

@@ -7,3 +7,4 @@
 {"review":{"answer":{"n":4,"reply":"noted: reload = the deep-link load above (rail visible, url kept); back = the title click and the browser back both route through the same RAIL_ID test"}}}
 {"review":{"answer":{"n":5,"reply":"noted: drawer-rail labels at 400 are the bottom bar, untouched by this diff (same on michael/dev)"}}}
 {"review":{"answer":{"n":6,"reply":"noted"}}}
+{"stop":{"at":"2026-10-18T08:03:06-05:00","why":"abandoned: no agent since 2026-10-13T17:40:47-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

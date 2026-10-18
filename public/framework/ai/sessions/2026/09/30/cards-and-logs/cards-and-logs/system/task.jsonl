@@ -17,3 +17,4 @@
 {"log":{"at":"2026-09-30T13:59:36-05:00","heartbeat":"deliberate","msg":"minion-card-system its agent is not running: it was stopped on purpose by task-mastermind-cards-and-logs at 2026-09-30T13:36:19-05:00; not revived."}}
 {"log":{"at":"2026-09-30T14:05:26-05:00","heartbeat":"deliberate","msg":"minion-card-system its agent is not running: it was stopped on purpose by task-mastermind-cards-and-logs at 2026-09-30T13:36:19-05:00; not revived."}}
 {"log":{"at":"2026-09-30T14:18:25-05:00","msg":"task-loop escalated: {\n  \"ok\": true,\n  \"id\": \"2026/09/30/cards-and-logs-the-card-system-then-logs\",\n  \"ask\": \"d-muohn7slgf\"\n}","chase":"escalated"}}
+{"stop":{"at":"2026-10-18T08:02:34-05:00","why":"abandoned: no agent since 2026-09-30T14:18:25-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

@@ -10,3 +10,4 @@
 {"log":{"at":"2026-09-30T12:48:37-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
 {"log":{"at":"2026-09-30T12:52:43-05:00","heartbeat":"deliberate","msg":"minion-chat-finish its agent is not running: its task chat-finish has landed; not revived."}}
 {"log":{"at":"2026-09-30T12:52:43-05:00","heartbeat":"deliberate","msg":"minion-chat-finish its agent is not running: its task chat-finish has landed; not revived."}}
+{"stop":{"at":"2026-10-18T08:02:32-05:00","why":"abandoned: no agent since 2026-09-30T12:52:43-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

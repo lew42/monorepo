@@ -4,3 +4,4 @@
 {"log":{"at":"2026-10-01T17:14:19-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
 {"log":{"at":"2026-10-01T17:44:19-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
 {"log":{"at":"2026-10-01T20:44:26-05:00","heartbeat":"escalated","msg":"minion-lib-h1-page-google-gemma-4-26b-a4b-it-free-1790889671506 its agent is not running, and the revive failed: Bad log name \"agent-minion-lib-h1-page-google-gemma-4-26b-a4b-it-free-1790889671506\" — letters, digits, dot, dash and underscore only (or \"cards/<slug>\")."}}
+{"stop":{"at":"2026-10-18T08:02:49-05:00","why":"abandoned: no agent since 2026-10-01T20:44:26-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

@@ -72,3 +72,4 @@
 {"log":{"at":"2026-10-13T17:08:09-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T17:08:14-05:00","heartbeat":"answered","msg":"Idle, nothing running. `ds-toggles` is finished and committed (`5ab01db32`)."}}
 {"log":{"at":"2026-10-13T17:09:29-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:03:01-05:00","why":"abandoned: no agent since 2026-10-13T17:09:29-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

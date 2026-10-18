@@ -1,1 +1,2 @@
 {"assign":{"now":"queued","title":"Code: source.js becomes class SourceText","brief":"public/framework/ai/2026-10-09/system-architect/oo-census/source-text-class/requirements.md","parent_task":"public/framework/ai/2026-10-09/system-architect/oo-census","owner":"system-architect","queue":"oo-census pick 5 (19 importers)","model":"claude-sonnet-5-5","effort":"medium"}}
+{"stop":{"at":"2026-10-18T08:02:56-05:00","why":"abandoned: no agent since 2026-10-09T22:30:45.226Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}

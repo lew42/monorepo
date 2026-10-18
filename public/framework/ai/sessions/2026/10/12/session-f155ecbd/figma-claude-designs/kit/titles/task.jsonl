@@ -69,3 +69,4 @@
 {"log":{"at":"2026-10-13T17:00:11-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T17:00:13-05:00","heartbeat":"answered","msg":"Idle, nothing in progress. The title-layouts task is landed (4b19a9b48, `kit/titles.md`)."}}
 {"log":{"at":"2026-10-13T17:01:27-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:03:03-05:00","why":"abandoned: no agent since 2026-10-13T17:01:27-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

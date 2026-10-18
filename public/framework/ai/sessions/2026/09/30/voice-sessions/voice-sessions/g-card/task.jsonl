@@ -19,3 +19,4 @@
 {"action":{"at":"2026-09-30T13:45:46-05:00","did":"edit","files":["public/framework/ai/2026-09-29/voice-sessions/g-card/review/reply.md"]}}
 {"log":{"at":"2026-09-30T13:46:06-05:00","heartbeat":"deliberate","msg":"minion-voice-card its agent is not running: it was stopped on purpose by task-mastermind-voice-sessions-2 at 2026-09-30T13:40:06-05:00; not revived."}}
 {"log":{"at":"2026-09-30T13:46:06-05:00","heartbeat":"deliberate","msg":"minion-voice-card its agent is not running: it was stopped on purpose by task-mastermind-voice-sessions-2 at 2026-09-30T13:40:06-05:00; not revived."}}
+{"stop":{"at":"2026-10-18T08:02:38-05:00","why":"abandoned: no agent since 2026-09-30T13:46:06-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

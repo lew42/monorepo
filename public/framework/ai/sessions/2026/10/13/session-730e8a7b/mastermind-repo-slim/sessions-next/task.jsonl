@@ -43,3 +43,4 @@
 {"log":{"at":"2026-10-14T03:25:09-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-14T03:25:41-05:00","heartbeat":"answered","msg":"Idle: the task is landed (`bcc2f48fd`). The Coverage list is flat, with 12 rows above the fold at 1920. The session name now shows on first paint. Still undone: the shots card, and I haven't looked at"}}
 {"log":{"at":"2026-10-14T03:26:25-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:03:06-05:00","why":"abandoned: no agent since 2026-10-14T03:26:25-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

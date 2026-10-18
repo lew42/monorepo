@@ -5,3 +5,4 @@
 {"log":{"at":"2026-09-30T22:22:56Z","msg":"Test card: /framework/ai2/2026/09/30/shell-header-sidebars-footer-the-dark-de/ (today's board, Overview+Activity tabs, real content). Screenshots before-*.png in this task's shots/."}}
 {"log":{"at":"2026-10-01T23:22:01-05:00","msg":"task-loop chase 2 of 2: could not wake: no owning agent found","chase":2}}
 {"log":{"at":"2026-10-01T23:54:11-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"stop":{"at":"2026-10-18T08:02:34-05:00","why":"abandoned: no agent since 2026-10-01T23:54:11-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

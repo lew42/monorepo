@@ -14,3 +14,4 @@
 {"log":{"at":"2026-09-30T15:02:14-05:00","msg":"Status check reply: task is done, not stalled. Landed commit f055b4aa on michael/dev before the quiet period started (session-smart.md creator fix + groups.js tolerant-fetch fix + 2 backfilled task.jsonl). 0 console errors verified headless on /framework/ai2/. Commit id already reported to mastermind-servex-9. Nothing pending."}}
 {"log":{"at":"2026-09-30T15:31:55-05:00","msg":"task-loop chase 2 of 2: woke minion-voice-dir-404","chase":2}}
 {"log":{"at":"2026-09-30T16:03:18-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"stop":{"at":"2026-10-18T08:02:37-05:00","why":"abandoned: no agent since 2026-09-30T16:03:18-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

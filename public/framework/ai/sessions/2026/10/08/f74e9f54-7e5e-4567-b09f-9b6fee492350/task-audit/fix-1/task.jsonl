@@ -26,3 +26,4 @@
 {"log":{"at":"2026-10-09T16:25:06-05:00","heartbeat":"deliberate","msg":"helper-fix-1 its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:02-05:00; not revived."}}
 {"log":{"at":"2026-10-09T18:24:39-05:00","heartbeat":"deliberate","msg":"helper-fix-1 its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:02-05:00; not revived."}}
 {"log":{"at":"2026-10-09T18:44:32-05:00","heartbeat":"deliberate","msg":"helper-fix-1 its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:47:02-05:00; not revived."}}
+{"stop":{"at":"2026-10-18T08:02:55-05:00","why":"abandoned: no agent since 2026-10-09T18:44:32-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

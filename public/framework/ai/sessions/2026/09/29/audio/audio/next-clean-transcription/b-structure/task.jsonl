@@ -12,3 +12,4 @@
 {"log":"review finding 9: costs made consistent with measured runs ($0.36 / $0.58 full, $0.23 after-only) in Server/doc/refine.md and compare-structured.mjs header; added --after-only and check() to compare-structured.mjs"}
 {"reply":{"finding":8,"status":"fixed"}}
 {"reply":{"finding":9,"status":"fixed"}}
+{"stop":{"at":"2026-10-18T08:02:32-05:00","why":"abandoned: no agent since 2026-09-30T18:45:24.670Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}

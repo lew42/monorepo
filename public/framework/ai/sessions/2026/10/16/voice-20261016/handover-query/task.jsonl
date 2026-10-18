@@ -6,3 +6,4 @@
 {"log":{"at":"2026-10-15T19:55:54-05:00","msg":"task-loop chase 2 of 2: woke helper-handover-query","chase":2}}
 {"snooze":{"at":"2026-10-15T19:56:35-05:00","until":"2026-10-18T00:00:00Z","by":"mastermind-voice-20261016"}}
 {"log":{"at":"2026-10-15T20:14:32-05:00","msg":"task-loop escalated: {\n  \"ok\": true,\n  \"id\": \"2026/10/15/voice-session-2026-10-16-19-06\",\n  \"ask\": \"d-mva9yzcv6n\"\n}","chase":"escalated"}}
+{"stop":{"at":"2026-10-18T08:03:07-05:00","why":"abandoned: no agent since 2026-10-15T20:14:32-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

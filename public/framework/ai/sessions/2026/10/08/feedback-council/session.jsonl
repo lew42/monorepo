@@ -3,3 +3,4 @@
 {"log":{"at":"2026-10-08T22:58:29-05:00","msg":"task-loop chase 1 of 2: could not wake: no owning agent found","chase":1}}
 {"log":{"at":"2026-10-08T23:13:29-05:00","msg":"task-loop chase 2 of 2: could not wake: no owning agent found","chase":2}}
 {"log":{"at":"2026-10-08T23:28:30-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"stop":{"at":"2026-10-18T08:02:55-05:00","why":"abandoned: no agent since 2026-10-08T23:28:30-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

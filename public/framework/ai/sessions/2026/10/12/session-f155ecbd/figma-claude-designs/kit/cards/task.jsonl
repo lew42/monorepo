@@ -1,3 +1,4 @@
 {"assign":{"session_id":"38a99cb7-a102-4425-9aef-4872976473df","agent":"task-mastermind-fig-cards","card":"Figma: Foundations · Cards — card styles worked through","brief":"public/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/brief-cards.md","model":"claude-sonnet-5-5","requested_at":"2026-10-14T19:32:32-05:00","now":"starting","steps":[],"step":1}}
 {"log":{"at":"2026-10-14T19:33:12-05:00","msg":"skill: figma:figma-use"}}
 {"log":{"at":"2026-10-14T19:38:13-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:02:59-05:00","why":"abandoned: no agent since 2026-10-14T19:38:13-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

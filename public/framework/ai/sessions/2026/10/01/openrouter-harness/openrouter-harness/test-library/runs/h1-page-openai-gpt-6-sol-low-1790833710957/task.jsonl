@@ -4,3 +4,4 @@
 {"log":{"at":"2026-10-01T00:57:01-05:00","heartbeat":"escalated","msg":"minion-lib-h1-page-7 its agent is not running, and the revive failed: openrouter spawn refused: today's OpenRouter spend ($7.65) is at or over the $1.5/day cap"}}
 {"log":{"at":"2026-10-01T01:31:03-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
 {"log":{"at":"2026-10-01T02:20:57-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"stop":{"at":"2026-10-18T08:02:49-05:00","why":"abandoned: no agent since 2026-10-01T02:20:57-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

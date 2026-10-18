@@ -81,3 +81,4 @@
 {"assign":{"cost_usd":0.053,"cost":{"root":"task-mastermind-web-benchmarks","agents":[{"id":"task-mastermind-web-benchmarks","model":"openai/gpt-oss-120b","role":"task-mastermind","usd":0.053}],"own_usd":0.05,"minions_usd":0,"parent_task":"2026-10-03/prompt-relay-skip-agents","open":1,"window":{"from":"2026-10-04T14:53:40-05:00","to":null},"at":"2026-10-04T21:34:44-05:00"}}}
 {"log":{"at":"2026-10-04T21:35:35-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-04T21:45:34-05:00","heartbeat":"escalated","msg":"task-mastermind-web-benchmarks its agent is not running, and was already revived 2 times this hour (4 today)"}}
+{"stop":{"at":"2026-10-18T08:02:54-05:00","why":"abandoned: no agent since 2026-10-04T21:45:34-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

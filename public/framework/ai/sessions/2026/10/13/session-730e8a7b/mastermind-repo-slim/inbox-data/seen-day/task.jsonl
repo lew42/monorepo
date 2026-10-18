@@ -5,3 +5,4 @@
 {"review":{"answer":{"n":4,"reply":"noted"}}}
 {"review":{"answer":{"n":5,"reply":"noted"}}}
 {"review":{"answer":{"n":6,"reply":"noted: shots/400.png shows the chips on two rows, no overflow"}}}
+{"stop":{"at":"2026-10-18T08:03:06-05:00","why":"abandoned: no agent since 2026-10-13T22:51:58.359Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}

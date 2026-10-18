@@ -7,3 +7,4 @@
 {"decision":{"at":"2026-10-03T05:53:25-05:00","question":"review size","computed":"full","chose":"none","why":"mastermind read: 171-line diff (hook + test + settings.json), modeled exactly on git-guard.mjs's own PreToolUse/fail-open shape; 38 test cases pass, node --check passes, manually verified exit 2/0 on a block and allow case"}}
 {"review":{"at":"2026-10-03T05:53:25-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/server-guard","head":"3803f75933f0f1078619288a95483c6b1435f1db","model":null,"cost":0,"file":"review.md"}}
 {"log":{"at":"2026-10-03T05:56:29-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
+{"stop":{"at":"2026-10-18T08:02:51-05:00","why":"abandoned: no agent since 2026-10-03T05:56:29-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

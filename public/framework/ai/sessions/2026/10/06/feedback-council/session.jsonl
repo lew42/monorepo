@@ -11,3 +11,4 @@
 {"snooze":{"at":"2026-10-06T03:01:59-05:00","until":"2026-10-08T03:30:00-05:00","by":"task-mastermind-feedback-council"}}
 {"log":{"at":"2026-10-06T03:23:13-05:00","msg":"task-loop chase 2 of 2: could not wake: no owning agent found","chase":2}}
 {"log":{"at":"2026-10-06T03:53:13-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"stop":{"at":"2026-10-18T08:02:54-05:00","why":"abandoned: no agent since 2026-10-06T03:53:13-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

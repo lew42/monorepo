@@ -14,3 +14,4 @@
 {"log":{"at":"2026-10-13T16:49:12-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T16:49:15-05:00","heartbeat":"answered","msg":"Still finished, nothing running. The slots task landed (report `kit/slots.md`, commit `0167e2644`), and the only open items are the two small layout flaws in that report."}}
 {"log":{"at":"2026-10-13T16:50:26-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:03:02-05:00","why":"abandoned: no agent since 2026-10-13T17:00:00-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

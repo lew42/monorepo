@@ -62,3 +62,4 @@
 {"log":{"at":"2026-10-01T03:22:38-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-01T03:28:34-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-01T03:28:45-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:02:46-05:00","why":"abandoned: no agent since 2026-10-01T03:28:45-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}

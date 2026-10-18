@@ -40,3 +40,4 @@
 {"log":{"at":"2026-10-16T09:09:45-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-16T09:10:17-05:00","heartbeat":"answered","msg":"Idle. The pilot reply is delivered, and I'm not running anything."}}
 {"log":{"at":"2026-10-16T09:13:50-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-18T08:03:07-05:00","why":"abandoned: no agent since 2026-10-16T09:13:50-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
