@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import SessionRecord from "../Server/SessionRecord.mjs";
 import Task from "../public/framework/core/Task/Task.js";
+import LandingCheck from "../Server/LandingCheck.mjs";
 
 /* THE ONE RULE FOR "LANDED" (2026-10-17, Servex/doc/heartbeat.md): a task has landed when its log, folded through
  * Task.replay, ends `complete` (landed_at, or a finish/complete line) or `stopped` (closed_by, or a stop line).
@@ -9,6 +10,7 @@ import Task from "../public/framework/core/Task/Task.js";
 export default class Landed {
 
 	static cache = new Map();   // file -> { key: "mtime:size", state }
+	static checks = new Map();   // dir -> { at, verdict }   (the git check below, kept 30 s)
 
 	/* The file a dir's task log lives in. */
 	static file(dir){ return SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl"); }
@@ -40,9 +42,26 @@ export default class Landed {
 
 	static done(state){ return state === "complete" || state === "stopped"; }
 
-	/* True when the task log (a file) has landed or been stopped. */
-	static of_file(file){ return this.done(this.state(file)); }
+	/* True when the task log (a file) has landed or been stopped. A landing whose branch is NOT on michael/dev
+	 * does not count (todo 207): a Servex-side gate only; Task.replay and Server/State.mjs stay pure because a
+	 * browser cannot run git. Servex/doc/landing.md. */
+	static of_file(file){
+		const state = this.state(file);
+		return state === "stopped" || (state === "complete" && this.verdict(path.dirname(file)).landed);
+	}
 
-	/* True when the task dir's log has landed or been stopped. */
+	/* The same, for a task dir. */
 	static of_dir(dir){ return this.of_file(this.file(dir)); }
+
+	/* True when the log SAYS landed, merged or not: the landing nag and check ask this, not of_dir. */
+	static logged(dir){ return this.done(this.state(this.file(dir))); }
+
+	/* LandingCheck.verify for the task's branch (assign.branch), by file content; fails open (landed). */
+	static verdict(dir){
+		const hit = this.checks.get(dir);
+		if (hit && Date.now() - hit.at < 30000) return hit.verdict;
+		let verdict; try { verdict = LandingCheck.verify(dir); } catch { verdict = { landed: true, via: "check failed" }; }
+		this.checks.set(dir, { at: Date.now(), verdict });
+		return verdict;
+	}
 }

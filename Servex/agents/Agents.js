@@ -1359,7 +1359,7 @@ Agents.Agent = class Agent {
 	unlanded_note(){
 		const dir = this.task?.dir;
 		if (!dir || this.landing_nagged || this.one_shot || !/^(task-mastermind|mastermind|sub-mastermind)/.test(this.role ?? "")) return;
-		if (task_landed(dir) || !/\b(merged|merge commit|landed)\b/i.test(this.words ?? this.last_text ?? "")) return;
+		if (Landed.logged(dir) || !/\b(merged|merge commit|landed)\b/i.test(this.words ?? this.last_text ?? "")) return;
 		this.landing_nagged = true;
 		try { fs.appendFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), JSON.stringify({ log: { at: stamp(), msg: "agent stopped with the work merged but no landing line; too late to nag, the parent's harvest lands it" } }) + "\n"); } catch {}
 	}
@@ -1866,14 +1866,17 @@ Agents.Agent = class Agent {
 	 * wake of its parent. The landing line is never deleted. Once per distinct missing set. */
 	landing_check(){
 		const dir = this.task?.dir;
-		if (!dir || this.one_shot || !task_landed(dir)) return false;
-		let v; try { v = LandingCheck.verify(dir); } catch { return false; }
+		if (!dir || this.one_shot || !Landed.logged(dir)) return false;
+		const v = Landed.verdict(dir);   // the check Landed.of_dir counts a landing by (todo 207)
 		if (v.landed) return false;
 		const key = v.missing.join("|");
 		if (this.landing_flagged === key) return false;
 		this.landing_flagged = key;
-		const msg = LandingCheck.sentence(v);
-		try { fs.appendFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), JSON.stringify({ log: { at: stamp(), msg } }) + "\n"); } catch {}
+		const msg = `landed but ${v.ahead} commits are not on ${LandingCheck.BASE}: ${LandingCheck.sentence(v).replace(/^.*?: /, "")}`;
+		const file = SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl");
+		let tail = ""; try { tail = fs.readFileSync(file, "utf8").slice(-20000); } catch {}
+		if (tail.includes(JSON.stringify(msg).slice(1, -1))) return false;   // already said: a Servex restart forgets landing_flagged
+		try { fs.appendFileSync(file, JSON.stringify({ log: { at: stamp(), msg } }) + "\n"); } catch {}
 		this.host?.store().append("servex", { type: "landing-unmerged", agent: this.id, task: dir, branch: v.branch, missing: v.missing.length }).catch(() => {});
 		const card = this.task?.card;
 		if (card) try { this.host?.servex?.assistant?.card_reply({ card, from: "servex-landing-check", text: msg }); } catch {}
@@ -1890,7 +1893,7 @@ Agents.Agent = class Agent {
 		const dir = this.task?.dir;
 		if (!dir || this.landing_nagged || this.one_shot || STANDING.test(this.id ?? "")) return false;
 		if (!/^(task-mastermind|mastermind|sub-mastermind)/.test(this.role ?? "")) return false;
-		if (task_landed(dir) || /^BLOCKED/i.test(this.last_text ?? "")) return false;
+		if (Landed.logged(dir) || /^BLOCKED/i.test(this.last_text ?? "")) return false;
 		if (!/\b(merged|merge commit|landed)\b/i.test(this.words ?? this.last_text ?? "")) return false;
 		const kids = [...(this.host?.live?.values() ?? [])].filter(a => a.parent === this.id && (a.state === "working" || a.state === "starting"));
 		if (kids.length) return false;
