@@ -37,8 +37,7 @@ Both are plain functions, never throw: an unreadable readme is just skipped.
   (`ai/sessions/<day>/cards/<card>/` since the one-tree move, 2026-10-13),
   before their existing text.
 - **Not yet wired: `Dispatcher.js`'s own (non-carded) task-mastermind
-  spawns.** They have no directory at spawn time — the task mastermind opens
-  its own with `new-task` on its first turn — so nothing is passed today.
+  spawns.** They get a task folder at spawn time (the `task` option, 2026-10-18: dir and line 1 are written together), but it is a brand-new empty one, so no readme chain is passed today.
   (A prior version of this file wrongly said this path already worked via
   `spec.page`; it was a fixed stub, `"/framework/ai2/"`, that `directory_of()`
   started misreading as a real directory — found by review, 2026-09-29, and
