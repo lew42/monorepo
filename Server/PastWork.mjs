@@ -39,11 +39,19 @@ export default class PastWork {
 
 	/** Every task.jsonl under ai/, reduced to one record. */
 	static tasks(){
-		const out = [];
+		const out = [], seen = this.cache ??= new Map();   // path -> { key: "mtime:size", x } | { x: null }: a long-lived Servex re-reads only what changed (3 s cold, ~0.3 s warm)
 		for (const f of this.walk(AI)){
-			if (!SessionRecord.is_log_entry(path.dirname(f), path.basename(f))) continue;
-			let text; try { text = fs.readFileSync(f, "utf8"); } catch { continue; }
-			const x = SessionIndex.reduce(rel(path.dirname(f)), text);   // the one task.jsonl reader: Server/SessionIndex.mjs
+			let c = seen.get(f);
+			if (c?.x === null) continue;
+			if (!c && !SessionRecord.is_log_entry(path.dirname(f), path.basename(f))){ seen.set(f, { x: null }); continue; }
+			let st; try { st = fs.statSync(f); } catch { continue; }
+			const key = st.mtimeMs + ":" + st.size;
+			if (c?.key !== key){
+				let text; try { text = fs.readFileSync(f, "utf8"); } catch { continue; }
+				c = { key, x: SessionIndex.reduce(rel(path.dirname(f)), text) };   // the one task.jsonl reader: Server/SessionIndex.mjs
+				seen.set(f, c);
+			}
+			const x = c.x;
 			const r = { dir: x.dir, slug: x.slug, title: x.title, request: x.request, outcome: x.outcome, group: x.group, landed: x.assign_landed, links: x.links, topics: x.topics };
 			if (!r.request && x.brief) r.brief = x.brief;
 			const m = r.dir.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
@@ -175,6 +183,22 @@ export default class PastWork {
 		return L.join("\n");
 	}
 
+	/** Write <dir>/past-work.md from a title: `opts.title`, else the first heading of `opts.brief` (a file) or of <dir>/requirements.md, else the dir name. `opts.skip_unnamed` returns null instead of the dir-name fallback. Spawn calls this: Servex/agents/Agents.js. */
+	static task(dir, opts = {}){
+		const t0 = Date.now(), abs = path.resolve(REPO, dir), out = path.join(abs, "past-work.md");
+		let title = opts.title;
+		if (!title) for (const f of [opts.brief && path.resolve(REPO, opts.brief), path.join(abs, "requirements.md")]){
+			try { if (f && fs.statSync(f).isFile()){ title = (fs.readFileSync(f, "utf8").match(/^#\s+(.+)$/m) || [])[1]; if (title) break; } } catch {}
+		}
+		if (!title){ if (opts.skip_unnamed) return null; title = path.basename(abs); }
+		const res = this.search(title.replace(/[^\w ]+/g, " "), 8);
+		const note = "<!-- computed by node Server/PastWork.mjs --task; do not hand-edit. The judging step is in .claude/skills/past-work/SKILL.md -->";
+		const none = res.tasks.length || res.modules.length || res.docs.length ? [] : ["**Nothing found: no past work matches this title.**", ""];
+		fs.mkdirSync(abs, { recursive: true });
+		fs.writeFileSync(out, [note, ...none, this.format(res), "", "## If the title is not the thing's name", "", "```", this.brief(title), "```", ""].join("\n"));
+		return { file: rel(out), title, tasks: res.tasks.length, modules: res.modules.length, sessions: (res.sessions || []).length, ms: Date.now() - t0 };
+	}
+
 	/** Topic tag: the effort (group), else the "module:" prefix of the title, else the first word of the slug. */
 	static tag(t){
 		if (t.group) return t.group;
@@ -212,12 +236,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 	const argv = process.argv.slice(2);
 	if (argv.includes("--index")) console.log(JSON.stringify(PastWork.index()));
 	else if (argv.includes("--task")){
-		const dir = argv[argv.indexOf("--task") + 1], req = path.resolve(REPO, dir, "requirements.md");
-		const text = fs.existsSync(req) ? fs.readFileSync(req, "utf8") : "", title = (text.match(/^#\s+(.+)$/m) || [])[1] || path.basename(dir);
-		const res = PastWork.search(title.replace(/[^\w ]+/g, " "), 8), out = path.join(path.dirname(req), "past-work.md");
-		const note = "<!-- computed by node Server/PastWork.mjs --task; do not hand-edit. The judging step is in .claude/skills/past-work/SKILL.md -->";
-		fs.writeFileSync(out, [note, PastWork.format(res), "", "## If the title is not the thing's name", "", "```", PastWork.brief(title), "```", ""].join("\n"));
-		console.log(rel(out), res.tasks.length + " tasks," , res.modules.length + " modules,", (res.sessions || []).length + " sessions");
+			const r = PastWork.task(argv[argv.indexOf("--task") + 1]);
+			console.log(r.file, r.tasks + " tasks,", r.modules + " modules,", r.sessions + " sessions,", r.ms + " ms");
 	}
 	else if (argv.includes("--brief")){ const i = argv.indexOf("--brief"), di = argv.indexOf("--dir"); console.log(PastWork.brief(argv[i + 1], di >= 0 ? argv[di + 1] : undefined)); }
 	else {

@@ -14,6 +14,7 @@ import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import Task from "../../public/framework/core/Task/Task.js";
 import TaskDirs from "../../Server/TaskDirs.mjs";
+import PastWork from "../../Server/PastWork.mjs";
 import LandingCheck from "../../Server/LandingCheck.mjs";
 import Landed from "../Landed.js";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
@@ -50,7 +51,7 @@ export class Agents {
 
 	/* `boot` names THIS host process — every registry row it writes carries it,
 	 * so the next boot can tell "alive a moment ago" from "long dead". */
-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); }
+	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
 	assign(...args){ return Object.assign(this, ...args); }
 
 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
@@ -196,6 +197,7 @@ export class Agents {
 		 * the first-turn line can tell the agent its own page, /framework/ai/sessions/<session_id>/. */
 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
 		const fresh = !again && !spec.system;
 		const dir = fresh ? directory_of(spec) : null;
 		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + opening(spec.role, spec.prompt);
@@ -205,7 +207,7 @@ export class Agents {
 		}
 		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
 		const prompt = spec.task
-			? `${base}\n\nYour task is already open at ${path.relative(process.cwd(), SessionRecord.log_or_old(path.resolve(spec.task.dir))).split(path.sep).join("/")}; don't run new-task, log there.`
+			? `${base}\n\nYour task is already open at ${path.relative(process.cwd(), SessionRecord.log_or_old(path.resolve(spec.task.dir))).split(path.sep).join("/")}; don't run new-task, log there.${past_work ? ` Your past-work.md is beside the brief (${past_work}): read it first.` : ""}`
 			: base;
 		const agent = new this.constructor.Agent({
 			...role_defaults(spec.role), ...spec, id, prompt, provider,
@@ -223,6 +225,15 @@ export class Agents {
 		this.register(agent);
 		try { this.servex?.lifecycle?.agent_started(agent, spec); } catch {}   // lifecycle.jsonl: Servex/Lifecycle.js
 		return agent;
+	}
+
+	/* "Does it already exist" at birth: writes <task dir>/past-work.md (Server/PastWork.mjs) before the first turn; returns its path, or null. Never fails a spawn. */
+	past_work(task, id){
+		try {
+			const r = PastWork.task(path.resolve(task.dir), { brief: task.brief, title: task.title, skip_unnamed: true });
+			if (!r) this.store().append("servex", { type: "past-work-skipped", agent: id, why: "brief has no title" }).catch(() => {});
+			return r?.file ?? null;
+		} catch (e){ this.store().append("servex", { type: "past-work-failed", agent: id, error: String(e.message || e) }).catch(() => {}); return null; }
 	}
 
 	/* An agent has to know its own id to pass it as `from` to fork_self or as

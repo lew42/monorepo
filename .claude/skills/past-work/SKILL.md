@@ -15,7 +15,7 @@ node Server/PastWork.mjs <topic words>        # e.g. data grid · page templates
 
 About 1 second, about 2,000 tokens of output, newest first: tasks (date, title link, landed `outcome`, and how many of the paths it names still exist), modules that exist now with a count of files that use them, docs and readmes, owner asks, commits. The whole-site topic list is [`ai/past-work-index.md`](/framework/ai/past-work-index.md) (rebuilt with `node Server/PastWork.mjs --index`).
 
-For a task that already has a `requirements.md`, `node Server/PastWork.mjs --task <task dir>` runs the search on its title and writes `<task dir>/past-work.md` (computed, so the check is a file the owner can open, not a promise in chat).
+For a task that already has a `requirements.md`, `node Server/PastWork.mjs --task <task dir>` runs the search on its title and writes `<task dir>/past-work.md` (computed, so the check is a file the owner can open, not a promise in chat). Since 2026-10-18 the file is written for you at spawn (`spawn_agent`'s `task` option and the Dispatcher): read the `past-work.md` beside your brief first, and run the script only when it is missing.
 
 ### One module's history: `ModuleLog`
 
