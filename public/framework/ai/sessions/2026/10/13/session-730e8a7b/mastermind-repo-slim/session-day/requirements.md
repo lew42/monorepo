@@ -1,4 +1,4 @@
-# Session and task folders are filed by the owner's local day, one rule, with a scripted reversible move for the folders already misfiled
+# Session folders: file by local day
 
 Budget: $8. Sonnet. Load the `minion` and `code` skills. Your log is this dir's `task.jsonl`.
 

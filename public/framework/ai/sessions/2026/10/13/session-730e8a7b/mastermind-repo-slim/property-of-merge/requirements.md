@@ -2,7 +2,11 @@
 
 Budget: $4. Sonnet. Load the `minion` and `code` skills. Your log is this dir's `task.jsonl`.
 
-**Why:** on 2026-10-12 the task [property-of](/framework/ai/sessions/2026/10/12/session-87bec773/property-of/) wrote its landing line but its code stayed on the branch `michael/property-of` (4 commits, `5a6024e53..494fb8735`: `Property.of(item, name)` binds one Item key live; the session detail page uses it for model, effort and cost; `core/Page/doc/binding.md` section 4; the readme line; two proof screenshots). The daily follow-up has flagged it for six days (`public/framework/ai/doc/follow-up.md`, "The owner decides"). `git merge-tree` shows 0 conflicts against today's `michael/dev`, 8 files, +93 −6. The mastermind's decision (logged in the run task): merge it, since it was built, reviewed and proven on 10-12 and nothing since touched the same lines; the alternative, leaving it for the owner, has produced nothing in six days.
+**Why:** the task [property-of](/framework/ai/sessions/2026/10/12/session-87bec773/property-of/) said "landed" on 2026-10-12, but its code is still only on the branch `michael/property-of`. The [daily follow-up](/framework/ai/doc/follow-up.md) has flagged it for six days.
+
+- **What it adds:** `Property.of(item, name)` binds one Item key live; the session detail page uses it for model, effort and cost.
+- **Size:** 4 commits (`5a6024e53..494fb8735`), 8 files, +93 −6, 0 conflicts against today's `michael/dev`.
+- **Decision:** merge it. It was built, reviewed and proven on 10-12, and nothing since touched the same lines. Waiting for the owner has produced nothing in six days.
 
 ## Deliverable
 
