@@ -5,43 +5,26 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-17 04:38 UTC, last 24 h)
+## NOW (computed 2026-10-18 00:02 UTC, last 24 h)
 
-**Pace:** At 91% of pace with 4 days 22 hours left (slow down)
+**Pace:** At 90% of pace with 4 days 2 hours left (slow down)
 
-**Landed (27):**
-- [Whisper log page](/framework/ai/sessions/2026/10/16/voice-20261016/whisper-log/) (helper-whisper-log)
-- [Task migration: 211 old tasks moved to module homes](/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/) (mastermind-task-migrate)
-- [live: card subpaths, full-width card, side-scrolling code](/framework/ai/sessions/2026/10/16/voice-20261016/live-cards/) (mastermind-live-cards)
-- [live-pointers: /live cards become pointers; their data moves to the logs](/framework/ai/sessions/2026/10/16/voice-20261016/live-pointers/) (helper-live-pointers)
-- [Sheet: rail.js renamed to class Sheet; audit and proposal posted](/framework/ai/sessions/2026/10/16/voice-20261016/sheet/) (mastermind-sheet)
-- [Step 3c: the item tool works on live instances](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/item-live/) (minion-item-live)
-- [See the tasks: step 15 of the task system plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-rows/) (minion-task-rows)
-- [Today's dictations as tasks: step 17 of the task system plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/proof-data/) (minion-proof-data)
-- [The item tool files the references: step 16 of the task system plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/tool-files-refs/) (minion-tool-files-refs)
-- [Task homes, browser side: step 14b of the task system plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-homes-browser/) (minion-task-homes-browser)
-- [Task homes, node side: step 14a of the task system plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-homes/) (minion-task-homes)
-- [TaskPage, the thin route: step 11 of the task system plan](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-page/) (minion-task-page)
-- …and 15 more (the [task list](/framework/ai/tasks/))
+**Landed (1):**
+- [drawer: the README links its architecture doc](/framework/ai/2026/10/17/drawer-readme-arch-link/) (task-mastermind-drawer-readme-arch-link)
 
-**Open, touched in the window (6):**
-- [task-system](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/) (mastermind-task-system)
-- [compact-nudge](/framework/ai/sessions/2026/10/16/voice-20261016/compact-nudge/) (helper-compact-nudge)
-- [research](/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/research/) (minion-task-migrate-research)
-- [accounting](/framework/ai/sessions/2026/10/16/voice-20261016/accounting/) (helper-accounting)
-- [transcripts](/framework/ai/sessions/2026/10/16/voice-20261016/past-work/transcripts/) (helper-transcripts)
-- [pilot](/framework/ai/sessions/2026/10/16/voice-20261016/past-work/pilot/) (helper-past-work-pilot)
+**Open, touched in the window (0):**
+- none
 
 **Latest commits on this branch:**
 ```
-978f39bf8 Merge branch 'worktree/ck-task-system' into michael/dev
-003df92fe core/Task: templates design + owner note 2026-10-17 (node-driven tasks; task.jsonl→session.jsonl not done: 757 vs 588 tag files); TaskState watcher: newest wins its lock, Servex's TaskLoop starts it as a child
-7596dcdea checkup past-work: landing line
-85c4b2d8e checkup past-work: finding-past-work doc, salvage note, audit leftovers, whisper-log closed
-c68d63880 checkup-sheet: landing line
-1a6d8125f checkup-sheet: steps 2-4 back with mastermind-sheet (misread timeout); wait_for_agent trap noted
-c02c46759 task-migrate: landed
-6b27bdc94 checkup-sheet: checkup.md; steps 2-4 to a Sonnet minion; clarity rewrites of two briefs
+4e29f659a servex: log sweep (13 files)
+ede37c9d2 mastermind: 18:42 check-in, nothing in flight
+effea7084 servex: log sweep (4 files)
+ee6ce8251 servex: log sweep (4 files)
+d62f7c049 mastermind: 17:41 check-in, nothing in flight
+692dfdf6a servex: log sweep (5 files)
+1a685c81a servex: log sweep (19 files)
+f67780b3b mastermind: 16:40 check-in, nothing in flight
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
