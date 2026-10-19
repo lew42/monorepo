@@ -1,0 +1,23 @@
+@layer base, theme, site, util;
+
+/* THE MARKDOWN EXPLORER (core/Page/Markdown.js). The shell, the rows and the phone rule are Browse's
+   (ux/Inbox/Inbox.css); this holds only what is the explorer's own: a readme that scrolls inside the pane. */
+@layer theme {
+
+	/* The detail pane never scrolls (Inbox.css), so the readme pane does. */
+	.md-explorer-readme {
+		block-size: 100%;
+		overflow-y: auto;
+		padding: 0;
+	}
+
+	/* A list of files, not of cards: one short line each. */
+	.inbox-row.md-explorer-row { padding-block: 0.45em; }
+
+	/* A folder's name above its files: a quiet label, not a row. */
+	.md-explorer-folder {
+		display: block;
+		padding: 0.8em calc(var(--pad-card) + 3px) 0.2em;
+		font-size: 0.85em;
+	}
+}
