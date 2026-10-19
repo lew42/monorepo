@@ -8,7 +8,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 - **Markdown Explorer, Command Characters & Class Card Views** (2026-10-06):
   1. ~~*Markdown Explorer (`md/` path & tab)*: Upgrade `core/Page/Markdown.js` so `<module>/md/` renders the main `readme.md` in the center and all sibling/doc markdown files in a clean sidebar for quick reference. Add `md` tab on modules with markdown docs.~~ Landed in d7cca2099 (2026-10-19): `core/Page/doc/markdown.md`.
     2. ~~*Command Characters (`ext/Mention`)*: `/` is strictly 1:1 with file system paths, `@` for actors, `#` for classes. Distinct framed icons, dark card surfaces, and color themes so classes stand out visually from plain links.~~ Landed (abe910f69, 2026-10-19): `/path` resolves from the site listings, three kinds with own icon and colour tokens, demo on `ext/Mention`.
-  3. *Class Card View*: The class is represented by an icon item card (icon + title); properties/methods are unboxed icon items inside it (no nested card clutter); subclass methods first, base class methods below; core API weighted at the top.
+  3. ~~*Class Card View*: The class is represented by an icon item card (icon + title); properties/methods are unboxed icon items inside it (no nested card clutter); subclass methods first, base class methods below; core API weighted at the top.~~ Landed (f86d9065a, 2026-10-19): a class page is one class card, core API first (`core:` weights on `ext/Doc`), own members, then inherited; see `ext/Doc/doc/class-card.md`.
   [Brief](2026-10-06/markdown-explorer-and-class-cards/requirements.md)
 
 - **A layout system that sticks** (2026-09-25): pages use approved layouts most of the time,
