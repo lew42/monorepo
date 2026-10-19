@@ -14,3 +14,4 @@
 {"commit":"ba977a8e0f19"}
 {"commit":"9d82b261d45b"}
 {"finish":{"at":"2026-10-19T17:37:21.015Z","msg":"Merges 9 and 10 landed in part (98ae27d83 / 5467c1f07; ba977a8e0 / 9d82b261d). Plan numbers (count.mjs) before -> after: ai-rows files 30 -> 29, pages 8 -> 8; ai-cards files 30 -> 30, pages 15 -> 15 (the needs/you classes left the grep, other classes still count); kinds 36, padding rules 5 unchanged. 21 pages shot at 1920 and 390, before and after, no new console error or 404. About $6 spent. Deferrals are decision lines above.","merges":[9,10],"pages_shot":21,"dollars":6}}
+{"commit":"257a29859561"}
