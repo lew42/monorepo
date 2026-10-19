@@ -4,7 +4,7 @@
    Full size: [Type] [big mic] with one caption line under the mic. Compact (the strip): a small mic and the word. */
 @layer site {
 	.dictation-bar { display: grid; justify-items: center; align-items: center; }
-	.dictation-bar[data-size="full"] { grid-template-columns: 1fr auto 1fr; grid-template-rows: 4.5rem 1.5rem; row-gap: 0.3rem; block-size: 6.3rem; }
+	.dictation-bar[data-size="full"] { grid-template-columns: 1fr auto 1fr; grid-template-rows: 2.75rem 1.25rem; row-gap: 0.15rem; block-size: 4.15rem; }
 	.dictation-bar[data-size="compact"] { grid-template-columns: auto 1fr; justify-items: start; column-gap: 0.6em; block-size: 2.75rem; }
 
 	.dictation-bar-mic {
@@ -12,12 +12,12 @@
 		border: 2px solid var(--line); background: var(--fill-a16); color: inherit;
 		transition: background-color 0.15s, box-shadow 0.15s;
 	}
-	.dictation-bar[data-size="full"] .dictation-bar-mic { grid-column: 2; grid-row: 1; inline-size: 4.5rem; block-size: 4.5rem; font-size: 1.9rem; }
+	.dictation-bar[data-size="full"] .dictation-bar-mic { grid-column: 2; grid-row: 1; inline-size: 2.75rem; block-size: 2.75rem; font-size: 1.2rem; }
 	.dictation-bar[data-size="compact"] .dictation-bar-mic { inline-size: 2.5rem; block-size: 2.5rem; font-size: 1.15rem; }
 	.dictation-bar-icon { line-height: 1; }
 
 	.dictation-bar[data-state="listening"] .dictation-bar-mic,
-	.dictation-bar[data-state="sending"] .dictation-bar-mic { background: var(--prime); border-color: var(--prime); box-shadow: 0 0 0 0.4rem color-mix(in srgb, var(--prime) 22%, transparent); }
+	.dictation-bar[data-state="sending"] .dictation-bar-mic { background: var(--prime); border-color: var(--prime); box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--prime) 22%, transparent); }
 	.dictation-bar[data-state="sending"] .dictation-bar-mic { animation: dictation-bar-pulse 0.8s ease-in-out infinite; }
 	.dictation-bar[data-state="starting"] .dictation-bar-mic { border-color: var(--prime); animation: dictation-bar-pulse 0.8s ease-in-out infinite; }
 	.dictation-bar[data-state="paused"] .dictation-bar-mic { border-color: var(--prime); background: transparent; }
@@ -26,7 +26,7 @@
 
 	/* one line, never wraps, so an error message cannot make the bar taller */
 	.dictation-bar-caption { min-inline-size: 0; max-inline-size: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-	.dictation-bar[data-size="full"] .dictation-bar-caption { grid-column: 1 / -1; grid-row: 2; line-height: 1.5rem; font-size: 0.9em; }
+	.dictation-bar[data-size="full"] .dictation-bar-caption { grid-column: 1 / -1; grid-row: 2; line-height: 1.25rem; font-size: 0.85em; }
 	.dictation-bar-word { font-weight: 600; }
 
 	.dictation-bar-type { grid-column: 1; grid-row: 1; justify-self: start; align-self: center; border: 0; background: none; color: inherit; font: inherit; font-size: 0.9em; padding: 0.4em 0.5em; opacity: 0.8; white-space: nowrap; }
