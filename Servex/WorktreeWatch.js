@@ -1,0 +1,183 @@
+import fs from "fs";
+import os from "os";
+import path from "path";
+import { spawn } from "child_process";
+import WebSocket from "ws";
+import SessionRecord from "../Server/SessionRecord.mjs";
+import { stamp } from "./home.js";
+
+const slash = p => String(p).split(path.sep).join("/");
+const slug = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
+
+/* A PAGE WATCHER FOR ONE POOL WORKTREE: when a page the holder is editing breaks, the holder hears within a minute.
+ *
+ * Pool starts one per taken slot (Pool.page_watch) and stops it when the slot is returned or removed. It listens to the
+ * slot's own dev server (the `changed` frame the server sends its browser tabs, so no second fs.watch), debounces 2 s,
+ * runs Server/layout-check.mjs at four widths on the pages the changed files render, and on a break sends the holder one
+ * line and writes one line in its task log. Design and the rejected timer: the plan.md and Servex/doc/pool.md "Page watcher". */
+export default class WorktreeWatch {
+    static WIDTHS = [400, 1200, 1920, 3440];
+    static EMPTY_MAX = 0.6;                    // the same bound Server/on-landing.mjs flags
+    static EMPTY_WIDTHS = [1920, 3440];        // phones are dense by nature; emptiness only means something wide
+    static DEBOUNCE_MS = 2000;
+    static QUIET_MS = 10 * 60 * 1000;          // one message per page per this long
+    static RUN_MS = 60 * 1000;                 // a layout-check that takes longer is killed
+    static MAX_PAGES = 3;
+    static TEMPLATE = /\.(m?js|css|html)$/i;   // data (.jsonl .json .md) never breaks a page
+    static SHARED = [/^\/framework\/core\//, /^\/framework\/ui\//, /^\/framework\/ux\//, /^\/framework\/ext\//, /^\/framework\/framework\.css$/, /^\/app\.js$/];
+    static CANARY = "/framework/";
+    static BASE_404 = /^Failed to load resource: .*404/;   // every page load asks for /favicon.ico once per width, and a dev server has none
+
+    /* A changed url-path ("/framework/x/page.js") -> the page urls it could break, own page first. Same rule as Server/health.mjs. */
+    static pages_for(url_path, public_dir){
+        if (!WorktreeWatch.TEMPLATE.test(url_path)) return [];
+        let dir = path.dirname(path.join(public_dir, url_path));
+        let own = null;
+        while (dir === public_dir || dir.startsWith(public_dir + path.sep)){
+            if (fs.existsSync(path.join(dir, "page.js"))){ const rel = slash(path.relative(public_dir, dir)); own = "/" + (rel ? rel + "/" : ""); break; }
+            if (dir === public_dir) break;
+            dir = path.dirname(dir);
+        }
+        const shared = WorktreeWatch.SHARED.some(re => re.test(url_path));
+        return [...new Set([...(own ? [own] : []), ...(shared ? [WorktreeWatch.CANARY] : [])])];
+    }
+
+    /* One layout-check layout.json -> the breaks, worst first: {kind, widths, text}. Pure. */
+    static judge(res){
+        const breaks = [], widths = res.widths ?? {};
+        const errs = new Map();   // error text -> the widths that showed it
+        const favicon = new Set();   // widths whose one baseline 404 is spent; a second 404 at a width is a real missing file
+        for (const e of res.errors ?? []){
+            const m = /^(\d+): ([\s\S]*)$/.exec(e);
+            const [w, text] = m ? [Number(m[1]), m[2]] : [null, e];
+            if (WorktreeWatch.BASE_404.test(text) && !favicon.has(w)){ favicon.add(w); continue; }
+            if (!errs.has(text)) errs.set(text, []);
+            if (w) errs.get(text).push(w);
+        }
+        for (const [text, ws] of errs) breaks.push({ kind: "error", widths: ws.sort((a, b) => a - b), text: `console error: ${text.replace(/\s+/g, " ").slice(0, 160)}` });
+        const over = Object.keys(widths).map(Number).filter(w => widths[w].overflow_x);
+        if (over.length) breaks.push({ kind: "overflow", widths: over.sort((a, b) => a - b), text: "overflow_x true (something sticks out past the right edge)" });
+        const empty = WorktreeWatch.EMPTY_WIDTHS.filter(w => widths[w]?.empty > WorktreeWatch.EMPTY_MAX);
+        if (empty.length) breaks.push({ kind: "empty", widths: [...empty].sort((a, b) => a - b), text: `empty share ${empty.map(w => widths[w].empty).join("/")} (over ${WorktreeWatch.EMPTY_MAX})` });
+        return breaks;
+    }
+
+    /* id, path, port: the pool slot. owner: the agent that took it. send(owner, text): how the line reaches it.
+     * task_dir: the owner's task dir (log line and shots go there), or null. */
+    constructor({ id, path: root, port, owner, send, task_dir = null, main = null }){
+        Object.assign(this, { id, root: slash(root), port, owner, send, task_dir, main });
+        this.public = path.join(root, "public");
+        this.pending = new Set();
+        this.pages = new Map();     // url -> { broken, messaged_at }
+        this.running = false;
+        this.stopped = true;
+    }
+
+    start(){
+        this.stopped = false;
+        this.connect();
+        return this;
+    }
+
+    stop(){
+        this.stopped = true;
+        clearTimeout(this.timer); clearTimeout(this.retry);
+        try { this.ws?.terminate(); } catch {}
+    }
+
+    connect(){
+        if (this.stopped) return;
+        const ws = this.ws = new WebSocket(`ws://127.0.0.1:${this.port}/`);
+        ws.on("message", data => { try { const m = JSON.parse(data.toString()); if (m.method === "changed") this.changed(m.args?.[0] ?? []); } catch {} });
+        ws.on("error", () => {});
+        ws.on("close", () => { if (!this.stopped) this.retry = setTimeout(() => this.connect(), 2000); });   // the dev server restarts itself on a Server/ edit
+    }
+
+    changed(paths){
+        let any = false;
+        for (const p of paths) for (const url of WorktreeWatch.pages_for(p, this.public)){ this.pending.add(url); any = true; }
+        if (!any) return;
+        this.first_at ??= Date.now();
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => this.run(), WorktreeWatch.DEBOUNCE_MS);
+    }
+
+    async run(){
+        if (this.running || this.stopped) return;   // a change during a run leaves `pending` set; run() re-arms itself below
+        const urls = [...this.pending].slice(0, WorktreeWatch.MAX_PAGES);
+        if (!urls.length) return;
+        for (const u of urls) this.pending.delete(u);
+        const since = this.first_at; this.first_at = null;
+        this.running = true;
+        try {
+            const results = await this.measure(urls);
+            for (const url of urls) if (results.has(url)) this.judged(url, results.get(url), since);
+        } catch (e) { this.note(`worktree-watch: ${this.id} check failed: ${e.message}`); }
+        this.running = false;
+        if (this.pending.size && !this.stopped){ this.first_at = Date.now(); this.timer = setTimeout(() => this.run(), WorktreeWatch.DEBOUNCE_MS); }
+    }
+
+    /* urls -> Map(url -> { res: layout.json, dir: where its pngs are }). Overridden in the test. */
+    measure(urls){
+        const out = path.join(os.tmpdir(), "lew42-worktree-watch", this.id, String(Date.now()));
+        const full = urls.map(u => `http://127.0.0.1:${this.port}${u}`);
+        return new Promise(resolve => {
+            const child = spawn(process.execPath, [path.join(this.root, "Server", "layout-check.mjs"), ...full, "--widths", WorktreeWatch.WIDTHS.join(","), "--out", out],
+                { cwd: this.root, windowsHide: true, stdio: "ignore" });
+            const kill = setTimeout(() => child.kill(), WorktreeWatch.RUN_MS);
+            child.on("error", () => { clearTimeout(kill); resolve(new Map()); });
+            child.on("exit", () => {
+                clearTimeout(kill);
+                const map = new Map();
+                urls.forEach((u, i) => {
+                    const dir = path.join(out, slug(full[i]));
+                    try { map.set(u, { res: JSON.parse(fs.readFileSync(path.join(dir, "layout.json"), "utf8")), dir }); } catch {}
+                });
+                resolve(map);
+            });
+        });
+    }
+
+    judged(url, { res, dir }, since){
+        const state = this.pages.get(url) ?? this.pages.set(url, { broken: false, messaged_at: 0 }).get(url);
+        const breaks = WorktreeWatch.judge(res);
+        if (!breaks.length){
+            if (state.broken) this.note(`worktree-watch: ${url} clear (${this.id})`, true);
+            state.broken = false;
+            return;
+        }
+        state.broken = true;
+        if (Date.now() - state.messaged_at < WorktreeWatch.QUIET_MS) return;
+        state.messaged_at = Date.now();
+        const first = breaks[0], width = first.widths[0] ?? WorktreeWatch.WIDTHS[0];
+        const shot = this.keep_shot(dir, url, width);
+        const more = breaks.length > 1 ? ` (+${breaks.length - 1} more: ${breaks.slice(1).map(b => b.kind).join(", ")})` : "";
+        const secs = since ? ` ${Math.round((Date.now() - since) / 1000)} s after your save.` : "";
+        const line = `worktree-watch: ${url} breaks at ${first.widths.join("/") || "?"} px: ${first.text}${more}. Shot: ${shot ?? "none"}.${secs} (${this.id})`;
+        this.note(line, true);
+        if (this.owner && this.send) try { this.send(this.owner, line); } catch (e) { this.note(`worktree-watch: could not reach ${this.owner}: ${e.message}`, true); }
+    }
+
+    /* The failing width's png goes into <task dir>/shots/ (git-ignored by **\/shots/), else beside the worktree logs. */
+    keep_shot(dir, url, width){
+        const to = path.join(this.task_dir ? path.resolve(this.main ?? ".", this.task_dir) : path.join(this.main ?? os.tmpdir(), ".worktree-logs", this.id), "shots");
+        try {
+            fs.mkdirSync(to, { recursive: true });
+            const file = path.join(to, `${slug(url)}-${width}.png`);
+            fs.copyFileSync(path.join(dir, `${width}.png`), file);
+            return slash(file);
+        } catch { return null; }
+    }
+
+    /* One line in the owner's task log (when `log` is true and it has one), and always on the console. */
+    note(msg, log = false){
+        console.log(msg);
+        if (!log || !this.task_dir) return;
+        try {
+            const dir = path.resolve(this.main ?? ".", this.task_dir);
+            const file = SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl");
+            let lead = ""; try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
+            fs.appendFileSync(file, lead + JSON.stringify({ log: { at: stamp(), msg } }) + "\n");
+        } catch {}
+    }
+}

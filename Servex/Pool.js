@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import Events from "../Server/Events.js";
 import { refuse_links_into_main } from "../Server/junction-guard.mjs";
 import { stamp, HOME } from "./home.js";
+import WorktreeWatch from "./WorktreeWatch.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const slash = p => String(p).split(path.sep).join("/");
@@ -44,6 +45,7 @@ export default class Pool extends Events {
         this.file ??= process.env.SERVEX_POOL_FILE || path.join(this.main, ".worktree-pool.json");
         ({ slots: this.slots = [], leaving: this.leaving = [] } = this.load());
         this.chain = Promise.resolve();     // one worktree-up (or -down) at a time
+        this.page_watchers = new Map();     // slot id -> WorktreeWatch, while the slot is taken
     }
 
     static main_repo(){
@@ -132,6 +134,7 @@ export default class Pool extends Events {
             }
             this.say(`pool: ${slot.id} taken by ${slot.taken_by}`, { id: slot.id, taken_by: slot.taken_by });
             try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}   // lifecycle.jsonl + the taker's task log learns its worktree
+            this.page_watch(slot);
             this.top_up();
             return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
         }
@@ -159,6 +162,7 @@ export default class Pool extends Events {
             return null;
         }
         try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}
+        this.page_watch(slot);
         this.say(`pool: ${slot.id} taken by ${slot.taken_by} (sync)`, { id: slot.id, taken_by: slot.taken_by });
         this.top_up();
         return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
@@ -215,6 +219,7 @@ export default class Pool extends Events {
         if (!ff.ok) throw new Error(`Refused: ${id} would not fast-forward to ${this.base}: ${ff.out}`);
         Object.assign(slot, { state: "ready", taken_by: null, taken_at: null, idle_since: stamp() });
         this.save();
+        this.page_unwatch(slot);
         this.say(`pool: ${id} returned and ready`, { id });
         try { this.servex?.lifecycle?.record({ kind: "worktree", id, path: slot.path, port: slot.port, event: "end", why: "returned to the pool" }); } catch {}
 
@@ -437,6 +442,7 @@ export default class Pool extends Events {
      * FIRST, so the baseline files (see `dirt()`) can be put back to HEAD
      * without the server writing them again, and worktree-down finds it clean. */
     remove(slot){
+        this.page_unwatch(slot);
         this.forget(slot);
         this.leaving.push(slot);   // kept on disk until it is really gone, so a restart mid-way finishes it
         this.save();
@@ -479,7 +485,7 @@ export default class Pool extends Events {
         for (const slot of this.leaving.splice(0)) if (fs.existsSync(slot.path)) this.remove(slot);
         for (const slot of [...this.slots]){
             if (!fs.existsSync(slot.path)){ this.forget(slot); continue; }
-            if (slot.state === "taken") continue;
+            if (slot.state === "taken"){ this.page_watch(slot); continue; }
             if (slot.state !== "ready" || !(await this.answers(slot.url))){ this.remove(slot); continue; }
             if (!this.alive(slot.watcher_pid)){ await this.watch(slot); this.save(); }
         }
@@ -692,6 +698,23 @@ export default class Pool extends Events {
             if (!slot.watcher_pid) this.say(`pool: ${slot.id} page watcher did not start: ${e?.message ?? out}`, { id: slot.id });
             resolve(slot.watcher_pid);
         }));
+    }
+
+    /* The page watcher for a taken slot (WorktreeWatch.js): a break in a page its holder edits reaches the holder in about 10 s. Never fails the pool. */
+    page_watch(slot){
+        this.page_unwatch(slot);
+        try {
+            const agents = this.servex?.agents, owner = slot.taken_by;
+            if (!agents || !slot.port || !owner || owner === "unknown") return;
+            const w = new WorktreeWatch({ id: slot.id, path: slot.path, port: slot.port, owner, main: this.main,
+                task_dir: agents.task_dir_of?.(owner) ?? null, send: (to, text) => agents.send(to, text, { from: "worktree-watch" }) });
+            this.page_watchers.set(slot.id, w.start());
+        } catch (e) { this.say(`pool: ${slot.id} page watcher did not start: ${e.message}`, { id: slot.id }); }
+    }
+
+    page_unwatch(slot){
+        this.page_watchers.get(slot.id)?.stop();
+        this.page_watchers.delete(slot.id);
     }
 
     /* Kill a pid only while it is still the process we started. Windows reuses pids: on 2026-09-29

@@ -252,3 +252,7 @@ Streams (the chat log, the AI board) keep flowing during a hold; it expires by i
 **Alternatives not taken:** a post-merge headless boot of the changed pages before releasing the hold (slower for every merge, and merge was not the cause); a longer server-side debounce (agent edits are seconds apart, so no window spans a batch); a global hold (the 2026-09-22 verdict says never). **Not covered:** an agent that writes via Bash/PowerShell rather than Edit/Write.
 
 If the Directory plugin recreates `files.jsonl` for an empty folder (seen with the retired `ai/2026/`), delete the empty folder again and `git rm` the listing.
+
+## A page watcher per pool worktree (2026-10-19)
+
+A taken pool worktree's own dev server also feeds [`Servex/WorktreeWatch.js`](../../Servex/WorktreeWatch.js): it subscribes to the `changed` frame this watcher broadcasts (no second `fs.watch`), checks the pages the changed files render at four widths after 2 s, and tells the holder when one breaks. See [Servex/doc/pool.md](../../Servex/doc/pool.md).

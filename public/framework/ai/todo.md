@@ -103,9 +103,8 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   (task-mastermind-ai2-dashboard).
 - **Recipe lab**: one task built three ways (Opus alone, Sonnet alone, five Sonnets), judged
   blind by you. Stopped for budget. [Brief](2026-09-24/recipe-lab/)
-- **A page watcher per worktree, and `layout-check.mjs`**: screenshots at four widths, and a
-  message to the owning mastermind when a page breaks. Stopped for budget.
-  [Brief](2026-09-24/worktree-watch/)
+- ~~**A page watcher per worktree, and `layout-check.mjs`**: screenshots at four widths, and a
+  message to the owning mastermind when a page breaks.~~ Landed @@COMMIT@@: [WorktreeWatch](/framework/servex/doc/pool.md).
 - **Reorganize what's been built**: 12 ranked moves, starting with five imports that must move
   before the prune is safe. [Plan](2026-09-24/inventory/)
 - **Merge card kinds**: 75 → 36. Done: 1-5, 8, and in part 9 and 10 (`ui-cards`, `ui-pills`, `link-tiles`, `popovers`, `folds`, `frames`; 9 `ai-rows` landed the new `ui/row` and the sub-card list rows, 10 `ai-cards` the needs-you strip and the prompt bubble; the rest of each stays on its own rules, named in the plan). Next, in order: 6 `regions`, 7 `ai-pills`, then 11 `doc-well`, 12 `tab-panes`, 13 `surface-pad`. 6 and 7 wait on purpose (6 needs a redesign, 7 has no data to shoot); [why](ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/card-merges/task.jsonl).
