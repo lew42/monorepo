@@ -1,4 +1,4 @@
-# Card merges 9 and 10: the AI rows and the AI cards become the row and card kinds, each proven with before/after shots
+# Card merges 9 and 10: AI rows and AI cards
 
 Budget: $12. Sonnet. Load the `sub-mastermind`, `code`, `page` and `ui-test` skills. Your log is this dir's `task.jsonl`.
 

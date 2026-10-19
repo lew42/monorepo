@@ -108,7 +108,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   [Brief](2026-09-24/worktree-watch/)
 - **Reorganize what's been built**: 12 ranked moves, starting with five imports that must move
   before the prune is safe. [Plan](2026-09-24/inventory/)
-- **Merge card kinds**: 75 → 36. Done: 1-5 and 8 (`ui-cards`, `ui-pills`, `link-tiles`, `popovers`, `folds`, `frames`). Next, in order: 6 `regions`, 7 `ai-pills`, 9 `ai-rows`, 10 `ai-cards`, then 11 `doc-well`, 12 `tab-panes`, 13 `surface-pad`. 6 and 7 wait on purpose (6 needs a redesign, 7 has no data to shoot); [why](ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/card-merges/task.jsonl).
+- **Merge card kinds**: 75 → 36. Done: 1-5, 8, and in part 9 and 10 (`ui-cards`, `ui-pills`, `link-tiles`, `popovers`, `folds`, `frames`; 9 `ai-rows` landed the new `ui/row` and the sub-card list rows, 10 `ai-cards` the needs-you strip and the prompt bubble; the rest of each stays on its own rules, named in the plan). Next, in order: 6 `regions`, 7 `ai-pills`, then 11 `doc-well`, 12 `tab-panes`, 13 `surface-pad`. 6 and 7 wait on purpose (6 needs a redesign, 7 has no data to shoot); [why](ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/card-merges/task.jsonl).
   [Plan](/framework/ux/Content/plan/) · [brief](2026-09-24/card-consolidation/merges-requirements.md) · [shots index](2026-09-24/card-consolidation/shots/index.md)
 - ~~**Small fixes from the feedback council** (2026-09-25, [verdicts](2026-09-25/feedback-council/)),~~ (struck 2026-10-18 from a verdict scout: ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/servex-small/)
   each one the owner asked for and the council found unfinished:
