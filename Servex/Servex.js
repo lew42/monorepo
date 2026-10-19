@@ -90,6 +90,21 @@ const INSTRUCTIONS = `Servex is the always-on process on this machine. It superv
  * Servex/readme.md first — it is one screen. */
 export default class Servex extends Events {
 
+    /* ONE SERVEX PER HOME AND PORT (2026-10-18): called by index.js BEFORE `new Servex()`. The constructor writes the shared
+     * registry and sweeps its agents (`revive()`) long before `listen()` finds the port taken, so a second process used to damage
+     * the first one's agents and then die on EADDRINUSE with a stack trace. Resolves to the port when it is free; otherwise
+     * prints one line and exits 1. Doc: doc/restart.md. */
+    static async only_one(port = Number(process.env.SERVEX_PORT) || 8090){
+        const taken = await new Promise(done => {
+            const probe = net.createServer().once("error", e => done(e.code === "EADDRINUSE")).once("listening", () => probe.close(() => done(false)));
+            probe.listen(port, "127.0.0.1");
+        });
+        if (!taken) return port;
+        console.error(`Servex is already running on 127.0.0.1:${port} — not starting a second one (node Servex/sustain.mjs --status; --restart to reload it).`);
+        process.exit(1);
+    }
+
+
     initialize(){
         /* ⚠ Servex died with 0xC0000409 (a native fast-fail) on 2026-09-23, twice,
          * and on 2026-09-24, and left no trace at all. Next time Node writes a report here. */

@@ -377,6 +377,9 @@ export class Agents {
 	 * options or in-process MCP servers — those are code, not data, and their
 	 * owners (Assistant.js) spawn them again themselves — and a fork. */
 	revive({ window_min = 30 } = {}){
+		/* ONCE PER PROCESS (2026-10-18): a second sweep in the same process would treat agents spawned since boot as the
+		 * previous boot's. Servex.js calls this once; the guard keeps a reload or a second caller from re-running it. */
+		if (this.revived) return this.revived;
 		const reg = this.reg(), prev = reg.last_boot();
 		reg.mark_boot(this.boot);
 		const out = { revived: [], told: [], gone: [], legacy: [], skipped: [] };
@@ -430,7 +433,7 @@ export class Agents {
 		}
 		reg.bury(out.gone, "servex restarted");
 		this.store().append("servex", { type: "revive", boot: this.boot, previous: prev?.boot ?? null, ...out }).catch(() => {});
-		return out;
+		return this.revived = out;
 	}
 
 	/* THE TWO REVIVE SKIPS (pure; Servex/agents/revive-skip.test.mjs). Null = revive and tell as usual.
