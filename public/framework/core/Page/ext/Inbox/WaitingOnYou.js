@@ -1,6 +1,7 @@
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import Browse from "/framework/ux/Browse/Browse.js";
 import Timeline from "./Timeline.js";
+import DashRow from "/framework/ai/rail/DashRow.js";
 
 /** WaitingOnYou — every open owner decision, one line each, its card linked; ticked → gone (the card archived, never deleted).
  *  Pinned at the top of the Inbox (AIRail). Reads ai/cards.jsonl and ai/asks.jsonl, both streamed. Doc: doc/next.md. */
@@ -9,7 +10,7 @@ export default class WaitingOnYou extends Browse.Pinned {
 	static ASKS = "/framework/ai/asks.jsonl";
 	static AI = "/framework/ai/";
 	static CLOSED = new Set(["done", "archived"]);
-	static ASK_WAITING = new Set(["waiting", "parked", "needs-you"]);
+	static ASK_WAITING = DashRow.ASK_WAITING;   // one rule with the dashboard chip "Needs you" (DashRow)
 
 	title = "Waiting on you";
 	key = "waiting-on-you";
@@ -45,10 +46,7 @@ export default class WaitingOnYou extends Browse.Pinned {
 	/** A card waits on the owner while it is open and has status `needs-you`, or carries an owner note of kind `needs-you`
 	 *  (something only the owner can do: a key, a login, money). A `decision` or `risk` note is an FYI: it stays in the
 	 *  Timeline feed and does not wait. The words "for you" / "decision" no longer count (2026-10-16: doc/next.md). */
-	static waits(c){
-		if (WaitingOnYou.CLOSED.has(c.status)) return false;
-		return c.status === "needs-you" || c.owner_note?.kind === "needs-you";
-	}
+	static waits(c){ return DashRow.card_waits(c); }
 
 	static line(text){ return String(text).replace(/\s+/g, " ").trim().slice(0, 200); }
 

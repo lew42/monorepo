@@ -15,6 +15,8 @@ export default class DashRow {
 		if (this.card_waits(c)) return "needs";
 		return ["working", "building"].includes(c.status) ? "working" : "open";
 	}
+	/** An ask waits on the owner when its status is one of these; `parked` is set aside on purpose, so it does not (WaitingOnYou uses this set too). */
+	static ASK_WAITING = new Set(["waiting", "needs-you"]);
 	static ask_bucket(a){
 		const s = a.status;
 		if (s === "landed" || s === "done") return "done";
@@ -35,7 +37,7 @@ export default class DashRow {
 		const when = a.status_at ?? a.at ?? null, bucket = this.ask_bucket(a);
 		return { kind: "ask", id: "ask:" + a.id, title: a.title || a.id, state: a.status ?? "open", bucket, when, day: when ? day(when) : null,
 			created_day: a.at ? day(a.at) : null, who: a.owner ?? null, home: null, url: a.card ? this.AI + a.card + "/" : this.AI + "asks/",
-			line: this.line(a.why ?? a.words), needs: bucket === "waiting" };
+			line: this.line(a.why ?? a.words), needs: this.ASK_WAITING.has(a.status) };
 	}
 
 	/** Browser side: a `state.tasks` row, already folded by Task.replay, in the one shape. */

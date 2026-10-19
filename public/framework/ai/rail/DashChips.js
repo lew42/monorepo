@@ -45,12 +45,12 @@ export default class DashChips {
 	static finished(r){ return r.bucket === "landed" || r.bucket === "done"; }
 	static is_live(r, s){ return r.bucket === "in_flight" || (!!r.when && Date.parse(s.at) - Date.parse(r.when) < DashChips.LIVE_MIN * 60000 && Date.parse(s.at) >= Date.parse(r.when)); }
 	static is_new(r, s){
-		if (r.kind === "task") return r.bucket === "queued" || r.bucket === "idle";
+		if (r.kind === "task") return r.bucket === "queued" || (r.bucket === "idle" && (DashChips.age(r, s) ?? 0) <= 7);   // an idle task older than a week is Older
 		if (r.kind === "card") return (r.bucket === "open" || r.bucket === "working") && r.created_day === s.today;
 		return r.kind === "ask" && r.bucket === "queued";     // every ask nobody has picked up, not only today's
 	}
 	static in_recent(r, s, w){ const n = DashChips.age(r, s); return DashChips.finished(r) && n != null && n >= 0 && (w === "today" ? n === 0 : w === "yesterday" ? n === 1 : n <= 7); }
-	static in_older(r, s, w){ const n = DashChips.age(r, s); return DashChips.finished(r) && n != null && (w === "week" ? n >= 8 && n <= 34 : n >= 35); }
+	static in_older(r, s, w){ const n = DashChips.age(r, s); return (DashChips.finished(r) || r.bucket === "idle") && n != null && (w === "week" ? n >= 8 && n <= 34 : n >= 35); }
 
 	/** Does this row pass the chips that are on? */
 	match(r, s){

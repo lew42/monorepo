@@ -85,7 +85,7 @@ assert.equal(by("/a").day, "2026-10-17"); assert.equal(by("/a").url, "/framework
 assert.deepEqual([d.check.cards.rows, d.check.cards.sum, d.check.cards.ids, d.check.cards.ok], [5, 5, 5, true]);
 assert.equal(d.asks.length, 3);                                          // the never-routed update is no ask
 const ask = id => d.asks.find(r => r.id === "ask:" + id);
-assert.equal(ask("first-ask").bucket, "done"); assert.equal(ask("named").bucket, "waiting"); assert.equal(ask("named").needs, true); assert.equal(ask("quiet-ask").bucket, "queued");
+assert.equal(ask("first-ask").bucket, "done"); assert.equal(ask("named").bucket, "waiting"); assert.equal(ask("named").needs, false);   // parked is set aside, not waiting on the owner assert.equal(ask("quiet-ask").bucket, "queued");
 assert.equal(ask("first-ask").when, "2026-10-17T12:00:00-05:00"); assert.equal(ask("first-ask").url, "/framework/ai/2026/10/17/a/");
 assert.deepEqual([d.check.asks.rows, d.check.asks.sum, d.check.asks.ids, d.check.asks.ok], [3, 3, 3, true]);
 assert.deepEqual([d.check.sessions.in_sessions, d.check.sessions.with_session, d.check.sessions.ok], [d.check.sessions.with_session, d.check.sessions.with_session, true]);
