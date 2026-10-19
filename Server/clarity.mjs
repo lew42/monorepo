@@ -10,12 +10,29 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import SessionRecord from "./SessionRecord.mjs";
+import { ONE_PASS } from "../Servex/Lifecycle.js";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
 const dir = path.join(root, ".claude/skills/clarity");
 const log = path.join(dir, "flags.jsonl");
-const MCP = "http://127.0.0.1:8090/mcp";
+const MCP = `http://127.0.0.1:${process.env.SERVEX_API_PORT || process.env.SERVEX_PORT || 8090}/mcp`;
 const [kind, arg] = process.argv.slice(2);
+
+/* The gate: a one-pass role (reviewer, clarity, checker: Servex/Lifecycle.js ONE_PASS) is never reviewed,
+ * so a reviewer of a reviewer cannot happen. Pure; test: Server/clarity.test.mjs. */
+export class ClarityGate {
+	static skip(agent = "", role = ""){
+		if (ONE_PASS.test(role)) return "a one-pass " + role;
+		if (/^clarity-/.test(agent)) return "a clarity agent";
+		const m = /^(reviewer|checker)-/.exec(agent);
+		return m ? "a one-pass " + m[1] : "";
+	}
+	static of_task(arg){   // the agent that landed this task dir, from its log's assign lines
+		let agent = path.basename(path.resolve(arg)), role = "";
+		try { for (const l of fs.readFileSync(SessionRecord.log_or_old(arg), "utf8").split("\n")){ const a = JSON.parse(l || "{}").assign; if (a?.agent) agent = a.agent; if (a?.role) role = a.role; } } catch {}
+		return this.skip(agent, role);
+	}
+}
 
 const rel = p => path.relative(root, path.resolve(p)).replaceAll("\\", "/");
 const note = o => { try { fs.appendFileSync(log, JSON.stringify({ at: new Date().toISOString(), ...o }) + "\n"); } catch {} };
@@ -24,6 +41,14 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function main(){
 	if (!["landing", "proposal", "look"].includes(kind) || !arg) return;
 	if (process.env.CLARITY === "off" || fs.existsSync(path.join(dir, "off"))) return;
+	if (kind === "landing"){   // one log line per agent, the first time
+		const why = ClarityGate.of_task(arg), t = rel(arg);
+		if (why){
+			const seen = fs.existsSync(log) && fs.readFileSync(log, "utf8").split("\n").some(l => { try { const e = JSON.parse(l); return e.target === t && e.verdict === "skipped" && e.what?.startsWith(why); } catch { return false; } });
+			if (!seen) note({ target: t, verdict: "skipped", what: why + ": no reviewer of a reviewer" });
+			return;
+		}
+	}
 	const target = kind === "look" ? "look:" + arg : rel(arg);
 	if (/\/clarity(\/|$)/.test(target)) return;                 // never check itself
 
@@ -90,4 +115,4 @@ async function main(){
 		note({ target, verdict: "not run", what: "Servex unreachable: " + String(e?.message || e).slice(0, 150) });
 	}
 }
-main().catch(() => {}).finally(() => { process.exitCode = 0; });
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch(() => {}).finally(() => { process.exitCode = 0; });
