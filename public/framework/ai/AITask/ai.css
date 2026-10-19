@@ -199,9 +199,10 @@
 	   Silent when empty: `needs.js` draws no box at all. */
 	.ai-needs {
 		display: flex; flex-direction: column; gap: var(--gap-35);
-		padding: var(--pad); border-radius: .4em;
-		border-inline-start: 3px solid var(--prime);
+		--card-edge: var(--prime);
 	}
+	/* The flex gap spaces the lines; .card's own child spacing would double it. */
+	.ai-needs > * + * { margin-block-start: 0; }
 	.ai-needs-head { margin-block-end: var(--gap-25); }
 
 	/* ⚠ The row's gap is in its OWN em, never `--gap`: the clamp caps at 2.6em,
@@ -386,9 +387,8 @@
 	/* The box stops where its text does — the measure plus its own padding — so a
 	   wide screen does not get a 1,080px card around a 720px sentence. */
 	.ai-you {
-		padding: var(--gap-70);
 		max-width: calc(var(--measure, 40em) + 3em);
-		border-radius: .4em; min-width: 0; overflow-wrap: anywhere;
+		min-width: 0; overflow-wrap: anywhere;
 		outline: 2px solid transparent;
 	}
 	.ai-you.lit { outline-color: var(--prime); }

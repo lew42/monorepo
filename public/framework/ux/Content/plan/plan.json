@@ -1307,7 +1307,9 @@
 				"/framework/ui/decision/",
 				"/framework/ux/Card/",
 				"/framework/ux/Content/Decision/"
-			]
+			],
+			"done": "2026-10-19",
+			"note": "Done in part: the needs-you strip (.ai-needs) and the owner prompt bubble (.ai-you) are now .card (needs-you keeps its prime edge through --card-edge and its flex gap, with .card's own child spacing switched off so the gap is not doubled). Measured live at 1920 on the real needs_strip() markup: 700x153 to 700x157, pad 16px to 18.2px; prompt bubble 688x60 to 688x62 (one line), a two-part prompt 122px to 133px. At 390 the prompt's padding grows 9.8px to 16px: that is the card kind's padding. Left on their own rules, because the plan's own measurements show a redesign, not a box swap (ask card 370px to 178px, inbox tile 71px to 116px, highlight 178px to 116px, proposal quote 90px to 166px): v3-tile, ai-ask, ai2-full, ai-hl, dev-chat-card, ui-decision/ai-decision, ai2-proposal, ai2-flag, v3-ask. Their files are still counted here."
 		},
 		{
 			"id": "ai-rows",

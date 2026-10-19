@@ -176,10 +176,10 @@ function open_turn(state, $stream, prompt){
 function you(l){
 	const { prose, parts } = parse(l);
 	const cmd = command(parts);
-	// ⚠ `surface`, not `wash`: the page ground here is already light grey and
+	// ⚠ `card`, not `wash`: the page ground here is already light grey and
 	// `wash` is #f2f2f2 on top of it — measured invisible. A white card on grey
 	// is the same cue every other box on this page uses.
-	div.c("ai-you surface", () => {
+	div.c("ai-you card", () => {
 		if (cmd) pre.c("ai-cmd", cmd);
 		if (prose) md(prose);
 		harness(parts);
