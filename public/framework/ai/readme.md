@@ -29,6 +29,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Undone asks** (every ask with no landed task or card, by module, computed daily): [asks/undone](/framework/ai/asks/undone/) · [verdict](doc/undone-asks-2026-10-17.md) · `node Server/UndoneAsks.mjs`
 - **One state** (every task in both stores, one bucket each, with a self-check; every count reads it): `state.json` here, written by [Server/State.mjs](/Server/State.mjs) · [design](/Server/doc/state.md) · [why](doc/one-state.md) · the dashboard [tasks/](tasks/readme.md) shows its check in red when it fails
 - **One dashboard** (a proposal to agree on: the Inbox becomes the one list over `state.json`, with Live / New / Recent / Older / Needs-you chips; the other pages become saved filters; nothing built yet): [doc/one-dashboard.md](doc/one-dashboard.md)
+- **What happened 10-17 to 10-19** (your asks in order, what landed each day, what waits on you, the usage numbers explained): [doc/overview-2026-10-17-to-19.md](doc/overview-2026-10-17-to-19.md)
 - **Asks tally** (every ask you typed since 09-15, counted by feature, with what landed and what never did): [doc/asks-outcomes.md](doc/asks-outcomes.md) · `node Server/AskTally.mjs page`
 - **Follow-up** (what fell through the cracks, computed; plus unused-file census): [doc/follow-up.md](doc/follow-up.md) · [doc/unreferenced.md](doc/unreferenced.md) · `node Server/FollowUp.mjs --write`
 - **Sessions** (VS Code tabs, browser voice agents): [sessions/](sessions/readme.md) · [conversations](doc/logs/conversations.md)
