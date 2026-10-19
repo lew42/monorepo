@@ -373,15 +373,9 @@ function lint_findings(){
 	// deliberate compact style repeated on every page that uses them — the
 	// same reasoning as a control keeping its own `em`, just for two more
 	// tag names the rule had not been given yet.
-	// ⚠ Also excludes `.ai-fold-bar` (2026-09-19, `health-quiet`): it is a
-	// clickable disclosure toggle (`cursor: pointer`), not a plain text box —
-	// `ai/AITask/ai.css` (lines 316-319) already documents this exact
-	// element as a control that keeps its own em-sized padding on purpose,
-	// and notes that an earlier automated tool (the spacing census) flagged
-	// it as a mistake for the same reason this rule just did, and was wrong:
-	// "the class is not named like a button; it was right all along." Not a
-	// guess — the CSS file's own comment already settled this one.
-	const IS_CONTROL = "a.btn, .btn, button, summary, select, textarea, input, code, th, td, .ai-fold-bar";
+	// (`.ai-fold-bar` was retired by the card fold merge: its replacement,
+	// `details.ui-accordion-item`, toggles with a `summary`, already listed here.)
+	const IS_CONTROL = "a.btn, .btn, button, summary, select, textarea, input, code, th, td";
 	for (const el of document.body.querySelectorAll("*")) {
 		if (findings.length >= CAP) break;
 		if (el.matches(IS_CONTROL)) continue;
