@@ -25,3 +25,4 @@
 {"log":{"at":"2026-10-17T10:10:17-05:00","heartbeat":"deliberate","msg":"helper-live-post its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:16:35-05:00; not revived."}}
 {"log":{"at":"2026-10-17T10:29:56-05:00","heartbeat":"deliberate","msg":"helper-live-post its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:16:35-05:00; not revived."}}
 {"log":{"at":"2026-10-17T11:17:30-05:00","heartbeat":"deliberate","msg":"helper-live-post its agent is not running: it was stopped on purpose by mastermind-voice-20261015 at 2026-10-15T18:16:35-05:00; not revived."}}
+{"stop":{"at":"2026-10-19T00:04:11-05:00","why":"abandoned: no agent since 2026-10-17T11:17:30-05:00; closed by StaleClose 2026-10-19","by":"StaleClose"}}

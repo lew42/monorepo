@@ -2,3 +2,4 @@
 {"log":{"at":"2026-10-17T13:00:32-05:00","heartbeat":"check","msg":"status check sent to minion-unclear-09-look"}}
 {"log":{"at":"2026-10-17T13:01:05-05:00","heartbeat":"answered","msg":"Done: the results file is written and I'm stopped, with no further work running."}}
 {"log":{"at":"2026-10-17T13:13:32-05:00","heartbeat":"deliberate","msg":"minion-unclear-09-look its agent is not running: it was stopped on purpose by mastermind-unclear-asks at 2026-10-17T13:03:08-05:00; not revived."}}
+{"stop":{"at":"2026-10-19T00:04:06-05:00","why":"abandoned: no agent since 2026-10-17T13:13:32-05:00; closed by StaleClose 2026-10-19","by":"StaleClose"}}

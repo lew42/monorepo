@@ -2,3 +2,4 @@
 {"log":{"at":"2026-10-17T10:51:51-05:00","heartbeat":"check","msg":"status check sent to minion-uv-22"}}
 {"log":{"at":"2026-10-17T10:52:26-05:00","heartbeat":"answered","msg":"Done: `results.json` is written with all 23 asks, and I've stopped. Four rows (`12dc839c7e`, `475575f733`, `328d10384f`, `ad433b0ac9`) list searches I did not actually run, so those verdicts need rech"}}
 {"log":{"at":"2026-10-17T11:13:55-05:00","heartbeat":"deliberate","msg":"minion-uv-22 its agent is not running: it was stopped on purpose by lifecycle at 2026-10-17T11:03:04-05:00; not revived."}}
+{"stop":{"at":"2026-10-19T00:04:08-05:00","why":"abandoned: no agent since 2026-10-17T11:13:55-05:00; closed by StaleClose 2026-10-19","by":"StaleClose"}}

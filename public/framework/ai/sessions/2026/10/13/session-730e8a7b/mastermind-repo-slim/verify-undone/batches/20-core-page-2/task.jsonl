@@ -2,3 +2,4 @@
 {"log":{"at":"2026-10-17T10:58:52-05:00","heartbeat":"check","msg":"status check sent to minion-uv-20"}}
 {"log":{"at":"2026-10-17T10:59:25-05:00","heartbeat":"answered","msg":"The task is finished: `results.json` is written with a verdict for all 20 asks, and I'm not doing anything else."}}
 {"log":{"at":"2026-10-17T11:13:57-05:00","heartbeat":"deliberate","msg":"minion-uv-20 its agent is not running: it was stopped on purpose by lifecycle at 2026-10-17T11:03:05-05:00; not revived."}}
+{"stop":{"at":"2026-10-19T00:04:08-05:00","why":"abandoned: no agent since 2026-10-17T11:13:57-05:00; closed by StaleClose 2026-10-19","by":"StaleClose"}}

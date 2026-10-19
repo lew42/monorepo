@@ -3,3 +3,4 @@
 {"review":{"at":"2026-10-17T10:48:14-05:00","answer":{"n":2,"reply":"noted: same follow-up as 1"}}}
 {"review":{"at":"2026-10-17T10:48:14-05:00","answer":{"n":3,"reply":"noted: harmless, a fallback only"}}}
 {"review":{"at":"2026-10-17T10:48:14-05:00","answer":{"n":4,"reply":"noted: matches item_tool.test.mjs, cleans up in finally"}}}
+{"stop":{"at":"2026-10-19T00:04:12-05:00","why":"abandoned: no agent since 2026-10-17T15:48:14.126Z; closed by StaleClose 2026-10-19","by":"StaleClose"}}

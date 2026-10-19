@@ -2,3 +2,4 @@
 {"log":{"at":"2026-10-17T10:52:55-05:00","heartbeat":"check","msg":"status check sent to minion-uv-03"}}
 {"log":{"at":"2026-10-17T10:53:28-05:00","heartbeat":"answered","msg":"Done: `results.json` is written in the batch folder with all 23 verdicts, and I edited nothing else. I'm stopped and have no further work running."}}
 {"log":{"at":"2026-10-17T11:13:56-05:00","heartbeat":"deliberate","msg":"minion-uv-03 its agent is not running: it was stopped on purpose by lifecycle at 2026-10-17T11:03:04-05:00; not revived."}}
+{"stop":{"at":"2026-10-19T00:04:06-05:00","why":"abandoned: no agent since 2026-10-17T11:13:56-05:00; closed by StaleClose 2026-10-19","by":"StaleClose"}}

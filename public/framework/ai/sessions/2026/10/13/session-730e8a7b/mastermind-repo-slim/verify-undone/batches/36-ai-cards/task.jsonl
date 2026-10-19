@@ -3,3 +3,4 @@
 {"log":{"at":"2026-10-17T11:03:30-05:00","heartbeat":"answered","msg":"Done: `results.json` is written and parses. Both asks are marked undone, with evidence in the file. Nothing else is in progress."}}
 {"log":{"at":"2026-10-17T11:14:59-05:00","heartbeat":"check","msg":"status check sent to minion-uv-36"}}
 {"log":{"at":"2026-10-17T11:15:32-05:00","heartbeat":"answered","msg":"Finished. `results.json` is written and validated, and I'm not doing anything else."}}
+{"stop":{"at":"2026-10-19T00:04:10-05:00","why":"abandoned: no agent since 2026-10-17T11:15:32-05:00; closed by StaleClose 2026-10-19","by":"StaleClose"}}

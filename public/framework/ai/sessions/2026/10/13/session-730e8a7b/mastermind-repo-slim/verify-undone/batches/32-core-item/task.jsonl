@@ -2,3 +2,4 @@
 {"log":{"at":"2026-10-17T11:02:00-05:00","heartbeat":"check","msg":"status check sent to minion-uv-32"}}
 {"log":{"at":"2026-10-17T11:02:36-05:00","heartbeat":"answered","msg":"Done: `results.json` is written at the batch path in the brief, and I'm stopped. No further work is pending on my side."}}
 {"log":{"at":"2026-10-17T11:13:57-05:00","heartbeat":"deliberate","msg":"minion-uv-32 its agent is not running: it was stopped on purpose by lifecycle at 2026-10-17T11:03:06-05:00; not revived."}}
+{"stop":{"at":"2026-10-19T00:04:10-05:00","why":"abandoned: no agent since 2026-10-17T11:13:57-05:00; closed by StaleClose 2026-10-19","by":"StaleClose"}}
