@@ -179,4 +179,27 @@
 			padding-inline-end: 0.8em;
 		}
 	}
+
+	/* THE CLASS CARD (ext/Doc/ClassCard.js, doc/class-card.md): the API tab's home for a class.
+	   A title card, then groups of plain unboxed rows. ⚠ No backgrounds or borders on the rows:
+	   the only boxed thing here is the title card, which is the #Class mention's own dark card. */
+	.class-api > .tab-bar { display: none; }
+	.class-api > .tab-panel { width: 100%; }
+
+	.class-card { display: flex; flex-direction: column; gap: 1.5em; width: 100%; }
+	.class-card-title { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em 1em; }
+	.class-card-name .mention { font-size: 1.6em; padding: 0.2em 0.6em; }
+	.class-card-gist { color: var(--subtle); }
+	.class-card-group { display: flex; flex-direction: column; gap: 0.3em; }
+	.class-card-head { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5em; font-weight: 600; color: var(--subtle); }
+	.class-card-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(14em, 100%), 1fr)); gap: 0 1em; }
+	.class-card-item .item-icon { font-size: 0.9em; }
+	.class-card-more > summary { cursor: pointer; color: var(--subtle); padding: 0.3em 0.6em; background: none; border: none; box-shadow: none; min-height: 0; }
+	.class-card-more[open] > summary { margin-bottom: 0.3em; }
+	.class-card-item .item-name { overflow-wrap: anywhere; }
+	.class-card-item .item-name { font-family: var(--mono, monospace); font-size: 0.9em; }
+	.class-card-item.property .item-icon { color: var(--subtle); }
+	.class-card-item.method .item-icon { color: var(--prime-ink); }
+	div.class-card-item { color: var(--subtle); }
+	.class-card-back { display: inline-flex; align-items: center; gap: 0.3em; color: var(--subtle); text-decoration: none; font-size: 0.9em; }
 }

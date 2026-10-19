@@ -22,6 +22,7 @@ export default new Doc({
 Empty section, no tab. Nothing at the call site says "tab" — a different shape overrides `sections()`.
 
 ## Watch out
+- A class's API tab opens on a **ClassCard**: title card, Core API (the Doc's `core: "name:weight …"`), own members, then inherited groups read off the prototype chain: [doc/class-card.md](./doc/class-card.md)
 - A note name may nest (`"guide/setup"`) — each interior segment becomes its own real, bookmarkable page, and the Docs tab draws a folder tree instead of its usual vertical tab bar the moment any note does: [doc/tree/nesting.md](./doc/tree/nesting.md)
 - `.../docs/...` resolves to `.../doc/...` automatically and fixes the address bar, so a typed-out-of-habit "docs" doesn't 404: [doc/tree/redirect/docs.md](./doc/tree/redirect/docs.md)
 - A Doc nested inside another Doc's tab panel draws its own strip as a left rail (`.tabs.vertical`), never a second well — automatic, no flag: [doc/decisions.md](./doc/decisions.md)
