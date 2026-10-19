@@ -67,6 +67,9 @@ const measure = (root, tries = 30) => {
 	});
 };
 
+/* The commit each merge landed in (plan.json records only the date, and is not edited by hand). */
+const LANDED = { popovers: "42f94a4be", folds: "7cbbb67f8" };
+
 const RISK = { low: "low risk", med: "medium risk", high: "high risk" };
 const risk = r => span.c(`ui-pill ux-content-plan-risk ux-content-plan-risk-${r}`, RISK[r]);
 const pages = list => details.c("ux-content-plan-pages", () => {
@@ -91,6 +94,8 @@ export default new Page({
 					span.c("ux-content-plan-big", `${from} → ${to}`);
 					span(label);
 				}));
+			const landed = plan.merges.filter(m => m.done), left = plan.merges.filter(m => !m.done);
+			p.c("ux-content-plan-sum", `${landed.length} of ${plan.merges.length} merges landed; ${new Set(left.flatMap(m => m.kinds)).size} kinds are still to merge.`);
 			p.c("ux-content-plan-sum muted", `${plan.to.merged} kinds merge into ${plan.to.targets} targets, ${plan.to.kept} widgets keep their own shape, ${plan.to.dropped} are dropped. The padding rules left: ${plan.to.rules.join(", ")}.`);
 		});
 
@@ -114,12 +119,15 @@ export default new Page({
 			const m = plan.merges.find(x => x.id === o.merge);
 			div.c("ux-content-plan-merge", () => {
 				div.c("ux-content-plan-merge-head", () => {
-					h3(`${o.step}. ${m.title}`);
+					h3(`${o.step}. ${m.title}${m.done ? " ✅" : ""}`);
+					if (m.done) p.c("muted", `Landed ${m.done}${LANDED[m.id] ? ` in ${LANDED[m.id]}` : ""}.`);
 					div.c("flex wrap gap-25 v-center", () => { risk(m.risk); span.c("ui-pill ui-badge outline", `${m.files.length} files`); span.c("ui-pill ui-badge outline", `${m.pages.length} pages`); span.c("ui-pill ui-badge outline", `into ${m.into}`); });
 					p.c("muted", m.risk_why + (m.also ? ` Also: ${m.also}` : "") + (m.reach ? ` Reach: ${m.reach}` : ""));
 					if (m.visible_change) p(m.visible_change);
 				});
-				m.kinds.forEach(name => {
+				const fold = m.done ? (body => details.c("ux-content-plan-pages", () => { summary(`${m.kinds.length} before and after pairs, folded`); body(); }))
+					: (body => body());
+				fold(() => m.kinds.forEach(name => {
 					const k = kinds.get(name), kp = kind_plan.get(name);
 					if (!kp.after) return;
 					div.c("ux-content-plan-pair", () => {
@@ -135,7 +143,7 @@ export default new Page({
 							span.c("ux-content-plan-inset muted", " ");
 						}).attr("data-kind", name).attr("data-side", "after");
 					});
-				});
+				}));
 			});
 		}));
 		requestAnimationFrame(() => measure($merges.el));
