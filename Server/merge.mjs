@@ -74,6 +74,7 @@ const skipSmoke = bool("--skip-smoke");
 const dryRun = bool("--dry-run");
 const mainArg = flag("--main");
 const noReview = flag("--no-review");
+const reviewDir = flag("--review-dir");   // the task dir to look in when it sits under a session older than the 4-day scan (a long-lived mastermind's tasks)
 const quick = bool("--quick");
 const asked = flag("--asked");
 const mergeStart = Date.now();
@@ -197,7 +198,7 @@ function reviewGate(branch, head){
 		const p = path.join(aiDir, "sessions", y, m, dd);
 		if (fs.existsSync(p)) days.push(p);
 	}
-	for (const day of days)
+	for (const day of [...days, ...(reviewDir ? [path.resolve(MAIN, reviewDir)] : [])])
 		for (const tj of taskLogs(day)) {
 			const td = path.dirname(tj);
 			for (const l of lines(fs.readFileSync(tj, "utf8"))) {

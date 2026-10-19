@@ -29,3 +29,14 @@
 {"log":{"at":"2026-10-19T17:00:01-05:00","msg":"review 3 (parked asks): answered by fix 1, a parked ask is not waiting. 4 (walk_dirty weakens the different-discovery proof): kept; the trade-off is the 0.65 s gain, a missed watch event is caught by the 10-minute REWALK. 5 (group and changed-page rows leave the Inbox): kept, said in the owner note. 6 (long line wraps in Older at 1920): not fixed, cosmetic, left for the saved-filters step. 7 (Older has no own past-work search): kept, the rail search runs over the state rows and PastWork.mjs has no browser reader. 8: this landing."}}
 {"log":{"at":"2026-10-19T17:00:02-05:00","msg":"layout watch: /framework/ (0.633/0.702) and /framework/core/Page/ext/Inbox/ (0.734 at 3440) flagged after my save; neither page's markup or css changed in this task (only WaitingOnYou's rule functions), so these are pre-existing empty shares like /framework/ai/tasks/ (0.645/0.745 on the main tree)."}}
 {"review":{"at":"2026-10-19T16:56:31-05:00","found":8,"real":3,"fixed":2}}
+{"commit":"a1e8eaaac933"}
+{"review":{"at":"2026-10-19T16:57:33-05:00","answer":{"n":1,"reply":"fixed: Needs you chip and the Waiting on you pin share one rule (DashRow.card_waits and DashRow.ASK_WAITING; WaitingOnYou imports them). 7e0c5a2b5"}}}
+{"review":{"at":"2026-10-19T16:57:33-05:00","answer":{"n":2,"reply":"fixed: an idle task counts as New only when 7 days old or less; older idle is under Older (DashChips.is_new, in_older). 7e0c5a2b5"}}}
+{"review":{"at":"2026-10-19T16:57:33-05:00","answer":{"n":3,"reply":"fixed: a parked ask no longer waits (answered by 1)."}}}
+{"review":{"at":"2026-10-19T16:57:33-05:00","answer":{"n":4,"reply":"noted: the second count is incremental to take the 2.4 s down to 0.65 s; a missed watch event is caught by the 10-minute REWALK. Written in Server/doc/state.md."}}}
+{"review":{"at":"2026-10-19T16:57:33-05:00","answer":{"n":5,"reply":"noted: group and changed-page rows leave the Inbox list on purpose (one row type); said in the owner note."}}}
+{"review":{"at":"2026-10-19T16:57:33-05:00","answer":{"n":6,"reply":"noted: cosmetic wrap of a long line in Older at 1920; left for the saved-filters step."}}}
+{"review":{"at":"2026-10-19T16:57:33-05:00","answer":{"n":7,"reply":"noted: the rail search runs over the state rows; PastWork.mjs has no browser reader, so Older has no search of its own."}}}
+{"review":{"at":"2026-10-19T16:57:33-05:00","answer":{"n":8,"reply":"noted: this landing (merge, finish line, Servex restart by the mastermind)."}}}
+{"commit":"68c543db424c"}
+{"log":{"at":"2026-10-19T16:59:38-05:00","msg":"worktree-watch: /framework/ai/tasks/ breaks at 1920/3440 px: empty share 0.643/0.76 (over 0.6). Shot: C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/shots/framework-ai-tasks-1920.png. 11 s after your save. (qf-6)"}}
