@@ -735,37 +735,14 @@
 				"fold (expando bar)",
 				"sub-card table of contents"
 			],
-			"grep": "ui-accordion-item|ai-fold|ai2-toc|v3-day-row",
+			"grep": "c\\(\"[^\"]*ai-fold",
 			"risk": "med",
 			"risk_why": "The AI fold builds its body only on first open; that behaviour has to survive the move to a plain details element.",
 			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — accordion item: first word 48px → 29px from the left edge, 26px → 11px from the top; height 72px → 81px; fold (expando bar): first word 12px → 28px from the left edge, 8px → 10px from the top; height 37px → 40px; sub-card table of contents: first word 26px → 28px from the left edge, 8px → 10px from the top; height 174px → 117px.",
-			"files": [
-				"public/framework/ai/AITask/ai.css",
-				"public/framework/ai/AITask/conversation.js",
-				"public/framework/ai/AITask/feed.js",
-				"public/framework/ai/AITask/message.js",
-				"public/framework/ai/AITask/replay.js",
-				"public/framework/ai/cards/Faces.js",
-				"public/framework/ai/cards/Tasks.js",
-				"public/framework/ai/cards/card.js",
-				"public/framework/ai/sessions/2026/09/19/health-quiet/page.js",
-				"public/framework/ai/v/3/page.js",
-				"public/framework/ai/v/3/v3.css",
-				"public/framework/ui/accordion/accordion.js",
-				"public/framework/ui/accordion/page.js",
-				"public/framework/ux/Card/Card.css",
-				"public/imagine/paging/demos.js",
-				"public/imagine/paging/stage.js"
-			],
-			"pages": [
-				"/framework/ai/",
-				"/framework/ai/AITask/",
-				"/framework/ai/sessions/2026/09/19/health-quiet/",
-				"/framework/ai/v/3/",
-				"/framework/ui/accordion/",
-				"/framework/ux/Card/",
-				"/imagine/paging/"
-			]
+			"files": [],
+			"pages": [],
+			"done": "2026-10-19",
+			"note": "Done: the accordion item and the AI fold are one details.ui-accordion-item. The sub-card contents (ai2-toc) and the v3 day row moved to ai-rows (their rules are row rules)."
 		},
 		{
 			"id": "frames",
@@ -1356,7 +1333,7 @@
 				"group heading (ai-group)"
 			],
 			"also": "Needs .ui-row to exist first (a new ui/row template).",
-			"grep": "ai-prompt\\b|ai2-row|ai2-ov-row|ai2-live-item|ai-msg\\b|ai-turn\\b|ai2-chat|panel-props-row|ai-group\\b|ai-group-title",
+			"grep": "ai-prompt\\b|ai2-row|ai2-ov-row|ai2-live-item|ai-msg\\b|ai-turn\\b|ai2-chat|panel-props-row|ai-group\\b|ai-group-title|ai2-toc|v3-day-row",
 			"risk": "high",
 			"risk_why": "Needs a new class first, and the rows carry a fixed height the rail depends on (the inbox row is always the same height).",
 			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — inbox row (rail preview): first word 28px → 10px from the left edge, 13px → 11px from the top; height 76px → 72px; live item: first word 28px → 10px from the left edge, 13px → 12px from the top; height 87px → 43px; chat line: first word 0px → 10px from the left edge, 4px → 12px from the top; height 29px → 43px; panel properties row: first word 8px → 10px from the left edge, 12px → 11px from the top; height 96px → 43px; group heading (ai-group): first word 0px → 0px from the left edge, 3px → 7px from the top; height 26px → 34px.",
@@ -1374,6 +1351,7 @@
 				"public/framework/ai/AITask/needs.js",
 				"public/framework/ai/AITask/shots.js",
 				"public/framework/ai/cards/Faces.js",
+				"public/framework/ai/cards/Tasks.js",
 				"public/framework/ai/cards/card.js",
 				"public/framework/ai/cards/real.js",
 				"public/framework/ai/rail/Log.js",
@@ -1383,6 +1361,8 @@
 				"public/framework/ai/rail/rail.js",
 				"public/framework/ai/sessions/2026/09/28/e269b131-e2d2-4712-a88d-b243d631bd04/organization/card/organization.js",
 				"public/framework/ai/v/2/v2.css",
+				"public/framework/ai/v/3/page.js",
+				"public/framework/ai/v/3/v3.css",
 				"public/framework/ai2/ai2.css",
 				"public/framework/ext/Panel/properties.js",
 				"public/framework/ext/Panel/templates.css",
@@ -1394,6 +1374,7 @@
 				"/framework/ai/AITask/",
 				"/framework/ai/sessions/2026/09/28/",
 				"/framework/ai/v/2/",
+				"/framework/ai/v/3/",
 				"/framework/ai2/",
 				"/framework/ext/Panel/",
 				"/framework/ux/Card/"
@@ -1452,15 +1433,7 @@
 			"merge": "folds",
 			"title": "Folds are one details element",
 			"risk": "med",
-			"screenshot": [
-				"/framework/ai/",
-				"/framework/ai/AITask/",
-				"/framework/ai/sessions/2026/09/19/health-quiet/",
-				"/framework/ai/v/3/",
-				"/framework/ui/accordion/",
-				"/framework/ux/Card/",
-				"/imagine/paging/"
-			]
+			"screenshot": []
 		},
 		{
 			"step": 6,
@@ -1521,6 +1494,7 @@
 				"/framework/ai/AITask/",
 				"/framework/ai/sessions/2026/09/28/",
 				"/framework/ai/v/2/",
+				"/framework/ai/v/3/",
 				"/framework/ai2/",
 				"/framework/ext/Panel/",
 				"/framework/ux/Card/"

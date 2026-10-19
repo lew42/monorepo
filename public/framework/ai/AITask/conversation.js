@@ -1,4 +1,4 @@
-import { div, p, pre, a, button, small, span } from "../../core/View/View.js";
+import { div, p, pre, a, button, small, span, details, summary } from "../../core/View/View.js";
 import md from "../../ext/markdown/md.js";
 import { parse, command, harness, trivial } from "./prompt.js";
 import { message, fold } from "./message.js";
@@ -205,14 +205,14 @@ function step(turn, raw){
 			// ⚠ The body is built on its FIRST open, never before: a long session
 			// holds thousands of these lines, and rendering them all into hidden
 			// DOM is the 3 MB the fold exists to avoid.
-			div.c("ai-fold ai-steps-fold", $fold => {
-				run.$bar = div.c("ai-fold-bar ai-step-bar muted", "…").on("click", () => {
-					$fold.el.classList.toggle("open");
-					if (run.built) return;
+			details.c("ui-accordion-item ai-steps-fold", $fold => {
+				run.$bar = summary.c("ai-step-bar muted", "…");
+				run.$body = div.c("ai-step-body");
+				$fold.on("toggle", () => {
+					if (!$fold.el.open || run.built) return;
 					run.built = true;
 					run.$body.append(() => run.lines.forEach(l => message(l)));
 				});
-				run.$body = div.c("ai-fold-body ai-step-body");
 			});
 		});
 	}

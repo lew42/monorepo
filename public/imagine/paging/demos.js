@@ -91,7 +91,7 @@ export function launch_demo(){
 }
 
 /* ── EXPAND — the row itself grows ─────────────────────────────────────────────
-   `ui/accordion`, verbatim: `<details class="ui-accordion-item pad">` inside a
+   `ui/accordion`, verbatim: `<details class="ui-accordion-item">` inside a
    `.surface flex v` box, with a shared `name` so only one is open at a time. No
    JavaScript at all — the browser does the disclosure, and the ui/ stylesheet
    draws the hairline between rows. The row you click gets taller and everything
@@ -104,7 +104,7 @@ const QA = [
 
 export function expand_demo(){
 	return div.c("paging-mini surface flex v", () => QA.forEach(([question, answer]) =>
-		details.c("ui-accordion-item pad", () => {
+		details.c("ui-accordion-item", () => {
 			summary(question);
 			p.c("muted", answer);
 		}).attr("name", "paging-expand-demo")));

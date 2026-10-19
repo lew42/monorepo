@@ -1,4 +1,4 @@
-import { div, p, pre } from "../../core/View/View.js";
+import { div, p, pre, details, summary } from "../../core/View/View.js";
 import md from "../../ext/markdown/md.js";
 import { parse, command, harness, trivial } from "./prompt.js";
 import { message, chars_of } from "./message.js";
@@ -13,17 +13,17 @@ import { ref, clock, dur, count, elapsed } from "./stats.js";
 export function replay(session_id, label = "session"){
 	if (!session_id) return;
 	let loaded = false, $body;
-	return div.c("ai-replay ai-fold", () => {
-		div.c("ai-fold-bar wash", "replay — " + label).on("click", async e => {
-			e.currentTarget.parentElement.classList.toggle("open");
-			if (loaded) return;
+	return details.c("ai-replay ui-accordion-item", $fold => {
+		summary.c("wash", "replay — " + label);
+		$body = div();
+		$fold.on("toggle", async () => {
+			if (!$fold.el.open || loaded) return;
 			loaded = true;
 			const lines = await load(session_id);
 			$body.append(() => lines?.length
 				? render(lines, session_id)
 				: p("Transcript unavailable — replays are served by the dev server only."));
 		});
-		$body = div.c("ai-fold-body");
 	});
 }
 
