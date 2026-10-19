@@ -14,6 +14,7 @@ import { Agents } from "./Agents.js";
 import { Outline } from "./Outline.js";
 import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "../rail/inbox.js";
 import { Needs } from "../rail/Needs.js";
+import "/framework/ui/row/row.js";   // .ui-row: the sub-card list rows
 import "/framework/ext/tabs/tabs.js";   // for its stylesheet: a card's tab strip wears .tabs / .tab-bar / .tab
 import { Activity } from "./Activity.js";
 import { Rules } from "./Rules.js";
@@ -50,7 +51,7 @@ const stamp = () => {
 
 export function card_link(s, href){
 	const done = DONE.has(s.status);
-	a.c("ai2-toc-row page-link" + (done ? " ai2-toc-done" : "")).href(href).append(() => {
+	a.c("ui-row ai2-toc-row page-link" + (done ? " ai2-toc-done" : "")).href(href).append(() => {
 		icon(done ? "check_box" : type_icon(s.type));
 		div.c("ai2-toc-body", () => {
 			span.c("ai2-toc-title").text(s.title || s.id.split("/").at(-1));
@@ -1149,7 +1150,7 @@ Card.Folder = class CardFolder extends Page {
 		const groups = new Map();
 		mine.forEach(c => { const seg = c.id.split("/")[this.level()]; groups.set(seg, (groups.get(seg) ?? 0) + 1); });
 		[...groups].sort((x, y) => y[0].localeCompare(x[0])).forEach(([seg, n]) => {
-			a.c("ai2-toc-row page-link").href(this.url + seg + "/").append(() => {
+			a.c("ui-row ai2-toc-row page-link").href(this.url + seg + "/").append(() => {
 				icon("folder");
 				div.c("ai2-toc-body", () => {
 					span.c("ai2-toc-title").text(this.constructor.title_of(this.id + "/" + seg));

@@ -43,7 +43,7 @@ export default new Doc({
 	// `datagrid` too, same reason again: it would make Data seven — data-grid
 	// task, 2026-10-03. The full behaviour (resize, sort, filter, windowing) built
 	// on top of this markup is `ext/DataGrid`, which has its own page.
-	children: names.join(" ") + " background scale section item icon datagrid",
+	children: names.join(" ") + " background scale section item icon datagrid row",
 
 	/* Overview · API · Docs · Files, and nothing else. Doc's own bar() lists every
 	   declared child between the Overview and the reference sections, which is right
@@ -73,7 +73,7 @@ export default new Doc({
 	files: "ui.js parts.js page.js readme.md "
 		+ "table/table.js table/page.js datagrid/datagrid.js datagrid/page.js field/page.js crumbs/crumbs.js crumbs/page.js "
 		+ "pagination/page.js card/page.js stats/page.js badge/badge.js badge/page.js "
-		+ "alert/alert.js alert/page.js toolbar/page.js tags/page.js panel/panel.js panel/page.js "
+		+ "alert/alert.js alert/page.js toolbar/page.js tags/page.js panel/panel.js panel/page.js row/row.js row/page.js "
 		+ "tooltip/tooltip.js tooltip/page.js avatar/avatar.js avatar/page.js dialog/dialog.js dialog/page.js "
 		+ "progress/page.js menu/menu.js menu/page.js accordion/accordion.js accordion/page.js "
 		+ "timeline/timeline.js timeline/page.js kbd/kbd.js kbd/page.js "

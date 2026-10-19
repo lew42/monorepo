@@ -3,6 +3,7 @@ import { icon } from "/framework/core/View/View.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
 import { author_word, plain } from "../rail/inbox.js";
 import { md_into } from "./CardChat.js";
+import "/framework/ui/row/row.js";   // .ui-row: the sub-card list rows
 import { Meter } from "./Meter.js";
 import { prompt_modes } from "/framework/ext/Refine/prompt-card.js";
 
@@ -230,7 +231,7 @@ export class Faces {
 			summary.c("ai2-toc-head muted").text(rows.length + (rows.length === 1 ? " sub-card" : " sub-cards"));
 			div.c("ai2-toc-rows", () => {
 				rows.forEach(r => {
-					a.c("ai2-toc-row page-link").href(base + r.sub + "/").append(() => {
+					a.c("ui-row ai2-toc-row page-link").href(base + r.sub + "/").append(() => {
 						icon(r.icon);
 						div.c("ai2-toc-body", () => {
 							span.c("ai2-toc-title").text(r.title);

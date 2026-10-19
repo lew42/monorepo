@@ -1321,7 +1321,7 @@
 				"group heading (ai-group)"
 			],
 			"also": "Needs .ui-row to exist first (a new ui/row template).",
-			"grep": "ai-prompt\\b|ai2-row|ai2-ov-row|ai2-live-item|ai-msg\\b|ai-turn\\b|ai2-chat|panel-props-row|ai-group\\b|ai-group-title|ai2-toc|v3-day-row",
+			"grep": "ai-prompt\\b|ai2-row|ai2-ov-row|ai2-live-item|ai-msg\\b|ai-turn\\b|ai2-chat|panel-props-row|ai-group\\b|ai-group-title|v3-day-row",
 			"risk": "high",
 			"risk_why": "Needs a new class first, and the rows carry a fixed height the rail depends on (the inbox row is always the same height).",
 			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — inbox row (rail preview): first word 28px → 10px from the left edge, 13px → 11px from the top; height 76px → 72px; live item: first word 28px → 10px from the left edge, 13px → 12px from the top; height 87px → 43px; chat line: first word 0px → 10px from the left edge, 4px → 12px from the top; height 29px → 43px; panel properties row: first word 8px → 10px from the left edge, 12px → 11px from the top; height 96px → 43px; group heading (ai-group): first word 0px → 0px from the left edge, 3px → 7px from the top; height 26px → 34px.",
@@ -1339,7 +1339,6 @@
 				"public/framework/ai/AITask/needs.js",
 				"public/framework/ai/AITask/shots.js",
 				"public/framework/ai/cards/Faces.js",
-				"public/framework/ai/cards/Tasks.js",
 				"public/framework/ai/cards/card.js",
 				"public/framework/ai/cards/real.js",
 				"public/framework/ai/rail/Log.js",
@@ -1366,7 +1365,9 @@
 				"/framework/ai2/",
 				"/framework/ext/Panel/",
 				"/framework/ux/Card/"
-			]
+			],
+			"done": "2026-10-19",
+			"note": "Done in part: the row kind is ui/row (.ui-row), and the sub-card list rows (ai2-toc-row, 4 sites) wear it. Measured live at 1920 in a 360px box: row 61.4px to 59.8px, padding 8px to 7.2px, gap 8px to 9.6px. Left on their own rules, because each is a grid, a bar or a dense row and moving it changes more than the box: ai-prompt, ai2-row, ai2-ov-row, ai2-live-item, ai-msg, ai-turn, ai2-chat, panel-props-row, ai-group, v3-day-row. Their files are still counted here."
 		}
 	],
 	"order": [

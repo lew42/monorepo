@@ -56,12 +56,7 @@
 	.ux-content-plan-pages ul { columns: 16rem; margin: var(--gap-25) 0 0; }
 
 	/* ── The PROPOSED rules: drawn inside the "after" stages and the target tiles only.
-	   Step 2 moves each into the module named in plan.json (ui/row, ui/panel, ui/accordion). */
-	.ux-content-plan-proposed .ui-row {
-		display: flex; align-items: center; gap: 0.6em; min-width: 0;
-		padding: 0.45em 0.6em; border-radius: var(--radius);
-	}
-	.ux-content-plan-proposed .ui-row:hover, .ux-content-plan-proposed .ui-row.selected { background: var(--wash); }
+	   Step 2 moves each into the module named in plan.json (ui/panel, ui/accordion; ui/row has landed). */
 	.ux-content-plan-proposed .ui-accordion-item > summary { padding: 0.45em 0.6em; cursor: pointer; }
 	.ux-content-plan-proposed .ui-accordion-item > :not(summary) { margin: 0; padding: 0 0.6em 0.6em; }
 

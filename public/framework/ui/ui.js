@@ -14,6 +14,7 @@ import "./crumbs/crumbs.js";
 import "./badge/badge.js";
 import "./alert/alert.js";
 import "./panel/panel.js";
+import "./row/row.js";
 import "./tooltip/tooltip.js";
 import "./avatar/avatar.js";
 import "./dialog/dialog.js";
