@@ -170,12 +170,7 @@ export default class State {
 
 	/** id -> landed_at for every task that landed on `day`, found by a plain walk of the sessions store plus the /tasks/ index. */
 	walk_landed(day){
-		const hit = new Map(), take = (file, rel) => {
-			const lines = State.read_lines(file);
-			if (lines.some(l => typeof l.home === "string") && rel.includes("/ai/sessions/")) return;
-			const at = State.landed_by_lines(lines);
-			if (at && State.day(at) === day) hit.set(State.id(rel), at);
-		};
+		const all = this.walk_all = new Map(), take = (file, rel) => this.walk_take(file, rel);
 		const go = dir => {
 			let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
 			const log = ents.some(e => SessionRecord.is_record(e.name)) ? SessionRecord.log_file(dir) : null;
@@ -190,7 +185,24 @@ export default class State {
 			for (const l of State.read_lines(file)) if (typeof l.task === "string") follow(l.task, true);
 		};
 		for (const l of State.read_lines(this.index)) if (typeof l.task === "string") follow(l.task, false);
-		return hit;
+		return this.walk_day(day);
+	}
+
+	/** One log read plainly, kept in walk_all: its id and when it landed (null if not, or if it moved to a module home). */
+	walk_take(file, rel){
+		const lines = State.read_lines(file);
+		if (lines.some(l => typeof l.home === "string") && rel.includes("/ai/sessions/")) return this.walk_all.delete(file);
+		this.walk_all.set(file, { id: State.id(rel), at: State.landed_by_lines(lines) });
+	}
+	walk_day(day){ const hit = new Map(); for (const { id, at } of this.walk_all.values()) if (at && State.day(at) === day) hit.set(id, at); return hit; }
+
+	/** After a tick: only the files fs.watch marked are read again; a full walk_landed (start, every REWALK) re-finds every file. */
+	walk_dirty(files, day){
+		for (const f of files) if (SessionRecord.is_record(path.basename(f)) && this.kind(f)){
+			const dir = path.dirname(f);
+			if (this.walk_all.has(f) || SessionRecord.log_file(dir) === f) this.walk_take(f, slash(path.relative(this.root, dir)));
+		}
+		return this.walk_day(day);
 	}
 
 	// ---- cards and asks: two stores folded into the same row (ai/rail/DashRow.js), each counted a second way ----------
@@ -239,7 +251,8 @@ export default class State {
 
 	/** Re-read what changed: everything on a full walk (first time, or every REWALK), else only the files fs.watch marked. */
 	refresh(full = !this.rows || this.now - this.walked > State.REWALK){
-		if (full){ this.rows = new Map(); for (const f of this.walk()) this.rows.set(f, this.row(f)); this.walked = this.now; this.dirty.clear(); return true; }
+		if (full){ this.rows = new Map(); for (const f of this.walk()) this.rows.set(f, this.row(f)); this.walked = this.now; this.dirty.clear(); this.changed = []; return true; }
+		this.changed = [...this.dirty];
 		for (const f of this.dirty){ const r = this.kind(f) && this.row(f); if (r) this.rows.set(f, r); else this.rows.delete(f); }
 		this.dirty.clear();
 		return false;
@@ -283,7 +296,8 @@ export default class State {
 		const sum = Object.values(counts.tasks).reduce((a, b) => a + b, 0);
 		const mine = tasks.filter(r => r.bucket === "landed" && r.day === today).map(r => r.id).sort();
 		if (walked || !this.last_check || this.last_check.day !== today || this.last_check.ids !== mine.join()){
-			const walk = [...this.walk_landed(today).keys()].sort();
+			const found = walked || !this.walk_all || this.last_check?.day !== today ? this.walk_landed(today) : this.walk_dirty(this.changed ?? [], today);
+			const walk = [...found.keys()].sort();
 			this.last_check = { day: today, ids: mine.join(), walk, at: new Date(now).toISOString() };
 		}
 		const walk = this.last_check.walk, ws = new Set(walk), ms = new Set(mine);
@@ -345,7 +359,7 @@ export default class State {
 				const file = path.join(this.framework, String(name));
 				if (SessionRecord.is_record(path.basename(file))) this.dirty.add(file);
 				else if (file !== this.cards && file !== this.asks) return;
-				this.wake?.();   // the loop re-folds now, not at the next beat
+				if (this.wake) this.wake(); else this.pending = true;   // the loop re-folds now, not at the next beat; mid-write it flags the next sleep short
 			});
 			this.watcher.unref?.();
 		} catch (e) { console.error("State: watch failed, full walks only -", e.message); this.walked = 0; }
@@ -361,9 +375,10 @@ export default class State {
 			while (!handle.stopped){
 				let owner = null; try { owner = fs.readFileSync(lock, "utf8"); } catch {}
 				if (owner !== me){ console.error("State: a newer watcher took over; stopping"); break; }
+				this.pending = false;
 				try { prev = await this.write(prev); } catch (e) { console.error("State:", e.message); }
-				await new Promise(r => {
-					const done = () => { clearTimeout(timer); clearTimeout(this.wake_timer); this.wake = this.wake_timer = null; r(); }, timer = setTimeout(done, every);
+				await new Promise(r => {   // a change that landed during the write (this.pending) is not lost: sleep only WAKE_MIN
+					const done = () => { clearTimeout(timer); clearTimeout(this.wake_timer); this.wake = this.wake_timer = null; r(); }, timer = setTimeout(done, this.pending ? State.WAKE_MIN : every);
 					this.wake = () => { this.wake_timer ??= setTimeout(done, State.WAKE_MIN); };
 				});
 			}

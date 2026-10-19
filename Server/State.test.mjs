@@ -97,5 +97,13 @@ jl("cards.jsonl", [card("2026/10/17/a", "open"), `{"title":"Odd","id":"2026/10/1
 const e = new State({ root, registry, now }).snapshot();
 assert.equal(e.check.ok, false); assert.deepEqual([e.check.cards.rows, e.check.cards.ids, e.check.cards.ok], [2, 1, false]); assert.equal(e.check.asks.ok, true);
 
+// A landing after the first walk: only the marked file is re-read, and both counts still move together (the 1 s dashboard).
+const wd = put(S + "t-later", { assign: { session_id: "s1", title: "Lands later", requested_at: "2026-10-17T09:00:00-05:00" } }, { start: { at: "2026-10-17T09:05:00-05:00" } });
+const inc = new State({ root, registry, now }), before = inc.snapshot({ full: true }).check.landed_today;
+fs.appendFileSync(path.join(wd, "task.jsonl"), JSON.stringify({ finish: { at: "2026-10-17T22:00:00-05:00", outcome: "Done." } }) + "\n");
+inc.dirty.add(path.join(wd, "task.jsonl"));
+const after = inc.snapshot({ full: false }).check.landed_today;
+assert.deepEqual([after.state - before.state, after.walk - before.walk, after.only_state.length - before.only_state.length, after.only_walk.length], [1, 1, 0, 0]);
+
 fs.rmSync(root, { recursive: true, force: true });
 console.log("State: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 2 vs 1; cards 5 = 5 = 5, asks 3 = 3 = 3, broken cards 2 vs 1)");
