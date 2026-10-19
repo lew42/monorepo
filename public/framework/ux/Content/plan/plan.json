@@ -53,7 +53,7 @@
 			],
 			"padding": "--pad",
 			"bleed": "paint only",
-			"rule": "A page region pads by --pad, which scales with the page; its background may bleed to the edge of the screen, its text never does.",
+			"rule": "A page region pads by --pad, which scales with the page; its background may bleed to the edge of the screen, its text never does. One exception, the doc well (a title strip): it pads by the page's gutter axis, --gutter-x, so its title lines up with the tab labels and the page below (ext/Doc/doc/well.md).",
 			"draw": "div.c('wash pad', () => { h3('A region'); p('A band of the page, padded by the page.'); });"
 		},
 		{
@@ -913,7 +913,9 @@
 				"/framework/ux/Browse/",
 				"/framework/ux/Inbox/"
 			],
-			"reach": "ext/Doc draws it at the top of every module's Docs tab, beyond the files counted here."
+			"reach": "ext/Doc draws it at the top of every module's Docs tab, beyond the files counted here.",
+			"note": "Not made, on the stop rule. The well pads by the page's gutter axis (--gutter-x) and paints a shadow (--well), so a .pad.wash swap moved the title 36px left at 1920, made the well 4px taller than the tab bar beside it, and split the band into two colours (shots, 8 pages). It stays .doc-well, the region's title-strip form, in ext/Doc/Doc.css. 12 of the 20 files only mention the class in prose; .doc-section is the tab-pane wrapper (merge 12). Details: ext/Doc/doc/well.md.",
+			"left": "Five pages hand-build the well's markup (ai/page.js, ai/tasks, ai2, ux/Browse, ux/Inbox): one shared title-strip view is a Doc.js edit, proposed in ext/Doc/doc/well.md."
 		},
 		{
 			"id": "surface-pad",
