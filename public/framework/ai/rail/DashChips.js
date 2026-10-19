@@ -109,7 +109,7 @@ export default class DashChips {
 	static chip(label, on, click){ return button.c("sessions-chip" + (on ? " sessions-chip-on" : ""), label).on("click", click); }
 
 	/** The red line of a failed self-check: always this one, so a wrong count is never quiet. */
-	static note_bad(text){ return div.c("tasks-note tasks-check-bad", () => span(text)).el.style.color = "#c62828"; }
+	static note_bad(text){ const note = div.c("tasks-note tasks-check-bad", () => span(text)); note.el.style.color = "#c62828"; return note; }
 
 	/** The sentence naming every count that differs: landed today, tasks, cards, asks, sessions. */
 	static why(c){
