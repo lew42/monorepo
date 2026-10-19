@@ -1,0 +1,22 @@
+window: 2026/09/19 .. 2026/10/19 (30 day folders)
+
+task.jsonl line-1 assign (1077 tasks; landed anywhere: 605/1077 (56%))
+  kind         0/1077 (0%)
+  parent_task  401/1077 (37%)
+  after        14/1077 (1%)
+  home         3/1077 (0%)
+  module       0/1077 (0%)
+  card         450/1077 (42%)
+  tags         0/1077 (0%)
+  model        998/1077 (93%)
+
+session index.json snapshots (3093 sessions)
+  tags         586/3093 (19%)
+  parent       510/3093 (16%)
+  agent        1836/3093 (59%)
+  title        2110/3093 (68%)
+  category     124/3093 (4%)
+  core         657/3093 (21%)
+  kind         0/3093 (0%)
+  parent not "sessions": 426/3093 (14%)
+  tag prefixes: {"kind":586,"model":583,"mod":306,"framework":177,"work":314,"task":402,"page":64,"docs":124,"cost":6,"servex":22,"dictation":90}
