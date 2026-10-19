@@ -55,10 +55,10 @@ export default class PageMarkdown extends Page {
 	}
 
 	// Calls `draw(files)` with this folder's own files at once, then again with all of them; `files` is undefined with no file list.
-	static load(folder, draw){
+	static load(folder, draw, into){
 		this.files(folder, 1).then(first => {
 			draw(first);
-			if (first) this.files(folder).then(all => { if (all.length > first.length) draw(all); });
+			if (first) this.files(folder, Infinity, into).then(all => { if (all.length > first.length) draw(all); });
 		});
 	}
 
@@ -92,8 +92,8 @@ export default class PageMarkdown extends Page {
 
 	// Every .md under `dir`, as paths relative to it. A folder that is a page is
 	// another page, with its own md/ — so it is not listed here.
-	static async files(dir, depth){
-		const found = await this.walk(dir, { keep: name => name.endsWith(".md"), depth });
+	static async files(dir, depth, into){
+		const found = await this.walk(dir, { keep: name => name.endsWith(".md"), depth, into });
 		return found && found.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
 	}
 
@@ -110,7 +110,7 @@ export default class PageMarkdown extends Page {
 	   when there is no file list at all (production).
 	   ⚠ A `kid/page.jsonl` line may be a plain folder whose log is only a listing, so
 	     it is looked into, and skipped only if its log turns out to be a page. */
-	static async walk(dir, { keep = () => true, pages = false, depth = Infinity, budget = this.budget } = {}){
+	static async walk(dir, { keep = () => true, pages = false, depth = Infinity, budget = this.budget, into = () => true } = {}){
 		const found = [], unread = [], missing = [];
 		let level = [{ dir: dir.replace(/\/?$/, "/"), rel: "" }], read = 0;
 
@@ -128,11 +128,11 @@ export default class PageMarkdown extends Page {
 
 				// The log itself (files.jsonl or page.jsonl) is never one of its own lines, but it is a real file here.
 				[...listing.files, listing.log].filter(keep).forEach(name => found.push(folder.rel + name));
-				if (d < depth) this.folders(listing, pages).forEach(name => level.push({ dir: folder.dir + name + "/", rel: folder.rel + name + "/" }));
+				if (d < depth) this.folders(listing, pages).filter(name => into(folder.rel + name + "/")).forEach(name => level.push({ dir: folder.dir + name + "/", rel: folder.rel + name + "/" }));
 			});
 		}
 
-		return this.walk_rest(found, unread, missing, { keep, pages });
+		return this.walk_rest(found, unread, missing, { keep, pages, into });
 	}
 
 	// The sub-folders a walk goes into: plain folders, and child pages when `pages`
@@ -143,13 +143,13 @@ export default class PageMarkdown extends Page {
 
 	// What the budget left, and the folders with no log: from directory.json. With no
 	// directory.json (production), the unread folders are read by their logs after all.
-	static async walk_rest(found, unread, missing, { keep, pages }){
+	static async walk_rest(found, unread, missing, { keep, pages, into }){
 		if (!unread.length && !missing.length) return found;
 
 		const tree = await this.tree();
 		if (!tree){
 			if (missing.some(folder => !folder.rel)) return undefined;   // not even the top folder has a log
-			const more = await Promise.all(unread.map(folder => this.walk(folder.dir, { keep, pages, budget: Infinity })));
+			const more = await Promise.all(unread.map(folder => this.walk(folder.dir, { keep, pages, into, budget: Infinity })));
 			unread.forEach((folder, i) => (more[i] ?? []).forEach(name => found.push(folder.rel + name)));
 			return found;
 		}
@@ -197,7 +197,8 @@ PageMarkdown.Explorer = class Explorer extends Browse {
 	// The rows: readme first, then each folder's files under its own heading, each a link to `<md url><file>/`.
 	draw_list(){
 		this.$rows = div.c("inbox-rows md-explorer-rows", () => small.c("muted pad", "Reading the file list…"));
-		PageMarkdown.load(this.page.folder, files => this.draw(files));
+		// Only the module's own doc/ is looked into: any other folder is a module or a page, and probing it 404s.
+		PageMarkdown.load(this.page.folder, files => this.draw(files), rel => rel === "doc/" || rel.startsWith("doc/"));
 	}
 
 	draw(files){
