@@ -133,3 +133,9 @@
 @layer util {
 	.page.page--ai > :is(.page-open, .page-inbox-chip, .page-ai-cost) { display: none; }
 }
+
+/* A chip on means the list is a filtered view: the pinned rows (Waiting on you, Now, Today...) step aside so its rows are the first thing seen.
+   "Needs you" is the same set as Waiting on you, so nothing is lost. */
+@layer util {
+	.ai2:has(.dash-chips .sessions-chip-on) :is(.browse-pinned, .inbox-pinned) { display: none; }
+}
