@@ -1,11 +1,13 @@
-import { div, pre, img } from "../../core/View/View.js";
+import { div, pre, img, details, summary } from "../../core/View/View.js";
+import "../../ui/accordion/accordion.js";
 import md from "../../ext/markdown/md.js";
 import { count } from "./stats.js";
 
 export const clip = (s, n = 400) => s && s.length > n ? s.slice(0, n) + ` … (${count(s.length)} chars)` : s;
 
 /**
- * Our own expando — a clickable bar over a hidden body.
+ * The AI fold: the shared `details.ui-accordion-item` (card plan, merge 5) — a summary
+ * over a hidden body.
  *
  * ⚠ The body is built on its FIRST open, not up front. A fold's whole job is to
  * keep something expensive out of the way, and a hidden subtree is still built,
@@ -13,15 +15,15 @@ export const clip = (s, n = 400) => s && s.length > n ? s.slice(0, n) + ` … ($
  * `fn` runs once, the first time someone actually asks for it.
  */
 export function fold(title, fn){
-	return div.c("ai-fold", $fold => {
+	return details.c("ui-accordion-item", $fold => {
 		let built = false;
-		div.c("ai-fold-bar wash", title).on("click", () => {
-			$fold.el.classList.toggle("open");
-			if (built) return;
+		summary.c("wash", title);
+		const $body = div();
+		$fold.on("toggle", () => {
+			if (!$fold.el.open || built) return;
 			built = true;
 			$body.append(fn);
 		});
-		const $body = div.c("ai-fold-body");
 	});
 }
 

@@ -47,13 +47,6 @@
 		min-width: 0; text-decoration: none; }
 	.ai-day-line:hover { color: var(--prime); }
 
-	/* A disclosure marker, because "timeline — 111 log lines today" read as a
-	   caption: `card-ux-v1` could not tell whether it navigated, was a stat, or
-	   did nothing. The triangle says "there is more inside me" without pretending
-	   to be a link, which is exactly what it is. */
-	.ai-timeline .ai-fold-bar::before { content: "▸ "; }
-	.ai-timeline .ai-fold.open .ai-fold-bar::before { content: "▾ "; }
-
 	/* ── The Asks tab — what the owner asked for, as preview cards ─────────────
 	   A wall, so `auto-fill`: `auto-fit` would collapse the empty tracks and hand
 	   a lone card the whole 2,900px at 3440 (framework.css says the same, with the
@@ -313,13 +306,6 @@
 	.ai-decision-act { font-size: .9em; }
 	.ai-decision-input { max-width: 28em; }
 
-	/* ⚠ A CONTROL - a disclosure toggle you click - so its own padding is em, not a
-	     spacing token. (The spacing census read this row as `raw` because the class
-	     is not named like a button; it was right all along.) */
-	.ai-fold-bar { cursor: pointer; padding: .25em .75em; }
-	.ai-fold-body { display: none; }
-	.ai-fold.open > .ai-fold-body { display: block; }
-
 	.ai-msg { overflow-wrap: anywhere; }
 	.ai-msg.sidechain { margin-inline-start: var(--flow); }
 
@@ -414,15 +400,11 @@
 
 	/* A run of tool calls, folded to one line. No background, so no padding —
 	   a padded box with no ground of its own just floats off the margin. */
-	.ai-step-bar { padding-inline: 0; font-size: .9em; }
-	.ai-steps-fold > .ai-fold-bar::before { content: "▸ "; }
-	.ai-steps-fold.open > .ai-fold-bar::before { content: "▾ "; }
-	/* ⚠ NO `display` in this rule. `.ai-fold-body` is `display: none` at the same
-	     specificity and earlier in the sheet, so a `display: flex` here wins and
-	     the fold never closes — the whole transcript rendered open, 3,461px of it
-	     (measured 2026-09-17). The open state sets the display, below. */
-	.ai-step-body { flex-direction: column; gap: var(--gap-50); min-width: 0; }
-	.ai-fold.open > .ai-step-body { display: flex; }
+	.ai-steps-fold > .ai-step-bar { padding-inline: 0; font-size: .9em; }
+	/* The fold is a `details` now (ui/accordion): the browser hides the body when shut, so
+	   `display` here is safe. (Before, a div fold needed a `.open` rule: 3,461px of transcript
+	   rendered open, measured 2026-09-17.) */
+	.ai-step-body { display: flex; flex-direction: column; gap: var(--gap-50); min-width: 0; }
 
 	/* The screenshot wall — lazy `<img loading=lazy>`, so 100 logged shots cost one
 	   request each only once scrolled near. `.missing` (off localhost, or a shot

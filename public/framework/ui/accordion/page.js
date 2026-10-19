@@ -10,19 +10,19 @@ const faq = () => {
 	];
 
 	return div.c("surface flex v", () => QA.forEach(([question, answer]) =>
-		details.c("ui-accordion-item pad", () => {
+		details.c("ui-accordion-item", () => {
 			summary(question);
 			p.c("muted", answer);
 		}).attr("name", "faq")));
 };
 
 const markers = () => div.c("surface flex v", () => {
-	details.c("ui-accordion-item pad", () => {
+	details.c("ui-accordion-item", () => {
 		summary("Marker — a plain summary");
 		p("The UA draws the triangle and turns it on open.");
 	});
 
-	details.c("ui-accordion-item pad", () => {
+	details.c("ui-accordion-item", () => {
 		summary.c("flex v-center split", () => {
 			span("No marker — this summary is a flex row");
 			span.c("h4", "NEW");
@@ -55,18 +55,18 @@ export default new Page({
 
 		md("## The attribute is the component");
 
-		code.js(`details.c("ui-accordion-item pad", () => {
+		code.js(`details.c("ui-accordion-item", () => {
     summary(question);
     p(answer);
 }).attr("name", "faq")`);
 
 		md("A shared `name` is what makes the browser close the others: no listener, no state, and the open panel is the DOM's own `open` attribute — so there is nothing to remove and no way for an arrow to disagree with the panel under it. Drop the `name` and the panels open independently. That is the only knob, and it is the browser's.");
 
-		md("## The two rules that are not markup");
+		md("## The three rules that are not markup");
 
-		md("```css\n.ui-accordion-item + .ui-accordion-item { border-top: 1px solid var(--line); }\n.ui-accordion-item > p { margin: 0.6em 0 0; }\n```");
+		md("```css\n.ui-accordion-item + .ui-accordion-item { border-top: 1px solid var(--line); }\n.ui-accordion-item > summary { padding: 0.45em 0.6em; cursor: pointer; }\n.ui-accordion-item > :not(summary) { margin: 0; padding: 0 0.6em 0.6em; }\n```");
 
-		md("A hairline **between** items and a margin under a summary are both relationships, so `accordion.js` survives as those two lines and nothing else. The `+` is what keeps the first item from wearing a rule above it.");
+		md("A hairline **between** items, a summary that pads like a row, and an answer on the same inset: `accordion.js` is those three lines and nothing else, so the item carries its own padding and wears no `pad`. The AI task folds wear the same class. The `+` is what keeps the first item from wearing a rule above it.");
 
 		md("## What it deliberately doesn't do");
 

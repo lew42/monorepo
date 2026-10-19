@@ -1,4 +1,4 @@
-import { View, div, p, pre, button, small } from "../../core/View/View.js";
+import { View, div, p, pre, button, small, details, summary } from "../../core/View/View.js";
 import md from "../../ext/markdown/md.js";
 import { parse, command, harness, trivial } from "./prompt.js";
 import { message, fold } from "./message.js";
@@ -108,10 +108,9 @@ const flow_label = n => n === 1 ? "1 tool step" : n + " tool steps";
 /* Lazy: a turn with no tool flow yet (the common last message of a run) gets
    no fold row at all, not an empty one. */
 function fold_flow(turn){
-	div.c("ai-fold", () => {
-		turn.$bar = div.c("ai-fold-bar wash", flow_label(turn.t.flow.length))
-			.on("click", e => e.currentTarget.parentElement.classList.toggle("open"));
-		turn.$flow = div.c("ai-fold-body ai-turn-flow", () => turn.t.flow.forEach(message));
+	details.c("ui-accordion-item", () => {
+		turn.$bar = summary.c("wash", flow_label(turn.t.flow.length));
+		turn.$flow = div.c("ai-turn-flow", () => turn.t.flow.forEach(message));
 	});
 }
 
