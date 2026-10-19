@@ -5,26 +5,27 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-18 00:02 UTC, last 24 h)
+## NOW (computed 2026-10-19 00:00 UTC, last 24 h)
 
-**Pace:** At 90% of pace with 4 days 2 hours left (slow down)
+**Pace:** At 83% of pace with 3 days 2 hours left (steady)
 
-**Landed (1):**
-- [drawer: the README links its architecture doc](/framework/ai/2026/10/17/drawer-readme-arch-link/) (task-mastermind-drawer-readme-arch-link)
+**Landed (2):**
+- [Reply with exactly the word PLANTED. No tools.](/framework/ai/sessions/2026/10/18/spawned/minion-p/) (minion-p)
+- [Proof probe. Do exactly one thing: append this line to your task log with `node .claude/hooks/append.mjs <your](/framework/ai/sessions/2026/10/18/spawned/minion-proof-bare/) (minion-proof-bare)
 
-**Open, touched in the window (0):**
-- none
+**Open, touched in the window (1):**
+- [Load the `clarity` skill, then check this proposal: public/framework/ai/sessions/2026/10/13/session-730e8a7b/m](/framework/ai/sessions/2026/10/18/spawned/clarity-restart-sweep/) (clarity-restart-sweep)
 
 **Latest commits on this branch:**
 ```
-4e29f659a servex: log sweep (13 files)
-ede37c9d2 mastermind: 18:42 check-in, nothing in flight
-effea7084 servex: log sweep (4 files)
-ee6ce8251 servex: log sweep (4 files)
-d62f7c049 mastermind: 17:41 check-in, nothing in flight
-692dfdf6a servex: log sweep (5 files)
-1a685c81a servex: log sweep (19 files)
-f67780b3b mastermind: 16:40 check-in, nothing in flight
+20f5bf76b servex: log sweep (4 files)
+42e7e86f4 records: log appends
+5a24f5038 records: log appends
+f48acc247 mastermind: restart-sweep landed (.37); two todo lines (double boot, clarity dirs); records
+729645e0c restart-sweep: task log and past-work
+0b530a1da Merge branch 'worktree/restart-sweep' into michael/dev
+698d1e658 todo: strike the restart-recovery sweep line, landed 9f99894f4
+9f99894f4 Servex: the revive sweep skips an agent with no completed turn and no session file, or started after boot
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
