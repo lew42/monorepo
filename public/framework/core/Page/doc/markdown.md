@@ -18,7 +18,7 @@ Try it: [/framework/ext/Panel/md/](/framework/ext/Panel/md/).
 
 - **Width:** at 400 the list shows first, then the file (back returns to the list); at 1200 and up they sit side by side; the pane keeps a readable `measure` at 1920 and 3440.
 - **URL:** `/<module>/md/` (readme), `/<module>/md/doc/<name>/` (a file). Every click is a URL, so reload and back land in the same place.
-- **The `md` tab:** every module page shows it when the module has declared `doc` notes or a `readme.md` in its folder; a page with neither has no tab. It sits next to `doc`, which stays: `doc` is the notes a `page.js` declares, `md` is every `.md` in the folder. The rule is `md_tab()` in `ext/Doc/Doc.js`. Never `this.tab({name:"md"})`: the placeholder makes `Page.child()` skip the `md/` route.
+- **The `md` tab:** every module page shows it when the module has declared `doc` notes or a `readme.md` in its folder; a page with neither has no tab (the Page module's own strip, already 14 tabs, leaves it out so it does not wrap to a third row; its explorer is at `/framework/core/Page/md/`). It sits next to `doc`, which stays: `doc` is the notes a `page.js` declares, `md` is every `.md` in the folder. The rule is `md_tab()` in `ext/Doc/Doc.js`. Never `this.tab({name:"md"})`: the placeholder makes `Page.child()` skip the `md/` route.
 - **Production** has no file list, so the list column says so and the readme still shows.
 - Design and decisions: `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/markdown-explorer/plan.md`.
 

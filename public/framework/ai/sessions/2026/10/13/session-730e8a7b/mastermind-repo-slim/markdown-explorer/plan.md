@@ -26,7 +26,7 @@ Links inside a rendered file already become `<module>/md/…/` (`md.route()`), s
 
 ## The `md` tab
 
-The tab bar of a module page is `Doc.bar()` in `ext/Doc/Doc.js` (the brief's `core/Page/page.js` line 68 is only the Page module's own bar, which gets the same line). `md` is always in the strip list; whether it shows is `tabs_state.md.nav`, set by `md_tab()`: true when `Doc.names(notes)` has entries or the folder's listing has a `readme.md`. The listing loads after the first draw, so `md_tab()` asks for it once and redraws the strip (`nav_redraw()`) when a readme turns up. A page with neither never shows it.
+The tab bar of a module page is `Doc.bar()` in `ext/Doc/Doc.js`. `md` is always in the strip list; whether it shows is `tabs_state.md.nav`, set by `md_tab()`: true when `Doc.names(notes)` has entries or the folder's listing has a `readme.md`. The listing loads after the first draw, so `md_tab()` asks for it once and redraws the strip (`nav_redraw()`) when a readme turns up. A page with neither never shows it.
 
 **Trap found:** do not `this.tab({name:"md"})`. The placeholder sets `children.md = null`, so `Page.child()` no longer sees `known === undefined` and the `md/` route 404s.
 
@@ -34,5 +34,6 @@ The tab bar of a module page is `Doc.bar()` in `ext/Doc/Doc.js` (the brief's `co
 
 - **decision: `Explorer extends Browse`, nested in `Markdown.js`**; alternative was making `PageMarkdown` itself the Browse (it is already a `Page`, and `Page` cannot extend `Browse`). Law 6: Browse is the one list-and-detail.
 - **decision: keep both `doc` and `md` tabs.** `doc` shows the notes a module's `page.js` *declares* (curated, nested names); `md` shows *every* `.md` file in the folder. Different things, so not two tabs for one thing.
-- **decision: the tab rule lives in `Doc.bar()`**, one place for every module, not per page. This edits one line outside the fence; the Page module's own `bar()` gets the same name.
+- **decision: the tab rule lives in `Doc.bar()`**, one place for every module, not per page. This edits one line outside the fence.
 - Production has no file list, so the list column says so and the readme still shows.
+- **decision: the Page module's own `bar()` in `core/Page/page.js` does NOT get `md`.** It already has 14 tabs; a 15th wraps the strip to a third row holding only "Files" at 1280 (a widow), and `merge.mjs`'s smoke flags the wrapped tabs as "element above the title". Its explorer is still at `/framework/core/Page/md/`, linked from `core/Page/readme.md` and `doc/markdown.md`. Alternative: shorten other tab labels; not this task's fence. Every other module gets the tab through `Doc.bar()`.
