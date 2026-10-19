@@ -82,7 +82,7 @@ export default class TasksPage extends Browse {
 	}
 
 	row(kind, r){
-		const href = r.home === "module" ? r.url : r.id ? this.url + r.id + "/" : null;   // a module task opens its own page
+		const href = r.home === "module" ? r.url : r.id && r.url ? this.url + r.id + "/" : null;   // a module task opens its own page
 		(href ? a.c("inbox-row tasks-row").href(href) : div.c("inbox-row tasks-row")).append(() => {
 			div.c("inbox-row-head flex gap-25", () => {
 				if (r.quiet) span.c("tasks-warn").attr("title", `quiet for ${r.quiet_min} min`).text("⚠");
