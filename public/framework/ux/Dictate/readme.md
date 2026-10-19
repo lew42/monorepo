@@ -4,6 +4,8 @@
 
 **How Dictate, Refine and tasks connect** (one spoken sentence, from the mic to a task line in the page's feed): [`doc/refine-dictate-tasks.md`](doc/refine-dictate-tasks.md). **The dictation redesign, mocks first** (five ways to lay out the controls, and the pick): [the variants page](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/checkup-sheet/sheet-dictation-mocks/variants/index.html).
 
+**Where a voice session lives** (2026-10-19): in the central session store like every other session, `/framework/ai/sessions/YYYY/MM/DD/<v-id>/session.jsonl`, with `kind: "voice"` on its first line and in Servex's `sessions.json`; older ones are still flat at `<home>ai/<v-id>.jsonl` ([`ext/Session`](/framework/ext/Session/)).
+
 **The voice assistant** (one assistant places each sentence as you talk: same paragraph, own paragraph, own card; the plan and why the chat jumps): [`doc/voice-assistant.md`](doc/voice-assistant.md).
 
 **`DictationBar`** (the phone sheet's one big mic that says its state, a Type button, no Send; switch back in one line): [`doc/refine-dictate-tasks.md#the-bar`](doc/refine-dictate-tasks.md).

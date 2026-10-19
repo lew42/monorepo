@@ -1,6 +1,6 @@
 # Session — one ✦ press is one voice session, answered by a fast and a smart assistant
 
-A session starts on the page you are on (its home), follows you from page to page, and keeps everything in one dated folder: `<home>ai/sessions/YYYY/MM/DD/<session>/session.jsonl` (sessions made before 2026-10-19 keep the flat `<home>ai/<session>.jsonl`). A fast assistant answers each line in a few seconds; a smart one thinks, decides, routes your words to work already in flight, and starts masterminds. Pressing ✦ again within an hour continues the same session, on the phone or the PC alike.
+A session starts on the page you are on (its home), follows you from page to page, and keeps everything in one dated folder: `/framework/ai/sessions/YYYY/MM/DD/<session>/session.jsonl` (the central store; `home` is just a field) (sessions made before 2026-10-19 keep the flat `<home>ai/<session>.jsonl`). A fast assistant answers each line in a few seconds; a smart one thinks, decides, routes your words to work already in flight, and starts masterminds. Pressing ✦ again within an hour continues the same session, on the phone or the PC alike.
 
 - **The two roles:** `session-fast` is the fast assistant, `session-smart` the smart one (`Servex/agents/session-fast.md`, `session-smart.md`).
 - **The routes:** `/new` starts a session (or continues this page's from the last hour), `/say` sends one owner line to both assistants, `/nav` records a move to another page. `/resume`, `/floor` and `GET /api/sessions` are the rest ([doc/sessions.md](./doc/sessions.md)).

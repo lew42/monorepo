@@ -571,11 +571,14 @@ export default class Sessions {
 		catch { return ""; }
 	}
 
-	/* The ONE place the new-session file shape lives: `<home>ai/sessions/YYYY/MM/DD/<id>/session.jsonl`
-	 * (local date). Old sessions keep the `file` stored in sessions.json (`<home>ai/<id>.jsonl`). */
+	/* The ONE place the new-session file shape lives: the CENTRAL store
+	 * `/framework/ai/sessions/YYYY/MM/DD/<id>/session.jsonl` (local date); `home` stays only a field of the session.
+	 * Old sessions keep the `file` stored in sessions.json (`<home>ai/<id>.jsonl`). */
 	static session_path(home, id, date = new Date()){
 		const p = n => String(n).padStart(2, "0");
-		return `${home}ai/sessions/${date.getFullYear()}/${p(date.getMonth() + 1)}/${p(date.getDate())}/${id}/session.jsonl`;
+		const day = `${date.getFullYear()}/${p(date.getMonth() + 1)}/${p(date.getDate())}`;
+		// Alternative (per-directory, undecided): return `${home}ai/sessions/${day}/${id}/session.jsonl`;
+		return `/framework/ai/sessions/${day}/${id}/session.jsonl`;
 	}
 
 	summary_file(s){ return this.disk(s.file.replace(/\.jsonl$/, ".summary.json")); }
@@ -701,10 +704,10 @@ export default class Sessions {
 		do id = "v-" + Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2, 5); while (this.map[id]);
 		const file = Sessions.session_path(home, id);
 		/* No agents yet: the first say spawns them (wake). */
-		const s = { id, home, file, at: now_ms(), project, host, path: asked, visited: [], fast: null, smart: null,
+		const s = { id, home, file, kind: "voice", at: now_ms(), project, host, path: asked, visited: [], fast: null, smart: null,
 			backing: { fast: null, smart: null }, ...(card ? { card } : {}) };
 		this.map[id] = s;
-		this.write(s, { session: { id, home, at: s.at, project, host, ...(card ? { card } : {}), fast: null, smart: null, backing: s.backing } });
+		this.write(s, { session: { id, home, kind: "voice", at: s.at, project, host, ...(card ? { card } : {}), fast: null, smart: null, backing: s.backing } });
 		this.point(s, home);
 		this.save();
 		this.prewarm_fast(s);
