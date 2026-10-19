@@ -32,3 +32,6 @@
 {"commit":"80b43de60f11"}
 {"commit":"07c2f7e241e6"}
 {"finish":{"at":"2026-10-19T17:43:13-05:00","summary":"/framework/ai/tasks/ and /tasks/ are saved filters of the Inbox (DashChips.SAVED, tasks/SavedFilter.js); Lanes reads state.json through DashState; TasksPage.js is gone; asks/undone keeps its own view (undone.json is not in state.json) and links to ?kind=ask; /live/ untouched. Counts: landed today on the tasks page (Lanes) 13 = Inbox Today chip 13 = check.landed_today.state 13. Merged (80b43de60, code 38628861d); smoke clean; review pass. Cost: review $0.75, my own session not shown by the registry (under $6 est). The mastermind restarts servers after the merge (I did not). qf-4 not returned: it holds generated board.jsonl, cards.jsonl, tasks/task.jsonl."}}
+{"commit":"fcce0519408d"}
+{"log":{"at":"2026-10-19T17:43:22-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T17:43:50-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
