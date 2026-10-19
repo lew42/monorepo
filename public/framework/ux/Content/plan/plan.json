@@ -755,33 +755,23 @@
 				"screenshot thumb",
 				"doc files browser"
 			],
-			"grep": "ui-panel|ui-dialog|ai2-ov-col|v2-panel|ai-shot|doc-files",
+			"grep": "doc-files",
 			"risk": "high",
 			"risk_why": "The files browser is on every module's Docs tab, and the overview column is on the AI 2 dashboard another team is editing now.",
 			"visible_change": "Measured live at 1920, each drawn in a box 30rem wide — panel (dialog-look box): first word 17px → 17px from the left edge, 19px → 13px from the top; height 129px → 117px; dialog: first word 31px → 31px from the left edge, 26px → 26px from the top; height 72px → 72px; overview column: first word 0px → 17px from the left edge, 4px → 18px from the top; height 113px → 174px; screenshot thumb: first word 17px from the left edge after (not drawable before); doc files browser: first word 17px from the left edge after (not drawable before).",
 			"files": [
-				"public/framework/ai/AITask/ai.css",
-				"public/framework/ai/AITask/shots.js",
 				"public/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/walkthrough/page.js",
-				"public/framework/ai/v/2/page.js",
-				"public/framework/ai/v/2/v2.css",
 				"public/framework/ext/Doc/Doc.css",
 				"public/framework/ext/Doc/Doc.js",
-				"public/framework/sources/Sources.css",
-				"public/framework/ui/dialog/dialog.js",
-				"public/framework/ui/dialog/page.js",
-				"public/framework/ui/panel/page.js",
-				"public/framework/ui/panel/panel.js"
+				"public/framework/sources/Sources.css"
 			],
 			"pages": [
-				"/framework/ai/AITask/",
 				"/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/walkthrough/",
-				"/framework/ai/v/2/",
 				"/framework/ext/Doc/",
-				"/framework/sources/",
-				"/framework/ui/dialog/",
-				"/framework/ui/panel/"
+				"/framework/sources/"
 			],
+			"done": "2026-10-19",
+			"note": "Done: panel, dialog, the overview column (v2-panel, keeping its --size density padding so it does not grow) and the screenshot thumb are one .surface with .ui-panel-head/-body/-foot, homed in ui/panel. Left: the doc files browser, a page section (.doc-files, .sources-files) around ext/files, which draws its own frame.",
 			"reach": "The files browser is drawn by ext/Doc on every module's Docs tab, beyond the files counted here."
 		},
 		{
@@ -1016,7 +1006,6 @@
 				"public/framework/styles/system/studies/type/anchors/anchors.js",
 				"public/framework/ui/background/page.js",
 				"public/framework/ui/card/page.js",
-				"public/framework/ui/dialog/page.js",
 				"public/framework/ui/item/page.js",
 				"public/framework/ui/kbd/page.js",
 				"public/framework/ui/scale/page.js",
@@ -1148,7 +1137,6 @@
 				"/framework/styles/system/studies/type/anchors/",
 				"/framework/ui/background/",
 				"/framework/ui/card/",
-				"/framework/ui/dialog/",
 				"/framework/ui/item/",
 				"/framework/ui/kbd/",
 				"/framework/ui/scale/",
@@ -1457,6 +1445,17 @@
 		},
 		{
 			"step": 7,
+			"merge": "frames",
+			"title": "Head-body-foot boxes are frames",
+			"risk": "high",
+			"screenshot": [
+				"/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/walkthrough/",
+				"/framework/ext/Doc/",
+				"/framework/sources/"
+			]
+		},
+		{
+			"step": 8,
 			"merge": "ai-pills",
 			"title": "The AI chips are pills",
 			"risk": "high",
@@ -1467,21 +1466,6 @@
 				"/framework/ai/v/2/",
 				"/framework/ai/v/3/",
 				"/framework/ux/Card/"
-			]
-		},
-		{
-			"step": 8,
-			"merge": "frames",
-			"title": "Head-body-foot boxes are frames",
-			"risk": "high",
-			"screenshot": [
-				"/framework/ai/AITask/",
-				"/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/walkthrough/",
-				"/framework/ai/v/2/",
-				"/framework/ext/Doc/",
-				"/framework/sources/",
-				"/framework/ui/dialog/",
-				"/framework/ui/panel/"
 			]
 		},
 		{
@@ -1663,7 +1647,6 @@
 				"/framework/styles/system/studies/type/anchors/",
 				"/framework/ui/background/",
 				"/framework/ui/card/",
-				"/framework/ui/dialog/",
 				"/framework/ui/item/",
 				"/framework/ui/kbd/",
 				"/framework/ui/scale/",

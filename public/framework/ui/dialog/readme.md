@@ -3,7 +3,7 @@
 ## Use
 
 ```js
-const $dialog = el.c("dialog", "ui-dialog surface pad", () => { /* content, incl. a close button */ });
+const $dialog = el.c("dialog", "ui-dialog surface", () => div.c("ui-panel-body", () => { /* content, incl. a close button */ }));
 button("Open").click(() => $dialog.el.showModal());
 ```
 

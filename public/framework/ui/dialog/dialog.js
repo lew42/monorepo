@@ -5,7 +5,7 @@ import { css } from "../parts.js";
  * `.flex > * { margin: 0 }` erases the moment a dialog sits in a flex column, so
  * it is declared again from a later layer. */
 css(`@layer theme {
-	.ui-dialog { max-width: 24em; color: var(--ink); }
+	.ui-dialog { max-width: 24em; color: var(--ink); padding: 0; }
 }
 @layer util {
 	.ui-dialog { margin: auto; }
