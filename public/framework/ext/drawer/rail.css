@@ -158,6 +158,7 @@
 	.drawer-rail-sheet-strip > :not(.drawer-rail-sheet-live, .grip) { display: none !important; }
 	.drawer-rail-sheet-strip .drawer-rail-sheet-live { display: flex; align-items: center; gap: 0.6em; flex: 1 1 auto; min-block-size: 0; }
 	.drawer-rail-sheet-said { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+	.app .drawer-rail-sheet-tabs-btn { flex: none; font: inherit; font-size: 1.2em; line-height: 1; padding: 0.2em 0.6em; min-block-size: 0; color: inherit; background: none; border: 0; }
 	.app .drawer-rail-sheet-up { min-block-size: 0; padding: 0.2em 0.6em; font-size: 1.2em; line-height: 1; }
 	/* A drag down on the head steps one size down (Sheet.Panel.head_drag): the head must not pan the page. */
 	.drawer-rail-sheet-head { touch-action: none; }
@@ -192,7 +193,17 @@
 	   only one of the two gaps had a second button to push against, and the
 	   title+path block drifted off-centre instead of sitting flush left. */
 	.drawer-rail-sheet-heading { flex: 1 1 auto; gap: 0.3em; min-inline-size: 0; }
-	.drawer-rail-sheet-title { font-weight: 600; }
+	.drawer-rail-sheet-title { font: inherit; font-weight: 600; color: inherit; background: none; border: 0; padding: 0.2em 0.3em; min-block-size: 0; white-space: nowrap; border-radius: calc(var(--radius) / 2); }
+	.drawer-rail-sheet-title:hover { background: var(--fill-a08); }
+	.drawer-rail-sheet-heading .drawer-rail-sheet-new { flex: none; font-size: 0.8em; padding: 0.3em 0.7em; min-block-size: 2rem; }
+	.drawer-rail-sheet-path { flex: 1 1 0; min-inline-size: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+	/* the tab menu: opens under the title; Dictation, Settings (and Element when it shows) */
+	.drawer-rail-sheet-head { position: relative; }
+	.drawer-rail-sheet-menu { display: none; position: absolute; z-index: 5; inset-block-start: 100%; inset-inline-start: 0; flex-direction: column; min-inline-size: 11em; padding: 0.25em; background: var(--surface); border: 1px solid var(--line); border-radius: calc(var(--radius) / 2); box-shadow: 0 0.4em 1.2em rgb(0 0 0 / 0.25); }
+	.drawer-rail-sheet-menu.on { display: flex; }
+	.drawer-rail-sheet-menu-item { font: inherit; text-align: start; padding: 0.5em 0.8em; min-block-size: 2.2rem; color: var(--ink); background: none; border: 0; border-radius: calc(var(--radius) / 2); }
+	.drawer-rail-sheet-menu-item:hover, .drawer-rail-sheet-menu-item.on { background: var(--fill-a08); }
+	.drawer-rail-sheet-menu-item.on { font-weight: 600; }
 	/* The current page path (voice-on-panel, 2026-09-29: "Ask, by voice ·
 	   /framework/"), set on every open (`update_path()`) and again on every
 	   in-app navigation (`DrawerRail.navigated()`). Long paths wrap under the
@@ -323,8 +334,6 @@
 	/* Full = the drawer's own tab row sits below, so the links row and More repeat it (voice-e2e-review). */
 	.drawer-rail-sheet-full .drawer-rail-sheet-links,
 	.drawer-rail-sheet-full .drawer-rail-sheet-more { display: none !important; }
-	.drawer-rail-sheet-head .drawer-rail-sheet-new { margin-inline-start: auto; }
-	.drawer-rail-sheet-head .drawer-rail-sheet-new + .drawer-rail-sheet-more { margin-inline-start: 0.4em; }
 	.drawer-rail-sheet-more {
 		font: inherit; font-size: 0.8em; margin-inline-start: auto;
 		padding: 0.3em 0.7em; min-block-size: 2.2rem;
@@ -358,14 +367,8 @@
 
 	/* FULL STATE TABS: the drawer's own tab row + body under the chat (rail.js mount_tabs). */
 	.drawer-rail-sheet-tabs { flex: 0 1 45%; min-block-size: 0; border-top: 1px solid var(--line); }
-	.drawer-rail-sheet-tabrow { flex: 0 0 auto; flex-wrap: wrap; gap: 0.1em; padding-block: 0.3em; }
-	.drawer-rail-sheet-tabrow .drawer-tab {
-		font: inherit; font-size: 0.85em; padding: 0.35em 0.7em; min-block-size: 2.2rem;
-		color: var(--ink-muted, var(--ink)); background: none; border: 0; border-radius: calc(var(--radius) / 2);
-	}
-	.drawer-rail-sheet-tabrow .drawer-tab.on { color: var(--ink); background: var(--fill-a08); font-weight: 600; }
 	.drawer-rail-sheet-tabbody { flex: 1 1 auto; min-block-size: 0; overflow: auto; }
-	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { flex: 0 0 auto; }
+	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { display: none; }
 }
 
 /* AIPage (<path>/ai/): a page above 52em; below it the Sheet shows it, so the page behind stays the one it is about. */
@@ -385,4 +388,26 @@
 @layer site {
 	/* no strip under the last bubble: the log's own bottom margin is what showed as a white row above the composer (2026-10-19) */
 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread .chatbox-log, .drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread { margin-block: 0; }
+}
+
+/* FULL-WIDTH CHAT + ONE FOOTER RAIL (the owner, 2026-10-19): the sheet owns no side padding (the header, links and tab body add their own), so the chat card and the
+   composer run edge to edge: no side borders, no shadow, square corners. One layer of side space: the thread's 0.6em inset; bubbles are tight inside it.
+   The chat stretches to fill the sheet (flex 1, scrolls); the composer is a small footer pinned at the bottom. */
+@layer util {
+	.drawer-rail-sheet { padding-inline: 0; gap: 0; }
+	.drawer-rail-sheet > .drawer-rail-sheet-head, .drawer-rail-sheet > .drawer-rail-sheet-links, .drawer-rail-sheet > .drawer-rail-sheet-tabs { padding-inline: 0.9em; }
+	.drawer-rail-sheet > .drawer-rail-sheet-head { margin-block-end: 0.3em; }
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-card { border: 0; border-radius: 0; box-shadow: none; }
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-shell .ux-dictate-widget-composer .chatbox-compose {
+		border-inline: 0; border-block-end: 0; border-radius: 0; box-shadow: none;
+		padding: 0.2em 0.9em calc(0.2em + env(safe-area-inset-bottom, 0px));
+	}
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-composer { padding: 0; gap: 0; }
+	.drawer-rail-sheet .ux-dictate-mic-indicator:not(.compact), .drawer-rail-sheet .chatbox-compose .ux-dictate-level { display: none; }   /* the listening row: the mic is the meter */
+	.drawer-rail-sheet .chatbox-you, .drawer-rail-sheet .chatbox-reply { padding: 0.2em 0.5em; }
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread { padding-inline: 0.6em; }
+}
+@layer site {
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread { flex: 1 1 0; min-block-size: 0; overflow-y: auto; }
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-composer { position: sticky; inset-block-end: 0; }
 }

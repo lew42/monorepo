@@ -227,6 +227,8 @@ export class SheetPanel extends View {
 		return div.c("drawer-rail-sheet-live", () => {
 			new MicIndicator({ compact: true });
 			this.$said = span.c("drawer-rail-sheet-said muted", "listening…");
+			button.c("drawer-rail-sheet-tabs-btn", "▾").attr("type", "button").attr("title", "Dictation, Settings…").attr("aria-label", "Tabs")   // the tab menu at strip height too
+				.click(e => { e.stopPropagation(); this.to("split").then(() => this.toggle_menu(true)); });
 			button.c("drawer-rail-sheet-up", "⌃").attr("type", "button").attr("title", "Bigger").attr("aria-label", "Bigger")
 				.click(() => this.to("split"));
 		});
@@ -254,16 +256,38 @@ export class SheetPanel extends View {
 		return $head;
 	}
 
+	// The title is the tab menu: "AI ▾" opens Dictation / Settings (the drawer's own tabs); New session sits right after it, ✕ at the far right.
 	head_row(){
 		return div.c("drawer-rail-sheet-head flex v-center", () => {
-			div.c("drawer-rail-sheet-heading flex v-center wrap", () => {
-				span.c("drawer-rail-sheet-title", this.title);
+			div.c("drawer-rail-sheet-heading flex v-center", () => {
+				this.$title = button.c("drawer-rail-sheet-title", this.title + " ▾").attr("type", "button").attr("aria-haspopup", "menu").attr("aria-expanded", "false")
+					.click(e => { e.stopPropagation(); this.toggle_menu(); });
+				this.new_session_button();   // one tap, as in the desktop AI tab (voice-e2e-review 2026-10-13)
 				this.$path = span.c("drawer-rail-sheet-path muted");
 			});
-			this.new_session_button();   // one tap, as in the desktop AI tab (voice-e2e-review 2026-10-13)
-			this.more_button();
+			this.$menu = div.c("drawer-rail-sheet-menu").attr("role", "menu");
 			button.c("drawer-x", "✕").attr("type", "button").attr("title", "Close").click(() => this.close());
 		});
+	}
+
+	toggle_menu(on = !this.$menu.el.classList.contains("on")){
+		this.$menu.el.classList.toggle("on", on);
+		this.$title.attr("aria-expanded", String(on));
+		if (!on) return;
+		this.$menu.empty(() => {
+			tabs.shown().forEach(t => button.c("drawer-rail-sheet-menu-item", t.name === "ai" ? "AI (chat)" : t.label).attr("type", "button").attr("role", "menuitem")
+				.ac(t.name === (this.tab_name ?? "ai") && "on").click(() => this.choose(t.name)));
+		});
+		const away = e => { if (!e.target.closest(".drawer-rail-sheet-menu")) { this.toggle_menu(false); document.removeEventListener("pointerdown", away, true); } };
+		document.addEventListener("pointerdown", away, true);
+	}
+
+	// A menu pick: the chat is the AI tab; any other tab opens its body in the sheet (the sheet goes full to give it room).
+	choose(name){
+		this.toggle_menu(false);
+		const go = () => { if (!this.$tabs?.el.isConnected) this.mount_tabs(name); else this.pick(name); };
+		if (name === "ai" || this.mode === "full") return go();
+		return this.to("full").then(go);
 	}
 
 	more_button(){
@@ -434,27 +458,27 @@ export class SheetPanel extends View {
 		setTimeout(() => this.mount?.nav(drawer.page(), this.active_card()?.id ?? null));
 	}
 
-	mount_tabs(){
+	mount_tabs(name){
 		if (this.$tabs?.el.isConnected) return;
 		this.$tabs = div.c("drawer-rail-sheet-tabs flex v");
-		this.$tabrow = div.c("drawer-tabs drawer-rail-sheet-tabrow flex");
 		this.$tabbody = div.c("drawer-rail-sheet-tabbody");
-		this.$tabs.el.append(this.$tabrow.el, this.$tabbody.el);
+		this.$tabs.el.append(this.$tabbody.el);
 		this.el.append(this.$tabs.el);
-		this.pick(tabs.current?.name ?? "ai");
+		this.pick(name ?? this.tab_name ?? tabs.current?.name ?? "ai");
 	}
 
 	unmount_tabs(){
 		this.$tabs?.el.remove();
 		this.$tabs = null;
+		this.tab_name = null;
+		this.$title?.text(this.title + " ▾");
 	}
 
 	pick(name){
 		const shown = tabs.shown();
 		const tab = shown.find(t => t.name === name) ?? shown[0];
-		this.$tabrow.empty(() => {
-			shown.forEach(t => button.c("drawer-tab", t.label).attr("type", "button").ac(t === tab && "on").click(() => this.pick(t.name)));
-		});
+		this.tab_name = tab.name;
+		this.$title.text((tab.name === "ai" ? this.title : tab.label) + " ▾");   // the title says which tab is showing
 		if (tab.name === "ai"){ this.$tabbody.empty(); this.ac("drawer-rail-sheet-chat-only"); return; }   // the chat above IS the AI tab
 		this.rc("drawer-rail-sheet-chat-only");
 		const ctx = tabs.context(), body = this.$tabbody;
