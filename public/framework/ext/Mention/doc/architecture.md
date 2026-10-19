@@ -69,3 +69,10 @@
 
 ⚠ `ui/item`'s `.item` rule resets the background at the same specificity as `.page-surface-dark`, in the same layer. `Mention.js` imports `item.js` first and declares its own `.item.page-surface-dark` rule after, so the dark fill wins. Moving the `css()` call above the import silently un-darkens every class card.
 **Detail:** [Mention-notes: CSS specificity](./Mention-notes.md#css-specificity-and-dark-mentions)
+
+## Three command characters (2026-10-19)
+
+**Decided:** `/` is a path (teal), `@` an actor (violet, round icon), `#` a class or concept (framed icon; the dark card only when the entry is a class). Each mention carries one kind class (`mention-path`, `mention-actor`, `mention-class`); colours are the tokens `--mention-path`, `--mention-actor`, `--mention-class` in `Mention.js`'s stylesheet.
+**Why:** the owner's 2026-10-06 ask: a reader sees what kind of thing a word is before reading it, and `/` is 1:1 with the file system with no alias table.
+**The `/` rule:** a token that starts a line or follows whitespace or `(`, and whose every segment exists in the site's own folder listings (`Page.listing`, walked from `/`). Listings already loaded answer at once; otherwise the text node is upgraded when they arrive. `mention_html()` uses only what is loaded. A path shows as typed and never takes the dark card.
+**Instead:** a generated `paths.json` of every path (a second source that drifts from `files.jsonl`, and a build step). The map-based `by_path` stays as the first free hit, for virtual pages like `/framework/servex/md/doc/roles/` that have no folder.

@@ -32,6 +32,14 @@ export default new Doc({
 
 		md("Write `#Page` anywhere the site renders markdown or a chat bubble, and it becomes a small icon + the word, linking to the real page. `@owner` works the same way, from a separate list for people and agent roles. **Nothing is typed by hand below** — every row is the real `item()` call a mention turns into, straight off the same two maps the site itself reads.");
 
+		h2("Three command characters — / path, @ actor, # class");
+
+		md("The first character says what kind of thing the word is, and each kind has its own icon shape and colour, so you know before you read it. **`/` is a place**: it must be a real path on this site, checked against the site's own folder lists, so `/framework/core/Page/` links but `/etc/hosts` stays plain. **`@` is someone**: the owner or an agent. **`#` is a class or a concept**: it gets a framed icon, and a class gets the dark card.");
+
+		demo(() => {
+			md("Read the code in /framework/core/Page/, ask @mastermind or tell @owner, and see #Page for how the class works. A made-up /nowhere/at/all, @nobody and #Nope stay plain.");
+		}, "The same sentence three ways: a teal path, a violet actor with a round icon, a framed class on the dark card. The made-up ones are not links, and nothing throws.");
+
 		h2("Every #reference — ext/Mention/maps/refs.js");
 
 		md(`${Object.keys(refs).length} names today, each a real page: the seven core classes, Servex, nineteen \`ext/\` modules, and four one-off links the owner asked for by name (\`CLAUDE.md\`, \`skills\`, \`MCP\`, \`dev-server\`).`);
