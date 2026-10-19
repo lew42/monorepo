@@ -5,3 +5,4 @@
 {"log":{"at":"2026-10-18T20:30:29-05:00","heartbeat":"deliberate","msg":"clarity-servex-small-3 its agent is not running: it was stopped on purpose by owner at 2026-10-18T20:19:26-05:00; not revived."}}
 {"log":{"at":"2026-10-18T20:37:29-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
 {"log":{"at":"2026-10-18T20:43:58-05:00","heartbeat":"deliberate","msg":"clarity-servex-small-3 its agent is not running: it was stopped on purpose by owner at 2026-10-18T20:19:26-05:00; not revived."}}
+{"log":{"at":"2026-10-18T20:53:56-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}

@@ -13,3 +13,16 @@
 {"log":{"at":"2026-10-18T20:42:34-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-18T20:42:37-05:00","heartbeat":"answered","msg":"I'm done. I checked the restart-sweep proposal, `text-check.mjs` flagged nothing, and I logged one \"clear\" line to `.claude/skills/clarity/flags.jsonl`. I'm not working on anything else."}}
 {"log":{"at":"2026-10-18T20:42:37-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-18T20:47:56-05:00","heartbeat":"revive-queued","msg":"clarity-restart-sweep its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-18T20:47:57-05:00","heartbeat":"revive","msg":"revived clarity-restart-sweep from session b4bf6156-fede-40e7-af9c-d6c4141219d5"}}
+{"log":{"at":"2026-10-18T20:48:03-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-18T20:48:03-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-18T20:48:03-05:00","msg":"session ended (other) without landing"}}
+{"assign":{"landed_at":"2026-10-18T20:50:00-05:00","outcome":"Checked the restart-sweep proposal: text-check clean, verdict clear, logged in clarity/flags.jsonl. No edits."}}
+{"log":{"at":"2026-10-18T20:48:12-05:00","msg":"text-check: past-work.md: 662 words of prose (500 at most)"}}
+{"log":{"at":"2026-10-18T20:48:12-05:00","heartbeat":"answered","msg":"The review is finished, but the task stayed open because I never logged a landing line. I've now written one to its `task.jsonl`, so it should close. The verdict is unchanged: the restart-sweep propos"}}
+{"log":{"at":"2026-10-19T01:48:12.638Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-18T20:48:12-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-18T20:48:12-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-18T20:48:21-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-18T20:48:21-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
