@@ -1,6 +1,5 @@
 import { Page, Doc, md, div, code, a, span, small, file_link } from "/app.js";
 import { mini } from "../../ext/demo/mini.js";
-import { object } from "../../ux/Content/Object/Object.js";
 import { page_object } from "./object.js";
 import { item } from "../../ui/item/item.js";
 
@@ -41,27 +40,10 @@ export default new Doc({
 	properties: "meta title children content url name label icon card classes "
 		+ "description parent app view loading route regions depth related pages store",
 
+	// The Core API block on the API tab: name:weight, heaviest first (ext/Doc/doc/class-card.md)
+	core: "title:10 children:10 content:9 url:8 child:8 add:7 render:7",
+
 	notes: "loading navigation layout-overview watch-out more-features jsonl declaring labels css layout columns words roles panels previews findings markdown open decisions inbox-tab",
-
-	// ⚠ `content` stays UNBOUND: unbound resolves `this` to the section whose children the list above populated
-	api_section(){
-		if (!Doc.names(`${this.properties ?? ""} ${this.methods ?? ""}`).length) return;
-
-		const doc = this;
-		const example = new Page({ title: "Intro", children: "setup usage" });
-
-		return this.section("api", "API", {
-			initialize(){ this.parent.api(this); },
-			render(){
-				return this.view ??= div.c("page doc-section", () => {
-					// ⚠ `api` not `doc`: avoid duplicate url for one member
-					// ⚠ must be below tabs/title for smoke gate layout check (Server/smoke.mjs)
-					this.tabs().ac("vertical");
-					object(example, { api: "/framework/core/Page/api/", properties: doc.properties, methods: doc.methods });
-				}).ac("page--" + this.name);
-			},
-		});
-	},
 
 	// ⚠ Every name here MUST sync with `children:` list above; missing names never become tabs
 	bar(){

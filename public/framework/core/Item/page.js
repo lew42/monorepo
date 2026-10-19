@@ -136,6 +136,7 @@ export default new Doc({
 	subject: Item,
 	properties: "id data parent store view",
 	methods: "assign get put set locate remove root lists walk find contains save delete toJSON wire hydrate register open",
+	core: "data:10 id:9 set:9 get:8 find:7 walk:6 hydrate:6",   // the Core API block: name:weight (ext/Doc/doc/class-card.md)
 	notes: "architecture envelope decisions",
 	files: "Item.js readme.md page.js",
 

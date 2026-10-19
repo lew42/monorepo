@@ -6,6 +6,7 @@ import { member, patched, dedent } from "../../util/source/source.js";
 import md from "../markdown/md.js";
 import files, { nest } from "../files/files.js";
 import { decision_menu } from "./decisions.js";
+import ClassCard from "./ClassCard.js";
 import "../tabs/tabs.js";      // this.tabs() — ext leaning on ext, the allowed direction
 import "../catalog/catalog.js";   // this.catalog() — the Overview section is one
 
@@ -20,7 +21,7 @@ export class Doc extends Page {
 	// assign(), so `this.methods`, `this.notes` and the rest are already here.
 	// ⚠ No class fields anywhere in this file: they initialize after super() returns,
 	// which is after this has run.
-	initialize(){ this.sections(); }
+	initialize(){ if (Doc.is_class(this.subject)) ClassCard.registry.set(this.subject, this); this.sections(); }
 
 	sections(){
 		this.overview_section();
@@ -85,8 +86,22 @@ export class Doc extends Page {
 	api_section(){
 		if (!Doc.names(`${this.properties ?? ""} ${this.methods ?? ""}`).length) return;
 
-		return this.section("api", "API", { initialize(){ this.parent.api(this); } });
+		// A class's API tab opens on its ClassCard (doc/class-card.md); members stay pages at api/<name>/.
+		const doc = this, card = Doc.is_class(this.subject);
+
+		return this.section("api", "API", {
+			initialize(){ this.parent.api(this); },
+			render(){
+				return this.view ??= div.c("page doc-section", () => {
+					const tabs = this.tabs(undefined, card ? { home: () => new ClassCard({ doc }) } : undefined).ac("vertical");
+					if (card) tabs.ac("class-api");
+				}).ac("page--" + this.name);
+			},
+		});
 	}
+
+	// Has a member page: listed in `methods:` or `properties:`.
+	has_member(name){ return Doc.names(`${this.properties ?? ""} ${this.methods ?? ""}`).includes(name); }
 
 	// ⚠ Order matters: api_section() first, so member_index is filled (see doc/Doc-notes.md).
 	docs_section(){
@@ -265,7 +280,8 @@ export class Doc extends Page {
 			title,
 			content(){
 				// decision_menu() is a promise, appended when Collab.Decisions.for() resolves.
-				if (kind && doc.module()) span.c("doc-decision-wrap").append(decision_menu(doc.module(), name));
+				if (kind && Doc.is_class(doc.subject)) a.c("class-card-back", () => { icon("arrow_back"); span(`${doc.title} API`); }).href(doc.url + "api/");
+					if (kind && doc.module()) span.c("doc-decision-wrap").append(decision_menu(doc.module(), name));
 				if (banner) md(banner);
 				if (source) (code.js ?? code)(source);   // highlighted if ext/highlight is loaded
 				if (call) doc.overrides(subject, name, call);
