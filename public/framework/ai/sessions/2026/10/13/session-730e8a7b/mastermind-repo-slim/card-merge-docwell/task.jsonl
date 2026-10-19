@@ -9,3 +9,6 @@
 {"decision":{"at":"2026-10-19T20:37:21.812Z","text":".doc-section left for merge 12: it is the tab-pane page wrapper, not the well; 12 of the 20 files only mention the class in prose. Small extras beyond the fence: ext/Doc/page.js notes list gains well, ext/Doc/readme.md one bullet (both so the new doc is linked)."}}
 {"log":{"at":"2026-10-19T20:37:21.812Z","msg":"merged 71d0dacd9; count.mjs unchanged (doc-well pages 17 files 20; kinds 36, padding rules 5); smoke on ext/Doc and its tabs ok, plan page only the known .decks-card edge; worktree-watch empty-share warning on /framework/ext/Doc/ at 1920 is the page as on main (overview has no content), not this change"}}
 {"finish":{"at":"2026-10-19T20:37:21.812Z","msg":"Merge 11 measured and not made (stop rule): the well stays .doc-well. Pages shot before and after (injected swap) at 1920 and 390: core/View, ext/Doc, ux/Dictate, core/Page, ai, ai/tasks, ux/Browse. Plan numbers before/after: pages 17 -> 17, files 20 -> 20, kinds 36 -> 36, padding rules 5 -> 5. About $1.5 of $12.","pages_shot":7,"dollars":1.5}}
+{"commit":"1d19ba3e4d4e"}
+{"log":{"at":"2026-10-19T15:37:28-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-19T15:37:38-05:00","msg":"session ended (other) without landing"}}
