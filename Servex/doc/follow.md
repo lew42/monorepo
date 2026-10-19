@@ -30,7 +30,9 @@ follow({ path: "public/framework/ux/Dictate" })
 subscription (or just one agent's, with `agent`).
 
 **A path has to sit at or below a module or a Servex folder** —
-`public/framework/<module>` or `Servex/<dir>`. `public/`, `public/framework/`,
+`public/framework/<module>` or `Servex/<dir>` — or be one existing file anywhere
+in the repo (a voice session's `public/ai/v-*.jsonl`; added 2026-10-19 so a voice
+mastermind can hear the owner directly). `public/`, `public/framework/`,
 `Servex/` and the repo root are all refused, and so is anything containing a
 `node_modules` or `.git` segment — following the whole tree, or someone else's
 dependency tree, is not a thing you can ask for. The path is resolved first

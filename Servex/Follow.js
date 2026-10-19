@@ -17,6 +17,7 @@ const norm = p => {
 };
 const abs = rel => path.join(ROOT, rel);
 const rel_of = file => path.relative(ROOT, file).split(path.sep).join("/");
+const is_file = rel => { try { return !!rel && fs.statSync(abs(rel)).isFile(); } catch { return false; } };
 const covers = (sub, file) => file === sub || file.startsWith(sub + "/");
 
 /* Refuses anything above `public/framework/<module>` or `Servex/<dir>` — the
@@ -31,7 +32,8 @@ function refused(rel){
 	if (parts.includes("node_modules") || parts.includes(".git"))
 		return `"${rel}" is refused — node_modules and .git are never followed`;
 	const ok = (parts[0] === "public" && parts[1] === "framework" && !!parts[2])
-		|| (parts[0] === "Servex" && !!parts[1]);
+		|| (parts[0] === "Servex" && !!parts[1])
+		|| is_file(clean);	// one file (a voice session's public/ai/v-*.jsonl) is always cheap to watch
 	return ok ? null : `"${rel}" is above public/framework/<module> or Servex/<dir> — refused`;
 }
 
