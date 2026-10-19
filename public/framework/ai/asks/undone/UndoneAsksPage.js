@@ -49,6 +49,7 @@ export default class UndoneAsksPage extends Page {
 				const asks = d.modules.flatMap(m => m.asks), v = k => asks.filter(x => KIND(x) === k).length;
 				if (v("found") + v("undone") + v("unclear")) span.c("muted").text(`checked against the repo: ${v("undone")} verified undone · ${v("found")} found already built · ${v("retired")} not work · ${v("needs-owner")} need you · ${v("unclear")} unclear · ${v("unchecked")} not checked yet`);
 				a.c("page-link").href("/framework/ai/doc/undone-asks-2026-10-17.md").text("what this means");
+					a.c("page-link").href("/framework/ai/?kind=ask").attr("title", "the asks Servex routed (asks.jsonl), in the Inbox").text("routed asks in the Inbox");
 			}));
 		});
 		this.browse = new UndoneModules({ page: this }).mount();

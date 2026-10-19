@@ -1,35 +1,23 @@
-import { Page, div, h1, a, md } from "/app.js";
-import TasksPage from "./TasksPage.js";
+import { Page, div, md } from "/app.js";
+import SavedFilter from "./SavedFilter.js";
 import TaskLanes from "./TaskLanes.js";
 import { AITask } from "/framework/ai/AITask/AITask.js";
 
-const bar = (url, here) => div.c("inbox-head", () => {
-	div.c("doc-well", () => h1.c("doc-title h2", "Tasks"));
-	div.c("tabs block", () => div.c("tab-bar", () => {
-		a.c("tab tab-default").href(url).text("List");
-		a.c("tab").href(url + "lanes/").text("Lanes");
-		a.c("tab").href(url + "architecture/").text("Architecture");
-	}));
-});
-
-export default new Page({
+// The list is the Inbox with the `tasks` chips (SavedFilter forwards there); Lanes and Architecture stay here. Doc: doc/architecture.md
+export default new SavedFilter({
 	meta: import.meta,
 	title: "Tasks",
 	icon: "task_alt",
-	description: "What is in flight, queued and landed today, from the real state, live.",
+	description: "What is in flight, queued and landed today: the Inbox with its Tasks chips on.",
 	classes: "full fill",
 	leaf: true,
-
-	content(){
-		bar(this.url);
-		this.browse = new TasksPage({ page: this }).mount();
-	},
+	preset: "tasks",
 
 	route(id){
 		if (id === "lanes") return new Page({ title: "Lanes", url: this.url + "lanes/", classes: "inbox-takeover inbox-tab",
-			content(){ new TaskLanes({ page: this, base: this.url.replace(/lanes\/$/, "") }).mount(); } });
+			content(){ TaskLanes.tabs(this.url.replace(/lanes\/$/, ""), "lanes"); new TaskLanes({ page: this, base: this.url.replace(/lanes\/$/, "") }).mount(); } });
 		if (id === "architecture") return new Page({ title: "Architecture", url: this.url + "architecture/", classes: "inbox-takeover inbox-tab",
-			content(){ div.c("flow").append(md.file({ url: import.meta.url }, "doc/architecture.md")); div.c("flow").append(md.file({ url: import.meta.url }, "readme.md", { h1: false })); } });
+			content(){ TaskLanes.tabs(this.url.replace(/architecture\/$/, ""), "architecture"); div.c("flow").append(md.file({ url: import.meta.url }, "doc/architecture.md")); div.c("flow").append(md.file({ url: import.meta.url }, "readme.md", { h1: false })); } });
 		if (/^\d{4}~/.test(id)) return new AITask({ title: id.split("~").at(-1), icon: "receipt_long", url: this.url + id + "/",
 			src: "/framework/ai/sessions/" + id.replaceAll("~", "/") + "/session.json" });
 	},
