@@ -17,7 +17,7 @@ css(`@layer theme {
 	   taller than its line reads as a mistake. Tightened here, for mentions only — a tree
 	   row or any other \`.item\` keeps its own tappable room. */
 	.mention.inline.page-surface-dark { padding-block: 0; }
-	.mention.inline.page-surface-dark .item-icon { width: 1em; font-size: 0.85em; }
+	.mention.inline.page-surface-dark:not(.mention-class) .item-icon { width: 1em; font-size: 0.85em; }
 
 	/* THE THREE KINDS (the owner, 2026-10-06; plan.md in ext/Mention/doc/architecture.md):
 	   each kind has its own named colour token and its own icon frame, so a reader sees
@@ -33,7 +33,8 @@ css(`@layer theme {
 	.mention-actor { color: var(--mention-actor); }
 	.mention-actor .item-icon { border-radius: 50%; background: color-mix(in srgb, var(--mention-actor) 16%, transparent); }
 	.mention-class .item-icon { color: var(--mention-class); border: 1px solid currentColor; border-radius: 0.3em; }
-	.mention-class.inline .item-icon { width: 1em; font-size: 0.85em; }
+	/* A framed glyph sits inside its frame with room on every side, and the frame stays within the line */
+	.mention-class.inline .item-icon, .mention-actor.inline .item-icon { box-sizing: border-box; width: 1.5em; font-size: 0.7em; }
 	.mention-class .item-name { color: inherit; }
 }`);
 
