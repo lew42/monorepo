@@ -1,4 +1,5 @@
 import { div, a, img, p, span } from "../../core/View/View.js";
+import "../../ui/panel/panel.js";
 
 const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || location.hostname.endsWith(".localhost");
 
@@ -27,9 +28,9 @@ function thumb(s){
 			.on("error", () => $shot.ac("missing"));
 		div.c("ai-shot-fallback muted", "no image");
 	};
-	$shot = div.c("ai-shot" + (LOCAL ? "" : " missing"), () => {
+	$shot = div.c("surface ai-shot" + (LOCAL ? "" : " missing"), () => {
 		LOCAL ? a.c("ai-shot-frame").href(src).attr("target", "_blank").append(body)
 			: div.c("ai-shot-frame", body);
-		p.c("ai-shot-label muted", [s.label, s.width && s.width + "px"].filter(Boolean).join(" · "));
+		div.c("ui-panel-foot ai-shot-label muted", [s.label, s.width && s.width + "px"].filter(Boolean).join(" · "));
 	});
 }

@@ -4,7 +4,7 @@ import { Page, md, demo, div, el, p, button, form, input } from "/app.js";
  * code on the page is the code that ran. The opener is part of it: the button is
  * what knows which dialog it opens. */
 const confirm = () => div.c("flex v", () => {
-	const $dialog = el.c("dialog", "ui-dialog surface pad", () => div.c("flex v gap", () => {
+	const $dialog = el.c("dialog", "ui-dialog surface", () => div.c("ui-panel-body flex v gap", () => {
 		p.c("h3", "Delete branch?");
 		p("This cannot be undone. The branch and its four commits go away.");
 
@@ -19,17 +19,17 @@ const confirm = () => div.c("flex v", () => {
 
 // A closed dialog renders nothing, so anything that has to SHOW one — this page's
 // card on the rail, and the variant below — draws what showModal() shows.
-const opened = () => div.c("surface pad flex v gap", () => {
+const opened = () => div.c("surface", () => div.c("ui-panel-body flex v gap", () => {
 	p.c("h3", "Delete branch?");
 	p("This cannot be undone.");
 	div.c("flex gap reverse", () => { button.c("prim", "Delete"); button("Cancel"); });
-});
+}));
 
 /* The same modal with no listener in it at all: a form whose method is `dialog` closes
    the dialog on submit and sets `returnValue` from the button that submitted. */
 const asking = () => div.c("flex v", () => {
-	const $dialog = el.c("dialog", "ui-dialog surface pad", () => form(() => {
-		div.c("flex v gap", () => {
+	const $dialog = el.c("dialog", "ui-dialog surface", () => form(() => {
+		div.c("ui-panel-body flex v gap", () => {
 			p.c("h3", "Rename branch");
 			input().attr("name", "branch").attr("value", "michael/dev");
 

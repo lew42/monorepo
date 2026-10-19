@@ -137,7 +137,7 @@ function board(run, ctx){
 }
 
 function panel(title, fill){
-	div.c("v2-panel", () => { div.c("v2-head", title); fill(); });
+	div.c("surface v2-panel", () => { div.c("v2-head", title); fill(); });
 }
 
 /* Decisions get a topic of their own, full width — not a fourth narrow
@@ -153,7 +153,7 @@ function panel(title, fill){
 function decisions_panel(run, ctx){
 	const rows = run.decisions ?? [];
 	const waiting = rows.filter(d => (d.status ?? "open") === "open").length;
-	div.c("v2-panel", () => {
+	div.c("surface v2-panel", () => {
 		div.c("v2-head v2-fold-head", () => {
 			span("Decisions");
 			span.c("v2-time", `${rows.length} · ${waiting} waiting on you · click to ${ctx.decisions_open ? "close" : "open"}`);
