@@ -1,0 +1,758 @@
+diff --git a/Server/State.mjs b/Server/State.mjs
+index ba34bbf4e..37d4535b6 100644
+--- a/Server/State.mjs
++++ b/Server/State.mjs
+@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
+ import SessionRecord from "./SessionRecord.mjs";
+ import Day from "../public/framework/core/Session/Day.js";
+ import Task from "../public/framework/core/Task/Task.js";
++import DashRow from "../public/framework/ai/rail/DashRow.js";
++import AskFold from "../public/framework/ai/asks/AskFold.js";
+ 
+ const SELF = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const slash = s => String(s).split(path.sep).join("/");
+@@ -24,7 +26,9 @@ export default class State {
+ 	static REWALK = 600000;     // a full walk of both stores every ten minutes, under the fs.watch ticks
+ 	static KEEP = 200;          // state.jsonl is cut back to this many lines when it passes twice that
+ 
+-	constructor({ root = process.env.STATE_ROOT ?? process.env.TASKSTATE_ROOT ?? SELF, sess, framework, index, out, stream, registry = null, now = null } = {}){
++	static WAKE_MIN = 250;      // an fs.watch change wakes the loop after this many ms (a debounce), not at the next 5 s tick
++
++	constructor({ root = process.env.STATE_ROOT ?? process.env.TASKSTATE_ROOT ?? SELF, sess, framework, index, out, stream, cards, asks, registry = null, now = null } = {}){
+ 		this.root = path.resolve(root);
+ 		this.public = path.join(this.root, "public");
+ 		this.framework = framework ?? path.join(this.public, "framework");
+@@ -32,7 +36,10 @@ export default class State {
+ 		this.index = index ?? path.join(this.public, "tasks", "task.jsonl");
+ 		this.out = out ?? path.join(this.framework, "ai", "state.json");
+ 		this.stream = stream ?? path.join(this.framework, "ai", "tasks", "state.jsonl");
++		this.cards = cards ?? path.join(this.framework, "ai", "cards.jsonl");
++		this.asks = asks ?? path.join(this.framework, "ai", "asks.jsonl");
+ 		this.registry = registry; this.fixed_now = now;
++		this.stores = new Map();    // cards.jsonl / asks.jsonl -> { size, mtime, out }
+ 		this.cache = new Map();     // log file -> { size, mtime, row }
+ 		this.rows = null;           // log file -> row, from the last walk plus the files fs.watch marked
+ 		this.dirty = new Set(); this.walked = 0; this.last_check = null;
+@@ -163,12 +170,7 @@ export default class State {
+ 
+ 	/** id -> landed_at for every task that landed on `day`, found by a plain walk of the sessions store plus the /tasks/ index. */
+ 	walk_landed(day){
+-		const hit = new Map(), take = (file, rel) => {
+-			const lines = State.read_lines(file);
+-			if (lines.some(l => typeof l.home === "string") && rel.includes("/ai/sessions/")) return;
+-			const at = State.landed_by_lines(lines);
+-			if (at && State.day(at) === day) hit.set(State.id(rel), at);
+-		};
++		const all = this.walk_all = new Map(), take = (file, rel) => this.walk_take(file, rel);
+ 		const go = dir => {
+ 			let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+ 			const log = ents.some(e => SessionRecord.is_record(e.name)) ? SessionRecord.log_file(dir) : null;
+@@ -183,7 +185,63 @@ export default class State {
+ 			for (const l of State.read_lines(file)) if (typeof l.task === "string") follow(l.task, true);
+ 		};
+ 		for (const l of State.read_lines(this.index)) if (typeof l.task === "string") follow(l.task, false);
+-		return hit;
++		return this.walk_day(day);
++	}
++
++	/** One log read plainly, kept in walk_all: its id and when it landed (null if not, or if it moved to a module home). */
++	walk_take(file, rel){
++		const lines = State.read_lines(file);
++		if (lines.some(l => typeof l.home === "string") && rel.includes("/ai/sessions/")) return this.walk_all.delete(file);
++		this.walk_all.set(file, { id: State.id(rel), at: State.landed_by_lines(lines) });
++	}
++	walk_day(day){ const hit = new Map(); for (const { id, at } of this.walk_all.values()) if (at && State.day(at) === day) hit.set(id, at); return hit; }
++
++	/** After a tick: only the files fs.watch marked are read again; a full walk_landed (start, every REWALK) re-finds every file. */
++	walk_dirty(files, day){
++		for (const f of files) if (SessionRecord.is_record(path.basename(f)) && this.kind(f)){
++			const dir = path.dirname(f);
++			if (this.walk_all.has(f) || SessionRecord.log_file(dir) === f) this.walk_take(f, slash(path.relative(this.root, dir)));
++		}
++		return this.walk_day(day);
++	}
++
++	// ---- cards and asks: two stores folded into the same row (ai/rail/DashRow.js), each counted a second way ----------
++	/** A store file's folded result, re-read only when its size or mtime moved (a stat is not a read, so Windows' read events cannot loop). */
++	store(file, fold){
++		let st; try { st = fs.statSync(file); } catch { return fold(""); }
++		const hit = this.stores.get(file);
++		if (hit && hit.size === st.size && hit.mtime === st.mtimeMs) return hit.out;
++		let text = ""; try { text = fs.readFileSync(file, "utf8"); } catch {}
++		const out = fold(text);
++		this.stores.set(file, { size: st.size, mtime: st.mtimeMs, out });
++		return out;
++	}
++	static by_bucket(rows, buckets){ const n = Object.fromEntries(buckets.map(b => [b, 0])); for (const r of rows) if (r.bucket in n) n[r.bucket]++; return n; }
++	/** The second count: no JSON, no fold, a text scan of the first `"id"` on each line. */
++	static scan_ids(text, re){ const ids = new Set(); for (const l of String(text).split(/\r?\n/)){ const m = l.match(re); if (m) ids.add(m[1]); } return ids.size; }
++
++	/** cards.jsonl: the latest line per id (the file is the Inbox's index), one row each. */
++	fold_cards(){
++		return this.store(this.cards, text => {
++			const by = new Map(); for (const c of State.parse(text)) if (c.id) by.set(c.id, c);
++			const rows = [...by.values()].map(c => DashRow.of_card(c, State.day));
++			const counts = State.by_bucket(rows, DashRow.CARD_BUCKETS);
++			return { rows, check: { rows: rows.length, sum: Object.values(counts).reduce((a, b) => a + b, 0), ids: State.scan_ids(text, /^\{"id":"((?:[^"\\]|\\.)*)"/), counts } };
++		});
++	}
++	/** asks.jsonl through AskFold (latest line wins). An ask's id is its own `id` or a slug of its title, the scan applies the same rule to the text. */
++	fold_asks(){
++		return this.store(this.asks, text => {
++			const rows = Object.values(AskFold.fold(State.parse(text))).map(a => DashRow.of_ask(a, State.day));
++			const counts = State.by_bucket(rows, DashRow.ASK_BUCKETS);
++			const seen = new Set();
++			for (const l of text.split(/\r?\n/)){
++				if (!l.startsWith('{"ask"') || !/"title":"/.test(l)) continue;
++				const id = l.match(/"id":"((?:[^"\\]|\\.)*)"/)?.[1] ?? AskFold.id({ title: JSON.parse('"' + l.match(/"title":"((?:[^"\\]|\\.)*)"/)[1] + '"') });
++				if (id) seen.add(id);
++			}
++			return { rows, check: { rows: rows.length, sum: Object.values(counts).reduce((a, b) => a + b, 0), ids: seen.size, counts } };
++		});
+ 	}
+ 
+ 	// ---- the whole picture -------------------------------------------------------------------------------------------
+@@ -193,7 +251,8 @@ export default class State {
+ 
+ 	/** Re-read what changed: everything on a full walk (first time, or every REWALK), else only the files fs.watch marked. */
+ 	refresh(full = !this.rows || this.now - this.walked > State.REWALK){
+-		if (full){ this.rows = new Map(); for (const f of this.walk()) this.rows.set(f, this.row(f)); this.walked = this.now; this.dirty.clear(); return true; }
++		if (full){ this.rows = new Map(); for (const f of this.walk()) this.rows.set(f, this.row(f)); this.walked = this.now; this.dirty.clear(); this.changed = []; return true; }
++		this.changed = [...this.dirty];
+ 		for (const f of this.dirty){ const r = this.kind(f) && this.row(f); if (r) this.rows.set(f, r); else this.rows.delete(f); }
+ 		this.dirty.clear();
+ 		return false;
+@@ -237,7 +296,8 @@ export default class State {
+ 		const sum = Object.values(counts.tasks).reduce((a, b) => a + b, 0);
+ 		const mine = tasks.filter(r => r.bucket === "landed" && r.day === today).map(r => r.id).sort();
+ 		if (walked || !this.last_check || this.last_check.day !== today || this.last_check.ids !== mine.join()){
+-			const walk = [...this.walk_landed(today).keys()].sort();
++			const found = walked || !this.walk_all || this.last_check?.day !== today ? this.walk_landed(today) : this.walk_dirty(this.changed ?? [], today);
++			const walk = [...found.keys()].sort();
+ 			this.last_check = { day: today, ids: mine.join(), walk, at: new Date(now).toISOString() };
+ 		}
+ 		const walk = this.last_check.walk, ws = new Set(walk), ms = new Set(mine);
+@@ -247,18 +307,36 @@ export default class State {
+ 		check.ok = check.total === check.sum && check.files === check.total + check.aliases && !unbucketed.length && !check.landed_today.only_state.length && !check.landed_today.only_walk.length;
+ 
+ 		const sessions = new Map();
+-		for (const r of tasks) if (r.session){ const s = sessions.get(r.session) ?? { id: r.session, tasks: 0, landed: 0, last_landed: null }; s.tasks++; if (r.bucket === "landed"){ s.landed++; if (!s.last_landed || r.landed_at > s.last_landed) s.last_landed = r.landed_at; } sessions.set(r.session, s); }
++		for (const r of tasks) if (r.session){
++			const s = sessions.get(r.session) ?? { id: r.session, title: null, tasks: 0, landed: 0, last_landed: null, last: null, day: null };
++			s.tasks++;
++			if (r.bucket === "landed"){ s.landed++; if (!s.last_landed || r.landed_at > s.last_landed) s.last_landed = r.landed_at; }
++			if (!s.last || Date.parse(r.last) > Date.parse(s.last)){ s.last = r.last; s.title = r.title; s.day = State.day(r.last); }
++			sessions.set(r.session, s);
++		}
++
++		// cards and asks: the same row the dashboard draws, each with its own two-way count (ai/doc/one-dashboard.md)
++		const cards = this.fold_cards(), asks = this.fold_asks();
++		const in_sessions = [...sessions.values()].reduce((a, s) => a + s.tasks, 0), with_session = all.filter(r => r.session && !r.alias).length;
++		check.cards = { ...cards.check, ok: cards.check.rows === cards.check.sum && cards.check.rows === cards.check.ids };
++		check.asks = { ...asks.check, ok: asks.check.rows === asks.check.sum && asks.check.rows === asks.check.ids };
++		check.sessions = { in_sessions, with_session, ok: in_sessions === with_session };
++		check.ok = check.ok && check.cards.ok && check.asks.ok && check.sessions.ok;
+ 		const off = -new Date(now).getTimezoneOffset(), tz = (off < 0 ? "-" : "+") + p2(Math.floor(Math.abs(off) / 60)) + ":" + p2(Math.abs(off) % 60);
+ 		return { at: new Date(now).toISOString(), today, tz, in_flight, queued, waiting, landed, counts, check,
+-			tasks: tasks.map(({ alias, ...r }) => r), sessions: [...sessions.values()],
++			tasks: tasks.map(({ alias, ...r }) => r), sessions: [...sessions.values()], cards: cards.rows, asks: asks.rows,
+ 			agents: reg.map(a => ({ id: a.id, state: a.state, task_dir: a.task_dir ?? null, model: a.model ?? null, cost: a.cost ?? 0 })),
+ 			timing: { ms: +(performance.now() - t0).toFixed(1), full: walked, files: all.length } };
+ 	}
+ 
+ 	/** The line the dashboard tails: its old keys, plus the bucket counts and the check (never the whole task list). */
+-	static stream_line(s){ const { tasks, sessions, agents, ...line } = s; return line; }
+-	/** The picture without its clock, to tell whether anything changed. */
+-	static sig(s){ return JSON.stringify([s.in_flight.map(r => [r.agent, r.quiet_min, r.title]), s.queued.map(r => r.agent), (s.waiting ?? []).map(r => [r.id, r.since]), s.landed.map(r => r.id), s.counts?.tasks, s.check?.ok, s.check?.landed_today?.walk]); }
++	static stream_line(s){ const { tasks, sessions, agents, cards, asks, ...line } = s; return line; }
++	/** The picture without its clock, to tell whether anything changed. Cards and asks: their bucket counts and newest change. */
++	static sig(s){
++		const newest = rows => (rows ?? []).reduce((a, r) => r.when && r.when > a ? r.when : a, "");
++		return JSON.stringify([s.in_flight.map(r => [r.agent, r.quiet_min, r.title]), s.queued.map(r => r.agent), (s.waiting ?? []).map(r => [r.id, r.since]), s.landed.map(r => r.id), s.counts?.tasks, s.check?.ok, s.check?.landed_today?.walk,
++			s.check?.cards?.counts, s.check?.asks?.counts, newest(s.cards), newest(s.asks)]);
++	}
+ 
+ 	/** Build, then write state.json (whole, atomically) and append one stream line, only when the picture changed or a BEAT passed. */
+ 	async write(prev = null){
+@@ -276,7 +354,13 @@ export default class State {
+ 	/** fs.watch marks a changed log file; the next tick re-folds only that file. */
+ 	watch_files(){
+ 		try {
+-			this.watcher = fs.watch(this.framework, { recursive: true }, (_, name) => { if (name && SessionRecord.is_record(path.basename(String(name)))) this.dirty.add(path.join(this.framework, String(name))); });
++			this.watcher = fs.watch(this.framework, { recursive: true }, (_, name) => {
++				if (!name) return;
++				const file = path.join(this.framework, String(name));
++				if (SessionRecord.is_record(path.basename(file))) this.dirty.add(file);
++				else if (file !== this.cards && file !== this.asks) return;
++				if (this.wake) this.wake(); else this.pending = true;   // the loop re-folds now, not at the next beat; mid-write it flags the next sleep short
++			});
+ 			this.watcher.unref?.();
+ 		} catch (e) { console.error("State: watch failed, full walks only -", e.message); this.walked = 0; }
+ 	}
+@@ -291,8 +375,12 @@ export default class State {
+ 			while (!handle.stopped){
+ 				let owner = null; try { owner = fs.readFileSync(lock, "utf8"); } catch {}
+ 				if (owner !== me){ console.error("State: a newer watcher took over; stopping"); break; }
++				this.pending = false;
+ 				try { prev = await this.write(prev); } catch (e) { console.error("State:", e.message); }
+-				await new Promise(r => setTimeout(r, every));
++				await new Promise(r => {   // a change that landed during the write (this.pending) is not lost: sleep only WAKE_MIN
++					const done = () => { clearTimeout(timer); clearTimeout(this.wake_timer); this.wake = this.wake_timer = null; r(); }, timer = setTimeout(done, this.pending ? State.WAKE_MIN : every);
++					this.wake = () => { this.wake_timer ??= setTimeout(done, State.WAKE_MIN); };
++				});
+ 			}
+ 			this.watcher?.close();
+ 		})();
+@@ -313,5 +401,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
+ 		st.registry = await State.fetch_registry();
+ 		const s = st.snapshot();
+ 		console.log(JSON.stringify({ at: s.at, today: s.today, tz: s.tz, counts: s.counts, check: s.check, timing: s.timing }, null, 1));
+-	} else { const s = await st.write(); console.log(`state.json: ${s.check.total} tasks, landed today ${s.counts.landed}, check.ok ${s.check.ok}`); }
++	} else {
++		const s = await st.write(), c = s.check, two = (k, x) => `check.${k}: ${x.rows} rows = ${x.sum} in buckets = ${x.ids} found by a text scan ${x.ok ? "ok" : "MISMATCH"}`;
++		console.log(`state.json: ${c.total} tasks, landed today ${s.counts.landed}, check.ok ${c.ok}`);
++		console.log(two("cards", c.cards)); console.log(two("asks", c.asks));
++		console.log(`check.sessions: ${c.sessions.in_sessions} tasks in sessions = ${c.sessions.with_session} task rows with a session ${c.sessions.ok ? "ok" : "MISMATCH"}`);
++	}
+ }
+diff --git a/Server/State.test.mjs b/Server/State.test.mjs
+index a01a4e664..d461f8a54 100644
+--- a/Server/State.test.mjs
++++ b/Server/State.test.mjs
+@@ -67,5 +67,43 @@ const c = new State({ root, registry, now }).snapshot(), crow = id => c.tasks.fi
+ assert.equal(crow("t-key").line, "Merged the fix."); assert.equal(crow("t-log").line, "last words");
+ assert.equal(crow("t-head").line, "The brief heading"); assert.equal(crow("t-bare").line, State.NO_SUMMARY);
+ 
++// Cards and asks: the same row, each counted two ways (a fold, a text scan). A later line for an id wins.
++const ai = path.join(root, "public/framework/ai"); fs.mkdirSync(ai, { recursive: true });
++const jl = (file, lines) => fs.writeFileSync(path.join(ai, file), lines.map(l => typeof l === "string" ? l : JSON.stringify(l)).join("\n") + "\n");
++const card = (id, status, extra = {}) => ({ id, title: "Card " + id, type: "card", status, created: "2026-10-17T09:00:00-05:00", last: "2026-10-17T10:00:00-05:00", ...extra });
++jl("cards.jsonl", [card("2026/10/17/a", "open"), card("2026/10/17/a", "working", { last: "2026-10-17T11:00:00-05:00" }), card("2026/10/16/b", "done"), card("2026/10/17/c", "archived"),
++	card("2026/10/17/d", "open", { owner_note: { kind: "needs-you", text: "Pick one.", by: "agent-x" } }), card("2026/10/17/e", "open", { owner_note: { kind: "decision", text: "Fyi." } })]);
++jl("asks.jsonl", [{ ask: { at: "2026-10-17T09:00:00-05:00", title: "First ask", owner: "m1", card: "2026/10/17/a", status: "routed" } },
++	{ ask: { id: "first-ask", status: "landed", at: "2026-10-17T12:00:00-05:00" } },
++	{ ask: { at: "2026-10-17T09:00:00-05:00", id: "named", title: "Named ask", status: "parked" } },
++	{ ask: { at: "2026-10-17T09:30:00-05:00", title: "Quiet ask", status: "routed" } }, { ask: { id: "never-routed", status: "landed" } }]);
++const d = new State({ root, registry, now }).snapshot(), by = id => d.cards.find(r => r.id.endsWith(id));
++assert.equal(d.cards.length, 5);                                         // six lines, five ids
++assert.equal(by("/a").bucket, "working"); assert.equal(by("/b").bucket, "done"); assert.equal(by("/c").bucket, "archived");
++assert.equal(by("/d").bucket, "needs"); assert.equal(by("/d").needs, true); assert.equal(by("/e").bucket, "open"); assert.equal(by("/e").needs, false);   // a decision FYI never waits
++assert.equal(by("/a").day, "2026-10-17"); assert.equal(by("/a").url, "/framework/ai/2026/10/17/a/"); assert.equal(by("/a").kind, "card");
++assert.deepEqual([d.check.cards.rows, d.check.cards.sum, d.check.cards.ids, d.check.cards.ok], [5, 5, 5, true]);
++assert.equal(d.asks.length, 3);                                          // the never-routed update is no ask
++const ask = id => d.asks.find(r => r.id === "ask:" + id);
++assert.equal(ask("first-ask").bucket, "done"); assert.equal(ask("named").bucket, "waiting"); assert.equal(ask("named").needs, true); assert.equal(ask("quiet-ask").bucket, "queued");
++assert.equal(ask("first-ask").when, "2026-10-17T12:00:00-05:00"); assert.equal(ask("first-ask").url, "/framework/ai/2026/10/17/a/");
++assert.deepEqual([d.check.asks.rows, d.check.asks.sum, d.check.asks.ids, d.check.asks.ok], [3, 3, 3, true]);
++assert.deepEqual([d.check.sessions.in_sessions, d.check.sessions.with_session, d.check.sessions.ok], [d.check.sessions.with_session, d.check.sessions.with_session, true]);
++assert.equal(d.sessions.find(x => x.id === "s1").title != null, true);
++assert.equal(State.sig(d) !== State.sig(s), true);                       // new cards and asks move the signature
++assert.equal("cards" in State.stream_line(d), false);                    // the stream line stays small: counts and the check only
++// Break the card count on purpose: an `id` that is not first on its line parses fine but the text scan misses it.
++jl("cards.jsonl", [card("2026/10/17/a", "open"), `{"title":"Odd","id":"2026/10/17/odd","status":"open","last":"2026-10-17T10:00:00-05:00"}`]);
++const e = new State({ root, registry, now }).snapshot();
++assert.equal(e.check.ok, false); assert.deepEqual([e.check.cards.rows, e.check.cards.ids, e.check.cards.ok], [2, 1, false]); assert.equal(e.check.asks.ok, true);
++
++// A landing after the first walk: only the marked file is re-read, and both counts still move together (the 1 s dashboard).
++const wd = put(S + "t-later", { assign: { session_id: "s1", title: "Lands later", requested_at: "2026-10-17T09:00:00-05:00" } }, { start: { at: "2026-10-17T09:05:00-05:00" } });
++const inc = new State({ root, registry, now }), before = inc.snapshot({ full: true }).check.landed_today;
++fs.appendFileSync(path.join(wd, "task.jsonl"), JSON.stringify({ finish: { at: "2026-10-17T22:00:00-05:00", outcome: "Done." } }) + "\n");
++inc.dirty.add(path.join(wd, "task.jsonl"));
++const after = inc.snapshot({ full: false }).check.landed_today;
++assert.deepEqual([after.state - before.state, after.walk - before.walk, after.only_state.length - before.only_state.length, after.only_walk.length], [1, 1, 0, 0]);
++
+ fs.rmSync(root, { recursive: true, force: true });
+-console.log("State: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 2 vs 1)");
++console.log("State: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 2 vs 1; cards 5 = 5 = 5, asks 3 = 3 = 3, broken cards 2 vs 1)");
+diff --git a/Server/doc/state.md b/Server/doc/state.md
+index cac311512..18a1e8ab7 100644
+--- a/Server/doc/state.md
++++ b/Server/doc/state.md
+@@ -37,6 +37,22 @@ Each task's lines go through `Task.replay` (`core/Task/Task.js`), with `Task.res
+ 
+ `State.walk_landed(day)` shares no code with the fold (only `SessionRecord.log_file`, which picks a folder's log file). It walks the sessions store with a plain `readdir`, and finds the module homes from the `/tasks/task.jsonl` index, following each `{"task": …}` line. For each file it reads the landing straight from the lines: the last state verb is `complete` or `finish` (its time is the line's own), or there are no verb lines and the task has `landed_at` and an outcome. Two counts that use different discovery and different code agreeing is the proof; when they differ, the ids say exactly where.
+ 
++## Cards and asks (2026-10-19, the one dashboard)
++
++`state.json` also carries `cards` (`ai/cards.jsonl`, the latest line per id) and `asks` (`ai/asks.jsonl`, folded by `AskFold`), each already in the dashboard's one row (`ai/rail/DashRow.js`: `kind id title state bucket when day who home url line needs`). Tasks and sessions become the same row in the browser, from `tasks` and `sessions`. Plan: [one-dashboard task](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md).
++
++Three more checks, each counted two ways, feed `check.ok`:
++
++- `check.cards`: rows = the five buckets added up = distinct ids found by a plain text scan of the file.
++- `check.asks`: rows = the six buckets added up = distinct ids/titles found by a text scan.
++- `check.sessions`: tasks counted inside `sessions` = task rows that carry a session.
++
++Real numbers (2026-10-19): 751 = 751 = 751 cards, 87 = 87 = 87 asks, 1,965 = 1,965 tasks in sessions. `node Server/State.mjs` prints all three.
++
++## Speed of a change (the 1 s dashboard)
++
++An `fs.watch` change to a log, `cards.jsonl` or `asks.jsonl` wakes the loop after `WAKE_MIN` (250 ms), not at the 5 s beat; a change that lands while a write is running flags the next sleep short instead of being lost. The second count (`walk_landed`) used to re-read every log (2 s); after the first walk it re-reads only the files fs.watch marked (`walk_dirty`), and the full walk repeats every ten minutes as the safety net. Measured: a `finish` line appended to a log reaches the Inbox's Recent chip in 0.65 s (was 2.4 s). A state write is whole, then one `state.jsonl` line points at it; `DashState` refetches on that line.
++
+ ## Speed
+ 
+ A full build walks both stores and replays every file (5.7 s for 2,276 files on 10-17). After that, `fs.watch` marks a changed file and a tick re-folds only that file, plus the registry read: milliseconds. Each file's fold is cached by its size and mtime. A full re-walk runs every ten minutes as a safety net. Both times are printed by `node Server/State.mjs --time`.
+diff --git a/public/framework/ai/doc/one-dashboard.md b/public/framework/ai/doc/one-dashboard.md
+index bb6338f5c..54ef76d06 100644
+--- a/public/framework/ai/doc/one-dashboard.md
++++ b/public/framework/ai/doc/one-dashboard.md
+@@ -39,3 +39,7 @@ What happens to the others: `/framework/ai/tasks/`, `/tasks/`, `/live/` and `/as
+ ## What agreeing means
+ 
+ Yes to the shape above, or amend it (which chips, which page is the one). Then the build is three steps, each small: (1) `State` folds cards and asks into the same structure with the same self-check; (2) the Inbox list reads `state.json` and gets the chips; (3) the other pages become saved filters. No step adds a page.
++
++## Built
++
++**Built: steps 1 and 2 (2026-10-19).** `State` folds cards and asks, each counted two ways ([Server/doc/state.md](/Server/doc/state.md)); the Inbox list in `/framework/ai/` reads `state.json` through the one stream, with the chips as urls (`?live&new`, `?recent=today`, `?older=month`, `?needs`, `kind=task,card`) and the red check line under them. A landing reaches the list in under a second with no agent writing anything. Step 3, the other pages as saved filters, is next. Plan and proof shots: [one-dashboard task](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md).
+diff --git a/public/framework/ai/rail/DashChips.js b/public/framework/ai/rail/DashChips.js
+new file mode 100644
+index 000000000..baf1bd9e7
+--- /dev/null
++++ b/public/framework/ai/rail/DashChips.js
+@@ -0,0 +1,115 @@
++import { div, span, small } from "/framework/core/View/View.js";
++import TasksPage from "../tasks/TasksPage.js";
++
++/** DashChips — the Inbox's filter chips over the one row (DashRow). Every state is a url: `?live&new&recent=today&kind=task,card`.
++ *  Chips of the When group (live, new, recent, older) add up; across groups (When, Needs you, Kind) every one must hold. Doc: ai/doc/one-dashboard.md */
++export default class DashChips {
++	static WHEN = [["live", "Live"], ["new", "New"], ["recent", "Recent"], ["older", "Older"]];
++	static RECENT = [["today", "Today"], ["yesterday", "Yesterday"], ["week", "This week"]];
++	static OLDER = [["week", "1–4 weeks ago"], ["month", "Over a month ago"]];
++	static KINDS = ["task", "card", "session", "ask"];
++	static LIVE_MIN = 10;      // a row changed this recently counts as live
++	static NEWEST = 150;       // with no chip on, this many rows
++
++	live = false; fresh = false; recent = null; older = null; needs = false; kinds = new Set();
++
++	constructor(owner){ this.owner = owner; this.read(location.search); }
++
++	/** The chips a url names; `?live&new` has no values, `recent=` and `older=` default to their first window. */
++	read(search){
++		const q = new URLSearchParams(search), pick = (k, list) => q.has(k) ? (list.find(([w]) => w === q.get(k)) ?? list[0])[0] : null;
++		this.live = q.has("live"); this.fresh = q.has("new"); this.needs = q.has("needs");
++		this.recent = pick("recent", DashChips.RECENT); this.older = pick("older", DashChips.OLDER);
++		this.kinds = new Set((q.get("kind") ?? "").split(",").filter(k => DashChips.KINDS.includes(k)));
++	}
++
++	/** `?live&new`, or "" with no chip on. */
++	query(){
++		const parts = [this.live && "live", this.fresh && "new", this.recent && "recent=" + this.recent, this.older && "older=" + this.older, this.needs && "needs",
++			this.kinds.size && "kind=" + [...this.kinds].join(",")].filter(Boolean);
++		return parts.length ? "?" + parts.join("&") : "";
++	}
++	/** The url now: our chips replace ours, anything else in the query (a search, a floor) stays. */
++	write(){
++		const rest = new URLSearchParams(location.search);
++		["live", "new", "recent", "older", "needs", "kind"].forEach(k => rest.delete(k));
++		const keep = rest.toString(), mine = this.query().slice(1);
++		const search = [mine, keep].filter(Boolean).join("&");
++		history.replaceState(history.state, "", location.pathname + (search ? "?" + search : "") + location.hash);
++	}
++	any(){ return this.live || this.fresh || this.recent || this.older || this.needs || this.kinds.size > 0; }
++
++	/* ── the rules: one place says what each chip selects ── */
++
++	static age(r, s){ return r.day ? Math.round((Date.parse(s.today) - Date.parse(r.day)) / 864e5) : null; }
++	static finished(r){ return r.bucket === "landed" || r.bucket === "done"; }
++	static is_live(r, s){ return r.bucket === "in_flight" || (!!r.when && Date.parse(s.at) - Date.parse(r.when) < DashChips.LIVE_MIN * 60000 && Date.parse(s.at) >= Date.parse(r.when)); }
++	static is_new(r, s){
++		if (r.kind === "task") return r.bucket === "queued" || r.bucket === "idle";
++		if (r.kind === "card") return (r.bucket === "open" || r.bucket === "working") && r.created_day === s.today;
++		return r.kind === "ask" && r.bucket === "queued";     // every ask nobody has picked up, not only today's
++	}
++	static in_recent(r, s, w){ const n = DashChips.age(r, s); return DashChips.finished(r) && n != null && n >= 0 && (w === "today" ? n === 0 : w === "yesterday" ? n === 1 : n <= 7); }
++	static in_older(r, s, w){ const n = DashChips.age(r, s); return DashChips.finished(r) && n != null && (w === "week" ? n >= 8 && n <= 34 : n >= 35); }
++
++	/** Does this row pass the chips that are on? */
++	match(r, s){
++		const when = [this.live && DashChips.is_live(r, s), this.fresh && DashChips.is_new(r, s), this.recent && DashChips.in_recent(r, s, this.recent), this.older && DashChips.in_older(r, s, this.older)];
++		const on = [this.live, this.fresh, this.recent, this.older].some(Boolean);
++		if (on && !when.some(Boolean)) return false;
++		if (this.needs && !r.needs) return false;
++		return !this.kinds.size || this.kinds.has(r.kind);
++	}
++
++	/** The count each chip would show on its own, over all rows. */
++	counts(rows, s){
++		const n = { live: 0, new: 0, recent: 0, older: 0, needs: 0, all: rows.length, today: 0, yesterday: 0, week: 0, older_week: 0, older_month: 0 };
++		DashChips.KINDS.forEach(k => { n[k] = 0; });
++		rows.forEach(r => {
++			n[r.kind]++;
++			if (DashChips.is_live(r, s)) n.live++;
++			if (DashChips.is_new(r, s)) n.new++;
++			if (r.needs) n.needs++;
++			DashChips.RECENT.forEach(([w]) => { if (DashChips.in_recent(r, s, w)) n[w]++; });
++			if (DashChips.in_recent(r, s, "week")) n.recent++;
++			if (DashChips.in_older(r, s, "week")) n.older_week++;
++			if (DashChips.in_older(r, s, "month")) n.older_month++;
++		});
++		n.older = n.older_week + n.older_month;
++		return n;
++	}
++
++	/* ── drawing ── */
++
++	/** The box the chips live in; call inside the head's builder. */
++	mount(){ return this.$box = div.c("dash-chips"); }
++
++	toggle(fn){ fn(); this.write(); this.owner.relist(); this.owner.paint_soon(); }
++
++	/** Redraw from the rows and the state; `matched` rows pass the chips, `shown` of them are drawn (the cap). */
++	update(rows, s, matched, shown){
++		if (!this.$box) return;
++		const n = this.counts(rows, s), c = s.check ?? {};
++		const sig = JSON.stringify([n, this.query(), matched, shown, this.owner.search_q, c.ok === false ? TasksPage.why(c) : c.ok]);
++		if (sig === this.sig) return;
++		this.sig = sig;
++		const chip = (label, count, on, click) => TasksPage.chip(count == null ? label : label + " " + count, on, () => this.toggle(click));
++		this.$box.empty(() => {
++			div.c("dash-chip-row", () => {
++				chip("Live", n.live, this.live, () => { this.live = !this.live; });
++				chip("New", n.new, this.fresh, () => { this.fresh = !this.fresh; });
++				chip("Recent", n.recent, !!this.recent, () => { this.recent = this.recent ? null : "today"; });
++				chip("Older", n.older, !!this.older, () => { this.older = this.older ? null : "week"; });
++				chip("Needs you", n.needs, this.needs, () => { this.needs = !this.needs; });
++			});
++			if (this.recent) div.c("dash-chip-row dash-chip-sub", () => DashChips.RECENT.forEach(([w, label]) => chip(label, n[w], this.recent === w, () => { this.recent = w; })));
++			if (this.older) div.c("dash-chip-row dash-chip-sub", () => DashChips.OLDER.forEach(([w, label]) => chip(label, n["older_" + w], this.older === w, () => { this.older = w; })));
++			div.c("dash-chip-row", () => {
++				span.c("dash-chip-head muted").text("Kind");
++				DashChips.KINDS.forEach(k => chip(k, n[k], this.kinds.has(k), () => { this.kinds.has(k) ? this.kinds.delete(k) : this.kinds.add(k); }));
++			});
++			div.c("dash-total muted", () => span(matched > shown ? `newest ${shown} of ${matched}` : `${matched} of ${n.all}`));
++			if (c.ok === false) TasksPage.note_bad(TasksPage.why(c));
++		});
++	}
++}
+diff --git a/public/framework/ai/rail/DashRow.js b/public/framework/ai/rail/DashRow.js
+new file mode 100644
+index 000000000..589a225b5
+--- /dev/null
++++ b/public/framework/ai/rail/DashRow.js
+@@ -0,0 +1,59 @@
++/** DashRow — the one row of the AI dashboard: `{kind, id, title, state, bucket, when, day, who, home, url, line, needs}`.
++ *  Plain code, no DOM and no imports, so Server/State.mjs (cards, asks) and the browser (tasks, sessions) share one mapping. Plan: ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md */
++export default class DashRow {
++	static KINDS = ["task", "card", "session", "ask"];
++	static CARD_BUCKETS = ["open", "working", "needs", "done", "archived"];
++	static ASK_BUCKETS = ["queued", "working", "waiting", "stalled", "done", "closed"];
++	static AI = "/framework/ai/";
++
++	static line(text){ return String(text ?? "").replace(/\s+/g, " ").trim().slice(0, 200); }
++
++	/** A card waits on the owner while it is open and has status `needs-you`, or an owner note of kind `needs-you` (the rule WaitingOnYou pins). */
++	static card_waits(c){ return !["done", "archived"].includes(c.status) && (c.status === "needs-you" || c.owner_note?.kind === "needs-you"); }
++	static card_bucket(c){
++		if (c.status === "done" || c.status === "archived") return c.status;
++		if (this.card_waits(c)) return "needs";
++		return ["working", "building"].includes(c.status) ? "working" : "open";
++	}
++	static ask_bucket(a){
++		const s = a.status;
++		if (s === "landed" || s === "done") return "done";
++		if (s === "dropped") return "closed";
++		if (s === "stalled") return "stalled";
++		if (s === "waiting" || s === "parked" || s === "needs-you") return "waiting";
++		return s === "routed" || s === "queued" ? "queued" : "working";
++	}
++
++	/** `day` turns a time into the owner's local calendar day (State.day on the server). */
++	static of_card(c, day){
++		const when = c.last ?? c.created ?? null, bucket = this.card_bucket(c);
++		return { kind: "card", id: c.id, type: c.type ?? "card", title: c.title || "Untitled card", state: c.status ?? "open", bucket, when, day: when ? day(when) : null,
++			created_day: c.created ? day(c.created) : null, who: c.owner_note?.by ?? null, home: null, url: this.AI + c.id + "/",
++			line: this.line(c.owner_note?.text ?? c.preview ?? c.state), needs: bucket === "needs" };
++	}
++	static of_ask(a, day){
++		const when = a.status_at ?? a.at ?? null, bucket = this.ask_bucket(a);
++		return { kind: "ask", id: "ask:" + a.id, title: a.title || a.id, state: a.status ?? "open", bucket, when, day: when ? day(when) : null,
++			created_day: a.at ? day(a.at) : null, who: a.owner ?? null, home: null, url: a.card ? this.AI + a.card + "/" : this.AI + "asks/",
++			line: this.line(a.why ?? a.words), needs: bucket === "waiting" };
++	}
++
++	/** Browser side: a `state.tasks` row, already folded by Task.replay, in the one shape. */
++	static of_task(r){
++		const when = r.landed_at ?? r.last ?? r.started ?? null;
++		return { kind: "task", id: r.id, title: r.title, state: r.state, bucket: r.bucket, when, day: r.day, created_day: r.started ? r.day : null,
++			who: r.agent ?? null, home: r.module ?? null, url: r.url, line: r.line ?? "", needs: r.bucket === "waiting" && r.waiting_on === "owner" };
++	}
++	/** A session that ran two or more tasks; a one-task session is its task. `title` is its newest task's. */
++	static of_session(s){
++		const when = s.last ?? s.last_landed ?? null;
++		return { kind: "session", id: "session:" + s.id, title: s.title || "Session " + String(s.id).slice(0, 8), state: s.landed === s.tasks ? "complete" : "running",
++			bucket: s.landed === s.tasks ? "landed" : "open", when, day: s.day ?? null, created_day: null, who: s.id, home: null, url: DashRow.AI + "sessions/" + s.id + "/",
++			line: `${s.tasks} tasks, ${s.landed} landed`, needs: false };
++	}
++
++	/** Every row of a state.json, one array. */
++	static rows(s){
++		return [...(s.tasks ?? []).map(r => this.of_task(r)), ...(s.sessions ?? []).filter(x => x.tasks >= 2).map(x => this.of_session(x)), ...(s.cards ?? []), ...(s.asks ?? [])];
++	}
++}
+diff --git a/public/framework/ai/rail/DashState.js b/public/framework/ai/rail/DashState.js
+new file mode 100644
+index 000000000..dad9fda73
+--- /dev/null
++++ b/public/framework/ai/rail/DashState.js
+@@ -0,0 +1,38 @@
++import TaskStateLog from "../tasks/TaskStateLog.js";
++import DashRow from "./DashRow.js";
++
++/** DashState — the whole ai/state.json, kept current by the one stream: each new line on ai/tasks/state.jsonl (written AFTER state.json, so it always points at fresh data) refetches it.
++ *  `rows` are the dashboard's one row type (DashRow). Doc: ai/doc/one-dashboard.md */
++export default class DashState extends TaskStateLog {
++	static URL = new URL("../state.json", import.meta.url).pathname;
++	full = null;      // the last state.json
++	rows = [];        // DashRow.rows(full)
++	listeners = new Set();
++
++	on(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); }
++
++	/** The stream line sets `state` (counts, check); the full picture follows it. */
++	apply(entry){ super.apply(entry); if (entry?.in_flight && this.started) this.load_soon(); }
++
++	start(){
++		this.started = true;
++		return this.live(() => {}).then(() => this.load_soon());
++	}
++
++	/** One fetch at a time; a line that arrives mid-fetch asks for one more after it. */
++	async load_soon(){
++		if (this.loading) return void (this.again = true);
++		this.loading = true;
++		try {
++			const res = await fetch(DashState.URL, { cache: "no-store" }).catch(() => null);
++			if (res?.ok && !(res.headers.get("content-type") ?? "").includes("html")){
++				this.full = await res.json();
++				this.rows = DashRow.rows(this.full);
++				this.listeners.forEach(fn => fn(this));
++			}
++		} finally {
++			this.loading = false;
++			if (this.again){ this.again = false; this.load_soon(); }
++		}
++	}
++}
+diff --git a/public/framework/ai/rail/rail.css b/public/framework/ai/rail/rail.css
+index 0879ab6b3..61236a8b6 100644
+--- a/public/framework/ai/rail/rail.css
++++ b/public/framework/ai/rail/rail.css
+@@ -26,6 +26,21 @@
+ 	.ai2-usage-top .ai-proj { display: none; }
+ 	.ai2-usage-key { display: block; font-size: 0.72em; margin-block-start: 0.2em; }
+ 
++	/* THE ONE DASHBOARD'S CHIPS (DashChips.js): full-width rows of small pills under the head; the pressed one is filled.
++	   The chip look is TasksPage.chip's (`sessions-chip`), restated here so it does not depend on sessions.css being loaded. */
++	.inbox-chrome > .dash-chips { flex: 1 1 100%; white-space: normal; display: flex; flex-direction: column; gap: 0.3em; }
++	.dash-chip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; }
++	.dash-chip-sub { padding-inline-start: 1em; }
++	.dash-chips .sessions-chip { font: inherit; font-size: 0.85em; padding: 0.1em 0.6em; border: 1px solid var(--line); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
++	.dash-chips .sessions-chip:hover { background: var(--tint); }
++	.dash-chips .sessions-chip-on { background: var(--prime); border-color: var(--prime); color: var(--prime-ink); font-weight: 600; }
++	.dash-chip-head, .dash-total { font-size: 0.8em; }
++	.dash-chips .tasks-check-bad { font-size: 0.85em; }
++
++	/* A state row's second line: its kind, state and what it says. */
++	.dash-kind { flex: none; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.7; }
++	.dash-state { flex: none; font-size: 0.8em; }
++
+ 	/* A GROUP ROW is a preview like any other, a little heavier. */
+ 	.ai2-group-row .inbox-row-title { font-size: 1.05em; }
+ 	.ai2-group-row .inbox-row-when { white-space: nowrap; }
+@@ -118,3 +133,9 @@
+ @layer util {
+ 	.page.page--ai > :is(.page-open, .page-inbox-chip, .page-ai-cost) { display: none; }
+ }
++
++/* A chip on means the list is a filtered view: the pinned rows (Waiting on you, Now, Today...) step aside so its rows are the first thing seen.
++   "Needs you" is the same set as Waiting on you, so nothing is lost. */
++@layer util {
++	.ai2:has(.dash-chips .sessions-chip-on) :is(.browse-pins, .inbox-pinned) { display: none; }
++}
+diff --git a/public/framework/ai/rail/rail.js b/public/framework/ai/rail/rail.js
+index 2b1dd71f4..0eb7f0165 100644
+--- a/public/framework/ai/rail/rail.js
++++ b/public/framework/ai/rail/rail.js
+@@ -20,6 +20,8 @@ import workspace from "../cards/workspace.js";
+ import { RealPage, page_events, real_title } from "../cards/real.js";
+ import { Rules } from "../cards/Rules.js";
+ import WaitingOnYou from "/framework/core/Page/ext/Inbox/WaitingOnYou.js";
++import DashState from "./DashState.js";
++import DashChips from "./DashChips.js";
+ 
+ View.stylesheet(import.meta, "rail.css");
+ 
+@@ -57,6 +59,9 @@ export default class AIRail extends Inbox.Rail {
+ 		this.live = live_model({ prompts: this.prompts, day: this.day });
+ 		this.cards = new CardList();
+ 		this.groups = new Groups();
++		this.dash = new DashState();      // the one state (ai/state.json): the Inbox's rows. Doc: doc/one-dashboard.md
++		this.chips = new DashChips(this);
++		this.dash_items = []; this.dash_by_id = new Map();
+ 		this.page.auto_transcribe = auto_transcribe;
+ 		// WAITING ON YOU, pinned above every row (Browse.Pinned): ticking a line archives its card, the row's own × write.
+ 		this.waiting_list = this.pin(new WaitingOnYou({ tick: r => r.card && Rules.archive_row({ id: r.card }), changed: () => this.paint_soon() }));
+@@ -159,9 +164,65 @@ export default class AIRail extends Inbox.Rail {
+ 		// no routed alias to maintain, so `render_pinned()` just needs to honour an item's own
+ 		// `href` instead of always building one from `this.url + id`.
+ 		this.build_day_items();
++		this.build_dash_items();
+ 		return list;
+ 	}
+ 
++	/* ── the rows: the one state, filtered by the chips (DashChips) ── */
++
++	static ICONS = { task: "task_alt", card: "sticky_note_2", session: "history", ask: "help_outline" };
++
++	/** Every state row as a rail item, newest first. Not in `this.list`: that stays the legacy items, which the detail pages read. */
++	build_dash_items(){
++		const s = this.dash.full;
++		if (!s || this.dash_built === this.dash.rows) return;
++		this.dash_built = this.dash.rows;
++		this.dash_items = this.dash.rows.map(r => ({ ...r, dash: true, id: "dash:" + r.id, key: r.id, at: r.when, plain: true, icon: AIRail.ICONS[r.kind], live: DashChips.is_live(r, s) }))
++			.sort((x, y) => (Date.parse(y.at ?? 0) || 0) - (Date.parse(x.at ?? 0) || 0));
++		this.dash_by_id = new Map(this.dash_items.map(it => [it.id, it]));
++	}
++
++	visible(){
++		const s = this.dash.full;
++		if (!s) return [];
++		let base = this.dash_items.filter(it => this.chips.match(it, s));
++		if (this.search_q) base = base.filter(it => this.haystack(it).includes(this.search_q));
++		this.dash_matched = base.length;
++		return base.slice(0, DashChips.NEWEST);
++	}
++	haystack(it){ return it.dash ? (it.title + " " + it.line + " " + it.kind + " " + it.state + " " + (it.who ?? "")).toLowerCase() : super.haystack(it); }
++	is_new(it){ return !it.dash && super.is_new(it); }
++
++	/* The chips and their counts replace the old needs box, blocking/review/fyi chips and score floor. */
++	needs_chip(){ this.chips.mount(); }
++	needs_changed(ids){ this.needs_ids = ids; }
++	category_chips(){}
++	floor(){}
++	foot(){ div.c("inbox-rail-foot flex v-center", () => { this.foot_words(); this.$archived = button.c("inbox-word").attr("type", "button").attr("hidden", ""); }); }
++	count(){
++		super.count();
++		this.$archived.el.hidden = true;
++		this.chips.update(this.dash.rows, this.dash.full ?? { at: new Date().toISOString(), today: "" }, this.dash_matched ?? 0, this.shown_count());
++	}
++	shown_count(){ return Math.min(this.dash_matched ?? 0, DashChips.NEWEST); }
++	query(){ return this.chips?.query() ?? ""; }
++	href(it){ return it.dash ? it.url + this.query() : super.href(it); }
++
++	/* One face for every state row: the title, then its kind, state and line. */
++	dash_face(it){
++		this.row_head({ icon: it.icon, title: it.title, at: it.at, dot: false, plain: true, owner_kind: it.needs ? "needs-you" : null }, {});
++		div.c("inbox-row-foot flex v-center gap-25", () => {
++			span.c("dash-kind dash-kind-" + it.kind).text(it.kind);
++			span.c("dash-state muted").text(it.state);
++			if (it.line) small.c("inbox-row-line muted").text(it.line);
++		});
++	}
++
++	paint(){
++		super.paint();
++		this.shown.forEach(id => { const it = this.dash_by_id.get(id), rec = this.rows.get(id); if (it && rec) this.refill(rec, it); });
++	}
++
+ 	/* `id` is date-stamped ("day-2026-10-04"), not the plain word "yesterday" — the owner's own
+ 	   ask ("making that yesterday card unread, if I haven't taken a look at it") means a FRESH
+ 	   unread flag every day, which a stable id could never give (open yesterday's card once and
+@@ -266,7 +327,7 @@ export default class AIRail extends Inbox.Rail {
+ 	exempt(it){ return it.kind === "live"; }
+ 	// A stalled ask has no card to archive (it leaves when the ledger moves on); Live and the
+ 	// pinned Your-prompts summary never leave either — there is nothing to archive on either.
+-	archivable(it){ return it.kind !== "stalled" && it.kind !== "live" && it.kind !== "prompts-pin"; }
++	archivable(it){ return !it.dash && it.kind !== "stalled" && it.kind !== "live" && it.kind !== "prompts-pin"; }
+ 
+ 	is_read(id){ return Rules.is_read(id); }
+ 	mark_read(id, val){ Rules.mark_read(id, val); }
+@@ -276,7 +337,7 @@ export default class AIRail extends Inbox.Rail {
+ 
+ 	/* ── a row ── */
+ 
+-	row_classes(rec, it){ rec.$row.el.classList.toggle("ai2-row-live", it.kind === "live"); }
++	row_classes(rec, it){ rec.$row.el.classList.toggle("ai2-row-live", it.kind === "live" || !!it.live); }
+ 
+ 	// The Live row says its clock; every other row the base's short date.
+ 	when(at, it){ return it?.kind === "live" ? Faces.clock(at) : super.when(at); }
+@@ -284,6 +345,7 @@ export default class AIRail extends Inbox.Rail {
+ 	title_text($title, it){ if (!it.plain) mentions($title.el); }
+ 
+ 	face(it, on){
++		if (it.dash) return this.dash_face(it);
+ 		// THE LIVE ROW: counts (agents, working, 5h %) per card standard
+ 		if (it.kind === "live"){
+ 			const total_agents = it.agents?.length ?? 0;
+@@ -309,11 +371,7 @@ export default class AIRail extends Inbox.Rail {
+ 
+ 	/* ── the rows the base does not draw: groups and changed site pages ── */
+ 
+-	draw_extras(force){
+-		this.draw_groups();
+-		this.draw_pages();
+-		this.order_rows(force);
+-	}
++	draw_extras(force){ this.order_rows(force); }   // the group and changed-page rows are not in the one state (draw_groups, draw_pages stay for their callers)
+ 
+ 	extra_entries(){
+ 		return [
+@@ -466,6 +524,8 @@ export default class AIRail extends Inbox.Rail {
+ 		this.waiting_list.start();
+ 		this.groups.on(paint);
+ 		this.groups.start({ folders: this.cards, socket: this.page.app?.socket });
++		this.dash.on(paint);
++		this.dash.start();
+ 		resolve_card("now").then(fold => { if (fold){ this.build_now_item(fold); this.render_pinned(); this.paint_soon(); } });
+ 		// The Needs you chip reads the SAME shared scan as the needs page (needs.js).
+ 		Needs.watch(s => this.needs_changed(s.ids, s.rows.length));
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index 79c74362a..d95a01d10 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -28,7 +28,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
+ - **Usage pace** (how fast the week's limits are being spent against the clock, three meter variants beside today's): [usage/](usage/readme.md) · `node Server/usage-now.mjs`
+ - **Undone asks** (every ask with no landed task or card, by module, computed daily): [asks/undone](/framework/ai/asks/undone/) · [verdict](doc/undone-asks-2026-10-17.md) · `node Server/UndoneAsks.mjs`
+ - **One state** (every task in both stores, one bucket each, with a self-check; every count reads it): `state.json` here, written by [Server/State.mjs](/Server/State.mjs) · [design](/Server/doc/state.md) · [why](doc/one-state.md) · the dashboard [tasks/](tasks/readme.md) shows its check in red when it fails
+-- **One dashboard** (a proposal to agree on: the Inbox becomes the one list over `state.json`, with Live / New / Recent / Older / Needs-you chips; the other pages become saved filters; nothing built yet): [doc/one-dashboard.md](doc/one-dashboard.md)
++- **One dashboard** (the Inbox is the one list over `state.json`: Live / New / Recent / Older / Needs-you chips and a Kind row, every state a url; the other pages become saved filters next): [doc/one-dashboard.md](doc/one-dashboard.md) · **Built: steps 1 and 2 (2026-10-19, see the one-dashboard doc)**, [the plan](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md)
+ - **What happened 10-17 to 10-19** (your asks in order, what landed each day, what waits on you, the usage numbers explained): [doc/overview-2026-10-17-to-19.md](doc/overview-2026-10-17-to-19.md)
+ - **Asks tally** (every ask you typed since 09-15, counted by feature, with what landed and what never did): [doc/asks-outcomes.md](doc/asks-outcomes.md) · `node Server/AskTally.mjs page`
+ - **Follow-up** (what fell through the cracks, computed; plus unused-file census): [doc/follow-up.md](doc/follow-up.md) · [doc/unreferenced.md](doc/unreferenced.md) · `node Server/FollowUp.mjs --write`
+diff --git a/public/framework/ai/tasks/TasksPage.js b/public/framework/ai/tasks/TasksPage.js
+index 73f8c7fb7..ff1ee9b7c 100644
+--- a/public/framework/ai/tasks/TasksPage.js
++++ b/public/framework/ai/tasks/TasksPage.js
+@@ -57,16 +57,28 @@ export default class TasksPage extends Browse {
+ 		div.c("tasks-group", () => {
+ 			h2.c("tasks-group-head", () => { span(g.title); small.c("inbox-badge").text(String(rows.length)).el.hidden = !rows.length; });
+ 			if (g.key === "landed") div.c("sessions-tabs flex gap-50 wrap", () => TasksPage.WINDOWS.forEach(([k, label]) =>
+-				button.c("sessions-chip" + (this.window === k ? " sessions-chip-on" : ""), label).on("click", () => { this.window = k; history.replaceState(null, "", k === "today" ? location.pathname : "?landed=" + k); this.draw(); })));
++				TasksPage.chip(label, this.window === k, () => { this.window = k; history.replaceState(null, "", k === "today" ? location.pathname : "?landed=" + k); this.draw(); })));
+ 			if (!rows.length) return small.c("tasks-empty muted", g.empty);
+ 			rows.forEach(r => this.row(g.key, r));
+ 		});
+ 	}
+ 
++	/** One filter chip; the Inbox (ai/rail/DashChips.js) draws its chips with this too. */
++	static chip(label, on, click){ return button.c("sessions-chip" + (on ? " sessions-chip-on" : ""), label).on("click", click); }
++
++	/** The red line of a failed self-check: always this one, so a wrong count is never quiet. */
++	static note_bad(text){ return div.c("tasks-note tasks-check-bad", () => span(text)).el.style.color = "#c62828"; }
++
+ 	/** State's self-check failed (Server/doc/state.md): the two numbers in red, never a quiet wrong count. */
+-	static bad(c){
+-		const l = c.landed_today ?? {}, ids = [...(l.only_state ?? []), ...(l.only_walk ?? [])];
+-		div.c("tasks-note tasks-check-bad", () => span(`Counts disagree: landed today is ${l.state} by the task rules but ${l.walk} by a plain walk${ids.length ? " (" + ids.join(", ") + ")" : ""}; ${c.total} tasks, ${c.sum} in buckets.`)).el.style.color = "#c62828";
++	static bad(c){ TasksPage.note_bad(TasksPage.why(c)); }
++
++	/** The sentence naming every count that differs: landed today, tasks, cards, asks, sessions. */
++	static why(c){
++		const l = c.landed_today ?? {}, ids = [...(l.only_state ?? []), ...(l.only_walk ?? [])], two = (k, x) => x && x.ok === false ? `${k}: ${x.rows} rows, ${x.sum} in buckets, ${x.ids} found by a text scan` : null;
++		const parts = [l.state !== l.walk || ids.length ? `landed today is ${l.state} by the task rules but ${l.walk} by a plain walk${ids.length ? " (" + ids.join(", ") + ")" : ""}` : null,
++			c.total !== c.sum ? `${c.total} tasks, ${c.sum} in buckets` : null, two("cards", c.cards), two("asks", c.asks),
++			c.sessions?.ok === false ? `sessions: ${c.sessions.in_sessions} tasks in sessions, ${c.sessions.with_session} task rows with a session` : null].filter(Boolean);
++		return "Counts disagree: " + (parts.length ? parts.join("; ") : `${c.total} tasks, ${c.sum} in buckets`) + ".";
+ 	}
+ 
+ 	row(kind, r){
