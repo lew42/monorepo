@@ -108,7 +108,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   [Brief](2026-09-24/worktree-watch/)
 - **Reorganize what's been built**: 12 ranked moves, starting with five imports that must move
   before the prune is safe. [Plan](2026-09-24/inventory/)
-- **Merge card kinds**: 75 → 36. The first three merges (`ui-cards`, `ui-pills`, `link-tiles`) **ALL DONE.** Verified with before/after screenshots at 1920/390 and 0 console errors across all 16 target pages.
+- **Merge card kinds**: 75 → 36. Merges 1-5 **DONE** (`ui-cards`, `ui-pills`, `link-tiles`, `popovers`, `folds`), each verified with before/after screenshots at 1920/390 and 0 new console errors. **Open, in order:** 6 `regions`, 7 `ai-pills`, 8 `frames`, 9 `ai-rows`, 10 `ai-cards`, then the shared-module 11 `doc-well`, 12 `tab-panes`, 13 `surface-pad`. 6-8 were deferred on purpose (redesign beyond box style, AI pages with no data to shoot, `frame` has no home module yet): reasons in `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/card-merges/task.jsonl`.
   [Plan](/framework/ux/Content/plan/) · [brief](2026-09-24/card-consolidation/merges-requirements.md) · [shots index](2026-09-24/card-consolidation/shots/index.md)
 - ~~**Small fixes from the feedback council** (2026-09-25, [verdicts](2026-09-25/feedback-council/)),~~ (struck 2026-10-18 from a verdict scout: ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/servex-small/)
   each one the owner asked for and the council found unfinished:
