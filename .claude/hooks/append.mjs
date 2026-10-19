@@ -55,7 +55,17 @@ const stamp = o => {
 	if (keys.length > 1 && !o.at && !o.landed_at) return { at: t, ...o };
 	return o;
 };
-const filled = list.map(o => stamp(fill(o, t)));
+// A timed verb whose `at` is missing or a bare date gets the current local time (a bare date reads as UTC midnight elsewhere); never refused.
+const TIMED = ["finish", "complete", "stop", "start", "log", "decision"];
+const fix_date = (o, i) => {
+	const verb = Object.keys(o ?? {}).find(k => TIMED.includes(k));
+	const body = verb && o[verb];
+	if (!body || typeof body !== "object" || Array.isArray(body)) return o;
+	if (body.at && !/^\d{4}-\d{2}-\d{2}$/.test(body.at)) return o;
+	console.error(`(line ${i + 1}: ${verb}.at was ${body.at ? `the bare date ${body.at}` : "missing"}; filled with ${t})`);
+	return { ...o, [verb]: { ...body, at: t } };
+};
+const filled = list.map((o, i) => fix_date(stamp(fill(o, t)), i));
 
 const refused = filled.map((o, i) => [i, check(target, o)]).filter(([, why]) => why);
 if (refused.length){

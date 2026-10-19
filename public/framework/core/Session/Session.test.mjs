@@ -34,3 +34,7 @@ check("Session.describe() lists tasks and progress", () => {
 
 console.log(`${results.filter(Boolean).length}/${results.length}`);
 process.exit(results.every(Boolean) ? 0 : 1);
+
+import Day from "./Day.js";
+check("Day.of keeps a bare YYYY-MM-DD as that local day; other forms keep the local rule", () =>
+	Day.of("2026-10-19") === "2026-10-19" && Day.path("2026-10-19") === "2026/10/19" && Day.of("") === "" && Day.of(new Date(2026, 9, 19, 23, 30)) === "2026-10-19" && Day.of("2026-10-19T08:00:00-05:00") !== "");
