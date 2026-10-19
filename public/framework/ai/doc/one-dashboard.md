@@ -39,3 +39,7 @@ What happens to the others: `/framework/ai/tasks/`, `/tasks/`, `/live/` and `/as
 ## What agreeing means
 
 Yes to the shape above, or amend it (which chips, which page is the one). Then the build is three steps, each small: (1) `State` folds cards and asks into the same structure with the same self-check; (2) the Inbox list reads `state.json` and gets the chips; (3) the other pages become saved filters. No step adds a page.
+
+## Built
+
+**Built: steps 1 and 2 (2026-10-19).** `State` folds cards and asks, each counted two ways ([Server/doc/state.md](/Server/doc/state.md)); the Inbox list in `/framework/ai/` reads `state.json` through the one stream, with the chips as urls (`?live&new`, `?recent=today`, `?older=month`, `?needs`, `kind=task,card`) and the red check line under them. A landing reaches the list in under a second with no agent writing anything. Step 3, the other pages as saved filters, is next. Plan and proof shots: [one-dashboard task](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md).
