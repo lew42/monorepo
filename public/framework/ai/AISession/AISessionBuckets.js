@@ -5,6 +5,7 @@ export default class AISessionBuckets {
 
 	// The `kind` rules, first match wins. Routine kinds roll up (hidden behind their bucket row) by default.
 	static KINDS = [
+		{ key: "voice",           routine: false, test: r => r.kind === "voice" },   // a voice session (Servex/agents/Sessions.js create(): `kind: "voice"` on line 1)
 		{ key: "prompt-cleaning", routine: true,  test: r => /^(you-clean-up-one-chunk|read-this-numbered-cleaned|turn-this-outline-into|these-sentences-from-a-clean|you-are-cleaning-a-raw-speech)/.test(r.folder) },
 		{ key: "clarity",         routine: true,  test: r => /^clarity/.test(r.agent ?? "") || /^you-are-servex-agent-clarity/.test(r.folder) },
 		{ key: "reviewer",        routine: true,  test: r => /^(reviewer|checker|voter)/.test(r.agent ?? "") || /^you-are-servex-agent-(reviewe|checker|voter)/.test(r.folder) },

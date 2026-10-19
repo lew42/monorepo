@@ -201,7 +201,7 @@ function session_tools(agents){
 	return [
 		tool("session_summary",
 			"Give a voice session its title and one-line summary: the index a new session reads to know what this one was about."
-			+ " Call it BEFORE your first reply, and again whenever the topic shifts. Writes `<home>ai/<session>.summary.json` and a fresh"
+			+ " Call it BEFORE your first reply, and again whenever the topic shifts. Writes `session.summary.json` beside the session file and a fresh"
 			+ " `started` line, with the title, in the home folder's `ai/log.jsonl`.",
 			{ session: SESSION,
 				title: { type: "string", description: "At most 6 words, e.g. `Voice session plumbing`." },
