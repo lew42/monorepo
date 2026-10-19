@@ -34,7 +34,7 @@ css(`@layer theme {
 	.mention-actor .item-icon { border-radius: 50%; background: color-mix(in srgb, var(--mention-actor) 16%, transparent); }
 	.mention-class .item-icon { color: var(--mention-class); border: 1px solid currentColor; border-radius: 0.3em; }
 	/* A framed glyph sits inside its frame with room on every side, and the frame stays within the line */
-	.mention-class.inline .item-icon, .mention-actor.inline .item-icon { box-sizing: border-box; width: 1.5em; font-size: 0.7em; }
+	.mention-class.inline .item-icon, .mention-actor.inline .item-icon { box-sizing: border-box; width: 1.5em; padding: 0.15em; font-size: 0.7em; }
 	.mention-class .item-name { color: inherit; }
 }`);
 
