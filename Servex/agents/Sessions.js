@@ -113,7 +113,7 @@ export const now_ms = () => {
  * follows the owner from page to page, and is answered by its own pair of
  * agents, a FAST one (one short line, within seconds) and a SMART one (the
  * thinking, the decisions, the masterminds). Everything is one file,
- * `public<home>ai/<session>.jsonl`, that the browser polls:
+ * `public<home>ai/sessions/YYYY/MM/DD/<session>/session.jsonl` (older: flat `ai/<session>.jsonl`), that the browser polls:
  *
  *   line 1   {"session": {id, home, at, project, host, fast, smart, backing: {fast, smart}}}
  *   then     {"chat": {at, session, path, from: {kind, id, agent?}, via, text, re?, floor?, cues?}}
@@ -128,7 +128,7 @@ export const now_ms = () => {
  * latest line for an id wins). Both files are APPEND-ONLY: a follow() reader must never
  * be sent a line twice. Sessions are listed per PROJECT (project_of()), not per host.
  * Only presence goes there, never steps; `dir_log()` below validates every line. The
- * title and summary themselves are `<home>ai/<session>.summary.json`.
+ * title and summary themselves are `session.summary.json` beside the session file (older: `<home>ai/<session>.summary.json`).
  *
  * LIFE (memory first): /new and resume spawn NOTHING. The first say spawns the FAST
  * agent and sends it the line at once; the SMART one is spawned on the next tick and
@@ -571,6 +571,13 @@ export default class Sessions {
 		catch { return ""; }
 	}
 
+	/* The ONE place the new-session file shape lives: `<home>ai/sessions/YYYY/MM/DD/<id>/session.jsonl`
+	 * (local date). Old sessions keep the `file` stored in sessions.json (`<home>ai/<id>.jsonl`). */
+	static session_path(home, id, date = new Date()){
+		const p = n => String(n).padStart(2, "0");
+		return `${home}ai/sessions/${date.getFullYear()}/${p(date.getMonth() + 1)}/${p(date.getDate())}/${id}/session.jsonl`;
+	}
+
 	summary_file(s){ return this.disk(s.file.replace(/\.jsonl$/, ".summary.json")); }
 
 	/* A folder, as `{disk, name}`: a site path (`/framework/ext/`, served from `public/`), or
@@ -692,7 +699,7 @@ export default class Sessions {
 		if (!fresh && last && Date.now() - Date.parse(last.last_at) < this.resume_ms) return this.resume({ session: last.session });
 		let id;
 		do id = "v-" + Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2, 5); while (this.map[id]);
-		const file = `${home}ai/${id}.jsonl`;
+		const file = Sessions.session_path(home, id);
 		/* No agents yet: the first say spawns them (wake). */
 		const s = { id, home, file, at: now_ms(), project, host, path: asked, visited: [], fast: null, smart: null,
 			backing: { fast: null, smart: null }, ...(card ? { card } : {}) };
