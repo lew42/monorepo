@@ -394,13 +394,15 @@
    composer run edge to edge: no side borders, no shadow, square corners. One layer of side space: the thread's 0.6em inset; bubbles are tight inside it.
    The chat stretches to fill the sheet (flex 1, scrolls); the composer is a small footer pinned at the bottom. */
 @layer util {
-	.drawer-rail-sheet { padding-inline: 0; gap: 0; }
-	.drawer-rail-sheet > .drawer-rail-sheet-head, .drawer-rail-sheet > .drawer-rail-sheet-links, .drawer-rail-sheet > .drawer-rail-sheet-tabs { padding-inline: 0.9em; }
+	.drawer-rail-sheet { padding: 0; gap: 0; }   /* the sheet owns NO padding: only the title bar below does (the grip sits in its top inset) */
+	.drawer-rail-sheet > .drawer-rail-sheet-head { padding: 0.5em 0.9em 0; }
+	@media (pointer: coarse), (hover: none) { .drawer-rail-sheet > .drawer-rail-sheet-head { padding-block-start: 1.25rem; } }
+	.drawer-rail-sheet-full > .drawer-rail-sheet-head { padding-block-start: calc(0.9em + env(safe-area-inset-top, 0px)); }
 	.drawer-rail-sheet > .drawer-rail-sheet-head { margin-block-end: 0.3em; }
 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-card { border: 0; border-radius: 0; box-shadow: none; }
 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-shell .ux-dictate-widget-composer .chatbox-compose {
 		border-inline: 0; border-block-end: 0; border-radius: 0; box-shadow: none;
-		padding: 0.2em 0.9em calc(0.2em + env(safe-area-inset-bottom, 0px));
+		padding: 0.2em 0.4em calc(0.2em + env(safe-area-inset-bottom, 0px));
 	}
 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-composer { padding: 0; gap: 0; }
 	.drawer-rail-sheet .ux-dictate-mic-indicator:not(.compact), .drawer-rail-sheet .chatbox-compose .ux-dictate-level { display: none; }   /* the listening row: the mic is the meter */
