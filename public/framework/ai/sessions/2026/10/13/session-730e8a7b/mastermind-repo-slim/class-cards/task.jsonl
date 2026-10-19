@@ -4,3 +4,6 @@
 {"shots":{"at":"2026-10-19T08:52:49-05:00","pages":["/framework/core/Page/api/","/framework/core/Item/api/","/framework/core/List/api/"],"dir":"shots/"}}
 {"finish":{"at":"2026-10-19T08:52:49-05:00","widths":"padding-check tail -1: clean at 400, 1200, 1920 and 3440 on Page, Item, List and ext/Doc API tabs","checks":"check_page on main: zero page errors, zero http errors on Page, Item, List; worktree server alone 404s optional page.jsonl/weight.jsonl/settings.jsonl (also on pages I did not change)","landed":"f86d9065a (merge a1ebdcf54), --no-review self-review, --skip-smoke: merge smoke fails only on worktree artefacts (gitignored shots png, ws ERR_NO_BUFFER_SPACE)"}}
 {"commit":"b5848d990bcf"}
+{"commit":"600cab8a4a94"}
+{"log":{"at":"2026-10-19T08:53:05-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T08:53:36-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
