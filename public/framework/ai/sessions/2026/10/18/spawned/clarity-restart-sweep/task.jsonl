@@ -6,3 +6,6 @@
 {"log":{"at":"2026-10-18T18:15:33-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
 {"log":{"at":"2026-10-18T18:30:37-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
 {"log":{"at":"2026-10-18T20:27:31-05:00","heartbeat":"deliberate","msg":"clarity-restart-sweep its agent is not running: it was stopped on purpose by owner at 2026-10-18T17:54:49-05:00; not revived."}}
+{"log":{"at":"2026-10-18T20:36:35-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-18T20:36:41-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-18T20:36:41-05:00","msg":"session ended (other) without landing"}}
