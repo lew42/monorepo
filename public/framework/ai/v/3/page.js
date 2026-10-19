@@ -7,6 +7,7 @@ import { edit } from "/framework/ext/Ask/edit.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { Versions } from "../Versions.js";
 import { Demos } from "./Demos.js";
+import "/framework/ux/Popover/Popover.js";
 import { Timeline, BOARD, LOG_URL, VERDICTS_URL, clock, text_lines, author_of, author_label, author_kind, status_word } from "./timeline.js";
 import { Composer } from "./Composer.js";
 import { AskControls } from "./AskControls.js";
@@ -438,7 +439,7 @@ function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_a
 			$back_top = button.c("v3-back-top").attr("type", "button").attr("title", "Back to top")
 				.click(() => { $left.el.scrollTo({ top: 0, behavior: "smooth" }); unseen_count = 0; paint_back_top(); });
 			$back_top.el.hidden = true;
-			$toast = div.c("v3-toast card");
+			$toast = div.c("v3-toast ux-popover");
 			$toast.el.hidden = true;
 			$axis_list = div.c("v3-axis-list");
 		});
@@ -594,11 +595,11 @@ function master_detail($wall, log, page, prefs, initial_id, verdicts, get_show_a
 		clearTimeout(toast_timer);
 		$toast.el.hidden = false;
 		$toast.empty(() => {
-			div.c("v3-toast-msg flex v-center gap", () => {
+			div.c("v3-toast-msg ux-popover-text flex v-center gap", () => {
 				if (say === "approve") { icon("check_circle"); span(`Approved “${title}” — it left your inbox.`); }
 				else { icon("flag"); span(`Sent to improve: “${note}”.`); }
 			});
-			button.c("v3-toast-undo").attr("type", "button").text("Undo").click(async () => {
+			button.c("v3-toast-undo ux-popover-item").attr("type", "button").text("Undo").click(async () => {
 				hide_toast();
 				const by = window.$VERDICT_AUTHOR || "owner";
 				await write_verdict(id, "reopen", "");

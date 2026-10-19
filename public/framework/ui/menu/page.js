@@ -10,10 +10,10 @@ const menu = () => div.c("pad", () => details.c("ui-menu", $menu => {
 		icon("arrow_drop_down");
 	});
 
-	div.c("ui-menu-list flex v", () => {
-		a.c("ui-menu-item", "Rename").href("#").click(() => $menu.el.removeAttribute("open"));
-		a.c("ui-menu-item", "Duplicate").href("#").click(() => $menu.el.removeAttribute("open"));
-		a.c("ui-menu-item", "Delete").href("/delete/");
+	div.c("ui-menu-list ux-popover flex v", () => {
+		a.c("ux-popover-item", "Rename").href("#").click(() => $menu.el.removeAttribute("open"));
+		a.c("ux-popover-item", "Duplicate").href("#").click(() => $menu.el.removeAttribute("open"));
+		a.c("ux-popover-item", "Delete").href("/delete/");
 	});
 }));
 
@@ -31,10 +31,10 @@ const context = () => div.c("pad flex gap v-center", () => {
 			icon("arrow_drop_down");
 		});
 
-		div.c("ui-menu-list flex v", () => {
-			a.c("ui-menu-item", "Rename").href("#");
-			a.c("ui-menu-item", "Duplicate").href("#");
-			a.c("ui-menu-item", "Delete").href("#");
+		div.c("ui-menu-list ux-popover flex v", () => {
+			a.c("ux-popover-item", "Rename").href("#");
+			a.c("ux-popover-item", "Duplicate").href("#");
+			a.c("ux-popover-item", "Delete").href("#");
 		});
 	}).attr("open", "");
 }).style("--gap", "calc(var(--gap) * 0.5)");
@@ -45,13 +45,13 @@ const sections = () => div.c("pad", () => details.c("ui-menu", $menu => {
 		icon("arrow_drop_down");
 	});
 
-	div.c("ui-menu-list flex v", () => {
-		span.c("h4 muted ui-menu-item", "This branch");
-		a.c("ui-menu-item", "Rename").href("#").click(() => $menu.el.removeAttribute("open"));
-		a.c("ui-menu-item", "Duplicate").href("#").click(() => $menu.el.removeAttribute("open"));
+	div.c("ui-menu-list ux-popover flex v", () => {
+		span.c("h4 muted ux-popover-text", "This branch");
+		a.c("ux-popover-item", "Rename").href("#").click(() => $menu.el.removeAttribute("open"));
+		a.c("ux-popover-item", "Duplicate").href("#").click(() => $menu.el.removeAttribute("open"));
 
-		span.c("h4 muted ui-menu-item", "Danger");
-		a.c("ui-menu-item", () => span.c("prim", "Delete branch")).href("/delete/");
+		span.c("h4 muted ux-popover-text", "Danger");
+		a.c("ux-popover-item", () => span.c("prim", "Delete branch")).href("/delete/");
 	});
 }));
 
@@ -63,7 +63,7 @@ export default new Page({
 
 	children: [
 		demo.page("sections", sections, {
-			note: "A real menu groups its items and puts the dangerous one last. **The group label is an item, not a heading** — `h4 muted` on a `span` wearing the same `.ui-menu-item` inset, so the labels and the links share one left edge with no rule written. A separator would be a third thing to style; a label already says where the group starts." }),
+			note: "A real menu groups its items and puts the dangerous one last. **The group label is an item, not a heading** — `h4 muted` on a `span` wearing `.ux-popover-text`, the same inset as `.ux-popover-item`, so the labels and the links share one left edge with no rule written. A separator would be a third thing to style; a label already says where the group starts." }),
 
 		demo.page("two", two, {
 			note: "**Light dismiss is what it deliberately doesn't do.** A `<details>` stays open until something closes it; open both of these and both stay open. The native upgrade is the [Popover API](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API) — `popover` plus invoker buttons, which brings light-dismiss and top-layer stacking (and with it the clip cure) for free. `<details>` stays the template because it needs zero JS to *be* a disclosure." }),
@@ -83,7 +83,7 @@ export default new Page({
 
 		md("This is the **template**: `.ui-menu-*` above, and the disclosure it shapes. The one line of real logic was deliberately left at the call site — but a workflow that wants click-outside, or several menus sharing one close-on-pick rule, wants that line owned somewhere. On 2026-08-21 that half became [`class Menu`](/framework/ux/Menu/), which adds close-on-pick AND click-outside (the template never had either) as methods a subclass can override. **New code takes the class.**");
 
-		md("**The CSS did not move.** Every `.ui-menu-*` rule is still here, and the class wears these same classes — [`ux/Menu/doc/decisions.md`](/framework/ux/Menu/doc/decisions/) has the split argued, and [`ux/`](/framework/ux/) has the rule it followed.");
+		md("**The box look moved to [`ux/Popover`](/framework/ux/Popover/)** (`.ux-popover`, `.ux-popover-item`); `.ui-menu-*` here only anchors the panel under its summary, and the class wears these same classes — [`ux/Menu/doc/decisions.md`](/framework/ux/Menu/doc/decisions/) has the split argued, and [`ux/`](/framework/ux/) has the rule it followed.");
 
 		md("## Why this one gets CSS");
 

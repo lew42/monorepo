@@ -38,8 +38,13 @@
 		border: 0;
 		border-radius: var(--radius);
 		cursor: pointer;
+		padding: 0.2em 0.8em;           /* what a bare button already got; now an <a> gets it too */
+		text-decoration: none; white-space: nowrap;
 	}
 	.ux-popover-item:hover, .ux-popover-item:focus-visible { background: var(--wash); }
+
+	/* A line of text inside a popover (a toast's message, a menu's group label). */
+	.ux-popover-text { padding: 0.35em 0.6em; flex: none; }
 
 	/* Text only, no padding meant for a row of buttons, and clicks pass through it —
 	   a tooltip is never itself the target. */

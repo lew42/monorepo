@@ -10,7 +10,7 @@ const tooltip = () => div.c("pad", () => p(() => {
 
 	span.c("ui-tooltip", () => {
 		span.c("ui-tooltip-word", "synchronous");
-		span.c("ui-tooltip-bubble", "append_fn() restores the captor the instant your function returns.");
+		span.c("ui-tooltip-bubble ux-popover", "append_fn() restores the captor the instant your function returns.").attr("role", "tooltip");
 	}).attr("tabindex", "0");
 
 	span(", so a factory call after an await lands somewhere else.");
@@ -18,7 +18,7 @@ const tooltip = () => div.c("pad", () => p(() => {
 
 const shown = () => div.c("pad", () => p(() => span.c("ui-tooltip shown", () => {
 	span.c("ui-tooltip-word", "held open");
-	span.c("ui-tooltip-bubble", "In the reveal list with :hover and :focus-visible, so this is screenshot-testable.");
+	span.c("ui-tooltip-bubble ux-popover", "In the reveal list with :hover and :focus-visible, so this is screenshot-testable.").attr("role", "tooltip");
 })));
 
 const native = () => p(() => {
@@ -38,7 +38,7 @@ const context = () => div.c("pad flex v gap", () => {
 		span("Runs every ");
 		span.c("ui-tooltip", () => {
 			span.c("ui-tooltip-word", "30 seconds");
-			span.c("ui-tooltip-bubble", "Changes sync to the server on this interval.");
+			span.c("ui-tooltip-bubble ux-popover", "Changes sync to the server on this interval.").attr("role", "tooltip");
 		}).attr("tabindex", "0");
 		span(" while you type.");
 	});
@@ -83,7 +83,7 @@ export default new Page({
 
 		md("Two details worth stealing. **`visibility` as well as `opacity`:** opacity alone leaves an invisible box on the hit-testing map, swallowing clicks aimed at the line above. And **the reveal is one selector list** — `:hover`, `:focus-visible` and `.shown` together — so the keyboard path can never drift from the pointer path.");
 
-		md("The bubble is `var(--ink)` on `var(--surface)` ink, inverted. It said `color: white` over `var(--bg)` until the review: readable, but a **literal colour**, which is the one thing a component may not name — and in dark mode the bubble sat two shades off the page behind it.");
+		md("The bubble is a [`.ux-popover`](/framework/ux/Popover/) with `role=tooltip`, so it wears the one popover look (surface, border, shadow) instead of a box of its own. Its colours are theme variables, never a literal, so dark mode follows the page.");
 
 		md("⚠ The bubble is out of flow, so an ancestor with `overflow: hidden` **clips** it — a stage's screen and a `.demo` box both are, which is why the template above carries a `pad` wrapper and why its card shows the tooltip at rest.");
 
