@@ -1959,3 +1959,5 @@
 {"log":{"at":"2026-10-19T13:00:52-05:00","session":3,"weekly_all":52,"weekly_scoped":59,"resets_at":"2026-10-19T22:30:00.094402+00:00"}}
 {"log":{"at":"2026-10-19T13:15:52-05:00","session":4,"weekly_all":53,"weekly_scoped":59,"resets_at":"2026-10-19T22:30:00.497719+00:00"}}
 {"log":{"at":"2026-10-19T13:21:17-05:00","session":4,"weekly_all":53,"weekly_scoped":59,"resets_at":"2026-10-19T22:30:00.474333+00:00"}}
+{"log":{"at":"2026-10-19T13:36:21-05:00","session":4,"weekly_all":53,"weekly_scoped":59,"resets_at":"2026-10-19T22:30:00.190099+00:00"}}
+{"log":{"at":"2026-10-19T13:51:19-05:00","session":4,"weekly_all":53,"weekly_scoped":59,"resets_at":"2026-10-19T22:30:00.244572+00:00"}}
