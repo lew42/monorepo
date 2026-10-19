@@ -145,7 +145,7 @@ export class Tasks {
 
 	/** A member that is a card, not a task: its own row, linking to it. */
 	static card_member(m){
-		a.c("ai2-toc-row page-link").href("/framework/ai2/" + m.id + "/").append(() => {
+		a.c("ui-row ai2-toc-row page-link").href("/framework/ai2/" + m.id + "/").append(() => {
 			icon("forum");
 			div.c("ai2-toc-body", () => {
 				span.c("ai2-toc-title").text(m.title || "A card");

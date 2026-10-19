@@ -22,6 +22,7 @@ Every component here, and what you would use it for. Only `table`, `kbd` and `ti
 - [pagination](./pagination/) — a row of page buttons (no readme yet).
 - [panel](./panel/) — a titled box with a header and close button (no readme yet).
 - [progress](./progress/) — progress and meter bars (no readme yet).
+- [row](./row/) — one line in a list: padding, gap, a ground on hover (the card plan's `row`).
 - [stats](./stats/) — a grid of label-and-number tiles (no readme yet).
 - [table](./table/) — a head row and body built from arrays.
 - [tags](./tags/) — chips with a remove mark and an input (no readme yet).

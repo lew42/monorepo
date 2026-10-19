@@ -3,6 +3,7 @@ import { Page, View, md, div, span, p, h2, h3, a, ul, li, ol, details, summary, 
 import "/framework/ui/parts.js";
 import "/framework/ui/badge/badge.js";
 import "/framework/ui/panel/panel.js";
+import "/framework/ui/row/row.js";   // the row kind's home (merge 9)
 import "/framework/ui/accordion/accordion.js";
 import "/framework/ux/Popover/Popover.js";
 
