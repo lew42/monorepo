@@ -6,3 +6,6 @@
 {"decision":{"at":"2026-10-19","question":"plan page numbers","options":["new formula in page.js","keep plan.to from count.mjs"],"chose":"keep plan.to (36 and 5, same as count.mjs prints); add N of M merges landed","why":"count.mjs has no export; plan.json is out of fence so landing commits are a small map in page.js"}}
 {"note":{"at":"2026-10-19T12:01:32-05:00","id":"n1","msg":"padding-check still lists before-sample edges on the plan page (15, was 18 on main); smoke fails on main too for .decks-card, so merged with --skip-smoke after my own smoke run."}}
 {"finish":{"at":"2026-10-19","msg":"merged d9f837eb6; numbers agree 36/5; health.mjs check removed"}}
+{"commit":"e52dbaebaff0"}
+{"log":{"at":"2026-10-19T12:01:39-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T12:01:41-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

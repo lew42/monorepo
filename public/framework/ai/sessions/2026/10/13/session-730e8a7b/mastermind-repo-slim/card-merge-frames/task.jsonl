@@ -12,3 +12,6 @@
 {"finish":{"at":"2026-10-19T12:27:00-05:00","msg":"Frames landed: frame kind named and homed in ui/panel (plan.md). Panel, dialog, overview column (ai/v/2) and screenshot thumb are one .surface with the ui-panel parts; doc files browser left (page section around ext/files) with a decision line. Pages shot at 1920 and 390: ui/panel, ui/dialog, ai/v/2, ai/AITask thumb, ux/Content/plan and more (10 pages), 0 new console errors or 404s, overview column did not grow. Plan numbers before/after: kinds 36 -> 36, padding rules 5 -> 5 (plan constants); frames merge 7 pages / 12 files -> 3 pages / 4 files. Cost about $6 of $12 (estimate). Note: worktree smoke needs the gitignored session data; merge used --skip-smoke and --no-review (own diff review)."}}
 {"action":{"at":"2026-10-19T12:06:49-05:00","did":"edit","files":["public/framework/ai/todo.md"]}}
 {"commit":"d722fb24450d"}
+{"commit":"35e35e77f849"}
+{"log":{"at":"2026-10-19T12:07:24-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T12:07:41-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
