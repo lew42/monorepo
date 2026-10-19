@@ -293,8 +293,25 @@ export class Doc extends Page {
 			.filter(name => this.tab_visible(name))
 			.sort((a, b) => this.tab_order(a) - this.tab_order(b));
 
-		return ["overview", ...middle, "api", "doc", "files", "tasks", "inbox"]
-			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
+		this.md_tab();
+
+		return ["overview", ...middle, "api", "doc", "md", "files", "tasks", "inbox"]
+			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : name === "md" || this.children.has(name));
+	}
+
+	// The md tab (the Markdown Explorer, core/Page/doc/markdown.md): shown when the module has notes or a readme.md in its own file list.
+	// It is always in the strip's list (ext/tabs fixes the list at the first draw) and its `nav` state says whether it shows: false
+	// until the file list is read, then redrawn. Never on a module with neither.
+	md_tab(){
+		const has = Doc.names(this.notes).length > 0 || Page.loaded_listing(this.md_dir())?.files.includes("readme.md");
+		const set = nav => (this.tabs_state ??= new Map()).set("md", { ...this.tabs_state.get("md"), nav });
+
+		if (has || Page.loaded_listing(this.md_dir()) !== undefined) return void set(!!has);
+
+		if (!this.tabs_state?.has("md")) {
+			set(false);
+			Page.listing(this.md_dir()).then(found => { if (found?.files.includes("readme.md")) { set(true); this.nav_redraw?.(); } });
+		}
 	}
 
 	// See doc/Doc-notes.md (wall shows declared children, not derived sections).
@@ -348,7 +365,7 @@ function note_rows(node, base){
 }
 
 // See doc/Doc-notes.md (derived sections: read by bar() and wall()).
-Doc.SECTIONS = ["overview", "api", "doc", "files", "tasks", "inbox"];
+Doc.SECTIONS = ["overview", "api", "doc", "md", "files", "tasks", "inbox"];
 
 Doc.names = names => (names ?? "").trim().split(/\s+/).filter(Boolean);
 

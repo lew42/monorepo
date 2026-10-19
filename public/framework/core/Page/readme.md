@@ -65,7 +65,7 @@ Load the `page` skill and let `create_page` make the files; pick a layout from t
 
 **Layout** — [layout](./layout/), the layout system: concepts top down, every kind of layout, how to decide, the research worth keeping.
 
-**Navigation** — [navigation](./navigation/) (the pattern: persistent vs switching) · [one model](./navigation/model/) (the four questions answered, live) · [`doc/navigation.md`](./doc/navigation.md) (children, menus, where links open) · [`doc/labels.md`](./doc/labels.md) (title, label, icon) · [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) (`.md` files as pages, and where a click opens)
+**Navigation** — [navigation](./navigation/) (the pattern: persistent vs switching) · [one model](./navigation/model/) (the four questions answered, live) · [`doc/navigation.md`](./doc/navigation.md) (children, menus, where links open) · [`doc/labels.md`](./doc/labels.md) (title, label, icon) · [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) (`.md` files as pages, the `md/` explorer and its tab, and where a click opens)
 
 **Also** — agents change pages, a thing holds a page, content inside a page: [`doc/readme-moved-2026-10-17.md`](./doc/readme-moved-2026-10-17.md#agents-change-pages-a-thing-has-a-page-content-inside-a-page).
 

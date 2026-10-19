@@ -1,9 +1,12 @@
 import { Page } from "./Page.class.js";
-import { div, h2, p, ul, li, a } from "../View/View.js";
+import { View, div, h2, p, ul, li, a, span, small } from "../View/View.js";
+import Browse from "../../ux/Browse/Browse.js";
+
+View.stylesheet({ url: import.meta.url }, "Markdown.css");
 
 /* EVERY PAGE HAS AN `md/` — its markdown files, as pages. Nothing to write.
 
-       /framework/ext/Panel/md/                 every .md in ext/Panel, as a list
+       /framework/ext/Panel/md/                 the Markdown Explorer: readme in the pane, every .md beside it
        /framework/ext/Panel/md/readme/          ext/Panel/readme.md, rendered
        /framework/ext/Panel/md/doc/decisions/   ext/Panel/doc/decisions.md, rendered
 
@@ -12,6 +15,8 @@ import { div, h2, p, ul, li, a } from "../View/View.js";
    child named `md`. Page.child() makes the first one; this class makes the rest.
    doc/markdown.md. */
 export default class PageMarkdown extends Page {
+
+	label = "md";   // the tab's name, the same before and after the first visit
 
 	// `folder` is the real directory this page lists, e.g. "/framework/ext/Panel/doc/".
 	async child(name, levels){
@@ -23,7 +28,7 @@ export default class PageMarkdown extends Page {
 		const { dir, md } = await this.constructor.where(this.folder, name);
 
 		const file = dir !== true && md !== false && await Page.file(this.folder + name + ".md");
-		if (file) return this.add(name, { ...file, folder: this.folder }).load_all_children(levels);
+		if (file) return this.add(name, { ...file, folder: this.folder, classes: "inbox-page" }).load_all_children(levels);
 
 		if (dir === false) return null;
 		return this.add(name, new this.constructor({ folder: this.folder + name + "/" })).load_all_children(levels);
@@ -37,21 +42,29 @@ export default class PageMarkdown extends Page {
 		return super.open_link(link);
 	}
 
+	// The module's own md/ is the Explorer; a sub-folder (md/doc/) is a plain list in the pane.
+	content(){
+		if (this.parent instanceof PageMarkdown) return this.plain();
+		this.explorer = new PageMarkdown.Explorer({ page: this }).mount();
+	}
+
 	// First paint is this folder's own files (one request); the sub-folders, each its
 	// own page.jsonl, fill in after. A phone never waits on the fan-out to see a list.
-	content(){
-		div.c("page-md-index", $box => {
-			const draw = files => $box.empty(() => { this.list(files); });
-			this.constructor.files(this.folder, 1).then(first => {
-				draw(first);
-				if (first) this.constructor.files(this.folder).then(all => { if (all.length > first.length) draw(all); });
-			});
+	plain(){
+		div.c("page-md-index", $box => this.constructor.load(this.folder, files => $box.empty(() => { this.list(files); })));
+	}
+
+	// Calls `draw(files)` with this folder's own files at once, then again with all of them; `files` is undefined with no file list.
+	static load(folder, draw){
+		this.files(folder, 1).then(first => {
+			draw(first);
+			if (first) this.files(folder).then(all => { if (all.length > first.length) draw(all); });
 		});
 	}
 
 	// One list per folder, the folder's own files first.
 	list(files){
-		if (!files) return this.no_list();
+		if (!files) return void p.c("muted", "This server has no file list.");
 		if (!files.length) return void p.c("muted", "No markdown files here.");
 
 		const folders = Map.groupBy(files, file => file.replace(/[^/]*$/, ""));
@@ -59,15 +72,6 @@ export default class PageMarkdown extends Page {
 		folders.forEach((names, folder) => {
 			if (folder) h2(folder);
 			ul(() => names.forEach(file => li(() => { a(file.slice(folder.length, -3)).href(this.url + file.slice(0, -3) + "/"); })));
-		});
-	}
-
-	// Production has no file list (directory.json is written by the dev server), so the
-	// readme stands in: it is the module's own index, and its links lead here anyway.
-	no_list(){
-		p.c("muted", "This server has no file list, so here is the readme.");
-		div.c("page-md-readme", $readme => {
-			Page.file(this.folder + "readme.md").then(file => { if (file) $readme.append(file.content()); });
 		});
 	}
 
@@ -183,6 +187,45 @@ export default class PageMarkdown extends Page {
 		return found;
 	}
 }
+
+/** The Markdown Explorer: the readme in the pane, every .md of the module in the list beside it. Doc: doc/markdown.md */
+PageMarkdown.Explorer = class Explorer extends Browse {
+	key = "md-explorer";
+
+	shell_classes(){ return super.shell_classes() + " md-explorer"; }
+
+	// The rows: readme first, then each folder's files under its own heading, each a link to `<md url><file>/`.
+	draw_list(){
+		this.$rows = div.c("inbox-rows md-explorer-rows", () => small.c("muted pad", "Reading the file list…"));
+		PageMarkdown.load(this.page.folder, files => this.draw(files));
+	}
+
+	draw(files){
+		this.$rows.empty(() => {
+			if (!files) return void small.c("muted pad", "This server has no file list, so only the readme is shown.");
+			if (!files.length) return void small.c("muted pad", "No markdown files here.");
+
+			const first = file => file === "readme.md" ? 0 : 1;
+			const folders = Map.groupBy([...files].sort((x, y) => first(x) - first(y)), file => file.replace(/[^/]*$/, ""));
+			folders.forEach((names, folder) => {
+				if (folder) span.c("md-explorer-folder muted", folder);
+				names.forEach(file => a.c("inbox-row md-explorer-row").href(this.url + file.slice(0, -3) + "/").append(() => {
+					div.c("inbox-row-head", () => span.c("inbox-row-title").text(file.slice(folder.length, -3)));
+				}));
+			});
+		});
+		this.router?.mark_links?.();
+	}
+
+	// Nothing picked: the module's readme, a reading column that scrolls by itself.
+	empty(){
+		div.c("inbox-empty md-explorer-readme", () => {
+			div.c("measure start pad", $doc => Page.file(this.page.folder + "readme.md").then(file => {
+				$doc.append(() => file ? file.content() : p.c("muted", "This module has no readme. Pick a file on the left."));
+			}));
+		});
+	}
+};
 
 // My content IS the list of my children, so a column draws no second rail of them.
 PageMarkdown.prototype.index = true;

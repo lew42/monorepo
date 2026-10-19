@@ -5,12 +5,22 @@ it is built into `Page`, so every module has it.
 
 | url | shows |
 |---|---|
-| `/framework/ext/Panel/md/` | a list of every `.md` in `ext/Panel` |
+| `/framework/ext/Panel/md/` | the explorer: `readme.md` in the pane, every `.md` of `ext/Panel` listed beside it |
 | `/framework/ext/Panel/md/readme/` | `ext/Panel/readme.md`, rendered |
 | `/framework/ext/Panel/md/doc/decisions/` | `ext/Panel/doc/decisions.md`, rendered |
 | `/framework/ext/Panel/doc/decisions.md` | the raw file, unchanged |
 
 Try it: [/framework/ext/Panel/md/](/framework/ext/Panel/md/).
+
+## The Markdown Explorer (2026-10-19)
+
+`/<module>/md/` is a [`Browse`](/framework/ux/Browse/) (the same list-and-detail as `/framework/ai/tasks/`): the list of every `.md` on the left, the clicked file on the right, the module's `readme.md` in the pane until you click. `PageMarkdown.Explorer extends Browse` in `Markdown.js`; the file pages are the same `Page.file()` pages as before, mounted in Browse's detail pane.
+
+- **Width:** at 400 the list shows first, then the file (back returns to the list); at 1200 and up they sit side by side; the pane keeps a readable `measure` at 1920 and 3440.
+- **URL:** `/<module>/md/` (readme), `/<module>/md/doc/<name>/` (a file). Every click is a URL, so reload and back land in the same place.
+- **The `md` tab:** every module page shows it when the module has declared `doc` notes or a `readme.md` in its folder; a page with neither has no tab. It sits next to `doc`, which stays: `doc` is the notes a `page.js` declares, `md` is every `.md` in the folder. The rule is `md_tab()` in `ext/Doc/Doc.js`. Never `this.tab({name:"md"})`: the placeholder makes `Page.child()` skip the `md/` route.
+- **Production** has no file list, so the list column says so and the readme still shows.
+- Design and decisions: `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/markdown-explorer/plan.md`.
 
 ## Links find it on their own
 
@@ -54,7 +64,7 @@ reserved, but it gives no index and no subfolders. The choice and its reasons ar
 
 Where a clicked doc opens (navigate, next column, or in place) is the page's own choice: [open.md](/framework/core/Page/doc/open.md).
 
-Files: `Markdown.js` (the `PageMarkdown` class), `Page.md_url()` (where a link goes), `Page.child()`
+Files: `Markdown.js` (the `PageMarkdown` class and its `Explorer`), `Markdown.css`, `Page.md_url()` (where a link goes), `Page.child()`
 (the one line that makes the first `md/`), `core/Router/Router.js` `link_clicked()`.
 
 ## Moved from CLAUDE.md (2026-10-12)
