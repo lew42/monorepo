@@ -46,7 +46,7 @@ wired in and left out: [`doc/readme-chain.md`](../doc/readme-chain.md).
 Since 2026-10-18 the same spawn also writes `<task dir>/past-work.md` (what already exists on the
 brief's title, `Agents.past_work()` calling `PastWork.task()`) and tells the agent to read it first. No title: skipped, one log line.
 
-Every spawn has a task dir since 2026-10-18: a bare prompt gets `ai/sessions/<day>/<caller's session folder, else spawned>/<agent id>/` from `Agents.default_task()`; `task: false` is the one opt-out (`decision` in `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/spawn-always-task/task.jsonl`).
+Every spawn has a task dir since 2026-10-18: a bare prompt gets `ai/sessions/<day>/<caller's session folder, else spawned>/<agent id>/` from `Agents.default_task()`; `task: false` is the one opt-out, and a one-pass role (reviewer, clarity, checker) never gets a dir (its output goes in the task it reviews) (`decision` in `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/spawn-always-task/task.jsonl`).
 
 ## The Dispatcher — a card becomes a task mastermind
 

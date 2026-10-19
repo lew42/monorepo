@@ -241,6 +241,7 @@ export class Agents {
 	 * Side effect worth knowing: a task dir puts the agent under the results-gated spend guard (gated_role). */
 	default_task(spec, id){
 		if (spec.task === false || spec.resume || spec.system || spec.sdk || spec.mcp_servers || spec.one_shot || spec.page || !spec.prompt) return null;
+		if (ONE_PASS.includes(spec.role)) return null;   // 2026-10-18: a reviewer, clarity or checker is a throwaway one-pass; its output goes in the task it reviews, not a dir of its own
 		if (STANDING.test(id ?? "") || (Array.isArray(spec.setting_sources) && !spec.setting_sources.length)) return null;
 		try {
 			const slug = String(id).toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^[^a-z0-9]+/, "").slice(0, 60) || "agent";
