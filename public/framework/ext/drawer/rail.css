@@ -96,7 +96,7 @@
 		   localStorage — grip-everywhere, 2026-09-29). */
 		max-block-size: var(--sheet-h, 60dvh);
 		gap: calc(var(--gap) * 0.6);
-		padding: 0.9em 0.9em calc(0.9em + env(safe-area-inset-bottom, 0px));
+		padding: 0.5em 0.9em calc(0.9em + env(safe-area-inset-bottom, 0px));   /* top 0.5em: the owner, 2026-10-19, "too much padding above the header" */
 		background: var(--surface);
 		color: var(--ink);
 		border-top: 1px solid var(--line);
@@ -170,7 +170,7 @@
 	   the bigger touch one (1.25rem, grip.css) — bumped only where that one shows,
 	   so a mouse sees no change at all. */
 	@media (pointer: coarse), (hover: none) {
-		.drawer-rail-sheet { padding-block-start: 1.6em; }
+		.drawer-rail-sheet { padding-block-start: 1.25rem; }   /* exactly the touch grip's height (grip.css), no more (2026-10-19) */
 	}
 	@media (max-width: 52em) {
 		/* No slide transition: `display: none -> flex` never animates a `transform`
