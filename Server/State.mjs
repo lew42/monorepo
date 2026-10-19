@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 import SessionRecord from "./SessionRecord.mjs";
 import Day from "../public/framework/core/Session/Day.js";
 import Task from "../public/framework/core/Task/Task.js";
+import DashRow from "../public/framework/ai/rail/DashRow.js";
+import AskFold from "../public/framework/ai/asks/AskFold.js";
 
 const SELF = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const slash = s => String(s).split(path.sep).join("/");
@@ -24,7 +26,9 @@ export default class State {
 	static REWALK = 600000;     // a full walk of both stores every ten minutes, under the fs.watch ticks
 	static KEEP = 200;          // state.jsonl is cut back to this many lines when it passes twice that
 
-	constructor({ root = process.env.STATE_ROOT ?? process.env.TASKSTATE_ROOT ?? SELF, sess, framework, index, out, stream, registry = null, now = null } = {}){
+	static WAKE_MIN = 250;      // an fs.watch change wakes the loop after this many ms (a debounce), not at the next 5 s tick
+
+	constructor({ root = process.env.STATE_ROOT ?? process.env.TASKSTATE_ROOT ?? SELF, sess, framework, index, out, stream, cards, asks, registry = null, now = null } = {}){
 		this.root = path.resolve(root);
 		this.public = path.join(this.root, "public");
 		this.framework = framework ?? path.join(this.public, "framework");
@@ -32,7 +36,10 @@ export default class State {
 		this.index = index ?? path.join(this.public, "tasks", "task.jsonl");
 		this.out = out ?? path.join(this.framework, "ai", "state.json");
 		this.stream = stream ?? path.join(this.framework, "ai", "tasks", "state.jsonl");
+		this.cards = cards ?? path.join(this.framework, "ai", "cards.jsonl");
+		this.asks = asks ?? path.join(this.framework, "ai", "asks.jsonl");
 		this.registry = registry; this.fixed_now = now;
+		this.stores = new Map();    // cards.jsonl / asks.jsonl -> { size, mtime, out }
 		this.cache = new Map();     // log file -> { size, mtime, row }
 		this.rows = null;           // log file -> row, from the last walk plus the files fs.watch marked
 		this.dirty = new Set(); this.walked = 0; this.last_check = null;
@@ -163,12 +170,7 @@ export default class State {
 
 	/** id -> landed_at for every task that landed on `day`, found by a plain walk of the sessions store plus the /tasks/ index. */
 	walk_landed(day){
-		const hit = new Map(), take = (file, rel) => {
-			const lines = State.read_lines(file);
-			if (lines.some(l => typeof l.home === "string") && rel.includes("/ai/sessions/")) return;
-			const at = State.landed_by_lines(lines);
-			if (at && State.day(at) === day) hit.set(State.id(rel), at);
-		};
+		const all = this.walk_all = new Map(), take = (file, rel) => this.walk_take(file, rel);
 		const go = dir => {
 			let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
 			const log = ents.some(e => SessionRecord.is_record(e.name)) ? SessionRecord.log_file(dir) : null;
@@ -183,7 +185,63 @@ export default class State {
 			for (const l of State.read_lines(file)) if (typeof l.task === "string") follow(l.task, true);
 		};
 		for (const l of State.read_lines(this.index)) if (typeof l.task === "string") follow(l.task, false);
-		return hit;
+		return this.walk_day(day);
+	}
+
+	/** One log read plainly, kept in walk_all: its id and when it landed (null if not, or if it moved to a module home). */
+	walk_take(file, rel){
+		const lines = State.read_lines(file);
+		if (lines.some(l => typeof l.home === "string") && rel.includes("/ai/sessions/")) return this.walk_all.delete(file);
+		this.walk_all.set(file, { id: State.id(rel), at: State.landed_by_lines(lines) });
+	}
+	walk_day(day){ const hit = new Map(); for (const { id, at } of this.walk_all.values()) if (at && State.day(at) === day) hit.set(id, at); return hit; }
+
+	/** After a tick: only the files fs.watch marked are read again; a full walk_landed (start, every REWALK) re-finds every file. */
+	walk_dirty(files, day){
+		for (const f of files) if (SessionRecord.is_record(path.basename(f)) && this.kind(f)){
+			const dir = path.dirname(f);
+			if (this.walk_all.has(f) || SessionRecord.log_file(dir) === f) this.walk_take(f, slash(path.relative(this.root, dir)));
+		}
+		return this.walk_day(day);
+	}
+
+	// ---- cards and asks: two stores folded into the same row (ai/rail/DashRow.js), each counted a second way ----------
+	/** A store file's folded result, re-read only when its size or mtime moved (a stat is not a read, so Windows' read events cannot loop). */
+	store(file, fold){
+		let st; try { st = fs.statSync(file); } catch { return fold(""); }
+		const hit = this.stores.get(file);
+		if (hit && hit.size === st.size && hit.mtime === st.mtimeMs) return hit.out;
+		let text = ""; try { text = fs.readFileSync(file, "utf8"); } catch {}
+		const out = fold(text);
+		this.stores.set(file, { size: st.size, mtime: st.mtimeMs, out });
+		return out;
+	}
+	static by_bucket(rows, buckets){ const n = Object.fromEntries(buckets.map(b => [b, 0])); for (const r of rows) if (r.bucket in n) n[r.bucket]++; return n; }
+	/** The second count: no JSON, no fold, a text scan of the first `"id"` on each line. */
+	static scan_ids(text, re){ const ids = new Set(); for (const l of String(text).split(/\r?\n/)){ const m = l.match(re); if (m) ids.add(m[1]); } return ids.size; }
+
+	/** cards.jsonl: the latest line per id (the file is the Inbox's index), one row each. */
+	fold_cards(){
+		return this.store(this.cards, text => {
+			const by = new Map(); for (const c of State.parse(text)) if (c.id) by.set(c.id, c);
+			const rows = [...by.values()].map(c => DashRow.of_card(c, State.day));
+			const counts = State.by_bucket(rows, DashRow.CARD_BUCKETS);
+			return { rows, check: { rows: rows.length, sum: Object.values(counts).reduce((a, b) => a + b, 0), ids: State.scan_ids(text, /^\{"id":"((?:[^"\\]|\\.)*)"/), counts } };
+		});
+	}
+	/** asks.jsonl through AskFold (latest line wins). An ask's id is its own `id` or a slug of its title, the scan applies the same rule to the text. */
+	fold_asks(){
+		return this.store(this.asks, text => {
+			const rows = Object.values(AskFold.fold(State.parse(text))).map(a => DashRow.of_ask(a, State.day));
+			const counts = State.by_bucket(rows, DashRow.ASK_BUCKETS);
+			const seen = new Set();
+			for (const l of text.split(/\r?\n/)){
+				if (!l.startsWith('{"ask"') || !/"title":"/.test(l)) continue;
+				const id = l.match(/"id":"((?:[^"\\]|\\.)*)"/)?.[1] ?? AskFold.id({ title: JSON.parse('"' + l.match(/"title":"((?:[^"\\]|\\.)*)"/)[1] + '"') });
+				if (id) seen.add(id);
+			}
+			return { rows, check: { rows: rows.length, sum: Object.values(counts).reduce((a, b) => a + b, 0), ids: seen.size, counts } };
+		});
 	}
 
 	// ---- the whole picture -------------------------------------------------------------------------------------------
@@ -193,7 +251,8 @@ export default class State {
 
 	/** Re-read what changed: everything on a full walk (first time, or every REWALK), else only the files fs.watch marked. */
 	refresh(full = !this.rows || this.now - this.walked > State.REWALK){
-		if (full){ this.rows = new Map(); for (const f of this.walk()) this.rows.set(f, this.row(f)); this.walked = this.now; this.dirty.clear(); return true; }
+		if (full){ this.rows = new Map(); for (const f of this.walk()) this.rows.set(f, this.row(f)); this.walked = this.now; this.dirty.clear(); this.changed = []; return true; }
+		this.changed = [...this.dirty];
 		for (const f of this.dirty){ const r = this.kind(f) && this.row(f); if (r) this.rows.set(f, r); else this.rows.delete(f); }
 		this.dirty.clear();
 		return false;
@@ -237,7 +296,8 @@ export default class State {
 		const sum = Object.values(counts.tasks).reduce((a, b) => a + b, 0);
 		const mine = tasks.filter(r => r.bucket === "landed" && r.day === today).map(r => r.id).sort();
 		if (walked || !this.last_check || this.last_check.day !== today || this.last_check.ids !== mine.join()){
-			const walk = [...this.walk_landed(today).keys()].sort();
+			const found = walked || !this.walk_all || this.last_check?.day !== today ? this.walk_landed(today) : this.walk_dirty(this.changed ?? [], today);
+			const walk = [...found.keys()].sort();
 			this.last_check = { day: today, ids: mine.join(), walk, at: new Date(now).toISOString() };
 		}
 		const walk = this.last_check.walk, ws = new Set(walk), ms = new Set(mine);
@@ -247,18 +307,36 @@ export default class State {
 		check.ok = check.total === check.sum && check.files === check.total + check.aliases && !unbucketed.length && !check.landed_today.only_state.length && !check.landed_today.only_walk.length;
 
 		const sessions = new Map();
-		for (const r of tasks) if (r.session){ const s = sessions.get(r.session) ?? { id: r.session, tasks: 0, landed: 0, last_landed: null }; s.tasks++; if (r.bucket === "landed"){ s.landed++; if (!s.last_landed || r.landed_at > s.last_landed) s.last_landed = r.landed_at; } sessions.set(r.session, s); }
+		for (const r of tasks) if (r.session){
+			const s = sessions.get(r.session) ?? { id: r.session, title: null, tasks: 0, landed: 0, last_landed: null, last: null, day: null };
+			s.tasks++;
+			if (r.bucket === "landed"){ s.landed++; if (!s.last_landed || r.landed_at > s.last_landed) s.last_landed = r.landed_at; }
+			if (!s.last || Date.parse(r.last) > Date.parse(s.last)){ s.last = r.last; s.title = r.title; s.day = State.day(r.last); }
+			sessions.set(r.session, s);
+		}
+
+		// cards and asks: the same row the dashboard draws, each with its own two-way count (ai/doc/one-dashboard.md)
+		const cards = this.fold_cards(), asks = this.fold_asks();
+		const in_sessions = [...sessions.values()].reduce((a, s) => a + s.tasks, 0), with_session = all.filter(r => r.session && !r.alias).length;
+		check.cards = { ...cards.check, ok: cards.check.rows === cards.check.sum && cards.check.rows === cards.check.ids };
+		check.asks = { ...asks.check, ok: asks.check.rows === asks.check.sum && asks.check.rows === asks.check.ids };
+		check.sessions = { in_sessions, with_session, ok: in_sessions === with_session };
+		check.ok = check.ok && check.cards.ok && check.asks.ok && check.sessions.ok;
 		const off = -new Date(now).getTimezoneOffset(), tz = (off < 0 ? "-" : "+") + p2(Math.floor(Math.abs(off) / 60)) + ":" + p2(Math.abs(off) % 60);
 		return { at: new Date(now).toISOString(), today, tz, in_flight, queued, waiting, landed, counts, check,
-			tasks: tasks.map(({ alias, ...r }) => r), sessions: [...sessions.values()],
+			tasks: tasks.map(({ alias, ...r }) => r), sessions: [...sessions.values()], cards: cards.rows, asks: asks.rows,
 			agents: reg.map(a => ({ id: a.id, state: a.state, task_dir: a.task_dir ?? null, model: a.model ?? null, cost: a.cost ?? 0 })),
 			timing: { ms: +(performance.now() - t0).toFixed(1), full: walked, files: all.length } };
 	}
 
 	/** The line the dashboard tails: its old keys, plus the bucket counts and the check (never the whole task list). */
-	static stream_line(s){ const { tasks, sessions, agents, ...line } = s; return line; }
-	/** The picture without its clock, to tell whether anything changed. */
-	static sig(s){ return JSON.stringify([s.in_flight.map(r => [r.agent, r.quiet_min, r.title]), s.queued.map(r => r.agent), (s.waiting ?? []).map(r => [r.id, r.since]), s.landed.map(r => r.id), s.counts?.tasks, s.check?.ok, s.check?.landed_today?.walk]); }
+	static stream_line(s){ const { tasks, sessions, agents, cards, asks, ...line } = s; return line; }
+	/** The picture without its clock, to tell whether anything changed. Cards and asks: their bucket counts and newest change. */
+	static sig(s){
+		const newest = rows => (rows ?? []).reduce((a, r) => r.when && r.when > a ? r.when : a, "");
+		return JSON.stringify([s.in_flight.map(r => [r.agent, r.quiet_min, r.title]), s.queued.map(r => r.agent), (s.waiting ?? []).map(r => [r.id, r.since]), s.landed.map(r => r.id), s.counts?.tasks, s.check?.ok, s.check?.landed_today?.walk,
+			s.check?.cards?.counts, s.check?.asks?.counts, newest(s.cards), newest(s.asks)]);
+	}
 
 	/** Build, then write state.json (whole, atomically) and append one stream line, only when the picture changed or a BEAT passed. */
 	async write(prev = null){
@@ -276,7 +354,13 @@ export default class State {
 	/** fs.watch marks a changed log file; the next tick re-folds only that file. */
 	watch_files(){
 		try {
-			this.watcher = fs.watch(this.framework, { recursive: true }, (_, name) => { if (name && SessionRecord.is_record(path.basename(String(name)))) this.dirty.add(path.join(this.framework, String(name))); });
+			this.watcher = fs.watch(this.framework, { recursive: true }, (_, name) => {
+				if (!name) return;
+				const file = path.join(this.framework, String(name));
+				if (SessionRecord.is_record(path.basename(file))) this.dirty.add(file);
+				else if (file !== this.cards && file !== this.asks) return;
+				if (this.wake) this.wake(); else this.pending = true;   // the loop re-folds now, not at the next beat; mid-write it flags the next sleep short
+			});
 			this.watcher.unref?.();
 		} catch (e) { console.error("State: watch failed, full walks only -", e.message); this.walked = 0; }
 	}
@@ -291,8 +375,12 @@ export default class State {
 			while (!handle.stopped){
 				let owner = null; try { owner = fs.readFileSync(lock, "utf8"); } catch {}
 				if (owner !== me){ console.error("State: a newer watcher took over; stopping"); break; }
+				this.pending = false;
 				try { prev = await this.write(prev); } catch (e) { console.error("State:", e.message); }
-				await new Promise(r => setTimeout(r, every));
+				await new Promise(r => {   // a change that landed during the write (this.pending) is not lost: sleep only WAKE_MIN
+					const done = () => { clearTimeout(timer); clearTimeout(this.wake_timer); this.wake = this.wake_timer = null; r(); }, timer = setTimeout(done, this.pending ? State.WAKE_MIN : every);
+					this.wake = () => { this.wake_timer ??= setTimeout(done, State.WAKE_MIN); };
+				});
 			}
 			this.watcher?.close();
 		})();
@@ -313,5 +401,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 		st.registry = await State.fetch_registry();
 		const s = st.snapshot();
 		console.log(JSON.stringify({ at: s.at, today: s.today, tz: s.tz, counts: s.counts, check: s.check, timing: s.timing }, null, 1));
-	} else { const s = await st.write(); console.log(`state.json: ${s.check.total} tasks, landed today ${s.counts.landed}, check.ok ${s.check.ok}`); }
+	} else {
+		const s = await st.write(), c = s.check, two = (k, x) => `check.${k}: ${x.rows} rows = ${x.sum} in buckets = ${x.ids} found by a text scan ${x.ok ? "ok" : "MISMATCH"}`;
+		console.log(`state.json: ${c.total} tasks, landed today ${s.counts.landed}, check.ok ${c.ok}`);
+		console.log(two("cards", c.cards)); console.log(two("asks", c.asks));
+		console.log(`check.sessions: ${c.sessions.in_sessions} tasks in sessions = ${c.sessions.with_session} task rows with a session ${c.sessions.ok ? "ok" : "MISMATCH"}`);
+	}
 }

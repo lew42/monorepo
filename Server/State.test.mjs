@@ -67,5 +67,43 @@ const c = new State({ root, registry, now }).snapshot(), crow = id => c.tasks.fi
 assert.equal(crow("t-key").line, "Merged the fix."); assert.equal(crow("t-log").line, "last words");
 assert.equal(crow("t-head").line, "The brief heading"); assert.equal(crow("t-bare").line, State.NO_SUMMARY);
 
+// Cards and asks: the same row, each counted two ways (a fold, a text scan). A later line for an id wins.
+const ai = path.join(root, "public/framework/ai"); fs.mkdirSync(ai, { recursive: true });
+const jl = (file, lines) => fs.writeFileSync(path.join(ai, file), lines.map(l => typeof l === "string" ? l : JSON.stringify(l)).join("\n") + "\n");
+const card = (id, status, extra = {}) => ({ id, title: "Card " + id, type: "card", status, created: "2026-10-17T09:00:00-05:00", last: "2026-10-17T10:00:00-05:00", ...extra });
+jl("cards.jsonl", [card("2026/10/17/a", "open"), card("2026/10/17/a", "working", { last: "2026-10-17T11:00:00-05:00" }), card("2026/10/16/b", "done"), card("2026/10/17/c", "archived"),
+	card("2026/10/17/d", "open", { owner_note: { kind: "needs-you", text: "Pick one.", by: "agent-x" } }), card("2026/10/17/e", "open", { owner_note: { kind: "decision", text: "Fyi." } })]);
+jl("asks.jsonl", [{ ask: { at: "2026-10-17T09:00:00-05:00", title: "First ask", owner: "m1", card: "2026/10/17/a", status: "routed" } },
+	{ ask: { id: "first-ask", status: "landed", at: "2026-10-17T12:00:00-05:00" } },
+	{ ask: { at: "2026-10-17T09:00:00-05:00", id: "named", title: "Named ask", status: "parked" } },
+	{ ask: { at: "2026-10-17T09:30:00-05:00", title: "Quiet ask", status: "routed" } }, { ask: { id: "never-routed", status: "landed" } }]);
+const d = new State({ root, registry, now }).snapshot(), by = id => d.cards.find(r => r.id.endsWith(id));
+assert.equal(d.cards.length, 5);                                         // six lines, five ids
+assert.equal(by("/a").bucket, "working"); assert.equal(by("/b").bucket, "done"); assert.equal(by("/c").bucket, "archived");
+assert.equal(by("/d").bucket, "needs"); assert.equal(by("/d").needs, true); assert.equal(by("/e").bucket, "open"); assert.equal(by("/e").needs, false);   // a decision FYI never waits
+assert.equal(by("/a").day, "2026-10-17"); assert.equal(by("/a").url, "/framework/ai/2026/10/17/a/"); assert.equal(by("/a").kind, "card");
+assert.deepEqual([d.check.cards.rows, d.check.cards.sum, d.check.cards.ids, d.check.cards.ok], [5, 5, 5, true]);
+assert.equal(d.asks.length, 3);                                          // the never-routed update is no ask
+const ask = id => d.asks.find(r => r.id === "ask:" + id);
+assert.equal(ask("first-ask").bucket, "done"); assert.equal(ask("named").bucket, "waiting"); assert.equal(ask("named").needs, false);   // parked is set aside, not waiting on the owner assert.equal(ask("quiet-ask").bucket, "queued");
+assert.equal(ask("first-ask").when, "2026-10-17T12:00:00-05:00"); assert.equal(ask("first-ask").url, "/framework/ai/2026/10/17/a/");
+assert.deepEqual([d.check.asks.rows, d.check.asks.sum, d.check.asks.ids, d.check.asks.ok], [3, 3, 3, true]);
+assert.deepEqual([d.check.sessions.in_sessions, d.check.sessions.with_session, d.check.sessions.ok], [d.check.sessions.with_session, d.check.sessions.with_session, true]);
+assert.equal(d.sessions.find(x => x.id === "s1").title != null, true);
+assert.equal(State.sig(d) !== State.sig(s), true);                       // new cards and asks move the signature
+assert.equal("cards" in State.stream_line(d), false);                    // the stream line stays small: counts and the check only
+// Break the card count on purpose: an `id` that is not first on its line parses fine but the text scan misses it.
+jl("cards.jsonl", [card("2026/10/17/a", "open"), `{"title":"Odd","id":"2026/10/17/odd","status":"open","last":"2026-10-17T10:00:00-05:00"}`]);
+const e = new State({ root, registry, now }).snapshot();
+assert.equal(e.check.ok, false); assert.deepEqual([e.check.cards.rows, e.check.cards.ids, e.check.cards.ok], [2, 1, false]); assert.equal(e.check.asks.ok, true);
+
+// A landing after the first walk: only the marked file is re-read, and both counts still move together (the 1 s dashboard).
+const wd = put(S + "t-later", { assign: { session_id: "s1", title: "Lands later", requested_at: "2026-10-17T09:00:00-05:00" } }, { start: { at: "2026-10-17T09:05:00-05:00" } });
+const inc = new State({ root, registry, now }), before = inc.snapshot({ full: true }).check.landed_today;
+fs.appendFileSync(path.join(wd, "task.jsonl"), JSON.stringify({ finish: { at: "2026-10-17T22:00:00-05:00", outcome: "Done." } }) + "\n");
+inc.dirty.add(path.join(wd, "task.jsonl"));
+const after = inc.snapshot({ full: false }).check.landed_today;
+assert.deepEqual([after.state - before.state, after.walk - before.walk, after.only_state.length - before.only_state.length, after.only_walk.length], [1, 1, 0, 0]);
+
 fs.rmSync(root, { recursive: true, force: true });
-console.log("State: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 2 vs 1)");
+console.log("State: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 2 vs 1; cards 5 = 5 = 5, asks 3 = 3 = 3, broken cards 2 vs 1)");

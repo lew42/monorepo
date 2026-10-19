@@ -37,6 +37,22 @@ Each task's lines go through `Task.replay` (`core/Task/Task.js`), with `Task.res
 
 `State.walk_landed(day)` shares no code with the fold (only `SessionRecord.log_file`, which picks a folder's log file). It walks the sessions store with a plain `readdir`, and finds the module homes from the `/tasks/task.jsonl` index, following each `{"task": …}` line. For each file it reads the landing straight from the lines: the last state verb is `complete` or `finish` (its time is the line's own), or there are no verb lines and the task has `landed_at` and an outcome. Two counts that use different discovery and different code agreeing is the proof; when they differ, the ids say exactly where.
 
+## Cards and asks (2026-10-19, the one dashboard)
+
+`state.json` also carries `cards` (`ai/cards.jsonl`, the latest line per id) and `asks` (`ai/asks.jsonl`, folded by `AskFold`), each already in the dashboard's one row (`ai/rail/DashRow.js`: `kind id title state bucket when day who home url line needs`). Tasks and sessions become the same row in the browser, from `tasks` and `sessions`. Plan: [one-dashboard task](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md).
+
+Three more checks, each counted two ways, feed `check.ok`:
+
+- `check.cards`: rows = the five buckets added up = distinct ids found by a plain text scan of the file.
+- `check.asks`: rows = the six buckets added up = distinct ids/titles found by a text scan.
+- `check.sessions`: tasks counted inside `sessions` = task rows that carry a session.
+
+Real numbers (2026-10-19): 751 = 751 = 751 cards, 87 = 87 = 87 asks, 1,965 = 1,965 tasks in sessions. `node Server/State.mjs` prints all three.
+
+## Speed of a change (the 1 s dashboard)
+
+An `fs.watch` change to a log, `cards.jsonl` or `asks.jsonl` wakes the loop after `WAKE_MIN` (250 ms), not at the 5 s beat; a change that lands while a write is running flags the next sleep short instead of being lost. The second count (`walk_landed`) used to re-read every log (2 s); after the first walk it re-reads only the files fs.watch marked (`walk_dirty`), and the full walk repeats every ten minutes as the safety net. Measured: a `finish` line appended to a log reaches the Inbox's Recent chip in 0.65 s (was 2.4 s). A state write is whole, then one `state.jsonl` line points at it; `DashState` refetches on that line.
+
 ## Speed
 
 A full build walks both stores and replays every file (5.7 s for 2,276 files on 10-17). After that, `fs.watch` marks a changed file and a tick re-folds only that file, plus the registry read: milliseconds. Each file's fold is cached by its size and mtime. A full re-walk runs every ten minutes as a safety net. Both times are printed by `node Server/State.mjs --time`.

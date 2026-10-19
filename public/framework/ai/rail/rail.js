@@ -20,6 +20,8 @@ import workspace from "../cards/workspace.js";
 import { RealPage, page_events, real_title } from "../cards/real.js";
 import { Rules } from "../cards/Rules.js";
 import WaitingOnYou from "/framework/core/Page/ext/Inbox/WaitingOnYou.js";
+import DashState from "./DashState.js";
+import DashChips from "./DashChips.js";
 
 View.stylesheet(import.meta, "rail.css");
 
@@ -57,6 +59,9 @@ export default class AIRail extends Inbox.Rail {
 		this.live = live_model({ prompts: this.prompts, day: this.day });
 		this.cards = new CardList();
 		this.groups = new Groups();
+		this.dash = new DashState();      // the one state (ai/state.json): the Inbox's rows. Doc: doc/one-dashboard.md
+		this.chips = new DashChips(this);
+		this.dash_items = []; this.dash_by_id = new Map();
 		this.page.auto_transcribe = auto_transcribe;
 		// WAITING ON YOU, pinned above every row (Browse.Pinned): ticking a line archives its card, the row's own × write.
 		this.waiting_list = this.pin(new WaitingOnYou({ tick: r => r.card && Rules.archive_row({ id: r.card }), changed: () => this.paint_soon() }));
@@ -159,7 +164,63 @@ export default class AIRail extends Inbox.Rail {
 		// no routed alias to maintain, so `render_pinned()` just needs to honour an item's own
 		// `href` instead of always building one from `this.url + id`.
 		this.build_day_items();
+		this.build_dash_items();
 		return list;
+	}
+
+	/* ── the rows: the one state, filtered by the chips (DashChips) ── */
+
+	static ICONS = { task: "task_alt", card: "sticky_note_2", session: "history", ask: "help_outline" };
+
+	/** Every state row as a rail item, newest first. Not in `this.list`: that stays the legacy items, which the detail pages read. */
+	build_dash_items(){
+		const s = this.dash.full;
+		if (!s || this.dash_built === this.dash.rows) return;
+		this.dash_built = this.dash.rows;
+		this.dash_items = this.dash.rows.map(r => ({ ...r, dash: true, id: "dash:" + r.id, key: r.id, at: r.when, plain: true, icon: AIRail.ICONS[r.kind], live: DashChips.is_live(r, s) }))
+			.sort((x, y) => (Date.parse(y.at ?? 0) || 0) - (Date.parse(x.at ?? 0) || 0));
+		this.dash_by_id = new Map(this.dash_items.map(it => [it.id, it]));
+	}
+
+	visible(){
+		const s = this.dash.full;
+		if (!s) return [];
+		let base = this.dash_items.filter(it => this.chips.match(it, s));
+		if (this.search_q) base = base.filter(it => this.haystack(it).includes(this.search_q));
+		this.dash_matched = base.length;
+		return base.slice(0, DashChips.NEWEST);
+	}
+	haystack(it){ return it.dash ? (it.title + " " + it.line + " " + it.kind + " " + it.state + " " + (it.who ?? "")).toLowerCase() : super.haystack(it); }
+	is_new(it){ return !it.dash && super.is_new(it); }
+
+	/* The chips and their counts replace the old needs box, blocking/review/fyi chips and score floor. */
+	needs_chip(){ this.chips.mount(); }
+	needs_changed(ids){ this.needs_ids = ids; }
+	category_chips(){}
+	floor(){}
+	foot(){ div.c("inbox-rail-foot flex v-center", () => { this.foot_words(); this.$archived = button.c("inbox-word").attr("type", "button").attr("hidden", ""); }); }
+	count(){
+		super.count();
+		this.$archived.el.hidden = true;
+		this.chips.update(this.dash.rows, this.dash.full ?? { at: new Date().toISOString(), today: "" }, this.dash_matched ?? 0, this.shown_count());
+	}
+	shown_count(){ return Math.min(this.dash_matched ?? 0, DashChips.NEWEST); }
+	query(){ return this.chips?.query() ?? ""; }
+	href(it){ return it.dash ? it.url + this.query() : super.href(it); }
+
+	/* One face for every state row: the title, then its kind, state and line. */
+	dash_face(it){
+		this.row_head({ icon: it.icon, title: it.title, at: it.at, dot: false, plain: true, owner_kind: it.needs ? "needs-you" : null }, {});
+		div.c("inbox-row-foot flex v-center gap-25", () => {
+			span.c("dash-kind dash-kind-" + it.kind).text(it.kind);
+			span.c("dash-state muted").text(it.state);
+			if (it.line) small.c("inbox-row-line muted").text(it.line);
+		});
+	}
+
+	paint(){
+		super.paint();
+		this.shown.forEach(id => { const it = this.dash_by_id.get(id), rec = this.rows.get(id); if (it && rec) this.refill(rec, it); });
 	}
 
 	/* `id` is date-stamped ("day-2026-10-04"), not the plain word "yesterday" — the owner's own
@@ -266,7 +327,7 @@ export default class AIRail extends Inbox.Rail {
 	exempt(it){ return it.kind === "live"; }
 	// A stalled ask has no card to archive (it leaves when the ledger moves on); Live and the
 	// pinned Your-prompts summary never leave either — there is nothing to archive on either.
-	archivable(it){ return it.kind !== "stalled" && it.kind !== "live" && it.kind !== "prompts-pin"; }
+	archivable(it){ return !it.dash && it.kind !== "stalled" && it.kind !== "live" && it.kind !== "prompts-pin"; }
 
 	is_read(id){ return Rules.is_read(id); }
 	mark_read(id, val){ Rules.mark_read(id, val); }
@@ -276,7 +337,7 @@ export default class AIRail extends Inbox.Rail {
 
 	/* ── a row ── */
 
-	row_classes(rec, it){ rec.$row.el.classList.toggle("ai2-row-live", it.kind === "live"); }
+	row_classes(rec, it){ rec.$row.el.classList.toggle("ai2-row-live", it.kind === "live" || !!it.live); }
 
 	// The Live row says its clock; every other row the base's short date.
 	when(at, it){ return it?.kind === "live" ? Faces.clock(at) : super.when(at); }
@@ -284,6 +345,7 @@ export default class AIRail extends Inbox.Rail {
 	title_text($title, it){ if (!it.plain) mentions($title.el); }
 
 	face(it, on){
+		if (it.dash) return this.dash_face(it);
 		// THE LIVE ROW: counts (agents, working, 5h %) per card standard
 		if (it.kind === "live"){
 			const total_agents = it.agents?.length ?? 0;
@@ -309,11 +371,7 @@ export default class AIRail extends Inbox.Rail {
 
 	/* ── the rows the base does not draw: groups and changed site pages ── */
 
-	draw_extras(force){
-		this.draw_groups();
-		this.draw_pages();
-		this.order_rows(force);
-	}
+	draw_extras(force){ this.order_rows(force); }   // the group and changed-page rows are not in the one state (draw_groups, draw_pages stay for their callers)
 
 	extra_entries(){
 		return [
@@ -466,6 +524,8 @@ export default class AIRail extends Inbox.Rail {
 		this.waiting_list.start();
 		this.groups.on(paint);
 		this.groups.start({ folders: this.cards, socket: this.page.app?.socket });
+		this.dash.on(paint);
+		this.dash.start();
 		resolve_card("now").then(fold => { if (fold){ this.build_now_item(fold); this.render_pinned(); this.paint_soon(); } });
 		// The Needs you chip reads the SAME shared scan as the needs page (needs.js).
 		Needs.watch(s => this.needs_changed(s.ids, s.rows.length));

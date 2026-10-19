@@ -57,20 +57,32 @@ export default class TasksPage extends Browse {
 		div.c("tasks-group", () => {
 			h2.c("tasks-group-head", () => { span(g.title); small.c("inbox-badge").text(String(rows.length)).el.hidden = !rows.length; });
 			if (g.key === "landed") div.c("sessions-tabs flex gap-50 wrap", () => TasksPage.WINDOWS.forEach(([k, label]) =>
-				button.c("sessions-chip" + (this.window === k ? " sessions-chip-on" : ""), label).on("click", () => { this.window = k; history.replaceState(null, "", k === "today" ? location.pathname : "?landed=" + k); this.draw(); })));
+				TasksPage.chip(label, this.window === k, () => { this.window = k; history.replaceState(null, "", k === "today" ? location.pathname : "?landed=" + k); this.draw(); })));
 			if (!rows.length) return small.c("tasks-empty muted", g.empty);
 			rows.forEach(r => this.row(g.key, r));
 		});
 	}
 
+	/** One filter chip; the Inbox (ai/rail/DashChips.js) draws its chips with this too. */
+	static chip(label, on, click){ return button.c("sessions-chip" + (on ? " sessions-chip-on" : ""), label).on("click", click); }
+
+	/** The red line of a failed self-check: always this one, so a wrong count is never quiet. */
+	static note_bad(text){ return div.c("tasks-note tasks-check-bad", () => span(text)).el.style.color = "#c62828"; }
+
 	/** State's self-check failed (Server/doc/state.md): the two numbers in red, never a quiet wrong count. */
-	static bad(c){
-		const l = c.landed_today ?? {}, ids = [...(l.only_state ?? []), ...(l.only_walk ?? [])];
-		div.c("tasks-note tasks-check-bad", () => span(`Counts disagree: landed today is ${l.state} by the task rules but ${l.walk} by a plain walk${ids.length ? " (" + ids.join(", ") + ")" : ""}; ${c.total} tasks, ${c.sum} in buckets.`)).el.style.color = "#c62828";
+	static bad(c){ TasksPage.note_bad(TasksPage.why(c)); }
+
+	/** The sentence naming every count that differs: landed today, tasks, cards, asks, sessions. */
+	static why(c){
+		const l = c.landed_today ?? {}, ids = [...(l.only_state ?? []), ...(l.only_walk ?? [])], two = (k, x) => x && x.ok === false ? `${k}: ${x.rows} rows, ${x.sum} in buckets, ${x.ids} found by a text scan` : null;
+		const parts = [l.state !== l.walk || ids.length ? `landed today is ${l.state} by the task rules but ${l.walk} by a plain walk${ids.length ? " (" + ids.join(", ") + ")" : ""}` : null,
+			c.total !== c.sum ? `${c.total} tasks, ${c.sum} in buckets` : null, two("cards", c.cards), two("asks", c.asks),
+			c.sessions?.ok === false ? `sessions: ${c.sessions.in_sessions} tasks in sessions, ${c.sessions.with_session} task rows with a session` : null].filter(Boolean);
+		return "Counts disagree: " + (parts.length ? parts.join("; ") : `${c.total} tasks, ${c.sum} in buckets`) + ".";
 	}
 
 	row(kind, r){
-		const href = r.home === "module" ? r.url : r.id ? this.url + r.id + "/" : null;   // a module task opens its own page
+		const href = r.home === "module" ? r.url : r.id && r.url ? this.url + r.id + "/" : null;   // a module task opens its own page
 		(href ? a.c("inbox-row tasks-row").href(href) : div.c("inbox-row tasks-row")).append(() => {
 			div.c("inbox-row-head flex gap-25", () => {
 				if (r.quiet) span.c("tasks-warn").attr("title", `quiet for ${r.quiet_min} min`).text("⚠");

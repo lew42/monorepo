@@ -26,6 +26,21 @@
 	.ai2-usage-top .ai-proj { display: none; }
 	.ai2-usage-key { display: block; font-size: 0.72em; margin-block-start: 0.2em; }
 
+	/* THE ONE DASHBOARD'S CHIPS (DashChips.js): full-width rows of small pills under the head; the pressed one is filled.
+	   The chip look is TasksPage.chip's (`sessions-chip`), restated here so it does not depend on sessions.css being loaded. */
+	.inbox-chrome > .dash-chips { flex: 1 1 100%; white-space: normal; display: flex; flex-direction: column; gap: 0.3em; }
+	.dash-chip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; }
+	.dash-chip-sub { padding-inline-start: 1em; }
+	.dash-chips .sessions-chip { font: inherit; font-size: 0.85em; padding: 0.1em 0.6em; border: 1px solid var(--line); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
+	.dash-chips .sessions-chip:hover { background: var(--tint); }
+	.dash-chips .sessions-chip-on { background: var(--prime); border-color: var(--prime); color: var(--prime-ink); font-weight: 600; }
+	.dash-chip-head, .dash-total { font-size: 0.8em; }
+	.dash-chips .tasks-check-bad { font-size: 0.85em; }
+
+	/* A state row's second line: its kind, state and what it says. */
+	.dash-kind { flex: none; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.7; }
+	.dash-state { flex: none; font-size: 0.8em; }
+
 	/* A GROUP ROW is a preview like any other, a little heavier. */
 	.ai2-group-row .inbox-row-title { font-size: 1.05em; }
 	.ai2-group-row .inbox-row-when { white-space: nowrap; }
@@ -117,4 +132,10 @@
    session-730e8a7b/mastermind-repo-slim/review-ai-pages/review.md). Util, so it beats Page.css's `.page .page-open`. */
 @layer util {
 	.page.page--ai > :is(.page-open, .page-inbox-chip, .page-ai-cost) { display: none; }
+}
+
+/* A chip on means the list is a filtered view: the pinned rows (Waiting on you, Now, Today...) step aside so its rows are the first thing seen.
+   "Needs you" is the same set as Waiting on you, so nothing is lost. */
+@layer util {
+	.ai2:has(.dash-chips .sessions-chip-on) :is(.browse-pins, .inbox-pinned) { display: none; }
 }
