@@ -16,7 +16,7 @@ The AI system: Servex runs the agents, the readme chain is their memory, each ta
 
 Accounting first. Each link is that system's own short readme; follow it to go one level deeper.
 
-- **Tasks** (in flight, queued, landed today, live): [tasks/readme.md](tasks/readme.md) · [/framework/ai/tasks/](/framework/ai/tasks/)
+- **Tasks** (a saved filter of the Inbox, plus the Lanes view): [tasks/readme.md](tasks/readme.md) · [/framework/ai/tasks/](/framework/ai/tasks/)
 - **Accounting**: [token accounting](doc/tokens/tokens.md) · [spend per session](sessions/readme.md) · [budgets](/framework/servex/doc/budget.md) · agent logs: `%LOCALAPPDATA%/lew42/servex/logs/agent-<id>.jsonl`, one per Servex agent, with a `turn_cost` line per turn since 2026-10-13 ([what is in them](sessions/2026/10/16/voice-20261016/accounting/answers.md))
 - **Cloudflare** (what we would use, what it costs, the token you give us, the runaway guard): [doc/cloudflare.md](doc/cloudflare.md)
 - **Skills proposals** (what to add or retire, 2026-10-13): [doc/skills-proposals-2026-10-13.md](doc/skills-proposals-2026-10-13.md)
@@ -28,7 +28,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - **Usage pace** (how fast the week's limits are being spent against the clock, three meter variants beside today's): [usage/](usage/readme.md) · `node Server/usage-now.mjs`
 - **Undone asks** (every ask with no landed task or card, by module, computed daily): [asks/undone](/framework/ai/asks/undone/) · [verdict](doc/undone-asks-2026-10-17.md) · `node Server/UndoneAsks.mjs`
 - **One state** (every task in both stores, one bucket each, with a self-check; every count reads it): `state.json` here, written by [Server/State.mjs](/Server/State.mjs) · [design](/Server/doc/state.md) · [why](doc/one-state.md) · the dashboard [tasks/](tasks/readme.md) shows its check in red when it fails
-- **One dashboard** (the Inbox is the one list over `state.json`: Live / New / Recent / Older / Needs-you chips and a Kind row, every state a url; the other pages become saved filters next): [doc/one-dashboard.md](doc/one-dashboard.md) · **Built: steps 1 and 2 (2026-10-19, last code commit 7e0c5a2b5)**, [the plan](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md)
+- **One dashboard** (the Inbox is the one list over `state.json`: Live / New / Recent / Older / Needs-you chips and a Kind row, every state a url; `/framework/ai/tasks/` and `/tasks/` are saved filters of it): [doc/one-dashboard.md](doc/one-dashboard.md) · **Built: steps 1, 2 and 3 (2026-10-19, last code commit COMMIT)**, [the plan](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md)
 - **What happened 10-17 to 10-19** (your asks in order, what landed each day, what waits on you, the usage numbers explained): [doc/overview-2026-10-17-to-19.md](doc/overview-2026-10-17-to-19.md)
 - **Asks tally** (every ask you typed since 09-15, counted by feature, with what landed and what never did): [doc/asks-outcomes.md](doc/asks-outcomes.md) · `node Server/AskTally.mjs page`
 - **Follow-up** (what fell through the cracks, computed; plus unused-file census): [doc/follow-up.md](doc/follow-up.md) · [doc/unreferenced.md](doc/unreferenced.md) · `node Server/FollowUp.mjs --write`
