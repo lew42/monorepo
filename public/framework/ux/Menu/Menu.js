@@ -37,11 +37,11 @@ export default class Menu extends View {
 	}
 
 	panel(){
-		return div.c("ui-menu-list flex v", () => this.items.forEach(item => this.item(item)));
+		return div.c("ui-menu-list ux-popover flex v", () => this.items.forEach(item => this.item(item)));
 	}
 
 	item(item){
-		return a.c("ui-menu-item", item.text).href(item.href ?? "#")
+		return a.c("ux-popover-item", item.text).href(item.href ?? "#")
 			.click(e => {
 				// ⚠ A placeholder ("#" or no href) must not jump the page; a REAL href
 				// still navigates — closing first is harmless, the page is leaving anyway.

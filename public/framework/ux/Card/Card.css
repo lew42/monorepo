@@ -943,7 +943,7 @@
 	   whole row, which crushed the title beside it to one letter a line. */
 	/* The card's Actions menu sits at the head's right edge, so its list opens leftward. */
 	.ai2-actions { flex: none; margin-inline-start: auto; }
-	.ai2-actions .ui-menu-list { left: auto; right: 0; white-space: nowrap; }
+	.ai2-actions .ui-menu-list.ux-popover { left: auto; right: 0; white-space: nowrap; }
 
 	.ai2-type {
 		flex: none;

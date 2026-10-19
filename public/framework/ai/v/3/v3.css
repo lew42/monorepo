@@ -848,7 +848,8 @@
 	   layout and the auto-dismiss fade. `flex: 0 0 auto` for the same reason
 	   every other child of this scrolling flex column needs it (`css` skill:
 	   the scrolling-flex-column trap already bit this file three times). */
-	.v3-toast { flex: 0 0 auto; margin-block-start: 0.5em; }
+	/* The box look is ux/Popover's; a toast sits in the inbox column, so it opts out of `fixed`. */
+	.v3-toast.ux-popover { position: static; flex: 0 0 auto; margin-block-start: 0.5em; max-inline-size: none; box-shadow: none; }
 	/* THE EMPTY WHITE BOX (live-select, 2026-09-21) — `.v3-toast` wears the
 	   `flex` utility class so its rows lay out right once it HAS content, but
 	   that same `display: flex` also beats the browser's own
@@ -866,6 +867,6 @@
 	   `flex v-center gap`) and own the display here, where `[hidden]` can beat it. */
 	.v3-toast:not([hidden]) { display: flex; align-items: center; gap: var(--gap-50, 0.5em); }
 	.v3-toast[hidden] { display: none; }
-	.v3-toast-msg { flex: 1 1 auto; font-size: 0.875rem; }
-	.v3-toast-undo { font: inherit; font-weight: 700; color: var(--prime-ink, var(--prime)); background: none; border: 0; cursor: pointer; text-decoration: underline; }
+	.v3-toast > .v3-toast-msg { flex: 1 1 auto; font-size: 0.875rem; }
+	.v3-toast-undo.ux-popover-item { inline-size: auto; font-weight: 700; color: var(--prime-ink, var(--prime)); text-decoration: underline; }
 }

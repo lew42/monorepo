@@ -69,6 +69,5 @@
 
 	/* A popover floats; here it is drawn in place so it can be compared. */
 	.ux-content-plan-proposed .ux-popover { position: static; box-shadow: none; inline-size: fit-content; }
-	.ux-content-plan-proposed .ux-popover-text { padding: 0.35em 0.6em; flex: none; }
 	.ux-content-plan-shot { aspect-ratio: 4 / 3; }
 }
