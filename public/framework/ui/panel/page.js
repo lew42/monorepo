@@ -3,29 +3,29 @@ import { Page, md, demo, div, p, button, icon } from "/app.js";
 // The template, verbatim — rendered on the stage AND printed as the source, so the
 // code on the page is the code that ran.
 const panel = () => div.c("ui-panel surface", () => {
-	div.c("ui-panel-head pad flex v-center split gap", () => {
+	div.c("ui-panel-head flex v-center split gap", () => {
 		div.c("h3", "Delete branch?");
 		button(() => icon("close")).style({ background: "none", border: "none", padding: "0" });
 	});
 
-	div.c("pad", () => p("`michael/dev` and its preview deployment go away. This cannot be undone."));
+	div.c("ui-panel-body", () => p("`michael/dev` and its preview deployment go away. This cannot be undone."));
 
-	div.c("ui-panel-foot pad flex gap reverse", () => {
+	div.c("ui-panel-foot flex gap reverse", () => {
 		button.c("prim", "Delete");
 		button("Cancel");
 	});
 });
 
 const headless = () => div.c("ui-panel surface raised", () => {
-	div.c("pad", () => p("No header — so no hairline above, and nothing to delete."));
-	div.c("ui-panel-foot pad flex gap reverse", () => button.c("prim", "Got it"));
+	div.c("ui-panel-body", () => p("No header — so no hairline above, and nothing to delete."));
+	div.c("ui-panel-foot flex gap reverse", () => button.c("prim", "Got it"));
 });
 
 export default new Page({
 	specimen: panel,
 	meta: import.meta,
 	title: "Panel",
-	description: "A template plus three rules — and `reverse`, the right-aligned action row nobody expects.",
+	description: "A template plus a few rules — and `reverse`, the right-aligned action row nobody expects.",
 	icon: "crop_square",
 
 	children: [
@@ -43,9 +43,9 @@ export default new Page({
 			note: "**There is no `ui.panel()`.** It took three slots by position — `panel(null, body, foot)` was a real call — and the one page on this site that actually wanted a panel wrote its own rather than import it. Omitting a row is now deleting three lines, which is both shorter and impossible to get backwards.",
 		});
 
-		md("## Three rules, and they are all relationships");
+		md("## A surface and its parts, each padding itself");
 
-		md("```css\n.ui-panel-head { border-bottom: 1px solid var(--line); }\n.ui-panel-foot { border-top: 1px solid var(--line); }\n.ui-panel.raised { box-shadow: 0 8px 30px color-mix(in srgb, var(--ink) 14%, transparent); }\n```");
+		md("```css\n.ui-panel-head, .ui-panel-foot { padding: 0.6em var(--pad-card); }\n.ui-panel-body { padding: var(--pad-card); }\n.ui-panel-head { border-bottom: 1px solid var(--line); }\n.ui-panel-foot { border-top: 1px solid var(--line); }\n.ui-panel.raised { box-shadow: 0 8px 30px color-mix(in srgb, var(--ink) 14%, transparent); }\n```");
 
 		md("The hairlines are on the *rows*, not between them, so a panel with no header has nothing drawing a line to nowhere — the omission takes its rule with it.");
 

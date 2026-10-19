@@ -62,8 +62,6 @@
 		padding: 0.45em 0.6em; border-radius: var(--radius);
 	}
 	.ux-content-plan-proposed .ui-row:hover, .ux-content-plan-proposed .ui-row.selected { background: var(--wash); }
-	.ux-content-plan-proposed .ui-panel-body { padding: var(--pad-card); }
-	.ux-content-plan-proposed :is(.ui-panel-head, .ui-panel-foot) { padding: 0.6em var(--pad-card); }
 	.ux-content-plan-proposed .ui-accordion-item > summary { padding: 0.45em 0.6em; cursor: pointer; }
 	.ux-content-plan-proposed .ui-accordion-item > :not(summary) { margin: 0; padding: 0 0.6em 0.6em; }
 

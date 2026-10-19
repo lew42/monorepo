@@ -37,3 +37,9 @@ Panel is a titled box: a header row, a body and a footer row on a surface. It ha
 **Why:** a panel is a surface made of a header, a body, a footer and two hairlines. Modal behaviour belongs to a different component.
 **Instead:** putting the modal behaviour in the panel, which would make every panel carry a trap it may not need.
 **Detail:** [Dialog](/framework/ui/dialog/) is the modal, and it uses the browser's own `<dialog>`.
+
+## Each part pads itself: this module is the frame
+
+**Decided (card merge 8, 2026-10-19):** a **frame** is a `.surface` whose parts touch its edge, and the parts are this module's `.ui-panel-head`, `.ui-panel-body` and `.ui-panel-foot`. Each pads its own inline edge by `--pad-card` (head and foot `0.6em` above and below), so the words in all three line up; the surface itself pads nothing.
+**Why:** a box that wore `pad` on every part measured 129px tall for the same words that take 117px with the parts padding themselves, and two boxes drawn the same way (a dialog, a dashboard column) can now share the rules. The name and home call is in [the merge plan](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/card-merge-frames/plan.md).
+**Instead:** a new `ux/Frame` with `.ux-frame` (rejected: every rule and the page already live here, so it would be a second name for the same three rows).
