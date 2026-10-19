@@ -4,3 +4,6 @@
 {"commit":"c2db7b2bf3c5"}
 {"decision":{"at":"2026-10-19T08:40:00-05:00","question":"How does the explorer avoid probing module folders?","options":["filter the 404s in the shared loader","walk() gets an into(rel) filter; the Explorer looks only into doc/"],"chose":"walk() into(rel) filter","why":"The loader is shared; the explorer only needs the readme, sibling .md and doc/**/*.md."}}
 {"finish":{"at":"2026-10-19T08:41:00-05:00","commit":"fba0f478f","result":"check_page on core/Page/md, ux/Dictate/md, ext/Mention/md: http_errors 0, failed 0, page_errors 0 each. A fresh worktree lacks git-ignored directory.json/tasks.json/page-work.json and shows false 404s until copied in."}}
+{"commit":"2c1e5f8bc614"}
+{"log":{"at":"2026-10-19T08:18:32-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-19T08:18:38-05:00","msg":"session ended (other) without landing"}}
