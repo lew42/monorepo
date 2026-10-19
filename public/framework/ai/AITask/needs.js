@@ -94,7 +94,7 @@ function line(item){
 export function needs_strip(items, title = "Needs you"){
 	if (!items.length) return;
 
-	return div.c("ai-needs surface", () => {
+	return div.c("ai-needs card", () => {
 		div.c("ai-needs-head flex split v-baseline wrap", () => {
 			span.c("ai-group-title", title);
 			span.c("muted", total(items));
