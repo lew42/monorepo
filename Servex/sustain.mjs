@@ -32,7 +32,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { place, HOME } from "./home.js";
 import { ensure_deps } from "./ensure-deps.mjs";
 
@@ -298,7 +298,7 @@ function start(backoff){
     const began = Date.now();
     const out = fs.openSync(OUT, "a");
 
-    const child = spawn(process.execPath, ["--report-on-fatalerror", `--report-directory=${REPORTS}`, ENTRY], {
+    const child = spawn(process.execPath, ["--report-on-fatalerror", `--report-directory=${REPORTS}`, "--import", pathToFileURL(CRUMBS).href, ENTRY], {
         cwd: path.join(HERE, ".."),
         stdio: ["ignore", out, out],
         windowsHide: true
@@ -316,9 +316,59 @@ function start(backoff){
     child.on("exit", (code, signal) => {
         const lived = Date.now() - began;
         const next = lived > HEALTHY ? WAIT : Math.min(backoff * 2, CEILING);
-        note(`Servex ${child.pid} exited (${signal ?? code}) after ${Math.round(lived / 1000)}s — restarting in ${next / 1000}s`);
+        const reports = fresh_reports(began);
+        note(`Servex ${child.pid} exited (${signal ?? code}) after ${Math.round(lived / 1000)}s — restarting in ${next / 1000}s`
+            + (reports.length ? ` — node report: ${reports.join(", ")}` : ""));
+        if (signal || ((code >>> 0) >= 0xC0000000 && code !== -1)) crashed(child.pid, signal ?? code, lived, reports);
         setTimeout(() => start(next), next);
     });
+}
+
+/* A CRASH, not a stop: `exit 1` is a kill, a restart or a JS throw (its stack is already in sustain.log); a signal or a Windows error status
+ * (3221226505 = 0xC0000409, a native fast-fail) leaves no stack and no node report, so this keeps the evidence: one line in logs/crashes.jsonl with the last crumbs
+ * (Crumbs.js) and the last stderr, a `CRASH-LOOP` line after the third in an hour, and a `risk` owner note once Servex answers again.
+ * Why a report never came, and the 53 crashes: doc/restart.md. */
+const CRASHES = place("logs", "crashes.jsonl");
+const CRUMBS = path.join(HERE, "Crumbs.js");
+const CRUMB_LOG = place("logs", "crumbs.log");
+const SERVEX_LOG = place("logs", "servex.jsonl");
+const hex = c => typeof c === "number" ? "0x" + (c >>> 0).toString(16).toUpperCase() : String(c);
+const tail = (file, lines, bytes = 65536) => { try {
+    const fd = fs.openSync(file, "r"), size = fs.fstatSync(fd).size, n = Math.min(size, bytes), b = Buffer.alloc(n);
+    fs.readSync(fd, b, 0, n, size - n); fs.closeSync(fd);
+    return b.toString("utf8").split(/\r?\n/).filter(Boolean).slice(-lines);
+} catch { return []; } };
+const fresh_reports = since => { try { return fs.readdirSync(REPORTS).filter(f => /^report\..*\.json$/.test(f)
+    && fs.statSync(path.join(REPORTS, f)).mtimeMs >= since).map(f => path.join(REPORTS, f)); } catch { return []; } };
+
+function crashed(pid, code, lived, reports){
+    const now = Date.now();
+    const rec = { at: new Date(now).toISOString(), pid, code, hex: hex(code), uptime_s: Math.round(lived / 1000), reports,
+        crumbs: tail(CRUMB_LOG, 40), stderr: tail(OUT, 12), servex_log: tail(SERVEX_LOG, 5, 16384) };
+    const hour = tail(CRASHES, 200).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(r => r && now - Date.parse(r.at) < 3600e3);
+    rec.in_last_hour = hour.filter(r => r.code !== undefined).length + 1;
+    try { fs.appendFileSync(CRASHES, JSON.stringify(rec) + "\n"); } catch (e) { note(`crash record not written: ${e.message}`); }
+    note(`CRASH ${rec.hex}: last crumb "${rec.crumbs.at(-1) ?? "none (Crumbs.js not loaded?)"}" — ${CRASHES}`);
+    for (const l of rec.servex_log) note(`  servex.jsonl: ${l.slice(0, 220)}`);   // the last 5 system-log lines, beside the exited line
+    if (rec.in_last_hour >= 3 && !hour.some(r => r.risk_noted)){
+        note(`CRASH-LOOP: ${rec.in_last_hour} native crashes in the last hour — see ${CRASHES}`);
+        rec.risk_noted = true; try { fs.appendFileSync(CRASHES, JSON.stringify({ at: rec.at, risk_noted: true }) + "\n"); } catch {}
+        tell_owner(rec);
+    }
+}
+
+/* Servex is down right now, so wait for it: the note is a card, which only a running Servex can make. */
+async function tell_owner(rec){
+    const body = JSON.stringify({ kind: "risk", by: "sustain", title: `Servex crashed ${rec.in_last_hour} times in the last hour (${rec.hex})`,
+        text: `Servex's process died ${rec.in_last_hour} times in an hour with ${rec.hex}, a native fast-fail that leaves no stack. The last thing it did before this one: "${rec.crumbs.at(-1) ?? "unknown"}". Evidence: ${CRASHES}.`,
+        links: ["/framework/servex/doc/restart.md"] });
+    for (let i = 0; i < 60; i++){
+        await new Promise(r => setTimeout(r, 2000));
+        const ok = await fetch(API.replace("/api/agents", "/owner_note"), { method: "POST", headers: { "content-type": "application/json" }, body })
+            .then(r => r.ok).catch(() => false);
+        if (ok) return note("CRASH-LOOP: owner note posted");
+    }
+    note("CRASH-LOOP: Servex never answered, owner note NOT posted — grep CRASH in this log");
 }
 
 /* The keeper dying on purpose should not leave an orphan Servex behind. This
