@@ -24,6 +24,9 @@ Log level — asks in order, decisions, agents spawned (by path), anecdotes. May
 
 15. **Task system — owner does not understand it** ("one dashboard", "steps 1-3", "state.json", "Server/State.mjs", `/framework/ai/tasks/` mean nothing to him; voice-app's reply was a jargon dump from the AI readme). Asked for a task-mastermind to research: what a task is and where it lives, what was done recently, the classes and views, how task data is pulled from the sessions tree, whether there is a per-module tasks folder and whether the two are linked. His ideal: tasks live beside the module they concern and persist beyond sessions; each session references its tasks and each task its sessions; a fresh session in a directory finds every previous task there and its state; no disjointed data that was meant to link. Spawned `task-mastermind-task-system`.
 
+16. Reports do not go in session folders; findings go into the current docs (readme = one line + link, detail in `doc/*.md`), on demand, so no agent researches twice. Masterminds must know how to create tasks; a cloud voice agent should use the same tool with its own session dir. Task-system mastermind told to apply its report to the docs, document the task tooling, verify the recent changes work, and judge `/framework/ai/tasks/` (owner expects it unlabeled and badly grouped).
+17. Folder renamed `cloud-voice-agent/` → `cloud-voice-live-page/` by the voice-logging agent (commit `02a37b41d`). ⬜ `task-system/` is still under the old name while its agent runs; move it here with `git mv` when it finishes, and remove the empty old folder.
+
 ## Agents spawned
 
 - `mastermind-live-page` — Sonnet, acceptEdits (mistake: could not spawn, commit or load a page; resume did not apply bypassPermissions). Task dir: `spawned/mastermind-live-page/`. Wrote the three docs and the sessions view; voice-app did its commit.
