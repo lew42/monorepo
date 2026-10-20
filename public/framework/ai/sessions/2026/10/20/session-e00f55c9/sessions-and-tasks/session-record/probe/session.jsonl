@@ -1,0 +1,3 @@
+{"assign":{"session_id":"446f9be1-e33a-45bb-bc4f-1a678f83ea5d","agent":"assistant-probe-session-rule","model":"claude-haiku-5-5","parent_task":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record","requested_at":"2026-10-20T15:16:36-05:00","now":"starting"}}
+{"log":{"at":"2026-10-20T15:16:43-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T15:22:19-05:00","heartbeat":"deliberate","msg":"assistant-probe-session-rule its agent is not running: it was stopped on purpose by minion-session-record at 2026-10-20T15:16:43-05:00; not revived."}}
