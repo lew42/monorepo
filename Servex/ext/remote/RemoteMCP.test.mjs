@@ -197,11 +197,38 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     await new Promise(r => setTimeout(r, 2200));
     const got = (await up({})).updates;
     assert.equal(got.length, 1); assert.equal(got[0].reply_to, ticket.ticket, "the ticket matches the delivered answer");
-    // 3) a quick answer is returned directly, never duplicated into the inbox
-    slow_ms = 0; gw.wait_ms = 3000;
-    assert.match(await ask("fast", s1), /^answer from /);
-    await new Promise(r => setTimeout(r, 1200));
-    assert.equal((await up({})).count, 0, "a answer returned in the call is not also delivered");
+    // 3) a notifications/cancelled stops the wait at once; the answer still reaches updates
+    gw.wait_ms = 3000; slow_ms = 1500;
+    const t1 = Date.now();
+    const pending = rpc({ id: 77, method: "tools/call", params: { name: "ask_mastermind", arguments: { question: "cancel me" } } }, s1);
+    await new Promise(r => setTimeout(r, 300));
+    const note = await fetch(url, { method: "POST", headers: { "content-type": "application/json", "mcp-session-id": s1 }, body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/cancelled", params: { requestId: 77 } }) });
+    assert.equal(note.status, 202);
+    const cancelled = (await pending).json.result.content[0].text;
+    assert.ok(Date.now() - t1 < 1400 && /arrive through updates/.test(cancelled), "a cancelled ask stops waiting before the answer exists");
+    assert.equal(gw.open.size, 0, "the open-call map is cleaned up");
+    await new Promise(r => setTimeout(r, 2000));
+    const canc = (await up({})).updates;
+    assert.equal(canc.length, 1, "the cancelled ask's answer is in the inbox"); assert.match(canc[0].text, /^late answer from /);
+    // 4) a quick answer is returned in the call AND put in the inbox (a dropped call can swallow the returned one)
+    slow_ms = 0;
+    const quick = await ask("fast", s1);
+    assert.match(quick, /^answer from /);
+    const inbox = (await up({})).updates;
+    assert.equal(inbox.length, 1, "an answer returned in time is also in the inbox");
+    assert.equal(inbox[0].text, quick); assert.ok(inbox[0].reply_to && inbox[0].from === "voice-mastermind");
+    // 5) the boot sweep: a reply file with no delivered marker goes to the inbox once; marked and stale files are skipped
+    const rd = gw.replies;
+    gw.sweep();   // first sweep marks what exists (and writes the sentinel) without delivering
+    assert.equal((await up({})).count, 0, "the first sweep replays nothing old");
+    fs.writeFileSync(path.join(rd, "feedbeef.txt"), "written while Servex was down");
+    fs.writeFileSync(path.join(rd, "oldold01.txt"), "two days old");
+    const two_days = new Date(Date.now() - 2 * 86400000); fs.utimesSync(path.join(rd, "oldold01.txt"), two_days, two_days);
+    gw.sweep(); gw.sweep();
+    const swept = (await up({})).updates;
+    assert.equal(swept.length, 1, "exactly one swept answer: a marker stops a second delivery, a stale file is skipped");
+    assert.equal(swept[0].text, "written while Servex was down"); assert.equal(swept[0].reply_to, "feedbeef");
+    assert.ok(fs.existsSync(path.join(rd, "feedbeef.delivered")), "delivery is marked");
 }
 srv.close();
 fs.rmSync(root, { recursive: true, force: true });

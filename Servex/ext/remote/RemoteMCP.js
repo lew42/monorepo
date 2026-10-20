@@ -26,7 +26,7 @@ export default class RemoteMCP {
         "Never call restart_servex (or stop_server on Servex) during a call: it would drop your own connection. The owner picks the time.",
         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
         "Call `updates` at the start of nearly every turn: it returns only what arrived for you since your last call (agent messages, the owner's notes, changes to logs you follow). Subscribe to a log with follow({path, agent: \"voice-app\"}).",
-        "The mastermind answers inside the tool's one-minute window with an ack and routing; minion results arrive on your next ask, so ask again to hear them. If the call times out or is cancelled, the answer still arrives through `updates` (from \"voice-mastermind\", reply_to the question id). ask_mastermind with wait:false returns a ticket at once and the answer arrives the same way.",
+        "The mastermind answers inside the tool's one-minute window with an ack and routing; minion results arrive on your next ask, so ask again to hear them. If the call times out or is cancelled, the answer still arrives through `updates` (from \"voice-mastermind\", reply_to the question id). ask_mastermind with wait:false returns a ticket at once and the answer arrives the same way. Every answer also arrives through `updates` with reply_to = its ticket, even one the call returned, so skip an answer you already have.",
     ].join("\n");
     // One generic door that never changes: the app approves it once, and any tool added later is reachable through it (doc/remote-tools.md).
     static CALL = {
@@ -57,6 +57,8 @@ export default class RemoteMCP {
         this.sessions = this.load_sessions();   // session id -> { agent, dir, started, last }
         this.spawning = new Map();              // session id -> promise, so two first asks make one agent
         this.token = this.load_token();
+        this.open = new Map();                  // "session:rpc id" -> the open ask's `used`, so notifications/cancelled can reach it
+        this.sweep();                           // an answer written while Servex was down still reaches the inbox
         if (router) this.mount(router);
     }
 
@@ -96,7 +98,13 @@ export default class RemoteMCP {
         let { id, method, params } = req.body ?? {};
         const ok = result => res.json({ jsonrpc: "2.0", id, result });
         const bad = (code, message) => res.json({ jsonrpc: "2.0", id, error: { code, message } });
-        if (id === undefined) return res.status(202).end();   // a notification (notifications/initialized)
+        if (id === undefined){   // a notification (notifications/initialized, notifications/cancelled)
+            if (method === "notifications/cancelled" && params?.requestId !== undefined){
+                const u = this.open.get(`${req.headers["mcp-session-id"] || `voice-${new Date().toISOString().slice(0, 10)}`}:${params.requestId}`);
+                if (u) u.cancel = true;
+            }
+            return res.status(202).end();
+        }
         if (method === "initialize"){
             const sid = crypto.randomUUID();
             this.sessions[sid] = { agent: null, dir: null, started: new Date().toISOString(), last: new Date().toISOString() };
@@ -129,8 +137,11 @@ export default class RemoteMCP {
             const sid = req.headers["mcp-session-id"] || `voice-${new Date().toISOString().slice(0, 10)}`;
             let used = {};
             used.wait = params.arguments?.wait !== false;
-            used.cancelled = () => res.destroyed || !!res.socket?.destroyed;   // the app dropped the call: stop waiting, keep watching
+            used.cancelled = () => used.cancel === true || res.destroyed || !!res.socket?.destroyed;   // the app cancelled or dropped the call: stop waiting, keep watching
+            const key = `${sid}:${id}`;
+            this.open.set(key, used);
             try { text = await this.ask(question, sid, used); } catch (e) { text = `could not reach the mastermind: ${e.message}`; }
+            finally { this.open.delete(key); }
             this.log(question, Date.now() - started, sid, used.agent);
             return ok({ content: [{ type: "text", text }] });
         }
@@ -291,18 +302,19 @@ export default class RemoteMCP {
         used.ticket = qid;
         let sent = false;   // set once the answer is delivered anywhere (returned, or put in the inbox)
         const read = () => { try { return fs.existsSync(out) ? fs.readFileSync(out, "utf8").trim() : ""; } catch { return ""; } };
-        const deliver = late => {
+        // every answer goes to the inbox, returned or not: a call the app dropped can swallow what we return
+        const deliver = () => {
             const t = read();
             if (!t || sent) return null;
             sent = true;
             chat("voice-mastermind", t);
-            if (late) try { this.servex.external.ensure(RemoteMCP.CALLER).deliver(RemoteMCP.CALLER, t, { from: "voice-mastermind", reply_to: qid }); } catch (e) { console.error("remote-mcp: late answer:", e.message); }
+            this.give(qid, t);
             return t;
         };
         // keep watching after we stop waiting: the answer goes to the caller's inbox, which `updates` delivers
         const watch = () => {
             const until = Date.now() + this.late_ms;
-            const tick = () => { if (deliver(true) || Date.now() > until) return; setTimeout(tick, 1000).unref?.(); };
+            const tick = () => { if (deliver() || Date.now() > until) return; setTimeout(tick, 1000).unref?.(); };
             setTimeout(tick, 500).unref?.();
         };
         const ack = `the answer will arrive through updates (ticket ${qid}; the question is logged at ${link})`;
@@ -310,11 +322,40 @@ export default class RemoteMCP {
         const until = Date.now() + this.wait_ms;
         while (Date.now() < until && !used.cancelled?.()){
             await new Promise(r => setTimeout(r, 500));
-            const t = deliver(false);
+            const t = deliver();
             if (t) return t;
         }
         watch();
         return `the mastermind is busy; ${ack}`;
+    }
+
+    /* Put an answer in the caller's inbox (from voice-mastermind, reply_to = ticket) and mark its reply file delivered. */
+    give(qid, text){
+        try {
+            if (!this.servex.external?.ensure) return false;   // Servex without its inbox layer
+            this.servex.external.ensure(RemoteMCP.CALLER).deliver(RemoteMCP.CALLER, text, { from: "voice-mastermind", reply_to: qid });
+            fs.writeFileSync(path.join(this.replies, qid + ".delivered"), new Date().toISOString());
+            return true;
+        } catch (e) { console.error("remote-mcp: answer to inbox:", e.message); return false; }
+    }
+
+    /* At boot: any remote-replies/<qid>.txt with no <qid>.delivered marker goes to the inbox once. The first sweep only marks
+     * what already exists (answers from before this change were handled by the old code), so nothing old is replayed. */
+    sweep(){
+        try {
+            if (!this.servex.external?.ensure || !fs.existsSync(this.replies)) return;
+            const sentinel = path.join(this.replies, ".swept"), first = !fs.existsSync(sentinel);
+            for (const f of fs.readdirSync(this.replies)){
+                const m = /^(.+)\.txt$/.exec(f);
+                if (!m) continue;
+                const qid = m[1], mark = path.join(this.replies, qid + ".delivered"), file = path.join(this.replies, f);
+                if (fs.existsSync(mark)) continue;
+                if (first || Date.now() - fs.statSync(file).mtimeMs > 86400000){ fs.writeFileSync(mark, first ? "before-sweep" : "stale"); continue; }
+                const text = fs.readFileSync(file, "utf8").trim();
+                if (text) this.give(qid, text);
+            }
+            if (first) fs.writeFileSync(sentinel, new Date().toISOString());
+        } catch (e) { console.error("remote-mcp: sweep:", e.message); }
     }
 
     // one line per call, never the token
