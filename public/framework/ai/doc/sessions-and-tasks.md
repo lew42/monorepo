@@ -52,8 +52,8 @@ The top half of this is done. `Server/SessionRecord.mjs` (2026-10-17) renamed `t
 ## Slices (each merged the moment it works; old paths keep resolving)
 
 1. ✅ This plan, merged.
-2. ⬜ **Readers.** Replace every hard-coded `"task.jsonl"` on a runtime path (`State`, `TaskState`, `TaskLoop`, `review`, `Steps`, `Landed`, `Cards`, hooks) with `SessionRecord`. No behaviour change; tests prove it.
-3. ✅ (2026-10-20) **New sub-sessions write `session.jsonl`.** `SessionRecord.start_file`: a spawn line (`session_id` AND `agent`) gets `session.jsonl` at any depth; a tab task (`session_id`, no `agent`) keeps `task.jsonl`.
+2. ✅ mostly (2026-10-19, the task-system agent): runtime readers go through `SessionRecord.log_file` with a `task.jsonl` fallback; left over were `Steps.mjs --show/--step`, two hooks (`prompt-relay`, `naming-guard`) and the browser `TaskPage`, folded into slice 3.
+3. ✅ **New sub-sessions write `session.jsonl`** (landed 2026-10-20, [session-record/](../sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/requirements.md)). The rule is sharper than "any session_id": a VS Code tab's task also carries its session's id on line 1 (the `new-task` skill requires it) and must stay `task.jsonl`. A folder is a session when line 1 is a **spawn line**, `assign.session_id` **and** `assign.agent`, which only Servex's `open_task` writes.
 4. ⬜ **Old folders by script.** Extend `SessionRecord` plan/apply/undo to the 1,100 sub-session folders (dry run, manifest, reversible).
 5. ⬜ **Task as a line.** `completed` 0–1 plus start/complete times in `Task.replay`; a task with no folder; a session lists its tasks (closes gap b).
 6. ⬜ **`SessionDirs`** rename with alias; module placement per task-lifecycle (option A or B).
