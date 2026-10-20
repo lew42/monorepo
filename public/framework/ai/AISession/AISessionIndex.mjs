@@ -111,7 +111,7 @@ export default class AISessionIndex {
 		const ms = v => { const t = typeof v === "number" ? v : Date.parse(v); return Number.isFinite(t) ? t : null; };
 		const times = [ms(head.at), ...lines.slice(1).map(l => ms(Object.values(l)[0]?.at))].filter(t => t != null);
 		const first = times.length ? Math.min(...times) : fs.statSync(path.join(dir, "session.jsonl")).birthtimeMs, last = times.length ? Math.max(...times) : first;
-		const usd = r4(lines.reduce((n, l) => n + (+l.cost?.usd || 0), 0)), title = (() => { try { return JSON.parse(fs.readFileSync(path.join(dir, "session.summary.json"), "utf8")).title; } catch {} })() || lines.find(l => typeof l.title === "string")?.title || head.title || name;
+		const usd = r4(+lines.findLast(l => l.cost?.usd != null)?.cost.usd || 0), title = (() => { try { return JSON.parse(fs.readFileSync(path.join(dir, "session.summary.json"), "utf8")).title; } catch {} })() || lines.find(l => typeof l.title === "string")?.title || head.title || name;
 		return { id: name, kind: head.kind ?? null, state: Date.now() - last < AISessionIndex.ACTIVE_MS ? "active" : "idle", model: null, effort: null, provider: "claude", usd, usd_source: "recorded", tree_usd: usd, children: 0,
 			wall_ms: last - first, flags: 0, tokens: 0, first_at: new Date(first).toISOString(), last_activity: new Date(last).toISOString(), day: Day.of(first), folder: name, tags: [], alerts: 0, parent: null, agent: null, title, core: [], files: 0 };
 	}
