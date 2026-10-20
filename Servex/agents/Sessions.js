@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { place, HOME } from "../home.js";
 import Usage from "../Usage.js";
+import LogLine from "../../Server/LogLine.mjs";
 import { model as tier_model } from "./tiers.js";
 import { page_path } from "./Layers.js";
 import Cards from "../cards/Cards.js";
@@ -602,7 +603,7 @@ export default class Sessions {
 	/* One validated line into `<dir>/ai/log.jsonl` (the dir_log tool). */
 	dir_log({ dir, line } = {}){
 		const at = this.folder(dir), checked = check_dir_line(typeof line === "string" ? JSON.parse(line) : line);
-		this.append(path.join(at.disk, "ai", "log.jsonl"), checked);
+		LogLine.append(path.join(at.disk, "ai", "log.jsonl"), checked);
 		return { ok: true, file: `${at.name}ai/log.jsonl`, line: checked };
 	}
 

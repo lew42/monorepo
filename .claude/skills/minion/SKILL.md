@@ -53,7 +53,7 @@ Run `new-task` inside the task dir your brief names — it already exists; you w
 
 **Report by logging, not by chat (2026-10-20, [messaging.md](/Servex/agents/doc/messaging.md)).** Your parent tails your own log (`session.jsonl`, or `task.jsonl` in an older folder): Servex sends it your new lines once a minute. So write the overview there as it changes: what you are working on, what is open, what you decided, what landed. Not the fine detail. Your last words of a turn are one line pointing at the log; chat is only for a quick clarification.
 
-Your plan is your child tasks (the item tool's `tasks`, see [new-task](../new-task/SKILL.md)). As each step starts, call `item` with `{"start": {}}` on it and set its `now`; append a `decision` (alternative named) or a `log` caveat **the moment it happens**, never at the end — if your session dies, a fresh agent resumes from the log plus the readme. Append with `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` (stamps `"NOW"`, re-parses the file). Never write a `findings.md`; the task log is the only findings file. Token cost is written by Servex.
+Your plan is your child tasks (the item tool's `tasks`, see [new-task](../new-task/SKILL.md)). As each step starts, call `item` with `{"start": {}}` on it and set its `now`; append a `decision` (alternative named) or a `log` caveat **the moment it happens**, never at the end — if your session dies, a fresh agent resumes from the log plus the readme. Write a log line with the `log` tool (Servex MCP); a hook or a script without it uses `node .claude/hooks/append.mjs`. Never write a `findings.md`; the task log is the only findings file. Token cost is written by Servex.
 
 ## The reload hold — seconds, never minutes
 

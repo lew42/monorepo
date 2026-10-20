@@ -43,3 +43,5 @@ The supervisor, watching `public/`, holding reloads, what a browser can ask, the
 - [`RefineQueue.mjs`](../public/framework/ext/Refine/doc/refine-queue.md) — refines the owner's past prompts, one Haiku call per prompt, N at once, onto each session page's Coverage tab (`public/framework/ext/Refine/doc/refine-queue.md`)
 
 - **Scripts census** (what every script under `Server/`, `Servex/`, `.claude/hooks/` is, who uses it, which are stale): [doc/scripts.md](doc/scripts.md)
+
+- **Log lines** (`LogLine.mjs`: the one validated, stamped writer behind the `log` tool and `append.mjs`): [doc/log-line.md](doc/log-line.md)

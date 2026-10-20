@@ -105,3 +105,5 @@ How agents should work together (the design, with a picture):
 
 An agent Servex spawns gets its tools over HTTP: `Agents.door()` points it at the loopback `/mcp` (`?as=<id>`, served by `Servex/MCP.js`); in-process `tool()` servers are only for hosts with no HTTP door (tests). How it learns its own page: [`doc/own-page.md`](./doc/own-page.md).
 Why, and what moves to tools first: [`tiers-design/doc/tools.md`](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/tools.md).
+
+- **The `log` tool** (path + line in, one stamped line out, in `tools.js`): [Server/doc/log-line.md](../../Server/doc/log-line.md)
