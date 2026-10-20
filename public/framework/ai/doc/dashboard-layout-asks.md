@@ -5,10 +5,10 @@ The AI page ([/framework/ai/](/framework/ai/)) keeps coming back too crowded: a 
 | # | When | What was asked | Where (heading in owner-asks.md) |
 |---|---|---|---|
 | 1 | 2026-09-17 | a toolbar per column — later called "a lot of UI" | A toolbar per column (old v3 board) |
-| 2 | 2026-09-19 | the sticky hour box "looks broken" | The sticky hour box (old v3 board) |
+| 2 | 2026-09-21 | the sticky hour box "looks broken" | The sticky hour box (old v3 board) |
 | 3 | 2026-09-22 | "way too much" chrome, 200 px of dead space on top | Declutter: dead space, clutter, a hovering scrollbar, card grounds |
-| 4 | 2026-09-22 | cards too big, "I have to scroll a lot"; compact list | (compact list, same file) |
-| 5 | 2026-09-23 | two scrollbars | The "talk to this card" footer; two scrollbars |
+| 4 | 2026-09-21 | cards too big, "I have to scroll a lot"; compact list | (compact list, same file) |
+| 5 | 2026-09-22 | two scrollbars | The "talk to this card" footer; two scrollbars |
 | 6 | 2026-09-24 | "I don't like these independently scrollable areas" | One column, no little scroll boxes |
 | 7 | 2026-10-19 | "the worst page I've ever seen": header + tabs + sticky toolbar ate ~80% of the screen, "waiting on you" scrolled inside the scroll, tabs stacked on a phone, no link to the tasks view | this note |
 

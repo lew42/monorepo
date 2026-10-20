@@ -101,3 +101,4 @@ Accounting first. Each link is that system's own short readme; follow it to go o
 - [talk](./talk/) — press the mic, talk, see your words
 - [tests](./tests/) — test library: small tasks with known-good outcomes
 - [unreferenced verdicts](doc/unreferenced-verdicts.md) — 167 unreferenced candidates judged, 0 dead; a mover with undo, not run
+- **Known problem, asked 7 times:** the AI page layout (tall toolbar, scroll inside scroll, stacked tabs). Read [doc/dashboard-layout-asks.md](doc/dashboard-layout-asks.md) before rebuilding it.
