@@ -30,3 +30,7 @@
 {"log":{"at":"2026-10-19T20:32:55-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
 {"log":{"at":"2026-10-19T20:36:07-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-19T20:41:06-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-19T20:59:47-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-19T21:12:51-05:00","msg":"session resumed"}}
+{"commit":"921eb758ff4f"}
+{"log":{"at":"2026-10-19T21:13:33-05:00","msg":"Toolbar fix landed on michael/dev; before/after shots at 400 and 1200 linked in ai/doc/dashboard-layout-asks.md"}}
