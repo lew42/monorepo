@@ -21,3 +21,7 @@ The AI page ([/framework/ai/](/framework/ai/)) keeps coming back too crowded: a 
 - The main site template is untouched; every rule is scoped to `.page--ai`.
 
 Rule for the next person: if the AI page needs more controls, put them on a tab or one click down, not in the toolbar.
+
+## Screenshots
+
+Before (local files, PNGs are gitignored): [400](sessions/2026/10/19/cloud-voice-live-page/tasks-layout/before-ai-400.png), [1200](sessions/2026/10/19/cloud-voice-live-page/tasks-layout/before-ai-1200.png). After: [400](sessions/2026/10/19/cloud-voice-live-page/tasks-layout/after-ai-400.png), [1200](sessions/2026/10/19/cloud-voice-live-page/tasks-layout/after-inbox-1200.png). Landed on michael/dev (branch `task/tasks-layout` marks the commits).
