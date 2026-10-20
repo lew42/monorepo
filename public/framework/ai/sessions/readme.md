@@ -33,7 +33,7 @@ A session folder is one of three kinds:
 | `cache.jsonl`, `index.json`, day/month/year `index.json` | `ai/AISession/AISessionIndex.mjs`: a file watch on the transcripts re-reads only the new bytes. Started inside the dev server by `AISession/AISessionTailer.mjs` (main checkout only). |
 | a Servex agent's folder and line 1 | `open_task()` in `Servex/agents/Agents.js`, called from `Agents.spawn()` *before* the agent's first turn (the `spawn_agent` tool) |
 | any later line | `node .claude/hooks/append.mjs <file> <lines.json>`: validates against `.claude/hooks/jsonl-schema.mjs`, turns `"NOW"` into the clock, and picks `session.jsonl` vs `task.jsonl` through `SessionRecord.start_file()` |
-| a cloud voice call's folder and lines | `Servex/ext/remote/RemoteMCP.js` `voice_session()` / `record()` / `after()` ([voice system](Servex/ext/remote/doc/cloud-voice-agent.md)) |
+| a cloud voice call's folder and lines | `Servex/ext/remote/RemoteMCP.js` `voice_session()` / `record()` / `after()` ([voice system](/Servex/ext/remote/doc/cloud-voice-agent.md)) |
 | tags, notes, alerts, closed | `AISession.log()`; digests by `AISessionDigest.mjs` |
 
 ## How data is read
