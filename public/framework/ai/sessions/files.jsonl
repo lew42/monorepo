@@ -30371,11 +30371,3 @@
 {"file":"session-record-moves.jsonl"}
 {"file":"worktree-removals.jsonl"}
 {"file":"session-day-moves.jsonl"}
-{"file":"sessions.json","gone":true}
-{"file":"spend-tree.json","gone":true}
-{"file":"week.json","gone":true}
-{"file":"session-index.json","gone":true}
-{"file":"session-tree.json","gone":true}
-{"file":"openrouter-reconcile.json","gone":true}
-{"file":"openrouter-costs.json","gone":true}
-{"file":"screenshots/","gone":true}
