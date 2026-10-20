@@ -128,6 +128,8 @@ Nothing is thrown away. The slot's folder goes, and its commits stay on `landed/
 
 **A stale hold lets go.** `fixer-1` held `qf-8` with `hold()` for days after it was `gone`. A hold now stops counting once its holder has been `stopped` or `gone` for 12 h. A holder that vanished minutes ago (a registry blip) still holds.
 
+**More ways a slot lets go (2026-10-20).** A `dormant` holder whose task has landed (its task log ends `complete`) is done at once, not after 12 h; rules 2 and 3 still protect any work. A hold by a holder the registry has no row for lets go once the slot is 12 h old. `public/framework/ai/board.jsonl` (written by the slot server's own health watcher) is server noise, like `page.jsonl`: return restores it from HEAD.
+
 **What still keeps a slot** (the measurement of 2026-10-17, in [the task log](../../public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/pool-reclaim/task.jsonl)): a holder that is only `dormant` (a mastermind that may wake and write there). That is the case where a human or the holder calls `return_worktree`. Test: `node Servex/Pool.test.mjs`.
 
 ## A page watcher per taken worktree (2026-10-19)

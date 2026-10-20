@@ -7,6 +7,7 @@ import Events from "../Server/Events.js";
 import { refuse_links_into_main } from "../Server/junction-guard.mjs";
 import { stamp, HOME } from "./home.js";
 import WorktreeWatch from "./WorktreeWatch.js";
+import Landed from "./Landed.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const slash = p => String(p).split(path.sep).join("/");
@@ -242,6 +243,8 @@ export default class Pool extends Events {
      *      descends from the holder (a minion writes by absolute path from anywhere);
      *   3. it holds no changes of its own and no commits outside michael/dev — give_back()'s
      *      own check, so a slot with work is refused, KEPT and named.
+     * 2026-10-20: a `dormant` holder whose task has landed counts as done at once (rules 2 and 3 still protect work); an explicit
+     * hold by a holder the registry has no row for is dropped after ORPHAN_HOURS; ai/board.jsonl is server noise (server_log).
      * Reclaim salvages only a holder stopped 30+ min with nothing alive in the slot (2026-10-07); before that it never did (it did until 2026-09-30, and twice that day moved a working
      * minion's files out from under it: qf-9 at 12:53 and 13:23). Salvage is by hand only:
      * `node Servex/Lifecycle.js --salvage qf-N`. */
@@ -294,7 +297,9 @@ export default class Pool extends Events {
         if (slot.held_by){
             const h = rows.find(r => r.id === slot.held_by || r.name === slot.held_by);
             const away = h && (h.state === "stopped" || h.state === "gone") && (Date.now() - Date.parse(h.last_at || h.stopped_at || Date.now())) / 3600000 > Pool.ORPHAN_HOURS;
-            if (!away) return { why: `held by ${slot.held_by}` };
+            /* 2026-10-20: a holder the registry has no row for at all (pruned) is gone once the hold is ORPHAN_HOURS old. */
+            const orphan = !h && (Date.now() - Date.parse(slot.taken_at || Date.now())) / 3600000 > Pool.ORPHAN_HOURS;
+            if (!away && !orphan) return { why: `held by ${slot.held_by}` };
         }
         const LIVE = ["idle", "working", "queued", "starting"];
         const row = rows.find(r => r.id === slot.taken_by || r.name === slot.taken_by);
@@ -308,7 +313,7 @@ export default class Pool extends Events {
         }
         /* dormant = its process is released and it only wakes if resumed; dormant for ORPHAN_HOURS counts as gone (qf-9: dormant 7 days, 2026-10-09) */
         const idle_h = (Date.now() - Date.parse(row.last_at || row.stopped_at || Date.now())) / 3600000;
-        const done = row.state === "stopped" || row.state === "gone" || (row.state === "dormant" && idle_h > Pool.ORPHAN_HOURS);
+        const done = row.state === "stopped" || row.state === "gone" || (row.state === "dormant" && (idle_h > Pool.ORPHAN_HOURS || this.task_landed(row)));
         if (!done) return { why: `${slot.taken_by} is ${row.state}` };
         const inside = cwd => { const c = slash(path.resolve(String(cwd || "."))).toLowerCase(), p = slash(path.resolve(slot.path)).toLowerCase(); return !!cwd && (c === p || c.startsWith(p + "/")); };
         const worker = rows.find(r => LIVE.includes(r.state) && inside(r.cwd));
@@ -319,6 +324,11 @@ export default class Pool extends Events {
         const child = rows.find(r => r.id !== row.id && kids.has(r.id) && LIVE.includes(r.state));
         if (child) return { dead: true, why: `${child.id}, under ${row.id}, is ${child.state}` };
         return null;
+    }
+
+    /* True when the holder's task log says landed or stopped (Landed.state, no git). A seam for tests. */
+    task_landed(row){
+        try { return !!row.task_dir && Landed.done(Landed.state(Landed.file(row.task_dir))); } catch { return false; }
     }
 
     /* The cwd of every spawn still waiting at the memory gate (not in the registry yet). A seam for tests. */
@@ -660,7 +670,7 @@ export default class Pool extends Events {
     /* A dev server's own logs (page.jsonl, files.jsonl, the clarity flags) are its noise, never an
      * agent's work: a return treats them as clean and salvage leaves them out (node-reliability,
      * 2026-09-30: qf-6's salvage swept 233 of them into a branch; a slot with only these stayed leased). */
-    static server_log(file){ return /(^|\/)(page|files)\.jsonl$/.test(file) || file === ".claude/skills/clarity/flags.jsonl"; }
+    static server_log(file){ return /(^|\/)(page|files)\.jsonl$/.test(file) || file === "public/framework/ai/board.jsonl" || file === ".claude/skills/clarity/flags.jsonl"; }
 
     async own_dirt(slot){
         return (await this.dirt(slot)).filter(d => !Pool.server_log(d.file) && slot.baseline?.[d.file] !== d.hash);
