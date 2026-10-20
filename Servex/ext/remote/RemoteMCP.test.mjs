@@ -17,10 +17,11 @@ const spawned = [], sent = [], seen = [];
 const mcp = new MCP({ router: express.Router() });   // the REAL registry class; the real page tools and one marker tool go in through its own seam
 for (const tool of page_tools()) mcp.tool(tool);
 for (const tool of FileTools.tools()) mcp.tool(tool);
+mcp.tool({ name: "spawn_agent", description: "t", handler: () => JSON.stringify({ id: "mastermind-x", state: "working" }) });
 mcp.tool({ name: "whoami_test", description: "test", handler: (a, ctx) => (seen.push(a), `caller=${ctx.caller}`) });
 const servex = {
     mcp,
-    sessions: { prewarm: true, map: {}, create(){ const id = "v-test" + Object.keys(this.map).length; this.map[id] = {}; return { ok: true, session: id, file: `/framework/ai/sessions/2026/10/19/${id}/session.jsonl` }; } },
+    sessions: { map: {}, save(){} },
     cards: { tools: () => [{ name: "create_card", handler: async () => JSON.stringify({ ok: true, id: "2026/10/15/voice" }) }] },
     agents: {
         registry_list: () => spawned.map(a => ({ id: a.id, task_dir: a.dir })),
@@ -130,14 +131,16 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     await call("whoami_test", {});
     await call("call", { tool: "whoami_test", args: { owner_words: "via the door" } });
     assert.ok(seen.length === 4 && seen.every(a => !("owner_words" in a)), "owner_words stripped before dispatch");
+    await call("spawn_agent", { owner_words: "spawn one", task: { dir: "public/framework/ai/x" } });
     const reg = JSON.parse((await call("register_session", {})).json.result.content[0].text);
     assert.ok(reg.ok && reg.session, "register_session with no arguments mints a session for a cloud caller");
     const lines = fs.readFileSync(path.join(root, "public", reg.file), "utf8").trim().split(/\r?\n/).map(l => JSON.parse(l));
-    assert.equal(lines[0].session.kind, "voice"); assert.equal(lines[0].session.caller, "voice-app");
+    assert.ok(reg.file.endsWith("/cloud-voice-agent/session.jsonl"), "one folder per day per caller"); assert.equal(lines[0].session.kind, "cloud-voice-agent");
+    assert.ok(lines.some(l => l.spawned?.agent === "mastermind-x" && l.spawned.task_dir), "a spawn is logged with agent id and task dir"); assert.equal(lines[0].session.caller, "voice-app");
     const words = lines.filter(l => l.owner_words).map(l => l.owner_words.words);
-    assert.deepEqual(words, ["make it blue, please", "via the door"], "words filed verbatim, once per distinct text");
+    assert.deepEqual(words, ["make it blue, please", "via the door", "spawn one"], "words filed verbatim, once per distinct text");
     const calls = lines.filter(l => l.tool_call).map(l => l.tool_call);
-    assert.ok(calls.length >= 5 && calls.some(c => !c.owner_words) && calls.every(c => c.args_hash.length === 12), "every call logged with a hash; a gap shows");
+    assert.ok(calls.length >= 6 && calls.some(c => !c.owner_words) && calls.every(c => c.args_hash.length === 12), "every call logged with a hash; a gap shows");
 }
 srv.close();
 fs.rmSync(root, { recursive: true, force: true });

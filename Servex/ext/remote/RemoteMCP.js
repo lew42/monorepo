@@ -107,12 +107,12 @@ export default class RemoteMCP {
                 const { tool, args } = params.arguments ?? {};
                 if (tool === "list") return ok({ content: [{ type: "text", text: JSON.stringify(this.tools().map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))) }] });
                 if (tool === RemoteMCP.TOOL.name) params = { name: tool, arguments: args };
-                else try { return ok(await this.servex.mcp.call(tool, args ?? {}, { caller: RemoteMCP.CALLER })); }
+                else try { return ok(this.after(tool, await this.servex.mcp.call(tool, args ?? {}, { caller: RemoteMCP.CALLER }), args)); }
                 catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
             }
             if (params?.name !== RemoteMCP.TOOL.name){
                 // every other tool is the servex registry's own handler; the caller is this app, so writes say who made them
-                try { return ok(await this.servex.mcp.call(params?.name, params?.arguments ?? {}, { caller: RemoteMCP.CALLER })); }
+                try { return ok(this.after(params?.name, await this.servex.mcp.call(params?.name, params?.arguments ?? {}, { caller: RemoteMCP.CALLER }), params?.arguments)); }
                 catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
             }
             const question = String(params.arguments?.question ?? "").trim().slice(0, 4000);
@@ -144,7 +144,7 @@ export default class RemoteMCP {
         const inner = name === RemoteMCP.CALL.name ? args.tool : name;
         const target = name === RemoteMCP.CALL.name ? (args.args ??= {}) : args;
         let v = null;
-        try { v = this.voice_session(sid); } catch (e) { console.error("remote-mcp: voice session:", e.message); }
+        try { v = this.voice_session(); } catch (e) { console.error("remote-mcp: voice session:", e.message); }
         this.record(v, inner, words.find(w => typeof w === "string" && w.trim()), { tool: inner, args: target }, sid);
         if (v && /^(session_summary|session_line|quick_fix)$/.test(inner) && !this.servex.sessions?.map?.[target.session]) target.session = v.id;
         if (v && inner === "register_session" && !target.id){
@@ -153,24 +153,35 @@ export default class RemoteMCP {
         return { ...params, arguments: args };
     }
 
-    // today's voice session for this MCP session: minted once through the Sessions store (no third store), else a plain day folder
-    voice_session(sid){
-        const s = this.sessions[sid] ??= { agent: null, dir: null, started: new Date().toISOString(), last: null };
-        if (s.voice && fs.existsSync(path.join(this.root, "public", s.voice.file))) return s.voice;
+    /* ONE folder per day per caller (owner, 2026-10-19): sessions/YYYY/MM/DD/cloud-voice-agent/session.jsonl, kind
+     * "cloud-voice-agent". It is a row in the Sessions store (so session_summary and session_line work), not a v-… folder. */
+    voice_session(){
         const store = this.servex.sessions;
-        if (!store?.create) return null;   // Servex without its session layer (SERVEX_NO_LAYERS): nowhere to file it, and no third store
-        let id, file;
-        const p = store.prewarm; store.prewarm = false;   // a cloud caller has no drawer to warm an agent for
-        try { ({ session: id, file } = store.create({ path: "/live/", fresh: true })); } finally { store.prewarm = p; }
-        const row = store.map?.[id]; if (row){ row.caller = RemoteMCP.CALLER; store.save?.(); }
-        const abs = path.join(this.root, "public", file);
+        if (!store?.map) return null;   // Servex without its session layer: nowhere to file it, and no third store
+        const p = n => String(n).padStart(2, "0"), d = new Date();
+        const day = `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())}`, id = `cloud-voice-agent-${day.replaceAll("/", "")}`;
+        const file = `/framework/ai/sessions/${day}/cloud-voice-agent/session.jsonl`, abs = path.join(this.root, "public", file);
+        if (!store.map[id]){
+            const at = Date.now();
+            store.map[id] = { id, home: `/framework/ai/sessions/${day}/cloud-voice-agent/`, file, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
+            store.save?.();
+        }
         if (!fs.existsSync(abs)){
             fs.mkdirSync(path.dirname(abs), { recursive: true });
-            fs.appendFileSync(abs, JSON.stringify({ session: { id, kind: "voice", caller: RemoteMCP.CALLER, at: Date.now() } }) + "\n");
+            fs.appendFileSync(abs, JSON.stringify({ session: { id, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at: Date.now() } }) + "\n");
         }
-        s.voice = { id, file };
-        this.save_sessions();
-        return s.voice;
+        return { id, file };
+    }
+
+    // a spawned agent is logged by code with its id and task dir (owner, 2026-10-19), read from the tool's own result
+    after(tool, result, args){
+        if (tool !== "spawn_agent") return result;
+        try {
+            const v = this.voice_session(), text = result?.content?.[0]?.text ?? "", j = JSON.parse(text);
+            const id = j.id ?? j.agent?.id, dir = args?.task?.dir ?? j.task_dir ?? j.task?.dir ?? j.dir;
+            if (v && id) fs.appendFileSync(path.join(this.root, "public", v.file), JSON.stringify({ spawned: { at: new Date().toISOString(), agent: id, task_dir: dir ?? null, caller: RemoteMCP.CALLER } }) + "\n");
+        } catch {}
+        return result;
     }
 
     // one line for the words (once per distinct text), one for the call (name + args hash): a call without words is a visible gap
@@ -178,7 +189,7 @@ export default class RemoteMCP {
         if (!v) return;
         const abs = path.join(this.root, "public", v.file), at = new Date().toISOString();
         const text = words?.trim();
-        const s = this.sessions[sid], fresh = text && text !== s.last_words;
+        const s = this.sessions[sid] ??= { agent: null, dir: null, started: new Date().toISOString(), last: null }, fresh = text && text !== s.last_words;
         try {
             if (fresh){ s.last_words = text; fs.appendFileSync(abs, JSON.stringify({ owner_words: { at, words: text, tool, caller: RemoteMCP.CALLER } }) + "\n"); }
             const hash = crypto.createHash("sha256").update(JSON.stringify(call.args ?? {})).digest("hex").slice(0, 12);
