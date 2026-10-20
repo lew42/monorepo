@@ -48,7 +48,7 @@ export default class TaskLoop {
         this.timer = setInterval(() => this.tick().catch(e =>
             this.servex?.log?.append("servex", { type: "task-loop-error", error: String(e?.message || e) }).catch(() => {})), this.every_min * 60000);
         this.timer.unref();
-        // /framework/ai/tasks/ tails state.jsonl: its writer is a child of Servex (a snapshot blocks ~100 ms), so it restarts with Servex; the newest watcher wins its lock
+        // /framework/ai/tasks/ tails index.jsonl: its writer is a child of Servex (a snapshot blocks ~100 ms), so it restarts with Servex; the newest watcher wins its lock
         this.watch_state();
         return this;
     }
@@ -56,7 +56,7 @@ export default class TaskLoop {
     /* A child spawned once and never checked is a view nobody refreshes (2026-10-20: the watcher died at a restart and the
      * Inbox sat 30 min stale). So it is respawned when it exits, at most once a minute; stop() ends that. */
     watch_state(){
-        const watcher = path.join(this.root, "Server", "TaskState.mjs");
+        const watcher = path.join(this.root, "Server", "AIIndex.mjs");
         if (this.stopping || process.env.SERVEX_NO_TASKSTATE || !fs.existsSync(watcher)) return;
         this.state_started = Date.now();
         try {

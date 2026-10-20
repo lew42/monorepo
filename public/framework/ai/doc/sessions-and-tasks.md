@@ -44,7 +44,7 @@ The top half of this is done. `Server/SessionRecord.mjs` (2026-10-17) renamed `t
 |---|---|
 | spawned-agent folder log: `task.jsonl` to `session.jsonl` (new spawns first, then old folders by script) | `class Task` and the verbs (`assign`, `log`, `wait`, `approve`…) |
 | `open_task` / `default_task` language to session | the append-only, one-verb-per-line log |
-| `TaskDirs` to `SessionDirs` (old name kept as alias) | `State`, `ai/state.json` (it folds sessions and tasks) |
+| `TaskDirs` to `SessionDirs` (old name kept as alias) | `State`, `ai/index.json` (it folds sessions and tasks) |
 | a task that is only a line: no folder at all | module homes `<module>/tasks/` until the placement decision is made |
 
 ## What breaks if done carelessly (counts are a snapshot of 2026-10-19; `node Server/SessionRecord.mjs --plan` recounts)

@@ -8,8 +8,8 @@
 
 - **Born:** in the session folder that owns it, `ai/sessions/YYYY/MM/DD/<session>/<task>/task.jsonl` (what `open_task` and `TaskDirs` already do). A subtask nests inside its parent. A task with no session yet (an idea from an ask) is born in the module's `tasks/` as today and gains a session reference when someone works it.
 - **Line 1 carries `module`** (the nearest folder under `public/framework/` with a readme; `tasks.add` already computes it), written by `open_task` and `TaskDirs --new`. That is the one missing fact: today 0 of 1,586 session tasks have it.
-- **Found from the module with no copy:** `load_module` and the module page ask `state.json` for `module = <this>`; `State` already reads every log. No pointer lines, no index to rebuild, no sync. "Solidifying" a task into the module never copies or moves it; it just means its `module` is set.
-- **Found from the session:** the session folder holds its tasks; the Sessions grid asks `state.json` for `session = <id>` (State already has `sessions` rows with task counts).
+- **Found from the module with no copy:** `load_module` and the module page ask `index.json` for `module = <this>`; `State` already reads every log. No pointer lines, no index to rebuild, no sync. "Solidifying" a task into the module never copies or moves it; it just means its `module` is set.
+- **Found from the session:** the session folder holds its tasks; the Sessions grid asks `index.json` for `session = <id>` (State already has `sessions` rows with task counts).
 - **Never lose:** append-only logs; the 211 duplicate migrated copies are the one place two files hold one task, and stay until a script (dry run first, undo) folds each old copy into a single `{"home": url}` stub.
 
 ## Lifecycle: six phases on the one Task state machine
@@ -37,14 +37,14 @@ The handoffs that break today were each checked against real data (13 theories, 
 
 1. `open_task` and `TaskDirs --new` write `module` on line 1 (a backfill script for the 1,586 existing tasks, from the folders and files named in their logs, dry run first).
 2. `Task.js` reads `phase`; `State` adds it to the row.
-3. `load_module` lists a module's open tasks from `state.json`.
+3. `load_module` lists a module's open tasks from `index.json`.
 4. The Inbox groups by phase.
 
 ## Decision to make: should a module's tasks live in the module? (the owner's lean, 2026-10-19)
 
 > "Maybe all module-specific tasks should actually be in the module, so if you pull up the git history of the tasks for that module you see exactly what's been done over the past few days." He is fine with `<module>/tasks/YYYY/MM/DD/<slug>/`.
 
-- **Option A (the design above):** the task stays in its session folder and carries `module`; the module's history is a query on `state.json`, not `git log`. Smallest fix: `open_task` and `TaskDirs --new` write `module` on line 1. Cost: `git log -- <module>/tasks/` shows nothing for session tasks.
+- **Option A (the design above):** the task stays in its session folder and carries `module`; the module's history is a query on `index.json`, not `git log`. Smallest fix: `open_task` and `TaskDirs --new` write `module` on line 1. Cost: `git log -- <module>/tasks/` shows nothing for session tasks.
 - **Option B (his lean):** a task whose module is known is born at `<module>/tasks/YYYY/MM/DD/<slug>/`, with `session_id` on line 1 so the session finds it by query; `git log -- <module>/tasks/` is then the module's history. Smallest fix: let `TaskDirs.dir()` accept `module` and make `open_task` pass it (new tasks only; the 1,100 old ones stay, or move later by `TaskMove`, which already has a dry run, ledger and undo from 10-12). Cost: a task with no clear module still needs the session home, so two places stay; the item tool's `tasks.add` makes `<module>/tasks/<slug>/` without the date folders today, so its path shape would change too.
 - **Not built.** Both options keep one copy of each task; he decides.
 

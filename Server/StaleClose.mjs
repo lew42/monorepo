@@ -11,7 +11,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import TaskDirs from "./TaskDirs.mjs";
 import SessionRecord from "./SessionRecord.mjs";
-import State from "./State.mjs";
+import AIIndex from "./AIIndex.mjs";
 
 const day = () => new Date().toLocaleDateString("sv");   // local YYYY-MM-DD
 const ms = s => { const t = Date.parse(s); return Number.isNaN(t) ? 0 : t; };
@@ -25,10 +25,10 @@ export default class StaleClose {
 
 	constructor({ now = Date.now(), hours = StaleClose.HOURS, state = null } = {}){ this.now = now; this.hours = hours; this.state = state; this.plan = []; this.skipped = {}; }
 
-	/** The one state, fresh (ai/state.json is up to a minute old and does not know a close just made). */
+	/** The one state, fresh (ai/index.json is up to a minute old and does not know a close just made). */
 	async load(){
 		if (this.state) return this;
-		const st = new State({ root: TaskDirs.REPO }); st.registry = await State.fetch_registry();
+		const st = new AIIndex({ root: TaskDirs.REPO }); st.registry = await AIIndex.fetch_registry();
 		this.registry_ok = st.registry.length > 0;
 		this.state = st.snapshot({ full: true });
 		return this;
@@ -65,7 +65,7 @@ export default class StaleClose {
 		try { execFileSync(process.execPath, [StaleClose.APPEND, target, tmp], { cwd: TaskDirs.REPO, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }); }
 		finally { fs.rmSync(tmp, { force: true }); }
 	}
-	static manifest(){ return State.read_lines(StaleClose.MANIFEST); }
+	static manifest(){ return AIIndex.read_lines(StaleClose.MANIFEST); }
 
 	write_plan(){ for (const r of this.plan) StaleClose.append(StaleClose.MANIFEST, { op: "plan", at: "NOW", ...r }); }
 
@@ -75,7 +75,7 @@ export default class StaleClose {
 		for (const r of this.plan){
 			const file = StaleClose.log_of(r.dir), why = `abandoned: no agent since ${r.last}; closed by StaleClose ${day()}`;
 			const stop = { stop: { at: "NOW", why, by: StaleClose.BY } };
-			const ends = State.fold([...State.read_lines(file), { stop: { at: new Date(this.now).toISOString(), why, by: StaleClose.BY } }], path.join(TaskDirs.REPO, "public")).state;
+			const ends = AIIndex.fold([...AIIndex.read_lines(file), { stop: { at: new Date(this.now).toISOString(), why, by: StaleClose.BY } }], path.join(TaskDirs.REPO, "public")).state;
 			if (ends !== "stopped") { refused.push({ dir: r.dir, ends }); StaleClose.append(StaleClose.MANIFEST, { op: "refused", at: "NOW", dir: r.dir, ends, by: StaleClose.BY }); continue; }
 			StaleClose.append(file, stop);
 			StaleClose.append(StaleClose.MANIFEST, { op: "close", at: "NOW", ...r, file: path.relative(TaskDirs.REPO, file).split(path.sep).join("/"), why, by: StaleClose.BY });

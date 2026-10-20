@@ -13,7 +13,7 @@ A **task** is a folder with one file, `task.jsonl`: a log where each line is one
 | Session store | `ai/sessions/YYYY/MM/DD/<session>/<task>/` | about 1,100 | `new-task` / `TaskDirs`, or Servex when it spawns an agent |
 | Module | `public/framework/<module>/tasks/<slug>/` | about 500 | the item tool (`tasks.add`), `Server/TaskMigrate.mjs`, `Server/UndoneToTasks.mjs` |
 
-**Links between them.** A module task lists its sessions (`"sessions":[{id,task}]`); a migrated session task carries a `{"home": url}` line; a `tasks.add` through the item tool also files a `{"task": path}` pointer into the caller's own log (step 16). **Not linked:** the agent's own task, opened by Servex or `TaskDirs`, gets no pointer to its module, and a session does not record its tasks. So "open a fresh session in a module and see every past task" works only through [/tasks/](/tasks/) and `state.json`, not through the readme chain.
+**Links between them.** A module task lists its sessions (`"sessions":[{id,task}]`); a migrated session task carries a `{"home": url}` line; a `tasks.add` through the item tool also files a `{"task": path}` pointer into the caller's own log (step 16). **Not linked:** the agent's own task, opened by Servex or `TaskDirs`, gets no pointer to its module, and a session does not record its tasks. So "open a fresh session in a module and see every past task" works only through [/tasks/](/tasks/) and `index.json`, not through the readme chain.
 
 ## 3. Who makes a task (the tooling)
 
@@ -28,17 +28,17 @@ A **task** is a folder with one file, `task.jsonl`: a log where each line is one
 
 ## 4. How the data is read
 
-`class State` ([`Server/State.mjs`](/Server/State.mjs), [design](/Server/doc/state.md)) walks both homes, replays each log with `Task.replay`, and writes `ai/state.json` (plus a `state.jsonl` pulse). Servex's `TaskLoop.js` keeps it running. The browser reads it through `ai/rail/DashState.js`; nothing else counts tasks.
+`class AIIndex` ([`Server/AIIndex.mjs`](/Server/AIIndex.mjs), [design](/Server/doc/ai-index.md)) walks both homes, replays each log with `Task.replay`, and writes `ai/index.json` (plus a `index.jsonl` pulse). Servex's `TaskLoop.js` keeps it running. The browser reads it through `ai/rail/DashState.js`; nothing else counts tasks.
 
 ## 5. What you can open
 
-- [/framework/ai/](/framework/ai/): the Inbox, one list over `state.json` with filter chips (class `Inbox.Rail extends Browse`, rows `DashRow`).
+- [/framework/ai/](/framework/ai/): the Inbox, one list over `index.json` with filter chips (class `Inbox.Rail extends Browse`, rows `DashRow`).
 - [/framework/ai/tasks/](/framework/ai/tasks/) and [/tasks/](/tasks/): saved filters of the same list; [Lanes](/framework/ai/tasks/lanes/) has its own three-column view.
 - One task: its own folder url, drawn by `TaskPage extends Page` and the older `AITask` viewer (the two are not merged).
 
 ## 6. Checked 2026-10-19
 
-`state.json` was rewritten within minutes of the check; `check.ok` true; tasks 2,124 = sum 2,124 over 2,335 log files (211 aliases); landed today 15 by both counts. The Inbox shows `task 2124` and `Today 15`, the same numbers.
+`index.json` was rewritten within minutes of the check; `check.ok` true; tasks 2,124 = sum 2,124 over 2,335 log files (211 aliases); landed today 15 by both counts. The Inbox shows `task 2124` and `Today 15`, the same numbers.
 
 ## 7. From a prompt to a landed change, today (one screen)
 
@@ -46,13 +46,13 @@ A **task** is a folder with one file, `task.jsonl`: a log where each line is one
 2. **Work is handed to one task mastermind.** `spawn_agent` with `task: {dir, brief}` ([sdk.md](/Servex/doc/sdk.md)); `open_task` writes line 1 of `task.jsonl` and `PastWork` writes `past-work.md` beside the brief (`requirements.md`, the owner's words) before the first turn.
 3. **It works** (skill `sub-mastermind`): a worktree for anything risky, minions only for parallel work, steps from `Server/Steps.mjs` (a node-driven checklist: smoke, commit and merge, `finish-task`; [steps.md](/Servex/doc/steps.md)); `TaskLoop` nudges a quiet agent ([task-loop.md](/Servex/doc/task-loop.md)); a fresh reviewer reads the result (`Server/review.mjs`).
 4. **It lands:** `Server/merge.mjs` smoke-tests and merges, `finish-task` appends a `finish`/`complete` line, `on-landing.mjs` stops what the task started ([lifecycle.md](/Servex/doc/lifecycle.md)).
-5. **It shows:** `State` folds the log into `state.json`; the Inbox lists it. No agent writes the counts.
+5. **It shows:** `State` folds the log into `index.json`; the Inbox lists it. No agent writes the counts.
 
 What is missing is the steps before "work": requirements, investigation, plan and approval are today only habits of the skill, not recorded states. Proposal: [task-lifecycle.md](task-lifecycle.md).
 
 ## 8. Audit: is each task reachable from its session and each session from its tasks? (2026-10-19)
 
-Counted by script over `public/framework/` and `state.json` (2,125 tasks: 1,586 in session folders, 539 in module homes).
+Counted by script over `public/framework/` and `index.json` (2,125 tasks: 1,586 in session folders, 539 in module homes).
 
 | Link | Result | How it is reachable |
 |---|---|---|
@@ -65,7 +65,7 @@ Counted by script over `public/framework/` and `state.json` (2,125 tasks: 1,586 
 **Where data is duplicated (the hard rule says it must not be):**
 - **The 211 migrated tasks:** the module home and the old session folder both hold the full log (112 old copies still have more than three lines); `State` counts them once through the `home` line, but two files hold one task.
 - **`public/tasks/task.jsonl` (86 lines) and each `tasks/task.jsonl`:** an index of homes, rebuilt by `Server/TaskHomes.mjs`; a second list of what the folders already say.
-- **`state.json`, the day `index.json`, `files.jsonl`:** derived and rebuilt by code (`state.json` and `index.json` are gitignored), so they are caches, not duplicates; fine as long as nothing reads them as the source.
+- **`index.json`, the day `index.json`, `files.jsonl`:** derived and rebuilt by code (`index.json` and `index.json` are gitignored), so they are caches, not duplicates; fine as long as nothing reads them as the source.
 - **The `sessions` field in a module home and the reverse `home` line:** one fact written in two logs, kept in sync only by the one migration script.
 
 ## 9. Where the handoffs break: theories, each tested (2026-10-19)
@@ -74,7 +74,7 @@ Each row is a guess about where prompt, session, task, agent and landed change c
 
 | # | Handoff | Theory | Result |
 |---|---|---|---|
-| T1 | prompt to ask to card | every ask names a card that exists | **FAIL 66 of 71** asks name a card that is not in `state.json` |
+| T1 | prompt to ask to card | every ask names a card that exists | **FAIL 66 of 71** asks name a card that is not in `index.json` |
 | T2 | ask to task | the ask's owner agent has a task | **FAIL 44 of 71**: the owner id on the ask matches no task's agent |
 | T3 | spawn to task | a task born since 10-12 has `assign` with session and agent on line 1 | **FAIL 20 of 443** (line 1 is something else) |
 | T3b | spawn to task | the same task has a title | **FAIL 234 of 436**: `open_task` writes no title |
@@ -99,7 +99,7 @@ Each row is a guess about where prompt, session, task, agent and landed change c
 |---|---|---|
 | `core/Task/Task.js` state machine and replay | built, works | `Task.test.mjs` 53 of 53 |
 | `Server/TaskDirs.mjs` (`dir`, `--new`, `find`, `follow`) | built, works, wired (Servex `open_task`, `append.mjs`) | `TaskDirs.test.mjs` ok |
-| `Server/TaskState.mjs` and `State.mjs` to `state.json` | built, works, wired (`TaskLoop`, the Inbox) | `TaskState.test.mjs` ok; self-check true |
+| `Server/TaskState.mjs` and `State.mjs` to `index.json` | built, works, wired (`TaskLoop`, the Inbox) | `TaskState.test.mjs` ok; self-check true |
 | `Server/TaskHomes.mjs` (index of module homes) | built, works; dry run says the index lists every home | `node Server/TaskHomes.mjs` |
 | `Server/TaskMigrate.mjs` | built, one-off; dry run only unless `--apply` | `TaskMigrate.test.mjs` |
 | `Server/UndoneToTasks.mjs` | built; makes idle tasks in module homes from undone asks | `--plan` |
@@ -108,5 +108,5 @@ Each row is a guess about where prompt, session, task, agent and landed change c
 
 **The three gaps, confirmed by reading the code.**
 - **(a) Module placement is never automatic.** `TaskDirs.dir({slug, session_id, parent, day})` and `Agents.open_task` have no `module` argument. A task reaches `<module>/tasks/<slug>/` only when an agent calls the item tool's `tasks.add` (its choice), when `TaskMigrate` is run once, or when `UndoneToTasks` files an idle task for an undone ask.
-- **(b) Sessions do not list their tasks.** Corrected: the task is a folder inside the session folder, and 37 of the 42 session logs that exist also name it, but no session field lists tasks and the day `index.json` has `links.task: null`; "this session's tasks" is a query on `state.json` (`session`).
+- **(b) Sessions do not list their tasks.** Corrected: the task is a folder inside the session folder, and 37 of the 42 session logs that exist also name it, but no session field lists tasks and the day `index.json` has `links.task: null`; "this session's tasks" is a query on `index.json` (`session`).
 - **(c) No single page said how a prompt becomes a task:** section 7 above does, and [task-lifecycle.md](task-lifecycle.md) proposes the missing phases.

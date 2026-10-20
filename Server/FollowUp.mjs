@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Server/FollowUp.mjs — WHAT FELL THROUGH THE CRACKS: a caller of the one state (Server/State.mjs) plus git and the asks file. Doc: public/framework/ai/doc/follow-up.md
+// Server/FollowUp.mjs — WHAT FELL THROUGH THE CRACKS: a caller of the one state (Server/AIIndex.mjs) plus git and the asks file. Doc: public/framework/ai/doc/follow-up.md
 //   node Server/FollowUp.mjs [--days 10]            print the flagged rows
 //   node Server/FollowUp.mjs --write                write ai/doc/follow-up.md (under 100 lines) and follow-up-full.md (every task)
-// Reads only; writes only those two files. Tasks and agents come from State (ai/state.json when under a minute old, else a fresh State snapshot).
+// Reads only; writes only those two files. Tasks and agents come from AIIndex (ai/index.json when under a minute old, else a fresh AIIndex snapshot).
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
@@ -10,7 +10,7 @@ import TaskDirs from "./TaskDirs.mjs";
 import SessionIndex from "./SessionIndex.mjs";
 import LandingCheck from "./LandingCheck.mjs";
 import SessionRecord from "./SessionRecord.mjs";
-import State from "./State.mjs";
+import AIIndex from "./AIIndex.mjs";
 
 const QUIET_H = 2, OPEN_ASK = new Set(["building", "routed", "queued", "stalled", undefined]), LIVE = new Set(["working", "idle", "dormant"]);
 const DOC = path.join(TaskDirs.AI, "doc"), ts = s => { const t = Date.parse(s); return Number.isNaN(t) ? 0 : t; };
@@ -32,11 +32,11 @@ export default class FollowUp {
 
 	in_window(t){ const cut = this.now - this.days * 864e5; return ts(t.last) >= cut || ts(t.started) >= cut; }
 
-	/** The one state: ai/state.json when written under a minute ago, else a fresh snapshot (nothing written). */
+	/** The one state: ai/index.json when written under a minute ago, else a fresh snapshot (nothing written). */
 	async load_state(){
-		const st = new State(), file = st.out;
-		try { if (this.now - fs.statSync(file).mtimeMs < 60000) { this.state = JSON.parse(fs.readFileSync(file, "utf8")); this.source = "ai/state.json (under a minute old)"; } } catch {}
-		if (!this.state) { st.registry = await State.fetch_registry(); this.state = st.snapshot({ full: true }); this.source = "a fresh State snapshot"; }
+		const st = new AIIndex(), file = st.out;
+		try { if (this.now - fs.statSync(file).mtimeMs < 60000) { this.state = JSON.parse(fs.readFileSync(file, "utf8")); this.source = "ai/index.json (under a minute old)"; } } catch {}
+		if (!this.state) { st.registry = await AIIndex.fetch_registry(); this.state = st.snapshot({ full: true }); this.source = "a fresh AIIndex snapshot"; }
 		this.agents = this.state.agents;
 		this.registry = this.agents.length > 0;   // an empty registry means Servex was down when the state was built
 		this.by_id = new Map(this.agents.map(a => [a.id, a]));
@@ -111,7 +111,7 @@ export default class FollowUp {
 
 	page(){
 		const c = this.counts(), L = [], day = new Date(this.now).toISOString().slice(0, 16).replace("T", " ");
-		L.push(`# Follow-up: what fell through the cracks`, "", `Counted by the one state ([one-state.md](one-state.md), \`Server/State.mjs\`): every task below is a row of \`ai/state.json\`. Computed ${day} UTC by \`node Server/FollowUp.mjs --write\` from the state's tasks touched in the last ${this.days} days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).`, "",
+		L.push(`# Follow-up: what fell through the cracks`, "", `Counted by the one state ([one-state.md](one-state.md), \`Server/AIIndex.mjs\`): every task below is a row of \`ai/index.json\`. Computed ${day} UTC by \`node Server/FollowUp.mjs --write\` from the state's tasks touched in the last ${this.days} days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).`, "",
 			`**${c.unmerged} landed with unmerged commits · ${c["merged-not-landed"]} merged but never landed · ${c.quiet} quiet over ${QUIET_H} h · ${c["no-outcome"]} landed with no outcome · ${c.asks} open asks with no live owner · ${c.healthy} healthy of ${this.rows.length}.**` + (this.registry ? "" : " (Servex was down: agent states unknown.)"), "");
 		const diff = this.diff_stat();
 		if (diff) L.push(`## ⚠️ The owner decides: \`${FollowUp.DECIDE}\``, "", "Its commits are code and not on `michael/dev`; this task does not merge it.", "```", diff, "```", "");
@@ -135,7 +135,7 @@ export default class FollowUp {
 		return L.join("\n") + "\n";
 	}
 
-	/** Each follow-up kind is a reading of the state (Server/State.mjs, bucket + dir + landed + line); the only other inputs are git and asks.jsonl. */
+	/** Each follow-up kind is a reading of the state (Server/AIIndex.mjs, bucket + dir + landed + line); the only other inputs are git and asks.jsonl. */
 	static RULES = [
 		"**quiet**: the state's bucket is `in_flight` or `stale` and the last log line is over 2 h old. A `landed` task is never quiet.",
 		"**closed as abandoned**: a `stale` task silent over 24 h gets a `stop` line from `Server/StaleClose.mjs` (run just before this, daily) and leaves `quiet`; the manifest is `ai/stale-closes.jsonl`: [stale-close.md](/Server/doc/stale-close.md).",

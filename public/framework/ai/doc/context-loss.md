@@ -23,12 +23,12 @@ A handover file written by an AI depends on that AI remembering to write it, at 
 
 | What | Tool (writes) | Read by |
 |---|---|---|
-| Every task's state, in both stores | `Server/State.mjs` → `ai/state.json` (run by Servex's `TaskLoop`) | the AI dashboard, `/tasks/` |
+| Every task's state, in both stores | `Server/AIIndex.mjs` → `ai/index.json` (run by Servex's `TaskLoop`) | the AI dashboard, `/tasks/` |
 | The "NOW" block at the top of [handover.md](../handover.md) | `Server/HandoverNow.mjs` (code, never an agent) | a fresh session's first read |
 | What already exists on a topic | `Server/PastWork.mjs` → `past-work.md` beside each brief | every spawned agent, before it plans |
 | A child's progress | the child's own `session.jsonl`, tailed by its parent | the parent agent |
 
-**Computed state needs a live computer.** On 2026-10-20 the `TaskState.mjs --watch` child that keeps `ai/state.json` current died at a Servex restart (its lock was left from 15:16, its last write 15:31), and the Inbox sat stale for 30 minutes until an agent restarted it by hand. A child a supervisor spawns once and never checks is a view an agent has to refresh, which CLAUDE.md's last law forbids. Fixed: `TaskLoop.watch_state()` respawns it when it exits, at most once a minute. Not covered yet: a watcher that hangs without exiting (a tick that checks `state.json`'s age would catch it).
+**Computed state needs a live computer.** On 2026-10-20 the `TaskState.mjs --watch` child that keeps `ai/index.json` current died at a Servex restart (its lock was left from 15:16, its last write 15:31), and the Inbox sat stale for 30 minutes until an agent restarted it by hand. A child a supervisor spawns once and never checks is a view an agent has to refresh, which CLAUDE.md's last law forbids. Fixed: `TaskLoop.watch_state()` respawns it when it exits, at most once a minute. Not covered yet: a watcher that hangs without exiting (a tick that checks `index.json`'s age would catch it).
 
 ## The tab prompt log: who reads it, what it costs
 

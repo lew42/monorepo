@@ -1,5 +1,5 @@
 /* node Servex/Landed-merged.test.mjs — a landing line on an unmerged branch does not count as landed (todo 207).
- * A stub git repo: the branch is one commit ahead -> not landed; after a merge -> landed. Server/State.mjs is untouched. */
+ * A stub git repo: the branch is one commit ahead -> not landed; after a merge -> landed. Server/AIIndex.mjs is untouched. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";

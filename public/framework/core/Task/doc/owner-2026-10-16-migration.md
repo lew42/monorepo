@@ -2,7 +2,7 @@
 
 ## The problem
 
-Most sessions reliably produce a requirements.md and old-style tasks (session-dir task.jsonl, TaskState state.jsonl, the ai/tasks index). Old tasks and new tasks side by side will get confusing. A conversion is wanted, but NOT until it is tested and bulletproof: (1) lose no data, (2) preserve the truth.
+Most sessions reliably produce a requirements.md and old-style tasks (session-dir task.jsonl, TaskState index.jsonl, the ai/tasks index). Old tasks and new tasks side by side will get confusing. A conversion is wanted, but NOT until it is tested and bulletproof: (1) lose no data, (2) preserve the truth.
 
 ## The shape
 

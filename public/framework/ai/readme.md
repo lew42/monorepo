@@ -1,13 +1,13 @@
 # AI — the folder where the AI system's records live and the pages that show them
 
-`ai/` holds (1) the AI system's **records**: the session store, the asks ledger, the cards index, the usage logs, `state.json`; (2) the **classes that draw them**: `AISession/`, `AITask/`, `cards/`, `rail/`, `tasks/`; (3) docs about the AI system (`doc/`). A module that AI merely *uses* does not belong here. Servex (`Servex/`, [/framework/servex/](/framework/servex/)) runs the agents; each task is a folder with a JSONL log; node scripts, not memory, compute every number. The pages: [/framework/ai/](/framework/ai/) (the Inbox), [System tab](/framework/ai/system/).
+`ai/` holds (1) the AI system's **records**: the session store, the asks ledger, the cards index, the usage logs, `index.json`; (2) the **classes that draw them**: `AISession/`, `AITask/`, `cards/`, `rail/`, `tasks/`; (3) docs about the AI system (`doc/`). A module that AI merely *uses* does not belong here. Servex (`Servex/`, [/framework/servex/](/framework/servex/)) runs the agents; each task is a folder with a JSONL log; node scripts, not memory, compute every number. The pages: [/framework/ai/](/framework/ai/) (the Inbox), [System tab](/framework/ai/system/).
 
 ## On disk: the records, each with its writer and reader
 
 | Path | What | Written by | Read by |
 |---|---|---|---|
-| `sessions/YYYY/MM/DD/…` | every session and every task folder | see [sessions/](sessions/readme.md) | `AISession/`, `Server/State.mjs` |
-| `state.json`, `tasks/state.jsonl` | every task in one bucket (generated, gitignored) | `Server/State.mjs`, run by `Servex/TaskLoop.js` | `rail/DashState.js` → the Inbox, [tasks/](tasks/readme.md) |
+| `sessions/YYYY/MM/DD/…` | every session and every task folder | see [sessions/](sessions/readme.md) | `AISession/`, `Server/AIIndex.mjs` |
+| `index.json`, `tasks/index.jsonl` | every task in one bucket (generated, gitignored) | `Server/AIIndex.mjs`, run by `Servex/TaskLoop.js` | `rail/DashState.js` → the Inbox, [tasks/](tasks/readme.md) |
 | `cards.jsonl` | one summary row per Inbox card | `Servex/cards/Cards.js` (whole-file rewrite) | `core/Page/ext/Inbox/Timeline.js`, `rail/inbox.js` |
 | `sessions/YYYY/MM/DD/cards/<card>/page.jsonl` | a card's own page: chat, owner notes | `create_card`, `card_set`, `owner_note` (Servex) | the card page (`cards/`) |
 | `asks.jsonl` | the owner's routed asks and their owners | `Servex/asks/Asks.js` (ticks), `Servex/ext/refine/CardAsk.js`, `Server/StaleClose.mjs` | `core/Page/ext/Inbox/WaitingOnYou.js`, `Server/AskTally.mjs`, `FollowUp.mjs` |
@@ -45,7 +45,7 @@ Agents.spawn(spec)                Servex/agents/Agents.js   makes a SESSION: def
                                                             before the agent's first turn; past-work.md beside it
 TaskDirs.dir({slug, session_id, parent})   Server/TaskDirs.mjs   the one path builder; `--new <slug>` makes a TASK folder
 item({path, delta:{tasks:{add:{title}}}})  Servex/agents/page_tools.js   a TASK in <module>/tasks/<slug>/ + a pointer line
-State.mjs → ai/state.json                  Server/State.mjs   the one reader of both; the Inbox draws it
+State.mjs → ai/index.json                  Server/AIIndex.mjs   the one reader of both; the Inbox draws it
 ```
 
 | Who | Makes | Where | How |

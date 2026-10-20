@@ -3,7 +3,7 @@ import DashState from "../rail/DashState.js";
 import SessionTree from "./SessionTree.js";
 
 /** SessionStore — reads the one store (sessions/YYYY/MM/DD/index.json, written only by AISessionIndex) for a day and builds its SessionTree.
- *  It streams: each new line on ai/tasks/state.jsonl (DashState) reloads the day, so the page never needs an agent or a timer. */
+ *  It streams: each new line on ai/index.jsonl (DashState) reloads the day, so the page never needs an agent or a timer. */
 export default class SessionStore {
 	static DAYS = 7;
 	static url(day){ return new URL(`../sessions/${Day.path(day)}/index.json`, import.meta.url).pathname; }

@@ -41,7 +41,7 @@ Nothing is stored "in the inbox". Each source is a file its own writer appends t
 | `ai/cards.jsonl` | one card summary per line: `{id,title,status,state,preview,owner_note:{kind,text},last,created…}` | Servex `Cards.js` (rewritten whole, so `live()` replays it as a reset) | `Timeline`, `WaitingOnYou`, the AI page (`ai/rail/inbox.js` `CardList`) |
 | `ai/asks.jsonl` | `{"ask":{id,card,title,status,why,at}}`, latest line per id wins | the Servex asks ledger | `WaitingOnYou` (status `waiting` / `needs-you`), `ai/rail/inbox.js` |
 | `timeline/landings.jsonl` | `{"landed":{id,title,sub,at,page?,card?}}`, append-only (a row's url is its line number: never rewrite) | `node Landings.mjs --append`, which reads every `task.jsonl` landing line | `Timeline` |
-| `ai/state.json` + `ai/tasks/state.jsonl` | every task folded into buckets; see [ai/tasks](/framework/ai/tasks/) | `Server/State.mjs` | `ai/rail/DashState.js` → `DashRow.rows()` → the AI page's task rows |
+| `ai/index.json` + `ai/index.jsonl` | every task folded into buckets; see [ai/tasks](/framework/ai/tasks/) | `Server/AIIndex.mjs` | `ai/rail/DashState.js` → `DashRow.rows()` → the AI page's task rows |
 
 **Overlaps, one line each.** `ai/board.jsonl` is retired and read-only (fallback for `ai/rail/inbox.js` only); `cards.jsonl` is the canonical card list. `cards.jsonl` and `landings.jsonl` are caches of the card folders' `page.jsonl` and the `task.jsonl` landings, which are the records. Source counts, computed: [doc/inbox-data.md](doc/inbox-data.md) (`node InboxSources.mjs --write`).
 
