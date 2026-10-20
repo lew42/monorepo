@@ -22,6 +22,8 @@ Read-only check with the API token in `cloudflare.env`:
 - The token **can** list tunnels (`GET /accounts/<id>/cfd_tunnel` works), so `cloudflared` tunnels can be created through the API.
 - The token **cannot** read or edit DNS (`GET /zones/<id>/dns_records` returns 10000 Authentication error), so the hostname's CNAME cannot be made by code.
 
+**The one owner step (2026-10-20, owner asked for a permanent hostname):** the API token has Tunnel access but **no DNS permission**, so the build stopped here. Add **Zone → DNS → Edit** (zone `lew42.com`) to the token in `cloudflare.env` (or do option 2). Then an agent builds the rest: `servex.lew42.com`, token stored beside `remote.token`, quick tunnel kept as the fallback.
+
 What only the owner can do (either one):
 1. Edit the API token in the Cloudflare dashboard and add **Zone: DNS: Edit** for `lew42.com`; or
 2. Add the CNAME by hand once, after step 2 below: `servex` → `<tunnel-id>.cfargotunnel.com`, proxied.
