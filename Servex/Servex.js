@@ -59,6 +59,7 @@ import { warm_guard } from "./ext/openrouter/provider.js";
 import { LLAMA_EXE, LLAMA_PORT, LOCAL_PROXY_PORT } from "./ext/local/provider.js";
 import { LocalProxy } from "./ext/local/llama.js";
 import { local_chat, local_model_slugs } from "./ext/local/chat.js";
+import ProjectMove from "../Server/ProjectMove.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
