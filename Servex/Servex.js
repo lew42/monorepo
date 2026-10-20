@@ -964,6 +964,7 @@ export default class Servex extends Events {
         for (const tool of directory_tools(this.agents)) this.mcp.tool(tool);   // ask_directory: agents/directory.js
         for (const tool of this.cards.tools()) this.mcp.tool(tool);
         for (const tool of this.pool?.tools() ?? []) this.mcp.tool(tool);   // take_worktree, return_worktree
+        this.mcp.tool(ProjectMove.tool());   // move_project: Server/ProjectMove.mjs
         for (const tool of this.follow.tools()) this.mcp.tool(tool);   // follow, unfollow, list_follows
         for (const tool of this.inbox.tools()) this.mcp.tool(tool);   // drop, clear, inbox
 

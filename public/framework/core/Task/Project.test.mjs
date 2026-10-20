@@ -40,6 +40,8 @@ check("an open subtask blocks landing; the stage stays at work", () => {
 	return p.stage === "work" && p.state === "running";
 });
 
+check("completion equals completed, replayed from lines", () => { const p = Project.from_lines([{ id: "r", title: "x" }, { start: {} }, { complete: {} }]); return p instanceof Project && p.completion === 1 && p.completed === 1; });
+
 check("completed is computed from subtasks, never stored", () => {
 	const p = new Project({ id: "p" });
 	const a = new Task({ id: "a" }), b = new Task({ id: "b" });

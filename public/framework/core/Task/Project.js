@@ -1,4 +1,4 @@
-// A play class, wired into nothing: a Task that walks six STAGES and reports `completed` (0..1) from its subtasks.
+// A project: a Task with a folder (project.jsonl), moved into its module by Server/ProjectMove.mjs. A Task that walks six STAGES and reports `completed` (0..1) from its subtasks.
 import Task from "./Task.js";
 import Item from "../Item/Item.js";
 
@@ -28,9 +28,14 @@ export class Project extends Task {
 	// 0..1, computed: the mean of the subtasks' own completion (recursive); no subtasks, 0 until landed.
 	get completed(){
 		const kids = [...(this._tasks ?? [])];
-		if (!kids.length) return this.state === "complete" ? 1 : 0;
+		if (!kids.length) return super.completion;
 		return kids.reduce((sum, k) => sum + (k.completed ?? k.completion), 0) / kids.length;
 	}
+	// The name every reader of a task already uses (index rows, TaskView); the same number as `completed`.
+	get completion(){ return this.completed; }
+
+	// Replays a project.jsonl (lines already parsed) into a Project. Reading the file is Server/ProjectMove.mjs's job.
+	static from_lines(lines){ return this.replay(lines); }
 
 	get started_at(){ return this.get_one("started_at") ?? null; }
 	get completed_at(){ return this.get_one("completed_at") ?? null; }
