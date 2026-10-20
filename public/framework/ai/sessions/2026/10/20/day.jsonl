@@ -1,2 +1,3 @@
 {"log":{"at":"2026-10-20T15:03:55-05:00","task":"sessions-and-tasks","msg":"task opened — document sessions vs tasks in ai/readme.md, land slice 3 (a spawned agent's folder is session.jsonl), Servex keeps the tunnel up"}}
 {"log":{"at":"2026-10-20T16:01:18-05:00","task":"system-architect","msg":"landed — logs over messages: parent tails child's session.jsonl (live after Servex restart); messaging.md, context-loss.md, ReadmeOrphans.mjs; tab session.jsonl queued"}}
+{"log":{"at":"2026-10-20T16:36:35-05:00","task":"system-architect","msg":"landed round 2: ai index rename (AIIndex), one log tool (LogLine + log MCP tool), page streams pause on leave, Session readme, folder audit, doc-check readme gate; next: index-stream, project-move"}}
