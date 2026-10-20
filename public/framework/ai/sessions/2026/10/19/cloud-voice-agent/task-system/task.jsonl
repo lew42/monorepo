@@ -40,3 +40,21 @@
 {"commit":"92d6180639e1"}
 {"log":{"at":"2026-10-19T21:11:44-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-19T21:14:44-05:00","msg":"session resumed"}}
+{"commit":"3d56bd918f52"}
+{"action":{"at":"2026-10-19T21:18:08-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/19/cloud-voice-agent/task-system/review.md"]}}
+{"review":{"at":"2026-10-19T21:18:12-05:00","size":"light","verdict":"fix","findings":[{"n":1,"kind":"fix","text":"`requirements.md` does not exist in `task-system/` (only readme.md, report.md, task.jsonl, review/diff.patch), so \"does it do what the owner asked\" cannot be checked against a brief. The task's ask is only inferable from the new doc's two quotes (\"a session should be a session… tasks within them\"); write the brief into the folder."},{"n":2,"kind":"fix","text":"The diff adds `ai/doc/sessions-and-tasks.md` (new file) and links it from `ai/doc/readme.md` and `ai/readme.md`, but in the working tree the file is absent and `ai/doc/readme.md` has no link to it (grep count 0). The change is not landed; merge it, or the two links are dead."},{"n":3,"kind":"fix","text":"`core/Task/readme.md:87` still says `Task.test.mjs`, 28/28 in the working tree while the diff changes it to 53/53, and the diff's own status block at line 165 says 53 of 53. Landing the diff fixes it; until then the readme contradicts itself."},{"n":4,"kind":"note","text":"The diff is docs only: slices 2–6 of `sessions-and-tasks.md` are all \"⬜ open\" and the \"task-lifecycle.md\" Option A/B choice is left to the owner. That is consistent with \"plan first\", but the renaming itself (the owner's actual complaint) is not started; slice 2 is a small, safe next step."},{"n":5,"kind":"note","text":"`sessions-and-tasks.md` quotes hard counts (1,287 / 1,100 folders, 189 files, 221 `.md`) written by hand; per CLAUDE.md law 7 these should come from a script (`SessionRecord` census), or be marked as a dated snapshot, which they only partly are."},{"n":6,"kind":"note","text":"Simpler: `task-lifecycle.md` (new \"Decision to make\" section) and `sessions-and-tasks.md` (slice 6) both describe the module-placement choice; keep the detail in one and link from the other (law 6, don't repeat yourself)."},{"n":7,"kind":"note","text":"`ai/tasks/readme.md` \"Known problems\" paragraph points to `doc/readme-before-2026-10-19.md`, which exists in `ai/tasks/doc/`; the link is fine. No page changed, so no shots or width checks apply."}],"branch":"task/sessions-not-tasks","head":"3d56bd918f5291fc2037c4dfb6065a225a74b088","model":"claude-sonnet-5-5","cost":0.46417980000000003,"file":"review.md","report":null,"shots":null}}
+{"commit":"67a9c23dd4ef"}
+{"review":{"at":"2026-10-19T21:18:28-05:00","answer":{"n":1,"reply":"fixed: requirements.md added in the task folder, pointing at the plan doc"}}}
+{"review":{"at":"2026-10-19T21:18:28-05:00","answer":{"n":2,"reply":"fixed: the files live on the branch; merging it lands the links"}}}
+{"review":{"at":"2026-10-19T21:18:28-05:00","answer":{"n":3,"reply":"fixed: landing the diff fixes the 53/53 count"}}}
+{"review":{"at":"2026-10-19T21:18:28-05:00","answer":{"n":4,"reply":"noted: slice 2 (readers go through SessionRecord) is next, right after this lands"}}}
+{"review":{"at":"2026-10-19T21:18:28-05:00","answer":{"n":5,"reply":"fixed: the counts are marked a dated snapshot with the recount command"}}}
+{"review":{"at":"2026-10-19T21:18:28-05:00","answer":{"n":6,"reply":"noted: task-lifecycle.md keeps the A/B detail; slice 6 only names it"}}}
+{"review":{"at":"2026-10-19T21:18:28-05:00","answer":{"n":7,"reply":"noted: no change needed"}}}
+{"commit":"20a2a00e7892"}
+{"commit":"8e7b840ca611"}
+{"log":{"at":"2026-10-19T21:19:20-05:00","msg":"sessions-not-tasks: plan landed (ai/doc/sessions-and-tasks.md, merge 20a2a00e7). Readers already go through SessionRecord except Steps.mjs lines 139/155; slice 3 (start_file writes session.jsonl for sub-sessions) is next. Project play class spawned as task-mastermind-project-class on task/project-class."}}
+{"log":{"at":"2026-10-19T21:20:39-05:00","msg":"session resumed"}}
+{"commit":"e4cf16da5ce3"}
+{"commit":"14a937ae08ed"}
+{"log":{"at":"2026-10-19T21:26:34-05:00","msg":"session resumed"}}
