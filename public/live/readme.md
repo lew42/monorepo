@@ -15,6 +15,10 @@ Open [/live/](/live/). It shows only the current topic, your latest ask refined 
 
 `/live/` starts empty except for three cards that are **views**, so nothing on it needs an agent to rewrite it: **Now** ([`LiveNow.js`](LiveNow.js): what is in flight, the last landings and what waits, read from the session index and task logs), **Tasks** ([`LiveTasks.js`](LiveTasks.js): one line from the task system) and **Archive** (a link). The old cards are at [/live/archive/](/live/archive/) ([archive/readme.md](archive/readme.md)). The plan for every old card is in [doc/notes.md](doc/notes.md).
 
+## Sessions (2026-10-19)
+
+A session is what was on screen between two clears; [/live/sessions/](/live/sessions/) lists every one, newest first, and each opens as a page of its cards. Computed from `page.jsonl`, nothing stored twice: [doc/sessions.md](doc/sessions.md). The owner's 2026-10-19 ask (verbatim logging of voice prompts, Item persistence, Inbox fit, context cards), what exists and what is proposed: [doc/owner-2026-10-19-sessions.md](doc/owner-2026-10-19-sessions.md). Second part (evolving compaction, a live instance behind `item` vs a raw append tool, how the voice agent drives the page, the deltas it needs, a schematic of the log, buttons as phase two): [doc/owner-2026-10-19-evolving-compaction.md](doc/owner-2026-10-19-evolving-compaction.md).
+
 ## The answer goes on a card (the owner, 2026-10-16)
 
 When the owner asks a question, the voice agent puts the answer on `/live/` as a card first, says "take a look", and keeps the spoken reply to one or two sentences. A status answer ("what's running") is a card listing each agent's id, state, what it is on and its cost: shown, not spoken. The voice agent's copy of this rule is in [`RemoteMCP.js`](../../Servex/ext/remote/RemoteMCP.js) (it takes effect after a Servex restart).

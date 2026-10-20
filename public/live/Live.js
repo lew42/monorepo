@@ -12,8 +12,17 @@ View.stylesheet(import.meta, "Live.css");
  * Folds the lines the page tools write (page_add, page_set) from page.jsonl; {"content":{"clear":true}} wipes the screen. doc/presentation.md */
 class LiveLog extends JSONL {
 	static verbs = [...JSONL.verbs, "title", "content"];
+	static chrome = new Set(["archive", "sessions", "tasks", "now", "today"]);   // pointer and view cards: on screen, but never part of a session's content
 	items = new Map();
+	past = [];   // closed sessions: the cards that were on screen before each clear (doc/sessions.md)
 	seq = 0;
+
+	// A session is what was on screen between two clears: past ones (oldest first) then the current one, newest first. Computed from the log, never stored.
+	shown(){ return [...this.items.values()].filter(i => i.type !== "part-live" && !this.constructor.chrome.has(i.id)); }
+	sessions(){
+		const now = this.shown(), all = [...this.past, ...(now.length ? [now] : [])];
+		return all.map((items, i) => ({ id: `s${items[0].seq}`, items, current: !!now.length && i === all.length - 1 })).reverse();
+	}
 
 	// Every line gets its order; a line with no ts is placed at the last ts seen before it.
 	apply(entry){ this.seq++; return super.apply(entry); }
@@ -23,7 +32,7 @@ class LiveLog extends JSONL {
 	log(v){ super.log(this.stamp(v, v?.ts)); }
 	content(v){
 		const { add, remove, clear, by, ts } = v ?? {};
-		if (clear) this.items = new Map();
+		if (clear){ const done = this.shown(); if (done.length) this.past.push(done); this.items = new Map(); }
 		if (add) this.items.set(add.id ?? `i${this.seq}`, this.stamp({ ...add, by, ts }, ts ?? add.ts));
 		if (typeof remove === "string") this.items.delete(remove);
 	}
@@ -35,7 +44,7 @@ class LiveLog extends JSONL {
 			this.items.set(k, { ...item, ...(live !== undefined && { live }), ...(text !== undefined && { text }), ...(title !== undefined && { title }), ...(type !== undefined && { type }), ...(preview !== undefined && { preview }) });
 		}
 	}
-	reset(){ super.reset(); this.items = new Map(); this.seq = 0; this.last_ts = undefined; return this; }
+	reset(){ super.reset(); this.items = new Map(); this.past = []; this.seq = 0; this.last_ts = undefined; return this; }
 }
 
 /* The dev socket only opens on localhost (an RCE guard, Socket.js), so a phone on the LAN IP or the
@@ -157,10 +166,15 @@ export default class Live extends Page {
 	start(){
 		if (this.stream) return;
 		this.stream = new this.constructor.Log({ url: this.log_url });
+		this.follow(this.stream);
+	}
+
+	// Keep one log current: the socket where it opens (it resubscribes from its offset when it reconnects), else the Tail.
+	follow(log){
 		const changed = () => this.views.forEach(v => v());
 		(Socket.singleton().disabled || location.search.includes("poll"))
-			? new this.constructor.Tail(this.stream, changed).start()
-			: this.stream.live(changed).then(changed);   // the socket resubscribes from its offset when it reconnects
+			? new this.constructor.Tail(log, changed).start()
+			: log.live(changed).then(changed);
 	}
 	views = new Set();
 

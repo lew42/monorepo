@@ -44,6 +44,21 @@
 	.live-tasks-line:hover { text-decoration: underline; }
 }
 
+/* /live/sessions/: the list of sessions and one session read top to bottom */
+@layer site {
+	.live-session-row { display: flex; flex-direction: column; gap: .15rem; background: #fff; border-radius: .5rem; padding: 1rem .75rem; box-shadow: 0 1px 2px #0002; color: inherit; text-decoration: none; }
+	.live-session-row:hover .live-card-title { text-decoration: underline; }
+	.live-session-meta { font-size: .75em; opacity: .6; }
+	.live-session-peek { font-size: .8em; opacity: .75; }
+	.live-session-day { font-weight: 600; font-size: .85em; opacity: .7; margin: 1rem 0 .25rem; }
+	body:has(.live-session) { background: #eceef1; }
+	.page:has(.live-session) { background: #eceef1; }
+	.live-session { background: #eceef1; }
+	.live-session-head { display: flex; flex-direction: column; gap: .2rem; padding: .75rem .75rem 0; }
+	.live-session .live-session-cards { padding: .75rem .5rem 1rem; gap: 1rem; }
+	.live-session .live-full { border-radius: .5rem; box-shadow: 0 1px 2px #0002; }
+}
+
 @layer site {
 	.live-now-group { display: flex; flex-direction: column; gap: .15rem; }
 	.live-now-group + .live-now-group { border-top: 1px solid #0001; padding-top: .35rem; }
