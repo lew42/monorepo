@@ -16,14 +16,9 @@ A quick tunnel gets a **new random hostname every time it starts**, and nothing 
 
 The URL still changes on every real restart of the tunnel, so the connector still needs a re-paste then. The fix is a fixed hostname:
 
-## A stable hostname (investigated 2026-10-20, not built)
-Read-only check with the API token in `cloudflare.env`:
-- **A zone exists:** `lew42.com` (active). A named tunnel can hang off e.g. `servex.lew42.com`.
-- The token **can** list tunnels (`GET /accounts/<id>/cfd_tunnel` works), so `cloudflared` tunnels can be created through the API.
-- The token **cannot** read or edit DNS (`GET /zones/<id>/dns_records` returns 10000 Authentication error), so the hostname's CNAME cannot be made by code.
+## A stable hostname (named mode built 2026-10-20, blocked on the API token)
+[TunnelNamed.mjs](../../../../Server/TunnelNamed.mjs) `setup` creates the tunnel `servex`, its ingress (`servex.lew42.com` to the gateway on fixed port 8191) and the proxied CNAME, then stores the run token at `%LOCALAPPDATA%lew42servexemote.tunnel.token`. [Tunnel.mjs](../../../../Server/Tunnel.mjs) `up` then runs `cloudflared tunnel run --token` and writes `https://servex.lew42.com/mcp/remote/<token>` to `remote.url` **only when that token file exists**; without it, it is the quick tunnel above.
 
-**Named mode is built but blocked on token permissions (checked 2026-10-20, 17:xx).** [TunnelNamed.mjs](../../../../Server/TunnelNamed.mjs) `setup` creates the tunnel `servex`, its ingress (`servex.lew42.com` to the gateway on fixed port 8191) and the proxied CNAME, then stores the run token at `%LOCALAPPDATA%\lew42\servexemote.tunnel.token`. [Tunnel.mjs](../../../../Server/Tunnel.mjs) `up` uses `cloudflared tunnel run --token` and writes `https://servex.lew42.com/mcp/remote/<token>` to `remote.url` **only when that token file exists**; otherwise it is the quick tunnel, as before.
+**Blocked (checked 2026-10-20):** the token in `cloudflare.env` can only list. `POST /accounts/<id>/cfd_tunnel` and `GET /zones/<id>/dns_records` both return 10000 Authentication error. It needs exactly two permissions: **Account → Cloudflare Tunnel → Edit** and **Zone → DNS → Edit** (zone `lew42.com`). Then run `node Server/TunnelNamed.mjs setup`, `node Server/Tunnel.mjs down`, `node Server/Tunnel.mjs up`.
 
-The token in `cloudflare.env` still fails: `POST /accounts/<id>/cfd_tunnel` returns 10000 Authentication error, and `GET /zones/<id>/dns_records` too. It can only list. It needs exactly two permissions: **Account → Cloudflare Tunnel → Edit** and **Zone → DNS → Edit** (zone `lew42.com`). After adding them run `node Server/TunnelNamed.mjs setup`, then `node Server/Tunnel.mjs down` and `up`.
-
-**Adding a dashboard path later:** the gateway in `Tunnel.gateway()` passes only `/mcp/remote/...`; add the new path to its allow-check (behind Cloudflare Access), nothing in Cloudflare changes because the ingress points at the gateway.
+**Adding a dashboard path later:** `Tunnel.gateway()` passes only `/mcp/remote/...`; add the new path to its allow-check (behind Cloudflare Access). Cloudflare itself needs no change, since the ingress points at the gateway.

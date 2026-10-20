@@ -5,7 +5,7 @@ import { spawn, execFileSync } from "child_process";
 import { fileURLToPath } from "url";
 import TunnelNamed from "./TunnelNamed.mjs";
 
-/* node Server/Tunnel.mjs up|down|status — a free Cloudflare quick tunnel to Servex's /mcp/remote ONLY.
+/* node Server/Tunnel.mjs up|down|status — a Cloudflare tunnel (quick by default; named servex.lew42.com when remote.tunnel.token exists, see TunnelNamed.mjs) to Servex's /mcp/remote ONLY.
  * cloudflared forwards every path of its origin, so it points at a tiny gateway (below) that passes
  * the one path and 404s the rest. Doc: public/framework/ux/Dictate/doc/voice-bridge.md. */
 export default class Tunnel {
@@ -40,6 +40,7 @@ export default class Tunnel {
         fs.mkdirSync(Tunnel.DIR, { recursive: true });
         const gw = this.gateway();
         const named = this.named_token();   // present = permanent hostname (TunnelNamed.mjs setup); absent = quick tunnel
+        gw.on("error", e => { console.error("gateway port busy: " + e.message); process.exit(1); });
         await new Promise(r => gw.listen(named ? TunnelNamed.PORT : 0, "127.0.0.1", r));
         const port = gw.address().port;
         const args = named ? ["tunnel", "run", "--token", named] : ["tunnel", "--url", `http://127.0.0.1:${port}`];
