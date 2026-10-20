@@ -27,6 +27,8 @@ Log level — asks in order, decisions, agents spawned (by path), anecdotes. May
 16. Reports do not go in session folders; findings go into the current docs (readme = one line + link, detail in `doc/*.md`), on demand, so no agent researches twice. Masterminds must know how to create tasks; a cloud voice agent should use the same tool with its own session dir. Task-system mastermind told to apply its report to the docs, document the task tooling, verify the recent changes work, and judge `/framework/ai/tasks/` (owner expects it unlabeled and badly grouped).
 17. Folder renamed `cloud-voice-agent/` → `cloud-voice-live-page/` by the voice-logging agent (commit `02a37b41d`). ⬜ `task-system/` is still under the old name while its agent runs; move it here with `git mv` when it finishes, and remove the empty old folder.
 
+18. **`/framework/ai/tasks/` layout — "the worst page I've ever seen", asked ~a dozen times.** Redirects to `/framework/ai/?…` and filters the Inbox; site header + tabs + a huge sticky toolbar take ~80% of the viewport; "waiting on you" is a fixed-height scroll inside the page scroll; tabs stack into a tower on phone; no link to the tasks view from `/framework/ai/`. Don't touch the main template. Audit past asks so the seventh complaint is on record. Spawned `task-mastermind-tasks-layout`.
+
 ## Agents spawned
 
 - `mastermind-live-page` — Sonnet, acceptEdits (mistake: could not spawn, commit or load a page; resume did not apply bypassPermissions). Task dir: `spawned/mastermind-live-page/`. Wrote the three docs and the sessions view; voice-app did its commit.
