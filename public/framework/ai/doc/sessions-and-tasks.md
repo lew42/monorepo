@@ -45,7 +45,7 @@ The top half of this is done. `Server/SessionRecord.mjs` (2026-10-17) renamed `t
 | `TaskDirs` to `SessionDirs` (old name kept as alias) | `State`, `ai/state.json` (it folds sessions and tasks) |
 | a task that is only a line: no folder at all | module homes `<module>/tasks/` until the placement decision is made |
 
-## What breaks if done carelessly
+## What breaks if done carelessly (counts are a snapshot of 2026-10-19; `node Server/SessionRecord.mjs --plan` recounts)
 
 189 code files outside the store mention `task.jsonl`. Heaviest: `Servex/agents/page_tools.js` (16), `Agents.js` (16), `Server/review.mjs` (15), `TaskMigrate.mjs` (15), `Servex/asks/tasks.js` (12), `SessionRecord.mjs` (10). Also hooks (`append.mjs`, `jsonl-schema`, `ledger`, `naming-guard`, `prompt-relay`, `reply-relay`, `step-prompt`, `hold-guard`), four skills, and 221 `.md` files. A reader that types `"task.jsonl"` instead of asking `SessionRecord` will not see a new sub-session. So the order matters: readers first, writers last.
 
