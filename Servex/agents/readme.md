@@ -32,6 +32,8 @@ alive. `stop` ends it, and it stays listed as `stopped`.
 
 - Moved verbatim to [doc/architecture.md](./doc/architecture.md): the architecture.
 
+**Logs over messages (2026-10-20):** a spawned agent reports by logging an overview to its own `session.jsonl`, and its parent tails that log (`Agents.follow_child`, 60 s per message, ended when the child stops); chat is for a quick clarification. Every message path and what each leaves on disk: [doc/messaging.md](./doc/messaging.md).
+
 `assistant-fast` (`Assistant.js`, `assistant.md`) is the lobby: it answers words spoken with no
 card. `SERVEX_NO_ASSISTANT=1` boots without it.
 

@@ -77,13 +77,14 @@ export default class Follow {
 
 	/* ── the three verbs ──────────────────────────────────────────────── */
 
-	follow({ agent, path: rel, gather_ms = 2000 } = {}){
+	/* `of`: the agent whose log this is (a parent tailing its child, Agents.follow_child); the row ends when that agent stops. */
+	follow({ agent, path: rel, gather_ms = 2000, of } = {}){
 		if (!agent) throw new Error("follow needs an agent (or a caller Servex already knows).");
 		const why = refused(rel);
 		if (why) throw new Error(why);
 		const clean = norm(rel);
 		if (!this.subs.some(s => s.agent === agent && s.path === clean))
-			this.subs.push({ agent, path: clean, gather_ms });
+			this.subs.push({ agent, path: clean, gather_ms, ...(of ? { of } : {}) });
 		this.save();
 		this.rescope();
 		return this.list(agent);
@@ -118,8 +119,9 @@ export default class Follow {
 		clearTimeout(this.timers.get(id));
 		this.timers.delete(id);
 		this.pending.delete(id);
-		if (!this.subs.some(s => s.agent === id)) return;
-		this.subs = this.subs.filter(s => s.agent !== id);
+		// also the rows that tail this agent's own log (`of`): a stopped child's log is no longer worth watching
+		if (!this.subs.some(s => s.agent === id || s.of === id)) return;
+		this.subs = this.subs.filter(s => s.agent !== id && s.of !== id);
 		this.save();
 		this.rescope();
 	}

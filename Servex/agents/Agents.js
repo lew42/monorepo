@@ -199,6 +199,7 @@ export class Agents {
 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
 		if (spec.task === undefined && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task }; }
 		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
 		const fresh = !again && !spec.system;
 		const dir = fresh ? directory_of(spec) : null;
@@ -256,6 +257,21 @@ export class Agents {
 	}
 
 	/* "Does it already exist" at birth: writes <task dir>/past-work.md (Server/PastWork.mjs) before the first turn; returns its path, or null. Never fails a spawn. */
+	/* LOGS OVER MESSAGES (doc/messaging.md, 2026-10-20): the parent tails its child's session log, 60 s per message,
+	 * until the child stops. A real agent or a registered tab only (never the Dispatcher's stand-in). Never fails a spawn. */
+	follow_child(parent, dir, child){
+		const follow = this.servex?.follow;
+		if (!follow || process.env.SERVEX_NO_CHILD_FOLLOW) return null;
+		if (!(this.live.get(parent) instanceof this.constructor.Agent) && !this.external?.has?.(parent)) return null;
+		try {
+			const file = SessionRecord.log_file(path.resolve(dir));
+			if (!file) return null;
+			const rel = path.relative(process.cwd(), file).split(path.sep).join("/");
+			follow.follow({ agent: parent, path: rel, of: child, gather_ms: Number(process.env.SERVEX_CHILD_FOLLOW_MS) || 60000 });
+			return rel;
+		} catch (e){ this.store().append("servex", { type: "child-follow-failed", child, parent, error: String(e.message || e) }).catch(() => {}); return null; }
+	}
+
 	past_work(task, id){
 		try {
 			const r = PastWork.task(path.resolve(task.dir), { brief: task.brief, title: task.title, skip_unnamed: true });
