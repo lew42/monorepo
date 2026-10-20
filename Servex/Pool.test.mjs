@@ -63,7 +63,22 @@ assert.ok(fs.existsSync(path.join(wt("qf-3"), "mine.txt")), "unmerged work still
 const slot = { id: "qf-9", path: slash(wt("qf-3")), state: "taken", taken_by: "fx-old", held_by: "fx-old", taken_at: ago(40) };
 assert.equal(pool.held(slot, rows, []), null, "a hold whose holder has been gone 30 h is stale");
 assert.ok(pool.held({ ...slot, taken_by: "fx-new", held_by: "fx-new" }, rows, []), "a hold whose holder vanished minutes ago stays");
-assert.ok(pool.held({ ...slot, held_by: "nobody" }, rows, []), "a hold by an unknown holder stays");
+assert.equal(pool.held({ ...slot, held_by: "nobody" }, rows, []), null, "a hold by a holder the registry never heard of, 40 h old, is released");
+assert.ok(pool.held({ ...slot, held_by: "nobody", taken_by: "nobody", taken_at: ago(1) }, rows, []), "the same unknown hold, 1 h old, stays");
+
+// a dormant holder whose task landed is done at once; one whose task has not landed stays
+const tdir = path.join(root, "task-landed"); fs.mkdirSync(tdir, { recursive: true });
+fs.writeFileSync(path.join(tdir, "task.jsonl"), JSON.stringify({ assign: { title: "t" } }) + "\n" + JSON.stringify({ finish: { outcome: "landed" } }) + "\n");
+const tdir2 = path.join(root, "task-open"); fs.mkdirSync(tdir2, { recursive: true });
+fs.writeFileSync(path.join(tdir2, "task.jsonl"), JSON.stringify({ assign: { title: "t" } }) + "\n");
+const dorm = (id, task_dir) => ({ id, state: "dormant", last_at: ago(1), task_dir });
+const dslot = id => ({ id: "qf-8", path: slash(wt("qf-3")), state: "taken", taken_by: id, taken_at: ago(2) });
+assert.equal(pool.held(dslot("d1"), [dorm("d1", tdir)], []), null, "dormant 1 h, task landed: done at once");
+assert.ok(pool.held(dslot("d2"), [dorm("d2", tdir2)], []), "dormant 1 h, task not landed: kept");
+
+// the slot's own board.jsonl card writer is server noise
+assert.equal(Pool.server_log("public/framework/ai/board.jsonl"), true, "board.jsonl is clean noise");
+assert.equal(Pool.server_log("public/framework/ai/other/board.jsonl"), false, "only the one board");
 
 console.log("Pool.test: all checks passed");
 fs.rmSync(root, { recursive: true, force: true });
