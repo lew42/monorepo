@@ -9,6 +9,7 @@ import RemoteMCP from "./RemoteMCP.js";
 import MCP from "../../MCP.js";
 import { page_tools } from "../../agents/page_tools.js";
 import FileTools from "../../files.js";
+import External from "../../agents/External.js";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "remote-test-"));
 fs.mkdirSync(path.join(root, "public/framework/ai"), { recursive: true });
@@ -149,6 +150,32 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     assert.match(dflt.session, /^cloud-voice-app-[0-9]{8}$/, "default name = caller + date");
     const calls = lines.filter(l => l.tool_call).map(l => l.tool_call);
     assert.ok(calls.length >= 6 && calls.every(c => c.args_hash.length === 12), "every call logged with a hash (a call with no words line before it is the gap)");
+}
+// `updates`: a cursor per caller over the caller's inbox (External.updates); a scratch folder stands in for Servex's home
+{
+    let rows = {};
+    const ext = new External({ servex: { mcp, agents: { live: new Map() } } });
+    ext.reg = () => ({ read: () => rows, save: r => { rows = r; } });
+    ext.file = id => path.join(root, "inbox", `${id}.jsonl`); ext.cursor_file = id => path.join(root, "inbox", `${id}.cursor`);
+    fs.mkdirSync(path.join(root, "inbox"), { recursive: true });
+    ext.tool(); servex.external = ext;
+    const call = (name, args) => rpc({ id: 7, method: "tools/call", params: { name, arguments: args } }).then(r => r.json.result.content);
+    const add = n => fs.appendFileSync(ext.file("voice-app"), Array.from({ length: n }, (_, i) => JSON.stringify({ text: "m" + i })).join("\n") + "\n");
+    const up = async args => JSON.parse((await call("updates", args))[0].text);
+    assert.equal((await up({})).count, 0, "nothing new: empty");
+    assert.ok(ext.has("voice-app"), "the caller is registered so follow can address it");
+    add(3);
+    assert.equal((await call("whoami_test", {})).at(-1).text, "3 new updates for you: call updates.", "hint when behind");
+    assert.equal((await up({ peek: true })).count, 3, "peek reads");
+    assert.equal((await up({ peek: true })).count, 3, "peek does not advance");
+    const first = await up({});
+    assert.deepEqual(first.updates.map(u => u.text), ["m0", "m1", "m2"]); assert.equal(first.more, false);
+    assert.equal((await up({})).count, 0, "cursor advanced");
+    assert.equal((await call("whoami_test", {})).length, 1, "no hint when caught up");
+    add(60);
+    const page1 = await up({}); assert.equal(page1.count, 50); assert.equal(page1.more, true, "capped at 50 with more");
+    const page2 = await up({}); assert.equal(page2.count, 10); assert.equal(page2.more, false); assert.equal(page2.updates[0].text, "m50", "second page continues");
+    fs.appendFileSync(ext.file("voice-app"), '{"text":"half'); assert.equal((await up({})).count, 0, "an unfinished line waits");
 }
 srv.close();
 fs.rmSync(root, { recursive: true, force: true });
