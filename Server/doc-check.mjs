@@ -66,8 +66,11 @@ function dead_links(root, moduleAbs, md){
 }
 
 /** `[]` when `module` (a `public/...` path, forward slashes) is clean. */
-function module_issues(root, module){
+function module_issues(root, module, touched = []){
 	const issues = [];
+	// STALENESS (2026-10-20, the owner: "the fix is a gated step in landing, not another sentence"): code changed here, readme not touched
+	const mine = touched.filter(f => f.startsWith(module + "/"));
+	if (mine.some(f => /.(m?js|css)$/.test(f)) && !mine.some(f => f.toLowerCase() === module.toLowerCase() + "/readme.md")) issues.push("code changed but readme.md not touched (check it still says what is true)");
 	const abs = path.join(root, module);
 	const readme = path.join(abs, "readme.md");
 	const has_readme = fs.existsSync(readme);
@@ -86,14 +89,14 @@ function module_issues(root, module){
  *  shape a real check would give, with the failure as its own module-less line. */
 export function doc_check(dir, root = ROOT){
 	try {
-		const modules = new Set();
-		for (const f of touched_files(dir)) {
+		const modules = new Set(), files = touched_files(dir).map(f => f.replaceAll("\\", "/"));
+		for (const f of files) {
 			const rel = f.replaceAll("\\", "/");
 			if (!rel.startsWith("public/") || rel.startsWith("public/framework/ai/")) continue;
 			const m = nearest_module(root, rel);
 			if (m) modules.add(m);
 		}
-		const dirty = [...modules].sort().map(module => ({ module, issues: module_issues(root, module) })).filter(d => d.issues.length);
+		const dirty = [...modules].sort().map(module => ({ module, issues: module_issues(root, module, files) })).filter(d => d.issues.length);
 		const line = dirty.length
 			? "doc-check: " + dirty.map(d => `${d.module}: ${d.issues.join(", ")}`).join("; ")
 			: `doc-check: ${modules.size} module${modules.size === 1 ? "" : "s"} — clean`;
