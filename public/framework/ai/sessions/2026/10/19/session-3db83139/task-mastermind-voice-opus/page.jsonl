@@ -1,3 +1,5 @@
 {"inbox":{"id":"n-yhugubl8","from":"servex-task-loop","text":"task-mastermind-voice-opus has been quiet since 2026-10-19T19:35:05-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-19T19:39:54.750-05:00"}}
 {"file":"task.jsonl"}
 {"file":"inbox.jsonl"}
+{"inbox":{"id":"n-9279l8i8","from":"servex-heartbeat","text":"task-mastermind-voice-opus its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-20T00:35:40.617-05:00"}}
+{"inbox":{"id":"n-99uu46ro","from":"servex-heartbeat","text":"task-mastermind-voice-opus it did not answer the status check, but a revive is refused: a wake costs about $0.00 and it has spent $145.51 of $100.00. Servex could not fix it; please look.","at":"2026-10-20T00:41:37.756-05:00"}}

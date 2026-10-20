@@ -87,3 +87,13 @@
 {"log":{"at":"2026-10-19T21:50:29-05:00","heartbeat":"answered","msg":"Idle, no change since the last check. My `/live/sessions/` fix and docs are committed, and the voice-logging work is another agent's. I haven't checked `/live/sessions/` in a browser, because the scre"}}
 {"log":{"at":"2026-10-19T21:54:07-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-19T22:14:57-05:00","heartbeat":"refused","msg":"status check not sent to mastermind-live-page: a wake costs about $5.99 and it has spent $99.99 of $100.00"}}
+{"log":{"at":"2026-10-20T00:35:38-05:00","heartbeat":"revive-queued","msg":"mastermind-live-page its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-20T00:36:34-05:00","heartbeat":"revive","msg":"revived mastermind-live-page from session 6f5104a2-480c-4da6-9fd1-4fac41368fa7, with its unread inbox"}}
+{"log":{"at":"2026-10-20T00:36:40-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-20T00:36:40-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-20T00:36:41-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T00:37:12-05:00","heartbeat":"answered","msg":"Idle. The voice-logging work you spawned for me finished and is merged into `michael/dev`, but it takes effect only after a Servex restart (`node Servex/sustain.mjs --restart`), which you pick the tim"}}
+{"log":{"at":"2026-10-20T00:38:05-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T00:38:05-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-20T00:41:50-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T00:52:37-05:00","heartbeat":"refused","msg":"status check not sent to mastermind-live-page: a wake costs about $0.86 and it has spent $107.98 of $100.00"}}

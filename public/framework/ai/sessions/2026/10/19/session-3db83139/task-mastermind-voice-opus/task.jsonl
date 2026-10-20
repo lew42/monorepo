@@ -68,3 +68,9 @@
 {"log":{"at":"2026-10-19T22:19:07-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-19T23:39:35-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-19T23:41:08-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T00:35:38-05:00","heartbeat":"revive-queued","msg":"task-mastermind-voice-opus its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-20T00:35:40-05:00","heartbeat":"revive","msg":"revived task-mastermind-voice-opus from session 08b1772e-17bc-4bfb-b23e-f0fc81bf81ef, with its unread inbox"}}
+{"log":{"at":"2026-10-20T00:35:44-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-20T00:35:53-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T00:41:37-05:00","heartbeat":"revive-queued","msg":"task-mastermind-voice-opus it did not answer the status check; a revive is queued"}}
+{"log":{"at":"2026-10-20T00:41:37-05:00","heartbeat":"escalated","msg":"task-mastermind-voice-opus it did not answer the status check, but a revive is refused: a wake costs about $0.00 and it has spent $145.51 of $100.00"}}

@@ -29,3 +29,19 @@
 {"action":{"at":"2026-10-19T23:47:39-05:00","did":"edit","files":["Temp/probe-headers.mjs"]}}
 {"log":{"at":"2026-10-19T23:47:51-05:00","heartbeat":"answered","msg":"Let me look at how the dev server's own headless tool launches a browser, so I can probe the real DOM instead of guessing."}}
 {"log":{"at":"2026-10-19T23:48:08-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T00:28:58-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-session-detail-page"}}
+{"log":{"at":"2026-10-20T00:29:01-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-20T00:00:00-05:00","msg":"Probe (Tab=related) proved it: Related panel is BLANK (render_related returns early, snap=null), Cost panel is BLANK. Header bands measured: .page-crumbs y66, .page-column-head y99 h48, .sessions-tabs y183. Column head title shows the raw id, not the session name. Now probing models + coverage tabs for the wrapping complaint, then editing."}}
+{"log":{"at":"2026-10-20T00:29:54-05:00","heartbeat":"answered","msg":"Let me look at how the dev server's own headless tool launches a browser, so I can probe the real DOM instead of guessing."}}
+{"log":{"at":"2026-10-20T00:30:08-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T00:35:40-05:00","heartbeat":"revive-queued","msg":"task-mastermind-session-detail-page its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-20T00:37:38-05:00","heartbeat":"revive","msg":"revived task-mastermind-session-detail-page from session 48d6a1bf-c188-48f9-91e0-dc0f7731a002"}}
+{"log":{"at":"2026-10-20T00:37:45-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-20T00:40:00-05:00","msg":"Probe 2 (Tab=models): panel works but is ~1400px tall; summary/audit rows are the only 2-child flex rows. Header bands confirmed identical across tabs: .page-crumbs(y66) .page-column-head(y99 h48) .sessions-tabs(y183). Locating .page-crumbs' parent so the CSS scope is right."}}
+{"log":{"at":"2026-10-20T00:38:38-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T00:43:37-05:00","heartbeat":"revive-queued","msg":"task-mastermind-session-detail-page it did not answer the status check; a revive is queued"}}
+{"log":{"at":"2026-10-20T00:43:37-05:00","heartbeat":"revive","msg":"revived task-mastermind-session-detail-page from session 48d6a1bf-c188-48f9-91e0-dc0f7731a002"}}
+{"log":{"at":"2026-10-20T00:43:41-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-20T01:00:00-05:00","msg":"Edits applied in the worktree: render_related now takes the id, stacks rows (.sessions-related-row), and states NO_RELATED when empty; $box no longer repeats the session name (the column head carries it); Cost panel gets NO_COST instead of drawing nothing; Coverage EMPTY and the Models no-data line rewritten to say WHY they are empty. Next: sessions.css (stacked row + drop the duplicate crumb)."}}
+{"log":{"at":"2026-10-20T00:44:45-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T00:49:37-05:00","heartbeat":"escalated","msg":"task-mastermind-session-detail-page it did not answer the status check, and was already revived 2 times this hour (3 today)"}}
