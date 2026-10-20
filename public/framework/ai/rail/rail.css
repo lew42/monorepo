@@ -153,6 +153,8 @@
 	.page--ai .inbox-chrome { margin-block-start: 0.25em; }
 	.page--ai .inbox-chrome > .dash-chips { flex-direction: row; flex-wrap: nowrap; align-items: center; overflow-x: auto; scrollbar-width: none; }
 	.page--ai .dash-chip-row { display: contents; }
+	/* a soft fade at the right edge says "this scrolls" */
+	.page--ai .inbox-chrome > .dash-chips { mask-image: linear-gradient(to right, #000 calc(100% - 2em), transparent); }
 	.page--ai .dash-chips :is(.sessions-chip, .dash-chip-head, .dash-total) { flex: none; white-space: nowrap; }
 	.page--ai .dash-chip-sub { padding-inline-start: 0; }
 
