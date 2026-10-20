@@ -16,7 +16,7 @@ export default class RemoteMCP {
     static VERSION = "2025-03-26";
     // The one source of the voice-agent directives (the voice-mastermind skill must not copy them).
     static INSTRUCTIONS = [
-        "FIRST, which kind of client are you? A Servex-spawned agent has a logged session and reads CLAUDE.md. You are a remote/cloud client (the Claude app): you have no local session, so nothing records your conversation unless you do it through this server. Every tool takes owner_words: put the owner's exact words that led to the call there, verbatim, every time; the server files them in today's voice session. Call register_session once at the start (no arguments needed) to get your session id for session_summary and session_line.",
+        "If you are a cloud voice agent (no CLAUDE.md on your machine, not running in the monorepo), read `Servex/ext/remote/doc/cloud-voice-agent.md` with read_file before anything else.",
         "You are the voice agent: the Claude app model talking with the owner by voice. The mastermind behind ask_mastermind is an SDK agent on the owner's PC.",
         "Fire ask_mastermind immediately, before saying anything; then speak.",
         "Summarize its answer for the ear, do not read it back. The mastermind is verbose on purpose, to give you context; you keep replies short.",
@@ -33,7 +33,13 @@ export default class RemoteMCP {
         description: "Call any Servex tool by name, including ones added after this connector was approved: call({tool: \"shell\", args: {command: \"git status\"}}). tool \"list\" returns every tool name with its description and input schema.",
         inputSchema: { type: "object", properties: { tool: { type: "string" }, args: { type: "object" } }, required: ["tool"] },
     };
-    static OWNER_WORDS = { type: "string", description: "The owner's exact words that led to this call, verbatim, every time (the server logs them; never paraphrase)." };
+    // The ONE cloud-only voice tool (owner, 2026-10-19): the owner's verbatim prompt goes to the session log. Only this remote route lists it; local SDK agents never see it.
+    static LOG = {
+        name: "cloud_voice_log",
+        description: "Cloud voice agents only: file the owner's exact words, verbatim, in your session log. Call it first when the owner speaks, before answering. Guide: Servex/ext/remote/doc/cloud-voice-agent.md",
+        inputSchema: { type: "object", properties: { words: { type: "string", description: "The owner's exact words, verbatim; never paraphrase." } }, required: ["words"] },
+    };
+    static REGISTER_DESCRIPTION = "Cloud voice agents: call once at the start, with a short title, to get your session id (for session_summary and session_line). Guide: Servex/ext/remote/doc/cloud-voice-agent.md";
     static SESSIONS_FILE = "remote.sessions.json";
     static CALLER = "voice-app";
     static TOOL = {
@@ -107,12 +113,12 @@ export default class RemoteMCP {
                 const { tool, args } = params.arguments ?? {};
                 if (tool === "list") return ok({ content: [{ type: "text", text: JSON.stringify(this.tools().map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))) }] });
                 if (tool === RemoteMCP.TOOL.name) params = { name: tool, arguments: args };
-                else try { return ok(this.after(tool, await this.servex.mcp.call(tool, args ?? {}, { caller: RemoteMCP.CALLER }), args)); }
+                else try { return ok(this.after(tool, header_sid, await this.servex.mcp.call(tool, args ?? {}, { caller: RemoteMCP.CALLER }), args)); }
                 catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
             }
             if (params?.name !== RemoteMCP.TOOL.name){
                 // every other tool is the servex registry's own handler; the caller is this app, so writes say who made them
-                try { return ok(this.after(params?.name, await this.servex.mcp.call(params?.name, params?.arguments ?? {}, { caller: RemoteMCP.CALLER }), params?.arguments)); }
+                try { return ok(this.after(params?.name, header_sid, await this.servex.mcp.call(params?.name, params?.arguments ?? {}, { caller: RemoteMCP.CALLER }), params?.arguments)); }
                 catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
             }
             const question = String(params.arguments?.question ?? "").trim().slice(0, 4000);
@@ -130,40 +136,45 @@ export default class RemoteMCP {
 
     // the one registry (servex.mcp, read at call time so late registrations show up) with ask_mastermind on top
     tools(){
-        const all = [RemoteMCP.TOOL, RemoteMCP.CALL, ...(this.servex.mcp?.tools ?? []).filter(t => t.name !== RemoteMCP.TOOL.name && t.name !== RemoteMCP.CALL.name)];
-        return all.map(t => ({ ...t, inputSchema: { ...(t.inputSchema ?? { type: "object" }), properties: { ...(t.inputSchema?.properties ?? {}), owner_words: RemoteMCP.OWNER_WORDS } } }));
+        const own = [RemoteMCP.TOOL.name, RemoteMCP.CALL.name, RemoteMCP.LOG.name], all = [RemoteMCP.TOOL, RemoteMCP.CALL, RemoteMCP.LOG, ...(this.servex.mcp?.tools ?? []).filter(t => !own.includes(t.name))];
+        return all.map(t => t.name === "register_session" ? { ...t, description: RemoteMCP.REGISTER_DESCRIPTION, inputSchema: { type: "object", properties: { title: { type: "string", description: "A short name for this conversation, e.g. live page; the session is filed as cloud-voice-<name>." }, cost: { type: "number", description: "Your own cost so far in USD, if you know it (optional)." } } } } : t);
     }
 
-    /* Voice logging (doc/voice-logging.md): strip owner_words from the arguments, file it, log every call, and give a cloud
+    /* Voice logging (doc/voice-logging.md): file cloud_voice_log words, log every call, and give a cloud
      * caller a session to write summaries to. Returns the params to dispatch, or { done } when the call is answered here. */
     intercept(params, sid){
         const name = params?.name;
         let args = { ...(params?.arguments ?? {}) };
-        const words = [args.owner_words]; delete args.owner_words;
-        if (name === RemoteMCP.CALL.name && args.args && typeof args.args === "object"){ words.push(args.args.owner_words); args.args = { ...args.args }; delete args.args.owner_words; }
         const inner = name === RemoteMCP.CALL.name ? args.tool : name;
         const target = name === RemoteMCP.CALL.name ? (args.args ??= {}) : args;
         let v = null;
-        try { v = this.voice_session(); } catch (e) { console.error("remote-mcp: voice session:", e.message); }
-        this.record(v, inner, words.find(w => typeof w === "string" && w.trim()), { tool: inner, args: target }, sid);
+        const registering = inner === "register_session" && !target.id;   // a cloud caller names its session here; a local agent passes an id
+        if (registering && typeof target.title === "string" && target.title.trim()) (this.sessions[sid] ??= { agent: null, dir: null, started: new Date().toISOString(), last: null }).voice_name = target.title, this.save_sessions();
+        try { v = this.voice_session(sid); } catch (e) { console.error("remote-mcp: voice session:", e.message); }
+        if (v && registering && target.cost != null) this.set_cost(v, target.cost);
+        this.record(v, inner, inner === RemoteMCP.LOG.name ? target.words : null, { tool: inner, args: target }, sid);
+        if (inner === RemoteMCP.LOG.name) return { done: { content: [{ type: "text", text: JSON.stringify({ ok: !!v && !!String(target.words ?? "").trim(), session: v?.id ?? null }) }] } };
         if (v && /^(session_summary|session_line|quick_fix)$/.test(inner) && !this.servex.sessions?.map?.[target.session]) target.session = v.id;
-        if (v && inner === "register_session" && !target.id){
-            return { done: { content: [{ type: "text", text: JSON.stringify({ ok: true, session: v.id, file: v.file, note: "You are a cloud caller: use this session id for session_summary and session_line. Pass owner_words on every tool call." }) }] } };
+        if (v && registering){
+            return { done: { content: [{ type: "text", text: JSON.stringify({ ok: true, session: v.id, file: v.file, note: "You are a cloud voice agent: use this session id for session_summary and session_line. Call cloud_voice_log with the owner's exact words first on every turn. Guide: Servex/ext/remote/doc/cloud-voice-agent.md" }) }] } };
         }
         return { ...params, arguments: args };
     }
 
-    /* ONE folder per day per caller (owner, 2026-10-19): sessions/YYYY/MM/DD/cloud-voice-agent/session.jsonl, kind
-     * "cloud-voice-agent". It is a row in the Sessions store (so session_summary and session_line work), not a v-… folder. */
-    voice_session(){
+    /* One folder per cloud voice agent per day (owner, 2026-10-19): sessions/YYYY/MM/DD/cloud-voice-<name>/session.jsonl, kind
+     * "cloud-voice-agent". <name> is the register_session title, else the caller + date. It is a row in the Sessions store
+     * (so session_summary and session_line work) with a hand-set `cost`, not a v-… folder. Guide: doc/cloud-voice-agent.md */
+    voice_session(sid){
         const store = this.servex.sessions;
         if (!store?.map) return null;   // Servex without its session layer: nowhere to file it, and no third store
         const p = n => String(n).padStart(2, "0"), d = new Date();
-        const day = `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())}`, id = `cloud-voice-agent-${day.replaceAll("/", "")}`;
-        const file = `/framework/ai/sessions/${day}/cloud-voice-agent/session.jsonl`, abs = path.join(this.root, "public", file);
+        const day = `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())}`, ymd = day.replaceAll("/", "");
+        const slug = s => String(s).toLowerCase().replace(/^cloud-voice-?/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+        const name = slug(this.sessions[sid]?.voice_name ?? "") || `${slug(RemoteMCP.CALLER.replace(/^voice-/, "")) || "app"}-${ymd}`;
+        const id = `cloud-voice-${name}`, home = `/framework/ai/sessions/${day}/${id}/`, file = `${home}session.jsonl`, abs = path.join(this.root, "public", file);
         if (!store.map[id]){
             const at = Date.now();
-            store.map[id] = { id, home: `/framework/ai/sessions/${day}/cloud-voice-agent/`, file, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
+            store.map[id] = { id, home, file, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at, cost: null, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
             store.save?.();
         }
         if (!fs.existsSync(abs)){
@@ -173,27 +184,35 @@ export default class RemoteMCP {
         return { id, file };
     }
 
+    // the voice agent has no SDK accounting: it may state its own cost by hand, on the row and as a line
+    set_cost(v, usd){
+        const n = Number(usd);
+        if (!Number.isFinite(n)) return;
+        const row = this.servex.sessions?.map?.[v.id];
+        if (row){ row.cost = n; this.servex.sessions.save?.(); }
+        fs.appendFileSync(path.join(this.root, "public", v.file), JSON.stringify({ cost: { usd: n, at: new Date().toISOString() } }) + "\n");
+    }
+
     // a spawned agent is logged by code with its id and task dir (owner, 2026-10-19), read from the tool's own result
-    after(tool, result, args){
+    after(tool, sid, result, args){
         if (tool !== "spawn_agent") return result;
         try {
-            const v = this.voice_session(), text = result?.content?.[0]?.text ?? "", j = JSON.parse(text);
+            const v = this.voice_session(sid), text = result?.content?.[0]?.text ?? "", j = JSON.parse(text);
             const id = j.id ?? j.agent?.id, dir = args?.task?.dir ?? j.task_dir ?? j.task?.dir ?? j.dir;
             if (v && id) fs.appendFileSync(path.join(this.root, "public", v.file), JSON.stringify({ spawned: { at: new Date().toISOString(), agent: id, task_dir: dir ?? null, caller: RemoteMCP.CALLER } }) + "\n");
         } catch {}
         return result;
     }
 
-    // one line for the words (once per distinct text), one for the call (name + args hash): a call without words is a visible gap
+    // one line for the words (only cloud_voice_log passes any), one for every call (name + args hash): a call with no owner_words line before it is a visible gap
     record(v, tool, words, call, sid){
         if (!v) return;
         const abs = path.join(this.root, "public", v.file), at = new Date().toISOString();
         const text = words?.trim();
-        const s = this.sessions[sid] ??= { agent: null, dir: null, started: new Date().toISOString(), last: null }, fresh = text && text !== s.last_words;
         try {
-            if (fresh){ s.last_words = text; fs.appendFileSync(abs, JSON.stringify({ owner_words: { at, words: text, tool, caller: RemoteMCP.CALLER } }) + "\n"); }
+            if (text) fs.appendFileSync(abs, JSON.stringify({ owner_words: { at, words: text, caller: RemoteMCP.CALLER } }) + "\n");
             const hash = crypto.createHash("sha256").update(JSON.stringify(call.args ?? {})).digest("hex").slice(0, 12);
-            fs.appendFileSync(abs, JSON.stringify({ tool_call: { at, tool, args_hash: hash, owner_words: !!text, caller: RemoteMCP.CALLER } }) + "\n");
+            fs.appendFileSync(abs, JSON.stringify({ tool_call: { at, tool, args_hash: hash, caller: RemoteMCP.CALLER } }) + "\n");
         } catch (e) { console.error("remote-mcp: voice log write failed:", e.message); }
     }
 

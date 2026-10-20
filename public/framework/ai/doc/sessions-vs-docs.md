@@ -6,7 +6,7 @@ Two places, two jobs. Putting a thing in the wrong one is how work gets lost.
 
 `public/framework/ai/sessions/YYYY/MM/DD/<name>/`. Discussion-level detail: the owner's asks in order, decisions and why, anecdotes ("fixed X, nobody cares"), and **every agent this session spawned, referenced by its task-dir path** (its own log is the detail; the parent only records that it was created and where). Short-term. Sessions may be purged by date, so nothing that must survive lives only here.
 
-A **cloud voice agent** session (the owner in the Claude app, the agent on the Servex MCP) has no local Claude Code file, so its folder is the only record: one per day per caller, e.g. `2026/10/19/cloud-voice-agent/`. Code writes it (`Servex/ext/remote/doc/voice-logging.md`); the agent never logs prompts from memory.
+A **cloud voice agent** session (the owner in the Claude app, the agent on the Servex MCP) has no local Claude Code file, so its folder is the only record: one per agent per day, `cloud-voice-<name>`, e.g. `2026/10/19/cloud-voice-live-page/` (guide: `Servex/ext/remote/doc/cloud-voice-agent.md`). Code writes it (`Servex/ext/remote/doc/voice-logging.md`); the agent never logs prompts from memory.
 
 ## The module docs — persistent, official
 

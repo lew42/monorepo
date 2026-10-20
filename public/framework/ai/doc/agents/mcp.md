@@ -14,6 +14,8 @@ How tools from the dev server and Servex are served to AI sessions, and where co
    - **Source:** [`Servex/MCP.js`](/Servex/MCP.js)
    - **Scope:** 68 system tools covering agent lifecycle (`spawn_agent`, `fork_self`, `wait_for_agent`), the quick-fix worktree pool (`take_worktree`, `return_worktree`), module documentation bundles (`load_module`, `readme_modules`), live page manipulation (`create_page`, `page_call`), cards, and dev server lifecycle.
 
+3. **Remote MCP (`/mcp/remote`)** serves the Servex registry to the Claude app (callers such as `voice-app`; a cloud voice agent is one kind of caller, and local agents use the Servex MCP too). Guide for a cloud voice agent: [Servex/ext/remote/doc/cloud-voice-agent.md](/framework/servex/remote/doc/cloud-voice-agent.md).
+
 Both endpoints answer standard JSON-RPC 2.0 over HTTP POST on loopback (`127.0.0.1`). LAN or external requests are strictly refused.
 
 ---

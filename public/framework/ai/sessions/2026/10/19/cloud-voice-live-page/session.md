@@ -40,3 +40,5 @@ Log level — asks in order, decisions, agents spawned (by path), anecdotes. May
 - Servex `shell` returns `timed_out` on git commands that do complete (slow repo, ~60s+).
 - Minion role cannot take a worktree when the pool is empty; spawn a task-mastermind.
 - `/live/` index: Tasks card redirects to `/framework/ai/`; Now card click does nothing.
+
+16. **Folder renamed** from `cloud-voice-agent/` to `cloud-voice-live-page/` (slice 3, `git mv`). The live `task-system/` task of ask 15 still sits at `sessions/2026/10/19/cloud-voice-agent/task-system/` because an agent is writing there; move it into this folder with a script once it lands, and fix its links then. Report so far: [task-system report](/framework/ai/sessions/2026/10/19/cloud-voice-agent/task-system/report.md).
