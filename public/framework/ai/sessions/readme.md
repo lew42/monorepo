@@ -50,4 +50,4 @@ A session folder is one of three kinds:
 
 ## More
 
-[doc/ui/compact-layout.md](doc/ui/compact-layout.md) · [doc/data/data-architecture.md](doc/data/data-architecture.md) · [doc/cost/](doc/cost/spend-tree.md) · [doc/live/realtime.md](doc/live/realtime.md) · [doc/picture-archive.md](doc/picture-archive.md) · [doc/next.md](doc/next.md) · the readme as it stood before this rewrite, with its dated decisions: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
+[doc/session-readme.md](doc/session-readme.md) (a generated `readme.md` per folder, `node Server/SessionReadme.mjs <folder>`; what `requirements.md` is) · [doc/ui/compact-layout.md](doc/ui/compact-layout.md) · [doc/data/data-architecture.md](doc/data/data-architecture.md) · [doc/cost/](doc/cost/spend-tree.md) · [doc/live/realtime.md](doc/live/realtime.md) · [doc/picture-archive.md](doc/picture-archive.md) · [doc/next.md](doc/next.md) · the readme as it stood before this rewrite, with its dated decisions: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
