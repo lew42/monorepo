@@ -146,7 +146,7 @@ export default class RemoteMCP {
         let v = null;
         try { v = this.voice_session(sid); } catch (e) { console.error("remote-mcp: voice session:", e.message); }
         this.record(v, inner, words.find(w => typeof w === "string" && w.trim()), { tool: inner, args: target }, sid);
-        if (v && /^(session_summary|session_line|quick_fix|audit_session)$/.test(inner) && !this.servex.sessions?.map?.[target.session]) target.session = v.id;
+        if (v && /^(session_summary|session_line|quick_fix)$/.test(inner) && !this.servex.sessions?.map?.[target.session]) target.session = v.id;
         if (v && inner === "register_session" && !target.id){
             return { done: { content: [{ type: "text", text: JSON.stringify({ ok: true, session: v.id, file: v.file, note: "You are a cloud caller: use this session id for session_summary and session_line. Pass owner_words on every tool call." }) }] } };
         }
@@ -162,7 +162,7 @@ export default class RemoteMCP {
         let id, file;
         const p = store.prewarm; store.prewarm = false;   // a cloud caller has no drawer to warm an agent for
         try { ({ session: id, file } = store.create({ path: "/live/", fresh: true })); } finally { store.prewarm = p; }
-        const row = store.map?.[id]; if (row) row.caller = RemoteMCP.CALLER;
+        const row = store.map?.[id]; if (row){ row.caller = RemoteMCP.CALLER; store.save?.(); }
         const abs = path.join(this.root, "public", file);
         if (!fs.existsSync(abs)){
             fs.mkdirSync(path.dirname(abs), { recursive: true });
@@ -183,7 +183,7 @@ export default class RemoteMCP {
             if (fresh){ s.last_words = text; fs.appendFileSync(abs, JSON.stringify({ owner_words: { at, words: text, tool, caller: RemoteMCP.CALLER } }) + "\n"); }
             const hash = crypto.createHash("sha256").update(JSON.stringify(call.args ?? {})).digest("hex").slice(0, 12);
             fs.appendFileSync(abs, JSON.stringify({ tool_call: { at, tool, args_hash: hash, owner_words: !!text, caller: RemoteMCP.CALLER } }) + "\n");
-        } catch {}
+        } catch (e) { console.error("remote-mcp: voice log write failed:", e.message); }
     }
 
     // REMOTE_MCP_TARGET / this.target / the file remote.target still override everything: one fixed agent for every session
