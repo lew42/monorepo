@@ -4,6 +4,14 @@ The AI index is a computed list: one row that points at every task, agent, card 
 
 `class AIIndex` (`Server/AIIndex.mjs`) reads every task there is, folds each one through the one set of rules in `core/Task/Task.js`, and writes the result to `public/framework/ai/index.json`. Every surface, a page or a model, reads that file (or the `index.jsonl` stream beside the tasks dashboard) instead of working out the counts itself. The owner's ask and why it was needed: [`ai/doc/one-state.md`](../../public/framework/ai/doc/one-state.md).
 
+## The day stream (2026-10-20)
+
+`index.json` is 2.4 MB, so refetching it on every change was the slow part. Each change now also appends one line to **today's day stream**, `public/framework/ai/sessions/YYYY/MM/DD/index.jsonl`: `{"task":{"id","path","url","title","state","landed_at","line","at"}}` when a task log is created or its state, title or one-line summary changes (written by `AIIndex.refresh` through `class AIIndexStream`, `Server/AIIndexStream.mjs`), and `{"session":{"id","path","url","title","state","at"}}` when a transcript session is born or flips state or title (`AISessionIndex.stream_line`). A line points at the folder (`path`); it copies no log. The files are derived, rebuildable and gitignored.
+
+In the browser, `ai/rail/DayIndexLog.js` tails today's file (newest line per id) and `DashState.patch()` merges it into the loaded picture, so the changed row redraws at once. The whole `index.json` is refetched at most once every 5 s (`DashState.REFETCH_MS`), to pick up cards, asks and anything the day stream does not carry.
+
+Three files, three jobs, none duplicated: `sessions/YYYY/MM/DD/index.json` is the day's session snapshots (`AISessionIndex`, with the month and year rollups by `roll`), `sessions/YYYY/MM/DD/index.jsonl` is the day's change stream (above), `ai/index.json` is the whole task picture. `ai/index.json` stays a full fold of the logs rather than a fold of the streams: the logs are the truth, and the stream is a fast path in front of it (alternative: rebuild it from the streams, rejected because a stream missing one line would silently lose a task). Test: `node Server/AIIndex.test.mjs`.
+
 ## Where it reads
 
 | Store | Which files are tasks |

@@ -6,6 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import AIIndex from "./AIIndex.mjs";
+import AIIndexStream from "./AIIndexStream.mjs";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "state-test-"));
 const put = (rel, ...lines) => { const d = path.join(root, rel); fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, "task.jsonl"), lines.map(l => JSON.stringify(l)).join("\n") + "\n"); return d; };
@@ -110,6 +111,13 @@ const nd = path.join(root, S, "nested-sub"); fs.mkdirSync(nd, { recursive: true 
 fs.writeFileSync(path.join(nd, "session.jsonl"), [{ assign: { session_id: "s9", agent: "minion-n", title: "Nested session", requested_at: "2026-10-17T09:00:00-05:00" } }, { finish: { at: "2026-10-17T22:10:00-05:00", outcome: "Done." } }].map(l => JSON.stringify(l)).join("\n") + "\n");
 const nested = new AIIndex({ root, registry, now }).snapshot({ full: true }).check.landed_today;
 assert.deepEqual([nested.state - after.state, nested.walk - after.walk], [1, 1]);
+
+// The day stream: the task that landed above wrote one line on today's sessions/YYYY/MM/DD/index.jsonl, a re-read with no change writes none.
+const lines = AIIndexStream.read(inc.sess, "2026-10-17"), mine = lines.filter(l => l.task?.title === "Lands later");
+assert.equal(mine.length, 1); assert.equal(mine[0].task.state, "complete"); assert.match(mine[0].task.path, /t-later$/);
+inc.dirty.add(path.join(wd, "task.jsonl")); inc.snapshot({ full: false });
+assert.equal(AIIndexStream.read(inc.sess, "2026-10-17").length, lines.length);
+assert.ok(fs.existsSync(path.join(root, "public/framework/ai/sessions/2026/10/17/index.jsonl")));
 
 fs.rmSync(root, { recursive: true, force: true });
 console.log("AIIndex: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 2 vs 1; cards 5 = 5 = 5, asks 3 = 3 = 3, broken cards 2 vs 1)");

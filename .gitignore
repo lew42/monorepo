@@ -140,7 +140,7 @@ test-layout-out/
 
 # push-notification VAPID private key, local secret (2026-10-09)
 Server/.push-vapid.json
-# the old day-file shape (YYYY/MM/DD/index.jsonl) is superseded by the day composite index.json; stale copies stay ignored
+# the day stream (YYYY/MM/DD/index.jsonl, Server/AIIndexStream.mjs) is derived from the logs and rebuildable, so it stays ignored like index.json
 public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/index.jsonl
 # a session's card (moved here from ai/YYYY/MM/DD/session-<id8>/, which was ignored whole): live card state, not source
 public/framework/ai/sessions/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]/*/page.jsonl

@@ -12,6 +12,7 @@ import Day from "../public/framework/core/Session/Day.js";
 import Task from "../public/framework/core/Task/Task.js";
 import DashRow from "../public/framework/ai/rail/DashRow.js";
 import AskFold from "../public/framework/ai/asks/AskFold.js";
+import AIIndexStream from "./AIIndexStream.mjs";
 
 const SELF = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const slash = s => String(s).split(path.sep).join("/");
@@ -254,7 +255,14 @@ export default class AIIndex {
 	refresh(full = !this.rows || this.now - this.walked > AIIndex.REWALK){
 		if (full){ this.rows = new Map(); for (const f of this.walk()) this.rows.set(f, this.row(f)); this.walked = this.now; this.dirty.clear(); this.changed = []; return true; }
 		this.changed = [...this.dirty];
-		for (const f of this.dirty){ const r = this.kind(f) && this.row(f); if (r) this.rows.set(f, r); else this.rows.delete(f); }
+		for (const f of this.dirty){
+			const r = this.kind(f) && this.row(f), prev = this.rows.get(f);
+			if (r){
+				this.rows.set(f, r);
+				const line = !r.alias && AIIndexStream.task_line(prev, r);   // a new or changed task: one line on today's day stream (the browser patches its row from it)
+				if (line) try { AIIndexStream.append(this.sess, "task", line, new Date(this.now).toISOString()); } catch (e) { console.error("AIIndex: day stream -", e.message); }
+			} else this.rows.delete(f);
+		}
 		this.dirty.clear();
 		return false;
 	}
