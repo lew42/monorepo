@@ -139,3 +139,34 @@
 @layer util {
 	.ai2:has(.dash-chips .sessions-chip-on) :is(.browse-pins, .inbox-pinned) { display: none; }
 }
+
+/* THE AI PAGE'S COMPACT LAYOUT (the owner, 2026-10-19: "the worst page I've ever seen"; known problem, asked many times:
+   ai/doc/dashboard-layout-asks.md). Scoped to `.page--ai`, so no other page and no template changes.
+   1. The toolbar is short: the chips are ONE line that scrolls sideways, never a tower of rows.
+   2. "Waiting on you" is a normal section of the list's one scroll, not a list with its own 45vh scroll.
+   3. On a phone the whole page is one normal scroll: the toolbar scrolls away, the rows get the screen. */
+@layer theme {
+	.page--ai .browse-pinned-rows { max-block-size: none; overflow: visible; }
+
+	.page--ai .inbox-top { padding-block: 0.3em; }
+	.page--ai .ai2-usage-top { padding-block-end: 0.2em; }
+	.page--ai .inbox-chrome { margin-block-start: 0.25em; }
+	.page--ai .inbox-chrome > .dash-chips { flex-direction: row; flex-wrap: nowrap; align-items: center; overflow-x: auto; scrollbar-width: none; }
+	.page--ai .dash-chip-row { display: contents; }
+	/* a soft fade at the right edge says "this scrolls" */
+	.page--ai .inbox-chrome > .dash-chips { mask-image: linear-gradient(to right, #000 calc(100% - 2em), transparent); }
+	.page--ai .dash-chips :is(.sessions-chip, .dash-chip-head, .dash-total) { flex: none; white-space: nowrap; }
+	.page--ai .dash-chip-sub { padding-inline-start: 0; }
+
+	@media (width < 40em) {
+		.pages:has(> .page--ai:is(.active-page, .active-ancestor) > .inbox-shell) { overflow-y: auto; }
+		.page--ai.page.full:has(> .inbox-shell) { height: auto; min-height: 100%; overflow: visible; }
+		.page--ai.page.full:has(> .inbox-shell) > .inbox-shell { flex: none; height: auto; }
+		.page--ai .inbox-rail, .page--ai .inbox-stream { display: block; }
+		.page--ai .inbox-rows { overflow: visible; }
+		/* title above, tabs below on one scrolling line, never a two-row tower */
+		.page--ai .inbox-head > .tabs > .tab-bar { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-inline-end: 0; }
+		.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: none; }
+		.page--ai .inbox-head .doc-well { padding-block: 0.4em 0.1em; }
+	}
+}

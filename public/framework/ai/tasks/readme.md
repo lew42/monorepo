@@ -26,3 +26,4 @@ See it: **[/framework/ai/tasks/](/framework/ai/tasks/)**. It is no list of its o
 - [doc/architecture.md](doc/architecture.md): the classes and how they connect.
 - [doc/week-2026-10-17.md](doc/week-2026-10-17.md): the week of 10-11 to 10-17, prioritized by hand (the list itself is computed; this is the judgment).
 - [ai/doc/one-state.md](../doc/one-state.md): the one state of everything, why 10-17 showed 0 of 27 landed, and the plan.
+- **Known problem, asked 7 times:** the dashboard layout this list lives in: [../doc/dashboard-layout-asks.md](../doc/dashboard-layout-asks.md).
