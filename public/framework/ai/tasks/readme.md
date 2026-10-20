@@ -1,29 +1,42 @@
-# Tasks — what is in flight, queued and landed, live
+# Tasks — what is in flight, queued and landed, and how the board reads it
 
-See it: **[/framework/ai/tasks/](/framework/ai/tasks/)**. It is no list of its own: it opens the Inbox ([/framework/ai/](/framework/ai/)) with the **Live**, **Recent: Today** and **Kind: task** chips on (`?live&recent=today&kind=task`: in flight, plus landed today; `?landed=yesterday|week` becomes `recent=`). [/tasks/](/tasks/) is the same Inbox with `?kind=task&home` (every task a module keeps in its own `tasks/` folder). What stays here is what the Inbox has no view for: **[Lanes](/framework/ai/tasks/lanes/)** (in flight, queued and landed today as three columns) and **[Architecture](/framework/ai/tasks/architecture/)**.
+A **task** is a folder whose `task.jsonl` is a log, one fact per line; its state is never stored, it is replayed from the lines. This module is the **board**: the page `/framework/ai/tasks/` and the three classes behind it. What a task is, its two homes, who makes one: [../doc/tasks.md](../doc/tasks.md) (read that first). The state machine itself is [core/Task](/framework/core/Task/): `class Task extends Item`.
 
-- **Where the numbers come from:** `Server/TaskState.mjs` reads Servex's agent registry and every `task.jsonl`, and appends one line to `state.jsonl` when the picture changes. The page tails that file; nothing is counted by hand or by timer in the browser.
-- **Run it:** `node Server/TaskState.mjs --watch` (Servex's `TaskLoop.js` runs it; run it by hand only without Servex); `--print` shows one snapshot.
-- **One reader:** the Inbox and Lanes both read `ai/state.json` through `rail/DashState.js`; `DashChips.SAVED` holds the saved filters. Doc: [../doc/one-dashboard.md](../doc/one-dashboard.md).
+## On disk
 
-## Watch out
+```
+ai/sessions/YYYY/MM/DD/<session>/<task>/      a task made from a session  (≈1,100)  task.jsonl, requirements.md, past-work.md, report.md
+public/framework/<module>/tasks/<slug>/       a task that belongs to a module (≈500)  task.jsonl, …
+ai/state.json                                 the whole picture: every task in a bucket (generated)
+ai/tasks/state.jsonl                          one line per change of the picture (generated, gitignored; the pulse)
+ai/tasks/                                     this module: the 87 old task folders kept here, plus the files below
+```
 
-- Until 10-17 the landed group walked only today's and yesterday's date folders and read only `assign.landed_at`: a task landed today in a session started days ago, or ended with a `finish` line, was invisible (0 of 27 showed). It now walks the whole sessions store, inside the window, and counts finish/complete lines; and since the one state (`ai/doc/one-state.md`) it also reads every module `tasks/` home.
+Buckets in `state.json`: `landed`, `in_flight`, `queued`, `waiting`, `idle`, `stopped`, `stale`.
 
-- `state.jsonl` is machine state (gitignored): `DashState` tails it as its pulse and refetches `state.json` on each line, so `TaskState.mjs --watch` must keep writing it (at least one line a minute).
-- The registry has no push, so `--watch` re-checks it every 5 seconds and writes only on a change.
+## How data gets in
 
-## Known problems (2026-10-19, checked at 1200 wide)
+| What | Writer, called from |
+|---|---|
+| a task folder and its line 1 `{"assign":{session_id,agent,title,model,requested_at,…}}` | `Agents.open_task()` (`Servex/agents/Agents.js`) when `spawn_agent` runs; or `node Server/TaskDirs.mjs --new <slug>` then `append.mjs` for a VS Code tab; or the item tool `tasks.add` for a module task |
+| every later line (`log`, `decision`, `finish`, a landing `assign.landed_at`) | `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` (validated by `.claude/hooks/jsonl-schema.mjs`) |
+| `state.json` and `state.jsonl` | `Server/State.mjs`: replays every `task.jsonl` through `core/Task/Task.js`. `Server/TaskState.mjs --watch` is the thin caller that Servex's `TaskLoop.js` runs; it re-checks the agent registry every 5 s and writes only on a change. `--print` shows one snapshot. |
 
-- **The page is hard to read, yes.** It is the Inbox with `Live`, `Recent: Today` and `task` chips on at once, so it opens as a flat list of 17 rows with no headings, a status line like "TASK running starting", some titles that are a pasted prompt, and a detail pane showing the Worktree pool and Processes instead of a task. The chip names (Live, New, Recent, Older) are not defined anywhere on the page. **The one fix:** group the rows under headings by state (Running, Waiting for you, Landed today), put the module on each row, and show a task's title, not its prompt. Not built.
-- **Verified working 2026-10-19:** `state.json` fresh (rewritten within minutes), `check.ok` true, 2,124 tasks = 2,124 bucket sum, landed today 15 by both counts, and the Inbox chips show the same 2,124 and 15.
-- **Not linked:** an agent's own task gets no pointer to its module, so a fresh session in a module finds its past tasks only through [/tasks/](/tasks/). Plan and tooling: [../doc/tasks.md](../doc/tasks.md).
+## How data is read
+
+```js
+class DashState extends TaskStateLog      // ai/rail/DashState.js: tails state.jsonl; each new line refetches state.json → DashRow.rows()
+class TaskStateLog extends JSONL          // ai/tasks/TaskStateLog.js: the tail of state.jsonl, state = the last line
+class TaskLanes                           // ai/tasks/TaskLanes.js: three columns (in flight, queued, landed today) over the same DashState
+class SavedFilter extends Page            // ai/tasks/SavedFilter.js: forwards /framework/ai/tasks/ to the Inbox with the `tasks` chips on
+```
+
+`page.js` is a `SavedFilter` with `preset: "tasks"` (`DashChips.SAVED`); `lanes/` and `architecture/` are routed children; `/framework/ai/tasks/2026~10~19~…` opens an `AITask` page ([ai/AITask](/framework/ai/AITask/)). The list itself is the [Inbox](/framework/core/Page/ext/Inbox/) over `state.json`. A single task's page: `core/Task` `TaskPage` for module tasks, `AITask` for session tasks (two viewers, not merged).
+
+## Overlaps
+
+Two homes, one reader: `State.mjs` counts both. `task.jsonl` vs `session.jsonl` (the name in a session folder): [ai/sessions](/framework/ai/sessions/). `ai/handover.md` is computed from the same state; `board.jsonl` is retired.
 
 ## More
 
-- [../doc/tasks.md](../doc/tasks.md): what a task is, the two homes, who makes one, what to open.
-
-- [doc/architecture.md](doc/architecture.md): the classes and how they connect.
-- [doc/week-2026-10-17.md](doc/week-2026-10-17.md): the week of 10-11 to 10-17, prioritized by hand (the list itself is computed; this is the judgment).
-- [ai/doc/one-state.md](../doc/one-state.md): the one state of everything, why 10-17 showed 0 of 27 landed, and the plan.
-- **Known problem, asked 7 times:** the dashboard layout this list lives in: [../doc/dashboard-layout-asks.md](../doc/dashboard-layout-asks.md).
+[doc/architecture.md](doc/architecture.md) · [../doc/tasks.md](../doc/tasks.md) · [../doc/one-dashboard.md](../doc/one-dashboard.md) · [../doc/task-folders.md](../doc/task-folders.md) · [doc/week-2026-10-17.md](doc/week-2026-10-17.md) · [../doc/dashboard-layout-asks.md](../doc/dashboard-layout-asks.md) · the readme before this rewrite, with its dated problems list: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
