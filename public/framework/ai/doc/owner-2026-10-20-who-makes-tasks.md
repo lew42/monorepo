@@ -65,6 +65,20 @@ Built on the page inbox and column pages, which the owner does not understand; n
 - **The tunnel MCP** for the Claude app: the owner is "still not 100% sure this is the right way".
 - **Spawn an Opus system-architect mastermind** (not Fable; usage is near the weekly threshold, use lesser minions where possible), finished by the end of the day: read `framework/ai/readme.md`, the systems the AI uses, the Servex readme and the MCP; study the messaging between agents and the tailing of session files; favour logging the current state to the file system over agent messages, so any future agent can read it; write down the context-loss problem (a session's work survives only in files); make sure every important system is in the readmes, as an ongoing rule. *Spawned as `mastermind-system-architect`, brief in `sessions-and-tasks/system-architect/requirements.md`.*
 
+## 11. Fifth dictation (16:15): DRY, the folder audit, index not state, one log tool
+
+Words in the tab's prompt log. Essence, each handed to the system architect:
+
+- **One tool set, two mechanisms:** in-process node tools for SDK agents, the Servex MCP for a tab or a cloud agent; the same tools. Confirmed (`Servex/doc/sdk.md`, `in-process-tools`).
+- **No duplicate logs.** The raw transcript is already saved; nothing copies it. The tab-session-record task was cut to line 1 of `session.jsonl`; the architect decides what replaces prompt-relay's verbatim copy.
+- **Audit every folder in `framework/ai/`**: what is it, who writes it, where should it go; port the old `ai/2026/…` pattern into the store by script; prune by moving aside.
+- **"Index", never "state":** `ai/state.json` and `tasks/state.jsonl` are renamed and folded into one indexing system kept by code (day, month, year indexes already exist for sessions).
+- **One log tool:** agents never append JSONL by hand; a node tool stamps time, session, author.
+- **One socket** for all live tails, unsubscribed on navigation: verify.
+- **Session class:** tasks (projects or tasks), completion from tasks, never complete with a loose end; its class snapshot on its readme.
+- **Readmes go stale:** the fix is a gated step in landing, not another sentence.
+- **Replies:** shorter; a check-mark list of tasks, hierarchical, queued items included.
+
 ## 10. Fourth dictation (16:00): state.json, file names, the query system
 
 Words: the tab's prompt log (`ai/2026/10/20/session-e00f55c9/page.jsonl`). Essence and findings:
