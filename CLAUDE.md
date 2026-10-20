@@ -88,7 +88,7 @@ Level 1 is one page, mostly above the fold: what the thing is, **shown**; its ma
 
 - **First, every new session:** `public/framework/ai/handover.md` (state of the world, what is open) and `git log --oneline -20` (what landed recently). Query the logs only when you need a detail; never read them whole. (the owner, 2026-10-09)
 - `readme.md` (root) — setup, branches, deploy
-- `public/framework/readme.md` → `core/` `ext/` `styles/` `ui/` `web/` — each dir's readme is its entry
+- `public/framework/readme.md` — THE module index (every module, one line, one link). Every mastermind and voice agent reads CLAUDE.md and then this index before working; a minion with a narrow build task may skip the index.
 - `public/framework/ai/` — the task log: open a task before the first edit (`new-task`), log as you go, land it (`finish-task`)
 - `Server/` — dev server only
 - `Servex/` — the agent system: roles, sessions, spawning, the quick-fix pool, the heartbeat, merge and review. Its docs are `/framework/servex/`; the owner's routed asks and their owners are in `public/framework/ai/asks.jsonl`

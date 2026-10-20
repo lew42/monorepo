@@ -18,13 +18,10 @@ import TaskDirs from "../../Server/TaskDirs.mjs";
 import SessionRecord from "../../Server/SessionRecord.mjs";
 
 const LANDING_CHECKLIST = `
-BEFORE THIS TASK CLOSES (CLAUDE.md law 9 — document the structure as you build). Answer each in your landing message or fix it now:
-  [ ] README UPDATED: the readme of every system you touched states what it is, its exact on-disk structure, and how it works NOW (no history, no dated owner quotes; those go to doc/*.md).
-  [ ] WRITER STATED: it names which tool/script/function writes the data and where that is called from (file path).
-  [ ] READER STATED: it names which class/page reads the data.
-  [ ] LINKED: the readme is linked from its parent readme, and any new doc/*.md from the readme.
-  [ ] VERIFIED: each claim was checked against the code or live data, not remembered.
-If an agent would have to investigate to learn how your system works, the readme failed: fix it in this task.`;
+BEFORE THIS TASK CLOSES (CLAUDE.md law 9), answer both:
+  1. Did you update the readme of the module you worked in?
+  2. If the parent readme references this module, did you update that line?
+(A readme states what the thing is, its on-disk structure, which tool writes it and which class reads it: no history.)`;
 const pad = n => String(n).padStart(2, "0");
 function nowLocal(){
 	const d = new Date(), off = -d.getTimezoneOffset(), a = Math.abs(off);

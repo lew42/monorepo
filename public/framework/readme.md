@@ -23,6 +23,17 @@
 - [old](./old/) — the home page as it stood before the 2026-10-02 sprawl rebuild, kept reachable
 - [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes (docs only)
 
+## The systems (one line each; each links its own readme)
+- [core/Task](./core/Task/) — `class Task extends Item`: one task's state machine, plus the task pages
+- [core/Page/ext/Inbox](./core/Page/ext/Inbox/) — `class Inbox`: one ranked rail of notes, questions and tasks, read from `page.jsonl` and the AI files
+- [core/Page](./core/Page/) — the page system: a folder with `page.js` and/or `page.jsonl`, written by the page tools
+- [ai/tasks](./ai/tasks/) — the task log and board: where tasks live on disk, how `Server/State.mjs` folds them into `ai/state.json`
+- [ai/sessions](./ai/sessions/) — one folder per Claude session, by date, and the grid that lists them
+- [ai/AITask](./ai/AITask/) — the task viewer classes on the AI pages
+- [servex](./servex/) — the always-on process that runs agents: spawning, roles, dispatch (code in `Servex/`)
+- [Servex MCP](./ai/doc/agents/mcp.md) — the local `servex` MCP at `/mcp` and the remote door at `/mcp/remote` (`Servex/MCP.js`, `Servex/ext/remote/RemoteMCP.js`)
+- [Cloud voice agent](/Servex/ext/remote/doc/cloud-voice-agent.md) — the voice app's call into Servex: `ask_mastermind`, `/live/`, its session record
+
 ## Use
 ```js /path/page.js
 import { p } from "/app.js";
