@@ -5,3 +5,8 @@
 {"action":{"at":"2026-10-20T18:52:35-05:00","did":"edit","files":["public/framework/core/Item/doc/store-index-query-plan.md"]}}
 {"action":{"at":"2026-10-20T18:52:44-05:00","did":"edit","files":["public/framework/core/Item/doc/next.md"]}}
 {"action":{"at":"2026-10-20T18:52:45-05:00","did":"edit","files":["public/framework/core/Item/readme.md"]}}
+{"commit":"7ee31b90f191"}
+{"log":{"at":"2026-10-20T18:52:56-05:00","msg":"skill: finish-task"}}
+{"assign":{"title":"core/Item: the store, dated index and query plan","landed_at":"2026-10-20T18:53:14-05:00","outcome":"**The plan is written: [store-index-query-plan.md](/framework/core/Item/doc/store-index-query-plan.md).** Not built yet.\n\n- [x] inventory: every writer and reader, file:line (section 1)\n- [x] class architecture: `Dated` + `DatedFiles` on `Item.Store`, with alternatives (section 2)\n- [x] where it lives: decision `d-dated-home`, core/Item + Server, ranked\n- [x] checked against your words, one row per ask (section 3)\n- [x] six slices, each a Sonnet task with its proof (section 4)\n- [x] one doc home: core/Page/doc/jsonl.md (section 5)\n\nLeft: parent-vs-child subscribe (you ranked it low), noted in next.md.","links":[{"url":"/framework/core/Item/doc/store-index-query-plan.md","label":"the plan"},{"url":"/framework/core/Item/","label":"core/Item"}],"window":{"after":0.26},"tokens":null}}
+{"complete":{},"by":"mastermind-store-index-query","ts":"2026-10-20T23:53:18.307Z"}
+{"sessions":[{"id":"mastermind-store-index-query","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/"}],"by":"mastermind-store-index-query","ts":"2026-10-20T23:53:18.311Z"}
