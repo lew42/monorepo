@@ -16,7 +16,7 @@ The AI system: Servex runs the agents, the readme chain is their memory, each ta
 
 Accounting first. Each link is that system's own short readme; follow it to go one level deeper.
 
-- **Tasks** (a saved filter of the Inbox, plus the Lanes view): [tasks/readme.md](tasks/readme.md) · [/framework/ai/tasks/](/framework/ai/tasks/)
+- **Tasks** (a task is a folder with a `task.jsonl` log, in the session store or a module's `tasks/`; who makes one, how to see them): [doc/tasks.md](doc/tasks.md) · [tasks/readme.md](tasks/readme.md) · [/framework/ai/tasks/](/framework/ai/tasks/)
 - **Accounting**: [token accounting](doc/tokens/tokens.md) · [spend per session](sessions/readme.md) · [budgets](/framework/servex/doc/budget.md) · agent logs: `%LOCALAPPDATA%/lew42/servex/logs/agent-<id>.jsonl`, one per Servex agent, with a `turn_cost` line per turn since 2026-10-13 ([what is in them](sessions/2026/10/16/voice-20261016/accounting/answers.md))
 - **Cloudflare** (what we would use, what it costs, the token you give us, the runaway guard): [doc/cloudflare.md](doc/cloudflare.md)
 - **Skills proposals** (what to add or retire, 2026-10-13): [doc/skills-proposals-2026-10-13.md](doc/skills-proposals-2026-10-13.md)

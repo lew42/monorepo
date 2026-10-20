@@ -13,7 +13,15 @@ See it: **[/framework/ai/tasks/](/framework/ai/tasks/)**. It is no list of its o
 - `state.jsonl` is machine state (gitignored): `DashState` tails it as its pulse and refetches `state.json` on each line, so `TaskState.mjs --watch` must keep writing it (at least one line a minute).
 - The registry has no push, so `--watch` re-checks it every 5 seconds and writes only on a change.
 
+## Known problems (2026-10-19, checked at 1200 wide)
+
+- **The page is hard to read, yes.** It is the Inbox with `Live`, `Recent: Today` and `task` chips on at once, so it opens as a flat list of 17 rows with no headings, a status line like "TASK running starting", some titles that are a pasted prompt, and a detail pane showing the Worktree pool and Processes instead of a task. The chip names (Live, New, Recent, Older) are not defined anywhere on the page. **The one fix:** group the rows under headings by state (Running, Waiting for you, Landed today), put the module on each row, and show a task's title, not its prompt. Not built.
+- **Verified working 2026-10-19:** `state.json` fresh (rewritten within minutes), `check.ok` true, 2,124 tasks = 2,124 bucket sum, landed today 15 by both counts, and the Inbox chips show the same 2,124 and 15.
+- **Not linked:** an agent's own task gets no pointer to its module, so a fresh session in a module finds its past tasks only through [/tasks/](/tasks/). Plan and tooling: [../doc/tasks.md](../doc/tasks.md).
+
 ## More
+
+- [../doc/tasks.md](../doc/tasks.md): what a task is, the two homes, who makes one, what to open.
 
 - [doc/architecture.md](doc/architecture.md): the classes and how they connect.
 - [doc/week-2026-10-17.md](doc/week-2026-10-17.md): the week of 10-11 to 10-17, prioritized by hand (the list itself is computed; this is the judgment).

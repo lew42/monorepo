@@ -10,7 +10,7 @@ Anything that changes the repo is a **task**: a folder inside your session's fol
 
 **Where a new file goes** (the owner, 2026-10-13: "creating a new file, what its name is and what goes in it" are the most important questions): a file about a module lives in that module's folder; a record lives in the store at its date path (`ai/sessions/YYYY/MM/DD/…`, made by `TaskDirs`); nothing else is created under `ai/`. A path the old way (`ai/<YYYY-MM-DD>/`) is refused by `append.mjs`.
 
-If your brief names a task dir, Servex already opened it: log there and skip step 1.
+If your brief names a task dir, Servex already opened it: log there and skip step 1. Which tool makes a task for whom (SDK agent, VS Code tab, cloud voice agent with `--parent <its session dir>`): [ai/doc/tasks.md](/framework/ai/doc/tasks.md).
 
 ## 1. Create the dir
 

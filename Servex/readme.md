@@ -56,6 +56,7 @@ twice over. These tools start processes; nothing here is for a network.
 
 - **Class plan for the two cores** — `Agents.js` and `directory.js` as classes, a plan awaiting the owner: [agents/doc/class-plan.md](agents/doc/class-plan.md)
 - **The quick-fix pool** — `node Servex/pool-status.mjs` shows every slot, its holder and why reclaim frees or keeps it: [doc/pool.md](doc/pool.md#when-a-slot-is-freed-2026-10-17).
+- **Tasks** — every spawn gets its task folder opened (`open_task`); which tool makes a task for whom, and a cloud voice agent's session dir: [ai/doc/tasks.md](/framework/ai/doc/tasks.md#3-who-makes-a-task-the-tooling)
 - **The Step runner** — a task's steps carry estimates; node prompts each next step and nudges once at 2x: [doc/steps.md](doc/steps.md).
 - **Landing check** — a landing line is flagged when the branch's files are not on michael/dev, by content: [doc/landing.md](doc/landing.md).
 - **The six parts** — moved to [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md#the-six-parts), verbatim.
