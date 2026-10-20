@@ -30,3 +30,5 @@
 {"commit":"c86c1f32b93e"}
 {"commit":"59622653c0ae"}
 {"log":{"at":"2026-10-20T16:04:12-05:00","msg":"to vscode-mastermind-e00f55c9: done. TaskLoop.watch_state() respawns the TaskState watcher when it exits, at most once a minute (merged, Merge branch worktree/sa-taskstate-respawn; fake-watcher test: exit logged, respawn set, stop ends it). The pattern is written in ai/doc/context-loss.md ('Computed state needs a live computer'). Left: a hung-but-alive watcher; a tick checking state.json's age would catch it. Live after the next Servex restart; your hand-started watcher stops when Servex's new child takes the lock."}}
+{"action":{"at":"2026-10-20T16:22:58-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/census.mjs"]}}
+{"action":{"at":"2026-10-20T16:25:29-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/move-old-sessions.mjs"]}}

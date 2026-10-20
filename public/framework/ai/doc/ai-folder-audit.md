@@ -60,7 +60,7 @@ Census by script: [census.json](/framework/ai/sessions/2026/10/20/session-e00f55
 | `CLAUDE.copy.md` | A copy of CLAUDE.md | copied by hand (10-09) | nothing in code | keep (watch: a duplicate of the root CLAUDE.md) |
 | `antigravity-usage.json`, `.jsonl` | Antigravity usage: writer only, last 10-06 | `Server/AntigravityUsage.mjs` | none | aside (moved) |
 | `heartbeat.jsonl` | Heartbeat log, last 10-06, no code names it | none since 10-06 | none | aside (moved) |
-| `handoff2.md`, `handoff2-owner-words.md` | The 09-28 handoff, retired (its own readme says so) | none since 09-28 | the old readme links only | aside (moved) |
+| `handoff2.md`, `handoff2-owner-words.md` | The 09-28 handoff, retired (its own readme says so) | none since 09-28 | the old readme links only | keep (ai/readme.md and Servex/cards/readme.md link it; moved back by the architect) |
 | `cand.txt` | Empty candidate list, 09-28 | none | none | aside (moved) |
 
 ## Counts
