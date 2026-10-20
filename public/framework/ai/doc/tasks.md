@@ -39,3 +39,31 @@ A **task** is a folder with one file, `task.jsonl`: a log where each line is one
 ## 6. Checked 2026-10-19
 
 `state.json` was rewritten within minutes of the check; `check.ok` true; tasks 2,124 = sum 2,124 over 2,335 log files (211 aliases); landed today 15 by both counts. The Inbox shows `task 2124` and `Today 15`, the same numbers.
+
+## 7. From a prompt to a landed change, today (one screen)
+
+1. **A prompt arrives** (dictation, a voice agent, a VS Code tab). The master mastermind routes it: a line in `ai/asks.jsonl`, an Inbox card (`create_card`), its essence into the module's `inbox.jsonl` ([Servex/doc/module-inbox.md](/Servex/doc/module-inbox.md)).
+2. **Work is handed to one task mastermind.** `spawn_agent` with `task: {dir, brief}` ([sdk.md](/Servex/doc/sdk.md)); `open_task` writes line 1 of `task.jsonl` and `PastWork` writes `past-work.md` beside the brief (`requirements.md`, the owner's words) before the first turn.
+3. **It works** (skill `sub-mastermind`): a worktree for anything risky, minions only for parallel work, steps from `Server/Steps.mjs` (a node-driven checklist: smoke, commit and merge, `finish-task`; [steps.md](/Servex/doc/steps.md)); `TaskLoop` nudges a quiet agent ([task-loop.md](/Servex/doc/task-loop.md)); a fresh reviewer reads the result (`Server/review.mjs`).
+4. **It lands:** `Server/merge.mjs` smoke-tests and merges, `finish-task` appends a `finish`/`complete` line, `on-landing.mjs` stops what the task started ([lifecycle.md](/Servex/doc/lifecycle.md)).
+5. **It shows:** `State` folds the log into `state.json`; the Inbox lists it. No agent writes the counts.
+
+What is missing is the steps before "work": requirements, investigation, plan and approval are today only habits of the skill, not recorded states. Proposal: [task-lifecycle.md](task-lifecycle.md).
+
+## 8. Audit: is each task reachable from its session and each session from its tasks? (2026-10-19)
+
+Counted by script over `public/framework/` and `state.json` (2,125 tasks: 1,586 in session folders, 539 in module homes).
+
+| Link | Result | How it is reachable |
+|---|---|---|
+| session to its tasks | yes, by position only | a task is a folder inside its session folder; nothing in `session.jsonl` names it; the day `index.json` has `links.task: null` for all 87 of 10-19's sessions |
+| task to its session | 1,498 of 1,586 session tasks, 478 of 539 module tasks | `assign.session_id` on line 1 (or the parent folder); 59 old task folders sit under a day with no session folder at all |
+| task to its module | **0 of 1,586 session tasks** | only module-home tasks carry `module`, so "every task about this module" cannot be asked of a session task |
+| module to its tasks | yes for module homes | `<module>/tasks/` plus the `public/tasks/task.jsonl` index; session tasks never appear there |
+| session to module | no | nothing |
+
+**Where data is duplicated (the hard rule says it must not be):**
+- **The 211 migrated tasks:** the module home and the old session folder both hold the full log (112 old copies still have more than three lines); `State` counts them once through the `home` line, but two files hold one task.
+- **`public/tasks/task.jsonl` (86 lines) and each `tasks/task.jsonl`:** an index of homes, rebuilt by `Server/TaskHomes.mjs`; a second list of what the folders already say.
+- **`state.json`, the day `index.json`, `files.jsonl`:** derived and rebuilt by code (`state.json` and `index.json` are gitignored), so they are caches, not duplicates; fine as long as nothing reads them as the source.
+- **The `sessions` field in a module home and the reverse `home` line:** one fact written in two logs, kept in sync only by the one migration script.
