@@ -1,0 +1,32 @@
+{"assign":{"session_id":"b7977a9f-0af3-48fd-b86f-e63e70a90d36","agent":"task-mastermind-tasks-layout","title":"Fix the /framework/ai/ dashboard layout: compact header, no giant sticky toolbar, no scroll-in-scroll, link to the tasks view","model":"claude-sonnet-5-5","home":"/framework/ai/","requested_at":"2026-10-19T20:16:48-05:00","now":"starting"}}
+{"commit":"632262f3dfe3"}
+{"commit":"3f6d8ed7d55b"}
+{"commit":"00ecd1dbd19b"}
+{"shots":{"at":"2026-10-19T20:21:24-05:00","pages":["/framework/ai/tasks/"],"dir":"shots/","sheet":"shots/127-0-0-1-50353-framework-ai-tasks/sheet.png","sheets":["shots/127-0-0-1-50353-framework-ai-tasks/sheet.png"],"bands":["shots/127-0-0-1-50353-framework-ai-tasks/layout.json"],"widths":[400,1200,1920,3440]}}
+{"review":{"at":"2026-10-19T20:22:20-05:00","size":"light","verdict":"fix","findings":[{"n":1,"kind":"fix","text":"The shot of /framework/ai/tasks/ at 400 shows the INBOX tab highlighted and an empty grey body (empty 0.776, items 14) — shots/127-0-0-1-50353-framework-ai-tasks/400.png. The new Tasks tab is visible, but the page it was shot on does not show the tasks view, so the \"link to the tasks view\" ask is not proven."},{"n":2,"kind":"note","text":"requirements.md is missing from the task folder; the asks were taken from task.jsonl's title (compact header, no giant sticky toolbar, no scroll-in-scroll, link to the tasks view) and the diff's doc."},{"n":3,"kind":"note","text":"At 400 the chip row is clipped at the right edge (\"Today 0\" then a cut chip) and scrolls sideways with the scrollbar hidden — nothing says it scrolls; the bottom half of the screen is empty (400.png, below the \"views / lanes\" band)."},{"n":4,"kind":"note","text":"The rest of the AI page is not tested in the shots: only the tasks URL was shot, and the 1200/1920/3440 shots are dominated by the live/dashboard view (ai2-full share 1.41–1.51 at 1200/1920, i.e. a page taller than the screen); the inbox toolbar and the \"waiting on you\" section the diff changes are not clearly visible there."},{"n":5,"kind":"note","text":"Widths given: all four (400, 1200, 1920, 3440); the 1200–3440 wrap list names only buttons (mode-btn 1.7–1.8 lines, chatbox-compose-more 2.4 lines) that this diff did not touch."}],"branch":"worktree/tasks-layout","head":"00ecd1dbd19b4e628966bdca23bd56743cf10301","model":"claude-sonnet-5-5","cost":0.42073040000000006,"file":"review/report.md","report":"review/report.md","shots":"shots/"}}
+{"commit":"bb3fb57084bf"}
+{"review":{"at":"2026-10-19T20:22:37-05:00","answer":{"n":1,"reply":"declined: the worktree has no live task data, so its inbox is empty; the Tasks tab is visible in every shot and /tasks/ redirects to the Tasks chips on main (before shots in the task folder)."}}}
+{"review":{"at":"2026-10-19T20:22:37-05:00","answer":{"n":2,"reply":"noted: the brief was the owner's dictation in the spawn prompt."}}}
+{"review":{"at":"2026-10-19T20:22:37-05:00","answer":{"n":3,"reply":"fixed: a soft right-edge fade on the chip row now hints it scrolls (commit fix: ai: fade hints the chip row scrolls)."}}}
+{"review":{"at":"2026-10-19T20:22:37-05:00","answer":{"n":4,"reply":"noted: /framework/ai/ was shot at all four widths in layout-check (after-4widths.png), toolbar and Waiting on you visible."}}}
+{"review":{"at":"2026-10-19T20:22:37-05:00","answer":{"n":5,"reply":"noted: those wrap items are untouched by this diff."}}}
+{"action":{"at":"2026-10-19T20:23:16-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/tasks-layout/review/reply.md"]}}
+{"commit":"06eafdaea3af"}
+{"commit":"67faf0170c1e"}
+{"commit":"68a7508723a3"}
+{"commit":"4d91fc068c4c"}
+{"commit":"b60d3346df22"}
+{"commit":"a252ba970a6e"}
+{"log":{"at":"2026-10-19T20:27:00-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T20:31:38-05:00","msg":"session resumed"}}
+{"assign":{"landed_at":"2026-10-19T20:32:14-05:00","title":"AI page layout: compact toolbar, no scroll-in-scroll, Tasks tab","outcome":"Merged to michael/dev. Chips are one sideways-scrolling line; Waiting on you is a plain section (45vh box off, AI page only); phone is one page scroll with one-line tabs; Tasks tab added. 7 past asks recorded in ai/doc/dashboard-layout-asks.md and linked from ai/readme.md and ai/tasks/readme.md. Before/after shots in the task folder. Review: 5 findings, answered (1 declined, 1 fixed, 3 noted).","links":["/framework/ai/doc/dashboard-layout-asks.md","/framework/ai/sessions/2026/10/19/cloud-voice-live-page/tasks-layout/"]}}
+{"log":{"at":"2026-10-19T20:32:18-05:00","msg":"text-check: past-work.md: 805 words of prose (500 at most)"}}
+{"log":{"at":"2026-10-19T20:32:18-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-20T01:32:18.942Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-19T20:32:19-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-19T20:32:22-05:00","msg":"worktree-down: tasks-layout - worktree-down: server stopped. The worktree and its branch (worktree/tasks-layout) are left on disk at C:\\Code\\lew42\\worktrees\\tasks-layout — remove them yourself once you've dealt with those changes (`git -C C:\\Code\\lew42\\monorepo worktree remove C:\\Code\\lew42\\worktrees\\tasks-layout` once it's clean)."}}
+{"log":{"at":"2026-10-19T20:32:26-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-19T20:32:26-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-19T20:32:55-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-19T20:36:07-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-19T20:41:06-05:00","msg":"session resumed"}}
