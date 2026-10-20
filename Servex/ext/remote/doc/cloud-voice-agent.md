@@ -51,4 +51,14 @@ Open a task for each ask you hand off, and mention its dir in the session log (`
 - **Claude Code Remote Control is interactive-only (tested 2026-10-20).** A headless session with `remoteControlAtStartup: true` ran its turn and ignored the setting: no bridge and no error. So Servex's SDK agents can't appear in the owner's connected sessions list. Next step for an always-on mastermind reachable from the phone: Servex keeps an interactive `claude --remote-control` process up and renews it daily, in place of an SDK agent. Resuming an existing session with `claude --resume <id> --remote-control` is untested. The experiment line is in the [voice mastermind's log](/framework/ai/sessions/2026/10/20/voice-20261020/).
 - **Reading only what's new:** today, `follow({path, agent: "<your id>"})` sends a log's new lines to your inbox (`logs/inbox/<your id>.jsonl`), and you read that inbox with `read_file`. An `updates` tool that returns only lines you haven't seen is being built (`mastermind-updates-tool`, 2026-10-20).
 
+## Options: reaching a mastermind from the phone (decided 2026-10-20)
+
+Decision: **keep A, park B and C, build on D.** The record is `d-how-does-the-owner-reach` in the [voice mastermind's log](/framework/ai/sessions/2026/10/20/voice-20261020/).
+
+- **A. VS Code sidebar session with Remote Control.** It connects directly to Claude Code on the PC with full control, and it's the most reliable route. Keep it working. It has no Servex interrupt, queue or accounting.
+- **B. A headless SDK mastermind with Remote Control.** Parked: Remote Control needs an interactive session (tested, see Caveats).
+- **C. An interactive `claude --remote-control` process that Servex keeps up in a pseudo-terminal.** Parked: it's possible, but it's a second system, and every bug would be solved twice.
+- **D. You, the cloud voice agent, plus this remote MCP door.** It exists, so build on it: the `updates` tool (landed), an ask_mastermind that doesn't block (queued), and transcription.
+- **Watch out:** ask_mastermind can spawn masterminds that collide on the same files. Agents reading each other's logs (the across-platforms rule in [messaging.md](../../../agents/doc/messaging.md)) caught a double fix today.
+
 More: [voice-logging.md](voice-logging.md) (how the logging works), [remote-tools.md](remote-tools.md) (the tools you have).
