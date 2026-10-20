@@ -31,6 +31,6 @@ Alternatives considered: (A) the same follow without the 60-second window or the
 ## Next (not built)
 
 - The wake's body becomes the child's new log lines instead of its last chat words, so even the "done" is read from the file.
-- `Follow` could skip the hook-written noise lines (`log: "skill: …"`) so they never wake a parent.
+- Done 2026-10-20: a child tail (`of` row) drops heartbeat lines and bare `{"commit":sha}` lines (`Follow.NOISE`), so they never wake a parent. Agents write their lines with the `log` tool ([Server/doc/log-line.md](../../../Server/doc/log-line.md)), which stamps `by` and `session` for them.
 
 Related: [follow.md](../../doc/follow.md) (the follow tool) · [module-inbox.md](../../doc/module-inbox.md) · [inbox.md](../../doc/inbox.md) (page inbox) · [external.md](external.md) (VS Code tabs) · [context-loss.md](/framework/ai/doc/context-loss.md) (why only files survive).
