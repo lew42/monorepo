@@ -1,5 +1,7 @@
 # Task lifecycle: one design for prompt to landed change (proposal, 2026-10-19)
 
+**See also:** the seven-step shape of a bigger task (requirements and plan, a minion builds, a fresh reviewer, merge, land) is in the [mastermind skill](/.claude/skills/mastermind/SKILL.md), "The shape of a bigger task". The naming decision that supersedes parts of this page is [sessions-and-tasks.md](sessions-and-tasks.md).
+
 **Goal (the owner):** prompts become outcomes through tasks; tasks live in the session and, as they solidify, are findable from the module; subtasks and projects come from requirements, then investigation, planning, approval, then the start (worktree, mastermind); nothing duplicated and kept in sync, nothing lost, everything visible. What exists today and where it leaks: [tasks.md](tasks.md) sections 7 and 8. Nothing here is built.
 
 ## The design: the session folder is the log, the module is a query
