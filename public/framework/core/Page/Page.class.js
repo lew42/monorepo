@@ -156,6 +156,7 @@ export class Page extends Item {
 		const old = this.view?.el;
 		if (!old) return this;
 
+		this.emit("left");
 		this.deactivated?.();
 		const was_default = old.classList.contains("default");
 		Page.views.delete(old);
@@ -164,6 +165,7 @@ export class Page extends Item {
 		this.render();
 		if (was_default) this.view.ac("default");
 		old.replaceWith(this.view.el);
+		globalThis.$page = this;
 		this.activated?.();
 
 		const router = this.app?.router, open = router?.chain?.() ?? [];
@@ -532,6 +534,8 @@ export class Page extends Item {
 	mounts_in(view, claim){ return view; }
 
 	activate(){
+		// The page streams started during render/activated belong to (ext/JSONL/live.js drops them on "left").
+		globalThis.$page = this;
 		const container = this.container();
 
 		if (this.render().el.parentNode !== container.el)
@@ -559,6 +563,7 @@ export class Page extends Item {
 	}
 
 	deactivate(){
+		this.emit("left");
 		this.deactivated?.();
 
 		// ⚠ Going UP the chain activates nothing, so the columns host is told here. (doc/decisions.md)

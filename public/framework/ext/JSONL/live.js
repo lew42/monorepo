@@ -69,6 +69,19 @@ Socket.prototype.open = function(){
 	streams.forEach(set => set.forEach(s => { if (!s.first) subscribe(s); }));
 };
 
+/* A stream started while a page is the active one (core/Page sets `$page` in activate())
+   is dropped when the Router deactivates that page ("left"), so leaving a page stops its
+   streams with no call from the page. One without a page (dev bar, drawer) stays until
+   unsubscribe(). Coming back re-runs the page's render/activated, which calls live() again. */
+const owned = new WeakSet();
+function adopt(jsonl){
+	const page = globalThis.$page;
+	if (!page?.on || owned.has(jsonl)) return;
+	owned.add(jsonl);
+	const leave = () => { page.off("left", leave); owned.delete(jsonl); drop(jsonl); };
+	page.on("left", leave);
+}
+
 /**
  * `JSONL.live()`'s engine — subscribe, replay each streamed batch through the
  * instance's own `read()`, resolve once the server has answered. Off localhost
@@ -79,6 +92,7 @@ export function stream(jsonl, changed){
 
 	return new Promise(resolve => {
 		const s = { jsonl, changed, first: () => resolve(jsonl) };
+		adopt(jsonl);
 		const k = key(jsonl.url);
 
 		s.timer = setTimeout(() => {
