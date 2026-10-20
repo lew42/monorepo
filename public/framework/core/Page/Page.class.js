@@ -166,6 +166,7 @@ export class Page extends Item {
 		if (was_default) this.view.ac("default");
 		old.replaceWith(this.view.el);
 		globalThis.$page = this;
+		this.emit("entered");
 		this.activated?.();
 
 		const router = this.app?.router, open = router?.chain?.() ?? [];
@@ -545,6 +546,7 @@ export class Page extends Item {
 		if (this.related && !this.related_drawn)
 			this.view.append(() => { this.related_aside(); });
 
+		this.emit("entered");
 		this.activated?.();
 		this.column_host()?.reveal_column(this);
 		this.warn_if_hidden();

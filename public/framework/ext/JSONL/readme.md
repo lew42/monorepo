@@ -18,6 +18,7 @@ Append with the validated route only: `node .claude/hooks/append.mjs <task.jsonl
 
 ## Watch out
 
+- One socket, paused on navigation: a stream started while a page is active pauses when the Router leaves that page and resumes from its offset on return; no `unsubscribe()` call needed. Streams started with no page (dev bar, drawer) never pause. [doc/live.md](./doc/live.md)
 - A record file is append only: never read-modify-write it, and never run a plain merge, pull, rebase or reset in the main tree (a merge parked other agents' appended lines in a hidden commit on 2026-10-13). [ai/sessions/doc/commit-rule.md](../../ai/sessions/doc/commit-rule.md)
 - `load()`/`live()` never throw or reject — a missing file (the SPA fallback answers 200 html) just leaves `.loaded` unset; check it before rendering. [doc/decisions.md](./doc/decisions.md)
 - A line that isn't JSON is dropped, counted in `unparsed`, warned once — a BOM, or a backslash before a backtick, costs that line silently (a landed task read as running for a day). [doc/decisions.md](./doc/decisions.md)

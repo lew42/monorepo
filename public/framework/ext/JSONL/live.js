@@ -55,7 +55,7 @@ Socket.prototype.jsonl_reset = function(path){
 		s.jsonl.reset();
 		s.jsonl.offset = 0;
 		if (s.first) settle(s);
-		else if (streamed) subscribe(s);
+		else if (streamed && !s.paused) subscribe(s);
 	});
 };
 
@@ -66,20 +66,42 @@ Socket.prototype.jsonl_reset = function(path){
 const open = Socket.prototype.open;
 Socket.prototype.open = function(){
 	open.call(this);
-	streams.forEach(set => set.forEach(s => { if (!s.first) subscribe(s); }));
+	streams.forEach(set => set.forEach(s => { if (!s.first && !s.paused) subscribe(s); }));
 };
 
 /* A stream started while a page is the active one (core/Page sets `$page` in activate())
-   is dropped when the Router deactivates that page ("left"), so leaving a page stops its
-   streams with no call from the page. One without a page (dev bar, drawer) stays until
-   unsubscribe(). Coming back re-runs the page's render/activated, which calls live() again. */
+   is PAUSED when the Router deactivates that page ("left") and resumed when it is shown
+   again ("entered"). Paused = the server subscription is released once no live reader
+   of that path is left; resume re-subscribes from the stored offset, so only the lines
+   missed in between arrive. The page needs no call, and a cached page that streamed
+   once at load still streams on return. A stream with no page (dev bar, drawer) is
+   never paused. */
+const live_readers = set => [...set].filter(s => !s.paused).length;
+
+function pause(jsonl){
+	const k = key(jsonl.url), set = streams.get(k);
+	const s = set && [...set].find(s => s.jsonl === jsonl);
+	if (!s || s.paused) return;
+	s.paused = true;
+	if (!live_readers(set)) Socket.singleton().send({ method: "unsubscribe", args: [k] });
+}
+
+function resume(jsonl){
+	const k = key(jsonl.url), set = streams.get(k);
+	const s = set && [...set].find(s => s.jsonl === jsonl);
+	if (!s || !s.paused) return;
+	const others = live_readers(set);
+	s.paused = false;
+	if (!others) subscribe(s);
+}
+
 const owned = new WeakSet();
 function adopt(jsonl){
 	const page = globalThis.$page;
 	if (!page?.on || owned.has(jsonl)) return;
 	owned.add(jsonl);
-	const leave = () => { page.off("left", leave); owned.delete(jsonl); drop(jsonl); };
-	page.on("left", leave);
+	page.on("left", () => pause(jsonl));
+	page.on("entered", () => resume(jsonl));
 }
 
 /**
