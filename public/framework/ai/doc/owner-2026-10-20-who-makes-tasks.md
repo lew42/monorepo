@@ -65,6 +65,18 @@ Built on the page inbox and column pages, which the owner does not understand; n
 - **The tunnel MCP** for the Claude app: the owner is "still not 100% sure this is the right way".
 - **Spawn an Opus system-architect mastermind** (not Fable; usage is near the weekly threshold, use lesser minions where possible), finished by the end of the day: read `framework/ai/readme.md`, the systems the AI uses, the Servex readme and the MCP; study the messaging between agents and the tailing of session files; favour logging the current state to the file system over agent messages, so any future agent can read it; write down the context-loss problem (a session's work survives only in files); make sure every important system is in the readmes, as an ongoing rule. *Spawned as `mastermind-system-architect`, brief in `sessions-and-tasks/system-architect/requirements.md`.*
 
+## 12. Sixth dictation (16:40): the mastermind handles every prompt; items save through their parent; skills audit
+
+Words in the tab's prompt log. Essence, handed to the system architect as round three:
+
+- **Prompt refinement (`ext/Refine`)** is the systematic future (raw → clean → structured → asks, questions, notes → tasks or projects, 100% coverage), but it is broken and unused today, so no tokens go to it per prompt yet. **Until then the mastermind handles every prompt itself, at once**: write what must be written in the right place (check for an existing note first), create the tasks, ask nothing that has no consequence. If a thing was written down and still does not happen, dig: a minion investigates that one problem. This rule goes in the `mastermind` skill.
+- **Visibility:** "are these AI systems working? I have no idea." Rock-solid data and logging, from scripts over the session logs (not copies of them). This tab's transcript is already several MB; nothing duplicates it.
+- **Items save through their parent.** An item added to a parent item logs its deltas to the parent's store; `item.set(prop, anotherItem)` wires it; not every item needs a file. Breakout is by need and could be dynamic: inside the parent → its own `thing.jsonl` → its own `thing/` directory the moment a real file must be saved beside it. Check whether `core/Item` does this; write it down there as the rule; small unit tests, no new test framework (a testing system is a noted need, not now).
+- **One tail system for everything**: `ext/JSONL` `live()` through `Item`, so items, pages, sessions, tasks and projects stream the same way. Verify it is wired through `Item`.
+- **Skills audit:** is the `code` skill used, is a skill the right place, any usage data, what belongs in CLAUDE.md versus a skill, sub-skills (CSS) for context efficiency; injection freshens the procedure, so it works when timed right.
+- **Reuse before building** (law 6) and **no new separate systems that were not asked for**; a file name the owner gives is used as given. The `state` → `index` rename was asked for; it was right.
+- Old AI data: port it (the dry-run move script's real run, reversible with its manifest).
+
 ## 11. Fifth dictation (16:15): DRY, the folder audit, index not state, one log tool
 
 Words in the tab's prompt log. Essence, each handed to the system architect:
