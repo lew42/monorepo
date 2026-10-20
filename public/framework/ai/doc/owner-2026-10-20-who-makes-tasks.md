@@ -43,3 +43,12 @@ Built on the page inbox and column pages, which the owner does not understand; n
 
 1. The owner's three direct questions are answered above in italics.
 2. Next builds, in order: the day's limited list with check marks (section 5); decision cards on task pages (section 6); the dated module `tasks/` decision (section 2); then the class hierarchy page for Task / Project / Session before any task-system rebuild.
+
+## 8. Second dictation (15:30): explain the classes, where a task is saved, the paper trail
+
+- "Don't assume I read your responses." A reply that names a file (`Server/SessionRecord.mjs`, a "probe") without saying what it is, when it is created and when it is saved, does not help. *Rule for this mastermind: every class named in a reply gets one line: what it is, when made, when saved.*
+- **Where a task is saved** is confusing: a task could be a line in `session.jsonl`, its own `<name>.jsonl` (then it cannot be called `task.jsonl` if there are several), or its own folder when it is complex (logging, files, subtasks). The owner does not want the AI deciding this every time. *Today's rule on disk: a task is always a folder with one `task.jsonl`; a subtask is a line in that log, or its own folder when it has files. A task as one line in the session log is slice 5 of the plan, not built. See the picture in [sessions-and-tasks.md](sessions-and-tasks.md).*
+- Can a session's tasks for a module live in the session's folder? *Yes today (the default); the module home `<module>/tasks/` is the agent's choice through the item tool. Section 2 (dated homes) and this question are decided together.*
+- **A tail for agents.** The owner wants a minion to write an overview of its work to its own session log (not fine detail; what is open, what it is doing) and the mastermind that spawned it to subscribe to that log, so the paper trail replaces chat for the core work. Chat stays for a quick clarification. *Exists in parts: the `follow` tool (`Servex/Follow.js`, a file change wakes the following agent) and the browser `live()` tail (`ext/JSONL`). Not yet the rule: minions still report by chat and landing lines. To build: a spawned agent's parent follows its `session.jsonl` by default.*
+- **Docs go to the module**, never buried in a session folder: readme and `doc/` of the module being worked on, so future agents find them. The owner worries that articulating precisely where things go will be misinterpreted anyway.
+- DNS: the owner will edit the token (or make a new one) and asked for the connector URL to paste.
