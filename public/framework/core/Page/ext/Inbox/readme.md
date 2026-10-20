@@ -1,83 +1,73 @@
-# Inbox — one class, two views: a page's rail, and its small "leave a note" box
+# Inbox — one ranked list of what wants the owner's attention, and the note box on every page
 
-**The rail is a [Browse](/framework/ux/Browse/)** (2026-10-14): `Inbox.Rail extends Browse`, the one list-and-detail view the Inbox and Sessions share; the AI Inbox pins **Waiting on you** (`WaitingOnYou.js`, every open owner decision, one line each, ticked → archived) above its rows. Classes: [ux/Browse/doc/architecture.md](/framework/ux/Browse/doc/architecture.md).
+An **inbox** is a list of rows (notes, questions, landed tasks, cards that wait on the owner) sorted by one number, `Inbox.rank`. There are two views of it, and one class holds both. See the rail running: [/framework/ux/Inbox/](/framework/ux/Inbox/) (sample rows) and the real one on the [AI page](/framework/ai/). See the timeline: [timeline/](/framework/core/Page/ext/Inbox/timeline/) (add `?debug` to see each row's source file and score).
 
-**The inbox timeline** ([open it](/framework/core/Page/ext/Inbox/timeline/)): every landed task, owner note and needs-you card, ranked by `Inbox.rank`, as a preview rail with the detail beside it. Where its rows come from, the one data decision, and its classes (`Timeline`, `TimelinePage`, `Landings`, `InboxSources`): [doc/inbox-data.md](doc/inbox-data.md).
-
-`class Inbox` holds one page's inbox; `inbox.rail` and `inbox.compact` are its two views,
-each built lazily the first time you read it:
+## The classes
 
 ```js
-import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
-
-const inbox = new Inbox({ page: this });
-inbox.rail.mount();     // the big rail — see it running at /framework/ux/Inbox/
-inbox.compact.view();   // the small box — see it in the drawer's AI tab
+class Inbox                              // Inbox.js — holds { page }; the ranking lives here as statics
+  Inbox.Rail    = class Rail extends Browse            // Rail.js — the big list + detail pane (ux/Browse)
+  Inbox.Compact = class Compact                        // Inbox.js — the small "Leave a note" box, and the page.jsonl extension
+class AIRail extends Inbox.Rail                        // ai/rail/rail.js — the AI page's inbox: adds usage meters, cards, "+ New card"
+class WaitingOnYou extends Browse.Pinned               // WaitingOnYou.js — the pinned "Waiting on you" list, with a tick per line
+class Timeline                                          // Timeline.js — landed tasks + owner notes + needs-you cards as ranked rows
+class TimelinePage extends Page                         // timeline/TimelinePage.js — the Timeline as a rail (ext/DataGrid) with a detail beside it
 ```
 
-- **`inbox.rail`** (`Inbox.Rail`, was the standalone class `InboxRail`) — a rail of row
-  previews beside the page you picked, persistent and never jumping. The AI page's Inbox
-  and Log tabs, and AI 2, build its subclass `AIRail` (`ai2/rail.js`):
-  `class AIRail extends Inbox.Rail`.
-- **`inbox.compact`** (`Inbox.Compact`, was the standalone class `DrawerInbox`) — the small
-  "Leave a note" box at the top of the drawer's AI tab, read and written through Servex's
-  `/api/inbox`. Also the page.jsonl extension described below (its `static setup` is what
-  `{"ext": "Inbox"}` and `Page.use(Inbox)` both call).
+Old names `InboxRail` / `DrawerInbox` are exported from `Inbox.js` and equal `Inbox.Rail` / `Inbox.Compact`; write the new names.
 
-Any agent (or the owner) can leave a message on ANY page, just by appending one line
-to that page's own `page.jsonl`:
+| Property (class) | Type | Meaning |
+|---|---|---|
+| `inbox.page` (`Inbox`) | string | the page's url path; both views take `{ page }` |
+| `inbox.rail`, `inbox.compact` | `Inbox.Rail`, `Inbox.Compact` | built lazily on first read, then cached |
+| `rail.items` / `rail.list` (`Rail`) | `Row[]` | the rows given / the rows shown, see *A row* |
+| `rail.min` (`Rail`) | number | the score floor; rows scoring under it stay out. Default `Rail.FLOOR` = 90; `?min=0` is the Log |
+| `compact.open` (`Compact`) | `Note[]` | open notes on this page, newest first |
+| `compact.coordinator` (`Compact`) | `{agent, topic}` or null | who holds the claim on this module (a note goes to them) |
+| `page.inbox` / `page.notes` | arrays | filled on any page that turns on the extension, see below |
+| `timeline.landed.rows`, `timeline.cards.by_id` (`Timeline`) | array, `Map` | the two streamed indexes in memory |
+| `waiting.cards`, `waiting.asks` (`WaitingOnYou`) | `Timeline.Cards`, `Asks` (`JSONL`) | the two streamed files in memory |
 
-```json
-{"inbox": {"type": "message", "author": "mastermind-servex-9", "text": "…", "at": "2026-09-30T16:00:00-05:00"}}
-```
+**A row** (what `Inbox.rank` reads): `{ id, title, sub, kind, owner_kind, score, at, status, unread, reviewed, needs, page }`. `kind` is `owner_note`, `landed`, `card`, `task`, `note`…; `owner_kind` is `needs-you`, `risk` or `decision` on an owner note; `status` is `archived` to be hidden.
 
-- `type` is `"message"` (a plain statement) or `"question"`. A missing `type` reads as
-  `"message"`.
-- `author` is whoever sent it. An older line that says `from` instead still reads
-  correctly — `author` falls back to `from`.
+## Where the data comes from
 
-## Turn it on
+Nothing is stored "in the inbox". Each source is a file its own writer appends to; the views only read.
 
-One line, anywhere in the page's `page.jsonl`:
-```json
-{"ext": "Inbox"}
-```
-After that, every `{"inbox": …}` line on that page — before the `ext` line or after it
-— collects into `page.inbox`, an array, oldest first. See it running at
-[core/Page/ext/](/framework/core/Page/ext/) — the extension system's own demo page.
+| Source | Shape | Written by | Read by |
+|---|---|---|---|
+| a page's `page.jsonl`, older note | `{"inbox":{"type":"message"\|"question","author","text","at"}}` (also `{"inbox":{"id","from","text","at"}}` and `{"inbox":{"id","cleared":{…}}}`) | Servex `drop` / `clear` tools (`Servex/agents/inbox.js`) | `Inbox.Compact`: through Servex `GET /api/inbox?path=…` (empty when Servex is down) and, once the extension is on, straight from the file into `page.inbox` |
+| a page's `page.jsonl`, newer note | `{"note":{"id","from","to?","text","at"}}` | the `page_note` tool (`Servex/agents/page_tools.js`) | `notes()` in `Inbox.js`: from the page's own `page.jsonl`, no Servex needed; merged with the older kind |
+| `ai/cards.jsonl` | one card summary per line: `{id,title,status,state,preview,owner_note:{kind,text},last,created…}` | Servex `Cards.js` (rewritten whole, so `live()` replays it as a reset) | `Timeline`, `WaitingOnYou`, the AI page (`ai/rail/inbox.js` `CardList`) |
+| `ai/asks.jsonl` | `{"ask":{id,card,title,status,why,at}}`, latest line per id wins | the Servex asks ledger | `WaitingOnYou` (status `waiting` / `needs-you`), `ai/rail/inbox.js` |
+| `timeline/landings.jsonl` | `{"landed":{id,title,sub,at,page?,card?}}`, append-only (a row's url is its line number: never rewrite) | `node Landings.mjs --append`, which reads every `task.jsonl` landing line | `Timeline` |
+| `ai/state.json` + `ai/tasks/state.jsonl` | every task folded into buckets; see [ai/tasks](/framework/ai/tasks/) | `Server/State.mjs` | `ai/rail/DashState.js` → `DashRow.rows()` → the AI page's task rows |
 
-## The newer way in: `page_note` (2026-10-02)
+**Overlaps, one line each.** `ai/board.jsonl` is retired and read-only (fallback for `ai/rail/inbox.js` only); `cards.jsonl` is the canonical card list. `cards.jsonl` and `landings.jsonl` are caches of the card folders' `page.jsonl` and the `task.jsonl` landings, which are the records. Source counts, computed: [doc/inbox-data.md](doc/inbox-data.md) (`node InboxSources.mjs --write`).
 
-The `{"inbox": …}` line above goes through Servex's `drop` tool and is read through Servex's
-`/api/inbox` — so with Servex down, the box above is empty even though the note is sitting
-right there in the file. **`page_note(path, text, {to})`** (Servex) writes a `{"note": {id,
-from, to?, text, at}}` line instead, and `notes()` (`Inbox.js`) reads it straight from the
-page's own `page.jsonl` — no Servex needed, just the dev server serving the file. `to` (or the
-page's module coordinator, if it has one) also gets a short WAKE from Servex — never the note's
-own text, which already lives in the file; the agent reads it with `page_read`. The two note
-shapes are merged in one list by `notes()`, so nothing written the old way stops showing.
-`drop`/`clear`/`inbox` (the `{"inbox": …}` shape) keep working unedited, for one release.
+## Turn on the note box for a page
 
-## Architecture
+One line in the page's `page.jsonl`: `{"ext":"Inbox"}` (or `Page.use(Inbox)` for every page). `Inbox.setup` forwards to `Inbox.Compact.setup`, which collects the page's `{"inbox":…}` and `{"note":…}` lines into `page.inbox` and `page.notes`, replaying the lines already loaded and then listening for new ones.
 
-One class, `Inbox`, with two lazy views (`inbox.rail`, `inbox.compact`); `InboxRail` and `DrawerInbox` are the old names, re-exported for one release. The before/after of the 2026-10-02 restructure: [doc/InboxRail-notes.md](doc/InboxRail-notes.md#architecture-moved-from-readmemd-2026-10-13-verbatim).
+## The rank rule
+
+`Inbox.rank(row, now)`, higher sits higher (full rule: [doc/ranking.md](doc/ranking.md)):
+
+1. `status: "archived"` → `-1`.
+2. `raw = importance + boost`. Importance is `score` if the row has one, else a weight by kind: needs-you 100, risk 97, decision 94, request 80, question 75, task 60, note 40, landed 30; an unreviewed owner note is 100.
+3. Boost: under 30 minutes old, 201 falling to 101; then at most 30, falling to 0 over 24 hours.
+4. Unread (`unread !== false`) → `raw + 10`; opened → `raw / 100` (below every unread row).
+
+Rows are sorted by this in `Timeline.rows()` and `Rail`; a rail then hides rows under its floor.
+
+## Waiting on you
+
+`WaitingOnYou` is the pinned list at the top of the AI page's inbox. It streams `ai/cards.jsonl` and `ai/asks.jsonl` and lists (a) open cards with status `needs-you` or an owner note of kind `needs-you`, (b) asks with status `waiting` / `needs-you`. **Ticking a line** hides it at once (the id is kept in `localStorage`) and calls the pin's `tick`: `AIRail` passes `Rules.archive_row`, which appends `{status:"archived",by:"owner"}` to the card's `page.jsonl`. Nothing is deleted. An ask with no card cannot be archived by a tick.
 
 ## Files
 
-`WaitingOnYou.js` — `class WaitingOnYou extends Browse.Pinned`, the open owner decisions from `ai/cards.jsonl` and `ai/asks.jsonl`. `Timeline.js` — `class Timeline`, the timeline's rows (two streamed indexes, ranked). `timeline/` — its page (`TimelinePage.js`) and its index `landings.jsonl`. `Landings.mjs` and `InboxSources.mjs` (node) — write that index and count every source the inbox reads; run them from the repo root: `node public/framework/core/Page/ext/Inbox/Landings.mjs --append`. `ai/board.jsonl` (the v/3 board) is retired, read-only: [doc/inbox-data.md](doc/inbox-data.md). `Inbox.js` — `class Inbox`, its `Inbox.Compact` static (the drawer's box + the page.jsonl
-extension), and the deprecated re-exports. `Rail.js` — `Inbox.Rail`'s class body (plain
-`class Rail`), the big navigation rail — see its look and demo at
-[/framework/ux/Inbox/](/framework/ux/Inbox/). `servex.js` — Servex's address and whether
-it is up (moved here from `ai2/inbox.js`, which re-exports it, so this folder imports
-nothing from AI 2).
+`Inbox.js` · `Rail.js` · `WaitingOnYou.js` · `Timeline.js` · `timeline/` (`TimelinePage.js`, `TimelineTalk.js`, `landings.jsonl`) · `servex.js` (Servex address and whether it is up) · `Landings.mjs`, `InboxSources.mjs` (node scripts) · `page.js` (this module's page). Style: `ux/Inbox/Inbox.css` (`.inbox-shell`, `.inbox-rail`, `.inbox-detail`).
 
 ## More
 
-- [`ai2/rail.js`](/framework/ai/rail/rail.js) — `AIRail`, the subclass with the usage meters
-- [`/framework/ux/Inbox/`](/framework/ux/Inbox/) — `Inbox.Rail`'s own demo and look
-- `ext/drawer/` and `doc/inbox.md` — the drawer's "Leave a note" box, `Inbox.Compact`
-
-- Data: [doc/inbox-data.md](doc/inbox-data.md) — the sources the inbox reads (computed by `node InboxSources.mjs`), which is the record and which a cache; `node Landings.mjs --append` refreshes the timeline's index.
-- Ranking: [doc/ranking.md](doc/ranking.md) — `Inbox.rank`: importance + recency, new rows float up, owner state sinks.
-- Notes: [doc/InboxRail-notes.md](doc/InboxRail-notes.md) — history and lessons moved out of the code comments.
-- Next: [doc/next.md](doc/next.md) — what the 2026-10-13 review ([review.md](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/review-ai-pages/review.md)) left open: the stale pinned Now card.
+[doc/inbox-data.md](doc/inbox-data.md) (source map, computed; open items) · [doc/ranking.md](doc/ranking.md) · [doc/next.md](doc/next.md) · [doc/InboxRail-notes.md](doc/InboxRail-notes.md) · the readme as it stood before 2026-10-19: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
