@@ -5,27 +5,32 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-19 00:00 UTC, last 24 h)
+## NOW (computed 2026-10-20 00:04 UTC, last 24 h)
 
-**Pace:** At 83% of pace with 3 days 2 hours left (steady)
+**Pace:** At 82% of pace with 2 days 2 hours left (steady)
 
-**Landed (2):**
-- [Reply with exactly the word PLANTED. No tools.](/framework/ai/sessions/2026/10/18/spawned/minion-p/) (minion-p)
-- [Proof probe. Do exactly one thing: append this line to your task log with `node .claude/hooks/append.mjs <your](/framework/ai/sessions/2026/10/18/spawned/minion-proof-bare/) (minion-proof-bare)
+**Landed (0):**
+- none
 
-**Open, touched in the window (1):**
-- [Load the `clarity` skill, then check this proposal: public/framework/ai/sessions/2026/10/13/session-730e8a7b/m](/framework/ai/sessions/2026/10/18/spawned/clarity-restart-sweep/) (clarity-restart-sweep)
+**Open, touched in the window (7):**
+- [You're working on the "live" page in the public directory. Work directly in the repo, NOT in a worktree — the ](/framework/ai/sessions/2026/10/19/spawned/mastermind-live-page/) (mastermind-live-page)
+- [Voice prompts: log every one verbatim, by code](/framework/ai/sessions/2026/10/19/spawned/mastermind-live-page/voice-logging/) (minion-voice-logging)
+- [You are an Opus mastermind standing by for voice session v-timqv56 (the owner speaks by voice from the site; h](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/) (task-mastermind-voice-opus)
+- [sheet-redesign](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/sheet-redesign/) (minion-sheet-redesign)
+- [walkthrough](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/walkthrough/) (reviewer-dictate-walkthrough)
+- [index-design](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/index-design/) (reviewer-index-design)
+- [session-dirs](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/session-dirs/) (minion-session-dirs)
 
 **Latest commits on this branch:**
 ```
-20f5bf76b servex: log sweep (4 files)
-42e7e86f4 records: log appends
-5a24f5038 records: log appends
-f48acc247 mastermind: restart-sweep landed (.37); two todo lines (double boot, clarity dirs); records
-729645e0c restart-sweep: task log and past-work
-0b530a1da Merge branch 'worktree/restart-sweep' into michael/dev
-698d1e658 todo: strike the restart-recovery sweep line, landed 9f99894f4
-9f99894f4 Servex: the revive sweep skips an agent with no completed turn and no session file, or started after boot
+ed89b264e live-page (voice-app for mastermind-live-page): /live/sessions/ reads 14 days of index.json; owner dictation docs; voice-logging brief; temp ignore of new public/live files
+bab35305f servex: log sweep (6 files)
+7992fcb37 servex: log sweep (29 files)
+e41f092ec voice-opus: in-line reply note (parked)
+a70c45049 Merge branch 'worktree/qf-7' into michael/dev
+a1a55096c voice-opus: walkthrough, index design, none-seat test, session-dirs test
+879d121ae console-allow: the same probe 404 for agent-name session rows
+f9684aa3c console-allow: pre-existing per-uuid session.jsonl probe 404 (until 10-26)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
