@@ -26,7 +26,7 @@ export default class RemoteMCP {
         "Never call restart_servex (or stop_server on Servex) during a call: it would drop your own connection. The owner picks the time.",
         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
         "Call `updates` at the start of nearly every turn: it returns only what arrived for you since your last call (agent messages, the owner's notes, changes to logs you follow). Subscribe to a log with follow({path, agent: \"voice-app\"}).",
-        "The mastermind answers inside the tool's one-minute window with an ack and routing; minion results arrive on your next ask, so ask again to hear them.",
+        "The mastermind answers inside the tool's one-minute window with an ack and routing; minion results arrive on your next ask, so ask again to hear them. If the call times out or is cancelled, the answer still arrives through `updates` (from \"voice-mastermind\", reply_to the question id). ask_mastermind with wait:false returns a ticket at once and the answer arrives the same way.",
     ].join("\n");
     // One generic door that never changes: the app approves it once, and any tool added later is reachable through it (doc/remote-tools.md).
     static CALL = {
@@ -45,13 +45,13 @@ export default class RemoteMCP {
     static CALLER = "voice-app";
     static TOOL = {
         name: "ask_mastermind",
-        description: "Ask the project's mastermind (the AI that coordinates this codebase, an SDK agent on the owner's PC) and wait up to a minute for its answer. You are the voice agent: call this FIRST, before saying anything, then summarize the answer briefly for the owner (do not read it back), ask one question at a time, and relay open items. The mastermind replies verbosely, for you, not for the owner.",
-        inputSchema: { type: "object", properties: { question: { type: "string", description: "What to ask." } }, required: ["question"] },
+        description: "Ask the project's mastermind (the AI that coordinates this codebase, an SDK agent on the owner's PC) and wait up to a minute for its answer (or pass wait:false to get a ticket at once). An answer that misses the minute, or whose call is cancelled, still arrives through updates. You are the voice agent: call this FIRST, before saying anything, then summarize the answer briefly for the owner (do not read it back), ask one question at a time, and relay open items. The mastermind replies verbosely, for you, not for the owner.",
+        inputSchema: { type: "object", properties: { question: { type: "string", description: "What to ask." }, wait: { type: "boolean", description: "Default true. false returns a ticket at once; the answer arrives through updates." } }, required: ["question"] },
     };
 
     /* servex: needs .agents (send, list, registry_list, task_dir_for); root: repo root; wait_ms: reply timeout */
-    constructor({ servex, root, router, token_file = RemoteMCP.TOKEN_FILE, wait_ms = 60000, target } = {}){
-        Object.assign(this, { servex, root, token_file, wait_ms, target });
+    constructor({ servex, root, router, token_file = RemoteMCP.TOKEN_FILE, wait_ms = 60000, late_ms = 1800000, target } = {}){
+        Object.assign(this, { servex, root, token_file, wait_ms, late_ms, target });
         this.replies = path.join(path.dirname(token_file), "remote-replies");
         this.sessions_file = path.join(path.dirname(token_file), RemoteMCP.SESSIONS_FILE);
         this.sessions = this.load_sessions();   // session id -> { agent, dir, started, last }
@@ -128,6 +128,8 @@ export default class RemoteMCP {
             let text;
             const sid = req.headers["mcp-session-id"] || `voice-${new Date().toISOString().slice(0, 10)}`;
             let used = {};
+            used.wait = params.arguments?.wait !== false;
+            used.cancelled = () => res.destroyed || !!res.socket?.destroyed;   // the app dropped the call: stop waiting, keep watching
             try { text = await this.ask(question, sid, used); } catch (e) { text = `could not reach the mastermind: ${e.message}`; }
             this.log(question, Date.now() - started, sid, used.agent);
             return ok({ content: [{ type: "text", text }] });
@@ -286,12 +288,33 @@ export default class RemoteMCP {
         const link = rel ? "/" + rel + "/" : "its task page";
         const chat = (from, text) => { if (file) try { fs.appendFileSync(file, JSON.stringify({ chat: { from, id: qid, text, at: new Date().toISOString() } }) + "\n"); } catch {} };
         chat("owner (voice)", question);
+        used.ticket = qid;
+        let sent = false;   // set once the answer is delivered anywhere (returned, or put in the inbox)
+        const read = () => { try { return fs.existsSync(out) ? fs.readFileSync(out, "utf8").trim() : ""; } catch { return ""; } };
+        const deliver = late => {
+            const t = read();
+            if (!t || sent) return null;
+            sent = true;
+            chat("voice-mastermind", t);
+            if (late) try { this.servex.external.ensure(RemoteMCP.CALLER).deliver(RemoteMCP.CALLER, t, { from: "voice-mastermind", reply_to: qid }); } catch (e) { console.error("remote-mcp: late answer:", e.message); }
+            return t;
+        };
+        // keep watching after we stop waiting: the answer goes to the caller's inbox, which `updates` delivers
+        const watch = () => {
+            const until = Date.now() + this.late_ms;
+            const tick = () => { if (deliver(true) || Date.now() > until) return; setTimeout(tick, 1000).unref?.(); };
+            setTimeout(tick, 500).unref?.();
+        };
+        const ack = `the answer will arrive through updates (ticket ${qid}; the question is logged at ${link})`;
+        if (used.wait === false){ watch(); return JSON.stringify({ ticket: qid, note: ack }); }
         const until = Date.now() + this.wait_ms;
-        while (Date.now() < until){
+        while (Date.now() < until && !used.cancelled?.()){
             await new Promise(r => setTimeout(r, 500));
-            if (fs.existsSync(out)){ const t = fs.readFileSync(out, "utf8").trim(); if (t){ chat("voice-mastermind", t); return t; } }
+            const t = deliver(false);
+            if (t) return t;
         }
-        return `the mastermind is busy; the question is logged at ${link}`;
+        watch();
+        return `the mastermind is busy; ${ack}`;
     }
 
     // one line per call, never the token

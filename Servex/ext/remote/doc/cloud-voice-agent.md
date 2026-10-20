@@ -58,7 +58,7 @@ Decision: **keep A, park B and C, build on D.** The record is `d-how-does-the-ow
 - **A. VS Code sidebar session with Remote Control.** It connects directly to Claude Code on the PC with full control, and it's the most reliable route. Keep it working. It has no Servex interrupt, queue or accounting.
 - **B. A headless SDK mastermind with Remote Control.** Parked: Remote Control needs an interactive session (tested, see Caveats).
 - **C. An interactive `claude --remote-control` process that Servex keeps up in a pseudo-terminal.** Parked: it's possible, but it's a second system, and every bug would be solved twice.
-- **D. You, the cloud voice agent, plus this remote MCP door.** It exists, so build on it: the `updates` tool (landed), an ask_mastermind that doesn't block (queued), and transcription.
+- **D. You, the cloud voice agent, plus this remote MCP door.** It exists, so build on it: the `updates` tool (landed), an ask_mastermind that doesn't block (landed 2026-10-20: a timed-out or cancelled ask keeps watching and its answer reaches your `updates`; `wait: false` returns a ticket at once), and transcription.
 - **Watch out:** ask_mastermind can spawn masterminds that collide on the same files. Agents reading each other's logs (the across-platforms rule in [messaging.md](../../../agents/doc/messaging.md)) caught a double fix today.
 
 More: [voice-logging.md](voice-logging.md) (how the logging works), [remote-tools.md](remote-tools.md) (the tools you have).

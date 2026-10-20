@@ -15,6 +15,7 @@ const root = fs.mkdtempSync(path.join(os.tmpdir(), "remote-test-"));
 fs.mkdirSync(path.join(root, "public/framework/ai"), { recursive: true });
 const token_file = path.join(root, "state", "remote.token");
 const spawned = [], sent = [], seen = [];
+let slow_ms = 0;
 const mcp = new MCP({ router: express.Router() });   // the REAL registry class; the real page tools and one marker tool go in through its own seam
 for (const tool of page_tools()) mcp.tool(tool);
 for (const tool of FileTools.tools()) mcp.tool(tool);
@@ -38,7 +39,8 @@ const servex = {
         send(id, text){
             sent.push(id);
             const out = /to (\S+\.txt)/.exec(text)[1];
-            fs.writeFileSync(out, `answer from ${id}`);
+            if (slow_ms) setTimeout(() => fs.writeFileSync(out, `late answer from ${id}`), slow_ms);   // slow_ms: the answer misses the wait window
+            else fs.writeFileSync(out, `answer from ${id}`);
         },
     },
 };
@@ -176,6 +178,30 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     const page1 = await up({}); assert.equal(page1.count, 50); assert.equal(page1.more, true, "capped at 50 with more");
     const page2 = await up({}); assert.equal(page2.count, 10); assert.equal(page2.more, false); assert.equal(page2.updates[0].text, "m50", "second page continues");
     fs.appendFileSync(ext.file("voice-app"), '{"text":"half'); assert.equal((await up({})).count, 0, "an unfinished line waits");
+    fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");   // fresh inbox for the async-ask cases
+    gw.target = undefined; gw.wait_ms = 600; slow_ms = 1500;
+    // 1) the answer lands after the wait window: the call says so, the answer reaches the inbox and the chat log
+    const timed = await ask("slow one", s1);
+    assert.match(timed, /arrive through updates/, "a timed-out ask says the answer will come through updates");
+    assert.equal((await up({})).count, 0, "nothing yet");
+    await new Promise(r => setTimeout(r, 1800));
+    const late = (await up({})).updates;
+    assert.equal(late.length, 1, "the late answer is in the inbox");
+    assert.match(late[0].text, /^late answer from /); assert.equal(late[0].from, "voice-mastermind"); assert.ok(late[0].reply_to, "reply_to is the question id");
+    assert.ok(chats(gw.sessions[s1].agent).some(c => c.from === "voice-mastermind" && c.id === late[0].reply_to), "the late answer has its chat line");
+    // 2) wait:false returns a ticket at once; the answer arrives through updates
+    const t0 = Date.now();
+    const r = await rpc({ id: 9, method: "tools/call", params: { name: "ask_mastermind", arguments: { question: "no wait", wait: false } } }, s1);
+    const ticket = JSON.parse(r.json.result.content[0].text);
+    assert.ok(Date.now() - t0 < 400 && ticket.ticket && /updates/.test(ticket.note), "wait:false returns a ticket at once");
+    await new Promise(r => setTimeout(r, 2200));
+    const got = (await up({})).updates;
+    assert.equal(got.length, 1); assert.equal(got[0].reply_to, ticket.ticket, "the ticket matches the delivered answer");
+    // 3) a quick answer is returned directly, never duplicated into the inbox
+    slow_ms = 0; gw.wait_ms = 3000;
+    assert.match(await ask("fast", s1), /^answer from /);
+    await new Promise(r => setTimeout(r, 1200));
+    assert.equal((await up({})).count, 0, "a answer returned in the call is not also delivered");
 }
 srv.close();
 fs.rmSync(root, { recursive: true, force: true });
