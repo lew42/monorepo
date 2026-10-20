@@ -15,6 +15,7 @@ Consolidated 2026-10-12: text moved out of this file lives in a linked doc, and 
 6. **One of everything; don't repeat yourself.** Before you build, find what already exists and use it, or extend it. Never build a second version of a system. Every surface that shows the same thing (a chat, a sidebar, a card, a rail) uses the same component, so one fix updates all of them. (the owner, 2026-09-30)
 7. **Compute, don't recall.** Anything a computer can work out (state, counts, costs, which tasks landed, log lines, records) is done by a node script or tool that reads the real state, never written by an AI from memory. AI handles judgment; record-keeping is code. (the owner, 2026-10-01)
 8. **Name it and home it first.** Every new module or task settles its name and home location first. (the owner, 2026-10-16)
+9. **Document the structure as you build.** Every system's readme states what it is, its exact on-disk structure, which tool writes its data and from where, and which class reads it — verified against the code, no history. If an agent had to investigate to learn how a system works, the readme failed; fix the readme in the same task. (the owner, 2026-10-19)
 
 ## Presentation — always the overwhelmed newcomer (the owner, 2026-09-05)
 

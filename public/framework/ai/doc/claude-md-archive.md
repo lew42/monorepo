@@ -93,3 +93,8 @@ Where a class has a UI, the demo shows two things side by side: the rendered vie
 **How to respond** — L22.2
 
 Each `###` heading names the thing (the class, module or page) so the context is always visible; add one short `#` only for a big reply.
+
+<!-- claude-md:L18 -->
+**Document the structure as you build** — law 9 (new, 2026-10-19; added verbatim as the owner asked, so no earlier wording exists)
+
+**Document the structure as you build.** Every system's readme states what it is, its exact on-disk structure, which tool writes its data and from where, and which class reads it — verified against the code, no history. If an agent had to investigate to learn how a system works, the readme failed; fix the readme in the same task. (the owner, 2026-10-19)

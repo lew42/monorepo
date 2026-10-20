@@ -17,6 +17,14 @@ import { resolve as resolve_path, dirname, basename, join } from "node:path";
 import TaskDirs from "../../Server/TaskDirs.mjs";
 import SessionRecord from "../../Server/SessionRecord.mjs";
 
+const LANDING_CHECKLIST = `
+BEFORE THIS TASK CLOSES (CLAUDE.md law 9 — document the structure as you build). Answer each in your landing message or fix it now:
+  [ ] README UPDATED: the readme of every system you touched states what it is, its exact on-disk structure, and how it works NOW (no history, no dated owner quotes; those go to doc/*.md).
+  [ ] WRITER STATED: it names which tool/script/function writes the data and where that is called from (file path).
+  [ ] READER STATED: it names which class/page reads the data.
+  [ ] LINKED: the readme is linked from its parent readme, and any new doc/*.md from the readme.
+  [ ] VERIFIED: each claim was checked against the code or live data, not remembered.
+If an agent would have to investigate to learn how your system works, the readme failed: fix it in this task.`;
 const pad = n => String(n).padStart(2, "0");
 function nowLocal(){
 	const d = new Date(), off = -d.getTimezoneOffset(), a = Math.abs(off);
@@ -87,4 +95,6 @@ const lines = readFileSync(target, "utf8").split(/\r?\n/).filter(l => l.trim());
 let bad = 0;
 lines.forEach((l, i) => { try { JSON.parse(l); } catch { bad++; console.error(`BAD line ${i + 1}: ${l.slice(0, 100)}`); } });
 console.log(`${target}: appended ${list.length} at ${t}; ${lines.length} lines total, ${bad} bad`);
+// THE LANDING GATE (law 9): the line that lands a task answers back with the documentation checklist, in the tool's own response, so it is seen, not remembered.
+if (!bad && filled.some(o => o?.assign?.landed_at || o?.landed_at)) console.log(LANDING_CHECKLIST);
 process.exit(bad ? 1 : 0);
