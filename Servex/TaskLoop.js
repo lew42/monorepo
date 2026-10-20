@@ -49,12 +49,29 @@ export default class TaskLoop {
             this.servex?.log?.append("servex", { type: "task-loop-error", error: String(e?.message || e) }).catch(() => {})), this.every_min * 60000);
         this.timer.unref();
         // /framework/ai/tasks/ tails state.jsonl: its writer is a child of Servex (a snapshot blocks ~100 ms), so it restarts with Servex; the newest watcher wins its lock
-        const watcher = path.join(this.root, "Server", "TaskState.mjs");
-        if (!process.env.SERVEX_NO_TASKSTATE && fs.existsSync(watcher)) try { this.state_watch = spawn(process.execPath, [watcher, "--watch"], { stdio: "ignore", windowsHide: true }); this.state_watch.on("error", () => {}); } catch {}
+        this.watch_state();
         return this;
     }
 
-    stop(){ clearInterval(this.timer); try { this.state_watch?.kill(); } catch {} }
+    /* A child spawned once and never checked is a view nobody refreshes (2026-10-20: the watcher died at a restart and the
+     * Inbox sat 30 min stale). So it is respawned when it exits, at most once a minute; stop() ends that. */
+    watch_state(){
+        const watcher = path.join(this.root, "Server", "TaskState.mjs");
+        if (this.stopping || process.env.SERVEX_NO_TASKSTATE || !fs.existsSync(watcher)) return;
+        this.state_started = Date.now();
+        try {
+            this.state_watch = spawn(process.execPath, [watcher, "--watch"], { stdio: "ignore", windowsHide: true });
+            this.state_watch.on("error", () => {});
+            this.state_watch.on("exit", code => {
+                if (this.stopping) return;
+                this.servex?.log?.append("servex", { type: "taskstate-exit", code, respawn: true }).catch(() => {});
+                const wait = Math.max(0, 60000 - (Date.now() - this.state_started));
+                (this.state_timer = setTimeout(() => this.watch_state(), wait)).unref?.();
+            });
+        } catch {}
+    }
+
+    stop(){ this.stopping = true; clearInterval(this.timer); clearTimeout(this.state_timer); try { this.state_watch?.kill(); } catch {} }
     status(){ return this.status_now; }
 
     /* ── one tick ─────────────────────────────────────────────────────── */
