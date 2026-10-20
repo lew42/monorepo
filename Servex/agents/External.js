@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 import { place, stamp } from "../home.js";
 
 /* EXTERNAL AGENTS — a VS Code tab, a terminal, or any Claude session Servex
@@ -109,6 +110,34 @@ export default class External {
 		return { id, state: "external", delivered: line, card: () => ({ id, kind: "external", state: "external", delivered: line }) };
 	}
 
+	/* Make `id` addressable if it is not yet (the remote door's caller, "voice-app", has no tab to register itself). */
+	ensure(id){ if (!this.has(id)) this.register({ id, session_id: id }); return this; }
+
+	cursor_file(id){ return place("logs", "inbox", `${id}.cursor`); }
+
+	/* The `updates` tool: the inbox lines after this caller's cursor, newest last, at most `cap`. `peek` leaves the cursor. Cursor = a byte offset
+	 * in `logs/inbox/<id>.cursor`; a first call starts at 0 (the whole backlog, capped), later calls only what was appended. Doc: Servex/ext/remote/doc/catch-up.md */
+	updates(id, { peek = false, cap = 50 } = {}){
+		const file = this.file(id), cur = this.cursor_file(id);
+		let offset = 0; try { offset = Number(fs.readFileSync(cur, "utf8")) || 0; } catch {}
+		let buf = Buffer.alloc(0); try { buf = fs.readFileSync(file); } catch {}
+		if (offset > buf.length) offset = 0;   // the inbox was replaced; start over
+		const lines = [], end = buf.lastIndexOf(10) + 1;   // only complete lines
+		let pos = offset;
+		while (pos < end && lines.length < cap){
+			const nl = buf.indexOf(10, pos), text = buf.toString("utf8", pos, nl).trim();
+			pos = nl + 1;
+			if (!text) continue;
+			try { lines.push(JSON.parse(text)); } catch { lines.push({ raw: text }); }
+		}
+		const more = pos < end;
+		if (!peek && pos !== offset){ fs.mkdirSync(path.dirname(cur), { recursive: true }); fs.writeFileSync(cur, String(pos)); }
+		return { count: lines.length, more, updates: lines };
+	}
+
+	/* How many inbox lines sit after the cursor (the "N new updates" hint). */
+	pending(id){ return this.updates(id, { peek: true, cap: Infinity }).count; }
+
 	touch(id){
 		const rows = this.reg().read();
 		if (!rows[id]) return;
@@ -143,6 +172,15 @@ export default class External {
 	// ── the MCP tool ─────────────────────────────────────────────────────
 
 	tool(){
+		this.servex.mcp.tool({
+			name: "updates",
+			description: "What arrived for you since your last call, and nothing else: the lines in your inbox (follow deltas, messages from agents, the owner's notes), oldest first, at most 50 (`more: true` means call again). Call it at the start of nearly every turn. `peek: true` reads without moving your place. Subscribe to a log with `follow({path, agent: \"<your id>\"})`.",
+			inputSchema: { type: "object", properties: { peek: { type: "boolean", description: "Read without marking the lines as seen." } } },
+			handler: (args = {}, ctx = {}) => {
+				if (!ctx.caller) return JSON.stringify({ ok: false, error: "updates needs a caller" });
+				try { this.ensure(ctx.caller); return JSON.stringify(this.updates(ctx.caller, { peek: !!args.peek })); } catch (e){ return JSON.stringify({ ok: false, error: String(e.message || e) }); }
+			}
+		});
 		this.servex.mcp.tool({
 			name: "register_session",
 			description: "Register THIS Claude session — a VS Code tab, a terminal, anything Servex did not spawn — as"

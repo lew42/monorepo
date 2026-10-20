@@ -1,4 +1,4 @@
-# Catch-up: the voice agent hears what changed (requirement, design only)
+# Catch-up: the voice agent hears what changed (built 2026-10-20: the `updates` tool)
 
 **The problem.** The voice agent (`voice-app`, a claude.ai session using this remote MCP) only exists when an owner prompt arrives or a tool result comes back. Nothing reaches it in between, so it misses agent replies, `/live` changes and its children's progress.
 
@@ -14,13 +14,16 @@ Logged in [core/Page/task.jsonl](../../../../public/framework/core/Page/task.jso
 - **No push either.** Claude's MCP client "doesn't yet support resource subscriptions" or sampling ([Build an MCP server for Claude](https://claude.com/docs/connectors/building)).
 - **The only channel is the tool result.** In practice that already covers every prompt, because `RemoteMCP.INSTRUCTIONS` tells the voice agent to call `ask_mastermind` before it says anything.
 
-## The Servex change (not built)
 
-- **Where:** `RemoteMCP.js`, in the `tools/call` handler. After any tool's result is ready, add one more text item: the new lines since this session's last call. Add nothing when there are none.
-- **Cursor:** keep one byte offset per file per MCP session in `this.sessions[sid].offsets`, saved where the sessions already are. The first call starts at the end of each file, so no history floods in.
-- **Files to tail:**
-  - the replies addressed to `voice-app` (which file holds them is still to confirm)
-  - `/live/page.jsonl`
-  - the `session.jsonl` or `task.jsonl` of every agent whose parent is this session's agent
-- **Reuse, don't rebuild:** `Servex/Follow.js` already watches files and keeps offsets for agents. The catch-up is one more Follow subscriber whose mailbox is drained by the next tool result, not a second tailer.
-- **Size:** one short line per change, capped at about 2,000 characters, with "+N more" when the cap is hit (claude.ai allows about 150,000 characters per result).
+## What is built
+
+- **`updates`** (`External.updates()`, registered by `External.tool()`, so it is on the whole registry and the remote door): returns the lines of the caller's inbox (`logs/inbox/<caller>` file under Servex's home) that arrived after its cursor, oldest first, at most 50 (`more: true` = call again), and moves the cursor. `peek: true` reads without moving it. The cursor is a byte offset in a `.cursor` file beside the inbox; the first call returns the backlog (capped); an unfinished last line waits for its newline.
+- **Subscribing:** `follow({path, agent: "voice-app"})` ([follow.md](../../../doc/follow.md)) lands each delta in that inbox. `updates` (and `RemoteMCP.hint()` on any remote call) makes the caller an external agent, so `follow` and `send_to_agent` can address `voice-app`.
+- **The hint (item 1):** `RemoteMCP.hint()` adds one text item, "N new updates for you: call updates.", to every other remote tool result while the cursor is behind, and nothing otherwise.
+- **The directive:** one sentence in `RemoteMCP.INSTRUCTIONS`: call `updates` at the start of nearly every turn.
+- Tests: `node Servex/ext/remote/RemoteMCP.test.mjs`. Live after a Servex restart.
+
+## Not built
+
+- The inbox holds only what is sent to `voice-app` or followed for it. `/live/` and the children's logs arrive only if the agent calls `follow` on them; nothing subscribes automatically.
+- The first-call backlog is not trimmed to "from now"; the cap bounds it.

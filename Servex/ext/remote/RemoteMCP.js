@@ -25,6 +25,7 @@ export default class RemoteMCP {
         "The owner's standing rule (2026-10-16): when the owner asks a question, put the answer on /live/ as a card first, then say \"take a look\" and keep the spoken reply to one or two sentences. A status answer (\"what's running\") is a card listing each agent's id, state, what it is on and its cost (list_agents has them); it is shown, not spoken.",
         "Never call restart_servex (or stop_server on Servex) during a call: it would drop your own connection. The owner picks the time.",
         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
+        "Call `updates` at the start of nearly every turn: it returns only what arrived for you since your last call (agent messages, the owner's notes, changes to logs you follow). Subscribe to a log with follow({path, agent: \"voice-app\"}).",
         "The mastermind answers inside the tool's one-minute window with an ack and routing; minion results arrive on your next ask, so ask again to hear them.",
     ].join("\n");
     // One generic door that never changes: the app approves it once, and any tool added later is reachable through it (doc/remote-tools.md).
@@ -195,11 +196,22 @@ export default class RemoteMCP {
 
     // a spawned agent is logged by code with its id and task dir (owner, 2026-10-19), read from the tool's own result
     after(tool, sid, result, args){
+        result = this.hint(tool, result);
         if (tool !== "spawn_agent") return result;
         try {
             const v = this.voice_session(sid), text = result?.content?.[0]?.text ?? "", j = JSON.parse(text);
             const id = j.id ?? j.agent?.id, dir = args?.task?.dir ?? j.task_dir ?? j.task?.dir ?? j.dir;
             if (v && id) fs.appendFileSync(path.join(this.root, "public", v.file), JSON.stringify({ spawned: { at: new Date().toISOString(), agent: id, task_dir: dir ?? null, caller: RemoteMCP.CALLER } }) + "\n");
+        } catch {}
+        return result;
+    }
+
+    // catch-up.md item 1: when the cursor is behind, every other tool result says so in one line (nothing when nothing is new)
+    hint(tool, result){
+        try {
+            if (tool === "updates" || !result?.content) return result;
+            const n = this.servex.external?.ensure?.(RemoteMCP.CALLER)?.pending?.(RemoteMCP.CALLER) ?? 0;
+            if (n > 0) return { ...result, content: [...result.content, { type: "text", text: `${n} new update${n === 1 ? "" : "s"} for you: call updates.` }] };
         } catch {}
         return result;
     }

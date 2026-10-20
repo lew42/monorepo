@@ -45,6 +45,10 @@ follow({ path: "public/framework" })
 → Error: "public/framework" is above public/framework/<module> or Servex/<dir> — refused
 ```
 
+## A cloud agent: follow plus `updates`
+
+A cloud agent (the voice app) cannot receive messages, so point the follow at its inbox and let it pull: `follow({path, agent: "voice-app"})` appends each delta to that agent's inbox, and its `updates` tool returns only the lines after its own cursor. Details: [catch-up.md](../ext/remote/doc/catch-up.md).
+
 ## Only what's new — never a replay
 
 The very first thing you get is whatever changes AFTER you called `follow`.
