@@ -9,3 +9,9 @@ Under "Memory, history, safety", add one rule:
 Under "Readmes and docs", add one line:
 
 > **Laws here, procedures in skills** (the owner, 2026-10-20): this file holds only what every agent needs on every turn. A procedure tied to a moment is a trigger skill (loaded at that moment, so it is fresh when used); domain knowledge is a reference skill that names its sub-skills (`code` → `css`). The index and verdicts: `.claude/skills/readme.md`.
+
+## Second proposed line (the owner, 2026-10-20 16:50): certainty levels
+
+Under "Memory, history, safety":
+
+> **Record the owner's firmness, not more.** The owner's words carry their own certainty (would, could, should, must, never). Write a rule with the firmness it was said with: "we shouldn't" is a lean, not a "never". Nothing is set in stone; a better way around a directive may be proposed, with the directive linked.

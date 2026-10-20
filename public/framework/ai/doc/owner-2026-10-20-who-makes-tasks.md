@@ -65,6 +65,16 @@ Built on the page inbox and column pages, which the owner does not understand; n
 - **The tunnel MCP** for the Claude app: the owner is "still not 100% sure this is the right way".
 - **Spawn an Opus system-architect mastermind** (not Fable; usage is near the weekly threshold, use lesser minions where possible), finished by the end of the day: read `framework/ai/readme.md`, the systems the AI uses, the Servex readme and the MCP; study the messaging between agents and the tailing of session files; favour logging the current state to the file system over agent messages, so any future agent can read it; write down the context-loss problem (a session's work survives only in files); make sure every important system is in the readmes, as an ongoing rule. *Spawned as `mastermind-system-architect`, brief in `sessions-and-tasks/system-architect/requirements.md`.*
 
+## 13. Seventh dictation (16:50): prompt flow, Item and Page are one system, certainty levels, indexing by tools
+
+Words in the tab's prompt log. Essence:
+
+- **Prompt flow (a design question, not a build):** the voice agent is fast and cheap and should not turn prompts into tasks; a cleaned prompt goes to a triage mastermind that reads across systems and routes it. A prompt could be an item (raw → cleaned → structured) that is moved into a project; whether it is a line, a file or a folder matters to the move tool.
+- **Item and Page are one persistence system** (`Page extends Item`): both readmes should say so and say what goes where; the Item readme names the core classes that extend it. Keep these core docs fine-tuned. A spawned agent that reads both readmes is an Item/Page mastermind.
+- **Certainty levels.** The owner's words carry their own firmness (would, could, should, must, never). Record and follow that firmness; "we shouldn't" is not "never"; nothing is set in stone, and a better way around a directive may be considered. Proposed for CLAUDE.md (see the architect's proposal file).
+- **Indexing is the tool's job:** a tool that creates or moves an item updates the index itself; an AI never has to remember to index. Belongs in the Item docs.
+- **JSONL growth:** keep an eye on file sizes; a few MB is fine, but loading a hundred at once is a processing load. Auto-compaction is one strategy (it loses deltas); noted for `ext/JSONL`.
+
 ## 12. Sixth dictation (16:40): the mastermind handles every prompt; items save through their parent; skills audit
 
 Words in the tab's prompt log. Essence, handed to the system architect as round three:
