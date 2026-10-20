@@ -42,6 +42,8 @@ Nobody else can reach or reopen an in-process agent. Servex agents are MCP-addre
 - **Record** the agent's id and `session_id` in the brief and the task's `task.jsonl` launch line; that makes the work resumable.
 - **Keep everything moving.** `spawn_agent` returns at once. From a tab (not a Servex agent), run a background watcher on the child's state so its "done" still reaches you. Long helpers (servers, `Server/health-supervisor.mjs`, Playwright) run in the background and report.
 
+- **Spawn or do it yourself is a decision to make each time** (the owner, 2026-10-19). A mastermind is expensive, so grunt work (fact-finding, what lives where, reading indexes, loading context) goes to a cheaper agent. Planning and architecture you do yourself, or stay interactive with the minion on them.
+
 ### Grouping (judgment calls)
 
 - Related tasks (same files or idea) share one task mastermind and one worktree.
@@ -74,12 +76,24 @@ Your own turns are the most expensive tokens in the task, so spend through cheap
 
 ## Reviewing and landing
 
-1. **Read everything a minion did first:** the diff, the brief, the result. Anything dangerous, site-breaking or inconsistent is caught here. A small change needs a quick look.
-2. **Add a fresh reviewer** (`Server/review.mjs`) only if something is in doubt, or for a page or layout change. The best-placed agent fixes, usually the freshest (the reviewer); the builder answers when it knows why a fix won't work. You rule once (review turn 4). Everyone seeks agreement and the simplest working fix; concerns are good, arguing is not.
+1. **Read everything a minion did first:** the diff, the brief, the result. Anything dangerous, site-breaking or inconsistent is caught here. A small change needs a quick look, but you have read or tested it yourself or at least know what the code does (the owner: "the mastermind himself should be either testing it or at least have some awareness of what the code is").
+2. **A fresh reviewer** (`Server/review.mjs`) is REQUIRED for a big task and for a page or layout change; for a small one you decide, and add one whenever something is in doubt. Give it the finished product, the original request and the plan: "this is what was done, this was the original request; what do you think, does it work?" It may judge from the screenshots already taken instead of re-testing. The best-placed agent fixes, usually the freshest (the reviewer); the builder answers when it knows why a fix won't work. You rule once (review turn 4). Everyone seeks agreement and the simplest working fix; concerns are good, arguing is not.
 3. **The console is part of the review:** `Server/smoke.mjs` must show no FAIL before merge. A same-origin 404 is always a FAIL. A warning stays only with a live entry in `Server/console-allow.jsonl` (pattern, why, until, owner); expired entries fail merges again.
 4. **Merge yourself** (`merge.mjs`), then close the worktree. In audit phases, minions make only obvious additive edits or propose; destructive or API-changing work waits for you.
-5. **Land everything:** every piece of work is committed and merged if on a branch. Check a child's files are committed and merged before counting it done. Work on a branch or worktree by default; only a live fix goes straight to `michael/dev`. **A major change to any system, a documentation overhaul included, is built on a branch `task/<slug>` (the slug of your task dir), committed at every working step, and merged to `michael/dev` by you as soon as it works. A branch is never parked waiting for a yes, and "merge when the owner says" is forbidden: the owner does not read replies or approve merges ("Do not wait on me. Make sure shit gets done… Push it as far as possible", 2026-10-19).** **Log it where it will be found later, not in chat:** what landed goes in the module's readme and `doc/`; one line plus a link in the session log; a decision only the owner can make becomes a task in the `waiting` state (Waiting On You) while everything else keeps moving. No loose files.
+5. **Land everything:** every piece of work is committed and merged if on a branch. Check a child's files are committed and merged before counting it done. Work on a branch or worktree by default; only a live fix goes straight to `michael/dev`. **A major change to any system, a documentation overhaul included, is built on a branch `task/<slug>` (the slug of your task dir), committed at every working step, and merged to `michael/dev` by you as soon as it has passed review (steps 1–4 above come before the merge; never merge blind). A branch is never parked waiting for a yes, and "merge when the owner says" is forbidden: the owner does not read replies or approve merges ("Do not wait on me. Make sure shit gets done… Push it as far as possible", 2026-10-19).** **Log it where it will be found later, not in chat:** what landed goes in the module's readme and `doc/`; one line plus a link in the session log; a decision only the owner can make becomes a task in the `waiting` state (Waiting On You) while everything else keeps moving. No loose files.
 6. **A clean `git status`, always** (the owner, 2026-10-13: "I don't want to check git status and see a bunch of bullshit"). Every file you or a child creates or changes is either committed or gitignored: records (logs, reviews, shots in a task dir) are committed; machine state, scratch and stray output are ignored with a one-line reason in `.gitignore`. Nothing sits untracked, or it gets lost or breaks things. Write scratch to the session scratchpad, never the repo root. A landing line means the code is on `michael/dev` too, not only the landing line: check `git log michael/dev..<branch>` is empty before counting a task done (`property-of` landed without its code, 2026-10-12). At the end of every cycle, run `git status --porcelain` and clear it.
+
+### The shape of a bigger task (the owner, 2026-10-19)
+
+1. **You write the requirements and the plan**, including the class architecture: class names, locations, core API.
+2. **Spawn a minion** and hand it the plan (a brief path, see Briefs).
+3. **The minion reads the readmes and what already exists, thinks it through, and asks questions** before building.
+4. **The minion builds and tests.**
+5. **A fresh reviewer** gets the product, the original request and the plan.
+6. **You merge** (after steps 1–4 of this section).
+7. **Land and log where it will be found:** module readme and `doc/`, one line plus a link in the session log.
+
+The task-state version of the same flow: [`ai/doc/task-lifecycle.md`](/framework/ai/doc/task-lifecycle.md) (owned by the task system).
 
 ## Each cycle
 
