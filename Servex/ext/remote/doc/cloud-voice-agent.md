@@ -62,3 +62,10 @@ Decision: **keep A, park B and C, build on D.** The record is `d-how-does-the-ow
 - **Watch out:** ask_mastermind can spawn masterminds that collide on the same files. Agents reading each other's logs (the across-platforms rule in [messaging.md](../../../agents/doc/messaging.md)) caught a double fix today.
 
 More: [voice-logging.md](voice-logging.md) (how the logging works), [remote-tools.md](remote-tools.md) (the tools you have).
+
+## Owner feedback, 2026-10-20 18:50 (essence; the words are in the tab prompt log, `ai/2026/10/20/session-e00f55c9/page.jsonl`)
+
+- **Speed of the ask flow is the top priority** ("definitely"). The agent says "hold on", waits for `ask_mastermind` up to its timeout, and the mastermind often takes longer than that.
+- **Worth double checking:** when the owner speaks during that wait, the MCP call is interrupted. Does its answer ever arrive? Can Servex tell whether an answer was received, and queue it so it always arrives? The async ask (landed 18:33) routes a cancelled ask's answer to `updates`; a real interrupt from the voice app is untested.
+- **Alternative workflow to try:** never wait. Fire the ask (`wait: false`), go back to listening, offer a guess ("I've asked Servex; I'd guess…"), and deliver the answer when `updates` brings it.
+- **Trade-offs the owner sees:** it reads everything aloud, so it phrases for speech ("slash whatever" instead of typing a path) and can't do code blocks. "I don't know if we want to put a ton of work there."
