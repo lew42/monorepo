@@ -86,6 +86,18 @@
 **Instead:** saving the parent reference (rejected: the cycle, above).
 **Detail:** [`doc/envelope.md`](./envelope.md)
 
+## Items save through their parent
+
+**Verified 2026-10-20 by reading the code and running it.**
+
+- **Where a child's deltas go.** `List.adopt` sets `child.parent = owner` ([List.js:77](../../List/List.js)). `emit` bubbles `delta` up `.parent` ([Events.js:24](../../Events/Events.js)). `Store.attach` listens on the host ([Store.js:122](../Store.js)) and writes one line nested by `hops()` ([Store.js:234](../Store.js)): `{"kids":{"add":…}}`, then `{"k":{"set":…}}`. Replay is `host.replay_line` → `set`, one `get()` hop per level ([Item.js:152](../Item.js)).
+- **Which items own a file.** The host passed to `Store.attach` (a page's `page.jsonl`, a task's `task.jsonl`, `Item.open(url)`, [Item.js:330](../Item.js)). A child with its own store or `_own_file` is skipped by the parent's store ([Store.js:225](../Store.js)); `Task.open_ref` ([Task.js:315](../../Task/Task.js)) uses that. Everything else rides in its parent's file.
+- **One tail?** Mostly. `Store.open` ([Store.js:49](../Store.js)) and `Page.Reader.open` ([Reader.js:14](../../Page/Reader.js)) import `ext/JSONL/live.js` `stream()`. The `JSONL` class ([JSONL.js:51](../../../ext/JSONL/JSONL.js)) calls the same `stream()`, but as its own class, not through `Item`: board logs (`rail`, `AITask`, `Inbox`) are `JSONL`, not items. So one engine, two entry points.
+- **Gap: `item.set("prop", anotherItem)`** ([Item.js:121](../Item.js) `set_one`) puts the item in `data` and logs a snapshot `{"set":{"prop":{type,id,data}}}`. Nothing adopts the child, so `child.parent` is unset and its later deltas are not logged. On replay the snapshot comes back as a plain object, not an Item. Wiring it needs `hops()` to find a child held in a property, not only in a List; larger than one method, so it is briefed in [next.md](./next.md), not coded.
+- **Not built:** dynamic upgrade (parent store → own file when needed).
+
+Tests: [Item.test.mjs](../Item.test.mjs) covers the built part and pins the gap.
+
 ## More
 
 - [`doc/decisions.md`](./decisions.md) — the full record, traps and verdicts (the history, not this page).

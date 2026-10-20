@@ -48,6 +48,20 @@ Wire format is `{ type, id, data, <listname>: [...] }` — each List property an
 itself, written under its own name, omitted when it never made one. All user state lives under
 `data`. Headless, runs in node.
 
+## Where an item saves (the rule, 2026-10-20)
+
+An item added to a parent logs its deltas to the parent's store. Not every item needs a file. An item breaks out by need: first it lives inside the parent's file, then in its own `thing.jsonl`, then in its own `thing/` directory once a real file must sit beside it.
+
+- ✅ An item added to a parent's `List` logs to the parent's store, nested under its id: `{"kids":{"add":{...}}}`, then `{"k":{"set":{...}}}`. A reload replays it. (`Item.test.mjs`)
+- ✅ Own file: an item with its own store, or marked `_own_file`, is skipped by the parent's store (`Store.js` `owned_below`). `Task.open_ref` does this.
+- ✅ One tail: every store and `JSONL` instance tails through `ext/JSONL/live.js` `stream()`. Items, pages and tasks reach it through `Store.open()`; the board logs through the `JSONL` class, which calls `stream()` directly.
+- ⬜ `item.set("prop", anotherItem)` is only a snapshot: the child is not adopted and its later deltas are not logged. Plan: [doc/next.md](./doc/next.md).
+- ⬜ Dynamic upgrade (an item moving itself from the parent's store to its own file when it needs one) is a noted idea, not built.
+
+Code pointers and findings: [doc/architecture.md](./doc/architecture.md#items-save-through-their-parent).
+
+A testing system is a need, not now (2026-10-20). Tests today are plain node files (`node Item.test.mjs`).
+
 ## Watch out
 
 - Register every subclass (`Item.register(Class, name)`) — `Item.names` is an inverse Map, so an unregistered subclass serializes under its parent's wire name: [doc/decisions.md](./doc/decisions.md).
