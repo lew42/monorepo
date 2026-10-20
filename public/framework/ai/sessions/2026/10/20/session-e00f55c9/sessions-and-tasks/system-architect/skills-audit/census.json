@@ -1,0 +1,741 @@
+{
+  "summary": {
+    "generated": "2026-10-20T21:43:00.492Z",
+    "logs_read": {
+      "root": "C:/Code/lew42/monorepo/public/framework/ai",
+      "files": 2533
+    },
+    "skills": 34,
+    "zero_loads": [
+      "clarity",
+      "color",
+      "every-prompt",
+      "fork-claude-session",
+      "log-assistant",
+      "make",
+      "master-assistant",
+      "openrouter",
+      "ui",
+      "voice-assistant"
+    ],
+    "biggest_by_bytes": [
+      "mastermind (29600 bytes)",
+      "minion (19495 bytes)",
+      "sub-mastermind (16011 bytes)",
+      "servex-mastermind (11435 bytes)",
+      "documentation (10328 bytes)"
+    ],
+    "unreferenced": [
+      "check-claude-usage"
+    ]
+  },
+  "skills": [
+    {
+      "dir": "finish-task",
+      "name": "finish-task",
+      "description": "Run every time a task lands — the closing report the /framework/ai/ board renders: a landing line whose `outcome` is the report (a headline, then links to everything produced, a picture when there is one, what was left), the deliverables linked from where a reader already is, and the day log closed. Simple, clear, visual — a screen, not an essay. Trigger skill; the Stop hook will nag until it runs.",
+      "lines": 103,
+      "bytes": 9170,
+      "other_files": 0,
+      "improvements": 6,
+      "loads": 571,
+      "latest_load": "2026-10-20",
+      "preloaded_by": 2,
+      "referenced_by": {
+        "count": 10,
+        "paths": [
+          ".claude/skills/documentation/SKILL.md",
+          ".claude/skills/make/page.md",
+          ".claude/skills/minion/SKILL.md",
+          ".claude/skills/new-task/SKILL.md",
+          ".claude/skills/research/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "documentation",
+      "name": "documentation",
+      "description": "Run once a task's decisions are made and before finish-task — makes the touched module's docs current and conclusive: readme.md (the reader's index), page.js (show, don't tell), doc/*.md (the detail, one topic each). Also when asked to document, audit docs, write a readme, or add a doc page. Trigger skill: every task that touched a module under public/.",
+      "lines": 110,
+      "bytes": 10328,
+      "other_files": 1,
+      "improvements": 6,
+      "loads": 278,
+      "latest_load": "2026-10-17",
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 6,
+        "paths": [
+          ".claude/skills/finish-task/SKILL.md",
+          ".claude/skills/make/page.md",
+          ".claude/skills/mastermind/SKILL.md",
+          ".claude/skills/research/SKILL.md",
+          ".claude/skills/sub-mastermind/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "code",
+      "name": "code",
+      "description": "Load once per session before writing or editing JS under public/ — classes not function bags (one class per file, named for the file, page templates extend Page), assign-based OOP, every method a seam, the lifecycle of a task, and the traps that never throw. Reference skill; reload only after a long gap. Companions it will remind you of — new-task, make, layout, css, new-css-class, documentation, finish-task.",
+      "lines": 57,
+      "bytes": 5861,
+      "other_files": 0,
+      "improvements": 25,
+      "loads": 141,
+      "latest_load": "2026-10-19",
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 6,
+        "paths": [
+          ".claude/skills/css/caveats.md",
+          ".claude/skills/css/strategy.md",
+          ".claude/skills/make/SKILL.md",
+          ".claude/skills/minion/SKILL.md",
+          ".claude/skills/system-architect/measure.mjs"
+        ]
+      }
+    },
+    {
+      "dir": "minion",
+      "name": "minion",
+      "description": "Load this first, before touching anything, when you have been started as a minion — a worker `claude` CLI session, with its own session id, given a task and a requirements.md brief to execute for the mastermind or another orchestrator. Triggers on \"you are a minion\", \"your brief is at\", or any prompt that names a requirements.md. Points you at your brief, the three laws, the never-list that has actually burned agents before, and how to land.",
+      "lines": 122,
+      "bytes": 19495,
+      "other_files": 0,
+      "improvements": 56,
+      "loads": 132,
+      "latest_load": "2026-10-18",
+      "preloaded_by": 8,
+      "referenced_by": {
+        "count": 13,
+        "paths": [
+          ".claude/skills/mastermind/SKILL.md",
+          ".claude/skills/past-work/SKILL.md",
+          ".claude/skills/servex-mastermind/SKILL.md",
+          ".claude/skills/sub-mastermind/SKILL.md",
+          ".claude/skills/system-architect/measure.mjs"
+        ]
+      }
+    },
+    {
+      "dir": "css",
+      "name": "css",
+      "description": "Invoke before writing any substantial CSS in this repo — it has you read framework.css itself (the utility vocabulary, exact definitions) and decide where the declaration belongs before you write it. Re-invoke if it has been a while since the last time (context drifts); skip it for a one-line tweak. Naming a new class → the new-css-class skill; sizing a page → layout.",
+      "lines": 27,
+      "bytes": 1852,
+      "other_files": 2,
+      "improvements": 15,
+      "loads": 116,
+      "latest_load": "2026-10-15",
+      "preloaded_by": 1,
+      "referenced_by": {
+        "count": 6,
+        "paths": [
+          ".claude/skills/minion/SKILL.md",
+          ".claude/skills/review/SKILL.md",
+          ".claude/skills/servex-mastermind/SKILL.md",
+          ".claude/skills/skill-improvement/SKILL.md",
+          ".claude/skills/system-architect/measure.mjs"
+        ]
+      }
+    },
+    {
+      "dir": "check-claude-usage",
+      "name": "check-claude-usage",
+      "description": "Check how much of the Claude subscription's usage limits are consumed — the 5-hour session window and the weekly windows, as 0-100% with reset times. Use when the user asks \"how much usage do I have left\", \"am I near my limit\", \"what's my usage\", before or after an expensive operation (a wide subagent fan-out, a long autonomous run, a big refactor), or when deciding whether a costly approach is affordable.",
+      "lines": 87,
+      "bytes": 4485,
+      "other_files": 0,
+      "improvements": 6,
+      "loads": 104,
+      "latest_load": "2026-10-05",
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 0,
+        "paths": []
+      }
+    },
+    {
+      "dir": "layout",
+      "name": "layout",
+      "description": "Invoke before building or restyling anything with a size — a page, a container, a card, a grid, a dashboard — and again when a page looks cramped, squeezed, or wastes the screen. Reference; re-invoke when stale.",
+      "lines": 17,
+      "bytes": 1079,
+      "other_files": 1,
+      "improvements": 34,
+      "loads": 95,
+      "latest_load": "2026-10-12",
+      "preloaded_by": 1,
+      "referenced_by": {
+        "count": 9,
+        "paths": [
+          ".claude/skills/css/caveats.md",
+          ".claude/skills/make/page.md",
+          ".claude/skills/make/SKILL.md",
+          ".claude/skills/minion/SKILL.md",
+          ".claude/skills/new-task/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "new-css-class",
+      "name": "new-css-class",
+      "description": "Run every time you are about to introduce (or rename) a CSS class name in this repo — folded into css; the six-step checklist (reserved prefixes in framework/styles/css-scopes.txt, the live census, the owning module's prefix) is at /framework/code/css/doc/rules.md#5. Thirty seconds; skip only when reusing a class that already exists.",
+      "lines": 13,
+      "bytes": 711,
+      "other_files": 0,
+      "improvements": 5,
+      "loads": 71,
+      "latest_load": "2026-09-29",
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 4,
+        "paths": [
+          ".claude/skills/css/SKILL.md",
+          ".claude/skills/make/SKILL.md",
+          ".claude/skills/minion/SKILL.md",
+          ".claude/skills/skill-improvement/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "ui-test",
+      "name": "ui-test",
+      "description": "Prove a UI interaction instead of describing it — drive the page headless and screenshot after every gesture. Use for \"test the drag\", \"does the resize work\", \"ui-test this page\", any drag / drop / sort / resize / hover / keyboard / pointer gesture you must show working, a layout you suspect is broken at some size, and for \"force the state and shoot it\" when the state is easier to set than to reach.",
+      "lines": 31,
+      "bytes": 2241,
+      "other_files": 2,
+      "improvements": 6,
+      "loads": 67,
+      "latest_load": "2026-10-19",
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 2,
+        "paths": [
+          ".claude/skills/minion/SKILL.md",
+          ".claude/skills/ui-test/reference.md"
+        ]
+      }
+    },
+    {
+      "dir": "sub-mastermind",
+      "name": "sub-mastermind",
+      "description": "Become a task mastermind — the agent that owns exactly ONE task end to end. The master-mastermind hands you a requirements page and a fence; you decide whether the task needs a worktree, split it into minion-sized pieces with non-overlapping file fences, spawn and watch the minions, judge each deliverable against the owner's own sentence, land the task, and report one screen upward. Invoke when a brief names you a task mastermind, or on \"you own this task\".",
+      "lines": 111,
+      "bytes": 16011,
+      "other_files": 0,
+      "improvements": 25,
+      "loads": 59,
+      "latest_load": "2026-10-19",
+      "preloaded_by": 3,
+      "referenced_by": {
+        "count": 8,
+        "paths": [
+          ".claude/skills/documentation/SKILL.md",
+          ".claude/skills/finish-task/SKILL.md",
+          ".claude/skills/mastermind/SKILL.md",
+          ".claude/skills/minion/SKILL.md",
+          ".claude/skills/system-architect/measure.mjs"
+        ]
+      }
+    },
+    {
+      "dir": "page",
+      "name": "page",
+      "description": "Invoke before making or reshaping ANY page, card or view the owner will look at — the whole job top-down: what kind of page, where it lives, how it's reached, its layout, its content and the order of that content. This is now the pointer into the design system; the rules themselves live on the pages it names.",
+      "lines": 16,
+      "bytes": 1011,
+      "other_files": 0,
+      "improvements": 5,
+      "loads": 58,
+      "latest_load": "2026-10-19",
+      "preloaded_by": 10,
+      "referenced_by": {
+        "count": 18,
+        "paths": [
+          ".claude/skills/clarity/SKILL.md",
+          ".claude/skills/finish-task/SKILL.md",
+          ".claude/skills/make/page.md",
+          ".claude/skills/make/SKILL.md",
+          ".claude/skills/mastermind/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "skill-improvement",
+      "name": "skill-improvement",
+      "description": "Run the moment a skill lets you down — it told you something wrong, was silent about a trap that then bit you, cost you a wrong turn, or you worked around it. Also when anything surprises you and the surprise was preventable. Thirty seconds; one line appended to that skill's improvements.md. Trigger skill.",
+      "lines": 39,
+      "bytes": 1996,
+      "other_files": 0,
+      "improvements": 5,
+      "loads": 52,
+      "latest_load": "2026-10-01",
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 5,
+        "paths": [
+          ".claude/skills/auditor/SKILL.md",
+          ".claude/skills/mastermind/SKILL.md",
+          ".claude/skills/minion/SKILL.md",
+          ".claude/skills/sub-mastermind/SKILL.md",
+          ".claude/skills/system-architect/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "servex-mastermind",
+      "name": "servex-mastermind",
+      "description": "Become the Servex Mastermind — the systems architect that runs on Servex as the generic `mastermind` role. You oversee how the whole agent system works (quality audits of layout, contrast and use of space; spend; coordination; crashes) and improve the SYSTEM (skills, briefs, tools), never doing routine work yourself. Load when started as mastermind-servex, or on \"you are the Servex mastermind\".",
+      "lines": 122,
+      "bytes": 11435,
+      "other_files": 0,
+      "improvements": 21,
+      "loads": 28,
+      "latest_load": "2026-10-12",
+      "preloaded_by": 2,
+      "referenced_by": {
+        "count": 2,
+        "paths": [
+          "Servex/agents/External.js",
+          "Servex/agents/roles.js"
+        ]
+      }
+    },
+    {
+      "dir": "new-task",
+      "name": "new-task",
+      "description": "Open a task — create its folder with node Server/TaskDirs.mjs --new <slug>, open its task.jsonl log, and give it presence on the owner's dashboard. Run this BEFORE THE FIRST EDIT in ANY Claude session in this repo — building, changing, fixing, adding, refactoring, restyling, a doc pass, a rename, a demo, a bug fix — and when an agent embarks on a distinct sub-project. Also on \"new task\" / \"start a task\". Not needed to answer a question, read, investigate, or prepare — but the moment that turns into an edit, run it. Unsure? Run it.",
+      "lines": 84,
+      "bytes": 9584,
+      "other_files": 0,
+      "improvements": 8,
+      "loads": 26,
+      "latest_load": "2026-10-04",
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 10,
+        "paths": [
+          ".claude/hooks/ledger.mjs",
+          ".claude/hooks/prompt-relay.mjs",
+          ".claude/hooks/readme.md",
+          ".claude/skills/mastermind/SKILL.md",
+          ".claude/skills/minion/improvements.md"
+        ]
+      }
+    },
+    {
+      "dir": "research",
+      "name": "research",
+      "description": "Run before writing down anything you researched — a round of digging into a question, a topic in a research program, a claim you are about to record as true. Covers the entry schema, the credence discipline (the one thing agents get wrong), the skeptic pass, where logs live, and how the presentation picks them up. Trigger skill; two minutes, and it is what makes the result readable by someone who was not you.",
+      "lines": 148,
+      "bytes": 9047,
+      "other_files": 0,
+      "improvements": 9,
+      "loads": 5,
+      "latest_load": "2026-09-29",
+      "preloaded_by": 1,
+      "referenced_by": {
+        "count": 4,
+        "paths": [
+          ".claude/skills/minion/SKILL.md",
+          ".claude/skills/servex-mastermind/SKILL.md",
+          ".claude/skills/sub-mastermind/SKILL.md",
+          "Servex/agents/roles.js"
+        ]
+      }
+    },
+    {
+      "dir": "system-architect",
+      "name": "system-architect",
+      "description": "Become the system architect — the one agent that reads CLAUDE.md, every skill and the hooks as a whole, finds rules that contradict, repeat, or describe retired systems, and cuts them. Owns changes to the shared skills (took that duty from the retired mastermind-servex). Load for a whole-system review, when improvements.md lines pile up, or on \"you are the system architect\".",
+      "lines": 48,
+      "bytes": 3965,
+      "other_files": 2,
+      "improvements": 0,
+      "loads": 5,
+      "latest_load": "2026-10-20",
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 4,
+        "paths": [
+          ".claude/skills/clarity/SKILL.md",
+          ".claude/skills/servex-mastermind/SKILL.md",
+          ".claude/skills/system-architect/measure.mjs",
+          ".claude/skills/system-architect/skill-usage.mjs"
+        ]
+      }
+    },
+    {
+      "dir": "review",
+      "name": "review",
+      "description": "Become the fresh-eyes reviewer — one pass that checks finished work against the owner's asks and every design system (page, navigation, layout, sizing, wrapping, spacing, colour, flow, words), answering each system's questions with a screenshot or a number as proof. Invoke on \"review\", \"use your review skill\", \"fresh-eyes review\", \"review this page\", or when Server/review.mjs starts you.",
+      "lines": 87,
+      "bytes": 6576,
+      "other_files": 0,
+      "improvements": 4,
+      "loads": 4,
+      "latest_load": "2026-10-13",
+      "preloaded_by": 2,
+      "referenced_by": {
+        "count": 7,
+        "paths": [
+          ".claude/skills/minion/improvements.md",
+          ".claude/skills/minion/SKILL.md",
+          ".claude/skills/new-task/SKILL.md",
+          ".claude/skills/page/SKILL.md",
+          ".claude/skills/sub-mastermind/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "content",
+      "name": "content",
+      "description": "Invoke before writing anything the owner will read — a card, a report, a task outcome, a readme, a page's text, a chat reply. How to make it understood at a glance. Thirty seconds; re-read it whenever a reply is getting long.",
+      "lines": 23,
+      "bytes": 1554,
+      "other_files": 0,
+      "improvements": 0,
+      "loads": 3,
+      "latest_load": "2026-10-02",
+      "preloaded_by": 3,
+      "referenced_by": {
+        "count": 8,
+        "paths": [
+          ".claude/skills/clarity/SKILL.md",
+          ".claude/skills/documentation/SKILL.md",
+          ".claude/skills/every-prompt/page-assistant.md",
+          ".claude/skills/finish-task/SKILL.md",
+          ".claude/skills/review/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "decide",
+      "name": "decide",
+      "description": "Run whenever a research round, a plan or a task reaches a decision — anything with options to choose between (which library, proxy or build, where it lives). The decision is written by Server/Decide.mjs, a node tool that walks it step by step and refuses a missing part. The tool is the only way to write one; never hand-write a decision line.",
+      "lines": 47,
+      "bytes": 4117,
+      "other_files": 0,
+      "improvements": 0,
+      "loads": 2,
+      "latest_load": "2026-10-08",
+      "preloaded_by": 2,
+      "referenced_by": {
+        "count": 4,
+        "paths": [
+          ".claude/skills/make/SKILL.md",
+          ".claude/skills/research/SKILL.md",
+          "Servex/agents/Jobs.js",
+          "Servex/agents/tidy.js"
+        ]
+      }
+    },
+    {
+      "dir": "mastermind",
+      "name": "mastermind",
+      "description": "Become the mastermind — the executive that governs the usage budget, finds the highest-priority work, and spawns minions down the model ladder (Haiku scans, Sonnet builds, Opus judges) to do it, several tasks at once. Invoke on \"you are the mastermind, begin\", \"/mastermind\", or any wakeup carrying /mastermind. You decide, workers execute; only the owner stands you down.",
+      "lines": 183,
+      "bytes": 29600,
+      "other_files": 0,
+      "improvements": 29,
+      "loads": 2,
+      "latest_load": "2026-10-15",
+      "preloaded_by": 7,
+      "referenced_by": {
+        "count": 14,
+        "paths": [
+          ".claude/skills/every-prompt/page-assistant.md",
+          ".claude/skills/every-prompt/say.mjs",
+          ".claude/skills/fork-claude-session/SKILL.md",
+          ".claude/skills/servex-mastermind/SKILL.md",
+          ".claude/skills/skill-improvement/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "voice-mastermind",
+      "name": "voice-mastermind",
+      "description": "Become the voice session's mastermind — the Opus agent behind the Claude app's voice chat (the ask_mastermind connector). Standard mastermind mode (spawn minions for real work, watch usage, log everything), plus hands-free manners for a voice partner: answer in seconds, never do long work yourself, and tell the voice agent before starting anything that takes more than a few seconds. Load when spawned as a voice session's mastermind.",
+      "lines": 19,
+      "bytes": 3854,
+      "other_files": 0,
+      "improvements": 0,
+      "loads": 2,
+      "latest_load": "2026-10-15",
+      "preloaded_by": 2,
+      "referenced_by": {
+        "count": 2,
+        "paths": [
+          "Servex/agents/tools.js",
+          "Servex/ext/remote/RemoteMCP.js"
+        ]
+      }
+    },
+    {
+      "dir": "auditor",
+      "name": "auditor",
+      "description": "You are the decision auditor — the method the Servex mastermind (the skills architect) uses to turn a mistake into a skill change. The mastermind wakes you when a mistake reached the owner, or when a judgment call the system made turned out wrong. You read what the agent actually had in front of it, say why that was not enough, and propose at most five changes ranked by mistakes prevented per line of text. Reshape, merge, delete; a new rule comes last.",
+      "lines": 72,
+      "bytes": 4722,
+      "other_files": 0,
+      "improvements": 17,
+      "loads": 1,
+      "latest_load": "2026-09-19",
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 3,
+        "paths": [
+          ".claude/skills/master-assistant/SKILL.md",
+          ".claude/skills/servex-mastermind/SKILL.md",
+          ".claude/skills/system-architect/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "navigation",
+      "name": "navigation",
+      "description": "The path — how links look, persistent or switching, transitions, back and reload. Invoke before building tabs, a rail, a sidebar, a sheet, a modal or a full-screen view.",
+      "lines": 13,
+      "bytes": 637,
+      "other_files": 0,
+      "improvements": 4,
+      "loads": 1,
+      "latest_load": "2026-10-04",
+      "preloaded_by": 1,
+      "referenced_by": {
+        "count": 2,
+        "paths": [
+          ".claude/skills/ui-test/reference.md",
+          "Servex/agents/page_tools.js"
+        ]
+      }
+    },
+    {
+      "dir": "past-work",
+      "name": "past-work",
+      "description": "Before building anything, find out what already exists — past tasks, docs, modules, commits on the topic — so we never rebuild what is stable and used everywhere. Run it at the start of every task (before the plan), as a one-screen answer. A mastermind runs it or has a Haiku minion run it.",
+      "lines": 58,
+      "bytes": 4425,
+      "other_files": 0,
+      "improvements": 0,
+      "loads": 1,
+      "latest_load": "2026-10-12",
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 2,
+        "paths": [
+          ".claude/skills/mastermind/SKILL.md",
+          ".claude/skills/new-task/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "clarity",
+      "name": "clarity",
+      "description": "Become the clarity agent — woken fresh when a task lands or a task is proposed, you check what it wrote for the owner against the `content` skill, and turn every failure into a concrete rewrite sent to the agent that owns it. Managed by the `system-architect` skill, which refines this skill from your misses. Sonnet, medium effort, one pass, then stop.",
+      "lines": 53,
+      "bytes": 4514,
+      "other_files": 1,
+      "improvements": 8,
+      "loads": 0,
+      "latest_load": null,
+      "preloaded_by": 5,
+      "referenced_by": {
+        "count": 8,
+        "paths": [
+          ".claude/hooks/jsonl-schema.mjs",
+          ".claude/hooks/jsonl-schema.test.mjs",
+          ".claude/skills/clarity/flags.jsonl",
+          "Servex/agents/Agents.js",
+          "Servex/agents/roles.js"
+        ]
+      }
+    },
+    {
+      "dir": "color",
+      "name": "color",
+      "description": "Colour and contrast: tokens, ratios, light and dark. Invoke before choosing or setting any colour, background or contrast pair.",
+      "lines": 13,
+      "bytes": 649,
+      "other_files": 0,
+      "improvements": 4,
+      "loads": 0,
+      "latest_load": null,
+      "preloaded_by": 1,
+      "referenced_by": {
+        "count": 1,
+        "paths": [
+          "Servex/ext/openrouter/evals/ui-fouls/foul-contrast/page.js"
+        ]
+      }
+    },
+    {
+      "dir": "every-prompt",
+      "name": "every-prompt",
+      "description": "Become the owner's fast assistant — the front desk for a running mastermind. Invoke on \"/every-prompt\" or \"you are the assistant\", and re-invoke on EVERY prompt: it is short on purpose, so re-reading costs little and keeps you who you are. You answer on the owner's screen (the dev bar log) with one shell command and relay their words to the mastermind. You do no building, read no code, and keep your context tiny. Sonnet at low effort, in its own tab.",
+      "lines": 69,
+      "bytes": 4262,
+      "other_files": 6,
+      "improvements": 4,
+      "loads": 0,
+      "latest_load": null,
+      "preloaded_by": 3,
+      "referenced_by": {
+        "count": 10,
+        "paths": [
+          ".claude/hooks/ledger.mjs",
+          ".claude/hooks/prompt-relay.mjs",
+          ".claude/skills/every-prompt/cards.md",
+          ".claude/skills/every-prompt/say.mjs",
+          ".claude/skills/every-prompt/tiers.md"
+        ]
+      }
+    },
+    {
+      "dir": "fork-claude-session",
+      "name": "fork-claude-session",
+      "description": "Spawn worker Claude processes that inherit the CURRENT conversation's full context — loaded files, tool results, reasoning — instead of starting cold like Agent subagents do. Use when the user asks to \"fork the session\", \"fork my context\", or wants parallel workers that have already read what you've read. Covers finding the live session ID, `claude --resume --fork-session`, setting each fork's model and thinking effort, fanning out N forks, and collecting their JSON results.",
+      "lines": 23,
+      "bytes": 1898,
+      "other_files": 1,
+      "improvements": 6,
+      "loads": 0,
+      "latest_load": null,
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 3,
+        "paths": [
+          ".claude/skills/check-claude-usage/SKILL.md",
+          ".claude/skills/mastermind/SKILL.md",
+          ".claude/skills/new-task/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "log-assistant",
+      "name": "log-assistant",
+      "description": "Become the log assistant — the one agent allowed to settle a naming or content conflict in the event log. You are woken by the appender when a write fails its naming check: two agents proposing a different name for the same thing, a rename aimed at a name the owner has already seen, a dispute that needs a consensus. You read only the contested entries, append one verdict, and stop. You never do a mechanical append.",
+      "lines": 59,
+      "bytes": 3497,
+      "other_files": 0,
+      "improvements": 6,
+      "loads": 0,
+      "latest_load": null,
+      "preloaded_by": 1,
+      "referenced_by": {
+        "count": 1,
+        "paths": [
+          "Servex/agents/roles.js"
+        ]
+      }
+    },
+    {
+      "dir": "make",
+      "name": "make",
+      "description": "Run BEFORE creating anything new in this repo — a file, a folder, a page, a class, a doc, or a name for any of them (class, method, CSS class, card, tool, concept). Four questions in order — name it, place it, class it, show it — then the page mechanics (`create_page`). Replaces the `naming` and `new-page` skills (2026-10-13). Trigger skill; one minute, and the most important minute of the task.",
+      "lines": 43,
+      "bytes": 5344,
+      "other_files": 1,
+      "improvements": 6,
+      "loads": 0,
+      "latest_load": null,
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 4,
+        "paths": [
+          ".claude/skills/code/SKILL.md",
+          ".claude/skills/minion/SKILL.md",
+          ".claude/skills/page/SKILL.md",
+          ".claude/skills/skill-improvement/SKILL.md"
+        ]
+      }
+    },
+    {
+      "dir": "master-assistant",
+      "name": "master-assistant",
+      "description": "Become the master assistant — the supervising half of the front desk. You know what is going on, you give an opinion in one or two sentences when the fast assistant or the mastermind asks, you keep one page current on how the process itself is going, and between questions you are the system auditor. You do no building and never edit the site. Opus; Fable for an architecture question.",
+      "lines": 54,
+      "bytes": 3132,
+      "other_files": 0,
+      "improvements": 9,
+      "loads": 0,
+      "latest_load": null,
+      "preloaded_by": 7,
+      "referenced_by": {
+        "count": 8,
+        "paths": [
+          ".claude/skills/every-prompt/page-assistant.md",
+          "Servex/agents/Agents.js",
+          "Servex/agents/Global.js",
+          "Servex/agents/Layers.js",
+          "Servex/agents/policy.js"
+        ]
+      }
+    },
+    {
+      "dir": "openrouter",
+      "name": "openrouter",
+      "description": "Become the OpenRouter mastermind — load when starting OpenRouter/harness work, or on any question about proxying a model through OpenRouter, the tiers.js provider field, cross-family review, or the model switcher.",
+      "lines": 8,
+      "bytes": 386,
+      "other_files": 0,
+      "improvements": 0,
+      "loads": 0,
+      "latest_load": null,
+      "preloaded_by": 8,
+      "referenced_by": {
+        "count": 8,
+        "paths": [
+          "Servex/agents/Agents.js",
+          "Servex/agents/Echo.js",
+          "Servex/agents/roles.js",
+          "Servex/agents/Sessions.js",
+          "Servex/agents/tiers.js"
+        ]
+      }
+    },
+    {
+      "dir": "ui",
+      "name": "ui",
+      "description": "Buttons, toolbars, dropdowns, icons — states and targets. Invoke before building or placing any control the reader presses.",
+      "lines": 13,
+      "bytes": 595,
+      "other_files": 0,
+      "improvements": 4,
+      "loads": 0,
+      "latest_load": null,
+      "preloaded_by": 0,
+      "referenced_by": {
+        "count": 6,
+        "paths": [
+          ".claude/hooks/jsonl-schema.mjs",
+          ".claude/skills/clarity/flags.jsonl",
+          ".claude/skills/clarity/SKILL.md",
+          ".claude/skills/code/improvements.md",
+          ".claude/skills/ui-test/reference.md"
+        ]
+      }
+    },
+    {
+      "dir": "voice-assistant",
+      "name": "voice-assistant",
+      "description": "Become the voice assistant — the one plain assistant of a voice session. Each time the owner finishes a sentence you are woken with the whole prompt so far plus the new sentence, and you answer with ONE placement (same paragraph, own paragraph, or own card), written into the session file with the item tool. Loaded by Servex for the `voice-assistant` role; not for other agents.",
+      "lines": 31,
+      "bytes": 2369,
+      "other_files": 0,
+      "improvements": 0,
+      "loads": 0,
+      "latest_load": null,
+      "preloaded_by": 2,
+      "referenced_by": {
+        "count": 2,
+        "paths": [
+          "Servex/agents/roles.js",
+          "Servex/agents/Sessions.js"
+        ]
+      }
+    }
+  ]
+}
