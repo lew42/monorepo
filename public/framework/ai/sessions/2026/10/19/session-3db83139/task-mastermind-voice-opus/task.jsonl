@@ -56,3 +56,9 @@
 {"log":{"at":"2026-10-19T19:09:54-05:00","msg":"task-loop chase 1 of 2: woke task-mastermind-voice-opus","chase":1}}
 {"log":{"at":"2026-10-19T19:09:57-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-19T19:11:05-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T19:24:54-05:00","msg":"task-loop chase 2 of 2: woke task-mastermind-voice-opus","chase":2}}
+{"log":{"at":"2026-10-19T19:24:58-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-19T19:26:05-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T19:33:32-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-19T19:35:05-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T19:39:54-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
