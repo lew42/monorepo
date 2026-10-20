@@ -74,6 +74,6 @@ Census by script: [census.json](/framework/ai/sessions/2026/10/20/session-e00f55
 
 ## Loose ends
 
-- Links into the moved files: `Servex/cards/readme.md` and `doc/readme-before-2026-10-19.md` still link `handoff2.md`; they now 404. Fix in a later task (the fence here was the `git mv` only).
+- `handoff2.md` and `handoff2-owner-words.md` were moved aside, then moved back by the architect: two readmes link them, so they are read.
 - `tasks/` (252 folders) and the two old date trees need the one-tree mover; this audit only planned it.
 - The old-session move is planned, not applied: [move-old-sessions.mjs](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/move-old-sessions.mjs) and its [manifest](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/move-manifest.jsonl) (1 to move, 1 skipped as live).
