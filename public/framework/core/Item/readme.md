@@ -94,6 +94,7 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 ## More
 
 - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+- [`doc/store-index-query-plan.md`](./doc/store-index-query-plan.md) — the plan (not built): one store, one dated index (`Dated`), one query for sessions, tasks and projects
 - [`doc/item-notes.md`](./doc/item-notes.md) — comments pruned from `Item.js`, verbatim.
 - [Overview](/framework/core/Item/) — the page asserts every claim on load; red is a broken framework.
 - [Live list](/framework/core/Item/live/) — the same List, on a real page, saved to a real file: drag, add, sort, reload.
