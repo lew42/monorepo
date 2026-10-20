@@ -1,0 +1,208 @@
+// DatedFiles: the node half of core/Item/Dated.js. Makes, moves, queries and checks a collection filed by day (today: "projects").
+//   create({module, slug, title})  mkdir <module>/projects/YYYY/MM/DD/<slug>/, line 1 of project.jsonl, and the index row, one call
+//   move({from, module, apply})    git mv a project folder into a module; rows on BOTH days, a pointer in its session, one manifest line (body of the old ProjectMove)
+//   undo({run})                    put a move back
+//   query({from, to, where, sort}) the index rows of a day range, run through ext/Query
+//   check()                        rebuild from the folders, diff with the index: {ok, missing, stale}
+// Index = the day stream ai/sessions/YYYY/MM/DD/index.jsonl (AIIndexStream). Doors: static tools() (SDK/MCP) and static setup(socket) (dev socket) call these same methods.
+// Doc: Server/doc/dated-files.md · plan: public/framework/core/Item/doc/store-index-query-plan.md
+import fs from "node:fs";
+import path from "node:path";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import AIIndexStream from "./AIIndexStream.mjs";
+import SessionRecord from "./SessionRecord.mjs";
+import Day from "../public/framework/core/Session/Day.js";
+import Dated from "../public/framework/core/Item/Dated.js";
+import Query from "../public/framework/ext/Query/Query.js";
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const slash = p => p.split(path.sep).join("/");
+
+export default class DatedFiles extends Dated {
+	static ROOT = path.resolve(HERE, "..");                      // a test points this at a scratch repo
+	static MANIFEST = "public/framework/ai/sessions/project-moves.jsonl";
+
+	static abs(rel){ return path.join(this.ROOT, rel); }
+	static rel(abs){ return slash(path.relative(this.ROOT, abs)); }
+	static url(rel){ return "/" + rel.replace(/^public\//, "").replace(/\/?$/, "/"); }
+	static lines(file){
+		try { return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(l => l.startsWith("{")).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
+		catch { return []; }
+	}
+	static append(file, obj){ fs.mkdirSync(path.dirname(file), { recursive: true }); fs.appendFileSync(file, JSON.stringify(obj) + "\n"); }
+	static git(...args){ return execFileSync("git", args, { cwd: this.ROOT, encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }).trim(); }
+	static tracked(rel){ try { return !!this.git("ls-files", "--", rel); } catch { return false; } }
+	get store(){ return DatedFiles.abs(this.index); }
+
+	/** The project's own facts, replayed through core/Task/Project.js: title, state, completion (0..1). */
+	async read(dir){
+		const lines = DatedFiles.lines(path.join(dir, this.file));
+		if (!lines.length) throw new Error(`no ${this.file} in ${DatedFiles.rel(dir)}`);
+		const { default: Project } = await import(pathToFileURL(path.join(HERE, "../public/framework/core/Task/Project.js")).href);
+		const p = Project.from_lines(lines);
+		const at = lines.map(l => Object.values(l).find(v => v && typeof v === "object")?.at ?? l.at).find(Boolean);
+		return { title: p.get_one("title") ?? lines[0].title ?? path.basename(dir), state: p.state, completion: p.completion, at };
+	}
+
+	/** Which day the item started: the YYYY/MM/DD in its session path, else the first line's time, else today. */
+	start_day(rel, at){
+		const m = rel.match(/sessions\/(\d{4})\/(\d{2})\/(\d{2})\//);
+		return m ? `${m[1]}-${m[2]}-${m[3]}` : (Day.of(at) || Day.of());
+	}
+
+	/** The session folder that owns an item: the nearest ancestor holding a session.jsonl (or an old task.jsonl). */
+	session_of(dir){
+		const R = DatedFiles.ROOT;
+		for (let d = path.dirname(dir); d.startsWith(R) && d !== R; d = path.dirname(d)) if (SessionRecord.file(d)) return d;
+		return null;
+	}
+
+	row(slug, rel, facts){ return { id: slug, path: rel, url: DatedFiles.url(rel), title: facts.title, state: facts.state, completion: facts.completion }; }
+
+	/** Makes a new project in a module: the folder, line 1, and the index row on its day. */
+	create({ module, slug, title, day = Day.of(), at = new Date().toISOString() }){
+		if (!/^[a-z0-9][a-z0-9-]*$/.test(slug ?? "")) throw new Error(`create: slug "${slug}" must be lowercase words and dashes`);
+		const home = `public/framework/${String(module ?? "").replace(/^\/|\/$/g, "")}`;
+		if (!module || !fs.existsSync(DatedFiles.abs(home))) throw new Error(`module ${module} does not exist (${home})`);
+		const dir = this.path(day, slug, module);
+		if (fs.existsSync(DatedFiles.abs(dir))) throw new Error(`${dir} already exists`);
+		DatedFiles.append(path.join(DatedFiles.abs(dir), this.file), { id: slug, title: title ?? slug, module, at });
+		const row = this.row(slug, dir, { title: title ?? slug, state: "idle", completion: 0 });
+		AIIndexStream.append(this.store, this.kind, row, `${Day.of(day)}T00:00:00`);
+		return { dir, id: slug, url: row.url };
+	}
+
+	async plan({ from, module }){
+		const R = DatedFiles, rel = from.startsWith("/framework/") ? "public" + from.replace(/\/$/, "") : slash(path.relative(R.ROOT, path.resolve(R.ROOT, from)));
+		const dir = R.abs(rel);
+		if (!fs.existsSync(path.join(dir, this.file))) throw new Error(`${rel} has no ${this.file}; only a project folder moves`);
+		if (rel.includes("/projects/")) throw new Error(`${rel} is already in a module's projects/ folder`);
+		const home = `public/framework/${module.replace(/^\/|\/$/g, "")}`;
+		if (!fs.existsSync(R.abs(home))) throw new Error(`module ${module} does not exist (${home})`);
+		const facts = await this.read(dir), slug = path.basename(dir), day = this.start_day(rel, facts.at);
+		const to = this.path(day, slug, module);
+		if (fs.existsSync(R.abs(to))) throw new Error(`${to} already exists`);
+		const session = this.session_of(dir);
+		return { from: rel, to, module, slug, day, ...facts, session: session && R.rel(session) };
+	}
+
+	/** Dry run unless `apply`. Returns the plan, plus the run id when applied. */
+	async move({ from, module, apply = false }){
+		const R = DatedFiles, plan = await this.plan({ from, module });
+		if (!apply) return { dry_run: true, ...plan };
+		const now = new Date().toISOString();
+		fs.mkdirSync(path.dirname(R.abs(plan.to)), { recursive: true });
+		if (R.tracked(plan.from)) R.git("mv", plan.from, plan.to); else fs.renameSync(R.abs(plan.from), R.abs(plan.to));
+		const row = { ...this.row(plan.slug, plan.to, plan), moved_from: plan.from };
+		AIIndexStream.append(this.store, this.kind, row, `${plan.day}T00:00:00`);   // the start day's stream now points at the new home
+		AIIndexStream.append(this.store, this.kind, { ...row, moved: true }, now);   // today's stream shows the move
+		if (plan.session) R.append(SessionRecord.file(R.abs(plan.session)), { log: { at: now, msg: `project ${plan.slug} moved to ${R.url(plan.to)} (was ${plan.from})` } });
+		const run = now.replace(/\D/g, "").slice(0, 14);
+		R.append(R.abs(R.MANIFEST), { run, at: now, from: plan.from, to: plan.to, module, slug: plan.slug, day: plan.day, session: plan.session });
+		return { dry_run: false, run, ...plan };
+	}
+
+	/** Reverses one move (the last that is not undone, or `run`): the folder goes back and each day gets a mirror row. */
+	async undo({ run } = {}){
+		const R = DatedFiles, all = R.lines(R.abs(R.MANIFEST)), undone = new Set(all.filter(l => l.undone).map(l => l.undone));
+		const m = all.filter(l => l.to && !undone.has(l.run)).filter(l => !run || l.run === run).pop();
+		if (!m) throw new Error("no move to undo");
+		if (!fs.existsSync(R.abs(m.to))) throw new Error(`${m.to} is gone; nothing to put back`);
+		if (fs.existsSync(R.abs(m.from))) throw new Error(`${m.from} already exists; will not overwrite`);
+		const now = new Date().toISOString(), facts = await this.read(R.abs(m.to));
+		fs.mkdirSync(path.dirname(R.abs(m.from)), { recursive: true });
+		if (R.tracked(m.to)) R.git("mv", m.to, m.from); else fs.renameSync(R.abs(m.to), R.abs(m.from));
+		for (let d = path.dirname(R.abs(m.to)); d.includes(`${path.sep}projects${path.sep}`); d = path.dirname(d)) { try { fs.rmdirSync(d); } catch { break; } }
+		const row = this.row(m.slug, m.from, facts);
+		AIIndexStream.append(this.store, this.kind, row, `${m.day}T00:00:00`);
+		AIIndexStream.append(this.store, this.kind, { ...row, moved_back: true }, now);
+		if (m.session && SessionRecord.file(R.abs(m.session))) R.append(SessionRecord.file(R.abs(m.session)), { log: { at: now, msg: `project ${m.slug} moved back to ${m.from}` } });
+		R.append(R.abs(R.MANIFEST), { at: now, undone: m.run, from: m.to, to: m.from });
+		return { undone: m.run, from: m.to, to: m.from };
+	}
+
+	/** The index rows of a day range (default: the last 30 days), filtered, sorted and paged by ext/Query. Spec: {from, to, where, sort, offset, limit}. */
+	async query(spec = {}){
+		const to = spec.to ?? Day.of(), d = new Date(to + "T12:00:00"); d.setDate(d.getDate() - 30);
+		const rows = await this.rows({ from: spec.from ?? Day.of(d), to, load: async day => AIIndexStream.read(this.store, day) });
+		return new Query({ sort: { by: "at", dir: "desc" }, ...spec }).run(rows.map(r => ({ ...r, at: r.at ?? "" })));
+	}
+
+	/** Every project folder under <module>/projects/YYYY/MM/DD/<slug>/ in the repo. */
+	folders(){
+		const out = [], R = DatedFiles, walk = (dir, depth) => {
+			let names; try { names = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+			for (const e of names) {
+				if (!e.isDirectory() || e.name === "node_modules" || e.name === ".git") continue;
+				const full = path.join(dir, e.name);
+				if (e.name === "projects" && fs.existsSync(path.join(full))) { this.days_under(full, out); continue; }
+				if (depth < 6) walk(full, depth + 1);
+			}
+		};
+		walk(R.abs("public/framework"), 0);
+		return out;
+	}
+	days_under(projects, out){
+		const R = DatedFiles, ls = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => path.join(d, e.name)); } catch { return []; } };
+		for (const y of ls(projects)) for (const m of ls(y)) for (const dd of ls(m)) for (const slug of ls(dd))
+			if (fs.existsSync(path.join(slug, this.file))) out.push({ path: R.rel(slug), day: `${path.basename(y)}-${path.basename(m)}-${path.basename(dd)}` });
+	}
+
+	/** Rebuild from the folders and diff with the index: `missing` = a folder with no row, `stale` = a row whose folder is gone. Never out of sync, or ok is false. */
+	async check(){
+		const R = DatedFiles, latest = new Map();
+		for (const day of Dated.days(Day.of(new Date(Date.now() - 400 * 864e5)), Day.of()))
+			for (const l of AIIndexStream.read(this.store, day)) { const r = l[this.kind]; if (r?.id) latest.set(r.id, { ...latest.get(r.id), ...r }); }
+		const found = this.folders(), have = new Set(found.map(f => f.path));
+		const indexed = new Set([...latest.values()].map(r => r.path));
+		const missing = found.filter(f => !indexed.has(f.path)).map(f => f.path);
+		const stale = [...latest.values()].filter(r => !fs.existsSync(R.abs(r.path))).map(r => r.path);
+		return { ok: !missing.length && !stale.length, folders: have.size, rows: latest.size, missing, stale };
+	}
+
+	// ── the doors: one set of methods, two adapters ─────────────────────────────────────────────
+	static get files(){ return this._files ??= new DatedFiles("projects"); }
+
+	/** SDK/MCP tools. `move_project` keeps its name (the one door); `dated_create` and `dated_query` are the other two. */
+	static tools(){
+		const f = () => this.files, json = async v => JSON.stringify(await v, null, 2);
+		return [
+			{
+				name: "move_project",
+				description: "Move a project folder (one holding project.jsonl) from its session into a module: git mv to <module>/projects/YYYY/MM/DD/<slug>/ and it indexes itself (both days' index.jsonl, a one-line pointer in the session's session.jsonl). Dry run unless apply is true. {undo:true} puts the last move back. Doc: /framework/ai/tasks/doc/projects.md",
+				inputSchema: { type: "object", properties: {
+					from: { type: "string", description: "The project folder: a repo path or a site path (/framework/ai/sessions/…/<slug>/)." },
+					module: { type: "string", description: 'The module that takes it, e.g. "core/Task".' },
+					apply: { type: "boolean", description: "Do it. Omitted = dry run." },
+					undo: { type: "boolean", description: "Reverse the last move (then from/module are ignored)." } } },
+				handler: a => json(a.undo ? f().undo() : f().move(a))
+			},
+			{
+				name: "dated_create",
+				description: "Make a new project in a module: <module>/projects/YYYY/MM/DD/<slug>/project.jsonl with its first line, and its row in the day's index. Doc: Server/doc/dated-files.md",
+				inputSchema: { type: "object", required: ["module", "slug"], properties: { module: { type: "string" }, slug: { type: "string", description: "lowercase words and dashes" }, title: { type: "string" } } },
+				handler: a => json(f().create(a))
+			},
+			{
+				name: "dated_query",
+				description: "Query the projects index (default: last 30 days). Spec: {from, to (YYYY-MM-DD), where:[{field,op,value}], sort, limit}. Returns {rows,total}.",
+				inputSchema: { type: "object", properties: { from: { type: "string" }, to: { type: "string" }, where: { type: "array" }, sort: { type: "object" }, limit: { type: "number" } } },
+				handler: a => json(f().query(a))
+			}
+		];
+	}
+
+	/** The dev-socket door: rpc:dated_create / dated_move / dated_query answer `{index, response}`. Local peers only (the socket refuses LAN commands). */
+	static socket(socket){
+		const door = (name, fn) => socket.on(`rpc:${name}`, async (args = [], index) => {
+			let response; try { response = { ok: true, ...(await fn(args[0] ?? {})) }; } catch (e) { response = { ok: false, error: e.message }; }
+			socket.send({ index, response });
+		});
+		door("dated_create", a => this.files.create(a));
+		door("dated_move", a => a.undo ? this.files.undo(a) : this.files.move(a));
+		door("dated_query", a => this.files.query(a));
+	}
+	/** `DevSocket.Socket.use(DatedFiles)` calls this for every socket. */
+	static setup(socket){ this.socket(socket); }
+}
