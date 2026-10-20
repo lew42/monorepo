@@ -56,6 +56,9 @@ export default class Follow {
 	 * agent through a whole log in one shot. */
 	static CAP = 200;
 
+	/* Lines a child-tail never forwards: the heartbeat's own log lines and the commit hook's bare {"commit":sha}. */
+	static NOISE = /^{"commit":"[0-9a-f]+"}$|"heartbeat":/;
+
 	constructor(...args){ this.assign({
 		subs: [], file: place("follow.json"), watcher: null, watched: [],
 		sizes: new Map(), offsets: new Map(), pending: new Map(), timers: new Map()
@@ -242,6 +245,8 @@ export default class Follow {
 	/* ── bursts, one message per agent ───────────────────────────────── */
 
 	queue(sub, item){
+		// a parent tailing its child (`of`) is told the work, not the housekeeping: heartbeat and bare commit lines wake nobody (2026-10-20)
+		if (sub.of && item.lines){ item = { ...item, lines: item.lines.filter(l => !this.constructor.NOISE.test(l)) }; if (!item.lines.length) return; }
 		const bucket = this.pending.get(sub.agent) ?? this.pending.set(sub.agent, []).get(sub.agent);
 		bucket.push({ ...item, under: sub.path });
 		if (!this.timers.has(sub.agent))
