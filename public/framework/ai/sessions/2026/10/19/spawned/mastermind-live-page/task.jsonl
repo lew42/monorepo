@@ -86,3 +86,4 @@
 {"log":{"at":"2026-10-19T21:49:59-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-19T21:50:29-05:00","heartbeat":"answered","msg":"Idle, no change since the last check. My `/live/sessions/` fix and docs are committed, and the voice-logging work is another agent's. I haven't checked `/live/sessions/` in a browser, because the scre"}}
 {"log":{"at":"2026-10-19T21:54:07-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T22:14:57-05:00","heartbeat":"refused","msg":"status check not sent to mastermind-live-page: a wake costs about $5.99 and it has spent $99.99 of $100.00"}}

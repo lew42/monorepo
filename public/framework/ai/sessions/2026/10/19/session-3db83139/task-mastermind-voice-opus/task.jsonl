@@ -64,3 +64,5 @@
 {"log":{"at":"2026-10-19T19:39:54-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
 {"log":{"at":"2026-10-19T20:55:34-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-19T20:57:06-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T22:17:35-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-19T22:19:07-05:00","msg":"session ended (other) without landing"}}
