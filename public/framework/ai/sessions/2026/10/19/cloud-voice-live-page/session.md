@@ -29,6 +29,8 @@ Log level — asks in order, decisions, agents spawned (by path), anecdotes. May
 
 18. **`/framework/ai/tasks/` layout — "the worst page I've ever seen", asked ~a dozen times.** Redirects to `/framework/ai/?…` and filters the Inbox; site header + tabs + a huge sticky toolbar take ~80% of the viewport; "waiting on you" is a fixed-height scroll inside the page scroll; tabs stack into a tower on phone; no link to the tasks view from `/framework/ai/`. Don't touch the main template. Audit past asks so the seventh complaint is on record. Spawned `task-mastermind-tasks-layout`.
 
+19. **Integrate the task system with the AI/mastermind system.** Tasks within the session, maybe within the module as they solidify; subtasks and projects from requirements → investigation → planning → approval → start (worktree, mastermind). "Getting prompts turned into outcomes via tasks is the objective." Open to the session file being the log from which tasks are found. No duplicate data; never lose a task or session; see everything flow. Top tabs cram into three lines on phone; sticky framework header and the mobile rail questioned. Owner: "I have no idea what you're doing. Show me something useful." Widened `task-mastermind-task-system`'s job: explain prompt→task→landed in one screen, audit the indexing, propose one lifecycle design as `ai/doc/task-lifecycle.md`.
+
 ## Agents spawned
 
 - `mastermind-live-page` — Sonnet, acceptEdits (mistake: could not spawn, commit or load a page; resume did not apply bypassPermissions). Task dir: `spawned/mastermind-live-page/`. Wrote the three docs and the sessions view; voice-app did its commit.
