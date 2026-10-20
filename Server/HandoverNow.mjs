@@ -53,6 +53,8 @@ export default class HandoverNow {
 			"",
 			`**Pace:** ${pace}`,
 			"",
+			HandoverNow.connector(),
+			"",
 			`**Landed (${landed.length}):**`, show(landed, 12) || "- none",
 			"",
 			`**Open, touched in the window (${open.length}):**`, show(open, 10) || "- none",
