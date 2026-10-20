@@ -13,13 +13,14 @@ import FileTools from "../../files.js";
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "remote-test-"));
 fs.mkdirSync(path.join(root, "public/framework/ai"), { recursive: true });
 const token_file = path.join(root, "state", "remote.token");
-const spawned = [], sent = [];
+const spawned = [], sent = [], seen = [];
 const mcp = new MCP({ router: express.Router() });   // the REAL registry class; the real page tools and one marker tool go in through its own seam
 for (const tool of page_tools()) mcp.tool(tool);
 for (const tool of FileTools.tools()) mcp.tool(tool);
-mcp.tool({ name: "whoami_test", description: "test", handler: (a, ctx) => `caller=${ctx.caller}` });
+mcp.tool({ name: "whoami_test", description: "test", handler: (a, ctx) => (seen.push(a), `caller=${ctx.caller}`) });
 const servex = {
     mcp,
+    sessions: { prewarm: true, map: {}, create(){ const id = "v-test" + Object.keys(this.map).length; this.map[id] = {}; return { ok: true, session: id, file: `/framework/ai/sessions/2026/10/19/${id}/session.jsonl` }; } },
     cards: { tools: () => [{ name: "create_card", handler: async () => JSON.stringify({ ok: true, id: "2026/10/15/voice" }) }] },
     agents: {
         registry_list: () => spawned.map(a => ({ id: a.id, task_dir: a.dir })),
@@ -115,6 +116,28 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
         const add = JSON.parse(fs.readFileSync(file, 'utf8').trim().split(/\r?\n/)[0]).content.add;
         assert.equal(add.title, "Hello"); assert.equal(add.by, "voice-app");
     } finally { fs.rmSync(path.dirname(file), { recursive: true, force: true }); }
+}
+// voice logging: owner_words is in every schema, stripped before dispatch, filed by code; every call leaves a line
+{
+    const tools = (await rpc({ id: 7, method: "tools/list" })).json.result.tools;
+    assert.ok(tools.every(t => t.inputSchema.properties.owner_words), "owner_words on every tool schema");
+    assert.ok(RemoteMCP.INSTRUCTIONS.includes("remote/cloud client"), "cloud-vs-local fork in the instructions");
+    const sid = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
+    const call = (name, args) => rpc({ id: 8, method: "tools/call", params: { name, arguments: args } }, sid);
+    seen.length = 0;
+    await call("whoami_test", { owner_words: "make it blue, please", x: 1 });
+    await call("whoami_test", { owner_words: "make it blue, please" });
+    await call("whoami_test", {});
+    await call("call", { tool: "whoami_test", args: { owner_words: "via the door" } });
+    assert.ok(seen.length === 4 && seen.every(a => !("owner_words" in a)), "owner_words stripped before dispatch");
+    const reg = JSON.parse((await call("register_session", {})).json.result.content[0].text);
+    assert.ok(reg.ok && reg.session, "register_session with no arguments mints a session for a cloud caller");
+    const lines = fs.readFileSync(path.join(root, "public", reg.file), "utf8").trim().split(/\r?\n/).map(l => JSON.parse(l));
+    assert.equal(lines[0].session.kind, "voice"); assert.equal(lines[0].session.caller, "voice-app");
+    const words = lines.filter(l => l.owner_words).map(l => l.owner_words.words);
+    assert.deepEqual(words, ["make it blue, please", "via the door"], "words filed verbatim, once per distinct text");
+    const calls = lines.filter(l => l.tool_call).map(l => l.tool_call);
+    assert.ok(calls.length >= 5 && calls.some(c => !c.owner_words) && calls.every(c => c.args_hash.length === 12), "every call logged with a hash; a gap shows");
 }
 srv.close();
 fs.rmSync(root, { recursive: true, force: true });

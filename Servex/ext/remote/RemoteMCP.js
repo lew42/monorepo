@@ -16,6 +16,7 @@ export default class RemoteMCP {
     static VERSION = "2025-03-26";
     // The one source of the voice-agent directives (the voice-mastermind skill must not copy them).
     static INSTRUCTIONS = [
+        "FIRST, which kind of client are you? A Servex-spawned agent has a logged session and reads CLAUDE.md. You are a remote/cloud client (the Claude app): you have no local session, so nothing records your conversation unless you do it through this server. Every tool takes owner_words: put the owner's exact words that led to the call there, verbatim, every time; the server files them in today's voice session. Call register_session once at the start (no arguments needed) to get your session id for session_summary and session_line.",
         "You are the voice agent: the Claude app model talking with the owner by voice. The mastermind behind ask_mastermind is an SDK agent on the owner's PC.",
         "Fire ask_mastermind immediately, before saying anything; then speak.",
         "Summarize its answer for the ear, do not read it back. The mastermind is verbose on purpose, to give you context; you keep replies short.",
@@ -32,6 +33,7 @@ export default class RemoteMCP {
         description: "Call any Servex tool by name, including ones added after this connector was approved: call({tool: \"shell\", args: {command: \"git status\"}}). tool \"list\" returns every tool name with its description and input schema.",
         inputSchema: { type: "object", properties: { tool: { type: "string" }, args: { type: "object" } }, required: ["tool"] },
     };
+    static OWNER_WORDS = { type: "string", description: "The owner's exact words that led to this call, verbatim, every time (the server logs them; never paraphrase)." };
     static SESSIONS_FILE = "remote.sessions.json";
     static CALLER = "voice-app";
     static TOOL = {
@@ -98,6 +100,9 @@ export default class RemoteMCP {
         if (method === "ping") return ok({});
         if (method === "tools/list") return ok({ tools: this.tools() });
         if (method === "tools/call"){
+            const header_sid = req.headers["mcp-session-id"] || `voice-${TaskDirs.day(new Date())}`;
+            params = this.intercept(params, header_sid);
+            if (params.done) return ok(params.done);
             if (params?.name === RemoteMCP.CALL.name){
                 const { tool, args } = params.arguments ?? {};
                 if (tool === "list") return ok({ content: [{ type: "text", text: JSON.stringify(this.tools().map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))) }] });
@@ -125,7 +130,60 @@ export default class RemoteMCP {
 
     // the one registry (servex.mcp, read at call time so late registrations show up) with ask_mastermind on top
     tools(){
-        return [RemoteMCP.TOOL, RemoteMCP.CALL, ...(this.servex.mcp?.tools ?? []).filter(t => t.name !== RemoteMCP.TOOL.name && t.name !== RemoteMCP.CALL.name)];
+        const all = [RemoteMCP.TOOL, RemoteMCP.CALL, ...(this.servex.mcp?.tools ?? []).filter(t => t.name !== RemoteMCP.TOOL.name && t.name !== RemoteMCP.CALL.name)];
+        return all.map(t => ({ ...t, inputSchema: { ...(t.inputSchema ?? { type: "object" }), properties: { ...(t.inputSchema?.properties ?? {}), owner_words: RemoteMCP.OWNER_WORDS } } }));
+    }
+
+    /* Voice logging (doc/voice-logging.md): strip owner_words from the arguments, file it, log every call, and give a cloud
+     * caller a session to write summaries to. Returns the params to dispatch, or { done } when the call is answered here. */
+    intercept(params, sid){
+        const name = params?.name;
+        let args = { ...(params?.arguments ?? {}) };
+        const words = [args.owner_words]; delete args.owner_words;
+        if (name === RemoteMCP.CALL.name && args.args && typeof args.args === "object"){ words.push(args.args.owner_words); args.args = { ...args.args }; delete args.args.owner_words; }
+        const inner = name === RemoteMCP.CALL.name ? args.tool : name;
+        const target = name === RemoteMCP.CALL.name ? (args.args ??= {}) : args;
+        let v = null;
+        try { v = this.voice_session(sid); } catch (e) { console.error("remote-mcp: voice session:", e.message); }
+        this.record(v, inner, words.find(w => typeof w === "string" && w.trim()), { tool: inner, args: target }, sid);
+        if (v && /^(session_summary|session_line|quick_fix|audit_session)$/.test(inner) && !this.servex.sessions?.map?.[target.session]) target.session = v.id;
+        if (v && inner === "register_session" && !target.id){
+            return { done: { content: [{ type: "text", text: JSON.stringify({ ok: true, session: v.id, file: v.file, note: "You are a cloud caller: use this session id for session_summary and session_line. Pass owner_words on every tool call." }) }] } };
+        }
+        return { ...params, arguments: args };
+    }
+
+    // today's voice session for this MCP session: minted once through the Sessions store (no third store), else a plain day folder
+    voice_session(sid){
+        const s = this.sessions[sid] ??= { agent: null, dir: null, started: new Date().toISOString(), last: null };
+        if (s.voice && fs.existsSync(path.join(this.root, "public", s.voice.file))) return s.voice;
+        const store = this.servex.sessions;
+        if (!store?.create) return null;   // Servex without its session layer (SERVEX_NO_LAYERS): nowhere to file it, and no third store
+        let id, file;
+        const p = store.prewarm; store.prewarm = false;   // a cloud caller has no drawer to warm an agent for
+        try { ({ session: id, file } = store.create({ path: "/live/", fresh: true })); } finally { store.prewarm = p; }
+        const row = store.map?.[id]; if (row) row.caller = RemoteMCP.CALLER;
+        const abs = path.join(this.root, "public", file);
+        if (!fs.existsSync(abs)){
+            fs.mkdirSync(path.dirname(abs), { recursive: true });
+            fs.appendFileSync(abs, JSON.stringify({ session: { id, kind: "voice", caller: RemoteMCP.CALLER, at: Date.now() } }) + "\n");
+        }
+        s.voice = { id, file };
+        this.save_sessions();
+        return s.voice;
+    }
+
+    // one line for the words (once per distinct text), one for the call (name + args hash): a call without words is a visible gap
+    record(v, tool, words, call, sid){
+        if (!v) return;
+        const abs = path.join(this.root, "public", v.file), at = new Date().toISOString();
+        const text = words?.trim();
+        const s = this.sessions[sid], fresh = text && text !== s.last_words;
+        try {
+            if (fresh){ s.last_words = text; fs.appendFileSync(abs, JSON.stringify({ owner_words: { at, words: text, tool, caller: RemoteMCP.CALLER } }) + "\n"); }
+            const hash = crypto.createHash("sha256").update(JSON.stringify(call.args ?? {})).digest("hex").slice(0, 12);
+            fs.appendFileSync(abs, JSON.stringify({ tool_call: { at, tool, args_hash: hash, owner_words: !!text, caller: RemoteMCP.CALLER } }) + "\n");
+        } catch {}
     }
 
     // REMOTE_MCP_TARGET / this.target / the file remote.target still override everything: one fixed agent for every session
