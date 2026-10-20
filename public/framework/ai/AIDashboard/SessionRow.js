@@ -8,7 +8,7 @@ import SessionTree from "./SessionTree.js";
  *  Line 2: when, how long, model, children and own cost. Phone-first: two short lines, nothing else. Doc: doc/ai-dashboard-plan.md */
 export default class SessionRow extends View {
 	static MAX_DEPTH = 3;
-	static usd(n){ return n >= 100 ? "$" + Math.round(n) : n >= 1 ? "$" + n.toFixed(2) : n > 0 ? "$" + n.toFixed(3).replace(/0+$/, "") : "$0"; }
+	static usd(n){ return n >= 100 ? "$" + Math.round(n) : n >= 1 ? "$" + n.toFixed(2) : n > 0 ? "$" + n.toFixed(2) : "$0"; }
 
 	// Getters, not fields: prerender() runs inside View's constructor, before a subclass's fields exist.
 	get classes(){ return "ad-row ad-depth-" + Math.min(this.node.depth, SessionRow.MAX_DEPTH) + (this.node.live ? " ad-row-live" : ""); }

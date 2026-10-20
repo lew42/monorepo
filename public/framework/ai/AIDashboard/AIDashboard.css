@@ -41,6 +41,13 @@
 		.ad-days .ad-strip { display: flex; flex-direction: column; gap: 0.2em; }
 		.ad-days .ad-chip { text-align: start; border-radius: 0.4em; }
 	}
+	@media (max-width: 45.99em) {
+		.ad-usage { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4em; font-size: 0.7em; }
+		.ad-usage .up-head { flex-direction: column; gap: 0; }
+		.ad-usage .up-head > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.ad-chips .ad-strip { flex-wrap: nowrap; overflow-x: auto; }
+		.ad-chip { white-space: nowrap; flex: none; }
+	}
 	.ad-none { padding: 2em 0; opacity: 0.6; }
 	.ad-foot { display: flex; flex-wrap: wrap; gap: 0.4em 1.2em; margin-top: 1em; font-size: 0.9em; }
 }
