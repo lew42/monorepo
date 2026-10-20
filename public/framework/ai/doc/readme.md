@@ -10,6 +10,7 @@ One folder per subsystem, one current doc per topic. Load the folder you need; t
 | [`tokens/`](tokens/tokens.md) | [How cost is counted and cut](tokens/tokens.md), [context windows](tokens/context-window.md) | you spend or measure tokens |
 | [`logs/`](logs/log-sources.md) | [Where the owner's asks live](logs/log-sources.md), [the universal log tool](logs/log-tool.md), [inbox + streaming](logs/inbox-log-streaming.md), [conversation logs](logs/conversations.md) | you read or write a log |
 | [`sessions-and-tasks.md`](sessions-and-tasks.md) | [Sessions and tasks: a spawned agent is a session, a task is something to finish (the plan)](sessions-and-tasks.md) | you rename, spawn or count sessions and tasks |
+| [`owner-2026-10-20-who-makes-tasks.md`](owner-2026-10-20-who-makes-tasks.md) | [The owner on sessions, tasks and losing work: who is who, dated module tasks/, the day list with check marks, decision cards, the class hierarchy first](owner-2026-10-20-who-makes-tasks.md) | you touch the task system, the sessions page or the day list |
 | [`task-lifecycle.md`](task-lifecycle.md) | [Task lifecycle: session is the log, module is a query, six phases (proposal)](task-lifecycle.md) | you design how prompts become tasks |
 | [`tasks.md`](tasks.md) | [Tasks: what, where, who makes one, what to open](tasks.md) | you open or read a task |
 | [`tasks/`](tasks/tasks.md) | [Tasks and the one queue](tasks/tasks.md), [priorities](tasks/priorities.md) | you change tasks or the queue |

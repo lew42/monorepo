@@ -5,6 +5,8 @@
 > "Every SDK session should be a session. It should be clear that this represents the session. Then you can have tasks within them. But we shouldn't be calling a session a task."
 > "We don't want to create a task for a session."
 
+The owner's 2026-10-20 dictation on who makes tasks, dated module `tasks/`, the day list and decision cards: [owner-2026-10-20-who-makes-tasks.md](owner-2026-10-20-who-makes-tasks.md).
+
 This page is the plan and the record of what landed. It folds in [task-lifecycle.md](task-lifecycle.md) (its phases and the module-placement choice) and builds on [tasks.md](tasks.md) (how it works today).
 
 ---
