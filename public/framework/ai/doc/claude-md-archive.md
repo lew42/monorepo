@@ -103,3 +103,6 @@ Each `###` heading names the thing (the class, module or page) so the context is
 **Where to look: the framework index** — reworded 2026-10-19
 
 Was: `public/framework/readme.md` → `core/` `ext/` `styles/` `ui/` `web/` — each dir's readme is its entry
+
+<!-- claude-md:proposal-branches -->
+**PROPOSED, not in CLAUDE.md (needs the owner's yes), 2026-10-19:** beside "Commit after every working step", add: *"Major changes to any system, documentation overhauls included, are committed on a branch `task/<slug>` (the slug of the task dir), not straight onto `michael/dev`, so the history shows what changed and why and a rollback is one merge away."* Already live as one line in `.claude/skills/mastermind/SKILL.md` (Land everything).
