@@ -18,7 +18,7 @@ A session folder is one of three kinds:
 
 | Kind | Folder name | Files | Written by |
 |---|---|---|---|
-| **Transcript session** (VS Code, CLI, Servex agent) | `session-<first 8 hex of the id>` (or the full uuid) | `cache.jsonl` (line 1 `{summary:{v:2,id,cursor,first_at,last_at,usd,tokens,…}}`: running totals plus how far the transcript was read), `index.json` (the one current snapshot), optional `session.jsonl`, optional `page.jsonl` | `AISessionIndex.mjs`, which follows the transcript |
+| **Transcript session** (VS Code, CLI, Servex agent) | `session-<first 8 hex of the id>` (or the full uuid) | `cache.jsonl` (line 1 `{summary:{v:2,id,cursor,first_at,last_at,usd,tokens,…}}`: running totals plus how far the transcript was read), `index.json` (the one current snapshot), `session.jsonl` (a VS Code tab: line 1 `{session:{id,kind:"vscode-tab",cwd,at}}`, written once by the SessionStart hook `.claude/hooks/session-page.mjs`), `page.jsonl` (a tab: the owner's prompts, written by `.claude/hooks/prompt-relay.mjs`) | `AISessionIndex.mjs`, which follows the transcript; the two hooks above |
 | **Record session** (a named agent, a voice call) | a name: `voice-20261016`, `cloud-voice-<name>` | `session.jsonl`, plus the task folders below | `append.mjs`, `Agents.open_task`, `RemoteMCP.voice_session` |
 | **Task folder** | any name, *inside* a session folder (`<session>/<task>/`) | `task.jsonl` (+ `requirements.md`, `past-work.md`, `report.md`) | see [ai/tasks](/framework/ai/tasks/) |
 

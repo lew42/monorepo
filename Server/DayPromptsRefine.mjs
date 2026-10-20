@@ -73,6 +73,18 @@ function listSessionDirs(){
 			}
 		}
 	}
+	// a VS Code tab's prompts sit beside its session.jsonl in the store folder (prompt-relay, tab-session-record 2026-10-20)
+	const seen = new Set(out.map(o => o.file));
+	for (const y of safeReaddir(path.join(AI, "sessions"))) for (const m of safeReaddir(path.join(AI, "sessions", y))) for (const d of safeReaddir(path.join(AI, "sessions", y, m))){
+		const day = path.join(AI, "sessions", y, m, d);
+		for (const s of safeReaddir(day)){
+			const f = path.join(day, s, "page.jsonl");
+			if (!s.startsWith("session-") || seen.has(f) || !fs.existsSync(f)) continue;
+			let id = null;
+			for (const n of ["session.jsonl", "cache.jsonl"]) try { const l = JSON.parse(fs.readFileSync(path.join(day, s, n), "utf8").split(String.fromCharCode(10), 1)[0]); id = l.session?.id ?? l.summary?.id; if (id) break; } catch {}
+			if (id) out.push({ url: `/framework/ai/sessions/${id}/`, file: f });
+		}
+	}
 	return out;
 }
 function safeReaddir(d){ try { return fs.readdirSync(d); } catch { return []; } }
