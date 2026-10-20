@@ -5,5 +5,5 @@
 - Why one registry, fully exposed (and the shelved `local`/`remote` split): [doc/mcp-unify.md](doc/mcp-unify.md)
 - The voice path end to end: [voice-bridge.md](../../../public/framework/ux/Dictate/doc/voice-bridge.md)
 - Catch-up: what changed since the voice agent's last call, piggybacked on every tool result (design only): [doc/catch-up.md](doc/catch-up.md)
-- Every voice prompt logged verbatim by code (open, brief for a minion): [doc/voice-logging.md](doc/voice-logging.md)
+- Every voice prompt logged verbatim by code (built: `owner_words`, cloud `register_session`): [doc/voice-logging.md](doc/voice-logging.md)
 - File and shell tools (`read_file`, `write_file`, `edit_file`, `list_dir`, `glob`, `shell`) and the generic `call` door: [doc/remote-tools.md](doc/remote-tools.md)
