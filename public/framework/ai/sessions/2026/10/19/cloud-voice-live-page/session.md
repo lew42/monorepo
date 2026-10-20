@@ -35,6 +35,8 @@ Log level — asks in order, decisions, agents spawned (by path), anecdotes. May
 
 21. **"We shouldn't have to audit these systems; how it works should be in the README."** Every main system's readme (tasks, sessions, AI, pages, MCP, cloud voice agent) must state structure and functioning to the T — e.g. a session is `ai/sessions/YYYY/MM/DD/<name>/session.jsonl`, how data gets in, which tool, called from where — no history, no design diary; link, don't duplicate. Write the rule into CLAUDE.md (permission given). Task-end tool response returns a documentation checklist. Session folders get a generated readme so they can be referenced. A project is an upgraded task. Audit where the data handoffs break and TEST each theory; no untested recommendations. "If we can't fix it, I'm literally going to be out of a house." Spawned `task-mastermind-docs`; task-system told to add projects and the tested handoff audit.
 
+22. **Index everything.** `framework/readme.md` is the module index and must list every module (Task, Inbox, tasks, sessions, MCP, cloud voice agent); CLAUDE.md says every mastermind and voice agent reads CLAUDE.md then that index (narrow minions exempt). Readme updates must be automatic for the module worked in, plus the parent readme's line if it references the module — the close-task checklist asks exactly those two questions, nothing more. No projects build: one line in the lifecycle doc, shown before built. Told `task-mastermind-docs` and `task-mastermind-task-system`.
+
 ## Agents spawned
 
 - `mastermind-live-page` — Sonnet, acceptEdits (mistake: could not spawn, commit or load a page; resume did not apply bypassPermissions). Task dir: `spawned/mastermind-live-page/`. Wrote the three docs and the sessions view; voice-app did its commit.
