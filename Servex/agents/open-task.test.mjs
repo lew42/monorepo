@@ -12,8 +12,8 @@ open(path.join(day, "fresh-session"), "11111111-1111-4111-8111-111111111111");  
 assert.deepEqual(names(path.join(day, "fresh-session")), ["session.jsonl"]);
 assert.equal(fs.readFileSync(path.join(day, "fresh-session/session.jsonl"), "utf8").trim().split("\n").length, 2);
 
-open(path.join(day, "fresh-session/the-task"), "11111111-1111-4111-8111-111111111111");  // inside a session: a task folder
-assert.deepEqual(names(path.join(day, "fresh-session/the-task")), ["task.jsonl"]);
+open(path.join(day, "fresh-session/the-task"), "11111111-1111-4111-8111-111111111111");  // inside a session: a spawned agent is a sub-session
+assert.deepEqual(names(path.join(day, "fresh-session/the-task")), ["session.jsonl"]);
 
 fs.mkdirSync(path.join(day, "old-task"), { recursive: true }); fs.writeFileSync(path.join(day, "old-task/task.jsonl"), "{\"log\":{\"msg\":\"x\"}}\n");
 open(path.join(day, "old-task"), "22222222-2222-4222-8222-222222222222");                // an existing log keeps its name
