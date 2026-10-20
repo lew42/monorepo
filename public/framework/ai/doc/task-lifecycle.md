@@ -21,9 +21,7 @@
 | work | worktree, mastermind, minions | `phase: work`, state `running` |
 | landed | merged and reviewed | `complete` (state `complete`) |
 
-**A project is an upgraded task** (the owner's word): the same task, taken through all six phases and split into subtasks, each of which is itself a task with its own phase. There is no second kind of thing; "project" is what you call a task once it has requirements and subtasks.
-
-Only **`phase`** is new: a plain field set with the item tool (`{"phase":"plan"}`), latest wins, replayed by `Task.js`; `State` copies it into each row. A project's progress is computed from its subtasks.
+Only **`phase`** is new: a plain field set with the item tool (`{"phase":"plan"}`), latest wins, replayed by `Task.js`; `State` copies it into each row. A project is a task with subtasks and a requirements stage; `class Project extends Task` is one option, to be shown to the owner before anything is built.
 
 ## The view
 
