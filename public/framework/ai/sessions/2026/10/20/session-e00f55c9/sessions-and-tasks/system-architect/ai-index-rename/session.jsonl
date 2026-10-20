@@ -1,0 +1,8 @@
+{"assign":{"session_id":"0be6bc3a-6a2b-4edb-947b-c18d7de00e19","agent":"minion-ai-index-rename","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/ai-index-rename/requirements.md","model":"claude-sonnet-5-5","worktree":"C:\\Code\\lew42\\worktrees\\ai-index-rename","home":"/framework/ai/","requested_at":"2026-10-20T16:22:45-05:00","now":"starting"}}
+{"commit":"bab6a5b30caa"}
+{"commit":"a12f1534a987"}
+{"commit":"343570cdee3f"}
+{"decision":{"at":"2026-10-20T16:28:10-05:00","id":"d-taskstate-kept","text":"TaskState.mjs kept as the old wrapper class (its test uses the class API); Servex TaskLoop now spawns AIIndex.mjs --watch directly; State.mjs and doc/state.md are stubs until 2026-10-27. Class names DashState and TaskStateLog left unrenamed (alternative: rename them too)."}}
+{"log":{"at":"2026-10-20T16:28:10-05:00","msg":"Landed on worktree/ai-index-rename (3 commits). AIIndex, TaskState and Day tests pass; AIIndex.mjs writes ai/index.json and one ai/index.jsonl line, check.ok true. merge --dry-run refused: needs review.mjs first (parent's call). /framework/ai/ loads at 1200 on the worktree proxy. core/Task Task.js comments still cite Server/doc/state.md (off-limits; the stub keeps the link alive). After merge restart Servex so TaskLoop spawns AIIndex.mjs; then the old state.json and state.jsonl go stale and can be removed."}}
+{"finish":{"at":"2026-10-20T16:28:10-05:00"}}
+{"log":{"at":"2026-10-20T16:28:30-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
