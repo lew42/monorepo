@@ -1,5 +1,6 @@
 import { createSdkMcpServer, tool as sdk_tool } from "@anthropic-ai/claude-agent-sdk";
 import SessionRecord from "../../Server/SessionRecord.mjs";
+import LogLine from "../../Server/LogLine.mjs";
 import { z } from "zod";
 import fs from "node:fs";
 import path from "node:path";
@@ -65,7 +66,7 @@ const card = agent => JSON.stringify(agent.card(), null, 2);
  * Servex.js, `for (const tool of tools(servex.agents)) servex.mcp.tool(tool)`,
  * wires them all, and `server(host)` hands all of them to an in-process agent. */
 export function tools(agents = singleton){
-	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents), ...task_tools(agents), ...page_tools(), ...skill_tools()];
+	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents), ...task_tools(agents), ...page_tools(), ...skill_tools(), ...log_tools(agents)];
 }
 
 /* query_sessions: find past sessions by tag, system, date, model or cost, with totals. NOT in tools(): it is opt-in, so it costs no
@@ -98,9 +99,7 @@ function append_task_line(dir, obj){
 	const abs = path.isAbsolute(dir) ? dir : path.join(ROOT, dir);
 	const target = (SessionRecord.log_file(abs) ?? path.join(abs, "task.jsonl"));
 	if (!fs.existsSync(target)) throw new Error(`no task.jsonl at ${target}`);
-	const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "task-verb-")), "line.json");
-	fs.writeFileSync(tmp, JSON.stringify([obj]));
-	execFileSync(process.execPath, [path.join(ROOT, ".claude", "hooks", "append.mjs"), target, tmp], { stdio: "pipe", windowsHide: true });
+	LogLine.append(target, [obj]);
 	return target;
 }
 
@@ -278,6 +277,41 @@ function session_tools(agents){
 			["dir", "line"],
 			args => JSON.stringify(sessions().dir_log(args)))
 	];
+}
+
+/* `log`: the one door for a JSONL log line (Server/doc/log-line.md). Server/LogLine.mjs validates, stamps and appends it. */
+export function resolve_log_path(p){
+	const raw = String(p ?? "").trim();
+	if (!raw) throw new Error("`path` is required");
+	const rel = raw.replace(/^\/+/, "");
+	const cands = path.isAbsolute(raw) && fs.existsSync(raw) ? [raw] : [path.join(ROOT, "public", rel), path.join(ROOT, rel), path.join(ROOT, raw)];
+	const abs = path.resolve(cands.find(c => fs.existsSync(c)) ?? (/\.jsonl$/.test(raw) ? cands[1] : cands[0]));
+	if (path.relative(ROOT, abs).startsWith("..") || path.isAbsolute(path.relative(ROOT, abs))) throw new Error(`"${p}" is outside the repo`);
+	let dir = false; try { dir = fs.statSync(abs).isDirectory(); } catch {}
+	return dir || !/\.jsonl$/.test(abs) ? SessionRecord.start_file(abs) : abs;
+}
+
+function log_tools(agents){
+	return [tool("log",
+		"Write ONE stamped line (or several) to a JSONL log. Never append JSONL yourself through Bash. `path` is a repo file, a folder (its session.jsonl / task.jsonl), or a site url (`/framework/...`)."
+		+ " `line` is one object in the log's shape, e.g. {\"log\":{\"msg\":\"…\"}} or {\"task\":{\"title\":\"…\",\"state\":\"open\"}}; \"NOW\" and `at` are filled by node,"
+		+ " and `by` (you), `session` (your session id) and `origin` are added beside the verb. Refused with the schema's reason when the shape is wrong. Returns {ok, file, at} or {ok:false, why}.",
+		{ path: { type: "string", description: "A repo file, a folder, or a site url." },
+			line: { type: "object", description: "One line: a single verb key whose value is the body." },
+			lines: { type: "array", items: { type: "object" }, description: "Several lines instead of `line`." },
+			origin: { type: "string", description: "A link to where this line came from (a prompt, a page, a task url)." } },
+		["path"],
+		async ({ path: p, line, lines, origin } = {}, ctx = {}) => {
+			try {
+				const who = ctx.caller ?? undefined;
+				const me = who ? agents.live?.get?.(who) : null;
+				const session = me?.session_id ?? (who ? agents.external?.row?.(who)?.session_id : null) ?? undefined;
+				const list = lines ?? (line ? [typeof line === "string" ? JSON.parse(line) : line] : null);
+				if (!list?.length) return JSON.stringify({ ok: false, why: "give `line` (one object) or `lines`" });
+				const r = LogLine.append(resolve_log_path(p), list, { by: who, session, origin });
+				return JSON.stringify({ ok: !r.bad, file: path.relative(ROOT, r.file).replaceAll("\\", "/"), at: r.at, ...(r.bad ? { why: r.notes.join("; ") } : {}) });
+			} catch (e){ return JSON.stringify({ ok: false, why: String(e.message || e) }); }
+		})];
 }
 
 /* start_job's answer comes to `from` — which defaults to whoever is calling

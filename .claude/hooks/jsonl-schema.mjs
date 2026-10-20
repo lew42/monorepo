@@ -144,7 +144,9 @@ export const schemas = {
 
 // A session folder's one record (Server/SessionRecord.mjs, sessions/doc/session-record.md): the task log's verbs, plus the digest `tag` line.
 schemas["session.jsonl"] = { ...schemas["task.jsonl"], what: "a session folder's record (public/framework/ai/sessions/YYYY/MM/DD/<session>/session.jsonl): the task log's lines plus the digest tags",
-	verbs: { ...schemas["task.jsonl"].verbs, tag: { type: "string", eg: "kind/agent" } }, pending: [...(schemas["task.jsonl"].pending ?? []), "tag"] };   // tag lines: read by AISession.record(), not by the task reader
+	verbs: { ...schemas["task.jsonl"].verbs, tag: { type: "string", eg: "kind/agent" },
+		// a task is a line in its session's log (sessions-and-tasks.md, "The decided shape")
+		task: { fields: ["title"], eg: { at: "NOW", title: "what the task is", state: "open" } } }, pending: [...(schemas["task.jsonl"].pending ?? []), "tag", "task"] };   // tag lines: read by AISession.record(), not by the task reader
 
 /* Servex's `append_log` writes its OWN named logs (under SERVEX_HOME, never a repo file), and
  * every one of those is an event: one flat object with a string `type`. */
@@ -158,6 +160,7 @@ const basename = file => String(file).split(/[\\/]/).pop();
 /** The schema for a file path, by its basename, or null when nothing is known about it. */
 export function schema_for(file){ return schemas[basename(file)] ?? null; }
 
+const META = ["by", "session", "origin"];
 const plain = v => v !== null && typeof v === "object" && !Array.isArray(v);
 
 /** Every line shape this file takes, as one readable sentence — what a refusal prints. */
@@ -209,6 +212,11 @@ export function check(file, line){
 		return null;
 	}
 
+	// by / session / origin (string values) ride beside the verb (Server/LogLine.mjs); they are not verbs
+	return check_verbs(s, line, keys.filter(k => !(META.includes(k) && typeof line[k] === "string" && !s.verbs[k])), value_problem);
+}
+
+function check_verbs(s, line, keys, value_problem){
 	const unknown = keys.filter(k => !s.verbs[k]);
 	// flat = no key is a verb carrying its value (`{"type":"launch","agent":"a"}` is flat too: `agent` holds a string, not an object)
 	const carried = keys.filter(k => s.verbs[k] && (s.verbs[k].type === "string" || plain(line[k])));
