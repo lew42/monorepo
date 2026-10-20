@@ -23,7 +23,7 @@
 	.ad-fold { flex: none; width: 1.1em; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-align: center; }
 	.ad-origin { flex: none; }
 	.ad-dot { flex: none; width: 0.5em; height: 0.5em; border-radius: 50%; background: var(--line); }
-	.ad-dot-live { background: #2e9e5b; box-shadow: 0 0 0.4em #2e9e5b; }
+	.ad-dot-live { background: var(--ok); box-shadow: 0 0 0.4em var(--ok); }
 	.ad-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; text-decoration: none; }
 	.ad-name:hover { text-decoration: underline; }
 	.ad-usd { flex: none; font-variant-numeric: tabular-nums; font-size: 0.9em; }

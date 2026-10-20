@@ -128,7 +128,7 @@ Home: **`public/framework/ai/AIDashboard/`** (the name `ai/dashboard/` is taken 
 
 | Class | Job | Relation |
 |---|---|---|
-| `AIDashboard extends View` | the page body `/framework/ai/`: reads the url (day, origin, state, open), owns the store, draws the day strip, chips and the tree. **The orchestrator.** | extends `core/Page`; composes the four below |
+| `AIDashboard extends View` | the page body `/framework/ai/`: reads the url (day, origin, state, open), owns the store, draws the day strip, chips and the tree. **The orchestrator.** | extends `core/View`; composes the others |
 | `SessionStore` | loads one day's `index.json` and `state.json`, fixes the join (agent id → session id), computes `origin` and the roll-up; `rows(day)` returns the tree. Dies in slice 2 when `AISessionIndex` does this and the store only reads. | composes `ext/JSONL` / `DashState` for the live tail (code streams, [law](/CLAUDE.md)) |
 | `SessionTree` | a node: `{session, children, own, rolled, depth}`, `open` set, `walk()` | plain class, no DOM; the thing the page's debug view prints |
 | `SessionRow extends View` | the one row (fields above), draws itself from a `SessionTree` node | extends `core/View`; **reuses `AISessionView`'s cell helpers and `DashRow`'s state dot** rather than a second row type |

@@ -78,7 +78,7 @@ export default class AIDashboard extends View {
 		const { tree, ok } = this.store;
 		if (!tree) return;
 		const sum = this.summary(tree);
-		this.$sum.empty(() => { const t = span(sum.text); if (sum.bad) t.el.style.color = "#c62828"; });
+		this.$sum.empty(() => { const t = span(sum.text); if (sum.bad) t.el.style.color = "var(--error)"; });
 		this.$chips.empty(() => new OriginChips({ dash: this }));
 		this.$list.empty(() => {
 			const rows = this.visible();
@@ -91,7 +91,7 @@ export default class AIDashboard extends View {
 				const folded = k === "routine" && !this.q.open.has("routine") && this.q.origin !== "routine" && !this.q.find;
 				div.c("ad-col", () => {
 					const usd = list.reduce((sum, r) => sum + r.rolled, 0);
-					const head = div.c("ad-group", () => { span(`${o.icon} ${o.label}`).attr("title", o.hint); span.c("ad-usd", `${list.length} · ${SessionRow.usd(usd)}`); });
+					const head = div.c("ad-group", () => { span(`${folded ? "▸ " : ""}${o.icon} ${o.label}`).attr("title", o.hint); span.c("ad-usd", `${list.length} · ${SessionRow.usd(usd)}`); });
 					if (k === "routine") head.on("click", () => this.toggle("routine")).ac("ad-group-fold");
 					if (!folded) list.forEach(node => new SessionRow({ node, dash: this }));
 				});
