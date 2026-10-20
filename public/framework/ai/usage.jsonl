@@ -2017,3 +2017,5 @@
 {"log":{"at":"2026-10-20T02:50:36-05:00","session":2,"weekly_all":61,"weekly_scoped":68,"resets_at":"2026-10-20T08:29:59.983115+00:00"}}
 {"log":{"at":"2026-10-20T03:05:39-05:00","session":2,"weekly_all":61,"weekly_scoped":68,"resets_at":"2026-10-20T08:30:00.025113+00:00"}}
 {"log":{"at":"2026-10-20T03:20:36-05:00","session":2,"weekly_all":61,"weekly_scoped":68,"resets_at":"2026-10-20T08:30:00.003756+00:00"}}
+{"log":{"at":"2026-10-20T03:35:39-05:00","session":0,"weekly_all":61,"weekly_scoped":68,"resets_at":null}}
+{"log":{"at":"2026-10-20T03:50:36-05:00","session":0,"weekly_all":61,"weekly_scoped":68,"resets_at":null}}
