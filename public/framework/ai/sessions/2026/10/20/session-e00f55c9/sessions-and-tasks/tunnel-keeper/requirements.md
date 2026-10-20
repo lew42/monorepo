@@ -17,3 +17,9 @@ Owner, 2026-10-20 (verbatim): "When I click the Servex MCP connector in the Clau
 Fence: `Server/Tunnel.mjs`, `Servex/Servex.js` (boot wiring only), `Servex/Processes.js`/`Process.js` if needed, `Server/HandoverNow.mjs`, `Servex/ext/remote/`. Tests: `node Server/Cloudflare.test.mjs` stays green; add `Server/Tunnel.test.mjs` for `state()`/alive/adopt logic with a fake state file.
 
 Then: commit, merge into michael/dev, `restart_servex` (it restarts every agent, you included; the tunnel must survive it or be re-adopted), confirm `node Server/Tunnel.mjs status` says up and `curl -s -o /dev/null -w "%{http_code}" <remote.url>` is not a 502/404 at the Cloudflare edge, and land with the `finish-task` skill. Report one screen: what keeps it up now, where the URL is shown, the zone finding.
+
+## Added 2026-10-20 15:10: build the fixed hostname
+
+Owner (verbatim): "Can we get a permanent domain or IP or whatever for the tunnel? I'd rather not have to update this every time."
+
+Verified read-only with the API token: the account holds the zone `lew42.com` (active) and no named tunnels. So step 3 is a build: a named tunnel routed to `servex.lew42.com` (CNAME to `<tunnel uuid>.cfargotunnel.com`, proxied), ingress to the loopback gateway, run with `cloudflared tunnel run --token …` by the keeper; the tunnel token lives beside `remote.token`, never in the repo. The connector URL then never changes. If the API token lacks Tunnel edit or DNS edit, the doc names that one permission as the owner's step and the quick-tunnel keeper stays as the fallback. Budget: $18.
