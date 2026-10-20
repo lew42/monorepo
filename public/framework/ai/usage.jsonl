@@ -1985,3 +1985,5 @@
 {"log":{"at":"2026-10-19T18:59:55-05:00","session":11,"weekly_all":57,"weekly_scoped":65,"resets_at":"2026-10-20T03:30:00.831104+00:00"}}
 {"log":{"at":"2026-10-19T19:14:54-05:00","session":12,"weekly_all":57,"weekly_scoped":65,"resets_at":"2026-10-20T03:29:59.815638+00:00"}}
 {"log":{"at":"2026-10-19T19:29:54-05:00","session":13,"weekly_all":57,"weekly_scoped":65,"resets_at":"2026-10-20T03:29:59.815359+00:00"}}
+{"log":{"at":"2026-10-19T19:44:54-05:00","session":13,"weekly_all":57,"weekly_scoped":65,"resets_at":"2026-10-20T03:30:00.746929+00:00"}}
+{"log":{"at":"2026-10-19T19:59:54-05:00","session":14,"weekly_all":58,"weekly_scoped":65,"resets_at":"2026-10-20T03:30:00.723345+00:00"}}
