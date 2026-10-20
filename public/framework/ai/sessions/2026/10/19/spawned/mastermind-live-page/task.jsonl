@@ -97,3 +97,9 @@
 {"log":{"at":"2026-10-20T00:38:05-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-20T00:41:50-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-20T00:52:37-05:00","heartbeat":"refused","msg":"status check not sent to mastermind-live-page: a wake costs about $0.86 and it has spent $107.98 of $100.00"}}
+{"log":{"at":"2026-10-20T07:35:16-05:00","heartbeat":"revive-queued","msg":"mastermind-live-page its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-20T07:35:18-05:00","heartbeat":"revive","msg":"revived mastermind-live-page from session 6f5104a2-480c-4da6-9fd1-4fac41368fa7"}}
+{"log":{"at":"2026-10-20T07:35:23-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-20T07:35:32-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T07:41:16-05:00","heartbeat":"revive-queued","msg":"mastermind-live-page it did not answer the status check; a revive is queued"}}
+{"log":{"at":"2026-10-20T07:41:17-05:00","heartbeat":"escalated","msg":"mastermind-live-page it did not answer the status check, but a revive is refused: a wake costs about $0.00 and it has spent $107.98 of $100.00"}}
