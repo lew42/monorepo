@@ -8,6 +8,7 @@ import { spawn } from "child_process";
 import Server from "../Server/Server.js";
 import Events from "../Server/Events.js";
 import Log from "./Log.js";
+import TunnelKeeper from "./ext/remote/TunnelKeeper.js";
 import Monitor from "./Monitor.js";
 import Processes from "./Processes.js";
 import Games from "./Games.js";
@@ -343,6 +344,7 @@ export default class Servex extends Events {
         this.gate();
         this.whisper();
         this.llama();
+        if (!process.env.NO_TUNNEL) this.tunnel_keeper = new TunnelKeeper({ say: (m, x) => this.say(m, x), cards: this.cards }).start();
         this.shutdown();
 
         this.say(`Servex up — dashboard http://127.0.0.1:${this.dashboard_port}/ · proxy http://127.0.0.1:${this.proxy_port}/${this.gated ? ` (gate -> :${this.proxy_internal})` : ""} · ${this.projects.length} projects under ${this.root}`);
