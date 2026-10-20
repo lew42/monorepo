@@ -14,3 +14,4 @@
 
 ## Also here (readme audit, 2026-10-13)
 - [site](./site/)
+  - its parts: [chrome](./site/chrome/) · [kit](./site/kit/) · [library](./site/library/)

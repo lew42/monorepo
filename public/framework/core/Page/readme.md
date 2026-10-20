@@ -55,6 +55,8 @@ A **List** when something is ordered and watched; an **Item** when it is a thing
 
 `page.js` vs `page.jsonl` are two ways to make one kind of page ([doc/jsonl-pages.md](doc/jsonl-pages.md)); `AITask`/`TaskPage` are Page subclasses for tasks ([ai/AITask](/framework/ai/AITask/), [core/Task](/framework/core/Task/)); `core/Page/ai/` is the per-page AI view, `ai/` is the AI system's records.
 
+Also here: [audit/](audit/) (every page layout in use, most-used first) · [make/readme-page/](make/readme-page/) (a readme as the whole page).
+
 ## Folders here
 
 [content-shapes](content-shapes/) · [dynamic](dynamic/) (a parent's `route()` answers a name) · [generator](generator/) (virtual tree from a spec) · [overview](overview/) · [settings](settings/) · [weight](weight/) · [ai](ai/) · [card](card/) · [ext](ext/) (turn a behavior on by name; [Inbox](ext/Inbox/readme.md)) · [jsonl](jsonl/) · [layout](layout/) · [navigation](navigation/) · [parts](parts/readme.md) · [Template](Template/) · [tool](tool/) · [old](old/)

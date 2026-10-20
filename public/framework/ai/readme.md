@@ -62,6 +62,7 @@ State.mjs → ai/state.json                  Server/State.mjs   the one reader o
 ## Every system, one line each
 
 - **Principle:** effective parallel work between sessions. A parent answers or hands off, helpers are reused, tasks are created, tracked, logged and finished. A spawned agent is a **session**, a task is something to finish inside it: [doc/sessions-and-tasks.md](doc/sessions-and-tasks.md).
+- **Context loss** (a session survives only in files; what to write where; computed state instead of a handover): [doc/context-loss.md](doc/context-loss.md) · how agents talk and what each message leaves on disk: [Servex/agents/doc/messaging.md](/Servex/agents/doc/messaging.md) · **readme rule, checked by code:** `node Server/ReadmeOrphans.mjs` lists every system the readme above it never names; add the missing one-liner whenever it prints one.
 - **Tasks:** [tasks/readme.md](tasks/readme.md) · [doc/tasks.md](doc/tasks.md) (what a task is, two homes, who makes one) · [core/Task](/framework/core/Task/)
 - **Sessions:** [sessions/readme.md](sessions/readme.md) · cloud voice calls: [/Servex/ext/remote/doc/cloud-voice-agent.md](/Servex/ext/remote/doc/cloud-voice-agent.md)
 - **Page system:** [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/) · parts: [core/Page/parts](../core/Page/parts/readme.md)
