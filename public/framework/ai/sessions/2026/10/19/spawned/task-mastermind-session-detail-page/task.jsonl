@@ -18,3 +18,8 @@
 {"log":{"at":"2026-10-19T23:09:58-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-19T23:05:00-05:00","msg":"Investigation done: detail renders as core/Page master-detail column (AISessionsPage.route(id) -> new AISessionDetail). Creating worktree to fix layout (stack Related rows), cut duplicate headers, and give Cost/Coverage/Models explicit no-data states."}}
 {"log":{"at":"2026-10-19T23:11:09-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T23:24:55-05:00","msg":"task-loop chase 2 of 2: woke task-mastermind-session-detail-page","chase":2}}
+{"log":{"at":"2026-10-19T23:24:59-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-19T23:15:00-05:00","msg":"Read: AISessionDetail.js, sessions.css, Page.css head/crumbs. Findings pinned: (1) Related tab = .flex rows (icon+label link, then a paragraph) -> the wrapping 2-col; (2) 4 header bands: .page-crumbs, .page-column-head title, .sessions-tabs, $box identity line; (3) Cost panel draws nothing when no cost log; Coverage shows a technical EMPTY string; Models shows a dev-server-route message. Next: worktree, then edit."}}
+{"log":{"at":"2026-10-19T23:26:08-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T23:39:55-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
