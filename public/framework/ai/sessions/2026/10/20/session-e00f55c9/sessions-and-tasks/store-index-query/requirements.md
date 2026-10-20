@@ -4,7 +4,14 @@ Budget: $6. Opus, medium effort. Parent: `vscode-mastermind` (the owner's VS Cod
 
 ## The owner's asks (essence; words in the tab prompt log `ai/2026/10/20/session-e00f55c9/page.jsonl` after line 83)
 
-[ai/doc/owner-2026-10-20-who-makes-tasks.md](/framework/ai/doc/owner-2026-10-20-who-makes-tasks.md) section 15 (this dictation), section 10 (query, names), section 11 (index not state), section 12 (items save through their parent); [core/Task/doc/owner-2026-10-20-projects-and-completion.md](/framework/core/Task/doc/owner-2026-10-20-projects-and-completion.md) section 3 (the YYYY/MM/DD breakout as one system). In one line: session data is the AI truth; the index per dated path is kept by code and never out of sync; one portable class for the dated breakout (make the folders, keep the index, answer queries); one JSONL database: create, move and query through the same operations whether an SDK/MCP tool or the dev socket calls them; it "kind of feels like" it belongs in `core/Item`, JSONL being one swappable store; any item gets real-time updates.
+[ai/doc/owner-2026-10-20-who-makes-tasks.md](/framework/ai/doc/owner-2026-10-20-who-makes-tasks.md) section 15 (this dictation), section 10 (query, names), section 11 (index not state), section 12 (items save through their parent); [core/Task/doc/owner-2026-10-20-projects-and-completion.md](/framework/core/Task/doc/owner-2026-10-20-projects-and-completion.md) section 3 (the YYYY/MM/DD breakout as one system). In short:
+
+- Session data is the AI truth.
+- Code keeps the index for each dated path, never out of sync.
+- One portable class owns the dated breakout: it makes the folders, keeps the index and answers queries.
+- One JSONL database: create, move and query are the same operations whether an SDK/MCP tool or the dev socket calls them.
+- It "kind of feels like" it belongs in `core/Item`, with JSONL as one swappable store.
+- Any item gets real-time updates.
 
 ## What exists (read these first, with file:line; the inventory is deliverable 1)
 
