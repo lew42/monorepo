@@ -1,5 +1,11 @@
 # Task — a DOM-free unit of work: id, title, a state machine, a computed duration and progress, a List of subtasks
 
+## Status (verified 2026-10-19 against the code)
+
+- **Built and tested:** the state machine, subtasks, replay of `task.jsonl` (`node Task.test.mjs`, 53 of 53 pass), `TaskView`, `TaskPage`, `TasksPage`, references between tasks (`Task.from_ref`), module homes made by the item tool's `tasks.add`.
+- **Wired in:** `Server/State.mjs` replays every task through `Task.replay` into `ai/state.json`; Servex `open_task` and `TaskDirs --new` make the session-store folders that `Task` reads; the Inbox shows the result.
+- **Concept only:** `AITask extends Task` (below), `Project extends Task`, a `phase` field ([ai/doc/task-lifecycle.md](/framework/ai/doc/task-lifecycle.md)). **Not automatic:** a module home. `TaskDirs.dir()` does not know modules; only the item tool (an agent's choice), `TaskMigrate` (one-off) and `UndoneToTasks` (idle tasks from undone asks) put a task in `<module>/tasks/`.
+
 ## What it is
 
 A `Task` is anything with a start, a middle and an end — a build step, a chore, a
@@ -84,7 +90,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - [Overview](/framework/core/Task/) · [Live](/framework/core/Task/live/) — start, pause,
   stop and complete a task with subtasks, live, no reload
 - [`Task.js`](./Task.js) · [`Task.test.mjs`](./Task.test.mjs) — the state machine, the
-  subtask-blocks-complete rule, duration math; `node Task.test.mjs`, 28/28 passing
+  subtask-blocks-complete rule, duration math; `node Task.test.mjs`, 53/53 passing
 - [Item](/framework/core/Item/) — the base class · [List](/framework/core/List/) — what `tasks` is
 
 ## Composition (step 3b)

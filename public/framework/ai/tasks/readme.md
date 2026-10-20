@@ -33,6 +33,12 @@ class SavedFilter extends Page            // ai/tasks/SavedFilter.js: forwards /
 
 `page.js` is a `SavedFilter` with `preset: "tasks"` (`DashChips.SAVED`); `lanes/` and `architecture/` are routed children; `/framework/ai/tasks/2026~10~19~…` opens an `AITask` page ([ai/AITask](/framework/ai/AITask/)). The list itself is the [Inbox](/framework/core/Page/ext/Inbox/) over `state.json`. A single task's page: `core/Task` `TaskPage` for module tasks, `AITask` for session tasks (two viewers, not merged).
 
+## Built, working, and not yet (checked 2026-10-19)
+
+- **Working:** `state.json` is fresh and its self-check passes; the Inbox shows the same counts; `TaskDirs`, `TaskMigrate`, `TaskHomes`, `TaskState` and `Task` tests pass. Proof and numbers: [../doc/tasks.md](../doc/tasks.md) sections 6 and 9.
+- **Not automatic:** a task never lands in `<module>/tasks/` by itself (`TaskDirs.dir()` has no module). **Not linked:** a session does not list its tasks (the session log names them in 37 of 42 cases; the day `index.json` has `links.task: null`). **Proposal only:** [../doc/task-lifecycle.md](../doc/task-lifecycle.md).
+- **Known problems (page, at 1200 wide):** `/framework/ai/tasks/` is a flat list with unlabeled chips and the prompt as each row's title. The one fix is to group rows by state, show the module on each row and use the task title; not built. The full list: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
+
 ## Overlaps
 
 Two homes, one reader: `State.mjs` counts both. `task.jsonl` vs `session.jsonl` (the name in a session folder): [ai/sessions](/framework/ai/sessions/). `ai/handover.md` is computed from the same state; `board.jsonl` is retired.

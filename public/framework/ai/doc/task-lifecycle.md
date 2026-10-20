@@ -38,6 +38,14 @@ The handoffs that break today were each checked against real data (13 theories, 
 3. `load_module` lists a module's open tasks from `state.json`.
 4. The Inbox groups by phase.
 
+## Decision to make: should a module's tasks live in the module? (the owner's lean, 2026-10-19)
+
+> "Maybe all module-specific tasks should actually be in the module, so if you pull up the git history of the tasks for that module you see exactly what's been done over the past few days." He is fine with `<module>/tasks/YYYY/MM/DD/<slug>/`.
+
+- **Option A (the design above):** the task stays in its session folder and carries `module`; the module's history is a query on `state.json`, not `git log`. Smallest fix: `open_task` and `TaskDirs --new` write `module` on line 1. Cost: `git log -- <module>/tasks/` shows nothing for session tasks.
+- **Option B (his lean):** a task whose module is known is born at `<module>/tasks/YYYY/MM/DD/<slug>/`, with `session_id` on line 1 so the session finds it by query; `git log -- <module>/tasks/` is then the module's history. Smallest fix: let `TaskDirs.dir()` accept `module` and make `open_task` pass it (new tasks only; the 1,100 old ones stay, or move later by `TaskMove`, which already has a dry run, ledger and undo from 10-12). Cost: a task with no clear module still needs the session home, so two places stay; the item tool's `tasks.add` makes `<module>/tasks/<slug>/` without the date folders today, so its path shape would change too.
+- **Not built.** Both options keep one copy of each task; he decides.
+
 ## Alternative, named
 
 **A pointer line in the module for each task** (`{"task": path}` in `<module>/tasks/`, as the item tool's `tasks.add` does today). It keeps the module readable without node, but it is a second list that must be written by every creator and goes stale when one forgets (the reason 0 session tasks are linked today). Rejected for session-born tasks; it stays for tasks born in a module. Also rejected: moving every task into its module folder (breaks 1,100 session paths, and a task with no module has no home).
