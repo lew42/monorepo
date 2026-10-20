@@ -202,3 +202,4 @@
 {"log":{"at":"2026-10-18T17:58:19-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-18T18:04:14-05:00","heartbeat":"revive-queued","msg":"helper-compact-nudge it did not answer the status check; a revive is queued"}}
 {"log":{"at":"2026-10-18T18:04:16-05:00","heartbeat":"escalated","msg":"helper-compact-nudge it did not answer the status check, but a revive is refused: a wake costs about $0.00 and it has spent $205.48 of $100.00"}}
+{"stop":{"at":"2026-10-20T00:04:59-05:00","why":"abandoned: no agent since 2026-10-18T18:04:16-05:00; closed by StaleClose 2026-10-20","by":"StaleClose"}}

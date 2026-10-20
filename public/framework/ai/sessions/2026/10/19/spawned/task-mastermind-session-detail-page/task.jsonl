@@ -23,3 +23,9 @@
 {"log":{"at":"2026-10-19T23:15:00-05:00","msg":"Read: AISessionDetail.js, sessions.css, Page.css head/crumbs. Findings pinned: (1) Related tab = .flex rows (icon+label link, then a paragraph) -> the wrapping 2-col; (2) 4 header bands: .page-crumbs, .page-column-head title, .sessions-tabs, $box identity line; (3) Cost panel draws nothing when no cost log; Coverage shows a technical EMPTY string; Models shows a dev-server-route message. Next: worktree, then edit."}}
 {"log":{"at":"2026-10-19T23:26:08-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-19T23:39:55-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-19T23:46:58-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-session-detail-page"}}
+{"log":{"at":"2026-10-19T23:47:00-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-19T23:30:00-05:00","msg":"Worktree ready: C:/Code/lew42/worktrees/session-detail-layout (branch worktree/session-detail-layout, http://session-detail-layout.localhost/). Probing the live DOM of the detail page to pin the four header bands exactly before editing."}}
+{"action":{"at":"2026-10-19T23:47:39-05:00","did":"edit","files":["Temp/probe-headers.mjs"]}}
+{"log":{"at":"2026-10-19T23:47:51-05:00","heartbeat":"answered","msg":"Let me look at how the dev server's own headless tool launches a browser, so I can probe the real DOM instead of guessing."}}
+{"log":{"at":"2026-10-19T23:48:08-05:00","msg":"session ended (other) without landing"}}
