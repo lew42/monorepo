@@ -41,3 +41,13 @@
 
 The planned design gives sessions a shared page template, `Session.Page extends Page`. It does not exist yet: `AISessionDetail` still extends `Page` directly. Treat the template as future work, not as current code.
 **Detail:** [core/Page architecture](/framework/core/Page/doc/architecture.md)
+
+## A session is an Item that has tasks (2026-10-20)
+
+**Decided:** `class Session extends Item`, with a `tasks` List. `completion` and `progress()` are counted from the tasks on read through `Task.progress_of`, never stored. A session gets a folder and a `session.jsonl`; a task is lines in that log.
+**Why:** one counting code serves tasks, projects and sessions, and a stored number would drift. See [sessions-and-tasks.md](/framework/ai/doc/sessions-and-tasks.md) ("The decided shape") and [the owner's dictation](/framework/ai/doc/owner-2026-10-20-who-makes-tasks.md), sections 9 (every session has `session.jsonl`) and 11 (Session class: tasks, completion from tasks, never complete with a loose end).
+**Instead:** a stored `complete` flag (drifts from the tasks), or a folder per task (the owner chose lines).
+
+## Not built yet: closing a session with a loose end
+
+The rule is: never mark a session complete while a loose end exists; add a task instead. No code enforces it, and `Session` has no state to close. Step 5 of the plan in [sessions-and-tasks.md](/framework/ai/doc/sessions-and-tasks.md) (task as a line) comes first. Treat the rule as policy, not behaviour.
