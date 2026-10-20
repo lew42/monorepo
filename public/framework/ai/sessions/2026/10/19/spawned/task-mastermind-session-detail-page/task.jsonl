@@ -8,3 +8,13 @@
 {"log":{"at":"2026-10-19T22:43:58-05:00","heartbeat":"revive","msg":"revived task-mastermind-session-detail-page from session 48d6a1bf-c188-48f9-91e0-dc0f7731a002"}}
 {"log":{"at":"2026-10-19T22:44:01-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-19T22:44:33-05:00","msg":"Seen the page (check_page): loads 2.5s, 2x 404 (page.jsonl/session.jsonl absent for a folder-less session). Now screenshotting each tab to pin the two-column + headers complaints before editing."}}
+{"log":{"at":"2026-10-19T22:44:48-05:00","heartbeat":"answered","msg":"Now I can see the complaints clearly: the Related tab is a scrunched 2-column (icon+label vs paragraph), and there's stacked header chrome above the tabs. Let me read the page/router code and the colu"}}
+{"log":{"at":"2026-10-19T22:45:07-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T22:55:57-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-session-detail-page"}}
+{"log":{"at":"2026-10-19T22:56:00-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-19T22:56:50-05:00","heartbeat":"answered","msg":"Let me look at how the dev server's own headless tool launches a browser, so I can probe the real DOM instead of guessing."}}
+{"log":{"at":"2026-10-19T22:57:07-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-19T23:09:55-05:00","msg":"task-loop chase 1 of 2: woke task-mastermind-session-detail-page","chase":1}}
+{"log":{"at":"2026-10-19T23:09:58-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-19T23:05:00-05:00","msg":"Investigation done: detail renders as core/Page master-detail column (AISessionsPage.route(id) -> new AISessionDetail). Creating worktree to fix layout (stack Related rows), cut duplicate headers, and give Cost/Coverage/Models explicit no-data states."}}
+{"log":{"at":"2026-10-19T23:11:09-05:00","msg":"session ended (other) without landing"}}
