@@ -105,5 +105,11 @@ inc.dirty.add(path.join(wd, "task.jsonl"));
 const after = inc.snapshot({ full: false }).check.landed_today;
 assert.deepEqual([after.state - before.state, after.walk - before.walk, after.only_state.length - before.only_state.length, after.only_walk.length], [1, 1, 0, 0]);
 
+// A nested spawned agent (session.jsonl, spawn line) that landed today is counted once.
+const nd = path.join(root, S, "nested-sub"); fs.mkdirSync(nd, { recursive: true });
+fs.writeFileSync(path.join(nd, "session.jsonl"), [{ assign: { session_id: "s9", agent: "minion-n", title: "Nested session", requested_at: "2026-10-17T09:00:00-05:00" } }, { finish: { at: "2026-10-17T22:10:00-05:00", outcome: "Done." } }].map(l => JSON.stringify(l)).join("\n") + "\n");
+const nested = new State({ root, registry, now }).snapshot({ full: true }).check.landed_today;
+assert.deepEqual([nested.state - after.state, nested.walk - after.walk], [1, 1]);
+
 fs.rmSync(root, { recursive: true, force: true });
 console.log("State: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 2 vs 1; cards 5 = 5 = 5, asks 3 = 3 = 3, broken cards 2 vs 1)");

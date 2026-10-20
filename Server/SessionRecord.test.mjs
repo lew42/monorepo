@@ -106,7 +106,11 @@ const launch = { assign: { session_id: "f6", title: "new session" } }, taskline 
 assert.ok(SessionRecord.is_session_dir(D("fresh")) && !SessionRecord.is_session_dir(D("fresh/child")));
 assert.equal(SessionRecord.start_file(D("fresh"), launch), D("fresh/session.jsonl"));
 assert.equal(SessionRecord.start_file(D("fresh"), taskline), D("fresh/task.jsonl"));              // a day-level task with no own session_id
-assert.equal(SessionRecord.start_file(D("fresh/child"), launch), D("fresh/child/task.jsonl"));     // a task inside a session, even with a session_id
+assert.equal(SessionRecord.start_file(D("fresh/child"), launch), D("fresh/child/task.jsonl"));     // a tab's task: session_id but no agent, nested
+const spawn = { assign: { session_id: "f7", agent: "minion-x" } };
+assert.equal(SessionRecord.start_file(D("fresh/child"), spawn), D("fresh/child/session.jsonl"));   // a spawn line, nested: a sub-session
+assert.equal(SessionRecord.start_file(D("fresh/child"), { session: { id: "v1", kind: "cloud-voice-agent" } }), D("fresh/child/session.jsonl"));
+assert.equal(SessionRecord.start_file(D("fresh/child"), taskline), D("fresh/child/task.jsonl"));
 assert.equal(SessionRecord.start_file(D("s-tags"), taskline), D("s-tags/session.jsonl"));          // digest tags only: that file is the record
 assert.equal(SessionRecord.start_file(D("t-task"), launch), D("t-task/task.jsonl"));               // an existing task log is never renamed under a writer
 const put_line = (dir, line) => { fs.writeFileSync(lines, JSON.stringify([line])); execFileSync(process.execPath, [hook, path.join(dir, "task.jsonl"), lines], { windowsHide: true, stdio: "pipe" }); };

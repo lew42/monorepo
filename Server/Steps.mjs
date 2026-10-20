@@ -136,7 +136,7 @@ export default class Steps {
 
 	/** Append ONE assign line through the validated path (.claude/hooks/append.mjs). Returns the spawn result. */
 	static plan(dir, given, kind){
-		const file = path.join(path.resolve(TaskDirs.REPO, dir), "task.jsonl");
+		const file = SessionRecord.log_or_old(path.resolve(TaskDirs.REPO, dir));
 		const line = { assign: { steps: [...given, ...this.template(kind, given)], step: 1, ...(kind ? { kind } : {}), at: "NOW" } };
 		const tmp = path.join(os.tmpdir(), `steps-plan-${process.pid}.json`);
 		fs.writeFileSync(tmp, JSON.stringify(line));
@@ -152,8 +152,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 		console.log(`Step runner, last ${days} days\n  tasks ${r.tasks} | with steps ${r.with_steps} | with estimates ${r.with_estimates} | landed ${r.landed} | all steps reported ${r.all_reported}\n  followed fully ${r.followed_fully} | rate (of estimated) ${pct(r.rate)} | rate (of all with steps) ${pct(r.rate_all_with_steps)}`);
 		console.log(JSON.stringify(r));
 	} else if (has("--show")){
-		const info = Steps.read(path.join(path.resolve(TaskDirs.REPO, after("--show")), "task.jsonl"));
-		console.log(info ? (Steps.show(info) || "(no steps)") : "no task.jsonl there");
+		const info = Steps.read(SessionRecord.log_or_old(path.resolve(TaskDirs.REPO, after("--show"))));
+		console.log(info ? (Steps.show(info) || "(no steps)") : "no task.jsonl or session.jsonl there");
 	} else if (has("--plan")){
 		const rest = argv.slice(argv.indexOf("--plan") + 1), dir = rest[0], kind = rest.includes("--kind") ? rest[rest.indexOf("--kind") + 1] : undefined;
 		const given = rest.slice(1).filter((x, i, a) => x !== "--kind" && a[i - 1] !== "--kind");

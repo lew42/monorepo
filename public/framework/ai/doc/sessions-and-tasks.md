@@ -53,7 +53,7 @@ The top half of this is done. `Server/SessionRecord.mjs` (2026-10-17) renamed `t
 
 1. ✅ This plan, merged.
 2. ⬜ **Readers.** Replace every hard-coded `"task.jsonl"` on a runtime path (`State`, `TaskState`, `TaskLoop`, `review`, `Steps`, `Landed`, `Cards`, hooks) with `SessionRecord`. No behaviour change; tests prove it.
-3. ⬜ **New sub-sessions write `session.jsonl`.** One change in `SessionRecord.start_file`: any folder whose line 1 carries a `session_id` gets `session.jsonl`, at any depth.
+3. ✅ (2026-10-20) **New sub-sessions write `session.jsonl`.** `SessionRecord.start_file`: a spawn line (`session_id` AND `agent`) gets `session.jsonl` at any depth; a tab task (`session_id`, no `agent`) keeps `task.jsonl`.
 4. ⬜ **Old folders by script.** Extend `SessionRecord` plan/apply/undo to the 1,100 sub-session folders (dry run, manifest, reversible).
 5. ⬜ **Task as a line.** `completed` 0–1 plus start/complete times in `Task.replay`; a task with no folder; a session lists its tasks (closes gap b).
 6. ⬜ **`SessionDirs`** rename with alias; module placement per task-lifecycle (option A or B).

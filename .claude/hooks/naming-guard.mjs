@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import SessionRecord from "../../Server/SessionRecord.mjs";
 import { spawnSync } from "node:child_process";
 
 // ⚠ Same override as ledger.mjs: a worktree session's task.jsonl usually lives in the
@@ -38,8 +39,8 @@ const now = () => {
 function find_task_by_path(file){
 	let dir = path.dirname(path.resolve(file));
 	while (dir === root || dir.startsWith(root + path.sep)) {
-		const candidate = path.join(dir, "task.jsonl");
-		if (fs.existsSync(candidate)) return candidate;
+		const candidate = SessionRecord.log_file(dir);
+		if (candidate) return candidate;
 		if (path.dirname(dir) === dir) return null;
 		dir = path.dirname(dir);
 	}

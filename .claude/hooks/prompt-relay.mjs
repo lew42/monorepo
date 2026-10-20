@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TaskDirs from "../../Server/TaskDirs.mjs";
+import SessionRecord from "../../Server/SessionRecord.mjs";
 
 /* prompt-relay.mjs — the UserPromptSubmit hook (2026-09-19).
  *
@@ -178,7 +179,7 @@ function echo_context_line(session_id){
 function mastermind_inbox() {
 	// Both shapes, newest day first (Server/TaskDirs.mjs; ai/doc/task-folders.md).
 	for (const t of TaskDirs.list(3).filter(t => t.slug.startsWith("mastermind-"))) {
-		const file = path.join(t.dir, "task.jsonl");
+		const file = SessionRecord.log_or_old(t.dir);
 		const state = Object.assign({}, ...read(file).filter(e => e.assign).map(e => e.assign));
 		if (!state.landed_at) return file;
 	}

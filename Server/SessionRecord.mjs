@@ -44,11 +44,12 @@ export default class SessionRecord {
 	/** A session folder sits directly under a day of the sessions store (YYYY/MM/DD/<name>); a task folder is deeper. */
 	static is_session_dir(dir){ return /[\\/]sessions[\\/]\d{4}[\\/]\d\d[\\/]\d\d[\\/][^\\/]+$/.test(path.resolve(dir)); }
 	/** The file a line goes to in `dir`: the log or record that exists (either name); else session.jsonl for a NEW session folder
-	 *  (directly under a day, `first` is the launch line {"assign":{"session_id":…}}); else task.jsonl. Writers ask this, never type the name. */
+	 *  (`first` is a spawn line {"assign":{"session_id","agent"}} at any depth, a {"session":…} line, or a session_id line directly under a day); else task.jsonl. Writers ask this, never type the name. */
 	static start_file(dir, first){
 		const have = this.log_file(dir); if (have) return have;
 		if (fs.existsSync(path.join(dir, this.NEW)) && !fs.existsSync(path.join(dir, this.OLD))) return path.join(dir, this.NEW);   // a tag-only record: the session's own file
-		return path.join(dir, first?.assign?.session_id && this.is_session_dir(dir) ? this.NEW : this.OLD);
+		const a = first?.assign, spawn = a?.session_id && a?.agent, voice = first?.session?.id;   // a spawn line (only open_task writes it) or a cloud-voice line: a session at any depth
+		return path.join(dir, spawn || voice || (a?.session_id && this.is_session_dir(dir)) ? this.NEW : this.OLD);
 	}
 	/** For a directory walker: is this entry (dir, file name) the folder's log? Counts each folder once, whichever name it holds. */
 	static is_log_entry(dir, name){ return this.is_record(name) && this.log_file(dir) === path.join(dir, name); }

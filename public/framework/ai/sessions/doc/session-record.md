@@ -62,7 +62,7 @@ The brief expected 588 folders holding both files; there are none. The 588 diges
 `SessionRecord.start_file(dir, first)` answers "which file does this line go to?" so no writer types the name:
 
 - the log that already exists, by either name; else
-- `session.jsonl`, when `dir` is directly under a day (`YYYY/MM/DD/<name>/`) and the first line is `{"assign":{"session_id":…}}`; else
+- `session.jsonl`, when the first line is a spawn line `{"assign":{"session_id","agent"}}` (any depth, a sub-session) or `{"session":…}` (cloud voice), or a `session_id` line directly under a day; else
 - `task.jsonl` (any task folder, deeper in a session).
 
 Two writers ask it: `Servex/agents/Agents.js` (`open_task`, the launch line of `spawn_agent`) and `.claude/hooks/append.mjs` (every agent's `new-task` launch line, which still names `<dir>/task.jsonl`; the hook redirects it). `node Server/TaskDirs.mjs --new` only makes the folder, never a record. `Server/review.mjs` appends to the existing log. `Server/plugins/Start.js` makes a task folder inside a session, so it keeps `task.jsonl`. A folder made this way needs no move: `--plan` counts it as nothing to do. Tests: `Server/SessionRecord.test.mjs`, `Servex/agents/open-task.test.mjs`.
