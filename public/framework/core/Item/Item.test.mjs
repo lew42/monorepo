@@ -65,4 +65,42 @@ n++;
 	t(seen.length === 2, "a child with no store of its own still bubbles to the parent's Store");
 }
 
+// An item ADDED to a parent's List logs its deltas to the PARENT's store, with the child's id as the path;
+// a reload (replay) of the parent's lines rebuilds the child. (doc/architecture.md, "Items save through their parent")
+{
+	const { default: List } = await import("../List/List.js");
+	const lines = [];
+	const store = new Item.Store({ url: "/x/parent.jsonl" });
+	store.append = line => lines.push(line);
+	const parent = new Foo({ id: "p" });
+	store.attach(parent);
+	parent.kids = new List({ owner: parent, name: "kids" });
+	const kid = new Foo({ id: "k" });
+	parent.kids.add(kid);
+	kid.set({ title: "hello" });
+	t(kid.parent === parent, "adding to a List makes the owner the child's parent");
+	t(lines.length === 2, "the add and the child's later set both reached the parent's store");
+	t(JSON.stringify(lines[1]) === '{"k":{"set":{"title":"hello"}}}', "the child's delta is nested under the child's id");
+
+	const reloaded = new Foo({ id: "p" });
+	reloaded.kids = new List({ owner: reloaded, name: "kids" });
+	for (const line of lines) reloaded.replay_line(line);
+	t(reloaded.kids.find("k")?.get("title") === "hello", "replaying the parent's lines rebuilds the child and its data");
+}
+
+// NOT built: item.set("prop", anotherItem) only stores a snapshot. The child is not adopted, so its later changes are not logged.
+{
+	const lines = [];
+	const store = new Item.Store({ url: "/x/p2.jsonl" });
+	store.append = line => lines.push(line);
+	const parent = new Foo({ id: "p2" });
+	store.attach(parent);
+	const child = new Foo({ id: "c" });
+	parent.set("child", child);
+	child.set({ title: "lost" });
+	t(lines.length === 1 && lines[0].set?.child?.id === "c", "set(prop, item) logs one snapshot line of the item");
+	t(child.parent === undefined, "set(prop, item) does not adopt the child (known gap, core/Item/readme.md)");
+	t(lines.length === 1, "so the child's later delta is NOT logged to the parent's store (known gap)");
+}
+
 console.log(`ok — ${n} assertions passed`);

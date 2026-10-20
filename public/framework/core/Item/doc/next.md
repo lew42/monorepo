@@ -1,0 +1,3 @@
+# Next: `item.set("prop", anotherItem)` should wire the child
+
+Today `set_one` ([Item.js:121](../Item.js)) stores the item in `data` as a snapshot; the child is never adopted, so its later deltas are lost and replay gives a plain object. Wanted: when the value is an `Item` with no parent, set `child.parent = this`, remember the property name, make `Store.hops()` ([Store.js:234](../Store.js)) emit that name when the node sits in a property instead of a List, and make `get()` find it (it already does for own properties). Then `{"prop":{"set":{...}}}` replays into the child. Risk: `toJSON` and `lists()` must not loop on the new parent link; keep `Item.test.mjs`'s "known gap" assertions and flip them when built.
