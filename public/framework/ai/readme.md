@@ -7,7 +7,8 @@
 | Path | What | Written by | Read by |
 |---|---|---|---|
 | `sessions/YYYY/MM/DD/…` | every session and every task folder | see [sessions/](sessions/readme.md) | `AISession/`, `Server/AIIndex.mjs` |
-| `index.json`, `tasks/index.jsonl` | every task in one bucket (generated, gitignored) | `Server/AIIndex.mjs`, run by `Servex/TaskLoop.js` | `rail/DashState.js` → the Inbox, [tasks/](tasks/readme.md) |
+| `index.json`, `index.jsonl` | every task in one bucket; the picture, one line per change (generated, gitignored) | `Server/AIIndex.mjs`, run by `Servex/TaskLoop.js` | `rail/DashState.js` → the Inbox, [tasks/](tasks/readme.md) |
+| `sessions/YYYY/MM/DD/index.jsonl` | the day stream: one `{task\|session: {id, path, url, title, state, at}}` line per creation or state change that day (generated, gitignored) | `Server/AIIndexStream.mjs`, called by `Server/AIIndex.mjs` (tasks) and `AISession/AISessionIndex.mjs` (sessions) | `rail/DayIndexLog.js` → `DashState.patch()` |
 | `cards.jsonl` | one summary row per Inbox card | `Servex/cards/Cards.js` (whole-file rewrite) | `core/Page/ext/Inbox/Timeline.js`, `rail/inbox.js` |
 | `sessions/YYYY/MM/DD/cards/<card>/page.jsonl` | a card's own page: chat, owner notes | `create_card`, `card_set`, `owner_note` (Servex) | the card page (`cards/`) |
 | `asks.jsonl` | the owner's routed asks and their owners | `Servex/asks/Asks.js` (ticks), `Servex/ext/refine/CardAsk.js`, `Server/StaleClose.mjs` | `core/Page/ext/Inbox/WaitingOnYou.js`, `Server/AskTally.mjs`, `FollowUp.mjs` |

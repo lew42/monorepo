@@ -16,6 +16,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Day from "../../core/Session/Day.js";
 import AISession from "./AISession.js";
+import AIIndexStream from "../../../../Server/AIIndexStream.mjs";
 import { files_of, registry_rows } from "../../../../Server/session-summary.mjs";
 import { links_of, children_map } from "../../../../Server/session-links.mjs";
 
@@ -241,8 +242,19 @@ export default class AISessionIndex {
 		this.snaps.set(snap.id, snap);
 		this.listeners.forEach(fn => { try { fn(snap, changed, before) } catch (e){ this.log("AISessionIndex: listener — " + e.message); } });
 		this.queue(snap.id); this.queue_day(AISessionIndex.day_of(snap));
+		this.stream_line(snap, before);
 		if (before && AISessionIndex.day_of(before) !== AISessionIndex.day_of(snap)) this.queue_day(AISessionIndex.day_of(before));
 		return changed;
+	}
+
+	/** A session born in the last ten minutes, or one whose state or title changed, is one line on today's day stream (Server/AIIndexStream.mjs). A start-up read of old sessions writes none. */
+	stream_line(snap, before){
+		const fresh = !before && Date.now() - Date.parse(snap.first_at ?? 0) < 600000;
+		if (!fresh && !(before && (before.state !== snap.state || before.title !== snap.title))) return;
+		try {
+			const dir = "public/framework/ai/sessions/" + snap.day + "/" + (snap.folder ?? "session-" + snap.id.slice(0, 8));
+			AIIndexStream.append(this.root, "session", { id: snap.id, path: dir, url: "/framework/ai/sessions/" + snap.day + "/" + (snap.folder ?? "session-" + snap.id.slice(0, 8)) + "/", title: snap.title ?? snap.agent ?? snap.id.slice(0, 8), state: snap.state });
+		} catch (e){ this.log("AISessionIndex: day stream — " + e.message); }
 	}
 
 	// ---- the single writer: index.json, temp file + rename, trailing-debounced: 5 s of quiet, at least every 60 s while changing ----------------
