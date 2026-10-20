@@ -59,7 +59,7 @@ export default class AIRail extends Inbox.Rail {
 		this.live = live_model({ prompts: this.prompts, day: this.day });
 		this.cards = new CardList();
 		this.groups = new Groups();
-		this.dash = new DashState();      // the one state (ai/state.json): the Inbox's rows. Doc: doc/one-dashboard.md
+		this.dash = new DashState();      // the one state (ai/index.json): the Inbox's rows. Doc: doc/one-dashboard.md
 		this.chips = new DashChips(this);
 		this.dash_items = []; this.dash_by_id = new Map();
 		this.page.auto_transcribe = auto_transcribe;

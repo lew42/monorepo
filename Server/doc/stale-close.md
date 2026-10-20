@@ -1,6 +1,6 @@
 # StaleClose: a task nobody will resume gets a `stop` line, with a reason
 
-`Server/StaleClose.mjs` reads the one state ([state.md](state.md)) and, for every task in the `stale` bucket (started, never landed, no working agent holds it) whose last log line is over 24 hours old, appends `{"stop":{"at","why","by":"StaleClose"}}` to its log. `Task.replay` then makes it `stopped`, so the follow-up ([follow-up.md](/framework/ai/doc/follow-up.md)) stops calling it "quiet".
+`Server/StaleClose.mjs` reads the one state ([ai-index.md](ai-index.md)) and, for every task in the `stale` bucket (started, never landed, no working agent holds it) whose last log line is over 24 hours old, appends `{"stop":{"at","why","by":"StaleClose"}}` to its log. `Task.replay` then makes it `stopped`, so the follow-up ([follow-up.md](/framework/ai/doc/follow-up.md)) stops calling it "quiet".
 
 ```
 node Server/StaleClose.mjs --plan     list them, count by age, append the plan to ai/stale-closes.jsonl

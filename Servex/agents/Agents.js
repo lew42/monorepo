@@ -231,7 +231,7 @@ export class Agents {
 	}
 
 	/* THE DEFAULT TASK DIR (todo 178, 2026-10-18): a spawn with no `task` option still gets one, or the agent is invisible to
-	 * Server/State.mjs, Servex/Landed.js, the follow-up and /tasks/. Returns the `task` spec for open_task, or null when this
+	 * Server/AIIndex.mjs, Servex/Landed.js, the follow-up and /tasks/. Returns the `task` spec for open_task, or null when this
 	 * spawn is not a work agent: a resume, `task: false` (a throwaway probe), a standing desk (STANDING ids), a page-bound
 	 * agent (its page is its home), a fork, or any agent with its own `system` brief, `sdk`, in-process tools or no settings.
 	 *

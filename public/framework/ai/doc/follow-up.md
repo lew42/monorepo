@@ -1,6 +1,6 @@
 # Follow-up: what fell through the cracks
 
-Counted by the one state ([one-state.md](one-state.md), `Server/State.mjs`): every task below is a row of `ai/state.json`. Computed 2026-10-20 05:05 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
+Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-10-20 05:05 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
 
 **0 landed with unmerged commits · 0 merged but never landed · 4 quiet over 2 h · 0 landed with no outcome · 0 open asks with no live owner · 1031 healthy of 1035.**
 

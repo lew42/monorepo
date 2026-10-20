@@ -1,5 +1,5 @@
 /** DashRow — the one row of the AI dashboard: `{kind, id, title, state, bucket, when, day, who, home, url, line, needs}`.
- *  Plain code, no DOM and no imports, so Server/State.mjs (cards, asks) and the browser (tasks, sessions) share one mapping. Plan: ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md */
+ *  Plain code, no DOM and no imports, so Server/AIIndex.mjs (cards, asks) and the browser (tasks, sessions) share one mapping. Plan: ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md */
 export default class DashRow {
 	static KINDS = ["task", "card", "session", "ask"];
 	static CARD_BUCKETS = ["open", "working", "needs", "done", "archived"];
@@ -54,7 +54,7 @@ export default class DashRow {
 			line: `${s.tasks} tasks, ${s.landed} landed`, needs: false };
 	}
 
-	/** Every row of a state.json, one array. */
+	/** Every row of an index.json, one array. */
 	static rows(s){
 		return [...(s.tasks ?? []).map(r => this.of_task(r)), ...(s.sessions ?? []).filter(x => x.tasks >= 2).map(x => this.of_session(x)), ...(s.cards ?? []), ...(s.asks ?? [])];
 	}

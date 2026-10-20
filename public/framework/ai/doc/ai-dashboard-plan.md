@@ -13,7 +13,7 @@ Task and brief: [ai-dashboard task](/framework/ai/sessions/2026/10/19/cloud-voic
 
 ## The answer in five lines
 
-- **Most of the store exists.** Every session is already a row in that day's `ai/sessions/YYYY/MM/DD/index.json` (cost, model, state, parent, agent), and every task is already a row in `ai/state.json`. The new page only reads them: no new store.
+- **Most of the store exists.** Every session is already a row in that day's `ai/sessions/YYYY/MM/DD/index.json` (cost, model, state, parent, agent), and every task is already a row in `ai/index.json`. The new page only reads them: no new store.
 - **Two things are broken, and the page cannot be honest until they are fixed:** a child names its parent by *agent name* but the session row is keyed by *session id*, so `children` is 0 and `tree_usd` equals `usd` on every row (no roll-up exists); and 24 of the 26 helpers and reviewers spawned today have no parent at all.
 - **Origin is not stored**, but it is computable from what is there (table below).
 - **The first slice** is today's sessions, three origin groups, nested to three levels, cost rolled up, read from the existing files.
@@ -28,7 +28,7 @@ Task and brief: [ai-dashboard task](/framework/ai/sessions/2026/10/19/cloud-voic
 | **A session** (VS Code tab, Servex agent) | one row per transcript in `ai/sessions/YYYY/MM/DD/index.json` (`snapshots[]`); folder `session-<id8>/` | `AISessionIndex` (the one writer, reads `~/.claude/projects` transcripts) | good: 88 rows on 10-19, 58 on 10-18 |
 | **A cloud voice session** | folder `cloud-voice-<name>/session.jsonl`, line 1 `{session:{kind:"cloud-voice-agent",caller:"voice-app"}}`; the registry row `voice-app` (state `external`) | the `cloud_voice_log` tool ([voice-logging](/Servex/ext/remote/doc/voice-logging.md)); built today, live after the next Servex restart | **partly**: today's two folders are hand-written; not yet in `index.json` |
 | **A Servex agent** (mastermind, minion, reviewer, helper, clarity…) | `registry.json` in `%LOCALAPPDATA%/lew42/servex/` (3,294 rows: `parent`, `task_dir`, `cost`, `turns`, `started_at`, `state`) and the same agent as an `index.json` row (`agent` = its registry id) | Servex (`Agents.js`) | good: every one of today's 69 agent rows joins to its registry row |
-| **A task** | `task.jsonl` in the session store, or in a module's `tasks/` home | agents via the item tool; folded by `Server/State.mjs` into `ai/state.json` (self-checked) | good ([one-state](one-state.md)) |
+| **A task** | `task.jsonl` in the session store, or in a module's `tasks/` home | agents via the item tool; folded by `Server/AIIndex.mjs` into `ai/index.json` (self-checked) | good ([one-state](one-state.md)) |
 | **Spawn link (parent → child)** | registry `parent` (an agent id); `index.json` `parent`; task line 1 `parent_task`; a minion's folder nested inside its parent task's | whoever calls `spawn_agent` *passes* `parent`; nothing fills it in | **broken**, see below |
 | **Cost** | `usd` per session row (read from the transcript, `AISessionCost`); `cost` per registry row (sum of its `turn_cost` log lines, `Agents.logged_cost`) | two different readers | **duplicated**: today 736 $ in rows vs 319 $ in registry rows; the 646 $ is one VS Code session, which has no registry row |
 | **Cost roll-up** | snapshot fields `tree_usd` and `children` | `AISessionIndex` | **empty**: on 10-19 `children` is 0 on all 88 rows and `tree_usd` equals `usd` on all 88 |
@@ -50,7 +50,7 @@ There is **no `ai/` at the repo root** (checked: it does not exist, and git has 
 **The sessions store: `public/framework/ai/sessions/YYYY/MM/DD/`.** The folders are the record. Two computed views of it, each with exactly one writer, are the only files the dashboard reads:
 
 - `…/DD/index.json`: sessions (id, agent, parent, cost, state, times). Writer: `AISessionIndex`.
-- `ai/state.json`: tasks, asks, cards (landed, open, in flight). Writer: `Server/State.mjs`.
+- `ai/index.json`: tasks, asks, cards (landed, open, in flight). Writer: `Server/AIIndex.mjs`.
 
 The registry (`registry.json`) is Servex's live bookkeeping; the dashboard never reads it directly. Anything it knows that the store needs (spawn parent, cost) is **written into the session row** by `AISessionIndex`.
 
@@ -79,7 +79,7 @@ Ranked, left to right (at 400 px the last ones wrap under, the first four never 
 3. **state** (a dot: working / idle / landed / stalled)
 4. **cost**, own and rolled up: `$2.91 · $149` (own · with everything under it); a leaf shows one number
 5. **duration** (started → last activity, `2 h 10`)
-6. **asks** and **landed**: `3 asks · 2 landed` (from `state.json`; hidden when 0)
+6. **asks** and **landed**: `3 asks · 2 landed` (from `index.json`; hidden when 0)
 
 Started time is the row's group heading (a time-of-day rule), not a column. Everything else (model, turns, tokens, files, tags, task lines, the transcript) is one click down, at the session's own URL `/framework/ai/sessions/<id>/`. A row is a link, so reload and back land in the same place.
 
@@ -129,20 +129,20 @@ Home: **`public/framework/ai/AIDashboard/`** (the name `ai/dashboard/` is taken 
 | Class | Job | Relation |
 |---|---|---|
 | `AIDashboard extends View` | the page body `/framework/ai/`: reads the url (day, origin, state, open), owns the store, draws the day strip, chips and the tree. **The orchestrator.** | extends `core/View`; composes the others |
-| `SessionStore` | loads one day's `index.json` and `state.json`, fixes the join (agent id → session id), computes `origin` and the roll-up; `rows(day)` returns the tree. Dies in slice 2 when `AISessionIndex` does this and the store only reads. | composes `ext/JSONL` / `DashState` for the live tail (code streams, [law](/CLAUDE.md)) |
+| `SessionStore` | loads one day's `index.json` and `index.json`, fixes the join (agent id → session id), computes `origin` and the roll-up; `rows(day)` returns the tree. Dies in slice 2 when `AISessionIndex` does this and the store only reads. | composes `ext/JSONL` / `DashState` for the live tail (code streams, [law](/CLAUDE.md)) |
 | `SessionTree` | a node: `{session, children, own, rolled, depth}`, `open` set, `walk()` | plain class, no DOM; the thing the page's debug view prints |
 | `SessionRow extends View` | the one row (fields above), draws itself from a `SessionTree` node | extends `core/View`; **reuses `AISessionView`'s cell helpers and `DashRow`'s state dot** rather than a second row type |
 | `DayStrip extends View` | the day links, totals, ‹ › | uses `Day.of` ([core/Session/Day.js](/framework/core/Session/Day.js)) so "today" is the same local day as `State` |
 | `UsageLine extends View` | the one-line meter: `UsagePace.ratio` per limit from `ai/usage.json` | reuses `ai/usage/UsagePace.js`, no second meter |
 | `OriginChips extends View` | origin and state chips, written to the url | reuses the `DashChips` url mechanism (its `read()`/`write()` shape), not a second one |
 
-Reused as is: `DashRow` (state mapping), `DashState` (the `state.json` stream), `AISessionBuckets` (folding routine rows), `ext/DataGrid` only for the wide detail pane if it earns it. **Show the class** (CLAUDE.md): the page's `?debug` shows the `SessionTree` of the day beside the rendered list.
+Reused as is: `DashRow` (state mapping), `DashState` (the `index.json` stream), `AISessionBuckets` (folding routine rows), `ext/DataGrid` only for the wide detail pane if it earns it. **Show the class** (CLAUDE.md): the page's `?debug` shows the `SessionTree` of the day beside the rendered list.
 
 ---
 
 ## 5. The smallest first slice, and what it will not show
 
-**Builds** (a worktree, one new folder, a swap of `page.js`'s default content): today and yesterday's `index.json` + `state.json` → a tree grouped ☁ / ⌨ / ⚙, nested three levels, rolled-up cost in the browser, day strip, the origin chip, rows as above, links to the old Inbox/Sessions/Tasks, checked at 400, 1200, 1920 and 3440. The page does not scroll inside its scroll, and nothing is sticky.
+**Builds** (a worktree, one new folder, a swap of `page.js`'s default content): today and yesterday's `index.json` + `index.json` → a tree grouped ☁ / ⌨ / ⚙, nested three levels, rolled-up cost in the browser, day strip, the origin chip, rows as above, links to the old Inbox/Sessions/Tasks, checked at 400, 1200, 1920 and 3440. The page does not scroll inside its scroll, and nothing is sticky.
 
 **Will not show yet:**
 - the state chip's *unfinished* (needs the lifecycle in [task-lifecycle.md](task-lifecycle.md), written by `task-mastermind-task-system`);

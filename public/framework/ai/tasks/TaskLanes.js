@@ -4,7 +4,7 @@ import DashChips from "../rail/DashChips.js";
 
 View.stylesheet({ url: import.meta.url }, "tasks.css");
 
-/** The Lanes view: today's three columns (in flight, queued, landed today) over the same state.json the Inbox reads (DashState). Doc: doc/architecture.md */
+/** The Lanes view: today's three columns (in flight, queued, landed today) over the same index.json the Inbox reads (DashState). Doc: doc/architecture.md */
 export default class TaskLanes {
 	static LANES = [
 		{ key: "in_flight", title: "In flight", empty: "Nothing is working right now." },
@@ -39,7 +39,7 @@ export default class TaskLanes {
 	draw(){
 		const s = this.dash.full;
 		this.$box.empty(() => {
-			if (!s) return div.c("tasks-note muted", () => span("No task state yet: this page reads ai/state.json (node Server/TaskState.mjs --watch writes it)."));
+			if (!s) return div.c("tasks-note muted", () => span("No task state yet: this page reads ai/index.json (node Server/AIIndex.mjs --watch writes it)."));
 			TaskLanes.LANES.forEach(g => div.c("tasks-lane", () => {
 				const rows = g.key === "landed" ? (s.landed ?? []).filter(r => !r.day || r.day === s.today) : (s[g.key] ?? []);
 				h2.c("tasks-group-head", () => { span(g.title); small.c("inbox-badge").text(String(rows.length)); });

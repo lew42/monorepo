@@ -1,11 +1,11 @@
-// node Server/State.test.mjs — six planted tasks in a scratch store, every bucket, the local-day grouping, check.ok;
-// then one folder broken on purpose and check.ok must turn false with the right two numbers. Doc: Server/doc/state.md
+// node Server/AIIndex.test.mjs — six planted tasks in a scratch store, every bucket, the local-day grouping, check.ok;
+// then one folder broken on purpose and check.ok must turn false with the right two numbers. Doc: Server/doc/ai-index.md
 process.env.TZ = "America/Chicago";   // the day rule is the owner's local day; pinned so the test means the same anywhere
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import State from "./State.mjs";
+import AIIndex from "./AIIndex.mjs";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "state-test-"));
 const put = (rel, ...lines) => { const d = path.join(root, rel); fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, "task.jsonl"), lines.map(l => JSON.stringify(l)).join("\n") + "\n"); return d; };
@@ -34,7 +34,7 @@ fs.mkdirSync(path.join(root, "public/tasks"), { recursive: true });
 fs.writeFileSync(path.join(root, "public/tasks/task.jsonl"), [{ id: "tasks", path: "/tasks/" }, { task: "/framework/mod/X/tasks/" }].map(l => JSON.stringify(l)).join("\n") + "\n");
 
 const registry = [{ id: "minion-f", role: "minion", state: "working", task_dir: flight, last_at: new Date(now - 60000).toISOString() }];
-const s = new State({ root, registry, now }).snapshot();
+const s = new AIIndex({ root, registry, now }).snapshot();
 assert.equal(s.today, "2026-10-17");
 assert.deepEqual(s.counts.tasks, { landed: 3, in_flight: 1, queued: 0, waiting: 0, idle: 1, stopped: 1, stale: 0 });
 assert.equal(s.counts.landed_by_day["2026-10-17"], 2); assert.equal(s.counts.landed_by_day["2026-10-16"], 1);
@@ -49,10 +49,10 @@ assert.deepEqual([s.check.landed_today.state, s.check.landed_today.walk], [2, 2]
 assert.equal(s.check.ok, true, JSON.stringify(s.check));
 assert.equal(s.counts.landed, 2); assert.equal(s.landed.length, 3);   // the dashboard's window holds the week, its count is today
 
-// Break one on purpose: a start line after the finish. Task.js refuses it (a complete task cannot start), so State counts the task landed; the plain walk reads the last state verb as start and does not.
+// Break one on purpose: a start line after the finish. Task.js refuses it (a complete task cannot start), so AIIndex counts the task landed; the plain walk reads the last state verb as start and does not.
 put(S + "t-finish", { assign: { session_id: "s1", title: "Landed then restarted", requested_at: "2026-10-17T09:00:00-05:00" } },
 	{ finish: { at: "2026-10-18T03:30:00Z", outcome: "Done tonight." } }, { start: { at: "2026-10-18T03:40:00Z" } });
-const b = new State({ root, registry, now }).snapshot();
+const b = new AIIndex({ root, registry, now }).snapshot();
 assert.equal(b.check.ok, false);
 assert.deepEqual([b.check.landed_today.state, b.check.landed_today.walk], [2, 1]);
 assert.deepEqual(b.check.landed_today.only_state, ["2026~10~17~sess-a~t-finish"]);
@@ -63,9 +63,9 @@ put(S + "t-log", { assign: { session_id: "s1", title: "Log", requested_at: "2026
 const hd = put(S + "t-head", { assign: { session_id: "s1", title: "Head", requested_at: "2026-10-17T09:00:00-05:00" } }, { finish: { at: "2026-10-17T10:00:00-05:00" } });
 fs.writeFileSync(path.join(hd, "requirements.md"), "# The brief heading\n\nbody\n");
 put(S + "t-bare", { assign: { session_id: "s1", title: "Bare", requested_at: "2026-10-17T09:00:00-05:00" } }, { complete: {} });
-const c = new State({ root, registry, now }).snapshot(), crow = id => c.tasks.find(r => r.id.endsWith(id));
+const c = new AIIndex({ root, registry, now }).snapshot(), crow = id => c.tasks.find(r => r.id.endsWith(id));
 assert.equal(crow("t-key").line, "Merged the fix."); assert.equal(crow("t-log").line, "last words");
-assert.equal(crow("t-head").line, "The brief heading"); assert.equal(crow("t-bare").line, State.NO_SUMMARY);
+assert.equal(crow("t-head").line, "The brief heading"); assert.equal(crow("t-bare").line, AIIndex.NO_SUMMARY);
 
 // Cards and asks: the same row, each counted two ways (a fold, a text scan). A later line for an id wins.
 const ai = path.join(root, "public/framework/ai"); fs.mkdirSync(ai, { recursive: true });
@@ -77,7 +77,7 @@ jl("asks.jsonl", [{ ask: { at: "2026-10-17T09:00:00-05:00", title: "First ask", 
 	{ ask: { id: "first-ask", status: "landed", at: "2026-10-17T12:00:00-05:00" } },
 	{ ask: { at: "2026-10-17T09:00:00-05:00", id: "named", title: "Named ask", status: "parked" } },
 	{ ask: { at: "2026-10-17T09:30:00-05:00", title: "Quiet ask", status: "routed" } }, { ask: { id: "never-routed", status: "landed" } }]);
-const d = new State({ root, registry, now }).snapshot(), by = id => d.cards.find(r => r.id.endsWith(id));
+const d = new AIIndex({ root, registry, now }).snapshot(), by = id => d.cards.find(r => r.id.endsWith(id));
 assert.equal(d.cards.length, 5);                                         // six lines, five ids
 assert.equal(by("/a").bucket, "working"); assert.equal(by("/b").bucket, "done"); assert.equal(by("/c").bucket, "archived");
 assert.equal(by("/d").bucket, "needs"); assert.equal(by("/d").needs, true); assert.equal(by("/e").bucket, "open"); assert.equal(by("/e").needs, false);   // a decision FYI never waits
@@ -90,16 +90,16 @@ assert.equal(ask("first-ask").when, "2026-10-17T12:00:00-05:00"); assert.equal(a
 assert.deepEqual([d.check.asks.rows, d.check.asks.sum, d.check.asks.ids, d.check.asks.ok], [3, 3, 3, true]);
 assert.deepEqual([d.check.sessions.in_sessions, d.check.sessions.with_session, d.check.sessions.ok], [d.check.sessions.with_session, d.check.sessions.with_session, true]);
 assert.equal(d.sessions.find(x => x.id === "s1").title != null, true);
-assert.equal(State.sig(d) !== State.sig(s), true);                       // new cards and asks move the signature
-assert.equal("cards" in State.stream_line(d), false);                    // the stream line stays small: counts and the check only
+assert.equal(AIIndex.sig(d) !== AIIndex.sig(s), true);                       // new cards and asks move the signature
+assert.equal("cards" in AIIndex.stream_line(d), false);                    // the stream line stays small: counts and the check only
 // Break the card count on purpose: an `id` that is not first on its line parses fine but the text scan misses it.
 jl("cards.jsonl", [card("2026/10/17/a", "open"), `{"title":"Odd","id":"2026/10/17/odd","status":"open","last":"2026-10-17T10:00:00-05:00"}`]);
-const e = new State({ root, registry, now }).snapshot();
+const e = new AIIndex({ root, registry, now }).snapshot();
 assert.equal(e.check.ok, false); assert.deepEqual([e.check.cards.rows, e.check.cards.ids, e.check.cards.ok], [2, 1, false]); assert.equal(e.check.asks.ok, true);
 
 // A landing after the first walk: only the marked file is re-read, and both counts still move together (the 1 s dashboard).
 const wd = put(S + "t-later", { assign: { session_id: "s1", title: "Lands later", requested_at: "2026-10-17T09:00:00-05:00" } }, { start: { at: "2026-10-17T09:05:00-05:00" } });
-const inc = new State({ root, registry, now }), before = inc.snapshot({ full: true }).check.landed_today;
+const inc = new AIIndex({ root, registry, now }), before = inc.snapshot({ full: true }).check.landed_today;
 fs.appendFileSync(path.join(wd, "task.jsonl"), JSON.stringify({ finish: { at: "2026-10-17T22:00:00-05:00", outcome: "Done." } }) + "\n");
 inc.dirty.add(path.join(wd, "task.jsonl"));
 const after = inc.snapshot({ full: false }).check.landed_today;
@@ -108,8 +108,8 @@ assert.deepEqual([after.state - before.state, after.walk - before.walk, after.on
 // A nested spawned agent (session.jsonl, spawn line) that landed today is counted once.
 const nd = path.join(root, S, "nested-sub"); fs.mkdirSync(nd, { recursive: true });
 fs.writeFileSync(path.join(nd, "session.jsonl"), [{ assign: { session_id: "s9", agent: "minion-n", title: "Nested session", requested_at: "2026-10-17T09:00:00-05:00" } }, { finish: { at: "2026-10-17T22:10:00-05:00", outcome: "Done." } }].map(l => JSON.stringify(l)).join("\n") + "\n");
-const nested = new State({ root, registry, now }).snapshot({ full: true }).check.landed_today;
+const nested = new AIIndex({ root, registry, now }).snapshot({ full: true }).check.landed_today;
 assert.deepEqual([nested.state - after.state, nested.walk - after.walk], [1, 1]);
 
 fs.rmSync(root, { recursive: true, force: true });
-console.log("State: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 2 vs 1; cards 5 = 5 = 5, asks 3 = 3 = 3, broken cards 2 vs 1)");
+console.log("AIIndex: ok (six tasks, every bucket, local days, check.ok true; broken copy: check.ok false, 2 vs 1; cards 5 = 5 = 5, asks 3 = 3 = 3, broken cards 2 vs 1)");

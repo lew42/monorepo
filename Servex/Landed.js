@@ -43,7 +43,7 @@ export default class Landed {
 	static done(state){ return state === "complete" || state === "stopped"; }
 
 	/* True when the task log (a file) has landed or been stopped. A landing whose branch is NOT on michael/dev
-	 * does not count (todo 207): a Servex-side gate only; Task.replay and Server/State.mjs stay pure because a
+	 * does not count (todo 207): a Servex-side gate only; Task.replay and Server/AIIndex.mjs stay pure because a
 	 * browser cannot run git. Servex/doc/landing.md. */
 	static of_file(file){
 		const state = this.state(file);

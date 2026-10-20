@@ -19,7 +19,7 @@ The default page at `/framework/ai/`: one day's agent sessions, grouped by where
 
 ## Data: read only, no store of its own
 
-- **Reads** `ai/sessions/YYYY/MM/DD/index.json` (writer: `AISessionIndex`, gitignored, so a static deploy has no data until it is generated), the tick from `ai/tasks/state.jsonl` through `DashState` (writer: `Server/State.mjs`), and `ai/usage.json`.
+- **Reads** `ai/sessions/YYYY/MM/DD/index.json` (writer: `AISessionIndex`, gitignored, so a static deploy has no data until it is generated), the tick from `ai/index.jsonl` through `DashState` (writer: `Server/AIIndex.mjs`), and `ai/usage.json`.
 - **State lives in the url:** `?day=YYYY-MM-DD&origin=cloud|code|servex|routine&live&find=&open=id,id`.
 - **Origin** (`SessionTree.origin`): `cloud` = parent `voice-app` or a `cloud-voice*` folder; `code` = a transcript with no agent; `routine` = the cheap buckets from `AISessionBuckets.KINDS`; otherwise `servex`.
 

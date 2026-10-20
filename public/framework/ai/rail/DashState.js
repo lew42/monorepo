@@ -1,11 +1,11 @@
 import TaskStateLog from "../tasks/TaskStateLog.js";
 import DashRow from "./DashRow.js";
 
-/** DashState — the whole ai/state.json, kept current by the one stream: each new line on ai/tasks/state.jsonl (written AFTER state.json, so it always points at fresh data) refetches it.
+/** DashState — the whole ai/index.json, kept current by the one stream: each new line on ai/index.jsonl (written AFTER index.json, so it always points at fresh data) refetches it.
  *  `rows` are the dashboard's one row type (DashRow). Doc: ai/doc/one-dashboard.md */
 export default class DashState extends TaskStateLog {
-	static URL = new URL("../state.json", import.meta.url).pathname;
-	full = null;      // the last state.json
+	static URL = new URL("../index.json", import.meta.url).pathname;
+	full = null;      // the last index.json
 	rows = [];        // DashRow.rows(full)
 	listeners = new Set();
 

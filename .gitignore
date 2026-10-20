@@ -207,3 +207,9 @@ public/framework/ai/ai/v-*.summary.json
 
 # Server/layout-check.mjs's per-task output folder (shots + layout.json) inside a task dir: machine output, regenerated on demand (2026-10-17)
 public/framework/ai/**/layout-check/
+
+# AI index (Server/AIIndex.mjs): computed, regenerated (2026-10-20)
+public/framework/ai/index.json
+public/framework/ai/index.json.tmp
+public/framework/ai/index.jsonl
+public/framework/ai/index.jsonl.lock

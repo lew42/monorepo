@@ -23,7 +23,7 @@ class Servex {
   agents: Agents                  // agents/Agents.js — spawn, send, stop, dormant, revive; `Agents.Agent` is one SDK session
   dashboard: Dashboard            // the :8090 HTTP router; mcp: MCP (/mcp); remote: RemoteMCP (/mcp/remote)
   dispatcher: Dispatcher          // agents/Dispatcher.js — routes a prompt to the right agent
-  task_loop: TaskLoop             // TaskLoop.js — runs Server/State.mjs --watch, re-prompts stalled task steps (doc/steps.md)
+  task_loop: TaskLoop             // TaskLoop.js — runs Server/AIIndex.mjs --watch, re-prompts stalled task steps (doc/steps.md)
   heartbeat: Heartbeat            // Heartbeat.js — status check → triage → escalate
   lifecycle: Lifecycle            // Lifecycle.js — reaps finished or stuck agents
   pool: Pool, worktrees: Worktrees, fixer: Fixer   // the quick-fix pool and per-task worktrees
@@ -50,7 +50,7 @@ Inside the repo Servex writes only the AI records ([ai/](/framework/ai/)). Its o
 
 ## Overlaps
 
-The local `servex` MCP and the remote door share one tool registry; the remote adds `ask_mastermind`, `call` and `cloud_voice_log` ([MCP](/framework/ai/doc/agents/mcp.md)). A task folder is opened by `open_task` here; counted by `Server/State.mjs` ([ai/tasks](/framework/ai/tasks/)).
+The local `servex` MCP and the remote door share one tool registry; the remote adds `ask_mastermind`, `call` and `cloud_voice_log` ([MCP](/framework/ai/doc/agents/mcp.md)). A task folder is opened by `open_task` here; counted by `Server/AIIndex.mjs` ([ai/tasks](/framework/ai/tasks/)).
 
 ## More
 

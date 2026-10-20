@@ -3,7 +3,7 @@
 ## Status (verified 2026-10-19 against the code)
 
 - **Built and tested:** the state machine, subtasks, replay of `task.jsonl` (`node Task.test.mjs`, 53 of 53 pass), `TaskView`, `TaskPage`, `TasksPage`, references between tasks (`Task.from_ref`), module homes made by the item tool's `tasks.add`.
-- **Wired in:** `Server/State.mjs` replays every task through `Task.replay` into `ai/state.json`; Servex `open_task` and `TaskDirs --new` make the session-store folders that `Task` reads; the Inbox shows the result.
+- **Wired in:** `Server/AIIndex.mjs` replays every task through `Task.replay` into `ai/index.json`; Servex `open_task` and `TaskDirs --new` make the session-store folders that `Task` reads; the Inbox shows the result.
 - **Play class, wired nowhere:** [Project.js](Project.js) (`Project extends Task`: six stages, `completed` 0..1 from its subtasks; `node Project.test.mjs`, 8 of 8).
 - **Concept only:** `AITask extends Task` (below), a `phase` field ([ai/doc/task-lifecycle.md](/framework/ai/doc/task-lifecycle.md)). **Not automatic:** a module home. `TaskDirs.dir()` does not know modules; only the item tool (an agent's choice), `TaskMigrate` (one-off) and `UndoneToTasks` (idle tasks from undone asks) put a task in `<module>/tasks/`.
 
@@ -44,7 +44,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 ## State: counting across tasks
 
-`Task.js` decides one task's state. Counting across all of them (how many landed today, what is in flight) is done once, in node, by [`Server/State.mjs`](/Server/State.mjs): it replays every task in both stores (the sessions store and every `tasks/` home) through `Task.replay` and writes `public/framework/ai/state.json`, with a self-check that a second, separate count must agree with. Nothing else counts tasks. Design: [Server/doc/state.md](/Server/doc/state.md). The three rules State's self-check found wrong are fixed (see Watch out).
+`Task.js` decides one task's state. Counting across all of them (how many landed today, what is in flight) is done once, in node, by [`Server/AIIndex.mjs`](/Server/AIIndex.mjs): it replays every task in both stores (the sessions store and every `tasks/` home) through `Task.replay` and writes `public/framework/ai/index.json`, with a self-check that a second, separate count must agree with. Nothing else counts tasks. Design: [Server/doc/ai-index.md](/Server/doc/ai-index.md). The three rules State's self-check found wrong are fixed (see Watch out).
 
 ## render() and TaskView
 
@@ -62,7 +62,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 ## Watch out
 
-- **Three replay rules, set by `Server/State.mjs`'s self-check** ([Server/doc/state.md](/Server/doc/state.md), "Decision"): a line's time is `at`, else the item tool's `ts`; `landed_at` alone means `complete` (outcome or not); during replay `complete()` never refuses a recorded finish because a filed `{task: ref}` child is idle (live calls still refuse). Each has a test in `Task.test.mjs`.
+- **Three replay rules, set by `Server/AIIndex.mjs`'s self-check** ([Server/doc/ai-index.md](/Server/doc/ai-index.md), "Decision"): a line's time is `at`, else the item tool's `ts`; `landed_at` alone means `complete` (outcome or not); during replay `complete()` never refuses a recorded finish because a filed `{task: ref}` child is idle (live calls still refuse). Each has a test in `Task.test.mjs`.
 - **Abandoned tasks are closed by script:** [`Server/StaleClose.mjs`](/Server/StaleClose.mjs) appends a `stop` line (`by: StaleClose`) to every `stale` task silent over 24 h, daily from `Servex/TaskLoop.js`; the manifest is `ai/stale-closes.jsonl`, `--undo` appends `start` (`resume` is refused from `stopped`). [Server/doc/stale-close.md](/Server/doc/stale-close.md)
 - **`complete()` refuses while a subtask is open** — it warns ("… isn't complete yet —
   complete that first") and leaves the state unchanged, never throws. Every illegal
