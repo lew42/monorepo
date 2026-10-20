@@ -44,6 +44,12 @@ export default class Dated {
 /** One day's index file replayed: a pointer row per item, never a copy. Open its url to tail it live: `await Dated.Index.open(url)`. */
 Dated.Index = class DatedIndex extends Item {
 	rows = [];
+	/** Item.open would read line 1 as the host's own data; in an index every line is a row, so attach first and replay all of them. */
+	static async open(url){
+		const store = this.Store.for(url);
+		await store.open();
+		return store.attach(new this()).host;
+	}
 	/** Each line is {<kind>: {id, path, title, state, at, …}}; the one object-valued key names the kind. */
 	replay_line(line){
 		const kind = Object.keys(line).find(k => line[k] && typeof line[k] === "object" && !Array.isArray(line[k]));
