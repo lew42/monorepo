@@ -22,3 +22,6 @@
 {"commit":"57fddd5abd7e"}
 {"log":{"at":"2026-10-19T20:54:56-05:00","msg":"readmes rewritten as structure+function (old text in doc/readme-before-2026-10-19.md): ai/sessions, ai/tasks, ai/AITask, ai, core/Page/ext/Inbox, core/Page, Servex; mcp.md, sdk.md, cloud-voice-agent.md verified; framework/readme.md module index; CLAUDE.md where-to-look; landing checklist; Server/SessionReadme.mjs + sessions/doc/session-readme.md"}}
 {"assign":{"landed_at":"2026-10-19T20:54:56-05:00"}}
+{"commit":"e49b88c64207"}
+{"log":{"at":"2026-10-19T20:55:03-05:00","msg":"landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}."}}
+{"assign":{"at":"2026-10-19T20:55:07-05:00","outcome":"**what landed** — readmes for ai, ai/sessions, ai/tasks, AITask, Inbox, core/Page and Servex now state structure and function (old text in doc/readme-before-2026-10-19.md); MCP, sdk and cloud-voice docs verified; framework/readme.md module index; CLAUDE.md where-to-look; two-question landing checklist; Server/SessionReadme.mjs with one generated example and sessions/doc/session-readme.md."}}
