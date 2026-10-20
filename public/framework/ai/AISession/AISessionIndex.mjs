@@ -57,6 +57,7 @@ export default class AISessionIndex {
 	start(){
 		this.ready = this.load().catch(e => this.log("AISessionIndex: load failed — " + e.message));
 		for (const d of this.project_dirs()) this.watch(d);
+		this.watch_records();
 		this.sweeper = setInterval(() => this.sweep(), AISessionIndex.SWEEP_MS); this.sweeper.unref?.();
 		this.freezer = setInterval(() => this.freeze(), AISessionIndex.FREEZE_MS); this.freezer.unref?.();
 		this.log(`AISessionIndex: following ${this.watchers.length} transcript folders`);
@@ -83,6 +84,50 @@ export default class AISessionIndex {
 		} catch (e){ this.log("AISessionIndex: cannot watch " + dir + " — " + e.message); }
 	}
 
+	// ---- record-only sessions: a cloud voice call has a session.jsonl and no transcript on this machine ------------------
+	watch_records(){
+		try {
+			this.watchers.push(fs.watch(this.root, { recursive: true }, (_, name) => {
+				const m = name && /^(\d{4})[\\/](\d{2})[\\/](\d{2})[\\/]([^\\/]+)[\\/]session\.jsonl$/.exec(String(name));
+				if (m) this.schedule_record(path.join(this.root, m[1], m[2], m[3], m[4]));
+			}));
+		} catch (e){ this.log("AISessionIndex: cannot watch " + this.root + " — " + e.message); }
+	}
+
+	schedule_record(dir){
+		clearTimeout(this.timers.get(dir));
+		this.timers.set(dir, setTimeout(() => {
+			this.timers.delete(dir);
+			this.busy = this.busy.then(() => { const snap = AISessionIndex.record_snap(dir); if (snap){ this.dirs.set(snap.id, dir); this.set(snap); } }).catch(e => this.log("AISessionIndex: record " + dir + " — " + e.message));
+		}, AISessionIndex.DEBOUNCE_MS));
+	}
+
+	/** The snapshot of a record-only folder, or null if it is not one. id = the folder name; kind from line 1; times from the lines' `at`; cost from `cost` lines (`{"cost":{"usd":n}}`), else 0. */
+	static record_snap(dir){
+		const name = path.basename(dir);
+		if (UUID.test(name) || /^session-[0-9a-f]{8}$/.test(name)) return null;   // a transcript session's folder
+		let lines; try { lines = fs.readFileSync(path.join(dir, "session.jsonl"), "utf8").split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch { return null; }
+		const head = lines[0]?.session; if (!head || head.kind === "vscode-tab") return null;
+		const ms = v => { const t = typeof v === "number" ? v : Date.parse(v); return Number.isFinite(t) ? t : null; };
+		const times = [ms(head.at), ...lines.slice(1).map(l => ms(Object.values(l)[0]?.at))].filter(t => t != null);
+		const first = times.length ? Math.min(...times) : fs.statSync(path.join(dir, "session.jsonl")).birthtimeMs, last = times.length ? Math.max(...times) : first;
+		const usd = r4(lines.reduce((n, l) => n + (+l.cost?.usd || 0), 0)), title = lines.find(l => typeof l.title === "string")?.title ?? head.title ?? name;
+		return { id: name, kind: head.kind ?? null, state: Date.now() - last < AISessionIndex.ACTIVE_MS ? "active" : "idle", model: null, effort: null, provider: "claude", usd, usd_source: "recorded", tree_usd: usd, children: 0,
+			wall_ms: last - first, flags: 0, tokens: 0, first_at: new Date(first).toISOString(), last_activity: new Date(last).toISOString(), day: Day.of(first), folder: name, tags: [], alerts: 0, parent: null, agent: null, title, core: [], files: 0 };
+	}
+
+	/** Every dated folder with a record-only session.jsonl gets its snapshot at start-up; later changes come from watch_records. */
+	async load_records(){
+		for (const y of AISessionIndex.numbered(this.root, 4)) for (const m of AISessionIndex.numbered(path.join(this.root, y), 2)) for (const d of AISessionIndex.numbered(path.join(this.root, y, m), 2)){
+			const day = path.join(this.root, y, m, d);
+			for (const e of await fsp.readdir(day, { withFileTypes: true }).catch(() => [])){
+				if (!e.isDirectory()) continue;
+				const dir = path.join(day, e.name), snap = AISessionIndex.record_snap(dir);
+				if (snap && !this.snaps.has(snap.id)){ this.dirs.set(snap.id, dir); this.snaps.set(snap.id, snap); this.queue(snap.id); this.queue_day(AISessionIndex.day_of(snap)); }
+			}
+		}
+	}
+
 	on(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); }
 
 	// ---- loading: the snapshots already on disk, then the sessions that have none yet -------------------------------
@@ -107,6 +152,7 @@ export default class AISessionIndex {
 			await this.fill_record(id, snap);
 			this.snaps.set(id, snap); this.queue(id);
 		});
+		await this.load_records();
 		this.link_all();
 		this.freeze();
 		this.heal();
