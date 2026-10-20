@@ -30,6 +30,8 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 - `Server/AskEach.mjs` `askOnce()` — one cheap Q&A turn, optionally on OpenRouter; ⚠ the SDK mis-prices an OpenRouter turn.
 - `Server/Crawl.mjs` — nightly full-site crawl at 1920; failures go to `ai/todo.md`.
 - `Server/Council.mjs` — Feedback Council collector and runner; off switch `COUNCIL=off`.
+- `node Server/ReadmeOrphans.mjs` — lists every directory with a readme that the readme above it never names (the readme chain cannot reach it); the page-nav twin is `OrphanCheck.mjs`.
+- [`git-hooks/`](./git-hooks/) — the git hooks every worktree shares, versioned here with a small installer.
 
 ## Moved to a doc (verbatim)
 
