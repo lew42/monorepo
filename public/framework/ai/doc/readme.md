@@ -5,6 +5,7 @@ One folder per subsystem, one current doc per topic. Load the folder you need; t
 | Folder | What is in it | Load it when |
 |---|---|---|
 | [`architecture.md`](architecture.md) | The decisions behind the AI system, newest first | you change how it is built |
+| [`ai-folder-audit.md`](ai-folder-audit.md) | What each entry in `ai/` is, who writes and reads it, and where it should go | you wonder where a file in `ai/` belongs |
 | [`design/`](design/systems-overview.md) | The big picture: [systems overview](design/systems-overview.md), [tooling](design/tooling-architecture.md), [per-module `ai/` folders](design/module-ai-dirs.md), [dictation to Refine](design/dictation-refine-connection-map.md), [the website shows everything](design/website-shows-everything.md) | you are new, or crossing systems |
 | [`agents/`](agents/mcp.md) | How agents behave: [MCP tools](agents/mcp.md), [autonomy](agents/autonomy.md), [concurrency](agents/concurrency.md), [interrupts](agents/interrupts.md), [pass by reference](agents/pass-by-reference.md), [ground truth](agents/eval-truth.md) | you touch Servex agents or their tools |
 | [`tokens/`](tokens/tokens.md) | [How cost is counted and cut](tokens/tokens.md), [context windows](tokens/context-window.md) | you spend or measure tokens |
