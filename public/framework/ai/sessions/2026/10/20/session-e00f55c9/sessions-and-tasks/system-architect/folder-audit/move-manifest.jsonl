@@ -1,2 +1,29 @@
-{"from":"public/framework/ai/2026/10/17/drawer-readme-arch-link","to":"public/framework/ai/sessions/2026/10/17/drawer-readme-arch-link","files":2,"record":"task.jsonl"}
-{"from":"public/framework/ai/2026/10/20/note-the-servex-connector-in-the-claude","to":"public/framework/ai/sessions/2026/10/20/note-the-servex-connector-in-the-claude","files":1,"record":null,"skip":"live"}
+{"from":"public/framework/ai/2026/10/12/session-f155ecbd","to":"public/framework/ai/sessions/2026/10/12/cards/session-f155ecbd","files":1,"record":null,"conflict":"target exists"}
+{"from":"public/framework/ai/2026/10/13/session-730e8a7b","to":"public/framework/ai/sessions/2026/10/13/cards/session-730e8a7b","files":1,"record":null,"conflict":"target exists"}
+{"from":"public/framework/ai/2026/10/16/session-2ab06310","to":"public/framework/ai/sessions/2026/10/16/cards/session-2ab06310","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/16/session-6f0f7b85","to":"public/framework/ai/sessions/2026/10/16/cards/session-6f0f7b85","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/16/session-ac2b39ba","to":"public/framework/ai/sessions/2026/10/16/cards/session-ac2b39ba","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/16/session-cd9a0840","to":"public/framework/ai/sessions/2026/10/16/cards/session-cd9a0840","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/17/drawer-readme-arch-link","to":"public/framework/ai/sessions/2026/10/17/cards/drawer-readme-arch-link","files":2,"record":"task.jsonl","applied":true,"how":"git mv"}
+{"from":"public/framework/ai/2026/10/19/session-0e8eec31","to":"public/framework/ai/sessions/2026/10/19/cards/session-0e8eec31","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-175c5576","to":"public/framework/ai/sessions/2026/10/19/cards/session-175c5576","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-19e103f8","to":"public/framework/ai/sessions/2026/10/19/cards/session-19e103f8","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-1fc3dddb","to":"public/framework/ai/sessions/2026/10/19/cards/session-1fc3dddb","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-2c1cf6c2","to":"public/framework/ai/sessions/2026/10/19/cards/session-2c1cf6c2","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-2d867805","to":"public/framework/ai/sessions/2026/10/19/cards/session-2d867805","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-4dca5eb7","to":"public/framework/ai/sessions/2026/10/19/cards/session-4dca5eb7","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-8d30a78c","to":"public/framework/ai/sessions/2026/10/19/cards/session-8d30a78c","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-97c6d83b","to":"public/framework/ai/sessions/2026/10/19/cards/session-97c6d83b","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-98169d40","to":"public/framework/ai/sessions/2026/10/19/cards/session-98169d40","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-a07e7b80","to":"public/framework/ai/sessions/2026/10/19/cards/session-a07e7b80","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-af149a89","to":"public/framework/ai/sessions/2026/10/19/cards/session-af149a89","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-be0b1837","to":"public/framework/ai/sessions/2026/10/19/cards/session-be0b1837","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-bf4bd6cb","to":"public/framework/ai/sessions/2026/10/19/cards/session-bf4bd6cb","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-c4b26c53","to":"public/framework/ai/sessions/2026/10/19/cards/session-c4b26c53","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-c86af275","to":"public/framework/ai/sessions/2026/10/19/cards/session-c86af275","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-c90a74b0","to":"public/framework/ai/sessions/2026/10/19/cards/session-c90a74b0","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-d1ae94f8","to":"public/framework/ai/sessions/2026/10/19/cards/session-d1ae94f8","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-e5a50135","to":"public/framework/ai/sessions/2026/10/19/cards/session-e5a50135","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/19/session-fb7b2425","to":"public/framework/ai/sessions/2026/10/19/cards/session-fb7b2425","files":1,"record":null,"applied":true,"how":"rename"}
+{"from":"public/framework/ai/2026/10/20/note-the-servex-connector-in-the-claude","to":"public/framework/ai/sessions/2026/10/20/cards/note-the-servex-connector-in-the-claude","files":1,"record":null,"skip":"live"}
+{"from":"public/framework/ai/2026/10/20/session-e00f55c9","to":"public/framework/ai/sessions/2026/10/20/cards/session-e00f55c9","files":1,"record":null,"skip":"live"}

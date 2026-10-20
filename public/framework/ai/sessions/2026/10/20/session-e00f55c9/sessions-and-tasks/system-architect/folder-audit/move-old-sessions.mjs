@@ -1,5 +1,5 @@
 // Plans (and, with --apply, moves; with --undo, reverses) the old ai/2026/MM/DD/<name>/ session folders
-// into the sessions store ai/sessions/2026/MM/DD/<name>/. Default run is a DRY RUN: it only writes move-manifest.jsonl.
+// into the card store ai/sessions/2026/MM/DD/cards/<name>/ (CardDir.rel). Default run is a DRY RUN: it only writes move-manifest.jsonl.
 // Usage:
 //   node move-old-sessions.mjs            plan only, writes move-manifest.jsonl (no moves)
 //   node move-old-sessions.mjs --apply   git mv every manifest line (skips live and conflict lines)
@@ -17,6 +17,7 @@ const TODAY = "10/20"; // folders still written today are skipped (the prompt ho
 
 // Server/TaskDirs.mjs and Server/SessionRecord.mjs are read-only here: we call them, we do not edit them.
 const { default: TaskDirs } = await import(pathToFileURL(path.join(REPO, "Server", "TaskDirs.mjs")).href);
+const { default: CardDir } = await import(pathToFileURL(path.join(REPO, "public", "framework", "ai", "cards", "CardDir.js")).href);
 const { default: SessionRecord } = await import(pathToFileURL(path.join(REPO, "Server", "SessionRecord.mjs")).href);
 
 const rel = (p) => path.relative(REPO, p).split(path.sep).join("/");
@@ -51,7 +52,9 @@ function plan() {
   const lines = [];
   for (const o of oldFolders()) {
     const day = `2026-${o.mm}-${o.dd}`;
-    const to = path.join(TaskDirs.day_dir(day), o.name); // sessions/2026/MM/DD/<name>
+    // The card store's own rule (ai/cards/CardDir.js): ai/2026/MM/DD/<name> lives at ai/sessions/2026/MM/DD/cards/<name>;
+    // Cards.dir and the dev server look there first and fall back to the old path, so readers follow the move.
+    const to = path.join(REPO, "public", "framework", "ai", ...CardDir.rel(`2026/${o.mm}/${o.dd}/${o.name}`).split("/"));
     const line = {
       from: rel(o.from),
       to: rel(to),
@@ -77,8 +80,12 @@ if (mode === "--apply") {
     if (l.skip || l.conflict) continue;
     const to = path.join(REPO, l.to);
     fs.mkdirSync(path.dirname(to), { recursive: true });
-    execFileSync("git", ["-C", REPO, "mv", l.from, l.to], { windowsHide: true });
+    // Tracked folders move with git mv; the tab prompt logs (session-*) are gitignored machine files, so a plain rename.
+    const tracked = execFileSync("git", ["-C", REPO, "ls-files", "--", l.from], { windowsHide: true, encoding: "utf8" }).trim();
+    if (tracked) execFileSync("git", ["-C", REPO, "mv", l.from, l.to], { windowsHide: true });
+    else fs.renameSync(path.join(REPO, l.from), to);
     l.applied = true;
+    l.how = tracked ? "git mv" : "rename";
     done++;
   }
   fs.writeFileSync(MANIFEST, lines.map((l) => JSON.stringify(l)).join("\n") + "\n");
@@ -87,9 +94,12 @@ if (mode === "--apply") {
   let done = 0;
   for (const l of manifest.slice().reverse()) {
     if (!l.applied) continue;
-    execFileSync("git", ["-C", REPO, "mv", l.to, l.from], { windowsHide: true });
+    if (l.how === "rename") fs.renameSync(path.join(REPO, l.to), path.join(REPO, l.from));
+    else execFileSync("git", ["-C", REPO, "mv", l.to, l.from], { windowsHide: true });
+    delete l.applied;
     done++;
   }
+  fs.writeFileSync(MANIFEST, manifest.map((l) => JSON.stringify(l)).join("\n") + "\n");
   console.log(`undid ${done} folders`);
 } else {
   const lines = plan();

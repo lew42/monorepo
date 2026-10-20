@@ -14,7 +14,7 @@ Census by script: [census.json](/framework/ai/sessions/2026/10/20/session-e00f55
 | `board.jsonl` | The old v/3 board log; `cards.jsonl` replaces it | the prompt hook | `v/` | keep (retired-looking, written 10-12: re-check after 10-26) |
 | `log.jsonl`, `files.jsonl` | The AI log index and file index | `append.mjs` and the file tools | the AI pages | keep |
 | `tasks/` | 252 legacy task folders, one per old slug | `TaskDirs` (older rule) | `Server/State.mjs`, `tasks/` | store: belongs in `sessions/` under the one-tree rule |
-| `2026/` | Old date-pattern session tree (2 folders) | older `TaskDirs` | none | store: moved by `move-old-sessions.mjs` (dry run only) |
+| `2026/` | Old date-pattern card and tab-prompt folders; today's tab prompts still land here (`prompt-relay.mjs`) | `prompt-relay.mjs`, older `TaskDirs` | `Cards.dir`, `CardDir.site` (old first only when the new folder is missing) | store: moved to `sessions/YYYY/MM/DD/cards/<name>/` by `move-old-sessions.mjs` (applied 2026-10-20) |
 | `2026-10-13/` | Old date folder with one `files.jsonl` | older `TaskDirs` | none | store: follows the one-tree rule |
 | `AISession/` | `AISession` classes: index, digest, cost, views | `AISessionIndex` | `sessions/` pages | module: beside `ai/sessions/` |
 | `AITask/` | Task viewer classes: board, card, tree, feed | Servex, `new-task` | `tasks/`, `rail/` | module: beside `ai/tasks/` |
@@ -76,4 +76,4 @@ Census by script: [census.json](/framework/ai/sessions/2026/10/20/session-e00f55
 
 - `handoff2.md` and `handoff2-owner-words.md` were moved aside, then moved back by the architect: two readmes link them, so they are read.
 - `tasks/` (252 folders) and the two old date trees need the one-tree mover; this audit only planned it.
-- The old-session move is planned, not applied: [move-old-sessions.mjs](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/move-old-sessions.mjs) and its [manifest](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/move-manifest.jsonl) (1 to move, 1 skipped as live).
+- The old-session move is applied (2026-10-20): [move-old-sessions.mjs](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/move-old-sessions.mjs) and its [manifest](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/move-manifest.jsonl). 25 folders moved into `sessions/YYYY/MM/DD/cards/<name>/` (`CardDir.rel`, the rule every reader already follows); today's 2 live folders and 2 whose target already holds a `page.jsonl` stay. `--undo` reverses it from the manifest. The `session-*` prompt logs are gitignored, so they move by rename, not `git mv`.
