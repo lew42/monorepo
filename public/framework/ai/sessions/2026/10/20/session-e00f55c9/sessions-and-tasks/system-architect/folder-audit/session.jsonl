@@ -4,3 +4,4 @@
 {"log":{"at":"2026-10-20T16:26:55-05:00","msg":"Folder audit built in worktree ai-folder-audit: census.mjs, move-old-sessions.mjs (dry run: 1 to move, 1 skipped live), six stale files moved aside in commit 92ed976a1, ai/doc/ai-folder-audit.md linked from ai/doc/readme.md in commit 26ac3ab24. Loose ends: two readme links to handoff2.md now 404; tasks/ (252 folders) and the old date trees need the one-tree mover."}}
 {"finish":{"at":"2026-10-20T16:26:55-05:00"}}
 {"log":{"at":"2026-10-20T16:27:35-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"action":{"at":"2026-10-20T16:45:24-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/move-old-sessions.mjs"]}}
