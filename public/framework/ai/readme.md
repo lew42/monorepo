@@ -31,6 +31,7 @@
 
 ## Every system, one line each
 
+- **Principle:** effective parallel work between sessions. A parent answers or hands off, helpers are reused, tasks are created, tracked, logged and finished. A spawned agent is a **session**, a task is something to finish inside it: [doc/sessions-and-tasks.md](doc/sessions-and-tasks.md).
 - **Tasks:** [tasks/readme.md](tasks/readme.md) · [doc/tasks.md](doc/tasks.md) (what a task is, two homes, who makes one) · [core/Task](/framework/core/Task/)
 - **Sessions:** [sessions/readme.md](sessions/readme.md) · cloud voice calls: [/Servex/ext/remote/doc/cloud-voice-agent.md](/Servex/ext/remote/doc/cloud-voice-agent.md)
 - **Page system:** [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/) · parts: [core/Page/parts](../core/Page/parts/readme.md)
