@@ -29,6 +29,36 @@
 
 `AISession/` (`class AISession extends Session`, [sessions](sessions/readme.md)) · `AITask/` (`class AITask extends Page`, [AITask](AITask/readme.md)) · `cards/` (`Card` and what a card shows) · `rail/` (`class AIRail extends Inbox.Rail`, `DashState`, `CardList`; the [Inbox](/framework/core/Page/ext/Inbox/)) · `tasks/` ([Tasks](tasks/readme.md)) · `classes/` (live class cards) · `systems/`, `system/` (`AISystem.js`, the System tab) · `usage/` · `audits/` · `health/` · `local/` · `quick-fix/` · `review/` · `talk/` · `tests/` · `dashboard/` · `asks/`, `council/`, `models/`, `errors/`, `collab/`, `process/`.
 
+## Sessions and tasks: who makes which, and when (verified against the code, 2026-10-20)
+
+A **session** is one run of Claude (a VS Code tab, a Servex agent, a cloud voice call). A **task** is a thing to finish, and it lives *inside* a session. A spawned minion is a session, never a task (the owner, 2026-10-19: [doc/sessions-and-tasks.md](doc/sessions-and-tasks.md)). Every record is one append-only JSONL log whose state is computed by replay, never stored.
+
+```
+Item                              core/Item        one log; state = Item.replay(lines)
+├─ Session extends Item           core/Session     a dated folder ai/sessions/YYYY/MM/DD/<name>/; has tasks: List
+│  └─ AISession extends Session   ai/AISession     one Claude run: cost and totals, apply_line() per transcript line
+└─ Task extends Item              core/Task        idle → running → paused | waiting → stopped | complete; has tasks: List
+   └─ Project extends Task        core/Task        stages + completed 0..1 (a play class, wired nowhere)
+
+Agents.spawn(spec)                Servex/agents/Agents.js   makes a SESSION: default_task() picks the folder,
+  → open_task(task, {session_id, agent, model})             open_task() writes line 1 {assign:{session_id, agent, …}}
+                                                            before the agent's first turn; past-work.md beside it
+TaskDirs.dir({slug, session_id, parent})   Server/TaskDirs.mjs   the one path builder; `--new <slug>` makes a TASK folder
+item({path, delta:{tasks:{add:{title}}}})  Servex/agents/page_tools.js   a TASK in <module>/tasks/<slug>/ + a pointer line
+State.mjs → ai/state.json                  Server/State.mjs   the one reader of both; the Inbox draws it
+```
+
+| Who | Makes | Where | How |
+|---|---|---|---|
+| Servex, on every `spawn_agent` | a **session** (the agent's own folder) | `<caller's session folder>/<agent id>/`, else `<day>/spawned/<agent id>/` | `open_task` line 1, by node, before the first turn |
+| A VS Code tab (you, the `new-task` skill) | a **task** of your session | `<day>/session-<id8>/<slug>/task.jsonl` | `node Server/TaskDirs.mjs --new <slug>` + `append.mjs` |
+| Any agent, the item tool | a **task** in a module home | `<module>/tasks/<slug>/task.jsonl` | `tasks.add`; the caller's log gets `{"task": path}` |
+| A cloud voice call | a **session** | `<day>/cloud-voice-<name>/session.jsonl` | `RemoteMCP.voice_session()` |
+| A tab's transcript | a session **cache** (totals, no log) | `<day>/session-<id8>/cache.jsonl`, `index.json` | `AISessionIndex.mjs` tails `~/.claude/projects` |
+| Scripts | idle **tasks** from undone asks; one-off moves | `<module>/tasks/` | `Server/UndoneToTasks.mjs`, `Server/TaskMigrate.mjs` |
+
+**Status.** ✅ Top-level session folders hold `session.jsonl` (10-17). ✅ Readers ask `SessionRecord.log_file` for either name (10-19). ⬜ A spawned agent's folder still starts as `task.jsonl` because `SessionRecord.start_file` only names a day-level folder a session: being fixed in [sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/](sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/requirements.md). ⬜ Old nested folders renamed by script, a task as one line in its session's log, `TaskDirs` → `SessionDirs`: slices 4 to 6 of the plan. Known gap: a session gets two folders today (its own record under its caller, and the transcript cache `session-<id8>/`); the link between them is `assign.session_id` on line 1.
+
 ## Every system, one line each
 
 - **Principle:** effective parallel work between sessions. A parent answers or hands off, helpers are reused, tasks are created, tracked, logged and finished. A spawned agent is a **session**, a task is something to finish inside it: [doc/sessions-and-tasks.md](doc/sessions-and-tasks.md).
