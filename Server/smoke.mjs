@@ -384,6 +384,7 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 		//   - /framework/ai/index.json (2026-10-20): the renamed state.json, gitignored, written by AIIndex in the main tree only.
 		//   - /directory.json (transcription-crash, 2026-10-12): the frozen, gitignored one-file listing (Server/doc/directory-off.md); a worktree never has it, so /framework/ 404ed it on every merge.
 		if (/^\/(framework\/)?directory\.json$/.test(new URL(u).pathname) || /\/(files|page|weight|settings)\.jsonl$/.test(u) || /\/ai-logs\//.test(u) || /\/framework\/ai\/(tasks|usage|page-work|index)\.json$/.test(u)
+			|| /\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/index\.jsonl?$/.test(u)   // the day composite and the day stream: gitignored, written in the main tree only (2026-10-20)
 			|| /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/spend\.json$/.test(u)
 			|| /\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/[^/]+\/(task|session)\.jsonl$/.test(u) || /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/day\.jsonl$/.test(u)
 			|| /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/.*\/shots\/[^/]+\.(png|jpg|jpeg|webp)$/.test(u)){ warns.push(`HTTP ${r.status()}: ${u}`); return; }
