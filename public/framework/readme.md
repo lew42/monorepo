@@ -27,7 +27,7 @@
 - [core/Task](./core/Task/) — `class Task extends Item`: one task's state machine, plus the task pages
 - [core/Page/ext/Inbox](./core/Page/ext/Inbox/) — `class Inbox`: one ranked rail of notes, questions and tasks, read from `page.jsonl` and the AI files
 - [core/Page](./core/Page/) — the page system: a folder with `page.js` and/or `page.jsonl`, written by the page tools
-- [ai/tasks](./ai/tasks/) — the task log and board: where tasks live on disk, how `Server/State.mjs` folds them into `ai/state.json`
+- [ai/tasks](./ai/tasks/) — the task log and board: where tasks live on disk, how `Server/AIIndex.mjs` folds them into `ai/index.json`
 - [ai/sessions](./ai/sessions/) — one folder per Claude session, by date, and the grid that lists them
 - [ai/AITask](./ai/AITask/) — the task viewer classes on the AI pages
 - [servex](./servex/) — the always-on process that runs agents: spawning, roles, dispatch (code in `Servex/`)
