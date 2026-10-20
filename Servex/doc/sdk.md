@@ -47,10 +47,11 @@ OpenRouter and local models do not have their own loop. They only change the add
 
 Every line in a session file carries an `entrypoint`. `sdk-ts` means the session was started through the Agent SDK, so Servex started it (every agent above). `claude-vscode` means a person started it from the VS Code sidebar. Counted over the 40 newest session files for this repo on 2026-10-08: 38 `sdk-ts`, 2 `claude-vscode`.
 
-## Not verified
+## Resuming a session (verified 2026-10-19)
 
-- Whether `Servex/agents/Sessions.js` reads the SDK session files. Its own text covers the `ai/log.jsonl` index and session pages, and it does not touch `~/.claude`.
-- The exact resume path through `wake()` and `reopen()`, beyond the `resume:` option shown in `Agents.js`.
+- `Agents.wake(id)` (Agents.js) turns a registered agent back into a live one: it refuses a fork, and an agent with no `session_id`, then calls `reopen(row)`. `revive()` calls `reopen` for every row on boot.
+- `reopen(row)` takes the row's recorded `spec` (or its own fields), fills a missing `cwd` and `model` from `session_facts(row.session_id)`, and calls `spawn()` with `resume: row.session_id` and the same `id`, so the SDK `query()` continues the same Claude session.
+- `session_facts(sid)` (exported from Agents.js) is the one place Servex reads Claude's own transcript: it finds the session's transcript under `~/.claude/projects/` (or `$CLAUDE_CONFIG_DIR`), reads its first 64 KB and last 256 KB, and returns `cwd`, `model` and `file`. `Sessions.js` imports it and does not read `~/.claude` otherwise.
 
 ## In-process page tools (step 12)
 
