@@ -14,11 +14,12 @@ If you are reading this through `read_file`, you are probably a **cloud voice ag
 1. Call `register_session` once with a short `title` (for example `live page`) and keep using the same title. You get back your session id and log file. A different title later starts a second session folder.
 2. Every time the owner speaks, call `cloud_voice_log` first with `words` = the owner's exact words. Never paraphrase. This is the one tool that exists only for you: local SDK agents use the local Servex MCP (`mcp__servex__*`), which has no voice fields at all, and only this remote route (`mcp__Servex__*` in the Claude app) lists `cloud_voice_log`.
 
-## Your session
+## Your session (verified against RemoteMCP.js, 2026-10-19)
 
-- Name: `cloud-voice-<title>`, for example `cloud-voice-live-page`. With no title it is `cloud-voice-app-YYYYMMDD` (caller plus date).
-- Folder: `public/framework/ai/sessions/YYYY/MM/DD/cloud-voice-<name>/`, with `session.jsonl` inside. Line 1 is `{"session":{"kind":"cloud-voice-agent","caller":"voice-app"}}`.
-- It is a normal row in the Sessions store, so the dashboards, the day index and [/live/sessions/](/live/sessions/) list it. It has a `cost` field, `null` until you set it: you have no accounting, so call `register_session` again with `cost` (USD) if you know it. The row and a `{cost}` line both update.
+- Name: `cloud-voice-<title>`, for example `cloud-voice-live-page`; with no title `cloud-voice-app-YYYYMMDD` (caller plus date). Made by `RemoteMCP.voice_session()` on the first call of the day.
+- Folder: `public/framework/ai/sessions/YYYY/MM/DD/cloud-voice-<name>/`, holding `session.jsonl`. Line 1 is `{"session":{"id","kind":"cloud-voice-agent","caller":"voice-app","at"}}`; every later line is one verb: `owner_words`, `tool_call`, `spawned`, `cost`.
+- It is also a row in the Servex sessions store (`servex.sessions.map[id]`: `kind`, `caller`, `cost`), so the dashboards, the day index and [/live/sessions/](/live/sessions/) list it. `cost` is `null` until you set it: you have no accounting, so call `register_session` again with `cost` (USD) if you know it; the row and a `{cost}` line both update.
+- How you reach it: `POST /mcp/remote` with the bearer token as a header or as `/mcp/remote/<token>` in the path (token file: `%LOCALAPPDATA%/lew42/servex/remote.token`). Task folders you hand work to live elsewhere, under the day's folders ([ai/tasks](/framework/ai/tasks/)).
 
 ## What gets logged, and by whom
 
