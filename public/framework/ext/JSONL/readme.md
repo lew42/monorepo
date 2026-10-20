@@ -35,6 +35,10 @@ Append with the validated route only: `node .claude/hooks/append.mjs <task.jsonl
 - A flat line (no verb key at all) renders as a log line when it carries `msg`/`text`/`title`; with no readable text but a real `at`, it folds into `assign` instead; only a line with neither still warns, once per stray key. [doc/decisions.md](./doc/decisions.md)
 - `experiment`, `review`, `shots` and `bands` don't grow their own array — they push a computed `msg` onto `logs`, the same line every other reader of this file already draws. [doc/task-jsonl.md](./doc/task-jsonl.md)
 
+## Growth (2026-10-20)
+
+A log only grows. Up to a few MB per file is fine to read and replay. The cost is loading many at once: a hundred logs opened together is a real processing load (every line is parsed and replayed), which is why `index.json` and the day stream exist. Auto-compaction is one strategy, but it rewrites history and loses deltas, so it breaks "append only, git is the undo". First step, not built: a size watch that notes any log past a few MB, so a human decides. Nothing is compacted today.
+
 ## More
 - [`core/Page/doc/storage.md`](../../core/Page/doc/storage.md) — where page lines can be kept besides `.jsonl` files (Durable Object, D1, archive), and why JSONL stays the default and the reference
 - [`doc/JSONL-notes.md`](./doc/JSONL-notes.md) — implementation details and schema notes

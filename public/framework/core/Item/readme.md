@@ -1,5 +1,18 @@
 # Item — an arbitrary persistent thing: an id, a data bag, one `set(delta)`, a place to save, a place to be seen. No children of its own.
 
+## One persistence system with Page
+
+`Page extends Item`: [core/Item](/framework/core/Item/) and [core/Page](/framework/core/Page/) are one system, split by readme only. **Item** is the generic log-backed object: one JSONL log, `set(delta)`, replay on open, children saving through their parent, `live()` tailing. **Page** adds a url, routing, parts, layout and the inbox. So: how a thing saves, replays and streams goes in *this* readme; anything about a url, the Router, content parts or the page tools goes in the [Page readme](/framework/core/Page/readme.md).
+
+**Classes that extend Item today** (`grep -rn "extends Item" public/framework`):
+
+- [List](/framework/core/List/) (`List.js`): an ordered, announcing collection of Items.
+- [Page](/framework/core/Page/) (`Page.class.js`): an Item with a url; its parts [PageText, PageHeading, PageCard, PageLink, PageContentItem](/framework/core/Page/parts/) are Items too.
+- [Task](/framework/core/Task/) (`Task.js`): one task's state machine, replayed from `task.jsonl`.
+- [Session](/framework/core/Session/) (`Session.js`): a session record.
+- [Panel](/framework/ext/Panel/) (`Panel.js`) and `Block` (`ext/editor/blocks.js`): layout and editor pieces.
+- `Item.Store` (`Store.js`) is not an Item; `Page.Reader` extends it.
+
 **When to reach for which:** a **List** when something is ordered and needs watching (events are built in — there's no event-less variant any more); an **Item** when it is a thing (an icon, a title, saved); a **Page** when it has a URL.
 
 ## Architecture
@@ -64,6 +77,11 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 
 ## Watch out
 
+- **Indexing is the tool's job, never the agent's.** Nothing you create asks the agent to index it: `Server/AIIndex.mjs` (`--watch`, kept alive by Servex) sees any task or session log change through `fs.watch` (about 250 ms) and appends the changed row to the day's `sessions/YYYY/MM/DD/index.jsonl` through `Server/AIIndexStream.mjs` ([Server/doc/ai-index.md](/Server/doc/ai-index.md)). Today:
+  - ✅ A task log written by `new-task`, `append.mjs`, `Agents.open_task`, `spawn_agent` or the item tool is indexed, because the watcher reads the file, not the creator.
+  - ✅ A transcript session (VS Code, CLI) is streamed by `AISessionIndex.stream_line` when it is born or its state or title changes.
+  - ⚠ A child added with the item tool's `tasks.add` that lives only inside its parent's log has no log of its own, so it gets no row of its own; it shows through the parent's replay. A child with its own file (`Task.open_ref`) is indexed like any task.
+  - ⚠ A start-up read of old sessions writes no day line on purpose, and a log outside the two stores (sessions, `*/tasks/<slug>/`) is never indexed.
 - Register every subclass (`Item.register(Class, name)`) — `Item.names` is an inverse Map, so an unregistered subclass serializes under its parent's wire name: [doc/decisions.md](./doc/decisions.md).
 - `contains()` excludes self — guard a drop with `target !== this && !this.contains(target)`: [doc/method/contains.md](./doc/method/contains.md).
 - Constructors do no I/O; `Item.open(saver)` is the one async entry: [doc/method/open.md](./doc/method/open.md).
