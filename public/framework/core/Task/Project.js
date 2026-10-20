@@ -29,7 +29,7 @@ export class Project extends Task {
 	get completed(){
 		const kids = [...(this._tasks ?? [])];
 		if (!kids.length) return super.completion;
-		return kids.reduce((sum, k) => sum + (k.completed ?? k.completion), 0) / kids.length;
+		return kids.reduce((sum, k) => sum + (k.completed ?? k.completion ?? (k.get_one?.("state") === "complete" ? 1 : 0)), 0) / kids.length;
 	}
 	// The name every reader of a task already uses (index rows, TaskView); the same number as `completed`.
 	get completion(){ return this.completed; }
