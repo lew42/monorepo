@@ -23,6 +23,13 @@ ai/sessions/YYYY/MM/DD/<session>/<sub>/      a sub-session (a spawned helper): s
 - **Completion.** A task has `completed` from 0 to 1, with its start and complete times shown. A session may use the same pattern.
 - **Project** = a task with subtasks and a requirements stage. `class Project extends Task` is a play class on branch `task/project-class` (a class and a test, nothing wired in).
 
+## The decided shape (the owner, 2026-10-20 16:30; replaces the bullets above where they differ)
+
+- **Every session, from every origin, writes the same record**: a VS Code tab, an SDK mastermind or minion, a cloud voice agent, the website's dictation button. One folder `ai/sessions/YYYY/MM/DD/<name>/`, one `session.jsonl`. No other name for session data (not `page.jsonl`, not `cache.jsonl`).
+- **A session gets a directory. A task does not**: a task is lines in its session's `session.jsonl` (or in a project's log). Built as slice 5 below.
+- **A project gets a directory** with `project.jsonl` (`class Project extends Task`): planning, requirements, files, subtasks. It starts inside its session's folder and may be **moved** into a module (`<module>/projects/YYYY/MM/DD/<slug>/`) by a tool that moves and re-indexes it; nobody re-indexes by memory.
+- **The index is JSONL, append-only, streamed**: when a day folder, a session or a project is created or moved, code appends to the index, and the browser tails it live. No polling anywhere (CLAUDE.md "Stream, don't poll"). Today's `ai/state.json` becomes part of this and is renamed `index` (the system architect's round two).
+
 ## What is true already (verified against code, 2026-10-19)
 
 The top half of this is done. `Server/SessionRecord.mjs` (2026-10-17) renamed `task.jsonl` to `session.jsonl` in **top-level session folders** (1,287 folders hold `session.jsonl`). Every reader goes through `SessionRecord.file/log_file`, which accepts both names. What is left is the **sub-session folders**: 1,100 still hold `task.jsonl`. `SessionRecord.start_file(dir, first)` decides the name for a new folder, and only a folder directly under a day gets `session.jsonl`.
