@@ -108,3 +108,5 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - **`source`** field: `{session, line, id}`, set on a Task made from a refined ask (`Server/AskIndex.mjs`, `AskIndex.tasks_view`).
 
 - **References in the browser (step 14b):** `Task.from_ref` returns a "loading" stub that opens the child's own `task.jsonl` through the Store and tails it live ("missing" only after a 404); `Task.rank(list)` sorts by recency x weight.
+
+- **Owner notes, 2026-10-20:** `complete()` the verb, `completion` the number; a module keeps projects (`projects/YYYY/MM/DD/`), a session keeps tasks; the dated breakout as one shared system: [doc/owner-2026-10-20-projects-and-completion.md](doc/owner-2026-10-20-projects-and-completion.md).
