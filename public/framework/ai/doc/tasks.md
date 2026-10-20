@@ -92,3 +92,21 @@ Each row is a guess about where prompt, session, task, agent and landed change c
 **What it says.** The one thing that works is the end of the chain: a task that lands has an outcome (T8). The breaks are at the joins: a task has no module (T5), an ask has no card or owner task (T1, T2), a finished agent leaves its task open (T9, T10, T7), and a landed task leaves its card open (T12). These are the same joins [task-lifecycle.md](task-lifecycle.md) closes; it is proposal only, so none is fixed.
 
 **Instrument notes.** T1 and T2 use the latest line per ask title (the file is append-only); T9 counts "last line older than 3 days", so a quiet but meant-to-wait task also fails; T3 skips review tasks.
+
+## 10. Built, working, wired, or only a concept (verified against the code, 2026-10-19)
+
+| Piece | Status | Evidence |
+|---|---|---|
+| `core/Task/Task.js` state machine and replay | built, works | `Task.test.mjs` 53 of 53 |
+| `Server/TaskDirs.mjs` (`dir`, `--new`, `find`, `follow`) | built, works, wired (Servex `open_task`, `append.mjs`) | `TaskDirs.test.mjs` ok |
+| `Server/TaskState.mjs` and `State.mjs` to `state.json` | built, works, wired (`TaskLoop`, the Inbox) | `TaskState.test.mjs` ok; self-check true |
+| `Server/TaskHomes.mjs` (index of module homes) | built, works; dry run says the index lists every home | `node Server/TaskHomes.mjs` |
+| `Server/TaskMigrate.mjs` | built, one-off; dry run only unless `--apply` | `TaskMigrate.test.mjs` |
+| `Server/UndoneToTasks.mjs` | built; makes idle tasks in module homes from undone asks | `--plan` |
+| `module` on a session task | concept: written by nobody | T5, 989 of 989 lack it |
+| `phase`, `Project extends Task` | concept | [task-lifecycle.md](task-lifecycle.md) |
+
+**The three gaps, confirmed by reading the code.**
+- **(a) Module placement is never automatic.** `TaskDirs.dir({slug, session_id, parent, day})` and `Agents.open_task` have no `module` argument. A task reaches `<module>/tasks/<slug>/` only when an agent calls the item tool's `tasks.add` (its choice), when `TaskMigrate` is run once, or when `UndoneToTasks` files an idle task for an undone ask.
+- **(b) Sessions do not list their tasks.** Corrected: the task is a folder inside the session folder, and 37 of the 42 session logs that exist also name it, but no session field lists tasks and the day `index.json` has `links.task: null`; "this session's tasks" is a query on `state.json` (`session`).
+- **(c) No single page said how a prompt becomes a task:** section 7 above does, and [task-lifecycle.md](task-lifecycle.md) proposes the missing phases.
