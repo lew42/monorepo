@@ -3,6 +3,7 @@ import path from "path";
 import http from "http";
 import { spawn, execFileSync } from "child_process";
 import { fileURLToPath } from "url";
+import TunnelNamed from "./TunnelNamed.mjs";
 
 /* node Server/Tunnel.mjs up|down|status — a free Cloudflare quick tunnel to Servex's /mcp/remote ONLY.
  * cloudflared forwards every path of its origin, so it points at a tiny gateway (below) that passes
@@ -38,12 +39,16 @@ export default class Tunnel {
         if (s && this.alive(s.pid)) return console.log("already up (URL in remote.url)");
         fs.mkdirSync(Tunnel.DIR, { recursive: true });
         const gw = this.gateway();
-        await new Promise(r => gw.listen(0, "127.0.0.1", r));
+        const named = this.named_token();   // present = permanent hostname (TunnelNamed.mjs setup); absent = quick tunnel
+        await new Promise(r => gw.listen(named ? TunnelNamed.PORT : 0, "127.0.0.1", r));
         const port = gw.address().port;
-        const child = spawn("npx", ["--yes", "cloudflared", "tunnel", "--url", `http://127.0.0.1:${port}`], { shell: true, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+        const args = named ? ["tunnel", "run", "--token", named] : ["tunnel", "--url", `http://127.0.0.1:${port}`];
+        const child = spawn("npx", ["--yes", "cloudflared", ...args], { shell: true, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
         const url = await new Promise((resolve, reject) => {
             const t = setTimeout(() => reject(new Error("no tunnel URL after 90 s")), 90000);
-            const scan = b => { const m = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(String(b)); if (m){ clearTimeout(t); resolve(m[0]); } };
+            const scan = b => {
+                if (named){ if (/Registered tunnel connection/.test(String(b))){ clearTimeout(t); resolve("https://" + TunnelNamed.HOST); } return; }
+                const m = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(String(b)); if (m){ clearTimeout(t); resolve(m[0]); } };
             child.stdout.on("data", scan); child.stderr.on("data", scan);
             child.on("exit", c => reject(new Error(`cloudflared exited ${c}`)));
         }).catch(e => { this.kill(child.pid); console.error(e.message); process.exit(1); });
@@ -56,6 +61,8 @@ export default class Tunnel {
         process.on("SIGINT", stop); process.on("SIGTERM", stop);
         child.on("exit", stop);
     }
+
+    named_token(){ try { return fs.readFileSync(path.join(Tunnel.DIR, "remote.tunnel.token"), "utf8").trim() || null; } catch { return null; } }
 
     host(){ try { return new URL(fs.readFileSync(this.url_file, "utf8").trim()).host; } catch { return null; } }
     alive_now(){ const s = this.state(); return !!(s && this.alive(s.pid)); }
