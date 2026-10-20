@@ -13,12 +13,17 @@ import { board_route } from "/framework/ai/v/3/page.js";   // the board's five v
 import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
 import { AIOverview } from "./AIOverview.js";   // the top tabs: Overview · System · Skills · Objects · Authoring · CLAUDE.md
 import StoreFolder from "./AISession/StoreFolder.js";   // old ai/<date>/<task>/ addresses redirect into the sessions store
+import AIDashboard from "./AIDashboard/AIDashboard.js";   // the default page: today's sessions by origin, nested, cost rolled up
 
 // "tests" → "Tests" — the label a detected tab wears when nobody says otherwise.
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 // `?v1` — the original board; read fresh on every call. Doc: doc/ai-page-notes.md.
 const v1 = () => new URLSearchParams(location.search).has("v1");
+
+// The bare url draws the AI dashboard; every other url under it (inbox/, a card, a day) keeps the rail. The Inbox link is a hard
+// navigation (target=_self), because the root page is built once per load. Doc: doc/ai-dashboard-plan.md.
+const is_dash = () => !v1() && location.pathname.replace(/\/?$/, "/") === "/framework/ai/";
 
 export default new Page({
 	meta: import.meta,
@@ -29,12 +34,13 @@ export default new Page({
 	// One nav link, whatever the date children say: the rail below is the way in.
 	leaf: true,
 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
-	classes: v1() ? undefined : "full fill",
+	classes: v1() ? undefined : is_dash() ? "ad-page" : "full fill",
 	children: "tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
 
 	// `board_drawn` stays true so the board's own hand-back (v/3/page.js) never paints it here. Doc: doc/ai-page-notes.md.
 	board_drawn: true,
 	content(){
+		if (is_dash()) return void new AIDashboard();
 		if (!v1()){
 			// Inbox owns the bare URL and wears `.tab-default`; the band is the title and tabs. Doc: doc/ai-page-notes.md.
 			div.c("inbox-head", () => {

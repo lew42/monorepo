@@ -1,4 +1,12 @@
-# The AI dashboard: a plan (nothing here is built yet)
+# The AI dashboard: plan, approved page, and what slice 1 shipped
+
+**Built (slice 1, 2026-10-19):** `/framework/ai/` is now the dashboard; its structure is in [AIDashboard/readme.md](../AIDashboard/readme.md). The sections below are the plan it was built from. Where they differ, the approved page just below wins.
+
+## The approved page (the owner, 2026-10-19: "get working on something, we will fix it later")
+
+Top to bottom: **(1)** one usage line (the existing pace meters); **(2)** the chosen day's sessions grouped by origin, **Voice** (cloud voice agent), **VS Code**, **Scheduled** (plus **Servex**, the agents a task spawned that are not yet under their parent), one row each: plain-words name, when, cost, state, tap to open; **(3)** inside a session: his words, agents spawned nested with costs rolled up, what landed; **(4)** older days: a day list beside the page on desktop, a date picker on the phone.
+Not on it: top tabs, inbox cards, active-task lists (a count and a link only), snippets. The old Inbox is **one** link at the bottom.
+**Slice 1 does 1, 2 and 4.** Part 3 is the existing `/framework/ai/sessions/<id>/` page the row opens; its "his words / nested / landed" layout is the next slice. The class table in section 4 is as built except that `AIDashboard` is a `View` (the root page keeps `page.js`), and `UsageLine` is added.
 
 **What you asked (2026-10-19):** open `/framework/ai/` and click through everything the agents did today and yesterday. Group it by session and by where it came from (a cloud voice agent, or a VS Code / phone tab acting as a mastermind), nested: each one spawns sub-masterminds and minions. Compact, mobile first, no top tabs, cost added up the parent chain, nothing unaccounted for. One data store.
 Task and brief: [ai-dashboard task](/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/task.jsonl) · past work found: [past-work.md](/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/past-work.md).
@@ -120,11 +128,12 @@ Home: **`public/framework/ai/AIDashboard/`** (the name `ai/dashboard/` is taken 
 
 | Class | Job | Relation |
 |---|---|---|
-| `AIDashboard extends Page` | the page `/framework/ai/`: reads the url (day, origin, state, open), owns the store, draws the day strip, chips and the tree. **The orchestrator.** | extends `core/Page`; composes the four below |
+| `AIDashboard extends View` | the page body `/framework/ai/`: reads the url (day, origin, state, open), owns the store, draws the day strip, chips and the tree. **The orchestrator.** | extends `core/View`; composes the others |
 | `SessionStore` | loads one day's `index.json` and `state.json`, fixes the join (agent id → session id), computes `origin` and the roll-up; `rows(day)` returns the tree. Dies in slice 2 when `AISessionIndex` does this and the store only reads. | composes `ext/JSONL` / `DashState` for the live tail (code streams, [law](/CLAUDE.md)) |
 | `SessionTree` | a node: `{session, children, own, rolled, depth}`, `open` set, `walk()` | plain class, no DOM; the thing the page's debug view prints |
 | `SessionRow extends View` | the one row (fields above), draws itself from a `SessionTree` node | extends `core/View`; **reuses `AISessionView`'s cell helpers and `DashRow`'s state dot** rather than a second row type |
 | `DayStrip extends View` | the day links, totals, ‹ › | uses `Day.of` ([core/Session/Day.js](/framework/core/Session/Day.js)) so "today" is the same local day as `State` |
+| `UsageLine extends View` | the one-line meter: `UsagePace.ratio` per limit from `ai/usage.json` | reuses `ai/usage/UsagePace.js`, no second meter |
 | `OriginChips extends View` | origin and state chips, written to the url | reuses the `DashChips` url mechanism (its `read()`/`write()` shape), not a second one |
 
 Reused as is: `DashRow` (state mapping), `DashState` (the `state.json` stream), `AISessionBuckets` (folding routine rows), `ext/DataGrid` only for the wide detail pane if it earns it. **Show the class** (CLAUDE.md): the page's `?debug` shows the `SessionTree` of the day beside the rendered list.
