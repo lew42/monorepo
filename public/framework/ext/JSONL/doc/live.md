@@ -78,9 +78,9 @@ instance) would break every renderer holding a reference to it.
 
 ## Leaving a stream
 
-Nothing unsubscribes on navigation — a stale stream redraws a detached node, which
-costs nothing and accumulates nothing, since re-registering a path replaces the
-entry. The one case that *does* leave is a probe for a file that will never exist:
+Leaving a page pauses its streams, with no call from the page. `core/Page` sets `$page` in `activate()` and emits `left` / `entered` on itself; a stream started while a page is the active one subscribes to those two events (`adopt()` in `live.js`). On `left` it releases the server subscription (once no running reader of that path is left); on `entered` it re-subscribes from its stored offset, so only the lines missed meanwhile arrive. A cached page that streamed once at load therefore streams again on return. A stream started with no page active (the dev bar, the drawer, an embedded preview) is never paused. Proof: [doc/probe-unsubscribe.mjs](./doc/probe-unsubscribe.mjs) (subscribe and unsubscribe frames counted on `/framework/ai/`, away and back).
+
+Separately, the one case that *does* leave is a probe for a file that will never exist:
 `ai/AITask` asks every task dir for a `task.jsonl`, and a task from before the log
 format answers with an empty batch and a standing subscription. Once its
 `session.json` has answered instead, the reader calls
