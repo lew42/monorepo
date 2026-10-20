@@ -22,11 +22,15 @@ Log level — asks in order, decisions, agents spawned (by path), anecdotes. May
 13. Session log vs docs: both link, neither copies; the session line is "updated `<doc>`: one sentence" + link. Updated `/framework/ai/doc/sessions-vs-docs.md` with this.
 14. **The primary goal is the cloud voice agent system itself**, not the live page. Decisions: a guide named `cloud-voice-agent.md` under `Servex/ext/remote/doc/`; the MCP server instructions carry one line only ("if you are a cloud voice agent, read it") so local agents' context is not polluted; detection is best-effort (no CLAUDE.md, caller voice-app) and the owner can just say so; sessions are named `cloud-voice-<name>`; at least an overview log per session, verbatim prompts where possible; rows compatible with the Sessions store, with a hand-set `cost`; each hand-off opens a task. The voice agent is a relay, not a mastermind. Owner's worry: it paraphrases him; prompt refinement needs an every-prompt hook that does not exist here. Handed to `task-mastermind-voice-logging` as its next slice.
 
+15. **Task system — owner does not understand it** ("one dashboard", "steps 1-3", "state.json", "Server/State.mjs", `/framework/ai/tasks/` mean nothing to him; voice-app's reply was a jargon dump from the AI readme). Asked for a task-mastermind to research: what a task is and where it lives, what was done recently, the classes and views, how task data is pulled from the sessions tree, whether there is a per-module tasks folder and whether the two are linked. His ideal: tasks live beside the module they concern and persist beyond sessions; each session references its tasks and each task its sessions; a fresh session in a directory finds every previous task there and its state; no disjointed data that was meant to link. Spawned `task-mastermind-task-system`.
+
 ## Agents spawned
 
 - `mastermind-live-page` — Sonnet, acceptEdits (mistake: could not spawn, commit or load a page; resume did not apply bypassPermissions). Task dir: `spawned/mastermind-live-page/`. Wrote the three docs and the sessions view; voice-app did its commit.
 - `minion-voice-logging` — Haiku by default, stopped at 0 turns (CLAUDE.md: Sonnet for OO code).
 - `task-mastermind-voice-logging` — Sonnet, bypassPermissions, worktree. Task dir: `spawned/mastermind-live-page/voice-logging/`. Brief: `Servex/ext/remote/doc/voice-logging.md`.
+
+- `task-mastermind-task-system` — Sonnet, bypassPermissions. Task dir: `task-system/` (here). Research the task system, report in plain language, propose the smallest change toward tasks-beside-modules linked both ways to sessions.
 
 ## Problems seen
 
