@@ -56,7 +56,7 @@ Counted by script over `public/framework/` and `state.json` (2,125 tasks: 1,586 
 
 | Link | Result | How it is reachable |
 |---|---|---|
-| session to its tasks | yes, by position only | a task is a folder inside its session folder; nothing in `session.jsonl` names it; the day `index.json` has `links.task: null` for all 87 of 10-19's sessions |
+| session to its tasks | yes, by position; 37 of the 42 session logs that exist also name their task (test T6, section 9) | a task is a folder inside its session folder; the day `index.json` has `links.task: null` for all 87 of 10-19's sessions |
 | task to its session | 1,498 of 1,586 session tasks, 478 of 539 module tasks | `assign.session_id` on line 1 (or the parent folder); 59 old task folders sit under a day with no session folder at all |
 | task to its module | **0 of 1,586 session tasks** | only module-home tasks carry `module`, so "every task about this module" cannot be asked of a session task |
 | module to its tasks | yes for module homes | `<module>/tasks/` plus the `public/tasks/task.jsonl` index; session tasks never appear there |
@@ -67,3 +67,28 @@ Counted by script over `public/framework/` and `state.json` (2,125 tasks: 1,586 
 - **`public/tasks/task.jsonl` (86 lines) and each `tasks/task.jsonl`:** an index of homes, rebuilt by `Server/TaskHomes.mjs`; a second list of what the folders already say.
 - **`state.json`, the day `index.json`, `files.jsonl`:** derived and rebuilt by code (`state.json` and `index.json` are gitignored), so they are caches, not duplicates; fine as long as nothing reads them as the source.
 - **The `sessions` field in a module home and the reverse `home` line:** one fact written in two logs, kept in sync only by the one migration script.
+
+## 9. Where the handoffs break: theories, each tested (2026-10-19)
+
+Each row is a guess about where prompt, session, task, agent and landed change come apart, and a check that reads real data. Run it yourself: [`handoff-tests.mjs`](../sessions/2026/10/19/cloud-voice-agent/task-system/handoff-tests.mjs) (`node handoff-tests.mjs`; it writes nothing; last output in `handoff-results.json` beside it). **FAIL means the theory is true: the handoff breaks.**
+
+| # | Handoff | Theory | Result |
+|---|---|---|---|
+| T1 | prompt to ask to card | every ask names a card that exists | **FAIL 66 of 71** asks name a card that is not in `state.json` |
+| T2 | ask to task | the ask's owner agent has a task | **FAIL 44 of 71**: the owner id on the ask matches no task's agent |
+| T3 | spawn to task | a task born since 10-12 has `assign` with session and agent on line 1 | **FAIL 20 of 443** (line 1 is something else) |
+| T3b | spawn to task | the same task has a title | **FAIL 234 of 436**: `open_task` writes no title |
+| T4 | task to session | a session-store task names its session | **FAIL 88 of 989** |
+| T5 | task to module | a session-store task names its module | **FAIL 989 of 989** |
+| T6 | session to task | the session log names its task | **FAIL 5 of 42** (37 do) |
+| T7 | merged change to task | a task whose commit is on `michael/dev` is `complete` | **FAIL 8 of 65**: merged, never closed |
+| T8 | landed to record | a complete task has an outcome sentence | **PASS** 0 of 767 |
+| T9 | work to ending | an open task was touched in the last 3 days | **FAIL 344 of 761** (319 stopped, 25 idle) |
+| T10 | agent end to landing | an agent that "ended without landing" later lands | **FAIL 163 of 313** |
+| T11 | parent to sub-task | a nested task is named in its parent's log | **FAIL 33 of 378** |
+| T12 | task to card | a card is done when all its agent's tasks are | **FAIL 18 of 19** cards stay open |
+| T13 | migration | one task is in one file | **FAIL 211 of 2,127** |
+
+**What it says.** The one thing that works is the end of the chain: a task that lands has an outcome (T8). The breaks are at the joins: a task has no module (T5), an ask has no card or owner task (T1, T2), a finished agent leaves its task open (T9, T10, T7), and a landed task leaves its card open (T12). These are the same joins [task-lifecycle.md](task-lifecycle.md) closes; it is proposal only, so none is fixed.
+
+**Instrument notes.** T1 and T2 use the latest line per ask title (the file is append-only); T9 counts "last line older than 3 days", so a quiet but meant-to-wait task also fails; T3 skips review tasks.

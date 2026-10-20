@@ -1,0 +1,172 @@
+[
+ {
+  "id": "T1",
+  "handoff": "prompt -> ask -> card",
+  "claim": "Every ask (latest line per title) names a card that exists",
+  "pass": false,
+  "fails": 66,
+  "total": 71,
+  "examples": [
+   "Memory: dormant idle agents, working cap, auto-compaction",
+   "AI 2: Inbox default, Log tab, heartbeats out, tabs left",
+   "AI 2: importance score 1–100 on Needs you, ranked"
+  ]
+ },
+ {
+  "id": "T2",
+  "handoff": "ask -> task",
+  "claim": "Every ask's owner agent has a task that names it",
+  "pass": false,
+  "fails": 44,
+  "total": 71,
+  "examples": [
+   "minion-ai2-rescue-merge: AI 2: Inbox default, Log tab, heartbeats out, tabs left",
+   "mastermind-page: Page: audit of every layout, priority pages, reuse by default",
+   "task-mastermind-icon-system: Icons: frames, buttons, rails, icon items aligned"
+  ]
+ },
+ {
+  "id": "T3",
+  "handoff": "spawn -> task",
+  "claim": "Task born since 10-12 (open_task era) has an assign line 1 with session_id and agent",
+  "pass": false,
+  "fails": 20,
+  "total": 443,
+  "examples": [
+   "assign public/framework/ai/sessions/2026/10/12/session-44dca579/refine-parse-fix",
+   "log public/framework/ai/sessions/2026/10/12/session-87bec773/inbox-scrollbar",
+   "assign public/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/live-server"
+  ]
+ },
+ {
+  "id": "T3b",
+  "handoff": "spawn -> task title",
+  "claim": "Such a task has a title on some assign line",
+  "pass": false,
+  "fails": 234,
+  "total": 436,
+  "examples": [
+   "public/framework/ai/sessions/2026/10/12/session-0e99727c/voice-to-session-page",
+   "public/framework/ai/sessions/2026/10/12/session-19429b3d/session-housekeeping",
+   "public/framework/ai/sessions/2026/10/12/session-21449a90/page-templates-binding-merge"
+  ]
+ },
+ {
+  "id": "T4",
+  "handoff": "task -> session",
+  "claim": "Every session-store task names its session",
+  "pass": false,
+  "fails": 88,
+  "total": 989,
+  "examples": [
+   "public/framework/ai/sessions/2026/08/12/apps",
+   "public/framework/ai/sessions/2026/08/12/layouts",
+   "public/framework/ai/sessions/2026/08/12/stage"
+  ]
+ },
+ {
+  "id": "T5",
+  "handoff": "task -> module",
+  "claim": "Every session-store task names its module",
+  "pass": false,
+  "fails": 989,
+  "total": 989,
+  "examples": [
+   "public/framework/ai/sessions/2026/08/12/apps",
+   "public/framework/ai/sessions/2026/08/12/layouts",
+   "public/framework/ai/sessions/2026/08/12/stage"
+  ]
+ },
+ {
+  "id": "T6",
+  "handoff": "session -> task",
+  "claim": "The session's own log names the tasks run in it",
+  "pass": false,
+  "fails": 5,
+  "total": 42,
+  "examples": []
+ },
+ {
+  "id": "T7",
+  "handoff": "merged change -> task state",
+  "claim": "A task whose commit is on michael/dev is complete",
+  "pass": false,
+  "fails": 8,
+  "total": 65,
+  "examples": [
+   "stopped public/framework/ai/sessions/2026/09/30/review/review/gate",
+   "stopped public/framework/ai/sessions/2026/09/30/review/review/skills",
+   "stopped public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/checkup-sheet/sheet-steps-2-4"
+  ]
+ },
+ {
+  "id": "T8",
+  "handoff": "landed -> record",
+  "claim": "Every complete task has an outcome sentence",
+  "pass": true,
+  "fails": 0,
+  "total": 767,
+  "examples": []
+ },
+ {
+  "id": "T9",
+  "handoff": "work -> ending",
+  "claim": "Every task ends (complete) or is touched within 3 days: {\"stopped\":319,\"idle\":25}",
+  "pass": false,
+  "fails": 344,
+  "total": 761,
+  "examples": [
+   "public/framework/ai/sessions/2026/08/18/ask-tab-binding/ai/proof",
+   "public/framework/ai/sessions/2026/08/18/figma/ai/test-thread",
+   "public/framework/ai/sessions/2026/09/25/546c308f-a944-4905-95a1-68d84991524f/ai2-overview/ui"
+  ]
+ },
+ {
+  "id": "T10",
+  "handoff": "agent end -> landing",
+  "claim": "An agent session that ended 'without landing' later lands",
+  "pass": false,
+  "fails": 163,
+  "total": 313,
+  "examples": [
+   "public/framework/ai/sessions/2026/09/28/e269b131-e2d2-4712-a88d-b243d631bd04/organization/card",
+   "public/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs/minion-b",
+   "public/framework/ai/sessions/2026/09/28/file-explorer-fs/file-explorer-fs"
+  ]
+ },
+ {
+  "id": "T11",
+  "handoff": "parent -> sub-task",
+  "claim": "A nested task is named in its parent's log",
+  "pass": false,
+  "fails": 33,
+  "total": 378,
+  "examples": [
+   "public/framework/ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/fix2",
+   "public/framework/ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode",
+   "public/framework/ai/sessions/2026/09/29/audio/audio/next-clean-transcription/b-structure"
+  ]
+ },
+ {
+  "id": "T12",
+  "handoff": "task -> card",
+  "claim": "A card is done once every task by its agent is complete",
+  "pass": false,
+  "fails": 18,
+  "total": 19,
+  "examples": [
+   "2026/10/17/your-undone-asks-each-one-checked-240-of",
+   "2026/10/14/i-ran-git-checkout-in-the-main-tree-by-m",
+   "2026/10/14/navigation-one-model-shown-four-rules-de"
+  ]
+ },
+ {
+  "id": "T13",
+  "handoff": "migration",
+  "claim": "No task is held in two log files",
+  "pass": false,
+  "fails": 211,
+  "total": 2127,
+  "examples": []
+ }
+]

@@ -21,11 +21,17 @@
 | work | worktree, mastermind, minions | `phase: work`, state `running` |
 | landed | merged and reviewed | `complete` (state `complete`) |
 
-Only **`phase`** is new: a plain field set with the item tool (`{"phase":"plan"}`), latest wins, replayed by `Task.js`; `State` copies it into each row. A project is a task with subtasks; its progress is already computed from them.
+**A project is an upgraded task** (the owner's word): the same task, taken through all six phases and split into subtasks, each of which is itself a task with its own phase. There is no second kind of thing; "project" is what you call a task once it has requirements and subtasks.
+
+Only **`phase`** is new: a plain field set with the item tool (`{"phase":"plan"}`), latest wins, replayed by `Task.js`; `State` copies it into each row. A project's progress is computed from its subtasks.
 
 ## The view
 
 The Inbox's task rows group under headings by `phase` (Requirements, Investigating, Planned, Needs approval, Working, Landed) with the module on each row. This is also the fix for the tasks page being an unlabeled flat list ([tasks/readme.md](../tasks/readme.md), Known problems). One list, no new page.
+
+## Why these joins: tested, not guessed
+
+The handoffs that break today were each checked against real data (13 theories, 12 failed): [tasks.md](tasks.md) section 9, script `handoff-tests.mjs`. Build order below follows the worst failures.
 
 ## Smallest build, in order
 
