@@ -65,6 +65,12 @@ Built on the page inbox and column pages, which the owner does not understand; n
 - **The tunnel MCP** for the Claude app: the owner is "still not 100% sure this is the right way".
 - **Spawn an Opus system-architect mastermind** (not Fable; usage is near the weekly threshold, use lesser minions where possible), finished by the end of the day: read `framework/ai/readme.md`, the systems the AI uses, the Servex readme and the MCP; study the messaging between agents and the tailing of session files; favour logging the current state to the file system over agent messages, so any future agent can read it; write down the context-loss problem (a session's work survives only in files); make sure every important system is in the readmes, as an ongoing rule. *Spawned as `mastermind-system-architect`, brief in `sessions-and-tasks/system-architect/requirements.md`.*
 
+## 14. Evening, said to the cloud voice agent (18:15; words in `ai/sessions/2026/10/20/cloud-voice-task-system-and-voice-agent-exploration/session.jsonl`)
+
+- **Direction, not yet a decision:** one standing SDK mastermind on the PC, renewed every day or so, reached from the Claude app by remote control, so the VS Code sidebar can be retired. The blocker named: remote control needs a logged-in interactive session (credentials), which an SDK agent is not. The voice mastermind (`voice-20261020`) owns the investigation.
+- **Agents on different platforms talk through files** (settled 18:12 between the two masterminds, "Across platforms" in `Servex/agents/doc/messaging.md`): each writes only its own `session.jsonl`; parents follow children, peers follow on request, a cloud agent reads on its turn; inboxes are the nudge; nothing is copied.
+- The cloud session is listed on the sessions page since 18:05 (record-only sessions get a snapshot).
+
 ## 13. Seventh dictation (16:50): prompt flow, Item and Page are one system, certainty levels, indexing by tools
 
 Words in the tab's prompt log. Essence:
