@@ -28,6 +28,17 @@ Decision `d-how-does-a-spawned-agent` (written by `Server/Decide.mjs` into [the 
 
 Alternatives considered: (A) the same follow without the 60-second window or the cleanup: every log burst wakes the parent for a paid turn, and dead logs stay watched. (B) keep chat first and mirror it to the log: the report still lives mainly in a context window, and two copies drift.
 
+## Across platforms (2026-10-20)
+
+The same rule holds when the agents run in different places: a Servex agent, a VS Code tab, and a cloud voice agent in the Claude app.
+
+1. **Every agent writes only to its own `session.jsonl`**, through the `log` tool or `append.mjs`, never by hand.
+2. **Parents follow their children by default** (`Agents.follow_child`), and peers follow each other on request. A cloud agent cannot follow a log, so it reads other logs with `read_file` on its own turn.
+3. **An inbox (`logs/inbox/<id>.jsonl`) is the addressed nudge**: "read my log at <path>".
+4. **Nothing is copied between logs.**
+
+Decided by [vscode-mastermind](/framework/ai/sessions/2026/10/20/session-e00f55c9/) (building on `d-how-does-a-spawned-agent` above) and logged as a decision in the [voice mastermind's log](/framework/ai/sessions/2026/10/20/voice-20261020/).
+
 ## Next (not built)
 
 - The wake's body becomes the child's new log lines instead of its last chat words, so even the "done" is read from the file.
