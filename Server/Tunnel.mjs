@@ -57,6 +57,20 @@ export default class Tunnel {
         child.on("exit", stop);
     }
 
+    host(){ try { return new URL(fs.readFileSync(this.url_file, "utf8").trim()).host; } catch { return null; } }
+    alive_now(){ const s = this.state(); return !!(s && this.alive(s.pid)); }
+
+    /* The keeper's one step (Servex calls it at boot and every 60 s). A live pid is adopted, never touched;
+     * otherwise `up` is started detached so it outlives a Servex restart. Doc: Servex/ext/remote/doc/tunnel.md */
+    ensure(){
+        if (this.alive_now()) return { act: "up", host: this.host() };
+        const had = this.state();
+        if (had) try { fs.unlinkSync(this.state_file); } catch {}
+        const child = spawn(process.execPath, [fileURLToPath(import.meta.url), "up"], { detached: true, windowsHide: true, stdio: "ignore" });
+        child.unref();
+        return { act: had ? "restarted" : "started", pid: child.pid };
+    }
+
     kill(pid){ try { execFileSync("taskkill", ["/pid", String(pid), "/t", "/f"], { windowsHide: true, stdio: "ignore" }); } catch {} }
 
     down(){

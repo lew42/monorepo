@@ -32,6 +32,16 @@ export default class HandoverNow {
 
 	git(...args) { return execFileSync("git", args, { cwd: HandoverNow.REPO, encoding: "utf8", windowsHide: true }).trim(); }
 
+	/** One line from remote.url (host only, token never shown) and remote.changed. */
+	static connector() {
+		const dir = path.join(process.env.LOCALAPPDATA ?? "", "lew42", "servex");
+		try {
+			const host = new URL(fs.readFileSync(path.join(dir, "remote.url"), "utf8").trim()).host;
+			let at = ""; try { at = fs.readFileSync(path.join(dir, "remote.changed"), "utf8").trim().slice(0, 16).replace("T", " ") + " UTC"; } catch {}
+			return `**Connector:** ${host}/mcp/remote/…${at ? ` (changed ${at})` : ""}`;
+		} catch { return "**Connector:** tunnel down"; }
+	}
+
 	async build() {
 		const { landed, open } = await this.rows();
 		const pace = execFileSync("node", ["Server/usage-now.mjs"], { cwd: HandoverNow.REPO, encoding: "utf8", windowsHide: true }).trim().split("\n")[0];
@@ -42,6 +52,8 @@ export default class HandoverNow {
 			`## NOW (computed ${stamp}, last ${this.hours} h)`,
 			"",
 			`**Pace:** ${pace}`,
+			"",
+			HandoverNow.connector(),
 			"",
 			`**Landed (${landed.length}):**`, show(landed, 12) || "- none",
 			"",
