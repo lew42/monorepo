@@ -46,3 +46,7 @@ Two homes, one reader: `State.mjs` counts both. `task.jsonl` vs `session.jsonl` 
 ## More
 
 [doc/architecture.md](doc/architecture.md) · [../doc/tasks.md](../doc/tasks.md) · [../doc/one-dashboard.md](../doc/one-dashboard.md) · [../doc/task-folders.md](../doc/task-folders.md) · [doc/week-2026-10-17.md](doc/week-2026-10-17.md) · [../doc/dashboard-layout-asks.md](../doc/dashboard-layout-asks.md) · the readme before this rewrite, with its dated problems list: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
+
+## Projects
+
+A task with subtasks, requirements or a review is a **project**: a folder with `project.jsonl` that `node Server/ProjectMove.mjs` (Servex tool `move_project`) moves into `<module>/projects/YYYY/MM/DD/<slug>/` and indexes itself. How, and the plan for the module `tasks/` folders: [doc/projects.md](doc/projects.md).

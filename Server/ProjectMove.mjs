@@ -122,7 +122,7 @@ export default class ProjectMove {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
 	const argv = process.argv.slice(2), flag = n => argv.includes(n), pos = argv.filter((a, i) => !a.startsWith("--") && argv[i - 1] !== "--run");
 	try {
-		const r = flag("--undo") ? await ProjectMove.undo({ run: argv[argv.indexOf("--run") + 1] }) : await ProjectMove.move({ from: pos[0], module: pos[1], apply: flag("--apply") });
+		const r = flag("--undo") ? await ProjectMove.undo({ run: flag("--run") ? argv[argv.indexOf("--run") + 1] : undefined }) : await ProjectMove.move({ from: pos[0], module: pos[1], apply: flag("--apply") });
 		console.log(JSON.stringify(r, null, 2));
 		if (r.dry_run) console.log("dry run: add --apply to move it");
 	} catch (e){ console.error("ProjectMove: " + e.message); process.exit(1); }

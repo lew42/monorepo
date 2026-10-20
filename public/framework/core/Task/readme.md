@@ -4,7 +4,7 @@
 
 - **Built and tested:** the state machine, subtasks, replay of `task.jsonl` (`node Task.test.mjs`, 53 of 53 pass), `TaskView`, `TaskPage`, `TasksPage`, references between tasks (`Task.from_ref`), module homes made by the item tool's `tasks.add`.
 - **Wired in:** `Server/AIIndex.mjs` replays every task through `Task.replay` into `ai/index.json`; Servex `open_task` and `TaskDirs --new` make the session-store folders that `Task` reads; the Inbox shows the result.
-- **Play class, wired nowhere:** [Project.js](Project.js) (`Project extends Task`: six stages, `completed` 0..1 from its subtasks; `node Project.test.mjs`, 8 of 8).
+- **Wired in (2026-10-20):** [Project.js](Project.js) (`Project extends Task`: six stages, `completion` 0..1 = mean of subtasks, `Project.from_lines`; `node Project.test.mjs`, 9 of 9). `Server/ProjectMove.mjs` moves a project folder into a module and indexes it: [ai/tasks/doc/projects.md](/framework/ai/tasks/doc/projects.md).
 - **Concept only:** `AITask extends Task` (below), a `phase` field ([ai/doc/task-lifecycle.md](/framework/ai/doc/task-lifecycle.md)). **Not automatic:** a module home. `TaskDirs.dir()` does not know modules; only the item tool (an agent's choice), `TaskMigrate` (one-off) and `UndoneToTasks` (idle tasks from undone asks) put a task in `<module>/tasks/`.
 
 ## What it is
