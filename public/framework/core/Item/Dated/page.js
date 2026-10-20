@@ -16,8 +16,7 @@ export default new Doc({
 	methods: "path index_path rows",
 	files: "../Dated.js ../Dated.test.mjs page.js",
 
-	overview: [
-		{ title: "Projects, live", icon: "event_note", description: "Press the button: a project is made on the server and its row appears below, no reload.", content(){
+	content(){
 			md(`A **project** lives at \`<module>/projects/YYYY/MM/DD/<slug>/\`. Its row sits in today's index file, \`${collection.index_path(today())}\`. This list tails that file, so a project made by anyone shows up here at once. The button makes a tiny real project folder in \`core/Item\`.`);
 			demo(() => {
 				const list = div.c("flex v gap"), note = span.c("muted");
@@ -41,6 +40,5 @@ export default new Doc({
 				});
 				open();
 			});
-		} },
-	],
+	},
 });
