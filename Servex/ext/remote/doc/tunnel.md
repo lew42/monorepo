@@ -16,16 +16,9 @@ A quick tunnel gets a **new random hostname every time it starts**, and nothing 
 
 The URL still changes on every real restart of the tunnel, so the connector still needs a re-paste then. The fix is a fixed hostname:
 
-## A stable hostname (investigated 2026-10-20, not built)
-Read-only check with the API token in `cloudflare.env`:
-- **A zone exists:** `lew42.com` (active). A named tunnel can hang off e.g. `servex.lew42.com`.
-- The token **can** list tunnels (`GET /accounts/<id>/cfd_tunnel` works), so `cloudflared` tunnels can be created through the API.
-- The token **cannot** read or edit DNS (`GET /zones/<id>/dns_records` returns 10000 Authentication error), so the hostname's CNAME cannot be made by code.
+## A stable hostname (named mode built 2026-10-20, blocked on the API token)
+[TunnelNamed.mjs](../../../../Server/TunnelNamed.mjs) `setup` creates the tunnel `servex`, its ingress (`servex.lew42.com` to the gateway on fixed port 8191) and the proxied CNAME, then stores the run token at `%LOCALAPPDATA%lew42servexemote.tunnel.token`. [Tunnel.mjs](../../../../Server/Tunnel.mjs) `up` then runs `cloudflared tunnel run --token` and writes `https://servex.lew42.com/mcp/remote/<token>` to `remote.url` **only when that token file exists**; without it, it is the quick tunnel above.
 
-**The one owner step (2026-10-20, owner asked for a permanent hostname):** the API token has Tunnel access but **no DNS permission**, so the build stopped here. Add **Zone → DNS → Edit** (zone `lew42.com`) to the token in `cloudflare.env` (or do option 2). Then an agent builds the rest: `servex.lew42.com`, token stored beside `remote.token`, quick tunnel kept as the fallback.
+**Blocked (checked 2026-10-20):** the token in `cloudflare.env` can only list. `POST /accounts/<id>/cfd_tunnel` and `GET /zones/<id>/dns_records` both return 10000 Authentication error. It needs exactly two permissions: **Account → Cloudflare Tunnel → Edit** and **Zone → DNS → Edit** (zone `lew42.com`). Then run `node Server/TunnelNamed.mjs setup`, `node Server/Tunnel.mjs down`, `node Server/Tunnel.mjs up`.
 
-What only the owner can do (either one):
-1. Edit the API token in the Cloudflare dashboard and add **Zone: DNS: Edit** for `lew42.com`; or
-2. Add the CNAME by hand once, after step 2 below: `servex` → `<tunnel-id>.cfargotunnel.com`, proxied.
-
-Then the steps (agent work): create a named tunnel through the API (`POST /accounts/<id>/cfd_tunnel`, `config_src: "cloudflare"`), set its ingress to `http://127.0.0.1:<gateway port>` with `PUT .../configurations`, run `cloudflared tunnel run --token <tunnel token>` instead of `--url`, and write `https://servex.lew42.com/mcp/remote/<token>` to `remote.url`. The connector URL never changes after that, and the Note card never fires.
+**Adding a dashboard path later:** `Tunnel.gateway()` passes only `/mcp/remote/...`; add the new path to its allow-check (behind Cloudflare Access). Cloudflare itself needs no change, since the ingress points at the gateway.

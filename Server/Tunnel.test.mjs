@@ -22,5 +22,9 @@ assert.ok(fs.existsSync(t.state_file), "adopting leaves the state file alone");
 fs.writeFileSync(t.state_file, JSON.stringify({ pid: 2 ** 22 + 12345, child: 1, port: 1 }));
 assert.strictEqual(t.alive_now(), false, "a dead pid is not alive");
 
+assert.strictEqual(t.named_token(), null, "no token file: quick tunnel");
+fs.writeFileSync(path.join(Tunnel.DIR, "remote.tunnel.token"), "T");
+assert.strictEqual(t.named_token(), "T", "token file: named mode");
+
 fs.rmSync(Tunnel.DIR, { recursive: true, force: true });
 console.log("Tunnel.test ok");
