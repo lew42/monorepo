@@ -25,3 +25,17 @@
 {"commit":"e49b88c64207"}
 {"log":{"at":"2026-10-19T20:55:03-05:00","msg":"landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}."}}
 {"assign":{"at":"2026-10-19T20:55:07-05:00","outcome":"**what landed** — readmes for ai, ai/sessions, ai/tasks, AITask, Inbox, core/Page and Servex now state structure and function (old text in doc/readme-before-2026-10-19.md); MCP, sdk and cloud-voice docs verified; framework/readme.md module index; CLAUDE.md where-to-look; two-question landing checklist; Server/SessionReadme.mjs with one generated example and sessions/doc/session-readme.md."}}
+{"commit":"a8b32f218f8f"}
+{"log":{"at":"2026-10-19T20:55:55-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-19T20:59:37-05:00","msg":"session resumed"}}
+{"commit":"d1b5122d5ba4"}
+{"log":{"at":"2026-10-19T21:00:45-05:00","msg":"text-check: past-work.md: 733 words of prose (500 at most)"}}
+{"log":{"at":"2026-10-19T21:00:45-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-20T02:00:45.140Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-19T21:00:45-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-19T21:00:51-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-19T21:00:51-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"assign":{"at":"2026-10-19T21:01:29-05:00","outcome":"**Readmes now state structure and function.**\n- [x] Every main system's readme states its structure and how it works: ai, ai/sessions, ai/tasks, AITask, Inbox, core/Page, Servex rewritten (framework/readme.md indexes them).\n- [x] No history in them: old text moved to doc/readme-before-2026-10-19.md.\n- [ ] No audits needed again: not shown; only a two-question landing checklist was added.\n- [ ] MCP, SDK and cloud-voice docs: verified, but no proof is logged."}}
+{"log":{"at":"2026-10-19T21:13:04-05:00","msg":"session resumed"}}
+{"commit":"5d431d1ffc3b"}
+{"log":{"at":"2026-10-19T21:13:46-05:00","msg":"owner correction: branch rule is merge-yourself, log where found; mastermind skill updated, law-5 amendment proposed in claude-md-archive.md; task/docs merged to michael/dev (21e371e06)"}}
