@@ -5,7 +5,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { run_refine } from "../ext/refine/run.js";
 import { env_for } from "../ext/local/provider.js";
-import TaskDirs from "../../Server/TaskDirs.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
@@ -209,15 +208,9 @@ export default class Echo {
 	 * now — never duplicated in the position notice itself (prompt-relay.mjs's own doc
 	 * comment). Only the item's own `add` line is read (its text never changes after that),
 	 * never a full page replay — `page` is relative to `public/`, exactly as the hook sent it. */
-	/** A tab's session page (/framework/ai/sessions/<uuid>/) lives in its store folder; any other url is public/<url>/ plus the page file. */
-	page_file(page){
-		const hit = /^\/?framework\/ai\/sessions\/([0-9a-f]{8}-[0-9a-f-]{27})\/?$/.exec(page);
-		return hit ? path.join(TaskDirs.session_dir(hit[1]), "page.jsonl") : path.join(REPO, "public", page.replace(/^\/+/, ""), "page.jsonl");
-	}
-
 	read_item(page, item_id){
 		let text;
-		try { text = fs.readFileSync(this.page_file(page), "utf8"); } catch { return null; }
+		try { text = fs.readFileSync(path.join(REPO, "public", page.replace(/^\/+/, ""), "page.jsonl"), "utf8"); } catch { return null; }
 		for (const raw of text.split("\n")){
 			if (!raw.trim()) continue;
 			let line;
