@@ -10,6 +10,7 @@
 - [Page](/framework/core/Page/) (`Page.class.js`): an Item with a url; its parts [PageText, PageHeading, PageCard, PageLink, PageContentItem](/framework/core/Page/parts/) are Items too.
 - [Task](/framework/core/Task/) (`Task.js`): one task's state machine, replayed from `task.jsonl`.
 - [Session](/framework/core/Session/) (`Session.js`): a session record.
+- [Dated](/framework/core/Item/Dated/) (`Dated.js`, with `Dated.Index`): a collection filed by day (`<root>/YYYY/MM/DD/<slug>/`) and its pointer rows; the first is projects. Not an Item itself: its index is. Node half: [Server/DatedFiles.mjs](/Server/doc/dated-files.md).
 - [Panel](/framework/ext/Panel/) (`Panel.js`) and `Block` (`ext/editor/blocks.js`): layout and editor pieces.
 - `Item.Store` (`Store.js`) is not an Item; `Page.Reader` extends it.
 
@@ -41,6 +42,8 @@ a PROPERTY instead of an inheritance: something that needs children gives ITSELF
 `core/List/readme.md`.
 
 ## Use
+
+Saving to a `.jsonl`: [core/Page/doc/jsonl.md](../Page/doc/jsonl.md) ("The store").
 
 **A log file (`.jsonl`) — the usual way.** Every change is one appended line; opening the file replays them.
 
@@ -94,7 +97,7 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 ## More
 
 - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
-- [`doc/store-index-query-plan.md`](./doc/store-index-query-plan.md) — the plan (not built): one store, one dated index (`Dated`), one query for sessions, tasks and projects
+- [`doc/store-index-query-plan.md`](./doc/store-index-query-plan.md) — the plan (slice 1, projects, built): one store, one dated index (`Dated`), one query for sessions, tasks and projects
 - [`doc/item-notes.md`](./doc/item-notes.md) — comments pruned from `Item.js`, verbatim.
 - [Overview](/framework/core/Item/) — the page asserts every claim on load; red is a broken framework.
 - [Live list](/framework/core/Item/live/) — the same List, on a real page, saved to a real file: drag, add, sort, reload.
