@@ -24,7 +24,7 @@ A list shows each session's **preview**; a click shows its **full** view. Option
 
 ## Columns
 
-The preview rail opening a column that opens more columns "gets tricky; maybe it has been a mistake" until the owner can describe what he wants. Lists behave like the preview rail: preview renders in the list, full render on its own page.
+The preview rail opening a column that opens more columns "gets tricky; maybe it has been a mistake" until the owner can describe what they want. Lists behave like the preview rail: preview renders in the list, full render on its own page.
 
 ## Decided tonight without waiting (the owner: never wait on him; revisable)
 
