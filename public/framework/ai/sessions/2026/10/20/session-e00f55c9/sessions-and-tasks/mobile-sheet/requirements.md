@@ -1,4 +1,6 @@
-# The mobile dictation sheet: reconnect, one strong layout, screenshots at every step
+# Mobile dictation sheet: reconnect and one layout
+
+**In short:** the ✦ sheet must reconnect after a Servex restart (failures logged), and become one three-row layout (header, chat well, mic footer), proven by a screenshot every 40 px of drag.
 
 Budget: $10. Opus, medium effort (the owner, 19:12: no Fable; watch usage; Sonnet minions for mechanical pieces). Parent: `vscode-mastermind` (the owner's VS Code tab), who tails your `session.jsonl`: log with the `log` tool, not chat. Own worktree (`worktree/mobile-sheet`); commit each working step; `node Server/merge.mjs`; the main site is production (`hold.mjs` around live writes); do not restart Servex or the dev server (say which one is needed).
 
