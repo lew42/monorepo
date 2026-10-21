@@ -5,7 +5,7 @@ import { loopback } from "../MCP.js";
 // `query` answers from an in-memory index of files under public/ and never runs or writes anything, but only
 // for the sources named in LAN_QUERY (a new source is not exposed until it is added here). Doc: dev/Socket/doc/lan.md
 const LAN_OK = new Set(["hello", "subscribe", "unsubscribe", "query"]);
-const LAN_QUERY = new Set(["sessions", "tasks"]);
+const LAN_QUERY = new Set(["sessions", "tasks", "inflight"]);
 
 // Socket gets created by SocketServer
 

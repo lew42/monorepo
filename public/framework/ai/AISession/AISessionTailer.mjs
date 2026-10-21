@@ -2,6 +2,7 @@ import fs from "fs";
 import AISessionIndex from "./AISessionIndex.mjs";
 import AISessionSource from "./AISessionSource.mjs";
 import QueryServer from "../../ext/Query/QueryServer.mjs";
+import DatedFiles from "../../../../Server/DatedFiles.mjs";
 
 /* Starts the AISessionIndex inside the dev server (ai/AISession/AISessionIndex.mjs): transcripts in, per-session index.json and the
  * day composite files out, snapshot changes pushed to subscribed pages by AISessionSub (below). Runs on the MAIN checkout's
@@ -15,7 +16,7 @@ export const live = { index: null };
 QueryServer.source("sessions", {
     available: () => !!live.index,
     load: async () => { await live.index.ready; AISessionSource.load(live.index.root); },
-    items: () => live.index.snaps.values(),
+    items: () => DatedFiles.sessions.snapshots(),   // the one reader of the session index (Server/doc/dated-files.md); with the live index it answers from memory
     on: fn => live.index.on(fn),
     shape: AISessionSource.shape,
     arrange: AISessionSource.arrange,
@@ -29,6 +30,7 @@ export default class AISessionTailer {
         if (flag === "0" || (flag !== "1" && !main)) return;
         const base = process.env.SESSION_TAIL_DIR || undefined, root = process.env.SESSION_ROOT || undefined;
         live.index = server.session_index = new AISessionIndex({ base, root, log: m => console.log(m) }).start();
+        DatedFiles.live = { items: () => live.index.snaps.values(), on: fn => live.index.on(fn) };
     }
 }
 

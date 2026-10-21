@@ -277,12 +277,12 @@ export default class DatedFiles extends Dated {
 	}
 
 	// ── sessions: the current snapshot of every session, read from the day index.json files (AISessionIndex writes them) ──
-	/** Where the live snapshots sit in memory, when a server runs the transcript index (`() => iterable`, set by AISessionTailer). Without it the day files are the source. */
+	/** Where the live snapshots sit in memory, when a server runs the transcript index: `{ items: () => iterable, on: fn => off }`, set by AISessionTailer. Without it the day files are the source. */
 	static live = null;
 	/** Every session's current snapshot for a day range (default: all days), one per id (the later last_activity wins). With a live index the memory answers: it is what writes the files. */
 	snapshots({ from, to } = {}){
 		const day = s => String(s.last_activity ?? s.first_at ?? "").slice(0, 10), keep = s => (!from || day(s) >= from) && (!to || day(s) <= to);
-		if (DatedFiles.live) return [...DatedFiles.live()].filter(keep);
+		if (DatedFiles.live) return [...DatedFiles.live.items()].filter(keep);
 		const by = new Map();
 		for (const { day: d, dir } of this.day_folders()){
 			if ((from && d < from.slice(0, 10)) || (to && d > to.slice(0, 10))) continue;
