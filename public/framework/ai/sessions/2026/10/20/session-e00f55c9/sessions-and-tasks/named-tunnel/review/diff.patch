@@ -1,0 +1,176 @@
+diff --git a/Server/Tunnel.mjs b/Server/Tunnel.mjs
+index 9802de726..6584582a4 100644
+--- a/Server/Tunnel.mjs
++++ b/Server/Tunnel.mjs
+@@ -3,6 +3,7 @@ import path from "path";
+ import http from "http";
+ import { spawn, execFileSync } from "child_process";
+ import { fileURLToPath } from "url";
++import TunnelNamed from "./TunnelNamed.mjs";
+ 
+ /* node Server/Tunnel.mjs up|down|status — a free Cloudflare quick tunnel to Servex's /mcp/remote ONLY.
+  * cloudflared forwards every path of its origin, so it points at a tiny gateway (below) that passes
+@@ -38,12 +39,16 @@ export default class Tunnel {
+         if (s && this.alive(s.pid)) return console.log("already up (URL in remote.url)");
+         fs.mkdirSync(Tunnel.DIR, { recursive: true });
+         const gw = this.gateway();
+-        await new Promise(r => gw.listen(0, "127.0.0.1", r));
++        const named = this.named_token();   // present = permanent hostname (TunnelNamed.mjs setup); absent = quick tunnel
++        await new Promise(r => gw.listen(named ? TunnelNamed.PORT : 0, "127.0.0.1", r));
+         const port = gw.address().port;
+-        const child = spawn("npx", ["--yes", "cloudflared", "tunnel", "--url", `http://127.0.0.1:${port}`], { shell: true, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
++        const args = named ? ["tunnel", "run", "--token", named] : ["tunnel", "--url", `http://127.0.0.1:${port}`];
++        const child = spawn("npx", ["--yes", "cloudflared", ...args], { shell: true, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+         const url = await new Promise((resolve, reject) => {
+             const t = setTimeout(() => reject(new Error("no tunnel URL after 90 s")), 90000);
+-            const scan = b => { const m = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(String(b)); if (m){ clearTimeout(t); resolve(m[0]); } };
++            const scan = b => {
++                if (named){ if (/Registered tunnel connection/.test(String(b))){ clearTimeout(t); resolve("https://" + TunnelNamed.HOST); } return; }
++                const m = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(String(b)); if (m){ clearTimeout(t); resolve(m[0]); } };
+             child.stdout.on("data", scan); child.stderr.on("data", scan);
+             child.on("exit", c => reject(new Error(`cloudflared exited ${c}`)));
+         }).catch(e => { this.kill(child.pid); console.error(e.message); process.exit(1); });
+@@ -57,6 +62,8 @@ export default class Tunnel {
+         child.on("exit", stop);
+     }
+ 
++    named_token(){ try { return fs.readFileSync(path.join(Tunnel.DIR, "remote.tunnel.token"), "utf8").trim() || null; } catch { return null; } }
++
+     host(){ try { return new URL(fs.readFileSync(this.url_file, "utf8").trim()).host; } catch { return null; } }
+     alive_now(){ const s = this.state(); return !!(s && this.alive(s.pid)); }
+ 
+diff --git a/Server/Tunnel.test.mjs b/Server/Tunnel.test.mjs
+index 31dc06f49..ceac8591a 100644
+--- a/Server/Tunnel.test.mjs
++++ b/Server/Tunnel.test.mjs
+@@ -22,5 +22,9 @@ assert.ok(fs.existsSync(t.state_file), "adopting leaves the state file alone");
+ fs.writeFileSync(t.state_file, JSON.stringify({ pid: 2 ** 22 + 12345, child: 1, port: 1 }));
+ assert.strictEqual(t.alive_now(), false, "a dead pid is not alive");
+ 
++assert.strictEqual(t.named_token(), null, "no token file: quick tunnel");
++fs.writeFileSync(path.join(Tunnel.DIR, "remote.tunnel.token"), "T");
++assert.strictEqual(t.named_token(), "T", "token file: named mode");
++
+ fs.rmSync(Tunnel.DIR, { recursive: true, force: true });
+ console.log("Tunnel.test ok");
+diff --git a/Server/TunnelNamed.mjs b/Server/TunnelNamed.mjs
+new file mode 100644
+index 000000000..97a9ff1d2
+--- /dev/null
++++ b/Server/TunnelNamed.mjs
+@@ -0,0 +1,50 @@
++import fs from "fs";
++import path from "path";
++import crypto from "crypto";
++import { fileURLToPath } from "url";
++
++/* node Server/TunnelNamed.mjs setup — one-time: makes the named tunnel "servex", its ingress and the DNS CNAME,
++ * and stores the run token at %LOCALAPPDATA%\lew42\servex\remote.tunnel.token. Never prints a secret.
++ * Doc: Servex/ext/remote/doc/tunnel.md */
++export default class TunnelNamed {
++    static DIR = path.join(process.env.LOCALAPPDATA ?? "", "lew42", "servex");
++    static NAME = "servex";
++    static HOST = "servex.lew42.com";
++    static ZONE = "lew42.com";
++    static PORT = 8191;   // the gateway's fixed port in named mode
++
++    constructor(){
++        const env = Object.fromEntries(fs.readFileSync(path.join(TunnelNamed.DIR, "cloudflare.env"), "utf8").split(/\r?\n/)
++            .map(l => l.match(/^\s*([A-Z_]+)\s*=\s*"?([^"]*?)"?\s*$/)).filter(Boolean).map(m => [m[1], m[2]]));
++        this.account = env.CLOUDFLARE_ACCOUNT_ID;
++        this.auth = { authorization: "Bearer " + env.CLOUDFLARE_API_TOKEN, "content-type": "application/json" };
++    }
++
++    async api(method, url, body){
++        const r = await fetch("https://api.cloudflare.com/client/v4" + url, { method, headers: this.auth, body: body && JSON.stringify(body) });
++        const j = await r.json();
++        if (!j.success) throw new Error(`${method} ${url}: ${JSON.stringify(j.errors)}`);
++        return j.result;
++    }
++
++    async setup(){
++        const acct = `/accounts/${this.account}/cfd_tunnel`;
++        let t = (await this.api("GET", `${acct}?name=${TunnelNamed.NAME}&is_deleted=false`))[0];
++        if (!t) t = await this.api("POST", acct, { name: TunnelNamed.NAME, config_src: "cloudflare", tunnel_secret: crypto.randomBytes(32).toString("base64") });
++        console.log("tunnel", t.id);
++        await this.api("PUT", `${acct}/${t.id}/configurations`, { config: { ingress: [
++            { hostname: TunnelNamed.HOST, service: `http://127.0.0.1:${TunnelNamed.PORT}` }, { service: "http_status:404" }] } });
++        const zone = (await this.api("GET", `/zones?name=${TunnelNamed.ZONE}`))[0].id;
++        const content = `${t.id}.cfargotunnel.com`;
++        const have = (await this.api("GET", `/zones/${zone}/dns_records?name=${TunnelNamed.HOST}`))[0];
++        const rec = { type: "CNAME", name: "servex", content, proxied: true };
++        if (!have) await this.api("POST", `/zones/${zone}/dns_records`, rec);
++        else if (have.content !== content) await this.api("PUT", `/zones/${zone}/dns_records/${have.id}`, rec);
++        console.log("dns ok", content);
++        const token = await this.api("GET", `${acct}/${t.id}/token`);
++        fs.writeFileSync(path.join(TunnelNamed.DIR, "remote.tunnel.token"), token);
++        console.log("run token stored");
++    }
++}
++
++if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv[2] === "setup") await new TunnelNamed().setup();
+diff --git a/Servex/ext/remote/doc/tunnel.md b/Servex/ext/remote/doc/tunnel.md
+index 606299557..cb31a9d22 100644
+--- a/Servex/ext/remote/doc/tunnel.md
++++ b/Servex/ext/remote/doc/tunnel.md
+@@ -1,31 +1,29 @@
+-# The tunnel: how the Claude app reaches Servex, and who keeps it up
+-
+-## What it is
+-`node Server/Tunnel.mjs up` starts a free Cloudflare **quick tunnel**: a public `https://<random>.trycloudflare.com` address that forwards to a tiny gateway on this machine, which passes only `/mcp/remote/<token>` to Servex ([RemoteMCP.js](../RemoteMCP.js)). State lives in `%LOCALAPPDATA%\lew42\servex\`: `remote.tunnel.json` (pids), `remote.url` (the full URL, token included), `remote.token`.
+-
+-## Why it broke the connector
+-A quick tunnel gets a **new random hostname every time it starts**, and nothing used to restart it. When it died (2026-10-15) the connector saved in claude.ai pointed at a dead host: "couldn't start sign in".
+-
+-## The keeper (built, 2026-10-20)
+-[TunnelKeeper.js](../TunnelKeeper.js) runs inside Servex: at boot and every 60 s it calls `Tunnel.ensure()` ([Server/Tunnel.mjs](../../../../Server/Tunnel.mjs)).
+-- A live pid in `remote.tunnel.json` is **adopted**, never touched (also after a Servex restart).
+-- Otherwise `node Server/Tunnel.mjs up` is started detached, so it outlives a Servex restart.
+-- Servex log events (`servex` log): `tunnel-down`, and `tunnel-up` with the host only.
+-- When the host differs from the last one (`remote.lasthost`), a **Note card** is created: paste the new URL into the claude.ai connector. `remote.changed` holds the time; `Server/HandoverNow.mjs` shows `Connector: <host> (changed <time>)` in handover.md's NOW block.
+-- `NO_TUNNEL=1` turns the keeper off. `node Server/Tunnel.mjs up|down|status` still work by hand. Test: `node Server/Tunnel.test.mjs`.
+-
+-The URL still changes on every real restart of the tunnel, so the connector still needs a re-paste then. The fix is a fixed hostname:
+-
+-## A stable hostname (investigated 2026-10-20, not built)
+-Read-only check with the API token in `cloudflare.env`:
+-- **A zone exists:** `lew42.com` (active). A named tunnel can hang off e.g. `servex.lew42.com`.
+-- The token **can** list tunnels (`GET /accounts/<id>/cfd_tunnel` works), so `cloudflared` tunnels can be created through the API.
+-- The token **cannot** read or edit DNS (`GET /zones/<id>/dns_records` returns 10000 Authentication error), so the hostname's CNAME cannot be made by code.
+-
+-**The one owner step (2026-10-20, owner asked for a permanent hostname):** the API token has Tunnel access but **no DNS permission**, so the build stopped here. Add **Zone → DNS → Edit** (zone `lew42.com`) to the token in `cloudflare.env` (or do option 2). Then an agent builds the rest: `servex.lew42.com`, token stored beside `remote.token`, quick tunnel kept as the fallback.
+-
+-What only the owner can do (either one):
+-1. Edit the API token in the Cloudflare dashboard and add **Zone: DNS: Edit** for `lew42.com`; or
+-2. Add the CNAME by hand once, after step 2 below: `servex` → `<tunnel-id>.cfargotunnel.com`, proxied.
+-
+-Then the steps (agent work): create a named tunnel through the API (`POST /accounts/<id>/cfd_tunnel`, `config_src: "cloudflare"`), set its ingress to `http://127.0.0.1:<gateway port>` with `PUT .../configurations`, run `cloudflared tunnel run --token <tunnel token>` instead of `--url`, and write `https://servex.lew42.com/mcp/remote/<token>` to `remote.url`. The connector URL never changes after that, and the Note card never fires.
++# The tunnel: how the Claude app reaches Servex, and who keeps it up
++
++## What it is
++`node Server/Tunnel.mjs up` starts a free Cloudflare **quick tunnel**: a public `https://<random>.trycloudflare.com` address that forwards to a tiny gateway on this machine, which passes only `/mcp/remote/<token>` to Servex ([RemoteMCP.js](../RemoteMCP.js)). State lives in `%LOCALAPPDATA%\lew42\servex\`: `remote.tunnel.json` (pids), `remote.url` (the full URL, token included), `remote.token`.
++
++## Why it broke the connector
++A quick tunnel gets a **new random hostname every time it starts**, and nothing used to restart it. When it died (2026-10-15) the connector saved in claude.ai pointed at a dead host: "couldn't start sign in".
++
++## The keeper (built, 2026-10-20)
++[TunnelKeeper.js](../TunnelKeeper.js) runs inside Servex: at boot and every 60 s it calls `Tunnel.ensure()` ([Server/Tunnel.mjs](../../../../Server/Tunnel.mjs)).
++- A live pid in `remote.tunnel.json` is **adopted**, never touched (also after a Servex restart).
++- Otherwise `node Server/Tunnel.mjs up` is started detached, so it outlives a Servex restart.
++- Servex log events (`servex` log): `tunnel-down`, and `tunnel-up` with the host only.
++- When the host differs from the last one (`remote.lasthost`), a **Note card** is created: paste the new URL into the claude.ai connector. `remote.changed` holds the time; `Server/HandoverNow.mjs` shows `Connector: <host> (changed <time>)` in handover.md's NOW block.
++- `NO_TUNNEL=1` turns the keeper off. `node Server/Tunnel.mjs up|down|status` still work by hand. Test: `node Server/Tunnel.test.mjs`.
++
++The URL still changes on every real restart of the tunnel, so the connector still needs a re-paste then. The fix is a fixed hostname:
++
++## A stable hostname (investigated 2026-10-20, not built)
++Read-only check with the API token in `cloudflare.env`:
++- **A zone exists:** `lew42.com` (active). A named tunnel can hang off e.g. `servex.lew42.com`.
++- The token **can** list tunnels (`GET /accounts/<id>/cfd_tunnel` works), so `cloudflared` tunnels can be created through the API.
++- The token **cannot** read or edit DNS (`GET /zones/<id>/dns_records` returns 10000 Authentication error), so the hostname's CNAME cannot be made by code.
++
++**Named mode is built but blocked on token permissions (checked 2026-10-20, 17:xx).** [TunnelNamed.mjs](../../../../Server/TunnelNamed.mjs) `setup` creates the tunnel `servex`, its ingress (`servex.lew42.com` to the gateway on fixed port 8191) and the proxied CNAME, then stores the run token at `%LOCALAPPDATA%\lew42\servexemote.tunnel.token`. [Tunnel.mjs](../../../../Server/Tunnel.mjs) `up` uses `cloudflared tunnel run --token` and writes `https://servex.lew42.com/mcp/remote/<token>` to `remote.url` **only when that token file exists**; otherwise it is the quick tunnel, as before.
++
++The token in `cloudflare.env` still fails: `POST /accounts/<id>/cfd_tunnel` returns 10000 Authentication error, and `GET /zones/<id>/dns_records` too. It can only list. It needs exactly two permissions: **Account → Cloudflare Tunnel → Edit** and **Zone → DNS → Edit** (zone `lew42.com`). After adding them run `node Server/TunnelNamed.mjs setup`, then `node Server/Tunnel.mjs down` and `up`.
++
++**Adding a dashboard path later:** the gateway in `Tunnel.gateway()` passes only `/mcp/remote/...`; add the new path to its allow-check (behind Cloudflare Access), nothing in Cloudflare changes because the ingress points at the gateway.
