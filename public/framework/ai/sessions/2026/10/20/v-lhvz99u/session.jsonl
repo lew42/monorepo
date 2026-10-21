@@ -1,0 +1,10 @@
+{"session":{"id":"v-lhvz99u","home":"/framework/ux/Dictate/surfaces/","kind":"voice","at":"2026-10-20T21:50:23.567-05:00","project":"monorepo","host":"monorepo.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-10-20T21:50:23.712-05:00","fast":"6f5fc1ca-f9cd-4f2c-ac8e-3279f0b730cf","smart":null,"how":{"fast":"new"}}}
+{"chat":{"at":"2026-10-20T21:50:26.881-05:00","session":"v-lhvz99u","path":"/framework/ux/Dictate/surfaces/","from":{"kind":"owner"},"via":"voice","text":"Can you hear me?","floor":"speaking","cues":{"mic_on_at":"2026-10-21T02:50:21.293Z","pauses":[{"start":1725,"end":null,"ms":559}],"speaking_ms":640}}}
+{"backing":{"at":"2026-10-20T21:50:27.019-05:00","fast":"6f5fc1ca-f9cd-4f2c-ac8e-3279f0b730cf","smart":"96440402-dc0f-4745-b27f-653e42853b4f","how":{"smart":"new"}}}
+{"quiet":{"at":"2026-10-20T21:50:29.578-05:00","ms":2500,"path":"/framework/ux/Dictate/surfaces/"}}
+{"chat":{"at":"2026-10-20T21:50:34.607-05:00","session":"v-lhvz99u","path":"/framework/ux/Dictate/surfaces/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-lhvz99u"},"via":"text","text":"Yes, I can hear you. This is the smart assistant for session v-lhvz99u, and you're on `/framework/ux/Dictate/surfaces/`.\n\nThe session-naming call failed with `no session \"undefined\"`, so this session has no title yet. Nothing is running. What do you want to do?","re":"2026-10-20T21:50:26.881-05:00"}}
+{"nav":{"at":"2026-10-20T21:51:49.073-05:00","from":"/framework/ux/Dictate/surfaces/","to":"/framework/ai/"}}
+{"nav":{"at":"2026-10-20T21:52:19.418-05:00","from":"/framework/ai/","to":"/framework/ai/2026/10/19/restart-the-servex-keeper-once-so-the-cr/","card":"2026/10/19/restart-the-servex-keeper-once-so-the-cr"}}
+{"nav":{"at":"2026-10-20T21:52:30.197-05:00","from":"/framework/ai/2026/10/19/restart-the-servex-keeper-once-so-the-cr/","to":"/framework/ai/2026/10/19/restart-the-servex-keeper-once-so-the-cr/activity/"}}
+{"nav":{"at":"2026-10-20T21:52:30.250-05:00","from":"/framework/ai/2026/10/19/restart-the-servex-keeper-once-so-the-cr/activity/","to":"/framework/ai/sessions/"}}
