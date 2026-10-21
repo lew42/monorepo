@@ -30,3 +30,14 @@ Getting dictation to work properly **on the website** is step one. The cloud voi
 - The voice session and the two assistants: [ext/Session](/framework/ext/Session/) ([doc/sessions.md](/framework/ext/Session/doc/sessions.md)); the fast assistant inside Servex: `Servex/agents/Assistant.js`.
 - Whisper: [audio/Whisper](/framework/audio/Whisper/), the engines in [audio/Transcriber](/framework/audio/Transcriber/).
 - Refinement: [ext/Refine](/framework/ext/Refine/); the live page experiment: [/live/](/live/).
+
+## 19:35, after trying a voice session on the site: the mobile sheet, reconnect, and how to test a responsive UI
+
+Words: the tab prompt log, the line after the Whisper dictations (its first sentence was cut off by the microphone). Essence:
+
+- **What worked:** the ✦ button on the mobile bottom nav started transcribing on the first visit; a voice agent was spawned, answered questions about its session quickly and in real time (every sentence sent off); dragging the sheet past about 90% snaps it open to a full page, "that actually works quite well, and I like it". Timing and placing its replies will take effort ("responding almost a little too quickly").
+- **Priority one: it won't reconnect.** Figure out why, and make the button attempt a reconnect; when something fails there should be a system log of what happened, so it can be diagnosed.
+- **Priority two: the UI is terrible, and screenshots prove it.** On first click the sheet puts the mic on the left, a brief description and one line beside it, then a grey button with a down arrow inside that "looks like shit" and whose purpose is unknown. Dragging up the top edge glitches, then switches to a scrollable layout that works tolerably; the page behind the sheet disappears while it is open, which is strange.
+- **How to test a responsive UI (the method, must):** screenshot the sheet on first click, then resize it 20 to 40 pixels at a time and screenshot every step, so a layout switch that glitches is seen. No "magical layout switching" as you drag: one strong layout that just works, with a sticky header or footer so something is there at first and the rest grows.
+- **The layout (the owner's gut):** three rows: a header, a full-width scrollable chat area, a footer with the mic control; compact. The chat area is a well: left and right padding so bubbles do not ride the device edge, **no top or bottom padding** so bubbles scroll under the header and footer, no border radius, and the parent has no padding (it was double padded). The same instructions were dictated into a voice session a day or two ago; find them there, do not re-ask.
+- **The modes:** a one-line compact version so the site stays browsable (the primary mode later, when everything works) and the full wall of text now, for debugging. The sheet code: `ext/drawer/rail.js` (the sheet) mounting `ux/Dictate/chat.js`; reconnect: `ux/Dictate/Connection.js`.
