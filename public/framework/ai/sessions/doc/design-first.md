@@ -29,3 +29,7 @@ The preview rail opening a column that opens more columns "gets tricky; maybe it
 ## Decided tonight without waiting (the owner: never wait on him; revisable)
 
 From [views-plan.md](views-plan.md), each the planner's first-ranked option: places are paths and filters a query; no column system on the sessions pages, each place one full page; `Session extends Task` (one completion API); the nickname and summary bullets are written by a tool at finish-task (Haiku), never by hand; `/framework/ai/<date>/` redirects to the day folder and `ai/AIDay` moves aside. The **layout** (A inline, B drop-down, C two panes) is chosen in Figma, not from the prototype. The five dictation decisions in the map are accepted as ranked and wait behind this work.
+
+## First pass in Figma (2026-10-20 22:50)
+
+[Sessions and tasks page](https://www.figma.com/design/QYN0G2URSBHYH5I06MOjxU/?node-id=307-54823), built from real sessions of 2026-10-20: the segmented progress bar (simple, 21 steps, composite, beside or under a title), the session card at three densities (compact, standard, rich), the day view at 400 and 1200 (3-column grid), the session page at 400 and 1200 (Overview and Chat tabs, nested tasks), the task page at 400, and Task vs Project (checkbox vs folder, bold title, bar and count). Components: Progress / Segment (done, active, open) and four icons. Edit freely there; the build follows what you settle on.
