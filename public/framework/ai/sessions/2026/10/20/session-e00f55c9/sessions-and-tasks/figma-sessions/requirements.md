@@ -6,7 +6,7 @@ Budget: $8. Opus, medium effort. Parent: `vscode-mastermind`, who reviews your f
 
 ## Where
 
-File `QYN0G2URSBHYH5I06MOjxU`, page **Sessions and tasks** (`307:54823`). A first pass is there, drawn by the mastermind with real data from 2026-10-20: progress anatomy, session card at three densities, day view 400 and 1200, session page 400 and 1200, task page 400, Task vs Project, plus components `Progress / Segment` (done, active, open) and four icons. It uses hard-coded Montserrat sizes and some hard-coded greys: **rebuild it properly** on the file's system (text styles `h1`–`h4`/`body`, `Colors`/`Text` variables, `Resolution` modes per [use-figma.md](/framework/ext/Figma/doc/use-figma.md)), keep what works, and replace frames rather than stacking duplicates (move a superseded frame into a section named "Superseded", never delete).
+File `QYN0G2URSBHYH5I06MOjxU`, page **Sessions and tasks** (`307:54823`). A first pass is there, drawn by the mastermind with real data from 2026-10-20: progress anatomy, session card at three densities, day view 400 and 1200, session page 400 and 1200, task page 400, Task vs Project, plus components `Progress / Segment` (done, active, open) and four icons. It uses hard-coded Montserrat sizes and some hard-coded greys: **rebuild it properly** on the file's system (text styles `h1`–`h4`/`body`, `Colors`/`Text` variables, `Resolution` modes per [use-figma.md](/framework/ext/Figma/doc/use-figma.md)), keep what works, and replace frames rather than stacking duplicates (move a superseded frame into an auto-layout frame named "Superseded", never a Section; never delete).
 
 ## The owner's asks (2026-10-20, 22:35 and 23:00; essence in [ai/sessions/doc/design-first.md](/framework/ai/sessions/doc/design-first.md))
 

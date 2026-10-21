@@ -15,6 +15,7 @@ We design in Figma before we build when a view is new or disputed: the owner can
 - **Who draws:** a minion or task agent with the Figma MCP, not the mastermind. The mastermind reviews by screenshot (cheap) and sends notes.
 - **Responsive, always:** draw at 400 (phone) and 1200, and at 1920 and 3440 when the view is a page; multi-column only where the width earns it.
 - **Use the file's system:** bind colours to the `Colors`/`Text` variables, text to the `h1`–`h4`/`body` styles, spacing to `Resolution` (page root `Mega`, narrow columns `Mobile`, cards `Default`). Reusable pieces become components once; frames use instances. Edit the master, not the instances.
+- **No sections** (the owner, 2026-10-21): a Figma Section has no auto layout and must be resized by hand. Group frames in an auto-layout frame instead (superseded work too), unless there is a really good reason.
 - **Real data:** fill designs from the real records (session.jsonl, task.jsonl) so the fields are the ones the build will have.
 - **Check:** one screenshot after composing, one after a fix. Look for clipped text and wasted or cramped space.
 - **Rate limit:** several agents calling `use_figma` at once hit the Figma call limit; one Figma agent at a time.
