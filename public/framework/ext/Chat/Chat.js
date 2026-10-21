@@ -316,7 +316,7 @@ export function sticky_scroll(box, { observe = true } = {}){   // observe:false 
 	$btn.className = "chatbox-jump";
 	$btn.title = "jump to the newest message";
 	$btn.setAttribute("aria-label", "jump to the newest message");
-	$btn.textContent = "↓";
+	$btn.textContent = "↓ Newest";   // says its job (the owner, 2026-10-20: an unlabelled grey arrow reads as nothing)
 	$btn.hidden = true;
 	box.appendChild($btn);
 	const show = on => { $btn.hidden = !on; };

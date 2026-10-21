@@ -527,7 +527,8 @@ export class ComposerMic extends Dictate {
 	enqueue(items){
 		this.posting = (this.posting ?? 0) + 1;
 		this.last_send_at = performance.now(); this.chunk_start = undefined;
-		this.post_tail = (this.post_tail ?? Promise.resolve())
+		// returned, so a watcher (ux/Dictate/DictationBar.js WATCHED) hears the END of a send too, not only its start: the "sending" word went stale
+		return this.post_tail = (this.post_tail ?? Promise.resolve())
 			.then(async () => { for (const it of items) await this.post_held(it); })
 			.catch(e => console.error("chat: sending failed", e))
 			.finally(() => { this.posting--; });

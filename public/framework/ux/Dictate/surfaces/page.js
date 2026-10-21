@@ -1,4 +1,25 @@
-import { Page, md, div, h3, img, a } from "/app.js";
+import { Page, md, div, h2, h3, img, a } from "/app.js";
+
+// The phone sheet at 400 px, one shot per 40 px of drag, before and after 2026-10-20 (../test/sheet-steps.mjs; doc: ext/drawer/doc/sheet.md).
+const STEPS = new URL("./sheet-steps/", import.meta.url).href;   // made by ../test/sheet-steps.mjs
+function sheet_steps(){
+	h2("The phone sheet, step by step").attr("id", "the-phone-sheet-step-by-step");
+	md("**One click on ✦, then the top edge dragged 40 px at a time.** Before (left): it opens as a one-line strip, the page behind turns into an empty grey page, and the layout changes as it grows (a strip, a boxed chat, a tab row). After (right): the page stays visible, and the same three rows (head, chat well, mic footer) only grow, snap open at 90%, then come back down to the compact strip. Made by [test/sheet-steps.mjs](/framework/ux/Dictate/test/sheet-steps.mjs); why and how: [ext/drawer/doc/sheet.md](/framework/ext/drawer/doc/sheet.md).");
+	div.c("ux-dictate-surfaces-steps", $g => {
+		$g.style({ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5em", alignItems: "start" });
+		[["Before", "before", 18], ["After", "after", 22]].forEach(([label, dir, n]) => div(() => {
+			h3(label);
+			div($r => {
+				$r.style({ display: "flex", flexWrap: "wrap", gap: "0.4em" });
+				for (let i = 0; i < n; i++){
+					const src = STEPS + dir + "/sheet-" + String(i).padStart(3, "0") + ".png";
+					a(() => img().attr("src", src).attr("alt", label + ", step " + i).attr("loading", "lazy")
+						.style({ width: "7.5em", border: "1px solid var(--line)", display: "block" })).href(src);
+				}
+			});
+		}));
+	});
+}
 
 /* The one permanent map of every voice and chat surface. Long form, the census and the measurement:
  * /framework/ux/Dictate/doc/surfaces.md. Screenshots: shoot.mjs in the task that built this page
@@ -87,6 +108,8 @@ export default new Page({
 					"- **Writes to:** " + s.log].join("\n"));
 			}));
 		});
+
+		sheet_steps();
 
 		md("## The flow\nFrom the microphone to the screen, and which surface shows which stage.");
 		md("```\n" + FLOW + "\n```");

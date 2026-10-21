@@ -55,7 +55,19 @@ export default class DictationBar extends View {
 				};
 			}
 		}
+		if (!mic.$meter_wrapped){   // the level is the mic's own on_meter number (Dictate.js on_level), wrapped once, never a second audio graph
+			mic.$meter_wrapped = true;
+			const prior = mic.on_meter;
+			mic.on_meter = level => { prior?.(level); for (const b of mic.$bars) b.level(level); };
+		}
 		mic.$bars.add(bar);
+	}
+
+	/** Remember the newest level; one animation frame writes it to `--level` (0 to 1), the mic button's fill height. */
+	level(v){
+		this.$v = v;
+		if (this.$raf) return;
+		this.$raf = requestAnimationFrame(() => { this.$raf = 0; this.$mic.style("--level", Math.min(1, Math.max(0, this.$v)).toFixed(3)); });
 	}
 
 	render(){
@@ -74,7 +86,7 @@ export default class DictationBar extends View {
 			this.$hint = span.c("dictation-bar-hint muted");
 		});
 		if (!this.compact){
-			this.$type = button.c("dictation-bar-type", "⌨ Type").attr("type", "button").attr("aria-pressed", "false")
+			this.$type = button.c("dictation-bar-type", "⌨").attr("aria-label", "Type").attr("type", "button").attr("aria-pressed", "false")
 				.attr("title", "Show the box to type in")
 				.click(() => this.typing(!this.compose.hasAttribute("data-typing")));
 		}
@@ -102,6 +114,7 @@ export default class DictationBar extends View {
 		const word = this.state();
 		this.attr("data-state", word);
 		this.$word.text(word[0].toUpperCase() + word.slice(1));
+		if (word !== "listening" && word !== "sending") this.$mic.style("--level", "0");   // no meter while the mic is off
 		const hint = m.state === "error" && this.error ? this.error : this.constructor.HINTS[word];
 		this.$hint.text(this.compact ? "" : " · " + hint).attr("title", m.state === "error" ? this.error : "");
 		this.$mic.attr("aria-pressed", String(word === "listening" || word === "sending")).attr("aria-label", "Microphone, " + word);

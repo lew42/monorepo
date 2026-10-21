@@ -124,6 +124,8 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	const owner = keep ? GLOBAL : create_controller({ persist: false });
 	let panel, stop_watch = null, stop_stream = null, own_ats = new Set(), watching = "unset";
 	let resume_label = null, resume_session = null;
+	let link = { state: "open" };   // the live wire to Servex: "open" | "down" (Session.stream's on_state); the sheet's Reconnect button shows it
+	const on_link = new Set();
 	// Duplicate-draw fix: both watch() and stream() call draw(); dedupe by line: doc/chat-notes.md
 	let seen_chat = new Set();
 	// In-flight echo: stream pushes owner's line before say() resolves
@@ -152,7 +154,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 					panel.retag(entry.at, r.at);
 					if (entry.floor === "speaking") owner.watch_floor();
 					return true;
-				} catch { return false; }
+				} catch (e) { Session.stream.log("say failed", { session: owner.ctl.session, error: String(e?.message ?? e) }); return false; }
 			},
 			answer: choice => {
 				if (choice === resume_label) owner.resume_to(resume_session).catch(() => {});
@@ -206,7 +208,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		stop_stream = Session.stream(owner.ctl.session, ev => {
 			if (ev.kind === "stream") panel.stream(ev.role, ev.text);
 			else if (ev.kind === "line") draw(ev.line);
-		});
+		}, { on_state: (s, why) => { link = { state: s, why }; for (const fn of on_link) fn(link); } });
 	}
 
 	attach();
@@ -218,6 +220,10 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		session: () => owner.ctl.session,
 		nav(path, card){ target.path = path; if (card !== undefined) target.card = card; owner.report_nav(path, target.card); },
 		file: () => owner.ctl.file,
+		link: () => link,
+		on_link(fn){ on_link.add(fn); fn(link); return () => on_link.delete(fn); },
+		/** The Reconnect button: reopen the live wire now (it also retries by itself, 1 s doubling to 15 s). */
+		reconnect(){ stop_stream?.reconnect?.(); },
 		reset(){ owner.reset(); },
 		remove(){
 			unsubscribe();

@@ -463,6 +463,9 @@ Widget.Thread = class WidgetThread extends View {
 		if (!hit) return false;
 		this.settled.add(re);   // a placed line is no longer raw
 		if (text && (edit === "improve" || edit === "both")) patch_piece(hit.bubble, hit.ref.id, { text });
+		// a late split (later lines already joined this bubble) would cut a thought in two: keep it where it is (doc/voice-assistant.md#late-placements)
+		const lines = hit.bubble?.querySelectorAll(":scope > [data-re]") ?? [];
+		if (lines.length && String(lines[lines.length - 1].dataset.re) !== String(re)) to = "same";
 		if (to === "paragraph" || to === "card") this.split_paragraph(re);
 		if (to === "card"){
 			const b = this.lines.get(re).bubble;
