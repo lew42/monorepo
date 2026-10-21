@@ -45,6 +45,10 @@ A "lean" SDK call made with the repo as its working folder still carries ~8k tok
 
 As past prompts are refined, an ask that shows up in **three or more sessions** is promoted: into the module's `doc/architecture.md` (its `module` field names it), or, if it is site-wide, proposed for the root readme as a decision line. `--repeats` groups asks by their key words and module and lists the groups said in 3+ sessions; it only prints: whoever runs it writes the directive into the module's `doc/architecture.md` (or proposes the root-readme line) and commits. The `documentation` skill carries the rule.
 
+## Brief v3: task, question or statement (2026-10-21)
+
+`RefinedCard.BRIEF.v3` returns `items` typed `task | question | statement`, in prompt order, each with cited sentence numbers, a `target` mention and (tasks) nested `details`. `parse` maps items to `asks` (`kind` = type), so cards and the ask index work unchanged; `RefinedCard.match(items, filed)` (code, not the model) marks each task with the filed task it matches, or null = not filed. Run: `node Server/RefineQueue.mjs --brief v3 --days 7`. On 8 prompts Haiku v3 covered 99 of 99 Opus items at $0.06 a prompt (v2: $0.13); weak spot is the type of an item. Numbers and the never-filed list: [prompt-audit report](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit/report.md).
+
 ## Watch out
 
 - The cites are sentence numbers of `RefinedCard.sentences()` over the raw text; change that split and old cards cite the wrong sentences.

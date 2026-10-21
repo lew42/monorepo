@@ -58,11 +58,37 @@ Rules:
 - When the owner restates the agent's idea and pushes back, the ask is the pushback, not the idea.
 - Name the exact thing: "our own name for this tab" said about a chat tab means that chat tab, not a page that lists tabs.`;
 
-	/** The system prompt per brief version. v1: the essentials. v2: the same, plus list every specific first. */
+	/** v3: every item is a task, a question or a statement, in the prompt's order. Matching to filed tasks/docs is code (`match`), not the model. */
+	static V3_SHAPE = `Answer with ONE JSON object and nothing else (no code fence):
+{
+  "subject": "the prompt's one subject, in a few of the owner's words",
+  "items": [ { "type": "task | question | statement", "text": "one line, the owner's own names", "cites": [3, 7], "target": "the thing it concerns as a mention: a site path like /framework/ai/sessions/ or a class like #RefinedCard, or 'site'", "details": ["for a task only: its suggestions, constraints and examples, one short line each"] } ]
+}`;
+
+	static V3_RULES = `Sort EVERYTHING the owner said that matters into items, in the order said, close to one item per sentence that carries a want:
+- task: anything clearly asked to happen (build, fix, change, check, keep, stop, "always X", "never Y"). The suggestions, constraints, numbers and examples that belong to it go in its "details", not as separate items.
+- question: something the owner wants answered or explained; it belongs in that module's FAQ.
+- statement: an architectural decision, principle or fact the owner states that belongs in a module doc.
+A sentence that only narrates what the owner is looking at, or is a pleasantry, is not an item. Hedged ("maybe", "I'm not sure") is a question or a statement, never a task. A self-correction wins. When the owner pushes back on the agent's idea, the item is the pushback. Every sentence that carries a want is cited by at least one item.`;
+
+	/** The system prompt per brief version. v1: the essentials. v2: the same, plus list every specific first. v3: typed items (task|question|statement). */
 	static BRIEF = {
 		v1: RefinedCard.ESSENTIALS + "\n\n" + RefinedCard.SHAPE.replace("  SPECIFICS\n", ""),
 		v2: RefinedCard.ESSENTIALS + "\n" + RefinedCard.V2_RULES + "\n\n" + RefinedCard.SHAPE.replace("SPECIFICS", RefinedCard.SPECIFICS),
+		v3: `You sort ONE prompt the owner of a web-framework repo dictated to an AI coding agent. Dictation rambles, repeats and circles back; keep every want, lose only the noise. Keep the owner's own names (pages, classes, tools, numbers); never generalise a specific.\n\n` + RefinedCard.V3_RULES + "\n\n" + RefinedCard.V3_SHAPE,
 	};
+
+	/** v3 only: the filed task (or answering doc) each item matches, computed from the task titles, never remembered by the model.
+	 *  `filed` = [{ title, url }]. Adds `match`: the best filed task's url, or null = "not filed". Questions/statements keep null until a doc index exists. */
+	static match(items, filed){
+		return items.map(it => {
+			if (it.type !== "task") return { ...it, match: null };
+			const words = RefinedCard.words(it.text + " " + it.target);
+			let best = null, most = 1;
+			for (const f of filed){ const n = RefinedCard.shared(words, RefinedCard.words(f.title)); if (n > most){ best = f; most = n; } }
+			return { ...it, match: best?.url ?? null };
+		});
+	}
 
 	static prompt(raw, version = "v2"){
 		const s = RefinedCard.sentences(raw);
@@ -75,6 +101,12 @@ Rules:
 		const start = text.indexOf("{"), end = text.lastIndexOf("}");
 		if (start < 0 || end < start) throw new Error("no JSON object in the answer");
 		const o = JSON.parse(text.slice(start, end + 1));
+		if (Array.isArray(o.items) && !Array.isArray(o.asks)){   // brief v3: items → asks (kind = type) so the card machinery is unchanged
+			const items = o.items.filter(a => a && typeof a.text === "string" && a.text.trim()).map(a => ({ type: String(a.type ?? "task"), text: a.text.trim(),
+				cites: (Array.isArray(a.cites) ? a.cites : []).map(Number).filter(n => Number.isInteger(n) && n > 0), target: String(a.target ?? ""), details: (a.details ?? []).map(String) }));
+			o.asks = items.map(i => ({ text: i.text, cites: i.cites, key: i.target, module: i.target, kind: i.type }));
+			o.v3items = items;
+		}
 		if (!Array.isArray(o.asks)) throw new Error("answer has no asks list");
 		const asks = o.asks.filter(a => a && typeof a.text === "string" && a.text.trim()).map((a, i) => ({
 			id: "a" + (i + 1), text: a.text.trim(),
@@ -82,7 +114,7 @@ Rules:
 			key: String(a.key ?? "").trim(), module: String(a.module ?? "").trim(), kind: String(a.kind ?? "").trim(),
 		}));
 		return { subject: String(o.subject ?? "").trim(), structured: String(o.structured ?? "").trim(), refined: String(o.refined ?? "").trim(),
-			asks, ...(Array.isArray(o.specifics) ? { specifics: o.specifics.map(String) } : {}) };
+			asks, ...(o.v3items ? { items: o.v3items } : {}), ...(Array.isArray(o.specifics) ? { specifics: o.specifics.map(String) } : {}) };
 	}
 
 	/** Sentences no ask cites: the mechanical half of a dropped-detail check (a sentence can be uncited and still be noise). */
