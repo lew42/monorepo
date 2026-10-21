@@ -4,6 +4,7 @@
 //   undo({run})                    put a move back
 //   query({from, to, where, sort}) the index rows of a day range, run through ext/Query
 //   check()                        rebuild from the folders, diff with the index: {ok, missing, stale}
+//   sessions: snapshots({from,to}) every session's current snapshot; find(args) the CLI filter; query(spec) the same through ext/Query; in_flight() who is running now
 // Index = the day stream ai/sessions/YYYY/MM/DD/index.jsonl (AIIndexStream). Doors: static tools() (SDK/MCP) and static setup(socket) (dev socket) call these same methods.
 // Doc: Server/doc/dated-files.md · plan: public/framework/core/Item/doc/store-index-query-plan.md
 import fs from "node:fs";
@@ -124,6 +125,7 @@ export default class DatedFiles extends Dated {
 
 	/** The index rows of a day range (default: the last 30 days), filtered, sorted and paged by ext/Query. Spec: {from, to, where, sort, offset, limit}. */
 	async query(spec = {}){
+		if (this.kind === "session") return new Query({ sort: { by: "last_activity", dir: "desc" }, ...spec }).run(this.snapshots({ from: spec.from, to: spec.to }));
 		const to = spec.to ?? Day.of(), d = new Date(to + "T12:00:00"); d.setDate(d.getDate() - 30);
 		const rows = await this.rows({ from: spec.from ?? Day.of(d), to, load: async day => AIIndexStream.read(this.store, day) });
 		return new Query({ sort: { by: "at", dir: "desc" }, ...spec }).run(rows.map(r => ({ ...r, at: r.at ?? "" })));
@@ -272,6 +274,58 @@ export default class DatedFiles extends Dated {
 			timers.set(dir, setTimeout(() => { timers.delete(dir); try { fs.existsSync(dir) && this.sync(dir); } catch (e) { console.error("DatedFiles.watch:", e.message); } }, debounce));
 		});
 		return { close(){ w.close(); for (const t of timers.values()) clearTimeout(t); } };
+	}
+
+	// ── sessions: the current snapshot of every session, read from the day index.json files (AISessionIndex writes them) ──
+	/** Where the live snapshots sit in memory, when a server runs the transcript index: `{ items: () => iterable, on: fn => off }`, set by AISessionTailer. Without it the day files are the source. */
+	static live = null;
+	/** Every session's current snapshot for a day range (default: all days), one per id (the later last_activity wins). With a live index the memory answers: it is what writes the files. */
+	snapshots({ from, to } = {}){
+		const day = s => String(s.last_activity ?? s.first_at ?? "").slice(0, 10), keep = s => (!from || day(s) >= from) && (!to || day(s) <= to);
+		if (DatedFiles.live) return [...DatedFiles.live.items()].filter(keep);
+		const by = new Map();
+		for (const { day: d, dir } of this.day_folders()){
+			if ((from && d < from.slice(0, 10)) || (to && d > to.slice(0, 10))) continue;
+			let file; try { file = JSON.parse(fs.readFileSync(path.join(dir, "index.json"), "utf8")); } catch { continue; }
+			for (const s of file.snapshots ?? []){ const old = by.get(s.id); if (!old || String(s.last_activity) >= String(old.last_activity)) by.set(s.id, s); }
+		}
+		return [...by.values()].filter(keep);
+	}
+
+	/** Server/session-query.mjs's filter, over snapshots(): {since, until, tags, system, state, model, provider, parent, min_cost, text, sort, limit} -> {count, shown, claude_api_equivalent_usd, openrouter_real_usd, rows}. */
+	find(args = {}, snapshots){
+		const r2 = n => Math.round(n * 100) / 100, list = v => v == null || v === "" ? [] : (Array.isArray(v) ? v : String(v).split(",")).map(x => String(x).trim()).filter(Boolean);
+		const day_of = s => String(s.last_activity ?? s.first_at ?? "").slice(0, 10);
+		const tags = list(args.tags ?? args.tag), system = args.system ? String(args.system).toLowerCase() : null, text = args.text ? String(args.text).toLowerCase() : null;
+		const min = Number(args.min_cost ?? 0) || 0, limit = Math.min(200, Math.max(0, Number(args.limit ?? 25)));
+		const hit = s => {
+			const day = day_of(s);
+			if (args.since && day < args.since) return false;
+			if (args.until && day > args.until) return false;
+			if (tags.length && !tags.every(t => (s.tags ?? []).includes(t))) return false;
+			if (system && !(s.core ?? []).some(c => c.toLowerCase().includes(system)) && !String(s.category ?? "").toLowerCase().includes(system)) return false;
+			if (args.state && s.state !== args.state) return false;
+			if (args.model && !String(s.model ?? "").toLowerCase().includes(String(args.model).toLowerCase())) return false;
+			if (args.provider && s.provider !== args.provider) return false;
+			if (args.parent && s.parent !== args.parent) return false;
+			if (min && !((s.usd ?? 0) >= min)) return false;
+			if (text && ![s.id, s.agent, s.category, ...(s.tags ?? []), ...(s.core ?? [])].some(v => String(v ?? "").toLowerCase().includes(text))) return false;
+			return true;
+		};
+		const found = (snapshots ?? this.snapshots()).filter(hit);
+		const sorts = { cost: (a, b) => (b.usd ?? 0) - (a.usd ?? 0), oldest: (a, b) => String(a.last_activity).localeCompare(String(b.last_activity)), recent: (a, b) => String(b.last_activity).localeCompare(String(a.last_activity)) };
+		found.sort(sorts[args.sort] ?? sorts.recent);
+		// Claude sessions are priced at API-equivalent rates (what the plan saves, not money spent); OpenRouter sessions are real dollars.
+		const claude = found.filter(s => s.provider === "claude" || !s.provider), router = found.filter(s => s.provider && s.provider !== "claude");
+		const sum = l => r2(l.reduce((n, s) => n + (s.usd || 0), 0));
+		return { count: found.length, shown: Math.min(limit, found.length), claude_api_equivalent_usd: sum(claude), openrouter_real_usd: sum(router),
+			rows: found.slice(0, limit).map(s => ({ id: s.id, day: day_of(s), state: s.state, model: s.model, provider: s.provider, usd: r2(s.usd || 0), tags: s.tags ?? [], category: s.category ?? null, core: s.core ?? [], parent: s.parent ?? null, agent: s.agent ?? null })) };
+	}
+
+	/** Who is running right now: state active and last activity within `within` ms (an hour). Feeds /framework/ai/now/ (Server/InFlight.mjs) and must equal Servex's working agents. */
+	in_flight({ now = Date.now(), within = 3600e3 } = {}){
+		const since = Day.of(new Date(now - within - 864e5)), t = s => Date.parse(s.last_activity ?? 0) || 0;
+		return this.snapshots({ from: since }).filter(s => s.state === "active" && now - t(s) < within).sort((a, b) => t(b) - t(a));
 	}
 
 	// ── the doors: one set of methods, two adapters ─────────────────────────────────────────────

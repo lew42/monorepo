@@ -28,6 +28,8 @@
 
 ## Classes and folders that draw them
 
+[`now/`](now/readme.md) — the live in-flight page ([/framework/ai/now/](/framework/ai/now/)): every session active in the last hour, from the `inflight` query source.
+
 `AISession/` (`class AISession extends Session`, [sessions](sessions/readme.md)) · `AITask/` (`class AITask extends Page`, [AITask](AITask/readme.md)) · `cards/` (`Card` and what a card shows) · `rail/` (`class AIRail extends Inbox.Rail`, `DashState`, `CardList`; the [Inbox](/framework/core/Page/ext/Inbox/)) · `tasks/` ([Tasks](tasks/readme.md)) · `classes/` (live class cards) · `systems/`, `system/` (`AISystem.js`, the System tab) · `usage/` · `audits/` · `health/` · `local/` · `quick-fix/` · `review/` · `talk/` · `tests/` · `dashboard/` · `asks/`, `council/`, `models/`, `errors/`, `collab/`, `process/`.
 
 ## Sessions and tasks: who makes which, and when (verified against the code, 2026-10-20)

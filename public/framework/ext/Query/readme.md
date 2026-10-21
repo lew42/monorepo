@@ -5,6 +5,7 @@ A query is plain JSON (`where`, `sort`, `offset`, `limit`, `sum`); node runs it 
 - `Query.js` (node and browser) — `new Query(spec).run(items)` gives `{ rows, total, totals, offset }`. Ops: `eq in gte lte contains`.
 - `QueryServer.mjs` (node) — `QueryServer.source(name, { load, items, on, unload_after })`, and the socket plugin that answers `rpc:query` and pushes `query_row` / `query_stale`.
 - `QueryClient.js` (browser) — `new QueryClient("sessions", { row, stale }).ask(spec)`.
+- `DatedFiles.query` (`Server/DatedFiles.mjs`) — the source behind `sessions` and `inflight`: snapshots from the live index or the day `index.json` files, the same rows for the grid, the CLI (`session-query.mjs`) and [/framework/ai/now/](/framework/ai/now/). Doc: [Server/doc/dated-files.md](/Server/doc/dated-files.md).
 - `Server/SessionIndex.mjs` — the second source, `tasks` (every task record, module tags): [Server/doc/session-index.md](/Server/doc/session-index.md).
 - `check.mjs` — `node check.mjs`: the assertions.
 

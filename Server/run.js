@@ -13,6 +13,7 @@ import DevSocket from "./plugins/DevSocket/DevSocket.js";
 import Runtime from "./plugins/SocketServer/Runtime.js";
 import AILogs from "./plugins/AILogs.js";
 import QueryServer from "../public/framework/ext/Query/QueryServer.mjs";
+import "./InFlight.mjs";   // registers the "inflight" query source (ai/now/)
 import "./SessionIndex.mjs";   // registers the "tasks" query source (Server/doc/session-index.md)
 import AISessionTailer, { AISessionSub } from "../public/framework/ai/AISession/AISessionTailer.mjs";
 import Ask, { AskRoute } from "./plugins/Ask.js";
