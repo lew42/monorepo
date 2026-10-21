@@ -14,6 +14,7 @@ import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import Task from "../../public/framework/core/Task/Task.js";
 import TaskDirs from "../../Server/TaskDirs.mjs";
+import DatedFiles from "../../Server/DatedFiles.mjs";
 import PastWork from "../../Server/PastWork.mjs";
 import LandingCheck from "../../Server/LandingCheck.mjs";
 import Landed from "../Landed.js";
@@ -247,8 +248,8 @@ export class Agents {
 		try {
 			const slug = String(id).toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^[^a-z0-9]+/, "").slice(0, 60) || "agent";
 			const caller = spec.parent && this.live.get(spec.parent);
-			const in_session = caller?.session_id && fs.existsSync(TaskDirs.session_dir(caller.session_id));
-			const base = in_session ? TaskDirs.dir({ slug, session_id: caller.session_id }) : path.join(TaskDirs.day_dir(), "spawned", slug);
+			const in_session = caller?.session_id && fs.existsSync(DatedFiles.sessions.session_dir(caller.session_id));
+			const base = in_session ? TaskDirs.dir({ slug, session_id: caller.session_id }) : path.join(DatedFiles.sessions.day_dir(), "spawned", slug);
 			let dir = base, n = 1;
 			while (fs.existsSync(path.join(dir, "task.jsonl")) || fs.existsSync(path.join(dir, "session.jsonl"))) dir = `${base}-${++n}`;
 			const title = String(spec.prompt).split(/\r?\n/).find(l => l.trim())?.trim().slice(0, 120);

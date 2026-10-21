@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import TaskDirs from "../../Server/TaskDirs.mjs";
+import DatedFiles from "../../Server/DatedFiles.mjs";
 import SessionRecord from "../../Server/SessionRecord.mjs";
 
 /* session-page.mjs — the SessionStart hook: tells a VS Code / CLI tab its own page, and gives
@@ -21,7 +21,7 @@ process.stdin.on("data", d => raw += d).on("end", () => {
 
 function record(id, cwd){
 	try {
-		const dir = TaskDirs.session_dir(id);
+		const dir = DatedFiles.sessions.session_dir(id);
 		if (SessionRecord.file(dir)) return;   // a resume, or a folder that already has its record
 		const first = { session: { id, kind: "vscode-tab", cwd, at: new Date().toISOString() } };
 		fs.mkdirSync(dir, { recursive: true });

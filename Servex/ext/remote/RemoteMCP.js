@@ -4,6 +4,7 @@ import path from "path";
 import crypto from "crypto";
 import express from "express";
 import TaskDirs from "../../../Server/TaskDirs.mjs";
+import DatedFiles from "../../../Server/DatedFiles.mjs";
 
 /* The remote MCP endpoint (POST /mcp/remote), behind a bearer token. It serves the SAME tool registry every local Claude
  * session gets (`servex.mcp`, read live, never copied) plus `ask_mastermind` on top; calls run as caller "voice-app".
@@ -181,11 +182,10 @@ export default class RemoteMCP {
     voice_session(sid){
         const store = this.servex.sessions;
         if (!store?.map) return null;   // Servex without its session layer: nowhere to file it, and no third store
-        const p = n => String(n).padStart(2, "0"), d = new Date();
-        const day = `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())}`, ymd = day.replaceAll("/", "");
+        const ymd = TaskDirs.day().replaceAll("-", "");
         const slug = s => String(s).toLowerCase().replace(/^cloud-voice-?/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
         const name = slug(this.sessions[sid]?.voice_name ?? "") || `${slug(RemoteMCP.CALLER.replace(/^voice-/, "")) || "app"}-${ymd}`;
-        const id = `cloud-voice-${name}`, home = `/framework/ai/sessions/${day}/${id}/`, file = `${home}session.jsonl`, abs = path.join(this.root, "public", file);
+        const id = `cloud-voice-${name}`, home = DatedFiles.url(DatedFiles.sessions.path(Date.now(), id)), file = `${home}session.jsonl`, abs = path.join(this.root, "public", file);
         if (!store.map[id]){
             const at = Date.now();
             store.map[id] = { id, home, file, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at, cost: null, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
@@ -266,8 +266,8 @@ export default class RemoteMCP {
     // 1:1 — a fresh mastermind for this session, with a task dir under ai/sessions/YYYY/MM/DD/ and a card
     async spawn(sid, s){
         const short = sid.replace(/^voice-/, "").replace(/-/g, "").slice(0, 8);
-        const now = new Date(), day = TaskDirs.day(now), [y, m, d] = day.split("-");
-        const dir = `public/framework/ai/sessions/${y}/${m}/${d}/voice-${short}`;
+        const now = new Date(), day = TaskDirs.day(now);
+        const dir = DatedFiles.sessions.path(now, `voice-${short}`);
         const when = `${day} ${now.toTimeString().slice(0, 5)}`;
         let card;
         try { card = JSON.parse(await this.servex.cards.tools().find(t => t.name === "create_card").handler({ title: `Voice session ${when}`, type: "note", by: "remote-mcp" })).id; } catch {}

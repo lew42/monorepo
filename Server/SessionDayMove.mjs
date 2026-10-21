@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Server/SessionDayMove.mjs — re-file session and task folders that sit under the wrong day (2026-10-18).
+// Date rules live in the sessions collection (Server/DatedFiles.mjs: start, misfiled); this file keeps the manifest, apply and undo.
 // The rule is ONE: a folder lives under ai/sessions/YYYY/MM/DD/ of the owner's LOCAL start day (TaskDirs.day -> Day.js), like State.day.
 // Folders made before 2026-10-18 were filed by the UTC day, so an evening start (after 19:00 local) sits one day too late.
 //   node Server/SessionDayMove.mjs --plan [--since YYYY-MM-DD]   write the manifest ai/sessions/session-day-moves.jsonl (old, new, reason, source), print counts
@@ -12,47 +13,20 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import TaskDirs from "./TaskDirs.mjs";
 import SessionRecord from "./SessionRecord.mjs";
-import Day from "../public/framework/core/Session/Day.js";
+import DatedFiles from "./DatedFiles.mjs";
 
-const { REPO, SESS } = TaskDirs;
+const { REPO, SESS } = TaskDirs, SESSIONS = DatedFiles.sessions;
 const MANIFEST = path.join(SESS, "session-day-moves.jsonl");
 const slash = p => p.split(path.sep).join("/"), rel = p => slash(path.relative(REPO, p));
 const ls = (d, dirs = true) => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => !dirs || e.isDirectory()).map(e => e.name); } catch { return []; } };
 const git = (...a) => execFileSync("git", a, { cwd: REPO, encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
-const first_json = file => { try { for (const l of fs.readFileSync(file, "utf8").split("\n", 8)) if (l.startsWith("{")) try { return JSON.parse(l); } catch {} } catch {} return null; };
-const TIME_KEYS = ["at", "ts", "started_at", "first_at", "requested_at", "started", "time", "created_at"];
-const time_in = o => { if (!o || typeof o !== "object") return null; for (const k of TIME_KEYS) if (typeof o[k] === "string" && !isNaN(Date.parse(o[k]))) return o[k]; for (const v of Object.values(o)) if (v && typeof v === "object") { const t = time_in(v); if (t) return t; } return null; };
 
 export default class SessionDayMove {
 	static MANIFEST = MANIFEST;
 
-	/** A folder's own start time and where it came from: session.jsonl / task log first line, else the index.json or cache summary first_at, else the birth time. */
-	static start(dir){
-		const log = SessionRecord.log_file(dir);
-		if (log){ const t = time_in(first_json(log)); if (t) return { at: t, source: path.basename(log) + " first line" }; }
-		const ix = first_json(path.join(dir, "index.json"))?.first_at;
-		if (ix && !isNaN(Date.parse(ix))) return { at: ix, source: "index.json first_at" };
-		try { for (const l of fs.readFileSync(path.join(dir, "cache.jsonl"), "utf8").split("\n")) if (l.startsWith('{"summary"')){ const f = JSON.parse(l).summary?.first_at; if (f && !isNaN(Date.parse(f))) return { at: f, source: "cache.jsonl summary first_at" }; } } catch {}
-		try { const st = fs.statSync(dir); return { at: new Date(st.birthtimeMs || st.mtimeMs).toISOString(), source: "folder birth time" }; } catch { return null; }
-	}
-
-	/** Every top-level folder of every day whose start day is not its folder day. [{old, new, reason, source, start}] */
-	static plan({ since = "0000-00-00" } = {}){
-		const moves = [], skipped = [];
-		for (const y of ls(SESS)) if (/^\d{4}$/.test(y)) for (const m of ls(path.join(SESS, y))) if (/^\d\d$/.test(m)) for (const d of ls(path.join(SESS, y, m))) if (/^\d\d$/.test(d)){
-			const here = `${y}-${m}-${d}`;
-			for (const name of ls(path.join(SESS, y, m, d))){
-				if (name === "cards") continue;      // cards are filed by the moment they are written; they are already right
-				const dir = path.join(SESS, y, m, d, name), s = this.start(dir); if (!s) continue;
-				const want = Day.of(s.at); if (!want || want === here) continue;
-				if (here < since && want < since) continue;   // older history stays as filed (UTC); see doc/task-folders.md
-				const to = path.join(SESS, ...want.split("-"), name);
-				if (fs.existsSync(to)){ skipped.push({ old: rel(dir), why: "target exists: " + rel(to) }); continue; }
-				moves.push({ old: rel(dir), new: rel(to), reason: `started ${Day.of(s.at)} ${new Date(s.at).toTimeString().slice(0, 5)} local, filed under ${here}`, source: s.source, start: s.at });
-			}
-		}
-		return { moves, skipped };
-	}
+	/** Where each misfiled folder should go, decided by the sessions collection (DatedFiles.sessions.misfiled): [{old, new, reason, source, start}] + skipped. */
+	static plan({ since = "0000-00-00" } = {}){ return SESSIONS.misfiled({ since }); }
+	static start(dir){ return SESSIONS.start(dir); }
 
 	/** Manifest lines -> the moves that are in force: planned, done and not undone. */
 	static read(){

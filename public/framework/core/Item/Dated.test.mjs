@@ -61,5 +61,24 @@ t((await f.check()).stale.length === 1, "check names a row whose folder is gone"
 const back = await f.undo();
 t(back.undone === done.run && fs.existsSync(path.join(root, sess)), "undo puts it back");
 
+// the sessions collection: paths, make, sync, watch, check
+const S = DatedFiles.sessions, UID = "11111111-2222-3333-4444-555555555555";
+t(S.path("2026-10-20", "x") === "public/framework/ai/sessions/2026/10/20/x" && S.day_path("2026-10-20") === "public/framework/ai/sessions/2026/10/20", "sessions folder rule");
+const sdir = S.make(S.home({ slug: "my-task", session_id: UID, day: "2026-10-20" }));
+t(sdir.endsWith(path.join("2026", "10", "20", "session-11111111", "my-task")) && fs.existsSync(sdir), "make puts a task inside its session folder");
+let refused = false; fs.writeFileSync(path.join(sdir, "task.jsonl"), "{}\n"); try { S.make(sdir); } catch { refused = true; }
+t(refused, "make refuses a folder that holds a task");
+const w = S.watch({ debounce: 50 }), nd = path.join(S.day_dir("2026-10-20"), "watched");
+fs.mkdirSync(nd, { recursive: true });
+fs.writeFileSync(path.join(nd, "session.jsonl"), JSON.stringify({ assign: { session_id: "watched", title: "W", at: "2026-10-20T12:00:00" } }) + "\n");
+await new Promise(r => setTimeout(r, 500));
+const rows = () => DatedFiles.lines(path.join(root, "public/framework/ai/sessions/2026/10/20/index.jsonl")).map(l => l.session).filter(r => r?.id === "watched");
+t(rows().length === 1 && rows()[0].state === "open", "watch writes the row when a folder appears");
+fs.appendFileSync(path.join(nd, "session.jsonl"), JSON.stringify({ finish: { at: "2026-10-20T13:00:00" } }) + "\n");
+await new Promise(r => setTimeout(r, 500)); w.close();
+t(rows().length === 2 && rows()[1].state === "done", "watch writes a row when the record grows");
+t(S.sync(nd) === null, "sync writes nothing when nothing changed");
+const sc = await S.check(); t(sc.ok && sc.stale.length === 0, "sessions check ok: " + JSON.stringify(sc));
+
 fs.rmSync(root, { recursive: true, force: true });
 console.log(`Dated.test.mjs: ${n} checks passed`);

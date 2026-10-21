@@ -151,6 +151,7 @@ export default class DatedFiles extends Dated {
 
 	/** Rebuild from the folders and diff with the index: `missing` = a folder with no row, `stale` = a row whose folder is gone. Never out of sync, or ok is false. */
 	async check(){
+		if (this.kind === "session") return this.check_sessions();
 		const R = DatedFiles, latest = new Map();
 		for (const day of Dated.days(Day.of(new Date(Date.now() - 400 * 864e5)), Day.of()))
 			for (const l of AIIndexStream.read(this.store, day)) { const r = l[this.kind]; if (r?.id) latest.set(r.id, { ...latest.get(r.id), ...r }); }
@@ -159,6 +160,116 @@ export default class DatedFiles extends Dated {
 		const missing = found.filter(f => !indexed.has(f.path)).map(f => f.path);
 		const stale = [...latest.values()].filter(r => !fs.existsSync(R.abs(r.path))).map(r => r.path);
 		return { ok: !missing.length && !stale.length, folders: have.size, rows: latest.size, missing, stale };
+	}
+
+	/** Sessions: ok when no top folder sits under the wrong day (misfiled) and no index row points at a folder that is gone (stale). A folder without a row is not a fault: watch() and the transcript indexer fill rows in. */
+	check_sessions(){
+		const R = DatedFiles, latest = new Map(), have = new Set();
+		for (const { day, dir } of this.day_folders()){
+			for (const l of AIIndexStream.read(this.store, day)) { const r = l[this.kind]; if (r?.id) latest.set(r.id, { ...latest.get(r.id), ...r }); }
+			try { for (const e of fs.readdirSync(dir, { withFileTypes: true })) if (e.isDirectory()) have.add(R.rel(path.join(dir, e.name))); } catch {}
+		}
+		const moves = this.misfiled({ since: DatedFiles.LOCAL_DAY_SINCE }).moves.filter(m => m.source !== "folder birth time"), stale = [...latest.values()].filter(r => r.path && !fs.existsSync(path.isAbsolute(r.path) ? r.path : R.abs(r.path))).map(r => r.path);
+		return { ok: !moves.length && !stale.length, folders: have.size, rows: latest.size, misfiled: moves.map(m => m.old), stale };
+	}
+
+	// ── the sessions collection: <ai/sessions>/YYYY/MM/DD/<session or task folder>/ (TaskDirs is its thin alias) ──
+	static get sessions(){ return this._sessions ??= new DatedFiles("sessions"); }
+	static UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+	static LOCAL_DAY_SINCE = "2026-10-18";   // folders filed before this were filed by the UTC day and stay (ai/doc/task-folders.md)
+	static TIME_KEYS = ["at", "ts", "started_at", "first_at", "requested_at", "started", "time", "created_at"];
+	/** Absolute folder of a day ("YYYY-MM-DD", a Date or ms; today by default). */
+	day_dir(day){ return DatedFiles.abs(this.day_path(day)); }
+	/** A session's folder without a scan: `session-<id8>` or the uuid, on the given day or up to 3 days before; else where a new one goes. Absolute. */
+	session_dir(id, day = new Date()){
+		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day;
+		for (let back = 0; back < 4; back++){
+			const d = this.day_dir(new Date(t.getTime() - back * 864e5));
+			for (const name of [id, "session-" + id.slice(0, 8)]) if (fs.existsSync(path.join(d, name))) return path.join(d, name);
+		}
+		return path.join(this.day_dir(t), "session-" + id.slice(0, 8));
+	}
+	/** Where a new task folder goes: inside its session when one is given, else straight under the day. Absolute, not created. `parent` is resolved by the caller. */
+	home({ slug, session_id, parent, day } = {}){
+		if (!/^[a-z0-9][a-z0-9._-]*$/i.test(slug ?? "")) throw new Error("a slug is [a-z0-9-], got " + JSON.stringify(slug));
+		if (parent) return path.join(parent, slug);
+		if (session_id && DatedFiles.UUID.test(session_id)) return path.join(this.session_dir(session_id, day ?? new Date()), slug);
+		return path.join(this.day_dir(day), slug);
+	}
+	/** Make the folder `dir` names, refusing one that already holds a record (never two tasks in one log). Returns it. */
+	make(dir){
+		const log = SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl");
+		if (fs.existsSync(log)) throw new Error(`refused: ${DatedFiles.rel(dir)} already holds a task. Pick another slug (e.g. ${path.basename(dir)}-2).`);
+		fs.mkdirSync(dir, { recursive: true });
+		return dir;
+	}
+
+	static first_json(file){ try { for (const l of fs.readFileSync(file, "utf8").split("\n", 8)) if (l.startsWith("{")) try { return JSON.parse(l); } catch {} } catch {} return null; }
+	static time_in(o){ if (!o || typeof o !== "object") return null; for (const k of this.TIME_KEYS) if (typeof o[k] === "string" && !isNaN(Date.parse(o[k]))) return o[k]; for (const v of Object.values(o)) if (v && typeof v === "object") { const t = this.time_in(v); if (t) return t; } return null; }
+	/** A folder's own start time and where it came from: its record's first line, else index.json first_at, else cache.jsonl, else the birth time. */
+	start(dir){
+		const R = DatedFiles, log = SessionRecord.log_file(dir);
+		if (log){ const t = R.time_in(R.first_json(log)); if (t) return { at: t, source: path.basename(log) + " first line" }; }
+		const ix = R.first_json(path.join(dir, "index.json"))?.first_at;
+		if (ix && !isNaN(Date.parse(ix))) return { at: ix, source: "index.json first_at" };
+		try { for (const l of fs.readFileSync(path.join(dir, "cache.jsonl"), "utf8").split("\n")) if (l.startsWith('{"summary"')){ const f = JSON.parse(l).summary?.first_at; if (f && !isNaN(Date.parse(f))) return { at: f, source: "cache.jsonl summary first_at" }; } } catch {}
+		try { const st = fs.statSync(dir); return { at: new Date(st.birthtimeMs || st.mtimeMs).toISOString(), source: "folder birth time" }; } catch { return null; }
+	}
+	/** Every day folder of the store: [{day:"YYYY-MM-DD", dir}] oldest first. */
+	day_folders(){
+		const ls = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch { return []; } };
+		const root = DatedFiles.abs(this.root), out = [];
+		for (const y of ls(root)) if (/^\d{4}$/.test(y)) for (const m of ls(path.join(root, y))) if (/^\d\d$/.test(m)) for (const d of ls(path.join(root, y, m))) if (/^\d\d$/.test(d)) out.push({ day: `${y}-${m}-${d}`, dir: path.join(root, y, m, d) });
+		return out;
+	}
+	/** Every top-level folder whose start day is not its folder day. [{old, new, reason, source, start}] + skipped (target exists). `cards` are filed by the moment written and skipped. */
+	misfiled({ since = "0000-00-00" } = {}){
+		const R = DatedFiles, moves = [], skipped = [];
+		for (const { day: here, dir: dd } of this.day_folders()){
+			let names; try { names = fs.readdirSync(dd, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch { continue; }
+			for (const name of names){
+				if (name === "cards") continue;
+				const dir = path.join(dd, name), s = this.start(dir); if (!s) continue;
+				const want = Day.of(s.at); if (!want || want === here) continue;
+				if (here < since && want < since) continue;   // older history stays as filed (UTC); see ai/doc/task-folders.md
+				const to = path.join(this.day_dir(want), name);
+				if (fs.existsSync(to)){ skipped.push({ old: R.rel(dir), why: "target exists: " + R.rel(to) }); continue; }
+				moves.push({ old: R.rel(dir), new: R.rel(to), reason: `started ${want} ${new Date(s.at).toTimeString().slice(0, 5)} local, filed under ${here}`, source: s.source, start: s.at });
+			}
+		}
+		return { moves, skipped };
+	}
+
+	/** The index row of a session folder, built from its own record (never typed by an AI): id, path, url, title, state. Null when the folder holds no record. */
+	session_row(dir){
+		const R = DatedFiles, file = SessionRecord.file(dir) ?? SessionRecord.log_file(dir);
+		if (!file) return null;
+		const lines = R.lines(file), head = lines[0] ?? {}, h = head.session ?? head.assign ?? head;
+		const id = h.id ?? h.session_id ?? path.basename(dir), rel = R.rel(dir);
+		const title = [...lines].reverse().map(l => l.summary?.title ?? l.title).find(t => typeof t === "string") ?? h.title ?? h.agent ?? path.basename(dir);
+		const state = lines.some(l => l.finish || l.closed) ? "done" : "open";
+		return { id, path: rel, url: R.url(rel), title, state };
+	}
+	/** Writes the day-index row for a folder when it has none, or when its state or title changed. Returns the row written, else null. */
+	sync(dir){
+		const row = this.session_row(dir); if (!row) return null;
+		const start = this.start(dir)?.at, day = Day.of(start || Date.now());
+		const have = AIIndexStream.read(this.store, day).map(l => l[this.kind]).filter(r => r?.id === row.id).pop();
+		if (have && have.state === row.state && have.title === row.title) return null;
+		AIIndexStream.append(this.store, this.kind, row, start ? new Date(start).toISOString() : undefined);
+		return row;
+	}
+	/** The safety net: a folder that appears, or a record that grows, gets its index row from this one writer, whatever path wrote it. Returns {close}. */
+	watch({ debounce = 400 } = {}){
+		const timers = new Map(), R = DatedFiles, root = R.abs(this.root);
+		const w = fs.watch(root, { recursive: true }, (_ev, name) => {
+			const parts = String(name ?? "").split(/[\\/]/);   // YYYY/MM/DD/<folder>/…
+			if (parts.length < 4 || !/^\d{4}$/.test(parts[0]) || /^(index\.jsonl|day\.jsonl|cards)$/.test(parts[3])) return;
+			const dir = path.join(root, ...parts.slice(0, 4));
+			clearTimeout(timers.get(dir));
+			timers.set(dir, setTimeout(() => { timers.delete(dir); try { fs.existsSync(dir) && this.sync(dir); } catch (e) { console.error("DatedFiles.watch:", e.message); } }, debounce));
+		});
+		return { close(){ w.close(); for (const t of timers.values()) clearTimeout(t); } };
 	}
 
 	// ── the doors: one set of methods, two adapters ─────────────────────────────────────────────

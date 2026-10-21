@@ -15,15 +15,17 @@
 import fs from "node:fs";
 import SessionRecord from "./SessionRecord.mjs";
 import Day from "../public/framework/core/Session/Day.js";
+import DatedFiles from "./DatedFiles.mjs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(process.env.LEDGER_ROOT || path.resolve(here, "..")), AI = path.join(REPO, "public", "framework", "ai"), SESS = path.join(AI, "sessions");
+if (process.env.LEDGER_ROOT) DatedFiles.ROOT = REPO;   // one root for this alias and the Dated collection it fronts
+const SESSIONS = DatedFiles.sessions;   // the sessions collection: every date rule below is its
 const MANIFEST = path.join(SESS, "task-manifest.json"), MOVES = path.join(SESS, "task-moves.jsonl"), DAY_MOVES = path.join(SESS, "session-day-moves.jsonl"), STUB = "moved.json", QUIET_MIN = 240;
 const slash = p => p.split(path.sep).join("/"), rel = p => slash(path.relative(REPO, p));
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const ls = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch { return []; } };
 
 export default class TaskDirs {
@@ -38,36 +40,22 @@ export default class TaskDirs {
 	/** THE day rule: the local "YYYY-MM-DD" of a time (Date, ms or ISO string; now by default). State.day is this same function. */
 	static day(date = new Date()){ return Day.of(date); }
 	/** "YYYY/MM/DD" of a time, or of a "YYYY-MM-DD" string as given. */
-	static ymd(day = new Date()){ return (typeof day === "string" && /^\d{4}-\d\d-\d\d$/.test(day) ? day : this.day(day)).replace(/-/g, "/"); }
+	static ymd(day = new Date()){ return Day.path(day); }
 	/** The day's folder in the store, where day.jsonl lives. Absolute. */
-	static day_dir(day){ return path.join(SESS, ...this.ymd(day).split("/")); }
+	static day_dir(day){ return SESSIONS.day_dir(day); }
 
 	/** A session's folder without the async full scan: `session-<id8>` or the uuid, on the given day or up to 3 days before;
 	 *  else the folder Session.locate() would make (`session-<id8>` under the day). Absolute. */
-	static session_dir(id, day = new Date()){
-		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day;
-		for (let back = 0; back < 4; back++){
-			const d = this.day_dir(new Date(t.getTime() - back * 864e5));
-			for (const name of [id, "session-" + id.slice(0, 8)]) if (fs.existsSync(path.join(d, name))) return path.join(d, name);
-		}
-		return path.join(this.day_dir(t), "session-" + id.slice(0, 8));
-	}
+	static session_dir(id, day = new Date()){ return SESSIONS.session_dir(id, day); }
 
 	/** WHERE A NEW TASK GOES. {slug, session_id?, parent?, day?} -> absolute dir (not created). */
 	static dir({ slug, session_id, parent, day } = {}){
-		if (!/^[a-z0-9][a-z0-9._-]*$/i.test(slug ?? "")) throw new Error("TaskDirs.dir: a slug is [a-z0-9-], got " + JSON.stringify(slug));
-		if (parent) return path.join(this.follow(path.resolve(REPO, parent)), slug);
-		if (session_id && UUID.test(session_id)) return path.join(this.session_dir(session_id, day ?? new Date()), slug);
-		return path.join(this.day_dir(day), slug);
+		try { return SESSIONS.home({ slug, session_id, day, parent: parent && this.follow(path.resolve(REPO, parent)) }); }
+		catch (e){ throw new Error("TaskDirs.dir: " + e.message); }
 	}
 
 	/** Make it. Returns the absolute dir. Refuses a folder that already holds a task (never two tasks in one log). */
-	static make(spec){
-		const d = this.dir(spec);
-		if (fs.existsSync((SessionRecord.log_file(d) ?? path.join(d, "task.jsonl")))) throw new Error(`refused: ${rel(d)} already holds a task. Pick another slug (e.g. ${path.basename(d)}-2).`);
-		fs.mkdirSync(d, { recursive: true });
-		return d;
-	}
+	static make(spec){ return SESSIONS.make(this.dir(spec)); }
 
 	/** An old-shaped dir (ai/YYYY-MM-DD/<slug>[/rest]) that does not exist and never moved -> its new home, for writers
 	 *  (Servex open_task) handed an old-style path by a brief. Anything else comes back resolved but unchanged. */
@@ -84,9 +72,8 @@ export default class TaskDirs {
 	static list(days = 7, now = new Date()){
 		const out = [], cut = this.day(new Date(now.getTime() - days * 864e5));
 		const push = (dir, day) => { if (fs.existsSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")))) out.push({ dir, day, slug: path.basename(dir), key: slash(path.relative(AI, dir)) }); };
-		for (const y of ls(SESS).filter(n => /^\d{4}$/.test(n))) for (const m of ls(path.join(SESS, y))) for (const d of ls(path.join(SESS, y, m))){
-			const day = `${y}-${m}-${d}`; if (day < cut) continue;
-			const dd = path.join(SESS, y, m, d);
+		for (const { day, dir: dd } of SESSIONS.day_folders()){
+			if (day < cut) continue;
 			for (const a of ls(dd)){ push(path.join(dd, a), day); for (const b of ls(path.join(dd, a))) push(path.join(dd, a, b), day); }
 		}
 		for (const day of ls(AI).filter(n => /^\d{4}-\d{2}-\d{2}$/.test(n) && n >= cut)) for (const s of ls(path.join(AI, day))) push(path.join(AI, day, s), day);

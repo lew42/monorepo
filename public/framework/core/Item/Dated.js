@@ -7,6 +7,8 @@ export default class Dated {
 	/** The registry: one entry per collection. `root` has a `{module}` slot; `index` is the folder holding the YYYY/MM/DD/index.jsonl day streams. */
 	static collections = {
 		projects: { kind: "project", file: "project.jsonl", root: "public/framework/{module}/projects", index: "public/framework/ai/sessions" },
+		// sessions: the store itself. A folder is a session or a task (task.jsonl in a folder not yet moved); the index is the same day file.
+		sessions: { kind: "session", file: "session.jsonl", root: "public/framework/ai/sessions", index: "public/framework/ai/sessions" },
 	};
 
 	constructor(name = "projects", spec = Dated.collections[name]){
@@ -20,6 +22,9 @@ export default class Dated {
 		const root = this.root.replace("{module}", String(module ?? "").replace(/^\/|\/$/g, ""));
 		return `${root}/${Day.path(day)}/${slug}`;
 	}
+
+	/** The folder of one day: <root>/YYYY/MM/DD (where that day's items, and its day.jsonl, live). */
+	day_path(day, module){ return this.path(day, "", module).replace(/\/$/, ""); }
 
 	/** The day's stream: <index>/YYYY/MM/DD/index.jsonl. */
 	index_path(day){ return `${this.index}/${Day.path(day)}/index.jsonl`; }

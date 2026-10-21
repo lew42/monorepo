@@ -32,9 +32,10 @@ A session folder is one of three kinds:
 |---|---|
 | `cache.jsonl`, `index.json`, day/month/year `index.json` | `ai/AISession/AISessionIndex.mjs`: a file watch on the transcripts re-reads only the new bytes. Started inside the dev server by `AISession/AISessionTailer.mjs` (main checkout only). |
 | a **record-only** session (no transcript here: a cloud voice call) | the same writer: `AISessionIndex.record_snap()` builds its snapshot (id = folder name, `kind` from `session.jsonl` line 1, times and `cost` lines from the record) at start-up and when `session.jsonl` grows. Shown as the `cloud voice` kind. Needs a dev-server restart to start. |
-| a Servex agent's folder and line 1 (`session.jsonl`, at any depth) | `open_task()` in `Servex/agents/Agents.js`, called from `Agents.spawn()` *before* the agent's first turn (the `spawn_agent` tool) |
+| a Servex agent's folder and line 1 (`session.jsonl`, at any depth) | `open_task()` in `Servex/agents/Agents.js` (the folder from `TaskDirs`, an alias of `DatedFiles.sessions`: [Server/doc/dated-files.md](/Server/doc/dated-files.md)), called from `Agents.spawn()` *before* the agent's first turn (the `spawn_agent` tool) |
 | any later line | `node .claude/hooks/append.mjs <file> <lines.json>`: validates against `.claude/hooks/jsonl-schema.mjs`, turns `"NOW"` into the clock, and picks `session.jsonl` vs `task.jsonl` through `SessionRecord.start_file()` |
-| a cloud voice call's folder and lines | `Servex/ext/remote/RemoteMCP.js` `voice_session()` / `record()` / `after()` ([voice system](/Servex/ext/remote/doc/cloud-voice-agent.md)) |
+| a cloud voice call's folder and lines | `Servex/ext/remote/RemoteMCP.js` `voice_session()` (its path from `DatedFiles.sessions.path`) / `record()` / `after()` ([voice system](/Servex/ext/remote/doc/cloud-voice-agent.md)) |
+| the day-index row of any folder, however it was made | `DatedFiles.sessions.watch()` / `sync(dir)` (`Server/DatedFiles.mjs`): a folder appears or its record grows, one `session` row on its start day; the SessionStart hook's folder comes from `DatedFiles.sessions.session_dir` |
 | tags, notes, alerts, closed | `AISession.log()`; digests by `AISessionDigest.mjs` |
 
 ## How data is read
