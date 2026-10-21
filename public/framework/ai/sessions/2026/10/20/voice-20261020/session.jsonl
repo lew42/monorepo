@@ -78,3 +78,14 @@
 {"log":{"at":"2026-10-20T22:26:37-05:00","msg":"Note for Servex/Heartbeat.js: it keeps status-checking a standing voice mastermind that has logged a {wait:{on}} line. tick() backs off 2^answered (capped at 16x the silence) but never reads wait lines. Suggestion: skip a task whose last line is a wait line, or let a voice-mastermind role opt out."}}
 {"log":{"at":"2026-10-20T22:26:40-05:00","heartbeat":"answered","msg":"I'm idle and waiting for your next voice question. The repeated status checks have a cause: `Servex/Heartbeat.js` doesn't read the \"waiting\" line I logged; it only spaces its checks further apart. I w"}}
 {"log":{"at":"2026-10-20T22:30:23-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T23:37:17-05:00","heartbeat":"revive-queued","msg":"mastermind-voice-20261020 its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-20T23:37:18-05:00","heartbeat":"revive","msg":"revived mastermind-voice-20261020 from session 272d452d-faea-4091-bb45-0b07c960e7ce"}}
+{"log":{"at":"2026-10-20T23:37:25-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-20T23:37:25-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-20T23:37:29-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T23:37:31-05:00","heartbeat":"answered","msg":"I'm idle and waiting for your next voice question. Everything from today is merged and logged, and nothing of mine is running."}}
+{"log":{"at":"2026-10-20T23:41:18-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-20T23:52:15-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-20261020"}}
+{"log":{"at":"2026-10-20T23:52:19-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-20T23:52:21-05:00","heartbeat":"answered","msg":"I'm still idle and waiting for your next voice question; nothing of mine is running."}}
+{"log":{"at":"2026-10-20T23:56:21-05:00","msg":"session ended (other) without landing"}}

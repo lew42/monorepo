@@ -1,21 +1,28 @@
 # Follow-up: what fell through the cracks
 
-Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-10-20 05:05 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
+Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-10-21 05:02 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
 
-**0 landed with unmerged commits · 0 merged but never landed · 4 quiet over 2 h · 0 landed with no outcome · 0 open asks with no live owner · 1031 healthy of 1035.**
+**0 landed with unmerged commits · 0 merged but never landed · 11 quiet over 2 h · 0 landed with no outcome · 0 open asks with no live owner · 1064 healthy of 1075.**
 
-## quiet: 4
+## quiet: 11
 
 the state calls it in_flight or stale and its log is silent for over 2 h: resume it or close it.
 
-- [walkthrough](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/walkthrough/): reviewer-dictate-walkthrough, last log 6 h ago, step 0/0, agent stopped
-- [index-design](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/index-design/): reviewer-index-design, last log 6 h ago, step 0/0, agent stopped
-- [mastermind-repo-slim](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/): helper-one-dashboard-filters, last log 6 h ago, step 28/11, agent stopped
-- [session-dirs](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/session-dirs/): minion-session-dirs, last log 6 h ago, step 0/0, agent stopped
+- [v-lhvz99u](/framework/ai/sessions/2026/10/20/v-lhvz99u/): no agent, last log 2 h ago, step 0/0, agent unknown
+- [v-7bnqmeh](/framework/ai/sessions/2026/10/20/v-7bnqmeh/): no agent, last log 4 h ago, step 0/0, agent unknown
+- [well-asks](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/well-asks/): minion-well-asks, last log 4 h ago, step 0/0, agent dormant
+- [session-e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/): no agent, last log 6 h ago, step 0/0, agent unknown
+- [cloud-voice-task-system-and-voice-agent-exploration](/framework/ai/sessions/2026/10/20/cloud-voice-task-system-and-voice-agent-exploration/): no agent, last log 6 h ago, step 0/0, agent unknown
+- [log-tool](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/log-tool/): minion-log-tool, last log 7 h ago, step 0/0, agent stopped
+- [probe](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/probe/): assistant-probe-session-rule, last log 9 h ago, step 0/0, agent stopped
+- [mastermind-repo-slim](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/): helper-one-dashboard-filters, last log 9 h ago, step 28/11, agent stopped
+- [mastermind-live-page](/framework/ai/sessions/2026/10/19/spawned/mastermind-live-page/): mastermind-live-page, last log 16 h ago, step 0/0, agent dormant
+- [task-mastermind-session-detail-page](/framework/ai/sessions/2026/10/19/spawned/task-mastermind-session-detail-page/): task-mastermind-session-detail-page, last log 23 h ago, step 0/0, agent dormant
+- [task-mastermind-voice-opus](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/): task-mastermind-voice-opus, last log 23 h ago, step 0/0, agent dormant
 
 ## Check
 
-1031 healthy + 4 flagged = 1035; the state lists 1035 tasks in the same 10 days: agree. The state's own self-check is ok. Source: a fresh State snapshot. 238 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
+1064 healthy + 11 flagged = 1075; the state lists 1075 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/index.json (under a minute old). 261 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
 
 ## How each row is counted
 
