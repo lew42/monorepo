@@ -6,3 +6,11 @@
 {"commit":"d40439fcfeef"}
 {"log":{"at":"2026-10-20T17:59:50-05:00","msg":"skill: finish-task"}}
 {"assign":{"title":"Sessions: record-only (cloud voice) sessions get a snapshot","landed_at":"2026-10-20T17:59:56-05:00","outcome":"**Cloud voice sessions now get a day-index snapshot, so the grid and dashboard can list them.**\n\n- [x] snapshot for a record-only folder: `AISessionIndex.record_snap()` + `load_records()` + a watch on `session.jsonl`; test `AISessionIndex.test.mjs` passes\n- [x] grid kind chip `cloud voice`: new rule in `AISessionBuckets.js` (without it the row fell into hidden `short-run`)\n- [x] dashboard origin: `SessionTree` already maps `cloud-voice*` folders to Voice, so it needs only the snapshot\n- [x] readme row added: [sessions readme](/framework/ai/sessions/readme.md)\n- [ ] live proof: needs a dev-server restart (the watcher runs inside it), then check `/framework/ai/sessions/` and `/framework/ai/`. I did not restart it. The merge ran with `--skip-smoke` because the worktree had no dev server; I loaded the changed modules in node instead.","tokens":null}}
+{"commit":"0632eb6f3e18"}
+{"log":{"at":"2026-10-20T18:00:09-05:00","msg":"text-check: past-work.md: 806 words of prose (500 at most)"}}
+{"log":{"at":"2026-10-20T18:00:09-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-20T18:00:10-05:00","msg":"owner-note: posted 1 decision to the Inbox"}}
+{"log":{"at":"2026-10-20T18:00:10-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-20T18:00:11-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-20T18:00:11-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-20T18:00:42-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

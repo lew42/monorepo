@@ -1,0 +1,12 @@
+{"assign":{"session_id":"a9e73350-b444-4239-8e2d-ad9d9e6ec3b0","agent":"mastermind-async-ask","brief":"public/framework/ai/sessions/2026/10/20/voice-20261020/async-ask/requirements.md","title":"ask_mastermind never loses an answer: late replies go to the inbox; wait:false returns a ticket","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks","home":"/framework/servex/remote/","requested_at":"2026-10-20T18:29:20-05:00","now":"starting"}}
+{"log":{"at":"2026-10-20T18:29:27-05:00","msg":"skill: sub-mastermind"}}
+{"commit":"54d1fb3b17fe"}
+{"commit":"5373d4f4d455"}
+{"log":{"at":"2026-10-20T18:30:40-05:00","msg":"skill: finish-task"}}
+{"assign":{"title":"ask_mastermind: late answers reach updates; wait:false ticket","step":1,"landed_at":"2026-10-20T18:30:46-05:00","outcome":"**ask_mastermind no longer loses an answer.** When the one-minute wait ends (timeout or cancelled call) `RemoteMCP.ask()` keeps watching the reply file for 30 minutes and puts the answer in the voice-app inbox (`from: voice-mastermind`, `reply_to` = question id) plus its `chat` line, so `updates` delivers it. `wait: false` returns `{ticket}` at once.\n\n- [x] late answer reaches inbox and updates: RemoteMCP.test.mjs case 1, passes\n- [x] wait:false returns a ticket, answer arrives via updates: case 2, passes\n- [x] a fast answer is not duplicated: case 3, passes\n- [x] docs: cloud-voice-agent.md option D and remote-tools.md\n\nMerged (54d1fb3b1). Live after the Servex restart.","links":[{"url":"/Servex/ext/remote/doc/remote-tools.md","label":"remote-tools.md"}],"tokens":null}}
+{"log":{"at":"2026-10-20T18:30:52-05:00","msg":"text-check: past-work.md: a 64-word paragraph (\"- 2026-10-15 [Dictation: fast is silent, smart rep…\"); past-work.md: 870 words of prose (500 at most)"}}
+{"log":{"at":"2026-10-20T18:30:52-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-20T18:30:52-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-20T18:30:54-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-20T18:30:54-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-20T18:31:17-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

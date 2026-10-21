@@ -1,0 +1,11 @@
+{"assign":{"session_id":"b8884a9f-3a14-4910-80a3-173ee35508c4","agent":"mastermind-index-record-sessions","card":"2026/10/20/voice-session-2026-10-20-17-58","brief":"public/framework/ai/sessions/2026/10/20/voice-20261020/index-record-sessions/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/20/voice-20261020","home":"/framework/ai/sessions/","requested_at":"2026-10-20T17:59:20-05:00","now":"starting"}}
+{"commit":"e04f922fd99a"}
+{"assign":{"landed_at":"2026-10-20T18:00:34-05:00","title":"AISessionIndex: record-only sessions get a title from session.summary.json","outcome":"Record-only (cloud voice) snapshots already landed in 6a86a5de4; this adds the title lookup (e04f922fd). Needs a dev server restart to index the cloud voice folder.","links":["/framework/ai/sessions/readme.md"]}}
+{"log":{"at":"2026-10-20T18:00:37-05:00","msg":"worktree-watch: /framework/ai/AISession/ breaks at 1920/3440 px: empty share 0.62/0.771 (over 0.6). Shot: C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/10/20/voice-20261020/index-record-sessions/shots/framework-ai-AISession-1920.png. 14 s after your save. (qf-6)"}}
+{"log":{"at":"2026-10-20T18:00:37-05:00","msg":"text-check: past-work.md: 662 words of prose (500 at most)"}}
+{"log":{"at":"2026-10-20T18:00:37-05:00","msg":"card-check: missing state line ({\"state\": \"...\"}); missing preview line ({\"preview\": \"...\"}); missing checklist ({\"checklist\": [...]} or item lines)"}}
+{"log":{"at":"2026-10-20T18:00:37-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-20T18:00:37-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-20T18:00:40-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-20T18:00:40-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-20T18:00:41-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

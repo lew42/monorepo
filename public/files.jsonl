@@ -68,3 +68,7 @@
 {"file":"zz-probe/page.js","gone":true}
 {"file":"tasks/"}
 {"file":"tasks/page.jsonl"}
+{"file":"public/"}
+{"file":"public/","gone":true}
+{"file":"public/"}
+{"file":"public/","gone":true}

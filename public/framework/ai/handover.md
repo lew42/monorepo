@@ -5,32 +5,41 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-20 00:04 UTC, last 24 h)
+## NOW (computed 2026-10-21 00:04 UTC, last 24 h)
 
-**Pace:** At 82% of pace with 2 days 2 hours left (steady)
+**Pace:** At 79% of pace with 1 day 2 hours left (steady)
 
-**Landed (0):**
-- none
+**Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Open, touched in the window (7):**
-- [You're working on the "live" page in the public directory. Work directly in the repo, NOT in a worktree — the ](/framework/ai/sessions/2026/10/19/spawned/mastermind-live-page/) (mastermind-live-page)
-- [Voice prompts: log every one verbatim, by code](/framework/ai/sessions/2026/10/19/spawned/mastermind-live-page/voice-logging/) (minion-voice-logging)
-- [You are an Opus mastermind standing by for voice session v-timqv56 (the owner speaks by voice from the site; h](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/) (task-mastermind-voice-opus)
-- [sheet-redesign](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/sheet-redesign/) (minion-sheet-redesign)
-- [walkthrough](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/walkthrough/) (reviewer-dictate-walkthrough)
-- [index-design](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/index-design/) (reviewer-index-design)
-- [session-dirs](/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/session-dirs/) (minion-session-dirs)
+**Landed (22):**
+- [core/Item: the store, dated index and query plan](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/) (mastermind-store-index-query)
+- [ask-never-lost](/framework/ai/sessions/2026/10/20/voice-20261020/ask-never-lost/) (mastermind-ask-never-lost)
+- [ask_mastermind: late answers reach updates; wait:false ticket](/framework/ai/sessions/2026/10/20/voice-20261020/async-ask/) (mastermind-async-ask)
+- [updates: a cloud agent gets only what changed since its last call](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/updates-tool/) (mastermind-updates-tool)
+- [AISessionIndex: record-only sessions get a title from session.summary.json](/framework/ai/sessions/2026/10/20/voice-20261020/index-record-sessions/) (mastermind-index-record-sessions)
+- [Sessions: record-only (cloud voice) sessions get a snapshot](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/cloud-sessions-listed/) (mastermind-cloud-sessions-listed)
+- [Named tunnel servex.lew42.com: built, blocked on token permissions](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/named-tunnel/) (minion-named-tunnel)
+- [Item and Page readmes: one persistence system; indexing is the tool's job; JSONL growth noted](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/item-page-docs/) (minion-item-page-docs)
+- [Projects: Project class and ProjectMove tool](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/project-move/) (mastermind-project-move)
+- [AI index: a day stream of task and session changes](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/index-stream/) (mastermind-index-stream)
+- [pool-leak](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/pool-leak/) (minion-pool-leak)
+- [Skill census: scripted facts on all 34 skills](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/skills-audit/) (minion-skills-audit)
+- …and 10 more (the [task list](/framework/ai/tasks/))
+
+**Open, touched in the window (2):**
+- [dated-projects](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-projects/) (mastermind-dated-projects)
+- [log-tool](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/log-tool/) (minion-log-tool)
 
 **Latest commits on this branch:**
 ```
-ed89b264e live-page (voice-app for mastermind-live-page): /live/sessions/ reads 14 days of index.json; owner dictation docs; voice-logging brief; temp ignore of new public/live files
-bab35305f servex: log sweep (6 files)
-7992fcb37 servex: log sweep (29 files)
-e41f092ec voice-opus: in-line reply note (parked)
-a70c45049 Merge branch 'worktree/qf-7' into michael/dev
-a1a55096c voice-opus: walkthrough, index design, none-seat test, session-dirs test
-879d121ae console-allow: the same probe 404 for agent-name session rows
-f9684aa3c console-allow: pre-existing per-uuid session.jsonl probe 404 (until 10-26)
+bba0d6792 servex docs: why restarts happen and the hot-reload next step; inbox names two things (open decision)
+ce4084018 Dictate: the owner's 2026-10-20 direction (dictation on the site first, one assistant, session manager, widget asks)
+9e58e3f9d dated-projects brief: slice 1 of the store/index/query plan (Dated + DatedFiles for projects)
+180dc8d72 store-index-query: landed
+7ee31b90f core/Item: store-index-query plan (Dated + DatedFiles, coverage check, six slices); decision d-dated-home
+ddfb50d5c Merge branch 'worktree/qf-7' into michael/dev
+0ea18341e ask_mastermind: every answer also goes to the inbox; notifications/cancelled stops the wait; boot sweep delivers unsent replies
+95da09fc8 voice-20261020: ask-never-lost brief (every ask answer also reaches the inbox; cancel; boot sweep)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.

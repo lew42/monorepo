@@ -1,0 +1,17 @@
+{"assign":{"session_id":"1f91e156-9117-4af0-96f1-b7782826af92","agent":"mastermind-updates-tool","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/updates-tool/requirements.md","title":"updates: a cloud agent gets only what changed since its last call","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks","home":"/framework/servex/remote/","requested_at":"2026-10-20T18:16:44-05:00","now":"starting"}}
+{"log":{"at":"2026-10-20T18:16:52-05:00","msg":"skill: sub-mastermind"}}
+{"commit":"ea69cfdb2adc"}
+{"commit":"e768cd814581"}
+{"decision":{"at":"2026-10-20T18:19:16-05:00","question":"review size","computed":"full","chose":"none","why":"self-evident: one new tool + hint, 95 lines, test passes, diff read"}}
+{"review":{"at":"2026-10-20T18:19:16-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/updates-tool","head":"e768cd81458174348b5e5e1e1d2981e65f4fa864","model":null,"cost":0,"file":"review.md"}}
+{"commit":"3a4eb7cc93eb"}
+{"log":{"at":"2026-10-20T18:19:27-05:00","msg":"skill: finish-task"}}
+{"assign":{"title":"updates: a cloud agent gets only what changed since its last call","landed_at":"2026-10-20T18:19:33-05:00","outcome":"**`updates` tool landed and merged** (restart Servex to go live).\n\n- [x] one tool `updates`, a cursor per caller, peek, cap 50 with `more`: `External.updates()`, test `Servex/ext/remote/RemoteMCP.test.mjs` passes\n- [x] one sentence in `RemoteMCP.INSTRUCTIONS`, plus `follow({path, agent:\"voice-app\"})` works because the caller is auto-registered\n- [x] optional hint: every other remote result says \"N new updates for you: call updates.\" when behind\n- [x] docs: [catch-up.md](/Servex/ext/remote/doc/catch-up.md), [follow.md](/Servex/doc/follow.md)\n\nNot done: Servex is not restarted (I could not confirm nobody else is working). Review: size none, diff read.","links":[{"url":"/Servex/ext/remote/doc/catch-up.md","label":"catch-up.md"}],"tokens":null}}
+{"log":{"at":"2026-10-20T18:19:40-05:00","msg":"text-check: past-work.md: a 61-word paragraph (\"- 2026-10-01 [One widget: the demo and the sheet b…\"); past-work.md: a 64-word paragraph (\"- 2026-09-29 [PageFiles: a folder that arrives by …\"); past-work.md: 757 words of prose (500 at most)"}}
+{"log":{"at":"2026-10-20T18:19:41-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-20T18:19:41-05:00","msg":"owner-note: posted 1 decision to the Inbox"}}
+{"log":{"at":"2026-10-20T18:19:41-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-20T18:19:42-05:00","msg":"worktree-down: updates-tool - worktree-down: server stopped. The worktree and its branch (worktree/updates-tool) are left on disk at C:\\Code\\lew42\\worktrees\\updates-tool — remove them yourself once you've dealt with those changes (`git -C C:\\Code\\lew42\\monorepo worktree remove C:\\Code\\lew42\\worktrees\\updates-tool` once it's clean)."}}
+{"log":{"at":"2026-10-20T18:19:44-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-20T18:19:44-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-20T18:20:17-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

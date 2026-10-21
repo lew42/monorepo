@@ -10,3 +10,11 @@
 {"assign":{"title":"core/Item: the store, dated index and query plan","landed_at":"2026-10-20T18:53:14-05:00","outcome":"**The plan is written: [store-index-query-plan.md](/framework/core/Item/doc/store-index-query-plan.md).** Not built yet.\n\n- [x] inventory: every writer and reader, file:line (section 1)\n- [x] class architecture: `Dated` + `DatedFiles` on `Item.Store`, with alternatives (section 2)\n- [x] where it lives: decision `d-dated-home`, core/Item + Server, ranked\n- [x] checked against your words, one row per ask (section 3)\n- [x] six slices, each a Sonnet task with its proof (section 4)\n- [x] one doc home: core/Page/doc/jsonl.md (section 5)\n\nLeft: parent-vs-child subscribe (you ranked it low), noted in next.md.","links":[{"url":"/framework/core/Item/doc/store-index-query-plan.md","label":"the plan"},{"url":"/framework/core/Item/","label":"core/Item"}],"window":{"after":0.26},"tokens":null}}
 {"complete":{},"by":"mastermind-store-index-query","ts":"2026-10-20T23:53:18.307Z"}
 {"sessions":[{"id":"mastermind-store-index-query","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/"}],"by":"mastermind-store-index-query","ts":"2026-10-20T23:53:18.311Z"}
+{"commit":"180dc8d72463"}
+{"log":{"at":"2026-10-20T18:53:36-05:00","msg":"text-check: past-work.md: 814 words of prose (500 at most)"}}
+{"log":{"at":"2026-10-20T18:53:36-05:00","msg":"doc-check: 1 module — clean"}}
+{"log":{"at":"2026-10-20T18:53:36-05:00","msg":"owner-note: posted 1 decision to the Inbox"}}
+{"log":{"at":"2026-10-20T18:53:36-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-20T18:53:37-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-20T18:53:37-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-20T18:53:55-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

@@ -1,0 +1,8 @@
+{"phase":{"at":"2026-10-20T19:39:45-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-10-20T19:39:45-05:00","n":1,"kind":"fix","text":"The in-flight page is not shown in the shots: `/framework/ai/now/` renders the AI board with its \"Now\" card (shots/monorepo-localhost-framework-ai-now/sheet.png, all four widths), not the `AINow` view. Either the new child loses to the AI board's own `now` route or the dev server was not restarted. \"Right at 400 px\" is unproven (Requirements 2)."}}
+{"finding":{"at":"2026-10-20T19:39:45-05:00","n":2,"kind":"fix","text":"No before/after shot of the sessions grid, and no `check.mjs` or in-flight vs `list_agents` numbers are in the diff (Requirements 3). The plan note admits the count deviates by design (5-minute \"working\" vs Servex working), so the equality proof was not made."}}
+{"finding":{"at":"2026-10-20T19:39:45-05:00","n":3,"kind":"fix","text":"`Server/SessionIndex.mjs` (the `tasks` source) is not in the diff, so the \"one index feeds the grid\" ask for `tasks` is not visibly met (Requirements 1). The diff only imports it, and the readme still describes it as a second source."}}
+{"finding":{"at":"2026-10-20T19:39:45-05:00","n":4,"kind":"note","text":"A `layout.json` of `/ai/now/` at 400 shows 67 items, `empty 0.506` and a 13727 px band. These are the board's numbers, not the new page's."}}
+{"phase":{"at":"2026-10-20T19:39:45-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0.42522279999999996,"model":"claude-sonnet-5-5"}}
+{"phase":{"at":"2026-10-20T19:42:06-05:00","n":1,"kind":"findings","status":"start"}}
+{"phase":{"at":"2026-10-20T19:42:06-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0,"model":null}}
