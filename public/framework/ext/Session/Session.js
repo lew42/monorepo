@@ -145,7 +145,7 @@ export function stream(session, on_event, { on_state } = {}){
 		};
 		src.onmessage = e => { try { on_event(JSON.parse(e.data)); } catch {} };
 		// A refused connection retries by itself; a non-200 answer (the /servex proxy's 502 while Servex
-		// restarts) CLOSES the EventSource for good, so we reopen it, 1 s then doubling to 15 s. doc: ux/Dictate/doc/sheet.md
+		// restarts) CLOSES the EventSource for good, so we reopen it, 1 s then doubling to 15 s. doc: ext/drawer/doc/sheet.md
 		src.onerror = () => {
 			if (stopped) return;
 			const closed = src.readyState === EventSource.CLOSED;
@@ -162,7 +162,7 @@ export function stream(session, on_event, { on_state } = {}){
 }
 stream.state = "open";
 /** Every connection failure, one line in the Whisper bucket: written through the dev server, which is up when Servex is not.
- *  Open it at /framework/audio/Whisper/log/. Decision and the alternative: ux/Dictate/doc/sheet.md#the-log */
+ *  Open it at /framework/audio/Whisper/log/. Decision and the alternative: ext/drawer/doc/sheet.md#the-log */
 stream.log = (kind, fields) => import("/framework/audio/Whisper/WhisperLog.js")
 	.then(m => m.default.event("connection", kind, fields)).catch(() => {});
 

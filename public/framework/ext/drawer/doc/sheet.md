@@ -6,6 +6,21 @@ On a phone, the ✦ sheet can be dragged from part of the screen up to all of it
 
 Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
 
+## One layout, opened in place, and the reconnect (2026-10-20)
+
+**What the owner sees now.** ✦ opens the sheet over the page, and the page stays visible above it. The sheet is three rows at every height: the head (AI ▾, New session, ✕), the chat well, and the mic footer. Dragging the top edge only changes the height: the well grows or shrinks, nothing swaps. At 90% it snaps open to the full screen. Dragged down to the bottom it is the compact strip: the same head and footer, with the well at 0 px. The 40 px series, before and after: [Voice and chat surfaces](/framework/ux/Dictate/surfaces/#the-phone-sheet-step-by-step).
+
+- **The well:** full width, padding left and right only, no top or bottom padding (bubbles scroll under the head and the footer), square, in an unpadded parent (`rail.css`, "FULL-WIDTH CHAT"). The owner's words, 10-19 and 10-20: [asks.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/well-asks/asks.md).
+- **No unexplained arrows.** The strip's ⌃ and ▾ buttons are gone (drag the edge instead). The chat's jump button says its job: **↓ Newest**, a pill stuck to the well's bottom edge (`ext/Chat`, `sticky_scroll()`).
+- **Opened in place.** On the phone, ✦ no longer routes to `<path>/ai/`: that page replaced the page behind with an empty "The chat is in the sheet" page. The size is in `history.state`, so back still steps it down. A link or a reload of `<path>/ai/` still opens the sheet. The alternative, not built: keep the route and draw the page it is about behind it.
+- **First click opens the three rows** at the remembered height (60% the first time), not the one-line strip: the full wall of text is the mode while we debug.
+
+**Why it stopped reconnecting.** On the phone, Servex is reached through the dev server's `/servex` proxy. While Servex restarts, the proxy answers **502**, and a browser `EventSource` that gets a non-200 answer closes for good. On localhost the connection is simply refused, which the browser does retry, so it only failed on the phone. Now `Session.stream()` (`ext/Session`) reopens itself, 1 s then doubling up to 15 s, and the sheet's head shows a **Reconnect** button while the wire is down (press it to try at once). Proof without restarting anything: `ux/Dictate/test/reconnect.mjs` answers the stream with 502 for a few seconds and checks the button, the automatic reopen, and the log lines (5/5 pass).
+
+### The log
+
+Every failure is one line in the **Whisper bucket**, `ai/whisper/bucket.jsonl`, with `src: "connection"`: `lost`, `retry failed`, `reconnect pressed`, `reconnected` (with how long it was down), and `say failed` when a sentence could not be sent. Open it at [the Whisper log](/framework/audio/Whisper/log/). Decision: this bucket, because it is written through the dev server, which is up exactly when Servex is down. The alternative was the voice session's own record, but Servex is its only writer, and Servex is the thing that is down.
+
 ## The url: `<path>/ai/` (2026-10-17, sheet step 5)
 
 | State | Url | What shows |
@@ -16,7 +31,7 @@ Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
 
 - `<path>/ai/` is an [`AIPage`](../AIPage.js) (`class AIPage extends Page`). `Page.child()` mints one for any page with no real `ai/` page of its own. A real one wins: on `/framework/`, ✦ opens the sheet in place, because `/framework/ai/` is the AI system.
 - Above 52em the `AIPage` shows in the page (the chat and its views). Below it, the page is hidden and the sheet shows it, so the page it is about stays behind.
-- ✦ goes to `<path>/ai/` at the strip. Each step up adds a history entry with the same url, so back steps down one size, then closes. A reload or a link lands at split, with `<path>` put underneath, so back closes it.
+- (Until 2026-10-20; on the phone ✦ now opens in place, see above.) ✦ goes to `<path>/ai/` at the strip. Each step up adds a history entry with the same url, so back steps down one size, then closes. A reload or a link lands at split, with `<path>` put underneath, so back closes it.
 - Old links are rewritten once with `replaceState`: `?sheet=open` becomes `<path>/ai/`, and `?drawer=dictation` becomes `<path>/ai/dictation/` (`AIPage.old_link()`).
 - ⚠ A page that writes `history.replaceState(null, …)` wipes the sheet's size. Pass `history.state` instead (the Dictate playground did this until 2026-10-17).
 
@@ -55,7 +70,7 @@ A reload or a shared link at `?sheet=full` opens the sheet at full height, and f
 
 ## The drag
 
-Letting go settles the sheet by where it was let go, through `Sheet.Size.settle()` (2026-10-16; it replaced `full_at` 85% and `close_at` 28%). At 90% of the screen or more, it goes full. Under half the strip (50 px), it closes. Under about halfway from the strip to 30% of the screen, it is the strip (100 px). Anywhere else it is split at the height you let go, and that height is remembered (kept between 30% and 88%). The numbers are static fields on `Sheet.Size`.
+Letting go settles the sheet by where it was let go, through `Sheet.Size.settle()` (2026-10-16; it replaced `full_at` 85% and `close_at` 28%). At 90% of the screen or more, it goes full. Under half the strip (50 px), it closes. Under about halfway from the strip to 30% of the screen, it is the strip (110 px since 2026-10-20: the head plus the mic footer). Anywhere else it is split at the height you let go, and that height is remembered (kept between 30% and 88%). The numbers are static fields on `Sheet.Size`.
 
 While you drag, the sheet has a real height (`.drawer-rail-sheet-sized`), not only a ceiling. With only `max-block-size`, a drag above the sheet's own content did nothing: the finger moved and the sheet stayed where it was. The edge stays under the finger (measured within 1 px) because `ext/grip` now remembers where in the strip the finger landed, on the y axis only.
 

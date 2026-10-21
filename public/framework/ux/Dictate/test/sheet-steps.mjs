@@ -1,6 +1,6 @@
 // The phone sheet, step by step: open ✦ from the bottom strip (a real click), shot; then drag the sheet's top edge up
 // 40 px at a time, a shot at every step, release at the top (the snap to full), shot. Headless only; Servex is stubbed
-// (a seeded conversation, so the chat well has bubbles to show). Doc: ../doc/sheet.md
+// (a seeded conversation, so the chat well has bubbles to show). Doc: ext/drawer/doc/sheet.md
 //   node public/framework/ux/Dictate/test/sheet-steps.mjs <base-url> <shots dir> [width=400] [height=800]
 import fs from "fs";
 

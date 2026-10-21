@@ -47,6 +47,11 @@ Walk through it yourself: [try-it.md](try-it.md).
 
 ## Done (short)
 
+- **phone-sheet** (2026-10-19 to 2026-10-20): The phone ✦ sheet is one strong layout: a head, a full-width chat well (side padding only, bubbles scroll under the head and footer), a compact mic footer; it only grows as you drag, snaps open at 90%, keeps the page behind visible; no unexplained grey arrow.
+  - Done 2026-10-20: [ext/drawer/doc/sheet.md](/framework/ext/drawer/doc/sheet.md#one-layout-opened-in-place-and-the-reconnect-2026-10-20); the 40 px before/after series is on [Voice and chat surfaces](/framework/ux/Dictate/surfaces/#the-phone-sheet-step-by-step). The owner's words: [asks.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/well-asks/asks.md).
+- **sheet-reconnect** (2026-10-19 to 2026-10-20): The voice session must reconnect after a Servex restart; a button retries; every failure goes in a log the owner can open.
+  - Done 2026-10-20: the phone's 502 through the /servex proxy closed the stream for good; it now reopens itself, a Reconnect button shows while it is down, and failures go to [the Whisper log](/framework/audio/Whisper/log/) (`src: "connection"`). Proof: `test/reconnect.mjs`.
+
 - **vscode-voice-path** (6x, 2026-09-29 to 2026-10-09): The VS Code app path (Echo) feeds the same five-stage flow as Refine: one dictation system, one widget.
   - Now: Built 2026-10-12 ([8d80ff0](https://github.com/lew42/monorepo/commit/8d80ff02a)): `Servex/agents/Echo.js` writes raw, clean and structure through `VoicePage`, same id scheme as the Refine button. Echo stays off by default (`SERVEX_ECHO`); a failed stage is marked on the page (review fix [debc6f4](https://github.com/lew42/monorepo/commit/debc6f4b5)). Proof: [voice-asks-2](/framework/ai/sessions/2026/10/12/session-fb723164/voice-asks-2/STATE.md), `proof.mjs` A.
   - Sources: `60d9def6` `87bec773` `7efd07d5` `.claude/`

@@ -2,7 +2,7 @@
 //   node public/framework/ux/Dictate/test/reconnect.mjs <base-url> [shots dir]
 // The session stream answers 502 for 4 s (what the /servex proxy says while Servex restarts; a 502 CLOSES an EventSource
 // for good), then passes through again. Pass = the Reconnect button shows while down, the stream reopens by itself,
-// the button hides, and the Whisper bucket got a "lost" and a "reconnected" line. Doc: ../doc/sheet.md
+// the button hides, and the Whisper bucket got a "lost" and a "reconnected" line. Doc: ext/drawer/doc/sheet.md
 import fs from "fs";
 import Browser from "../../../../../Server/Browser.mjs";
 
