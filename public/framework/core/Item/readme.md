@@ -76,6 +76,8 @@ An item added to a parent logs its deltas to the parent's store. Not every item 
 
 Code pointers and findings: [doc/architecture.md](./doc/architecture.md#items-save-through-their-parent).
 
+The target model (the owner, 2026-10-21): any item holds items on demand, adding is a reference and moving is explicit, every added item gets persistence recursively, storage targets vary and are visible: [doc/owner-2026-10-21-items-hold-items.md](./doc/owner-2026-10-21-items-hold-items.md).
+
 A testing system is a need, not now (2026-10-20). Tests today are plain node files (`node Item.test.mjs`).
 
 ## Watch out
