@@ -14,6 +14,7 @@ const TOOLS = [
 	{ name: "MicStream", slug: "MicStream/", icon: "mic", blurb: "opens a mic; hands out its stream, level and device choice" },
 	{ name: "Recorder", slug: "Recorder/", icon: "fiber_manual_record", blurb: "records, plays back, saves a clip" },
 	{ name: "Transcriber", slug: "Transcriber/", icon: "subtitles", blurb: "turns a stream into text — Whisper or Chrome" },
+	{ name: "Whisper", slug: "Whisper/", icon: "graphic_eq", blurb: "the local whisper-server as an object, and a live log of every answer" },
 ];
 
 /** How long to wait for whisper-server before giving up on it and using the
@@ -130,7 +131,7 @@ export default new Doc({
 	files: "Part.js audio.css page.js readme.md",
 	notes: "decisions",
 
-	children: "MicStream Recorder Transcriber v1 MicPicker LevelMeter PushToTalk sound-recorder push-to-talk mic-to-text",
+	children: "MicStream Recorder Transcriber Whisper v1 MicPicker LevelMeter PushToTalk sound-recorder push-to-talk mic-to-text",
 
 	content(){
 		// "audio v1" OUT OF THE TAB STRIP (fix 5) — same `tab({nav:false})` +

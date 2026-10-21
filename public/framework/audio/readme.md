@@ -9,6 +9,8 @@ hold/toggle-to-talk (`mode`); **[Recorder](./Recorder/)** records, plays back an
 The [live demo at the top of this page](./) shows all three working together — pick a mic, talk,
 watch the transcript settle, optionally record.
 
+Watch out: ux/Dictate does not use Transcriber today; it sends audio to whisper-server on its own path (ux/Dictate/doc/architecture.md), so there are two engines where one should be (law 6). Decision pending.
+
 None of this is AI. Sending text to an LLM to clean it up (the "refinement" step) is a separate,
 later job — see [the audio task](/framework/ai/sessions/2026/09/29/audio/audio/), ask 2. `ux/Dictate` is the
 whole assembled system (mic → transcription → refinement → a text box); these three are what it
