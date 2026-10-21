@@ -46,3 +46,17 @@ Reads in the browser go through `Dated.Index.open(url)`, which tails the day fil
 | `check()` | no folder under the wrong day since 2026-10-18 (older history stays UTC-filed), no row whose folder is gone | tests; run by hand |
 
 `Session.scan/locate` (core/Session) still walk the tree themselves: they are browser-portable and only read names; the day they build is `Day.path`.
+
+## Queries and "in flight" (slice 3)
+
+One read path for sessions: `DatedFiles.sessions.query(spec)` runs an [ext/Query](/framework/ext/Query/) spec (default sort newest activity first) over `snapshots({from,to})`.
+
+| Method | What it does | Called by |
+|---|---|---|
+| `snapshots({from,to})` | every session snapshot. If the dev server set `DatedFiles.live = { items, on }` it returns the in-memory index (no disk). Otherwise it folds each day's `index.json`, later `last_activity` wins | `sessions` source (`AISessionTailer.mjs`), `query`, `find` |
+| `find(args, snapshots)` | the CLI filter (since, until, tags, system, state, model, provider, parent, min_cost, text, sort, limit) with the USD totals | [`session-query.mjs`](../session-query.mjs) (now thin; its own loader was deleted) |
+| `in_flight({now, within})` | state `active` and last activity inside the window (default one hour), newest first | [`InFlight.mjs`](../InFlight.mjs) → source `inflight` → [/framework/ai/now/](/framework/ai/now/) |
+
+**Working now vs. in flight.** The page headline counts sessions that moved in the last 5 minutes (the sessions grid's own test); the rest of the hour is shown dimmed as quiet. Servex `list_agents` "working" is a third, narrower thing (agents Servex itself is running), so the two numbers differ by design.
+
+A restart of the dev server loads `InFlight.mjs`, the `inflight` entry in `LAN_QUERY`, and the `DatedFiles.live` hook.
