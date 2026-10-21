@@ -54,7 +54,7 @@ export default class AINow extends View {
 
 	paint() {
 		const rows = this.live(), now = Date.now(), hot = r => now - Date.parse(r.last_activity) < AINow.HOT, n_hot = rows.filter(hot).length, total = rows.reduce((n, r) => n + (r.usd || 0), 0);
-		this.el.dataset.ready = String(!this.loading);
+		if (this.el) this.el.dataset.ready = String(!this.loading);
 		this.$head.empty(() => {
 			if (this.loading) return void span.c("an-what", "Asking the server who is running…");
 			span.c("an-count", String(n_hot));
