@@ -12,3 +12,11 @@
 {"complete":{},"by":"mastermind-figma-sessions","ts":"2026-10-21T04:08:09.058Z"}
 {"sessions":[{"id":"mastermind-figma-sessions","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-sessions/"}],"by":"mastermind-figma-sessions","ts":"2026-10-21T04:08:09.061Z"}
 {"assign":{"title":"Figma: sessions, tasks and projects designed on the file's system","landed_at":"2026-10-20T23:08:18-05:00","outcome":"**The Sessions and tasks page in Figma is rebuilt on the file's styles and tokens, with real data.** [Open the page](https://www.figma.com/design/QYN0G2URSBHYH5I06MOjxU/?node-id=307-54823)\n\n- [x] cards first, three densities: 314:57410\n- [x] task and project cards (project = task + folder + recent sessions): 314:58066\n- [x] day view, session-first and task-first, 400 and 1200: 315:55932, 315:56666, 315:57398, 315:58072\n- [x] session, task, project pages at 400 and 1920: 316:57480, 316:58040, 316:58620, 316:58820, 316:117743, 316:118046\n- [x] month 1200: 316:118365\n- [x] components (cards, rows, shell, Card / Day): 311:55359\n- [x] docs: [use-figma.md](/framework/ext/Figma/doc/use-figma.md), d37cdb63d\n\nLeft: 3440 widths; first pass kept in the Superseded section.","links":[{"url":"https://www.figma.com/design/QYN0G2URSBHYH5I06MOjxU/?node-id=307-54823","label":"Figma: Sessions and tasks"},{"url":"/framework/ext/Figma/doc/use-figma.md","label":"use-figma.md"}],"window":{"after":0.11},"tokens":null},"by":"mastermind-figma-sessions","session":"80191cd3-d1f4-4187-8c31-ffa01e23d367"}
+{"commit":"c55689350d9a"}
+{"log":{"at":"2026-10-20T23:08:26-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-20T23:08:38-05:00","msg":"text-check: past-work.md: 833 words of prose (500 at most)"}}
+{"log":{"at":"2026-10-20T23:08:38-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-20T23:08:38-05:00","msg":"owner-note: posted 1 decision to the Inbox"}}
+{"log":{"at":"2026-10-20T23:08:38-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-20T23:08:41-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-20T23:08:41-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
