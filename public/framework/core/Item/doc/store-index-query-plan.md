@@ -172,7 +172,7 @@ Each is one Sonnet task in a worktree, merged after review. The first proves the
 
 | # | Slice | Proof | Budget |
 |---|---|---|---|
-| 1 | **`Dated` + `DatedFiles` for projects only:** `create`, `move` (ProjectMove's body moves in), `query`, `check`; the tool and the socket rpc; doc home (section 5) | `Dated.test.mjs` (create → row → query finds it → move → both days → check ok); a page `/framework/core/Item/Dated/` that shows the projects query and updates live when a project is created | $6 |
+| 1 ✅ | **`Dated` + `DatedFiles` for projects only:** `create`, `move` (ProjectMove's body moves in), `query`, `check`; the tool and the socket rpc; doc home (section 5) | `Dated.test.mjs` (create → row → query finds it → move → both days → check ok); a page `/framework/core/Item/Dated/` that shows the projects query and updates live when a project is created | $6 |
 | 2 | **Sessions on `Dated`:** `TaskDirs.dir/make`, `Session.scan/locate/day`, `open_task`, `voice_session`, the session hook call `create`; `SessionDayMove` becomes `move` | `TaskDirs.census()` and `Session.scan()` give identical output before and after; `check()` ok on the whole store | $6 |
 | 3 | **Queries through `Dated`:** sources `sessions` and `tasks` read `DatedFiles.query`; `session-query.mjs` calls it; an "in flight" query page | the sessions grid in remote mode unchanged; `ext/Query/check.mjs` passes; in-flight count = `list_agents` working count | $5 |
 | 4 | **Store backends** = storage.md slice 1, unchanged brief ([storage-slice-1.md](../../Page/doc/storage-slice-1.md)); independent, may run beside 1–3 | `Store.test.mjs` (its brief lists a–e) | $6 |

@@ -59,7 +59,7 @@ import { warm_guard } from "./ext/openrouter/provider.js";
 import { LLAMA_EXE, LLAMA_PORT, LOCAL_PROXY_PORT } from "./ext/local/provider.js";
 import { LocalProxy } from "./ext/local/llama.js";
 import { local_chat, local_model_slugs } from "./ext/local/chat.js";
-import ProjectMove from "../Server/ProjectMove.mjs";
+import DatedFiles from "../Server/DatedFiles.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
@@ -965,7 +965,7 @@ export default class Servex extends Events {
         for (const tool of directory_tools(this.agents)) this.mcp.tool(tool);   // ask_directory: agents/directory.js
         for (const tool of this.cards.tools()) this.mcp.tool(tool);
         for (const tool of this.pool?.tools() ?? []) this.mcp.tool(tool);   // take_worktree, return_worktree
-        this.mcp.tool(ProjectMove.tool());   // move_project: Server/ProjectMove.mjs
+        for (const t of DatedFiles.tools()) this.mcp.tool(t);   // move_project, dated_create, dated_query: Server/DatedFiles.mjs
         for (const tool of this.follow.tools()) this.mcp.tool(tool);   // follow, unfollow, list_follows
         for (const tool of this.inbox.tools()) this.mcp.tool(tool);   // drop, clear, inbox
 

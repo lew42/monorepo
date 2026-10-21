@@ -1,5 +1,15 @@
 # page.jsonl — a page with no page.js
 
+## The store
+
+A `.jsonl` file is a log: one JSON object per line, only ever appended to. Who does what:
+
+- **Reads:** `Item.Store` ([Store.js](../../Item/Store.js)) replays a file into one live object and tails it.
+- **Writes:** appends go through the dev socket (`FsFile.send`); a validated single writer, `FileJournal`, is planned ([storage.md](storage.md)).
+- **Filed by day:** a collection of folders (projects today, sessions and tasks next) is made, moved, indexed and queried by [`Dated`](/framework/core/Item/Dated/) and `DatedFiles` (`Server/doc/dated-files.md`). Plan: [store-index-query-plan.md](../../Item/doc/store-index-query-plan.md).
+
+---
+
 A folder can hold a `page.jsonl` instead of a `page.js`. It is a log: one JSON object per
 line, read top to bottom. The live example is [/framework/core/Page/jsonl/](/framework/core/Page/jsonl/),
 and the code lives in `Page.class.js` (`Page extends Item` directly, PageLog folded in; `Log.js` is a compat re-export).

@@ -150,7 +150,7 @@ export default new Doc({
 	//   2026-10-02, task-mastermind review.
 	initialize(){
 		Doc.prototype.initialize.call(this);
-		this.declare("live");
+		this.declare("live"); this.declare("Dated");
 	},
 
 	content(){
