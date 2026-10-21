@@ -1,0 +1,26 @@
+@layer site {
+	.page.aid-page { --measure: 44em; }
+	.aid { display: flex; flex-direction: column; gap: 0.8em; padding: 0.8em clamp(0.6em, 3cqi, 1.5em) 2em; min-width: 0; }
+	.aid-nav { display: flex; align-items: center; gap: 0.8em; flex-wrap: wrap; }
+	.aid-date { opacity: 0.7; }
+	.aid-link { color: inherit; }
+	.aid-head { font-size: 1.1em; }
+	.aid-count { font-size: 1.8em; font-weight: 700; }
+	.aid-list { display: flex; flex-direction: column; gap: 1em; min-width: 0; }
+	.aid-session { display: flex; flex-direction: column; gap: 0.4em; min-width: 0; padding: 0.6em 0.8em; border: 1px solid var(--line); border-radius: 0.5em; }
+	.aid-shead { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6em; min-width: 0; font-weight: 600; }
+	.aid-sname { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; color: inherit; }
+	.aid-sum { flex: none; font-size: 0.8em; opacity: 0.7; font-weight: 400; }
+	.aid-task { display: flex; flex-direction: column; gap: 0.1em; min-width: 0; }
+	.aid-row { display: flex; align-items: baseline; gap: 0.5em; min-width: 0; }
+	.aid-mark { flex: none; }
+	.aid-time { flex: none; font-size: 0.8em; opacity: 0.65; font-variant-numeric: tabular-nums; }
+	.aid-name { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; color: inherit; }
+	.aid-out { margin-inline-start: 1.7em; font-size: 0.85em; opacity: 0.75; overflow-wrap: anywhere; }
+	.aid-kids { margin-inline-start: 1.1em; padding-inline-start: 0.6em; border-inline-start: 1px solid var(--line); display: flex; flex-direction: column; gap: 0.5em; margin-block-start: 0.3em; }
+	.aid-open .aid-name { font-weight: 600; }
+	.aid-more { display: flex; flex-direction: column; gap: 0.6em; }
+	.aid-lines { display: flex; flex-direction: column; gap: 0.3em; padding: 0.4em 0; }
+	.aid-line { display: flex; gap: 0.5em; font-size: 0.85em; overflow-wrap: anywhere; min-width: 0; }
+	.aid-empty { padding: 1em 0; opacity: 0.8; }
+}

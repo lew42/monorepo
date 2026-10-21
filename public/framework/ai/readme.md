@@ -17,7 +17,7 @@
 | `usage.json` | the current usage snapshot (gitignored) | `Server/usage-now.mjs`, `AntigravityUsage.mjs`, `openrouter-reconcile.mjs` | masterminds at start; [usage/](usage/readme.md) |
 | `usage.jsonl` | append log of usage, one line per sample | `Servex/Usage.js`, `.claude/hooks/ledger.mjs` | `usage/`, `Server/RepoSize.mjs` |
 | `log.jsonl` | presence index of AI work in a folder | the `dir_log` tool (`Servex/agents/Sessions.js`) | `ai/log/` |
-| `day.jsonl` (per day, in the session store) | the day's blind-append log | `append.mjs` | day pages (`AITask/dashboard.js`) |
+| `day.jsonl` (per day, in the session store) | the day's blind-append log | `append.mjs` | the day page (`AIDay/`, log fold) |
 | `past-work-index.md` | every landed task, searchable | `node Server/PastWork.mjs` | the `past-work` skill |
 | `handover.md` | state of the world, one screen | `Server/HandoverNow.mjs` (computed) | a fresh session ([handover.md](handover.md)) |
 | `skills.json`, `CLAUDE.copy.md` | skills list, copy of the root CLAUDE.md | `node skills.mjs` | `review/` |
@@ -27,6 +27,8 @@
 **Retired or without a live writer found (2026-10-19):** `board.jsonl` (the v/3 board; `cards.jsonl` replaces it), `handoff2.md` (a static 2026-09-24 archive; `handover.md` is the live one), `heartbeat.jsonl` (2026-10-06 entries), `inbox.jsonl`, `servex-queue.json`, `cand.txt`, `v-*.json[l]` and `2026-10-13/`. Nothing here is deleted; they are listed so nobody searches for their writer. Two overlaps: `usage.json` is the snapshot and `usage.jsonl` the log; `sessions/` holds the records and `tasks/` the board that reads them.
 
 ## Classes and folders that draw them
+
+[`AIDay/`](AIDay/readme.md) — the day page ([/framework/ai/2026-10-20/](/framework/ai/2026-10-20/)): a day's tasks as a check-mark list (✅ landed, ⬜ open), nested session → task → child, read from the `tasks` query source over the store, live.
 
 [`now/`](now/readme.md) — the live in-flight page ([/framework/ai/now/](/framework/ai/now/)): every session active in the last hour, from the `inflight` query source.
 

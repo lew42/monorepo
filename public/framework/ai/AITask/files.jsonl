@@ -40,3 +40,5 @@
 {"file":"weight.jsonl"}
 {"file":"TaskViews.js"}
 {"file":"AICost.js"}
+{"file":"day-prompts.js","gone":true}
+{"file":"module-spend.js","gone":true}

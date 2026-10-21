@@ -6,8 +6,8 @@ import AIRail, { card_page } from "/framework/ai/rail/rail.js";
 // day pages and Your prompts are rail rows, so they are here; every other page routed below takes the whole width.
 const RAIL_ID = /^(inbox|log|live|now|view|framework|your-prompts|\d{4}|\d{4}-\d{2}-\d{2}|p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
 const CARD_ID = /^(p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
-import { dashboard, rail, effort_board, log_board, has_page_js, warm, daySystemPage, monthPage } from "/framework/ai/AITask/dashboard.js";
-import { module_list, module_detail } from "/framework/ai/AITask/module-spend.js";
+import { rail, effort_board, log_board, monthPage } from "/framework/ai/AITask/dashboard.js";
+import AIDay from "./AIDay/AIDay.js";   // a day as a check-mark list, read from the store
 import { Versions } from "/framework/ai/v/Versions.js";   // the versions, and the one picker every version wears
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
 import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
@@ -98,30 +98,14 @@ export default new Page({
 		if (board_view) return board_view;
 
 		if (/^\d{4}-\d{2}-\d{2}$/.test(name)){
-			// Day stays a dashboard; tasks moved into sessions store. warm() fires instantly so a deep link has time to land.
-			warm(name);
+			// A day is one check-mark list read from the store (AIDay). A task url under it is an old address: redirect or look it up in the store.
 			return new Page({
-				title: name, icon: "history", url: this.url + name + "/",
-				content(){ dashboard(this); },
+				title: name, icon: "history", url: this.url + name + "/", classes: "aid-page",
+				content(){ new AIDay(); },
 				route(task){
-					// "By system" — the day's prompts regrouped (owner 2026-10-04). Doc: doc/ai-page-notes.md.
-					if (task === "by-system") return new Page({
-						title: name + " — by system", icon: "history", url: this.url + "by-system/",
-						content(){ daySystemPage(this); },
-					});
-					// "By module" — the day's spend/module breakdown. Doc: doc/ai-page-notes.md.
-					if (task === "module") return new Page({
-						title: "By module", icon: "folder", url: this.url + "module/",
-						content(){ module_list(name); },
-						route(mod){ return new Page({
-							title: mod, icon: "folder", url: this.url + "module/" + mod + "/",
-							content(){ module_detail(name, mod); },
-						}); },
-					});
 					const moved = !task.includes(".") && StoreFolder.moved(this.url + task + "/");
 					if (moved) return StoreFolder.redirect(this.url + task + "/", moved);
-					if (task.includes(".") || has_page_js(name, task)) return;
-					// no task lives in a day folder any more: a reader guessed this url from the day log; find it in the store (one-store, 2026-10-13)
+					if (task.includes(".")) return;
 					return StoreFolder.lookup(this.url + task + "/", name, task);
 				},
 			});

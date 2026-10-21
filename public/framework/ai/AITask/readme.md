@@ -8,19 +8,19 @@
 |---|---|
 | The task page | `AITask.js` (the class), `TaskViews.js` (tab list), `conversation.js` (chat), `asks.js`, `decisions.js` (+ `decisions.mjs`, a CLI that closes decisions), `plan.js`, `shots.js`, `replay.js`, `message.js`, `stats.js`, `cost.js`, `AICost.js`, `card.js`, `listing.js` |
 | The tree | `tree.js`, `nested.js`, `tree/` |
-| The day and the board | `dashboard.js` (`dashboard`, `rail`, `log_board`, `timeline`, `monthPage`, `daySystemPage`, `warm`), `board.js`, `highlights.js` (the front wall), `needs.js`, `rank.js`, `effort.js`, `module-spend.js`, `usage.js`, `day-prompts.js`, `compose.js` |
+| The day and the board | `dashboard.js` (`dashboard` is now one line that draws [`AIDay`](../AIDay/readme.md); `rail`, `log_board`, `timeline`, `monthPage` (day links only), `warm`), `board.js`, `highlights.js` (the front wall), `needs.js`, `rank.js`, `effort.js`, `usage.js`, `compose.js` (`module-spend.js` and `day-prompts.js` were removed 2026-10-20: they read the retired `ai/<date>/` layout) |
 | This module's own page | `page.js` (a `Doc` page, then `new AITask({…})` samples), `ai.css`, `feed.css`, `nested.css` |
 
 ## Where the data comes from
 
 - The task: its `task.jsonl` (written by `Agents.open_task`, `append.mjs`; see [ai/sessions](/framework/ai/sessions/)). `session_id` on line 1 is the field that matters: without it there is no transcript tab. A running task has `requested_at`; `landed_at` wins.
 - The transcript: streamed from `~/.claude/projects/` on the dev server only; off localhost the Session tab says "unavailable".
-- The day pages: `/framework/ai/` routes (`ai/page.js`) call `dashboard.js` over the date folders in the session store.
+- The day pages: `/framework/ai/` routes (`ai/page.js`) draw a day with `AIDay/` (the `tasks` query source over the session store); `dashboard.js` still serves the rail and log boards.
 - Highlights: an `assign` line carrying `highlight:{icon,title,url}` in a `task.jsonl` puts a task on the front wall ([doc/highlights.md](doc/highlights.md)).
 
 ## Used by
 
-`ai/page.js` (the front, day, month, module-spend pages), `ai/tasks/page.js` (a `2026~…` url opens an `AITask`), every session task's own page.
+`ai/page.js` (the front, day, month pages), `ai/tasks/page.js` (a `2026~…` url opens an `AITask`), every session task's own page.
 
 ## More
 

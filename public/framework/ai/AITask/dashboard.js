@@ -5,13 +5,12 @@ import { dated, group, list, newest } from "./board.js";
 import { efforts, tally } from "./effort.js";
 import { compose } from "./compose.js";
 import { fold } from "./message.js";
+import AIDay from "../AIDay/AIDay.js";
 import { state } from "./stats.js";
 import { when } from "./card.js";
 import { highlights, more } from "./highlights.js";
 import { needs_all, needs_strip } from "./needs.js";
 import { day_costs, total_line } from "./cost.js";
-import { spend_summary, module_list } from "./module-spend.js";
-import { prompts_section } from "./day-prompts.js";
 
 // history and reasons: doc/dashboard-notes.md
 function mark_read(id){
@@ -186,69 +185,19 @@ export function day_nav(date){
 	});
 }
 
-// Month view; see doc/dashboard-notes.md for timezone details
+// Month view: the month's days as links to their day pages (a day page reads the store; nothing is summed here).
 export function monthPage(page, month){
 	const [y, m] = month.split("-").map(Number);
 	const title = new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
-	const daysInMonth = new Date(y, m, 0).getDate();   // day 0 of next month = this month's last day
-	div.c("flex v gap", $m => {
+	const days = Array.from({ length: new Date(y, m, 0).getDate() }, (_, i) => `${month}-${String(i + 1).padStart(2, "0")}`).filter(d => d <= todayStr());
+	div.c("flex v gap", () => {
 		p.c("doc-title h2", title);
-		$m.append(async () => {
-			const days = Array.from({ length: daysInMonth }, (_, i) => `${month}-${String(i + 1).padStart(2, "0")}`);
-			const spends = (await Promise.all(days.map(d =>
-				fetch(`/framework/ai/${d}/spend.json`).then(r => r.ok ? r.json() : null).catch(() => null)))).filter(Boolean);
-			if (!spends.length) return void p.c("muted", "No day in this month has computed spend yet — node Server/DaySpend.mjs <date> per day.");
-			const claude_usd = spends.reduce((s, d) => s + (d.claude_usd ?? 0), 0);
-			const real_usd = spends.reduce((s, d) => s + (d.real_usd ?? 0), 0);
-			div.c("flex gap wrap", () => {
-				span(() => { span.c("muted", "Claude $ "); span("$" + claude_usd.toFixed(2)); });
-				span(() => { span.c("muted", "real $ (OpenRouter etc.) "); span("$" + real_usd.toFixed(2)); });
-			}).style("--gap", "1.5em");
-			p.c("muted", `${spends.length} of ${days.length} day(s) this month computed so far.`);
-		});
+		div.c("flex gap wrap", () => days.forEach(d => a.c("ai-link", d.slice(8)).href(`/framework/ai/${d}/`).attr("title", d)));
 	});
 }
 
-export function daySystemPage(page){
-	const date = page.url.split("/").filter(Boolean).at(-2);
-	day_nav(date);
-	prompts_section(date, "system");
-}
-
-/* A day's own tasks. No usage meters here — the ai index is always this page's
-   ancestor, so its rail is already showing them beside this. Every task.jsonl
-   here streams: an append redraws the groups, so a task that lands moves out of
-   Active without a reload. */
-export function dashboard(page){
-	const date = page.url.split("/").filter(Boolean).at(-1);
-	warm(date);   // route()'s has_page_js, warmed now so a click into a task already has the answer
-	// Opening the day marks its pinned "Today"/"Yesterday" row read (rail.js's own
-	// `is_read`/`mark_read`, the same per-browser flag every other row already uses) —
-	// harmless for a day with no pinned row at all.
-	mark_read("day-" + date);
-
-	day_nav(date);
-
-	p.c("muted", () => a("See this day as a tree: what ran together, what waited →").attr("href", `/framework/ai/AITask/tree/?date=${date}`));
-
-	spend_summary(date);
-	module_list(date);
-
-	prompts_section(date, "time");
-
-	// ⚠ `wide` not `bleed` — bleed spends the page's two gutter tracks
-	const $board = div.c("ai-dashboard flex v gap wide", async $d => {
-		let rows;
-		const redraw = () => rows && $d.empty(() => groups(rows));
-		rows = await tasks(page, redraw);
-		$d.append(() => groups(rows));
-
-		on_directory(page, $d, async () => { rows = await tasks(page, redraw); redraw(); });
-	});
-
-	timeline(date);
-	return $board;
-}
+/** A day page body: the one check-mark list (AIDay), read from the store. The old per-day page.js files still call this. */
+export function dashboard(page){ return new AIDay({ day: page?.name ?? page?.title }); }
 
 const strip = rows => {
 	const live = rows.filter(running);
