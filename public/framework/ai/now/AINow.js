@@ -18,6 +18,7 @@ export default class AINow extends View {
 	initialize(){
 		this.rows = new Map();
 		this.error = "";
+		this.loading = true;   // until the first answer: never show a false zero
 		this.client = new QueryClient("inflight", { row: r => this.change(r), stale: () => this.ask() });
 		super.initialize();
 	}
@@ -37,6 +38,7 @@ export default class AINow extends View {
 
 	async ask() {
 		const res = await this.client.ask({ where: [{ field: "state", op: "eq", value: "active" }], sort: { by: "last_activity", dir: "desc" }, limit: 100 }, { timeout: 20000 });
+		this.loading = false;
 		if (res.error) { this.error = res.error; return this.paint(); }
 		this.error = ""; this.rows = new Map(res.rows.map(r => [r.id, r]));
 		this.paint();
@@ -52,12 +54,15 @@ export default class AINow extends View {
 
 	paint() {
 		const rows = this.live(), now = Date.now(), hot = r => now - Date.parse(r.last_activity) < AINow.HOT, n_hot = rows.filter(hot).length, total = rows.reduce((n, r) => n + (r.usd || 0), 0);
+		this.el.dataset.ready = String(!this.loading);
 		this.$head.empty(() => {
+			if (this.loading) return void span.c("an-what", "Asking the server who is running…");
 			span.c("an-count", String(n_hot));
 			span.c("an-what", n_hot === 1 ? " session working now" : " sessions working now");
 			if (rows.length) span.c("an-total", ` · ${rows.length - n_hot} quiet in the last hour · ${AINow.usd(total)} so far`);
 		});
 		this.$list.empty(() => {
+			if (this.loading) return;
 			if (this.error) return void p.c("an-empty", this.error === "no socket" || this.error === "no source"
 				? "This list needs the dev server (a static copy has no one to ask). Today's sessions are on the page linked below."
 				: "Could not ask the server: " + this.error);
