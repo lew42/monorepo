@@ -14,7 +14,6 @@ export default new Doc({
 
 	subject: Dated,
 	methods: "path index_path rows",
-	files: "page.js",
 
 	content(){
 			md(`A **project** lives at \`<module>/projects/YYYY/MM/DD/<slug>/\`. Its row sits in today's index file, \`${collection.index_path(today())}\`. This list tails that file, so a project made by anyone shows up here at once. The button makes a tiny real project folder in \`core/Item\`.`);
