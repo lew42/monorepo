@@ -1,28 +1,29 @@
-# Dictation: one map, one engine, one cleaner, every link right
+# Dictation: a thorough map of every piece, and a plan. PLANNING ONLY: no code, no moves, no merges of code.
 
-Budget: $10. Opus, medium effort. Parent: `vscode-mastermind`, who tails your `session.jsonl`: log with the `log` tool. Own worktree; commit each step; `node Server/merge.mjs`; no Servex or dev-server restart. **Class map first, shown on a page, then build** (CLAUDE.md: design the class architecture before you build). Moves and renames are scripted (`git mv`, manifest, dry run). Never delete: move aside.
+Budget: $8. Opus, medium effort. Parent: `vscode-mastermind`, who tails your `session.jsonl`: log with the `log` tool. **You change no code and move nothing.** You write one doc, a few screenshots, and decision proposals. The owner approves before anything is built.
 
-## The owner (2026-10-20, 21:55)
+## The owner (2026-10-20, 22:05)
 
-"Where our dictation system is, it's not clear to me. What lives where?" The Dictate page's "Whisper: raw text" tile links to `audio/Transcriber`, not the Whisper class; how Transcriber differs from Whisper is unexplained; the audio page did not link Whisper; `ux/Revise` exists and the owner never asked for it and does not know what it does. "I don't really care where they go, but we need to make sure it makes sense." "How do we have so many things unclear and mislinked?"
+"Focus on the dictation system alone. We need a thorough map of where every little piece is: ext/Refine, ext/Revise (it is `ux/Revise`), things in ux, things in Dictate, audio, Whisper, all over the place. All need to be mapped and organized. We need to plan. Stay in planning mode; we're racing ahead and building garbage." Earlier tonight: the Dictate page's "Whisper" tile links to `audio/Transcriber`; how Transcriber differs from Whisper is unexplained; the owner never asked for `ux/Revise` and does not know what it does; ext/Chat's role is unclear; "I don't care where they go, but it must make sense."
 
-## Found (verify, then use)
+## Leads (verify each; do not trust them)
 
-- **Two Whisper engines.** `ux/Dictate/Dictate.js` talks to whisper-server itself (`fetch_timeout`, `whisper_url`). `audio/Transcriber/Whisper.js` (`Transcriber.Whisper`) is a second streaming engine that copied Dictate's code because a past brief made Dictate "read-only for this task". Transcriber is imported only by demo and audit pages, never by a real surface.
-- **Two cleaners.** `ux/Revise` (2026-09-29 audio task: "the AI step of dictation", text in, revised text out) and `ext/Refine` (`Cleaner.js`, `RefineSystem`, the cleaner page lists Revise as one of its callers).
-- **The chat is split.** The one chat box is `ux/Dictate/chat.js` + `Widget.js`; the composer and its mic are `ext/Chat/Composer.js` + `Mic.js`; the phone sheet is `ext/drawer/rail.js`; the voice session is `ext/Session`; Whisper is `audio/Whisper`.
-- Wrong link: `ux/Dictate/page.js:34` sends "Whisper" to `/framework/audio/Transcriber/`.
+- Two Whisper engines: `ux/Dictate/Dictate.js` calls whisper-server itself; `audio/Transcriber/Whisper.js` copied that code ("that file is read-only for this task") and is used only by demo and audit pages.
+- Two cleaners: `ux/Revise` (2026-09-29) and `ext/Refine` (`Cleaner.js`, `RefineSystem`; its cleaner page lists Revise as a caller).
+- The chat is split: `ux/Dictate/chat.js` + `Widget.js` (the one chat box), `ext/Chat/Composer.js` + `Mic.js` (composer and mic), `ext/drawer/rail.js` + `Sheet.js` (the phone sheet), `ext/Session` (one ✦ press = a voice session; Servex spawns `voice-assistant` and `session-smart`, two assistants where the owner asked for one: `Servex/agents/Sessions.js`).
+- Also look in: `audio/` (MicStream, Recorder), `ext/Mic`, `ux/Dictate/` subfolders (`v1`, `variants`, `playground`, `surfaces`, `workspace`, `ai`), `ai/rail`, `dev/DevBar/ask.js`, `Server/plugins/Whisper.js`, `Servex/agents/Assistant.js`, `Servex/ext/refine/`, `core/Page/card/log/whisper/`.
 
-## Do
+## Deliverable: `ux/Dictate/doc/map.md`, linked from the first line of `ux/Dictate/readme.md` (that one-line link is your only edit outside the doc and your task folder)
 
-1. **The map page** (`ux/Dictate/doc/map.md`, shown on the Dictate page's first screen as a diagram plus one line per piece): every class in the chain mic → whisper-server → text → clean → chat → session → assistants, its folder, its one job, who calls it. Mark each piece used by a real surface or demo-only.
-2. **Decide, one decision each** (`node Server/Decide.mjs`, options ranked, alternative named): one Whisper engine (Dictate's, with Transcriber folded into it or moved aside); one cleaner (Revise or Refine's Cleaner, the other becomes a pointer or moves aside); where the chat lives (one module). The owner does not care which folder wins, only that one thing has one home and one name.
-3. **Fix every link and label** on the Dictate, audio, Whisper, Transcriber, Revise, Refine and Chat pages and readmes so each points at the thing it names. A module that is demo-only or retired says so in its first line and links its replacement.
-4. Apply the decisions you can apply safely in this task (scripted moves, every importer updated, pages checked at 400 and 1200). Anything bigger: a next-step brief beside this one.
-5. **Why it happened**, one paragraph in `ux/Dictate/doc/map.md`: briefs that fenced files off and so caused copies; new modules built without reading the existing ones. And one line proposed for the `sub-mastermind` or `new-task` skill to prevent it (proposal only; write it to `skill-proposal.md` here).
+1. **Every piece**, one row each: folder, file, class, its one job in plain words, who imports it (grep, with counts), whether a real surface uses it or only a demo, last commit date. Nothing left out: if it touches mic, audio, Whisper, transcript, cleaning, chat, voice session or the assistants, it is in the table.
+2. **The chain as a diagram**: mic → whisper-server → raw text → clean → chat box → voice session → assistant(s) → reply on screen, each arrow naming the class that does it.
+3. **Duplicates and dead ends**: every place two things do one job, every page that links the wrong thing, every demo-only module, with the proof (file:line).
+4. **The proposed organization**: for each duplicate, two or three options ranked, the alternative named, and what it would take (files touched, importers to update). The one-assistant merge is one of them. Written as proposals for the owner to approve, with `node Server/Decide.mjs`; nothing applied.
+5. **Screenshots** at 400 and 1920 of the Dictate, Refine, Revise, Chat, audio, Whisper and Transcriber pages as they are now, in your task folder, linked from the map, one line each on what a newcomer would understand from it.
+6. **Why it got this way**, one short paragraph with the evidence, and one proposed skill line to prevent it (write it in `skill-proposal.md` here; do not edit the skill).
 
 ## Done when
 
-- [ ] The map is on the Dictate page, and every piece in it is one click from it.
-- [ ] Every link above points at what it names; no dead or misleading tile.
-- [ ] Decisions logged; safe consolidations merged; `finish-task`, one screen, check marks.
+- [ ] `map.md` exists, is linked from the Dictate readme, and a newcomer can find any dictation piece from it in one click.
+- [ ] Every duplicate has ranked options; nothing was built or moved.
+- [ ] Committed (docs and shots only); `finish-task` in your own `session.jsonl`, one screen.
