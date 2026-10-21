@@ -21,6 +21,15 @@ The pilot ([prompt-audit/report.md](../prompt-audit/report.md)): Haiku brief v3 
 - **Using tasks properly, going forward:** when an agent files a task, when a project (a plan with tasks to check off) instead, where it lives (the session's record), and a planning step before building. Write it in `core/Task/readme.md` in a few lines, and propose one CLAUDE.md line ("each owner prompt's asks are filed as tasks or notes the first time") in the same `claude-md-line.md`.
 - **Pilot** both passes on one finished session of moderate size (not this tab, not the $646 one): cost, time, the reviewer's verdicts, and an estimate for the last 7 and 30 days.
 
+## The owner, follow-up (2026-10-21, same prompt log)
+
+- **A task is a proposal until it is accepted.** An audited ask can be accepted (needed), optional, an option ("this way or that?"), back-burnered, or thrown out (it conflicts, can't happen, is too complex, or we changed our mind). The task system has to be adaptive, so the reviewer gives each one a state and a one-line reason; nothing is accepted just because it was asked.
+- **The file is `prompt-audit.jsonl`** in the session's folder (the name says what is inside), **one line per owner prompt**, written by the Haiku call for that prompt.
+- **Outcome kinds:** task, question, statement, and an **update** kind (a file or readme that should change; a doc update may be its own kind). The schema must be easy to extend later ("also identify X"), so give it a version.
+- **Tags:** every path, page, module or file the prompt references becomes a tag (`/framework/ux/Dictate/`), shown later as small tags on the card.
+- **The Sonnet reviewer** may read the code, the task or project, and the session record as it sees fit (the tail of `session.jsonl` is likely enough; the whole file only if needed).
+- **Tune the brief, don't bloat it.** Target: Haiku acceptable 9 times out of 10. When it misses something, make the wording clearer and rerun; keep the brief short, since a long, prescriptive one regresses.
+
 ## Done when
 
 - [ ] Both passes run on one session; results in its audit file; reviewer feedback round recorded.
