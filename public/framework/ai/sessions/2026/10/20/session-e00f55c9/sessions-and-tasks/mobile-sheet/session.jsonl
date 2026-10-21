@@ -47,3 +47,4 @@
 {"review":{"at":"2026-10-20T19:56:07-05:00","answer":{"n":1,"reply":"fixed: in the earlier merge 3415f5018 (Session.stream reopen, Reconnect button, Whisper-bucket log; test/reconnect.mjs 5/5); this diff is only the follow-up clamp."}},"by":"mastermind-mobile-sheet","session":"94c3f1ff-d635-497d-844f-a7dd1818be57"}
 {"review":{"at":"2026-10-20T19:56:07-05:00","answer":{"n":2,"reply":"fixed: in the earlier merge 3415f5018 (check_page 400 with no page errors, 1200 shot); the full cover is the 90% snap the owner keeps."}},"by":"mastermind-mobile-sheet","session":"94c3f1ff-d635-497d-844f-a7dd1818be57"}
 {"commit":"cbfe5e056f5d"}
+{"commit":"8b6442d9fa22"}
