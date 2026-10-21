@@ -113,3 +113,9 @@
 {"log":{"at":"2026-10-21T06:42:25-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-21T06:42:27-05:00","heartbeat":"answered","msg":"I'm still idle and waiting for your next voice question; nothing of mine is running."}}
 {"log":{"at":"2026-10-21T06:46:27-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-21T08:07:22-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-20261020"}}
+{"log":{"at":"2026-10-21T08:07:26-05:00","msg":"session resumed"}}
+{"finish":{"at":"2026-10-21T08:07:37-05:00","outcome":"Voice session 2026-10-20 closed. Cloud voice sessions are indexed (85e3bd9a9), the across-platforms rule is in messaging.md (43a5abd78), the phone-reach decision d-how-does-the-owner-reach is recorded with the cloud-voice-agent.md Options section (77aa362c3), and ask_mastermind answers are never lost (ddfb50d5c, live after a Servex restart). A later voice ask gets a fresh mastermind."}}
+{"log":{"at":"2026-10-21T08:07:39-05:00","heartbeat":"answered","msg":"I closed yesterday's voice session task (voice-20261020) with a summary of everything it landed, so the status checks should stop. If you ask something by voice later, a fresh mastermind picks it up."}}
+{"log":{"at":"2026-10-21T08:08:22-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-21T08:11:28-05:00","msg":"session ended (other) without landing"}}
