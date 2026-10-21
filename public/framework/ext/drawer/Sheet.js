@@ -88,7 +88,9 @@ export default class Sheet extends View {
 	open_at(mode, listen){
 		const router = this.app?.router, here = router?.active;
 		const real = here?.children?.has("ai") && !(here.children.get("ai") instanceof AIPage);
-		if (real || !router){
+		// The phone opens in place (same url, the size in history), so the page behind stays visible (the owner, 2026-10-20).
+		// <path>/ai/ still opens the sheet from a link or a reload. Alternative kept: route to <path>/ai/ and draw the page behind it (doc/sheet.md).
+		if (real || !router || this.small()){
 			const sizes = this.constructor.Size.between("closed", mode);
 			sizes.forEach((m, i) => history.pushState({ ...(history.state ?? {}), sheet: m, depth: i + 1, here: location.pathname }, "", location.href));
 			this.apply(mode, listen);
@@ -204,7 +206,7 @@ export default class Sheet extends View {
 	// ✦ opens the strip, listening (doc/owner-2026-10-16-sheet.md); an open sheet just starts listening.
 	open_sheet(){
 		if (this.mode && this.mode !== "closed") this.sheet().show({ listen: true });
-		else this.to("strip", { listen: true });
+		else this.to("split", { listen: true });   // the full wall of text is the mode now (the owner, 2026-10-20); drag down for the compact strip
 		return this.$sheet;
 	}
 }
@@ -216,25 +218,13 @@ export class SheetPanel extends View {
 	render(){
 		this.head();
 		this.handle();
-		this.$live = this.live_row();
 		new Inbox.Compact({ page: drawer.page() }).view();
 		this.$slot = div.c("drawer-rail-sheet-panel");
 		this.$links = this.links().ac("drawer-rail-sheet-links-folded");
 	}
 
-	// The strip's one line: mic dot, the last line said, ⌃ up to split (variant A).
-	live_row(){
-		return div.c("drawer-rail-sheet-live", () => {
-			new MicIndicator({ compact: true });
-			this.$said = span.c("drawer-rail-sheet-said muted", "listening…");
-			button.c("drawer-rail-sheet-tabs-btn", "▾").attr("type", "button").attr("title", "Dictation, Settings…").attr("aria-label", "Tabs")   // the tab menu at strip height too
-				.click(e => { e.stopPropagation(); this.to("split").then(() => this.toggle_menu(true)); });
-			button.c("drawer-rail-sheet-up", "⌃").attr("type", "button").attr("title", "Bigger").attr("aria-label", "Bigger")
-				.click(() => this.to("split"));
-		});
-	}
-
-	said(text){ if (text) this.$said?.text(text); }
+	// One layout at every height (the owner, 2026-10-20): head, well, mic footer. The strip is the same three rows with the well at 0 px.
+	said(){}
 
 	to(mode){ return this.rail ? this.rail.to(mode) : Promise.resolve(this.state(mode)); }
 
@@ -266,6 +256,8 @@ export class SheetPanel extends View {
 				this.$path = span.c("drawer-rail-sheet-path muted");
 			});
 			this.$menu = div.c("drawer-rail-sheet-menu").attr("role", "menu");
+			this.$reconnect = button.c("drawer-rail-sheet-reconnect", "Reconnect").attr("type", "button").attr("hidden", "")
+				.click(() => this.mount?.reconnect());
 			button.c("drawer-x", "✕").attr("type", "button").attr("title", "Close").click(() => this.close());
 		});
 	}
@@ -332,8 +324,7 @@ export class SheetPanel extends View {
 			axis: "y",
 			write: px => {
 				const Size = this.constructor.Size, h = Math.min(Math.max(px, 0), innerHeight);   // below half the strip closes
-				this.size_to(h + "px");
-				this.el.classList.toggle("drawer-rail-sheet-strip", h < Size.strip_below(innerHeight));
+				this.size_to(h + "px");   // only the height changes while dragging: nothing switches (doc/sheet.md)
 				return h;
 			},
 			done: h => this.settle(h),
@@ -362,7 +353,7 @@ export class SheetPanel extends View {
 		if (mode === "full") this.size_to("100dvh");
 		else if (mode === "strip") this.size_to(this.constructor.Size.STRIP + "px");
 		else this.size();
-		mode === "full" ? this.mount_tabs() : this.unmount_tabs();
+		if (mode !== "full") this.unmount_tabs();   // a tab body shows only when picked from the AI ▾ menu (choose())
 		return this;
 	}
 
@@ -408,7 +399,12 @@ export class SheetPanel extends View {
 			placeholder: this.card_ref ? "talk into this card" : "say something",
 		});
 		this.panel = this.mount.panel;
-		DictationBar.mount(this.panel, this.$live);   // the phone sheet's one big mic; delete this line to get the old controls back (doc: ux/Dictate/doc/refine-dictate-tasks.md#the-bar)
+		DictationBar.mount(this.panel);   // the sheet's mic footer (doc: ux/Dictate/doc/refine-dictate-tasks.md#the-bar)
+		this.mount.on_link?.(({ state, why }) => {   // the live wire to Servex: a Reconnect button only while it is down
+			const down = state === "down";
+			this.$reconnect.el.hidden = !down;
+			this.$reconnect.attr("title", down ? (why ?? "not connected") + ". Retrying by itself; press to try now. Log: /framework/audio/Whisper/log/" : "");
+		});
 		const heard = this.panel.on_text;
 		this.panel.on_text = text => { heard?.(text); this.said(text); };   // the strip's last line said
 		this.feed = AIFeed.on(this.$slot.el, drawer.page());   // this page's events among the bubbles (step 7)
@@ -437,7 +433,6 @@ export class SheetPanel extends View {
 		this.mount?.remove();
 		this.feed?.stop();
 		this.$slot?.empty();
-		this.$live?.el.querySelectorAll(".dictation-bar").forEach(el => el.remove());
 		this.mount = this.panel = this.feed = null;
 		return this;
 	}
@@ -496,7 +491,7 @@ SheetPanel.prototype.classes = "drawer-rail-sheet drawer-rail-sheet-v1 drawer-ra
 export class SheetSize {
 	static RANK = { closed: 0, strip: 1, split: 2, full: 3 };
 	static MODES = ["closed", "strip", "split", "full"];
-	static STRIP = 100;                       // px: the strip, about 100 px (variant A)
+	static STRIP = 110;                       // px: the strip = the head (57) + the mic footer (51), the well at 0 (measured 2026-10-20)
 	static FULL_AT = 0.9;                     // a drag released past 90% of the screen snaps to full
 	static SPLIT_MIN = 0.3;                   // a split's remembered height stays between these shares
 	static SPLIT_MAX = 0.88;

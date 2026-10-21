@@ -234,24 +234,24 @@
 	   relative`, above, or on `Widget.css`'s own `.ux-dictate-widget-thread`), floating at
 	   a fixed spot in the box's own VIEWPORT, not in its scrolled content — scrolling the
 	   box never moves it. */
+	/* sticky, not absolute: an absolute box inside a scroller scrolls away with the content (seen mid-bubble, 2026-10-20) */
 	.chatbox-jump {
-		position: absolute;
-		left: 50%;
-		bottom: 0.4em;
-		transform: translateX(-50%);
+		position: sticky;
+		inset-block-end: 0.5em;
 		z-index: 2;
-		display: grid;
-		place-items: center;
-		inline-size: 2em;
-		block-size: 2em;
-		border-radius: 50%;
-		border: 1px solid var(--line);
-		background: var(--surface);
-		color: inherit;
-		box-shadow: 0 2px 6px rgb(0 0 0 / 0.18);
+		display: block;
+		margin: 0.3em auto 0.5em;
+		padding: 0.35em 0.9em;
+		border-radius: 999px;
+		border: 0;
+		background: var(--ink);
+		color: var(--surface);
+		box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
 		cursor: pointer;
-		font-size: 1em;
-		line-height: 1;
+		font: inherit;
+		font-size: 0.85em;
+		font-weight: 600;
+		line-height: 1.2;
 	}
 	.chatbox-jump[hidden] { display: none; }
 

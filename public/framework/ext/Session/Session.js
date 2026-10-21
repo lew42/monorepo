@@ -132,12 +132,39 @@ export const select = ({ session, selection }) => post("select", { session, sele
  *  written; `text: ""` when it ends) and `{kind: "line", line}` (every line the moment Servex writes
  *  it, so a reply does not wait for the next poll). Server-sent events; the browser reconnects by
  *  itself, and each stream event carries the whole text, so a reconnect loses nothing. Returns `stop()`. */
-export function stream(session, on_event){
-	if (typeof EventSource !== "function") return () => {};
-	const src = new EventSource(servex_url(`/api/session/${session}/stream`));
-	src.onmessage = e => { try { on_event(JSON.parse(e.data)); } catch {} };
-	return () => src.close();
+export function stream(session, on_event, { on_state } = {}){
+	if (typeof EventSource !== "function") return Object.assign(() => {}, { reconnect(){} });
+	let src = null, timer = null, wait = 1000, down_at = 0, stopped = false;
+	const state = (s, why) => { stream.state = s; on_state?.(s, why); };
+	function open(why){
+		clearTimeout(timer); src?.close();
+		src = new EventSource(servex_url(`/api/session/${session}/stream`));
+		src.onopen = () => {
+			if (down_at) stream.log("reconnected", { session, why, down_ms: Date.now() - down_at });
+			down_at = 0; wait = 1000; state("open");
+		};
+		src.onmessage = e => { try { on_event(JSON.parse(e.data)); } catch {} };
+		// A refused connection retries by itself; a non-200 answer (the /servex proxy's 502 while Servex
+		// restarts) CLOSES the EventSource for good, so we reopen it, 1 s then doubling to 15 s. doc: ux/Dictate/doc/sheet.md
+		src.onerror = () => {
+			if (stopped) return;
+			const closed = src.readyState === EventSource.CLOSED;
+			if (!down_at){ down_at = Date.now(); stream.log("lost", { session, closed }); }
+			else if (closed) stream.log("retry failed", { session, next_ms: wait });
+			state("down", closed ? "Servex answered with an error" : "Servex is not answering");
+			if (closed){ timer = setTimeout(() => open("retry"), wait); wait = Math.min(wait * 2, 15000); }
+		};
+	}
+	open("start");
+	const stop = () => { stopped = true; clearTimeout(timer); src?.close(); };
+	stop.reconnect = () => { wait = 1000; stream.log("reconnect pressed", { session }); open("button"); };
+	return stop;
 }
+stream.state = "open";
+/** Every connection failure, one line in the Whisper bucket: written through the dev server, which is up when Servex is not.
+ *  Open it at /framework/audio/Whisper/log/. Decision and the alternative: ux/Dictate/doc/sheet.md#the-log */
+stream.log = (kind, fields) => import("/framework/audio/Whisper/WhisperLog.js")
+	.then(m => m.default.event("connection", kind, fields)).catch(() => {});
 
 /** The owner moved from one page to another while the session is open. `card` (one-dictation,
  *  item 1) is the card selected AT THAT MOMENT, or omitted for none — it is what lets the smart
