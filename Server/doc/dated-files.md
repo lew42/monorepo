@@ -28,7 +28,9 @@ Reads in the browser go through `Dated.Index.open(url)`, which tails the day fil
 ## Decisions
 
 - `move` takes one object (`{from, module, apply}`) rather than the plan's `move(item, to)`, so the existing `move_project` tool keeps its exact inputs.
-- `watch()` is built for sessions (below) but nothing starts it yet: Servex or the dev server must call `DatedFiles.sessions.watch()` once at start-up (a restart); until then `sync(dir)` is the manual door.
+- `watch()` for sessions is started in `Servex/Servex.js` next to the tools; a **Servex restart** activates it. It indexes top-level folders only (a nested task is a task row, `AIIndex`'s) and ignores `cache.jsonl`/`index.json` writes. `sync(dir)` is the manual door.
+- The sessions `check()` is weaker than the projects one on purpose: a folder with no row is not a fault (old sessions never had rows), and a folder whose only clue to its day is the disk birth time is not judged.
+- `SessionDayMove` keeps its manifest, `--apply` and `--undo`; only its date rules moved into `DatedFiles.sessions` (`start`, `misfiled`). Folding apply/undo into `move` is left.
 - A restart of Servex (tools) and the dev server (rpc) loads the new doors; `check()` and the test do not need it. Test: `node public/framework/core/Item/Dated.test.mjs`.
 
 ## The sessions collection (slice 2)

@@ -265,6 +265,8 @@ export default class DatedFiles extends Dated {
 		const w = fs.watch(root, { recursive: true }, (_ev, name) => {
 			const parts = String(name ?? "").split(/[\\/]/);   // YYYY/MM/DD/<folder>/…
 			if (parts.length < 4 || !/^\d{4}$/.test(parts[0]) || /^(index\.jsonl|day\.jsonl|cards)$/.test(parts[3])) return;
+			const leaf = parts[parts.length - 1], record = leaf === "session.jsonl" || leaf === "task.jsonl";
+			if (parts.length > 4 && !record) return;   // cache.jsonl, index.json and the rest are the transcript indexer's own writes
 			const dir = path.join(root, ...parts.slice(0, 4));
 			clearTimeout(timers.get(dir));
 			timers.set(dir, setTimeout(() => { timers.delete(dir); try { fs.existsSync(dir) && this.sync(dir); } catch (e) { console.error("DatedFiles.watch:", e.message); } }, debounce));

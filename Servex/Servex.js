@@ -965,6 +965,7 @@ export default class Servex extends Events {
         for (const tool of directory_tools(this.agents)) this.mcp.tool(tool);   // ask_directory: agents/directory.js
         for (const tool of this.cards.tools()) this.mcp.tool(tool);
         for (const tool of this.pool?.tools() ?? []) this.mcp.tool(tool);   // take_worktree, return_worktree
+        try { this.dated_watch = DatedFiles.sessions.watch(); } catch (e) { console.error("DatedFiles.watch:", e.message); }   // the index row of any new session folder (a Servex restart starts it)
         for (const t of DatedFiles.tools()) this.mcp.tool(t);   // move_project, dated_create, dated_query: Server/DatedFiles.mjs
         for (const tool of this.follow.tools()) this.mcp.tool(tool);   // follow, unfollow, list_follows
         for (const tool of this.inbox.tools()) this.mcp.tool(tool);   // drop, clear, inbox
