@@ -55,3 +55,5 @@ A session folder is one of three kinds:
 **Views plan (2026-10-20, proposals, waiting on your pick):** [doc/views-plan.md](doc/views-plan.md): the day view, the URL shape, columns, and the session page with its tasks; prototype at [doc/variants/](/framework/ai/sessions/doc/variants/).
 
 [doc/session-readme.md](doc/session-readme.md) (a generated `readme.md` per folder, `node Server/SessionReadme.mjs <folder>`; what `requirements.md` is) · [doc/ui/compact-layout.md](doc/ui/compact-layout.md) · [doc/data/data-architecture.md](doc/data/data-architecture.md) · [doc/cost/](doc/cost/spend-tree.md) · [doc/live/realtime.md](doc/live/realtime.md) · [doc/picture-archive.md](doc/picture-archive.md) · [doc/next.md](doc/next.md) · the readme as it stood before this rewrite, with its dated decisions: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
+
+**Next: design first.** Session and task views are designed in Figma before they are built: [doc/design-first.md](doc/design-first.md) (2026-10-20).
