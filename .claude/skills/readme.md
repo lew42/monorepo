@@ -16,7 +16,7 @@ Usage data: `node Server/SkillCensus.mjs` (loads logged by `.claude/hooks/ledger
 | Kind | Skills | Verdict |
 |---|---|---|
 | Trigger | new-task, finish-task, decide, make, past-work, research, skill-improvement, documentation, content | keep. `make` shows 0 loads although law 8 depends on it: watch it |
-| Reference | code → css → new-css-class; page → layout, navigation, ui, color; ui-test, check-claude-usage, fork-claude-session | keep. `new-css-class` is already folded into `css`; it stays as a 13-line alias because agents call it by name (71 loads). `fork-claude-session`: 0 loads, no role; archive if still unused by 2026-11-20 |
+| Reference | code → css → new-css-class; page → layout, navigation, ui, color; ui-test, check-claude-usage, fork-claude-session, figma (2026-10-20: before any Figma design work) | keep. `new-css-class` is already folded into `css`; it stays as a 13-line alias because agents call it by name (71 loads). `fork-claude-session`: 0 loads, no role; archive if still unused by 2026-11-20 |
 | Role | minion, mastermind, sub-mastermind, servex-mastermind, system-architect, master-assistant, every-prompt, voice-assistant, voice-mastermind, log-assistant, clarity, auditor, review, openrouter | keep; trim the big ones (below) |
 
 ## Next (cost per spawn, biggest first)
