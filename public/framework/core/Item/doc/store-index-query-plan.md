@@ -191,3 +191,7 @@ Order: 1 → 2 → 3 → 6, with 4 and 5 alongside. The 539 module tasks (`<modu
 
 - [core/Item/readme.md](../readme.md): its persistence lines become one line: "Saving to a `.jsonl`: [core/Page/doc/jsonl.md](../../Page/doc/jsonl.md)."
 - [ext/JSONL/readme.md](../../../ext/JSONL/readme.md): its converge note becomes one line pointing there; the `TaskJSONL` verb reference stays, because it documents that class's API, not the store.
+
+## The owner, 2026-10-20 19:20: one data system for every log kind
+
+`ai/whisper/<date>.jsonl` is a second dated system, and that is the thing to stop: nobody rebuilds date folders, indexing or querying for a new kind of log. The sessions data system (JSONL records, the live tail, the streamed index, the server-side query, and the DataGrid that renders rows) is **one system**, and any new log kind (Whisper, a voice session, a project) is one more collection on it. The rendering belongs in the same system: one grid for any collection. Whisper is the first test case once slice 2 lands. For now the owner tolerates a demo with its own save folder if it works; the raw Whisper lines may prove useless once the flow is understood (perhaps only prompts get saved), so no persistence work beyond a temporary bucket per session.
