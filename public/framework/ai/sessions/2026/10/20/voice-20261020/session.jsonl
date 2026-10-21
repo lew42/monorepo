@@ -72,3 +72,4 @@
 {"log":{"at":"2026-10-20T21:01:13-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-20261020"}}
 {"log":{"at":"2026-10-20T21:01:16-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-20T21:01:18-05:00","heartbeat":"answered","msg":"I'm still idle and waiting for your next voice question. The status checks keep coming even though my log says I'm waiting, so the heartbeat doesn't appear to read that line."}}
+{"log":{"at":"2026-10-20T21:05:18-05:00","msg":"session ended (other) without landing"}}
