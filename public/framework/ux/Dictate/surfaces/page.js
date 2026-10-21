@@ -1,7 +1,7 @@
 import { Page, md, div, h2, h3, img, a } from "/app.js";
 
 // The phone sheet at 400 px, one shot per 40 px of drag, before and after 2026-10-20 (../test/sheet-steps.mjs; doc: ext/drawer/doc/sheet.md).
-const STEPS = "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/shots/";
+const STEPS = new URL("./sheet-steps/", import.meta.url).href;   // made by ../test/sheet-steps.mjs
 function sheet_steps(){
 	h2("The phone sheet, step by step").attr("id", "the-phone-sheet-step-by-step");
 	md("**One click on ✦, then the top edge dragged 40 px at a time.** Before (left): it opens as a one-line strip, the page behind turns into an empty grey page, and the layout changes as it grows (a strip, a boxed chat, a tab row). After (right): the page stays visible, and the same three rows (head, chat well, mic footer) only grow, snap open at 90%, then come back down to the compact strip. Made by [test/sheet-steps.mjs](/framework/ux/Dictate/test/sheet-steps.mjs); why and how: [ext/drawer/doc/sheet.md](/framework/ext/drawer/doc/sheet.md).");
