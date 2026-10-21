@@ -6,7 +6,7 @@
 
 - **Colors** (one mode): `prime` #FF6157 (the site's; was #72C4FF until 2026-10-12), `light` #DDDDDD, `dark` #675F56 (the site's is #42404B: open), and `error` #CC0000, `ok` #15803D, `warn` #A16207, added 2026-10-12 to mirror the site's `--error`/`--ok`/`--warn`.
 - **Text** (modes `Light BG`, `Dark BG`): `text` black 80% / white; `muted` black 55% / white 70%. A frame set to `Dark BG` turns every bound `text`/`muted` fill inside it white.
-- **Resolution** (modes `Default`, `Mobile`, `Mega`): `pad-x` 32/16/56, `pad-y` 36/24/64, `gap` 16/14/32, `radius` 4/4/6, `section-pad-x` 48/16/80, `section-pad-y` 120/48/64, `h1-size` 48/32/64, `btn-pad-*`, `small-pad-*`. **Mega is the 3440 mode.**
+- **Resolution** (modes `Default`, `Mobile`, `Mega`): `pad-x` 48/16/56, `pad-y` 48/24/64, `gap` 16/14/32, `radius` 4/4/6, `section-pad-x` 120/16/80, `section-pad-y` 120/48/64, `h1-size` 48/32/64, `btn-pad-x/y` 26·16/14·8/24·14, `small-pad-x/y` 12·6/8·4/16·8 (read from the file 2026-10-20). **Mega is the 3440 mode.**
 - **Text styles**: `h1` Montserrat Black (size bound to `h1-size`), `h2` Bold 36, `h3` SemiBold 24, `h4` Bold 14 +7% tracking, `body` Medium 16 / 180%, `code` Consolas Bold 14.
 - No paint or effect styles. Every variable has `ALL_SCOPES`.
 - The approved stacks (Page 7, `115:2340`) are fill layers: base colour, then a black or white alpha layer (10/25/50%). Dark and prime frames set Text = `Dark BG`.

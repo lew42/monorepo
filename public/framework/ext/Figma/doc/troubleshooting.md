@@ -2,6 +2,18 @@
 
 One dated entry per problem: what happened, why, the fix. Read this only when something goes wrong; the everyday recipe is [use-figma.md](use-figma.md).
 
+## 2026-10-20 · An empty slot is 100 px tall in the main component
+
+**What:** `Card / Session` and `Card / Project` ran ~300 px tall with nothing in them, and the project's accent edge ran far past its content.
+**Why:** a SLOT with no children keeps a 100 px placeholder height; `layoutSizingVertical = 'HUG'` does not shrink it.
+**Fix:** accept it on the main component (it is the drop area), and hide empty slots in every instance (`slot.visible = false`). Instances with content hug normally.
+
+## 2026-10-20 · Checkbox labels clipped at 400
+
+**What:** long task names in kit `Checkbox` instances ran past the card edge.
+**Why:** the kit's label is `WIDTH_AND_HEIGHT` (hugs); a FILL instance does not make its label wrap.
+**Fix:** set the instance and its `Label` text to FILL, then `textAutoResize = 'HEIGHT'`. Run it once over the finished frames and count how many changed: a fix inside a builder silently missed 13 of 140.
+
 ## 2026-10-20 · A faint fill rendered dark brown
 
 **What:** segments and chips meant to be a faint grey (`dark` at 12% opacity) drew solid dark brown.
