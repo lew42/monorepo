@@ -15,6 +15,7 @@ import AISessionFlags from "./AISessionFlags.js";
 import StoreFolder from "./StoreFolder.js";
 AISessionFlags.usd_of = r => AISessionRows.claude_usd_of(r);   // flags_of reads the row's Claude $ from the session index here
 import QueryClient from "/framework/ext/Query/QueryClient.js";
+import Day from "/framework/core/Session/Day.js";
 import PageWork from "/framework/core/Page/ai/PageWork.js";
 
 const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
@@ -63,9 +64,9 @@ export default class AISessionsPage extends Page {
 		this.role_filter = null;    // Set<string> | null (null until the first real data arrives)
 		this.trigger_filter = null; // same shape, for the spend tree's trigger tag
 		const today = new Date();
-		this.date_to = today.toISOString().slice(0, 10);
+		this.date_to = Day.of(today);
 		// Newest month first: the window opens at the 1st of this month (at least 7 days back); "show 30 more days" and the From box load older day files on demand.
-		this.date_from = new Date(Math.min(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1), today.getTime() - 6 * 864e5)).toISOString().slice(0, 10);
+		this.date_from = Day.of(Math.min(new Date(today.getFullYear(), today.getMonth(), 1).getTime(), new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6).getTime()));
 		this.last_rows = [];        // the latest merged rows, UNFILTERED: filters and sort redraw from this
 		this.filtered_count = 0;    // the "sessions shown" count
 
@@ -98,13 +99,13 @@ export default class AISessionsPage extends Page {
 	// ---- scope: year / month / day, a breadcrumb that is also the URL (?scope=2026-10) ------------------
 
 	static pad = n => String(n).padStart(2, "0");
-	static month_of(d){ return d.getUTCFullYear() + "-" + AISessionsPage.pad(d.getUTCMonth() + 1); }
+	static month_of(d){ return Day.of(d).slice(0, 7); }
 
 	/** [from, to] day strings for "2026", "2026-10" or "2026-10-13". `floor`: the default month keeps its 7-day minimum window. */
 	static range(scope, floor){
 		const [y, m, d] = scope.split("-").map(Number), pad = AISessionsPage.pad;
 		if (d) return [scope, scope];
-		if (m) return [floor && floor < `${y}-${pad(m)}-01` ? floor : `${y}-${pad(m)}-01`, `${y}-${pad(m)}-${pad(new Date(Date.UTC(y, m, 0)).getUTCDate())}`];
+		if (m) return [floor && floor < `${y}-${pad(m)}-01` ? floor : `${y}-${pad(m)}-01`, `${y}-${pad(m)}-${pad(new Date(y, m, 0).getDate())}`];
 		return [`${y}-01-01`, `${y}-12-31`];
 	}
 
@@ -115,8 +116,8 @@ export default class AISessionsPage extends Page {
 		const parts = this.scope.split("-"), pad = AISessionsPage.pad;
 		const step = dir => {
 			const [y, m, d] = parts.map(Number);
-			if (d) return AISessionsPage.ymd(new Date(Date.UTC(y, m - 1, d + dir))).replaceAll("/", "-");
-			if (m) return AISessionsPage.month_of(new Date(Date.UTC(y, m - 1 + dir, 1)));
+			if (d) return AISessionsPage.ymd(new Date(y, m - 1, d + dir)).replaceAll("/", "-");
+			if (m) return AISessionsPage.month_of(new Date(y, m - 1 + dir, 1));
 			return String(y + dir);
 		};
 		this.$scope?.empty(() => {
@@ -137,7 +138,7 @@ export default class AISessionsPage extends Page {
 		});
 	}
 
-	static ymd(d){ return d.getUTCFullYear() + "/" + AISessionsPage.pad(d.getUTCMonth() + 1) + "/" + AISessionsPage.pad(d.getUTCDate()); }
+	static ymd(d){ return Day.path(d); }
 
 	/** Scope the list to a year, month or day: the dates move, the URL follows (`?scope=`), and the query asks again. */
 	set_scope(scope){
@@ -239,7 +240,7 @@ export default class AISessionsPage extends Page {
 	render_counts(){
 		small.c("muted sessions-counts", () => {
 			span(`${(this.listed ?? this.filtered_count).toLocaleString()} sessions listed${this.listed != null && this.filtered_count > this.listed ? ` (${(this.filtered_count - this.listed).toLocaleString()} routine hidden)` : ""} · $${(this.shown_usd ?? 0).toFixed(2)} Claude cost · ${this.date_from} to ${this.date_to} · `);
-			button.c("sessions-older", "show 30 more days").attr("title", "Loads the older day files (one small file per day) on demand.").on("click", () => this.set_from(new Date(Date.parse(this.date_from) - 30 * 864e5).toISOString().slice(0, 10)));
+			button.c("sessions-older", "show 30 more days").attr("title", "Loads the older day files (one small file per day) on demand.").on("click", () => { const [y, m, d] = this.date_from.split("-").map(Number); this.set_from(Day.of(new Date(y, m - 1, d - 30))); }); // local midnight, never Date.parse (UTC)
 		}).attr("title", "Claude cost is the API-equivalent price of the tokens, summed from the session files. It is not a bill.");
 		const r = this.reconcile;
 		if (r?.account_total_usd != null) small.c("muted sessions-counts", `OpenRouter (real dollars): $${r.recorded_verified_usd.toFixed(2)} recorded · account says $${r.account_total_usd.toFixed(2)}`)
