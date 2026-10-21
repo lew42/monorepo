@@ -1,0 +1,121 @@
+diff --git a/public/framework/ext/drawer/Sheet.js b/public/framework/ext/drawer/Sheet.js
+index 6679217ef..5c0d9da61 100644
+--- a/public/framework/ext/drawer/Sheet.js
++++ b/public/framework/ext/drawer/Sheet.js
+@@ -323,8 +323,8 @@ export class SheetPanel extends View {
+ 		return grip({
+ 			axis: "y",
+ 			write: px => {
+-				const Size = this.constructor.Size, h = Math.min(Math.max(px, 0), innerHeight);   // below half the strip closes
+-				this.size_to(h + "px");   // only the height changes while dragging: nothing switches (doc/sheet.md)
++				const Size = this.constructor.Size, h = Math.min(Math.max(px, 0), innerHeight);   // below half the strip closes (settle gets the raw h)
++				this.size_to(Math.max(h, Size.STRIP) + "px");   // never under the head + footer, so neither is clipped mid-drag; only the height changes (doc/sheet.md)
+ 				return h;
+ 			},
+ 			done: h => this.settle(h),
+diff --git a/public/framework/ux/Dictate/surfaces/page.js b/public/framework/ux/Dictate/surfaces/page.js
+index da24bbb54..9fd75f38e 100644
+--- a/public/framework/ux/Dictate/surfaces/page.js
++++ b/public/framework/ux/Dictate/surfaces/page.js
+@@ -4,6 +4,7 @@ import { Page, md, div, h2, h3, img, a } from "/app.js";
+ const STEPS = new URL("./sheet-steps/", import.meta.url).href;   // made by ../test/sheet-steps.mjs
+ function sheet_steps(){
+ 	h2("The phone sheet, step by step").attr("id", "the-phone-sheet-step-by-step");
++	md("**How to read the steps.** Each series starts with the first click on ✦. Before, that opens a one-line strip; after, it opens at 60% of the screen. Steps then run upward, 40 px per shot, to the snap to full screen (before 1 to 17, after 1 to 9). After also comes back down: step 10 is the 60% height again, and 11 to 21 drag down 40 px per shot to the compact strip (head and mic footer, the well at 0 px).");
+ 	md("**One click on ✦, then the top edge dragged 40 px at a time.** Before (left): it opens as a one-line strip, the page behind turns into an empty grey page, and the layout changes as it grows (a strip, a boxed chat, a tab row). After (right): the page stays visible, and the same three rows (head, chat well, mic footer) only grow, snap open at 90%, then come back down to the compact strip. Made by [test/sheet-steps.mjs](/framework/ux/Dictate/test/sheet-steps.mjs); why and how: [ext/drawer/doc/sheet.md](/framework/ext/drawer/doc/sheet.md).");
+ 	div.c("ux-dictate-surfaces-steps", $g => {
+ 		$g.style({ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5em", alignItems: "start" });
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/files.jsonl b/public/framework/ux/Dictate/surfaces/sheet-steps/after/files.jsonl
+new file mode 100644
+index 000000000..3c4fdf8e7
+--- /dev/null
++++ b/public/framework/ux/Dictate/surfaces/sheet-steps/after/files.jsonl
+@@ -0,0 +1,22 @@
++{"file":"sheet-000.png"}
++{"file":"sheet-001.png"}
++{"file":"sheet-002.png"}
++{"file":"sheet-003.png"}
++{"file":"sheet-004.png"}
++{"file":"sheet-005.png"}
++{"file":"sheet-006.png"}
++{"file":"sheet-007.png"}
++{"file":"sheet-008.png"}
++{"file":"sheet-009.png"}
++{"file":"sheet-010.png"}
++{"file":"sheet-011.png"}
++{"file":"sheet-012.png"}
++{"file":"sheet-013.png"}
++{"file":"sheet-014.png"}
++{"file":"sheet-015.png"}
++{"file":"sheet-016.png"}
++{"file":"sheet-017.png"}
++{"file":"sheet-018.png"}
++{"file":"sheet-019.png"}
++{"file":"sheet-020.png"}
++{"file":"sheet-021.png"}
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-000.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-000.png
+index cbb93a8f9..3e9ea4863 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-000.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-000.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-001.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-001.png
+index 664ba39aa..3cf40ca04 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-001.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-001.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-002.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-002.png
+index de12d6c49..16a573ad5 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-002.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-002.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-003.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-003.png
+index d4b042916..43c909bfc 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-003.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-003.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-004.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-004.png
+index 40706174b..c3c820ae3 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-004.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-004.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-005.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-005.png
+index 2344a30ab..b15db9943 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-005.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-005.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-006.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-006.png
+index 481425b88..55c8724e6 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-006.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-006.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-007.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-007.png
+index 13880f165..eb7f4d853 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-007.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-007.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-008.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-008.png
+index 2793d14e0..dba225be9 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-008.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-008.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-009.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-009.png
+index c9c931240..b4deb72ec 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-009.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-009.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-010.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-010.png
+index 033b42b55..751d93af5 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-010.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-010.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-011.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-011.png
+index 2b129f693..c7de1c2d8 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-011.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-011.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-012.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-012.png
+index dc51beefc..16f439d15 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-012.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-012.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-013.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-013.png
+index 008f716e1..414d75078 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-013.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-013.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-014.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-014.png
+index f0171b9d9..1a1e6c059 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-014.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-014.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-015.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-015.png
+index f8047692e..d203ff63c 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-015.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-015.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-016.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-016.png
+index c5bf448b8..1a3b3df8b 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-016.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-016.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-017.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-017.png
+index 187c896f8..e7d479461 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-017.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-017.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-018.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-018.png
+index f5e87b770..a422402e2 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-018.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-018.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-019.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-019.png
+index 08e323c3e..03683e1fd 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-019.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-019.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-020.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-020.png
+index 4bcc2cb7d..46e698557 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-020.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-020.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-021.png b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-021.png
+index 6d5f7b650..d7cf280b5 100644
+Binary files a/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-021.png and b/public/framework/ux/Dictate/surfaces/sheet-steps/after/sheet-021.png differ
