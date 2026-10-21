@@ -20,7 +20,7 @@ ever appeared — no error, no clue why.
 
 **What the owner asked, merged and checked** (open first): [`doc/asks.md`](doc/asks.md); **next brief**: [`doc/next.md`](doc/next.md). **Try it on your phone** (talk, watch the five stages land on the session page): [`doc/try-it.md`](doc/try-it.md).
 
-**Is the raw Whisper reply saved?** Yes, every reply, to the Servex `whisper-raw` log: [`audio/Whisper/doc/raw-log.md`](/framework/audio/Whisper/doc/raw-log.md).
+**Is the raw Whisper reply saved?** Yes, every reply on every surface, by `log_whisper()` into the [Whisper](/framework/audio/Whisper/) bucket; watch them arrive on that page ([doc/demo.md](/framework/audio/Whisper/doc/demo.md)). History: [`audio/Whisper/doc/raw-log.md`](/framework/audio/Whisper/doc/raw-log.md).
 
 **How fast is the first reply?** Measured hop by hop, before and after: [`doc/latency.md`](doc/latency.md).
 

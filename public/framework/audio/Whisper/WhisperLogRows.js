@@ -73,6 +73,21 @@ export default class WhisperLogRows {
 		});
 	}
 
+	/** Mark which final replaced which interims: an interim of the same run and segment, before a final, gains
+	 *  `replaced_by` (the final's seq); the final gains `replaces` (their seqs). Rows are changed in place and returned. */
+	static supersede(rows){
+		const finals = new Map();
+		for (const r of rows) if (r.src === "server" && r.kind === "final" && r.segment != null) finals.set(`${r.run}|${r.segment}`, r);
+		for (const r of rows){
+			if (r.src !== "server" || r.kind !== "interim" || r.segment == null) continue;
+			const f = finals.get(`${r.run}|${r.segment}`);
+			if (!f || (f.t ?? 0) < (r.t ?? 0)) continue;
+			r.replaced_by = f.seq;
+			(f.replaces ??= []).push(r.seq);
+		}
+		return rows;
+	}
+
 	static runs(lines){ return [...new Set(lines.filter(l => l?.run).map(l => l.run))]; }
 
 	/** One line of facts: how many replies, how many amended, how many duplicates, per stage. */

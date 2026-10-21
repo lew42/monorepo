@@ -6,6 +6,7 @@ import floor from "./floor.js";
 import MicIndicator from "./MicIndicator.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 import Socket from "/framework/dev/Socket/Socket.js";
+import WhisperLog from "/framework/audio/Whisper/WhisperLog.js";
 
 View.stylesheet(import.meta, "Dictate.css");
 
@@ -550,11 +551,10 @@ export default class Dictate extends View {
 		return text;
 	}
 
-	/** Save the raw Whisper reply: one line in Servex's single-writer `whisper-raw` log, fire and forget, never throws. see audio/Whisper/doc/raw-log.md */
+	/** Save the raw Whisper reply: one line in the day file through `WhisperLog.record()`, fire and forget, never throws. see audio/Whisper/doc/demo.md */
 	log_whisper({ body, ...line }){
 		const session = typeof this.session === "function" ? this.session() : this.session;
-		const segments = Array.isArray(body?.segments) ? body.segments.map(({ start, end, text, avg_logprob, no_speech_prob }) => ({ start, end, text, avg_logprob, no_speech_prob })) : undefined;
-		post_prompt({ type: "whisper", ...line, session: session || "", ...(segments && { segments }) }, this.whisper_log_url);
+		try { WhisperLog.record({ ...line, body, session: session || undefined }); } catch {}
 	}
 
 	/** Debug seam: `window.$DICTATE_DUMP = true` also writes each WAV to dump_file. see doc/notes.md#debug-dump */
@@ -756,8 +756,7 @@ function default_whisper_url(){
 floor.post = (state, owner) => post_prompt({ type: "floor", state }, owner?.log_url);
 
 Dictate.prototype.whisper_url = default_whisper_url();
-Dictate.prototype.whisper_log_url = servex_url("/log/whisper-raw");
-Dictate.prototype.log_raw = true;   // save every raw Whisper reply (finals with segments) to the Servex whisper-raw log
+Dictate.prototype.log_raw = true;   // save every raw Whisper reply (finals with segments) to the WhisperLog day file: audio/Whisper/doc/demo.md
 Dictate.prototype.log_url = servex_url("/log/prompts");       // Servex's single-writer log — not always up yet
 Dictate.prototype.log_fallback_file = "framework/ai/prompts.jsonl";    // dev-server rpc:append fallback, relative under public/
 Dictate.prototype.lang = "en-US";

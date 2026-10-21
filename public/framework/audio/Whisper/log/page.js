@@ -1,13 +1,13 @@
 import { Page } from "/app.js";
-import WhisperLog from "../WhisperLog.js";
+import WhisperDemo from "../WhisperDemo.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Whisper log",
-	description: "Every event between the microphone and the page, in order: Whisper's own replies (interim and final, with everything the server sends), then what each stage did with them.",
+	description: "Every step between the microphone and the page: Whisper's answers, then what Dictate, the composer and Refine did with each.",
 	icon: "receipt_long",
 
 	content(){
-		new WhisperLog();
+		new WhisperDemo({ steps: true });   // the same demo as the Whisper page, with every step on: audio/Whisper/doc/demo.md
 	},
 });

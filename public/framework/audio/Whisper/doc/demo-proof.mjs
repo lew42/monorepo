@@ -1,0 +1,43 @@
+// Headless proof of the Whisper demo: talks jfk.wav into the fake mic on the Whisper page and shoots each state.
+//   node demo-proof.mjs <site url> <jfk.wav> <out dir>
+// Shots: 1200 (rows arriving), the final drilled in, maximized, the Class tab, and 400.
+import { pathToFileURL } from "url";
+import { execSync } from "child_process";
+import path from "path";
+const [base, wav, out] = process.argv.slice(2);
+const entry = path.join(execSync("npm root -g").toString().trim(), "playwright", "index.mjs");
+const { chromium } = await import(pathToFileURL(entry).href);
+const browser = await chromium.launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
+const ctx = await browser.newContext({ viewport: { width: 1200, height: 900 }, permissions: ["microphone"] });
+const page = await ctx.newPage();
+const errors = [];
+page.on("pageerror", e => errors.push(e.message));
+await page.goto(base + "/framework/audio/Whisper/", { waitUntil: "networkidle" });
+await page.locator(".wd").screenshot({ path: `${out}/1-sample-1200.png` });
+await page.locator(".wd .wd-btn", { hasText: "New session" }).click();
+await page.waitForTimeout(800);
+await page.locator(".wd .ux-dictate-btn").click();
+const t0 = Date.now();
+while (Date.now() - t0 < 40000 && !(await page.locator(".wd-banner").count() === 0 && await page.locator(".wd-row.k-final").count())) await page.waitForTimeout(500);
+await page.locator(".wd .ux-dictate-btn").click().catch(() => {});
+await page.waitForTimeout(1500);
+const rows = await page.locator(".wd-row").count(), finals = await page.locator(".wd-row.k-final").count(), replaced = await page.locator(".wd-row.is-replaced").count();
+await page.locator(".wd").screenshot({ path: `${out}/2-live-1200.png` });
+await page.locator(".wd-row.k-final").last().click();
+await page.waitForTimeout(300);
+await page.locator(".wd-detail").last().scrollIntoViewIfNeeded();
+await page.locator(".wd").screenshot({ path: `${out}/3-drill-1200.png` });
+await page.locator(".wd-max").click();
+await page.waitForTimeout(300);
+await page.screenshot({ path: `${out}/4-max-1200.png` });
+await page.locator(".wd-tab", { hasText: "Class" }).click();
+await page.waitForTimeout(500);
+await page.screenshot({ path: `${out}/5-class-1200.png` });
+await page.keyboard.press("Escape");
+await page.locator(".wd-tab", { hasText: "Log" }).click();
+await page.setViewportSize({ width: 400, height: 800 });
+await page.waitForTimeout(500);
+await page.screenshot({ path: `${out}/6-live-400.png`, fullPage: false });
+await browser.close();
+console.log(JSON.stringify({ rows, finals, replaced, errors }));
+process.exit(rows && finals && !errors.length ? 0 : 1);

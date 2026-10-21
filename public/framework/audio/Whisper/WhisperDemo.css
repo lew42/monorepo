@@ -1,0 +1,47 @@
+@layer base, theme, site, util;
+
+@layer site {
+	/* the demo: header and footer stay put, the middle scrolls; .is-max takes over the screen */
+	.wd { display: flex; flex-direction: column; block-size: min(75vh, 44em); inline-size: clamp(18rem, 100vw - 22rem, 90rem); max-inline-size: none; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: .5em; background: Canvas; overflow: hidden; font-size: .9em; }
+	.wd.is-max { position: fixed; inset: 0; z-index: 100000; block-size: auto; inline-size: auto; border-radius: 0; font-size: 1em; }
+	.wd-head { display: flex; flex-wrap: wrap; align-items: center; gap: .4em .8em; padding: .5em .8em; border-block-end: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+	.wd-title { display: flex; flex-direction: column; margin-inline-end: auto; }
+	.wd-name { font-weight: 600; }
+	.wd-sub { font-size: .85em; }
+	.wd-btn, .wd-tab { font: inherit; padding: .2em .7em; border: 1px solid color-mix(in srgb, currentColor 25%, transparent); border-radius: 1em; background: none; color: inherit; cursor: pointer; min-block-size: 2.2em; }
+	.wd-btn.is-on, .wd-tab.is-on { background: color-mix(in srgb, seagreen 22%, transparent); }
+	.wd-tabs { display: flex; gap: .3em; padding: .3em .8em; }
+	.wd-tab { border-radius: .4em; min-block-size: 1.9em; }
+	.wd-body { flex: 1; overflow: auto; container-type: inline-size; padding: .2em .8em .6em; }
+	.wd-foot { display: flex; flex-wrap: wrap; gap: .2em .8em; padding: .45em .8em; border-block-start: 1px solid color-mix(in srgb, currentColor 12%, transparent); font-size: .85em; }
+	.wd-count { font-variant-numeric: tabular-nums; font-weight: 600; }
+	.wd-banner { padding: .4em .6em; margin-block: .3em; border-radius: .4em; background: color-mix(in srgb, steelblue 14%, transparent); }
+	.wd-empty { padding: 1em 0; opacity: .6; }
+	.wd-run { font-size: .8em; padding-block: .6em .1em; }
+
+	/* one answer: time, kind, text, the one note */
+	.wd-row { display: grid; grid-template-columns: 9.5em 4.5em 1fr auto; gap: .6em; align-items: baseline; padding: .25em .3em; border-radius: .3em; cursor: pointer; }
+	.wd-row:hover { background: color-mix(in srgb, currentColor 6%, transparent); }
+	.wd-at { font-variant-numeric: tabular-nums; opacity: .6; font-size: .85em; white-space: pre; }
+	.wd-kind { justify-self: start; min-inline-size: 4.5em; font-size: .8em; text-align: center; padding: .05em .4em; border-radius: 1em; background: color-mix(in srgb, currentColor 10%, transparent); }
+	.wd-row.k-final .wd-kind { background: color-mix(in srgb, seagreen 30%, transparent); font-weight: 600; }
+	.wd-row.k-interim .wd-text { opacity: .7; }
+	.wd-row.is-replaced .wd-text { opacity: .45; }
+	.wd-row.is-amended .wd-note { color: darkorange; font-weight: 600; }
+	.wd-row:not(.is-server) { font-size: .85em; opacity: .75; }
+	.wd-note { font-size: .8em; opacity: .7; white-space: nowrap; }
+	.wd-w.is-add { background: color-mix(in srgb, seagreen 22%, transparent); border-radius: .2em; }
+	.wd-w.is-del { text-decoration: line-through; color: crimson; }
+	@container (inline-size < 34em) { .wd-row { grid-template-columns: auto 1fr; } .wd-text { grid-column: 1 / -1; } }
+
+	/* the drill-down */
+	.wd-detail { display: grid; gap: .5em; margin: .2em 0 .8em 1em; padding: .6em .8em; border-inline-start: 3px solid seagreen; background: color-mix(in srgb, currentColor 4%, transparent); border-radius: 0 .4em .4em 0; }
+	.wd-say { margin: 0; }
+	.wd-facts { display: flex; flex-wrap: wrap; gap: .2em 1.2em; font-variant-numeric: tabular-nums; }
+	.wd-seg-head { display: flex; gap: .8em; font-size: .85em; }
+	.wd-words { display: flex; flex-wrap: wrap; gap: .1em; }
+	.wd-word { padding: 0 .15em; border-radius: .2em; background: color-mix(in srgb, crimson calc((1 - var(--p)) * 60%), transparent); }
+	.wd-raw pre { max-block-size: 20em; overflow: auto; font-size: .8em; }
+	.wd-class { display: grid; grid-template-columns: repeat(auto-fit, minmax(16em, 1fr)); gap: 1em; padding-block: .5em; }
+	.wd-class p { margin: 0 0 .3em; }
+}

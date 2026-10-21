@@ -17,7 +17,7 @@ const norm = w => w.toLowerCase().replace(/[.,!?;:]+$/, "");
  *
  * `record({kind, ms, text, raw, bytes, seconds})` is called by `ux/Dictate`'s `on_whisper` for each
  * answer (`kind` is "interim" for a guess that may still change, "final" for a settled chunk). Each
- * becomes a plain `request` row, is appended to `/framework/ai/whisper/<date>.jsonl` (tagged with the
+ * becomes a plain `request` row, is written by `Dictate.log_whisper` to the WhisperLog bucket, not here (tagged with the
  * session name), and fires `on_change`, so a view repaints in the same tick. Only plain data lives on
  * the instance, so `ux/Content/Object/DefaultView` can show it. Doc: `audio/Whisper/readme.md`.
  */
@@ -47,7 +47,6 @@ export default class WhisperSession {
 		if (change){ row.amended = true; this.amendments.push({ at: row.at, request: this.requests.length, ...change }); }
 		this.last_guess = kind === "interim" ? text : "";
 		this.requests.push(row);
-		WhisperLog.record({ kind, text, body, session: this.name, ms, bytes, seconds: row.seconds, gap_ms: row.gap_ms, raw, req, segment, amended: row.amended || undefined });   // the one writer: audio/Whisper/WhisperLog.js
 		this.on_change?.(this);
 	}
 

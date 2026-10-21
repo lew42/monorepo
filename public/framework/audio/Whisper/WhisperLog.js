@@ -22,7 +22,7 @@ View.stylesheet(import.meta, "WhisperLog.css");
  *   composer commit-in | commit-dropped | enqueue | post | send-check | deliver    the box and the send queue (`ext/Chat/Mic.js`)
  *   refine   sending | go | chunk | done | sentences    `RefineSystem`: the send to the cleaner, the chunk, the sentence list
  *
- * Stored in `/framework/ai/whisper/<date>.jsonl`, the day file `WhisperSession` already wrote (one store, one writer,
+ * Stored in `/framework/ai/whisper/bucket.jsonl`, one temporary bucket (one store, one writer: `Dictate.log_whisper`,
  * tailed by `JSONL.live()`); old lines have no `seq` and the table skips them. Nothing records unless a page wires
  * it: `WhisperSession.record` (the server lines) and `attach()` (the rest). Reading rules: `WhisperLogRows.js`.
  * Doc: `audio/Whisper/readme.md`.
@@ -30,7 +30,7 @@ View.stylesheet(import.meta, "WhisperLog.css");
 export default class WhisperLog extends View {
 	static icon = "receipt_long";
 	static dir = "/framework/ai/whisper/";
-	static path(){ return `${WhisperLog.dir}${new Date().toISOString().slice(0, 10)}.jsonl`; }
+	static path(){ return `${WhisperLog.dir}bucket.jsonl`; }   // one temporary bucket, no date code; "New session" appends a {src:"bucket"} marker: doc/demo.md
 
 	static run = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 	static seq = 0;

@@ -49,3 +49,16 @@ test("summary counts", () => {
 	const rows = Rows.annotate([line(1, "server", "final", "yes sir"), line(2, "server", "final", "yes sir")]);
 	assert.deepEqual(Rows.summary(rows).dups, 1);
 });
+
+test("supersede: a final replaces the interims of its own segment only", () => {
+	const rows = Rows.supersede([
+		{ seq: 1, run: "a", t: 1, src: "server", kind: "interim", segment: 0 },
+		{ seq: 2, run: "a", t: 2, src: "server", kind: "interim", segment: 0 },
+		{ seq: 3, run: "a", t: 3, src: "server", kind: "final", segment: 0 },
+		{ seq: 4, run: "a", t: 4, src: "server", kind: "interim", segment: 1 },
+	]);
+	assert.equal(rows[0].replaced_by, 3);
+	assert.equal(rows[1].replaced_by, 3);
+	assert.deepEqual(rows[2].replaces, [1, 2]);
+	assert.equal(rows[3].replaced_by, undefined);
+});

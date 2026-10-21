@@ -1,17 +1,14 @@
-import { Page, md } from "/app.js";
-import Whisper from "./Whisper.js";
+import { Page } from "/app.js";
+import WhisperDemo from "./WhisperDemo.js";
 
 export default new Page({
 	meta: import.meta,
 	title: "Whisper",
-	description: "The local whisper-server as an object, and one logged session per dictation surface.",
+	description: "Every answer the speech server sends back, live: guesses that amend themselves, then the final.",
 	icon: "mic",
 	children: "log",
 
 	content(){
-		const whisper = Whisper.shared;
-		new Whisper.View({ subject: whisper });
-		whisper.check();
-		md("`Whisper` is the server (up or down, ping, restarts). Each dictation surface, such as the [Refine](/framework/ext/Refine/) page, adds a `WhisperSession` that logs every request. This page shows this browser tab's own instance.");
+		new WhisperDemo();   // the one demo: audio/Whisper/doc/demo.md
 	},
 });

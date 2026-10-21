@@ -1,5 +1,7 @@
 # Is the raw Whisper reply saved? (checked 2026-10-17)
 
+**Update 2026-10-20:** Dictate now writes every reply to the WhisperLog bucket instead of Servex's `whisper-raw` log, so the [Whisper page](/framework/audio/Whisper/) can show them live: [demo.md](demo.md). The text below is the 2026-10-17 state.
+
 **Short answer: before this change, no — except on one demo page.** The owner's guess was right.
 
 ## What was saved
