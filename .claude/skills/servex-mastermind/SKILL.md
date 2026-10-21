@@ -33,6 +33,8 @@ standpoint, in terms of revising the skills."
   errors (watcher of console errors per worktree; health-supervisor).
 - **Processes** (2026-09-30): on every check, read the last line of `system_health` — our RAM vs. everything else, the top 3 tasks by RAM, the orphan count and the worktree count. `GET /api/processes` has the whole table (per task, per Claude Code session, orphans, worktrees). Servex reaps idle orphans and removes finished worktrees itself; a spinning server that serves nothing is what to look for. See `Servex/doc/processes.md`.
 
+**Prioritize before you spawn** (the owner, 2026-10-21): most asks are not for now. Build only what is needed now; everything else is logged where it belongs (a one-line `⬜` in the module readme, or a line on its task) so the ask is never lost, and nothing is spawned for it. Small fixes the owner mentions in passing are notes, not tasks. Do not write an owner-notes doc for every dictation: one essence line where it belongs, linking the prompt log. Ask: does this change what the owner can see or use this week?
+
 ## How: oversee, don't do
 
 - **Routine checks run as tools or cheap minions, not as your own turns.** For example,
