@@ -4,6 +4,7 @@ import { Page, md, div, h2, h3, img, a } from "/app.js";
 const STEPS = new URL("./sheet-steps/", import.meta.url).href;   // made by ../test/sheet-steps.mjs
 function sheet_steps(){
 	h2("The phone sheet, step by step").attr("id", "the-phone-sheet-step-by-step");
+	md("**How to read the steps.** Each series starts with the first click on ✦. Before, that opens a one-line strip; after, it opens at 60% of the screen. Steps then run upward, 40 px per shot, to the snap to full screen (before 1 to 17, after 1 to 9). After also comes back down: step 10 is the 60% height again, and 11 to 21 drag down 40 px per shot to the compact strip (head and mic footer, the well at 0 px).");
 	md("**One click on ✦, then the top edge dragged 40 px at a time.** Before (left): it opens as a one-line strip, the page behind turns into an empty grey page, and the layout changes as it grows (a strip, a boxed chat, a tab row). After (right): the page stays visible, and the same three rows (head, chat well, mic footer) only grow, snap open at 90%, then come back down to the compact strip. Made by [test/sheet-steps.mjs](/framework/ux/Dictate/test/sheet-steps.mjs); why and how: [ext/drawer/doc/sheet.md](/framework/ext/drawer/doc/sheet.md).");
 	div.c("ux-dictate-surfaces-steps", $g => {
 		$g.style({ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5em", alignItems: "start" });

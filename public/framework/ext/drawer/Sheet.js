@@ -323,8 +323,8 @@ export class SheetPanel extends View {
 		return grip({
 			axis: "y",
 			write: px => {
-				const Size = this.constructor.Size, h = Math.min(Math.max(px, 0), innerHeight);   // below half the strip closes
-				this.size_to(h + "px");   // only the height changes while dragging: nothing switches (doc/sheet.md)
+				const Size = this.constructor.Size, h = Math.min(Math.max(px, 0), innerHeight);   // below half the strip closes (settle gets the raw h)
+				this.size_to(Math.max(h, Size.STRIP) + "px");   // never under the head + footer, so neither is clipped mid-drag; only the height changes (doc/sheet.md)
 				return h;
 			},
 			done: h => this.settle(h),
