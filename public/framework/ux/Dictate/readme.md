@@ -1,5 +1,7 @@
 # Dictate — a mic button that always shows what is happening
 
+**Map of every dictation piece** (mic, Whisper, cleaners, chat, voice session, assistants; the duplicates and the plan): [doc/map.md](doc/map.md).
+
 **Every voice and chat surface, one page** (screenshots, who answers, the flow, the 30-second first reply): [`surfaces/`](./surfaces/) · [long form](doc/surfaces.md).
 
 **How Dictate, Refine and tasks connect** (one spoken sentence, from the mic to a task line in the page's feed): [`doc/refine-dictate-tasks.md`](doc/refine-dictate-tasks.md). **The dictation redesign, mocks first** (five ways to lay out the controls, and the pick): [the variants page](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/checkup-sheet/sheet-dictation-mocks/variants/index.html).
