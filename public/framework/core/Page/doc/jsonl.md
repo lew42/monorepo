@@ -6,7 +6,7 @@ A `.jsonl` file is a log: one JSON object per line, only ever appended to. Who d
 
 - **Reads:** `Item.Store` ([Store.js](../../Item/Store.js)) replays a file into one live object and tails it.
 - **Writes:** appends go through the dev socket (`FsFile.send`); a validated single writer, `FileJournal`, is planned ([storage.md](storage.md)).
-- **Filed by day:** a collection of folders (projects today, sessions and tasks next) is made, moved, indexed and queried by [`Dated`](/framework/core/Item/Dated/) and [`DatedFiles`](/Server/doc/dated-files.md). Plan: [store-index-query-plan.md](../../Item/doc/store-index-query-plan.md).
+- **Filed by day:** a collection of folders (projects today, sessions and tasks next) is made, moved, indexed and queried by [`Dated`](/framework/core/Item/Dated/) and `DatedFiles` (`Server/doc/dated-files.md`). Plan: [store-index-query-plan.md](../../Item/doc/store-index-query-plan.md).
 
 ---
 

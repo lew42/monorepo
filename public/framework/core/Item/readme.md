@@ -10,7 +10,7 @@
 - [Page](/framework/core/Page/) (`Page.class.js`): an Item with a url; its parts [PageText, PageHeading, PageCard, PageLink, PageContentItem](/framework/core/Page/parts/) are Items too.
 - [Task](/framework/core/Task/) (`Task.js`): one task's state machine, replayed from `task.jsonl`.
 - [Session](/framework/core/Session/) (`Session.js`): a session record.
-- [Dated](/framework/core/Item/Dated/) (`Dated.js`, with `Dated.Index`): a collection filed by day (`<root>/YYYY/MM/DD/<slug>/`) and its pointer rows; the first is projects. Not an Item itself: its index is. Node half: [Server/DatedFiles.mjs](/Server/doc/dated-files.md).
+- [Dated](/framework/core/Item/Dated/) (`Dated.js`, with `Dated.Index`): a collection filed by day (`<root>/YYYY/MM/DD/<slug>/`) and its pointer rows; the first is projects. Not an Item itself: its index is. Node half: `Server/DatedFiles.mjs` (doc `Server/doc/dated-files.md`).
 - [Panel](/framework/ext/Panel/) (`Panel.js`) and `Block` (`ext/editor/blocks.js`): layout and editor pieces.
 - `Item.Store` (`Store.js`) is not an Item; `Page.Reader` extends it.
 
