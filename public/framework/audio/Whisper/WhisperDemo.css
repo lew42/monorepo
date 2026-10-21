@@ -30,7 +30,7 @@
 	.wd-row.is-amended .wd-note { color: darkorange; font-weight: 600; }
 	.wd-row:not(.is-server) { font-size: .85em; opacity: .75; }
 	.wd-note { font-size: .8em; opacity: .7; white-space: nowrap; }
-	.wd-w.is-add { background: color-mix(in srgb, seagreen 22%, transparent); border-radius: .2em; }
+	.wd-w.is-add { background: color-mix(in srgb, seagreen 22%, transparent); border-radius: .2em; padding: .1em .15em; }
 	.wd-w.is-del { text-decoration: line-through; color: crimson; }
 	@container (inline-size < 34em) { .wd-row { grid-template-columns: auto 1fr; } .wd-text { grid-column: 1 / -1; } }
 
@@ -40,7 +40,7 @@
 	.wd-facts { display: flex; flex-wrap: wrap; gap: .2em 1.2em; font-variant-numeric: tabular-nums; }
 	.wd-seg-head { display: flex; gap: .8em; font-size: .85em; }
 	.wd-words { display: flex; flex-wrap: wrap; gap: .1em; }
-	.wd-word { padding: 0 .15em; border-radius: .2em; background: color-mix(in srgb, crimson calc((1 - var(--p)) * 60%), transparent); }
+	.wd-word { padding: .1em .15em; border-radius: .2em; background: color-mix(in srgb, crimson calc((1 - var(--p)) * 60%), transparent); }
 	.wd-raw pre { max-block-size: 20em; overflow: auto; font-size: .8em; }
 	.wd-class { display: grid; grid-template-columns: repeat(auto-fit, minmax(16em, 1fr)); gap: 1em; padding-block: .5em; }
 	.wd-class p { margin: 0 0 .3em; }
