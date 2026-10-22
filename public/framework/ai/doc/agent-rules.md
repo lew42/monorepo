@@ -1,0 +1,26 @@
+# Agent rules — memory, history, safety and cost (long form)
+
+`CLAUDE.md` keeps one line for each rule below; this is the full wording, moved here word for word on 2026-10-22 ([the move map](../sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md)). Linked from [the ai readme](../readme.md).
+
+## Memory, history, safety
+
+**Context must not die in sessions** (the owner, 2026-10-08): the useful decisions and insight from a session go to the page or module they concern, linked back to the source prompt, not left in chat. Before major surgery on a system, gather every past ask about it into one place, weed out the conflicts, decide, then build. Agents post an update or log line at least every ~5 minutes of work; a quiet agent is presumed stalled (Servex's `TaskLoop` chases it).
+
+**File each ask the first time** (the owner, 2026-10-21): every owner prompt's asks are filed the first time they are read, as tasks on the session's record or as one-line notes in the readme they concern; a task is a proposal until accepted (`core/Task/readme.md`, "Using tasks").
+
+**Link, don't regenerate** (the owner, 2026-10-08): never spend tokens repeating what is already written. Reference the original prompt, session, task or doc by link (a text link first; embedded previews later, since they load a lot of data). The owner's suggestions are logged on the page they concern so later agents find them there, as a reference to the source prompt, not a retyped copy.
+
+**Never destructive** (the owner, 2026-10-08): data integrity first. Do not delete logs, merge sessions or records, overwrite history, or eliminate anything; add, link and reference instead, and commit as often as you can so git is the undo. If something truly must go, move it aside (a `salvage/` branch, an archive path) and say so. The AI can find a non-destructive way.
+
+**Moves and renames are scripted, never retyped** (the owner, 2026-10-08): to port, move or rename files (sessions, tasks, logs), write a node script that does it procedurally (`git mv`, a dry-run first, a manifest of every old to new path, reversible), preserving everything. An AI never copies data by reading and rewriting it. Also run a **visibility check** on anything we work on: link whatever exists in the repo but not on the site.
+
+**Commit after every working step** (the owner, 2026-10-08): small, frequent commits are the versioned log; uncommitted progress is lost progress and invites regressions. Commit each step that works before starting the next (smoke-test first: never commit something broken; once it works, commit, since git can always roll it back), in a worktree, and merge after reviewing the diff. When a page is rendered by a template or layout, make it findable which one and where it lives.
+
+**Stream, don't poll** (the owner, 2026-10-08): anything that happens in real time (a transcription, a session doing work, cost, logs) is architected as a stream (JSONL append + the `live()` tail) with updates in about 100 ms, never a timed refresh that shows stale data. When you find yourself writing `setInterval` + `fetch`, look for the stream first.
+
+## Cost and roles
+
+- **Usage pace (the owner, 2026-10-02):** every mastermind reads the usage snapshot when it starts and before each spawn (`ai/usage.json`; Servex injects it). Pace = the share of the week used ÷ the share of the week gone. Over pace: Sonnet by default, no Opus without a stated reason, fewer agents, no redundant checks, and review the work yourself when the files are already in your context instead of spawning a reviewer. Minions just do their task.
+- **Audits go to Haiku, under 100k tokens** (the owner, 2026-10-08): task audits, readme audits, searches and fan-outs use Haiku in small inlined batches; Sonnet is for UI and object-oriented code. A request over 100,000 tokens costs about 5x per token, so every Haiku job stays well under it (aim for 30–60k; never drift over by accident); a node script chunks big inputs (a raw session file, a log) into pieces sized to fit with room for the reply. No Batch API / API key for now.
+- **Mind the token burn** (the owner, 2026-10-08): every agent weighs the token cost of a task before starting it, and above all a mastermind. Every turn re-processes the whole context, even on a cache hit, so iterative, long-winded work that keeps going back to the model burns tokens. Rules: (1) **let a script read and calculate** (a node script that reads the data and prints a summary is cheap and good); the model reads only the summary. (2) **Batch tool calls**: request all the files you need in one turn, never one file per turn. (3) **No session replays or long audits unless asked.** (4) When a long iterative pass is truly needed, give it to Haiku, not Sonnet or Opus. (5) Keep sessions short and start fresh when the topic changes.
+- **No hard fences between roles** (the owner, 2026-10-08): a minion that can do a mastermind's job should just do it. Do not add rules or tool fences that stop a capable agent; the mastermind is simply the one that decides and splits work.
