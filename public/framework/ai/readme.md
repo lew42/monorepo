@@ -6,6 +6,7 @@
 
 ## Every system, one line each
 
+- **Maps** (what each role reads, every tool, every item writer, processes; read one before you dig): [doc/readme.md#maps-read-one-before-you-dig](doc/readme.md#maps-read-one-before-you-dig)
 - **Records** (every file in `ai/`, its writer and its reader; who makes sessions and tasks, and where): [doc/records.md](doc/records.md)
 - **Roles and rules:** one readme per role, [Servex/agents/roles/readme.md](../../../Servex/agents/roles/readme.md) · safety and cost rules, long form: [doc/agent-rules.md](doc/agent-rules.md) · what each agent reads: [doc/readme-system.md](doc/readme-system.md)
 - **Principle:** effective parallel work between sessions. A parent answers or hands off, helpers are reused, tasks are created, tracked, logged and finished. A spawned agent is a **session**, a task is something to finish inside it: [doc/sessions-and-tasks.md](doc/sessions-and-tasks.md).
