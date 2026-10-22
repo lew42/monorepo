@@ -33,7 +33,7 @@ A process lives in its own folder inside the session that made it: `<session fol
 {"investigate":{"start":{}},"by":"ProcessRunner"}
 {"spawn":{"phase":"investigate","agent":"helper-x","session_id":"…","at":"…"}}
 {"investigate":{"complete":{"outcome":"…"}},"by":"helper-x"}          ← the phase agent, through the item tool
-{"measure":{"phase":"investigate","usd":0.41,"tokens":52000}}         ← node, from the agent's own totals
+{"measure":{"phase":"investigate","agent":"helper-x","usd":0.41}}     ← node, from the agent's own cost
 {"plan":{"start":{}},"by":"ProcessRunner"}
 ```
 
@@ -45,19 +45,19 @@ Each phase names how its session is run, so the process carries the agent archit
 
 | `session.run` | Who does the phase |
 |---|---|
-| `fresh` | a new Servex session (`model`, `effort`, `role`, `readmes`), spawned with the process as its parent task |
+| `fresh` | a new Servex session (`model`, `effort`, `role`), its folder inside the process (`<process>/<phase>/`) |
 | `same` | the session that ran the previous phase, sent the next phase's prompt (its context is reused: cheaper) |
 | `owner` | the agent that created the process (the mastermind), sent the phase's prompt |
-| `wait` | nobody: the phase waits on the owner (`merge`), and the process waits with it |
+| `wait` | nobody: the phase waits on the owner (`merge`); the process stays running, not complete, until the phase is |
 
 The prompt node sends is built from the phase's `do`, the brief, and the outcomes of the phases before it, and it ends with the one line that completes the phase: `item({path, delta: {"<phase>": {"complete": {"outcome": "…"}}}})`.
 
 ## The core set (`Process.DEFINITIONS`, kept small)
 
-- **build**: investigate (fresh, Sonnet low: questions ranked, the known structure as class sketches, sources) → plan (same: tasks, class sketch, checked against the brief) → improve (fresh reviewer: an independent read of the plan) → approve (owner agent: approve, or send back) → execute (fresh builder, in a worktree) → review (fresh reviewer: the diff) → merge (waits on the owner).
+- **build**: investigate (fresh, Sonnet low: questions ranked, the known structure as class sketches, sources) → plan (same: tasks, class sketch, checked against the brief) → improve-plan (fresh reviewer: an independent read of the plan) → approve-plan (the creator: approve, or name changes) → execute (fresh builder, in a worktree) → review (fresh reviewer: the diff) → merge (waits on the owner).
 - **investigate**: questions (rank them; name what is known as class sketches) → scout (Haiku scouts, one per top question, each under 100k, web search allowed) → synthesize (answers; where two scouts agree, say so). Run on its own or, later, as build's first phase.
 
-More processes come from the system architect, not from each agent. A process that does not help is changed from its data (which phase was skipped, failed or cost most), not by asking agents to try harder.
+A phase id never names a Task verb or field (`improve` would call `Task.improve()`); the test checks every definition. More processes come from the system architect, not from each agent. A process that does not help is changed from its data (which phase was skipped, failed or cost most), not by asking agents to try harder.
 
 ## Never dropped (async)
 

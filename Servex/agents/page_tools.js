@@ -480,7 +480,8 @@ async function process_home(parent_dir, add){
 	const Process = await LOADERS.Process();
 	if (!Process.DEFINITIONS[add.process]) return { why: `no process "${add.process}"; the processes are: ${Object.keys(Process.DEFINITIONS).join(", ")}` };
 	const slug = slug_of(add.id ?? add.title), dir = path.join(parent_dir, slug);
-	if (fs.existsSync(dir)) return { why: `"${slug}" already exists in this folder; nothing was written. Give the process another id or title.` };
+	// A folder that only holds a brief is fine (write the brief, then start the process in it); one with a log is taken.
+	if (["task.jsonl", "session.jsonl"].some(f => fs.existsSync(path.join(dir, f)))) return { why: `"${slug}" already holds a task in this folder; nothing was written. Give the process another id or title.` };
 	return { slug, dir, list: null, process: Process };
 }
 function make_process(parent_dir, add, ctx, home){
