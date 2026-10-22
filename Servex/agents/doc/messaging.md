@@ -49,3 +49,7 @@ Related: [follow.md](../../doc/follow.md) (the follow tool) · [module-inbox.md]
 ## Open: "inbox" names two things (2026-10-20, from the owner's "what is the inbox?")
 
 The word is used for two different files. The **agent inbox** is `logs/inbox/<agent id>.jsonl` under Servex's log folder (`Servex/agents/External.js`): one line per `send_to_agent` message or `follow` delta for an agent outside Servex (a VS Code tab, the cloud voice agent), read by a tail or the `updates` tool. The **page inbox** is a page's own `inbox.jsonl` in the repo (`Servex/agents/inbox.js`, the `inbox` and `page_note` tools): notes left for whoever works on that page next. An agent inside Servex has neither; `send_to_agent` hands the text into its next turn. Decision to write (options ranked with `Server/Decide.mjs`): rename the agent one (candidates: *mail*, *messages*, *delivery*), or rename the page one (*notes*). Nothing renamed yet.
+
+## No blocking tools (the owner, 2026-10-22)
+
+A tool call holds its agent until it returns: while it runs, every message to that agent waits in the queue. So: **a synchronous tool must be fast** (a file read, a lookup). **Slow work is asynchronous**: the tool returns at once with "accepted" and an id, and the result arrives later as its own message, in an envelope that says what it answers (as `run_in_background` and the `updates` tool already do). ⬜ Mark each Servex tool sync or async, and move the slow ones (spawn-and-wait, `wait_for_agent`, long jobs) to the ticket pattern.

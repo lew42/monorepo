@@ -25,3 +25,11 @@ Words in the tab prompt log (`ai/2026/10/20/session-e00f55c9/page.jsonl`). Essen
 - **Tell simple tasks from projects**, and get better at it. Redesigning any system is an ongoing project, never "done".
 - **An ongoing project type.** Proposal: the `type` field (the class name, as elsewhere) tells a default project (started, then completed) from an ongoing one (never completes; a place where work on a thing accumulates).
 - **A class's architecture is an ongoing project** from the day the class is written: the core API, what things are called, the arguments, where the data saves, the hierarchy. Most of it turns out clear and simple; the forks are names, places to save and structure. "Maybe" a class-architecture skill; the owner is unsure skills are the right vehicle (skills are Claude-specific; see [ai/doc/owner-2026-10-20-who-makes-tasks.md](/framework/ai/doc/owner-2026-10-20-who-makes-tasks.md) section 15).
+
+## 5. Processes: tasks with named phases, run by node (the owner, 2026-10-22)
+
+- **A process is a workflow template** (maybe `class Process extends Task`): a task whose steps are named phases. A mastermind picks the process that fits (build, plan, audit…) and node moves the work from phase to phase, so nothing depends on the agent remembering its instructions (a role readme read once drifts out of mind).
+- **The phases:** (1) **investigate**: read the context, ask the important questions and rank them; (2) **plan**: propose tasks, created but not launched; (3) **improve** the plan; (4) **approve**; (5) **launch** (through the spawn queue, which waits on RAM); then build, review, merge.
+- **The right amount of planning.** Planning can waste tokens too; track each phase's share of a session's tokens so the balance is visible and can be tuned.
+- **The mastermind plans while its workers build**, and launches the next tasks itself.
+- **Updates are tool calls, not chat:** a spawned agent reports by logging (chat vanishes); chat is for the owner.
