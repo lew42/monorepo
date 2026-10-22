@@ -45,3 +45,4 @@
 {"log":{"at":"2026-10-20T01:00:00-05:00","msg":"Edits applied in the worktree: render_related now takes the id, stacks rows (.sessions-related-row), and states NO_RELATED when empty; $box no longer repeats the session name (the column head carries it); Cost panel gets NO_COST instead of drawing nothing; Coverage EMPTY and the Models no-data line rewritten to say WHY they are empty. Next: sessions.css (stacked row + drop the duplicate crumb)."}}
 {"log":{"at":"2026-10-20T00:44:45-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-20T00:49:37-05:00","heartbeat":"escalated","msg":"task-mastermind-session-detail-page it did not answer the status check, and was already revived 2 times this hour (3 today)"}}
+{"stop":{"at":"2026-10-22T00:02:51-05:00","why":"abandoned: no agent since 2026-10-20T01:00:00-05:00; closed by StaleClose 2026-10-22","by":"StaleClose"}}

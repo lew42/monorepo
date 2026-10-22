@@ -8,3 +8,4 @@
 {"nav":{"at":"2026-10-20T21:52:19.418-05:00","from":"/framework/ai/","to":"/framework/ai/2026/10/19/restart-the-servex-keeper-once-so-the-cr/","card":"2026/10/19/restart-the-servex-keeper-once-so-the-cr"}}
 {"nav":{"at":"2026-10-20T21:52:30.197-05:00","from":"/framework/ai/2026/10/19/restart-the-servex-keeper-once-so-the-cr/","to":"/framework/ai/2026/10/19/restart-the-servex-keeper-once-so-the-cr/activity/"}}
 {"nav":{"at":"2026-10-20T21:52:30.250-05:00","from":"/framework/ai/2026/10/19/restart-the-servex-keeper-once-so-the-cr/activity/","to":"/framework/ai/sessions/"}}
+{"stop":{"at":"2026-10-22T00:02:52-05:00","why":"abandoned: no agent since 2026-10-21T02:52:30.252Z; closed by StaleClose 2026-10-22","by":"StaleClose"}}

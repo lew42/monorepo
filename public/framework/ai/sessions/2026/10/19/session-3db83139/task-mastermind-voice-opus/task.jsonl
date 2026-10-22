@@ -74,3 +74,4 @@
 {"log":{"at":"2026-10-20T00:35:53-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-20T00:41:37-05:00","heartbeat":"revive-queued","msg":"task-mastermind-voice-opus it did not answer the status check; a revive is queued"}}
 {"log":{"at":"2026-10-20T00:41:37-05:00","heartbeat":"escalated","msg":"task-mastermind-voice-opus it did not answer the status check, but a revive is refused: a wake costs about $0.00 and it has spent $145.51 of $100.00"}}
+{"stop":{"at":"2026-10-22T00:02:51-05:00","why":"abandoned: no agent since 2026-10-20T00:41:37-05:00; closed by StaleClose 2026-10-22","by":"StaleClose"}}

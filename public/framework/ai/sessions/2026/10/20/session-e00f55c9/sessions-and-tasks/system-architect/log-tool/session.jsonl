@@ -4,3 +4,4 @@
 {"decision":{"at":"2026-10-20T16:30:49-05:00","question":"how by/session/origin sit beside a verb","chose":"strip string-valued meta keys before stamp/verb checks, re-add after; schema check ignores them","why":"keeps one-verb-per-line rule and the at-stamping unchanged; alternative was nesting meta inside the body"}}
 {"log":{"at":"2026-10-20T16:30:49-05:00","msg":"Caveats: AISession.log left alone (runs in browser). jsonl-schema.test.mjs has 1 failing case (page.jsonl absorb keys) that also fails on main before my change. Not merged, Servex not restarted; the live `log` tool appears after your merge + restart."}}
 {"log":{"at":"2026-10-20T16:36:30-05:00","heartbeat":"check","msg":"status check sent to minion-log-tool"}}
+{"stop":{"at":"2026-10-22T00:02:51-05:00","why":"abandoned: no agent since 2026-10-20T16:36:30-05:00; closed by StaleClose 2026-10-22","by":"StaleClose"}}

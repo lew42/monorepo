@@ -1,2 +1,3 @@
 {"assign":{"session_id":"deec6042-f263-41d6-a99f-53427c366469","agent":"minion-well-asks","title":"Find the owner's dictated chat-well / mobile sheet instructions (read-only)","model":"claude-sonnet-5-5","worktree":"C:/Code/lew42/worktrees/qf-9","parent_task":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet","requested_at":"2026-10-20T19:35:33-05:00","now":"starting"}}
 {"log":{"at":"2026-10-20T19:43:12-05:00","heartbeat":"refused","msg":"status check not sent to minion-well-asks: a wake costs about $1.46 and it has spent $1.46 of $2.00"}}
+{"stop":{"at":"2026-10-22T00:02:51-05:00","why":"abandoned: no agent since 2026-10-20T19:43:12-05:00; closed by StaleClose 2026-10-22","by":"StaleClose"}}
