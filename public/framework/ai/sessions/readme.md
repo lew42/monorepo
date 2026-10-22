@@ -37,6 +37,7 @@ A session folder is one of three kinds:
 | a cloud voice call's folder and lines | `Servex/ext/remote/RemoteMCP.js` `voice_session()` (its path from `DatedFiles.sessions.path`) / `record()` / `after()` ([voice system](/Servex/ext/remote/doc/cloud-voice-agent.md)) |
 | the day-index row of any folder, however it was made | `DatedFiles.sessions.watch()` / `sync(dir)` (`Server/DatedFiles.mjs`): a folder appears or its record grows, one `session` row on its start day; the SessionStart hook's folder comes from `DatedFiles.sessions.session_dir` |
 | tags, notes, alerts, closed | `AISession.log()`; digests by `AISessionDigest.mjs` |
+| `prompt-audit.jsonl`, `prompt-review.jsonl` (each owner prompt sorted into items; the reviewer's verdict on each) | `Server/PromptAudit.mjs`, run by hand ([ai/doc/prompt-audit.md](../doc/prompt-audit.md)) |
 
 ## How data is read
 

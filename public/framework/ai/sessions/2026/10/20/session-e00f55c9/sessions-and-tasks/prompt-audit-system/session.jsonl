@@ -21,3 +21,10 @@
 {"action":{"at":"2026-10-21T19:00:28-05:00","did":"edit","files":["public/framework/core/Task/readme.md"]}}
 {"action":{"at":"2026-10-21T19:00:33-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit-system/claude-md-line.md"]}}
 {"action":{"at":"2026-10-21T19:00:43-05:00","did":"edit","files":["Server/RefineQueue.mjs"]}}
+{"commit":"533bbb1f1137"}
+{"log":{"at":"2026-10-21T19:01:32-05:00","msg":"skill: finish-task"}}
+{"complete":{},"by":"mastermind-prompt-audit-system","ts":"2026-10-22T00:01:47.153Z"}
+{"sessions":[{"id":"mastermind-prompt-audit-system","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit-system/"}],"by":"mastermind-prompt-audit-system","ts":"2026-10-22T00:01:47.155Z"}
+{"assign":{"landed_at":"2026-10-21T19:01:49-05:00","title":"Prompt audit: Haiku sorts each owner prompt, Sonnet finds each session's loose ends","outcome":"**The prompt audit runs: one command per session, results beside the session, nothing filed as tasks.** [How to run it, cost](/framework/ai/doc/prompt-audit.md)\n\n- [x] both passes on session 7efd07d5: 22 prompts, 376 items, $2.01; two reviewer rounds with feedback recorded\n- [x] owner prompts only: filter now requires the CLI's human stamp (30 days: 20 sessions, not 2,600)\n- [x] 17 pilot tasks moved to the session's prompt-review.jsonl; 15 open ones stopped\n- [x] [audits map](/framework/ai/doc/audits.md), [Task readme lines](/framework/core/Task/), [CLAUDE.md proposal](claude-md-line.md)\n- [x] estimate: 7 days ~$7, 30 days ~$110\n- [ ] reviewer over-credits 'done'; fix (chunks of ~100 items) written, not run","links":[{"url":"/framework/ai/doc/prompt-audit.md","label":"prompt audit"},{"url":"/framework/ai/doc/audits.md","label":"every audit system"},{"url":"/framework/ai/sessions/2026/10/09/session-7efd07d5/","label":"pilot session"}],"window":{"before":0.02,"after":0.03},"tokens":null}}
+{"log":{"at":"2026-10-21T19:01:49-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"action":{"at":"2026-10-21T19:01:56-05:00","did":"edit","files":["public/framework/ai/sessions/readme.md"]}}
