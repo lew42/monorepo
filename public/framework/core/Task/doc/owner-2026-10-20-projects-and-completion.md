@@ -33,3 +33,9 @@ Words in the tab prompt log (`ai/2026/10/20/session-e00f55c9/page.jsonl`). Essen
 - **The right amount of planning.** Planning can waste tokens too; track each phase's share of a session's tokens so the balance is visible and can be tuned.
 - **The mastermind plans while its workers build**, and launches the next tasks itself.
 - **Updates are tool calls, not chat:** a spawned agent reports by logging (chat vanishes); chat is for the owner.
+
+## 6. Where tasks and projects live (the owner, 2026-10-22)
+
+- **A task or project is portable**: a folder (or one JSONL) that can move without losing anything.
+- **Draft in the session, then move home.** While it is being planned it lives in the session's folder; once approved it moves to `<module>/tasks/<slug>/`, so every later agent working on that module sees its past work in one place. Projects go in the same `tasks/` folder: a project is a task, so one folder, not two.
+- Moves go through the dated store's `move` (scripted, recorded, undoable); `new-task` already names `<module>/tasks/<slug>/` as a task's home.
