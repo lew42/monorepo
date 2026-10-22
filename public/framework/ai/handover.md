@@ -5,41 +5,28 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-21 00:04 UTC, last 24 h)
+## NOW (computed 2026-10-22 00:02 UTC, last 24 h)
 
-**Pace:** At 79% of pace with 1 day 2 hours left (steady)
+**Pace:** At 72% of pace with 2 hours 57 minutes left (room to spend)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (22):**
-- [core/Item: the store, dated index and query plan](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/) (mastermind-store-index-query)
-- [ask-never-lost](/framework/ai/sessions/2026/10/20/voice-20261020/ask-never-lost/) (mastermind-ask-never-lost)
-- [ask_mastermind: late answers reach updates; wait:false ticket](/framework/ai/sessions/2026/10/20/voice-20261020/async-ask/) (mastermind-async-ask)
-- [updates: a cloud agent gets only what changed since its last call](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/updates-tool/) (mastermind-updates-tool)
-- [AISessionIndex: record-only sessions get a title from session.summary.json](/framework/ai/sessions/2026/10/20/voice-20261020/index-record-sessions/) (mastermind-index-record-sessions)
-- [Sessions: record-only (cloud voice) sessions get a snapshot](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/cloud-sessions-listed/) (mastermind-cloud-sessions-listed)
-- [Named tunnel servex.lew42.com: built, blocked on token permissions](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/named-tunnel/) (minion-named-tunnel)
-- [Item and Page readmes: one persistence system; indexing is the tool's job; JSONL growth noted](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/item-page-docs/) (minion-item-page-docs)
-- [Projects: Project class and ProjectMove tool](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/project-move/) (mastermind-project-move)
-- [AI index: a day stream of task and session changes](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/index-stream/) (mastermind-index-stream)
-- [pool-leak](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/pool-leak/) (minion-pool-leak)
-- [Skill census: scripted facts on all 34 skills](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/skills-audit/) (minion-skills-audit)
-- …and 10 more (the [task list](/framework/ai/tasks/))
+**Landed (0):**
+- none
 
-**Open, touched in the window (2):**
-- [dated-projects](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-projects/) (mastermind-dated-projects)
-- [log-tool](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/log-tool/) (minion-log-tool)
+**Open, touched in the window (0):**
+- none
 
 **Latest commits on this branch:**
 ```
-bba0d6792 servex docs: why restarts happen and the hot-reload next step; inbox names two things (open decision)
-ce4084018 Dictate: the owner's 2026-10-20 direction (dictation on the site first, one assistant, session manager, widget asks)
-9e58e3f9d dated-projects brief: slice 1 of the store/index/query plan (Dated + DatedFiles for projects)
-180dc8d72 store-index-query: landed
-7ee31b90f core/Item: store-index-query plan (Dated + DatedFiles, coverage check, six slices); decision d-dated-home
-ddfb50d5c Merge branch 'worktree/qf-7' into michael/dev
-0ea18341e ask_mastermind: every answer also goes to the inbox; notifications/cancelled stops the wait; boot sweep delivers unsent replies
-95da09fc8 voice-20261020: ask-never-lost brief (every ask answer also reaches the inbox; cancel; boot sweep)
+1f7b4bb9c CLAUDE.md: audits map in Where to look; file each ask the first time (owner-requested, proposed by prompt-audit-system)
+55113d8a5 prompt-audit-system: report to parent log
+0a7bf7b23 prompt-audit-system: land; sessions readme lists prompt-audit.jsonl and prompt-review.jsonl
+533bbb1f1 prompt-audit-system: two-pass prompt audit (PromptAudit.mjs), pilot on 7efd07d5, audits map, Task usage lines
+e716895ff prompt-audit-system brief: owner follow-up (tasks are proposals until accepted, prompt-audit.jsonl one line per prompt, update kind, tags, versioned schema, tune brief not bloat)
+45065c374 servex: log sweep (4 files)
+aeffb6a18 prompt-audit-system brief: Haiku structure pass per owner prompt, Sonnet session reviewer, separate audit file, map of past audits
+11c40f3dc prompt-audit: finish
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
