@@ -27,6 +27,9 @@ import Landed from "./Landed.js";
  *                card folders under public/framework/ai/. Before a worktree with only
  *                noise is removed, the noise is copied to Servex's
  *                `salvage/worktrees/<name>-<date>/` (a diff plus the new files).
+ *   (closing)    a worktree with leftovers or unmerged commits whose task has landed (and its agent stopped),
+ *                or that nothing touched for 2 days, is CLOSED: leftovers committed to its own branch, the folder
+ *                removed, the branch kept; unmerged commits become a line in ready-to-merge.jsonl.
  *   open         its branch holds commits michael/dev does not, and no landed task owns it.
  *   finished     its branch is merged into michael/dev (or applied by merge.mjs), or
  *                the task that took it has landed and no agent of it is alive.
@@ -49,6 +52,7 @@ export default class Worktrees extends Events {
 		this.removing ??= process.env.SERVEX_WORKTREE_CLEANUP !== "0";
 		this.stopping ??= process.env.SERVEX_WORKTREE_STOP_SERVERS !== "0";
 		this.quiet_hours ??= Number(process.env.SERVEX_WORKTREE_QUIET_HOURS) || 2;
+		this.close_hours ??= Number(process.env.SERVEX_WORKTREE_CLOSE_HOURS) || 48;   // quiet this long: close it even if the task never landed
 		this.removed = [];       // { at, name, branch, why }
 		this.servers_stopped = 0;   // how many worktrees had their dev server and/or health watcher stopped, this Servex run
 		this.last = null;        // the latest pass: { at, items, junctions }
@@ -95,6 +99,10 @@ export default class Worktrees extends Events {
 		if (quiet < this.quiet_hours * 60) return { state: "in use", why: `git was used in it ${quiet} min ago (waits for ${this.quiet_hours} quiet hours)` };
 		const changes = await this.changes(wt.path);
 		const real = changes.filter(c => !noise(c));
+		const task0 = tasks.get(norm(wt.path));
+		const closing = task0?.landed && !this.alive(task0.agent) ? `its task ${task0.key} landed and ${task0.agent ?? "its owner"} has stopped`
+			: quiet >= this.close_hours * 60 ? `nothing touched it for ${Math.round(quiet / 60)} hours` : null;
+		if (closing && (real.length || !(await this.merged(wt)))) return { state: "finished", commit: true, noise: [], why: `${closing}; ${real.length ? real.length + " leftover file(s) and " : ""}${wt.branch} is saved first` };
 		if (real.length) return { state: "uncommitted", why: `${real.length} changed file(s): ${real.slice(0, 3).map(c => c.path).join(", ")}` };
 		const done = why => ({ state: "finished", noise: changes,
 			why: why + (changes.length ? ` (plus ${changes.length} log file(s) its own server wrote, kept in salvage)` : "") });
@@ -103,6 +111,21 @@ export default class Worktrees extends Events {
 		const task = tasks.get(norm(wt.path));
 		if (task?.landed && !this.alive(task.agent)) return done(`its task ${task.key} landed and ${task.agent ?? "its owner"} has stopped`);
 		return { state: "open", why: `${wt.branch} holds commits ${this.base} does not` + (task ? `, for ${task.key}${task.landed ? "" : " (not landed)"}` : "") };
+	}
+
+	async merged(wt){
+		return (await this.git(["merge-base", "--is-ancestor", wt.branch, this.base])).ok || this.applied(wt.head);
+	}
+
+	/* Leftovers go into the worktree's own branch, so nothing is lost when the folder goes. Returns the file count. */
+	async commit_leftovers(item){
+		const n = (await this.changes(item.path)).length;
+		if (n){
+			await this.git(["add", "-A"], item.path);
+			const c = await this.git(["commit", "-m", `worktree closed: ${n} leftover file(s) saved to ${item.branch} before the folder was removed\n\nCo-Authored-By: Claude Code <noreply@anthropic.com>`], item.path);
+			if (!c.ok) throw new Error(c.out.split("\n").pop());
+		}
+		return n;
 	}
 
 	/* `git status --porcelain` as { code, path }; untracked folders are listed file by file. */
@@ -272,8 +295,15 @@ export default class Worktrees extends Events {
 	async remove(item){
 		const sx = this.servex, name = item.name;
 		try { await sx?.processes?.get(name)?.terminate?.(); } catch {}
-		let kept = null;
-		if (item.noise?.length){
+		let kept = null, committed = 0, unmerged = 0, sha = null;
+		if (item.commit){
+			try {
+				committed = await this.commit_leftovers(item);
+				sha = (await this.git(["rev-parse", "HEAD"], item.path)).out;
+				unmerged = Number((await this.git(["rev-list", "--count", `${this.base}..HEAD`], item.path)).out) || 0;
+				if (unmerged && ((await this.git(["diff", "--quiet", `${this.base}...HEAD`], item.path)).ok)) unmerged = 0;
+			} catch (e){ item.state = "open"; item.why = `its leftovers could not be committed first: ${e.message}`; return false; }
+		} else if (item.noise?.length){
 			try { kept = await this.salvage(item); }
 			catch (e){ item.state = "open"; item.why = `its log files could not be saved first: ${e.message}`; return false; }
 		}
@@ -284,10 +314,21 @@ export default class Worktrees extends Events {
 		this.forget(name);
 		item.state = "removed";
 		const entry = { at: stamp(), name, branch: item.branch, why: item.why, salvage: kept };
+		this.manifest({ path: item.path, branch: item.branch, sha, at: entry.at, why: item.why, committed, unmerged, restore: `git worktree add "${item.path}" ${item.branch}` }, unmerged);
 		this.removed.push(entry);
 		if (this.removed.length > 200) this.removed.shift();
 		this.log({ msg: `worktrees: removed ${name} (${item.why}); branch ${item.branch} kept`, ...entry });
 		return true;
+	}
+
+	/* One line in the removals manifest; an unmerged branch also gets a "ready to merge" line (priority.md 3b). */
+	manifest(line, unmerged){
+		const dir = path.join(this.main, "public", "framework", "ai", "sessions");
+		try {
+			fs.mkdirSync(dir, { recursive: true });
+			fs.appendFileSync(path.join(dir, "worktree-removals.jsonl"), JSON.stringify(line) + "\n");
+			if (unmerged) fs.appendFileSync(path.join(dir, "ready-to-merge.jsonl"), JSON.stringify({ branch: line.branch, sha: line.sha, unmerged, leftover_files: line.committed, at: line.at, how: "node Server/merge.mjs on a worktree of this branch", why: "worktree closed; these commits are not on " + this.base }) + "\n");
+		} catch {}
 	}
 
 	/* Servex forgets the project: its runner, its place in the list, its port. */

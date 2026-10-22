@@ -149,6 +149,14 @@ try {
 					} catch (e) { append(task, "worktree-down: card nag not sent - " + String(e && e.message || e).slice(0, 150)); }
 				}
 			}
+			// Close the loop (worktree-closure, 2026-10-22): a landed task leaves no folder behind. Leftovers are committed to its
+			// branch and the folder goes; unmerged commits become a ready-to-merge line. A live agent still in it keeps it
+			// until Servex's Worktrees.js tick (task landed, agent stopped) closes it.
+			if (!/^qf-d+$/.test(entry.name)) {
+				const r = spawnSync(process.execPath, [path.join(root, "Server/Worktrees.mjs"), "--apply", "--archive", "--now", "--path", entry.path], { encoding: "utf8", windowsHide: true });
+				const out = (r.stdout || r.stderr || "").trim().split("\n").filter(Boolean);
+				append(task, `worktree-close: ${entry.name} - ${out.at(-2) || out.at(-1) || "no answer"}`);
+			}
 		}
 	} catch (e) {
 		try { append(task, "worktree-down: not run - " + String(e && e.message || e).slice(0, 200)); } catch {}

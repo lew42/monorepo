@@ -57,3 +57,18 @@ An append-only `*.jsonl` (a `task.jsonl`, `cards.jsonl`) can gain a line while `
 - **`--apply`** runs `git worktree remove` on each REMOVE (`--force` only when every uncommitted file is regenerated, and the line says so), then `git worktree prune`. It never touches a KEEP and never deletes a branch.
 - **Manifest:** each removal is one line in `public/framework/ai/sessions/worktree-removals.jsonl` (`path`, `branch`, `sha`, `at`, `why`, `restore`).
 - **Recreate one:** `git worktree add <path> <branch>` (or `git worktree add --detach <path> <sha>`); the `restore` field holds the exact command. Test: `node Server/Worktrees.test.mjs`.
+
+## Worktrees close with their task (2026-10-22)
+
+A worktree is never left to pile up (8.4 GB of 36 folders by 2026-10-22). Closing a worktree means: its leftover files are committed to its own branch, the folder is removed, the branch is kept. Nothing is deleted; `restore` in the manifest brings the folder back.
+
+| When | Who | What happens |
+|---|---|---|
+| a task lands | `Server/on-landing.mjs` (`worktree-close:` line in the task log) | `node Server/Worktrees.mjs --apply --archive --now --path <worktree>`. A live agent still inside keeps it for now. |
+| every 10 min | `Servex/Worktrees.js` `tick()` | closes a worktree whose task landed and whose agent stopped, or that nothing touched for 48 hours (`SERVEX_WORKTREE_CLOSE_HOURS`) |
+| by hand | `node Server/Worktrees.mjs --apply --archive` | same, for every worktree quiet for 2 hours |
+| a crashed `git worktree add` | `Servex/Pool.js` `unlock_crashed()` | a pool slot stuck "locked initializing" for 15 minutes is unlocked, so the pool can recycle it (it blocked qf-1 and qf-5 for 10 days, so spawns failed "No pool worktree is ready") |
+
+**Unmerged commits** (and the leftover commit itself) become one line in `public/framework/ai/sessions/ready-to-merge.jsonl` (`branch`, `sha`, `unmerged`, `leftover_files`), the list the owner merges from ([priority.md](/framework/ai/priority.md) 3b). Every close is also one line in `worktree-removals.jsonl` with `committed` and `unmerged`.
+
+**Never closed:** a pool slot (`qf-*`, the pool frees its own), a locked worktree, one with a live agent, one touched in the last 2 hours (git, or any changed file). Folders git no longer lists as worktrees: `node Server/worktree-leftovers.mjs --apply` (removes only those whose every file is already in git).
