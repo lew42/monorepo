@@ -54,6 +54,8 @@ Level 1 is one page, mostly above the fold: what the thing is, **shown**; its ma
 
 **Context must not die in sessions** (the owner, 2026-10-08): the useful decisions and insight from a session go to the page or module they concern, linked back to the source prompt, not left in chat. Before major surgery on a system, gather every past ask about it into one place, weed out the conflicts, decide, then build. Agents post an update or log line at least every ~5 minutes of work; a quiet agent is presumed stalled (Servex's `TaskLoop` chases it).
 
+**File each ask the first time** (the owner, 2026-10-21): every owner prompt's asks are filed the first time they are read, as tasks on the session's record or as one-line notes in the readme they concern; a task is a proposal until accepted (`core/Task/readme.md`, "Using tasks").
+
 **Link, don't regenerate** (the owner, 2026-10-08): never spend tokens repeating what is already written. Reference the original prompt, session, task or doc by link (a text link first; embedded previews later, since they load a lot of data). The owner's suggestions are logged on the page they concern so later agents find them there, as a reference to the source prompt, not a retyped copy.
 
 **Never destructive** (the owner, 2026-10-08): data integrity first. Do not delete logs, merge sessions or records, overwrite history, or eliminate anything; add, link and reference instead, and commit as often as you can so git is the undo. If something truly must go, move it aside (a `salvage/` branch, an archive path) and say so. The AI can find a non-destructive way.
@@ -94,6 +96,7 @@ Level 1 is one page, mostly above the fold: what the thing is, **shown**; its ma
 - `public/framework/ai/` — the task log: open a task before the first edit (`new-task`), log as you go, land it (`finish-task`)
 - `Server/` — dev server only
 - `Servex/` — the agent system: roles, sessions, spawning, the quick-fix pool, the heartbeat, merge and review. Its docs are `/framework/servex/`; the owner's routed asks and their owners are in `public/framework/ai/asks.jsonl`
+- `public/framework/ai/doc/audits.md` — every audit of what the owner asked against what was done; for new loose ends, the prompt audit (`node Server/PromptAudit.mjs --days 7`, doc `ai/doc/prompt-audit.md`). Check it before building another audit.
 - Scratch — scripts, transcripts, intermediate JSON — goes in the session scratchpad, not the repo
 
 ## Pages, cards, review
