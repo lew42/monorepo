@@ -3,7 +3,12 @@ import path from "path";
 import { stamp } from "./home.js";
 import Landed from "./Landed.js";
 
-/* BUDGETS, ENFORCED (node-reliability, 2026-09-29). Overruns were systemic:
+/* BUDGETS ARE ESTIMATES, NOT CAPS (the owner, 2026-10-22). At 100% the task's owner and its parent are told once;
+ * nothing is refused or stopped. Only at HARD_X (SERVEX_GATE_HARD_X, default 10) times the budget are new spawns
+ * refused and the task's minions stopped. The history below explains the old 150% stop, removed 2026-10-22.
+ * Doc: Servex/doc/budget.md.
+ *
+ * BUDGETS, ENFORCED (node-reliability, 2026-09-29). Overruns were systemic:
  * audio spent $75 against $15, prompt-refine $47 against $10, the page
  * mastermind $37 against $12, with the week at 68%. A budget written in a brief
  * was a wish; this makes it a limit node keeps.
@@ -41,9 +46,10 @@ export function budget_of(state, dir, role){
 
 /* What to do for one task now: null, "reached" or "over". `told` = the budget
  * steps already logged for THIS budget figure. Pure, so the proof can call it. */
+export const HARD_X = () => Number(process.env.SERVEX_GATE_HARD_X) || 10;
 export function judge(cost, budget, told = new Set()){
 	if (!budget || !(cost > 0)) return null;
-	if (cost >= 1.5 * budget.usd && !told.has("over")) return "over";
+	if (cost >= HARD_X() * budget.usd && !told.has("over")) return "over";
 	if (cost >= budget.usd && !told.has("reached") && !told.has("over")) return "reached";
 	return null;
 }
@@ -104,23 +110,23 @@ export default class Budget {
 			const budget = budget_of(t.state, path.dirname(file), role);
 			const cost = Number(t.state.cost_usd) || 0;
 			const slug = path.basename(path.dirname(file)), $ = n => `$${n.toFixed(2)}`;
-			if (budget && cost >= budget.usd) capped.set(owner, { slug, cost, usd: budget.usd });
+			if (budget && cost >= HARD_X() * budget.usd) capped.set(owner, { slug, cost, usd: budget.usd });
 			const step = judge(cost, budget, t.told.get(budget?.usd) ?? new Set());
 			if (!step) continue;
 			const line = { at: stamp(), budget: step, budget_usd: budget.usd, cost_usd: cost, from: budget.from };
 			if (step === "reached"){
-				const text = `Budget reached on ${slug}: ${$(cost)} spent of ${$(budget.usd)} (${budget.from}). Land what you have, or write in task.jsonl why you need more, and how much (an assign line with a new budget_usd). No new spawns under you until then; at ${$(1.5 * budget.usd)} Servex stops your minions.`;
+				const text = `Budget estimate reached on ${slug}: ${$(cost)} spent of an estimated ${$(budget.usd)} (${budget.from}). It is an estimate, not a cap: keep going if the work is working, and note in task.jsonl why it costs more. At ${$(HARD_X() * budget.usd)} (${HARD_X()}x) Servex refuses new spawns under you and stops your minions.`;
 				const told = [];
-				for (const [who, say] of [[owner, text], [this.row(owner)?.parent, `${owner}'s task ${slug} reached its budget: ${$(cost)} of ${$(budget.usd)}. Its new spawns are refused until it lands or raises budget_usd.`]]){
+				for (const [who, say] of [[owner, text], [this.row(owner)?.parent, `${owner}'s task ${slug} reached its budget estimate: ${$(cost)} of ${$(budget.usd)}. Nothing is stopped below ${HARD_X()}x.`]]){
 					if (!who || told.includes(who)) continue;
 					try { this.agents.send(who, say, { from: FROM }); told.push(who); } catch (e){ line.err = `could not tell ${who}: ${e.message || e}`; }
 				}
-				line.msg = `told ${told.join(" + ") || "nobody"}; new spawns under ${owner} refused`;
+				line.msg = `told ${told.join(" + ") || "nobody"}; nothing refused (an estimate)`;
 			} else {
 				const stopped = [];
 				for (const a of this.descendants(owner)) try { this.agents.stop(a.id, { by: FROM }); stopped.push(a.id); } catch {}
 				line.stopped = stopped;
-				line.msg = `over 150%: stopped ${stopped.length} minion(s); ${owner} is left running to land`;
+				line.msg = `over ${HARD_X()}x: new spawns refused, stopped ${stopped.length} minion(s); ${owner} is left running to land`;
 				const text = `${slug} is at ${$(cost)} against a budget of ${$(budget.usd)} (${Math.round(100 * cost / budget.usd)}%). Servex stopped its minions${stopped.length ? ` (${stopped.join(", ")})` : ""}; ${owner} can still land.`;
 				try { this.agents.send(owner, text, { from: FROM }); } catch {}
 				const parent = this.up(this.row(owner)?.parent);   // the 100% step was skipped (first seen past 150%): the parent still hears once

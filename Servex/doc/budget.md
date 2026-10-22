@@ -1,25 +1,28 @@
 # Budgets
 
-A task's budget is a limit Servex keeps, not a wish in a brief. `Servex/Budget.js` runs on
-every heartbeat tick, for every open task.
+**A budget is an estimate, not a cap** (the owner, 2026-10-22). A brief's `Budget: $N`, or a spawn's `budget_usd`, is what the spawner expects the work to cost. Going past it never stops work. Only spend near **10x the estimate** (`SERVEX_GATE_HARD_X`, default 10) pauses anything. Two pieces of code apply this rule.
 
-- **Its cost** is `cost_usd` on the task's assign lines (`Server/task-cost.mjs` writes it: the
-  mastermind's share plus every minion it spawned).
-- **Its budget** is `budget_usd` on an assign line; else a line in its `requirements.md` that starts
-  `Budget: $N`; else $15 for a task mastermind and $5 for a minion.
+## Per agent: the spend gate (`Servex/agents/Agents.js`, `gate_check()`)
 
-## The three rules
+- **Results allowance (soft).** An agent starts with $2 to produce its first result (a commit, a step done, a page line, or a minion with a brief). Each result adds $3. Past that allowance, Servex does **not** interrupt the agent and posts no card. Instead it continues the agent itself: the allowance moves to $5 past what it has spent, logged as an `auto-continue` line in the `servex` log. The agent gets one line asking for a result soon.
+- **Hard stop.** At 10x the estimate (with no estimate, the runaway ceiling `SERVEX_GATE_CEILING_USD`, default $100), Servex interrupts the agent, but never in the middle of a tool call, and posts one card: Continue (+$5) or Stop. The same pause happens when 3 or more model calls could not be priced, because then the spend is unknown.
+- Proof: `node Servex/agents/spend-gate-proof.mjs`.
 
-1. **At 100%** the task's mastermind and the agent above it are each told once. From then on,
-   a new spawn under that mastermind (its minions, their minions) is **refused** with the
-   reason, never queued. A revive (a resume) is never refused, so the mastermind can land.
-2. **At 150%** its minions are stopped (never the mastermind) and card `live` hears.
-3. **Each step is logged once** in the task's own `task.jsonl` as `{"log":{"budget":"reached"|"over",…}}`.
+## Per task: `Servex/Budget.js` (every heartbeat tick, every open task)
+
+- **Its cost** is `cost_usd` on the task's assign lines. `Server/task-cost.mjs` writes it: the mastermind's share plus every minion it spawned.
+- **Its budget** comes from the first of these that exists:
+  - `budget_usd` on an assign line;
+  - a line in its `requirements.md` that starts `Budget: $N`;
+  - $15 for a task mastermind, $5 for a minion.
+- **At 100%** the task's mastermind and the agent above it are each told once that the estimate is reached. Nothing is refused or stopped.
+- **At 10x**, a new spawn under that mastermind is **refused** with the reason, and its minions are stopped (never the mastermind, so it can land). A resume is never refused.
+- **Each step is logged once** in the task's own `task.jsonl`, as `{"log":{"budget":"reached"|"over",…}}`.
 
 ## Raising a budget
 
 Append an assign line with a new `budget_usd` and a reason in a `log` line. The refusal lifts on
-the next tick, and the 100% and 150% steps start over for the new figure.
+the next tick, and the 100% and 10x steps start over for the new figure.
 
 `SERVEX_NO_BUDGET=1` turns it off. Proof: `public/framework/ai/sessions/2026/09/30/node-reliability/node-reliability/budget-proof.txt`.
 
