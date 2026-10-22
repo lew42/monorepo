@@ -9,7 +9,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 
 export default class ReadmeChains {
 	static OUT = path.join(REPO, "public/framework/ai/readmes/chains.json");
-	static SKIP = /node_modules|\.git$|\.claude[\/]worktrees|[\/]Temp|[\/]sessions[\/]\d{4}[\/]/;
+	static SKIP = /node_modules|\.git$|\.claude[\\/]worktrees|[\\/]Temp|[\\/]sessions[\\/]\d{4}([\\/]|$)/;
 	static tokens(text){ return Math.round(text.length / 4); }
 
 	/** One row per folder with a readme: {dir, levels, tokens, own, chain:[{path, tokens}]}, biggest chain first. */
