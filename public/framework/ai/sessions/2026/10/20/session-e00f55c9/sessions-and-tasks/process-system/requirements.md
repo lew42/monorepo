@@ -4,7 +4,7 @@ Budget: $25 for this run (design, first slice, a first real use). Opus, high eff
 
 ## The owner's words
 
-Long dictation, 2026-10-22, the last owner prompt before this brief in the tab prompt log (`ai/2026/10/20/session-e00f55c9/page.jsonl`; transcript `e00f55c9-bad4-4ee2-899e-d629ea1eede6`). Read it whole: it is the spec. Earlier direction already written down: [Task notes §5 Processes](/framework/core/Task/doc/owner-2026-10-20-projects-and-completion.md), [readme-system.md](/framework/ai/doc/readme-system.md) (both direction sections), [messaging.md "No blocking tools"](/Servex/doc/messaging.md), [items hold items](/framework/core/Item/doc/owner-2026-10-21-items-hold-items.md), [priority.md](/framework/ai/priority.md).
+Long dictation, 2026-10-22, the last owner prompt before this brief in the tab prompt log (`ai/2026/10/20/session-e00f55c9/page.jsonl`; transcript `e00f55c9-bad4-4ee2-899e-d629ea1eede6`). Read it whole: it is the spec. Earlier direction already written down: [Task notes §5 Processes](/framework/core/Task/doc/owner-2026-10-20-projects-and-completion.md), [readme-system.md](/framework/ai/doc/readme-system.md) (both direction sections), [messaging.md "No blocking tools"](/Servex/agents/doc/messaging.md), [items hold items](/framework/core/Item/doc/owner-2026-10-21-items-hold-items.md), [priority.md](/framework/ai/priority.md).
 
 ## 1. Study first (the investigation phase, done the old way)
 

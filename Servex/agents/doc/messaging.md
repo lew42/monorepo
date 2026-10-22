@@ -53,3 +53,5 @@ The word is used for two different files. The **agent inbox** is `logs/inbox/<ag
 ## No blocking tools (the owner, 2026-10-22)
 
 A tool call holds its agent until it returns: while it runs, every message to that agent waits in the queue. So: **a synchronous tool must be fast** (a file read, a lookup). **Slow work is asynchronous**: the tool returns at once with "accepted" and an id, and the result arrives later as its own message, in an envelope that says what it answers (as `run_in_background` and the `updates` tool already do). ⬜ Mark each Servex tool sync or async, and move the slow ones (spawn-and-wait, `wait_for_agent`, long jobs) to the ticket pattern.
+
+**Where async work drops the ball (the owner, 2026-10-22):** a message sent to an agent that never reads it, a result written to a file nobody tails, a queued reply that arrives after the agent stopped, and context lost when a session ends or compacts. Every async path names who reads its result and when; the process system (`core/Task/doc/process.md`) closes each one in code.
