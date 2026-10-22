@@ -25,6 +25,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { first_prompt } from "./readme-chain.js";
 import { place } from "../home.js";
+import { skill_text } from "./roles.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO = path.resolve(HERE, "../..");
@@ -80,7 +81,8 @@ export function opening(dir){
 	parts.push(`## The readmes\n\n${first_prompt(dir)}`);
 
 	const skills_dir = path.join(REPO, ".claude/skills");
-	const loaded = SKILLS.map(s => ({ s, text: read(path.join(skills_dir, s, "SKILL.md")) })).filter(x => x.text != null);
+	/* skill_text follows a skill that became a pointer to its role readme (sub-mastermind -> roles/task-mastermind.md, 2026-10-22). */
+	const loaded = SKILLS.map(s => ({ s, text: skill_text(s) })).filter(x => x.text != null);
 	parts.push(`## Your skills\n\nYour role's skills are ${loaded.map(x => `\`${x.s}\``).join(" and ")}. Their full text follows, so treat them as loaded.`);
 	for (const { s, text } of loaded) parts.push(`### .claude/skills/${s}/SKILL.md\n\n${text}`);
 
