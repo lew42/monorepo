@@ -17,3 +17,5 @@ Words: the VS Code tab's prompt log (`ai/2026/10/20/session-e00f55c9/page.jsonl`
 ## Next (planned, not started)
 
 A design-first plan: the class sketch (on-demand items, a `Ref` item, `move()`, a `storage` field naming the target), the storage targets mapped onto `storage.md`'s Backend and Journal, and the on-screen view of where an item lives (designed in Figma first). Builds on [next.md](next.md) (`set(prop, item)` adopts the child) and `storage-slice-1.md` (DevBackend and StaticBackend).
+
+**Server side (the owner, 2026-10-22):** the `item` tool may instantiate the item on the server, apply the delta and save through a server store adapter (the same path as the browser, without the socket), so validation and programmatic rules run in one place. One `item` tool with a method name and data, not a tool per method. A map of every piece of the item system (classes, stores, tools, writers) comes first: [readme-system.md](../../../ai/doc/readme-system.md).

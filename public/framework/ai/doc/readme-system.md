@@ -43,3 +43,16 @@ Each role names a skill in `roles.js`. The owner prefers a readme to a skill: th
 - **Pass 2, Sonnet, one per top-level system** (Servex, Server, core, ext, ux, ai): reads the pass-1 lines and checks the code where a finding needs it; proposes fixes as `{readme_fix: {path, line, change, why}}`. Fixes are applied in a separate step, after review.
 - **Cost:** about 400 readmes at about $0.02 each, about $8 for pass 1, plus about $3 for pass 2. A rerun skips a readme whose `sha` has not changed.
 - **Code:** `Server/ReadmeAudit.mjs`, built on `PromptAudit`'s queue and Haiku call.
+
+## The owner's direction (2026-10-22, tab prompt log `ai/2026/10/20/session-e00f55c9/page.jsonl`)
+
+- **Read whole readmes; no `## More` sections.** A readme that needs one needs better organization instead: link the major chunks, and split a big module into submodules or folders. The 12,000-token chain cap is a guess (four times the old 3,000), not measured: measure the real chain size per folder before keeping it.
+- **What gets injected must be visible.** A readme page: type a path, see every readme an agent there gets, what is in each, and its tokens, in layers (the chain; then each readme it links; then theirs), with the total under any module. The session page shows which readmes each session was given and read, and what share of its context they took (system prompt, CLAUDE.md, readmes).
+- **The spawner prescribes readmes.** Node injects the chain from the root to the working folder for every agent; the mastermind that spawns an agent names the extra sub-readmes it should read. The agent may read more. This replaces per-role readme lists. A mastermind reads most readmes in its area at startup and fixes anything badly out of place first.
+- **`improvements.md` per folder**: any agent can propose an improvement there (linked from the folder's readme); a mastermind reads it at startup and does a fix that has been proposed more than once, quickly, when it helps the task.
+- **Reads are logged by node, not by memory**: reading a readme through a tool writes it to the session log, as do spawns and skill/role loads. One generic `log` tool with a kind string and arbitrary data, not one tool per kind.
+- **Fewer tools.** About 90 MCP tools today; one `item` tool with a method name and data (an RPC), as proposed in past work. On the server, the tool could instantiate the item, apply the delta and save through its store, so the same validation runs as in the browser.
+- **CLAUDE.md holds only what is Claude-specific;** the framework must not be locked into Claude. Everything else moves to the framework readme. Maybe CLAUDE.md becomes "read `public/framework/readme.md`".
+- **Fixed sequences are code, not reminders.** Hooks may inject a short reminder before a tool runs, but a required sequence of steps belongs in a loop or a tool.
+- **A session completes only when all its tasks are done, and the merge is one of its tasks** (the owner approves it; [priority.md](../priority.md) 3b).
+- ⬜ **A systems audit**: module by module, as a whole system: what it is, whether it is useful, whether to move, rename or merge it; prune obvious or stale lines. Slow and systematic, aiming for clarity, not churn. Every system indexed so nothing is ever unfindable.
