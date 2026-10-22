@@ -1,5 +1,7 @@
 # Process — a task whose children are named phases, and node runs them in order
 
+**The name's scope:** here a process is a *way of working* (a Task subclass). Not `Servex/Process.js` (one supervised child program, such as a dev server), not `Servex/Processes.js` (the OS process monitor), and not the old [ai/process](/framework/ai/process/) page (how the agents' work was going, 2026-09-19, stale).
+
 A **process** is a standard way of doing a kind of work: *build* is investigate → plan → improve → approve → execute → review → merge. You create a task with a process named on it, and from that moment node starts phase 1, launches the session each phase names, chases a phase that stalls, and starts the next phase when one completes. The task is complete only when every phase is. A one-off fix needs no process.
 
 The owner's words: [the 2026-10-22 dictation](/framework/ai/sessions/2026/10/20/session-e00f55c9/) (tab transcript `e00f55c9`, 23:34 UTC) and [owner-2026-10-20 §5](owner-2026-10-20-projects-and-completion.md). Brief: [process-system](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/requirements.md).
