@@ -14,6 +14,14 @@ process. It's an `Item` (core/Item/) plus six states (`idle running paused waiti
 complete`), timestamps, a running-time clock that pauses with the task, and a
 `tasks: List` of subtasks whose own completion gates the parent's.
 
+## Using tasks (the owner, 2026-10-21)
+
+- **File each ask the first time it is heard.** When an owner prompt asks for something, the agent that reads it adds it to its session's record as a task (`tasks.add` with the item tool), or writes it as a one-line note in the readme it concerns when it is a rule or a preference rather than work.
+- **A task is a proposal until accepted:** accepted, optional, an option (one of several ways), back-burner, or rejected, each with a one-line reason. Nothing is accepted only because it was asked.
+- **A plan with several tasks to check off is a project** ([Project.js](Project.js)), not one big task; it lives in the session's record until it has a module home ([projects](/framework/ai/tasks/doc/projects.md)).
+- **Plan before building:** list the tasks (or the project's steps) and check them against [past work](/framework/ai/past-work-index.md) before the first edit.
+- **Loose ends found later stay apart:** the [prompt audit](/framework/ai/doc/prompt-audit.md) writes them beside the session, never into a finished session's tasks.
+
 ## Use
 
 ```js

@@ -77,6 +77,7 @@ export default class RefineQueue {
 				if (!raw.includes('"type":"user"')) return;
 				let l; try { l = JSON.parse(raw); } catch { return; }
 				if (l.entrypoint && l.entrypoint !== "claude-vscode") return;
+				if (l.turnOrigin && l.turnOrigin !== "human") return;   // SDK/CLI calls inherit the VS Code entrypoint (ai/doc/prompt-audit.md, "Which prompts")
 				const words = RefineQueue.owner_text(l);
 				if (!words || Date.parse(l.timestamp) < since) return;
 				out.push({ session, line: i + 1, uuid: l.uuid, at: l.timestamp, text: words });
