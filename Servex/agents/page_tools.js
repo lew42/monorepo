@@ -346,7 +346,8 @@ function apply_pages(at, pages, url){
 const ITEM_PATH = { type: "string", description: "The item's url, e.g. a task folder \"/framework/ai/sessions/…/<slug>/\" (task.jsonl there wins over page.jsonl) or a page. Omit = your own session page." };
 const ITEM_DESCRIPTION = "THE ITEM TOOL: `item({path, delta})`. `delta` is ONE log line, the exact object Item.set(delta) takes: a key naming a method calls it with the value as its arguments (`{\"start\":{}}`, `{\"wait\":{\"on\":\"owner\"}}`), a key naming a child walks into it (`{\"tasks\":{\"add\":{\"title\":\"x\"}}}`), any other key assigns. `\"a.b\": v` is shorthand for `{a:{b:v}}`. No `delta` = the current state. The first call per class also returns `instructions`; `{\"help\":{}}` returns them again.";
 
-const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jsonl": "Page" };
+// improvements.jsonl: a folder's proposed fixes and moves, one nested Task each (Servex/agents/roles/mastermind.md, "Improvements").
+const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jsonl": "Page", "improvements.jsonl": "Task" };
 const LOADERS = {
 	Task: async () => (await import("../../public/framework/core/Task/Task.js")).default,
 	Session: async () => (await import("../../public/framework/core/Session/Session.js")).default,
@@ -627,7 +628,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		const plan = [];
 		for (const a of [].concat(add)){
 			if (!is_plain(a)) return { ok: false, why: "`tasks.add` takes an object (the new task's fields)" };
-			const home = typeof a.process === "string" ? await process_home(path.dirname(at.file), a) : task_home(path.dirname(at.file), a, ctx.module_root, url);
+			const home = typeof a.process === "string" ? await process_home(path.dirname(at.file), a) : path.basename(at.file) === "improvements.jsonl" ? null : task_home(path.dirname(at.file), a, ctx.module_root, url);   // an improvement nests in its folder's list (mastermind role readme)
 			if (home?.why) return { ok: false, why: home.why };
 			if (home?.taken) return { ok: false, why: `a task "${home.slug}" already exists under ${home.list.module}/tasks/; nothing was written. Use the id "${home.free}" (or a different title), or work on the existing one.`, suggest: home.free };
 			const id = home ? null : slug_of(a.id ?? a.title);

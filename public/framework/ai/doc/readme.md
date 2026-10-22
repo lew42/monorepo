@@ -12,6 +12,7 @@ A map lists every piece of one system (each class, tool, writer and file) in one
 | [Servex/doc/tools-map.md](/Servex/doc/tools-map.md) | Every Servex tool, grouped, and the compacted set | you add, rename or look for a tool |
 | [core/Item/doc/map.md](/framework/core/Item/doc/map.md) | Every class, store, tool and writer that makes or saves items | you write or read a JSONL log, page, task or session |
 | [core/Task/doc/process.md](/framework/core/Task/doc/process.md) | Processes: a task whose phases node runs in order (Process, ProcessRunner, `item` tool) | you run multi-phase work or touch task completion |
+| [code-shape.md](code-shape.md) | Where AI code lives (core, ai/, Servex host, Servex/agents), item vs log, markdown vs JSONL; a proposal awaiting the owner | you add AI code or a record |
 | [records.md](records.md) | Every file in `ai/`, its writer and its reader | you wonder who writes a record |
 | [../systems-map.md](../systems-map.md) | The systems and how they connect | you cross systems |
 | [ux/Dictate/doc/map.md](/framework/ux/Dictate/doc/map.md) | Every dictation piece (mic, Whisper, cleaners, chat, voice) | you touch dictation |
