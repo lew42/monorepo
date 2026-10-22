@@ -7,14 +7,13 @@
  * context separately (Agents.js / the SDK's own project-instructions load), so
  * repeating it here would just be the same words twice.
  *
- * Each readme is cut to its FIRST SCREEN: up to its own `## More` heading, or
- * its first 40 lines, whichever comes first. Below that a reader is expected
- * to open the file itself — this only tells it that file exists and where.
+ * Each readme is given WHOLE (the owner, 2026-10-22: agents read the entire
+ * readme; readmes stay short instead). Before that it was cut at 40 lines or `## More`.
  *
  * `first_prompt(dir, extras)` is the seam another program (task-placement's
  * "Recent sessions" block, or anything else that wants to prepend context to a
  * fresh agent's first message) is meant to call: it formats the chain as one
- * block, applies a rough 3,000-token cap (cutting the MIDDLE levels first, then
+ * block, applies a rough 12,000-token cap (cutting the MIDDLE levels first, then
  * the root, so the root context and `dir`'s own readme survive longest), then appends each of `extras` as its own `## <label>` section.
  *
  * Plain functions, no class, never throw: a readme this can't read (permissions,
@@ -27,8 +26,9 @@ import { fileURLToPath } from "node:url";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO = path.resolve(HERE, "../..");
 
-const FIRST_SCREEN_LINES = 40;
-const TOKEN_CAP = 3000;
+// The owner, 2026-10-22: agents read each readme WHOLE; readmes stay short instead (ai/doc/readme-system.md).
+const FIRST_SCREEN_LINES = Infinity;
+const TOKEN_CAP = 12000;
 const CHAR_CAP = TOKEN_CAP * 4;   // the brief's own rule of thumb: chars/4 ~= tokens
 
 /* The readme at exactly this directory, or null. Case-insensitive on the two
@@ -47,7 +47,7 @@ function readme_file(dir){
 function first_screen(text){
 	const lines = text.split(/\r?\n/);
 	const more_at = lines.findIndex(l => /^##\s+More\b/i.test(l.trim()));
-	const limit = more_at >= 0 ? Math.min(more_at, FIRST_SCREEN_LINES) : FIRST_SCREEN_LINES;
+	const limit = FIRST_SCREEN_LINES === Infinity ? lines.length : more_at >= 0 ? Math.min(more_at, FIRST_SCREEN_LINES) : FIRST_SCREEN_LINES;
 	return { text: lines.slice(0, limit).join("\n").replace(/\s+$/, ""), truncated: lines.length > limit };
 }
 
@@ -107,7 +107,11 @@ export function first_prompt(dir, extras = []){
 	const header = `Where you are: readmes from the root down to ${dir}`;
 	const blocks = chain.map(r => `${r.path}${r.truncated ? " (truncated — read the rest at this path)" : ""}\n${r.text}`);
 	const kept = within_cap(header, blocks);
+	const dropped = chain.filter((r, i) => !kept.includes(blocks[i])).map(r => r.path);
 	let out = kept.length ? `${header}\n\n${kept.join("\n\n")}` : header;
+	if (dropped.length) out += `
+
+Not shown (over the size cap); read them yourself: ${dropped.join(", ")}`;
 	for (const e of (extras ?? [])) if (e?.label && e?.text != null) out += `\n\n## ${e.label}\n${e.text}`;
 	return out;
 }

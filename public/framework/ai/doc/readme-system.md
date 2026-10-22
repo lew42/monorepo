@@ -8,9 +8,9 @@ The owner's ask: rules get lost because nobody is sure which files each agent re
 |---|---|---|---|
 | `CLAUDE.md` | 124 | 3,764 | every Claude Code agent, automatically (the SDK loads it), except the lean assistants (`setting_sources: []`) |
 | [framework readme](../../readme.md) | 71 | 826 | the module index; only by masterminds that follow CLAUDE.md's "read it", and by the readme chain |
-| [ai readme](../readme.md) | 87 | 1,488 | the readme chain, first 40 lines only (a records table) |
+| [ai readme](../readme.md) | 87 | 1,488 | the readme chain (whole, since 2026-10-22) |
 
-**The readme chain** (`Servex/agents/readme-chain.js`): a fresh Servex spawn gets the readme of every folder from the repo root down to its task dir, each cut to its first 40 lines or its `## More` heading, about 3,000 tokens in all. A VS Code tab gets none of it: only CLAUDE.md.
+**The readme chain** (`Servex/agents/readme-chain.js`): a fresh Servex spawn gets the readme of every folder from the repo root down to its task dir, each given whole since 2026-10-22 (before: cut at 40 lines or `## More`, 3,000 tokens in all, which dropped the ai readme for most task agents). Cap now about 12,000 tokens; a readme over it is named so the agent opens it. A VS Code tab gets none of it: only CLAUDE.md.
 
 **Lines undercount:** a paragraph is one line, so a "124-line" CLAUDE.md is about 5,000 tokens. Words are the honest measure; aim for a readme under about 800 words.
 
@@ -34,7 +34,7 @@ Each role names a skill in `roles.js`. The owner prefers a readme to a skill: th
 
 1. **One role readme each**, `Servex/agents/roles/<role>.md` (the skill text moves there; the skill becomes a one-line pointer), under 400 words, linked from one index.
 2. **The framework readme is mandatory reading.** Framework rules (code style, classes, pages, traps) move from CLAUDE.md into `public/framework/readme.md` or the doc it links; CLAUDE.md keeps the laws, safety and "read the framework readme, then your role's readme". Target: CLAUDE.md under 1,500 words.
-3. **The top of every readme is its index.** The chain shows only the first 40 lines, so the index (every major part, one line, a link) goes first and tables of records go below `## More`.
+3. **Short readmes, read whole.** The chain now gives each readme whole, so a readme's length is paid by every agent below it: index first, records tables moved to a `doc/` file, about 800 words at most.
 4. **`ai/priority.md`** is read by every mastermind before it spawns (done 2026-10-22).
 
 ## A readme audit, on the prompt-audit pattern

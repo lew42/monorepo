@@ -10,14 +10,14 @@ anything. Built in `Servex/agents/readme-chain.js`; wired in by
 
 - `readme_chain(dir)` — the raw list: `[{path, text, truncated}]`, root to
   leaf, one entry per directory level under `dir` that has a `readme.md`
-  (levels with none are skipped). Each entry is cut to its first screen (its
-  own `## More` heading, or 40 lines — whichever comes first); the root
+  (levels with none are skipped). Each readme is given whole (since
+  2026-10-22; it used to be cut at 40 lines or `## More`); the root
   `CLAUDE.md` is never read here, since every agent already gets it a
   different way.
 - `first_prompt(dir, extras = [])` — the seam other code should call: formats
-  the chain as one `Where you are: …` block, caps it at ~3,000 tokens
+  the chain as one `Where you are: …` block, caps it at ~12,000 tokens
   (dropping whole middle-level readmes first, then the root — never the
-  leaf), then appends each of `extras` (`{label, text}`) as its own
+  leaf, and naming every readme it dropped so the agent can open it), then appends each of `extras` (`{label, text}`) as its own
   `## <label>` section. A caller like `task-placement`'s "Recent sessions"
   block never has to touch the chain's own formatting or its cap.
 

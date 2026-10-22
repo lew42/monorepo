@@ -38,8 +38,8 @@ const ok = (cond, msg) => { assert.ok(cond, msg); checks++; };
 	assert.deepStrictEqual(chain, [], "a dir outside the repo returns []");
 }
 
-// first-screen trimming: a readme with a `## More` heading is cut there, not
-// at 40 lines, and is marked truncated. The fixture has to live INSIDE the
+// whole readmes (the owner, 2026-10-22): a `## More` heading no longer cuts
+// the readme; the agent gets all of it. The fixture has to live INSIDE the
 // repo (readme_chain refuses anything outside it) but NOT under `public/`,
 // which the dev server's own watcher watches recursively (Server/health.mjs)
 // — writing there would fire a live-site reload on every test run. Right
@@ -51,8 +51,8 @@ const ok = (cond, msg) => { assert.ok(cond, msg); checks++; };
 	const chain = readme_chain(dir);
 	ok(chain.length >= 1, "a fixture readme with `## More` is found");
 	const leaf = chain.at(-1);
-	ok(leaf.truncated === true, "cut at `## More` is marked truncated");
-	ok(!leaf.text.includes("never ships"), "text below `## More` is not included");
+	ok(leaf.truncated === false, "a readme is never cut");
+	ok(leaf.text.includes("never ships"), "text below `## More` is included");
 	ok(leaf.text.includes("One line."), "text above `## More` is kept");
 	fs.rmSync(dir, { recursive: true, force: true });
 }
