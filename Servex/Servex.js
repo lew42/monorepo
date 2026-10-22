@@ -15,6 +15,7 @@ import Games from "./Games.js";
 import Worktrees from "./Worktrees.js";
 import TaskLoop from "./TaskLoop.js";
 import { hooks as page_tool_hooks } from "./agents/page_tools.js";
+import ProcessRunner from "./ProcessRunner.js";
 import { check_page, cap } from "../Server/BrowserCheck.mjs";
 import { pid as browser_pid } from "../Server/Browser.mjs";
 import Heartbeat from "./Heartbeat.js";
@@ -277,6 +278,12 @@ export default class Servex extends Events {
         this.task_loop = new this.constructor.TaskLoop({ servex: this, root: REPO });
         if (!process.env.SERVEX_NO_TASKLOOP) this.task_loop.start();
         page_tool_hooks.approved = file => this.task_loop.launch(file);   // an approve line starts a templated task's agent (doc/templates.md)
+        /* THE PROCESS RUNNER (process-system, 2026-10-22): a process's phases run in order because node runs them. Woken by
+         * any item-tool write to a process, by an agent's turn end, and by the TaskLoop tick (resume after a restart).
+         * Doc: public/framework/core/Task/doc/process.md. */
+        this.process_runner = new ProcessRunner({ servex: this, root: REPO });
+        page_tool_hooks.changed = file => this.process_runner.step(file);
+        if (!process.env.SERVEX_NO_TASKLOOP) setImmediate(() => this.process_runner.tick().catch(() => {}));
 
         /* THE ASKS LEDGER (asks-ledger, 2026-09-30): notices when a routed ask's owner agent
          * stops, goes quiet, or lands its task, and marks public/framework/ai/asks.jsonl so

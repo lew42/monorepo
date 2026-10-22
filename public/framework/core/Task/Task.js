@@ -24,7 +24,7 @@ const CAN = {
 // The state verbs a `task.jsonl` line may name: `{"stop":{"why":"…"}}`.
 // Plain fields a top-level line may set (the item tool's {"expected":"…"}); legacy lines keep them under `assign`.
 // `sessions` [{id, task}] and `home` (an old folder's pointer to its module home): Server/TaskMigrate.mjs writes them.
-const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent"];
+const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent", "outcome", "brief"];
 
 // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
 const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags"]);
@@ -262,7 +262,7 @@ export class Task extends Item {
 
 	// Refuses while any subtask is not complete: names the first open one, the
 	// same "tell them what to do next" shape as Item.locate()'s own warnings.
-	complete({ completion, complete } = {}){
+	complete({ completion, complete, outcome } = {}){
 		if (this.state === "complete") return this;
 
 		// A recorded finish is a fact during replay (this._rp): a {task: ref} child the worker only filed is not a reason to refuse it. Server/doc/state.md
@@ -275,7 +275,7 @@ export class Task extends Item {
 		this._ran_ms = ran_ms;
 		this._ran_since = null;
 		const c = completion ?? complete;
-		this.set({ completed_at: this.stamp(), ran_ms, ...(c !== undefined ? { completion: c } : {}), state: "complete" });
+		this.set({ completed_at: this.stamp(), ran_ms, ...(c !== undefined ? { completion: c } : {}), ...(outcome !== undefined ? { outcome } : {}), state: "complete" });
 		return this;
 	}
 
@@ -302,7 +302,8 @@ export class Task extends Item {
 		let kid;
 		if (lines?.length){
 			this.resolving.add(ref);   // a cycle of references stops here
-			try { kid = this.replay(lines); } finally { this.resolving.delete(ref); }
+			const Own = Item.types.get(lines[0]?.class);   // line 1 may name a subclass (a Process): replay it as that, when it is loaded
+			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
 			if (kid.id === "tasks") kid.id = id;   // a module list's line 1 says "tasks": a property name, and the same for every module
 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
 			kid = new this({ id });

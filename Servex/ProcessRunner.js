@@ -1,0 +1,160 @@
+import fs from "fs";
+import path from "path";
+import { stamp } from "./home.js";
+import Process from "../public/framework/core/Task/Process.js";
+
+/* THE PROCESS RUNNER: a process's phases run in order because node runs them, never because an agent remembers.
+ * Process.next() (core/Task/Process.js) decides; this class writes the line it asks for and launches the phase's session.
+ * Woken by the item tool after any write to a process (page_tools hooks.changed), by an agent's turn end (Agents.js),
+ * and by the TaskLoop tick (the retry, and the resume after a restart). Doc: public/framework/core/Task/doc/process.md.
+ * Not Processes.js, which watches OS processes. */
+export default class ProcessRunner {
+
+	constructor(...args){ Object.assign(this, ...args); this.initialize(); }
+
+	initialize(){
+		this.root ??= process.cwd();
+		this.public ??= path.join(this.root, "public");
+		this.chains = new Map();     // file -> the step in flight, so two wakes never step one file at once
+		this.by_agent = new Map();   // agent id -> the process file whose running phase it holds
+		this.files = new Set();      // every process file seen since boot
+		this.pulse_after_ms ??= 1500;
+	}
+
+	// The same file, read fresh: null when it is not a process.
+	read(file){
+		let text; try { text = fs.readFileSync(file, "utf8"); } catch { return null; }
+		const lines = text.split("\n").filter(l => l.trim()).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+		if (lines[0]?.class !== "Process") return null;
+		return Process.replay(lines);
+	}
+	is_process(file){ try { return fs.readFileSync(file, "utf8").slice(0, 400).includes('"class":"Process"'); } catch { return false; } }
+
+	url(file){ return "/" + path.relative(this.public, path.dirname(file)).split(path.sep).join("/") + "/"; }
+	rel(p){ return path.relative(this.root, p).split(path.sep).join("/"); }
+
+	// One appended line, stamped by node; through TaskLoop's per-file queue when there is one.
+	write(file, line){
+		const obj = { ...line, by: "ProcessRunner", at: stamp() };
+		const tl = this.servex?.task_loop;
+		return tl?.write_line ? tl.write_line(file, obj) : fs.promises.appendFile(file, JSON.stringify(obj) + "\n");
+	}
+
+	// Step a file until next() has nothing to do. Chained per file; never throws out.
+	step(file){
+		file = path.resolve(file);
+		const next = (this.chains.get(file) ?? Promise.resolve()).then(() => this.run(file)).catch(e => this.say(`process-runner: ${this.rel(file)}: ${e.message || e}`));
+		this.chains.set(file, next);
+		return next;
+	}
+
+	async run(file){
+		for (let i = 0; i < 20; i++){
+			const p = this.read(file);
+			if (!p) return;
+			this.files.add(file);
+			this.remember(p, file);
+			const a = p.next();
+			if (!a) return;
+			if (a.start === true) await this.write(file, { start: {} });
+			else if (a.complete){ await this.write(file, { complete: {} }); this.tell(p.creator, `Process ${this.url(file)} is complete: every phase is done.`); return; }
+			else if (a.wait){
+				const ph = p.phases.find(x => x.id === a.wait);
+				await this.write(file, { [a.wait]: { wait: { on: "owner", what: ph?.get_one("do") ?? a.wait } } });
+				this.tell(p.creator, `Process ${this.url(file)} waits on the owner: ${ph?.get_one("title") ?? a.wait}.`);
+			}
+			else if (a.start) await this.write(file, { [a.start]: { start: {} } });
+			else if (a.launch){ if (!(await this.launch(file, p, a.launch))) return; }
+		}
+	}
+
+	// Start the phase's session: fresh (spawn), same (the previous phase's agent), owner (the process's creator). False = held back.
+	async launch(file, p, id){
+		const ph = p.phases.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = s.run ?? "fresh";
+		const prompt = p.prompt(id, this.url(file)), agents = this.servex?.agents;
+		if (!agents) return false;
+		if (run === "fresh"){
+			const hot = this.servex.monitor?.flag?.reason;
+			if (hot){ if (!ph.get_one("queued")) await this.write(file, { queue: { phase: id, why: hot } }); return false; }
+			const agent = agents.spawn({
+				role: s.role ?? "helper", name: `${p.id}-${id}`.slice(0, 40), model: s.model, effort: s.effort,
+				permission_mode: s.permission_mode ?? "bypassPermissions", prompt,
+				task: { dir: this.rel(path.join(path.dirname(file), id)), title: `${p.get_one("title") ?? p.id}: ${ph.get_one("title") ?? id}`, ...(p.get_one("brief") ? { brief: p.get_one("brief") } : {}) },
+			});
+			await this.write(file, { spawn: { phase: id, run, agent: agent.id, session_id: agent.session_id ?? null, cost_before: 0 } });
+			this.by_agent.set(agent.id, file);
+			return true;
+		}
+		const to = run === "same" ? this.previous_agent(p, id) : p.creator;
+		try {
+			if (!to) throw new Error(run === "same" ? "no earlier phase has an agent" : "the process names no creator");
+			agents.send(to, prompt, { from: "process-runner" });
+		} catch (e){   // nobody to send it to: the phase waits on whoever made the process, and says why
+			await this.write(file, { [id]: { wait: { on: p.creator ?? "owner", what: `run the ${id} phase (${e.message || e})` } } });
+			return false;
+		}
+		await this.write(file, { spawn: { phase: id, run, agent: to, session_id: null, cost_before: this.cost_of(to) } });
+		this.by_agent.set(to, file);
+		return true;
+	}
+
+	previous_agent(p, id){
+		const at = p.phases.findIndex(x => x.id === id);
+		return p.phases.slice(0, at).reverse().find(x => x.get_one("spawned")?.agent)?.get_one("spawned").agent ?? null;
+	}
+
+	remember(p, file){ for (const ph of p.phases){ const a = ph.get_one("spawned")?.agent; if (a && ph.state === "running") this.by_agent.set(a, file); } }
+
+	cost_of(id){
+		const live = this.servex?.agents?.live?.get?.(id);
+		const n = Number(live?.cost ?? this.servex?.agents?.registry_list?.().find(r => r.id === id)?.cost);
+		return Number.isFinite(n) ? n : 0;
+	}
+
+	// An agent ended a turn (Agents.js result). Measure what it finished; pulse a phase it left open.
+	turn_ended(agent){
+		const file = this.by_agent.get(agent?.id);
+		if (!file) return;
+		setTimeout(() => this.after_turn(file, agent.id).catch(e => this.say(`process-runner: ${e.message || e}`)), this.pulse_after_ms).unref?.();
+	}
+
+	async after_turn(file, id){
+		const p = this.read(file);
+		if (!p) return;
+		const url = this.url(file);
+		// Still working: a message queued during the turn (the next phase's prompt, a pulse) starts another turn, which ends here again.
+		const busy = this.servex?.agents?.live?.get?.(id)?.state === "working";
+		let holds = false;
+		for (const ph of p.phases){
+			const sp = ph.get_one("spawned");
+			if (sp?.agent !== id) continue;
+			if (ph.state === "complete" && !ph.get_one("measure")){
+				const usd = Math.max(0, this.cost_of(id) - (Number(sp.cost_before) || 0));
+				await this.write(file, { measure: { phase: ph.id, agent: id, usd: Number(usd.toFixed(4)), shared: sp.run !== "fresh" } });
+			}
+			if (ph.state !== "running") continue;
+			holds = true;
+			if (busy) continue;
+			const n = Number(ph.get_one("pulses")) || 0;
+			if (n < 1){
+				const line = `item({path: "${url}", delta: {"${ph.id}": {"complete": {"outcome": "…"}}}})`;
+				try { this.servex.agents.send(id, `The ${ph.id} phase of ${url} is not recorded as complete. If it is done, record it: ${line}. If something blocks it, write {"${ph.id}": {"wait": {"on": "<who>", "what": "<what you need>"}}} with the same tool.`, { from: "process-runner" }); } catch {}
+				await this.write(file, { pulse: { phase: ph.id, n: n + 1, agent: id } });
+			} else {
+				await this.write(file, { [ph.id]: { wait: { on: p.creator ?? "owner", what: `the ${ph.id} agent (${id}) ended ${n + 1} turns without completing the phase` } } });
+				this.tell(p.creator, `Process ${url}: the ${ph.id} phase stalled (${id} ended ${n + 1} turns without completing it). It now waits on you.`);
+			}
+		}
+		if (!holds) this.by_agent.delete(id);
+		await this.step(file);
+	}
+
+	// The retry and the resume: every process in today's and yesterday's sessions, plus any seen since boot.
+	async tick(){
+		const found = this.servex?.task_loop?.find_task_files?.() ?? [];
+		for (const file of new Set([...found.filter(f => this.is_process(f)), ...this.files])) await this.step(file);
+	}
+
+	tell(to, text){ if (!to || to === "owner") return; try { this.servex?.agents?.send(to, text, { from: "process-runner" }); } catch {} }
+	say(text){ try { this.servex?.say?.(text); } catch {} }
+}

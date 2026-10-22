@@ -1489,6 +1489,7 @@ Agents.Agent = class Agent {
 			: this.one_shot && event.ok === false ? "error"
 			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done");
 		if (event.type === "error") this.host?.wake_parent?.(this, "error");
+		if (event.type === "result") try { this.host?.servex?.process_runner?.turn_ended(this); } catch {}   // a process phase this agent holds is measured, or pulsed if left open
 		return event;
 	}
 

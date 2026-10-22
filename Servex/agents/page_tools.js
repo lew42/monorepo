@@ -350,15 +350,17 @@ const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jso
 const LOADERS = {
 	Task: async () => (await import("../../public/framework/core/Task/Task.js")).default,
 	Session: async () => (await import("../../public/framework/core/Session/Session.js")).default,
+	Process: async () => (await import("../../public/framework/core/Task/Process.js")).default,
 };
-const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"] };
+const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/Task.js", "core/Item/Item.js"] };
 // Fields a Session line may carry: its identity, a title, and its tasks.
 const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class"];
 
 // Fields a Task line may carry beyond its getters (plan section 2) and the legacy line keys Task.replay reads.
 const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tags", "tasks", "task", "path", "parent", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];
 
-const KEYS = { Task: TASK_KEYS, Session: SESSION_KEYS };
+// A Process adds its own line-1 field and the lines only ProcessRunner writes (core/Task/doc/process.md).
+const KEYS = { Task: TASK_KEYS, Session: SESSION_KEYS, Process: [...TASK_KEYS, "process", "class", "spawn", "queue", "pulse", "measure"] };
 
 const told = new Map();   // `${caller}|${class}` -> true once its instructions went out
 
@@ -472,6 +474,22 @@ function make_child(parent_dir, add, ctx, home){
 	return { id: slug, path: url };
 }
 
+/* A process (core/Task/doc/process.md) always gets its own folder inside the caller's folder, never a module home: line 1 and one
+ * add per phase come from Process.DEFINITIONS, and ProcessRunner starts it (hooks.changed). Refused: an unknown process, a taken slug. */
+async function process_home(parent_dir, add){
+	const Process = await LOADERS.Process();
+	if (!Process.DEFINITIONS[add.process]) return { why: `no process "${add.process}"; the processes are: ${Object.keys(Process.DEFINITIONS).join(", ")}` };
+	const slug = slug_of(add.id ?? add.title), dir = path.join(parent_dir, slug);
+	if (fs.existsSync(dir)) return { why: `"${slug}" already exists in this folder; nothing was written. Give the process another id or title.` };
+	return { slug, dir, list: null, process: Process };
+}
+function make_process(parent_dir, add, ctx, home){
+	const [first, ...adds] = home.process.lines(add);
+	const h = make_child(parent_dir, first, ctx, home), file = path.join(home.dir, "task.jsonl");
+	for (const line of adds) write_line(file, { ...line, by: ctx.caller ?? "agent", ts: now() }, true);
+	return { ...h, process: add.process, file };
+}
+
 // Node's resolver for Task.from_ref: an app path -> that folder's parsed task.jsonl, or null. While a root is being replayed, `collect` gathers every child file it read.
 let collect = null;
 const sig = file => { try { const st = fs.statSync(file); return `${st.size}:${st.mtimeMs}`; } catch { return "none"; } };
@@ -509,6 +527,7 @@ function advance(root, line){
 
 function task_state(Task, task){
 	const tasks = [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state }));
+	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, phase: task.phase?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
 	if (Task.name === "Session") return { class: "Session", completion: task.completion, progress: task.progress(), data: { ...task.data }, tasks };
 	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
 }
@@ -562,7 +581,7 @@ async function give_folder(root, at, ids, ctx){
 }
 
 /* templates.md: Servex sets this to `file => task_loop.launch(file)`; run_item calls it right after an `approve` line lands. */
-export const hooks = { approved: null };
+export const hooks = { approved: null, changed: null };   // changed: Servex sets it to `file => process_runner.step(file)` (a process moves on after any write)
 
 export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
 	url ??= own_page(ctx);
@@ -607,7 +626,8 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		const plan = [];
 		for (const a of [].concat(add)){
 			if (!is_plain(a)) return { ok: false, why: "`tasks.add` takes an object (the new task's fields)" };
-			const home = task_home(path.dirname(at.file), a, ctx.module_root, url);
+			const home = typeof a.process === "string" ? await process_home(path.dirname(at.file), a) : task_home(path.dirname(at.file), a, ctx.module_root, url);
+			if (home?.why) return { ok: false, why: home.why };
 			if (home?.taken) return { ok: false, why: `a task "${home.slug}" already exists under ${home.list.module}/tasks/; nothing was written. Use the id "${home.free}" (or a different title), or work on the existing one.`, suggest: home.free };
 			const id = home ? null : slug_of(a.id ?? a.title);
 			if (id && (root()._tasks?.find(id) || plan.some(p => p.id === id)))
@@ -616,7 +636,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		}
 		for (const { a, home, id } of plan){
 			if (home){
-				const h = make_child(path.dirname(at.file), a, ctx, home);
+				const h = home.process ? make_process(path.dirname(at.file), a, ctx, home) : make_child(path.dirname(at.file), a, ctx, home);
 				homes.push(h); ids.push(h.id);
 				put({ task: h.path, by, ts: now() });
 				await record_new_folder(path.dirname(home.dir), home.slug);
@@ -643,6 +663,8 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	} else if (size === undefined) size = size_of(at.file);
 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.
 	if (Class?.replay && !at.target.length && body.approve !== undefined && hooks.approved) try { Promise.resolve(hooks.approved(at.file)).catch(() => {}); } catch {}
+	// A process moves on after any write to it, and a new one starts at once (ProcessRunner.step).
+	if (hooks.changed) for (const f of [...(kind === "Process" ? [at.file] : []), ...homes.filter(h => h.process).map(h => h.file)]) try { Promise.resolve(hooks.changed(f)).catch(() => {}); } catch {}
 	// Node records who worked on the task: one appended line carrying the full list, only when the caller is new to it.
 	if (Class?.replay && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
 		const live = root(), list = live.sessions;

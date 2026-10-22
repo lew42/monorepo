@@ -1,0 +1,100 @@
+// A build process end to end on a fake agent host: one item call creates it, node runs every phase, completion rolls up. `node Servex/ProcessRunner.test.mjs`
+import assert from "node:assert";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { run_item, hooks } from "./agents/page_tools.js";
+import ProcessRunner from "./ProcessRunner.js";
+import Task from "../public/framework/core/Task/Task.js";
+import "../public/framework/core/Task/Process.js";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const REL = "public/framework/ai/sessions/2026/10/22/.process-test-" + process.pid;
+const DIR = path.join(ROOT, REL), SESSION = path.join(DIR, "session.jsonl");
+const URL = "/" + REL.slice("public/".length) + "/";
+const read = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
+let n = 0;
+const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
+
+// The fake host: spawn and send are recorded; "mm1" is the live creator; ids a1, a2… are spawned.
+const sent = [], spawned = [], live = new Map([["mm1", { state: "idle", cost: 0 }]]);
+const agents = {
+	live,
+	spawn(spec){ const id = "a" + (spawned.length + 1); spawned.push({ id, ...spec }); live.set(id, { state: "working", cost: 0 }); return { id, session_id: "s-" + id }; },
+	send(id, text){ if (!live.has(id)) throw new Error(`no agent ${id}`); sent.push({ id, text }); },
+};
+const runner = new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, pulse_after_ms: 0 });
+hooks.changed = file => runner.step(file);
+const settle = async file => { await runner.chains.get(path.resolve(file)); await runner.chains.get(path.resolve(file)); };
+const item = (delta, caller, url = URL) => run_item({ path: url, delta }, { caller });
+
+fs.mkdirSync(DIR, { recursive: true });
+fs.writeFileSync(SESSION, JSON.stringify({ assign: { session_id: "sess", agent: "mm1", title: "Test session" } }) + "\n");
+try {
+	const Process = (await import("../public/framework/core/Task/Process.js")).default;
+	const clash = Object.values(Process.DEFINITIONS).flat().filter(ph => typeof Process.prototype[ph.id] === "function" || Task.FIELDS.includes(ph.id) || ["tasks", "content", "set", "file", "task", "log", "spawn", "queue", "pulse", "measure"].includes(ph.id));
+	ok(!clash.length, "no phase id names a Task verb, field or line key: " + clash.map(c => c.id));
+	let r = await item({ tasks: { add: { title: "Fix X", process: "nope" } } }, "mm1");
+	ok(r.ok === false && /no process "nope"/.test(r.why), "an unknown process is refused, nothing written");
+
+	r = await item({ tasks: { add: { title: "Fix X", process: "build", brief: "b.md" } } }, "mm1");
+	const FILE = path.join(DIR, "fix-x", "task.jsonl"), PURL = URL + "fix-x/";
+	ok(r.ok && fs.existsSync(FILE), "one call makes the process folder");
+	ok(read(SESSION).some(l => l.task === PURL), "the session's record references it");
+	await settle(FILE);
+	let L = read(FILE);
+	ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 7, "line 1 is a Process, seven phase lines");
+	ok(L.some(l => l.start) && L.some(l => l.investigate?.start) && L.some(l => l.spawn?.phase === "investigate" && l.spawn.agent === "a1"), "node started it and spawned the investigate session");
+	ok(spawned[0].model === "claude-sonnet-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`"investigate": {"complete"`), "the spawn carries the phase's model, a folder inside the process, and the completing line");
+
+	const step = async (delta, caller) => { await item(delta, caller, PURL); await settle(FILE); };
+	await step({ investigate: { complete: { outcome: "found the cause in X.js" } } }, "a1");
+	L = read(FILE);
+	ok(L.some(l => l.plan?.start) && sent.at(-1).id === "a1" && sent.at(-1).text.includes("found the cause in X.js"), "plan runs in the same session, told what investigate found");
+
+	live.set("a1", { state: "idle", cost: 0.5 });
+	await runner.after_turn(FILE, "a1");
+	L = read(FILE);
+	ok(L.some(l => l.measure?.phase === "investigate" && l.measure.usd === 0.5), "investigate's cost is measured by node");
+	ok(L.some(l => l.pulse?.phase === "plan" && l.pulse.n === 1) && sent.at(-1).text.includes("not recorded as complete"), "a turn that ends with plan open gets one pulse");
+
+	await step({ plan: { complete: { outcome: "plan.md written" } } }, "a1");
+	ok(spawned[1]?.role === "reviewer", "improve is a fresh reviewer");
+	await step({ "improve-plan": { complete: { outcome: "two steps cut" } } }, "a2");
+	ok(sent.at(-1).id === "mm1" && sent.at(-1).text.includes("Approve"), "approve goes to the creator");
+	await step({ "approve-plan": { complete: { outcome: "approved" } } }, "mm1");
+	ok(spawned[2]?.role === "helper" && spawned[2].prompt.includes("approved"), "execute is a fresh builder");
+	await step({ execute: { complete: { outcome: "branch task/fix-x, 2 commits" } } }, "a3");
+	await step({ review: { complete: { outcome: "ready to merge: task/fix-x" } } }, "a4");
+	let p = runner.read(FILE);
+	ok(p.phase.id === "merge" && p.phase.state === "waiting" && p.state === "running", "merge waits on the owner; the process is not complete");
+	ok(sent.at(-1).id === "mm1" && sent.at(-1).text.includes("waits on the owner"), "the creator is told");
+
+	await step({ merge: { complete: { outcome: "merged" } } }, "owner");
+	p = runner.read(FILE);
+	ok(p.state === "complete" && p.completion === 1, "the last phase completes the process");
+	const sess = Task.replay(read(SESSION));
+	ok(sess.completion === 1 && sess._tasks.find("fix-x")?.constructor.name === "Process", "the session's completion counts it (replayed as a Process)");
+
+	const before = read(FILE).length;
+	await new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, files: new Set() }).step(FILE);
+	ok(read(FILE).length === before, "a restart re-steps a finished process and writes nothing");
+
+	// A stall: the phase agent ends two turns without completing; the phase then waits on the creator.
+	await item({ tasks: { add: { title: "Look into Y", process: "investigate" } } }, "mm1");
+	const Q = path.join(DIR, "look-into-y", "task.jsonl");
+	await settle(Q);
+	const q = spawned.at(-1).id;
+	live.set(q, { state: "idle", cost: 0.1 });
+	await runner.after_turn(Q, q);
+	await runner.after_turn(Q, q);
+	p = runner.read(Q);
+	ok(p.phase.id === "questions" && p.phase.state === "waiting" && p.phase.get_one("waiting_on") === "mm1", "two silent turn ends: the phase waits on the creator");
+
+	r = await run_item({ path: PURL }, { caller: "mm1" });
+	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) reads the process back: class, state, phases");
+} finally {
+	fs.rmSync(DIR, { recursive: true, force: true });
+}
+console.log(`${n} passing`);
+process.exit(0);
