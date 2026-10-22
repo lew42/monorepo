@@ -39,7 +39,7 @@ export default class ReadmesView extends View {
 		this.$panel.empty(() => {
 			div.c("rm-title", `An agent in ${row.dir} is given ${row.levels} readmes, ${row.tokens} tokens:`);
 			row.chain.forEach(r => div.c("rm-item", () => {
-				a.c("rm-path").href("/" + r.path).attr("target", "_blank").text(r.path);
+				a.c("rm-path").href("/" + r.path.replace(/^public\//, "")).attr("target", "_blank").text(r.path);
 				small.c("muted", `${r.tokens} tokens`);
 			}));
 		});
