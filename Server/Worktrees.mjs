@@ -1,4 +1,5 @@
-/* node Server/Worktrees.mjs --plan | --apply — one verdict per non-pool worktree; --apply removes the REMOVE ones.
+/* node Server/Worktrees.mjs --plan | --apply [--archive [--now] [--path <worktree>]] — one verdict per non-pool worktree; --apply removes the REMOVE ones.
+ * --archive also closes a quiet one (no live agent, nothing touched for 2 hours): its leftovers are committed to its own branch, then the folder goes; unmerged commits get a line in ready-to-merge.jsonl.
  * REMOVE = its work is on michael/dev (or it has none) and nothing REAL is uncommitted. KEEP = anything else, with its branch.
  * Branches are never deleted; each removal is one line in ai/sessions/worktree-removals.jsonl. Doc: doc/worktrees.md "Clear out landed worktrees". */
 import fs from "node:fs";
@@ -16,6 +17,7 @@ const lower = s => slash(s).toLowerCase().replace(/\/+$/, "");
 export default class Worktrees {
     static BASE = "michael/dev";
     static MANIFEST = "public/framework/ai/sessions/worktree-removals.jsonl";
+    static READY = "public/framework/ai/sessions/ready-to-merge.jsonl";   // one line per branch whose worktree went but whose commits are not on the base
     // files a worktree's own dev server or a screenshot run rewrites: losing them loses nothing
     static REGENERATED = /(^|\/)(files\.jsonl|index\.json|cache\.jsonl)$|\.png$|(^|\/)(shots|layout-check)\//;
 
@@ -24,8 +26,8 @@ export default class Worktrees {
     }
 
     /* options: main (repo root), base, agents (cwd list of live agents; null = ask Servex), pool_names (regexp) */
-    constructor({ main = Worktrees.main_repo(), base = Worktrees.BASE, agents = null, here = process.cwd(), pool_names = /^qf-\d+$/ } = {}){
-        Object.assign(this, { main: slash(main), base, agents, here: lower(this.top(here)), pool_names });
+    constructor({ main = Worktrees.main_repo(), base = Worktrees.BASE, agents = null, here = process.cwd(), pool_names = /^qf-\d+$/, archive = false, quiet_hours = 2, only = null } = {}){
+        Object.assign(this, { main: slash(main), base, agents, archive, quiet_hours, only: only ? lower(only) : null, here: lower(this.top(here)), pool_names });
         // Pool.landed() is the one "is this on the base" test (by commits, by merge.mjs record, by file content)
         this.pool = new Pool({ servex: { agents: { registry_list: () => [] } }, main: this.main, base, file: path.join(os.tmpdir(), "worktrees-unused-pool.json") });
     }
@@ -57,7 +59,39 @@ export default class Worktrees {
         return { modified: mod, untracked: unt, regenerated: mod.regenerated + unt.regenerated, real: mod.real + unt.real };
     }
 
+    /* Minutes since anything touched this worktree: git's index/HEAD/reflog, or any file git reports changed. */
+    quiet_min(w){
+        const gitdir = path.resolve(w.path, this.out(w.path, "rev-parse", "--git-dir"));
+        let last = 0;
+        for (const f of ["index", "HEAD", "logs/HEAD"]) try { last = Math.max(last, fs.statSync(path.join(gitdir, f)).mtimeMs); } catch {}
+        for (const l of this.out(w.path, "status", "--porcelain", "--untracked-files=all").split(/\r?\n/).filter(Boolean))
+            try { last = Math.max(last, fs.statSync(path.join(w.path, l.slice(3).replace(/^"|"$/g, "").replace(/.* -> /, ""))).mtimeMs); } catch {}
+        return last ? Math.round((Date.now() - last) / 60000) : null;
+    }
+
+    /* A KEEP that only waits on leftovers or a merge becomes ARCHIVE when --archive is on and the worktree is quiet. */
+    archivable(w, row){
+        if (!this.archive || row.verdict !== "KEEP" || !w.branch || !/uncommitted|unmerged/.test(row.why)) return row;
+        const quiet = this.quiet_min(w);
+        if (quiet === null || quiet < this.quiet_hours * 60) return { ...row, why: row.why + ` (touched ${quiet ?? "?"} min ago, so it stays)` };
+        return { ...row, verdict: "ARCHIVE", why: `quiet ${quiet} min; ${row.why}` };
+    }
+
+    /* Commit every leftover to the worktree's own branch; returns how many files, or throws with git's words. */
+    commit_leftovers(r){
+        const n = this.out(r.path, "status", "--porcelain", "--untracked-files=all").split(/\r?\n/).filter(Boolean).length;
+        if (!n) return 0;
+        this.git(r.path, "add", "-A");
+        const c = this.git(r.path, "commit", "-m", `worktree closed: ${n} leftover file(s) saved to ${r.branch} before the folder was removed\n\nCo-Authored-By: Claude Code <noreply@anthropic.com>`);
+        if (c.status !== 0) throw new Error((c.stderr || c.stdout).trim().split("\n").pop());
+        return n;
+    }
+
     async row(w, live){
+        return this.archivable(w, await this.row_base(w, live));
+    }
+
+    async row_base(w, live){
         const base = { path: w.path, branch: w.branch ?? `(detached ${w.head?.slice(0, 9)})`, sha: w.head };
         if (!fs.existsSync(w.path)) return { ...base, verdict: "REMOVE", why: "folder is gone; only its git entry is left", gone: true };
         const ahead = Number(this.out(w.path, "rev-list", "--count", `${this.base}..HEAD`)) || 0;
@@ -78,6 +112,7 @@ export default class Worktrees {
     async plan(){
         const live = await this.live_cwds(), pool = new Set(this.pool.slots.map(s => lower(s.path))), rows = [];
         for (const w of this.list()){
+            if (this.only && lower(w.path) !== this.only) continue;
             if (this.pool_names.test(path.basename(w.path)) || pool.has(lower(w.path))) continue;
             rows.push(await this.row(w, live));
         }
@@ -86,20 +121,27 @@ export default class Worktrees {
 
     format(r){
         const c = `uncommitted ${r.regenerated ?? 0} regenerated + ${r.real ?? 0} real`;
-        const how = r.verdict === "REMOVE" ? (r.force ? " (--force: only regenerated files)" : "") : "";
+        const how = r.verdict !== "KEEP" ? (r.force ? " (--force: only regenerated files)" : "") : "";
         return `${r.verdict.padEnd(6)} ${r.path}  ${r.branch}  ahead ${r.ahead ?? "-"}  diff-empty ${r.diff_empty ?? "-"}  ${c}  ${r.why}${how}`;
     }
 
     summary(rows){
         const n = v => rows.filter(r => r.verdict === v).length;
-        return `${rows.length} non-pool worktree(s): ${n("REMOVE")} REMOVE, ${n("KEEP")} KEEP.`;
+        return `${rows.length} non-pool worktree(s): ${n("REMOVE")} REMOVE, ${n("ARCHIVE")} ARCHIVE, ${n("KEEP")} KEEP.`;
     }
 
     /* Removes every REMOVE row; never a KEEP, never a branch. Returns the rows with `removed` or `failed`. */
     async apply(rows, { date = new Date().toISOString() } = {}){
         const manifest = path.join(this.main, Worktrees.MANIFEST);
         fs.mkdirSync(path.dirname(manifest), { recursive: true });
-        for (const r of rows.filter(r => r.verdict === "REMOVE")){
+        const ready = path.join(this.main, Worktrees.READY);
+        for (const r of rows.filter(r => r.verdict === "REMOVE" || r.verdict === "ARCHIVE")){
+            if (r.verdict === "ARCHIVE"){
+                try { r.committed = this.commit_leftovers(r); } catch (e){ r.failed = "commit refused: " + e.message; continue; }
+                r.sha = this.out(r.path, "rev-parse", "HEAD");
+                r.unmerged = Number(this.out(r.path, "rev-list", "--count", `${this.base}..HEAD`)) || 0;
+                if (r.unmerged && (this.git(r.path, "diff", "--quiet", `${this.base}...HEAD`).status === 0 || await this.pool.landed({ path: r.path }))) r.unmerged = 0;
+            }
             if (!r.gone){
                 try { refuse_links_into_main(r.path, "git worktree remove"); }
                 catch (e){ r.failed = e.message.split("\n")[0]; continue; }
@@ -107,7 +149,8 @@ export default class Worktrees {
                 if (res.status !== 0){ r.failed = (res.stderr || res.stdout).trim().split("\n").pop(); continue; }
             }
             r.removed = true;
-            fs.appendFileSync(manifest, JSON.stringify({ path: r.path, branch: r.branch, sha: r.sha, at: date, why: r.why + (r.force ? "; forced over regenerated files only" : ""),
+            if (r.unmerged) fs.appendFileSync(ready, JSON.stringify({ branch: r.branch, sha: r.sha, unmerged: r.unmerged, leftover_files: r.committed, at: date, how: "node Server/merge.mjs on a worktree of this branch", why: "worktree closed; these commits are not on " + this.base }) + "\n");
+            fs.appendFileSync(manifest, JSON.stringify({ path: r.path, branch: r.branch, sha: r.sha, at: date, why: r.why + (r.force ? "; forced over regenerated files only" : ""), committed: r.committed, unmerged: r.unmerged,
                 restore: r.branch.startsWith("(") ? `git worktree add --detach "${r.path}" ${r.sha}` : `git worktree add "${r.path}" ${r.branch}` }) + "\n");
         }
         this.git(this.main, "worktree", "prune");
@@ -118,10 +161,10 @@ export default class Worktrees {
         if (!argv.includes("--plan") && !argv.includes("--apply")) return console.log("usage: node Server/Worktrees.mjs --plan | --apply");
         let rows = await this.plan();
         if (argv.includes("--apply")) rows = await this.apply(rows);
-        for (const r of rows) console.log((r.removed ? "removed " : r.failed ? "FAILED  " : "") + this.format(r) + (r.failed ? `  [${r.failed}]` : ""));
+        for (const r of rows) console.log((r.removed ? (r.committed ? `removed (+${r.committed} files committed${r.unmerged ? `, ${r.unmerged} unmerged -> ready-to-merge` : ""}) ` : "removed ") : r.failed ? "FAILED  " : "") + this.format(r) + (r.failed ? `  [${r.failed}]` : ""));
         console.log(this.summary(rows) + (argv.includes("--apply") ? ` ${rows.filter(r => r.removed).length} removed, ${rows.filter(r => r.failed).length} failed.` : ""));
         return rows;
     }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) await new Worktrees().run(process.argv.slice(2));
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) await new Worktrees({ archive: process.argv.includes("--archive"), quiet_hours: process.argv.includes("--now") ? 0 : 2, only: process.argv.includes("--path") ? process.argv[process.argv.indexOf("--path") + 1] : null }).run(process.argv.slice(2));

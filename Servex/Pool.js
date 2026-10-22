@@ -539,6 +539,7 @@ export default class Pool extends Events {
                 const base = slash(dir).toLowerCase();
                 const live = this.holders().find(r => ["idle", "working", "queued", "starting"].includes(r.state) && r.cwd && slash(path.resolve(String(r.cwd))).toLowerCase().startsWith(base));
                 if (live){ this.once(slot, `pool: ${id} is on disk, not in the pool, and ${live.id} works in it — left alone`, "orphan"); continue; }
+                await this.unlock_crashed(slot);   // a crashed `git worktree add` leaves "locked initializing" and no slot can ever free it (2026-10-22)
                 const r = await this.salvage(slot, "orphan (forgotten by the pool)");
                 this.say(`pool: ${id} recycled — ${r.what}`, { id });
                 await this.remove(slot);   // forget() is a no-op for it; the chain then removes the (now clean) worktree
@@ -553,6 +554,18 @@ export default class Pool extends Events {
             }
         }
         return done;
+    }
+
+    /* `git worktree add` locks a new worktree as "initializing" and unlocks it when done; a crash leaves the lock for ever, and git then refuses to remove the folder. 15 quiet minutes means the add is dead. */
+    async unlock_crashed(slot){
+        const g = path.resolve(this.main, ".git", "worktrees", slot.id), lock = path.join(g, "locked");
+        try {
+            if (fs.readFileSync(lock, "utf8").trim() !== "initializing" || Date.now() - fs.statSync(lock).mtimeMs < 15 * 60000) return false;
+            await this.git(this.main, ["worktree", "unlock", slot.path]);
+            try { fs.rmSync(path.join(g, "index.lock"), { force: true }); } catch {}
+            this.say(`pool: ${slot.id} was left locked "initializing" by a crashed worktree add; unlocked so it can be recycled`, { id: slot.id });
+            return true;
+        } catch { return false; }
     }
 
     /* A spawn waiting for a pool worktree over STUCK_MIN minutes is a system failure: said loudly, once per spawn, in the Servex log. */
