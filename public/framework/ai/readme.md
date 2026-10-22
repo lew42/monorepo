@@ -2,6 +2,8 @@
 
 `ai/` holds (1) the AI system's **records**: the session store, the asks ledger, the cards index, the usage logs, `index.json`; (2) the **classes that draw them**: `AISession/`, `AITask/`, `cards/`, `rail/`, `tasks/`; (3) docs about the AI system (`doc/`). A module that AI merely *uses* does not belong here. Servex (`Servex/`, [/framework/servex/](/framework/servex/)) runs the agents; each task is a folder with a JSONL log; node scripts, not memory, compute every number. The pages: [/framework/ai/](/framework/ai/) (the Inbox), [System tab](/framework/ai/system/).
 
+**Priorities now: [priority.md](priority.md)** — the ranked list every mastermind reads before it spawns. Who does what: [doc/readme-system.md](doc/readme-system.md) (roles, what each agent reads).
+
 ## On disk: the records, each with its writer and reader
 
 | Path | What | Written by | Read by |
