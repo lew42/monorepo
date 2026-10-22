@@ -8,7 +8,7 @@ import { servex_url } from "/framework/dev/servex_url.js";
  * 15:50) before "a little UI harness" was added to it (15:55) — "that page", same
  * url. The full inventory (programs, models, disk used, what's half-broken) lives
  * in the task card, not retyped here — this page points at it instead of repeating
- * it (CLAUDE.md "Docs point, they don't explain"). Also used wherever a message
+ * it (framework/doc/rules.md "Docs point, they don't explain"). Also used wherever a message
  * below needs a real place to click instead of a dangling "see the readme". */
 const REPORT_URL = "/framework/ai2/2026-10-01/local-ai/";
 

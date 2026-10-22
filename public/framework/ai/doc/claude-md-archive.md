@@ -106,3 +106,13 @@ Was: `public/framework/readme.md` → `core/` `ext/` `styles/` `ui/` `web/` — 
 
 <!-- claude-md:proposal-branches -->
 **PROPOSED, not in CLAUDE.md (needs the owner's yes), 2026-10-19: an amendment to law 5 ("Keep working; never wait on the owner"), not a new law.** Append to law 5: *"Major changes to any system, documentation overhauls included, are built on a branch `task/<slug>` (the slug of the task dir), committed at every working step and merged to `michael/dev` by the agent itself as soon as it has passed review (the diff read, a fresh reviewer for a big task, the smoke check); a branch is never parked waiting for approval. Log the result where it will be found later: what landed in the module's readme and `doc/`, one line plus a link in the session log, a decision only the owner can make as a task in the `waiting` state (Waiting On You) while the rest keeps moving. Chat is not where things are found."* Already live, with the owner's words, in `.claude/skills/mastermind/SKILL.md` (Land everything).
+
+## 2026-10-22: CLAUDE.md split into the framework readme and the role readmes
+
+The framework rules moved word for word to `public/framework/doc/rules.md`, the safety and cost rules to `public/framework/ai/doc/agent-rules.md` (map: `public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md`; old file: `git show 86901d69d:CLAUDE.md`). Only these sentences were reworded; their old wording:
+
+<!-- claude-md-2026-10-22:header -->
+Consolidated 2026-10-12: text moved out of this file lives in a linked doc, and `public/framework/ai/doc/claude-md-archive.md` keeps the original wording of every rule that was reworded. The sentence-by-sentence map is in `public/framework/ai/2026-10-12/claude-md-consolidate/`.
+
+<!-- claude-md-2026-10-22:where-to-look -->
+- `public/framework/readme.md` — THE module index (every module, one line, one link). Every mastermind and voice agent reads CLAUDE.md and then this index before working; a minion with a narrow build task may skip the index.

@@ -5,7 +5,9 @@
  * The six roles are ../../public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md.
  * `role` here is the short word a caller passes (`minion`, `task-mastermind`); the
  * full id (`<role>-<name>`) is still built by Agents.name(). */
-/* THE table: one row per role — the skill it loads, its id prefix, and its posture.
+/* THE table: one row per role — its role readme and/or the skills it loads, its id prefix, and its posture.
+ * `readme: "minion"` is the role's one switch (2026-10-22): Servex inlines Servex/agents/roles/minion.md
+ * whole before the first turn (index: roles/readme.md); the old skill is now a pointer to that file.
  * The owner's rule is "skill name = role = agent id". Where a role and its skill
  * differ, `alias` is the other word (or an array of them), and any of them is
  * accepted as a role. Renaming the skill dirs would touch a dozen callers, so the
@@ -33,16 +35,16 @@ export const ROLES = {
 	 * tools, and under acceptEdits every one of those is refused with nobody to approve — the
 	 * minion only finds out when its first call fails (minion-framework-home lost a turn this way;
 	 * the CLI-launcher version of the same bug is 2026-09-19's). Same reasoning as task-mastermind below. */
-	minion:             { skill: "minion",           prefix: "minion",           tier: "scan",      model: model("scan"),       effort: "low", permission_mode: "bypassPermissions", compact_after: null },
+	minion:             { readme: "minion",           prefix: "minion",           tier: "scan",      model: model("scan"),       effort: "low", permission_mode: "bypassPermissions", compact_after: null },
 	/* bypassPermissions, not acceptEdits: this role's whole job is calling
 	 * spawn_agent/send_to_agent/list_agents, and an MCP tool call needs the same
 	 * approval a Bash command would under acceptEdits — approval nobody can give
 	 * a non-interactive SDK session. Found 2026-09-22 (sub-mastermind-live run 1):
 	 * a task mastermind spawned under the old default had both its spawn_agent
 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
-	"task-mastermind":  { skills: ["sub-mastermind", "page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+	"task-mastermind":  { readme: "task-mastermind", skills: ["page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* mastermind: bypassPermissions too (2026-10-12, asks #6): it calls spawn_agent/page tools and edits, and nobody can approve a prompt overnight. */
-	mastermind:         { skill: "servex-mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+	mastermind:         { readme: "servex-mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* The fast assistant (every-prompt) is retired for voice as of 2026-10-17 (`voice-assistant` below); its skill files stay on disk and this row stays for the callers that still name it. */
 	assistant:          { retired: "voice-assistant", skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
 	/* ONE PAIR ON EVERY PAGE (recursive-pairs, 2026-09-25/28): a page-assistant, root page
@@ -63,7 +65,7 @@ export const ROLES = {
 	 * "directory mastermind" (not a roles.js row yet — no tool spawns one fresh from a
 	 * directory's readme chain today). Names only, no behaviour change here:
 	 * doc/names.md, /framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md. */
-	"page-mastermind":  { skills: ["sub-mastermind", "page"], prefix: "manager", alias: "manager",                              tier: "manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions" },
+	"page-mastermind":  { readme: "task-mastermind", skills: ["page"], prefix: "manager", alias: "manager",                              tier: "manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions" },
 	/* The root page's own assistant (Servex/agents/Global.js `master()`, master-assistant.md).
 	 * Its own row, not folded into page-assistant: architect tier and `plan`, unchanged from
 	 * before recursive-pairs. A caller's own fields (Global.js's) still win over this table.
@@ -72,7 +74,7 @@ export const ROLES = {
 	 * (the code) is unchanged; only the word is retired. doc/names.md has the detail. */
 	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "architect", model: model("architect"), effort: "high", permission_mode: "plan", compact_after: MASTERMIND_COMPACT },
 	/* Woken per landing and per proposal by Server/clarity.mjs; fresh each time, one pass (.claude/skills/clarity/). */
-	clarity:            { skill: "clarity",          prefix: "clarity",          tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
+	clarity:            { readme: "clarity",          prefix: "clarity",          tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
 	/* ONE PAIR PER VOICE SESSION (Sessions.js, ai/sessions/2026/09/30/voice-sessions/voice-sessions): spawned by code with
 	 * their own briefs (session-fast.md, session-smart.md), which win over these rows. No skill.
 	 * `session-smart` shares the "files for the next agent, cards for the owner" write discipline
@@ -91,11 +93,11 @@ export const ROLES = {
 	 * mastermind's posture, opened with the folder's plain files as its first message. Spawned by
 	 * code with `system` set, so this row's skills are inlined by directory.js, not by `opening()`
 	 * below. Replaces the retired per-page "manager" for technical questions. doc/directory.md. */
-	"directory-mastermind": { skills: ["sub-mastermind", "page"], prefix: "directory-mastermind", tier: "manager", model: model("manager"), effort: "medium", permission_mode: "plan" },
+	"directory-mastermind": { readme: "task-mastermind", skills: ["page"], prefix: "directory-mastermind", tier: "manager", model: model("manager"), effort: "medium", permission_mode: "plan" },
 	/* Skill-usage audit 2026-10-12: these three were never told to load a skill (2 of 518 loaded one on their own);
 	 * a role row is what makes Servex prefix "Load the X skill". Callers' own model/effort/permissions still win. */
-	reviewer:           { skill: "review",           prefix: "reviewer",         tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
-	checker:            { skill: "review",           prefix: "checker",          tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
+	reviewer:           { readme: "reviewer",           prefix: "reviewer",         tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
+	checker:            { readme: "reviewer",           prefix: "checker",          tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
 	voter:              { skill: "research",         prefix: "voter",            tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
 	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    tier: "fast",      model: model("fast"),       effort: "low",  permission_mode: "acceptEdits" }
 };
@@ -142,29 +144,50 @@ function and_list(words){
  * user message — the same words a person types to make Claude load one, naming
  * every skill the role carries. */
 export function opening(role, prompt){
-	const skills = skills_of(role);
-	if (!skills.length) return prompt;
-	/* 2026-10-12 (Servex/doc/skills.md): the skill text itself rides in the first message, so loading
-	 * is node's job, not the model's choice. A missing SKILL.md falls back to the old "Load the" request. */
-	const texts = skills.map(skill_text);
-	if (texts.some(t => t === null)) {
-		const named = and_list(skills.map(s => `\`${s}\``));
-		return `Load the ${named} skill${skills.length > 1 ? "s" : ""}, then: ${prompt}`;
-	}
-	const blocks = skills.map((s, i) => `<skill name="${s}">\n${texts[i]}\n</skill>`).join("\n\n");
-	return `[Servex loaded the ${and_list(skills.map(s => `\`${s}\``))} skill${skills.length > 1 ? "s" : ""} for you; the text is below, so don't call the Skill tool for ${skills.length > 1 ? "them" : "it"}.]\n\n${blocks}\n\nNow: ${prompt}`;
+	const parts = parts_of(role);
+	if (!parts.length) return prompt;
+	/* 2026-10-12 (Servex/doc/skills.md): the text itself rides in the first message, so loading
+	 * is node's job, not the model's choice. A missing file falls back to the old "Load the" request. */
+	if (parts.some(p => p.text === null)) return `Load ${and_list(parts.map(p => p.label))}, then: ${prompt}`;
+	const blocks = parts.map(p => p.block).join("\n\n");
+	return `[Servex loaded ${and_list(parts.map(p => p.label))} for you; the text is below, so don't call the Skill tool for it.]\n\n${blocks}\n\nNow: ${prompt}`;
 }
 
-/* The skills a role gets inlined (empty when the fallback applies) — Agents logs this as `skills_injected`. */
+/* The row's role readme (if it names one), then each of its skills: {name, label, text, block}. */
+function parts_of(role){
+	const r = row(role), out = [];
+	if (r?.readme) {
+		const file = `Servex/agents/roles/${r.readme}.md`, text = role_readme(r.readme);
+		out.push({ name: `roles/${r.readme}`, label: `your role readme \`${file}\``, text, block: `<role-readme path="${file}">\n${text}\n</role-readme>` });
+	}
+	for (const s of skills_of(role)) {
+		const text = skill_text(s);
+		out.push({ name: s, label: `the \`${s}\` skill`, text, block: `<skill name="${s}">\n${text}\n</skill>` });
+	}
+	return out;
+}
+
+/* What a role gets inlined (empty when the fallback applies) — Agents logs this as `skills_injected`. */
 export function injected(role){
-	const skills = skills_of(role);
-	return skills.every(s => skill_text(s) !== null) ? skills : [];
+	const parts = parts_of(role);
+	return parts.every(p => p.text !== null) ? parts.map(p => p.name) : [];
 }
 
 export const SKILLS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.claude/skills");
+export const ROLES_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "roles");
 
-/* SKILL.md without its frontmatter, or null when the skill has no file. */
-export function skill_text(name){
-	try { return fs.readFileSync(path.join(SKILLS_DIR, name, "SKILL.md"), "utf8").replace(/^---[\s\S]*?\n---\r?\n/, "").trim(); }
+/* A role readme's text without its leading move comment, or null. */
+export function role_readme(name){
+	try { return fs.readFileSync(path.join(ROLES_DIR, `${name}.md`), "utf8").replace(/^<!--[\s\S]*?-->\r?\n/, "").trim(); }
 	catch { return null; }
+}
+
+/* SKILL.md without its frontmatter, or null when the skill has no file. A skill that is now a
+ * pointer ("Read `Servex/agents/roles/<role>.md` …") returns that role readme instead. */
+export function skill_text(name){
+	let body;
+	try { body = fs.readFileSync(path.join(SKILLS_DIR, name, "SKILL.md"), "utf8").replace(/^---[\s\S]*?\n---\r?\n/, "").trim(); }
+	catch { return null; }
+	const to = body.match(/^Read `Servex\/agents\/roles\/([\w-]+)\.md`/)?.[1];
+	return to ? role_readme(to) ?? body : body;
 }

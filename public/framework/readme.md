@@ -21,7 +21,7 @@
 - [ai](./ai/) — the daily working log and task board (its card rail and inbox are AI 2's old code, being migrated in place; `ai2/` itself is retired)
 - [audit](./audit/) — the 2026-08-15 doc audit, a dated snapshot
 - [old](./old/) — the home page as it stood before the 2026-10-02 sprawl rebuild, kept reachable
-- [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes (docs only)
+- [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes; [doc/rules.md](./doc/rules.md) is the long form of the rules below
 
 ## The systems (one line each; each links its own readme)
 - [core/Task](./core/Task/) — `class Task extends Item`: one task's state machine, plus the task pages
@@ -33,6 +33,18 @@
 - [servex](./servex/) — the always-on process that runs agents: spawning, roles, dispatch (code in `Servex/`)
 - [Servex MCP](./ai/doc/agents/mcp.md) — the local `servex` MCP at `/mcp` and the remote door at `/mcp/remote` (`Servex/MCP.js`, `Servex/ext/remote/RemoteMCP.js`)
 - [Cloud voice agent](/Servex/ext/remote/doc/cloud-voice-agent.md) — the voice app's call into Servex: `ask_mastermind`, `/live/`, its session record
+
+## Rules — every agent reads these (long form: [doc/rules.md](doc/rules.md), moved from CLAUDE.md 2026-10-22)
+
+- **Presentation — always the overwhelmed newcomer:** level 1 is one screen, shown not told; detail nests one click down. **Chat is the headline, not the report:** reply in 1–2 sentences, the most important first; anything contingent also goes on the AI board as a `Note:` card. **How to respond:** a `###` heading per thing with its path, `---` between sections, icons for status only.
+- **Design in Figma first; show it with the widget, then use words.** Clarity is familiar structure; a name is a name plus its scope.
+- **Route everything; link every mention, and every page:** every view a click reaches has a URL; every file you create is reachable by a visible link; anything named that has a URL is a link (`ext/Mention`).
+- **Readmes and docs:** docs point, they don't explain. A readme is a short index (under about 100 lines), read root to leaf before you work in a folder; write `.md` links as file paths; fix a stale readme the moment you notice it.
+- **Classes:** classes are the structure; one class per file, named for the file, no function bags; a page about a class shows the class; design the class architecture before you build.
+- **Pages, cards, review:** pages are live, written in small steps through the page tools, the first line before any long step; every task reports on its card; `merge.mjs` refuses a page change with no review report; check at 400, 1200, 1920 and 3440.
+- **The site is live while you edit it:** `node Server/hold.mjs on "<you> — <what>"` before a batch of writes the site loads, `off` once it works.
+- **Traps that never throw:** a class's folder, file and name match; no DOM after an `await`; every CSS rule inside a layer; resolve URLs against `import.meta`; only `p()`/`h1`–`h6` read backticks; imports flow down.
+- **Law: code streams, AI does not:** a view plugs into raw data (a JSONL file, a log) and code streams the change; a card an agent has to rewrite is not live.
 
 ## Use
 ```js /path/page.js

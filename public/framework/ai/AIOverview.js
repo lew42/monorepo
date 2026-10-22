@@ -117,7 +117,7 @@ export class AIOverview {
 	}
 	static heading(title, gist){ h2(title); if (gist) md(gist); }
 	static concept_card(base, c){ return ({ name: c.name, icon: c.icon, gist: c.gist, href: base + c.slug + "/" }); }
-	// Fetch, then fill a box captured NOW (no DOM after an await: CLAUDE.md's traps).
+	// Fetch, then fill a box captured NOW (no DOM after an await: the framework readme's traps).
 	static later(box, url, parse, fill){ return fetch(url).then(r => r.text()).then(t => box.append(() => fill(parse(t)))).catch(() => box.append(() => small.c("muted", "Could not load " + url))); }
 	static jsonl(t){ return t.trim().split("\n").map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
 
