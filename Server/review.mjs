@@ -616,7 +616,8 @@ function buildPrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shotPath
 // The review skill's own absolute path, resolved from the tree THIS FILE lives in — never the
 // main tree — so a worktree's copy of review.mjs hands its reviewer the worktree's own copy of
 // the skill (a worktree may be mid-edit on the skill itself).
-function reviewSkillPath() { return fileURLToPath(new URL("../.claude/skills/review/SKILL.md", import.meta.url)); }
+// Since 2026-10-22 the review skill's text is the reviewer role readme (the skill is a pointer to it).
+function reviewSkillPath() { return fileURLToPath(new URL("../Servex/agents/roles/reviewer.md", import.meta.url)); }
 
 // A page review's prompt: point the reviewer at the review skill (which already knows the report
 // shape and every system's questions) instead of restating any of that here.

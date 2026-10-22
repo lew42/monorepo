@@ -39,7 +39,7 @@ class Servex {
 
 | Folder or file | What |
 |---|---|
-| `agents/` | `Agents.js` (`spawn` → `open_task` → SDK `query()`), `tools.js` (the in-process tools incl. `spawn_agent`), `roles.js` (role → skill and posture), `Dispatcher.js`, `Sessions.js`, `page_tools.js` (page_set/page_add/page_call/page_read/page_log/page_note), `inbox.js`, `claims.js`, `directory.js` |
+| `agents/` | `Agents.js` (`spawn` → `open_task` → SDK `query()`), `tools.js` (the in-process tools incl. `spawn_agent`), `roles.js` (role → its readme in [`roles/`](agents/roles/readme.md), skills and posture), `Dispatcher.js`, `Sessions.js`, `page_tools.js` (page_set/page_add/page_call/page_read/page_log/page_note), `inbox.js`, `claims.js`, `directory.js` |
 | `asks/`, `cards/` | the asks ledger (`Asks.js`), cards (`Cards.js`, writes `ai/cards.jsonl`) |
 | `ext/` | `remote/` (voice-app door), `openrouter/` (non-Anthropic models), `refine/`, `local/` |
 | `doc/` | the detail; `proof/` and `*.test.mjs` are checks |

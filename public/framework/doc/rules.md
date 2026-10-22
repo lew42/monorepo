@@ -1,0 +1,70 @@
+# Framework rules — presentation, readmes and docs, classes, pages, the live site, traps
+
+Every agent reads [the framework readme](../readme.md) first; it names each rule below in one line. This is the long form, moved here word for word from `CLAUDE.md` on 2026-10-22 ([the move map](../ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md)). Read the section for what you are about to make: a page or a report (Presentation, Pages), a readme (Readmes and docs), a class (Classes), an edit to files the live site loads (The site is live), any front-end code (Traps).
+
+## Presentation — always the overwhelmed newcomer (the owner, 2026-09-05)
+
+Level 1 is one page, mostly above the fold: what the thing is, **shown**; its major parts; the way in; room to breathe. Detail is never removed — it nests one click down, where it belongs, and never sits on the first page. Don't tell the reader what you are about to show them; show it. A report to the owner is one screen of plain sentences with links, never the nitty gritty — "getting reports with details I can't follow doesn't help me at all." A file or module named in a message is a clickable link to its page on the site (`/framework/ux/Dictate/`); the source file (`Dictate.js`) is only a second link. (the owner, 2026-09-24)
+
+**Chat is the headline, not the report** (the owner, 2026-10-07): the owner mostly does not read chat, and long replies make that worse. Reply in 1–2 sentences, never three paragraphs: the most important one first, plus a caveat only if it is truly important; the detail stays in the file, card or `doc/` note, one click down, for when they ask. Anything important or contingent (a block, a decision that waits on them, a risk) goes in chat in a noticeable way AND on the AI board as a `Note:` card, so it survives unread chat.
+
+**How to respond** (the owner, 2026-10-12): short, and the most important point first; usually that is the last thing asked. Each `###` heading names the thing (the class, module or page) so the context is always visible, with its path as inline code on the same line (`### 🧱 Parts `core/Page/parts/``), never a separate code block; put a `---` divider between sections so each one reads as its own block; add one short `#` only for a big reply. Show structure as code: `class AIRail extends Inbox.Rail`, API signatures, never long bodies. Lists are flat and short; cut anything that is not a key point. Icons are rare: status only (✅ done, ⬜ open, ⚠️ risk), placed right next to the words they mark, never one per line. Quote the owner only in a `>` blockquote, and rarely; their topics show through the headings instead.
+
+**Design in Figma first** (the owner, 2026-10-20): a new or disputed view is designed in Figma, at phone and wide widths, and approved there before it is built; a minion draws, the mastermind reviews by screenshot. How: the `figma` skill.
+
+**Show it with the widget, then use words.** (the owner, 2026-09-25: "I don't want to read things. I want to see.") Files → `ext/files` (the tree, and highlighted source on click). An object → its live instances. A layout → a screenshot. A task → its checklist. Words come after the picture, and only as many as it takes.
+
+**Clarity is familiar structure.** (the owner, 2026-09-29) Each heading names its topic and states its gist in one line, so a reader knows what it is before any detail. Items are as few as it takes, most important first; a familiar concept needs no explanation, only its name and a link to its own page. Detail is added only when it changes what the reader does. Pick names that can't be misread, and use the same name every time.
+
+**A name is a name plus its scope** (the owner, 2026-10-03). Where confusion is likely (the Design, Code, AI and Servex systems; UI vs UX vs ext), settle the name AND what belongs under it, and say it once at the top of that system's page: what goes here, what goes next door.
+
+**Route everything.** Any view a click reaches has its own URL, so a reload or a back button lands in the same place.
+
+**Link every mention, and every page** (the owner, 2026-10-08): the owner browses the website, not the file system, so a file that is not linked will never be found. Every page, doc, readme, report or file you create must be reachable by a visible link from the site (its parent's `children:`/readme index, a card, or an index page). Whenever text names something that exists and has a URL (a page, class, module, session, task, card, model such as `/framework/ai/models`, a file), it is a link, on UI cards and content alike: use the mention system (`ext/Mention`, `#Page` `@agent` `/path`) instead of plain names. Sessions and tasks get proper names; a child session or task lives inside its parent's directory (`parent/child`), not in a flat pile.
+
+## Readmes and docs
+
+**Docs point, they don't explain.** Treat this file as the root readme; the core docs index every system and how they stream. This file and every `readme.md` bring a topic to your attention; the detail is in `doc/*.md` beside the module (its Docs tab, at `/<module>/doc/`). A readme is the reader's index: mostly suggestions, minimal direction, past problems named in a line with the doc linked, nothing extra. Every module: `readme.md`, `page.js` (show, don't tell), `doc/`. Nothing crawls — a page exists once its parent's `children:` names it.
+
+**Readmes are the cheap index** (the owner, 2026-10-08): every agent reads this file, then the readmes top-down to the directory it works in, so readmes decide how much context each agent pays for. Each readme is a short index (under about 100 lines): what exists, one line each, when you would load it, and links to deeper `doc/*.md` or sibling readmes. Keep them fresh and short; audit them in a cheap Haiku pass when pace allows.
+
+**The iceberg readme, and a readme as memory** (the owner, 2026-10-08): a parent readme is the tip of the iceberg: a solid index of what is inside (each subsystem, one line on what it is and when you would load it, a link). The base, the details, lives in the child's own readme, and the child does the same for its own children, recursively. The root and `framework/ai` readmes must index every major system (Servex, the dev server, MCP servers, models, VS Code sidebar tabs, browser voice agents, sessions, accounting, transcription, the page system) without explaining them. Each module's readme holds its essence and guiding principles, and an `architecture.md`-style doc beside it holds decisions, linking the original refined prompts; keep both fresh, so the owner's suggestions accumulate in the right place instead of dying with a session.
+
+**Name things, and write `.md` links as files** (the owner, 2026-10-08): when a thing has a good name, give it a page and document it there (what it is, what it means); its readme links to that page and the page can load the readme by default. So always write the plain file path (`doc/flow.md`) in readmes and docs: agents then read the real file and the browser gets the working route.
+
+- **The readme chain:** read the readmes root to leaf before working in a directory, and again when you move to another one, or start a fresh session there (`/framework/ai/readmes/`).
+- **Documentation sanity check & git grounding (the owner, 2026-10-06):** Whenever studying documentation, read the readmes, do a sanity check on whether they make sense or are stale, and do a quick verification. If there's an obvious easy fix, make that fix. Whenever editing code, every agent must properly commit its work with clear attribution so the repo history is the verified truth—never leave loose uncommitted files in the working tree.
+
+## Classes (detail: `public/framework/ai/doc/classes.md`)
+
+**Classes are the structure** (the owner, 2026-10-08): the framework is object-oriented, so lean on classes and instances in code and in documentation. Prefer a class over loose functions or one-off scripts wherever a thing has state and behaviour (many AI-system pieces are not yet classes and should be).
+
+**Write classes, not function bags** (the owner, 2026-10-08): one class per file, the file named for the class (`SessionsPage.js` holds `class SessionsPage`), subclasses where they fit (a page template is a class that extends `Page`, a view extends `View`), and a small helper class may live in its parent's file. Attach helpers to the class (static members) and export the class, not a dozen named exports; no lowercase `*.js` files that export piles of loose functions to be cobbled together. A `page.js` stays tiny: import the class and instantiate it. Keep comments to what is not obvious: one line, ideally a pointer to a doc, never a paragraph; history and lessons go in `doc/` (the owner, 2026-10-12; the `code` skill).
+
+**Show the class** (the owner, 2026-10-08): a page about a class must show its structure first: the class name and icon, the core API, the most important properties (instances of other classes are clickable to their own class card), and who calls it. Where a class has a UI, the demo shows two things side by side: the rendered view the user sees, and a debug view of the live instance (a tree/card that renders every property by type), so you watch the data structure change as you use the demo. Do this for the classes you work on; not a mass operation.
+
+**Design the class architecture before you build** (the owner, 2026-10-08): wrong names and a wrong hierarchy are why built things "don't feel right". Before building anything of more than one class, write the class architecture (a short page: each class's name and one-line job, what extends what, what composes what, which one is the system/manager that orchestrates the others) and show it where the owner can see it. Then build the smallest working slice and let the page show the real structure, so a naming or hierarchy mistake is caught early.
+
+## Pages, cards, review
+
+- **Pages are live (the owner, 2026-10-02):** almost everything we build is a page that updates itself while you watch. An agent that creates or works on a page writes its `page.jsonl` in small steps through the page tools (never hand-written JSON, never a whole-file rewrite), and its first line is posted BEFORE any long step ("researching X"), so the owner can follow the work as it happens. An agent reads a page through the tool that returns its computed current state, not by interpreting the raw lines.
+- **Cards:** every task reports on its card on the AI board. The card is what the owner reads; chat replies are not.
+- **The page inbox:** a note left on a page reaches the agent that owns it. Use it for coordination, never for content.
+- **The review gate and the four widths:** `merge.mjs` refuses a page change with no review report. Pages are checked at 400, 1200, 1920 and 3440 before they land.
+
+## The site is live while you edit it (the owner, 2026-09-19)
+
+The owner works on the running site while agents write to it. Before a batch of writes to files the live site loads, hold every live reload, on every page and every server watching this repo: `node Server/hold.mjs on "<you> — <what>"`, write the whole batch, check it works, then `node Server/hold.mjs off "<you>"` — one reload instead of one per file. A file that parses can still break a page or stop the server from starting: load the page, or boot the server on a private port, before you release. Detail: `Server/doc/watch.md`.
+
+## Traps that never throw
+
+- A class's folder, file and name match, capitalised: `ext/JSONL/JSONL.js` exports `class JSONL`. A lowercase file never holds a class someone will look for. `code/patterns` has the rule and a census script.
+- No DOM after an `await`: capture the box synchronously, fill it in a callback.
+- Every CSS rule inside a layer — `base theme site util`; the order lives once, in `framework.css`, which `app.js` loads first.
+- Resolve URLs against `import.meta`, never the document.
+- Only `p()`/`h1`–`h6` read backticks; one backtick inside `` css(`…`) `` kills every page.
+- Imports flow down; a parent↔child import cycle breaks only on deep reload.
+
+## Law: code streams, AI does not (owner, 2026-10-16)
+
+Never rely on an agent to keep the UI current. The UI plugs into raw data (a JSONL file, a log) and code streams the change to the screen. A card an agent has to rewrite is not live. If a view needs an agent to refresh it, the view is wrong: give it a store.
