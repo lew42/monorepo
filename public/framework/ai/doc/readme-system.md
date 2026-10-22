@@ -62,3 +62,9 @@ Each role names a skill in `roles.js`. The owner prefers a readme to a skill: th
 - ✅ [agent-context.md](agent-context.md): every role and start, what it loads, what is logged, whether a hook can inject text.
 - ✅ [Servex/doc/tools-map.md](/Servex/doc/tools-map.md): every tool, and a compacted set. ✅ [core/Item/doc/map.md](/framework/core/Item/doc/map.md): the item system.
 - ✅ [The plan](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/agent-context/plan.md): ten slices, measured chain sizes (median 5,129 tokens, max 10,420; the 12,000 cap never fires).
+
+### Follow-up (the owner, 2026-10-22, same log)
+
+- **No role per system.** Retire `servex-mastermind`: what is useful to every manager goes into the mastermind role readme; what is about Servex goes into `Servex/readme.md`. A mastermind working on Servex just reads Servex's readmes deeper. Directories hold the documentation, not roles.
+- **The mastermind plans in the task system, visibly.** For each request: name the session, its projects and their tasks (child tasks via the `item` tool, a planning step before building), the agents and the estimated cost, and use those same names in chat and on the site so the owner learns them. Parallel work is the mastermind's call: separate folders of one worktree when the work cannot conflict, separate worktrees when it can. Running the plan should be node's job (spawn in order, respect `after` edges, chase, close), not the agent's memory.
+- **No sentence-by-sentence move ledgers.** Git history records moves; a move needs only a short summary of what went where. (`readme-roles/moves.md`, 325 lines, was asked for in its brief; not repeated.)
