@@ -2,6 +2,8 @@
 
 The owner's ask: rules get lost because nobody is sure which files each agent reads. Measured below; the moves are proposals until the owner says go (CLAUDE.md is "ask first").
 
+**Built 2026-10-22 on branch `task/readme-roles`** (the owner said build it; the merge is theirs): ✅ CLAUDE.md 3,763 → 1,319 words, framework rules in [the framework readme](../../readme.md) + [doc/rules.md](../../doc/rules.md), safety and cost long form in [agent-rules.md](agent-rules.md) · ✅ six role readmes, [Servex/agents/roles/readme.md](../../../../Servex/agents/roles/readme.md), `readme:` in `roles.js` · ✅ ai readme 1,510 → 660 words, records in [records.md](records.md) · every move mapped in [moves.md](../sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md). Open: ⬜ trim each role readme toward 400 words (moved whole, 689–5,271 today) · ⬜ the readme chain gives `public/framework/readme.md` only to agents whose folder is under it; a Servex/ or Server/ folder misses it · ⬜ the readme audit below.
+
 ## What is read today, and when
 
 | File | Lines | Words | Read by |

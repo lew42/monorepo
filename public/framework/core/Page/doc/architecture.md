@@ -97,7 +97,7 @@ page system, "there's no better spot for layout and navigation". Decision:
   line (or `drawer:` in page.js) adds a drawer tab whose content is a page. Site-wide tabs (AI, Settings, Files) are
   declared once on the root page and inherited.
 - **It routes by query**: `?drawer=<name>` opens that tab on top of whatever page the path names, so a reload or Back
-  lands the same way (CLAUDE.md "Route everything").
+  lands the same way (framework/doc/rules.md "Route everything").
 - **The dictation panel is content placed in the drawer, never the drawer itself.** It is one view from `ux/Dictate`,
   used the same in the drawer, on Dictate's own page and on Refine
   ([phase-2.md](../../../ai/sessions/2026/10/09/session-48083d9d/refine-dictate-ui/phase-2.md), owned by `task-mastermind-refine-v3`).
