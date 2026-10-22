@@ -30,6 +30,8 @@
 
 [`now/`](now/readme.md) — the live in-flight page ([/framework/ai/now/](/framework/ai/now/)): every session active in the last hour, from the `inflight` query source.
 
+[`readmes/`](readmes/readme.md) — what an agent in each folder is given to read: every folder with a readme, its readme chain in tokens, filterable ([/framework/ai/readmes/](/framework/ai/readmes/); data from `node Server/ReadmeChains.mjs`).
+
 `AISession/` (`class AISession extends Session`, [sessions](sessions/readme.md)) · `AITask/` (`class AITask extends Page`, [AITask](AITask/readme.md)) · `cards/` (`Card` and what a card shows) · `rail/` (`class AIRail extends Inbox.Rail`, `DashState`, `CardList`; the [Inbox](/framework/core/Page/ext/Inbox/)) · `tasks/` ([Tasks](tasks/readme.md)) · `classes/` (live class cards) · `systems/`, `system/` (`AISystem.js`, the System tab) · `usage/` · `audits/` · `health/` · `local/` · `quick-fix/` · `review/` · `talk/` · `tests/` · `dashboard/` · `asks/`, `council/`, `models/`, `errors/`, `collab/`, `process/`.
 
 ## More

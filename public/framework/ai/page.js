@@ -35,7 +35,7 @@ export default new Page({
 	leaf: true,
 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
 	classes: v1() ? undefined : is_dash() ? "ad-page" : "full fill",
-	children: "now tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
+	children: "now readmes tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
 
 	// `board_drawn` stays true so the board's own hand-back (v/3/page.js) never paints it here. Doc: doc/ai-page-notes.md.
 	board_drawn: true,
