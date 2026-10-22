@@ -50,7 +50,7 @@ Inside the repo Servex writes only the AI records ([ai/](/framework/ai/)). Its o
 
 ## Overlaps
 
-The local `servex` MCP and the remote door share one tool registry; the remote adds `ask_mastermind`, `call` and `cloud_voice_log` ([MCP](/framework/ai/doc/agents/mcp.md)). A task folder is opened by `open_task` here; counted by `Server/AIIndex.mjs` ([ai/tasks](/framework/ai/tasks/)).
+The local `servex` MCP and the remote door share one tool registry; the remote adds `ask_mastermind`, `call` and `cloud_voice_log` ([MCP](/framework/ai/doc/agents/mcp.md)); every tool, grouped, with a compacted set: [doc/tools-map.md](doc/tools-map.md); what each role loads: [agent-context](/framework/ai/doc/agent-context.md). A task folder is opened by `open_task` here; counted by `Server/AIIndex.mjs` ([ai/tasks](/framework/ai/tasks/)).
 
 ## More
 

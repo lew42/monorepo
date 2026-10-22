@@ -56,3 +56,9 @@ Each role names a skill in `roles.js`. The owner prefers a readme to a skill: th
 - **Fixed sequences are code, not reminders.** Hooks may inject a short reminder before a tool runs, but a required sequence of steps belongs in a loop or a tool.
 - **A session completes only when all its tasks are done, and the merge is one of its tasks** (the owner approves it; [priority.md](../priority.md) 3b).
 - ⬜ **A systems audit**: module by module, as a whole system: what it is, whether it is useful, whether to move, rename or merge it; prune obvious or stale lines. Slow and systematic, aiming for clarity, not churn. Every system indexed so nothing is ever unfindable.
+
+## Maps and the plan for the direction above (2026-10-22)
+
+- ✅ [agent-context.md](agent-context.md): every role and start, what it loads, what is logged, whether a hook can inject text.
+- ✅ [Servex/doc/tools-map.md](/Servex/doc/tools-map.md): every tool, and a compacted set. ✅ [core/Item/doc/map.md](/framework/core/Item/doc/map.md): the item system.
+- ✅ [The plan](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/agent-context/plan.md): ten slices, measured chain sizes (median 5,129 tokens, max 10,420; the 12,000 cap never fires).

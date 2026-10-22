@@ -107,3 +107,4 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 - [doc/decisions.md](./doc/decisions.md) — the council ruling, verdicts, traps in full, who uses Item.
 - `doc/method/*.md`, `doc/property/*.md` — one page per verb and field, each with its trap.
 - Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
+- [doc/map.md](./doc/map.md) — every class, store, tool and writer that makes or saves items.
