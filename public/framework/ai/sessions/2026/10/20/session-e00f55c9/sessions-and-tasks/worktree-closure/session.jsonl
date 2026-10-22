@@ -1,0 +1,9 @@
+{"assign":{"session_id":"a267d87a-8f81-48da-b89a-3e8564f32ea7","agent":"task-mastermind-worktree-closure","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/worktree-closure/requirements.md","model":"claude-sonnet-5-5","home":"/framework/ai/","requested_at":"2026-10-22T16:35:53-05:00","now":"starting"}}
+{"commit":"81615fc1508e"}
+{"commit":"079c590e7dab"}
+{"commit":"f215fa361998"}
+{"commit":"7c1bcf636862"}
+{"commit":"c395c6c1ef80"}
+{"commit":"5ff3e230717c"}
+{"commit":"5bbd2099fd97"}
+{"finish":{"at":"2026-10-22T16:44:40-05:00","outcome":"Worktrees close with their task: 22 stuck worktrees closed (leftovers committed to their branches, branches kept), disk 8461 MB -> 2510 MB. on-landing and Servex Worktrees.js now close automatically (task landed, or 48 quiet hours); unmerged branches listed in ai/sessions/ready-to-merge.jsonl. Pool failed because qf-1/qf-5 were stuck locked initializing; Pool.js unlock_crashed fixes it after the next Servex restart. Doc: Server/doc/worktrees.md. Merged c395c6c1e."}}
