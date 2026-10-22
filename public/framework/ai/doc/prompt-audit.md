@@ -79,6 +79,10 @@ The reviewer works the same way, and each run's own feedback is in its `review_r
 
 **Next change (not run, to save budget):** one Sonnet call over 376 items has no room to read anything (2 to 4 turns). Split the review into chunks of about 100 items, give each candidate commit its changed files, and require a file or task path, not a commit subject alone, for "done". Until then, read a "done" whose evidence is only a commit subject as "partly".
 
+## Runs
+
+- 2026-10-22, the last 7 days (2 tabs, 86 prompts, $12.00): [what is still open](/framework/ai/sessions/2026/10/20/session-e00f55c9/prompt-audit-week-2026-10-22.md). It found prompts counted twice after a compaction; dedupe is next.
+
 ## Not built yet
 
 - ⬜ Running pass 1 live on every new prompt (the brief needs no code context, so it can).
