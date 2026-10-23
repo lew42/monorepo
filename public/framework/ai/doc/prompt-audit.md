@@ -88,3 +88,12 @@ The reviewer works the same way, and each run's own feedback is in its `review_r
 - ⬜ Running pass 1 live on every new prompt (the brief needs no code context, so it can).
 - ⬜ Showing the items and their tags as cards on the session page.
 - ⬜ Chunked review for very large sessions (above).
+
+## Next, from the owner (2026-10-22)
+
+- **Measured room:** pass 1 calls averaged about 4,400 tokens and peaked near 18,000 (this tab, 59 prompts), so each call has room for context well under the 100k limit. Each call today is a fresh session with one prompt and no context.
+- ⬜ **Chain the context:** give each call the previous prompt's items (or a short summary) so a prompt that continues the last one is read as a continuation.
+- ⬜ **Group into a hierarchy:** most items roll up into one or a few main tasks; return them nested under those, not flat.
+- ⬜ **Audit the AI's replies too:** a reply can leave a question open or promise a follow-up; pass 1 marks those as loose ends.
+- ⬜ **Consensus check:** run two framings of the brief (or two models) on the same long prompt and count the items both find; trust agreement over a self-reported confidence.
+- ⬜ **One system, live or after the fact:** the same pass runs on the owner's VS Code prompts live (`task/prompt-tasks`), on the cloud voice agent's transcribed turns, and retroactively.

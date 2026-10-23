@@ -28,3 +28,5 @@ Built: `Agent.nudge()`/`nudge_send()`, `oversized()` cut down to the 400k/memory
 ## The owner, 2026-10-22: step reminders, earlier
 
 Remind sooner and in steps: at about 30% of the window, then every 5% (on a 1M window: 300k, 350k, 400k…), each reminder giving the size and suggesting a compaction at the next natural break (an investigation done, no tools in flight). The agent decides; node only reminds. Today's policy (one idle nudge past 150k/200k, a 400k ceiling) is the base: ⬜ add the step reminders, and reconsider 150k as the first one.
+
+**What compaction keeps (the owner's worry, 2026-10-22):** the system prompt, CLAUDE.md and tool definitions sit outside the conversation and are kept verbatim; the conversation, including a role readme or brief injected into the first message, is summarized. ⬜ So after a compaction node must re-inject the role readme and the brief verbatim (the `SessionStart:compact` hook already re-adds a line for VS Code tabs). Alternative: summarize and start a fresh session with the role readme as its first message.
