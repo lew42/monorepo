@@ -7,7 +7,7 @@ import { page_tools, hooks, ledgers } from "./page_tools.js";
 import TaskHomes from "../../Server/TaskHomes.mjs";
 import PromptTasks from "./PromptTasks.js";
 import Session from "../../public/framework/core/Session/Session.js";
-import "../../public/framework/core/Task/Task.js";
+import Task from "../../public/framework/core/Task/Task.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SLUG = ".prompt-tasks-test-" + process.pid;
@@ -88,7 +88,7 @@ try {
 	fs.appendFileSync(REC, JSON.stringify({ decide: { task: t.id, is: "approve", by: "owner" } }) + String.fromCharCode(10));
 	const moved = await pt.sweep();
 	const home = path.join(MOD_DIR, "tasks", t.id, "task.jsonl");
-	ok(moved.length === 1 && fs.existsSync(home) && read(home)[0].set.title === "Build the session menu" && read(home)[0].set.state === "running", "approved: it moves to <module>/tasks/<slug>/ with its data and state");
+	ok(moved.length === 1 && fs.existsSync(home) && (h => h.get_one("title") === "Build the session menu" && h.state === "running")(Task.replay(read(home))), "approved: it moves to <module>/tasks/<slug>/ with its data and state");
 	s = Session.replay(read(REC));
 	ok(s.tasks.length === 1 && [...s.tasks][0].data.path === `/framework/${MOD}/tasks/${t.id}/`, "the session now references the moved task (same id replaces the nested one)");
 	ok((await pt.sweep()).length === 0 && fs.readFileSync(ledgers.task_moves, "utf8").includes(t.id), "moved once, and the move is in the ledger");

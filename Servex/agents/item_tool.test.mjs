@@ -217,5 +217,57 @@ try {
 		// old: 8 x 0.5^3 = 1; fresh: ~0.89; mid: (1+3) x 0.5 = 2
 		ok(Task.rank([old_heavy, fresh, mid_kids], now).map(t => t.id).join() === "mid,old,fresh", "Task.rank: weight x recency order");
 	}
+	// ---- move_item: a nested task moves home with id and history, one reference left behind ----
+	{
+		const { ledgers } = await import("./page_tools.js");
+		const { Task } = await import("../../public/framework/core/Task/Task.js");
+		const { default: Session } = await import("../../public/framework/core/Session/Session.js");
+		const MDIR = DIR + "-move", MURL = URL.replace(/\/$/, "") + "-move/", pfile = path.join(MDIR, "session.jsonl");
+		const plines = () => fs.readFileSync(pfile, "utf8").trim().split("\n").map(l => JSON.parse(l));
+		ledgers.task_moves = path.join(MDIR, "task-moves.jsonl");
+		const ledger = () => fs.existsSync(ledgers.task_moves) ? fs.readFileSync(ledgers.task_moves, "utf8").trim().split("\n").filter(Boolean) : [];
+		fs.mkdirSync(MDIR, { recursive: true });
+		try {
+			fs.writeFileSync(pfile, JSON.stringify({ id: "mv-parent", title: "Parent" }) + "\n");
+			await call("item", { path: MURL, delta: { tasks: { add: { id: "x", title: "X task" } } } });
+			await call("item", { path: MURL, delta: { x: { start: {} } } });
+			await call("item", { path: MURL, delta: { x: { expected: "a field" } } });
+			const before = plines().filter(l => l.x || l.tasks?.add).map(l => l.ts);
+
+			// refusals write nothing
+			const size = fs.statSync(pfile).size;
+			let r = await call("item", { path: MURL, delta: { nope: { move: { to: MURL + "agent-a/" } } } });
+			ok(r.ok === false && /not a task/.test(r.why) && fs.statSync(pfile).size === size && !fs.existsSync(path.join(MDIR, "agent-a")) && !ledger().length, "unknown id: refused, nothing written");
+
+			r = await call("item", { path: MURL, delta: { tasks: { x: { move: { to: MURL + "agent-a/" } } } } });
+			ok(r.ok && r.moved.to === MURL + "agent-a/" && r.state.tasks.length === 1, "moved through the tool key");
+			const nf = path.join(MDIR, "agent-a", "task.jsonl"), nl = fs.readFileSync(nf, "utf8").trim().split("\n").map(l => JSON.parse(l));
+			ok(nl[0].id === "x" && nl[0].set.title === "X task" && nl[1].start && nl[2].expected === "a field", "new file: x's lines in order");
+			ok(JSON.stringify(nl.map(l => l.ts)) === JSON.stringify(before), "original ts kept");
+			ok(fs.existsSync(path.join(MDIR, "agent-a", "page.js")), "page.js made");
+			const last = plines().at(-1);
+			ok(last.task === MURL + "agent-a/" && last.as === "x" && last.moved_from === MURL + "#x", "the parent's last line is the one reference with as:x");
+			const p = Session.replay(plines());
+			ok([...p.tasks].length === 1 && p.tasks.find("x") && p.tasks.find("x").state === "running", "Session replay: ONE child x, running");
+			ok(Task.replay(plines()).tasks.find("x")?.id === "x", "Task replay: the reference keeps id x");
+			ok(ledger().length === 1 && JSON.parse(ledger()[0]).kind === "task", "one ledger line");
+
+			// already a reference: refused, nothing written
+			const size2 = fs.statSync(pfile).size;
+			r = await call("item", { path: MURL, delta: { x: { move: { to: MURL + "agent-b/" } } } });
+			ok(r.ok === false && /own file/.test(r.why) && fs.statSync(pfile).size === size2 && !fs.existsSync(path.join(MDIR, "agent-b")) && ledger().length === 1, "a reference cannot move again");
+
+			// destination already holds a log: history goes after it
+			await call("item", { path: MURL, delta: { tasks: { add: { id: "y", title: "Y task" } } } });
+			await call("item", { path: MURL, delta: { y: { start: {} } } });
+			fs.mkdirSync(path.join(MDIR, "agent-c"));
+			const af = path.join(MDIR, "agent-c", "session.jsonl");
+			fs.writeFileSync(af, JSON.stringify({ assign: { session_id: "s-c", agent: "agent-c" } }) + "\n");
+			r = await call("item", { path: MURL, delta: { y: { move: { to: MURL + "agent-c/" } } } });
+			const cl = fs.readFileSync(af, "utf8").trim().split("\n").map(l => JSON.parse(l));
+			ok(r.ok && cl[0].assign && cl[1].id === "y" && cl[2].start && !fs.existsSync(path.join(MDIR, "agent-c", "task.jsonl")), "appended after the assign line, in the existing log");
+			ok([...Session.replay(plines()).tasks].length === 2, "two children after two moves");
+		} finally { fs.rmSync(MDIR, { recursive: true, force: true }); }
+	}
 	console.log(`item_tool: ${n} checks passed`);
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); fs.rmSync(DIR + "-homes", { recursive: true, force: true }); }

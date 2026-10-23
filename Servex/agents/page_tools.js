@@ -543,11 +543,9 @@ export async function move_nested_home(record, id, module, by = "PromptTasks"){
 	const home = task_home(path.dirname(file), { id, module }, FRAMEWORK, "");
 	if (!home) return { why: `no module folder public/framework/${module}` };
 	if (fs.existsSync(home.dir)) return { why: `${app_path(home.dir)} already exists; the task stays in its session` };
-	const from = `${app_path(path.dirname(file))}#${id}`, to = app_path(home.dir), at = now(), rel = p => path.relative(ROOT, p).split(path.sep).join("/");
-	const nf = path.join(home.dir, "task.jsonl");
-	write_line(nf, { id, path: to, parent: app_path(path.dirname(file)), set: { ...kid.data, path: to, moved_from: from }, by, ts: at }, true);
-	fs.writeFileSync(path.join(home.dir, "page.js"), PAGE_JS);
-	write_line(file, { task: to, moved_from: from, by, ts: at }, true);
+	const moved = await move_item({ from: app_path(path.dirname(file)), id, to: app_path(home.dir), by, module });   // the one mover: history, reference, ledger
+	if (moved.why) return moved;
+	const at = now(), to = moved.to;
 	const list = path.join(home.list.dir, "task.jsonl");
 	if (!fs.existsSync(list)){
 		write_line(list, { id: "tasks", path: app_path(home.list.dir), title: `${home.list.module} tasks`, mode: "parallel" }, true);
@@ -555,8 +553,57 @@ export async function move_nested_home(record, id, module, by = "PromptTasks"){
 	}
 	write_line(list, { task: to, by, ts: at }, true);
 	record_new_folder(home.list.dir, home.slug);
-	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: `${rel(file)}#${id}`, to: rel(home.dir), session: app_path(path.dirname(file)), module, by, git: false }) + "\n");
-	return { from, to, file: nf };
+	return moved;
+}
+
+/* MOVE AN ITEM TO A NEW HOME (core/Item/tasks/item-move/design.md): a subtask written as lines in a parent's log moves to the folder
+ * `to` (a url) with its id, its whole history (each line keeps its by/ts) and ONE reference left behind:
+ * {"task": to, "as": id, "moved_from": "<from>#<id>"}, which Task/Session replay swap for the nested child (same id).
+ * Order: check everything, then write the new file, the old-home reference and the ledger line. A refusal writes nothing.
+ * Returns {from, to, file} or {why}. Callers: the item tool's `move` key, open_task (handoff), move_nested_home. */
+export async function move_item({ from, id, to, by = "agent", module } = {}){
+	const pf = resolve_file(from, true), dir = typeof to === "string" ? path.resolve(PUBLIC, to.replace(/^[\\/]+/, "")) : null;
+	if (!pf || !fs.existsSync(pf)) return { why: `no record at ${from}` };
+	if (!dir || !dir.startsWith(PUBLIC + path.sep)) return { why: `"${to}" is not a folder under public/` };
+	const Class = LOADERS[class_of(pf)] ? await LOADERS[class_of(pf)]().catch(() => null) : null;
+	if (!Class?.replay) return { why: `${from} is not a Task or Session record` };
+	link_refs(await LOADERS.Task());
+	const Task = await LOADERS.Task(), plines = parse_lines(pf), kid = Class.replay(plines)._tasks?.find(id);
+	if (!kid) return { why: `"${id}" is not a task in ${from}` };
+	if (kid._own_file) return { why: `"${id}" already lives in its own file (${kid._own_file})` };
+	if (path.resolve(path.dirname(pf)) === dir) return { why: "already home" };
+	// 2. The history: every line that addresses the child, in order, each with its own by/ts.
+	const hist = [], parent_url = app_path(path.dirname(pf)), moved_from = `${parent_url}#${id}`, url = app_path(dir);
+	for (const l of plines){
+		const { by: b, ts, ...body } = l, stamp = { ...(b !== undefined ? { by: b } : {}), ...(ts !== undefined ? { ts } : {}) };
+		const adds = is_plain(body.tasks) ? [].concat(body.tasks.add ?? []).filter(a => is_plain(a) && a.id === id) : [];
+		for (const a of adds){
+			const { type: _t, id: _i, after: _a, data, ...fields } = a;
+			hist.push({ id, path: url, parent: parent_url, set: { ...data, ...fields }, moved_from, ...stamp });
+		}
+		if (is_plain(body.tasks) && is_plain(body.tasks[id])) hist.push({ ...body.tasks[id], ...stamp });
+		if (is_plain(body[id])) hist.push({ ...body[id], ...stamp });
+	}
+	if (!hist.length) return { why: `no lines address "${id}" in ${from}` };
+	// 3. Check before writing: replay the history alone and compare with the live child; a snapshot closes any gap.
+	const SKIP = new Set(["path", "parent", "moved_from"]), plain = d => Object.fromEntries(Object.entries(d).filter(([k]) => !SKIP.has(k)));   // (two replays stamp `started_at` etc. from the clock, so *_at keys are compared by presence only)
+	const same = (a, b) => { const A = plain(a), B = plain(b), keys = new Set([...Object.keys(A), ...Object.keys(B)]); return [...keys].every(k => /_at$/.test(k) ? (k in A) === (k in B) : JSON.stringify(A[k]) === JSON.stringify(B[k])); };
+	const back = Task.replay(hist);
+	if (!same(back.data, kid.data) || back.state !== kid.state){
+		const set = { ...plain(kid.data), ...(back.state !== kid.state ? { state: kid.state } : {}) };
+		hist.push({ set, snapshot: true, by, ts: now() });
+	}
+	// 4. The new home. A folder with a log already (open_task's assign line) gets the history after it.
+	const nf = SessionRecord.start_file(dir, hist[0]), rel = p => path.relative(ROOT, p).split(path.sep).join("/");
+	fs.mkdirSync(dir, { recursive: true });
+	fs.appendFileSync(nf, hist.map(l => JSON.stringify(l) + "\n").join(""));
+	if (!fs.existsSync(path.join(dir, "page.js"))) fs.writeFileSync(path.join(dir, "page.js"), PAGE_JS);
+	// 5. The old home: one reference, with the id it had here. 6. The ledger.
+	const at = now();
+	write_line(pf, { task: url, as: id, moved_from, by, ts: at }, true);
+	fs.mkdirSync(path.dirname(ledgers.task_moves), { recursive: true });
+	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: `${rel(pf)}#${id}`, to: rel(dir), session: parent_url, ...(module ? { module } : {}), by, git: false }) + "\n");
+	return { from: moved_from, to: url, file: nf };
 }
 
 /* Requests are logged items (Servex/agents/doc/messaging.md). After a write: each new request goes to its receiver, and each
@@ -718,6 +765,16 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	if (path.basename(at.file) === "improvements.jsonl" && is_plain(flat.tasks?.add) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1){
 		const a = flat.tasks.add, id = slug_of(a.id ?? a.title);
 		if (root()._tasks?.find(id)) { delete flat.tasks; flat[id] = { reinforce: { ...(a.why ? { why: a.why } : {}) } }; }
+	}
+	// MOVE (design.md): {"<id>":{"move":{"to":url}}}, {"tasks":{"<id>":{"move":{"to":url}}}} or move on target [<id>]. Handled here, not written as a line.
+	if (Class?.replay){
+		const mv = (id, v) => is_plain(v) && Object.keys(v).length === 1 && is_plain(v.move) ? { id, to: v.move.to } : null;
+		const inner = is_plain(flat.tasks) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1 ? Object.entries(flat.tasks)[0] : null;
+		const asked = at.target.length === 1 ? mv(at.target[0], flat) : Object.keys(flat).length === 1 ? (inner ? mv(...inner) : mv(...Object.entries(flat)[0])) : null;
+		if (asked && asked.id !== "tasks"){
+			const r = await move_item({ from: app_path(path.dirname(at.file)), id: asked.id, to: asked.to, by: ctx.caller ?? "agent" });
+			return r.why ? { ok: false, why: r.why } : { ok: true, moved: { from: r.from, to: r.to }, state: state() };
+		}
 	}
 	if (Class?.replay){ const no = validate(Class, root(), flat); if (no) return no; }
 

@@ -313,15 +313,15 @@ export class Task extends Item {
 	// task.jsonl into that stub through the Store (the way TaskPage does) and tails it live. "missing" only after a 404.
 	static resolver = null;
 	static resolving = new Set();
-	static from_ref(ref){
+	static from_ref(ref, as){
 		const lines = !this.resolving.has(ref) && this.resolver ? this.resolver(ref) : null;
-		const id = this.ref_id(ref);
+		const id = as ?? this.ref_id(ref);   // `as`: the id the task had in the parent (a moved item keeps it, whatever its new folder is called)
 		let kid;
 		if (lines?.length){
 			this.resolving.add(ref);   // a cycle of references stops here
 			const Own = Item.types.get(lines[0]?.class);   // line 1 may name a subclass (a Process): replay it as that, when it is loaded
 			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
-			if (kid.id === "tasks") kid.id = id;   // a module list's line 1 says "tasks": a property name, and the same for every module
+			if (kid.id === "tasks" || as) kid.id = id;   // a module list's line 1 says "tasks": a property name, and the same for every module
 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
 			kid = new this({ id });
 			kid.put("title", id);
@@ -382,7 +382,7 @@ export class Task extends Item {
 			if (session_id !== undefined) this.put("session", session_id);
 		}
 		if (typeof line.task === "string"){   // a later reference with the same id (the folder name) replaces the earlier one: the task moved home
-			const kid = Task.from_ref(line.task), had = this.tasks.find(kid.id);
+			const kid = Task.from_ref(line.task, line.as), had = this.tasks.find(kid.id);
 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
 			this.adopt_child(kid);
 		}

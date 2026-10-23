@@ -22,7 +22,7 @@ import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, r
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 import { server as sdk_server } from "./tools.js";   // cycle with tools.js is fine: used only at call time
 const MAIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");   // Servex runs from the main tree
-import { page_tools } from "./page_tools.js";
+import { page_tools, move_item } from "./page_tools.js";
 
 /* The in-process caller is the agent itself: its own task.jsonl (its task dir), or null; the item tool files a reference there. */
 function agent_log(agent){
@@ -940,6 +940,8 @@ export function open_task(task, { session_id, agent, model, worktree, parent_dir
 		model, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
+	// Handoff by task: `task: {from, id}` moves that subtask out of the spawner's log into this folder (page_tools.js move_item).
+	if (task.from && task.id) move_item({ from: task.from, id: task.id, to: "/" + path.relative(path.join(process.cwd(), "public"), dir).split(path.sep).join("/") + "/", by: task.by ?? "spawn" }).then(r => { if (r.why) console.error("open_task: move_item refused:", r.why); }, e => console.error("open_task: move_item failed:", e.message));
 	return dir;
 }
 
