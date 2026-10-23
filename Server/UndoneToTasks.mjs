@@ -34,7 +34,7 @@ export default class UndoneToTasks {
 	static PARENT = "/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/undone-to-tasks/";
 	static BY = "helper-undone-to-tasks";
 	static FW = "public/framework";
-	static FOLD = { "ai/sessions": "ai", "ai/tasks": "ai" };   // pages inside ai/ whose tasks live in the ai home (ai/tasks/ is that home itself)
+	static FOLD = { "ai/sessions": "ai", "ai/tasks": "ai", Servex: "servex", Server: "servex" };   // pages inside ai/ whose tasks live in the ai home (ai/tasks/ is that home itself)
 	static PRESSED = new Set(["stalled", "queued", "pressed"]);   // ledger statuses that mean the owner is waiting on it
 	static OVERLAP = 0.6;
 	static MIN_SHARED = 3;
@@ -55,7 +55,7 @@ export default class UndoneToTasks {
 	/** Every verified-undone ask, with its module label folded to a task home. */
 	asks(){
 		const data = JSON.parse(fs.readFileSync(this.file(UndoneToTasks.DATA), "utf8"));
-		return data.modules.flatMap(m => m.asks.filter(a => a.verified === "undone").map(a => ({ ...a,
+		return data.modules.flatMap(m => m.asks.filter(a => a.verified === "undone" && a.state !== "done").map(a => ({ ...a,
 			module: UndoneToTasks.home_of(a.verified_module ?? m.module) ?? (a.verified_kind === "sort" ? "ai" : null) })));
 	}
 	static home_of(label){ return !label || label.startsWith("(") ? null : (this.FOLD[label] ?? label); }
@@ -188,6 +188,7 @@ export default class UndoneToTasks {
 
 	/** The readme of a module label: public/framework/<label>/readme.md, or a top-level <label>/readme.md (Servex, Server). */
 	readme_of(label){
+		label = UndoneToTasks.FOLD[label] ?? label;
 		for (const rel of [UndoneToTasks.FW + "/" + label + "/readme.md", label + "/readme.md"]) if (fs.existsSync(this.file(rel))) return rel;
 		return UndoneToTasks.FW + "/ai/readme.md";
 	}

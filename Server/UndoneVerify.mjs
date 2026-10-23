@@ -279,7 +279,8 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 	}
 
 	merge2(dir, { by = "claude-haiku-5-5", at = new Date().toISOString() } = {}){
-		const d = this.load(), asks = new Map(d.modules.flatMap(m => m.asks).map(a => [a.id, a]));
+		const d = this.load(), asks = new Map(), twins = new Map();   // the same ask can sit in two rows (same id): the answer goes to both
+		for (const a of d.modules.flatMap(m => m.asks)){ if (asks.has(a.id)) (twins.get(a.id) ?? twins.set(a.id, []).get(a.id)).push(a); else asks.set(a.id, a); }
 		const kinds = new Map(JSON.parse(fs.readFileSync(path.join(dir, "manifest.json"), "utf8")).map(m => [m.batch, m.kind]));
 		const seen = new Set(), missing = [], per = {};
 		for (const [batch, kind] of kinds){
@@ -288,7 +289,8 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 			for (const r of got){
 				const a = asks.get(r.id);
 				if (!a || !want.includes(r.id) || seen.has(r.id) || (kind !== "sort" && a.verified_pass && a.verified_kind !== "work-yes") || a.verified_kind === "sort") continue;   // a finished ask is not re-judged
-				Object.assign(a, this.judge2(kind, r, a), { verified_at: at, verified_by: by });
+				const j = { ...this.judge2(kind, r, a), verified_at: at, verified_by: by };
+				for (const x of [a, ...(twins.get(r.id) ?? [])]) Object.assign(x, structuredClone(j));
 				seen.add(r.id); per[kind] = (per[kind] ?? 0) + 1;
 			}
 		}
@@ -311,7 +313,7 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 
 	/** The numbers that must agree: the asks the first pass left unclear = done + undone + retired + needs-owner (+ still pending). */
 	counts2(d = this.load()){
-		const mine = d.modules.flatMap(m => m.asks).filter(a => a.verified_first || (a.verified === "unclear" && !a.verified_pass));
+		const mine = d.modules.flatMap(m => m.asks).filter(a => a.verified_kind !== "sort" && (a.verified_first || (a.verified === "unclear" && !a.verified_pass)));
 		const c = { done: 0, undone: 0, retired: 0, "needs-owner": 0, unclear: 0 };
 		for (const a of mine) c[a.verified] = (c[a.verified] ?? 0) + 1;
 		const sum = c.done + c.undone + c.retired + c["needs-owner"] + c.unclear;

@@ -217,14 +217,16 @@ export default class UndoneAsks {
 	/** What became of each open ask, from the fields later steps wrote (see the class comment). Recounts totals and module counts. */
 	static settle(d, tasks = []){
 		const state = new Map(tasks.map(t => [t.url, t.state]));
+		const landed = new Set(d.modules.flatMap(m => m.asks).filter(a => a.state === "done").map(a => a.id));   // one ask in two rows (the ledger names it twice): done if either is
 		const totals = Object.fromEntries(UndoneAsks.STATES.map(k => [k, 0]));
 		for (const m of d.modules){
 			for (const k of UndoneAsks.STATES) m[k] = 0;
 			for (const a of m.asks){
+				if (a.state !== "done" && landed.has(a.id)) a.state = "done";
 				if (a.state !== "done"){
 					if (a.task) a.state = state.get(a.task) === "complete" ? "done" : "tasked";
 					else if (a.verified === "done" || a.verified === "retired") a.state = "closed";
-					else if (a.note) a.state = "noted";
+					else if (a.note?.file) a.state = "noted";   // written into a readme (UndoneToTasks --notes --apply), not only sorted as a note
 				}
 				m[a.state]++; totals[a.state]++;
 			}
