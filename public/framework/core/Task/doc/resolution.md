@@ -61,5 +61,6 @@ Every **started** task with no new line for about 5 minutes: node asks its agent
 - ⬜ `complete` refuses without `evidence`; `confidence` and `caveats` fields; caveats reach the parent's log.
 - ⬜ `approve` moves to **accepted** (`idle`), not straight to running; `start` is the agent's own call.
 - ⬜ `source` on every task the live prompt process files (with mastermind-prompt, [PromptTasks](/Servex/agents/PromptTasks.js)).
-- ⬜ The 5-minute chase on started tasks, in the existing loop.
+- ⬜ The chase, in the existing `TaskLoop.tick()` (it already wakes a quiet running task twice, then posts one card): drop its opt-in date gate, ask for status instead of a bare wake, and keep flagging past the first card.
+- ⬜ Something reads every inbox: 454 lines in 69 inboxes were never read ([cracks.md](cracks.md), row 1).
 - ⬜ This tab's session tasks regrouped by this model.
