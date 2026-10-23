@@ -4,6 +4,7 @@ import { composer } from "../Chat/Composer.js";
 import Whisper from "../../audio/Whisper/Whisper.js";
 import WhisperLog from "../../audio/Whisper/WhisperLog.js";
 import Prompt from "./Prompt.js";
+import "./PromptView.js";
 import RefineSystem from "./RefineSystem.js";
 import RefineExplorer from "./RefineExplorer.js";
 import VoiceFollow from "./VoiceFollow.js";

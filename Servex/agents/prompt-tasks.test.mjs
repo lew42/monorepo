@@ -32,28 +32,33 @@ try {
 	ok(heard.length === 1 && heard[0].file === path.join(PAGE_DIR, "page.jsonl") && heard[0].line === 1 && heard[0].text.startsWith("Build"), "an owner Prompt on a page tells Servex where it landed; other items do not");
 
 	// 2. The prompt page maps to the session's own record, and line 1's id is read from a VS Code tab's object.
-	const pt = new PromptTasks({ refine: async p => (pt.asked = p, { ok: true, items: [
-		{ kind: "task", text: "Build the session menu", details: "settings first", module: MOD },
-		{ kind: "question", text: "Why is the readme page a 404?" },
-	] }) });
+	// The model is stubbed: the live process's parts call answers one main ask (with a nested detail) and one question.
+	const pt = new PromptTasks({ say: m => console.log("say:", m) });
 	const rec = pt.record_for(heard[0].file);
+	const live = await pt.live(rec);
+	live.call = async (msg) => (pt.asked = msg, pt.asked_n = (pt.asked_n ?? 0) + 1, { usd: 0, text: JSON.stringify({ subject: "session menu", parts: [
+		{ cites: [0], kind: "ask", text: "Build the session menu", module: MOD, parts: [{ cites: [0], kind: "ask", text: "settings first" }] },
+		{ cites: [1], kind: "question", text: "Why is the readme page a 404?" },
+	] }) });
 	ok(rec?.file === REC && rec.uuid === "00000000-0000-4000-8000-000000000001", "the prompt page maps to ai/sessions/<same day>/<same folder>/session.jsonl, uuid from line 1");
 
 	// 3. Each task-kind ask is filed as a proposed task, on the owner, in the session's record; a question is not.
 	const out = await pt.prompted(heard[0]);
-	ok(pt.asked.page === `/framework/ai/2026/10/22/${SLUG}/` && pt.asked.session === rec.uuid, "the refined card goes beside the prompt (the Coverage tab reads it there)");
+	const plog = read(path.join(REC_DIR, "prompts.jsonl"));
+	ok(["raw", "clean", "parts"].every(st => plog.some(l => l.stage === st)) && plog.find(l => l.stage === "parts").parts[0].parts[0].text === "settings first", "the prompt's record (raw, sentences, parts with nested details) is in the session's prompts.jsonl");
 	const adds = read(REC).filter(l => l.tasks?.add); 
 	ok(adds.length === 1 && adds[0].tasks.add.state === "waiting" && adds[0].tasks.add.waiting_on === "owner" && adds[0].tasks.add.from === "owner", "one proposed task per task-kind ask, waiting on the owner; the question stays on the card");
 	fs.mkdirSync(MOD_DIR, { recursive: true });
 	ok(!fs.existsSync(path.join(MOD_DIR, "tasks")), "a proposed task drafts in the session: no module folder is made before approval");
 	await pt.prompted(heard[0]);
 	ok(read(REC).filter(l => l.tasks?.add).length === 1, "the same prompt is never filed twice");
-	ok(pt.asked.no_index === true, "RefineQueue is told not to file the asks itself (AskIndex), so they are filed once");
+	ok(adds[0].tasks.add.description.includes("settings first") && adds[0].tasks.add.module_hint === MOD, "a main ask carries its nested details and its module hint");
+	ok(adds[0].tasks.add.source.session === rec.uuid && adds[0].tasks.add.source.line === 1 && adds[0].tasks.add.source.part === "a1", "source names the session, the prompt's line and the part, so the receiver can read the raw words");
 	ok(adds[0].by === "prompt-tasks" && adds[0].tasks.add.from === "owner", "written by caller prompt-tasks, from the owner");
 
 	// 3b. Only the owner's own VS Code tab, only while switched on.
 	const calls = () => pt.asked_n;
-	pt.asked_n = 0; const inner = pt.refine; pt.refine = async p => (pt.asked_n++, inner(p));
+	pt.asked_n = 0;
 	await pt.prompted({ ...heard[0], line: 2, by: "minion-x" });
 	ok(calls() === 0, "a prompt not written by the owner is never refined");
 	pt.off = () => true;

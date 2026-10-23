@@ -1,8 +1,6 @@
 import Scorer from "./Scorer.js";
 import Outline from "./Outline.js";
-import { View, div, span, p, h4, button, a } from "../../core/View/View.js";
 
-View.stylesheet(import.meta, "Prompt.css");
 
 /**
  * class Prompt — ONE prompt, seen at every step of its refinement (the owner's design:
@@ -41,8 +39,39 @@ export default class Prompt {
 	prompt_id = "";      // the id this prompt has in its session's log (PromptLog), when it was saved there
 	session = "";         // the session whose prompts.jsonl holds it
 	quick = false;      // true while `clean` holds the instant (no-model) clean, before the real one lands
+	parts = [];         // THE RECORD (doc/prompt-records.md): [{ id, cites: [n…], kind, text, outcome: { is, ref, why }, parts: [details] }]
+	process = "";       // the process that wrote `parts` (live | review), from the parts line
+	at = "";            // when the prompt was first logged (its raw line)
+	handled = null;     // { by, at, to, note }: whoever routed this prompt's proposals marked it handled
 
 	constructor(...args){ Object.assign(this, ...args); }
+
+	/* COMPLETION (the owner, 2026-10-22: "a prompt is complete when everything it asks is done or documented"). Computed, never stored.
+	 * A part is settled when its outcome is one of SETTLED, or it is carried by a task that is complete. A sentence no part cites
+	 * is one more unsettled unit: nothing said is allowed to vanish. `task_state(ref)` answers a task's state ("complete", …);
+	 * node passes the session's tasks, the browser its replayed Session. */
+	static KINDS = ["ask", "question", "rule", "idea", "conversation"];
+	static OUTCOMES = ["done", "documented", "answered", "task", "no-action", "open"];
+	static SETTLED = ["done", "documented", "answered", "no-action"];
+	static settled(part, task_state = () => null){
+		const o = part?.outcome ?? {};
+		return Prompt.SETTLED.includes(o.is) || (o.is === "task" && task_state(o.ref) === "complete");
+	}
+	/** Sentence numbers no part (or nested detail) cites. */
+	get uncovered(){
+		const cited = new Set(), walk = ps => (ps ?? []).forEach(p => { (p.cites ?? []).forEach(n => cited.add(n)); walk(p.parts); });
+		walk(this.parts);
+		return this.clean.map(s => s.n).filter(n => !cited.has(n));
+	}
+	/** { done, total }: top-level parts settled, out of parts + uncovered sentences. */
+	progress(task_state){
+		const done = this.parts.filter(p => Prompt.settled(p, task_state)).length;
+		return { done, total: this.parts.length + this.uncovered.length };
+	}
+	completion(task_state){ const { done, total } = this.progress(task_state); return total ? done / total : 0; }
+	complete(task_state){ return this.parts.length > 0 && this.completion(task_state) === 1; }
+	/** The parts still open (not settled), for a list of loose ends. */
+	open(task_state){ return this.parts.filter(p => !Prompt.settled(p, task_state)); }
 
 	/** The number printed with its meaning (`doc/confidence.md`); a score without `scale: 2` is from the old scorer. */
 	static label(s){
@@ -98,13 +127,15 @@ export default class Prompt {
 	 */
 	static from_log(row, session = ""){
 		const up = cards => (cards ?? []).map(c => ({ ...c, cites: (c.cites ?? []).map(i => i + 1), cards: up(c.cards) }));
-		const prompt = new Prompt({ raw: row.raw ?? "", subject: row.subject ?? "", prompt_id: row.id, session });
+		const prompt = new Prompt({ raw: row.raw ?? "", subject: row.subject ?? "", prompt_id: row.id, session, at: row.at ?? "" });
 		prompt.clean = row.clean.map((text, i) => ({ n: i + 1, text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" }));
 		for (const n of row.notes ?? []){
 			const s = prompt.clean[n.i];
 			if (s) Object.assign(s, { clarity: n.clarity ?? null, why: n.why ?? "", alternates: n.alternates ?? [], names: n.names ?? [], tags: n.tags ?? [] });
 		}
 		prompt.refined = up(row.refined);
+		const num = ps => (ps ?? []).map(p => ({ ...p, cites: (p.cites ?? []).map(i => i + 1), ...(p.parts ? { parts: num(p.parts) } : {}) }));
+		prompt.parts = num(row.parts); prompt.process = row.process ?? ""; prompt.handled = row.handled ?? null;
 		prompt.status = row.final ? "done" : "working";
 		return prompt;
 	}
@@ -119,104 +150,3 @@ export default class Prompt {
 	get view(){ return new this.constructor.View({ subject: this }); }
 
 }
-
-/** Prompt.View — raw, clean (with scores and yellow flags), refined cards. A sentence and a
- *  card's source chip are linked: click either and the other side lights up. */
-Prompt.View = class extends View {
-
-	/** Each stage names itself: a number, a plain title, what it is in one line, and the class that makes it. */
-	static STAGES = {
-		said:    { title: "1 · Said",    what: "Exactly what Whisper heard. Type here too.", by: "Dictate", href: "/framework/ux/Dictate/" },
-		clean:   { title: "2 · Cleaned", what: "Your words, fixed: fillers out, sentences numbered. Nothing reworded.", by: "Cleaner", href: "/framework/ext/Refine/cleaner/" },
-		refined: { title: "3 · Outline", what: "The same ideas as a short outline. Click an S1 chip to jump to its sentence.", by: "Structurer", href: "/framework/ext/Refine/structure.js" },
-		scores:  { title: "4 · Scores",  what: "How clear each sentence is (1 = clear). ⚑ marks a sentence worth a second look.", by: "ClarityScorer", href: "/framework/ext/Refine/md/doc/prompt/" },
-	};
-
-	render(){
-		const prompt = this.subject;
-		this.ac("refine-prompt");
-
-		const empty = !prompt.clean.length;
-		const working = prompt.status === "working";
-		const done = prompt.status === "done";
-		const sentence_els = new Map();
-		const light = n => {
-			sentence_els.forEach(($s, k) => $s.el.classList.toggle("lit", k === n));
-			sentence_els.get(n)?.el.scrollIntoView({ block: "nearest", behavior: "smooth" });
-		};
-		const secs = ms => (ms / 1000).toFixed(1) + " s";
-		const section = (key, note, fn) => {
-			const st = Prompt.View.STAGES[key];
-			return div.c("refine-section", () => {
-				h4.c("refine-prompt-h", () => { span(st.title); if (note) span.c("refine-s-scores", note); });
-				if (!this.compact) p.c("refine-what", () => { span(st.what + " "); a(st.by).href(st.href).ac("refine-class-key"); });   // `compact`: the stage title is the only label
-				fn();
-			});
-		};
-
-		if (working) p.c("refine-working", `Refining with ${prompt.model || "a model"}… usually about 8 s and about 3 cents. The cleaned text is already usable.`);
-		if (prompt.status === "error") p.c("refine-error", "Could not refine: " + prompt.error);
-		if (this.show_raw !== false) section("said", "", () => prompt.raw ? p.c("refine-prompt-raw", prompt.raw) : p.c("refine-empty", "Nothing said yet."));
-
-		section("clean", empty ? "" : prompt.quick || working ? `instant, ${prompt.timings.quick_ms ?? 0} ms, no model` : `by ${prompt.model || "a model"}, ${secs(prompt.stages.clean_ms ?? 0)}`, () => {
-			if (empty) return p.c("refine-empty", "Waiting for words.");
-			prompt.clean.forEach(s => {
-				const $s = div.c("refine-sentence", () => {
-					span.c("refine-s-num", "S" + s.n);
-					span.c("refine-s-text", s.text);
-					if (prompt.flagged.includes(s)){
-						const q = s.flags.map(f => f.question).join(" ") || s.why || "This one may be unclear.";
-						span.c("refine-flag", "⚑").attr("title", q);
-					}
-				});
-				$s.click(() => light(s.n));
-				sentence_els.set(s.n, $s);
-			});
-		});
-
-		// LIVE, NOT JUST DONE (one-input, 2026-10-12): `RefineSystem.live()` writes `refined`
-		// straight onto this same `Prompt` as the mic talks, before a real Refine ever runs —
-		// the outline underneath updates live, CLAUDE.md law 2's "the outline refines live
-		// underneath". `have` is true the instant there is anything to show, `done` only once
-		// a full Refine has actually finished (its own timing label still waits for that).
-		const have = done || prompt.refined.length > 0;
-		section("refined", done ? secs(prompt.stages.structure_ms ?? 0) : have ? "live" : "", () => {
-			if (!have) return p.c("refine-empty", working ? "Working… the model is writing the outline." : "Press Refine.");
-			if (prompt.subject) p.c("refine-subject", prompt.subject);
-			const cites = list => list.forEach(n => button.c("refine-cite", "S" + n).click(() => light(n)));
-			const draw = cards => cards.forEach(c => div.c("refine-card", () => {
-				span.c("refine-card-text", c.text);
-				cites(c.cites);
-				if (c.cards.length) div.c("refine-subcards", () => draw(c.cards));
-			}));
-			prompt.refined.forEach(sec => div.c("refine-card refine-card-top", () => {
-				span.c("refine-card-text refine-card-title", sec.title);
-				cites(sec.cites);
-				div.c("refine-subcards", () => draw(sec.cards));
-			}));
-		});
-
-		section("scores", done ? `${prompt.flagged.length} of ${prompt.clean.length} flagged` : "", () => {
-			if (!done) return p.c("refine-empty", working ? "Scoring each sentence…" : "Press Refine.");
-			prompt.clean.forEach(s => div.c("refine-score", () => {
-				span.c("refine-s-num", "S" + s.n);
-				span.c("refine-bar").attr("style", `--v:${s.clarity ?? 0}`);
-				span.c("refine-s-text", Prompt.label(s));
-				if (s.why) span.c("refine-s-scores", s.why);
-				if (s.names.length) span.c("refine-s-scores", "name: " + s.names.join(", "));
-				s.tags.forEach(t => span.c("refine-class-key", t));
-				if (s.alternates.length) div.c("refine-s-scores", "or: " + s.alternates.join(" / "));
-			}));
-			if (prompt.session) p.c("refine-what", () => {
-				span("Kept in the session log as raw, clean, outline and notes: ");
-				a("open the session").href("/framework/ai/sessions/" + prompt.session + "/").ac("refine-class-key");
-			});
-			h4.c("refine-prompt-h", () => span("Model runs"));
-			p.c("refine-what", "Each run is its own session: click one to see exactly what was asked.");
-			prompt.runs.forEach(r => div.c("refine-run", () => {
-				r.session_id ? a(r.stage).href(`/framework/ai/sessions/${r.session_id}/`) : span(r.stage);
-				span.c("refine-s-scores", `${r.model} · ${secs(r.duration_ms)} · $${r.cost_usd}`);
-			}));
-		});
-	}
-};
