@@ -1,6 +1,0 @@
-{"assign":{"session_id":"8cccd9b6-287b-4af1-9467-58b3ab1c1f7a","agent":"task-mastermind-z","title":"own this task","model":"claude-sonnet-5-5","requested_at":"2026-10-22T21:16:53-05:00","now":"starting"}}
-{"log":{"at":"2026-10-22T21:21:10-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
-{"log":{"at":"2026-10-22T21:27:10-05:00","heartbeat":"revive-queued","msg":"task-mastermind-z its agent is not running; a revive is queued"}}
-{"log":{"at":"2026-10-22T21:40:17-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
-{"log":{"at":"2026-10-22T21:42:13-05:00","heartbeat":"escalated","msg":"task-mastermind-z its agent is not running, and the revive failed: Cannot find where session 8cccd9b6-287b-4af1-9467-58b3ab1c1f7a ran, so it cannot be resumed."}}
-{"log":{"at":"2026-10-22T22:20:16-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
