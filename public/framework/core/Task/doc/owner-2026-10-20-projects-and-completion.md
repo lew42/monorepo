@@ -39,3 +39,11 @@ Words in the tab prompt log (`ai/2026/10/20/session-e00f55c9/page.jsonl`). Essen
 - **A task or project is portable**: a folder (or one JSONL) that can move without losing anything.
 - **Draft in the session, then move home.** While it is being planned it lives in the session's folder; once approved it moves to `<module>/tasks/<slug>/`, so every later agent working on that module sees its past work in one place. Projects go in the same `tasks/` folder: a project is a task, so one folder, not two.
 - Moves go through the dated store's `move` (scripted, recorded, undoable); `new-task` already names `<module>/tasks/<slug>/` as a task's home.
+
+## 7. The goal: every session checked off (the owner, 2026-10-22)
+
+- **Finish a session before moving on.** Everything inside a session (tasks, projects, processes) is checked off, or deliberately abandoned: an abandoned item is deactivated and no longer counts toward completion. This is what has been failing.
+- **The session page shows it at a glance** while the owner dictates: how many open and closed, the open ones listed, each one clickable to its own page, properly routed.
+- **Kinds of task.** A simple task needs no process. A check-on-something task is a small investigation; its result may refine a process (a process can drop steps that prove unnecessary).
+- **Projects move home on approval** (projects, more than plain tasks). Open: does a project *have* a process or *extend* `Process`? Leaning: a project is a process.
+- **A task can carry content** (any content, above or below its list of tasks, maybe a template that places the list) and **questions**: an unanswered question may keep its task open.
