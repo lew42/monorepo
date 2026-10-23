@@ -65,3 +65,13 @@ Read `/framework/ai/sessions/doc/mobile-cards.md` first. Its rules, in short:
 - [ ] The session page has Overview, Tasks and Chat, swipeable, and the existing session menu.
 - [ ] The status colours and the one segmented bar follow the rules above.
 - [ ] There is a 400 px shot of each page in `shots/`. Smoke passes and the branch is unmerged.
+
+## Follow-up 3: is it running? (the owner, 2026-10-22; from the Figma brief, `figma-cards/requirements.md`)
+
+Fold this into page 3 (session) and page 4 (task detail), and into every task row:
+
+- **A small run indicator** on every task, project and process row: a dot or a play triangle. Not a colour change and not a heavy outline.
+- **Pause and stop buttons** sit beside it while the task is running. An idle task gets a start button.
+- **Queued:** a task that will start on its own shows it, for example "queued" or "next" beside the dot. Compute it; don't store it. An idle child of a running `series` parent is next in line (`Task.js` line 84 starts it). Don't invent a new state.
+- **Each button writes one log line**, using the verbs that already exist. `Task.js` already has `start()`, `pause()`, `resume()`, `stop(why)` and their log keys (`LINE_KEYS`). `TaskView.STAGE` already has the icons. A press appends `{"pause":{}}`, `{"stop":{"why":"owner pressed stop"}}` and so on to that task's own JSONL, so an agent following that log gets it at once. Don't write a second state machine.
+- **Proof:** one shot of a running task with its pause and stop buttons, `shots/run-indicator-400.png`.
