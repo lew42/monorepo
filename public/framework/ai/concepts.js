@@ -98,7 +98,7 @@ export const CONCEPTS = [
 		code: [["CLAUDE.md, at the repo root", null]],
 		servex: [] },
 
-	{ group: "know", slug: "readmes", name: "Readmes", icon: "menu_book",
+	{ group: "know", slug: "readme-system", name: "Readme system", icon: "menu_book",
 		gist: "Every folder's readme.md tells an agent where it is. A fresh agent reads the chain of them, from the root down to its folder, before it does anything.",
 		items: [
 			"**One shape, every readme:** what it is (one line) · Use · Watch out · More. As short as it can be.",
