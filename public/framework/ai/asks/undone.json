@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-10-23T06:02:25.407Z",
+ "generated_at": "2026-10-23T07:03:12.561Z",
  "counted": 1167,
  "classified": 1167,
  "agree": true,
  "totals": {
   "done": 70,
-  "tasked": 498,
-  "closed": 467,
+  "tasked": 499,
+  "closed": 466,
   "noted": 132,
   "undone": 0,
   "unroutable": 0
@@ -175,13 +175,13 @@
      "evidence": "ledger status landed"
     },
     {
-     "id": "e0ff1b2eac",
+     "id": "fc49764175",
      "kind": "routed",
      "state": "tasked",
      "text": "Merge candidates: one minion per core dir (later, when tokens allow)",
      "at": "2026-09-30T14:18:58-05:00",
      "days": 22,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/09/30/ai-page/",
      "status": "parked",
      "where": {
       "kind": "ledger",
@@ -189,20 +189,7 @@
       "url": null
      },
      "evidence": null,
-     "verified": "undone",
-     "verified_evidence": "Not built. No merge-candidate output or minion run found. The only record is the to-do line at public/framework/ai/todo.md:159 (\"Merge candidates, when tokens allow\"), which the ask says nothing tracks. It is a fan-out, so check the week's usage before spawning.",
-     "verified_at": "2026-10-23T06:01:22.033Z",
-     "verified_by": "claude-haiku-5-5",
-     "verified_first": {
-      "verified": null,
-      "verified_evidence": null
-     },
-     "verified_pass": 3,
-     "verified_kind": "sort",
-     "task": "/framework/core/tasks/run-the-core-merge-sweep-one-sonnet-mini/",
-     "verified_module": "core",
-     "verified_sort": "task",
-     "verified_title": "Run the core/ merge sweep: one Sonnet minion per core directory"
+     "task": "/framework/core/tasks/run-the-core-merge-sweep-one-sonnet-mini/"
     },
     {
      "id": "6bb7b25cb0",
@@ -235,13 +222,13 @@
      "evidence": "ledger status landed"
     },
     {
-     "id": "2225185917",
+     "id": "51d14e8db4",
      "kind": "routed",
-     "state": "closed",
+     "state": "tasked",
      "text": "AI 2 merges into /framework/ai/ (later)",
      "at": "2026-09-30T14:36:58-05:00",
      "days": 22,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/09/30/ai2-inbox-read/",
      "status": "parked",
      "where": {
       "kind": "ledger",
@@ -249,18 +236,7 @@
       "url": null
      },
      "evidence": null,
-     "verified": "done",
-     "verified_evidence": "public/framework/ai2/readme.md:3 - \"AI 2 is no longer a separate module. Its code moved into [ai/cards](/framework/ai/cards/) (a card and what it shows) and [ai/rail](/framework/ai/rail/)...\"",
-     "verified_looked": [],
-     "verified_at": "2026-10-23T06:01:22.033Z",
-     "verified_by": "claude-haiku-5-5",
-     "verified_first": {
-      "verified": null,
-      "verified_evidence": null
-     },
-     "verified_pass": 3,
-     "verified_kind": "sort",
-     "verified_sort": "done"
+     "task": "/framework/ai/tasks/ai-2-finish-the-retirement-now-nav-entry/"
     },
     {
      "id": "e885cfe48c",
@@ -278,13 +254,13 @@
      "evidence": "ledger status dropped"
     },
     {
-     "id": "208b99884e",
+     "id": "97ea927249",
      "kind": "routed",
      "state": "done",
      "text": "Dictation: ONE system everywhere (rail, sidebar, drawer, card) on the fast/smart pair; old per-card assistant retires",
      "at": "2026-09-30T14:50:33-05:00",
      "days": 22,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/09/30/audio-consolidate/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -657,13 +633,13 @@
      "verified_sort": "obsolete"
     },
     {
-     "id": "19db3a9c91",
+     "id": "77cf7425d4",
      "kind": "routed",
      "state": "done",
      "text": "Console: clean on /ai/live; smoke fails on console noise and 404s",
      "at": "2026-10-03T12:33:36-05:00",
      "days": 19,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/10/03/console-clean/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -1208,7 +1184,7 @@
      "state": "closed",
      "text": "Decide whether to add a system that tracks everything properly.",
      "at": "2026-10-12T06:12:59.063Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3752",
      "status": "open",
      "where": {
@@ -1234,7 +1210,7 @@
      "state": "closed",
      "text": "Check whether navigation uses the files.jsonl system.",
      "at": "2026-10-12T06:12:59.063Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3752",
      "status": "open",
      "where": {
@@ -1260,7 +1236,7 @@
      "state": "tasked",
      "text": "Possibly unify navigation so new things are added to it automatically.",
      "at": "2026-10-12T06:12:59.063Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3752",
      "status": "open",
      "where": {
@@ -1290,7 +1266,7 @@
      "state": "closed",
      "text": "Find out whether a dynamic index of all sub pages was ever built.",
      "at": "2026-10-12T06:12:59.063Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3752",
      "status": "open",
      "where": {
@@ -1316,7 +1292,7 @@
      "state": "tasked",
      "text": "Document all the moving parts of the system",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "open",
      "where": {
@@ -1346,7 +1322,7 @@
      "state": "noted",
      "text": "Paraphrase the dictated points back to the owner",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "open",
      "where": {
@@ -3049,7 +3025,7 @@
      "where": {
       "kind": "task",
       "label": "task open: Check whether CSS properties can be tracked and what UI they need; find a…",
-      "url": "/framework/ext/CSSDoc/tasks/check-whether-css-properties-can-be-trac/"
+      "url": "/framework/ext/tasks/check-whether-css-properties-can-be-trac/"
      },
      "evidence": null,
      "verified": "undone",
@@ -3904,7 +3880,7 @@
      "status": "open",
      "where": {
       "kind": "task",
-      "label": "task open: Redesign the sidebar so its many items and sections lay out cleanly, covering…",
+      "label": "task stopped: Redesign the sidebar so its many items and sections lay out cleanly, covering…",
       "url": "/framework/core/Sidebar/tasks/redesign-the-sidebar-so-its-many-items-a/"
      },
      "evidence": null,
@@ -4271,7 +4247,7 @@
      "status": "open",
      "where": {
       "kind": "task",
-      "label": "task open: If images cannot be searched or generated, set up an image generation API as a…",
+      "label": "task stopped: If images cannot be searched or generated, set up an image generation API as a…",
       "url": "/framework/ai/tasks/if-images-cannot-be-searched-or-generate/"
      },
      "evidence": null,
@@ -4630,7 +4606,7 @@
      "status": "open",
      "where": {
       "kind": "task",
-      "label": "task open: Play with different color schemes for the layouts",
+      "label": "task stopped: Play with different color schemes for the layouts",
       "url": "/framework/design/color/tasks/play-with-different-color-schemes-for-th/"
      },
      "evidence": null,
@@ -5022,7 +4998,7 @@
      "status": "open",
      "where": {
       "kind": "task",
-      "label": "task open: Experiment with other UI designs that could be useful for the site",
+      "label": "task stopped: Experiment with other UI designs that could be useful for the site",
       "url": "/framework/design/ui/tasks/experiment-with-other-ui-designs-that-co/"
      },
      "evidence": null,
@@ -5197,7 +5173,7 @@
      "status": "open",
      "where": {
       "kind": "task",
-      "label": "task open: Explore icon sizing that matches the title size and avoids wasted or dead…",
+      "label": "task stopped: Explore icon sizing that matches the title size and avoids wasted or dead…",
       "url": "/framework/ui/icon/tasks/explore-icon-sizing-that-matches-the-tit/"
      },
      "evidence": null,
@@ -5678,7 +5654,7 @@
      "status": "open",
      "where": {
       "kind": "task",
-      "label": "task open: Explore dropdown menus and the kinds of content that can go inside the custom…",
+      "label": "task stopped: Explore dropdown menus and the kinds of content that can go inside the custom…",
       "url": "/framework/ext/Dropdown/tasks/explore-dropdown-menus-and-the-kinds-of/"
      },
      "evidence": null,
@@ -6603,7 +6579,7 @@
      "status": "open",
      "where": {
       "kind": "task",
-      "label": "task open: Refine the CSS into a much simpler set of components without breaking anything",
+      "label": "task stopped: Refine the CSS into a much simpler set of components without breaking anything",
       "url": "/framework/styles/tasks/refine-the-css-into-a-much-simpler-set-o/"
      },
      "evidence": null,
@@ -8292,7 +8268,7 @@
      "status": "open",
      "where": {
       "kind": "task",
-      "label": "task open: Consider a diff tool that compares two screenshots and reports how close or…",
+      "label": "task stopped: Consider a diff tool that compares two screenshots and reports how close or…",
       "url": "/framework/ext/Shots/tasks/consider-a-diff-tool-that-compares-two-s/"
      },
      "evidence": null,
@@ -8629,7 +8605,7 @@
      "where": {
       "kind": "task",
       "label": "task open: Try resizing the columns slightly so the layout fits better",
-      "url": "/framework/core/Page/overview/tasks/try-resizing-the-columns-slightly-so-the/"
+      "url": "/framework/core/Page/tasks/try-resizing-the-columns-slightly-so-the/"
      },
      "evidence": null,
      "verified": "undone",
@@ -8721,7 +8697,7 @@
      "where": {
       "kind": "task",
       "label": "task open: Make Miller column list items more compact, since two lines of text sit in too…",
-      "url": "/framework/core/Page/overview/tasks/make-miller-column-list-items-more-compa/"
+      "url": "/framework/core/Page/tasks/make-miller-column-list-items-more-compa/"
      },
      "evidence": null,
      "verified": "undone",
@@ -12486,7 +12462,7 @@
      "where": {
       "kind": "task",
       "label": "task open: Make the dashboard more compact",
-      "url": "/framework/ai/AIDashboard/tasks/make-the-dashboard-more-compact/"
+      "url": "/framework/ai/tasks/make-the-dashboard-more-compact/"
      },
      "evidence": null,
      "verified": "undone",
@@ -13014,7 +12990,7 @@
      "where": {
       "kind": "task",
       "label": "task open: Make the mobile sheet match the desktop AI and sessions sidebar, resizable…",
-      "url": "/framework/ai/rail/tasks/make-the-mobile-sheet-match-the-desktop/"
+      "url": "/framework/ai/tasks/make-the-mobile-sheet-match-the-desktop/"
      },
      "evidence": null,
      "verified": "undone",
@@ -14637,8 +14613,8 @@
      "verified_title": "Nest topic sub-cards on the Now card, with updated marks"
     }
    ],
-   "tasked": 229,
-   "closed": 117,
+   "tasked": 230,
+   "closed": 116,
    "noted": 129
   },
   {
@@ -14709,13 +14685,13 @@
      "evidence": "ledger status landed"
     },
     {
-     "id": "ece16345d2",
+     "id": "cad44d4d12",
      "kind": "routed",
      "state": "done",
      "text": "AI 2: Inbox read/unread, archive, auto-resolve, search; Needs you hidden",
      "at": "2026-09-30T14:36:58-05:00",
      "days": 22,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/09/30/ai2-inbox-read/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -14724,13 +14700,13 @@
      "evidence": "ledger status landed"
     },
     {
-     "id": "41c7280983",
+     "id": "1a6e330649",
      "kind": "routed",
      "state": "done",
      "text": "AI system docs: the System tab now explains the whole thing",
      "at": "2026-10-02T18:12:43-05:00",
      "days": 20,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/10/02/ai-system-docs/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -14852,7 +14828,7 @@
      "state": "closed",
      "text": "Find one home for each rule and merge the duplicate rules",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -14876,7 +14852,7 @@
      "state": "closed",
      "text": "Decide how many rule systems there should be and what they are called",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -14908,7 +14884,7 @@
      "state": "closed",
      "text": "Audit rules for bloat and wrong-direction wording that makes the AIs follow bad instructions",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -14932,7 +14908,7 @@
      "state": "tasked",
      "text": "Consider structuring rules as a weighted tree of statements per subsection",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -14957,7 +14933,7 @@
      "state": "tasked",
      "text": "Decide whether rules become skills or live in a directory outside the skill folder",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -14982,7 +14958,7 @@
      "state": "tasked",
      "text": "Lean away from skills toward a more accessible location than the Claude directory",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -15007,7 +14983,7 @@
      "state": "closed",
      "text": "Check whether relying on the AI to choose skills is reliable enough",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -15038,7 +15014,7 @@
      "state": "tasked",
      "text": "Audit session logs for how often each skill is used and why skipped skills go unused",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -15064,7 +15040,7 @@
      "state": "tasked",
      "text": "Consider a multi-AI setup where several models answer and a weighted consensus is reached",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -15089,7 +15065,7 @@
      "state": "tasked",
      "text": "Address that a single provider's models agree on many things because of shared training",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -15114,7 +15090,7 @@
      "state": "closed",
      "text": "Report where node tool work stands and how the SDK defines tools",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -15146,7 +15122,7 @@
      "state": "closed",
      "text": "Report whether a universal page tool exists that lets an AI modify the page",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -15170,7 +15146,7 @@
      "state": "tasked",
      "text": "Let the AI read live streaming pages and data in real time",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -15195,7 +15171,7 @@
      "state": "closed",
      "text": "Do not have the AI interpret raw JSONL deltas to compute page state",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -19305,7 +19281,7 @@
      "status": "inboxed",
      "where": {
       "kind": "task",
-      "label": "task open: Make all sessions items visible and clickable",
+      "label": "task stopped: Make all sessions items visible and clickable",
       "url": "/framework/ai/tasks/make-all-sessions-items-visible-and-clic/"
      },
      "evidence": null,
@@ -21572,13 +21548,13 @@
      "evidence": "ledger status landed"
     },
     {
-     "id": "83228fcc52",
+     "id": "07b415857f",
      "kind": "routed",
      "state": "done",
      "text": "Page: AI cost line broke /framework/ai/ title (fixed db0e77af); links styled everywhere; merge gate fails on text touching its edge",
      "at": "2026-10-03T12:53:07-05:00",
      "days": 19,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/10/03/layout-gate/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -21879,7 +21855,7 @@
      "state": "tasked",
      "text": "Instantiate the page on the server side so a node tool can act on it quickly",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -21904,7 +21880,7 @@
      "state": "tasked",
      "text": "Decide which page functions actually need a full live instance with current data",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -21928,7 +21904,7 @@
      "state": "tasked",
      "text": "Instantiate the page in the browser with the same data structure the page tool uses",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -21953,7 +21929,7 @@
      "state": "tasked",
      "text": "Make the headless server-side instance skip rendering",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -24053,13 +24029,13 @@
    "unroutable": 0,
    "asks": [
     {
-     "id": "795c759d06",
+     "id": "42a86f1fa6",
      "kind": "routed",
      "state": "done",
      "text": "Drawer: tight header, one scroll area, composer footer flush with default padding",
      "at": "2026-10-03T13:17:14-05:00",
      "days": 19,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/10/03/drawer-cleanup/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -24085,7 +24061,7 @@
      "state": "closed",
      "text": "Confirm whether you can access the September 2026 page.",
      "at": "2026-10-10T06:37:19.998Z",
-     "days": 12,
+     "days": 13,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3351",
      "status": "inboxed",
      "where": {
@@ -24118,7 +24094,7 @@
      "state": "closed",
      "text": "Create a new page in the September 2026 document.",
      "at": "2026-10-10T06:37:19.998Z",
-     "days": 12,
+     "days": 13,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3351",
      "status": "inboxed",
      "where": {
@@ -24143,7 +24119,7 @@
      "state": "closed",
      "text": "Add the Figma extension to the nav.",
      "at": "2026-10-12T06:12:59.063Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3752",
      "status": "inboxed",
      "where": {
@@ -24168,7 +24144,7 @@
      "state": "closed",
      "text": "Build the Figma designs as HTML and CSS using our UI system.",
      "at": "2026-10-12T06:12:59.063Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3752",
      "status": "inboxed",
      "where": {
@@ -24193,7 +24169,7 @@
      "state": "tasked",
      "text": "Make the Figma design preview open to show the actual UI elements rendered.",
      "at": "2026-10-12T06:12:59.063Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3752",
      "status": "inboxed",
      "where": {
@@ -24219,7 +24195,7 @@
      "state": "tasked",
      "text": "Find out whether the embeds cause the laggy clicking on Figma items.",
      "at": "2026-10-12T06:12:59.063Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3752",
      "status": "inboxed",
      "where": {
@@ -30868,13 +30844,13 @@
      "verified_title": "Build the Servex process monitor: PIDs, RAM/CPU per task, orphans"
     },
     {
-     "id": "6011a0a6b6",
+     "id": "d4be1c65e6",
      "kind": "routed",
      "state": "done",
      "text": "Servex: Playwright Chrome logged + reaped; one warm shared browser with check_page",
      "at": "2026-10-03T12:33:36-05:00",
      "days": 19,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/10/03/playwright-reap/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -30913,7 +30889,7 @@
      "state": "tasked",
      "text": "Use Node tool functions for all tool calls instead of MCP",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -30938,7 +30914,7 @@
      "state": "tasked",
      "text": "Decide whether the headless instance runs on the Servex server or through the dev socket",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -30976,7 +30952,7 @@
      "state": "closed",
      "text": "Lean into MCP if Servex runs the AI sessions and node tools execute in a separate process",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -31008,7 +30984,7 @@
      "state": "closed",
      "text": "Pick one communication system for tool calls and stop revisiting the choice",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -31040,7 +31016,7 @@
      "state": "closed",
      "text": "Decide whether node tools run as a sub process or in the parent process so a crash cannot take down the server",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -31072,7 +31048,7 @@
      "state": "closed",
      "text": "Confirm whether SDK sessions spawn sub processes or run in the parent process, given each claude.exe has its own process ID",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -31104,7 +31080,7 @@
      "state": "closed",
      "text": "Establish whether a critical error in any of these processes can crash the whole system",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -31136,7 +31112,7 @@
      "state": "closed",
      "text": "Decide how a crashed Servex or process restarts, given Servex is set to come back up",
      "at": "2026-10-12T06:42:47.119Z",
-     "days": 10,
+     "days": 11,
      "source": "/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959",
      "status": "inboxed",
      "where": {
@@ -31407,13 +31383,13 @@
    "unroutable": 0,
    "asks": [
     {
-     "id": "1b210d1a13",
+     "id": "05822d7200",
      "kind": "routed",
      "state": "done",
      "text": "Styles: cards + prose on one measure/margin (lab); default padding rule; adaptive bg-lighten/darken + text/accent tokens (lab)",
      "at": "2026-10-03T13:17:14-05:00",
      "days": 19,
-     "source": "/framework/ai/asks/",
+     "source": "/framework/ai/sessions/2026/10/03/card-measure-colors/",
      "status": "landed",
      "where": {
       "kind": "ledger",
@@ -32381,13 +32357,13 @@
  ],
  "retired": [
   {
-   "id": "fc49764175",
+   "id": "e0ff1b2eac",
    "kind": "routed",
-   "state": "unroutable",
+   "state": "tasked",
    "text": "Merge candidates: one minion per core dir (later, when tokens allow)",
    "at": "2026-09-30T14:18:58-05:00",
    "days": 22,
-   "source": "/framework/ai/sessions/2026/09/30/ai-page/",
+   "source": "/framework/ai/asks/",
    "status": "parked",
    "where": {
     "kind": "ledger",
@@ -32395,30 +32371,31 @@
     "url": null
    },
    "evidence": null,
+   "verified": "undone",
+   "verified_evidence": "Not built. No merge-candidate output or minion run found. The only record is the to-do line at public/framework/ai/todo.md:159 (\"Merge candidates, when tokens allow\"), which the ask says nothing tracks. It is a fan-out, so check the week's usage before spawning.",
+   "verified_at": "2026-10-23T06:01:22.033Z",
+   "verified_by": "claude-haiku-5-5",
    "verified_first": {
     "verified": null,
     "verified_evidence": null
    },
    "verified_pass": 3,
    "verified_kind": "sort",
-   "verified_sort": "task",
-   "verified": "undone",
+   "task": "/framework/core/tasks/run-the-core-merge-sweep-one-sonnet-mini/",
    "verified_module": "core",
-   "verified_title": "Spawn one merge-candidate minion per core directory when tokens allow",
-   "verified_evidence": "Not built. grep for merge candidate or one minion per across public/framework finds nothing. The owner deferred it until tokens allow, so it is still wanted.",
-   "verified_at": "2026-10-23T06:00:01.645Z",
-   "verified_by": "claude-haiku-5-5",
+   "verified_sort": "task",
+   "verified_title": "Run the core/ merge sweep: one Sonnet minion per core directory",
    "module": "(no module folder)",
-   "retired_at": "2026-10-23T06:00:01.804Z"
+   "retired_at": "2026-10-23T07:02:50.074Z"
   },
   {
-   "id": "51d14e8db4",
+   "id": "2225185917",
    "kind": "routed",
-   "state": "unroutable",
+   "state": "closed",
    "text": "AI 2 merges into /framework/ai/ (later)",
    "at": "2026-09-30T14:36:58-05:00",
    "days": 22,
-   "source": "/framework/ai/sessions/2026/09/30/ai2-inbox-read/",
+   "source": "/framework/ai/asks/",
    "status": "parked",
    "where": {
     "kind": "ledger",
@@ -32426,30 +32403,29 @@
     "url": null
    },
    "evidence": null,
+   "verified": "done",
+   "verified_evidence": "public/framework/ai2/readme.md:3 - \"AI 2 is no longer a separate module. Its code moved into [ai/cards](/framework/ai/cards/) (a card and what it shows) and [ai/rail](/framework/ai/rail/)...\"",
+   "verified_looked": [],
+   "verified_at": "2026-10-23T06:01:22.033Z",
+   "verified_by": "claude-haiku-5-5",
    "verified_first": {
     "verified": null,
     "verified_evidence": null
    },
    "verified_pass": 3,
    "verified_kind": "sort",
-   "verified_sort": "task",
-   "verified": "undone",
-   "verified_module": "ai2",
-   "verified_title": null,
-   "verified_evidence": "ai2/readme.md:1 - # ai2: the old address of AI 2 (merged into AI on 2026-10-09). Only the folder remains; see ask aa58e77a81.",
-   "verified_at": "2026-10-23T06:00:01.645Z",
-   "verified_by": "claude-haiku-5-5",
+   "verified_sort": "done",
    "module": "(no module folder)",
-   "retired_at": "2026-10-23T06:00:01.804Z"
+   "retired_at": "2026-10-23T07:02:50.074Z"
   },
   {
-   "id": "97ea927249",
+   "id": "208b99884e",
    "kind": "routed",
    "state": "done",
    "text": "Dictation: ONE system everywhere (rail, sidebar, drawer, card) on the fast/smart pair; old per-card assistant retires",
    "at": "2026-09-30T14:50:33-05:00",
    "days": 22,
-   "source": "/framework/ai/sessions/2026/09/30/audio-consolidate/",
+   "source": "/framework/ai/asks/",
    "status": "landed",
    "where": {
     "kind": "ledger",
@@ -32457,16 +32433,16 @@
    },
    "evidence": "ledger status landed",
    "module": "(no module folder)",
-   "retired_at": "2026-10-23T06:00:01.804Z"
+   "retired_at": "2026-10-23T07:02:50.074Z"
   },
   {
-   "id": "77cf7425d4",
+   "id": "19db3a9c91",
    "kind": "routed",
    "state": "done",
    "text": "Console: clean on /ai/live; smoke fails on console noise and 404s",
    "at": "2026-10-03T12:33:36-05:00",
    "days": 19,
-   "source": "/framework/ai/sessions/2026/10/03/console-clean/",
+   "source": "/framework/ai/asks/",
    "status": "landed",
    "where": {
     "kind": "ledger",
@@ -32474,16 +32450,16 @@
    },
    "evidence": "ledger status landed",
    "module": "(no module folder)",
-   "retired_at": "2026-10-23T06:00:01.804Z"
+   "retired_at": "2026-10-23T07:02:50.074Z"
   },
   {
-   "id": "cad44d4d12",
+   "id": "ece16345d2",
    "kind": "routed",
    "state": "done",
    "text": "AI 2: Inbox read/unread, archive, auto-resolve, search; Needs you hidden",
    "at": "2026-09-30T14:36:58-05:00",
    "days": 22,
-   "source": "/framework/ai/sessions/2026/09/30/ai2-inbox-read/",
+   "source": "/framework/ai/asks/",
    "status": "landed",
    "where": {
     "kind": "ledger",
@@ -32491,16 +32467,16 @@
    },
    "evidence": "ledger status landed",
    "module": "ai",
-   "retired_at": "2026-10-23T06:00:01.804Z"
+   "retired_at": "2026-10-23T07:02:50.074Z"
   },
   {
-   "id": "1a6e330649",
+   "id": "41c7280983",
    "kind": "routed",
    "state": "done",
    "text": "AI system docs: the System tab now explains the whole thing",
    "at": "2026-10-02T18:12:43-05:00",
    "days": 20,
-   "source": "/framework/ai/sessions/2026/10/02/ai-system-docs/",
+   "source": "/framework/ai/asks/",
    "status": "landed",
    "where": {
     "kind": "ledger",
@@ -32508,16 +32484,16 @@
    },
    "evidence": "ledger status landed",
    "module": "ai",
-   "retired_at": "2026-10-23T06:00:01.804Z"
+   "retired_at": "2026-10-23T07:02:50.074Z"
   },
   {
-   "id": "07b415857f",
+   "id": "83228fcc52",
    "kind": "routed",
    "state": "done",
    "text": "Page: AI cost line broke /framework/ai/ title (fixed db0e77af); links styled everywhere; merge gate fails on text touching its edge",
    "at": "2026-10-03T12:53:07-05:00",
    "days": 19,
-   "source": "/framework/ai/sessions/2026/10/03/layout-gate/",
+   "source": "/framework/ai/asks/",
    "status": "landed",
    "where": {
     "kind": "ledger",
@@ -32525,33 +32501,16 @@
    },
    "evidence": "ledger status landed",
    "module": "core/Page",
-   "retired_at": "2026-10-23T06:00:01.804Z"
+   "retired_at": "2026-10-23T07:02:50.074Z"
   },
   {
-   "id": "d4be1c65e6",
-   "kind": "routed",
-   "state": "done",
-   "text": "Servex: Playwright Chrome logged + reaped; one warm shared browser with check_page",
-   "at": "2026-10-03T12:33:36-05:00",
-   "days": 19,
-   "source": "/framework/ai/sessions/2026/10/03/playwright-reap/",
-   "status": "landed",
-   "where": {
-    "kind": "ledger",
-    "label": "ledger status landed"
-   },
-   "evidence": "ledger status landed",
-   "module": "servex",
-   "retired_at": "2026-10-23T06:00:01.804Z"
-  },
-  {
-   "id": "42a86f1fa6",
+   "id": "795c759d06",
    "kind": "routed",
    "state": "done",
    "text": "Drawer: tight header, one scroll area, composer footer flush with default padding",
    "at": "2026-10-03T13:17:14-05:00",
    "days": 19,
-   "source": "/framework/ai/sessions/2026/10/03/drawer-cleanup/",
+   "source": "/framework/ai/asks/",
    "status": "landed",
    "where": {
     "kind": "ledger",
@@ -32559,16 +32518,33 @@
    },
    "evidence": "ledger status landed",
    "module": "ext/drawer",
-   "retired_at": "2026-10-23T06:00:01.804Z"
+   "retired_at": "2026-10-23T07:02:50.074Z"
   },
   {
-   "id": "05822d7200",
+   "id": "6011a0a6b6",
+   "kind": "routed",
+   "state": "done",
+   "text": "Servex: Playwright Chrome logged + reaped; one warm shared browser with check_page",
+   "at": "2026-10-03T12:33:36-05:00",
+   "days": 19,
+   "source": "/framework/ai/asks/",
+   "status": "landed",
+   "where": {
+    "kind": "ledger",
+    "label": "ledger status landed"
+   },
+   "evidence": "ledger status landed",
+   "module": "servex",
+   "retired_at": "2026-10-23T07:02:50.074Z"
+  },
+  {
+   "id": "1b210d1a13",
    "kind": "routed",
    "state": "done",
    "text": "Styles: cards + prose on one measure/margin (lab); default padding rule; adaptive bg-lighten/darken + text/accent tokens (lab)",
    "at": "2026-10-03T13:17:14-05:00",
    "days": 19,
-   "source": "/framework/ai/sessions/2026/10/03/card-measure-colors/",
+   "source": "/framework/ai/asks/",
    "status": "landed",
    "where": {
     "kind": "ledger",
@@ -32576,7 +32552,7 @@
    },
    "evidence": "ledger status landed",
    "module": "styles",
-   "retired_at": "2026-10-23T06:00:01.804Z"
+   "retired_at": "2026-10-23T07:02:50.074Z"
   }
  ]
 }
