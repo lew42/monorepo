@@ -214,7 +214,7 @@ export default class TaskLoop {
             if (obj.follow_up) follow_ups.push(obj.follow_up);
             if (obj.spawn) spawned = true;
             if (obj.queue) queued = true;
-            if (obj.follow_up || obj.log?.nudge !== undefined) continue;   // our own reminder lines are neither activity nor an ask
+            if (obj.follow_up || obj.log?.nudge !== undefined || obj.log?.heartbeat !== undefined) continue;   // our own and Heartbeat's reminder lines are neither activity nor an ask
             const ours = obj.log && (obj.log.ask !== undefined || obj.log.flag !== undefined);
             last_line_ours = !!ours;
             if (ours){
