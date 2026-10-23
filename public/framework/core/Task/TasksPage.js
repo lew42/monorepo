@@ -41,8 +41,8 @@ export class TasksPage extends Page {
 	static into(box, url){
 		box.ac("tasks-page").empty(() => div.c("muted", "Loading tasks…"));
 		// A load that throws, or never settles (a child file that never answers), says so after LOAD_MS instead of reading "Loading" for good.
-		const late = new Promise((_, no) => setTimeout(() => no(new Error("no answer from " + url + " after " + this.LOAD_MS / 1000 + " s")), this.LOAD_MS));
-		Promise.race([this.groups(url), late]).then(groups => box.empty(() => this.draw(groups)))
+		let timer; const late = new Promise((_, no) => timer = setTimeout(() => no(new Error("no answer from " + url + " after " + this.LOAD_MS / 1000 + " s")), this.LOAD_MS));
+		Promise.race([this.groups(url), late]).finally(() => clearTimeout(timer)).then(groups => box.empty(() => this.draw(groups)))
 			.catch(e => box.empty(() => div.c("muted", "Could not read tasks: " + e.message)));
 		return box;
 	}
