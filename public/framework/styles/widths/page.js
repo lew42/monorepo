@@ -51,7 +51,7 @@ export default new Page({
 	width: "full",
 
 	preview(nav){
-		return this.preview_card(nav, () => img.c("design-shot").attr("src", here + "shots/1920.png").attr("alt", nav.label));
+		return this.preview_card(nav, () => img.c("design-shot").attr("src", here + "doc/1920.png").attr("alt", nav.label));
 	},
 
 	content(){

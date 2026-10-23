@@ -35,3 +35,9 @@ across 76 pages, now 19, and none of those is a control you cannot see.
 - [the lab task](/framework/ai/sessions/2026/08/30/color-stacks/) — `hunt.mjs` and its threshold calibration
 - [the flip task](/framework/ai/sessions/2026/08/30/alpha-flip/) — what moved, what deliberately did not
 - Files that matter: `stacks.js` (the colour maths the page AND the scan share), `hunt.json` (the scan), `stacks.css` (the grid only — the tokens are in `framework.css`)
+
+## Notes from your asks
+
+- Elements keep stacking in the order the current previews show. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1652), 2026-10-13)
+- Stacked elements, one above another, stay the layout approach for this site. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4177), 2026-10-13)
+- Components are placed by stacking them, and what sits above and below what is the design decision. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3786), 2026-10-13)

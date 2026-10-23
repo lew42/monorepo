@@ -80,3 +80,7 @@ file.store                                                    // a .jsonl's Item
 - Files: `FsFile.js` · `Dir.js` (`FsDir.js` stays as a re-export shim) · `tree.js` (the
   one shared `root()`) · `file_link.js` · `menu.js` (the right-click menu) ·
   `filesystem.css`
+
+## Notes from your asks
+
+- The file system is the data store, kept simple and robust so data stays as plain files. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11150), 2026-10-12)

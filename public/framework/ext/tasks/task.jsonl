@@ -1,2 +1,4 @@
 {"id":"tasks","path":"/framework/ext/tasks/","title":"ext tasks","mode":"parallel"}
 {"task":"/framework/ext/tasks/move-the-dictation-extension-into-the-ai/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.932Z"}
+{"task":"/framework/ext/tasks/decide-how-base-updates-propagate-to-ext/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:28.934Z"}
+{"task":"/framework/ext/tasks/check-whether-css-properties-can-be-trac/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:40:33.572Z"}

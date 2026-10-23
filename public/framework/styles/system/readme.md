@@ -33,3 +33,7 @@ box's own padding) · `--gap` (between things in a row) · and four rungs under 
 - [`doc/census.md`](./doc/census.md) why four rungs and not two — the 1,894-value census, the fit, the residue
 - [`doc/rest.md`](./doc/rest.md) the rest of the system — type, colour, layers, layouts, and every study behind them
 - The tokens themselves live in `/framework/framework.css` (`:where(*)`, and the `.pad` / `.gap` / `.gap-*` classes in `@layer util`). The long form of why they are shaped that way: [/framework/styles/system/studies/size/](/framework/styles/system/studies/size/).
+
+## Notes from your asks
+
+- The design systems are an open exploration that keeps growing, not a finished set. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3786), 2026-10-13)

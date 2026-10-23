@@ -1,3 +1,5 @@
 {"id":"tasks","path":"/framework/core/tasks/","title":"core tasks","mode":"parallel"}
 {"task":"/framework/core/tasks/make-field-extend-property-with-its-own/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.776Z"}
 {"task":"/framework/core/tasks/let-clone-take-a-pojo-and-assign-to-any/","by":"helper-undone-to-tasks","ts":"2026-10-17T16:10:05.784Z"}
+{"task":"/framework/core/tasks/every-core-module-gets-an-inbox/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:09.479Z"}
+{"task":"/framework/core/tasks/run-the-core-merge-sweep-one-sonnet-mini/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:01:22.337Z"}

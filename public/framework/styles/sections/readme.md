@@ -26,3 +26,7 @@ A band is `tone => view`, no stylesheet. It becomes a url as an inline child in 
 - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [doc/decisions.md](./doc/decisions.md) — the full record: what a section is, band vs measure, registry → children, de-flow, the end of `parts.js`.
 - Files: `page.js` (children, `whole()`), `tone.js` (`band(tone)`, tone chips), `hero.js` (the canonical band).
+
+## Notes from your asks
+
+- A section is several components working together, such as a header and a table. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3908), 2026-10-13)

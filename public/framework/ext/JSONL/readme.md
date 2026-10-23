@@ -45,3 +45,7 @@ A log only grows. Up to a few MB per file is fine to read and replay. The cost i
 - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [Overview](/framework/ext/JSONL/) · [`doc/task-jsonl.md`](./doc/task-jsonl.md) the task manifest verbs · [`doc/live.md`](./doc/live.md) streaming, registry, resets · [`doc/decisions.md`](./doc/decisions.md) the record: verb format, deferred, who uses it
 - Files that matter: `JSONL.js` (parse, replay, verbs), `live.js` (the socket half), `page.js` (the demos)
+
+## Notes from your asks
+
+- JSONL stays the storage format: it is Git-friendly, compresses well, and stores changes as clean line deltas. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p551), 2026-10-13)

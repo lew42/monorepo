@@ -30,3 +30,7 @@ Save a file under `public/`; every tab that loaded it reloads. That is the whole
 ## Also here (readme audit, 2026-10-13)
 - [DevShell](./DevShell/) — DevShell — Ctrl + \ opens a dark shell around the whole site: page tree left, the dev bar's own tabs right
 - [mobile](./mobile/) — Mobile — How to open this site on a phone, why the microphone and the socket behave differently there, and wha
+
+## Notes from your asks
+
+- The dev tooling must never throw errors or clobber a user's session while they browse the live site. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10710), 2026-10-12)

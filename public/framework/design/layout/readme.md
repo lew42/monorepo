@@ -35,3 +35,11 @@ Full version, with every warning and measured number: [doc/rules.md](./doc/rules
 - [questions.md](./questions.md) — review questions for this system (Layout, Sizing, Wrapping, Flow, Spacing and padding).
 - [/layouts/browse/](/layouts/browse/) and [/framework/ext/DesignTool/library/](/framework/ext/DesignTool/library/) — the approved layouts and arrangements, live.
 - Templates: [/framework/ui/](/framework/ui/)
+
+## Notes from your asks
+
+- Layout adjustments should be substantial, not two-pixel nudges. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077), 2026-10-12)
+- Hold off on a major overhaul: once the layout system works, revisit the broken pages for better layouts. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10902), 2026-10-12)
+- A new in-between layout token is added only when the minimal set truly cannot express the need. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p560), 2026-10-12)
+- On a phone, previews stack in a single column instead of using multi-column navigation. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p560), 2026-10-12)
+- Everything fills its width and is responsive unless its height is auto or set explicitly. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p6258), 2026-10-14)

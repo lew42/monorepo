@@ -27,3 +27,7 @@ content(){ return this.browse(BANDS, { "--column": "18em" }); }  // wall — one
 - Files: `catalog.js` (the rail method), `catalog.css` (wall turned sideways), `browse.js` (bands and filter), `browse.css` (one grid per band). `ext/Doc` calls `catalog()` for every Overview tab; `app.js` imports it once.
 
 - Notes: [doc/browse-notes.md](doc/browse-notes.md) — history and lessons moved out of the code comments.
+
+## Notes from your asks
+
+- Preview grids lean toward a single column and only split into more columns when there is room. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3462), 2026-10-12)

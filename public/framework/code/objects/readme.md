@@ -42,3 +42,10 @@ Live: [the Object demo](/framework/ux/Content/Object/).
 - [doc/views.md](doc/views.md) — the full explanation, with the `AIObject` example, and
   "render vs inspect" — why they're two separate methods
 - [patterns](../patterns/) — parts as static subclasses, the mechanism `Thing.View = …` relies on
+
+## Notes from your asks
+
+- Class names and hierarchy get careful choice, because a wrong name becomes the base that later code builds on. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p2689), 2026-10-09)
+- A class that orchestrates several other classes takes a system or manager name, so its job reads from its name. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p2689), 2026-10-09)
+- A module's class hierarchy is its first documentation: class names, children, when each is created, what data it gets, and what it talks to. ([your words](/framework/ai/sessions/7efd07d5-7a58-434d-8847-1a1d7b640390/?tab=coverage#p603), 2026-10-09)
+- Make things object-oriented whenever possible. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1184), 2026-10-13)

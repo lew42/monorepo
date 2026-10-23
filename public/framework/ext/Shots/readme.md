@@ -29,3 +29,8 @@ Writes `<page folder>/screenshots/<round id>/<width>.png` (and `diff-<width>.png
 
 ## More
 [Overview](/framework/ext/) · [`doc/architecture.md`](doc/architecture.md): the log shape, who writes what, the padding principle it checks for.
+
+## Notes from your asks
+
+- Every UI change is screenshotted, so each round can be compared with the one before it. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077), 2026-10-12)
+- Shots only supplies the pictures; reading them well is a skill an agent improves, and the owner gives the last word. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3718), 2026-10-12)

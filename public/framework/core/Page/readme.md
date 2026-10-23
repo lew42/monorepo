@@ -66,3 +66,7 @@ Also here: [audit/](audit/) (every page layout in use, most-used first) · [make
 ## More
 
 Reference: [doc/words.md](doc/words.md) (the six page words) · [doc/api.md](doc/api.md) · [doc/jsonl.md](doc/jsonl.md) · [doc/watch-out.md](doc/watch-out.md) (traps) · [doc/architecture.md](doc/architecture.md) · [doc/start-here.md](doc/start-here.md) (working on this module: inbox, log, tests). The readme as it stood before this rewrite, with the split-out sections and dated notes: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
+
+## Notes from your asks
+
+- Each page puts its most important content above the fold, at the top, as on the web. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4776), 2026-10-13)

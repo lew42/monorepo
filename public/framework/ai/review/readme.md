@@ -44,3 +44,7 @@ allowed when the review skill can answer it from a number instead of an eyeball)
 - `.claude/skills/review/SKILL.md` — the review skill that asks these questions, and how
 - `Server/doc/review.md` — the four-turn review process this page's questions feed into
 - Files that matter: `page.js` (show, don't tell), `questions.json` (generated — never hand-edit)
+
+## Notes from your asks
+
+- A reviewer flags clear mistakes, and treats opinions and trade-offs as open rather than absolute. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424), 2026-10-13)

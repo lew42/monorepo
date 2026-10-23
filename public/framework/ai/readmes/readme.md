@@ -10,3 +10,8 @@ A page at `/framework/ai/readmes/`: for every folder with a readme, how many tok
 | `page.js`, `ReadmesView.css` | the page and its `rm-` rules |
 
 Re-run the script after readmes change; the JSON is deterministic, so `git diff` shows only real changes.
+
+## Notes from your asks
+
+- A readme stays brief: it states the core architectural decisions and why, and links to architecture.md for the rest. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424), 2026-10-13)
+- architecture.md keeps only conclusive decisions with why, alternatives and trade-offs, never the history of reversals. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424), 2026-10-13)

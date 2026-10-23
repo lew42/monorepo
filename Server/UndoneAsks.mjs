@@ -12,6 +12,9 @@
  *
  * A row is DONE when: its refined record says done; or a task with wording in common is complete/landed; or its ledger status is
  * landed/dropped, or its card is done/archived. UNROUTABLE: not done, and no module folder could carry it. Everything else is UNDONE.
+ * Then settle() (after keep_owned carries the later verdicts) moves each open ask to what became of it: TASKED (it has a task; DONE once
+ * that task is complete), CLOSED (the verifier found it built, or not work: the reason is in verified_evidence), NOTED (a line in its
+ * module readme, `note`). What is left UNDONE or UNROUTABLE is the real backlog.
  */
 import fs from "node:fs";
 import crypto from "node:crypto";
@@ -31,7 +34,7 @@ export default class UndoneAsks {
 	static MIN_SHARED = 3;     // words an ask and a task title must share before the task counts as "the same work"
 	static MIN_SHARE = 0.5;    // ... and that share of the ask's own words
 	static DAY = 86400000;
-	static OWNED = ["verified", "verified_evidence", "verified_looked", "verified_at", "verified_by", "verified_first", "verified_pass", "verified_kind", "owner_question", "task"];   // written by Server/UndoneVerify.mjs and UndoneToTasks.mjs, carried across rebuilds by ask id (keep_owned)
+	static OWNED = ["verified", "verified_evidence", "verified_looked", "verified_at", "verified_by", "verified_first", "verified_pass", "verified_kind", "owner_question", "task", "verified_module", "note", "verified_sort", "verified_title"];   // written by Server/UndoneVerify.mjs and UndoneToTasks.mjs, carried across rebuilds by ask id (keep_owned)
 
 	/** A stable id for an ask: the same prompt line and wording gives the same id on every rebuild. */
 	static ask_id(r){ return crypto.createHash("sha1").update([r.kind, r.source, r.text_full].join("|")).digest("hex").slice(0, 10); }
@@ -166,7 +169,7 @@ export default class UndoneAsks {
 	// ---- the join ----------------------------------------------------------------------------------
 
 	async build(){
-		const tasks = this.tasks();
+		const tasks = this.tasks_seen = this.tasks();
 		const rows = [...this.refined_rows(), ...(await this.routed_rows())];
 		const by = new Map(), totals = { done: 0, undone: 0, unroutable: 0 };
 		for (const r of rows){
@@ -209,12 +212,39 @@ export default class UndoneAsks {
 		return { kept, retired: gone.length };
 	}
 
+	static STATES = ["done", "tasked", "closed", "noted", "undone", "unroutable"];
+
+	/** What became of each open ask, from the fields later steps wrote (see the class comment). Recounts totals and module counts. */
+	static settle(d, tasks = []){
+		const state = new Map(tasks.map(t => [t.url, t.state]));
+		const landed = new Set(d.modules.flatMap(m => m.asks).filter(a => a.state === "done").map(a => a.id));   // one ask in two rows (the ledger names it twice): done if either is
+		const totals = Object.fromEntries(UndoneAsks.STATES.map(k => [k, 0]));
+		for (const m of d.modules){
+			for (const k of UndoneAsks.STATES) m[k] = 0;
+			for (const a of m.asks){
+				if (a.state !== "done" && landed.has(a.id)) a.state = "done";
+				if (a.state !== "done"){
+					if (a.task) a.state = state.get(a.task) === "complete" ? "done" : "tasked";
+					else if (a.verified === "done" || a.verified === "retired") a.state = "closed";
+					else if (a.note?.file) a.state = "noted";   // written into a readme (UndoneToTasks --notes --apply), not only sorted as a note
+				}
+				m[a.state]++; totals[a.state]++;
+			}
+		}
+		d.totals = totals;
+		d.classified = Object.values(totals).reduce((x, y) => x + y, 0);
+		d.agree = d.counted === d.classified;
+		d.modules.sort((a, b) => (b.undone + b.unroutable) - (a.undone + a.unroutable) || a.module.localeCompare(b.module));
+		return totals;
+	}
+
 	// ---- output ------------------------------------------------------------------------------------
 
 	static table(d){
-		const lines = [`${"module".padEnd(30)} ${"undone".padStart(6)} ${"unroutable".padStart(10)} ${"done".padStart(5)}`];
-		for (const m of d.modules) lines.push(`${m.module.padEnd(30)} ${String(m.undone).padStart(6)} ${String(m.unroutable).padStart(10)} ${String(m.done).padStart(5)}`);
-		lines.push("", `total asks counted at the sources: ${d.counted}`, `done ${d.totals.done} + undone ${d.totals.undone} + unroutable ${d.totals.unroutable} = ${d.classified}`,
+		const ks = UndoneAsks.STATES.filter(k => k in d.totals);
+		const lines = [`${"module".padEnd(30)} ${ks.map(k => k.padStart(10)).join(" ")}`];
+		for (const m of d.modules) lines.push(`${m.module.padEnd(30)} ${ks.map(k => String(m[k] ?? 0).padStart(10)).join(" ")}`);
+		lines.push("", `total asks counted at the sources: ${d.counted}`, ks.map(k => `${k} ${d.totals[k]}`).join(" + ") + ` = ${d.classified}`,
 			d.agree ? "the two numbers agree" : "THE TWO NUMBERS DISAGREE");
 		return lines.join("\n");
 	}
@@ -222,11 +252,12 @@ export default class UndoneAsks {
 	static async main(argv){
 		const val = f => argv.includes(f) ? argv[argv.indexOf(f) + 1] : null;
 		const u = new UndoneAsks({ root: path.resolve(val("--root") ?? HERE) }), d = await u.build();
+		const out = path.resolve(val("--out") ?? path.join(HERE, UndoneAsks.OUT));
+		const { kept, retired } = UndoneAsks.keep_owned(d, out);   // the verdicts and task links later steps wrote, carried by ask id
+		UndoneAsks.settle(d, u.tasks_seen);
 		console.log(UndoneAsks.table(d));
 		if (argv.includes("--json")){
-			const out = path.resolve(val("--out") ?? path.join(HERE, UndoneAsks.OUT));
 			fs.mkdirSync(path.dirname(out), { recursive: true });
-			const { kept, retired } = UndoneAsks.keep_owned(d, out);
 			console.log(`kept ${kept} rows with verdicts or task links; ${retired} retired`);
 			fs.writeFileSync(out, JSON.stringify(d, null, 1));
 			console.log("wrote " + out);

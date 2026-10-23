@@ -120,14 +120,18 @@ Answer at the end with ONE JSON object and nothing else after it:
 		}
 	}
 
-	async call(prompt, { model, system, tools = [], max_turns = 4 }){
+	async call(prompt, opts){ const r = await PromptRecords.ask(prompt, opts); this.spent += r.usd; return r; }
+
+	/** One model call through the Agent SDK, never resumed: { text, usd }. With tools it reads the repo (Read, Grep, Glob, git log/show) and
+	 * writes nothing. Shared by Server/UndoneVerify.mjs --run. */
+	static async ask(prompt, { model, system, tools = [], max_turns = 4 }){
 		const { query } = await import(pathToFileURL(path.join(RefineQueue.main_root(), "Servex/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs")).href);
 		let text = "", result = null;
 		const q = query({ prompt, options: { model, cwd: tools.length ? ROOT : os.tmpdir(), systemPrompt: system, tools,
 			allowedTools: tools.length ? ["Read", "Grep", "Glob", "Bash(git log:*)", "Bash(git show:*)"] : [], mcpServers: {}, strictMcpConfig: true, skills: [], settingSources: [], maxTurns: max_turns, permissionMode: "default" } });
 		try { for await (const m of q){ if (m.type === "assistant") text = (m.message?.content ?? []).filter(b => b.type === "text").map(b => b.text).join("") || text; if (m.type === "result") result = m; } }
 		catch (e){ if (!text) throw e; }   // a run out of turns still keeps its last answer
-		const usd = +(result?.total_cost_usd ?? 0); this.spent += usd;   // one query, never resumed: total_cost_usd is this call's own cost
+		const usd = +(result?.total_cost_usd ?? 0);   // one query, never resumed: total_cost_usd is this call's own cost
 		return { text: result?.result || text, usd };
 	}
 

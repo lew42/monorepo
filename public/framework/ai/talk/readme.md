@@ -59,3 +59,7 @@ Nothing imports this — it is a page, not a component. What it is built from:
 - [the task](/framework/ai/sessions/2026/09/22/talk/talk/) — the brief, the decisions, the proof run.
 
 - Notes: [doc/talk-page-notes.md](doc/talk-page-notes.md) — history and lessons moved out of the code comments.
+
+## Notes from your asks
+
+- Dictated points are paraphrased back to the owner so they can confirm they were heard. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p3959), 2026-10-12)

@@ -38,3 +38,7 @@
 ## More
 
 [doc/readme.md](doc/readme.md) (the index of every AI-system doc) · [doc/architecture.md](doc/architecture.md) · [todo.md](todo.md) · [handover.md](handover.md) · [doc/watch-out-2026-10-12.md](doc/watch-out-2026-10-12.md) · [doc/design/systems-overview.md](doc/design/systems-overview.md) · the readme as it stood before this rewrite (every older link and the page tabs): [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
+
+## Notes from your asks
+
+- Rules, preferences and ideas you said about this module: [doc/notes-from-asks.md](doc/notes-from-asks.md)

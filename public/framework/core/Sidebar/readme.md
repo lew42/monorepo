@@ -51,3 +51,7 @@ this file's.
 
 ## Also here (readme audit, 2026-10-13)
 - [variants](./variants/)
+
+## Notes from your asks
+
+- The main site keeps its white left navigation sidebar; dark sidebars are for the dev shell only. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p647), [again](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3516), 2026-10-12)

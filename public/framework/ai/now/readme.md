@@ -15,3 +15,7 @@ Data path: day `index.json` files (or the live index in memory) → `DatedFiles.
 - Needs the dev server (a static host has no socket); the page says so and links the day.
 - A session only counts as running while its snapshot says `active` and its last activity is under an hour old.
 - A change to `Server/InFlight.mjs` or `Socket.js` needs a dev-server restart.
+
+## Notes from your asks
+
+- Results go on the page or into files, never only into chat, and agent-facing notes live in the module's readme. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p424), 2026-10-13)

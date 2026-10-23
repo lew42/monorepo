@@ -9,6 +9,8 @@ const slug = module => module.replaceAll("/", "~");
 const KIND = a => a.state === "done" ? "done" : a.verified === "done" ? "found" : a.verified ?? "unchecked";
 const FILTERS = [["all", "all"], ["undone", "verified undone"], ["found", "found built"], ["retired", "not work"], ["needs-owner", "needs you"], ["unclear", "unclear"], ["unchecked", "not checked"]];
 const LABEL = { found: "✅ found built", undone: "⬜ verified undone", retired: "not work (kept, retired)", "needs-owner": "❓ needs you", unclear: "unclear", unchecked: "not checked yet" };
+// What became of an ask (UndoneAsks.settle): the words for the count strip.
+const WORD = { done: "done", tasked: "have a task", closed: "closed (found built or not work)", noted: "written down as a note", undone: "undone", unroutable: "unroutable (no module folder)" };
 /** The first repo path in the evidence text as a site link (files under public/ are served), else null. */
 const evidence_href = text => { const m = String(text ?? "").match(/(?:public\/)?(?:framework|layouts|imagine|web|notes)\/[\w@./~-]+\.(?:js|md|json|jsonl|css|html)/); return m ? "/" + m[0].replace(/^public\//, "") : null; };
 
@@ -18,10 +20,10 @@ class UndoneModules extends Browse {
 
 	draw_list(){
 		const $rows = div.c("inbox-rows");
-		this.page.data.then(d => $rows.empty(() => d.modules.filter(m => m.undone + m.unroutable).forEach(m =>
+		this.page.data.then(d => $rows.empty(() => d.modules.filter(m => m.undone + m.unroutable + (m.tasked ?? 0)).forEach(m =>
 			a.c("inbox-row").href(this.url + slug(m.module) + "/").append(() => {
 				div.c("inbox-row-head flex gap-25", () => span.c("inbox-row-title").text(m.module));
-				div.c("inbox-row-foot", () => small.c("inbox-row-line muted").text(`${m.undone + m.unroutable} undone · ${m.done} done`));
+				div.c("inbox-row-foot", () => small.c("inbox-row-line muted").text(`${m.undone + m.unroutable} undone · ${m.tasked ?? 0} tasked · ${m.done} done`));
 			}))));
 	}
 }
@@ -44,7 +46,7 @@ export default class UndoneAsksPage extends Page {
 			const $sum = div.c("flex wrap gap-25");
 			this.data.then(d => $sum.empty(() => {
 				span(`${d.counted} asks counted`);
-				span.c("muted").text(`= ${d.totals.done} done + ${d.totals.undone} undone + ${d.totals.unroutable} unroutable (no module folder)`);
+				span.c("muted").text("= " + Object.entries(d.totals).map(([k, n]) => `${n} ${WORD[k] ?? k}`).join(" + "));
 				span.c("muted").text(d.agree ? "✅ the two numbers agree" : "⚠️ the two numbers disagree");
 				const asks = d.modules.flatMap(m => m.asks), v = k => asks.filter(x => KIND(x) === k).length;
 				if (v("found") + v("undone") + v("unclear")) span.c("muted").text(`checked against the repo: ${v("undone")} verified undone · ${v("found")} found already built · ${v("retired")} not work · ${v("needs-owner")} need you · ${v("unclear")} unclear · ${v("unchecked")} not checked yet`);
