@@ -20,3 +20,12 @@ The `figma` skill (`.claude/skills/figma/SKILL.md`) and `public/framework/ext/Fi
 
 - [ ] The new page has: session card variants, session detail, day list, project/task/process cards and details, card-structure studies, schemes; real data.
 - [ ] A review shot of each section in your log; a one-screen summary of what to pick, with the alternatives. `finish-task`.
+
+## Follow-up (the owner, 2026-10-22, the next tab prompt)
+
+- **More than one design** for each view; there is no single right answer.
+- **A design-to-code process**: design, review by screenshot, then code the approved variants as real pages so the owner can click through them on the phone (Figma does not work there). Variants as a tree: a default, versions and sub-versions, each a set of changes. Write this as a process in `core/Task/doc/process.md`'s terms, with the system architect.
+- **The mobile header** may scroll away or not be sticky, or the page goes full screen; show the options.
+- **Segmented bars:** one segment per child, green done, amber pulsing in progress, red stalled or blocked; a nested segment shows its children only where they fit (a 12-step child does not fit in one small segment: show its own bar on its own card instead).
+- **Preview vs detail:** a child shows as a preview on its parent (a summary, its bar) and opens to its own routed detail page; drill down on the phone. Maybe expand in place: show both.
+- **Upgrading a task to a project** in the UI.

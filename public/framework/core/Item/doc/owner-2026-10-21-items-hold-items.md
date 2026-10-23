@@ -19,3 +19,12 @@ Words: the VS Code tab's prompt log (`ai/2026/10/20/session-e00f55c9/page.jsonl`
 A design-first plan: the class sketch (on-demand items, a `Ref` item, `move()`, a `storage` field naming the target), the storage targets mapped onto `storage.md`'s Backend and Journal, and the on-screen view of where an item lives (designed in Figma first). Builds on [next.md](next.md) (`set(prop, item)` adopts the child) and `storage-slice-1.md` (DevBackend and StaticBackend).
 
 **Server side (the owner, 2026-10-22):** the `item` tool may instantiate the item on the server, apply the delta and save through a server store adapter (the same path as the browser, without the socket), so validation and programmatic rules run in one place. One `item` tool with a method name and data, not a tool per method. A map of every piece of the item system (classes, stores, tools, writers) comes first: [readme-system.md](../../../ai/doc/readme-system.md).
+
+## One stream for the UI, node and the agents (the owner, 2026-10-22)
+
+- **The file is the truth; every reader follows it.** When a JSONL file changes (an agent's append, a git pull), the same watcher that pushes the new line to the browser's socket also updates the server's instance of that item, if one exists. Open: should it create the instance when none exists? Instantiating first may simplify the code paths.
+- **Granular subscriptions.** Subscribe to any item or sub-item, whether it lives in its own file or inside a parent's, recursively. The current tail and socket may need rethinking to get there simply.
+- **Agents subscribe too**, through the `item` tool: changes are queued to the agent. Caveat: raw deltas from many places confuse a coordinating agent, so send it the changed item's current state (or a filtered, readable summary), not the bare delta.
+- **Three homes for a task:** embedded in its parent's JSONL, its own `name.jsonl`, or its own folder (`name/task.jsonl`). The own-file middle step may be pointless: once it leaves the parent, a folder is as cheap. It upgrades when it needs a folder for its files.
+- **Changing an item's class** (a task upgraded to a project by a `type` delta): can replay re-create the child as the new class? An open architecture question.
+- **Priority:** the full nested-items project is on the back burner until sessions, tasks and processes work; inter-agent chat is fine for now, structured items when they are ready.
