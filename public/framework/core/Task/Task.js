@@ -5,6 +5,7 @@
 import Item from "../Item/Item.js";
 import List from "../List/List.js";
 
+const CONFIDENCE = ["high", "medium", "low"];
 const STATES = ["idle", "running", "paused", "waiting", "stopped", "complete"];
 const OPEN = new Set(["idle", "running", "paused", "waiting"]);   // a child in one of these keeps its parent from reading complete
 
@@ -79,7 +80,7 @@ export class Task extends Item {
 	child_changed(kid){
 		if (kid.state !== "complete" || this.state !== "running") return;
 		if (this.mode === "series") this.start_children();
-		if ([...this._tasks].every(t => t.state === "complete")) this.complete();
+		if ([...this._tasks].every(t => t.state === "complete")) this.complete({ auto: true });
 	}
 	start_children(){
 		const kids = [...(this._tasks ?? [])];
@@ -267,11 +268,11 @@ export class Task extends Item {
 		this.set({ waiting_on: null, ...extra, ran_ms, state });
 		return this;
 	}
-	// approve: the task starts at once (waiting -> running). Approval with a caveat is approve(note).
-	// TODO(plan step 13+): a queue that delays the start (then "idle") doesn't exist yet.
+	// approve: the task is ACCEPTED (waiting -> idle: worth doing, queued, nobody on it yet). The agent's own start() begins it
+	// (core/Task/doc/resolution.md, section 5). Approval with a caveat is approve(note).
 	approve(arg){
 		const o = typeof arg === "object" && arg ? arg : { note: arg };
-		return this.verdict("approve", arg, "running", { approved_by: o.by ?? null, approved_note: o.note ?? null });
+		return this.verdict("approve", arg, "idle", { approved_by: o.by ?? null, approved_note: o.note ?? null });
 	}
 	// improve: back to whoever proposed it, to revise and wait() again.
 	improve(arg){ return this.verdict("improve", arg, "running"); }
@@ -281,10 +282,24 @@ export class Task extends Item {
 		return this.verdict("reject", arg, "stopped", { stopped_at: this.stamp(), why: note ?? null });
 	}
 
+	// HONEST COMPLETION (core/Task/doc/resolution.md, section 6). A live complete() takes {outcome, evidence, confidence, caveats}:
+	// `evidence` a non-empty list (a file, commit, shot or test), `confidence` "high" | "medium" | "low" (default "medium"), `caveats` a list
+	// of what was asked and not done (default []). With no evidence it refuses and says what to pass. Exempt: replay (a recorded finish is a
+	// fact; old logs have none) and the automatic completion when the last child completes (`auto`, no agent made a claim).
+	// Returns the refusal text, or null when the arguments are fine. Servex's item tool calls it before it writes a line.
+	static completion_problem(args){
+		const a = args && typeof args === "object" ? args : {};
+		const ev = [].concat(a.evidence ?? []).filter(e => String(e ?? "").trim());
+		if (!ev.length) return `complete() needs evidence: pass {outcome: "what is now true", evidence: ["a file, commit, shot or test"], confidence: "high" | "medium" | "low", caveats: ["what was asked and not done"]}`;
+		if (a.confidence !== undefined && !CONFIDENCE.includes(a.confidence)) return `complete(): confidence must be one of ${CONFIDENCE.join(", ")}, not "${a.confidence}"`;
+		return null;
+	}
+
 	// Refuses while any subtask is not complete: names the first open one, the
 	// same "tell them what to do next" shape as Item.locate()'s own warnings.
-	complete({ completion, complete, outcome } = {}){
+	complete(args){
 		if (this.state === "complete") return this;
+		const { completion, complete, outcome, evidence, confidence, caveats, auto } = args && typeof args === "object" ? args : {};
 
 		// A recorded finish is a fact during replay (this._rp): a {task: ref} child the worker only filed is not a reason to refuse it. Server/doc/state.md
 		const open = this._rp ? null : [...(this._tasks ?? [])].find(t => t.state !== "complete");
@@ -292,11 +307,17 @@ export class Task extends Item {
 
 		if (!CAN.complete.has(this.state)) return this.warn(`complete(): can't complete from "${this.state}"`);
 
+		if (!this._rp && !auto){
+			const no = Task.completion_problem(args);
+			if (no) return this.warn(no);
+		}
+
 		const ran_ms = this.duration();
 		this._ran_ms = ran_ms;
 		this._ran_since = null;
 		const c = completion ?? complete;
-		this.set({ completed_at: this.stamp(), ran_ms, ...(c !== undefined ? { completion: c } : {}), ...(outcome !== undefined ? { outcome } : {}), state: "complete" });
+		const claim = evidence === undefined ? {} : { evidence: [].concat(evidence), confidence: confidence ?? "medium", caveats: [].concat(caveats ?? []) };
+		this.set({ completed_at: this.stamp(), ran_ms, ...(c !== undefined ? { completion: c } : {}), ...(outcome !== undefined ? { outcome } : {}), ...claim, state: "complete" });
 		return this;
 	}
 

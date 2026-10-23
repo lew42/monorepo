@@ -440,7 +440,7 @@ async function turnsCmd(taskDir) {
 	appendJSON(reviewJsonl, { phase: { at: now(), n: 3, kind: "replies", status: "start" } });
 	let parsed = [], cost = 0;
 	try {
-		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model: "claude-sonnet-5-5", effort: "medium", permission_mode: "bypassPermissions", cwd: root });
+		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model: "claude-sonnet-5-5", effort: "medium", permission_mode: "bypassPermissions", cwd: root, parent: SessionRecord.task_agent(taskDir) ?? undefined });
 		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
 		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
 		cost = waited.cost ?? 0;
@@ -776,7 +776,7 @@ async function main() {
 	// a stale report from a previous run must never be read as if it answered THIS head
 	try { fs.unlinkSync(reviewPath); } catch {}
 	try {
-		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root });
+		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root, parent: SessionRecord.task_agent(taskDir) ?? undefined });
 		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
 		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
 		cost = waited.cost ?? 0;   // list_agents' row carries no cost field today; wait_for_agent's own answer does

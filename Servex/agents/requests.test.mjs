@@ -29,10 +29,10 @@ try {
 	await item({ tasks: { add: { title: "My own note" } } }, "architect"); await tick();
 	ok(asked.length === 1, "a task the owner of the log adds itself is not a request");
 
-	await item({ "answer-a-design-question": { complete: { outcome: "yes, instantiate on the server" } } }, "architect"); await tick();
+	await item({ "answer-a-design-question": { complete: { outcome: "yes, instantiate on the server", evidence: ["test"] } } }, "architect"); await tick();
 	ok(answered.length === 1 && answered[0].to === "vscode-mastermind" && answered[0].outcome === "yes, instantiate on the server", "completing it tells the asker the outcome");
 
-	await item({ "my-own-note": { complete: { outcome: "done" } } }, "architect"); await tick();
+	await item({ "my-own-note": { complete: { outcome: "done", evidence: ["test"] } } }, "architect"); await tick();
 	ok(answered.length === 1, "completing a task nobody asked for tells nobody");
 
 	const t = Task.replay(read(FILE))._tasks.find("answer-a-design-question");

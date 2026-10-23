@@ -36,7 +36,7 @@ export default new Page({
 			button("Resume").click(() => { task.resume(); draw(); });
 			button("Complete").click(() => {
 				const before = task.state;
-				task.complete();
+				task.complete({ outcome: "demo", evidence: ["live demo button"] });
 				this.message = task.state === before && before !== "complete"
 					? (task === this.root ? "Refused — a subtask isn't complete yet." : `Refused — can't complete from "${before}".`)
 					: "";

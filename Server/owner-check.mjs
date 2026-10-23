@@ -231,7 +231,7 @@ async function main(){
 	let table = null, spawnErr = null;
 	try {
 		const spawned = await mcp("spawn_agent", { role: "reviewer", name: `owner-check-${path.basename(taskDir)}`.replace(/[^a-z0-9-]+/gi, "-").slice(0, 60),
-			prompt, model: "claude-sonnet-5-5", effort: "medium", permission_mode: "bypassPermissions", cwd: ROOT });
+			prompt, model: "claude-sonnet-5-5", effort: "medium", permission_mode: "bypassPermissions", cwd: ROOT, parent: SessionRecord.task_agent(taskDir) ?? undefined });
 		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
 		await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
 		await mcp("stop_agent", { id: spawned.id }, 20000);

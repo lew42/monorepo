@@ -295,7 +295,7 @@ export default class Servex extends Events {
         /* REQUESTS ARE LOGGED ITEMS (the owner, 2026-10-22: logs over chat): a task added to another agent's task is a request; its
          * receiver hears once, and the asker hears the outcome when it completes. Doc: Servex/agents/doc/messaging.md. */
         const notice = (to, text, from) => { if (!to || to === "owner") return; try { this.agents.send(to, text, { from: from ?? "servex" }); } catch {} };
-        page_tool_hooks.requested = r => notice(r.to, `Request from ${r.from}: "${r.title}", logged at ${r.path}. Answer on the item when it is done: item({path: "${r.path}", delta: ${r.own_folder ? `{"complete": {"outcome": "…"}}` : `{"${r.id}": {"complete": {"outcome": "…"}}}`}}). ${r.from} hears the outcome then.`, r.from);
+        page_tool_hooks.requested = r => notice(r.to, `Request from ${r.from}: "${r.title}", logged at ${r.path}. Answer on the item when it is done: item({path: "${r.path}", delta: ${r.own_folder ? `{"complete": {"outcome": "…", "evidence": ["…"]}}` : `{"${r.id}": {"complete": {"outcome": "…", "evidence": ["…"]}}}`}}). ${r.from} hears the outcome then.`, r.from);
         page_tool_hooks.answered = r => notice(r.to, `${r.by} answered your request "${r.title}" (${r.path}): ${r.outcome ?? "done, no outcome given"}`, r.by);
         // Owner prompts become proposed tasks on their session (Servex/agents/PromptTasks.js; one Haiku call per prompt).
         if (!process.env.SERVEX_NO_PROMPT_TASKS){ this.prompt_tasks = new PromptTasks({ say: t => this.say?.(t) }); page_tool_hooks.prompted = p => this.prompt_tasks.prompted(p); }
@@ -1258,7 +1258,8 @@ export default class Servex extends Events {
      * purpose, or its task landed while it waited — the revive guard, asked of a spec. */
     stale(spec){
         const no = this.agents.blocked?.({ id: spec.id, cwd: spec.cwd, task_dir: spec.task?.dir && path.resolve(spec.task.dir),
-            ...(spec.resume ? { stopped_by: this.agents.reg().read()[spec.id]?.stopped_by } : {}) });
+            ...(spec.resume ? { stopped_by: this.agents.reg().read()[spec.id]?.stopped_by } : {}) },
+            { landed: !spec.resume });   // a held RESUME is a long-lived agent coming back: its first task landing is no reason to drop it
         if (no) this.log.append("system", { type: "gate", state: "dropped", id: spec.id ?? null, why: no.text }).catch(() => {});
         return !!no;
     }
