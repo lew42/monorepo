@@ -36,3 +36,11 @@ though the caller died along with the rest of that tree. No window ever appeared
 ## Why so many restarts, and the fix not built (2026-10-20)
 
 Servex loads its code once at start, so every change under `Servex/` (a new tool, the remote door, an agent class) is live only after a restart; there is no scheduled restart. Each restart ends every agent session (they go dormant and resume on the next message) and drops a cloud call mid-flight, so restarts are held until no agent is working and landings are batched behind one. Next improvement: reload a changed tool module in place (the registry re-imports it on change) so agents keep running; not built.
+
+## Restarts that lose nothing (the owner, 2026-10-22)
+
+**What a restart now keeps.** Before `sustain.mjs --restart` kills Servex, it asks Servex to write down who is alive (`POST /api/before-restart` → `Agents.snapshot()`): every live agent with its state (working, idle, starting), and every agent a pending wake-up waits on, dormant ones included. The list goes to `restart-snapshot.json` beside the registry and one `restart-snapshot` line in `servex.jsonl`; `restart_servex` names its caller in it.
+
+**What the next boot does with it.** `Agents.revive()` reads the snapshot once (then moves it aside to `restart-snapshot.used.json`) and resumes exactly the agents it lists, however long they had been idle; without a snapshot (a crash) the old 30-minute window applies. **Every agent that comes back is told:** one that was mid-turn checks its last tool call; an idle one learns its session was resumed and that any background shell or sleep it had is gone. That note costs each idle agent one short turn.
+
+**Wake-ups node keeps** (`Servex/agents/Wakeups.js`): an agent that wants to be woken later calls `wake_me({in_min | at, why})` instead of sleeping or leaving a background shell running, both of which a restart kills. Node writes `{type:"set"|"fired"|"cancel", id, agent, due, why}` lines to `logs/wakeups.jsonl`, keeps one timer per pending wake-up, and fires it by sending the agent `why` (with `revive: true`, so a dormant agent is reopened). At boot every pending wake-up is armed again; one that came due while Servex was down fires at once and says it is late. `cancel_wake` and `list_wakes` complete the set. Test: `node Servex/agents/wakeups.test.mjs` (9 checks). Off: `SERVEX_NO_WAKEUPS=1`.
