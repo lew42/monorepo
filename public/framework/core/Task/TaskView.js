@@ -8,6 +8,7 @@ export default class TaskView extends View {
 	static sizes = ["chip", "row", "card"];
 	static PREVIEW = 3;   // a parent row previews this many open children
 	static STAGE = { idle: "check_box_outline_blank", waiting: "hourglass_empty", running: "play_circle", paused: "pause_circle", stopped: "stop_circle", complete: "check_box", loading: "hourglass_top", missing: "error_outline" };   // the row's one control: its stage IS its checkbox
+	static VERBS = [["start", "play_arrow", "Start"], ["pause", "pause", "Pause"], ["resume", "play_arrow", "Resume"], ["stop", "stop", "Stop"], ["approve", "check", "Approve"]];   // [verb, Material icon, label]: the buttons, shown when Task.can(verb)
 	static SEGMENTS = 8;   // past this many children the bar is one meter and a count, so the title keeps the room
 	static chip(task){ return new this({ task, size: "chip" }); }
 	static row(task){ return new this({ task, size: "row" }); }
@@ -53,6 +54,7 @@ export default class TaskView extends View {
 			const link = this.url() ?? t.data.path;
 			(link ? a.c("task-row-title", this.title()).href(link) : strong.c("task-row-title", this.title())).click(e => e.stopPropagation());
 			this.bar(kids);
+			this.actions();
 		}).click(() => { this.expanded = !this.expanded; this.redraw(); });
 		if (!kids.length) return;
 		const shown = this.expanded ? kids : open.slice(0, this.constructor.PREVIEW);
@@ -60,6 +62,16 @@ export default class TaskView extends View {
 			shown.forEach(k => this.constructor.row(k));
 			if (!this.expanded && open.length > shown.length) small.c("task-row-more", `+ ${open.length - shown.length} more open`).click(() => { this.expanded = true; this.redraw(); });
 		});
+	}
+
+	// The verbs this task's state allows, as small icon buttons; a click saves the VERB (task.act), the row does not toggle.
+	actions(){
+		const verbs = this.constructor.VERBS.filter(([verb]) => this.task.can(verb));
+		if (!verbs.length) return;
+		span.c("task-actions", () => verbs.forEach(([verb, glyph, label]) => {
+			const b = span.c("task-action", () => icon(glyph)).attr("role", "button").attr("title", label).attr("aria-label", label).attr("data-verb", verb);
+			b.click(e => { e.stopPropagation(); this.task.act(verb); });
+		}));
 	}
 
 	bar(kids){
@@ -75,7 +87,7 @@ export default class TaskView extends View {
 
 	card(){
 		const t = this.task;
-		div.c("flex gap-50", () => { icon(t.get("icon") ?? "task_alt").style({ fontSize: "2rem" }); strong(this.title()); small.c("muted task-state", t.state); });
+		div.c("flex gap-50", () => { icon(t.get("icon") ?? "task_alt").style({ fontSize: "2rem" }); strong(this.title()); small.c("muted task-state", t.state); this.actions(); });
 		const facts = [["complete", this.percent()], ["priority", t.priority?.score], ["commits", t.commits.map(h => h.slice(0, 7)).join(" ")], ["session", t.session], ["module", t.module]];
 		for (const [k, v] of facts) if (v !== undefined && v !== null && v !== "") div(() => { small.c("muted", k + ": "); span(String(v)); });
 		for (const line of [t.expected].flat()) if (line) div(() => { small.c("muted", "expected: "); span(String(line)); });   // string | string[]: one line each

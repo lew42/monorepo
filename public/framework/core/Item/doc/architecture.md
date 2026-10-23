@@ -98,6 +98,18 @@
 
 Tests: [Item.test.mjs](../Item.test.mjs) covers the built part and pins the gap.
 
+## A button saves its verb through the item tool
+
+**Decided 2026-10-22.** The full map of both save paths is in [map.md](./map.md).
+
+- **A click records the verb, not the state.** Pressing Start on a task calls `task.act("start")`. It runs `start()` locally, so the page redraws at once, and records ONE line, `{"start":{}}`. That is the same line an agent's `item` call writes. `Store.muted` keeps the `set` lines from that local run out of the log. A verb that refused (it changed nothing) records nothing.
+- **One writer.** `Store.flush` posts a task's lines (`task.jsonl`, `session.jsonl`, `improvements.jsonl`) to Servex `POST /api/item`, which calls `run_item` as `owner`. So the line is checked against the class, stamped `by: "owner"` and `ts`, node's live instance moves forward, and every subscribed agent is told. The echo check ignores `by` and `ts`.
+- **Loopback only.** The route writes files, so a caller that is not on this machine gets 403. A phone on the LAN (403), a worktree page (stubbed) or a Servex that does not answer all fall back to the plain file append, so a click is never lost. In that case the line has no `by`, no `ts` and no hooks.
+- **Pages keep the plain append for now.** `page.jsonl` is not sent through the tool, because a stricter check could silently drop a page edit. Moving pages over is the next step.
+- **Rejected:** stamping `by`/`ts` in the dev server's `Append.js`. That keeps a second writer, and Servex's hooks would still not fire.
+
+Test: [act.test.mjs](../act.test.mjs).
+
 ## More
 
 - [`doc/decisions.md`](./decisions.md) — the full record, traps and verdicts (the history, not this page).

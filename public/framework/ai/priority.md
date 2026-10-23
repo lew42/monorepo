@@ -2,6 +2,8 @@
 
 The one ranked list of what matters this week. A mastermind reads it before it spawns anything; work that is not on it is logged where it belongs (a one-line `⬜` in the module readme), not built. The owner reorders it; a mastermind updates the "Now" column as work lands. Source: [the 7-day prompt audit](sessions/2026/10/20/session-e00f55c9/prompt-audit-week-2026-10-22.md) (2026-10-22).
 
+**The objective (the owner, 2026-10-22):** complete as many tasks as possible every day. Every owner prompt becomes tracked tasks (or notes) the first time; every session knows all its tasks and child sessions, wherever they live, and its completion is computed from them; a prompt is complete when everything in it is done or documented.
+
 | # | Priority | Now |
 |---|---|---|
 | 1 | **Session and task views**: the session detail page, task and project views, segmented progress bars, a session completes from its tasks, the day view, the phone list, a compact grid, "done today" as a grid filter | Designed in Figma ([design-first.md](sessions/doc/design-first.md)); build next |
