@@ -49,5 +49,17 @@ try {
 	const log2 = SessionRecord.link_parent(path.join(SESS, "child", "grandchild"));
 	ok(log2 === path.join(SESS, "child", "task.jsonl") && lines(log).filter(l => l.task).length === 1, "a grandchild goes to its nearest parent with a log, not the session");
 	ok(SessionRecord.link_parent(path.join(TaskDirs.REPO, "public/framework/core/Task/tasks/x")) === null, "outside the sessions store: nothing");
+	// An explicit parent (open_task's parent_task: a task that handed work to a child session elsewhere) wins over the nearest folder.
+	fs.mkdirSync(path.join(SESS, "other"), { recursive: true });
+	const log3 = SessionRecord.link_parent(path.join(SESS, "other"), "Servex", { parent: path.join(SESS, "child") });
+	ok(log3 === path.join(SESS, "child", "task.jsonl") && lines(log3).some(l => l.task === url(path.join(SESS, "other"))), "an explicit parent task gets the reference");
+	// A tab's session-<id8>/ with only its transcript cache: the reference starts its session.jsonl, with the full id, never an invented one.
+	const TAB = path.join(DAY, "session-abcd1234");
+	fs.mkdirSync(path.join(TAB, "work"), { recursive: true }); fs.writeFileSync(path.join(TAB, "cache.jsonl"), "{}\n");
+	try {
+		ok(SessionRecord.link_parent(path.join(TAB, "work"), "TaskDirs", { session_id: "ffff0000-x" }) === null && !fs.existsSync(path.join(TAB, "session.jsonl")), "a session id that is not this tab's: nothing written");
+		const tab = SessionRecord.link_parent(path.join(TAB, "work"), "TaskDirs", { session_id: "abcd1234-5678" });
+		ok(tab === path.join(TAB, "session.jsonl") && lines(tab)[0].session.id === "abcd1234-5678" && lines(tab)[1].task === url(path.join(TAB, "work")), "a tab session with no log gets session.jsonl: its session line, then the reference");
+	} finally { fs.rmSync(TAB, { recursive: true, force: true }); }
 } finally { fs.rmSync(SESS, { recursive: true, force: true }); }
 console.log(`${n} passing`);

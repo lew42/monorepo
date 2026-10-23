@@ -941,7 +941,7 @@ export function open_task(task, { session_id, agent, model, worktree, parent_dir
 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
 	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
-	try { SessionRecord.link_parent(dir, "Servex"); } catch {}
+	try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch {}
 	return dir;
 }
 
