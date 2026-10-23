@@ -76,7 +76,7 @@ export default class PromptLog {
 			else if (l.stage === "clean" && !p.final){ p.clean = l.sentences; p.final = !!l.final; }
 			else if (l.stage === "refined"){ p.refined = l.cards; p.subject = l.subject ?? ""; }
 			else if (l.stage === "notes") p.notes = l.notes;
-			else if (l.stage === "parts"){ p.parts = l.parts; p.process = l.process ?? ""; }
+			else if (l.stage === "parts"){ p.parts = l.parts; p.process = l.process ?? ""; if (l.subject && !p.subject) p.subject = l.subject; }
 			else if (l.stage === "handled") p.handled = { to: l.to ?? "", note: l.note ?? "", by: l.by, at: l.at };
 		}
 		return out;

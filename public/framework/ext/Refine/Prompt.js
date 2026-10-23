@@ -41,6 +41,7 @@ export default class Prompt {
 	quick = false;      // true while `clean` holds the instant (no-model) clean, before the real one lands
 	parts = [];         // THE RECORD (doc/prompt-records.md): [{ id, cites: [n…], kind, text, outcome: { is, ref, why }, parts: [details] }]
 	process = "";       // the process that wrote `parts` (live | review), from the parts line
+	at = "";            // when the prompt was first logged (its raw line)
 	handled = null;     // { by, at, to, note }: whoever routed this prompt's proposals marked it handled
 
 	constructor(...args){ Object.assign(this, ...args); }
@@ -126,7 +127,7 @@ export default class Prompt {
 	 */
 	static from_log(row, session = ""){
 		const up = cards => (cards ?? []).map(c => ({ ...c, cites: (c.cites ?? []).map(i => i + 1), cards: up(c.cards) }));
-		const prompt = new Prompt({ raw: row.raw ?? "", subject: row.subject ?? "", prompt_id: row.id, session });
+		const prompt = new Prompt({ raw: row.raw ?? "", subject: row.subject ?? "", prompt_id: row.id, session, at: row.at ?? "" });
 		prompt.clean = row.clean.map((text, i) => ({ n: i + 1, text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" }));
 		for (const n of row.notes ?? []){
 			const s = prompt.clean[n.i];
