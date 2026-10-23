@@ -34,7 +34,7 @@ export default class UndoneAsks {
 	static MIN_SHARED = 3;     // words an ask and a task title must share before the task counts as "the same work"
 	static MIN_SHARE = 0.5;    // ... and that share of the ask's own words
 	static DAY = 86400000;
-	static OWNED = ["verified", "verified_evidence", "verified_looked", "verified_at", "verified_by", "verified_first", "verified_pass", "verified_kind", "owner_question", "task", "verified_module", "note"];   // written by Server/UndoneVerify.mjs and UndoneToTasks.mjs, carried across rebuilds by ask id (keep_owned)
+	static OWNED = ["verified", "verified_evidence", "verified_looked", "verified_at", "verified_by", "verified_first", "verified_pass", "verified_kind", "owner_question", "task", "verified_module", "note", "verified_sort", "verified_title"];   // written by Server/UndoneVerify.mjs and UndoneToTasks.mjs, carried across rebuilds by ask id (keep_owned)
 
 	/** A stable id for an ask: the same prompt line and wording gives the same id on every rebuild. */
 	static ask_id(r){ return crypto.createHash("sha1").update([r.kind, r.source, r.text_full].join("|")).digest("hex").slice(0, 10); }
