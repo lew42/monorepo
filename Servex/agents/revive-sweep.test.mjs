@@ -15,13 +15,17 @@ const row = (id, state, extra = {}) => ({ id, role: "mastermind", name: id, stat
 
 const a = new Agents({ boot: Date.now().toString(36) + "-2" });
 const reg = a.reg();
-reg.save({ working: row("working", "working"), queued: row("queued", "idle", { turns: 0 }), stopped: row("stopped", "idle", { stopped_by: "owner" }) });
+reg.save({ working: row("working", "working"), queued: row("queued", "idle", { turns: 0, session_id: null }),
+	orphan: row("orphan", "idle", { turns: 0, session_id: null, task_dir: null }), stopped: row("stopped", "idle", { stopped_by: "owner" }) });
 reg.mark_boot("OLD-1");
 const reopened = [];
-a.reopen = r => { reopened.push(r.id); return { send(){ } }; };
+const fresh = {};
+a.reopen = r => { reopened.push(r.id); fresh[r.id] = r.session_id === undefined; return { send(){ } }; };
 a.recent_log = () => true;
 const out = a.revive();
 assert.deepEqual(reopened.sort(), ["queued", "working"].sort(), "working and queued rows, both with a LANDED task, are reopened: " + JSON.stringify(out));
 assert.ok(!out.gone.includes("working") && !out.gone.includes("queued"));
-console.log("revive-sweep: 2 checks passed");
+assert.ok(fresh.queued && !fresh.working, "the never-started row starts fresh; the working row resumes its session");
+assert.ok(out.gone.includes("orphan") && /not revived/.test(reg.read().orphan.ended), "a never-started row with no task folder is buried, the reason on its row");
+console.log("revive-sweep: 4 checks passed");
 process.exit(0);

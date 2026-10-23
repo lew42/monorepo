@@ -434,12 +434,14 @@ export class Agents {
 			const skip = ours && Agents.revive_skip(row, { boot_at, has_session: !!(row.session_id && session_facts(row.session_id).file) });
 			/* NEVER STARTED (the owner, 2026-10-22): it was open but had no turn and no session file, so `resume` cannot work —
 			 * but it is not dead either. Start it again fresh from its own spec (same id, role, cwd, task), and point it at its brief. */
-			if (skip?.dead && row.revivable && (row.spec || row.cwd)){
+			/* Only with a task folder: the registry keeps the spec minus the prompt, so the brief there is all it can be pointed at.
+			 * With none it is buried, the reason on its row (review #1). */
+			const brief_dir = skip?.dead && row.revivable && (row.spec || row.cwd) ? this.task_dir_for(row) : null;
+			if (brief_dir){
 				try { agent = this.reopen({ ...row, session_id: undefined }); } catch {}
 				if (agent){
 					out.revived.push(row.id); out.told.push(row.id); out.restarted = [...(out.restarted ?? []), row.id];
-					const dir = this.task_dir_for(row);
-					agent.send(`Servex restarted before your first turn ran, so nothing of it was kept. Start now${dir ? `: your brief is requirements.md in ${dir}` : ", from the prompt you were given"}.`, { from: "servex" });
+					agent.send(`Servex restarted before your first turn ran, so nothing of it was kept. Start now: your brief is requirements.md in ${brief_dir}.`, { from: "servex" });
 					continue;
 				}
 			}
