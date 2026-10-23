@@ -1,0 +1,159 @@
+[
+ {
+  "id": "9dd0a3bb9f",
+  "sort": "note",
+  "module": "ai",
+  "note": "Every session leaves the handover file ready, because it is the one screen a fresh session reads first.",
+  "evidence": "public/framework/ai/handover.md exists; the handover rule is standing, not a one-time task."
+ },
+ {
+  "id": "878105a662",
+  "sort": "task",
+  "module": "ai",
+  "title": "Add a clean-tree check to wrap-up so no files are left untracked",
+  "evidence": "No wrap-up clean-tree rule in CLAUDE.md (grep for untracked, uncommitted, git-ignored: no match). git status --short is empty in this worktree now, so only the standing check is missing."
+ },
+ {
+  "id": "02b81c8f92",
+  "sort": "task",
+  "module": "ai",
+  "title": "Add the file-change rule to the mastermind skill",
+  "evidence": "The mastermind skill is .claude/skills/mastermind, 47 KB (public/framework/ai/systems-map.md:24). Grep of monorepo/.claude/skills for git-ignored, untracked, uncommitted returned other skills first (10-hit cap); the rule is not confirmed in the mastermind file."
+ },
+ {
+  "id": "23c41f9080",
+  "sort": "task",
+  "module": "ai",
+  "title": "Put the file-change rule in CLAUDE.md, the file every agent reads",
+  "evidence": "CLAUDE.md (monorepo root) has no such rule (grep: no match). systems-map.md:19 says CLAUDE.md is read by every agent, so it is the place that reaches all of them. The skill copy is covered by ask 02b81c8f92."
+ },
+ {
+  "id": "104c4cc62d",
+  "sort": "note",
+  "module": "code/objects",
+  "note": "Class names and hierarchy get careful choice, because a wrong name becomes the base that later code builds on.",
+  "evidence": "Standing design rule for object-oriented code."
+ },
+ {
+  "id": "d52b52b384",
+  "sort": "note",
+  "module": "code/objects",
+  "note": "A class that orchestrates several other classes takes a system or manager name, so its job reads from its name.",
+  "evidence": "Naming rule for orchestrating classes; ext/System is the existing example of a generic container."
+ },
+ {
+  "id": "258f91a205",
+  "sort": "obsolete",
+  "evidence": "One-time review question about the design as it stood; the standing review questions now live in public/framework/ai/review/questions.json."
+ },
+ {
+  "id": "878f5feabb",
+  "sort": "obsolete",
+  "evidence": "Status check: the Sept-2026 file is recorded at public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/pages.jsonl, so there is nothing to build."
+ },
+ {
+  "id": "224d5cbb33",
+  "sort": "obsolete",
+  "evidence": "Superseded: core/Task and public/framework/ai/asks.jsonl already track asks and work."
+ },
+ {
+  "id": "ffae42dcaf",
+  "sort": "obsolete",
+  "evidence": "Status check answered at public/framework/core/Page/doc/indexing-2026-10-08.md:30: nothing used files.jsonl to declare children; the work itself is ask f4a7d393bc."
+ },
+ {
+  "id": "f4a7d393bc",
+  "sort": "task",
+  "module": "core/Page/navigation",
+  "title": "Add an auto word so a parent lists new child pages on its own",
+  "evidence": "Recommended at public/framework/core/Page/doc/indexing-2026-10-08.md:34-41 (children auto built in Page.declare); not confirmed built. OrphanCheck is only a warning in merge.mjs (line 41)."
+ },
+ {
+  "id": "d0a5df570e",
+  "sort": "obsolete",
+  "evidence": "Status check answered at public/framework/core/Page/doc/indexing-2026-10-08.md:30: the nav index was not built; the open proposal is in ask f4a7d393bc."
+ },
+ {
+  "id": "bdb6d3e654",
+  "sort": "task",
+  "module": "ai/system",
+  "title": "Add the missing systems to the systems map",
+  "evidence": "public/framework/ai/systems-map.md:5-20 lists 14 systems; there is no row for Server/, core/Task, or ai/asks. Document every moving part there."
+ },
+ {
+  "id": "c068820cbc",
+  "sort": "note",
+  "module": "ai/talk",
+  "note": "Dictated points are paraphrased back to the owner so they can confirm they were heard.",
+  "evidence": "Working rule for voice sessions."
+ },
+ {
+  "id": "1ec7d01891",
+  "sort": "task",
+  "module": "servex/lifecycle",
+  "title": "Decide and record where the headless browser runs",
+  "evidence": "Still open: public/framework/Servex/doc/refined-asks.md:19 - ⬜ Decide whether the headless instance runs on the Servex server or through the dev socket."
+ },
+ {
+  "id": "7bcc14bf20",
+  "sort": "task",
+  "module": "design/color",
+  "title": "Cut shaded primary where contrast does not call for it",
+  "evidence": "Rule exists at public/framework/design/color/readme.md:11 (do not darken or tint prime). No audit of shaded primary uses found; grep of design/color/doc/rules.md for primary: no match."
+ },
+ {
+  "id": "d8b305a37f",
+  "sort": "task",
+  "module": "design/color",
+  "title": "Reconcile the darkened primary token with the hard-coded M logo",
+  "evidence": "Conflicts with public/framework/design/color/readme.md:11 (do not darken prime to fix contrast). Logo-colour grep found only Figma task files and unrelated hits; no hard-coded M logo colour found."
+ },
+ {
+  "id": "ddbe584727",
+  "sort": "done",
+  "evidence": "public/framework/styles/system/studies/themes/page.js:63 - The mock twice, in FORCED light and dark islands (the colour study's trick),"
+ },
+ {
+  "id": "d1ef5ac55f",
+  "sort": "done",
+  "evidence": "public/framework/styles/layers/theme/lew42/lew42.css:90 - .theme-lew42.light { color-scheme: light; }"
+ },
+ {
+  "id": "184a12298f",
+  "sort": "task",
+  "module": "design/layout",
+  "title": "Study what can sit before and after each mobile layout",
+  "evidence": "styles/layouts/400 holds five class strings (module list); no before/after alignment study found. Explore it under design/layout."
+ },
+ {
+  "id": "8a4be01c61",
+  "sort": "done",
+  "evidence": "public/framework/styles/stacks/page.js:125 - title: \"Stacking\","
+ },
+ {
+  "id": "0d51d23075",
+  "sort": "task",
+  "module": "styles/layouts/sidebar",
+  "title": "Build layouts that use the harmonised sidebar",
+  "evidence": "No layout uses it: harmonise appears only in public/framework/ext/Figma/tasks/work-out-how-to-harmonise-the-figma-desi/task.jsonl. styles/layouts/sidebar holds only page.js, readme.md and files.jsonl."
+ },
+ {
+  "id": "0027d14812",
+  "sort": "note",
+  "module": "design",
+  "note": "Design systems and colour variants keep being explored, paced so spend stays within the usage budget.",
+  "evidence": "Standing direction; paced by the usage guardrail."
+ },
+ {
+  "id": "35d3bc2e0f",
+  "sort": "done",
+  "evidence": "public/framework/design/color/readme.md:26 - `Figma's Colour · Permutations` page shows every ground × ink pairing, without numbers."
+ },
+ {
+  "id": "5f86166332",
+  "sort": "note",
+  "module": "design/color",
+  "note": "Primary is not used as a background fill until solid examples are nailed down.",
+  "evidence": "Consistent with public/framework/design/color/readme.md:11 (prime stays prime)."
+ }
+]
