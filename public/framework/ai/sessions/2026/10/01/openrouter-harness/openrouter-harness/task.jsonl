@@ -380,3 +380,11 @@
 {"log":{"at":"2026-10-01T23:39:14-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-01T23:39:32-05:00","msg":"Servex restarted (pid 9672), so the cost fix cf1992ae is live. reconcile.mjs: OpenRouter billed $3.94 for 2026-10-02 UTC and the ledger shows $3.94, 0.0% drift. lf-deepseek really cost $0.58 (corrected from the $0.42 token estimate); ml-deepseek $0.30. The Sol accounting ask is done."}}
 {"stop":{"at":"2026-10-18T08:02:46-05:00","why":"abandoned: no agent since 2026-10-01T23:39:32-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/models-page/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.050Z"}
+{"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/pairs/line-filter-cheap/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.051Z"}
+{"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/pairs/line-filter-sonnet/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.053Z"}
+{"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/pairs/models-ladder-cheap/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.054Z"}
+{"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/pairs/models-ladder-sonnet/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.055Z"}
+{"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/rule-tests/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.056Z"}
+{"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.114Z"}
+{"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/wire-provider/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.148Z"}

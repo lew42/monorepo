@@ -1,0 +1,6 @@
+{"assign":{"session_id":"549a72c8-c0ae-4b4c-ad5f-3577873ca8f4","agent":"minion-dead","title":"go","model":"claude-haiku-5-5","requested_at":"2026-10-22T21:20:31-05:00","now":"starting"}}
+{"log":{"at":"2026-10-22T21:21:07-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
+{"log":{"at":"2026-10-22T21:27:06-05:00","heartbeat":"revive-queued","msg":"minion-dead its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-22T21:28:07-05:00","heartbeat":"escalated","msg":"minion-dead its agent is not running, and the revive failed: Cannot find where session 549a72c8-c0ae-4b4c-ad5f-3577873ca8f4 ran, so it cannot be resumed."}}
+{"log":{"at":"2026-10-22T21:40:13-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-22T22:00:12-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}

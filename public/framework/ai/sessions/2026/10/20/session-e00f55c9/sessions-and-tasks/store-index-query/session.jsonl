@@ -18,3 +18,6 @@
 {"log":{"at":"2026-10-20T18:53:37-05:00","msg":"lifecycle: nothing of this task's was left running"}}
 {"log":{"at":"2026-10-20T18:53:37-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
 {"log":{"at":"2026-10-20T18:53:55-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-projects/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.638Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-queries/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.639Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-sessions/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.640Z"}

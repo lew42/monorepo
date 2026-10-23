@@ -53,6 +53,8 @@ export class Task extends Item {
 		return this._tasks;
 	}
 	set tasks(list){ this._tasks = list; this.watch(list); }
+	// Item.get() skips a prototype getter, so a fresh Task answered undefined for "tasks" and {tasks:{add}} was stored as data (2026-10-22; child-verb.test.mjs).
+	get(key){ return key === "tasks" ? this.tasks : super.get(key); }
 
 	// Like `tasks`, made on first use: notes, decisions and log lines, the same `{"content":{"add":{...}}}` grammar as Page.content.
 	get content(){ return this._content ??= new List({ owner: this, name: "content" }); }
@@ -206,6 +208,9 @@ export class Task extends Item {
 		return this.state === "complete" ? 1 : 0;
 	}
 
+	// May this verb run from the task's state now? The same CAN map the verbs check; a button uses it to show only what works.
+	can(verb){ return !!CAN[verb]?.has(this.state); }
+
 	start(){
 		if (!CAN.start.has(this.state)) return this.warn(`start(): can't start from "${this.state}"`);
 		this._ran_since = this.ms();
@@ -310,15 +315,15 @@ export class Task extends Item {
 	// task.jsonl into that stub through the Store (the way TaskPage does) and tails it live. "missing" only after a 404.
 	static resolver = null;
 	static resolving = new Set();
-	static from_ref(ref){
+	static from_ref(ref, as){
 		const lines = !this.resolving.has(ref) && this.resolver ? this.resolver(ref) : null;
-		const id = this.ref_id(ref);
+		const id = as ?? this.ref_id(ref);   // `as`: the id the task had in the parent (a moved item keeps it, whatever its new folder is called)
 		let kid;
 		if (lines?.length){
 			this.resolving.add(ref);   // a cycle of references stops here
 			const Own = Item.types.get(lines[0]?.class);   // line 1 may name a subclass (a Process): replay it as that, when it is loaded
 			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
-			if (kid.id === "tasks") kid.id = id;   // a module list's line 1 says "tasks": a property name, and the same for every module
+			if (kid.id === "tasks" || as) kid.id = id;   // a module list's line 1 says "tasks": a property name, and the same for every module
 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
 			kid = new this({ id });
 			kid.put("title", id);
@@ -339,8 +344,13 @@ export class Task extends Item {
 
 	// Browser only: open the child's file through the shared Store, then attach (replay + live tail) onto the stub.
 	static async open_ref(kid, ref){
-		const store = this.Store.for(String(ref).replace(/\/?$/, "/") + "task.jsonl");
+		const dir = String(ref).replace(/\/?$/, "/");
+		let store = this.Store.for(dir + "task.jsonl");
 		try { await store.open(); } catch { /* treated as missing below */ }
+		if (!store.host && !store.count){   // a session folder's log is session.jsonl (a task moved into a child session, item-move)
+			const s = this.Store.for(dir + "session.jsonl");
+			try { await s.open(); if (s.host || s.count) store = s; } catch { /* still missing */ }
+		}
 		if (store.host){   // another reader (TaskPage) is already attached and live: this stub takes a snapshot of the same file
 			const res = await fetch(store.url).catch(() => null);
 			const entries = res?.ok ? store.parse(await res.text()) : [];
@@ -379,7 +389,7 @@ export class Task extends Item {
 			if (session_id !== undefined) this.put("session", session_id);
 		}
 		if (typeof line.task === "string"){   // a later reference with the same id (the folder name) replaces the earlier one: the task moved home
-			const kid = Task.from_ref(line.task), had = this.tasks.find(kid.id);
+			const kid = Task.from_ref(line.task, line.as), had = this.tasks.find(kid.id);
 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
 			this.adopt_child(kid);
 		}

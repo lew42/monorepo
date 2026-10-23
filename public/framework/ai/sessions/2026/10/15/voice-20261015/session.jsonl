@@ -233,3 +233,22 @@
 {"log":{"at":"2026-10-15T20:25:33-05:00","heartbeat":"check","msg":"status check sent to mastermind-voice-20261015"}}
 {"assign":{"agent":"mastermind-voice-20261015","landed_at":"2026-10-15T20:27:00-05:00","outcome":"Voice session 2026-10-15 closed; a new voice session (voice-20261016) took over at 19:06. Landed: /live/ as a one-screen presentation surface that voice-app writes and clears on a topic change (1b96fb2b4), plus /live/ reloading itself, editing items in place and pretty-printing them (21dce95ce). Open: a Servex restart, which the owner times, activates the RemoteMCP text, the first tool-collapse step and the spawn policy (affea877b); Property.of (494fb8735) is not on michael/dev; the CLAUDE.md proposal at standing-rules/claude-md-proposal.md waits on the owner.","links":["/live/","/framework/ai/sessions/2026/10/15/voice-20261015/"]}}
 {"log":{"at":"2026-10-15T20:26:32-05:00","heartbeat":"answered","msg":"I've closed my voice mastermind task, because your voice call is over: a new voice session, voice-20261016, took over at 19:06. The closing note is committed (1daa3d5a6) and posted on [the session car"}}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/ai-system/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.548Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/ai-systems/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.549Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/live-page/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.550Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/live-post/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.551Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/live-present/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.552Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/live-stream/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.553Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/loose-ends/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.555Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/page-instance/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.557Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/page-system/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.558Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/past-work-log/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.563Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/past-work-map/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.564Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/refine-audit/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.565Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/refine-explain/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.566Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/remote-full-registry/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.568Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/sessions-data/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.569Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/spawn-policy/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.570Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/standing-rules/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.571Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/system-map/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.572Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-20261015/tool-collapse/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.573Z"}

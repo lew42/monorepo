@@ -15,3 +15,9 @@
 {"log":{"at":"2026-10-12T15:41:38-05:00","msg":"layout-check: 2 pages at 1280/1920/2560/3440 — /framework/core/Page/Template/: empty 0.767 at 2560, empty 0.815 at 3440, narrow_share 1 at 3440; /framework/core/Property/: empty 0.866 at 2560, empty 0.895 at 3440, narrow_share 1 at 3440; sheets in layout-check/"}}
 {"log":{"at":"2026-10-12T15:42:04-05:00","msg":"padding-check: 2 pages — clean"}}
 {"log":{"at":"2026-10-12T15:56:53-05:00","msg":"session resumed"}}
+{"task":"/framework/ai/sessions/2026/10/12/session-21449a90/page-templates-binding-merge/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.216Z"}
+{"task":"/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/binding/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.235Z"}
+{"task":"/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/build/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.236Z"}
+{"task":"/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/merge/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.237Z"}
+{"task":"/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/past-work/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.238Z"}
+{"task":"/framework/ai/sessions/2026/10/12/session-ceb73541/page-templates-merge/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.256Z"}

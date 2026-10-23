@@ -38,3 +38,8 @@ The `figma` skill (`.claude/skills/figma/SKILL.md`) and `public/framework/ext/Fi
 - **Micro-interactions on mobile:** a small sheet from a toolbar button, a "+" that expands filters in place, drop-downs, swipeable tabs instead of wrapping ones (the site's top tabs wrap today), resizable bottom or top sheets.
 - **Variants, and where they live:** design the UI for browsing a tree of variants of any page or component, and propose where variants are stored and named (own folder, or the parent's `page.jsonl`), with the system architect.
 - **Keep your docs current, conclusions only:** the Figma readmes hold decisions and outcomes, not a dated log; the log is your task's JSONL.
+
+## Follow-up 3 (the owner, 2026-10-22)
+
+- **Is it running?** Every task, project and process shows whether it is active with a small indicator (a dot or a play triangle), not a colour change or a heavy outline; once running, pause and stop buttons sit beside it; a queued task shows it will start on its own.
+- **Buttons write to the log:** pressing start, pause, stop or approve appends a line to that item's JSONL, and the agents subscribed to it get it at once with the owner's intention clear.

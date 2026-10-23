@@ -37,19 +37,42 @@ export default class StaleClose {
 	/** Every stale task silent for `hours`, as manifest rows. */
 	async plan_rows(){
 		await this.load();
-		const s = this.state, by_id = new Map(s.agents.map(a => [a.id, a])), skipped = this.skipped = { waiting: 0, fresh: 0, agent_alive: 0, not_stale: 0 };
+		const s = this.state, by_id = new Map(s.agents.map(a => [a.id, a])), skipped = this.skipped = { waiting: 0, fresh: 0, agent_alive: 0, child_alive: 0, transcript_alive: 0, not_stale: 0 };
 		this.plan = [];
 		if (!s.agents.length) throw new Error("StaleClose: Servex's registry is empty or down, so no task can be called abandoned. Nothing planned.");
 		for (const t of s.tasks){
 			if (t.bucket === "waiting") { skipped.waiting++; continue; }
 			if (t.bucket !== "stale") continue;
-			const age_h = (this.now - ms(t.last)) / 36e5;
-			if (age_h < this.hours) { skipped.fresh++; continue; }
+			// A folder's work can sit in its child task folders (a VS Code tab's session whose own log is one line): the newest child line counts,
+			// and a child an agent is on, or one waiting on the owner, keeps the parent open.
+			const kids = s.tasks.filter(k => k.dir.startsWith(t.dir + "/"));
+			if (kids.some(k => k.bucket === "in_flight" || k.bucket === "queued" || k.bucket === "waiting")) { skipped.child_alive++; continue; }
+			const last = kids.reduce((m, k) => ms(k.last) > ms(m) ? k.last : m, t.last);
+			const age_h = (this.now - ms(last)) / 36e5;
+			if (age_h < this.hours) { skipped[last === t.last ? "fresh" : "child_alive"]++; continue; }
 			const a = by_id.get(t.agent);
 			if (a && (a.state === "working" || a.state === "queued")) { skipped.agent_alive++; continue; }   // its log names a live agent that holds another dir
-			this.plan.push({ dir: t.dir, last: t.last, age_days: +(age_h / 24).toFixed(1), agent: t.agent ?? null, agent_state: a?.state ?? (t.agent ? "unknown" : null), reason: `stale: ${t.state}, no agent holds it, last line ${t.last}` });
+			// A session nobody registers (the owner's own VS Code tab) is alive while its transcript is being written.
+			const sid = this.session_of(t.dir), wrote = sid ? this.transcript_at(sid) : 0;
+			if (wrote && (this.now - wrote) / 36e5 < this.hours) { skipped.transcript_alive++; continue; }
+			this.plan.push({ dir: t.dir, last, age_days: +(age_h / 24).toFixed(1), agent: t.agent ?? null, agent_state: a?.state ?? (t.agent ? "unknown" : null), reason: `stale: ${t.state}, no agent holds it, last line ${last}${last === t.last ? "" : " (in a child folder)"}` });
 		}
 		return this.plan;
+	}
+
+	/** The session id on a folder's log line 1: {"session":{"id"}} (a VS Code tab, a voice session) or {"assign":{"session_id"}} (a spawn). */
+	session_of(dir){
+		const first = AIIndex.read_lines(StaleClose.log_of(dir))[0];
+		const id = first?.session?.id ?? first?.assign?.session_id;
+		return typeof id === "string" ? id : null;
+	}
+
+	/** When that session's transcript (~/.claude/projects/<cwd>/<id>.jsonl) was last written, in ms; 0 when there is none. A test passes its own. */
+	transcript_at(id){
+		const root = path.join(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude"), "projects");
+		let dirs = []; try { dirs = fs.readdirSync(root); } catch { return 0; }
+		for (const d of dirs) try { return fs.statSync(path.join(root, d, id + ".jsonl")).mtimeMs; } catch {}
+		return 0;
 	}
 
 	/** Counts by age band, from the plan. */

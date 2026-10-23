@@ -1,6 +1,7 @@
 // A session folder's one record is session.jsonl (doc: public/framework/ai/sessions/doc/session-record.md).
 //   node Server/SessionRecord.mjs --plan [--root <repo>] [--quiet <min>]    print the plan (counts, folders, skips). Writes nothing.
 //   node Server/SessionRecord.mjs --apply [--root <repo>] [--quiet <min>]   do it; appends the manifest; stages (never commits) the paths
+//   node Server/SessionRecord.mjs --links [--list] [--apply]   every folder below a session referenced on its parent log (count; --apply backfills)
 //   node Server/SessionRecord.mjs --undo <manifest.jsonl> [--run <id>] [--root <repo>]   reverse one run (default: the last)
 // As a module: SessionRecord.file(dir) is the record a reader opens (session.jsonl first, task.jsonl while a folder is not moved yet).
 import fs from "node:fs";
@@ -19,6 +20,7 @@ export default class SessionRecord {
 	static OLD = "task.jsonl";
 	static STORE = "public/framework/ai/sessions";
 	static MANIFEST = "public/framework/ai/sessions/session-record-moves.jsonl";
+	static LINKS = "public/framework/ai/sessions/session-links.jsonl";   // what `--links --apply` referenced, one row per folder
 	/** The verbs of the digest/record lines that session.jsonl held before the rename (AISession.LINE_TYPES, plus the digest `summary`). */
 	static TAG_VERBS = ["tag", "note", "alert", "weight", "closed", "question", "links", "summary"];
 
@@ -50,6 +52,81 @@ export default class SessionRecord {
 		if (fs.existsSync(path.join(dir, this.NEW)) && !fs.existsSync(path.join(dir, this.OLD))) return path.join(dir, this.NEW);   // a tag-only record: the session's own file
 		const a = first?.assign, spawn = a?.session_id && a?.agent, voice = first?.session?.id;   // a spawn line (only open_task writes it) or a cloud-voice line: a session at any depth
 		return path.join(dir, spawn || voice || (a?.session_id && this.is_session_dir(dir)) ? this.NEW : this.OLD);
+	}
+	/** A NEW TASK FOLDER COUNTS AS ITS PARENT'S TASK: under the sessions store, the nearest folder above `dir` that has a log (a task or the
+	 *  session itself) gets one {"task":"<url>"} reference line, the same line the item tool writes for a child folder; Session.replay and
+	 *  Task.replay read it as a subtask. Never twice, never above the session folder. Returns the parent's log file, or null. */
+	/*  Options: `parent` (an explicit parent folder, e.g. open_task's parent_task: the task that handed work to a child session) wins over
+	 *  the nearest folder; `session_id` (the full id of the session that made the folder) lets a VS Code tab's `session-<id8>/` folder,
+	 *  which has no log of its own yet, get one: its first line is {"session":{id, kind:"vscode-tab"}}, then the reference. */
+	static link_parent(dir, by = "TaskDirs", { parent = null, session_id = null } = {}){
+		const abs = path.resolve(dir), pub = slash(abs).match(/^(.*\/public)\//)?.[1];
+		const url = pub && "/" + slash(path.relative(pub, abs)) + "/";
+		const log = this.parent_log(abs, { parent });
+		if (log) return this.add_ref(log, url, by);
+		// No log up to the session folder: a tab's session-<id8>/ holding only its transcript cache or digest tags. Its record is session.jsonl.
+		const top = this.session_top(abs), id8 = top && path.basename(top).match(/^session-([0-9a-f]{8})$/)?.[1];
+		if (!id8) return null;   // spawned/, cards/, cloud-voice-*: containers or sessions that keep their own log
+		if (!String(session_id ?? "").startsWith(id8)) return null;   // never invent a session id
+		const rec = path.join(top, this.NEW);
+		fs.appendFileSync(rec, JSON.stringify({ session: { id: session_id, kind: "vscode-tab", at: new Date().toISOString() }, by }) + "\n");
+		return this.add_ref(rec, url, by);
+	}
+	/** The session folder (`.../framework/ai/sessions/YYYY/MM/DD/<session>`) above `abs`, or null when `abs` is outside the store or is that folder itself. */
+	static session_top(abs){
+		const m = slash(abs).match(/^(.*\/public)\/(framework\/ai\/sessions\/\d{4}\/\d\d\/\d\d\/[^/]+)(\/.+)?$/);
+		return m && m[3] ? path.join(m[1], m[2]) : null;
+	}
+	/** THE ONE RULE for which log a folder is referenced on (link_parent writes there, links() checks there): an explicit `parent` folder's log
+	 *  (open_task's parent_task: the task that handed work to a child session) wins; else the nearest folder above with a log, up to the session
+	 *  folder; else the session folder's own session.jsonl. Returns the log file, or null. Writes nothing. */
+	static parent_log(dir, { parent = null } = {}){
+		const abs = path.resolve(dir);
+		if (parent && path.resolve(parent) !== abs){ const log = this.log_file(path.resolve(parent)); if (log) return log; }
+		const top = this.session_top(abs);
+		if (!top) return null;
+		for (let p = path.dirname(abs); p.length >= top.length; p = path.dirname(p)){ const log = this.log_file(p); if (log) return log; }
+		const rec = path.join(top, this.NEW);
+		return /^session-[0-9a-f]{8}$/.test(path.basename(top)) && fs.existsSync(rec) ? rec : null;
+	}
+	/** One {"task":"<url>"} line on `log`, unless it already names the url (a reference, or a tasks.add with this path). Returns `log`. */
+	static add_ref(log, url, by){
+		let text = ""; try { text = fs.readFileSync(log, "utf8"); } catch {}
+		if (text.includes(`"task":"${url}"`) || text.includes(`"path":"${url}"`)) return log;
+		fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify({ task: url, by, ts: new Date().toISOString() }) + "\n");
+		return log;
+	}
+	/** The census behind `--links`: every folder below a session folder that has a log, and whether its parent references it.
+	 *  Returns { total, linked, missing: [{dir, session_id}], unhomed: [dir] } (unhomed: no log up to the session folder and no way to start one). */
+	links(){
+		const out = { total: 0, linked: 0, missing: [], unhomed: [] }, texts = new Map();
+		const text = f => texts.has(f) ? texts.get(f) : (texts.set(f, fs.readFileSync(f, "utf8")), texts.get(f));
+		const sub = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => path.join(d, e.name)); } catch { return []; } };
+		const line1 = f => { try { return JSON.parse(fs.readFileSync(f, "utf8").split("\n", 1)[0]); } catch { return null; } };
+		const walk = (dir, top) => {
+			for (const c of sub(dir)){
+				const own = SessionRecord.log_file(c);
+				if (own){
+					out.total++;
+					const url = "/" + slash(path.relative(path.join(this.root, "public"), c)) + "/", a = line1(own)?.assign ?? {};
+					const parent = a.parent_task && path.resolve(this.root, a.parent_task), log = SessionRecord.parent_log(c, { parent });
+					if (log && (text(log).includes(`"task":"${url}"`) || text(log).includes(`"path":"${url}"`))) out.linked++;
+					else if (log || String(a.session_id ?? "").startsWith(path.basename(top).slice(8)) && /^session-/.test(path.basename(top))) out.missing.push({ dir: c, parent: parent && parent !== c ? parent : null, session_id: a.session_id ?? null });
+					else out.unhomed.push(c);
+				}
+				walk(c, top);
+			}
+		};
+		for (const top of this.day_children()) walk(top, top);
+		return out;
+	}
+	/** The backfill behind `--links --apply`, also run by the daily tick (Servex/TaskLoop.js): reference every folder missing one on its parent's log,
+	 *  and append what it did to LINKS. Returns { census, applied }. */
+	apply_links(c = this.links()){
+		const run = new Date().toISOString(), rows = [{ run, kind: "links", count: c.missing.length }];
+		for (const m of c.missing){ const log = SessionRecord.link_parent(m.dir, "SessionRecord --links", { parent: m.parent, session_id: m.session_id }); rows.push({ run, dir: this.rel(m.dir), log: log && this.rel(log) }); }
+		fs.appendFileSync(path.join(this.root, SessionRecord.LINKS), rows.map(r => JSON.stringify(r)).join("\n") + "\n");
+		return { census: c, applied: rows.length - 1 };
 	}
 	/** For a directory walker: is this entry (dir, file name) the folder's log? Counts each folder once, whichever name it holds. */
 	static is_log_entry(dir, name){ return this.is_record(name) && this.log_file(dir) === path.join(dir, name); }
@@ -200,7 +277,15 @@ export default class SessionRecord {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
 	const argv = process.argv.slice(2), opt = n => { const i = argv.indexOf(n); return i < 0 ? null : argv[i + 1]; };
 	const sr = new SessionRecord({ root: opt("--root") ?? SELF_ROOT, quiet: Number(opt("--quiet") ?? 60) });
-	if (argv.includes("--undo")){
+	if (argv.includes("--links")){
+		// Every task / child-session folder referenced on its parent's log (the backfill for folders made before link_parent existed).
+		const c = sr.links();
+		console.log(`folders with a log below a session: ${c.total} | referenced: ${c.linked} | missing a reference: ${c.missing.length} | no parent log and no session id to start one: ${c.unhomed.length}`);
+		for (const m of c.missing.slice(0, argv.includes("--list") ? Infinity : 5)) console.log("  missing", sr.rel(m.dir));
+		if (argv.includes("--apply")){
+			console.log(`applied: ${sr.apply_links(c).applied} references; manifest ${SessionRecord.LINKS}`);
+		}
+	} else if (argv.includes("--undo")){
 		console.log(JSON.stringify(sr.undo(path.resolve(opt("--undo")), opt("--run")), null, 1));
 	} else if (argv.includes("--apply")){
 		const plan = sr.plan(); console.log("plan:", JSON.stringify(plan.counts), "children skipped:", plan.children_skipped);

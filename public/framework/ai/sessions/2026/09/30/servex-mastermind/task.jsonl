@@ -300,3 +300,6 @@
 {"log":{"at":"2026-10-02T19:22:00-05:00","by":"mastermind-servex-9","msg":"handover: checkpoint-10.md written for the Opus mastermind replacing this one (owner, via vscode-mastermind); minion-card-pipeline working, minion-stalled-and-budgets queued; nothing new started"}}
 {"action":{"at":"2026-10-05T13:46:36-05:00","did":"edit","files":["public/framework/ai/2026-09-30/servex-mastermind/handover-line.json"]}}
 {"stop":{"at":"2026-10-18T08:02:37-05:00","why":"abandoned: no agent since 2026-10-05T13:46:36-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"task":"/framework/ai/sessions/2026/09/30/servex-mastermind/apply-improvements/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.039Z"}
+{"task":"/framework/ai/sessions/2026/09/30/servex-mastermind/stopped-tasks-audit/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.040Z"}
+{"task":"/framework/ai/sessions/2026/09/30/servex-mastermind/voice-dir-404/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.041Z"}

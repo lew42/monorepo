@@ -1,0 +1,100 @@
+{"file":".claude/hooks/ledger.test.mjs","ok":true,"ms":51,"at":"2026-10-23T02:24:52.798Z","trigger":"manual"}
+{"file":".claude/hooks/jsonl-schema.test.mjs","ok":false,"ms":208,"at":"2026-10-23T02:24:52.951Z","trigger":"manual","tail":"pass  append_log: a verb-shaped task line is refused with the pointer\npass  append_log: a name that means a repo task log is refused\n— 2b. flags.jsonl: a FLAT schema (no verb key) —\npass  flags.jsonl: the three required fields are accepted\npass  flags.jsonl: the optional fields ride along fine\npass  flags.jsonl: a line with no verdict is refused\npass  flags.jsonl: an unlisted verdict is refused\npass  flags.jsonl: every existing line passes the schema\n— 3. append.mjs end to end —\npass  a flat line: exit 3, REFUSED, the right shape printed\npass  …and the file is untouched\npass  one bad line in a batch refuses the whole batch\npass  experiment + review appended; 3 good lines\n\n46 passed, 2 failed"}
+{"file":"Server/AIIndex.test.mjs","ok":true,"ms":254,"at":"2026-10-23T02:24:53.214Z","trigger":"manual"}
+{"file":"Server/ArchiveCopy.test.mjs","ok":true,"ms":52,"at":"2026-10-23T02:24:53.267Z","trigger":"manual"}
+{"file":".claude/hooks/jsonl-guard.test.mjs","ok":true,"ms":991,"at":"2026-10-23T02:24:53.731Z","trigger":"manual"}
+{"file":"Server/AskIndex.test.mjs","ok":true,"ms":76,"at":"2026-10-23T02:24:53.808Z","trigger":"manual"}
+{"file":"Server/Cloudflare.test.mjs","ok":true,"ms":103,"at":"2026-10-23T02:24:53.911Z","trigger":"manual"}
+{"file":"Server/Compact.test.mjs","ok":true,"ms":61,"at":"2026-10-23T02:24:53.972Z","trigger":"manual"}
+{"file":"Server/AskIndex-tasks.test.mjs","ok":false,"ms":712,"at":"2026-10-23T02:24:53.980Z","trigger":"manual","tail":"\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n3 !== 2\n\n    at file:///C:/Code/lew42/monorepo/Server/AskIndex-tasks.test.mjs:25:9 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: 3,\n  expected: 2,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.15.0"}
+{"file":"Server/Day.test.mjs","ok":true,"ms":58,"at":"2026-10-23T02:24:54.031Z","trigger":"manual"}
+{"file":"Server/OutPath.test.mjs","ok":true,"ms":42,"at":"2026-10-23T02:24:54.073Z","trigger":"manual"}
+{"file":".claude/hooks/server-guard.test.mjs","ok":true,"ms":1548,"at":"2026-10-23T02:24:54.347Z","trigger":"manual"}
+{"file":"Server/Steps.test.mjs","ok":true,"ms":74,"at":"2026-10-23T02:24:54.421Z","trigger":"manual"}
+{"file":"Server/TaskDirs.test.mjs","ok":true,"ms":260,"at":"2026-10-23T02:24:54.681Z","trigger":"manual"}
+{"file":"Server/LandingCheck.test.mjs","ok":true,"ms":763,"at":"2026-10-23T02:24:54.743Z","trigger":"manual"}
+{"file":"Server/SessionRecord.test.mjs","ok":true,"ms":728,"at":"2026-10-23T02:24:54.801Z","trigger":"manual"}
+{"file":"Server/TaskMove.test.mjs","ok":false,"ms":70,"at":"2026-10-23T02:24:54.813Z","trigger":"manual","tail":"    at finalizeResolution (node:internal/modules/esm/resolve:271:11)\n    at moduleResolve (node:internal/modules/esm/resolve:861:10)\n    at defaultResolve (node:internal/modules/esm/resolve:988:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\n    at #resolve (node:internal/modules/esm/loader:679:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33)\n    at ModuleJob.link (node:internal/modules/esm/module_job:252:17) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///C:/Users/mike/AppData/Local/Temp/taskmove-test-fil6yg/public/framework/core/Item/Item.js'\n}\n\nNode.js v24.15.0"}
+{"file":"Server/TaskState.test.mjs","ok":true,"ms":67,"at":"2026-10-23T02:24:54.868Z","trigger":"manual"}
+{"file":"Server/Tunnel.test.mjs","ok":true,"ms":67,"at":"2026-10-23T02:24:54.880Z","trigger":"manual"}
+{"file":"Server/UndoneToTasks.test.mjs","ok":true,"ms":63,"at":"2026-10-23T02:24:54.943Z","trigger":"manual"}
+{"file":"Server/UndoneAsks.test.mjs","ok":true,"ms":90,"at":"2026-10-23T02:24:54.959Z","trigger":"manual"}
+{"file":"Server/UndoneVerify.test.mjs","ok":true,"ms":69,"at":"2026-10-23T02:24:55.012Z","trigger":"manual"}
+{"file":"Server/Unreferenced.test.mjs","ok":true,"ms":56,"at":"2026-10-23T02:24:55.015Z","trigger":"manual"}
+{"file":"Server/clarity.test.mjs","ok":true,"ms":52,"at":"2026-10-23T02:24:55.068Z","trigger":"manual"}
+{"file":".claude/hooks/git-guard.test.mjs","ok":true,"ms":2771,"at":"2026-10-23T02:24:55.506Z","trigger":"manual"}
+{"file":"Server/TaskMigrate.test.mjs","ok":true,"ms":866,"at":"2026-10-23T02:24:55.547Z","trigger":"manual"}
+{"file":"Server/plugins/SocketServer/Append.test.mjs","ok":false,"ms":45,"at":"2026-10-23T02:24:55.592Z","trigger":"manual","tail":"— a good batch against task.jsonl's schema —\npass  a good batch is written: {\"index\":0,\"response\":\"append successful\"}\npass  both lines landed, both parse\n— one bad line refuses the whole batch —\npass  the bad line's reason comes back: append refused: a flat line (no verb: \"bogus\") — wrap it in a verb, e.g. {\"log\":{\"at\":\"NOW\",\"msg\":\"…\"}}\npass  nothing partial was written — the file was never created\n— a file with no schema only has to be a JSON object —\npass  an unknown-schema file accepts any plain object: {\"index\":0,\"response\":\"append successful\"}\npass  the line landed as given\npass  a string line that isn't even valid JSON is refused, schema or not: append refused: lines must be an array of objects\nFAIL  a string line that IS already-serialized JSON is still accepted\n\n7 passed, 1 failed"}
+{"file":"Server/review.test.mjs","ok":true,"ms":46,"at":"2026-10-23T02:24:55.639Z","trigger":"manual"}
+{"file":"Server/git-hooks/post-commit.test.mjs","ok":true,"ms":578,"at":"2026-10-23T02:24:55.646Z","trigger":"manual"}
+{"file":"Server/session-place.test.mjs","ok":true,"ms":97,"at":"2026-10-23T02:24:55.744Z","trigger":"manual"}
+{"file":"Server/session-migrate.test.mjs","ok":true,"ms":669,"at":"2026-10-23T02:24:56.309Z","trigger":"manual"}
+{"file":"Server/session-summary.test.mjs","ok":true,"ms":865,"at":"2026-10-23T02:24:56.609Z","trigger":"manual"}
+{"file":"Servex/Heartbeat-card.test.mjs","ok":true,"ms":135,"at":"2026-10-23T02:24:56.745Z","trigger":"manual"}
+{"file":"Server/Worktrees.test.mjs","ok":true,"ms":2006,"at":"2026-10-23T02:24:57.018Z","trigger":"manual"}
+{"file":"Servex/Heartbeat-landed.test.mjs","ok":true,"ms":281,"at":"2026-10-23T02:24:57.026Z","trigger":"manual"}
+{"file":"Servex/Landed-merged.test.mjs","ok":true,"ms":620,"at":"2026-10-23T02:24:57.638Z","trigger":"manual"}
+{"file":"Servex/LogSweeper.test.mjs","ok":true,"ms":639,"at":"2026-10-23T02:24:57.665Z","trigger":"manual"}
+{"file":"Servex/ProcessRunner.test.mjs","ok":true,"ms":320,"at":"2026-10-23T02:24:57.986Z","trigger":"manual"}
+{"file":"Servex/TaskLoop-handover.test.mjs","ok":true,"ms":461,"at":"2026-10-23T02:24:58.448Z","trigger":"manual"}
+{"file":"Servex/TaskLoop-launch.test.mjs","ok":false,"ms":97,"at":"2026-10-23T02:24:58.545Z","trigger":"manual","tail":"\nAssertionError [ERR_ASSERTION]: the tick retries a queued task\n\n2 !== 3\n\n    at file:///C:/Code/lew42/monorepo/Servex/TaskLoop-launch.test.mjs:77:8 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: 2,\n  expected: 3,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.15.0"}
+{"file":"Server/task-log-race.test.mjs","ok":true,"ms":2354,"at":"2026-10-23T02:24:58.664Z","trigger":"manual"}
+{"file":"Servex/TaskLoop-state.test.mjs","ok":true,"ms":193,"at":"2026-10-23T02:24:58.739Z","trigger":"manual"}
+{"file":"Servex/TaskLoop-steps.test.mjs","ok":false,"ms":96,"at":"2026-10-23T02:24:58.761Z","trigger":"manual","tail":"node:fs:1222\n  return binding.rmSync(getValidatedPath(path), opts.maxRetries, opts.recursive, opts.retryDelay);\n                 ^\n\nError: EPERM, Permission denied: \\\\?\\C:\\Users\\mike\\AppData\\Local\\Temp\\taskloop-steps-test-pNDTnZ '\\\\?\\C:\\Users\\mike\\AppData\\Local\\Temp\\taskloop-steps-test-pNDTnZ'\n    at Object.rmSync (node:fs:1222:18)\n    at file:///C:/Code/lew42/monorepo/Servex/TaskLoop-steps.test.mjs:41:4 {\n  errno: 1,\n  code: 'EPERM',\n  path: '\\\\\\\\?\\\\C:\\\\Users\\\\mike\\\\AppData\\\\Local\\\\Temp\\\\taskloop-steps-test-pNDTnZ',\n  syscall: 'rm'\n}\n\nNode.js v24.15.0"}
+{"file":"Servex/WorktreeWatch.test.mjs","ok":true,"ms":72,"at":"2026-10-23T02:24:58.811Z","trigger":"manual"}
+{"file":"Servex/agents/Dispatcher-task.test.mjs","ok":true,"ms":191,"at":"2026-10-23T02:24:58.953Z","trigger":"manual"}
+{"file":"Servex/agents/ModuleInbox.test.mjs","ok":true,"ms":54,"at":"2026-10-23T02:24:59.007Z","trigger":"manual"}
+{"file":"Servex/agents/External.test.mjs","ok":true,"ms":295,"at":"2026-10-23T02:24:59.106Z","trigger":"manual"}
+{"file":"Server/merge.test.mjs","ok":true,"ms":3682,"at":"2026-10-23T02:24:59.188Z","trigger":"manual"}
+{"file":"Servex/agents/child-follow.test.mjs","ok":true,"ms":197,"at":"2026-10-23T02:24:59.385Z","trigger":"manual"}
+{"file":"Servex/Pool.test.mjs","ok":true,"ms":1835,"at":"2026-10-23T02:24:59.473Z","trigger":"manual"}
+{"file":"Servex/agents/compact-nudge.test.mjs","ok":true,"ms":193,"at":"2026-10-23T02:24:59.579Z","trigger":"manual"}
+{"file":"Servex/agents/fixer.test.mjs","ok":false,"ms":246,"at":"2026-10-23T02:24:59.825Z","trigger":"manual","tail":"- 'claude-sonnet-5'\n                  ^\n\n    at file:///C:/Code/lew42/monorepo/Servex/agents/fixer.test.mjs:81:9\n    at check (file:///C:/Code/lew42/monorepo/Servex/agents/fixer.test.mjs:29:49)\n    at file:///C:/Code/lew42/monorepo/Servex/agents/fixer.test.mjs:66:7 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: 'claude-sonnet-5-5',\n  expected: 'claude-sonnet-5',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.15.0"}
+{"file":"Servex/agents/cost.test.mjs","ok":true,"ms":503,"at":"2026-10-23T02:24:59.977Z","trigger":"manual"}
+{"file":"Servex/agents/groups.test.mjs","ok":true,"ms":103,"at":"2026-10-23T02:25:00.080Z","trigger":"manual"}
+{"file":"Servex/agents/global.test.mjs","ok":false,"ms":284,"at":"2026-10-23T02:25:00.110Z","trigger":"manual","tail":"    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: master-assistant spawned, exact id, architect tier (D7: root assistant on Opus)\n    at t (file:///C:/Code/lew42/monorepo/Servex/agents/global.test.mjs:18:34)\n    at file:///C:/Code/lew42/monorepo/Servex/agents/global.test.mjs:104:2 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.15.0"}
+{"file":"Servex/agents/item-local.test.mjs","ok":true,"ms":198,"at":"2026-10-23T02:25:00.278Z","trigger":"manual"}
+{"file":"Servex/agents/item_tool.test.mjs","ok":true,"ms":520,"at":"2026-10-23T02:25:00.630Z","trigger":"manual"}
+{"file":"Servex/agents/landing-check.test.mjs","ok":false,"ms":454,"at":"2026-10-23T02:25:00.732Z","trigger":"manual","tail":"\n'{\"assign\":{\"branch\":\"michael/bags-rail\",\"landed_at\":\"2026-10-13T00:00:00-05:00\",\"outcome\":\"shipped\"}}\\n' +\n  '{\"log\":{\"at\":\"2026-10-22T21:25:00-05:00\",\"msg\":\"landed but 1 commits are not on michael/dev: public/framework/ai/2026-10-02/card-pipeline/task.jsonl\"}}\\n'\n\n    at file:///C:/Code/lew42/monorepo/Servex/agents/landing-check.test.mjs:10:8 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: '{\"assign\":{\"branch\":\"michael/bags-rail\",\"landed_at\":\"2026-10-13T00:00:00-05:00\",\"outcome\":\"shipped\"}}\\n' +\n    '{\"log\":{\"at\":\"2026-10-22T21:25:00-05:00\",\"msg\":\"landed but 1 commits are not on michael/dev: public/framework/ai/2026-10-02/card-pipeline/task.jsonl\"}}\\n',\n  expected: /landing line written but 1 of 1 files/,\n  operator: 'match',\n  diff: 'simple'\n}\n\nNode.js v24.15.0"}
+{"file":"Servex/agents/Sessions.test.mjs","ok":true,"ms":1884,"at":"2026-10-23T02:25:00.891Z","trigger":"manual"}
+{"file":"Servex/agents/layers.test.mjs","ok":true,"ms":286,"at":"2026-10-23T02:25:00.917Z","trigger":"manual"}
+{"file":"Servex/agents/page_tools.test.mjs","ok":false,"ms":97,"at":"2026-10-23T02:25:01.014Z","trigger":"manual","tail":"    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: page.js parent: children gets the new name\n    at ok (file:///C:/Code/lew42/monorepo/Servex/agents/page_tools.test.mjs:19:36)\n    at file:///C:/Code/lew42/monorepo/Servex/agents/page_tools.test.mjs:123:3 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.15.0"}
+{"file":"Servex/agents/open-task.test.mjs","ok":true,"ms":205,"at":"2026-10-23T02:25:01.097Z","trigger":"manual"}
+{"file":"Servex/agents/policy.test.mjs","ok":true,"ms":126,"at":"2026-10-23T02:25:01.141Z","trigger":"manual"}
+{"file":"Servex/agents/readme-chain.test.mjs","ok":true,"ms":50,"at":"2026-10-23T02:25:01.191Z","trigger":"manual"}
+{"file":"Servex/agents/requests.test.mjs","ok":true,"ms":145,"at":"2026-10-23T02:25:01.336Z","trigger":"manual"}
+{"file":"Servex/agents/log-tool.test.mjs","ok":true,"ms":619,"at":"2026-10-23T02:25:01.351Z","trigger":"manual"}
+{"file":"Servex/agents/respawn.test.mjs","ok":true,"ms":43,"at":"2026-10-23T02:25:01.380Z","trigger":"manual"}
+{"file":"Servex/agents/prompt-tasks.test.mjs","ok":true,"ms":327,"at":"2026-10-23T02:25:01.424Z","trigger":"manual"}
+{"file":"Servex/agents/roles.test.mjs","ok":true,"ms":54,"at":"2026-10-23T02:25:01.435Z","trigger":"manual"}
+{"file":"Servex/agents/revive-skip.test.mjs","ok":true,"ms":188,"at":"2026-10-23T02:25:01.539Z","trigger":"manual"}
+{"file":"Servex/agents/verb-note.test.mjs","ok":true,"ms":81,"at":"2026-10-23T02:25:01.620Z","trigger":"manual"}
+{"file":"Servex/agents/skill-tool.test.mjs","ok":true,"ms":204,"at":"2026-10-23T02:25:01.628Z","trigger":"manual"}
+{"file":"Servex/agents/wakeups.test.mjs","ok":true,"ms":420,"at":"2026-10-23T02:25:02.040Z","trigger":"manual"}
+{"file":"Servex/asks/tasks.test.mjs","ok":true,"ms":139,"at":"2026-10-23T02:25:02.179Z","trigger":"manual"}
+{"file":"Servex/ext/openrouter/provider.test.mjs","ok":true,"ms":47,"at":"2026-10-23T02:25:02.226Z","trigger":"manual"}
+{"file":"Servex/asks/asks.test.mjs","ok":true,"ms":710,"at":"2026-10-23T02:25:02.339Z","trigger":"manual"}
+{"file":"Servex/ext/refine/test/LiveRefine.test.mjs","ok":true,"ms":2253,"at":"2026-10-23T02:25:04.480Z","trigger":"manual"}
+{"file":"Servex/pool-heal.test.mjs","ok":true,"ms":1311,"at":"2026-10-23T02:25:05.792Z","trigger":"manual"}
+{"file":"Servex/pool-hold.test.mjs","ok":true,"ms":262,"at":"2026-10-23T02:25:06.054Z","trigger":"manual"}
+{"file":"Servex/processes.test.mjs","ok":false,"ms":44,"at":"2026-10-23T02:25:06.098Z","trigger":"manual","tail":"AssertionError [ERR_ASSERTION]: task_key cuts at ai/\n    at ok (file:///C:/Code/lew42/monorepo/Servex/processes.test.mjs:11:37)\n    at file:///C:/Code/lew42/monorepo/Servex/processes.test.mjs:47:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)\n    at async node:internal/modules/esm/loader:639:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.15.0"}
+{"file":"Servex/agents/awaken-race.test.mjs","ok":false,"ms":7484,"at":"2026-10-23T02:25:06.591Z","trigger":"manual","tail":"FAILED: TaskLoop.escalate(): the same {ok:false} card answer falls back to the Inbox\nfile:///C:/Code/lew42/monorepo/Servex/TaskLoop.js:366\n        const said = await this.post_card(file, info, question, [\"close it\", \"keep chasing\"]);\n                                ^\n\nTypeError: this.post_card is not a function\n    at Object.escalate (file:///C:/Code/lew42/monorepo/Servex/TaskLoop.js:366:33)\n    at file:///C:/Code/lew42/monorepo/Servex/agents/awaken-race.test.mjs:336:36\n    at check (file:///C:/Code/lew42/monorepo/Servex/agents/awaken-race.test.mjs:34:49)\n    at file:///C:/Code/lew42/monorepo/Servex/agents/awaken-race.test.mjs:323:7\n\nNode.js v24.15.0"}
+{"file":"Servex/agents/spawn-worktree.test.mjs","ok":true,"ms":5332,"at":"2026-10-23T02:25:06.768Z","trigger":"manual"}
+{"file":"public/framework/ai/AISession/AISessionIndex.test.mjs","ok":true,"ms":62,"at":"2026-10-23T02:25:06.830Z","trigger":"manual"}
+{"file":"public/framework/ai/AITask/tree.test.mjs","ok":false,"ms":43,"at":"2026-10-23T02:25:06.874Z","trigger":"manual","tail":"\nError: ENOENT: no such file or directory, scandir 'C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\2026-09-29'\n    at Object.readdirSync (node:fs:1570:26)\n    at walk (file:///C:/Code/lew42/monorepo/public/framework/ai/AITask/tree.test.mjs:70:21)\n    at file:///C:/Code/lew42/monorepo/public/framework/ai/AITask/tree.test.mjs:77:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)\n    at async node:internal/modules/esm/loader:639:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  errno: -4058,\n  code: 'ENOENT',\n  syscall: 'scandir',\n  path: 'C:\\\\Code\\\\lew42\\\\monorepo\\\\public\\\\framework\\\\ai\\\\2026-09-29'\n}\n\nNode.js v24.15.0"}
+{"file":"public/framework/audio/Whisper/WhisperLogRows.test.mjs","ok":true,"ms":52,"at":"2026-10-23T02:25:06.926Z","trigger":"manual"}
+{"file":"public/framework/ai/AISession/AISessionCost.test.mjs","ok":true,"ms":851,"at":"2026-10-23T02:25:07.442Z","trigger":"manual"}
+{"file":"public/framework/core/Item/Item.test.mjs","ok":true,"ms":43,"at":"2026-10-23T02:25:07.486Z","trigger":"manual"}
+{"file":"public/framework/core/Item/act.test.mjs","ok":true,"ms":73,"at":"2026-10-23T02:25:07.559Z","trigger":"manual"}
+{"file":"public/framework/core/Item/Dated.test.mjs","ok":true,"ms":1184,"at":"2026-10-23T02:25:08.110Z","trigger":"manual"}
+{"file":"public/framework/core/Property/Property.test.mjs","ok":true,"ms":48,"at":"2026-10-23T02:25:08.158Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Session.test.mjs","ok":true,"ms":48,"at":"2026-10-23T02:25:08.206Z","trigger":"manual"}
+{"file":"public/framework/core/Task/Project.test.mjs","ok":true,"ms":47,"at":"2026-10-23T02:25:08.253Z","trigger":"manual"}
+{"file":"public/framework/core/Task/Task.test.mjs","ok":true,"ms":51,"at":"2026-10-23T02:25:08.305Z","trigger":"manual"}
+{"file":"public/framework/core/Page/Template/Template.test.mjs","ok":true,"ms":3178,"at":"2026-10-23T02:25:10.737Z","trigger":"manual"}
+{"file":"public/framework/core/Task/child-verb.test.mjs","ok":true,"ms":48,"at":"2026-10-23T02:25:10.786Z","trigger":"manual"}
+{"file":"public/framework/ext/Refine/test/Placement.test.mjs","ok":true,"ms":44,"at":"2026-10-23T02:25:10.830Z","trigger":"manual"}
+{"file":"public/framework/ext/Shots/Shots.test.mjs","ok":true,"ms":57,"at":"2026-10-23T02:25:10.888Z","trigger":"manual"}
+{"file":"Servex/ext/remote/RemoteMCP.test.mjs","ok":true,"ms":11904,"at":"2026-10-23T02:25:14.244Z","trigger":"manual"}
+{"file":"Servex/whisper-detach.test.mjs","ok":true,"ms":15624,"at":"2026-10-23T02:25:21.722Z","trigger":"manual"}
+{"file":"public/framework/core/Task/TasksPage.test.mjs","ok":false,"ms":23091,"at":"2026-10-23T02:25:31.396Z","trigger":"manual","tail":"ok - a tasks/ path with no page of its own mounts TasksPage (got TasksPage)\nok - a module's Tasks tab shows its one group of rows\nnode:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\npage.waitForFunction: Timeout 20000ms exceeded.\n    at mounted (C:\\Code\\lew42\\monorepo\\public\\framework\\core\\Task\\TasksPage.test.mjs:13:12)\n    at async file:///C:/Code/lew42/monorepo/public/framework/core/Task/TasksPage.test.mjs:31:15 {\n  log: [],\n  name: 'TimeoutError'\n}\n\nNode.js v24.15.0"}

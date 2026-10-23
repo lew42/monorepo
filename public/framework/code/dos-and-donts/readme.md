@@ -32,6 +32,7 @@ all already spoken for.
 - **Every process you start is hidden** — `windowsHide: true` on every Node spawn; PowerShell uses
   `Start-Process -WindowStyle Hidden`. A visible window popping up in front of the owner has broken
   his work more than once.
+- **A node test is `X.test.mjs`, run by `core/Test/TestRunner.mjs`; a test earns its place by a silent break or a spec** — never for what is certain to pass: [core/Test](/framework/core/Test/)
 
 ## More
 

@@ -30,3 +30,4 @@
 {"assign":{"cost_usd":15.9246,"cost":{"root":"task-mastermind-session-costs","agents":[{"id":"task-mastermind-session-costs","model":"claude-sonnet-5","role":"task-mastermind","usd":15.9246}],"own_usd":15.92,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-02T23:06:00-05:00","to":null},"at":"2026-10-03T17:48:34-05:00"}}}
 {"assign":{"cost_usd":16.0551,"cost":{"root":"task-mastermind-session-costs","agents":[{"id":"task-mastermind-session-costs","model":"claude-sonnet-5","role":"task-mastermind","usd":16.0551}],"own_usd":16.06,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-02T23:06:00-05:00","to":null},"at":"2026-10-03T18:27:25-05:00"}}}
 {"stop":{"at":"2026-10-18T08:02:51-05:00","why":"abandoned: no agent since 2026-10-03T00:07:10-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"task":"/framework/ai/sessions/2026/10/02/session-costs/minion-build/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.156Z"}

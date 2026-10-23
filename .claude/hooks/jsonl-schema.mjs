@@ -148,7 +148,9 @@ schemas["session.jsonl"] = { ...schemas["task.jsonl"], what: "a session folder's
 		// a task is a line in its session's log (sessions-and-tasks.md, "The decided shape")
 		task: { fields: ["title"], eg: { at: "NOW", title: "what the task is", state: "open" } },
 		// the session's own settings, one changed key per line, later lines win (core/Session/Session.js SETTINGS; the settings page writes it)
-		settings: { fields: [], eg: { model: "claude-sonnet-5-5" } } }, pending: [...(schemas["task.jsonl"].pending ?? []), "tag", "task"] };   // tag lines: read by AISession.record(), not by the task reader
+		settings: { fields: [], eg: { model: "claude-sonnet-5-5" } },
+		// the owner's answer to a proposed task, pressed on the session page (core/Session/SessionTasks.js; Session.replay_line applies it)
+		decide: { fields: ["task", "is"], eg: { task: "<task id>", is: "approve", note: "optional" } } }, pending: [...(schemas["task.jsonl"].pending ?? []), "tag", "task"] };   // tag lines: read by AISession.record(), not by the task reader
 
 /* Servex's `append_log` writes its OWN named logs (under SERVEX_HOME, never a repo file), and
  * every one of those is an event: one flat object with a string `type`. */

@@ -6,3 +6,4 @@
 {"log":{"at":"2026-10-07T23:16:34-05:00","msg":"task-loop chase 2 of 2: could not wake: no owning agent found","chase":2}}
 {"log":{"at":"2026-10-07T23:46:34-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
 {"stop":{"at":"2026-10-18T08:02:54-05:00","why":"abandoned: no agent since 2026-10-07T23:46:34-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"task":"/framework/ai/sessions/2026/10/07/feedback-council/checker-1/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.171Z"}

@@ -10,3 +10,4 @@
 {"decision":{"what":"Inbox rows show an importance badge only; Needs you is re-ranked by importance, the Inbox keeps newest-first","why":"brief says inbox.js 'score only', and the owner asked earlier for newest card on top","alt":"rank the Inbox by importance too"},"at":"2026-09-30T13:53:20-05:00"}
 {"log":"minion-asks-backend spawned (Sonnet high) in the worktree; view brief written, spawns when backend lands (one minion at a time)","at":"2026-09-30T13:53:20-05:00"}
 {"stop":{"at":"2026-10-18T08:02:34-05:00","why":"abandoned: no agent since 2026-09-30T13:53:20-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"task":"/framework/ai/sessions/2026/09/30/asks-ledger/asks-ledger/backend/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.003Z"}

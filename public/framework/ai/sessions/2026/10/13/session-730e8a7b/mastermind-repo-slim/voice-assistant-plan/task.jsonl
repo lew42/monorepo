@@ -24,3 +24,5 @@
 {"log":{"at":"2026-10-17T00:12:29-05:00","msg":"owner-check: no owner words found"}}
 {"log":{"at":"2026-10-17T00:12:32-05:00","msg":"lifecycle: nothing of this task's was left running"}}
 {"log":{"at":"2026-10-17T00:12:32-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/sessions-wake/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.536Z"}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-assistant-plan/swallow/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.538Z"}

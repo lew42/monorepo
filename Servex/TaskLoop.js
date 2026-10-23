@@ -87,6 +87,7 @@ export default class TaskLoop {
             this.undone_asks_daily();
             await this.servex.process_runner?.tick().catch(() => {});   // every process moves on, or resumes after a restart (ProcessRunner)
             await this.servex.respawn?.tick().catch(() => {});   // a standing agent a day old and not busy gets a fresh session (agents/Respawn.js)
+            await this.servex.prompt_tasks?.sweep().catch(() => {});   // an approved prompt task that names a module moves home (agents/PromptTasks.js)
             const now = Date.now(), registry = this.servex.agents.registry_list();
             let open = 0, quiet = 0, escalations = 0;
 
@@ -141,6 +142,8 @@ export default class TaskLoop {
         this.follow_up_busy = true;
         const run = (script, args, done) => execFile(process.execPath, [path.join(this.root, "Server", script), ...args], { cwd: this.root, windowsHide: true, timeout: 120000 }, done);
         // the step before it, 2026-10-18: StaleClose --apply stops the stale tasks silent over StaleClose.HOURS, so the follow-up does not list them (Server/doc/stale-close.md)
+        // and the links backfill (review fix 1): every task / child-session folder gets its reference on its parent log, so no hand step (Server/SessionRecord.mjs apply_links)
+        try { const n = new SessionRecord({ root: this.root }).apply_links().applied; if (n) console.log(`[task-loop] session links backfilled: ${n}`); } catch (e){ console.warn("[task-loop] session links backfill failed:", e); }
         run("StaleClose.mjs", ["--apply"], () => run("FollowUp.mjs", ["--write"], (err, out) => {
             this.follow_up_busy = false;
             if (err) return this.servex?.log?.append("servex", { type: "task-loop-error", error: "follow-up: " + String(err.message || err) }).catch(() => {});

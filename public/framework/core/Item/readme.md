@@ -71,6 +71,8 @@ An item added to a parent logs its deltas to the parent's store. Not every item 
 - ✅ An item added to a parent's `List` logs to the parent's store, nested under its id: `{"kids":{"add":{...}}}`, then `{"k":{"set":{...}}}`. A reload replays it. (`Item.test.mjs`)
 - ✅ Own file: an item with its own store, or marked `_own_file`, is skipped by the parent's store (`Store.js` `owned_below`). `Task.open_ref` does this.
 - ✅ One tail: every store and `JSONL` instance tails through `ext/JSONL/live.js` `stream()`. Items, pages and tasks reach it through `Store.open()`; the board logs through the `JSONL` class, which calls `stream()` directly.
+- ✅ A button saves its verb: `item.act("start")` runs the method and records `{"start":{}}`. A task's store posts that line to Servex `POST /api/item` (the item tool's writer, loopback only), which stamps it `by: "owner"` and `ts`. If Servex can't take it, the line falls back to the plain append. Why: [doc/architecture.md](./doc/architecture.md#a-button-saves-its-verb-through-the-item-tool). (`act.test.mjs`)
+- ✅ An item moves home: `{"<id>":{"move":{"to":"<folder url>"}}}` through the item tool (or `spawn_agent` with `task: {from, id}`) moves a subtask out of its parent's log into its own folder, with its id, every line of its history, and one `{"task", "as"}` reference left behind. Why: [doc/architecture.md](./doc/architecture.md#an-item-moves-home-with-its-id-its-history-and-one-reference). (`item_tool.test.mjs`)
 - ⬜ `item.set("prop", anotherItem)` is only a snapshot: the child is not adopted and its later deltas are not logged. Plan: [doc/next.md](./doc/next.md).
 - ⬜ Dynamic upgrade (an item moving itself from the parent's store to its own file when it needs one) is a noted idea, not built.
 

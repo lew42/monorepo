@@ -1,0 +1,23 @@
+# Where a task falls through the cracks
+
+Read-only look at today's code (`Servex/TaskLoop.js`, `Servex/Heartbeat.js`, `Server/StaleClose.mjs`, `Servex/agents/PromptTasks.js`) plus the real store. Counts come from [measure.mjs](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/risk-analysis/measure.mjs) and the daily reports already on disk — nothing here is guessed.
+
+| # | Crack | Seen (count or example) | Check or code that closes it |
+|---|-------|--------------------------|-------------------------------|
+| 1 | **Unread logs.** A line gets written — a child's result, a status check's answer — and nothing ever reads it back. | 454 unread lines across 69 of 89 `inbox.jsonl` files (store-wide). | None reads an inbox on its own; `Heartbeat.drain()` only reads one when it revives that task's parent. |
+| 2 | **Creation.** A prompt becomes an "ask" but never a task: no module to file it under, or the owner never approved the proposal. | Of 1167 asks counted, 625 are still undone and 477 are "unroutable" (`public/framework/ai/asks/undone.json`). | `Server/UndoneAsks.mjs --json`, run once a day by `TaskLoop.undone_asks_daily()`; `PromptTasks.sweep()` only moves a task once the owner approves it **and** it names a module. |
+| 3 | **Completion claims without proof.** `Task.complete({outcome})` accepts any outcome text; nothing checks it against the brief. | Of 92 tasks opened in the last 7 days: 42 reached `complete`, 50 did not (21 still `running`, 28 `stopped`, 1 `idle`). | None yet. `public/framework/core/Task/Task.js` (`complete()`, line ~282) notes the "yes/no check of each string" as a later step, not built. |
+| 4 | **Silently abandoned tasks.** A `running` task whose agent died just sits — only a once-a-day sweep notices. | `StaleClose.mjs --apply` has closed 451 tasks to date (`public/framework/ai/stale-closes.jsonl`); right now one running task has been quiet 144.8 hours with nothing touching it. | `Server/StaleClose.mjs --apply`, 24-hour floor, run daily from `TaskLoop.follow_up_daily()`. |
+| 5 | **Waiting on anything but the owner.** `TaskLoop.tick()` only reminds a `waiting` task when `waiting_on` is `"owner"`; waiting on a child, a sibling, anything else gets no reminder, ever. | By design, not a bug yet triggered — but nothing would notice if it were. | `Servex/TaskLoop.js` tick(), the `info.task_state === "waiting"` branch. |
+| 6 | **Handoff: an orphaned child folder.** A nested task folder exists, but the parent's own log never mentions it, so a reader following the parent never finds the child. | 2 of 92 scanned folders (`compact-nudge` and `task-migrate`, both under `.../voice-20261016`). | Nothing cross-checks a child directory against its parent's text today. |
+| 7 | **Async reply to a stopped parent.** A child finishes and writes to the parent's `inbox.jsonl`, but the parent only reads its inbox when `Heartbeat` revives it — a parent that landed, or was never retriaged, never sees the reply. | Folded into row 1's 454 unread lines. | `Heartbeat.drain()`, the `unread = this.inbox(dir)` line. |
+| 8 | **Restarts and compaction.** The live index watcher is a child process; if it dies at a restart and nothing notices, pages relying on it go stale. | Happened once: 2026-10-20, the watcher died at a restart and the Inbox sat 30 minutes stale before a fix. | `Servex/TaskLoop.js` `watch_state()` now respawns the watcher on exit, at most once a minute. |
+| 9 | **Escalation cap.** Only 5 tasks get escalated to the owner per tick; a bigger backlog waits an extra 5 minutes. | Not hit today (the 7-day scan found 0 escalated lines), but the cap exists. | `Servex/TaskLoop.js`, `max_escalations` in `tick()`. |
+
+## What chases a task today
+
+1. `TaskLoop.tick()` runs every 5 minutes and only looks at tasks marked `running` that opted into the heartbeat (line 1 dated after 2026-09-29, or `heartbeat: true`); anything older is invisible to it.
+2. A running task quiet past 10 minutes, or whose agent is gone, gets one wake message, a second 15 minutes later, then an escalation card to the owner — after that it is never chased again.
+3. `Heartbeat.tick()` runs every 1–2 minutes; for a dead agent it queues a revive (reopens the session) rather than just messaging it, draining one revive every 30 seconds.
+4. A `waiting` task is treated differently: only `waiting_on: "owner"` gets a reminder (first at 2 hours, then every 24 hours); a **proposed** task (state `waiting`, filed by `PromptTasks` from a prompt) sits the same way until the owner approves it on the session page.
+5. Once a day, `StaleClose.mjs` closes any task silent 24+ hours with no live agent holding it, so an abandoned task stops looking open forever.

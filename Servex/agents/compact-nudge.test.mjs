@@ -29,13 +29,15 @@ function fake(over = {}){
 	t(a.oversized() === null, "160k is not a reason to auto-compact");
 	t(a.nudge_send() === true, "160k idle: nudged");
 	t(sent.length === 1 && sent[0].note.from === "servex-compact-nudge", "sent through send() with a servex-* from");
-	t(/160,000 tokens, cache warm \(last turn 0 minutes ago\)\. You are idle\. Compact now unless something in flight needs this context\./.test(sent[0].text), sent[0].text);
+	t(/160,000 tokens \(16% of the window\), cache warm \(last turn 0 minutes ago\)\. You are idle\. Compact at your next natural break/.test(sent[0].text), sent[0].text);
 	t(events[0].type === "compact_nudge" && events[0].context === 160000 && events[0].cache === "warm", "logged {type:compact_nudge, context, cache}");
 	a.state = "idle";   // the nudge turn ends, context barely moved
 	a.context = 163000;
 	t(a.nudge() === null, "once per idle period: +3k does not re-nudge");
 	a.context = 160000 + NUDGE_GROWTH;
-	t(a.nudge() !== null, "grew by 20k: nudged again");
+	t(a.nudge() === null, "grew by 20k: not yet, the step is 5% of the window (50k on 1M)");
+	a.context = 210000;
+	t(a.nudge() !== null, "grew by 50k: the next step reminder");
 }
 { // cold cache
 	const { a } = fake({ context: 300000, turn_ended_at: Date.now() - 12 * 60000 });

@@ -43,3 +43,18 @@ An **item** is a thing kept as one JSONL log: line 1 says what it is, later line
 - Two ways to write a line (`log`/`LogLine` for stamped event lines, `item` for deltas the class replays) and a third for pages (`page_*`). `page_*` is `item` on a page path; the aliases can go once callers move.
 - `run_item` maps `task.jsonl`, `session.jsonl` and `page.jsonl` to Task, Session and Page (`FILE_CLASS`, `page_tools.js`), but `item-tool.md` said Session was "class not built yet" (stale; fixed there). A Session folder made by `AISession` keeps its words in `page.jsonl`, so which class wins is decided by the files present.
 - Cards, inbox, follows and claims are written by their own tools (`Cards.js`, `Follow.js`, `claims.js`, `ModuleInbox.js`) and are not Item classes; they are the groups the compacted-tools proposal would move behind `item` ([tools-map.md](/Servex/doc/tools-map.md)).
+
+## How a change is saved: the browser and the item tool (2026-10-22)
+
+Two writers save item changes today. They differ, and the task [ui-actions-as-deltas](../tasks/ui-actions-as-deltas/requirements.md) joins them.
+
+| | Browser (a click on a page) | Item tool (an agent) |
+|---|---|---|
+| Who calls | `Item.set()` or a verb such as `task.start()`; the Store hears the `"delta"` event (`Store.attach`) | `item({path, delta})` → `run_item` (`Servex/agents/page_tools.js`) |
+| What the line says | the **result**: `{"state":"running","started_at":…}` (`Task.start` calls `set`) | the **verb**: `{"start":{}}`, replayed by the class |
+| Process and writer | dev server: `Store.flush` → `FsFile.send` → socket RPC `append` → `Server/plugins/SocketServer/Append.js` | Servex: `write_line` → `fs.appendFileSync` |
+| Validation | the file's JSONL schema only (`jsonl-schema.mjs` `check`) | the class: a key must be a method, a field or a child (`validate`) |
+| Stamping | none: no `by`, no `ts` | `by` = the caller (`owner` for the owner), `ts` = now |
+| After the write | the tab's own echo is skipped; other tabs get the line through `Tail.js` | node's live instance advances; `hooks.approved` (starts a templated task's agent) and `hooks.changed` (steps a process) fire; Follow tells subscribed agents |
+
+So a click never starts the agent an approval should start, and a reader cannot tell who pressed it.

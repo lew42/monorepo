@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Test/",
+ "widths": {
+  "1280": {
+   "empty": 0.53,
+   "widest_text": 1035,
+   "widest_text_sample": "— a good batch against task.jsonl's sche",
+   "overflow_x": false,
+   "items": 139,
+   "narrow_share": 0.029
+  },
+  "1920": {
+   "empty": 0.613,
+   "widest_text": 1101,
+   "widest_text_sample": "— a good batch against task.jsonl's sche",
+   "overflow_x": false,
+   "items": 139,
+   "narrow_share": 0.281
+  },
+  "2560": {
+   "empty": 0.682,
+   "widest_text": 1238,
+   "widest_text_sample": "— a good batch against task.jsonl's sche",
+   "overflow_x": false,
+   "items": 139,
+   "narrow_share": 0.281
+  },
+  "3440": {
+   "empty": 0.741,
+   "widest_text": 1238,
+   "widest_text_sample": "— a good batch against task.jsonl's sche",
+   "overflow_x": false,
+   "items": 139,
+   "narrow_share": 0.281
+  }
+ },
+ "errors": []
+}

@@ -1,0 +1,15 @@
+{"session":{"id":"cloud-voice-session-system-test","kind":"cloud-voice-agent","caller":"voice-app","at":1792721079662}}
+{"tool_call":{"at":"2026-10-23T02:04:39.663Z","tool":"register_session","args_hash":"f11212bd5a3b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-23T02:04:41.648Z","tool":"item","args_hash":"fd80060e8ebc","caller":"voice-app"}}
+{"tasks":{"add":{"type":"Task","title":"E2E check: voice session task","tasks":[],"id":"e2e-check-voice-session-task"}},"by":"voice-app","ts":"2026-10-23T02:04:41.653Z"}
+{"sessions":[{"id":"voice-app","task":"/framework/ai/sessions/2026/10/22/cloud-voice-session-system-test/"}],"by":"voice-app","ts":"2026-10-23T02:04:41.655Z"}
+{"tool_call":{"at":"2026-10-23T02:04:43.912Z","tool":"item","args_hash":"4d4db5a91f19","caller":"voice-app"}}
+{"e2e-check-voice-session-task":{"tasks":{"add":{"id":"abafd781-1f58-452e-9dab-2e642c814aaa","title":"Subtask one"}}},"by":"voice-app","ts":"2026-10-23T02:04:43.917Z"}
+{"tool_call":{"at":"2026-10-23T02:04:47.314Z","tool":"item","args_hash":"f40104c6fa85","caller":"voice-app"}}
+{"e2e-check-voice-session-task":{"start":{},"abafd781-1f58-452e-9dab-2e642c814aaa":{"start":{},"complete":{"outcome":"done through the remote door"}}},"by":"voice-app","ts":"2026-10-23T02:04:47.319Z"}
+{"tool_call":{"at":"2026-10-23T02:04:52.549Z","tool":"item","args_hash":"de824186116b","caller":"voice-app"}}
+{"e2e-check-voice-session-task":{"complete":{"outcome":"end-to-end check through the remote MCP"}},"by":"voice-app","ts":"2026-10-23T02:04:52.550Z"}
+{"tool_call":{"at":"2026-10-23T02:04:53.734Z","tool":"item","args_hash":"e086501f578b","caller":"voice-app"}}
+{"task":"/framework/ai/sessions/2026/10/22/cloud-voice-session-system-test/e2e-check-process/","by":"voice-app","ts":"2026-10-23T02:04:53.752Z"}
+{"tool_call":{"at":"2026-10-23T02:04:55.798Z","tool":"item","args_hash":"771910147d99","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-23T02:04:59.836Z","tool":"item","args_hash":"9b340d76dc64","caller":"voice-app"}}

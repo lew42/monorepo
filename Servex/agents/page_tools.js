@@ -479,7 +479,9 @@ function make_child(parent_dir, add, ctx, home){
  * add per phase come from Process.DEFINITIONS, and ProcessRunner starts it (hooks.changed). Refused: an unknown process, a taken slug. */
 async function process_home(parent_dir, add){
 	const Process = await LOADERS.Process();
-	if (!Process.DEFINITIONS[add.process]) return { why: `no process "${add.process}"; the processes are: ${Object.keys(Process.DEFINITIONS).join(", ")}` };
+	if (!Process.DEFINITIONS[add.process] && !Process.from_steps(add.steps)) return { why: add.steps
+		? "`steps` must be a non-empty list of {title, do, session?} with distinct titles (an id that is a line key or verb, like file or improve, gets -step added)"
+		: `no process "${add.process}"; the processes are: ${Object.keys(Process.DEFINITIONS).join(", ")}, or give your own \`steps\`` };
 	const slug = slug_of(add.id ?? add.title), dir = path.join(parent_dir, slug);
 	// A folder that only holds a brief is fine (write the brief, then start the process in it); one with a log is taken.
 	if (["task.jsonl", "session.jsonl"].some(f => fs.existsSync(path.join(dir, f)))) return { why: `"${slug}" already holds a task in this folder; nothing was written. Give the process another id or title.` };
@@ -489,7 +491,7 @@ function make_process(parent_dir, add, ctx, home){
 	const [first, ...adds] = home.process.lines(add);
 	const h = make_child(parent_dir, first, ctx, home), file = path.join(home.dir, "task.jsonl");
 	for (const line of adds) write_line(file, { ...line, by: ctx.caller ?? "agent", ts: now() }, true);
-	return { ...h, process: add.process, file };
+	return { ...h, process: first.process, file };
 }
 
 /* DRAFT IN THE SESSION, THEN MOVE HOME (core/Task/doc/owner-2026-10-20-projects-and-completion.md §6). A task folder (a process once its
@@ -529,11 +531,89 @@ export async function move_home(file, module, by = "ProcessRunner"){
 	return { from, to, file: nf };
 }
 
+/* MOVE A NESTED TASK HOME (owner prompts become tasks, 2026-10-22): a proposal drafted as lines in a session's record
+ * (`{"tasks":{"add":…}}` in session.jsonl), once approved, gets its own folder <module>/tasks/<slug>/: line 1 carries its data,
+ * the session gets a same-id `{task}` reference (which replaces the nested child, core/Session/Session.js), the module list
+ * references it, and task-moves.jsonl records the move. Same steps as move_home above, for a task that had no folder yet.
+ * Returns {from, to, file} or {why}. PromptTasks.sweep() calls it. */
+export async function move_nested_home(record, id, module, by = "PromptTasks"){
+	const file = path.resolve(record);
+	const { default: Session } = await import("../../public/framework/core/Session/Session.js");
+	const kid = Session.replay(parse_lines(file))._tasks?.find(id);
+	if (!kid) return { why: `"${id}" is not a task in ${app_path(path.dirname(file))}` };
+	if (kid.data.path) return { why: "already has its own folder" };
+	const home = task_home(path.dirname(file), { id, module }, FRAMEWORK, "");
+	if (!home) return { why: `no module folder public/framework/${module}` };
+	if (fs.existsSync(home.dir)) return { why: `${app_path(home.dir)} already exists; the task stays in its session` };
+	const moved = await move_item({ from: app_path(path.dirname(file)), id, to: app_path(home.dir), by, module });   // the one mover: history, reference, ledger
+	if (moved.why) return moved;
+	const at = now(), to = moved.to;
+	const list = path.join(home.list.dir, "task.jsonl");
+	if (!fs.existsSync(list)){
+		write_line(list, { id: "tasks", path: app_path(home.list.dir), title: `${home.list.module} tasks`, mode: "parallel" }, true);
+		TaskHomes.add(app_path(home.list.dir), by);
+	}
+	write_line(list, { task: to, by, ts: at }, true);
+	record_new_folder(home.list.dir, home.slug);
+	return moved;
+}
+
+/* MOVE AN ITEM TO A NEW HOME (core/Item/tasks/item-move/design.md): a subtask written as lines in a parent's log moves to the folder
+ * `to` (a url) with its id, its whole history (each line keeps its by/ts) and ONE reference left behind:
+ * {"task": to, "as": id, "moved_from": "<from>#<id>"}, which Task/Session replay swap for the nested child (same id).
+ * Order: check everything, then write the new file, the old-home reference and the ledger line. A refusal writes nothing.
+ * Returns {from, to, file} or {why}. Callers: the item tool's `move` key, open_task (handoff), move_nested_home. */
+export async function move_item({ from, id, to, by = "agent", module } = {}){
+	const pf = resolve_file(from, true), dir = typeof to === "string" ? path.resolve(PUBLIC, to.replace(/^[\\/]+/, "")) : null;
+	if (!pf || !fs.existsSync(pf)) return { why: `no record at ${from}` };
+	if (!dir || !dir.startsWith(PUBLIC + path.sep)) return { why: `"${to}" is not a folder under public/` };
+	const kind = path.basename(pf) === "session.jsonl" ? "Session" : class_of(pf);   // Session, not Task: it reads the owner's {decide} lines, which change a child without naming it
+	const Class = LOADERS[kind] ? await LOADERS[kind]().catch(() => null) : null;
+	if (!Class?.replay) return { why: `${from} is not a Task or Session record` };
+	link_refs(await LOADERS.Task());
+	const Task = await LOADERS.Task(), plines = parse_lines(pf), kid = Class.replay(plines)._tasks?.find(id);
+	if (!kid) return { why: `"${id}" is not a task in ${from}` };
+	if (kid._own_file) return { why: `"${id}" already lives in its own file (${kid._own_file})` };
+	if (path.resolve(path.dirname(pf)) === dir) return { why: "already home" };
+	// 2. The history: every line that addresses the child, in order, each with its own by/ts.
+	const hist = [], parent_url = app_path(path.dirname(pf)), moved_from = `${parent_url}#${id}`, url = app_path(dir);
+	for (const l of plines){
+		const { by: b, ts, ...body } = l, stamp = { ...(b !== undefined ? { by: b } : {}), ...(ts !== undefined ? { ts } : {}) };
+		const adds = is_plain(body.tasks) ? [].concat(body.tasks.add ?? []).filter(a => is_plain(a) && a.id === id) : [];
+		for (const a of adds){
+			const { type: _t, id: _i, after: _a, data, ...fields } = a;
+			hist.push({ id, path: url, parent: parent_url, set: { ...data, ...fields }, moved_from, ...stamp });
+		}
+		if (is_plain(body.tasks) && is_plain(body.tasks[id])) hist.push({ ...body.tasks[id], ...stamp });
+		if (is_plain(body[id])) hist.push({ ...body[id], ...stamp });
+	}
+	if (!hist.length) return { why: `no lines address "${id}" in ${from}` };
+	// 3. Check before writing: replay the history alone and compare with the live child; a snapshot closes any gap.
+	const SKIP = new Set(["path", "parent", "moved_from"]), plain = d => Object.fromEntries(Object.entries(d).filter(([k]) => !SKIP.has(k)));   // (two replays stamp `started_at` etc. from the clock, so *_at keys are compared by presence only)
+	const same = (a, b) => { const A = plain(a), B = plain(b), keys = new Set([...Object.keys(A), ...Object.keys(B)]); return [...keys].every(k => /_at$/.test(k) ? (k in A) === (k in B) : JSON.stringify(A[k]) === JSON.stringify(B[k])); };
+	const back = Task.replay(hist);
+	if (!same(back.data, kid.data) || back.state !== kid.state){
+		const set = { ...plain(kid.data), ...(back.state !== kid.state ? { state: kid.state } : {}) };
+		hist.push({ set, snapshot: true, by, ts: now() });
+	}
+	// 4. The new home, written BEFORE the reference: if the reference write failed, the task would show in both places (never lost). A folder with a log already (open_task's assign line) gets the history after it.
+	const nf = SessionRecord.start_file(dir, hist[0]), rel = p => path.relative(ROOT, p).split(path.sep).join("/");
+	fs.mkdirSync(dir, { recursive: true });
+	fs.appendFileSync(nf, hist.map(l => JSON.stringify(l) + "\n").join(""));
+	if (!fs.existsSync(path.join(dir, "page.js"))) fs.writeFileSync(path.join(dir, "page.js"), PAGE_JS);
+	// 5. The old home: one reference, with the id it had here. 6. The ledger.
+	const at = now();
+	write_line(pf, { task: url, as: id, moved_from, by, ts: at }, true);
+	fs.mkdirSync(path.dirname(ledgers.task_moves), { recursive: true });
+	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: `${rel(pf)}#${id}`, to: rel(dir), session: parent_url, ...(module ? { module } : {}), by, git: false }) + "\n");
+	return { from: moved_from, to: url, file: nf };
+}
+
 /* Requests are logged items (Servex/agents/doc/messaging.md). After a write: each new request goes to its receiver, and each
  * request this write completed goes back to whoever asked (`from`), with its outcome. A completion is a `complete` line on a nested
  * child ({"<id>": {"complete": …}}, or a target of [<id>]), or on a request that has its own folder (the file's own root). */
 function notify_requests(live, at, body, requests, by){
-	for (const r of requests) if (hooks.requested) Promise.resolve(hooks.requested(r)).catch(() => {});
+	for (const r of requests) if (hooks.requested && r.to) Promise.resolve(hooks.requested(r)).catch(() => {});   // a log with no agent (a VS Code tab's session) has nobody to tell
 	if (!hooks.answered) return;
 	const done = [];
 	if (at.target.length === 1 && body.complete !== undefined) done.push(live._tasks?.find(at.target[0]));
@@ -543,7 +623,7 @@ function notify_requests(live, at, body, requests, by){
 	}
 	for (const t of done){
 		const from = t?.get_one("from");
-		if (!from || from === by || t.state !== "complete") continue;
+		if (!from || from === by || from === "owner" || t.state !== "complete") continue;   // the owner sees it on the page
 		Promise.resolve(hooks.answered({ to: from, by, id: t.id, title: t.get_one("title") ?? t.id, outcome: t.get_one("outcome") ?? null, path: t === live ? (live.get_one("path") ?? app_path(path.dirname(at.file))) : app_path(path.dirname(at.file)) })).catch(() => {});
 	}
 }
@@ -588,6 +668,18 @@ function task_state(Task, task){
 	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, phase: task.phase?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
 	if (Task.name === "Session") return { class: "Session", completion: task.completion, progress: task.progress(), data: { ...task.data }, tasks };
 	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
+}
+
+// The first task verb anywhere in a delta ({"tasks":{"<id>":{"start":{}}}} -> "start"), or null.
+const TASK_VERBS = new Set(["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "check"]);
+function verb_in(delta){
+	if (!is_plain(delta)) return null;
+	for (const [k, v] of Object.entries(delta)){
+		if (TASK_VERBS.has(k)) return k;
+		const deeper = k === "add" ? null : verb_in(v);   // a new task's own fields are not a verb call
+		if (deeper) return deeper;
+	}
+	return null;
 }
 
 function refusal(why, Class){
@@ -644,6 +736,7 @@ export const hooks = {
 	changed: null,     // Servex sets it to `file => process_runner.step(file)` (a process moves on after any write)
 	requested: null,   // requested/answered: Servex sends the one-line notices (Servex/agents/doc/messaging.md, "Requests are logged items")
 	answered: null,
+	prompted: null,   // Servex: an owner Prompt landed on a session page -> PromptTasks files its asks (Servex/agents/PromptTasks.js)
 };
 
 export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
@@ -676,6 +769,16 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		const a = flat.tasks.add, id = slug_of(a.id ?? a.title);
 		if (root()._tasks?.find(id)) { delete flat.tasks; flat[id] = { reinforce: { ...(a.why ? { why: a.why } : {}) } }; }
 	}
+	// MOVE (design.md): {"<id>":{"move":{"to":url}}}, {"tasks":{"<id>":{"move":{"to":url}}}} or move on target [<id>]. Handled here, not written as a line.
+	if (Class?.replay){
+		const mv = (id, v) => is_plain(v) && Object.keys(v).length === 1 && is_plain(v.move) ? { id, to: v.move.to } : null;
+		const inner = is_plain(flat.tasks) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1 ? Object.entries(flat.tasks)[0] : null;
+		const asked = at.target.length === 1 ? mv(at.target[0], flat) : Object.keys(flat).length === 1 ? (inner ? mv(...inner) : mv(...Object.entries(flat)[0])) : null;
+		if (asked && asked.id !== "tasks"){
+			const r = await move_item({ from: app_path(path.dirname(at.file)), id: asked.id, to: asked.to, by: ctx.caller ?? "agent" });
+			return r.why ? { ok: false, why: r.why } : { ok: true, moved: { from: r.from, to: r.to }, state: state() };
+		}
+	}
 	if (Class?.replay){ const no = validate(Class, root(), flat); if (no) return no; }
 
 	// `pages` and `folder` are the keys the tool handles itself: a folder is made on disk (Subpages.js, give_folder).
@@ -698,7 +801,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		const plan = [];
 		for (const a of [].concat(add)){
 			if (!is_plain(a)) return { ok: false, why: "`tasks.add` takes an object (the new task's fields)" };
-			const home = typeof a.process === "string" ? await process_home(path.dirname(at.file), a) : path.basename(at.file) === "improvements.jsonl" ? null : task_home(path.dirname(at.file), a, ctx.module_root, url);   // an improvement nests in its folder's list (mastermind role readme)
+			const home = typeof a.process === "string" || Array.isArray(a.steps) ? await process_home(path.dirname(at.file), a) : path.basename(at.file) === "improvements.jsonl" ? null : task_home(path.dirname(at.file), a, ctx.module_root, url);   // an improvement nests in its folder's list (mastermind role readme)
 			if (home?.why) return { ok: false, why: home.why };
 			if (home?.taken) return { ok: false, why: `a task "${home.slug}" already exists under ${home.list.module}/tasks/; nothing was written. Use the id "${home.free}" (or a different title), or work on the existing one.`, suggest: home.free };
 			const id = home ? null : slug_of(a.id ?? a.title);
@@ -732,8 +835,13 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		homes.push(...g.made);
 		size = size_of(at.file);
 	}
+	let unchanged = null;
 	if ((pages === undefined && folder === undefined && !homes.length && !ids.length) || Object.keys(body).length){
+		// A verb that does nothing (refused from this state, or its child not found) is still written, but the answer says so.
+		const verb = Class?.replay && !at.target.length ? verb_in(body) : null;
+		const was = verb ? JSON.stringify(task_state(Class, root())) : null;
 		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: now() }), !!Class?.replay);
+		if (verb && JSON.stringify(task_state(Class, root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
 	} else if (size === undefined) size = size_of(at.file);
 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.
 	if (Class?.replay && !at.target.length && body.approve !== undefined && hooks.approved) try { Promise.resolve(hooks.approved(at.file)).catch(() => {}); } catch {}
@@ -745,7 +853,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		const live = root(), list = live.sessions;
 		if (!list.some(s => s?.id === ctx.caller)) { const keep = line; put({ sessions: [...list, { id: ctx.caller, task: live.get_one("path") ?? app_path(path.dirname(at.file)) }], by, ts: now() }); line = keep; }
 	} catch {}
-	return { ok: true, ids, line, size, ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(Class?.replay || !alias ? await extra() : {}) };
+	return { ok: true, ids, line, size, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(Class?.replay || !alias ? await extra() : {}) };
 }
 
 /* ---------- the six tools ---------- */
@@ -792,6 +900,9 @@ export function page_tools(resolve_log = null){
 				const line = nest(at.target, { add });
 
 				const size = write_line(at.file, line);
+				// An owner prompt (prompt-relay.mjs writes it): Servex files its asks as proposed tasks (Servex/agents/PromptTasks.js).
+				if (item?.type === "Prompt" && typeof item.text === "string" && hooks.prompted)
+					try { Promise.resolve(hooks.prompted({ file: at.file, line: size?.lines ?? null, id, text: item.text, at: add.ts, by: ctx.caller ?? null })).catch(() => {}); } catch {}
 				return JSON.stringify({ ok: true, id, line, size });
 			}),
 

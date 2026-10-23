@@ -36,7 +36,7 @@ Item                              core/Item        one log; state = Item.replay(
 ├─ Session extends Item           core/Session     a dated folder ai/sessions/YYYY/MM/DD/<name>/; has tasks: List
 │  └─ AISession extends Session   ai/AISession     one Claude run: cost and totals, apply_line() per transcript line
 └─ Task extends Item              core/Task        idle → running → paused | waiting → stopped | complete; has tasks: List
-   └─ Project extends Task        core/Task        stages + completed 0..1 (a play class, wired nowhere)
+   └─ Project extends Task        core/Task        stages + completed 0..1; made by "Make it a project" on a proposed task (Session decide, core/Session/doc/prompt-tasks.md)
 
 Agents.spawn(spec)                Servex/agents/Agents.js   makes a SESSION: default_task() picks the folder,
   → open_task(task, {session_id, agent, model})             open_task() writes line 1 {assign:{session_id, agent, …}}
@@ -48,11 +48,11 @@ State.mjs → ai/index.json                  Server/AIIndex.mjs   the one reader
 
 | Who | Makes | Where | How |
 |---|---|---|---|
-| Servex, on every `spawn_agent` | a **session** (the agent's own folder) | `<caller's session folder>/<agent id>/`, else `<day>/spawned/<agent id>/` | `open_task` line 1, by node, before the first turn |
-| A VS Code tab (you, the `new-task` skill) | a **task** of your session | `<day>/session-<id8>/<slug>/task.jsonl` | `node Server/TaskDirs.mjs --new <slug>` + `append.mjs` |
-| Any agent, the item tool | a **task** in a module home | `<module>/tasks/<slug>/task.jsonl` | `tasks.add`; the caller's log gets `{"task": path}` |
+| Servex, on every `spawn_agent` | a **session** (the agent's own folder) | `<caller's session folder>/<agent id>/`, else `<day>/spawned/<agent id>/` | `open_task` line 1, by node, before the first turn; the parent reference: [Session → task → child session](/framework/ai/sessions/doc/session-record.md) |
+| A VS Code tab (you, the `new-task` skill) | a **task** of your session | `<day>/session-<id8>/<slug>/task.jsonl` | `node Server/TaskDirs.mjs --new <slug>` + `append.mjs`; the parent reference: [Session → task → child session](/framework/ai/sessions/doc/session-record.md) |
+| Any agent, the item tool | a **task** in a module home | `<module>/tasks/<slug>/task.jsonl` | `tasks.add`; the parent reference: [Session → task → child session](/framework/ai/sessions/doc/session-record.md) |
 | A cloud voice call | a **session** | `<day>/cloud-voice-<name>/session.jsonl` | `RemoteMCP.voice_session()` |
 | A tab's transcript | a session **cache** (totals, no log) | `<day>/session-<id8>/cache.jsonl`, `index.json` | `AISessionIndex.mjs` tails `~/.claude/projects` |
 | Scripts | idle **tasks** from undone asks; one-off moves | `<module>/tasks/` | `Server/UndoneToTasks.mjs`, `Server/TaskMigrate.mjs` |
 
-**Status.** ✅ Top-level session folders hold `session.jsonl` (10-17). ✅ Readers ask `SessionRecord.log_file` for either name (10-19). ✅ A spawned agent's folder starts as `session.jsonl` at any depth (2026-10-20): `SessionRecord.start_file` calls a folder a session when line 1 is a spawn line, `assign.session_id` **and** `assign.agent`, which only Servex's `open_task` writes; a tab's task keeps `task.jsonl` ([the task](../sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/requirements.md)). Folders spawned before that day still hold `task.jsonl`; every reader accepts both names. ⬜ Old nested folders renamed by script, a task as one line in its session's log, `TaskDirs` → `SessionDirs`: slices 4 to 6 of the plan. Known gap: a session gets two folders today (its own record under its caller, and the transcript cache `session-<id8>/`); the link between them is `assign.session_id` on line 1.
+**Status.** ✅ Top-level session folders hold `session.jsonl` (10-17). ✅ Readers ask `SessionRecord.log_file` for either name (10-19). ✅ A spawned agent's folder starts as `session.jsonl` at any depth (2026-10-20): `SessionRecord.start_file` calls a folder a session when line 1 is a spawn line, `assign.session_id` **and** `assign.agent`, which only Servex's `open_task` writes; a tab's task keeps `task.jsonl` ([the task](../sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/requirements.md)). Folders spawned before that day still hold `task.jsonl`; every reader accepts both names. ⬜ Old nested folders renamed by script, a task as one line in its session's log, `TaskDirs` → `SessionDirs`: slices 4 to 6 of the plan. ✅ A folder made under a session is referenced on its parent's log by whichever tool made it, and older folders are backfilled by `node Server/SessionRecord.mjs --links --apply` ([session-record.md](../sessions/doc/session-record.md)). Known gap: a session gets two folders today (its own record under its caller, and the transcript cache `session-<id8>/`); the link between them is `assign.session_id` on line 1.

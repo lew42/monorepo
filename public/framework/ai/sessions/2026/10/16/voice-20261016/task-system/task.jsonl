@@ -157,3 +157,22 @@
 {"log":{"at":"2026-10-17T23:31:36-05:00","heartbeat":"revive-queued","msg":"mastermind-task-system it did not answer the status check; a revive is queued"}}
 {"log":{"at":"2026-10-17T23:31:36-05:00","heartbeat":"escalated","msg":"mastermind-task-system it did not answer the status check, but a revive is refused: a wake costs about $0.00 and it has spent $394.45 of $100.00"}}
 {"stop":{"at":"2026-10-19T00:04:12-05:00","why":"abandoned: no agent since 2026-10-17T23:31:36-05:00; closed by StaleClose 2026-10-19","by":"StaleClose"}}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/item-live/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.596Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/item-local/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.597Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/item-replay/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.597Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/item-tool/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.598Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/proof-data/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.599Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/refine-tasks/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.600Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/session-item/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.601Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-commits/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.602Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-complete/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.602Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-fields/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.603Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-homes/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.604Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-homes-browser/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.605Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-page/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.606Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-replay/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.607Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-rows/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.608Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-sessions/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.608Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-skills/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.609Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-view/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.610Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/tool-files-refs/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.611Z"}

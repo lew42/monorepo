@@ -1,6 +1,7 @@
 import { div, p, span, small, a, details, summary, strong, md } from "/app.js";
 import RefinedCard from "/framework/ext/Refine/RefinedCard.js";
 import AISessionConversation from "./AISessionConversation.js";
+import Prompt from "/framework/ext/Refine/Prompt.js";
 
 /**
  * class AISessionCoverage — the session page's Coverage tab: every ask found in the owner's prompts (the `refined` cards
@@ -11,6 +12,8 @@ import AISessionConversation from "./AISessionConversation.js";
  *   cov.read(page_lines)        // the session's page.jsonl lines, live: refined cards arrive here
  *   cov.add_raw(transcript)     // the transcript lines the conversation already pulled: the raw text, found by uuid
  *
+ *   cov.read_records(rows)      // PromptLog.fold of the session's prompts.jsonl: a prompt with `parts` is drawn as its RECORD (completion,
+ *                               // each part's outcome), ext/Refine/doc/prompt-records.md; its refined card is then not drawn again
  * Statuses come from the prompt-outcomes tally (`/framework/ai/doc/asks-outcomes.jsonl`) where it names this prompt, else "unreviewed".
  */
 export default class AISessionCoverage {
@@ -23,6 +26,7 @@ export default class AISessionCoverage {
 		this.cards = new Map();   // card id → refined card (later write wins)
 		this.raw = new Map();     // transcript uuid → the owner's words
 		this.outcomes = null;
+		this.records = new Map();  // prompt id → Prompt with parts (Server/PromptRecords.mjs writes them)
 		this.view = div.c("flow session-coverage");
 		AISessionCoverage.load_outcomes().then(o => { this.outcomes = o; this.draw(); });
 	}
@@ -31,6 +35,11 @@ export default class AISessionCoverage {
 		let hit = false;
 		for (const c of RefinedCard.from_lines(lines)){ this.cards.set(c.id, c); hit = true; }
 		if (hit) this.draw();
+	}
+
+	read_records(rows){
+		for (const row of Object.values(rows ?? {})) if (row.parts?.length) this.records.set(row.id, Prompt.from_log(row, this.session));
+		if (this.records.size) this.draw();
 	}
 
 	add_raw(lines){
@@ -60,9 +69,11 @@ export default class AISessionCoverage {
 			this.pending = false;
 			const open = new Set([...this.view.el.querySelectorAll("details[open]")].map(d => d.id));
 			if (!open.size && /^#p\d+$/.test(location.hash)) open.add(location.hash.slice(1));
-			const cards = [...this.cards.values()].sort((x, y) => x.line - y.line);
+			const recs = [...this.records.values()], has = new Set(recs.map(r => r.prompt_id));
+			const cards = [...this.cards.values()].filter(c => !has.has(c.uuid)).sort((x, y) => x.line - y.line);
 			this.view.empty(() => {
-				if (!cards.length) return p.c("muted", AISessionCoverage.EMPTY);
+				if (recs.length) this.records_view(recs, open);
+				if (!cards.length) return recs.length ? null : p.c("muted", AISessionCoverage.EMPTY);
 				const s = RefinedCard.score(cards, this.outcomes);
 				div.c("flow", () => {
 					div.c("flex gap-50 wrap v-center", () => {
@@ -72,6 +83,39 @@ export default class AISessionCoverage {
 					div.c("flex gap-50 wrap", () => RefinedCard.STATUSES.forEach(k => s.by[k] && AISessionCoverage.tag(k, `${k} ${s.by[k]}`)));
 				});
 				cards.forEach((c, i) => this.prompt(c, i + 1, open));
+			});
+		});
+	}
+
+	/* PROMPT RECORDS: how many prompts are complete, then one row per prompt: its completion and every part with its outcome.
+	 * A "task" outcome counts as open here until its task is complete (the browser does not resolve task states yet). */
+	records_view(recs, open){
+		const done = recs.filter(r => r.complete()).length, loose = recs.reduce((n, r) => n + r.open().length + r.uncovered.length, 0);
+		div.c("flow", () => {
+			div.c("flex gap-50 wrap v-center", () => { strong(`${done} of ${recs.length} prompts complete`); small.c("muted", `${loose} open parts or uncited sentences · a prompt is complete when everything it asks is done or documented`); });
+			recs.sort((x, y) => (x.at ?? "").localeCompare(y.at ?? "")).forEach((r, i) => {
+				const { done: d, total } = r.progress(), box = details.c("flow session-coverage-row").style({ "border-bottom": "1px solid var(--line, #8883)", margin: "0", padding: "0" });
+				box.el.id = "r" + r.prompt_id.slice(0, 8);
+				if (open.has(box.el.id)) box.el.open = true;
+				box.append(() => {
+					summary(() => {
+						AISessionCoverage.tag(r.complete() ? "done" : "open", r.complete() ? "complete" : `${d}/${total}`);
+						strong(` ${i + 1}. ${r.subject || r.parts.find(x => x.kind === "ask")?.text || "Prompt"}`);
+					}).style({ border: "0", background: "none", margin: "0", padding: "0.3em 0", "box-shadow": "none" });
+					const part = x => div.c("flex gap-50", () => {
+						const is = x.outcome?.is ?? "open";
+						AISessionCoverage.tag(Prompt.SETTLED.includes(is) ? "done" : is === "task" ? "partly" : "open", is);
+						span(() => {
+							span(`${x.kind}: ${x.text} `);
+							small.c("muted", "S" + (x.cites ?? []).join(", S"));
+							if (x.outcome?.ref) { span(" · "); /^\/|^[\w./-]+\.(md|js|mjs|jsonl)$/.test(x.outcome.ref) ? a.c("muted", x.outcome.ref).href(x.outcome.ref.startsWith("/") ? x.outcome.ref : "/" + x.outcome.ref.replace(/^public\//, "")) : small.c("muted", x.outcome.ref); }
+							if (x.outcome?.why) small.c("muted", " · " + x.outcome.why);
+						});
+					});
+					r.parts.forEach(part);
+					if (r.uncovered.length) small.c("muted", `Sentences no part cites: S${r.uncovered.join(", S")}. They keep the prompt open.`);
+					details(() => { summary("Raw prompt"); div.c("flow", () => r.clean.forEach(c => p(`S${c.n}. ${c.text}`))); });
+				});
 			});
 		});
 	}

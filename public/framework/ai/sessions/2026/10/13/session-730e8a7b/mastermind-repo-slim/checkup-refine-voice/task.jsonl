@@ -23,3 +23,4 @@
 {"log":{"at":"2026-10-17T00:10:37-05:00","msg":"lifecycle: nothing of this task's was left running"}}
 {"log":{"at":"2026-10-17T00:10:37-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
 {"log":{"at":"2026-10-17T00:10:57-05:00","msg":"session resumed"}}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/checkup-refine-voice/voice-sessions-decision/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.356Z"}

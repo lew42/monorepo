@@ -22,7 +22,7 @@ import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, r
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 import { server as sdk_server } from "./tools.js";   // cycle with tools.js is fine: used only at call time
 const MAIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");   // Servex runs from the main tree
-import { page_tools } from "./page_tools.js";
+import { page_tools, move_item } from "./page_tools.js";
 
 /* The in-process caller is the agent itself: its own task.jsonl (its task dir), or null; the item tool files a reference there. */
 function agent_log(agent){
@@ -198,8 +198,8 @@ export class Agents {
 		 * the first-turn line can tell the agent its own page, /framework/ai/sessions/<session_id>/. */
 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
-		if (spec.task === undefined && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task }; }
-		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
+		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
 		const fresh = !again && !spec.system;
@@ -921,7 +921,7 @@ function directory_of(spec){
  * a caller opened earlier (or a sibling agent shares), it just adds one more
  * assign line with the same facts, exactly like every other `assign` a task
  * log collects over its life — never touching what came before it. */
-export function open_task(task, { session_id, agent, model, worktree, parent_dir }){
+export function open_task(task, { session_id, agent, by, model, worktree, parent_dir }){
 	// An old-shaped dir (ai/YYYY-MM-DD/<slug>/) from a brief goes to the task store instead (Server/TaskDirs.mjs,
 	// ai/doc/task-folders.md); task.dir is rewritten so everything after this (directory_of, the inbox) sees the real place.
 	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
@@ -940,6 +940,15 @@ export function open_task(task, { session_id, agent, model, worktree, parent_dir
 		model, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
+	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
+	try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch (e){ console.warn("link_parent failed for", dir, e); }
+	// Handoff by task: `task: {from, id}` moves that subtask out of the spawner's log into this folder (page_tools.js move_item).
+	// Not awaited (open_task is synchronous): the history lands just after the first turn starts. A refusal is written into the new log, so it is seen.
+	if (task.from && task.id){
+		const log = SessionRecord.start_file(dir, JSON.parse(line)), refused = why => fs.appendFileSync(log, JSON.stringify({ handoff: { from: task.from, id: task.id, refused: why }, by: "servex", ts: stamp() }) + "\n");
+		move_item({ from: task.from, id: task.id, to: "/" + path.relative(path.join(process.cwd(), "public"), dir).split(path.sep).join("/") + "/", by: task.by ?? by ?? "spawn" })
+			.then(r => { if (r.why) refused(r.why); }, e => refused(String(e.message || e)));
+	}
 	return dir;
 }
 
@@ -1389,25 +1398,27 @@ Agents.Agent = class Agent {
 		return null;
 	}
 
-	/* THE COMPACT NUDGE (2026-10-16): past the role's threshold (roles.js `compact_after.tokens`, else
-	 * SERVEX_NUDGE_TOKENS 200k) an idle agent is told its context size ONCE and asked to compact if
-	 * nothing in flight needs it; it decides, node never cuts in mid-flight. Again only after the
-	 * context grew `NUDGE_GROWTH` since the last nudge (the nudge turn itself adds far less).
+	/* THE COMPACT NUDGE (2026-10-16; step reminders, the owner 2026-10-22): past the role's threshold (roles.js
+	 * `compact_after.tokens`, e.g. a mastermind's 150k, else SERVEX_NUDGE_TOKENS 200k) an idle agent is told its context
+	 * size and asked to compact at its next natural break; it decides, node never cuts in mid-flight. Again each time the
+	 * context grows another 5% of the window (on a 1M window: 150k, 200k, 250k… up to the 400k ceiling). The owner's
+	 * "about 30%" for the first reminder was reconsidered: with a 400k ceiling it leaves two reminders, so the earlier lines stay.
 	 * Returns the message text, or null. Pure decision: `nudge_send()` does the sending. */
 	nudge(now = Date.now()){
 		if (this.state !== "idle" || this.one_shot || this.compacting || STANDING.test(this.id ?? "")) return null;
 		if (this.task?.dir && task_landed(this.task.dir)) return null;
 		const after = role_compact_after(this.role);
 		if (after === null) return null;
+		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
 		const limit = after?.tokens ?? this.host?.nudge_tokens ?? (Number(process.env.SERVEX_NUDGE_TOKENS) || 200000);
 		const context = this.context ?? 0;
 		if (context <= limit) return null;
-		if (this.nudged_context != null && context < this.nudged_context + NUDGE_GROWTH) return null;
+		if (this.nudged_context != null && context < this.nudged_context + Math.max(NUDGE_GROWTH, Math.round(window * 0.05))) return null;
 		const ended = this.turn_ended_at ?? (this.last_at ? Date.parse(this.last_at) : now);
 		const minutes = Math.max(0, Math.round((now - ended) / 60000));
 		const warm = minutes < 5;
 		this.nudge_info = { context, cache: warm ? "warm" : "cold", minutes };
-		return `Context: ${context.toLocaleString("en-US")} tokens, cache ${warm ? "warm" : "cold"} (last turn ${minutes} minute${minutes === 1 ? "" : "s"} ago). You are idle. Compact now unless something in flight needs this context.`;
+		return `Context: ${context.toLocaleString("en-US")} tokens (${Math.round(context / window * 100)}% of the window), cache ${warm ? "warm" : "cold"} (last turn ${minutes} minute${minutes === 1 ? "" : "s"} ago). You are idle. Compact at your next natural break (an investigation done, no tools in flight): now, unless something in flight needs this context.`;
 	}
 
 	/* The agent's answer to the nudge (the `compact_self` tool): compact when this turn ends. */
@@ -2066,7 +2077,8 @@ Agents.Agent = class Agent {
 Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
 
 /* A nudged agent that declined is nudged again only after its context grew this much. */
-export const NUDGE_GROWTH = 20000;
+export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
+export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)
 
 export const ONE_PASS = ["reviewer", "clarity", "checker"];
 

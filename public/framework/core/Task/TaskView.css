@@ -7,6 +7,9 @@
 	.task-state-icon { color: var(--subtle); flex: 0 0 auto; }
 	.task-state-icon.is-running { color: var(--ok, currentColor); }
 	.task-state-icon.is-complete { color: var(--ok, currentColor); }
+	.task-actions { display: inline-flex; flex: 0 0 auto; margin-left: auto; }
+	.task-action { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; margin-block: -.6em; cursor: pointer; color: var(--subtle); border-radius: 50%; }   /* 44px touch target; negative block margin keeps the row height */
+	.task-action:hover { color: inherit; background-image: linear-gradient(var(--line), var(--line)); }
 	.task-bar { display: flex; align-items: center; gap: 2px; margin-left: auto; flex: 0 0 auto; max-width: 7em; padding-inline: .5em; }
 	.task-meter { width: 4em; height: .4em; border-radius: 1px; background: var(--line); overflow: hidden; }
 	.task-meter { display: flex; }

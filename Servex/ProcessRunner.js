@@ -66,6 +66,11 @@ export default class ProcessRunner {
 				await this.write(file, { [a.wait]: { wait: { on: "owner", what: ph?.get_one("do") ?? a.wait } } });
 				this.tell(p.creator, `Process ${this.url(file)} waits on the owner: ${ph?.get_one("title") ?? a.wait}.`);
 			}
+			else if (a.halt){
+				const agent = p.phases.find(x => x.id === a.halt)?.get_one("spawned")?.agent;
+				try { if (agent) this.servex?.agents?.stop?.(agent, { by: "process-runner" }); } catch {}
+				await this.write(file, { [a.halt]: { stop: { why: `the process was stopped${agent ? `; its agent ${agent} was stopped too` : ""}` } } });
+			}
 			else if (a.start) await this.write(file, { [a.start]: { start: {} } });
 			else if (a.launch){ if (!(await this.launch(file, p, a.launch))) return; }
 			else if (a.move){   // approved: the draft leaves the session for <module>/tasks/<id>/, and the run goes on from there
@@ -82,7 +87,7 @@ export default class ProcessRunner {
 
 	// Start the phase's session: fresh (spawn), same (the previous phase's agent), owner (the process's creator). False = held back.
 	async launch(file, p, id){
-		const ph = p.phases.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = s.run ?? "fresh";
+		const ph = p.phases.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = p.run_of(ph);
 		const prompt = p.prompt(id, this.url(file)), agents = this.servex?.agents;
 		if (!agents) return false;
 		if (run === "fresh"){

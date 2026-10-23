@@ -2,6 +2,8 @@
 
 The owner asks for many things in each long prompt, and some are never done. The prompt audit finds them in two passes. **Pass 1:** Haiku reads each owner prompt alone and sorts it into tasks, questions, statements and updates. **Pass 2:** one Sonnet reviewer per session reads those items next to what the session actually did, and says for each one whether it was needed and whether it got done. The results are kept in two files beside the session. Nothing is added to the session's tasks: a finished session stays finished, and its loose ends are listed separately.
 
+**Next version (2026-10-23):** [prompt records](/framework/ext/Refine/doc/prompt-records.md) (`Server/PromptRecords.mjs`) keep pass 1's blind per-prompt step and replace pass 2 by outcomes per session window, written into the session's `prompts.jsonl` with a computed completion per prompt. The two files here stay as the v1 record.
+
 Code: [`Server/PromptAudit.mjs`](/Server/PromptAudit.mjs) (`class PromptAudit`). Other audit systems, and why this one replaces them: [audits.md](audits.md).
 
 ## Run it
@@ -82,9 +84,19 @@ The reviewer works the same way, and each run's own feedback is in its `review_r
 ## Runs
 
 - 2026-10-22, the last 7 days (2 tabs, 86 prompts, $12.00): [what is still open](/framework/ai/sessions/2026/10/20/session-e00f55c9/prompt-audit-week-2026-10-22.md). It found prompts counted twice after a compaction; dedupe is next.
+- 2026-10-22, **were the asks "kept as doc notes" really written down?** About 60 distinct verdicts in session-e00f55c9's `prompt-review.jsonl` cite a doc. A Sonnet reader opened the cited file for 25 of them, one per distinct ask. 22 were there. Two were there only in part (p383.30, an index of every system; p1931.31, the best async dictation workflow). One cited only commits, so there was no file to check. One looked missing but was found on a second look: p5.5, the class tree, which is now in [records.md](records.md#sessions-and-tasks-who-makes-which-and-when-verified-against-the-code-2026-10-20). One was really missing: p1931.9, "make the session system portable". It is now rule 4 in [core/Session/readme.md](/framework/core/Session/readme.md). One verdict was wrong the other way: p2208.39 says `public/live/readme.md` is open, but it exists. **Lesson:** a "done" verdict that cites a doc is usually right. The repeated prompts after a compaction (p5 and p4172, among others) are judged two or three times each.
 
 ## Not built yet
 
-- ⬜ Running pass 1 live on every new prompt (the brief needs no code context, so it can).
+- ✅ A live split on every new prompt now exists, through RefineQueue rather than this pass 1: Servex refines each VS Code prompt as it arrives and files its task asks as proposed tasks on the session page ([core/Session/doc/prompt-tasks.md](/framework/core/Session/doc/prompt-tasks.md)). This audit stays the deeper weekly check.
 - ⬜ Showing the items and their tags as cards on the session page.
 - ⬜ Chunked review for very large sessions (above).
+
+## Next, from the owner (2026-10-22)
+
+- **Measured room:** pass 1 calls averaged about 4,400 tokens and peaked near 18,000 (this tab, 59 prompts), so each call has room for context well under the 100k limit. Each call today is a fresh session with one prompt and no context.
+- ⬜ **Chain the context:** give each call the previous prompt's items (or a short summary) so a prompt that continues the last one is read as a continuation.
+- ⬜ **Group into a hierarchy:** most items roll up into one or a few main tasks; return them nested under those, not flat.
+- ⬜ **Audit the AI's replies too:** a reply can leave a question open or promise a follow-up; pass 1 marks those as loose ends.
+- ⬜ **Consensus check:** run two framings of the brief (or two models) on the same long prompt and count the items both find; trust agreement over a self-reported confidence.
+- ⬜ **One system, live or after the fact:** the same pass runs on the owner's VS Code prompts live (`task/prompt-tasks`), on the cloud voice agent's transcribed turns, and retroactively.

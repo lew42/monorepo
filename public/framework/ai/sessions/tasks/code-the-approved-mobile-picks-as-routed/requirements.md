@@ -51,7 +51,7 @@ Read `/framework/ai/sessions/doc/mobile-cards.md` first. Its rules, in short:
 
 ## How to work
 
-1. **Worktree:** run `node Server/worktree-up.mjs mobile-picks` (from the main tree). It gives you a private worktree with its own server URL. Build there; never edit the main tree.
+1. **Worktree:** it is already made, at `C:\Code\lew42\worktrees\mobile-picks` (branch `worktree/mobile-picks`, server `http://localhost:65118/`). Build there; never edit the main tree, except for the shots and log lines below.
 2. **Order:** build the pages in the table's order (1 → 4). Commit after each page.
 3. **Screenshots:** after each page, take headless Playwright shots at **400 px wide** (and one at 1200 px for the last pass), against your worktree's URL. Save them as `public/framework/ai/sessions/tasks/code-the-approved-mobile-picks-as-routed/shots/<page>-400.png` **in the main tree** (a task-dir data file; it is fine there). Then log one line on this task (`item` tool, path `/framework/ai/sessions/tasks/code-the-approved-mobile-picks-as-routed/`, delta `{"log":{"text":"..."}}`) naming the shot. Your parent reviews each shot and may message you fixes.
 4. **Real data:** use today's sessions (2026-10-22) and session `e00f55c9` (its task folders are under `sessions/2026/10/20/session-e00f55c9/`). No made-up numbers.
@@ -65,3 +65,13 @@ Read `/framework/ai/sessions/doc/mobile-cards.md` first. Its rules, in short:
 - [ ] The session page has Overview, Tasks and Chat, swipeable, and the existing session menu.
 - [ ] The status colours and the one segmented bar follow the rules above.
 - [ ] There is a 400 px shot of each page in `shots/`. Smoke passes and the branch is unmerged.
+
+## Follow-up 3: is it running? (the owner, 2026-10-22; from the Figma brief, `figma-cards/requirements.md`)
+
+Fold this into page 3 (session) and page 4 (task detail), and into every task row:
+
+- **A small run indicator** on every task, project and process row: a dot or a play triangle. Not a colour change and not a heavy outline.
+- **Pause and stop buttons** sit beside it while the task is running. An idle task gets a start button.
+- **Queued:** a task that will start on its own shows it, for example "queued" or "next" beside the dot. Compute it; don't store it. An idle child of a running `series` parent is next in line (`Task.js` line 84 starts it). Don't invent a new state.
+- **Each button writes one log line**, using the verbs that already exist. `Task.js` already has `start()`, `pause()`, `resume()`, `stop(why)` and their log keys (`LINE_KEYS`). `TaskView.STAGE` already has the icons. A press appends `{"pause":{}}`, `{"stop":{"why":"owner pressed stop"}}` and so on to that task's own JSONL, so an agent following that log gets it at once. Don't write a second state machine.
+- **Proof:** one shot of a running task with its pause and stop buttons, `shots/run-indicator-400.png`.

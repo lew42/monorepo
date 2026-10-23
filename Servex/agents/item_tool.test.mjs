@@ -5,6 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { page_tools, run_item } from "./page_tools.js";
 import TaskHomes from "../../Server/TaskHomes.mjs";
+import SessionRecord from "../../Server/SessionRecord.mjs";
+const SessionRecord_file = d => SessionRecord.file(d);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const REL = "public/framework/ai/sessions/2026/10/16/.item-tool-test-" + process.pid;
@@ -64,9 +66,17 @@ try {
 		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "a" } } } });
 		await call("item", { path: SURL, delta: { a: { complete: {} } } });   // a nested task: addressed by its id
 		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "b" } } } });
-		ok(r.ok && r.state.class === "Session" && r.state.completion === 0.5 && r.state.progress.total === 2, "session.jsonl -> Session, tasks.add, completion 1/2");
+		// A session folder's log is a Task now (SessionRecord.log_file), so its nested tasks are subtasks.
+		ok(r.ok && r.state.completion === 0.5 && r.state.tasks.length === 2, "session.jsonl: tasks.add, a child completed by its id, completion 1/2");
+		// Walking into the tasks list by a child's id calls the child's verb (List.get finds members; 2026-10-22 it stored the delta as data).
+		r = await call("item", { path: SURL, delta: { tasks: { b: { start: {} } } } });
+		ok(r.ok && r.state.tasks.find(t => t.id === "b").state === "running" && !r.warning, "{tasks:{<id>:{start:{}}}} starts that child");
+		r = await call("item", { path: SURL, delta: { tasks: { b: { start: {} } } } });
+		ok(r.ok && /changed nothing/.test(r.warning ?? ""), "a verb that changes nothing says so");
+		r = await call("item", { path: SURL, delta: { tasks: { nobody: { start: {} } } } });
+		ok(r.ok && /changed nothing/.test(r.warning ?? ""), "a verb sent to a missing child says so");
 		r = await call("item", { path: SURL, delta: { nonsense_key: 1 } });
-		ok(r.ok === false && /Session/.test(r.why), "Session refuses unknown keys");
+		ok(r.ok === false && /names no method/.test(r.why), "a session log refuses unknown keys");
 	} finally { fs.rmSync(SDIR, { recursive: true, force: true }); }
 
 	// ---- step 14a: task homes ----
@@ -208,6 +218,71 @@ try {
 		const old_heavy = mk("old", at(9), 8), fresh = mk("fresh", at(0.5)), mid_kids = mk("mid", at(3), 1, 3);
 		// old: 8 x 0.5^3 = 1; fresh: ~0.89; mid: (1+3) x 0.5 = 2
 		ok(Task.rank([old_heavy, fresh, mid_kids], now).map(t => t.id).join() === "mid,old,fresh", "Task.rank: weight x recency order");
+	}
+	// ---- move_item: a nested task moves home with id and history, one reference left behind ----
+	{
+		const { ledgers } = await import("./page_tools.js");
+		const { Task } = await import("../../public/framework/core/Task/Task.js");
+		const { default: Session } = await import("../../public/framework/core/Session/Session.js");
+		const MDIR = DIR + "-move", MURL = URL.replace(/\/$/, "") + "-move/", pfile = path.join(MDIR, "session.jsonl");
+		const plines = () => fs.readFileSync(pfile, "utf8").trim().split("\n").map(l => JSON.parse(l));
+		ledgers.task_moves = path.join(MDIR, "task-moves.jsonl");
+		const ledger = () => fs.existsSync(ledgers.task_moves) ? fs.readFileSync(ledgers.task_moves, "utf8").trim().split("\n").filter(Boolean) : [];
+		fs.mkdirSync(MDIR, { recursive: true });
+		try {
+			fs.writeFileSync(pfile, JSON.stringify({ id: "mv-parent", title: "Parent" }) + "\n");
+			await call("item", { path: MURL, delta: { tasks: { add: { id: "x", title: "X task" } } } });
+			await call("item", { path: MURL, delta: { x: { start: {} } } });
+			await call("item", { path: MURL, delta: { x: { expected: "a field" } } });
+			const before = plines().filter(l => l.x || l.tasks?.add).map(l => l.ts);
+
+			// refusals write nothing
+			const size = fs.statSync(pfile).size;
+			let r = await call("item", { path: MURL, delta: { nope: { move: { to: MURL + "agent-a/" } } } });
+			ok(r.ok === false && /not a task/.test(r.why) && fs.statSync(pfile).size === size && !fs.existsSync(path.join(MDIR, "agent-a")) && !ledger().length, "unknown id: refused, nothing written");
+
+			r = await call("item", { path: MURL, delta: { tasks: { x: { move: { to: MURL + "agent-a/" } } } } });
+			ok(r.ok && r.moved.to === MURL + "agent-a/" && r.state.tasks.length === 1, "moved through the tool key");
+			const nf = path.join(MDIR, "agent-a", "task.jsonl"), nl = fs.readFileSync(nf, "utf8").trim().split("\n").map(l => JSON.parse(l));
+			ok(nl[0].id === "x" && nl[0].set.title === "X task" && nl[1].start && nl[2].expected === "a field", "new file: x's lines in order");
+			ok(JSON.stringify(nl.map(l => l.ts)) === JSON.stringify(before), "original ts kept");
+			ok(fs.existsSync(path.join(MDIR, "agent-a", "page.js")), "page.js made");
+			const last = plines().at(-1);
+			ok(last.task === MURL + "agent-a/" && last.as === "x" && last.moved_from === MURL + "#x", "the parent's last line is the one reference with as:x");
+			const p = Session.replay(plines());
+			ok([...p.tasks].length === 1 && p.tasks.find("x") && p.tasks.find("x").state === "running", "Session replay: ONE child x, running");
+			ok(Task.replay(plines()).tasks.find("x")?.id === "x", "Task replay: the reference keeps id x");
+			ok(ledger().length === 1 && JSON.parse(ledger()[0]).kind === "task", "one ledger line");
+
+			// already a reference: refused, nothing written
+			const size2 = fs.statSync(pfile).size;
+			r = await call("item", { path: MURL, delta: { x: { move: { to: MURL + "agent-b/" } } } });
+			ok(r.ok === false && /own file/.test(r.why) && fs.statSync(pfile).size === size2 && !fs.existsSync(path.join(MDIR, "agent-b")) && ledger().length === 1, "a reference cannot move again");
+
+			// destination already holds a log: history goes after it
+			await call("item", { path: MURL, delta: { tasks: { add: { id: "y", title: "Y task" } } } });
+			await call("item", { path: MURL, delta: { y: { start: {} } } });
+			fs.mkdirSync(path.join(MDIR, "agent-c"));
+			const af = path.join(MDIR, "agent-c", "session.jsonl");
+			fs.writeFileSync(af, JSON.stringify({ assign: { session_id: "s-c", agent: "agent-c" } }) + "\n");
+			r = await call("item", { path: MURL, delta: { y: { move: { to: MURL + "agent-c/" } } } });
+			const cl = fs.readFileSync(af, "utf8").trim().split("\n").map(l => JSON.parse(l));
+			ok(r.ok && cl[0].assign && cl[1].id === "y" && cl[2].start && !fs.existsSync(path.join(MDIR, "agent-c", "task.jsonl")), "appended after the assign line, in the existing log");
+			ok([...Session.replay(plines()).tasks].length === 2, "two children after two moves");
+
+			// open_task handoff: task {dir, from, id} moves the subtask into the new agent's folder, by the spawner; a refusal is logged there
+			const { open_task } = await import("./Agents.js");
+			await call("item", { path: MURL, delta: { tasks: { add: { id: "z", title: "Z task" } } } });
+			const settle = async f => { for (let i = 0; i < 50 && !f(); i++) await new Promise(res => setTimeout(res, 20)); };
+			open_task({ dir: path.join(MDIR, "agent-d"), from: MURL, id: "z" }, { session_id: "s-d", agent: "agent-d", by: "spawner" });
+			await settle(() => plines().at(-1).as === "z");
+			const dl = fs.readFileSync(SessionRecord_file(path.join(MDIR, "agent-d")), "utf8").trim().split("\n").map(l => JSON.parse(l));
+			ok(dl[0].assign && dl[1].id === "z" && plines().at(-1).as === "z" && plines().at(-1).by === "spawner" && JSON.parse(ledger().at(-1)).by === "spawner", "open_task hands the subtask to the new folder, by the spawner");
+			open_task({ dir: path.join(MDIR, "agent-e"), from: MURL, id: "nobody" }, { session_id: "s-e", agent: "agent-e", by: "spawner" });
+			const ef = SessionRecord_file(path.join(MDIR, "agent-e"));
+			await settle(() => fs.readFileSync(ef, "utf8").includes("refused"));
+			ok(/"handoff".*"refused"/.test(fs.readFileSync(ef, "utf8")), "a refused handoff is written into the new log");
+		} finally { fs.rmSync(MDIR, { recursive: true, force: true }); }
 	}
 	console.log(`item_tool: ${n} checks passed`);
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); fs.rmSync(DIR + "-homes", { recursive: true, force: true }); }

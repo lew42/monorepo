@@ -14,10 +14,11 @@ import Processes from "./Processes.js";
 import Games from "./Games.js";
 import Worktrees from "./Worktrees.js";
 import TaskLoop from "./TaskLoop.js";
-import { hooks as page_tool_hooks } from "./agents/page_tools.js";
+import { hooks as page_tool_hooks, run_item } from "./agents/page_tools.js";
 import ProcessRunner from "./ProcessRunner.js";
 import Respawn from "./agents/Respawn.js";
 import Wakeups from "./agents/Wakeups.js";
+import PromptTasks from "./agents/PromptTasks.js";
 import { check_page, cap } from "../Server/BrowserCheck.mjs";
 import { pid as browser_pid } from "../Server/Browser.mjs";
 import Heartbeat from "./Heartbeat.js";
@@ -296,6 +297,8 @@ export default class Servex extends Events {
         const notice = (to, text, from) => { if (!to || to === "owner") return; try { this.agents.send(to, text, { from: from ?? "servex" }); } catch {} };
         page_tool_hooks.requested = r => notice(r.to, `Request from ${r.from}: "${r.title}", logged at ${r.path}. Answer on the item when it is done: item({path: "${r.path}", delta: ${r.own_folder ? `{"complete": {"outcome": "…"}}` : `{"${r.id}": {"complete": {"outcome": "…"}}}`}}). ${r.from} hears the outcome then.`, r.from);
         page_tool_hooks.answered = r => notice(r.to, `${r.by} answered your request "${r.title}" (${r.path}): ${r.outcome ?? "done, no outcome given"}`, r.by);
+        // Owner prompts become proposed tasks on their session (Servex/agents/PromptTasks.js; one Haiku call per prompt).
+        if (!process.env.SERVEX_NO_PROMPT_TASKS){ this.prompt_tasks = new PromptTasks({ say: t => this.say?.(t) }); page_tool_hooks.prompted = p => this.prompt_tasks.prompted(p); }
 
         /* THE ASKS LEDGER (asks-ledger, 2026-09-30): notices when a routed ask's owner agent
          * stops, goes quiet, or lands its task, and marks public/framework/ai/asks.jsonl so
@@ -660,6 +663,22 @@ export default class Servex extends Events {
             const body = req.body ?? {};
             if (typeof body.text !== "string") return res.status(400).json({ ok: false, why: "text must be a string" });
             res.json(await tidy(body));
+        });
+
+        /* THE ITEM TOOL FOR THE BROWSER (ui-actions-as-deltas, 2026-10-22) — a button's verb
+         * ({"start":{}}) goes through the same writer an agent's `item` call uses: validated,
+         * stamped by/ts, the hooks fire. Body {path, target?, delta}. It writes files, so
+         * loopback only; a worktree page's post is stubbed, never written to the main tree. */
+        router.options("/api/item", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/item", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const ip = req.socket.remoteAddress;
+            if (ip !== "127.0.0.1" && ip !== "::1" && ip !== "::ffff:127.0.0.1") return res.status(403).json({ ok: false, why: "loopback only" });
+            const via = this.via(req);
+            if (via) return res.json({ ok: true, stubbed: true, via });
+            const { path: url, target, delta } = req.body ?? {};
+            if (typeof url !== "string" || !delta || typeof delta !== "object") return res.status(400).json({ ok: false, why: "body must be {path, target?, delta}" });
+            res.json(await run_item({ path: url, target, delta }, { caller: "owner" }));
         });
 
         /* THE HIT-API CHAT CALLS (chat-hitl, 2026-09-29) — two small no-tools

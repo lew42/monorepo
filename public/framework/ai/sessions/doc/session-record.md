@@ -65,7 +65,21 @@ The brief expected 588 folders holding both files; there are none. The 588 diges
 - `session.jsonl`, when the first line is a spawn line `{"assign":{"session_id","agent"}}` (any depth, a sub-session) or `{"session":…}` (cloud voice), or a `session_id` line directly under a day; else
 - `task.jsonl` (any task folder, deeper in a session).
 
-Two writers ask it: `Servex/agents/Agents.js` (`open_task`, the launch line of `spawn_agent`) and `.claude/hooks/append.mjs` (every agent's `new-task` launch line, which still names `<dir>/task.jsonl`; the hook redirects it). `node Server/TaskDirs.mjs --new` only makes the folder, never a record. `Server/review.mjs` appends to the existing log. `Server/plugins/Start.js` makes a task folder inside a session, so it keeps `task.jsonl`. A folder made this way needs no move: `--plan` counts it as nothing to do. Tests: `Server/SessionRecord.test.mjs`, `Servex/agents/open-task.test.mjs`.
+Two writers ask it: `Servex/agents/Agents.js` (`open_task`, the launch line of `spawn_agent`) and `.claude/hooks/append.mjs` (every agent's `new-task` launch line, which still names `<dir>/task.jsonl`; the hook redirects it). `node Server/TaskDirs.mjs --new` makes the folder, never its record. Both it and `open_task` add one `{"task":"<url>"}` reference to the parent's log (`SessionRecord.link_parent`), so a folder under a session counts as one of its tasks:
+
+- **Which parent:** an explicit parent wins (`--parent`, or `open_task`'s `parent_task`, the task that handed work to a child session); else the nearest folder above with a log, up to the session folder.
+- **A tab session with no log yet** (`session-<id8>/` holding only its transcript cache): the reference starts its `session.jsonl` with `{"session":{id, kind:"vscode-tab"}}`. The id comes from the caller and must start with the folder's 8 characters, so an id is never invented.
+- **Not linked:** `spawned/<agent>/` and `cards/` are day-level containers, not sessions; an agent spawned by a caller Servex does not know lands there with no parent.
+- **Backfill and census:** the daily tick (`Servex/TaskLoop.js` `follow_up_daily()`, beside StaleClose) calls `SessionRecord#apply_links()`, so every folder below a session gets its reference with no hand step, and one row per folder lands in the links ledger (`SessionRecord.LINKS`). By hand: `node Server/SessionRecord.mjs --links` counts every folder below a session and whether its parent references it (writes nothing; `--list` names them), and `--links --apply` runs the same backfill. On 2026-10-22, 1101 folders were checked: 1 was referenced, 801 were missing a reference, and 299 had no parent log and no session id. Tests: `Server/SessionRecord.test.mjs`, `Server/stale-close.test.mjs`, `Servex/agents/open-task.test.mjs`.
+
+## Session → task → child session
+
+- **A session** is made by Servex on `spawn_agent` (`open_task`, before the first turn), by a VS Code tab (its `session-<id8>/` folder), or by a voice call. Its folder sits under the day, or under the caller's session folder.
+- **A task** is made by the `new-task` skill or the item tool (`tasks.add`). Its folder goes inside the session (or task) that made it: `<session folder>/<slug>/task.jsonl`; a task with a module home goes to `<module>/tasks/<slug>/`.
+- **A child session** is a session spawned from inside another one, so its folder is `<parent session folder>/<agent id>/`. If the caller is a task, `parent_task` names that task as the parent.
+- **The reference:** whichever way a folder is made, `SessionRecord.link_parent` appends one `{"task":"<url>"}` line to the parent's log (the nearest folder above with a log, or the explicit parent), never twice. The daily tick backfills any that were missed.
+- **Completion rolls up** by replaying the logs: a session's completion is its referenced tasks done over total (`Session.progress()`), and a child session counts as one of them through its reference. Nobody writes a percentage.
+- **A task moves to a child session** with `spawn_agent` and `task: {from, id}`: the subtask leaves the spawner's log and its history is moved into the child's folder (`move_item` in `Servex/agents/page_tools.js`). A refusal is written into the child's log as a `handoff` line.
 
 ## Readers: every one accepts both names
 
