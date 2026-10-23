@@ -1,0 +1,142 @@
+// Finds, runs, watches and records node tests (X.test.mjs). Node only. Design: tasks/test-system/plan.md
+import fs from "node:fs";
+import path from "node:path";
+import { spawn } from "node:child_process";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, "../../../..");
+const SKIP = new Set(["node_modules", ".git", "worktrees"]);
+const IMPORT_RE = /(?:\bfrom\s*|\bimport\s*\(\s*|^\s*import\s+)["']([^"']+)["']/gm;
+
+export default class TestRunner {
+	root = ROOT;
+	results = path.join(HERE, "results.jsonl");
+	timeout = 60000;
+	parallel = 4;
+	cache = new Map();   // abs file -> { mtime, deps }
+	running = new Set();
+
+	rel(f){ return path.relative(this.root, f).split(path.sep).join("/"); }
+
+	// Every *.test.mjs under the folders (repo-relative; default the whole repo).
+	find(folders = [""]){
+		const out = [];
+		const walk = dir => {
+			let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+			for (const e of ents) {
+				const p = path.join(dir, e.name);
+				if (e.isDirectory()) {
+					if (SKIP.has(e.name) || this.rel(p) === "public/framework/ai/sessions") continue;
+					walk(p);
+				} else if (e.name.endsWith(".test.mjs")) out.push(this.rel(p));
+			}
+		};
+		for (const f of folders.length ? folders : [""]) walk(path.resolve(this.root, f));
+		return [...new Set(out)].sort();
+	}
+
+	// Files this file imports (relative or /framework/…), absolute paths, cached per mtime.
+	deps(abs){
+		let st; try { st = fs.statSync(abs); } catch { return []; }
+		const c = this.cache.get(abs);
+		if (c && c.mtime === st.mtimeMs) return c.deps;
+		const src = fs.readFileSync(abs, "utf8"), deps = [];
+		for (const m of src.matchAll(IMPORT_RE)) {
+			let spec = m[1].split(/[?#]/)[0], target;
+			if (spec.startsWith("/framework/")) target = path.join(this.root, "public", spec);
+			else if (spec.startsWith(".")) target = path.resolve(path.dirname(abs), spec);
+			else continue;
+			if (fs.existsSync(target) && fs.statSync(target).isFile()) deps.push(target);
+		}
+		this.cache.set(abs, { mtime: st.mtimeMs, deps });
+		return deps;
+	}
+
+	closure(abs){
+		const seen = new Set(), todo = [abs];
+		while (todo.length) {
+			const f = todo.pop();
+			if (seen.has(f)) continue;
+			seen.add(f);
+			if (/\.m?js$/.test(f)) todo.push(...this.deps(f));
+		}
+		return seen;
+	}
+
+	// Tests covering a changed file: same folder, or importing it transitively.
+	covers(file, tests = this.find()){
+		const abs = path.resolve(this.root, file), dir = path.dirname(abs);
+		return tests.filter(t => {
+			const ta = path.resolve(this.root, t);
+			return path.dirname(ta) === dir || this.closure(ta).has(abs);
+		});
+	}
+
+	one(file, trigger){
+		return new Promise(resolve => {
+			const t0 = Date.now(); let out = "", timedOut = false;
+			const child = spawn(process.execPath, [file], { cwd: this.root, windowsHide: true });
+			const timer = setTimeout(() => { timedOut = true; child.kill(); }, this.timeout);
+			child.stdout.on("data", d => out += d);
+			child.stderr.on("data", d => out += d);
+			child.on("close", code => {
+				clearTimeout(timer);
+				const ok = code === 0 && !timedOut;
+				const line = { file, ok, ms: Date.now() - t0, at: new Date().toISOString(), trigger };
+				if (!ok) line.tail = (timedOut ? "TIMED OUT after " + this.timeout + "ms\n" : "") + out.trim().split(/\r?\n/).slice(-15).join("\n");
+				if (timedOut) line.timeout = true;
+				fs.appendFileSync(this.results, JSON.stringify(line) + "\n");
+				console.log(`${ok ? "PASS" : timedOut ? "TIME" : "FAIL"} ${file} (${line.ms} ms)`);
+				resolve(line);
+			});
+			child.on("error", e => { clearTimeout(timer); resolve({ file, ok: false, ms: 0, tail: String(e) }); });
+		});
+	}
+
+	async run(files, { trigger = "manual" } = {}){
+		files = files.filter(f => !this.running.has(f));
+		files.forEach(f => this.running.add(f));
+		const out = [], queue = [...files];
+		const worker = async () => { for (let f; (f = queue.shift());) { out.push(await this.one(f, trigger)); this.running.delete(f); } };
+		await Promise.all(Array.from({ length: Math.min(this.parallel, files.length) }, worker));
+		const bad = out.filter(r => !r.ok), slow = out.filter(r => r.timeout);
+		console.log(`${out.length - bad.length} passed, ${bad.length} failed (${slow.length} timed out), ${out.length} total`);
+		return out;
+	}
+
+	watch(folders){
+		let pending = new Set(), timer;
+		const fire = () => {
+			const changed = [...pending]; pending = new Set();
+			const tests = this.find();
+			for (const f of changed) {
+				const hit = f.endsWith(".test.mjs") ? [f] : this.covers(f, tests);
+				if (hit.length) this.run(hit, { trigger: "change:" + f }).catch(e => console.error("watch run failed:", e));
+			}
+		};
+		for (const folder of folders) {
+			fs.watch(path.resolve(this.root, folder), { recursive: true }, (_ev, name) => {
+				if (!name || !/\.m?js$/.test(name) || /(^|[\\/])(node_modules|\.git)[\\/]/.test(name)) return;
+				pending.add(this.rel(path.resolve(this.root, folder, name)));
+				clearTimeout(timer); timer = setTimeout(fire, 300);
+			});
+			console.log("watching " + folder);
+		}
+	}
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+	const args = process.argv.slice(2), r = new TestRunner();
+	const norm = a => r.rel(path.resolve(process.cwd(), a)) || "";
+	const i = args.indexOf("--covers");
+	if (args[0] === "--watch") r.watch(args.slice(1).map(norm));
+	else if (args[0] === "--list" || i > -1) {
+		const files = i > -1 ? r.covers(norm(args[i + 1])) : r.find(args.filter(a => a !== "--list").map(norm));
+		console.log(files.join("\n"));
+	} else {
+		const files = r.find(args.map(norm));
+		const res = await r.run(files);
+		process.exitCode = res.some(x => !x.ok) ? 1 : 0;
+	}
+}
