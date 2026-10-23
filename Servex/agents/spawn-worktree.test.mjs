@@ -8,11 +8,13 @@
  * Five cases, against a FAKE pool (no real git, no real worktree) and a FAKE Agent (no real
  * claude.exe — Agents.spawn() would otherwise launch an actual SDK session for every case
  * below). No network, no filesystem touched outside one scratch SERVEX_HOME. */
+import { STORE, spawned_in_real_store, clean } from "./test-store.mjs";   // FIRST: points the session store at a scratch dir (see that file)
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+const real_before = spawned_in_real_store();
 let checks = 0;
 const check = (name, fn) => { fn(); checks++; };
 
@@ -81,5 +83,12 @@ check("minion + no cwd, but no `servex.pool` at all (a demo/test host) -> left u
 	const agent = agents.spawn({ role: "minion", name: "v", prompt: "do it" });
 	assert.equal(agent.cwd, process.cwd(), "falls back to the Agent class's own default cwd, unchanged from before this feature");
 });
+
+// The store switch works: the fake agents above (minion-x, minion-v, task-mastermind-z...) went to the scratch store, not the real one.
+check("no folder appeared under the real ai/sessions/<today>/spawned/", () => {
+	assert.deepEqual(spawned_in_real_store().filter(n => !real_before.includes(n)), [], "a test agent leaked into the real store");
+	assert.ok(fs.existsSync(path.join(STORE, "public/framework/ai/sessions")), "they were filed in the scratch store instead");
+});
+clean();
 
 console.log(`spawn-worktree.test.mjs: ${checks} checks passed`);

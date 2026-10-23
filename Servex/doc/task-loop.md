@@ -12,8 +12,7 @@ Interfaces it agreed with its siblings: [`interfaces.md`](/framework/ai/sessions
 | variable | default | what it does |
 |---|---|---|
 | `SERVEX_TASKLOOP_EVERY_MIN` | 5 | how often the loop looks at every open task |
-| `SERVEX_TASKLOOP_QUIET_MIN` | 10 | a task's log has not been touched this long — first sign it needs a chase |
-| `SERVEX_TASKLOOP_GAP_MIN` | 15 | how long between chase 1 and chase 2, and between chase 2 and escalating |
+| `SERVEX_TASKLOOP_QUIET_MIN` | 5 | a started task's log has had no new line this long: it gets a status ask, and another this often while silent |
 | `SERVEX_TASKLOOP_FOLLOWUP_MIN` | 120 | a task in the `waiting` state on the owner gets one reminder after this long, then one a day; only `running` tasks are chased (state from [core/Task](../../public/framework/core/Task/readme.md) `Task.replay`) |
 | `SERVEX_NO_TASKLOOP` | unset | set to `1` to stop the ticking; `close_task` and `task_loop_status` still work |
 
@@ -26,33 +25,15 @@ A step overdue past 2x its estimate gets one nudge too, independent of the chase
 
 ## Chase
 
-Only a task that opted in is chased (the heartbeat's own `opted_in()` test, so a first live boot
-never wakes an old task), and chase itself never revives a stopped/gone/errored agent — it leaves
-that to the heartbeat's own rationed, gated triage, and just logs "left to heartbeat".
+Every **started** (`running`) task is chased: no opt-in, no date gate. Accepted (idle), proposed (waiting), paused, stopped and complete tasks are left alone.
 
-Once a task is open and either quiet past the timer or its owning agent has stopped or is gone
-(the registry row for the agent named on the task's own line 1, or found by matching session id),
-the loop sends that agent one neutral message, the same status check the heartbeat sends: *"Status
-check: where are you at? No change of plan needed; just a line on what you're doing."* It never
-says "land it": a check must not steer the work (the owner, 2026-09-29). It logs what happened —
-`woke <id>` or `could not wake: <why>` — as a `{"log": {"chase": 1}}` line on the task's own
-`task.jsonl`, never anywhere else. A second chase follows 30 minutes later if the task is still
-open, whatever the agent replied in between: only a real landing, or `close_task`, stops the loop —
-a reply that is not a landing keeps the clock running.
+A started task whose log has had no new line for 5 minutes gets ONE message to its agent: the task title and path, *"no line on your log for N min. Add a line with where you are, or complete or stop it."* An agent that is not live is woken the usual way (`agents.send`), unless it was stopped on purpose; and if Heartbeat already has a status check out for that agent, TaskLoop waits. Another ask every 5 minutes while it stays silent. Each ask is a `{"log": {"msg", "ask": n}}` line on the task's own log.
 
-## Escalate
-
-Another 30 minutes with still no landing, and the task goes on the owner's own list instead of
-staying invisible. The loop calls `card_ask` — the tool `waiting-on-you` registers in-process, once
-it exists — asking the owner to close the task or keep chasing it, addressed to the task's own
-agent. Until `card_ask` is registered, it posts a plain message on the task's card instead (its
-line-1 `card`, or `"live"`). Either way this is logged as `{"chase": "escalated"}`, and an escalated
-task is never chased or escalated again — it stays open, visible, and waiting, until it lands or is
-closed. At most 5 escalations happen in one tick; a bigger backlog spreads over the next ones.
+After **three asks in a row with no new line** (the third sat unanswered), or when the agent's last line says it is blocked (a `blocked` key, or a log message starting "blocked"): one red flag, the card TaskLoop already used (`card_ask`, else a plain card message, else the Inbox), logged as `{"log": {"flag": n}}`. After that, one more flag per hour while it stays silent. **Any new line that is not ours resets the count.** The counts are those `ask`/`flag` lines, so a restart loses nothing. At most 5 flags happen in one tick. Code: `TaskLoop.chase()`; test: `Servex/TaskLoop-chase.test.mjs` (fake clock). Model: [core/Task resolution.md](../../public/framework/core/Task/doc/resolution.md) section 8.
 
 ## Close
 
-A task can leave the loop two ways: it lands (`landed_at` with a real `outcome`), or the owner
+A task can leave the loop two ways: it completes or stops, or the owner
 closes it without landing. `close_task({dir, why})` is that second door — it appends
 `{"assign": {"closed_by": "owner", "closed_at", "closed_why"}}` to the task's own log, the only
 other line that stops the chase for good. `task_loop_status()` answers `{open, quiet, chased,

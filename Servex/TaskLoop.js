@@ -32,8 +32,10 @@ export default class TaskLoop {
 
     initialize(){
         this.every_min ??= Number(process.env.SERVEX_TASKLOOP_EVERY_MIN) || 5;
-        this.quiet_min ??= Number(process.env.SERVEX_TASKLOOP_QUIET_MIN) || 10;
-        this.gap_min ??= Number(process.env.SERVEX_TASKLOOP_GAP_MIN) || 15;
+        this.quiet_min ??= Number(process.env.SERVEX_TASKLOOP_QUIET_MIN) || 5;     // a started task with no new line this long gets a status ask (and again this often)
+        this.asks_before_flag ??= 3;                                                // asks in a row with no new line, then one red flag
+        this.reflag_min ??= 60;                                                     // and one more flag this often while it stays silent
+        this.clock ??= () => Date.now();                                            // a test passes a fake one
         this.max_escalations ??= 5;
         this.followup_min ??= Number(process.env.SERVEX_TASKLOOP_FOLLOWUP_MIN) || 120;   // a task waiting on the owner: first reminder after this
         this.followup_again_min ??= 24 * 60;                                              // then one more this often
@@ -88,7 +90,7 @@ export default class TaskLoop {
             await this.servex.process_runner?.tick().catch(() => {});   // every process moves on, or resumes after a restart (ProcessRunner)
             await this.servex.respawn?.tick().catch(() => {});   // a standing agent a day old and not busy gets a fresh session (agents/Respawn.js)
             await this.servex.prompt_tasks?.sweep().catch(() => {});   // an approved prompt task that names a module moves home (agents/PromptTasks.js)
-            const now = Date.now(), registry = this.servex.agents.registry_list();
+            const now = this.clock(), registry = this.servex.agents.registry_list();
             let open = 0, quiet = 0, escalations = 0;
 
             for (const file of this.find_task_files()){
@@ -101,27 +103,14 @@ export default class TaskLoop {
                     continue;
                 }
                 if (info.task_state !== "running") continue;
-                // taskloop-gate, 2026-09-29: only a task that opted in (same test as Heartbeat's
-                // boot sweep) is chased — never wake a task from before this feature existed.
-                if (!this.servex.heartbeat?.opted_in(info.state)) continue;
                 open++;
 
-                // step-runner, 2026-10-12: a step past 2x its estimate gets ONE nudge, independent of the quiet-chase below.
-                const mtime = fs.statSync(file).mtimeMs;   // read before the nudge; the nudge line resets the quiet timer from the next tick on (a nudge counts as a chase)
+                // step-runner, 2026-10-12: a step past 2x its estimate gets ONE nudge, independent of the status ask below.
                 await this.nudge_step(file, info.state, registry, now);
-                const quiet_expired = now - mtime >= this.quiet_min * 60000;
-                if (quiet_expired) quiet++;
-                if (info.escalated) continue;
-
-                const gone = this.agent_gone(info.state, registry);
-                const due = !info.last_chase_at || now - Date.parse(info.last_chase_at) >= this.gap_min * 60000;
-
-                if (info.last_chase === 0 && (quiet_expired || gone) && due) await this.chase(file, info, 1, mtime, gone);
-                else if (info.last_chase === 1 && due) await this.chase(file, info, 2, mtime, gone);
-                else if (info.last_chase >= 2 && due && escalations < this.max_escalations){
-                    escalations++;
-                    await this.escalate(file, info, mtime);
-                }
+                // the quiet clock starts at the file's last write, or, when the last line is our own ask/flag, at that line
+                const ref = info.last_line_ours ? Math.max(info.last_ask_at, info.last_flag_at) : fs.statSync(file).mtimeMs;
+                if (now - ref >= this.quiet_min * 60000) quiet++;
+                if (await this.chase(file, info, registry, now, ref, escalations < this.max_escalations)) escalations++;
             }
 
             this.status_now = { open, quiet, chased: this.totals.chased, escalated: this.totals.escalated, nudged: this.totals.nudged, last_tick: stamp() };
@@ -215,7 +204,9 @@ export default class TaskLoop {
         let text;
         try { text = fs.readFileSync(file, "utf8"); } catch { return null; }
         const lines = [], follow_ups = [];
-        let last_chase = 0, last_chase_at = null, escalated = false, spawned = false, queued = false;
+        let spawned = false, queued = false;
+        // chase state, all on the log (a restart keeps it): `log.ask:n` and `log.flag:n` are ours; ANY other line resets the count
+        let asks = 0, last_ask_at = 0, last_flag_at = 0, flagged = false, last_line_ours = false, blocked = false;
         for (const raw of text.split("\n")){
             if (!raw.trim()) continue;
             let obj; try { obj = JSON.parse(raw); } catch { continue; }
@@ -223,11 +214,16 @@ export default class TaskLoop {
             if (obj.follow_up) follow_ups.push(obj.follow_up);
             if (obj.spawn) spawned = true;
             if (obj.queue) queued = true;
-            const chase = obj.log?.chase;
-            if (chase === "escalated") escalated = true;
-            else if (chase !== undefined){
-                const n = Number(chase);
-                if (Number.isFinite(n) && n >= last_chase){ last_chase = n; last_chase_at = obj.log.at ?? last_chase_at; }
+            if (obj.follow_up || obj.log?.nudge !== undefined) continue;   // our own reminder lines are neither activity nor an ask
+            const ours = obj.log && (obj.log.ask !== undefined || obj.log.flag !== undefined);
+            last_line_ours = !!ours;
+            if (ours){
+                const at = Date.parse(obj.log.at) || 0;
+                if (obj.log.ask !== undefined){ asks++; last_ask_at = at; }
+                else { flagged = true; last_flag_at = at; }
+            } else {
+                asks = 0; flagged = false; last_ask_at = last_flag_at = 0;
+                blocked = this.says_blocked(obj);
             }
         }
         const task = Task.replay(lines), d = task.data;
@@ -240,7 +236,7 @@ export default class TaskLoop {
         return { state, task_state: task.state, waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, waiting_what: d.waiting_what ?? null,
             parent_task: lines.find(l => l.assign)?.assign?.parent_task ?? null,
             agent_cfg: cfg, template: d.template ?? null, first_by: lines[0]?.by ?? null, approved_by: d.approved_by ?? lines.findLast(l => l.approve)?.by ?? null, spawned, queued,
-            follow_ups: mine, last_chase, last_chase_at, escalated, landed, closed };
+            follow_ups: mine, asks, last_ask_at, last_flag_at, flagged, last_line_ours, blocked, landed, closed };
     }
 
     /* Line-1 `agent`, else the registry row whose `session_id` matches — the
@@ -267,7 +263,7 @@ export default class TaskLoop {
         (this.launching ??= new Set()).add(file);
         try {
             const info = this.read_task(file);
-            if (!info?.agent_cfg || info.task_state !== "running" || info.spawned) return { ok: false, why: "nothing to launch" };
+            if (!info?.agent_cfg || !(info.task_state === "running" || (info.task_state === "idle" && info.approved_by)) || info.spawned) return { ok: false, why: "nothing to launch" };
             const dir = path.dirname(file), cfg = info.agent_cfg, tpl = Task.TEMPLATES[info.template] ?? {};
             // the slot check first, so a queued task does not rerun PastWork on every tick while the machine stays hot
             const hot = this.servex.monitor?.flag?.reason;
@@ -299,21 +295,33 @@ export default class TaskLoop {
 
     /* ── acting ───────────────────────────────────────────────────────── */
 
-    /* Never revives: `agents.send()` on a stopped/gone id wakes it (see
-     * Agents.js `send()`/`wake()`), which the Heartbeat already does properly
-     * — opt-in gated, rationed (2/hour, 5/day), and never for a deliberate
-     * stop. So a live agent still gets the queued check here; a stopped, gone
-     * or errored one is left to the Heartbeat's own triage instead. */
-    async chase(file, info, n, mtime, gone){
-        const id = this.owning_agent_id(info.state, this.servex.agents.registry_list());
-        const text = `Task ${this.slug(file)} has been quiet since ${this.at(mtime)}. ${CHECK}`;
+    /* THE CHASE (resolution.md section 8). Every STARTED (running) task, no opt-in. Quiet for `quiet_min` minutes: send its agent ONE status ask
+     * (title and path, add a line or complete/stop it); again every `quiet_min` while silent. After `asks_before_flag` asks with no new line,
+     * or when its last line says it is blocked: ONE red flag card, then one more per `reflag_min` while it stays silent. The counts are the
+     * `log.ask` / `log.flag` lines on the task's own log, so a restart loses nothing; any other new line resets them. `flag_ok` caps flags per tick.
+     * Returns true when it flagged. Heartbeat (Heartbeat.js) also asks a quiet agent; this skips an agent Heartbeat has an open check for. */
+    async chase(file, info, registry, now, ref, flag_ok = true){
+        const quiet = now - ref >= this.quiet_min * 60000;
+        const stuck = info.asks >= this.asks_before_flag && quiet;   // the third ask sat unanswered for another quiet period
+        if (info.blocked && !info.flagged) return flag_ok && await this.flag(file, info, "its last line says it is blocked", now);
+        if (info.flagged){
+            if (now - info.last_flag_at >= this.reflag_min * 60000 && quiet) return flag_ok && await this.flag(file, info, `still no new line on its log`, now);
+            return false;
+        }
+        if (stuck) return flag_ok && await this.flag(file, info, `${info.asks} status asks went unanswered`, now);
+        if (!quiet) return false;
+        const id = this.owning_agent_id(info.state, registry);
+        if (id && this.servex.heartbeat?.watch?.get?.(path.resolve(file))?.check_at) return false;   // Heartbeat's own check is already out; it triages the silence
+        const mins = Math.round((now - ref) / 60000), slug = this.slug(file);
+        const text = `Task ${slug} (${this.relative(path.dirname(file))}${info.state.title ? `, "${info.state.title}"` : ""}): no line on your log for ${mins} min. Add a line with where you are, or complete or stop it.`;
         let woke;
-        if (!id) woke = "could not wake: no owning agent found";
-        else if (gone) woke = "left to heartbeat";
-        else try { this.servex.agents.send(id, text, { from: "servex-task-loop" }); woke = `woke ${id}`; }
-        catch (e){ woke = `could not wake: ${e.message || e}`; }
-        await this.write_line(file, { log: { at: stamp(), msg: `task-loop chase ${n} of 2: ${woke}`, chase: n } });
+        if (!id) woke = "could not ask: no owning agent found";
+        else if (this.servex.agents.stopped_on_purpose?.(id)) woke = `${id} was stopped on purpose; not woken`;
+        else try { this.servex.agents.send(id, text, { from: "servex-task-loop" }); woke = `asked ${id}`; }   // send() wakes an agent that is not live, the usual way
+        catch (e){ woke = `could not ask: ${e.message || e}`; }
+        await this.write_line(file, { log: { at: this.at(now), msg: `task-loop status ask ${info.asks + 1}: ${woke}`, ask: info.asks + 1 } });
         this.totals.chased++;
+        return false;
     }
 
     /* The Step runner's nudge (Server/Steps.mjs): the current step ran past 2x its estimate and the owning agent is live. Once per step. */
@@ -359,15 +367,19 @@ export default class TaskLoop {
         return this.owning_agent_id(info.state, registry);
     }
 
-    /* `card_ask` (waiting-on-you) called in-process once it registers a handler
-     * on the same MCP door every tool here goes through; a plain card message
-     * until then — exactly as interfaces.md agrees. */
-    async escalate(file, info, mtime){
-        const slug = this.slug(file);
-        const question = `${slug} has been quiet since ${this.at(mtime)} and did not land after 2 chases. Close it, or keep chasing?`;
+    /* The red flag: the card path TaskLoop already used (card_ask when it exists, else a plain card message, else the Inbox). */
+    async flag(file, info, why, now){
+        const n = (info.flagged ? 1 : 0) + 1;
+        const question = `${this.slug(file)} is started but silent: ${why}. Close it, or keep chasing?`;
         const said = await this.post_card(file, info, question, ["close it", "keep chasing"]);
-        await this.write_line(file, { log: { at: stamp(), msg: `task-loop escalated: ${String(said).slice(0, 200)}`, chase: "escalated" } });
+        await this.write_line(file, { log: { at: this.at(now), msg: `task-loop red flag: ${String(said).slice(0, 200)}`, flag: n } });
         this.totals.escalated++;
+        return true;
+    }
+
+    /* A line from the agent that says it is stuck: `blocked` as a key, or a log message that starts "blocked". */
+    says_blocked(obj){
+        return !!(obj.blocked || obj.log?.blocked || /^\s*blocked\b/i.test(String(obj.log?.msg ?? "")));
     }
 
     /* The one card path: card_ask when it exists (with options), else a plain card message; the Inbox fallback when the card is missing. */

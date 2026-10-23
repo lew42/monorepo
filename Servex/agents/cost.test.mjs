@@ -1,5 +1,6 @@
 /* node Servex/agents/cost.test.mjs — an agent's cost is the SUM of its turns across sleep/awaken and a Servex restart.
  * Real Agents class; only start() is faked (no claude.exe), scratch SERVEX_HOME, no live Servex touched. */
+import "./test-store.mjs";   // FIRST: points the session store at a scratch dir, so spawned fakes never land in the real one
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";

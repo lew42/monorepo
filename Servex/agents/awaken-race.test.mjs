@@ -25,6 +25,7 @@
  *   - item 4: `Heartbeat.post()`'s own Inbox fallback, against the real `Heartbeat.prototype.post`.
  *
  * No network, no filesystem touched outside one scratch SERVEX_HOME. */
+import { spawned_in_real_store, clean } from "./test-store.mjs";   // FIRST: points the session store at a scratch dir (see that file)
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -35,6 +36,7 @@ const check = async (name, fn) => { try { await fn(); checks++; } catch (e){ con
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "awaken-race-test-"));
 process.env.SERVEX_HOME = dir;   // home.js's place(): registry.json and servex.jsonl land here, never the real machine's
+const spawned_before = spawned_in_real_store();
 // ⚠ set BEFORE this import, and it must be DYNAMIC — a static top-of-file import is hoisted
 // ahead of the line above and would freeze home.js's module-level HOME at the REAL Servex home
 // first (the exact trap External.test.mjs documents, caught 2026-09-28).
@@ -331,6 +333,7 @@ await check("TaskLoop.escalate(): the same {ok:false} card answer falls back to 
 		slug(){ return "2026-10-01/never-lose-a-wake"; },
 		at(){ return "2026-10-01T12:00:00-05:00"; },
 		write_line: async () => {},
+		post_card: TaskLoop.prototype.post_card,
 		totals: { escalated: 0 }
 	};
 	await TaskLoop.prototype.escalate.call(fake, "public/framework/ai/sessions/2026/10/01/never-lose-a-wake/task.jsonl", { state: {} }, Date.now());
@@ -345,5 +348,9 @@ await check("TaskLoop.escalate(): the same {ok:false} card answer falls back to 
  * late write callback finds ENOENT and crashes the process after the real result already
  * printed (its target directory is gone either way; this only avoids the noisy unhandled error). */
 await new Promise(r => setTimeout(r, 100));
+await check("store: no test agent was filed under the real ai/sessions/<today>/spawned/", () => {
+	assert.deepEqual(spawned_in_real_store().filter(x => !spawned_before.includes(x)), [], "a new folder appeared in the real store");
+});
 fs.rmSync(dir, { recursive: true, force: true });
+clean();
 console.log(`awaken-race: ${checks} checks passed`);
