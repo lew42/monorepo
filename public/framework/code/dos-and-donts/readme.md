@@ -39,3 +39,7 @@ all already spoken for.
 - [doc/traps.md](doc/traps.md) — the full list, one entry per trap, incident links where they exist
 - [doc/opinions.md](doc/opinions.md) — no npm dependency, no black magic, ~100 lines is a try not a rule
 - [patterns](../patterns/) — the shapes these traps are the failure mode of
+
+## Notes from your asks
+
+- Never break or overwrite anything on the site that already works. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1251), 2026-10-13)

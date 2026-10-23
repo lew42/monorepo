@@ -16,3 +16,7 @@ Comments pruned from `inbox.js`, verbatim: [doc/notes.md](./doc/notes.md). Comme
 - Notes: [doc/Processes-notes.md](doc/Processes-notes.md) — history and lessons moved out of the code comments.
 
 - Notes: [doc/groups-notes.md](doc/groups-notes.md) — history and lessons moved out of the code comments.
+
+## Notes from your asks
+
+- Architecture cards stay out of the AI inbox list. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1023), 2026-10-13)

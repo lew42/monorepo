@@ -8,3 +8,9 @@ The always-on process on this machine (port 80). It runs the Claude agents, star
 
 ## Also here (readme audit, 2026-10-13)
 - [lifecycle](./lifecycle/) — Lifecycle — how much is left running
+
+## Notes from your asks
+
+- Worktrees sit in a workspace folder beside the monorepo, never inside it, so the repo folder holds only the repo. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p34), 2026-10-13)
+- Passwords and API keys stay out of the repo, and a local secret such as the push key lives in a git-ignored file. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p34), 2026-10-13)
+- Agents keep working through the tasks already in progress without waiting to be told. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p6258), 2026-10-14)

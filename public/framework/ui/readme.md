@@ -84,3 +84,12 @@ The other seventeen have nothing to import — open the component's page and cop
 
 ## Also here (readme audit, 2026-10-13)
 - [item](./item/) — item — one row: an optional icon, then a name
+
+## Notes from your asks
+
+- Prefer foundational, battle-tested elements, because they are the easiest to use. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1652), 2026-10-13)
+- Only certain component types, such as buttons, get their own page, not every component. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3908), 2026-10-13)
+- Components are shown in action, not only as static examples. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3908), 2026-10-13)
+- Elements are atomic pieces, and a component is a composition of more than one element. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3908), 2026-10-13)
+- Composed components are shown on a line, as a card, or as rows in a card. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3908), 2026-10-13)
+- Components are presented as a polished UI kit with minimal labels. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1251), 2026-10-13)

@@ -80,3 +80,7 @@ Files: `Page.class.js` (`Page.use`, the constructor hook, the `render` emit) ·
 `Log.js` (`ext()`, `on`/`emit`, `jsonl_lines`) · `page.jsonl` + `demo.js` (this page,
 the demo itself) · `paths.js` (the path-extensions table, above) ·
 `doc/path-extensions.md` (the full census).
+
+## Notes from your asks
+
+- Inbox zero is the aim across core: a row that needs no action should not sit in the inbox. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11150), 2026-10-12)

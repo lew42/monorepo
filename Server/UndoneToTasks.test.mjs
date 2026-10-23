@@ -31,7 +31,9 @@ assert.deepEqual(p.tracked.map(t => [t.ask.id, t.by.split(" ")[0]]).sort(), [["a
 assert.deepEqual(p.no_module.map(a => a.id).sort(), ["c1", "d1"], "no module folder -> counted, not created");
 assert.equal(p.create.find(t => t.ask === "b1").module, "ai", "ai/sessions folds into the ai home");
 assert.equal(p.create.find(t => t.ask === "a1").title, "Save every raw Whisper reply so the transcript can be audited later");
-assert.ok(p.create.find(t => t.ask === "a6").title.length <= UndoneToTasks.MAX_TITLE && p.create.find(t => t.ask === "a6").title.endsWith("…"), "a long title is cut at a word");
+assert.ok(p.create.find(t => t.ask === "a6").title.length <= UndoneToTasks.MAX_TITLE && !p.create.find(t => t.ask === "a6").title.endsWith("…"), "a long title is cut at a clause break, whole, with no ellipsis");
+assert.equal(UndoneToTasks.title("A very long sentence that goes on and on about nothing in particular so that the title must be cut at a word boundary somewhere"), "A very long sentence that goes on and on about nothing in particular");
+assert.ok(UndoneToTasks.title("x".repeat(30) + " " + "y".repeat(70)).endsWith("…"), "no clause break: cut at a word, with an ellipsis");
 assert.equal(UndoneToTasks.priority(ask("n", "x", { days: 1 })).score, 5);
 assert.equal(UndoneToTasks.priority(ask("n", "x", { days: 9 })).score, 1, "older is lower");
 assert.equal(UndoneToTasks.priority(ask("n", "x", { kind: "routed", status: "stalled", days: 9 })).score, 5, "a ledger-pressed ask is not demoted by age");

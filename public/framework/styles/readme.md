@@ -50,3 +50,7 @@ A module stylesheet, when a rung-4 rule is unavoidable: `View.stylesheet(import.
 - [`layers/`](./layers/) one page per layer · [`layouts/`](./layouts/readme.md) seventeen whole-page layouts · [`rules/`](./rules/readme.md) dos and don'ts · [`sections/`](./sections/readme.md) landing-page bands · [`elements/`](./elements/readme.md) every styled element
 - Themes: [`layers/theme/`](./layers/theme/) the base theme · [`layers/theme/guide/`](./layers/theme/guide/readme.md) writing a theme · [`layers/theme/lew42/`](./layers/theme/lew42/readme.md) the house theme · [`css-scopes.txt`](./css-scopes.txt) reserved class prefixes
 - Files that matter: `/framework/framework.css` (the only `@layer` statement, tokens, utilities), `/styles.css` (this site's skin), `layers/theme/lew42/lew42.css` (the house theme, wired in `app.js`)
+
+## Notes from your asks
+
+- Rules, preferences and ideas you said about this module: [doc/notes-from-asks.md](doc/notes-from-asks.md)

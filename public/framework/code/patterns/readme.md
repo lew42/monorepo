@@ -51,3 +51,8 @@ MyList.View = class MyListView extends List.View { }   // …so a subclass swaps
 - Full detail, with the worked examples: [the Patterns page](/framework/code/patterns/)
 - [dos-and-donts](../dos-and-donts/) — the traps these patterns exist to avoid
 - [objects](../objects/) — the view every class ships once it has real state
+
+## Notes from your asks
+
+- Every file goes in its most logical place, and the framework stays as portable as possible. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1092), 2026-10-13)
+- Modules get clear names, and all of their content is structured around those names. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1092), 2026-10-13)

@@ -150,3 +150,24 @@ The first pass could not tell whether 151 asks were done. Each was grouped by th
 
 - `a2d01a32d6` Should the AI task system review be done now, yes or no?
 
+
+## The sort pass, 2026-10-23: every open ask becomes a task, a close or a note
+
+Crack 2 in [cracks.md](/framework/core/Task/doc/cracks.md): asks that never became tasks. The task: [ext/Refine/tasks/asks-to-tasks](/framework/ext/Refine/tasks/asks-to-tasks/).
+
+**First, most "undone" asks were already settled.** The count did not read the verdicts above, so 625 looked undone. `UndoneAsks.settle()` now counts what became of each ask: 241 had a task (from 2026-10-17) and 344 were found built or not work. That left 40 undone asks (35 that needed you, 5 never checked) and 477 unroutable ones (no module folder). The sort pass took these, plus 2 that are new since.
+
+**The sort.** A Haiku read 25 asks at a time with the list of 285 modules, could search the repo, and put each ask in one of four groups (`node Server/UndoneVerify.mjs --batches <dir> --question sort`, then `--run <dir>`, then `--merge <dir>`). It never answered "ask the owner". **514 asks = 259 still wanted + 77 done + 46 obsolete + 132 notes.** Eight asks sit in two rows (the ledger names them twice), so 522 rows carry a verdict. A "done" counts only if the file it cites exists; the script checks this, not the model.
+
+| Group | Asks | What happened |
+|---|---|---|
+| still wanted | 259 | 241 new proposals in their module's `tasks/`, waiting on you (`UndoneToTasks --apply --proposed`). At review, 11 that asked for the same work as another were stopped with "Same ask as …" and their asks point at the one kept, so 230 wait. The other 26 already had a task with the same words |
+| done | 77 | closed; the evidence (a file and line) is on the ask |
+| obsolete | 46 | closed; the reason is on the ask |
+| note | 132 | one line each in the module's readme under "Notes from your asks", with a link to your words. A module with more than 6 got `doc/notes-from-asks.md`, linked from the readme (`UndoneToTasks --notes --apply`): 46 files. At review, 9 lines that said the same as another line in the same file were folded into it, which now links both sets of your words ("again") |
+
+**After:** done 70 + tasked 498 + closed 467 + noted 132 + undone 0 + unroutable 0 = 1167, and the two numbers agree. [Undone asks](/framework/ai/asks/undone/) shows the new count strip.
+
+**Cost:** 23 batches cost $19.14 (the runs log is `sort/runs.jsonl` in the task folder), plus about $0.78 for a first test run whose answer was not parsed. That is about $0.04 an ask, the same as the first check.
+
+**How to read it:** the proposals are the owner's to approve, improve or reject on each module's task list. A "note" is a rule or a preference, not work. If one is wrong, delete the line; git keeps it.

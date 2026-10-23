@@ -1,2 +1,6 @@
 {"id":"tasks","path":"/framework/ext/toc/tasks/","title":"ext/toc tasks","mode":"parallel"}
 {"task":"/framework/ext/toc/tasks/dead-nav/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/toc/tasks/explore-better-table-of-contents-styles/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:18.588Z"}
+{"task":"/framework/ext/toc/tasks/explore-styles-for-h4-and-h3-section-hea/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:18.700Z"}
+{"task":"/framework/ext/toc/tasks/keep-the-table-of-contents-a-narrow-mini/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:19.180Z"}
+{"task":"/framework/ext/toc/tasks/treat-the-toc-as-a-tree-widget/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:19.417Z"}

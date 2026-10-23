@@ -27,3 +27,7 @@ That is the whole API. Each url segment is one `page.child(name)`, a miss is an 
 - [doc/measured.md](./doc/measured.md) — 0.2ms warm navigation; the serial walk's cost.
 - Members: `doc/method/<name>.md`, `doc/property/<name>.md`, `doc/file/<path>.md` — rendered under the source by `Doc`.
 - Files: `Router.js` (the class), `page.js` (the Doc index), `doc/` (one topic each).
+
+## Notes from your asks
+
+- New things get a URL so they can be linked, unless that would duplicate data or break a coding rule. ([your words](/framework/ai/sessions/7efd07d5-7a58-434d-8847-1a1d7b640390/?tab=coverage#p603), 2026-10-09)

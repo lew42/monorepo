@@ -28,3 +28,7 @@ rate(document.querySelector(".page.active-page"));
 - Used by: `styles/layouts/space/` (gen · search · page), `dev/DevBar/layout.js`
 
 - Notes: [doc/corpus-notes.md](doc/corpus-notes.md) — history and lessons moved out of the code comments.
+
+## Notes from your asks
+
+- The owner does not rank templates by hand; the taste ranges do the ranking. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077), 2026-10-12)

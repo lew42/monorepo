@@ -32,3 +32,7 @@ with it.
 - [`ux/`](/framework/ux/) — the tier boundary: what stays a word here, what graduates to a class
 - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - Files: `words.js` (the two words, `@layer theme`), `page.js` (the comparison demo)
+
+## Notes from your asks
+
+- Compact and spacious token remapping waits until later. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11077), 2026-10-12)

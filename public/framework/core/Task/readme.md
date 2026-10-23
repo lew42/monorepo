@@ -65,7 +65,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 ## TaskPage
 
-[`TaskPage.js`](./TaskPage.js) (`class TaskPage extends Page`) is the thin route for a task folder: it opens that folder's `task.jsonl` and shows `Task.View` full-size, with no task logic of its own. Demo: [core/Task/page/](/framework/core/Task/page/). The legacy `ai/AITask` viewer is unchanged.
+[`TaskPage.js`](./TaskPage.js) (`class TaskPage extends Page`) is the thin route for a task folder: it opens that folder's `task.jsonl` (or `session.jsonl`, for a spawned agent's folder) and shows `Task.View` full-size, with no task logic of its own. It asks the server which file exists, likely one first, so a page makes no 404: `task.jsonl` first in a `<module>/tasks/<slug>/` folder, `session.jsonl` first anywhere else. Demo: [core/Task/page/](/framework/core/Task/page/). The legacy `ai/AITask` viewer is unchanged.
 
 ## TasksPage
 

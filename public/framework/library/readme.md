@@ -29,3 +29,7 @@ A page joins the library by being a child of `ui/` (or listed in `Library.FIGMA`
 - The padding contract is proved by a headless test, not a live demo: the live page must smoke clean. A deliberately broken box would print `[padding] demo/broken: needs_parent_padding inside an unpadded box …` and shade red.
 - **The wall**: `?at=<collection>&view=wall` (the "wall / browse" toggle) puts the collection in one grid; a card spans 1–4 columns by its optimalWidth, dense flow (`Rail.wall()`).
 - Not built yet: section tone variants; ux specimens (ux items show their preview thumb).
+
+## Notes from your asks
+
+- Stage code waits until its stage is designed in Figma, and is built after that design lands. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11044), 2026-10-12)

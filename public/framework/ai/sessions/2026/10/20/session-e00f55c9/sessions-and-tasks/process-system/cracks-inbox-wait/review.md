@@ -1,0 +1,22 @@
+verdict: fix
+1. [fix] `Servex/agents/awaken-race.test.mjs:339` still calls `TaskLoop.prototype.escalate`, but the branch's `Servex/TaskLoop.js` no longer has an `escalate` method (the merged task-chase work replaced it with `flag()`). That check now throws a TypeError. Point it at `flag(file, info, why, now)`. I could not run the file in the worktree because it has no `node_modules` (`express` is missing), so the TypeError comes from reading the code: grep finds no `escalate(` method left in TaskLoop.js.
+2. [fix] `public/framework/core/Task/doc/cracks.md` rows 1 and 5 now have three cells in a four-column table. The "Closed 2026-10-23: …" text replaced the "Seen" cell, and the "Check or code that closes it" cell is gone, so the fix shows under the wrong heading. Keep the old count in "Seen" and put `TaskLoop.read_inboxes()` / `remind_other()` in the last column.
+3. [fix] Other text in the same docs is now stale. In cracks.md, "What chases a task today" item 4 still says "only `waiting_on: "owner"` gets a reminder", and row 7 still says nothing reads a stopped parent's inbox. In `public/framework/core/Task/doc/resolution.md:783`, "⬜ Something reads every inbox" is still unticked.
+4. [note] `TaskLoop.read_inboxes()` (TaskLoop.js ~410) copies the unread-line parsing from `Heartbeat.inbox()` (Heartbeat.js:265) instead of sharing it, which goes against law 6, one of everything. A shared `unread(inbox)` helper used by both would be simpler. The copy is needed only because `Heartbeat.inbox()` marks lines read before they are sent.
+5. [note] There is a race when a line is marked read. The reader finds unread lines by position (everything after the last `read_upto` line), not by the `read_upto` number. If a child appends a line between the read and the appended mark, that line ends up before the mark: it is marked read and never delivered. Heartbeat has the same flaw. A fix is to count unread lines from the `read_upto` value instead.
+6. [note] "Live" is tested as `row.state !== "stopped" && !== "gone"` (TaskLoop.js ~423). An agent in `error`, or asleep, still gets `agents.send`, which wakes it. The brief asked for delivery only to a live agent, and a card for the rest.
+7. [note] `remind_other()` flags once and then goes quiet for good, and it calls `post_card` directly instead of `flag()`. The chase re-flags every hour. The brief says to flag "the way the chase flags", so this is close but not identical. Calling `post_card` keeps the chase's `log.flag` count separate, which is a fair reason to do it this way.
+8. [note] `review/diff.patch` is taken against the brief commit, so it also contains the merged `task/task-chase` and `task/test-temp-store` branches (chase rewrite, test-store.mjs, move-aside.mjs, launch change). This task's own commit is `ed6062fbc`. Merging this branch also lands those two branches.
+
+## Requirements
+- 1 "Every inbox gets read" — yes — `read_inboxes()` runs on every tick and uses Heartbeat's existing `read_upto` mark; `TaskLoop-cracks.test.mjs` passes: one message to the live agent, and nothing is sent again on later ticks
+- 1a "agent is live → deliver as one message, mark read" — yes — test checks `inboxMsgs().length === 1` and `read_upto === 2`
+- 1b "stopped or gone → one card per inbox, not per tick" — yes — an `inbox_card.upto` line blocks repeats; the test checks one card across 3 ticks
+- 1c "backlog older than 7 days marked read with a note, never delivered" — yes — test "ancient" is not sent and the note matches
+- 2 "Waiting on anything gets reminded … agent id or task path" — yes — `remind_other()`; the test resolves a task path to that task's agent, `helper-h`
+- 2a "After 3 reminders with no change, flag it the way the chase flags" — yes, with differences — one card through `post_card`, no hourly re-flag (finding 7)
+- 3 "Docs: rows 1 and 5 of cracks.md, and task-loop.md" — partly — task-loop.md is good; cracks.md rows are malformed and nearby text is stale (findings 2, 3)
+- "Done means: tests … Existing TaskLoop tests pass" — mostly — cracks, chase, state, launch and handover pass in the worktree; steps passes its asserts but hits EPERM at cleanup (same on michael/dev); awaken-race is broken (finding 1)
+## Words
+- content — yes — the messages are plain sentences: "Task x is waiting on you for …", "Unread lines in your inbox (…)"
+- content — yes — the task-loop.md section says what the code does, the on-disk marks (`read_upto`, `inbox_card`, `follow_up.flag`) and where the test is

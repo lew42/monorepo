@@ -52,3 +52,7 @@ export default new Page({ meta: import.meta, title: "Hello", children: "about", 
 ## Also here (readme audit, 2026-10-13)
 - [Events](./Events/) — on/off/emit mixin everything else builds on
 - [track](./track/) — opt-in instance tracking: call once, read back live
+
+## Notes from your asks
+
+- Use the existing items first and simplify them before adding new ones. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p6258), 2026-10-14)

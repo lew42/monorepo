@@ -1,0 +1,139 @@
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 3cabc383d..ec56a09fd 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -1258,7 +1258,8 @@ export default class Servex extends Events {
+      * purpose, or its task landed while it waited — the revive guard, asked of a spec. */
+     stale(spec){
+         const no = this.agents.blocked?.({ id: spec.id, cwd: spec.cwd, task_dir: spec.task?.dir && path.resolve(spec.task.dir),
+-            ...(spec.resume ? { stopped_by: this.agents.reg().read()[spec.id]?.stopped_by } : {}) });
++            ...(spec.resume ? { stopped_by: this.agents.reg().read()[spec.id]?.stopped_by } : {}) },
++            { landed: !spec.resume });   // a held RESUME is a long-lived agent coming back: its first task landing is no reason to drop it
+         if (no) this.log.append("system", { type: "gate", state: "dropped", id: spec.id ?? null, why: no.text }).catch(() => {});
+         return !!no;
+     }
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index b66214114..4676a66dd 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -400,7 +400,7 @@ export class Agents {
+ 		if (this.revived) return this.revived;
+ 		const reg = this.reg(), prev = reg.last_boot();
+ 		reg.mark_boot(this.boot);
+-		const out = { revived: [], told: [], gone: [], legacy: [], skipped: [] };
++		const out = { revived: [], told: [], gone: [], legacy: [], skipped: [] }, reasons = {};
+ 		const boot_at = parseInt(String(this.boot).split("-")[0], 36) || Date.now();   // `boot` = <base36 ms>-<pid>
+ 		/* A restart that took a snapshot first: exactly the agents it listed come back, however long they had been idle. */
+ 		const snap = this.restart_snapshot(prev);
+@@ -428,12 +428,23 @@ export class Agents {
+ 			const ours = legacy ? this.recent_log(row.id, window_min)
+ 				: !!prev?.boot && row.boot === prev.boot && (listed(row.id) || Date.now() - Date.parse(row.last_at ?? 0) < window_min * 60000);
+ 			let agent = null;
+-			const no = ours && this.blocked(row);
+-			if (no){ out.refused = [...(out.refused ?? []), { id: row.id, why: no.why }]; if (row.state !== "gone") out.gone.push(row.id); continue; }
++			const no = ours && this.blocked(row, { landed: false });
++			if (no){ out.refused = [...(out.refused ?? []), { id: row.id, why: no.why }]; reasons[row.id] = `servex restarted; not revived: ${no.text}`; if (row.state !== "gone") out.gone.push(row.id); continue; }
+ 			/* doc/restart.md "The revive sweep skips…": never tell, or resume, an agent that has no turn to lose. */
+ 			const skip = ours && Agents.revive_skip(row, { boot_at, has_session: !!(row.session_id && session_facts(row.session_id).file) });
++			/* NEVER STARTED (the owner, 2026-10-22): it was open but had no turn and no session file, so `resume` cannot work —
++			 * but it is not dead either. Start it again fresh from its own spec (same id, role, cwd, task), and point it at its brief. */
++			if (skip?.dead && row.revivable && (row.spec || row.cwd)){
++				try { agent = this.reopen({ ...row, session_id: undefined }); } catch {}
++				if (agent){
++					out.revived.push(row.id); out.told.push(row.id); out.restarted = [...(out.restarted ?? []), row.id];
++					const dir = this.task_dir_for(row);
++					agent.send(`Servex restarted before your first turn ran, so nothing of it was kept. Start now${dir ? `: your brief is requirements.md in ${dir}` : ", from the prompt you were given"}.`, { from: "servex" });
++					continue;
++				}
++			}
+ 			if (skip){
+-				out.skipped.push({ id: row.id, why: skip.why });
++				out.skipped.push({ id: row.id, why: skip.why }); reasons[row.id] = `servex restarted; not revived: ${skip.why}`;
+ 				this.store().append("servex", { type: "revive-skip", id: row.id, why: skip.why }).catch(() => {});
+ 				if (skip.dead && row.state !== "gone") out.gone.push(row.id);
+ 				continue;
+@@ -441,6 +452,7 @@ export class Agents {
+ 			if (ours && (legacy || row.revivable) && row.session_id)
+ 				try { agent = this.reopen(row); } catch {}
+ 			if (!agent){
++				reasons[row.id] = `servex restarted; not revived: ${!ours ? "not open in the previous boot, or idle past the window" : !row.session_id ? "no session to resume" : "its spawn carried code (system/sdk/in-process tools), its owner spawns it again"}`;
+ 				if (row.state !== "gone") out.gone.push(row.id);
+ 				continue;
+ 			}
+@@ -457,6 +469,10 @@ export class Agents {
+ 			out.told.push(id);
+ 		}
+ 		reg.bury(out.gone, "servex restarted");
++		/* the reason on the row itself, not only in servex.jsonl (the owner, 2026-10-22) */
++		const rows = reg.read(); let wrote = false;
++		for (const [id, why] of Object.entries(reasons)) if (rows[id] && out.gone.includes(id)){ rows[id].ended = why; wrote = true; }
++		if (wrote) reg.save(rows);
+ 		this.store().append("servex", { type: "revive", boot: this.boot, previous: prev?.boot ?? null, ...out }).catch(() => {});
+ 		return this.revived = out;
+ 	}
+@@ -576,15 +592,18 @@ export class Agents {
+ 	 *              (`stopped_by` in its registry row).
+ 	 *   landed   — its task.jsonl has a landing line (or closed_by).
+ 	 * `force` (send_to_agent's `revive: true`) overrides the last two, never the first.
++	 * `landed: false` skips only the landing check: the boot sweep asks it so, because a row open at the restart was ALIVE, and
++	 * a long-lived mastermind lands its first task and goes on to others (2026-10-22: mastermind-figma-cards and mastermind-test
++	 * were buried as "landed" while mid-work).
+ 	 * task-mastermind-mobile-nav, landed and stopped by hand three times, kept coming back. */
+-	blocked(row, { force = false } = {}){
++	blocked(row, { force = false, landed = true } = {}){
+ 		if (!row) return null;
+ 		const cwd = row.spec?.cwd ?? row.cwd;
+ 		if (cwd && !fs.existsSync(cwd)) return { why: "cwd-gone", text: `its working directory ${cwd} no longer exists` };
+ 		if (force) return null;
+ 		if (row.stopped_by) return { why: "stopped", text: `it was stopped on purpose by ${row.stopped_by}${row.stopped_at ? ` at ${row.stopped_at}` : ""}` };
+ 		const dir = this.task_dir_for(row);
+-		if (dir && task_landed(dir)) return { why: "landed", text: `its task ${path.basename(dir)} has landed` };
++		if (landed && dir && task_landed(dir)) return { why: "landed", text: `its task ${path.basename(dir)} has landed` };
+ 		return null;
+ 	}
+ 
+diff --git a/Servex/agents/revive-sweep.test.mjs b/Servex/agents/revive-sweep.test.mjs
+new file mode 100644
+index 000000000..d7bd4cacd
+--- /dev/null
++++ b/Servex/agents/revive-sweep.test.mjs
+@@ -0,0 +1,27 @@
++/* node Servex/agents/revive-sweep.test.mjs — the boot sweep brings back every agent that was open, even one whose first task landed. */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++
++const home = fs.mkdtempSync(path.join(os.tmpdir(), "servex-sweep-"));
++process.env.SERVEX_HOME = home;
++const { Agents } = await import("./Agents.js");
++
++const task = path.join(home, "task"); fs.mkdirSync(task);
++fs.writeFileSync(path.join(task, "task.jsonl"), JSON.stringify({ assign: { now: "x" } }) + "\n" + JSON.stringify({ landed_at: "2026-10-22T20:00:00-05:00" }) + "\n");
++const row = (id, state, extra = {}) => ({ id, role: "mastermind", name: id, state, session_id: `sess-${id}`, started_at: "2026-10-22T10:00:00Z",
++	boot: "OLD-1", pid: 1, revivable: true, cwd: home, task_dir: task, turns: 3, last_at: new Date().toISOString(), ...extra });
++
++const a = new Agents({ boot: Date.now().toString(36) + "-2" });
++const reg = a.reg();
++reg.save({ working: row("working", "working"), queued: row("queued", "idle", { turns: 0 }), stopped: row("stopped", "idle", { stopped_by: "owner" }) });
++reg.mark_boot("OLD-1");
++const reopened = [];
++a.reopen = r => { reopened.push(r.id); return { send(){ } }; };
++a.recent_log = () => true;
++const out = a.revive();
++assert.deepEqual(reopened.sort(), ["queued", "working"].sort(), "working and queued rows, both with a LANDED task, are reopened: " + JSON.stringify(out));
++assert.ok(!out.gone.includes("working") && !out.gone.includes("queued"));
++console.log("revive-sweep: 2 checks passed");
++process.exit(0);
+diff --git a/Servex/doc/restart.md b/Servex/doc/restart.md
+index a913d7e08..66882adfb 100644
+--- a/Servex/doc/restart.md
++++ b/Servex/doc/restart.md
+@@ -44,3 +44,7 @@ Servex loads its code once at start, so every change under `Servex/` (a new tool
+ **What the next boot does with it.** `Agents.revive()` reads the snapshot once (then moves it aside to `restart-snapshot.used.json`) and resumes exactly the agents it lists, however long they had been idle; without a snapshot (a crash) the old 30-minute window applies. **Every agent that comes back is told:** one that was mid-turn checks its last tool call; an idle one learns its session was resumed and that any background shell or sleep it had is gone. That note costs each idle agent one short turn.
+ 
+ **Wake-ups node keeps** (`Servex/agents/Wakeups.js`): an agent that wants to be woken later calls `wake_me({in_min | at, why})` instead of sleeping or leaving a background shell running, both of which a restart kills. Node writes `{type:"set"|"fired"|"cancel", id, agent, due, why}` lines to `logs/wakeups.jsonl`, keeps one timer per pending wake-up, and fires it by sending the agent `why` (with `revive: true`, so a dormant agent is reopened). At boot every pending wake-up is armed again; one that came due while Servex was down fires at once and says it is late. `cancel_wake` and `list_wakes` complete the set. Test: `node Servex/agents/wakeups.test.mjs` (9 checks). Off: `SERVEX_NO_WAKEUPS=1`.
++
++## Rule: every agent that was open at a restart comes back (2026-10-22)
++
++The boot sweep (`Agents.revive()`) never refuses on `landed` (a long-lived mastermind lands its first task and keeps working; `mastermind-figma-cards` and `mastermind-test` were buried "landed" that way) and restarts a never-started agent fresh from its spec instead of burying it; it refuses only for a deleted cwd, a stop on purpose, or code-carrying spawns, and writes the reason on the row's `ended`. Test: `node Servex/agents/revive-sweep.test.mjs`.

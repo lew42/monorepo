@@ -37,3 +37,7 @@ block marked **THE CONTROL GRAMMAR** — this directory is the page that shows t
 - [/framework/ui/controls/study/](/framework/ui/controls/study/) — the 2026-09-01 survey that
   counted 305 clickables into nine accidental families.
 - [/framework/styles/system/studies/size/](/framework/styles/system/studies/size/) — where `--size` came from.
+
+## Notes from your asks
+
+- Use a toggle for simple on/off modes and a dropdown once there are three or more modes. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1652), 2026-10-13)
