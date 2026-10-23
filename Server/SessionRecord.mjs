@@ -51,6 +51,22 @@ export default class SessionRecord {
 		const a = first?.assign, spawn = a?.session_id && a?.agent, voice = first?.session?.id;   // a spawn line (only open_task writes it) or a cloud-voice line: a session at any depth
 		return path.join(dir, spawn || voice || (a?.session_id && this.is_session_dir(dir)) ? this.NEW : this.OLD);
 	}
+	/** A NEW TASK FOLDER COUNTS AS ITS PARENT'S TASK: under the sessions store, the nearest folder above `dir` that has a log (a task or the
+	 *  session itself) gets one {"task":"<url>"} reference line, the same line the item tool writes for a child folder; Session.replay and
+	 *  Task.replay read it as a subtask. Never twice, never above the session folder. Returns the parent's log file, or null. */
+	static link_parent(dir, by = "TaskDirs"){
+		const abs = path.resolve(dir), m = slash(abs).match(/^(.*\/public)\/(framework\/ai\/sessions\/\d{4}\/\d\d\/\d\d\/[^/]+)(\/.+)?$/);
+		if (!m || !m[3]) return null;   // not in the store, or a session folder itself
+		const url = "/" + slash(path.relative(m[1], abs)) + "/", top = path.join(m[1], m[2]);
+		for (let p = path.dirname(abs); p.length >= top.length; p = path.dirname(p)){
+			const log = this.log_file(p); if (!log) continue;
+			let text = ""; try { text = fs.readFileSync(log, "utf8"); } catch {}
+			if (text.includes(`"task":"${url}"`) || text.includes(`"path":"${url}"`)) return log;   // already referenced (also a hand-made tasks.add with this path)
+			fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify({ task: url, by, ts: new Date().toISOString() }) + "\n");
+			return log;
+		}
+		return null;
+	}
 	/** For a directory walker: is this entry (dir, file name) the folder's log? Counts each folder once, whichever name it holds. */
 	static is_log_entry(dir, name){ return this.is_record(name) && this.log_file(dir) === path.join(dir, name); }
 	/** The record's name in a url or a path: `…/x/task.jsonl` and `…/x/session.jsonl` are the same record. */

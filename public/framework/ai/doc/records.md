@@ -48,8 +48,8 @@ State.mjs → ai/index.json                  Server/AIIndex.mjs   the one reader
 
 | Who | Makes | Where | How |
 |---|---|---|---|
-| Servex, on every `spawn_agent` | a **session** (the agent's own folder) | `<caller's session folder>/<agent id>/`, else `<day>/spawned/<agent id>/` | `open_task` line 1, by node, before the first turn |
-| A VS Code tab (you, the `new-task` skill) | a **task** of your session | `<day>/session-<id8>/<slug>/task.jsonl` | `node Server/TaskDirs.mjs --new <slug>` + `append.mjs` |
+| Servex, on every `spawn_agent` | a **session** (the agent's own folder) | `<caller's session folder>/<agent id>/`, else `<day>/spawned/<agent id>/` | `open_task` line 1, by node, before the first turn; the parent's log gets a `{"task":"<url>"}` reference (`SessionRecord.link_parent`) |
+| A VS Code tab (you, the `new-task` skill) | a **task** of your session | `<day>/session-<id8>/<slug>/task.jsonl` | `node Server/TaskDirs.mjs --new <slug>` + `append.mjs`; `--new` also adds a `{"task":"<url>"}` reference to the session's (or parent task's) log, so the folder counts as one of its tasks |
 | Any agent, the item tool | a **task** in a module home | `<module>/tasks/<slug>/task.jsonl` | `tasks.add`; the caller's log gets `{"task": path}` |
 | A cloud voice call | a **session** | `<day>/cloud-voice-<name>/session.jsonl` | `RemoteMCP.voice_session()` |
 | A tab's transcript | a session **cache** (totals, no log) | `<day>/session-<id8>/cache.jsonl`, `index.json` | `AISessionIndex.mjs` tails `~/.claude/projects` |

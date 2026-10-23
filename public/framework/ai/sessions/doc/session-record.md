@@ -65,7 +65,7 @@ The brief expected 588 folders holding both files; there are none. The 588 diges
 - `session.jsonl`, when the first line is a spawn line `{"assign":{"session_id","agent"}}` (any depth, a sub-session) or `{"session":…}` (cloud voice), or a `session_id` line directly under a day; else
 - `task.jsonl` (any task folder, deeper in a session).
 
-Two writers ask it: `Servex/agents/Agents.js` (`open_task`, the launch line of `spawn_agent`) and `.claude/hooks/append.mjs` (every agent's `new-task` launch line, which still names `<dir>/task.jsonl`; the hook redirects it). `node Server/TaskDirs.mjs --new` only makes the folder, never a record. `Server/review.mjs` appends to the existing log. `Server/plugins/Start.js` makes a task folder inside a session, so it keeps `task.jsonl`. A folder made this way needs no move: `--plan` counts it as nothing to do. Tests: `Server/SessionRecord.test.mjs`, `Servex/agents/open-task.test.mjs`.
+Two writers ask it: `Servex/agents/Agents.js` (`open_task`, the launch line of `spawn_agent`) and `.claude/hooks/append.mjs` (every agent's `new-task` launch line, which still names `<dir>/task.jsonl`; the hook redirects it). `node Server/TaskDirs.mjs --new` makes the folder, never its record. Both it and `open_task` add one `{"task":"<url>"}` reference to the nearest parent folder's log (`SessionRecord.link_parent`), so a folder under a session counts as one of its tasks. `Server/review.mjs` appends to the existing log. `Server/plugins/Start.js` makes a task folder inside a session, so it keeps `task.jsonl`. A folder made this way needs no move: `--plan` counts it as nothing to do. Tests: `Server/SessionRecord.test.mjs`, `Servex/agents/open-task.test.mjs`.
 
 ## Readers: every one accepts both names
 
