@@ -98,6 +98,8 @@
 	.mob-run-btn .icon, .mob-run-btn .material-icons { font-size: 1.1rem; }
 	.mob-task-link .mob-row-sub { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 	.mob-body:not(.is-open) .mob-line { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+	.mob-body:not(.is-open) .mob-md { display: block; max-height: 10em; }   /* markdown has block children: clamp by height, not lines */
+	.mob-md > :first-child { margin-top: 0; } .mob-md p, .mob-md ul { margin: .4em 0; } .mob-md ul { padding-left: 1.2em; }
 	.mob-page .page-column-prose.flow > * { margin-block: 0; }
 	.mob-session:empty { display: none; }
 }

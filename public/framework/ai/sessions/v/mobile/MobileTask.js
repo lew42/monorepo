@@ -1,4 +1,4 @@
-import { Page } from "/app.js";
+import { Page, md } from "/app.js";
 import { div, span, a, small, strong, p, h1, button, icon } from "/framework/core/View/View.js";
 import TaskView from "/framework/core/Task/TaskView.js";
 import TaskPage from "/framework/core/Task/TaskPage.js";
@@ -68,7 +68,7 @@ export default class MobileTask extends Page {
 	/** The one-line outcome, what was expected, then the task's content items. */
 	body(node, task){
 		const done = task?.get?.("outcome") ?? node.line;   // the whole outcome; the index line is cut
-		if (done) p.c("mob-line", String(done));
+		if (done) md(String(done)).ac("mob-line mob-md");   // an outcome is markdown (ai/AITask/AITask.js draws it the same way)
 		for (const line of [task?.expected].flat()) if (line) p.c("mob-line", () => { small.c("mob-fact-k", "expected "); span(String(line)); });
 		for (const item of task?._content ?? []){
 			const text = item.get?.("text") ?? item.get?.("title") ?? item.data?.text ?? item.data?.title;
