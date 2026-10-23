@@ -201,6 +201,9 @@ export class Store {
 			try {
 				const res = await fetch(servex_url("/api/item"), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ path, delta: lines[i] }), signal: AbortSignal.timeout(5000) });
 				answer = await res.json();
+				// Not refused for its content but for where it came from (a phone on the LAN: 403; a worktree page: stubbed):
+				// the plain file append still saves it, so the click is never lost.
+				if (res.status === 403 || answer?.stubbed) return lines.slice(i);
 			} catch {
 				if (!Store.warned_no_servex){ Store.warned_no_servex = true; console.warn("Item.Store — Servex did not answer /api/item: writing the file directly (no by/ts, no hooks)."); }
 				return lines.slice(i);
