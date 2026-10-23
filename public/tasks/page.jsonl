@@ -1,3 +1,2 @@
 {"title":"Tasks","icon":"task_alt","description":"Every task a module keeps in its own tasks/ folder: the Inbox with its Tasks and Home chips on.","class":"/framework/ai/tasks/SavedFilter.js","preset":"all-tasks"}
 {"file":"task.jsonl"}
-{"title":"Tasks","icon":"task_alt","description":"Every task home on the site, grouped by module, ranked.","class":"/framework/core/Task/TasksPage.js"}

@@ -1,4 +1,4 @@
-// TasksPage in a real (headless) browser: a tasks/ path mounts it, and /tasks/ lists tasks from two modules or more.
+// TasksPage in a real (headless) browser: a module's tasks/ path mounts it; /tasks/ is a saved filter that forwards to the Inbox, and the index it reads still spans two modules or more.
 // `node public/framework/core/Task/TasksPage.test.mjs [site url]` — default http://monorepo.localhost/
 import assert from "node:assert";
 import Browser from "../../../../Server/Browser.mjs";
@@ -28,10 +28,15 @@ try {
 	const mod = await mounted(tab, "/framework/core/Task/tasks/");   // a Doc module: its Tasks tab draws the same view
 	ok(mod.groups.length === 1 && mod.groups[0].rows > 0, "a module's Tasks tab shows its one group of rows");
 
-	const root = await mounted(tab, "/tasks/");
-	ok(root.cls === "TasksPage", "/tasks/ mounts TasksPage (got " + root.cls + ")");
-	const filled = root.groups.filter(g => g.rows > 0);
-	ok(filled.length >= 2, `/tasks/ lists tasks from two modules or more (${filled.map(g => g.module + ": " + g.rows).join(", ")})`);
+	await tab.goto(base + "tasks/");   // /tasks/ is ai/tasks/SavedFilter.js: it forwards to the Inbox (one dashboard, 2026-10-19)
+	await tab.waitForFunction(() => location.pathname.startsWith("/framework/ai/") && !location.pathname.startsWith("/framework/ai/tasks/"), null, { timeout: 20000 });
+	ok(!(await tab.$(".tasks-page")), "/tasks/ forwards to the Inbox saved filter (" + new URL(tab.url()).pathname + "), not a TasksPage");
+
+	const groups = await tab.evaluate(async () => {   // the index public/tasks/task.jsonl still holds every task home
+		const { default: TasksPage } = await import("/framework/core/Task/TasksPage.js");
+		return (await TasksPage.groups("/tasks/")).filter(g => g.tasks.length).map(g => g.module);
+	});
+	ok(groups.length >= 2, "the /tasks/ index lists tasks from two modules or more (" + groups.length + " modules)");
 } finally {
 	await tab.close();
 	await Browser.close();
