@@ -1389,25 +1389,27 @@ Agents.Agent = class Agent {
 		return null;
 	}
 
-	/* THE COMPACT NUDGE (2026-10-16): past the role's threshold (roles.js `compact_after.tokens`, else
-	 * SERVEX_NUDGE_TOKENS 200k) an idle agent is told its context size ONCE and asked to compact if
-	 * nothing in flight needs it; it decides, node never cuts in mid-flight. Again only after the
-	 * context grew `NUDGE_GROWTH` since the last nudge (the nudge turn itself adds far less).
+	/* THE COMPACT NUDGE (2026-10-16; step reminders, the owner 2026-10-22): past the role's threshold (roles.js
+	 * `compact_after.tokens`, e.g. a mastermind's 150k, else SERVEX_NUDGE_TOKENS 200k) an idle agent is told its context
+	 * size and asked to compact at its next natural break; it decides, node never cuts in mid-flight. Again each time the
+	 * context grows another 5% of the window (on a 1M window: 150k, 200k, 250k… up to the 400k ceiling). The owner's
+	 * "about 30%" for the first reminder was reconsidered: with a 400k ceiling it leaves two reminders, so the earlier lines stay.
 	 * Returns the message text, or null. Pure decision: `nudge_send()` does the sending. */
 	nudge(now = Date.now()){
 		if (this.state !== "idle" || this.one_shot || this.compacting || STANDING.test(this.id ?? "")) return null;
 		if (this.task?.dir && task_landed(this.task.dir)) return null;
 		const after = role_compact_after(this.role);
 		if (after === null) return null;
+		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
 		const limit = after?.tokens ?? this.host?.nudge_tokens ?? (Number(process.env.SERVEX_NUDGE_TOKENS) || 200000);
 		const context = this.context ?? 0;
 		if (context <= limit) return null;
-		if (this.nudged_context != null && context < this.nudged_context + NUDGE_GROWTH) return null;
+		if (this.nudged_context != null && context < this.nudged_context + Math.max(NUDGE_GROWTH, Math.round(window * 0.05))) return null;
 		const ended = this.turn_ended_at ?? (this.last_at ? Date.parse(this.last_at) : now);
 		const minutes = Math.max(0, Math.round((now - ended) / 60000));
 		const warm = minutes < 5;
 		this.nudge_info = { context, cache: warm ? "warm" : "cold", minutes };
-		return `Context: ${context.toLocaleString("en-US")} tokens, cache ${warm ? "warm" : "cold"} (last turn ${minutes} minute${minutes === 1 ? "" : "s"} ago). You are idle. Compact now unless something in flight needs this context.`;
+		return `Context: ${context.toLocaleString("en-US")} tokens (${Math.round(context / window * 100)}% of the window), cache ${warm ? "warm" : "cold"} (last turn ${minutes} minute${minutes === 1 ? "" : "s"} ago). You are idle. Compact at your next natural break (an investigation done, no tools in flight): now, unless something in flight needs this context.`;
 	}
 
 	/* The agent's answer to the nudge (the `compact_self` tool): compact when this turn ends. */
@@ -2066,7 +2068,8 @@ Agents.Agent = class Agent {
 Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
 
 /* A nudged agent that declined is nudged again only after its context grew this much. */
-export const NUDGE_GROWTH = 20000;
+export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
+export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)
 
 export const ONE_PASS = ["reviewer", "clarity", "checker"];
 
