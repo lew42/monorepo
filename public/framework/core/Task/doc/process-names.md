@@ -16,7 +16,7 @@ You asked to be in the loop on names before they harden (2026-10-22). This page 
 ## Where one process is stored
 
 - **One folder, one log.** A process is the folder `<session folder>/<slug>/` with its `task.jsonl`. Line 1 is `{"class":"Process", "process":"<template or steps>", …}`, followed by one line per step, and then node's lines: `start`, `spawn`, `measure`, `complete`.
-- **Its session references it.** The session's log gets `{"task":"<url>"}`, and the session's completion counts the process.
+- **Its session references it**, and the session's completion counts it: [Session → task → child session](/framework/ai/sessions/doc/session-record.md).
 - **It can move home.** A process that names a `module` moves to `<module>/tasks/<slug>/` once its plan is approved. The old place keeps a reference, so the move is never lost.
 
 ## How agents learn which processes exist

@@ -16,8 +16,8 @@ node Server/StaleClose.mjs --undo     append a `start` line to every log the man
 - **Undo is `start`, not `resume`:** the state machine allows `resume` only from `paused`; a stopped task restarts with `start` (`CAN.start` in `core/Task/Task.js`), which puts it back in `running`, so it is `stale` again.
 - **A closed task keeps its branch.** A stop line says no agent is on it; it does not merge or delete anything. A closed task whose branch has unmerged commits is still findable by branch name in the follow-up's full table.
 
-Test: `node Server/stale-close.test.mjs`. The child-folder and transcript rules come from a real miss on 2026-10-22: a live VS Code tab's session was closed because its own log had one line and all its work sat in a child folder.
+Test: `node Server/stale-close.test.mjs` (in a temp root, never the real store). A new task folder counts as its parent's task: [Session → task → child session](/framework/ai/sessions/doc/session-record.md). The child-folder and transcript rules come from a real miss on 2026-10-22: a live VS Code tab's session was closed because its own log had one line and all its work sat in a child folder.
 
 ## Runs daily
 
-`Servex/TaskLoop.js` `follow_up_daily()` runs `--apply` just before `FollowUp.mjs --write`. It takes effect at the next Servex restart.
+`Servex/TaskLoop.js` `follow_up_daily()` runs `--apply` just before `FollowUp.mjs --write`, and the session-links backfill beside it ([session-record.md](/framework/ai/sessions/doc/session-record.md)). It takes effect at the next Servex restart.
