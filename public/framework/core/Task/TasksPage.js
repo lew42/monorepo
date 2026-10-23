@@ -5,6 +5,7 @@ import "./TaskView.js";   // sets Task.View (and loads TaskView.css, which style
 /* The page for a tasks/ DIRECTORY: every task beneath it as TaskView.row, grouped by module, ranked by Task.rank.
  * Page.child mounts it on any `tasks/` with no page of its own; /tasks/ is the index of every task home (Server/TaskHomes.mjs). doc: readme.md */
 export class TasksPage extends Page {
+	static LOAD_MS = 30000;   // how long the page waits for every task file before it shows an error
 	static SHOW = 5;   // open rows a module group shows before "+ N more open" (a module can hold dozens of idle tasks)
 	static open(t){ return t.state !== "complete" && t.state !== "stopped"; }
 	static is_list(t){ return /\/tasks\/$/.test(t.data.path ?? ""); }
@@ -39,7 +40,9 @@ export class TasksPage extends Page {
 	// Fill `box` with the groups under `url` (a tasks/ folder). The one drawing: this page, and the Tasks tab of every Doc (ext/Doc).
 	static into(box, url){
 		box.ac("tasks-page").empty(() => div.c("muted", "Loading tasks…"));
-		this.groups(url).then(groups => box.empty(() => this.draw(groups)))
+		// A load that throws, or never settles (a child file that never answers), says so after LOAD_MS instead of reading "Loading" for good.
+		const late = new Promise((_, no) => setTimeout(() => no(new Error("no answer from " + url + " after " + this.LOAD_MS / 1000 + " s")), this.LOAD_MS));
+		Promise.race([this.groups(url), late]).then(groups => box.empty(() => this.draw(groups)))
 			.catch(e => box.empty(() => div.c("muted", "Could not read tasks: " + e.message)));
 		return box;
 	}
