@@ -21,7 +21,7 @@
 - **The `decide` verb is new in `.claude/hooks/jsonl-schema.mjs`.** The dev server loads that file when it starts, so a server started before this merge refuses the press until it restarts.
 - **Only VS Code tab prompts are covered.** A session needs a `session.jsonl`, which the SessionStart hook writes. Prompts typed to a Servex agent from the dashboard do not go through `prompt-relay.mjs`.
 - **Switch it on or off** with `node Servex/agents/PromptTasks.js off` (or `on`, or `status`). This writes or removes `prompt-tasks.off` in the Servex home (`%LOCALAPPDATA%/lew42/servex/`). It is checked on every prompt, so no restart is needed. `SERVEX_NO_PROMPT_TASKS=1` turns it off for a whole Servex run.
-- Test: `node Servex/agents/prompt-tasks.test.mjs` (20 checks).
+- Test: `node Servex/agents/prompt-tasks.test.mjs` (21 checks).
 
 ## Not built yet
 

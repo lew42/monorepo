@@ -82,6 +82,7 @@ The reviewer works the same way, and each run's own feedback is in its `review_r
 ## Runs
 
 - 2026-10-22, the last 7 days (2 tabs, 86 prompts, $12.00): [what is still open](/framework/ai/sessions/2026/10/20/session-e00f55c9/prompt-audit-week-2026-10-22.md). It found prompts counted twice after a compaction; dedupe is next.
+- 2026-10-22, **were the asks "kept as doc notes" really written down?** About 60 distinct verdicts in session-e00f55c9's `prompt-review.jsonl` cite a doc. A Sonnet reader opened the cited file for 25 of them, one per distinct ask. 22 were there. Two were there only in part (p383.30, an index of every system; p1931.31, the best async dictation workflow). One cited only commits, so there was no file to check. One looked missing but was found on a second look: p5.5, the class tree, which is now in [records.md](records.md#sessions-and-tasks-who-makes-which-and-when-verified-against-the-code-2026-10-20). One was really missing: p1931.9, "make the session system portable". It is now rule 4 in [core/Session/readme.md](/framework/core/Session/readme.md). One verdict was wrong the other way: p2208.39 says `public/live/readme.md` is open, but it exists. **Lesson:** a "done" verdict that cites a doc is usually right. The repeated prompts after a compaction (p5 and p4172, among others) are judged two or three times each.
 
 ## Not built yet
 
