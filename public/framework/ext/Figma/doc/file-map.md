@@ -35,5 +35,7 @@ Read from the live file on 2026-10-14 (a read-only script lists each page, its `
 - **Video · Kit**, **Video · Storyboard · The Twelve**, **Video · Channel ideas**, **Type · Title layouts**.
 - **Lab · Site shell**, **Lab · Stacks**, **Lab · Elements**, **Claude test page**: early experiments.
 
+- **Sessions and tasks** (`307:54823`, 2026-10-20) and **Projects, sessions, tasks, processes** ([`324:54823`](https://www.figma.com/design/QYN0G2URSBHYH5I06MOjxU/?node-id=324-54823), 2026-10-22): mobile cards and pages for the AI records; notes in [ai/sessions/doc/mobile-cards.md](/framework/ai/sessions/doc/mobile-cards.md).
+
 ## The owner's own pages (Claude doesn't edit them)
 Page 1–3, 6–8, Color Schemes, Component Slots, Vector Design, Paragraph Design.
