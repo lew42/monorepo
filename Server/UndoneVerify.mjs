@@ -19,6 +19,12 @@
  *   --doc                        print the dated markdown section for the verdict doc (counts, table, owner questions)
  *   --counts2                    the second-pass numbers that must agree: unclear-before = done + undone + retired + needs-owner (+ pending)
  *
+ * Third pass, the sort (crack 2: every ask still open becomes a task, a close or a note; doc: ai/doc/undone-asks-2026-10-17.md):
+ *   --batches <dir> --question sort   25 open asks per batch (no task, not found built, not retired, no note), with the module list
+ *   --run <dir> [--parallel 4] [--limit n]     each batch with no results.json goes to Haiku through PromptRecords.ask; cost in <dir>/runs.jsonl
+ *   --merge <dir>                    task -> verified undone + verified_module; done (path checked) -> done; obsolete -> retired; note -> note
+ *   --counts3                        sorted = task + done + obsolete + note, and how many are still open
+ *
  * A "done" verdict is accepted only if its evidence names a path:line that exists in the repo (checked here, not by the model);
  * otherwise it is kept as "unclear" with the reason. Nothing is written to undone.json except the verified_* fields of an ask.
  */
@@ -259,6 +265,7 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 
 	/** One second-pass answer -> the fields to store. The first-pass verdict is kept in verified_first, never lost. */
 	judge2(kind, r, a){
+		if (kind === "sort") return { verified_first: a.verified_first ?? { verified: a.verified ?? null, verified_evidence: a.verified_evidence ?? null }, ...this.judge3(r) };
 		const first = a.verified_first ?? { verified: a.verified, verified_evidence: a.verified_evidence, verified_at: a.verified_at, verified_by: a.verified_by };
 		const keep = { verified_first: first, verified_pass: 2, verified_kind: kind };
 		if (kind === "work"){
@@ -280,7 +287,7 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 			const want = JSON.parse(fs.readFileSync(path.join(dir, batch, "asks.json"), "utf8"));
 			for (const r of got){
 				const a = asks.get(r.id);
-				if (!a || !want.includes(r.id) || seen.has(r.id) || (a.verified_pass && a.verified_kind !== "work-yes")) continue;   // a finished ask is not re-judged
+				if (!a || !want.includes(r.id) || seen.has(r.id) || (kind !== "sort" && a.verified_pass && a.verified_kind !== "work-yes") || a.verified_kind === "sort") continue;   // a finished ask is not re-judged
 				Object.assign(a, this.judge2(kind, r, a), { verified_at: at, verified_by: by });
 				seen.add(r.id); per[kind] = (per[kind] ?? 0) + 1;
 			}
@@ -345,6 +352,133 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 		return g;
 	}
 
+	// ---- the sort pass (crack 2, core/Task/doc/cracks.md): every ask still open becomes a task, a close or a note -------------------
+	// Open = not done, no task, not found built, not retired, no note: the unroutable ones (no module), the needs-you ones and any never checked.
+
+	static BATCH3 = 25;
+	static SORTS = ["task", "done", "obsolete", "note"];
+
+	/** The asks the sort pass takes, grouped by source so a batch shares context. */
+	pending3(d){
+		return d.modules.flatMap(m => m.asks.map(a => ({ ...a, module: m.module })))
+			.filter(a => a.state !== "done" && !a.task && !a.note && !["done", "retired"].includes(a.verified) && a.verified_kind !== "sort")
+			.sort((a, b) => String(a.source).localeCompare(String(b.source)) || String(a.at).localeCompare(String(b.at)));
+	}
+
+	/** Every module a task could live in: a folder under public/framework with a readme.md (not a session, task or old folder), plus Servex and Server. */
+	modules(){
+		if (this._mods) return this._mods;
+		const out = [], fw = path.join(this.root, FW), skip = new Set(["sessions", "tasks", "old", "sandbox", "node_modules", "doc", "test", "data", "legacy"]);
+		const walk = (d, rel, depth) => {
+			let es; try { es = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
+			for (const e of es){
+				if (!e.isDirectory() || skip.has(e.name) || e.name.startsWith(".") || /^\d{4}/.test(e.name)) continue;
+				const r = rel ? rel + "/" + e.name : e.name, p = path.join(d, e.name), rm = path.join(p, "readme.md");
+				if (fs.existsSync(rm)){
+					const h = (fs.readFileSync(rm, "utf8").split("\n").find(l => /^#\s/.test(l)) ?? "").replace(/^#\s*/, "").slice(0, 70);
+					out.push({ module: r, about: h });
+				}
+				if (depth < 2) walk(p, r, depth + 1);
+			}
+		};
+		walk(fw, "", 0);
+		for (const top of ["Servex", "Server"]) if (fs.existsSync(path.join(this.root, top, "readme.md"))) out.push({ module: top, about: top === "Servex" ? "the agent system: roles, spawning, the heartbeat, merge and review" : "the dev server and its node scripts" });
+		return this._mods = out;
+	}
+	is_module(m){ return !!m && this.modules().some(x => x.module === m); }
+
+	brief3(asks){
+		const lines = asks.map((a, i) => (i + 1) + ". `" + a.id + "` (" + (a.days ?? "?") + " days old, " + a.kind + (a.module.startsWith("(") ? "" : ", filed under " + a.module) + "): " + a.text.replace(/\s+/g, " ")
+			+ (a.verified_evidence ? "\n   an earlier check said: " + a.verified_evidence.replace(/\s+/g, " ").slice(0, 300) : ""));
+		return [
+			"# Sort " + asks.length + " of the owner's asks",
+			"",
+			"You are a sorter, not a builder. Do NOT edit any file. Read the repo only as much as you need (Grep/Glob first; `git log` always with `-n 5` and a path). The site serves `public/` as `/`; modules live in `public/framework/<module>/`; rules for agents are in `CLAUDE.md` and `public/framework/ai/handover.md`.",
+			"",
+			"Each ask below is something the owner said that nothing has tracked yet. Sort each into exactly one of four:",
+			"",
+			"- **task**: still wanted and not built. Give `module` (from the list below), a `title` (an imperative, under 80 characters, plain words), and `evidence`: what is missing, and where you looked.",
+			"- **done**: it exists now. `evidence` = `path:line - the quoted line` of a file you opened. A related thing is not the thing.",
+			"- **obsolete**: no longer applies (superseded, the thing it was about is gone, a one-time question about a moment that has passed, a status check). `evidence` = one line why.",
+			"- **note**: not work but worth keeping: a rule, a preference, an idea, an observation about how something should be. Give `module` and `note`: one plain sentence that a reader of that module's readme would understand on its own.",
+			"",
+			"Decide every ask; never answer \"ask the owner\". When unsure between task and note: if finishing it would change a file, page or setting, it is a task. Always give `module` for a task or a note: the one from the list that the ask is about; if none fits, use `ai`.",
+			"",
+			"## Modules (folder under public/framework, or a top-level folder): what each is",
+			"",
+			this.modules().map(m => "- `" + m.module + "`" + (m.about ? ": " + m.about : "")).join("\n"),
+			"",
+			"## Answer",
+			"",
+			"Your final message is ONLY a JSON array, one object per ask, same ids, nothing else:",
+			"",
+			"```json",
+			'[{"id":"abc1234567","sort":"task|done|obsolete|note","module":"ext/Refine","title":"for a task","note":"for a note","evidence":"see above"}]',
+			"```",
+			"",
+			"## The " + asks.length + " asks",
+			"",
+			lines.join("\n"),
+			"",
+		].join("\n");
+	}
+
+	write_batches3(outdir){
+		const asks = this.pending3(this.load());
+		fs.mkdirSync(outdir, { recursive: true });
+		const mf = path.join(outdir, "manifest.json"), manifest = fs.existsSync(mf) ? JSON.parse(fs.readFileSync(mf, "utf8")) : [];
+		const mine = [];
+		for (const chunk of UndoneVerify.chunks(asks, UndoneVerify.BATCH3)){
+			const name = String(manifest.length + 1).padStart(2, "0") + "-sort", bdir = path.join(outdir, name);
+			fs.mkdirSync(bdir, { recursive: true });
+			fs.writeFileSync(path.join(bdir, "brief.md"), this.brief3(chunk));
+			fs.writeFileSync(path.join(bdir, "asks.json"), JSON.stringify(chunk.map(a => a.id)));
+			const row = { batch: name, kind: "sort", asks: chunk.length, brief: path.relative(this.root, path.join(bdir, "brief.md")).split(path.sep).join("/") };
+			manifest.push(row); mine.push(row);
+		}
+		fs.writeFileSync(mf, JSON.stringify(manifest, null, 1));
+		return mine;
+	}
+
+	/** One sort answer -> the fields to store. A "done" whose path does not exist, or an answer with no sort, becomes a task: never lost. */
+	judge3(r){
+		let sort = UndoneVerify.SORTS.includes(r?.sort) ? r.sort : "task";
+		const ev = String(r?.evidence ?? "").trim().slice(0, 600), mod = this.is_module(r?.module) ? r.module : null;
+		if (sort === "done" && !this.paths_in(ev).length) sort = "task";
+		if (sort === "note" && !String(r?.note ?? "").trim()) sort = "task";
+		const keep = { verified_pass: 3, verified_kind: "sort", verified_sort: sort };
+		if (sort === "done") return { ...keep, verified: "done", verified_evidence: ev, verified_looked: [] };
+		if (sort === "obsolete") return { ...keep, verified: "retired", verified_evidence: "Obsolete: " + (ev || "(no reason given)") };
+		if (sort === "note") return { ...keep, verified: "note", verified_module: mod ?? "ai", note: { module: mod ?? "ai", text: String(r.note).trim().replace(/\s+/g, " ").slice(0, 300), file: null }, verified_evidence: ev };
+		return { ...keep, verified: "undone", verified_module: mod, verified_title: String(r?.title ?? "").trim().slice(0, 100) || null, verified_evidence: ev || "(sorted as still wanted)" };
+	}
+
+	/** --run <dir>: every batch in the manifest with no results.json yet goes to Haiku (PromptRecords.ask: Read/Grep/Glob, writes nothing),
+	 * `parallel` at a time; the answer is written to results.json and the cost to the runs log beside the manifest. */
+	async run(dir, { parallel = 4, model = "claude-haiku-5-5", max_turns = 24, limit = Infinity } = {}){
+		const { default: PromptRecords } = await import("./PromptRecords.mjs"), { default: PromptAudit } = await import("./PromptAudit.mjs");
+		const todo = JSON.parse(fs.readFileSync(path.join(dir, "manifest.json"), "utf8")).filter(m => !fs.existsSync(path.join(dir, m.batch, "results.json"))).slice(0, limit);
+		const runs = path.join(dir, "runs" + ".jsonl"), out = [], log = row => fs.appendFileSync(runs, JSON.stringify(row) + "\n");
+		const one = async m => {
+			const brief = fs.readFileSync(path.join(dir, m.batch, "brief.md"), "utf8"), t0 = Date.now();
+			let r; try { r = await PromptRecords.ask(brief, { model, system: "You sort a list of asks and answer with one JSON array. You never edit files.", tools: ["Read", "Grep", "Glob", "Bash"], max_turns }); }
+			catch (e){ log({ batch: m.batch, error: String(e.message ?? e), at: new Date().toISOString() }); return; }
+			const got = PromptAudit.json(r.text), ok = Array.isArray(got);
+			if (ok) fs.writeFileSync(path.join(dir, m.batch, "results.json"), JSON.stringify(got, null, 1));
+			const row = { batch: m.batch, asks: m.asks, answered: ok ? got.length : 0, usd: +r.usd.toFixed(4), s: Math.round((Date.now() - t0) / 1000), at: new Date().toISOString(), ...(ok ? {} : { error: "no JSON array in the answer", tail: r.text.slice(-300) }) };
+			log(row); out.push(row); console.log(JSON.stringify(row));
+		};
+		for (let i = 0; i < todo.length; i += parallel) await Promise.all(todo.slice(i, i + parallel).map(one));
+		return out;
+	}
+
+	/** The numbers that must agree for the sort pass: asks sorted = task + done + obsolete + note. */
+	counts3(d = this.load()){
+		const mine = d.modules.flatMap(m => m.asks).filter(a => a.verified_kind === "sort"), c = { task: 0, done: 0, obsolete: 0, note: 0 };
+		for (const a of mine) c[a.verified_sort]++;
+		return { sorted: mine.length, ...c, open: this.pending3(d).length, agree: c.task + c.done + c.obsolete + c.note === mine.length };
+	}
+
 	/** True when a batches dir was written by a second-pass --question run (its manifest rows carry a kind). */
 	static has_kinds(dir){ try { return !!JSON.parse(fs.readFileSync(path.join(dir, "manifest.json"), "utf8"))[0]?.kind; } catch { return false; } }
 
@@ -360,6 +494,14 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 		} else if (argv.includes("--route")){
 			const r = u.route(); console.log("routed " + r.routed + " to needs-owner;", r);
 			if (!r.agree) process.exitCode = 1;
+		} else if (argv.includes("--batches") && val("--question") === "sort"){
+			const m = u.write_batches3(path.resolve(val("--batches")));
+			console.log(m.map(b => b.batch.padEnd(10) + " " + String(b.asks).padStart(3) + " asks").join("\n") + "\n\n" + m.length + " batches, " + m.reduce((n, b) => n + b.asks, 0) + " asks");
+		} else if (argv.includes("--run")){
+			const r = await u.run(path.resolve(val("--run")), { parallel: +(val("--parallel") ?? 4), limit: +(val("--limit") ?? Infinity) });
+			console.log(r.length + " batches run, $" + r.reduce((n, x) => n + x.usd, 0).toFixed(2));
+		} else if (argv.includes("--counts3")){
+			console.log(u.counts3());
 		} else if (argv.includes("--batches") && val("--only")){
 			const m = u.write_batches2(path.resolve(val("--batches")), { only: val("--only"), kind: val("--question") });
 			console.log(m.map(b => b.batch.padEnd(16) + " " + String(b.asks).padStart(3) + " asks").join("\n") + "\n\n" + m.length + " batches, " + m.reduce((n, b) => n + b.asks, 0) + " asks");
