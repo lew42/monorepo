@@ -27,6 +27,16 @@ check("replay: a tasks.add line adds a Task", () => {
 	return s.id === "r1" && s.tasks.length === 2 && s.tasks.find("t1") instanceof Task && s.progress().done === 1;
 });
 
+check("settings lines merge in order, a later line wins, and never reach put()", () => {
+	const s = Session.replay([{ session: "m1" }, { settings: { model: "a", notify: true } }, { settings: { model: "b" } }]);
+	return s.settings.model === "b" && s.settings.notify === true && s.get_one?.("settings") === undefined;
+});
+
+check("the menu is a template: settings first, page entries get a url under the session's own", () => {
+	const m = new Session("m2").menu("/framework/ai/sessions/m2/");
+	return m[0].name === "settings" && m[0].url === "/framework/ai/sessions/m2/settings/" && m.some(e => e.action) && !m.find(e => e.action).url;
+});
+
 check("Session.describe() lists tasks and progress", () => {
 	const d = Session.describe(), names = [...d.fields, ...d.methods.map(m => m.name)];
 	return names.includes("tasks") && names.includes("progress");

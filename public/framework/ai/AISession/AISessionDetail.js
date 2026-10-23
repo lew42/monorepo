@@ -13,6 +13,8 @@ import JSONL from "/framework/ext/JSONL/JSONL.js";
 import VoiceFlow from "/framework/ext/Refine/stages/VoiceFlow.js";
 import Item from "/framework/core/Item/Item.js";
 import Property from "/framework/core/Property/Property.js";
+import SessionMenu from "/framework/core/Session/SessionMenu.js";
+import SessionSettings from "/framework/core/Session/SessionSettings.js";
 import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
 import "/framework/core/Page/parts/PageText.js";
 import "/framework/core/Page/parts/PageCard.js";
@@ -111,11 +113,22 @@ export default class AISessionDetail extends Page {
 		return `${name}-${session_id.slice(0, 8)}`;
 	}
 
+	/* THE SESSION MENU (core/Session/doc/menu.md): a button at the right end of the name line, listing AISession.MENU. */
+	head_tools(){ return new SessionMenu({ session: new AISession(this.id), url: this.url, page: this }).draw(); }
+	// The session's record, session.jsonl, beside its page.jsonl in the same folder.
+	async record_url(){ const [own] = await this.log_urls(); return own ? own.replace(/page\.jsonl$/, "session.jsonl") : null; }
+	async open_log(){ const url = await this.record_url(); if (url) window.open(url, "_blank"); }
+	copy_link(){ return navigator.clipboard?.writeText(new URL(this.url, location.href).href); }
+
 	log_loaded(){ return this._log_loaded ??= this.log_urls().then(urls => Promise.all(urls.map(url => new AISessionDetail.Log({ url, page: this }).load()))); }
 
 	/* A subpage made by the page tool (`pages.add`) is a folder inside the session's own folder; the log's
 	   `file` lines say which (SessionPageLog.read → sub_dirs). It is read from there and shown at this route. */
 	async child(name, levels){
+		if (name === "settings" && !this.children.get(name)){   // the session menu's first entry (core/Session/doc/menu.md)
+			const file = await this.record_url();
+			if (file) return this.add(name, new SessionSettings({ file, session_class: AISession, url: this.url + name + "/" }));
+		}
 		await this.log_loaded();
 		const dir = this.sub_dirs?.get(name);
 		if (dir && !(this.children.get(name) instanceof Page)){

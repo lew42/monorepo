@@ -45,6 +45,8 @@ export default class PageColumns {
 		return div.c("page-column-body", () => {
 			div.c("page-column-head", () => {
 				span.c("page-column-title", page.title);
+				// A page may put its own controls at the right end of its name line (a session's menu button: core/Session/SessionMenu.js).
+				if (is.fn(page.head_tools)) span.c("page-column-tools", () => page.head_tools());
 				if (page !== host) a.c("page-column-close", () => icon("close")).href(page.parent.url);
 			});
 

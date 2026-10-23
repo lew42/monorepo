@@ -22,6 +22,26 @@ export default class Session extends Item {
 	set tasks(list){ this._tasks = list; }
 	lists(){ const { _tasks, ...rest } = super.lists(); return { ...rest, ...(_tasks ? { tasks: _tasks } : {}) }; }
 
+	/* THE SESSION MENU (the owner, 2026-10-22; doc/menu.md): a session DECLARES what its menu holds, as a template a subclass
+	   extends (`static MENU = [...Session.MENU, {…}]`). An entry is a sub-page (`page: true`, routed at <session url>/<name>/)
+	   or an action (`action: "<method name>"`, called on the page that draws the menu). Settings come first. */
+	static MENU = [
+		{ name: "settings", title: "Settings", icon: "settings", page: true },
+		{ name: "log", title: "Open the log", icon: "description", action: "open_log" },
+		{ name: "copy-link", title: "Copy link", icon: "link", action: "copy_link" },
+	];
+	// The settings a session has, drawn by SessionSettings as a form. Saved as {"settings":{<key>:<value>}} lines in session.jsonl.
+	static SETTINGS = [
+		{ key: "name", label: "Name", type: "text" },
+		{ key: "model", label: "Model", type: "select", options: ["", "claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5"] },
+		{ key: "effort", label: "Effort", type: "select", options: ["", "low", "medium", "high"] },
+		{ key: "notify", label: "Tell me when it finishes", type: "checkbox" },
+	];
+	// The menu with each page's url filled in; `url` is the session page's own url.
+	menu(url){ return this.constructor.MENU.map(e => e.page ? { ...e, url: url + e.name + "/" } : { ...e }); }
+	// The settings now: every {"settings":{…}} line merged in order, so a later line wins. Never stored whole.
+	get settings(){ return this._settings ??= {}; }
+
 	progress(){ return Task.progress_of(this._tasks); }
 	get completion(){ const { done, total } = this.progress(); return total ? done / total : 0; }
 
@@ -32,6 +52,7 @@ export default class Session extends Item {
 		if (typeof delta.task === "string"){ this.tasks.insert(Task.from_ref(delta.task)); delete delta.task; }   // a reference line: the live child
 		if (delta.tasks && typeof delta.tasks === "object") this.tasks.set(delta.tasks);
 		delete delta.tasks;
+		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
 		for (const k of Object.keys(delta)){   // a nested task changed: {"<task id>":{…}} goes to that task
 			const kid = delta[k] && typeof delta[k] === "object" ? this._tasks?.find(k) : undefined;
 			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }
