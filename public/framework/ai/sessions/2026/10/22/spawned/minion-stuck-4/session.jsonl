@@ -1,0 +1,5 @@
+{"assign":{"session_id":"a5be9a4e-52c6-4487-a03b-d6a559ea64e8","agent":"minion-stuck","title":"never got anywhere","model":"claude-haiku-5-5","requested_at":"2026-10-22T21:25:04-05:00","now":"starting"}}
+{"log":{"at":"2026-10-22T21:26:11-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
+{"log":{"at":"2026-10-22T21:32:12-05:00","heartbeat":"revive-queued","msg":"minion-stuck its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-22T21:45:15-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-22T21:48:13-05:00","heartbeat":"escalated","msg":"minion-stuck its agent is not running, and the revive failed: Cannot find where session a5be9a4e-52c6-4487-a03b-d6a559ea64e8 ran, so it cannot be resumed."}}

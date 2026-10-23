@@ -1,0 +1,5 @@
+{"assign":{"session_id":"c6b7cbac-5426-4f92-948c-e8a605a6e9ca","agent":"minion-race","title":"go","model":"claude-haiku-5-5","requested_at":"2026-10-22T21:24:59-05:00","now":"starting"}}
+{"log":{"at":"2026-10-22T21:26:11-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
+{"log":{"at":"2026-10-22T21:32:12-05:00","heartbeat":"revive-queued","msg":"minion-race its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-22T21:45:11-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-22T21:46:13-05:00","heartbeat":"escalated","msg":"minion-race its agent is not running, and the revive failed: Cannot find where session c6b7cbac-5426-4f92-948c-e8a605a6e9ca ran, so it cannot be resumed."}}

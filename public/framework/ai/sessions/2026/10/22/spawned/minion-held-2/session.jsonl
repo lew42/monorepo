@@ -1,0 +1,5 @@
+{"assign":{"session_id":"f923997b-2edd-47e3-96bd-df5ac2d5b5c3","agent":"minion-held","title":"go","model":"claude-haiku-5-5","requested_at":"2026-10-22T21:16:50-05:00","now":"starting"}}
+{"log":{"at":"2026-10-22T21:21:08-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
+{"log":{"at":"2026-10-22T21:27:07-05:00","heartbeat":"revive-queued","msg":"minion-held its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-22T21:29:08-05:00","heartbeat":"escalated","msg":"minion-held its agent is not running, and the revive failed: Cannot find where session f923997b-2edd-47e3-96bd-df5ac2d5b5c3 ran, so it cannot be resumed."}}
+{"log":{"at":"2026-10-22T21:40:15-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
