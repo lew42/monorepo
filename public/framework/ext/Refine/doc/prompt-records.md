@@ -65,6 +65,8 @@ Two long prompts of tab `e00f55c9` (lines 4136 and 5965, 15k and 18k characters)
 
 **The pick:** finding what a prompt asks needs no context, so the parts step is blind and cheap (a). Context matters only for outcomes. The loop (c) saw only the transcript and called 3 of 5 spot-checked done items open (the evidence was in repo files); the whole-session reader (b) called almost everything done. So outcomes run once per window of the session, with the transcript in the message and Read/Grep to confirm a doc note: about 10 times cheaper than (c), and able to see the repo.
 
+**The review process on the whole tab** (69 prompts, 2026-10-23): parts $13.0 (Haiku writes nested JSON, and its output is billed at $20 per million tokens), outcomes $8.4 over 8 windows ($0.68 to $1.40 each); $21.5 in all. 40 of the 69 prompts were complete before any task was filed.
+
 Measured on the way: the SDK's `total_cost_usd` on a **resumed** session is cumulative, so adding it per turn overcounted 12 times; a resumed session's real cost is read from its own transcript ([experiment/cost.mjs](../tasks/prompt-records/experiment/cost.mjs)). Haiku 5.5 is priced like Opus 5.5 per token in `Server/Transcripts.mjs` ($4 in, $20 out), above Sonnet 5.5 ($2.5, $12.5); ⬜ the parts step on Sonnet is the next experiment.
 
 ## From the older systems, kept and dropped
