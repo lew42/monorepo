@@ -263,7 +263,7 @@ export default class TaskLoop {
         (this.launching ??= new Set()).add(file);
         try {
             const info = this.read_task(file);
-            if (!info?.agent_cfg || info.task_state !== "running" || info.spawned) return { ok: false, why: "nothing to launch" };
+            if (!info?.agent_cfg || !["running", "idle"].includes(info.task_state) || info.spawned) return { ok: false, why: "nothing to launch" };
             const dir = path.dirname(file), cfg = info.agent_cfg, tpl = Task.TEMPLATES[info.template] ?? {};
             // the slot check first, so a queued task does not rerun PastWork on every tick while the machine stays hot
             const hot = this.servex.monitor?.flag?.reason;

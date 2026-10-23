@@ -19,7 +19,8 @@ const servex = {
 const loop = new TaskLoop({ root: dir, servex });
 
 const make = (name, lines) => {
-	const d = path.join(dir, "public", "framework", "ai", "sessions", "2026", "10", "17", name); fs.mkdirSync(d, { recursive: true });
+	const d = path.join(dir, "public", "framework", "ai", "sessions", ...new Date().toISOString().slice(0, 10).split("-"), name); // today: tick only scans today and yesterday
+	fs.mkdirSync(d, { recursive: true });
 	const f = path.join(d, "task.jsonl"); fs.writeFileSync(f, lines.map(l => JSON.stringify(l)).join("\n") + "\n"); return f;
 };
 const spawn_lines = f => fs.readFileSync(f, "utf8").split("\n").filter(l => l.includes('"spawn"')).map(l => JSON.parse(l).spawn);
