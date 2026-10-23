@@ -12,6 +12,10 @@ import AISession from "./AISession.js";
  *                                                    final one is written the clean is set in stone and more are refused.
  *   refined  { subject, cards: [{ title|text, cites: [0, 2], cards: [...] }] }   cards cite clean indexes. Later wins.
  *   notes    { notes: [{ i, clarity, why, alternates, names, tags }] }          the Haiku pass, per sentence index. Later wins.
+ *   parts    { process, parts: [{ id, cites: [0, 2], kind, text, outcome: { is, ref, why }, parts: [...] }] }
+ *                                                    THE RECORD: what each run of sentences meant and what came of it. Later wins.
+ *                                                    `Prompt` computes completion from it (ext/Refine/doc/prompt-records.md).
+ *   handled  { to, note }                            whoever routed the prompt's proposals marked it handled. Later wins.
  *
  *   await PromptLog.add(session_id, { prompt: id, stage: "raw", text }, "refine");   // node only; stamps at/by/session
  *   const prompts = PromptLog.fold(await PromptLog.read(session_id));                // browser or node: { id → prompt }
@@ -28,6 +32,8 @@ export default class PromptLog {
 		clean:   l => Array.isArray(l.sentences) && l.sentences.every(s => typeof s === "string"),
 		refined: l => Array.isArray(l.cards),
 		notes:   l => Array.isArray(l.notes) && l.notes.every(n => Number.isInteger(n?.i) && n.i >= 0),
+		parts:   l => Array.isArray(l.parts) && l.parts.every(function ok(p){ return typeof p?.text === "string" && Array.isArray(p.cites) && p.cites.every(Number.isInteger) && (!p.parts || p.parts.every(ok)); }),
+		handled: l => typeof (l.to ?? l.note) === "string",
 	};
 
 	/** Validate and append one line. Returns the stored line, or throws with the reason. Node only. */
@@ -54,15 +60,17 @@ export default class PromptLog {
 		return AISession.lines_of(await AISession.read_text(id, PromptLog.FILE));
 	}
 
-	/** Lines to prompts: `{ id → { id, raw, source, clean, final, refined, subject, notes, at } }`, in first-seen order. */
+	/** Lines to prompts: `{ id → { id, raw, source, clean, final, refined, subject, notes, parts, process, handled, at } }`, in first-seen order. */
 	static fold(lines){
 		const out = {};
 		for (const l of lines){
-			const p = out[l.prompt] ??= { id: l.prompt, raw: null, source: "", clean: [], final: false, refined: [], subject: "", notes: [], at: l.at };
+			const p = out[l.prompt] ??= { id: l.prompt, raw: null, source: "", clean: [], final: false, refined: [], subject: "", notes: [], parts: [], process: "", handled: null, at: l.at };
 			if (l.stage === "raw"){ p.raw = l.text; p.source = l.source ?? ""; }
 			else if (l.stage === "clean" && !p.final){ p.clean = l.sentences; p.final = !!l.final; }
 			else if (l.stage === "refined"){ p.refined = l.cards; p.subject = l.subject ?? ""; }
 			else if (l.stage === "notes") p.notes = l.notes;
+			else if (l.stage === "parts"){ p.parts = l.parts; p.process = l.process ?? ""; }
+			else if (l.stage === "handled") p.handled = { to: l.to ?? "", note: l.note ?? "", by: l.by, at: l.at };
 		}
 		return out;
 	}
