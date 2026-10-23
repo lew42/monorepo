@@ -15,3 +15,13 @@ The only automatic `/compact` left is `Agent.oversized()`: a safety ceiling of `
 Logged: `compact_nudge {context, cache}` and `compacting` (events), then `compact` (`before`/`after` tokens). Test: `agents/compact-nudge.test.mjs`. Why: [agents/doc/owner-2026-10-16-compaction.md](../agents/doc/owner-2026-10-16-compaction.md). Alternative not taken: no compaction, or restart fresh with a summary (loses the session id and cache).
 
 A running Servex needs `node Servex/sustain.mjs --restart` to load this.
+
+## Fresh once a day (the owner, 2026-10-22)
+
+**The compaction policy for long-running agents, as it stands:** never mid-task. Node nudges an idle agent with its context size, and the agent decides whether to compact (above). The only forced `/compact` is the 400k safety ceiling, and it runs at a turn's end. On top of that, a standing agent gets a **fresh session about once a day**, so its context starts small instead of being compacted again and again.
+
+- **Who:** `Respawn.AGENTS` in `Servex/agents/Respawn.js`. Today that is only `mastermind-system-architect`; its record is the process-system task folder.
+- **When:** the TaskLoop tick (every 5 minutes) checks each one. Its session must be 24 hours old or more (`SERVEX_RESPAWN_HOURS`). It must not be working, nothing it spawned may be working, and nothing may wait in its queue. One stopped on purpose stays stopped, and one never spawned is not spawned here.
+- **How:** stop the old session, then spawn a fresh one under the **same id**. Messages, the processes it created and the requests addressed to it still reach it. Its first prompt names the session it replaces and points at its task log and the maps.
+- **Findable:** one `{"log": {"respawn": {agent, session, replaces}}}` line in its task log links each session to the one before. The spawn's own assign line in the same log carries the new session id.
+- Off: `SERVEX_NO_RESPAWN=1`. Test: `node Servex/agents/respawn.test.mjs`.

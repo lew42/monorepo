@@ -16,6 +16,7 @@ import Worktrees from "./Worktrees.js";
 import TaskLoop from "./TaskLoop.js";
 import { hooks as page_tool_hooks } from "./agents/page_tools.js";
 import ProcessRunner from "./ProcessRunner.js";
+import Respawn from "./agents/Respawn.js";
 import { check_page, cap } from "../Server/BrowserCheck.mjs";
 import { pid as browser_pid } from "../Server/Browser.mjs";
 import Heartbeat from "./Heartbeat.js";
@@ -283,6 +284,9 @@ export default class Servex extends Events {
          * Doc: public/framework/core/Task/doc/process.md. */
         this.process_runner = new ProcessRunner({ servex: this, root: REPO });
         page_tool_hooks.changed = file => this.process_runner.step(file);
+        /* FRESH ONCE A DAY (the owner, 2026-10-22): the standing system architect gets a new session when its own is a day old and
+         * it is not busy; same id, one respawn line in its task log. SERVEX_NO_RESPAWN=1 turns it off. Doc: agents/doc/lifecycle.md. */
+        if (!process.env.SERVEX_NO_RESPAWN) this.respawn = new Respawn({ servex: this, root: REPO });
         if (!process.env.SERVEX_NO_TASKLOOP) setImmediate(() => this.process_runner.tick().catch(() => {}));
         /* REQUESTS ARE LOGGED ITEMS (the owner, 2026-10-22: logs over chat): a task added to another agent's task is a request; its
          * receiver hears once, and the asker hears the outcome when it completes. Doc: Servex/agents/doc/messaging.md. */
