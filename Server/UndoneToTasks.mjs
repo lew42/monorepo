@@ -162,8 +162,8 @@ export default class UndoneToTasks {
 		const man = this.file(UndoneToTasks.MANIFEST), at = this.now();
 		fs.mkdirSync(path.dirname(man), { recursive: true });
 		const had = this.manifest();
-		made = made.filter(m => !had.has(m.ask));   // an ask already in the manifest is not written again
-		if (made.length) fs.appendFileSync(man, made.map(m => JSON.stringify({ ask: m.ask, task: m.task, module: m.module, at })).join(NL) + NL);
+		const fresh = made.filter(m => !had.has(m.ask));   // an ask already in the manifest is not written again
+		if (fresh.length) fs.appendFileSync(man, fresh.map(m => JSON.stringify({ ask: m.ask, task: m.task, module: m.module, at })).join(NL) + NL);
 		const file = this.file(UndoneToTasks.DATA), raw = fs.readFileSync(file, "utf8"), data = JSON.parse(raw), by = new Map(made.map(m => [m.ask, m.task]));
 		let marked = 0;
 		for (const m of data.modules) for (const a of m.asks) if (by.has(a.id) && !a.task){ a.task = by.get(a.id); marked++; }
