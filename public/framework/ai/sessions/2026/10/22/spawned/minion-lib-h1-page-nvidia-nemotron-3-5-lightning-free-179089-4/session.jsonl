@@ -3,3 +3,4 @@
 {"log":{"at":"2026-10-22T21:32:11-05:00","heartbeat":"revive-queued","msg":"minion-lib-h1-page-nvidia-nemotron-3-5-lightning-free-17908906192690 its agent is not running; a revive is queued"}}
 {"log":{"at":"2026-10-22T21:45:11-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
 {"log":{"at":"2026-10-22T21:45:13-05:00","heartbeat":"escalated","msg":"minion-lib-h1-page-nvidia-nemotron-3-5-lightning-free-17908906192690 its agent is not running, and the revive failed: Cannot find where session a111b2ae-ff55-4dbf-88a4-88443872e9da ran, so it cannot be resumed."}}
+{"log":{"at":"2026-10-22T22:05:12-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}

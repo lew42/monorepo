@@ -3,3 +3,4 @@
 {"log":{"at":"2026-10-22T21:27:10-05:00","heartbeat":"revive-queued","msg":"minion-y its agent is not running; a revive is queued"}}
 {"log":{"at":"2026-10-22T21:40:17-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
 {"log":{"at":"2026-10-22T21:41:13-05:00","heartbeat":"escalated","msg":"minion-y its agent is not running, and the revive failed: Cannot find where session 2c3928de-9e2a-4a79-bdba-161dd7a89f28 ran, so it cannot be resumed."}}
+{"log":{"at":"2026-10-22T22:20:16-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
