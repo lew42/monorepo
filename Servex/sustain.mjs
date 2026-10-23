@@ -276,6 +276,14 @@ async function restart(force){
     if (process.argv.includes("--dry-run"))
         return note(`Dry run: would restart${busy.length ? " (forced)" : ""}; nothing killed.`);
 
+    /* RESTARTS THAT LOSE NOTHING (2026-10-22): Servex writes down every live agent and pending wake-up first, and the new
+     * Servex resumes exactly those and tells each one (Agents.snapshot / revive, doc/restart.md). Best effort: a Servex
+     * too old to know the route, or not answering, is restarted as before. */
+    const by = process.argv.find(a => a.startsWith("--by="))?.slice(5) || "sustain --restart";
+    const snap = await fetch(API.replace("/api/agents", "/api/before-restart"), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ by }) })
+        .then(r => r.ok ? r.json() : null).catch(() => null);
+    note(snap ? `snapshot: ${snap.agents.length} agent(s) to resume: ${snap.agents.map(a => `${a.id} (${a.state})`).join(", ") || "none"}` : "no snapshot (this Servex has no /api/before-restart); the usual revive sweep applies");
+
     note(`restart asked for${busy.length ? ` (forced past ${busy.join(", ")})` : ""} — killing Servex ${pids.servex}`);
     kill(pids.servex);
 

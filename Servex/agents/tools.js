@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { agents as singleton } from "./Agents.js";
 import { Policy } from "./policy.js";
 import { ops_tools } from "./ops.js";
+import { wake_tools } from "./Wakeups.js";
 import { job_tools } from "./Jobs.js";
 import { expert_tools } from "./Experts.js";
 import { page_tools } from "./page_tools.js";
@@ -66,7 +67,7 @@ const card = agent => JSON.stringify(agent.card(), null, 2);
  * Servex.js, `for (const tool of tools(servex.agents)) servex.mcp.tool(tool)`,
  * wires them all, and `server(host)` hands all of them to an in-process agent. */
 export function tools(agents = singleton){
-	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents), ...task_tools(agents), ...page_tools(), ...skill_tools(), ...log_tools(agents)];
+	return [...own(agents), ...ops_tools(agents), ...wake_tools(agents),...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents), ...task_tools(agents), ...page_tools(), ...skill_tools(), ...log_tools(agents)];
 }
 
 /* query_sessions: find past sessions by tag, system, date, model or cost, with totals. NOT in tools(): it is opt-in, so it costs no
