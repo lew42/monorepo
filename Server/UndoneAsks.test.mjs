@@ -54,4 +54,11 @@ assert.equal(again.retired[0].module, "ux/Dictate");
 assert.equal(UndoneAsks.keep_owned(again, file).retired, 1, "a second pass keeps the retired row once");
 fs.writeFileSync(file, JSON.stringify(again));
 assert.equal(UndoneAsks.keep_owned(await new UndoneAsks({ root, now: Date.parse("2026-10-19T00:00:00Z") }).build(), file).retired, 1, "retired rows survive the next rebuild too");
+// settle(): what became of each open ask. A task (open -> tasked, complete -> done), a found-built or not-work verdict -> closed, a note -> noted.
+const sd = { counted: 5, modules: [{ module: "m", asks: [
+	{ state: "undone", task: "/t/open/" }, { state: "undone", task: "/t/done/" }, { state: "undone", verified: "done" },
+	{ state: "unroutable", verified: "retired" }, { state: "unroutable", note: { file: "x/readme.md" } }] }] };
+const st = UndoneAsks.settle(sd, [{ url: "/t/open/", state: "open" }, { url: "/t/done/", state: "complete" }]);
+assert.deepEqual(st, { done: 1, tasked: 1, closed: 2, noted: 1, undone: 0, unroutable: 0 });
+assert.equal(sd.agree, true, "settling never loses an ask: the two numbers still agree");
 console.log("UndoneAsks: ok");
