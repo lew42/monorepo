@@ -3,7 +3,10 @@
 	.rm-view { grid-column: wide-start / wide-end; display: flex; flex-direction: column; gap: var(--gap); padding: var(--pad); }
 	.rm-body { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fit, minmax(min(100%, 30em), 1fr)); align-items: start; }
 	.rm-filter { width: 100%; max-width: 40em; padding: var(--gap-50) var(--gap); font: inherit; }
-	.rm-view .datagrid { --datagrid-height: 28em; }
+	.rm-view .datagrid { --datagrid-height: 28em; max-block-size: 28em; }
+	.rm-view > p { max-inline-size: 40em; margin: 0; }
+	.page--readmes > .page-title { display: block; grid-column: wide-start / wide-end; margin: 0; padding: var(--pad) var(--pad) 0; }
+	.rm-view .datagrid-head-cell, .rm-view .datagrid-cell { white-space: nowrap; }
 	.rm-row { cursor: pointer; }
 	.rm-row:hover > .datagrid-cell { background: var(--darken-1); }
 	.rm-panel { display: flex; flex-direction: column; gap: var(--gap); }

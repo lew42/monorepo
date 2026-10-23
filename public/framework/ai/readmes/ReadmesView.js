@@ -11,7 +11,7 @@ export default class ReadmesView extends View {
 	// ⚠ render() runs inside View's constructor, before class fields exist: state is set in render().
 	render(){
 		this.rows = [];
-		p("Every folder with a readme, and how many tokens of readmes (about four characters each) an agent working there is given: the readmes from the repo root down to that folder. Click a folder to see which ones.");
+		p("Every folder with a readme, and how many tokens of readmes (about four characters each) an agent working there is given: the readmes from the repo root down to that folder. Click a folder to see which ones. Chain and Own are token counts.");
 		this.$filter = input.c("rm-filter").attr("type", "search").attr("placeholder", "Type a folder path to filter…").on("input", () => this.filter(this.$filter.el.value));
 		const $body = div.c("rm-body");
 		this.grid = null;
@@ -21,10 +21,10 @@ export default class ReadmesView extends View {
 	build(){
 		this.grid = new DataGrid({
 			columns: [
-				{ key: "dir", label: "Folder", width: "3fr" },
-				{ key: "levels", label: "Readmes", type: "number", width: "6em" },
-				{ key: "tokens", label: "Chain tokens", type: "number", width: "8em" },
-				{ key: "own", label: "Own tokens", type: "number", width: "8em" },
+				{ key: "dir", label: "Folder", width: "3fr", min: "14em", format: v => v.replace(/^public\//, "") },
+				{ key: "levels", label: "Readmes", type: "number", width: "7em" },
+				{ key: "tokens", label: "Chain", type: "number", width: "11em" },
+				{ key: "own", label: "Own", type: "number", width: "9em" },
 			],
 			rows: async () => {
 				this.rows = await (await fetch(new URL("./chains.json", import.meta.url))).json();

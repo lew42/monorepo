@@ -169,7 +169,7 @@ function concept_page(parent, c){
 				].join("\n"));
 				md("**Proposed, not built:** `promote(parent, id)` turns a virtual page into a real one. The thread moves into its own folder, and a `moved` line keeps the old url working. The whole case: [the proposal, §7](/framework/ai/sessions/2026/09/30/servex-mastermind/merge-approval-proposal.md).");
 			}
-			if (c.slug === "readmes"){
+			if (c.slug === "readme-system"){
 				AIOverview.heading("The chain, live", "What a fresh agent in `public/framework/ai/` is handed, root first.");
 				AIOverview.readmeChain("public/framework/ai/");
 			}
