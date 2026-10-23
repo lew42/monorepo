@@ -54,7 +54,7 @@ try {
 	ok(spawned[0].model === "claude-sonnet-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`"investigate": {"complete"`), "the spawn carries the phase's model, a folder inside the process, and the completing line");
 
 	const step = async (delta, caller) => { await item(delta, caller, PURL); await settle(FILE); };
-	await step({ investigate: { complete: { outcome: "found the cause in X.js" } } }, "a1");
+	await step({ investigate: { complete: { outcome: "found the cause in X.js", evidence: ["test"] } } }, "a1");
 	L = read(FILE);
 	ok(L.some(l => l.plan?.start) && sent.at(-1).id === "a1" && sent.at(-1).text.includes("found the cause in X.js"), "plan runs in the same session, told what investigate found");
 
@@ -67,19 +67,19 @@ try {
 	L = read(FILE);
 	ok(L.some(l => l.pulse?.phase === "plan" && l.pulse.n === 1) && sent.at(-1).text.includes("not recorded as complete"), "the next turn that ends with plan open gets one pulse");
 
-	await step({ plan: { complete: { outcome: "plan.md written" } } }, "a1");
+	await step({ plan: { complete: { outcome: "plan.md written", evidence: ["test"] } } }, "a1");
 	ok(spawned[1]?.role === "reviewer", "improve is a fresh reviewer");
-	await step({ "improve-plan": { complete: { outcome: "two steps cut" } } }, "a2");
+	await step({ "improve-plan": { complete: { outcome: "two steps cut", evidence: ["test"] } } }, "a2");
 	ok(sent.at(-1).id === "mm1" && sent.at(-1).text.includes("Approve"), "approve goes to the creator");
-	await step({ "approve-plan": { complete: { outcome: "approved" } } }, "mm1");
+	await step({ "approve-plan": { complete: { outcome: "approved", evidence: ["test"] } } }, "mm1");
 	ok(spawned[2]?.role === "helper" && spawned[2].prompt.includes("approved"), "execute is a fresh builder");
-	await step({ execute: { complete: { outcome: "branch task/fix-x, 2 commits" } } }, "a3");
-	await step({ review: { complete: { outcome: "ready to merge: task/fix-x" } } }, "a4");
+	await step({ execute: { complete: { outcome: "branch task/fix-x, 2 commits", evidence: ["test"] } } }, "a3");
+	await step({ review: { complete: { outcome: "ready to merge: task/fix-x", evidence: ["test"] } } }, "a4");
 	let p = runner.read(FILE);
 	ok(p.phase.id === "merge" && p.phase.state === "waiting" && p.state === "running", "merge waits on the owner; the process is not complete");
 	ok(sent.at(-1).id === "mm1" && sent.at(-1).text.includes("waits on the owner"), "the creator is told");
 
-	await step({ merge: { complete: { outcome: "merged" } } }, "owner");
+	await step({ merge: { complete: { outcome: "merged", evidence: ["test"] } } }, "owner");
 	p = runner.read(FILE);
 	ok(p.state === "complete" && p.completion === 1, "the last phase completes the process");
 	const sess = Task.replay(read(SESSION));
@@ -107,7 +107,7 @@ try {
 	const G = path.join(DIR, "go-home", "task.jsonl");
 	await settle(G);
 	for (const [ph, by] of [["investigate", spawned.at(-1).id], ["plan", spawned.at(-1).id], ["improve-plan", null], ["approve-plan", "mm1"]]){
-		await item({ [ph]: { complete: { outcome: "ok" } } }, by ?? spawned.at(-1).id, URL + "go-home/");
+		await item({ [ph]: { complete: { outcome: "ok", evidence: ["test"] } } }, by ?? spawned.at(-1).id, URL + "go-home/");
 		await settle(G);
 	}
 	const HOME = path.join(ROOT, "public/framework", MOD, "tasks", "go-home", "task.jsonl");
@@ -138,13 +138,26 @@ try {
 	let S = read(SF), sent0 = sent.length;
 	ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "one call: a Process with the two steps as its phases");
 	ok(S.some(l => l["write-the-note"]?.start) && sent.at(-1).id === "mm1" && sent.at(-1).text.includes("write note.md") && sent.at(-1).text.includes(`"write-the-note": {"complete"`), "node starts step 1 and prompts the creator with it");
-	await item({ "write-the-note": { complete: { outcome: "note.md written" } } }, "mm1", SURL); await settle(SF);
+	await item({ "write-the-note": { complete: { outcome: "note.md written", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
 	ok(sent.length === sent0 + 1 && sent.at(-1).text.includes("read note.md back") && sent.at(-1).text.includes("note.md written"), "step 1 returns: node prompts step 2, with step 1's outcome");
 	await item({ tasks: { add: { title: "Add a step", do: "a step added while it runs" } } }, "mm1", SURL); await settle(SF);
-	await item({ "check-the-note": { complete: { outcome: "checked" } } }, "mm1", SURL); await settle(SF);
+	await item({ "check-the-note": { complete: { outcome: "checked", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
 	ok(sent.at(-1).text.includes("a step added while it runs"), "a step added while the process runs is run after the others");
-	await item({ "add-a-step": { complete: { outcome: "done" } } }, "mm1", SURL); await settle(SF);
+	await item({ "add-a-step": { complete: { outcome: "done", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
 	ok(Task.replay(read(SF)).state === "complete" && Task.replay(read(SESSION))._tasks.find("two-steps"), "every step done: the process is complete, and its session references it");
+
+	// The evidence rule on a build → review process: a complete with no evidence is refused and written nowhere; with it, each step's outcome and evidence are recorded.
+	await item({ tasks: { add: { title: "Build review", steps: [{ title: "Build it", do: "build" }, { title: "Review it", do: "review" }] } } }, "mm1");
+	const BF = path.join(DIR, "build-review", "task.jsonl"), BURL = URL + "build-review/"; await settle(BF);
+	const blen = read(BF).length;
+	r = await item({ "build-it": { complete: { outcome: "built" } } }, "mm1", BURL);
+	ok(r.ok === false && /evidence/.test(r.why ?? "") && read(BF).length === blen, "complete without evidence is refused, nothing written");
+	await item({ "build-it": { complete: { outcome: "built", evidence: ["commit abc"] } } }, "mm1", BURL); await settle(BF);
+	ok(runner.read(BF).phases.find(x => x.id === "build-it").state === "complete" && sent.at(-1).text.includes("review"), "step 1 completes with evidence; step 2 is prompted");
+	ok(runner.read(BF).state !== "complete", "the process is not complete after the first step");
+	await item({ "review-it": { complete: { outcome: "approved", evidence: ["review.md"] } } }, "mm1", BURL); await settle(BF);
+	const bl = read(BF);
+	ok(runner.read(BF).state === "complete" && bl.some(l => l["build-it"]?.complete?.evidence?.[0] === "commit abc") && bl.some(l => l["review-it"]?.complete?.evidence?.[0] === "review.md"), "the last step completes the process; both steps' evidence is in the log");
 
 	// Stopping a process stops the agent of the phase it spawned (found live, 2026-10-22: the phase agent kept going), never the creator.
 	await item({ tasks: { add: { title: "Stop me", process: "investigate" } } }, "mm1");
