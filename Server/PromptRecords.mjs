@@ -21,6 +21,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import PromptAudit from "./PromptAudit.mjs";
+import AIIndex from "./AIIndex.mjs";
 import RefineQueue from "./RefineQueue.mjs";
 import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
 import PromptLog from "../public/framework/ai/AISession/PromptLog.js";
@@ -202,11 +203,16 @@ Answer at the end with ONE JSON object and nothing else after it:
 	task_state(){
 		const session = PromptAudit.read(path.join(this.folder, "session.jsonl")), nested = new Map();
 		for (const l of session){ const a = l.tasks?.add; if (a?.id) nested.set(a.id, a.state ?? "idle"); for (const [k, v] of Object.entries(l)) if (nested.has(k) && v && typeof v === "object"){ const verb = Object.keys(v)[0]; if (["complete", "finish"].includes(verb)) nested.set(k, "complete"); else if (["stop", "reject"].includes(verb)) nested.set(k, "stopped"); else if (["start", "approve", "resume"].includes(verb)) nested.set(k, "running"); } }
+		// A ref names a task folder however the model wrote it ("/framework/…/", "public/framework/…/requirements.md", "…/session.jsonl").
+		// Its state is AIIndex.fold's (Task.replay): the one rule every board uses.
 		return ref => {
 			if (nested.has(ref)) return nested.get(ref);
-			const f = path.join(ROOT, "public", String(ref).replace(/^\//, ""), "task.jsonl");
-			if (!fs.existsSync(f)) return null;
-			const ls = PromptAudit.read(f); return ls.some(l => l.complete || l.landed_at || l.finish) ? "complete" : "open";
+			let rel = String(ref).trim().split(/[#\s]/)[0].replace(/\\/g, "/").replace(/^\//, "").replace(/^public\//, "");
+			if (/\.[a-z]+$/i.test(rel)) rel = path.posix.dirname(rel);
+			const f = [rel, "framework/" + rel].flatMap(r => ["task.jsonl", "session.jsonl"].map(n => path.join(ROOT, "public", r, n))).find(n => fs.existsSync(n));
+			if (!f) return null;
+			const state = AIIndex.fold(PromptAudit.read(f), path.join(ROOT, "public")).state;
+			return state === "complete" ? "complete" : state === "stopped" ? "stopped" : "open";
 		};
 	}
 

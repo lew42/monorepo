@@ -90,7 +90,7 @@ export default class PromptTasks {
 			let names = []; try { names = fs.readdirSync(dir); } catch { continue; }
 			for (const n of names){
 				const f = path.join(dir, n, "session.jsonl");
-				try { { const t = fs.readFileSync(f, "utf8"); if (t.includes('"source":"prompt:') || t.includes('"source":{"session"')) out.push(f); } } catch {}
+				try { const t = fs.readFileSync(f, "utf8"); if (t.includes('"source":"prompt:') || t.includes('"source":{"session"')) out.push(f); } catch {}
 			}
 		}
 		return out;

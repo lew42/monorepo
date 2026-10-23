@@ -108,7 +108,7 @@ export default class AISessionCoverage {
 						span(() => {
 							span(`${x.kind}: ${x.text} `);
 							small.c("muted", "S" + (x.cites ?? []).join(", S"));
-							if (x.outcome?.ref) { span(" · "); /^/|^[w./-]+.(md|js|mjs|jsonl)$/.test(x.outcome.ref) ? a.c("muted", x.outcome.ref).href(x.outcome.ref.startsWith("/") ? x.outcome.ref : "/" + x.outcome.ref.replace(/^public//, "")) : small.c("muted", x.outcome.ref); }
+							if (x.outcome?.ref) { span(" · "); /^\/|^[\w./-]+\.(md|js|mjs|jsonl)$/.test(x.outcome.ref) ? a.c("muted", x.outcome.ref).href(x.outcome.ref.startsWith("/") ? x.outcome.ref : "/" + x.outcome.ref.replace(/^public\//, "")) : small.c("muted", x.outcome.ref); }
 							if (x.outcome?.why) small.c("muted", " · " + x.outcome.why);
 						});
 					});
