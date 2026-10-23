@@ -682,6 +682,28 @@ function verb_in(delta){
 	return null;
 }
 
+/* HONEST COMPLETION (core/Task/doc/resolution.md, section 6): every complete/finish call in a delta, as its argument object.
+ * A bare string or empty value counts as a call with no evidence. A new task's own fields ("add") are not a call. */
+function complete_calls(delta, out = []){
+	if (!is_plain(delta)) return out;
+	for (const [k, v] of Object.entries(delta)){
+		if (k === "complete" || k === "finish") out.push(v);
+		else if (k !== "add") complete_calls(v, out);
+	}
+	return out;
+}
+
+/* A task that completes with caveats tells its parent: one line on the parent's log (the session or task SessionRecord.parent_log finds),
+ * naming the task and what was asked and not done. Returns the log written, or null. */
+export function tell_parent_caveats(task_dir, caveats, by = "node"){
+	const list = [].concat(caveats ?? []).filter(c => String(c ?? "").trim());
+	if (!list.length) return null;
+	const log = SessionRecord.parent_log(task_dir);
+	if (!log) return null;
+	write_line(log, { note: { id: "caveats-" + path.basename(task_dir), msg: `${app_path(task_dir)} completed with caveats: ${list.join("; ")}` }, by, ts: now() }, true);
+	return log;
+}
+
 function refusal(why, Class){
 	const d = describe_class(Class);
 	return { ok: false, why, exists: [...d.methods.map(m => m.name), ...new Set([...d.fields, ...(KEYS[Class.name] ?? [])])] };
@@ -780,6 +802,11 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		}
 	}
 	if (Class?.replay){ const no = validate(Class, root(), flat); if (no) return no; }
+	// A complete without evidence is refused BEFORE a line is written: a written line would replay as a recorded fact.
+	if (Class?.replay) for (const args of complete_calls(flat)){
+		const why = Class.completion_problem?.(args);
+		if (why) return { ok: false, why };
+	}
 
 	// `pages` and `folder` are the keys the tool handles itself: a folder is made on disk (Subpages.js, give_folder).
 	const { pages, folder, ...rest } = flat;
@@ -848,6 +875,8 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	// A process moves on after any write to it, and a new one starts at once (ProcessRunner.step).
 	if (hooks.changed) for (const f of [...(kind === "Process" ? [at.file] : []), ...homes.filter(h => h.process).map(h => h.file)]) try { Promise.resolve(hooks.changed(f)).catch(() => {}); } catch {}
 	if (Class?.replay) try { notify_requests(root(), at, body, requests, by); } catch {}
+	// Caveats of a task that just completed reach its parent's log (a subtask nested in this file is on this log already).
+	if (Class?.replay && !at.target.length && is_plain(body.complete) && root().state === "complete") try { tell_parent_caveats(path.dirname(at.file), body.complete.caveats, by); } catch {}
 	// Node records who worked on the task: one appended line carrying the full list, only when the caller is new to it.
 	if (Class?.replay && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
 		const live = root(), list = live.sessions;

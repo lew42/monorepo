@@ -320,6 +320,15 @@ function log_tools(agents){
 const caller_is_from = t => t.name !== "start_job" ? t
 	: { ...t, handler: (args = {}, ctx = {}) => t.handler({ ...args, from: args.from ?? ctx.caller ?? undefined }, ctx) };
 
+/* The agent id for a session Servex does not hold: its registered external row, else one registered as vscode-<id8>. Null if it cannot. */
+function tab_parent(agents, session_id){
+	const ext = agents.external;
+	if (!ext || !/^[0-9a-f-]{8,}$/i.test(String(session_id))) return null;
+	const rows = agents.reg().read(), hit = Object.values(rows).find(r => r?.kind === "external" && r.session_id === session_id);
+	if (hit) return hit.id;
+	try { return ext.register({ id: "vscode-" + String(session_id).slice(0, 8).toLowerCase(), session_id }).id; } catch { return null; }
+}
+
 function own(agents){
 const policy = agents.policy ??= new Policy({ agents });
 return [
@@ -340,6 +349,7 @@ return [
 			permission_mode: { type: "string", description: "`acceptEdits` (default) lets it edit files; `bypassPermissions` lets it do anything, including run commands; `plan` lets it do nothing." },
 			allowed_tools: { type: "array", items: { type: "string" }, description: "Whitelist, e.g. [\"Bash\",\"Read\",\"Write\",\"Edit\"]. Omit for the CLI's own default set." },
 			parent: { type: "string", description: "Your own agent id, if you are the one spawning this. When this child ends its turn, is stopped, or errors, it wakes YOU with one message — omit for a top-level agent with nobody to wake." },
+			session_id: { type: "string", description: "FROM A VS CODE TAB (or any session Servex did not spawn): your own Claude session uuid (`$CLAUDE_CODE_SESSION_ID`). Servex records your tab as this child's parent (registering it as `vscode-<first 8 hex>` if it is not already), so the child's work rolls up under you and its news reaches your inbox. Leave out when `parent` is given or you are a Servex agent." },
 			resume: { type: "string", description: "A session uuid to CONTINUE instead of starting blank — the agent opens with that whole conversation. No skill-load preamble is added, and with no `prompt` it just waits, idle, for a message. ⚠ Give the `cwd` the session originally ran in: sessions are stored per project directory, and a resume from anywhere else cannot find it." },
 			fork: { type: "boolean", description: "With `resume`: continue as a NEW session (a copy), leaving the original untouched and still usable. It reuses the original's prompt cache when model, tools and settings match." },
 			task: { type: ["object", "boolean"], description: "EVERY SPAWN HAS A TASK DIR: leave `task` out and Servex opens one anyway (ai/sessions/<today>/<your session folder, else `spawned`>/<agent id>/, line 1 with the session id, agent id, model and the first line of `prompt` as its title, then past-work.md), and tells the agent where its log is. Pass `task: false` ONLY for a throwaway probe that must leave no task dir. Or open the task yourself, before its first turn: `{dir, card, brief, home}`. `home` (optional) is the module the work belongs to, as a site path like `/framework/core/Page/`: it is written into line 1 so the task and its session are tagged by module from the start. `dir` is the task's directory (repo-relative or absolute; created if new) — line 1 (or the next line, if the dir already has a log) is written there with the session id, agent id, card, brief and model, so the agent never has to run new-task itself; its first turn is told where its log already is. Servex also writes `past-work.md` beside the brief (what already exists on the brief's title; `brief` = path of a requirements.md, or give `title`) and tells the agent to read it first. Nested tasks: `parent_task` (the parent's task dir; defaults to the calling agent's own task dir) and `after` (an array of the sibling task DIRS this one waits for, the series edges — full dirs like `dir`, never bare slugs; stored repo-relative like `parent_task` and matched exactly) are written into that line too. HANDOFF BY TASK: add `from` (the url of the record that holds the subtask, e.g. your session page) and `id` (the subtask's id) and that subtask MOVES into this agent's folder with its id and history (page_tools.js move_item); `dir` may then be left out." },
@@ -365,7 +375,12 @@ return [
 			 * deliberate top-level spawn (`parent` left out on purpose, per this tool's own
 			 * description) still works exactly as before whenever Servex has no caller to blame
 			 * either (a VS Code tab's own direct MCP call, ctx.caller null). */
-			return card(agents.spawn({ ...args, parent: args.parent ?? ctx.caller ?? null }));
+			const { session_id: tab_session, ...rest } = args;
+			let parent = args.parent ?? ctx.caller ?? null;
+			/* A TAB'S SPAWN HAS A PARENT (2026-10-22, honest-completion): a VS Code tab's MCP call carries no `?as=`, so ctx.caller is null.
+			 * The tab passes its own session uuid; the registered external agent with that uuid is the parent (registered now if new). */
+			if (!parent && tab_session) parent = tab_parent(agents, tab_session);
+			return card(agents.spawn({ ...rest, parent }));
 		}),
 
 	tool("fork_self",

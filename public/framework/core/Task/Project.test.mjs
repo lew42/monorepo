@@ -1,5 +1,6 @@
 // Node test for Project — no DOM, no server. Run: `node Project.test.mjs`.
 import Project from "./Project.js";
+const EV = { outcome: "ok", evidence: ["test"] };
 import Task from "./Task.js";
 
 const results = [];
@@ -47,9 +48,9 @@ check("completed is computed from subtasks, never stored", () => {
 	const a = new Task({ id: "a" }), b = new Task({ id: "b" });
 	p.tasks.add(a); p.tasks.add(b);
 	if (p.completed !== 0) return false;
-	a.start(); a.complete();
+	a.start(); a.complete(EV);
 	if (p.completed !== 0.5) return false;
-	b.start(); b.complete();
+	b.start(); b.complete(EV);
 	return p.completed === 1 && p.data.completed === undefined;
 });
 
@@ -57,14 +58,14 @@ check("completed averages nested projects", () => {
 	const p = new Project({ id: "p" }), q = new Project({ id: "q" });
 	const a = new Task({ id: "a" }), b = new Task({ id: "b" }), c = new Task({ id: "c" });
 	q.tasks.add(a); q.tasks.add(b); p.tasks.add(q); p.tasks.add(c);
-	a.start(); a.complete();
+	a.start(); a.complete(EV);
 	return p.completed === (0.5 + 0) / 2;
 });
 
 check("no subtasks: 0 until complete", () => {
 	const p = new Project({ id: "p" });
 	const before = p.completed;
-	p.start(); p.complete();
+	p.start(); p.complete(EV);
 	return before === 0 && p.completed === 1;
 });
 

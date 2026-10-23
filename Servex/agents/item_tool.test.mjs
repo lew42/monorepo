@@ -64,7 +64,7 @@ try {
 	fs.writeFileSync(path.join(SDIR, "session.jsonl"), JSON.stringify({ session: "fixture-session" }) + "\n");
 	try {
 		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "a" } } } });
-		await call("item", { path: SURL, delta: { a: { complete: {} } } });   // a nested task: addressed by its id
+		await call("item", { path: SURL, delta: { a: { complete: { evidence: ["test"] } } } });   // a nested task: addressed by its id
 		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "b" } } } });
 		// A session folder's log is a Task now (SessionRecord.log_file), so its nested tasks are subtasks.
 		ok(r.ok && r.state.completion === 0.5 && r.state.tasks.length === 2, "session.jsonl: tasks.add, a child completed by its id, completion 1/2");
@@ -117,7 +117,7 @@ try {
 		ok(r.state.state === "running", "start the child through its own path");
 		r = await call("item", { path: URL });
 		ok(r.state.tasks.find(t => t.id === "module-job").state === "running" && r.state.completion === 0, "parent sees the child running");
-		await call("item", { path: app(home), delta: { complete: {} } });
+		await call("item", { path: app(home), delta: { complete: { evidence: ["test"] } } });
 		r = await call("item", { path: URL });
 		ok(r.state.completion === 1 / 4, "parent completion changes after the child completes");
 
@@ -199,7 +199,7 @@ try {
 			ok(r.ok && fs.existsSync(kid_file) && nlines().at(-1).file === "nested-one/task.jsonl", "a folder on demand: the parent records {file}");
 			const again = Task.replay(nlines());
 			ok(again.tasks.find("nested-one")?.state === "running" && [...again.tasks].length === 1, "the folder variant replays: same child, same state, not doubled");
-			await call("item", { path: NURL + "nested-one/", delta: { complete: {} } });
+			await call("item", { path: NURL + "nested-one/", delta: { complete: { evidence: ["test"] } } });
 			r = await call("item", { path: NURL });
 			ok(r.state.tasks[0].state === "complete", "after the folder move, the parent sees the child's own file");
 

@@ -35,8 +35,8 @@ const step1 = new Task({ id: "s1", data: { title: "Compile" } });
 build.tasks.add(step1);
 
 build.start();
-step1.start(); step1.complete();
-build.complete();           // only works once every subtask is complete
+step1.start(); step1.complete({ outcome: "step 1 done", evidence: ["Task.test.mjs"] });
+build.complete({ outcome: "built", evidence: ["a1b2c3d"] });   // only works once every subtask is complete, and needs evidence
 
 build.progress();         // { done: 1, total: 1 } — computed from tasks, never stored
 build.duration();         // ms of RUNNING time — pausing stops the clock
@@ -75,6 +75,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 - **Three replay rules, set by `Server/AIIndex.mjs`'s self-check** ([Server/doc/ai-index.md](/Server/doc/ai-index.md), "Decision"): a line's time is `at`, else the item tool's `ts`; `landed_at` alone means `complete` (outcome or not); during replay `complete()` never refuses a recorded finish because a filed `{task: ref}` child is idle (live calls still refuse). Each has a test in `Task.test.mjs`.
 - **Abandoned tasks are closed by script:** [`Server/StaleClose.mjs`](/Server/StaleClose.mjs) appends a `stop` line (`by: StaleClose`) to every `stale` task silent over 24 h, daily from `Servex/TaskLoop.js`; the manifest is `ai/stale-closes.jsonl`, `--undo` appends `start` (`resume` is refused from `stopped`). [Server/doc/stale-close.md](/Server/doc/stale-close.md)
+- **`complete()` needs evidence** (2026-10-22, [resolution.md](doc/resolution.md) section 6): `{outcome, evidence: [file | commit | shot | test], confidence: "high" | "medium" | "low" (default medium), caveats: [] }`. No evidence, or a plain string, is refused and the message says what to pass; the item tool refuses before it writes a line. Caveats are appended to the parent's log (`tell_parent_caveats` in `Servex/agents/page_tools.js`). Exempt: replaying a recorded finish (old logs have none), the automatic completion when the last child completes (`complete({auto: true})`), and node-written closes, which use `stop` (`StaleClose`) or the legacy `landed_at`. **`approve()` makes the task accepted (`idle`)**; the agent's own `start()` begins it.
 - **`complete()` refuses while a subtask is open** — it warns ("… isn't complete yet —
   complete that first") and leaves the state unchanged, never throws. Every illegal
   transition (`pause()` on an idle task) behaves the same way.
