@@ -400,7 +400,7 @@ export class Agents {
 		if (this.revived) return this.revived;
 		const reg = this.reg(), prev = reg.last_boot();
 		reg.mark_boot(this.boot);
-		const out = { revived: [], told: [], gone: [], legacy: [], skipped: [] };
+		const out = { revived: [], told: [], gone: [], legacy: [], skipped: [] }, reasons = {};
 		const boot_at = parseInt(String(this.boot).split("-")[0], 36) || Date.now();   // `boot` = <base36 ms>-<pid>
 		/* A restart that took a snapshot first: exactly the agents it listed come back, however long they had been idle. */
 		const snap = this.restart_snapshot(prev);
@@ -428,12 +428,23 @@ export class Agents {
 			const ours = legacy ? this.recent_log(row.id, window_min)
 				: !!prev?.boot && row.boot === prev.boot && (listed(row.id) || Date.now() - Date.parse(row.last_at ?? 0) < window_min * 60000);
 			let agent = null;
-			const no = ours && this.blocked(row);
-			if (no){ out.refused = [...(out.refused ?? []), { id: row.id, why: no.why }]; if (row.state !== "gone") out.gone.push(row.id); continue; }
+			const no = ours && this.blocked(row, { landed: false });
+			if (no){ out.refused = [...(out.refused ?? []), { id: row.id, why: no.why }]; reasons[row.id] = `servex restarted; not revived: ${no.text}`; if (row.state !== "gone") out.gone.push(row.id); continue; }
 			/* doc/restart.md "The revive sweep skips…": never tell, or resume, an agent that has no turn to lose. */
 			const skip = ours && Agents.revive_skip(row, { boot_at, has_session: !!(row.session_id && session_facts(row.session_id).file) });
+			/* NEVER STARTED (the owner, 2026-10-22): it was open but had no turn and no session file, so `resume` cannot work —
+			 * but it is not dead either. Start it again fresh from its own spec (same id, role, cwd, task), and point it at its brief. */
+			if (skip?.dead && row.revivable && (row.spec || row.cwd)){
+				try { agent = this.reopen({ ...row, session_id: undefined }); } catch {}
+				if (agent){
+					out.revived.push(row.id); out.told.push(row.id); out.restarted = [...(out.restarted ?? []), row.id];
+					const dir = this.task_dir_for(row);
+					agent.send(`Servex restarted before your first turn ran, so nothing of it was kept. Start now${dir ? `: your brief is requirements.md in ${dir}` : ", from the prompt you were given"}.`, { from: "servex" });
+					continue;
+				}
+			}
 			if (skip){
-				out.skipped.push({ id: row.id, why: skip.why });
+				out.skipped.push({ id: row.id, why: skip.why }); reasons[row.id] = `servex restarted; not revived: ${skip.why}`;
 				this.store().append("servex", { type: "revive-skip", id: row.id, why: skip.why }).catch(() => {});
 				if (skip.dead && row.state !== "gone") out.gone.push(row.id);
 				continue;
@@ -441,6 +452,7 @@ export class Agents {
 			if (ours && (legacy || row.revivable) && row.session_id)
 				try { agent = this.reopen(row); } catch {}
 			if (!agent){
+				reasons[row.id] = `servex restarted; not revived: ${!ours ? "not open in the previous boot, or idle past the window" : !row.session_id ? "no session to resume" : "its spawn carried code (system/sdk/in-process tools), its owner spawns it again"}`;
 				if (row.state !== "gone") out.gone.push(row.id);
 				continue;
 			}
@@ -457,6 +469,10 @@ export class Agents {
 			out.told.push(id);
 		}
 		reg.bury(out.gone, "servex restarted");
+		/* the reason on the row itself, not only in servex.jsonl (the owner, 2026-10-22) */
+		const rows = reg.read(); let wrote = false;
+		for (const [id, why] of Object.entries(reasons)) if (rows[id] && out.gone.includes(id)){ rows[id].ended = why; wrote = true; }
+		if (wrote) reg.save(rows);
 		this.store().append("servex", { type: "revive", boot: this.boot, previous: prev?.boot ?? null, ...out }).catch(() => {});
 		return this.revived = out;
 	}
@@ -576,15 +592,18 @@ export class Agents {
 	 *              (`stopped_by` in its registry row).
 	 *   landed   — its task.jsonl has a landing line (or closed_by).
 	 * `force` (send_to_agent's `revive: true`) overrides the last two, never the first.
+	 * `landed: false` skips only the landing check: the boot sweep asks it so, because a row open at the restart was ALIVE, and
+	 * a long-lived mastermind lands its first task and goes on to others (2026-10-22: mastermind-figma-cards and mastermind-test
+	 * were buried as "landed" while mid-work).
 	 * task-mastermind-mobile-nav, landed and stopped by hand three times, kept coming back. */
-	blocked(row, { force = false } = {}){
+	blocked(row, { force = false, landed = true } = {}){
 		if (!row) return null;
 		const cwd = row.spec?.cwd ?? row.cwd;
 		if (cwd && !fs.existsSync(cwd)) return { why: "cwd-gone", text: `its working directory ${cwd} no longer exists` };
 		if (force) return null;
 		if (row.stopped_by) return { why: "stopped", text: `it was stopped on purpose by ${row.stopped_by}${row.stopped_at ? ` at ${row.stopped_at}` : ""}` };
 		const dir = this.task_dir_for(row);
-		if (dir && task_landed(dir)) return { why: "landed", text: `its task ${path.basename(dir)} has landed` };
+		if (landed && dir && task_landed(dir)) return { why: "landed", text: `its task ${path.basename(dir)} has landed` };
 		return null;
 	}
 
