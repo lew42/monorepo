@@ -124,6 +124,23 @@ try {
 
 	r = await run_item({ path: PURL }, { caller: "mm1" });
 	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) reads the process back: class, state, phases");
+
+	// A SIMPLE PROCESS THROUGH THE TOOL (the owner, 2026-10-22): create it with your own steps, node prompts step 1, then step 2 when step 1 returns.
+	r = await item({ tasks: { add: { title: "Bad", steps: [{ title: "Start" }] } } }, "mm1");
+	ok(r.ok === false && /steps/.test(r.why), "a step named for a Task verb (start) is refused, nothing written");
+	r = await item({ tasks: { add: { title: "Two steps", steps: [{ title: "Write the note", do: "write note.md" }, { title: "Check the note", do: "read note.md back" }] } } }, "mm1");
+	const SF = path.join(DIR, "two-steps", "task.jsonl"), SURL = URL + "two-steps/";
+	await settle(SF);
+	let S = read(SF), sent0 = sent.length;
+	ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "one call: a Process with the two steps as its phases");
+	ok(S.some(l => l["write-the-note"]?.start) && sent.at(-1).id === "mm1" && sent.at(-1).text.includes("write note.md") && sent.at(-1).text.includes(`"write-the-note": {"complete"`), "node starts step 1 and prompts the creator with it");
+	await item({ "write-the-note": { complete: { outcome: "note.md written" } } }, "mm1", SURL); await settle(SF);
+	ok(sent.length === sent0 + 1 && sent.at(-1).text.includes("read note.md back") && sent.at(-1).text.includes("note.md written"), "step 1 returns: node prompts step 2, with step 1's outcome");
+	await item({ tasks: { add: { title: "Add a step", do: "a step added while it runs" } } }, "mm1", SURL); await settle(SF);
+	await item({ "check-the-note": { complete: { outcome: "checked" } } }, "mm1", SURL); await settle(SF);
+	ok(sent.at(-1).text.includes("a step added while it runs"), "a step added while the process runs is run after the others");
+	await item({ "add-a-step": { complete: { outcome: "done" } } }, "mm1", SURL); await settle(SF);
+	ok(Task.replay(read(SF)).state === "complete" && Task.replay(read(SESSION))._tasks.find("two-steps"), "every step done: the process is complete, and its session references it");
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
 	fs.rmSync(path.join(ROOT, "public/framework/ai/process-test-" + process.pid), { recursive: true, force: true });

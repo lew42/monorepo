@@ -479,7 +479,9 @@ function make_child(parent_dir, add, ctx, home){
  * add per phase come from Process.DEFINITIONS, and ProcessRunner starts it (hooks.changed). Refused: an unknown process, a taken slug. */
 async function process_home(parent_dir, add){
 	const Process = await LOADERS.Process();
-	if (!Process.DEFINITIONS[add.process]) return { why: `no process "${add.process}"; the processes are: ${Object.keys(Process.DEFINITIONS).join(", ")}` };
+	if (!Process.DEFINITIONS[add.process] && !Process.from_steps(add.steps)) return { why: add.steps
+		? "`steps` must be a non-empty list of {title, do, session?} with distinct titles that are not Task verbs (start, complete, improve…)"
+		: `no process "${add.process}"; the processes are: ${Object.keys(Process.DEFINITIONS).join(", ")}, or give your own \`steps\`` };
 	const slug = slug_of(add.id ?? add.title), dir = path.join(parent_dir, slug);
 	// A folder that only holds a brief is fine (write the brief, then start the process in it); one with a log is taken.
 	if (["task.jsonl", "session.jsonl"].some(f => fs.existsSync(path.join(dir, f)))) return { why: `"${slug}" already holds a task in this folder; nothing was written. Give the process another id or title.` };
@@ -489,7 +491,7 @@ function make_process(parent_dir, add, ctx, home){
 	const [first, ...adds] = home.process.lines(add);
 	const h = make_child(parent_dir, first, ctx, home), file = path.join(home.dir, "task.jsonl");
 	for (const line of adds) write_line(file, { ...line, by: ctx.caller ?? "agent", ts: now() }, true);
-	return { ...h, process: add.process, file };
+	return { ...h, process: first.process, file };
 }
 
 /* DRAFT IN THE SESSION, THEN MOVE HOME (core/Task/doc/owner-2026-10-20-projects-and-completion.md §6). A task folder (a process once its
@@ -698,7 +700,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		const plan = [];
 		for (const a of [].concat(add)){
 			if (!is_plain(a)) return { ok: false, why: "`tasks.add` takes an object (the new task's fields)" };
-			const home = typeof a.process === "string" ? await process_home(path.dirname(at.file), a) : path.basename(at.file) === "improvements.jsonl" ? null : task_home(path.dirname(at.file), a, ctx.module_root, url);   // an improvement nests in its folder's list (mastermind role readme)
+			const home = typeof a.process === "string" || Array.isArray(a.steps) ? await process_home(path.dirname(at.file), a) : path.basename(at.file) === "improvements.jsonl" ? null : task_home(path.dirname(at.file), a, ctx.module_root, url);   // an improvement nests in its folder's list (mastermind role readme)
 			if (home?.why) return { ok: false, why: home.why };
 			if (home?.taken) return { ok: false, why: `a task "${home.slug}" already exists under ${home.list.module}/tasks/; nothing was written. Use the id "${home.free}" (or a different title), or work on the existing one.`, suggest: home.free };
 			const id = home ? null : slug_of(a.id ?? a.title);

@@ -82,7 +82,7 @@ export default class ProcessRunner {
 
 	// Start the phase's session: fresh (spawn), same (the previous phase's agent), owner (the process's creator). False = held back.
 	async launch(file, p, id){
-		const ph = p.phases.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = s.run ?? "fresh";
+		const ph = p.phases.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = p.run_of(ph);
 		const prompt = p.prompt(id, this.url(file)), agents = this.servex?.agents;
 		if (!agents) return false;
 		if (run === "fresh"){
