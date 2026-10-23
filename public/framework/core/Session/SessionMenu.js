@@ -1,7 +1,8 @@
 // SessionMenu.js — the button at the right end of a session's name line, opening the session's own menu (Session.MENU).
 // A page entry is a link (routed: <session url>/<name>/), an action entry calls that method on the page. Doc: doc/menu.md.
-import { a, button, icon, span } from "../View/View.js";
+import View, { a, button, icon, span } from "../View/View.js";
 import Popover from "../../ux/Popover/Popover.js";
+View.stylesheet(import.meta, "SessionMenu.css");   // the button, the rows, and the settings form
 
 export default class SessionMenu {
 
