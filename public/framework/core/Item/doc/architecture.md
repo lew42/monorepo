@@ -110,6 +110,18 @@ Tests: [Item.test.mjs](../Item.test.mjs) covers the built part and pins the gap.
 
 Test: [act.test.mjs](../act.test.mjs).
 
+## An item moves home with its id, its history and one reference
+
+**Decided 2026-10-22.** Design: [tasks/item-move/design.md](../tasks/item-move/design.md).
+
+- **What a move does.** A subtask written as lines inside its parent's log moves to a folder of its own. `move_item({from, id, to, by})` in `Servex/agents/page_tools.js` copies every line that addresses the child, in order, each with its original `by` and `ts`, into the new folder's log. It then writes ONE line in the parent, `{"task": to, "as": id, "moved_from": "<from>#<id>"}`, and one line in the moves ledger, `ai/sessions/task-moves.jsonl`.
+- **The id stays.** `as` is the id the task had in the parent. `Task.from_ref` and `Session.replay_line` use it instead of the new folder's name, so the reference replaces the nested child and the parent never shows it twice.
+- **Never wrong, never half-done.** Before writing, the copied lines are replayed in memory and compared with the live child; if they differ, one `{"set":…}` snapshot line closes the gap. A refusal (unknown id, a child that already has its own file) writes nothing at all.
+- **Three ways in, one mover.** The item tool key `{"<id>":{"move":{"to":"<folder url>"}}}`. `spawn_agent` with `task: {from, id}` hands the subtask to the new agent's folder (handoff by task; a refusal is written into that agent's log). An approved proposal moving to its module home (`move_nested_home`) also calls `move_item`.
+- **Not yet.** After a move, a verb sent through the old parent (`{"<id>":{"start":{}}}`) is still written to the parent's log, so the history splits; the fix is for the item tool to write it to the child's own file. Moving back, and cloud homes, are not built.
+
+Test: [item_tool.test.mjs](../../../../../Servex/agents/item_tool.test.mjs) (73 checks).
+
 ## More
 
 - [`doc/decisions.md`](./decisions.md) — the full record, traps and verdicts (the history, not this page).
