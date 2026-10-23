@@ -13,7 +13,8 @@ import os from "node:os";
 import path from "node:path";
 
 export const REAL = path.resolve(import.meta.dirname, "../..");
-export const STORE = process.env.LEDGER_ROOT || fs.mkdtempSync(path.join(os.tmpdir(), "test-store-"));
+const made = process.env.LEDGER_ROOT ? null : fs.mkdtempSync(path.join(os.tmpdir(), "test-store-"));   // only a dir made HERE is ever deleted
+export const STORE = process.env.LEDGER_ROOT || made;
 process.env.LEDGER_ROOT = STORE;
 
 /** Names under the REAL <repo>/public/framework/ai/sessions/<today>/spawned/ (what a leaking test would add to). */
@@ -22,4 +23,5 @@ export const spawned_in_real_store = () => {
 	const f = path.join(REAL, "public/framework/ai/sessions", String(d.getFullYear()), p(d.getMonth() + 1), p(d.getDate()), "spawned");
 	return fs.existsSync(f) ? fs.readdirSync(f) : [];
 };
-export const clean = () => fs.rmSync(STORE, { recursive: true, force: true });
+/** Deletes the scratch dir this module made; an inherited LEDGER_ROOT (maybe a real checkout) is never touched. */
+export const clean = () => { if (made) fs.rmSync(made, { recursive: true, force: true }); };
