@@ -36,7 +36,7 @@ Item                              core/Item        one log; state = Item.replay(
 ├─ Session extends Item           core/Session     a dated folder ai/sessions/YYYY/MM/DD/<name>/; has tasks: List
 │  └─ AISession extends Session   ai/AISession     one Claude run: cost and totals, apply_line() per transcript line
 └─ Task extends Item              core/Task        idle → running → paused | waiting → stopped | complete; has tasks: List
-   └─ Project extends Task        core/Task        stages + completed 0..1 (a play class, wired nowhere)
+   └─ Project extends Task        core/Task        stages + completed 0..1; made by "Make it a project" on a proposed task (Session decide, core/Session/doc/prompt-tasks.md)
 
 Agents.spawn(spec)                Servex/agents/Agents.js   makes a SESSION: default_task() picks the folder,
   → open_task(task, {session_id, agent, model})             open_task() writes line 1 {assign:{session_id, agent, …}}

@@ -13,3 +13,10 @@
 
 .session-settings-field { align-items: center; }
 .session-settings-label { min-width: 12em; }
+
+/* The session's tasks (SessionTasks.js): a row per task, Approve / Reject beside a proposal. */
+.session-tasks:empty { display: none; }
+.session-tasks-title { margin: 0; font-size: 1em; }
+.session-task { align-items: center; justify-content: space-between; }
+.session-task > .task-view { flex: 1 1 auto; min-width: 0; }
+.session-task-actions { flex: none; }

@@ -15,6 +15,7 @@ import Item from "/framework/core/Item/Item.js";
 import Property from "/framework/core/Property/Property.js";
 import SessionMenu from "/framework/core/Session/SessionMenu.js";
 import SessionSettings from "/framework/core/Session/SessionSettings.js";
+import SessionTasks from "/framework/core/Session/SessionTasks.js";
 import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
 import "/framework/core/Page/parts/PageText.js";
 import "/framework/core/Page/parts/PageCard.js";
@@ -69,7 +70,7 @@ export default class AISessionDetail extends Page {
 	// With tabs on (a `tab` line in the session's page.jsonl), the template itself is the first tab.
 	home_tab = "Conversation";
 
-	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; this.live_off?.(); this.live_off = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
+	deactivated(){ this.tasks_log?.unsubscribe(); this.tasks_log = null; this.follow?.then(f => f.stop()); this.follow = null; this.live_off?.(); this.live_off = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
 
 	/* THE SESSION'S OWN PAGE LOG (2026-10-09, the page tool): `page.jsonl` in the session's folder can
 	   reshape this page on top of the template — tabs, the six layout words — and carries the cards the
@@ -142,7 +143,7 @@ export default class AISessionDetail extends Page {
 		const { home, id } = this, url = home.url;
 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
 		this.parts = new AISessionDetail.Parts($parts);
-		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage;
+		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks;
 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
 		const TABS = [["conversation", "Conversation"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
 		const want = new URLSearchParams(location.search).get("tab"), panels = {}, buttons = {};
@@ -154,6 +155,7 @@ export default class AISessionDetail extends Page {
 		div.c("sessions-tabs flex gap-50 wrap", () => TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k))));
 		div.c("sessions-detail-body", () => {
 			panels.conversation = div.c("flow sessions-panel", () => {
+				$tasks = div.c("flow session-tasks");   // the session's tasks, live; an owner prompt's asks arrive here as proposals (core/Session/SessionTasks.js)
 				$box = div.c("flow");     // which session this is (source tag, tab title, model)
 				$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
 				$conv = div.c("flow sessions-conv");   // the live conversation
@@ -178,6 +180,7 @@ export default class AISessionDetail extends Page {
 			const coverage = new AISessionCoverage(session_id);
 			$coverage.append(coverage.view);
 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
+			this.record_url().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks }).live(); });
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
 			this.log_urls().then(urls => {
 				if (this.logs) return;

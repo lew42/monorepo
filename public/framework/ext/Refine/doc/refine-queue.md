@@ -15,6 +15,8 @@ node Server/RefineQueue.mjs --repeats [--all]       # asks said in 3+ sessions (
 ```
 Flags: `--parallel N` (default 2 calls at once), `--brief v1|v2` (default v2), `--limit N`, `--force` (redo refined ones), `--task <dir>` (a task.jsonl's owner `chat` lines instead of transcripts).
 
+**Live, one prompt at a time:** Servex also runs `RefineQueue.one()` on each new VS Code prompt as it arrives (`Servex/agents/PromptTasks.js`), and files the task asks as proposed tasks on the session page ([core/Session/doc/prompt-tasks.md](/framework/core/Session/doc/prompt-tasks.md)). The commands above remain for backfilling older prompts.
+
 ## The classes
 
 | Class | File | Job |
