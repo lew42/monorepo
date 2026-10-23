@@ -54,9 +54,9 @@ export default class Session extends Item {
 	replay_line(line){
 		const { by, ts, at, session: _s, ...delta } = line;
 		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
-			const kid = Task.from_ref(delta.task), had = this._tasks?.find(kid.id);
+			const kid = Task.from_ref(delta.task, delta.as), had = this._tasks?.find(kid.id);
 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
-			delete delta.task;
+			delete delta.task; delete delta.as; delete delta.moved_from;
 		}
 		if (delta.tasks && typeof delta.tasks === "object") this.tasks.set(delta.tasks);
 		delete delta.tasks;
