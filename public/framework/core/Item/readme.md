@@ -108,3 +108,4 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 - `doc/method/*.md`, `doc/property/*.md` — one page per verb and field, each with its trap.
 - Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
 - [doc/map.md](./doc/map.md) — every class, store, tool and writer that makes or saves items.
+- [doc/one-stream.md](./doc/one-stream.md) — one stream for the UI, node and agents: a file's appends advance its live instance, and subscribers hear item changes (a design, not built).

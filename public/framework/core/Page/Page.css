@@ -658,6 +658,9 @@
 	.page-column-head + .page-column-item { margin-block-start: var(--page-column-pad-y, 0.7em); }
 
 	.page-column-title { font-weight: 600; font-size: 0.95em; }
+	/* a page's own controls at the right end of the name line (head_tools()); the × after them stays last */
+	.page-column-tools { display: flex; align-items: center; margin-inline-start: auto; }
+	.page-column-tools + .page-column-close { margin-inline-start: 0; }
 
 	/* ⚠ A PADDED target, not a bare glyph: the × closes this column and everything right
 	     of it, and at 1.05em the icon alone is a 17px tap target with no edge to aim at.

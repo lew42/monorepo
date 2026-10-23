@@ -6,6 +6,7 @@ import Item from "../Item/Item.js";
 import List from "../List/List.js";
 
 const STATES = ["idle", "running", "paused", "waiting", "stopped", "complete"];
+const OPEN = new Set(["idle", "running", "paused", "waiting"]);   // a child in one of these keeps its parent from reading complete
 
 // Which states each verb may start FROM — named by the verb, so the rule next to
 // the verb is the rule that uses it.
@@ -24,7 +25,7 @@ const CAN = {
 // The state verbs a `task.jsonl` line may name: `{"stop":{"why":"…"}}`.
 // Plain fields a top-level line may set (the item tool's {"expected":"…"}); legacy lines keep them under `assign`.
 // `sessions` [{id, task}] and `home` (an old folder's pointer to its module home): Server/TaskMigrate.mjs writes them.
-const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent", "outcome", "brief"];
+const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent", "outcome", "brief", "from"];
 
 // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
 const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
@@ -109,7 +110,13 @@ export class Task extends Item {
 	// `this["state"]` for a real instance property — which THIS GETTER IS,
 	// so calling it from inside itself recurses forever. `get_one` is the
 	// plain data seam underneath, exactly what a bare field lookup needs.
-	get state(){ const s = this.get_one("state") ?? "idle"; return s === "finished" ? "complete" : s; }
+	// A complete task that has been given a new open child reads `running` again until that child is done (a request added to a
+	// landed task: review finding 2, 2026-10-22). Computed on read, never written, so it reads complete again by itself.
+	get state(){
+		const s = this.get_one("state") ?? "idle", st = s === "finished" ? "complete" : s;
+		return st === "complete" && this.reopened() ? "running" : st;
+	}
+	reopened(){ for (const t of this._tasks ?? []) if (OPEN.has(t.state)) return true; return false; }
 
 	// Warn like `Item`'s own `locate()`/`hydrate()` do: once per distinct message,
 	// never a throw, and the call site still gets `this` back so a no-op chains.

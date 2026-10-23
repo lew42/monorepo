@@ -529,6 +529,25 @@ export async function move_home(file, module, by = "ProcessRunner"){
 	return { from, to, file: nf };
 }
 
+/* Requests are logged items (Servex/agents/doc/messaging.md). After a write: each new request goes to its receiver, and each
+ * request this write completed goes back to whoever asked (`from`), with its outcome. A completion is a `complete` line on a nested
+ * child ({"<id>": {"complete": …}}, or a target of [<id>]), or on a request that has its own folder (the file's own root). */
+function notify_requests(live, at, body, requests, by){
+	for (const r of requests) if (hooks.requested) Promise.resolve(hooks.requested(r)).catch(() => {});
+	if (!hooks.answered) return;
+	const done = [];
+	if (at.target.length === 1 && body.complete !== undefined) done.push(live._tasks?.find(at.target[0]));
+	else if (!at.target.length){
+		if (body.complete !== undefined) done.push(live);
+		for (const [k, v] of Object.entries(body)) if (is_plain(v) && v.complete !== undefined) done.push(live._tasks?.find(k));
+	}
+	for (const t of done){
+		const from = t?.get_one("from");
+		if (!from || from === by || t.state !== "complete") continue;
+		Promise.resolve(hooks.answered({ to: from, by, id: t.id, title: t.get_one("title") ?? t.id, outcome: t.get_one("outcome") ?? null, path: t === live ? (live.get_one("path") ?? app_path(path.dirname(at.file))) : app_path(path.dirname(at.file)) })).catch(() => {});
+	}
+}
+
 // Node's resolver for Task.from_ref: an app path -> that folder's parsed task.jsonl, or null. While a root is being replayed, `collect` gathers every child file it read.
 let collect = null;
 const sig = file => { try { const st = fs.statSync(file); return `${st.size}:${st.mtimeMs}`; } catch { return "none"; } };
@@ -620,7 +639,12 @@ async function give_folder(root, at, ids, ctx){
 }
 
 /* templates.md: Servex sets this to `file => task_loop.launch(file)`; run_item calls it right after an `approve` line lands. */
-export const hooks = { approved: null, changed: null };   // changed: Servex sets it to `file => process_runner.step(file)` (a process moves on after any write)
+export const hooks = {
+	approved: null,
+	changed: null,     // Servex sets it to `file => process_runner.step(file)` (a process moves on after any write)
+	requested: null,   // requested/answered: Servex sends the one-line notices (Servex/agents/doc/messaging.md, "Requests are logged items")
+	answered: null,
+};
 
 export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
 	url ??= own_page(ctx);
@@ -659,7 +683,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	const made = pages === undefined ? null : apply_pages(at, pages, url);
 	if (made?.why) return { ok: false, why: made.why, done: made.done };
 
-	const ids = [], homes = [], by = ctx.caller ?? "agent";
+	const ids = [], homes = [], requests = [], by = ctx.caller ?? "agent";
 	let line = null, size;
 	// Every write to a Task/Session goes through here: append the line, then advance the live root with it.
 	const put = (l, own = true) => { const live = Class?.replay ? root() : null; size = write_line(at.file, l, own); if (live) advance(live, l); line = l; };   // root BEFORE the write: after it the file's size differs and root() would re-read
@@ -667,6 +691,9 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	let body = pages === undefined && folder === undefined ? flat : rest;
 	if (Class?.replay && !at.target.length && is_plain(body.tasks) && body.tasks.add !== undefined){
 		const { add, ...others } = body.tasks;
+		// A REQUEST (the owner, 2026-10-22: logs over chat): a task added to another agent's task is a request to that agent. Node stamps
+		// `from` on it, tells the receiver once, and tells the sender when it completes (hooks.requested / hooks.answered, below).
+		const owner_agent = root().get_one("agent"), asker = ctx.caller && ctx.caller !== owner_agent && owner_agent ? ctx.caller : null;
 		// Check everything first: a refused slug writes nothing at all.
 		const plan = [];
 		for (const a of [].concat(add)){
@@ -677,12 +704,13 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 			const id = home ? null : slug_of(a.id ?? a.title);
 			if (id && (root()._tasks?.find(id) || plan.some(p => p.id === id)))
 				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Use the id "${id}-2" (or a different title), or change the existing one.`, suggest: id + "-2" };
-			plan.push({ a, home, id });
+			plan.push({ a: asker && a.from === undefined ? { ...a, from: asker } : a, home, id });
 		}
 		for (const { a, home, id } of plan){
 			if (home){
 				const h = home.process ? make_process(path.dirname(at.file), a, ctx, home) : make_child(path.dirname(at.file), a, ctx, home);
 				homes.push(h); ids.push(h.id);
+				if (asker) requests.push({ to: owner_agent, from: asker, id: h.id, title: a.title ?? h.id, path: h.path, own_folder: true });
 				put({ task: h.path, by, ts: now() });
 				await record_new_folder(path.dirname(home.dir), home.slug);
 				// Step 16: the caller's own log gets the same reference (never the parent twice, never an error).
@@ -691,6 +719,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 				// A subtask nests in this file: {"tasks":{"add":{…}}}, no folder.
 				const { type: _t, data, ...fields } = a;
 				ids.push(id);
+				if (asker) requests.push({ to: owner_agent, from: asker, id, title: a.title ?? id, path: app_path(path.dirname(at.file)) });
 				put({ tasks: { add: { type: "Task", ...data, ...stamp_ids(fields, ids), id } }, by, ts: now() });
 			}
 		}
@@ -710,6 +739,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	if (Class?.replay && !at.target.length && body.approve !== undefined && hooks.approved) try { Promise.resolve(hooks.approved(at.file)).catch(() => {}); } catch {}
 	// A process moves on after any write to it, and a new one starts at once (ProcessRunner.step).
 	if (hooks.changed) for (const f of [...(kind === "Process" ? [at.file] : []), ...homes.filter(h => h.process).map(h => h.file)]) try { Promise.resolve(hooks.changed(f)).catch(() => {}); } catch {}
+	if (Class?.replay) try { notify_requests(root(), at, body, requests, by); } catch {}
 	// Node records who worked on the task: one appended line carrying the full list, only when the caller is new to it.
 	if (Class?.replay && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
 		const live = root(), list = live.sessions;

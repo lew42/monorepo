@@ -32,6 +32,17 @@ Level 1 is one page, mostly above the fold: what the thing is, **shown**; its ma
 
 **Name things, and write `.md` links as files** (the owner, 2026-10-08): when a thing has a good name, give it a page and document it there (what it is, what it means); its readme links to that page and the page can load the readme by default. So always write the plain file path (`doc/flow.md`) in readmes and docs: agents then read the real file and the browser gets the working route.
 
+**Docs hold conclusions; logs hold the record** (the owner, 2026-10-22): a readme or `doc/*.md` states what was decided, what came out of it and what is useful later, once, in plain sentences. The dated detail (each small decision, attempt, request, timestamp) is a line in a JSONL log, and the doc links to it. Which log:
+
+| What happened | Where its lines go | Written by |
+|---|---|---|
+| work on a task or project | the task's own log: `session.jsonl` in a session's task folder, `task.jsonl` in a module's `tasks/<slug>/` | the item tool (`item`), the `log` tool |
+| what a session did, its settings | the session folder's `session.jsonl` | the `log` tool, the session's Settings page |
+| a note about a folder that belongs to no task | that folder's `ai/log.jsonl` | the `dir_log` tool |
+| an improvement idea for a folder | that folder's `improvements.jsonl` (a repeat adds weight) | the item tool |
+
+Never copy log lines into markdown, and never put a conclusion only in a log: when the work lands, the doc gets the outcome and a link to the log.
+
 - **The readme chain:** read the readmes root to leaf before working in a directory, and again when you move to another one, or start a fresh session there (`/framework/ai/readmes/`).
 - **Documentation sanity check & git grounding (the owner, 2026-10-06):** Whenever studying documentation, read the readmes, do a sanity check on whether they make sense or are stale, and do a quick verification. If there's an obvious easy fix, make that fix. Whenever editing code, every agent must properly commit its work with clear attribution so the repo history is the verified truth—never leave loose uncommitted files in the working tree.
 

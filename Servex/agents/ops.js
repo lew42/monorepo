@@ -33,10 +33,10 @@ export function ops_tools(host){ return [
 		+ " (parse check, mid-turn guard, the kill and the wait for Servex to answer again) is logged to sustain.log, not"
 		+ " this call's own log file — read `%LOCALAPPDATA%\\lew42\\servex\\logs\\sustain.log` for \"back as pid\".",
 		{ dry_run: { type: "boolean", description: "Only report the command and log path; start nothing." } },
-		({ dry_run } = {}) => {
+		({ dry_run } = {}, ctx = {}) => {
 			fs.mkdirSync(DIR, { recursive: true });
 			const log = path.join(DIR, `restart-${Date.now()}.log`);
-			const command = [process.execPath, SUSTAIN, "--restart"];
+			const command = [process.execPath, SUSTAIN, "--restart", ...(ctx.caller ? [`--by=${ctx.caller}`] : [])];   // named in the restart snapshot
 			if (dry_run) return JSON.stringify({ dry_run: true, command, log });
 			const fd = fs.openSync(log, "a");
 			const child = spawn(command[0], command.slice(1), { detached: true, stdio: ["ignore", fd, fd], windowsHide: true });

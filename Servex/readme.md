@@ -25,6 +25,7 @@ class Servex {
   dispatcher: Dispatcher          // agents/Dispatcher.js — routes a prompt to the right agent
   task_loop: TaskLoop             // TaskLoop.js — runs Server/AIIndex.mjs --watch, re-prompts stalled task steps (doc/steps.md)
   process_runner: ProcessRunner   // ProcessRunner.js — runs a work process's phases in order (public/framework/core/Task/doc/process.md)
+  respawn: Respawn                // agents/Respawn.js — the standing system architect gets a fresh session once a day, never mid-task (agents/doc/lifecycle.md)
   heartbeat: Heartbeat            // Heartbeat.js — status check → triage → escalate
   lifecycle: Lifecycle            // Lifecycle.js — reaps finished or stuck agents
   pool: Pool, worktrees: Worktrees, fixer: Fixer   // the quick-fix pool and per-task worktrees

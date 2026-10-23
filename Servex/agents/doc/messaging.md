@@ -28,6 +28,17 @@ Decision `d-how-does-a-spawned-agent` (written by `Server/Decide.mjs` into [the 
 
 Alternatives considered: (A) the same follow without the 60-second window or the cleanup: every log burst wakes the parent for a paid turn, and dead logs stay watched. (B) keep chat first and mirror it to the log: the report still lives mainly in a context window, and two copies drift.
 
+## Requests are logged items (the owner, 2026-10-22: logs over chat)
+
+A request that matters is a task on the receiver's own log, not a chat message. Then it shows in every view and can be queried later.
+
+- **To ask:** add a task to the receiver's task or session: `item({path: <its task folder>, delta: {tasks: {add: {title: "<the ask>"}}}})`. Node stamps `from: <you>` on it. The item tool's `hooks.requested` then sends the receiver one line: the ask, the path, and the exact line that answers it.
+- **To answer:** complete it on the item: `item({path, delta: {"<id>": {"complete": {"outcome": "<the answer>"}}}})`. If you need something first, use `wait` on the same item.
+- **The asker hears the answer.** When a task with a `from` completes, `hooks.answered` sends the asker the outcome in one line.
+- **Which adds count as requests:** an add counts when the caller is not the log's own agent (the task's `agent`). Tasks an agent adds to its own log are not requests. Adds by the owner (from the browser) and by a parent adding steps to its child's task count too, so each one sends the receiver a notice.
+- **Where it is built:** `notify_requests` in `Servex/agents/page_tools.js`; the two hooks are wired in `Servex.js`. Test: `node Servex/agents/requests.test.mjs`.
+- **Still chat:** a quick clarification. Its answer also goes into the doc it belongs in (mastermind role readme, "A quick question is a documentation gap").
+
 ## Across platforms (2026-10-20)
 
 The same rule holds when the agents run in different places: a Servex agent, a VS Code tab, and a cloud voice agent in the Claude app.

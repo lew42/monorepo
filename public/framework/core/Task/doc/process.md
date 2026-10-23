@@ -67,6 +67,7 @@ The prompt node sends is built from the phase's `do`, the brief, and the outcome
 ## The core set (`Process.DEFINITIONS`, kept small)
 
 - **build**: investigate (fresh, Sonnet low: questions ranked, the known structure as class sketches, sources) → plan (same: tasks, class sketch, checked against the brief) → improve-plan (fresh reviewer: an independent read of the plan) → approve-plan (the creator: approve, or name changes) → execute (fresh builder, in a worktree) → review (fresh reviewer: the diff) → merge (waits on the owner).
+- **design** (design to code, the owner 2026-10-22): design (fresh: a default plus two to four variants per view in Figma, each named for its one change, the tree in `variants.md`) → review-shots (fresh reviewer: a screenshot of every frame, keep or cut) → pick (the creator: `code: <names>`) → code (fresh, in a served worktree: the default as a real page, each picked variant a subpage `<page>/v/<name>/` whose view **extends its parent's view** and changes only its difference; sub-versions nest; the default lists the tree, so the owner clicks through on the phone) → review (shots at 400 and 1200 px of every variant page, a clean console) → merge (waits on the owner). A variant is a set of changes on its parent, so in code it is a subclass.
 - **investigate**: questions (rank them; name what is known as class sketches) → scout (Haiku scouts, one per top question, each under 100k, web search allowed) → synthesize (answers; where two scouts agree, say so). Run on its own or, later, as build's first phase.
 
 A phase id never names a Task verb or field (`improve` would call `Task.improve()`); the test checks every definition. More processes come from the system architect, not from each agent. A process that does not help is changed from its data (which phase was skipped, failed or cost most), not by asking agents to try harder.
@@ -138,6 +139,8 @@ The prompt audit ([ai/doc/prompt-audit.md](/framework/ai/doc/prompt-audit.md)) a
 5. **No AI writes the bookkeeping.** The audit's model only judges; node writes every line.
 
 ## Status
+
+- ✅ **Fixed 2026-10-22:** a task that has landed and then gets a new open child reads `running` until that child is done, then `complete` again. `Task.state` computes it on read (`reopened()`); nothing is written. Test: `Task.test.mjs`.
 
 - ✅ Slice 1: `Process` + `ProcessRunner`, one process end to end, completion rolling up to the session; run 1 above; moving home on approval; tests `node Servex/ProcessRunner.test.mjs` (27).
 - ⬜ Next: a phase that is itself a process (investigate inside build); parallel phases (scouts); the plan's tasks becoming a process of their own; the owner's merge button (priority 3b) completing the merge phase; prompt-audit asks becoming session tasks once completion is automatic.

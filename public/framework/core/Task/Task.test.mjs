@@ -106,6 +106,13 @@ check("replay: an assign line with `at` (append.mjs stamps one) still counts; a 
 	const t = Task.replay([{ assign: { at: "2026-10-16T10:00:00Z", title: "x", progress: 3 } }, { assign: { at: "2026-10-16T11:00:00Z", landed_at: "2026-10-16T11:00:00Z", outcome: "Done." } }]);
 	return t.state === "complete" && t.data.title === "x" && t.data.progress === 3;
 });
+check("a landed task given a new open child reads running until that child is done, then complete again", () => {
+	const t = Task.replay([A, landed, { tasks: { add: { type: "Task", id: "ask", title: "a request" } } }]);
+	const open = t.state === "running" && t.data.state === "complete";
+	const u = Task.replay([A, landed, { tasks: { add: { type: "Task", id: "ask", title: "a request" } } }, { ask: { complete: { outcome: "done" } } }]);
+	return open && u.state === "complete";
+});
+
 check("replay: landed_at alone is complete, outcome or not (Server/doc/state.md)", () => { const t = Task.replay([A, { assign: { landed_at: "2026-10-16T11:00:00Z" } }]); return t.state === "complete" && t.data.completed_at === "2026-10-16T11:00:00Z"; });
 check("replay: a line with `ts` and no `at` sets the time (the item tool stamps ts)", () => { const t = Task.replay([{ id: "x", ts: "2026-10-16T10:00:00Z" }, { start: {}, ts: "2026-10-16T10:05:00Z" }, { complete: {}, ts: "2026-10-16T11:00:00Z" }]); return t.state === "complete" && t.data.completed_at === "2026-10-16T11:00:00Z"; });
 check("replay: a recorded finish stands after the worker filed an idle {task: ref} child", () => { const t = Task.replay([A, { task: "/framework/mod/x/tasks/filed/", at: "2026-10-16T10:10:00Z" }, { finish: { at: "2026-10-16T11:00:00Z", outcome: "Done." } }]); return t.state === "complete" && t.data.completed_at === "2026-10-16T11:00:00Z"; });

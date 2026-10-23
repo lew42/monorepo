@@ -16,6 +16,8 @@ import Worktrees from "./Worktrees.js";
 import TaskLoop from "./TaskLoop.js";
 import { hooks as page_tool_hooks } from "./agents/page_tools.js";
 import ProcessRunner from "./ProcessRunner.js";
+import Respawn from "./agents/Respawn.js";
+import Wakeups from "./agents/Wakeups.js";
 import { check_page, cap } from "../Server/BrowserCheck.mjs";
 import { pid as browser_pid } from "../Server/Browser.mjs";
 import Heartbeat from "./Heartbeat.js";
@@ -187,6 +189,8 @@ export default class Servex extends Events {
             log: this.log, servex: this,
             mcp_url: `http://127.0.0.1:${this.dashboard_port}/mcp`
         });
+        // Wake-ups node keeps across restarts (the wake_me tool); armed after revive() below. doc/restart.md.
+        this.wakeups = this.agents.wakeups = new Wakeups({ agents: this.agents });
 
         /* WARM THE OPENROUTER SPEND GUARD (openrouter/provider.js, review follow-up):
          * its 30s cache starts empty, and an empty cache fails every spawn closed —
@@ -283,7 +287,15 @@ export default class Servex extends Events {
          * Doc: public/framework/core/Task/doc/process.md. */
         this.process_runner = new ProcessRunner({ servex: this, root: REPO });
         page_tool_hooks.changed = file => this.process_runner.step(file);
+        /* FRESH ONCE A DAY (the owner, 2026-10-22): the standing system architect gets a new session when its own is a day old and
+         * it is not busy; same id, one respawn line in its task log. SERVEX_NO_RESPAWN=1 turns it off. Doc: agents/doc/lifecycle.md. */
+        if (!process.env.SERVEX_NO_RESPAWN) this.respawn = new Respawn({ servex: this, root: REPO });
         if (!process.env.SERVEX_NO_TASKLOOP) setImmediate(() => this.process_runner.tick().catch(() => {}));
+        /* REQUESTS ARE LOGGED ITEMS (the owner, 2026-10-22: logs over chat): a task added to another agent's task is a request; its
+         * receiver hears once, and the asker hears the outcome when it completes. Doc: Servex/agents/doc/messaging.md. */
+        const notice = (to, text, from) => { if (!to || to === "owner") return; try { this.agents.send(to, text, { from: from ?? "servex" }); } catch {} };
+        page_tool_hooks.requested = r => notice(r.to, `Request from ${r.from}: "${r.title}", logged at ${r.path}. Answer on the item when it is done: item({path: "${r.path}", delta: ${r.own_folder ? `{"complete": {"outcome": "…"}}` : `{"${r.id}": {"complete": {"outcome": "…"}}}`}}). ${r.from} hears the outcome then.`, r.from);
+        page_tool_hooks.answered = r => notice(r.to, `${r.by} answered your request "${r.title}" (${r.path}): ${r.outcome ?? "done, no outcome given"}`, r.by);
 
         /* THE ASKS LEDGER (asks-ledger, 2026-09-30): notices when a routed ask's owner agent
          * stops, goes quiet, or lands its task, and marks public/framework/ai/asks.jsonl so
@@ -325,6 +337,7 @@ export default class Servex extends Events {
         if (!process.env.SERVEX_NO_FIXER && this.pool) setImmediate(() => this.fixer.start());
 
         this.agents.revive();   // agents alive at the last boot come back (resume, same id); the rest are marked gone
+        if (!process.env.SERVEX_NO_WAKEUPS) this.wakeups.start();   // every pending wake-up armed again; one already due fires now
         this.routes();
         this.remote = new RemoteMCP({ servex: this, root: REPO, router: this.dashboard.router });   // /mcp/remote, bearer token (voice-bridge.md)
         this.tools();
@@ -790,6 +803,13 @@ export default class Servex extends Events {
         // `cors` since 2026-09-23: AI 2's Live card reads who is running NOW
         // (this live map), not the registry below, whose rows outlive a restart.
         router.get("/api/agents", cors, (req, res) => res.json(this.agents.list()));
+
+        /* BEFORE A RESTART (restarts that lose nothing, 2026-10-22): sustain.mjs --restart posts here before it kills anything.
+         * Writes the list of live agents and pending wake-ups (Agents.snapshot) that the next boot's revive() resumes. Loopback only. */
+        router.post("/api/before-restart", express.json({ limit: "8kb" }), (req, res) => {
+            if (!loopback(req.socket.remoteAddress)) return res.status(403).json({ ok: false, why: "loopback only" });
+            res.json({ ok: true, ...this.agents.snapshot({ by: typeof req.body?.by === "string" ? req.body.by : null }) });
+        });
 
         /* SAY SOMETHING TO ONE RUNNING AGENT (agent-chat, 2026-09-24) — the Live
          * card's inline chat posts here. `send()` queues it behind the agent's
