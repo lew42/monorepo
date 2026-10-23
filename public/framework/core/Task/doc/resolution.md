@@ -58,8 +58,8 @@ Every **started** task with no new line for about 5 minutes: node asks its agent
 
 ## Build list (in order)
 
-- ⬜ `complete` refuses without `evidence`; `confidence` and `caveats` fields; caveats reach the parent's log.
-- ⬜ `approve` moves to **accepted** (`idle`), not straight to running; `start` is the agent's own call.
+- ✅ `complete` refuses without `evidence`; `confidence` and `caveats` fields; caveats reach the parent's log. (2026-10-22: `Task.complete`, `Task.completion_problem`, and the item tool in `page_tools.js`, which refuses before it writes and calls `tell_parent_caveats`; test `Servex/agents/honest-completion.test.mjs`. Exempt: replay of old logs, the automatic completion when the last child completes, a Project reaching `landed`, and the node-written `stop` of `StaleClose`.)
+- ✅ `approve` moves to **accepted** (`idle`), not straight to running; `start` is the agent's own call. (2026-10-22: `Task.approve`.)
 - ⬜ `source` on every task the live prompt process files (with mastermind-prompt, [PromptTasks](/Servex/agents/PromptTasks.js)).
 - ⬜ The chase, in the existing `TaskLoop.tick()` (it already wakes a quiet running task twice, then posts one card): drop its opt-in date gate, ask for status instead of a bare wake, and keep flagging past the first card.
 - ⬜ Something reads every inbox: 454 lines in 69 inboxes were never read ([cracks.md](cracks.md), row 1).

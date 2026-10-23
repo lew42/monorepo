@@ -41,6 +41,16 @@ export default class SessionRecord {
 		}
 		return null;
 	}
+	/** The Servex agent working on `dir` (its log's first `assign.agent`), looking in `dir` then each folder above it inside the sessions store.
+	 *  A node-started reviewer or clarity agent gets this as its `parent`. Null when no log names one. */
+	static task_agent(dir){
+		const top = this.session_top(path.resolve(dir));
+		for (let p = path.resolve(dir); top && p.length >= top.length; p = path.dirname(p)){
+			const f = this.log_file(p); if (!f) continue;
+			try { const a = JSON.parse(fs.readFileSync(f, "utf8").split("\n", 1)[0]).assign?.agent; if (a) return a; } catch {}
+		}
+		return null;
+	}
 	/** The log to read or append to: the one that exists (either name), else the old name for a brand-new folder. */
 	static log_or_old(dir){ return this.log_file(dir) ?? path.join(dir, this.OLD); }
 	/** A session folder sits directly under a day of the sessions store (YYYY/MM/DD/<name>); a task folder is deeper. */
