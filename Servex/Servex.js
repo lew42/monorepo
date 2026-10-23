@@ -1258,7 +1258,8 @@ export default class Servex extends Events {
      * purpose, or its task landed while it waited — the revive guard, asked of a spec. */
     stale(spec){
         const no = this.agents.blocked?.({ id: spec.id, cwd: spec.cwd, task_dir: spec.task?.dir && path.resolve(spec.task.dir),
-            ...(spec.resume ? { stopped_by: this.agents.reg().read()[spec.id]?.stopped_by } : {}) });
+            ...(spec.resume ? { stopped_by: this.agents.reg().read()[spec.id]?.stopped_by } : {}) },
+            { landed: !spec.resume });   // a held RESUME is a long-lived agent coming back: its first task landing is no reason to drop it
         if (no) this.log.append("system", { type: "gate", state: "dropped", id: spec.id ?? null, why: no.text }).catch(() => {});
         return !!no;
     }
