@@ -12,7 +12,7 @@ export default class MobileRow extends View {
 	static DOT = { needs: "is-blocked", running: "is-running", done: "is-done", rest: "is-open" };
 
 	initialize(){
-		const { snap, tasks, group, tree } = this;
+		const { snap, tasks, group, tree, line } = this;
 		this.ac("mob-row", "mob-" + group);
 		a.c("mob-row-link", () => {
 			span.c("mob-dot").ac(this.constructor.DOT[group]);
@@ -22,9 +22,8 @@ export default class MobileRow extends View {
 					span.c("mob-kind", MobileData.kind(snap, tree));
 					span(" · " + MobileData.ago(snap.last_activity) + (snap.usd ? " · " + MobileData.usd(snap.tree_usd || snap.usd) : ""));
 				});
-				const line = group === "done" ? MobileData.outcome(snap, tasks) : null;
-				if (line) small.c("mob-row-line", line);
-				if (tasks) div.c("mob-row-bar", () => TaskView.draw_bar(MobileData.states(tasks.root.kids), 12));
+				if (line && group === "done") small.c("mob-row-line", line);
+				if (tasks?.root.kids.length > 1) div.c("mob-row-bar", () => TaskView.draw_bar(MobileData.states(tasks.root.kids), 12));
 			});
 			icon("chevron_right").ac("mob-go");
 		}).href(MobileData.session_url(snap.id));

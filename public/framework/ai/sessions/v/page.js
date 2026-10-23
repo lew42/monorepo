@@ -3,7 +3,7 @@ import { div, a, p, small } from "/framework/core/View/View.js";
 
 /* The variants of the real sessions pages, one folder each. A variant is a page class that extends the class rendering the real page. */
 export default new Page({
-	meta: import.meta, title: "Session page variants", icon: "science", width: "fill",
+	meta: import.meta, title: "Session variants", icon: "science", width: "fill",
 	description: "Variant takes on the sessions pages. Each is a folder here.",
 	content(){
 		p("Each variant extends the class that draws the real page, and reads the same files.");

@@ -2,6 +2,7 @@
 	/* the ground: light grey, white cards (sessions/doc/mobile-cards.md). Cards have no padding of their own; head and rows pad themselves. */
 	.mob-page { background: #eef0f2; --mob-green: #2e9e5b; --mob-amber: #e0a100; --mob-red: #d6453d; --mob-grey: #b5bac0; --mob-line: #eceef0; }
 	.mob-day, .mob-all, .mob-session, .mob-task { display: flex; flex-direction: column; max-width: 40rem; margin-inline: auto; padding-block: 1px; }
+	.mob-page .page-column-prose { padding-inline: 0; }   /* the page column pads; the cards carry their own 8 px margin */
 	.mob-card { background: #fff; margin: 8px; border-radius: 4px; overflow: hidden; }
 	.mob-card-head { display: flex; align-items: center; gap: .5em; padding: .6em .75em; border-bottom: 1px solid var(--mob-line); }
 	.mob-card-head > strong { flex: 1 1 auto; min-width: 0; }
@@ -33,7 +34,10 @@
 	.mob-row-sub, .mob-row-line { color: #6b7178; }
 	.mob-kind { font-weight: 600; }
 	.mob-row-bar { margin-top: .25em; }
-	.mob-row-bar .task-bar { margin: 0; max-width: 14em; }
+	.mob-row-bar { align-self: stretch; }
+	.mob-row-bar .task-bar { margin: 0; width: 100%; max-width: none; display: flex; }
+	.mob-row-bar .task-seg { flex: 1 1 0; }
+	.mob-row-line { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 	.mob-go { color: var(--mob-grey); align-self: center; }
 
 	/* the status dot: green done, amber pulsing running, red blocked, grey open */

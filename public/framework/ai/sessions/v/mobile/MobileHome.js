@@ -13,7 +13,7 @@ export default class MobileHome extends AISessionsPage {
 	static GROUPS = [["needs", "Needs you", "error"], ["running", "Running", "play_circle"], ["done", "Done", "check_circle"], ["rest", "Everything else", "unfold_more"]];
 
 	constructor(...args){
-		super({ title: "Sessions", icon: "smartphone", classes: "mob-page", description: "The sessions of one day, for a phone." }, ...args);
+		super({ title: "Mobile sessions", icon: "smartphone", classes: "mob-page", description: "The sessions of one day, for a phone." }, ...args);
 	}
 
 	initialize(){}     // not the wide Panel2 columns of the real page
@@ -41,7 +41,7 @@ export default class MobileHome extends AISessionsPage {
 	/** The sessions this page lists, each with its tasks and group. Page 2 lists the last week instead of one day. */
 	async rows(){
 		const snaps = await MobileData.day(this.shown_day);
-		return Promise.all(snaps.map(async s => { const snap = { ...s, _day: s._day ?? this.shown_day }, tasks = await MobileData.tasks(snap).catch(() => null); return { snap, tasks, group: MobileData.group(snap, tasks) }; }));
+		return Promise.all(snaps.map(async s => { const snap = { ...s, _day: s._day ?? this.shown_day }, tasks = await MobileData.tasks(snap).catch(() => null), line = await MobileData.outcome(snap, tasks); return { snap, tasks, line, group: MobileData.group(snap, tasks, line) }; }));
 	}
 
 	async load(out){

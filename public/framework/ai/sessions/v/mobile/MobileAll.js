@@ -12,6 +12,8 @@ export default class MobileAll extends MobileHome {
 	static PAGE = 40;   // top-level rows drawn at once; "show more" adds the next page
 	mode = "all";
 
+	constructor(...args){ super({ title: "Nested" }, ...args); }
+
 	/** How many days back: `?days=30` in the url, else DAYS. */
 	get days(){ return Math.min(60, +new URLSearchParams(location.search).get("days") || this.constructor.DAYS); }
 	/** `?end=2026-10-08` looks back from that day instead of today (the parent data of the last two weeks is stale: see the readme). */
@@ -20,7 +22,7 @@ export default class MobileAll extends MobileHome {
 
 	async rows(){
 		const snaps = await MobileData.days(this.days, this.end);
-		return Promise.all(snaps.map(async snap => { const tasks = await MobileData.tasks(snap).catch(() => null); return { snap, tasks, group: MobileData.group(snap, tasks) }; }));
+		return Promise.all(snaps.map(async snap => { const tasks = await MobileData.tasks(snap).catch(() => null), line = await MobileData.outcome(snap, tasks); return { snap, tasks, line, group: MobileData.group(snap, tasks, line) }; }));
 	}
 
 	async load(out){
