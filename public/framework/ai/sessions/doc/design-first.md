@@ -33,3 +33,7 @@ From [views-plan.md](views-plan.md), each the planner's first-ranked option: pla
 ## First pass in Figma (2026-10-20 22:50)
 
 [Sessions and tasks page](https://www.figma.com/design/QYN0G2URSBHYH5I06MOjxU/?node-id=307-54823), built from real sessions of 2026-10-20: the segmented progress bar (simple, 21 steps, composite, beside or under a title), the session card at three densities (compact, standard, rich), the day view at 400 and 1200 (3-column grid), the session page at 400 and 1200 (Overview and Chat tabs, nested tasks), the task page at 400, and Task vs Project (checkbox vs folder, bold title, bar and count). Components: Progress / Segment (done, active, open) and four icons. Edit freely there; the build follows what you settle on.
+
+## Mobile cards (2026-10-22)
+
+The second Figma page, mobile first, seven bands and a "What to pick" card: [mobile-cards.md](mobile-cards.md).

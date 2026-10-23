@@ -5,28 +5,33 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-22 00:02 UTC, last 24 h)
+## NOW (computed 2026-10-23 00:01 UTC, last 24 h)
 
-**Pace:** At 72% of pace with 2 hours 57 minutes left (room to spend)
+**Pace:** At 16% of pace with 6 days 2 hours left (room to spend)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
 **Landed (0):**
 - none
 
-**Open, touched in the window (0):**
-- none
+**Open, touched in the window (6):**
+- [never got anywhere](/framework/ai/sessions/2026/10/22/spawned/minion-stuck/) (minion-stuck)
+- [go](/framework/ai/sessions/2026/10/22/spawned/minion-dead/) (minion-dead)
+- [go](/framework/ai/sessions/2026/10/22/spawned/minion-held/) (minion-held)
+- [go](/framework/ai/sessions/2026/10/22/spawned/minion-lib-h1-page-nvidia-nemotron-3-5-lightning-free-179089/) (minion-lib-h1-page-nvidia-nemotron-3-5-lightning-free-17908906192690)
+- [go](/framework/ai/sessions/2026/10/22/spawned/minion-race/) (minion-race)
+- [first turn](/framework/ai/sessions/2026/10/22/spawned/minion-starting/) (minion-starting)
 
 **Latest commits on this branch:**
 ```
-1f7b4bb9c CLAUDE.md: audits map in Where to look; file each ask the first time (owner-requested, proposed by prompt-audit-system)
-55113d8a5 prompt-audit-system: report to parent log
-0a7bf7b23 prompt-audit-system: land; sessions readme lists prompt-audit.jsonl and prompt-review.jsonl
-533bbb1f1 prompt-audit-system: two-pass prompt audit (PromptAudit.mjs), pilot on 7efd07d5, audits map, Task usage lines
-e716895ff prompt-audit-system brief: owner follow-up (tasks are proposals until accepted, prompt-audit.jsonl one line per prompt, update kind, tags, versioned schema, tune brief not bloat)
-45065c374 servex: log sweep (4 files)
-aeffb6a18 prompt-audit-system brief: Haiku structure pass per owner prompt, Sonnet session reviewer, separate audit file, map of past audits
-11c40f3dc prompt-audit: finish
+03c65d5ba servex: log sweep (4 files)
+4d8923a99 sdk.md: WebFetch is a plain fetch; improvements as JSONL; Task notes 6: tasks and projects live in <module>/tasks/, drafted in the session
+34789efa1 Servex sdk.md (web search on subscription, no temperature); readme-system follow-up 2 (shape, improvements via item tool, item vs raw log, markdown vs JSONL)
+50c52ccdb models readme: temperature findings (SDK passes none; newer models reject non-default; vary prompts and count agreement)
+7d178fb72 Merge branch 'task/readme-roles' into michael/dev
+6ca86c0cf messaging: where async work drops the ball; brief link fix
+9c0a1457b process-system brief: system architect designs and runs the Process system (Process extends Task, node-run phases, automatic completion)
+397d41660 servex: log sweep (1 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
