@@ -37,6 +37,9 @@ try {
 	const Process = (await import("../public/framework/core/Task/Process.js")).default;
 	const clash = Object.values(Process.DEFINITIONS).flat().filter(ph => typeof Process.prototype[ph.id] === "function" || Task.FIELDS.includes(ph.id) || ["tasks", "content", "set", "file", "task", "log", "spawn", "queue", "pulse", "measure"].includes(ph.id));
 	ok(!clash.length, "no phase id names a Task verb, field or line key: " + clash.map(c => c.id));
+	const fs_ = Process.from_steps(["file", { title: "Improve", id: "improve" }, "Write the docs"]), fl = Process.lines({ process: "<unknown>", steps: ["file", "log"] });
+	ok(fs_?.map(x => x.id).join() === "file-step,improve-step,write-the-docs", "from_steps: a step id that is a line key or verb gets -step, not a refusal");
+	ok(fl?.[0].process === "steps" && fl.length === 3, "lines(): own steps under an unknown process name become process \"steps\"");
 	let r = await item({ tasks: { add: { title: "Fix X", process: "nope" } } }, "mm1");
 	ok(r.ok === false && /no process "nope"/.test(r.why), "an unknown process is refused, nothing written");
 
@@ -127,8 +130,8 @@ try {
 	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) reads the process back: class, state, phases");
 
 	// A SIMPLE PROCESS THROUGH THE TOOL (the owner, 2026-10-22): create it with your own steps, node prompts step 1, then step 2 when step 1 returns.
-	r = await item({ tasks: { add: { title: "Bad", steps: [{ title: "Start" }] } } }, "mm1");
-	ok(r.ok === false && /steps/.test(r.why), "a step named for a Task verb (start) is refused, nothing written");
+	r = await item({ tasks: { add: { title: "Dup", steps: [{ title: "Same" }, { title: "Same" }] } } }, "mm1");
+	ok(r.ok === false && /steps/.test(r.why), "two steps with one id are refused, nothing written");
 	r = await item({ tasks: { add: { title: "Two steps", steps: [{ title: "Write the note", do: "write note.md" }, { title: "Check the note", do: "read note.md back" }] } } }, "mm1");
 	const SF = path.join(DIR, "two-steps", "task.jsonl"), SURL = URL + "two-steps/";
 	await settle(SF);

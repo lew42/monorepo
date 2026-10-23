@@ -66,20 +66,25 @@ export class Process extends Task {
 	static lines({ process, phases: over = {}, steps, ...fields } = {}){
 		const def = this.DEFINITIONS[process] ?? this.from_steps(steps);
 		if (!def) return null;
-		process ??= "steps";
+		if (!this.DEFINITIONS[process]) process = "steps";   // own steps: whatever name came with them, no template matched
 		const first = { class: "Process", process, mode: "series", ...fields };
 		const adds = def.map(p => ({ tasks: { add: { type: "Task", ...p, ...(over[p.id] ? { session: { ...p.session, ...over[p.id] } } : {}) } } }));
 		return [first, ...adds];
 	}
 
-	// Steps written by the caller, as phases. Refused (null) when empty, when two share an id, or when an id would name a Task verb or field (`improve` would call improve()).
+	// Words a log line is read by (a line's own keys, and every verb): a step id like these would be mistaken for the line, so it is slugged with a suffix.
+	static RESERVED = ["file", "id", "log", "title", "by", "ts", "type", "task", "tasks", "assign", "state", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
+
+	// Steps written by the caller, as phases. Refused (null) when empty or when two share an id. An id that would name a Task verb, field or line key
+	// (`improve` would call improve(); `file` is a line key) gets "-step" added: `file` -> `file-step`.
 	static from_steps(steps){
 		if (!Array.isArray(steps) || !steps.length) return null;
 		const slug = t => String(t ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
-		const out = steps.map((x, i) => { const o = typeof x === "string" ? { title: x } : { ...x }; o.id = slug(o.id ?? o.title) || `step-${i + 1}`; o.title ??= o.id; o.session ??= { run: "owner" }; return o; });
-		if (new Set(out.map(o => o.id)).size !== out.length || out.some(o => o.id in Task.prototype || o.id in this.prototype)) return null;
+		const out = steps.map((x, i) => { const o = typeof x === "string" ? { title: x } : { ...x }; o.id = slug(o.id ?? o.title) || `step-${i + 1}`; o.title ??= o.id; if (this.reserved(o.id)) o.id += "-step"; o.session ??= { run: "owner" }; return o; });
+		if (new Set(out.map(o => o.id)).size !== out.length) return null;
 		return out;
 	}
+	static reserved(id){ return this.RESERVED.includes(id) || id in Task.prototype || id in this.prototype; }
 
 	// Node's own lines: each records a fact on the phase it names. Everything else is a Task line.
 	replay_line(line){

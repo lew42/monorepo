@@ -55,7 +55,7 @@ export default class TaskDirs {
 	}
 
 	/** Make it. Returns the absolute dir. Refuses a folder that already holds a task (never two tasks in one log). */
-	static make(spec){ const dir = SESSIONS.make(this.dir(spec)); try { SessionRecord.link_parent(dir, "TaskDirs", { parent: spec.parent && path.resolve(REPO, spec.parent), session_id: spec.session_id }); } catch {} return dir; }   // a folder under a session or task counts as its task (SessionRecord.link_parent)
+	static make(spec){ const dir = SESSIONS.make(this.dir(spec)); try { SessionRecord.link_parent(dir, "TaskDirs", { parent: spec.parent && path.resolve(REPO, spec.parent), session_id: spec.session_id }); } catch (e){ console.warn("TaskDirs.make: link_parent failed for", dir, e); } return dir; }   // a folder under a session or task counts as its task (SessionRecord.link_parent)
 
 	/** An old-shaped dir (ai/YYYY-MM-DD/<slug>[/rest]) that does not exist and never moved -> its new home, for writers
 	 *  (Servex open_task) handed an old-style path by a brief. Anything else comes back resolved but unchanged. */

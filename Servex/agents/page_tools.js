@@ -480,7 +480,7 @@ function make_child(parent_dir, add, ctx, home){
 async function process_home(parent_dir, add){
 	const Process = await LOADERS.Process();
 	if (!Process.DEFINITIONS[add.process] && !Process.from_steps(add.steps)) return { why: add.steps
-		? "`steps` must be a non-empty list of {title, do, session?} with distinct titles that are not Task verbs (start, complete, improve…)"
+		? "`steps` must be a non-empty list of {title, do, session?} with distinct titles (an id that is a line key or verb, like file or improve, gets -step added)"
 		: `no process "${add.process}"; the processes are: ${Object.keys(Process.DEFINITIONS).join(", ")}, or give your own \`steps\`` };
 	const slug = slug_of(add.id ?? add.title), dir = path.join(parent_dir, slug);
 	// A folder that only holds a brief is fine (write the brief, then start the process in it); one with a log is taken.
