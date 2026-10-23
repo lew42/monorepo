@@ -1,6 +1,6 @@
 # Readmes `ai/readmes/`
 
-A page at `/framework/ai/readmes/`: for every folder with a readme, how many tokens of readmes an agent working there is given (the *readme chain*: every readme from the repo root down to that folder, each whole, from `Servex/agents/readme-chain.js`). Type a folder path in the box to filter; click a folder to see its chain, each readme a link with its tokens. Tokens are an estimate (characters / 4). Slice one only: the chain, not what each readme says.
+A page at `/framework/ai/readmes/`: for every folder with a readme, how many tokens of readmes an agent working there is given (the *readme chain*: every readme from the repo root down to that folder, each whole, from `Servex/agents/readme-chain.js`). Type a folder path in the box to filter; click a folder to see its chain, each readme a link with its tokens; the chosen folder is in the URL (`?path=Servex/agents`) and the chain sits beside the table at wide widths. The concept page that used to own this url is now `/framework/ai/readme-system/`. Tokens are an estimate (characters / 4). Slice one only: the chain, not what each readme says.
 
 | Piece | Job |
 |---|---|

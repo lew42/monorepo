@@ -1,11 +1,12 @@
 @layer base, theme, site, util;
 @layer site {
-	.rm-view { display: flex; flex-direction: column; gap: 0.8em; padding: 0.8em clamp(0.6em, 3cqi, 1.5em) 2em; }
+	.rm-view { grid-column: wide-start / wide-end; display: flex; flex-direction: column; gap: var(--gap); padding: var(--pad); }
+	.rm-body { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fit, minmax(min(100%, 30em), 1fr)); align-items: start; }
 	.rm-filter { width: 100%; max-width: 40em; padding: 0.5em 0.7em; font: inherit; }
 	.rm-view .datagrid { --datagrid-height: 28em; }
 	.rm-row { cursor: pointer; }
 	.rm-row:hover > .datagrid-cell { background: var(--darken-1); }
-	.rm-panel { display: flex; flex-direction: column; gap: 0.3em; }
+	.rm-panel { display: flex; flex-direction: column; gap: var(--gap); }
 	.rm-title { font-weight: 600; }
 	.rm-item { display: flex; flex-wrap: wrap; gap: 0.2em 1em; justify-content: space-between; overflow-wrap: anywhere; }
 }

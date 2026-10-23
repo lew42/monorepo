@@ -6,5 +6,6 @@ export default new Page({
 	title: "Readmes",
 	description: "What an agent working in each folder is given to read: the readme chain, in tokens.",
 	icon: "menu_book",
+	classes: "full",
 	content(){ new ReadmesView(); },
 });
