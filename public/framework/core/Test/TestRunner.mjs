@@ -112,7 +112,7 @@ export default class TestRunner {
 			const tests = this.find();
 			for (const f of changed) {
 				const hit = f.endsWith(".test.mjs") ? [f] : this.covers(f, tests);
-				if (hit.length) this.run(hit, { trigger: "change:" + f });
+				if (hit.length) this.run(hit, { trigger: "change:" + f }).catch(e => console.error("watch run failed:", e));
 			}
 		};
 		for (const folder of folders) {

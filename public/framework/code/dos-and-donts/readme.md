@@ -30,9 +30,9 @@ all already spoken for.
 - **`div.c("row", () => chip(x))` appends the chip TWICE** if the callback also returns a value —
   a captured callback's return value is appended too. End a builder callback in a statement.
 - **Every process you start is hidden** — `windowsHide: true` on every Node spawn; PowerShell uses
-- **A node test is `X.test.mjs`, run by `core/Test/TestRunner.mjs`; a test earns its place by a silent break or a spec** — never for what is certain to pass: [core/Test](/framework/core/Test/)
   `Start-Process -WindowStyle Hidden`. A visible window popping up in front of the owner has broken
   his work more than once.
+- **A node test is `X.test.mjs`, run by `core/Test/TestRunner.mjs`; a test earns its place by a silent break or a spec** — never for what is certain to pass: [core/Test](/framework/core/Test/)
 
 ## More
 
