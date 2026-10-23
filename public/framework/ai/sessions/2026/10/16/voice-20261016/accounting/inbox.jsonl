@@ -1,2 +1,3 @@
 {"at":"2026-10-16T15:34:50-05:00","from":"helper-spawn-test","kind":"done","text":"Servex is the always-on process on this machine that keeps the dev servers and Claude agents running, owns every log file, and answers MCP requests."}
 {"inbox_card":{"upto":2,"lines":1,"at":"2026-10-23T02:23:05-05:00"}}
+{"read_upto":2,"at":"2026-10-23T15:38:11-05:00","by":"servex-task-loop","note":"1 line(s) older than 7 days marked read, not delivered"}
