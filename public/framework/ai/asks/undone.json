@@ -3918,7 +3918,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/core/Sidebar/tasks/redesign-the-sidebar-so-its-many-items-a/",
+     "task": "/framework/core/Sidebar/tasks/redesign-the-sidebar-so-the-many-icon-it/",
      "verified_module": "core/Sidebar",
      "verified_sort": "task",
      "verified_title": "Redesign the sidebar so long item lists and sections lay out cleanly"
@@ -4285,7 +4285,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/ai/tasks/if-images-cannot-be-searched-or-generate/",
+     "task": "/framework/ai/tasks/find-generic-images-through-image-search/",
      "verified_module": "ai",
      "verified_sort": "task",
      "verified_title": "Set up an image generation API as the priority if images cannot be searched"
@@ -4644,7 +4644,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/design/color/tasks/play-with-different-color-schemes-for-th/",
+     "task": "/framework/design/color/tasks/vary-the-color-schemes-across-the-layout/",
      "verified_module": "design/color",
      "verified_sort": "task",
      "verified_title": "Try alternate colour schemes on the layout pages"
@@ -5036,7 +5036,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/design/ui/tasks/experiment-with-other-ui-designs-that-co/",
+     "task": "/framework/design/tasks/propose-and-experiment-with-other-ui-des/",
      "verified_module": "design/ui",
      "verified_sort": "task",
      "verified_title": "Explore alternative UI designs that could suit the site"
@@ -5211,7 +5211,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/ui/icon/tasks/explore-icon-sizing-that-matches-the-tit/",
+     "task": "/framework/ui/icon/tasks/explore-icon-size-matched-to-title-size/",
      "verified_module": "ui/icon",
      "verified_sort": "task",
      "verified_title": "Size icons to the title and check icons overlaid on background images"
@@ -5692,7 +5692,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/ext/Dropdown/tasks/explore-dropdown-menus-and-the-kinds-of/",
+     "task": "/framework/ext/Dropdown/tasks/explore-drop-down-menu-variants-and-what/",
      "verified_module": "ext/Dropdown",
      "verified_sort": "task",
      "verified_title": "Explore what content can go inside a dropdown"
@@ -6556,7 +6556,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/styles/tasks/do-a-css-audit-of-the-site/",
+     "task": "/framework/styles/tasks/minimise-the-css-run-a-css-audit-to-get/",
      "verified_module": "styles",
      "verified_sort": "task"
     },
@@ -6617,7 +6617,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/styles/tasks/refine-the-css-into-a-much-simpler-set-o/",
+     "task": "/framework/styles/tasks/refine-css-into-a-much-simpler-component/",
      "verified_module": "styles",
      "verified_sort": "task",
      "verified_title": "Cut the CSS to a much simpler component set without breaking pages"
@@ -8248,7 +8248,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/ext/Figma/tasks/harmonise-figma-and-the-browser-into-one/",
+     "task": "/framework/ext/Figma/tasks/build-a-system-that-works-in-both-the-br/",
      "verified_module": "ext/Figma",
      "verified_sort": "task",
      "verified_title": "Write the method that joins Figma frames and the browser into one loop"
@@ -8306,7 +8306,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/ext/Shots/tasks/consider-a-diff-tool-that-compares-two-s/",
+     "task": "/framework/ext/Shots/tasks/build-a-diff-tool-that-compares-two-scre/",
      "verified_module": "ext/Shots",
      "verified_sort": "task",
      "verified_title": "Add a closeness score to the screenshot diff"
@@ -19325,7 +19325,7 @@
      "verified_pass": 3,
      "verified_kind": "sort",
      "owner_question": "Does 'all sessions items' mean every row in the sessions data grid, with each row opening its session?",
-     "task": "/framework/ai/tasks/make-all-sessions-items-visible-and-clic/",
+     "task": "/framework/ai/tasks/make-every-item-visible-and-clickable-in/",
      "verified_module": "ai",
      "verified_sort": "task",
      "verified_title": "Make every row in the sessions list visible and clickable"

@@ -161,10 +161,10 @@ Crack 2 in [cracks.md](/framework/core/Task/doc/cracks.md): asks that never beca
 
 | Group | Asks | What happened |
 |---|---|---|
-| still wanted | 259 | 233 new proposals in their module's `tasks/`, waiting on you (`UndoneToTasks --apply --proposed`); the other 26 already had a task with the same words |
+| still wanted | 259 | 241 new proposals in their module's `tasks/`, waiting on you (`UndoneToTasks --apply --proposed`). At review, 11 that asked for the same work as another were stopped with "Same ask as …" and their asks point at the one kept, so 230 wait. The other 26 already had a task with the same words |
 | done | 77 | closed; the evidence (a file and line) is on the ask |
 | obsolete | 46 | closed; the reason is on the ask |
-| note | 132 | one line each in the module's readme under "Notes from your asks", with a link to your words. A module with more than 6 got `doc/notes-from-asks.md`, linked from the readme (`UndoneToTasks --notes --apply`): 46 files |
+| note | 132 | one line each in the module's readme under "Notes from your asks", with a link to your words. A module with more than 6 got `doc/notes-from-asks.md`, linked from the readme (`UndoneToTasks --notes --apply`): 46 files. At review, 9 lines that said the same as another line in the same file were folded into it, which now links both sets of your words ("again") |
 
 **After:** done 70 + tasked 498 + closed 467 + noted 132 + undone 0 + unroutable 0 = 1167, and the two numbers agree. [Undone asks](/framework/ai/asks/undone/) shows the new count strip.
 

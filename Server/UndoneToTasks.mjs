@@ -100,6 +100,10 @@ export default class UndoneToTasks {
 		const s = String(text ?? "").replace(/\s+/g, " ").trim();
 		const first = (s.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? s).replace(/[.!?]$/, "");
 		if (first.length < this.MAX_TITLE) return first;
+		// a whole phrase: cut at the last clause break that fits (a comma, a dash, or "and / so / then / with / in / for / to / that")
+		const head = first.slice(0, this.MAX_TITLE);
+		const breaks = [...head.matchAll(/[,;:—–]\s|\s(?:and|so|then|with|in|for|to|that|which|but|or|because)\s/g)].map(m => m.index).filter(i => i >= 30);
+		if (breaks.length) return first.slice(0, breaks.at(-1)).replace(/[ ,;:\-—–]+$/, "");
 		const cut = first.slice(0, this.MAX_TITLE - 1), at = cut.lastIndexOf(" ");
 		return (at > 40 ? cut.slice(0, at) : cut).replace(/[ ,;:\-]+$/, "") + "…";
 	}

@@ -495,3 +495,14 @@
 {"ask":"1038396533","task":"/framework/ai/tasks/ai-systems-git-context-cost-pages-collec/","module":"ai","at":"2026-10-23T06:00:29.100Z"}
 {"ask":"341ddc5bf5","task":"/framework/ui/tasks/ui-system-class-framework-ui-library-of/","module":"ui","at":"2026-10-23T06:00:29.100Z"}
 {"ask":"e0ff1b2eac","task":"/framework/core/tasks/run-the-core-merge-sweep-one-sonnet-mini/","module":"core","at":"2026-10-23T06:01:22.350Z"}
+{"ask":"172974aa43","task":"/framework/core/Sidebar/tasks/redesign-the-sidebar-so-the-many-icon-it/","module":"core/Sidebar","at":"2026-10-23T06:24:09.902Z","folded_from":"/framework/core/Sidebar/tasks/redesign-the-sidebar-so-its-many-items-a/"}
+{"ask":"bd1b70d9d2","task":"/framework/ai/tasks/find-generic-images-through-image-search/","module":"ai","at":"2026-10-23T06:24:09.904Z","folded_from":"/framework/ai/tasks/if-images-cannot-be-searched-or-generate/"}
+{"ask":"049cc8b045","task":"/framework/design/color/tasks/vary-the-color-schemes-across-the-layout/","module":"design/color","at":"2026-10-23T06:24:09.905Z","folded_from":"/framework/design/color/tasks/play-with-different-color-schemes-for-th/"}
+{"ask":"e38bf5f9bc","task":"/framework/design/tasks/propose-and-experiment-with-other-ui-des/","module":"design/ui","at":"2026-10-23T06:24:09.907Z","folded_from":"/framework/design/ui/tasks/experiment-with-other-ui-designs-that-co/"}
+{"ask":"8da919253c","task":"/framework/ui/icon/tasks/explore-icon-size-matched-to-title-size/","module":"ui/icon","at":"2026-10-23T06:24:09.908Z","folded_from":"/framework/ui/icon/tasks/explore-icon-sizing-that-matches-the-tit/"}
+{"ask":"117c704d7f","task":"/framework/ext/Dropdown/tasks/explore-drop-down-menu-variants-and-what/","module":"ext/Dropdown","at":"2026-10-23T06:24:09.909Z","folded_from":"/framework/ext/Dropdown/tasks/explore-dropdown-menus-and-the-kinds-of/"}
+{"ask":"7090b3fcde","task":"/framework/styles/tasks/minimise-the-css-run-a-css-audit-to-get/","module":"styles","at":"2026-10-23T06:24:09.910Z","folded_from":"/framework/styles/tasks/do-a-css-audit-of-the-site/"}
+{"ask":"14c25a45d6","task":"/framework/styles/tasks/refine-css-into-a-much-simpler-component/","module":"styles","at":"2026-10-23T06:24:09.912Z","folded_from":"/framework/styles/tasks/refine-the-css-into-a-much-simpler-set-o/"}
+{"ask":"e51714b461","task":"/framework/ext/Figma/tasks/build-a-system-that-works-in-both-the-br/","module":"ext/Figma","at":"2026-10-23T06:24:09.913Z","folded_from":"/framework/ext/Figma/tasks/harmonise-figma-and-the-browser-into-one/"}
+{"ask":"309613f33c","task":"/framework/ai/tasks/make-every-item-visible-and-clickable-in/","module":"ai","at":"2026-10-23T06:24:09.914Z","folded_from":"/framework/ai/tasks/make-all-sessions-items-visible-and-clic/"}
+{"ask":"b14e8f5720","task":"/framework/ext/Shots/tasks/build-a-diff-tool-that-compares-two-scre/","module":"ext/Shots","at":"2026-10-23T06:24:09.916Z","folded_from":"/framework/ext/Shots/tasks/consider-a-diff-tool-that-compares-two-s/"}
