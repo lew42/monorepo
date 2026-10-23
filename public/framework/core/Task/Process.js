@@ -21,6 +21,8 @@ export class Process extends Task {
 	// What node should do now, as one action; null = nothing (waiting on an agent, the owner, or finished).
 	next(){
 		if (this.state === "idle") return { start: true };
+		// Stopped with a phase still running in a fresh session it spawned: halt that phase (node stops its agent). The creator's own session is never stopped.
+		if (this.state === "stopped"){ const h = this.phases.find(p => p.state === "running" && p.get_one("spawned")?.run === "fresh"); return h ? { halt: h.id } : null; }
 		if (this.state !== "running") return null;
 		const p = this.phase;
 		if (this.moves_home()) return { move: this.get_one("module") };

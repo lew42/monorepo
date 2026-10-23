@@ -23,6 +23,7 @@ const agents = {
 	live,
 	spawn(spec){ const id = "a" + (spawned.length + 1); spawned.push({ id, ...spec }); live.set(id, { state: "working", cost: 0 }); return { id, session_id: "s-" + id }; },
 	send(id, text){ if (!live.has(id)) throw new Error(`no agent ${id}`); sent.push({ id, text }); },
+	stopped: [], stop(id){ this.stopped.push(id); },
 };
 const runner = new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, pulse_after_ms: 0 });
 hooks.changed = file => runner.step(file);
@@ -141,6 +142,14 @@ try {
 	ok(sent.at(-1).text.includes("a step added while it runs"), "a step added while the process runs is run after the others");
 	await item({ "add-a-step": { complete: { outcome: "done" } } }, "mm1", SURL); await settle(SF);
 	ok(Task.replay(read(SF)).state === "complete" && Task.replay(read(SESSION))._tasks.find("two-steps"), "every step done: the process is complete, and its session references it");
+
+	// Stopping a process stops the agent of the phase it spawned (found live, 2026-10-22: the phase agent kept going), never the creator.
+	await item({ tasks: { add: { title: "Stop me", process: "investigate" } } }, "mm1");
+	const T = path.join(DIR, "stop-me", "task.jsonl"); await settle(T);
+	const ta = spawned.at(-1).id;
+	await item({ stop: { why: "not needed" } }, "mm1", URL + "stop-me/"); await settle(T);
+	const tp = runner.read(T);
+	ok(agents.stopped.includes(ta) && tp.state === "stopped" && tp.phases.find(x => x.id === "questions").state === "stopped" && !agents.stopped.includes("mm1"), "a stopped process stops its running phase and that phase's agent");
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
 	fs.rmSync(path.join(ROOT, "public/framework/ai/process-test-" + process.pid), { recursive: true, force: true });

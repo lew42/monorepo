@@ -66,6 +66,11 @@ export default class ProcessRunner {
 				await this.write(file, { [a.wait]: { wait: { on: "owner", what: ph?.get_one("do") ?? a.wait } } });
 				this.tell(p.creator, `Process ${this.url(file)} waits on the owner: ${ph?.get_one("title") ?? a.wait}.`);
 			}
+			else if (a.halt){
+				const agent = p.phases.find(x => x.id === a.halt)?.get_one("spawned")?.agent;
+				try { if (agent) this.servex?.agents?.stop?.(agent, { by: "process-runner" }); } catch {}
+				await this.write(file, { [a.halt]: { stop: { why: `the process was stopped${agent ? `; its agent ${agent} was stopped too` : ""}` } } });
+			}
 			else if (a.start) await this.write(file, { [a.start]: { start: {} } });
 			else if (a.launch){ if (!(await this.launch(file, p, a.launch))) return; }
 			else if (a.move){   // approved: the draft leaves the session for <module>/tasks/<id>/, and the run goes on from there
