@@ -16,8 +16,8 @@ Read-only look at today's code (`Servex/TaskLoop.js`, `Servex/Heartbeat.js`, `Se
 
 ## What chases a task today
 
-1. `TaskLoop.tick()` runs every 5 minutes and only looks at tasks marked `running` that opted into the heartbeat (line 1 dated after 2026-09-29, or `heartbeat: true`); anything older is invisible to it.
-2. A running task quiet past 10 minutes, or whose agent is gone, gets one wake message, a second 15 minutes later, then an escalation card to the owner — after that it is never chased again.
+1. `TaskLoop.tick()` runs every 5 minutes over every `running` (started) task, no opt-in (changed 2026-10-23).
+2. A started task with no new log line for 5 minutes gets a status ask to its agent (title, path, "add a line or complete/stop"), again every 5 minutes; after three unanswered asks, or a line saying it is blocked, one red flag card, then one more per hour. A new line resets the count; the counts live as `ask`/`flag` lines on the task's log.
 3. `Heartbeat.tick()` runs every 1–2 minutes; for a dead agent it queues a revive (reopens the session) rather than just messaging it, draining one revive every 30 seconds.
 4. A `waiting` task is treated differently: only `waiting_on: "owner"` gets a reminder (first at 2 hours, then every 24 hours); a **proposed** task (state `waiting`, filed by `PromptTasks` from a prompt) sits the same way until the owner approves it on the session page.
 5. Once a day, `StaleClose.mjs` closes any task silent 24+ hours with no live agent holding it, so an abandoned task stops looking open forever.

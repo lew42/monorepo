@@ -54,13 +54,13 @@ Accepted and started are different: only a started task is chased.
 
 ## 8. Node chases started tasks
 
-Every **started** task with no new line for about 5 minutes: node asks its agent for status (one message). Silent after three asks, or the agent says it is blocked: a red flag on the board. Proposed and accepted tasks are left alone. What already does part of this today is listed in [cracks.md](cracks.md#what-chases-a-task-today); this extends it, it does not add a second chaser.
+Every **started** task with no new line for about 5 minutes: node asks its agent for status (one message). Silent after three asks in a row, or the agent says it is blocked: one red flag on the board, then one more per hour while it stays silent. A new line resets the count. The counts are `ask`/`flag` lines on the task's own log, so a restart keeps them (`Servex/TaskLoop.js` `chase()`, test `Servex/TaskLoop-chase.test.mjs`). Proposed and accepted tasks are left alone. What already does part of this today is listed in [cracks.md](cracks.md#what-chases-a-task-today); this extends it, it does not add a second chaser.
 
 ## Build list (in order)
 
 - ✅ `complete` refuses without `evidence`; `confidence` and `caveats` fields; caveats reach the parent's log. (2026-10-22: `Task.complete`, `Task.completion_problem`, and the item tool in `page_tools.js`, which refuses before it writes and calls `tell_parent_caveats`; test `Servex/agents/honest-completion.test.mjs`. Exempt: replay of old logs, the automatic completion when the last child completes, a Project reaching `landed`, and the node-written `stop` of `StaleClose`.)
 - ✅ `approve` moves to **accepted** (`idle`), not straight to running; `start` is the agent's own call. (2026-10-22: `Task.approve`.)
 - ⬜ `source` on every task the live prompt process files (with mastermind-prompt, [PromptTasks](/Servex/agents/PromptTasks.js)).
-- ⬜ The chase, in the existing `TaskLoop.tick()` (it already wakes a quiet running task twice, then posts one card): drop its opt-in date gate, ask for status instead of a bare wake, and keep flagging past the first card.
+- ✅ The chase, in the existing `TaskLoop.tick()`: no opt-in gate, a status ask every 5 quiet minutes, a flag after three unanswered asks (or a blocked line), re-flagged hourly. (2026-10-23, `Servex/TaskLoop.js`; it skips an agent Heartbeat already has a check out for.)
 - ⬜ Something reads every inbox: 454 lines in 69 inboxes were never read ([cracks.md](cracks.md), row 1).
 - ⬜ This tab's session tasks regrouped by this model.
