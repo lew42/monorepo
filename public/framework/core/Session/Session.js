@@ -46,13 +46,23 @@ export default class Session extends Item {
 	get completion(){ const { done, total } = this.progress(); return total ? done / total : 0; }
 
 	// Item.replay does the loop; a session only needs its id from line 1 and its own line shape.
-	static replay_new(lines){ return new this(lines.find(l => l?.session)?.session ?? lines.find(l => l?.id)?.id); }
+	static replay_new(lines){
+		const s = lines.find(l => l?.session)?.session;   // a VS Code tab's line 1 is {session:{id,kind,cwd,at}} (the SessionStart hook)
+		return new this((s && typeof s === "object" ? s.id : s) ?? lines.find(l => l?.id)?.id);
+	}
 	replay_line(line){
 		const { by, ts, at, session: _s, ...delta } = line;
 		if (typeof delta.task === "string"){ this.tasks.insert(Task.from_ref(delta.task)); delete delta.task; }   // a reference line: the live child
 		if (delta.tasks && typeof delta.tasks === "object") this.tasks.set(delta.tasks);
 		delete delta.tasks;
 		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
+		// The owner's answer to a proposed task, from the session page: {"decide":{"task":id,"is":"approve"|"improve"|"reject","note"}}.
+		// One known verb that names its task, so the browser's append passes the schema (a bare {"<id>":{…}} line would not).
+		if (delta.decide && typeof delta.decide === "object"){
+			const { task, is, note } = delta.decide, kid = this._tasks?.find(task);
+			if (kid && ["approve", "improve", "reject"].includes(is) && kid.state === "waiting") kid[is]({ by: delta.decide.by ?? by ?? "owner", note });
+			delete delta.decide;
+		}
 		for (const k of Object.keys(delta)){   // a nested task changed: {"<task id>":{…}} goes to that task
 			const kid = delta[k] && typeof delta[k] === "object" ? this._tasks?.find(k) : undefined;
 			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }

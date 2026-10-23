@@ -18,6 +18,7 @@ import { hooks as page_tool_hooks } from "./agents/page_tools.js";
 import ProcessRunner from "./ProcessRunner.js";
 import Respawn from "./agents/Respawn.js";
 import Wakeups from "./agents/Wakeups.js";
+import PromptTasks from "./agents/PromptTasks.js";
 import { check_page, cap } from "../Server/BrowserCheck.mjs";
 import { pid as browser_pid } from "../Server/Browser.mjs";
 import Heartbeat from "./Heartbeat.js";
@@ -296,6 +297,8 @@ export default class Servex extends Events {
         const notice = (to, text, from) => { if (!to || to === "owner") return; try { this.agents.send(to, text, { from: from ?? "servex" }); } catch {} };
         page_tool_hooks.requested = r => notice(r.to, `Request from ${r.from}: "${r.title}", logged at ${r.path}. Answer on the item when it is done: item({path: "${r.path}", delta: ${r.own_folder ? `{"complete": {"outcome": "…"}}` : `{"${r.id}": {"complete": {"outcome": "…"}}}`}}). ${r.from} hears the outcome then.`, r.from);
         page_tool_hooks.answered = r => notice(r.to, `${r.by} answered your request "${r.title}" (${r.path}): ${r.outcome ?? "done, no outcome given"}`, r.by);
+        // Owner prompts become proposed tasks on their session (Servex/agents/PromptTasks.js; one Haiku call per prompt).
+        if (!process.env.SERVEX_NO_PROMPT_TASKS){ this.prompt_tasks = new PromptTasks({ say: t => this.say?.(t) }); page_tool_hooks.prompted = p => this.prompt_tasks.prompted(p); }
 
         /* THE ASKS LEDGER (asks-ledger, 2026-09-30): notices when a routed ask's owner agent
          * stops, goes quiet, or lands its task, and marks public/framework/ai/asks.jsonl so

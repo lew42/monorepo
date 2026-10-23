@@ -533,7 +533,7 @@ export async function move_home(file, module, by = "ProcessRunner"){
  * request this write completed goes back to whoever asked (`from`), with its outcome. A completion is a `complete` line on a nested
  * child ({"<id>": {"complete": …}}, or a target of [<id>]), or on a request that has its own folder (the file's own root). */
 function notify_requests(live, at, body, requests, by){
-	for (const r of requests) if (hooks.requested) Promise.resolve(hooks.requested(r)).catch(() => {});
+	for (const r of requests) if (hooks.requested && r.to) Promise.resolve(hooks.requested(r)).catch(() => {});   // a log with no agent (a VS Code tab's session) has nobody to tell
 	if (!hooks.answered) return;
 	const done = [];
 	if (at.target.length === 1 && body.complete !== undefined) done.push(live._tasks?.find(at.target[0]));
@@ -543,7 +543,7 @@ function notify_requests(live, at, body, requests, by){
 	}
 	for (const t of done){
 		const from = t?.get_one("from");
-		if (!from || from === by || t.state !== "complete") continue;
+		if (!from || from === by || from === "owner" || t.state !== "complete") continue;   // the owner sees it on the page
 		Promise.resolve(hooks.answered({ to: from, by, id: t.id, title: t.get_one("title") ?? t.id, outcome: t.get_one("outcome") ?? null, path: t === live ? (live.get_one("path") ?? app_path(path.dirname(at.file))) : app_path(path.dirname(at.file)) })).catch(() => {});
 	}
 }
@@ -644,6 +644,7 @@ export const hooks = {
 	changed: null,     // Servex sets it to `file => process_runner.step(file)` (a process moves on after any write)
 	requested: null,   // requested/answered: Servex sends the one-line notices (Servex/agents/doc/messaging.md, "Requests are logged items")
 	answered: null,
+	prompted: null,   // Servex: an owner Prompt landed on a session page -> PromptTasks files its asks (Servex/agents/PromptTasks.js)
 };
 
 export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
@@ -792,6 +793,9 @@ export function page_tools(resolve_log = null){
 				const line = nest(at.target, { add });
 
 				const size = write_line(at.file, line);
+				// An owner prompt (prompt-relay.mjs writes it): Servex files its asks as proposed tasks (Servex/agents/PromptTasks.js).
+				if (item?.type === "Prompt" && typeof item.text === "string" && hooks.prompted)
+					try { Promise.resolve(hooks.prompted({ file: at.file, line: size?.lines ?? null, id, text: item.text, at: add.ts, by: ctx.caller ?? null })).catch(() => {}); } catch {}
 				return JSON.stringify({ ok: true, id, line, size });
 			}),
 
