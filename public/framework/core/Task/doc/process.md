@@ -39,6 +39,18 @@ A process lives in its own folder inside the session that made it: `<session fol
 
 **Creating one is one call** (never two steps): `item({path: <your session>, delta: {tasks: {add: {title, process: "build", brief}}}})`. The item tool sees `process`, makes the folder, writes line 1 and the phase lines from the definition (the add's own `phases` overrides change a phase's session), and tells ProcessRunner, which starts phase 1.
 
+## Draft in the session, then move home
+
+A process starts as a draft in the session that made it. When it names a `module` (`tasks.add: {title, process, module}`), it moves to `<module>/tasks/<id>/` once the plan is approved. The phase marked `home_after` (build: approve-plan) completing makes `next()` answer `{move}`, and ProcessRunner calls `move_home` in `Servex/agents/page_tools.js`. The move does five things:
+
+1. It moves the folder: `git mv` when the folder is tracked, else a plain rename.
+2. The process records its new `path`.
+3. The session gets a new `{"task": "<new path>"}` line. That line replaces the old reference, because a later reference with the same id wins (`Task.js`).
+4. The module's `tasks/` list references the process.
+5. One `kind: "task"` line goes into `ai/sessions/task-moves.jsonl`, the ledger `Server/TaskMove.mjs` keeps, so the old url redirects.
+
+The later phases (execute, review, merge) then run in the new home. If the target folder already exists, the move is refused, a `home_refused` line records why, and the process carries on where it is. The owner's rule: [owner-2026-10-20 §6](owner-2026-10-20-projects-and-completion.md).
+
 ## A phase's session
 
 Each phase names how its session is run, so the process carries the agent architecture, not the agent's memory:
@@ -88,7 +100,34 @@ Every phase change, spawn, pulse and cost is a line node writes. `measure` lines
 - **Steps** ([Servex/doc/steps.md](/Servex/doc/steps.md)) are steps inside one agent's session; a Process whose phases all run `same` does the same job with real state. Steps stays until it is migrated.
 - **Project.STAGES** (six stage names in one field) is the same idea without children; a Project should hold a build Process instead. Not changed in this slice.
 
+## Run 1 (2026-10-22): the readmes page, through build
+
+The brief: [run-1/readmes-page/requirements.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/requirements.md); its log is the `task.jsonl` beside it. It ran on a private Servex started from the worktree (`Servex/proof/process-run.mjs`). One `item` call created it. Node then ran every phase with no agent remembering anything, from 18:49 to 18:56 (7.5 minutes). It ended with `task/readmes-page` built and reviewed, and the merge phase waiting on the owner.
+
+| Phase | Session | Measured cost |
+|---|---|---|
+| investigate | fresh helper (Sonnet low) | $0.76 |
+| plan | the same session | $0.86 |
+| improve-plan | fresh reviewer (Sonnet medium) | $0.50 |
+| approve-plan | the creator (the system architect, by an item call) | not measured |
+| execute | fresh helper (Sonnet medium), its own worktree | $1.59 |
+| review | fresh reviewer (Sonnet medium) | $0.56 |
+| **total** | against a budget of $8 | **$4.27** |
+
+What broke, and the process fix (the agents were not asked to try harder):
+
+- **Review's cost was written twice.** Two wakes arrived for one turn end. Now after-turn work is chained per file, and a second wake joins the first.
+- **Plan was pulsed before it had started.** The plan prompt was sent while investigate's turn was still running, so the end of that same turn looked like a stalled plan. Now a phase sent mid-turn skips the pulse for that turn's end.
+- **Review said "ready to merge" without loading the page.** Execute had built in a worktree that Servex does not serve. Now execute takes a served worktree (`take_worktree`) and loads what it changed, and review may say ready only after the pages load with no console errors; otherwise its outcome is "not checked".
+- **Still open:** the answer to the creating call carries the instructions for the parent's class, not the new process.
+
+What worked:
+
+- The review fixed a real bug on the branch (chain links pointed at `/public/…`).
+- Execute fixed a skip rule that had never matched on Windows paths.
+- The approve phase had no live creator to send to, so it waited on the creator instead of being lost.
+
 ## Status
 
-- ⬜ Slice 1: `Process` + `ProcessRunner`, one process end to end, completion rolling up to the session.
+- ✅ Slice 1: `Process` + `ProcessRunner`, one process end to end, completion rolling up to the session; run 1 above; moving home on approval; tests `node Servex/ProcessRunner.test.mjs` (27).
 - ⬜ Next: a phase that is itself a process (investigate inside build); parallel phases (scouts); the plan's tasks becoming a process of their own; the owner's merge button (priority 3b) completing the merge phase; prompt-audit asks becoming session tasks once completion is automatic.
