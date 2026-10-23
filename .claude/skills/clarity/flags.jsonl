@@ -1538,3 +1538,5 @@
 {"at":"2026-10-22T21:32:47.017Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/agent-context/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-10-22T21:33:48.035Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/agent-context/requirements.md","verdict":"spawned","to":"clarity-agent-context"}
 {"at":"2026-10-22T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/agent-context/requirements.md","verdict":"clear","what":"Brief is clear and short; only text-check flag is the computed past-work.md (do not hand-edit), not owner-facing","to":"clarity-agent-context"}
+{"at":"2026-10-23T00:40:43.690Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system","verdict":"skipped","what":"a sub-task: its parent task gets the one check"}
+{"at":"2026-10-23T00:48:41.835Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards","verdict":"skipped","what":"a sub-task: its parent task gets the one check"}

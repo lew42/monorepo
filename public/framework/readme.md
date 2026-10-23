@@ -69,7 +69,7 @@ p("Hello world.");
 - [`web/`](/web/) — the guide tier, live
 - [`dev/`](/framework/dev/) — local-only live reload
 - [`util/`](/framework/util/) — small plain helpers
-- [`ai/`](/framework/ai/) — the working log, daily
+- [`ai/`](/framework/ai/) — the AI system: every AI agent reads [ai/readme.md](ai/readme.md) for the lay of the land; the working log, daily
 - [`doc/decisions.md`](./doc/decisions.md) (the record) · [`doc/injection.md`](./doc/injection.md) (nothing reads `window.app`) · [`doc/theme-behaviour.md`](./doc/theme-behaviour.md) (a theme is CSS)
 - [`doc/docs-system.md`](./doc/docs-system.md) (what a doc page is made of) · [`doc/reachability.md`](./doc/reachability.md) (the crawl + audit method)
 - **Decisions:** a module's readme gives the one-line overview and links `doc/architecture.md` for the conclusive decisions and why; `doc/decisions.md` (the log) is history, read when you need to know how a decision moved ([shape](/.claude/skills/documentation/architecture-template.md))
