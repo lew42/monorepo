@@ -29,3 +29,12 @@ The `figma` skill (`.claude/skills/figma/SKILL.md`) and `public/framework/ext/Fi
 - **Segmented bars:** one segment per child, green done, amber pulsing in progress, red stalled or blocked; a nested segment shows its children only where they fit (a 12-step child does not fit in one small segment: show its own bar on its own card instead).
 - **Preview vs detail:** a child shows as a preview on its parent (a summary, its bar) and opens to its own routed detail page; drill down on the phone. Maybe expand in place: show both.
 - **Upgrading a task to a project** in the UI.
+
+## Follow-up 2 (the owner, 2026-10-22, the next tab prompt)
+
+- **Card headers:** a title bar on a card, styled several ways: a light grey line, no border, a different background. Sticky header and footer inside a tall card, the middle scrolling (show it if Figma can; otherwise note it for code).
+- **Card vs content:** a card has padding, a background and a radius; content inside it is transparent. A header/main/footer card drops its own padding and each section pads itself. Never double-pad (a padded parent with a padded child is usually a smell).
+- **Session navigation:** the session's name on one line with a menu button aligned right, opening a templated list of actions and sub-pages (settings, saved to `session.jsonl`). Also consider tabs, a drop-down, a sheet.
+- **Micro-interactions on mobile:** a small sheet from a toolbar button, a "+" that expands filters in place, drop-downs, swipeable tabs instead of wrapping ones (the site's top tabs wrap today), resizable bottom or top sheets.
+- **Variants, and where they live:** design the UI for browsing a tree of variants of any page or component, and propose where variants are stored and named (own folder, or the parent's `page.jsonl`), with the system architect.
+- **Keep your docs current, conclusions only:** the Figma readmes hold decisions and outcomes, not a dated log; the log is your task's JSONL.
