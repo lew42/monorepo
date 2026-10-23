@@ -25,6 +25,7 @@
 
 ## The systems (one line each; each links its own readme)
 - [core/Task](./core/Task/) — `class Task extends Item`: one task's state machine, plus the task pages
+- [core/Test](./core/Test/) — node tests: `X.test.mjs`, one command runs the ones a change covers, results at `/framework/core/Test/`
 - [core/Page/ext/Inbox](./core/Page/ext/Inbox/) — `class Inbox`: one ranked rail of notes, questions and tasks, read from `page.jsonl` and the AI files
 - [core/Page](./core/Page/) — the page system: a folder with `page.js` and/or `page.jsonl`, written by the page tools
 - [ai/tasks](./ai/tasks/) — the task log and board: where tasks live on disk, how `Server/AIIndex.mjs` folds them into `ai/index.json`

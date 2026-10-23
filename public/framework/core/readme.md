@@ -15,6 +15,7 @@
 - [Shell](./Shell/) — five optional regions around a CSS grid (header, left, right, footer, main); a Shell's main can hold another Shell
 - [Sidebar](./Sidebar/) — brand over a tree of links, resizable, for site nav
 - [Task](./Task/) — a DOM-free unit of work: state machine, computed duration and progress, subtasks
+- [Test](./Test/) — `class Test` checks and `TestRunner`: find, run on change, record every node test (`X.test.mjs`)
 - [View](./View/) — chainable wrapper over one DOM element; every HTML tag is a function
 - [new](./new/) — one kept sketch; never import from it
 - [doc](./doc/decisions.md) — what belongs in core and the cross-tier traps (no readme; docs only)
