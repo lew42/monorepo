@@ -17,7 +17,7 @@ try {
 	const r = await call({ approve: "looks good" });
 	const last = fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l)).filter(l => l.approve).at(-1);
 	assert.equal(last.approve.note, "looks good", "a string approve is written as {note}");
-	assert.equal(r.state.state, "running", "and it takes effect: waiting -> running");
+	assert.equal(r.state.state, "idle", "and it takes effect: waiting -> accepted (idle); start is the agent's own call");
 	console.log("verb-note.test.mjs: all checks passed");
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 process.exit(0);
