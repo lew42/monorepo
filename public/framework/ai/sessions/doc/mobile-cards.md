@@ -35,3 +35,5 @@ All the numbers come from the session store (`sessions/2026/10/*/index.json`, th
 ## Next
 
 Code the picks as variant pages you can click through on the phone. This is the design process, `Process.DEFINITIONS.design` (branch `task/architect-requests`, written by the system architect): design → review shots → pick → code as `<page>/v/<name>/` → review at 400 and 1200 px → merge.
+
+Built: [the mobile variant](/framework/ai/sessions/v/mobile/), four pages (day list, nested sessions, a session, a task) on real data. How it is built: [v/mobile/readme.md](/framework/ai/sessions/v/mobile/readme.md).

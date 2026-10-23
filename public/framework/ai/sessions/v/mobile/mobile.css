@@ -96,4 +96,5 @@
 	.mob-run-btn { display: inline-grid; place-items: center; width: 2rem; height: 2rem; padding: 0; border: 0; border-radius: 50%; background: none; color: #6b7178; cursor: pointer; }
 	.mob-run-btn:active { background: var(--mob-line); }
 	.mob-run-btn .icon, .mob-run-btn .material-icons { font-size: 1.1rem; }
+	.mob-task-link .mob-row-sub { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 }

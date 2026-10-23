@@ -86,5 +86,6 @@ export default class MobileSession extends AISessionDetail {
 		const f = new AISessionFollow(this.id);
 		f.on_lines = lines => conv.add(lines);
 		this.follow = f.start();
+		this.follow.then(() => { if (!conv.count) pane.append(() => p.c("mob-empty", AISessionDetail.NO_TRANSCRIPT)); });
 	}
 }
