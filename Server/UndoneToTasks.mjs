@@ -56,7 +56,14 @@ export default class UndoneToTasks {
 	asks(){
 		const data = JSON.parse(fs.readFileSync(this.file(UndoneToTasks.DATA), "utf8"));
 		return data.modules.flatMap(m => m.asks.filter(a => a.verified === "undone" && a.state !== "done").map(a => ({ ...a,
-			module: UndoneToTasks.home_of(a.verified_module ?? m.module) ?? (a.verified_kind === "sort" ? "ai" : null) })));
+			module: this.paged(UndoneToTasks.home_of(a.verified_module ?? m.module) ?? (a.verified_kind === "sort" ? "ai" : null)) })));
+	}
+
+	/** The module itself if it is a page, else its nearest parent that is: a task folder under a folder with no page.js or page.jsonl is a 404
+	 * (5 of the sort pass's proposals, caught by the merge smoke test, 2026-10-23). */
+	paged(m){
+		for (let p = m; p; p = p.includes("/") ? p.slice(0, p.lastIndexOf("/")) : null) if (["page.js", "page.jsonl"].some(n => fs.existsSync(this.file(UndoneToTasks.FW + "/" + p + "/" + n)))) return p;
+		return m;   // no page anywhere above it (a scratch root): leave it as it is
 	}
 	static home_of(label){ return !label || label.startsWith("(") ? null : (this.FOLD[label] ?? label); }
 

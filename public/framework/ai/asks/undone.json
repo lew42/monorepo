@@ -3062,7 +3062,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/ext/CSSDoc/tasks/check-whether-css-properties-can-be-trac/",
+     "task": "/framework/ext/tasks/check-whether-css-properties-can-be-trac/",
      "verified_module": "ext/CSSDoc",
      "verified_sort": "task",
      "verified_title": "List CSS property types and the UI each one needs, from the live CSSOM"
@@ -8642,7 +8642,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/core/Page/overview/tasks/try-resizing-the-columns-slightly-so-the/",
+     "task": "/framework/core/Page/tasks/try-resizing-the-columns-slightly-so-the/",
      "verified_module": "core/Page/overview",
      "verified_sort": "task",
      "verified_title": "Resize the Miller columns slightly so the layout fits better"
@@ -8734,7 +8734,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/core/Page/overview/tasks/make-miller-column-list-items-more-compa/",
+     "task": "/framework/core/Page/tasks/make-miller-column-list-items-more-compa/",
      "verified_module": "core/Page/overview",
      "verified_sort": "task",
      "verified_title": "Make Miller column items more compact, since two lines sit in too much space"
@@ -12499,7 +12499,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/ai/AIDashboard/tasks/make-the-dashboard-more-compact/",
+     "task": "/framework/ai/tasks/make-the-dashboard-more-compact/",
      "verified_module": "ai/AIDashboard",
      "verified_sort": "task",
      "verified_title": "Make the AI dashboard more compact"
@@ -13027,7 +13027,7 @@
      },
      "verified_pass": 3,
      "verified_kind": "sort",
-     "task": "/framework/ai/rail/tasks/make-the-mobile-sheet-match-the-desktop/",
+     "task": "/framework/ai/tasks/make-the-mobile-sheet-match-the-desktop/",
      "verified_module": "ai/rail",
      "verified_sort": "task",
      "verified_title": "Make the mobile sheet match the desktop AI sidebar, resizable"
