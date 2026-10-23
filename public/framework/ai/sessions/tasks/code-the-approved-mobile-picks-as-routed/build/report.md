@@ -1,6 +1,6 @@
 # Report: mobile variant, ready to merge (not merged)
 
-**Branch:** `worktree/mobile-picks`, 10 commits ahead of `michael/dev` (dev merged in twice; merges cleanly). Smoke passes; Task tests 58 of 58.
+**Branch:** `worktree/mobile-picks`, 11 commits ahead of `michael/dev` (dev merged in twice; merges cleanly). Smoke passes; Task tests 58 of 58.
 
 ## URLs (under `/framework/ai/sessions/v/mobile/`)
 1. `` and `<yyyy>/<mm>/<dd>/`: day list
