@@ -206,6 +206,9 @@ export class Task extends Item {
 		return this.state === "complete" ? 1 : 0;
 	}
 
+	// May this verb run from the task's state now? The same CAN map the verbs check; a button uses it to show only what works.
+	can(verb){ return !!CAN[verb]?.has(this.state); }
+
 	start(){
 		if (!CAN.start.has(this.state)) return this.warn(`start(): can't start from "${this.state}"`);
 		this._ran_since = this.ms();

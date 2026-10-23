@@ -23,6 +23,7 @@ export class Store {
 
 	entries = [];
 	count = 0;
+	static muted = 0;   // > 0 while Item.act runs its verb locally: the `set` lines it makes are not recorded, the verb is
 
 	constructor(...args){ this.assign(...args); }
 	assign(...args){ return Object.assign(this, ...args); }
@@ -105,7 +106,8 @@ export class Store {
 	}
 
 	skip_echo(entry){
-		const str = JSON.stringify(entry);
+		const { by, ts, ...bare } = entry;   // the item tool stamps `by`/`ts` on the way to disk, so an echo is compared without them
+		const str = JSON.stringify(bare);
 		const i = (this.sent ??= []).indexOf(str);
 		if (i === -1) return false;
 		this.sent.splice(i, 1);
@@ -120,7 +122,7 @@ export class Store {
 		host.store = this;
 
 		host.on("delta", (line, origin) => {
-			if (this.replaying || owned_below(origin, host)) return;
+			if (this.replaying || Store.muted || owned_below(origin, host)) return;
 			this.append(this.line_for(line, origin, host));
 		});
 
@@ -175,11 +177,41 @@ export class Store {
 
 		lines.forEach(one => (this.sent ??= []).push(JSON.stringify(one)));
 
+		// A task's log goes through the item tool's own writer (Servex POST /api/item): validated, stamped by/ts, hooks fire.
+		// Only when Servex does not answer does it fall back to the plain file append (below). Other logs (pages) keep the plain append.
+		const rest = this.via_tool ? await this.post_to_tool(lines) : lines;
+		if (!rest.length) return;
+
 		// The ONE file API: the file itself sends the lines (ext/filesystem/FsFile.js).
 		// Imported here, not at the top — FsFile imports Item, which imports this file.
 		const path = new URL(this.url, "http://localhost").pathname;
 		const { default: FsFile } = await import("../../ext/filesystem/FsFile.js");
-		await new FsFile({ path }).send(lines);
+		await new FsFile({ path }).send(rest);
+	}
+
+	get via_tool(){ return /(^|\/)(task|session|improvements)\.jsonl$/.test(this.url); }
+
+	// Posts each line, in order, as one delta. Returns the lines Servex could not be asked (it did not answer): those fall back.
+	// A line Servex answered but refused is dropped with a warning (that is the validation), and its echo entry forgotten.
+	async post_to_tool(lines){
+		const { servex_url } = await import("../../dev/servex_url.js");
+		const path = new URL(this.url, "http://localhost").pathname;
+		for (let i = 0; i < lines.length; i++){
+			let answer;
+			try {
+				const res = await fetch(servex_url("/api/item"), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ path, delta: lines[i] }), signal: AbortSignal.timeout(5000) });
+				answer = await res.json();
+			} catch {
+				if (!Store.warned_no_servex){ Store.warned_no_servex = true; console.warn("Item.Store — Servex did not answer /api/item: writing the file directly (no by/ts, no hooks)."); }
+				return lines.slice(i);
+			}
+			if (answer?.ok === false){
+				const j = (this.sent ?? []).indexOf(JSON.stringify(lines[i]));
+				if (j !== -1) this.sent.splice(j, 1);
+				console.warn(`Item.Store — the item tool refused ${JSON.stringify(lines[i])}: ${answer.why}`);
+			}
+		}
+		return [];
 	}
 
 	get writable(){
