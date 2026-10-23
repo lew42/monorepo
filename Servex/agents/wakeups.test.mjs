@@ -8,7 +8,7 @@ const home = fs.mkdtempSync(path.join(os.tmpdir(), "wakeups-"));
 process.env.SERVEX_HOME = home;   // before home.js is imported: every file goes to the scratch folder
 const { default: Wakeups } = await import("./Wakeups.js");
 const { default: Log } = await import("../Log.js");
-const { default: Agents } = await import("./Agents.js");
+const { Agents } = await import("./Agents.js");
 
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
@@ -45,7 +45,7 @@ try {
 	w.stop();
 
 	// 5. The snapshot: live agents plus a dormant one that only a wake-up remembers; revive reads it once.
-	const agents = new Agents({ log });
+	const agents = new Agents({ log, registry_dir: path.join(home, "registry") });
 	agents.live.set("busy", { id: "busy", state: "working", session_id: "s1" });
 	agents.live.set("quiet", { id: "quiet", state: "idle", session_id: "s2" });
 	agents.wakeups = { list: () => [{ id: "w-x", agent: "sleeper", due: "2026-10-23T09:00:00Z", why: "morning check" }] };
@@ -57,6 +57,7 @@ try {
 	agents.snapshot({ by: "test" });
 	ok(agents.restart_snapshot({ boot: "another-boot" }) === null, "a snapshot from a different boot is ignored");
 } finally {
+	await log.tail("servex", 1).catch(() => {});   // let the snapshot's servex.jsonl line finish before the streams close
 	log.close();
 	await new Promise(r => setTimeout(r, 100));
 	fs.rmSync(home, { recursive: true, force: true });
