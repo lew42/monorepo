@@ -14,6 +14,13 @@ import Landed from "./Landed.js";
  * line 1 dated at/after SERVEX_HEARTBEAT_SINCE, or line 1 `heartbeat: true` — so
  * the boot sweep never wakes weeks-old tasks. Only its owner is watched: the latest assign's
  * agent (a fresh session that took over writes one), or that id's resumed successor. */
+/** The one inbox reader (Heartbeat and TaskLoop share it): `{lines, unread}` of an inbox.jsonl. Unread = text lines at or after the LAST `read_upto` mark's
+ * NUMBER (not its position), so a line appended between a read and its mark is still unread. */
+export function read_inbox(file){
+    let lines; try { lines = fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } }); } catch { return null; }
+    const from = lines.findLast(l => l.read_upto !== undefined)?.read_upto ?? 0;
+    return { lines, unread: lines.slice(from).filter(l => l.text !== undefined) };
+}
 export const CHECK = "Status check: where are you at? No change of plan needed; just a line on what you're doing.";
 const FROM = "servex-heartbeat";
 
@@ -264,8 +271,8 @@ export default class Heartbeat {
     /* Unread lines of a task's inbox.jsonl (Agents.wake_parent writes them), then marked read. */
     inbox(dir){
         const file = path.join(dir, "inbox.jsonl");
-        let lines; try { lines = fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } }); } catch { return ""; }
-        const from = lines.findLastIndex(l => l.read_upto !== undefined) + 1, unread = lines.slice(from).filter(l => l.text !== undefined);
+        const r = read_inbox(file); if (!r) return "";
+        const { lines, unread } = r;
         if (!unread.length) return "";
         fs.appendFileSync(file, JSON.stringify({ read_upto: lines.length, at: stamp(), by: FROM }) + "\n");
         return unread.map(l => `- ${l.from} (${l.kind}, ${l.at}): ${String(l.text).slice(0, 300)}`).join("\n");

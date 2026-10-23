@@ -322,7 +322,7 @@ await check("Heartbeat.post(): a named card that answers 'no card' also falls ba
 	assert.equal(dropped.length, 1, "card_reply's own {ok:false} answer — never a throw — still reaches the Inbox");
 });
 
-await check("TaskLoop.escalate(): the same {ok:false} card answer falls back to the Inbox", async () => {
+await check("TaskLoop.flag(): the same {ok:false} card answer falls back to the Inbox", async () => {
 	const dropped = [];
 	const fake = {
 		servex: {
@@ -336,7 +336,7 @@ await check("TaskLoop.escalate(): the same {ok:false} card answer falls back to 
 		post_card: TaskLoop.prototype.post_card,
 		totals: { escalated: 0 }
 	};
-	await TaskLoop.prototype.escalate.call(fake, "public/framework/ai/sessions/2026/10/01/never-lose-a-wake/task.jsonl", { state: {} }, Date.now());
+	await TaskLoop.prototype.flag.call(fake, "public/framework/ai/sessions/2026/10/01/never-lose-a-wake/task.jsonl", { state: {} }, "quiet for 20 min", Date.now());
 	assert.equal(dropped.length, 1, "no live card, card_ask answers {ok:false}: the note still reaches the Inbox");
 	assert.equal(dropped[0].path, "public/framework/ai/sessions/2026/10/01/never-lose-a-wake", "dropped on the task's own folder");
 });

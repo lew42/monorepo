@@ -62,5 +62,5 @@ Every **started** task with no new line for about 5 minutes: node asks its agent
 - ✅ `approve` moves to **accepted** (`idle`), not straight to running; `start` is the agent's own call. (2026-10-22: `Task.approve`.)
 - ⬜ `source` on every task the live prompt process files (with mastermind-prompt, [PromptTasks](/Servex/agents/PromptTasks.js)).
 - ✅ The chase, in the existing `TaskLoop.tick()`: no opt-in gate, a status ask every 5 quiet minutes, a flag after three unanswered asks (or a blocked line), re-flagged hourly. (2026-10-23, `Servex/TaskLoop.js`; it skips an agent Heartbeat already has a check out for.)
-- ⬜ Something reads every inbox: 454 lines in 69 inboxes were never read ([cracks.md](cracks.md), row 1).
+- ✅ Something reads every inbox: 454 lines in 69 inboxes were never read ([cracks.md](cracks.md), row 1). (2026-10-23: `TaskLoop.read_inboxes()`.)
 - ⬜ This tab's session tasks regrouped by this model.

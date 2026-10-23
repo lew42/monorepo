@@ -3,7 +3,7 @@ import SessionRecord from "../Server/SessionRecord.mjs";
 import path from "path";
 import { spawn, execFile } from "child_process";
 import { stamp } from "./home.js";
-import { CHECK } from "./Heartbeat.js";
+import { CHECK, read_inbox } from "./Heartbeat.js";
 import Steps from "../Server/Steps.mjs";
 import TaskDirs from "../Server/TaskDirs.mjs";
 import Task from "../public/framework/core/Task/Task.js";
@@ -410,8 +410,8 @@ export default class TaskLoop {
         for (const t of TaskDirs.list(this.inbox_days, new Date(now))){
             const inbox = path.join(t.dir, "inbox.jsonl");
             if (!fs.existsSync(inbox)) continue;
-            let lines; try { lines = fs.readFileSync(inbox, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } }); } catch { continue; }
-            const from = lines.findLastIndex(l => l.read_upto !== undefined) + 1, unread = lines.slice(from).filter(l => l.text !== undefined);
+            const r = read_inbox(inbox); if (!r) continue;
+            const { lines, unread } = r;
             if (!unread.length) continue;
             const cutoff = now - this.inbox_stale_days * 864e5;
             const fresh = unread.filter(l => !((Date.parse(l.at) || now) < cutoff)), stale = unread.length - fresh.length;
