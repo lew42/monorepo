@@ -2,10 +2,10 @@
 // `node Server/stale-close.test.mjs`. Doc: Server/doc/stale-close.md.
 import assert from "node:assert";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import StaleClose from "./StaleClose.mjs";
 import SessionRecord from "./SessionRecord.mjs";
-import TaskDirs from "./TaskDirs.mjs";
 
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
@@ -33,12 +33,12 @@ ok(r.rows.length === 2 && r.rows[0].last === ago(40) && /child folder/.test(r.ro
 r = await plan([row(S + "-other", "stale", 48), row(S, "stale", 1)]);
 ok(r.rows.length === 1 && r.rows[0].dir === S + "-other", "a sibling with a shared name prefix is not a child");
 
-// 2. link_parent: a new task folder under a session gets one {"task":"<url>"} reference on the session's log.
-const DAY = path.join(TaskDirs.REPO, "public/framework/ai/sessions/2026/10/22"), SESS = path.join(DAY, ".stale-close-test-" + process.pid);
+// 2. link_parent (in a temp root shaped like the repo, so the real store is never written): a new task folder under a session gets one {"task":"<url>"} reference on the session's log.
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "stale-close-")), DAY = path.join(TMP, "public/framework/ai/sessions/2026/10/22"), SESS = path.join(DAY, "stale-close-test");
 fs.mkdirSync(path.join(SESS, "child", "grandchild"), { recursive: true });
 fs.writeFileSync(path.join(SESS, "session.jsonl"), JSON.stringify({ session: { id: "tab-2", kind: "vscode-tab" } }) + "\n");
 try {
-	const url = d => "/" + path.relative(path.join(TaskDirs.REPO, "public"), d).split(path.sep).join("/") + "/";
+	const url = d => "/" + path.relative(path.join(TMP, "public"), d).split(path.sep).join("/") + "/";
 	const lines = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
 	ok(SessionRecord.link_parent(SESS) === null, "a session folder itself has no parent to link");
 	const log = SessionRecord.link_parent(path.join(SESS, "child"));
@@ -48,7 +48,7 @@ try {
 	fs.writeFileSync(path.join(SESS, "child", "task.jsonl"), JSON.stringify({ assign: { title: "child" } }) + "\n");
 	const log2 = SessionRecord.link_parent(path.join(SESS, "child", "grandchild"));
 	ok(log2 === path.join(SESS, "child", "task.jsonl") && lines(log).filter(l => l.task).length === 1, "a grandchild goes to its nearest parent with a log, not the session");
-	ok(SessionRecord.link_parent(path.join(TaskDirs.REPO, "public/framework/core/Task/tasks/x")) === null, "outside the sessions store: nothing");
+	ok(SessionRecord.link_parent(path.join(TMP, "public/framework/core/Task/tasks/x")) === null, "outside the sessions store: nothing");
 	// An explicit parent (open_task's parent_task: a task that handed work to a child session elsewhere) wins over the nearest folder.
 	fs.mkdirSync(path.join(SESS, "other"), { recursive: true });
 	const log3 = SessionRecord.link_parent(path.join(SESS, "other"), "Servex", { parent: path.join(SESS, "child") });
@@ -61,5 +61,5 @@ try {
 		const tab = SessionRecord.link_parent(path.join(TAB, "work"), "TaskDirs", { session_id: "abcd1234-5678" });
 		ok(tab === path.join(TAB, "session.jsonl") && lines(tab)[0].session.id === "abcd1234-5678" && lines(tab)[1].task === url(path.join(TAB, "work")), "a tab session with no log gets session.jsonl: its session line, then the reference");
 	} finally { fs.rmSync(TAB, { recursive: true, force: true }); }
-} finally { fs.rmSync(SESS, { recursive: true, force: true }); }
+} finally { fs.rmSync(TMP, { recursive: true, force: true }); }
 console.log(`${n} passing`);
