@@ -1,0 +1,5 @@
+# Readmes page: fix its route, give a chosen folder a URL, re-review
+
+Estimate: $3. Sonnet, medium. Parent: `vscode-mastermind`. Work in the existing worktree `C:/Code/lew42/worktrees/readmes-page` (branch `task/readmes-page`); bring it to ready-to-merge, do not merge.
+
+The review (`review.jsonl` here) found: (1) `/framework/ai/readmes/` draws the old "Readmes" concept page, because `ai/page.js` `route()` checks `CONCEPTS` before the folder and `concepts.js` already has `slug: "readmes"`: make the folder win (or rename the concept) without breaking the concept's other links; (3) a chosen folder needs its own URL, `/framework/ai/readmes/?path=Servex/agents`, and the chain should sit beside the grid at wide widths, not under it; (5) use the spacing tokens (`--gap`, `--pad`) instead of constants. Then shoot the page at 400/1200/1920/3440 (`node Server/shots.mjs`), run `node Server/review.mjs <this dir> <worktree>` again, answer every finding in this folder's `session.jsonl`, and land with `finish-task`. The layered view (linked readmes, tokens per layer) is the next slice: file it as a child task, don't build it.
