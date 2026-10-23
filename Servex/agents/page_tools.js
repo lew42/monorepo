@@ -565,7 +565,8 @@ export async function move_item({ from, id, to, by = "agent", module } = {}){
 	const pf = resolve_file(from, true), dir = typeof to === "string" ? path.resolve(PUBLIC, to.replace(/^[\\/]+/, "")) : null;
 	if (!pf || !fs.existsSync(pf)) return { why: `no record at ${from}` };
 	if (!dir || !dir.startsWith(PUBLIC + path.sep)) return { why: `"${to}" is not a folder under public/` };
-	const Class = LOADERS[class_of(pf)] ? await LOADERS[class_of(pf)]().catch(() => null) : null;
+	const kind = path.basename(pf) === "session.jsonl" ? "Session" : class_of(pf);   // Session, not Task: it reads the owner's {decide} lines, which change a child without naming it
+	const Class = LOADERS[kind] ? await LOADERS[kind]().catch(() => null) : null;
 	if (!Class?.replay) return { why: `${from} is not a Task or Session record` };
 	link_refs(await LOADERS.Task());
 	const Task = await LOADERS.Task(), plines = parse_lines(pf), kid = Class.replay(plines)._tasks?.find(id);
