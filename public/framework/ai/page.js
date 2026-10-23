@@ -35,7 +35,7 @@ export default new Page({
 	leaf: true,
 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
 	classes: v1() ? undefined : is_dash() ? "ad-page" : "full fill",
-	children: "now tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
+	children: "now readmes tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
 
 	// `board_drawn` stays true so the board's own hand-back (v/3/page.js) never paints it here. Doc: doc/ai-page-notes.md.
 	board_drawn: true,
@@ -169,7 +169,7 @@ function concept_page(parent, c){
 				].join("\n"));
 				md("**Proposed, not built:** `promote(parent, id)` turns a virtual page into a real one. The thread moves into its own folder, and a `moved` line keeps the old url working. The whole case: [the proposal, §7](/framework/ai/sessions/2026/09/30/servex-mastermind/merge-approval-proposal.md).");
 			}
-			if (c.slug === "readmes"){
+			if (c.slug === "readme-system"){
 				AIOverview.heading("The chain, live", "What a fresh agent in `public/framework/ai/` is handed, root first.");
 				AIOverview.readmeChain("public/framework/ai/");
 			}
