@@ -8,6 +8,7 @@ import Item from "../Item/Item.js";
 import Day from "./Day.js";
 import List from "../List/List.js";
 import Task from "../Task/Task.js";
+import "../Task/Project.js";   // registers "Project": a proposal can be made one (decide is "project")
 
 export default class Session extends Item {
 	static days = new Map();     // id -> "2026/10/03"
@@ -52,7 +53,11 @@ export default class Session extends Item {
 	}
 	replay_line(line){
 		const { by, ts, at, session: _s, ...delta } = line;
-		if (typeof delta.task === "string"){ this.tasks.insert(Task.from_ref(delta.task)); delete delta.task; }   // a reference line: the live child
+		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
+			const kid = Task.from_ref(delta.task), had = this._tasks?.find(kid.id);
+			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
+			delete delta.task;
+		}
 		if (delta.tasks && typeof delta.tasks === "object") this.tasks.set(delta.tasks);
 		delete delta.tasks;
 		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
@@ -61,6 +66,11 @@ export default class Session extends Item {
 		if (delta.decide && typeof delta.decide === "object"){
 			const { task, is, note } = delta.decide, kid = this._tasks?.find(task);
 			if (kid && ["approve", "improve", "reject"].includes(is) && kid.state === "waiting") kid[is]({ by: delta.decide.by ?? by ?? "owner", note });
+			else if (kid && is === "project" && !(kid instanceof (Item.types.get("Project") ?? Task))){   // made a project: same id, data and place
+				const p = Item.hydrate({ type: "Project", id: kid.id, ...kid.data, stage: "requirements" });
+				if (kid._tasks) p.tasks = kid._tasks;
+				this.tasks.replace(kid, p);
+			}
 			delete delta.decide;
 		}
 		for (const k of Object.keys(delta)){   // a nested task changed: {"<task id>":{…}} goes to that task

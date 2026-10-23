@@ -3,7 +3,8 @@ import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { page_tools, hooks } from "./page_tools.js";
+import { page_tools, hooks, ledgers } from "./page_tools.js";
+import TaskHomes from "../../Server/TaskHomes.mjs";
 import PromptTasks from "./PromptTasks.js";
 import Session from "../../public/framework/core/Session/Session.js";
 import "../../public/framework/core/Task/Task.js";
@@ -12,6 +13,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".
 const SLUG = ".prompt-tasks-test-" + process.pid;
 const PAGE_DIR = path.join(ROOT, "public/framework/ai/2026/10/22", SLUG), REC_DIR = path.join(ROOT, "public/framework/ai/sessions/2026/10/22", SLUG);
 const REC = path.join(REC_DIR, "session.jsonl");
+const MOD = "ai/prompt-tasks-test-" + process.pid, MOD_DIR = path.join(ROOT, "public/framework", MOD);
+ledgers.task_moves = path.join(REC_DIR, "task-moves.jsonl"); TaskHomes.INDEX = path.join(REC_DIR, "homes.jsonl");   // never the real ledgers
 const read = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
@@ -30,7 +33,7 @@ try {
 
 	// 2. The prompt page maps to the session's own record, and line 1's id is read from a VS Code tab's object.
 	const pt = new PromptTasks({ refine: async p => (pt.asked = p, { ok: true, items: [
-		{ kind: "task", text: "Build the session menu", details: "settings first", module: "core/Session" },
+		{ kind: "task", text: "Build the session menu", details: "settings first", module: MOD },
 		{ kind: "question", text: "Why is the readme page a 404?" },
 	] }) });
 	const rec = pt.record_for(heard[0].file);
@@ -41,7 +44,8 @@ try {
 	ok(pt.asked.page === `/framework/ai/2026/10/22/${SLUG}/` && pt.asked.session === rec.uuid, "the refined card goes beside the prompt (the Coverage tab reads it there)");
 	const adds = read(REC).filter(l => l.tasks?.add); 
 	ok(adds.length === 1 && adds[0].tasks.add.state === "waiting" && adds[0].tasks.add.waiting_on === "owner" && adds[0].tasks.add.from === "owner", "one proposed task per task-kind ask, waiting on the owner; the question stays on the card");
-	ok(!fs.existsSync(path.join(ROOT, "public/framework/core/Session/tasks")), "a proposed task drafts in the session: no module folder is made before approval");
+	fs.mkdirSync(MOD_DIR, { recursive: true });
+	ok(!fs.existsSync(path.join(MOD_DIR, "tasks")), "a proposed task drafts in the session: no module folder is made before approval");
 	await pt.prompted(heard[0]);
 	ok(read(REC).filter(l => l.tasks?.add).length === 1, "the same prompt is never filed twice");
 
@@ -53,8 +57,21 @@ try {
 	ok([...s.tasks][0].state === "running", "a decide line (Approve on the session page) starts it");
 	s = Session.replay([...read(REC), { decide: { task: t.id, is: "reject", note: "not now" } }]);
 	ok([...s.tasks][0].state === "stopped", "Reject stops it, with the note as the reason");
+	s = Session.replay([...read(REC), { decide: { task: t.id, is: "project" } }]);
+	ok([...s.tasks][0].constructor.name === "Project" && [...s.tasks][0].get_one("title") === "Build the session menu", "Make it a project: same id, title and place, now a Project");
+
+	// 5. Approved and naming a module: the TaskLoop sweep moves it to <module>/tasks/<slug>/, and the session references it there.
+	ok((await pt.sweep()).length === 0, "a proposal still waiting is not moved");
+	fs.appendFileSync(REC, JSON.stringify({ decide: { task: t.id, is: "approve", by: "owner" } }) + String.fromCharCode(10));
+	const moved = await pt.sweep();
+	const home = path.join(MOD_DIR, "tasks", t.id, "task.jsonl");
+	ok(moved.length === 1 && fs.existsSync(home) && read(home)[0].set.title === "Build the session menu" && read(home)[0].set.state === "running", "approved: it moves to <module>/tasks/<slug>/ with its data and state");
+	s = Session.replay(read(REC));
+	ok(s.tasks.length === 1 && [...s.tasks][0].data.path === `/framework/${MOD}/tasks/${t.id}/`, "the session now references the moved task (same id replaces the nested one)");
+	ok((await pt.sweep()).length === 0 && fs.readFileSync(ledgers.task_moves, "utf8").includes(t.id), "moved once, and the move is in the ledger");
 } finally {
 	fs.rmSync(PAGE_DIR, { recursive: true, force: true });
 	fs.rmSync(REC_DIR, { recursive: true, force: true });
+	fs.rmSync(MOD_DIR, { recursive: true, force: true });
 }
 console.log(`${n} passing`);

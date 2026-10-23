@@ -47,6 +47,41 @@ export default class PromptTasks {
 		return this.queue.one(p);
 	}
 
+	/* ON APPROVAL, HOME (the TaskLoop tick, every 5 minutes): a proposal the owner approved on the session page that names a module
+	 * (`module_hint`, the splitter's guess) moves to <module>/tasks/<slug>/ (move_nested_home, page_tools.js). One with no module, or a
+	 * module that is not a folder under public/framework, stays in its session; it is not tried again until Servex restarts. */
+	async sweep({ days = 14, now = Date.now() } = {}){
+		const { move_nested_home } = await import("./page_tools.js");
+		const { default: Session } = await import("../../public/framework/core/Session/Session.js");
+		this.refused ??= new Set();
+		const moved = [];
+		for (const file of this.records(days, now)){
+			let s; try { s = Session.replay(fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l ? [JSON.parse(l)] : []; } catch { return []; } })); } catch { continue; }
+			for (const t of s._tasks ?? []){
+				const key = `${file}#${t.id}`, hint = t.get_one("module_hint");
+				if (this.refused.has(key) || t.data.path || !hint || !String(t.get_one("source") ?? "").startsWith("prompt:")) continue;
+				if (!["running", "paused", "complete"].includes(t.state)) continue;   // approved (waiting = still a proposal; stopped = Not now)
+				const r = await move_nested_home(file, t.id, String(hint).replace(/^\/?(public\/)?framework\//, ""), "PromptTasks");
+				if (r.why) this.refused.add(key); else moved.push(r);
+			}
+		}
+		return moved;
+	}
+
+	// The session records PromptTasks may have filed into: session.jsonl files of the last `days` days that hold a prompt-made task.
+	records(days, now){
+		const out = [];
+		for (let d = 0; d < days; d++){
+			const day = new Date(now - d * 864e5), dir = path.join(this.ai, "sessions", String(day.getFullYear()), String(day.getMonth() + 1).padStart(2, "0"), String(day.getDate()).padStart(2, "0"));
+			let names = []; try { names = fs.readdirSync(dir); } catch { continue; }
+			for (const n of names){
+				const f = path.join(dir, n, "session.jsonl");
+				try { if (fs.readFileSync(f, "utf8").includes('"source":"prompt:')) out.push(f); } catch {}
+			}
+		}
+		return out;
+	}
+
 	async run(p){
 		const rec = this.record_for(p.file);
 		if (!rec) return { ok: false, why: "no session record for this prompt page" };

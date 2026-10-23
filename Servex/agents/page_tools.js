@@ -529,6 +529,36 @@ export async function move_home(file, module, by = "ProcessRunner"){
 	return { from, to, file: nf };
 }
 
+/* MOVE A NESTED TASK HOME (owner prompts become tasks, 2026-10-22): a proposal drafted as lines in a session's record
+ * (`{"tasks":{"add":…}}` in session.jsonl), once approved, gets its own folder <module>/tasks/<slug>/: line 1 carries its data,
+ * the session gets a same-id `{task}` reference (which replaces the nested child, core/Session/Session.js), the module list
+ * references it, and task-moves.jsonl records the move. Same steps as move_home above, for a task that had no folder yet.
+ * Returns {from, to, file} or {why}. PromptTasks.sweep() calls it. */
+export async function move_nested_home(record, id, module, by = "PromptTasks"){
+	const file = path.resolve(record);
+	const { default: Session } = await import("../../public/framework/core/Session/Session.js");
+	const kid = Session.replay(parse_lines(file))._tasks?.find(id);
+	if (!kid) return { why: `"${id}" is not a task in ${app_path(path.dirname(file))}` };
+	if (kid.data.path) return { why: "already has its own folder" };
+	const home = task_home(path.dirname(file), { id, module }, FRAMEWORK, "");
+	if (!home) return { why: `no module folder public/framework/${module}` };
+	if (fs.existsSync(home.dir)) return { why: `${app_path(home.dir)} already exists; the task stays in its session` };
+	const from = `${app_path(path.dirname(file))}#${id}`, to = app_path(home.dir), at = now(), rel = p => path.relative(ROOT, p).split(path.sep).join("/");
+	const nf = path.join(home.dir, "task.jsonl");
+	write_line(nf, { id, path: to, parent: app_path(path.dirname(file)), set: { ...kid.data, path: to, moved_from: from }, by, ts: at }, true);
+	fs.writeFileSync(path.join(home.dir, "page.js"), PAGE_JS);
+	write_line(file, { task: to, moved_from: from, by, ts: at }, true);
+	const list = path.join(home.list.dir, "task.jsonl");
+	if (!fs.existsSync(list)){
+		write_line(list, { id: "tasks", path: app_path(home.list.dir), title: `${home.list.module} tasks`, mode: "parallel" }, true);
+		TaskHomes.add(app_path(home.list.dir), by);
+	}
+	write_line(list, { task: to, by, ts: at }, true);
+	record_new_folder(home.list.dir, home.slug);
+	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: `${rel(file)}#${id}`, to: rel(home.dir), session: app_path(path.dirname(file)), module, by, git: false }) + "\n");
+	return { from, to, file: nf };
+}
+
 /* Requests are logged items (Servex/agents/doc/messaging.md). After a write: each new request goes to its receiver, and each
  * request this write completed goes back to whoever asked (`from`), with its outcome. A completion is a `complete` line on a nested
  * child ({"<id>": {"complete": …}}, or a target of [<id>]), or on a request that has its own folder (the file's own root). */
