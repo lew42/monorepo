@@ -2,7 +2,11 @@
  * The owner's own sentence this is making true: "it doesn't make sense to take three extra
  * screenshots when one would do … depends on the width of the content." */
 import assert from "node:assert/strict";
-import { widthsFor, splitPatch } from "./review.mjs";
+import { widthsFor, splitPatch, worktreeOf, branchTree } from "./review.mjs";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { execFileSync } from "node:child_process";
 
 let n = 0;
 const t = (cond, what) => { assert.ok(cond, what); n++; };
@@ -72,5 +76,22 @@ eq(widthsFor([{ status: "M", f: "public/framework/ux/Thing/Thing.css" }], [{ add
 	t(!patches.get("public/x/a.css").includes("new text"), "splitPatch: files don't bleed into each other");
 }
 eq(splitPatch("").size, 0, "splitPatch of an empty diff is an empty map, not a throw");
+
+// The false pass (2026-10-23): a tree on michael/dev is never reviewed against itself.
+const rec = ['{"assign":{"now":"x"}}', JSON.stringify({ log: { worktree: "C:\a\b" } }), "not json", '{"x":{"worktree":"C:/w/later"}}'].join("\n");
+eq(worktreeOf(rec), "C:/w/later", "last worktree field wins");
+eq(worktreeOf(rec.split("\n").slice(0, 2).join("\n")), "C:\a\b", "an escaped Windows path parses");
+eq(worktreeOf('{"assign":{}}'), null, "no worktree named");
+{
+	const here = execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf8" }).trim();
+	if (execFileSync("git", ["-C", here, "rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim() !== "michael/dev")
+		eq(branchTree(os.tmpdir(), here), here, "a tree on its own branch is kept");
+	const common = path.dirname(execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { encoding: "utf8" }).trim());
+	if (execFileSync("git", ["-C", common, "rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim() === "michael/dev") {
+		const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rv-"));
+		fs.writeFileSync(path.join(dir, "session.jsonl"), '{"assign":{"now":"x"}}\n');
+		assert.throws(() => branchTree(dir, common), /refused/); n++;
+	}
+}
 
 console.log(`review.test.mjs: ${n} checks passed`);

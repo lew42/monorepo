@@ -36,6 +36,7 @@ const advice = pace >= 100 ? "slow right down" : pace >= 90 ? "slow down" : pace
 const left = Math.max(0, Date.parse(week?.resets_at) - Date.now()), mins = Math.floor(left / 60000);
 const d = Math.floor(mins / 1440), h = Math.floor(mins % 1440 / 60), m = mins % 60, pl = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
 const timeLeft = d ? `${pl(d, "day")} ${pl(h, "hour")}` : `${pl(h, "hour")} ${pl(m, "minute")}`;
-console.log(`At ${pace}% of pace with ${timeLeft} left (${advice})`);
+// the report line, all three numbers (the owner, 2026-10-23): used, gone, and used ÷ gone as "% of pace"
+console.log(`Week: ${used}% used · ${elapsed.toFixed(0)}% gone · ${pace}% of pace (${advice}, ${timeLeft} left)`);
 console.log(`week ${used}% used, ${elapsed.toFixed(1)}% of the week gone (${margin >= 0 ? "under" : "OVER"} pace by ${Math.abs(margin)} pts); 5h session ${session?.percent}%; data ${Math.round(age() / 60000)} min old. ${over ? "OVER PACE: no new spawns, finish up." : "OK to spawn within budget."}`);
 process.exit(over ? 2 : 0);
