@@ -1,0 +1,45 @@
+@layer site {
+	/* the ground: light grey, white cards (sessions/doc/mobile-cards.md). Cards have no padding of their own; head and rows pad themselves. */
+	.mob-page { background: #eef0f2; --mob-green: #2e9e5b; --mob-amber: #e0a100; --mob-red: #d6453d; --mob-grey: #b5bac0; --mob-line: #eceef0; }
+	.mob-day, .mob-all, .mob-session, .mob-task { display: flex; flex-direction: column; max-width: 40rem; margin-inline: auto; padding-block: 1px; }
+	.mob-card { background: #fff; margin: 8px; border-radius: 4px; overflow: hidden; }
+	.mob-card-head { display: flex; align-items: center; gap: .5em; padding: .6em .75em; border-bottom: 1px solid var(--mob-line); }
+	.mob-card-head > strong { flex: 1 1 auto; min-width: 0; }
+	summary.mob-card-head { cursor: pointer; list-style: none; background: none; border: 0; border-bottom: 1px solid var(--mob-line); border-radius: 0; width: auto; }
+	summary.mob-card-head::-webkit-details-marker { display: none; }
+	.mob-fold:not([open]) > summary { border-bottom: 0; }
+	.mob-count { color: #6b7178; background: #f1f2f4; border-radius: 99px; padding: 0 .55em; font-size: .8em; }
+	.mob-group-icon { font-size: 1.2em; color: var(--mob-grey); }
+	.mob-group-needs .mob-group-icon { color: var(--mob-red); }
+	.mob-group-running .mob-group-icon { color: var(--mob-amber); }
+	.mob-group-done .mob-group-icon { color: var(--mob-green); }
+	.mob-empty { padding: 1em .75em; color: #6b7178; }
+
+	/* the day bar */
+	.mob-daybar .mob-card-head { border-bottom: 0; }
+	.mob-head-main { flex: 1 1 auto; display: flex; flex-direction: column; text-align: center; }
+	.mob-head-sub { color: #6b7178; }
+	.mob-step { text-decoration: none; border: 0; background: none; display: grid; place-items: center; min-width: 2.5rem; min-height: 2.5rem; color: inherit; }
+	.mob-switch { display: flex; border-top: 1px solid var(--mob-line); }
+	.mob-switch > * { flex: 1 1 0; text-align: center; padding: .6em; color: #6b7178; text-decoration: none; }
+	.mob-switch-on { color: inherit !important; font-weight: 600; box-shadow: inset 0 -2px 0 currentColor; }
+
+	/* a row: dot, body, chevron. 2 px rail + one indent for a nested row */
+	.mob-row { display: block; border-top: 1px solid var(--mob-line); }
+	.mob-card-head + .mob-row { border-top: 0; }
+	.mob-row-link { display: flex; align-items: flex-start; gap: .65em; padding: .7em .75em; color: inherit; text-decoration: none; min-height: 3rem; }
+	.mob-row-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .15em; }
+	.mob-row-title { overflow-wrap: anywhere; }
+	.mob-row-sub, .mob-row-line { color: #6b7178; }
+	.mob-kind { font-weight: 600; }
+	.mob-row-bar { margin-top: .25em; }
+	.mob-row-bar .task-bar { margin: 0; max-width: 14em; }
+	.mob-go { color: var(--mob-grey); align-self: center; }
+
+	/* the status dot: green done, amber pulsing running, red blocked, grey open */
+	.mob-dot { flex: 0 0 auto; width: .7rem; height: .7rem; border-radius: 50%; margin-top: .4em; background: var(--mob-grey); }
+	.mob-dot.is-done { background: var(--mob-green); }
+	.mob-dot.is-running { background: var(--mob-amber); animation: mob-pulse 1.4s ease-in-out infinite; }
+	.mob-dot.is-blocked { background: var(--mob-red); }
+	@keyframes mob-pulse { 50% { opacity: .4; } }
+}

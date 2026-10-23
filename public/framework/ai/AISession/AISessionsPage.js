@@ -628,6 +628,7 @@ export default class AISessionsPage extends Page {
 	route(id){
 		if (id.includes(".")) return;   // a stray asset request, not a session id
 		if (id === "doc" || id === "readme") return this.docs_page(id);
+		if (id === "v") return;   // variants: sessions/v/page.js (e.g. v/mobile/), a folder and not a session id
 		if (/^\d{4}$/.test(id)) return new StoreFolder({ home: this, segs: [id] });   // the store by path: YYYY/MM/DD/<session>/<task>/ (ai/doc/task-folders.md)
 		return new AISessionDetail({ home: this, id });
 	}
