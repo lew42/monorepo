@@ -48,12 +48,11 @@ try {
 	const sr = new SessionRecord({ root: ROOT });
 	const miss = sr.links().missing.filter(m => m.dir === CDIR);
 	ok(miss.length === 0, "the --links census does not list the child as unreferenced");
-	if (miss.length) sr.apply_links({ ...sr.links(), missing: miss });
+	sr.apply_links(sr.links());   // always run the backfill itself, then count
 	ok(refs().length === 1, "the daily --links backfill adds nothing");
 
 	// roll-up: the child completes its own task; the parent's record shows it complete
-	const r = await run_item({ path: CURL, delta: { x: { complete: { outcome: "done", evidence: ["test"] } } } }, { caller: "agent-a" });
-	const r2 = r.ok ? r : await run_item({ path: CURL, delta: { complete: { outcome: "done", evidence: ["test"] } } }, { caller: "agent-a" });
+	const r2 = await run_item({ path: CURL, delta: { complete: { outcome: "done", evidence: ["test"] } } }, { caller: "agent-a" });   // the child folder IS the task: a plain complete on its page ("x" is not a child there)
 	ok(r2.ok, "the child completes the handed-over task: " + (r2.why ?? ""));
 	const P2 = Session.replay(read(PFILE));
 	ok(P2.tasks.find("x")?.state === "complete" && P2.completion === 1, "the parent's record shows x complete (rolled up from the child's folder)");
