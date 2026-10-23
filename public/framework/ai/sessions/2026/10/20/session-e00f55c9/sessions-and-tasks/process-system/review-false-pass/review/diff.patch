@@ -1,0 +1,52 @@
+diff --git a/Server/README.md b/Server/README.md
+index 8e6fd287d..e294c5d68 100644
+--- a/Server/README.md
++++ b/Server/README.md
+@@ -25,7 +25,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own 
+ - `node Server/window-lint.mjs` — repo-wide sweep for a `spawn`/`exec` missing `windowsHide: true`; `Browser.mjs` is the one Chromium launcher; `window-watch.mjs` is the live catcher ([`doc/browser.md`](./doc/browser.md)).
+ - `node Server/padding-check.mjs <url>` — does any text sit at 0 from an edge; non-zero exit when it does.
+ - `Server/on-landing.mjs` — runs on the first `landed_at`: text-check, layout-check, padding-check, `doc-check.mjs` ([`doc/on-landing.md`](./doc/on-landing.md)); `Server/owner-check.mjs` is its last check. The ledger hook refuses a `landed_at` with no `outcome`.
+-- `node Server/review.mjs <taskdir> [<worktree>]` — a fresh agent says pass or fix before `merge.mjs` takes a branch ([`doc/review.md`](./doc/review.md)).
++- `node Server/review.mjs <taskdir> [<worktree>]` — a fresh agent says pass or fix before `merge.mjs` takes a branch; run on `michael/dev` it reviews the task record's worktree or refuses, never a false pass ([`doc/review.md`](./doc/review.md)).
+ - `node Server/Audit.mjs <taskdir...>` — computes the consensus of several task audits; no AI writes it from memory.
+ - `Server/AskEach.mjs` `askOnce()` — one cheap Q&A turn, optionally on OpenRouter; ⚠ the SDK mis-prices an OpenRouter turn.
+ - `Server/Crawl.mjs` — nightly full-site crawl at 1920; failures go to `ai/todo.md`.
+diff --git a/Server/review.mjs b/Server/review.mjs
+index 091d0305b..f499b0b9f 100644
+--- a/Server/review.mjs
++++ b/Server/review.mjs
+@@ -144,6 +144,25 @@ export function worktreeBase(main, dir) {
+ 	} catch { return null; }
+ }
+ 
++/* The tree to review. Run from the main checkout (on michael/dev), the diff is michael/dev with itself:
++ * empty, size none, a false "pass" (2026-10-23, tasks-page-loading passed twice that way). So when the
++ * tree is on michael/dev, use the task's own worktree (the last "worktree" its record names) if it
++ * exists on another branch, and refuse otherwise. Exported for review.test.mjs. */
++export function branchTree(taskDir, dir) {
++	const on = d => git(d, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim();
++	if (on(dir) !== BASE) return dir;
++	let named = null;
++	try {
++		for (const m of fs.readFileSync(SessionRecord.log_or_old(taskDir), "utf8").matchAll(/"worktree":"([^"]+)"/g)) named = m[1];
++	} catch {}
++	if (named && fs.existsSync(named) && on(named) && on(named) !== BASE) {
++		console.log(`review.mjs: ${dir} is on ${BASE}; reviewing the task's worktree ${named} instead`);
++		return path.resolve(named);
++	}
++	console.error(`refused: ${dir} is on ${BASE}, so the diff would be ${BASE} with itself and the verdict a false pass. Run review.mjs from the branch's worktree (or pass it as the second argument), or use --range A..B.`);
++	process.exit(1);
++}
++
+ /* Both sides of a diff, parsed: {nameStatus: [{status, f}], numstat: [{added, deleted, f}]}.
+  * Exported so merge.mjs's review gate reuses this instead of its own copy. */
+ export function diffStat(cwd, spec) {
+@@ -676,7 +695,7 @@ async function main() {
+ 	const [taskDirArg, worktreeArg] = argv;
+ 	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>] [--widths 1200,1920]'); process.exit(1); }
+ 	const taskDir = path.resolve(taskDirArg);
+-	const worktreeDir = range ? null : path.resolve(worktreeArg || process.cwd());
++	const worktreeDir = range ? null : branchTree(taskDir, path.resolve(worktreeArg || process.cwd()));
+ 	// The main repo this worktree belongs to (the same trick merge.mjs uses): never assume it is
+ 	// wherever THIS copy of review.mjs happens to live — a worktree carries its own copy of this
+ 	// file, and .worktrees.json / Server/layout-check.mjs / the task's public/framework/ai only

@@ -1,0 +1,41 @@
+diff --git a/public/framework/ai/doc/one-dashboard.md b/public/framework/ai/doc/one-dashboard.md
+index 0f1ae8e1b..7ccb698b7 100644
+--- a/public/framework/ai/doc/one-dashboard.md
++++ b/public/framework/ai/doc/one-dashboard.md
+@@ -42,4 +42,4 @@ Yes to the shape above, or amend it (which chips, which page is the one). Then t
+ 
+ ## Built
+ 
+-**Built: steps 1, 2 and 3 (2026-10-19, last code commit 38628861d).** `State` folds cards and asks, each counted two ways ([Server/doc/ai-index.md](/Server/doc/ai-index.md)); the Inbox list in `/framework/ai/` reads `index.json` through the one stream, with the chips as urls (`?live&new`, `?recent=today`, `?older=month`, `?needs`, `kind=task,card`) and the red check line under them. A landing reaches the list in under a second with no agent writing anything. Step 3: `/framework/ai/tasks/` and `/tasks/` forward to the Inbox with their chips on (`DashChips.SAVED`, `tasks/SavedFilter.js`); Lanes reads the same state; `TasksPage.js` is gone. `/framework/ai/asks/undone/` keeps its module view (it reads `undone.json`, 1167 asks, which `index.json` does not fold yet) and links to `?kind=ask`; `/live/` is left for the owner. Plan and proof shots: [one-dashboard task](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md).
++**Built: steps 1, 2 and 3 (2026-10-19, last code commit 38628861d).** `State` folds cards and asks, each counted two ways ([Server/doc/ai-index.md](/Server/doc/ai-index.md)); the Inbox list in `/framework/ai/` reads `index.json` through the one stream, with the chips as urls (`?live&new`, `?recent=today`, `?older=month`, `?needs`, `kind=task,card`) and the red check line under them. A landing reaches the list in under a second with no agent writing anything. Step 3: `/framework/ai/tasks/` forwards to the Inbox with its chips on; `/tasks/` no longer forwards (the bare `/framework/ai/` is the sessions dashboard, which ignores the chips) and draws `core/Task/TasksPage.js` again, 2026-10-23 (`DashChips.SAVED`, `tasks/SavedFilter.js`); Lanes reads the same state; `TasksPage.js` is gone. `/framework/ai/asks/undone/` keeps its module view (it reads `undone.json`, 1167 asks, which `index.json` does not fold yet) and links to `?kind=ask`; `/live/` is left for the owner. Plan and proof shots: [one-dashboard task](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md).
+diff --git a/public/framework/core/Task/TasksPage.test.mjs b/public/framework/core/Task/TasksPage.test.mjs
+index 5351d28af..28ae88f00 100644
+--- a/public/framework/core/Task/TasksPage.test.mjs
++++ b/public/framework/core/Task/TasksPage.test.mjs
+@@ -1,4 +1,4 @@
+-// TasksPage in a real (headless) browser: a module's tasks/ path mounts it; /tasks/ is a saved filter that forwards to the Inbox, and the index it reads still spans two modules or more.
++// TasksPage in a real (headless) browser: a module's tasks/ path mounts it; /tasks/ draws TasksPage itself, and the index it reads still spans two modules or more.
+ // `node public/framework/core/Task/TasksPage.test.mjs [site url]` — default http://monorepo.localhost/
+ import assert from "node:assert";
+ import Browser from "../../../../Server/Browser.mjs";
+@@ -28,9 +28,8 @@ try {
+ 	const mod = await mounted(tab, "/framework/core/Task/tasks/");   // a Doc module: its Tasks tab draws the same view
+ 	ok(mod.groups.length === 1 && mod.groups[0].rows > 0, "a module's Tasks tab shows its one group of rows");
+ 
+-	await tab.goto(base + "tasks/");   // /tasks/ is ai/tasks/SavedFilter.js: it forwards to the Inbox (one dashboard, 2026-10-19)
+-	await tab.waitForFunction(() => location.pathname.startsWith("/framework/ai/") && !location.pathname.startsWith("/framework/ai/tasks/"), null, { timeout: 20000 });
+-	ok(!(await tab.$(".tasks-page")), "/tasks/ forwards to the Inbox saved filter (" + new URL(tab.url()).pathname + "), not a TasksPage");
++	const top = await mounted(tab, "/tasks/");   // /tasks/ draws TasksPage itself (it no longer forwards to the dashboard, 2026-10-23)
++	ok(top.cls === "TasksPage" && top.groups.reduce((n, g) => n + g.rows, 0) > 0, "/tasks/ draws TasksPage with task rows (" + top.groups.length + " groups)");
+ 
+ 	const groups = await tab.evaluate(async () => {   // the index public/tasks/task.jsonl still holds every task home
+ 		const { default: TasksPage } = await import("/framework/core/Task/TasksPage.js");
+diff --git a/public/tasks/page.jsonl b/public/tasks/page.jsonl
+index b7ca1109c..a34d27f9a 100644
+--- a/public/tasks/page.jsonl
++++ b/public/tasks/page.jsonl
+@@ -1,3 +1,3 @@
+-{"title":"Tasks","icon":"task_alt","description":"Every task a module keeps in its own tasks/ folder: the Inbox with its Tasks and Home chips on.","class":"/framework/ai/tasks/SavedFilter.js","preset":"all-tasks"}
++{"title":"Tasks","icon":"task_alt","description":"Every task a module keeps in its own tasks/ folder, grouped by module, ranked.","class":"/framework/core/Task/TasksPage.js"}
+ {"file":"task.jsonl"}
+ {"title":"Tasks","icon":"task_alt","description":"Every task home on the site, grouped by module, ranked.","class":"/framework/core/Task/TasksPage.js"}

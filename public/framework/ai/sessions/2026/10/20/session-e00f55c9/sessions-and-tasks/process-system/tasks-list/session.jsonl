@@ -1,0 +1,4 @@
+{"assign":{"session_id":"43fe6e64-6b95-488d-b5f9-a40232327bf5","agent":"minion-tasks-list","card":"/tasks/ lists tasks again","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/tasks-list/requirements.md","model":"claude-sonnet-5-5","worktree":"C:/Code/lew42/worktrees/qf-2","parent_task":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system","home":"/framework/core/Task/","requested_at":"2026-10-23T18:29:09-05:00","now":"starting"}}
+{"commit":"0145a7924740"}
+{"commit":"0f056bcbed2a"}
+{"shots":{"at":"2026-10-23T18:31:42-05:00","pages":["/tasks/"],"dir":"shots/","sheet":"shots/127-0-0-1-62182-tasks/sheet.png","sheets":["shots/127-0-0-1-62182-tasks/sheet.png"],"bands":["shots/127-0-0-1-62182-tasks/layout.json"],"widths":[400,1920]}}
