@@ -127,6 +127,16 @@ What worked:
 - Execute fixed a skip rule that had never matched on Windows paths.
 - The approve phase had no live creator to send to, so it waited on the creator instead of being lost.
 
+## Plan, not built: the prompt audit's asks become session tasks
+
+The prompt audit ([ai/doc/prompt-audit.md](/framework/ai/doc/prompt-audit.md)) already judges each owner ask against what the session did. It writes `prompt-review.jsonl` beside the session, and today nothing files those asks as tasks. Once completion is automatic, the plan is:
+
+1. **Node files each ask.** A node step after `Server/PromptAudit.mjs` reads every ask judged not done and adds it to that session as an idle task: `item({path: <session>, delta: {tasks: {add: {title, source: <prompt link>}}}})`.
+2. **A repeat adds weight.** An ask whose title matches an existing task is a `reinforce` line (the same rule as improvements), so asking again raises its weight.
+3. **The session counts it.** The session's `completion` counts these tasks, so an ask that is never done keeps the session open, and the dashboard shows it.
+4. **A process when needed.** A mastermind turns an ask into a process with `process: "build"` when it needs more than one step.
+5. **No AI writes the bookkeeping.** The audit's model only judges; node writes every line.
+
 ## Status
 
 - ✅ Slice 1: `Process` + `ProcessRunner`, one process end to end, completion rolling up to the session; run 1 above; moving home on approval; tests `node Servex/ProcessRunner.test.mjs` (27).
