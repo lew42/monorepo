@@ -10,3 +10,4 @@
 {"at":"2026-09-29T19:31:59-05:00","from":"minion-audio-whisper-host","kind":"done","text":"Already landed — the report (`report.md`) was written and the outcome logged before `task-mastermind-audio` deliberately stopped this agent. Nothing left to do; no plan change needed."}
 {"at":"2026-09-29T19:36:39-05:00","from":"minion-audio-parts-2","kind":"stopped","text":"Now let's document the revision line shape properly, replacing the stale note about \"logged as a second line, never a rewrite\":"}
 {"at":"2026-09-29T19:36:39-05:00","from":"minion-audio-parts","kind":"stopped","text":"Now let's add the `watch` option, merging local (including watched lines) into the source:"}
+{"read_upto":12,"at":"2026-10-23T02:23:05-05:00","by":"servex-task-loop","note":"12 line(s) older than 7 days marked read, not delivered"}

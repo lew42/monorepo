@@ -1,2 +1,4 @@
 {"inbox":{"id":"n-ipdm9rso","from":"servex-task-loop","text":"voice-20261016/accounting has been quiet since 2026-10-16T17:05:53-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-16T17:06:47.601-05:00"}}
 {"file":"task.jsonl"}
+{"inbox":{"id":"n-n7x4qfyl","from":"servex-task-loop","text":"1 unread line(s) in public/framework/ai/sessions/2026/10/16/voice-20261016/accounting/inbox.jsonl, and helper-accounting is stopped or gone. Look at them.","at":"2026-10-23T02:23:06.746-05:00"}}
+{"file":"inbox.jsonl"}

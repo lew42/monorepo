@@ -26,3 +26,4 @@
 {"at":"2026-10-08T17:46:54-05:00","from":"helper-fix-2","kind":"done","text":"Status: finished. The fix list is written to C:/Users/mike/AppData/Local/Temp/ta2/fix2.out.txt, 122 lines (50 small, 67 work, 5 dead). I have not run any new work since, so the task is idle."}
 {"at":"2026-10-08T17:46:54-05:00","from":"helper-fix-1","kind":"done","text":"Finished: `fix1.out.txt` is written with all 122 lines, and I'm not doing anything else on this task."}
 {"at":"2026-10-08T17:46:56-05:00","from":"helper-summarise","kind":"done","text":"The summary is finished and written to C:/Users/mike/AppData/Local/Temp/ta2/summary.md, and nothing is running. I haven't logged this to the task file, so the quiet period is my gap, not a stall."}
+{"read_upto":28,"at":"2026-10-23T02:23:05-05:00","by":"servex-task-loop","note":"28 line(s) older than 7 days marked read, not delivered"}

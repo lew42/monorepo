@@ -3,3 +3,4 @@
 {"at":"2026-10-15T23:30:10-05:00","from":"helper-past-work-pilot","kind":"done","text":"Idle. The classifier pilot reply is delivered, and nothing is running or waiting on me."}
 {"at":"2026-10-15T23:55:10-05:00","from":"helper-past-work-pilot","kind":"done","text":"Still idle. The pilot reply is done, and I have no open work."}
 {"at":"2026-10-16T00:40:10-05:00","from":"helper-past-work-pilot","kind":"done","text":"Idle: the pilot reply is delivered and nothing is waiting on me."}
+{"read_upto":5,"at":"2026-10-23T02:23:05-05:00","by":"servex-task-loop","note":"5 line(s) older than 7 days marked read, not delivered"}

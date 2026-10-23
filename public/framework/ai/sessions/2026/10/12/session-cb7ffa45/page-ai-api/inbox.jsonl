@@ -3,3 +3,4 @@
 {"at":"2026-10-12T03:15:02-05:00","from":"minion-page-proof","kind":"done","text":"ready"}
 {"at":"2026-10-12T03:15:32-05:00","from":"minion-page-proof","kind":"done","text":"done"}
 {"at":"2026-10-12T03:16:29-05:00","from":"minion-page-ai-api-build","kind":"done","text":"The build is done and committed on `worktree/page-ai-api` (not merged), and I'm idle waiting for your review and merge. Tests pass 26/26 and the headless live proof worked. The `Server/smoke.mjs` FAIL is from missing `weight.jsonl` and `directory.json` files that the main tree lacks too. The details are in `public/framework/ai/2026-10-12/page-ai-api/build/report.md`."}
+{"read_upto":5,"at":"2026-10-23T02:23:05-05:00","by":"servex-task-loop","note":"5 line(s) older than 7 days marked read, not delivered"}

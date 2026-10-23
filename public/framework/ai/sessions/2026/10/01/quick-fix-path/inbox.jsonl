@@ -1,2 +1,3 @@
 {"at":"2026-10-01T22:43:21-05:00","from":"minion-fixer-2","kind":"stopped","text":"Good, consistent false positive at the same pre-existing lines. Let's verify Servex.js still parses correctly."}
 {"at":"2026-10-01T22:43:21-05:00","from":"minion-quick-merge-2","kind":"stopped","text":"Now I have enough context. Let me check `splitPatch`-style helpers don't already exist, then implement `widthsFor` in `review.mjs`."}
+{"read_upto":2,"at":"2026-10-23T02:23:05-05:00","by":"servex-task-loop","note":"2 line(s) older than 7 days marked read, not delivered"}
