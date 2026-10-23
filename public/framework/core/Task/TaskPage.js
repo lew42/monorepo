@@ -6,7 +6,10 @@ import "./TaskView.js";   // sets Task.View
 export class TaskPage extends Page {
 	async load_task(){
 		const has = async n => (await fetch(this.url + n, { method: "HEAD" }).catch(() => null))?.ok;   // a spawned agent's folder holds session.jsonl, a task's task.jsonl
-		const store = Task.Store.for(this.url + (await has("session.jsonl") ? "session.jsonl" : "task.jsonl"));
+		// Ask for the likely file first, so the usual page makes no 404 (the merge smoke test fails on any 404): a folder at
+		// <module>/tasks/<slug>/ is a task (1753 of them; 6 sessions sit there), anything else is most often a session.
+		const [a, b] = /\/tasks\/[^/]+\/$/.test(this.url) ? ["task.jsonl", "session.jsonl"] : ["session.jsonl", "task.jsonl"];
+		const store = Task.Store.for(this.url + (await has(a) ? a : b));
 		await store.open();
 		if (!store.host) store.attach(Task.replay_new(store.entries));   // attach replays the held entries
 		return this.task = store.host;
