@@ -31,6 +31,15 @@ export default class PromptTasks {
 	static OFF_FILE = () => place("prompt-tasks.off");   // the runtime switch: present = off
 
 	static off(){ return fs.existsSync(PromptTasks.OFF_FILE()); }
+	/** Accepted: approved (approve() leaves it idle with an approve verdict) or already started. A waiting proposal is not. */
+	static accepted(t){ return ["running", "paused", "complete"].includes(t.state) || (t.state === "idle" && t.get_one("verdict")?.is === "approve"); }
+	/** The module that holds a file: the deepest folder under public/framework with a readme.md, as "ext/Refine". null when none. */
+	static module_of(file){
+		if (!file) return null;
+		const fw = path.resolve(AI, ".."), segs = String(file).replace(/^\/?(public\/)?framework\//, "").split(/[\\/]/).filter(Boolean);
+		for (let n = segs.length; n > 0; n--){ const rel = segs.slice(0, n).join("/"); if (fs.existsSync(path.join(fw, rel, "readme.md"))) return rel; }
+		return null;
+	}
 	static set(on){ const f = PromptTasks.OFF_FILE(); if (on) fs.rmSync(f, { force: true }); else fs.writeFileSync(f, new Date().toISOString() + "\n"); return !PromptTasks.off(); }
 
 	constructor(...args){ Object.assign(this, ...args); this.chain = Promise.resolve(); this.seen = new Set(); this.ai ??= AI; }
@@ -90,9 +99,11 @@ export default class PromptTasks {
 		return this.lives.get(rec.uuid);
 	}
 
-	/* ON APPROVAL, HOME (the TaskLoop tick, every 5 minutes): a proposal the owner approved on the session page that names a module
-	 * (`module_hint`, the splitter's guess) moves to <module>/tasks/<slug>/ (move_nested_home, page_tools.js). One with no module, or a
-	 * module that is not a folder under public/framework, stays in its session; it is not tried again until Servex restarts. */
+	/* ON APPROVAL, HOME (the TaskLoop tick, every 5 minutes): an accepted prompt task moves to <module>/tasks/<slug>/ (move_nested_home,
+	 * page_tools.js). Accepted = approved (idle with an approve verdict) or already started. Its module is `module_hint` (the parts model's
+	 * guess), else the module that holds its `file_hint` (PromptTasks.module_of). THE DEFAULT HOME (crack 2, core/Task/doc/cracks.md): a task
+	 * with neither, or a module that is not a folder, stays a task in its own session's record, where the session page lists it and the
+	 * session's completion counts it; it is not tried again until Servex restarts. */
 	async sweep({ days = 14, now = Date.now() } = {}){
 		const { move_nested_home } = await import("./page_tools.js");
 		const { default: Session } = await import("../../public/framework/core/Session/Session.js");
@@ -101,9 +112,9 @@ export default class PromptTasks {
 		for (const file of this.records(days, now)){
 			let s; try { s = Session.replay(fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l ? [JSON.parse(l)] : []; } catch { return []; } })); } catch { continue; }
 			for (const t of s._tasks ?? []){
-				const key = `${file}#${t.id}`, hint = t.get_one("module_hint");
+				const key = `${file}#${t.id}`, hint = t.get_one("module_hint") || PromptTasks.module_of(t.get_one("file_hint"));
 				if (this.refused.has(key) || t.data.path || !hint || !(typeof t.get_one("source") === "object" ? t.get_one("source")?.prompt : String(t.get_one("source") ?? "").startsWith("prompt:"))) continue;
-				if (!["running", "paused", "complete"].includes(t.state)) continue;   // approved (waiting = still a proposal; stopped = Reject)
+				if (!PromptTasks.accepted(t)) continue;   // waiting = still a proposal; stopped = Reject
 				const r = await move_nested_home(file, t.id, String(hint).replace(/^\/?(public\/)?framework\//, ""), "PromptTasks");
 				if (r.why) this.refused.add(key); else moved.push(r);
 			}

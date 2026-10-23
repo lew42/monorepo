@@ -72,7 +72,8 @@ try {
 		ok(pt.record_for(path.join(SDK_PAGE, "page.jsonl")) === null, "an SDK agent's session (line 1 not vscode-tab) has no record here, so nothing is filed");
 		fs.writeFileSync(path.join(SDK_REC, "session.jsonl"), JSON.stringify({ session: "bare-string" }) + "\n");
 		ok(pt.record_for(path.join(SDK_PAGE, "page.jsonl")) === null, "no id on line 1: skipped, never a made-up session path");
-	} finally { fs.rmSync(SDK_PAGE, { recursive: true, force: true }); fs.rmSync(SDK_REC, { recursive: true, force: true }); }
+		ok(PromptTasks.module_of("public/framework/ext/Refine/Prompt.js") === "ext/Refine" && PromptTasks.module_of("Server/x.mjs") === null, "no module hint: the module that holds its file_hint, else none (it stays in its session)");
+} finally { fs.rmSync(SDK_PAGE, { recursive: true, force: true }); fs.rmSync(SDK_REC, { recursive: true, force: true }); }
 
 	// 3c. Only a turn a person typed: the transcript's turnOrigin. A scheduled check-in (CronCreate) is not the owner's words.
 	const TR = path.join(REC_DIR, "transcript.jsonl"), CHECK = "Mastermind check: status of the architect and whether the branch merged", TYPED = "Build the merge button on the session page, please";
@@ -93,7 +94,7 @@ try {
 	const t = [...s.tasks][0];
 	ok(s.id === rec.uuid && t.state === "waiting" && t.get_one("title") === "Build the session menu", "the session reads the proposal as a waiting task");
 	s = Session.replay([...read(REC), { decide: { task: t.id, is: "approve", by: "owner" } }]);
-	ok([...s.tasks][0].state === "running", "a decide line (Approve on the session page) starts it");
+	ok([...s.tasks][0].state === "idle" && PromptTasks.accepted([...s.tasks][0]), "a decide line (Approve on the session page) accepts it: idle, approved");
 	s = Session.replay([...read(REC), { decide: { task: t.id, is: "reject", note: "not now" } }]);
 	ok([...s.tasks][0].state === "stopped", "Reject stops it, with the note as the reason");
 	s = Session.replay([...read(REC), { decide: { task: t.id, is: "project" } }]);
@@ -104,7 +105,7 @@ try {
 	fs.appendFileSync(REC, JSON.stringify({ decide: { task: t.id, is: "approve", by: "owner" } }) + String.fromCharCode(10));
 	const moved = await pt.sweep();
 	const home = path.join(MOD_DIR, "tasks", t.id, "task.jsonl");
-	ok(moved.length === 1 && fs.existsSync(home) && (h => h.get_one("title") === "Build the session menu" && h.state === "running")(Task.replay(read(home))), "approved: it moves to <module>/tasks/<slug>/ with its data and state");
+	ok(moved.length === 1 && fs.existsSync(home) && (h => h.get_one("title") === "Build the session menu" && h.state === "idle")(Task.replay(read(home))), "approved: it moves to <module>/tasks/<slug>/ with its data and state");
 	s = Session.replay(read(REC));
 	ok(s.tasks.length === 1 && [...s.tasks][0].data.path === `/framework/${MOD}/tasks/${t.id}/`, "the session now references the moved task (same id replaces the nested one)");
 	ok((await pt.sweep()).length === 0 && fs.readFileSync(ledgers.task_moves, "utf8").includes(t.id), "moved once, and the move is in the ledger");
