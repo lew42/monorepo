@@ -284,6 +284,11 @@ export default class Servex extends Events {
         this.process_runner = new ProcessRunner({ servex: this, root: REPO });
         page_tool_hooks.changed = file => this.process_runner.step(file);
         if (!process.env.SERVEX_NO_TASKLOOP) setImmediate(() => this.process_runner.tick().catch(() => {}));
+        /* REQUESTS ARE LOGGED ITEMS (the owner, 2026-10-22: logs over chat): a task added to another agent's task is a request; its
+         * receiver hears once, and the asker hears the outcome when it completes. Doc: Servex/agents/doc/messaging.md. */
+        const notice = (to, text, from) => { if (!to || to === "owner") return; try { this.agents.send(to, text, { from: from ?? "servex" }); } catch {} };
+        page_tool_hooks.requested = r => notice(r.to, `Request from ${r.from}: "${r.title}", logged at ${r.path}. Answer on the item when it is done: item({path: "${r.path}", delta: ${r.own_folder ? `{"complete": {"outcome": "…"}}` : `{"${r.id}": {"complete": {"outcome": "…"}}}`}}). ${r.from} hears the outcome then.`, r.from);
+        page_tool_hooks.answered = r => notice(r.to, `${r.by} answered your request "${r.title}" (${r.path}): ${r.outcome ?? "done, no outcome given"}`, r.by);
 
         /* THE ASKS LEDGER (asks-ledger, 2026-09-30): notices when a routed ask's owner agent
          * stops, goes quiet, or lands its task, and marks public/framework/ai/asks.jsonl so
