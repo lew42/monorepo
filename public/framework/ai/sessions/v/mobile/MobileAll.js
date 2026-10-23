@@ -8,7 +8,7 @@ import MobileRow from "./MobileRow.js";
    not in the list stays at the top, so nothing disappears. */
 export default class MobileAll extends MobileHome {
 
-	static DAYS = 7;
+	static DAYS = 1;   // today, as the Day tab
 	static PAGE = 40;   // top-level rows drawn at once; "show more" adds the next page
 	mode = "all";
 
@@ -18,7 +18,9 @@ export default class MobileAll extends MobileHome {
 	get days(){ return Math.min(60, +new URLSearchParams(location.search).get("days") || this.constructor.DAYS); }
 	/** `?end=2026-10-08` looks back from that day instead of today (the parent data of the last two weeks is stale: see the readme). */
 	get end(){ const e = new URLSearchParams(location.search).get("end"); return e ? new Date(e + "T12:00:00") : new Date(); }
-	head_info(){ return { title: this.end.toDateString() === new Date().toDateString() ? this.days === 1 ? "Today" : `Last ${this.days} days` : `${this.days} d to ${new URLSearchParams(location.search).get("end")}` }; }
+	head_info(){
+		if (!location.search) return super.head_info();   // the same date header as the Day tab
+		return { title: this.end.toDateString() === new Date().toDateString() ? this.days === 1 ? "Today" : `Last ${this.days} days` : `${this.days} d to ${new URLSearchParams(location.search).get("end")}` }; }
 
 	async rows(){
 		const snaps = await MobileData.days(this.days, this.end);
@@ -39,6 +41,7 @@ export default class MobileAll extends MobileHome {
 			this.header(rows);
 			div.c("mob-card", () => {
 				div.c("mob-card-head", () => { icon("account_tree").ac("mob-group-icon"); strong("Sessions"); small.c("mob-count", String(top.length)); });
+				if (!kids.size) div.c("mob-empty", "No parent links recorded for this day");
 				this.page_of(top, kids, tree, this.constructor.PAGE);
 			});
 		});

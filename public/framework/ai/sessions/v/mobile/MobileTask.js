@@ -1,5 +1,5 @@
 import { Page } from "/app.js";
-import { div, span, a, small, strong, p, h1, icon } from "/framework/core/View/View.js";
+import { div, span, a, small, strong, p, h1, button, icon } from "/framework/core/View/View.js";
 import TaskView from "/framework/core/Task/TaskView.js";
 import TaskPage from "/framework/core/Task/TaskPage.js";
 import MobileData from "./MobileData.js";
@@ -48,7 +48,9 @@ export default class MobileTask extends Page {
 			});
 			div.c("mob-card", () => {
 				div.c("mob-card-head", () => { icon("notes").ac("mob-group-icon"); strong("Content"); });
-				div.c("mob-body", () => this.body(node, task));
+				const body = div.c("mob-body", () => this.body(node, task));
+				const more = button.c("mob-more", "More").click(() => { const open = body.el.classList.toggle("is-open"); more.el.textContent = open ? "Less" : "More"; });
+				requestAnimationFrame(() => { if (![...body.el.children].some(l => l.scrollHeight > l.clientHeight + 1)) more.el.remove(); });
 			});
 			if (node.kids.length) div.c("mob-card", () => {
 				div.c("mob-card-head", () => { icon("checklist").ac("mob-group-icon"); strong("Subtasks"); small.c("mob-count", String(node.kids.length)); });
@@ -65,13 +67,14 @@ export default class MobileTask extends Page {
 
 	/** The one-line outcome, what was expected, then the task's content items. */
 	body(node, task){
-		if (node.line) p.c("mob-line", node.line);
+		const done = task?.get?.("outcome") ?? node.line;   // the whole outcome; the index line is cut
+		if (done) p.c("mob-line", String(done));
 		for (const line of [task?.expected].flat()) if (line) p.c("mob-line", () => { small.c("mob-fact-k", "expected "); span(String(line)); });
 		for (const item of task?._content ?? []){
 			const text = item.get?.("text") ?? item.get?.("title") ?? item.data?.text ?? item.data?.title;
 			if (text) p.c("mob-line", String(text));
 		}
-		if (!node.line && !task?.expected && !(task?._content?.length)) p.c("mob-empty", "No content recorded on this task.");
+		if (!done && !task?.expected && !(task?._content?.length)) p.c("mob-empty", "No content recorded on this task.");
 	}
 
 	/** A task's waiting_on, plus any unanswered Question in its content. */
