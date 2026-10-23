@@ -14,6 +14,7 @@
  * Same style as spawn-worktree.test.mjs: a FakeAgent whose start()/send() never touch a real SDK
  * session, so Agents.spawn()'s own real code (recipe(), register(), the registry row) still runs
  * for real, just without a child process. */
+import "./test-store.mjs";   // FIRST: points the session store at a scratch dir, so spawned fakes never land in the real one
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
