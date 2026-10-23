@@ -17,11 +17,17 @@ export default class MobileTaskRow extends View {
 		a.c("mob-task-link", () => {
 			div.c("mob-row-body", () => {
 				strong.c("mob-row-title", node.title);
-				small.c("mob-row-sub", node.line && node.done ? node.line : node.state + (node.kids.length ? ` · ${kids.filter(s => s === "complete").length} of ${kids.length} done` : ""));
+				small.c("mob-row-sub", node.line && node.done ? node.line : this.sub(kids));
 				if (node.kids.length > 1) div.c("mob-row-bar", () => TaskView.draw_bar(kids, 12));
 			});
 			icon("chevron_right").ac("mob-go");
 		}).href(MobileData.task_url(sid, node.rel));
 		});
+	}
+
+	/** The second line of an unfinished task: its progress and when it started; the dot already says its state, so the word is not repeated. */
+	sub(kids){
+		const { node } = this, ago = node.started && MobileData.ago(node.started);
+		return [kids.length && `${kids.filter(s => s === "complete").length} of ${kids.length} done`, ago && "started " + ago].filter(Boolean).join(" · ") || node.state;
 	}
 }

@@ -2,6 +2,7 @@ import { Page, md } from "/app.js";
 import { div, span, a, small, strong, p, h1, button, icon } from "/framework/core/View/View.js";
 import TaskView from "/framework/core/Task/TaskView.js";
 import TaskPage from "/framework/core/Task/TaskPage.js";
+import AISessionDetail from "../../../AISession/AISessionDetail.js";
 import MobileData from "./MobileData.js";
 import MobileRun from "./MobileRun.js";
 import MobileTaskRow from "./MobileTaskRow.js";
@@ -30,7 +31,7 @@ export default class MobileTask extends Page {
 		const snap = await MobileData.find(this.sid), tree = snap && await MobileData.tasks(snap).catch(() => null);
 		const node = tree?.root.all().find(n => n.rel === this.segs.join("/"));
 		if (!node) return void root.empty(() => p.c("mob-empty", "This task is not in the session's task tree."));
-		this.retitle?.(node.title);
+		this.retitle(node.title);
 		const task = await new TaskPage({ url: node.url }).load_task().catch(() => null);
 		const kids = MobileData.states(node.kids);
 		root.empty(() => {
@@ -64,6 +65,9 @@ export default class MobileTask extends Page {
 			});
 		});
 	}
+
+	/** The task's real title in the column bar and the crumb, in place of its folder name (the session page does the same). */
+	retitle(name){ AISessionDetail.prototype.retitle.call(this, name); }
 
 	/** The one-line outcome, what was expected, then the task's content items. */
 	body(node, task){

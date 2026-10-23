@@ -64,6 +64,7 @@
 	.mob-bar { display: flex; align-items: center; gap: .5em; padding: .5em .75em; background: #fff; border-bottom: 1px solid var(--mob-line); transform: translateY(-.6rem); opacity: 0; pointer-events: none; transition: transform .2s, opacity .2s; }
 	.mob-bar-wrap.is-on .mob-bar { transform: none; opacity: 1; pointer-events: auto; }
 	.mob-bar-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.mob-card-head .mob-bar-title { white-space: normal; }   /* the task page's title sits in a card, not the sticky bar: wrap it whole */
 	.mob-back { color: inherit; display: inline-flex; }
 	.mob-tabs-row { display: flex; position: sticky; top: 0; background: var(--mob-ground, #f1f2f4); z-index: 4; }
 	.mob-tab { flex: 1 1 0; padding: .7em 0; border: 0; border-bottom: 2px solid transparent; background: none; font: inherit; color: #6b7178; cursor: pointer; }
