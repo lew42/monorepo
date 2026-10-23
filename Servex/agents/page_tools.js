@@ -594,7 +594,7 @@ export async function move_item({ from, id, to, by = "agent", module } = {}){
 		const set = { ...plain(kid.data), ...(back.state !== kid.state ? { state: kid.state } : {}) };
 		hist.push({ set, snapshot: true, by, ts: now() });
 	}
-	// 4. The new home. A folder with a log already (open_task's assign line) gets the history after it.
+	// 4. The new home, written BEFORE the reference: if the reference write failed, the task would show in both places (never lost). A folder with a log already (open_task's assign line) gets the history after it.
 	const nf = SessionRecord.start_file(dir, hist[0]), rel = p => path.relative(ROOT, p).split(path.sep).join("/");
 	fs.mkdirSync(dir, { recursive: true });
 	fs.appendFileSync(nf, hist.map(l => JSON.stringify(l) + "\n").join(""));

@@ -5,6 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { page_tools, run_item } from "./page_tools.js";
 import TaskHomes from "../../Server/TaskHomes.mjs";
+import SessionRecord from "../../Server/SessionRecord.mjs";
+const SessionRecord_file = d => SessionRecord.file(d);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const REL = "public/framework/ai/sessions/2026/10/16/.item-tool-test-" + process.pid;
@@ -267,6 +269,19 @@ try {
 			const cl = fs.readFileSync(af, "utf8").trim().split("\n").map(l => JSON.parse(l));
 			ok(r.ok && cl[0].assign && cl[1].id === "y" && cl[2].start && !fs.existsSync(path.join(MDIR, "agent-c", "task.jsonl")), "appended after the assign line, in the existing log");
 			ok([...Session.replay(plines()).tasks].length === 2, "two children after two moves");
+
+			// open_task handoff: task {dir, from, id} moves the subtask into the new agent's folder, by the spawner; a refusal is logged there
+			const { open_task } = await import("./Agents.js");
+			await call("item", { path: MURL, delta: { tasks: { add: { id: "z", title: "Z task" } } } });
+			const settle = async f => { for (let i = 0; i < 50 && !f(); i++) await new Promise(res => setTimeout(res, 20)); };
+			open_task({ dir: path.join(MDIR, "agent-d"), from: MURL, id: "z" }, { session_id: "s-d", agent: "agent-d", by: "spawner" });
+			await settle(() => plines().at(-1).as === "z");
+			const dl = fs.readFileSync(SessionRecord_file(path.join(MDIR, "agent-d")), "utf8").trim().split("\n").map(l => JSON.parse(l));
+			ok(dl[0].assign && dl[1].id === "z" && plines().at(-1).as === "z" && plines().at(-1).by === "spawner" && JSON.parse(ledger().at(-1)).by === "spawner", "open_task hands the subtask to the new folder, by the spawner");
+			open_task({ dir: path.join(MDIR, "agent-e"), from: MURL, id: "nobody" }, { session_id: "s-e", agent: "agent-e", by: "spawner" });
+			const ef = SessionRecord_file(path.join(MDIR, "agent-e"));
+			await settle(() => fs.readFileSync(ef, "utf8").includes("refused"));
+			ok(/"handoff".*"refused"/.test(fs.readFileSync(ef, "utf8")), "a refused handoff is written into the new log");
 		} finally { fs.rmSync(MDIR, { recursive: true, force: true }); }
 	}
 	console.log(`item_tool: ${n} checks passed`);

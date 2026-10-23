@@ -342,8 +342,13 @@ export class Task extends Item {
 
 	// Browser only: open the child's file through the shared Store, then attach (replay + live tail) onto the stub.
 	static async open_ref(kid, ref){
-		const store = this.Store.for(String(ref).replace(/\/?$/, "/") + "task.jsonl");
+		const dir = String(ref).replace(/\/?$/, "/");
+		let store = this.Store.for(dir + "task.jsonl");
 		try { await store.open(); } catch { /* treated as missing below */ }
+		if (!store.host && !store.count){   // a session folder's log is session.jsonl (a task moved into a child session, item-move)
+			const s = this.Store.for(dir + "session.jsonl");
+			try { await s.open(); if (s.host || s.count) store = s; } catch { /* still missing */ }
+		}
 		if (store.host){   // another reader (TaskPage) is already attached and live: this stub takes a snapshot of the same file
 			const res = await fetch(store.url).catch(() => null);
 			const entries = res?.ok ? store.parse(await res.text()) : [];
