@@ -80,6 +80,8 @@ Two writers ask it: `Servex/agents/Agents.js` (`open_task`, the launch line of `
 - **The reference:** whichever way a folder is made, `SessionRecord.link_parent` appends one `{"task":"<url>"}` line to the parent's log (the nearest folder above with a log, or the explicit parent), never twice. The daily tick backfills any that were missed.
 - **Completion rolls up** by replaying the logs: a session's completion is its referenced tasks done over total (`Session.progress()`), and a child session counts as one of them through its reference. Nobody writes a percentage.
 - **A task moves to a child session** with `spawn_agent` and `task: {from, id}`: the subtask leaves the spawner's log and its history is moved into the child's folder (`move_item` in `Servex/agents/page_tools.js`). A refusal is written into the child's log as a `handoff` line.
+  A handoff leaves exactly one reference on the parent (move_item's `{"task","as":id}` line); `open_task` links the child itself only when there is no handoff or it is refused. **Proved by** `node Servex/agents/handover.test.mjs` (temp store: history moved, one reference however often `link_parent` or `--links` runs, completion rolls up).
+- **A simple process** (two steps, build → review) runs through `ProcessRunner`: each step starts, completes with `{outcome, evidence}` (no evidence is refused), the task completes with the last step. **Proved by** `node Servex/ProcessRunner.test.mjs`.
 
 ## Readers: every one accepts both names
 
