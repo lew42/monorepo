@@ -1,6 +1,6 @@
 # Report: mobile variant, ready to merge (not merged)
 
-**Branch:** `worktree/mobile-picks` (last commit: whole task content, tighter title, nested defaults to today). Smoke passes.
+**Branch:** `worktree/mobile-picks`, 10 commits ahead of `michael/dev` (dev merged in twice; merges cleanly). Smoke passes; Task tests 58 of 58.
 
 ## URLs (under `/framework/ai/sessions/v/mobile/`)
 1. `` and `<yyyy>/<mm>/<dd>/`: day list
@@ -25,7 +25,7 @@
 `core/Task/readme.md` (bar states, static `draw_bar`), `sessions/readme.md` (the `v/` folder and the `route("v")` exception), `mobile-cards.md` "Next".
 
 ## Not verified
-- Run buttons were never pressed (they would write into real task logs). They call `task.start/pause/resume/stop`. "Next" assumes a series parent.
+- Run buttons were never pressed (they would write into real task logs). They are `TaskView.VERBS`, filtered by `Task.can(state, verb)`, and a press calls `task.act(verb)`, which saves the verb line. "Next" assumes a series parent.
 - Chat shows "No transcript" because `/ai-logs/` returns nothing for that session on this server.
 
 ## Sessions with no parent link (before the tree was rebuilt)
