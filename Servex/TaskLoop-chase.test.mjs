@@ -72,17 +72,27 @@ min(5); await fresh.tick(); min(5); await fresh.tick();
 assert.equal(about("run").length, 6);
 assert.equal(cards.length, 2, "two asks since the reset: still no flag");
 
+// Heartbeat's own log lines are not agent activity: they must not reset the ask count
+const hb = make("hb", started);
+min(6); await fresh.tick(); min(5); await fresh.tick(); min(5); await fresh.tick();
+assert.equal(about("hb").length, 3, "three asks");
+fs.appendFileSync(hb, line({ log: { at: new Date(T).toISOString(), msg: "check", heartbeat: "check" } })); touch(hb);
+const before = cards.length;
+min(5); await fresh.tick();
+assert.equal(cards.length, before + 1, "a heartbeat line does not reset the count: the flag still fires");
+assert.equal(about("hb").length, 3, "and no fourth ask");
+
 // an agent that says it is blocked is flagged at once
+const cards_before = cards.length;
 const blk = make("blocked", [...started, { log: { at: new Date(T).toISOString(), msg: "blocked: need the API key" } }]);
 await fresh.tick();
-assert.equal(cards.length, 3, "a blocked line flags without waiting for three asks");
+assert.equal(cards.length, cards_before + 1, "a blocked line flags without waiting for three asks");
 assert.equal(about("blocked").length, 0);
 
 // complete: left alone
 fs.appendFileSync(run, line({ complete: { outcome: "done", evidence: ["x"], confidence: "high", at: new Date(T).toISOString() } })); touch(run);
-const n = sent.length; min(20); await fresh.tick();
+min(20); await fresh.tick();
 assert.equal(about("run").length, 6, "a finished task is not asked");
-void n;
 
 try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
 console.log("TaskLoop-chase.test.mjs: all checks passed");
