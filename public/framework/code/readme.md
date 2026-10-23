@@ -43,3 +43,7 @@ view of an object's state. Each page's `doc/` has the full detail; the page itse
 - [/framework/styles/](/framework/styles/) — the CSS vocabulary (utilities, tokens, layers) that
   [css](./css/) points at
 - [CLAUDE.md](/) — the three laws every page here follows
+
+## Notes from your asks
+
+- Reuse the components and parts the project already has before building a new one, since a fresh copy is how the system grows heavy. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5067), 2026-10-13)

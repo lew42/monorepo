@@ -28,3 +28,7 @@ Colour on this site is never a literal value. It is a small set of tokens (`--su
 - [doc/rules.md](./doc/rules.md) — the tokens and traps, verbatim from the old `css` skill.
 - [questions.md](./questions.md) — review questions for this system.
 - [/framework/styles/](/framework/styles/) — the theme file, the token definitions themselves.
+
+## Notes from your asks
+
+- Rules, preferences and ideas you said about this module: [doc/notes-from-asks.md](doc/notes-from-asks.md)

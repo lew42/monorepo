@@ -49,3 +49,7 @@ three sizes on the page below.
   by side.
 - [doc/icons.md](doc/icons.md) — fixed width or not, when a frame earns its place, the token.
 - Back to [UI](/framework/ui/).
+
+## Notes from your asks
+
+- Icons are named by their ligature word and the Material Icons font is loaded once on the page, never set per span or referenced by codepoint. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p5015), 2026-10-13)

@@ -29,3 +29,7 @@ t.done();   // prints PASS/FAIL, sets the exit code on failure
 ## More
 - ⬜ Servex hosts the watch on core/Item + core/Task (next slice)
 - Page smoke on change stays `Servex/WorktreeWatch.js` + `Server/smoke.mjs`.
+
+## Notes from your asks
+
+- Work is tested before it is handed back, so it does not fail on first pass and need owner fixes. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11150), 2026-10-12)

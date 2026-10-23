@@ -1,2 +1,4 @@
 {"id":"tasks","path":"/framework/ai/quick-fix/tasks/","title":"ai/quick-fix tasks","mode":"parallel"}
 {"task":"/framework/ai/quick-fix/tasks/fixer/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ai/quick-fix/tasks/make-quick-fix-worktrees-reusable/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:23.359Z"}
+{"task":"/framework/ai/quick-fix/tasks/build-worktree-cleanup-into-the-workflow/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:23.499Z"}

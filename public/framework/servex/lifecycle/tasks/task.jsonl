@@ -2,3 +2,4 @@
 {"task":"/framework/servex/lifecycle/tasks/lifecycle/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
 {"task":"/framework/servex/lifecycle/tasks/build/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
 {"task":"/framework/servex/lifecycle/tasks/fix-page/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/servex/lifecycle/tasks/decide-whether-the-headless-instance-run/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:29.091Z"}

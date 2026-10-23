@@ -44,3 +44,8 @@ Empty section, no tab. Nothing at the call site says "tab" — a different shape
 - Files that matter: `Doc.js` (the class, every seam), `Doc.css` (well, panel height), `page.js` (Doc documenting Doc), `decisions.js` (the ⋯ menu, above)
 
 - **Tasks tab:** every Doc page lists its module's `tasks/task.jsonl` (ranked by `Task.rank`), built when the tab opens; `no_tasks: true` opts out.
+
+## Notes from your asks
+
+- architecture.md states the lesson and the reason behind each decision in a few lines, not a transcript. ([your words](/framework/ai/sessions/7efd07d5-7a58-434d-8847-1a1d7b640390/?tab=coverage#p603), 2026-10-09)
+- Module documentation stays inside its module folder, never outside it. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1092), 2026-10-13)

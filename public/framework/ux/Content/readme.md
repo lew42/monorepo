@@ -35,3 +35,7 @@ A page places one with a single line: `{"place": {"module": "/framework/ux/Conte
 ## Also here (readme audit, 2026-10-13)
 - [Object](./Object/) — Object — show a real object instead of explaining it
 - [structure](./structure/) — Structure: words drawn as a picture
+
+## Notes from your asks
+
+- A question can go into the inbox as a reminder, but a small one that needs no record stays out of it. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11150), 2026-10-12)

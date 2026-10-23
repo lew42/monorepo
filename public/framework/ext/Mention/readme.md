@@ -76,3 +76,7 @@ same ones `ui.item` takes.
 - Back to [Ext](/framework/ext/).
 
 - Notes: [doc/Mention-notes.md](doc/Mention-notes.md) — history and lessons moved out of the code comments.
+
+## Notes from your asks
+
+- Link to pages, modules and docs wherever a mention fits, every time it fits. ([your words](/framework/ai/sessions/7efd07d5-7a58-434d-8847-1a1d7b640390/?tab=coverage#p603), 2026-10-09)

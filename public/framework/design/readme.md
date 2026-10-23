@@ -59,3 +59,11 @@ This page links to, and never repeats, [/framework/styles/](/framework/styles/) 
 - [/framework/ui/](/framework/ui/) — the component gallery: buttons, toolbars, dropdowns as built things.
 - [doc/job.md](./doc/job.md) — the full order of the job, the two tests, the "which kind of page" table.
 - `.claude/skills/page/` — the thin skill that points here.
+
+## Notes from your asks
+
+- New screens are built from existing building blocks; one-off unique designs are not reusable and are avoided. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3516), 2026-10-12)
+- Charts, graphs, flowcharts and infographics make a UI look richer and more visual. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1713), 2026-10-13)
+- Flowchart and diagram visuals matter less on mobile, so they can be desktop-first. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1713), 2026-10-13)
+- Design systems and colour variants keep being explored, paced so spend stays within the usage budget. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p1016), 2026-10-13)
+- Design work runs in order: elements first, then components, then full layouts. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p3786), 2026-10-13)

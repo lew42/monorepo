@@ -1,3 +1,7 @@
 {"id":"tasks","path":"/framework/core/Sidebar/tasks/","title":"core/Sidebar tasks","mode":"parallel"}
 {"task":"/framework/core/Sidebar/tasks/nav-fat/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
 {"task":"/framework/core/Sidebar/tasks/site-sidebar-tree/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/core/Sidebar/tasks/redesign-the-sidebar-so-its-many-items-a/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:10.307Z"}
+{"task":"/framework/core/Sidebar/tasks/build-a-robust-minimal-set-of-layout-tok/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:13.918Z"}
+{"task":"/framework/core/Sidebar/tasks/redesign-the-sidebar-so-the-many-icon-it/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:14.693Z"}
+{"task":"/framework/core/Sidebar/tasks/add-the-website-s-logo-svg-to-the-top-le/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:14.788Z"}

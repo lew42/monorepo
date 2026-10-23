@@ -1,2 +1,3 @@
 {"id":"tasks","path":"/framework/ext/Doc/tasks/","title":"ext/Doc tasks","mode":"parallel"}
 {"task":"/framework/ext/Doc/tasks/ext-doc-rename/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Doc/tasks/give-every-module-an-architecture-md-rec/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:09.113Z"}

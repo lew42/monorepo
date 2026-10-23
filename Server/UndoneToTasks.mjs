@@ -225,7 +225,7 @@ export default class UndoneToTasks {
 				if (!fs.existsSync(t)) fs.writeFileSync(t, "# Notes from your asks\n\nRules, preferences and ideas you said about this module that are not work, one line each, with a link to your words. Written by `node Server/UndoneToTasks.mjs --notes --apply` from the sort pass over the undone asks ([crack 2](/framework/core/Task/doc/cracks.md)).\n\n");
 				fs.appendFileSync(t, lines.join(NL) + NL);
 				lines.length = 0;
-				lines.push("- " + asks.length + " more notes from your asks: [doc/notes-from-asks.md](doc/notes-from-asks.md)");
+				lines.push("- Rules, preferences and ideas you said about this module: [doc/notes-from-asks.md](doc/notes-from-asks.md)");
 			}
 			const text = fs.readFileSync(abs, "utf8");
 			if (!text.includes(UndoneToTasks.NOTES_HEAD)) fs.appendFileSync(abs, (text.endsWith(NL) ? "" : NL) + NL + UndoneToTasks.NOTES_HEAD + NL + NL);

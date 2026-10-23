@@ -13,3 +13,7 @@
 ## More
 
 - [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why
+
+## Notes from your asks
+
+- Properties carry no event machinery of their own; listeners are made lazily on first use, so thousands of nested, mostly static objects stay cheap. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p10950), 2026-10-12)

@@ -76,3 +76,7 @@ each one sits in this system: [doc/names.md](/framework/core/Page/layout/doc/nam
 ## Earlier versions
 
 [v2](/framework/core/Page/layout/v2/) — the layout hub as module-experts left it (2026-09-29) · [v1](/framework/core/Page/layout/v1/) — the first hub
+
+## Notes from your asks
+
+- The column paging header's border stays as it is until the owner's design is settled. ([your words](/framework/ai/sessions/87bec773-d6dd-421c-92cc-fdd8a9eb5103/?tab=coverage#p11188), 2026-10-12)

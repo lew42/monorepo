@@ -29,3 +29,7 @@ Opt a real component (not an example) out of the scan: `div.c("toc-skip", …)`.
 - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - `doc/file/*.md` — per-file notes, rendered by the page's `files:`
 - Files that matter: `toc.js` (scan, spy, fill), `toc.css` (sticky grid track), `page.js` (show, don't tell)
+
+## Notes from your asks
+
+- The table of contents reads only the page's own h2 and h3 headings, so the content's markup feeds it with no second list. ([your words](/framework/ai/sessions/f155ecbd-2911-4f55-bc4c-c1cf9d7b7026/?tab=coverage#p4422), 2026-10-13)
