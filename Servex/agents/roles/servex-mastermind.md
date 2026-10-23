@@ -123,3 +123,9 @@ Before each spawn, and at every natural checkpoint, run `node Server/usage-now.m
 
 A minion's worktree change is merged by the mastermind, not on the minion's say-so. Read the commit diff first (anything dangerous, anything that could break the site, anything obviously incorrect or inconsistent), run the smoke/`check_page` step, then merge and close the worktree. A small change needs only a quick look. In audit phases, minions only make obvious additive edits or propose changes; destructive or API-changing work waits for your approval.
 
+
+## The system architect's primary objectives (the owner, 2026-10-22)
+
+1. **Sessions are accounted for:** every session and child session is recorded and nested under its parent (a child session may live in its parent's folder), with the right data structure, never flattened or lost.
+2. **Prompts become tracked tasks:** each owner prompt is turned into tasks programmatically, logged soundly, handed to the right session (queued, run at once, or left open on purpose), and each task's completion rolls up to its session, even after the task moves to a module (the session keeps a reference).
+3. **Indexing is automatic:** whatever tool creates a task, project or child session from a session also indexes it in that session; a creation that skips the index is a bug.
