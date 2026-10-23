@@ -187,3 +187,10 @@
 {"log":{"at":"2026-10-09T03:50:57-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-12T01:03:32-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-12T01:03:32-05:00","msg":"session resumed"}}
+{"task":"/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/categorise-1/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.172Z"}
+{"task":"/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/categorise-2/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.173Z"}
+{"task":"/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/categorise-3/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.174Z"}
+{"task":"/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/categorise-4/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.176Z"}
+{"task":"/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/fix-1/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.177Z"}
+{"task":"/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/fix-2/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.178Z"}
+{"task":"/framework/ai/sessions/2026/10/08/f74e9f54-7e5e-4567-b09f-9b6fee492350/task-audit/summarise/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.179Z"}

@@ -347,3 +347,8 @@
 {"log":{"at":"2026-10-17T08:13:49-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-17T09:17:43-05:00","heartbeat":"escalated","msg":"mastermind-voice-opus its agent is not running, and was already revived 0 times this hour (5 today)"}}
 {"stop":{"at":"2026-10-19T00:04:12-05:00","why":"abandoned: no agent since 2026-10-17T09:17:43-05:00; closed by StaleClose 2026-10-19","by":"StaleClose"}}
+{"task":"/framework/ai/sessions/2026/10/15/voice-opus/cost-fix-review/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.573Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-opus/past-work-audit/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.574Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-opus/past-work-audits/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.575Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-opus/usage-pace-line/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.576Z"}
+{"task":"/framework/ai/sessions/2026/10/15/voice-opus/voice-mcp-directives/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.577Z"}

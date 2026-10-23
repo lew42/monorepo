@@ -55,3 +55,4 @@
 {"log":{"at":"2026-10-09T18:44:42-05:00","msg":"layout-check: 1 pages at 1280/1920/2560/3440 — /framework/core/Page/tool/: errors, empty 0.771 at 2560, empty 0.828 at 3440, narrow_share 0.922 at 3440; sheets in layout-check/"}}
 {"log":{"at":"2026-10-09T18:44:55-05:00","msg":"padding-check: 1 pages — clean"}}
 {"home":"/framework/core/Page/tasks/page-mastermind/"}
+{"task":"/framework/ai/sessions/2026/10/09/session-060cdfff/page-mastermind/streaming-doc/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.182Z"}

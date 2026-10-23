@@ -135,3 +135,5 @@
 {"log":{"at":"2026-10-02T21:06:14-05:00","msg":"layout-check: 5 pages at 1280/1920/2560/3440 — /framework/core/Item/live/: empty 0.773 at 2560, empty 0.819 at 3440, narrow_share 0.781 at 3440; /framework/core/Item/: errors, empty 0.73 at 2560, empty 0.795 at 3440, narrow_share 0.735 at 3440; /framework/core/List/: empty 0.744 at 2560, empty 0.804 at 3440, narrow_share 0.948 at 3440; /framework/core/Page/: empty 0.728 at 2560, empty 0.792 at 3440, narrow_share 0.964 at 3440; /framework/ai/2026-10-02/page-extends-item/: errors, empty 0.671 at 2560, empty 0.757 at 3440, narrow_share 0.772 at 3440; sheets in layout-check/"}}
 {"log":{"at":"2026-10-02T21:07:18-05:00","msg":"padding-check: 5 pages — clean"}}
 {"home":"/framework/core/Item/tasks/page-extends-item/"}
+{"task":"/framework/ai/sessions/2026/10/02/page-extends-item/page-extends-item/item-core/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.153Z"}
+{"task":"/framework/ai/sessions/2026/10/02/page-extends-item/page-extends-item/page-on-item/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.154Z"}

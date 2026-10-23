@@ -21,3 +21,15 @@
 {"log":{"at":"2026-10-13T21:50:47-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T22:00:48-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-13T22:06:48-05:00","msg":"session resumed"}}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/chat/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.322Z"}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/controls/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.323Z"}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/core-session/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.324Z"}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/draggable/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.325Z"}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/drawer/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.325Z"}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/elements/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.326Z"}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/ext-session/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.327Z"}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/layers/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.328Z"}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/menu/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.329Z"}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/rules/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.330Z"}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/ui-item/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.331Z"}
+{"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/ux-inbox/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.332Z"}

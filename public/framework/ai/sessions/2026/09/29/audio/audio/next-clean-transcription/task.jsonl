@@ -1,2 +1,4 @@
 {"assign":{"now":"queued","brief":"2026-09-29/audio/next-clean-transcription/requirements.md","at":"2026-09-29T20:12:05-05:00","by":"mastermind-servex-7"}}
 {"stop":{"at":"2026-10-18T08:02:32-05:00","why":"abandoned: no agent since 2026-09-30T18:45:24.671Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"task":"/framework/ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode/","by":"SessionRecord --links","ts":"2026-10-23T02:29:35.990Z"}
+{"task":"/framework/ai/sessions/2026/09/29/audio/audio/next-clean-transcription/b-structure/","by":"SessionRecord --links","ts":"2026-10-23T02:29:35.991Z"}

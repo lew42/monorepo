@@ -75,3 +75,8 @@
 {"assign":{"highlight":{"icon":"build","title":"Dictation playground","line":"Watch your words go from raw Whisper to cleaned text, with the corrections shown.","url":"/framework/ux/Dictate/playground/walkthrough/"}}}
 {"log":{"at":"2026-09-28T13:44:42-05:00","msg":"return_worktree qf-3 refused: public/framework/ai/board.jsonl uncommitted in the worktree (a runtime log write, not this task). Left as is; the branch head 524c6685 is applied to the main tree. Commit question filed as sub-card commit-the-dictation-playground. Restarting Servex now (node Servex/sustain.mjs --restart) so /api/tidy goes live — the last step."}}
 {"home":"/framework/ux/Dictate/tasks/dictation-playground/"}
+{"task":"/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/fixes/","by":"SessionRecord --links","ts":"2026-10-23T02:29:35.961Z"}
+{"task":"/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/playground/","by":"SessionRecord --links","ts":"2026-10-23T02:29:35.962Z"}
+{"task":"/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/smoke-fix/","by":"SessionRecord --links","ts":"2026-10-23T02:29:35.963Z"}
+{"task":"/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/tidy/","by":"SessionRecord --links","ts":"2026-10-23T02:29:35.964Z"}
+{"task":"/framework/ai/sessions/2026/09/28/ccdca679-303e-4584-9809-8c4f79e29f42/dictation-playground/walkthrough/","by":"SessionRecord --links","ts":"2026-10-23T02:29:35.964Z"}

@@ -318,3 +318,21 @@
 {"task":"/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/interactive-cards-buttons-forms-and-data/","by":"voice-app","ts":"2026-10-17T01:30:49.795Z"}
 {"task":"/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/a-decision-holds-a-ranked-live-list-of-o/","by":"voice-app","ts":"2026-10-17T01:30:49.803Z"}
 {"task":"/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/the-selected-card-is-the-voice-context-a/","by":"voice-app","ts":"2026-10-17T01:30:49.812Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/accounting/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.577Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/compact-nudge/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.578Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/handover-query/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.579Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/inbox-labels/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.580Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/live-cards/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.581Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/live-feed/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.582Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/live-pointers/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.583Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/live-today/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.584Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/past-work/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.585Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.587Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/remote-tools/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.588Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/salvage/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.589Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/sheet/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.590Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/subpages/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.591Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-closeout/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.592Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.594Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.595Z"}
+{"task":"/framework/ai/sessions/2026/10/16/voice-20261016/whisper-log/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.612Z"}
