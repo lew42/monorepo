@@ -1,3 +1,26 @@
+diff --git a/public/framework/core/Task/TasksPage.js b/public/framework/core/Task/TasksPage.js
+index caef3befc..f3ab1bd97 100644
+--- a/public/framework/core/Task/TasksPage.js
++++ b/public/framework/core/Task/TasksPage.js
+@@ -5,6 +5,7 @@ import "./TaskView.js";   // sets Task.View (and loads TaskView.css, which style
+ /* The page for a tasks/ DIRECTORY: every task beneath it as TaskView.row, grouped by module, ranked by Task.rank.
+  * Page.child mounts it on any `tasks/` with no page of its own; /tasks/ is the index of every task home (Server/TaskHomes.mjs). doc: readme.md */
+ export class TasksPage extends Page {
++	static LOAD_MS = 30000;   // how long the page waits for every task file before it shows an error
+ 	static SHOW = 5;   // open rows a module group shows before "+ N more open" (a module can hold dozens of idle tasks)
+ 	static open(t){ return t.state !== "complete" && t.state !== "stopped"; }
+ 	static is_list(t){ return /\/tasks\/$/.test(t.data.path ?? ""); }
+@@ -39,7 +40,9 @@ export class TasksPage extends Page {
+ 	// Fill `box` with the groups under `url` (a tasks/ folder). The one drawing: this page, and the Tasks tab of every Doc (ext/Doc).
+ 	static into(box, url){
+ 		box.ac("tasks-page").empty(() => div.c("muted", "Loading tasks…"));
+-		this.groups(url).then(groups => box.empty(() => this.draw(groups)))
++		// A load that throws, or never settles (a child file that never answers), says so after LOAD_MS instead of reading "Loading" for good.
++		const late = new Promise((_, no) => setTimeout(() => no(new Error("no answer from " + url + " after " + this.LOAD_MS / 1000 + " s")), this.LOAD_MS));
++		Promise.race([this.groups(url), late]).then(groups => box.empty(() => this.draw(groups)))
+ 			.catch(e => box.empty(() => div.c("muted", "Could not read tasks: " + e.message)));
+ 		return box;
+ 	}
 diff --git a/public/framework/core/Task/TasksPage.test.mjs b/public/framework/core/Task/TasksPage.test.mjs
 index 79dd2d52d..5351d28af 100644
 --- a/public/framework/core/Task/TasksPage.test.mjs
@@ -29,7 +52,7 @@ index 79dd2d52d..5351d28af 100644
  	await tab.close();
  	await Browser.close();
 diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
-index 9c8ae958f..d01c2fdba 100644
+index 9c8ae958f..36b6b8861 100644
 --- a/public/framework/core/Task/readme.md
 +++ b/public/framework/core/Task/readme.md
 @@ -69,7 +69,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
@@ -37,7 +60,7 @@ index 9c8ae958f..d01c2fdba 100644
  ## TasksPage
  
 -[`TasksPage.js`](./TasksPage.js) (`class TasksPage extends Page`) is the page for a `tasks/` **directory** (TaskPage is one task folder). `Page.child` mounts it on any `tasks/` with no page of its own; a Doc module's Tasks tab draws the same view (`TasksPage.into`). It shows every task as `TaskView.row`, grouped by module, ranked by `Task.rank`. Each group shows `TasksPage.SHOW` (5) open rows, then one "+ N more open · + M done" line that expands the group. [/tasks/](/tasks/) is the index of every task home: `public/tasks/task.jsonl` holds one reference per home, found by walking files.jsonl (`node Server/TaskHomes.mjs --write`; the item tool adds a new home itself). `TasksPage.counts()` gives the open and running counts the `/live/` Tasks card shows. Wide screens: `.tasks-page` is CSS columns (`columns: 28em`), so module groups flow into as many columns as fit (one when narrow) and each row looks the same; the alternative, a Browse view with modules on the left, needs more code and was not taken. Test: `node TasksPage.test.mjs [site url]` (headless). A module list's reference id is `core-Task-tasks` (`Task.ref_id`), so lists side by side never collide. Not the same as `ai/tasks/TasksPage.js`, the AI board's task browser, which keeps its own `page.js`.
-+[`TasksPage.js`](./TasksPage.js) (`class TasksPage extends Page`) is the page for a `tasks/` **directory** (TaskPage is one task folder). `Page.child` mounts it on any `tasks/` with no page of its own; a Doc module's Tasks tab draws the same view (`TasksPage.into`). It shows every task as `TaskView.row`, grouped by module, ranked by `Task.rank`. Each group shows `TasksPage.SHOW` (5) open rows, then one "+ N more open · + M done" line that expands the group. `/tasks/` itself is a saved filter that forwards to the Inbox (`ai/tasks/SavedFilter.js`, 2026-10-19, one dashboard); its `public/tasks/task.jsonl` is still the index of every task home (`TasksPage.groups('/tasks/')` reads it, and the `/live/` Tasks card counts from it):  `public/tasks/task.jsonl` holds one reference per home, found by walking files.jsonl (`node Server/TaskHomes.mjs --write`; the item tool adds a new home itself). `TasksPage.counts()` gives the open and running counts the `/live/` Tasks card shows. Wide screens: `.tasks-page` is CSS columns (`columns: 28em`), so module groups flow into as many columns as fit (one when narrow) and each row looks the same; the alternative, a Browse view with modules on the left, needs more code and was not taken. Test: `node TasksPage.test.mjs [site url]` (headless). A module list's reference id is `core-Task-tasks` (`Task.ref_id`), so lists side by side never collide. Not the same as `ai/tasks/TasksPage.js`, the AI board's task browser, which keeps its own `page.js`.
++[`TasksPage.js`](./TasksPage.js) (`class TasksPage extends Page`) is the page for a `tasks/` **directory** (TaskPage is one task folder). `Page.child` mounts it on any `tasks/` with no page of its own; a Doc module's Tasks tab draws the same view (`TasksPage.into`). It shows every task as `TaskView.row`, grouped by module, ranked by `Task.rank`. Each group shows `TasksPage.SHOW` (5) open rows, then one "+ N more open · + M done" line that expands the group. `/tasks/` itself is a saved filter that forwards to the Inbox (`ai/tasks/SavedFilter.js`, 2026-10-19, one dashboard); its `public/tasks/task.jsonl` is still the index of every task home (`TasksPage.groups('/tasks/')` reads it, and the `/live/` Tasks card counts from it). It holds one reference per home, found by walking files.jsonl (`node Server/TaskHomes.mjs --write`; the item tool adds a new home itself). `TasksPage.counts()` gives the open and running counts the `/live/` Tasks card shows. Wide screens: `.tasks-page` is CSS columns (`columns: 28em`), so module groups flow into as many columns as fit (one when narrow) and each row looks the same; the alternative, a Browse view with modules on the left, needs more code and was not taken. Test: `node TasksPage.test.mjs [site url]` (headless). A module list's reference id is `core-Task-tasks` (`Task.ref_id`), so lists side by side never collide. Not the same as `ai/tasks/TasksPage.js`, the AI board's task browser, which keeps its own `page.js`.
  
  ## Watch out
  

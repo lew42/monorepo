@@ -1,51 +1,37 @@
 verdict: fix
-1. [fix] Requirement 4 ("If the page can fail silently, make it show an error instead of Loading forever") is not in the diff. The change edits the test, the readme and one page.jsonl line. TasksPage.js and the Task.js replay path are untouched, so a throw in replay can still leave a page at "Loading" (diff.patch, whole).
-2. [fix] The test was rewritten to match the new behaviour rather than the page being repaired. It now asserts that /tasks/ forwards away from TasksPage. If the cause was a duplicate page.jsonl declaration (the old TasksPage line sat after the SavedFilter line), that is a fair fix. The diff does not record that cause, and requirement 1 asks for it to be recorded (diff.patch, public/tasks/page.jsonl).
-3. [fix] The /tasks/ shot shows the AI Inbox titled "AI". It lists sessions (chips All, Voice, Servex, Scheduled, Live) and a "Today" date rail. The page.jsonl description says the Inbox opens with the "Tasks and Home chips on" (preset all-tasks). Neither chip is visible, and no task rows are shown (shots/monorepo-localhost-tasks/1920.png, main band). The forward lands on the right module, but the saved filter does not appear applied. Either the preset is not honoured or the shot caught it before it applied.
-4. [note] The readme edit repeats itself: "(…the /live/ Tasks card counts from it):  `public/tasks/task.jsonl` holds one reference per home…" restates the index sentence, and there is a double space after the colon (Task/readme.md, TasksPage paragraph). Law 1 and law 2 prefer one clear sentence.
-5. [note] The 400 shot shows "✦AI" and "☰Menu" rail buttons reported as wrapping at 3.2 lines (layout.json 400 wraps). The icon sits above the label, so this is probably a stacked layout and not a real wrap. It is not part of this diff.
-6. [note] Requirement 6 (answer every review finding in the task log, `--status` passes) cannot be checked from the diff. The report covers shots and the patch only.
+1. [fix] The shot of /tasks/ shows the "AI" sessions inbox (sessions, Voice/Servex groups, $ costs), not tasks. The saved filter says `preset: all-tasks` with "Tasks and Home chips on", yet no task rows and no Tasks/Home chips are visible (shots/monorepo-localhost-tasks/1920.png, main column). Either the shot hit the main checkout rather than the worktree, or the forward lands on a page that does not show tasks. Confirm in the worktree that /tasks/ really lists tasks.
+2. [fix] The cause is not recorded in the diff (requirements step "record what the cause was"). The diff only updates the test's expectations and the readme to say /tasks/ forwards to the Inbox. The readme says it forwards, but it never says that the old "Loading" hang was a stale test or a stale `page.jsonl` class line, and the commit message was not provided. State the cause in the task log or the readme.
+3. [note] `TasksPage.into` starts a 30 s `setTimeout` that is never cleared. It is harmless, but the timer keeps running after a fast load and rejects a settled race. Add a `clearTimeout` in `finally`.
+4. [note] The 30 s `LOAD_MS` is longer than the test's own 20 s wait. A hang therefore still fails the test before the error text shows. This is fine for users but the test cannot exercise the new error path.
+5. [note] Widths given: 400 and 1920. At 400 the `.drawer-rail-ai` and `.drawer-rail-menu` buttons wrap to 3.2 lines (layout.json wraps). These are existing chrome, not part of this diff.
 
 ## Requirements
-- 1 "Find the cause, fix it, and record what the cause was" — no — the diff shows a fix by removing the TasksPage line from page.jsonl and updating the test. No cause is recorded in the patch; the readme only describes the new state.
-- 2 "Run the test until it passes" — not verifiable here — the test output is not in the task folder, only the rewritten test.
-- 3 "Make the page show an error instead of Loading forever" — no — nothing in TasksPage.js or Task.js (finding 1).
-- 4 "Commit in the worktree" — not verifiable from the patch.
-- 5 "Run review.mjs and answer every finding" — in progress; these findings are the input.
-- Widths given: 400 and 1920 (sheet.png). The 1200 and 3440 shots were not taken.
-
+- 1 "Find the cause, fix it, and record what the cause was" — no — the fix is present (the test follows the forward, the timeout is added), but no cause is written down (finding 2)
+- 2 "If the page can fail silently, make it show an error instead of Loading forever" — yes — `TasksPage.into` races `groups()` against `LOAD_MS` and the catch draws "Could not read tasks: …"
+- 3 "The test passes" — not measured — no test output is in the task folder
+- 4 "/tasks/ shows tasks" — no — shots/monorepo-localhost-tasks/1920.png shows sessions (finding 1)
 ## Page structure
-- Title says what the page is — no — shots/.../1920.png, top band: the title is "AI", not "Tasks", although the URL is /tasks/ (page.jsonl title is "Tasks"). The Inbox title wins after the forward.
-- One clear primary thing — yes — the session list, 1920.png main band.
-
+- page title says what it is — no — the title reads "AI", not Tasks (1920.png, top band)
+- one clear purpose — yes — one inbox list
 ## Navigation
-- Techniques: sidebar tree, a date rail, filter chips, a right drawer (AI), and at 400 a bottom rail and a hamburger.
-- Active page is marked — no — the sidebar highlights "AI". /tasks/ has no entry of its own.
-- Chips do not wrap at 1920 — yes — 1920.png, chip row. At 400 the chip row is clipped at the right edge ("Scheduled 11 · $4…") — 400.png, chip row (note).
-
+- techniques: a sidebar (1920), a bottom rail and a menu (400), a right drawer
+- sidebar current item — yes — "AI" is highlighted at 1920
+- drawer rail buttons — no — wrap to 3.2 lines at 400 (layout.json wraps); existing, not in this diff
 ## Layout
-- Content is anchored and aligned — yes — 1920.png, a left-aligned column with the date rail beside it.
-- Wasted space — note — empty 0.60 at 1920, with the content column narrow and the title floating. 400 empty 0.374.
-
+- n/a — the diff changes no layout; the shot is the existing inbox
 ## Sizing
-- Nothing overflows horizontally — yes — layout.json 400 overflow_x false.
-- Widest text fits — yes — widest_text 316 at 400 (viewport 400).
-
+- overflow_x — yes — false at 400 and 1920
+- widest text — yes — 316 px at 400, inside the 400 px width
 ## Wrapping
-- No unintended wraps — note — the two rail buttons report 3.2 lines (finding 5); everything else is single line.
-
+- tab_rows 0 at 400 and 1920 — yes
+- drawer rail buttons wrap — no — see Navigation
 ## Spacing and padding
-- Bands are padded evenly — yes — layout.json 400 bands: page-title 0.04 share, ad-dash 0.758 share, neither flagged big_empty.
-- Left gutter is consistent — yes — layout.json left_stack h1 total 12 at 400.
-
+- bands — yes — 400: title share 0.04, list share 0.758; 1920: title 0.053, list 0.8
+- empty space at 1920 — no — empty 0.597, mostly the side gutters of the existing inbox page; a note, not caused by this diff
 ## Colour and contrast
-- Text is legible against its background — yes — 1920.png main band. The grey meta lines under each row are small but readable.
-- Accent colour marks only the active state — yes — "Today", "All" and "Send" use the orange accent.
-
+- yes — shots/monorepo-localhost-tasks/sheet.png: the orange selected chip, dark text on a light ground
 ## Flow
-- Reading order runs title, usage bars, date, chips, list — yes — 400.png and 1920.png.
-- Old Inbox link at the end — yes — 1920.png, bottom of the column.
-
+- n/a — the diff changes no flow; the page was not changed
 ## Words
-- Page and readme wording is plain — no — the repeated clause in the readme (finding 4).
-- The test's own comment is clear — yes — it says what /tasks/ is now and where it forwards.
+- "Could not read tasks: …" and "no answer from <url> after 30 s" — yes — plain and say what went wrong
+- readme TasksPage paragraph — no — one very long paragraph; split the forwarding facts from the old description
