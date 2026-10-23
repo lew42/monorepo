@@ -54,4 +54,46 @@
 	.mob-nest[open] > summary::before { content: "▾  "; }
 	.mob-nest-kids { margin-left: 1.05rem; border-left: 2px solid var(--mob-line); }
 	.mob-more { display: block; width: 100%; padding: .8em; border: 0; border-top: 1px solid var(--mob-line); background: none; color: #6b7178; font: inherit; cursor: pointer; }
+
+	/* session (page 3) and task (page 4) */
+	.mob-title { padding: .9rem .75rem .6rem; display: flex; flex-direction: column; gap: .25em; }
+	.mob-h1 { margin: 0; font-size: 1.35rem; line-height: 1.2; overflow-wrap: anywhere; }
+	.mob-head-sub { color: #6b7178; }
+	.mob-parent { color: inherit; font-weight: 600; }
+	.mob-bar-wrap { position: sticky; top: 0; z-index: 5; height: 0; overflow: visible; }
+	.mob-bar { display: flex; align-items: center; gap: .5em; padding: .5em .75em; background: #fff; border-bottom: 1px solid var(--mob-line); transform: translateY(-.6rem); opacity: 0; pointer-events: none; transition: transform .2s, opacity .2s; }
+	.mob-bar-wrap.is-on .mob-bar { transform: none; opacity: 1; pointer-events: auto; }
+	.mob-bar-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.mob-back { color: inherit; display: inline-flex; }
+	.mob-tabs-row { display: flex; position: sticky; top: 0; background: var(--mob-ground, #f1f2f4); z-index: 4; }
+	.mob-tab { flex: 1 1 0; padding: .7em 0; border: 0; border-bottom: 2px solid transparent; background: none; font: inherit; color: #6b7178; cursor: pointer; }
+	.mob-tab.is-on { color: inherit; border-bottom-color: var(--mob-amber); font-weight: 600; }
+	.mob-tabs-strip { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+	.mob-pane { flex: 0 0 100%; scroll-snap-align: start; min-width: 0; align-self: flex-start; }
+	.mob-card-head .mob-count { margin-left: auto; color: #6b7178; }
+	.mob-facts { display: grid; gap: .3em; padding: .6em .75em; }
+	.mob-fact { display: flex; gap: .6em; }
+	.mob-fact-k { color: #6b7178; min-width: 4.5em; }
+	.mob-bullet { padding: .35em .75em; border-top: 1px solid var(--mob-line); }
+	.mob-empty { padding: .8em .75em; color: #6b7178; }
+	.mob-body { padding: .4em .75em; }
+	.mob-line { margin: .4em 0; overflow-wrap: anywhere; }
+	.mob-question { padding: .7em .75em; border-top: 1px solid var(--mob-line); border-left: 3px solid var(--mob-red); }
+	.mob-status { display: flex; align-items: center; gap: .6em; padding: .6em .75em; }
+	.mob-state { text-transform: capitalize; }
+	.mob-state.is-running { color: #b26a00; } .mob-state.is-complete { color: var(--mob-green); } .mob-state.is-waiting, .mob-state.is-paused { color: var(--mob-red); }
+	.mob-task-row { display: flex; align-items: flex-start; gap: .4em; padding: 0 .75em 0 .5em; border-top: 1px solid var(--mob-line); }
+	.mob-card-head + .mob-task-row { border-top: 0; }
+	.mob-task-link { flex: 1 1 auto; min-width: 0; display: flex; align-items: flex-start; gap: .5em; padding: .7em 0; color: inherit; text-decoration: none; min-height: 3rem; }
+	.mob-nest-kids .mob-task-row { padding-left: .25em; }
+
+	/* the run indicator and its buttons */
+	.mob-run { display: inline-flex; align-items: center; gap: .15em; padding-top: .55em; flex: 0 0 auto; }
+	.mob-run-dot { font-size: 1rem; color: var(--mob-grey); }
+	.mob-run-dot.is-running { color: var(--mob-amber); animation: mob-pulse 1.4s ease-in-out infinite; }
+	.mob-run-dot.is-complete { color: var(--mob-green); }
+	.mob-run-next { font-size: .7em; color: #6b7178; border: 1px solid var(--mob-line); border-radius: 1em; padding: 0 .5em; }
+	.mob-run-btn { display: inline-grid; place-items: center; width: 2rem; height: 2rem; padding: 0; border: 0; border-radius: 50%; background: none; color: #6b7178; cursor: pointer; }
+	.mob-run-btn:active { background: var(--mob-line); }
+	.mob-run-btn .icon, .mob-run-btn .material-icons { font-size: 1.1rem; }
 }

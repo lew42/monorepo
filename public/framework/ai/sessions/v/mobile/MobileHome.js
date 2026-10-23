@@ -2,6 +2,7 @@ import { Page } from "/app.js";
 import { div, span, a, small, strong, details, summary, icon } from "/framework/core/View/View.js";
 import AISessionsPage from "../../../AISession/AISessionsPage.js";
 import Day from "/framework/core/Session/Day.js";
+import AISessionDetail from "../../../AISession/AISessionDetail.js";
 import MobileData from "./MobileData.js";
 import MobileRow from "./MobileRow.js";
 import MobilePath from "./MobilePath.js";
@@ -27,11 +28,15 @@ export default class MobileHome extends AISessionsPage {
 	route(name){
 		if (/^\d{4}$/.test(name)) return new MobilePath({ segs: [name], home: this });
 		if (name === "all") return new this.constructor.All();   // set in page.js: All extends this class, so it cannot be imported here
-		if (name.includes(".")) return;
+		if (name.includes(".") || name === "doc" || name === "readme") return;
+		return new this.constructor.Session({ id: name });   // set in page.js, as All is
 	}
 
 	/** The real page preloads a session's rows in child(); the mobile pages read their own files, so go straight to Page. */
-	child(name, levels){ return Page.prototype.child.call(this, name, levels); }
+	async child(name, levels){
+		if (name && !name.includes(".") && name !== "all" && !/^\d{4}$/.test(name)) await AISessionDetail.preload(MobileData.SESSIONS, name);   // the session page's loaders, before it is built
+		return Page.prototype.child.call(this, name, levels);
+	}
 
 	content(){
 		const out = div.c("mob-day");
