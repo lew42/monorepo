@@ -23,7 +23,7 @@ Add two bands to the Figma page **Projects, sessions, tasks, processes** (node `
 
 **Real data:** the one process that has run: `process-system/run-1/readmes-page/task.jsonl` (41 lines: 7 phases, spawns, measures; $4.27 total). Read the file; don't invent fields.
 
-**Band H: sessions nested by parent.** This view is already coded in the variant `/framework/ai/sessions/v/mobile/all/` (worktree `C:\Code\lew42\worktrees\mobile-picks`, its shot is `../../../../../../tasks/code-the-approved-mobile-picks-as-routed/shots/nested-400.png`). Draw what it should be, so the code can be checked against it:
+**Band H: sessions nested by parent.** This view is already coded in the variant `/framework/ai/sessions/v/mobile/all/` (worktree `C:\Code\lew42\worktrees\mobile-picks`, its shot is `public/framework/ai/sessions/tasks/code-the-approved-mobile-picks-as-routed/shots/nested-400.png` in the main tree). Draw what it should be, so the code can be checked against it:
 - A parent session with its children folded under a count ("+7 minions"), and the same parent opened.
 - Each row tagged with its kind: VS Code tab, voice, mastermind, minion, reviewer, clarity.
 - A child that is itself a parent (a mastermind spawned by a tab) nests one level, then opens its own page (the "one indent" rule).
