@@ -1,5 +1,6 @@
 // Node test for Session as an Item with tasks. Run: `node Session.test.mjs`.
 import Session from "./Session.js";
+const EV = { outcome: "ok", evidence: ["test"] };
 import Task from "../Task/Task.js";
 
 const results = [];
@@ -15,7 +16,7 @@ check("a Session keeps its id and is an Item", () => new Session("abc").id === "
 check("three tasks, one complete: completion is 1/3 and progress {1,3}", () => {
 	const s = new Session("s");
 	for (const id of ["a", "b", "c"]) s.tasks.add(new Task({ id }));
-	s.tasks.find("a").complete();
+	s.tasks.find("a").complete(EV);
 	const p = s.progress();
 	return p.done === 1 && p.total === 3 && Math.abs(s.completion - 1 / 3) < 1e-9;
 });

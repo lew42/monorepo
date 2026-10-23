@@ -16,7 +16,7 @@ export class Project extends Task {
 		if (!next) return this.warn(`advance(): already "${this.stage}"`);
 		if (this.stage === "approval" && this.state === "waiting") this.approve({ by: "owner" });
 		if (next === "landed"){
-			this.complete();
+			this.complete({ auto: true });
 			if (this.state !== "complete") return this;   // complete() warned; the stage stays
 		} else if (next === "approval") this.wait({ on: "owner", what: "approval of the plan" });
 		else if (next === "work" && this.state === "idle") this.start();
