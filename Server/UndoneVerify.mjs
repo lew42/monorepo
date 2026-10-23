@@ -456,14 +456,15 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 	/** --run <dir>: every batch in the manifest with no results.json yet goes to Haiku (PromptRecords.ask: Read/Grep/Glob, writes nothing),
 	 * `parallel` at a time; the answer is written to results.json and the cost to the runs log beside the manifest. */
 	async run(dir, { parallel = 4, model = "claude-haiku-5-5", max_turns = 24, limit = Infinity } = {}){
-		const { default: PromptRecords } = await import("./PromptRecords.mjs"), { default: PromptAudit } = await import("./PromptAudit.mjs");
+		const { default: PromptRecords } = await import("./PromptRecords.mjs");
 		const todo = JSON.parse(fs.readFileSync(path.join(dir, "manifest.json"), "utf8")).filter(m => !fs.existsSync(path.join(dir, m.batch, "results.json"))).slice(0, limit);
 		const runs = path.join(dir, "runs" + ".jsonl"), out = [], log = row => fs.appendFileSync(runs, JSON.stringify(row) + "\n");
 		const one = async m => {
 			const brief = fs.readFileSync(path.join(dir, m.batch, "brief.md"), "utf8"), t0 = Date.now();
 			let r; try { r = await PromptRecords.ask(brief, { model, system: "You sort a list of asks and answer with one JSON array. You never edit files.", tools: ["Read", "Grep", "Glob", "Bash"], max_turns }); }
 			catch (e){ log({ batch: m.batch, error: String(e.message ?? e), at: new Date().toISOString() }); return; }
-			const got = PromptAudit.json(r.text), ok = Array.isArray(got);
+			fs.writeFileSync(path.join(dir, m.batch, "answer.txt"), r.text ?? "");   // the raw answer, kept so a parse failure costs nothing
+			const got = UndoneVerify.array(r.text), ok = Array.isArray(got);
 			if (ok) fs.writeFileSync(path.join(dir, m.batch, "results.json"), JSON.stringify(got, null, 1));
 			const row = { batch: m.batch, asks: m.asks, answered: ok ? got.length : 0, usd: +r.usd.toFixed(4), s: Math.round((Date.now() - t0) / 1000), at: new Date().toISOString(), ...(ok ? {} : { error: "no JSON array in the answer", tail: r.text.slice(-300) }) };
 			log(row); out.push(row); console.log(JSON.stringify(row));
@@ -471,6 +472,9 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 		for (let i = 0; i < todo.length; i += parallel) await Promise.all(todo.slice(i, i + parallel).map(one));
 		return out;
 	}
+
+	/** The JSON array in a model's answer (fenced or not), or null. */
+	static array(text){ const t = String(text ?? ""), a = t.indexOf("["), b = t.lastIndexOf("]"); if (a < 0 || b < a) return null; try { return JSON.parse(t.slice(a, b + 1)); } catch { return null; } }
 
 	/** The numbers that must agree for the sort pass: asks sorted = task + done + obsolete + note. */
 	counts3(d = this.load()){
