@@ -1,0 +1,5 @@
+{"assign":{"session_id":"b575cf63-49ac-47df-a94f-f877c97156b4","agent":"minion-x","title":"do it","model":"claude-haiku-5-5","worktree":"/fake/worktrees/qf-1","requested_at":"2026-10-22T22:58:49-05:00","now":"starting"}}
+{"log":{"at":"2026-10-22T23:04:34-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
+{"log":{"at":"2026-10-22T23:09:38-05:00","heartbeat":"revive-queued","msg":"minion-x its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-22T23:10:39-05:00","heartbeat":"escalated","msg":"minion-x its agent is not running, and the revive failed: Cannot find where session b575cf63-49ac-47df-a94f-f877c97156b4 ran, so it cannot be resumed."}}
+{"log":{"at":"2026-10-22T23:19:37-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}

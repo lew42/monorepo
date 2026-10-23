@@ -2293,3 +2293,7 @@
 {"log":{"at":"2026-10-22T21:45:07-05:00","session":17,"weekly_all":7,"weekly_scoped":0,"resets_at":"2026-10-23T06:29:59.814585+00:00"}}
 {"log":{"at":"2026-10-22T22:00:15-05:00","session":18,"weekly_all":7,"weekly_scoped":0,"resets_at":"2026-10-23T06:30:00.480388+00:00"}}
 {"log":{"at":"2026-10-22T22:15:12-05:00","session":19,"weekly_all":7,"weekly_scoped":0,"resets_at":"2026-10-23T06:29:59.506205+00:00"}}
+{"log":{"at":"2026-10-22T22:30:12-05:00","session":19,"weekly_all":7,"weekly_scoped":0,"resets_at":"2026-10-23T06:30:00.473833+00:00"}}
+{"log":{"at":"2026-10-22T22:45:12-05:00","session":20,"weekly_all":7,"weekly_scoped":0,"resets_at":"2026-10-23T06:29:59.518401+00:00"}}
+{"log":{"at":"2026-10-22T23:00:14-05:00","session":20,"weekly_all":8,"weekly_scoped":0,"resets_at":"2026-10-23T06:30:00.080084+00:00"}}
+{"log":{"at":"2026-10-22T23:14:33-05:00","session":20,"weekly_all":8,"weekly_scoped":0,"resets_at":"2026-10-23T06:29:59.868304+00:00"}}
