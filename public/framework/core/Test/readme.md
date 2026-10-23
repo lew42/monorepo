@@ -21,8 +21,10 @@ t.done();   // prints PASS/FAIL, sets the exit code on failure
 - **What earns a test:** something broke silently, or it is built to a spec. Never for what is certain to pass. When something fails that no test caught, add the one test that would have caught it, named after the bug. Test-first where it pays.
 
 ## Watch out
-- A test importing a Servex or Server module needs `node_modules`; a worktree without them fails those with ERR_MODULE_NOT_FOUND.
-- A plain `Task` makes its `tasks` list lazily, so `task.set({tasks:{…}})` finds nothing until `task.tasks` is read; see [child-verb.test.mjs](../Task/child-verb.test.mjs).
+- A test importing Servex needs `@anthropic-ai/claude-agent-sdk`, which `package.json` does not list: a worktree's `npm ci` lacks it, so 16 Servex tests fail there with ERR_MODULE_NOT_FOUND (they pass in the main tree).
+- Coverage is wide: `core/List/List.js` is imported by about 50 tests, so a change there runs them all.
+- First full run on `michael/dev` (2026-10-22): 84 of 99 pass, 15 fail. The failures are real and were silent until now; the page lists them.
+- The runner's first catch: a fresh `Task` stored `{tasks:{add}}` as plain data (Item.get skipped the lazy `tasks` getter). Fixed in `Task.get`; [child-verb.test.mjs](../Task/child-verb.test.mjs) holds it.
 
 ## More
 - ⬜ Servex hosts the watch on core/Item + core/Task (next slice)

@@ -53,6 +53,8 @@ export class Task extends Item {
 		return this._tasks;
 	}
 	set tasks(list){ this._tasks = list; this.watch(list); }
+	// Item.get() skips a prototype getter, so a fresh Task answered undefined for "tasks" and {tasks:{add}} was stored as data (2026-10-22; child-verb.test.mjs).
+	get(key){ return key === "tasks" ? this.tasks : super.get(key); }
 
 	// Like `tasks`, made on first use: notes, decisions and log lines, the same `{"content":{"add":{...}}}` grammar as Page.content.
 	get content(){ return this._content ??= new List({ owner: this, name: "content" }); }
