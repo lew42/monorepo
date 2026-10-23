@@ -163,3 +163,7 @@
 {"action":{"at":"2026-10-23T01:12:06-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-fixes/requirements.md"]}}
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-fixes/","by":"Servex","ts":"2026-10-23T06:12:16.402Z"}
 {"log":{"at":"2026-10-23T01:12:22-05:00","msg":"vscode-mastermind reviewed the four branches: task-chase (fix, 7 findings), test-temp-store (fix, 6), handover-test (pass, 5), cracks-inbox-wait (fix, 8). minion-review-fixes is fixing and answering every finding in merge order (brief review-fixes/requirements.md). From now on I run review.mjs myself before saying a branch is ready."}}
+{"log":{"at":"2026-10-23T01:16:38-05:00","msg":"ready: task/task-chase at 86ba7a10d; review --status passes"}}
+{"log":{"at":"2026-10-23T01:16:38-05:00","msg":"ready: task/test-temp-store at d2b86ce94; review --status passes"}}
+{"log":{"at":"2026-10-23T01:16:38-05:00","msg":"ready: task/handover-test at f38a05851; review --status passes"}}
+{"log":{"at":"2026-10-23T01:16:38-05:00","msg":"ready: task/cracks-inbox-wait at 66a102e1d; review --status passes"}}
