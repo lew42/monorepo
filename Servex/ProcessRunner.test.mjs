@@ -3,7 +3,8 @@ import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { run_item, hooks } from "./agents/page_tools.js";
+import { run_item, hooks, ledgers } from "./agents/page_tools.js";
+import TaskHomes from "../Server/TaskHomes.mjs";
 import ProcessRunner from "./ProcessRunner.js";
 import Task from "../public/framework/core/Task/Task.js";
 import "../public/framework/core/Task/Process.js";
@@ -29,6 +30,7 @@ const settle = async file => { await runner.chains.get(path.resolve(file)); awai
 const item = (delta, caller, url = URL) => run_item({ path: url, delta }, { caller });
 
 fs.mkdirSync(DIR, { recursive: true });
+ledgers.task_moves = path.join(DIR, "task-moves.jsonl"); TaskHomes.INDEX = path.join(DIR, "homes.jsonl");   // never the real ledgers
 fs.writeFileSync(SESSION, JSON.stringify({ assign: { session_id: "sess", agent: "mm1", title: "Test session" } }) + "\n");
 try {
 	const Process = (await import("../public/framework/core/Task/Process.js")).default;
@@ -53,10 +55,13 @@ try {
 	ok(L.some(l => l.plan?.start) && sent.at(-1).id === "a1" && sent.at(-1).text.includes("found the cause in X.js"), "plan runs in the same session, told what investigate found");
 
 	live.set("a1", { state: "idle", cost: 0.5 });
+	await Promise.all([runner.queue_turn(FILE, "a1"), runner.queue_turn(FILE, "a1")]);   // two wakes for one turn end
+	L = read(FILE);
+	ok(L.filter(l => l.measure?.phase === "investigate" && l.measure.usd === 0.5).length === 1, "investigate's cost is measured by node, once however many wakes");
+	ok(!L.some(l => l.pulse), "the turn that ends first is investigate's own (plan was sent mid-turn): no pulse");
 	await runner.after_turn(FILE, "a1");
 	L = read(FILE);
-	ok(L.some(l => l.measure?.phase === "investigate" && l.measure.usd === 0.5), "investigate's cost is measured by node");
-	ok(L.some(l => l.pulse?.phase === "plan" && l.pulse.n === 1) && sent.at(-1).text.includes("not recorded as complete"), "a turn that ends with plan open gets one pulse");
+	ok(L.some(l => l.pulse?.phase === "plan" && l.pulse.n === 1) && sent.at(-1).text.includes("not recorded as complete"), "the next turn that ends with plan open gets one pulse");
 
 	await step({ plan: { complete: { outcome: "plan.md written" } } }, "a1");
 	ok(spawned[1]?.role === "reviewer", "improve is a fresh reviewer");
@@ -91,10 +96,37 @@ try {
 	p = runner.read(Q);
 	ok(p.phase.id === "questions" && p.phase.state === "waiting" && p.phase.get_one("waiting_on") === "mm1", "two silent turn ends: the phase waits on the creator");
 
+	// Draft in the session, then move home: a process naming a module moves to <module>/tasks/<id>/ once its plan is approved.
+	const MOD = "ai/process-test-" + process.pid;   // a module name has no dots (MODULE_NAME); removed in finally
+	fs.mkdirSync(path.join(ROOT, "public/framework", MOD), { recursive: true });
+	await item({ tasks: { add: { title: "Go home", process: "build", module: MOD } } }, "mm1");
+	const G = path.join(DIR, "go-home", "task.jsonl");
+	await settle(G);
+	for (const [ph, by] of [["investigate", spawned.at(-1).id], ["plan", spawned.at(-1).id], ["improve-plan", null], ["approve-plan", "mm1"]]){
+		await item({ [ph]: { complete: { outcome: "ok" } } }, by ?? spawned.at(-1).id, URL + "go-home/");
+		await settle(G);
+	}
+	const HOME = path.join(ROOT, "public/framework", MOD, "tasks", "go-home", "task.jsonl");
+	await settle(HOME); await settle(HOME);
+	ok(!fs.existsSync(G) && fs.existsSync(HOME), "approved: the process folder moved to <module>/tasks/go-home/");
+	p = runner.read(HOME);
+	ok(p.get_one("path").endsWith(`/${MOD}/tasks/go-home/`) && p.phase.id === "execute" && p.phase.get_one("spawned"), "it records its new path and the run goes on there (execute spawned)");
+	const s2 = Task.replay(read(SESSION));
+	ok(s2._tasks.find("go-home")?.get_one("path")?.endsWith(`/${MOD}/tasks/go-home/`) && [...s2._tasks].filter(t => t.id === "go-home").length === 1, "the session's later reference replaces the old one: one child, at its new home");
+	ok(read(path.join(ROOT, "public/framework", MOD, "tasks", "task.jsonl")).some(l => l.task?.endsWith(`/${MOD}/tasks/go-home/`)), "the module's tasks list references it");
+
+	// Improvements: one list per folder through the item tool; the same proposal again adds weight, never a second line.
+	const IMP = URL + "improvements.jsonl", add = why => item({ tasks: { add: { title: "Move X into Y", why } } }, "mm1", IMP);
+	await add("X is a tool"); r = await add("seen again");
+	const imp = read(path.join(DIR, "improvements.jsonl")), state = (await run_item({ path: IMP }, { caller: "mm1" })).state;
+	ok(r.ok && imp.filter(l => l.tasks?.add).length === 1 && imp.some(l => l["move-x-into-y"]?.reinforce?.why === "seen again"), "an improvement proposed again is a reinforce line, not a duplicate");
+	ok(Task.replay(imp)._tasks.find("move-x-into-y").weight === 2 && state.tasks.length === 1, "its weight is 2, computed on replay");
+
 	r = await run_item({ path: PURL }, { caller: "mm1" });
 	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) reads the process back: class, state, phases");
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
+	fs.rmSync(path.join(ROOT, "public/framework/ai/process-test-" + process.pid), { recursive: true, force: true });
 }
 console.log(`${n} passing`);
 process.exit(0);

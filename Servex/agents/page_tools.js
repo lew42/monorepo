@@ -492,6 +492,43 @@ function make_process(parent_dir, add, ctx, home){
 	return { ...h, process: add.process, file };
 }
 
+/* DRAFT IN THE SESSION, THEN MOVE HOME (core/Task/doc/owner-2026-10-20-projects-and-completion.md §6). A task folder (a process once its
+ * plan is approved) moves to <module>/tasks/<slug>/: git mv when tracked, else a rename. Then one line on each side:
+ * - the task records its new path;
+ * - the old parent and the module list reference the new path (a later reference with the same id replaces the earlier one, Task.js);
+ * - the move is one {at, kind: "task", from, to, session} line in ai/sessions/task-moves.jsonl, the ledger Server/TaskMove.mjs keeps,
+ *   so Server/TaskDirs.mjs redirects the old path and the move can be undone by hand.
+ * Returns {from, to, file} or {why}. ProcessRunner calls it; the dated store's move_project is the same idea for project.jsonl folders. */
+export const ledgers = { task_moves: path.join(PUBLIC, "framework", "ai", "sessions", "task-moves.jsonl") };   // a test points it at a scratch file
+export async function move_home(file, module, by = "ProcessRunner"){
+	const dir = path.dirname(path.resolve(file)), slug = path.basename(dir);
+	const home = task_home(path.dirname(dir), { id: slug, module }, FRAMEWORK, "");
+	if (!home) return { why: `no module folder public/framework/${module}` };
+	if (path.resolve(home.dir) === dir) return { why: "already home" };
+	if (fs.existsSync(home.dir)) return { why: `${app_path(home.dir)} already exists; the task stays in its session` };
+	const from = app_path(dir), to = app_path(home.dir), rel = p => path.relative(ROOT, p).split(path.sep).join("/");
+	const lines = fs.readFileSync(file, "utf8").split("\n").filter(Boolean);
+	const parent = (() => { try { return JSON.parse(lines[0]).parent; } catch { return null; } })();
+	fs.mkdirSync(path.dirname(home.dir), { recursive: true });
+	const { execFileSync } = await import("node:child_process");
+	const git = (...a) => execFileSync("git", a, { cwd: ROOT, encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }).trim();
+	let tracked = false; try { tracked = !!git("ls-files", "--", rel(dir)); } catch {}
+	if (tracked) git("mv", rel(dir), rel(home.dir)); else fs.renameSync(dir, home.dir);
+	const nf = path.join(home.dir, "task.jsonl"), at = now();
+	write_line(nf, { set: { path: to, parent: app_path(home.list.dir), moved_from: from }, by, ts: at }, true);
+	const pf = parent ? resolve_file(parent, true) : null;
+	if (pf && fs.existsSync(pf)) write_line(pf, { task: to, moved_from: from, by, ts: at }, true);
+	const list = path.join(home.list.dir, "task.jsonl");
+	if (!fs.existsSync(list)){
+		write_line(list, { id: "tasks", path: app_path(home.list.dir), title: `${home.list.module} tasks`, mode: "parallel" }, true);
+		TaskHomes.add(app_path(home.list.dir), by);
+	}
+	write_line(list, { task: to, by, ts: at }, true);
+	record_new_folder(home.list.dir, slug);
+	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: rel(dir), to: rel(home.dir), session: parent ?? null, module, by, git: tracked }) + "\n");
+	return { from, to, file: nf };
+}
+
 // Node's resolver for Task.from_ref: an app path -> that folder's parsed task.jsonl, or null. While a root is being replayed, `collect` gathers every child file it read.
 let collect = null;
 const sig = file => { try { const st = fs.statSync(file); return `${st.size}:${st.mtimeMs}`; } catch { return "none"; } };
@@ -608,6 +645,12 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	if (Object.keys(flat).length === 1 && flat.help){
 		told.set(`${ctx.caller}|${kind}`, true);
 		return { ok: true, instructions: await instructions_for(kind, Class) };
+	}
+	// An improvement proposed again adds weight, never a duplicate (the owner, 2026-10-22; readme-system.md): the same title becomes
+	// {"<id>": {"reinforce": {why}}} on the existing one, and Task.weight counts them.
+	if (path.basename(at.file) === "improvements.jsonl" && is_plain(flat.tasks?.add) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1){
+		const a = flat.tasks.add, id = slug_of(a.id ?? a.title);
+		if (root()._tasks?.find(id)) { delete flat.tasks; flat[id] = { reinforce: { ...(a.why ? { why: a.why } : {}) } }; }
 	}
 	if (Class?.replay){ const no = validate(Class, root(), flat); if (no) return no; }
 

@@ -27,7 +27,7 @@ const CAN = {
 const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent", "outcome", "brief"];
 
 // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
-const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags"]);
+const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
 
 export class Task extends Item {
@@ -168,6 +168,13 @@ export class Task extends Item {
 		const h = String(hash ?? "").trim();
 		if (!h || (this.data.commits ?? []).includes(h)) return this;
 		this.put("commits", [...(this.data.commits ?? []), h]);
+		return this;
+	}
+
+	// The same thing asked or proposed again adds weight instead of a duplicate (an improvement, readme-system.md). Weight = 1 + reinforcements.
+	get weight(){ return 1 + (this.data.reinforced ?? []).length; }
+	reinforce({ why, by } = {}){
+		this.put("reinforced", [...(this.data.reinforced ?? []), { ...(why ? { why } : {}), ...(by ? { by } : {}) }]);
 		return this;
 	}
 
@@ -364,9 +371,14 @@ export class Task extends Item {
 				this.put(k === "finished_at" ? "completed_at" : k === "complete" && typeof v === "number" ? "completion" : k, v);   // old folders
 			if (session_id !== undefined) this.put("session", session_id);
 		}
-		if (typeof line.task === "string"){ const kid = Task.from_ref(line.task); this.tasks.insert(kid); this.adopt_child(kid); }
+		if (typeof line.task === "string"){   // a later reference with the same id (the folder name) replaces the earlier one: the task moved home
+			const kid = Task.from_ref(line.task), had = this.tasks.find(kid.id);
+			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
+			this.adopt_child(kid);
+		}
 		if (line.id !== undefined && !a) rp.fresh = true;   // a home-made task's line 1: idle until a verb line says otherwise
 		if (typeof line.commit === "string") this.commit(line.commit);
+		if (line.reinforce && typeof line.reinforce === "object") this.reinforce({ ...line.reinforce, by: line.reinforce.by ?? line.by });
 		if (line.priority && typeof line.priority === "object"){
 			const { score, why, by } = line.priority;
 			this.put("priority", { score, why, by });

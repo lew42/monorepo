@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { stamp } from "./home.js";
 import Process from "../public/framework/core/Task/Process.js";
+import { move_home } from "./agents/page_tools.js";
 
 /* THE PROCESS RUNNER: a process's phases run in order because node runs them, never because an agent remembers.
  * Process.next() (core/Task/Process.js) decides; this class writes the line it asks for and launches the phase's session.
@@ -18,6 +19,8 @@ export default class ProcessRunner {
 		this.chains = new Map();     // file -> the step in flight, so two wakes never step one file at once
 		this.by_agent = new Map();   // agent id -> the process file whose running phase it holds
 		this.files = new Set();      // every process file seen since boot
+		this.pending = new Map();    // "<file>#<agent>" -> the after-turn wake already queued
+		this.grace = new Set();      // "<file>#<phase>": sent to an agent mid-turn, so the turn that ends next is not this phase's
 		this.pulse_after_ms ??= 1500;
 	}
 
@@ -65,6 +68,15 @@ export default class ProcessRunner {
 			}
 			else if (a.start) await this.write(file, { [a.start]: { start: {} } });
 			else if (a.launch){ if (!(await this.launch(file, p, a.launch))) return; }
+			else if (a.move){   // approved: the draft leaves the session for <module>/tasks/<id>/, and the run goes on from there
+				const out = await move_home(file, a.move).catch(e => ({ why: e.message || String(e) }));
+				if (out.why){ await this.write(file, { set: { home_refused: out.why } }); continue; }
+				this.files.delete(file); this.files.add(out.file);
+				for (const [k, v] of this.by_agent) if (v === file) this.by_agent.set(k, out.file);
+				this.tell(p.creator, `Process ${out.from} moved home to ${out.to} (its plan is approved).`);
+				this.step(out.file);
+				return;
+			}
 		}
 	}
 
@@ -88,6 +100,7 @@ export default class ProcessRunner {
 		const to = run === "same" ? this.previous_agent(p, id) : p.creator;
 		try {
 			if (!to) throw new Error(run === "same" ? "no earlier phase has an agent" : "the process names no creator");
+			if (agents.live?.get?.(to)?.state === "working") this.grace.add(`${file}#${id}`);   // run 1: the plan phase was pulsed by the investigate turn's own end
 			agents.send(to, prompt, { from: "process-runner" });
 		} catch (e){   // nobody to send it to: the phase waits on whoever made the process, and says why
 			await this.write(file, { [id]: { wait: { on: p.creator ?? "owner", what: `run the ${id} phase (${e.message || e})` } } });
@@ -115,10 +128,22 @@ export default class ProcessRunner {
 	turn_ended(agent){
 		const file = this.by_agent.get(agent?.id);
 		if (!file) return;
-		setTimeout(() => this.after_turn(file, agent.id).catch(e => this.say(`process-runner: ${e.message || e}`)), this.pulse_after_ms).unref?.();
+		setTimeout(() => this.queue_turn(file, agent.id), this.pulse_after_ms).unref?.();
 	}
 
-	async after_turn(file, id){
+	// After-turn work joins the file's chain, so two turn ends never both measure one phase (run 1 wrote review's cost twice).
+	// A second wake for the same agent while one is still queued is the same turn end (run 1 got two): it joins the first.
+	queue_turn(file, id){
+		file = path.resolve(file);
+		const key = `${file}#${id}`;
+		if (this.pending.has(key)) return this.pending.get(key);
+		const next = (this.chains.get(file) ?? Promise.resolve()).then(() => { this.pending.delete(key); return this.after_turn(file, id, { chained: true }); }).catch(e => this.say(`process-runner: ${e.message || e}`));
+		this.pending.set(key, next);
+		this.chains.set(file, next);
+		return next;
+	}
+
+	async after_turn(file, id, { chained = false } = {}){
 		const p = this.read(file);
 		if (!p) return;
 		const url = this.url(file);
@@ -135,6 +160,7 @@ export default class ProcessRunner {
 			if (ph.state !== "running") continue;
 			holds = true;
 			if (busy) continue;
+			if (this.grace.delete(`${path.resolve(file)}#${ph.id}`)) continue;   // that turn began before this phase was sent
 			const n = Number(ph.get_one("pulses")) || 0;
 			if (n < 1){
 				const line = `item({path: "${url}", delta: {"${ph.id}": {"complete": {"outcome": "…"}}}})`;
@@ -146,7 +172,7 @@ export default class ProcessRunner {
 			}
 		}
 		if (!holds) this.by_agent.delete(id);
-		await this.step(file);
+		if (chained) await this.run(file); else await this.step(file);   // inside the chain, step() would wait on itself
 	}
 
 	// The retry and the resume: every process in today's and yesterday's sessions, plus any seen since boot.

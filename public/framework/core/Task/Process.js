@@ -23,11 +23,21 @@ export class Process extends Task {
 		if (this.state === "idle") return { start: true };
 		if (this.state !== "running") return null;
 		const p = this.phase;
+		if (this.moves_home()) return { move: this.get_one("module") };
 		if (!p) return { complete: true };
 		const run = p.get_one("session")?.run ?? "fresh";
 		if (p.state === "idle") return run === "wait" ? { wait: p.id } : { start: p.id };
 		if (p.state === "running" && !p.get_one("spawned")) return { launch: p.id };
 		return null;
+	}
+
+	// Draft in the session, then move home (doc/owner-2026-10-20-projects-and-completion.md §6): once a phase marked `home_after` is complete
+	// (build: approve-plan), a process that names a `module` belongs in <module>/tasks/<id>/. True while it is not there yet.
+	moves_home(){
+		const mod = this.get_one("module");
+		if (typeof mod !== "string" || !mod || this.get_one("home_refused")) return false;   // refused once (the folder exists): it stays
+		if (!this.phases.some(p => p.get_one("home_after") && p.state === "complete")) return false;
+		return this.get_one("path") !== `/framework/${mod.replace(/^\/+|\/+$/g, "")}/tasks/${this.id}/`;
 	}
 
 	// The prompt node sends the phase's session: the job, the brief, what earlier phases found, and the one line that completes it.
@@ -78,12 +88,12 @@ Process.DEFINITIONS = {
 			do: "Write plan.md beside the brief: the class sketch, the files to change, small steps you can check, and how you will prove it works. Then re-read the owner's words in the brief and say, one line each, whether the plan covers them." },
 		{ id: "improve-plan", title: "Improve the plan", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
 			do: "Read the brief, investigation.md and plan.md with fresh eyes. Fix plan.md where it misses the brief, rebuilds something that exists, or is bigger than needed. List what you changed at the end of plan.md under 'Improved'." },
-		{ id: "approve-plan", title: "Approve the plan", session: { run: "owner" },
+		{ id: "approve-plan", title: "Approve the plan", session: { run: "owner" }, home_after: true,
 			do: "Read plan.md. Complete this phase with outcome 'approved' (plus any caveat), or 'changes: …' naming what the builder must change first." },
 		{ id: "execute", title: "Execute", session: { run: "fresh", role: "helper", model: SONNET, effort: "medium" },
-			do: "Build the plan on its own branch in a git worktree (git worktree add -b task/<slug> ../worktrees/<slug> michael/dev); apply any 'changes:' from the approve-plan phase first. Commit each working step. Never merge. Outcome: the branch, the commits, and how you tested it." },
+			do: "Build the plan on its own branch in a worktree Servex serves: take one with the take_worktree tool (it has its packages and a site at http://<name>.localhost/). Only if that tool is missing, use git worktree add -b task/<slug> ../worktrees/<slug> michael/dev, and say in the outcome that it is not served. Apply any 'changes:' from the approve-plan phase first. Load every page you changed with check_page at its worktree url and fix each console error. Commit each working step. Never merge. Outcome: the branch, the worktree url, the commits, and how you tested it." },
 		{ id: "review", title: "Review", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
-			do: "Review the branch named in the execute outcome (git diff michael/dev...<branch>) against plan.md and the brief. Fix small problems on the branch and commit; run the test the plan names. Outcome: 'ready to merge: <branch>' or what is wrong." },
+			do: "Review the branch named in the execute outcome (git diff michael/dev...<branch>) against plan.md and the brief. Fix small problems on the branch and commit; run the test the plan names. Load every changed page with check_page at the worktree url from the execute outcome (and the shot tool at 400 and 1200 px when the brief names widths). Outcome: 'ready to merge: <branch>' only when those pages loaded with no console errors; if you could not load them, 'not checked: <why>', never ready." },
 		{ id: "merge", title: "Merge", session: { run: "wait" },
 			do: "The owner merges the reviewed branch, or says no." },
 	],
