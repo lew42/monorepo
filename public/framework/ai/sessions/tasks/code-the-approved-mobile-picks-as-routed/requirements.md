@@ -51,7 +51,7 @@ Read `/framework/ai/sessions/doc/mobile-cards.md` first. Its rules, in short:
 
 ## How to work
 
-1. **Worktree:** run `node Server/worktree-up.mjs mobile-picks` (from the main tree). It gives you a private worktree with its own server URL. Build there; never edit the main tree.
+1. **Worktree:** it is already made, at `C:\Code\lew42\worktrees\mobile-picks` (branch `worktree/mobile-picks`, server `http://localhost:65118/`). Build there; never edit the main tree, except for the shots and log lines below.
 2. **Order:** build the pages in the table's order (1 → 4). Commit after each page.
 3. **Screenshots:** after each page, take headless Playwright shots at **400 px wide** (and one at 1200 px for the last pass), against your worktree's URL. Save them as `public/framework/ai/sessions/tasks/code-the-approved-mobile-picks-as-routed/shots/<page>-400.png` **in the main tree** (a task-dir data file; it is fine there). Then log one line on this task (`item` tool, path `/framework/ai/sessions/tasks/code-the-approved-mobile-picks-as-routed/`, delta `{"log":{"text":"..."}}`) naming the shot. Your parent reviews each shot and may message you fixes.
 4. **Real data:** use today's sessions (2026-10-22) and session `e00f55c9` (its task folders are under `sessions/2026/10/20/session-e00f55c9/`). No made-up numbers.
