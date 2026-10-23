@@ -85,6 +85,6 @@ The reviewer works the same way, and each run's own feedback is in its `review_r
 
 ## Not built yet
 
-- ⬜ Running pass 1 live on every new prompt (the brief needs no code context, so it can).
+- ✅ A live split on every new prompt now exists, through RefineQueue rather than this pass 1: Servex refines each VS Code prompt as it arrives and files its task asks as proposed tasks on the session page ([core/Session/doc/prompt-tasks.md](/framework/core/Session/doc/prompt-tasks.md)). This audit stays the deeper weekly check.
 - ⬜ Showing the items and their tags as cards on the session page.
 - ⬜ Chunked review for very large sessions (above).
