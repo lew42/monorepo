@@ -36,12 +36,12 @@ A prompt's record lives in its session's own `prompts.jsonl` ([PromptLog](/frame
 | sentences | code | `raw` and numbered `clean` lines, once per prompt |
 | parts | Haiku, one call per prompt, no context (`PARTS_BRIEF`) | a `parts` line, every outcome `open` |
 | outcomes | Haiku, one call per window of the session, with the condensed transcript and Read/Grep (`OUTCOMES_BRIEF`) | a `parts` line with outcomes and evidence |
-| file | node, through the item tool's `run_item` | a task on the session for each part still open; the part's outcome becomes `task` |
+| file | node, through the item tool's `run_item` | a task on the session for each part still open, `source: {session, line, prompt, part}` (the transcript line, so the raw words are one click away); the part's outcome becomes `task`, and it settles when that task completes |
 | completion | code | nothing: `Prompt.completion()` reads the lines |
 
 The processes are data (`PromptRecords.PROCESSES`):
 
-- **`live`** (every new owner prompt in a VS Code tab, through [PromptTasks](/Servex/agents/PromptTasks.js)): sentences, parts, then each top-level **ask** becomes a waiting proposal on the session, with its details in the description. Rules and questions stay on the record and are never filed as tasks.
+- **`live`** (every new owner prompt in a VS Code tab, through [PromptTasks](/Servex/agents/PromptTasks.js)): sentences, parts, then each top-level **ask** becomes a waiting proposal on the session, with its details in the description, at most 5 per prompt (the rest stay open on the record). Rules and questions stay on the record and are never filed as tasks.
 - **`review`** (after the fact): sentences, parts, outcomes, then each top-level ask or rule still open becomes an idle task (a rule as "Write down: …").
 
 ```
