@@ -23,7 +23,7 @@ export default class ReadyToMerge extends View {
 			if (!res.ok) throw new Error(`HTTP ${res.status}`);
 			this.rows = await res.json();
 		} catch (e) {
-			this.error = `Servex did not answer (${e.message}). If this change is new, Servex needs a restart.`;
+			this.error = `Servex did not give the merge list (${e.message}). If this feature is new, Servex needs a restart.`;
 		}
 		this.paint();
 	}
@@ -39,7 +39,7 @@ export default class ReadyToMerge extends View {
 	card(r){
 		div.c("rm-card", () => {
 			a.c("rm-title", r.title).href(r.task_url).attr("target", "_self");
-			p.c("rm-what", r.what || "No description was logged with the ready line.");
+			div.c("rm-what", r.what || "No description was logged with the ready line.");
 			div.c("rm-meta", () => {
 				span.c("rm-review", r.review);
 				span.c("rm-branch", `${r.branch} @ ${r.sha.slice(0, 9)}`);
@@ -61,6 +61,6 @@ export default class ReadyToMerge extends View {
 			answer = await res.json();
 		} catch (e) { answer = { ok: false, why: `Servex did not answer: ${e.message}` }; }
 		b.text(answer.ok ? "Merged" : "Refused");
-		out.ac(answer.ok ? "rm-ok" : "rm-bad").text([answer.ok ? "Merged." : answer.why, answer.out].filter(Boolean).join("\n"));
+		out.ac(answer.ok ? "rm-ok" : "rm-bad").text([answer.ok ? "Merged." : answer.why, answer.warn, answer.out].filter(Boolean).join("\n"));
 	}
 }

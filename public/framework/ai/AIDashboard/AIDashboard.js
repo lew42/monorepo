@@ -49,13 +49,14 @@ export default class AIDashboard extends View {
 				input.c("ad-date").attr("type", "date").attr("max", this.days[0]).attr("value", this.q.day).attr("title", "Any day").on("change", e => e.target.value && this.set({ day: e.target.value }));
 			});
 			div.c("ad-main", () => {
+				a.c("ad-link").href(AIDashboard.AI + "merge/").attr("target", "_self").attr("title", "Branches agents marked ready, with a Merge button").text("Ready to merge →");
 				this.$sum = div.c("ad-sum");
 				this.$chips = div.c("ad-chips");
 				input.c("ad-find").attr("type", "search").attr("placeholder", "Find a session…").attr("value", this.q.find).on("input", e => { this.q.find = e.target.value; this.write(); this.paint(); });
 				this.$list = div.c("ad-list");
 			});
 		});
-		div.c("ad-foot", () => a.c("ad-link").href(AIDashboard.AI + "inbox/").attr("target", "_self").attr("title", "The old Inbox, with its tabs, tasks and sessions").text("Old Inbox →"), a.c("ad-link").href(AIDashboard.AI + "merge/").attr("target", "_self").attr("title", "Branches agents marked ready, with a Merge button").text("Ready to merge →"));
+		div.c("ad-foot", () => a.c("ad-link").href(AIDashboard.AI + "inbox/").attr("target", "_self").attr("title", "The old Inbox, with its tabs, tasks and sessions").text("Old Inbox →"));
 		this.store.on(() => this.paint());
 		this.store.open(this.q.day);
 	}

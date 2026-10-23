@@ -113,7 +113,9 @@ export function mergeBranch(branch, opts = {}) {
 	else {
 		const lines = path.join(os.tmpdir(), `merge-log-${Date.now()}.json`);
 		fs.writeFileSync(lines, JSON.stringify([{ log: { at: "NOW", msg } }]));
-		spawnSync("node", [path.join(repo, ".claude/hooks/append.mjs"), path.join(row.task_dir, row.record), lines], { cwd: repo, windowsHide: true });
+		const ap = spawnSync("node", [path.join(repo, ".claude/hooks/append.mjs"), path.join(row.task_dir, row.record), lines], { cwd: repo, windowsHide: true, encoding: "utf8" });
+		fs.rmSync(lines, { force: true });
+		if (ap.status !== 0) return { ok: true, out, warn: `merged, but the record line was not written: ${(ap.stderr || "").trim().slice(-200)}` };
 	}
 	return { ok: true, out };
 }
