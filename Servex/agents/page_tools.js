@@ -620,6 +620,18 @@ function task_state(Task, task){
 	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
 }
 
+// The first task verb anywhere in a delta ({"tasks":{"<id>":{"start":{}}}} -> "start"), or null.
+const TASK_VERBS = new Set(["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "check"]);
+function verb_in(delta){
+	if (!is_plain(delta)) return null;
+	for (const [k, v] of Object.entries(delta)){
+		if (TASK_VERBS.has(k)) return k;
+		const deeper = k === "add" ? null : verb_in(v);   // a new task's own fields are not a verb call
+		if (deeper) return deeper;
+	}
+	return null;
+}
+
 function refusal(why, Class){
 	const d = describe_class(Class);
 	return { ok: false, why, exists: [...d.methods.map(m => m.name), ...new Set([...d.fields, ...(KEYS[Class.name] ?? [])])] };
@@ -763,8 +775,13 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		homes.push(...g.made);
 		size = size_of(at.file);
 	}
+	let unchanged = null;
 	if ((pages === undefined && folder === undefined && !homes.length && !ids.length) || Object.keys(body).length){
+		// A verb that does nothing (refused from this state, or its child not found) is still written, but the answer says so.
+		const verb = Class?.replay && !at.target.length ? verb_in(body) : null;
+		const was = verb ? JSON.stringify(task_state(Class, root())) : null;
 		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: now() }), !!Class?.replay);
+		if (verb && JSON.stringify(task_state(Class, root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
 	} else if (size === undefined) size = size_of(at.file);
 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.
 	if (Class?.replay && !at.target.length && body.approve !== undefined && hooks.approved) try { Promise.resolve(hooks.approved(at.file)).catch(() => {}); } catch {}
@@ -776,7 +793,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		const live = root(), list = live.sessions;
 		if (!list.some(s => s?.id === ctx.caller)) { const keep = line; put({ sessions: [...list, { id: ctx.caller, task: live.get_one("path") ?? app_path(path.dirname(at.file)) }], by, ts: now() }); line = keep; }
 	} catch {}
-	return { ok: true, ids, line, size, ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(Class?.replay || !alias ? await extra() : {}) };
+	return { ok: true, ids, line, size, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(Class?.replay || !alias ? await extra() : {}) };
 }
 
 /* ---------- the six tools ---------- */

@@ -111,6 +111,10 @@ export class List extends Item {
 	// By ID, never an index.
 	find(id){ return this.items.find(x => this.key(x) === id); }
 
+	// A member's id is a name too: `list.set({"<id>": {"start": {}}})` walks into that member (Item's set_one asks get()).
+	// Without this the delta was stored as plain data on the list and the member never moved (2026-10-22).
+	get(key){ return super.get(key) ?? this.find(key); }
+
 	// A plain object becomes a real member through `of` — the class this list holds.
 	// Set on the prototype at the bottom of this file now that List can just say
 	// `Item` directly (it already imports it for `extends`).

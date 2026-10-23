@@ -64,9 +64,17 @@ try {
 		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "a" } } } });
 		await call("item", { path: SURL, delta: { a: { complete: {} } } });   // a nested task: addressed by its id
 		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "b" } } } });
-		ok(r.ok && r.state.class === "Session" && r.state.completion === 0.5 && r.state.progress.total === 2, "session.jsonl -> Session, tasks.add, completion 1/2");
+		// A session folder's log is a Task now (SessionRecord.log_file), so its nested tasks are subtasks.
+		ok(r.ok && r.state.completion === 0.5 && r.state.tasks.length === 2, "session.jsonl: tasks.add, a child completed by its id, completion 1/2");
+		// Walking into the tasks list by a child's id calls the child's verb (List.get finds members; 2026-10-22 it stored the delta as data).
+		r = await call("item", { path: SURL, delta: { tasks: { b: { start: {} } } } });
+		ok(r.ok && r.state.tasks.find(t => t.id === "b").state === "running" && !r.warning, "{tasks:{<id>:{start:{}}}} starts that child");
+		r = await call("item", { path: SURL, delta: { tasks: { b: { start: {} } } } });
+		ok(r.ok && /changed nothing/.test(r.warning ?? ""), "a verb that changes nothing says so");
+		r = await call("item", { path: SURL, delta: { tasks: { nobody: { start: {} } } } });
+		ok(r.ok && /changed nothing/.test(r.warning ?? ""), "a verb sent to a missing child says so");
 		r = await call("item", { path: SURL, delta: { nonsense_key: 1 } });
-		ok(r.ok === false && /Session/.test(r.why), "Session refuses unknown keys");
+		ok(r.ok === false && /names no method/.test(r.why), "a session log refuses unknown keys");
 	} finally { fs.rmSync(SDIR, { recursive: true, force: true }); }
 
 	// ---- step 14a: task homes ----
