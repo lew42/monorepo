@@ -85,6 +85,7 @@ export default class TaskLoop {
             this.follow_up_daily();
             this.handover_daily();
             this.undone_asks_daily();
+            await this.servex.process_runner?.tick().catch(() => {});   // every process moves on, or resumes after a restart (ProcessRunner)
             const now = Date.now(), registry = this.servex.agents.registry_list();
             let open = 0, quiet = 0, escalations = 0;
 

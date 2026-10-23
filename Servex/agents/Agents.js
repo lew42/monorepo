@@ -1489,6 +1489,7 @@ Agents.Agent = class Agent {
 			: this.one_shot && event.ok === false ? "error"
 			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done");
 		if (event.type === "error") this.host?.wake_parent?.(this, "error");
+		if (event.type === "result") try { this.host?.servex?.process_runner?.turn_ended(this); } catch {}   // a process phase this agent holds is measured, or pulsed if left open
 		return event;
 	}
 
@@ -1613,6 +1614,14 @@ Agents.Agent = class Agent {
 		return Number(process.env.SERVEX_GATE_CEILING_USD) || 100;
 	}
 
+	/* THE HARD STOP (the owner, 2026-10-22: "budgets are estimates, not caps; a hard stop only near 10x the estimate").
+	 * SERVEX_GATE_HARD_X (default 10) times the spawner's estimate, else the runaway ceiling. Only this pauses an agent
+	 * and asks Continue or Stop; the owner's Continue (+$5) raises it. Doc: Servex/doc/budget.md. */
+	hard_usd(){
+		const est = this.estimate_usd(), x = Number(process.env.SERVEX_GATE_HARD_X) || 10;
+		return (est ? est * x : this.ceiling_usd()) + this.gate().granted;
+	}
+
 	/* The spawner's estimate, for display and for the mastermind's own watching (never enforced). */
 	estimate_usd(){
 		if (Number(this.budget_usd) > 0) return Number(this.budget_usd);
@@ -1626,7 +1635,7 @@ Agents.Agent = class Agent {
 
 	allowance_usd(){
 		const g = this.gate(), first = Number(process.env.SERVEX_GATE_FIRST_USD) || 2, step = Number(process.env.SERVEX_GATE_STEP_USD) || 3;
-		return Math.min(this.ceiling_usd(), first + step * g.results.length) + g.granted;
+		return Math.min(this.ceiling_usd(), first + step * g.results.length) + g.granted + (g.auto ?? 0);
 	}
 
 	/* For the registry row and the Sessions grid. `unpriced_calls` (openrouter-cost-blind,
@@ -1746,6 +1755,17 @@ Agents.Agent = class Agent {
 		const g = this.gate(), spent = this.spent_usd(), allowance = this.allowance_usd();
 		const unpriced = (this.unpriced_calls ?? 0) >= 3;
 		if (spent < allowance && !unpriced){ g.due = false; return; }
+		/* Past the results allowance but under the hard stop: a soft gate. Work never stops here: Servex continues the agent
+		 * itself (+$5 past what it spent, logged as auto-continue) and sends it one line asking for a result; no card, no interrupt. */
+		if (!unpriced && spent < this.hard_usd()){
+			g.due = false;
+			const add = +(spent - allowance + (Number(process.env.SERVEX_GATE_AUTO_USD) || 5)).toFixed(4);
+			g.auto = (g.auto ?? 0) + add;
+			this.gate_log("auto-continue", { added_usd: add, hard_usd: +this.hard_usd().toFixed(2), since_result_usd: +(spent - g.spent_at_result).toFixed(4) });
+			try { this.host?.send?.(this.id, `Servex: $${spent.toFixed(2)} spent, $${(spent - g.spent_at_result).toFixed(2)} since your last result (a commit, a step done, a page line, a minion with a brief). Budgets are estimates, so keep going if it is working, and produce a result soon. The hard stop is $${this.hard_usd().toFixed(2)}.`, { from: "servex" }); } catch {}
+			this.host?.register?.(this);
+			return;
+		}
 		if (g.open.size && this.state === "working"){ g.due = true; return; }   // never mid-tool-call
 		g.due = false;
 		if (this.state === "working") this.interrupt().catch?.(() => {});
@@ -1756,7 +1776,7 @@ Agents.Agent = class Agent {
 		const read = g.read_log.slice(-10).join(", ") || "nothing";
 		const text = unpriced
 			? `${this.id} (${this.model}) has made ${this.unpriced_calls} model calls Servex could not price (its real spend is unknown, not necessarily high), so Servex paused it as a safety gate (openrouter-cost-blind, 2026-10-04). Produced: ${made}. Last read: ${read}. Continue gives it $5 more; Stop ends it.`
-			: `${this.id} (${this.model}) has spent $${spent.toFixed(2)}, $${(spent - g.spent_at_result).toFixed(2)} of it since its last result, and reached its $${allowance.toFixed(2)} allowance, so Servex paused it. Produced: ${made}. Last read: ${read}. Continue gives it $5 more; Stop ends it.`;
+			: `${this.id} (${this.model}) has spent $${spent.toFixed(2)}, $${(spent - g.spent_at_result).toFixed(2)} of it since its last result, and reached its $${this.hard_usd().toFixed(2)} hard stop (${this.estimate_usd() ? `${Number(process.env.SERVEX_GATE_HARD_X) || 10}x its $${this.estimate_usd()} estimate` : "the runaway ceiling"}), so Servex paused it. Produced: ${made}. Last read: ${read}. Continue gives it $5 more; Stop ends it.`;
 		const sx = this.host?.servex, h = sx?.mcp?.handlers, ask = h?.get?.("card_ask"), card = this.task?.card;
 		/* `from: this.id` lets Cards.js's wake() find exactly this agent when the owner answers,
 		 * instead of falling back to every attached non-minion agent. `kind: "spend-gate"` tells

@@ -6,11 +6,12 @@
 
 ## Every system, one line each
 
+- **Maps** (what each role reads, every tool, every item writer, processes; read one before you dig): [doc/readme.md#maps-read-one-before-you-dig](doc/readme.md#maps-read-one-before-you-dig)
 - **Records** (every file in `ai/`, its writer and its reader; who makes sessions and tasks, and where): [doc/records.md](doc/records.md)
 - **Roles and rules:** one readme per role, [Servex/agents/roles/readme.md](../../../Servex/agents/roles/readme.md) · safety and cost rules, long form: [doc/agent-rules.md](doc/agent-rules.md) · what each agent reads: [doc/readme-system.md](doc/readme-system.md)
 - **Principle:** effective parallel work between sessions. A parent answers or hands off, helpers are reused, tasks are created, tracked, logged and finished. A spawned agent is a **session**, a task is something to finish inside it: [doc/sessions-and-tasks.md](doc/sessions-and-tasks.md).
 - **Context loss** (a session survives only in files; what to write where; computed state instead of a handover): [doc/context-loss.md](doc/context-loss.md) · how agents talk and what each message leaves on disk: [Servex/agents/doc/messaging.md](/Servex/agents/doc/messaging.md) · **readme rule, checked by code:** `node Server/ReadmeOrphans.mjs` lists every system the readme above it never names; add the missing one-liner whenever it prints one.
-- **Tasks:** [tasks/readme.md](tasks/readme.md) · [doc/tasks.md](doc/tasks.md) (what a task is, two homes, who makes one) · [core/Task](/framework/core/Task/)
+- **Tasks:** [tasks/readme.md](tasks/readme.md) · [doc/tasks.md](doc/tasks.md) (what a task is, two homes, who makes one) · [core/Task](/framework/core/Task/) · **processes** (a task whose phases node runs in order, completion automatic): [core/Task/doc/process.md](/framework/core/Task/doc/process.md)
 - **Sessions:** [sessions/readme.md](sessions/readme.md) · cloud voice calls: [/Servex/ext/remote/doc/cloud-voice-agent.md](/Servex/ext/remote/doc/cloud-voice-agent.md)
 - **Page system:** [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/) · parts: [core/Page/parts](../core/Page/parts/readme.md)
 - **Inbox:** [core/Page/ext/Inbox](/framework/core/Page/ext/Inbox/) · timeline: [timeline](/framework/core/Page/ext/Inbox/timeline/) · note on a page: [PageInbox.js](../core/Page/PageInbox.js)

@@ -24,6 +24,7 @@ class Servex {
   dashboard: Dashboard            // the :8090 HTTP router; mcp: MCP (/mcp); remote: RemoteMCP (/mcp/remote)
   dispatcher: Dispatcher          // agents/Dispatcher.js — routes a prompt to the right agent
   task_loop: TaskLoop             // TaskLoop.js — runs Server/AIIndex.mjs --watch, re-prompts stalled task steps (doc/steps.md)
+  process_runner: ProcessRunner   // ProcessRunner.js — runs a work process's phases in order (public/framework/core/Task/doc/process.md)
   heartbeat: Heartbeat            // Heartbeat.js — status check → triage → escalate
   lifecycle: Lifecycle            // Lifecycle.js — reaps finished or stuck agents
   pool: Pool, worktrees: Worktrees, fixer: Fixer   // the quick-fix pool and per-task worktrees

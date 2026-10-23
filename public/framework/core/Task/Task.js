@@ -24,10 +24,10 @@ const CAN = {
 // The state verbs a `task.jsonl` line may name: `{"stop":{"why":"…"}}`.
 // Plain fields a top-level line may set (the item tool's {"expected":"…"}); legacy lines keep them under `assign`.
 // `sessions` [{id, task}] and `home` (an old folder's pointer to its module home): Server/TaskMigrate.mjs writes them.
-const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent"];
+const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent", "outcome", "brief"];
 
 // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
-const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags"]);
+const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
 
 export class Task extends Item {
@@ -171,6 +171,13 @@ export class Task extends Item {
 		return this;
 	}
 
+	// The same thing asked or proposed again adds weight instead of a duplicate (an improvement, readme-system.md). Weight = 1 + reinforcements.
+	get weight(){ return 1 + (this.data.reinforced ?? []).length; }
+	reinforce({ why, by } = {}){
+		this.put("reinforced", [...(this.data.reinforced ?? []), { ...(why ? { why } : {}), ...(by ? { by } : {}) }]);
+		return this;
+	}
+
 	// The owner checking the task off is final.
 	check({ by } = {}){
 		this.put("checked_by", by ?? "owner");
@@ -262,7 +269,7 @@ export class Task extends Item {
 
 	// Refuses while any subtask is not complete: names the first open one, the
 	// same "tell them what to do next" shape as Item.locate()'s own warnings.
-	complete({ completion, complete } = {}){
+	complete({ completion, complete, outcome } = {}){
 		if (this.state === "complete") return this;
 
 		// A recorded finish is a fact during replay (this._rp): a {task: ref} child the worker only filed is not a reason to refuse it. Server/doc/state.md
@@ -275,7 +282,7 @@ export class Task extends Item {
 		this._ran_ms = ran_ms;
 		this._ran_since = null;
 		const c = completion ?? complete;
-		this.set({ completed_at: this.stamp(), ran_ms, ...(c !== undefined ? { completion: c } : {}), state: "complete" });
+		this.set({ completed_at: this.stamp(), ran_ms, ...(c !== undefined ? { completion: c } : {}), ...(outcome !== undefined ? { outcome } : {}), state: "complete" });
 		return this;
 	}
 
@@ -302,7 +309,8 @@ export class Task extends Item {
 		let kid;
 		if (lines?.length){
 			this.resolving.add(ref);   // a cycle of references stops here
-			try { kid = this.replay(lines); } finally { this.resolving.delete(ref); }
+			const Own = Item.types.get(lines[0]?.class);   // line 1 may name a subclass (a Process): replay it as that, when it is loaded
+			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
 			if (kid.id === "tasks") kid.id = id;   // a module list's line 1 says "tasks": a property name, and the same for every module
 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
 			kid = new this({ id });
@@ -363,9 +371,14 @@ export class Task extends Item {
 				this.put(k === "finished_at" ? "completed_at" : k === "complete" && typeof v === "number" ? "completion" : k, v);   // old folders
 			if (session_id !== undefined) this.put("session", session_id);
 		}
-		if (typeof line.task === "string"){ const kid = Task.from_ref(line.task); this.tasks.insert(kid); this.adopt_child(kid); }
+		if (typeof line.task === "string"){   // a later reference with the same id (the folder name) replaces the earlier one: the task moved home
+			const kid = Task.from_ref(line.task), had = this.tasks.find(kid.id);
+			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
+			this.adopt_child(kid);
+		}
 		if (line.id !== undefined && !a) rp.fresh = true;   // a home-made task's line 1: idle until a verb line says otherwise
 		if (typeof line.commit === "string") this.commit(line.commit);
+		if (line.reinforce && typeof line.reinforce === "object") this.reinforce({ ...line.reinforce, by: line.reinforce.by ?? line.by });
 		if (line.priority && typeof line.priority === "object"){
 			const { score, why, by } = line.priority;
 			this.put("priority", { score, why, by });

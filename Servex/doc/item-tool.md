@@ -3,6 +3,8 @@
 `item({path, delta})` in `Servex/agents/page_tools.js`: `page_set` generalised to any Item class. `delta` is one log line, the object `Item.set()` takes. A key naming a method calls it, a key naming a child walks into it, anything else assigns (`set_one` in `core/Item/Item.js`; there is no second apply).
 
 - **Which log:** a url's folder holds `task.jsonl` (Task), else `session.jsonl` (Session, `core/Session/Session.js`), else `page.jsonl` (Page). `task.jsonl` beside a `page.jsonl` means a task folder. A `class` key on line 1 wins.
+- **`improvements.jsonl`** (2026-10-22): a url naming `<folder>/improvements.jsonl` is a Task list; `tasks.add` always nests there (no folder). The rule for writing one is in `Servex/agents/roles/mastermind.md`, "Improvements".
+- **Item vs log, settled 2026-10-22** ([code-shape.md](/framework/ai/doc/code-shape.md)): `item` is for files a class reads (Task, Session, Process, Page, improvements): node replays the class, checks the delta or method against it, writes, and answers with computed state. `log` (the Servex MCP `log` tool) is the plainly named raw append for any other JSONL record: node adds time, author and session and checks the line against the log's schema. Neither makes the model write bookkeeping.
 - **No delta** returns the state; Task: `{class, state, completion, data, tasks}` from `Task.replay`.
 - **Dot paths:** `"now.preview": x` becomes `{now: {preview: x}}`.
 - **Refusals (Task):** `_` keys and keys that are no method, field or child return `{ok:false, why, exists}`.

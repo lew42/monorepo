@@ -2,6 +2,23 @@
 
 One folder per subsystem, one current doc per topic. Load the folder you need; the rest costs nothing. Superseded files sit in [`archive/`](archive/moved.md) with a line saying where their content went (nothing is deleted). The Sessions tab has its own docs: [`../sessions/doc/`](../sessions/doc/readme.md).
 
+## Maps: read one before you dig
+
+A map lists every piece of one system (each class, tool, writer and file) in one place, checked against the code. When you had to search for how something works, the answer belongs in its map. These docs are kept by the system architect (`mastermind-system-architect`); a map that is wrong gets fixed in the task that found it.
+
+| Map | What it lists | Read it when |
+|---|---|---|
+| [agent-context.md](agent-context.md) | What each role is given to read at start (readme chain, role readme, skills, tools) and what it costs in tokens | you change what an agent reads, or an agent seems not to know something |
+| [Servex/doc/tools-map.md](/Servex/doc/tools-map.md) | Every Servex tool, grouped, and the compacted set | you add, rename or look for a tool |
+| [core/Item/doc/map.md](/framework/core/Item/doc/map.md) | Every class, store, tool and writer that makes or saves items | you write or read a JSONL log, page, task or session |
+| [core/Task/doc/process.md](/framework/core/Task/doc/process.md) | Processes: a task whose phases node runs in order (Process, ProcessRunner, `item` tool) | you run multi-phase work or touch task completion |
+| [code-shape.md](code-shape.md) | Where AI code lives (core, ai/, Servex host, Servex/agents), item vs log, markdown vs JSONL; a proposal awaiting the owner | you add AI code or a record |
+| [records.md](records.md) | Every file in `ai/`, its writer and its reader | you wonder who writes a record |
+| [../systems-map.md](../systems-map.md) | The systems and how they connect | you cross systems |
+| [ux/Dictate/doc/map.md](/framework/ux/Dictate/doc/map.md) | Every dictation piece (mic, Whisper, cleaners, chat, voice) | you touch dictation |
+
+## Folders and topics
+
 | Folder | What is in it | Load it when |
 |---|---|---|
 | [`architecture.md`](architecture.md) | The decisions behind the AI system, newest first | you change how it is built |

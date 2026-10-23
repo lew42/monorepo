@@ -15,6 +15,8 @@
 //   node Server/TaskMove.mjs --redirects [--repo <path>]
 //   node Server/TaskMove.mjs --pages     [--repo <path>]                      ai/sessions/task-pages.json: moved tasks with their own page.js
 //
+// A second writer (2026-10-22): the item tool's move_home (Servex/agents/page_tools.js) appends one kind "task" line when a
+// process moves from its session to <module>/tasks/<slug>/ (core/Task/doc/process.md); TaskDirs redirects it like any other.
 // The ledger is two files, both repo-relative/forward-slash, so the browser can fetch the small one to redirect an
 // old URL without ever loading a snapshot: ai/sessions/task-moves.jsonl ({at,kind,from,to,session}, one line per
 // move — kinds task/rename/stub/dayfile are physical moves, "redirect" is a virtual line only, mapping a 10-10-era

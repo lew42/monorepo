@@ -32,7 +32,7 @@ const check = (name, ok, detail) => {
  * live agent would normally get from Servex (the host, a card, a session) is a plain stub that
  * just records what it was called with. */
 function fakeAgent(overrides = {}){
-	const gateLog = [], askCalls = [], inboxDrops = [], interruptCalls = [];
+	const gateLog = [], askCalls = [], inboxDrops = [], interruptCalls = [], sends = [];
 	const askHandler = args => { askCalls.push(args); return Promise.resolve({ ok: true, id: "c-1", ask: "q-1" }); };
 	const agent = Object.assign(Object.create(Agents.Agent.prototype), {
 		id: "a-1", model: "claude-sonnet-5", provider: "anthropic", state: "idle", role: "minion",
@@ -41,6 +41,7 @@ function fakeAgent(overrides = {}){
 		host: {
 			store: () => ({ append: async (_log, obj) => { gateLog.push(obj); return true; } }),
 			register: () => {},
+			send: (_id, text) => sends.push(text),
 			servex: {
 				mcp: { handlers: new Map([["card_ask", askHandler]]) },
 				inbox: { drop: x => inboxDrops.push(x) },
@@ -49,7 +50,7 @@ function fakeAgent(overrides = {}){
 		},
 		...overrides
 	});
-	return { agent, gateLog, askCalls, inboxDrops, interruptCalls };
+	return { agent, gateLog, askCalls, inboxDrops, interruptCalls, sends };
 }
 
 /* 1. $2 (the default SERVEX_GATE_FIRST_USD) spent, no result yet, mid-turn ("working"): the
@@ -58,7 +59,7 @@ function fakeAgent(overrides = {}){
  *    makes, proved here because gate_check() is where it is wired. A second gate_check() while
  *    still gated must not ask again. */
 {
-	const { agent, gateLog, askCalls, interruptCalls } = fakeAgent({ cost: 2, state: "working" });
+	const { agent, gateLog, askCalls, interruptCalls } = fakeAgent({ cost: 2, state: "working", budget_usd: 0.2 });
 	agent.gate_check();
 	check("$2 spent, no result, mid-turn: interrupt() called once", interruptCalls.length === 1);
 	check("...and the card is asked exactly once", askCalls.length === 1);
@@ -91,7 +92,7 @@ function fakeAgent(overrides = {}){
  *    g.due = true and does not call interrupt() while g.open.size is nonzero and the agent is
  *    "working". Once that call returns, tool_results() re-runs the gate and it fires then. */
 {
-	const { agent, interruptCalls, askCalls } = fakeAgent({ cost: 2, state: "working" });
+	const { agent, interruptCalls, askCalls } = fakeAgent({ cost: 2, state: "working", budget_usd: 0.2 });
 	agent.tool_started({ id: "tu-open", name: "Read", input: { file_path: "/x" } });   // no matching tool_results yet
 	agent.gate_check();
 	check("an open tool call delays the interrupt: due=true, interrupt NOT called",
@@ -102,22 +103,21 @@ function fakeAgent(overrides = {}){
 		interruptCalls.length === 1 && askCalls.length === 1);
 }
 
-/* 4. ceiling_usd()/read_ceiling() picks up a `Budget: $N` line from the task's own brief file,
- *    and `budget_usd` (added to spawn_agent in this same task) overrides it. With neither, it
- *    falls back to the $20 default. */
+/* 4. The hard stop (the owner, 2026-10-22: budgets are estimates; stop only near 10x): hard_usd() is 10x the brief's
+ *    `Budget: $N`, `budget_usd` overrides the brief, and with neither it is the runaway ceiling ($20 here). */
 {
 	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "spend-gate-proof-"));
 	const brief = path.join(tmp, "requirements.md");
 	fs.writeFileSync(brief, "# A task\n\nBudget: $15.\n\nmore words here.\n");
 
 	const { agent: a1 } = fakeAgent({ task: { dir: "t", brief } });
-	check("read_ceiling() reads Budget: $N from the brief file", a1.read_ceiling() === 15, a1.read_ceiling());
+	check("hard_usd() is 10x the brief's Budget: $N", a1.hard_usd() === 150, a1.hard_usd());
 
 	const { agent: a2 } = fakeAgent({ task: { dir: "t", brief }, budget_usd: 7 });
-	check("budget_usd overrides the brief's Budget: $N line", a2.read_ceiling() === 7, a2.read_ceiling());
+	check("budget_usd overrides the brief's Budget: $N line", a2.hard_usd() === 70, a2.hard_usd());
 
 	const { agent: a3 } = fakeAgent({ task: { dir: "t" } });   // no brief, no budget_usd
-	check("no budget_usd and no brief: falls back to the $20 default", a3.read_ceiling() === 20, a3.read_ceiling());
+	check("no budget_usd and no brief: the runaway ceiling ($20 here)", a3.hard_usd() === 20, a3.hard_usd());
 
 	fs.rmSync(tmp, { recursive: true, force: true });
 }
@@ -125,7 +125,7 @@ function fakeAgent(overrides = {}){
 /* 5. grant(usd) raises allowance_usd() by that amount and clears g.gated, so a second
  *    gate_check() does not re-fire the card (the owner chose "Continue (+$5)"). */
 {
-	const { agent, askCalls } = fakeAgent({ cost: 2, state: "working" });
+	const { agent, askCalls } = fakeAgent({ cost: 2, state: "working", budget_usd: 0.2 });
 	agent.gate_check();
 	check("gated and asked once before the grant", askCalls.length === 1 && agent.gate().gated === true);
 	const before = agent.allowance_usd();
@@ -134,6 +134,20 @@ function fakeAgent(overrides = {}){
 		agent.allowance_usd() - before === 5 && agent.gate().gated === false, { before, after: agent.allowance_usd() });
 	agent.gate_check();
 	check("after the grant, a second gate_check() does not ask again", askCalls.length === 1);
+}
+
+/* 5b. THE SOFT GATE (the owner, 2026-10-22: the Continue (+$5) decision must not stop work). Past the results allowance
+ *     but under the hard stop: no interrupt, no card; Servex continues the agent itself (+$5 past its spend, logged as
+ *     auto-continue) and sends it one line asking for a result. */
+{
+	const { agent, askCalls, interruptCalls, gateLog, sends } = fakeAgent({ cost: 2.5, state: "working", budget_usd: 8 });
+	agent.gate_check();
+	check("soft gate: $2.50 past the $2 allowance, $80 hard stop: no interrupt, no card", interruptCalls.length === 0 && askCalls.length === 0);
+	check("...the allowance moves to $5 past the spend, logged as auto-continue", Math.abs(agent.allowance_usd() - 7.5) < 1e-9 && gateLog.some(l => l.event === "auto-continue"), agent.allowance_usd());
+	check("...and the agent gets one line asking for a result", sends.length === 1 && /result/.test(sends[0]));
+	agent.cost = 80;
+	agent.gate_check();
+	check("at 10x the estimate the hard stop pauses it and asks once", interruptCalls.length === 1 && askCalls.length === 1 && /hard stop/.test(askCalls[0].question), askCalls[0]?.question);
 }
 
 /* 6. tool_started() is a no-op for a role the gate doesn't cover (review.md finding 3): the
