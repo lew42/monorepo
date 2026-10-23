@@ -18,6 +18,8 @@ class Session extends Item
 class AISession extends Session   // static MENU = [...Session.MENU, { … }] to add an entry
 ```
 
+**What it looks like** (headless, served worktree, 2026-10-22): [the open menu at 400 px](shots/menu-open-400.png), [at 1920](shots/menu-open-1920.png), [the Settings page at 400](shots/settings-400.png), [at 1920](shots/settings-1920.png).
+
 ## How it is drawn and saved
 
 | Part | File | Job |
