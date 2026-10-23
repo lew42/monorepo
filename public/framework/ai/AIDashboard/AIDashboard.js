@@ -55,7 +55,7 @@ export default class AIDashboard extends View {
 				this.$list = div.c("ad-list");
 			});
 		});
-		div.c("ad-foot", () => a.c("ad-link").href(AIDashboard.AI + "inbox/").attr("target", "_self").attr("title", "The old Inbox, with its tabs, tasks and sessions").text("Old Inbox →"));
+		div.c("ad-foot", () => a.c("ad-link").href(AIDashboard.AI + "inbox/").attr("target", "_self").attr("title", "The old Inbox, with its tabs, tasks and sessions").text("Old Inbox →"), a.c("ad-link").href(AIDashboard.AI + "merge/").attr("target", "_self").attr("title", "Branches agents marked ready, with a Merge button").text("Ready to merge →"));
 		this.store.on(() => this.paint());
 		this.store.open(this.q.day);
 	}

@@ -23,6 +23,7 @@
 - **Asks and follow-up:** [asks/](asks/) · [doc/asks-outcomes.md](doc/asks-outcomes.md) · [doc/follow-up.md](doc/follow-up.md) · [undone asks](/framework/ai/asks/undone/) · `node Server/PastWork.mjs <topic>`
 - **The AI dashboard** (the default page at `/framework/ai/` since 2026-10-19, merge 6feb47b6f: sessions by origin, nested by parent, cost rolled up, mobile first; old Inbox at `/framework/ai/inbox/`): structure [AIDashboard/readme.md](AIDashboard/readme.md) · plan and data audit [doc/ai-dashboard-plan.md](doc/ai-dashboard-plan.md) · shots [400](doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/400.png), [1200](doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/1200.png)
 - **Dashboard:** [doc/one-dashboard.md](doc/one-dashboard.md) · [doc/one-state.md](doc/one-state.md) · plan: [doc/ai-dashboard-plan.md](doc/ai-dashboard-plan.md) · known problem, asked 7 times: [doc/dashboard-layout-asks.md](doc/dashboard-layout-asks.md)
+- **Ready to merge** (branches agents marked `ready:`, one Merge button each): [merge/readme.md](merge/readme.md) · [/framework/ai/merge/](/framework/ai/merge/)
 - **Where things go:** [doc/organization.md](doc/organization.md) · [doc/task-folders.md](doc/task-folders.md) · [systems-map.md](systems-map.md) · [doc/repo-size.md](doc/repo-size.md)
 
 ## Classes and folders that draw them
