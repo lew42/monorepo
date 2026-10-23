@@ -35,7 +35,7 @@ const step1 = new Task({ id: "s1", data: { title: "Compile" } });
 build.tasks.add(step1);
 
 build.start();
-step1.start(); step1.complete();
+step1.start(); step1.complete({ outcome: "step 1 done", evidence: ["Task.test.mjs"] });
 build.complete({ outcome: "built", evidence: ["a1b2c3d"] });   // only works once every subtask is complete, and needs evidence
 
 build.progress();         // { done: 1, total: 1 } — computed from tasks, never stored
