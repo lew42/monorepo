@@ -53,6 +53,7 @@ try {
 	await pt.prompted(heard[0]);
 	ok(read(REC).filter(l => l.tasks?.add).length === 1, "the same prompt is never filed twice");
 	ok(adds[0].tasks.add.description.includes("settings first") && adds[0].tasks.add.module_hint === MOD, "a main ask carries its nested details and its module hint");
+	ok(adds[0].tasks.add.source.session === rec.uuid && adds[0].tasks.add.source.line === 1 && adds[0].tasks.add.source.part === "a1", "source names the session, the prompt's line and the part, so the receiver can read the raw words");
 	ok(adds[0].by === "prompt-tasks" && adds[0].tasks.add.from === "owner", "written by caller prompt-tasks, from the owner");
 
 	// 3b. Only the owner's own VS Code tab, only while switched on.

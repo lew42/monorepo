@@ -32,10 +32,12 @@ const HAIKU = "claude-haiku-5-5";
 export default class PromptRecords {
 
 	static BY = "PromptRecords";
+	/** A task made from a prompt: `source` {session, line, prompt, part} (since 2026-10-23), or the older "prompt:<id>" string. */
+	static from_prompt(source){ return typeof source === "object" ? !!source?.prompt : String(source ?? "").startsWith("prompt:"); }
 
 	/** The processes: the same steps, different instructions and context. Measured on tab e00f55c9 (doc, "The experiment"). */
 	static PROCESSES = {
-		live:   { steps: ["sentences", "parts", "file"], parts: { model: HAIKU }, file: "proposals", file_kinds: ["ask"],
+		live:   { steps: ["sentences", "parts", "file"], parts: { model: HAIKU }, file: "proposals", file_kinds: ["ask"], file_cap: 5,
 		          why: "fast and blind: a prompt's asks become proposals before anything is done; no evidence search" },
 		review: { steps: ["sentences", "parts", "outcomes", "file"], parts: { model: HAIKU }, outcomes: { model: HAIKU, window_chars: 150_000, max_turns: 12 }, file: "open", file_kinds: ["ask", "rule"],
 		          why: "after the fact: parts need no context (recall 0.95-1.0 blind), outcomes read what the session did and confirm in the repo" },
@@ -172,14 +174,20 @@ Answer at the end with ONE JSON object and nothing else after it:
 	async file(ps){
 		const { run_item } = await import(pathToFileURL(path.join(ROOT, "Servex/agents/page_tools.js")).href);
 		const record = "/" + path.relative(path.join(ROOT, "public"), path.join(this.folder, "session.jsonl")).replace(/\\/g, "/"), rows = this.rows(), made = [];
+		// A prompt the live process (or the older brief-v3 PromptTasks) already filed proposals for is not filed again: proposals
+		// made within 15 minutes after it, with a prompt: source. Its router closes them with --handled.
+		const live = PromptAudit.read(path.join(this.folder, "session.jsonl")).filter(l => PromptRecords.from_prompt(l.tasks?.add?.source)).map(l => Date.parse(l.ts ?? l.at ?? ""));
 		for (const p of ps){
 			const row = rows[this.rid(p)]; if (!row?.parts?.length) continue;
+			const t0 = Date.parse(p.at); if (this.def.file !== "proposals" && live.some(t => t >= t0 && t - t0 < 15 * 6e4)){ console.log(`  L${p.line}: live proposals exist; not filed again`); continue; }
 			let changed = false;
 			const parts = [];
-			for (const x of row.parts){
-				if (!this.def.file_kinds.includes(x.kind) || x.outcome?.is !== "open"){ parts.push(x); continue; }
+			let n = 0;
+			for (const x of row.parts){   // past file_cap an ask stays an open part on the record: never lost, never a sixth proposal
+				if (!this.def.file_kinds.includes(x.kind) || x.outcome?.is !== "open" || n >= (this.def.file_cap ?? Infinity)){ parts.push(x); continue; }
+				n++;
 				const add = { title: (x.kind === "rule" ? "Write down: " : "") + x.text.slice(0, 180), state: this.def.file === "proposals" ? "waiting" : "idle", ...(this.def.file === "proposals" ? { waiting_on: "owner" } : {}), from: "owner",
-					source: `prompt:${this.rid(p)}#${x.id}`, description: [x.outcome?.why, ...(x.parts ?? []).map(d => "- " + d.text)].filter(Boolean).join("\n").slice(0, 800), ...(x.file ? { file_hint: x.file } : {}), ...(x.module ? { module_hint: x.module } : {}) };
+					source: { session: this.id, line: p.line, prompt: this.rid(p), part: x.id }, description: [x.outcome?.why, ...(x.parts ?? []).map(d => "- " + d.text)].filter(Boolean).join("\n").slice(0, 800), ...(x.file ? { file_hint: x.file } : {}), ...(x.module ? { module_hint: x.module } : {}) };
 				const r = await run_item({ path: record, delta: { tasks: { add } } }, { caller: this.by }, true);
 				const ref = r?.homes?.[0]?.path ?? r?.ids?.[0];
 				if (r?.ok && ref){ parts.push({ ...x, outcome: { is: "task", ref, why: x.outcome?.why ?? "" } }); made.push(ref); changed = true; }
@@ -219,11 +227,11 @@ Answer at the end with ONE JSON object and nothing else after it:
 		const { run_item } = await import(pathToFileURL(path.join(ROOT, "Servex/agents/page_tools.js")).href);
 		const record = "/" + path.relative(path.join(ROOT, "public"), path.join(this.folder, "session.jsonl")).replace(/\\/g, "/");
 		const session = PromptAudit.read(path.join(this.folder, "session.jsonl")), done = [];
-		for (const l of session){ const a = l.tasks?.add; if (a?.id && String(a.source ?? "").startsWith("prompt:") && String(a.source).includes(uuid) && (a.state ?? "") === "waiting"){
+		for (const l of session){ const a = l.tasks?.add; if (a?.id && PromptRecords.from_prompt(a.source) && (a.source?.prompt === uuid || String(a.source).includes(uuid)) && (a.state ?? "") === "waiting"){
 			const r = await run_item({ path: record, delta: { [a.id]: { complete: { outcome: `routed to ${to}${note ? ": " + note : ""}` } } } }, { caller: this.by }, true);
 			if (r?.ok) done.push(a.id);
 		} }
-		await this.add({ prompt: uuid, stage: "handled", to, note });
+		try { await this.add({ prompt: uuid, stage: "handled", to, note }); } catch (e){ console.log(`no record for ${uuid} (${e.message}); the proposals are closed anyway`); }
 		return done;
 	}
 

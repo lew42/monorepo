@@ -73,7 +73,7 @@ export default class PromptTasks {
 			let s; try { s = Session.replay(fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l ? [JSON.parse(l)] : []; } catch { return []; } })); } catch { continue; }
 			for (const t of s._tasks ?? []){
 				const key = `${file}#${t.id}`, hint = t.get_one("module_hint");
-				if (this.refused.has(key) || t.data.path || !hint || !String(t.get_one("source") ?? "").startsWith("prompt:")) continue;
+				if (this.refused.has(key) || t.data.path || !hint || !(typeof t.get_one("source") === "object" ? t.get_one("source")?.prompt : String(t.get_one("source") ?? "").startsWith("prompt:"))) continue;
 				if (!["running", "paused", "complete"].includes(t.state)) continue;   // approved (waiting = still a proposal; stopped = Reject)
 				const r = await move_nested_home(file, t.id, String(hint).replace(/^\/?(public\/)?framework\//, ""), "PromptTasks");
 				if (r.why) this.refused.add(key); else moved.push(r);
@@ -90,7 +90,7 @@ export default class PromptTasks {
 			let names = []; try { names = fs.readdirSync(dir); } catch { continue; }
 			for (const n of names){
 				const f = path.join(dir, n, "session.jsonl");
-				try { if (fs.readFileSync(f, "utf8").includes('"source":"prompt:')) out.push(f); } catch {}
+				try { { const t = fs.readFileSync(f, "utf8"); if (t.includes('"source":"prompt:') || t.includes('"source":{"session"')) out.push(f); } } catch {}
 			}
 		}
 		return out;

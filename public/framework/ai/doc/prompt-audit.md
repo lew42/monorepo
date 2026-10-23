@@ -2,6 +2,8 @@
 
 The owner asks for many things in each long prompt, and some are never done. The prompt audit finds them in two passes. **Pass 1:** Haiku reads each owner prompt alone and sorts it into tasks, questions, statements and updates. **Pass 2:** one Sonnet reviewer per session reads those items next to what the session actually did, and says for each one whether it was needed and whether it got done. The results are kept in two files beside the session. Nothing is added to the session's tasks: a finished session stays finished, and its loose ends are listed separately.
 
+**Next version (2026-10-23):** [prompt records](/framework/ext/Refine/doc/prompt-records.md) (`Server/PromptRecords.mjs`) keep pass 1's blind per-prompt step and replace pass 2 by outcomes per session window, written into the session's `prompts.jsonl` with a computed completion per prompt. The two files here stay as the v1 record.
+
 Code: [`Server/PromptAudit.mjs`](/Server/PromptAudit.mjs) (`class PromptAudit`). Other audit systems, and why this one replaces them: [audits.md](audits.md).
 
 ## Run it
