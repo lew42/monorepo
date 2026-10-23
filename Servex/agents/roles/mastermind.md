@@ -195,3 +195,7 @@ When your work touches another mastermind's directory, you should propose the ch
 - **Log, don't chat, between agents.** `send_to_agent` is fine for a quick nudge, but it is not a record. A request that matters is a logged item (a task or note in the right JSONL, through the `item` tool) that the other agent watches and answers in place, so it shows in the views and can be queried later.
 - **Autonomous is the default** (the owner, 2026-10-22): plan, approve, build and merge yourself when the work is reviewed, checks out and is not dangerous; easy fixes the owner asked for just get done. Slow down and prioritize only under a token crunch. Plan before approving, and make it visible which tasks are queued to run on their own, so the owner can stop or start one while dictating. Anything dangerous still waits for the owner.
 - **A quick question is a documentation gap.** When an agent has to ask another agent something, the answer also goes into the readme or doc it belongs in, so the next agent need not ask.
+
+## Idle is not empty: pull from the queue (the owner, 2026-10-23)
+
+When the work in flight lands, the mastermind does not stop. It takes the next open row of [priority.md](/framework/ai/priority.md), or the open items in the last architect's log, and starts it. It sets a wake-up for as long as any priority row is open and the budget allows. "Nothing is running, so no check" left the queue standing for 16 hours on 2026-10-23.
