@@ -255,7 +255,7 @@ Answer at the end with ONE JSON object and nothing else after it:
 		const r = new PromptRecords(argv.find(x => /^[0-9a-f-]{8,36}$/.test(x)), { process: flag("--process") ? val("--process") : "review", parallel: flag("--parallel") ? +val("--parallel") : 3 });
 		if (flag("--handled")){ console.log(await r.handled(val("--handled"), val("--to"), flag("--note") ? val("--note") : "")); return; }
 		if (flag("--summary")){ const s = r.summary(); for (const x of s) console.log(x.recorded === false ? `  L${x.line} not recorded` : `${x.complete ? "✅" : "⬜"} L${x.line} ${x.done}/${x.total} ${x.uncovered ? `(${x.uncovered} uncited) ` : ""}${JSON.stringify(x.outcomes)} ${x.subject}`); console.log(`${s.filter(x => x.complete).length} of ${s.length} prompts complete`); return; }
-		if (flag("--dry")){ const rows = r.rows(); for (const p of r.prompts) console.log(`  L${p.line} ${p.at} ${p.text.length} chars ${rows[this.rid(p)]?.parts?.length ? "recorded" : ""}`); console.log(`${r.prompts.length} unique prompts (of ${PromptAudit.prompts(r.transcript).length} in the transcript), process ${r.process}: ${r.def.steps.join(" → ")}`); return; }
+		if (flag("--dry")){ const rows = r.rows(); for (const p of r.prompts) console.log(`  L${p.line} ${p.at} ${p.text.length} chars ${rows[r.rid(p)]?.parts?.length ? "recorded" : ""}`); console.log(`${r.prompts.length} unique prompts (of ${PromptAudit.prompts(r.transcript).length} in the transcript), process ${r.process}: ${r.def.steps.join(" → ")}`); return; }
 		const spent = await r.run({ steps: flag("--steps") ? val("--steps").split(",") : undefined, only: flag("--only") ? val("--only").split(",").map(Number) : null, file: flag("--file") });
 		console.log(`spent $${spent.toFixed(2)}`);
 	}
