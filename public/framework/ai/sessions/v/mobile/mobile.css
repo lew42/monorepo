@@ -42,4 +42,12 @@
 	.mob-dot.is-running { background: var(--mob-amber); animation: mob-pulse 1.4s ease-in-out infinite; }
 	.mob-dot.is-blocked { background: var(--mob-red); }
 	@keyframes mob-pulse { 50% { opacity: .4; } }
+
+	/* a parent's children: folded under a count, one indent, a 2 px rail */
+	.mob-nest > summary { background: none; border: 0; border-radius: 0; width: auto; cursor: pointer; padding: .4em .75em .4em 2.1rem; color: #6b7178; font-size: .85em; list-style: none; }
+	.mob-nest > summary::-webkit-details-marker { display: none; }
+	.mob-nest > summary::before { content: "▸  "; }
+	.mob-nest[open] > summary::before { content: "▾  "; }
+	.mob-nest-kids { margin-left: 1.05rem; border-left: 2px solid var(--mob-line); }
+	.mob-more { display: block; width: 100%; padding: .8em; border: 0; border-top: 1px solid var(--mob-line); background: none; color: #6b7178; font: inherit; cursor: pointer; }
 }
