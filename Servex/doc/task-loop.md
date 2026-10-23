@@ -31,6 +31,12 @@ A started task whose log has had no new line for 5 minutes gets ONE message to i
 
 After **three asks in a row with no new line** (the third sat unanswered), or when the agent's last line says it is blocked (a `blocked` key, or a log message starting "blocked"): one red flag, the card TaskLoop already used (`card_ask`, else a plain card message, else the Inbox), logged as `{"log": {"flag": n}}`. After that, one more flag per hour while it stays silent. **Any new line that is not ours resets the count.** The counts are those `ask`/`flag` lines, so a restart loses nothing. At most 5 flags happen in one tick. Code: `TaskLoop.chase()`; test: `Servex/TaskLoop-chase.test.mjs` (fake clock). Model: [core/Task resolution.md](../../public/framework/core/Task/doc/resolution.md) section 8.
 
+## Inboxes and waiting on others (cracks rows 1 and 5, 2026-10-23)
+
+- **Every inbox is read.** Each tick `TaskLoop.read_inboxes()` looks at the `inbox.jsonl` beside every task log of the last 30 days. "Read" is the mark `Heartbeat.inbox()` already uses: a `{read_upto, at, by}` line appended to the inbox itself; unread lines are the ones with `text` after the last mark. A live owning agent gets all its unread lines as ONE message, then the mark. A stopped or gone agent keeps them unread and the inbox makes ONE card (an `{inbox_card:{upto}}` line stops a second one until new lines arrive). A line older than 7 days is marked read with a `note` and never delivered.
+- **Waiting on an agent or a task path.** `TaskLoop.remind_other()`: after `SERVEX_TASKLOOP_FOLLOWUP_MIN`, and again each interval, the agent waited on (an agent id, or the owning agent of a task path) is told "Task x is waiting on you for <what>" (a `follow_up` line). After 3 reminders with no change, ONE flag card (`follow_up` with `flag:true`).
+- Test: `node Servex/TaskLoop-cracks.test.mjs` (temp store, fake clock).
+
 ## Close
 
 A task can leave the loop two ways: it completes or stops, or the owner

@@ -38,6 +38,9 @@ export default class TaskLoop {
         this.clock ??= () => Date.now();                                            // a test passes a fake one
         this.max_escalations ??= 5;
         this.followup_min ??= Number(process.env.SERVEX_TASKLOOP_FOLLOWUP_MIN) || 120;   // a task waiting on the owner: first reminder after this
+        this.inbox_days ??= 30;                                                           // task dirs this recent have their inbox.jsonl read
+        this.inbox_stale_days ??= 7;                                                      // an unread line older than this is marked read, never delivered
+        this.remind_max ??= 3;                                                            // reminders to a non-owner, then one flag
         this.followup_again_min ??= 24 * 60;                                              // then one more this often
         this.root ??= process.cwd();
         this.queues = new Map();      // task.jsonl path -> write chain, one writer per file
@@ -87,6 +90,7 @@ export default class TaskLoop {
             this.follow_up_daily();
             this.handover_daily();
             this.undone_asks_daily();
+            await this.read_inboxes(this.servex.agents.registry_list(), this.clock()).catch(e => this.servex.say?.(`task-loop: inbox sweep failed: ${e.message || e}`));
             await this.servex.process_runner?.tick().catch(() => {});   // every process moves on, or resumes after a restart (ProcessRunner)
             await this.servex.respawn?.tick().catch(() => {});   // a standing agent a day old and not busy gets a fresh session (agents/Respawn.js)
             await this.servex.prompt_tasks?.sweep().catch(() => {});   // an approved prompt task that names a module moves home (agents/PromptTasks.js)
@@ -100,6 +104,7 @@ export default class TaskLoop {
                 // task-replay, 2026-10-16: the state comes from Task.replay. Only `running` is chased; waiting-on-owner gets reminders; the rest are left alone.
                 if (info.task_state === "waiting"){
                     if (info.waiting_on === "owner" && this.servex.heartbeat?.opted_in(info.state)) await this.follow_up(file, info, registry, now);
+                    else if (info.waiting_on && info.waiting_on !== "owner") await this.remind_other(file, info, registry, now);
                     continue;
                 }
                 if (info.task_state !== "running") continue;
@@ -356,15 +361,77 @@ export default class TaskLoop {
 
     /* The agent of the parent task (its task.jsonl, found from root or the sessions store), else this task's owning agent. */
     parent_agent(info, registry){
-        const p = info.parent_task;
-        if (p){
-            for (const base of [this.root, path.join(this.root, "public", "framework", "ai"), path.join(this.root, "public", "framework", "ai", "sessions")]){
-                const pd = path.isAbsolute(p) ? p : path.join(base, p), f = SessionRecord.log_file(pd) ?? path.join(pd, "task.jsonl"), up = this.read_task(f);
-                const id = up && this.owning_agent_id(up.state, registry);
-                if (id) return id;
+        return (info.parent_task && this.agent_of_task(info.parent_task, registry)) || this.owning_agent_id(info.state, registry);
+    }
+
+    /* The owning agent of the task at path `p` (absolute, or relative to the root, ai/ or ai/sessions/), else null. */
+    agent_of_task(p, registry){
+        for (const base of [this.root, path.join(this.root, "public", "framework", "ai"), path.join(this.root, "public", "framework", "ai", "sessions")]){
+            const pd = path.isAbsolute(p) ? p : path.join(base, p), f = SessionRecord.log_file(pd) ?? path.join(pd, "task.jsonl");
+            if (!fs.existsSync(f)) continue;
+            const up = this.read_task(f), id = up && this.owning_agent_id(up.state, registry);
+            if (id) return id;
+        }
+        return null;
+    }
+
+    /* cracks row 5 (2026-10-23): a task waiting on an AGENT ID or a TASK PATH. After `followup_min` from waiting_since, and again every
+     * `followup_min`, the target gets one message "<task> is waiting on you for <waiting_what>". Each is a `follow_up` line on the log (read
+     * back next tick, so a restart loses no count); a stopped agent is not woken. After `remind_max` reminders with no change (the same wait),
+     * ONE flag on the card path the chase uses, logged as a `follow_up` line with `flag: true`; then nothing more. */
+    async remind_other(file, info, registry, now){
+        const n = info.follow_ups.length;
+        if (info.follow_ups.some(f => f.flag)) return;
+        const since = Date.parse(info.waiting_since) || now;
+        const last = n ? Math.max(...info.follow_ups.map(f => Date.parse(f.at) || 0)) : since;
+        if (now - last < this.followup_min * 60000) return;
+        const on = String(info.waiting_on), slug = this.slug(file);
+        if (n >= this.remind_max){
+            await this.post_card(file, info, `${slug} has waited through ${this.remind_max} reminders on ${on} for ${info.waiting_what ?? "(no reason given)"} and nothing changed. Look at it, or close it?`, ["close it", "keep waiting"]);
+            await this.write_line(file, { follow_up: { n: n + 1, to: on, at: this.at(now), flag: true } });
+            this.totals.escalated++;
+            return;
+        }
+        const to = registry.some(r => r.id === on) ? on : this.agent_of_task(on, registry);
+        const text = `Task ${slug} is waiting on you for ${info.waiting_what ?? "(no reason given)"}.`;
+        if (to && !this.agent_gone({ agent: to }, registry)){
+            try { this.servex.agents.send(to, text, { from: "servex-task-loop" }); } catch {}
+        }
+        await this.write_line(file, { follow_up: { n: n + 1, to: to ?? null, at: this.at(now) } });
+        this.totals.followed = (this.totals.followed ?? 0) + 1;
+    }
+
+    /* cracks row 1 (2026-10-23): every task dir's inbox.jsonl (Agents.inbox writes it) is read on the tick. "Read" is the mark Heartbeat.inbox()
+     * already uses: a `{read_upto: <line count>, at, by}` line appended to the inbox itself; unread = the lines with `text` after the last one.
+     *  - the owning agent is live  -> its unread lines go to it as ONE message, then the mark;
+     *  - stopped or gone           -> left unread, ONE card per inbox (an `inbox_card` line records how many lines it covered, so no card per tick);
+     *  - a line older than `inbox_stale_days` -> never delivered; marked read with a `note`. */
+    async read_inboxes(registry, now){
+        for (const t of TaskDirs.list(this.inbox_days, new Date(now))){
+            const inbox = path.join(t.dir, "inbox.jsonl");
+            if (!fs.existsSync(inbox)) continue;
+            let lines; try { lines = fs.readFileSync(inbox, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } }); } catch { continue; }
+            const from = lines.findLastIndex(l => l.read_upto !== undefined) + 1, unread = lines.slice(from).filter(l => l.text !== undefined);
+            if (!unread.length) continue;
+            const cutoff = now - this.inbox_stale_days * 864e5;
+            const fresh = unread.filter(l => !((Date.parse(l.at) || now) < cutoff)), stale = unread.length - fresh.length;
+            const file = SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl"), info = this.read_task(file);
+            const id = info && this.owning_agent_id(info.state, registry), row = id && registry.find(r => r.id === id);
+            const mark = extra => this.write_line(inbox, { read_upto: lines.length, at: this.at(now), by: "servex-task-loop", ...extra });
+            if (!fresh.length){ await mark({ note: `${stale} line(s) older than ${this.inbox_stale_days} days marked read, not delivered` }); continue; }
+            if (row && row.state !== "stopped" && row.state !== "gone"){
+                const body = fresh.map(l => `- ${l.from} (${l.kind}, ${l.at}): ${String(l.text).slice(0, 300)}`).join("\n");
+                try { this.servex.agents.send(id, `Unread lines in your inbox (${this.relative(inbox)}):\n${body}`, { from: "servex-task-loop" }); }
+                catch { continue; }   // not delivered: stays unread, tried again next tick
+                await mark(stale ? { note: `${stale} line(s) older than ${this.inbox_stale_days} days skipped` } : {});
+                this.totals.inboxed = (this.totals.inboxed ?? 0) + 1;
+            } else {
+                const carded = lines.filter(l => l.inbox_card).at(-1)?.inbox_card?.upto ?? -1;
+                if (carded >= lines.length) continue;
+                await this.post_card(file, info ?? { state: {} }, `${fresh.length} unread line(s) in ${this.relative(inbox)}, and ${id ?? "its agent"} is stopped or gone. Look at them.`);
+                await this.write_line(inbox, { inbox_card: { upto: lines.length + 1, lines: fresh.length, at: this.at(now) } });
             }
         }
-        return this.owning_agent_id(info.state, registry);
     }
 
     /* The red flag: the card path TaskLoop already used (card_ask when it exists, else a plain card message, else the Inbox). */

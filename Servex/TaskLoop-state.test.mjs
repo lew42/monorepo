@@ -41,7 +41,7 @@ assert.equal(about("idle").length, 0, "an idle task is not chased");
 assert.equal(about("approved").length, 0, "an approved task is accepted (idle) until its agent calls start: never chased");
 assert.equal(followups(files.approved).length, 0);
 assert.equal(about("waiting-young").length, 0, "waiting under 2 hours gets nothing");
-assert.equal(about("waiting-on-agent").length, 0, "waiting on an agent gets no reminder");
+// waiting on an agent is reminded since cracks row 5: Servex/TaskLoop-cracks.test.mjs
 const old = about("waiting-old");
 assert.equal(old.length, 1, "waiting over 2 hours gets exactly one reminder");
 assert.equal(old[0].id, "minion-x");
@@ -49,7 +49,7 @@ assert.match(old[0].text, /^Task waiting-old is waiting on the owner since .*: p
 assert.ok(!/build/i.test(old[0].text), "a reminder never tells an agent to build");
 assert.equal(cards.length, 1, "the reminder also rides the card path");
 assert.equal(followups(files["waiting-old"]).length, 1, "recorded as a follow_up line");
-for (const n of ["idle", "approved", "waiting-young", "waiting-on-agent"]) assert.equal(followups(files[n]).length, 0, n + " records nothing");
+for (const n of ["idle", "approved", "waiting-young"]) assert.equal(followups(files[n]).length, 0, n + " records nothing");
 
 const before = sent.length;
 await loop.tick();
