@@ -144,10 +144,14 @@ export default class UndoneToTasks {
 		const { run_item } = await import(pathToFileURL(path.join(this.root, "Servex/agents/page_tools.js")).href);
 		const made = [], refused = [];
 		for (const t of list){
-			const add = { title: t.title, module: t.module, source: t.source, ask: t.ask, description: t.description, priority: t.priority, ...(this.proposed ? { state: "waiting", waiting_on: "owner", from: "owner" } : {}) };
+			const add = { title: t.title, module: t.module, source: t.source, ask: t.ask, description: t.description, priority: t.priority, ...(this.proposed ? { from: "owner" } : {}) };
 			let r = await run_item({ path: this.parent, delta: { tasks: { add } } }, { caller: this.constructor.BY }, true);
 			if (!r.ok && r.suggest){ r = await run_item({ path: this.parent, delta: { tasks: { add: { ...add, id: r.suggest } } } }, { caller: this.constructor.BY }, true); }
-			if (r.ok && r.homes?.[0]) for (const id of [t.ask, ...(t.also ?? [])]) made.push({ ask: id, task: r.homes[0].path, module: t.module });
+			if (r.ok && r.homes?.[0]){
+				// a proposal: line 1's plain state is not a verb, so the wait line makes it waiting on the owner (Task.wait)
+				if (this.proposed) await run_item({ path: r.homes[0].path, delta: { wait: { on: "owner", what: "Proposed from an old ask (the sort pass over the undone asks): approve, improve or reject" } } }, { caller: this.constructor.BY }, true);
+				for (const id of [t.ask, ...(t.also ?? [])]) made.push({ ask: id, task: r.homes[0].path, module: t.module });
+			}
 			else refused.push({ ask: t.ask, why: r.why ?? "no home made" });
 		}
 		return { made, refused };
@@ -157,6 +161,8 @@ export default class UndoneToTasks {
 	record(made){
 		const man = this.file(UndoneToTasks.MANIFEST), at = this.now();
 		fs.mkdirSync(path.dirname(man), { recursive: true });
+		const had = this.manifest();
+		made = made.filter(m => !had.has(m.ask));   // an ask already in the manifest is not written again
 		if (made.length) fs.appendFileSync(man, made.map(m => JSON.stringify({ ask: m.ask, task: m.task, module: m.module, at })).join(NL) + NL);
 		const file = this.file(UndoneToTasks.DATA), raw = fs.readFileSync(file, "utf8"), data = JSON.parse(raw), by = new Map(made.map(m => [m.ask, m.task]));
 		let marked = 0;
