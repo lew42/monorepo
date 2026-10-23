@@ -10,7 +10,12 @@
  *   --root <repo>   where the data lives (default: the repo this file is in)
  *   --parent <url>  the task the new ones are filed under (default: this run's own task folder)
  *
- * Only `verified: "undone"` asks become tasks; done and unclear ones never do. An ask already tracked (its id in a task's line 1, in the
+ *   --proposed      file them as proposals (waiting on the owner) instead of idle tasks: the sort pass's tasks
+ *   --notes [--apply]   the asks the sort pass called notes: one line each in the module's readme (more than NOTES_INLINE in a
+ *                       module go to its doc/notes-from-asks.md, linked from the readme by one line); marks each ask's note.file
+ *
+ * Only `verified: "undone"` asks become tasks; done and unclear ones never do. The sort pass (UndoneVerify --question sort) names a module
+ * for each (`verified_module`) and a title (`verified_title`); a sorted ask with no module goes to the ai home. An ask already tracked (its id in a task's line 1, in the
  * manifest, or a task title in the same module home sharing over 60% of its words) is skipped.
  */
 import fs from "node:fs";
@@ -35,8 +40,8 @@ export default class UndoneToTasks {
 	static MIN_SHARED = 3;
 	static MAX_TITLE = 80;
 
-	constructor({ root = HERE, parent = UndoneToTasks.PARENT, now = () => new Date().toISOString() } = {}){
-		this.root = root; this.parent = parent; this.now = now;
+	constructor({ root = HERE, parent = UndoneToTasks.PARENT, now = () => new Date().toISOString(), proposed = false } = {}){
+		this.root = root; this.parent = parent; this.now = now; this.proposed = proposed;
 	}
 
 	// ---- reading -----------------------------------------------------------------------------------
@@ -50,7 +55,8 @@ export default class UndoneToTasks {
 	/** Every verified-undone ask, with its module label folded to a task home. */
 	asks(){
 		const data = JSON.parse(fs.readFileSync(this.file(UndoneToTasks.DATA), "utf8"));
-		return data.modules.flatMap(m => m.asks.filter(a => a.verified === "undone").map(a => ({ ...a, module: UndoneToTasks.home_of(m.module) })));
+		return data.modules.flatMap(m => m.asks.filter(a => a.verified === "undone").map(a => ({ ...a,
+			module: UndoneToTasks.home_of(a.verified_module ?? m.module) ?? (a.verified_kind === "sort" ? "ai" : null) })));
 	}
 	static home_of(label){ return !label || label.startsWith("(") ? null : (this.FOLD[label] ?? label); }
 
@@ -123,7 +129,10 @@ export default class UndoneToTasks {
 			if (hit){ tracked.push({ ask: a, by: `title ${Math.round(hit.share * 100)}%`, task: hit.t.path }); continue; }
 			if (seen.has(a.id)) continue;
 			seen.add(a.id);
-			create.push({ ask: a.id, module: a.module, title, source: a.source, description: a.verified_evidence ?? a.evidence ?? "", priority: UndoneToTasks.priority(a), days: a.days });
+			// the same ask said twice (a ledger title and its refined sentence): one task, both asks point at it
+			const twin = create.find(c => c.module === a.module && (c.text === a.text || UndoneToTasks.overlap(W, AskIndex.words(c.text)).share > UndoneToTasks.OVERLAP));
+			if (twin){ twin.also.push(a.id); continue; }
+			create.push({ ask: a.id, also: [], text: a.text, module: a.module, title: a.verified_title ? UndoneToTasks.title(a.verified_title) : title, source: a.source, description: a.verified_evidence ?? a.evidence ?? "", priority: UndoneToTasks.priority(a), days: a.days });
 		}
 		return { create, tracked, no_module };
 	}
@@ -135,10 +144,10 @@ export default class UndoneToTasks {
 		const { run_item } = await import(pathToFileURL(path.join(this.root, "Servex/agents/page_tools.js")).href);
 		const made = [], refused = [];
 		for (const t of list){
-			const add = { title: t.title, module: t.module, source: t.source, ask: t.ask, description: t.description, priority: t.priority };
+			const add = { title: t.title, module: t.module, source: t.source, ask: t.ask, description: t.description, priority: t.priority, ...(this.proposed ? { state: "waiting", waiting_on: "owner", from: "owner" } : {}) };
 			let r = await run_item({ path: this.parent, delta: { tasks: { add } } }, { caller: this.constructor.BY }, true);
 			if (!r.ok && r.suggest){ r = await run_item({ path: this.parent, delta: { tasks: { add: { ...add, id: r.suggest } } } }, { caller: this.constructor.BY }, true); }
-			if (r.ok && r.homes?.[0]) made.push({ ask: t.ask, task: r.homes[0].path, module: t.module });
+			if (r.ok && r.homes?.[0]) for (const id of [t.ask, ...(t.also ?? [])]) made.push({ ask: id, task: r.homes[0].path, module: t.module });
 			else refused.push({ ask: t.ask, why: r.why ?? "no home made" });
 		}
 		return { made, refused };
@@ -161,7 +170,7 @@ export default class UndoneToTasks {
 	async apply(){
 		const plan = this.plan(), before = this.carrying();
 		const { made, refused } = await this.create(plan.create);
-		const marked = this.record(made);
+		const marked = this.record([...made, ...plan.tracked.filter(t => t.task).map(t => ({ ask: t.ask.id, task: t.task, module: t.ask.module }))]);   // an ask whose work already has a task points at it
 		const homes = TaskHomes.sync({ write: true });
 		return { plan, made, refused, marked, carrying: this.carrying() - before, homes_added: homes.missing.length };
 	}
@@ -170,6 +179,57 @@ export default class UndoneToTasks {
 	carrying(){
 		const data = JSON.parse(fs.readFileSync(this.file(UndoneToTasks.DATA), "utf8"));
 		return data.modules.reduce((n, m) => n + m.asks.filter(a => a.task).length, 0);
+	}
+
+	// ---- notes: the asks the sort pass called a rule, a preference or an idea ---------------------------------------------
+
+	static NOTES_INLINE = 6;   // up to this many notes go straight into the readme; more go to doc/notes-from-asks.md, linked once
+	static NOTES_HEAD = "## Notes from your asks";
+
+	/** The readme of a module label: public/framework/<label>/readme.md, or a top-level <label>/readme.md (Servex, Server). */
+	readme_of(label){
+		for (const rel of [UndoneToTasks.FW + "/" + label + "/readme.md", label + "/readme.md"]) if (fs.existsSync(this.file(rel))) return rel;
+		return UndoneToTasks.FW + "/ai/readme.md";
+	}
+
+	/** { file -> [ask] }: where each unwritten note goes. */
+	notes_plan(){
+		const data = JSON.parse(fs.readFileSync(this.file(UndoneToTasks.DATA), "utf8")), by = new Map();
+		for (const a of data.modules.flatMap(m => m.asks)) if (a.note && !a.note.file){
+			const rm = this.readme_of(a.note.module);
+			(by.get(rm) ?? by.set(rm, []).get(rm)).push(a);
+		}
+		return by;
+	}
+
+	static note_line(a){ return `- ${a.note.text} ([your words](${a.source}), ${String(a.at ?? "").slice(0, 10)})`; }
+
+	/** Writes every note: into the readme under NOTES_HEAD, or (past NOTES_INLINE for one readme) into doc/notes-from-asks.md beside it,
+	 * linked from the readme by one line. Appends only; marks note.file on each ask in undone.json. */
+	write_notes(){
+		const plan = this.notes_plan(), written = new Map();
+		for (const [rm, asks] of plan){
+			const lines = asks.map(UndoneToTasks.note_line), abs = this.file(rm);
+			let target = rm;
+			if (asks.length > UndoneToTasks.NOTES_INLINE){
+				target = path.posix.join(path.posix.dirname(rm), "doc", "notes-from-asks.md");
+				const t = this.file(target);
+				fs.mkdirSync(path.dirname(t), { recursive: true });
+				if (!fs.existsSync(t)) fs.writeFileSync(t, "# Notes from your asks\n\nRules, preferences and ideas you said about this module that are not work, one line each, with a link to your words. Written by `node Server/UndoneToTasks.mjs --notes --apply` from the sort pass over the undone asks ([crack 2](/framework/core/Task/doc/cracks.md)).\n\n");
+				fs.appendFileSync(t, lines.join(NL) + NL);
+				lines.length = 0;
+				lines.push("- " + asks.length + " more notes from your asks: [doc/notes-from-asks.md](doc/notes-from-asks.md)");
+			}
+			const text = fs.readFileSync(abs, "utf8");
+			if (!text.includes(UndoneToTasks.NOTES_HEAD)) fs.appendFileSync(abs, (text.endsWith(NL) ? "" : NL) + NL + UndoneToTasks.NOTES_HEAD + NL + NL);
+			else if (!text.endsWith(NL)) fs.appendFileSync(abs, NL);
+			if (!text.includes("[doc/notes-from-asks.md](doc/notes-from-asks.md)") || target === rm) fs.appendFileSync(abs, lines.join(NL) + NL);
+			for (const a of asks) written.set(a.id, target);
+		}
+		const file = this.file(UndoneToTasks.DATA), data = JSON.parse(fs.readFileSync(file, "utf8"));
+		for (const a of data.modules.flatMap(m => m.asks)) if (written.has(a.id)) a.note.file = written.get(a.id);
+		fs.writeFileSync(file, JSON.stringify(data, null, 1));
+		return { files: [...new Set(written.values())], notes: written.size };
 	}
 
 	// ---- the print ---------------------------------------------------------------------------------
@@ -189,8 +249,11 @@ export default class UndoneToTasks {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
 	const arg = n => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
-	const u = new UndoneToTasks({ root: arg("--root") ?? HERE, parent: arg("--parent") ?? UndoneToTasks.PARENT });
-	if (process.argv.includes("--apply")){
+	const u = new UndoneToTasks({ root: arg("--root") ?? HERE, parent: arg("--parent") ?? UndoneToTasks.PARENT, proposed: process.argv.includes("--proposed") });
+	if (process.argv.includes("--notes")){
+		if (process.argv.includes("--apply")){ const r = u.write_notes(); console.log(`notes written: ${r.notes} into ${r.files.length} files`); for (const f of r.files) console.log("  " + f); }
+		else for (const [rm, asks] of u.notes_plan()) console.log(`${String(asks.length).padStart(3)}  ${rm}${asks.length > UndoneToTasks.NOTES_INLINE ? "  (-> doc/notes-from-asks.md)" : ""}`);
+	} else if (process.argv.includes("--apply")){
 		const r = await u.apply();
 		console.log(UndoneToTasks.report(r.plan).split(NL)[0]);
 		console.log(`created: ${r.made.length}   refused: ${r.refused.length}   asks marked: ${r.marked}   carrying grew by: ${r.carrying}   homes added to /tasks/: ${r.homes_added}`);
