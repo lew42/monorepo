@@ -37,7 +37,7 @@ export default class ReadmesView extends View {
 			sort_rows: (rows, sort) => DataGrid.prototype.sort_rows.call(this.grid, rows, sort ?? { key: "tokens", dir: "desc" }),
 			row: row => div.c("datagrid-row rm-row", () => this.grid.cells(row)).on("click", () => this.show(row)),
 		});
-		this.$panel = div.c("rm-panel");
+		this.$panel = div.c("rm-panel", () => p("Click a folder to see its chain here."));
 	}
 
 	/** Narrow the table to folders whose path contains the typed text. */
