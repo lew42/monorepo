@@ -37,7 +37,10 @@ export default class Respawn {
 		const live = this.agents.live.get(def.id), row = this.agents.reg().read()[def.id];
 		if (!live && !row) return "never spawned";   // spawning the first one is a mastermind's call (mastermind role readme)
 		const state = live?.state ?? row.state;
-		if (state === "stopped" || row?.stopped_by) return "stopped on purpose";
+		// Stopped ON PURPOSE means someone named themselves (stopped_by). The Lifecycle reaper stops an idle agent whose task
+		// landed without a name, and that one IS due a fresh session (review finding 1, 2026-10-22). Our own stop is "respawn".
+		const by = live?.stopped_by ?? row?.stopped_by;
+		if (by && by !== "respawn") return "stopped on purpose";
 		if (state === "working" || state === "starting") return "working";
 		if (live?.queue?.items?.length) return "messages queued";
 		if ([...this.agents.live.values()].some(a => a.parent === def.id && a.state === "working")) return "a child is working";

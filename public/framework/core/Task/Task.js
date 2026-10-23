@@ -6,6 +6,7 @@ import Item from "../Item/Item.js";
 import List from "../List/List.js";
 
 const STATES = ["idle", "running", "paused", "waiting", "stopped", "complete"];
+const OPEN = new Set(["idle", "running", "paused", "waiting"]);   // a child in one of these keeps its parent from reading complete
 
 // Which states each verb may start FROM — named by the verb, so the rule next to
 // the verb is the rule that uses it.
@@ -109,7 +110,13 @@ export class Task extends Item {
 	// `this["state"]` for a real instance property — which THIS GETTER IS,
 	// so calling it from inside itself recurses forever. `get_one` is the
 	// plain data seam underneath, exactly what a bare field lookup needs.
-	get state(){ const s = this.get_one("state") ?? "idle"; return s === "finished" ? "complete" : s; }
+	// A complete task that has been given a new open child reads `running` again until that child is done (a request added to a
+	// landed task: review finding 2, 2026-10-22). Computed on read, never written, so it reads complete again by itself.
+	get state(){
+		const s = this.get_one("state") ?? "idle", st = s === "finished" ? "complete" : s;
+		return st === "complete" && this.reopened() ? "running" : st;
+	}
+	reopened(){ for (const t of this._tasks ?? []) if (OPEN.has(t.state)) return true; return false; }
 
 	// Warn like `Item`'s own `locate()`/`hydrate()` do: once per distinct message,
 	// never a throw, and the call site still gets `this` back so a no-op chains.

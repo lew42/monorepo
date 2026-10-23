@@ -45,8 +45,11 @@ try {
 	ok(h.spawned[0].prompt.includes("old-session") && h.spawned[0].task.dir === dir, "the fresh session is told the session it replaces and opens the same task folder");
 	ok(h.lines[0]?.file === path.join(dir, "session.jsonl") && h.lines[0].line.log.respawn.replaces === "old-session" && h.lines[0].line.log.respawn.session === "new-session", "one respawn line in the task log links the two sessions");
 
-	h = host(arch({ state: "stopped" }));
+	h = host(arch({ state: "stopped", stopped_by: "owner" }));
 	ok(!(await new Respawn({ servex: h.servex }).tick(NOW)).length, "one stopped on purpose stays stopped");
+
+	h = host(arch({ state: "stopped" }));   // the Lifecycle reaper stops an idle agent whose task landed, naming nobody
+	ok((await new Respawn({ servex: h.servex }).tick(NOW)).length === 1 && h.spawned[0]?.id === "arch", "one the reaper stopped (no stopped_by), a day old, is respawned");
 } finally {
 	fs.rmSync(dir, { recursive: true, force: true });
 }

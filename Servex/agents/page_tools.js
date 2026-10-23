@@ -639,7 +639,12 @@ async function give_folder(root, at, ids, ctx){
 }
 
 /* templates.md: Servex sets this to `file => task_loop.launch(file)`; run_item calls it right after an `approve` line lands. */
-export const hooks = { approved: null, changed: null, requested: null, answered: null };   // requested/answered: Servex sends the one-line notices (Servex/agents/doc/messaging.md, "Requests are logged items")   // changed: Servex sets it to `file => process_runner.step(file)` (a process moves on after any write)
+export const hooks = {
+	approved: null,
+	changed: null,     // Servex sets it to `file => process_runner.step(file)` (a process moves on after any write)
+	requested: null,   // requested/answered: Servex sends the one-line notices (Servex/agents/doc/messaging.md, "Requests are logged items")
+	answered: null,
+};
 
 export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
 	url ??= own_page(ctx);
