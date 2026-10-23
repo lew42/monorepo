@@ -9,6 +9,8 @@ A `Session` is one run of an agent or a tab: an Item that lives in its own dated
 class Session extends Item                       // ../Item/Item.js; registered as "Session"
   static days, slugs: Map   // id -> "YYYY/MM/DD" / folder name. A subclass declares its OWN (statics inherit by reference)
   static scanned: boolean   // true once scan() has read the tree
+  static MENU, SETTINGS     // the session menu template and its settings form (doc/menu.md)
+  menu(url), settings       // MENU with urls; {"settings":{…}} lines merged, a later line wins
   id                        // from the constructor, or line 1 of the log
   tasks: List<Task>         // made on first use; setter allowed
   completion: number        // getter, 0..1 = done / total, 0 when there are no tasks. Never stored
@@ -23,7 +25,7 @@ class Session extends Item                       // ../Item/Item.js; registered 
 // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
 ```
 
-- **Lines it replays:** `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task), `{"<task id>":{…}}` (goes to that task), and any other key is set on the session. `by`, `ts` and `at` are dropped.
+- **Lines it replays:** `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task), `{"<task id>":{…}}` (goes to that task), `{"settings":{…}}` (merged into `settings`), and any other key is set on the session. `by`, `ts` and `at` are dropped.
 - **Subclasses:** `AISession` (`ai/AISession/AISession.js`) adds cost, cache and transcript, and overrides `root_url()`. `RefineSession` is planned, not built.
 - **Who calls it:** the item tool in `Servex/agents/page_tools.js` maps `session.jsonl` to `Session` and replays it; `ai/AIDashboard/SessionStore.js`, `AISessionIndex.mjs`, `AISessionLive.js`, `Server/State.mjs`, `Server/TaskDirs.mjs` and `Server/SessionDayMove.mjs` use it or `Day`.
 - **How it loads:** a session's folder holds `session.jsonl`, written by `.claude/hooks/append.mjs`, `Agents.open_task` and the page tools, never by hand. Older folders are still found by `scan()` through `index.json`, `cache.jsonl` or the first `page.jsonl` line. Folder layout: [ai/sessions/readme.md](/framework/ai/sessions/readme.md).
@@ -37,5 +39,6 @@ class Session extends Item                       // ../Item/Item.js; registered 
 
 ## More
 
+- [doc/menu.md](doc/menu.md): the session menu, a template (`Session.MENU`, settings first) drawn at the right end of the session's name line; settings saved as lines in `session.jsonl`
 - [doc/architecture.md](doc/architecture.md): decisions and why
 - [Dated folders shared by sessions and projects](/framework/core/Task/doc/owner-2026-10-20-projects-and-completion.md)
