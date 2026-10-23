@@ -18,3 +18,4 @@
 {"review":{"at":"2026-10-23T02:00:07-05:00","answer":{"n":4,"reply":"noted: LOAD_MS (30 s) is a static, so a test could set it low; not worth a test of its own here"}}}
 {"review":{"at":"2026-10-23T02:00:07-05:00","answer":{"n":5,"reply":"noted: existing drawer-rail chrome, not in this diff"}}}
 {"review":{"at":"2026-10-23T02:00:11-05:00","answer":{"n":1,"reply":"declined: SavedFilter is the 10-19 decision and stays. Finding confirmed, though: its target /framework/ai/ is now the AIDashboard, which ignores the kind/home chips, so /tasks/ lands on a sessions list with no task rows. The fix (teach AIDashboard a tasks filter, or point /tasks/ at a task list) is the architect's call and outside this task's fence."}}}
+{"log":{"at":"2026-10-23T02:07:13-05:00","heartbeat":"deliberate","msg":"minion-tasks-page-loading its agent is not running: it was stopped on purpose by mastermind-system-architect-2 at 2026-10-23T02:01:57-05:00; not revived."}}

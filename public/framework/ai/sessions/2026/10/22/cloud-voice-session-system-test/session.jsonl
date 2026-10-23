@@ -13,3 +13,7 @@
 {"task":"/framework/ai/sessions/2026/10/22/cloud-voice-session-system-test/e2e-check-process/","by":"voice-app","ts":"2026-10-23T02:04:53.752Z"}
 {"tool_call":{"at":"2026-10-23T02:04:55.798Z","tool":"item","args_hash":"771910147d99","caller":"voice-app"}}
 {"tool_call":{"at":"2026-10-23T02:04:59.836Z","tool":"item","args_hash":"9b340d76dc64","caller":"voice-app"}}
+{"log":{"at":"2026-10-23T01:49:09-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-23T01:54:12-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-23T01:59:12-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-10-23T02:04:12-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
