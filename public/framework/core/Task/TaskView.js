@@ -74,15 +74,22 @@ export default class TaskView extends View {
 		}));
 	}
 
-	bar(kids){
-		if (!kids.length) return;
-		const done = kids.filter(k => k.state === "complete").length;
-		const tip = `${done} of ${kids.length} complete`;
-		if (kids.length > this.constructor.SEGMENTS) return void div.c("task-bar is-meter", () => {
-			span.c("task-meter", () => span.c("task-meter-fill").style({ width: Math.round(done / kids.length * 100) + "%" }));
-			small.c("task-count", `${done}/${kids.length}`);
+	bar(kids){ this.constructor.draw_bar(kids.map(k => k.state)); }
+
+	/** The one segmented bar, from child states: a segment each up to `max`, then a stacked meter. green done, amber running, red waiting or paused. */
+	static draw_bar(states, max = this.SEGMENTS){
+		if (!states.length) return;
+		const done = states.filter(s => s === "complete").length;
+		const tip = `${done} of ${states.length} complete`;
+		const status = s => s === "complete" ? "is-lit" : s === "running" ? "is-running" : s === "waiting" || s === "paused" ? "is-blocked" : "task-seg-off";
+		if (states.length > max) return void div.c("task-bar is-meter", () => {
+			span.c("task-meter", () => ["is-lit", "is-running", "is-blocked"].forEach(c => {
+				const n = states.filter(s => status(s) === c).length;
+				if (n) span.c("task-meter-fill").ac(c).style({ width: Math.round(n / states.length * 100) + "%" });
+			}));
+			small.c("task-count", `${done}/${states.length}`);
 		}).attr("title", tip);
-		div.c("task-bar", () => kids.forEach(k => span.c("task-seg").ac(k.state === "complete" ? "is-lit" : "task-seg-off"))).attr("title", tip);
+		div.c("task-bar", () => states.forEach(s => span.c("task-seg").ac(status(s)))).attr("title", tip);
 	}
 
 	card(){

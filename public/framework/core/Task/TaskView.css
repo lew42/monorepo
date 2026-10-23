@@ -12,10 +12,16 @@
 	.task-action:hover { color: inherit; background-image: linear-gradient(var(--line), var(--line)); }
 	.task-bar { display: flex; align-items: center; gap: 2px; margin-left: auto; flex: 0 0 auto; max-width: 7em; padding-inline: .5em; }
 	.task-meter { width: 4em; height: .4em; border-radius: 1px; background: var(--line); overflow: hidden; }
+	.task-meter { display: flex; }
 	.task-meter-fill { display: block; height: 100%; background-image: linear-gradient(var(--ok, currentColor), var(--ok, currentColor)); }   /* a gradient, not background-color: the fill sits flush in its own track by design, and padding-check reads only colour fills as boxes */
 	.task-count { margin-left: .4em; color: var(--subtle); font-size: .8em; white-space: nowrap; }
 	.task-seg { width: .7em; height: .4em; border-radius: 1px; background: var(--line); }
 	.task-seg.is-lit { background: var(--ok, currentColor); }
+	.task-seg.is-running { background: var(--task-amber, #e0a100); animation: task-pulse 1.4s ease-in-out infinite; }
+	.task-seg.is-blocked { background: var(--task-red, #d33); }
+	.task-meter-fill.is-running { background-image: linear-gradient(var(--task-amber, #e0a100), var(--task-amber, #e0a100)); }
+	.task-meter-fill.is-blocked { background-image: linear-gradient(var(--task-red, #d33), var(--task-red, #d33)); }
+	@keyframes task-pulse { 50% { opacity: .45; } }
 	.task-row-kids { display: flex; flex-direction: column; gap: .35em; padding-left: 1.5em; border-left: 2px solid var(--line); margin-left: .6em; }
 	.task-row-more { color: var(--subtle); font-size: .85em; cursor: pointer; }
 	.task-row-more:hover { text-decoration: underline; }

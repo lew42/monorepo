@@ -38,6 +38,8 @@ All the numbers come from the session store (`sessions/2026/10/*/index.json`, th
 
 Code the picks as variant pages you can click through on the phone. This is the design process, `Process.DEFINITIONS.design` (branch `task/architect-requests`, written by the system architect): design → review shots → pick → code as `<page>/v/<name>/` → review at 400 and 1200 px → merge.
 
+Built: [the mobile variant](/framework/ai/sessions/v/mobile/), four pages (day list, nested sessions, a session, a task) on real data. How it is built: [v/mobile/readme.md](/framework/ai/sessions/v/mobile/readme.md).
+
 ## Keeping the designs true (the owner, 2026-10-22)
 
 When the task, session or process data changes (a new field, a renamed state, a new kind of session), update these Figma bands to match, in the same task that changed the data. The fields to draw from are in [core/Task/doc/process.md](/framework/core/Task/doc/process.md), [core/Session/readme.md](/framework/core/Session/readme.md) and [core/Task/readme.md](/framework/core/Task/readme.md). A band drawn from fields that no longer exist is a bug, the same as a stale readme.

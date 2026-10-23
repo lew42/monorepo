@@ -210,7 +210,9 @@ export class Task extends Item {
 	}
 
 	// May this verb run from the task's state now? The same CAN map the verbs check; a button uses it to show only what works.
-	can(verb){ return !!CAN[verb]?.has(this.state); }
+	can(verb){ return Task.can(this.state, verb); }
+	// The same check from a state alone, for a row that has the state but not the loaded task (ai/sessions/v/mobile/MobileRun.js).
+	static can(state, verb){ return !!CAN[verb]?.has(state); }
 
 	start(){
 		if (!CAN.start.has(this.state)) return this.warn(`start(): can't start from "${this.state}"`);
