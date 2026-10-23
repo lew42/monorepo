@@ -23,6 +23,7 @@ const agents = {
 	live,
 	spawn(spec){ const id = "a" + (spawned.length + 1); spawned.push({ id, ...spec }); live.set(id, { state: "working", cost: 0 }); return { id, session_id: "s-" + id }; },
 	send(id, text){ if (!live.has(id)) throw new Error(`no agent ${id}`); sent.push({ id, text }); },
+	stopped: [], stop(id){ this.stopped.push(id); },
 };
 const runner = new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, pulse_after_ms: 0 });
 hooks.changed = file => runner.step(file);
@@ -36,6 +37,9 @@ try {
 	const Process = (await import("../public/framework/core/Task/Process.js")).default;
 	const clash = Object.values(Process.DEFINITIONS).flat().filter(ph => typeof Process.prototype[ph.id] === "function" || Task.FIELDS.includes(ph.id) || ["tasks", "content", "set", "file", "task", "log", "spawn", "queue", "pulse", "measure"].includes(ph.id));
 	ok(!clash.length, "no phase id names a Task verb, field or line key: " + clash.map(c => c.id));
+	const fs_ = Process.from_steps(["file", { title: "Improve", id: "improve" }, "Write the docs"]), fl = Process.lines({ process: "<unknown>", steps: ["file", "log"] });
+	ok(fs_?.map(x => x.id).join() === "file-step,improve-step,write-the-docs", "from_steps: a step id that is a line key or verb gets -step, not a refusal");
+	ok(fl?.[0].process === "steps" && fl.length === 3, "lines(): own steps under an unknown process name become process \"steps\"");
 	let r = await item({ tasks: { add: { title: "Fix X", process: "nope" } } }, "mm1");
 	ok(r.ok === false && /no process "nope"/.test(r.why), "an unknown process is refused, nothing written");
 
@@ -124,6 +128,31 @@ try {
 
 	r = await run_item({ path: PURL }, { caller: "mm1" });
 	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) reads the process back: class, state, phases");
+
+	// A SIMPLE PROCESS THROUGH THE TOOL (the owner, 2026-10-22): create it with your own steps, node prompts step 1, then step 2 when step 1 returns.
+	r = await item({ tasks: { add: { title: "Dup", steps: [{ title: "Same" }, { title: "Same" }] } } }, "mm1");
+	ok(r.ok === false && /steps/.test(r.why), "two steps with one id are refused, nothing written");
+	r = await item({ tasks: { add: { title: "Two steps", steps: [{ title: "Write the note", do: "write note.md" }, { title: "Check the note", do: "read note.md back" }] } } }, "mm1");
+	const SF = path.join(DIR, "two-steps", "task.jsonl"), SURL = URL + "two-steps/";
+	await settle(SF);
+	let S = read(SF), sent0 = sent.length;
+	ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "one call: a Process with the two steps as its phases");
+	ok(S.some(l => l["write-the-note"]?.start) && sent.at(-1).id === "mm1" && sent.at(-1).text.includes("write note.md") && sent.at(-1).text.includes(`"write-the-note": {"complete"`), "node starts step 1 and prompts the creator with it");
+	await item({ "write-the-note": { complete: { outcome: "note.md written" } } }, "mm1", SURL); await settle(SF);
+	ok(sent.length === sent0 + 1 && sent.at(-1).text.includes("read note.md back") && sent.at(-1).text.includes("note.md written"), "step 1 returns: node prompts step 2, with step 1's outcome");
+	await item({ tasks: { add: { title: "Add a step", do: "a step added while it runs" } } }, "mm1", SURL); await settle(SF);
+	await item({ "check-the-note": { complete: { outcome: "checked" } } }, "mm1", SURL); await settle(SF);
+	ok(sent.at(-1).text.includes("a step added while it runs"), "a step added while the process runs is run after the others");
+	await item({ "add-a-step": { complete: { outcome: "done" } } }, "mm1", SURL); await settle(SF);
+	ok(Task.replay(read(SF)).state === "complete" && Task.replay(read(SESSION))._tasks.find("two-steps"), "every step done: the process is complete, and its session references it");
+
+	// Stopping a process stops the agent of the phase it spawned (found live, 2026-10-22: the phase agent kept going), never the creator.
+	await item({ tasks: { add: { title: "Stop me", process: "investigate" } } }, "mm1");
+	const T = path.join(DIR, "stop-me", "task.jsonl"); await settle(T);
+	const ta = spawned.at(-1).id;
+	await item({ stop: { why: "not needed" } }, "mm1", URL + "stop-me/"); await settle(T);
+	const tp = runner.read(T);
+	ok(agents.stopped.includes(ta) && tp.state === "stopped" && tp.phases.find(x => x.id === "questions").state === "stopped" && !agents.stopped.includes("mm1"), "a stopped process stops its running phase and that phase's agent");
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
 	fs.rmSync(path.join(ROOT, "public/framework/ai/process-test-" + process.pid), { recursive: true, force: true });

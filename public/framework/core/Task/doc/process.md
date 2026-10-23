@@ -143,4 +143,5 @@ The prompt audit ([ai/doc/prompt-audit.md](/framework/ai/doc/prompt-audit.md)) a
 - ✅ **Fixed 2026-10-22:** a task that has landed and then gets a new open child reads `running` until that child is done, then `complete` again. `Task.state` computes it on read (`reopened()`); nothing is written. Test: `Task.test.mjs`.
 
 - ✅ Slice 1: `Process` + `ProcessRunner`, one process end to end, completion rolling up to the session; run 1 above; moving home on approval; tests `node Servex/ProcessRunner.test.mjs` (27).
+- ✅ **Your own steps (2026-10-22):** `tasks.add {title, steps: [{title, do}]}` makes a process with no template; a step with no session goes to the creator. Names and structure, proposed for approval: [process-names.md](process-names.md).
 - ⬜ Next: a phase that is itself a process (investigate inside build); parallel phases (scouts); the plan's tasks becoming a process of their own; the owner's merge button (priority 3b) completing the merge phase; prompt-audit asks becoming session tasks once completion is automatic.

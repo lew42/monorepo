@@ -940,6 +940,8 @@ export function open_task(task, { session_id, agent, by, model, worktree, parent
 		model, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
+	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
+	try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch (e){ console.warn("link_parent failed for", dir, e); }
 	// Handoff by task: `task: {from, id}` moves that subtask out of the spawner's log into this folder (page_tools.js move_item).
 	// Not awaited (open_task is synchronous): the history lands just after the first turn starts. A refusal is written into the new log, so it is seen.
 	if (task.from && task.id){

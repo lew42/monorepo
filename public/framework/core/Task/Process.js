@@ -21,15 +21,20 @@ export class Process extends Task {
 	// What node should do now, as one action; null = nothing (waiting on an agent, the owner, or finished).
 	next(){
 		if (this.state === "idle") return { start: true };
+		// Stopped with a phase still running in a fresh session it spawned: halt that phase (node stops its agent). The creator's own session is never stopped.
+		if (this.state === "stopped"){ const h = this.phases.find(p => p.state === "running" && p.get_one("spawned")?.run === "fresh"); return h ? { halt: h.id } : null; }
 		if (this.state !== "running") return null;
 		const p = this.phase;
 		if (this.moves_home()) return { move: this.get_one("module") };
 		if (!p) return { complete: true };
-		const run = p.get_one("session")?.run ?? "fresh";
+		const run = this.run_of(p);
 		if (p.state === "idle") return run === "wait" ? { wait: p.id } : { start: p.id };
 		if (p.state === "running" && !p.get_one("spawned")) return { launch: p.id };
 		return null;
 	}
+
+	// How a phase is run (doc/process.md, "A phase's session"): its own session.run; a step with none runs fresh, except in a process of your own steps, where it goes to the creator.
+	run_of(p){ return p?.get_one("session")?.run ?? (this.process === "steps" ? "owner" : "fresh"); }
 
 	// Draft in the session, then move home (doc/owner-2026-10-20-projects-and-completion.md §6): once a phase marked `home_after` is complete
 	// (build: approve-plan), a process that names a `module` belongs in <module>/tasks/<id>/. True while it is not there yet.
@@ -57,13 +62,29 @@ export class Process extends Task {
 	}
 
 	// The lines that make a new process from a definition: line-1 fields, then one add per phase. `phases` overrides a phase's session: {plan: {model}}.
-	static lines({ process, phases: over = {}, ...fields } = {}){
-		const def = this.DEFINITIONS[process];
+	// No definition but `steps` ([{title, do, session?}]): an ad-hoc process (`process` defaults to "steps"); a step with no session goes to the creator (run: owner).
+	static lines({ process, phases: over = {}, steps, ...fields } = {}){
+		const def = this.DEFINITIONS[process] ?? this.from_steps(steps);
 		if (!def) return null;
+		if (!this.DEFINITIONS[process]) process = "steps";   // own steps: whatever name came with them, no template matched
 		const first = { class: "Process", process, mode: "series", ...fields };
 		const adds = def.map(p => ({ tasks: { add: { type: "Task", ...p, ...(over[p.id] ? { session: { ...p.session, ...over[p.id] } } : {}) } } }));
 		return [first, ...adds];
 	}
+
+	// Words a log line is read by (a line's own keys, and every verb): a step id like these would be mistaken for the line, so it is slugged with a suffix.
+	static RESERVED = ["file", "id", "log", "title", "by", "ts", "type", "task", "tasks", "assign", "state", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
+
+	// Steps written by the caller, as phases. Refused (null) when empty or when two share an id. An id that would name a Task verb, field or line key
+	// (`improve` would call improve(); `file` is a line key) gets "-step" added: `file` -> `file-step`.
+	static from_steps(steps){
+		if (!Array.isArray(steps) || !steps.length) return null;
+		const slug = t => String(t ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+		const out = steps.map((x, i) => { const o = typeof x === "string" ? { title: x } : { ...x }; o.id = slug(o.id ?? o.title) || `step-${i + 1}`; o.title ??= o.id; if (this.reserved(o.id)) o.id += "-step"; o.session ??= { run: "owner" }; return o; });
+		if (new Set(out.map(o => o.id)).size !== out.length) return null;
+		return out;
+	}
+	static reserved(id){ return this.RESERVED.includes(id) || id in Task.prototype || id in this.prototype; }
 
 	// Node's own lines: each records a fact on the phase it names. Everything else is a Task line.
 	replay_line(line){

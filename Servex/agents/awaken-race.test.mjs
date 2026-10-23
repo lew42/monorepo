@@ -89,7 +89,7 @@ const plain = () => new PlainAgents({ registry_dir: path.join(dir, `reg-${++n}`)
 // ── item 1 + the end-to-end race: awaken a dormant agent, send one message ──────────────
 await check("awaken: the idle clock resets, so an aggressive idle sweep cannot put it back to sleep before send() delivers", () => {
 	const agents = fresh();
-	const agent = agents.spawn({ id: "minion-race", role: "minion", name: "race", prompt: "go" });
+	const agent = agents.spawn({ task: false, id: "minion-race", role: "minion", name: "race", prompt: "go" });
 	assert.equal(agent.state, "working", "a fresh prompted spawn starts working");
 	agent.queue.items.shift();   // the real SDK's pump() would already have consumed the first prompt by now
 
@@ -113,7 +113,7 @@ await check("awaken: the idle clock resets, so an aggressive idle sweep cannot p
 // ── item 5: a message that still loses the race is HELD, not lost ──────────────────────
 await check("send(): a push that finds the queue already closed is held, and replayed on the next awaken — never lost", () => {
 	const agents = fresh();
-	const agent = agents.spawn({ id: "minion-held", role: "minion", name: "held", prompt: "go" });
+	const agent = agents.spawn({ task: false, id: "minion-held", role: "minion", name: "held", prompt: "go" });
 	agent.state = "idle";
 	agent.sleep("idle");
 	assert.equal(agent.state, "dormant");
@@ -141,7 +141,7 @@ await check("send(): a push that finds the queue already closed is held, and rep
 // ── item 5, second half: a message to a STARTING agent is held until its first turn ────
 await check("send(): a message to a starting (mid-first-turn) agent queues behind it, delivered in order", () => {
 	const agents = fresh();
-	const agent = agents.spawn({ id: "minion-starting", role: "minion", name: "starting", prompt: "first turn" });
+	const agent = agents.spawn({ task: false, id: "minion-starting", role: "minion", name: "starting", prompt: "first turn" });
 	assert.equal(agent.state, "working", "the first prompt is already in flight");
 	assert.equal(agent.queue.items.length, 1, "the first prompt itself is sitting in the queue — nothing has consumed it yet");
 	agent.send("a second thing, while the first turn is still running", { from: "test" });
@@ -153,7 +153,7 @@ await check("send(): a message to a starting (mid-first-turn) agent queues behin
 // ── item 2: a dead pid does not count, and is cleared exactly once ──────────────────────
 await check("working(): a row whose claude.exe has died is excluded from the cap and cleared, logged once", () => {
 	const agents = plain();
-	const agent = agents.spawn({ id: "minion-dead", role: "minion", name: "dead", prompt: "go" });
+	const agent = agents.spawn({ task: false, id: "minion-dead", role: "minion", name: "dead", prompt: "go" });
 	agent.queue.items.shift();   // the real SDK's pump() would already have consumed the first prompt by now
 	assert.equal(agents.working().some(a => a.id === agent.id), true, "alive (this test's own pid): counts");
 
@@ -185,7 +185,7 @@ await check("working(): a row whose claude.exe has died is excluded from the cap
 // ── item 3: a `starting` row that never began at all is re-queued, never dropped ───────
 await check("Servex.requeue_stuck_start(): a starting agent re-queued at the head, with its own spec and unconsumed turns", () => {
 	const agents = fresh();
-	const agent = agents.spawn({ id: "minion-stuck", role: "minion", name: "stuck", prompt: "never got anywhere", parent: "task-mastermind-x" });
+	const agent = agents.spawn({ task: false, id: "minion-stuck", role: "minion", name: "stuck", prompt: "never got anywhere", parent: "task-mastermind-x" });
 	agent.queue.push(agent.turn("a message that arrived before it ever truly started"));   // still unconsumed
 
 	const fake = { queue: [], log: { append: async () => ({ ok: true }) }, save_queue(){} };
@@ -284,7 +284,7 @@ await check("Servex.drain(): a spawn the OpenRouter pace guard refuses also wait
 //    agent.stop() itself throws partway through (a log name over Log.js's 64-char limit) ──
 await check("Servex.requeue_stuck_start(): clears the row even when stop() throws (a bad log name)", () => {
 	const agents = fresh();
-	const agent = agents.spawn({ id: "minion-lib-h1-page-nvidia-nemotron-3-5-lightning-free-17908906192690", role: "minion", name: "x", prompt: "go" });
+	const agent = agents.spawn({ task: false, id: "minion-lib-h1-page-nvidia-nemotron-3-5-lightning-free-17908906192690", role: "minion", name: "x", prompt: "go" });
 	let registered = 0;
 	agent.stop = () => { agent.state = "stopped"; throw new Error(`Bad log name "agent-${agent.id}" — letters, digits, dot, dash and underscore only.`); };
 

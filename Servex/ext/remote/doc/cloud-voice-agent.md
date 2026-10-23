@@ -40,7 +40,28 @@ Open a task for each ask you hand off, and mention its dir in the session log (`
 
 1. `spawn_agent` with `task: {dir, card, brief}` and a one-line prompt. `dir` is a path under `public/framework/ai/sessions/YYYY/MM/DD/`, `brief` is a path to the written ask. Code logs the spawn.
 2. `create_card` / `add_item` put the ask on the AI board for the owner.
-3. There is no separate `task_create` tool yet.
+3. There is no separate `task_create` tool, because the item tool is the one tool for tasks (next section).
+
+## Tasks and processes in your own session: the item tool (verified end to end through the remote door, 2026-10-22)
+
+Your session folder is a task list. Use the `item` tool with `path` set to your folder's url, `/framework/ai/sessions/YYYY/MM/DD/cloud-voice-<name>/`:
+
+| You want | `delta` |
+|---|---|
+| add a task | `{"tasks":{"add":{"title":"…"}}}` (its id comes back in `ids`) |
+| add a subtask | `{"<task id>":{"tasks":{"add":{"title":"…"}}}}` |
+| start or finish one | `{"<task id>":{"start":{}}}`, `{"<task id>":{"complete":{"outcome":"…"}}}` (a subtask: nest one more id) |
+| start a process | `{"tasks":{"add":{"title":"…","process":"investigate","brief":"<path>"}}}` (it gets its own folder, and node starts phase 1) |
+| stop it | `item({path: "<process url>", delta: {"stop":{"why":"…"}}})` |
+| read it | `item({path})`, with no delta |
+
+What the check showed (session `cloud-voice-session-system-test`):
+
+- ✅ Every line was written by `voice-app`. The session's completion rose to 1 when the task completed, then fell back to 0.5 when the process was added.
+- ✅ The process got its own folder with a reference on the session's log, and node spawned phase 1.
+- ⚠ **Fixed after the check:** stopping a process used to leave its phase agent running. Now node stops it (branch `task/session-flow`).
+- ⚠ **Open:** a nested subtask gets a uuid id, while a top-level task gets a slug of its title. Reported to mastermind-item.
+- ⚠ **Open:** a phase that runs `owner` goes to the creator. For you, that is `voice-app`, which is not a Servex agent, so the phase waits on you. Read `updates` to see it.
 
 ## Caveats
 
