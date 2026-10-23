@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { run_item } from "./page_tools.js";
 import { place } from "../home.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -10,9 +9,10 @@ const AI = path.resolve(HERE, "..", "..", "public", "framework", "ai");
 /* OWNER PROMPTS BECOME TASKS (the owner, 2026-10-22: "owner prompts become tasks on the session page in real time").
  * prompt-relay.mjs writes each owner prompt as a `Prompt` item on the session's page.jsonl (the old card folder,
  * ai/YYYY/MM/DD/<slug>/); page_add calls `hooks.prompted` (page_tools.js). Here, one at a time:
- *   1. one Haiku call splits the prompt into asks (RefineQueue.one, brief v3; the refined card lands beside the prompt,
- *      which is what the session page's Coverage tab already reads);
- *   2. each ask of kind `task` is filed as a PROPOSED task (state waiting, on the owner) in the session's own record,
+ *   1. the prompt's record is started in the session's prompts.jsonl, the `live` process of Server/PromptRecords.mjs: raw, numbered
+ *      sentences, then ONE Haiku call that splits it into parts, 1 to 3 main asks with their details nested, rules kept apart
+ *      (PromptRecords.PARTS_BRIEF; 2026-10-23: brief v3 filed one flat task per sentence, directions included);
+ *   2. each top-level ask is filed as a PROPOSED task (state waiting, on the owner; its details in the description) in the session's own record,
  *      ai/sessions/YYYY/MM/DD/<slug>/session.jsonl, through the item tool, so the session page shows it live and the
  *      owner approves or rejects it there (a `decide` line, core/Session/Session.js).
  * ONLY THE OWNER'S OWN VS CODE TABS (the owner, 2026-10-22): the page_add caller must be "owner" (prompt-relay.mjs, which skips
@@ -23,7 +23,6 @@ const AI = path.resolve(HERE, "..", "..", "public", "framework", "ai");
  * Doc: core/Session/doc/prompt-tasks.md. */
 export default class PromptTasks {
 
-	static KINDS = ["task"];
 	static MIN_CHARS = 30;   // the same floor RefineQueue uses
 	static OFF_FILE = () => place("prompt-tasks.off");   // the runtime switch: present = off
 
@@ -54,10 +53,12 @@ export default class PromptTasks {
 		return { file, rel, uuid: first.id, page_url: `/framework/ai/${rel}/`, record_url: `/framework/ai/sessions/${rel}/session.jsonl` };
 	}
 
-	// The splitter: RefineQueue's one call (Server/RefineQueue.mjs), loaded on first use. A test passes its own.
-	async refine(p){
-		this.queue ??= new (await import("../../Server/RefineQueue.mjs")).default({ brief: "v3", parallel: 1 });
-		return this.queue.one(p);
+	// The live process (Server/PromptRecords.mjs), one per session, loaded on first use. A test passes its own `records`.
+	async live(rec){
+		this.lives ??= new Map();
+		if (!this.lives.has(rec.uuid)){ const { default: PromptRecords } = await import("../../Server/PromptRecords.mjs");
+			this.lives.set(rec.uuid, new PromptRecords(rec.uuid, { process: "live", folder: path.dirname(rec.file), by: "prompt-tasks" })); }
+		return this.lives.get(rec.uuid);
 	}
 
 	/* ON APPROVAL, HOME (the TaskLoop tick, every 5 minutes): a proposal the owner approved on the session page that names a module
@@ -98,17 +99,10 @@ export default class PromptTasks {
 	async run(p){
 		const rec = this.record_for(p.file);
 		if (!rec) return { ok: false, why: "no VS Code tab session record for this prompt page" };
-		// no_index: the asks are filed below as proposals; RefineQueue's own filing (AskIndex.after_refine) would file them twice.
-		const run = await this.refine({ session: rec.uuid, no_index: true, page: rec.page_url, line: p.line, at: p.at, uuid: p.id, text: p.text });
-		if (!run?.ok) return run;
-		const filed = [];
-		for (const ask of (run.items ?? []).filter(a => PromptTasks.KINDS.includes(a.kind))){
-			const add = { title: String(ask.text).slice(0, 200), state: "waiting", waiting_on: "owner", from: "owner", source: `prompt:${p.id ?? p.line}`,
-				...(ask.details ? { description: String(ask.details).slice(0, 600) } : {}), ...(ask.module ? { module_hint: ask.module } : {}) };
-			const r = await run_item({ path: rec.record_url, delta: { tasks: { add } } }, { caller: "prompt-tasks" });
-			filed.push(r?.ok ? (r.ids?.[0] ?? add.title) : { refused: r?.why });
-		}
-		return { ...run, filed };
+		const R = await this.live(rec), prompt = { uuid: p.id ?? `relay-${p.line}`, line: p.line, at: p.at, text: p.text };
+		await R.sentences([prompt]);
+		const parts = await R.parts_one(prompt), filed = await R.file([prompt]);   // only top-level asks; rules and questions stay on the record
+		return { ok: true, parts: parts.length, filed };
 	}
 }
 

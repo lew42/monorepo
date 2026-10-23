@@ -37,22 +37,29 @@ export default class PromptLog {
 	};
 
 	/** Validate and append one line. Returns the stored line, or throws with the reason. Node only. */
-	static async add(id, line, by){
+	static async add(id, line, by, dir = null){   // dir: the session folder when the caller already knows it (PromptRecords); else located
 		if (!/^[0-9a-f-]{36}$/.test(id)) throw new Error("session id must be the 36-character session uuid");
 		if (!by || typeof by !== "string") throw new Error("`by` (the author) is required");
 		if (typeof line.prompt !== "string" || !line.prompt) throw new Error("`prompt` (the prompt id) is required");
 		const check = PromptLog.STAGES[line.stage];
 		if (!check) throw new Error("`stage` is one of: " + Object.keys(PromptLog.STAGES).join(", "));
 		if (!check(line)) throw new Error(`bad shape for stage "${line.stage}" (see ai/AISession/PromptLog.js)`);
-		const seen = PromptLog.fold(await PromptLog.read(id))[line.prompt];
+		const seen = PromptLog.fold(dir ? await PromptLog.read_dir(dir) : await PromptLog.read(id))[line.prompt];
 		if (line.stage === "raw" && seen?.raw != null) throw new Error("raw is immutable: this prompt already has one");
 		if (line.stage === "clean" && seen?.final) throw new Error("clean is final: this prompt's sentences are set");
 		if (line.stage !== "raw" && seen?.raw == null) throw new Error("write the raw line first");
-		const fs = await import("node:fs/promises"), dir = await AISession.locate(id, undefined, id);   // folder named by the uuid, so a later scan always finds it
+		const fs = await import("node:fs/promises");
+		dir ??= await AISession.locate(id, undefined, id);   // folder named by the uuid, so a later scan always finds it
 		await fs.mkdir(dir, { recursive: true });
 		const out = { ...line, at: new Date().toISOString(), by, session: id };
 		await fs.appendFile(new URL(PromptLog.FILE, dir), JSON.stringify(out) + "\n");
 		return out;
+	}
+
+	/** Node: the lines of the prompt log in a known folder (a file URL or path). */
+	static async read_dir(dir){
+		const fs = await import("node:fs/promises");
+		try { return AISession.lines_of(await fs.readFile(new URL(PromptLog.FILE, dir), "utf8")); } catch { return []; }
 	}
 
 	/** Every line of the session's prompt log, in order ([] when it has none). Browser or node. */
