@@ -171,7 +171,7 @@ export default class RefineQueue {
 		const page = p.page ?? (p.session ? `/framework/ai/sessions/${p.session}/` : null);   // p.page: the prompt's own page (Servex/agents/PromptTasks.js)
 		if (page) await page_add({ path: page, item }, { caller: RefineQueue.CALLER });
 		for (const a of parsed.asks) RefineQueue.append(RefineQueue.ASKS, { session: ref.session, line: ref.line, at: ref.at, id: a.id, ask: a.text.slice(0, 200), key: a.key, module: a.module, kind: a.kind, brief: this.brief });
-		if (p.session) try { run.filed = new AskIndex({ root: RefineQueue.main_root() }).after_refine(ref, parsed); } catch (e){ run.filed_error = String(e.message ?? e).slice(0, 200); }   // record + cross off / module inbox (ext/Refine/doc/asks.md)
+		if (p.session && !p.no_index) try { run.filed = new AskIndex({ root: RefineQueue.main_root() }).after_refine(ref, parsed); } catch (e){ run.filed_error = String(e.message ?? e).slice(0, 200); }   // record + cross off / module inbox (ext/Refine/doc/asks.md)
 		this.done++;
 		run.items = parsed.asks;   // for a caller that files them (PromptTasks); not written to runs.jsonl
 		return run;

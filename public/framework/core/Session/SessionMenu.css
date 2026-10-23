@@ -14,7 +14,7 @@
 .session-settings-field { align-items: center; }
 .session-settings-label { min-width: 12em; }
 
-/* The session's tasks (SessionTasks.js): a row per task, Approve / Not now beside a proposal. */
+/* The session's tasks (SessionTasks.js): a row per task, Approve / Reject beside a proposal. */
 .session-tasks:empty { display: none; }
 .session-tasks-title { margin: 0; font-size: 1em; }
 .session-task { align-items: center; justify-content: space-between; }

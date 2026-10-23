@@ -1,5 +1,5 @@
 // SessionTasks.js — a session's tasks, live on its page: the session's session.jsonl streamed, replayed into a Session, each task
-// drawn as a row; a proposed one (waiting on the owner) gets Approve, Not now and Make it a project, each one {"decide":{task,is}} line.
+// drawn as a row; a proposed one (waiting on the owner) gets Approve, Reject and Make it a project, each one {"decide":{task,is}} line.
 // Approved with a module named, node moves it to <module>/tasks/<slug>/ within 5 minutes (PromptTasks.sweep).
 // Servex files an owner prompt's asks there as proposals (Servex/agents/PromptTasks.js). Doc: doc/prompt-tasks.md.
 import View, { div, span, button, h3 } from "../View/View.js";
@@ -28,7 +28,7 @@ export default class SessionTasks extends JSONL {
 				TaskView.row(t);
 				if (t.state === "waiting") span.c("session-task-actions flex gap-50", () => {
 					button.c("session-task-approve", "Approve").attr("type", "button").click(() => this.decide(t, "approve"));
-					button.c("session-task-reject", "Not now").attr("type", "button").click(() => this.decide(t, "reject"));
+					button.c("session-task-reject", "Reject").attr("type", "button").click(() => this.decide(t, "reject"));
 					if (t.constructor.name !== "Project") button.c("session-task-project", "Make it a project").attr("type", "button").click(() => this.decide(t, "project"));
 				});
 			});

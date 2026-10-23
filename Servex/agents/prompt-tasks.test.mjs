@@ -48,6 +48,29 @@ try {
 	ok(!fs.existsSync(path.join(MOD_DIR, "tasks")), "a proposed task drafts in the session: no module folder is made before approval");
 	await pt.prompted(heard[0]);
 	ok(read(REC).filter(l => l.tasks?.add).length === 1, "the same prompt is never filed twice");
+	ok(pt.asked.no_index === true, "RefineQueue is told not to file the asks itself (AskIndex), so they are filed once");
+	ok(adds[0].by === "prompt-tasks" && adds[0].tasks.add.from === "owner", "written by caller prompt-tasks, from the owner");
+
+	// 3b. Only the owner's own VS Code tab, only while switched on.
+	const calls = () => pt.asked_n;
+	pt.asked_n = 0; const inner = pt.refine; pt.refine = async p => (pt.asked_n++, inner(p));
+	await pt.prompted({ ...heard[0], line: 2, by: "minion-x" });
+	ok(calls() === 0, "a prompt not written by the owner is never refined");
+	pt.off = () => true;
+	await pt.prompted({ ...heard[0], line: 3 });
+	ok(calls() === 0, "switched off: nothing is refined");
+	pt.off = () => false;
+	const SDK_PAGE = path.join(path.dirname(PAGE_DIR), SLUG + "-sdk"), SDK_REC = path.join(path.dirname(REC_DIR), SLUG + "-sdk");
+	fs.mkdirSync(SDK_PAGE, { recursive: true }); fs.mkdirSync(SDK_REC, { recursive: true });
+	fs.writeFileSync(path.join(SDK_REC, "session.jsonl"), JSON.stringify({ session: { id: "00000000-0000-4000-8000-000000000002", kind: "servex" } }) + "\n");
+	try {
+		ok(pt.record_for(path.join(SDK_PAGE, "page.jsonl")) === null, "an SDK agent's session (line 1 not vscode-tab) has no record here, so nothing is filed");
+		fs.writeFileSync(path.join(SDK_REC, "session.jsonl"), JSON.stringify({ session: "bare-string" }) + "\n");
+		ok(pt.record_for(path.join(SDK_PAGE, "page.jsonl")) === null, "no id on line 1: skipped, never a made-up session path");
+	} finally { fs.rmSync(SDK_PAGE, { recursive: true, force: true }); fs.rmSync(SDK_REC, { recursive: true, force: true }); }
+	PromptTasks.OFF_FILE = () => path.join(REC_DIR, "prompt-tasks.off");   // never the real Servex home
+	const off_now = (PromptTasks.set(false), PromptTasks.off()); PromptTasks.set(true);
+	ok(off_now === true && PromptTasks.off() === false, "the runtime switch file turns it off and back on");
 
 	// 4. The session replays it as waiting; a decide line from the page approves it.
 	let s = Session.replay(read(REC));
