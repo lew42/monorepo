@@ -1,0 +1,202 @@
+[
+ {
+  "id": "783f4cf551",
+  "sort": "task",
+  "module": "Servex",
+  "title": "Add an approve/reverse control on Servex cards for foundational merges",
+  "note": "",
+  "evidence": "Not built. Servex/tasks/merges-approval-for-foundational-merges/task.jsonl:1 says the ask was queued to a mastermind that was never spawned, so nothing built it. No approve or reverse control was found in Servex. Duplicate of ask 6."
+ },
+ {
+  "id": "27b7b9dce2",
+  "sort": "task",
+  "module": "core/Page/Template",
+  "title": "Add a use-template tool and per-use weight over one shared template library",
+  "note": "",
+  "evidence": "Not built. core/Page/tasks/templates-weight-per-use-use-template-sk/task.jsonl:1 is an orphan stub, queued and never run. core/Page/weight/weight.js weights whole pages, not uses of a template. Duplicate of ask 7."
+ },
+ {
+  "id": "51ebd793ca",
+  "sort": "task",
+  "module": "ext/JSONL",
+  "title": "Split page.jsonl (curated lines) from log.jsonl (every event)",
+  "note": "",
+  "evidence": "Not built. ext/JSONL/tasks/logs-page-jsonl-curated-vs-log-jsonl-eve/task.jsonl is an open stub. grep for log.jsonl under ext/JSONL finds nothing outside that stub. Duplicate of ask 8."
+ },
+ {
+  "id": "fcd7765dea",
+  "sort": "obsolete",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "Owner reports it fixed itself and it was intermittent; nothing reproduces, so there is no file change to make."
+ },
+ {
+  "id": "1fdb5f1f67",
+  "sort": "task",
+  "module": "ext/Session",
+  "title": "Answer voice asks in seconds and hand real work to a warm minion",
+  "note": "",
+  "evidence": "Not built. grep for warm or pre-spawn under ext/Session finds nothing. ext/Session is one fast and one slow answer per press, with no pre-spawned minion and no carry-over of results."
+ },
+ {
+  "id": "783f4cf551",
+  "sort": "task",
+  "module": "Servex",
+  "title": "Add an approve/reverse control on Servex cards for foundational merges",
+  "note": "",
+  "evidence": "Not built. Servex/tasks/merges-approval-for-foundational-merges/task.jsonl:1 says the ask was queued to a mastermind that was never spawned, so nothing built it. No approve or reverse control was found in Servex. Duplicate of ask 1."
+ },
+ {
+  "id": "27b7b9dce2",
+  "sort": "task",
+  "module": "core/Page/Template",
+  "title": "Add a use-template tool and per-use weight over one shared template library",
+  "note": "",
+  "evidence": "Not built. core/Page/tasks/templates-weight-per-use-use-template-sk/task.jsonl:1 is an orphan stub, queued and never run. core/Page/weight/weight.js weights whole pages, not uses of a template. Duplicate of ask 2."
+ },
+ {
+  "id": "51ebd793ca",
+  "sort": "task",
+  "module": "ext/JSONL",
+  "title": "Split page.jsonl (curated lines) from log.jsonl (every event)",
+  "note": "",
+  "evidence": "Not built. ext/JSONL/tasks/logs-page-jsonl-curated-vs-log-jsonl-eve/task.jsonl is an open stub. grep for log.jsonl under ext/JSONL finds nothing outside that stub. Duplicate of ask 3."
+ },
+ {
+  "id": "9b853fe4ac",
+  "sort": "task",
+  "module": "dev/mobile",
+  "title": "Add tap-to-select and drill-down on mobile, with the element sent to the AI",
+  "note": "",
+  "evidence": "Not built. grep for pick, tap or select-element under dev/ found only desktop DevShell and DevBar files. No tap-to-select path on a phone was found."
+ },
+ {
+  "id": "c82f2b45c5",
+  "sort": "task",
+  "module": "ai/AITask",
+  "title": "Restyle task pages: plain checkboxes, full-width bars, free-content reports",
+  "note": "",
+  "evidence": "Partly there. ai/AITask/ai.css:485 mentions full-width bars. No checkbox treatment and no free-content report was found in ai/AITask."
+ },
+ {
+  "id": "ef1906e790",
+  "sort": "task",
+  "module": "design/layout",
+  "title": "Write the per-grid-item wrapper rule for percentage padding",
+  "note": "",
+  "evidence": "Partly there. design/layout/doc/rules.md:145 - cap above ~1400px, so `× 1.3` is 3.38em at 3440 — and `--pad`, a % of the containing. The wrapper-per-grid-item rule is not written. Stub: styles/tasks/padding-percentage-padding-a-wrapper-per/task.jsonl. Duplicate of ask 25."
+ },
+ {
+  "id": "34e847f436",
+  "sort": "task",
+  "module": "ai/health",
+  "title": "Run a Playwright monitor on main that checks template changes",
+  "note": "",
+  "evidence": "Partly there. Server/BrowserCheck.mjs:9 and Server/health-supervisor.mjs:221 use Playwright. No trigger that checks console, screenshot and stalls on template changes was found. Stub: Servex/tasks/monitor-a-playwright-agent-on-main-templ/task.jsonl:1, queued and never run."
+ },
+ {
+  "id": "1558071efa",
+  "sort": "task",
+  "module": "ext/JSONL",
+  "title": "Block shell appends to .jsonl; only validated writers may write",
+  "note": "",
+  "evidence": "Partly there. .claude/hooks/jsonl-schema.mjs:10 is a validator. No hook was found that blocks shell appends to .jsonl. .claude/hooks/git-guard.mjs and junction-guard.mjs do not cover it."
+ },
+ {
+  "id": "dda95b5cff",
+  "sort": "task",
+  "module": "ai/v/2",
+  "title": "Reject unknown verbs on AI v2 lines against the schema",
+  "note": "",
+  "evidence": "Not built. grep for unknown verb, validator or schema under ai/v/2 finds nothing. The only schema is .claude/hooks/jsonl-schema.mjs:10, and it is not applied to ai/v/2 lines."
+ },
+ {
+  "id": "b1b6bdd23a",
+  "sort": "task",
+  "module": "Servex",
+  "title": "Remove merged worktrees and drop their Servex subdomains",
+  "note": "",
+  "evidence": "Not built. grep for subdomain in Server/ finds no drop-on-merge code. Servex/tasks/worktrees-remove-merged-ones-servex-drop/task.jsonl:1 is a queued orphan stub."
+ },
+ {
+  "id": "cb40e14a44",
+  "sort": "task",
+  "module": "ux/Dictate",
+  "title": "Make the dictation widget one configurable component, first on every page",
+  "note": "",
+  "evidence": "Partly there. ux/Dictate/Widget.js exists. Stub ux/Dictate/tasks/dictation-one-configurable-widget-everyw/task.jsonl is open. Mounting on every page, widget first, was not verified."
+ },
+ {
+  "id": "763ebee053",
+  "sort": "task",
+  "module": "ai/now",
+  "title": "Nest topic sub-cards on the Now card, with updated marks",
+  "note": "",
+  "evidence": "Not built. grep for updated under ai/now finds nothing. The raw, clean and structured stages exist only in ext/Refine/runs, not as nested Now cards."
+ },
+ {
+  "id": "1038396533",
+  "sort": "task",
+  "module": "ai",
+  "title": "Add git, context and cost pages to the AI system",
+  "note": "",
+  "evidence": "Partly there. A glob found ai/AITask/cost.js and ai/doc/context-loss.md. No git page was found."
+ },
+ {
+  "id": "aa58e77a81",
+  "sort": "task",
+  "module": "ai2",
+  "title": "Remove the ai2 folder and its nav entry; Git keeps history",
+  "note": "",
+  "evidence": "Not done. ai2/readme.md:5 - What stays here, on purpose: ai2/readme.md:9 keeps ai2.css, page.jsonl and weight.jsonl, and shim files stay in place."
+ },
+ {
+  "id": "ea195ec58e",
+  "sort": "task",
+  "module": "servex/lifecycle",
+  "title": "Build the Servex process monitor: PIDs, RAM/CPU per task, orphans",
+  "note": "",
+  "evidence": "Not built. servex/lifecycle/readme.md:9 shows four counts only. No per-task PID, RAM or CPU view was found. Stub: Servex/tasks/servex-process-monitor-pids-ram-cpu-per/task.jsonl:1."
+ },
+ {
+  "id": "341ddc5bf5",
+  "sort": "task",
+  "module": "ui",
+  "title": "Build the UI System class and the /framework/ui/ approved-block library",
+  "note": "",
+  "evidence": "Not built. ui/tasks/ui-system-class-framework-ui-library-of/task.jsonl is an open stub. ext/System is a generic container, not the UI System class. Class pills were not found in ui/."
+ },
+ {
+  "id": "eb93019841",
+  "sort": "done",
+  "module": "dev/DevShell",
+  "title": "",
+  "note": "",
+  "evidence": "dev/DevShell/readme.md:1 - # DevShell — Ctrl + \\ opens a dark shell around the whole site: page tree left, the dev bar's own tabs right. core/Shell/readme.md:1 - # Shell — five optional regions around a CSS grid: header, left, right, footer, main."
+ },
+ {
+  "id": "fc49764175",
+  "sort": "task",
+  "module": "core",
+  "title": "Spawn one merge-candidate minion per core directory when tokens allow",
+  "note": "",
+  "evidence": "Not built. grep for merge candidate or one minion per across public/framework finds nothing. The owner deferred it until tokens allow, so it is still wanted."
+ },
+ {
+  "id": "51d14e8db4",
+  "sort": "done",
+  "module": "ai2",
+  "title": "",
+  "note": "",
+  "evidence": "ai2/readme.md:1 - # ai2: the old address of AI 2 (merged into AI on 2026-10-09). Only the folder remains; see ask aa58e77a81."
+ },
+ {
+  "id": "2d0ba87413",
+  "sort": "task",
+  "module": "design/layout",
+  "title": "Write the per-grid-item wrapper rule for percentage padding",
+  "note": "",
+  "evidence": "Partly there. design/layout/doc/rules.md:145 - cap above ~1400px, so `× 1.3` is 3.38em at 3440 — and `--pad`, a % of the containing. The wrapper-per-grid-item rule is not written. Duplicate of ask 11."
+ }
+]

@@ -1,0 +1,26 @@
+[
+ {
+  "id": "783f4cf551",
+  "sort": "task",
+  "module": "servex",
+  "title": "Add a Merge button on the card to approve foundational merges, with undo",
+  "note": "",
+  "evidence": "Only servex/tasks/merges-approval-for-foundational-merges/task.jsonl exists, and it is a ledger stub with no code. public/framework/core/Task/doc/process.md:147 - \"the owner's merge button (priority 3b) completing the merge phase\" is listed as ⬜ Next. The owner's 2026-10-22 rule (memory owner-approves-merges.md:11) says \"The owner approves the merge\" and the Merge-button UI is still to build, so the approval step on the card is still open."
+ },
+ {
+  "id": "27b7b9dce2",
+  "sort": "task",
+  "module": "core/Page/Template",
+  "title": "Weight templates per use and add a use-template skill and tool",
+  "note": "",
+  "evidence": "public/framework/core/Page/weight/weight.js:1 - \"weight(page_url) — this page's weight: 1, plus one for every distinct real page that references it\" has no per-use term. Grep for use-template finds only ai docs and session notes, no code. public/framework/core/Page/Template/Template.js:48 - \"A new use of this layout\" (clone) has no weight or skill attached. Only a ledger stub exists at core/Page/tasks/templates-weight-per-use-use-template-sk/."
+ },
+ {
+  "id": "51ebd793ca",
+  "sort": "task",
+  "module": "log",
+  "title": "Write every object's log to log.jsonl and keep page.jsonl for curated state",
+  "note": "",
+  "evidence": "public/framework/log/readme.md:7 - \"a persistent object writes to its page's log.jsonl (next to page.jsonl)\" is still an idea, and line 3 says \"nothing here is built yet\". Only a ledger stub exists at ext/JSONL/tasks/logs-page-jsonl-curated-vs-log-jsonl-eve/. Changing where objects write changes files, so this is a task, not a note."
+ }
+]

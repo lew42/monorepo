@@ -1,0 +1,202 @@
+[
+ {
+  "id": "83b2c033e1",
+  "sort": "task",
+  "module": "ai/AISession",
+  "title": "Pick one name for the sessions tab and use it everywhere",
+  "note": "",
+  "evidence": "No agreed name found; doc/ui/views.md is absent under public/framework/ai/doc/ui/. Looked in ai/AISession/AISessionsPage.js."
+ },
+ {
+  "id": "5ac368e087",
+  "sort": "task",
+  "module": "ai/AISession",
+  "title": "Measure and fix sessions page lag under live streaming",
+  "note": "",
+  "evidence": "No performance record for thousands of sessions. Streaming path is ai/AISession/AISessionLive.js and AISessionTailer.mjs; nothing measured."
+ },
+ {
+  "id": "fffc8104c7",
+  "sort": "task",
+  "module": "ai/AISession",
+  "title": "Verify session indexing is correct and cover it with a test",
+  "note": "",
+  "evidence": "AISessionIndex.mjs and AISessionIndex.test.mjs exist; commit 364e8940c changed indexing, but no correctness check is recorded."
+ },
+ {
+  "id": "ff81c3fefe",
+  "sort": "task",
+  "module": "ai/AISession",
+  "title": "Show stored session fields the sessions table leaves out",
+  "note": "",
+  "evidence": "AISessionsPage.js:165 - static WIDTHS = { state, name, cost, updated, duration, role, source, model }; no stored field is named as the target."
+ },
+ {
+  "id": "57dacfd063",
+  "sort": "obsolete",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "A status check on the night mastermind's live run; no repo record exists and a check changes no file."
+ },
+ {
+  "id": "24ec28f89d",
+  "sort": "obsolete",
+  "module": "",
+  "title": "",
+  "note": "",
+  "evidence": "Fragment of a question ('Are you able to...') with no recoverable content; it cannot be acted on."
+ },
+ {
+  "id": "14749e1602",
+  "sort": "note",
+  "module": "dev",
+  "title": "",
+  "note": "The dev tooling must never throw errors or clobber a user's session while they browse the live site.",
+  "evidence": ""
+ },
+ {
+  "id": "63f49a7e88",
+  "sort": "task",
+  "module": "design/layout",
+  "title": "Pick each page's layout from its content so pages stop looking bad",
+  "note": "",
+  "evidence": "styles/layouts and core/Page/layout exist, but nothing checks that each page uses the right layout in the right place."
+ },
+ {
+  "id": "a9e07c29e8",
+  "sort": "task",
+  "module": "ai/AISession",
+  "title": "Check the sessions cost breakdown against real data and current prices",
+  "note": "",
+  "evidence": "Cost code is in ai/AISession/AISessionCost.mjs (with a test); haiku price at AISession.js:31-32 is marked verified:false; no check against real data is recorded."
+ },
+ {
+  "id": "3a72a31aa0",
+  "sort": "task",
+  "module": "ai/AISession",
+  "title": "Remove the All sessions back link from the session detail page",
+  "note": "",
+  "evidence": "Not verified gone: no 'All sessions' text in ai/AISession except the grid's own trail comment at AISessionsPage.js:114. Confirm on the live detail page."
+ },
+ {
+  "id": "3a5903dc42",
+  "sort": "task",
+  "module": "ai/AISession",
+  "title": "Drop the repeated session-ID line above the session detail title",
+  "note": "",
+  "evidence": "The repeat line is not located in AISessionDetail.js; the title is set at lines 32 and 64. A live check is needed to confirm the top line is gone."
+ },
+ {
+  "id": "48a22399cb",
+  "sort": "task",
+  "module": "ai/AISession",
+  "title": "Reproduce and fix the page load error after refresh",
+  "note": "",
+  "evidence": "The ask names no error or page; nothing in ai/AISession points to it. Needs a reproduction on a refreshed session page."
+ },
+ {
+  "id": "6b99150116",
+  "sort": "task",
+  "module": "ext/Chat",
+  "title": "Give every chat area the same input, mic and settings gear",
+  "note": "",
+  "evidence": "ext/Chat/readme.md:20 - Unified composer has mic and gear; other chat areas were not checked against the same set."
+ },
+ {
+  "id": "f93dccbe9c",
+  "sort": "task",
+  "module": "ux/Dictate",
+  "title": "Run mic-icon dictation through prompt refinement",
+  "note": "",
+  "evidence": "ux/Dictate/Widget.js:267 - refined entries draw via draw_refined; the mic path is not shown to use it."
+ },
+ {
+  "id": "6b90867197",
+  "sort": "task",
+  "module": "ext/Chat",
+  "title": "Send raw transcribed text into the input box for now",
+  "note": "",
+  "evidence": "ext/Chat/Mic.js:21 - default into: 'chat' (a growing bubble), not the input box; clean: true at Mic.js:20."
+ },
+ {
+  "id": "8134e44223",
+  "sort": "task",
+  "module": "ext/Chat",
+  "title": "Replace the growing textarea with a plain text input",
+  "note": "",
+  "evidence": "ext/Chat/Composer.js:36 - textarea().ac('auto chatbox-compose-input'); Mic.js:18 box_lines: 3 still grows. Scroll behaviour is still open."
+ },
+ {
+  "id": "db319ed23a",
+  "sort": "task",
+  "module": "ux/Dictate",
+  "title": "Put prompt refinement in the transcribe widget everywhere",
+  "note": "",
+  "evidence": "Widget.js:265-267 has a refined draw path, but it is not shown in every transcribe widget; the raw reference shown while transcribing is not verified."
+ },
+ {
+  "id": "adf8264f20",
+  "sort": "task",
+  "module": "ext/Chat",
+  "title": "Decide raw or cleaned text for send, and where cleaning runs",
+  "note": "",
+  "evidence": "Mic.js:20 - clean: true switches cleaning on; the send and bubble order is not decided in ext/Chat/Mic.js."
+ },
+ {
+  "id": "d6e6f7b5bf",
+  "sort": "task",
+  "module": "ext/Chat",
+  "title": "Show the cleaned transcription in chat bubbles, paragraphed",
+  "note": "",
+  "evidence": "ux/Dictate/Widget.js:264 - speak() takes {para:{re}}, so paragraphs exist; Widget.js:294 still keeps the raw 'said' text in bubbles."
+ },
+ {
+  "id": "315a037c4d",
+  "sort": "task",
+  "module": "ext/Chat",
+  "title": "Break wall-of-text transcription bubbles into paragraphs",
+  "note": "",
+  "evidence": "ux/Dictate/tasks/place-each-sentence-paragraph-new-paragr/task.jsonl exists; speak() still merges same-sender sentences (Widget.js:222), so wall-of-text is possible."
+ },
+ {
+  "id": "d6fad801d8",
+  "sort": "note",
+  "module": "ai",
+  "title": "",
+  "note": "Two systems that hold similar but different data are one system: consolidate them, never keep both.",
+  "evidence": ""
+ },
+ {
+  "id": "50895c9f4a",
+  "sort": "task",
+  "module": "ai/AISession",
+  "title": "Decide whether the sessions right sidebar scrolls on its own",
+  "note": "",
+  "evidence": "public/framework/ai/sessions/sessions.css:43 - 'One scroller: the page column scrolls', which decides against independent scrolling."
+ },
+ {
+  "id": "afdc30ec2b",
+  "sort": "task",
+  "module": "ext/Refine",
+  "title": "Check the chat bubble's refine-with-haiku link and fix it",
+  "note": "",
+  "evidence": "No refine link in ai/AISession/*.js; grep for haiku hits only pricing and PromptLog comments. The bubble link was not located."
+ },
+ {
+  "id": "6cab9e0155",
+  "sort": "task",
+  "module": "core/Page/settings",
+  "title": "Test that page settings persist and fix any gap",
+  "note": "",
+  "evidence": "core/Page/settings/settings.js:1-13 - settings.jsonl first, page.jsonl fallback; no persistence test found."
+ },
+ {
+  "id": "aff23570a5",
+  "sort": "note",
+  "module": "ai",
+  "title": "",
+  "note": "Keep lookups into past work brief so the working context is not polluted.",
+  "evidence": ""
+ }
+]

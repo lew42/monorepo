@@ -1,0 +1,15 @@
+[
+ {
+  "id": "e0ff1b2eac",
+  "sort": "task",
+  "module": "core",
+  "title": "Run the core/ merge sweep: one Sonnet minion per core directory",
+  "evidence": "Not built. No merge-candidate output or minion run found. The only record is the to-do line at public/framework/ai/todo.md:159 (\"Merge candidates, when tokens allow\"), which the ask says nothing tracks. It is a fan-out, so check the week's usage before spawning."
+ },
+ {
+  "id": "2225185917",
+  "sort": "done",
+  "module": "ai2",
+  "evidence": "public/framework/ai2/readme.md:3 - \"AI 2 is no longer a separate module. Its code moved into [ai/cards](/framework/ai/cards/) (a card and what it shows) and [ai/rail](/framework/ai/rail/)...\""
+ }
+]
