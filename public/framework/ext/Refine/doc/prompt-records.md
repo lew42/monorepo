@@ -79,3 +79,4 @@ Measured on the way: the SDK's `total_cost_usd` on a **resumed** session is cumu
 - ⬜ The browser counts a `task` outcome as open; it does not yet resolve the task's state (node does, in `--summary`).
 - ⬜ Whisper/Dictate and the cloud voice agent as sources of the `live` process (today: VS Code tabs).
 - ⬜ A session's completion counting its prompts, not only its tasks.
+- ⬜ A step rewrites the whole parts list (a later line wins), so each step adds about 0.5 MB to a long session's `prompts.jsonl`; writing only the outcomes that changed, keyed by part id, would keep it small.
