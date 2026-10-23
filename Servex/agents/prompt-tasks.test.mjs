@@ -73,6 +73,17 @@ try {
 		fs.writeFileSync(path.join(SDK_REC, "session.jsonl"), JSON.stringify({ session: "bare-string" }) + "\n");
 		ok(pt.record_for(path.join(SDK_PAGE, "page.jsonl")) === null, "no id on line 1: skipped, never a made-up session path");
 	} finally { fs.rmSync(SDK_PAGE, { recursive: true, force: true }); fs.rmSync(SDK_REC, { recursive: true, force: true }); }
+
+	// 3c. Only a turn a person typed: the transcript's turnOrigin. A scheduled check-in (CronCreate) is not the owner's words.
+	const TR = path.join(REC_DIR, "transcript.jsonl"), CHECK = "Mastermind check: status of the architect and whether the branch merged", TYPED = "Build the merge button on the session page, please";
+	const user = (text, turnOrigin) => JSON.stringify({ type: "user", turnOrigin, message: { role: "user", content: text } });
+	fs.writeFileSync(TR, [user(CHECK, "scheduled"), user(TYPED, "human")].join("\n") + "\n");
+	pt.transcript = () => TR; pt.asked_n = 0;
+	await pt.prompted({ ...heard[0], line: 4, text: CHECK });
+	ok(calls() === 0, "a scheduled check-in (turnOrigin scheduled) is never refined");
+	await pt.prompted({ ...heard[0], line: 5, text: TYPED });
+	ok(calls() === 1, "a turn a person typed (turnOrigin human) is refined");
+	pt.transcript = null;
 	PromptTasks.OFF_FILE = () => path.join(REC_DIR, "prompt-tasks.off");   // never the real Servex home
 	const off_now = (PromptTasks.set(false), PromptTasks.off()); PromptTasks.set(true);
 	ok(off_now === true && PromptTasks.off() === false, "the runtime switch file turns it off and back on");

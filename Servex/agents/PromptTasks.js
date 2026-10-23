@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import os from "node:os";
 import { place } from "../home.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -18,6 +19,9 @@ const AI = path.resolve(HERE, "..", "..", "public", "framework", "ai");
  * ONLY THE OWNER'S OWN VS CODE TABS (the owner, 2026-10-22): the page_add caller must be "owner" (prompt-relay.mjs, which skips
  * Servex-started sessions) and the record's line 1 must say kind "vscode-tab" (session-page.mjs, which also skips them). An SDK
  * agent's prompt is never refined here.
+ * ONLY TURNS A PERSON TYPED (vscode-mastermind, 2026-10-22: 13 tasks were filed from a tab's CronCreate check-ins, "Mastermind check: …"):
+ * the transcript stamps every user turn with `turnOrigin` ("human", "scheduled", "task_notification"); `human()` finds the prompt's
+ * line there and refines it only when it says "human". No transcript line found (an older Claude Code, a test) = refined as before.
  * ON/OFF: `node Servex/agents/PromptTasks.js off` (or `on`, `status`) writes or removes prompt-tasks.off in the Servex home,
  * read on every prompt, so it switches without a restart. SERVEX_NO_PROMPT_TASKS=1 turns it off for a whole Servex run.
  * Doc: core/Session/doc/prompt-tasks.md. */
@@ -37,9 +41,34 @@ export default class PromptTasks {
 		if (!p?.text || this.seen.has(key) || p.text.trim().length < PromptTasks.MIN_CHARS || /^\s*\//.test(p.text)) return this.chain;   // "try again?" and /commands hold no task
 		if (p.by !== "owner" || (this.off ?? PromptTasks.off)()) return this.chain;   // only the owner's own prompts, and only while switched on
 		this.seen.add(key);
-		return this.chain = this.chain.then(() => this.run(p))
+		return this.chain = this.chain.then(async () => {
+			const rec = this.record_for(p.file);
+			if (rec && await this.human(rec.uuid, p.text) === false) return { ok: true, skipped: "not typed by a person (turnOrigin)" };
+			return this.run(p);
+		})
 			.then(r => { if (r?.ok === false) this.say?.(`prompt-tasks: ${p.file}:${p.line} not filed: ${r.why ?? r.error ?? "refine failed"}`); return r; })   // never quiet (a renamed card folder, a failed refine)
 			.catch(e => this.say?.(`prompt-tasks: ${e.message || e}`));
+	}
+
+	static TRANSCRIPTS = () => path.join(os.homedir(), ".claude", "projects");
+	/* Was this prompt typed by a person? The tab's transcript line for it carries `turnOrigin`. true / false, or null when no line
+	 * with that text is found. The hook fires before Claude Code writes the line, so it looks again for up to ~3 s. A test passes `transcript`. */
+	async human(uuid, text, { tries = 4, wait = 750 } = {}){
+		const file = this.transcript?.(uuid) ?? (() => { try { for (const d of fs.readdirSync(PromptTasks.TRANSCRIPTS())){ const f = path.join(PromptTasks.TRANSCRIPTS(), d, uuid + ".jsonl"); if (fs.existsSync(f)) return f; } } catch {} return null; })();
+		if (!file) return null;
+		const want = String(text).trim();
+		for (let i = 0; i < tries; i++){
+			let lines = []; try { lines = fs.readFileSync(file, "utf8").split("\n"); } catch {}
+			for (let j = lines.length - 1; j >= 0; j--){
+				if (!lines[j].includes('"type":"user"')) continue;
+				let l; try { l = JSON.parse(lines[j]); } catch { continue; }
+				const c = l.message?.content, said = typeof c === "string" ? c : Array.isArray(c) ? c.filter(x => x.type === "text").map(x => x.text).join("\n") : "";
+				if (said.trim() !== want) continue;
+				return l.turnOrigin ? l.turnOrigin === "human" : null;
+			}
+			if (i < tries - 1) await new Promise(r => setTimeout(r, wait));
+		}
+		return null;
 	}
 
 	// The session's record for a prompt page: ai/YYYY/MM/DD/<slug>/page.jsonl -> ai/sessions/YYYY/MM/DD/<slug>/session.jsonl.
