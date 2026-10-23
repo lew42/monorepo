@@ -23,6 +23,8 @@ one small line per step, to a new file beside the task: `<taskdir>/review.jsonl`
 
 ## The four turns
 
+**Run it from the branch's worktree.** The diff is `michael/dev...<the tree's branch>`, so a tree on `michael/dev` itself (the main checkout) would diff dev with itself, size none, and write a false pass. `review.mjs` won't: it reviews the worktree the task record last names (`"worktree": …` on any line), or refuses and exits 1 (`branchTree()`, 2026-10-23).
+
 | # | Turn | Who writes it | Command |
 |---|---|---|---|
 | 1 | **Finding** — the reviewer reads the diff and says what's wrong | a fresh reviewer agent | `node Server/review.mjs <taskdir> [<worktree>]` |

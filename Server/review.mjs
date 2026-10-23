@@ -146,21 +146,25 @@ export function worktreeBase(main, dir) {
 
 /* The tree to review. Run from the main checkout (on michael/dev), the diff is michael/dev with itself:
  * empty, size none, a false "pass" (2026-10-23, tasks-page-loading passed twice that way). So when the
- * tree is on michael/dev, use the task's own worktree (the last "worktree" its record names) if it
- * exists on another branch, and refuse otherwise. Exported for review.test.mjs. */
+ * tree is on michael/dev, use the task's own worktree (the last `worktree` field any line of its record
+ * names) if it exists on another branch; otherwise throw, and main() prints the refusal and exits 1.
+ * Tested in review.test.mjs. */
+export function worktreeOf(recordText) {
+	let named = null;
+	const walk = o => { if (!o || typeof o !== "object") return; if (typeof o.worktree === "string") named = o.worktree; Object.values(o).forEach(walk); };
+	for (const l of String(recordText).split("\n")) { try { walk(JSON.parse(l)); } catch {} }
+	return named;
+}
 export function branchTree(taskDir, dir) {
 	const on = d => git(d, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim();
 	if (on(dir) !== BASE) return dir;
 	let named = null;
-	try {
-		for (const m of fs.readFileSync(SessionRecord.log_or_old(taskDir), "utf8").matchAll(/"worktree":"([^"]+)"/g)) named = m[1];
-	} catch {}
+	try { named = worktreeOf(fs.readFileSync(SessionRecord.log_or_old(taskDir), "utf8")); } catch {}
 	if (named && fs.existsSync(named) && on(named) && on(named) !== BASE) {
 		console.log(`review.mjs: ${dir} is on ${BASE}; reviewing the task's worktree ${named} instead`);
 		return path.resolve(named);
 	}
-	console.error(`refused: ${dir} is on ${BASE}, so the diff would be ${BASE} with itself and the verdict a false pass. Run review.mjs from the branch's worktree (or pass it as the second argument), or use --range A..B.`);
-	process.exit(1);
+	throw new Error(`refused: ${dir} is on ${BASE}, so the diff would be ${BASE} with itself and the verdict a false pass. Run review.mjs from the branch's worktree (or pass it as the second argument), or use --range A..B.`);
 }
 
 /* Both sides of a diff, parsed: {nameStatus: [{status, f}], numstat: [{added, deleted, f}]}.
@@ -695,7 +699,8 @@ async function main() {
 	const [taskDirArg, worktreeArg] = argv;
 	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>] [--widths 1200,1920]'); process.exit(1); }
 	const taskDir = path.resolve(taskDirArg);
-	const worktreeDir = range ? null : branchTree(taskDir, path.resolve(worktreeArg || process.cwd()));
+	let worktreeDir = null;
+	if (!range) try { worktreeDir = branchTree(taskDir, path.resolve(worktreeArg || process.cwd())); } catch (e) { console.error(e.message); process.exit(1); }
 	// The main repo this worktree belongs to (the same trick merge.mjs uses): never assume it is
 	// wherever THIS copy of review.mjs happens to live — a worktree carries its own copy of this
 	// file, and .worktrees.json / Server/layout-check.mjs / the task's public/framework/ai only
