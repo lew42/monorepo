@@ -1,13 +1,14 @@
 # Page mastermind plan: navigation, items and pages, tests, and the build order
 
-**This is a plan, so nothing is built yet.** Version 1 covered three parts of your ask: typed content (a), readmes as pages (b) and a narrower Page (c). You read it and said linking readmes as pages (`/md/`) is fine ([your words](/framework/ai/sessions/2026/10/20/session-e00f55c9/), latest prompt). Version 2 adds the four things you asked for next: navigation, your model of items and pages checked against the code, tests that run by themselves, and a ranked build order. Parts (a), (b) and (c) are unchanged and sit at the bottom.
+**Version 3 (2026-10-23): the item tool task you assigned at high priority is folded in, and it is being built now; the rest of the plan is unchanged.** Version 1 covered three parts of your ask: typed content (a), readmes as pages (b) and a narrower Page (c). You read it and said linking readmes as pages (`/md/`) is fine ([your words](/framework/ai/sessions/2026/10/20/session-e00f55c9/), latest prompt). Version 2 adds the four things you asked for next: navigation, your model of items and pages checked against the code, tests that run by themselves, and a ranked build order. Parts (a), (b) and (c) are unchanged and sit at the bottom.
 
 ## The short answer
 
 - **Navigation:** there are seven ways today, and one rule already sits under most of them. The nearest page with its own navigation stays on screen, and everything below it swaps inside it. For Miller columns I recommend even slots: about 950px each at 3440, so three fit, and opening a column never moves the ones already open.
 - **Items and pages:** your model is true for tasks. For pages it is true on disk, but the item tool never builds a real Page. It only checks a field list and appends the line. I measured that the real Page class does load and replay in node, so this gap is small.
+- **The item tool for any item (assigned 2026-10-23, high):** reading any task or session by path is already instant. But a question can't be asked without writing a line, a session answers as a plain task list (150 tasks for this session) with no cost, duration or child sessions, and a page gets no instance. That work is now being built (section 2, "The item tool answers any item").
 - **Tests:** `core/Test` works, but nothing runs it, and a failing test reaches nobody. Three tests fail right now and nobody knew. The fix: the worktree watcher that already runs per worktree also runs the tests nearest the changed file, and messages the builder when one turns red.
-- **Build first:** the tests for Item, List, Store, Page replay and streaming, wired into that watcher. Second, a real Page inside the item tool. Everything else comes after, because it changes code those tests protect.
+- **Building now:** the item tool for any item (session, task, page), and beside it the tests for Item, List, Store, Page replay and streaming, wired into that watcher. Everything else comes after, because it changes code those tests protect.
 
 ---
 
@@ -67,6 +68,22 @@ Your model is this. A page is an item, and it streams its `page.jsonl`. Child it
 | It is tested | ⚠ partly | `item_tool.test.mjs`: 73 of 73 pass, but its cleanup fails now and then on Windows file locks. `page_tools.test.mjs` **fails** (the hole above). No test replays a page.jsonl through the Page class. |
 
 **The server-side Page is closer than the code comment says.** I loaded the real `Page.class.js` in node with a do-nothing DOM of about 15 lines and an import map that sends `/framework/…` to `public/`. Typed lines replayed into their real classes, `PageHeading` and `PageText`, and an unknown type was reported. The probe is in [node-page-probe/](node-page-probe/): run `node --import ./reg.mjs probe.mjs` from that folder. The DOM is touched at import time in only a few places, for example `View.js:468` and the stylesheets that `View.stylesheet()` loads on import. Make those safe without a DOM, and no stub is needed.
+
+### The item tool answers any item (assigned 2026-10-23, high)
+
+[Your words](/framework/ai/sessions/2026/10/20/session-e00f55c9/) (the prompt of 20:19 on 2026-10-23): the server builds the item, replays its lines and holds it in memory; a call then runs a method, which may set, save, do or answer something; and asking what is in a session is one quick call, never reading the raw JSONL or asking a mastermind. One system for every item. Measured today:
+
+| Ask | Today | The work |
+|---|---|---|
+| Read any item by path, at once | ✅ for a task, a session folder and a process: replayed once and kept in memory (`live_root`, `page_tools.js:647`), so the next call is instant | a page has no instance yet, only rendered text |
+| Run a method or set fields, and save | ✅ task and process; ⚠ a page line is appended unchecked | `a-real-page-on-the-server` (gaps 1, 2, 3, 4 and 6 below) |
+| Ask without changing anything | ❌ every call with a delta writes a line (`run_item`), so asking a session for its `progress()` would write a junk line | `query-without-writing` |
+| A session: its tasks, completion, cost, duration and child sessions | ⚠ a session folder replays as a Task (`class_of`, `page_tools.js:383`): completion yes, but every task is listed and there is no cost, duration or child sessions. `Task.cost` exists (`Agents.js` wires it), but it is not in the answer | `a-session-answers-as-a-session` |
+| Tests for Session, Task and Page | Task ✅; a session only through Task; Page ❌ | `tests-for-session-task-and-page` |
+
+**The shape:** the class says which of its methods only read: a `static queries` list such as `["progress", "cost", "duration", "children"]`. A delta whose keys are all queries runs them and answers with their values, and writes nothing. A delta that mixes asking with changing is refused, so the two happen in two calls. "A key naming a method calls it" stays the one grammar. The alternative was a separate `get` key, but that would be a second grammar.
+
+**Where a mastermind's queue lives** (asked by the system architect for the task queue): in the role's own task folder, the way `core/Page/tasks/page-mastermind/` already holds this mastermind's queue across sessions. A session references only the tasks it takes up, never the whole queue, because `Session.progress` counts every child it references. Priority uses the shape that already exists, `{"priority":{"score":N,"why":…}}` (`Task.js:422`; `Task.rank` sorts by it). A plain `"priority":"high"` is ignored by that sort.
 
 ### The gaps, most important first
 
@@ -131,7 +148,7 @@ Ranked for one outcome: a page, data and streaming system that is rock solid. Ea
 | # | Step | Why at this place | Size |
 |---|---|---|---|
 | 1 | **The five tests, run by WorktreeWatch and the merge gate** (section 3) | Every later step changes Page, Store or the tool. Without tests a break is silent, and three already are. | M |
-| 2 | **A real Page inside the item tool** (gaps 1 and 2) | It makes "a page is an item" true on the server too. A bad line is refused when it is written, not found later in the browser. | M |
+| 2 | **The item tool answers any item** (assigned 2026-10-23, high): ask without writing, a session answers as a session, a real Page on the server (gaps 1 and 2), tests for all three | It makes "a page is an item" true on the server too, and a question about a session becomes one instant call. A bad line is refused when it is written, not found later in the browser. **Started 2026-10-23.** | M–L |
 | 3 | **The item tool's holes** (gaps 3, 4 and 6) | One checked write path, and the failing test passes. | S–M |
 | 4 | **(a) Typed content:** `part-view`, `part-file`, unknown types refused | Nearly free after step 2, because the class itself does the refusing. | S |
 | 5 | **Navigation:** the rule written down, even columns as the default, expand kept for things that are not pages, the two `navigation` words fixed | This is what you see most. It touches other files (`Columns.js`, `Page.css`, `words.js`), so it can run beside steps 1–3 in its own worktree. | M |
@@ -139,18 +156,15 @@ Ranked for one outcome: a page, data and streaming system that is rock solid. Ea
 | 7 | **(c) A narrower Page** | It moves the most code, so it goes last, protected by the tests from step 1. Step 3 of (c) renames the forwarders' callers, which is major surgery under CLAUDE.md. | L |
 | beside each step | **Archive the dated docs in `core/Page/doc/`** | Scripted, with a manifest, and nothing deleted. | S |
 
-**What I'd build first:** steps 1 and 2 together. Both rest on the same new fact: the real Page replays in node. The tests use it to check pages, and the item tool uses it to refuse bad lines. With those two in place, a broken page, a bad line or a broken stream turns red within seconds, and the builder hears about it without anyone opening a page.
+**Building now:** step 2, because you assigned it at high priority, and step 1 beside it. Both rest on the same new fact: the real Page replays in node. The tests use it to check pages, and the item tool uses it to refuse bad lines. With those two in place, a broken page, a bad line or a broken stream turns red within seconds, and the builder hears about it without anyone opening a page.
 
 ---
 
-## The decision for you
+## What you can still change
 
-Approve the shape, or change it. These are the three choices that matter most:
-- **The one navigation rule:** the nearest page with navigation stays, and everything below swaps.
-- **Even columns as the default:** about 950px at 3440, three fit, and an open column never moves.
-- **The build order,** tests first.
-
-The defaults I'd build with are written above. I build nothing until you say go.
+Each step is built in a worktree and brought to ready-to-merge, and the merge is yours. Steps 1 and 2 are being built now. The rest follow in order, using the defaults above unless you change them:
+- **The one navigation rule:** the nearest page with navigation stays, and everything below it swaps.
+- **Even columns as the default:** about 950px at 3440, so three fit, and an open column never moves.
 
 ---
 
