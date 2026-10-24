@@ -19,6 +19,7 @@ import DatedFiles from "../../Server/DatedFiles.mjs";
 import PastWork from "../../Server/PastWork.mjs";
 import LandingCheck from "../../Server/LandingCheck.mjs";
 import Landed from "../Landed.js";
+import { turn_costs } from "./turn-costs.js";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 import { server as sdk_server } from "./tools.js";   // cycle with tools.js is fine: used only at call time
@@ -741,30 +742,11 @@ export class Agents {
 	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */
 	logged_cost(id){ return this.log_cost(id).cost; }
 
-	/* { cost, sdk_total } from the agent's log. A Claude agent's turns are diffed against the SDK's SESSION total, which a
-	 * resumed process carries on (see Agent.start); lines before 2026-10-23 logged that whole total as the first turn after
-	 * every wake-up, so they are rebuilt: the total is turn_cost summed since the process started, and a turn costs what the
-	 * total grew by. A total lower than the last one is a fresh session (renew, fork) and counts in full. ⚠ A fresh session
-	 * whose first turn already exceeds the old total is under-counted; `sdk_total` on newer lines makes them exact.
-	 * An openrouter agent's turn_cost is already real (refresh_or_cost), so it is summed as written. */
+	/* { cost, sdk_total } from the agent's log: its turns rebuilt by turn_costs() (turn-costs.js says why a log needs rebuilding). */
 	log_cost(id){
 		let text; try { text = fs.readFileSync(this.store().file(`agent-${id}`).path, "utf8"); } catch { return { cost: 0, sdk_total: 0 }; }
-		if (this.reg().read()[id]?.provider === "openrouter"){
-			let sum = 0; for (const m of text.matchAll(/"turn_cost":([0-9.eE+-]+)/g)) sum += Number(m[1]) || 0;
-			return { cost: sum, sdk_total: 0 };
-		}
-		let cost = 0, proc = 0, last = 0;
-		for (const line of text.split("\n")){
-			if (!line.includes('"turn_cost"') && !line.includes('"state":"started"') && !line.includes('"type":"renew"')) continue;
-			let j; try { j = JSON.parse(line); } catch { continue; }
-			if (j.type === "process" && j.state === "started"){ proc = 0; continue; }
-			if (j.type === "renew"){ proc = last = 0; continue; }   // a fresh session under the same id
-			if (!("turn_cost" in j)) continue;
-			const total = Number.isFinite(j.sdk_total) ? j.sdk_total : proc + (Number(j.turn_cost) || 0);
-			cost += total >= last ? total - last : total;
-			proc = last = total;
-		}
-		return { cost, sdk_total: last };
+		const { turns, sdk_total } = turn_costs(text, { openrouter: this.reg().read()[id]?.provider === "openrouter" });
+		return { cost: turns.reduce((n, t) => n + t.cost, 0), sdk_total };
 	}
 	interrupt(id){ return this.get(id).interrupt(); }
 	/* Continue (+$5) on a spend-gate card: raise the allowance and send the agent on its
