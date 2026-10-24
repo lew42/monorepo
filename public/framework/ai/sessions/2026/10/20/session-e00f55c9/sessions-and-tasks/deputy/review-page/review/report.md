@@ -1,52 +1,69 @@
 verdict: fix
-1. [fix] `AIDashboard.open_day()` calls itself as its last line (diff.patch line 87, where `this.store.open(this.q.day)` used to be), so `/framework/ai/`, the default AI dashboard, recurses until the stack overflows and never loads its day. Change that line back to `this.store.open(this.q.day)`.
-2. [fix] The scope change says "nothing on the AI dashboard", but the diff still changes it: `AIDashboard.js` gets a Review head, Approve buttons and a Ready to merge band, and `AIDashboard.css`, `SessionRow.js` and `SessionStore.js` change too. Revert those files, or keep only the shared `Review`/`Approvals` classes (the readme already plans to move them beside `v/review`).
-3. [note] The rows repeat themselves. Line 1 says "mastermind · 16 h ago", then line 2 says "waiting for you · mastermind, no parent recorded". The role appears twice, and "no parent recorded" is noise for the owner (content). shots/…-v-review/1920.png, list band.
-4. [note] There is no page that shows the live instances of the new classes `Review`, `Approvals`, `FilterPill`, `TimeFilter` and `ReviewList` (rules.md, "Show the class"). `Review` holds the day's approved/waiting/leaking state, which the owner would want to watch.
-5. [note] At 1920 and 3440 the head card (three totals and Approve all) sits in a narrow left column, and the empty space under it runs the full height. layout.json reports empty 0.58 at 1920 and 0.72 at 3440. At 1920 the list rows are about 950 px wide with short text and the Approve button far right. Two columns of rows, or a head band across the top, would use the width.
-6. [note] On the v/ index (touched by the diff) at 400, the `sessions-chip` buttons wrap to 4 lines each (layout.json wraps, lines 4). This is probably not new in this diff.
+1. [fix] A row still shows a folder slug as its title: the first child reads "deputy" (requirements 2, "plain title") — shots/work-flat-400.png, first row; shots/work-1920.png, first row.
+2. [fix] The parent link was patched around, not fixed at its source (requirements 1, "fix the generator, don't patch around it"). The diff never touches the `session-tree.json` generator. SessionWork nests by folder instead, and the head still says "10 tasks ran in sessions filed under another day: their cost and Approve are not shown here yet" (33 at 1200) — shots/work-1920.png, head card.
+3. [note] The review run shot the wrong page. It shot `/framework/ai/AITask/` (a Doc page this diff barely changes) and not the session page's Work tab, which is the deliverable. So everything below about the Work tab is judged from the builder's own shots: work-400, work-flat-400, work-1200, work-1920 and work-flat-1920.
+4. [note] The AITask shot still logs one 404 at every width (layout.json `errors`, 4 of 4), and that 404 is what the new `/api/folder-names` listing was meant to remove. It is likely the dev server had not restarted onto the plugin (Server/README.md says so), but nobody confirmed it.
+5. [note] At 400 the session's title shows three times (the breadcrumb, the panel head, the Work card), and the six tab chips wrap to 2 rows with "Related" alone — shots/work-flat-400.png, top three bands.
+6. [note] A "waiting" row's dot is grey, while the waiting total is amber and mobile-cards.md asks for amber — shots/work-1920.png, the Figma row. Only `live` is coloured amber in SessionWork.css.
+7. [note] The brief said "log a `show:` line, and stop for the look". The `show:` line came at 20:01, but the builder went on to `ready:` at 20:12 without the look (session.jsonl lines 39, 53).
+8. [note] Five new classes have no page that shows their live instances: SessionWork, Approvals, Review, FilterPill and TimeFilter. Approvals holds the approvals the owner would want to watch; today the session page itself is the only place to see them.
 
-Widths given: 400, 1200, 1920 and 3440 for `sessions/v/review/` and `sessions/v/`, plus the builder's extra shots (review-today/week at 400 and 1920, review-approved-400).
+Widths given: 400, 1200, 1920 and 3440 of `/framework/ai/AITask/` (with layout.json). The Work tab is judged from the builder's shots at 400, 1200 and 1920 (no layout.json).
 
 ## Requirements
-- 1 "a single page … per day", nested under parent, plain title, cost, state, three day totals — yes — review-today-400.png: the Today window, rows with title, cost and state, and an approved/waiting/leaking head. Nesting shows as "26 · 36 with the ones they spawned".
-- 2 "Approve in chunks": a row Approve button, Approve all, a parent approves its children, writes through FsFile.append — yes — review-approved-400.png: approved goes 0→$0.78 and leaking 139→138. `Approvals.approve` uses `FsFile.append` and inherits approval when read (`Review.judge`).
-- 3 "Leaks in red", with the rule and its numbers in the readme — yes — review-week-400.png: red titles and "$1084 leaking · 139". v/review/readme.md "The leak rule" names $0.50, 1 h and 1 day.
-- 4 Ready to merge folded in — n/a — the scope change says it folds in later. It was nevertheless built on the AI dashboard (finding 2).
-- 5 "the word today … in a little drop-down … week … month … year", a reusable pill, choice in the url — yes — `FilterPill extends Dropdown`, `TimeFilter extends FilterPill`, `?when=`. Shots show Today and Week. Inside a session it comes later, per the scope change.
-- 6 "Plain titles", the slug small — yes — 1920.png: "Task system migration" in bold, `mastermind-task-migrate` small in mono.
-- Live instances of the new classes — no — no page lists `Review`/`Approvals`/`TimeFilter` instances (finding 4).
+- 1 "Children nested, never flat" — yes, in part — shots/work-1920.png: the rows fold (▸ deputy, ▸ Figma) with their children inside; but no generator was fixed, and the head admits 10 tasks are missing their cost (finding 2)
+- 2 "plain title, cost (own and rolled up), duration, tasks created, tasks completed, what still needs doing" — mostly — every figure is on each row ("$10.95 own · $15.07 with 4 below · 58 min · 0 of 4 tasks complete", "Open: …"); the "deputy" title is a slug (finding 1)
+- 3 "Completion is honest" — yes — rows read "no tasks recorded" (work-1920, the "day page" row); counted by Task.progress_of, the same code Session.progress() uses (Session.js:46); only `complete` counts
+- 4 "Approve per row and Approve all, leaks in red, the Today ▾ pill; each class where it belongs" — yes — Approve buttons and "Approve all" (work-1920); leak rows red; Approvals/Review/SessionWork in ai/AISession, FilterPill/TimeFilter in ux/Filter
+- 5 "a first tab 'Work', open by default; the other tabs stay; shoot at 400, 1200, 1920; show: line; stop for the look" — yes, except the stop — the Work chip is first and on; all five other tabs stay; shots at 3 widths; show: at session.jsonl line 39; no stop (finding 7)
+- live instances of a new class — no — finding 8
+
 ## Page structure
-- page 1 (the title says what it is) — yes — 1920.png: breadcrumb "Session variants › Review", panel "Review".
-- page 2 (most important first) — yes — 400.png: the totals and Approve all come first, then the list. Leaks sort first (review-week-400.png).
-- page 3 (one screen at level 1) — yes — 400.png: the head card fits the first screen.
-- page 4 (a duplicate title) — no — 400.png: "Review" panel header, then a "Review" card head right under it. Minor.
+- page 1 (title says what it is) — yes — work-flat-400.png: "Session and task systems documentation"
+- page 2 (one takeaway, first) — yes — the head card: cost, three totals, Approve all
+- page 3 (most important first) — yes — the Work tab opens first; the head sits above the rows
+- page 4 (no repeated chrome) — no — the title appears 3 times at 400 (finding 5)
+
 ## Navigation
-- techniques — tabs (AI tabs), breadcrumb, a sidebar (site nav), a bottom rail at 400, a dropdown pill
-- tabs stable — yes — layout.json tab_rows 1 at every width.
-- current place marked — yes — 1920.png: SESSIONS tab underlined, breadcrumb ends at Review.
-- dropdown pill reads its choice — yes — "Today ▾" / "Week ▾" in the shots.
+- page 13 identify — tabs (chips), a sidebar (1200+), a side panel (detail beside the list), folds (details)
+- tabs: one row — no at 400 (2 rows, "Related" alone, work-flat-400); yes at 1200/1920
+- tabs: state in the url — yes — `?tab=` is dropped for work, kept for the others (AISessionDetail.js diff)
+- tabs: current one marked — yes — Work chip outlined
+- folds: the affordance shows — yes — ▸/▾ before the name
+- filter pill: choice in the url — yes — `?when=` (TimeFilter.js)
+
 ## Layout
-- the layout suits the content — partly — at 400 a single column is right. At 1920 and 3440 a narrow head column beside one wide list leaves the left column mostly empty (finding 5).
-- no horizontal overflow — yes — layout.json overflow_x false at all four widths.
+- columns fit their content — yes — work-1920.png: list, detail and chat side by side, no squeeze
+- no overflow — yes — AITask layout.json `overflow_x` false at all four widths; the Work shots show no clipping
+- left edges align — yes — work-flat-400.png: head card and rows share one left edge
+
 ## Sizing
-- text measure — yes — widest_text 239/317/340/382 px, all readable.
-- controls sized to content — yes — the Approve pills and Approve all are compact (1920.png).
-- rows use their width — no — 1920.png: rows run about 950 px for about 400 px of text, and Approve floats far right (note 5).
+- line length readable — yes — the AITask widest text is 448 at 400 / 709 at 3440 (layout.json); Work rows run ~600 px at 1920
+- buttons a fair target — yes — Approve ~60×24 px, Approve all full pill (work-flat-400)
+- the screen is used — yes at 1920; at 3440 the AITask page is 71% empty (layout.json), but that page is out of this diff's scope
+
 ## Wrapping
-- nothing wraps that shouldn't — yes for review — layout.json wraps only in chrome buttons (drawer rail, mode-btn). The slug wraps under the line at 400 ("reviewer-tasks-page-loading-2"), which is acceptable. On the v/ index, sessions-chip wraps to 4 lines at 400 (note 6).
+- nothing wraps that shouldn't — no at 400: the tab chips wrap (finding 5); the facts lines wrap to 2–3 lines, which is fine
+- titles wrap cleanly — yes — "Figma: mobile cards for sessions, projects, tasks and processes" wraps to 2 lines without breaking a word (work-flat-400)
+- AITask wraps — the h2s wrap to 2–3 lines and the drawer-rail buttons by 3.2 lines at 400 (layout.json `wraps`): these come from before this diff
+
 ## Spacing and padding
-- rhythm even — yes — 400.png: rows are evenly spaced, and the cards have matching inner padding.
-- padding scales with width — yes — left_stack h1 14/19/27/54 px at 400/1200/1920/3440.
-- wasted space — no — empty 0.58 at 1920 and 0.72 at 3440, mostly under the head card (note 5).
+- even rhythm between rows — yes — work-flat-400: flat rows, one rule between each, one indent
+- no dead band — no, small — work-flat-400.png: about 40 px of empty space between the panel head and the tab chips (band 3)
+- padding consistent — yes — the head card's padding matches the stat tiles
+
 ## Colour and contrast
-- status colours follow the mobile picks (green/amber/red/grey) — yes — review-week-400.png: green approved box, amber waiting, red leaking, grey dots for waiting rows.
-- contrast — yes — the dark title text on white and the white text on the green Approve all are both readable. The red titles on white are readable.
-- colour not the only signal — yes — each leak row also says "leak" in words.
+- status colours mean one thing — no, small — the waiting dot is grey while the waiting total is amber (finding 6)
+- red only for leaks — yes — the leaking total and the leak rows only
+- contrast — yes — white on green for Approve all, red on white for leak names; both read clearly at 400
+
 ## Flow
-- the press path is clear — yes — review-approved-400.png: after Approve the row leaves the list and the totals update.
-- order matches priority — yes — leaks, waiting, live, approved (`ReviewList.ORDER`).
+- reading order top-down — yes — title, pill, figures, totals, Approve all, then the rows
+- the action sits next to its subject — yes — Approve at each row's right edge
+- feedback after the action — yes — Approvals shows the change at once and puts it back if the write is refused; the note says "Not saved: …" (SessionWork.js)
+
 ## Words
-- plain titles, no unexplained slugs — yes — titles are made from the record's title or the agent name in words.
-- no repeated or noisy words — no — the role repeats on line 2, and "no parent recorded" shows on most rows (note 3).
-- the readme says what it is, its files, the writer and the reader — yes — v/review/readme.md and ux/Filter/readme.md.
+- plain words — mostly — "$691.79 with 71 below" is terse; "with its 71 tasks" would be plainer
+- no slugs as titles — no — "deputy" (finding 1)
+- notes say what to do — no, small — "10 tasks ran in sessions filed under another day … not shown here yet" explains a limit of the tool, and gives the owner nothing to do
+- labels match the owner's words — yes — "Approve", "Approve all", "leaking", "Today ▾"
