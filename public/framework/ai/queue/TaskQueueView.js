@@ -27,7 +27,7 @@ export default class TaskQueueView extends View {
 		this.$side = div.c("tq-side");
 		this.$main = div.c("tq-main", () => {
 			this.$head = div.c("tq-head");
-			this.$cols = div.c("tq-cols muted", () => ["#", "Task and where it lives", "Why", "Cost", "Big", "Re-asked", "State", "Score"].forEach(h => span.c("tq-colh", h)));
+			this.$cols = div.c("tq-cols muted", () => ["#", "Task and where it lives", "Why", "Cost", "Big", "Re-asks", "State", "Score"].forEach(h => span.c("tq-colh", h)));
 			this.$list = div.c("tq-list");
 		});
 		this.paint();

@@ -1,7 +1,7 @@
 @layer base, theme, site, util;
 @layer site {
 	.page.tq-page { --gutter-x: clamp(0.6em, 2cqi, 1.5em); --pad-y: 0.8em; }
-	.tq-view { width: 100%; max-width: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em; padding: 0 0 2em; align-items: start; }
+	.tq-view { width: 100%; max-width: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em; padding: 0 clamp(0.5em, 2cqi, 1.2em) 2em; align-items: start; }
 	.tq-side { display: flex; flex-direction: column; gap: 0.6em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
 	.tq-h { margin: 0.4em 0 0; font-size: 1em; }
 	.tq-count { font-size: 2.2em; font-weight: 700; }
@@ -40,7 +40,7 @@
 	}
 	@container (min-width: 60em) {
 		.tq-cols, .tq-row { display: grid; grid-template-columns: 2.2em minmax(12em, 3fr) minmax(10em, 2fr) 4.5em 3.5em 5em 6em 4.5em; gap: 0.8em; align-items: start; }
-		.tq-cols { padding: 0 0.8em; font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; }
+		.tq-cols { white-space: nowrap; padding: 0 0.8em; font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; }
 		.tq-meta { display: contents; font-size: 0.85em; }
 		.tq-row .tq-label { display: none; }
 		.tq-score { grid-column: auto; grid-row: auto; text-align: right; }
