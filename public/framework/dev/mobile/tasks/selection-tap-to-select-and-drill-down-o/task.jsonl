@@ -2,3 +2,5 @@
 {"wait":{"on":"owner","what":"Proposed from an old ask (the sort pass over the undone asks): approve, improve or reject"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:24.652Z"}
 {"set":{"path":"/framework/dev/tasks/selection-tap-to-select-and-drill-down-o/","parent":"/framework/dev/tasks/","moved_from":"/framework/dev/mobile/tasks/selection-tap-to-select-and-drill-down-o/"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:40:33.872Z"}
 {"set":{"path":"/framework/dev/mobile/tasks/selection-tap-to-select-and-drill-down-o/","parent":"/framework/dev/mobile/tasks/","moved_from":"/framework/dev/tasks/selection-tap-to-select-and-drill-down-o/"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:41:12.510Z"}
+{"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.613Z"}
+{"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/dev/mobile/tasks/selection-tap-to-select-and-drill-down-o/"},{"id":"mastermind-deputy","task":"/framework/dev/mobile/tasks/selection-tap-to-select-and-drill-down-o/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.613Z"}

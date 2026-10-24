@@ -2,3 +2,5 @@
 {"wait":{"on":"owner","what":"Proposed from an old ask (the sort pass over the undone asks): approve, improve or reject"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:27.544Z"}
 {"set":{"path":"/framework/core/Page/tasks/let-inbox-items-be-read-then-archived-or/","parent":"/framework/core/Page/tasks/","moved_from":"/framework/core/Page/ext/tasks/let-inbox-items-be-read-then-archived-or/"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:40:33.931Z"}
 {"set":{"path":"/framework/core/Page/ext/tasks/let-inbox-items-be-read-then-archived-or/","parent":"/framework/core/Page/ext/tasks/","moved_from":"/framework/core/Page/tasks/let-inbox-items-be-read-then-archived-or/"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:41:12.571Z"}
+{"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.664Z"}
+{"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/core/Page/ext/tasks/let-inbox-items-be-read-then-archived-or/"},{"id":"mastermind-deputy","task":"/framework/core/Page/ext/tasks/let-inbox-items-be-read-then-archived-or/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.665Z"}

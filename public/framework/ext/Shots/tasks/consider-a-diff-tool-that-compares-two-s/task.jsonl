@@ -2,3 +2,5 @@
 {"wait":{"on":"owner","what":"Proposed from an old ask (the sort pass over undone asks, crack 2): approve, improve or reject"},"by":"helper-undone-to-tasks","ts":"2026-10-23T05:59:11.414Z"}
 {"wait":{"on":"owner","what":"Proposed from an old ask (the sort pass over undone asks, crack 2): approve, improve or reject"},"by":"helper-undone-to-tasks","ts":"2026-10-23T05:59:17.045Z"}
 {"stop":"Same ask as /framework/ext/Shots/tasks/build-a-diff-tool-that-compares-two-scre/ (folded at review, crack 2)","by":"helper-undone-to-tasks","ts":"2026-10-23T06:24:09.915Z"}
+{"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.703Z"}
+{"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ext/Shots/tasks/consider-a-diff-tool-that-compares-two-s/"},{"id":"mastermind-deputy","task":"/framework/ext/Shots/tasks/consider-a-diff-tool-that-compares-two-s/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.703Z"}

@@ -2,3 +2,5 @@
 {"wait":{"on":"owner","what":"Proposed from an old ask (the sort pass over undone asks, crack 2): approve, improve or reject"},"by":"helper-undone-to-tasks","ts":"2026-10-23T05:59:11.263Z"}
 {"wait":{"on":"owner","what":"Proposed from an old ask (the sort pass over undone asks, crack 2): approve, improve or reject"},"by":"helper-undone-to-tasks","ts":"2026-10-23T05:59:16.897Z"}
 {"title":"Keep screenshots in a screenshot subdirectory","by":"helper-undone-to-tasks","ts":"2026-10-23T06:24:10.061Z"}
+{"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.697Z"}
+{"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ext/Shots/tasks/keep-screenshots-in-a-screenshot-subdire/"},{"id":"mastermind-deputy","task":"/framework/ext/Shots/tasks/keep-screenshots-in-a-screenshot-subdire/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.697Z"}

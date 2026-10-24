@@ -3,3 +3,5 @@
 {"title":"Make the cards and the rail's sticky header white","by":"helper-undone-to-tasks","ts":"2026-10-23T06:24:09.924Z"}
 {"set":{"path":"/framework/core/Page/tasks/make-the-cards-and-the-rail-s-sticky-hea/","parent":"/framework/core/Page/tasks/","moved_from":"/framework/core/Page/ext/tasks/make-the-cards-and-the-rail-s-sticky-hea/"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:40:33.452Z"}
 {"set":{"path":"/framework/core/Page/ext/tasks/make-the-cards-and-the-rail-s-sticky-hea/","parent":"/framework/core/Page/ext/tasks/","moved_from":"/framework/core/Page/tasks/make-the-cards-and-the-rail-s-sticky-hea/"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:41:12.381Z"}
+{"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.235Z"}
+{"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/core/Page/ext/tasks/make-the-cards-and-the-rail-s-sticky-hea/"},{"id":"mastermind-deputy","task":"/framework/core/Page/ext/tasks/make-the-cards-and-the-rail-s-sticky-hea/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.236Z"}

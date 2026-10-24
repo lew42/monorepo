@@ -2,3 +2,5 @@
 {"wait":{"on":"owner","what":"Proposed from an old ask (the sort pass over the undone asks): approve, improve or reject"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:14.354Z"}
 {"title":"Make Miller column items more compact, since two lines sit in too much space","by":"helper-undone-to-tasks","ts":"2026-10-23T06:24:10.002Z"}
 {"set":{"path":"/framework/core/Page/tasks/make-miller-column-list-items-more-compa/","parent":"/framework/core/Page/tasks/","moved_from":"/framework/core/Page/overview/tasks/make-miller-column-list-items-more-compa/"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:40:33.692Z"}
+{"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.714Z"}
+{"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/core/Page/overview/tasks/make-miller-column-list-items-more-compa/"},{"id":"mastermind-deputy","task":"/framework/core/Page/tasks/make-miller-column-list-items-more-compa/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.715Z"}
