@@ -27,7 +27,7 @@ content(){ this.tabs("what why"); }`);
 					why:  { label: "why",  title: "", content(){ md("The selected tab is read off the url, so clicking produces byte-identical output to reloading."); } },
 				},
 				content(){ this.tabs("what why"); },
-			})).style("height", "10em");
+			})).style("height", "16em");
 		}, "`this.tabs()` reads like a `Page` method because it is one — this module patches it onto `Page.prototype` the moment it's imported, the same move [Highlight](/framework/ext/highlight/) makes on `code`. The [API](/framework/ext/tabs/api/tabs/) tab above shows the live patch, banner and all — a site that never imports `tabs.js` ships neither the JS nor the CSS.");
 
 		md("**Every tab is a url**, with nothing on disk behind it — the two panels above are inline child configs, not directories.");
@@ -65,7 +65,7 @@ this.tabs().ac("vertical")         // …inside one section's own render()`);
 					notes: { label: "notes", title: "", content(){ md("The selected tab has no fill: its interior **is** the page, so it merges on any background, in light and dark."); } },
 				},
 				content(){ this.tabs("state notes").ac("block"); },
-			})).style("height", "10em");
+			})).style("height", "16em");
 		}, "A **style option**, opted into at the call site — the underline stays the default. The hairline moves off the bar and onto the tabs, so under the selected one it is *absent* rather than covered: nothing is filled, so nothing has to guess the host's page background. [Doc](/framework/ext/Doc/)'s top bar wears it; its member rails stay `vertical`.");
 
 		md("It is also the one shape that carries **type** — the labels take the scale's `h4`, the annotation level, which is what a strip of section names is. A host that tints the strip hands the selected tab `--tab-fill` so its notch cuts back to whatever the content sits on; unset, it stays transparent and the tab is still just a hole onto the page.");
