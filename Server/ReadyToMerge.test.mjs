@@ -77,7 +77,15 @@ ok(plainGate("refused: worktree/x is size light and has no review; run: node Ser
 ok(plainGate("refused: worktree/x's review is stale; run: node Server/review.mjs a b").includes("not been reviewed"));
 ok(plainGate("refused: worktree/x's review has an unanswered finding (reviewed: 2 unanswered: #1, #3). An answer is …").includes("(#1, #3)"));
 ok(plainGate("refused: worktree/x changes a page but a/shots/ has no screenshot at 400, 1920px; re-run: node …").includes("400, 1920px"));
-ok(gateOf(root, wtDir).ok === false && gateOf(root, wtDir).why.includes("did not answer"), "no merge.mjs to ask = not ok, said so");
+ok(gateOf(root, wtDir).ok === false && gateOf(root, wtDir).why.includes("no Server/merge.mjs"), "no merge.mjs to ask = not ok, said so");
+fs.mkdirSync(path.join(root, "Server"));
+const fake = path.join(root, "Server/merge.mjs");
+fs.writeFileSync(fake, 'import fs from "node:fs"; fs.writeFileSync(process.argv[1] + ".ran", "1");');
+ok(gateOf(root, wtDir).why.includes("older than") && !fs.existsSync(fake + ".ran"), "a merge.mjs without --gate-only is never run");
+fs.writeFileSync(fake, '// bool("--gate-only")' + String.fromCharCode(10) + 'console.log(process.argv.includes("--gate-only") ? "gate: ok" : "no flag");');
+ok(gateOf(root, wtDir).ok === true, "gate: ok -> ok");
+fs.writeFileSync(fake, '// bool("--gate-only")' + String.fromCharCode(10) + 'console.log("gate: refused: worktree/x review is stale; run: node a"); process.exit(1);');
+ok(gateOf(root, wtDir).why.includes("not been reviewed"), "a gate refusal comes back in plain words");
 g("worktree", "remove", "--force", wtDir);
 fs.rmSync(root, { recursive: true, force: true });
 console.log(`ReadyToMerge.test: ${n} checks pass`);

@@ -26,7 +26,11 @@ export function parseReady(msg) {
 /* The review gate's answer for a worktree's current head, from merge.mjs itself (one copy of the gate):
  * {ok, why}. `why` is the gate's refusal text in plain words (plainGate). */
 export function gateOf(repo, worktree) {
-	const r = spawnSync("node", [path.join(repo, "Server/merge.mjs"), worktree, "--gate-only"], { cwd: repo, encoding: "utf8", windowsHide: true, timeout: 60000 });
+	const merge = path.join(repo, "Server/merge.mjs");
+	// an older merge.mjs would read the unknown flag as a path and start a REAL merge: never run it without the flag
+	try { if (!fs.readFileSync(merge, "utf8").includes('bool("--gate-only")')) return { ok: false, why: "Servex's merge.mjs is older than the --gate-only check; it will answer after the merge that adds it." }; }
+	catch { return { ok: false, why: "no Server/merge.mjs to ask" }; }
+	const r = spawnSync("node", [merge, worktree, "--gate-only"], { cwd: repo, encoding: "utf8", windowsHide: true, timeout: 20000 });
 	const out = (r.stdout || "").trim().split(/\r?\n/).filter(l => l.startsWith("gate:")).pop();
 	if (r.status === 0 && out === "gate: ok") return { ok: true };
 	if (!out) return { ok: false, why: "the review gate did not answer: " + ((r.stderr || String(r.error || "")).trim().split(/\r?\n/).pop() || "no output") };
