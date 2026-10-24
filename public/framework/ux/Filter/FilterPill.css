@@ -1,0 +1,6 @@
+/* FilterPill: a Dropdown worn as a small rounded pill. TimeFilter's hidden rows. Doc: readme.md, "Filter pills". */
+@layer site {
+	.dropdown.filter-pill { inline-size: auto; flex: none; }
+	.dropdown.filter-pill > .dropdown-trigger:is(button, .btn) { inline-size: auto; border-radius: 2em; padding-block: 0.15em; padding-inline: 0.8em 0.5em; font-size: 0.9em; font-weight: 600; }
+	.filter-pill-out { display: none !important; }
+}
