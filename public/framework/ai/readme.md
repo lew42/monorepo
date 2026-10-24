@@ -31,7 +31,7 @@
 
 ## Classes and folders that draw them
 
-[`AIDay/`](AIDay/readme.md) — the day page ([/framework/ai/2026-10-20/](/framework/ai/2026-10-20/)): a day's tasks as a check-mark list (✅ landed, ⬜ open), nested session → task → child, read from the `tasks` query source over the store, live.
+[`AIDay/`](AIDay/readme.md) — the day page ([/framework/ai/2026-10-20/](/framework/ai/2026-10-20/)): the tasks started or landed that day as a check-mark list (✅ landed, ⬜ open), nested session → task → child, read from the `tasks` query source over the store, live.
 
 [`now/`](now/readme.md) — the live in-flight page ([/framework/ai/now/](/framework/ai/now/)): every session active in the last hour, from the `inflight` query source.
 
