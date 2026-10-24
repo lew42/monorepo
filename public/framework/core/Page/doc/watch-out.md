@@ -275,6 +275,8 @@ browser to animate it costs one word.
 ⚠ Only the `even` mode slides today. In the elastic mode the columns RESIZE
   as the row scrolls, and animating a reflow is how you get the jank this
   mode exists to remove. Dropping `this.column_even &&` is all it would take.
+  (Since 2026-10-23 `columns()` is opt-in: the task and session pages no longer
+  use it, they open a child as a full page. See design/navigation/readme.md.)
 
 ### The row has no box yet on a cold load, and no frame you can count will
 
