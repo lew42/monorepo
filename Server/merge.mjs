@@ -6,6 +6,8 @@
  * the main tree's dirty files FIRST.
  *
  * `--no-review "why"` is also a flag, alongside the ones above — see below.
+ * `--gate-only` prints the review gate's answer for the worktree's head (`gate: ok` or the refusal) and exits:
+ * no lock, no smoke, no merge. The Merge page asks it about a branch that moved after it was marked ready.
  * NAV GATE (the owner, 2026-10-23: a page nobody can click to does not exist): every NEW page.js/page.jsonl must be
  * reachable by an `a[href]` on its parent page, loaded headless on the worktree's own server (`Server/NavCheck.mjs`).
  * An unlinked new page refuses the merge and prints each page with its parent; `--no-nav "why"` merges anyway, loudly.
@@ -79,6 +81,7 @@ const bool = name => argv.includes(name) && (argv.splice(argv.indexOf(name), 1),
 const skipSmoke = bool("--skip-smoke");
 const skipTests = bool("--skip-tests");   // for proofs on a scratch repo only, like --skip-smoke
 const dryRun = bool("--dry-run");
+const gateOnly = bool("--gate-only");   // print the review gate's answer for this worktree's head and exit: no lock, no merge (the Merge page asks this of a branch that moved)
 const mainArg = flag("--main");
 const noReview = flag("--no-review");
 const noNav = flag("--no-nav");   // "why": merge an unlinked new page anyway (Server/doc/nav-check.md)
@@ -439,6 +442,11 @@ const untrackedAmong = list => chunks(list).flatMap(c => lines(git(MAIN, "status
 
 const printPlan = plan => console.log(plan.map(p => `  ${p.action.toUpperCase().padEnd(8)} ${p.f} — ${p.why}`).join("\n"));
 
+if (gateOnly) {
+	const why = reviewGate(git(dir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim(), git(dir, "rev-parse", "HEAD").stdout.trim());
+	console.log(why ? `gate: ${why}` : "gate: ok");
+	process.exit(why ? 1 : 0);
+}
 if (skipSmoke) console.warn("\n!!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!\n");
 if (dryRun) console.log("DRY RUN: computing only; no lock, no hold, nothing written.");
 if (!dryRun && !(await takeLock())) { console.error("gave up waiting for .merge.lock"); process.exit(3); }

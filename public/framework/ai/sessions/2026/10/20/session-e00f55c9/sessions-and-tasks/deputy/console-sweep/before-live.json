@@ -1,0 +1,1110 @@
+{
+ "base": "http://monorepo.localhost",
+ "at": "2026-10-24T03:34:37.316Z",
+ "pages": 78,
+ "bad_pages": 74,
+ "errors": 637,
+ "rows": [
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+   "n": 3,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/",
+   "n": 4,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/agent-context/",
+   "n": 0,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/cloud-sessions-listed/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/cloud-sessions-listed/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/cloud-sessions-listed/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/cloud-sessions-listed/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/",
+   "n": 5,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/day-page/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/day-page/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/day-page/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/day-page/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/review-page/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/review-page/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/review-page/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/review-page/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/roles/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/roles/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/roles/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/roles/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-map/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-map/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-map/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-map/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/mobile-picks/",
+   "n": 9,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/mobile-picks/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/task.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/mobile-picks/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/process-views/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/process-views/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/process-views/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/process-views/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-sessions/",
+   "n": 0,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/index-stream/",
+   "n": 1,
+   "errs": [
+    "goto: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://monorepo.localhost/framework/ai/sessions/20"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/item-page-docs/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/item-page-docs/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/item-page-docs/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/item-page-docs/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/well-asks/",
+   "n": 11,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/well-asks/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/well-asks/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/well-asks/task.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/well-asks/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/named-tunnel/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/named-tunnel/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/named-tunnel/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/named-tunnel/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/ai-system-mastermind/",
+   "n": 8,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/ai-system-mastermind/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/cracks-inbox-wait/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/cracks-inbox-wait/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/cracks-inbox-wait/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/cracks-inbox-wait/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/handover-test/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/handover-test/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/handover-test/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/handover-test/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/honest-completion/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/honest-completion/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/honest-completion/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/honest-completion/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/merge-approvals/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/merge-approvals/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/merge-approvals/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/merge-approvals/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/process-names/",
+   "n": 8,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/process-names/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/prompt-human-only/",
+   "n": 6,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/prompt-human-only/page.js"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/restart-revive/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/restart-revive/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/restart-revive/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/restart-revive/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-false-pass/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-false-pass/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-false-pass/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-false-pass/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-fixes/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-fixes/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-fixes/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-fixes/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-heartbeat-fixes/",
+   "n": 8,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-heartbeat-fixes/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/role-readmes/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/role-readmes/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/role-readmes/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/role-readmes/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/",
+   "n": 11,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/",
+   "n": 13,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/files.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/page.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/task.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/execute/",
+   "n": 14,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/files.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/page.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/files.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/page.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/execute/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/execute.md",
+    "console: Error: 404 — nothing matches \"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/execute/\"\n    at App.load (http://monorepo.localhost/framework/cor"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/improve-plan/",
+   "n": 14,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/files.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/page.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/files.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/page.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/improve-plan/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/improve-plan.md",
+    "console: Error: 404 — nothing matches \"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/improve-plan/\"\n    at App.load (http://monorepo.localhost/framewor"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/investigate/",
+   "n": 14,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/files.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/page.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/files.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/page.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/investigate/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/investigate.md",
+    "console: Error: 404 — nothing matches \"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/investigate/\"\n    at App.load (http://monorepo.localhost/framework"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-data/",
+   "n": 8,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-data/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-page-tasks/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-page-tasks/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-page-tasks/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-page-tasks/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/",
+   "n": 9,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/",
+   "n": 8,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-chase/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-chase/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-chase/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-chase/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/",
+   "n": 8,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/tasks-list/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/tasks-list/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/tasks-list/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/tasks-list/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/tasks-page-loading/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/tasks-page-loading/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/tasks-page-loading/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/tasks-page-loading/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/test-temp-store/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/test-temp-store/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/test-temp-store/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/test-temp-store/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/project-move/",
+   "n": 1,
+   "errs": [
+    "502 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/project-move/"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit/",
+   "n": 6,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit-system/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit-system/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit-system/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-tasks/",
+   "n": 6,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-tasks/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-tasks/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readmes-page/",
+   "n": 0,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-flow/",
+   "n": 0,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-flow/review-fixes/",
+   "n": 9,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-flow/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-flow/review-fixes/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-flow/review-fixes/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-flow/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-flow/review-fixes/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/",
+   "n": 5,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/probe/",
+   "n": 9,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/probe/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/probe/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/probe/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/probe/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-shots/",
+   "n": 8,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-shots/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-shots/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-shots/task.jsonl",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-shots/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-views/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-views/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-views/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-views/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-projects/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-projects/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-projects/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-projects/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-queries/",
+   "n": 1,
+   "errs": [
+    "goto: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://monorepo.localhost/framework/ai/sessions/20"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-sessions/",
+   "n": 1,
+   "errs": [
+    "goto: page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://monorepo.localhost/framework/ai/sessions/20"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/ai-index-rename/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/ai-index-rename/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/ai-index-rename/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/ai-index-rename/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/item-storage/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/item-storage/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/item-storage/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/item-storage/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/jsonl-unsubscribe/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/jsonl-unsubscribe/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/jsonl-unsubscribe/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/jsonl-unsubscribe/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/log-tool/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/log-tool/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/log-tool/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/log-tool/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/pool-leak/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/pool-leak/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/pool-leak/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/pool-leak/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/session-class-readme/",
+   "n": 10,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/session-class-readme/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/session-class-readme/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/session-class-readme/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/skills-audit/",
+   "n": 40,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/skills-audit/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/skills-audit/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/skills-audit/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/agent-context/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/cloud-sessions-listed/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/day-page/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-map/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-sessions/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/item-page-docs/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/named-tunnel/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit-system/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-views/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/updates-tool/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/whisper-demo/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/worktree-closure/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/voice-20261020/async-ask/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-shots/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/ai-index-rename/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/item-storage/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/jsonl-unsubscribe/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/log-tool/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/pool-leak/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/session-class-readme/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/skills-audit/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/tab-session-record/",
+   "n": 5,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/tab-session-record/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/tunnel-keeper/",
+   "n": 5,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/tunnel-keeper/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/updates-tool/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/updates-tool/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/updates-tool/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/updates-tool/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/whisper-demo/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/whisper-demo/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/whisper-demo/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/whisper-demo/task.jsonl"
+   ]
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/worktree-closure/",
+   "n": 7,
+   "errs": [
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/page.js",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/worktree-closure/task.jsonl",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/worktree-closure/page.js",
+    "404 GET /framework/ai/sessions/2026/10/20/session-e00f55c9/requirements.md",
+    "404 HEAD /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/worktree-closure/task.jsonl"
+   ]
+  }
+ ]
+}
