@@ -38,6 +38,21 @@ const got = agents.spawn({ role: ID, prompt: "how are tasks indexed?", parent: "
 t(got === live && sent.length === 1 && sent[0][0] === "how are tasks indexed?" && sent[0][1].from === "minion-x", "a second spawn reaches the live one, no -2");
 t(!agents.live.has(ID + "-2"), "never a -2");
 
+// a renewing role is never nudged or sleep-compacted, but the 400k safety ceiling still applies
+{
+	const a = Object.assign(Object.create(Agents.Agent.prototype), { id: ID, role: ID, state: "idle", turns: 3, context: 450000, host: {} });
+	t(a.oversized() === "context", "the safety ceiling still applies to the AI system mastermind");
+	t(a.sleep_compact() === false && a.nudge() === null, "no nudge, no compaction before sleep: it renews instead");
+}
+// after a restart: a singleton only in the registry is woken (resumed or renewed by wake()), not spawned blank
+{
+	const ag = new Agents(), woke = [];
+	ag.reg = () => ({ read: () => ({ [ID]: { id: ID, role: ID, session_id: "s-old" } }) });
+	ag.wake = id => { const w = { id, send: (text, note) => woke.push([text, note]) }; woke.push(id); return w; };
+	const r = ag.spawn({ role: ID, prompt: "hello", parent: "minion-y" });
+	t(r.id === ID && woke[0] === ID && woke[1][0] === "hello", "registry-only: wake(), then the prompt");
+}
+
 // renewal on wake
 function dormant(over = {}){
 	const events = [];

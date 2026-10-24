@@ -129,10 +129,14 @@ export class Agents {
 		const again = spec.resume;
 		/* A SINGLETON ROLE (the owner, 2026-10-23; roles.js `singleton`): its id is the role's own word, never `-2`. A second
 		 * spawn while it is live sends it the prompt instead; a stopped or never-started one is spawned under that same id. */
+		const renewing = spec.renewing;
+		if (renewing){ spec = { ...spec }; delete spec.renewing; }
 		const single = !again && singleton_id(spec.role);
 		if (single){
-			const cur = this.live.get(single);
-			if (cur && cur.state !== "stopped"){ if (spec.prompt) cur.send(spec.prompt, { from: spec.parent ?? "spawn" }); return cur; }
+			const cur = this.live.get(single), from = spec.parent ?? "spawn";
+			if (cur && cur.state !== "stopped"){ if (spec.prompt) cur.send(spec.prompt, { from }); return cur; }
+			/* Only in the registry (after a restart): wake it, so it resumes, or renews if it is due (wake() decides). */
+			if (!renewing && !cur && this.reg().read()[single]?.session_id) try { const w = this.wake(single); if (spec.prompt) w.send(spec.prompt, { from }); return w; } catch {}
 			spec = { ...spec, id: single };
 		}
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
@@ -677,7 +681,7 @@ export class Agents {
 		const role = live?.role ?? row?.role, why = renew_why(renew_of(role), live?.started_at ?? row?.started_at, live?.context ?? row?.context);
 		if (why && (!live || live.state === "stopped")){   // RENEWAL: a stopped one is spawned fresh; a live dormant one renews in awaken()
 			const base = strip(live ? live.recipe() : (row.spec ?? {}));
-			const fresh = this.spawn(strip({ ...base, role, id, cwd: base.cwd ?? row?.cwd, resume: undefined, fork: undefined,
+			const fresh = this.spawn(strip({ ...base, role, id, cwd: base.cwd ?? row?.cwd, resume: undefined, fork: undefined, renewing: true,
 				prompt: renewal_text(id, live?.session_id ?? row?.session_id, why) }));
 			fresh.emit?.({ type: "renew", why, replaces: live?.session_id ?? row?.session_id, session: fresh.session_id });
 			return fresh;
@@ -1528,7 +1532,7 @@ Agents.Agent = class Agent {
 		if (this.state !== "idle" || this.one_shot || this.compacting || STANDING.test(this.id ?? "")) return null;
 		if (this.task?.dir && task_landed(this.task.dir)) return null;
 		const after = role_compact_after(this.role);
-		if (after === null) return null;
+		if (after === null || renew_of(this.role)) return null;   // a renewing role gets a fresh session instead (Agent.renew_due)
 		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
 		const limit = after?.tokens ?? this.host?.nudge_tokens ?? (Number(process.env.SERVEX_NUDGE_TOKENS) || 200000);
 		const context = this.context ?? 0;
@@ -1550,7 +1554,7 @@ Agents.Agent = class Agent {
 	sleep_compact(){
 		if (this.one_shot || this.compacting || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return false;
 		const after = role_compact_after(this.role);
-		if (after === null) return false;
+		if (after === null || renew_of(this.role)) return false;   // a renewing role gets a fresh session instead (Agent.renew_due)
 		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
 		const line = Math.min(after?.sleep ?? this.host?.sleep_compact_tokens ?? (Number(process.env.SERVEX_SLEEP_COMPACT_TOKENS) || SLEEP_COMPACT_TOKENS), Math.round(window / 2));
 		return (this.context ?? 0) > line;
