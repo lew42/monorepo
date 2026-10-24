@@ -142,6 +142,14 @@ export class TaskJSONL extends JSONL {
 		shots: value => ({ ...value, msg: value.msg ?? `shots: ${value.pages?.length ?? 0} pages at 4 widths → ${value.dir ?? ""}` }),
 	};
 
+	// `task` = the replayed core/Task (AITask sets it before each read): a bare key naming a task in it is a walk core/Task replays, not an unknown verb.
+	task = null;
+
+	skip(verb, entry){
+		if (this.task?.find(verb)){ this.skipped.push(entry); return; }
+		super.skip(verb, entry);
+	}
+
 	agents = [];
 	chats = [];
 	shots = [];

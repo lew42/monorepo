@@ -10,7 +10,7 @@ import { asks as ask_wall } from "./asks.js";
 import { needs_of } from "./needs.js";
 import { decisions as decision_wall } from "./decisions.js";
 import { progress, spend } from "./stats.js";
-import { names } from "./listing.js";
+import { names, has, is_record_folder } from "../../core/Router/listing.js";
 import { segments, current, links_row } from "./card.js";
 import { shot_wall } from "./shots.js";
 import { chat } from "../../ext/Ask/chat.js";
@@ -79,25 +79,14 @@ export class AITask extends Page {
 	route(sub){
 		if (sub.includes(".")) return;
 		const url = this.url + sub + "/";
-		if (!(AITask.has(url + "session.jsonl") || AITask.has(url + "task.jsonl")) || AITask.has(url + "page.js")) return;
+		if (!is_record_folder(url)) return;
 		return new AITask({ title: sub, icon: "receipt_long", url, src: url + "session.json" });
 	}
 
-	// Does this file exist? Asked of the folder's listing (listing.js): ONE request per folder,
+	// Does this file exist? Asked of the folder's listing (core/Router/listing.js): ONE request per folder,
 	// always a 200, so a missing session.jsonl / task.jsonl / page.js / requirements.md is never
 	// a 404 probe. Off the dev server there is no listing, and it falls back to a HEAD probe.
-	static has(url){
-		const cut = url.lastIndexOf("/") + 1;
-		const listed = names(url.slice(0, cut));
-		return listed ? listed.includes(url.slice(cut)) : AITask.probe(url);
-	}
-
-	static probe(url){
-		const x = new XMLHttpRequest();
-		x.open("HEAD", url, false);
-		try { x.send(); } catch { return false; }
-		return x.status >= 200 && x.status < 300 && !(x.getResponseHeader("content-type") ?? "").includes("html");
-	}
+	static has(url){ return has(url); }
 
 	content(){
 		div.c("ai-task flow wide", async $s => {
@@ -114,7 +103,7 @@ export class AITask extends Page {
 		const t = new TaskJSONL({ url: this.base() + record });
 		// Keep the parsed lines the stream already read, so this.task replays them without a second fetch.
 		const read = t.read.bind(t), reset = t.reset.bind(t);
-		t.read = entries => { (t.entries ??= []).push(...entries); this.task = Task.replay(t.entries); return read(entries); };
+		t.read = entries => { (t.entries ??= []).push(...entries); t.task = this.task = Task.replay(t.entries); return read(entries); };
 		t.reset = () => { t.entries = []; return reset(); };
 		await t.live(() => this.streamed(t));
 		if (t.loaded) return t;

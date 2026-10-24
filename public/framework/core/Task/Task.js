@@ -129,7 +129,9 @@ export class Task extends Item {
 
 	// Warn like `Item`'s own `locate()`/`hydrate()` do: once per distinct message,
 	// never a throw, and the call site still gets `this` back so a no-op chains.
+	// Silent while a recorded verb replays: the log already happened, and an old line that starts a finished task is history, not a call to fix.
 	warn(message){
+		if (this._applying) return this;
 		this.constructor.warned ??= new Set();
 		if (!this.constructor.warned.has(message)){
 			this.constructor.warned.add(message);
@@ -457,10 +459,11 @@ export class Task extends Item {
 		if (verdict || verb){
 			if (!rp.explicit){ rp.explicit = true; this.replay_legacy(true); }
 			this._at = rp.at;
+			this._applying = true;
 			try {
 				if (verdict) this[verdict.is]({ by: verdict.by, note: verdict.note });
 				else { const { at: _a, ...args } = line[verb]; this[verb](verb === "stop" ? args.why : args); }
-			} finally { this._at = null; }   // so a live Store.read never leaves the clock pinned
+			} finally { this._at = null; this._applying = false; }   // so a live Store.read never leaves the clock pinned
 		}
 		return this;
 	}
