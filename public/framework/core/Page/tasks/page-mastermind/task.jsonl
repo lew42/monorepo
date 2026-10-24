@@ -113,3 +113,8 @@
 {"log":{"at":"2026-10-23T22:58:59-05:00","msg":"now: taking C (400 px AI tab bar runs off the screen) and D (1920 sessions table cuts names) from vscode-mastermind's sessions-shots report; re-shoot its 14 pages x 4 widths after nav-rule. Next: close merged worktrees (qf-5, page-tests, part-types, nav-rule)."}}
 {"action":{"at":"2026-10-23T23:01:27-05:00","did":"edit","files":["public/framework/core/Page/tasks/page-mastermind/sessions-fit/requirements.md"]}}
 {"tasks":{"add":{"type":"Task","id":"sessions-fit","title":"AI sessions pages: the 400 px tab bar and the 1920 sessions table fit (causes C and D of the sessions shot report)","why":"vscode-mastermind handed over C and D from sessions-shots/report.md (14 of 14 pages fail at some width); B landed with nav-rule; re-shoot the same rows after","brief":"public/framework/core/Page/tasks/page-mastermind/sessions-fit/requirements.md"}},"by":"mastermind-page","ts":"2026-10-24T04:01:31.688Z"}
+{"tasks":{"core-page-navigation-one-rule-written-do":{"complete":{"outcome":"Previews plus full detail views is the rule; merged cdf00bb25 (see nav-rule/).","evidence":"nav-rule/session.jsonl complete line; cdf00bb25","confidence":"high"}}},"by":"mastermind-page","ts":"2026-10-24T04:08:44.701Z"}
+{"task":"/framework/core/Page/tasks/page-mastermind/sessions-fit/","by":"Servex","ts":"2026-10-24T04:10:15.994Z"}
+{"log":{"at":"2026-10-23T23:11:40-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-23T23:11:40-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-23T23:37:47-05:00","msg":"session resumed"}}
