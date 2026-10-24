@@ -23,7 +23,7 @@ const slash = p => String(p).split(path.sep).join("/");
  * Servex prepare the next. `return_worktree` hands an unused or merged one back.
  * No agent manages this: it is a class, a JSON file and a 10-minute sweep.
  *
- *   K = 3        at most this many worktrees in the pool, taken or not
+ *   K = 6        at most this many worktrees in the pool, taken or not
  *   N = 6 hours  a ready one idle longer than this is removed — except the one kept ready
  *
  * Slots are made and removed by the scripts every agent already uses,
@@ -38,7 +38,7 @@ export default class Pool extends Events {
     static GRACE_MIN = 30;   // a holder stopped this long, with nothing alive in its slot, is salvaged and its slot freed (reclaim)
 
     initialize(){
-        this.K ??= 3;
+        this.K ??= 6;
         this.N_hours ??= 6;
         this.base ??= "michael/dev";
         this.prefix ??= process.env.SERVEX_POOL_PREFIX || "qf";
@@ -91,7 +91,7 @@ export default class Pool extends Events {
             description: "Take a ready quick-fix worktree: returns {id, path, branch, url} at once — a worktree already branched from"
                 + " michael/dev and brought current, its own server answering at `url`. Write your fix into `path`, run"
                 + " `node Server/smoke.mjs <path>`, merge into michael/dev, then call return_worktree. Servex prepares the next one"
-                + " in the background. If none is ready yet, this waits while one is made (about 20 s). At most 3 exist; when all"
+                + " in the background. If none is ready yet, this waits while one is made (about 20 s). At most 6 exist; when all"
                 + " 3 are taken it answers an error naming who holds each.",
             inputSchema: { type: "object", properties: {} },
             handler: async (args, ctx) => JSON.stringify(await this.take(ctx?.caller), null, 2)
