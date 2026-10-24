@@ -76,8 +76,8 @@ export default class TaskQueueView extends View {
 		});
 		this.$list.empty(() => {
 			if (this.loading) return;
-			if (this.error) return void p.c("tq-empty muted", this.error === "no socket" || this.error === "no source"
-				? "This list needs the dev server (a static copy has no one to ask)."
+			if (this.error) return void p.c("tq-empty muted", this.error === "no socket" ? "This list needs the dev server (a static copy has no one to ask)."
+				: this.error === "no source" ? "The dev server has not loaded the queue yet: it starts the next time the dev server restarts (Server/TaskQueue.mjs)."
 				: "Could not ask the server: " + this.error);
 			if (!rows.length) return void p.c("tq-empty muted", "Nothing is queued.");
 			rows.forEach(r => div.c("tq-row tq-" + r.state, () => {
