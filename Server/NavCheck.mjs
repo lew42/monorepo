@@ -36,8 +36,13 @@ export default class NavCheck {
 			: ["diff", "--no-renames", "--diff-filter=A", "--name-only", range, "--", "public"];
 		const out = spawnSync("git", args, { cwd: dir, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });
 		if (out.status !== 0) throw new Error(`NavCheck: git ${args.join(" ")} failed: ${out.stderr.trim()}`);
-		const files = [...new Set(out.stdout.split(/\r?\n/).filter(Boolean))].filter(f => fs.existsSync(path.join(dir, f)));
-		return [...new Set(files.filter(f => !SKIP.some(re => re.test("/" + f))).map(f => this.url_of(f)).filter(Boolean))].sort();
+		return this.pages_of(dir, out.stdout.split(/\r?\n/).filter(Boolean));
+	}
+
+	/** The page urls among these repo-relative files: only ones that exist in `dir`, are page files, and are not a skipped kind. merge.mjs passes the files it already knows were added. */
+	static pages_of(dir, files){
+		const here = [...new Set(files)].filter(f => fs.existsSync(path.join(dir, f)));
+		return [...new Set(here.filter(f => !SKIP.some(re => re.test("/" + f))).map(f => this.url_of(f)).filter(Boolean))].sort();
 	}
 
 	/** The parent to load: the nearest ancestor that has a page file on disk (a bare folder is not a page). */
