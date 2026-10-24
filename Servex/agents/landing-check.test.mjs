@@ -7,7 +7,7 @@ const agent = dir => Object.assign(Object.create(Agent.prototype), { id: "stub",
 	store: () => ({ append: async () => {} }), send: (to, t) => calls.sent.push([to, t]), servex: { assistant: { card_reply: r => calls.replies.push(r) } } } });
 const bad = mk("michael/bags-rail"), a = agent(bad);
 assert.equal(a.landing_check(), true); assert.equal(a.landing_check(), false);   // flagged once
-assert.match(fs.readFileSync(path.join(bad, "task.jsonl"), "utf8"), /landing line written but 1 of 1 files/);
+assert.match(fs.readFileSync(path.join(bad, "task.jsonl"), "utf8"), /landed but 1 commits are not on michael.dev/);
 assert.equal(calls.sent.length, 1); assert.equal(calls.replies.length, 1);
 assert.equal(agent(mk("michael/dev")).landing_check(), false);   // landed: silent
 console.log("ok");
