@@ -204,7 +204,9 @@ export default class AISessionDetail extends Page {
 			conv.session = session_id;
 			const coverage = new AISessionCoverage(session_id);
 			$coverage.append(coverage.view);
-			PromptLog.read(session_id).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
+			// The prompt records (ext/Refine/doc/prompt-records.md). Only a VS Code tab has a prompts.jsonl (the prompt hook writes it), and a tab
+			// has no sessions.json row, so a Servex agent's page skips the read rather than 404 on both of its folders.
+			if (!row) PromptLog.read(session_id).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});
 			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
 			this.record_url().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks }).live(); });
