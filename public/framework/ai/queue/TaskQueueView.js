@@ -12,7 +12,7 @@ export default class TaskQueueView extends View {
 	static BIG = { 1: "See and approve the work", 2: "Every ask becomes a task that finishes", 3: "Agents that know the rules" };
 	static usd(n){ return "$" + (n || 0).toFixed(2); }
 
-	get classes(){ return "tq-view wide"; }
+	get classes(){ return "tq-view block wide"; }
 
 	// ⚠ render() runs inside View's constructor, before class fields exist: set state in initialize().
 	initialize(){
