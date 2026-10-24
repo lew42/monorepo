@@ -33,4 +33,13 @@
 	.sov-dropped { display: flex; align-items: flex-start; gap: .6em; padding: .7em .75em; color: inherit; text-decoration: none; border-top: 1px solid var(--mob-line); }
 	.mob-card-head + .sov-dropped { border-top: 0; }
 	.sov-dropped .mob-group-icon { color: var(--mob-grey); }
+
+	/* full screen (AISessionDetail.full_screen): the page covers its region and scrolls itself; two buttons float over it */
+	.sov-float { display: none; }
+	.browse-detail:has(> .page.sov-full) { position: relative; overflow: hidden; }
+	.page.sov-full { position: absolute; inset: 0; z-index: 5; overflow: auto; background: #f7f7f7; align-content: start; }
+	.page.sov-full > .sov-float { display: flex; order: -1; position: sticky; top: .75rem; height: 0; margin-bottom: -1rem; grid-column: bleed-start / bleed-end; justify-content: space-between; padding-inline: .75rem; z-index: 30; pointer-events: none; }
+	.page.sov-full > .sov-float > * { pointer-events: auto; }
+	.sov-float-btn { width: 2.5rem; height: 2.5rem; padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--mob-line); background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .15); cursor: pointer; }
+	.sov-fs-on { margin-left: auto; }
 }

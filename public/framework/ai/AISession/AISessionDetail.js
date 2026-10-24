@@ -1,4 +1,5 @@
 import { Page, div, span, small, p, a, button } from "/app.js";
+import { icon } from "/framework/core/View/View.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { load as raw_transcript_lines } from "/framework/ai/AITask/replay.js";
 import { AITask } from "/framework/ai/AITask/AITask.js";
@@ -140,6 +141,13 @@ export default class AISessionDetail extends Page {
 		return super.child(name, levels);
 	}
 
+	/** Full screen: the page covers the window, the title and tabs scroll, and two buttons float (back out, session menu). `?full` keeps it across a reload. */
+	full_screen(on){
+		const el = this.view?.el; el?.parentElement?.scrollTo?.(0, 0); el?.classList.toggle("sov-full", on);
+		const q = new URLSearchParams(location.search); on ? q.set("full", "") : q.delete("full");
+		history.replaceState(history.state, "", location.pathname + (q.size ? "?" + String(q).replace(/full=(&|$)/, "full$1") : "") + location.hash);
+	}
+
 	content(){
 		const { home, id } = this, url = home.url;
 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
@@ -155,7 +163,15 @@ export default class AISessionDetail extends Page {
 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
 		};
 		new SessionStats({ ready });   // Figma band E: stats first, sticky, on every tab
-		div.c("sessions-tabs flex gap-50 wrap", () => TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k))));
+		div.c("sessions-tabs flex gap-50 wrap", () => {
+			TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
+			button.c("sessions-chip sov-fs-on", icon("fullscreen")).attr("title", "Full screen").on("click", () => this.full_screen(true));
+		});
+		div.c("sov-float", () => {   // Figma band E, C: in full screen the head is gone, so back and the session menu float over the page
+			button.c("sov-float-btn", icon("arrow_back")).attr("title", "Leave full screen").on("click", () => this.full_screen(false));
+			this.head_tools();
+		});
+		if (new URLSearchParams(location.search).has("full")) setTimeout(() => this.full_screen(true));
 		div.c("sessions-detail-body", () => {
 			panels.overview = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
 			panels.tasks = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
