@@ -1,3 +1,82 @@
+diff --git a/Server/README.md b/Server/README.md
+index 0e7d97354..24bfa5902 100644
+--- a/Server/README.md
++++ b/Server/README.md
+@@ -16,6 +16,10 @@ The owner-facing server also starts `whisper-server` for dictation on its own 
+ [`plugins/Whisper.js`](./plugins/Whisper.js), `NO_WHISPER=1` to opt out; see
+ [`ux/Dictate`](/framework/ux/Dictate/).
+ 
++## Routes the dev server adds for the pages
++
++- `GET /api/folder-names?dir=/framework/ai/sessions/2026/10/20/` ([`plugins/FolderNames.js`](./plugins/FolderNames.js)) answers `{"names": [...]}`, the entry names of one folder under `public/`, always a 200 (a missing folder is `[]`). `ai/AITask/listing.js` asks it once per folder, so opening a task folder checks `session.jsonl`, `task.jsonl`, `page.js` and `requirements.md` without a 404 probe for each. It is a new route: a dev server started before it landed answers no listing, and the pages fall back to the old probes (and their 404s) until the server restarts.
++
+ ## Scripts (one line each; the full paragraph for every one is in [`doc/script-notes.md`](./doc/script-notes.md))
+ 
+ - `node Server/ModuleLog.mjs <path>` — one folder's work log, graded against git; beside `PastWork.mjs`.
+diff --git a/Server/plugins/FolderNames.js b/Server/plugins/FolderNames.js
+new file mode 100644
+index 000000000..77d4952a6
+--- /dev/null
++++ b/Server/plugins/FolderNames.js
+@@ -0,0 +1,38 @@
++import fs from "fs";
++import path from "path";
++
++/* FolderNames — GET /api/folder-names?dir=/framework/ai/sessions/2026/10/20/
++ * answers {names:[...]}: the entry names of ONE folder under `public/`, always a 200
++ * (a missing folder is `[]`). The router walk (ai/AITask `has()`) asks it once per
++ * folder instead of probing `session.jsonl`, `task.jsonl`, `page.js` and
++ * `requirements.md` with a HEAD each, where every miss was a 404 in the console and
++ * in the smoke. Dev server only, like the rest of `Server/`. Only names are shown, and
++ * only for folders the static server already serves, so there is no loopback guard.
++ */
++
++const PUBLIC = path.resolve(process.cwd(), "public");
++
++const denied = name => name.startsWith(".") || name === "node_modules";
++
++export default class FolderNames {
++
++	static setup(server){ new FolderNames(server); }
++
++	constructor(server){
++		server.on("express", () => this.route(server));
++	}
++
++	route(server){
++		server.router.get("/api/folder-names", (req, res) => {
++			const segments = String(req.query.dir ?? "").split("/").filter(Boolean);
++			if (segments.some(denied)) return res.status(403).end();
++
++			const abs = path.resolve(PUBLIC, ...segments);
++			if (abs !== PUBLIC && !abs.startsWith(PUBLIC + path.sep)) return res.status(403).end();
++
++			fs.readdir(abs, (error, names) => {
++				res.set("Cache-Control", "no-store").json({ names: error ? [] : names });
++			});
++		});
++	}
++}
+diff --git a/Server/run.js b/Server/run.js
+index 9e1cea644..58f282aba 100644
+--- a/Server/run.js
++++ b/Server/run.js
+@@ -9,6 +9,7 @@ import Directory from "./plugins/Directory.js";
+ import MentionSync from "./plugins/MentionSync.js";   // auto-syncs ext/Mention/maps/refs.js's icon — Server/plugins/MentionSync.js
+ import PageFiles from "./plugins/PageFiles.js";
+ import DevSource from "./plugins/DevSource.js";   // read-only Servex/Server browsing — Server/plugins/DevSource.js
++import FolderNames from "./plugins/FolderNames.js";   // /api/folder-names?dir= — one folder's names, so the router walk probes nothing
+ import DevSocket from "./plugins/DevSocket/DevSocket.js";
+ import Runtime from "./plugins/SocketServer/Runtime.js";
+ import AILogs from "./plugins/AILogs.js";
+@@ -47,6 +48,7 @@ Server.use(Directory);
+ Server.use(MentionSync);
+ Server.use(PageFiles);   // appends {"file"} lines to page.jsonl — Server/plugins/PageFiles.js
+ Server.use(DevSource);   // /devsource.json + /devsource/<path> — Servex/Server source, read-only
++Server.use(FolderNames);
+ Server.use(AILogs);
+ Server.use(AISessionTailer);   // follows transcripts, writes index.json files - ai/AISession/AISessionIndex.mjs
+ Server.use(MCP);
 diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
 index 6bb55de63..7656cb1a2 100644
 --- a/public/framework/ai/AISession/AISessionDetail.js
@@ -100,15 +179,15 @@ index 000000000..935f05d53
 +}
 diff --git a/public/framework/ai/AISession/Review.js b/public/framework/ai/AISession/Review.js
 new file mode 100644
-index 000000000..20a1d2454
+index 000000000..f4ad0715f
 --- /dev/null
 +++ b/public/framework/ai/AISession/Review.js
-@@ -0,0 +1,40 @@
-+/** Review — the owner's review of one day: each session's state and the day's three totals (approved, waiting, leaking).
-+ *  Plain code over a SessionTree and the Approvals; computed on every paint, never stored. The rule and its numbers: readme.md, "Review". */
+@@ -0,0 +1,24 @@
++/** Review — the one rule for a session's review state, and its numbers (tune them here). Plain code, no DOM.
++ *  Review.state({ approved, finished, rolled, last }) -> "approved" | "live" | "leak" | "waiting". Caller: SessionWork. */
 +export default class Review {
 +	static FINISHED_MS = 60 * 60000;   // no activity for an hour: finished
-+	static LEAK_USD = 0.5;             // costs more than this (rolled up through its children)
++	static LEAK_USD = 0.5;             // costs more than this, rolled up through its children
 +	static LEAK_AGE_MS = 24 * 3600000; // and finished more than a day ago, unapproved: a leak
 +
 +	static STATES = {
@@ -118,35 +197,19 @@ index 000000000..20a1d2454
 +		leak:     { label: "leak",     hint: `Finished over a day ago, cost over $${Review.LEAK_USD.toFixed(2)}, never approved` },
 +	};
 +
-+	constructor(tree, approvals, now = Date.now()){
-+		this.tree = tree; this.approvals = approvals; this.now = now;
-+		tree.roots.forEach(r => this.walk(r, null));
++	/** `finished` is the caller's word for "not running"; `last` the last activity (ms) of it and everything under it. */
++	static state({ approved, finished, rolled = 0, last = 0 }, now = Date.now()){
++		if (approved) return "approved";
++		if (!finished && now - last < Review.FINISHED_MS) return "live";
++		return rolled > Review.LEAK_USD && now - last >= Review.LEAK_AGE_MS ? "leak" : "waiting";
 +	}
 +
-+	/** Sets on every node: `approved` (the approve line, its own or inherited), `by_parent`, `finished`, `state`. */
-+	walk(n, up){
-+		const own = this.approvals.of(n.s.id);
-+		n.approved = own ?? up?.approved ?? null;
-+		n.by_parent = !own && !!n.approved;
-+		n.finished = n.s.state !== "active" && this.now - n.last >= Review.FINISHED_MS;
-+		n.state = n.approved ? "approved" : !n.finished ? "live" : this.leaks(n) ? "leak" : "waiting";
-+		n.kids.forEach(k => this.walk(k, n));
-+	}
-+	leaks(n){ return n.rolled > Review.LEAK_USD && this.now - n.last >= Review.LEAK_AGE_MS; }
-+
-+	/** Every session's own cost, put in the bucket of its own state: { approved, waiting, leak } dollars and counts. They add up to the day. */
-+	totals(){
-+		const t = { approved: { usd: 0, n: 0 }, waiting: { usd: 0, n: 0 }, leak: { usd: 0, n: 0 } };
-+		this.tree.nodes.forEach(n => { const b = t[n.state === "live" ? "waiting" : n.state]; b.usd += n.own; b.n++; });
-+		return t;
-+	}
-+
-+	/** Roots "Approve all" would approve: finished and not approved. */
-+	ready(){ return this.tree.roots.filter(r => r.finished && !r.approved); }
++	/** Which total a state's dollars go to: approved, waiting (working counts as waiting) or leak. */
++	static bucket(state){ return state === "live" ? "waiting" : state; }
 +}
 diff --git a/public/framework/ai/AISession/SessionWork.css b/public/framework/ai/AISession/SessionWork.css
 new file mode 100644
-index 000000000..f7940604b
+index 000000000..51b87bf89
 --- /dev/null
 +++ b/public/framework/ai/AISession/SessionWork.css
 @@ -0,0 +1,34 @@
@@ -168,8 +231,8 @@ index 000000000..f7940604b
 +	.sw-note:empty { display: none; }
 +	.sw-note { color: var(--error); }
 +	.sw-list { display: flex; flex-direction: column; }
-+	.sw-node { border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
-+	.sw-sum { list-style: none; cursor: pointer; }
++	.sw-node, details.sw-node { border: 0; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); border-radius: 0; background: none; padding: 0; margin: 0; box-shadow: none; }   /* flat rows (mobile-cards.md), not the theme's details card */
++	.sw-sum { list-style: none; cursor: pointer; display: block; width: auto; min-height: 0; padding: 0; font-size: inherit; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; }   /* a summary wears the control box (framework.css, the control grammar); a row is not a control */
 +	.sw-sum::-webkit-details-marker { display: none; }
 +	.sw-row { display: flex; align-items: flex-start; gap: .6em; padding: .55em .2em; }
 +	details.sw-node > .sw-sum .sw-name::before { content: "▸ "; }
@@ -186,16 +249,17 @@ index 000000000..f7940604b
 +}
 diff --git a/public/framework/ai/AISession/SessionWork.js b/public/framework/ai/AISession/SessionWork.js
 new file mode 100644
-index 000000000..2c3ecdb5c
+index 000000000..1cdfdff92
 --- /dev/null
 +++ b/public/framework/ai/AISession/SessionWork.js
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,131 @@
 +import { View, div, span, small, strong, a, button, details, summary } from "/app.js";
 +import Task from "/framework/core/Task/Task.js";
 +import SessionTree from "../sessions/doc/variants/SessionTree.js";
 +import TimeFilter from "/framework/ux/Filter/TimeFilter.js";
 +import Approvals from "./Approvals.js";
 +import Review from "./Review.js";
++import Day from "/framework/core/Session/Day.js";
 +
 +View.stylesheet(import.meta, "SessionWork.css");
 +
@@ -209,8 +273,10 @@ index 000000000..2c3ecdb5c
 +	get classes(){ return "sw"; }
 +
 +	render(){
++		this.$bar = div.c("sw-head-top", () => { this.$title = strong.c("sw-title", ""); this.pill = TimeFilter.add({}); });
 +		this.$head = div.c("sw-head");
 +		this.$list = div.c("sw-list");
++		this.pill.watch(this.$list);
 +		this.streams = new Map();
 +		this.load();
 +	}
@@ -220,6 +286,7 @@ index 000000000..2c3ecdb5c
 +		this.tree = m ? await SessionTree.load(m[1], m[2]).catch(() => null) : null;
 +		if (!this.tree) return this.$list.empty(() => small.c("muted", "No task records for this session."));
 +		if (!this.tree.snap && this.snap) this.tree.snap = this.snap;   // the session's own snapshot, filed under a later day than its folder
++		await this.find_snaps(m[1]);
 +		const root = this.tree.root;
 +		if (this.tree.snap){ root.title = this.tree.snap.title || root.title; root.usd = this.tree.snap.usd ?? root.usd; }
 +		const snaps = [this.tree.snap, ...this.tree.root.all().map(n => n.snap)].filter(Boolean);
@@ -229,6 +296,21 @@ index 000000000..2c3ecdb5c
 +		this.paint();
 +	}
 +
++	/** A task's agent session is filed under the day of its LAST activity, often later than the folder's day: read every day file from the folder's day to today (at most 31) and join by id, so its cost and Approve show. */
++	async find_snaps(day){
++		const want = this.tree.root.all().filter(n => n.session && !n.snap);
++		if (!want.length) return;
++		const base = new Date(day.replaceAll("/", "-") + "T12:00:00"), today = Day.of(), by_id = new Map();
++		for (let i = 0; i <= 31; i++){
++			const d = Day.of(new Date(base.getTime() + i * 864e5)); if (d > today) break;
++			const res = await fetch(`/framework/ai/sessions/${Day.path(d)}/index.json`).catch(() => null);
++			const json = res?.ok && !(res.headers.get("content-type") ?? "").includes("html") ? await res.json().catch(() => null) : null;
++			json?.snapshots?.forEach(s => by_id.set(s.id, s));
++		}
++		want.forEach(n => { const s = by_id.get(n.session); if (s){ n.snap = s; n.usd = s.usd ?? null; } });
++		if (!this.tree.snap) this.tree.snap = by_id.get(this.id) ?? null;
++	}
++
 +	approval(snap){ return snap ? this.streams.get((snap.day ?? "").replaceAll("-", "/"))?.of(snap.id) ?? null : null; }
 +
 +	/** Figures for one node and everything under it. */
@@ -236,15 +318,14 @@ index 000000000..2c3ecdb5c
 +		const all = n.all(), below = all.slice(1), rolled = all.reduce((t, k) => t + (k.usd ?? 0), 0);
 +		const last = Math.max(0, ...all.map(k => Date.parse(k.ended ?? "") || 0));
 +		const open = below.filter(k => !SessionWork.DONE.includes(k.state) && !k.kids.some(c => !SessionWork.DONE.includes(c.state)));
-+		return { own: n.usd ?? 0, rolled, last, progress: Task.progress_of(below), open };
++		return { own: n.usd ?? 0, rolled, last, progress: Task.progress_of(below.filter(k => k.state !== "stopped")), open };   // a stopped task is dropped, not counted (mobile-cards.md)
 +	}
 +
 +	/** approved (itself or above), live, leak, waiting: Review's numbers. */
 +	judge(n, up, now = Date.now()){
 +		const f = this.figures(n), own = this.approval(n.snap ?? (n === this.tree.root ? this.tree.snap : null));
 +		n.approved = own ?? up ?? null;
-+		const live = !SessionWork.DONE.includes(n.state) && now - f.last < Review.FINISHED_MS;
-+		n.review = n.approved ? "approved" : live ? "live" : f.rolled > Review.LEAK_USD && now - f.last >= Review.LEAK_AGE_MS ? "leak" : "waiting";
++		n.review = Review.state({ approved: n.approved, finished: SessionWork.DONE.includes(n.state), rolled: f.rolled, last: f.last }, now);
 +		n.kids.forEach(k => this.judge(k, n.approved, now));
 +	}
 +
@@ -253,12 +334,9 @@ index 000000000..2c3ecdb5c
 +		this.judge(root, null);
 +		let top = root; while (top.kids.length === 1 && top.kids[0].kids.length) top = top.kids[0];   // a lone wrapping folder (sessions-and-tasks/) is not a level
 +		const f = this.figures(root), kids = top.kids, t = { approved: 0, waiting: 0, leak: 0 };
-+		root.all().slice(1).forEach(n => t[n.review === "live" ? "waiting" : n.review] += n.usd ?? 0);
++		root.all().slice(1).forEach(n => t[Review.bucket(n.review)] += n.usd ?? 0);
 +		this.$head.empty(() => {
-+			div.c("sw-head-top", () => {
-+				strong.c("sw-title", root.title);
-+				TimeFilter.add({ root: this.$list });
-+			});
++			this.$title.text(root.title);
 +			this.facts(root, f, true);
 +			div.c("sw-stats", () => [["approved", "approved"], ["waiting", "waiting"], ["leak", "leaking"]].forEach(([k, label]) =>
 +				div.c("sw-stat sw-stat-" + k + (t[k] > 0 ? " sw-some" : ""), () => { strong("$" + t[k].toFixed(2)); small(label); }).attr("title", Review.STATES[k]?.hint ?? "")));
@@ -306,6 +384,178 @@ index 000000000..2c3ecdb5c
 +		if (!ok) this.$note.text("Not saved: approving writes the session's own record, which needs the local dev server.");
 +	}
 +}
+diff --git a/public/framework/ai/AISession/StoreFolder.js b/public/framework/ai/AISession/StoreFolder.js
+index 7c4047179..46e410e3e 100644
+--- a/public/framework/ai/AISession/StoreFolder.js
++++ b/public/framework/ai/AISession/StoreFolder.js
+@@ -102,7 +102,7 @@ export default class StoreFolder extends Page {
+ 		if (tasks.has(bare)) return pages.has(bare) ? undefined : task();   // undefined: Page.child() loads the folder's own page.js
+ 		for (const t of tasks) if (t.startsWith(url)) return next();        // a session folder holding moved tasks
+ 		if (AITask.has(url + "page.js")) return;                             // unknown (a task made after the move): probe
+-		if (AITask.has(url + "task.jsonl") || AITask.has(url + "session.jsonl")) return task();
++		if (AITask.has(url + "session.jsonl") || AITask.has(url + "task.jsonl")) return task();   // session.jsonl first: it is the one record now, so a new folder never 404s on the old name
+ 		return next();
+ 	}
+ 
+diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
+index 3c6d4e960..d0812ce3c 100644
+--- a/public/framework/ai/AISession/readme.md
++++ b/public/framework/ai/AISession/readme.md
+@@ -5,6 +5,7 @@
+ - `AISession.js` — one session's cost, read from its raw transcript (browser and node).
+ - `AISessionsPage.js` · `AISessionView.js` · `AISessionRows.js` · `AISessionBuckets.js` — the grid page, its row, how rows nest and fold.
+ - `AISessionDetail.js` · `AISessionConversation.js` · `AISessionCoverage.js` · `AISessionTrace.js` — a session's own page and its tabs.
++- `SessionWork.js` (+ `.css`) — the **Work** tab, first on a session's page: its work nested by task folder (`sessions/doc/variants/SessionTree.js` over `ai/index.json`), own and rolled cost, tasks complete of created, open tasks, the Today ▾ pill (`ux/Filter/TimeFilter`), Approve. `Approvals.js` writes `{"approve":{"at","by":"owner"}}` to the session's own `session.jsonl` plus a pointer in that day's `day.jsonl` (the line the tab streams); `Review.js` is the leak rule and its numbers (finished 1 h, over $0.50, over a day old).
+ - `AISessionLive.js` · `AISessionFollow.js` · `AISessionResume.js` · `AISessionFlags.js` — live tail, follow, resume, flags.
+ - `AISessionDigest.mjs` — one transcript boiled down by plain Node: sizes, exact cost, owner prompts, result, `digest.json` and procedural `tags()` ([round 4](sessions/2026/10/16/voice-20261016/past-work/round4-result.md)).
+ - `AISessionIndex.mjs` (also snapshots record-only sessions; test `AISessionIndex.test.mjs`) · `AISessionSource.mjs` · `AISessionTailer.mjs` · `AISessionAudit.mjs` — node side: index, source, tail, cost audit.
+diff --git a/public/framework/ai/AITask/AITask.js b/public/framework/ai/AITask/AITask.js
+index 46fc0e174..1f94e6ec7 100644
+--- a/public/framework/ai/AITask/AITask.js
++++ b/public/framework/ai/AITask/AITask.js
+@@ -10,7 +10,7 @@ import { asks as ask_wall } from "./asks.js";
+ import { needs_of } from "./needs.js";
+ import { decisions as decision_wall } from "./decisions.js";
+ import { progress, spend } from "./stats.js";
+-import { names } from "./listing.js";
++import { names, has, is_record_folder } from "../../core/Router/listing.js";
+ import { segments, current, links_row } from "./card.js";
+ import { shot_wall } from "./shots.js";
+ import { chat } from "../../ext/Ask/chat.js";
+@@ -78,19 +78,15 @@ export class AITask extends Page {
+ 
+ 	route(sub){
+ 		if (sub.includes(".")) return;
+-		const at = this.url?.match(/\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/.+?)\/?$/)?.[1];
+-		const list = at ? names(`${at}/${sub}`) : null;
+-		if (list ? (!list.includes("task.jsonl") || list.includes("page.js"))
+-			: (!(AITask.has(this.url + sub + "/task.jsonl") || AITask.has(this.url + sub + "/session.jsonl")) || AITask.has(this.url + sub + "/page.js"))) return;   // the sessions store: no listing, so ask the server
+-		return new AITask({ title: sub, icon: "receipt_long", url: this.url + sub + "/", src: this.url + sub + "/session.json" });
++		const url = this.url + sub + "/";
++		if (!is_record_folder(url)) return;
++		return new AITask({ title: sub, icon: "receipt_long", url, src: url + "session.json" });
+ 	}
+ 
+-	static has(url){
+-		const x = new XMLHttpRequest();
+-		x.open("HEAD", url, false);
+-		try { x.send(); } catch { return false; }
+-		return x.status >= 200 && x.status < 300 && !(x.getResponseHeader("content-type") ?? "").includes("html");
+-	}
++	// Does this file exist? Asked of the folder's listing (core/Router/listing.js): ONE request per folder,
++	// always a 200, so a missing session.jsonl / task.jsonl / page.js / requirements.md is never
++	// a 404 probe. Off the dev server there is no listing, and it falls back to a HEAD probe.
++	static has(url){ return has(url); }
+ 
+ 	content(){
+ 		div.c("ai-task flow wide", async $s => {
+@@ -101,10 +97,13 @@ export class AITask extends Page {
+ 	}
+ 
+ 	async session(){
+-		const t = new TaskJSONL({ url: this.base() + "task.jsonl" });
++		// The record is session.jsonl or task.jsonl, mixed per folder: name the one that is there,
++		// so Store.record_url never HEADs the wrong one (a 404). Neither yet: task.jsonl, as before.
++		const record = AITask.has(this.base() + "session.jsonl") ? "session.jsonl" : "task.jsonl";
++		const t = new TaskJSONL({ url: this.base() + record });
+ 		// Keep the parsed lines the stream already read, so this.task replays them without a second fetch.
+ 		const read = t.read.bind(t), reset = t.reset.bind(t);
+-		t.read = entries => { (t.entries ??= []).push(...entries); this.task = Task.replay(t.entries); return read(entries); };
++		t.read = entries => { (t.entries ??= []).push(...entries); t.task = this.task = Task.replay(t.entries); return read(entries); };
+ 		t.reset = () => { t.entries = []; return reset(); };
+ 		await t.live(() => this.streamed(t));
+ 		if (t.loaded) return t;
+@@ -130,6 +129,7 @@ export class AITask extends Page {
+ 
+ 	async requirements(){
+ 		if (Array.isArray(this.known_files) && !this.known_files.includes("requirements.md")) return null;
++		if (names(this.base()) && !AITask.has(this.base() + "requirements.md")) return null;
+ 		const res = await fetch(this.base() + "requirements.md").catch(() => null);
+ 		return res?.ok && !res.headers.get("content-type")?.includes("html") ? res.text() : null;
+ 	}
+diff --git a/public/framework/ai/AITask/files.jsonl b/public/framework/ai/AITask/files.jsonl
+index a1caadb9e..1f18ec995 100644
+--- a/public/framework/ai/AITask/files.jsonl
++++ b/public/framework/ai/AITask/files.jsonl
+@@ -43,3 +43,4 @@
+ {"file":"day-prompts.js","gone":true}
+ {"file":"module-spend.js","gone":true}
+ {"file":"tasks/"}
++{"file":"listing.js","gone":true}
+diff --git a/public/framework/ai/AITask/listing.js b/public/framework/ai/AITask/listing.js
+deleted file mode 100644
+index b7dd02cc9..000000000
+--- a/public/framework/ai/AITask/listing.js
++++ /dev/null
+@@ -1,28 +0,0 @@
+-/* The names in one folder under /framework/ai/, from the dev server's
+-   /framework/directory.json — answered SYNCHRONOUSLY, because Page.route() must
+-   return now (Page.child() never awaits it). Used by AITask.route() to open a
+-   subtask's folder inside its parent task's (nested tasks, doc/nested.md).
+-
+-   One blocking fetch of a small same-origin file, cached for ten seconds, so a
+-   subtask folder made a moment ago is found on the next click. Off the dev server
+-   there is no directory.json, and the answer is null: nothing is claimed. */
+-
+-let cache = null, at = 0;
+-
+-function directory(){
+-	if (cache && Date.now() - at < 10000) return cache;
+-	const xhr = new XMLHttpRequest();
+-	xhr.open("GET", "/framework/directory.json", false);
+-	try { xhr.send(); } catch { return null; }
+-	const ok = xhr.status >= 200 && xhr.status < 300 && !(xhr.getResponseHeader("content-type") ?? "").includes("html");
+-	cache = ok ? JSON.parse(xhr.responseText) : null;
+-	at = Date.now();
+-	return cache;
+-}
+-
+-/** names("2026-09-29/nested-tasks/minion-view") → ["task.jsonl", …], or null. */
+-export function names(path){
+-	let node = directory()?.files?.find(f => f.name === "ai");
+-	for (const part of path.split("/").filter(Boolean)) node = node?.children?.find(k => k.name === part && k.type === "dir");
+-	return node ? (node.children ?? []).map(k => k.name) : null;
+-}
+diff --git a/public/framework/ai/AITask/page.js b/public/framework/ai/AITask/page.js
+index 3584b7a95..8a5b44a5f 100644
+--- a/public/framework/ai/AITask/page.js
++++ b/public/framework/ai/AITask/page.js
+@@ -32,7 +32,7 @@ export default new Doc({
+ 	properties: "src",
+ 	methods:    "content session legacy base requirements report asks decisions streamed refresh outcome links head status cost checklist unparsed extra shots figures chat composer log",
+ 	notes:      "views nested cost asks ranking decisions-tab highlights manifest effort starting-work pace template waves decisions",
+-	files:      "AITask.js TaskViews.js ai.css asks.js board.js card.js compose.js cost.js conversation.js dashboard.js decisions.js decisions.mjs effort.js highlights.js nested.js nested.css plan.js tree.js listing.js message.js needs.js prompt.js rank.js shots.js stats.js usage.js page.js readme.md",
++	files:      "AITask.js TaskViews.js ai.css asks.js board.js card.js compose.js cost.js conversation.js dashboard.js decisions.js decisions.mjs effort.js highlights.js nested.js nested.css plan.js tree.js message.js needs.js prompt.js rank.js shots.js stats.js usage.js page.js readme.md",
+ 	overview:   [
+ 		{ title: "Task card", content(){
+ 			demo(() => {
+diff --git a/public/framework/ai/AITask/readme.md b/public/framework/ai/AITask/readme.md
+index 23439e470..cc1684812 100644
+--- a/public/framework/ai/AITask/readme.md
++++ b/public/framework/ai/AITask/readme.md
+@@ -14,6 +14,7 @@
+ ## Where the data comes from
+ 
+ - The task: its `task.jsonl` (written by `Agents.open_task`, `append.mjs`; see [ai/sessions](/framework/ai/sessions/)). `session_id` on line 1 is the field that matters: without it there is no transcript tab. A running task has `requested_at`; `landed_at` wins.
++- Which files a task folder has: `AITask.has(url)` asks the folder's listing ([`core/Router/listing.js`](/framework/core/Router/listing.js), one request per folder to the dev server's `/api/folder-names`), so a missing `session.jsonl`, `task.jsonl`, `page.js` or `requirements.md` is never a 404. Off the dev server there is no listing and `has()` falls back to a HEAD probe. `session()` uses it to open `session.jsonl` when the folder has one, else `task.jsonl` (the two names are mixed in the store).
+ - The transcript: streamed from `~/.claude/projects/` on the dev server only; off localhost the Session tab says "unavailable".
+ - The day pages: `/framework/ai/` routes (`ai/page.js`) draw a day with `AIDay/` (the `tasks` query source over the session store); `dashboard.js` still serves the rail and log boards.
+ - Highlights: an `assign` line carrying `highlight:{icon,title,url}` in a `task.jsonl` puts a task on the front wall ([doc/highlights.md](doc/highlights.md)).
+diff --git a/public/framework/ai/AITask/shots.js b/public/framework/ai/AITask/shots.js
+index 8db1326ca..15a7423e6 100644
+--- a/public/framework/ai/AITask/shots.js
++++ b/public/framework/ai/AITask/shots.js
+@@ -20,7 +20,9 @@ export function shot_wall(list){
+ export const shot_thumb = s => thumb(s);
+ 
+ function thumb(s){
+-	const src = "/screenshot?path=" + encodeURIComponent(s.path);
++	// a shot is a file outside the repo (`path`, served by /screenshot) or an image committed beside its task (`url`)
++	const src = s.path ? "/screenshot?path=" + encodeURIComponent(s.path) : /\.(png|jpe?g|webp|gif)$/i.test(s.url ?? "") ? s.url : null;
++	if (!src) return div.c("surface ai-shot missing", () => div.c("ui-panel-foot ai-shot-label muted", s.label ?? "screenshot"));
+ 	let $shot;
+ 	const body = () => {
+ 		if (LOCAL) img.c("ai-shot-img").attr("src", src).attr("loading", "lazy")
 diff --git a/public/framework/ai/sessions/doc/variants/SessionTree.js b/public/framework/ai/sessions/doc/variants/SessionTree.js
 index d7741e38b..cc102e1cd 100644
 --- a/public/framework/ai/sessions/doc/variants/SessionTree.js
@@ -319,54 +569,11 @@ index d7741e38b..cc102e1cd 100644
  			let up = rel; do { up = up.includes("/") ? up.slice(0, up.lastIndexOf("/")) : ""; } while (!nodes.has(up));   // the nearest folder above that is itself a task
  			nodes.get(up).kids.push(node); node.parent = nodes.get(up);
  			nodes.set(rel, node);
-diff --git a/public/framework/ai/sessions/v/mobile/MobileAll.js b/public/framework/ai/sessions/v/mobile/MobileAll.js
-index f4800c1bc..c069fffc4 100644
---- a/public/framework/ai/sessions/v/mobile/MobileAll.js
-+++ b/public/framework/ai/sessions/v/mobile/MobileAll.js
-@@ -56,7 +56,7 @@ export default class MobileAll extends MobileHome {
- 
- 	/** A session row; its children, if any, are folded under "+N minions" (one indent, a 2 px rail) and drawn when first opened: a parent can hold hundreds. */
- 	nest(r, kids, tree){
--		new MobileRow({ ...r, tree });
-+		new this.constructor.Row({ ...r, tree });
- 		const mine = (kids.get(r.snap.id) ?? []).sort((a, b) => String(b.snap.last_activity).localeCompare(String(a.snap.last_activity)));
- 		if (!mine.length) return;
- 		let $kids, built = false;
-diff --git a/public/framework/ai/sessions/v/mobile/MobileHome.js b/public/framework/ai/sessions/v/mobile/MobileHome.js
-index de7e495f4..4a2d5ba4e 100644
---- a/public/framework/ai/sessions/v/mobile/MobileHome.js
-+++ b/public/framework/ai/sessions/v/mobile/MobileHome.js
-@@ -11,6 +11,7 @@ import MobilePath from "./MobilePath.js";
-    child() are overridden to hand out the mobile pages); the ground, cards and rows are mobile.css. Doc: readme.md here. */
- export default class MobileHome extends AISessionsPage {
- 
-+	static Row = MobileRow;   // a subclass swaps the row (v/review)
- 	static GROUPS = [["needs", "Needs you", "error"], ["running", "Running", "play_circle"], ["done", "Done", "check_circle"], ["rest", "Everything else", "unfold_more"]];
- 
- 	constructor(...args){
-@@ -88,7 +89,7 @@ export default class MobileHome extends AISessionsPage {
- 	card(label, glyph, key, rows, tree){
- 		div.c("mob-card mob-group-" + key, () => {
- 			div.c("mob-card-head", () => { icon(glyph).ac("mob-group-icon"); strong(label); small.c("mob-count", String(rows.length)); });
--			rows.forEach(r => new MobileRow({ ...r, tree }));
-+			rows.forEach(r => new this.constructor.Row({ ...r, tree }));
- 		});
- 	}
- 
-@@ -96,7 +97,7 @@ export default class MobileHome extends AISessionsPage {
- 		if (!rows.length) return;
- 		details.c("mob-card mob-fold", () => {
- 			summary.c("mob-card-head", () => { icon("unfold_more").ac("mob-group-icon"); strong(label); small.c("mob-count", String(rows.length)); });
--			rows.forEach(r => new MobileRow({ ...r, tree }));
-+			rows.forEach(r => new this.constructor.Row({ ...r, tree }));
- 		});
- 	}
- }
 diff --git a/public/framework/ai/sessions/v/mobile/MobileRow.js b/public/framework/ai/sessions/v/mobile/MobileRow.js
-index 3e1991bf9..bc67a7ddf 100644
+index 3e1991bf9..b43424769 100644
 --- a/public/framework/ai/sessions/v/mobile/MobileRow.js
 +++ b/public/framework/ai/sessions/v/mobile/MobileRow.js
-@@ -11,21 +11,29 @@ export default class MobileRow extends View {
+@@ -11,7 +11,7 @@ export default class MobileRow extends View {
  
  	static DOT = { needs: "is-blocked", running: "is-running", done: "is-done", rest: "is-open" };
  
@@ -375,32 +582,323 @@ index 3e1991bf9..bc67a7ddf 100644
  		const { snap, tasks, group, tree, line } = this;
  		this.ac("mob-row", "mob-" + group);
  		a.c("mob-row-link", () => {
--			span.c("mob-dot").ac(this.constructor.DOT[group]);
-+			span.c("mob-dot").ac(this.constructor.DOT[this.dot_key()]);
- 			div.c("mob-row-body", () => {
- 				strong.c("mob-row-title", snap.title || snap.id);
- 				small.c("mob-row-sub", () => {
- 					span.c("mob-kind", MobileData.kind(snap, tree));
- 					span(" · " + MobileData.ago(snap.last_activity) + (snap.usd ? " · " + MobileData.usd(snap.tree_usd || snap.usd) : ""));
- 				});
-+				this.below();
- 				if (line && group === "done") small.c("mob-row-line", line);
- 				if (tasks?.root.kids.length > 1) div.c("mob-row-bar", () => TaskView.draw_bar(MobileData.states(tasks.root.kids), 12));
- 			});
- 			icon("chevron_right").ac("mob-go");
--		}).href(MobileData.session_url(snap.id));
-+		}).href(this.href());
-+		this.after();
+diff --git a/public/framework/core/Item/Item.js b/public/framework/core/Item/Item.js
+index 7925c5317..fe3549ad2 100644
+--- a/public/framework/core/Item/Item.js
++++ b/public/framework/core/Item/Item.js
+@@ -289,7 +289,7 @@ export class Item extends Events(Object) {
+ 		const raw = json && typeof json === "object" ? json : {};
+ 		if (raw !== json) warn(`expected an object, got ${typeof json}`);
+ 
+-		const Class = raw.type ? Item.types.get(raw.type) : Item;
++		const Class = raw.type ? Item.types.get(raw.type) : this;   // `this`: a list of Tasks (`of = Task`) makes an untyped member a Task
+ 		if (raw.type && !Class) warn(`unknown type "${raw.type}" — preserved as Item`, raw.type);
+ 
+ 		let id = raw.id;
+diff --git a/public/framework/core/Item/Store.js b/public/framework/core/Item/Store.js
+index f6ceb168f..8b0091422 100644
+--- a/public/framework/core/Item/Store.js
++++ b/public/framework/core/Item/Store.js
+@@ -43,13 +43,17 @@ export class Store {
+ 	// writer — ext/JSONL/live.js is imported ONLY here, dynamically, so this file
+ 	// (and Item.js, which never imports it either) still loads in plain node.
+ 	open(){
+-		const host = globalThis.location?.hostname;
+-		const local = host === "localhost" || host === "127.0.0.1" || !!host?.endsWith(".localhost");
+-		if (!local) return this.moved().then(() => this.load());
++		if (!Store.local()) return this.moved().then(() => this.load());
+ 
+ 		return this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
  	}
+ 
++	// True on the dev server (localhost, 127.0.0.1, *.localhost); false on the deployed static site and in plain node.
++	static local(){
++		const host = globalThis.location?.hostname;
++		return host === "localhost" || host === "127.0.0.1" || !!host?.endsWith(".localhost");
++	}
 +
-+	// Seams for a subclass (v/review's ReviewRow): which dot, where the row goes, a line under the facts, anything after the link.
-+	dot_key(){ return this.group; }
-+	href(){ return MobileData.session_url(this.snap.id); }
-+	below(){}
-+	after(){}
- }
+ 	// A session folder's record moved from task.jsonl to its new name (ai/sessions/doc/session-record.md).
+ 	async moved(){ this.url = await Store.record_url(this.url); return this; }
+ 
+diff --git a/public/framework/core/Router/files.jsonl b/public/framework/core/Router/files.jsonl
+index 20a34c1e3..883f75a9d 100644
+--- a/public/framework/core/Router/files.jsonl
++++ b/public/framework/core/Router/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"doc/page.jsonl"}
+ {"file":"doc/"}
+ {"file":"tasks/"}
++{"file":"listing.js"}
+diff --git a/public/framework/core/Router/listing.js b/public/framework/core/Router/listing.js
+new file mode 100644
+index 000000000..a3b897ec5
+--- /dev/null
++++ b/public/framework/core/Router/listing.js
+@@ -0,0 +1,50 @@
++/* The names in one folder, from the dev server's /api/folder-names (Server/plugins/FolderNames.js),
++   answered SYNCHRONOUSLY because Page.route() must return now (Page.child() never awaits it).
++   The one folder listing for routing (core/Router): a page's route() asks it which files a folder holds (has()) instead of
++   probing files that may not exist, which is a 404 each. AITask and TaskPage both route their step folders with it.
++
++   One blocking same-origin request per folder, cached for three seconds, so a folder made a
++   moment ago is found on the next click. Off the dev server (the deployed static site) it never
++   asks: the answer is null and the caller falls back to its own probe. Same for a dev server
++   that has not restarted onto the plugin yet: one miss, then null for good. */
++
++import Store from "../Item/Store.js";
++
++const cache = new Map();   // folder url -> {names, at}
++let missing = false;
++
++/** names("/framework/ai/sessions/2026/10/20/session-e00f55c9/") → ["session.jsonl", …], or null. */
++export function names(dir){
++	if (missing || !Store.local()) return null;
++
++	const hit = cache.get(dir);
++	if (hit && Date.now() - hit.at < 3000) return hit.names;
++
++	const x = new XMLHttpRequest();
++	x.open("GET", "/api/folder-names?dir=" + encodeURIComponent(dir), false);
++	try { x.send(); } catch { return null; }
++	if (x.status !== 200 || !(x.getResponseHeader("content-type") ?? "").includes("json")) return (missing = true, null);
++
++	const listed = JSON.parse(x.responseText).names;
++	cache.set(dir, { names: listed, at: Date.now() });
++	return listed;
++}
++
++/** Does this file exist? The folder's listing when there is one, else a synchronous HEAD probe (off the dev server). */
++export function has(url){
++	const cut = url.lastIndexOf("/") + 1;
++	const listed = names(url.slice(0, cut));
++	return listed ? listed.includes(url.slice(cut)) : probe(url);
++}
++
++export function probe(url){
++	const x = new XMLHttpRequest();
++	x.open("HEAD", url, false);
++	try { x.send(); } catch { return false; }
++	return x.status >= 200 && x.status < 300 && !(x.getResponseHeader("content-type") ?? "").includes("html");
++}
++
++/** A task folder with no page.js of its own: it holds session.jsonl or task.jsonl, and no page.js. */
++export function is_record_folder(url){
++	return (has(url + "session.jsonl") || has(url + "task.jsonl")) && !has(url + "page.js");
++}
+diff --git a/public/framework/core/Router/readme.md b/public/framework/core/Router/readme.md
+index be15186a6..ad27e385f 100644
+--- a/public/framework/core/Router/readme.md
++++ b/public/framework/core/Router/readme.md
+@@ -26,7 +26,7 @@ That is the whole API. Each url segment is one `page.child(name)`, a miss is an
+ - [doc/navigated.md](./doc/navigated.md) — `app.navigated?.(page, from)`; why no `page.entered`.
+ - [doc/measured.md](./doc/measured.md) — 0.2ms warm navigation; the serial walk's cost.
+ - Members: `doc/method/<name>.md`, `doc/property/<name>.md`, `doc/file/<path>.md` — rendered under the source by `Doc`.
+-- Files: `Router.js` (the class), `page.js` (the Doc index), `doc/` (one topic each).
++- Files: `Router.js` (the class), `listing.js` (the one folder listing for routing: `names(dir)` asks the dev server's `/api/folder-names` synchronously, `has(url)` and `is_record_folder(url)` build on it; a page's `route(sub)` uses them so it probes no file that may be missing — `AITask` and `TaskPage` open step folders this way), `page.js` (the Doc index), `doc/` (one topic each).
+ 
+ ## Notes from your asks
+ 
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index d1a4994b2..79e3a8c95 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -19,7 +19,7 @@ export default class Session extends Item {
+ 	constructor(id){ super(); if (id !== undefined) this.id = id; }
+ 
+ 	// A session HAS tasks, made on first use like Task.tasks; its progress is counted from them on read, never stored.
+-	get tasks(){ return this._tasks ??= new List({ owner: this, name: "tasks" }); }
++	get tasks(){ if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this._tasks.of = Task; } return this._tasks; }
+ 	set tasks(list){ this._tasks = list; }
+ 	lists(){ const { _tasks, ...rest } = super.lists(); return { ...rest, ...(_tasks ? { tasks: _tasks } : {}) }; }
+ 
+@@ -91,7 +91,7 @@ export default class Session extends Item {
+ 			delete delta.decide;
+ 		}
+ 		for (const k of Object.keys(delta)){   // a nested task changed: {"<task id>":{…}} goes to that task
+-			const kid = delta[k] && typeof delta[k] === "object" ? this._tasks?.find(k) : undefined;
++			const kid = delta[k] && typeof delta[k] === "object" && this._tasks ? this.find(k) : undefined;   // at any depth: a bare id may name a grandchild
+ 			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }
+ 		}
+ 		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.put(k, v);
+diff --git a/public/framework/core/Session/Session.test.mjs b/public/framework/core/Session/Session.test.mjs
+index 0e46db5af..87596a2fc 100644
+--- a/public/framework/core/Session/Session.test.mjs
++++ b/public/framework/core/Session/Session.test.mjs
+@@ -62,6 +62,17 @@ check("the session snapshot (2026-10-23): line times, a reopened session, stoppe
+ 		&& s.first_at === "2026-10-20T00:00:00.000Z" && s.span_ms === 2 * 86400e3 + 4 * 3600e3 && Task.clock === null;
+ });
+ 
++check("replay: a bare child id walks to a nested task, two levels down (process-system lines 120-129)", () => {
++	const lines = [{ session: "r2" }, { tasks: { add: { type: "Task", id: "top", title: "top" } } },
++		{ tasks: { top: { tasks: { add: { id: "kid", title: "kid" } } } } },   // an untyped add under a task is a Task
++		{ top: { start: {} } },
++		{ top: { kid: { complete: EV } } },   // the id nested inside the first
++		{ top: { tasks: { add: { id: "kid2", title: "kid2" } } } },
++		{ kid2: { complete: EV } }];   // a nested id at the TOP level of the line
++	const s = Session.replay(lines), top = s.tasks.find("top"), kid = top.tasks.find("kid"), kid2 = top.tasks.find("kid2");
++	return top instanceof Task && kid instanceof Task && kid.state === "complete" && kid2.state === "complete" && top.progress().done === 2 && top.progress().total === 2 && !("kid2" in s.data);
++});
++
+ process.exit(results.every(Boolean) ? 0 : 1);
+ 
+ import Day from "./Day.js";
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index d8c6a3f46..df44b5c48 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -50,7 +50,7 @@ export class Task extends Item {
+ 	// Made on first use (a replayed log rarely has subtasks). `_tasks` is hidden from
+ 	// `lists()` below so the saved key is still "tasks", which `hydrate()` assigns back.
+ 	get tasks(){
+-		if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this.watch(this._tasks); }
++		if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
+ 		return this._tasks;
+ 	}
+ 	set tasks(list){ this._tasks = list; this.watch(list); }
+@@ -88,6 +88,9 @@ export class Task extends Item {
+ 		else for (const t of kids) if (t.state === "idle") t.start();
+ 	}
+ 
++	// A nested task by id, at any depth below me (never me): a line may name a grandchild by its bare id.
++	below(id){ const hit = this.find(id); return hit === this ? undefined : hit; }
++
+ 	// Resolves with the task once it is complete or stopped (at once if it already is).
+ 	settled(){
+ 		const done = () => this.state === "complete" || this.state === "stopped";
+@@ -126,7 +129,9 @@ export class Task extends Item {
+ 
+ 	// Warn like `Item`'s own `locate()`/`hydrate()` do: once per distinct message,
+ 	// never a throw, and the call site still gets `this` back so a no-op chains.
++	// Silent while a recorded verb replays: the log already happened, and an old line that starts a finished task is history, not a call to fix.
+ 	warn(message){
++		if (this._applying) return this;
+ 		this.constructor.warned ??= new Set();
+ 		if (!this.constructor.warned.has(message)){
+ 			this.constructor.warned.add(message);
+@@ -373,10 +378,12 @@ export class Task extends Item {
+ 	// Browser only: open the child's file through the shared Store, then attach (replay + live tail) onto the stub.
+ 	static async open_ref(kid, ref){
+ 		const dir = String(ref).replace(/\/?$/, "/");
+-		let store = this.Store.for(dir + "task.jsonl");
++		// The likely file first, as TaskPage does, so the usual link makes no 404: <module>/tasks/<slug>/ holds task.jsonl, a session folder session.jsonl.
++		const [a, b] = /\/tasks\/[^/]+\/$/.test(dir) ? ["task.jsonl", "session.jsonl"] : ["session.jsonl", "task.jsonl"];
++		let store = this.Store.for(dir + a);
+ 		try { await store.open(); } catch { /* treated as missing below */ }
+-		if (!store.host && !store.count){   // a session folder's log is session.jsonl (a task moved into a child session, item-move)
+-			const s = this.Store.for(dir + "session.jsonl");
++		if (!store.host && !store.count){   // the other name: an old session folder kept task.jsonl, a task moved into a child session has session.jsonl (item-move)
++			const s = this.Store.for(dir + b);
+ 			try { await s.open(); if (s.host || s.count) store = s; } catch { /* still missing */ }
+ 		}
+ 		if (store.host){   // another reader (TaskPage) is already attached and live: this stub takes a snapshot of the same file
+@@ -443,7 +450,7 @@ export class Task extends Item {
+ 		for (const k of Object.keys(line)) {
+ 			const v = line[k];
+ 			if (!v || typeof v !== "object" || Array.isArray(v) || LINE_KEYS.has(k) || !this._tasks) continue;
+-			const kid = this._tasks.find(k);
++			const kid = this.below(k);
+ 			if (!kid?.replay_line) continue;
+ 			kid.replay_line(v);
+ 			if (typeof v.state === "string" && !VERBS.some(w => v[w])) kid.put("state", v.state);
+@@ -452,10 +459,11 @@ export class Task extends Item {
+ 		if (verdict || verb){
+ 			if (!rp.explicit){ rp.explicit = true; this.replay_legacy(true); }
+ 			this._at = rp.at;
++			this._applying = true;
+ 			try {
+ 				if (verdict) this[verdict.is]({ by: verdict.by, note: verdict.note });
+ 				else { const { at: _a, ...args } = line[verb]; this[verb](verb === "stop" ? args.why : args); }
+-			} finally { this._at = null; }   // so a live Store.read never leaves the clock pinned
++			} finally { this._at = null; this._applying = false; }   // so a live Store.read never leaves the clock pinned
+ 		}
+ 		return this;
+ 	}
+diff --git a/public/framework/core/Task/TaskPage.js b/public/framework/core/Task/TaskPage.js
+index a77be4c2b..4ed574bf1 100644
+--- a/public/framework/core/Task/TaskPage.js
++++ b/public/framework/core/Task/TaskPage.js
+@@ -1,9 +1,18 @@
+ import { Page, div } from "/app.js";
+ import Task from "./Task.js";
+ import "./TaskView.js";   // sets Task.View
++import { is_record_folder } from "../Router/listing.js";
+ 
+ /* The thin route for a task folder: opens its session.jsonl or task.jsonl and shows Task.View full-size. No task logic here. doc: readme.md */
+ export class TaskPage extends Page {
++	// A step folder inside a task page (session.jsonl or task.jsonl, no page.js of its own) opens as a TaskPage too; AITask.route has the same rule.
++	route(sub){
++		if (sub.includes(".")) return;
++		const url = this.url + sub + "/";
++		if (!is_record_folder(url)) return;
++		return new TaskPage({ title: sub, icon: "receipt_long", url });
++	}
++
+ 	async load_task(){
+ 		const has = async n => (await fetch(this.url + n, { method: "HEAD" }).catch(() => null))?.ok;   // a spawned agent's folder holds session.jsonl, a task's task.jsonl
+ 		// Ask for the likely file first, so the usual page makes no 404 (the merge smoke test fails on any 404): a folder at
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index cd1785010..e941834a3 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -65,7 +65,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+ 
+ ## TaskPage
+ 
+-[`TaskPage.js`](./TaskPage.js) (`class TaskPage extends Page`) is the thin route for a task folder: it opens that folder's `task.jsonl` (or `session.jsonl`, for a spawned agent's folder) and shows `Task.View` full-size, with no task logic of its own. It asks the server which file exists, likely one first, so a page makes no 404: `task.jsonl` first in a `<module>/tasks/<slug>/` folder, `session.jsonl` first anywhere else. Demo: [core/Task/page/](/framework/core/Task/page/). The legacy `ai/AITask` viewer is unchanged.
++[`TaskPage.js`](./TaskPage.js) (`class TaskPage extends Page`) is the thin route for a task folder: it opens that folder's `task.jsonl` (or `session.jsonl`, for a spawned agent's folder) and shows `Task.View` full-size, with no task logic of its own. It asks the server which file exists, likely one first, so a page makes no 404: `task.jsonl` first in a `<module>/tasks/<slug>/` folder, `session.jsonl` first anywhere else. A step folder inside it (a `session.jsonl` or `task.jsonl` and no `page.js`, e.g. a run's `review/`) opens as a TaskPage too: `route(sub)` asks `is_record_folder` of [core/Router/listing.js](/framework/core/Router/listing.js), the same rule `AITask.route` uses. Demo: [core/Task/page/](/framework/core/Task/page/). The legacy `ai/AITask` viewer is unchanged.
+ 
+ ## TasksPage
+ 
+diff --git a/public/framework/ext/JSONL/JSONL.js b/public/framework/ext/JSONL/JSONL.js
+index b41cc4018..e1805458e 100644
+--- a/public/framework/ext/JSONL/JSONL.js
++++ b/public/framework/ext/JSONL/JSONL.js
+@@ -5,6 +5,10 @@ import { Store } from "../../core/Item/Store.js";
+ export class JSONL {
+ 	static verbs = ["assign", "log", "action"];
+ 
++	// Keys real logs carry that this reader has no use for, kept in .skipped but never warned about:
++	// the stamps the log writer adds beside every verb.
++	static quiet = ["by", "ts", "origin", "as", "moved_from"];
++
+ 	logs = [];
+ 	actions = [];
+ 	skipped = [];
+@@ -118,6 +122,7 @@ export class JSONL {
+ 	// One warning per verb per file (see doc/JSONL-notes.md).
+ 	skip(verb, entry){
+ 		this.skipped.push(entry);
++		if (this.constructor.quiet.includes(verb)) return;
+ 		this.warned ??= new Set();
+ 		if (this.warned.has(verb)) return;
+ 		this.warned.add(verb);
+@@ -127,6 +132,9 @@ export class JSONL {
+ 
+ // History and reasons: doc/JSONL-notes.md (TaskJSONL schema and semantics).
+ export class TaskJSONL extends JSONL {
++	// The verbs core/Task's replay reads from the same file (session.jsonl): not drawn here, so not warned about.
++	static quiet = [...JSONL.quiet, "session", "sessions", "task", "tasks", "start", "stop", "pause", "resume", "finish", "wait", "approve", "commit", "tag", "group", "settings", "decide", "priority", "snooze", "kill", "follow_up"];
++
+ 	static verbs = [...JSONL.verbs, "agent", "chat", "shot", "ask", "decision", "verdict", "rank", "note", "experiment", "review", "shots", "bands", "home"];
+ 
+ 	// `shots` verb uses static lines to avoid field/array collision (see doc/JSONL-notes.md).
+@@ -134,6 +142,14 @@ export class TaskJSONL extends JSONL {
+ 		shots: value => ({ ...value, msg: value.msg ?? `shots: ${value.pages?.length ?? 0} pages at 4 widths → ${value.dir ?? ""}` }),
+ 	};
+ 
++	// `task` = the replayed core/Task (AITask sets it before each read): a bare key naming a task in it is a walk core/Task replays, not an unknown verb.
++	task = null;
++
++	skip(verb, entry){
++		if (this.task?.find(verb)){ this.skipped.push(entry); return; }
++		super.skip(verb, entry);
++	}
++
+ 	agents = [];
+ 	chats = [];
+ 	shots = [];
 diff --git a/public/framework/styles/css-scopes.txt b/public/framework/styles/css-scopes.txt
-index fcca2faf2..67307f76e 100644
+index fcca2faf2..a53b26157 100644
 --- a/public/framework/styles/css-scopes.txt
 +++ b/public/framework/styles/css-scopes.txt
 @@ -94,6 +94,7 @@ doc-         ext/Doc
@@ -411,11 +909,6 @@ index fcca2faf2..67307f76e 100644
  dt-          ext/DesignTool
  editor-      ext/editor
  file-        ext/files
-@@ -263,3 +264,4 @@ fig-
- 
- # public/framework/ai/sessions/v/mobile — the 400 px mobile variant of the sessions pages (2026-10-22)
- mob-
-+rv-          ai/sessions/v/review
 diff --git a/public/framework/ux/Filter/FilterPill.css b/public/framework/ux/Filter/FilterPill.css
 new file mode 100644
 index 000000000..deeff1470
@@ -564,7 +1057,7 @@ index 000000000..345346894
 +
 +export { TimeFilter };
 diff --git a/public/framework/ux/Filter/readme.md b/public/framework/ux/Filter/readme.md
-index 836d05113..6cafd2281 100644
+index 836d05113..aabb5103c 100644
 --- a/public/framework/ux/Filter/readme.md
 +++ b/public/framework/ux/Filter/readme.md
 @@ -31,6 +31,10 @@ narrows by the query alone. This is how [`core/Sidebar`](/framework/core/Sidebar
@@ -573,7 +1066,7 @@ index 836d05113..6cafd2281 100644
  
 +## Filter pills
 +
-+`class FilterPill extends Dropdown` (`ext/Dropdown`) is one filter worn as a rounded pill, its choice kept in the url (`?<param>=`). `class TimeFilter extends FilterPill` is the **Today ▾** pill (Today, Week, Month, Year): `TimeFilter.add({ root, changed })` hides every element under `root` whose `data-at` falls outside the window. First user: [sessions/v/review](/framework/ai/sessions/v/review/). Files: `FilterPill.js`, `TimeFilter.js`, `FilterPill.css`.
++`class FilterPill extends Dropdown` (`ext/Dropdown`) is one filter worn as a rounded pill, its choice kept in the url (`?<param>=`). `class TimeFilter extends FilterPill` is the **Today ▾** pill (Today, Week, Month, Year): `TimeFilter.add({ root, changed })` hides every element under `root` whose `data-at` falls outside the window. First user: the Work tab of a session page (`ai/AISession/SessionWork.js`). Files: `FilterPill.js`, `TimeFilter.js`, `FilterPill.css`.
 +
  ## Watch out
  
