@@ -408,7 +408,18 @@ export class Page extends Item {
 		const page = await Page.load(this.url + name + "/", 0);
 		if (page) return this.add(name, page).load_all_children(levels);
 
-		return md ? null : this.child_md(name, levels);
+		return await this.child_readme(name, listing, levels) ?? (md ? null : this.child_md(name, levels));
+	}
+
+	// A folder with no page.js or page.jsonl but its own readme.md opens as a page showing that readme (doc/subpages.md). Only a folder the parent's listing knows is asked.
+	async child_readme(name, listing, levels){
+		if (!listing?.folder(name)) return null;
+
+		const url = this.url + name + "/";
+		if (!(await Page.listing(url))?.files.includes("readme.md")) return null;
+
+		const file = await Page.file(url + "readme.md");
+		return file ? this.add(name, { ...file, folder: url }).load_all_children(levels) : null;
 	}
 
 	// ⚠ Imported on first use, like md_folder: core/Task imports Page.
