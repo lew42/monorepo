@@ -47,9 +47,10 @@ export const ROLES = {
 	"task-mastermind":  { readme: "task-mastermind", skills: ["page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* THE AI SYSTEM MASTERMIND (the owner, 2026-10-23; roles/ai-system-mastermind.md): a singleton. `singleton` makes its id the
 	 * prefix itself, never `-2` (Agents.spawn sends a second spawn's prompt to the live one). `renew`: a wake after a day or past
-	 * 300k tokens starts a fresh session under the same id (Agent.renew_due), so it is never kept alive when unused. The generic
+	 * 100k tokens starts a fresh session under the same id (Agent.renew_due), so it is never kept alive when unused. It is never
+	 * compacted (`compact_after: null`; only the 400k safety ceiling applies mid-work): a fresh session replaces compaction. The generic
 	 * `mastermind` row below used to load this readme; it now loads roles/mastermind.md. */
-	"ai-system-mastermind": { readme: "ai-system-mastermind", prefix: "ai-system-mastermind", alias: "servex-mastermind", singleton: true, renew: { hours: 24, tokens: 300000 }, tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+	"ai-system-mastermind": { readme: "ai-system-mastermind", prefix: "ai-system-mastermind", alias: "servex-mastermind", singleton: true, renew: { hours: 24, tokens: 100000 }, tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: null },
 	/* mastermind: bypassPermissions too (2026-10-12, asks #6): it calls spawn_agent/page tools and edits, and nobody can approve a prompt overnight. */
 	mastermind:         { readme: "mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* The fast assistant (every-prompt) is retired for voice as of 2026-10-17 (`voice-assistant` below); its skill files stay on disk and this row stays for the callers that still name it. */

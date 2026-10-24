@@ -83,12 +83,13 @@ export default class ModuleInbox {
 	static FEEDBACK_AGENT = "ai-system-mastermind";
 	static FEEDBACK_WAKE = 3;            // the repeat that wakes it
 
-	/** Should this new line wake the feedback agent? A feedback line (has a fix) that is obvious, or the third repeat. */
+	/** Should this new line wake the feedback agent? A feedback line (has a fix) that is obvious, the third repeat (once), or a repeat after an outcome. */
 	wake_for(row){
 		if (this.module !== ModuleInbox.FEEDBACK || !row.fix) return null;
 		if (row.obvious) return "obvious";
-		const n = this.repeats(row.id);
-		return n >= ModuleInbox.FEEDBACK_WAKE ? `logged ${n} times` : null;
+		const n = this.repeats(row.id), first = this.lines().find(l => l.id === (row.repeat_of ?? row.id));
+		if (row.repeat_of && first?.outcome) return `back after it was marked ${first.outcome.state}`;   // the fix did not hold
+		return n === ModuleInbox.FEEDBACK_WAKE ? `logged ${n} times` : null;
 	}
 
 	/** `servex` (optional) lets the tool wake the feedback agent; without it the line still lands and waits. */

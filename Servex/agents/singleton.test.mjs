@@ -17,7 +17,7 @@ const ID = "ai-system-mastermind";
 
 // roles.js
 t(singleton_id(ID) === ID && singleton_id("mastermind") === null, "the role is a singleton; the generic mastermind is not");
-t(renew_of(ID).hours === 24 && renew_of(ID).tokens === 300000, "renews after a day or past 300k tokens");
+t(renew_of(ID).hours === 24 && renew_of(ID).tokens === 100000, "renews after a day or past 100k tokens");
 t(canonical("servex-mastermind") === ID, "the old role word is an alias");
 t(ROLES.mastermind.readme === "mastermind" && ROLES[ID].readme === ID, "the generic mastermind loads roles/mastermind.md now");
 t(fs.readFileSync(new URL("./roles/servex-mastermind.md", import.meta.url), "utf8").includes("ai-system-mastermind.md"), "the old readme path is a pointer");
@@ -25,7 +25,7 @@ t(fs.readFileSync(new URL("./roles/servex-mastermind.md", import.meta.url), "utf
 // renew_why
 const day = 24 * 3600e3, now = Date.now(), line = renew_of(ID);
 t(renew_why(line, new Date(now - day - 1).toISOString(), 0, now) === "age", "a day old: age");
-t(renew_why(line, new Date(now - 60e3).toISOString(), 300000, now) === "tokens", "past the token line: tokens");
+t(renew_why(line, new Date(now - 60e3).toISOString(), 100000, now) === "tokens", "past the token line: tokens");
 t(renew_why(line, new Date(now - 60e3).toISOString(), 1000, now) === null, "young and small: resume");
 t(renew_why(null, new Date(0).toISOString(), 1e9, now) === null, "a role with no renew line never renews");
 
@@ -86,6 +86,11 @@ const real = ModuleInbox.resolve;
 ModuleInbox.resolve = (m) => real(m, repo);
 const out = JSON.parse(tool.handler({ module: "ai", essence: "fourth", source: "/q", fix: "same", repeat_of: first.id }, { caller: "minion-b" }));
 ModuleInbox.resolve = real;
-t(out.repeats === 4 && out.woke === ID && spawned[0].role === ID && /logged 4 times/.test(spawned[0].prompt), "the tool wakes the AI system mastermind with the problem and fix");
+t(out.repeats === 4 && out.woke === null && spawned.length === 0, "the fourth repeat does not wake it again");
+box.outcome(first.id, { state: "decided", note: "fixed in x", by: ID });
+ModuleInbox.resolve = (m) => real(m, repo);
+const back = JSON.parse(tool.handler({ module: "ai", essence: "fifth", source: "/q", fix: "same", repeat_of: first.id }, { caller: "minion-b" }));
+ModuleInbox.resolve = real;
+t(back.woke === ID && spawned[0].role === ID && /back after it was marked decided/.test(spawned[0].prompt) && /Suggested fix: same/.test(spawned[0].prompt), "a repeat after the outcome wakes it with the problem and fix");
 
 console.log(`singleton: ${n} checks passed`);

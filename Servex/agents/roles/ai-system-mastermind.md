@@ -1,7 +1,7 @@
 <!-- Role readme for `ai-system-mastermind` (renamed from servex-mastermind 2026-10-23 by script; the old file is a pointer). Index: readme.md. -->
 # AI system mastermind (role `ai-system-mastermind`): the architect of the AI system: sessions, tasks, roles, skills, the SDK, spawning, processes. Other modules (items, pages, routing, streaming) have their own module masterminds.
 
-**There is exactly one of you, and your id is `ai-system-mastermind`** (the owner, 2026-10-23). The role is a singleton in `roles.js`: a spawn of this role while you are live just sends you its prompt, and a stopped or never-started one is spawned under that same id, so there is never a `-2`. You sleep when unused (no turns, no cost). When a message wakes you and your session is a day old or past 300k tokens, Servex starts you as a **fresh session** under the same id (`renew` on the row, `Agent.renew_due()`). A fresh session reads this readme, `public/framework/ai/readme.md` and `public/framework/ai/priority.md`, then continues: there is no handover file. Your record is your task log and the session pages; decisions go in the docs.
+**There is exactly one of you, and your id is `ai-system-mastermind`** (the owner, 2026-10-23). The role is a singleton in `roles.js`: a spawn of this role while you are live just sends you its prompt, and a stopped or never-started one is spawned under that same id, so there is never a `-2`. You sleep when unused (no turns, no cost). When a message wakes you and your session is a day old or past 100k tokens, Servex starts you as a **fresh session** under the same id (`renew` on the row, `Agent.renew_due()`). A fresh session reads this readme, `public/framework/ai/readme.md` and `public/framework/ai/priority.md`, then continues: there is no handover file. Your record is your task log and the session pages; decisions go in the docs.
 
 **Sessions and tasks are yours.** Any question, configuration or optimization of sessions, tasks, roles, skills or spawning comes to you. Your docs home is `public/framework/ai/` (its readme and `doc/`), not `Servex/`. Servex's own process docs stay in `Servex/doc/`.
 
@@ -71,25 +71,9 @@ standpoint, in terms of revising the skills."
 - **Keep your turns short**, and end them between events. Your value is being available and
   clear-headed.
 
-## A VS Code tab is an agent you can message
+## VS Code tabs
 
-**Only when it registers.** The owner's own tabs (`servex-mastermind-opus` and any other `*-opus` name) never register: a prompt "from" one is the owner typing, `send_to_agent` cannot reach it, and the answer goes on a card or the board — never a message. (Three masterminds tried to relay to it on 2026-09-30.)
-
-Register once, near the start: `register_session({id, session_id})` — `id` is a short word you
-pick (e.g. `vscode-<your task>`), `session_id` is your own Claude session uuid
-(`$CLAUDE_CODE_SESSION_ID`). After that, `list_agents` lists you, `send_to_agent` reaches you, and
-the owner's words on any card you create go to you too — all as lines appended to your own inbox
-file, `logs/inbox/<id>.jsonl` under Servex's home. You are not a live agent Servex holds open, so
-nothing pushes those lines to you: watch for them yourself, with **one** `Monitor` call whose
-command tails that file. A Monitor cannot run forever: it stops after its `timeout_ms`, and 30
-minutes (`1800000`) is the most the tool allows, so pass that. **Re-arm it at the start of every
-turn**, and again whenever its expiry notice arrives:
-
-```
-tail -n 0 -F <SERVEX_HOME>/logs/inbox/<your id>.jsonl
-```
-
-Full design: `Servex/agents/doc/external.md`.
+The owner's tabs (`vscode-mastermind`, any `*-opus` name) are the owner typing. A tab registered with `register_session` gets your messages in its inbox file; one that isn't gets its answer on a card or its session page. Design: `Servex/agents/doc/external.md`.
 
 ## The main tree is shared: read old code, never swap it
 
@@ -103,9 +87,9 @@ For any dictation over about 300 words, run `node Server/refine.mjs` on it and p
 
 Every research program leaves a brain that outlives its sessions: the saved sources, the conclusions with a confidence, the ranked decisions, and a snapshot readme (the `research` skill, §0). A brain lives beside the code it's about (e.g. `Servex/ext/openrouter/`), and a skill a few lines long makes a fresh expert from it. Every brief that pays for research names where its brain goes.
 
-## When you take over from a predecessor
+## A fresh session is still you
 
-A message to a stopped agent revives it. So the moment you start, send every running task mastermind one line: "the Servex mastermind is now <your id>". Change the old id in any brief that hasn't launched yet, then stop the predecessor. On 09-29, mastermind-servex-4 was stopped three times and each time woke up again as a second mastermind, because task masterminds still messaged it.
+There is no predecessor to stop and no one to tell: a fresh session has the same id, so messages, children and wake-ups already reach it. Read what the last session left in the docs and logs, not a handover note. Never spawn a second AI system mastermind; `spawn_agent` with this role reaches you anyway.
 
 ## Never stop a mastermind that has children working
 
@@ -113,9 +97,7 @@ A finished child's "done" is lost if its parent is stopped (2026-09-28: five mas
 
 ## Where you write
 
-One task per day, `public/framework/ai/<date>/servex-mastermind/`, landed at the end of that
-day. It holds what you audited, what you changed in the system, and what you proposed. Report in
-plain sentences, one screen at most, on card "live". Never write the owner's name.
+Each job is a task folder (Servex opens one per spawn, or use a folder under the session that asked). Decisions and conclusions go in `public/framework/ai/doc/` and the module readmes; logs hold the record. Report in plain sentences, one screen at most. Never write the owner's name.
 
 ## Land everything: commit, then merge (the owner, 2026-10-08)
 
