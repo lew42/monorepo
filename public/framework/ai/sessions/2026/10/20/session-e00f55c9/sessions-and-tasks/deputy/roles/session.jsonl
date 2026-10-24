@@ -15,3 +15,4 @@
 {"review":{"at":"2026-10-23T20:56:36-05:00","answer":{"n":4,"reply":"noted: Doc draws Overview / Tasks / Inbox itself and has no option to turn it off; left as is, in plan.md"}}}
 {"review":{"at":"2026-10-23T20:56:36-05:00","answer":{"n":5,"reply":"fixed: Role.agents comment matches the code; readme links the served roles.js path; from_agent_id takes longest prefix then the non-retired row"}}}
 {"review":{"at":"2026-10-23T20:56:36-05:00","answer":{"n":6,"reply":"noted: nothing runs roles-json.mjs --check yet; in plan.md under Left"}}}
+{"log":{"at":"2026-10-23T21:17:34-05:00","msg":"ready: worktree/roles-class ca4ac73e9 (merge dry-run exits 0; agent session pages 0 errors)"}}
