@@ -3,7 +3,9 @@
  * branch list (305 unmerged branches are mostly salvage). Per branch the latest line wins; a branch
  * already in michael/dev, or no longer existing, is dropped. Doc: public/framework/ai/merge/readme.md
  * Row: {branch, sha, at, task_dir, task_url, title, what, review, worktree, stale}. `stale` = the
- * branch head moved past the sha the agent named; the Merge button refuses those. */
+ * branch head moved past the sha the agent named. A stale row also carries `latest` = {sha, ok, why?}:
+ * the review gate's answer for the branch's CURRENT head (merge.mjs --gate-only), so the card can offer
+ * "Merge latest" when ok, or say what is missing when not. `agent` = who marked it ready. */
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -19,6 +21,29 @@ export function parseReady(msg) {
 	if (!m) return null;
 	let what = m[3].replace(/^\(worktree [^)]*\)\s*[;,.:]?\s*/, "").trim();
 	return { branch: m[1], sha: m[2], what };
+}
+
+/* The review gate's answer for a worktree's current head, from merge.mjs itself (one copy of the gate):
+ * {ok, why}. `why` is the gate's refusal text in plain words (plainGate). */
+export function gateOf(repo, worktree) {
+	const r = spawnSync("node", [path.join(repo, "Server/merge.mjs"), worktree, "--gate-only"], { cwd: repo, encoding: "utf8", windowsHide: true, timeout: 60000 });
+	const out = (r.stdout || "").trim().split(/\r?\n/).filter(l => l.startsWith("gate:")).pop();
+	if (r.status === 0 && out === "gate: ok") return { ok: true };
+	if (!out) return { ok: false, why: "the review gate did not answer: " + ((r.stderr || String(r.error || "")).trim().split(/\r?\n/).pop() || "no output") };
+	return { ok: false, why: plainGate(out.slice(5).trim()) };
+}
+
+/* A gate refusal in plain words. */
+export function plainGate(g) {
+	g = g.replace(/^refused:\s*/, "");
+	if (/has no review;/.test(g)) return "Nobody has reviewed this branch yet.";
+	if (/review is stale/.test(g)) return "The newest review is of an older commit, so the new commits have not been reviewed.";
+	const un = /\(reviewed: \d+ unanswered: ([^)]*)\)/.exec(g);
+	if (un) return `A review finding is still unanswered (${un[1]}).`;
+	if (/no report/.test(g)) return "The branch changes a page, but its review has no page report.";
+	const shot = /has no screenshot at ([\d, ]+)px/.exec(g);
+	if (shot) return `The branch changes a page, but the review has no screenshot at ${shot[1]}px.`;
+	return g.replace(/\s*(Or re-review|run|re-run):.*$/s, "").trim();
 }
 
 const git = (cwd, ...a) => spawnSync("git", a, { cwd, encoding: "utf8", windowsHide: true });
@@ -58,17 +83,18 @@ export function readyRows(opts = {}) {
 	const latest = new Map();   // branch -> row (latest line wins)
 	for (const day of dayDirs(sessions, since)) for (const file of recordFiles(day, since)) {
 		let lines; try { lines = fs.readFileSync(file, "utf8").split(/\r?\n/); } catch { continue; }
-		let title = null;
+		let title = null, agent = "";
 		for (const l of lines) {
 			if (!l) continue;
 			let e; try { e = JSON.parse(l); } catch { continue; }
 			if (title === null) title = e.assign?.title || e.session?.title || e.title || "";
+			if (!agent) agent = e.assign?.agent || "";
 			const msg = e.log?.msg; if (typeof msg !== "string" || !msg.startsWith("ready:")) continue;
 			const r = parseReady(msg); if (!r) continue;
 			const at = e.log.at || "", prev = latest.get(r.branch);
 			if (prev && prev.at > at) continue;
 			const dir = path.dirname(file);
-			latest.set(r.branch, { ...r, at, task_dir: dir, title: title || path.basename(dir), _file: file });
+			latest.set(r.branch, { ...r, at, agent, task_dir: dir, title: title || path.basename(dir), _file: file });
 		}
 	}
 	const wts = new Map();
@@ -82,8 +108,10 @@ export function readyRows(opts = {}) {
 		if (!head) continue;                                                       // branch gone
 		if (git(repo, "merge-base", "--is-ancestor", head, base).status === 0) continue;   // already landed
 		const { _file, ...r } = row;
+		const stale = !head.startsWith(r.sha), worktree = wts.get(r.branch) || null;
+		const latest = stale && worktree ? { sha: head.slice(0, 9), ...(opts.gate || gateOf)(repo, worktree) } : null;
 		rows.push({ ...r, record: path.basename(_file), task_url: "/" + path.relative(path.join(root, "public"), r.task_dir).split(path.sep).join("/") + "/",
-			review: reviewStatus(r.task_dir), worktree: wts.get(r.branch) || null, stale: !head.startsWith(r.sha), head });
+			review: reviewStatus(r.task_dir), worktree, stale, latest, head });
 	}
 	return rows.sort((a, b) => (b.at > a.at ? 1 : -1));
 }
@@ -112,15 +140,21 @@ function runAsync(cmd, args, cwd){
  * branch not on the list, stale, or with no worktree; otherwise runs ONLY `node Server/merge.mjs <worktree>`
  * and, on exit 0, logs the merge in the task record. `run` is injectable for the test. Answers {ok, out, why?}. */
 export async function mergeBranch(branch, opts = {}) {
+	// `opts.head`: the sha the owner saw on the card ("Merge latest"); a moved branch merges only if its current head is that one and passes the gate
 	const repo = opts.repo || mainRoot(process.cwd());
 	const row = (opts.rows || readyRows)({ ...opts, repo }).find(r => r.branch === branch);
 	if (!row) return { ok: false, why: "that branch is not on the ready list" };
-	if (row.stale) return { ok: false, why: `the branch moved past ${row.sha} since it was marked ready; ask the agent to re-mark it` };
+	if (row.stale) {
+		const now = row.head.slice(0, 9);
+		if (!opts.head) return { ok: false, why: `the branch moved past ${row.sha} since it was marked ready; the latest is ${now} (use Merge latest)` };
+		if (!row.head.startsWith(opts.head)) return { ok: false, why: `the branch moved again: the card showed ${String(opts.head).slice(0, 9)} but the head is now ${now}; reload the page` };
+		if (!row.latest?.ok) return { ok: false, why: `the newest commits (${now}) cannot merge yet: ${row.latest?.why || "no worktree to check them in"}` };
+	}
 	if (!row.worktree) return { ok: false, why: "no worktree holds that branch" };
 	const r = await (opts.run || runAsync)("node", [path.join(repo, "Server/merge.mjs"), row.worktree], repo);
 	const out = ((r.stdout || "") + (r.stderr || "")).trim().split(/\r?\n/).slice(-30).join("\n");
 	if (r.status !== 0) return { ok: false, why: `merge.mjs refused (exit ${r.status})`, out };
-	const msg = `merged: ${branch} ${row.sha} by the owner (Merge button)`;
+	const msg = `merged: ${branch} ${row.stale ? row.head.slice(0, 9) : row.sha} by the owner (${row.stale ? "Merge latest" : "Merge"} button)`;
 	if (opts.log) opts.log(row, msg);
 	else {
 		const lines = path.join(os.tmpdir(), `merge-log-${Date.now()}.json`);

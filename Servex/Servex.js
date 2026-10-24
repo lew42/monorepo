@@ -703,10 +703,10 @@ export default class Servex extends Events {
             const via = this.via(req);
             if (via) return res.json({ ok: true, stubbed: true, via });
             const branch = req.body?.branch;
-            if (typeof branch !== "string" || !branch) return res.status(400).json({ ok: false, why: "body must be {branch}" });
+            if (typeof branch !== "string" || !branch) return res.status(400).json({ ok: false, why: "body must be {branch, head?}" });
             if (this.merging) return res.json({ ok: false, why: "another merge is running; try again in a minute" });
             this.merging = true;
-            try { res.json((await import("../Server/ReadyToMerge.mjs")).mergeBranch(branch)); }
+            try { res.json(await (await import("../Server/ReadyToMerge.mjs")).mergeBranch(branch, { head: typeof req.body?.head === "string" ? req.body.head : undefined })); }
             catch (e) { res.status(500).json({ ok: false, why: String(e?.message || e) }); }
             finally { this.merging = false; }
         });
