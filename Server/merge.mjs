@@ -572,8 +572,7 @@ try {
 				const results = await NavCheck.check(wtBase, navPages.map(url => ({ url, parent: NavCheck.parent_page(dir, url) })));
 				await Browser.close();
 				navRefusal = NavCheck.refusal(results);
-				if (navRefusal && noNav) { console.warn(`!!! --no-nav: ${noNav} — merging with unlinked new page(s) !!!
-${navRefusal}`); navRefusal = null; }
+				if (navRefusal && noNav) { console.warn(`!!! --no-nav: ${noNav} — merging with unlinked new page(s) !!!\n${navRefusal}`); navRefusal = null; }
 				else if (!navRefusal) console.log(`NavCheck: ${navPages.length} new page(s), all reachable by a click from their parent.`);
 			} else if (navPages.length) console.log(`NavCheck: ${navPages.length} new page(s) but no worktree server — click test skipped`);
 		}
