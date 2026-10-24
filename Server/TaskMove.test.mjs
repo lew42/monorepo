@@ -20,9 +20,8 @@ const linkTo = (fromFile, toFile) => { const l = slash(path.relative(path.dirnam
 
 // TaskMove.sessions() loads core/Session/Session.js from INSIDE the chosen --repo (one scanner, not two) —
 // the fixture needs its own copy, same relative path, so the fake repo is self-contained.
-const realSessionJs = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public", "framework", "core", "Session", "Session.js");
-fs.mkdirSync(path.join(repo, "public", "framework", "core", "Session"), { recursive: true });
-fs.copyFileSync(realSessionJs, path.join(repo, "public", "framework", "core", "Session", "Session.js"));
+const realCore = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public", "framework", "core");
+fs.cpSync(realCore, path.join(repo, "public", "framework", "core"), { recursive: true, filter: src => fs.statSync(src).isDirectory() ? !/[\/](tasks|ai|doc|shots)$/.test(src) : src.endsWith(".js") });
 
 // ---- fixture: a session store, two day folders, three task shapes, loose day files, a collision, and real relative links ----
 

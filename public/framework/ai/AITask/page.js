@@ -32,7 +32,7 @@ export default new Doc({
 	properties: "src",
 	methods:    "content session legacy base requirements report asks decisions streamed refresh outcome links head status cost checklist unparsed extra shots figures chat composer log",
 	notes:      "views nested cost asks ranking decisions-tab highlights manifest effort starting-work pace template waves decisions",
-	files:      "AITask.js TaskViews.js ai.css asks.js board.js card.js compose.js cost.js conversation.js dashboard.js decisions.js decisions.mjs effort.js highlights.js nested.js nested.css plan.js tree.js listing.js message.js needs.js prompt.js rank.js shots.js stats.js usage.js page.js readme.md",
+	files:      "AITask.js TaskViews.js ai.css asks.js board.js card.js compose.js cost.js conversation.js dashboard.js decisions.js decisions.mjs effort.js highlights.js nested.js nested.css plan.js tree.js message.js needs.js prompt.js rank.js shots.js stats.js usage.js page.js readme.md",
 	overview:   [
 		{ title: "Task card", content(){
 			demo(() => {

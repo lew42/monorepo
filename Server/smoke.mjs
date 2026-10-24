@@ -173,6 +173,7 @@ async function links_on(page){
 		if (u.origin !== new URL(base).origin) continue;
 		const ext = (u.pathname.match(/\.([a-z0-9]+)$/i)?.[1] ?? "").toLowerCase();
 		if (SKIP_EXT.has(ext)) continue;
+		if (u.pathname.startsWith("/ai-logs/")) continue;   // a session's raw transcript (a file the dev server streams), not a page: loading it aborts
 		const norm_path = u.pathname + u.search;
 		if (loaded.has(norm_path)) continue;
 		loaded.add(norm_path);

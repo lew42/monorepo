@@ -139,10 +139,10 @@ index 4fa61ffd1..f32695308 100644
 -export const PART_TYPES = ["part-heading", "part-text", "part-card", "part-link"];
 +export const PART_TYPES = ["part-heading", "part-text", "part-card", "part-link", "part-view", "part-file"];
 diff --git a/public/framework/core/Page/parts/page.jsonl b/public/framework/core/Page/parts/page.jsonl
-index 141adc39d..626395c49 100644
+index 141adc39d..9306867d7 100644
 --- a/public/framework/core/Page/parts/page.jsonl
 +++ b/public/framework/core/Page/parts/page.jsonl
-@@ -27,3 +27,7 @@
+@@ -27,3 +27,8 @@
  {"file":"PageText.js"}
  {"file":"PageLink.js"}
  {"file":"kinds.js"}
@@ -150,6 +150,7 @@ index 141adc39d..626395c49 100644
 +{"file":"PageView.js"}
 +{"file":"types/"}
 +{"file":"types/page.jsonl"}
++{"content":{"add":{"id":"types-link","type":"part-link","path":"./types/","title":"Part types","text":"One part of each of the six types."}}}
 diff --git a/public/framework/core/Page/parts/readme.md b/public/framework/core/Page/parts/readme.md
 index 3422b7b93..8e7316b98 100644
 --- a/public/framework/core/Page/parts/readme.md
@@ -206,7 +207,7 @@ index 000000000..b9db460ac
 Binary files /dev/null and b/public/framework/core/Page/parts/types/doc/types-1200.png differ
 diff --git a/public/framework/core/Page/parts/types/doc/types-1920.png b/public/framework/core/Page/parts/types/doc/types-1920.png
 new file mode 100644
-index 000000000..c17e269b5
+index 000000000..6f65eba27
 Binary files /dev/null and b/public/framework/core/Page/parts/types/doc/types-1920.png differ
 diff --git a/public/framework/core/Page/parts/types/doc/types-3440.png b/public/framework/core/Page/parts/types/doc/types-3440.png
 new file mode 100644
@@ -230,18 +231,20 @@ index 000000000..f72fa2258
 +- The same file is also a readme you can open on its own.
 diff --git a/public/framework/core/Page/parts/types/page.jsonl b/public/framework/core/Page/parts/types/page.jsonl
 new file mode 100644
-index 000000000..65b6f45a7
+index 000000000..78e39c977
 --- /dev/null
 +++ b/public/framework/core/Page/parts/types/page.jsonl
-@@ -0,0 +1,11 @@
+@@ -0,0 +1,13 @@
 +{"title":"Part types","icon":"view_agenda","class":"../Parts.js","description":"One part of each of the six types a page.jsonl line can add."}
 +{"content":{"add":{"id":"t-heading","type":"part-heading","text":"The six part types, one each"}}}
 +{"content":{"add":{"id":"t-text","type":"part-text","text":"**part-text** takes a whole block of markdown: paragraphs, lists, `code`. Every block below is one line in this page's own `page.jsonl`."}}}
 +{"content":{"add":{"id":"t-card","type":"part-card","title":"part-card","text":"A boxed title with a line under it."}}}
++{"content":{"add":{"id":"l-link","type":"part-text","text":"`part-link`"}}}
 +{"content":{"add":{"id":"t-link","type":"part-link","path":"../example/","title":"part-link","text":"A card for another page: this one opens the parts example."}}}
 +{"content":{"add":{"id":"t-view","type":"part-view","class":"./Meter.js","data":{"label":"part-view","value":92}}}}
++{"content":{"add":{"id":"l-file","type":"part-text","text":"`part-file`"}}}
 +{"content":{"add":{"id":"t-file","type":"part-file","file":"./notes.md"}}}
-+{"content":{"add":{"id":"t-live","type":"part-card","title":"Added while open","text":"This line was appended after the page loaded."}}}
++{"content":{"add":{"id":"t-live","type":"part-card","title":"Added while open","text":"This card was added by a live append while the page was open; the page redrew without a reload (doc/live-before.png, doc/live-after.png)."}}}
 +{"file":"doc/"}
 +{"file":"Meter.js"}
 +{"file":"notes.md"}

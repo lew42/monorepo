@@ -1,5 +1,6 @@
 /* node Servex/agents/global.test.mjs — Claims, brief(), and Global against a fake
  * Servex. Everything it writes goes to a scratch SERVEX_HOME, never the real one. */
+import { model } from "./tiers.js";
 import assert from "node:assert";
 import fs from "fs";
 import os from "os";
@@ -101,9 +102,9 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	 * master() already spawns it on the architect model; this assertion was stale (said
 	 * claude-sonnet-5/"fast tier"), a pre-existing mismatch found while touching this file
 	 * for D3, not something this task's own edits changed. */
-	t(master && master.model === "claude-opus-5-5" && master.effort === "medium", "master-assistant spawned, exact id, architect tier (D7: root assistant on Opus)");
+	t(master && master.model === model("architect") && master.effort === "medium", "master-assistant spawned, exact id, architect tier (D7: root assistant on Opus)");
 	const mm = f.spawned.find(s => s.id === "mastermind-servex");
-	t(mm && !mm.resume && mm.prompt === "You are on duty. Answer nothing now." && mm.model === "claude-opus-5-5", "fresh mastermind only when nothing recorded");
+	t(mm && !mm.resume && mm.prompt === "You are on duty. Answer nothing now." && mm.model === model("architect"), "fresh mastermind only when nothing recorded");
 	t(["claim_topic", "release_topic", "list_claims", "set_focus"].every(k => f.tools.has(k)), "four tools registered");
 	t(f.servex.checks.length === 1, "admission check pushed");
 	clearInterval(g.reap_timer);
@@ -247,7 +248,7 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 
 	const master = f.spawned.find(s => s.id === "master-assistant");
 	t(["page_reply", "ask_manager", "card_reply"].every(k => master.allowed_tools.includes(`mcp__servex__${k}`)), "master-assistant can answer the page / and hand work to manager-root");
-	t(master.model === "claude-opus-5-5", "master-assistant runs on the architect tier (Opus)");
+	t(master.model === model("architect"), "master-assistant runs on the architect tier (Opus)");
 	t(Array.isArray(master.setting_sources) && !master.setting_sources.length && master.sdk?.tools?.length === 0 && master.env?.ENABLE_CLAUDEAI_MCP_SERVERS === "false", "master-assistant starts lean, like a page assistant");
 	fs.rmSync(repo, { recursive: true, force: true });
 	clearInterval(g.reap_timer);
@@ -435,7 +436,7 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	const { defaults, canonical } = await import("./roles.js");
 	t(canonical("master-assistant") === "master-assistant", "master-assistant resolves to its own row, not an alias of page-assistant");
 	const posture = defaults("master-assistant");
-	t(posture.model === "claude-opus-5-5" && posture.effort === "high" && posture.permission_mode === "plan",
+	t(posture.model === model("architect") && posture.effort === "high" && posture.permission_mode === "plan",
 		`spawn_agent({role: "master-assistant"}) keeps its old posture: architect/high/plan (got ${JSON.stringify(posture)})`);
 }
 

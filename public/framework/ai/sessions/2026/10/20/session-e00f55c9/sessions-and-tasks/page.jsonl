@@ -9,3 +9,5 @@
 {"file":"deputy/"}
 {"file":"compact-before-sleep/"}
 {"file":"sessions-shots/"}
+{"file":"inbox.jsonl"}
+{"inbox":{"id":"n-v3th6psy","from":"servex-task-loop","text":"1 unread line(s) in public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/inbox.jsonl, and vscode-mastermind is stopped or gone. Look at them.","at":"2026-10-23T22:51:38.490-05:00"}}

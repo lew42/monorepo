@@ -925,8 +925,13 @@ export class Agents {
 		/* A fork's answer IS the payload, so it goes whole (to 4000 chars) — the
 		 * whole turn's text, not only its last block. Any other wake is a headline. */
 		const fork = child.one_shot && (kind === "done" || kind === "blocked");
+		/* A turn that ended with no words and no cost is a start that never happened (a blocked first prompt, a hook timeout), not "done". */
+		if (kind === "done" && !fork && !child.last_text?.trim() && !(child.cost > 0)){
+			kind = "error";
+			child.last_error = "ended its first turn with no output and no cost: its prompt was probably blocked (a hook timeout). Treat it as a failed start and respawn it.";
+		}
 		const text = kind === "error" ? child.last_error : fork ? (child.words ?? child.last_text) : child.last_text;
-		const body = (fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 4000)}`);
+		const body =(fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 4000)}`);
 		child.woke = true;
 		/* THE NEXT STEP, in node (2026-10-13): a landed task tells its parent which queued sibling it unblocks, with the brief's path. */
 		const next = kind === "done" && child.task?.dir && task_landed(child.task.dir) ? next_briefs(child.task.dir) : [];
