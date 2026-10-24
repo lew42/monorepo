@@ -13,7 +13,7 @@ const { Agents } = await import("./Agents.js");
 class FakeAgent extends Agents.Agent {
 	start(){
 		this.queue = new this.constructor.Queue(); this.aborter = { abort(){} }; this.query = { close(){} };
-		this.proc_cost = 0;   // what the real start() does
+		if (!this.resume || this.fork) this.proc_cost = 0;   // what the real start() does: a resume keeps the session's total
 		this.session_id ??= this.resume ?? "fake-session-1"; this.state = "idle";
 		return this;
 	}
@@ -28,8 +28,8 @@ const a = host.spawn({ id: "cost-stub", role: "agent", cwd: dir, model: "claude-
 a.host = host;
 turn(a, 0.10); turn(a, 0.25);            // two turns in one process: SDK totals 0.10 then 0.25
 near(a.cost, 0.25); near(a.turn_cost, 0.15);
-a.state = "idle"; a.awoken_at = 0; a.sleep("test"); a.awaken("test");   // new process: SDK total restarts at 0
-turn(a, 0.05);                            // 0.05 in the new process
+a.state = "idle"; a.awoken_at = 0; a.sleep("test"); a.awaken("test");   // new process: the SDK total CONTINUES from the session's 0.25
+turn(a, 0.30);                            // 0.05 in the new process, reported as the session total 0.30
 near(a.cost, 0.30);                       // 0.25 + 0.05, not 0.05
 const row = host.reg().read()["cost-stub"];
 near(row.cost, 0.30); assert.equal(row.turns, 3);
@@ -39,7 +39,16 @@ near(host.logged_cost("cost-stub"), 0.30);    // the records alone give the same
 const host2 = make();
 const b = host2.reopen(host2.reg().read()["cost-stub"]);
 near(b.cost, 0.30);
-turn(b, 0.07); near(b.cost, 0.37);
+turn(b, 0.37); near(b.cost, 0.37);         // reopen seeded the SDK total from the log: only the 0.07 counts
+// a log written before 2026-10-23 (no sdk_total): each wake-up's first turn logged the whole session; log_cost rebuilds it
+const old = host2.store().file("agent-old-log").path, at = "2026-10-23T20:00:00-05:00";
+fs.mkdirSync(path.dirname(old), { recursive: true });
+fs.writeFileSync(old, [
+	{ type: "process", state: "started" }, { type: "result", turn_cost: 4 }, { type: "result", turn_cost: 1 },   // session total 5
+	{ type: "process", state: "started" }, { type: "result", turn_cost: 5.2 },                                   // logged 5.2, real 0.2
+	{ type: "process", state: "started" }, { type: "result", turn_cost: 5.5 }, { type: "compact", turn_cost: 0.1 }   // real 0.3 + 0.1
+].map(l => JSON.stringify({ at, ...l })).join("\n") + "\n");
+near(host2.logged_cost("old-log"), 5.6);
 console.log("cost.test.mjs: all checks passed", b.cost);
 clean();
 process.exit(0);
