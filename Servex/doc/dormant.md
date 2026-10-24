@@ -12,8 +12,9 @@ for a role that is neither the voice pair nor a one-off worker, is still **3 min
 At most **5 agents work at once**. A new spawn above that waits in the spawn queue until one
 of them ends its turn.
 
-An agent whose context passes **200k tokens**, or whose process passes **500 MB**, is
-**compacted** when its turn ends.
+An agent about to go dormant with more than **100k tokens** of context **compacts first, then
+sleeps**, so it wakes small. Past **400k tokens** or **500 MB** it is compacted when its turn ends,
+whatever happens next. Details: "Compaction", below.
 
 ## The states
 
@@ -119,6 +120,34 @@ of RAM given back this way.
 - Shown as `working N/5` in `heartbeat_status` and in `system_health`'s first line.
 
 ## Compaction
+
+**Compact before sleep (the owner, 2026-10-23).** When an agent is about to go dormant and its context is
+over its sleep line, it runs `/compact` first and sleeps when that turn ends. The next message wakes it
+with a summary of about 10-20k tokens instead of reloading the whole history.
+
+- **The line:** 100k tokens (`SERVEX_SLEEP_COMPACT_TOKENS`), or half the model window if that is lower.
+  A role can set its own as `compact_after.sleep` in `agents/roles.js` (masterminds: 100k).
+- **Who:** every agent that sleeps, except minions (`compact_after: null`), the standing front desk
+  (`assistant-*`, `manager-*`, `master-assistant`, `session-*`, the Dispatcher) and forks.
+- **When:** at the sleep moment (`Agent.sleep("idle")` → `Agent.sleep_compact()`), not at the turn end. An
+  agent that gets another message within its idle wait keeps its full context. The wait is 3 minutes
+  (30 s when RAM is tight, 0 for a task mastermind), all under the 5-minute cache TTL, so the
+  compaction reads a warm cache. Only an agent given `dormant_after` over 300 s compacts cold, and that
+  is still cheaper than one cold wake of the full context.
+- **Once:** an agent already compacted since its last turn just sleeps. A sleep for a landed task
+  (`sleep("landed")`) never compacts: that agent is not expected back.
+- **A message during the compaction** queues behind `/compact` and runs after it; the agent stays awake
+  for that turn and tries to sleep again after it.
+- **Logged:** `compacting` and `compact` lines with `why: "sleep"` and the tokens before and after, then the
+  usual `dormant` line.
+- **Measured cost of one compaction** (Servex's own `compact` lines; `turn_cost` is the compaction turn
+  alone): a Sonnet task mastermind went from 158,513 to 16,746 tokens for **$0.24 in 61 s**, about 1 minute
+  after its turn ended (warm). A 57k context went to 5k for $0.08 in 15 s. Waking that 158k agent cold
+  without compacting re-writes all 158k to cache, roughly $0.60 at Sonnet's cache-write price, and every
+  later turn re-reads the full history. One compaction pays for itself at the first wake.
+- Test: `node Servex/agents/compact-before-sleep.test.mjs` (23 checks).
+
+**The other two rules still run:**
 
 - At the end of a turn an idle agent past its line (a mastermind 150k, others `SERVEX_NUDGE_TOKENS` 200k) gets ONE
   nudge message with its context size and whether its cache is warm; it compacts itself (`compact_self`) or not.

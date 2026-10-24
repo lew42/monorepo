@@ -26,8 +26,10 @@ import { model, provider } from "./tiers.js";
  * is {tokens}: once an IDLE agent's context passes `tokens`, Servex sends it ONE nudge (context size, cache warm/cold)
  * and the agent decides, answering with the `compact_self` tool; it never auto-compacts mid-flight. Age is no reason.
  * `null` = never (minions live 10-30 min). A row with no field uses the host default (SERVEX_NUDGE_TOKENS, 200k).
- * Everyone (but minions and the front desk) is auto-compacted at turn end only past the safety ceiling (400k) or memory. */
-export const MASTERMIND_COMPACT = { tokens: 150000 };
+ * Everyone (but minions and the front desk) is auto-compacted at turn end only past the safety ceiling (400k) or memory.
+ * `sleep` (the owner, 2026-10-23): an agent about to go dormant with more context than this compacts first, then sleeps,
+ * so it wakes small. Default SERVEX_SLEEP_COMPACT_TOKENS (100k), never above half the window (Agent.sleep_compact). */
+export const MASTERMIND_COMPACT = { tokens: 150000, sleep: 100000 };
 export function compact_after(role){ const r = ROLES[canonical(role)]; return r && "compact_after" in r ? r.compact_after : undefined; }
 
 export const ROLES = {

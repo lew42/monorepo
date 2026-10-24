@@ -1330,6 +1330,9 @@ Agents.Agent = class Agent {
 		   last minute is never put back to sleep. */
 		if (this.awoken_at && Date.now() - this.awoken_at < 60_000) return false;
 		if (this.bg_tasks > 0) return false;
+		/* COMPACT BEFORE SLEEP (the owner, 2026-10-23, doc/dormant.md "Compaction"): a big context
+		 * compacts first, then sleeps, so the next wake reloads a summary, not the whole history. */
+		if (why === "idle" && this.sleep_compact() && this.compact("sleep")) return false;
 		this.gen = (this.gen ?? 0) + 1;   // the old pump's end is not news
 		/* NEVER-LOSE-A-WAKE, item 5 (fresh-eyes review finding 4): this only ever runs while
 		 * `state === "idle"`, which means nothing is queued behind the last turn — `result()`
@@ -1443,6 +1446,21 @@ Agents.Agent = class Agent {
 		const warm = minutes < 5;
 		this.nudge_info = { context, cache: warm ? "warm" : "cold", minutes };
 		return `Context: ${context.toLocaleString("en-US")} tokens (${Math.round(context / window * 100)}% of the window), cache ${warm ? "warm" : "cold"} (last turn ${minutes} minute${minutes === 1 ? "" : "s"} ago). You are idle. Compact at your next natural break (an investigation done, no tools in flight): now, unless something in flight needs this context.`;
+	}
+
+	/* COMPACT BEFORE SLEEP (the owner, 2026-10-23): true when this agent, about to go dormant, holds more than its
+	 * sleep line: roles.js `compact_after.sleep`, else SERVEX_SLEEP_COMPACT_TOKENS (100k), never more than half the
+	 * window. Not for minions (`compact_after: null`), the front desk (STANDING), a fork, or a context already
+	 * compacted since its last turn. Runs at the sleep moment, not at turn end, so an agent that gets another message
+	 * within its idle wait keeps its context; that wait is 3 minutes or less for most roles, under the 5-minute cache
+	 * TTL, so the compaction reads a warm cache. */
+	sleep_compact(){
+		if (this.one_shot || this.compacting || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return false;
+		const after = role_compact_after(this.role);
+		if (after === null) return false;
+		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
+		const line = Math.min(after?.sleep ?? this.host?.sleep_compact_tokens ?? (Number(process.env.SERVEX_SLEEP_COMPACT_TOKENS) || SLEEP_COMPACT_TOKENS), Math.round(window / 2));
+		return (this.context ?? 0) > line;
 	}
 
 	/* The agent's answer to the nudge (the `compact_self` tool): compact when this turn ends. */
@@ -2094,7 +2112,12 @@ Agents.Agent = class Agent {
 		this.settle();
 		/* Compacted for MEMORY: a process keeps the heap it grew, so restart it
 		 * from the compacted session (checkpoint-and-restart). */
-		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")) this.awaken("compaction");
+		/* A new process starts small: forget the old heap's size, or the next check compacts again for nothing
+		 * (task-mastermind-voice-opus, 2026-10-19: three memory compactions in four minutes on a stale 698 MB). */
+		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")){ this.rss_mb = null; this.awaken("compaction"); }
+		/* Compacted on the way to sleep: now sleep (`compacted_turn` stops a second compaction). A message that
+		 * arrived meanwhile left it working, and then it stays awake for that turn. */
+		if (c.why === "sleep" && this.state === "idle" && this.sleep("idle")) try { this.host?.servex?.global?.mark_slept(this, 0); } catch {}
 	}
 };
 
@@ -2102,6 +2125,7 @@ Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
 
 /* A nudged agent that declined is nudged again only after its context grew this much. */
 export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
+export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
 export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)
 
 export const ONE_PASS = ["reviewer", "clarity", "checker"];

@@ -32,3 +32,17 @@ Remind sooner and in steps: at about 30% of the window, then every 5% (on a 1M w
 ✅ **Built (2026-10-22, `Agent.nudge()` in `Servex/agents/Agents.js`):** after the first reminder, the next comes each time the context grows another **5% of the window** (`WINDOW_TOKENS` 1M, `SERVEX_WINDOW_TOKENS` overrides): 150k, 200k, 250k… for a mastermind, up to the 400k forced compaction. Each reminder gives the size, its share of the window and the cache state, and asks for a compaction at the next natural break. **Reconsidered:** the first reminder stays at the role's line (150k for a mastermind, 200k otherwise), not 30%. With a 400k ceiling, a first reminder at 300k would leave only two before the forced one. Test: `node Servex/agents/compact-nudge.test.mjs` (24 checks).
 
 **What compaction keeps (the owner's worry, 2026-10-22):** the system prompt, CLAUDE.md and tool definitions sit outside the conversation and are kept verbatim; the conversation, including a role readme or brief injected into the first message, is summarized. ⬜ So after a compaction node must re-inject the role readme and the brief verbatim (the `SessionStart:compact` hook already re-adds a line for VS Code tabs). Alternative: summarize and start a fresh session with the role readme as its first message.
+
+## The owner, 2026-10-23: compact before sleep
+
+✅ **Built (`Agent.sleep_compact()` in `Servex/agents/Agents.js`):** going dormant used to never compact. Now an
+agent about to sleep with more than 100k tokens (or half the window, whichever is lower; per role as
+`compact_after.sleep`) runs `/compact` first, then sleeps, so it wakes small. It runs at the sleep moment, which is
+inside the cache TTL for every default idle wait, so the compaction reads a warm cache. It does not break the
+2026-10-16 rule "never compact in an interruptible way": the agent is idle and about to drop its process anyway,
+and a message that arrives during the compaction simply runs after it. Minions, the front desk and forks are
+left out. Measured: one warm compaction of 158k cost $0.24 (61 s) and left 17k. Full rule and numbers:
+[`Servex/doc/dormant.md`](../../doc/dormant.md), "Compaction".
+
+Also fixed: after a memory compaction restarts the process, the old process's memory reading is cleared. The
+stale 698 MB reading made `task-mastermind-voice-opus` compact three times in four minutes on 2026-10-19.
