@@ -39,6 +39,8 @@ export default class ProposalTriage {
 	backlog(){ return this.rows.filter(r => r.state === "waiting" && r.waiting_on === "backlog"); }
 	/** The ones accepted into big thing `n` (still queued or since started; a rejected one is not counted). */
 	accepted(n){ return this.rows.filter(r => r.priority === n && r.action === "approve" && r.state !== "stopped"); }
+	/** Backlog proposals the owner has since approved (Approve all, or one by one): they left the backlog, so the head counts them here. */
+	approved(){ return this.rows.filter(r => r.action === "backlog" && r.state !== "waiting" && r.state !== "stopped"); }
 
 	/** One press: an `approve` line for every backlog task, written the way the session page writes its Approve. */
 	async approve_all(){
@@ -52,7 +54,7 @@ export default class ProposalTriage {
 		const paint = () => $card.empty(() => {
 			if (!this.rows.length) return p("No triage has run yet.");
 			const bl = this.backlog();
-			p.c("triage-head").text(`${this.rows.length} proposals sorted: ${[1, 2, 3].reduce((n, k) => n + this.accepted(k).length, 0)} accepted into a priority, ${bl.length} in the backlog.`);
+			p.c("triage-head").text(`${this.rows.length} proposals sorted: ${[1, 2, 3].reduce((n, k) => n + this.accepted(k).length, 0)} accepted into a priority, ${bl.length} in the backlog${this.approved().length ? `, ${this.approved().length} approved by you from it` : ""}.`);
 			div.c("triage-counts", () => {
 				for (const n of [1, 2, 3]) button.c(`triage-chip${this.open === n ? " on" : ""}`, `${n} · ${ProposalTriage.PRIORITY[n]}: ${this.accepted(n).length}`).attr("type", "button").click(() => { this.open = this.open === n ? null : n; paint(); });
 				button.c(`triage-chip${this.open === "backlog" ? " on" : ""}`, `Backlog: ${bl.length}`).attr("type", "button").click(() => { this.open = this.open === "backlog" ? null : "backlog"; paint(); });
