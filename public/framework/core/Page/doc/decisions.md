@@ -786,7 +786,9 @@ A FOLDER'S OWN FILE LIST — what used to cost the whole site's directory.json.
 So: the loaded page, else files.jsonl, else page.jsonl (a jsonl page nobody has
 loaded, or a log from before files.jsonl), else null and the caller falls back to
 directory.json. When the parent's listing already says `kid/page.jsonl`, page.jsonl
-is asked first, so a card costs one request, not a 404 and then one.
+is asked first, so a card costs one request, not a 404 and then one. On the dev
+server the folder's names (`Router/listing.js` `names()`) are read first and only a log
+that exists is asked for, so a folder with neither makes no request.
 Memoised per folder (`fresh` refetches); no page is built.
 ⚠ Not live unless it came from a loaded page: a file added after the fetch is
 missing until `fresh`.
