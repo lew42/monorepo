@@ -1,17 +1,17 @@
-# Process names and structure: a proposal for you to approve
+# Process names and structure: decided 2026-10-23
 
-You asked to be in the loop on names before they harden (2026-10-22). This page lists each name, what it means, and where it lives. Each row marked **proposed** waits on your approve, improve or reject on the task "Approve the process names" (the process-system session). Nothing proposed here has been renamed yet. The long form is [process.md](process.md).
+You asked to be in the loop on names before they harden (2026-10-22). On 2026-10-23 you said not to wait on the names and to go ahead and build (session-e00f55c9 `prompts.jsonl`, prompt at 2026-10-23T23:51:53Z), so every proposal below is **decided**. This page is the record: each name, what it means, where it lives. The long form is [process.md](process.md).
 
 ## The names
 
 | Name | What it is | Where it lives | Status |
 |---|---|---|---|
 | **Process** | A task whose children are done one after another, in order, and node starts each one. | `core/Task/Process.js` (`class Process extends Task`) | built |
-| **Step** (today's code says *phase*) | One child of a process: a title, the job (`do`), and who does it (`session.run`). A step is a plain Task. | a `tasks.add` line in the process's own log | **proposed:** call it *step*, your word. The code, the lines and the docs rename `phase` to `step` in one scripted pass. |
-| **Process template** (today: `Process.DEFINITIONS`) | A named list of steps you can start by name: `build`, `design`, `investigate`. | today, one data object in `Process.js` | **proposed:** one subclass per template, `class BuildProcess extends Process { static steps = […] }`, one file each in `core/Task/processes/`. |
+| **Step** (today's code says *phase*) | One child of a process: a title, the job (`do`), and who does it (`session.run`). A step is a plain Task. | a `tasks.add` line in the process's own log | **decided 2026-10-23:** *step*, your word. Done by `Server/rename-phase-to-step.mjs`; old logs keep their `phase` field and are still read. |
+| **Process template** (was `Process.DEFINITIONS`) | A named list of steps you can start by name: `build`, `design`, `investigate`. | `core/Task/processes/` | **decided 2026-10-23, built:** one subclass per template, `class BuildProcess extends Process { static steps = […] }`, one file each; `Process.template("build")` finds one. |
 | **Your own steps** | A process with no template: the caller lists the steps. | `tasks.add {title, steps: [{title, do}]}` | built 2026-10-22 (below) |
 | **Who runs a step** (`session.run`) | `fresh` (a new session), `same` (the previous step's session), `owner` (whoever created the process), `wait` (you). | on each step | built |
-| **Handoff** | A mastermind gives a task to a child session by moving the task into the child's folder, not by writing a requirements.md. | the item move (mastermind-item, [design](/framework/core/Item/tasks/item-move/design.md)) | **proposed**, being built |
+| **Handoff** | A mastermind gives a task to a child session by moving the task into the child's folder, not by writing a requirements.md. | the item move (mastermind-item, [design](/framework/core/Item/tasks/item-move/design.md)) | **decided 2026-10-23.** Not built here: the item move is its own task. |
 
 ## Where one process is stored
 
@@ -23,15 +23,15 @@ You asked to be in the loop on names before they harden (2026-10-22). This page 
 
 - **Ask for a template that does not exist,** and the item tool's refusal lists every template name.
 - **[process.md](process.md)** describes each template, and it is linked from the [Task readme](../readme.md).
-- **Proposed:** one line in the mastermind role readme: "to start work, name a process template, or give your own steps."
+- **Decided, done:** one line in the mastermind role readme: "to start work, name a process template, or give your own steps."
 
-## Three overlapping "template" ideas, and the proposed one word for each
+## Three overlapping "template" ideas, and the one word for each (decided 2026-10-23)
 
-| Today | What it decides | Proposed word |
+| Today | What it decides | Word |
 |---|---|---|
 | `ROLES` (`Servex/agents/roles.js`) | who the agent is: role readme, model, effort | **role** |
 | `Task.TEMPLATES` (`code`, `doc`, `scan`) | the routine around one task: a worktree, commit lines, read-only | **kind** (a task's kind) |
-| `Process.DEFINITIONS` (`build`, `design`, `investigate`) | the steps, in order | **process template** |
+| process templates (`build`, `design`, `investigate`) | the steps, in order | **process template** |
 
 A spawn then names three things: the role (who), the kind (the routine), and the process template (the steps). Folding these three into one named "spawn template" is the skills-port review, next in this session's tasks.
 

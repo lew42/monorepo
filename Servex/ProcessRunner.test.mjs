@@ -1,4 +1,4 @@
-// A build process end to end on a fake agent host: one item call creates it, node runs every phase, completion rolls up. `node Servex/ProcessRunner.test.mjs`
+// A build process end to end on a fake agent host: one item call creates it, node runs every step, completion rolls up. `node Servex/ProcessRunner.test.mjs`
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
@@ -7,7 +7,7 @@ import { run_item, hooks, ledgers } from "./agents/page_tools.js";
 import TaskHomes from "../Server/TaskHomes.mjs";
 import ProcessRunner from "./ProcessRunner.js";
 import Task from "../public/framework/core/Task/Task.js";
-import "../public/framework/core/Task/Process.js";
+import "../public/framework/core/Task/processes/index.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const REL = "public/framework/ai/sessions/2026/10/22/.process-test-" + process.pid;
@@ -34,12 +34,15 @@ fs.mkdirSync(DIR, { recursive: true });
 ledgers.task_moves = path.join(DIR, "task-moves.jsonl"); TaskHomes.INDEX = path.join(DIR, "homes.jsonl");   // never the real ledgers
 fs.writeFileSync(SESSION, JSON.stringify({ assign: { session_id: "sess", agent: "mm1", title: "Test session" } }) + "\n");
 try {
-	const Process = (await import("../public/framework/core/Task/Process.js")).default;
-	const clash = Object.values(Process.DEFINITIONS).flat().filter(ph => typeof Process.prototype[ph.id] === "function" || Task.FIELDS.includes(ph.id) || ["tasks", "content", "set", "file", "task", "log", "spawn", "queue", "pulse", "measure"].includes(ph.id));
-	ok(!clash.length, "no phase id names a Task verb, field or line key: " + clash.map(c => c.id));
+	const Process = (await import("../public/framework/core/Task/processes/index.js")).default;
+	const clash = Process.names().flatMap(n => Process.template(n).steps).filter(ph => typeof Process.prototype[ph.id] === "function" || Task.FIELDS.includes(ph.id) || ["tasks", "content", "set", "file", "task", "log", "spawn", "queue", "pulse", "measure"].includes(ph.id));
+	ok(!clash.length, "no step id names a Task verb, field or line key: " + clash.map(c => c.id));
 	const fs_ = Process.from_steps(["file", { title: "Improve", id: "improve" }, "Write the docs"]), fl = Process.lines({ process: "<unknown>", steps: ["file", "log"] });
 	ok(fs_?.map(x => x.id).join() === "file-step,improve-step,write-the-docs", "from_steps: a step id that is a line key or verb gets -step, not a refusal");
 	ok(fl?.[0].process === "steps" && fl.length === 3, "lines(): own steps under an unknown process name become process \"steps\"");
+	ok(["build", "design", "investigate"].every(n => Process.template(n)?.prototype instanceof Process) && Process.names().length === 3 && !Process.template("nope"), "Process.template(name) finds one subclass per template; names() lists them");
+	const old_ = Process.replay([...Process.lines({ process: "build" }), { spawn: { phase: "plan", agent: "a9" } }, { spawn: { step: "investigate", agent: "a8" } }]);
+	ok(old_.steps.find(x => x.id === "plan").get_one("spawned")?.agent === "a9" && old_.steps.find(x => x.id === "investigate").get_one("spawned")?.agent === "a8", "an old {spawn:{phase}} line still lands on its step; a new {spawn:{step}} line does too");
 	let r = await item({ tasks: { add: { title: "Fix X", process: "nope" } } }, "mm1");
 	ok(r.ok === false && /no process "nope"/.test(r.why), "an unknown process is refused, nothing written");
 
@@ -49,9 +52,9 @@ try {
 	ok(read(SESSION).some(l => l.task === PURL), "the session's record references it");
 	await settle(FILE);
 	let L = read(FILE);
-	ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 7, "line 1 is a Process, seven phase lines");
-	ok(L.some(l => l.start) && L.some(l => l.investigate?.start) && L.some(l => l.spawn?.phase === "investigate" && l.spawn.agent === "a1"), "node started it and spawned the investigate session");
-	ok(spawned[0].model === "claude-sonnet-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`"investigate": {"complete"`), "the spawn carries the phase's model, a folder inside the process, and the completing line");
+	ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 7, "line 1 is a Process, seven step lines");
+	ok(L.some(l => l.start) && L.some(l => l.investigate?.start) && L.some(l => l.spawn?.step === "investigate" && l.spawn.agent === "a1"), "node started it and spawned the investigate session");
+	ok(spawned[0].model === "claude-sonnet-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`"investigate": {"complete"`), "the spawn carries the step's model, a folder inside the process, and the completing line");
 
 	const step = async (delta, caller) => { await item(delta, caller, PURL); await settle(FILE); };
 	await step({ investigate: { complete: { outcome: "found the cause in X.js", evidence: ["test"] } } }, "a1");
@@ -61,11 +64,11 @@ try {
 	live.set("a1", { state: "idle", cost: 0.5 });
 	await Promise.all([runner.queue_turn(FILE, "a1"), runner.queue_turn(FILE, "a1")]);   // two wakes for one turn end
 	L = read(FILE);
-	ok(L.filter(l => l.measure?.phase === "investigate" && l.measure.usd === 0.5).length === 1, "investigate's cost is measured by node, once however many wakes");
+	ok(L.filter(l => l.measure?.step === "investigate" && l.measure.usd === 0.5).length === 1, "investigate's cost is measured by node, once however many wakes");
 	ok(!L.some(l => l.pulse), "the turn that ends first is investigate's own (plan was sent mid-turn): no pulse");
 	await runner.after_turn(FILE, "a1");
 	L = read(FILE);
-	ok(L.some(l => l.pulse?.phase === "plan" && l.pulse.n === 1) && sent.at(-1).text.includes("not recorded as complete"), "the next turn that ends with plan open gets one pulse");
+	ok(L.some(l => l.pulse?.step === "plan" && l.pulse.n === 1) && sent.at(-1).text.includes("not recorded as complete"), "the next turn that ends with plan open gets one pulse");
 
 	await step({ plan: { complete: { outcome: "plan.md written", evidence: ["test"] } } }, "a1");
 	ok(spawned[1]?.role === "reviewer", "improve is a fresh reviewer");
@@ -76,12 +79,12 @@ try {
 	await step({ execute: { complete: { outcome: "branch task/fix-x, 2 commits", evidence: ["test"] } } }, "a3");
 	await step({ review: { complete: { outcome: "ready to merge: task/fix-x", evidence: ["test"] } } }, "a4");
 	let p = runner.read(FILE);
-	ok(p.phase.id === "merge" && p.phase.state === "waiting" && p.state === "running", "merge waits on the owner; the process is not complete");
+	ok(p.step.id === "merge" && p.step.state === "waiting" && p.state === "running", "merge waits on the owner; the process is not complete");
 	ok(sent.at(-1).id === "mm1" && sent.at(-1).text.includes("waits on the owner"), "the creator is told");
 
 	await step({ merge: { complete: { outcome: "merged", evidence: ["test"] } } }, "owner");
 	p = runner.read(FILE);
-	ok(p.state === "complete" && p.completion === 1, "the last phase completes the process");
+	ok(p.state === "complete" && p.completion === 1, "the last step completes the process");
 	const sess = Task.replay(read(SESSION));
 	ok(sess.completion === 1 && sess._tasks.find("fix-x")?.constructor.name === "Process", "the session's completion counts it (replayed as a Process)");
 
@@ -89,7 +92,7 @@ try {
 	await new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, files: new Set() }).step(FILE);
 	ok(read(FILE).length === before, "a restart re-steps a finished process and writes nothing");
 
-	// A stall: the phase agent ends two turns without completing; the phase then waits on the creator.
+	// A stall: the step agent ends two turns without completing; the step then waits on the creator.
 	await item({ tasks: { add: { title: "Look into Y", process: "investigate" } } }, "mm1");
 	const Q = path.join(DIR, "look-into-y", "task.jsonl");
 	await settle(Q);
@@ -98,7 +101,7 @@ try {
 	await runner.after_turn(Q, q);
 	await runner.after_turn(Q, q);
 	p = runner.read(Q);
-	ok(p.phase.id === "questions" && p.phase.state === "waiting" && p.phase.get_one("waiting_on") === "mm1", "two silent turn ends: the phase waits on the creator");
+	ok(p.step.id === "questions" && p.step.state === "waiting" && p.step.get_one("waiting_on") === "mm1", "two silent turn ends: the step waits on the creator");
 
 	// Draft in the session, then move home: a process naming a module moves to <module>/tasks/<id>/ once its plan is approved.
 	const MOD = "ai/process-test-" + process.pid;   // a module name has no dots (MODULE_NAME); removed in finally
@@ -114,7 +117,7 @@ try {
 	await settle(HOME); await settle(HOME);
 	ok(!fs.existsSync(G) && fs.existsSync(HOME), "approved: the process folder moved to <module>/tasks/go-home/");
 	p = runner.read(HOME);
-	ok(p.get_one("path").endsWith(`/${MOD}/tasks/go-home/`) && p.phase.id === "execute" && p.phase.get_one("spawned"), "it records its new path and the run goes on there (execute spawned)");
+	ok(p.get_one("path").endsWith(`/${MOD}/tasks/go-home/`) && p.step.id === "execute" && p.step.get_one("spawned"), "it records its new path and the run goes on there (execute spawned)");
 	const s2 = Task.replay(read(SESSION));
 	ok(s2._tasks.find("go-home")?.get_one("path")?.endsWith(`/${MOD}/tasks/go-home/`) && [...s2._tasks].filter(t => t.id === "go-home").length === 1, "the session's later reference replaces the old one: one child, at its new home");
 	ok(read(path.join(ROOT, "public/framework", MOD, "tasks", "task.jsonl")).some(l => l.task?.endsWith(`/${MOD}/tasks/go-home/`)), "the module's tasks list references it");
@@ -127,7 +130,7 @@ try {
 	ok(Task.replay(imp)._tasks.find("move-x-into-y").weight === 2 && state.tasks.length === 1, "its weight is 2, computed on replay");
 
 	r = await run_item({ path: PURL }, { caller: "mm1" });
-	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) reads the process back: class, state, phases");
+	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) reads the process back: class, state, steps");
 
 	// A SIMPLE PROCESS THROUGH THE TOOL (the owner, 2026-10-22): create it with your own steps, node prompts step 1, then step 2 when step 1 returns.
 	r = await item({ tasks: { add: { title: "Dup", steps: [{ title: "Same" }, { title: "Same" }] } } }, "mm1");
@@ -136,7 +139,7 @@ try {
 	const SF = path.join(DIR, "two-steps", "task.jsonl"), SURL = URL + "two-steps/";
 	await settle(SF);
 	let S = read(SF), sent0 = sent.length;
-	ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "one call: a Process with the two steps as its phases");
+	ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "one call: a Process with the two steps as its steps");
 	ok(S.some(l => l["write-the-note"]?.start) && sent.at(-1).id === "mm1" && sent.at(-1).text.includes("write note.md") && sent.at(-1).text.includes(`"write-the-note": {"complete"`), "node starts step 1 and prompts the creator with it");
 	await item({ "write-the-note": { complete: { outcome: "note.md written", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
 	ok(sent.length === sent0 + 1 && sent.at(-1).text.includes("read note.md back") && sent.at(-1).text.includes("note.md written"), "step 1 returns: node prompts step 2, with step 1's outcome");
@@ -153,19 +156,19 @@ try {
 	r = await item({ "build-it": { complete: { outcome: "built" } } }, "mm1", BURL);
 	ok(r.ok === false && /evidence/.test(r.why ?? "") && read(BF).length === blen, "complete without evidence is refused, nothing written");
 	await item({ "build-it": { complete: { outcome: "built", evidence: ["commit abc"] } } }, "mm1", BURL); await settle(BF);
-	ok(runner.read(BF).phases.find(x => x.id === "build-it").state === "complete" && sent.at(-1).text.includes("review"), "step 1 completes with evidence; step 2 is prompted");
+	ok(runner.read(BF).steps.find(x => x.id === "build-it").state === "complete" && sent.at(-1).text.includes("review"), "step 1 completes with evidence; step 2 is prompted");
 	ok(runner.read(BF).state !== "complete", "the process is not complete after the first step");
 	await item({ "review-it": { complete: { outcome: "approved", evidence: ["review.md"] } } }, "mm1", BURL); await settle(BF);
 	const bl = read(BF);
 	ok(runner.read(BF).state === "complete" && bl.some(l => l["build-it"]?.complete?.evidence?.[0] === "commit abc") && bl.some(l => l["review-it"]?.complete?.evidence?.[0] === "review.md"), "the last step completes the process; both steps' evidence is in the log");
 
-	// Stopping a process stops the agent of the phase it spawned (found live, 2026-10-22: the phase agent kept going), never the creator.
+	// Stopping a process stops the agent of the step it spawned (found live, 2026-10-22: the step agent kept going), never the creator.
 	await item({ tasks: { add: { title: "Stop me", process: "investigate" } } }, "mm1");
 	const T = path.join(DIR, "stop-me", "task.jsonl"); await settle(T);
 	const ta = spawned.at(-1).id;
 	await item({ stop: { why: "not needed" } }, "mm1", URL + "stop-me/"); await settle(T);
 	const tp = runner.read(T);
-	ok(agents.stopped.includes(ta) && tp.state === "stopped" && tp.phases.find(x => x.id === "questions").state === "stopped" && !agents.stopped.includes("mm1"), "a stopped process stops its running phase and that phase's agent");
+	ok(agents.stopped.includes(ta) && tp.state === "stopped" && tp.steps.find(x => x.id === "questions").state === "stopped" && !agents.stopped.includes("mm1"), "a stopped process stops its running step and that step's agent");
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
 	fs.rmSync(path.join(ROOT, "public/framework/ai/process-test-" + process.pid), { recursive: true, force: true });
