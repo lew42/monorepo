@@ -41,7 +41,7 @@ it is removed instead of fast-forwarded, and a fresh one is prepared
 
 ## The numbers
 
-- **K = 3.** At most three worktrees exist, taken or not.
+- **K = 6.** At most six worktrees exist, taken or not (was 3 until 2026-10-23, when two masterminds held all three and three minions queued for 5+ min; each slot costs about 50 MB of server).
 - **N = 6 hours.** A ready worktree idle longer than that is removed, except the
   one kept ready. A taken worktree is never removed automatically ([below](#a-taken-worktree-stays-taken)).
 

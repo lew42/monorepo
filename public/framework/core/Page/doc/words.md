@@ -11,7 +11,7 @@ dropdown, a card, a url and this table cannot disagree about what a word means.
 
 | word | what it does | its values |
 |---|---|---|
-| `navigation` | what a click on a child does, and how the children are drawn | `none` `tabs` `rail` `rail-right` `expand` `columns` `takeover` |
+| `navigation` | what a click on a child does, and how the children are drawn | `none` `tabs` `rail` `rail-right` `expand` `columns` (`takeover` retired: it is `none`) |
 | `content` | what is in the box | a function · a string · **an address** (`/notes/x.md`, `/imagine/paging/made/notes/`) |
 | `width` | how much of the region the page takes (older key: `room`) | `narrow` `reading` `wide` `full` |
 | `arrangement` | where the page's other parts sit around the box | `plain` `bar-top` `bar-bottom` `rail-left` `rail-right` `main-aside` `wall` |
@@ -23,7 +23,7 @@ core has always done; the word is what makes them sayable from a page's declarat
 instead of from a method body.
 
 - `navigation` stamps `.page-nav-*` — and `tabs` is [`ext/tabs`](/framework/ext/tabs/),
-  `columns` is `Page.columns()`, `takeover` is `width: "full"`. Only `expand` was new.
+  `columns` is `Page.columns()` (the word calls it), and `takeover` is retired: a page that says it gets `none`, and `width: "full"` is the real full-screen page. Only `expand` was new.
 - `content` is read by `render_content()`: an address is fetched and drawn, two levels
   deep, and the third hands over a link.
 - `width` stamps `.page-w-*`; `reading` writes nothing and `full` is `.page.solo`.

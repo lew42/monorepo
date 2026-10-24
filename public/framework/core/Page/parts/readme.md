@@ -14,6 +14,7 @@ Make a folder with a `page.jsonl`; line 1 names the class, later lines are the p
 Agents write these with `page_set` / `page_add`; code calls the content list: `page.content.add(...)`, `.move(...)`, `.remove(...)`. A plain `Page` draws them; `"class": "./Parts.js"` still works (an empty `PartsPage` subclass).
 
 ## Index
+- **The six types** (the one list is [kinds.js](kinds.js)); every one has a live line on [types/](/framework/core/Page/parts/types/): `part-heading` (`text`), `part-text` (`text`, a whole markdown block), `part-card` (`title`, `text`), `part-link` (`path`), `part-view` (`class`, `data`: a module beside the page, drawn as `new Default({ page, item, ...data })` or `fn(page, box, data)`), `part-file` (`file`: a markdown file, rendered in place). `part-view` and `part-file` draw through `Jsonl.draw_module` and `Jsonl.draw_md`, the same code as the page-level `place` line.
 - Classes: `PageHeading`, `PageText`, `PageCard`, `PageLink` (a card to a child page; [../doc/part-link.md](../doc/part-link.md)), each an `Item` with its own `View` (no base class); `Part.js`, `HeadingPart.js`, `TextPart.js`, `CardPart.js` and `Parts.js` (`PartsPage`) are shims for the old names — [doc/architecture.md](doc/architecture.md), [../doc/content.md](../doc/content.md)
 - `MdToParts.mjs` — turns a markdown file into parts lines (`node MdToParts.mjs in.md out.json "Title"`)
 

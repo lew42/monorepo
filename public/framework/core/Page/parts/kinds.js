@@ -4,5 +4,7 @@ import "./PageHeading.js";
 import "./PageText.js";
 import "./PageCard.js";
 import "./PageLink.js";
+import "./PageView.js";
+import "./PageFile.js";
 
-export const PART_TYPES = ["part-heading", "part-text", "part-card", "part-link"];
+export const PART_TYPES = ["part-heading", "part-text", "part-card", "part-link", "part-view", "part-file"];

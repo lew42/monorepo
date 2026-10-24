@@ -359,5 +359,20 @@ try {
 			}
 		} finally { fs.rmSync(MDIR, { recursive: true, force: true }); }
 	}
+	// part types: part-view and part-file are accepted on a page, part-nope is refused with the list
+	{
+		const PDIR = DIR + "-page", PURL = URL.replace(/\/$/, "-page/");
+		fs.mkdirSync(PDIR, { recursive: true });
+		fs.writeFileSync(path.join(PDIR, "page.jsonl"), JSON.stringify({ title: "Parts" }) + "\n");
+		try {
+			for (const part of [{ type: "part-view", class: "./A.js", data: { value: 1 } }, { type: "part-file", file: "./r.md" }]){
+				const r = await call("item", { path: PURL, delta: { content: { add: part } } });
+				ok(r.ok, `a ${part.type} line is accepted`);
+			}
+			const r = await call("item", { path: PURL, delta: { content: { add: { type: "part-nope" } } } });
+			ok(r.ok === false && /part-view/.test(r.why) && /part-file/.test(r.why), "part-nope is refused and the refusal lists the types");
+		} finally { fs.rmSync(PDIR, { recursive: true, force: true }); }
+	}
+
 	console.log(`item_tool: ${n} checks passed`);
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); fs.rmSync(DIR + "-homes", { recursive: true, force: true }); }

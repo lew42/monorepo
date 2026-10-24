@@ -32,6 +32,15 @@ const names = list => [...list].map(x => `${x.constructor.name}:${x.id}`);
 	ok(Page.types === Item.types, "the node Page and the tool share one type registry");
 }
 
+// ---- 1b. part-view and part-file replay into their classes, with their fields ----
+{
+	const page = Page.replay([{ title: "T" }, { content: { add: { id: "v", type: "part-view", class: "./A.js", data: { value: 92 } } } }, { content: { add: { id: "f", type: "part-file", file: "./r.md" } } }]);
+	ok(names(page.content).join() === "PageView:v,PageFile:f", "part-view and part-file become PageView and PageFile: " + names(page.content));
+	const [view, file] = [...page.content];
+	ok(view.get("class") === "./A.js" && file.get("file") === "./r.md", "their class and file fields are kept");
+	ok(view.parent === page, "a part's parent is its page");
+}
+
 // ---- 2. replay: an unknown type is reported, never thrown ----
 {
 	const warned = [], was = console.warn;
@@ -71,13 +80,19 @@ const names = list => [...list].map(x => `${x.constructor.name}:${x.id}`);
 		ok(r.ok === false && /private/.test(r.why) && size() === before, "item: a private key is refused, nothing written");
 		r = await call("item", { path: URL, delta: { content: { add: { id: "n", _hidden: true, type: "part-text" } } } });
 		ok(r.ok === false && /_hidden/.test(r.why) && size() === before, "item: a private key nested in an added part is refused");
+		for (const item of [{ type: "part-view", class: "./A.js", data: { value: 1 } }, { type: "part-file", file: "./r.md" }]){
+			r = await call("item", { path: URL, delta: { content: { add: item } } });
+			ok(r.ok, `item: a ${item.type} line is accepted`);
+		}
+		r = await call("item", { path: URL, delta: { content: { add: { type: "part-nope" } } } });
+		ok(!r.ok && /part-view/.test(r.why) && /part-file/.test(r.why), "the refusal lists the two new types");
 
 		r = await call("item", { path: URL, delta: { content: { add: { id: "h", type: "part-heading", text: "Hello" } } } });
 		ok(r.ok && size() > before, "item: a known part type is written");
 		r = await call("page_add", { path: URL, item: { type: "card", title: "plain data typed card" } });
 		ok(r.ok, "a plain (non part-) type is still written: pages hold card/note/request/task data");
 		const page = Page.replay(parse(fs.readFileSync(FILE, "utf8")));
-		ok(names(page.content)[0] === "PageHeading:h", "what the tool wrote replays as the real class");
+		ok(names(page.content).includes("PageHeading:h") && names(page.content).includes("PageView:" + [...page.content][0].id), "what the tool wrote replays as the real class");
 	} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 }
 

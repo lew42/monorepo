@@ -20,7 +20,7 @@ It is the graduated half of `imagine/paging/stage.js` — the lab's renderer, on
 
 ## SWAPS: which navigation words rearrange the box
 
-`expand` grows the row, `columns` is `Page.columns()` and `takeover` is `width: "full"`: all three are MEANT to move things, and reserving there would hide the very thing they do.
+`expand` grows the row, `columns` is `Page.columns()` and the retired `takeover` was `width: "full"`: all three were MEANT to move things, and reserving there would hide the very thing they do.
 
 ⚠ `tabs` IS DELIBERATELY NOT HERE — LEAVE IT OUT. It is the one place this list differs from the paging lab's own `swaps` flag, and the difference is not an oversight: `ext/tabs` brings its OWN panel and fills this same `regions` Map, so adding `tabs` here reserves a second panel and the child is drawn twice, once in each. Whoever reads the lab's list and this one side by side: the lab reserves for `tabs` because the lab draws its own tab strip; core delegates to `ext/tabs`, which has already done it. (Decided 2026-09-06, slice 2.)
 
@@ -38,7 +38,7 @@ The box is the ONLY element wearing the CONTENT colour, which is the second of t
 
 A page with content of its own AND tabs: its content becomes the first tab (the page's own url), so a child tab replaces it instead of stacking above it. A page with only children keeps today's shape. (2026-10-09)
 
-The page's own content is drawn, plus the child list when the navigation word draws that list INSIDE the box: `expand` draws the rows themselves, and `columns` and `takeover` list the rows you navigate FROM.
+The page's own content is drawn, plus the child list when the navigation word draws that list INSIDE the box: `expand` draws the rows themselves, and `rail` lists the rows you navigate FROM (`columns` is drawn by `Columns.js`, and `takeover` is retired).
 
 ## Navigation vs arrangement
 
@@ -46,7 +46,7 @@ The page's own content is drawn, plus the child list when the navigation word dr
 
 ## rows(): the same list, drawn in three places
 
-THE SAME ROWS, LISTED INSIDE THE BOX — what `columns` and `takeover` navigate from, and what the rail is made of. One drawing, so a label here is the label everywhere else: `nav_for()` is the page's own answer for a child's url, label and icon.
+THE SAME ROWS, LISTED INSIDE THE BOX — what the rail and `expand` are made of. One drawing, so a label here is the label everywhere else: `nav_for()` is the page's own answer for a child's url, label and icon.
 
 ⚠ A LIST WITH NOTHING IN IT SAYS SO. A page with no children handing back an empty box is how the lab ended up listing four strangers on somebody's page.
 
