@@ -711,7 +711,7 @@ export class Agents {
 		const root = path.resolve(MAIN_ROOT, dir).toLowerCase(), rows = this.reg().read(), out = [];
 		for (const [k, ids] of this.task_dirs()) if (k === root || k.startsWith(root + path.sep)) for (const id of ids){
 			const r = rows[id] ?? {};
-			out.push({ id, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
+			out.push({ id, parent: r.parent ?? null, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
 				cost: Math.round(this.logged_cost(id) * 100) / 100, started_at: r.started_at ?? null });
 		}
 		return out.sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
