@@ -22,6 +22,7 @@ This file holds the laws, safety and cost rules every agent needs. The framework
 7. **Compute, don't recall.** Anything a computer can work out (state, counts, costs, which tasks landed, log lines, records) is done by a node script or tool that reads the real state, never written by an AI from memory. AI handles judgment; record-keeping is code. (the owner, 2026-10-01)
 8. **Name it and home it first.** Every new module or task settles its name and home location first. (the owner, 2026-10-16)
 9. **Document the structure as you build.** Every system's readme states what it is, its exact on-disk structure, which tool writes its data and from where, and which class reads it — verified against the code, no history. If an agent had to investigate to learn how a system works, the readme failed; fix the readme in the same task. (the owner, 2026-10-19)
+10. **Index everything you create.** Every file, folder, task, child session or page you make is recorded in its parent the moment it exists: a task folder in its session record, a child session under its parent, a page in its parent's `children:` or a link, a system in its readme. Anything unindexed is forgotten. (the owner, 2026-10-23)
 
 ## Memory, history, safety (long form: `public/framework/ai/doc/agent-rules.md`)
 
