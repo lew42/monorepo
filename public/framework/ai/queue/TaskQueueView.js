@@ -65,7 +65,7 @@ export default class TaskQueueView extends View {
 			p.c("tq-formula", "score = importance × (1 + re-asks × 0.5) ÷ (1 + estimated cost ÷ $2)");
 			div.c("tq-rules", () => {
 				div.c("tq-rule", () => { span.c("tq-label muted", "Importance "); span(`the big thing it serves: #1 = ${TaskQueue.IMPORTANCE[1]}, #2 = ${TaskQueue.IMPORTANCE[2]}, #3 = ${TaskQueue.IMPORTANCE[3]}, none = 1 (priority.md)`); });
-				div.c("tq-rule", () => { span.c("tq-label muted", "Cost "); span("the median cost of landed tasks in the same module (real cost lines)"); });
+				div.c("tq-rule", () => { span.c("tq-label muted", "Cost "); span("the median real cost of the 5 landed tasks with the most title words in common (else the module median)"); });
 				div.c("tq-rule", () => { span.c("tq-label muted", "Re-asks "); span("sessions that asked for it again while it stayed unfinished (the refined asks)"); });
 			});
 			p.c("tq-note muted", "Every number is computed from the task records, never written by an agent. It updates live.");

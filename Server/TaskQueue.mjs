@@ -17,7 +17,7 @@ export function gather(ix = SessionIndex.shared){
 	const open = [], landed = [];
 	for (const r of ix.tasks()){
 		const module = SessionIndex.module_of(r.dir) ?? "ai";
-		if (r.landed){ if (r.usd > 0) landed.push({ module, usd: r.usd }); continue; }
+		if (r.landed){ if (r.usd > 0) landed.push({ module, usd: r.usd, title: r.title ?? "" }); continue; }
 		if (!["idle", "waiting", "running"].includes(r.state)) continue;
 		const file = path.join(REPO, r.dir, "task.jsonl");
 		if (fs.existsSync(file)) open.push({ slug: r.slug, url: r.url, module, state: r.state, usd: r.usd, agent: r.agent, lines: read(file) });
