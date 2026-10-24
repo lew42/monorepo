@@ -12,3 +12,5 @@
 {"review":{"at":"2026-10-24T00:25:50-05:00","answer":{"n":5,"reply":"noted: MobileTaskRow gains an overridable href() and the phone behaviour is unchanged; accepted by the deputy as the way to reuse the row (law 6)"}}}
 {"review":{"at":"2026-10-24T00:25:50-05:00","answer":{"n":6,"reply":"noted: sw- is SessionWork.css's own prefix, which was missing from css-scopes.txt"}}}
 {"review":{"at":"2026-10-24T00:25:50-05:00","answer":{"n":7,"reply":"noted: the decision line at 00:00:11 covers it (Overview from band E, the Work view becomes the Tasks tab; the alternative of replacing it would lose Approve)"}}}
+{"log":{"at":"2026-10-24T00:31:29-05:00","heartbeat":"check","msg":"status check sent to minion-session-desktop"}}
+{"log":{"at":"2026-10-24T00:32:04-05:00","heartbeat":"answered","msg":"I'm finished and idle, waiting for the deputy to send the branch to review. The last commit is `92d5cae95` on worktree/qf-2, covering the review fixes: site colour tokens, the empty gap under the titl"}}
