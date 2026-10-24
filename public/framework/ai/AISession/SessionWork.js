@@ -5,6 +5,7 @@ import TimeFilter from "/framework/ux/Filter/TimeFilter.js";
 import Approvals from "./Approvals.js";
 import Review from "./Review.js";
 import Day from "/framework/core/Session/Day.js";
+import { names } from "/framework/core/Router/listing.js";
 
 View.stylesheet(import.meta, "SessionWork.css");
 
@@ -61,7 +62,9 @@ export default class SessionWork extends View {
 	async find_titles(){
 		const slugs = this.tree.root.all().slice(1).filter(n => n.title === n.rel.split("/").pop().replaceAll("-", " "));
 		await Promise.all(slugs.map(async n => {
-			const text = n.session ? await fetch(n.url + "session.jsonl").then(r => r.ok ? r.text() : "").catch(() => "") : "";
+			const listed = names(n.url);   // the folder says which record it keeps, so no fetch asks for a file that is not there
+			const file = listed ? ["session.jsonl", "task.jsonl"].find(f => listed.includes(f)) : n.session ? "session.jsonl" : null;
+			const text = file ? await fetch(n.url + file).then(r => r.ok ? r.text() : "").catch(() => "") : "";
 			let card = null; try { card = JSON.parse(text.split("\n", 1)[0])?.assign?.card; } catch {}
 			n.title = card || n.title[0].toUpperCase() + n.title.slice(1);
 		}));
