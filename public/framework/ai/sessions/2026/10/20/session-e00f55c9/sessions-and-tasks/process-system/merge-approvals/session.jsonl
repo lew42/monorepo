@@ -28,3 +28,4 @@
 {"review":{"at":"2026-10-23T19:00:36-05:00","answer":{"n":3,"reply":"noted: a record with no title shows its folder name; the review page work gives every session record a plain title"}}}
 {"review":{"at":"2026-10-23T19:00:36-05:00","answer":{"n":4,"reply":"noted: 14-day window is enough for now; the review page work replaces the day walk with the session index"}}}
 {"review":{"at":"2026-10-23T19:00:36-05:00","answer":{"n":5,"reply":"noted: this branch is the qf-1 work plus a dev merge; vscode-mastermind merges it directly"}}}
+{"log":{"at":"2026-10-23T19:07:17-05:00","heartbeat":"answered","msg":"I'm done and idle. The work is ready to merge as `worktree/qf-1` at `7c88de6cf`, and I'm waiting on that merge.\n\nThe second review's fix is in: the Merge button now runs `merge.mjs` as an async child "}}

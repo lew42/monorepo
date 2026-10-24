@@ -8,3 +8,6 @@
 {"review":{"at":"2026-10-23T19:18:39-05:00","answer":{"n":4,"reply":"noted: Process.js cannot import its subclasses (cycle); Process.js comment says to import processes/index.js, which page_tools does"}}}
 {"review":{"at":"2026-10-23T19:18:39-05:00","answer":{"n":5,"reply":"noted: lines appended to session.jsonl in the main task folder"}}}
 {"review":{"at":"2026-10-23T19:18:39-05:00","answer":{"n":6,"reply":"noted: no caller passed phases:, steps_over is the chosen name"}}}
+{"commit":"f705aaf96282"}
+{"log":{"at":"2026-10-23T19:18:43-05:00","msg":"review answered in the worktree copy of this folder (3 fixed, 3 noted); --status clean"}}
+{"log":{"at":"2026-10-23T19:18:43-05:00","msg":"ready: worktree/process-names f705aaf96 — phase renamed to step (scripted, old logs still read), templates are Build/Design/InvestigateProcess subclasses, names marked decided"}}

@@ -336,3 +336,4 @@
 {"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.594Z"}
 {"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.595Z"}
 {"task":"/framework/ai/sessions/2026/10/16/voice-20261016/whisper-log/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.612Z"}
+{"log":{"at":"2026-10-23T19:14:28-05:00","msg":"read inbox line from mastermind-task-system ($6.32 vs $3 planned); filed the cost in task-system/task.jsonl; no system change, since budgets are estimates per Servex/doc/budget.md (2026-10-22)"}}
