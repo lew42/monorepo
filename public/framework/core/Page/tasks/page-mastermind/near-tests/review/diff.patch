@@ -1,0 +1,544 @@
+diff --git a/Server/MergeTests.mjs b/Server/MergeTests.mjs
+new file mode 100644
+index 000000000..992ab2398
+--- /dev/null
++++ b/Server/MergeTests.mjs
+@@ -0,0 +1,84 @@
++// The merge gate's test step: the tests that cover a diff run on the branch; a failing one is run on the branch's merge base
++// too, and only a test that PASSES on the base and FAILS on the branch refuses the merge. A timeout is "no result", never a failure.
++// Used by Server/merge.mjs (flag --skip-tests turns it off). Design: core/Page/tasks/page-mastermind/near-tests/requirements.md.
++import fs from "node:fs";
++import path from "node:path";
++import { spawnSync } from "node:child_process";
++import TestRunner from "../public/framework/core/Test/TestRunner.mjs";
++
++const git = (cwd, ...a) => spawnSync("git", a, { cwd, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });
++
++export default class MergeTests {
++	static SCRIPT = /\.m?js$/;
++
++	/** dir: the branch's worktree. main: the repo whose results.jsonl and .git it uses. base_ref/branch: git refs.
++	 *  changed: repo-relative paths the branch changes (existing ones only). Returns { refused, notes, ran, shas }. */
++	static async gate({ dir, main, base_ref, branch, changed, log = console.log }){
++		const results = path.join(main, "public/framework/core/Test/results.jsonl");
++		const mk = root => { const r = new TestRunner(); r.root = root; r.results = results; return r; };
++		fs.mkdirSync(path.dirname(results), { recursive: true });
++		const out = { refused: [], notes: [], ran: 0 };
++		const scripts = changed.filter(f => MergeTests.SCRIPT.test(f) && fs.existsSync(path.join(dir, f)));
++		if (!scripts.length) return out;
++		const branch_run = mk(dir), all = branch_run.find();
++		const tests = [...new Set(scripts.flatMap(f => branch_run.covers(f, all)))].sort();
++		if (!tests.length) return out;
++		log(`tests: ${tests.length} test(s) cover this diff; running them on the branch`);
++		const res = await branch_run.run(tests, { trigger: "merge" });
++		out.ran = res.length;
++		const failed = res.filter(r => !r.ok && !r.timeout);
++		for (const r of res.filter(r => r.timeout)) out.notes.push(`${r.file}: timed out on the branch; counted as no result`);
++		if (!failed.length) return out;
++
++		const sha = git(main, "merge-base", base_ref, branch).stdout.trim();
++		if (!sha) { out.notes.push("tests: no merge base found; failing tests are not compared"); return out; }
++		out.sha = sha;
++		const cached = MergeTests.cached(results, sha);
++		const need = failed.map(r => r.file).filter(f => !cached.has(f));
++		if (need.length) {
++			const base_dir = MergeTests.checkout(main, sha);
++			if (base_dir) try {
++				const present = need.filter(f => fs.existsSync(path.join(base_dir, f)));
++				const base_run = mk(base_dir);
++				for (const r of await base_run.run(present, { trigger: "merge-base", extra: { sha } })) if (!r.timeout) cached.set(r.file, r.ok);
++			} finally { MergeTests.remove(main, base_dir); }
++			else out.notes.push("tests: could not check out the merge base; failing tests are not compared");
++		}
++		for (const r of failed) {
++			const was = cached.get(r.file);
++			if (was === true) out.refused.push({ file: r.file, tail: r.tail });
++			else out.notes.push(`${r.file}: fails on the branch; ${was === false ? "already failing on the base" : "no base result (new test, or the base run timed out)"}, so it does not block`);
++		}
++		return out;
++	}
++
++	/** file -> ok for the base results already recorded for this sha (timeouts are never recorded as results). */
++	static cached(results, sha){
++		const map = new Map();
++		let text = ""; try { text = fs.readFileSync(results, "utf8"); } catch {}
++		for (const l of text.split(/\r?\n/)) {
++			if (!l.includes(sha)) continue;
++			try { const e = JSON.parse(l); if (e.sha === sha && e.trigger === "merge-base" && !e.timeout) map.set(e.file, e.ok); } catch {}
++		}
++		return map;
++	}
++
++	// Inside main, so node finds main's node_modules; excluded locally so git status stays clean.
++	static checkout(main, sha){
++		const dir = path.join(main, ".merge-base", sha.slice(0, 12));
++		try {
++			const ex = path.resolve(main, git(main, "rev-parse", "--git-path", "info/exclude").stdout.trim());
++			const cur = fs.existsSync(ex) ? fs.readFileSync(ex, "utf8") : "";
++			if (!/^\.merge-base\/?$/m.test(cur)) { fs.mkdirSync(path.dirname(ex), { recursive: true }); fs.appendFileSync(ex, (cur && !cur.endsWith("\n") ? "\n" : "") + ".merge-base/\n"); }
++		} catch {}
++		MergeTests.remove(main, dir);
++		const r = git(main, "worktree", "add", "--detach", dir, sha);
++		return r.status === 0 ? dir : null;
++	}
++
++	static remove(main, dir){
++		git(main, "worktree", "remove", "--force", dir);
++		fs.rmSync(dir, { recursive: true, force: true });
++		git(main, "worktree", "prune");
++	}
++}
+diff --git a/Server/merge.mjs b/Server/merge.mjs
+index a34aa1d1c..b77986551 100644
+--- a/Server/merge.mjs
++++ b/Server/merge.mjs
+@@ -65,12 +65,14 @@ import TaskDirs from "./TaskDirs.mjs";
+ import { OrphanCheck } from "./OrphanCheck.mjs";
+ import { refuse_links_into_main } from "./junction-guard.mjs";
+ import SessionRecord from "./SessionRecord.mjs";
++import MergeTests from "./MergeTests.mjs";
+ 
+ const BASE = "michael/dev";
+ const argv = process.argv.slice(2);
+ const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
+ const bool = name => argv.includes(name) && (argv.splice(argv.indexOf(name), 1), true);
+ const skipSmoke = bool("--skip-smoke");
++const skipTests = bool("--skip-tests");   // for proofs on a scratch repo only, like --skip-smoke
+ const dryRun = bool("--dry-run");
+ const mainArg = flag("--main");
+ const noReview = flag("--no-review");
+@@ -79,7 +81,7 @@ const quick = bool("--quick");
+ const asked = flag("--asked");
+ const mergeStart = Date.now();
+ const [dirArg, ...paths] = argv;
+-if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run] [--quick [--asked <iso>]]"); process.exit(1); }
++if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--skip-tests] [--dry-run] [--quick [--asked <iso>]]"); process.exit(1); }
+ // Git Bash rewrites "/framework/ai2/" into "C:/Program Files/Git/framework/ai2/"; the smoke run then
+ // hunts for it while holding everyone's merge lock (node-reliability, 2026-09-30). Refuse before the lock.
+ const mangled = [...paths, mainArg ?? ""].find(p => /Program Files[\\/]Git[\\/]/i.test(p));
+@@ -488,6 +490,15 @@ try {
+ 		const smoke = skipSmoke ? { status: 0, stdout: "", stderr: "" }
+ 			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...smokePages, ...(mainArg ? ["--main", MAIN] : [])], MAIN);
+ 		console.log(smoke.stdout + smoke.stderr);
++		/* Tests (core/Test): every test that covers the diff runs on the branch; a failing one is run on the merge base too (Server/MergeTests.mjs). Only pass-on-base, fail-on-branch refuses. */
++		let testRefusal = null;
++		if (smoke.status === 0 && !skipTests && !dryRun) {
++			try {
++				const t = await MergeTests.gate({ dir, main: MAIN, base_ref: BASE, branch, changed: changed.filter(f => !deleted.has(f)) });
++				for (const n of t.notes) console.warn(n);
++				if (t.refused.length) testRefusal = `merge.mjs refused: ${t.refused.length} test(s) pass on the merge base and fail on ${branch}:\n` + t.refused.map(r => `  ${r.file}\n    ${(r.tail ?? "").split(/\r?\n/).slice(-6).join("\n    ")}`).join("\n");
++			} catch (e) { console.warn(`tests: the gate itself failed (${e.message}); not blocking`); }
++		}
+ 		const dirty = dirtyFiles();
+ 		const staged = lines(git(MAIN, "diff", "--cached", "--name-only").stdout);   // git merge refuses any staged change, so treat it like overlap
+ 		/* The three-way landing, per file, into the working tree. */
+@@ -585,6 +596,7 @@ try {
+ 			await writeNoReviewPass(MAIN, taskDir, { size: "quick", branch, head, note: `size quick — ${widths.length === 1 ? `one shot at ${width}` : `shots at ${widths.join(", ")}`} — pass` });
+ 		}
+ 		if (smoke.status !== 0) { console.error("smoke test failed; nothing merged"); code = 1; }
++		else if (testRefusal) { console.error(testRefusal); code = 1; }
+ 		else if (!changed.length) console.log(`nothing to land: ${branch} changes no file against ${BASE}`);
+ 		else if (!overlap.length && !staged.length) {
+ 			// prove the merge is clean BEFORE git merge touches anything
+diff --git a/Server/merge.test.mjs b/Server/merge.test.mjs
+index 01aa7ac96..074774749 100644
+--- a/Server/merge.test.mjs
++++ b/Server/merge.test.mjs
+@@ -75,6 +75,61 @@ test("LandingCheck: a new file left untracked on dev is reported as 'new file no
+ 	} finally { LandingCheck.REPO = was; }
+ });
+ 
++/** Like scratch(), but the base holds t/x.mjs + t/x.test.mjs and the branch rewrites x.mjs (and optionally the test). */
++function scratchTests(branch, { baseX, baseTest, branchX, branchTest }){
++	const root = fs.mkdtempSync(path.join(os.tmpdir(), "mergetest-")); tmps.push(root);
++	const main = path.join(root, "main"), wt = path.join(root, "wt");
++	fs.mkdirSync(main);
++	git(main, "init", "-b", "michael/dev"); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
++	write(main, "a.txt", "1\n"); write(main, "t/x.mjs", baseX); write(main, "t/x.test.mjs", baseTest);
++	write(main, ".gitignore", ".merge-landed.json\n.merge.lock\npublic/\n"); git(main, "add", "."); git(main, "commit", "-m", "base");
++	git(main, "worktree", "add", "-b", branch, wt);
++	write(wt, "t/x.mjs", branchX); if (branchTest) write(wt, "t/x.test.mjs", branchTest);
++	git(wt, "add", "."); git(wt, "commit", "-m", "work");
++	return { root, main, wt };
++}
++const mergeT = (wt, main, env = {}) => spawnSync("node", [MERGE, wt, "--main", main, "--skip-smoke", "--no-review", "scratch-repo test"], { encoding: "utf8", windowsHide: true, env: { ...process.env, TESTRUNNER_TIMEOUT: "3000", ...env } });
++const GOOD = "export const x = 1;\n", BAD = "export const x = 2;\n";
++const CHECKS_ONE = "import { x } from './x.mjs'; if (x !== 1) { console.log('not ok - x is ' + x); process.exit(1); }\n";
++const rows = main => { try { return fs.readFileSync(path.join(main, "public/framework/core/Test/results.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l)); } catch { return []; } };
++
++test("tests: passes on the base, fails on the branch -> refused, nothing lands; the base result is cached by sha", () => {
++	const { main, wt } = scratchTests("worktree/t1", { baseX: GOOD, baseTest: CHECKS_ONE, branchX: BAD });
++	const r = mergeT(wt, main);
++	assert.equal(r.status, 1, r.stdout + r.stderr);
++	assert.match(r.stderr, /refused: 1 test\(s\) pass on the merge base and fail on worktree\/t1[\s\S]*t\/x\.test\.mjs/);
++	assert.equal(fs.readFileSync(path.join(main, "t/x.mjs"), "utf8"), GOOD, "nothing landed");
++	const base = rows(main).filter(l => l.trigger === "merge-base");
++	assert.equal(base.length, 1); assert.equal(base[0].ok, true); assert.match(base[0].sha, /^[0-9a-f]{40}$/);
++	assert.ok(rows(main).some(l => l.trigger === "merge" && l.ok === false));
++	const again = mergeT(wt, main);   // same base: the cached line answers, the base is not run a second time
++	assert.equal(again.status, 1);
++	assert.equal(rows(main).filter(l => l.trigger === "merge-base").length, 1, "base result reused");
++	assert.equal(git(main, "status", "--porcelain").trim(), "", "no .merge-base checkout left behind");
++});
++
++test("tests: already failing on the base -> not refused, the branch lands", () => {
++	const { main, wt } = scratchTests("worktree/t2", { baseX: BAD, baseTest: CHECKS_ONE, branchX: "export const x = 3;\n" });
++	const r = mergeT(wt, main);
++	assert.equal(r.status, 0, r.stdout + r.stderr);
++	assert.match(r.stderr, /already failing on the base/);
++	assert.equal(fs.readFileSync(path.join(main, "t/x.mjs"), "utf8"), "export const x = 3;\n");
++});
++
++test("tests: a timeout on the branch is no result, never a refusal", () => {
++	const { main, wt } = scratchTests("worktree/t3", { baseX: GOOD, baseTest: CHECKS_ONE, branchX: GOOD + "// edited\n", branchTest: "setTimeout(() => {}, 60000);\n" });
++	const r = mergeT(wt, main);
++	assert.equal(r.status, 0, r.stdout + r.stderr);
++	assert.match(r.stderr, /timed out on the branch/);
++});
++
++test("tests: --skip-tests runs nothing", () => {
++	const { main, wt } = scratchTests("worktree/t4", { baseX: GOOD, baseTest: CHECKS_ONE, branchX: BAD });
++	const r = spawnSync("node", [MERGE, wt, "--main", main, "--skip-smoke", "--skip-tests", "--no-review", "scratch-repo test"], { encoding: "utf8", windowsHide: true });
++	assert.equal(r.status, 0, r.stdout + r.stderr);
++	assert.equal(rows(main).length, 0);
++});
++
+ for (const t of tmps) { try { git(t, "worktree", "prune"); } catch {} }
+ for (const t of tmps) fs.rmSync(t, { recursive: true, force: true });
+ console.log(`${passed} passed, 0 failed`);
+diff --git a/Servex/WorktreeWatch.js b/Servex/WorktreeWatch.js
+index b4ad8966d..ad2a8b39c 100644
+--- a/Servex/WorktreeWatch.js
++++ b/Servex/WorktreeWatch.js
+@@ -27,6 +27,29 @@ export default class WorktreeWatch {
+     static SHARED = [/^\/framework\/core\//, /^\/framework\/ui\//, /^\/framework\/ux\//, /^\/framework\/ext\//, /^\/framework\/framework\.css$/, /^\/app\.js$/];
+     static CANARY = "/framework/";
+     static BASE_404 = /^Failed to load resource: .*404/;   // every page load asks for /favicon.ico once per width, and a dev server has none
++    static TESTABLE = /\.m?js$/i;              // only a script change runs tests: a dev server rewrites files.jsonl constantly
++    static MAX_TESTS = 3;                      // test jobs at once, across every worktree
++    static LIST_MS = 30 * 1000;                // how long a worktree's list of test files is reused
++    static queue = new Map();                  // worktree id -> { watch, files }: at most one waiting run per worktree
++    static active = 0;
++    static runner_url = new URL("../public/framework/core/Test/TestRunner.mjs", import.meta.url).href;   // Servex's own copy, pointed at the worktree
++
++    /* Start waiting runs while fewer than MAX_TESTS are going. A worktree never has two at once. */
++    static pump(){
++        while (WorktreeWatch.active < WorktreeWatch.MAX_TESTS){
++            const next = [...WorktreeWatch.queue.values()].find(e => !e.watch.testing);
++            if (!next) return;
++            WorktreeWatch.queue.delete(next.watch.id);
++            WorktreeWatch.active++;
++            next.watch.test_job(next.files).catch(e => next.watch.note(`worktree-watch: ${next.watch.id} tests failed to run: ${e.message}`)).finally(() => { WorktreeWatch.active--; WorktreeWatch.pump(); });
++        }
++    }
++
++    /* The line worth quoting from a failed test's tail: the first assertion or error, else the first line. */
++    static first_failure(tail){
++        const rows = String(tail ?? "").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
++        return (rows.find(l => /^not ok\b|Error\b|\bfail/i.test(l)) ?? rows[0] ?? "no output").slice(0, 200);
++    }
+ 
+     /* A changed url-path ("/framework/x/page.js") -> the page urls it could break, own page first. Same rule as Server/health.mjs. */
+     static pages_for(url_path, public_dir){
+@@ -71,6 +94,9 @@ export default class WorktreeWatch {
+         this.pages = new Map();     // url -> { broken, messaged_at }
+         this.running = false;
+         this.stopped = true;
++        this.test_pending = new Set();   // changed script paths (urls) waiting for the debounce
++        this.test_state = new Map();     // test file -> ok, from this worktree's own runs: the last known result
++        this.testing = false;
+     }
+ 
+     start(){
+@@ -81,7 +107,8 @@ export default class WorktreeWatch {
+ 
+     stop(){
+         this.stopped = true;
+-        clearTimeout(this.timer); clearTimeout(this.retry);
++        clearTimeout(this.timer); clearTimeout(this.retry); clearTimeout(this.test_timer);
++        WorktreeWatch.queue.delete(this.id);
+         try { this.ws?.terminate(); } catch {}
+     }
+ 
+@@ -94,6 +121,12 @@ export default class WorktreeWatch {
+     }
+ 
+     changed(paths){
++        const scripts = paths.filter(p => WorktreeWatch.TESTABLE.test(p) && !/(^|\/)node_modules\//.test(p));
++        if (scripts.length){
++            for (const p of scripts) this.test_pending.add(p);
++            clearTimeout(this.test_timer);
++            this.test_timer = setTimeout(() => this.queue_tests(), WorktreeWatch.DEBOUNCE_MS);
++        }
+         let any = false;
+         for (const p of paths) for (const url of WorktreeWatch.pages_for(p, this.public)){ this.pending.add(url); any = true; }
+         if (!any) return;
+@@ -117,6 +150,63 @@ export default class WorktreeWatch {
+         if (this.pending.size && !this.stopped){ this.first_at = Date.now(); this.timer = setTimeout(() => this.run(), WorktreeWatch.DEBOUNCE_MS); }
+     }
+ 
++    /* The changed scripts join this worktree's one waiting run (a new change replaces the old queue entry, keeping its files). */
++    queue_tests(){
++        if (this.stopped) return;
++        const files = new Set([...(WorktreeWatch.queue.get(this.id)?.files ?? []), ...this.test_pending]);
++        this.test_pending.clear();
++        WorktreeWatch.queue.set(this.id, { watch: this, files: [...files] });
++        WorktreeWatch.pump();
++    }
++
++    /* A TestRunner pointed at this worktree. Overridden in the test. */
++    async runner(){
++        if (!this._runner){
++            const R = (await import(WorktreeWatch.runner_url)).default;
++            this._runner = new R(); this._runner.root = this.root;
++        }
++        return this._runner;
++    }
++
++    /* The tests near the changed scripts (repo-relative paths), one level of imports. Overridden in the test. */
++    async near(urls){
++        const r = await this.runner();
++        if (!this.test_list || Date.now() - this.test_list_at > WorktreeWatch.LIST_MS){ this.test_list = r.find(); this.test_list_at = Date.now(); }
++        return [...new Set(urls.flatMap(u => r.near("public" + u, this.test_list)))].sort();
++    }
++
++    /* Run one test file: { file, ok, tail, timeout } and a trigger "save" line in core/Test/results.jsonl. Overridden in the test. */
++    async execute(file){ return (await this.runner()).one(file, "save"); }
++
++    /* The last recorded result of a test before this run: this worktree's own, else the newest line in results.jsonl. */
++    async prior(file){
++        if (this.test_state.has(file)) return this.test_state.get(file);
++        let text = ""; try { text = fs.readFileSync((await this.runner()).results, "utf8"); } catch {}
++        let was;
++        for (const l of text.split(/\r?\n/)) if (l.includes(file)) try { const e = JSON.parse(l); if (e.file === file && !e.sha && !e.timeout) was = e.ok; } catch {}
++        return was;
++    }
++
++    /* Run the near tests one after another (one slot of the shared queue); tell the holder only about a change. */
++    async test_job(urls){
++        this.testing = true;
++        try {
++            const files = await this.near(urls);
++            for (const file of files){
++                if (this.stopped) break;
++                const was = await this.prior(file);
++                const res = await this.execute(file);
++                if (res.timeout){ this.note(`worktree-watch: ${file} timed out (${this.id}); no result`); continue; }
++                this.test_state.set(file, res.ok);
++                if (!res.ok && was !== false){
++                    const line = `worktree-watch: test ${file} ${was === true ? "was passing and now fails" : "fails"}: ${WorktreeWatch.first_failure(res.tail)} (${this.id})`;
++                    this.note(line, true);
++                    if (this.owner && this.send) try { this.send(this.owner, line); } catch (e) { this.note(`worktree-watch: could not reach ${this.owner}: ${e.message}`, true); }
++                } else if (res.ok && was === false) this.note(`worktree-watch: test ${file} passes again (${this.id})`, true);
++            }
++        } finally { this.testing = false; }
++    }
++
+     /* urls -> Map(url -> { res: layout.json, dir: where its pngs are }). Overridden in the test. */
+     measure(urls){
+         const out = path.join(os.tmpdir(), "lew42-worktree-watch", this.id, String(Date.now()));
+diff --git a/Servex/WorktreeWatch.test.mjs b/Servex/WorktreeWatch.test.mjs
+index dade10d92..7044b1db5 100644
+--- a/Servex/WorktreeWatch.test.mjs
++++ b/Servex/WorktreeWatch.test.mjs
+@@ -60,5 +60,60 @@ watch.pages.get("/framework/x/").messaged_at -= WorktreeWatch.QUIET_MS + 1;
+ layout = { ...clean, errors: ["400: boom"] };
+ await go();
+ assert.equal(sent.length, 2, "after 10 minutes a new break is told again");
++
++// the tests: a script save runs the near tests, a files.jsonl write runs nothing, only a change is reported
++WorktreeWatch.DEBOUNCE_MS = 15;
++const sleep = ms => new Promise(r => setTimeout(r, ms));
++const idle = async () => { for (let i = 0; i < 200 && (WorktreeWatch.active || WorktreeWatch.queue.size); i++) await sleep(10); await sleep(20); };
++const tmain = path.join(root, "tmain"); fs.mkdirSync(path.join(tmain, "task"), { recursive: true });
++const testWatch = (id, execute) => {
++    const msgs = [];
++    const t = new WorktreeWatch({ id, path: path.join(root, "worktree"), port: 1, owner: "minion-t", main: tmain, task_dir: "task", send: (to, text) => msgs.push(text) });
++    t.stopped = false; t.ran = [];
++    t.runner = async () => ({ results: path.join(root, "no-results.jsonl") });
++    t.near = async urls => urls.some(u => u.endsWith("Thing.mjs")) ? ["x/Thing.test.mjs"] : [];
++    t.execute = async file => { t.ran.push(file); return execute(file); };
++    return { t, msgs };
++};
++let ok = true;
++const { t: tw, msgs: tmsgs } = testWatch("tw", async () => ({ ok, tail: "ok - one\nnot ok - Thing adds (expected 2, got 3)\nat line 9" }));
++tw.changed(["/framework/x/files.jsonl", "/framework/x/page.jsonl", "/framework/x/readme.md"]); await idle();
++assert.deepEqual(tw.ran, [], "data writes run no tests");
++tw.changed(["/framework/x/Thing.mjs"]); await idle();
++assert.deepEqual(tw.ran, ["x/Thing.test.mjs"], "a .mjs save runs its near test");
++assert.equal(tmsgs.length, 0, "a pass with nothing before it says nothing");
++tw.changed(["/framework/x/Thing.mjs"]); await idle();
++assert.equal(tmsgs.length, 0, "steady pass says nothing");
++ok = false;
++tw.changed(["/framework/x/Thing.mjs"]); await idle();
++assert.equal(tmsgs.length, 1, "pass to fail: one message");
++assert.match(tmsgs[0], /x\/Thing\.test\.mjs was passing and now fails: not ok - Thing adds \(expected 2, got 3\)/);
++tw.changed(["/framework/x/Thing.mjs"]); await idle();
++assert.equal(tmsgs.length, 1, "steady fail says nothing");
++ok = true;
++tw.changed(["/framework/x/Thing.mjs"]); await idle();
++assert.equal(tmsgs.length, 1, "fail to pass is a log line, not a message");
++const tlog = fs.readFileSync(path.join(tmain, "task", "task.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l).log.msg);
++assert.equal(tlog.length, 2, "one fail line, one passes-again line");
++assert.match(tlog[0], /now fails/); assert.match(tlog[1], /passes again/);
++
++// a timeout is no result: the state stays, nothing is told
++const { t: tt, msgs: tmsgs2 } = testWatch("tt", async () => ({ ok: false, timeout: true, tail: "TIMED OUT" }));
++tt.changed(["/framework/x/Thing.mjs"]); await idle();
++assert.equal(tmsgs2.length, 0); assert.equal(tt.test_state.size, 0);
++
++// one shared queue: at most 3 at once across worktrees; a new change replaces that worktree's waiting run
++let now = 0, peak = 0, gate; const open = new Promise(r => gate = r);
++const many = Array.from({ length: 5 }, (_, i) => testWatch("q" + i, async () => { peak = Math.max(peak, ++now); await open; now--; return { ok: true }; }));
++for (const { t } of many) t.changed(["/framework/x/Thing.mjs"]);
++await sleep(80);
++assert.equal(WorktreeWatch.active, 3, "three run");
++assert.equal(WorktreeWatch.queue.size, 2, "two wait");
++many[4].t.changed(["/framework/x/Other.mjs"]); await sleep(80);
++assert.equal(WorktreeWatch.queue.size, 2, "a new change replaces that worktree's waiting run");
++assert.deepEqual(WorktreeWatch.queue.get("q4").files.sort(), ["/framework/x/Other.mjs", "/framework/x/Thing.mjs"]);
++gate(); await idle();
++assert.equal(peak, 3, "never more than three test processes");
++assert.ok(many.every(m => m.t.ran.length === 1), "every worktree ran once");
+ console.log = quiet;
+ console.log("WorktreeWatch.test.mjs: ok");
+diff --git a/public/framework/core/Test/TestResults.js b/public/framework/core/Test/TestResults.js
+index 69693eefc..53df95bf5 100644
+--- a/public/framework/core/Test/TestResults.js
++++ b/public/framework/core/Test/TestResults.js
+@@ -1,9 +1,9 @@
+ import { JSONL } from "/framework/ext/JSONL/JSONL.js";
+ 
+-// results.jsonl: one line per test run. The latest line per file wins.
++// results.jsonl: one line per test run. The latest line per file wins; a merge-base line (it has a sha) is a cache of the base commit, not the file's latest run.
+ export default class TestResults extends JSONL {
+ 	rows = new Map();
+-	apply(entry){ if (entry?.file) this.rows.set(entry.file, entry); }
++	apply(entry){ if (entry?.file && !entry.sha) this.rows.set(entry.file, entry); }
+ 	reset(){ this.rows = new Map(); return super.reset(); }
+ 	// Failures first, then by file name.
+ 	get sorted(){ return [...this.rows.values()].sort((a, b) => (a.ok - b.ok) || a.file.localeCompare(b.file)); }
+diff --git a/public/framework/core/Test/TestRunner.mjs b/public/framework/core/Test/TestRunner.mjs
+index 69dcad937..f449d0407 100644
+--- a/public/framework/core/Test/TestRunner.mjs
++++ b/public/framework/core/Test/TestRunner.mjs
+@@ -6,13 +6,13 @@ import { fileURLToPath, pathToFileURL } from "node:url";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const ROOT = path.resolve(HERE, "../../../..");
+-const SKIP = new Set(["node_modules", ".git", "worktrees"]);
++const SKIP = new Set(["node_modules", ".git", "worktrees", ".merge-base"]);
+ const IMPORT_RE = /(?:\bfrom\s*|\bimport\s*\(\s*|^\s*import\s+)["']([^"']+)["']/gm;
+ 
+ export default class TestRunner {
+ 	root = ROOT;
+-	results = path.join(HERE, "results.jsonl");
+-	timeout = 60000;
++	results = process.env.TESTRUNNER_RESULTS || path.join(HERE, "results.jsonl");   // the env var is for proofs
++	timeout = Number(process.env.TESTRUNNER_TIMEOUT) || 60000;   // 60 s; the env var is for proofs
+ 	parallel = 4;
+ 	cache = new Map();   // abs file -> { mtime, deps }
+ 	running = new Set();
+@@ -32,7 +32,11 @@ export default class TestRunner {
+ 				} else if (e.name.endsWith(".test.mjs")) out.push(this.rel(p));
+ 			}
+ 		};
+-		for (const f of folders.length ? folders : [""]) walk(path.resolve(this.root, f));
++		for (const f of folders.length ? folders : [""]) {
++			const abs = path.resolve(this.root, f);
++			if (fs.existsSync(abs) && fs.statSync(abs).isFile()) out.push(this.rel(abs));   // a file path runs that file
++			else walk(abs);
++		}
+ 		return [...new Set(out)].sort();
+ 	}
+ 
+@@ -73,7 +77,16 @@ export default class TestRunner {
+ 		});
+ 	}
+ 
+-	one(file, trigger){
++	// Tests near a changed file: the *.test.mjs in its own folder, plus the tests that import it directly (one level; deps() is the resolver covers() uses).
++	near(file, tests = this.find()){
++		const abs = path.resolve(this.root, file), dir = path.dirname(abs);
++		return tests.filter(t => {
++			const ta = path.resolve(this.root, t);
++			return ta === abs || path.dirname(ta) === dir || this.deps(ta).includes(abs);
++		});
++	}
++
++	one(file, trigger, extra = {}){
+ 		return new Promise(resolve => {
+ 			const t0 = Date.now(); let out = "", timedOut = false;
+ 			const child = spawn(process.execPath, [file], { cwd: this.root, windowsHide: true });
+@@ -83,7 +96,7 @@ export default class TestRunner {
+ 			child.on("close", code => {
+ 				clearTimeout(timer);
+ 				const ok = code === 0 && !timedOut;
+-				const line = { file, ok, ms: Date.now() - t0, at: new Date().toISOString(), trigger };
++				const line = { file, ok, ms: Date.now() - t0, at: new Date().toISOString(), trigger, ...extra };
+ 				if (!ok) line.tail = (timedOut ? "TIMED OUT after " + this.timeout + "ms\n" : "") + out.trim().split(/\r?\n/).slice(-15).join("\n");
+ 				if (timedOut) line.timeout = true;
+ 				fs.appendFileSync(this.results, JSON.stringify(line) + "\n");
+@@ -94,11 +107,11 @@ export default class TestRunner {
+ 		});
+ 	}
+ 
+-	async run(files, { trigger = "manual" } = {}){
++	async run(files, { trigger = "manual", extra = {} } = {}){
+ 		files = files.filter(f => !this.running.has(f));
+ 		files.forEach(f => this.running.add(f));
+ 		const out = [], queue = [...files];
+-		const worker = async () => { for (let f; (f = queue.shift());) { out.push(await this.one(f, trigger)); this.running.delete(f); } };
++		const worker = async () => { for (let f; (f = queue.shift());) { out.push(await this.one(f, trigger, extra)); this.running.delete(f); } };
+ 		await Promise.all(Array.from({ length: Math.min(this.parallel, files.length) }, worker));
+ 		const bad = out.filter(r => !r.ok), slow = out.filter(r => r.timeout);
+ 		console.log(`${out.length - bad.length} passed, ${bad.length} failed (${slow.length} timed out), ${out.length} total`);
+@@ -129,7 +142,7 @@ export default class TestRunner {
+ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+ 	const args = process.argv.slice(2), r = new TestRunner();
+ 	const norm = a => r.rel(path.resolve(process.cwd(), a)) || "";
+-	const i = args.indexOf("--covers");
++	const i = args.indexOf("--covers"), n = args.indexOf("--near");
+ 	if (args[0] === "--watch") r.watch(args.slice(1).map(norm));
+ 	else if (args[0] === "--list" || i > -1) {
+ 		const files = i > -1 ? r.covers(norm(args[i + 1])) : r.find(args.filter(a => a !== "--list").map(norm));
+diff --git a/public/framework/core/Test/TestRunner.test.mjs b/public/framework/core/Test/TestRunner.test.mjs
+new file mode 100644
+index 000000000..f3421f65f
+--- /dev/null
++++ b/public/framework/core/Test/TestRunner.test.mjs
+@@ -0,0 +1,34 @@
++// node public/framework/core/Test/TestRunner.test.mjs — single-file runs and --near, on a scratch tree (no repo tests run).
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import assert from "node:assert/strict";
++import { spawnSync } from "node:child_process";
++import TestRunner from "./TestRunner.mjs";
++
++const HERE = import.meta.dirname, RUNNER = path.join(HERE, "TestRunner.mjs");
++const root = fs.mkdtempSync(path.join(os.tmpdir(), "trunner-"));
++const put = (f, t) => { fs.mkdirSync(path.dirname(path.join(root, f)), { recursive: true }); fs.writeFileSync(path.join(root, f), t); };
++put("pkg/a.mjs", "export const a = 1;\n");
++put("pkg/a.test.mjs", "import { a } from './a.mjs'; if (a !== 1) process.exit(1);\n");
++put("pkg/b.test.mjs", "process.exit(0);\n");
++put("other/c.test.mjs", "import { a } from '../pkg/a.mjs'; if (a !== 1) process.exit(1);\n");
++put("far/d.test.mjs", "import './mid.mjs';\n");
++put("far/mid.mjs", "import '../pkg/a.mjs';\n");
++
++const r = new TestRunner(); r.root = root; r.results = path.join(root, "results.jsonl");
++
++assert.deepEqual(r.find(["pkg/b.test.mjs"]), ["pkg/b.test.mjs"], "a file path finds that file");
++assert.deepEqual(r.find(["pkg"]), ["pkg/a.test.mjs", "pkg/b.test.mjs"], "a folder still finds its tests");
++
++// near: own folder + direct importers; not a test that imports it only through another file
++assert.deepEqual(r.near("pkg/a.mjs"), ["other/c.test.mjs", "pkg/a.test.mjs", "pkg/b.test.mjs"]);
++assert.deepEqual(r.covers("pkg/a.mjs").sort(), ["far/d.test.mjs", "other/c.test.mjs", "pkg/a.test.mjs", "pkg/b.test.mjs"], "covers still goes transitive");
++
++// the CLI: a single test file path runs that file (it used to run nothing)
++const cli = spawnSync(process.execPath, [RUNNER, path.join(root, "pkg/b.test.mjs")], { encoding: "utf8", windowsHide: true, cwd: root, env: { ...process.env, TESTRUNNER_RESULTS: path.join(root, "cli-results.jsonl") } });
++assert.match(cli.stdout, /PASS .*pkg\/b\.test\.mjs/, cli.stdout + cli.stderr);
++assert.equal(cli.status, 0);
++
++fs.rmSync(root, { recursive: true, force: true });
++console.log("ok - TestRunner: a file path runs, --near is one level");

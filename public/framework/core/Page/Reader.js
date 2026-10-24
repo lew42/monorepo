@@ -62,4 +62,4 @@ export default class PageLogReader extends Item.Store {
 	}
 }
 // ⚠ Localhost only, the gate dev/Socket keeps. (doc/watch-out.md)
-PageLogReader.dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
+PageLogReader.dev = typeof location !== "undefined" && (["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost"));   // node has no location

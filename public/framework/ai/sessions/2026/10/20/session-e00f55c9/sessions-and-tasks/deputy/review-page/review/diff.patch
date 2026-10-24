@@ -1,0 +1,580 @@
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 6bb55de63..7656cb1a2 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -17,6 +17,7 @@ import Property from "/framework/core/Property/Property.js";
+ import SessionMenu from "/framework/core/Session/SessionMenu.js";
+ import SessionSettings from "/framework/core/Session/SessionSettings.js";
+ import SessionTasks from "/framework/core/Session/SessionTasks.js";
++import SessionWork from "./SessionWork.js";
+ import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
+ import "/framework/core/Page/parts/PageText.js";
+ import "/framework/core/Page/parts/PageCard.js";
+@@ -144,17 +145,18 @@ export default class AISessionDetail extends Page {
+ 		const { home, id } = this, url = home.url;
+ 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
+ 		this.parts = new AISessionDetail.Parts($parts);
+-		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks;
++		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work;
+ 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
+-		const TABS = [["conversation", "Conversation"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
++		const TABS = [["work", "Work"], ["conversation", "Conversation"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
+ 		const want = new URLSearchParams(location.search).get("tab"), panels = {}, buttons = {};
+ 		const show = key => {
+ 			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
+-			const q = new URLSearchParams(location.search); key === "conversation" ? q.delete("tab") : q.set("tab", key);
++			const q = new URLSearchParams(location.search); key === "work" ? q.delete("tab") : q.set("tab", key);
+ 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
+ 		};
+ 		div.c("sessions-tabs flex gap-50 wrap", () => TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k))));
+ 		div.c("sessions-detail-body", () => {
++			panels.work = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
+ 			panels.conversation = div.c("flow sessions-panel", () => {
+ 				$tasks = div.c("flow session-tasks");   // the session's tasks, live; an owner prompt's asks arrive here as proposals (core/Session/SessionTasks.js)
+ 				$box = div.c("flow");     // which session this is (source tag, tab title, model)
+@@ -166,7 +168,7 @@ export default class AISessionDetail extends Page {
+ 			panels.models = div.c("flow sessions-panel", () => { $session = div.c("flow"); });   // the Session class: cost tree, model + effort, tokens by purpose, audit
+ 			panels.related = div.c("flow sessions-panel", () => { $spawn = div.c("flow"); $related = div.c("flow"); });   // who spawned this and what it spawned; the other records of this session
+ 		});
+-		show(TABS.some(([k]) => k === want) ? want : "conversation");
++		show(TABS.some(([k]) => k === want) ? want : "work");
+ 		const conv = new AISessionConversation();
+ 		const voice = new VoiceFlow();
+ 		$voice.append(voice.view);
+@@ -202,6 +204,7 @@ export default class AISessionDetail extends Page {
+ 			const fill = async () => {
+ 			await this.follow?.catch(() => {});   // the first feed pull names the real folder (a card-slug folder is not <id>/) via AISession.slugs
+ 			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;
++			if (!this.work){ this.work = true; $work.append(() => new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null })); }
+ 			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
+ 			const [costs, trace] = await Promise.all([
+ 				AISessionDetail.load_cost_log(own).then(async c => c ?? AISessionDetail.load_cost_log(await old_dir())),
+diff --git a/public/framework/ai/AISession/Approvals.js b/public/framework/ai/AISession/Approvals.js
+new file mode 100644
+index 000000000..935f05d53
+--- /dev/null
++++ b/public/framework/ai/AISession/Approvals.js
+@@ -0,0 +1,43 @@
++import JSONL from "/framework/ext/JSONL/JSONL.js";
++import FsFile from "/framework/ext/filesystem/FsFile.js";
++import Day from "/framework/core/Session/Day.js";
++
++/** Approvals — which of one day's sessions the owner approved. Approving writes two lines through FsFile.append (the one file API):
++ *  `{"approve":{"at","by":"owner"}}` in the session's own record (`<day>/<folder>/session.jsonl`, the fact), and one pointer line in
++ *  that day's log (`<day>/day.jsonl`, `{"log":{…,"approve":{"session","record","by"}}}`), which is what this class streams: one file
++ *  per day instead of probing every session's record (most have none, and each miss is a 404). Doc: readme.md, "Review". */
++export default class Approvals extends JSONL {
++	static ROOT = new URL("../sessions/", import.meta.url).pathname;
++	static day_url(day){ return `${Approvals.ROOT}${Day.path(day)}/day.jsonl`; }
++	/** The session's own record. `dir` is the folder the store found its snapshot under; `day` may be written with dashes. */
++	static record(s){ return `${Approvals.ROOT}${(s.day ?? s.dir ?? "").replaceAll("-", "/")}/${s.folder ?? s.id}/session.jsonl`; }
++
++	got = new Map();   // session id -> { at, by } of its approval
++	listeners = new Set();
++
++	static of_day(day){ return new Approvals({ url: Approvals.day_url(day), day }).live(); }
++
++	on(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); }
++	of(id){ return this.got.get(id) ?? null; }
++
++	read(entries){
++		for (const e of entries){ const a = e?.log?.approve; if (a?.session) this.got.set(a.session, { at: e.log.at, by: a.by ?? "owner" }); }
++		this.listeners.forEach(fn => fn(this));
++		return this;
++	}
++	reset(){ this.got = new Map(); return super.reset(); }
++	live(){ super.live(() => {}); return this; }
++
++	/** Approve sessions (snapshots): shown at once, then written; put back if a write is refused. Returns true when every line was written. */
++	async approve(snaps){
++		const at = new Date().toISOString(), was = new Map(snaps.map(s => [s.id, this.got.get(s.id)]));
++		snaps.forEach(s => this.got.set(s.id, { at, by: "owner" }));
++		this.listeners.forEach(fn => fn(this));
++		const own = await Promise.all(snaps.map(s => FsFile.append(Approvals.record(s), { approve: { at, by: "owner" } }).catch(() => false)));
++		const kept = snaps.filter((s, i) => own[i]);
++		const day = kept.length ? await FsFile.append(this.url, kept.map(s => ({ log: { at, task: s.id, msg: "approved by the owner: " + (s.title ?? s.agent ?? s.id), approve: { session: s.id, record: Approvals.record(s), by: "owner" } } }))).catch(() => false) : true;
++		snaps.forEach((s, i) => { if (!own[i] || !day) was.get(s.id) ? this.got.set(s.id, was.get(s.id)) : this.got.delete(s.id); });
++		if (own.includes(false) || !day) this.listeners.forEach(fn => fn(this));
++		return !own.includes(false) && !!day;
++	}
++}
+diff --git a/public/framework/ai/AISession/Review.js b/public/framework/ai/AISession/Review.js
+new file mode 100644
+index 000000000..20a1d2454
+--- /dev/null
++++ b/public/framework/ai/AISession/Review.js
+@@ -0,0 +1,40 @@
++/** Review — the owner's review of one day: each session's state and the day's three totals (approved, waiting, leaking).
++ *  Plain code over a SessionTree and the Approvals; computed on every paint, never stored. The rule and its numbers: readme.md, "Review". */
++export default class Review {
++	static FINISHED_MS = 60 * 60000;   // no activity for an hour: finished
++	static LEAK_USD = 0.5;             // costs more than this (rolled up through its children)
++	static LEAK_AGE_MS = 24 * 3600000; // and finished more than a day ago, unapproved: a leak
++
++	static STATES = {
++		approved: { label: "approved", hint: "The owner approved it, or a session above it" },
++		live:     { label: "working",  hint: "Active in the last hour" },
++		waiting:  { label: "waiting",  hint: "Finished, waiting for the owner's approval" },
++		leak:     { label: "leak",     hint: `Finished over a day ago, cost over $${Review.LEAK_USD.toFixed(2)}, never approved` },
++	};
++
++	constructor(tree, approvals, now = Date.now()){
++		this.tree = tree; this.approvals = approvals; this.now = now;
++		tree.roots.forEach(r => this.walk(r, null));
++	}
++
++	/** Sets on every node: `approved` (the approve line, its own or inherited), `by_parent`, `finished`, `state`. */
++	walk(n, up){
++		const own = this.approvals.of(n.s.id);
++		n.approved = own ?? up?.approved ?? null;
++		n.by_parent = !own && !!n.approved;
++		n.finished = n.s.state !== "active" && this.now - n.last >= Review.FINISHED_MS;
++		n.state = n.approved ? "approved" : !n.finished ? "live" : this.leaks(n) ? "leak" : "waiting";
++		n.kids.forEach(k => this.walk(k, n));
++	}
++	leaks(n){ return n.rolled > Review.LEAK_USD && this.now - n.last >= Review.LEAK_AGE_MS; }
++
++	/** Every session's own cost, put in the bucket of its own state: { approved, waiting, leak } dollars and counts. They add up to the day. */
++	totals(){
++		const t = { approved: { usd: 0, n: 0 }, waiting: { usd: 0, n: 0 }, leak: { usd: 0, n: 0 } };
++		this.tree.nodes.forEach(n => { const b = t[n.state === "live" ? "waiting" : n.state]; b.usd += n.own; b.n++; });
++		return t;
++	}
++
++	/** Roots "Approve all" would approve: finished and not approved. */
++	ready(){ return this.tree.roots.filter(r => r.finished && !r.approved); }
++}
+diff --git a/public/framework/ai/AISession/SessionWork.css b/public/framework/ai/AISession/SessionWork.css
+new file mode 100644
+index 000000000..f7940604b
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionWork.css
+@@ -0,0 +1,34 @@
++/* SessionWork, the Work tab: a head card, then the session's work nested by task folder. Prefix sw-. */
++@layer site {
++	.sw { display: flex; flex-direction: column; gap: .8em; }
++	.sw-head { display: flex; flex-direction: column; gap: .4em; padding: .8em; border: 1px solid var(--line); border-radius: .4em; }
++	.sw-head-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4em; }
++	.sw-title { font-size: 1.1em; }
++	.sw-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4em; }
++	.sw-stat { display: flex; flex-direction: column; padding: .3em .6em; border-radius: .3em; background: var(--tint); border-inline-start: 3px solid var(--line); }
++	.sw-stat-approved { border-color: var(--ok); }
++	.sw-stat-waiting { border-color: var(--warn); }
++	.sw-stat-leak.sw-some { border-color: var(--error); }
++	.sw-stat-leak.sw-some strong { color: var(--error); }
++	.sw-approve { flex: none; align-self: center; font: inherit; font-size: .8em; padding: .15em .8em; border: 1px solid var(--ok); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
++	.sw-approve:disabled { opacity: .5; }
++	.sw-approve-all { align-self: flex-start; background: var(--ok); color: #fff; font-weight: 600; padding: .35em 1em; }
++	.sw-note:empty { display: none; }
++	.sw-note { color: var(--error); }
++	.sw-list { display: flex; flex-direction: column; }
++	.sw-node { border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
++	.sw-sum { list-style: none; cursor: pointer; }
++	.sw-sum::-webkit-details-marker { display: none; }
++	.sw-row { display: flex; align-items: flex-start; gap: .6em; padding: .55em .2em; }
++	details.sw-node > .sw-sum .sw-name::before { content: "▸ "; }
++	details[open].sw-node > .sw-sum .sw-name::before { content: "▾ "; }
++	.sw-dot { flex: none; width: .6em; height: .6em; margin-top: .45em; border-radius: 50%; background: var(--line); }
++	.sw-approved > * > .sw-row .sw-dot, .sw-approved > .sw-row .sw-dot { background: var(--ok); }
++	.sw-live > * > .sw-row .sw-dot, .sw-live > .sw-row .sw-dot { background: var(--warn); }
++	.sw-leak > * > .sw-row .sw-dot, .sw-leak > .sw-row .sw-dot { background: var(--error); }
++	.sw-leak > * > .sw-row .sw-name, .sw-leak > .sw-row .sw-name { color: var(--error); }
++	.sw-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1em; }
++	.sw-name { font-weight: 600; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
++	.sw-facts, .sw-open { opacity: .75; }
++	.sw-kids { margin-inline-start: .9em; padding-inline-start: .6em; border-inline-start: 2px solid var(--line); }
++}
+diff --git a/public/framework/ai/AISession/SessionWork.js b/public/framework/ai/AISession/SessionWork.js
+new file mode 100644
+index 000000000..2c3ecdb5c
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionWork.js
+@@ -0,0 +1,116 @@
++import { View, div, span, small, strong, a, button, details, summary } from "/app.js";
++import Task from "/framework/core/Task/Task.js";
++import SessionTree from "../sessions/doc/variants/SessionTree.js";
++import TimeFilter from "/framework/ux/Filter/TimeFilter.js";
++import Approvals from "./Approvals.js";
++import Review from "./Review.js";
++
++View.stylesheet(import.meta, "SessionWork.css");
++
++/** SessionWork — the Work tab of a session's page: everything the session set going, nested the way the task folders nest
++ *  (a child's record lives inside its parent's folder; SessionTree reads them from ai/index.json). Each row: plain title, own and
++ *  rolled-up cost, duration, tasks complete of created (Task.progress_of: only `complete` counts), the open tasks; its state
++ *  (Review's rule) and Approve (Approvals). The head adds the Today ▾ pill and Approve all. `dir` = the session's folder url. */
++export default class SessionWork extends View {
++	static OPEN = 3;     // open task titles shown per row
++	static DONE = ["complete", "stopped"];
++	get classes(){ return "sw"; }
++
++	render(){
++		this.$head = div.c("sw-head");
++		this.$list = div.c("sw-list");
++		this.streams = new Map();
++		this.load();
++	}
++
++	async load(){
++		const m = /sessions\/(\d{4}\/\d{2}\/\d{2})\/([^/]+)\/?$/.exec(this.dir ?? "");
++		this.tree = m ? await SessionTree.load(m[1], m[2]).catch(() => null) : null;
++		if (!this.tree) return this.$list.empty(() => small.c("muted", "No task records for this session."));
++		if (!this.tree.snap && this.snap) this.tree.snap = this.snap;   // the session's own snapshot, filed under a later day than its folder
++		const root = this.tree.root;
++		if (this.tree.snap){ root.title = this.tree.snap.title || root.title; root.usd = this.tree.snap.usd ?? root.usd; }
++		const snaps = [this.tree.snap, ...this.tree.root.all().map(n => n.snap)].filter(Boolean);
++		for (const day of new Set(snaps.map(s => (s.day ?? "").replaceAll("-", "/")).filter(Boolean))){
++			const st = Approvals.of_day(day); st.on(() => this.paint()); this.streams.set(day, st);
++		}
++		this.paint();
++	}
++
++	approval(snap){ return snap ? this.streams.get((snap.day ?? "").replaceAll("-", "/"))?.of(snap.id) ?? null : null; }
++
++	/** Figures for one node and everything under it. */
++	figures(n){
++		const all = n.all(), below = all.slice(1), rolled = all.reduce((t, k) => t + (k.usd ?? 0), 0);
++		const last = Math.max(0, ...all.map(k => Date.parse(k.ended ?? "") || 0));
++		const open = below.filter(k => !SessionWork.DONE.includes(k.state) && !k.kids.some(c => !SessionWork.DONE.includes(c.state)));
++		return { own: n.usd ?? 0, rolled, last, progress: Task.progress_of(below), open };
++	}
++
++	/** approved (itself or above), live, leak, waiting: Review's numbers. */
++	judge(n, up, now = Date.now()){
++		const f = this.figures(n), own = this.approval(n.snap ?? (n === this.tree.root ? this.tree.snap : null));
++		n.approved = own ?? up ?? null;
++		const live = !SessionWork.DONE.includes(n.state) && now - f.last < Review.FINISHED_MS;
++		n.review = n.approved ? "approved" : live ? "live" : f.rolled > Review.LEAK_USD && now - f.last >= Review.LEAK_AGE_MS ? "leak" : "waiting";
++		n.kids.forEach(k => this.judge(k, n.approved, now));
++	}
++
++	paint(){
++		const root = this.tree.root;
++		this.judge(root, null);
++		let top = root; while (top.kids.length === 1 && top.kids[0].kids.length) top = top.kids[0];   // a lone wrapping folder (sessions-and-tasks/) is not a level
++		const f = this.figures(root), kids = top.kids, t = { approved: 0, waiting: 0, leak: 0 };
++		root.all().slice(1).forEach(n => t[n.review === "live" ? "waiting" : n.review] += n.usd ?? 0);
++		this.$head.empty(() => {
++			div.c("sw-head-top", () => {
++				strong.c("sw-title", root.title);
++				TimeFilter.add({ root: this.$list });
++			});
++			this.facts(root, f, true);
++			div.c("sw-stats", () => [["approved", "approved"], ["waiting", "waiting"], ["leak", "leaking"]].forEach(([k, label]) =>
++				div.c("sw-stat sw-stat-" + k + (t[k] > 0 ? " sw-some" : ""), () => { strong("$" + t[k].toFixed(2)); small(label); }).attr("title", Review.STATES[k]?.hint ?? "")));
++			if (this.tree.snap && !root.approved) button.c("sw-approve sw-approve-all", "Approve all: this session and everything in it").attr("type", "button")
++				.click(e => { e.target.disabled = true; this.approve([this.tree.snap]); });
++			const gap = root.all().slice(1).filter(n => n.session && !n.snap).length;
++			if (gap) small.c("sw-gap muted", `${gap} task${gap > 1 ? "s" : ""} ran in sessions filed under another day: their cost and Approve are not shown here yet.`);
++			this.$note = div.c("sw-note");
++		});
++		this.$list.empty(() => {
++			if (!kids.length) small.c("muted", "No tasks recorded in this session.");
++			kids.forEach(k => this.node(k));
++		});
++	}
++
++	/** One row; its children fold under it. `data-at` (its subtree's last moment) is what the Today pill reads. */
++	node(n){
++		const f = this.figures(n);
++		const box = (n.kids.length ? details : div).c("sw-node sw-" + n.review, () => {
++			const line = () => div.c("sw-row", () => {
++				span.c("sw-dot");
++				div.c("sw-body", () => {
++					a.c("sw-name", n.title || n.rel).href(n.url ?? "#");
++					this.facts(n, f);
++				});
++				if (n.snap && !n.approved) button.c("sw-approve", "Approve").attr("type", "button").attr("title", "Approve this and everything under it")
++					.click(e => { e.preventDefault(); e.target.disabled = true; this.approve([n.snap]); });
++			});
++			if (n.kids.length){ summary.c("sw-sum", line); div.c("sw-kids", () => n.kids.forEach(k => this.node(k))); }
++			else line();
++		});
++		if (f.last) box.el.dataset.at = f.last;
++	}
++
++	/** The figures line, the state, and the open tasks by title. */
++	facts(n, f, head = false){
++		const p = f.progress, cost = f.rolled > f.own ? `$${f.own.toFixed(2)} own · $${f.rolled.toFixed(2)} with ${n.all().length - 1} below` : `$${f.own.toFixed(2)}`;
++		small.c("sw-facts", [cost, SessionTree.dur(n.ms()), p.total ? `${p.done} of ${p.total} tasks complete` : "no tasks recorded", !head && (n.approved ? "approved" : Review.STATES[n.review]?.label)].filter(Boolean).join(" · "));
++		if (f.open.length) small.c("sw-open", "Open: " + f.open.slice(0, SessionWork.OPEN).map(k => k.title).join(" · ") + (f.open.length > SessionWork.OPEN ? ` · +${f.open.length - SessionWork.OPEN} more` : ""));
++	}
++
++	async approve(snaps){
++		const ok = (await Promise.all(snaps.map(s => this.streams.get((s.day ?? "").replaceAll("-", "/"))?.approve([s])))).every(Boolean);
++		this.paint();
++		if (!ok) this.$note.text("Not saved: approving writes the session's own record, which needs the local dev server.");
++	}
++}
+diff --git a/public/framework/ai/sessions/doc/variants/SessionTree.js b/public/framework/ai/sessions/doc/variants/SessionTree.js
+index d7741e38b..cc102e1cd 100644
+--- a/public/framework/ai/sessions/doc/variants/SessionTree.js
++++ b/public/framework/ai/sessions/doc/variants/SessionTree.js
+@@ -28,7 +28,7 @@ export default class SessionTree {
+ 		rows.filter(r => r !== own).sort((a, b) => a.dir.length - b.dir.length || String(a.started).localeCompare(String(b.started))).forEach(r => {
+ 			const rel = r.dir.slice(base.length + 1);
+ 			const kid = r.session && r.session !== snap?.id ? dayix.snapshots.find(x => x.id === r.session) : null;   // the agent session that did this task
+-			const node = new SessionTree.Node({ rel, title: r.title, state: r.state, url: r.url, started: r.started, ended: r.landed_at ?? r.last, landed: !!r.landed_at, line: r.line, agent: r.agent, usd: kid?.usd ?? null, model: kid?.model ?? null });
++			const node = new SessionTree.Node({ rel, title: r.title, state: r.state, url: r.url, started: r.started, ended: r.landed_at ?? r.last, landed: !!r.landed_at, line: r.line, agent: r.agent, session: r.session ?? null, snap: kid, usd: kid?.usd ?? null, model: kid?.model ?? null });
+ 			let up = rel; do { up = up.includes("/") ? up.slice(0, up.lastIndexOf("/")) : ""; } while (!nodes.has(up));   // the nearest folder above that is itself a task
+ 			nodes.get(up).kids.push(node); node.parent = nodes.get(up);
+ 			nodes.set(rel, node);
+diff --git a/public/framework/ai/sessions/v/mobile/MobileAll.js b/public/framework/ai/sessions/v/mobile/MobileAll.js
+index f4800c1bc..c069fffc4 100644
+--- a/public/framework/ai/sessions/v/mobile/MobileAll.js
++++ b/public/framework/ai/sessions/v/mobile/MobileAll.js
+@@ -56,7 +56,7 @@ export default class MobileAll extends MobileHome {
+ 
+ 	/** A session row; its children, if any, are folded under "+N minions" (one indent, a 2 px rail) and drawn when first opened: a parent can hold hundreds. */
+ 	nest(r, kids, tree){
+-		new MobileRow({ ...r, tree });
++		new this.constructor.Row({ ...r, tree });
+ 		const mine = (kids.get(r.snap.id) ?? []).sort((a, b) => String(b.snap.last_activity).localeCompare(String(a.snap.last_activity)));
+ 		if (!mine.length) return;
+ 		let $kids, built = false;
+diff --git a/public/framework/ai/sessions/v/mobile/MobileHome.js b/public/framework/ai/sessions/v/mobile/MobileHome.js
+index de7e495f4..4a2d5ba4e 100644
+--- a/public/framework/ai/sessions/v/mobile/MobileHome.js
++++ b/public/framework/ai/sessions/v/mobile/MobileHome.js
+@@ -11,6 +11,7 @@ import MobilePath from "./MobilePath.js";
+    child() are overridden to hand out the mobile pages); the ground, cards and rows are mobile.css. Doc: readme.md here. */
+ export default class MobileHome extends AISessionsPage {
+ 
++	static Row = MobileRow;   // a subclass swaps the row (v/review)
+ 	static GROUPS = [["needs", "Needs you", "error"], ["running", "Running", "play_circle"], ["done", "Done", "check_circle"], ["rest", "Everything else", "unfold_more"]];
+ 
+ 	constructor(...args){
+@@ -88,7 +89,7 @@ export default class MobileHome extends AISessionsPage {
+ 	card(label, glyph, key, rows, tree){
+ 		div.c("mob-card mob-group-" + key, () => {
+ 			div.c("mob-card-head", () => { icon(glyph).ac("mob-group-icon"); strong(label); small.c("mob-count", String(rows.length)); });
+-			rows.forEach(r => new MobileRow({ ...r, tree }));
++			rows.forEach(r => new this.constructor.Row({ ...r, tree }));
+ 		});
+ 	}
+ 
+@@ -96,7 +97,7 @@ export default class MobileHome extends AISessionsPage {
+ 		if (!rows.length) return;
+ 		details.c("mob-card mob-fold", () => {
+ 			summary.c("mob-card-head", () => { icon("unfold_more").ac("mob-group-icon"); strong(label); small.c("mob-count", String(rows.length)); });
+-			rows.forEach(r => new MobileRow({ ...r, tree }));
++			rows.forEach(r => new this.constructor.Row({ ...r, tree }));
+ 		});
+ 	}
+ }
+diff --git a/public/framework/ai/sessions/v/mobile/MobileRow.js b/public/framework/ai/sessions/v/mobile/MobileRow.js
+index 3e1991bf9..bc67a7ddf 100644
+--- a/public/framework/ai/sessions/v/mobile/MobileRow.js
++++ b/public/framework/ai/sessions/v/mobile/MobileRow.js
+@@ -11,21 +11,29 @@ export default class MobileRow extends View {
+ 
+ 	static DOT = { needs: "is-blocked", running: "is-running", done: "is-done", rest: "is-open" };
+ 
+-	initialize(){
++	render(){   // render, not initialize: render() runs inside the row, so the link is the row's child
+ 		const { snap, tasks, group, tree, line } = this;
+ 		this.ac("mob-row", "mob-" + group);
+ 		a.c("mob-row-link", () => {
+-			span.c("mob-dot").ac(this.constructor.DOT[group]);
++			span.c("mob-dot").ac(this.constructor.DOT[this.dot_key()]);
+ 			div.c("mob-row-body", () => {
+ 				strong.c("mob-row-title", snap.title || snap.id);
+ 				small.c("mob-row-sub", () => {
+ 					span.c("mob-kind", MobileData.kind(snap, tree));
+ 					span(" · " + MobileData.ago(snap.last_activity) + (snap.usd ? " · " + MobileData.usd(snap.tree_usd || snap.usd) : ""));
+ 				});
++				this.below();
+ 				if (line && group === "done") small.c("mob-row-line", line);
+ 				if (tasks?.root.kids.length > 1) div.c("mob-row-bar", () => TaskView.draw_bar(MobileData.states(tasks.root.kids), 12));
+ 			});
+ 			icon("chevron_right").ac("mob-go");
+-		}).href(MobileData.session_url(snap.id));
++		}).href(this.href());
++		this.after();
+ 	}
++
++	// Seams for a subclass (v/review's ReviewRow): which dot, where the row goes, a line under the facts, anything after the link.
++	dot_key(){ return this.group; }
++	href(){ return MobileData.session_url(this.snap.id); }
++	below(){}
++	after(){}
+ }
+diff --git a/public/framework/styles/css-scopes.txt b/public/framework/styles/css-scopes.txt
+index fcca2faf2..67307f76e 100644
+--- a/public/framework/styles/css-scopes.txt
++++ b/public/framework/styles/css-scopes.txt
+@@ -94,6 +94,7 @@ doc-         ext/Doc
+ drag-        ext/Draggable
+ drawer-      ext/drawer
+ dropdown-    ext/Dropdown
++filter-pill-    ux/Filter
+ dt-          ext/DesignTool
+ editor-      ext/editor
+ file-        ext/files
+@@ -263,3 +264,4 @@ fig-
+ 
+ # public/framework/ai/sessions/v/mobile — the 400 px mobile variant of the sessions pages (2026-10-22)
+ mob-
++rv-          ai/sessions/v/review
+diff --git a/public/framework/ux/Filter/FilterPill.css b/public/framework/ux/Filter/FilterPill.css
+new file mode 100644
+index 000000000..deeff1470
+--- /dev/null
++++ b/public/framework/ux/Filter/FilterPill.css
+@@ -0,0 +1,6 @@
++/* FilterPill: a Dropdown worn as a small rounded pill. TimeFilter's hidden rows. Doc: readme.md, "Filter pills". */
++@layer site {
++	.dropdown.filter-pill { inline-size: auto; flex: none; }
++	.dropdown.filter-pill > .dropdown-trigger:is(button, .btn) { inline-size: auto; border-radius: 2em; padding-block: 0.15em; padding-inline: 0.8em 0.5em; font-size: 0.9em; font-weight: 600; }
++	.filter-pill-out { display: none !important; }
++}
+diff --git a/public/framework/ux/Filter/FilterPill.js b/public/framework/ux/Filter/FilterPill.js
+new file mode 100644
+index 000000000..b94e281a2
+--- /dev/null
++++ b/public/framework/ux/Filter/FilterPill.js
+@@ -0,0 +1,47 @@
++import { View, icon } from "../../core/View/View.js";
++import { Dropdown } from "../../ext/Dropdown/dropdown.js";
++
++View.stylesheet(import.meta, "FilterPill.css");
++
++/**
++ * class FilterPill extends Dropdown — one filter as a small rounded pill: "Today ▾".
++ * Its choice lives in the url (`?<param>=<value>`, left out when it is the default), so a reload
++ * or a shared link lands on the same view. A page adds one in one line:
++ *
++ *   FilterPill.add({ param: "kind", options: [{ value: "all", label: "All" }, …], changed: v => redraw() });
++ *
++ * Subclass to give it meaning (`TimeFilter`). Doc: readme.md, "Filter pills".
++ */
++export default class FilterPill extends Dropdown {
++
++	// Built and drawn under whatever is capturing; returns the instance, not the view, so the caller can ask it things.
++	static add(...args){ const f = new this(...args); f.draw(); return f; }
++
++	constructor(...args){
++		super(...args);
++		this.fallback ??= this.value ?? this.options[0]?.value;
++		const asked = new URLSearchParams(location.search).get(this.param);
++		this.value = this.options.some(o => o.value === asked) ? asked : this.fallback;
++	}
++
++	draw(){ return super.draw().ac("filter-pill").attr("title", this.title ?? ""); }
++
++	// Dropdown calls pick(value) once per choice: remember it, write it to the url, redraw the face, tell the caller.
++	pick(value){
++		this.value = value;
++		this.write();
++		this.$trigger.empty(() => { this.face(this.chosen()); icon("expand_more"); });
++		this.$list.el.querySelectorAll(".dropdown-option").forEach((b, i) => b.classList.toggle("on", this.options[i]?.value === value));
++		this.changed?.(value, this);
++	}
++
++	write(){
++		const q = new URLSearchParams(location.search);
++		this.value === this.fallback ? q.delete(this.param) : q.set(this.param, this.value);
++		history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
++	}
++}
++
++FilterPill.prototype.param = "filter";
++
++export { FilterPill };
+diff --git a/public/framework/ux/Filter/TimeFilter.js b/public/framework/ux/Filter/TimeFilter.js
+new file mode 100644
+index 000000000..345346894
+--- /dev/null
++++ b/public/framework/ux/Filter/TimeFilter.js
+@@ -0,0 +1,76 @@
++import FilterPill from "./FilterPill.js";
++
++/**
++ * class TimeFilter extends FilterPill — the "Today ▾" pill: Today, Week, Month, Year (Year is everything, for now).
++ * It filters by hiding: every element under `root` that carries `data-at` (ms or an ISO time) outside the window is
++ * hidden, and new ones are checked as they arrive. An element matching `follows` (a chat's "12 tool calls" line)
++ * has no time of its own and goes with the element before it. One line on a page:
++ *
++ *   TimeFilter.add({ root: $box, changed: () => … });   // ?when=week in the url
++ */
++export default class TimeFilter extends FilterPill {
++	static DAY = 864e5;
++
++	/** The window's first moment, in ms: local midnight for Today, 7 and 30 days back, 0 for Year (all). */
++	since(now = Date.now()){
++		if (this.value === "today"){ const d = new Date(now); d.setHours(0, 0, 0, 0); return d.getTime(); }
++		if (this.value === "week") return now - 7 * TimeFilter.DAY;
++		if (this.value === "month") return now - 30 * TimeFilter.DAY;
++		return 0;
++	}
++
++	/** Is a time (ms, an ISO string, or nothing) inside the window? No time at all is always kept. */
++	keeps(t){
++		const ms = typeof t === "number" ? t : Number(t) || Date.parse(t ?? "");
++		return !Number.isFinite(ms) || !ms || ms >= this.since();
++	}
++
++	/** row => boolean over one field, for a caller that filters data instead of elements. */
++	predicate(field = "at"){ return row => this.keeps(row?.[field]); }
++
++	draw(){
++		const view = super.draw();
++		if (this.root) this.watch(this.root);
++		return view;
++	}
++
++	pick(value){ super.pick(value); this.apply(); }
++
++	/** Hide what falls outside the window under every watched root; returns { shown, hidden }. */
++	apply(){
++		const n = { shown: 0, hidden: 0 };
++		for (const root of this.roots ?? []){
++			let prev = false;
++			for (const el of root.querySelectorAll("[data-at], " + this.follows)){
++				const out = el.matches("[data-at]") ? !this.keeps(el.dataset.at) : prev;
++				el.classList.toggle("filter-pill-out", out);
++				if (el.matches("[data-at]")){ prev = out; n[out ? "hidden" : "shown"]++; }
++			}
++		}
++		this.counted = n;
++		this.after?.(n, this);
++		return n;
++	}
++
++	/** Filter `root` (an element or a View) now and whenever something is added under it. */
++	watch(root){
++		const el = root.el ?? root;
++		(this.roots ??= []).push(el);
++		let queued = false;
++		new MutationObserver(() => { if (!queued){ queued = true; queueMicrotask(() => { queued = false; this.apply(); }); } }).observe(el, { childList: true, subtree: true });
++		this.apply();
++		return this;
++	}
++}
++
++TimeFilter.prototype.param = "when";
++TimeFilter.prototype.title = "Show only what happened in this window";
++TimeFilter.prototype.follows = ".chatbox-update";
++TimeFilter.prototype.options = [
++	{ value: "today", label: "Today" },
++	{ value: "week", label: "Week" },
++	{ value: "month", label: "Month" },
++	{ value: "year", label: "Year" },
++];
++
++export { TimeFilter };
+diff --git a/public/framework/ux/Filter/readme.md b/public/framework/ux/Filter/readme.md
+index 836d05113..6cafd2281 100644
+--- a/public/framework/ux/Filter/readme.md
++++ b/public/framework/ux/Filter/readme.md
+@@ -31,6 +31,10 @@ narrows by the query alone. This is how [`core/Sidebar`](/framework/core/Sidebar
+ it, its first real caller, above a `ux/Tree`: `search_field: "text"` reads a tree node
+ directly, no reshaping.
+ 
++## Filter pills
++
++`class FilterPill extends Dropdown` (`ext/Dropdown`) is one filter worn as a rounded pill, its choice kept in the url (`?<param>=`). `class TimeFilter extends FilterPill` is the **Today ▾** pill (Today, Week, Month, Year): `TimeFilter.add({ root, changed })` hides every element under `root` whose `data-at` falls outside the window. First user: [sessions/v/review](/framework/ai/sessions/v/review/). Files: `FilterPill.js`, `TimeFilter.js`, `FilterPill.css`.
++
+ ## Watch out
+ 
+ - **Not `this.text`.** `View` already has a `text()` getter/setter every instance inherits,

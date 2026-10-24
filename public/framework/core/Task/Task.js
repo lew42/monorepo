@@ -180,7 +180,30 @@ export class Task extends Item {
 	get doc(){ const s = this.get_one("source"); return typeof s === "string" && s.startsWith("/") ? s : undefined; }
 	// USD, computed and never stored: the turn_cost of the agents whose task this is. Node wires `Task.cost_resolver` (Servex/agents/Agents.js).
 	static cost_resolver = null;
-	get cost(){ return this.constructor.cost_resolver?.(this.get_one("path")) ?? 0; }
+	// `at_path` is the task's own folder url, set by node for a root that has no `path` field (a session record).
+	get cost(){ return this.constructor.cost_resolver?.(this.get_one("path") ?? this.at_path) ?? 0; }
+	// This task's cost plus every child that has a folder `path` (referenced or added inline); a nested task with no folder has no cost of its own.
+	get total_cost(){ let sum = this.cost; for (const t of this._tasks ?? []) if (t.get_one("path")) sum += t.total_cost; return sum; }
+
+	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
+	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
+	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary"];
+	static session_resolver = null;
+	get children(){
+		const is_session = this.constructor.session_resolver;
+		return [...(this._tasks ?? [])].filter(t => is_session?.(t.get_one("path"))).map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state, path: t.get_one("path") }));
+	}
+	// One screen for a task or a session: counts by state, the open tasks only, completion, cost, time and child sessions.
+	summary(){
+		const tasks = [...(this._tasks ?? [])], states = {};
+		for (const t of tasks) states[t.state] = (states[t.state] ?? 0) + 1;
+		return {
+			id: this.get_one("record")?.id ?? this.id, title: this.get_one("title") ?? null, kind: this.get_one("record")?.kind ?? "task", state: this.state, completion: this.completion,
+			progress: Task.progress_of(this._tasks), states,
+			open: tasks.filter(t => OPEN.has(t.state)).map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state })),
+			cost: this.total_cost, duration: this.duration(), children: this.children,
+		};
+	}
 	get session(){ return this.get_one("session") ?? this.get_one("session_id"); }
 	get priority(){ return this.get_one("priority") ?? null; }
 	get commits(){ return [...(this.data.commits ?? [])]; }
@@ -356,7 +379,7 @@ export class Task extends Item {
 			this.resolving.add(ref);   // a cycle of references stops here
 			const Own = Item.types.get(lines[0]?.class);   // line 1 may name a subclass (a Process): replay it as that, when it is loaded
 			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
-			if (kid.id === "tasks" || as) kid.id = id;   // a module list's line 1 says "tasks": a property name, and the same for every module
+			if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
 			kid = new this({ id });
 			kid.put("title", id);
@@ -428,6 +451,7 @@ export class Task extends Item {
 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
 			this.adopt_child(kid);
 		}
+		if (line.session && typeof line.session === "object") this.put("record", line.session);   // a session record's line 1: {id, kind, cwd, at}
 		if (line.id !== undefined && !a) rp.fresh = true;   // a home-made task's line 1: idle until a verb line says otherwise
 		if (typeof line.commit === "string") this.commit(line.commit);
 		if (line.reinforce && typeof line.reinforce === "object") this.reinforce({ ...line.reinforce, by: line.reinforce.by ?? line.by });

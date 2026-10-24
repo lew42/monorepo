@@ -37,6 +37,8 @@ The code already does this. When a child page opens, `container()` (`Page.class.
 
 ### Miller columns: a measured width, shared evenly
 
+> **Superseded 2026-10-23, 22:25 (your call, relayed by vscode-mastermind):** Miller columns are no longer the default, because they don't work (on the deputy/roles task page the first column is cut off). The rule for now is **previews plus full detail views**: a list of preview cards, and a clicked card opens its full page in place of the list. The columns code stays, unused by default. Being built in [nav-rule](nav-rule/requirements.md), last section. The text below is kept as the record of what was tried.
+
 You asked: should a column be measured (about 800–1000px of 3000) and add another column, or split the space? Both modes exist today. Here they are side by side at 3440:
 
 - **Measured (the default today).** Each column is about a third of the row, which is 828px at 3440. An open column never changes width. The rest of the row is drawn as narrow empty striped slots. That is the "always a little broken" look: one column, then six empty strips ([shot](nav-columns-measured-3440.png)).

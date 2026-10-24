@@ -19,6 +19,10 @@ LogLine.append("<session folder>/session.jsonl", { task: { title: "build it", st
 
 A task is a line in its session's log: `{"task":{"title","state"}}` is accepted on `session.jsonl` ([sessions-and-tasks.md](/framework/ai/doc/sessions-and-tasks.md)).
 
+## page.jsonl is stamped `ts`, not `at`
+
+A `page.jsonl` line is an Item delta, and `Item.apply` reads a top-level `at` as the old path key (the browser warns "no at target" and drops the line). So for that basename LogLine puts a top-level `ts` on the line and never touches `at`. Every other target keeps the `at` stamping above.
+
 ## What it does not replace
 
 `item` (an Item's own delta log), `page_set` (page deltas that the page folds) and `append_log` (Servex's own named event logs) keep their jobs: each writes a different shape than a verb line. `AISession.log` also stays, because it runs in the browser too and cannot import node code.
