@@ -91,6 +91,14 @@ export class Page extends Item {
 	get content(){ return this._content ??= new this.constructor.Content({ owner: this, name: "content" }); }
 	set content(value){ this.content.fill(value); }
 
+	// The helpers (Jsonl, Columns, Previews, Links, Related, Prefs) are made once per page, on first use. (doc/architecture.md)
+	// ⚠ Own map, not an inherited one: a Template.clone() reads through to its template and must build its own.
+	_helper(name){
+		const made = Object.hasOwn(this, "_helpers") ? this._helpers : (this._helpers = new Map());
+		if (!made.has(name)) made.set(name, new this.constructor[name]({ page: this }));
+		return made.get(name);
+	}
+
 	hoist_content(){
 		const own = Object.getOwnPropertyDescriptor(this, "content");
 		let method;
@@ -141,17 +149,17 @@ export class Page extends Item {
 	}
 
 	// ════ PAGE.JSONL HOOKS (Jsonl.js, doc/jsonl.md) ═══
-	file(name){ return new this.constructor.Jsonl({ page: this }).file(name); }
-	gone(yes){ return new this.constructor.Jsonl({ page: this }).gone(yes); }
-	child_file(entry){ return new this.constructor.Jsonl({ page: this }).child_file(entry); }
-	link_child(name){ return new this.constructor.Jsonl({ page: this }).link_child(name); }
-	unlink_child(key){ return new this.constructor.Jsonl({ page: this }).unlink_child(key); }
-	tab(obj){ return new this.constructor.Jsonl({ page: this }).tab(obj); }
+	file(name){ return this._helper("Jsonl").file(name); }
+	gone(yes){ return this._helper("Jsonl").gone(yes); }
+	child_file(entry){ return this._helper("Jsonl").child_file(entry); }
+	link_child(name){ return this._helper("Jsonl").link_child(name); }
+	unlink_child(key){ return this._helper("Jsonl").unlink_child(key); }
+	tab(obj){ return this._helper("Jsonl").tab(obj); }
 
 	static WORDS = ["navigation", "width", "arrangement", "surface", "background", "type_size"];
 
-	take_words(obj){ return new this.constructor.Jsonl({ page: this }).take_words(obj); }
-	overlay(line){ return new this.constructor.Jsonl({ page: this }).overlay(line); }
+	take_words(obj){ return this._helper("Jsonl").take_words(obj); }
+	overlay(line){ return this._helper("Jsonl").overlay(line); }
 
 	reshape(){
 		if (!this.view || this._reshaping) return;
@@ -184,27 +192,27 @@ export class Page extends Item {
 		return this;
 	}
 
-	tab_state(name){ return new this.constructor.Jsonl({ page: this }).tab_state(name); }
-	tab_visible(name){ return new this.constructor.Jsonl({ page: this }).tab_visible(name); }
-	nav_ready(name){ return new this.constructor.Jsonl({ page: this }).nav_ready(name); }
-	tab_order(name){ return new this.constructor.Jsonl({ page: this }).tab_order(name); }
+	tab_state(name){ return this._helper("Jsonl").tab_state(name); }
+	tab_visible(name){ return this._helper("Jsonl").tab_visible(name); }
+	nav_ready(name){ return this._helper("Jsonl").nav_ready(name); }
+	tab_order(name){ return this._helper("Jsonl").tab_order(name); }
 
-	place(value){ return new this.constructor.Jsonl({ page: this }).place(value); }
-	log_view(){ return new this.constructor.Jsonl({ page: this }).log_view(); }
-	draw_folder(){ return new this.constructor.Jsonl({ page: this }).draw_folder(); }
-	log_draw(){ return new this.constructor.Jsonl({ page: this }).log_draw(); }
-	log_folder(){ return new this.constructor.Jsonl({ page: this }).log_folder(); }
-	log_redraw(){ return new this.constructor.Jsonl({ page: this }).log_redraw(); }
-	draw_placed(entry){ return new this.constructor.Jsonl({ page: this }).draw_placed(entry); }
-	draw_md(url){ return new this.constructor.Jsonl({ page: this }).draw_md(url); }
-	draw_module(url, data){ return new this.constructor.Jsonl({ page: this }).draw_module(url, data); }
-	listing(){ return new this.constructor.Jsonl({ page: this }).listing(); }
+	place(value){ return this._helper("Jsonl").place(value); }
+	log_view(){ return this._helper("Jsonl").log_view(); }
+	draw_folder(){ return this._helper("Jsonl").draw_folder(); }
+	log_draw(){ return this._helper("Jsonl").log_draw(); }
+	log_folder(){ return this._helper("Jsonl").log_folder(); }
+	log_redraw(){ return this._helper("Jsonl").log_redraw(); }
+	draw_placed(entry){ return this._helper("Jsonl").draw_placed(entry); }
+	draw_md(url){ return this._helper("Jsonl").draw_md(url); }
+	draw_module(url, data){ return this._helper("Jsonl").draw_module(url, data); }
+	listing(){ return this._helper("Jsonl").listing(); }
 
 	// Every `data` key that is not a declared field. (doc/decisions.md)
 	get unknown(){ return Object.keys(this.data).filter(key => !this.constructor.fields.includes(key)); }
 
-	report_unknown(){ return new this.constructor.Jsonl({ page: this }).report_unknown(); }
-	log_forget(){ return new this.constructor.Jsonl({ page: this }).log_forget(); }
+	report_unknown(){ return this._helper("Jsonl").report_unknown(); }
+	log_forget(){ return this._helper("Jsonl").log_forget(); }
 
 	static jsonl(url){ return this.Jsonl.load(this, url); }
 
@@ -470,10 +478,10 @@ export class Page extends Item {
 
 	md_dir(){ return this.folder ?? this.url; }
 
-	open_link(link){ return new this.constructor.Links({ page: this }).open(link); }
-	swap_link(link){ return new this.constructor.Links({ page: this }).swap(link); }
-	swap_url(file){ return new this.constructor.Links({ page: this }).swap_url(file); }
-	md_files(names){ return new this.constructor.Links({ page: this }).files(names); }
+	open_link(link){ return this._helper("Links").open(link); }
+	swap_link(link){ return this._helper("Links").swap(link); }
+	swap_url(file){ return this._helper("Links").swap_url(file); }
+	md_files(names){ return this._helper("Links").files(names); }
 	static md_page(file){ return this.Links.md_page(file); }
 	static md_file(link){ return this.Links.md_file(link); }
 	static md_url(file){ return this.Links.md_url(file); }
@@ -690,7 +698,7 @@ export class Page extends Item {
 	}
 
 	// ════ RELATED ═══
-	related_aside(){ return new this.constructor.Related({ page: this }).aside(); }
+	related_aside(){ return this._helper("Related").aside(); }
 
 	// ════ COLUMNS ═══
 	columns({ even = false, fit = "floor" } = {}){ this.columnar = true; this.column_even = even; this.column_fit = fit; return this; }
@@ -705,17 +713,17 @@ export class Page extends Item {
 		return chain[at];
 	}
 
-	render_column(host){ return new this.constructor.Columns({ page: this }).render(host); }
-	column(host){ return new this.constructor.Columns({ page: this }).body(host); }
-	default_column(){ return new this.constructor.Columns({ page: this }).default(); }
-	column_grab($body){ return new this.constructor.Columns({ page: this }).grab($body); }
-	resize_column($body, px){ return new this.constructor.Columns({ page: this }).resize($body, px); }
+	render_column(host){ return this._helper("Columns").render(host); }
+	column(host){ return this._helper("Columns").body(host); }
+	default_column(){ return this._helper("Columns").default(); }
+	column_grab($body){ return this._helper("Columns").grab($body); }
+	resize_column($body, px){ return this._helper("Columns").resize($body, px); }
 	static even_columns(row, fit){ return this.Columns.even(row, fit); }
-	even_columns(){ return new this.constructor.Columns({ page: this }).even(); }
-	settle_columns(slide){ return new this.constructor.Columns({ page: this }).settle(slide); }
-	column_slide(){ return new this.constructor.Columns({ page: this }).slide(); }
-	reveal_column(page){ return new this.constructor.Columns({ page: this }).reveal(page); }
-	scroll_column(slide){ return new this.constructor.Columns({ page: this }).scroll(slide); }
+	even_columns(){ return this._helper("Columns").even(); }
+	settle_columns(slide){ return this._helper("Columns").settle(slide); }
+	column_slide(){ return this._helper("Columns").slide(); }
+	reveal_column(page){ return this._helper("Columns").reveal(page); }
+	scroll_column(slide){ return this._helper("Columns").scroll(slide); }
 
 	nav(){ return { url: this.url, label: this.label ?? this.title, icon: this.icon, card: this.card, description: this.description }; }
 
@@ -726,14 +734,14 @@ export class Page extends Item {
 	}
 
 	// ════ PREVIEWS ═══
-	previews(pages, opts){ return new this.constructor.Previews({ page: this }).list(pages, opts); }
-	walls(){ return new this.constructor.Previews({ page: this }).walls(); }
-	wall_rungs(){ return new this.constructor.Previews({ page: this }).rungs(); }
+	previews(pages, opts){ return this._helper("Previews").list(pages, opts); }
+	walls(){ return this._helper("Previews").walls(); }
+	wall_rungs(){ return this._helper("Previews").rungs(); }
 
 	preview(nav){ return this.preview_card(nav); }
-	preview_card(nav = this.nav(), thumb){ return new this.constructor.Previews({ page: this }).card(nav, thumb); }
-	preview_thumb(thumb){ return new this.constructor.Previews({ page: this }).thumb(thumb); }
-	preview_link(nav){ return new this.constructor.Previews({ page: this }).link(nav); }
+	preview_card(nav = this.nav(), thumb){ return this._helper("Previews").card(nav, thumb); }
+	preview_thumb(thumb){ return this._helper("Previews").thumb(thumb); }
+	preview_link(nav){ return this._helper("Previews").link(nav); }
 
 	depth = 2;
 	loaded = 0;
@@ -752,7 +760,7 @@ export class Page extends Item {
 		return this;
 	}
 
-	prefs(){ return new this.constructor.Prefs({ page: this }); }
+	prefs(){ return this._helper("Prefs"); }
 }
 
 // The box the six page words open. ⚠ `PageFrame`, never `Frame`/`Stage`: View.classify() mints a CSS class from the name. (doc/watch-out.md)
