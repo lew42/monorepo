@@ -1,5 +1,6 @@
 import { div, a, img, p, span } from "../../core/View/View.js";
 import "../../ui/panel/panel.js";
+import { names } from "../../core/Router/listing.js";
 
 const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || location.hostname.endsWith(".localhost");
 
@@ -21,11 +22,13 @@ export const shot_thumb = s => thumb(s);
 
 /** Where a shot's image is: a file outside the repo (`path`, served by /screenshot, which only serves the OS temp folder);
     an image committed beside its task (`url`); or, in older logs, a `path` inside `public/` or one relative to the task's
-    own folder (`base`), which the site serves directly (through /screenshot they drew a 403). */
+    own folder (`base`), which the site serves directly (through /screenshot they drew a 403). Screenshots under ai/ are
+    gitignored, so a site image is drawn only when its folder's listing has it; otherwise the missing swatch, with no request. */
 export function shot_src(s, base){
 	const p = s.path?.replaceAll("\\", "/");
-	if (p?.startsWith("public/")) return p.slice(6);
-	if (p && base && !/^([a-z]:)?\//i.test(p)) return base + p;
+	const site = url => { const i = url.lastIndexOf("/") + 1, have = names(url.slice(0, i)); return !have || have.includes(url.slice(i)) ? url : null; };
+	if (p?.startsWith("public/")) return site(p.slice(6));
+	if (p && base && !/^([a-z]:)?\//i.test(p)) return site(base + p);
 	if (p) return "/screenshot?path=" + encodeURIComponent(s.path);
 	return /\.(png|jpe?g|webp|gif)$/i.test(s.url ?? "") ? s.url : null;
 }
