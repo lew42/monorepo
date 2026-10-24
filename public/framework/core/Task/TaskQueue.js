@@ -12,7 +12,10 @@ export default class TaskQueue {
 	static MIN_SHARED = 2;
 	static SIMILAR_N = 5;
 
-	static words(s){ return new Set(String(s ?? "").toLowerCase().match(/[a-z]{4,}/g) ?? []); }
+	/** Filler words that would make two unrelated titles look alike (review 2026-10-24). */
+	static STOP = new Set("with that this from into make every each when what them they their have should could would will also only more than then does sure show".split(" "));
+
+	static words(s){ return new Set((String(s ?? "").toLowerCase().match(/[a-z]{4,}/g) ?? []).filter(w => !TaskQueue.STOP.has(w))); }
 
 	static median(a){ if (!a.length) return null; a = [...a].sort((x, y) => x - y); const m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
 
@@ -25,7 +28,7 @@ export default class TaskQueue {
 	static estimate(landed, module, title = ""){
 		const w = TaskQueue.words(title), similar = [];
 		if (w.size) for (const l of landed){ let n = 0; for (const x of TaskQueue.words(l.title)) if (w.has(x)) n++; if (n >= TaskQueue.MIN_SHARED) similar.push({ n, l }); }
-		similar.sort((a, b) => b.n - a.n || b.l.usd - a.l.usd);
+		similar.sort((a, b) => b.n - a.n); // a stable sort: ties keep the landed order, so the estimate does not lean high or low
 		const top = similar.slice(0, TaskQueue.SIMILAR_N);
 		if (top.length >= TaskQueue.MIN_SAME_MODULE) return { usd: +TaskQueue.median(top.map(x => x.l.usd)).toFixed(2), basis: `median of ${top.length} similar landed tasks: ${top.slice(0, 2).map(x => `"${String(x.l.title).slice(0, 40)}"`).join(", ")}` };
 		const own = landed.filter(l => l.module === module).map(l => l.usd);
