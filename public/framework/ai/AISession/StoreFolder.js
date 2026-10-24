@@ -102,7 +102,7 @@ export default class StoreFolder extends Page {
 		if (tasks.has(bare)) return pages.has(bare) ? undefined : task();   // undefined: Page.child() loads the folder's own page.js
 		for (const t of tasks) if (t.startsWith(url)) return next();        // a session folder holding moved tasks
 		if (AITask.has(url + "page.js")) return;                             // unknown (a task made after the move): probe
-		if (AITask.has(url + "task.jsonl") || AITask.has(url + "session.jsonl")) return task();
+		if (AITask.has(url + "session.jsonl") || AITask.has(url + "task.jsonl")) return task();   // session.jsonl first: it is the one record now, so a new folder never 404s on the old name
 		return next();
 	}
 
