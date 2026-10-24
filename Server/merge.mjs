@@ -425,7 +425,8 @@ function writeAll(plan) {
 
 /* git add / status on a long path list, 200 at a time (Windows caps a command line). */
 const chunks = list => Array.from({ length: Math.ceil(list.length / 200) }, (_, i) => list.slice(i * 200, i * 200 + 200));
-const stagePaths = list => chunks(list).every(c => { const a = git(MAIN, "add", "-A", "--", ...c); if (a.status) console.error(`git add failed: ${a.stderr.trim()}`); return !a.status; });
+// -f: every path here is one the branch tracks, even under a gitignored folder (a task's shots/, committed with -f); without it the merge commit fails.
+const stagePaths = list => chunks(list).every(c => { const a = git(MAIN, "add", "-A", "-f", "--", ...c); if (a.status) console.error(`git add failed: ${a.stderr.trim()}`); return !a.status; });
 const untrackedAmong = list => chunks(list).flatMap(c => lines(git(MAIN, "status", "--porcelain", "--untracked-files=all", "--", ...c).stdout).filter(l => l.startsWith("??")).map(l => l.slice(3)));
 
 const printPlan = plan => console.log(plan.map(p => `  ${p.action.toUpperCase().padEnd(8)} ${p.f} — ${p.why}`).join("\n"));
