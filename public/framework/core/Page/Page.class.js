@@ -16,6 +16,7 @@ import PageColumns from "./Columns.js";
 import PageLinks from "./Links.js";
 import PageJsonl from "./Jsonl.js";
 import PageContent from "./PageContent.js";
+import { names } from "../Router/listing.js";
 
 // history and reasons: doc/Page-notes.md
 
@@ -225,7 +226,11 @@ export class Page extends Item {
 	static async fetch_listing(url){
 		const [, parent, name] = url.match(/^(.*\/)([^/]+)\/$/) ?? [];
 		const jsonl_first = parent && Page.loaded_listing(parent)?.pages.get(name) === "jsonl";
-		const order = jsonl_first ? ["page.jsonl", "files.jsonl"] : ["files.jsonl", "page.jsonl"];
+		let order = jsonl_first ? ["page.jsonl", "files.jsonl"] : ["files.jsonl", "page.jsonl"];
+
+		// On the dev server the folder's names say which log exists, so a folder with neither asks for nothing (no 404s). Static site: null, probe as before.
+		const listed = names(url);
+		if (Array.isArray(listed)) order = order.filter(file => listed.includes(file));
 
 		for (const file of order){
 			const reader = await new Page.Reader({ url: url + file }).load();
