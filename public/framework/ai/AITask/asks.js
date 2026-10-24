@@ -253,8 +253,9 @@ function deliverable(ask, found, add, seen){
 // Card preview: logged shot first, else first task screenshot (see doc/asks-notes.md).
 function picture(ask, found, base){
 	const rows = (ask.tasks ?? []).map(slug => [slug, found.get(slug)]).filter(([, m]) => m);
-	const shot = rows.map(([, m]) => m).filter(m => m.landed_at).flatMap(m => m.shots ?? []).at(-1);
-	if (shot) return div.c("ai-ask-shot", () => { shot_thumb(shot); });
+	const holder = rows.filter(([, m]) => m.landed_at && m.shots?.length).at(-1), shot = holder?.[1].shots.at(-1);
+	// the task's own folder, so a shot path relative to it resolves (serving() loads each task at day + slug)
+	if (shot) return div.c("ai-ask-shot", () => { shot_thumb(shot, base.replace(/[^/]+\/$/, "") + holder[0] + "/"); });
 
 	for (const [slug, m] of rows){
 		const src = first_image(m.outcome);

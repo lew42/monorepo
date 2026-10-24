@@ -18,7 +18,7 @@ export function shot_wall(list, base){
 }
 
 /** One thumbnail on its own — what an ask card shows when its task produced a picture. */
-export const shot_thumb = s => thumb(s);
+export const shot_thumb = (s, base) => thumb(s, base);
 
 /** Where a shot's image is: a file outside the repo (`path`, served by /screenshot, which only serves the OS temp folder);
     an image committed beside its task (`url`); or, in older logs, a `path` inside `public/` or one relative to the task's
