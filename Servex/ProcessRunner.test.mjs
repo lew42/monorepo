@@ -41,6 +41,8 @@ try {
 	ok(fs_?.map(x => x.id).join() === "file-step,improve-step,write-the-docs", "from_steps: a step id that is a line key or verb gets -step, not a refusal");
 	ok(fl?.[0].process === "steps" && fl.length === 3, "lines(): own steps under an unknown process name become process \"steps\"");
 	ok(["build", "design", "investigate"].every(n => Process.template(n)?.prototype instanceof Process) && Process.names().length === 3 && !Process.template("nope"), "Process.template(name) finds one subclass per template; names() lists them");
+	const ids = n => Process.template(n).steps.map(s => s.id).join();
+	ok(ids("build").includes("execute,index,review") && ids("design").includes("code,index,review"), "build and design both run the index step between the work and the review");
 	const old_ = Process.replay([...Process.lines({ process: "build" }), { spawn: { phase: "plan", agent: "a9" } }, { spawn: { step: "investigate", agent: "a8" } }]);
 	ok(old_.steps.find(x => x.id === "plan").get_one("spawned")?.agent === "a9" && old_.steps.find(x => x.id === "investigate").get_one("spawned")?.agent === "a8", "an old {spawn:{phase}} line still lands on its step; a new {spawn:{step}} line does too");
 	let r = await item({ tasks: { add: { title: "Fix X", process: "nope" } } }, "mm1");
