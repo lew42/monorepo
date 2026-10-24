@@ -65,12 +65,14 @@ import TaskDirs from "./TaskDirs.mjs";
 import { OrphanCheck } from "./OrphanCheck.mjs";
 import { refuse_links_into_main } from "./junction-guard.mjs";
 import SessionRecord from "./SessionRecord.mjs";
+import MergeTests from "./MergeTests.mjs";
 
 const BASE = "michael/dev";
 const argv = process.argv.slice(2);
 const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
 const bool = name => argv.includes(name) && (argv.splice(argv.indexOf(name), 1), true);
 const skipSmoke = bool("--skip-smoke");
+const skipTests = bool("--skip-tests");   // for proofs on a scratch repo only, like --skip-smoke
 const dryRun = bool("--dry-run");
 const mainArg = flag("--main");
 const noReview = flag("--no-review");
@@ -79,7 +81,7 @@ const quick = bool("--quick");
 const asked = flag("--asked");
 const mergeStart = Date.now();
 const [dirArg, ...paths] = argv;
-if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run] [--quick [--asked <iso>]]"); process.exit(1); }
+if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--skip-tests] [--dry-run] [--quick [--asked <iso>]]"); process.exit(1); }
 // Git Bash rewrites "/framework/ai2/" into "C:/Program Files/Git/framework/ai2/"; the smoke run then
 // hunts for it while holding everyone's merge lock (node-reliability, 2026-09-30). Refuse before the lock.
 const mangled = [...paths, mainArg ?? ""].find(p => /Program Files[\\/]Git[\\/]/i.test(p));
@@ -215,7 +217,7 @@ function reviewGate(branch, head){
 				const td = path.dirname(tj);
 				for (const l of lines(fs.readFileSync(tj, "utf8"))) {
 					let e; try { e = JSON.parse(l); } catch { continue; }
-					if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || e.review.at > best.e.review.at)) best = { td, e, root };
+					if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || (e.review.at ?? "") > (best.e.review.at ?? ""))) best = { td, e, root };   // a hand-written review line with no `at` is oldest; undefined > "…" is always false, so it used to win forever (2026-10-23)
 				}
 			}
 	// no review yet: guess the task dir from the branch name so the printed command is runnable as-is
@@ -488,6 +490,15 @@ try {
 		const smoke = skipSmoke ? { status: 0, stdout: "", stderr: "" }
 			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...smokePages, ...(mainArg ? ["--main", MAIN] : [])], MAIN);
 		console.log(smoke.stdout + smoke.stderr);
+		/* Tests (core/Test): every test that covers the diff runs on the branch; a failing one is run on the merge base too (Server/MergeTests.mjs). Only pass-on-base, fail-on-branch refuses. */
+		let testRefusal = null;
+		if (smoke.status === 0 && !skipTests && !dryRun) {
+			try {
+				const t = await MergeTests.gate({ dir, main: MAIN, base_ref: BASE, branch, changed: changed.filter(f => !deleted.has(f)) });
+				for (const n of t.notes) console.warn(n);
+				if (t.refused.length) testRefusal = `merge.mjs refused: ${t.refused.length} test(s) pass on the merge base and fail on ${branch}:\n` + t.refused.map(r => `  ${r.file}\n    ${(r.tail ?? "").split(/\r?\n/).slice(-6).join("\n    ")}`).join("\n");
+			} catch (e) { console.warn(`tests: the gate itself failed (${e.message}); not blocking`); }
+		}
 		const dirty = dirtyFiles();
 		const staged = lines(git(MAIN, "diff", "--cached", "--name-only").stdout);   // git merge refuses any staged change, so treat it like overlap
 		/* The three-way landing, per file, into the working tree. */
@@ -585,6 +596,7 @@ try {
 			await writeNoReviewPass(MAIN, taskDir, { size: "quick", branch, head, note: `size quick — ${widths.length === 1 ? `one shot at ${width}` : `shots at ${widths.join(", ")}`} — pass` });
 		}
 		if (smoke.status !== 0) { console.error("smoke test failed; nothing merged"); code = 1; }
+		else if (testRefusal) { console.error(testRefusal); code = 1; }
 		else if (!changed.length) console.log(`nothing to land: ${branch} changes no file against ${BASE}`);
 		else if (!overlap.length && !staged.length) {
 			// prove the merge is clean BEFORE git merge touches anything

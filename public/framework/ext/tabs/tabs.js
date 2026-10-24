@@ -82,6 +82,7 @@ Page.prototype.tabs = function(names, { home } = {}){
 
 		// ⚠ these links were built after mark() ran, so they missed the pass
 		this.app?.router?.mark_links();
+		this.app?.mark?.();   // a demo.app() box: re-mark and un-href links built after its own pass
 	};
 
 	(this._tab_redraws ??= new Set()).add(draw_bar);

@@ -80,6 +80,7 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
   tools, it pays for the whole context again. So a fork keeps its tools, and every call is refused.
 - A resume must run in the session's original `cwd`, because sessions are stored per project
   directory.
+- The SDK's `total_cost_usd` is the session's running total, and a resumed process (a wake-up, a reopen) carries it on rather than starting at 0. So a turn's cost is what that total grew by, and every reader takes it from `turn-costs.js`, which also rebuilds logs written before 2026-10-23 (they logged the whole session on each wake-up: $4,783 logged against $1,422 real across all agents).
 - The first restart onto the revive code finds rows with no `boot` field. It revives them when
   the agent's own log was written in the last 30 minutes, and marks the rest `gone`.
 - A `finish`/`complete` line lands a task (`Servex/Landed.js`); when only `landed_at` + outcome did, six helpers were woken all day for $21–$73 each against $3–4 budgets, and `helper-compact-nudge` for $194.95: [`doc/task-loop.md`](../doc/task-loop.md#the-heartbeat).
@@ -92,6 +93,7 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 `Agents.js` (the host, the agent, its queue) · `tools.js` (the MCP tools) ·
 `Assistant.js` + `assistant.md` (the always-up fast assistant and its posture) · `Chain.js` + `doc/assistant-chain.md` (flagged one-global-assistant chain, `SERVEX_CHAIN=on`) ·
 `Layers.js` + `Global.js` (the card and cross-card agents, [`doc/layers.md`](./doc/layers.md)) ·
+`turn-costs.js` (each turn's real dollars from an agent's log; `cost.test.mjs`) ·
 `policy.js` · `claims.js` · `Brief.js` · `tiers.js` ·
 `roles.js` (role → posture) · `Registry.js` (who has ever been spawned, and which host holds it) ·
 `ops.js` (restart, pause, resume) · `Jobs.js` (background work in node) ·

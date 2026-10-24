@@ -319,6 +319,14 @@ check("source: a name is the source; an old doc path is `doc`, source undefined"
 	return a.source === "servex:m1" && a.doc === undefined && b.source === undefined && b.doc === "/framework/ai/plan.md" && b.data.source === "/framework/ai/plan.md";
 });
 
+check("from_ref: two refs to id-less logs in one parent stay two children, named by folder", () => {
+	Task.resolver = () => [{ assign: { now: "queued" } }];
+	try {
+		const t = Task.replay([A, { task: "/framework/mod/x/tasks/one/" }, { task: "/framework/mod/x/tasks/two/" }]);
+		return t.tasks.all?.length === 2 || [...t.tasks].length === 2;
+	} finally { Task.resolver = null; }
+});
+
 check("cost: computed through Task.cost_resolver, 0 without one", () => {
 	const t = Task.replay([A, { path: "/p/" }]), none = t.cost;
 	Task.cost_resolver = p => p === "/p/" ? 1.5 : 0;

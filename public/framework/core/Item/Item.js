@@ -273,7 +273,10 @@ export class Item extends Events(Object) {
 
 	static new_id(){ return crypto.randomUUID(); }
 
-	// What a caller may put in a delta for this class: {class, fields, methods:[{name, doc}]}; doc is "" here (the item tool fills it from source).
+	// The methods and getters of this class that only READ. The item tool answers a delta whose keys are all queries (`{"cost":{}}`) and writes no line. A subclass lists its own.
+	static queries = [];
+
+	// What a caller may put in a delta for this class: {class, fields, methods:[{name, doc}], queries}; doc is "" here (the item tool fills it from source).
 	static describe(){
 		const methods = new Map(), fields = new Set(this.fields ?? []);
 		for (let proto = this.prototype; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto))
@@ -283,7 +286,7 @@ export class Item extends Events(Object) {
 				if (d.get || d.set){ if (!d.get?.is_field_accessor) fields.add(name); continue; }
 				if (typeof d.value === "function") methods.set(name, { name, doc: "" });
 			}
-		return { class: this.name, fields: [...fields], methods: [...methods.values()] };
+		return { class: this.name, fields: [...fields], methods: [...methods.values()], queries: [...(this.queries ?? [])] };
 	}
 
 	/* Tolerant of every malformed input: warn, keep the node, never throw. Reads
