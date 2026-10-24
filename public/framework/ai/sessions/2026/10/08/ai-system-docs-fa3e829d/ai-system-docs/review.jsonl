@@ -75,5 +75,3 @@
 {"finding":{"at":"2026-10-09T02:31:17-05:00","n":3,"kind":"note","text":"Prompt is not an AI-system or Servex class, but it sits in the shared `CLASSES` list. The default `class_cards()` call (no names) now includes it wherever it is called without a filter, which could add it to unrelated listings. Today the overview.js:107 call passes explicit names, so nothing changes."}}
 {"finding":{"at":"2026-10-09T02:31:17-05:00","n":4,"kind":"note","text":"This diff covers none of the larger asks in requirements.md (the restructured system page, systems-map, readmes, the SDK section, the inbox). Those would need to be in other diffs or commits."}}
 {"phase":{"at":"2026-10-09T02:31:17-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0.3438878,"model":"claude-sonnet-5-5"}}
-{"phase":{"at":"2026-10-12T01:06:08-05:00","n":1,"kind":"findings","status":"start"}}
-{"phase":{"at":"2026-10-12T01:06:08-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0,"model":null}}
