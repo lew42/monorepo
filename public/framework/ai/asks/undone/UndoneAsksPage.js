@@ -1,5 +1,6 @@
 import { Page, div, p, span, small, a, button } from "/app.js";
 import Browse from "/framework/ux/Browse/Browse.js";
+import ProposalTriage from "../ProposalTriage.js";
 
 // The asks still undone, by module. The numbers come from Server/UndoneAsks.mjs (undone.json); this page only reads them. Doc: ../readme.md
 const DATA = new URL("../undone.json", import.meta.url).href;
@@ -42,6 +43,7 @@ export default class UndoneAsksPage extends Page {
 
 	content(){
 		div.c("pad", () => {
+			new ProposalTriage().draw();   // the 230 proposed tasks: how many were accepted into a priority, the backlog, Approve all
 			p("Asks you made that nothing has landed yet, grouped by the module they belong to. Click a module to see them.");
 			const $sum = div.c("flex wrap gap-25");
 			this.data.then(d => $sum.empty(() => {

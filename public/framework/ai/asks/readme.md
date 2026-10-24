@@ -38,6 +38,16 @@ Reading the ledger from a page or from node always goes through `AskFold.fold` â
 own comment for the exact shape (`at`, `title`, `words`, `owner`, `card`, `status`, plus the
 folded `status_at` and full `history`).
 
+## Triage (the proposed tasks)
+
+About 240 proposed tasks wait on the owner. `node Server/ProposalTriage.mjs` sorts them under the three big things in `ai/priority.md`:
+`--count` and `--plan <dir>` are dry runs, and `--apply <dir>` is the real pass. `Server/UndoneVerify.mjs --batches <dir> --question priority`
+makes the Haiku batches that answer "plainly serves 1, 2, 3, or none" (results land in `<dir>/NN-priority/results.json`). `--apply` writes through
+the item tool's `run_item`: a plain fit gets `approve` plus `priority {score: 4-N, big: N}`, everything else gets `waiting_on: "backlog"`,
+which leaves the inbox but stays a proposal. Each change is one line in `triage.jsonl` (this folder, append-only). `ProposalTriage.js`
+(browser) reads that manifest, replays each task for live state, and draws the card at the top of the Undone asks page, with **Approve all**
+(one `approve` line per backlog task, appended by `FsFile.append`; only the owner presses it).
+
 ## Watch out
 
 - **This page only reads.** Nothing here ever appends to `asks.jsonl` â€” that's `Servex/asks/`,
