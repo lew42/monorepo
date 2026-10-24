@@ -1,0 +1,4 @@
+verdict: pass
+1. [note] There is no requirements.md in queue-top/; I judged from the card title ("Queue: the top priority-1 session-page fixes") and the diff, which renames "All sessions" to "Sessions" in five places (AIDashboard.js:23, AINow.js:31, AISessionsPage.js:119 and 649, MobileSession.js:31). All five are consistent label-only changes.
+2. [note] The worktree-watch empty-share warnings in session.jsonl (framework-ai-1920.png, framework-ai-AISession-3440.png, framework-ai-sessions-v-mobile-1920.png) come from wide-screen emptiness on those pages. This diff changes no layout, so they are not caused by it.
+3. [note] The AISessionsPage.js:119 trail comment now reads "Sessions / 2026 / ...", but I found no code there that renders an "All" root label, so the comment may describe something that is not on the page. Not a regression.

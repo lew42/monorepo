@@ -3,3 +3,4 @@
 {"approve":{"by":"mastermind-deputy","note":"serves priority 2: Every ask becomes a task that finishes. The owner, 2026-10-23: don't wait for approval; accept what serves a top priority"},"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.683Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/AITask/tasks/review-the-ext-ai-task-system/"},{"id":"mastermind-deputy","task":"/framework/ai/AITask/tasks/review-the-ext-ai-task-system/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.684Z"}
 {"priority":{"score":2,"big":2,"why":"serves priority 2: Every ask becomes a task that finishes","by":"mastermind-deputy"},"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.685Z"}
+{"log":{"at":"2026-10-24T09:21:22-05:00","msg":"Skipped by queue-top 2026-10-24: a full review of the AI task system is over the ~$3 line (est $6) and wants its own reviewer run (Server/review.mjs on the AITask module). No review record exists yet; ext/AITask now points to ai/AITask."}}
