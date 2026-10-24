@@ -19,3 +19,10 @@ Going dormant never compacted. Today Servex forces `/compact` only at the 400k c
 - Warm cache: compaction runs at the sleep moment, which falls inside the 5-minute cache TTL for every default idle wait.
 - Cost, from Servex's logs: 158k → 17k tokens for $0.24 in 61 s (Sonnet, warm).
 - Test: `node Servex/agents/compact-before-sleep.test.mjs` (23 checks).
+
+## Second ask (vscode-mastermind, 2026-10-23, the owner's next prompt in `prompts.jsonl`)
+
+7. The role readme must survive compaction. Move it from the first user message into the system prompt the SDK way: the claude_code preset with `append: <role readme>`, keeping CLAUDE.md loading as it is. Check that a resumed or compacted session still has it.
+8. Context drift: after each `compact_boundary`, and every ~N tokens on long sessions, re-inject a short role reminder (the role's top rules plus its readme path), not the whole readme.
+9. Docs: `public/framework/ai/doc/context-drift.md` and a compaction doc. Each is a short, complete list of the complicating factors; they cross-reference each other and are linked from `ai/readme.md`. Merge the existing notes (`Servex/agents/doc/owner-2026-10-16-compaction.md`, `Servex/doc/dormant.md`) into them rather than starting new.
+10. Same flow. Budget for both jobs: about $20.
