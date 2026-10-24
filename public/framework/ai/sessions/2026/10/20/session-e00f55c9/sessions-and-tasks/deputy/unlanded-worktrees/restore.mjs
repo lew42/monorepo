@@ -16,6 +16,8 @@ const blob = (ref, p) => git("rev-parse", "--verify", "-q", `${ref}:${p}`)?.toSt
 const moves = fs.readFileSync(path.join(REPO, "public/framework/ai/sessions/task-moves.jsonl"), "utf8").trim().split("\n").map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(m => m?.from && m?.to);
 const moved = p => { for (const m of moves) if (p.startsWith(m.from + "/")) return m.to + p.slice(m.from.length); return p; };
 const lines = b => b.toString("utf8").split("\n").filter(Boolean);
+// A review run that found nothing and cost nothing ("No review needed"): noise, and its empty record draws an "undefined" link on the task page.
+const empty_run = ls => ls.every(x => /"phase":/.test(x) && !/"cost":[1-9]/.test(x)) || /^verdict: pass\s+No review needed/.test(ls.join("\n"));
 
 const apply = process.argv.indexOf("--apply") > -1 ? process.argv[process.argv.indexOf("--apply") + 1] : null;
 const out = [];
@@ -30,6 +32,7 @@ for (const l of fs.readFileSync(path.join(HERE, "verdicts.jsonl"), "utf8").trim(
 		else if (!dev){
 			if (at_base) row.why = "skip: michael/dev deleted it after the branch forked";
 			else if (from.endsWith("task.jsonl") && !/landed_at/.test(mine)) row.why = "skip: a task that never landed and is new to michael/dev (it would show as an open task)";
+			else if (/\/review\.(jsonl|md)$/.test(from) && empty_run(lines(mine))) row.why = "skip: an empty review run (no findings, cost 0)";
 			else row.restore = true, row.why = to === from ? "new to michael/dev" : "new to michael/dev, at its moved folder";
 		}
 		else if (dev === blob(v.sha, from)) row.why = "skip: already equal";
@@ -38,7 +41,7 @@ for (const l of fs.readFileSync(path.join(HERE, "verdicts.jsonl"), "utf8").trim(
 			const d = lines(git("show", `michael/dev:${to}`)), b = lines(mine);
 			const added = b.slice(d.length);
 			if (!(d.length < b.length && d.every((x, i) => x === b[i]))) row.why = "skip: both sides changed the log";
-			else if (added.every(x => /"phase":/.test(x) && !/"cost":[1-9]/.test(x) && !/"findings":\[\{/.test(x))) row.why = "skip: the appended lines are an empty review run (no findings, cost 0)";
+			else if (empty_run(added)) row.why = "skip: the appended lines are an empty review run (no findings, cost 0)";
 			else row.restore = true, row.why = `the branch appended ${added.length} line(s)`;
 		}
 		else row.why = "skip: both sides changed it";
