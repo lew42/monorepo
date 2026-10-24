@@ -30,7 +30,7 @@ The shots are already taken when you start. `Server/review.mjs` picks the widths
 
 Answer in this order, one system at a time:
 
-1. **Requirements** — one question per numbered ask in `requirements.md`, in the owner's words: "met?" These questions live here, not in a questions.md.
+1. **Requirements** — one question per numbered ask in `requirements.md`, in the owner's words: "met?" These questions live here, not in a questions.md. Then one more for a diff that adds or changes a class: "can you open a page that shows its live instances and their properties?" ([Show the class, and its live instances](/framework/doc/rules.md)). A `[fix]` when the answer is no and the class holds state the owner would want to watch; a `[note]` otherwise.
 2. **Page structure** — the Page structure section of [/framework/design/questions.md](/framework/design/questions.md).
 3. **Navigation** — [/framework/design/navigation/questions.md](/framework/design/navigation/questions.md); its first question is identify: list the techniques used (tabs, a rail, a bottom rail, a sidebar, a sheet, a modal, full screen). Then only the questions for those.
 4. **Layout** — the Layout section of [/framework/design/layout/questions.md](/framework/design/layout/questions.md).
