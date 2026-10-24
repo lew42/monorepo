@@ -49,3 +49,8 @@ Empty section, no tab. Nothing at the call site says "tab" — a different shape
 
 - architecture.md states the lesson and the reason behind each decision in a few lines, not a transcript. ([your words](/framework/ai/sessions/7efd07d5-7a58-434d-8847-1a1d7b640390/?tab=coverage#p603), 2026-10-09)
 - Module documentation stays inside its module folder, never outside it. ([your words](/framework/ai/sessions/730e8a7b-4cbf-4d09-90bd-d61d2bf9384a/?tab=coverage#p1092), 2026-10-13)
+
+## Later
+
+- ⬜ **Every markdown file as a page:** use each folder's `files.jsonl` as the index, so a readme renders as the page and the other `.md` files beside it and in `doc/` appear in its navigation, rendered, with no hand-made page per doc. A `page.jsonl` can still reshape the view. ([your words](/framework/ai/sessions/2026/10/20/session-e00f55c9/), prompts.jsonl 2026-10-24T00:20:16Z)
+- ⬜ **A files widget:** browse a folder's real files, syntax highlighted, placed where it helps (for example a tab on a session or module page), not on every page. ([your words](/framework/ai/sessions/2026/10/20/session-e00f55c9/), prompts.jsonl 2026-10-24T00:20:16Z)

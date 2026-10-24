@@ -11,6 +11,7 @@ A **role** is the job an agent is started for: a minion does one narrow job, a m
 | Role (`spawn_agent({role})`) | Readme | Does | Tier (model today) | Use it when |
 |---|---|---|---|---|
 | `mastermind` | [servex-mastermind.md](servex-mastermind.md) | the systems architect: oversees quality, spend and coordination, fixes the system, not pages | architect (Sonnet, high) | a standing overseer of the agent system |
+| (the owner's VS Code sidebar tab) | [vscode-mastermind.md](vscode-mastermind.md) | answers the owner fast, relays the essence of each dictation to a deputy, hands off all investigating, building, reviewing and merging | the tab's own model | the tab the owner dictates to |
 | (VS Code tab, `/mastermind`) | [mastermind.md](mastermind.md) | the executive: governs the budget, picks the top work, spawns minions | the tab's own model | the owner says "you are the mastermind" |
 | `task-mastermind` (also `page-mastermind`, `directory-mastermind`) | [task-mastermind.md](task-mastermind.md) + the `page` skill | owns one task end to end: splits it, spawns minions, judges, lands | manager (Sonnet, medium) | one task with several parts |
 | `minion` | [minion.md](minion.md) | one narrow job from a brief: a scan, a fix, a build | scan (Haiku, low); pass Sonnet for UI or class code | one job a brief can describe |

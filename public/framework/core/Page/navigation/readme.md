@@ -51,3 +51,7 @@ thing to get right. [Live page](/framework/core/Page/navigation/).
 - [`doc/prior-work.md`](doc/prior-work.md) — every navigation row the inventory found, linked.
 - [`weight.jsonl`](weight.jsonl) and [`shots/`](shots/) — the measurements and screenshots behind the page.
 - History: first built for the [page-system](/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/) task (2026-09-29).
+
+## Later
+
+- ⬜ **A dropdown header for top-level navigation:** the header names the page you are on and opens a list of its siblings, as an option beside the top tabs (keep the tabs). ([your words](/framework/ai/sessions/2026/10/20/session-e00f55c9/), prompts.jsonl 2026-10-24T00:20:16Z)
