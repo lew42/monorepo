@@ -112,6 +112,7 @@ export async function readyRows(opts = {}) {
 		const head = git(repo, "rev-parse", "--verify", "--quiet", `refs/heads/${row.branch}`).stdout.trim();
 		if (!head) continue;                                                       // branch gone
 		if (git(repo, "merge-base", "--is-ancestor", head, base).status === 0) continue;   // already landed
+		if (git(repo, "merge-base", "--is-ancestor", row.sha, base).status === 0) continue;   // the commit marked ready has landed: newer commits on a reused pool branch are another task's, not this one's
 		const { _file, ...r } = row;
 		const stale = !head.startsWith(r.sha), worktree = wts.get(r.branch) || null;
 		const latest = stale && worktree ? { sha: head.slice(0, 9), gate: (opts.gate || gateOf)(repo, worktree) } : null;   // the gates run in parallel, awaited below
