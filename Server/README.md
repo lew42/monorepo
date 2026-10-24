@@ -36,6 +36,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 - `Server/Crawl.mjs` — nightly full-site crawl at 1920; failures go to `ai/todo.md`.
 - `Server/Council.mjs` — Feedback Council collector and runner; off switch `COUNCIL=off`.
 - `node Server/ReadmeOrphans.mjs` — lists every directory with a readme that the readme above it never names (the readme chain cannot reach it); the page-nav twin is `OrphanCheck.mjs`.
+- `node Server/NavCheck.mjs <worktree>` — the click test: every page a branch adds must have an `a[href]` on its parent page, loaded headless; `merge.mjs` runs it and refuses an unlinked page, `--no-nav "why"` overrides ([`doc/nav-check.md`](./doc/nav-check.md)).
 - [`git-hooks/`](./git-hooks/) — the git hooks every worktree shares, versioned here with a small installer.
 
 ## Moved to a doc (verbatim)

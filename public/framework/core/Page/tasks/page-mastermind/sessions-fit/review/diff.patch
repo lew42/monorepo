@@ -1,0 +1,49 @@
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index 5554aaf74..1db27c629 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -159,12 +159,12 @@ export default class AISessionsPage extends Page {
+ 
+ 	// ---- drawing -------------------------------------------------------------------------------------
+ 
+-	static WIDTHS = { state: "4rem", name: "1fr", cost: "14rem", updated: "6rem", duration: "6rem", role: "13rem", source: "6rem", model: "9rem" };
++	static WIDTHS = { state: "3rem", name: "1fr", cost: "8rem", updated: "5rem", duration: "5rem", role: "9rem", source: "6rem", model: "8rem" };
+ 
+ 	/** The one DataGrid: the table's columns are AISessionRows.COLUMNS; the rows, their order and their nesting are this page's hooks. */
+ 	make_grid(){
+ 		return new DataGrid({
+-			columns: AISessionRows.COLUMNS.map(c => ({ ...c, width: AISessionsPage.WIDTHS[c.key] })),
++			columns: AISessionRows.COLUMNS.map(c => ({ ...c, width: AISessionsPage.WIDTHS[c.key], ...(c.key === "name" && { min: "16rem" }) })),
+ 			rows: [], filters: false, row_height: null, page_size: AISessionsPage.PAGE_SIZE,
+ 			prefs_id: "sessions", settings: this.settings,
+ 			href: r => this.url + r.id + "/",
+diff --git a/public/framework/ai/rail/rail.css b/public/framework/ai/rail/rail.css
+index cc691ebe9..b3be24c32 100644
+--- a/public/framework/ai/rail/rail.css
++++ b/public/framework/ai/rail/rail.css
+@@ -164,9 +164,9 @@
+ 		.page--ai.page.full:has(> .inbox-shell) > .inbox-shell { flex: none; height: auto; }
+ 		.page--ai .inbox-rail, .page--ai .inbox-stream { display: block; }
+ 		.page--ai .inbox-rows { overflow: visible; }
+-		/* title above, tabs below on one scrolling line, never a two-row tower */
+-		.page--ai .inbox-head > .tabs > .tab-bar { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-inline-end: 0; }
+-		.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: none; }
++		/* title above, tabs below WRAPPED (2026-10-23): a scrolling line gave no sign that Sessions and Tests were off the right edge, so all eight labels now show, two short rows */
++		.page--ai .inbox-head > .tabs > .tab-bar { flex: 1 1 100%; flex-wrap: wrap; overflow: visible; padding-inline: 0.5rem; }
++		.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: 1 1 auto; }
+ 		.page--ai .inbox-head .doc-well { padding-block: 0.4em 0.1em; }
+ 	}
+ }
+diff --git a/public/framework/ai/sessions/sessions.css b/public/framework/ai/sessions/sessions.css
+index a9ed8a08a..f01054c5f 100644
+--- a/public/framework/ai/sessions/sessions.css
++++ b/public/framework/ai/sessions/sessions.css
+@@ -373,7 +373,7 @@
+ 	@container (width < 40em) {
+ 		.sessions-status .ai-meter { display: none; }   /* a phone keeps the counts and the open-tasks chip; the meters are on the Inbox */
+ 		.sessions-page :is(.sessions-kinds, .sessions-chiprow) { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }   /* each chip row is one swipeable line on a phone, not three */
+-		.sessions-page :is(.sessions-kinds, .sessions-chiprow) > * { flex: none; }
++		.sessions-page :is(.sessions-kinds, .sessions-chiprow) > *, .sessions-page .sessions-chips > .sessions-chip { flex: none; white-space: nowrap; }
+ 	}
+ 
+ }

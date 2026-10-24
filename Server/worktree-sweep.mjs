@@ -74,12 +74,23 @@ const task_key = (dir, root = ROOT) => path.relative(ai_dir(root), dir).split(pa
  *  (lifecycle, 2026-09-29: only 1 of about 20 task logs that day carried `worktree`, so no teardown
  *  ever ran) the newest task whose `branch` is worktree/<slug> or whose own dir is named <slug>.
  *  `root` is the checkout whose task logs to read (Servex/Lifecycle.js passes the main one). */
+/* The walk and every task_state() read are the cost (about 3 s on a big tree, once per worktree and process in a
+ * Lifecycle sweep: ~20 s of blocked Servex event loop, so agents' prompt hooks timed out at 30 s). One index is kept for
+ * INDEX_TTL_MS and shared by every lookup in that window. */
+const INDEX_TTL_MS = 30000;
+const task_index = new Map();   // root -> { at, rows: [{ file, dir, state }] }
+function task_rows(root){
+	const hit = task_index.get(root);
+	if (hit && Date.now() - hit.at < INDEX_TTL_MS) return hit.rows;
+	const rows = all_task_files(root).map(file => ({ file, dir: path.dirname(file), state: task_state(path.dirname(file)) }));
+	task_index.set(root, { at: Date.now(), rows });
+	return rows;
+}
+
 export function task_for_worktree(wtPath, root = ROOT){
 	const target = norm(wtPath), slug = path.basename(path.resolve(String(wtPath)));
 	let best = null, best_t = -1;
-	for (const file of all_task_files(root)){
-		const dir = path.dirname(file);
-		const state = task_state(dir);
+	for (const { file, dir, state } of task_rows(root)){
 		if (state?.worktree && norm(state.worktree) === target) return { dir, key: task_key(dir, root), ...state };
 		if (state?.worktree) continue;
 		if (state?.branch === `worktree/${slug}` || path.basename(dir) === slug){

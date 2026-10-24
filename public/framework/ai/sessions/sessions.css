@@ -94,9 +94,14 @@
 	.sessions-flight-head { margin-block: 0 var(--gap-50); }
 	.sessions-doclink { margin-inline-end: 1em; font-size: .9em; }
 	.sessions-fold { cursor: pointer; margin-inline-end: .4em; color: var(--prim-ink); font-weight: 400; }
+	.sessions-page .datagrid:not(.datagrid-rail) .sessions-cell:nth-child(6) { flex-wrap: wrap; gap: .25em .5em; }   /* role text, tier tag and mastermind tag wrap inside their column instead of running over the next one */
+	.sessions-page:not(:has(.datagrid-view-rail)) .sessions-frame { block-size: auto; flex: none; min-block-size: max-content; }   /* the frame grows with the rows, so the status footer ends the panel instead of sitting on a row */
+	.sessions-page .datagrid:not(.datagrid-rail) .sessions-row-title { white-space: normal; overflow-wrap: anywhere; }   /* the table lets a name wrap to a second line rather than cut it with an ellipsis */
+	.sessions-page:not(:has(.datagrid-view-rail)) { padding-block-start: 0; }   /* the page itself scrolls, and a sticky header stops at the scroller's top padding (core/Page/Page.css `.page`), so scrolled rows showed in that strip above it; the space moves to a margin that scrolls away */
+	.sessions-page:not(:has(.datagrid-view-rail)) > .sessions-frame { margin-block-start: var(--pad-y) !important; }   /* !important: the util layer's `:first-child { margin-top: 0 }` outranks every theme-layer margin (code/css/doc/caveats.md) */
 	.sessions-row-prompt { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-	/* Compact cards below 88em of the panel (this em is the panel's 13.3px: about 1170px, just over the grid's true minimum of about 1090px; 56em let it scroll sideways at 1100 and 1400). Before: below `ext/panel2`'s own 30em container floor, a 6-column grid has
+	/* Compact cards below 78em of the panel (this em is the panel's 13.3px: about 1040px, just over the grid's true minimum of about 1030px with the 2026-10-23 widths (name 12rem min); 1920 with the chat open has a 1058px panel, which now gets the table. Was 88em, about 1090px; 56em let it scroll sideways at 1100 and 1400). Before: below `ext/panel2`'s own 30em container floor, a 6-column grid has
 	   nowhere left to shrink to — the owner's narrow-screen answer elsewhere
 	   on the site is always "one column at a time" (`core/Page`'s own < 32em
 	   phone regime), so the grid becomes a plain stacked card per row instead
@@ -108,7 +113,7 @@
 	/* Rail view: a session card needs about 24em (name, cost, role on three short lines); core's `small` gives 14em at 1920. */
 	.sessions-page > .page-columns-row > .page-column-body.page-column-small { --page-column-w: clamp(18em, 22cqi, 28em); }
 
-	@container (width < 88em) {
+	@container (width < 78em) {
 		.sessions-page .datagrid:not(.datagrid-rail) { display: flex; flex-direction: column; width: auto; max-width: 100%; }
 		.sessions-page .datagrid-head { display: none; }
 		.sessions-row { display: flex; flex-wrap: wrap; gap: var(--gap-50); padding-block: var(--gap-50); border-block-end: 1px solid var(--line); }
@@ -361,6 +366,7 @@
 	.sessions-status .ai-meter .flex { gap: .4rem; }
 	.sessions-status .ai-gauge { inline-size: 4rem; }
 	.sessions-status .ai-note { display: none; }
+	.sessions-page:not(:has(.datagrid-view-rail)) .sessions-status { position: static; }   /* the table panel grows to its rows, so the status line ends it instead of floating over them */
 	.sessions-status-open { margin-inline-start: auto; position: relative; }
 	.sessions-status-open .page-open-line { padding: .05em .6em; }
 	.sessions-status-open .page-open-rows { position: absolute; inset-block-end: 100%; inset-inline-end: 0; min-inline-size: 22em; padding: .5rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 .25rem 1rem rgb(0 0 0 / .15); }
@@ -373,7 +379,7 @@
 	@container (width < 40em) {
 		.sessions-status .ai-meter { display: none; }   /* a phone keeps the counts and the open-tasks chip; the meters are on the Inbox */
 		.sessions-page :is(.sessions-kinds, .sessions-chiprow) { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }   /* each chip row is one swipeable line on a phone, not three */
-		.sessions-page :is(.sessions-kinds, .sessions-chiprow) > * { flex: none; }
+		.sessions-page :is(.sessions-kinds, .sessions-chiprow) > *, .sessions-page .sessions-chips > .sessions-chip { flex: none; white-space: nowrap; }
 	}
 
 }

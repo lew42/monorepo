@@ -42,6 +42,7 @@ A session folder is one of three kinds:
 ## How data is read
 
 - **The page**: `page.js` builds `AISessionsPage` (`ai/AISession/`), a table or rail of cards over [ext/DataGrid](/framework/ext/DataGrid/). Rows are `AISessionView`, order and nesting `AISessionsPage.arrange()`, built from `session-tree.json` plus the live `index.json` snapshots pushed over the page's socket.
+- **A year, month or day folder** (`/framework/ai/sessions/2026/10/`): `StoreFolder.sessions` (`ai/AISession/StoreFolder.js`). A year lists its months and a month its days, each with its session count and cost from the rolled-up `index.json`; a day lists its sessions. A folder with no rolled-up `index.json` says so in words (it is asked for only when the folder listing shows one).
 - **One session**: `/framework/ai/sessions/<id>/` → `AISessionDetail` (prompts, cost, Coverage tab: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md)).
 - **The class**: `class AISession extends Session` (`AISession.js`): totals, `apply_line()` per transcript line, `AISession.of(id)`, `AISession.log()`, `AISession.record(id)`. Classes of the detail page: [doc/ui/classes.md](doc/ui/classes.md).
 - **Variants**: `/framework/ai/sessions/v/<name>/` is another look at the same data, for example [v/mobile/](/framework/ai/sessions/v/mobile/) (the phone pages: day list, nested sessions, a session, a task). `AISessionsPage.route()` passes the name `v` through to that folder instead of reading it as a session id.

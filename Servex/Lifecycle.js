@@ -28,7 +28,8 @@
  * Doc: Servex/doc/lifecycle.md. */
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, execFile, spawnSync } from "node:child_process";
+import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { place, stamp } from "./home.js";
 import { task_state, task_for_worktree } from "../Server/worktree-sweep.mjs";
@@ -97,6 +98,8 @@ export function keep_ports(){
 	return new Set([80, 3104, 8079, 8090, Number(process.env.SERVEX_PORT) || 8090, ...extra].map(Number));
 }
 
+const ps = "Get-CimInstance Win32_Process -Filter \"Name='node.exe' or Name='cmd.exe' or Name='chrome.exe' or Name='bash.exe'\" | ForEach-Object { [pscustomobject]@{pid=$_.ProcessId;ppid=$_.ParentProcessId;name=$_.Name;cmd=$_.CommandLine;born=$_.CreationDate.ToString('o')} } | ConvertTo-Json -Compress";
+
 export default class Lifecycle {
 	constructor(...args){ this.assign(...args); }
 	assign(...args){ return Object.assign(this, ...args); }
@@ -136,12 +139,21 @@ export default class Lifecycle {
 
 	/** node/cmd/chrome processes with their parents and command lines, one PowerShell call. */
 	processes(){
-		const ps = "Get-CimInstance Win32_Process -Filter \"Name='node.exe' or Name='cmd.exe' or Name='chrome.exe' or Name='bash.exe'\" | ForEach-Object { [pscustomobject]@{pid=$_.ProcessId;ppid=$_.ParentProcessId;name=$_.Name;cmd=$_.CommandLine;born=$_.CreationDate.ToString('o')} } | ConvertTo-Json -Compress";
 		const r = spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { encoding: "utf8", windowsHide: true, maxBuffer: 32 << 20 });
-		let rows = []; try { rows = [].concat(JSON.parse(r.stdout || "[]")); } catch {}
+		return this.process_map(r.stdout, spawnSync("netstat", ["-ano", "-p", "TCP"], { encoding: "utf8", windowsHide: true }).stdout);
+	}
+
+	/** The same list without freezing Servex: the two blocking calls above took 20+ s on a busy machine, long enough to time out every agent's prompt hook (2026-10-23). */
+	async processes_async(){
+		const run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer }).then(r => r.stdout, () => "");
+		const [out, ns] = await Promise.all([run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], 32 << 20), run("netstat", ["-ano", "-p", "TCP"], 8 << 20)]);
+		return this.process_map(out, ns);
+	}
+
+	process_map(out, ns){
+		let rows = []; try { rows = [].concat(JSON.parse(out || "[]")); } catch {}
 		const ports = new Map();
-		const ns = spawnSync("netstat", ["-ano", "-p", "TCP"], { encoding: "utf8", windowsHide: true }).stdout || "";
-		for (const m of ns.matchAll(/TCP\s+\S+:(\d+)\s+\S+\s+LISTENING\s+(\d+)/g)) (ports.get(+m[2]) ?? ports.set(+m[2], []).get(+m[2])).push(+m[1]);
+		for (const m of (ns || "").matchAll(/TCP\s+\S+:(\d+)\s+\S+\s+LISTENING\s+(\d+)/g)) (ports.get(+m[2]) ?? ports.set(+m[2], []).get(+m[2])).push(+m[1]);
 		return new Map(rows.map(p => [p.pid, { ...p, cmd: p.cmd || "", born: Date.parse(p.born) || null, ports: ports.get(p.pid) ?? [] }]));
 	}
 
@@ -177,7 +189,7 @@ export default class Lifecycle {
 
 	/** Everything that is running and who owns it: the log's open lines, the worktree registry, the process list, the agents. */
 	async resources(){
-		const procs = this.procs = this.processes(), rows = [], seen = new Set(), main = main_repo();
+		const procs = this.procs = await this.processes_async(), rows = [], seen = new Set(), main = main_repo();
 		// one row per process TREE: claiming a row claims its wrapper and everything under it
 		const kids = new Map();
 		for (const p of procs.values()) (kids.get(p.ppid) ?? kids.set(p.ppid, []).get(p.ppid)).push(p.pid);

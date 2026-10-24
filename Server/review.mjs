@@ -810,12 +810,20 @@ async function main() {
 	// a stale report from a previous run must never be read as if it answered THIS head
 	try { fs.unlinkSync(reviewPath); } catch {}
 	try {
-		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root, parent: SessionRecord.task_agent(taskDir) ?? undefined });
-		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
-		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
-		cost = waited.cost ?? 0;   // list_agents' row carries no cost field today; wait_for_agent's own answer does
-		await mcp("stop_agent", { id: spawned.id }, 20000);
+		// A reviewer whose first prompt dies on a Servex hook timeout costs about $0.001 and writes nothing;
+		// that is a start failure, not a finding, so it gets up to 3 starts before it is reported as one.
+		let started = false;
+		for (let attempt = 1; attempt <= 3 && !fs.existsSync(reviewPath); attempt++) {
+			const spawned = await mcp("spawn_agent", { role: "reviewer", name: attempt > 1 ? `${name}-r${attempt}` : name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root, parent: SessionRecord.task_agent(taskDir) ?? undefined });
+			if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
+			const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
+			cost += waited.cost ?? 0;   // list_agents' row carries no cost field today; wait_for_agent's own answer does
+			await mcp("stop_agent", { id: spawned.id }, 20000);
+			started = (waited.cost ?? 0) >= 0.01;
+			if (started) break;
+		}
 		if (fs.existsSync(reviewPath)) ({ verdict, findings } = parseReview(fs.readFileSync(reviewPath, "utf8")));
+		else if (!started) findings = [{ n: 1, kind: "fix", text: "reviewer failed to start (3 starts cost nothing: a Servex hook timeout); run the review again" }];
 		else findings = [{ n: 1, kind: "fix", text: `the reviewer wrote no ${reviewRelFile}` }];
 	} catch (e) {
 		findings = [{ n: 1, kind: "fix", text: `reviewer failed to run: ${String(e?.message || e).slice(0, 200)}` }];

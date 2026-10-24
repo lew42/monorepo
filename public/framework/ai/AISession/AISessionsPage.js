@@ -5,6 +5,7 @@ import Panel2 from "/framework/ext/panel2/Panel2.js";
 import { usage_rail } from "/framework/ai/AITask/usage.js";
 import DataGrid from "/framework/ext/DataGrid/DataGrid.js";
 import { page_settings } from "/framework/core/Page/settings/settings.js";
+import PageNav from "/framework/ai/AIDashboard/PageNav.js";
 import AISessionRows from "./AISessionRows.js";
 import AISessionView from "./AISessionView.js";
 import AISessionBuckets from "./AISessionBuckets.js";
@@ -42,6 +43,13 @@ export default class AISessionsPage extends Page {
 	static POLL_MS = 20000;
 	static PAGE_SIZE = 50;   // the first page; the next one loads by itself as the sentinel scrolls into view (ext/DataGrid paging)
 	static TOP_CHIPS = 5;
+	// Pages that live under this one and are reached only from here (a click is the test: Server/NavCheck.mjs).
+	static NAV = [
+		PageNav.merge_link(),
+		{ href: "/framework/ai/sessions/v/", label: "Variants", title: "Variant takes on these pages, one folder each" },
+		{ href: "/framework/ai/sessions/v/mobile/", label: "Phone", title: "These pages for a 400 px phone" },
+		{ href: "/framework/ai/sessions/doc/variants/", label: "Table variants", title: "The sessions table, three ways" },
+	];
 
 	constructor(...args){
 		super({
@@ -85,7 +93,7 @@ export default class AISessionsPage extends Page {
 		this.grid = this.make_grid();
 		this.$empty = p.c("muted", "No sessions with an id yet.");
 		this.$empty.el.hidden = true;
-		panel.main.append(div.c("sessions-body").append(this.nav_view(), div.c("sessions-main").append(this.$scope, this.$controls, this.grid, this.$empty, this.$status)));
+		panel.main.append(div.c("sessions-body").append(this.nav_view(), div.c("sessions-main").append(new PageNav({ links: AISessionsPage.NAV }), this.$scope, this.$controls, this.grid, this.$empty, this.$status)));
 		this.arrange_for(this.grid.view);
 		this.grid.watch(g => this.arrange_for(g.view));
 		const grid = this.grid;
@@ -159,12 +167,12 @@ export default class AISessionsPage extends Page {
 
 	// ---- drawing -------------------------------------------------------------------------------------
 
-	static WIDTHS = { state: "4rem", name: "1fr", cost: "14rem", updated: "6rem", duration: "6rem", role: "13rem", source: "6rem", model: "9rem" };
+	static WIDTHS = { state: "3rem", name: "1fr", cost: "8.5rem", updated: "5rem", duration: "5rem", role: "11rem", source: "7rem", model: "9rem" };
 
 	/** The one DataGrid: the table's columns are AISessionRows.COLUMNS; the rows, their order and their nesting are this page's hooks. */
 	make_grid(){
 		return new DataGrid({
-			columns: AISessionRows.COLUMNS.map(c => ({ ...c, width: AISessionsPage.WIDTHS[c.key] })),
+			columns: AISessionRows.COLUMNS.map(c => ({ ...c, width: AISessionsPage.WIDTHS[c.key], ...(c.key === "name" && { min: "12rem" }) })),
 			rows: [], filters: false, row_height: null, page_size: AISessionsPage.PAGE_SIZE,
 			prefs_id: "sessions", settings: this.settings,
 			href: r => this.url + r.id + "/",

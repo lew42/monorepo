@@ -8,6 +8,9 @@
  * `--no-review "why"` is also a flag, alongside the ones above — see below.
  * `--gate-only` prints the review gate's answer for the worktree's head (`gate: ok` or the refusal) and exits:
  * no lock, no smoke, no merge. The Merge page asks it about a branch that moved after it was marked ready.
+ * NAV GATE (the owner, 2026-10-23: a page nobody can click to does not exist): every NEW page.js/page.jsonl must be
+ * reachable by an `a[href]` on its parent page, loaded headless on the worktree's own server (`Server/NavCheck.mjs`).
+ * An unlinked new page refuses the merge and prints each page with its parent; `--no-nav "why"` merges anyway, loudly.
  *
  * REVIEW GATE (2026-09-28, fresh-eyes-review; page report added 2026-09-30, review-gate): before
  * the smoke test, a light or full-size branch (`Server/review.mjs`'s `sizeOf`) needs a review newer
@@ -65,6 +68,8 @@ import { sizeOf, status as reviewStatus, diffStat, pageUrlFor, widthsFor, splitP
 import { keepLive } from "./jsonl-keep.mjs";
 import TaskDirs from "./TaskDirs.mjs";
 import { OrphanCheck } from "./OrphanCheck.mjs";
+import NavCheck from "./NavCheck.mjs";
+import Browser from "./Browser.mjs";
 import { refuse_links_into_main } from "./junction-guard.mjs";
 import SessionRecord from "./SessionRecord.mjs";
 import MergeTests from "./MergeTests.mjs";
@@ -79,6 +84,7 @@ const dryRun = bool("--dry-run");
 const gateOnly = bool("--gate-only");   // print the review gate's answer for this worktree's head and exit: no lock, no merge (the Merge page asks this of a branch that moved)
 const mainArg = flag("--main");
 const noReview = flag("--no-review");
+const noNav = flag("--no-nav");   // "why": merge an unlinked new page anyway (Server/doc/nav-check.md)
 const reviewDir = flag("--review-dir");   // the task dir to look in when it sits under a session older than the 4-day scan (a long-lived mastermind's tasks)
 const quick = bool("--quick");
 const asked = flag("--asked");
@@ -499,7 +505,7 @@ try {
 			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...smokePages, ...(mainArg ? ["--main", MAIN] : [])], MAIN);
 		console.log(smoke.stdout + smoke.stderr);
 		/* Tests (core/Test): every test that covers the diff runs on the branch; a failing one is run on the merge base too (Server/MergeTests.mjs). Only pass-on-base, fail-on-branch refuses. */
-		let testRefusal = null;
+		let testRefusal = null, navRefusal = null;
 		if (smoke.status === 0 && !skipTests && !dryRun) {
 			try {
 				const t = await MergeTests.gate({ dir, main: MAIN, base_ref: BASE, branch, changed: changed.filter(f => !deleted.has(f)) });
@@ -568,6 +574,16 @@ try {
 				const lc = run("node", [path.join(MAIN, "Server", "layout-check.mjs"), ...newPages.map(u => wtBase + u), "--widths", "1920", "--out", shotDir], MAIN);
 				console.log(lc.stdout + lc.stderr);
 			}
+			// the click test: every new page must be reachable from its parent page
+			const navPages = NavCheck.pages_of(dir, status.filter(s => s.status === "A").map(s => s.f));
+			const navBase = navPages.length ? (wtBase ?? worktreeBase(dir)) : null;   // not wtBase alone: that is null when the screenshot step skipped every added page
+			if (navBase) {
+				const results = await NavCheck.check(navBase, navPages.map(url => ({ url, parent: NavCheck.parent_page(dir, url) })));
+				await Browser.close();
+				navRefusal = NavCheck.refusal(results);
+				if (navRefusal && noNav) { console.warn(`!!! --no-nav: ${noNav} — merging with unlinked new page(s) !!!\n${navRefusal}`); navRefusal = null; }
+				else if (!navRefusal) console.log(`NavCheck: ${navPages.length} new page(s), all reachable by a click from their parent.`);
+			} else if (navPages.length) console.log(`NavCheck: ${navPages.length} new page(s) but no worktree server — click test skipped`);
 		}
 		// --quick's own evidence: one screenshot, at whichever width(s) widthsFor picks for THIS
 		// change (normally one), from the worktree's own server — before the merge touches
@@ -605,6 +621,7 @@ try {
 		}
 		if (smoke.status !== 0) { console.error("smoke test failed; nothing merged"); code = 1; }
 		else if (testRefusal) { console.error(testRefusal); code = 1; }
+		else if (navRefusal) { console.error("merge.mjs refused: " + navRefusal); code = 1; }
 		else if (!changed.length) console.log(`nothing to land: ${branch} changes no file against ${BASE}`);
 		else if (!overlap.length && !staged.length) {
 			// prove the merge is clean BEFORE git merge touches anything

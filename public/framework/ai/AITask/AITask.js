@@ -14,7 +14,7 @@ import { names, has, is_record_folder } from "../../core/Router/listing.js";
 import { segments, current, links_row } from "./card.js";
 import { shot_wall } from "./shots.js";
 import { chat } from "../../ext/Ask/chat.js";
-import { breakdown } from "./cost.js";
+import AICost from "./AICost.js";
 import { streamed as reply_streamed } from "../../ext/Ask/reply.js";
 import { fold } from "./message.js";
 import TaskViews from "./TaskViews.js";
@@ -256,7 +256,7 @@ export class AITask extends Page {
 				.append(() => { span.c("ai-box"); span(s); })));
 	}
 
-	cost(m){ return breakdown(m); }
+	cost(m){ return AICost.cost_of(m) ? AICost.breakdown(m) : AICost.report(this.base()); }
 
 	extra(m){}
 
@@ -264,25 +264,23 @@ export class AITask extends Page {
 
 	figures(m){
 		const cost = spend(m);
-		ui.table(
-			["requested", "landed", "model", "window", "agents", cost?.[1] ?? "tokens"],
-			[[m.requested_at ?? "—", m.landed_at ?? "—", m.model ?? "—",
-				`${pct(m.window?.before)} → ${pct(m.window?.after)}`,
-				String(m.agents?.length ?? 0), cost?.[0] ?? "—"]]
-		);
+		const known = [["requested", m.requested_at], ["landed", m.landed_at], ["model", m.model],
+			["window", m.window?.before != null || m.window?.after != null ? `${pct(m.window?.before)} → ${pct(m.window?.after)}` : null],
+			["agents", m.agents?.length ? String(m.agents.length) : null], [cost?.[1] ?? "tokens", cost?.[0]]].filter(([, v]) => v != null);
+		if (known.length) ui.table(known.map(([k]) => k), [known.map(([, v]) => v)]);
 		if (m.window?.note) md("*" + m.window.note + "*");
 
 		if (m.usage) ui.table(
 			["input", "cache write", "cache read", "output", "api calls"],
 			[[m.usage.input, m.usage.cache_write, m.usage.cache_read, m.usage.output, m.usage.calls]
-				.map(n => n?.toLocaleString() ?? "—")]
+				.map(n => n?.toLocaleString() ?? "not recorded")]
 		);
 
 		if (m.agents?.length) ui.table(
 			["agent", "model", "tokens", "time", "cost", "outcome"],
-			m.agents.map(a => [a.task ?? a.type ?? "—", a.model ?? "—",
-				a.tokens?.toLocaleString() ?? "—", time(a.duration_ms),
-				a.cost_usd != null ? "$" + a.cost_usd : "—", a.outcome ? outcome_cell(a.outcome) : "—"])
+			m.agents.map(a => [a.task ?? a.type ?? "unnamed", a.model ?? "not recorded",
+				a.tokens?.toLocaleString() ?? "not recorded", a.duration_ms == null ? "not recorded" : time(a.duration_ms),
+				a.cost_usd != null ? "$" + a.cost_usd : "not recorded", a.outcome ? outcome_cell(a.outcome) : "no outcome logged"])
 		);
 	}
 

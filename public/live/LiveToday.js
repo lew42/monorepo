@@ -5,6 +5,7 @@ import TaskState from "./TaskState.js";
 import AISessionRows from "/framework/ai/AISession/AISessionRows.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
+import { names } from "/framework/core/Router/listing.js";
 
 /* The "Today" card: today's sessions (the day index the session writer keeps) with each session's tasks (tree_for_day) under it.
  * Read at render time. A view that names `logs` (LiveNow: the task logs of what is in flight) is redrawn when one of them grows (a JSONL tail over the dev socket, any host); the 30 s timer runs only where the socket is down or a view has no logs to tail, and every 2 min as a backstop (the watcher does not push .json, so a new session shows by a tail or the backstop). A Live card of type "part-live" with live:"today" draws this (Live.js). */
@@ -23,7 +24,9 @@ export default class LiveToday {
 		// each task's own log decides done / finished / waiting-on-X (TaskState)
 		const all = [...tasks.values()].flat();
 		await Promise.all(all.map(async t => {
-			const url = TaskTree.url(t), res = url && await fetch(url + "task.jsonl").catch(() => null);
+			const url = TaskTree.url(t), listed = url && names(url);   // a spawned agent's folder keeps session.jsonl, a task's task.jsonl: ask for the one that is there
+			const file = listed ? ["task.jsonl", "session.jsonl"].find(n => listed.includes(n)) : "task.jsonl";
+			const res = url && file && await fetch(url + file).catch(() => null);
 			const text = res?.ok && !res.headers.get("content-type")?.includes("html") ? await res.text() : null;
 			t.closeout = text ? TaskState.classify(TaskState.parse(text)) : t.state === "landed" ? { state: "done" } : { state: "waiting", on: "? (no log to read)" };
 		}));
