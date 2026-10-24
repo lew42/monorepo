@@ -43,10 +43,10 @@ Each role names a skill in `roles.js`. The owner prefers a readme to a skill: th
 
 ## A readme audit, on the prompt-audit pattern
 
-- **Pass 1, Haiku, one call per readme** (with the names of its folder's files and child folders, never the code): what it names, what exists but is not named, stale lines, words over budget, the index-first shape. One line per readme in `ai/readme-audit.jsonl`, `{readme_audit: {v, path, sha, words, missing: [], stale: [], over_budget, shape}}`, append-only, the latest line per path wins.
+- **Pass 1 is built.** A script computes what it can per readme (words, files, unnamed entries, dead links, orphan, `docs/` folder, dated lines, crowded); Haiku, one call per readme given its text and its folder's file names (never the code), judges only `shape` (index, essay, log, mixed), up to 3 `history` lines and one `note`. One line per readme in [`ai/readmes/audit.jsonl`](/framework/ai/readmes/readme.md), `{readme_audit: {v, path, sha, words, files, unnamed, dead_links, orphan, docs_folder, dated_lines, crowded, shape, history, note}}`, append-only, latest line per path wins, a rerun skips an unchanged `sha`. Run: `node Server/ReadmeAudit.mjs --computed` (free, one second), `--haiku --limit N` (the N worst first), `--path <readme>`; the Readmes page shows it. Measured: about $0.05 a readme (not $0.02), so the whole walk is about $20 and a $6 cap judged the 166 worst.
 - **Pass 2, Sonnet, one per top-level system** (Servex, Server, core, ext, ux, ai): reads the pass-1 lines and checks the code where a finding needs it; proposes fixes as `{readme_fix: {path, line, change, why}}`. Fixes are applied in a separate step, after review.
-- **Cost:** about 400 readmes at about $0.02 each, about $8 for pass 1, plus about $3 for pass 2. A rerun skips a readme whose `sha` has not changed.
-- **Code:** `Server/ReadmeAudit.mjs`, built on `PromptAudit`'s queue and Haiku call.
+- **Cost:** pass 2 about $3.
+- **Code:** `Server/ReadmeAudit.mjs` (`class ReadmeAudit`), the Haiku call is `Servex/ext/refine/RefineCall.js`, as in `PromptAudit`.
 
 ## The owner's direction (2026-10-22, tab prompt log `ai/2026/10/20/session-e00f55c9/page.jsonl`)
 

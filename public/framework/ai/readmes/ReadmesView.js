@@ -22,16 +22,17 @@ export default class ReadmesView extends View {
 		this.grid = new DataGrid({
 			columns: [
 				{ key: "dir", label: "Folder", width: "3fr", min: "14em", format: v => v.replace(/^public\//, "") },
-				{ key: "levels", label: "Readmes", type: "number", width: "7em" },
-				{ key: "tokens", label: "Chain", type: "number", width: "11em" },
-				{ key: "own", label: "Own", type: "number", width: "9em" },
-				{ key: "words", label: "Words", type: "number", width: "7em" },
-				{ key: "unnamed", label: "Unnamed", type: "number", width: "8em" },
-				{ key: "dead", label: "Dead links", type: "number", width: "8em" },
-				{ key: "shape", label: "Shape", width: "7em" },
+				{ key: "levels", label: "Readmes", type: "number", width: "6em" },
+				{ key: "tokens", label: "Chain", type: "number", width: "5em" },
+				{ key: "own", label: "Own", type: "number", width: "5em" },
+				{ key: "words", label: "Words", type: "number", width: "5.5em" },
+				{ key: "unnamed", label: "Unnamed", type: "number", width: "6.5em" },
+				{ key: "dead", label: "Dead", type: "number", width: "5em" },
+				{ key: "shape", label: "Shape", width: "5.5em" },
 			],
 			rows: async () => {
 				this.rows = await (await fetch(new URL("./chains.json", import.meta.url))).json();
+				await this.add_audit(this.rows);
 				const dir = new URLSearchParams(location.search).get("path");   // /framework/ai/readmes/?path=Servex/agents
 				const row = dir && this.rows.find(r => r.dir === dir);
 				if (row) this.show(row, false);
@@ -73,12 +74,12 @@ export default class ReadmesView extends View {
 				a.c("rm-path").href("/" + r.path.replace(/^public\//, "")).attr("target", "_blank").text(r.path);
 				small.c("muted", `${r.tokens} tokens`);
 			}));
-			const a = row.audit;
-			if (a) div.c("rm-audit", () => {
-				p(`Audit: ${a.words} words, shape ${a.shape || "not judged yet"}, ${a.unnamed.length} unnamed, ${a.dead_links.length} dead links, ${a.dated_lines} dated lines${a.docs_folder ? ", has a docs/ folder" : ""}${a.orphan ? ", not named by the readme above" : ""}${a.crowded ? ", crowded" : ""}.`);
-				if (a.note) p(a.note);
-				if (a.unnamed.length) small.c("muted", "Unnamed: " + a.unnamed.slice(0, 12).join(", ") + (a.unnamed.length > 12 ? ", …" : ""));
-				if (a.dead_links.length) small.c("muted", "Dead: " + a.dead_links.slice(0, 8).join(", "));
+			const au = row.audit;
+			if (au) div.c("rm-audit", () => {
+				p(`Audit: ${au.words} words, shape ${au.shape || "not judged yet"}, ${au.unnamed.length} unnamed, ${au.dead_links.length} dead links, ${au.dated_lines} dated lines${au.docs_folder ? ", has a docs/ folder" : ""}${au.orphan ? ", not named by the readme above" : ""}${au.crowded ? ", crowded" : ""}.`);
+				if (au.note) p(au.note);
+				if (au.unnamed.length) small.c("muted", "Unnamed: " + au.unnamed.slice(0, 12).join(", ") + (au.unnamed.length > 12 ? ", …" : ""));
+				if (au.dead_links.length) small.c("muted", "Dead: " + au.dead_links.slice(0, 8).join(", "));
 			});
 		});
 	}
