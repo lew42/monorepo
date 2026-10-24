@@ -422,7 +422,8 @@ export class Page extends Item {
 		if (!(await Page.listing(url))?.files.includes("readme.md")) return null;
 
 		const file = await Page.file(url + "readme.md");
-		return file ? this.add(name, { ...file, folder: url }).load_all_children(levels) : null;
+		const label = file?.title?.split(/\s+[—–-]\s+/)[0].replaceAll("`", "") || name;   // the sidebar gets "Events", not the readme's whole first heading
+		return file ? this.add(name, { ...file, label, folder: url }).load_all_children(levels) : null;
 	}
 
 	// ⚠ Imported on first use, like md_folder: core/Task imports Page.
