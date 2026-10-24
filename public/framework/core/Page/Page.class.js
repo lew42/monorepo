@@ -405,10 +405,13 @@ export class Page extends Item {
 		const doc = md && await this.child_md(name, levels);
 		if (doc) return doc;
 
+		const readme = !kind && await this.child_readme(name, listing, levels);   // the listing shows no page.js, so it is not probed (a 404)
+		if (readme) return readme;
+
 		const page = await Page.load(this.url + name + "/", 0);
 		if (page) return this.add(name, page).load_all_children(levels);
 
-		return await this.child_readme(name, listing, levels) ?? (md ? null : this.child_md(name, levels));
+		return md ? null : this.child_md(name, levels);
 	}
 
 	// A folder with no page.js or page.jsonl but its own readme.md opens as a page showing that readme (doc/subpages.md). Only a folder the parent's listing knows is asked.
