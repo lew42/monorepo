@@ -7,7 +7,10 @@ const ROOTS = ["public/framework", "public", ""];   // a module name is tried un
 const FILE = "inbox.jsonl";
 
 /* A module's inbox: `<module folder>/inbox.jsonl`, append-only, one line per essence of an owner ask.
- * Lines: {id, at, essence, source, from, size?}; later {outcome:{id, at, state, note, by}}.
+ * Lines: {id, at, essence, source, from, size?, fix?, repeat_of?, obvious?}; later {outcome:{id, at, state, note, by}}.
+ * FEEDBACK (the owner, 2026-10-23): module `ai` is the AI system mastermind's feedback inbox: `essence` = a problem, `fix` = the
+ * suggested fix, `repeat_of` = the first line of the same problem. `repeats(id)` counts them; the tool wakes the mastermind
+ * on the third, or at once for `obvious` (FEEDBACK_WAKE).
  * Design: Servex/doc/module-inbox.md. The reader is ModuleReview (Server/ModuleReview.mjs). */
 export default class ModuleInbox {
 	constructor(module, { repo = REPO } = {}){
@@ -27,11 +30,13 @@ export default class ModuleInbox {
 	}
 
 	/** Append one essence. `source` links the prompt it came from; a line is never rewritten. */
-	add(essence, source, { from = "owner", size = null } = {}){
+	add(essence, source, { from = "owner", size = null, fix = null, repeat_of = null, obvious = false } = {}){
 		essence = String(essence ?? "").trim();
 		if (!essence) throw new Error("essence is required: the point of the ask, in a sentence or two");
 		if (!source) throw new Error("source is required: link the prompt the essence came from");
-		const row = { id: "i-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), at: new Date().toISOString(), essence, source: String(source), from, ...(size ? { size } : {}) };
+		if (repeat_of && !this.lines().some(l => l.id === repeat_of)) throw new Error(`repeat_of: no inbox line ${repeat_of} in ${this.module}`);
+		const row = { id: "i-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), at: new Date().toISOString(), essence, source: String(source), from,
+			...(size ? { size } : {}), ...(fix ? { fix: String(fix) } : {}), ...(repeat_of ? { repeat_of } : {}), ...(obvious ? { obvious: true } : {}) };
 		fs.appendFileSync(this.file, JSON.stringify(row) + "\n");
 		return row;
 	}
@@ -54,6 +59,12 @@ export default class ModuleInbox {
 	}
 	unread(){ return this.lines().filter(l => l.state === "unread"); }
 
+	/** How many times a problem was logged: its first line plus every line whose `repeat_of` names it. */
+	repeats(id){
+		const all = this.lines(), first = all.find(l => l.id === id)?.repeat_of ?? id;
+		return all.filter(l => l.id === first || l.repeat_of === first).length;
+	}
+
 	/** Every module folder (repo-relative) that has an inbox file. */
 	static modules(repo = REPO){
 		const found = [];
@@ -68,7 +79,20 @@ export default class ModuleInbox {
 	}
 
 	/** The MCP tool, in `mcp.tool()`'s shape. */
-	static tools(){
+	static FEEDBACK = "ai";              // the module whose inbox is the AI system mastermind's feedback inbox
+	static FEEDBACK_AGENT = "ai-system-mastermind";
+	static FEEDBACK_WAKE = 3;            // the repeat that wakes it
+
+	/** Should this new line wake the feedback agent? A feedback line (has a fix) that is obvious, or the third repeat. */
+	wake_for(row){
+		if (this.module !== ModuleInbox.FEEDBACK || !row.fix) return null;
+		if (row.obvious) return "obvious";
+		const n = this.repeats(row.id);
+		return n >= ModuleInbox.FEEDBACK_WAKE ? `logged ${n} times` : null;
+	}
+
+	/** `servex` (optional) lets the tool wake the feedback agent; without it the line still lands and waits. */
+	static tools({ servex = null } = {}){
 		const json = f => (args = {}, ctx) => { try { return JSON.stringify(f(args, ctx)); } catch (e){ return JSON.stringify({ ok: false, why: e.message }); } };
 		return [{
 			name: "module_inbox",
@@ -79,11 +103,22 @@ export default class ModuleInbox {
 				module: { type: "string", description: "The module folder: `ux/Dictate`, `core/Page`, `Servex/agents`." },
 				essence: { type: "string", description: "The point of the ask, 1-2 sentences. Omit to list unread." },
 				source: { type: "string", description: "Link to the prompt or requirements file it came from." },
-				size: { type: "string", enum: ["small", "architecture"], description: "small: a readme-level ask. architecture: classes, moves, hierarchy; the reviewer reads architecture docs too." } } },
+				size: { type: "string", enum: ["small", "architecture"], description: "small: a readme-level ask. architecture: classes, moves, hierarchy; the reviewer reads architecture docs too." },
+				fix: { type: "string", description: "FEEDBACK (module `ai`, the AI system mastermind's inbox): your suggested fix for the problem in `essence`." },
+				repeat_of: { type: "string", description: "The id of an earlier line about the same problem (list unread first). The third time wakes the AI system mastermind." },
+				obvious: { type: "boolean", description: "An obvious problem with a clear fix: wakes the AI system mastermind at once." } } },
 			handler: json((a, ctx) => {
 				const inbox = new ModuleInbox(a.module);
 				if (!a.essence) return { ok: true, module: inbox.module, unread: inbox.unread() };
-				return { ok: true, module: inbox.module, line: inbox.add(a.essence, a.source, { from: ctx?.caller ?? "owner", size: a.size }) };
+				const line = inbox.add(a.essence, a.source, { from: ctx?.caller ?? "owner", size: a.size, fix: a.fix, repeat_of: a.repeat_of, obvious: a.obvious });
+				const why = inbox.wake_for(line);
+				let woke = null;
+				if (why && servex?.agents) try {
+					// spawn, not send: the role is a singleton, so this reaches the live one or starts it under its one id
+					servex.agents.spawn({ role: ModuleInbox.FEEDBACK_AGENT, parent: null, prompt: `Feedback inbox (${why}): ${line.id}. Problem: ${line.essence} Suggested fix: ${line.fix} Source: ${line.source}. Fix it, then record an outcome line.` });
+					woke = ModuleInbox.FEEDBACK_AGENT;
+				} catch (e){ woke = `not woken: ${e.message || e}`; }
+				return { ok: true, module: inbox.module, line, repeats: line.fix ? inbox.repeats(line.id) : undefined, woke };
 			})
 		}];
 	}

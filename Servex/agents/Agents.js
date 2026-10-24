@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./Registry.js";
-import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder } from "./roles.js";
+import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, singleton_id, renew_of } from "./roles.js";
 import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import Task from "../../public/framework/core/Task/Task.js";
@@ -127,6 +127,14 @@ export class Agents {
 	 * — `directory_of` returns null for it and nothing is added. */
 	spawn(spec){
 		const again = spec.resume;
+		/* A SINGLETON ROLE (the owner, 2026-10-23; roles.js `singleton`): its id is the role's own word, never `-2`. A second
+		 * spawn while it is live sends it the prompt instead; a stopped or never-started one is spawned under that same id. */
+		const single = !again && singleton_id(spec.role);
+		if (single){
+			const cur = this.live.get(single);
+			if (cur && cur.state !== "stopped"){ if (spec.prompt) cur.send(spec.prompt, { from: spec.parent ?? "spawn" }); return cur; }
+			spec = { ...spec, id: single };
+		}
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
 		const id = spec.id && !taken ? spec.id : this.name(spec);
 		/* AT MOST 30 RUNNING (An assistant on every page, 2026-09-25): before any spawn,
@@ -666,6 +674,14 @@ export class Agents {
 		if (live?.one_shot || (live?.role ?? row?.role) === "fork")
 			throw new Error(`Agent ${id} is a fork: it answered once and is not woken again.`);
 		if (!live?.session_id && !row?.session_id) throw new Error(`Agent ${id} never got a session, so there is nothing to wake.`);
+		const role = live?.role ?? row?.role, why = renew_why(renew_of(role), live?.started_at ?? row?.started_at, live?.context ?? row?.context);
+		if (why){   // RENEWAL (Agent.renew): a fresh session under the same id instead of a resume
+			const base = strip(live ? live.recipe() : (row.spec ?? {}));
+			const fresh = this.spawn(strip({ ...base, role, id, cwd: base.cwd ?? row?.cwd, resume: undefined, fork: undefined,
+				prompt: renewal_text(id, live?.session_id ?? row?.session_id, why) }));
+			fresh.emit?.({ type: "renew", why, replaces: live?.session_id ?? row?.session_id, session: fresh.session_id });
+			return fresh;
+		}
 		return this.reopen({ ...row, ...(live ? { spec: live.recipe(), session_id: live.session_id } : {}), id });
 	}
 
@@ -1431,7 +1447,9 @@ Agents.Agent = class Agent {
 	awaken(by){
 		if (this.state !== "dormant") return this;
 		const slept = this.dormant_at;
-		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
+		const renew = this.renew_due();
+		if (renew) this.renew(renew);
+		else this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
 		this.last_at = stamp();
 		/* item 2's `mark_phantom` sets `marked_phantom` once, so it does not re-log the same
 		 * episode on every `working()` call — but a genuinely NEW phantom episode later in this
@@ -1448,6 +1466,24 @@ Agents.Agent = class Agent {
 		this.emit({ type: "awake", by: by ?? null, slept_since: slept, replayed: held.length || undefined });
 		this.host?.register?.(this);
 		return this;
+	}
+
+	/* RENEWAL (the owner, 2026-10-23): a role with `renew: {hours, tokens}` (the AI system mastermind) wakes as a FRESH session
+	 * under the same id once its session is that old or that big, instead of resuming. Nothing runs while it sleeps, so it is
+	 * never kept alive when unused, and no handover file is needed: the fresh session's first turn reads the readmes.
+	 * Returns why ("age" | "tokens") or null. */
+	renew_due(now = Date.now()){
+		const line = renew_of(this.role);
+		if (!line || this.one_shot || this.system) return null;
+		return renew_why(line, this.started_at, this.context, now);
+	}
+
+	renew(why){
+		const replaces = this.session_id, session_id = randomUUID();
+		const prompt = (this.host?.whoami?.(this.id, session_id) ?? "") + opening(this.role, renewal_text(this.id, replaces, why), { in_system: !!this.role_prompt() });
+		this.assign({ resume: null, fork: false, session_id, minted: true, prompt, context: 0, last_usage: null, reminded_context: 0,
+			remind_compacted: false, compacted_turn: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now(), started_at: new Date().toISOString() });
+		this.emit({ type: "renew", why, replaces, session: session_id });
 	}
 
 	/* COMPACTION (dormant-idle, 2026-09-30). `/compact` as a turn of its own: the
@@ -2185,6 +2221,19 @@ Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
 
 /* A nudged agent that declined is nudged again only after its context grew this much. */
 export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
+/* RENEWAL helpers (Agent.renew_due, Agents.wake): why a renewing role is due a fresh session, and that session's first words. */
+export function renew_why(line, started_at, context, now = Date.now()){
+	if (!line) return null;
+	const born = Date.parse(started_at ?? "");
+	if (line.hours && born && now - born >= line.hours * 3600e3) return "age";
+	if (line.tokens && (context ?? 0) >= line.tokens) return "tokens";
+	return null;
+}
+export function renewal_text(id, replaces, why){
+	return `You are a fresh session of ${id}, replacing session ${replaces ?? "(unknown)"} (${why === "age" ? "it was a day old" : "its context passed the renewal line"}). ` +
+		"Read public/framework/ai/readme.md and public/framework/ai/priority.md, then your feedback inbox (module_inbox, module \"ai\"), and continue. Any message that woke you comes next.";
+}
+
 export const REMIND_TOKENS = 100000;   // a role reminder each time the context grows this much (SERVEX_REMIND_TOKENS)
 export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
 export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)

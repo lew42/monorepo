@@ -9,12 +9,10 @@ import { stamp } from "../home.js";
  * Run by the TaskLoop tick (Servex/TaskLoop.js). Doc: Servex/agents/doc/lifecycle.md, "Fresh once a day". */
 export default class Respawn {
 
-	// Who is kept fresh. `task` is the folder whose log holds every session of it (repo-relative).
-	static AGENTS = [{
-		id: "mastermind-system-architect", role: "mastermind", model: "claude-opus-5-5", effort: "high",
-		task: "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system",
-		title: "Standing system architect",
-	}];
+	// Who is kept fresh. Empty since 2026-10-23: the system architect became the singleton `ai-system-mastermind`, which renews
+	// itself on its next wake (roles.js `renew`, Agent.renew_due) instead of being respawned daily whether used or not.
+	// An entry is {id, role, model, effort, task (repo-relative folder whose log holds its sessions), title}.
+	static AGENTS = [];
 
 	constructor(...args){ Object.assign(this, ...args); this.hours ??= Number(process.env.SERVEX_RESPAWN_HOURS) || 24; this.root ??= process.cwd(); }
 
