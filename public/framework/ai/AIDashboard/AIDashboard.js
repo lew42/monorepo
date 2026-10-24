@@ -19,6 +19,7 @@ export default class AIDashboard extends View {
 		PageNav.merge_link(),
 		{ href: "/framework/ai/now/", label: "Now", title: "Every session active in the last hour" },
 		{ href: "/framework/ai/tasks/", label: "Tasks", title: "The task log and board" },
+		{ href: "/framework/ai/queue/", label: "Queue", title: "Every accepted task, ranked: what it is, why, its cost and its priority" },
 		{ href: "/framework/ai/sessions/", label: "All sessions", title: "Every session, newest first, with filters" },
 		{ href: "/framework/ai/asks/", label: "Asks", title: "Every ask, who owns it, whether it landed" },
 		{ href: "/framework/ai/review/", label: "Review", title: "Review pages" },
