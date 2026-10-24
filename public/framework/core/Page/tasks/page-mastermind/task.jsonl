@@ -35,3 +35,9 @@
 {"now":"building: the item tool for any item (minion-item-tool in qf-5, task item-tool/); show: plan.md v3 (0d726f6c7)","by":"mastermind-page","ts":"2026-10-24T01:27:14.264Z"}
 {"log":{"at":"2026-10-23T20:27:34-05:00","msg":"worktree-watch: /framework/core/List/ breaks at 1920/3440 px: empty share 0.631/0.758 (over 0.6). Shot: C:/Code/lew42/monorepo/public/framework/core/Page/tasks/page-mastermind/shots/framework-core-List-1920.png. 14 s after your save. (qf-5)"}}
 {"log":{"at":"2026-10-23T20:27:34-05:00","msg":"worktree-watch: /framework/ breaks at 1920/3440 px: empty share 0.633/0.702 (over 0.6). Shot: C:/Code/lew42/monorepo/public/framework/core/Page/tasks/page-mastermind/shots/framework-1920.png. 14 s after your save. (qf-5)"}}
+{"log":{"at":"2026-10-23T20:28:48-05:00","msg":"worktree-watch: /framework/core/Item/ breaks at 1920/3440 px: empty share 0.622/0.744 (over 0.6). Shot: C:/Code/lew42/monorepo/public/framework/core/Page/tasks/page-mastermind/shots/framework-core-Item-1920.png. 18 s after your save. (qf-5)"}}
+{"log":{"at":"2026-10-23T20:28:49-05:00","msg":"worktree-watch: /framework/core/Task/ breaks at 1920/3440 px: empty share 0.65/0.757 (over 0.6). Shot: C:/Code/lew42/monorepo/public/framework/core/Page/tasks/page-mastermind/shots/framework-core-Task-1920.png. 19 s after your save. (qf-5)"}}
+{"log":{"at":"2026-10-23T20:30:59-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-23T20:30:59-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-23T20:36:39-05:00","msg":"session resumed"}}
+{"now":"item tool subtasks 1-3 reviewed: worktree/qf-5 at 9f98c3c70 is ready for the owner's merge (84 + 27 tests pass, merges clean); minion-item-tool is on subtask 4 (a real Page) and one follow-up (a query key given a value is refused)","by":"mastermind-page","ts":"2026-10-24T01:37:32.921Z"}
