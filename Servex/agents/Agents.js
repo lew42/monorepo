@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./Registry.js";
-import { defaults as role_defaults, opening, injected, compact_after as role_compact_after } from "./roles.js";
+import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder } from "./roles.js";
 import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import Task from "../../public/framework/core/Task/Task.js";
@@ -204,10 +204,11 @@ export class Agents {
 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
 		const fresh = !again && !spec.system;
 		const dir = fresh ? directory_of(spec) : null;
-		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + opening(spec.role, spec.prompt);
+		const in_system = !spec.system && process.env.SERVEX_ROLE_IN_SYSTEM !== "0" && !!role_system(spec.role);   // Agent.role_prompt() puts it there
+		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + opening(spec.role, spec.prompt, { in_system });
 		if (!again && !spec.system) {
 			const names = injected(spec.role);
-			this.store().append("skills", { at: stamp(), agent: id, role: spec.role ?? null, injected: names, fallback: names.length ? undefined : true }).catch(() => {});
+			this.store().append("skills", { at: stamp(), agent: id, role: spec.role ?? null, injected: names, where: in_system ? "system" : "message", fallback: names.length ? undefined : true }).catch(() => {});
 		}
 		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
 		const prompt = spec.task
@@ -1138,15 +1139,69 @@ Agents.Agent = class Agent {
 
 	/* A fork's "no tools": every call not in `fork_tools` is refused before it
 	 * runs. The tools stay IN the prompt — removing them breaks the cache. */
-	refusal(){
+	refusal(theirs = this.sdk?.hooks ?? {}){
 		const allowed = this.fork_tools ?? [];
 		const deny = async input => allowed.includes(input.tool_name) ? {} : {
 			hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny",
 				permissionDecisionReason: `You are a fork answering one question; ${input.tool_name} is not allowed.`
 					+ (allowed.length ? ` Only: ${allowed.join(", ")}.` : " Answer from what you already know.") }
 		};
-		const theirs = this.sdk?.hooks ?? {};
 		return { hooks: { ...theirs, PreToolUse: [...(theirs.PreToolUse ?? []), { hooks: [deny] }] } };
+	}
+
+	/* THE ROLE IN THE SYSTEM PROMPT (the owner, 2026-10-23; public/framework/ai/doc/context-drift.md). The role readme and
+	 * its skills (roles.js role_system) go into the claude_code preset's `append`. A first message is summarized by
+	 * /compact; the system prompt is kept, and re-rendered from these options at each compaction. Before this, a plain
+	 * spawn passed no systemPrompt, which the SDK sends as an EMPTY custom prompt (`systemPrompt: [""]` in every Servex
+	 * transcript), so these agents ran without Claude Code's own prompt too. The SDK records the prompt on a session's first
+	 * request; an older session keeps its recorded one until its next compaction. SERVEX_ROLE_IN_SYSTEM=0 restores the
+	 * old way. */
+	role_prompt(){
+		if (process.env.SERVEX_ROLE_IN_SYSTEM === "0" || this.system) return null;
+		const append = role_system(this.role);
+		return append ? { type: "preset", preset: "claude_code", append } : null;
+	}
+
+	/* THE ROLE REMINDER (context drift, the owner 2026-10-23). A system prompt fades hundreds of thousands of tokens
+	 * later, so a few lines (roles.js role_reminder: the readme's path, its top rules and headings) are added as hook
+	 * context after each compaction and each time the context grows another `remind_tokens` (SERVEX_REMIND_TOKENS,
+	 * 100k). Carried by the next UserPromptSubmit or main-thread PostToolUse hook, so it also reaches a long turn that
+	 * no new message interrupts. SERVEX_ROLE_REMINDER=0 turns it off. */
+	reminder_text(){
+		if (process.env.SERVEX_ROLE_REMINDER === "0" || this.one_shot) return null;
+		return role_reminder(this.role);
+	}
+
+	live_context(){
+		const c = this.last_usage;
+		return c ? (c.input_tokens ?? 0) + (c.cache_read_input_tokens ?? 0) + (c.cache_creation_input_tokens ?? 0) + (c.output_tokens ?? 0) : (this.context ?? 0);
+	}
+
+	/* "compaction", "tokens" or null. */
+	reminder_due(context = this.live_context()){
+		if (!this.reminder_text()) return null;
+		if (this.remind_compacted) return "compaction";
+		const step = this.host?.remind_tokens ?? (Number(process.env.SERVEX_REMIND_TOKENS) || REMIND_TOKENS);
+		return context >= (this.reminded_context ?? 0) + step ? "tokens" : null;
+	}
+
+	remind_hook(event, input = {}){
+		if (input.agent_id) return {};   // a subagent's own tool call: the reminder is for the main thread
+		const context = this.live_context(), why = this.reminder_due(context);
+		if (!why) return {};
+		this.remind_compacted = false;
+		this.reminded_context = context;
+		this.emit({ type: "role_reminder", why, event, context });
+		return { hookSpecificOutput: { hookEventName: event, additionalContext: this.reminder_text() } };
+	}
+
+	/* The SDK hooks: the spec's own, the role reminder's two, and a fork's refusal. */
+	sdk_hooks(){
+		let h = this.sdk?.hooks ?? {};
+		if (this.reminder_text()) h = { ...h,
+			UserPromptSubmit: [...(h.UserPromptSubmit ?? []), { hooks: [async input => this.remind_hook("UserPromptSubmit", input)] }],
+			PostToolUse: [...(h.PostToolUse ?? []), { hooks: [async input => this.remind_hook("PostToolUse", input)] }] };
+		return this.one_shot ? this.refusal(h).hooks : h;
 	}
 
 	/* The SDK options, in one overridable place. `includePartialMessages` gives a
@@ -1166,7 +1221,7 @@ Agents.Agent = class Agent {
 			...(this.permission_mode === "bypassPermissions" ? { allowDangerouslySkipPermissions: true } : {}),
 			...(this.allowed_tools ? { allowedTools: this.allowed_tools } : {}),
 			...(this.setting_sources ? { settingSources: this.setting_sources } : {}),
-			...(this.system ? { systemPrompt: this.system } : {}),
+			...(this.system ? { systemPrompt: this.system } : this.role_prompt() ? { systemPrompt: this.role_prompt() } : {}),
 			...(this.resume ? { resume: this.resume } : {}),
 			...(this.resume && this.fork ? { forkSession: true } : {}),
 			...(this.minted ? { sessionId: this.session_id } : {}),
@@ -1184,7 +1239,7 @@ Agents.Agent = class Agent {
 			...(this.provider === "openrouter" && disallowed_tools_for(this.model).length
 				? { disallowedTools: [...new Set([...(this.sdk?.disallowedTools ?? []), ...(door.disallowedTools ?? []), ...disallowed_tools_for(this.model)])] }
 				: door.disallowedTools ? { disallowedTools: [...new Set([...(this.sdk?.disallowedTools ?? []), ...door.disallowedTools])] } : {}),
-			...(this.one_shot ? this.refusal() : {})
+			hooks: this.sdk_hooks()
 		};
 	}
 
@@ -1627,6 +1682,9 @@ Agents.Agent = class Agent {
 		const m = message.compact_metadata ?? {};
 		this.last_usage = null;
 		this.context = m.post_tokens ?? null;
+		/* The next hook (a prompt or a tool call) carries the role reminder; the token steps restart from here. */
+		this.remind_compacted = true;
+		this.reminded_context = m.post_tokens ?? 0;
 		this.emit({ type: "compacted", trigger: m.trigger ?? null, pre_tokens: m.pre_tokens ?? null, post_tokens: m.post_tokens ?? null });
 	}
 
@@ -2117,7 +2175,7 @@ Agents.Agent = class Agent {
 		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")){ this.rss_mb = null; this.awaken("compaction"); }
 		/* Compacted on the way to sleep: now sleep (`compacted_turn` stops a second compaction). A message that
 		 * arrived meanwhile left it working, and then it stays awake for that turn. */
-		if (c.why === "sleep" && this.state === "idle" && this.sleep("idle")) try { this.host?.servex?.global?.mark_slept(this, 0); } catch {}
+		if (c.why === "sleep" && this.state === "idle" && this.sleep("idle")) try { const g = this.host?.servex?.global; g?.mark_slept(this, g.wait_ms?.(this) ?? 0); } catch {}
 	}
 };
 
@@ -2125,6 +2183,7 @@ Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
 
 /* A nudged agent that declined is nudged again only after its context grew this much. */
 export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
+export const REMIND_TOKENS = 100000;   // a role reminder each time the context grows this much (SERVEX_REMIND_TOKENS)
 export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
 export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)
 

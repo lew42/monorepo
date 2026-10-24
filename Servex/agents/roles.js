@@ -145,14 +145,50 @@ function and_list(words){
  * the top-level `query()` session an Agents.Agent runs. So the load is the first
  * user message — the same words a person types to make Claude load one, naming
  * every skill the role carries. */
-export function opening(role, prompt){
+export function opening(role, prompt, { in_system = false } = {}){
 	const parts = parts_of(role);
 	if (!parts.length) return prompt;
+	/* THE ROLE TEXT IN THE SYSTEM PROMPT (the owner, 2026-10-23; public/framework/ai/doc/context-drift.md): when Agents
+	 * passes role_system() as the preset's `append`, the first message only points at it. /compact summarizes the first
+	 * message; it keeps the system prompt. */
+	if (in_system && parts.every(p => p.text !== null))
+		return `[Servex put ${and_list(parts.map(p => p.label))} in your system prompt, so it survives compaction; don't call the Skill tool for it.]\n\nNow: ${prompt}`;
 	/* 2026-10-12 (Servex/doc/skills.md): the text itself rides in the first message, so loading
 	 * is node's job, not the model's choice. A missing file falls back to the old "Load the" request. */
 	if (parts.some(p => p.text === null)) return `Load ${and_list(parts.map(p => p.label))}, then: ${prompt}`;
 	const blocks = parts.map(p => p.block).join("\n\n");
 	return `[Servex loaded ${and_list(parts.map(p => p.label))} for you; the text is below, so don't call the Skill tool for it.]\n\n${blocks}\n\nNow: ${prompt}`;
+}
+
+/* The role text for the system prompt (the claude_code preset's `append`): the role readme and each skill the row
+ * carries, the same blocks opening() used to put in the first message. Null when the role has none, or a file is
+ * missing (then opening()'s "Load …" fallback still applies). */
+export function role_system(role){
+	const parts = parts_of(role);
+	if (!parts.length || parts.some(p => p.text === null)) return null;
+	return `# Your role (Servex)\n\nYou are a Servex agent in the role \`${canonical(role)}\`. Your role text follows. It is part of your system prompt, so it survives compaction.\n\n${parts.map(p => p.block).join("\n\n")}`;
+}
+
+/* THE ROLE REMINDER (context drift, the owner 2026-10-23): a few lines, never the whole readme. The readme's title, the
+ * bold lead of each top paragraph (the role readmes put their top rules there), its section headings, and the path to
+ * re-read. Computed from the file, so editing the readme edits the reminder. Null when the role has no readme. */
+export function role_reminder(role){
+	const r = row(role);
+	const text = r?.readme ? role_readme(r.readme) : null;
+	if (!text) return null;
+	const file = `Servex/agents/roles/${r.readme}.md`;
+	const title = text.match(/^#\s+(.+)$/m)?.[1]?.trim() ?? r.readme;
+	/* A bold lead that ends in ":" ("**Your part of the build order:** build, test, fix.") carries its first sentence. */
+	const rules = [...text.matchAll(/^\*\*(.+?)\*\*[ \t]*([^\n]*)/gm)]
+		.map(m => /:$/.test(m[1].trim()) ? `${m[1].trim()} ${(m[2].match(/^.*?[.!?](\s|$)/)?.[0] ?? m[2]).trim().slice(0, 160)}` : m[1].trim())
+		.slice(0, 6);
+	const heads = [...text.matchAll(/^##\s+(.+)$/gm)].map(m => m[1].replace(/\s*\(.*?\)\s*$/, "").trim()).slice(0, 12);
+	const skills = skills_of(role);
+	const lines = [`[Role reminder from Servex: you are \`${canonical(role)}\` (${title.slice(0, 120)}). Your full role text is in your system prompt and at ${file}; re-read it before your next decision if you are unsure.]`];
+	if (rules.length) lines.push("Top rules:", ...rules.map(x => `- ${x}`));
+	if (heads.length) lines.push(`Sections: ${heads.join(" · ")}`);
+	if (skills.length) lines.push(`Skills you carry: ${skills.join(", ")}`);
+	return lines.join("\n").slice(0, 1600);
 }
 
 /* The row's role readme (if it names one), then each of its skills: {name, label, text, block}. */
