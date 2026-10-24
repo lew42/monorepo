@@ -8,7 +8,7 @@
 |---|---|
 | The task page | `AITask.js` (the class), `TaskViews.js` (tab list), `conversation.js` (chat), `asks.js`, `decisions.js` (+ `decisions.mjs`, a CLI that closes decisions), `plan.js`, `shots.js`, `replay.js`, `message.js`, `stats.js`, `cost.js`, `AICost.js`, `card.js`, `listing.js` |
 | The tree | `tree.js`, `nested.js`, `tree/` |
-| The day and the board | `dashboard.js` (`dashboard` is now one line that draws [`AIDay`](../AIDay/readme.md); `rail`, `log_board`, `timeline`, `monthPage` (day links only), `warm`), `board.js`, `highlights.js` (the front wall), `needs.js`, `rank.js`, `effort.js`, `usage.js`, `compose.js` (`module-spend.js` and `day-prompts.js` were removed 2026-10-20: they read the retired `ai/<date>/` layout) |
+| The day and the board | `dashboard.js` (`dashboard` is now one line that draws [`AIDay`](../AIDay/AIDay.js); `rail`, `log_board`, `timeline`, `monthPage` (day links only), `warm`), `board.js`, `highlights.js` (the front wall), `needs.js`, `rank.js`, `effort.js`, `usage.js`, `compose.js` (`module-spend.js` and `day-prompts.js` were removed 2026-10-20: they read the retired `ai/<date>/` layout) |
 | This module's own page | `page.js` (a `Doc` page, then `new AITask({…})` samples), `ai.css`, `feed.css`, `nested.css` |
 
 ## Where the data comes from
