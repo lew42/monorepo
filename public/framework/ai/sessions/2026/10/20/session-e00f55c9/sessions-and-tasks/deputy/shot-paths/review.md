@@ -1,0 +1,5 @@
+verdict: pass
+1. [note] The diff does what requirements.md asks: `shot_src` in ai/AITask/shots.js:47 draws `public/...` and task-relative paths as site urls only when `names()` lists the file, and gives the missing swatch otherwise. Temp-folder and absolute paths (including `C:\...`, after the backslash swap) still go through `/screenshot`. I read the code only; I did not load the two pages on a worktree or the main tree to confirm there are no 4xx.
+2. [note] `base()` (AITask.js:129) always ends in "/", so `base + p` at shots.js:51 is a valid url. `names()` returns null off the dev server (listing.js:18), so deployed static pages draw the url unchecked, which is correct.
+3. [note] `shot_thumb` (shots.js:38, used by ask cards) still calls `thumb(s)` with no `base`, so a task-relative `path` on an ask card is sent to `/screenshot` and gets a 403. This is outside the two pages named in requirements.md, but it is the same bug, and passing the base through would fix it.
+4. [note] The first `site(...)` check costs one blocking XHR per folder, cached for 3 seconds. That is cheap here and matches how `AITask` already routes.
