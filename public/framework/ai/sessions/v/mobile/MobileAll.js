@@ -56,7 +56,7 @@ export default class MobileAll extends MobileHome {
 
 	/** A session row; its children, if any, are folded under "+N minions" (one indent, a 2 px rail) and drawn when first opened: a parent can hold hundreds. */
 	nest(r, kids, tree){
-		new this.constructor.Row({ ...r, tree });
+		new MobileRow({ ...r, tree });
 		const mine = (kids.get(r.snap.id) ?? []).sort((a, b) => String(b.snap.last_activity).localeCompare(String(a.snap.last_activity)));
 		if (!mine.length) return;
 		let $kids, built = false;

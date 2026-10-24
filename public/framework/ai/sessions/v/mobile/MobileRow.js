@@ -15,25 +15,17 @@ export default class MobileRow extends View {
 		const { snap, tasks, group, tree, line } = this;
 		this.ac("mob-row", "mob-" + group);
 		a.c("mob-row-link", () => {
-			span.c("mob-dot").ac(this.constructor.DOT[this.dot_key()]);
+			span.c("mob-dot").ac(this.constructor.DOT[group]);
 			div.c("mob-row-body", () => {
 				strong.c("mob-row-title", snap.title || snap.id);
 				small.c("mob-row-sub", () => {
 					span.c("mob-kind", MobileData.kind(snap, tree));
 					span(" · " + MobileData.ago(snap.last_activity) + (snap.usd ? " · " + MobileData.usd(snap.tree_usd || snap.usd) : ""));
 				});
-				this.below();
 				if (line && group === "done") small.c("mob-row-line", line);
 				if (tasks?.root.kids.length > 1) div.c("mob-row-bar", () => TaskView.draw_bar(MobileData.states(tasks.root.kids), 12));
 			});
 			icon("chevron_right").ac("mob-go");
-		}).href(this.href());
-		this.after();
+		}).href(MobileData.session_url(snap.id));
 	}
-
-	// Seams for a subclass (v/review's ReviewRow): which dot, where the row goes, a line under the facts, anything after the link.
-	dot_key(){ return this.group; }
-	href(){ return MobileData.session_url(this.snap.id); }
-	below(){}
-	after(){}
 }

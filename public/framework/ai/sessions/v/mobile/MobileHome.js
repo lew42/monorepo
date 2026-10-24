@@ -11,7 +11,6 @@ import MobilePath from "./MobilePath.js";
    child() are overridden to hand out the mobile pages); the ground, cards and rows are mobile.css. Doc: readme.md here. */
 export default class MobileHome extends AISessionsPage {
 
-	static Row = MobileRow;   // a subclass swaps the row (v/review)
 	static GROUPS = [["needs", "Needs you", "error"], ["running", "Running", "play_circle"], ["done", "Done", "check_circle"], ["rest", "Everything else", "unfold_more"]];
 
 	constructor(...args){
@@ -89,7 +88,7 @@ export default class MobileHome extends AISessionsPage {
 	card(label, glyph, key, rows, tree){
 		div.c("mob-card mob-group-" + key, () => {
 			div.c("mob-card-head", () => { icon(glyph).ac("mob-group-icon"); strong(label); small.c("mob-count", String(rows.length)); });
-			rows.forEach(r => new this.constructor.Row({ ...r, tree }));
+			rows.forEach(r => new MobileRow({ ...r, tree }));
 		});
 	}
 
@@ -97,7 +96,7 @@ export default class MobileHome extends AISessionsPage {
 		if (!rows.length) return;
 		details.c("mob-card mob-fold", () => {
 			summary.c("mob-card-head", () => { icon("unfold_more").ac("mob-group-icon"); strong(label); small.c("mob-count", String(rows.length)); });
-			rows.forEach(r => new this.constructor.Row({ ...r, tree }));
+			rows.forEach(r => new MobileRow({ ...r, tree }));
 		});
 	}
 }

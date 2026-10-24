@@ -264,4 +264,3 @@ fig-
 
 # public/framework/ai/sessions/v/mobile — the 400 px mobile variant of the sessions pages (2026-10-22)
 mob-
-rv-          ai/sessions/v/review

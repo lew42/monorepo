@@ -33,7 +33,7 @@ directly, no reshaping.
 
 ## Filter pills
 
-`class FilterPill extends Dropdown` (`ext/Dropdown`) is one filter worn as a rounded pill, its choice kept in the url (`?<param>=`). `class TimeFilter extends FilterPill` is the **Today ▾** pill (Today, Week, Month, Year): `TimeFilter.add({ root, changed })` hides every element under `root` whose `data-at` falls outside the window. First user: [sessions/v/review](/framework/ai/sessions/v/review/). Files: `FilterPill.js`, `TimeFilter.js`, `FilterPill.css`.
+`class FilterPill extends Dropdown` (`ext/Dropdown`) is one filter worn as a rounded pill, its choice kept in the url (`?<param>=`). `class TimeFilter extends FilterPill` is the **Today ▾** pill (Today, Week, Month, Year): `TimeFilter.add({ root, changed })` hides every element under `root` whose `data-at` falls outside the window. First user: the Work tab of a session page (`ai/AISession/SessionWork.js`). Files: `FilterPill.js`, `TimeFilter.js`, `FilterPill.css`.
 
 ## Watch out
 

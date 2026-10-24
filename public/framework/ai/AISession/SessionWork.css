@@ -16,7 +16,7 @@
 	.sw-note:empty { display: none; }
 	.sw-note { color: var(--error); }
 	.sw-list { display: flex; flex-direction: column; }
-	.sw-node { border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+	.sw-node, details.sw-node { border: 0; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); border-radius: 0; background: none; padding: 0; margin: 0; box-shadow: none; }   /* flat rows (mobile-cards.md), not the theme's details card */
 	.sw-sum { list-style: none; cursor: pointer; }
 	.sw-sum::-webkit-details-marker { display: none; }
 	.sw-row { display: flex; align-items: flex-start; gap: .6em; padding: .55em .2em; }

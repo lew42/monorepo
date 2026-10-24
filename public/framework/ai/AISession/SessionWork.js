@@ -4,6 +4,7 @@ import SessionTree from "../sessions/doc/variants/SessionTree.js";
 import TimeFilter from "/framework/ux/Filter/TimeFilter.js";
 import Approvals from "./Approvals.js";
 import Review from "./Review.js";
+import Day from "/framework/core/Session/Day.js";
 
 View.stylesheet(import.meta, "SessionWork.css");
 
@@ -17,8 +18,10 @@ export default class SessionWork extends View {
 	get classes(){ return "sw"; }
 
 	render(){
+		this.$bar = div.c("sw-head-top", () => { this.$title = strong.c("sw-title", ""); this.pill = TimeFilter.add({}); });
 		this.$head = div.c("sw-head");
 		this.$list = div.c("sw-list");
+		this.pill.watch(this.$list);
 		this.streams = new Map();
 		this.load();
 	}
@@ -28,6 +31,7 @@ export default class SessionWork extends View {
 		this.tree = m ? await SessionTree.load(m[1], m[2]).catch(() => null) : null;
 		if (!this.tree) return this.$list.empty(() => small.c("muted", "No task records for this session."));
 		if (!this.tree.snap && this.snap) this.tree.snap = this.snap;   // the session's own snapshot, filed under a later day than its folder
+		await this.find_snaps(m[1]);
 		const root = this.tree.root;
 		if (this.tree.snap){ root.title = this.tree.snap.title || root.title; root.usd = this.tree.snap.usd ?? root.usd; }
 		const snaps = [this.tree.snap, ...this.tree.root.all().map(n => n.snap)].filter(Boolean);
@@ -37,6 +41,21 @@ export default class SessionWork extends View {
 		this.paint();
 	}
 
+	/** A task's agent session is filed under the day of its LAST activity, often later than the folder's day: read every day file from the folder's day to today (at most 31) and join by id, so its cost and Approve show. */
+	async find_snaps(day){
+		const want = this.tree.root.all().filter(n => n.session && !n.snap);
+		if (!want.length) return;
+		const base = new Date(day.replaceAll("/", "-") + "T12:00:00"), today = Day.of(), by_id = new Map();
+		for (let i = 0; i <= 31; i++){
+			const d = Day.of(new Date(base.getTime() + i * 864e5)); if (d > today) break;
+			const res = await fetch(`/framework/ai/sessions/${Day.path(d)}/index.json`).catch(() => null);
+			const json = res?.ok && !(res.headers.get("content-type") ?? "").includes("html") ? await res.json().catch(() => null) : null;
+			json?.snapshots?.forEach(s => by_id.set(s.id, s));
+		}
+		want.forEach(n => { const s = by_id.get(n.session); if (s){ n.snap = s; n.usd = s.usd ?? null; } });
+		if (!this.tree.snap) this.tree.snap = by_id.get(this.id) ?? null;
+	}
+
 	approval(snap){ return snap ? this.streams.get((snap.day ?? "").replaceAll("-", "/"))?.of(snap.id) ?? null : null; }
 
 	/** Figures for one node and everything under it. */
@@ -44,15 +63,14 @@ export default class SessionWork extends View {
 		const all = n.all(), below = all.slice(1), rolled = all.reduce((t, k) => t + (k.usd ?? 0), 0);
 		const last = Math.max(0, ...all.map(k => Date.parse(k.ended ?? "") || 0));
 		const open = below.filter(k => !SessionWork.DONE.includes(k.state) && !k.kids.some(c => !SessionWork.DONE.includes(c.state)));
-		return { own: n.usd ?? 0, rolled, last, progress: Task.progress_of(below), open };
+		return { own: n.usd ?? 0, rolled, last, progress: Task.progress_of(below.filter(k => k.state !== "stopped")), open };   // a stopped task is dropped, not counted (mobile-cards.md)
 	}
 
 	/** approved (itself or above), live, leak, waiting: Review's numbers. */
 	judge(n, up, now = Date.now()){
 		const f = this.figures(n), own = this.approval(n.snap ?? (n === this.tree.root ? this.tree.snap : null));
 		n.approved = own ?? up ?? null;
-		const live = !SessionWork.DONE.includes(n.state) && now - f.last < Review.FINISHED_MS;
-		n.review = n.approved ? "approved" : live ? "live" : f.rolled > Review.LEAK_USD && now - f.last >= Review.LEAK_AGE_MS ? "leak" : "waiting";
+		n.review = Review.state({ approved: n.approved, finished: SessionWork.DONE.includes(n.state), rolled: f.rolled, last: f.last }, now);
 		n.kids.forEach(k => this.judge(k, n.approved, now));
 	}
 
@@ -61,12 +79,9 @@ export default class SessionWork extends View {
 		this.judge(root, null);
 		let top = root; while (top.kids.length === 1 && top.kids[0].kids.length) top = top.kids[0];   // a lone wrapping folder (sessions-and-tasks/) is not a level
 		const f = this.figures(root), kids = top.kids, t = { approved: 0, waiting: 0, leak: 0 };
-		root.all().slice(1).forEach(n => t[n.review === "live" ? "waiting" : n.review] += n.usd ?? 0);
+		root.all().slice(1).forEach(n => t[Review.bucket(n.review)] += n.usd ?? 0);
 		this.$head.empty(() => {
-			div.c("sw-head-top", () => {
-				strong.c("sw-title", root.title);
-				TimeFilter.add({ root: this.$list });
-			});
+			this.$title.text(root.title);
 			this.facts(root, f, true);
 			div.c("sw-stats", () => [["approved", "approved"], ["waiting", "waiting"], ["leak", "leaking"]].forEach(([k, label]) =>
 				div.c("sw-stat sw-stat-" + k + (t[k] > 0 ? " sw-some" : ""), () => { strong("$" + t[k].toFixed(2)); small(label); }).attr("title", Review.STATES[k]?.hint ?? "")));
