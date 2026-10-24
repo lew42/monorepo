@@ -362,7 +362,7 @@ const page_class = () => page_loaded ??= (async () => {
 	const { default: Page } = await import("../../public/framework/core/Page/Page.class.js");
 	const { PART_TYPES } = await import("../../public/framework/core/Page/parts/kinds.js");
 	return Object.assign(Page, { PART_TYPES });
-})().catch(() => null);
+})().catch(e => { console.warn(`item tool: Page.class.js did not import in node, so page lines are written unchecked (${e.message})`); return null; });
 const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"] };
 // Fields a Session line may carry: its identity, a title, and its tasks.
 const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class"];

@@ -38,7 +38,7 @@ item({path, target:["a"], delta:{"progress":{}}})          // the same, on the c
 
 Tests: `item_tool.test.mjs` (a query writes no line, a mixed delta is refused, the session summary with inline and referenced children, an array `tasks.add` is two tasks).
 
-## A real Page, and lines refused before they are written (2026-10-24)
+## A real Page, and lines refused before they are written (2026-10-23)
 
 - **Page files** (`page.jsonl`): `page_tools.js` `page_class()` loads the real `core/Page/Page.class.js` in node, once. `Servex/agents/site-hooks.mjs` is a node resolve hook that maps site-absolute imports (`/framework/…`) to `public/`, so no DOM stub is needed; the few import-time browser touches (`location`, `document`, `Element`) are guarded in `Reader.js`, `View.js`. `Page.replay(lines)` replays a log (its `replay_new` marks the page as replaying, so a `file` line only records itself).
 - **One list of part types:** `core/Page/parts/kinds.js` imports every part class and exports `PART_TYPES`. The browser (`Parts.js`, `ai/AISession/AISessionDetail.js`), the tool and `Page.test.mjs` all import it. A new part type is one import and one name there.
