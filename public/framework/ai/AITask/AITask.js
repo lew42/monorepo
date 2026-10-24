@@ -260,7 +260,7 @@ export class AITask extends Page {
 
 	extra(m){}
 
-	shots(m){ shot_wall(m.shots); }
+	shots(m){ shot_wall(m.shots, this.base()); }
 
 	figures(m){
 		const cost = spend(m);
