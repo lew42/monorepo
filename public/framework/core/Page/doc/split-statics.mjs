@@ -30,7 +30,6 @@ for (const { to, cls, methods } of GROUPS) for (const name of methods){
 	let text = chunk.join("\n")
 		.replace(/\bPage\b/g, "P").replace(/\bthis\b/g, "P")
 		.replace(new RegExp(`^\\tstatic (async )?${name}\\(`, "m"), `\tstatic $1${name}(P${params ? ", " : ""}`);
-	text = text.replace(/\tstatic (async )?(\w+)\(P(?:, )?([^)]*)\)\{ *(.*)/, (m) => m);
 	const forwarder = `\tstatic ${name}(${params}){ return ${base}.${cls}.${name}(${base}${params ? ", " + params : ""}); }`;
 	manifest.push({ method: name, old_lines: `${nums[from]}-${nums[end]}`, new_file: to, binds: base === "this" ? "this" : "Page" });
 	moved[cls].push({ text, comments: chunk.slice(0, start - from) });
