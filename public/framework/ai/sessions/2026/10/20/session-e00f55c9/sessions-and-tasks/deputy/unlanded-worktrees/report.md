@@ -25,6 +25,6 @@ Computed by [unlanded.mjs](unlanded.mjs) then [verdicts.mjs](verdicts.mjs); rows
 | worktree/sessions-layout2 | nothing new | 0 | leave |
 | worktree/undone-to-tasks | nothing new | 3 | leave |
 
-- **No code was lost.** Every unique file is a task record (task.jsonl, review.md, docs-check.md, diff.patch, screenshots); each exists only on its branch.
+- **No code was lost.** Every unique file is a task record (task.jsonl, review.md, docs-check.md, diff.patch, screenshots); the branch holds a version michael/dev does not have (some files were also changed on michael/dev).
 - worktree/nav-model's 312 files are an old copy of the tree: 311 match earlier michael/dev versions.
 - Deleted branches orphans, readmeaudit and refined-asks were found by the sha in the record; their commits still exist.
