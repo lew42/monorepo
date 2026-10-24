@@ -6,6 +6,8 @@
  * the main tree's dirty files FIRST.
  *
  * `--no-review "why"` is also a flag, alongside the ones above — see below.
+ * `--gate-only` prints the review gate's answer for the worktree's head (`gate: ok` or the refusal) and exits:
+ * no lock, no smoke, no merge. The Merge page asks it about a branch that moved after it was marked ready.
  *
  * REVIEW GATE (2026-09-28, fresh-eyes-review; page report added 2026-09-30, review-gate): before
  * the smoke test, a light or full-size branch (`Server/review.mjs`'s `sizeOf`) needs a review newer

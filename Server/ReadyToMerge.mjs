@@ -141,7 +141,8 @@ function runAsync(cmd, args, cwd){
 }
 
 /* The Merge button's whole job (Servex's POST /api/merge calls this). Re-reads the rows, refuses a
- * branch not on the list, stale, or with no worktree; otherwise runs ONLY `node Server/merge.mjs <worktree>`
+ * branch not on the list or with no worktree, and a moved (stale) branch unless the card sent its current head
+ * (`opts.head`, the "Merge latest" button) and that head passes the review gate; otherwise runs ONLY `node Server/merge.mjs <worktree>`
  * and, on exit 0, logs the merge in the task record. `run` is injectable for the test. Answers {ok, out, why?}. */
 export async function mergeBranch(branch, opts = {}) {
 	// `opts.head`: the sha the owner saw on the card ("Merge latest"); a moved branch merges only if its current head is that one and passes the gate
