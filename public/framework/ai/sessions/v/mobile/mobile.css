@@ -1,6 +1,7 @@
 @layer site {
 	/* the ground: light grey, white cards (sessions/doc/mobile-cards.md). Cards have no padding of their own; head and rows pad themselves. */
-	.mob-page { background: #eef0f2; --mob-green: #2e9e5b; --mob-amber: #e0a100; --mob-red: #d6453d; --mob-grey: #b5bac0; --mob-line: #eceef0; }
+	.mob-page, .sov, .sov-stats { --mob-green: #2e9e5b; --mob-amber: #e0a100; --mob-red: #d6453d; --mob-grey: #b5bac0; --mob-line: #eceef0; }
+	.mob-page { background: #eef0f2; }
 	.mob-day, .mob-all, .mob-session, .mob-task { display: flex; flex-direction: column; max-width: 40rem; margin-inline: auto; padding-block: 1px; }
 	.mob-page .page-column-prose { padding-inline: 0; }   /* the page column pads; the cards carry their own 8 px margin */
 	.mob-card { background: #fff; margin: 8px; border-radius: 4px; overflow: hidden; }

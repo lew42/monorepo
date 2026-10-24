@@ -1,4 +1,5 @@
 import { Page, div, span, small, p, a, button } from "/app.js";
+import { icon } from "/framework/core/View/View.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { load as raw_transcript_lines } from "/framework/ai/AITask/replay.js";
 import { AITask } from "/framework/ai/AITask/AITask.js";
@@ -18,6 +19,8 @@ import SessionMenu from "/framework/core/Session/SessionMenu.js";
 import SessionSettings from "/framework/core/Session/SessionSettings.js";
 import SessionTasks from "/framework/core/Session/SessionTasks.js";
 import SessionWork from "./SessionWork.js";
+import SessionStats from "./SessionStats.js";
+import SessionOverview from "./SessionOverview.js";
 import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
@@ -138,23 +141,41 @@ export default class AISessionDetail extends Page {
 		return super.child(name, levels);
 	}
 
+	/** Full screen: the page covers the window, the title and tabs scroll, and two buttons float (back out, session menu). `?full` keeps it across a reload. */
+	full_screen(on){
+		const el = this.view?.el; el?.parentElement?.scrollTo?.(0, 0); el?.classList.toggle("sov-full", on);
+		const q = new URLSearchParams(location.search); on ? q.set("full", "") : q.delete("full");
+		history.replaceState(history.state, "", location.pathname + (q.size ? "?" + String(q).replace(/full=(&|$)/, "full$1") : "") + location.hash);
+	}
+
 	content(){
 		const { home, id } = this, url = home.url;
 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
 		this.parts = new AISessionDetail.Parts($parts);
-		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work;
+		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work, work;
+		const ready = new Promise(resolve => this.work_ready = resolve);   // the loaded SessionWork, for the stats bar and the Overview
 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
-		const TABS = [["work", "Work"], ["conversation", "Conversation"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
-		const want = new URLSearchParams(location.search).get("tab"), panels = {}, buttons = {};
+		const TABS = [["overview", "Overview"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
+		const old_keys = { work: "tasks", conversation: "chat" }, asked = new URLSearchParams(location.search).get("tab"), want = old_keys[asked] ?? asked, panels = {}, buttons = {};
 		const show = key => {
 			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
-			const q = new URLSearchParams(location.search); key === "work" ? q.delete("tab") : q.set("tab", key);
+			const q = new URLSearchParams(location.search); key === "overview" ? q.delete("tab") : q.set("tab", key);
 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
 		};
-		div.c("sessions-tabs flex gap-50 wrap", () => TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k))));
+		new SessionStats({ ready });   // Figma band E: stats first, sticky, on every tab
+		div.c("sessions-tabs flex gap-50 wrap", () => {
+			TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
+			button.c("sessions-chip sov-fs-on", icon("fullscreen")).attr("title", "Full screen").on("click", () => this.full_screen(true));
+		});
+		div.c("sov-float", () => {   // Figma band E, C: in full screen the head is gone, so back and the session menu float over the page
+			button.c("sov-float-btn", icon("arrow_back")).attr("title", "Leave full screen").on("click", () => this.full_screen(false));
+			this.head_tools();
+		});
+		if (new URLSearchParams(location.search).has("full")) setTimeout(() => this.full_screen(true));
 		div.c("sessions-detail-body", () => {
-			panels.work = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
-			panels.conversation = div.c("flow sessions-panel", () => {
+			panels.overview = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
+			panels.tasks = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
+			panels.chat = div.c("flow sessions-panel sov-chat", () => {
 				$tasks = div.c("flow session-tasks");   // the session's tasks, live; an owner prompt's asks arrive here as proposals (core/Session/SessionTasks.js)
 				$box = div.c("flow");     // which session this is (source tag, tab title, model)
 				$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
@@ -165,7 +186,7 @@ export default class AISessionDetail extends Page {
 			panels.models = div.c("flow sessions-panel", () => { $session = div.c("flow"); });   // the Session class: cost tree, model + effort, tokens by purpose, audit
 			panels.related = div.c("flow sessions-panel", () => { $spawn = div.c("flow"); $related = div.c("flow"); });   // who spawned this and what it spawned; the other records of this session
 		});
-		show(TABS.some(([k]) => k === want) ? want : "work");
+		show(TABS.some(([k]) => k === want) ? want : "overview");
 		const conv = new AISessionConversation();
 		const voice = new VoiceFlow();
 		$voice.append(voice.view);
@@ -201,7 +222,7 @@ export default class AISessionDetail extends Page {
 			const fill = async () => {
 			await this.follow?.catch(() => {});   // the first feed pull names the real folder (a card-slug folder is not <id>/) via AISession.slugs
 			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;
-			if (!this.work){ this.work = true; $work.append(() => new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null })); }
+			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
 			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
 			const [costs, trace] = await Promise.all([
 				AISessionDetail.load_cost_log(own).then(async c => c ?? AISessionDetail.load_cost_log(await old_dir())),
