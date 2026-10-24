@@ -5,3 +5,5 @@
 {"log":{"at":"2026-10-24T02:11:45-05:00","task":"roles","msg":"landed — the roles page /framework/servex/roles/ and the Role block on each session page's Models and tokens tab (bbbf16724)"}}
 {"log":{"at":"2026-10-24T02:11:45-05:00","task":"queue","msg":"landed — the task queue /framework/ai/queue/: 143 accepted tasks ranked by importance, cost and re-asks, live, from the Queue tab (17181c28a)"}}
 {"log":{"at":"2026-10-24T02:11:45-05:00","task":"day-approve","msg":"landed — the day page has Approve per session and today's Ready to merge list (51a321c39, 6978be3ea)"}}
+{"log":{"at":"2026-10-24T02:33:48-05:00","task":"queue-estimate","msg":"landed — task queue: each task gets its own cost estimate from similar landed tasks (4 → 10 distinct scores in the top 20); live at the next dev-server restart"}}
+{"log":{"at":"2026-10-24T02:33:48-05:00","task":"unlanded-worktrees","msg":"landed — the 20 closed worktrees with unmerged commits lost no code; 6 task records restored, 37 left with reasons; task pages no longer draw 'undefined' links"}}

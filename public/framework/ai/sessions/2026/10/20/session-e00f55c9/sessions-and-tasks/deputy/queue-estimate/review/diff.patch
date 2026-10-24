@@ -1,0 +1,121 @@
+diff --git a/Server/TaskQueue.mjs b/Server/TaskQueue.mjs
+index 5a9346df2..4e4f20ac9 100644
+--- a/Server/TaskQueue.mjs
++++ b/Server/TaskQueue.mjs
+@@ -17,7 +17,7 @@ export function gather(ix = SessionIndex.shared){
+ 	const open = [], landed = [];
+ 	for (const r of ix.tasks()){
+ 		const module = SessionIndex.module_of(r.dir) ?? "ai";
+-		if (r.landed){ if (r.usd > 0) landed.push({ module, usd: r.usd }); continue; }
++		if (r.landed){ if (r.usd > 0) landed.push({ module, usd: r.usd, title: r.title ?? "" }); continue; }
+ 		if (!["idle", "waiting", "running"].includes(r.state)) continue;
+ 		const file = path.join(REPO, r.dir, "task.jsonl");
+ 		if (fs.existsSync(file)) open.push({ slug: r.slug, url: r.url, module, state: r.state, usd: r.usd, agent: r.agent, lines: read(file) });
+diff --git a/public/framework/ai/queue/TaskQueueView.js b/public/framework/ai/queue/TaskQueueView.js
+index 5bfac21cc..ed0f03c4d 100644
+--- a/public/framework/ai/queue/TaskQueueView.js
++++ b/public/framework/ai/queue/TaskQueueView.js
+@@ -65,7 +65,7 @@ export default class TaskQueueView extends View {
+ 			p.c("tq-formula", "score = importance × (1 + re-asks × 0.5) ÷ (1 + estimated cost ÷ $2)");
+ 			div.c("tq-rules", () => {
+ 				div.c("tq-rule", () => { span.c("tq-label muted", "Importance "); span(`the big thing it serves: #1 = ${TaskQueue.IMPORTANCE[1]}, #2 = ${TaskQueue.IMPORTANCE[2]}, #3 = ${TaskQueue.IMPORTANCE[3]}, none = 1 (priority.md)`); });
+-				div.c("tq-rule", () => { span.c("tq-label muted", "Cost "); span("the median cost of landed tasks in the same module (real cost lines)"); });
++				div.c("tq-rule", () => { span.c("tq-label muted", "Cost "); span("the median real cost of the 5 landed tasks with the most title words in common (else the module median)"); });
+ 				div.c("tq-rule", () => { span.c("tq-label muted", "Re-asks "); span("sessions that asked for it again while it stayed unfinished (the refined asks)"); });
+ 			});
+ 			p.c("tq-note muted", "Every number is computed from the task records, never written by an agent. It updates live.");
+diff --git a/public/framework/ai/queue/readme.md b/public/framework/ai/queue/readme.md
+index 450cc93a8..03985fab0 100644
+--- a/public/framework/ai/queue/readme.md
++++ b/public/framework/ai/queue/readme.md
+@@ -9,7 +9,7 @@ The queue of accepted tasks, ranked, at `/framework/ai/queue/`: for each, what i
+ | `TaskQueueView.js` (`extends View`) | the page's view: a summary column plus the list; asks the source, repaints on pushed rows |
+ | `TaskQueueView.css` | `tq-` rules: cards when narrow, table columns when the list is 60em wide |
+ 
+-**The score:** `importance × (1 + 0.5 × re-asks) ÷ (1 + estimated cost ÷ $2)`. Importance is the big thing in [priority.md](../priority.md) (1 → 3, 2 → 2, 3 → 1, none → 1). The estimate is the median real cost of landed tasks in the same module. Re-asks are the other sessions that asked for it again. The numbers are statics on `TaskQueue`.
++**The score:** `importance × (1 + 0.5 × re-asks) ÷ (1 + estimated cost ÷ $2)`. Importance is the big thing in [priority.md](../priority.md) (1 → 3, 2 → 2, 3 → 1, none → 1). The estimate is the median real cost of the 5 landed tasks whose titles share the most words with this one (at least 2 shared, at least 3 such tasks); with fewer it falls back to the module median, then all landed, then $1.50. Hover the Cost cell for the basis. Re-asks are the other sessions that asked for it again. The numbers are statics on `TaskQueue`.
+ 
+ **A task is in the queue** when it is open (idle, waiting or running, not landed) and has a `priority` line in its `task.jsonl`. Plan, alternatives and the order of what exists: [plan.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/plan.md).
+ 
+@@ -20,5 +20,5 @@ The queue of accepted tasks, ranked, at `/framework/ai/queue/`: for each, what i
+ 
+ ## Next
+ 
+-- ⬜ A per-task cost estimate instead of one median per module, so the score separates rows (today every `ai` task is $6.05 and the first ten tie at 0.74).
++- ✅ A per-task cost estimate (title similarity), so the score separates rows.
+ - ⬜ Drop a task from the live list when it lands (`TaskQueueView.change()` only ever sets rows; a reload clears it).
+diff --git a/public/framework/core/Task/TaskQueue.js b/public/framework/core/Task/TaskQueue.js
+index 3557c0041..d5c74d51b 100644
+--- a/public/framework/core/Task/TaskQueue.js
++++ b/public/framework/core/Task/TaskQueue.js
+@@ -9,6 +9,8 @@ export default class TaskQueue {
+ 	static COST_K = 2;
+ 	static FALLBACK_USD = 1.5;
+ 	static MIN_SAME_MODULE = 3;
++	static MIN_SHARED = 2;
++	static SIMILAR_N = 5;
+ 
+ 	static words(s){ return new Set(String(s ?? "").toLowerCase().match(/[a-z]{4,}/g) ?? []); }
+ 
+@@ -19,8 +21,13 @@ export default class TaskQueue {
+ 		return +(importance * (1 + TaskQueue.REASK_WEIGHT * re_asks) / (1 + est_usd / TaskQueue.COST_K)).toFixed(3);
+ 	}
+ 
+-	/** Estimate from real cost lines: the median usd of landed tasks in the same module (3+), else of all landed tasks, else a fixed fallback. `landed` is [{module, usd}]. */
+-	static estimate(landed, module){
++	/** Estimate from real cost lines. `landed` is [{module, usd, title}]. Order: the median usd of the 5 landed tasks whose titles share the most words with `title` (2+ shared, 3+ such tasks); else the module median (3+); else all landed; else a fixed fallback. */
++	static estimate(landed, module, title = ""){
++		const w = TaskQueue.words(title), similar = [];
++		if (w.size) for (const l of landed){ let n = 0; for (const x of TaskQueue.words(l.title)) if (w.has(x)) n++; if (n >= TaskQueue.MIN_SHARED) similar.push({ n, l }); }
++		similar.sort((a, b) => b.n - a.n || b.l.usd - a.l.usd);
++		const top = similar.slice(0, TaskQueue.SIMILAR_N);
++		if (top.length >= TaskQueue.MIN_SAME_MODULE) return { usd: +TaskQueue.median(top.map(x => x.l.usd)).toFixed(2), basis: `median of ${top.length} similar landed tasks: ${top.slice(0, 2).map(x => `"${String(x.l.title).slice(0, 40)}"`).join(", ")}` };
+ 		const own = landed.filter(l => l.module === module).map(l => l.usd);
+ 		if (own.length >= TaskQueue.MIN_SAME_MODULE) return { usd: +TaskQueue.median(own).toFixed(2), basis: `median of ${own.length} landed ${module} tasks` };
+ 		if (landed.length) return { usd: +TaskQueue.median(landed.map(l => l.usd)).toFixed(2), basis: `median of ${landed.length} landed tasks (few in ${module})` };
+@@ -42,7 +49,7 @@ export default class TaskQueue {
+ 		if (!pl) return null;
+ 		const first = lines[0] ?? {}, title = lines.findLast(l => typeof l.title === "string")?.title ?? first.title ?? first.assign?.title ?? t.slug;
+ 		const wait = lines.findLast(l => l.wait)?.wait, approved = lines.findLast(l => l.approve)?.approve;
+-		const est = TaskQueue.estimate(landed, t.module), importance = TaskQueue.IMPORTANCE[pl.big] ?? 1, re = TaskQueue.re_asks(asks, title);
++		const importance = TaskQueue.IMPORTANCE[pl.big] ?? 1, re = TaskQueue.re_asks(asks, title), est = TaskQueue.estimate(landed, t.module, title);
+ 		return {
+ 			id: t.slug, url: t.url, title, module: t.module, parent: first.parent ?? null, why_url: first.source ?? null, why: pl.why ?? "",
+ 			big: pl.big ?? null, importance, re_asks: re, est_usd: est.usd, est_basis: est.basis, spent_usd: t.usd || 0,
+diff --git a/public/framework/core/Task/TaskQueue.test.mjs b/public/framework/core/Task/TaskQueue.test.mjs
+new file mode 100644
+index 000000000..8a9bffab2
+--- /dev/null
++++ b/public/framework/core/Task/TaskQueue.test.mjs
+@@ -0,0 +1,31 @@
++// Node test for TaskQueue.estimate — no DOM, no server. Run: `node TaskQueue.test.mjs`.
++import TaskQueue from "./TaskQueue.js";
++
++const landed = [
++	{ module: "ai", usd: 1, title: "Fix sessions tab layout bug" },
++	{ module: "ai", usd: 2, title: "Sessions tab layout columns" },
++	{ module: "ai", usd: 3, title: "Sessions tab layout header" },
++	{ module: "ai", usd: 20, title: "Build dictation pipeline rewrite" },
++	{ module: "ai", usd: 30, title: "Dictation pipeline benchmark rewrite" },
++	{ module: "ai", usd: 40, title: "Whisper dictation pipeline server" },
++];
++const results = [];
++const check = (title, fn) => { let ok; try { ok = !!fn(); } catch (e){ ok = false; console.error(e); } results.push(ok); console.log(`${ok ? "PASS" : "FAIL"} — ${title}`); };
++
++check("different titles get different estimates", () => {
++	const a = TaskQueue.estimate(landed, "ai", "Sessions tab layout polish"), b = TaskQueue.estimate(landed, "ai", "Dictation pipeline cleanup");
++	return a.usd === 2 && b.usd === 30 && a.basis.startsWith("median of 3 similar landed tasks:");
++});
++check("fewer than 3 similar falls back to the module median", () => {
++	const e = TaskQueue.estimate(landed, "ai", "Sessions header thing");
++	const f = TaskQueue.estimate(landed, "ai", "Totally different thing");
++	return e.usd === 11.5 && e.basis === "median of 6 landed ai tasks" && f.usd === 11.5;
++});
++check("other module with no similar falls back to all landed", () => {
++	const e = TaskQueue.estimate(landed, "ext/x", "Nothing alike");
++	return e.basis.startsWith("median of 6 landed tasks") && e.usd === 11.5;
++});
++check("no landed tasks gives the fixed fallback", () => TaskQueue.estimate([], "ai", "Anything at all").usd === TaskQueue.FALLBACK_USD);
++
++console.log(results.every(Boolean) ? "ALL PASS" : "FAILED");
++process.exit(results.every(Boolean) ? 0 : 1);
