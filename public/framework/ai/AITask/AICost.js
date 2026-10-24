@@ -111,7 +111,7 @@ export default class AICost {
 	    minion, with its model — and the time the root's share was counted over. */
 	static breakdown(m){
 		const c = AICost.cost_of(m);
-		if (!c) return div.c("muted", "Cost: not tracked — this task's log has no cost line. A task Servex ran gets one from Server/task-cost.mjs; a tab or a CLI session never does.");
+		if (!c) return div.c("muted", "No cost line in this task's log. A task Servex ran gets one from Server/task-cost.mjs.");
 		const { root, own_usd, minions_usd, parent_task, at, window: win } = c.cost;
 		const agents = AICost.agent_count(c.cost);
 		const list = AICost.agents_of(m);
@@ -148,6 +148,105 @@ export default class AICost {
 				+ (win.to ? " to " + AICost.at_time(win.to) : " until now")
 				+ "; a minion counts whole, toward the task open when it was spawned.");
 		});
+	}
+
+	/* THE ITEM TOOL'S ANSWER (session-report, 2026-10-23). A session folder has no cost line; Servex computes its whole picture
+	   (own spend, child sessions, task counts) and answers the item tool's `summary` query. The tab draws that answer and
+	   computes nothing: core/Session/readme.md, "What item() answers for a session". */
+	static known = new Map();   // folder url -> { at, answer }; one ask per folder per STALE_MS, however often the tab redraws
+	static STALE_MS = 30000;
+
+	/** `{ summary }` from the item tool, or `{ why }` in words when Servex cannot answer from here. */
+	static async ask(base){
+		try {
+			const { servex_url } = await import("../../dev/servex_url.js");
+			const res = await fetch(servex_url("/api/item"), { method: "POST", headers: { "content-type": "application/json" },
+				body: JSON.stringify({ path: base, delta: { summary: {} } }), signal: AbortSignal.timeout(60000) });
+			const body = await res.json();
+			if (body?.stubbed) return { why: "This is a worktree preview, which is not allowed to ask Servex for numbers; open the same page on the main site." };
+			if (!res.ok) return { why: "Servex refused the question (" + (body?.why ?? res.status) + "): this page is only answered on the machine that runs Servex." };
+			const summary = body?.answer?.summary;
+			return summary ? { summary } : { why: body?.why ?? "Servex has no record at this path to add up." };
+		} catch {
+			return { why: "Servex did not answer, so no cost can be shown. It adds up the agents' spend on the machine that runs them; a static copy of the site cannot ask it." };
+		}
+	}
+
+	/** The Report tab's cost block: the last answer at once, a fresh one when it is stale. */
+	static report(base){
+		const hit = AICost.known.get(base);
+		const $d = div.c("ai-cost flow", () => hit ? AICost.draw(hit.answer) : span.c("muted", "Asking Servex for this page's cost…"));
+		if (!hit || Date.now() - hit.at > AICost.STALE_MS) AICost.ask(base).then(answer => {
+			AICost.known.set(base, { at: Date.now(), answer });
+			$d.empty(() => AICost.draw(answer));
+		});
+		return $d;
+	}
+
+	static draw({ summary: s, why }){
+		if (!s) return span.c("muted", why);
+		if (s.class === "Session") return AICost.draw_session(s);
+		return AICost.draw_task(s);
+	}
+
+	static usd = n => n == null ? null : AICost.money(n);
+	static minutes = ms => ms < 3600000 ? Math.round(ms / 60000) + " min" : (ms / 3600000).toFixed(1) + " h";
+
+	static draw_session(s){
+		const { total, own, children, tasks } = s.cost, { done, total: all, stopped } = s.progress, c = s.counts.all;
+		div(() => {
+			span(AICost.money(total) + " in all");
+			span.c("muted", " — " + [
+				own ? "this session " + AICost.money(own.usd) : "this session's own spend is unknown: no transcript has been read for it yet",
+				"child sessions " + AICost.money(children),
+				"the agents on its tasks cost " + AICost.money(tasks) + " (counted inside the child sessions)",
+			].join(" · "));
+		});
+		div(() => {
+			span(done + " of " + all + " tasks complete, " + (all - done) + " open");
+			span.c("muted", " — " + [
+				stopped && stopped + " stopped, left out of the count",
+				c.created + " created in all, " + c.started + " started, " + c.complete + " complete (this session and everything under it)",
+				s.span_ms && "over " + AICost.minutes(s.span_ms),
+			].filter(Boolean).join(" · "));
+		});
+		if (s.biggest?.length){
+			small.c("muted", "Costliest tasks");
+			table(() => tbody(() => s.biggest.forEach(t => tr(() => {
+				td(t.title ?? t.id); td(t.state); td(AICost.money(t.cost));
+			}))));
+		}
+		if (!s.children?.length) return small.c("muted", "No child sessions are registered under this session.");
+		small.c("muted", s.agents + " child session" + (s.agents === 1 ? "" : "s") + ", each with what it and its own children cost");
+		table(() => {
+			thead(() => tr(() => { th("session"); th("role"); th("state"); th("own"); th("with its children"); }));
+			tbody(() => AICost.flatten(s.children).forEach(({ n, depth }) => tr(() => {
+				td(n.id).style("padding-left", depth + "em");
+				td(n.role); td(n.state); td(AICost.money(n.cost)); td(AICost.money(n.total));
+			})));
+		});
+	}
+
+	static flatten = (list, depth = 0) => list.flatMap(n => [{ n, depth }, ...AICost.flatten(n.children ?? [], depth + 1)]);
+
+	static draw_task(s){
+		const { done, total } = s.progress;
+		div(() => {
+			span(s.cost > 0 ? AICost.money(s.cost) + " in all" : "No agent cost is recorded for this task's folder");
+			span.c("muted", " — " + [
+				s.state,
+				done + " of " + total + " tasks complete",
+				s.duration && "ran " + AICost.minutes(s.duration),
+			].filter(Boolean).join(" · "));
+		});
+		if (s.open?.length) {
+			small.c("muted", "Open");
+			table(() => tbody(() => s.open.forEach(t => tr(() => { td(t.title); td(t.state); }))));
+		}
+		if (s.children?.length) {
+			small.c("muted", "Child sessions");
+			table(() => tbody(() => s.children.forEach(t => tr(() => { td(t.title); td(t.state); }))));
+		}
 	}
 
 }
