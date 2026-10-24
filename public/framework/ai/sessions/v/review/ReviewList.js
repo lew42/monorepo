@@ -85,10 +85,13 @@ export default class ReviewList extends MobileAll {
 			div.c("mob-card rv-list", () => {
 				div.c("mob-card-head", () => { icon("account_tree").ac("mob-group-icon"); strong("Sessions"); small.c("mob-count", `${top.length} · ${rows.length} with the ones they spawned`); });
 				if (!rows.length) div.c("mob-empty", "No sessions in this window.");
-				this.page_of(top, kids, tree, this.constructor.PAGE);
+				div.c("rv-items", () => this.page_of(top, kids, tree, this.constructor.PAGE));
 			});
 		}));
 	}
+
+	/** A row and the sessions folded under it, kept together so the list can run in columns on a wide page. */
+	nest(r, kids, tree){ div.c("rv-item", () => super.nest(r, kids, tree)); }
 
 	/** The head card: the window pill, the three totals, Approve all. */
 	review_head(rows, top){

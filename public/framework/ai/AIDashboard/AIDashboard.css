@@ -40,8 +40,6 @@
 		.ad-body { grid-template-columns: 9em minmax(0, 1fr); }
 		.ad-days .ad-strip { display: flex; flex-direction: column; gap: 0.2em; }
 		.ad-days .ad-chip { text-align: start; border-radius: 0.4em; }
-		.ad-days { grid-row: 1 / span 2; }
-		.ad-side, .ad-main { grid-column: 2; }
 	}
 	@media (max-width: 45.99em) {
 		.ad-usage { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4em; font-size: 0.7em; }
@@ -52,38 +50,4 @@
 	}
 	.ad-none { padding: 2em 0; opacity: 0.6; }
 	.ad-foot { display: flex; flex-wrap: wrap; gap: 0.4em 1.2em; margin-top: 1em; font-size: 0.9em; }
-
-	/* Review: the day's three totals, the state of each row, Approve (readme.md, "Review") */
-	.ad-review { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em 1em; }
-	.ad-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4em; flex: 1 1 20em; }
-	.ad-stat { display: flex; flex-direction: column; padding: 0.4em 0.7em; border-radius: 0.4em; border-inline-start: 0.25em solid var(--line); background: var(--tint); min-width: 0; }
-	.ad-stat-usd { font-size: 1.3em; font-weight: 700; font-variant-numeric: tabular-nums; }
-	.ad-stat-label { font-size: 0.8em; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-	.ad-stat-approved { border-color: var(--ok); }
-	.ad-stat-waiting { border-color: var(--warn); }
-	.ad-stat-leak { border-color: var(--error); }
-	.ad-stat-leak .ad-stat-usd { color: var(--error); }
-	.ad-approve { flex: none; font: inherit; font-size: 0.78em; padding: 0.1em 0.6em; border: 1px solid var(--ok); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
-	.ad-approve:hover { background: color-mix(in srgb, var(--ok) 20%, transparent); }
-	.ad-approve:disabled { opacity: 0.5; cursor: default; }
-	.ad-approve-all { font-size: 0.9em; padding: 0.3em 1em; background: var(--ok); color: var(--surface, #fff); font-weight: 600; }
-	.ad-note:empty { display: none; }
-	.ad-note { color: var(--error); font-size: 0.9em; }
-	.ad-is-approved > .ad-row-main > .ad-dot { background: var(--ok); }
-	.ad-is-live > .ad-row-main > .ad-dot { background: var(--warn); animation: ad-pulse 1.6s ease-in-out infinite; }
-	.ad-is-leak > .ad-row-main > .ad-dot { background: var(--error); }
-	.ad-is-leak > .ad-row-main > .ad-name, .ad-is-leak > .ad-row-sub > .ad-state { color: var(--error); }
-	.ad-is-approved > .ad-row-sub > .ad-state { color: var(--ok); }
-	@keyframes ad-pulse { 50% { opacity: 0.35; } }
-	.ad-state { font-weight: 600; }
-	.ad-slug { margin-inline-start: 0.6em; font-family: var(--mono, monospace); font-size: 0.92em; opacity: 0.8; }
-	.ad-side { display: flex; flex-direction: column; gap: 0.4em; min-width: 0; }
-	.ad-side .ad-group { margin-top: 0; align-items: baseline; }
-	.ad-side .ad-link { font-weight: 400; font-size: 0.9em; }
-	@media (min-width: 100em) {
-		.ad-body { grid-template-columns: 9em minmax(0, 1fr) minmax(20em, 28em); }
-		.ad-days { grid-row: 1; }
-		.ad-main { grid-row: 1; }
-		.ad-side { grid-column: 3; grid-row: 1; position: sticky; top: 1em; }
-	}
 }

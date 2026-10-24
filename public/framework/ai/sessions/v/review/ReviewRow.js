@@ -18,12 +18,11 @@ export default class ReviewRow extends MobileRow {
 		return words ? words[0].toUpperCase() + words.slice(1) : "Untitled session " + s.id.slice(0, 8);
 	}
 
-	/** What it belongs to, in words: "minion, for Deputy mastermind", or for a top session where it came from. */
-	static context(r, tree){
-		const kind = MobileData.kind(r.snap, tree);
-		if (r.up) return `${kind}, for ${ReviewRow.title(r.up.snap)}`;
-		if (r.snap.parent) return `${kind}, started by ${r.snap.parent}`;
-		return kind === "VS Code tab" ? "a VS Code tab of yours" : kind === "voice" ? "a voice call" : `${kind}, no parent recorded`;
+	/** What it belongs to, in words, or null: "for Sessions and tasks deputy" or "started by voice-app". The role is already on the line above. */
+	static context(r){
+		if (r.up) return `for ${ReviewRow.title(r.up.snap)}`;
+		if (r.snap.parent) return `started by ${r.snap.parent}`;
+		return null;
 	}
 
 	render(){
@@ -43,7 +42,8 @@ export default class ReviewRow extends MobileRow {
 		const s = this.row_snap, slug = s.agent ?? (s.folder !== s.id ? s.folder : null);
 		small.c("rv-context", () => {
 			span.c("rv-state", this.by_parent ? "approved with its parent" : ReviewRow.WORD[this.state]);
-			span(" · " + ReviewRow.context(this, this.tree));
+			const ctx = ReviewRow.context(this);
+			if (ctx) span(" · " + ctx);
 			if (slug && slug !== this.plain) span.c("rv-slug", slug);
 		});
 	}

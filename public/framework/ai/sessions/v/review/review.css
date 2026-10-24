@@ -3,9 +3,14 @@
 	/* one column on a phone; the head card beside the list once the page is wide enough (the page's width, not the screen's) */
 	.rv-day { container-type: inline-size; padding-block: 1px; }
 	.rv-grid { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; max-width: 120em; margin-inline: auto; }
+	/* wide: the head card is a band across the top (totals and Approve all in one line), the list runs in columns of rows */
 	@container (min-width: 56em) {
-		.rv-grid { grid-template-columns: minmax(20em, 26em) minmax(0, 1fr); }
-		.rv-head { position: sticky; top: 8px; }
+		.rv-head { display: flex; flex-wrap: wrap; align-items: center; }
+		.rv-head > .rv-head-top { flex: 1 1 18em; }
+		.rv-head > .rv-stats { flex: 2 1 30em; padding-block: .6em; }
+		.rv-head > .rv-approve-all { margin-block: .6em; }
+		.rv-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 34em), 1fr)); }
+		.rv-item { border-inline-end: 1px solid var(--mob-line, #e5e7eb); }
 	}
 	.rv-head-top { display: flex; flex-wrap: wrap; align-items: center; gap: .4em .8em; }
 	.rv-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4em; padding: 0 .75em .6em; }
