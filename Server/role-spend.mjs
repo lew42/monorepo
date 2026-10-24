@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Server/role-spend.mjs: what one agent (by id prefix) and the agents it spawned cost, by ISO week and by month.
 // The owner, 2026-10-23: "track the AI system mastermind's spend per week and month, so we can see whether it's fixing things."
-// Reads Servex's own logs (the single writer): every `result` line's `turn_cost` in the agent's Servex log, and registry.json's
+// Reads Servex's own logs (the single writer): every turn's cost in the agent's Servex log (rebuilt by Servex/agents/turn-costs.js), and registry.json's
 // `parent` to find the children. Nothing is estimated.
 //
 //   node Server/role-spend.mjs ai-system-mastermind                 the role's ids (ALIASES below), a table
@@ -10,6 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
+import { turn_costs } from "../Servex/agents/turn-costs.js";
 
 // A role's earlier ids count as the same role: the AI system mastermind was mastermind-servex*, then mastermind-system-architect*.
 export const ALIASES = { "ai-system-mastermind": ["ai-system-mastermind", "mastermind-system-architect", "mastermind-servex"] };
@@ -41,13 +42,11 @@ export function spend(prefixes, { dir = path.join(home(), "logs"), registry = nu
 	const add = (bucket, key, who, usd) => { const r = (rows[bucket][key] ??= { own: 0, children: 0 }); r[who] += usd; };
 	for (const id of all){
 		let text; try { text = fs.readFileSync(path.join(dir, `agent-${id}.jsonl`), "utf8"); } catch { continue; }
-		for (const l of text.split("\n")){
-			if (!l.includes('"turn_cost"')) continue;
-			let j; try { j = JSON.parse(l); } catch { continue; }
-			if (j.type !== "result" || !(j.turn_cost > 0) || !j.at) continue;
+		for (const { line: j, cost } of turn_costs(text, { openrouter: registry[id]?.provider === "openrouter" }).turns){
+			if (!(cost > 0) || !j.at) continue;
 			const d = new Date(j.at), who = own.has(id) ? "own" : "children";
-			add("week", week(d), who, j.turn_cost);
-			add("month", j.at.slice(0, 7), who, j.turn_cost);
+			add("week", week(d), who, cost);
+			add("month", j.at.slice(0, 7), who, cost);
 		}
 	}
 	return { prefixes, agents: { own: own.size, children: all.size - own.size }, ...rows };

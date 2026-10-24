@@ -19,6 +19,7 @@ import DatedFiles from "../../Server/DatedFiles.mjs";
 import PastWork from "../../Server/PastWork.mjs";
 import LandingCheck from "../../Server/LandingCheck.mjs";
 import Landed from "../Landed.js";
+import { turn_costs } from "./turn-costs.js";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 import { server as sdk_server } from "./tools.js";   // cycle with tools.js is fine: used only at call time
@@ -701,15 +702,16 @@ export class Agents {
 		const facts = base.cwd && base.model ? {} : session_facts(row.session_id);
 		const cwd = base.cwd ?? facts.cwd;
 		if (!cwd) throw new Error(`Cannot find where session ${row.session_id} ran, so it cannot be resumed.`);
+		const logged = this.log_cost(row.id);   // the log, not row.cost: rows saved before 2026-10-23 carry the inflated wake-up turns
 		return this.spawn(strip({ ...base, cwd, model: base.model ?? facts.model,
 			id: row.id, started_at: row.started_at, resume: row.session_id,
-			cost: Math.max(Number(row.cost) || 0, this.logged_cost(row.id)), turns: row.turns ?? 0 }));
+			cost: logged.cost || Number(row.cost) || 0, proc_cost: logged.sdk_total, turns: row.turns ?? 0 }));
 	}
 
 	/* A task's cost: logged_cost summed over the agents whose task dir is this task's (`task` = its app path or dir). Task.cost reads it. */
 	task_cost(task){
 		if (!task) return 0;
-		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.join(MAIN_ROOT, "public", task) : path.resolve(MAIN_ROOT, task);
+		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.resolve(MAIN_ROOT, "public", "." + task) : path.resolve(MAIN_ROOT, task);   // resolve, not join: a url path ends in "/", and the keys have no trailing separator
 		return (this.task_dirs().get(want.toLowerCase()) ?? []).reduce((s, id) => s + this.logged_cost(id), 0);
 	}
 
@@ -738,12 +740,13 @@ export class Agents {
 	}
 
 	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */
-	logged_cost(id){
-		try {
-			const text = fs.readFileSync(this.store().file(`agent-${id}`).path, "utf8");
-			let sum = 0; for (const m of text.matchAll(/"turn_cost":([0-9.eE+-]+)/g)) sum += Number(m[1]) || 0;
-			return sum;
-		} catch { return 0; }
+	logged_cost(id){ return this.log_cost(id).cost; }
+
+	/* { cost, sdk_total } from the agent's log: its turns rebuilt by turn_costs() (turn-costs.js says why a log needs rebuilding). */
+	log_cost(id){
+		let text; try { text = fs.readFileSync(this.store().file(`agent-${id}`).path, "utf8"); } catch { return { cost: 0, sdk_total: 0 }; }
+		const { turns, sdk_total } = turn_costs(text, { openrouter: this.reg().read()[id]?.provider === "openrouter" });
+		return { cost: turns.reduce((n, t) => n + t.cost, 0), sdk_total };
 	}
 	interrupt(id){ return this.get(id).interrupt(); }
 	/* Continue (+$5) on a spend-gate card: raise the allowance and send the agent on its
@@ -922,8 +925,13 @@ export class Agents {
 		/* A fork's answer IS the payload, so it goes whole (to 4000 chars) — the
 		 * whole turn's text, not only its last block. Any other wake is a headline. */
 		const fork = child.one_shot && (kind === "done" || kind === "blocked");
+		/* A turn that ended with no words and no cost is a start that never happened (a blocked first prompt, a hook timeout), not "done". */
+		if (kind === "done" && !fork && !child.last_text?.trim() && !(child.cost > 0)){
+			kind = "error";
+			child.last_error = "ended its first turn with no output and no cost: its prompt was probably blocked (a hook timeout). Treat it as a failed start and respawn it.";
+		}
 		const text = kind === "error" ? child.last_error : fork ? (child.words ?? child.last_text) : child.last_text;
-		const body = (fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 4000)}`);
+		const body =(fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 4000)}`);
 		child.woke = true;
 		/* THE NEXT STEP, in node (2026-10-13): a landed task tells its parent which queued sibling it unblocks, with the brief's path. */
 		const next = kind === "done" && child.task?.dir && task_landed(child.task.dir) ? next_briefs(child.task.dir) : [];
@@ -1139,7 +1147,11 @@ Agents.Agent = class Agent {
 		 * read just means the first turn's cost stays whatever the SDK guessed
 		 * until the next turn settles it. */
 		if (this.provider === "openrouter") this.refresh_or_cost();
-		this.proc_cost = 0;   // the SDK's total_cost_usd counts from ZERO in every claude process (spawn, awaken, reopen): see add_cost()
+		/* The SDK's total_cost_usd is the SESSION's total: a resumed process (awaken, reopen) starts from the cost the session
+		 * already had, not from 0 (measured 2026-10-23: minion-review-page's five wake-up turns each logged the whole session,
+		 * $8–12, for a $0.06–0.16 turn). So a resume keeps the last total it saw (reopen seeds it from the log); a fresh session starts
+		 * at 0. A fork also starts at 0, so its cost still includes its base's: Experts subtracts that (doc/experts.md), so leave it. */
+		if (!this.resume || this.fork) this.proc_cost = 0;
 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
 		this.pump(this.gen = (this.gen ?? 0) + 1);
 		if (!this.prompt){ this.state = "idle"; return this; }
@@ -2130,6 +2142,7 @@ Agents.Agent = class Agent {
 			ok: !message.is_error,
 			cost: this.cost,
 			turn_cost: this.turn_cost ?? 0,   // THE RECORD: this turn's own dollars; reopen() re-sums these (agent-cost, 2026-10-13)
+			sdk_total: this.provider === "openrouter" ? null : this.proc_cost ?? null,   // the SDK's session total after this turn: lets log_cost() diff across processes exactly
 			duration_ms: message.duration_ms,
 			turns: this.turns,
 			api_turns: message.num_turns,
@@ -2227,7 +2240,7 @@ Agents.Agent = class Agent {
 		this.state = this.queued > 0 ? "working" : "idle";
 		this.said = [];
 		this.log({ at: stamp(), agent: this.id, type: "compact", ok: !message.is_error, why: c.why, before: c.before, after: this.context ?? null,
-			rss_mb_before: c.rss_mb, duration_ms: Date.now() - c.at, cost: this.cost, turn_cost: this.turn_cost ?? 0 });
+			rss_mb_before: c.rss_mb, duration_ms: Date.now() - c.at, cost: this.cost, turn_cost: this.turn_cost ?? 0, sdk_total: this.provider === "openrouter" ? null : this.proc_cost ?? null });
 		this.host?.register?.(this);
 		this.settle();
 		/* Compacted for MEMORY: a process keeps the heap it grew, so restart it

@@ -39,3 +39,4 @@
 {"log":{"at":"2026-10-17T00:18:45-05:00","msg":"lifecycle: nothing of this task's was left running"}}
 {"log":{"at":"2026-10-17T00:18:55-05:00","msg":"layout-check: 1 pages at 1280/1920/2560/3440 — /tasks/: empty 0.986 at 2560, empty 0.99 at 3440, narrow_share 1 at 3440; sheets in layout-check/"}}
 {"log":{"at":"2026-10-17T00:19:11-05:00","msg":"padding-check: /tasks/ 400: 1 at an edge (\"span.task-meter-fill\"); /tasks/ 1280: 1 at an edge (\"span.task-meter-fill\"); /tasks/ 1920: 1 at an edge (\"span.task-meter-fill\"); /tasks/ 3440: 1 at an edge (\"span.task-meter-fill\")"}}
+{"stop":{"at":"2026-10-24T00:04:01-05:00","why":"abandoned: no agent since 2026-10-17T00:19:11-05:00; closed by StaleClose 2026-10-24","by":"StaleClose"}}

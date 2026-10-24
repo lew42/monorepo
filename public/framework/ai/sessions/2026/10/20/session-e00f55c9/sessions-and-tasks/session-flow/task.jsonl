@@ -11,3 +11,4 @@
 {"review":{"at":"2026-10-22T21:29:25-05:00","answer":{"n":9,"reply":"noted: Skipped as told (stop of a running same phase), not part of this fix list."}}}
 {"review":{"at":"2026-10-22T21:29:25-05:00","answer":{"n":10,"reply":"noted: Server/stale-close.test.mjs part 2 now builds a temp root shaped like public/framework/ai/sessions/2026/10/22 under os.tmpdir() and removes it; the real store is never written. 14 passing."}}}
 {"review":{"at":"2026-10-22T21:29:25-05:00","answer":{"n":11,"reply":"noted: Skipped as told: the branch scope is the mastermind's merge call."}}}
+{"stop":{"at":"2026-10-24T00:04:03-05:00","why":"abandoned: no agent since 2026-10-22T21:27:49-05:00; closed by StaleClose 2026-10-24","by":"StaleClose"}}

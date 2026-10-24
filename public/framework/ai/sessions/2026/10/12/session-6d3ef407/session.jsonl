@@ -1,2 +1,3 @@
 {"session":{"id":"6d3ef407-99f7-4964-901a-2170736c7a41","kind":"vscode-tab","at":"2026-10-23T02:29:36.226Z"},"by":"SessionRecord --links"}
 {"task":"/framework/ai/sessions/2026/10/12/session-6d3ef407/data-grid/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.227Z"}
+{"stop":{"at":"2026-10-24T00:03:56-05:00","why":"abandoned: no agent since 2026-10-23T02:29:36.229Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}

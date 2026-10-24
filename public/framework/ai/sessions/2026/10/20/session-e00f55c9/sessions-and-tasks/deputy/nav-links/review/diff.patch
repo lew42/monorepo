@@ -1,0 +1,511 @@
+diff --git a/Server/NavCheck.mjs b/Server/NavCheck.mjs
+new file mode 100644
+index 000000000..d3a608be6
+--- /dev/null
++++ b/Server/NavCheck.mjs
+@@ -0,0 +1,112 @@
++/* `node Server/NavCheck.mjs <worktree dir> [--range michael/dev...HEAD] [--base http://127.0.0.1:<port>] [--since "7 days ago"] [--urls /a/b/ /c/d/]`
++ *
++ * The click test (the owner, 2026-10-23: a page nobody can click to does not exist). For every page a diff ADDS
++ * (a new page.js or page.jsonl), it loads the page's PARENT on the worktree's own dev server in headless Chromium and
++ * looks for an `a[href]` that points at the new page. No link, no pass. Declared `children:` names do not count: a leaf
++ * page draws no link for them, and a name in a list is not a click. merge.mjs calls `NavCheck.check` and refuses a merge
++ * with an unlinked new page; `--no-nav "why"` overrides it and is logged. Doc: Server/doc/nav-check.md
++ *
++ *   --range   the diff to read added pages from (default michael/dev...HEAD)
++ *   --since   read added pages from `git log --since` instead (the census: every page the last week made)
++ *   --urls    skip git; check these page urls (parents are their dirnames)
++ *
++ * Skipped (they are history or reached another way): dated session and task folders, any `tasks/` folder (a task page is
++ * linked from its module's task list), `shots/`, `archive/`, `node_modules`.
++ * Exit: 0 every page linked, 1 at least one has no link, 2 usage. */
++import { spawnSync } from "node:child_process";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import Browser from "./Browser.mjs";
++
++const SKIP = [/\/sessions\/\d{4}\/\d{2}\/\d{2}\//, /\/ai\/\d{4}-\d{2}-\d{2}\//, /\/ai\/\d{4}\/\d{2}\/\d{2}\//, /\/tasks\//, /\/shots\//, /\/archive\//, /\/node_modules\//];
++
++export default class NavCheck {
++	/** A page file's own site url: public/framework/ai/merge/page.js → /framework/ai/merge/. null for anything that is not a page file. */
++	static url_of(file){
++		if (!file.startsWith("public/") || !/\/page\.(?:js|jsonl)$/.test(file)) return null;
++		return "/" + file.slice("public/".length).replace(/page\.(?:js|jsonl)$/, "");
++	}
++
++	static parent_of(url){ return url.replace(/[^/]+\/$/, ""); }
++
++	/** The page urls a diff adds, from `git diff --diff-filter=A` (or `git log --since`), minus the skipped kinds. */
++	static added(dir, { range = "michael/dev...HEAD", since } = {}){
++		const args = since ? ["log", `--since=${since}`, "--diff-filter=A", "--name-only", "--format=", "--", "public"]
++			: ["diff", "--no-renames", "--diff-filter=A", "--name-only", range, "--", "public"];
++		const out = spawnSync("git", args, { cwd: dir, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });
++		if (out.status !== 0) throw new Error(`NavCheck: git ${args.join(" ")} failed: ${out.stderr.trim()}`);
++		return this.pages_of(dir, out.stdout.split(/\r?\n/).filter(Boolean));
++	}
++
++	/** The page urls among these repo-relative files: only ones that exist in `dir`, are page files, and are not a skipped kind. merge.mjs passes the files it already knows were added. */
++	static pages_of(dir, files){
++		const here = [...new Set(files)].filter(f => fs.existsSync(path.join(dir, f)));
++		return [...new Set(here.filter(f => !SKIP.some(re => re.test("/" + f))).map(f => this.url_of(f)).filter(Boolean))].sort();
++	}
++
++	/** The parent to load: the nearest ancestor that has a page file on disk (a bare folder is not a page). */
++	static parent_page(dir, url){
++		let p = this.parent_of(url);
++		while (p.length > 1 && !["page.js", "page.jsonl"].some(f => fs.existsSync(path.join(dir, "public", p, f)))) p = this.parent_of(p);
++		return p;
++	}
++
++	static norm(pathname){ return pathname.endsWith("/") ? pathname : pathname + "/"; }
++
++	/** Load `parent` at `base` and wait up to `wait` ms for an a[href] to `child`. Returns { linked, hrefs, error }. */
++	static async reaches(browser, base, parent, child, wait = 6000){
++		const page = await browser.newPage({ viewport: { width: 1920, height: 1000 } });
++		try {
++			await page.goto(base + parent, { waitUntil: "load", timeout: 30000 });
++			const want = this.norm(child);
++			const linked = await page.waitForFunction(w => [...document.querySelectorAll("a[href]")].some(a => {
++				try { const p = new URL(a.href, location.href).pathname; return (p.endsWith("/") ? p : p + "/") === w; } catch { return false; }
++			}), want, { timeout: wait }).then(() => true, () => false);
++			return { linked, error: null };
++		} catch (e) { return { linked: false, error: e.message.split("\n")[0] }; }
++		finally { await page.close().catch(() => {}); }
++	}
++
++	/** Check every url. `pages` is [{ url, parent }]. Returns [{ url, parent, linked, error }]. */
++	static async check(base, pages, { wait } = {}){
++		const browser = await Browser.browser();
++		const out = [];
++		for (const { url, parent } of pages) out.push({ url, parent, ...await this.reaches(browser, base, parent, url, wait) });
++		return out;
++	}
++
++	static refusal(results){
++		const bad = results.filter(r => !r.linked);
++		if (!bad.length) return null;
++		return `${bad.length} new page(s) nobody can click to (no a[href] on the parent page points at them):\n` +
++			bad.map(r => `  ${r.url}  <- not linked from ${r.parent}${r.error ? `  (parent did not load: ${r.error})` : ""}`).join("\n") +
++			`\nLink each from its parent page's visible navigation (a real link, not a name in a leaf page's children:). Override: --no-nav "why".`;
++	}
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const argv = process.argv.slice(2);
++	const take = name => { const i = argv.indexOf(name); if (i < 0) return undefined; return argv.splice(i, 2)[1]; };
++	const range = take("--range"), since = take("--since"), base_arg = take("--base");
++	const ui = argv.indexOf("--urls"), urls = ui < 0 ? null : argv.splice(ui).slice(1);
++	const dir = argv[0] && path.resolve(argv[0]);
++	if (!dir || !fs.existsSync(dir)){ console.error("usage: node Server/NavCheck.mjs <worktree dir> [--range a...b | --since '7 days ago' | --urls /x/ /y/] [--base http://127.0.0.1:port]"); process.exit(2); }
++	const mangled = (urls ?? []).find(u => /Program Files/i.test(u));
++	if (mangled){ console.error(`NavCheck: "${mangled}" was rewritten by Git Bash; rerun as MSYS_NO_PATHCONV=1 node Server/NavCheck.mjs ...`); process.exit(2); }
++	let base = base_arg;
++	if (!base){
++		const { worktreeBase } = await import("./review.mjs");
++		const main = path.dirname(spawnSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { cwd: dir, encoding: "utf8", windowsHide: true }).stdout.trim());
++		base = worktreeBase(main, dir);
++	}
++	if (!base){ console.error("NavCheck: no dev server found for that worktree; pass --base"); process.exit(2); }
++	const list = urls ?? NavCheck.added(dir, { range, since });
++	const results = await NavCheck.check(base, list.map(url => ({ url, parent: NavCheck.parent_page(dir, url) })));
++	for (const r of results) console.log(`${r.linked ? "LINKED  " : "MISSING "} ${r.url}  (parent ${r.parent})`);
++	const why = NavCheck.refusal(results);
++	if (why) console.error(why);
++	else console.log(`NavCheck: ${results.length} page(s), all linked.`);
++	await Browser.close();
++	process.exit(why ? 1 : 0);
++}
+diff --git a/Server/NavCheck.test.mjs b/Server/NavCheck.test.mjs
+new file mode 100644
+index 000000000..d3e3c2f87
+--- /dev/null
++++ b/Server/NavCheck.test.mjs
+@@ -0,0 +1,51 @@
++// node Server/NavCheck.test.mjs — NavCheck on throwaway fixtures: a refusal (an unlinked page), a pass (a linked one), and which added files count as pages.
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import http from "node:http";
++import assert from "node:assert/strict";
++import { spawnSync } from "node:child_process";
++import NavCheck from "./NavCheck.mjs";
++import Browser from "./Browser.mjs";
++
++// 1. The page file -> url and the parent.
++assert.equal(NavCheck.url_of("public/framework/ai/merge/page.js"), "/framework/ai/merge/");
++assert.equal(NavCheck.url_of("public/live/page.jsonl"), "/live/");
++assert.equal(NavCheck.url_of("public/framework/ai/Foo.js"), null);
++assert.equal(NavCheck.parent_of("/framework/ai/merge/"), "/framework/ai/");
++
++// 2. Which added files count: a real git repo, one commit apart.
++const root = fs.mkdtempSync(path.join(os.tmpdir(), "navcheck-"));
++const git = (...a) => spawnSync("git", a, { cwd: root, encoding: "utf8", windowsHide: true, env: { ...process.env, GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@t", GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@t" } });
++const put = (rel, text = "x") => { const f = path.join(root, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, text); };
++git("init", "-q"); put("public/a/page.js"); git("add", "."); git("commit", "-q", "-m", "base");
++put("public/b/page.js"); put("public/b/c/page.jsonl"); put("public/a/tasks/t1/page.js"); put("public/framework/ai/sessions/2026/10/20/s/page.js"); put("public/b/Thing.js");
++git("add", "."); git("commit", "-q", "-m", "add");
++assert.deepEqual(NavCheck.added(root, { range: "HEAD~1...HEAD" }), ["/b/", "/b/c/"], "new pages only: no tasks/ folders, no dated session folders, no plain .js files");
++assert.equal(NavCheck.parent_page(root, "/b/c/"), "/b/");
++assert.equal(NavCheck.parent_page(root, "/b/"), "/", "no ancestor page: the site root");
++fs.rmSync(root, { recursive: true, force: true });
++
++// 3. The click test, on a tiny server: /home/ links to /linked/, /bare/ links to nothing, /named/ only NAMES the child in text.
++const pages = {
++	"/home/": `<h1>Home</h1><nav><a href="/linked/">Linked</a></nav>`,
++	"/bare/": `<h1>Bare</h1><p>Nothing to click here.</p>`,
++	"/named/": `<h1>Named</h1><p>children: orphan</p>`,
++};
++const server = http.createServer((req, res) => { const body = pages[req.url]; res.writeHead(body ? 200 : 404, { "content-type": "text/html" }); res.end(body ?? "no"); });
++await new Promise(r => server.listen(0, "127.0.0.1", r));
++const base = `http://127.0.0.1:${server.address().port}`;
++try {
++	const pass = await NavCheck.check(base, [{ url: "/linked/", parent: "/home/" }], { wait: 1500 });
++	assert.equal(pass[0].linked, true, "an a[href] to the page on its parent is a pass");
++	assert.equal(NavCheck.refusal(pass), null, "a pass has no refusal text");
++
++	const fail = await NavCheck.check(base, [{ url: "/orphan/", parent: "/bare/" }, { url: "/orphan/", parent: "/named/" }, { url: "/x/", parent: "/missing/" }], { wait: 1500 });
++	assert.deepEqual(fail.map(r => r.linked), [false, false, false], "no link, a name in text, or a parent that does not load: all refused");
++	const why = NavCheck.refusal(fail);
++	assert.match(why, /3 new page\(s\) nobody can click to/);
++	assert.match(why, /\/orphan\/ {2}<- not linked from \/bare\//);
++	assert.match(why, /--no-nav "why"/);
++	console.log("--- a refusal, as merge.mjs prints it ---\n" + why + "\n---");
++} finally { server.close(); await Browser.close(); }
++console.log("NavCheck: ok");
+diff --git a/Server/README.md b/Server/README.md
+index 24bfa5902..73451012c 100644
+--- a/Server/README.md
++++ b/Server/README.md
+@@ -36,6 +36,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own 
+ - `Server/Crawl.mjs` — nightly full-site crawl at 1920; failures go to `ai/todo.md`.
+ - `Server/Council.mjs` — Feedback Council collector and runner; off switch `COUNCIL=off`.
+ - `node Server/ReadmeOrphans.mjs` — lists every directory with a readme that the readme above it never names (the readme chain cannot reach it); the page-nav twin is `OrphanCheck.mjs`.
++- `node Server/NavCheck.mjs <worktree>` — the click test: every page a branch adds must have an `a[href]` on its parent page, loaded headless; `merge.mjs` runs it and refuses an unlinked page, `--no-nav "why"` overrides ([`doc/nav-check.md`](./doc/nav-check.md)).
+ - [`git-hooks/`](./git-hooks/) — the git hooks every worktree shares, versioned here with a small installer.
+ 
+ ## Moved to a doc (verbatim)
+diff --git a/Server/doc/nav-check.md b/Server/doc/nav-check.md
+new file mode 100644
+index 000000000..a80cd4e68
+--- /dev/null
++++ b/Server/doc/nav-check.md
+@@ -0,0 +1,32 @@
++# NavCheck — a page nobody can click to does not exist
++
++The owner's rule (2026-10-23): a page you cannot reach by clicking is not a page. `Server/NavCheck.mjs` is the test for it.
++
++## What it checks
++
++For every page a branch **adds** (a new `page.js` or `page.jsonl`), it loads the page's **parent** on the worktree's own dev server in headless Chromium and waits up to 6 seconds for an `a[href]` whose path is the new page. No link, no pass.
++
++- The parent is the nearest ancestor folder that has a page file (a bare folder is not a page).
++- A name in a leaf page's `children:` does not count. A leaf page draws no link for it, and a name in a list is not a click.
++- Skipped, because they are history or reached another way: dated session and task folders, any `tasks/` folder, `shots/`, `archive/`, `node_modules`.
++
++## Where it runs
++
++| Where | How | Result |
++|---|---|---|
++| `merge.mjs` | after the smoke test, for every file the branch adds | an unlinked page refuses the merge and prints each page with its parent |
++| by hand | `node Server/NavCheck.mjs <worktree dir>` (add `--base http://127.0.0.1:<port>` if the server is not in `.worktrees.json`) | `LINKED` / `MISSING` per page; exit 0 or 1 |
++| the census | `... --since "7 days ago"` | every page the last week added, not just this branch's |
++| named pages | `MSYS_NO_PATHCONV=1 node Server/NavCheck.mjs . --urls /framework/ai/merge/ /live/sessions/` | checks exactly those urls (Git Bash rewrites a bare `/path`; the tool refuses a mangled one) |
++
++## Overriding it
++
++`node Server/merge.mjs <worktree> --no-nav "why"` merges anyway and prints the refusal as a warning. Use it for a page that is deliberately reached some other way (a redirect target, a page opened only by a command), and say so in the reason.
++
++## Tests
++
++`node Server/NavCheck.test.mjs` runs on throwaway fixtures: a refusal (a page nothing links to, a page only named in text, a parent that does not load), a pass, and which added files count as pages. It prints the refusal text.
++
++## How the links are drawn
++
++The shared row is `public/framework/ai/AIDashboard/PageNav.js` (pills; the Merge pill carries the number of branches waiting, read from `GET /api/ready-to-merge` through `servex_url()`). The AI dashboard, the sessions page and `/live/` use it.
+diff --git a/Server/merge.mjs b/Server/merge.mjs
+index e403d89f8..e17eab238 100644
+--- a/Server/merge.mjs
++++ b/Server/merge.mjs
+@@ -6,6 +6,9 @@
+  * the main tree's dirty files FIRST.
+  *
+  * `--no-review "why"` is also a flag, alongside the ones above — see below.
++ * NAV GATE (the owner, 2026-10-23: a page nobody can click to does not exist): every NEW page.js/page.jsonl must be
++ * reachable by an `a[href]` on its parent page, loaded headless on the worktree's own server (`Server/NavCheck.mjs`).
++ * An unlinked new page refuses the merge and prints each page with its parent; `--no-nav "why"` merges anyway, loudly.
+  *
+  * REVIEW GATE (2026-09-28, fresh-eyes-review; page report added 2026-09-30, review-gate): before
+  * the smoke test, a light or full-size branch (`Server/review.mjs`'s `sizeOf`) needs a review newer
+@@ -63,6 +66,8 @@ import { sizeOf, status as reviewStatus, diffStat, pageUrlFor, widthsFor, splitP
+ import { keepLive } from "./jsonl-keep.mjs";
+ import TaskDirs from "./TaskDirs.mjs";
+ import { OrphanCheck } from "./OrphanCheck.mjs";
++import NavCheck from "./NavCheck.mjs";
++import Browser from "./Browser.mjs";
+ import { refuse_links_into_main } from "./junction-guard.mjs";
+ import SessionRecord from "./SessionRecord.mjs";
+ import MergeTests from "./MergeTests.mjs";
+@@ -76,6 +81,7 @@ const skipTests = bool("--skip-tests");   // for proofs on a scratch repo only,
+ const dryRun = bool("--dry-run");
+ const mainArg = flag("--main");
+ const noReview = flag("--no-review");
++const noNav = flag("--no-nav");   // "why": merge an unlinked new page anyway (Server/doc/nav-check.md)
+ const reviewDir = flag("--review-dir");   // the task dir to look in when it sits under a session older than the 4-day scan (a long-lived mastermind's tasks)
+ const quick = bool("--quick");
+ const asked = flag("--asked");
+@@ -491,7 +497,7 @@ try {
+ 			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...smokePages, ...(mainArg ? ["--main", MAIN] : [])], MAIN);
+ 		console.log(smoke.stdout + smoke.stderr);
+ 		/* Tests (core/Test): every test that covers the diff runs on the branch; a failing one is run on the merge base too (Server/MergeTests.mjs). Only pass-on-base, fail-on-branch refuses. */
+-		let testRefusal = null;
++		let testRefusal = null, navRefusal = null;
+ 		if (smoke.status === 0 && !skipTests && !dryRun) {
+ 			try {
+ 				const t = await MergeTests.gate({ dir, main: MAIN, base_ref: BASE, branch, changed: changed.filter(f => !deleted.has(f)) });
+@@ -560,6 +566,15 @@ try {
+ 				const lc = run("node", [path.join(MAIN, "Server", "layout-check.mjs"), ...newPages.map(u => wtBase + u), "--widths", "1920", "--out", shotDir], MAIN);
+ 				console.log(lc.stdout + lc.stderr);
+ 			}
++			// the click test: every new page must be reachable from its parent page
++			const navPages = NavCheck.pages_of(dir, status.filter(s => s.status === "A").map(s => s.f));
++			if (navPages.length && wtBase) {
++				const results = await NavCheck.check(wtBase, navPages.map(url => ({ url, parent: NavCheck.parent_page(dir, url) })));
++				await Browser.close();
++				navRefusal = NavCheck.refusal(results);
++				if (navRefusal && noNav) { console.warn(`!!! --no-nav: ${noNav} — merging with unlinked new page(s) !!!\n${navRefusal}`); navRefusal = null; }
++				else if (!navRefusal) console.log(`NavCheck: ${navPages.length} new page(s), all reachable by a click from their parent.`);
++			} else if (navPages.length) console.log(`NavCheck: ${navPages.length} new page(s) but no worktree server — click test skipped`);
+ 		}
+ 		// --quick's own evidence: one screenshot, at whichever width(s) widthsFor picks for THIS
+ 		// change (normally one), from the worktree's own server — before the merge touches
+@@ -597,6 +612,7 @@ try {
+ 		}
+ 		if (smoke.status !== 0) { console.error("smoke test failed; nothing merged"); code = 1; }
+ 		else if (testRefusal) { console.error(testRefusal); code = 1; }
++		else if (navRefusal) { console.error("merge.mjs refused: " + navRefusal); code = 1; }
+ 		else if (!changed.length) console.log(`nothing to land: ${branch} changes no file against ${BASE}`);
+ 		else if (!overlap.length && !staged.length) {
+ 			// prove the merge is clean BEFORE git merge touches anything
+diff --git a/public/framework/ai/AIDashboard/AIDashboard.js b/public/framework/ai/AIDashboard/AIDashboard.js
+index 745b0e536..e1b15e5d1 100644
+--- a/public/framework/ai/AIDashboard/AIDashboard.js
++++ b/public/framework/ai/AIDashboard/AIDashboard.js
+@@ -5,6 +5,7 @@ import SessionRow from "./SessionRow.js";
+ import DayStrip from "./DayStrip.js";
+ import OriginChips from "./OriginChips.js";
+ import UsageLine from "./UsageLine.js";
++import PageNav from "./PageNav.js";
+ 
+ View.stylesheet(import.meta, "AIDashboard.css");
+ 
+@@ -13,6 +14,19 @@ View.stylesheet(import.meta, "AIDashboard.css");
+ export default class AIDashboard extends View {
+ 	static AI = "/framework/ai/";
+ 	static DAY = /^\d{4}-\d{2}-\d{2}$/;
++	// This page is a leaf, so `children:` draws no links: every page below that people need is linked here. Merge first, it is the one that needs a decision.
++	static NAV = [
++		PageNav.merge_link(),
++		{ href: "/framework/ai/now/", label: "Now", title: "Every session active in the last hour" },
++		{ href: "/framework/ai/tasks/", label: "Tasks", title: "The task log and board" },
++		{ href: "/framework/ai/sessions/", label: "All sessions", title: "Every session, newest first, with filters" },
++		{ href: "/framework/ai/asks/", label: "Asks", title: "Every ask, who owns it, whether it landed" },
++		{ href: "/framework/ai/review/", label: "Review", title: "Review pages" },
++		{ href: "/framework/ai/readmes/", label: "Readmes", title: "What an agent in each folder is given to read" },
++		{ href: "/framework/ai/usage/", label: "Usage", title: "Usage pace against each limit" },
++		{ href: "/framework/ai/quick-fix/", label: "Quick fix", title: "The quick-fix pool" },
++		{ href: "/framework/ai/process/", label: "Processes", title: "Tasks run as ordered steps" },
++	];
+ 
+ 	get classes(){ return "ad-dash"; }
+ 
+@@ -49,7 +63,7 @@ export default class AIDashboard extends View {
+ 				input.c("ad-date").attr("type", "date").attr("max", this.days[0]).attr("value", this.q.day).attr("title", "Any day").on("change", e => e.target.value && this.set({ day: e.target.value }));
+ 			});
+ 			div.c("ad-main", () => {
+-				a.c("ad-link").href(AIDashboard.AI + "merge/").attr("target", "_self").attr("title", "Branches agents marked ready, with a Merge button").text("Ready to merge →");
++				new PageNav({ links: AIDashboard.NAV });
+ 				this.$sum = div.c("ad-sum");
+ 				this.$chips = div.c("ad-chips");
+ 				input.c("ad-find").attr("type", "search").attr("placeholder", "Find a session…").attr("value", this.q.find).on("input", e => { this.q.find = e.target.value; this.write(); this.paint(); });
+diff --git a/public/framework/ai/AIDashboard/PageNav.css b/public/framework/ai/AIDashboard/PageNav.css
+new file mode 100644
+index 000000000..15197ce69
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/PageNav.css
+@@ -0,0 +1,11 @@
++@layer base, theme, site, util;
++
++@layer site {
++	.pn { display: flex; flex-wrap: wrap; gap: 0.4em; }
++	.pn-link { display: inline-flex; align-items: center; gap: 0.4em; padding: 0.25em 0.8em; border: 1px solid var(--line); border-radius: 2em; color: inherit; text-decoration: none; font-size: 0.9em; }
++	.pn-link:hover { background: var(--tint); }
++	.pn-primary { background: var(--prime); border-color: var(--prime); color: var(--prime-ink); font-weight: 600; padding-block: 0.4em; font-size: 1em; }
++	.pn-primary:hover { background: var(--prime); filter: brightness(0.95); }
++	.pn-count { display: none; }
++	.pn-count-on { display: inline-block; min-width: 1.4em; padding: 0 0.4em; border-radius: 1em; background: var(--prime-ink); color: var(--prime); font-size: 0.85em; text-align: center; font-variant-numeric: tabular-nums; }
++}
+diff --git a/public/framework/ai/AIDashboard/PageNav.js b/public/framework/ai/AIDashboard/PageNav.js
+new file mode 100644
+index 000000000..f8b2a45bc
+--- /dev/null
++++ b/public/framework/ai/AIDashboard/PageNav.js
+@@ -0,0 +1,27 @@
++import { View, a, span } from "/app.js";
++import { servex_url } from "/framework/dev/servex_url.js";
++
++View.stylesheet(import.meta, "PageNav.css");
++
++/** PageNav — a row of link pills to a page's own sub-pages: the click path a new page needs (a name in `children:` draws no link on a leaf page). Server/NavCheck.mjs is the check that refuses a new page nobody can click to.
++ *  `links` is [{ href, label, title, primary, count }]; `count` is an async function that gives a number shown on the pill, left out when it gives null. */
++export default class PageNav extends View {
++	links = [];   // ⚠ assign() in the constructor fills it before render() runs
++	get classes(){ return "pn"; }
++
++	/** The Merge link, with how many branches wait (Servex `GET /api/ready-to-merge`; no number when Servex does not answer). One definition for every page that shows it. */
++	static merge_link(){
++		return { href: "/framework/ai/merge/", label: "Ready to merge", title: "Branches agents marked ready, each with a Merge button", primary: true,
++			count: () => fetch(servex_url("/api/ready-to-merge"), { signal: AbortSignal.timeout(8000) }).then(r => r.ok ? r.json() : null).then(rows => Array.isArray(rows) ? rows.length : null) };
++	}
++
++	render(){
++		(this.links ?? []).forEach(l => a.c("pn-link" + (l.primary ? " pn-primary" : "")).href(l.href).attr("target", "_self").attr("title", l.title ?? "")
++			.append(() => {
++				span(l.label);
++				if (!l.count) return;
++				const $n = span.c("pn-count");   // made now, filled after the fetch (no DOM after an await)
++				l.count().then(n => { if (n == null) return; $n.el.textContent = n; $n.el.classList.add("pn-count-on"); }, () => {});
++			}));
++	}
++}
+diff --git a/public/framework/ai/AIDashboard/readme.md b/public/framework/ai/AIDashboard/readme.md
+index 7b7edc226..8669997cb 100644
+--- a/public/framework/ai/AIDashboard/readme.md
++++ b/public/framework/ai/AIDashboard/readme.md
+@@ -13,7 +13,9 @@ The default page at `/framework/ai/`: one day's agent sessions, grouped by where
+ | `DayStrip.js` | `DayStrip extends View` | the last seven days (a side list on desktop) |
+ | `OriginChips.js` | `OriginChips extends View` | Voice / VS Code / Servex / Scheduled chips, count and cost, and Live |
+ | `UsageLine.js` | `UsageLine extends View` | the usage meters, via `ai/usage/UsagePace.js` |
++| `PageNav.js` | `PageNav extends View` | a row of pill links (`links: [{href, label, title, primary, count}]`); the dashboard, the sessions page and `/live/` use it, so every page below them has a click. `PageNav.merge_link()` is the Merge pill with the waiting count (`GET /api/ready-to-merge`) |
+ | `AIDashboard.css` | | all rules `ad-` prefixed, in `@layer site` |
++| `PageNav.css` | | the pill row, `pn-` prefixed, in `@layer site` |
+ 
+ `page.js` shows it when the path is exactly `/framework/ai/`; nothing else changed there.
+ 
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 1dda448e7..75bf9366e 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -256,6 +256,10 @@ export default class AISessionDetail extends Page {
+ 					a.c("", record).href(own_dir + record);
+ 					a.c("", "transcript").href("/ai-logs/" + session_id);
+ 				}));
++				$box.append(() => div.c("flex gap-50 v-center muted", () => {
++					small("Landing");
++					a.c("page-link", "Ready to merge →").href("/framework/ai/merge/").attr("target", "_self").attr("title", "Branches agents marked ready, each with a Merge button");
++				}));
+ 				$trace.empty(() => { if (trace) AISessionTrace.render(trace); });
+ 			};
+ 			// the folder name (a card slug, not the id) arrives with the live feed; draw again the moment it does
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index 5554aaf74..2d21b6cde 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -5,6 +5,7 @@ import Panel2 from "/framework/ext/panel2/Panel2.js";
+ import { usage_rail } from "/framework/ai/AITask/usage.js";
+ import DataGrid from "/framework/ext/DataGrid/DataGrid.js";
+ import { page_settings } from "/framework/core/Page/settings/settings.js";
++import PageNav from "/framework/ai/AIDashboard/PageNav.js";
+ import AISessionRows from "./AISessionRows.js";
+ import AISessionView from "./AISessionView.js";
+ import AISessionBuckets from "./AISessionBuckets.js";
+@@ -42,6 +43,13 @@ export default class AISessionsPage extends Page {
+ 	static POLL_MS = 20000;
+ 	static PAGE_SIZE = 50;   // the first page; the next one loads by itself as the sentinel scrolls into view (ext/DataGrid paging)
+ 	static TOP_CHIPS = 5;
++	// Pages that live under this one and are reached only from here (a click is the test: Server/NavCheck.mjs).
++	static NAV = [
++		PageNav.merge_link(),
++		{ href: "/framework/ai/sessions/v/", label: "Variants", title: "Variant takes on these pages, one folder each" },
++		{ href: "/framework/ai/sessions/v/mobile/", label: "Phone", title: "These pages for a 400 px phone" },
++		{ href: "/framework/ai/sessions/doc/variants/", label: "Table variants", title: "The sessions table, three ways" },
++	];
+ 
+ 	constructor(...args){
+ 		super({
+@@ -85,7 +93,7 @@ export default class AISessionsPage extends Page {
+ 		this.grid = this.make_grid();
+ 		this.$empty = p.c("muted", "No sessions with an id yet.");
+ 		this.$empty.el.hidden = true;
+-		panel.main.append(div.c("sessions-body").append(this.nav_view(), div.c("sessions-main").append(this.$scope, this.$controls, this.grid, this.$empty, this.$status)));
++		panel.main.append(div.c("sessions-body").append(this.nav_view(), div.c("sessions-main").append(new PageNav({ links: AISessionsPage.NAV }), this.$scope, this.$controls, this.grid, this.$empty, this.$status)));
+ 		this.arrange_for(this.grid.view);
+ 		this.grid.watch(g => this.arrange_for(g.view));
+ 		const grid = this.grid;
+diff --git a/public/framework/core/Task/processes/BuildProcess.js b/public/framework/core/Task/processes/BuildProcess.js
+index 91e14734c..287eb64c0 100644
+--- a/public/framework/core/Task/processes/BuildProcess.js
++++ b/public/framework/core/Task/processes/BuildProcess.js
+@@ -18,7 +18,7 @@ export class BuildProcess extends Process {
+ 	{ id: "execute", title: "Execute", session: { run: "fresh", role: "helper", model: SONNET, effort: "medium" },
+ 		do: "Build the plan on its own branch in a worktree Servex serves: take one with the take_worktree tool (it has its packages and a site at http://<name>.localhost/). Only if that tool is missing, use git worktree add -b task/<slug> ../worktrees/<slug> michael/dev, and say in the outcome that it is not served. Apply any 'changes:' from the approve-plan step first. Load every page you changed with check_page at its worktree url and fix each console error. Commit each working step. Never merge. Outcome: the branch, the worktree url, the commits, and how you tested it." },
+ 	{ id: "index", title: "Index it", session: { run: "same" },
+-		do: "Make what you built findable, on the same branch: a line in the readme of every folder it touched (the readme names every part; the documentation skill, section 4), and a link to every new page from its parent's navigation (its children: or the parent page). Load the parent page and click through to the new one. Outcome: the readme lines and the links you added." },
++		do: "Make what you built findable, on the same branch: a line in the readme of every folder it touched (the readme names every part; the documentation skill, section 4), and a real, visible link to every new page on its parent page (a name in a leaf page's children: draws no link, so it does not count). Prove it with node Server/NavCheck.mjs <worktree dir> --base <worktree url>: it loads each new page's parent headless and fails for any page no a[href] points at; merge.mjs runs the same check and refuses an unlinked page (override: --no-nav 'why'). Outcome: the readme lines, the links you added, and the NavCheck result." },
+ 	{ id: "review", title: "Review", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
+ 		do: "Review the branch named in the execute outcome (git diff michael/dev...<branch>) against plan.md and the brief. Fix small problems on the branch and commit; run the test the plan names. Load every changed page with check_page at the worktree url from the execute outcome (and the shot tool at 400 and 1200 px when the brief names widths). Outcome: 'ready to merge: <branch>' only when those pages loaded with no console errors; if you could not load them, 'not checked: <why>', never ready." },
+ 	{ id: "merge", title: "Merge", session: { run: "wait" },
+diff --git a/public/framework/core/Task/processes/DesignProcess.js b/public/framework/core/Task/processes/DesignProcess.js
+index 74d94d92e..93e80d13e 100644
+--- a/public/framework/core/Task/processes/DesignProcess.js
++++ b/public/framework/core/Task/processes/DesignProcess.js
+@@ -18,7 +18,7 @@ export class DesignProcess extends Process {
+ 	{ id: "code", title: "Code the picked variants", session: { run: "fresh", role: "helper", model: SONNET, effort: "medium" },
+ 		do: "In a served worktree (take_worktree), code the default as a real page and each picked variant as a subpage <page>/v/<name>/ whose view extends its parent's view and changes only its difference; sub-versions nest (v/<name>/v/<sub>/). The default page lists the tree as links, so the owner can click through on the phone. Load each with check_page; commit each step; never merge. Outcome: branch, worktree url, the variant urls." },
+ 	{ id: "index", title: "Index it", session: { run: "same" },
+-		do: "Make what you built findable, on the same branch: a line in the readme of every folder it touched (the readme names every part; the documentation skill, section 4), and a link to every new page from its parent's navigation (its children: or the parent page). Load the parent page and click through to the new one. Outcome: the readme lines and the links you added." },
++		do: "Make what you built findable, on the same branch: a line in the readme of every folder it touched (the readme names every part; the documentation skill, section 4), and a real, visible link to every new page on its parent page (a name in a leaf page's children: draws no link, so it does not count). Prove it with node Server/NavCheck.mjs <worktree dir> --base <worktree url>: it loads each new page's parent headless and fails for any page no a[href] points at; merge.mjs runs the same check and refuses an unlinked page (override: --no-nav 'why'). Outcome: the readme lines, the links you added, and the NavCheck result." },
+ 	{ id: "review", title: "Review the pages", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
+ 		do: "Shoot every variant page at 400 and 1200 px (the shot tool) at the worktree url, check the console, compare each with its Figma frame. Outcome: 'ready to merge: <branch>' with the shot paths, only when every page loads clean; else 'not checked: <why>'." },
+ 	{ id: "merge", title: "Merge", session: { run: "wait" },
+diff --git a/public/live/Live.css b/public/live/Live.css
+index 83e6c8bbb..0127b4858 100644
+--- a/public/live/Live.css
++++ b/public/live/Live.css
+@@ -3,6 +3,7 @@
+ @layer site {
+ 	body:has(.live) { background: #eceef1; }
+ 	.live { padding: 1rem .5rem; max-width: 60rem; width: 100%; margin-inline: auto; box-sizing: border-box; min-height: 100dvh; background: #eceef1; }
++	.live-nav { margin-bottom: 1rem; }
+ 	.live-screen { width: 100%; display: flex; flex-direction: column; gap: 1.25rem; font-size: clamp(1rem, 1.2vw + .75rem, 1.6rem); }
+ 	.live .page-preview, .live-full { max-width: none; background: #fff; border-radius: .5rem; padding: 1rem .75rem; box-shadow: 0 1px 2px #0002; margin: 0; }
+ 	.live-full { width: auto; max-width: none; display: flex; flex-direction: column; gap: .75rem; }
+diff --git a/public/live/Live.js b/public/live/Live.js
+index 153a5b3a1..c67aaae46 100644
+--- a/public/live/Live.js
++++ b/public/live/Live.js
+@@ -5,6 +5,7 @@ import { View } from "/framework/core/View/View.js";
+ import LiveToday from "./LiveToday.js";
+ import LiveTasks from "./LiveTasks.js";
+ import LiveNow from "./LiveNow.js";
++import PageNav from "/framework/ai/AIDashboard/PageNav.js";
+ 
+ View.stylesheet(import.meta, "Live.css");
+ 
+@@ -194,8 +195,16 @@ export default class Live extends Page {
+ 		rows.forEach(r => { const card = this.constructor.Card.of(r, this.url); card.preview(card.nav()); });
+ 	}
+ 
++	// The pages under /live/ are reached from here by a click (Server/NavCheck.mjs checks every new page for one).
++	static NAV = [
++		{ href: "/live/", label: "Live", title: "What is being discussed now" },
++		{ href: "/live/sessions/", label: "Sessions", title: "The last 14 days of voice sessions" },
++		{ href: "/live/archive/", label: "Archive", title: "Closed live screens" },
++	];
++
+ 	render(){
+ 		return this.view ??= div.c("page live", () => {
++			div.c("live-nav", () => new PageNav({ links: Live.NAV }));
+ 			const old = new URLSearchParams(location.search).get("card");
+ 			if (old) history.replaceState({}, "", `${this.url}${encodeURIComponent(old)}/`);   // ?card= -> /live/<id>/, back still works
+ 			this.mount(div.c("live-screen"), old);

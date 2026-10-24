@@ -270,3 +270,4 @@
 {"task":"/framework/ext/Refine/tasks/build-a-tree-ui-with-icons-from-the-goog/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.679Z"}
 {"task":"/framework/ai/tasks/build-a-named-system-that-defines-its-ow/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.689Z"}
 {"task":"/framework/core/Item/tasks/decide-later-how-to-prioritise-data-bind/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.699Z"}
+{"stop":{"at":"2026-10-24T00:04:01-05:00","why":"abandoned: no agent since 2026-10-17T17:58:17.699Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}

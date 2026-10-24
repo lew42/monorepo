@@ -1,5 +1,8 @@
 @layer theme {
 
+	/* The column body has a ground of its own, so its rows keep a gutter off its edge (smoke: text touching its box). */
+	.page-column-body.imp-ranked { padding-inline: .5em; }
+
 	/* A ranked row is core's `.page-column-item` plus two things: its place in the
 	   order, and one line of what it is. Layout only — the row's ground, hover and
 	   active mark are core's (Page.css), and copying them here would mean two of them. */

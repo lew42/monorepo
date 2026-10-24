@@ -11,7 +11,7 @@ export default class SessionTree {
 	// Both files load once per page, shared by every SessionTree.
 	static async files(day){
 		this.cache ??= {};
-		this.cache.index ??= fetch(this.INDEX).then(r => r.json());
+		this.cache.index ??= fetch(this.INDEX).then(r => r.ok ? r.json() : { tasks: [] }).catch(() => ({ tasks: [] }));   // a generated index (gitignored): a worktree has none, and an empty answer threw
 		this.cache[day] ??= fetch(this.day_file(day)).then(r => r.ok ? r.json() : { snapshots: [] }).catch(() => ({ snapshots: [] }));
 		return Promise.all([this.cache.index, this.cache[day]]);
 	}
@@ -28,7 +28,7 @@ export default class SessionTree {
 		rows.filter(r => r !== own).sort((a, b) => a.dir.length - b.dir.length || String(a.started).localeCompare(String(b.started))).forEach(r => {
 			const rel = r.dir.slice(base.length + 1);
 			const kid = r.session && r.session !== snap?.id ? dayix.snapshots.find(x => x.id === r.session) : null;   // the agent session that did this task
-			const node = new SessionTree.Node({ rel, title: r.title, state: r.state, url: r.url, started: r.started, ended: r.landed_at ?? r.last, landed: !!r.landed_at, line: r.line, agent: r.agent, usd: kid?.usd ?? null, model: kid?.model ?? null });
+			const node = new SessionTree.Node({ rel, title: r.title, state: r.state, url: r.url, started: r.started, ended: r.landed_at ?? r.last, landed: !!r.landed_at, line: r.line, agent: r.agent, session: r.session ?? null, snap: kid, usd: kid?.usd ?? null, model: kid?.model ?? null });
 			let up = rel; do { up = up.includes("/") ? up.slice(0, up.lastIndexOf("/")) : ""; } while (!nodes.has(up));   // the nearest folder above that is itself a task
 			nodes.get(up).kids.push(node); node.parent = nodes.get(up);
 			nodes.set(rel, node);

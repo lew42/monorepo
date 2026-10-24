@@ -94,6 +94,7 @@ doc-         ext/Doc
 drag-        ext/Draggable
 drawer-      ext/drawer
 dropdown-    ext/Dropdown
+filter-pill-    ux/Filter
 dt-          ext/DesignTool
 editor-      ext/editor
 file-        ext/files
@@ -263,3 +264,7 @@ fig-
 
 # public/framework/ai/sessions/v/mobile — the 400 px mobile variant of the sessions pages (2026-10-22)
 mob-
+
+# public/framework/ai/AISession — the desktop session page: Overview cards, sticky stats bar, Tasks tab (2026-10-24)
+sov-
+sw-

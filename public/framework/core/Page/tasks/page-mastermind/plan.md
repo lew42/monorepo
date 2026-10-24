@@ -37,6 +37,8 @@ The code already does this. When a child page opens, `container()` (`Page.class.
 
 ### Miller columns: a measured width, shared evenly
 
+> **Superseded 2026-10-23, 22:25 (your call, relayed by vscode-mastermind):** Miller columns are no longer the default, because they don't work (on the deputy/roles task page the first column is cut off). The rule for now is **previews plus full detail views**: a list of preview cards, and a clicked card opens its full page in place of the list. The columns code stays, unused by default. Being built in [nav-rule](nav-rule/requirements.md), last section. The text below is kept as the record of what was tried.
+
 You asked: should a column be measured (about 800–1000px of 3000) and add another column, or split the space? Both modes exist today. Here they are side by side at 3440:
 
 - **Measured (the default today).** Each column is about a third of the row, which is 828px at 3440. An open column never changes width. The rest of the row is drawn as narrow empty striped slots. That is the "always a little broken" look: one column, then six empty strips ([shot](nav-columns-measured-3440.png)).
@@ -152,7 +154,7 @@ Ranked for one outcome: a page, data and streaming system that is rock solid. Ea
 | 3 | **The item tool's holes** (gaps 3, 4 and 6) | One checked write path, and the failing test passes. | S–M |
 | 4 | **(a) Typed content:** `part-view`, `part-file`, unknown types refused | Nearly free after step 2, because the class itself does the refusing. | S |
 | 5 | **Navigation:** the rule written down, even columns as the default, expand kept for things that are not pages, the two `navigation` words fixed | This is what you see most. It touches other files (`Columns.js`, `Page.css`, `words.js`), so it can run beside steps 1–3 in its own worktree. | M |
-| 6 | **(b) A folder with only a readme opens as a page** | Small, and it uses step 4's `part-file`. | S |
+| 6 | **(b) A folder with only a readme opens as a page** | Small, and it uses step 4's `part-file`. **Landed 2026-10-24:** [doc/subpages.md](/framework/core/Page/doc/subpages.md), e.g. [/framework/core/Events/](/framework/core/Events/). | S |
 | 7 | **(c) A narrower Page** | It moves the most code, so it goes last, protected by the tests from step 1. Step 3 of (c) renames the forwarders' callers, which is major surgery under CLAUDE.md. | L |
 | beside each step | **Archive the dated docs in `core/Page/doc/`** | Scripted, with a manifest, and nothing deleted. | S |
 
@@ -237,6 +239,7 @@ class Page extends Item                      // url, chain, set/get, child(name)
 1. **One helper per page.** Each forwarder calls a lazy property (`this._log ??= new Jsonl({page:this})`) instead of building a new helper on every call. No behavior changes and no caller changes. Proof: the node tests pass and the shots match before and after.
 2. **Move the groups still inside `Page.class.js` into their own files:** the statics into `PageLoad`, roles and words into `words.js` (which already exists), and activate/deactivate into `Frame.js`. This is done by a node script with a dry run and a manifest of every moved method. Measured with `doc/split-measure.mjs`, before and after.
 3. **Retire the forwarders.** Callers move from `page.tab()` to `page.log.tab()`, through a scripted rename with a manifest. This is "major surgery" under CLAUDE.md (a dozen callers or more), so it is the one step that waits for your OK on the merge.
+   - **Found while building steps 1 and 2 (2026-10-24):** some forwarders cannot retire. A `page.jsonl` line calls a page method by its key, so `file` (4,526 page.jsonl files), `place` (49) and `tab` (3) are the log's own grammar and stay. Only the internal forwarders (`draw_*`, `log_*`, `column_*`, `preview_*`) could move to their helper. The getter names above are also taken: `log` is the page's "now doing" line, `columns`, `previews` and `prefs` are methods, and `links` and `related` are page fields. So the public names come first. Steps 1 and 2 landed as `page._helper(name)` (one helper per page) and `Load.js` (the loading statics), with `Page.class.js` at 702 lines.
 
 **Done when:** `Page.class.js` is under about 300 lines, no method body builds a helper, and every node test plus the headless shots at 400, 1200, 1920 and 3440 match.
 

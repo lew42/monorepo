@@ -4,7 +4,7 @@ import net from "net";
 import path from "path";
 import express from "express";
 import { fileURLToPath } from "url";
-import { spawn } from "child_process";
+import { spawn, execFile } from "child_process";
 import Server from "../Server/Server.js";
 import Events from "../Server/Events.js";
 import Log from "./Log.js";
@@ -428,7 +428,9 @@ export default class Servex extends Events {
             // The main site answers the home Wi-Fi too, so the desktop and the phone reach ONE
             // server (http://10.0.0.135:3104/); the owner approved this 2026-10-04. Worktree
             // servers stay loopback. Exec/write routes keep their own loopback guards.
-            env: { NO_WHISPER: "1", HOST: name === "monorepo" ? "0.0.0.0" : "127.0.0.1" },
+            // NO_PAGEFILES on worktree servers: a worktree's files.jsonl listings are the main
+            // tree's to keep; catching them up there made 74-101 tracked edits that blocked merge and removal.
+            env: { NO_WHISPER: "1", HOST: name === "monorepo" ? "0.0.0.0" : "127.0.0.1", ...(name === "monorepo" ? {} : { NO_PAGEFILES: "1" }) },
             detach: true                  // outlives Servex; the next Servex adopts it — Process.js
         });
         this.processes.set(name, runner);
@@ -692,7 +694,19 @@ export default class Servex extends Events {
         router.options("/api/ready-to-merge", cors, (req, res) => res.status(204).end());
         router.get("/api/ready-to-merge", cors, async (req, res) => {
             if (!local_only(req, res)) return;
-            try { res.json((await import("../Server/ReadyToMerge.mjs")).readyRows()); }
+            /* readyRows() runs a blocking `git merge-base` per branch: in Servex's own process that froze every route and
+             * timed out agents' prompt hooks (2026-10-23, 19-75 s gaps in crumbs.log). So it runs as a child (its --json
+             * mode), shared by every caller within 10 s. */
+            try {
+                const hot = this.ready_rows;
+                if (!hot || Date.now() - hot.at > 10000) {
+                    const run = new Promise((ok, no) => execFile(process.execPath, [fileURLToPath(new URL("../Server/ReadyToMerge.mjs", import.meta.url)), "--json"],
+                        { cwd: process.cwd(), windowsHide: true, maxBuffer: 64 << 20, timeout: 120000 }, (err, out) => err ? no(err) : ok(JSON.parse(out))));
+                    this.ready_rows = { at: Date.now(), run };
+                    run.catch(() => { if (this.ready_rows?.run === run) this.ready_rows = null; });
+                }
+                res.json(await this.ready_rows.run);
+            }
             catch (e) { res.status(500).json({ ok: false, why: String(e?.message || e) }); }
         });
         router.options("/api/merge", cors, (req, res) => res.status(204).end());
@@ -701,10 +715,10 @@ export default class Servex extends Events {
             const via = this.via(req);
             if (via) return res.json({ ok: true, stubbed: true, via });
             const branch = req.body?.branch;
-            if (typeof branch !== "string" || !branch) return res.status(400).json({ ok: false, why: "body must be {branch}" });
+            if (typeof branch !== "string" || !branch) return res.status(400).json({ ok: false, why: "body must be {branch, head?}" });
             if (this.merging) return res.json({ ok: false, why: "another merge is running; try again in a minute" });
             this.merging = true;
-            try { res.json((await import("../Server/ReadyToMerge.mjs")).mergeBranch(branch)); }
+            try { res.json(await (await import("../Server/ReadyToMerge.mjs")).mergeBranch(branch, { head: typeof req.body?.head === "string" ? req.body.head : undefined })); }
             catch (e) { res.status(500).json({ ok: false, why: String(e?.message || e) }); }
             finally { this.merging = false; }
         });

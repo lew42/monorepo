@@ -1,2 +1,3 @@
 {"session":{"id":"d2954950-d016-4202-a1ba-850df2fd7d05","kind":"vscode-tab","at":"2026-10-23T02:29:36.257Z"},"by":"SessionRecord --links"}
 {"task":"/framework/ai/sessions/2026/10/12/session-d2954950/asks-transcription/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.257Z"}
+{"stop":{"at":"2026-10-24T00:03:59-05:00","why":"abandoned: no agent since 2026-10-23T02:29:36.257Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}

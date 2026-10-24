@@ -1,0 +1,777 @@
+diff --git a/Servex/agents/Subpages.js b/Servex/agents/Subpages.js
+index 1dce85d43..02511c605 100644
+--- a/Servex/agents/Subpages.js
++++ b/Servex/agents/Subpages.js
+@@ -103,18 +103,6 @@ export default class Subpages {
+ 		fs.appendFileSync(file, (text.length && !text.endsWith("\n") ? "\n" : "") + JSON.stringify(obj) + "\n");
+ 	}
+ 
+-	// Computes the new page.js text (children string edited); nothing is written here.
+-	js_edit(fn){
+-		const file = path.join(this.dir, "page.js"), src = fs.readFileSync(file, "utf8"), next = fn(src);
+-		return { file, next };
+-	}
+-
+-	js_children(src, change){
+-		const m = /(children:\s*")([^"]*)(")/.exec(src);
+-		if (!m) throw new Error("parent page.js has no `children: \"...\"` string to extend");
+-		const list = change(m[2].split(/\s+/).filter(Boolean));
+-		return src.slice(0, m.index + m[1].length) + list.join(" ") + src.slice(m.index + m[1].length + m[2].length);
+-	}
+ }
+ 
+ const rel = p => p.replaceAll("\\", "/");   // absolute, so a dry run on another tree reads true
+diff --git a/Servex/agents/item_tool.test.mjs b/Servex/agents/item_tool.test.mjs
+index 7b3ec931d..4bdf81d23 100644
+--- a/Servex/agents/item_tool.test.mjs
++++ b/Servex/agents/item_tool.test.mjs
+@@ -219,6 +219,74 @@ try {
+ 		// old: 8 x 0.5^3 = 1; fresh: ~0.89; mid: (1+3) x 0.5 = 2
+ 		ok(Task.rank([old_heavy, fresh, mid_kids], now).map(t => t.id).join() === "mid,old,fresh", "Task.rank: weight x recency order");
+ 	}
++	// ---- queries: a delta whose keys all READ answers and writes no line ----
++	{
++		const { Task } = await import("../../public/framework/core/Task/Task.js");
++		const QDIR = DIR + "-query", QURL = URL.replace(/\/$/, "") + "-query/", qfile = path.join(QDIR, "session.jsonl");
++		const kid_dir = path.join(QDIR, "child-session"), kid_url = QURL + "child-session/", plain_dir = path.join(QDIR, "plain-task");
++		const was = Task.cost_resolver;
++		Task.cost_resolver = p => p === QURL ? 0.5 : p === kid_url ? 1.5 : 0;
++		fs.mkdirSync(kid_dir, { recursive: true });
++		fs.mkdirSync(plain_dir, { recursive: true });
++		try {
++			fs.writeFileSync(qfile, JSON.stringify({ session: { id: "sum-1", kind: "agent", at: "2026-10-16T10:00:00Z" } }) + "\n");
++			fs.writeFileSync(path.join(kid_dir, "session.jsonl"), JSON.stringify({ session: { id: "kid-1", kind: "agent" } }) + "\n" + JSON.stringify({ tasks: { add: { id: "k1", title: "Kid task" } } }) + "\n");
++			fs.writeFileSync(path.join(plain_dir, "task.jsonl"), JSON.stringify({ assign: { slug: "plain-task", title: "Plain" } }) + "\n");
++			await call("item", { path: QURL, delta: { tasks: { add: { id: "a", title: "A" } } } });
++			await call("item", { path: QURL, delta: { tasks: { add: { id: "b", title: "B" } } } });
++			await call("item", { path: QURL, delta: { tasks: { add: [{ id: "c", title: "C" }, { id: "d", title: "D" }] } } });
++			let r = await call("item", { path: QURL, delta: { a: { tasks: { add: { id: "a1", title: "Nested A1" } } } } });
++			ok(r.ok, "a nested task is added under a");
++			await call("item", { path: QURL, delta: { a: { start: {} } } });
++			await call("item", { path: QURL, delta: { b: { start: {} } } });
++			await call("item", { path: QURL, delta: { b: { complete: { outcome: "done", evidence: ["a test"], confidence: "high" } } } });
++			fs.appendFileSync(qfile, JSON.stringify({ tasks: { add: { type: "Task", id: "kid-1", title: "Child session", path: kid_url, state: "running" } } }) + "\n");
++			fs.appendFileSync(qfile, JSON.stringify({ tasks: { add: { type: "Task", id: "plain", title: "Plain task", path: QURL + "plain-task/" } } }) + "\n");
++
++			const size = fs.statSync(qfile).size;
++			r = await call("item", { path: QURL, delta: { progress: {}, cost: {} } });
++			ok(r.ok && r.answer.progress.total >= 5 && r.answer.cost === 0.5, "a query delta answers {ok, answer:{key:value}}");
++			ok(fs.statSync(qfile).size === size, "a query writes no line (file size before = after)");
++
++			r = await call("item", { path: QURL, delta: { cost: {}, title: "x" } });
++			ok(r.ok === false && /ask/.test(r.why) && /Nothing was written/.test(r.why) && fs.statSync(qfile).size === size, "a mixed delta (query + assign) is refused, nothing written");
++			r = await call("item", { path: QURL, delta: { summary: {}, tasks: { add: { title: "z" } } } });
++			ok(r.ok === false && fs.statSync(qfile).size === size, "a mixed delta (query + list add) is refused, nothing written");
++
++			// a line that would break replay is refused before it is written (a getter-only field in a child add once made a log unreadable)
++			{
++				r = await call("item", { path: QURL, delta: { tasks: { add: { id: "getter", title: "Has commits", commits: ["abc123"] } } } });
++				ok(r.ok === false && /commits/.test(r.why) && /Nothing was written/.test(r.why) && fs.statSync(qfile).size === size, "a child add with a getter-only field (commits) is refused by name, nothing written");
++				r = await call("item", { path: QURL, delta: { tasks: { add: [{ id: "fine-1", title: "Fine" }, { id: "getter-2", title: "Bad", commits: ["x"] }] } } });
++				ok(r.ok === false && fs.statSync(qfile).size === size, "an array add with one bad member writes none of them");
++				r = await call("item", { path: QURL });
++				ok(r.ok && r.state.tasks.length >= 5, "the file still reads after the refusals");
++			}
++
++			for (const bad of ["some text", 5, false]){
++				r = await call("item", { path: QURL, delta: { summary: bad } });
++				ok(r.ok === false && /summary is a query/.test(r.why) && /Nothing was written/.test(r.why) && !r.answer && fs.statSync(qfile).size === size, `a query given ${JSON.stringify(bad)} is refused, never answered or written`);
++			}
++			r = await call("item", { path: QURL, delta: { a: { cost: "x" } } });
++			ok(r.ok === false && /a\.cost is a query/.test(r.why) && fs.statSync(qfile).size === size, "a nested query given a value is refused with its path");
++			ok((await call("item", { path: QURL, delta: { summary: true } })).ok, "a query given true is still an ask");
++
++			r = await call("item", { path: QURL, target: ["a"], delta: { progress: {} } });
++			ok(r.ok && r.answer.progress.total === 1 && fs.statSync(qfile).size === size, "target walks into a child for a query");
++
++			r = await call("item", { path: QURL, delta: { summary: {} } });
++			const s = r.answer.summary;
++			ok(s.id === "sum-1" && s.kind === "agent", "summary: a session record answers with its session id");
++			ok(s.states.complete === 1 && s.states.running === 2 && s.progress.done === 1, "summary: counts by state");
++			ok(s.open.length === 5 && s.open.every(t => Object.keys(t).join() === "id,title,state") && !s.open.some(t => t.id === "b"), "summary: open tasks only, as id/title/state");
++			ok(s.cost === 2 && r.answer.summary.children.length === 1 && s.children[0].path === kid_url, "summary: cost = own + folders; children = only tasks whose folder holds a session record");
++			ok(typeof s.duration === "number" && s.duration >= 0 && Math.abs(s.completion - s.progress.done / s.progress.total) < 1e-9, "summary: duration and completion");
++			ok(fs.statSync(qfile).size === size, "summary writes nothing");
++
++			r = await call("item", { path: QURL, delta: { tasks: { add: [{ id: "e", title: "E" }, { id: "f", title: "F" }] } } });
++			ok(r.ok && ["e", "f"].every(id => r.state.tasks.some(t => t.id === id)) && !r.state.tasks.some(t => t.id === "task"), "an array tasks.add is two tasks, never one Array child");
++		} finally { Task.cost_resolver = was; fs.rmSync(QDIR, { recursive: true, force: true }); }
++	}
+ 	// ---- move_item: a nested task moves home with id and history, one reference left behind ----
+ 	{
+ 		const { ledgers } = await import("./page_tools.js");
+@@ -271,17 +339,19 @@ try {
+ 			ok([...Session.replay(plines()).tasks].length === 2, "two children after two moves");
+ 
+ 			// open_task handoff: task {dir, from, id} moves the subtask into the new agent's folder, by the spawner; a refusal is logged there
+-			const { open_task } = await import("./Agents.js");
+-			await call("item", { path: MURL, delta: { tasks: { add: { id: "z", title: "Z task" } } } });
+-			const settle = async f => { for (let i = 0; i < 50 && !f(); i++) await new Promise(res => setTimeout(res, 20)); };
+-			open_task({ dir: path.join(MDIR, "agent-d"), from: MURL, id: "z" }, { session_id: "s-d", agent: "agent-d", by: "spawner" });
+-			await settle(() => plines().at(-1).as === "z");
+-			const dl = fs.readFileSync(SessionRecord_file(path.join(MDIR, "agent-d")), "utf8").trim().split("\n").map(l => JSON.parse(l));
+-			ok(dl[0].assign && dl[1].id === "z" && plines().at(-1).as === "z" && plines().at(-1).by === "spawner" && JSON.parse(ledger().at(-1)).by === "spawner", "open_task hands the subtask to the new folder, by the spawner");
+-			open_task({ dir: path.join(MDIR, "agent-e"), from: MURL, id: "nobody" }, { session_id: "s-e", agent: "agent-e", by: "spawner" });
+-			const ef = SessionRecord_file(path.join(MDIR, "agent-e"));
+-			await settle(() => fs.readFileSync(ef, "utf8").includes("refused"));
+-			ok(/"handoff".*"refused"/.test(fs.readFileSync(ef, "utf8")), "a refused handoff is written into the new log");
++			const open_task = await import("./Agents.js").then(m => m.open_task, e => { console.log("open_task handoff checks skipped: " + e.code); return null; });   // a worktree has no Servex/node_modules
++			if (open_task){
++				await call("item", { path: MURL, delta: { tasks: { add: { id: "z", title: "Z task" } } } });
++				const settle = async f => { for (let i = 0; i < 50 && !f(); i++) await new Promise(res => setTimeout(res, 20)); };
++				open_task({ dir: path.join(MDIR, "agent-d"), from: MURL, id: "z" }, { session_id: "s-d", agent: "agent-d", by: "spawner" });
++				await settle(() => plines().at(-1).as === "z");
++				const dl = fs.readFileSync(SessionRecord_file(path.join(MDIR, "agent-d")), "utf8").trim().split("\n").map(l => JSON.parse(l));
++				ok(dl[0].assign && dl[1].id === "z" && plines().at(-1).as === "z" && plines().at(-1).by === "spawner" && JSON.parse(ledger().at(-1)).by === "spawner", "open_task hands the subtask to the new folder, by the spawner");
++				open_task({ dir: path.join(MDIR, "agent-e"), from: MURL, id: "nobody" }, { session_id: "s-e", agent: "agent-e", by: "spawner" });
++				const ef = SessionRecord_file(path.join(MDIR, "agent-e"));
++				await settle(() => fs.readFileSync(ef, "utf8").includes("refused"));
++				ok(/"handoff".*"refused"/.test(fs.readFileSync(ef, "utf8")), "a refused handoff is written into the new log");
++			}
+ 		} finally { fs.rmSync(MDIR, { recursive: true, force: true }); }
+ 	}
+ 	console.log(`item_tool: ${n} checks passed`);
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 1fc43c616..421fb2187 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -1,7 +1,7 @@
+ import fs from "node:fs";
+ import SessionRecord from "../../Server/SessionRecord.mjs";
+ import path from "node:path";
+-import { fileURLToPath } from "node:url";
++import { fileURLToPath, pathToFileURL } from "node:url";
+ import Subpages from "./Subpages.js";
+ import Promote from "./Promote.js";
+ import TaskHomes from "../../Server/TaskHomes.mjs";
+@@ -353,6 +353,16 @@ const LOADERS = {
+ 	Session: async () => (await import("../../public/framework/core/Session/Session.js")).default,
+ 	Process: async () => (await import("../../public/framework/core/Task/processes/index.js")).default,
+ };
++/* The real Page, for the page files (LOADERS has only the Task family: Class.replay there means "a task"). The resolve hook lets Page.class.js
++ * import in node (site-absolute imports map to public/); parts/kinds.js registers the part types, the ONE list the browser also imports. */
++let page_loaded = null;
++const page_class = () => page_loaded ??= (async () => {
++	const { register } = await import("node:module");
++	register(pathToFileURL(path.join(HERE, "site-hooks.mjs")).href);
++	const { default: Page } = await import("../../public/framework/core/Page/Page.class.js");
++	const { PART_TYPES } = await import("../../public/framework/core/Page/parts/kinds.js");
++	return Object.assign(Page, { PART_TYPES });
++})().catch(() => null);
+ const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"] };
+ // Fields a Session line may carry: its identity, a title, and its tasks.
+ const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class"];
+@@ -632,6 +642,7 @@ function notify_requests(live, at, body, requests, by){
+ let collect = null;
+ const sig = file => { try { const st = fs.statSync(file); return `${st.size}:${st.mtimeMs}`; } catch { return "none"; } };
+ export function link_refs(Task){
++	Task.session_resolver ??= ref => { const dir = path.resolve(PUBLIC, String(ref ?? "").replace(/^[\/]+/, "")); return dir.startsWith(PUBLIC + path.sep) && path.basename(SessionRecord.file(dir) ?? "") === "session.jsonl"; };   // Task.children: does this folder hold a session record
+ 	Task.resolver ??= ref => {
+ 		const dir = path.resolve(PUBLIC, String(ref).replace(/^[\/]+/, ""));
+ 		if (!dir.startsWith(PUBLIC + path.sep)) return null;
+@@ -653,6 +664,7 @@ function live_root(Class, file){
+ 	try { root = Class.replay(parse_lines(file)); } finally { collect = null; }
+ 	Object.assign(store, { host: root, sig: sig(file), deps, file });
+ 	root.store = store;
++	root.at_path = "/" + path.relative(PUBLIC, path.dirname(file)).split(path.sep).join("/") + "/";   // a session record has no `path` field: its cost is looked up by its folder
+ 	return root;
+ }
+ 
+@@ -663,6 +675,13 @@ function advance(root, line){
+ 	root.store.sig = sig(root.store.file);
+ }
+ 
++/* A line that would break replay is refused BEFORE it is written (a getter-only field in a child add, e.g. `commits`, once made a log
++ * unreadable). The line is replayed on the live root first; a throw drops the cached root (it is half-changed) and the file never sees the line. */
++class Refused extends Error {}
++function try_line(root, line){
++	collect = root.store.deps;
++	try { root.replay_line(line); } catch (e) { root.store.host = null; throw new Refused(`this line would not replay (${e.message})`); } finally { collect = null; }
++}
+ function task_state(Task, task){
+ 	const tasks = [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state }));
+ 	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.step?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
+@@ -704,6 +723,43 @@ export function tell_parent_caveats(task_dir, caveats, by = "node"){
+ 	return log;
+ }
+ 
++/* QUERIES (class `static queries`): a delta whose keys are all queries runs them and writes nothing. `{"cost":{}}`, `{"summary":{}}`,
++ * and into a child by `target` or by id: `{"tasks":{"<id>":{"cost":{}}}}` or `{"<id>":{"cost":{}}}`. A query's value is its argument:
++ * {} / true / null = none, an array = the arguments, any other object = one argument. */
++function query_args(arg){ return Array.isArray(arg) ? arg : is_plain(arg) && Object.keys(arg).length ? [arg] : []; }
++function walk_queries(node, delta, trail = "", out = { answer: {}, queried: false, other: [], set: [] }){
++	const into = (kid, sub, here, put) => { const r = walk_queries(kid, sub, here); out.queried ||= r.queried; out.other.push(...r.other); out.set.push(...r.set); if (r.queried) put(r.answer); };
++	for (const [key, arg] of Object.entries(delta)){
++		const here = trail ? `${trail}.${key}` : key;
++		if (node.constructor.queries?.includes(key)){
++			out.queried = true;
++			if (typeof arg === "string" || typeof arg === "number" || arg === false){ out.set.push(here); continue; }   // a value is an attempt to SET a read-only key
++			const v = node[key];
++			out.answer[key] = typeof v === "function" ? v.apply(node, query_args(arg)) : v;
++		} else if (key === "tasks" && is_plain(arg) && !LIST_VERBS.some(v => v in arg)){
++			for (const [id, sub] of Object.entries(arg)){
++				const kid = is_plain(sub) ? node._tasks?.find(id) : null;
++				if (kid) into(kid, sub, `${here}.${id}`, a => ((out.answer.tasks ??= {})[id] = a));
++				else out.other.push(`${here}.${id}`);
++			}
++		} else if (is_plain(arg) && node._tasks?.find(key)) into(node._tasks.find(key), arg, here, a => (out.answer[key] = a));
++		else out.other.push(here);
++	}
++	return out;
++}
++const LIST_VERBS = ["add", "remove", "move", "order", "clear"];
++
++// null = not a query delta (run it as a change); {ok:false} = a mix, refused; else the answer. Nothing here writes.
++function ask(root, target, delta){
++	let node = root;
++	for (const id of target){ node = node._tasks?.find(id); if (!node) return { ok: false, why: `no task "${id}" under this path to ask` }; }
++	const r = walk_queries(node, delta);
++	if (!r.queried) return null;
++	if (r.set.length) return { ok: false, why: `${r.set.join(", ")} ${r.set.length > 1 ? "are queries" : "is a query"}: ${r.set.length > 1 ? "they only read" : "it only reads"} and cannot be set (give {} or an argument object). Nothing was written.` };
++	if (r.other.length) return { ok: false, why: `this delta asks (${Object.keys(r.answer).join(", ")}) and also changes (${r.other.join(", ")}). A delta either asks or changes: send two calls. Nothing was written.` };
++	return { ok: true, answer: r.answer };
++}
++
+ function refusal(why, Class){
+ 	const d = describe_class(Class);
+ 	return { ok: false, why, exists: [...d.methods.map(m => m.name), ...new Set([...d.fields, ...(KEYS[Class.name] ?? [])])] };
+@@ -721,6 +777,28 @@ function validate(Task, task, delta){
+ 	return null;
+ }
+ 
++/* A page line is tried on a REAL Page before it is written: a private key or a part type nobody registered is refused, and the page's own
++ * log plus the new line must replay. Only `part-*` types are checked: a page also holds plain data typed "card", "note", "request", "task"…
++ * (in use today), which no class claims. Returns {ok:false, why} or null. */
++function bad_page_delta(Page, node, trail = ""){
++	if (Array.isArray(node)) { for (const n of node){ const why = bad_page_delta(Page, n, trail); if (why) return why; } return null; }
++	if (!is_plain(node)) return null;
++	for (const [key, value] of Object.entries(node)){
++		if (key.startsWith("_") || key === "constructor" || key === "prototype") return `"${trail}${key}" is private (keys starting with _ are never written)`;
++		if (key === "type" && typeof value === "string" && value.startsWith("part-") && !Page.types.has(value)) return `unknown part type "${value}" (the part types are: ${Page.PART_TYPES.join(", ")})`;
++		const why = bad_page_delta(Page, value, `${trail}${key}.`);
++		if (why) return why;
++	}
++	return null;
++}
++async function page_refusal(at, delta){
++	const Page = await page_class();
++	if (!Page) return null;   // a broken Page degrades the check, never the tool
++	let why = bad_page_delta(Page, delta);
++	if (!why) try { Page.replay([...parse_lines(at.file), nest(at.target, delta)]); } catch (e) { why = `the page would not replay with this line (${e.message})`; }
++	return why ? { ok: false, why: `${why}. Nothing was written.` } : null;
++}
++
+ // A new folder is one more line in its parent's files.jsonl, through ModuleLog (a failure here never fails the write).
+ async function record_new_folder(parent, name){
+ 	try { (await import("../../Server/ModuleLog.mjs")).default.record(parent, `${name}/page.js`); } catch {}
+@@ -761,7 +839,12 @@ export const hooks = {
+ 	prompted: null,   // Servex: an owner Prompt landed on a session page -> PromptTasks files its asks (Servex/agents/PromptTasks.js)
+ };
+ 
+-export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
++export async function run_item(args = {}, ctx = {}, alias = false){
++	try { return await run_item_now(args, ctx, alias); }
++	catch (e) { if (e instanceof Refused) return { ok: false, why: `${e.message}. Nothing was written.` }; throw e; }
++}
++
++async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias = false){
+ 	url ??= own_page(ctx);
+ 	let caller_log = ctx.caller_log ?? null;
+ 	try { caller_log ??= ctx.resolve_log?.(ctx.caller) ?? null; } catch { caller_log = null; }   // a broken resolver never breaks the call
+@@ -785,6 +868,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 		told.set(`${ctx.caller}|${kind}`, true);
+ 		return { ok: true, instructions: await instructions_for(kind, Class) };
+ 	}
++	if (Class?.replay){ const asked = ask(root(), at.target, flat); if (asked) return asked; }
+ 	// An improvement proposed again adds weight, never a duplicate (the owner, 2026-10-22; readme-system.md): the same title becomes
+ 	// {"<id>": {"reinforce": {why}}} on the existing one, and Task.weight counts them.
+ 	if (path.basename(at.file) === "improvements.jsonl" && is_plain(flat.tasks?.add) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1){
+@@ -802,6 +886,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 		}
+ 	}
+ 	if (Class?.replay){ const no = validate(Class, root(), flat); if (no) return no; }
++	else if (kind === "Page"){ const no = await page_refusal(at, flat); if (no) return no; }
+ 	// A complete without evidence is refused BEFORE a line is written: a written line would replay as a recorded fact.
+ 	if (Class?.replay) for (const args of complete_calls(flat)){
+ 		const why = Class.completion_problem?.(args);
+@@ -816,7 +901,13 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 	const ids = [], homes = [], requests = [], by = ctx.caller ?? "agent";
+ 	let line = null, size;
+ 	// Every write to a Task/Session goes through here: append the line, then advance the live root with it.
+-	const put = (l, own = true) => { const live = Class?.replay ? root() : null; size = write_line(at.file, l, own); if (live) advance(live, l); line = l; };   // root BEFORE the write: after it the file's size differs and root() would re-read
++	const put = (l, own = true) => {
++		const live = Class?.replay ? root() : null;   // root BEFORE the write: after it the file's size differs and root() would re-read
++		if (live) try_line(live, l);
++		try { size = write_line(at.file, l, own); } catch (e) { if (live) live.store.host = null; throw e; }
++		if (live) live.store.sig = sig(live.store.file);
++		line = l;
++	};
+ 
+ 	let body = pages === undefined && folder === undefined ? flat : rest;
+ 	if (Class?.replay && !at.target.length && is_plain(body.tasks) && body.tasks.add !== undefined){
+@@ -834,6 +925,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
+ 			const id = home ? null : slug_of(a.id ?? a.title);
+ 			if (id && (root()._tasks?.find(id) || plan.some(p => p.id === id)))
+ 				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Use the id "${id}-2" (or a different title), or change the existing one.`, suggest: id + "-2" };
++			if (!home && Class?.replay) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: "Task", ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
+ 			plan.push({ a: asker && a.from === undefined ? { ...a, from: asker } : a, home, id });
+ 		}
+ 		for (const { a, home, id } of plan){
+@@ -907,6 +999,8 @@ export function page_tools(resolve_log = null){
+ 
+ 				const stamped = is_plain(args) ? { ...(method === "add" ? { id: crypto.randomUUID() } : {}), ...stamp_ids(args), by: ctx.caller ?? "agent", ts: now() } : args;
+ 				const line = nest(at.target, { [method]: stamped });
++				const no = await page_refusal(at, { [method]: stamped });
++				if (no) return JSON.stringify(no);
+ 
+ 				const size = write_line(at.file, line);
+ 				return JSON.stringify({ ok: true, line, size });
+@@ -927,6 +1021,8 @@ export function page_tools(resolve_log = null){
+ 				const id = item?.id ?? crypto.randomUUID();
+ 				const add = { ...item, id, by: ctx.caller ?? "agent", ts: now(), ...(after !== undefined ? { after } : {}) };
+ 				const line = nest(at.target, { add });
++				const no = await page_refusal(at, { add });
++				if (no) return JSON.stringify(no);
+ 
+ 				const size = write_line(at.file, line);
+ 				// An owner prompt (prompt-relay.mjs writes it): Servex files its asks as proposed tasks (Servex/agents/PromptTasks.js).
+diff --git a/Servex/agents/page_tools.test.mjs b/Servex/agents/page_tools.test.mjs
+index ad63653f2..bdb46dbe1 100644
+--- a/Servex/agents/page_tools.test.mjs
++++ b/Servex/agents/page_tools.test.mjs
+@@ -113,17 +113,19 @@ try {
+ 		ok(!bad.ok, "a bad subpage name is refused");
+ 	}
+ 
+-	// page.js parent: the children string is edited in place.
++	// page.js parent: a page.js is code and is never edited (17c696fa6); the child is noted in the parent's page.jsonl, which Page.child reads (645ccbe33).
+ 	{
+ 		const js = path.join(DIR, "pj");
+ 		fs.mkdirSync(js);
+-		fs.writeFileSync(path.join(js, "page.js"), 'export default { title: "P", children: "a/page.jsonl" };\n');
++		const src = 'export default { title: "P", children: "a/page.jsonl" };\n';
++		fs.writeFileSync(path.join(js, "page.js"), src);
+ 		const sub = new Subpages(js);
+ 		sub.add({ name: "b", title: "B" });
+-		ok(/children: "a\/page.jsonl b\/page.jsonl"/.test(fs.readFileSync(path.join(js, "page.js"), "utf8")), "page.js parent: children gets the new name");
++		ok(Subpages.listed(path.join(js, "page.jsonl")).join() === "b" && fs.readFileSync(path.join(js, "page.js"), "utf8") === src, "page.js parent: the child is noted in page.jsonl, page.js untouched");
+ 		sub.rename({ name: "b", to: "c" });
++		ok(Subpages.listed(path.join(js, "page.jsonl")).join() === "c", "page.js parent: rename relinks");
+ 		sub.remove("c");
+-		ok(/children: "a\/page.jsonl"/.test(fs.readFileSync(path.join(js, "page.js"), "utf8")), "page.js parent: rename then remove leaves children clean");
++		ok(Subpages.listed(path.join(js, "page.jsonl")).length === 0 && fs.readFileSync(path.join(js, "page.js"), "utf8") === src, "page.js parent: remove unlinks, page.js still untouched");
+ 	}
+ 
+ 	// a session route deeper than the page resolves to the session's own subpage folder.
+diff --git a/Servex/agents/site-hooks.mjs b/Servex/agents/site-hooks.mjs
+new file mode 100644
+index 000000000..e8fc6502e
+--- /dev/null
++++ b/Servex/agents/site-hooks.mjs
+@@ -0,0 +1,8 @@
++// A node module hook: a site-absolute import ("/framework/dev/Socket/Socket.js") resolves under public/, the way the dev server serves it.
++import { pathToFileURL, fileURLToPath } from "node:url";
++import path from "node:path";
++const PUBLIC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "public");
++export async function resolve(spec, ctx, next){
++	if (spec.startsWith("/") && !spec.startsWith("//") && !/^\/[A-Za-z]:/.test(spec)) return next(pathToFileURL(path.join(PUBLIC, spec)).href, ctx);
++	return next(spec, ctx);
++}
+diff --git a/Servex/doc/item-tool.md b/Servex/doc/item-tool.md
+index 618f7cd01..567aa7275 100644
+--- a/Servex/doc/item-tool.md
++++ b/Servex/doc/item-tool.md
+@@ -21,3 +21,29 @@
+   - One goal task per module holds the long-lived work; new related work goes under it.
+   - An idea to keep beside a module while designing is a note, not a task.
+   - The tool files the session reference and picks the home folder; never write either by hand.
++
++## Queries: ask without writing (2026-10-23)
++
++A **query** is a method or getter that only reads. A class lists them in `static queries` (`core/Item/Item.js`; `Item.describe()` returns them). A delta whose keys are ALL queries is answered at once and **writes no line**: `{ok, answer:{<key>:value}}`. The grammar is the same one ("a key naming a method calls it"): there is no `get` key. `target` walks into a child first (`target:["a"]`), then asks. A delta that mixes a query with a change (`{"cost":{},"title":"x"}`) is refused with `{ok:false, why}` and writes nothing: send two calls. The item tool holds one live replayed instance per file, so a query is a method call on memory (a 132-task session answers in about 135 ms).
++
++```
++item({path:"/framework/ai/sessions/2026/10/20/session-e00f55c9/", delta:{"summary":{}}})
++item({path, delta:{"progress":{}, "cost":{}}})            // several queries in one call
++item({path, target:["a"], delta:{"progress":{}}})          // the same, on the child "a"
++```
++
++`Task.queries` = `progress`, `cost` (this folder's agents, USD), `total_cost` (plus every child that has a folder), `duration` (ms, from the start/stop lines), `children` (child **sessions**: tasks whose `path` folder holds a session record), `summary` (id, title, state, completion, progress, counts by state, the open tasks only as id/title/state, cost, duration, children). Cost is computed by `Task.cost_resolver`, which `Agents.js` wires; with no Agents instance (a plain script) it reads 0.
++
++**Session or Task? A session folder stays a Task with queries (decided 2026-10-23).** `core/Session` is the page-level view of a run (menu, settings, `AISession` cost and transcript), and `Session.completion` and `Task.completion` count the same thing with the same code. `class_of` already replays a session folder as a Task (`SessionRecord.log_file`), because the log holds task lines, `start`/`stop` spans and verbs that only Task understands. Switching to `Session` would lose those and need a second copy of `duration`, `cost` and `summary`. So `summary` and `children` live on Task and answer for a session's `session.jsonl` too (line 1's `{"session":{id,kind,…}}` is kept as `record`, so the summary reports the session id and kind). The alternative, a `Session` loader that extends Task, stays open if the view needs menu or settings through the tool.
++
++Tests: `item_tool.test.mjs` (a query writes no line, a mixed delta is refused, the session summary with inline and referenced children, an array `tasks.add` is two tasks).
++
++## A real Page, and lines refused before they are written (2026-10-24)
++
++- **Page files** (`page.jsonl`): `page_tools.js` `page_class()` loads the real `core/Page/Page.class.js` in node, once. `Servex/agents/site-hooks.mjs` is a node resolve hook that maps site-absolute imports (`/framework/…`) to `public/`, so no DOM stub is needed; the few import-time browser touches (`location`, `document`, `Element`) are guarded in `Reader.js`, `View.js`. `Page.replay(lines)` replays a log (its `replay_new` marks the page as replaying, so a `file` line only records itself).
++- **One list of part types:** `core/Page/parts/kinds.js` imports every part class and exports `PART_TYPES`. The browser (`Parts.js`, `ai/AISession/AISessionDetail.js`), the tool and `Page.test.mjs` all import it. A new part type is one import and one name there.
++- **Refused before the write** (`page_refusal`, used by `item`, `page_set`, `page_add`, `page_call` on a page file): a key starting `_` (or `constructor`, `prototype`) anywhere in the delta; a `part-*` type that is not registered (the answer lists the real ones); a line that makes `Page.replay` throw. Only `part-*` types are checked: pages also hold plain data typed `card`, `note`, `request`, `task`, `question` that no class claims (the alternative, checking every type, would refuse all of those).
++- **Any task line that would break replay is refused too** (`try_line`, `Refused`): the line is replayed on the live root BEFORE it is appended. A throw (for example `commits` in a child add: the getter has no setter) returns `{ok:false, why:"this line would not replay (…). Nothing was written."}` and the cached root is dropped. A `tasks.add` array is checked member by member on an empty root before any member is written.
++- **A query key given a value is refused:** `{"summary":"text"}` is not an ask and cannot set; the answer says `summary is a query: it only reads and cannot be set`. `{}`, `true`, `null`, an array or an object are arguments.
++- Tests: `node public/framework/core/Page/Page.test.mjs` (replay, unknown type reported, the tool refuses), `node Servex/agents/item_tool.test.mjs`, `node Servex/agents/page_tools.test.mjs`.
++- **Subpage parent:** a `page.js` parent is never edited; `Subpages.js` notes the child in the parent's `page.jsonl` and `Page.child` reads it (17c696fa6, 645ccbe33). The old test that expected a `children:` edit in `page.js` was stale and now asserts this.
+diff --git a/Servex/readme.md b/Servex/readme.md
+index cebd348cc..f6444a263 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -41,7 +41,7 @@ class Servex {
+ 
+ | Folder or file | What |
+ |---|---|
+-| `agents/` | `Agents.js` (`spawn` → `open_task` → SDK `query()`), `tools.js` (the in-process tools incl. `spawn_agent`), `roles.js` (role → its readme in [`roles/`](agents/roles/readme.md), skills and posture), `Dispatcher.js`, `Sessions.js`, `page_tools.js` (page_set/page_add/page_call/page_read/page_log/page_note), `inbox.js`, `claims.js`, `directory.js` |
++| `agents/` | `Agents.js` (`spawn` → `open_task` → SDK `query()`), `tools.js` (the in-process tools incl. `spawn_agent`), `roles.js` (role → its readme in [`roles/`](agents/roles/readme.md), skills and posture), `Dispatcher.js`, `Sessions.js`, `page_tools.js` (item, page_set/page_add/page_call/page_read/page_log/page_note; `item` also answers **queries** with no write, e.g. `item({path, delta:{"summary":{}}})`: [doc/item-tool.md](doc/item-tool.md)), `inbox.js`, `claims.js`, `directory.js` |
+ | `asks/`, `cards/` | the asks ledger (`Asks.js`), cards (`Cards.js`, writes `ai/cards.jsonl`) |
+ | `ext/` | `remote/` (voice-app door), `openrouter/` (non-Anthropic models), `refine/`, `local/` |
+ | `doc/` | the detail; `proof/` and `*.test.mjs` are checks |
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 6bb55de63..b6182fcaf 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -17,10 +17,7 @@ import Property from "/framework/core/Property/Property.js";
+ import SessionMenu from "/framework/core/Session/SessionMenu.js";
+ import SessionSettings from "/framework/core/Session/SessionSettings.js";
+ import SessionTasks from "/framework/core/Session/SessionTasks.js";
+-import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
+-import "/framework/core/Page/parts/PageText.js";
+-import "/framework/core/Page/parts/PageCard.js";
+-import "/framework/core/Page/parts/PageLink.js";
++import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
+ 
+ // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
+ // view). Built with `new AISessionDetail({ home, id })`: `home` is the Sessions page it hangs under.
+diff --git a/public/framework/core/Item/Item.js b/public/framework/core/Item/Item.js
+index 7925c5317..087d6b011 100644
+--- a/public/framework/core/Item/Item.js
++++ b/public/framework/core/Item/Item.js
+@@ -261,7 +261,10 @@ export class Item extends Events(Object) {
+ 
+ 	static new_id(){ return crypto.randomUUID(); }
+ 
+-	// What a caller may put in a delta for this class: {class, fields, methods:[{name, doc}]}; doc is "" here (the item tool fills it from source).
++	// The methods and getters of this class that only READ. The item tool answers a delta whose keys are all queries (`{"cost":{}}`) and writes no line. A subclass lists its own.
++	static queries = [];
++
++	// What a caller may put in a delta for this class: {class, fields, methods:[{name, doc}], queries}; doc is "" here (the item tool fills it from source).
+ 	static describe(){
+ 		const methods = new Map(), fields = new Set(this.fields ?? []);
+ 		for (let proto = this.prototype; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto))
+@@ -271,7 +274,7 @@ export class Item extends Events(Object) {
+ 				if (d.get || d.set){ if (!d.get?.is_field_accessor) fields.add(name); continue; }
+ 				if (typeof d.value === "function") methods.set(name, { name, doc: "" });
+ 			}
+-		return { class: this.name, fields: [...fields], methods: [...methods.values()] };
++		return { class: this.name, fields: [...fields], methods: [...methods.values()], queries: [...(this.queries ?? [])] };
+ 	}
+ 
+ 	/* Tolerant of every malformed input: warn, keep the node, never throw. Reads
+diff --git a/public/framework/core/List/List.js b/public/framework/core/List/List.js
+index 29fd0a368..1a7e1bf50 100644
+--- a/public/framework/core/List/List.js
++++ b/public/framework/core/List/List.js
+@@ -153,6 +153,7 @@ export class List extends Item {
+ 	// checks properties first, so an id that shadowed one would be unreachable by
+ 	// name forever. Refused, once per id, rather than silently inserted-but-dead.
+ 	insert(x, { after } = {}){
++		if (Array.isArray(x)) return x.map(each => this.insert(each, { after })).at(-1);   // {"add":[a, b]} is two members, never one Array member
+ 		const made = this.make(x);
+ 		const id = this.key(made);
+ 		if (id != null){
+@@ -193,6 +194,7 @@ export class List extends Item {
+ 	// `after` can arrive two ways: the live two-argument form (`list.add(x, {after})`)
+ 	// or, on replay, inside `x` itself. The options form wins when both are given.
+ 	add(x, opts = {}){
++		if (Array.isArray(x)) return x.map(each => this.add(each, opts)).at(-1);   // {"add":[a, b]} is two adds, in order
+ 		const after = "after" in opts ? opts.after : (is_plain(x) ? x.after : undefined);
+ 		const before = this.length;
+ 		const made = this.insert(x, { after });
+diff --git a/public/framework/core/Page/Jsonl.js b/public/framework/core/Page/Jsonl.js
+index b6351debf..e69024fb7 100644
+--- a/public/framework/core/Page/Jsonl.js
++++ b/public/framework/core/Page/Jsonl.js
+@@ -2,8 +2,9 @@ import { View, div, p, code, table, thead, tbody, tr, th, td, is } from "../View
+ import List from "../List/List.js";
+ import { page_settings } from "./settings/settings.js";
+ import PageListing from "./Listing.js";
++import PageLogReader from "./Reader.js";
+ 
+-const dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
++const dev = PageLogReader.dev;   // one localhost test, in Reader.js
+ 
+ // "kid/page.jsonl" → ["kid", "jsonl"]; key_of() keys a file line by its FIRST path segment, latest wins. (doc/decisions.md)
+ const { CHILD, key_of } = PageListing;
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index d7229ba21..c11a406d7 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -22,7 +22,7 @@ import PageContent from "./PageContent.js";
+ View.stylesheet(import.meta, "Page.css");
+ 
+ // ⚠ Localhost only, the gate dev/Socket keeps: nothing below may ship behaviour.
+-const dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
++const dev = PageLogReader.dev;   // one localhost test, in Reader.js
+ const marked = el => el?.matches(".page.active-page, .page.active-ancestor, .page.default");
+ 
+ const ALIAS = { surface: "card", wash: "tint" };
+@@ -51,6 +51,13 @@ export class Page extends Item {
+ 
+ 	assign(...args){ return Object.assign(this, ...args); }
+ 
++	// Page.replay(lines) in node (the item tool, Page.test.mjs): the lines are only being REPLAYED, so a `file` line records itself and imports nothing.
++	static replay_new(lines){
++		const page = new this();
++		page.store = { replaying: true };
++		return page;
++	}
++
+ 	log_label(){ return `page{${this.url ?? "…"}}`; }
+ 
+ 	// ════ PAGE.JSONL ══════════════════
+diff --git a/public/framework/core/Page/Page.test.mjs b/public/framework/core/Page/Page.test.mjs
+new file mode 100644
+index 000000000..a2abe6ce2
+--- /dev/null
++++ b/public/framework/core/Page/Page.test.mjs
+@@ -0,0 +1,84 @@
++// The real Page in node. Plain node: `node public/framework/core/Page/Page.test.mjs`
++//   1. a page.jsonl replays through the real Page: typed parts become their classes
++//   2. an unknown part type is reported (and kept as a plain Item)
++//   3. the item tool on a page refuses a bad line BEFORE it is written
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { register } from "node:module";
++import { fileURLToPath, pathToFileURL } from "node:url";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const ROOT = path.resolve(HERE, "..", "..", "..", "..");
++register(pathToFileURL(path.join(ROOT, "Servex", "agents", "site-hooks.mjs")).href);   // site-absolute imports ("/framework/…") map to public/
++
++const { default: Page } = await import("./Page.class.js");
++const { default: Item } = await import("../Item/Item.js");
++const { PART_TYPES } = await import("./parts/kinds.js");
++const { page_tools } = await import(pathToFileURL(path.join(ROOT, "Servex", "agents", "page_tools.js")).href);
++
++let checks = 0;
++const ok = (cond, msg) => { assert.ok(cond, msg); checks++; };
++const parse = text => text.split("\n").filter(Boolean).map(l => JSON.parse(l));
++const names = list => [...list].map(x => `${x.constructor.name}:${x.id}`);
++
++// ---- 1. replay: the parts page, its own page.jsonl ----
++{
++	const page = Page.replay(parse(fs.readFileSync(path.join(HERE, "parts", "page.jsonl"), "utf8")));
++	ok(page instanceof Page && page.get_one("title") === "Parts", "Page.replay builds a Page from line 1");
++	const kinds = [...page.content].map(x => x.constructor.name);
++	ok(kinds.includes("PageHeading") && kinds.includes("PageText") && kinds.includes("PageCard"), "typed parts become their classes: " + kinds.join(","));
++	ok(PART_TYPES.every(t => Item.types.has(t)), "every name in PART_TYPES is registered with Item");
++	ok(Page.types === Item.types, "the node Page and the tool share one type registry");
++}
++
++// ---- 2. replay: an unknown type is reported, never thrown ----
++{
++	const warned = [], was = console.warn;
++	console.warn = (...a) => warned.push(a.join(" "));
++	let page;
++	try {
++		page = Page.replay([{ title: "T" }, { content: { add: { id: "x", type: "part-nope", text: "?" } } }, { content: { add: { id: "y", type: "part-text", text: "ok" } } }]);
++	} finally { console.warn = was; }
++	ok(warned.some(w => /unknown type "part-nope"/.test(w)), "an unknown part type is reported: " + warned.join(" | "));
++	ok(names(page.content).join() === "Item:x,PageText:y", "the unknown part is kept as a plain Item, the known one is its class");
++}
++
++// ---- 2b. a `file` line in a replay records itself and imports nothing ----
++{
++	const page = Page.replay([{ title: "T" }, { file: "kid/page.jsonl" }, { file: "Thing.js" }]);
++	ok(page.listed?.has("kid"), "a child file line is listed in node");
++}
++
++// ---- 3. the item tool refuses a bad page line before it is written ----
++{
++	const REL = "framework/core/Page/.page-test-" + process.pid;
++	const DIR = path.join(ROOT, "public", REL), FILE = path.join(DIR, "page.jsonl"), URL = "/" + REL + "/";
++	const tools = Object.fromEntries(page_tools().map(t => [t.name, t]));
++	const call = async (name, args) => JSON.parse(await tools[name].handler(args, { caller: "page-test" }));
++	const size = () => fs.statSync(FILE).size;
++	fs.mkdirSync(DIR, { recursive: true });
++	fs.writeFileSync(FILE, JSON.stringify({ title: "Scratch" }) + "\n");
++	try {
++		const before = size();
++		let r = await call("item", { path: URL, delta: { content: { add: { type: "part-nope", text: "x" } } } });
++		ok(r.ok === false && /unknown part type "part-nope"/.test(r.why) && /part-heading/.test(r.why) && /Nothing was written/.test(r.why) && size() === before, "item: an unknown part type is refused, nothing written");
++		r = await call("page_add", { path: URL, item: { type: "part-nope" } });
++		ok(r.ok === false && size() === before, "page_add: an unknown part type is refused, nothing written");
++		r = await call("page_call", { path: URL, target: ["content"], method: "add", args: { type: "part-nope" } });
++		ok(r.ok === false && size() === before, "page_call: an unknown part type is refused, nothing written");
++		r = await call("item", { path: URL, delta: { _secret: 1 } });
++		ok(r.ok === false && /private/.test(r.why) && size() === before, "item: a private key is refused, nothing written");
++		r = await call("item", { path: URL, delta: { content: { add: { id: "n", _hidden: true, type: "part-text" } } } });
++		ok(r.ok === false && /_hidden/.test(r.why) && size() === before, "item: a private key nested in an added part is refused");
++
++		r = await call("item", { path: URL, delta: { content: { add: { id: "h", type: "part-heading", text: "Hello" } } } });
++		ok(r.ok && size() > before, "item: a known part type is written");
++		r = await call("page_add", { path: URL, item: { type: "card", title: "plain data typed card" } });
++		ok(r.ok, "a plain (non part-) type is still written: pages hold card/note/request/task data");
++		const page = Page.replay(parse(fs.readFileSync(FILE, "utf8")));
++		ok(names(page.content)[0] === "PageHeading:h", "what the tool wrote replays as the real class");
++	} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
++}
++
++console.log(`Page: ${checks} checks passed`);
+diff --git a/public/framework/core/Page/Reader.js b/public/framework/core/Page/Reader.js
+index daed8b19d..3b08d01d9 100644
+--- a/public/framework/core/Page/Reader.js
++++ b/public/framework/core/Page/Reader.js
+@@ -62,4 +62,4 @@ export default class PageLogReader extends Item.Store {
+ 	}
+ }
+ // ⚠ Localhost only, the gate dev/Socket keeps. (doc/watch-out.md)
+-PageLogReader.dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
++PageLogReader.dev = typeof location !== "undefined" && (["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost"));   // node has no location
+diff --git a/public/framework/core/Page/doc/ai-api.md b/public/framework/core/Page/doc/ai-api.md
+index 4fc3bf4ee..cf6452847 100644
+--- a/public/framework/core/Page/doc/ai-api.md
++++ b/public/framework/core/Page/doc/ai-api.md
+@@ -44,6 +44,12 @@ The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`
+ | write on a subpage | the same deltas, with `path` set to the subpage's url (`…/notes/`) |
+ | read the current state | **`page_read(path)`**: title, every card with its id, the subpages |
+ 
++## Asking without writing: queries
++
++`page_set` changes, but a class can also list **queries**: methods and getters that only read (`static queries` on the class, `Item.describe().queries`). With the item tool, a delta whose keys are all queries is answered and **writes no line**: `item({path, delta:{"summary":{}}})` answers `{ok, answer:{summary:{…}}}`. `item({path, delta:{"progress":{},"cost":{}}})` asks two at once; `target:["a"]` asks the child `a`. A delta that mixes a query with a change is refused (send two calls). There is no separate `get` key. Detail and the list for Task and Session folders: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md).
++
++A bad line is refused before it is written: a `_` key, a `part-*` type nobody registered (`core/Page/parts/kinds.js` is the one list), or a line that would not replay. The answer says why and `Nothing was written.` Detail: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md), "A real Page".
++
+ ## Names, once
+ 
+ - **page**: anything with a url. **subpage**: a page inside another, with its own folder and url.
+diff --git a/public/framework/core/Page/doc/start-here.md b/public/framework/core/Page/doc/start-here.md
+index c3dd5351b..d20f2df12 100644
+--- a/public/framework/core/Page/doc/start-here.md
++++ b/public/framework/core/Page/doc/start-here.md
+@@ -24,6 +24,7 @@ If you are about to work on `core/Page` (as its mastermind, a minion, or a new r
+ 
+ | test | covers | run |
+ |---|---|---|
++| `core/Page/Page.test.mjs` | the real `Page` in node: a `page.jsonl` replays, typed parts become their classes, an unknown part type is reported, the item tool refuses a bad line | `node public/framework/core/Page/Page.test.mjs` |
+ | `Servex/agents/page_tools.test.mjs` | the page tools (`page_set`, `page_read`, …) on a temp `page.jsonl` | `node Servex/agents/page_tools.test.mjs` |
+ | `core/Item/Item.test.mjs` | `Item` fields (the base of `Page`) | `node public/framework/core/Item/Item.test.mjs` |
+ | `Template/Template.test.mjs` | templates, in headless Chromium | `node public/framework/core/Page/Template/Template.test.mjs` |
+diff --git a/public/framework/core/Page/navigation/doc/levels-1920.png b/public/framework/core/Page/navigation/doc/levels-1920.png
+new file mode 100644
+index 000000000..3a8efda70
+Binary files /dev/null and b/public/framework/core/Page/navigation/doc/levels-1920.png differ
+diff --git a/public/framework/core/Page/navigation/page.js b/public/framework/core/Page/navigation/page.js
+index 8e2cb7624..165f494ed 100644
+--- a/public/framework/core/Page/navigation/page.js
++++ b/public/framework/core/Page/navigation/page.js
+@@ -101,7 +101,7 @@ export default new Page({
+ 		md("**Navigation can stack up to four levels: a header, a left sidebar, top tabs, and an inner left sidebar.** Each one alone is simple. Stacked, the owner's own words: *\"it gets pretty ridiculous pretty quick.\"*");
+ 
+ 		img().style({ border: "1px solid var(--line)", borderRadius: "0.4em", maxWidth: "100%", width: "auto" })
+-			.attr("src", here + "shots/levels-1920.png")
++			.attr("src", here + "doc/levels-1920.png")   // doc/, not shots/: shots/ is git-ignored, so a picture a page shows lives in doc/
+ 			.attr("alt", "A real page with all four levels: site header, left Sidebar, top tabs, and an inner left sidebar of API members");
+ 		md("*All four levels on one real, live page — [`/framework/core/Page/api/`](/framework/core/Page/api/): the site **header** (top), the left **Sidebar** (the whole site's tree), **top tabs** (Overview · Make a page · Layout · Generator · API · …, this module's own sections), and an **inner left sidebar** (the API tab's own rail of properties and methods, one member at a time).*");
+ 
+diff --git a/public/framework/core/Page/parts/Parts.js b/public/framework/core/Page/parts/Parts.js
+index 352b493f2..ad478827a 100644
+--- a/public/framework/core/Page/parts/Parts.js
++++ b/public/framework/core/Page/parts/Parts.js
+@@ -1,8 +1,5 @@
+ import { Page } from "/app.js";
+-import "./PageHeading.js";
+-import "./PageText.js";
+-import "./PageCard.js";
+-import "./PageLink.js";
++import "./kinds.js";   // the one list of part types
+ 
+ /* Shim: PartsPage is retired (2026-10-12). Page.render_content_list() now draws each
+    part through its class's View, so a plain Page is a "parts page". This file stays
+diff --git a/public/framework/core/Page/parts/kinds.js b/public/framework/core/Page/parts/kinds.js
+new file mode 100644
+index 000000000..4fa61ffd1
+--- /dev/null
++++ b/public/framework/core/Page/parts/kinds.js
+@@ -0,0 +1,8 @@
++// The part types a page takes in `{"content":{"add":{"type":…}}}`. Importing this file registers them all (each registers itself with Item).
++// The ONE list: the browser (AISessionDetail, Parts.js), the item tool (Servex/agents/page_tools.js) and the tests all import it.
++import "./PageHeading.js";
++import "./PageText.js";
++import "./PageCard.js";
++import "./PageLink.js";
++
++export const PART_TYPES = ["part-heading", "part-text", "part-card", "part-link"];
+diff --git a/public/framework/core/Page/parts/page.jsonl b/public/framework/core/Page/parts/page.jsonl
+index c0aec9cdb..141adc39d 100644
+--- a/public/framework/core/Page/parts/page.jsonl
++++ b/public/framework/core/Page/parts/page.jsonl
+@@ -26,3 +26,4 @@
+ {"file":"PagePart.js","gone":true}
+ {"file":"PageText.js"}
+ {"file":"PageLink.js"}
++{"file":"kinds.js"}
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index 5af95b789..42bd34640 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -170,7 +170,30 @@ export class Task extends Item {
+ 	get doc(){ const s = this.get_one("source"); return typeof s === "string" && s.startsWith("/") ? s : undefined; }
+ 	// USD, computed and never stored: the turn_cost of the agents whose task this is. Node wires `Task.cost_resolver` (Servex/agents/Agents.js).
+ 	static cost_resolver = null;
+-	get cost(){ return this.constructor.cost_resolver?.(this.get_one("path")) ?? 0; }
++	// `at_path` is the task's own folder url, set by node for a root that has no `path` field (a session record).
++	get cost(){ return this.constructor.cost_resolver?.(this.get_one("path") ?? this.at_path) ?? 0; }
++	// This task's cost plus every child that has a folder `path` (referenced or added inline); a nested task with no folder has no cost of its own.
++	get total_cost(){ let sum = this.cost; for (const t of this._tasks ?? []) if (t.get_one("path")) sum += t.total_cost; return sum; }
++
++	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
++	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
++	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary"];
++	static session_resolver = null;
++	get children(){
++		const is_session = this.constructor.session_resolver;
++		return [...(this._tasks ?? [])].filter(t => is_session?.(t.get_one("path"))).map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state, path: t.get_one("path") }));
++	}
++	// One screen for a task or a session: counts by state, the open tasks only, completion, cost, time and child sessions.
++	summary(){
++		const tasks = [...(this._tasks ?? [])], states = {};
++		for (const t of tasks) states[t.state] = (states[t.state] ?? 0) + 1;
++		return {
++			id: this.get_one("record")?.id ?? this.id, title: this.get_one("title") ?? null, kind: this.get_one("record")?.kind ?? "task", state: this.state, completion: this.completion,
++			progress: Task.progress_of(this._tasks), states,
++			open: tasks.filter(t => OPEN.has(t.state)).map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state })),
++			cost: this.total_cost, duration: this.duration(), children: this.children,
++		};
++	}
+ 	get session(){ return this.get_one("session") ?? this.get_one("session_id"); }
+ 	get priority(){ return this.get_one("priority") ?? null; }
+ 	get commits(){ return [...(this.data.commits ?? [])]; }
+@@ -416,6 +439,7 @@ export class Task extends Item {
+ 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
+ 			this.adopt_child(kid);
+ 		}
++		if (line.session && typeof line.session === "object") this.put("record", line.session);   // a session record's line 1: {id, kind, cwd, at}
+ 		if (line.id !== undefined && !a) rp.fresh = true;   // a home-made task's line 1: idle until a verb line says otherwise
+ 		if (typeof line.commit === "string") this.commit(line.commit);
+ 		if (line.reinforce && typeof line.reinforce === "object") this.reinforce({ ...line.reinforce, by: line.reinforce.by ?? line.by });
+diff --git a/public/framework/core/View/View.js b/public/framework/core/View/View.js
+index 4a54be2da..656dbe893 100644
+--- a/public/framework/core/View/View.js
++++ b/public/framework/core/View/View.js
+@@ -378,6 +378,7 @@ export default class View {
+ 	// permanently blank page. It RESOLVES on error — unstyled, not down.
+ 	static stylesheet(meta, url){
+ 		url = View.url(meta, url);
++		if (typeof document === "undefined") return Promise.resolve(url);   // node: no DOM, nothing to load
+ 
+ 		const prom = new Promise(res => {
+ 			new View({ tag: "link", capture: false })
+@@ -465,7 +466,7 @@ export default class View {
+ 
+ View.stylesheets = [];
+ View.lazy = Promise.resolve();
+-View.supports_sanitizer = "setHTML" in Element.prototype;
++View.supports_sanitizer = typeof Element !== "undefined" && "setHTML" in Element.prototype;   // node (the item tool replays a Page) has no DOM
+ 
+ export function icon(name){
+ 	return el.c("span", "material-icons icon", name);

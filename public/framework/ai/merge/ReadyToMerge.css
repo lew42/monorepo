@@ -13,5 +13,6 @@
 	.rm-out { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.82em; }
 	.rm-ok { color: var(--ok); }
 	.rm-bad { color: var(--error); }
-	.rm-none { opacity: 0.8; }
+	.rm-none { opacity: 0.8; grid-column: 1 / -1; max-width: 44em; }
+	.rm-down, .rm-error { opacity: 1; color: var(--error); }
 }

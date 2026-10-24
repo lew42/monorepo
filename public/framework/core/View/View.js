@@ -378,6 +378,7 @@ export default class View {
 	// permanently blank page. It RESOLVES on error — unstyled, not down.
 	static stylesheet(meta, url){
 		url = View.url(meta, url);
+		if (typeof document === "undefined") return Promise.resolve(url);   // node: no DOM, nothing to load
 
 		const prom = new Promise(res => {
 			new View({ tag: "link", capture: false })
@@ -465,7 +466,7 @@ export default class View {
 
 View.stylesheets = [];
 View.lazy = Promise.resolve();
-View.supports_sanitizer = "setHTML" in Element.prototype;
+View.supports_sanitizer = typeof Element !== "undefined" && "setHTML" in Element.prototype;   // node (the item tool replays a Page) has no DOM
 
 export function icon(name){
 	return el.c("span", "material-icons icon", name);

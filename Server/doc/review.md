@@ -182,6 +182,8 @@ also touches a page is refused unless that review has its own page report (`revi
 with shots at all four widths) on disk — the plain brief-and-diff `review.md` a non-page change
 gets is not enough for a page.
 
+**The test gate (2026-10-23).** After the smoke test, `merge.mjs` runs the tests that cover the diff (`TestRunner.covers`, transitive) on the branch. A failing test is then re-run on the merge base; the merge is refused only when it passes on the base and fails on the branch (pass-to-fail), so a test that already failed on `michael/dev` never blocks. A timeout is no result. Base results are cached per sha in `core/Test/results.jsonl` (`trigger:"merge-base"`). `--skip-tests` turns the gate off; a dry run skips it. The code is `Server/MergeTests.mjs`. **The tests run inside the merge lock:** a failing test on a new base costs a checkout of about 10 s (7.6 s `git worktree add` plus 2.7 s remove, for 23k files, measured) plus up to 60 s per test.
+
 Before any of that, `merge.mjs`'s own smoke test (`Server/smoke.mjs`) fails the branch on two
 layout problems, same as a console error: text sitting within 2px of its box's own edge with no
 real padding between them (the "$1,128 of AI work" line that sat flush against a page's top

@@ -13,7 +13,9 @@ The default page at `/framework/ai/`: one day's agent sessions, grouped by where
 | `DayStrip.js` | `DayStrip extends View` | the last seven days (a side list on desktop) |
 | `OriginChips.js` | `OriginChips extends View` | Voice / VS Code / Servex / Scheduled chips, count and cost, and Live |
 | `UsageLine.js` | `UsageLine extends View` | the usage meters, via `ai/usage/UsagePace.js` |
+| `PageNav.js` | `PageNav extends View` | a row of pill links (`links: [{href, label, title, primary, count}]`); the dashboard, the sessions page and `/live/` use it, so every page below them has a click. `PageNav.merge_link()` is the Merge pill with the waiting count (`GET /api/ready-to-merge`) |
 | `AIDashboard.css` | | all rules `ad-` prefixed, in `@layer site` |
+| `PageNav.css` | | the pill row, `pn-` prefixed, in `@layer site` |
 
 `page.js` shows it when the path is exactly `/framework/ai/`; nothing else changed there.
 

@@ -50,7 +50,7 @@ export class Task extends Item {
 	// Made on first use (a replayed log rarely has subtasks). `_tasks` is hidden from
 	// `lists()` below so the saved key is still "tasks", which `hydrate()` assigns back.
 	get tasks(){
-		if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this.watch(this._tasks); }
+		if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
 		return this._tasks;
 	}
 	set tasks(list){ this._tasks = list; this.watch(list); }
@@ -87,6 +87,9 @@ export class Task extends Item {
 		if (this.mode === "series"){ const next = kids.find(t => t.state !== "complete"); if (next?.state === "idle") next.start(); }
 		else for (const t of kids) if (t.state === "idle") t.start();
 	}
+
+	// A nested task by id, at any depth below me (never me): a line may name a grandchild by its bare id.
+	below(id){ const hit = this.find(id); return hit === this ? undefined : hit; }
 
 	// Resolves with the task once it is complete or stopped (at once if it already is).
 	settled(){
@@ -126,7 +129,9 @@ export class Task extends Item {
 
 	// Warn like `Item`'s own `locate()`/`hydrate()` do: once per distinct message,
 	// never a throw, and the call site still gets `this` back so a no-op chains.
+	// Silent while a recorded verb replays: the log already happened, and an old line that starts a finished task is history, not a call to fix.
 	warn(message){
+		if (this._applying) return this;
 		this.constructor.warned ??= new Set();
 		if (!this.constructor.warned.has(message)){
 			this.constructor.warned.add(message);
@@ -175,7 +180,30 @@ export class Task extends Item {
 	get doc(){ const s = this.get_one("source"); return typeof s === "string" && s.startsWith("/") ? s : undefined; }
 	// USD, computed and never stored: the turn_cost of the agents whose task this is. Node wires `Task.cost_resolver` (Servex/agents/Agents.js).
 	static cost_resolver = null;
-	get cost(){ return this.constructor.cost_resolver?.(this.get_one("path")) ?? 0; }
+	// `at_path` is the task's own folder url, set by node for a root that has no `path` field (a session record).
+	get cost(){ return this.constructor.cost_resolver?.(this.get_one("path") ?? this.at_path) ?? 0; }
+	// This task's cost plus every child that has a folder `path` (referenced or added inline); a nested task with no folder has no cost of its own.
+	get total_cost(){ let sum = this.cost; for (const t of this._tasks ?? []) if (t.get_one("path")) sum += t.total_cost; return sum; }
+
+	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
+	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
+	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary"];
+	static session_resolver = null;
+	get children(){
+		const is_session = this.constructor.session_resolver;
+		return [...(this._tasks ?? [])].filter(t => is_session?.(t.get_one("path"))).map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state, path: t.get_one("path") }));
+	}
+	// One screen for a task or a session: counts by state, the open tasks only, completion, cost, time and child sessions.
+	summary(){
+		const tasks = [...(this._tasks ?? [])], states = {};
+		for (const t of tasks) states[t.state] = (states[t.state] ?? 0) + 1;
+		return {
+			id: this.get_one("record")?.id ?? this.id, title: this.get_one("title") ?? null, kind: this.get_one("record")?.kind ?? "task", state: this.state, completion: this.completion,
+			progress: Task.progress_of(this._tasks), states,
+			open: tasks.filter(t => OPEN.has(t.state)).map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state })),
+			cost: this.total_cost, duration: this.duration(), children: this.children,
+		};
+	}
 	get session(){ return this.get_one("session") ?? this.get_one("session_id"); }
 	get priority(){ return this.get_one("priority") ?? null; }
 	get commits(){ return [...(this.data.commits ?? [])]; }
@@ -351,7 +379,7 @@ export class Task extends Item {
 			this.resolving.add(ref);   // a cycle of references stops here
 			const Own = Item.types.get(lines[0]?.class);   // line 1 may name a subclass (a Process): replay it as that, when it is loaded
 			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
-			if (kid.id === "tasks" || as) kid.id = id;   // a module list's line 1 says "tasks": a property name, and the same for every module
+			if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
 			kid = new this({ id });
 			kid.put("title", id);
@@ -373,10 +401,17 @@ export class Task extends Item {
 	// Browser only: open the child's file through the shared Store, then attach (replay + live tail) onto the stub.
 	static async open_ref(kid, ref){
 		const dir = String(ref).replace(/\/?$/, "/");
-		let store = this.Store.for(dir + "task.jsonl");
+		// The folder's listing (dev server only) says which record it keeps, as in TaskPage; a folder with neither (a running agent's
+		// record a worktree does not have yet) is missing without a request, so no page 404s on it (the merge smoke fails on any 404).
+		// Off the dev server, the likely file first: <module>/tasks/<slug>/ holds task.jsonl, a session folder session.jsonl.
+		const listed = (await import("../Router/listing.js")).names(dir);
+		if (listed && !listed.includes("session.jsonl") && !listed.includes("task.jsonl")){ kid.set({ state: "missing" }); return; }
+		const [a, b] = listed ? [listed.includes("session.jsonl") ? "session.jsonl" : "task.jsonl"]
+			: /\/tasks\/[^/]+\/$/.test(dir) ? ["task.jsonl", "session.jsonl"] : ["session.jsonl", "task.jsonl"];
+		let store = this.Store.for(dir + a);
 		try { await store.open(); } catch { /* treated as missing below */ }
-		if (!store.host && !store.count){   // a session folder's log is session.jsonl (a task moved into a child session, item-move)
-			const s = this.Store.for(dir + "session.jsonl");
+		if (b && !store.host && !store.count){   // the other name: an old session folder kept task.jsonl, a task moved into a child session has session.jsonl (item-move)
+			const s = this.Store.for(dir + b);
 			try { await s.open(); if (s.host || s.count) store = s; } catch { /* still missing */ }
 		}
 		if (store.host){   // another reader (TaskPage) is already attached and live: this stub takes a snapshot of the same file
@@ -421,6 +456,7 @@ export class Task extends Item {
 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
 			this.adopt_child(kid);
 		}
+		if (line.session && typeof line.session === "object") this.put("record", line.session);   // a session record's line 1: {id, kind, cwd, at}
 		if (line.id !== undefined && !a) rp.fresh = true;   // a home-made task's line 1: idle until a verb line says otherwise
 		if (typeof line.commit === "string") this.commit(line.commit);
 		if (line.reinforce && typeof line.reinforce === "object") this.reinforce({ ...line.reinforce, by: line.reinforce.by ?? line.by });
@@ -443,7 +479,7 @@ export class Task extends Item {
 		for (const k of Object.keys(line)) {
 			const v = line[k];
 			if (!v || typeof v !== "object" || Array.isArray(v) || LINE_KEYS.has(k) || !this._tasks) continue;
-			const kid = this._tasks.find(k);
+			const kid = this.below(k);
 			if (!kid?.replay_line) continue;
 			kid.replay_line(v);
 			if (typeof v.state === "string" && !VERBS.some(w => v[w])) kid.put("state", v.state);
@@ -452,10 +488,11 @@ export class Task extends Item {
 		if (verdict || verb){
 			if (!rp.explicit){ rp.explicit = true; this.replay_legacy(true); }
 			this._at = rp.at;
+			this._applying = true;
 			try {
 				if (verdict) this[verdict.is]({ by: verdict.by, note: verdict.note });
 				else { const { at: _a, ...args } = line[verb]; this[verb](verb === "stop" ? args.why : args); }
-			} finally { this._at = null; }   // so a live Store.read never leaves the clock pinned
+			} finally { this._at = null; this._applying = false; }   // so a live Store.read never leaves the clock pinned
 		}
 		return this;
 	}

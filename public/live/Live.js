@@ -5,6 +5,7 @@ import { View } from "/framework/core/View/View.js";
 import LiveToday from "./LiveToday.js";
 import LiveTasks from "./LiveTasks.js";
 import LiveNow from "./LiveNow.js";
+import PageNav from "/framework/ai/AIDashboard/PageNav.js";
 
 View.stylesheet(import.meta, "Live.css");
 
@@ -194,8 +195,16 @@ export default class Live extends Page {
 		rows.forEach(r => { const card = this.constructor.Card.of(r, this.url); card.preview(card.nav()); });
 	}
 
+	// The pages under /live/ are reached from here by a click (Server/NavCheck.mjs checks every new page for one).
+	static NAV = [
+		{ href: "/live/", label: "Live", title: "What is being discussed now" },
+		{ href: "/live/sessions/", label: "Sessions", title: "The last 14 days of voice sessions" },
+		{ href: "/live/archive/", label: "Archive", title: "Closed live screens" },
+	];
+
 	render(){
 		return this.view ??= div.c("page live", () => {
+			div.c("live-nav", () => new PageNav({ links: Live.NAV }));
 			const old = new URLSearchParams(location.search).get("card");
 			if (old) history.replaceState({}, "", `${this.url}${encodeURIComponent(old)}/`);   // ?card= -> /live/<id>/, back still works
 			this.mount(div.c("live-screen"), old);

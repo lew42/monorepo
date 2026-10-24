@@ -27,10 +27,34 @@ export default class WorktreeWatch {
     static SHARED = [/^\/framework\/core\//, /^\/framework\/ui\//, /^\/framework\/ux\//, /^\/framework\/ext\//, /^\/framework\/framework\.css$/, /^\/app\.js$/];
     static CANARY = "/framework/";
     static BASE_404 = /^Failed to load resource: .*404/;   // every page load asks for /favicon.ico once per width, and a dev server has none
+    static TESTABLE = /\.m?js$/i;              // only a script change runs tests: a dev server rewrites files.jsonl constantly
+    static MAX_TESTS = 3;                      // test jobs at once, across every worktree
+    static LIST_MS = 30 * 1000;                // how long a worktree's list of test files is reused
+    static queue = new Map();                  // worktree id -> { watch, files }: at most one waiting run per worktree
+    static active = 0;
+    static runner_url = new URL("../public/framework/core/Test/TestRunner.mjs", import.meta.url).href;   // Servex's own copy, pointed at the worktree
+
+    /* Start waiting runs while fewer than MAX_TESTS are going. A worktree never has two at once. */
+    static pump(){
+        while (WorktreeWatch.active < WorktreeWatch.MAX_TESTS){
+            const next = [...WorktreeWatch.queue.values()].find(e => !e.watch.testing);
+            if (!next) return;
+            WorktreeWatch.queue.delete(next.watch.id);
+            WorktreeWatch.active++;
+            next.watch.test_job(next.files).catch(e => next.watch.note(`worktree-watch: ${next.watch.id} tests failed to run: ${e.message}`)).finally(() => { WorktreeWatch.active--; WorktreeWatch.pump(); });
+        }
+    }
+
+    /* The line worth quoting from a failed test's tail: the first assertion or error, else the first line. */
+    static first_failure(tail){
+        const rows = String(tail ?? "").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        return (rows.find(l => /^not ok\b|Error\b|\bfail/i.test(l)) ?? rows[0] ?? "no output").slice(0, 200);
+    }
 
     /* A changed url-path ("/framework/x/page.js") -> the page urls it could break, own page first. Same rule as Server/health.mjs. */
     static pages_for(url_path, public_dir){
         if (!WorktreeWatch.TEMPLATE.test(url_path)) return [];
+        if (/(^|\/)\.[^/]/.test(url_path) || /(^|\/)[^/]+-test-\d+(\/|$)/.test(url_path)) return [];   // a dot-folder or a "<name>-test-<pid>" folder is a test fixture, never a page
         let dir = path.dirname(path.join(public_dir, url_path));
         let own = null;
         while (dir === public_dir || dir.startsWith(public_dir + path.sep)){
@@ -71,6 +95,9 @@ export default class WorktreeWatch {
         this.pages = new Map();     // url -> { broken, messaged_at }
         this.running = false;
         this.stopped = true;
+        this.test_pending = new Set();   // changed script paths (urls) waiting for the debounce
+        this.test_state = new Map();     // test file -> ok, from this worktree's own runs: the last known result
+        this.testing = false;
     }
 
     start(){
@@ -81,7 +108,8 @@ export default class WorktreeWatch {
 
     stop(){
         this.stopped = true;
-        clearTimeout(this.timer); clearTimeout(this.retry);
+        clearTimeout(this.timer); clearTimeout(this.retry); clearTimeout(this.test_timer);
+        WorktreeWatch.queue.delete(this.id);
         try { this.ws?.terminate(); } catch {}
     }
 
@@ -94,6 +122,12 @@ export default class WorktreeWatch {
     }
 
     changed(paths){
+        const scripts = paths.filter(p => WorktreeWatch.TESTABLE.test(p) && !/(^|\/)node_modules\//.test(p));
+        if (scripts.length){
+            for (const p of scripts) this.test_pending.add(p);
+            clearTimeout(this.test_timer);
+            this.test_timer = setTimeout(() => this.queue_tests(), WorktreeWatch.DEBOUNCE_MS);
+        }
         let any = false;
         for (const p of paths) for (const url of WorktreeWatch.pages_for(p, this.public)){ this.pending.add(url); any = true; }
         if (!any) return;
@@ -115,6 +149,68 @@ export default class WorktreeWatch {
         } catch (e) { this.note(`worktree-watch: ${this.id} check failed: ${e.message}`); }
         this.running = false;
         if (this.pending.size && !this.stopped){ this.first_at = Date.now(); this.timer = setTimeout(() => this.run(), WorktreeWatch.DEBOUNCE_MS); }
+    }
+
+    /* The changed scripts join this worktree's one waiting run (a new change replaces the old queue entry, keeping its files). */
+    queue_tests(){
+        if (this.stopped) return;
+        const files = new Set([...(WorktreeWatch.queue.get(this.id)?.files ?? []), ...this.test_pending]);
+        this.test_pending.clear();
+        WorktreeWatch.queue.set(this.id, { watch: this, files: [...files] });
+        WorktreeWatch.pump();
+    }
+
+    /* A TestRunner pointed at this worktree. Overridden in the test. */
+    async runner(){
+        if (!this._runner){
+            const R = (await import(WorktreeWatch.runner_url)).default;
+            this._runner = new R(); this._runner.root = this.root;
+            this._runner.results = path.join(path.dirname(this._runner.results), "save-results.jsonl");   // save runs never touch the tracked results.jsonl
+        }
+        return this._runner;
+    }
+
+    /* The tests near the changed scripts (repo-relative paths), one level of imports. Overridden in the test. */
+    async near(urls){
+        const r = await this.runner();
+        if (!this.test_list || Date.now() - this.test_list_at > WorktreeWatch.LIST_MS){ this.test_list = r.find(); this.test_list_at = Date.now(); }
+        return [...new Set(urls.flatMap(u => r.near("public" + u, this.test_list)))].sort();
+    }
+
+    /* Run one test file: { file, ok, tail, timeout } and a trigger "save" line (with this worktree's id) in core/Test/save-results.jsonl. Overridden in the test. */
+    async execute(file){ return (await this.runner()).one(file, "save", { worktree: this.id }); }
+
+    /* The last known result of a test before this run: this worktree's own last save line, else dev's latest line in results.jsonl, else undefined (unknown, so quiet). */
+    async prior(file){
+        if (this.test_state.has(file)) return this.test_state.get(file);
+        const save = (await this.runner()).results;
+        const last = (f, keep) => {
+            let text = ""; try { text = fs.readFileSync(f, "utf8"); } catch {}
+            let was;
+            for (const l of text.split(/\r?\n/)) if (l.includes(file)) try { const e = JSON.parse(l); if (e.file === file && !e.timeout && keep(e)) was = e.ok; } catch {}
+            return was;
+        };
+        return last(save, e => e.worktree === this.id) ?? last(path.join(path.dirname(save), "results.jsonl"), e => !e.sha);
+    }
+
+    /* Run the near tests one after another (one slot of the shared queue); tell the holder only about a change. */
+    async test_job(urls){
+        this.testing = true;
+        try {
+            const files = await this.near(urls);
+            for (const file of files){
+                if (this.stopped) break;
+                const was = await this.prior(file);
+                const res = await this.execute(file);
+                if (res.timeout){ this.note(`worktree-watch: ${file} timed out (${this.id}); no result`); continue; }
+                this.test_state.set(file, res.ok);
+                if (!res.ok && was !== false){
+                    const line = `worktree-watch: test ${file} ${was === true ? "was passing and now fails" : "fails (no earlier result)"}: ${WorktreeWatch.first_failure(res.tail)} (${this.id})`;
+                    this.note(line, true);
+                    if (was === true && this.owner && this.send) try { this.send(this.owner, line); } catch (e) { this.note(`worktree-watch: could not reach ${this.owner}: ${e.message}`, true); }
+                } else if (res.ok && was === false) this.note(`worktree-watch: test ${file} passes again (${this.id})`, true);
+            }
+        } finally { this.testing = false; }
     }
 
     /* urls -> Map(url -> { res: layout.json, dir: where its pngs are }). Overridden in the test. */

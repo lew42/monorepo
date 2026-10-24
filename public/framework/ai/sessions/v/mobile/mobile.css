@@ -1,6 +1,7 @@
 @layer site {
 	/* the ground: light grey, white cards (sessions/doc/mobile-cards.md). Cards have no padding of their own; head and rows pad themselves. */
-	.mob-page { background: #eef0f2; --mob-green: #2e9e5b; --mob-amber: #e0a100; --mob-red: #d6453d; --mob-grey: #b5bac0; --mob-line: #eceef0; }
+	.mob-page, .sov, .sov-stats { --mob-green: #2e9e5b; --mob-amber: #e0a100; --mob-red: #d6453d; --mob-grey: #b5bac0; --mob-line: #eceef0; }
+	.mob-page { background: #eef0f2; }
 	.mob-day, .mob-all, .mob-session, .mob-task { display: flex; flex-direction: column; max-width: 40rem; margin-inline: auto; padding-block: 1px; }
 	.mob-page .page-column-prose { padding-inline: 0; }   /* the page column pads; the cards carry their own 8 px margin */
 	.mob-card { background: #fff; margin: 8px; border-radius: 4px; overflow: hidden; }
@@ -9,7 +10,7 @@
 	summary.mob-card-head { cursor: pointer; list-style: none; background: none; border: 0; border-bottom: 1px solid var(--mob-line); border-radius: 0; width: auto; }
 	summary.mob-card-head::-webkit-details-marker { display: none; }
 	.mob-fold:not([open]) > summary { border-bottom: 0; }
-	.mob-count { color: #6b7178; background: #f1f2f4; border-radius: 99px; padding: 0 .55em; font-size: .8em; }
+	.mob-count { color: #6b7178; background: #f1f2f4; border-radius: 99px; padding: .15em .55em; font-size: .8em; }
 	.mob-group-icon { font-size: 1.2em; color: var(--mob-grey); }
 	.mob-group-needs .mob-group-icon { color: var(--mob-red); }
 	.mob-group-running .mob-group-icon { color: var(--mob-amber); }

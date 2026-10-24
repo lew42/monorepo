@@ -9,6 +9,7 @@ import PageInbox from "./PageInbox.js";
 import PageChildren from "./Children.js";
 import PageLogReader from "./Reader.js";
 import PageListing from "./Listing.js";
+import PageLoad from "./Load.js";
 import PagePrefs from "./Prefs.js";
 import PageRelated from "./Related.js";
 import PagePreviews from "./Previews.js";
@@ -22,7 +23,7 @@ import PageContent from "./PageContent.js";
 View.stylesheet(import.meta, "Page.css");
 
 // ⚠ Localhost only, the gate dev/Socket keeps: nothing below may ship behaviour.
-const dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
+const dev = PageLogReader.dev;   // one localhost test, in Reader.js
 const marked = el => el?.matches(".page.active-page, .page.active-ancestor, .page.default");
 
 const ALIAS = { surface: "card", wash: "tint" };
@@ -40,7 +41,7 @@ export class Page extends Item {
 	constructor(...args){
 		super(...args);
 		this.hoist_content();
-		this.assign(...args);
+		this.build_assign(...args);   // again, so args win over Page's own class fields; build_assign: no set(), no line
 		if (!this.data || typeof this.data !== "object" || Array.isArray(this.data)) this.data = Object.create(null);
 		Page.track(this);
 		this.naming();
@@ -50,6 +51,13 @@ export class Page extends Item {
 	}
 
 	assign(...args){ return Object.assign(this, ...args); }
+
+	// Page.replay(lines) in node (the item tool, Page.test.mjs): the lines are only being REPLAYED, so a `file` line records itself and imports nothing.
+	static replay_new(lines){
+		const page = new this();
+		page.store = { replaying: true };
+		return page;
+	}
 
 	log_label(){ return `page{${this.url ?? "…"}}`; }
 
@@ -82,6 +90,14 @@ export class Page extends Item {
 	// ════ CONTENT — (doc/content.md) ═══
 	get content(){ return this._content ??= new this.constructor.Content({ owner: this, name: "content" }); }
 	set content(value){ this.content.fill(value); }
+
+	// The helpers (Jsonl, Columns, Previews, Links, Related, Prefs) are made once per page, on first use. (doc/architecture.md)
+	// ⚠ Own map, not an inherited one: a Template.clone() reads through to its template and must build its own.
+	_helper(name){
+		const made = Object.hasOwn(this, "_helpers") ? this._helpers : (this._helpers = new Map());
+		if (!made.has(name)) made.set(name, new this.constructor[name]({ page: this }));
+		return made.get(name);
+	}
 
 	hoist_content(){
 		const own = Object.getOwnPropertyDescriptor(this, "content");
@@ -133,17 +149,17 @@ export class Page extends Item {
 	}
 
 	// ════ PAGE.JSONL HOOKS (Jsonl.js, doc/jsonl.md) ═══
-	file(name){ return new this.constructor.Jsonl({ page: this }).file(name); }
-	gone(yes){ return new this.constructor.Jsonl({ page: this }).gone(yes); }
-	child_file(entry){ return new this.constructor.Jsonl({ page: this }).child_file(entry); }
-	link_child(name){ return new this.constructor.Jsonl({ page: this }).link_child(name); }
-	unlink_child(key){ return new this.constructor.Jsonl({ page: this }).unlink_child(key); }
-	tab(obj){ return new this.constructor.Jsonl({ page: this }).tab(obj); }
+	file(name){ return this._helper("Jsonl").file(name); }
+	gone(yes){ return this._helper("Jsonl").gone(yes); }
+	child_file(entry){ return this._helper("Jsonl").child_file(entry); }
+	link_child(name){ return this._helper("Jsonl").link_child(name); }
+	unlink_child(key){ return this._helper("Jsonl").unlink_child(key); }
+	tab(obj){ return this._helper("Jsonl").tab(obj); }
 
 	static WORDS = ["navigation", "width", "arrangement", "surface", "background", "type_size"];
 
-	take_words(obj){ return new this.constructor.Jsonl({ page: this }).take_words(obj); }
-	overlay(line){ return new this.constructor.Jsonl({ page: this }).overlay(line); }
+	take_words(obj){ return this._helper("Jsonl").take_words(obj); }
+	overlay(line){ return this._helper("Jsonl").overlay(line); }
 
 	reshape(){
 		if (!this.view || this._reshaping) return;
@@ -176,63 +192,38 @@ export class Page extends Item {
 		return this;
 	}
 
-	tab_state(name){ return new this.constructor.Jsonl({ page: this }).tab_state(name); }
-	tab_visible(name){ return new this.constructor.Jsonl({ page: this }).tab_visible(name); }
-	nav_ready(name){ return new this.constructor.Jsonl({ page: this }).nav_ready(name); }
-	tab_order(name){ return new this.constructor.Jsonl({ page: this }).tab_order(name); }
+	tab_state(name){ return this._helper("Jsonl").tab_state(name); }
+	tab_visible(name){ return this._helper("Jsonl").tab_visible(name); }
+	nav_ready(name){ return this._helper("Jsonl").nav_ready(name); }
+	tab_order(name){ return this._helper("Jsonl").tab_order(name); }
 
-	place(value){ return new this.constructor.Jsonl({ page: this }).place(value); }
-	log_view(){ return new this.constructor.Jsonl({ page: this }).log_view(); }
-	draw_folder(){ return new this.constructor.Jsonl({ page: this }).draw_folder(); }
-	log_draw(){ return new this.constructor.Jsonl({ page: this }).log_draw(); }
-	log_folder(){ return new this.constructor.Jsonl({ page: this }).log_folder(); }
-	log_redraw(){ return new this.constructor.Jsonl({ page: this }).log_redraw(); }
-	draw_placed(entry){ return new this.constructor.Jsonl({ page: this }).draw_placed(entry); }
-	draw_md(url){ return new this.constructor.Jsonl({ page: this }).draw_md(url); }
-	draw_module(url, data){ return new this.constructor.Jsonl({ page: this }).draw_module(url, data); }
-	listing(){ return new this.constructor.Jsonl({ page: this }).listing(); }
+	place(value){ return this._helper("Jsonl").place(value); }
+	log_view(){ return this._helper("Jsonl").log_view(); }
+	draw_folder(){ return this._helper("Jsonl").draw_folder(); }
+	log_draw(){ return this._helper("Jsonl").log_draw(); }
+	log_folder(){ return this._helper("Jsonl").log_folder(); }
+	log_redraw(){ return this._helper("Jsonl").log_redraw(); }
+	draw_placed(entry){ return this._helper("Jsonl").draw_placed(entry); }
+	draw_md(url){ return this._helper("Jsonl").draw_md(url); }
+	draw_module(url, data){ return this._helper("Jsonl").draw_module(url, data); }
+	listing(){ return this._helper("Jsonl").listing(); }
 
 	// Every `data` key that is not a declared field. (doc/decisions.md)
 	get unknown(){ return Object.keys(this.data).filter(key => !this.constructor.fields.includes(key)); }
 
-	report_unknown(){ return new this.constructor.Jsonl({ page: this }).report_unknown(); }
-	log_forget(){ return new this.constructor.Jsonl({ page: this }).log_forget(); }
+	report_unknown(){ return this._helper("Jsonl").report_unknown(); }
+	log_forget(){ return this._helper("Jsonl").log_forget(); }
 
 	static jsonl(url){ return this.Jsonl.load(this, url); }
 
 	// A folder's own file list: a loaded page's lines, else files.jsonl, else page.jsonl, else null. Memoised per folder. (doc/decisions.md)
-	static listing(url, fresh){
-		url = String(url).replace(/\/?$/, "/");
-		if (Page.UNLOGGED.test(url)) return Promise.resolve(null);
-
-		const own = Page.page_listing(url);
-		if (own) return Promise.resolve(own);
-
-		const memo = Page.listings ??= new Map();
-		if (fresh || !memo.has(url)) memo.set(url, Page.fetch_listing(url)
-			.then(listing => { (Page.loaded_listings ??= new Map()).set(url, listing); return listing; }));
-		return memo.get(url);
-	}
+	static listing(url, fresh){ return Page.Listing.listing(Page, url, fresh); }
 
 	// The two files, in the order the parent's listing suggests; the first one there wins.
-	static async fetch_listing(url){
-		const [, parent, name] = url.match(/^(.*\/)([^/]+)\/$/) ?? [];
-		const jsonl_first = parent && Page.loaded_listing(parent)?.pages.get(name) === "jsonl";
-		const order = jsonl_first ? ["page.jsonl", "files.jsonl"] : ["files.jsonl", "page.jsonl"];
-
-		for (const file of order){
-			const reader = await new Page.Reader({ url: url + file }).load();
-			if (reader.loaded) return Page.Listing.from(reader.entries, file === "page.jsonl" ? undefined : false, file);
-		}
-		return null;
-	}
+	static fetch_listing(url){ return Page.Listing.fetch_listing(Page, url); }
 
 	// A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
-	static page_listing(url){
-		const page = Page.log_pages?.get(url);
-		if (!page) return null;
-		return Page.Listing.from([...page.listed?.values() ?? []].map(file => ({ file })), true, "page.jsonl");
-	}
+	static page_listing(url){ return Page.Listing.page_listing(Page, url); }
 
 	// ⚠ Folders inside a dated task folder get no log (PageFiles.js covers()): answer null at once. (doc/watch-out.md)
 	static UNLOGGED = /^\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/[^/]+\//;
@@ -240,10 +231,7 @@ export class Page extends Item {
 	// The listing, only if it is already here — a loaded jsonl page, or a `listing()`
 	// call that has come back; never fetches.
 	// undefined = not asked yet, null = asked, no file list.
-	static loaded_listing(url){
-		url = String(url).replace(/\/?$/, "/");
-		return Page.page_listing(url) ?? Page.loaded_listings?.get(url);
-	}
+	static loaded_listing(url){ return Page.Listing.loaded_listing(Page, url); }
 
 	static log_class(module, url){ return this.Jsonl.log_class(this, module, url); }
 
@@ -398,10 +386,29 @@ export class Page extends Item {
 		const doc = md && await this.child_md(name, levels);
 		if (doc) return doc;
 
+		const readme = !kind && await this.child_readme(name, listing, levels);   // the listing shows no page.js, so it is not probed (a 404)
+		if (readme) return readme;
+
 		const page = await Page.load(this.url + name + "/", 0);
 		if (page) return this.add(name, page).load_all_children(levels);
 
 		return md ? null : this.child_md(name, levels);
+	}
+
+	// A folder with no page.js or page.jsonl but its own readme.md opens as a page showing that readme (doc/subpages.md). Only a folder the parent's listing knows is asked.
+	async child_readme(name, listing, levels){
+		if (!listing?.folder(name)) return null;
+
+		const url = this.url + name + "/", own = await Page.listing(url);
+		if (!own?.files.includes("readme.md")) return null;
+
+		const file = await Page.file(url + "readme.md");
+		if (!file) return null;
+
+		const label = file.title?.split(/\s+[—–]\s+/)[0].replaceAll("`", "") || name;   // the sidebar gets "Events", not the readme's whole first heading
+		const more = own.dirs.includes("doc") || own.files.some(f => f.endsWith(".md") && f !== "readme.md");   // its other .md files get one link to the Markdown Explorer, since a plain Page has no md tab
+		const content = more ? () => file.content().then(doc => doc && doc.append(() => { p.c("muted").append(() => { a("Every .md file in this folder").href(url + "md/"); }); })) : file.content;
+		return this.add(name, { ...file, content, label, folder: url }).load_all_children(levels);
 	}
 
 	// ⚠ Imported on first use, like md_folder: core/Task imports Page.
@@ -439,10 +446,10 @@ export class Page extends Item {
 
 	md_dir(){ return this.folder ?? this.url; }
 
-	open_link(link){ return new this.constructor.Links({ page: this }).open(link); }
-	swap_link(link){ return new this.constructor.Links({ page: this }).swap(link); }
-	swap_url(file){ return new this.constructor.Links({ page: this }).swap_url(file); }
-	md_files(names){ return new this.constructor.Links({ page: this }).files(names); }
+	open_link(link){ return this._helper("Links").open(link); }
+	swap_link(link){ return this._helper("Links").swap(link); }
+	swap_url(file){ return this._helper("Links").swap_url(file); }
+	md_files(names){ return this._helper("Links").files(names); }
 	static md_page(file){ return this.Links.md_page(file); }
 	static md_file(link){ return this.Links.md_file(link); }
 	static md_url(file){ return this.Links.md_url(file); }
@@ -453,74 +460,21 @@ export class Page extends Item {
 	}
 
 	// Last resort: a `.md` beside me IS a page. ⚠ The SPA fallback answers a miss with index.html at 200: content-type is the 404. (doc/watch-out.md)
-	static async file(url){
-		const res = await fetch(url).catch(() => null);
-		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
-
-		const text = await res.text();
-		const { default: md } = await import("../../ext/markdown/md.js");
-		const href = new URL(url, location.origin).href;
-
-		md.cache[href] ??= Promise.resolve(text);
-
-		return {
-			title: text.match(/^#\s+(.+?)\s*$/m)?.[1],
-			content(){ return md.file({ url: href }, href, { h1: false }); },
-		};
-	}
+	static file(url){ return Page.Load.file(Page, url); }
 
 	// A module that throws is NOT a module that isn't there. ⚠ `levels` bounds its subtree (nothing = its own `depth`). (doc/watch-out.md)
-	static async load(url, levels){
-		try {
-			const page = (await import(url + "page.js")).default ?? null;
-			return page instanceof Page ? page.load_all_children(levels) : page;
-		}
-		catch (error){
-			if (!Page.missing(error))
-				console.error(`Page.load("${url}page.js") — the file EXISTS but failed to load:`, error);
-			return null;
-		}
-	}
+	static load(url, levels){ return Page.Load.load(Page, url, levels); }
 
 	// ⚠ The SPA fallback answers a miss with index.html at 200: content-type is the 404. `opts` goes to fetch. (doc/decisions.md)
-	static async read_json(url, opts){
-		const res = await fetch(url, opts).catch(() => null);
-		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
-		return res.json().catch(() => null);
-	}
+	static read_json(url, opts){ return Page.Load.read_json(Page, url, opts); }
 
-	static async from(source, adopt){
-		const url  = is.str(source) ? source.replace(/\/?$/, "/") : null;
-		const data = url ? await this.read_json(url + "page.json") : source;
-		if (!data) return null;
+	static from(source, adopt){ return this.Load.from(this, source, adopt); }
 
-		const page = new this({ url, ...this.props(data, data.mode ?? {}) }, adopt);
+	static props(data, mode){ return Page.Load.props(Page, data, mode); }
 
-		for (const name of data.children ?? [])
-			page.add(name, (url && await this.from(url + name + "/")) ?? { title: name });
+	static missing(error){ return Page.Load.missing(Page, error); }
 
-		return page;
-	}
-
-	static props(data, mode){
-		return {
-			title: data.title, icon: data.icon, description: data.description,
-			navigation: mode.navigation, arrangement: mode.arrangement,
-			surface: mode.surface, background: mode.background,
-			type_size: mode.type,
-			width: mode.room ?? mode.width,
-			content: mode.content,
-		};
-	}
-
-	static missing(error){
-		return /Failed to fetch dynamically imported module|error loading dynamically imported module|MIME type|Expected a JavaScript/i
-			.test(error?.message ?? "");
-	}
-
-	static slug(title){
-		return String(title).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-	}
+	static slug(title){ return Page.Load.slug(Page, title); }
 
 	container(){
 		const mine = this.parent?.regions?.get(this.name);
@@ -659,7 +613,7 @@ export class Page extends Item {
 	}
 
 	// ════ RELATED ═══
-	related_aside(){ return new this.constructor.Related({ page: this }).aside(); }
+	related_aside(){ return this._helper("Related").aside(); }
 
 	// ════ COLUMNS ═══
 	columns({ even = false, fit = "floor" } = {}){ this.columnar = true; this.column_even = even; this.column_fit = fit; return this; }
@@ -668,22 +622,23 @@ export class Page extends Item {
 
 	// Asked at render time, never walked. ⚠ A page under a tab strip is a tab, not a column. (doc/decisions.md)
 	column_host(){
-		const chain = this.chain(), at = chain.findIndex(page => page.columnar);
+		// `navigation: "columns"` is the word for calling `columns()`: the first time a render asks, it does.
+		const chain = this.chain(), at = chain.findIndex(page => page.columnar || page.navigation === "columns" && page.columns().columnar);
 		if (at < 0 || chain.slice(at, -1).some(page => page.navigation === "tabs")) return undefined;
 		return chain[at];
 	}
 
-	render_column(host){ return new this.constructor.Columns({ page: this }).render(host); }
-	column(host){ return new this.constructor.Columns({ page: this }).body(host); }
-	default_column(){ return new this.constructor.Columns({ page: this }).default(); }
-	column_grab($body){ return new this.constructor.Columns({ page: this }).grab($body); }
-	resize_column($body, px){ return new this.constructor.Columns({ page: this }).resize($body, px); }
+	render_column(host){ return this._helper("Columns").render(host); }
+	column(host){ return this._helper("Columns").body(host); }
+	default_column(){ return this._helper("Columns").default(); }
+	column_grab($body){ return this._helper("Columns").grab($body); }
+	resize_column($body, px){ return this._helper("Columns").resize($body, px); }
 	static even_columns(row, fit){ return this.Columns.even(row, fit); }
-	even_columns(){ return new this.constructor.Columns({ page: this }).even(); }
-	settle_columns(slide){ return new this.constructor.Columns({ page: this }).settle(slide); }
-	column_slide(){ return new this.constructor.Columns({ page: this }).slide(); }
-	reveal_column(page){ return new this.constructor.Columns({ page: this }).reveal(page); }
-	scroll_column(slide){ return new this.constructor.Columns({ page: this }).scroll(slide); }
+	even_columns(){ return this._helper("Columns").even(); }
+	settle_columns(slide){ return this._helper("Columns").settle(slide); }
+	column_slide(){ return this._helper("Columns").slide(); }
+	reveal_column(page){ return this._helper("Columns").reveal(page); }
+	scroll_column(slide){ return this._helper("Columns").scroll(slide); }
 
 	nav(){ return { url: this.url, label: this.label ?? this.title, icon: this.icon, card: this.card, description: this.description }; }
 
@@ -694,14 +649,14 @@ export class Page extends Item {
 	}
 
 	// ════ PREVIEWS ═══
-	previews(pages, opts){ return new this.constructor.Previews({ page: this }).list(pages, opts); }
-	walls(){ return new this.constructor.Previews({ page: this }).walls(); }
-	wall_rungs(){ return new this.constructor.Previews({ page: this }).rungs(); }
+	previews(pages, opts){ return this._helper("Previews").list(pages, opts); }
+	walls(){ return this._helper("Previews").walls(); }
+	wall_rungs(){ return this._helper("Previews").rungs(); }
 
 	preview(nav){ return this.preview_card(nav); }
-	preview_card(nav = this.nav(), thumb){ return new this.constructor.Previews({ page: this }).card(nav, thumb); }
-	preview_thumb(thumb){ return new this.constructor.Previews({ page: this }).thumb(thumb); }
-	preview_link(nav){ return new this.constructor.Previews({ page: this }).link(nav); }
+	preview_card(nav = this.nav(), thumb){ return this._helper("Previews").card(nav, thumb); }
+	preview_thumb(thumb){ return this._helper("Previews").thumb(thumb); }
+	preview_link(nav){ return this._helper("Previews").link(nav); }
 
 	depth = 2;
 	loaded = 0;
@@ -720,7 +675,7 @@ export class Page extends Item {
 		return this;
 	}
 
-	prefs(){ return new this.constructor.Prefs({ page: this }); }
+	prefs(){ return this._helper("Prefs"); }
 }
 
 // The box the six page words open. ⚠ `PageFrame`, never `Frame`/`Stage`: View.classify() mints a CSS class from the name. (doc/watch-out.md)
@@ -730,6 +685,7 @@ Item.register(Page, "Page");
 
 Page.Reader = PageLogReader;
 Page.Listing = PageListing;
+Page.Load = PageLoad;
 Page.Prefs = PagePrefs;
 Page.Jsonl = PageJsonl;
 Page.Content = PageContent;

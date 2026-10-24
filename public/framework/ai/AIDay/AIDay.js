@@ -52,12 +52,15 @@ export default class AIDay extends View {
 	}
 
 	// ── data ─────────────────────────────────────────────────────────────
+	/** Two asks: tasks that landed this day from any folder (most work lands in an older session's folder), then this day's folders.
+	 *  The folder-day ask goes last because the server pushes changed rows for the client's last query only. */
 	async ask(){
-		const res = await this.client.ask({ where: [{ field: "day", op: "eq", value: this.day }], limit: 1000 }, { timeout: 20000 });
+		const ask = field => this.client.ask({ where: [{ field, op: "eq", value: this.day }], limit: 1000 }, { timeout: 20000 });
+		const landed = await ask("landed_day"), res = await ask("day");
 		this.loading = false;
 		if (res.error) { this.error = res.error; return this.paint(); }
 		this.error = "";
-		this.rows = new Map(res.rows.map(r => [r.id, r]));
+		this.rows = new Map([...(landed.rows ?? []), ...res.rows].map(r => [r.id, r]));
 		this.paint();
 	}
 
@@ -66,7 +69,7 @@ export default class AIDay extends View {
 	/** A row's path inside its day folder: "session-ab/task/sub". */
 	rel(r){ return r.dir.match(AIDay.STORE)?.[1] ?? r.slug; }
 
-	/** Roots are the day's session folders; a task nests under its nearest ancestor row, else directly under its session (made up when the session has no row). */
+	/** Roots are sessions; a task nests under its nearest ancestor row, else directly under its session (made up when the session has no row, linked to its own dated folder). */
 	tree(){
 		const nodes = [...this.rows.values()].map(r => ({ r, rel: this.rel(r), kids: [] })), by = new Map(nodes.map(n => [n.rel, n])), roots = new Set();
 		for (const n of nodes){
@@ -75,7 +78,7 @@ export default class AIDay extends View {
 			if (up.length) { by.get(up.join("/")).kids.push(n); continue; }
 			const top = n.rel.split("/")[0];
 			if (top === n.rel) roots.add(n);
-			else { if (!by.has(top)) by.set(top, { r: null, rel: top, kids: [] }); by.get(top).kids.push(n); roots.add(by.get(top)); }
+			else { if (!by.has(top)) by.set(top, { r: null, rel: top, kids: [], day: n.r.day, url: n.r.url.slice(0, n.r.url.indexOf("/" + top + "/") + top.length + 2) }); by.get(top).kids.push(n); roots.add(by.get(top)); }
 		}
 		return [...roots];
 	}
@@ -109,7 +112,9 @@ export default class AIDay extends View {
 		AIDay.walk(s.kids, n => AIDay.done(n) ? landed++ : open++);
 		div.c("aid-session", () => {
 			div.c("aid-shead", () => {
-				a.c("aid-sname", s.r?.title || s.r?.agent || s.rel).href(s.r?.url ?? `/framework/ai/sessions/${this.day.replaceAll("-", "/")}/${s.rel}/`);
+				a.c("aid-sname", s.r?.title || s.r?.agent || s.rel).href(s.r?.url ?? s.url ?? `/framework/ai/sessions/${this.day.replaceAll("-", "/")}/${s.rel}/`);
+				const day = s.r?.day ?? s.day;
+				if (day && day !== this.day) span.c("aid-from", "started " + day);
 				span.c("aid-sum", `${landed} ✅ · ${open} ⬜`);
 			});
 			this.level(s.kids);
