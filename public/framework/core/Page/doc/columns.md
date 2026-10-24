@@ -170,21 +170,23 @@ spent months removing. It also costs a number — `34cqi`, "about a third of the
 the shipped tuning does not need, because the shipped one reuses the recommendation already
 in the file.
 
-> **Hosts that must fill a wide screen use even columns.**
+> **Even is the default; a host that wants the elastic mode says `this.columns({ even: false })`.**
 
-That is the whole of the trade. The elastic mode now optimises for one thing — an open
-column keeps its reading width — and a host that would rather spend the whole row says
-`this.columns({ even: true })` and gets N columns that divide the room exactly, with no
-leftover and no scroll until more than N are open. Two modes, one word apart, and neither
-one needs a third number.
+That is the whole of the trade (the default flipped on 2026-10-24, [navigation rule task](/framework/core/Page/tasks/page-mastermind/nav-rule/requirements.md)). `this.columns()` gives N columns that
+divide the room exactly, with no leftover and no scroll until more than N are open. The
+elastic mode (`even: false`) optimises for one other thing — an open column keeps its reading
+width — and leaves the unused row as empty slots. Two modes, one word apart, and neither one
+needs a third number.
 
 ## Even columns — one width, and N is the room's answer
 
 Every column in the row is the **same width**, and how many of them there are is computed
-from the room rather than declared by the page. One option on the opt-in:
+from the room rather than declared by the page. It is the default of `columns()`; the option
+that turns it off:
 
 ```js
-initialize(){ this.columns({ even: true }); }
+initialize(){ this.columns(); }                  // even
+initialize(){ this.columns({ even: false }); }   // elastic: each column keeps its own width
 ```
 
 **Live:** the [Finder](/framework/core/Page/overview/columns/finder/) runs it; the four
