@@ -1,6 +1,7 @@
 import { Page, div, a, p, small } from "/app.js";
 import { AITask } from "/framework/ai/AITask/AITask.js";
 import CardDir from "/framework/ai/cards/CardDir.js";
+import { names } from "/framework/core/Router/listing.js";
 
 /* One folder of the sessions store, routed by its own path: /framework/ai/sessions/2026/10/12/<session>/<task>/.
    Tasks live here since 2026-10-12 (ai/doc/task-folders.md); the flat /framework/ai/sessions/<id>/ session route is untouched.
@@ -126,7 +127,8 @@ export default class StoreFolder extends Page {
 	/** A year lists its months, a month its days (both from the rolled-up index.json, with session counts and cost), a day lists its sessions (the day's index.json snapshots). */
 	sessions(box){
 		const level = this.segs.length, base = this.url, pad = n => String(n).padStart(2, "0");
-		const day_index = fetch(base + "index.json").then(r => r.ok ? r.json() : null, () => null);
+		const listed = names(base);   // not every folder has a rolled-up index.json (2026/08 has none): ask only when the listing shows one, so no page 404s
+		const day_index = listed && !listed.includes("index.json") ? Promise.resolve(null) : fetch(base + "index.json").then(r => r.ok ? r.json() : null, () => null);
 		const tasks = level < 3 ? StoreFolder.urls() : Promise.resolve([]);
 		Promise.all([day_index, tasks]).then(([ix, urls]) => box.append(() => {
 			if (level === 3){
