@@ -146,7 +146,7 @@ export default class StoreFolder extends Page {
 			for (const k of [...seen].sort().reverse()) div.c("flex gap-50", () => {
 				const row = known?.[k];
 				a().href(base + k + "/").text(level === 1 ? `${this.segs[0]}-${pad(k)}` : `${this.segs[0]}-${this.segs[1]}-${pad(k)}`);
-				small.c("muted", row ? `${row.count} sessions · ${StoreFolder.usd(row.usd ?? 0)}${row.flagged ? " · " + row.flagged + " flagged" : ""}` : "its sessions have no day summary yet; open it to see its tasks");
+				small.c("muted", row ? `${row.count} sessions · ${StoreFolder.usd(row.usd ?? 0)}${row.flagged ? " · " + row.flagged + " flagged" : ""}` : "no summary has been rolled up for it yet");
 			});
 		}));
 	}
