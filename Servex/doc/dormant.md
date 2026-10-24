@@ -12,8 +12,9 @@ for a role that is neither the voice pair nor a one-off worker, is still **3 min
 At most **5 agents work at once**. A new spawn above that waits in the spawn queue until one
 of them ends its turn.
 
-An agent whose context passes **200k tokens**, or whose process passes **500 MB**, is
-**compacted** when its turn ends.
+An agent about to go dormant with more than **100k tokens** of context **compacts first, then
+sleeps**, so it wakes small. Past **400k tokens** or **500 MB** it is compacted when its turn ends,
+whatever happens next. Details: "Compaction", below.
 
 ## The states
 
@@ -120,21 +121,16 @@ of RAM given back this way.
 
 ## Compaction
 
-- At the end of a turn an idle agent past its line (a mastermind 150k, others `SERVEX_NUDGE_TOKENS` 200k) gets ONE
-  nudge message with its context size and whether its cache is warm; it compacts itself (`compact_self`) or not.
-  See `agents/doc/lifecycle.md`, "Compaction".
-- `Agent.oversized()` is only the safety net: past `SERVEX_COMPACT_TOKENS` (400000) or the process memory
-  (`SERVEX_COMPACT_MB`, 500) the agent runs `/compact` as a turn of its own. That turn wakes no parent and keeps
-  the last turn's words.
-- Memory is read every 5 minutes (`Global.measure()`): each claude.exe's working set, matched to
-  its agent by the session id on its command line.
-- Compacted **for memory**, the process is also restarted from the compacted session
-  (checkpoint-and-restart), because a process keeps the heap it grew.
-- **Not compacted:** the front desk. Layers.js restarts a page's assistant and manager fresh
-  from a checkpoint instead ("fresh, not compacted", the owner).
-- Once per turn: a summary still over the line is not compacted again until it has worked more.
-- The context check runs the moment a turn ends, so an agent goes dormant already compacted.
-  The memory check runs every 5 minutes, so it only reaches agents still awake by then.
+All compaction rules and the factors behind them now live in one place: [`public/framework/ai/doc/compaction.md`](../../public/framework/ai/doc/compaction.md). In short:
+
+- **Compact before sleep** (2026-10-23): an agent about to go dormant with more than 100k tokens (or half the
+  window) compacts first, then sleeps, so it wakes small. `Agent.sleep_compact()`, hooked into `Agent.sleep("idle")`;
+  the line can be set per role as `compact_after.sleep`. One warm compaction of 158k cost $0.24 and left 17k.
+- **The nudge:** an idle agent past 150k (mastermind) or 200k gets one message and may `compact_self`.
+- **The ceiling:** past 400k tokens or 500 MB, compacted at turn end; a memory compaction restarts the process.
+- **Left out:** minions, the standing front desk, forks.
+- Memory is read every 5 minutes (`Global.measure()`), each claude.exe matched to its agent by session id.
+- Tests: `node Servex/agents/compact-before-sleep.test.mjs`, `node Servex/agents/compact-nudge.test.mjs`.
 
 ## Proof
 

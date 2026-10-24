@@ -1,0 +1,27 @@
+verdict: pass
+1. [note] The role reminder says "Your full role text is in your system prompt", but `Agent.reminder_text()` (Servex/agents/Agents.js, `reminder_text`) does not check `this.system` or `SERVEX_ROLE_IN_SYSTEM=0`. So an agent with its own `spec.system` (the voice pair, the directory mastermind), or one running with the off switch, is told something that is not true. Fix: return null when `this.system` is set, or reword the line when `role_prompt()` is null.
+2. [note] `role_prompt()` also applies when an agent resumes (`this.resume`). An old session that already has the role readme in its first message now gets it a second time in the system prompt, and its first resume after the restart writes the whole cache cold, because the system prompt changed from `[""]` to the claude_code preset. This is a one-time cost. context-drift.md mentions "a few thousand cached tokens per agent" but does not mention this cold write.
+3. [note] Switching every plain spawn from the empty system prompt to the claude_code preset changes how every Servex agent behaves at once (Claude Code's guidance on tools, git and safety), not only its role text. context-drift.md says so honestly. Watch the first few agents after the restart: the off switch is `SERVEX_ROLE_IN_SYSTEM=0`.
+4. [note] The compaction cost (ask 3) was measured on an older nudge compaction (158k → 17k, $0.24, 61 s), not on one this new hook triggered. Check the first real `compact` line with `why: "sleep"` against it after the restart.
+5. [note] The previous review's note 3 is fixed. `compact_done` now passes the real wait to `mark_slept` (`g.wait_ms?.(this) ?? 0`). Ask 6 ("ready: <branch> <sha>" and "needs restart") is a log step outside the diff, and this review cannot check it. The branch head is 993af2c9d.
+
+## Requirements
+- 1 "over 100k, or 50% of the window, whichever is lower; per role in compact_after; /compact first, then sleep" — yes — `sleep_compact()` takes `Math.min(after.sleep ?? host ?? env ?? 100k, window/2)`. `sleep("idle")` calls it, and `compact_done` (`why === "sleep"`) then sleeps. `MASTERMIND_COMPACT.sleep = 100000` is in roles.js. The test checks it: compact-before-sleep.test.mjs, 23/23 passed when re-run here.
+- 2 "while the cache is still warm" — yes — the compaction runs at the sleep moment. That comes after the default idle wait (3 min, 30 s or 0), which is inside the 5-minute cache life. This is stated in compaction.md.
+- 3 "Measure the cost of one compaction" — yes — $0.24 / 61 s for 158k → 17k, and $0.08 for 57k → 5k (compaction.md). See note 4.
+- 4 "Minions and the standing front desk stay excluded" — yes — `compact_after === null`, the `STANDING` regex and `one_shot` each return false. The tests cover minion, master-assistant, assistant-* and a fork.
+- 5 "Update dormant.md and the compaction doc as conclusions" — yes — dormant.md's top line and its "Compaction" section are rewritten and now point to compaction.md. The owner's 2026-10-16 note has a "current rules" pointer and a ✅ section.
+- 6 "Worktree, test, review, log ready" — partly checked — the work is in a worktree and the tests pass. The ready log is not visible here (note 5).
+- 7 "Role readme in the system prompt: claude_code preset + append; CLAUDE.md unchanged; check resume/compaction" — yes — `Agent.role_prompt()` and `roles.js role_system()` do this, and `settingSources` is untouched. role-system-proof.txt shows a live Haiku run in which the codeword in `append` survived both a resume and a `/compact` (25,885 → 1,334 tokens).
+- 8 "Short role reminder after each compact_boundary and every ~N tokens" — yes — `boundary()` sets `remind_compacted`, and `reminder_due()` steps every 100k (`SERVEX_REMIND_TOKENS`). The reminder is delivered as hook `additionalContext` on UserPromptSubmit or PostToolUse, and is skipped for subagents. It holds the readme path, top rules, headings and skills, up to 1,600 characters. role-system.test.mjs passed 26/26. See note 1.
+- 9 "context-drift.md and a compaction doc: short, complete factor lists, cross-referenced, linked from ai/readme.md, old notes merged" — yes — both are new under public/framework/ai/doc/, link each other, and are linked from ai/readme.md and ai/doc/readme.md. Both are listed in files.jsonl. dormant.md and the owner note now point into them.
+- 10 "Same flow" — yes — the work is in five commits in the worktree, each with its own tests.
+- Class instances page — n/a — no new class. The new code is methods on Agent, whose instances already show on Servex's agent list.
+
+Checked for breakage: the `hooks:` key comes after `...this.sdk` in `options()`, so a spec's own hooks are merged in, not lost (the test checks this). A fork still gets its refusal and no reminder. A second sleep-compaction cannot loop, because `compacted_turn === turns` blocks it. All three test files pass (role-system 26, compact-before-sleep 23, compact-nudge 24).
+
+Simpler way: none clearly better. The sleep hook is one line plus one decision method that mirrors `oversized()`. The system prompt move is the documented SDK way.
+
+## Words
+- Docs are plain, start with a definition, and list the factors as short bullets — yes — compaction.md and context-drift.md each start with a bold definition, then "the rules today" and "complicating factors".
+- No jargon left undefined — yes — terms like "snapshot" and "preserved_messages" are each explained in a few words.

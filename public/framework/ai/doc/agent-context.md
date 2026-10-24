@@ -4,7 +4,7 @@ A map, checked against the code on 2026-10-22; nothing changed. Plan to make it 
 
 ## 1. Roles and starts → what each loads
 
-Columns: **CLAUDE.md** = the SDK loads it (`setting_sources` unset). **Chain** = `first_prompt(dir)` from `readme-chain.js`, whole readmes root to `dir`, only for a fresh spawn with `spec.task.dir` or `spec.page` and no `spec.system` (`Agents.spawn`, `directory_of`). **Role text** = `opening(role, prompt)` in `roles.js` inlines `.claude/skills/<skill>/SKILL.md` before the task.
+Columns: **CLAUDE.md** = the SDK loads it (`setting_sources` unset). **Chain** = `first_prompt(dir)` from `readme-chain.js`, whole readmes root to `dir`, only for a fresh spawn with `spec.task.dir` or `spec.page` and no `spec.system` (`Agents.spawn`, `directory_of`). **Role text** = `opening(role, prompt)` in `roles.js` inlines `.claude/skills/<skill>/SKILL.md` before the task. **Since 2026-10-23** the role text (role readme plus skills) goes into the system prompt instead (`systemPrompt: {preset: "claude_code", append}`, `Agent.role_prompt()`), and the first message only points at it: [context-drift.md](context-drift.md).
 
 | Start | Model | Role text | CLAUDE.md | Chain | Tools | How injected |
 |---|---|---|---|---|---|---|
