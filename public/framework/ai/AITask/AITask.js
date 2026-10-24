@@ -70,6 +70,8 @@ function tab_bar(sections, active){
 
 export class AITask extends Page {
 
+	static listed = new Map();   // folder url -> {names, at}; see has()
+
 	static into(base, ...args){
 		const task = new this({ title: base.split("/").filter(Boolean).at(-1), url: base, src: base + "session.json" }, ...args);
 		task.content();
@@ -85,7 +87,33 @@ export class AITask extends Page {
 		return new AITask({ title: sub, icon: "receipt_long", url: this.url + sub + "/", src: this.url + sub + "/session.json" });
 	}
 
+	// Does this file exist? Asked of the dev server's folder listing — ONE request per folder,
+	// cached a few seconds, and always a 200 — so a missing session.jsonl / task.jsonl /
+	// page.js / requirements.md is never a 404 probe. Off the dev server (no /api/folder-names)
+	// it falls back to a HEAD probe.
 	static has(url){
+		const cut = url.lastIndexOf("/") + 1;
+		const names = AITask.names_in(url.slice(0, cut));
+		return names ? names.includes(url.slice(cut)) : AITask.probe(url);
+	}
+
+	static names_in(dir){
+		if (AITask.no_listing) return null;
+		const hit = AITask.listed.get(dir);
+		if (hit && Date.now() - hit.at < 3000) return hit.names;
+
+		const x = new XMLHttpRequest();
+		x.open("GET", "/api/folder-names?dir=" + encodeURIComponent(dir), false);
+		try { x.send(); } catch { return null; }
+		const json = x.status === 200 && (x.getResponseHeader("content-type") ?? "").includes("json");
+		if (!json) return (AITask.no_listing = true, null);
+
+		const names = JSON.parse(x.responseText).names;
+		AITask.listed.set(dir, { names, at: Date.now() });
+		return names;
+	}
+
+	static probe(url){
 		const x = new XMLHttpRequest();
 		x.open("HEAD", url, false);
 		try { x.send(); } catch { return false; }
@@ -101,7 +129,10 @@ export class AITask extends Page {
 	}
 
 	async session(){
-		const t = new TaskJSONL({ url: this.base() + "task.jsonl" });
+		// The record is session.jsonl or task.jsonl, mixed per folder: name the one that is there,
+		// so Store.record_url never HEADs the wrong one (a 404). Neither yet: task.jsonl, as before.
+		const record = AITask.has(this.base() + "session.jsonl") ? "session.jsonl" : "task.jsonl";
+		const t = new TaskJSONL({ url: this.base() + record });
 		// Keep the parsed lines the stream already read, so this.task replays them without a second fetch.
 		const read = t.read.bind(t), reset = t.reset.bind(t);
 		t.read = entries => { (t.entries ??= []).push(...entries); this.task = Task.replay(t.entries); return read(entries); };
@@ -130,6 +161,7 @@ export class AITask extends Page {
 
 	async requirements(){
 		if (Array.isArray(this.known_files) && !this.known_files.includes("requirements.md")) return null;
+		if (AITask.names_in(this.base()) && !AITask.has(this.base() + "requirements.md")) return null;
 		const res = await fetch(this.base() + "requirements.md").catch(() => null);
 		return res?.ok && !res.headers.get("content-type")?.includes("html") ? res.text() : null;
 	}
