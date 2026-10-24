@@ -154,7 +154,7 @@ Ranked for one outcome: a page, data and streaming system that is rock solid. Ea
 | 3 | **The item tool's holes** (gaps 3, 4 and 6) | One checked write path, and the failing test passes. | S–M |
 | 4 | **(a) Typed content:** `part-view`, `part-file`, unknown types refused | Nearly free after step 2, because the class itself does the refusing. | S |
 | 5 | **Navigation:** the rule written down, even columns as the default, expand kept for things that are not pages, the two `navigation` words fixed | This is what you see most. It touches other files (`Columns.js`, `Page.css`, `words.js`), so it can run beside steps 1–3 in its own worktree. | M |
-| 6 | **(b) A folder with only a readme opens as a page** | Small, and it uses step 4's `part-file`. | S |
+| 6 | **(b) A folder with only a readme opens as a page** | Small, and it uses step 4's `part-file`. **Landed 2026-10-24:** [doc/subpages.md](/framework/core/Page/doc/subpages.md), e.g. [/framework/core/Events/](/framework/core/Events/). | S |
 | 7 | **(c) A narrower Page** | It moves the most code, so it goes last, protected by the tests from step 1. Step 3 of (c) renames the forwarders' callers, which is major surgery under CLAUDE.md. | L |
 | beside each step | **Archive the dated docs in `core/Page/doc/`** | Scripted, with a manifest, and nothing deleted. | S |
 

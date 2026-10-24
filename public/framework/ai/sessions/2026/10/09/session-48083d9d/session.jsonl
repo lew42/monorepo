@@ -3,3 +3,4 @@
 {"task":"/framework/ai/sessions/2026/10/09/session-48083d9d/refine-session-log/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.186Z"}
 {"task":"/framework/ai/sessions/2026/10/09/session-48083d9d/refine-style/","by":"SessionRecord --links","ts":"2026-10-23T05:00:37.219Z"}
 {"task":"/framework/ai/sessions/2026/10/09/session-48083d9d/tag-notes/","by":"SessionRecord --links","ts":"2026-10-23T05:00:37.220Z"}
+{"stop":{"at":"2026-10-24T00:03:52-05:00","why":"abandoned: no agent since 2026-10-23T05:00:37.220Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}

@@ -1,2 +1,3 @@
 {"session":{"id":"d399581f-3749-4794-915f-2c42fbc4e03e","kind":"vscode-tab","at":"2026-10-23T02:29:36.259Z"},"by":"SessionRecord --links"}
 {"task":"/framework/ai/sessions/2026/10/12/session-d399581f/refine-asks/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.259Z"}
+{"stop":{"at":"2026-10-24T00:04:00-05:00","why":"abandoned: no agent since 2026-10-23T02:29:36.259Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}
