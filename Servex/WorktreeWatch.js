@@ -54,7 +54,7 @@ export default class WorktreeWatch {
     /* A changed url-path ("/framework/x/page.js") -> the page urls it could break, own page first. Same rule as Server/health.mjs. */
     static pages_for(url_path, public_dir){
         if (!WorktreeWatch.TEMPLATE.test(url_path)) return [];
-        if (/(^|\/)\.[^/]/.test(url_path)) return [];   // a dot-folder is a test fixture or scratch, never a page
+        if (/(^|\/)\.[^/]/.test(url_path) || /(^|\/)[^/]+-test-\d+(\/|$)/.test(url_path)) return [];   // a dot-folder or a "<name>-test-<pid>" folder is a test fixture, never a page
         let dir = path.dirname(path.join(public_dir, url_path));
         let own = null;
         while (dir === public_dir || dir.startsWith(public_dir + path.sep)){
