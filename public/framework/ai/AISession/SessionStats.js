@@ -2,6 +2,7 @@ import View, { div, span, small, strong } from "/framework/core/View/View.js";
 import TaskView from "/framework/core/Task/TaskView.js";
 import Task from "/framework/core/Task/Task.js";
 import SessionWork from "./SessionWork.js";
+import AICost from "/framework/ai/AITask/AICost.js";
 
 View.stylesheet(import.meta, "SessionOverview.css");
 
@@ -21,14 +22,28 @@ export default class SessionStats extends View {
 		this.ready.then(work => this.draw(work));
 	}
 
+	/** The session's total cost, from the item tool's `summary` (the same answer, and the same cache, as the Report tab's AICost.report):
+	 *  one computation of a session's cost for every surface. SessionWork's own sum adds the day snapshots' older, inflated `usd`. */
+	static cost($v, base){
+		const hit = AICost.known.get(base);
+		const got = hit && Date.now() - hit.at <= AICost.STALE_MS ? Promise.resolve(hit.answer)
+			: AICost.ask(base).then(answer => (AICost.known.set(base, { at: Date.now(), answer }), answer));
+		got.then(({ summary, why }) => {
+			const total = summary?.cost?.total;
+			if (total != null) $v.text(AICost.money(total));
+			else { $v.text("not known"); $v.attr("title", why ?? "Servex gave no total for this session."); }
+		});
+	}
+
 	draw(work){
 		const { tree } = work;
 		if (!tree) return void (this.el.hidden = true);
-		const root = tree.root, part = SessionWork.split(root), rolled = work.figures(root).rolled;
+		const root = tree.root, part = SessionWork.split(root);
 		const { done, total } = Task.progress_of(part.counted);
 		this.empty(() => {
 			div.c("sov-stat-row", () => {
-				for (const [label, value] of [["Cost", "$" + rolled.toFixed(2)], ["Model", tree.snap?.model ?? "—"], ["Running for", SessionStats.elapsed(root.ms())], ["Done", total ? `${done} of ${total}` : "no tasks"]])
+				div.c("sov-stat", () => { small.c("sov-k", "Cost"); SessionStats.cost(strong.c("sov-v", "…"), work.dir); });
+				for (const [label, value] of [["Model", tree.snap?.model ?? "—"], ["Running for", SessionStats.elapsed(root.ms())], ["Done", total ? `${done} of ${total}` : "no tasks"]])
 					div.c("sov-stat", () => { small.c("sov-k", label); strong.c("sov-v", value); });
 			});
 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));
