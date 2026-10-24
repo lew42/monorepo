@@ -48,12 +48,13 @@ export default class TaskQueue {
 			big: pl.big ?? null, importance, re_asks: re, est_usd: est.usd, est_basis: est.basis, spent_usd: t.usd || 0,
 			score: TaskQueue.score({ importance, re_asks: re, est_usd: est.usd }),
 			state: t.state === "running" ? "running" : (wait && !approved ? "waiting" : "queued"),
+			born: lines.find(l => l.ts)?.ts ?? "",
 			agent: t.agent || (first.sessions?.[0]?.id ?? null),
 		};
 	}
 
-	/** The queue: every open task with a priority, ranked best first, `rank` 1..n. */
+	/** The queue: every open task with a priority, ranked best first (equal scores: the oldest task first), `rank` 1..n. */
 	static build(open, ctx){
-		return open.map(t => TaskQueue.row(t, ctx)).filter(Boolean).sort((a, b) => b.score - a.score).map((r, i) => ({ ...r, rank: i + 1 }));
+		return open.map(t => TaskQueue.row(t, ctx)).filter(Boolean).sort((a, b) => b.score - a.score || a.born.localeCompare(b.born)).map((r, i) => ({ ...r, rank: i + 1 }));
 	}
 }
