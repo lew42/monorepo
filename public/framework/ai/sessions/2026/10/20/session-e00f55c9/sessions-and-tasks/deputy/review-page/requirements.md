@@ -1,5 +1,7 @@
 # The owner's review page: one page per day, approve in chunks, every dollar accounted for
 
+**Scope changed (the owner, prompts.jsonl 2026-10-24T00:20:16Z):** no new review page, and nothing on the AI dashboard. The review page IS the sessions list, `/framework/ai/sessions/`, and the first slice is a variant of it, `/framework/ai/sessions/v/review/`, shown for the owner's look before anything more is built. Read the numbered asks below for that variant: per day (1), Approve (2), leaks in red (3), the time filter pill (5), plain titles with their context (6). Ready to merge (4) folds in later. The session page's filter (5, inside a session) comes after the look is approved.
+
 Budget: $25. Model: Opus, high effort, one builder that designs AND builds the whole slice (this run is the model experiment below). Parent: `mastermind-deputy`, who reviews and merges your branch and restarts Servex. You don't merge or restart anything yourself.
 
 ## The owner's words
