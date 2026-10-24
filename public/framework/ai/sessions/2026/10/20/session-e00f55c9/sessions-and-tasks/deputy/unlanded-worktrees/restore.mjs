@@ -26,6 +26,7 @@ for (const l of fs.readFileSync(path.join(HERE, "verdicts.jsonl"), "utf8").trim(
 		const to = moved(from), row = { branch: v.branch, sha: v.sha.slice(0, 9), from, to };
 		const mine = git("show", `${v.sha}:${from}`), dev = blob("michael/dev", to), at_base = base && blob(base, to);
 		if (/\/shots\d+\//.test(from)) row.why = "skip: contact sheets and screenshots of earlier rounds, linked from nowhere (3.9 MB; the AI readme's shots3 images are already on michael/dev)";
+		else if (from.endsWith(".patch")) row.why = "skip: the diff a reviewer read; the review itself is the record (review 2026-10-24, note 4)";
 		else if (!dev){
 			if (at_base) row.why = "skip: michael/dev deleted it after the branch forked";
 			else if (from.endsWith("task.jsonl") && !/landed_at/.test(mine)) row.why = "skip: a task that never landed and is new to michael/dev (it would show as an open task)";
@@ -35,8 +36,10 @@ for (const l of fs.readFileSync(path.join(HERE, "verdicts.jsonl"), "utf8").trim(
 		else if (dev === at_base) row.restore = true, row.why = "michael/dev unchanged since the fork; the branch's copy is newer";
 		else if (to.endsWith(".jsonl")){
 			const d = lines(git("show", `michael/dev:${to}`)), b = lines(mine);
-			if (d.length < b.length && d.every((x, i) => x === b[i])) row.restore = true, row.why = `the branch appended ${b.length - d.length} line(s)`;
-			else row.why = "skip: both sides changed the log";
+			const added = b.slice(d.length);
+			if (!(d.length < b.length && d.every((x, i) => x === b[i]))) row.why = "skip: both sides changed the log";
+			else if (added.every(x => /"phase":/.test(x) && !/"cost":[1-9]/.test(x) && !/"findings":\[\{/.test(x))) row.why = "skip: the appended lines are an empty review run (no findings, cost 0)";
+			else row.restore = true, row.why = `the branch appended ${added.length} line(s)`;
 		}
 		else row.why = "skip: both sides changed it";
 		if (row.restore && apply){ const f = path.join(apply, to); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, mine); }
