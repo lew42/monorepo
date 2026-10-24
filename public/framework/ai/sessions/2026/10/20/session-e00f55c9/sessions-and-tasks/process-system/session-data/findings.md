@@ -17,7 +17,7 @@ Task `session-data-complete-cost-duration-chil` on process-system. The owner had
 | `cost.own.active_ms` | 8.2 h of work within a 73 h span |
 | `cost.own.read_to` | 36,284,946 bytes (the whole transcript at 01:28Z) |
 | `children` | a tree: e.g. mastermind-deputy $16.70, $118.03 with its minions |
-| `counts.all` | 158 created, 142 started, 30 complete, 73 stopped |
+| `counts.all` | 158 created, 69 started, 30 complete, 73 stopped (stopped before they ran: not started) |
 | `biggest` | process-system $289.42, figma cards $89.88, prompts $34.51 |
 
 Field-by-field sources: [core/Session/readme.md](/framework/core/Session/readme.md), "What item() answers for a session". Test: `node Servex/agents/session-state.test.mjs` (13 checks), ~250 ms on this session.

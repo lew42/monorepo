@@ -33,7 +33,7 @@ assert.equal(st.cost.own.usd, 4, "the newest summary wins");
 assert.equal(st.cost.own.read_to, 99, "stamped with where the transcript was read to");
 assert.equal(st.cost.own.active_ms, 5000);
 assert.equal(st.children.length, 1); assert.equal(st.children[0].children[0].id, "grandkid"); assert.equal(st.children[0].total, 3.5);
-assert.deepEqual(st.counts.direct, { created: 3, started: 2, complete: 0, stopped: 1 });
+assert.deepEqual(st.counts.direct, { created: 3, started: 1, complete: 0, stopped: 1 });
 assert.equal(st.biggest.length, 1, "one entry per folder");
 assert.equal(st.span_ms, 2 * 36e5);
 
