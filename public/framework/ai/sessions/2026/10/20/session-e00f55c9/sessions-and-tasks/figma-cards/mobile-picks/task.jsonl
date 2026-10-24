@@ -7,3 +7,4 @@
 {"review":{"at":"2026-10-22T23:53:13-05:00","answer":{"n":4,"reply":"fixed: an unfinished row now says its progress and start time (\"23 of 26 done · started 3 h ago\"); the dot alone says running. Shot session-400.png."}}}
 {"review":{"at":"2026-10-22T23:53:13-05:00","answer":{"n":5,"reply":"noted: the play button, the next mark and open questions are in the code but no task in this session is idle or has a question; a press is unproven on purpose (it writes a real task log line)."}}}
 {"review":{"at":"2026-10-22T23:53:13-05:00","answer":{"n":6,"reply":"noted: the variant is for phones; at 1200 it falls back on Miller columns. Wide layouts stay a separate task."}}}
+{"stop":{"at":"2026-10-24T00:04:02-05:00","why":"abandoned: no agent since 2026-10-22T23:49:05-05:00; closed by StaleClose 2026-10-24","by":"StaleClose"}}

@@ -1,2 +1,3 @@
 {"session":{"id":"54d56780-39b8-42df-9de3-34b9b86fd92f","kind":"vscode-tab","at":"2026-10-23T02:29:36.188Z"},"by":"SessionRecord --links"}
 {"task":"/framework/ai/sessions/2026/10/09/session-54d56780/production-stack/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.188Z"}
+{"stop":{"at":"2026-10-24T00:03:52-05:00","why":"abandoned: no agent since 2026-10-23T02:29:36.188Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}

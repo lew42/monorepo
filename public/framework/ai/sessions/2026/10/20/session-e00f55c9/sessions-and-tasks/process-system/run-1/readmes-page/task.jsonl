@@ -43,3 +43,4 @@
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/improve-plan/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.627Z"}
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/investigate/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.627Z"}
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/review/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.628Z"}
+{"stop":{"at":"2026-10-24T00:04:03-05:00","why":"abandoned: no agent since 2026-10-23T02:29:36.628Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}
