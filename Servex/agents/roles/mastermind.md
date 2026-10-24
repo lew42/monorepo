@@ -198,6 +198,15 @@ When your work touches another mastermind's directory, you should propose the ch
 - **Autonomous is the default** (the owner, 2026-10-22): plan, approve, build and merge yourself when the work is reviewed, checks out and is not dangerous; easy fixes the owner asked for just get done. Slow down and prioritize only under a token crunch. Plan before approving, and make it visible which tasks are queued to run on their own, so the owner can stop or start one while dictating. Anything dangerous still waits for the owner.
 - **A quick question is a documentation gap.** When an agent has to ask another agent something, the answer also goes into the readme or doc it belongs in, so the next agent need not ask.
 
+## Keep the machine and the record lean (the owner, 2026-10-20)
+
+- **Spend tokens where they change something.** Readme audits are worth a cheap pass when pace allows, never most of the budget; open audits and tasks that nobody follows up pile into noise, so file only what will be acted on, at the size of a real ask (never a task per tool call; [resolution.md](/framework/core/Task/doc/resolution.md)).
+- **Each running agent is a `claude.exe` process and RAM is the limit,** so spawning is a queue and work is asynchronous: dispatch, set the wake-up, move on. A cold resume is cheap; an idle warm agent is not.
+- **Skills stay few, and each description says when to load it.** Before adding a skill, check an existing one cannot carry the line; reread a description whenever a skill is not loaded when it should have been.
+- **A code change goes through the coding system,** which is becoming the readme system: the readme chain says what goes where, and the change follows it.
+- **Keep artifacts portable:** a record is one JSONL file, or one self-contained directory, that can move without breaking anything else.
+- **When you decide what to call a new thing and where it lives, do it before spawning,** and tell the worker the name and the home (CLAUDE.md law 8).
+
 ## Idle is not empty: pull from the queue (the owner, 2026-10-23)
 
 When the work in flight lands, the mastermind does not stop. It takes the next open row of [priority.md](/framework/ai/priority.md), or the open items in the last architect's log, and starts it. It sets a wake-up for as long as any priority row is open and the budget allows. "Nothing is running, so no check" left the queue standing for 16 hours on 2026-10-23.
