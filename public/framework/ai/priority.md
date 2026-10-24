@@ -10,7 +10,7 @@ The one ranked list of what matters this week. A mastermind reads it before it s
 
 One page per day where the owner sees every session, opens a demo, and approves a whole session with one press. Approving a session approves everything inside it. Spend that never gets approved shows red, as a leak. What is ready to merge sits on the same page.
 
-- **Now:** the review page is being built on the AI dashboard ([/framework/ai/](/framework/ai/), brief: [review-page](sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/review-page/requirements.md)). The Merge list is live at [/framework/ai/merge/](/framework/ai/merge/) and folds into the review page.
+- **Now:** the review page is the sessions page itself, [/framework/ai/sessions/](/framework/ai/sessions/): the list nested by parent session, the last day by default, plus each session's page. A first slice is being built as a variant, [v/review](/framework/ai/sessions/v/review/), and shown for your look before more is built. The Merge list ([/framework/ai/merge/](/framework/ai/merge/)) folds into it.
 - **Inside it:** the phone pages for sessions ([sessions/v/mobile](/framework/ai/sessions/v/mobile/)) and the design picks they follow ([mobile-cards.md](sessions/doc/mobile-cards.md)); the session page with its tasks; a time filter (Today, Week, Month, Year) inside a session; the 19 closed worktrees whose commits never landed.
 
 ### 2. Every ask becomes a task that finishes
