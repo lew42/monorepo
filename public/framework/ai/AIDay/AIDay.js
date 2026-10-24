@@ -18,6 +18,12 @@ export default class AIDay extends View {
 	static first(text){ return String(text ?? "").split("\n").map(l => l.trim()).find(Boolean)?.replace(/\*\*|`/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").slice(0, 160) ?? ""; }
 	static shift(day, by){ const d = new Date(day + "T12:00:00"); d.setDate(d.getDate() + by); return d.toLocaleDateString("sv"); }
 	static today(){ return new Date().toLocaleDateString("sv"); }
+	/** "2026/10/20" → that day and each day after it up to today, at most 31, as "YYYY/MM/DD". */
+	static days_from(day){
+		const out = [], base = new Date(day.replaceAll("/", "-") + "T12:00:00"), today = AIDay.today();
+		for (let i = 0; i < 31; i++){ const d = new Date(base.getTime() + i * 864e5).toLocaleDateString("sv"); if (d > today) break; out.push(d.replaceAll("-", "/")); }
+		return out;
+	}
 
 	static done(n){ return !!n.r?.landed; }
 	static when(n){ return n.r ? (n.r.landed ? n.r.landed_at : n.r.started) || 0 : 0; }
@@ -71,14 +77,19 @@ export default class AIDay extends View {
 		this.paint();
 	}
 
-	/** Each session root's snapshot, from its folder's day index.json (the one the session page reads), matched by folder name. Approvals keys by snapshot id. */
+	/** Each session root's snapshot, matched by folder name and folder day. Approvals keys by snapshot id. A snapshot is filed in the index of the
+	 *  session's LAST active day, so this reads every day index from the folder's day to today (at most 31), as SessionWork.find_snaps does. */
 	async find_snaps(){
 		const roots = this.tree().filter(s => s.kids.length), days = new Map();
+		const index = d => days.get(d) ?? days.set(d, fetch(`/framework/ai/sessions/${d}/index.json`).then(r => r.ok && !(r.headers.get("content-type") ?? "").includes("html") ? r.json() : null).catch(() => null)).get(d);
 		await Promise.all(roots.map(async s => {
 			const day = (s.r?.day ?? s.day ?? this.day).replaceAll("-", "/"), key = day + "/" + s.rel;
 			if (this.snaps.has(key)) return;
-			if (!days.has(day)) days.set(day, fetch(`/framework/ai/sessions/${day}/index.json`).then(r => r.ok && !(r.headers.get("content-type") ?? "").includes("html") ? r.json() : null).catch(() => null));
-			const snap = (await days.get(day))?.snapshots?.find(x => x.folder === s.rel) ?? null;
+			let snap = null;
+			for (const d of AIDay.days_from(day)){
+				snap = (await index(d))?.snapshots?.find(x => x.folder === s.rel && (x.day ?? day).replaceAll("-", "/") === day) ?? null;
+				if (snap) break;
+			}
 			this.snaps.set(key, snap);
 			if (snap){
 				snap.day ??= day;   // one day for the stream, the approval lookup and the write (review n3)
