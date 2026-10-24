@@ -27,7 +27,7 @@ export default class TaskQueueView extends View {
 		this.$side = div.c("tq-side");
 		this.$main = div.c("tq-main", () => {
 			this.$head = div.c("tq-head");
-			this.$cols = div.c("tq-cols", () => ["#", "Task and where it lives", "Why", "Cost", "Big", "Re-asked", "State", "Score"].forEach(h => span.c("tq-colh", h)));
+			this.$cols = div.c("tq-cols muted", () => ["#", "Task and where it lives", "Why", "Cost", "Big", "Re-asked", "State", "Score"].forEach(h => span.c("tq-colh", h)));
 			this.$list = div.c("tq-list");
 		});
 		this.paint();
@@ -52,23 +52,23 @@ export default class TaskQueueView extends View {
 		const rows = this.top(), all = [...this.rows.values()], total = all.length;
 		if (this.el) this.el.dataset.ready = String(!this.loading);
 		this.$side.empty(() => {
-			h2.c("tq-h", "What is in the queue");
-			if (this.loading) return void p.c("tq-note", "Reading the task records…");
+			h2.c("tq-h muted", "What is in the queue");
+			if (this.loading) return void p.c("tq-note muted", "Reading the task records…");
 			div.c("tq-big", () => { span.c("tq-count", String(total)); span.c("tq-what", total === 1 ? " task queued" : " tasks queued"); });
 			div.c("tq-bigs", () => [1, 2, 3].forEach(b => div.c("tq-bigrow", () => {
 				span.c("tq-n", String(all.filter(r => r.big === b).length));
 				span.c("tq-bname", `#${b} ${TaskQueueView.BIG[b]}`);
 			})));
 			div.c("tq-bigrow", () => { span.c("tq-n", String(all.filter(r => !r.big).length)); span.c("tq-bname", "accepted earlier, no big thing"); });
-			p.c("tq-note", `The top ${rows.length} are listed. Estimates add up to ${TaskQueueView.usd(rows.reduce((n, r) => n + r.est_usd, 0))}; ${all.filter(r => r.state === "running").length} running, ${all.filter(r => r.state === "waiting").length} waiting on someone.`);
-			h2.c("tq-h", "How it is ranked");
+			p.c("tq-note muted", `The top ${rows.length} are listed. Estimates add up to ${TaskQueueView.usd(rows.reduce((n, r) => n + r.est_usd, 0))}; ${all.filter(r => r.state === "running").length} running, ${all.filter(r => r.state === "waiting").length} waiting on someone.`);
+			h2.c("tq-h muted", "How it is ranked");
 			p.c("tq-formula", "score = importance × (1 + re-asks × 0.5) ÷ (1 + estimated cost ÷ $2)");
 			div.c("tq-rules", () => {
-				div.c("tq-rule", () => { span.c("tq-label", "Importance "); span(`the big thing it serves: #1 = ${TaskQueue.IMPORTANCE[1]}, #2 = ${TaskQueue.IMPORTANCE[2]}, #3 = ${TaskQueue.IMPORTANCE[3]}, none = 1 (priority.md)`); });
-				div.c("tq-rule", () => { span.c("tq-label", "Cost "); span("the median cost of landed tasks in the same module (real cost lines)"); });
-				div.c("tq-rule", () => { span.c("tq-label", "Re-asks "); span("sessions that asked for it again while it stayed unfinished (the refined asks)"); });
+				div.c("tq-rule", () => { span.c("tq-label muted", "Importance "); span(`the big thing it serves: #1 = ${TaskQueue.IMPORTANCE[1]}, #2 = ${TaskQueue.IMPORTANCE[2]}, #3 = ${TaskQueue.IMPORTANCE[3]}, none = 1 (priority.md)`); });
+				div.c("tq-rule", () => { span.c("tq-label muted", "Cost "); span("the median cost of landed tasks in the same module (real cost lines)"); });
+				div.c("tq-rule", () => { span.c("tq-label muted", "Re-asks "); span("sessions that asked for it again while it stayed unfinished (the refined asks)"); });
 			});
-			p.c("tq-note", "Every number is computed from the task records, never written by an agent. It updates live.");
+			p.c("tq-note muted", "Every number is computed from the task records, never written by an agent. It updates live.");
 		});
 		this.$head.empty(() => {
 			if (this.loading) return;
@@ -76,21 +76,25 @@ export default class TaskQueueView extends View {
 		});
 		this.$list.empty(() => {
 			if (this.loading) return;
-			if (this.error) return void p.c("tq-empty", this.error === "no socket" || this.error === "no source"
+			if (this.error) return void p.c("tq-empty muted", this.error === "no socket" || this.error === "no source"
 				? "This list needs the dev server (a static copy has no one to ask)."
 				: "Could not ask the server: " + this.error);
-			if (!rows.length) return void p.c("tq-empty", "Nothing is queued.");
+			if (!rows.length) return void p.c("tq-empty muted", "Nothing is queued.");
 			rows.forEach(r => div.c("tq-row tq-" + r.state, () => {
-				span.c("tq-rank", String(r.rank));
+				span.c("tq-rank muted", String(r.rank));
 				div.c("tq-task", () => {
 					a.c("tq-title").href(r.url).text(r.title);
-					div.c("tq-crumb", this.crumb(r));
+					div.c("tq-crumb muted", this.crumb(r));
 				});
 				div.c("tq-meta", () => {
-					div.c("tq-why", () => r.why_url ? a.c("tq-link").href(r.why_url).text("the owner's ask").attr("title", r.why) : span("no source recorded"));
-					div.c("tq-cell", () => { span.c("tq-label", "Cost "); span(TaskQueueView.usd(r.est_usd)); }).attr("title", r.est_basis);
-					div.c("tq-cell", () => { span.c("tq-label", "Big thing "); span(r.big ? `#${r.big}` : "none"); }).attr("title", TaskQueueView.BIG[r.big] ?? "accepted before the three big things");
-					div.c("tq-cell", () => { span.c("tq-label", "Re-asked "); span(r.re_asks + "×"); });
+					div.c("tq-why", () => {
+						if (r.why) span(r.why + " ");
+						if (r.why_url) a.c("tq-link").href(r.why_url).text(r.why ? "(source)" : "the owner's ask");
+						else if (!r.why) span("no source recorded");
+					});
+					div.c("tq-cell", () => { span.c("tq-label muted", "Cost "); span(TaskQueueView.usd(r.est_usd)); }).attr("title", r.est_basis);
+					div.c("tq-cell", () => { span.c("tq-label muted", "Big thing "); span(r.big ? `#${r.big}` : "none"); }).attr("title", TaskQueueView.BIG[r.big] ?? "accepted before the three big things");
+					div.c("tq-cell", () => { span.c("tq-label muted", "Re-asked "); span(r.re_asks + "×"); });
 					div.c("tq-state", r.state + (r.state === "running" && r.agent ? " · " + r.agent : ""));
 				});
 				span.c("tq-score").attr("title", "importance × (1 + 0.5 × re-asks) ÷ (1 + estimate ÷ $2)").text(r.score.toFixed(2));
