@@ -1,0 +1,46 @@
+@layer base, theme, site, util;
+@layer site {
+	.page.tq-page { --measure: none; }
+	.tq-view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em; padding: 0.8em clamp(0.6em, 3cqi, 1.5em) 2em; align-items: start; }
+	.tq-side { display: flex; flex-direction: column; gap: 0.6em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
+	.tq-h { margin: 0.4em 0 0; font-size: 1em; opacity: 0.7; }
+	.tq-count { font-size: 2.2em; font-weight: 700; }
+	.tq-bigs { display: flex; flex-direction: column; gap: 0.3em; }
+	.tq-bigrow { display: flex; gap: 0.6em; align-items: baseline; }
+	.tq-n { flex: none; min-width: 2em; font-weight: 700; font-variant-numeric: tabular-nums; }
+	.tq-bname { min-width: 0; }
+	.tq-note { margin: 0; font-size: 0.85em; opacity: 0.7; }
+	.tq-formula { margin: 0; font-weight: 600; }
+	.tq-rules { display: flex; flex-direction: column; gap: 0.3em; font-size: 0.85em; }
+	.tq-main { display: flex; flex-direction: column; gap: 0.5em; min-width: 0; }
+	.tq-head { font-size: 1.1em; font-weight: 600; }
+	.tq-cols { display: none; }
+	.tq-list { display: flex; flex-direction: column; gap: 0.5em; }
+	.tq-row { display: grid; grid-template-columns: 2em minmax(0, 1fr) auto; gap: 0.25em 0.6em; padding: 0.6em 0.8em; border: 1px solid var(--line); border-radius: 0.5em; min-width: 0; }
+	.tq-rank { font-weight: 700; opacity: 0.55; font-variant-numeric: tabular-nums; }
+	.tq-task { min-width: 0; }
+	.tq-view { line-height: 1.35; }
+	.tq-title { font-weight: 600; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+	.tq-title:hover { text-decoration: underline; }
+	.tq-score { grid-column: 3; grid-row: 1; font-variant-numeric: tabular-nums; font-weight: 700; }
+	.tq-crumb { font-size: 0.78em; opacity: 0.65; }
+	.tq-why, .tq-cell, .tq-state { grid-column: 2 / -1; font-size: 0.85em; overflow-wrap: anywhere; min-width: 0; }
+	.tq-link { color: inherit; }
+	.tq-label { opacity: 0.6; }
+	.tq-state { font-weight: 600; }
+	.tq-running .tq-state { color: var(--ok); }
+	.tq-waiting { opacity: 0.75; }
+	.tq-empty { padding: 1.5em 0; opacity: 0.8; }
+
+	@media (min-width: 1000px) {
+		.tq-view { grid-template-columns: minmax(16em, 22em) minmax(0, 1fr); }
+		.tq-side { position: sticky; top: 1em; }
+	}
+	@media (min-width: 1700px) {
+		.tq-cols, .tq-row { display: grid; grid-template-columns: 2.2em minmax(12em, 3fr) minmax(7em, 1fr) 4.5em 3.5em 5em 6em 4.5em; gap: 0.8em; align-items: start; }
+		.tq-cols { padding: 0 0.8em; font-size: 0.78em; text-transform: uppercase; opacity: 0.6; letter-spacing: 0.04em; }
+		.tq-why, .tq-cell, .tq-state { grid-column: auto; }
+		.tq-label { display: none; }
+		.tq-score { grid-column: auto; grid-row: auto; text-align: right; }
+	}
+}
