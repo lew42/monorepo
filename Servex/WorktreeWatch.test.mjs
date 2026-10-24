@@ -60,5 +60,60 @@ watch.pages.get("/framework/x/").messaged_at -= WorktreeWatch.QUIET_MS + 1;
 layout = { ...clean, errors: ["400: boom"] };
 await go();
 assert.equal(sent.length, 2, "after 10 minutes a new break is told again");
+
+// the tests: a script save runs the near tests, a files.jsonl write runs nothing, only a change is reported
+WorktreeWatch.DEBOUNCE_MS = 15;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const idle = async () => { for (let i = 0; i < 200 && (WorktreeWatch.active || WorktreeWatch.queue.size); i++) await sleep(10); await sleep(20); };
+const tmain = path.join(root, "tmain"); fs.mkdirSync(path.join(tmain, "task"), { recursive: true });
+const testWatch = (id, execute) => {
+    const msgs = [];
+    const t = new WorktreeWatch({ id, path: path.join(root, "worktree"), port: 1, owner: "minion-t", main: tmain, task_dir: "task", send: (to, text) => msgs.push(text) });
+    t.stopped = false; t.ran = [];
+    t.runner = async () => ({ results: path.join(root, "no-results.jsonl") });
+    t.near = async urls => urls.some(u => u.endsWith("Thing.mjs")) ? ["x/Thing.test.mjs"] : [];
+    t.execute = async file => { t.ran.push(file); return execute(file); };
+    return { t, msgs };
+};
+let ok = true;
+const { t: tw, msgs: tmsgs } = testWatch("tw", async () => ({ ok, tail: "ok - one\nnot ok - Thing adds (expected 2, got 3)\nat line 9" }));
+tw.changed(["/framework/x/files.jsonl", "/framework/x/page.jsonl", "/framework/x/readme.md"]); await idle();
+assert.deepEqual(tw.ran, [], "data writes run no tests");
+tw.changed(["/framework/x/Thing.mjs"]); await idle();
+assert.deepEqual(tw.ran, ["x/Thing.test.mjs"], "a .mjs save runs its near test");
+assert.equal(tmsgs.length, 0, "a pass with nothing before it says nothing");
+tw.changed(["/framework/x/Thing.mjs"]); await idle();
+assert.equal(tmsgs.length, 0, "steady pass says nothing");
+ok = false;
+tw.changed(["/framework/x/Thing.mjs"]); await idle();
+assert.equal(tmsgs.length, 1, "pass to fail: one message");
+assert.match(tmsgs[0], /x\/Thing\.test\.mjs was passing and now fails: not ok - Thing adds \(expected 2, got 3\)/);
+tw.changed(["/framework/x/Thing.mjs"]); await idle();
+assert.equal(tmsgs.length, 1, "steady fail says nothing");
+ok = true;
+tw.changed(["/framework/x/Thing.mjs"]); await idle();
+assert.equal(tmsgs.length, 1, "fail to pass is a log line, not a message");
+const tlog = fs.readFileSync(path.join(tmain, "task", "task.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l).log.msg);
+assert.equal(tlog.length, 2, "one fail line, one passes-again line");
+assert.match(tlog[0], /now fails/); assert.match(tlog[1], /passes again/);
+
+// a timeout is no result: the state stays, nothing is told
+const { t: tt, msgs: tmsgs2 } = testWatch("tt", async () => ({ ok: false, timeout: true, tail: "TIMED OUT" }));
+tt.changed(["/framework/x/Thing.mjs"]); await idle();
+assert.equal(tmsgs2.length, 0); assert.equal(tt.test_state.size, 0);
+
+// one shared queue: at most 3 at once across worktrees; a new change replaces that worktree's waiting run
+let now = 0, peak = 0, gate; const open = new Promise(r => gate = r);
+const many = Array.from({ length: 5 }, (_, i) => testWatch("q" + i, async () => { peak = Math.max(peak, ++now); await open; now--; return { ok: true }; }));
+for (const { t } of many) t.changed(["/framework/x/Thing.mjs"]);
+await sleep(80);
+assert.equal(WorktreeWatch.active, 3, "three run");
+assert.equal(WorktreeWatch.queue.size, 2, "two wait");
+many[4].t.changed(["/framework/x/Other.mjs"]); await sleep(80);
+assert.equal(WorktreeWatch.queue.size, 2, "a new change replaces that worktree's waiting run");
+assert.deepEqual(WorktreeWatch.queue.get("q4").files.sort(), ["/framework/x/Other.mjs", "/framework/x/Thing.mjs"]);
+gate(); await idle();
+assert.equal(peak, 3, "never more than three test processes");
+assert.ok(many.every(m => m.t.ran.length === 1), "every worktree ran once");
 console.log = quiet;
 console.log("WorktreeWatch.test.mjs: ok");
