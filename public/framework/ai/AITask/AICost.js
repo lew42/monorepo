@@ -161,13 +161,14 @@ export default class AICost {
 		try {
 			const { servex_url } = await import("../../dev/servex_url.js");
 			const res = await fetch(servex_url("/api/item"), { method: "POST", headers: { "content-type": "application/json" },
-				body: JSON.stringify({ path: base, delta: { summary: {} } }), signal: AbortSignal.timeout(60000) });
+				body: JSON.stringify({ path: base, delta: { summary: {} } }), signal: AbortSignal.timeout(150000) });
 			const body = await res.json();
 			if (body?.stubbed) return { why: "This is a worktree preview, which is not allowed to ask Servex for numbers; open the same page on the main site." };
 			if (!res.ok) return { why: "Servex refused the question (" + (body?.why ?? res.status) + "): this page is only answered on the machine that runs Servex." };
 			const summary = body?.answer?.summary;
 			return summary ? { summary } : { why: body?.why ?? "Servex has no record at this path to add up." };
-		} catch {
+		} catch (e) {
+			if (e?.name === "TimeoutError") return { why: "Servex took more than two and a half minutes to add this session up, so no cost is shown yet; it is slow on a session with hundreds of tasks. Reload to ask again." };
 			return { why: "Servex did not answer, so no cost can be shown. It adds up the agents' spend on the machine that runs them; a static copy of the site cannot ask it." };
 		}
 	}
@@ -175,7 +176,7 @@ export default class AICost {
 	/** The Report tab's cost block: the last answer at once, a fresh one when it is stale. */
 	static report(base){
 		const hit = AICost.known.get(base);
-		const $d = div.c("ai-cost flow", () => hit ? AICost.draw(hit.answer) : span.c("muted", "Asking Servex for this page's cost…"));
+		const $d = div.c("ai-cost flow", () => hit ? AICost.draw(hit.answer) : span.c("muted", "Asking Servex for this page's cost… (it can take a minute for a session with many tasks)"));
 		if (!hit || Date.now() - hit.at > AICost.STALE_MS) AICost.ask(base).then(answer => {
 			AICost.known.set(base, { at: Date.now(), answer });
 			$d.empty(() => AICost.draw(answer));
