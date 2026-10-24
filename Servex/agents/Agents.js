@@ -709,7 +709,7 @@ export class Agents {
 	/* A task's cost: logged_cost summed over the agents whose task dir is this task's (`task` = its app path or dir). Task.cost reads it. */
 	task_cost(task){
 		if (!task) return 0;
-		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.join(MAIN_ROOT, "public", task) : path.resolve(MAIN_ROOT, task);
+		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.resolve(MAIN_ROOT, "public", "." + task) : path.resolve(MAIN_ROOT, task);   // resolve, not join: a url path ends in "/", and the keys have no trailing separator
 		return (this.task_dirs().get(want.toLowerCase()) ?? []).reduce((s, id) => s + this.logged_cost(id), 0);
 	}
 
