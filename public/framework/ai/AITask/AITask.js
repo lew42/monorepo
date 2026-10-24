@@ -18,6 +18,7 @@ import { breakdown } from "./cost.js";
 import { streamed as reply_streamed } from "../../ext/Ask/reply.js";
 import { fold } from "./message.js";
 import TaskViews from "./TaskViews.js";
+import { TaskTree } from "./nested.js";
 import Task from "../../core/Task/Task.js";
 import { tree_for_task } from "./tree.js";
 
@@ -145,14 +146,26 @@ export class AITask extends Page {
 			["report", "Report", () => { this.$live = div.c("ai-live flow"); this.refresh(m); }],
 			["session", "Session", () => { this.chat(m); this.log(m); }],
 		];
+		// The tasks inside this one, as preview cards: each opens that task's own full page (design/navigation).
+		const kids = (this.roots ?? []).flatMap(r => r.children ?? []);
+		if (kids.length) sections.splice(1, 0, ["tasks", "Tasks · " + kids.length, () => this.task_cards(kids)]);
 		// After Asks, before Report: what was wanted, the brief, what was chosen, the answer.
 		if (this.roots) sections.splice(sections.length - 1, 0, ["tree", "Tree", () => TaskViews.from_url(this.roots).draw()]);
 		if (m.decisions?.length) sections.splice(1, 0, ["decisions", "Decisions", () => this.decisions(m)]);
 		if (m.asks?.length) sections.unshift(["asks", "Asks", () => this.asks(m, to_prompt)]);
 
 		const message = wanted_message();
-		tabs = tab_bar(sections, message ? "session" : this.roots && new URLSearchParams(location.search).has("view") ? "tree" : m.asks?.length ? "asks" : "report");
+		tabs = tab_bar(sections, message ? "session" : this.roots && new URLSearchParams(location.search).has("view") ? "tree" : m.asks?.length ? "asks" : kids.length ? "tasks" : "report");
 		if (message) reveal(message);
+	}
+
+	task_cards(kids){
+		return div.c("page-previews bleed", () => kids.forEach(n => this.preview_card({
+			label: n.title || n.agent || "untitled",
+			url: TaskTree.url(n),
+			icon: "receipt_long",
+			description: ({ landed: "Done", stopped: "Stopped", waiting: "Waiting" }[n.state] ?? TaskTree.pct(n) + "%") + (n.children?.length ? " · " + n.children.length + " tasks inside" : ""),
+		})));
 	}
 
 	asks(m, to_prompt){

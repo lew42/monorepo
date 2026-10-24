@@ -31,8 +31,7 @@ View.stylesheet("/framework/ai/AITask/ai.css");   // the usage rail's bars
 // computed files session-index.json, session-tree.json, spend-tree.json (written by scripts under Server/).
 //
 // The list is one ext/DataGrid, a table or a rail of cards (its `view` setting; ext/DataGrid/doc/architecture.md).
-// `width` follows the view: "fill" for the table, "small" for the rail. `columns()`: the detail opens beside the list
-// as a master-detail (core/Page doc/columns.md).
+// `width` follows the view: "fill" for the table, "small" for the rail. A clicked row opens its detail as a full page in place of the list (design/navigation: previews plus detail views).
 //
 // Page/Item name clashes found while converting this from an object config: none. The members this class adds
 // (content, route, activated, deactivated, render_*, toggle_sort, filter_rows, draw, plus data fields such as
@@ -53,8 +52,6 @@ export default class AISessionsPage extends Page {
 			classes: "sessions-page",
 		}, ...args);
 	}
-
-	initialize(){ this.columns(); }
 
 	content(){
 		const panel = new Panel2({ title: "Sessions" }).ac("wide sessions-frame");   // `wide`: a plain Page's track is the narrow prose column; its header is hidden (sessions.css), the tab names it
