@@ -94,6 +94,7 @@ doc-         ext/Doc
 drag-        ext/Draggable
 drawer-      ext/drawer
 dropdown-    ext/Dropdown
+filter-pill-    ux/Filter
 dt-          ext/DesignTool
 editor-      ext/editor
 file-        ext/files

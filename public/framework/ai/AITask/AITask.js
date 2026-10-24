@@ -81,7 +81,7 @@ export class AITask extends Page {
 		const at = this.url?.match(/\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/.+?)\/?$/)?.[1];
 		const list = at ? names(`${at}/${sub}`) : null;
 		if (list ? (!list.includes("task.jsonl") || list.includes("page.js"))
-			: (!(AITask.has(this.url + sub + "/task.jsonl") || AITask.has(this.url + sub + "/session.jsonl")) || AITask.has(this.url + sub + "/page.js"))) return;   // the sessions store: no listing, so ask the server
+			: (!(AITask.has(this.url + sub + "/session.jsonl") || AITask.has(this.url + sub + "/task.jsonl")) || AITask.has(this.url + sub + "/page.js"))) return;   // the sessions store: no listing, so ask the server
 		return new AITask({ title: sub, icon: "receipt_long", url: this.url + sub + "/", src: this.url + sub + "/session.json" });
 	}
 

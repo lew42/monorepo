@@ -1,0 +1,34 @@
+/* SessionWork, the Work tab: a head card, then the session's work nested by task folder. Prefix sw-. */
+@layer site {
+	.sw { display: flex; flex-direction: column; gap: .8em; }
+	.sw-head { display: flex; flex-direction: column; gap: .4em; padding: .8em; border: 1px solid var(--line); border-radius: .4em; }
+	.sw-head-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4em; }
+	.sw-title { font-size: 1.1em; }
+	.sw-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4em; }
+	.sw-stat { display: flex; flex-direction: column; padding: .3em .6em; border-radius: .3em; background: var(--tint); border-inline-start: 3px solid var(--line); }
+	.sw-stat-approved { border-color: var(--ok); }
+	.sw-stat-waiting { border-color: var(--warn); }
+	.sw-stat-leak.sw-some { border-color: var(--error); }
+	.sw-stat-leak.sw-some strong { color: var(--error); }
+	.sw-approve { flex: none; align-self: center; font: inherit; font-size: .8em; padding: .15em .8em; border: 1px solid var(--ok); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
+	.sw-approve:disabled { opacity: .5; }
+	.sw-approve-all { align-self: flex-start; background: var(--ok); color: #fff; font-weight: 600; padding: .35em 1em; }
+	.sw-note:empty { display: none; }
+	.sw-note { color: var(--error); }
+	.sw-list { display: flex; flex-direction: column; }
+	.sw-node, details.sw-node { border: 0; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); border-radius: 0; background: none; padding: 0; margin: 0; box-shadow: none; }   /* flat rows (mobile-cards.md), not the theme's details card */
+	.sw-sum { list-style: none; cursor: pointer; display: block; width: auto; min-height: 0; padding: 0; font-size: inherit; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; }   /* a summary wears the control box (framework.css, the control grammar); a row is not a control */
+	.sw-sum::-webkit-details-marker { display: none; }
+	.sw-row { display: flex; align-items: flex-start; gap: .6em; padding: .55em .2em; }
+	details.sw-node > .sw-sum .sw-name::before { content: "▸ "; }
+	details[open].sw-node > .sw-sum .sw-name::before { content: "▾ "; }
+	.sw-dot { flex: none; width: .6em; height: .6em; margin-top: .45em; border-radius: 50%; background: var(--line); }
+	.sw-approved > * > .sw-row .sw-dot, .sw-approved > .sw-row .sw-dot { background: var(--ok); }
+	.sw-live > * > .sw-row .sw-dot, .sw-live > .sw-row .sw-dot { background: var(--warn); }
+	.sw-leak > * > .sw-row .sw-dot, .sw-leak > .sw-row .sw-dot { background: var(--error); }
+	.sw-leak > * > .sw-row .sw-name, .sw-leak > .sw-row .sw-name { color: var(--error); }
+	.sw-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1em; }
+	.sw-name { font-weight: 600; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+	.sw-facts, .sw-open { opacity: .75; }
+	.sw-kids { margin-inline-start: .9em; padding-inline-start: .6em; border-inline-start: 2px solid var(--line); }
+}

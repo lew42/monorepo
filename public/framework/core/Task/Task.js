@@ -373,10 +373,12 @@ export class Task extends Item {
 	// Browser only: open the child's file through the shared Store, then attach (replay + live tail) onto the stub.
 	static async open_ref(kid, ref){
 		const dir = String(ref).replace(/\/?$/, "/");
-		let store = this.Store.for(dir + "task.jsonl");
+		// The likely file first, as TaskPage does, so the usual link makes no 404: <module>/tasks/<slug>/ holds task.jsonl, a session folder session.jsonl.
+		const [a, b] = /\/tasks\/[^/]+\/$/.test(dir) ? ["task.jsonl", "session.jsonl"] : ["session.jsonl", "task.jsonl"];
+		let store = this.Store.for(dir + a);
 		try { await store.open(); } catch { /* treated as missing below */ }
-		if (!store.host && !store.count){   // a session folder's log is session.jsonl (a task moved into a child session, item-move)
-			const s = this.Store.for(dir + "session.jsonl");
+		if (!store.host && !store.count){   // the other name: an old session folder kept task.jsonl, a task moved into a child session has session.jsonl (item-move)
+			const s = this.Store.for(dir + b);
 			try { await s.open(); if (s.host || s.count) store = s; } catch { /* still missing */ }
 		}
 		if (store.host){   // another reader (TaskPage) is already attached and live: this stub takes a snapshot of the same file
