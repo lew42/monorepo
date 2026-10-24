@@ -13,6 +13,8 @@ import PromptLog from "./PromptLog.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import VoiceFlow from "/framework/ext/Refine/stages/VoiceFlow.js";
 import Item from "/framework/core/Item/Item.js";
+import Role from "/framework/core/Role/Role.js";
+import RoleView from "/framework/core/Role/RoleView.js";
 import Property from "/framework/core/Property/Property.js";
 import SessionMenu from "/framework/core/Session/SessionMenu.js";
 import SessionSettings from "/framework/core/Session/SessionSettings.js";
@@ -119,6 +121,23 @@ export default class AISessionDetail extends Page {
 	head_tools(){ return new SessionMenu({ session: new AISession(this.id), url: this.url, page: this }).draw(); }
 	// The session's record, session.jsonl, beside its page.jsonl in the same folder.
 	async record_url(){ const [own] = await this.log_urls(); return own ? own.replace(/page\.jsonl$/, "session.jsonl") : null; }
+	/** The session's role: the word on line 1 of its record (new sessions), else the registry's. Shown as core/Role does on the roles page. */
+	async show_role($el, row, session_id){
+		const file = await this.record_url();
+		const first = file ? await fetch(file).then(r => r.ok ? r.text() : "").then(t => { try { return JSON.parse(t.match(/^.*/)[0]); } catch { return null; } }).catch(() => null) : null;
+		const agents = await Role.agents();
+		const live = agents.find(x => x.session_id === session_id);
+		const word = first?.assign?.role ?? first?.session?.role ?? row?.role ?? live?.role;
+		const roles = await Role.load();
+		const agent_id = first?.assign?.agent ?? row?.agent ?? row?.id ?? live?.id;
+		const role = word ? Role.find(roles, word) : Role.from_agent_id(roles, agent_id);
+		if (!word && !role) return;
+		$el.empty(() => {
+			small.c("muted", word ? "Role (recorded when the session started, else from the Servex registry):" : "Role (guessed from the agent id: this session recorded none):");
+			if (role) RoleView.draw(role, agents.filter(x => (x.session_id ?? x.id) === session_id));
+			else p("Role: " + word + " (not a row in roles.js)");
+		});
+	}
 	async open_log(){ const url = await this.record_url(); if (url) window.open(url, "_blank"); }
 	copy_link(){ return navigator.clipboard?.writeText(new URL(this.url, location.href).href); }
 
@@ -144,7 +163,7 @@ export default class AISessionDetail extends Page {
 		const { home, id } = this, url = home.url;
 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
 		this.parts = new AISessionDetail.Parts($parts);
-		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks;
+		let $role, $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks;
 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
 		const TABS = [["conversation", "Conversation"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
 		const want = new URLSearchParams(location.search).get("tab"), panels = {}, buttons = {};
@@ -163,7 +182,7 @@ export default class AISessionDetail extends Page {
 			});
 			panels.coverage = div.c("flow sessions-panel", () => { $coverage = div.c("flow"); });   // every ask in the owner's prompts, its status, the raw words one click down (AISessionCoverage)
 			panels.cost = div.c("flow sessions-panel", () => { $costs = div.c("flow"); $trace = div.c("flow"); });   // logged cost, the cost-over-time chart and the per-tool table
-			panels.models = div.c("flow sessions-panel", () => { $session = div.c("flow"); });   // the Session class: cost tree, model + effort, tokens by purpose, audit
+			panels.models = div.c("flow sessions-panel", () => { $role = div.c("flow session-role"); $session = div.c("flow"); });   // the Session class: cost tree, model + effort, tokens by purpose, audit
 			panels.related = div.c("flow sessions-panel", () => { $spawn = div.c("flow"); $related = div.c("flow"); });   // who spawned this and what it spawned; the other records of this session
 		});
 		show(TABS.some(([k]) => k === want) ? want : "conversation");
@@ -181,6 +200,7 @@ export default class AISessionDetail extends Page {
 			const coverage = new AISessionCoverage(session_id);
 			$coverage.append(coverage.view);
 			PromptLog.read(session_id).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
+			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
 			this.record_url().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks }).live(); });
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.

@@ -212,7 +212,7 @@ export class Agents {
 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
 		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
-		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
 		const fresh = !again && !spec.system;
@@ -983,7 +983,7 @@ function directory_of(spec){
  * a caller opened earlier (or a sibling agent shares), it just adds one more
  * assign line with the same facts, exactly like every other `assign` a task
  * log collects over its life — never touching what came before it. */
-export function open_task(task, { session_id, agent, by, model, worktree, parent_dir }){
+export function open_task(task, { session_id, agent, role, by, model, worktree, parent_dir }){
 	// An old-shaped dir (ai/YYYY-MM-DD/<slug>/) from a brief goes to the task store instead (Server/TaskDirs.mjs,
 	// ai/doc/task-folders.md); task.dir is rewritten so everything after this (directory_of, the inbox) sees the real place.
 	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
@@ -998,7 +998,7 @@ export function open_task(task, { session_id, agent, by, model, worktree, parent
 	const parent_task = rel(task.parent_task ?? parent_dir);
 	// `after` is task dirs in the same form as parent_task, so the tree matches them exactly.
 	const after = Array.isArray(task.after) && task.after.length ? task.after.map(rel) : undefined;
-	const line = JSON.stringify({ assign: strip({ session_id, agent, card: task.card, brief: task.brief, title: task.title,
+	const line = JSON.stringify({ assign: strip({ session_id, agent, role, card: task.card, brief: task.brief, title: task.title,
 		model, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");

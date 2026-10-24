@@ -17,6 +17,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { model, provider } from "./tiers.js";
+import Role from "../../public/framework/core/Role/Role.js";
 
 /* `tier` is the row's size (tiers.js: fast, manager, architect, scan); its `model` is
  * DERIVED from the tier, so moving a tier to another model is one line in tiers.js.
@@ -109,6 +110,9 @@ export const ROLES = {
 	voter:              { skill: "research",         prefix: "voter",            tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
 	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    tier: "fast",      model: model("fast"),       effort: "low",  permission_mode: "acceptEdits" }
 };
+
+/* The rows as Role objects (core/Role): the same data, one object per row. */
+export const ROLE_LIST = Role.from_rows(ROLES);
 
 /* A role word or one of its aliases -> the row's canonical role. `alias` is a
  * string or an array of strings, so several old words can point at one new row. */
