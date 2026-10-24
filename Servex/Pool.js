@@ -23,7 +23,7 @@ const slash = p => String(p).split(path.sep).join("/");
  * Servex prepare the next. `return_worktree` hands an unused or merged one back.
  * No agent manages this: it is a class, a JSON file and a 10-minute sweep.
  *
- *   K = 3        at most this many worktrees in the pool, taken or not
+ *   K = 6        at most this many worktrees in the pool, taken or not
  *   N = 6 hours  a ready one idle longer than this is removed — except the one kept ready
  *
  * Slots are made and removed by the scripts every agent already uses,
@@ -38,7 +38,7 @@ export default class Pool extends Events {
     static GRACE_MIN = 30;   // a holder stopped this long, with nothing alive in its slot, is salvaged and its slot freed (reclaim)
 
     initialize(){
-        this.K ??= 3;
+        this.K ??= 6;
         this.N_hours ??= 6;
         this.base ??= "michael/dev";
         this.prefix ??= process.env.SERVEX_POOL_PREFIX || "qf";
@@ -91,7 +91,7 @@ export default class Pool extends Events {
             description: "Take a ready quick-fix worktree: returns {id, path, branch, url} at once — a worktree already branched from"
                 + " michael/dev and brought current, its own server answering at `url`. Write your fix into `path`, run"
                 + " `node Server/smoke.mjs <path>`, merge into michael/dev, then call return_worktree. Servex prepares the next one"
-                + " in the background. If none is ready yet, this waits while one is made (about 20 s). At most 3 exist; when all"
+                + " in the background. If none is ready yet, this waits while one is made (about 20 s). At most 6 exist; when all"
                 + " 3 are taken it answers an error naming who holds each.",
             inputSchema: { type: "object", properties: {} },
             handler: async (args, ctx) => JSON.stringify(await this.take(ctx?.caller), null, 2)
@@ -216,7 +216,22 @@ export default class Pool extends Events {
         }
         if (unmerged) throw new Error(`Refused: ${id} holds commits not yet in ${this.base} — merge them first. Nothing was discarded.\n${unmerged}`);
 
-        const ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+        let ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+        if (!ff.ok && /local changes/.test(ff.out)){
+            /* michael/dev changed a file the slot's own server keeps rewriting (files.jsonl, page.jsonl): own_dirt() called
+             * the slot clean, but git will not overwrite it. Stop the server first (it rewrites the file within a second),
+             * put the noise back to HEAD, fast-forward, and make a fresh slot: this one's server is gone. */
+            this.kill(slot.watcher_pid, /health-supervisor/i);
+            this.kill(slot.server_pid, this.server_cmd(slot));
+            for (const d of await this.dirt(slot)) if (Pool.server_log(d.file)) this.restore(slot, d.file);
+            ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+            if (ff.ok){
+                this.remove(slot);
+                this.top_up();
+                this.say(`pool: ${id} returned; its server's log files blocked the fast-forward, so it is removed and a fresh one made`, { id });
+                return this.list();
+            }
+        }
         if (!ff.ok) throw new Error(`Refused: ${id} would not fast-forward to ${this.base}: ${ff.out}`);
         Object.assign(slot, { state: "ready", taken_by: null, taken_at: null, idle_since: stamp() });
         this.save();

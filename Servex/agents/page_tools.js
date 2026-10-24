@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import SessionRecord from "../../Server/SessionRecord.mjs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import Subpages from "./Subpages.js";
 import Promote from "./Promote.js";
 import TaskHomes from "../../Server/TaskHomes.mjs";
@@ -353,6 +353,16 @@ const LOADERS = {
 	Session: async () => (await import("../../public/framework/core/Session/Session.js")).default,
 	Process: async () => (await import("../../public/framework/core/Task/processes/index.js")).default,
 };
+/* The real Page, for the page files (LOADERS has only the Task family: Class.replay there means "a task"). The resolve hook lets Page.class.js
+ * import in node (site-absolute imports map to public/); parts/kinds.js registers the part types, the ONE list the browser also imports. */
+let page_loaded = null;
+const page_class = () => page_loaded ??= (async () => {
+	const { register } = await import("node:module");
+	register(pathToFileURL(path.join(HERE, "site-hooks.mjs")).href);
+	const { default: Page } = await import("../../public/framework/core/Page/Page.class.js");
+	const { PART_TYPES } = await import("../../public/framework/core/Page/parts/kinds.js");
+	return Object.assign(Page, { PART_TYPES });
+})().catch(e => { console.warn(`item tool: Page.class.js did not import in node, so page lines are written unchecked (${e.message})`); return null; });
 const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"] };
 // Fields a Session line may carry: its identity, a title, and its tasks.
 const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class"];
@@ -380,7 +390,8 @@ function expand_dots(delta){
 
 function class_of(file){
 	const first = parse_lines(file)[0];
-	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? (SessionRecord.log_file(path.dirname(file)) === file ? "Task" : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
+	// A record that opens with {"session":{id,…}} is a session (a VS Code tab, a voice agent): Session, not Task, so it gets its cost and children.
+	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? (is_plain(first?.session) ? "Session" : null) ?? (SessionRecord.log_file(path.dirname(file)) === file ? "Task" : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
 }
 
 // describe() with each method's doc filled: the first `//` line of the comment block above it, from the class's source.
@@ -632,6 +643,7 @@ function notify_requests(live, at, body, requests, by){
 let collect = null;
 const sig = file => { try { const st = fs.statSync(file); return `${st.size}:${st.mtimeMs}`; } catch { return "none"; } };
 export function link_refs(Task){
+	Task.session_resolver ??= ref => { const dir = path.resolve(PUBLIC, String(ref ?? "").replace(/^[\/]+/, "")); return dir.startsWith(PUBLIC + path.sep) && path.basename(SessionRecord.file(dir) ?? "") === "session.jsonl"; };   // Task.children: does this folder hold a session record
 	Task.resolver ??= ref => {
 		const dir = path.resolve(PUBLIC, String(ref).replace(/^[\/]+/, ""));
 		if (!dir.startsWith(PUBLIC + path.sep)) return null;
@@ -653,6 +665,7 @@ function live_root(Class, file){
 	try { root = Class.replay(parse_lines(file)); } finally { collect = null; }
 	Object.assign(store, { host: root, sig: sig(file), deps, file });
 	root.store = store;
+	root.at_path = "/" + path.relative(PUBLIC, path.dirname(file)).split(path.sep).join("/") + "/";   // a session record has no `path` field: its cost is looked up by its folder
 	return root;
 }
 
@@ -663,10 +676,80 @@ function advance(root, line){
 	root.store.sig = sig(root.store.file);
 }
 
+/* A line that would break replay is refused BEFORE it is written (a getter-only field in a child add, e.g. `commits`, once made a log
+ * unreadable). The line is replayed on the live root first; a throw drops the cached root (it is half-changed) and the file never sees the line. */
+class Refused extends Error {}
+function try_line(root, line){
+	collect = root.store.deps;
+	try { root.replay_line(line); } catch (e) { root.store.host = null; throw new Refused(`this line would not replay (${e.message})`); } finally { collect = null; }
+}
+
+/* A row per child task: its state, and (2026-10-23, the session snapshot) what it cost and how long it ran, both computed from the
+ * records (Task.cost reads the agents' logs through Task.cost_resolver; duration from the lines' own times). */
+function row_of(t){
+	const cost = Number(t.cost) || 0, ran_ms = typeof t.duration === "function" ? t.duration() : 0;
+	return { id: t.id, title: t.get_one("title"), state: t.state, ...(cost ? { cost: Math.round(cost * 100) / 100 } : {}), ...(ran_ms > 0 ? { ran_ms } : {}),
+		...(t.data?.completed_at ? { completed_at: t.data.completed_at } : {}), ...(t.state === "stopped" && t.data?.why ? { why: String(t.data.why).slice(0, 80) } : {}) };
+}
+
+// Every task in a tree, each once (a session's cost sums each task's own agents once, so nothing counts twice).
+function every_task(list, out = []){ for (const t of list ?? []){ out.push(t); every_task(t._tasks, out); } return out; }
+
+/* What a task tree holds, by state: created (every task), started (it ran: start() stamped started_at, or it is past idle and not
+ * stopped), complete and stopped. A task stopped before it ever ran is not started. */
+function counts(list){
+	const c = { created: list.length, started: 0, complete: 0, stopped: 0 };
+	for (const t of list){ if (t.data?.started_at || !["idle", "stopped"].includes(t.state)) c.started++; if (t.state === "complete") c.complete++; if (t.state === "stopped") c.stopped++; }
+	return c;
+}
+
+/* Child sessions as a tree: an agent whose parent is also in the list sits under it; each node has its own cost and its subtree total. */
+function nest_agents(agents){
+	const by = new Map(agents.map(a => [a.id, { ...a, children: [] }])), roots = [];
+	for (const a of by.values()) (by.get(a.parent)?.children ?? roots).push(a);
+	const sum = a => (a.total = r2(a.cost + a.children.reduce((s, k) => s + sum(k), 0)));
+	roots.forEach(sum);
+	return roots;
+}
+const r2 = n => Math.round(n * 100) / 100;
+
+/* The session's own Claude cost and active time: the newest summary in its folder's cache.jsonl, which AISessionIndex keeps current from
+ * the transcript (new bytes only; ai/AISession/AISession.js, verified against the SDK's billing). Stamped with where it read to. */
+function own_cost(dir){
+	// The file grows by a summary per index pass (4 MB for a long tab), so read back from its end until a summary line turns up.
+	let m = null, at = null, fd = null;
+	try {
+		const file = path.join(dir, "cache.jsonl"), size = fs.statSync(file).size; fd = fs.openSync(file, "r");
+		for (let n = 64 * 1024; !m; n *= 4){
+			const len = Math.min(n, size), buf = Buffer.alloc(len); fs.readSync(fd, buf, 0, len, size - len);
+			const line = buf.toString("utf8").split("\n").filter(l => l.startsWith('{"summary"')).at(-1);
+			if (line){ const o = JSON.parse(line); m = o.summary; at = o.at; }
+			if (len === size) break;
+		}
+	} catch {} finally { if (fd !== null) fs.closeSync(fd); }
+	return m ? { usd: r2(m.usd ?? 0), parts: Object.fromEntries(Object.entries(m.usd_parts ?? {}).map(([k, v]) => [k, r2(v)])), active_ms: m.active_ms ?? 0, models: m.main_models ?? {},
+		through: m.last_at ?? null, read_to: m.cursor?.main?.off ?? null, at } : null;
+}
+
+/* A session's whole picture (2026-10-23, "session data, complete"; core/Session/readme.md, "What item() answers"):
+ * its own cost (own_cost), its child sessions nested with their costs, the tasks' costs, its span, and task counts. */
+export function session_state(task, tasks = []){
+	// A task's cost is its folder's agents, so two tasks naming one folder (a task and its re-filed twin) count it once.
+	const all = every_task(task._tasks), seen = new Set(), costed = all.filter(t => Number(t.cost) > 0 && !seen.has(t.get_one("path")) && seen.add(t.get_one("path")));
+	const task_cost = costed.reduce((s, t) => s + t.cost, 0);
+	const dir = task.store?.file ? path.dirname(task.store.file) : null, agents = dir ? (task.constructor.agents_resolver?.(dir) ?? []) : [];
+	const own = dir ? own_cost(dir) : null;
+	const child_cost = agents.reduce((s, a) => s + (a.cost || 0), 0);
+	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
+	return { class: "Session", id: task.id, completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
+		cost: { total: r2((own?.usd ?? 0) + child_cost), own, children: r2(child_cost), tasks: r2(task_cost) },
+		counts: { direct: counts(task._tasks ?? []), all: counts(all) }, biggest, children: nest_agents(agents), agents: agents.length, data: { ...task.data }, tasks };
+}
+
 function task_state(Task, task){
-	const tasks = [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state }));
+	const tasks = [...(task._tasks ?? [])].map(row_of);
 	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.step?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
-	if (Task.name === "Session") return { class: "Session", completion: task.completion, progress: task.progress(), data: { ...task.data }, tasks };
+	if (Task.name === "Session") return session_state(task, tasks);
 	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
 }
 
@@ -704,6 +787,47 @@ export function tell_parent_caveats(task_dir, caveats, by = "node"){
 	return log;
 }
 
+/* QUERIES (class `static queries`): a delta whose keys are all queries runs them and writes nothing. `{"cost":{}}`, `{"summary":{}}`,
+ * and into a child by `target` or by id: `{"tasks":{"<id>":{"cost":{}}}}` or `{"<id>":{"cost":{}}}`. A query's value is its argument:
+ * {} / true / null = none, an array = the arguments, any other object = one argument. */
+function query_args(arg){ return Array.isArray(arg) ? arg : is_plain(arg) && Object.keys(arg).length ? [arg] : []; }
+// A Session's queries are answered here, from session_state (its one picture), because its cost needs node: own_cost reads cache.jsonl.
+const NODE_QUERIES = { Session: { progress: n => n.progress(), cost: n => session_state(n, []).cost, summary: n => session_state(n, []) } };
+function walk_queries(node, delta, trail = "", out = { answer: {}, queried: false, other: [], set: [] }){
+	const into = (kid, sub, here, put) => { const r = walk_queries(kid, sub, here); out.queried ||= r.queried; out.other.push(...r.other); out.set.push(...r.set); if (r.queried) put(r.answer); };
+	for (const [key, arg] of Object.entries(delta)){
+		const here = trail ? `${trail}.${key}` : key;
+		const node_query = NODE_QUERIES[node.constructor.name]?.[key];
+		if (node_query || node.constructor.queries?.includes(key)){
+			out.queried = true;
+			if (typeof arg === "string" || typeof arg === "number" || arg === false){ out.set.push(here); continue; }   // a value is an attempt to SET a read-only key
+			if (node_query){ out.answer[key] = node_query(node); continue; }
+			const v = node[key];
+			out.answer[key] = typeof v === "function" ? v.apply(node, query_args(arg)) : v;
+		} else if (key === "tasks" && is_plain(arg) && !LIST_VERBS.some(v => v in arg)){
+			for (const [id, sub] of Object.entries(arg)){
+				const kid = is_plain(sub) ? node._tasks?.find(id) : null;
+				if (kid) into(kid, sub, `${here}.${id}`, a => ((out.answer.tasks ??= {})[id] = a));
+				else out.other.push(`${here}.${id}`);
+			}
+		} else if (is_plain(arg) && node._tasks?.find(key)) into(node._tasks.find(key), arg, here, a => (out.answer[key] = a));
+		else out.other.push(here);
+	}
+	return out;
+}
+const LIST_VERBS = ["add", "remove", "move", "order", "clear"];
+
+// null = not a query delta (run it as a change); {ok:false} = a mix, refused; else the answer. Nothing here writes.
+function ask(root, target, delta){
+	let node = root;
+	for (const id of target){ node = node._tasks?.find(id); if (!node) return { ok: false, why: `no task "${id}" under this path to ask` }; }
+	const r = walk_queries(node, delta);
+	if (!r.queried) return null;
+	if (r.set.length) return { ok: false, why: `${r.set.join(", ")} ${r.set.length > 1 ? "are queries" : "is a query"}: ${r.set.length > 1 ? "they only read" : "it only reads"} and cannot be set (give {} or an argument object). Nothing was written.` };
+	if (r.other.length) return { ok: false, why: `this delta asks (${Object.keys(r.answer).join(", ")}) and also changes (${r.other.join(", ")}). A delta either asks or changes: send two calls. Nothing was written.` };
+	return { ok: true, answer: r.answer };
+}
+
 function refusal(why, Class){
 	const d = describe_class(Class);
 	return { ok: false, why, exists: [...d.methods.map(m => m.name), ...new Set([...d.fields, ...(KEYS[Class.name] ?? [])])] };
@@ -719,6 +843,28 @@ function validate(Task, task, delta){
 		return refusal(`"${key}" names no method, field or child of ${Task.name}`, Task);
 	}
 	return null;
+}
+
+/* A page line is tried on a REAL Page before it is written: a private key or a part type nobody registered is refused, and the page's own
+ * log plus the new line must replay. Only `part-*` types are checked: a page also holds plain data typed "card", "note", "request", "task"…
+ * (in use today), which no class claims. Returns {ok:false, why} or null. */
+function bad_page_delta(Page, node, trail = ""){
+	if (Array.isArray(node)) { for (const n of node){ const why = bad_page_delta(Page, n, trail); if (why) return why; } return null; }
+	if (!is_plain(node)) return null;
+	for (const [key, value] of Object.entries(node)){
+		if (key.startsWith("_") || key === "constructor" || key === "prototype") return `"${trail}${key}" is private (keys starting with _ are never written)`;
+		if (key === "type" && typeof value === "string" && value.startsWith("part-") && !Page.types.has(value)) return `unknown part type "${value}" (the part types are: ${Page.PART_TYPES.join(", ")})`;
+		const why = bad_page_delta(Page, value, `${trail}${key}.`);
+		if (why) return why;
+	}
+	return null;
+}
+async function page_refusal(at, delta){
+	const Page = await page_class();
+	if (!Page) return null;   // a broken Page degrades the check, never the tool
+	let why = bad_page_delta(Page, delta);
+	if (!why) try { Page.replay([...parse_lines(at.file), nest(at.target, delta)]); } catch (e) { why = `the page would not replay with this line (${e.message})`; }
+	return why ? { ok: false, why: `${why}. Nothing was written.` } : null;
 }
 
 // A new folder is one more line in its parent's files.jsonl, through ModuleLog (a failure here never fails the write).
@@ -761,7 +907,12 @@ export const hooks = {
 	prompted: null,   // Servex: an owner Prompt landed on a session page -> PromptTasks files its asks (Servex/agents/PromptTasks.js)
 };
 
-export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
+export async function run_item(args = {}, ctx = {}, alias = false){
+	try { return await run_item_now(args, ctx, alias); }
+	catch (e) { if (e instanceof Refused) return { ok: false, why: `${e.message}. Nothing was written.` }; throw e; }
+}
+
+async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias = false){
 	url ??= own_page(ctx);
 	let caller_log = ctx.caller_log ?? null;
 	try { caller_log ??= ctx.resolve_log?.(ctx.caller) ?? null; } catch { caller_log = null; }   // a broken resolver never breaks the call
@@ -785,6 +936,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		told.set(`${ctx.caller}|${kind}`, true);
 		return { ok: true, instructions: await instructions_for(kind, Class) };
 	}
+	if (Class?.replay){ const asked = ask(root(), at.target, flat); if (asked) return asked; }
 	// An improvement proposed again adds weight, never a duplicate (the owner, 2026-10-22; readme-system.md): the same title becomes
 	// {"<id>": {"reinforce": {why}}} on the existing one, and Task.weight counts them.
 	if (path.basename(at.file) === "improvements.jsonl" && is_plain(flat.tasks?.add) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1){
@@ -802,6 +954,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		}
 	}
 	if (Class?.replay){ const no = validate(Class, root(), flat); if (no) return no; }
+	else if (kind === "Page"){ const no = await page_refusal(at, flat); if (no) return no; }
 	// A complete without evidence is refused BEFORE a line is written: a written line would replay as a recorded fact.
 	if (Class?.replay) for (const args of complete_calls(flat)){
 		const why = Class.completion_problem?.(args);
@@ -816,7 +969,13 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	const ids = [], homes = [], requests = [], by = ctx.caller ?? "agent";
 	let line = null, size;
 	// Every write to a Task/Session goes through here: append the line, then advance the live root with it.
-	const put = (l, own = true) => { const live = Class?.replay ? root() : null; size = write_line(at.file, l, own); if (live) advance(live, l); line = l; };   // root BEFORE the write: after it the file's size differs and root() would re-read
+	const put = (l, own = true) => {
+		const live = Class?.replay ? root() : null;   // root BEFORE the write: after it the file's size differs and root() would re-read
+		if (live) try_line(live, l);
+		try { size = write_line(at.file, l, own); } catch (e) { if (live) live.store.host = null; throw e; }
+		if (live) live.store.sig = sig(live.store.file);
+		line = l;
+	};
 
 	let body = pages === undefined && folder === undefined ? flat : rest;
 	if (Class?.replay && !at.target.length && is_plain(body.tasks) && body.tasks.add !== undefined){
@@ -834,6 +993,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 			const id = home ? null : slug_of(a.id ?? a.title);
 			if (id && (root()._tasks?.find(id) || plan.some(p => p.id === id)))
 				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Use the id "${id}-2" (or a different title), or change the existing one.`, suggest: id + "-2" };
+			if (!home && Class?.replay) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: "Task", ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
 			plan.push({ a: asker && a.from === undefined ? { ...a, from: asker } : a, home, id });
 		}
 		for (const { a, home, id } of plan){
@@ -866,9 +1026,11 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 	if ((pages === undefined && folder === undefined && !homes.length && !ids.length) || Object.keys(body).length){
 		// A verb that does nothing (refused from this state, or its child not found) is still written, but the answer says so.
 		const verb = Class?.replay && !at.target.length ? verb_in(body) : null;
-		const was = verb ? JSON.stringify(task_state(Class, root())) : null;
+		// Compared without the clocks: a running child's ran_ms (row_of) grows between the two reads, so it would always look changed.
+		const steady = state => JSON.stringify(state, (k, v) => k === "ran_ms" || k === "span_ms" || k === "last_at" ? undefined : v);
+		const was = verb ? steady(task_state(Class, root())) : null;
 		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: now() }), !!Class?.replay);
-		if (verb && JSON.stringify(task_state(Class, root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
+		if (verb && steady(task_state(Class, root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
 	} else if (size === undefined) size = size_of(at.file);
 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.
 	if (Class?.replay && !at.target.length && body.approve !== undefined && hooks.approved) try { Promise.resolve(hooks.approved(at.file)).catch(() => {}); } catch {}
@@ -907,6 +1069,8 @@ export function page_tools(resolve_log = null){
 
 				const stamped = is_plain(args) ? { ...(method === "add" ? { id: crypto.randomUUID() } : {}), ...stamp_ids(args), by: ctx.caller ?? "agent", ts: now() } : args;
 				const line = nest(at.target, { [method]: stamped });
+				const no = await page_refusal(at, { [method]: stamped });
+				if (no) return JSON.stringify(no);
 
 				const size = write_line(at.file, line);
 				return JSON.stringify({ ok: true, line, size });
@@ -927,6 +1091,8 @@ export function page_tools(resolve_log = null){
 				const id = item?.id ?? crypto.randomUUID();
 				const add = { ...item, id, by: ctx.caller ?? "agent", ts: now(), ...(after !== undefined ? { after } : {}) };
 				const line = nest(at.target, { add });
+				const no = await page_refusal(at, { add });
+				if (no) return JSON.stringify(no);
 
 				const size = write_line(at.file, line);
 				// An owner prompt (prompt-relay.mjs writes it): Servex files its asks as proposed tasks (Servex/agents/PromptTasks.js).

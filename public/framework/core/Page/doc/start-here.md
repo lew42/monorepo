@@ -24,6 +24,7 @@ If you are about to work on `core/Page` (as its mastermind, a minion, or a new r
 
 | test | covers | run |
 |---|---|---|
+| `core/Page/Page.test.mjs` | the real `Page` in node: a `page.jsonl` replays, typed parts become their classes, an unknown part type is reported, the item tool refuses a bad line | `node public/framework/core/Page/Page.test.mjs` |
 | `Servex/agents/page_tools.test.mjs` | the page tools (`page_set`, `page_read`, …) on a temp `page.jsonl` | `node Servex/agents/page_tools.test.mjs` |
 | `core/Item/Item.test.mjs` | `Item` fields (the base of `Page`) | `node public/framework/core/Item/Item.test.mjs` |
 | `Template/Template.test.mjs` | templates, in headless Chromium | `node public/framework/core/Page/Template/Template.test.mjs` |

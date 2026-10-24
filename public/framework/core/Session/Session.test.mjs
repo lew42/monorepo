@@ -44,6 +44,35 @@ check("Session.describe() lists tasks and progress", () => {
 });
 
 console.log(`${results.filter(Boolean).length}/${results.length}`);
+check("the session snapshot (2026-10-23): line times, a reopened session, stopped tasks folded", () => {
+	const s = Session.replay([
+		{ session: { id: "x", at: "2026-10-20T00:00:00.000Z" } },
+		{ stop: { why: "abandoned", by: "StaleClose" }, ts: "2026-10-21T00:00:00.000Z" },
+		{ start: {}, ts: "2026-10-22T00:00:00.000Z" },
+		{ tasks: { add: { type: "Task", id: "a", title: "A" } }, ts: "2026-10-22T01:00:00.000Z" },
+		{ tasks: { add: { type: "Task", id: "b", title: "B" } }, ts: "2026-10-22T01:00:00.000Z" },
+		{ tasks: { a: { start: {} } }, ts: "2026-10-22T02:00:00.000Z" },
+		{ tasks: { a: { complete: EV } }, ts: "2026-10-22T03:00:00.000Z" },
+		{ tasks: { b: { stop: { why: "noise" } } }, ts: "2026-10-22T04:00:00.000Z" },
+	]);
+	const a = s.tasks.find("a"), p = s.progress();
+	return s.data.state === "running" && s.data.why === null
+		&& a.data.completed_at === "2026-10-22T03:00:00.000Z" && a.duration() === 3600e3
+		&& p.done === 1 && p.total === 1 && p.stopped === 1 && s.completion === 1
+		&& s.first_at === "2026-10-20T00:00:00.000Z" && s.span_ms === 2 * 86400e3 + 4 * 3600e3 && Task.clock === null;
+});
+
+check("replay: a bare child id walks to a nested task, two levels down (process-system lines 120-129)", () => {
+	const lines = [{ session: "r2" }, { tasks: { add: { type: "Task", id: "top", title: "top" } } },
+		{ tasks: { top: { tasks: { add: { id: "kid", title: "kid" } } } } },   // an untyped add under a task is a Task
+		{ top: { start: {} } },
+		{ top: { kid: { complete: EV } } },   // the id nested inside the first
+		{ top: { tasks: { add: { id: "kid2", title: "kid2" } } } },
+		{ kid2: { complete: EV } }];   // a nested id at the TOP level of the line
+	const s = Session.replay(lines), top = s.tasks.find("top"), kid = top.tasks.find("kid"), kid2 = top.tasks.find("kid2");
+	return top instanceof Task && kid instanceof Task && kid.state === "complete" && kid2.state === "complete" && top.progress().done === 2 && top.progress().total === 2 && !("kid2" in s.data);
+});
+
 process.exit(results.every(Boolean) ? 0 : 1);
 
 import Day from "./Day.js";

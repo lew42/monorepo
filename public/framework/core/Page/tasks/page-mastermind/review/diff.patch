@@ -1,0 +1,345 @@
+diff --git a/Server/ReadyToMerge.mjs b/Server/ReadyToMerge.mjs
+index 519fdac84..69a6f5979 100644
+--- a/Server/ReadyToMerge.mjs
++++ b/Server/ReadyToMerge.mjs
+@@ -1,6 +1,6 @@
+ /* `node Server/ReadyToMerge.mjs [--json] [--days 14]` — the branches an agent said are ready to merge.
+- * Source of truth is the `ready:` log line in a task record (session.jsonl / task.jsonl), not the
+- * branch list (305 unmerged branches are mostly salvage). Per branch the latest line wins; a branch
++ * Source of truth is the `ready:` log line in a task record (session.jsonl / task.jsonl, under ai/sessions/ or
++ * a module's tasks/ folder), not the branch list (305 unmerged branches are mostly salvage). Per branch the latest line wins; a branch
+  * already in michael/dev, or no longer existing, is dropped. Doc: public/framework/ai/merge/readme.md
+  * Row: {branch, sha, at, task_dir, task_url, title, what, review, worktree, stale}. `stale` = the
+  * branch head moved past the sha the agent named; the Merge button refuses those. */
+@@ -48,6 +48,21 @@ function dayDirs(sessions, since) {
+ 	return out;
+ }
+ 
++/* A module's own task folders (`public/framework/core/Page/tasks/`, where a mastermind's queue lives), by one walk that
++ * never enters ai/sessions (its dated folders are walked above), node_modules, shots or archive: about 50 ms over 1,450 folders. */
++function moduleTaskDirs(framework) {
++	const out = [], skip = new Set(["node_modules", "shots", "sessions", "archive"]);
++	const walk = (d, depth) => {
++		let ents; try { ents = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
++		for (const e of ents) {
++			if (!e.isDirectory() || e.name.startsWith(".")) continue;
++			if (e.name === "tasks") out.push(path.join(d, e.name)); else if (!skip.has(e.name) && depth < 6) walk(path.join(d, e.name), depth + 1);
++		}
++	};
++	walk(framework, 0);
++	return out;
++}
++
+ /* opts: {root (where the records live; default the main checkout), repo (where git runs; default root),
+  * base (default michael/dev), days (14), now} */
+ export function readyRows(opts = {}) {
+@@ -56,7 +71,8 @@ export function readyRows(opts = {}) {
+ 	const since = (opts.now ?? Date.now()) - (opts.days ?? 14) * 864e5;
+ 	const sessions = path.join(root, "public/framework/ai/sessions");
+ 	const latest = new Map();   // branch -> row (latest line wins)
+-	for (const day of dayDirs(sessions, since)) for (const file of recordFiles(day, since)) {
++	const tops = [...dayDirs(sessions, since), ...moduleTaskDirs(path.join(root, "public/framework"))];
++	for (const top of tops) for (const file of recordFiles(top, since)) {
+ 		let lines; try { lines = fs.readFileSync(file, "utf8").split(/\r?\n/); } catch { continue; }
+ 		let title = null;
+ 		for (const l of lines) {
+diff --git a/Server/ReadyToMerge.test.mjs b/Server/ReadyToMerge.test.mjs
+index c0355f9df..0a11573ea 100644
+--- a/Server/ReadyToMerge.test.mjs
++++ b/Server/ReadyToMerge.test.mjs
+@@ -24,6 +24,7 @@ fs.writeFileSync(path.join(root, "a"), "1"); g("add", "."); g("commit", "-qm", "
+ const mk = (b, f) => { g("checkout", "-qb", b); fs.writeFileSync(path.join(root, f), "x"); g("add", "."); g("commit", "-qm", b); const s = g("rev-parse", "HEAD"); g("checkout", "-q", "michael/dev"); return s; };
+ const sha = mk("task/ready", "r"), landed = mk("task/landed", "l"); g("merge", "-q", "--no-edit", "task/landed");
+ const stale0 = mk("task/stale", "s"); g("checkout", "-q", "task/stale"); fs.writeFileSync(path.join(root, "s2"), "x"); g("add", "."); g("commit", "-qm", "more"); g("checkout", "-q", "michael/dev");
++const moduled = mk("task/module", "m");   // every branch is made before a record is written: mk() commits all files
+ const day = new Date().toISOString().slice(0, 10).split("-");
+ const dir = path.join(root, "public/framework/ai/sessions", ...day, "sess", "task1"); fs.mkdirSync(dir, { recursive: true });
+ const rec = path.join(dir, "session.jsonl");
+@@ -31,8 +32,13 @@ const L = o => JSON.stringify(o) + "\n";
+ fs.writeFileSync(rec, L({ assign: { title: "Scratch task" } }) + L({ log: { at: "2026-10-23T01:00:00Z", msg: `ready: task/ready at ${sha.slice(0, 9)}; did the thing` } })
+ 	+ L({ log: { at: "2026-10-23T01:00:00Z", msg: `ready: task/landed ${landed.slice(0, 9)}` } }) + L({ log: { at: "2026-10-23T01:00:00Z", msg: "ready: task/gone abcdef1" } })
+ 	+ L({ log: { at: "2026-10-23T01:00:00Z", msg: `ready: task/stale ${stale0.slice(0, 9)}` } }));
++// a module's own task folder (where a mastermind's queue lives) is read too
++const mdir = path.join(root, "public/framework/core/Page/tasks/page-mastermind/item-tool"); fs.mkdirSync(mdir, { recursive: true });
++fs.writeFileSync(path.join(mdir, "session.jsonl"), L({ assign: { title: "Module task" } }) + L({ log: { at: "2026-10-23T02:00:00Z", msg: `ready: task/module at ${moduled.slice(0, 9)}; module work` } }));
+ const rows = readyRows({ root, repo: root });
+-eq(rows.map(r => r.branch).sort(), ["task/ready", "task/stale"], "landed and gone are dropped");
++eq(rows.map(r => r.branch).sort(), ["task/module", "task/ready", "task/stale"], "landed and gone are dropped");
++const rm = rows.find(r => r.branch === "task/module");
++ok(rm.title === "Module task" && rm.what === "module work" && rm.task_url === "/framework/core/Page/tasks/page-mastermind/item-tool/", "a module task folder's ready line is listed");
+ const r1 = rows.find(r => r.branch === "task/ready");
+ ok(r1.title === "Scratch task" && r1.what === "did the thing" && r1.review === "not reviewed" && r1.stale === false && r1.worktree === null);
+ ok(rows.find(r => r.branch === "task/stale").stale === true);
+diff --git a/Server/smoke.mjs b/Server/smoke.mjs
+index 00fdf81d6..6d71a2074 100644
+--- a/Server/smoke.mjs
++++ b/Server/smoke.mjs
+@@ -90,14 +90,6 @@ if (!base) {
+ 		const entry = Object.values(JSON.parse(fs.readFileSync(f, "utf8"))).find(e => norm(e.path) === norm(dir));
+ 		if (entry) { base = `http://127.0.0.1:${entry.port}`; break; }
+ 	}
+-	// Not registered (made with plain `git worktree add`): worktree-restart.mjs adopts it, boots its server and registers it.
+-	if (!base && path.basename(path.dirname(path.resolve(dir))) === "worktrees") {
+-		const root = path.resolve(here, "..");
+-		const r = spawnSync(process.execPath, [path.join(root, "Server", "worktree-restart.mjs"), path.basename(path.resolve(dir)), "--path", path.resolve(dir)], { cwd: root, encoding: "utf8", windowsHide: true });
+-		const entry = r.status === 0 ? Object.values(JSON.parse(fs.readFileSync(path.join(root, ".worktrees.json"), "utf8"))).find(e => norm(e.path) === norm(dir)) : null;
+-		if (entry) { base = `http://127.0.0.1:${entry.port}`; console.log("smoke: adopted and booted " + dir); }
+-		else console.error((r.stdout || "") + (r.stderr || ""));
+-	}
+ 	if (!base) usage("no worktree entry for " + dir + " in .worktrees.json (use --port or --base)");
+ }
+ base = base.replace(/\/$/, "");
+diff --git a/Server/worktree-restart.mjs b/Server/worktree-restart.mjs
+index 8ef9e4096..788993605 100644
+--- a/Server/worktree-restart.mjs
++++ b/Server/worktree-restart.mjs
+@@ -22,7 +22,6 @@
+  * is the stand-in until that lands. */
+ import { execFileSync, spawnSync } from "node:child_process";
+ import fs from "node:fs";
+-import net from "node:net";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ 
+@@ -31,7 +30,7 @@ const REGISTRY = path.join(ROOT, ".worktrees.json");
+ 
+ const name = process.argv[2];
+ if (!name) {
+-	console.error("usage: node Server/worktree-restart.mjs <name> [--path <worktree dir>]   (--path: adopt an unregistered worktree)");
++	console.error("usage: node Server/worktree-restart.mjs <name>");
+ 	process.exit(1);
+ }
+ 
+@@ -50,28 +49,10 @@ function write_registry(entry_name, entry){
+ 	fs.writeFileSync(REGISTRY, JSON.stringify(reg, null, "\t"));
+ }
+ 
+-/* ADOPT (2026-10-23): a worktree made with plain `git worktree add` is on disk but not in the registry, so the merge smoke
+- * found no server for it (four of them, found by mastermind-deputy). If ../worktrees/<name> is a git worktree, register it
+- * here with a free port and boot it like any other. */
+-async function adopt(){
+-	const at = process.argv.indexOf("--path"), dir = at > 0 ? path.resolve(process.argv[at + 1]) : path.resolve(ROOT, "..", "worktrees", name);
+-	let branch = null;
+-	try { branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: dir, encoding: "utf8", windowsHide: true }).trim(); } catch { return null; }
+-	if (!fs.existsSync(path.join(dir, "node_modules"))) {
+-		console.log(`worktree-restart: ${dir} has no node_modules; running npm ci…`);
+-		try { execFileSync(process.platform === "win32" ? "npm.cmd" : "npm", ["ci"], { cwd: dir, stdio: "inherit", shell: true, windowsHide: true }); } catch {}
+-	}
+-	const port = await new Promise(r => { const s = net.createServer().listen(0, () => { const p = s.address().port; s.close(() => r(p)); }); });
+-	const e = { name, path: dir, branch, port, log: path.join(ROOT, ".worktree-logs", `${name}.log`), created_at: new Date().toISOString(), booted: false, adopted: true };
+-	write_registry(name, e);
+-	console.log(`worktree-restart: adopted ${dir} (${branch}) on port ${port}.`);
+-	return e;
+-}
+-
+ const registry = read_registry();
+-const entry = registry[name] ?? await adopt();
++const entry = registry[name];
+ if (!entry) {
+-	console.error(`worktree-restart: "${name}" is not in ${REGISTRY} and ../worktrees/${name} is not a git worktree — nothing to restart. Use worktree-up.mjs to create it.`);
++	console.error(`worktree-restart: "${name}" is not in ${REGISTRY} — nothing to restart. Use worktree-up.mjs to create it first.`);
+ 	process.exit(1);
+ }
+ if (!fs.existsSync(entry.path)) {
+diff --git a/Servex/agents/roles/mastermind.md b/Servex/agents/roles/mastermind.md
+index 5a5cc0964..46712d1d2 100644
+--- a/Servex/agents/roles/mastermind.md
++++ b/Servex/agents/roles/mastermind.md
+@@ -129,7 +129,6 @@ Every brief tells the minion to load the `minion` skill first and carries only w
+ - ⚠ Run any code recipe you put in a brief once yourself first (an import path, a route pattern, a command). Playwright imports need `file:///C:/…`; `page.routeWebSocket(/.*/)` blocks sockets, `page.route('**/socket*')` matches nothing.
+ - Ask for the raw output as a file and spot-check one decisive number; ask for two numbers that must agree, or a ratio, not an opinion; say which artifact is the deliverable and what to cut first.
+ - Findings go in the worker's own `task.jsonl` as `log` lines, never a `findings.md`.
+-- Make a worktree with `take_worktree` or `node Server/worktree-up.mjs <name>`, never plain `git worktree add`: those two register it in `.worktrees.json`, where the merge smoke finds its server. (An unregistered one is adopted by `worktree-restart.mjs --path` when smoke meets it, 2026-10-23.)
+ - A worker that must see its work loads its worktree URL (`take_worktree` / `worktree-up.mjs`); Servex starts other servers (`start_server`). The `server-guard` hook refuses `node server.js`.
+ - ⚠ Search with Glob/rg scoped to the repo, never `find /` (orphaned root-scans burned cores for hours).
+ - Mandate ONE evidence line in `.claude/skills/<skill>/improvements.md` for a skill that misled the worker (`skill-improvement`).
+diff --git a/public/framework/ai/doc/readme.md b/public/framework/ai/doc/readme.md
+index 066b10f63..c112dbd1f 100644
+--- a/public/framework/ai/doc/readme.md
++++ b/public/framework/ai/doc/readme.md
+@@ -29,7 +29,6 @@ A map lists every piece of one system (each class, tool, writer and file) in one
+ | [`tokens/`](tokens/tokens.md) | [How cost is counted and cut](tokens/tokens.md), [context windows](tokens/context-window.md) | you spend or measure tokens |
+ | [`logs/`](logs/log-sources.md) | [Where the owner's asks live](logs/log-sources.md), [the universal log tool](logs/log-tool.md), [inbox + streaming](logs/inbox-log-streaming.md), [conversation logs](logs/conversations.md) | you read or write a log |
+ | [`sessions-and-tasks.md`](sessions-and-tasks.md) | [Sessions and tasks: a spawned agent is a session, a task is something to finish (the plan)](sessions-and-tasks.md) | you rename, spawn or count sessions and tasks |
+-| [`task-queue.md`](task-queue.md) | [The task queue: tasks plus a priority, started by TaskLoop through the spawn gate; plan or do; handoff by task path; raw files versus instances](task-queue.md) | you add, rank or hand off tasks |
+ | [`compaction.md`](compaction.md) | [When a Servex agent's context is summarized (before sleep, the nudge, the ceiling), its cost, and every complicating factor](compaction.md) | you change compaction, or an agent's cost or memory grows |
+ | [`context-drift.md`](context-drift.md) | [Why a long session forgets its role: the role text in the system prompt, the role reminder, and every complicating factor](context-drift.md) | an agent seems to have forgotten its role, or you change what a role is given |
+ | [`context-loss.md`](context-loss.md) | [A session's work survives only in files: what is lost, where to write it, what replaces a handover](context-loss.md) | you end a session, hand work on, or wonder where to write something |
+diff --git a/public/framework/ai/doc/task-queue.md b/public/framework/ai/doc/task-queue.md
+deleted file mode 100644
+index 6d4011aa0..000000000
+--- a/public/framework/ai/doc/task-queue.md
++++ /dev/null
+@@ -1,57 +0,0 @@
+-# The task queue: a session's tasks plus a priority, worked by its mastermind
+-
+-**The decision (2026-10-23):** there is no new queue system. A mastermind's queue is its tasks, each with a `priority`. The mastermind starts the high ones, moves the low ones to the back burner, and runs back-burner work only when usage is well under pace. Starting a task means spawning an agent, so starting goes through Servex's own agent queue (at most 5 working agents; extra spawns wait at the spawn gate). That queue is code, not AI. This is one system. Sources: the owner's prompts of 2026-10-23 in session-e00f55c9's `prompts.jsonl`, relayed by vscode-mastermind. The record: `process-system` task `ai-system-plans-get-prioritized-and-hand`.
+-
+-## What already exists, and is used as is
+-
+-| Piece | Where | What it does |
+-|---|---|---|
+-| `priority` line | `reprioritise_task` tool, `Task.replay` | `{"priority":{score, why, by}}` on a task. A later line wins. |
+-| Back burner | `snooze_task` tool | `{"snooze":{until}}`: the task is skipped until then. |
+-| Launch | `Servex/TaskLoop.js` `launch()` | Every 5 minutes, an approved or running task with an agent config and no agent gets one spawned, and a `spawn` line is written. |
+-| The 5-agent cap | the spawn gate in `Servex/agents/Agents.js` | A spawn beyond the working cap waits, then starts when a slot frees. |
+-| Handoff by task | `spawn_agent` `task: {from, id}` (`page_tools.js` `move_item`) | The subtask moves into the new agent's folder with its id and history. |
+-| The ranking view | `core/Task/TaskQueue.js` on branch `worktree/qf-4` (mastermind-deputy's B, not merged) | Ranks tasks and draws `/framework/ai/queue/`. It becomes the one ranking code. |
+-
+-## The rules
+-
+-1. **A task is made with a priority.** The task filer (PromptTasks) and every agent that adds a task set `priority` when they make it. The owner's explicit asks rank above everything an agent proposed.
+-2. **Most important and cheapest first.** Rank = importance divided by expected cost. Importance comes from `priority.score` (the one shape; `Task.rank` already sorts by it), plus a bump for an explicit owner ask. Cost is the task's own estimate, else the median cost of its module's past tasks.
+-3. **A note is just done.** "Write X down" is done at once: add the note, check the task off. It never waits in the queue.
+-4. **A plan the owner asked for, ranked high, starts without a go-ahead.** The mastermind decides how: do it itself with its tools, spawn a builder, or give it to a builder that already exists. The owner's one decision is the merge.
+-5. **Some tasks never get done, and that is fine.** Prioritizing means weighing benefit against cost and the tokens left. A task left at the bottom is a decision, not a failure.
+-6. **When the mode changes, everything is re-ranked at once.** A token crunch is a mode. A node pass (`TaskQueue.rerank(mode)`, to build) writes the new priority lines in one go. In a crunch only the top scores run; well under pace, the back burner runs too. `node Server/usage-now.mjs` decides the mode; no model is asked.
+-7. **Plan before launch, when it pays.** A quick fix or a note is just done. A medium job is the mastermind's call. A big project or an architecture decision (APIs, data structures, where files go, streaming) gets a plan first. A queued plan shows on the queue page, so the owner can shape it before it runs. (The same rule is in `Servex/agents/roles/mastermind.md`, "Deciding".)
+-
+-## Handoff is a task at a path, not a message
+-
+-Work passes between sessions as a task: "a task is assigned to you at `<dir>` (id `<id>`)". The receiver reads the task, and the task's own log holds the history, the evidence and the completion. `send_to_agent` only carries that pointer, or a quick nudge. Text in a message is not a record (`roles/mastermind.md`, "Log, don't chat").
+-
+-## Reading raw files versus instances
+-
+-Both, each for its own job:
+-
+-- **Raw JSONL** for a reader that only scans: a script, a census, a count. It is fast and needs no classes. It must never compute state, because state comes from replaying the verbs.
+-- **An instance** (`Task.replay`, `Session.replay`, the `item` tool) for anything that computes state (done, completion, cost, waiting) or acts on a task. The class is the one place the rules live (`Task.progress_of`, the `CAN` map).
+-- **Writes** always go through `append.mjs` or the `item` tool, never by hand.
+-
+-## Not lost when a fresh session starts (decided with mastermind-page)
+-
+-The AI system mastermind renews itself as a fresh session under the same id (`roles/ai-system-mastermind.md`), so its queue must outlive any one session.
+-
+-**The queue lives in the role's own task folder, and its path is named once, in the role readme.** It is the same shape a module mastermind already uses: mastermind-page's queue is `core/Page/tasks/page-mastermind/task.jsonl`. Two sessions have worked it, and it survived compactions and a new session id with nothing copied. A child in its own file, referenced as `{"task":url,"as":id}`, is resolved by one `Task.from_ref` for both `Task.replay_line` and `Session.replay_line`. The item tool and the browser follow it too, so no new reader is needed.
+-
+-- **A session references only the tasks it takes up, never the whole queue.** `Session.progress` counts every child, so referencing the whole queue would report the queue's completion as each day's session's own. To take up a task, give it a folder with the `{"folder":id}` verb; the item tool writes the reference into the caller's log. Who worked on a task is already in its `sessions` field.
+-- **Priority has one shape: `{"priority":{"score":N,"why","by"}}`.** `Task.rank` sorts by score × children × recency. A string such as `"priority":"high"` is ignored by the sort; write the score.
+-- **"The open tasks by priority" needs a read-only item query.** Today every delta the item tool gets is written as a line. That is mastermind-page's subtask `query-without-writing` (`core/Page/tasks/page-mastermind/`); this plan depends on it.
+-
+-Alternatives not taken: linking the previous session and reading its tasks (a chain that grows every day, and an open task's home stays in an ended session); a separate `tasks.jsonl` that is copied or moved (two copies of one task, or the old session's record erased).
+-
+-## The plan, smallest steps first
+-
+-1. **Finish and merge B (`worktree/qf-4`)**, with three fixes: costs read from real task costs (`Task.cost`) so the top ten no longer tie at $6.05; re-asks counted from `repeat_of` and prompt links, not the broken `RefineQueue --repeats` match; a `TaskQueue.test.mjs`.
+-2. **TaskLoop starts the top of each queue.** On its tick: for each mastermind's queue, the top-ranked task that is approved (or an owner ask ranked high) and has no agent gets spawned, if the spawn gate has a free slot and usage is on pace. This is `launch()` with an order.
+-3. **`TaskQueue.rerank(mode)`**, run when `usage-now.mjs` changes mode.
+-4. **The role's queue folder** for the AI system mastermind, named in its role readme, with sessions referencing only the tasks they take up. The ranked read waits on mastermind-page's `query-without-writing`.
+-
+-Each step is a worktree, a test and a review, then merge.
+diff --git a/public/framework/ai/merge/readme.md b/public/framework/ai/merge/readme.md
+index f19c89077..b6b9fd70d 100644
+--- a/public/framework/ai/merge/readme.md
++++ b/public/framework/ai/merge/readme.md
+@@ -4,7 +4,7 @@ Page: [/framework/ai/merge/](/framework/ai/merge/). One card per branch an agent
+ 
+ ## Where the list comes from
+ 
+-An agent that has finished and passed review logs `ready: <branch> [at] <sha> <what was done>` in its task record (`session.jsonl` or `task.jsonl`). `Server/ReadyToMerge.mjs` (`node Server/ReadyToMerge.mjs [--json]`) scans the last 14 days of records under `ai/sessions/`, keeps the latest line per branch, and drops a branch that is already in `michael/dev` or no longer exists. It adds the review phrase (`review.mjs --status`), the worktree (`git worktree list`) and `stale` (the branch moved past the named sha). Nothing is stored; every row is computed on request.
++An agent that has finished and passed review logs `ready: <branch> [at] <sha> <what was done>` in its task record (`session.jsonl` or `task.jsonl`). `Server/ReadyToMerge.mjs` (`node Server/ReadyToMerge.mjs [--json]`) scans the last 14 days of records under `ai/sessions/` and in every module's own `tasks/` folder (for example `core/Page/tasks/`, where a mastermind's queue lives), keeps the latest line per branch, and drops a branch that is already in `michael/dev` or no longer exists. It adds the review phrase (`review.mjs --status`), the worktree (`git worktree list`) and `stale` (the branch moved past the named sha). Nothing is stored; every row is computed on request.
+ 
+ ## On disk
+ 
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index bfedbc676..e80d20ead 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -10,7 +10,6 @@
+ - **Records** (every file in `ai/`, its writer and its reader; who makes sessions and tasks, and where): [doc/records.md](doc/records.md)
+ - **Roles and rules:** one readme per role, [Servex/agents/roles/readme.md](../../../Servex/agents/roles/readme.md) · safety and cost rules, long form: [doc/agent-rules.md](doc/agent-rules.md) · what each agent reads: [doc/readme-system.md](doc/readme-system.md)
+ - **Principle:** effective parallel work between sessions. A parent answers or hands off, helpers are reused, tasks are created, tracked, logged and finished. A spawned agent is a **session**, a task is something to finish inside it: [doc/sessions-and-tasks.md](doc/sessions-and-tasks.md).
+-- **The task queue** (a mastermind's queue is its tasks plus a priority; TaskLoop starts the top ones through Servex's 5-agent cap; handoff is a task at a path): [doc/task-queue.md](doc/task-queue.md)
+ - **The AI system mastermind** owns sessions, tasks, roles, skills and spawning: there is one, always the id `ai-system-mastermind`. Send it any question or configuration of those, and log problems for it with `module_inbox` (module `ai`, with a `fix`; the third repeat wakes it). Its role: [Servex/agents/roles/ai-system-mastermind.md](/Servex/agents/roles/ai-system-mastermind.md); its spend: `node Server/role-spend.mjs ai-system-mastermind`.
+ - **Compaction and context drift** (when an agent's context is summarized and what it costs; why a long session forgets its role, and the role text in the system prompt that keeps it): [doc/compaction.md](doc/compaction.md) · [doc/context-drift.md](doc/context-drift.md)
+ - **Context loss** (a session survives only in files; what to write where; computed state instead of a handover): [doc/context-loss.md](doc/context-loss.md) · how agents talk and what each message leaves on disk: [Servex/agents/doc/messaging.md](/Servex/agents/doc/messaging.md) · **readme rule, checked by code:** `node Server/ReadmeOrphans.mjs` lists every system the readme above it never names; add the missing one-liner whenever it prints one.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session.jsonl
+index a2859f943..146ed2612 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session.jsonl
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session.jsonl
+@@ -242,8 +242,3 @@
+ {"log":{"at":"2026-10-23T20:27:20-05:00","msg":"ready: worktree/session-snapshot 837cf2b44 (review pass, 5 noted; needs Servex restart: Agents.js, page_tools.js)"}}
+ {"log":{"at":"2026-10-23T20:27:20-05:00","msg":"ready: worktree/review-heartbeat-fixes b619fc778 (review pass, 4 noted; needs Servex restart: Heartbeat.js)"}}
+ {"log":{"at":"2026-10-23T20:27:20-05:00","msg":"ready: worktree/task-queue-plan 64bc83039 (docs only: ai/doc/task-queue.md)"}}
+-{"tasks":{"add":{"type":"Task","title":"Session data, complete: cost, duration, child sessions, descendant counts, in every session's state","priority":"high","expected":"item({path: <any session>}) answers: total cost (from the transcript, computed incrementally and stamped with the last line it read, so it never drifts), duration, every child session nested (with its own cost), direct and descendant task counts (created, started, complete), and the biggest tasks. It works for VS Code tab sessions too (today their record replays as a plain Task, with no cost). The sessions readme states exactly what data exists, which tool writes it and which class reads it. Tested on session-e00f55c9.","source":"/framework/ai/sessions/2026/10/20/session-e00f55c9/prompts.jsonl (owner, 2026-10-23 ~20:45)","description":"The owner has asked for this many times. Find out why it isn't there: never written as a requirement, written but not built, or built but not wired.","id":"session-data-complete-cost-duration-chil"}},"by":"agent","ts":"2026-10-24T01:27:27.501Z"}
+-{"session-data-complete-cost-duration-chil":{"get":{}},"by":"mastermind-system-architect-3","ts":"2026-10-24T01:27:44.757Z"}
+-{"session-data-complete-cost-duration-chil":{"start":{}},"by":"mastermind-system-architect-3","ts":"2026-10-24T01:27:54.166Z"}
+-{"log":{"at":"2026-10-23T20:40:56-05:00","msg":"ready: worktree/session-data 2e861fe07 (task session-data-complete-cost-duration-chil: item() answers own cost from the AISession cache, nested child sessions with costs, task counts, biggest tasks; tab records replay as Session; review pass, 2 fixed, 2 noted; needs Servex restart)"}}
+-{"log":{"at":"2026-10-23T20:40:56-05:00","msg":"under review: worktree/smoke-adopt cdf7ee912 (smoke adopts an unregistered worktree; deputy gap 1) and worktree/task-queue-plan 7ad677165 (docs; the deputy asked me to merge it myself). Deputy gap 2 (404 probes on task-folder links) routed to mastermind-page."}}
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/requirements.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/requirements.md
+deleted file mode 100644
+index de64510bf..000000000
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/requirements.md
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Smoke finds every worktree
+-
+-mastermind-deputy, 2026-10-23: four worktrees made with plain `git worktree add` had no `.worktrees.json` entry, so merge.mjs's smoke found no server; the deputy registered them by hand.
+-
+-1. `Server/smoke.mjs`, on a worktree with no entry, registers it and boots its server itself, then runs.
+-2. One code path: `worktree-restart.mjs` adopts an unregistered worktree (`--path`), the same boot as a restart.
+-3. The mastermind readme says how to make a worktree so it is registered from the start.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/review.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/review.jsonl
+deleted file mode 100644
+index cc04dbc53..000000000
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/review.jsonl
++++ /dev/null
+@@ -1,2 +0,0 @@
+-{"phase":{"at":"2026-10-23T20:41:07-05:00","n":1,"kind":"findings","status":"start"}}
+-{"phase":{"at":"2026-10-23T20:41:07-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0,"model":null}}
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/review.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/review.md
+deleted file mode 100644
+index 2dcabf74a..000000000
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/review.md
++++ /dev/null
+@@ -1,3 +0,0 @@
+-verdict: pass
+-
+-No review needed: only CSS/docs changed (41 line(s)), no new file.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/task.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/task.jsonl
+deleted file mode 100644
+index 92a0e266e..000000000
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/task.jsonl
++++ /dev/null
+@@ -1,2 +0,0 @@
+-{"decision":{"at":"2026-10-23T20:41:07-05:00","question":"review size","computed":"full","chose":"none","why":"node scripts only (smoke.mjs, worktree-restart.mjs) and one readme line; no page changes"}}
+-{"review":{"at":"2026-10-23T20:41:07-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/smoke-adopt","head":"cdf7ee9120dc94d42aec5db34ddd3f1b0017f39e","model":null,"cost":0,"file":"review.md"}}
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/requirements.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/requirements.md
+deleted file mode 100644
+index 7f63793e1..000000000
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/requirements.md
++++ /dev/null
+@@ -1,8 +0,0 @@
+-# The task queue plan (a decision doc)
+-
+-Task `ai-system-plans-get-prioritized-and-hand` on process-system, plus vscode-mastermind's queue brief (2026-10-23).
+-
+-1. A decision doc in `public/framework/ai/doc/`: no new queue system; a mastermind's queue is its tasks with a priority, fitted to Servex's agent queue (at most 5 working agents).
+-2. Covers: high-priority plans start without a go-ahead; handoff by task path, not by message; reading raw files versus instances.
+-3. Storage settled with mastermind-page, so a renewed session keeps its queue.
+-4. A small plan, smallest steps first; linked from `ai/readme.md` and `ai/doc/readme.md`.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/review.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/review.jsonl
+deleted file mode 100644
+index e01434618..000000000
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/review.jsonl
++++ /dev/null
+@@ -1,2 +0,0 @@
+-{"phase":{"at":"2026-10-23T20:41:05-05:00","n":1,"kind":"findings","status":"start"}}
+-{"phase":{"at":"2026-10-23T20:41:05-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0,"model":null}}
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/review.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/review.md
+deleted file mode 100644
+index 332c0b12d..000000000
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/review.md
++++ /dev/null
+@@ -1,3 +0,0 @@
+-verdict: pass
+-
+-No review needed: only CSS/docs changed (67 line(s)), no new file.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/task.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/task.jsonl
+deleted file mode 100644
+index f8e48577d..000000000
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/task.jsonl
++++ /dev/null
+@@ -1,2 +0,0 @@
+-{"decision":{"at":"2026-10-23T20:41:05-05:00","question":"review size","computed":"light","chose":"none","why":"docs only: one markdown file and two links; its worktree server does not boot"}}
+-{"review":{"at":"2026-10-23T20:41:05-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/task-queue-plan","head":"7ad6771653a7e10631a2f0734f0b396626fc0edf","model":null,"cost":0,"file":"review.md"}}

@@ -2,7 +2,7 @@
 // drawn as a row; a proposed one (waiting on the owner) gets Approve, Reject and Make it a project, each one {"decide":{task,is}} line.
 // Approved with a module named, node moves it to <module>/tasks/<slug>/ within 5 minutes (PromptTasks.sweep).
 // Servex files an owner prompt's asks there as proposals (Servex/agents/PromptTasks.js). Doc: doc/prompt-tasks.md.
-import View, { div, span, button, h3 } from "../View/View.js";
+import View, { div, span, button, h3, details, summary } from "../View/View.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 import TaskView from "../Task/TaskView.js";
@@ -19,18 +19,29 @@ export default class SessionTasks extends JSONL {
 	live(){ super.live(() => {}); return this; }
 
 	draw(){
-		const Class = this.session_class ?? Session, s = Class.replay(this.lines), tasks = [...(s._tasks ?? [])];
+		const Class = this.session_class ?? Session, s = Class.replay(this.lines), all = [...(s._tasks ?? [])];
+		// A stopped task was dropped on purpose (noise, superseded, rejected): folded at the end and left out of the count (Task.progress_of).
+		const tasks = all.filter(t => t.state !== "stopped"), stopped = all.filter(t => t.state === "stopped");
 		this.$box?.empty(() => {
-			if (!tasks.length) return;
-			const waiting = tasks.filter(t => t.state === "waiting").length;
-			h3.c("session-tasks-title", waiting ? `Tasks · ${waiting} waiting on you` : "Tasks");
-			for (const t of tasks) div.c("session-task flex gap-50", () => {
-				TaskView.row(t);
-				if (t.state === "waiting") span.c("session-task-actions flex gap-50", () => {
-					button.c("session-task-approve", "Approve").attr("type", "button").click(() => this.decide(t, "approve"));
-					button.c("session-task-reject", "Reject").attr("type", "button").click(() => this.decide(t, "reject"));
-					if (t.constructor.name !== "Project") button.c("session-task-project", "Make it a project").attr("type", "button").click(() => this.decide(t, "project"));
-				});
+			if (!all.length) return;
+			const waiting = tasks.filter(t => t.state === "waiting").length, { done, total } = s.progress();
+			h3.c("session-tasks-title", `Tasks · ${done} of ${total} done` + (waiting ? ` · ${waiting} waiting on you` : ""));
+			for (const t of tasks) this.row(t);
+			if (stopped.length) details.c("session-tasks-stopped", () => {
+				summary.c("muted", `${stopped.length} stopped, not counted`);
+				for (const t of stopped) div.c("session-task flex gap-50", () => TaskView.row(t));
+			});
+		});
+	}
+
+	// One live task: its row, and Approve / Reject / Make it a project while it waits on the owner.
+	row(t){
+		div.c("session-task flex gap-50", () => {
+			TaskView.row(t);
+			if (t.state === "waiting") span.c("session-task-actions flex gap-50", () => {
+				button.c("session-task-approve", "Approve").attr("type", "button").click(() => this.decide(t, "approve"));
+				button.c("session-task-reject", "Reject").attr("type", "button").click(() => this.decide(t, "reject"));
+				if (t.constructor.name !== "Project") button.c("session-task-project", "Make it a project").attr("type", "button").click(() => this.decide(t, "project"));
 			});
 		});
 	}

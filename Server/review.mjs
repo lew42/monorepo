@@ -701,15 +701,25 @@ async function main() {
 	const taskDir = path.resolve(taskDirArg);
 	let worktreeDir = null;
 	if (!range) try { worktreeDir = branchTree(taskDir, path.resolve(worktreeArg || process.cwd())); } catch (e) { console.error(e.message); process.exit(1); }
+	// a range still names its worktree for the shots: without it a page review shot the MAIN site, where an unmerged page is a 404 (2026-10-23, part-types)
+	else if (worktreeArg) worktreeDir = path.resolve(worktreeArg);
 	// The main repo this worktree belongs to (the same trick merge.mjs uses): never assume it is
 	// wherever THIS copy of review.mjs happens to live — a worktree carries its own copy of this
 	// file, and .worktrees.json / Server/layout-check.mjs / the task's public/framework/ai only
 	// exist for certain in the MAIN tree.
 	const root = path.dirname(git(worktreeDir || process.cwd(), "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.trim());
 	const cwd = range ? root : worktreeDir;
-	const spec = range ? range : `${BASE}...${git(worktreeDir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim()}`;
+	/* Two dots against a branch cut before newer michael/dev merges would show those merges as reverts; three dots diff from the merge base (the same thing when A is an ancestor of B). */
+	const spec = range ? range.replace(/^([^.]+)\.\.(?!\.)/, "$1...") : `${BASE}...${git(worktreeDir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim()}`;
 	const [, rangeB] = range ? range.split(/\.\.\.?/) : [];
 	const branch = range ? rangeB : git(worktreeDir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim();
+	/* A range is read in the MAIN tree, so `A..HEAD` meant the main tree's HEAD, not the worktree's: two reviews of
+	 * worktree/ai-system-mastermind (2026-10-23) read michael/dev's head and wrote an empty diff.patch. Name the branch. */
+	if (!branch || branch === "HEAD" || branch === BASE) {
+		console.error(`refused: the review target is "${branch || "(none)"}", which is not a branch of its own, so the diff would be the wrong tree or empty. ` +
+			(range ? `Name the branch in --range (e.g. ${BASE}...worktree/<name>), or drop --range and pass the worktree dir.` : `Check out the task's branch in its worktree, or use --range ${BASE}...<branch>.`));
+		process.exit(1);
+	}
 	const head = range ? git(cwd, "rev-parse", rangeB).stdout.trim() : git(worktreeDir, "rev-parse", "HEAD").stdout.trim();
 
 	// So the questions page never goes stale, even for someone who never runs --questions by hand.
@@ -800,12 +810,20 @@ async function main() {
 	// a stale report from a previous run must never be read as if it answered THIS head
 	try { fs.unlinkSync(reviewPath); } catch {}
 	try {
-		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root, parent: SessionRecord.task_agent(taskDir) ?? undefined });
-		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
-		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
-		cost = waited.cost ?? 0;   // list_agents' row carries no cost field today; wait_for_agent's own answer does
-		await mcp("stop_agent", { id: spawned.id }, 20000);
+		// A reviewer whose first prompt dies on a Servex hook timeout costs about $0.001 and writes nothing;
+		// that is a start failure, not a finding, so it gets up to 3 starts before it is reported as one.
+		let started = false;
+		for (let attempt = 1; attempt <= 3 && !fs.existsSync(reviewPath); attempt++) {
+			const spawned = await mcp("spawn_agent", { role: "reviewer", name: attempt > 1 ? `${name}-r${attempt}` : name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root, parent: SessionRecord.task_agent(taskDir) ?? undefined });
+			if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
+			const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
+			cost += waited.cost ?? 0;   // list_agents' row carries no cost field today; wait_for_agent's own answer does
+			await mcp("stop_agent", { id: spawned.id }, 20000);
+			started = (waited.cost ?? 0) >= 0.01;
+			if (started) break;
+		}
 		if (fs.existsSync(reviewPath)) ({ verdict, findings } = parseReview(fs.readFileSync(reviewPath, "utf8")));
+		else if (!started) findings = [{ n: 1, kind: "fix", text: "reviewer failed to start (3 starts cost nothing: a Servex hook timeout); run the review again" }];
 		else findings = [{ n: 1, kind: "fix", text: `the reviewer wrote no ${reviewRelFile}` }];
 	} catch (e) {
 		findings = [{ n: 1, kind: "fix", text: `reviewer failed to run: ${String(e?.message || e).slice(0, 200)}` }];

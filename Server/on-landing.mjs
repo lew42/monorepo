@@ -16,12 +16,14 @@ import { card_flags } from "./CardCheck.mjs";
 import { doc_check } from "./doc-check.mjs";
 import { can_stop, entry_for_task_dir } from "./worktree-sweep.mjs";
 import TaskDirs from "./TaskDirs.mjs";
+import ModuleInbox from "../Servex/agents/ModuleInbox.js";
 import Cards from "../Servex/cards/Cards.js";
 import SessionRecord from "./SessionRecord.mjs";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
-// servex-mastermind's own task log for today, found in the store (Server/TaskDirs.mjs), never a hand-joined ai/<date>/ path
-const arch_log = () => { const d = TaskDirs.find("servex-mastermind", 1); return d ? path.join(d, "task.jsonl") : ""; };
+// What the AI system mastermind should see goes to its inbox, module_inbox "ai" (2026-10-23; it was servex-mastermind's daily task log,
+// which no longer exists, so every line was silently dropped). No `fix`: an inbox line it reads on waking, never a wake by itself.
+const to_architect = (dir, msg) => { try { new ModuleInbox("ai").add(`${path.basename(dir)} — ${msg}`, "/" + path.relative(path.join(root, "public"), dir).split(path.sep).join("/") + "/", { from: "on-landing" }); } catch {} };
 const dir = path.resolve(process.argv[2] || ".");
 const task = SessionRecord.log_or_old(dir);
 const HOST = "http://monorepo.localhost";
@@ -51,8 +53,7 @@ try {
 		const tf = text_flags(dir);
 		const tm = `text-check: ${tf.length ? tf.join("; ") : "no walls of text"}`;
 		append(task, tm);
-		const arch = arch_log();
-		if (tf.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${tm}`);
+		if (tf.length) to_architect(dir, tm);
 	} catch {}
 	// The card check (cards-that-show-the-thing, 2026-09-25): checks the card against the card standard
 	try {
@@ -61,8 +62,7 @@ try {
 			const cf = card_flags(cardDir);
 			const cm = `card-check: ${cf.length ? cf.join("; ") : "standard passed"}`;
 			append(task, cm);
-			const arch = arch_log();
-			if (cf.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${cm}`);
+				if (cf.length) to_architect(dir, cm);
 		}
 	} catch {}
 	// The doc check (task-loop, 2026-09-28): every module this task touched needs a
@@ -193,8 +193,7 @@ try {
 	const msg = `layout-check: ${urls.length} pages at ${WIDTHS.replaceAll(",", "/")} — ${flags.length ? flags.join("; ") : "no flags"}; sheets in layout-check/`;
 	append(task, msg);
 	if (flags.length) {
-		const arch = arch_log();
-		if (fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${msg}`);
+		to_architect(dir, msg);
 	}
 	// The padding law (padding-system, 2026-09-25): nothing a reader looks at sits
 	// at 0 from an edge. ONE line; flagged pages also go to servex-mastermind.
@@ -207,8 +206,7 @@ try {
 			: `${x.url} ${x.width}: ${x.violations} at an edge ("${x.worst[0]?.text || ""}")`);
 		const pm = `padding-check: ${bad.length ? bad.join("; ") : `${pages.length} pages — clean`}`;
 		append(task, pm);
-		const arch = arch_log();
-		if (bad.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${pm}`);
+		if (bad.length) to_architect(dir, pm);
 	} catch (e) {
 		try { append(task, "padding-check: not run — " + String(e && e.message || e).slice(0, 200)); } catch {}
 	}

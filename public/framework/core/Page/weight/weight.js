@@ -16,39 +16,14 @@
 // the tell, same guard Log.js and Page.class.js use) all answer the same way — weight 1, no
 // refs, no manual — which is exactly the "brand new page" answer.
 //
-// ⚠ 2026-10-03 console-clean: this used to fetch weight.jsonl, then page.jsonl, for EVERY
-// page the router knows — about a hundred 404s on one load of `/framework/ai/live/`, almost
-// none of which actually have either file. `has_file()` below checks the dev server's own
-// file tree (`/directory.json`) BEFORE fetching — same fix, same reasoning, as
-// `settings.js`'s own `has_file()` (duplicated here rather than imported, for the same
-// reason settings.js gives: importing Page.class.js or Markdown.js would close a cycle back
-// through this file, which settings.js already imports). Off the dev server (production, no
-// `/directory.json`) `has_file()` answers `undefined` — "can't know" — and this falls back to
-// fetching blind, exactly as it always did.
+// has_file() (weight/has-file.js) says which of weight.jsonl / page.jsonl exist, so a page with neither costs no request.
+
+import { has_file } from "./has-file.js";
 
 async function fetch_lines(url){
 	const res = await fetch(url).catch(() => null);
 	if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
 	return (await res.text()).split("\n");
-}
-
-let tree;
-function directory_tree(){
-	return tree ??= fetch("/directory.json").then(res => res.ok ? res.json() : null).catch(() => null);
-}
-
-// Is `name` a real FILE right beside `page_url`, according to the dev server's own tree?
-// `undefined` = no tree at all (production) — can't know, caller falls back to a blind fetch.
-async function has_file(page_url, name){
-	const data = await directory_tree();
-	if (!data) return undefined;
-
-	let node = { children: data.files };
-	for (const part of page_url.split("/").filter(Boolean)){
-		node = node.children?.find(child => child.name === part);
-		if (!node) return false;
-	}
-	return !!node.children?.some(child => child.type === "file" && child.name === name);
 }
 
 export async function weight(page_url){

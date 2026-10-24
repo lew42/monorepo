@@ -101,7 +101,7 @@ export default new Page({
 		md("**Navigation can stack up to four levels: a header, a left sidebar, top tabs, and an inner left sidebar.** Each one alone is simple. Stacked, the owner's own words: *\"it gets pretty ridiculous pretty quick.\"*");
 
 		img().style({ border: "1px solid var(--line)", borderRadius: "0.4em", maxWidth: "100%", width: "auto" })
-			.attr("src", here + "shots/levels-1920.png")
+			.attr("src", here + "doc/levels-1920.png")   // doc/, not shots/: shots/ is git-ignored, so a picture a page shows lives in doc/
 			.attr("alt", "A real page with all four levels: site header, left Sidebar, top tabs, and an inner left sidebar of API members");
 		md("*All four levels on one real, live page — [`/framework/core/Page/api/`](/framework/core/Page/api/): the site **header** (top), the left **Sidebar** (the whole site's tree), **top tabs** (Overview · Make a page · Layout · Generator · API · …, this module's own sections), and an **inner left sidebar** (the API tab's own rail of properties and methods, one member at a time).*");
 

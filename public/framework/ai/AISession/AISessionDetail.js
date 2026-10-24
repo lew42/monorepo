@@ -1,4 +1,6 @@
+import { servex_url } from "/framework/dev/servex_url.js";
 import { Page, div, span, small, p, a, button } from "/app.js";
+import { icon } from "/framework/core/View/View.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { load as raw_transcript_lines } from "/framework/ai/AITask/replay.js";
 import { AITask } from "/framework/ai/AITask/AITask.js";
@@ -13,14 +15,16 @@ import PromptLog from "./PromptLog.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import VoiceFlow from "/framework/ext/Refine/stages/VoiceFlow.js";
 import Item from "/framework/core/Item/Item.js";
+import Role from "/framework/core/Role/Role.js";
+import RoleView from "/framework/core/Role/RoleView.js";
 import Property from "/framework/core/Property/Property.js";
 import SessionMenu from "/framework/core/Session/SessionMenu.js";
 import SessionSettings from "/framework/core/Session/SessionSettings.js";
 import SessionTasks from "/framework/core/Session/SessionTasks.js";
-import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
-import "/framework/core/Page/parts/PageText.js";
-import "/framework/core/Page/parts/PageCard.js";
-import "/framework/core/Page/parts/PageLink.js";
+import SessionWork from "./SessionWork.js";
+import SessionStats from "./SessionStats.js";
+import SessionOverview from "./SessionOverview.js";
+import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
 // view). Built with `new AISessionDetail({ home, id })`: `home` is the Sessions page it hangs under.
@@ -119,6 +123,28 @@ export default class AISessionDetail extends Page {
 	head_tools(){ return new SessionMenu({ session: new AISession(this.id), url: this.url, page: this }).draw(); }
 	// The session's record, session.jsonl, beside its page.jsonl in the same folder.
 	async record_url(){ const [own] = await this.log_urls(); return own ? own.replace(/page\.jsonl$/, "session.jsonl") : null; }
+	/** The session's role: the word on line 1 of its record (new sessions), else the registry's. Shown as core/Role does on the roles page. */
+	async show_role($el, row, session_id){
+		const file = await this.record_url();
+		const first = file ? await fetch(file).then(r => r.ok ? r.text() : "").then(t => { try { return JSON.parse(t.match(/^.*/)[0]); } catch { return null; } }).catch(() => null) : null;
+		const agents = await Role.agents();
+		const live = agents.find(x => x.session_id === session_id);
+		const word = first?.assign?.role ?? first?.session?.role ?? row?.role ?? live?.role;
+		const roles = await Role.load();
+		const agent_id = first?.assign?.agent ?? row?.agent ?? row?.id ?? live?.id;
+		const role = word ? Role.find(roles, word) : Role.from_agent_id(roles, agent_id);
+		if (!word && !role) return;
+		await AISessionRows.load_index(this.home.url);
+		const ix = AISession.of(session_id).ix;
+		const real = { model: live?.model ?? row?.model ?? ix?.model, effort: ix?.effort ?? row?.effort ?? live?.effort };
+		$el.empty(() => {
+			small.c("muted", word ? "Role (recorded when the session started, else from the Servex registry):" : "Role (guessed from the agent id: this session recorded none):");
+			if (role){
+				const diff = RoleView.differs(role, real);
+				RoleView.draw(role, agents.filter(x => (x.session_id ?? x.id) === session_id), { defaults: true, this_session: diff });
+			} else p("Role: " + word + " (not a row in roles.js)");
+		});
+	}
 	async open_log(){ const url = await this.record_url(); if (url) window.open(url, "_blank"); }
 	copy_link(){ return navigator.clipboard?.writeText(new URL(this.url, location.href).href); }
 
@@ -140,22 +166,41 @@ export default class AISessionDetail extends Page {
 		return super.child(name, levels);
 	}
 
+	/** Full screen: the page covers the window, the title and tabs scroll, and two buttons float (back out, session menu). `?full` keeps it across a reload. */
+	full_screen(on){
+		const el = this.view?.el; el?.parentElement?.scrollTo?.(0, 0); el?.classList.toggle("sov-full", on);
+		const q = new URLSearchParams(location.search); on ? q.set("full", "") : q.delete("full");
+		history.replaceState(history.state, "", location.pathname + (q.size ? "?" + String(q).replace(/full=(&|$)/, "full$1") : "") + location.hash);
+	}
+
 	content(){
 		const { home, id } = this, url = home.url;
 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
 		this.parts = new AISessionDetail.Parts($parts);
-		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks;
+		let $role, $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work, work;
+		const ready = new Promise(resolve => this.work_ready = resolve);   // the loaded SessionWork, for the stats bar and the Overview
 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
-		const TABS = [["conversation", "Conversation"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
-		const want = new URLSearchParams(location.search).get("tab"), panels = {}, buttons = {};
+		const TABS = [["overview", "Overview"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
+		const old_keys = { work: "tasks", conversation: "chat" }, asked = new URLSearchParams(location.search).get("tab"), want = old_keys[asked] ?? asked, panels = {}, buttons = {};
 		const show = key => {
 			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
-			const q = new URLSearchParams(location.search); key === "conversation" ? q.delete("tab") : q.set("tab", key);
+			const q = new URLSearchParams(location.search); key === "overview" ? q.delete("tab") : q.set("tab", key);
 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
 		};
-		div.c("sessions-tabs flex gap-50 wrap", () => TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k))));
+		new SessionStats({ ready });   // Figma band E: stats first, sticky, on every tab
+		div.c("sessions-tabs flex gap-50 wrap", () => {
+			TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
+			button.c("sessions-chip sov-fs-on", icon("fullscreen")).attr("title", "Full screen").on("click", () => this.full_screen(true));
+		});
+		div.c("sov-float", () => {   // Figma band E, C: in full screen the head is gone, so back and the session menu float over the page
+			button.c("sov-float-btn", icon("arrow_back")).attr("title", "Leave full screen").on("click", () => this.full_screen(false));
+			this.head_tools();
+		});
+		if (new URLSearchParams(location.search).has("full")) setTimeout(() => this.full_screen(true));
 		div.c("sessions-detail-body", () => {
-			panels.conversation = div.c("flow sessions-panel", () => {
+			panels.overview = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
+			panels.tasks = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
+			panels.chat = div.c("flow sessions-panel sov-chat", () => {
 				$tasks = div.c("flow session-tasks");   // the session's tasks, live; an owner prompt's asks arrive here as proposals (core/Session/SessionTasks.js)
 				$box = div.c("flow");     // which session this is (source tag, tab title, model)
 				$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
@@ -163,10 +208,10 @@ export default class AISessionDetail extends Page {
 			});
 			panels.coverage = div.c("flow sessions-panel", () => { $coverage = div.c("flow"); });   // every ask in the owner's prompts, its status, the raw words one click down (AISessionCoverage)
 			panels.cost = div.c("flow sessions-panel", () => { $costs = div.c("flow"); $trace = div.c("flow"); });   // logged cost, the cost-over-time chart and the per-tool table
-			panels.models = div.c("flow sessions-panel", () => { $session = div.c("flow"); });   // the Session class: cost tree, model + effort, tokens by purpose, audit
+			panels.models = div.c("flow sessions-panel", () => { $role = div.c("flow session-role"); $session = div.c("flow"); });   // the Session class: cost tree, model + effort, tokens by purpose, audit
 			panels.related = div.c("flow sessions-panel", () => { $spawn = div.c("flow"); $related = div.c("flow"); });   // who spawned this and what it spawned; the other records of this session
 		});
-		show(TABS.some(([k]) => k === want) ? want : "conversation");
+		show(TABS.some(([k]) => k === want) ? want : "overview");
 		const conv = new AISessionConversation();
 		const voice = new VoiceFlow();
 		$voice.append(voice.view);
@@ -177,10 +222,15 @@ export default class AISessionDetail extends Page {
 		AISessionDetail.load_row(url, id).then(async row => {
 			const session_id = row?.session_id ?? id;
 			AISessionRows.load_index(url).then(() => this.retitle(AISessionRows.display_name(row ?? { id, session_id }, AISessionRows.tree).text));   // a VS Code tab has no sessions.json row; its title is in the index
+			if (!/^[0-9a-f]{8}-/.test(session_id)){   // a name no agent list or index maps to a uuid: nothing on disk to ask for
+				$conv.append(() => p.c("muted", "This agent has no session id yet, so there is no transcript or log to show."));
+				return;
+			}
 			conv.session = session_id;
 			const coverage = new AISessionCoverage(session_id);
 			$coverage.append(coverage.view);
-			PromptLog.read(session_id).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
+			this.log_urls().then(() => PromptLog.read(session_id)).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
+			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
 			this.record_url().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks }).live(); });
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
@@ -202,6 +252,7 @@ export default class AISessionDetail extends Page {
 			const fill = async () => {
 			await this.follow?.catch(() => {});   // the first feed pull names the real folder (a card-slug folder is not <id>/) via AISession.slugs
 			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;
+			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
 			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
 			const [costs, trace] = await Promise.all([
 				AISessionDetail.load_cost_log(own).then(async c => c ?? AISessionDetail.load_cost_log(await old_dir())),
@@ -252,9 +303,13 @@ export default class AISessionDetail extends Page {
 			// Raw: the session's own task log and its transcript (/ai-logs is dev-server only), on every session, row or not
 				$box.append(() => div.c("flex gap-50 v-center muted", () => {
 					small("Raw");
-					const record = AITask.has(own_dir + "session.jsonl") ? "session.jsonl" : "task.jsonl";
+					const record = AISession.slugs.has(session_id) && !AITask.has(own_dir + "session.jsonl") ? "task.jsonl" : "session.jsonl";   // no probe until the dated folder is known (own_dir is a flat path that 404s before then)
 					a.c("", record).href(own_dir + record);
 					a.c("", "transcript").href("/ai-logs/" + session_id);
+				}));
+				$box.append(() => div.c("flex gap-50 v-center muted", () => {
+					small("Landing");
+					a.c("page-link", "Ready to merge →").href("/framework/ai/merge/").attr("target", "_self").attr("title", "Branches agents marked ready, each with a Merge button");
 				}));
 				$trace.empty(() => { if (trace) AISessionTrace.render(trace); });
 			};
@@ -330,7 +385,15 @@ export default class AISessionDetail extends Page {
 	/** This session's row (tab_title, model, source...) from sessions.json, which is a computed cache and never the record. */
 	static async load_row(root_url, id){
 		const snap = await AISessionRows.get_json(root_url + "sessions.json");
-		return snap?.rows?.find(r => r.id === id || r.session_id === id) ?? null;
+		return snap?.rows?.find(r => r.id === id || r.session_id === id) ?? await AISessionDetail.agent_row(id);
+	}
+
+	/** A named Servex agent (`reviewer-x`, `minion-y`) is a grid row before sessions.json knows it: its uuid comes from the live agent list, else null (a name is never a transcript id). */
+	static async agent_row(id){
+		if (/^[0-9a-f]{8}-/.test(id)) return null;
+		const agents = (await AISessionRows.get_json(servex_url("/api/agents"))) ?? [];
+		const a = Array.isArray(agents) ? agents.find(x => x.id === id) : null;
+		return a ? { id: a.id, session_id: a.session_id ?? null, source: "servex", role: a.role, model: a.model, tab_title: a.id, started_at: a.started_at } : null;
 	}
 
 	/** The raw transcript lines of a session whose id the live tail cannot follow (null when there are none). */

@@ -17,6 +17,7 @@ and the "Continued, 4:55 PM" half of [`ai/sessions/2026/09/29/cards/familiar-str
 - **`weight(page_url)`** (`weight.js`) — `await weight("/framework/core/Page/layout/")` →
   `{ weight, refs, manual }`. Fails soft to `{ weight: 1, refs: [], manual: 0 }` for any page
   with no log at all, including a plain `page.js` page.
+- **`has_file(page_url, name)`** (`has-file.js`) — the one check all three readers (`weight.js`, `ai-cost.js`, `../settings/settings.js`) use before fetching: it asks the live folder names (`/api/folder-names`) first and reads `/directory.json` only off the dev server.
 - **`node Server/page-refs.mjs <from-url> <to-url>`** — the one way a `referenced_by` line gets
   written. Run twice for the same pair and only one line lands.
 - **`node Server/page-refs.mjs <to-url> --weight <N>`** — the manual number; can be negative.

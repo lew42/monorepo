@@ -56,9 +56,24 @@ check("progress() reflects finished subtasks, computed not stored", () => {
 	const t = new Task({ id: "t" });
 	const a = new Task({ id: "a" }), b = new Task({ id: "b" });
 	t.tasks.add(a); t.tasks.add(b);
-	if (JSON.stringify(t.progress()) !== JSON.stringify({ done: 0, total: 2 })) return false;
+	if (JSON.stringify(t.progress()) !== JSON.stringify({ done: 0, total: 2, stopped: 0 })) return false;
 	a.start(); a.complete(EV);
-	return JSON.stringify(t.progress()) === JSON.stringify({ done: 1, total: 2 });
+	return JSON.stringify(t.progress()) === JSON.stringify({ done: 1, total: 2, stopped: 0 });
+});
+
+check("progress() leaves stopped subtasks out of done and total", () => {
+	const t = new Task({ id: "t" });
+	const a = new Task({ id: "a" }), b = new Task({ id: "b" }), c = new Task({ id: "c" });
+	t.tasks.add(a); t.tasks.add(b); t.tasks.add(c);
+	a.start(); a.complete(EV); b.start(); b.stop("noise");
+	return JSON.stringify(t.progress()) === JSON.stringify({ done: 1, total: 2, stopped: 1 });
+});
+
+check("a nested verb stamps the parent's line time (Task.clock), not the read's", () => {
+	const a = new Task({ id: "a" });
+	Task.clock = "2026-10-23T01:00:00.000Z"; a.start();
+	Task.clock = "2026-10-23T01:30:00.000Z"; a.complete(EV); Task.clock = null;
+	return a.data.completed_at === "2026-10-23T01:30:00.000Z" && a.duration() === 30 * 60e3;
 });
 
 check("progress() with no subtasks is 0/1, then 1/1 once finished", () => {
@@ -302,6 +317,14 @@ check("sessions: empty when absent, replayed from a line", () => {
 check("source: a name is the source; an old doc path is `doc`, source undefined", () => {
 	const a = Task.replay([A, { source: "servex:m1" }]), b = Task.replay([A, { source: "/framework/ai/plan.md" }]);
 	return a.source === "servex:m1" && a.doc === undefined && b.source === undefined && b.doc === "/framework/ai/plan.md" && b.data.source === "/framework/ai/plan.md";
+});
+
+check("from_ref: two refs to id-less logs in one parent stay two children, named by folder", () => {
+	Task.resolver = () => [{ assign: { now: "queued" } }];
+	try {
+		const t = Task.replay([A, { task: "/framework/mod/x/tasks/one/" }, { task: "/framework/mod/x/tasks/two/" }]);
+		return t.tasks.all?.length === 2 || [...t.tasks].length === 2;
+	} finally { Task.resolver = null; }
 });
 
 check("cost: computed through Task.cost_resolver, 0 without one", () => {

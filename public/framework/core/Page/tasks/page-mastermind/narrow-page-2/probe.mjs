@@ -1,0 +1,20 @@
+import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+import fs from "node:fs";
+const [tag] = process.argv.slice(2);
+const b = await chromium.launch(); const pg = await b.newPage();
+await pg.goto("http://127.0.0.1:60085/framework/core/Page/");
+const out = await pg.evaluate(async () => {
+	const { default: Page } = await import("/framework/core/Page/Page.class.js");
+	const r = { statics: Object.getOwnPropertyNames(Page).sort() };
+	r.slug = Page.slug("A b");
+	const j = await Page.read_json("/framework/core/Page/page.json"); r.read_json = j === null ? null : typeof j;
+	const l = await Page.load("/framework/core/Page/"); r.load = l instanceof Page;
+	const li = await Page.listing("/framework/core/Page/"); r.listing = li ? { files: li.files.length > 0, dirs: li.dirs.length > 0, pages: li.pages.size > 0, log: li.log } : null;
+	const f = await Page.from({ title: "X", children: [] }); r.from = f instanceof Page && f.title;
+	r.missing = Page.missing({ message: "Failed to fetch dynamically imported module" });
+	r.props = Object.keys(Page.props({title:"t"}, {}));
+	return r;
+});
+fs.writeFileSync(`statics-${tag}.json`, JSON.stringify(out.statics, null, 1));
+console.log(tag, JSON.stringify({ ...out, statics: out.statics.length }));
+await b.close();

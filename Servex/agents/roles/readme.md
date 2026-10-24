@@ -10,7 +10,8 @@ A **role** is the job an agent is started for: a minion does one narrow job, a m
 
 | Role (`spawn_agent({role})`) | Readme | Does | Tier (model today) | Use it when |
 |---|---|---|---|---|
-| `mastermind` | [servex-mastermind.md](servex-mastermind.md) | the systems architect: oversees quality, spend and coordination, fixes the system, not pages | architect (Sonnet, high) | a standing overseer of the agent system |
+| `ai-system-mastermind` (one only; old word `servex-mastermind`) | [ai-system-mastermind.md](ai-system-mastermind.md) | owns sessions, tasks, roles, skills and spawning; any question or feedback on them goes to it; fixes the system, not pages | architect (high) | always the same id; it sleeps when unused and wakes as a fresh session after a day |
+| `mastermind` (Servex spawn) | [mastermind.md](mastermind.md) | the executive: picks the top work, spawns minions | architect (high) | a mastermind spawned on Servex |
 | (the owner's VS Code sidebar tab) | [vscode-mastermind.md](vscode-mastermind.md) | answers the owner fast, relays the essence of each dictation to a deputy, hands off all investigating, building, reviewing and merging | the tab's own model | the tab the owner dictates to |
 | (VS Code tab, `/mastermind`) | [mastermind.md](mastermind.md) | the executive: governs the budget, picks the top work, spawns minions | the tab's own model | the owner says "you are the mastermind" |
 | `task-mastermind` (also `page-mastermind`, `directory-mastermind`) | [task-mastermind.md](task-mastermind.md) + the `page` skill | owns one task end to end: splits it, spawns minions, judges, lands | manager (Sonnet, medium) | one task with several parts |
@@ -27,5 +28,5 @@ The model column is today's: the tier decides the model, in [`../tiers.js`](../t
 
 ## Open
 
-- ⬜ Every readme here is over the 400-word target (words, 2026-10-22: mastermind 5,251 · minion 3,048 · task-mastermind 2,432 · servex-mastermind 2,114 · reviewer 859 · clarity 689). They were moved whole, unchanged; trimming them is the next pass. Move: [moves.md](../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md).
+- ⬜ Every readme here is over the 400-word target (words, 2026-10-22: mastermind 5,251 · minion 3,048 · task-mastermind 2,432 · ai-system-mastermind 2,114 · reviewer 859 · clarity 689). They were moved whole, unchanged; trimming them is the next pass. Move: [moves.md](../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md).
 - Improvements to a role still go in its skill folder's `improvements.md`.

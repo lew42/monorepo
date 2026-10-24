@@ -9,15 +9,17 @@ import { fileURLToPath } from "node:url";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./Registry.js";
-import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder } from "./roles.js";
+import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, singleton_id, renew_of } from "./roles.js";
 import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import Task from "../../public/framework/core/Task/Task.js";
+import Session from "../../public/framework/core/Session/Session.js";
 import TaskDirs from "../../Server/TaskDirs.mjs";
 import DatedFiles from "../../Server/DatedFiles.mjs";
 import PastWork from "../../Server/PastWork.mjs";
 import LandingCheck from "../../Server/LandingCheck.mjs";
 import Landed from "../Landed.js";
+import { turn_costs } from "./turn-costs.js";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 import { server as sdk_server } from "./tools.js";   // cycle with tools.js is fine: used only at call time
@@ -52,7 +54,7 @@ export class Agents {
 
 	/* `boot` names THIS host process — every registry row it writes carries it,
 	 * so the next boot can tell "alive a moment ago" from "long dead". */
-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
+	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = dir => this.agents_under(dir); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
 	assign(...args){ return Object.assign(this, ...args); }
 
 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
@@ -127,6 +129,18 @@ export class Agents {
 	 * — `directory_of` returns null for it and nothing is added. */
 	spawn(spec){
 		const again = spec.resume;
+		/* A SINGLETON ROLE (the owner, 2026-10-23; roles.js `singleton`): its id is the role's own word, never `-2`. A second
+		 * spawn while it is live sends it the prompt instead; a stopped or never-started one is spawned under that same id. */
+		const renewing = spec.renewing;
+		if (renewing){ spec = { ...spec }; delete spec.renewing; }
+		const single = !again && singleton_id(spec.role);
+		if (single){
+			const cur = this.live.get(single), from = spec.parent ?? "spawn";
+			if (cur && cur.state !== "stopped"){ if (spec.prompt) cur.send(spec.prompt, { from }); return cur; }
+			/* Only in the registry (after a restart): wake it, so it resumes, or renews if it is due (wake() decides). */
+			if (!renewing && !cur && this.reg().read()[single]?.session_id) try { const w = this.wake(single); if (spec.prompt) w.send(spec.prompt, { from }); return w; } catch {}
+			spec = { ...spec, id: single };
+		}
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
 		const id = spec.id && !taken ? spec.id : this.name(spec);
 		/* AT MOST 30 RUNNING (An assistant on every page, 2026-09-25): before any spawn,
@@ -199,7 +213,7 @@ export class Agents {
 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
 		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
-		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
 		const fresh = !again && !spec.system;
@@ -666,6 +680,14 @@ export class Agents {
 		if (live?.one_shot || (live?.role ?? row?.role) === "fork")
 			throw new Error(`Agent ${id} is a fork: it answered once and is not woken again.`);
 		if (!live?.session_id && !row?.session_id) throw new Error(`Agent ${id} never got a session, so there is nothing to wake.`);
+		const role = live?.role ?? row?.role, why = renew_why(renew_of(role), live?.started_at ?? row?.started_at, live?.context ?? row?.context);
+		if (why && (!live || live.state === "stopped")){   // RENEWAL: a stopped one is spawned fresh; a live dormant one renews in awaken()
+			const base = strip(live ? live.recipe() : (row.spec ?? {}));
+			const fresh = this.spawn(strip({ ...base, role, id, cwd: base.cwd ?? row?.cwd, resume: undefined, fork: undefined, renewing: true,
+				prompt: renewal_text(id, live?.session_id ?? row?.session_id, why) }));
+			fresh.emit?.({ type: "renew", why, replaces: live?.session_id ?? row?.session_id, session: fresh.session_id });
+			return fresh;
+		}
 		return this.reopen({ ...row, ...(live ? { spec: live.recipe(), session_id: live.session_id } : {}), id });
 	}
 
@@ -680,30 +702,51 @@ export class Agents {
 		const facts = base.cwd && base.model ? {} : session_facts(row.session_id);
 		const cwd = base.cwd ?? facts.cwd;
 		if (!cwd) throw new Error(`Cannot find where session ${row.session_id} ran, so it cannot be resumed.`);
+		const logged = this.log_cost(row.id);   // the log, not row.cost: rows saved before 2026-10-23 carry the inflated wake-up turns
 		return this.spawn(strip({ ...base, cwd, model: base.model ?? facts.model,
 			id: row.id, started_at: row.started_at, resume: row.session_id,
-			cost: Math.max(Number(row.cost) || 0, this.logged_cost(row.id)), turns: row.turns ?? 0 }));
+			cost: logged.cost || Number(row.cost) || 0, proc_cost: logged.sdk_total, turns: row.turns ?? 0 }));
 	}
 
 	/* A task's cost: logged_cost summed over the agents whose task dir is this task's (`task` = its app path or dir). Task.cost reads it. */
 	task_cost(task){
 		if (!task) return 0;
-		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.join(MAIN_ROOT, "public", task) : path.resolve(MAIN_ROOT, task);
-		let sum = 0;
+		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.resolve(MAIN_ROOT, "public", "." + task) : path.resolve(MAIN_ROOT, task);   // resolve, not join: a url path ends in "/", and the keys have no trailing separator
+		return (this.task_dirs().get(want.toLowerCase()) ?? []).reduce((s, id) => s + this.logged_cost(id), 0);
+	}
+
+	/* Registry rows by task dir (resolved, lower case), rebuilt at most once a minute: a session of 150 tasks asks task_cost 150 times,
+	 * and each used to walk all 3,000+ registry rows. */
+	task_dirs(){
+		if (this._task_dirs && Date.now() - this._task_dirs.at < 60e3) return this._task_dirs.map;
+		const map = new Map();
 		for (const row of Object.values(this.reg().read())){
 			let dir = null; try { dir = this.task_dir_for(row); } catch {}
-			if (dir && path.resolve(MAIN_ROOT, dir) === want) sum += this.logged_cost(row.id);
+			if (dir){ const k = path.resolve(MAIN_ROOT, dir).toLowerCase(); (map.get(k) ?? map.set(k, []).get(k)).push(row.id); }
 		}
-		return sum;
+		this._task_dirs = { at: Date.now(), map };
+		return map;
+	}
+
+	/* The agents whose task lives in or below `dir` (a session's folder): its child sessions, found by place (Session.agents_resolver). */
+	agents_under(dir){
+		const root = path.resolve(MAIN_ROOT, dir).toLowerCase(), rows = this.reg().read(), out = [];
+		for (const [k, ids] of this.task_dirs()) if (k === root || k.startsWith(root + path.sep)) for (const id of ids){
+			const r = rows[id] ?? {};
+			out.push({ id, parent: r.parent ?? null, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
+				cost: Math.round(this.logged_cost(id) * 100) / 100, started_at: r.started_at ?? null });
+		}
+		return out.sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
 	}
 
 	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */
-	logged_cost(id){
-		try {
-			const text = fs.readFileSync(this.store().file(`agent-${id}`).path, "utf8");
-			let sum = 0; for (const m of text.matchAll(/"turn_cost":([0-9.eE+-]+)/g)) sum += Number(m[1]) || 0;
-			return sum;
-		} catch { return 0; }
+	logged_cost(id){ return this.log_cost(id).cost; }
+
+	/* { cost, sdk_total } from the agent's log: its turns rebuilt by turn_costs() (turn-costs.js says why a log needs rebuilding). */
+	log_cost(id){
+		let text; try { text = fs.readFileSync(this.store().file(`agent-${id}`).path, "utf8"); } catch { return { cost: 0, sdk_total: 0 }; }
+		const { turns, sdk_total } = turn_costs(text, { openrouter: this.reg().read()[id]?.provider === "openrouter" });
+		return { cost: turns.reduce((n, t) => n + t.cost, 0), sdk_total };
 	}
 	interrupt(id){ return this.get(id).interrupt(); }
 	/* Continue (+$5) on a spend-gate card: raise the allowance and send the agent on its
@@ -882,8 +925,13 @@ export class Agents {
 		/* A fork's answer IS the payload, so it goes whole (to 4000 chars) — the
 		 * whole turn's text, not only its last block. Any other wake is a headline. */
 		const fork = child.one_shot && (kind === "done" || kind === "blocked");
+		/* A turn that ended with no words and no cost is a start that never happened (a blocked first prompt, a hook timeout), not "done". */
+		if (kind === "done" && !fork && !child.last_text?.trim() && !(child.cost > 0)){
+			kind = "error";
+			child.last_error = "ended its first turn with no output and no cost: its prompt was probably blocked (a hook timeout). Treat it as a failed start and respawn it.";
+		}
 		const text = kind === "error" ? child.last_error : fork ? (child.words ?? child.last_text) : child.last_text;
-		const body = (fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 4000)}`);
+		const body =(fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 4000)}`);
 		child.woke = true;
 		/* THE NEXT STEP, in node (2026-10-13): a landed task tells its parent which queued sibling it unblocks, with the brief's path. */
 		const next = kind === "done" && child.task?.dir && task_landed(child.task.dir) ? next_briefs(child.task.dir) : [];
@@ -943,7 +991,7 @@ function directory_of(spec){
  * a caller opened earlier (or a sibling agent shares), it just adds one more
  * assign line with the same facts, exactly like every other `assign` a task
  * log collects over its life — never touching what came before it. */
-export function open_task(task, { session_id, agent, by, model, worktree, parent_dir }){
+export function open_task(task, { session_id, agent, role, by, model, worktree, parent_dir }){
 	// An old-shaped dir (ai/YYYY-MM-DD/<slug>/) from a brief goes to the task store instead (Server/TaskDirs.mjs,
 	// ai/doc/task-folders.md); task.dir is rewritten so everything after this (directory_of, the inbox) sees the real place.
 	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
@@ -958,7 +1006,7 @@ export function open_task(task, { session_id, agent, by, model, worktree, parent
 	const parent_task = rel(task.parent_task ?? parent_dir);
 	// `after` is task dirs in the same form as parent_task, so the tree matches them exactly.
 	const after = Array.isArray(task.after) && task.after.length ? task.after.map(rel) : undefined;
-	const line = JSON.stringify({ assign: strip({ session_id, agent, card: task.card, brief: task.brief, title: task.title,
+	const line = JSON.stringify({ assign: strip({ session_id, agent, role, card: task.card, brief: task.brief, title: task.title,
 		model, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
@@ -1099,7 +1147,11 @@ Agents.Agent = class Agent {
 		 * read just means the first turn's cost stays whatever the SDK guessed
 		 * until the next turn settles it. */
 		if (this.provider === "openrouter") this.refresh_or_cost();
-		this.proc_cost = 0;   // the SDK's total_cost_usd counts from ZERO in every claude process (spawn, awaken, reopen): see add_cost()
+		/* The SDK's total_cost_usd is the SESSION's total: a resumed process (awaken, reopen) starts from the cost the session
+		 * already had, not from 0 (measured 2026-10-23: minion-review-page's five wake-up turns each logged the whole session,
+		 * $8–12, for a $0.06–0.16 turn). So a resume keeps the last total it saw (reopen seeds it from the log); a fresh session starts
+		 * at 0. A fork also starts at 0, so its cost still includes its base's: Experts subtracts that (doc/experts.md), so leave it. */
+		if (!this.resume || this.fork) this.proc_cost = 0;
 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
 		this.pump(this.gen = (this.gen ?? 0) + 1);
 		if (!this.prompt){ this.state = "idle"; return this; }
@@ -1431,7 +1483,9 @@ Agents.Agent = class Agent {
 	awaken(by){
 		if (this.state !== "dormant") return this;
 		const slept = this.dormant_at;
-		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
+		const renew = this.renew_due();
+		if (renew) this.renew(renew);
+		else this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
 		this.last_at = stamp();
 		/* item 2's `mark_phantom` sets `marked_phantom` once, so it does not re-log the same
 		 * episode on every `working()` call — but a genuinely NEW phantom episode later in this
@@ -1448,6 +1502,24 @@ Agents.Agent = class Agent {
 		this.emit({ type: "awake", by: by ?? null, slept_since: slept, replayed: held.length || undefined });
 		this.host?.register?.(this);
 		return this;
+	}
+
+	/* RENEWAL (the owner, 2026-10-23): a role with `renew: {hours, tokens}` (the AI system mastermind) wakes as a FRESH session
+	 * under the same id once its session is that old or that big, instead of resuming. Nothing runs while it sleeps, so it is
+	 * never kept alive when unused, and no handover file is needed: the fresh session's first turn reads the readmes.
+	 * Returns why ("age" | "tokens") or null. */
+	renew_due(now = Date.now()){
+		const line = renew_of(this.role);
+		if (!line || this.one_shot || this.system) return null;
+		return renew_why(line, this.started_at, this.context, now);
+	}
+
+	renew(why){
+		const replaces = this.session_id, session_id = randomUUID();
+		const prompt = (this.host?.whoami?.(this.id, session_id) ?? "") + opening(this.role, renewal_text(this.id, replaces, why), { in_system: !!this.role_prompt() });
+		this.assign({ resume: null, fork: false, session_id, minted: true, prompt, context: 0, last_usage: null, reminded_context: 0,
+			remind_compacted: false, compacted_turn: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now(), started_at: new Date().toISOString() });
+		this.emit({ type: "renew", why, replaces, session: session_id });
 	}
 
 	/* COMPACTION (dormant-idle, 2026-09-30). `/compact` as a turn of its own: the
@@ -1492,7 +1564,7 @@ Agents.Agent = class Agent {
 		if (this.state !== "idle" || this.one_shot || this.compacting || STANDING.test(this.id ?? "")) return null;
 		if (this.task?.dir && task_landed(this.task.dir)) return null;
 		const after = role_compact_after(this.role);
-		if (after === null) return null;
+		if (after === null || renew_of(this.role)) return null;   // a renewing role gets a fresh session instead (Agent.renew_due)
 		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
 		const limit = after?.tokens ?? this.host?.nudge_tokens ?? (Number(process.env.SERVEX_NUDGE_TOKENS) || 200000);
 		const context = this.context ?? 0;
@@ -1514,7 +1586,7 @@ Agents.Agent = class Agent {
 	sleep_compact(){
 		if (this.one_shot || this.compacting || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return false;
 		const after = role_compact_after(this.role);
-		if (after === null) return false;
+		if (after === null || renew_of(this.role)) return false;   // a renewing role gets a fresh session instead (Agent.renew_due)
 		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
 		const line = Math.min(after?.sleep ?? this.host?.sleep_compact_tokens ?? (Number(process.env.SERVEX_SLEEP_COMPACT_TOKENS) || SLEEP_COMPACT_TOKENS), Math.round(window / 2));
 		return (this.context ?? 0) > line;
@@ -1591,9 +1663,9 @@ Agents.Agent = class Agent {
 	}
 
 	card(){
-		const { id, role, model, state, visibility, started_at, stopped_at, turns, session_id, cost, parent,
+		const { id, role, model, effort, state, visibility, started_at, stopped_at, turns, session_id, cost, parent,
 			forked_from, resumed_from } = this;
-		return { id, role, model, state, visibility, started_at, stopped_at: stopped_at ?? null, turns, session_id, cost, parent: parent ?? null,
+		return { id, role, model, effort: effort ?? null, state, visibility, started_at, stopped_at: stopped_at ?? null, turns, session_id, cost, parent: parent ?? null,
 			revivable: this.revivable(), forked_from: forked_from ?? null, resumed_from: resumed_from ?? null,
 			context: this.context ?? null };
 	}
@@ -2070,6 +2142,7 @@ Agents.Agent = class Agent {
 			ok: !message.is_error,
 			cost: this.cost,
 			turn_cost: this.turn_cost ?? 0,   // THE RECORD: this turn's own dollars; reopen() re-sums these (agent-cost, 2026-10-13)
+			sdk_total: this.provider === "openrouter" ? null : this.proc_cost ?? null,   // the SDK's session total after this turn: lets log_cost() diff across processes exactly
 			duration_ms: message.duration_ms,
 			turns: this.turns,
 			api_turns: message.num_turns,
@@ -2167,7 +2240,7 @@ Agents.Agent = class Agent {
 		this.state = this.queued > 0 ? "working" : "idle";
 		this.said = [];
 		this.log({ at: stamp(), agent: this.id, type: "compact", ok: !message.is_error, why: c.why, before: c.before, after: this.context ?? null,
-			rss_mb_before: c.rss_mb, duration_ms: Date.now() - c.at, cost: this.cost, turn_cost: this.turn_cost ?? 0 });
+			rss_mb_before: c.rss_mb, duration_ms: Date.now() - c.at, cost: this.cost, turn_cost: this.turn_cost ?? 0, sdk_total: this.provider === "openrouter" ? null : this.proc_cost ?? null });
 		this.host?.register?.(this);
 		this.settle();
 		/* Compacted for MEMORY: a process keeps the heap it grew, so restart it
@@ -2185,6 +2258,19 @@ Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
 
 /* A nudged agent that declined is nudged again only after its context grew this much. */
 export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
+/* RENEWAL helpers (Agent.renew_due, Agents.wake): why a renewing role is due a fresh session, and that session's first words. */
+export function renew_why(line, started_at, context, now = Date.now()){
+	if (!line) return null;
+	const born = Date.parse(started_at ?? "");
+	if (line.hours && born && now - born >= line.hours * 3600e3) return "age";
+	if (line.tokens && (context ?? 0) >= line.tokens) return "tokens";
+	return null;
+}
+export function renewal_text(id, replaces, why){
+	return `You are a fresh session of ${id}, replacing session ${replaces ?? "(unknown)"} (${why === "age" ? "it was a day old" : "its context passed the renewal line"}). ` +
+		"Read public/framework/ai/readme.md and public/framework/ai/priority.md, then your feedback inbox (module_inbox, module \"ai\"), and continue. Any message that woke you comes next.";
+}
+
 export const REMIND_TOKENS = 100000;   // a role reminder each time the context grows this much (SERVEX_REMIND_TOKENS)
 export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
 export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)

@@ -16,6 +16,10 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 [`plugins/Whisper.js`](./plugins/Whisper.js), `NO_WHISPER=1` to opt out; see
 [`ux/Dictate`](/framework/ux/Dictate/).
 
+## Routes the dev server adds for the pages
+
+- `GET /api/folder-names?dir=/framework/ai/sessions/2026/10/20/` ([`plugins/FolderNames.js`](./plugins/FolderNames.js)) answers `{"names": [...]}`, the entry names of one folder under `public/`, always a 200 (a missing folder is `[]`). `ai/AITask/listing.js` asks it once per folder, so opening a task folder checks `session.jsonl`, `task.jsonl`, `page.js` and `requirements.md` without a 404 probe for each. It is a new route: a dev server started before it landed answers no listing, and the pages fall back to the old probes (and their 404s) until the server restarts.
+
 ## Scripts (one line each; the full paragraph for every one is in [`doc/script-notes.md`](./doc/script-notes.md))
 
 - `node Server/ModuleLog.mjs <path>` — one folder's work log, graded against git; beside `PastWork.mjs`.
@@ -32,6 +36,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 - `Server/Crawl.mjs` — nightly full-site crawl at 1920; failures go to `ai/todo.md`.
 - `Server/Council.mjs` — Feedback Council collector and runner; off switch `COUNCIL=off`.
 - `node Server/ReadmeOrphans.mjs` — lists every directory with a readme that the readme above it never names (the readme chain cannot reach it); the page-nav twin is `OrphanCheck.mjs`.
+- `node Server/NavCheck.mjs <worktree>` — the click test: every page a branch adds must have an `a[href]` on its parent page, loaded headless; `merge.mjs` runs it and refuses an unlinked page, `--no-nav "why"` overrides ([`doc/nav-check.md`](./doc/nav-check.md)).
 - [`git-hooks/`](./git-hooks/) — the git hooks every worktree shares, versioned here with a small installer.
 
 ## Moved to a doc (verbatim)

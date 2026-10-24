@@ -79,7 +79,7 @@ await check("quick_fix writes the asked line and hands the request to the fixer 
 
 	const fixer = servex.agents.live.get("fixer-1");
 	assert.ok(fixer, "the standing fixer was started");
-	assert.equal(fixer.model, "claude-sonnet-5", "the brief's own words: Sonnet");
+	assert.equal(fixer.model, "claude-sonnet-5-5", "the brief's own words: Sonnet");
 	assert.equal(fixer.effort, "medium", "the brief's own words: medium effort, not Agent.defaults()'s \"high\"");
 	assert.equal(fixer.permission_mode, "bypassPermissions");
 	assert.equal(servex.pool.take_sync_calls, 1, "the pool's slot was taken exactly once");

@@ -9,6 +9,7 @@ import Directory from "./plugins/Directory.js";
 import MentionSync from "./plugins/MentionSync.js";   // auto-syncs ext/Mention/maps/refs.js's icon — Server/plugins/MentionSync.js
 import PageFiles from "./plugins/PageFiles.js";
 import DevSource from "./plugins/DevSource.js";   // read-only Servex/Server browsing — Server/plugins/DevSource.js
+import FolderNames from "./plugins/FolderNames.js";   // /api/folder-names?dir= — one folder's names, so the router walk probes nothing
 import DevSocket from "./plugins/DevSocket/DevSocket.js";
 import Runtime from "./plugins/SocketServer/Runtime.js";
 import AILogs from "./plugins/AILogs.js";
@@ -48,6 +49,7 @@ Server.use(Directory);
 Server.use(MentionSync);
 Server.use(PageFiles);   // appends {"file"} lines to page.jsonl — Server/plugins/PageFiles.js
 Server.use(DevSource);   // /devsource.json + /devsource/<path> — Servex/Server source, read-only
+Server.use(FolderNames);
 Server.use(AILogs);
 Server.use(AISessionTailer);   // follows transcripts, writes index.json files - ai/AISession/AISessionIndex.mjs
 Server.use(MCP);

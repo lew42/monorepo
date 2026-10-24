@@ -6,7 +6,9 @@ export default class PageLink extends Item {}
 PageLink.View = class PageLinkView extends View {
 	render(){
 		const item = this.item, path = item.get("path"), title = item.get("title"), text = item.get("text");
-		const href = new URL(path, location.href).pathname;
+		// Relative to the page that holds the link, not the address bar: a parent's parts also render under its children.
+		const page = this.item.parent, base = page?.log_folder ? location.origin + page.log_folder() : location.href;
+		const href = new URL(path, base).pathname;
 		let $title, $text;
 		const $card = a.c("part-link card", () => {
 			$title = h4(title ?? path);

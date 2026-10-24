@@ -17,6 +17,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { model, provider } from "./tiers.js";
+import Role from "../../public/framework/core/Role/Role.js";
 
 /* `tier` is the row's size (tiers.js: fast, manager, architect, scan); its `model` is
  * DERIVED from the tier, so moving a tier to another model is one line in tiers.js.
@@ -45,8 +46,14 @@ export const ROLES = {
 	 * a task mastermind spawned under the old default had both its spawn_agent
 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
 	"task-mastermind":  { readme: "task-mastermind", skills: ["page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+	/* THE AI SYSTEM MASTERMIND (the owner, 2026-10-23; roles/ai-system-mastermind.md): a singleton. `singleton` makes its id the
+	 * prefix itself, never `-2` (Agents.spawn sends a second spawn's prompt to the live one). `renew`: a wake after a day or past
+	 * 100k tokens starts a fresh session under the same id (Agent.renew_due), so it is never kept alive when unused. It is never
+	 * nudged or compacted before sleep (Agent.nudge/sleep_compact skip a `renew` row); the 400k safety ceiling still applies mid-work. The generic
+	 * `mastermind` row below used to load this readme; it now loads roles/mastermind.md. */
+	"ai-system-mastermind": { readme: "ai-system-mastermind", prefix: "ai-system-mastermind", alias: "servex-mastermind", singleton: true, renew: { hours: 24, tokens: 100000 }, tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions" },
 	/* mastermind: bypassPermissions too (2026-10-12, asks #6): it calls spawn_agent/page tools and edits, and nobody can approve a prompt overnight. */
-	mastermind:         { readme: "servex-mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+	mastermind:         { readme: "mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* The fast assistant (every-prompt) is retired for voice as of 2026-10-17 (`voice-assistant` below); its skill files stay on disk and this row stays for the callers that still name it. */
 	assistant:          { retired: "voice-assistant", skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
 	/* ONE PAIR ON EVERY PAGE (recursive-pairs, 2026-09-25/28): a page-assistant, root page
@@ -104,6 +111,9 @@ export const ROLES = {
 	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    tier: "fast",      model: model("fast"),       effort: "low",  permission_mode: "acceptEdits" }
 };
 
+/* The rows as Role objects (core/Role): the same data, one object per row. */
+export const ROLE_LIST = Role.from_rows(ROLES);
+
 /* A role word or one of its aliases -> the row's canonical role. `alias` is a
  * string or an array of strings, so several old words can point at one new row. */
 export function canonical(word){
@@ -112,6 +122,11 @@ export function canonical(word){
 }
 
 const row = word => ROLES[canonical(word)];
+
+/* A singleton role's one id (its prefix), else null. */
+export function singleton_id(role){ const r = row(role); return r?.singleton ? r.prefix : null; }
+/* A role's renewal line {hours, tokens}, else null. */
+export function renew_of(role){ return row(role)?.renew ?? null; }
 
 /* The posture fields only — `skill`, `prefix` and `alias` are not spawn options.
  * `provider` is DERIVED from the row's `tier` here (review.md finding 5: tiers.js's

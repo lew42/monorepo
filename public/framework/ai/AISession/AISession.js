@@ -473,12 +473,13 @@ export default class AISession extends Session {
 		const one = async url => {
 			try {
 				if (url.protocol === "file:"){ const fs = await import("node:fs/promises"); return await fs.readFile(url, "utf8"); }
+				const at = url.pathname.lastIndexOf("/") + 1, listed = (await import("/framework/core/Router/listing.js")).names(url.pathname.slice(0, at));   // the folder's listing says whether the file is there: no 404 probe
+				if (listed && !listed.includes(url.pathname.slice(at))) return "";
 				const r = await fetch(url, { cache: "no-store" }); return r.ok && !(r.headers.get("content-type") ?? "").includes("html") ? await r.text() : "";
 			} catch { return ""; }
 		};
 		const node = typeof process !== "undefined" && process.versions?.node;
 		let text = await one(new URL(name, node ? await AISession.locate(id) : AISession.dir_url(id)));
-		if (!text && AISession.days.has(id)) text = await one(new URL(name, AISession.dir_url(id, null)));   // not moved yet: the old flat path
 		return text;
 	}
 	static lines_of(text){ const out = []; for (const l of text.split("\n")) if (l.trim()) try { out.push(JSON.parse(l)); } catch {} return out; }

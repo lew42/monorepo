@@ -56,6 +56,7 @@ export class Activity {
 		if (b === "owner") return "you";
 		let m;
 		if ((m = b.match(/^task-mastermind-(.+)/))) return "the " + Activity.words(m[1]);
+		if (/^ai-system-mastermind/.test(b)) return "the AI system mastermind";
 		if (/^servex-mastermind|^mastermind-servex/.test(b)) return "the Servex mastermind";
 		if (b === "master-assistant") return "the master assistant";
 		if (/^manager-/.test(b)) return "the card's manager";

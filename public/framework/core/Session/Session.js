@@ -19,7 +19,7 @@ export default class Session extends Item {
 	constructor(id){ super(); if (id !== undefined) this.id = id; }
 
 	// A session HAS tasks, made on first use like Task.tasks; its progress is counted from them on read, never stored.
-	get tasks(){ return this._tasks ??= new List({ owner: this, name: "tasks" }); }
+	get tasks(){ if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this._tasks.of = Task; } return this._tasks; }
 	set tasks(list){ this._tasks = list; }
 	lists(){ const { _tasks, ...rest } = super.lists(); return { ...rest, ...(_tasks ? { tasks: _tasks } : {}) }; }
 
@@ -44,6 +44,9 @@ export default class Session extends Item {
 	get settings(){ return this._settings ??= {}; }
 
 	progress(){ return Task.progress_of(this._tasks); }
+	/* The agent sessions that ran under this session's folder: dir -> [{id, role, state, session_id, cost, started_at}]. Node wires it
+	 * from Servex's registry (Servex/agents/Agents.js), so a child is found by where its task lives, never by a link someone had to write. */
+	static agents_resolver = null;
 	get completion(){ const { done, total } = this.progress(); return total ? done / total : 0; }
 
 	// Item.replay does the loop; a session only needs its id from line 1 and its own line shape.
@@ -53,6 +56,20 @@ export default class Session extends Item {
 	}
 	replay_line(line){
 		const { by, ts, at, session: _s, ...delta } = line;
+		const when = at ?? ts ?? (typeof _s === "object" ? _s?.at : null) ?? null;
+		if (when){ this._first_at ??= when; this._last_at = when; }
+		Task.clock = when;   // nested tasks stamp this line's time, not the read's
+		try { return this.apply_line(delta, by); } finally { Task.clock = null; }
+	}
+	// When the session's log began and last changed (from its lines), and the span between: never stored.
+	get first_at(){ return this._first_at ?? null; }
+	get last_at(){ return this._last_at ?? null; }
+	get span_ms(){ return this._first_at && this._last_at ? Date.parse(this._last_at) - Date.parse(this._first_at) : 0; }
+	apply_line(delta, by){
+		/* THE SESSION'S OWN STATE: {"stop":{why}} closes it (StaleClose writes one for an abandoned tab); {"start":{}} reopens it and
+		 * clears the old why, so a session that came back is not still read as "abandoned" (2026-10-23). */
+		if (delta.stop && typeof delta.stop === "object"){ this.put("state", "stopped"); this.put("why", delta.stop.why ?? null); this.put("stopped_at", delta.stop.at ?? Task.clock); delete delta.stop; }
+		if (delta.start && typeof delta.start === "object"){ this.put("state", "running"); this.put("why", null); this.put("stopped_at", null); delete delta.start; }
 		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
 			const kid = Task.from_ref(delta.task, delta.as), had = this._tasks?.find(kid.id);
 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
@@ -74,7 +91,7 @@ export default class Session extends Item {
 			delete delta.decide;
 		}
 		for (const k of Object.keys(delta)){   // a nested task changed: {"<task id>":{…}} goes to that task
-			const kid = delta[k] && typeof delta[k] === "object" ? this._tasks?.find(k) : undefined;
+			const kid = delta[k] && typeof delta[k] === "object" && this._tasks ? this.find(k) : undefined;   // at any depth: a bare id may name a grandchild
 			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }
 		}
 		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.put(k, v);

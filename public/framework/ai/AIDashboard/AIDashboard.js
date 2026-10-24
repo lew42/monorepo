@@ -5,6 +5,7 @@ import SessionRow from "./SessionRow.js";
 import DayStrip from "./DayStrip.js";
 import OriginChips from "./OriginChips.js";
 import UsageLine from "./UsageLine.js";
+import PageNav from "./PageNav.js";
 
 View.stylesheet(import.meta, "AIDashboard.css");
 
@@ -13,6 +14,19 @@ View.stylesheet(import.meta, "AIDashboard.css");
 export default class AIDashboard extends View {
 	static AI = "/framework/ai/";
 	static DAY = /^\d{4}-\d{2}-\d{2}$/;
+	// This page is a leaf, so `children:` draws no links: every page below that people need is linked here. Merge first, it is the one that needs a decision.
+	static NAV = [
+		PageNav.merge_link(),
+		{ href: "/framework/ai/now/", label: "Now", title: "Every session active in the last hour" },
+		{ href: "/framework/ai/tasks/", label: "Tasks", title: "The task log and board" },
+		{ href: "/framework/ai/sessions/", label: "All sessions", title: "Every session, newest first, with filters" },
+		{ href: "/framework/ai/asks/", label: "Asks", title: "Every ask, who owns it, whether it landed" },
+		{ href: "/framework/ai/review/", label: "Review", title: "Review pages" },
+		{ href: "/framework/ai/readmes/", label: "Readmes", title: "What an agent in each folder is given to read" },
+		{ href: "/framework/ai/usage/", label: "Usage", title: "Usage pace against each limit" },
+		{ href: "/framework/ai/quick-fix/", label: "Quick fix", title: "The quick-fix pool" },
+		{ href: "/framework/ai/process/", label: "Processes", title: "Tasks run as ordered steps" },
+	];
 
 	get classes(){ return "ad-dash"; }
 
@@ -49,7 +63,7 @@ export default class AIDashboard extends View {
 				input.c("ad-date").attr("type", "date").attr("max", this.days[0]).attr("value", this.q.day).attr("title", "Any day").on("change", e => e.target.value && this.set({ day: e.target.value }));
 			});
 			div.c("ad-main", () => {
-				a.c("ad-link").href(AIDashboard.AI + "merge/").attr("target", "_self").attr("title", "Branches agents marked ready, with a Merge button").text("Ready to merge →");
+				new PageNav({ links: AIDashboard.NAV });
 				this.$sum = div.c("ad-sum");
 				this.$chips = div.c("ad-chips");
 				input.c("ad-find").attr("type", "search").attr("placeholder", "Find a session…").attr("value", this.q.find).on("input", e => { this.q.find = e.target.value; this.write(); this.paint(); });

@@ -10,14 +10,15 @@ import { asks as ask_wall } from "./asks.js";
 import { needs_of } from "./needs.js";
 import { decisions as decision_wall } from "./decisions.js";
 import { progress, spend } from "./stats.js";
-import { names } from "./listing.js";
+import { names, has, is_record_folder } from "../../core/Router/listing.js";
 import { segments, current, links_row } from "./card.js";
 import { shot_wall } from "./shots.js";
 import { chat } from "../../ext/Ask/chat.js";
-import { breakdown } from "./cost.js";
+import AICost from "./AICost.js";
 import { streamed as reply_streamed } from "../../ext/Ask/reply.js";
 import { fold } from "./message.js";
 import TaskViews from "./TaskViews.js";
+import { TaskTree } from "./nested.js";
 import Task from "../../core/Task/Task.js";
 import { tree_for_task } from "./tree.js";
 
@@ -78,19 +79,15 @@ export class AITask extends Page {
 
 	route(sub){
 		if (sub.includes(".")) return;
-		const at = this.url?.match(/\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/.+?)\/?$/)?.[1];
-		const list = at ? names(`${at}/${sub}`) : null;
-		if (list ? (!list.includes("task.jsonl") || list.includes("page.js"))
-			: (!(AITask.has(this.url + sub + "/task.jsonl") || AITask.has(this.url + sub + "/session.jsonl")) || AITask.has(this.url + sub + "/page.js"))) return;   // the sessions store: no listing, so ask the server
-		return new AITask({ title: sub, icon: "receipt_long", url: this.url + sub + "/", src: this.url + sub + "/session.json" });
+		const url = this.url + sub + "/";
+		if (!is_record_folder(url)) return;
+		return new AITask({ title: sub, icon: "receipt_long", url, src: url + "session.json" });
 	}
 
-	static has(url){
-		const x = new XMLHttpRequest();
-		x.open("HEAD", url, false);
-		try { x.send(); } catch { return false; }
-		return x.status >= 200 && x.status < 300 && !(x.getResponseHeader("content-type") ?? "").includes("html");
-	}
+	// Does this file exist? Asked of the folder's listing (core/Router/listing.js): ONE request per folder,
+	// always a 200, so a missing session.jsonl / task.jsonl / page.js / requirements.md is never
+	// a 404 probe. Off the dev server there is no listing, and it falls back to a HEAD probe.
+	static has(url){ return has(url); }
 
 	content(){
 		div.c("ai-task flow wide", async $s => {
@@ -101,10 +98,13 @@ export class AITask extends Page {
 	}
 
 	async session(){
-		const t = new TaskJSONL({ url: this.base() + "task.jsonl" });
+		// The record is session.jsonl or task.jsonl, mixed per folder: name the one that is there,
+		// so Store.record_url never HEADs the wrong one (a 404). Neither yet: task.jsonl, as before.
+		const record = AITask.has(this.base() + "session.jsonl") ? "session.jsonl" : "task.jsonl";
+		const t = new TaskJSONL({ url: this.base() + record });
 		// Keep the parsed lines the stream already read, so this.task replays them without a second fetch.
 		const read = t.read.bind(t), reset = t.reset.bind(t);
-		t.read = entries => { (t.entries ??= []).push(...entries); this.task = Task.replay(t.entries); return read(entries); };
+		t.read = entries => { (t.entries ??= []).push(...entries); t.task = this.task = Task.replay(t.entries); return read(entries); };
 		t.reset = () => { t.entries = []; return reset(); };
 		await t.live(() => this.streamed(t));
 		if (t.loaded) return t;
@@ -130,6 +130,7 @@ export class AITask extends Page {
 
 	async requirements(){
 		if (Array.isArray(this.known_files) && !this.known_files.includes("requirements.md")) return null;
+		if (names(this.base()) && !AITask.has(this.base() + "requirements.md")) return null;
 		const res = await fetch(this.base() + "requirements.md").catch(() => null);
 		return res?.ok && !res.headers.get("content-type")?.includes("html") ? res.text() : null;
 	}
@@ -145,14 +146,26 @@ export class AITask extends Page {
 			["report", "Report", () => { this.$live = div.c("ai-live flow"); this.refresh(m); }],
 			["session", "Session", () => { this.chat(m); this.log(m); }],
 		];
+		// The tasks inside this one, as preview cards: each opens that task's own full page (design/navigation).
+		const kids = (this.roots ?? []).flatMap(r => r.children ?? []);
+		if (kids.length) sections.splice(1, 0, ["tasks", "Tasks · " + kids.length, () => this.task_cards(kids)]);
 		// After Asks, before Report: what was wanted, the brief, what was chosen, the answer.
 		if (this.roots) sections.splice(sections.length - 1, 0, ["tree", "Tree", () => TaskViews.from_url(this.roots).draw()]);
 		if (m.decisions?.length) sections.splice(1, 0, ["decisions", "Decisions", () => this.decisions(m)]);
 		if (m.asks?.length) sections.unshift(["asks", "Asks", () => this.asks(m, to_prompt)]);
 
 		const message = wanted_message();
-		tabs = tab_bar(sections, message ? "session" : this.roots && new URLSearchParams(location.search).has("view") ? "tree" : m.asks?.length ? "asks" : "report");
+		tabs = tab_bar(sections, message ? "session" : this.roots && new URLSearchParams(location.search).has("view") ? "tree" : m.asks?.length ? "asks" : kids.length ? "tasks" : "report");
 		if (message) reveal(message);
+	}
+
+	task_cards(kids){
+		return div.c("page-previews bleed", () => kids.forEach(n => this.preview_card({
+			label: n.title || n.agent || "untitled",
+			url: TaskTree.url(n),
+			icon: "receipt_long",
+			description: ({ landed: "Done", stopped: "Stopped", waiting: "Waiting" }[n.state] ?? TaskTree.pct(n) + "%") + (n.children?.length ? " · " + n.children.length + " tasks inside" : ""),
+		})));
 	}
 
 	asks(m, to_prompt){
@@ -243,7 +256,7 @@ export class AITask extends Page {
 				.append(() => { span.c("ai-box"); span(s); })));
 	}
 
-	cost(m){ return breakdown(m); }
+	cost(m){ return AICost.cost_of(m) ? AICost.breakdown(m) : AICost.report(this.base()); }
 
 	extra(m){}
 
@@ -251,25 +264,23 @@ export class AITask extends Page {
 
 	figures(m){
 		const cost = spend(m);
-		ui.table(
-			["requested", "landed", "model", "window", "agents", cost?.[1] ?? "tokens"],
-			[[m.requested_at ?? "—", m.landed_at ?? "—", m.model ?? "—",
-				`${pct(m.window?.before)} → ${pct(m.window?.after)}`,
-				String(m.agents?.length ?? 0), cost?.[0] ?? "—"]]
-		);
+		const known = [["requested", m.requested_at], ["landed", m.landed_at], ["model", m.model],
+			["window", m.window?.before != null || m.window?.after != null ? `${pct(m.window?.before)} → ${pct(m.window?.after)}` : null],
+			["agents", m.agents?.length ? String(m.agents.length) : null], [cost?.[1] ?? "tokens", cost?.[0]]].filter(([, v]) => v != null);
+		if (known.length) ui.table(known.map(([k]) => k), [known.map(([, v]) => v)]);
 		if (m.window?.note) md("*" + m.window.note + "*");
 
 		if (m.usage) ui.table(
 			["input", "cache write", "cache read", "output", "api calls"],
 			[[m.usage.input, m.usage.cache_write, m.usage.cache_read, m.usage.output, m.usage.calls]
-				.map(n => n?.toLocaleString() ?? "—")]
+				.map(n => n?.toLocaleString() ?? "not recorded")]
 		);
 
 		if (m.agents?.length) ui.table(
 			["agent", "model", "tokens", "time", "cost", "outcome"],
-			m.agents.map(a => [a.task ?? a.type ?? "—", a.model ?? "—",
-				a.tokens?.toLocaleString() ?? "—", time(a.duration_ms),
-				a.cost_usd != null ? "$" + a.cost_usd : "—", a.outcome ? outcome_cell(a.outcome) : "—"])
+			m.agents.map(a => [a.task ?? a.type ?? "unnamed", a.model ?? "not recorded",
+				a.tokens?.toLocaleString() ?? "not recorded", a.duration_ms == null ? "not recorded" : time(a.duration_ms),
+				a.cost_usd != null ? "$" + a.cost_usd : "not recorded", a.outcome ? outcome_cell(a.outcome) : "no outcome logged"])
 		);
 	}
 

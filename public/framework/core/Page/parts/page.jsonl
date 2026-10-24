@@ -26,3 +26,10 @@
 {"file":"PagePart.js","gone":true}
 {"file":"PageText.js"}
 {"file":"PageLink.js"}
+{"file":"kinds.js"}
+{"file":"improvements.jsonl"}
+{"file":"PageFile.js"}
+{"file":"PageView.js"}
+{"file":"types/"}
+{"file":"types/page.jsonl"}
+{"content":{"add":{"id":"types-link","type":"part-link","path":"./types/","title":"Part types","text":"One part of each of the six types."}}}

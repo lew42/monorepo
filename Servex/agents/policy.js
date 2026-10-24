@@ -13,7 +13,7 @@ const NO_SPAWN = ["task-mastermind", "manager", "mastermind", "master-assistant"
  * Servex's own) counts as THE mastermind for messaging purposes (D4,
  * 2026-09-25/28): `task-mastermind-recursive-pairs` was refused when it
  * messaged `mastermind-servex-3` only because the id had a `-3` on it. */
-const SERVEX_ID = /^(mastermind-servex|servex-mastermind)(-\d+)?$/;
+const SERVEX_ID = /^(mastermind-servex|servex-mastermind|ai-system-mastermind)(-\d+)?$/;
 
 export class Policy {
 

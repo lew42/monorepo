@@ -1,0 +1,44 @@
+/* The session page's Overview cards and sticky stats bar (SessionOverview, SessionStats, SessionTaskRow). Prefix sov-. The mob- classes (sessions/v/mobile/mobile.css) draw the card, head and row; only what the desktop adds is here. */
+@layer site {
+	/* the stats bar: four figures, the one bar, its caption; sticky under the page head on every tab */
+	.sov-stats { position: sticky; top: 0; z-index: 6; display: flex; flex-direction: column; gap: .5em; padding: .75em 1em; background: var(--surface); border-bottom: 1px solid var(--mob-line); border-radius: 4px; }
+	.sov-stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr)); gap: .5em 1.5em; }
+	.sov-stat { display: flex; flex-direction: column; min-width: 0; }
+	.sov-k { color: color-mix(in srgb, var(--ink) 60%, transparent); text-transform: uppercase; font-size: .7em; letter-spacing: .06em; }
+	.sov-v { font-size: 1.3rem; line-height: 1.2; overflow-wrap: anywhere; }
+	.sov-bar .task-bar, .sov-card .task-bar { margin: 0; width: 100%; max-width: none; display: flex; }
+	.sov-bar .task-seg { flex: 1 1 0; }
+	.sov-bar .task-meter, .sov-card .task-meter { flex: 1 1 auto; width: auto; height: .45em; }
+
+	/* the page grid keeps its children in a 40em main column; the stats, tabs and panels take the wide span, so the cards can sit side by side */
+	.page > .sov-stats, .page > .sessions-tabs, .page > .sessions-detail-body { grid-column: wide-start / wide-end; }
+	.session-parts:empty { display: none; }   /* no page parts: no empty block (and its margin) between the title and the stats */
+	.sov-chat { max-width: 70rem; }
+	.sov-caption { color: color-mix(in srgb, var(--ink) 60%, transparent); }
+
+	/* the cards: four side by side where there is room, one column on a phone */
+	.sov-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--gap-50, .75rem); align-items: start; }
+	.sov-cards > .sov-card { margin: 0; }
+	.sov-card .mob-row-title { font-size: .95rem; font-weight: 600; line-height: 1.3; }
+	.sov-card .mob-row-sub { font-size: .8rem; line-height: 1.3; }
+	.sov-card .mob-card-head > strong { text-transform: uppercase; font-size: .75em; letter-spacing: .06em; color: color-mix(in srgb, var(--ink) 60%, transparent); }
+	.sov-task .mob-go, .sov-task .mob-run-btn { display: none; }   /* the dot says the state; the task page has the buttons */
+	.sov-card .mob-more { text-align: center; text-decoration: none; }
+	.sov-cost { flex: 0 0 auto; align-self: flex-start; padding-top: .8em; color: color-mix(in srgb, var(--ink) 60%, transparent); }
+	.sov-project { display: flex; flex-direction: column; gap: .15em; padding: .7em .75em; color: inherit; text-decoration: none; border-top: 1px solid var(--mob-line); }
+	.mob-card-head + .sov-project { border-top: 0; }
+	.sov-project-head { display: flex; gap: .6em; justify-content: space-between; }
+	.sov-project-head .sov-cost { padding-top: 0; }
+	.sov-dropped { display: flex; align-items: flex-start; gap: .6em; padding: .7em .75em; color: inherit; text-decoration: none; border-top: 1px solid var(--mob-line); }
+	.mob-card-head + .sov-dropped { border-top: 0; }
+	.sov-dropped .mob-group-icon { color: var(--mob-grey); }
+
+	/* full screen (AISessionDetail.full_screen): the page covers its region and scrolls itself; two buttons float over it */
+	.sov-float { display: none; }
+	.browse-detail:has(> .page.sov-full) { position: relative; overflow: hidden; }
+	.page.sov-full { position: absolute; inset: 0; z-index: 5; overflow: auto; background: color-mix(in srgb, var(--ink) 4%, var(--surface)); align-content: start; }
+	.page.sov-full > .sov-float { display: flex; order: -1; position: sticky; top: .75rem; height: 0; margin-bottom: -1rem; grid-column: bleed-start / bleed-end; justify-content: space-between; padding-inline: .75rem; z-index: 30; pointer-events: none; }
+	.page.sov-full > .sov-float > * { pointer-events: auto; }
+	.sov-float-btn { width: 2.5rem; height: 2.5rem; padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--mob-line); background: var(--surface); box-shadow: 0 1px 4px rgba(0, 0, 0, .15); cursor: pointer; }
+	.sov-fs-on { margin-left: auto; }
+}

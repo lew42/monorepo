@@ -17,6 +17,13 @@ fs.mkdirSync(t, { recursive: true });
 const file = path.join(t, "task.jsonl"), ago = min => new Date(Date.now() - min * 60000).toISOString();
 fs.writeFileSync(file, JSON.stringify({ assign: { agent: "minion-x", session_id: "s1", steps: ["Slow step (5 min)", "Next (5 min)"], step: 1, heartbeat: true, requested_at: ago(30) } }) + "\n");
 
+// tick() starts the daily jobs (follow-up, handover, undone-asks) as children with cwd = dir; on Windows a live child blocks the rm below. A fixture that has already done today's jobs starts none.
+const ai = path.join(dir, "public", "framework", "ai"), today = new Date().toISOString().slice(0, 10);
+fs.mkdirSync(path.join(ai, "doc"), { recursive: true }); fs.mkdirSync(path.join(ai, "asks"), { recursive: true });
+fs.writeFileSync(path.join(ai, "doc", "follow-up.md"), "x");
+fs.writeFileSync(path.join(ai, "handover.md"), "## NOW (computed " + today + ")\n");
+fs.writeFileSync(path.join(ai, "asks", "undone.json"), JSON.stringify({ generated_at: today }));
+
 const sent = [], logged = [];
 const servex = {
 	say(){}, heartbeat: { opted_in: s => s.heartbeat === true },

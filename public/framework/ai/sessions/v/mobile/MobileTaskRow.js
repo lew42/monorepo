@@ -10,7 +10,7 @@ View.stylesheet(import.meta, "mobile.css");
 export default class MobileTaskRow extends View {
 
 	initialize(){
-		const { node, sid } = this, kids = MobileData.states(node.kids);
+		const { node } = this, kids = MobileData.states(node.kids);
 		this.ac("mob-task-row", "is-" + node.state);
 		this.empty(() => {
 		new MobileRun({ node });
@@ -21,9 +21,12 @@ export default class MobileTaskRow extends View {
 				if (node.kids.length > 1) div.c("mob-row-bar", () => TaskView.draw_bar(kids, 12));
 			});
 			icon("chevron_right").ac("mob-go");
-		}).href(MobileData.task_url(sid, node.rel));
+		}).href(this.href());
 		});
 	}
+
+	/** Where the row goes; a subclass on another page (the desktop Overview) sends it to the full task page. */
+	href(){ return MobileData.task_url(this.sid, this.node.rel); }
 
 	/** The second line of an unfinished task: its progress and when it started; the dot already says its state, so the word is not repeated. */
 	sub(kids){

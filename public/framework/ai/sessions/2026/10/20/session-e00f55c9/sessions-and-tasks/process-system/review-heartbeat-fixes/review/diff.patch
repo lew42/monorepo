@@ -1,0 +1,92 @@
+diff --git a/Server/review.mjs b/Server/review.mjs
+index e545024c4..dfa87aafa 100644
+--- a/Server/review.mjs
++++ b/Server/review.mjs
+@@ -710,6 +710,13 @@ async function main() {
+ 	const spec = range ? range : `${BASE}...${git(worktreeDir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim()}`;
+ 	const [, rangeB] = range ? range.split(/\.\.\.?/) : [];
+ 	const branch = range ? rangeB : git(worktreeDir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim();
++	/* A range is read in the MAIN tree, so `A..HEAD` meant the main tree's HEAD, not the worktree's: two reviews of
++	 * worktree/ai-system-mastermind (2026-10-23) read michael/dev's head and wrote an empty diff.patch. Name the branch. */
++	if (!branch || branch === "HEAD" || branch === BASE) {
++		console.error(`refused: the review target is "${branch || "(none)"}", which is not a branch of its own, so the diff would be the wrong tree or empty. ` +
++			(range ? `Name the branch in --range (e.g. ${BASE}..worktree/<name>), or drop --range and pass the worktree dir.` : `Check out the task's branch in its worktree, or use --range ${BASE}..<branch>.`));
++		process.exit(1);
++	}
+ 	const head = range ? git(cwd, "rev-parse", rangeB).stdout.trim() : git(worktreeDir, "rev-parse", "HEAD").stdout.trim();
+ 
+ 	// So the questions page never goes stale, even for someone who never runs --questions by hand.
+diff --git a/Servex/Heartbeat-held.test.mjs b/Servex/Heartbeat-held.test.mjs
+new file mode 100644
+index 000000000..bd4ee06f3
+--- /dev/null
++++ b/Servex/Heartbeat-held.test.mjs
+@@ -0,0 +1,21 @@
++/* node Servex/Heartbeat-held.test.mjs — a task waiting on the owner (or paused) is not silent: no status checks (2026-10-23). */
++import assert from "node:assert";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++
++process.env.SERVEX_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "hb-held-"));
++const { default: Heartbeat } = await import("./Heartbeat.js");
++
++const dir = fs.mkdtempSync(path.join(os.tmpdir(), "hb-task-")), file = path.join(dir, "task.jsonl");
++const write = lines => fs.writeFileSync(file, lines.map(l => JSON.stringify(l)).join("\n") + "\n");
++const hb = Object.create(Heartbeat.prototype);
++Object.assign(hb, { since: 0, servex: { agents: { registry_list: () => [], reg: () => ({ read: () => ({}) }) } } });
++
++write([{ assign: { agent: "minion-queue", heartbeat: true, now: "build" } }, { start: {} }]);
++assert.equal(hb.read(file).held, false, "a running task is watched");
++write([{ assign: { agent: "minion-queue", heartbeat: true, now: "build" } }, { start: {} }, { wait: { on: "owner", what: "the look" } }]);
++assert.equal(hb.read(file).held, true, "waiting on the owner: held, no status checks");
++write([{ assign: { agent: "minion-queue", heartbeat: true, now: "build" } }, { start: {} }, { pause: {} }]);
++assert.equal(hb.read(file).held, true, "paused: held");
++console.log("Heartbeat-held: 3 checks passed");
+diff --git a/Servex/Heartbeat.js b/Servex/Heartbeat.js
+index 9924419a1..a54688a61 100644
+--- a/Servex/Heartbeat.js
++++ b/Servex/Heartbeat.js
+@@ -124,7 +124,7 @@ export default class Heartbeat {
+                 if (!t || t.done){ this.watch.delete(file); if (t?.done) await this.skipped(file, t); continue; }
+                 const w = this.watch.get(file) ?? {};
+                 this.watch.set(file, Object.assign(w, { owner: t.owner, card: t.card }));
+-                if (t.escalated || this.queued_revive(file)) continue;
++                if (t.escalated || t.held || this.queued_revive(file)) continue;
+                 const live = this.agents.live.get(t.owner), alive = live && live.state !== "stopped";
+                 const s = this.seen.get(t.owner), last = s?.at ?? (alive ? this.booted : t.mtime);
+                 if (w.check_at){
+@@ -197,7 +197,10 @@ export default class Heartbeat {
+         // the OWNER's session: its registry row first, so a revive never resumes line 1's old session under a new id
+         const session_id = this.agents.reg?.().read()?.[owner]?.session_id ?? state.session_id ?? first.session_id;
+         const done = Landed.of_file(file);   // the one rule: Task.replay says complete or stopped
+-        return { owner, session_id, card: state.card, paused: !!state.paused, done, skipped, escalated, revives,
++        /* WAITING OR PAUSED IS NOT SILENT (2026-10-23): a task waiting on the owner's look (a {"wait":{"on":"owner"}} line) or paused
++         * gets no status checks; minion-queue was pinged every ~7 min after its show: line, each one a paid turn. */
++        const replayed = Landed.state(file), held = replayed === "waiting" || replayed === "paused";
++        return { owner, session_id, card: state.card, paused: !!state.paused, held, done, skipped, escalated, revives,
+             mtime: fs.statSync(file).mtimeMs, slug: this.servex.task_loop?.slug(file) ?? path.basename(path.dirname(file)) };
+     }
+ 
+diff --git a/Servex/agents/roles/mastermind.md b/Servex/agents/roles/mastermind.md
+index 855cf7374..e2e879638 100644
+--- a/Servex/agents/roles/mastermind.md
++++ b/Servex/agents/roles/mastermind.md
+@@ -122,6 +122,7 @@ Every brief tells the minion to load the `minion` skill first and carries only w
+ - Running ONE task is a task mastermind's job: the `sub-mastermind` skill and `roles.md`.
+ - ⚠ Write every follow-up so a COLD agent can execute it: file:line, never "as you did before". Do not gate a worker on a wait when you can dispatch it after the prerequisite lands.
+ - A fence that forbids what a mandated skill writes is a trap; name the skill's writes.
++- A look-first brief (show the owner before building on) has the worker append `{"wait":{"on":"owner","what":"the look"}}` with its `show:` line. The Heartbeat then sends it no status checks while it waits (2026-10-23: one waiting minion was pinged every 7 minutes, each a paid turn).
+ - ⚠ Say in so many words: never kill or restart the dev server, never drive the owner's tabs, never `git stash` (diff, don't stash). See the `minion` never-list.
+ - ⚠ Run any code recipe you put in a brief once yourself first (an import path, a route pattern, a command). Playwright imports need `file:///C:/…`; `page.routeWebSocket(/.*/)` blocks sockets, `page.route('**/socket*')` matches nothing.
+ - Ask for the raw output as a file and spot-check one decisive number; ask for two numbers that must agree, or a ratio, not an opinion; say which artifact is the deliverable and what to cut first.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-heartbeat-fixes/requirements.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-heartbeat-fixes/requirements.md
+new file mode 100644
+index 000000000..197463a5d
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-heartbeat-fixes/requirements.md
+@@ -0,0 +1,4 @@
++# review.mjs and Heartbeat fixes (mastermind-deputy, 2026-10-23)
++
++1. review.mjs refuses a review target that is HEAD or michael/dev, so a review cannot land against the wrong tree.
++2. Heartbeat sends no status checks to a task waiting on the owner or paused; look-first briefs append a wait line with their show: line.

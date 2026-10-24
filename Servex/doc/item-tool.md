@@ -21,3 +21,29 @@
   - One goal task per module holds the long-lived work; new related work goes under it.
   - An idea to keep beside a module while designing is a note, not a task.
   - The tool files the session reference and picks the home folder; never write either by hand.
+
+## Queries: ask without writing (2026-10-23)
+
+A **query** is a method or getter that only reads. A class lists them in `static queries` (`core/Item/Item.js`; `Item.describe()` returns them). A delta whose keys are ALL queries is answered at once and **writes no line**: `{ok, answer:{<key>:value}}`. The grammar is the same one ("a key naming a method calls it"): there is no `get` key. `target` walks into a child first (`target:["a"]`), then asks. A delta that mixes a query with a change (`{"cost":{},"title":"x"}`) is refused with `{ok:false, why}` and writes nothing: send two calls. The item tool holds one live replayed instance per file, so a query is a method call on memory (a 132-task session answers in about 135 ms).
+
+```
+item({path:"/framework/ai/sessions/2026/10/20/session-e00f55c9/", delta:{"summary":{}}})
+item({path, delta:{"progress":{}, "cost":{}}})            // several queries in one call
+item({path, target:["a"], delta:{"progress":{}}})          // the same, on the child "a"
+```
+
+`Task.queries` = `progress`, `cost` (this folder's agents, USD), `total_cost` (plus every child that has a folder), `duration` (ms, from the start/stop lines), `children` (child **sessions**: tasks whose `path` folder holds a session record), `summary` (id, title, state, completion, progress, counts by state, the open tasks only as id/title/state, cost, duration, children). Cost is computed by `Task.cost_resolver`, which `Agents.js` wires; with no Agents instance (a plain script) it reads 0.
+
+**Session or Task? A session folder stays a Task with queries (decided 2026-10-23).** `core/Session` is the page-level view of a run (menu, settings, `AISession` cost and transcript), and `Session.completion` and `Task.completion` count the same thing with the same code. `class_of` already replays a session folder as a Task (`SessionRecord.log_file`), because the log holds task lines, `start`/`stop` spans and verbs that only Task understands. Switching to `Session` would lose those and need a second copy of `duration`, `cost` and `summary`. So `summary` and `children` live on Task and answer for a session's `session.jsonl` too (line 1's `{"session":{id,kind,…}}` is kept as `record`, so the summary reports the session id and kind). The alternative, a `Session` loader that extends Task, stays open if the view needs menu or settings through the tool.
+
+Tests: `item_tool.test.mjs` (a query writes no line, a mixed delta is refused, the session summary with inline and referenced children, an array `tasks.add` is two tasks).
+
+## A real Page, and lines refused before they are written (2026-10-23)
+
+- **Page files** (`page.jsonl`): `page_tools.js` `page_class()` loads the real `core/Page/Page.class.js` in node, once. `Servex/agents/site-hooks.mjs` is a node resolve hook that maps site-absolute imports (`/framework/…`) to `public/`, so no DOM stub is needed; the few import-time browser touches (`location`, `document`, `Element`) are guarded in `Reader.js`, `View.js`. `Page.replay(lines)` replays a log (its `replay_new` marks the page as replaying, so a `file` line only records itself).
+- **One list of part types:** `core/Page/parts/kinds.js` imports every part class and exports `PART_TYPES`. The browser (`Parts.js`, `ai/AISession/AISessionDetail.js`), the tool and `Page.test.mjs` all import it. A new part type is one import and one name there.
+- **Refused before the write** (`page_refusal`, used by `item`, `page_set`, `page_add`, `page_call` on a page file): a key starting `_` (or `constructor`, `prototype`) anywhere in the delta; a `part-*` type that is not registered (the answer lists the real ones); a line that makes `Page.replay` throw. Only `part-*` types are checked: pages also hold plain data typed `card`, `note`, `request`, `task`, `question` that no class claims (the alternative, checking every type, would refuse all of those).
+- **Any task line that would break replay is refused too** (`try_line`, `Refused`): the line is replayed on the live root BEFORE it is appended. A throw (for example `commits` in a child add: the getter has no setter) returns `{ok:false, why:"this line would not replay (…). Nothing was written."}` and the cached root is dropped. A `tasks.add` array is checked member by member on an empty root before any member is written.
+- **A query key given a value is refused:** `{"summary":"text"}` is not an ask and cannot set; the answer says `summary is a query: it only reads and cannot be set`. `{}`, `true`, `null`, an array or an object are arguments.
+- Tests: `node public/framework/core/Page/Page.test.mjs` (replay, unknown type reported, the tool refuses), `node Servex/agents/item_tool.test.mjs`, `node Servex/agents/page_tools.test.mjs`.
+- **Subpage parent:** a `page.js` parent is never edited; `Subpages.js` notes the child in the parent's `page.jsonl` and `Page.child` reads it (17c696fa6, 645ccbe33). The old test that expected a `children:` edit in `page.js` was stale and now asserts this.

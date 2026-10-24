@@ -29,6 +29,8 @@ The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`
 | add a heading | `{"content":{"add":{"type":"part-heading","text":"Findings"}}}` |
 | add a card | `{"content":{"add":{"type":"part-card","title":"Cache","text":"Hit rate 92%."}}}` |
 | add a paragraph | `{"content":{"add":{"type":"part-text","text":"Some **markdown**."}}}` |
+| add a view (a module in the page's folder) | `{"content":{"add":{"type":"part-view","class":"./MyChart.js","data":{"value":92}}}}`: if the default export has a `render`, it is built as `new Default({ page, item, ...data })`, else called as `fn(page, box, data)` |
+| add a markdown file | `{"content":{"add":{"type":"part-file","file":"./readme.md"}}}`: rendered in place |
 | add after a card | `{"content":{"add":{…,"after":"c1"}}}` (`"after":null` puts it first) |
 | update a card | `{"c1":{"text":"Hit rate 95%."}}` (the id `page_set` returned) |
 | move a card | `{"content":{"move":{"id":"c1","after":"h1"}}}` |
@@ -44,10 +46,16 @@ The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`
 | write on a subpage | the same deltas, with `path` set to the subpage's url (`…/notes/`) |
 | read the current state | **`page_read(path)`**: title, every card with its id, the subpages |
 
+## Asking without writing: queries
+
+`page_set` changes, but a class can also list **queries**: methods and getters that only read (`static queries` on the class, `Item.describe().queries`). With the item tool, a delta whose keys are all queries is answered and **writes no line**: `item({path, delta:{"summary":{}}})` answers `{ok, answer:{summary:{…}}}`. `item({path, delta:{"progress":{},"cost":{}}})` asks two at once; `target:["a"]` asks the child `a`. A delta that mixes a query with a change is refused (send two calls). There is no separate `get` key. Detail and the list for Task and Session folders: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md).
+
+A bad line is refused before it is written: a `_` key, a `part-*` type nobody registered (`core/Page/parts/kinds.js` is the one list), or a line that would not replay. The answer says why and `Nothing was written.` Detail: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md), "A real Page".
+
 ## Names, once
 
 - **page**: anything with a url. **subpage**: a page inside another, with its own folder and url.
-- **content**: the page's own list of cards. **card**: one item in it (`part-heading`, `part-text`, `part-card`; any registered type).
+- **content**: the page's own list of cards. **card**: one item in it (`part-heading`, `part-text`, `part-card`, `part-link`, `part-view`, `part-file`; any registered type). `part-text` already takes a whole block of markdown (paragraphs, lists, code blocks), so there is no separate type for one.
 - **delta**: the JSON object you send. **line**: that delta, stamped and appended to `page.jsonl`.
 
 ## Old tool names still work

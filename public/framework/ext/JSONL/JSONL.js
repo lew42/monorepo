@@ -5,6 +5,10 @@ import { Store } from "../../core/Item/Store.js";
 export class JSONL {
 	static verbs = ["assign", "log", "action"];
 
+	// Keys real logs carry that this reader has no use for, kept in .skipped but never warned about:
+	// the stamps the log writer adds beside every verb.
+	static quiet = ["by", "ts", "origin", "as", "moved_from"];
+
 	logs = [];
 	actions = [];
 	skipped = [];
@@ -118,6 +122,7 @@ export class JSONL {
 	// One warning per verb per file (see doc/JSONL-notes.md).
 	skip(verb, entry){
 		this.skipped.push(entry);
+		if (this.constructor.quiet.includes(verb)) return;
 		this.warned ??= new Set();
 		if (this.warned.has(verb)) return;
 		this.warned.add(verb);
@@ -127,12 +132,23 @@ export class JSONL {
 
 // History and reasons: doc/JSONL-notes.md (TaskJSONL schema and semantics).
 export class TaskJSONL extends JSONL {
+	// The verbs core/Task's replay reads from the same file (session.jsonl): not drawn here, so not warned about.
+	static quiet = [...JSONL.quiet, "session", "sessions", "task", "tasks", "start", "stop", "pause", "resume", "finish", "wait", "approve", "commit", "tag", "group", "settings", "decide", "priority", "snooze", "kill", "follow_up"];
+
 	static verbs = [...JSONL.verbs, "agent", "chat", "shot", "ask", "decision", "verdict", "rank", "note", "experiment", "review", "shots", "bands", "home"];
 
 	// `shots` verb uses static lines to avoid field/array collision (see doc/JSONL-notes.md).
 	static lines = {
 		shots: value => ({ ...value, msg: value.msg ?? `shots: ${value.pages?.length ?? 0} pages at 4 widths → ${value.dir ?? ""}` }),
 	};
+
+	// `task` = the replayed core/Task (AITask sets it before each read): a bare key naming a task in it is a walk core/Task replays, not an unknown verb.
+	task = null;
+
+	skip(verb, entry){
+		if (this.task?.find(verb)){ this.skipped.push(entry); return; }
+		super.skip(verb, entry);
+	}
 
 	agents = [];
 	chats = [];

@@ -90,6 +90,14 @@ if (!base) {
 		const entry = Object.values(JSON.parse(fs.readFileSync(f, "utf8"))).find(e => norm(e.path) === norm(dir));
 		if (entry) { base = `http://127.0.0.1:${entry.port}`; break; }
 	}
+	// Not registered (made with plain `git worktree add`): worktree-restart.mjs adopts it, boots its server and registers it.
+	if (!base && path.basename(path.dirname(path.resolve(dir))) === "worktrees") {
+		const root = path.resolve(here, "..");
+		const r = spawnSync(process.execPath, [path.join(root, "Server", "worktree-restart.mjs"), path.basename(path.resolve(dir)), "--path", path.resolve(dir)], { cwd: root, encoding: "utf8", windowsHide: true });
+		const entry = r.status === 0 ? Object.values(JSON.parse(fs.readFileSync(path.join(root, ".worktrees.json"), "utf8"))).find(e => norm(e.path) === norm(dir)) : null;
+		if (entry) { base = `http://127.0.0.1:${entry.port}`; console.log("smoke: adopted and booted " + dir); }
+		else console.error((r.stdout || "") + (r.stderr || ""));
+	}
 	if (!base) usage("no worktree entry for " + dir + " in .worktrees.json (use --port or --base)");
 }
 base = base.replace(/\/$/, "");
@@ -118,6 +126,17 @@ function uncommitted_in_main(p){
 	if (!fs.existsSync(path.join(MAIN, rel))) return false;
 	const st = spawnSync("git", ["-C", MAIN, "status", "--porcelain", "--", rel], { encoding: "utf8", windowsHide: true });
 	return st.status === 0 && st.stdout.trim() !== "";
+}
+
+/* A 404 on a file the main tree HOLDS but git does not track (ignored machine state: an index, a cache, a tree file; or
+ * a record not committed yet) can never load in a worktree, whatever the branch changed, so it is a warning, not a FAIL
+ * (2026-10-23: the session page 404ed sessions.json, session-tree.json, spend-tree.json and three more in every
+ * worktree). The one rule behind most of the special cases below; a TRACKED file, or one the main tree lacks too,
+ * still fails. One git call per failing url. */
+function untracked_in_main(u){
+	const rel = "public" + decodeURIComponent(new URL(u).pathname);
+	if (norm(MAIN) === norm(dir) || !fs.existsSync(path.join(MAIN, rel))) return false;
+	return spawnSync("git", ["-C", MAIN, "ls-files", "--error-unmatch", "--", rel], { windowsHide: true, stdio: "ignore" }).status !== 0;
 }
 
 let browser;
@@ -154,6 +173,7 @@ async function links_on(page){
 		if (u.origin !== new URL(base).origin) continue;
 		const ext = (u.pathname.match(/\.([a-z0-9]+)$/i)?.[1] ?? "").toLowerCase();
 		if (SKIP_EXT.has(ext)) continue;
+		if (u.pathname.startsWith("/ai-logs/")) continue;   // a session's raw transcript (a file the dev server streams), not a page: loading it aborts
 		const norm_path = u.pathname + u.search;
 		if (loaded.has(norm_path)) continue;
 		loaded.add(norm_path);
@@ -308,7 +328,7 @@ async function layout_edge_problems(page){
 		// ── 2. something above the title ──
 		const title = root.querySelector("h1.page-title, h1.doc-title");
 		if (title && !excluded(title) && !hidden(title)) {
-			const floor = title.getBoundingClientRect().top;
+			const tr = title.getBoundingClientRect(), floor = tr.top;
 			const ancestors = new Set();
 			for (let a = title.parentElement; a; a = a.parentElement) ancestors.add(a);
 			for (const el of root.querySelectorAll("*")) {
@@ -318,6 +338,9 @@ async function layout_edge_problems(page){
 				const r = el.getBoundingClientRect();
 				if (r.width === 0 && r.height === 0) continue;
 				if (r.bottom >= floor) continue;
+				// Above means in the title's own column: a side rail's name sits higher than the title but
+				// beside it, not over it (/imagine/paging/navigation/screen/, 2026-10-23).
+				if (r.right <= tr.left || r.left >= tr.right) continue;
 				// Only the outermost offending element — a span inside an offending div is the
 				// same finding, not a second one.
 				if (el.parentElement && !ancestors.has(el.parentElement)) {
@@ -387,7 +410,8 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 			|| /\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/index\.jsonl?$/.test(u)   // the day composite and the day stream: gitignored, written in the main tree only (2026-10-20)
 			|| /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/spend\.json$/.test(u)
 			|| /\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/[^/]+\/(task|session)\.jsonl$/.test(u) || /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/day\.jsonl$/.test(u)
-			|| /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/.*\/shots\/[^/]+\.(png|jpg|jpeg|webp)$/.test(u)){ warns.push(`HTTP ${r.status()}: ${u}`); return; }
+			|| /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/.*\/shots\/[^/]+\.(png|jpg|jpeg|webp)$/.test(u)
+			|| (u.startsWith(base) && r.status() === 404 && untracked_in_main(u))){ warns.push(`HTTP ${r.status()}: ${u}`); return; }
 		// Same-origin (this worktree's own server) is always an error, any other request kind —
 		// a plain `fetch()` 404 used to slip through here because only script/stylesheet/
 		// document were checked. Cross-origin (Servex on :8090, off in a worktree) stays a warn.

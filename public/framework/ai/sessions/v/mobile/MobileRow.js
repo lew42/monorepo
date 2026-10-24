@@ -11,7 +11,7 @@ export default class MobileRow extends View {
 
 	static DOT = { needs: "is-blocked", running: "is-running", done: "is-done", rest: "is-open" };
 
-	initialize(){
+	render(){   // render, not initialize: render() runs inside the row, so the link is the row's child
 		const { snap, tasks, group, tree, line } = this;
 		this.ac("mob-row", "mob-" + group);
 		a.c("mob-row-link", () => {

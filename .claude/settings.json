@@ -70,6 +70,19 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "mcp__servex__spawn_agent|mcp__claude_ai_Servex__spawn_agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/spawn-session.mjs"
+            ],
+            "timeout": 5
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -78,7 +91,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/session-page.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/session-page.mjs"
+            ],
             "timeout": 5
           }
         ]

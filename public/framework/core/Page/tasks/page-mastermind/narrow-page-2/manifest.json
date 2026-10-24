@@ -1,0 +1,68 @@
+[
+ {
+  "method": "listing",
+  "old_lines": "219-231",
+  "new_file": "Listing.js",
+  "binds": "Page"
+ },
+ {
+  "method": "fetch_listing",
+  "old_lines": "233-248",
+  "new_file": "Listing.js",
+  "binds": "Page"
+ },
+ {
+  "method": "page_listing",
+  "old_lines": "250-255",
+  "new_file": "Listing.js",
+  "binds": "Page"
+ },
+ {
+  "method": "loaded_listing",
+  "old_lines": "260-266",
+  "new_file": "Listing.js",
+  "binds": "Page"
+ },
+ {
+  "method": "file",
+  "old_lines": "494-509",
+  "new_file": "Load.js",
+  "binds": "Page"
+ },
+ {
+  "method": "load",
+  "old_lines": "511-522",
+  "new_file": "Load.js",
+  "binds": "Page"
+ },
+ {
+  "method": "read_json",
+  "old_lines": "524-529",
+  "new_file": "Load.js",
+  "binds": "Page"
+ },
+ {
+  "method": "from",
+  "old_lines": "531-542",
+  "new_file": "Load.js",
+  "binds": "this"
+ },
+ {
+  "method": "props",
+  "old_lines": "544-553",
+  "new_file": "Load.js",
+  "binds": "Page"
+ },
+ {
+  "method": "missing",
+  "old_lines": "555-558",
+  "new_file": "Load.js",
+  "binds": "Page"
+ },
+ {
+  "method": "slug",
+  "old_lines": "560-562",
+  "new_file": "Load.js",
+  "binds": "Page"
+ }
+]

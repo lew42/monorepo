@@ -55,7 +55,6 @@ export default class PageFrame extends View {
 		const page = this.page;
 
 		if (page.navigation === "expand") this.expander();
-		else if (page.navigation === "columns" || page.navigation === "takeover") this.rows();
 
 		return page.render_content();
 	}
@@ -76,7 +75,7 @@ export default class PageFrame extends View {
 		});
 	}
 
-	// One drawing: rows in rail, expand, columns, takeover.
+	// One drawing: rows in rail and expand.
 	rows(){
 		const page = this.page;
 

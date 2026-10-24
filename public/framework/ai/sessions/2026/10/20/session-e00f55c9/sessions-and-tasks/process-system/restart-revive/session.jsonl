@@ -13,3 +13,4 @@
 {"review":{"at":"2026-10-22T22:31:37-05:00","answer":{"n":4,"reply":"noted: two writes kept; bury() has other callers, and one extra write at boot costs nothing."}}}
 {"review":{"at":"2026-10-22T22:31:37-05:00","answer":{"n":5,"reply":"fixed: restart.md names mastermind-item too (refused as landed in the 21:11 sweep, already gone at 21:30)."}}}
 {"review":{"at":"2026-10-22T22:31:37-05:00","answer":{"n":6,"reply":"fixed: the test asserts the queued row starts fresh (session_id undefined), the working row resumes, and a row with no folder is buried with its reason. revive-sweep 4 checks, revive-skip 6 checks pass."}}}
+{"stop":{"at":"2026-10-24T00:04:02-05:00","why":"abandoned: no agent since 2026-10-22T22:29:10-05:00; closed by StaleClose 2026-10-24","by":"StaleClose"}}
