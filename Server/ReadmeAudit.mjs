@@ -53,6 +53,15 @@ index = short list of parts with links; essay = prose explaining things that bel
 	/* Does the readme text mention this entry by name? */
 	static mentions(text, name){ return text.toLowerCase().includes(name.toLowerCase()); }
 
+	/* doc-check only knows `/x` = public/x. The site also serves repo-root folders (/Servex/…), /framework/servex/ = Servex/,
+	 * and `/<module>/md/<path>/` = <module>/<path>.md; a link that lands on one of those is not dead. */
+	site_route(t){
+		const u = t.split(/[#?]/)[0].replace(/\/+$/, ""), r = this.repo;
+		if (!u.startsWith("/")) return false;
+		const tries = [u, u.replace(/^\/framework\/servex(?=\/|$)/, "/Servex"), u.replace(/\/md\/(.*)$/, "/$1.md")];
+		return tries.some(x => [path.join(r, x), path.join(r, "public", x)].some(f => fs.existsSync(f)));
+	}
+
 	/* The free checks for one readme file → the `readme_audit` fields (no Haiku). */
 	computed(file, orphans = new Set()){
 		const dir = path.dirname(file), text = fs.readFileSync(file, "utf8");
@@ -65,7 +74,7 @@ index = short list of parts with links; essay = prose explaining things that bel
 		return {
 			v: ReadmeAudit.V, path: this.rel(file), sha,
 			words: (text.match(/\S+/g) || []).length, files: ents.length,
-			unnamed, dead_links: dead_links(this.repo, dir, text),
+			unnamed, dead_links: dead_links(this.repo, dir, text).filter(t => !this.site_route(t)),
 			orphan: orphans.has(this.rel(dir)),
 			docs_folder: ents.some(e => e.isDirectory() && e.name === "docs"),
 			dated_lines, crowded: files > 15 && dirs === 0,
@@ -110,7 +119,12 @@ index = short list of parts with links; essay = prose explaining things that bel
 		let written = 0;
 		for (const f of files){
 			const a = this.computed(f, orphans), old = have.get(a.path);
-			if (old && old.sha === a.sha){ current.set(a.path, { ...old, orphan: a.orphan }); continue; }
+			if (old && old.sha === a.sha){
+				const same = ["unnamed", "dead_links", "orphan", "docs_folder", "dated_lines", "crowded", "words", "files"].every(k => JSON.stringify(old[k]) === JSON.stringify(a[k]));
+				if (same){ current.set(a.path, old); continue; }
+				const kept = { ...a, ...(old.shape ? { shape: old.shape, history: old.history, note: old.note, usd: old.usd } : {}) };   // the checks changed, the readme did not: keep the Haiku answer
+				this.append(kept); current.set(a.path, kept); written++; continue;
+			}
 			this.append(a); current.set(a.path, a); written++;
 		}
 		return { current, written };
