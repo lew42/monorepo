@@ -668,7 +668,8 @@ export class Page extends Item {
 
 	// Asked at render time, never walked. ⚠ A page under a tab strip is a tab, not a column. (doc/decisions.md)
 	column_host(){
-		const chain = this.chain(), at = chain.findIndex(page => page.columnar);
+		// `navigation: "columns"` is the word for calling `columns()`: the first time a render asks, it does.
+		const chain = this.chain(), at = chain.findIndex(page => page.columnar || page.navigation === "columns" && page.columns().columnar);
 		if (at < 0 || chain.slice(at, -1).some(page => page.navigation === "tabs")) return undefined;
 		return chain[at];
 	}

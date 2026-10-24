@@ -40,10 +40,15 @@
      `CONTROLS` below — which lists `NAVIGATION` and friends — would have thrown
      `NAVIGATION is not defined` on the first import of this file, with every page in
      the realm blank. */
-import { NAVIGATION, ROOM, ARRANGEMENT, SURFACES, TYPE, STABLE, DYNAMIC, nav_of, arrangement_of, layout_url }
+import { NAVIGATION as CORE_NAVIGATION, ROOM, ARRANGEMENT, SURFACES, TYPE, STABLE, DYNAMIC, arrangement_of, layout_url }
 	from "/framework/core/Page/words.js";
 
-export { NAVIGATION, ROOM, ARRANGEMENT, SURFACES, TYPE, STABLE, DYNAMIC, nav_of, arrangement_of, layout_url };
+// Core retired `takeover` (2026-10-24, it means `none` there); this lab's stage.js still runs it, so the lab's list keeps the entry.
+export const NAVIGATION = [...CORE_NAVIGATION, { id: "takeover", title: "Takeover", icon: "open_in_full", stable: false,
+	means: "The child fills the whole screen and everything behind it collapses into the trail at the top." }];
+export const nav_of = id => NAVIGATION.find(nav => nav.id === id) ?? NAVIGATION[0];
+
+export { ROOM, ARRANGEMENT, SURFACES, TYPE, STABLE, DYNAMIC, arrangement_of, layout_url };
 
 /* ── 3 · CONTENT — what is in the box ─────────────────────────────────────────
    Eight kinds, and every one of them is REAL: the renderer is a module this site
