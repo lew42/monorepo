@@ -51,14 +51,18 @@ export default class AISessionRows {
 
 	// ---- fetching -----------------------------------------------------------------------------------
 
+	/** True when the folder's listing (dev server only) shows the file is not there. Callers pass "<root>../x.json": the listing API refuses a ".." path (403), so the path is normalised first. */
+	static async not_listed(url){
+		const u = String(url).startsWith("/") && !String(url).includes("?") ? new URL(url, "http://x").pathname : "", at = u.lastIndexOf("/");
+		if (!u) return false;
+		const listed = (await import("/framework/core/Router/listing.js")).names(u.slice(0, at + 1));
+		return !!listed && !listed.includes(u.slice(at + 1));
+	}
+
 	static async get_json(url){
 		// The folder's listing (dev server only) says whether the file is there: a month roll-up names days whose own
 		// index.json was never written (2026/10/10 to /15), and asking for them was a 404 on every sessions page.
-		const u = String(url).startsWith("/") && !String(url).includes("?") ? new URL(url, "http://x").pathname : "", at = u.lastIndexOf("/");   // callers pass "<root>../x.json": the listing API refuses a ".." path (403)
-		if (u){
-			const listed = (await import("/framework/core/Router/listing.js")).names(u.slice(0, at + 1));
-			if (listed && !listed.includes(u.slice(at + 1))) return null;
-		}
+		if (await AISessionRows.not_listed(url)) return null;
 		try {
 			const r = await fetch(url, { cache: "no-store" });
 			return r.ok ? await r.json() : null;
@@ -67,6 +71,7 @@ export default class AISessionRows {
 
 	/** A `.jsonl` file as an array of parsed lines (get_json expects one JSON value per file). */
 	static async get_jsonl(url){
+		if (await AISessionRows.not_listed(url)) return null;
 		try {
 			const r = await fetch(url, { cache: "no-store" });
 			if (!r.ok) return null;
