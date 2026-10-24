@@ -159,12 +159,12 @@ export default class AISessionsPage extends Page {
 
 	// ---- drawing -------------------------------------------------------------------------------------
 
-	static WIDTHS = { state: "4rem", name: "1fr", cost: "14rem", updated: "6rem", duration: "6rem", role: "13rem", source: "6rem", model: "9rem" };
+	static WIDTHS = { state: "3rem", name: "1fr", cost: "8rem", updated: "5rem", duration: "5rem", role: "9rem", source: "6rem", model: "8rem" };
 
 	/** The one DataGrid: the table's columns are AISessionRows.COLUMNS; the rows, their order and their nesting are this page's hooks. */
 	make_grid(){
 		return new DataGrid({
-			columns: AISessionRows.COLUMNS.map(c => ({ ...c, width: AISessionsPage.WIDTHS[c.key] })),
+			columns: AISessionRows.COLUMNS.map(c => ({ ...c, width: AISessionsPage.WIDTHS[c.key], ...(c.key === "name" && { min: "16rem" }) })),
 			rows: [], filters: false, row_height: null, page_size: AISessionsPage.PAGE_SIZE,
 			prefs_id: "sessions", settings: this.settings,
 			href: r => this.url + r.id + "/",
