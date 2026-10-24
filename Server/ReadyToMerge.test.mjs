@@ -41,16 +41,16 @@ ok(r1.task_url.startsWith("/framework/ai/sessions/") && r1.task_url.endsWith("/t
 // 3. the Merge refusals (a stub runner: nothing real is merged)
 const calls = [];
 const run = (c, a, cwd) => { calls.push(a); return { status: 0, stdout: "landed\n", stderr: "" }; };
-ok(mergeBranch("task/nope", { root, repo: root, run }).why.includes("not on the ready list"));
-ok(mergeBranch("task/stale", { root, repo: root, run }).why.includes("moved past"));
-ok(mergeBranch("task/ready", { root, repo: root, run }).why.includes("no worktree"), "no worktree, no merge");
+ok((await mergeBranch("task/nope", { root, repo: root, run })).why.includes("not on the ready list"));
+ok((await mergeBranch("task/stale", { root, repo: root, run })).why.includes("moved past"));
+ok((await mergeBranch("task/ready", { root, repo: root, run })).why.includes("no worktree"), "no worktree, no merge");
 ok(calls.length === 0, "merge.mjs never ran on a refusal");
 // with a worktree row: runs only merge.mjs, logs on success, shows a refusal
 const wt = [{ ...r1, worktree: "/w/x", record: "session.jsonl" }]; const logged = [];
-const good = mergeBranch("task/ready", { rows: () => wt, repo: root, run, log: (row, m) => logged.push(m) });
+const good = await mergeBranch("task/ready", { rows: () => wt, repo: root, run, log: (row, m) => logged.push(m) });
 ok(good.ok && good.out === "landed" && calls.length === 1 && calls[0][0].endsWith("merge.mjs") && calls[0][1] === "/w/x");
 ok(logged[0] === `merged: task/ready ${sha.slice(0, 9)} by the owner (Merge button)`);
-const bad = mergeBranch("task/ready", { rows: () => wt, repo: root, run: () => ({ status: 1, stdout: "", stderr: "review needed" }), log: () => assert.fail("must not log") });
+const bad = await mergeBranch("task/ready", { rows: () => wt, repo: root, run: () => ({ status: 1, stdout: "", stderr: "review needed" }), log: () => assert.fail("must not log") });
 ok(!bad.ok && bad.out === "review needed");
 fs.rmSync(root, { recursive: true, force: true });
 console.log(`ReadyToMerge.test: ${n} checks pass`);

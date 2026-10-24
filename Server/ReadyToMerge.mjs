@@ -4,7 +4,7 @@
  * already in michael/dev, or no longer existing, is dropped. Doc: public/framework/ai/merge/readme.md
  * Row: {branch, sha, at, task_dir, task_url, title, what, review, worktree, stale}. `stale` = the
  * branch head moved past the sha the agent named; the Merge button refuses those. */
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -96,16 +96,28 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 	else for (const r of rows) console.log(`${r.branch}  ${r.sha.slice(0, 9)}${r.stale ? " STALE" : ""}  ${r.review}  ${r.title}\n    ${r.what}\n    ${r.worktree || "(no worktree)"}  ${r.task_url}`);
 }
 
+// merge.mjs can take minutes: run it without blocking Servex, so other routes keep answering (and the one-at-a-time guard can fire).
+function runAsync(cmd, args, cwd){
+	return new Promise(done => {
+		const p = spawn(cmd, args, { cwd, windowsHide: true });
+		let stdout = "", stderr = "";
+		p.stdout.on("data", d => stdout += d); p.stderr.on("data", d => stderr += d);
+		const t = setTimeout(() => p.kill(), 9e5);
+		p.on("close", status => { clearTimeout(t); done({ status, stdout, stderr }); });
+		p.on("error", e => { clearTimeout(t); done({ status: -1, stdout, stderr: String(e.message) }); });
+	});
+}
+
 /* The Merge button's whole job (Servex's POST /api/merge calls this). Re-reads the rows, refuses a
  * branch not on the list, stale, or with no worktree; otherwise runs ONLY `node Server/merge.mjs <worktree>`
  * and, on exit 0, logs the merge in the task record. `run` is injectable for the test. Answers {ok, out, why?}. */
-export function mergeBranch(branch, opts = {}) {
+export async function mergeBranch(branch, opts = {}) {
 	const repo = opts.repo || mainRoot(process.cwd());
 	const row = (opts.rows || readyRows)({ ...opts, repo }).find(r => r.branch === branch);
 	if (!row) return { ok: false, why: "that branch is not on the ready list" };
 	if (row.stale) return { ok: false, why: `the branch moved past ${row.sha} since it was marked ready; ask the agent to re-mark it` };
 	if (!row.worktree) return { ok: false, why: "no worktree holds that branch" };
-	const r = (opts.run || ((cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8", windowsHide: true, timeout: 9e5 })))("node", [path.join(repo, "Server/merge.mjs"), row.worktree], repo);
+	const r = await (opts.run || runAsync)("node", [path.join(repo, "Server/merge.mjs"), row.worktree], repo);
 	const out = ((r.stdout || "") + (r.stderr || "")).trim().split(/\r?\n/).slice(-30).join("\n");
 	if (r.status !== 0) return { ok: false, why: `merge.mjs refused (exit ${r.status})`, out };
 	const msg = `merged: ${branch} ${row.sha} by the owner (Merge button)`;
