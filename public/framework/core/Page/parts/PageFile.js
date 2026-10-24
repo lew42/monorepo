@@ -6,7 +6,7 @@ import View from "../../View/View.js";
 export default class PageFile extends Item {}
 PageFile.View = class PageFileView extends View {
 	render(){
-		const page = this.item.root();
+		const page = this.item.parent;   // a part's parent is the page that holds it (root() would walk on to the site root)
 		return page.draw_md(new URL(this.item.get("file"), location.origin + page.log_folder()).href);
 	}
 };

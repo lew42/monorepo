@@ -6,7 +6,7 @@ import View from "../../View/View.js";
 export default class PageView extends Item {}
 PageView.View = class PageViewView extends View {
 	render(){
-		const page = this.item.root();
+		const page = this.item.parent;   // a part's parent is the page that holds it (root() would walk on to the site root)
 		const url = new URL(this.item.get("class"), location.origin + page.log_folder()).href;
 		return page.draw_module(url, { item: this.item, ...this.item.get("data") });
 	}

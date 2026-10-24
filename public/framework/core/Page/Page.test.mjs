@@ -38,7 +38,7 @@ const names = list => [...list].map(x => `${x.constructor.name}:${x.id}`);
 	ok(names(page.content).join() === "PageView:v,PageFile:f", "part-view and part-file become PageView and PageFile: " + names(page.content));
 	const [view, file] = [...page.content];
 	ok(view.get("class") === "./A.js" && file.get("file") === "./r.md", "their class and file fields are kept");
-	ok(view.root() === page, "a part reaches its page through root()");
+	ok(view.parent === page, "a part's parent is its page");
 }
 
 // ---- 2. replay: an unknown type is reported, never thrown ----

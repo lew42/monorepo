@@ -1,0 +1,13 @@
+{"at":"2026-10-23T21:52:57-05:00","title":"Part types","icon":"view_agenda","class":"../Parts.js","description":"One part of each of the six types a page.jsonl line can add."}
+{"at":"2026-10-23T21:52:57-05:00","content":{"add":{"id":"t-heading","type":"part-heading","text":"The six part types, one each"}},"ts":"2026-10-23T21:55:00-05:00"}
+{"at":"2026-10-23T21:52:57-05:00","content":{"add":{"id":"t-text","type":"part-text","text":"**part-text** takes a whole block of markdown: paragraphs, lists, `code`. Every block below is one line in this page's own `page.jsonl`."}},"ts":"2026-10-23T21:55:00-05:00"}
+{"at":"2026-10-23T21:52:57-05:00","content":{"add":{"id":"t-card","type":"part-card","title":"part-card","text":"A boxed title with a line under it."}},"ts":"2026-10-23T21:55:00-05:00"}
+{"at":"2026-10-23T21:52:57-05:00","content":{"add":{"id":"t-link","type":"part-link","path":"../example/","title":"part-link","text":"A card for another page: this one opens the parts example."}},"ts":"2026-10-23T21:55:00-05:00"}
+{"at":"2026-10-23T21:52:57-05:00","content":{"add":{"id":"t-view","type":"part-view","class":"./Meter.js","data":{"label":"part-view","value":92}}},"ts":"2026-10-23T21:55:00-05:00"}
+{"at":"2026-10-23T21:52:57-05:00","content":{"add":{"id":"t-file","type":"part-file","file":"./notes.md"}},"ts":"2026-10-23T21:55:00-05:00"}
+{"file":"doc/"}
+{"file":"Meter.js"}
+{"file":"notes.md"}
+{"at":"2026-10-23T21:54:21-05:00","content":{"add":{"id":"t-live","type":"part-card","title":"Added while open","text":"This line was appended after the page loaded."}},"ts":"2026-10-23T22:00:00-05:00"}
+{"file":"pt-more.json"}
+{"file":"pt-more.json","gone":true}
