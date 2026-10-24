@@ -30,6 +30,6 @@ The page's `TaskQueueView` asks the `taskqueue` source through `QueryClient` and
 
 ## The look
 
-Shots, built from real records on the worktree's server: [400](shots/queue-400.png) · [1200](shots/queue-1200.png) · [1920](shots/queue-1920.png). At 1920 the summary and formula sit beside the list and the list becomes table columns; below 1700 each task is a card.
+Shots, built from real records on the worktree's server: [400](shots/queue-400.png) · [1200](shots/queue-1200.png) · [1920](shots/queue-1920.png). Beside the list the summary and formula sit left from 1000 px; the list becomes table columns once it is 60em wide (wide desktops), and is a compact card per task below that.
 
 Not built, waiting for the look to be approved: the review report, TaskLoop reading this order, estimates per template, the tie-break.
