@@ -24,7 +24,7 @@ Each thing the owner asks for is filed as a task the first time, runs step by st
 
 Every agent knows where things go and what was decided, from short readmes it can trust, and the right model does each job.
 
-- **Now:** the documentation rule (what goes in a readme, a sibling `.md`, or `doc/`; no dated logs in readmes; the mastermind owns the docs). The model experiment: one Opus builder that designs and builds a whole slice, compared with an Opus planner plus Sonnet builders ([models](/framework/ai/models/)).
+- **Now:** the documentation rule is written (documentation skill §4: `readme.md` is the index, a sibling `<topic>.md` for an often-read topic, `doc/` for the rest; no dated logs in readmes; the mastermind owns its area's docs). Next: a cheap pass that makes every readme follow it. The model experiment: one Opus builder that designs and builds a whole slice, compared with an Opus planner plus Sonnet builders ([models](/framework/ai/models/)).
 - **Inside it:** the readme system ([doc/readme-system.md](doc/readme-system.md)); seeing which readmes, skills and tools each agent got ([agent-context.md](doc/agent-context.md), the readmes page).
 
 ## Later (logged, not built this week)
