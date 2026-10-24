@@ -97,6 +97,8 @@
 	.sessions-page .datagrid:not(.datagrid-rail) .sessions-cell:nth-child(6) { flex-wrap: wrap; gap: .25em .5em; }   /* role text, tier tag and mastermind tag wrap inside their column instead of running over the next one */
 	.sessions-page:not(:has(.datagrid-view-rail)) .sessions-frame { block-size: auto; flex: none; min-block-size: max-content; }   /* the frame grows with the rows, so the status footer ends the panel instead of sitting on a row */
 	.sessions-page .datagrid:not(.datagrid-rail) .sessions-row-title { white-space: normal; overflow-wrap: anywhere; }   /* the table lets a name wrap to a second line rather than cut it with an ellipsis */
+	.sessions-page:not(:has(.datagrid-view-rail)) { padding-block-start: 0; }   /* the page itself scrolls, and a sticky header stops at the scroller's top padding (core/Page/Page.css `.page`), so scrolled rows showed in that strip above it; the space moves to a margin that scrolls away */
+	.sessions-page:not(:has(.datagrid-view-rail)) > .sessions-frame { margin-block-start: var(--pad-y) !important; }   /* !important: the util layer's `:first-child { margin-top: 0 }` outranks every theme-layer margin (code/css/doc/caveats.md) */
 	.sessions-row-prompt { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 	/* Compact cards below 78em of the panel (this em is the panel's 13.3px: about 1040px, just over the grid's true minimum of about 1030px with the 2026-10-23 widths (name 12rem min); 1920 with the chat open has a 1058px panel, which now gets the table. Was 88em, about 1090px; 56em let it scroll sideways at 1100 and 1400). Before: below `ext/panel2`'s own 30em container floor, a 6-column grid has
