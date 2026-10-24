@@ -8,3 +8,4 @@
 {"log":{"at":"2026-10-24T02:33:48-05:00","task":"queue-estimate","msg":"landed — task queue: each task gets its own cost estimate from similar landed tasks (4 → 10 distinct scores in the top 20); live at the next dev-server restart"}}
 {"log":{"at":"2026-10-24T02:33:48-05:00","task":"unlanded-worktrees","msg":"landed — the 20 closed worktrees with unmerged commits lost no code; 6 task records restored, 37 left with reasons; task pages no longer draw 'undefined' links"}}
 {"log":{"at":"2026-10-24T02:45:44-05:00","task":"shot-paths","msg":"landed — old task pages draw their screenshots again (a public/ or task-relative shot path is drawn from the site, not through /screenshot's 403)"}}
+{"log":{"at":"2026-10-24T02:52:06-05:00","task":"readme-audit","msg":"landed — the Readmes page shows each readme's distance from the documentation rule (403 computed, the 164 worst judged by Haiku); pass 2 held for the owner"}}
