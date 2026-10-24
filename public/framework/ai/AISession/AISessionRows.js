@@ -54,8 +54,8 @@ export default class AISessionRows {
 	static async get_json(url){
 		// The folder's listing (dev server only) says whether the file is there: a month roll-up names days whose own
 		// index.json was never written (2026/10/10 to /15), and asking for them was a 404 on every sessions page.
-		const u = String(url), at = u.lastIndexOf("/");
-		if (u.startsWith("/") && !u.includes("?")){
+		const u = String(url).startsWith("/") && !String(url).includes("?") ? new URL(url, "http://x").pathname : "", at = u.lastIndexOf("/");   // callers pass "<root>../x.json": the listing API refuses a ".." path (403)
+		if (u){
 			const listed = (await import("/framework/core/Router/listing.js")).names(u.slice(0, at + 1));
 			if (listed && !listed.includes(u.slice(at + 1))) return null;
 		}

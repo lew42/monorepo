@@ -11,7 +11,7 @@ export default class SessionTree {
 	// Both files load once per page, shared by every SessionTree.
 	static async files(day){
 		this.cache ??= {};
-		this.cache.index ??= fetch(this.INDEX).then(r => r.json());
+		this.cache.index ??= fetch(this.INDEX).then(r => r.ok ? r.json() : { tasks: [] }).catch(() => ({ tasks: [] }));   // a generated index (gitignored): a worktree has none, and an empty answer threw
 		this.cache[day] ??= fetch(this.day_file(day)).then(r => r.ok ? r.json() : { snapshots: [] }).catch(() => ({ snapshots: [] }));
 		return Promise.all([this.cache.index, this.cache[day]]);
 	}
