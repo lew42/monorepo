@@ -327,7 +327,7 @@ async function layout_edge_problems(page){
 		// ── 2. something above the title ──
 		const title = root.querySelector("h1.page-title, h1.doc-title");
 		if (title && !excluded(title) && !hidden(title)) {
-			const floor = title.getBoundingClientRect().top;
+			const tr = title.getBoundingClientRect(), floor = tr.top;
 			const ancestors = new Set();
 			for (let a = title.parentElement; a; a = a.parentElement) ancestors.add(a);
 			for (const el of root.querySelectorAll("*")) {
@@ -337,6 +337,9 @@ async function layout_edge_problems(page){
 				const r = el.getBoundingClientRect();
 				if (r.width === 0 && r.height === 0) continue;
 				if (r.bottom >= floor) continue;
+				// Above means in the title's own column: a side rail's name sits higher than the title but
+				// beside it, not over it (/imagine/paging/navigation/screen/, 2026-10-23).
+				if (r.right <= tr.left || r.left >= tr.right) continue;
 				// Only the outermost offending element — a span inside an offending div is the
 				// same finding, not a second one.
 				if (el.parentElement && !ancestors.has(el.parentElement)) {
