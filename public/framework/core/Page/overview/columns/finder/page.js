@@ -27,7 +27,7 @@ export default new Page({
 				Start(){ md("A page with no children is just its prose — the row stops here. No `width:` word, so this column is the default: 40em of reading width, and it keeps it whatever opens beside it."); },
 				Words: {
 					width: "small",
-					content(){ md("The six width words, one column each. **Every `columns()` page runs `even` columns now, so five of the six are standing down right here** — every column in the row is the same width whatever word it says. Each description below is the word with the mode OFF (`columns({ even: false })`). `full` is the exception and still works: it is the one word that means *claim the host*, not a width."); },
+					content(){ md("The six width words, one column each. **This Finder runs `even` columns, so five of the six are standing down right here** — every column in the row is the same width whatever word it says. Each description below is the word with the mode OFF, which is how the [demo box](/framework/core/Page/overview/columns/) and the four [uses](/framework/core/Page/overview/columns/uses/) next door still run. `full` is the exception and still works: it is the one word that means *claim the host*, not a width."); },
 					children: {
 						Small(){ md('`width: "small"` — a rail: 14em, growing with the row to 24em at 3440. Lists, pickers, an index.'); },
 						Hug: { width: "hug", content(){ md('`width: "hug"` — only what the content needs. A paragraph has no natural width, so hug gives prose a 24em note; a list of rows is what it is for — **Notes**, in the first column, is one.'); } },

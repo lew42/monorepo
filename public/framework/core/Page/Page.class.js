@@ -662,7 +662,7 @@ export class Page extends Item {
 	related_aside(){ return new this.constructor.Related({ page: this }).aside(); }
 
 	// ════ COLUMNS ═══
-	columns({ even = true, fit = "floor" } = {}){ this.columnar = true; this.column_even = even; this.column_fit = fit; return this; }
+	columns({ even = false, fit = "floor" } = {}){ this.columnar = true; this.column_even = even; this.column_fit = fit; return this; }
 
 	column_floor = 96;
 
