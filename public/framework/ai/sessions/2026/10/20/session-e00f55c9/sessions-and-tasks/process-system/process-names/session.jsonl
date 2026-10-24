@@ -11,3 +11,4 @@
 {"commit":"f705aaf96282"}
 {"log":{"at":"2026-10-23T19:18:43-05:00","msg":"review answered in the worktree copy of this folder (3 fixed, 3 noted); --status clean"}}
 {"log":{"at":"2026-10-23T19:18:43-05:00","msg":"ready: worktree/process-names f705aaf96 — phase renamed to step (scripted, old logs still read), templates are Build/Design/InvestigateProcess subclasses, names marked decided"}}
+{"log":{"at":"2026-10-23T19:20:41-05:00","msg":"session ended (other) without landing"}}
