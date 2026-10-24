@@ -17,3 +17,8 @@ The queue of accepted tasks, ranked, at `/framework/ai/queue/`: for each, what i
 
 - Needs the dev server (the source is a socket); a change to `Server/TaskQueue.mjs` needs a dev-server restart.
 - TaskLoop and the Dispatcher do not read this queue yet.
+
+## Next
+
+- ⬜ A per-task cost estimate instead of one median per module, so the score separates rows (today every `ai` task is $6.05 and the first ten tie at 0.74).
+- ⬜ Drop a task from the live list when it lands (`TaskQueueView.change()` only ever sets rows; a reload clears it).
