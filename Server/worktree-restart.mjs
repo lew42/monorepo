@@ -22,6 +22,7 @@
  * is the stand-in until that lands. */
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
+import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -30,7 +31,7 @@ const REGISTRY = path.join(ROOT, ".worktrees.json");
 
 const name = process.argv[2];
 if (!name) {
-	console.error("usage: node Server/worktree-restart.mjs <name>");
+	console.error("usage: node Server/worktree-restart.mjs <name> [--path <worktree dir>]   (--path: adopt an unregistered worktree)");
 	process.exit(1);
 }
 
@@ -49,10 +50,28 @@ function write_registry(entry_name, entry){
 	fs.writeFileSync(REGISTRY, JSON.stringify(reg, null, "\t"));
 }
 
+/* ADOPT (2026-10-23): a worktree made with plain `git worktree add` is on disk but not in the registry, so the merge smoke
+ * found no server for it (four of them, found by mastermind-deputy). If ../worktrees/<name> is a git worktree, register it
+ * here with a free port and boot it like any other. */
+async function adopt(){
+	const at = process.argv.indexOf("--path"), dir = at > 0 ? path.resolve(process.argv[at + 1]) : path.resolve(ROOT, "..", "worktrees", name);
+	let branch = null;
+	try { branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: dir, encoding: "utf8", windowsHide: true }).trim(); } catch { return null; }
+	if (!fs.existsSync(path.join(dir, "node_modules"))) {
+		console.log(`worktree-restart: ${dir} has no node_modules; running npm ci…`);
+		try { execFileSync(process.platform === "win32" ? "npm.cmd" : "npm", ["ci"], { cwd: dir, stdio: "inherit", shell: true, windowsHide: true }); } catch {}
+	}
+	const port = await new Promise(r => { const s = net.createServer().listen(0, () => { const p = s.address().port; s.close(() => r(p)); }); });
+	const e = { name, path: dir, branch, port, log: path.join(ROOT, ".worktree-logs", `${name}.log`), created_at: new Date().toISOString(), booted: false, adopted: true };
+	write_registry(name, e);
+	console.log(`worktree-restart: adopted ${dir} (${branch}) on port ${port}.`);
+	return e;
+}
+
 const registry = read_registry();
-const entry = registry[name];
+const entry = registry[name] ?? await adopt();
 if (!entry) {
-	console.error(`worktree-restart: "${name}" is not in ${REGISTRY} — nothing to restart. Use worktree-up.mjs to create it first.`);
+	console.error(`worktree-restart: "${name}" is not in ${REGISTRY} and ../worktrees/${name} is not a git worktree — nothing to restart. Use worktree-up.mjs to create it.`);
 	process.exit(1);
 }
 if (!fs.existsSync(entry.path)) {

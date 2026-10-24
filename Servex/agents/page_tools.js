@@ -380,7 +380,8 @@ function expand_dots(delta){
 
 function class_of(file){
 	const first = parse_lines(file)[0];
-	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? (SessionRecord.log_file(path.dirname(file)) === file ? "Task" : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
+	// A record that opens with {"session":{id,…}} is a session (a VS Code tab, a voice agent): Session, not Task, so it gets its cost and children.
+	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? (is_plain(first?.session) ? "Session" : null) ?? (SessionRecord.log_file(path.dirname(file)) === file ? "Task" : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
 }
 
 // describe() with each method's doc filled: the first `//` line of the comment block above it, from the class's source.
@@ -674,15 +675,61 @@ function row_of(t){
 // Every task in a tree, each once (a session's cost sums each task's own agents once, so nothing counts twice).
 function every_task(list, out = []){ for (const t of list ?? []){ out.push(t); every_task(t._tasks, out); } return out; }
 
+/* What a task tree holds, by state: created (every task), started (it ran: start() stamped started_at, or it is past idle and not
+ * stopped), complete and stopped. A task stopped before it ever ran is not started. */
+function counts(list){
+	const c = { created: list.length, started: 0, complete: 0, stopped: 0 };
+	for (const t of list){ if (t.data?.started_at || !["idle", "stopped"].includes(t.state)) c.started++; if (t.state === "complete") c.complete++; if (t.state === "stopped") c.stopped++; }
+	return c;
+}
+
+/* Child sessions as a tree: an agent whose parent is also in the list sits under it; each node has its own cost and its subtree total. */
+function nest_agents(agents){
+	const by = new Map(agents.map(a => [a.id, { ...a, children: [] }])), roots = [];
+	for (const a of by.values()) (by.get(a.parent)?.children ?? roots).push(a);
+	const sum = a => (a.total = r2(a.cost + a.children.reduce((s, k) => s + sum(k), 0)));
+	roots.forEach(sum);
+	return roots;
+}
+const r2 = n => Math.round(n * 100) / 100;
+
+/* The session's own Claude cost and active time: the newest summary in its folder's cache.jsonl, which AISessionIndex keeps current from
+ * the transcript (new bytes only; ai/AISession/AISession.js, verified against the SDK's billing). Stamped with where it read to. */
+function own_cost(dir){
+	// The file grows by a summary per index pass (4 MB for a long tab), so read back from its end until a summary line turns up.
+	let m = null, at = null, fd = null;
+	try {
+		const file = path.join(dir, "cache.jsonl"), size = fs.statSync(file).size; fd = fs.openSync(file, "r");
+		for (let n = 64 * 1024; !m; n *= 4){
+			const len = Math.min(n, size), buf = Buffer.alloc(len); fs.readSync(fd, buf, 0, len, size - len);
+			const line = buf.toString("utf8").split("\n").filter(l => l.startsWith('{"summary"')).at(-1);
+			if (line){ const o = JSON.parse(line); m = o.summary; at = o.at; }
+			if (len === size) break;
+		}
+	} catch {} finally { if (fd !== null) fs.closeSync(fd); }
+	return m ? { usd: r2(m.usd ?? 0), parts: Object.fromEntries(Object.entries(m.usd_parts ?? {}).map(([k, v]) => [k, r2(v)])), active_ms: m.active_ms ?? 0, models: m.main_models ?? {},
+		through: m.last_at ?? null, read_to: m.cursor?.main?.off ?? null, at } : null;
+}
+
+/* A session's whole picture (2026-10-23, "session data, complete"; core/Session/readme.md, "What item() answers"):
+ * its own cost (own_cost), its child sessions nested with their costs, the tasks' costs, its span, and task counts. */
+export function session_state(task, tasks = []){
+	// A task's cost is its folder's agents, so two tasks naming one folder (a task and its re-filed twin) count it once.
+	const all = every_task(task._tasks), seen = new Set(), costed = all.filter(t => Number(t.cost) > 0 && !seen.has(t.get_one("path")) && seen.add(t.get_one("path")));
+	const task_cost = costed.reduce((s, t) => s + t.cost, 0);
+	const dir = task.store?.file ? path.dirname(task.store.file) : null, agents = dir ? (task.constructor.agents_resolver?.(dir) ?? []) : [];
+	const own = dir ? own_cost(dir) : null;
+	const child_cost = agents.reduce((s, a) => s + (a.cost || 0), 0);
+	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
+	return { class: "Session", completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
+		cost: { total: r2((own?.usd ?? 0) + child_cost), own, children: r2(child_cost), tasks: r2(task_cost) },
+		counts: { direct: counts(task._tasks ?? []), all: counts(all) }, biggest, children: nest_agents(agents), agents: agents.length, data: { ...task.data }, tasks };
+}
+
 function task_state(Task, task){
 	const tasks = [...(task._tasks ?? [])].map(row_of);
 	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.step?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
-	if (Task.name === "Session"){
-		const all = every_task(task._tasks), cost = all.reduce((s, t) => s + (Number(t.cost) || 0), 0);
-		const dir = task.store?.file ? path.dirname(task.store.file) : null, agents = dir ? (Task.agents_resolver?.(dir) ?? []) : [];
-		return { class: "Session", completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
-			cost: Math.round(cost * 100) / 100, agents, data: { ...task.data }, tasks };
-	}
+	if (Task.name === "Session") return session_state(task, tasks);
 	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
 }
 
