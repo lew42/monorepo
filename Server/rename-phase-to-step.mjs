@@ -29,6 +29,9 @@ const RULES = [
 	[/\bPHASE_LINES\b/g, "STEP_LINES"],
 ];
 
+// Once run, the alias `body.step ?? body.phase` must survive: a second run would erase it, so refuse.
+if (fs.readFileSync(path.join(root, FILES[0].file), "utf8").includes("STEP_LINES")){ console.error("already renamed (STEP_LINES is in Process.js); nothing done"); process.exit(1); }
+
 const manifest = [`# rename-manifest: phase to step${dry ? " (dry run)" : ""}`, ""];
 for (const { file, only } of FILES){
 	const abs = path.join(root, file);

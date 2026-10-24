@@ -353,7 +353,7 @@ const LOADERS = {
 	Session: async () => (await import("../../public/framework/core/Session/Session.js")).default,
 	Process: async () => (await import("../../public/framework/core/Task/processes/index.js")).default,
 };
-const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/Task.js", "core/Item/Item.js"] };
+const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"] };
 // Fields a Session line may carry: its identity, a title, and its tasks.
 const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class"];
 
