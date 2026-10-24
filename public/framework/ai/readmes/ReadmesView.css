@@ -1,7 +1,9 @@
 @layer base, theme, site, util;
 @layer site {
-	.rm-view { grid-column: wide-start / wide-end; display: flex; flex-direction: column; gap: var(--gap); padding: var(--pad); }
-	.rm-body { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fit, minmax(min(100%, 30em), 1fr)); align-items: start; }
+	.rm-view { grid-column: wide-start / wide-end; display: flex; flex-direction: column; gap: var(--gap); padding: var(--pad); container-type: inline-size; }
+	/* The table needs about 40em of number columns plus the folder: it takes two thirds beside the chain panel, or stacks above it when narrow. */
+	.rm-body { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 1fr); align-items: start; }
+	@container (min-width: 64em) { .rm-body { grid-template-columns: minmax(0, 2fr) minmax(20em, 1fr); } }
 	.rm-filter { width: 100%; max-width: 40em; padding: var(--gap-50) var(--gap); font: inherit; }
 	.rm-view .datagrid { --datagrid-height: 28em; max-block-size: 28em; }
 	.rm-view > p { max-inline-size: 40em; margin: 0; }

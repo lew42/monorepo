@@ -22,12 +22,17 @@ export default class ReadmesView extends View {
 		this.grid = new DataGrid({
 			columns: [
 				{ key: "dir", label: "Folder", width: "3fr", min: "14em", format: v => v.replace(/^public\//, "") },
-				{ key: "levels", label: "Readmes", type: "number", width: "7em" },
-				{ key: "tokens", label: "Chain", type: "number", width: "11em" },
-				{ key: "own", label: "Own", type: "number", width: "9em" },
+				{ key: "levels", label: "Readmes", type: "number", width: "6em" },
+				{ key: "tokens", label: "Chain", type: "number", width: "5em" },
+				{ key: "own", label: "Own", type: "number", width: "5em" },
+				{ key: "words", label: "Words", type: "number", width: "5.5em" },
+				{ key: "unnamed", label: "Unnamed", type: "number", width: "6.5em" },
+				{ key: "dead", label: "Dead", type: "number", width: "5em" },
+				{ key: "shape", label: "Shape", width: "5.5em" },
 			],
 			rows: async () => {
 				this.rows = await (await fetch(new URL("./chains.json", import.meta.url))).json();
+				await this.add_audit(this.rows);
 				const dir = new URLSearchParams(location.search).get("path");   // /framework/ai/readmes/?path=Servex/agents
 				const row = dir && this.rows.find(r => r.dir === dir);
 				if (row) this.show(row, false);
@@ -35,9 +40,23 @@ export default class ReadmesView extends View {
 			},
 			filters: false,
 			sort_rows: (rows, sort) => DataGrid.prototype.sort_rows.call(this.grid, rows, sort ?? { key: "tokens", dir: "desc" }),
-			row: row => div.c("datagrid-row rm-row", () => this.grid.cells(row)).on("click", () => this.show(row)),
+			row: row => div.c("datagrid-row rm-row", () => this.grid.cells(row)).attr("title", row.dir + (row.audit?.note ? "\n" + row.audit.note : "")).on("click", () => this.show(row)),
 		});
 		this.$panel = div.c("rm-panel", () => p("Click a folder to see its chain here."));
+	}
+
+	/** Join audit.jsonl (written by `node Server/ReadmeAudit.mjs`; the latest line per path wins) onto the rows by folder. */
+	async add_audit(rows){
+		const res = await fetch(new URL("./audit.jsonl", import.meta.url));
+		const by = new Map();
+		if (res.ok) for (const l of (await res.text()).split("\n")) {
+			if (!l.trim()) continue;
+			try { const a = JSON.parse(l).readme_audit; if (a) by.set(a.path.replace(/\/[^/]*$/, ""), a); } catch {}
+		}
+		for (const r of rows){
+			const a = by.get(r.dir);
+			r.audit = a; r.words = a?.words ?? null; r.unnamed = a?.unnamed.length ?? null; r.dead = a?.dead_links.length ?? null; r.shape = a?.shape ?? "";
+		}
 	}
 
 	/** Narrow the table to folders whose path contains the typed text. */
@@ -55,6 +74,13 @@ export default class ReadmesView extends View {
 				a.c("rm-path").href("/" + r.path.replace(/^public\//, "")).attr("target", "_blank").text(r.path);
 				small.c("muted", `${r.tokens} tokens`);
 			}));
+			const au = row.audit;
+			if (au) div.c("rm-audit", () => {
+				p(`Audit: ${au.words} words, shape ${au.shape || "not judged yet"}, ${au.unnamed.length} unnamed, ${au.dead_links.length} dead links, ${au.dated_lines} dated line${au.dated_lines === 1 ? "" : "s"}${au.docs_folder ? ", has a docs/ folder" : ""}${au.orphan ? ", not named by the readme above" : ""}${au.crowded ? ", crowded" : ""}.`);
+				if (au.note) p(au.note);
+				if (au.unnamed.length) small.c("muted", "Unnamed: " + au.unnamed.slice(0, 12).join(", ") + (au.unnamed.length > 12 ? ", …" : ""));
+				if (au.dead_links.length) small.c("muted", "Dead: " + au.dead_links.slice(0, 8).join(", "));
+			});
 		});
 	}
 }
