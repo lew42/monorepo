@@ -146,3 +146,5 @@
 {"action":{"at":"2026-10-24T00:51:30-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/named-rows/requirements.md"]}}
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/named-rows/","by":"Servex","ts":"2026-10-24T05:51:37.411Z"}
 {"agent":{"at":"2026-10-24T00:51:46-05:00","task":"deputy/named-rows","id":"minion-named-rows","session_id":"8338ef5d-c8c2-4a3a-8716-9897b5ca4917","model":"claude-sonnet-5-5","delivered":"spawned: named agent rows on the sessions page open a broken page (prompts 404, ai-logs 400); budget $3"}}
+{"log":{"at":"2026-10-24T00:59:23-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-24T01:09:44-05:00","msg":"show: console sweep, final (deputy/console-sweep/after-final.json, live site, after mastermind-page landed Page.fetch_listing 888f28ec8): 83 pages under session-e00f55c9, 0 console error lines. Was 637 lines on 74 of 78 pages before tonight. The 10 pages the parallel sweep timed out on (20 s load under load) each loaded clean one at a time, 0 errors."}}
