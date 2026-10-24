@@ -30,6 +30,22 @@ export function names(dir){
 	return listed;
 }
 
+/** The same listing and cache as names(), asked with fetch: for callers that can await. */
+export async function fetch_names(dir){
+	if (missing || !Store.local()) return null;
+
+	const hit = cache.get(dir);
+	if (hit && Date.now() - hit.at < 3000) return hit.names;
+
+	let res;
+	try { res = await fetch("/api/folder-names?dir=" + encodeURIComponent(dir)); } catch { return null; }
+	if (!res.ok || !(res.headers.get("content-type") ?? "").includes("json")) return (missing = true, null);
+
+	const listed = (await res.json()).names;
+	cache.set(dir, { names: listed, at: Date.now() });
+	return listed;
+}
+
 /** Does this file exist? The folder's listing when there is one, else a synchronous HEAD probe (off the dev server). */
 export function has(url){
 	const cut = url.lastIndexOf("/") + 1;
