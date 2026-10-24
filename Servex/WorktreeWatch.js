@@ -164,6 +164,7 @@ export default class WorktreeWatch {
         if (!this._runner){
             const R = (await import(WorktreeWatch.runner_url)).default;
             this._runner = new R(); this._runner.root = this.root;
+            this._runner.results = path.join(path.dirname(this._runner.results), "save-results.jsonl");   // save runs never touch the tracked results.jsonl
         }
         return this._runner;
     }
@@ -175,16 +176,20 @@ export default class WorktreeWatch {
         return [...new Set(urls.flatMap(u => r.near("public" + u, this.test_list)))].sort();
     }
 
-    /* Run one test file: { file, ok, tail, timeout } and a trigger "save" line in core/Test/results.jsonl. Overridden in the test. */
-    async execute(file){ return (await this.runner()).one(file, "save"); }
+    /* Run one test file: { file, ok, tail, timeout } and a trigger "save" line (with this worktree's id) in core/Test/save-results.jsonl. Overridden in the test. */
+    async execute(file){ return (await this.runner()).one(file, "save", { worktree: this.id }); }
 
-    /* The last recorded result of a test before this run: this worktree's own, else the newest line in results.jsonl. */
+    /* The last known result of a test before this run: this worktree's own last save line, else dev's latest line in results.jsonl, else undefined (unknown, so quiet). */
     async prior(file){
         if (this.test_state.has(file)) return this.test_state.get(file);
-        let text = ""; try { text = fs.readFileSync((await this.runner()).results, "utf8"); } catch {}
-        let was;
-        for (const l of text.split(/\r?\n/)) if (l.includes(file)) try { const e = JSON.parse(l); if (e.file === file && !e.sha && !e.timeout) was = e.ok; } catch {}
-        return was;
+        const save = (await this.runner()).results;
+        const last = (f, keep) => {
+            let text = ""; try { text = fs.readFileSync(f, "utf8"); } catch {}
+            let was;
+            for (const l of text.split(/\r?\n/)) if (l.includes(file)) try { const e = JSON.parse(l); if (e.file === file && !e.timeout && keep(e)) was = e.ok; } catch {}
+            return was;
+        };
+        return last(save, e => e.worktree === this.id) ?? last(path.join(path.dirname(save), "results.jsonl"), e => !e.sha);
     }
 
     /* Run the near tests one after another (one slot of the shared queue); tell the holder only about a change. */
@@ -199,9 +204,9 @@ export default class WorktreeWatch {
                 if (res.timeout){ this.note(`worktree-watch: ${file} timed out (${this.id}); no result`); continue; }
                 this.test_state.set(file, res.ok);
                 if (!res.ok && was !== false){
-                    const line = `worktree-watch: test ${file} ${was === true ? "was passing and now fails" : "fails"}: ${WorktreeWatch.first_failure(res.tail)} (${this.id})`;
+                    const line = `worktree-watch: test ${file} ${was === true ? "was passing and now fails" : "fails (no earlier result)"}: ${WorktreeWatch.first_failure(res.tail)} (${this.id})`;
                     this.note(line, true);
-                    if (this.owner && this.send) try { this.send(this.owner, line); } catch (e) { this.note(`worktree-watch: could not reach ${this.owner}: ${e.message}`, true); }
+                    if (was === true && this.owner && this.send) try { this.send(this.owner, line); } catch (e) { this.note(`worktree-watch: could not reach ${this.owner}: ${e.message}`, true); }
                 } else if (res.ok && was === false) this.note(`worktree-watch: test ${file} passes again (${this.id})`, true);
             }
         } finally { this.testing = false; }

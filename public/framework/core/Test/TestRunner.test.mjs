@@ -30,5 +30,10 @@ const cli = spawnSync(process.execPath, [RUNNER, path.join(root, "pkg/b.test.mjs
 assert.match(cli.stdout, /PASS .*pkg\/b\.test\.mjs/, cli.stdout + cli.stderr);
 assert.equal(cli.status, 0);
 
+// the CLI: --near prints the near tests of a real repo file and runs nothing
+const nearCli = spawnSync(process.execPath, [RUNNER, "--near", RUNNER], { encoding: "utf8", windowsHide: true });
+assert.ok(nearCli.stdout.split(/\s+/).includes("public/framework/core/Test/TestRunner.test.mjs"), nearCli.stdout + nearCli.stderr);
+assert.doesNotMatch(nearCli.stdout, /PASS|FAIL/);
+
 fs.rmSync(root, { recursive: true, force: true });
 console.log("ok - TestRunner: a file path runs, --near is one level");

@@ -144,8 +144,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 	const norm = a => r.rel(path.resolve(process.cwd(), a)) || "";
 	const i = args.indexOf("--covers"), n = args.indexOf("--near");
 	if (args[0] === "--watch") r.watch(args.slice(1).map(norm));
-	else if (args[0] === "--list" || i > -1) {
-		const files = i > -1 ? r.covers(norm(args[i + 1])) : r.find(args.filter(a => a !== "--list").map(norm));
+	else if (args[0] === "--list" || i > -1 || n > -1) {
+		const files = n > -1 ? r.near(norm(args[n + 1])) : i > -1 ? r.covers(norm(args[i + 1])) : r.find(args.filter(a => a !== "--list").map(norm));
 		console.log(files.join("\n"));
 	} else {
 		const files = r.find(args.map(norm));

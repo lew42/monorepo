@@ -102,6 +102,26 @@ const { t: tt, msgs: tmsgs2 } = testWatch("tt", async () => ({ ok: false, timeou
 tt.changed(["/framework/x/Thing.mjs"]); await idle();
 assert.equal(tmsgs2.length, 0); assert.equal(tt.test_state.size, 0);
 
+// prior(): this worktree's last save line, else dev's results.jsonl (a merge-base cache line is not dev's result), else unknown = quiet
+const F = "x/Thing.test.mjs", bad = { ok: false, tail: "not ok - boom" };
+const rt = path.join(root, "rt"); fs.mkdirSync(rt, { recursive: true });
+fs.writeFileSync(path.join(rt, "results.jsonl"), [{ file: F, ok: true, trigger: "manual" }, { file: F, ok: false, sha: "abc", trigger: "merge-base" }].map(l => JSON.stringify(l) + "\n").join(""));
+const withRt = (id, dir) => { const m = testWatch(id, async () => bad); m.t.runner = async () => ({ results: path.join(dir, "save-results.jsonl") }); return m; };
+const dev = withRt("tp", rt);
+dev.t.changed(["/framework/x/Thing.mjs"]); await idle();
+assert.equal(dev.msgs.length, 1, "dev says passing, now fails: one message");
+const empty = path.join(root, "rt-empty"); fs.mkdirSync(empty, { recursive: true });
+const unknown = withRt("tu", empty);
+unknown.t.changed(["/framework/x/Thing.mjs"]); await idle();
+assert.equal(unknown.msgs.length, 0, "no earlier result: a log line, no message");
+assert.match(fs.readFileSync(path.join(tmain, "task", "task.jsonl"), "utf8"), /fails \(no earlier result\)/);
+const own = path.join(root, "rt-own"); fs.mkdirSync(own, { recursive: true });
+fs.copyFileSync(path.join(rt, "results.jsonl"), path.join(own, "results.jsonl"));
+fs.writeFileSync(path.join(own, "save-results.jsonl"), JSON.stringify({ file: F, ok: false, trigger: "save", worktree: "to" }) + "\n" + JSON.stringify({ file: F, ok: true, trigger: "save", worktree: "other" }) + "\n");
+const mine = withRt("to", own);
+mine.t.changed(["/framework/x/Thing.mjs"]); await idle();
+assert.equal(mine.msgs.length, 0, "this worktree's own last save line (failing) beats dev's, and another worktree's line is ignored");
+
 // one shared queue: at most 3 at once across worktrees; a new change replaces that worktree's waiting run
 let now = 0, peak = 0, gate; const open = new Promise(r => gate = r);
 const many = Array.from({ length: 5 }, (_, i) => testWatch("q" + i, async () => { peak = Math.max(peak, ++now); await open; now--; return { ok: true }; }));
