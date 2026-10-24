@@ -4,7 +4,7 @@
 
 - `AISession.js` — one session's cost, read from its raw transcript (browser and node).
 - `AISessionsPage.js` · `AISessionView.js` · `AISessionRows.js` · `AISessionBuckets.js` — the grid page, its row, how rows nest and fold.
-- `AISessionDetail.js` · `AISessionConversation.js` · `AISessionCoverage.js` · `AISessionTrace.js` — a session's own page and its tabs.
+- `AISessionDetail.js` · `AISessionConversation.js` · `AISessionCoverage.js` · `AISessionTrace.js` — a session's own page and its tabs. A clicked row opens that session's full page in place of the list (previews plus full detail views: [design/navigation](/framework/design/navigation/readme.md)); the sessions page no longer calls `columns()`.
 - `AISessionLive.js` · `AISessionFollow.js` · `AISessionResume.js` · `AISessionFlags.js` — live tail, follow, resume, flags.
 - `AISessionDigest.mjs` — one transcript boiled down by plain Node: sizes, exact cost, owner prompts, result, `digest.json` and procedural `tags()` ([round 4](sessions/2026/10/16/voice-20261016/past-work/round4-result.md)).
 - `AISessionIndex.mjs` (also snapshots record-only sessions; test `AISessionIndex.test.mjs`) · `AISessionSource.mjs` · `AISessionTailer.mjs` · `AISessionAudit.mjs` — node side: index, source, tail, cost audit.
