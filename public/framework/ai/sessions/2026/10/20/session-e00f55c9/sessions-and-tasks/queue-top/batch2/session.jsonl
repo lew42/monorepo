@@ -1,0 +1,2 @@
+{"log":{"at":"2026-10-24T08:45:35-05:00","msg":"batch 2: top 5 of the queue; fixes the phone Table/Rail toggle overlap"}}
+{"review":{"at":"2026-10-24T08:45:36-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/qf-2","head":"4850e7c1f48b0abcf0939125eb05438ef5ff4697","model":null,"cost":0,"file":"review.md"}}

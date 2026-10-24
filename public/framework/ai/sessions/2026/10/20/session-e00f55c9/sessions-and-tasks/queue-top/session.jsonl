@@ -26,3 +26,7 @@
 {"log":{"at":"2026-10-24T08:15:37-05:00","msg":"lifecycle: nothing of this task's was left running"}}
 {"log":{"at":"2026-10-24T08:15:37-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
 {"log":{"at":"2026-10-24T08:15:47-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-24T08:41:27-05:00","msg":"session resumed"}}
+{"commit":"4850e7c1f48b"}
+{"commit":"2d5faa43d5e9"}
+{"log":{"at":"2026-10-24T08:47:51-05:00","msg":"show: 4 done, 1 skipped, links: merge 2d5faa43d · /framework/ai/sessions/ · /framework/ai/queue/ (1 phone toggle overlap fixed covering 3 tasks, 1 cost check, Proposal class skipped over $3)"}}
