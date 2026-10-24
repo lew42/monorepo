@@ -24,13 +24,14 @@ export function parseReady(msg) {
 }
 
 /* The review gate's answer for a worktree's current head, from merge.mjs itself (one copy of the gate):
- * {ok, why}. `why` is the gate's refusal text in plain words (plainGate). */
-export function gateOf(repo, worktree) {
+ * {ok, why}. `why` is the gate's refusal text in plain words (plainGate). Async: Servex answers the list from its own
+ * event loop, and a blocking spawn per moved branch froze every Servex route (2026-10-23: agent prompt hooks timed out). */
+export async function gateOf(repo, worktree) {
 	const merge = path.join(repo, "Server/merge.mjs");
 	// an older merge.mjs would read the unknown flag as a path and start a REAL merge: never run it without the flag
 	try { if (!fs.readFileSync(merge, "utf8").includes('bool("--gate-only")')) return { ok: false, why: "Servex's merge.mjs is older than the --gate-only check; it will answer after the merge that adds it." }; }
 	catch { return { ok: false, why: "no Server/merge.mjs to ask" }; }
-	const r = spawnSync("node", [merge, worktree, "--gate-only"], { cwd: repo, encoding: "utf8", windowsHide: true, timeout: 20000 });
+	const r = await runAsync("node", [merge, worktree, "--gate-only"], repo, 20000);
 	const out = (r.stdout || "").trim().split(/\r?\n/).filter(l => l.startsWith("gate:")).pop();
 	if (r.status === 0 && out === "gate: ok") return { ok: true };
 	if (!out) return { ok: false, why: "the review gate did not answer: " + ((r.stderr || String(r.error || "")).trim().split(/\r?\n/).pop() || "no output") };
@@ -79,7 +80,7 @@ function dayDirs(sessions, since) {
 
 /* opts: {root (where the records live; default the main checkout), repo (where git runs; default root),
  * base (default michael/dev), days (14), now} */
-export function readyRows(opts = {}) {
+export async function readyRows(opts = {}) {
 	const repo = opts.repo || mainRoot(process.cwd());
 	const root = opts.root || repo, base = opts.base || "michael/dev";
 	const since = (opts.now ?? Date.now()) - (opts.days ?? 14) * 864e5;
@@ -113,28 +114,29 @@ export function readyRows(opts = {}) {
 		if (git(repo, "merge-base", "--is-ancestor", head, base).status === 0) continue;   // already landed
 		const { _file, ...r } = row;
 		const stale = !head.startsWith(r.sha), worktree = wts.get(r.branch) || null;
-		const latest = stale && worktree ? { sha: head.slice(0, 9), ...(opts.gate || gateOf)(repo, worktree) } : null;
+		const latest = stale && worktree ? { sha: head.slice(0, 9), gate: (opts.gate || gateOf)(repo, worktree) } : null;   // the gates run in parallel, awaited below
 		rows.push({ ...r, record: path.basename(_file), task_url: "/" + path.relative(path.join(root, "public"), r.task_dir).split(path.sep).join("/") + "/",
 			review: reviewStatus(r.task_dir), worktree, stale, latest, head });
 	}
+	await Promise.all(rows.filter(r => r.latest).map(async r => { const { gate, ...l } = r.latest; r.latest = { ...l, ...(await gate) }; }));
 	return rows.sort((a, b) => (b.at > a.at ? 1 : -1));
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
 	const argv = process.argv.slice(2), i = argv.indexOf("--days");
-	const rows = readyRows({ days: i >= 0 ? Number(argv[i + 1]) : 14 });
+	const rows = await readyRows({ days: i >= 0 ? Number(argv[i + 1]) : 14 });
 	if (argv.includes("--json")) console.log(JSON.stringify(rows, null, 1));
 	else if (!rows.length) console.log("Nothing waiting to merge.");
 	else for (const r of rows) console.log(`${r.branch}  ${r.sha.slice(0, 9)}${r.stale ? " STALE" : ""}  ${r.review}  ${r.title}\n    ${r.what}\n    ${r.worktree || "(no worktree)"}  ${r.task_url}`);
 }
 
 // merge.mjs can take minutes: run it without blocking Servex, so other routes keep answering (and the one-at-a-time guard can fire).
-function runAsync(cmd, args, cwd){
+function runAsync(cmd, args, cwd, ms = 9e5){
 	return new Promise(done => {
 		const p = spawn(cmd, args, { cwd, windowsHide: true });
 		let stdout = "", stderr = "";
 		p.stdout.on("data", d => stdout += d); p.stderr.on("data", d => stderr += d);
-		const t = setTimeout(() => p.kill(), 9e5);
+		const t = setTimeout(() => p.kill(), ms);
 		p.on("close", status => { clearTimeout(t); done({ status, stdout, stderr }); });
 		p.on("error", e => { clearTimeout(t); done({ status: -1, stdout, stderr: String(e.message) }); });
 	});
@@ -147,7 +149,7 @@ function runAsync(cmd, args, cwd){
 export async function mergeBranch(branch, opts = {}) {
 	// `opts.head`: the sha the owner saw on the card ("Merge latest"); a moved branch merges only if its current head is that one and passes the gate
 	const repo = opts.repo || mainRoot(process.cwd());
-	const row = (opts.rows || readyRows)({ ...opts, repo }).find(r => r.branch === branch);
+	const row = (await (opts.rows || readyRows)({ ...opts, repo })).find(r => r.branch === branch);
 	if (!row) return { ok: false, why: "that branch is not on the ready list" };
 	if (row.stale) {
 		const now = row.head.slice(0, 9);

@@ -694,7 +694,7 @@ export default class Servex extends Events {
         router.options("/api/ready-to-merge", cors, (req, res) => res.status(204).end());
         router.get("/api/ready-to-merge", cors, async (req, res) => {
             if (!local_only(req, res)) return;
-            try { res.json((await import("../Server/ReadyToMerge.mjs")).readyRows()); }
+            try { res.json(await (await import("../Server/ReadyToMerge.mjs")).readyRows()); }
             catch (e) { res.status(500).json({ ok: false, why: String(e?.message || e) }); }
         });
         router.options("/api/merge", cors, (req, res) => res.status(204).end());
