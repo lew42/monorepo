@@ -52,7 +52,7 @@ try {
 	ok(read(SESSION).some(l => l.task === PURL), "the session's record references it");
 	await settle(FILE);
 	let L = read(FILE);
-	ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 7, "line 1 is a Process, seven step lines");
+	ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 8, "line 1 is a Process, eight step lines");
 	ok(L.some(l => l.start) && L.some(l => l.investigate?.start) && L.some(l => l.spawn?.step === "investigate" && l.spawn.agent === "a1"), "node started it and spawned the investigate session");
 	ok(spawned[0].model === "claude-sonnet-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`"investigate": {"complete"`), "the spawn carries the step's model, a folder inside the process, and the completing line");
 
@@ -77,6 +77,7 @@ try {
 	await step({ "approve-plan": { complete: { outcome: "approved", evidence: ["test"] } } }, "mm1");
 	ok(spawned[2]?.role === "helper" && spawned[2].prompt.includes("approved"), "execute is a fresh builder");
 	await step({ execute: { complete: { outcome: "branch task/fix-x, 2 commits", evidence: ["test"] } } }, "a3");
+	await step({ index: { complete: { outcome: "readme line and parent link added", evidence: ["test"] } } }, "a3");
 	await step({ review: { complete: { outcome: "ready to merge: task/fix-x", evidence: ["test"] } } }, "a4");
 	let p = runner.read(FILE);
 	ok(p.step.id === "merge" && p.step.state === "waiting" && p.state === "running", "merge waits on the owner; the process is not complete");
@@ -130,7 +131,7 @@ try {
 	ok(Task.replay(imp)._tasks.find("move-x-into-y").weight === 2 && state.tasks.length === 1, "its weight is 2, computed on replay");
 
 	r = await run_item({ path: PURL }, { caller: "mm1" });
-	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) reads the process back: class, state, steps");
+	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 8, "item({path}) reads the process back: class, state, steps");
 
 	// A SIMPLE PROCESS THROUGH THE TOOL (the owner, 2026-10-22): create it with your own steps, node prompts step 1, then step 2 when step 1 returns.
 	r = await item({ tasks: { add: { title: "Dup", steps: [{ title: "Same" }, { title: "Same" }] } } }, "mm1");
