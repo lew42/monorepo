@@ -1,6 +1,8 @@
-import { View, div, span, a, p } from "/app.js";
+import { View, div, span, a, p, small, button } from "/app.js";
 import QueryClient from "/framework/ext/Query/QueryClient.js";
 import { fold } from "/framework/ai/AITask/message.js";
+import Approvals from "/framework/ai/AISession/Approvals.js";
+import ReadyToMerge from "/framework/ai/merge/ReadyToMerge.js";
 
 View.stylesheet(import.meta, "AIDay.css");
 
@@ -30,6 +32,8 @@ export default class AIDay extends View {
 		this.rows = new Map();
 		this.loading = true;
 		this.error = "";
+		this.snaps = new Map();       // "day/folder" -> session snapshot, or null when none was found
+		this.approvals = new Map();   // snapshot day (2026/10/20) -> Approvals stream
 		this.client = new QueryClient("tasks", { row: r => this.change(r), stale: () => this.ask() });
 		super.initialize();
 	}
@@ -41,6 +45,7 @@ export default class AIDay extends View {
 			if (after <= AIDay.today()) a.c("aid-link", after + " ›").href(`/framework/ai/${after}/`);
 		});
 		this.$head = div.c("aid-head");
+		if (this.day === AIDay.today()) div.c("aid-merge", () => { div.c("aid-mhead", "Ready to merge"); new ReadyToMerge(); });
 		this.$list = div.c("aid-list");
 		div.c("aid-more", () => {
 			fold("Prompts of the day (the owner's dictations)", () => this.prompts());
@@ -62,6 +67,31 @@ export default class AIDay extends View {
 		this.error = "";
 		this.rows = new Map([...(landed.rows ?? []), ...res.rows].map(r => [r.id, r]));
 		this.paint();
+		await this.find_snaps();
+		this.paint();
+	}
+
+	/** Each session root's snapshot, from its folder's day index.json (the one the session page reads), matched by folder name. Approvals keys by snapshot id. */
+	async find_snaps(){
+		const roots = this.tree().filter(s => s.kids.length), days = new Map();
+		await Promise.all(roots.map(async s => {
+			const day = (s.r?.day ?? s.day ?? this.day).replaceAll("-", "/"), key = day + "/" + s.rel;
+			if (this.snaps.has(key)) return;
+			if (!days.has(day)) days.set(day, fetch(`/framework/ai/sessions/${day}/index.json`).then(r => r.ok && !(r.headers.get("content-type") ?? "").includes("html") ? r.json() : null).catch(() => null));
+			const snap = (await days.get(day))?.snapshots?.find(x => x.folder === s.rel) ?? null;
+			this.snaps.set(key, snap);
+			if (snap){
+				const d = (snap.day ?? day).replaceAll("-", "/");
+				if (!this.approvals.has(d)){ const st = Approvals.of_day(d); st.on(() => this.paint()); this.approvals.set(d, st); }
+			}
+		}));
+	}
+
+	snap(s){ return this.snaps.get((s.r?.day ?? s.day ?? this.day).replaceAll("-", "/") + "/" + s.rel); }
+	approval(snap){ return this.approvals.get((snap.day ?? "").replaceAll("-", "/"))?.of(snap.id) ?? null; }
+	async approve(snap, $note){
+		const ok = await this.approvals.get(snap.day.replaceAll("-", "/")).approve([snap]);
+		if (!ok) $note.text("Not saved: approving writes the session's own record, which needs the local dev server.");
 	}
 
 	change(r){ this.rows.set(r.id, r); this.paint(); }
@@ -116,7 +146,13 @@ export default class AIDay extends View {
 				const day = s.r?.day ?? s.day;
 				if (day && day !== this.day) span.c("aid-from", "started " + day);
 				span.c("aid-sum", `${landed} ✅ · ${open} ⬜`);
+				const snap = this.snap(s);
+				if (snap && this.approval(snap)) span.c("aid-approved", "approved");
+				else if (snap) button.c("aid-approve", "Approve").attr("type", "button").attr("title", "Approve this session and everything in it")
+					.click(e => { e.target.disabled = true; this.approve(snap, $note); });
 			});
+			const $note = div.c("aid-note");
+			if (this.snap(s) === null) small.c("aid-nosnap", "No snapshot of this session was found in its day's index, so it cannot be approved here.");
 			this.level(s.kids);
 		});
 	}
