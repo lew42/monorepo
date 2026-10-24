@@ -75,6 +75,61 @@ test("LandingCheck: a new file left untracked on dev is reported as 'new file no
 	} finally { LandingCheck.REPO = was; }
 });
 
+/** Like scratch(), but the base holds t/x.mjs + t/x.test.mjs and the branch rewrites x.mjs (and optionally the test). */
+function scratchTests(branch, { baseX, baseTest, branchX, branchTest }){
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), "mergetest-")); tmps.push(root);
+	const main = path.join(root, "main"), wt = path.join(root, "wt");
+	fs.mkdirSync(main);
+	git(main, "init", "-b", "michael/dev"); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
+	write(main, "a.txt", "1\n"); write(main, "t/x.mjs", baseX); write(main, "t/x.test.mjs", baseTest);
+	write(main, ".gitignore", ".merge-landed.json\n.merge.lock\npublic/\n"); git(main, "add", "."); git(main, "commit", "-m", "base");
+	git(main, "worktree", "add", "-b", branch, wt);
+	write(wt, "t/x.mjs", branchX); if (branchTest) write(wt, "t/x.test.mjs", branchTest);
+	git(wt, "add", "."); git(wt, "commit", "-m", "work");
+	return { root, main, wt };
+}
+const mergeT = (wt, main, env = {}) => spawnSync("node", [MERGE, wt, "--main", main, "--skip-smoke", "--no-review", "scratch-repo test"], { encoding: "utf8", windowsHide: true, env: { ...process.env, TESTRUNNER_TIMEOUT: "3000", ...env } });
+const GOOD = "export const x = 1;\n", BAD = "export const x = 2;\n";
+const CHECKS_ONE = "import { x } from './x.mjs'; if (x !== 1) { console.log('not ok - x is ' + x); process.exit(1); }\n";
+const rows = main => { try { return fs.readFileSync(path.join(main, "public/framework/core/Test/results.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l)); } catch { return []; } };
+
+test("tests: passes on the base, fails on the branch -> refused, nothing lands; the base result is cached by sha", () => {
+	const { main, wt } = scratchTests("worktree/t1", { baseX: GOOD, baseTest: CHECKS_ONE, branchX: BAD });
+	const r = mergeT(wt, main);
+	assert.equal(r.status, 1, r.stdout + r.stderr);
+	assert.match(r.stderr, /refused: 1 test\(s\) pass on the merge base and fail on worktree\/t1[\s\S]*t\/x\.test\.mjs/);
+	assert.equal(fs.readFileSync(path.join(main, "t/x.mjs"), "utf8"), GOOD, "nothing landed");
+	const base = rows(main).filter(l => l.trigger === "merge-base");
+	assert.equal(base.length, 1); assert.equal(base[0].ok, true); assert.match(base[0].sha, /^[0-9a-f]{40}$/);
+	assert.ok(rows(main).some(l => l.trigger === "merge" && l.ok === false));
+	const again = mergeT(wt, main);   // same base: the cached line answers, the base is not run a second time
+	assert.equal(again.status, 1);
+	assert.equal(rows(main).filter(l => l.trigger === "merge-base").length, 1, "base result reused");
+	assert.equal(git(main, "status", "--porcelain").trim(), "", "no .merge-base checkout left behind");
+});
+
+test("tests: already failing on the base -> not refused, the branch lands", () => {
+	const { main, wt } = scratchTests("worktree/t2", { baseX: BAD, baseTest: CHECKS_ONE, branchX: "export const x = 3;\n" });
+	const r = mergeT(wt, main);
+	assert.equal(r.status, 0, r.stdout + r.stderr);
+	assert.match(r.stderr, /already failing on the base/);
+	assert.equal(fs.readFileSync(path.join(main, "t/x.mjs"), "utf8"), "export const x = 3;\n");
+});
+
+test("tests: a timeout on the branch is no result, never a refusal", () => {
+	const { main, wt } = scratchTests("worktree/t3", { baseX: GOOD, baseTest: CHECKS_ONE, branchX: GOOD + "// edited\n", branchTest: "setTimeout(() => {}, 60000);\n" });
+	const r = mergeT(wt, main);
+	assert.equal(r.status, 0, r.stdout + r.stderr);
+	assert.match(r.stderr, /timed out on the branch/);
+});
+
+test("tests: --skip-tests runs nothing", () => {
+	const { main, wt } = scratchTests("worktree/t4", { baseX: GOOD, baseTest: CHECKS_ONE, branchX: BAD });
+	const r = spawnSync("node", [MERGE, wt, "--main", main, "--skip-smoke", "--skip-tests", "--no-review", "scratch-repo test"], { encoding: "utf8", windowsHide: true });
+	assert.equal(r.status, 0, r.stdout + r.stderr);
+	assert.equal(rows(main).length, 0);
+});
+
 for (const t of tmps) { try { git(t, "worktree", "prune"); } catch {} }
 for (const t of tmps) fs.rmSync(t, { recursive: true, force: true });
 console.log(`${passed} passed, 0 failed`);

@@ -12,7 +12,7 @@ const IMPORT_RE = /(?:\bfrom\s*|\bimport\s*\(\s*|^\s*import\s+)["']([^"']+)["']/
 export default class TestRunner {
 	root = ROOT;
 	results = process.env.TESTRUNNER_RESULTS || path.join(HERE, "results.jsonl");   // the env var is for proofs
-	timeout = 60000;
+	timeout = Number(process.env.TESTRUNNER_TIMEOUT) || 60000;   // 60 s; the env var is for proofs
 	parallel = 4;
 	cache = new Map();   // abs file -> { mtime, deps }
 	running = new Set();
