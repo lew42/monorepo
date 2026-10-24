@@ -10,18 +10,28 @@ const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || location.h
  * server restart has picked the route up — a shot renders its label over a
  * plain swatch rather than a request that's guaranteed to fail.
  */
-export function shot_wall(list){
+export function shot_wall(list, base){
 	if (!list?.length) return;
 	div.c("ai-header", () => span.c("ai-group-title muted", `Screenshots · ${list.length}`));
-	div.c("ai-shots", () => list.forEach(s => thumb(s)));
+	div.c("ai-shots", () => list.forEach(s => thumb(s, base)));
 }
 
 /** One thumbnail on its own — what an ask card shows when its task produced a picture. */
 export const shot_thumb = s => thumb(s);
 
-function thumb(s){
-	// a shot is a file outside the repo (`path`, served by /screenshot) or an image committed beside its task (`url`)
-	const src = s.path ? "/screenshot?path=" + encodeURIComponent(s.path) : /\.(png|jpe?g|webp|gif)$/i.test(s.url ?? "") ? s.url : null;
+/** Where a shot's image is: a file outside the repo (`path`, served by /screenshot, which only serves the OS temp folder);
+    an image committed beside its task (`url`); or, in older logs, a `path` inside `public/` or one relative to the task's
+    own folder (`base`), which the site serves directly (through /screenshot they drew a 403). */
+export function shot_src(s, base){
+	const p = s.path?.replaceAll("\\", "/");
+	if (p?.startsWith("public/")) return p.slice(6);
+	if (p && base && !/^([a-z]:)?\//i.test(p)) return base + p;
+	if (p) return "/screenshot?path=" + encodeURIComponent(s.path);
+	return /\.(png|jpe?g|webp|gif)$/i.test(s.url ?? "") ? s.url : null;
+}
+
+function thumb(s, base){
+	const src = shot_src(s, base);
 	if (!src) return div.c("surface ai-shot missing", () => div.c("ui-panel-foot ai-shot-label muted", s.label ?? "screenshot"));
 	let $shot;
 	const body = () => {
