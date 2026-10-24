@@ -217,7 +217,7 @@ function reviewGate(branch, head){
 				const td = path.dirname(tj);
 				for (const l of lines(fs.readFileSync(tj, "utf8"))) {
 					let e; try { e = JSON.parse(l); } catch { continue; }
-					if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || e.review.at > best.e.review.at)) best = { td, e, root };
+					if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || (e.review.at ?? "") > (best.e.review.at ?? ""))) best = { td, e, root };   // a hand-written review line with no `at` is oldest; undefined > "…" is always false, so it used to win forever (2026-10-23)
 				}
 			}
 	// no review yet: guess the task dir from the branch name so the printed command is runnable as-is
