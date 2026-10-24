@@ -701,9 +701,10 @@ export class Agents {
 		const facts = base.cwd && base.model ? {} : session_facts(row.session_id);
 		const cwd = base.cwd ?? facts.cwd;
 		if (!cwd) throw new Error(`Cannot find where session ${row.session_id} ran, so it cannot be resumed.`);
+		const logged = this.log_cost(row.id);   // the log, not row.cost: rows saved before 2026-10-23 carry the inflated wake-up turns
 		return this.spawn(strip({ ...base, cwd, model: base.model ?? facts.model,
 			id: row.id, started_at: row.started_at, resume: row.session_id,
-			cost: Math.max(Number(row.cost) || 0, this.logged_cost(row.id)), turns: row.turns ?? 0 }));
+			cost: logged.cost || Number(row.cost) || 0, proc_cost: logged.sdk_total, turns: row.turns ?? 0 }));
 	}
 
 	/* A task's cost: logged_cost summed over the agents whose task dir is this task's (`task` = its app path or dir). Task.cost reads it. */
@@ -738,12 +739,32 @@ export class Agents {
 	}
 
 	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */
-	logged_cost(id){
-		try {
-			const text = fs.readFileSync(this.store().file(`agent-${id}`).path, "utf8");
+	logged_cost(id){ return this.log_cost(id).cost; }
+
+	/* { cost, sdk_total } from the agent's log. A Claude agent's turns are diffed against the SDK's SESSION total, which a
+	 * resumed process carries on (see Agent.start); lines before 2026-10-23 logged that whole total as the first turn after
+	 * every wake-up, so they are rebuilt: the total is turn_cost summed since the process started, and a turn costs what the
+	 * total grew by. A total lower than the last one is a fresh session (renew, fork) and counts in full. ⚠ A fresh session
+	 * whose first turn already exceeds the old total is under-counted; `sdk_total` on newer lines makes them exact.
+	 * An openrouter agent's turn_cost is already real (refresh_or_cost), so it is summed as written. */
+	log_cost(id){
+		let text; try { text = fs.readFileSync(this.store().file(`agent-${id}`).path, "utf8"); } catch { return { cost: 0, sdk_total: 0 }; }
+		if (this.reg().read()[id]?.provider === "openrouter"){
 			let sum = 0; for (const m of text.matchAll(/"turn_cost":([0-9.eE+-]+)/g)) sum += Number(m[1]) || 0;
-			return sum;
-		} catch { return 0; }
+			return { cost: sum, sdk_total: 0 };
+		}
+		let cost = 0, proc = 0, last = 0;
+		for (const line of text.split("\n")){
+			if (!line.includes('"turn_cost"') && !line.includes('"state":"started"') && !line.includes('"type":"renew"')) continue;
+			let j; try { j = JSON.parse(line); } catch { continue; }
+			if (j.type === "process" && j.state === "started"){ proc = 0; continue; }
+			if (j.type === "renew"){ proc = last = 0; continue; }   // a fresh session under the same id
+			if (!("turn_cost" in j)) continue;
+			const total = Number.isFinite(j.sdk_total) ? j.sdk_total : proc + (Number(j.turn_cost) || 0);
+			cost += total >= last ? total - last : total;
+			proc = last = total;
+		}
+		return { cost, sdk_total: last };
 	}
 	interrupt(id){ return this.get(id).interrupt(); }
 	/* Continue (+$5) on a spend-gate card: raise the allowance and send the agent on its
@@ -1139,7 +1160,11 @@ Agents.Agent = class Agent {
 		 * read just means the first turn's cost stays whatever the SDK guessed
 		 * until the next turn settles it. */
 		if (this.provider === "openrouter") this.refresh_or_cost();
-		this.proc_cost = 0;   // the SDK's total_cost_usd counts from ZERO in every claude process (spawn, awaken, reopen): see add_cost()
+		/* The SDK's total_cost_usd is the SESSION's total: a resumed process (awaken, reopen) starts from the cost the session
+		 * already had, not from 0 (measured 2026-10-23: minion-review-page's five wake-up turns each logged the whole session,
+		 * $8–12, for a $0.06–0.16 turn). So a resume keeps the last total it saw (reopen seeds it from the log); a fresh session starts
+		 * at 0. A fork also starts at 0, so its cost still includes its base's: Experts subtracts that (doc/experts.md), so leave it. */
+		if (!this.resume || this.fork) this.proc_cost = 0;
 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
 		this.pump(this.gen = (this.gen ?? 0) + 1);
 		if (!this.prompt){ this.state = "idle"; return this; }
@@ -2130,6 +2155,7 @@ Agents.Agent = class Agent {
 			ok: !message.is_error,
 			cost: this.cost,
 			turn_cost: this.turn_cost ?? 0,   // THE RECORD: this turn's own dollars; reopen() re-sums these (agent-cost, 2026-10-13)
+			sdk_total: this.provider === "openrouter" ? null : this.proc_cost ?? null,   // the SDK's session total after this turn: lets log_cost() diff across processes exactly
 			duration_ms: message.duration_ms,
 			turns: this.turns,
 			api_turns: message.num_turns,
@@ -2227,7 +2253,7 @@ Agents.Agent = class Agent {
 		this.state = this.queued > 0 ? "working" : "idle";
 		this.said = [];
 		this.log({ at: stamp(), agent: this.id, type: "compact", ok: !message.is_error, why: c.why, before: c.before, after: this.context ?? null,
-			rss_mb_before: c.rss_mb, duration_ms: Date.now() - c.at, cost: this.cost, turn_cost: this.turn_cost ?? 0 });
+			rss_mb_before: c.rss_mb, duration_ms: Date.now() - c.at, cost: this.cost, turn_cost: this.turn_cost ?? 0, sdk_total: this.provider === "openrouter" ? null : this.proc_cost ?? null });
 		this.host?.register?.(this);
 		this.settle();
 		/* Compacted for MEMORY: a process keeps the heap it grew, so restart it
