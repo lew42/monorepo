@@ -80,7 +80,7 @@ function fake(over = {}){
 	t(fake({ system: "brief" }).a.reminder_text() === null, "own system prompt: no reminder");
 	process.env.SERVEX_ROLE_IN_SYSTEM = "0";
 	const r = fake().a.reminder_text();
-	t(r && !/in your system prompt/.test(r) && /Your full role text is at Servex/agents/roles/minion.md/.test(r), "off switch: the reminder names only the file");
+	t(r && !/in your system prompt/.test(r) && r.includes("Your full role text is at Servex/agents/roles/minion.md"), "off switch: the reminder names only the file");
 	delete process.env.SERVEX_ROLE_IN_SYSTEM;
 }
 console.log(`role-system: ${n} checks passed`);
