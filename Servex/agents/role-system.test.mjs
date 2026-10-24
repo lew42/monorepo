@@ -76,4 +76,11 @@ function fake(over = {}){
 	t(Object.keys(fake().a.sdk_hooks()).length === 0, "SERVEX_ROLE_REMINDER=0: no hooks");
 	delete process.env.SERVEX_ROLE_REMINDER;
 }
+{ // the reminder tells the truth about where the role text is
+	t(fake({ system: "brief" }).a.reminder_text() === null, "own system prompt: no reminder");
+	process.env.SERVEX_ROLE_IN_SYSTEM = "0";
+	const r = fake().a.reminder_text();
+	t(r && !/in your system prompt/.test(r) && /Your full role text is at Servex/agents/roles/minion.md/.test(r), "off switch: the reminder names only the file");
+	delete process.env.SERVEX_ROLE_IN_SYSTEM;
+}
 console.log(`role-system: ${n} checks passed`);

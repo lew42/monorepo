@@ -1168,8 +1168,10 @@ Agents.Agent = class Agent {
 	 * 100k). Carried by the next UserPromptSubmit or main-thread PostToolUse hook, so it also reaches a long turn that
 	 * no new message interrupts. SERVEX_ROLE_REMINDER=0 turns it off. */
 	reminder_text(){
-		if (process.env.SERVEX_ROLE_REMINDER === "0" || this.one_shot) return null;
-		return role_reminder(this.role);
+		/* An agent with its own system prompt (the voice pair, the directory mastermind) has no role text to point back to. */
+		if (process.env.SERVEX_ROLE_REMINDER === "0" || this.one_shot || this.system) return null;
+		const text = role_reminder(this.role);
+		return text && !this.role_prompt() ? text.replace("Your full role text is in your system prompt and at", "Your full role text is at") : text;
 	}
 
 	live_context(){
