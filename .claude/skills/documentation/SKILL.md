@@ -5,7 +5,7 @@ description: Run once a task's decisions are made and before finish-task — mak
 
 # Documentation — the final review
 
-**This pass is step (2) of the build order** (in `sub-mastermind`): a fresh agent then reads only these docs, so they must stand alone. **The task's mastermind runs it**, from what its minions report changed; minions build, test and fix and don't refine readmes. The quick look a mastermind gives every readme it reads is in `sub-mastermind` ("Readme upkeep is yours").
+**This pass is step (2) of the build order** (in `sub-mastermind`): a fresh agent then reads only these docs, so they must stand alone. **The mastermind of the area runs it** (§4), from what its builders report changed; a builder that built a whole system runs it for that system. The quick look a mastermind gives every readme it reads is in `sub-mastermind` ("Readme upkeep is yours").
 
 How the chain reaches agents, and its cap, is explained in [`Servex/doc/readme-chain.md`](/Servex/doc/readme-chain.md) and [`ai/doc/readmes.md`](/framework/ai/doc/readmes.md); this skill is how to write them. Size: a readme is a short index (CLAUDE.md: under about 100 lines; count words, about 800 at most, since a paragraph is one line), and the chain gives agents the whole readme, so every word costs every agent that works below it.
 
@@ -81,15 +81,26 @@ Every `.md` link opens rendered at `/<module>/md/doc/<name>/` ([`core/Page/doc/m
 
 A Doc's `notes:` land at `/module/doc/<name>/`, `methods:`/`properties:` at `/module/api/<name>/`; `files:` have **no per-name route** (they render in the shared `/module/files/` browser). For a `note()`-shaped page the URL slugifies from the **title**, not the file name.
 
-## 4. Where docs go, and cleaning them up (the owner, 2026-10-09)
+## 4. The documentation rule: where docs go, what goes in them, who writes them
 
-**Where:** `readme.md` is the index (one line per thing, a link each, read whole). The detail goes in `doc/<topic>.md`, one topic per file. Decisions go in `doc/architecture.md`, a line or two each, linking the session or task where it was decided. When a folder passes about 10–15 files, group them into subfolders, each with its own small readme, so the parent stays an index.
+Every mastermind follows this, in any folder. The owner's words: session-e00f55c9 `prompts.jsonl`, 2026-10-24T00:00:40Z.
+
+**Three places, one job each:**
+- **`readme.md`** is the folder's index, read whole by every agent working below it: what the folder is, one line and a link per part, and the current decisions in a line each. It says what is true now.
+- **`<topic>.md` beside the readme** is for the few topics a reader of this folder needs often (for example `ai/priority.md`, `ai/handover.md`). The readme links each one.
+- **`doc/`** is a namespace for everything else: one topic per file, subfolders per topic, `architecture.md` (the current decisions and why), `decisions.md` (how they moved), and dated notes when a date matters (`doc/2026-10-23-<topic>.md`). The readme links each important one in a line; a big `doc/` gets its own `doc/readme.md` index. Always `doc/`, never `docs/`.
+
+When a folder passes about 10–15 files, group them into subfolders, each with its own small readme, so the parent stays an index.
+
+**No dated logs in readmes.** The record of how something was decided lives in the session's or task's JSONL and in git; the readme states the outcome once. One exception: a rule that keeps being broken even though it is written down may be marked at the top of the readme as extra important, with its date and how often it was broken, until it stops being broken.
+
+**Don't transcribe; edit.** When the owner says something about a module, don't append their sentence because they said it. Read what the readme and its docs already say, then write the clearest message for the next agent: the intent, in the fewest words, without over-specifying (a judgment call stays a judgment call). If the doc already says it, leave it or sharpen it. Link the prompt for the raw words.
+
+**Who:** the mastermind owns the docs of the area it works in, because it has the overview. It reads its area's readmes when it starts, fixes what is plainly wrong, and brings them current when the work lands. A builder that builds a whole system documents that system as part of building it; a builder of one part tells its mastermind what changed.
 
 **Where a new file goes** (the owner, 2026-10-13: "creating a new file, what its name is and what goes in it" are the most important questions): a file about a module lives in that module's folder; a record lives in the store at its date path (`ai/sessions/YYYY/MM/DD/…`, made by `TaskDirs`); nothing else is created under `ai/`. A path the old way (`ai/<YYYY-MM-DD>/`) is refused by `append.mjs`.
 
 **Promotion:** an ask the owner made in three or more sessions is a directive: write it into the module's `doc/architecture.md`, or, if it is site-wide, propose it for the root readme as a decision line (`node Server/RefineQueue.mjs --repeats` lists today's candidates; `ext/Refine/doc/refine-queue.md`).
-
-**Who:** the mastermind of the task keeps the docs it reads true ("Readme upkeep is yours" in `sub-mastermind`); minions report what went stale.
 
 **Cleanup:** a mastermind spawns one Haiku per `doc/*.md`, given that file and the files it describes, asking "still true? duplicated elsewhere? superseded?". The mastermind reads the answers and decides. A superseded doc moves to an `archive/` folder beside it (`git mv`, one line in the readme saying why), never deleted.
 

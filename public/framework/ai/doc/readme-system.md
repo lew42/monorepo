@@ -4,6 +4,8 @@ The owner's ask: rules get lost because nobody is sure which files each agent re
 
 **Built 2026-10-22 on branch `task/readme-roles`** (the owner said build it; the merge is theirs): ✅ CLAUDE.md 3,763 → 1,319 words, framework rules in [the framework readme](../../readme.md) + [doc/rules.md](../../doc/rules.md), safety and cost long form in [agent-rules.md](agent-rules.md) · ✅ six role readmes, [Servex/agents/roles/readme.md](../../../../Servex/agents/roles/readme.md), `readme:` in `roles.js` · ✅ ai readme 1,510 → 660 words, records in [records.md](records.md) · every move mapped in [moves.md](../sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md). Open: ⬜ trim each role readme toward 400 words (moved whole, 689–5,271 today) · ⬜ the readme chain gives `public/framework/readme.md` only to agents whose folder is under it; a Servex/ or Server/ folder misses it · ⬜ the readme audit below.
 
+**The documentation rule** (where docs go, what goes in them, who writes them) is section 4 of the `documentation` skill ([.claude/skills/documentation/SKILL.md](../../../../.claude/skills/documentation/SKILL.md)): `readme.md` is the index, a sibling `<topic>.md` holds an often-read topic, `doc/` holds the rest; no dated logs in readmes; edit, don't transcribe; the mastermind owns its area's docs. This page below is the dated record of how the readme system was planned.
+
 ## What is read today, and when
 
 | File | Lines | Words | Read by |
