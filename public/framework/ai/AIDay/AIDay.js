@@ -81,7 +81,8 @@ export default class AIDay extends View {
 			const snap = (await days.get(day))?.snapshots?.find(x => x.folder === s.rel) ?? null;
 			this.snaps.set(key, snap);
 			if (snap){
-				const d = (snap.day ?? day).replaceAll("-", "/");
+				snap.day ??= day;   // one day for the stream, the approval lookup and the write (review n3)
+				const d = snap.day.replaceAll("-", "/");
 				if (!this.approvals.has(d)){ const st = Approvals.of_day(d); st.on(() => this.paint()); this.approvals.set(d, st); }
 			}
 		}));
