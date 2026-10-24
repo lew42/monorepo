@@ -1651,9 +1651,9 @@ Agents.Agent = class Agent {
 	}
 
 	card(){
-		const { id, role, model, state, visibility, started_at, stopped_at, turns, session_id, cost, parent,
+		const { id, role, model, effort, state, visibility, started_at, stopped_at, turns, session_id, cost, parent,
 			forked_from, resumed_from } = this;
-		return { id, role, model, state, visibility, started_at, stopped_at: stopped_at ?? null, turns, session_id, cost, parent: parent ?? null,
+		return { id, role, model, effort: effort ?? null, state, visibility, started_at, stopped_at: stopped_at ?? null, turns, session_id, cost, parent: parent ?? null,
 			revivable: this.revivable(), forked_from: forked_from ?? null, resumed_from: resumed_from ?? null,
 			context: this.context ?? null };
 	}

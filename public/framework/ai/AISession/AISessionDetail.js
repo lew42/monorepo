@@ -132,10 +132,16 @@ export default class AISessionDetail extends Page {
 		const agent_id = first?.assign?.agent ?? row?.agent ?? row?.id ?? live?.id;
 		const role = word ? Role.find(roles, word) : Role.from_agent_id(roles, agent_id);
 		if (!word && !role) return;
+		await AISessionRows.load_index(this.url);
+		const ix = AISession.of(session_id).ix;
+		const real = { model: live?.model ?? row?.model ?? ix?.model, effort: ix?.effort ?? row?.effort ?? live?.effort };
 		$el.empty(() => {
 			small.c("muted", word ? "Role (recorded when the session started, else from the Servex registry):" : "Role (guessed from the agent id: this session recorded none):");
-			if (role) RoleView.draw(role, agents.filter(x => (x.session_id ?? x.id) === session_id));
-			else p("Role: " + word + " (not a row in roles.js)");
+			if (role){
+				const diff = RoleView.differs(role, real);
+				if (diff) p.c("h4", "this session: " + diff);
+				RoleView.draw(role, agents.filter(x => (x.session_id ?? x.id) === session_id), { defaults: true });
+			} else p("Role: " + word + " (not a row in roles.js)");
 		});
 	}
 	async open_log(){ const url = await this.record_url(); if (url) window.open(url, "_blank"); }
