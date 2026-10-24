@@ -5,33 +5,28 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-23 00:01 UTC, last 24 h)
+## NOW (computed 2026-10-24 00:03 UTC, last 24 h)
 
-**Pace:** At 16% of pace with 6 days 2 hours left (room to spend)
+**Pace:** Week: 10% used · 27% gone · 37% of pace (room to spend, 5 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
 **Landed (0):**
 - none
 
-**Open, touched in the window (6):**
-- [never got anywhere](/framework/ai/sessions/2026/10/22/spawned/minion-stuck/) (minion-stuck)
-- [go](/framework/ai/sessions/2026/10/22/spawned/minion-dead/) (minion-dead)
-- [go](/framework/ai/sessions/2026/10/22/spawned/minion-held/) (minion-held)
-- [go](/framework/ai/sessions/2026/10/22/spawned/minion-lib-h1-page-nvidia-nemotron-3-5-lightning-free-179089/) (minion-lib-h1-page-nvidia-nemotron-3-5-lightning-free-17908906192690)
-- [go](/framework/ai/sessions/2026/10/22/spawned/minion-race/) (minion-race)
-- [first turn](/framework/ai/sessions/2026/10/22/spawned/minion-starting/) (minion-starting)
+**Open, touched in the window (0):**
+- none
 
 **Latest commits on this branch:**
 ```
-03c65d5ba servex: log sweep (4 files)
-4d8923a99 sdk.md: WebFetch is a plain fetch; improvements as JSONL; Task notes 6: tasks and projects live in <module>/tasks/, drafted in the session
-34789efa1 Servex sdk.md (web search on subscription, no temperature); readme-system follow-up 2 (shape, improvements via item tool, item vs raw log, markdown vs JSONL)
-50c52ccdb models readme: temperature findings (SDK passes none; newer models reject non-default; vary prompts and count agreement)
-7d178fb72 Merge branch 'task/readme-roles' into michael/dev
-6ca86c0cf messaging: where async work drops the ball; brief link fix
-9c0a1457b process-system brief: system architect designs and runs the Process system (Process extends Task, node-run phases, automatic completion)
-397d41660 servex: log sweep (1 files)
+3c4de7680 deputy brief: the owner's 2026-10-23 evening queue (review page, 230 proposals, docs system, model experiment)
+73f45981f process-system: qf-1 ready at 7c88de6cf
+fd11f070f Merge branch 'worktree/qf-2' into michael/dev
+7246c8b1a Merge branch 'task/review-false-pass' into michael/dev
+76987e941 usage: report all three numbers (used, gone, % of pace) in one line
+79b07d1c5 servex: log sweep (18 files)
+72e28278a process-system: landing nag was early; noted
+ba85ee41f process-system: merge-approvals ready, needs restart; priority 3b updated
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
