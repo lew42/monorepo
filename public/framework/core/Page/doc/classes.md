@@ -55,6 +55,7 @@ class PageMarkdown extends Page              // Markdown.js:14, the `md/` child
 | `Jsonl.js` | `PageJsonl` | What a `page.jsonl` does to a page: loader, file steps, tab state, placed files | 2, Page.class.js |
 | `Reader.js` | `PageLogReader` (Item.Store) | One store per `page.jsonl` URL; `page.store` is this once loaded | 2, Page.class.js |
 | `Listing.js` | `PageListing` | The answer of `listing()`: files, dirs, child pages, is-it-a-page | 3, Page.class.js, Jsonl.js |
+| `Load.js` | `PageLoad` | The loading statics (`file`, `load`, `read_json`, `from`, `props`, `missing`, `slug`); `Page` forwards to it | Page.class.js |
 | `Children.js` | `PageChildren` (Map) | A Map-shaped view over `page.pages`; stubs read as `null` | 2, Page.class.js |
 | `PageContent.js` | `PageContent` (List) | A page's `content`, one list for its life | 1, Page.class.js |
 | `PageContentItem.js` | `PageContentItem` (Item) | Base of the three content kinds; never written to `page.jsonl` | 4, the three kinds |
