@@ -3,7 +3,6 @@
 	.sw { display: flex; flex-direction: column; gap: .8em; }
 	.sw-head { display: flex; flex-direction: column; gap: .4em; padding: .8em; border: 1px solid var(--line); border-radius: .4em; }
 	.sw-head-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4em; }
-	.sw-title { font-size: 1.1em; }
 	.sw-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4em; }
 	.sw-stat { display: flex; flex-direction: column; padding: .3em .6em; border-radius: .3em; background: var(--tint); border-inline-start: 3px solid var(--line); }
 	.sw-stat-approved { border-color: var(--ok); }
@@ -24,7 +23,7 @@
 	details[open].sw-node > .sw-sum .sw-name::before { content: "▾ "; }
 	.sw-dot { flex: none; width: .6em; height: .6em; margin-top: .45em; border-radius: 50%; background: var(--line); }
 	.sw-approved > * > .sw-row .sw-dot, .sw-approved > .sw-row .sw-dot { background: var(--ok); }
-	.sw-live > * > .sw-row .sw-dot, .sw-live > .sw-row .sw-dot { background: var(--warn); }
+	.sw-live > * > .sw-row .sw-dot, .sw-live > .sw-row .sw-dot, .sw-waiting > * > .sw-row .sw-dot, .sw-waiting > .sw-row .sw-dot { background: var(--warn); }   /* waiting is amber, like its total (mobile-cards.md) */
 	.sw-leak > * > .sw-row .sw-dot, .sw-leak > .sw-row .sw-dot { background: var(--error); }
 	.sw-leak > * > .sw-row .sw-name, .sw-leak > .sw-row .sw-name { color: var(--error); }
 	.sw-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1em; }

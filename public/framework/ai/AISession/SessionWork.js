@@ -18,7 +18,7 @@ export default class SessionWork extends View {
 	get classes(){ return "sw"; }
 
 	render(){
-		this.$bar = div.c("sw-head-top", () => { this.$title = strong.c("sw-title", ""); this.pill = TimeFilter.add({}); });
+		this.$bar = div.c("sw-head-top", () => { this.pill = TimeFilter.add({}); });   // no title here: the page head already shows it
 		this.$head = div.c("sw-head");
 		this.$list = div.c("sw-list");
 		this.pill.watch(this.$list);
@@ -32,6 +32,7 @@ export default class SessionWork extends View {
 		if (!this.tree) return this.$list.empty(() => small.c("muted", "No task records for this session."));
 		if (!this.tree.snap && this.snap) this.tree.snap = this.snap;   // the session's own snapshot, filed under a later day than its folder
 		await this.find_snaps(m[1]);
+		await this.find_titles();
 		const root = this.tree.root;
 		if (this.tree.snap){ root.title = this.tree.snap.title || root.title; root.usd = this.tree.snap.usd ?? root.usd; }
 		const snaps = [this.tree.snap, ...this.tree.root.all().map(n => n.snap)].filter(Boolean);
@@ -54,6 +55,16 @@ export default class SessionWork extends View {
 		}
 		want.forEach(n => { const s = by_id.get(n.session); if (s){ n.snap = s; n.usd = s.usd ?? null; } });
 		if (!this.tree.snap) this.tree.snap = by_id.get(this.id) ?? null;
+	}
+
+	/** ai/index.json falls back to the folder name when a record has no title (Server/AIIndex.mjs); an agent's launch line names its card, so read that instead, and give a plain folder a capital at least. */
+	async find_titles(){
+		const slugs = this.tree.root.all().slice(1).filter(n => n.title === n.rel.split("/").pop().replaceAll("-", " "));
+		await Promise.all(slugs.map(async n => {
+			const text = n.session ? await fetch(n.url + "session.jsonl").then(r => r.ok ? r.text() : "").catch(() => "") : "";
+			let card = null; try { card = JSON.parse(text.split("\n", 1)[0])?.assign?.card; } catch {}
+			n.title = card || n.title[0].toUpperCase() + n.title.slice(1);
+		}));
 	}
 
 	approval(snap){ return snap ? this.streams.get((snap.day ?? "").replaceAll("-", "/"))?.of(snap.id) ?? null : null; }
@@ -81,7 +92,6 @@ export default class SessionWork extends View {
 		const f = this.figures(root), kids = top.kids, t = { approved: 0, waiting: 0, leak: 0 };
 		root.all().slice(1).forEach(n => t[Review.bucket(n.review)] += n.usd ?? 0);
 		this.$head.empty(() => {
-			this.$title.text(root.title);
 			this.facts(root, f, true);
 			div.c("sw-stats", () => [["approved", "approved"], ["waiting", "waiting"], ["leak", "leaking"]].forEach(([k, label]) =>
 				div.c("sw-stat sw-stat-" + k + (t[k] > 0 ? " sw-some" : ""), () => { strong("$" + t[k].toFixed(2)); small(label); }).attr("title", Review.STATES[k]?.hint ?? "")));
