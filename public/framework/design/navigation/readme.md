@@ -2,11 +2,15 @@
 
 Navigation is how a reader gets anywhere on the site and finds their way back: tabs, a rail, a sidebar, a sheet, a modal, full screen. Moved here from the old `page` skill's Navigation questions.
 
-## The one rule: which navigation stays, which is replaced
+## The one rule: previews, then a full detail view
 
-**A page with its own navigation keeps it, and its children open inside it. A page without navigation is replaced by its child.** Put another way: the nearest page above you that has navigation (tabs, a sidebar, a rail, a columns row) stays on screen, and everything below it swaps. Core already works this way: `container()` in [`Page.class.js`](/framework/core/Page/Page.class.js) mounts a child in its parent's tab or rail panel, else in the nearest ancestor's columns row, else where the parent was drawn, so it replaces the parent.
+**A page shows its children as a list of preview cards. Clicking a card opens that child's full page in place of the list.** The child has its own address, so the back button returns to the list. Nothing splits the screen into side-by-side panes. This is the owner's call of 2026-10-23: Miller columns did not work (on a task page the first column was cut off), so previews plus full detail views replace them as the default.
 
-A linked markdown page (`<page>/md/<doc>/`) is an ordinary child, so the same rule decides: under a page with navigation it opens inside it (in a columns tree, as the next column), and under a page with none it replaces that page. A markdown page never brings navigation of its own. The one exception is the `md/` explorer, whose file list is the point of that page.
+A page that has its own navigation (tabs, a sidebar, a rail) keeps it on screen, and the card list or the detail opens inside it; a page without navigation is replaced by its child. A linked markdown page follows the same rule and never brings navigation of its own (the `md/` explorer's file list is the one exception).
+
+Seen on the real pages: a task with tasks inside it has a **Tasks** tab of preview cards ([deputy at 1920](../../core/Page/tasks/page-mastermind/nav-rule/deputy-1920-after.png), [at 400](../../core/Page/tasks/page-mastermind/nav-rule/deputy-400-after.png)); clicking a card opens that task's own page ([roles at 1920](../../core/Page/tasks/page-mastermind/nav-rule/roles-1920-after.png), [at 400](../../core/Page/tasks/page-mastermind/nav-rule/roles-400-after.png)). Before, the same page was a row of columns that scrolled the first ones out of sight ([roles before at 1920](../../core/Page/tasks/page-mastermind/nav-rule/roles-1920-before.png)).
+
+**Miller columns are kept as code, opt-in only:** a page gets them by calling `columns()` itself, like [/framework/core/Page/overview/columns/](/framework/core/Page/overview/columns/). The even-columns default was tried and dropped on 2026-10-23 ([shots at 1920 and 3440](../../core/Page/tasks/page-mastermind/nav-rule/columns-1920-after.png)).
 
 The seven ways a page can navigate today (shots live in [core/Page/tasks/page-mastermind/](/framework/core/Page/tasks/page-mastermind/)):
 
@@ -16,11 +20,11 @@ The seven ways a page can navigate today (shots live in [core/Page/tasks/page-ma
 | **Left sidebar** | the site's page tree | the content area beside it | the same shot, left side |
 | **Rail** | a list on the left or right | the panel beside it | no real page uses it (only the `/imagine/paging/` labs) |
 | **List and detail** (`ux/Browse`) | the list | the detail pane | [md/ explorer at 1400](../../core/Page/tasks/page-mastermind/md-explorer-1400.png) |
-| **Miller columns** (`Page.columns()`) | every open column | a new column opens to the right | [even at 3440](../../core/Page/tasks/page-mastermind/nav-columns-even-3440.png), [measured at 3440](../../core/Page/tasks/page-mastermind/nav-columns-measured-3440.png) |
+| **Miller columns** (`Page.columns()`, opt-in) | every open column | a new column opens to the right | [even at 3440](../../core/Page/tasks/page-mastermind/nav-columns-even-3440.png), [measured at 3440](../../core/Page/tasks/page-mastermind/nav-columns-measured-3440.png) |
 | **No navigation** | nothing of the page | the child replaces the page | [at 1920](../../core/Page/tasks/page-mastermind/nav-takeover-1920.png) |
 | **Expand** | the row | the row grows in place; the address does not change | [expand at 1920](../../core/Page/tasks/page-mastermind/nav-expand-1920.png) |
 
-**Expand is for things that are not pages**, like an FAQ answer: it changes no address, so whatever it opens cannot be linked to. Never use it for a child page. **Columns default to even:** the row is shared equally between as many columns as the recommended width fits, and a page opts out with `columns({ even: false })` ([doc/columns.md](/framework/core/Page/doc/columns.md)).
+**Expand is for things that are not pages**, like an FAQ answer: it changes no address, so whatever it opens cannot be linked to. Never use it for a child page.
 
 ## Use
 
