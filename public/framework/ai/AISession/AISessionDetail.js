@@ -256,6 +256,10 @@ export default class AISessionDetail extends Page {
 					a.c("", record).href(own_dir + record);
 					a.c("", "transcript").href("/ai-logs/" + session_id);
 				}));
+				$box.append(() => div.c("flex gap-50 v-center muted", () => {
+					small("Landing");
+					a.c("page-link", "Ready to merge →").href("/framework/ai/merge/").attr("target", "_self").attr("title", "Branches agents marked ready, each with a Merge button");
+				}));
 				$trace.empty(() => { if (trace) AISessionTrace.render(trace); });
 			};
 			// the folder name (a card slug, not the id) arrives with the live feed; draw again the moment it does
