@@ -1,0 +1,2 @@
+{"assign":{"session_id":"80352848-0edb-41fc-aa97-b7632e069413","agent":"minion-queue-estimate","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue-estimate/requirements.md","title":"Task queue: an estimate per task, so the ranking separates rows","model":"claude-sonnet-5-5","worktree":"C:/Code/lew42/worktrees/qf-2","parent_task":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy","home":"/framework/ai/queue/","requested_at":"2026-10-24T02:14:26-05:00","now":"starting"}}
+{"commit":"1080900ea88b"}

@@ -1,0 +1,21 @@
+144 queued
+1 0.745 big1 queued $6.05 re0 ai | Pick one name for the sessions tab and use it everywhere
+2 0.745 big1 queued $6.05 re0 ai | Check how sessions are indexed and whether indexing is corre
+3 0.745 big1 queued $6.05 re0 ai | Show stored session fields the sessions table leaves out
+4 0.745 big1 queued $6.05 re0 ai | Check whether the sessions cost breakdown is current and acc
+5 0.745 big1 queued $6.05 re0 ai | Remove the All sessions back link from the session detail pa
+6 0.745 big1 queued $6.05 re0 ai | Drop the repeated session-ID line above the session detail t
+7 0.745 big1 queued $6.05 re0 ai | Fix the page load error that appears after refresh
+8 0.745 big1 queued $6.05 re0 ai | Make all sessions items visible and clickable
+9 0.745 big1 queued $6.05 re0 ai | Give the sessions tab clear hierarchy and place its text pro
+10 0.745 big1 queued $6.05 re0 ai | Make every item visible and clickable in the sessions list
+11 0.497 big2 queued $6.05 re0 ai | Build a Proposal class: review, decide, and turn decisions i
+12 0.497 big2 queued $6.05 re0 ai | Apply the code-driven loop principle across all AI systems
+13 0.497 big2 queued $6.05 re0 ai | Log the backup location as a checkable AI inbox item
+14 0.497 big2 queued $6.05 re0 ai | Review the ext/AI task system
+15 0.373 bignull queued $6.05 re1 ai | Fix the model label on the night mastermind session so it sh
+16 0.373 bignull queued $6.05 re1 ai | Use headless Playwright to scroll the sessions data grid and
+17 0.373 big3 queued $6.05 re1 ai | Create an architecture.md per module, referenced from its RE
+18 0.248 bignull queued $6.05 re0 ai | If feasible, write a script that goes through all sessions a
+19 0.248 bignull queued $6.05 re0 ai | Treat session merging as order- and time-dependent chains, n
+20 0.248 bignull queued $6.05 re0 ai | Have the AI mastermind and the page mastermind exchange sess
