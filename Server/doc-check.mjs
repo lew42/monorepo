@@ -52,7 +52,7 @@ function nearest_module(root, relFile){
 
 /** The readme's own links that go nowhere: relative ones resolved against the module's
  *  directory, `/site/path` ones resolved against `public/`. Ignores http(s) and `#…`. */
-function dead_links(root, moduleAbs, md){
+export function dead_links(root, moduleAbs, md){
 	const dead = [];
 	const seen = new Set();
 	for (const m of md.matchAll(/\]\(([^)]+)\)/g)) {
