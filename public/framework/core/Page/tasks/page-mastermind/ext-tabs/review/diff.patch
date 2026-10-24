@@ -1,0 +1,32 @@
+diff --git a/public/framework/ext/tabs/page.js b/public/framework/ext/tabs/page.js
+index 1dbaa87c5..dfa26c625 100644
+--- a/public/framework/ext/tabs/page.js
++++ b/public/framework/ext/tabs/page.js
+@@ -21,6 +21,7 @@ content(){ this.tabs("what why"); }`);
+ 		demo(() => {
+ 			demo.app(sample({
+ 				title: "",
++				url: "/tabs-demo/",
+ 				children: {
+ 					what: { label: "what", title: "", content(){ md("This panel is a real page, mounted in its parent's region. Reload it."); } },
+ 					why:  { label: "why",  title: "", content(){ md("The selected tab is read off the url, so clicking produces byte-identical output to reloading."); } },
+@@ -58,6 +59,7 @@ this.tabs().ac("vertical")         // …inside one section's own render()`);
+ 		demo(() => {
+ 			demo.app(sample({
+ 				title: "",
++				url: "/tabs-demo-block/",
+ 				children: {
+ 					state: { label: "state", title: "", content(){ md("The same set, wearing `block` — same urls, same marking, same panel. Only the bar's skin changed."); } },
+ 					notes: { label: "notes", title: "", content(){ md("The selected tab has no fill: its interior **is** the page, so it merges on any background, in light and dark."); } },
+diff --git a/public/framework/ext/tabs/tabs.js b/public/framework/ext/tabs/tabs.js
+index b36e3724a..cfea1aafa 100644
+--- a/public/framework/ext/tabs/tabs.js
++++ b/public/framework/ext/tabs/tabs.js
+@@ -82,6 +82,7 @@ Page.prototype.tabs = function(names, { home } = {}){
+ 
+ 		// ⚠ these links were built after mark() ran, so they missed the pass
+ 		this.app?.router?.mark_links();
++		this.app?.mark?.();   // a demo.app() box: re-mark and un-href links built after its own pass
+ 	};
+ 
+ 	(this._tab_redraws ??= new Set()).add(draw_bar);
