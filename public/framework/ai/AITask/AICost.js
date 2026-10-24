@@ -111,7 +111,7 @@ export default class AICost {
 	    minion, with its model — and the time the root's share was counted over. */
 	static breakdown(m){
 		const c = AICost.cost_of(m);
-		if (!c) return div.c("muted", "No cost line in this task's log. A task Servex ran gets one from Server/task-cost.mjs.");
+		if (!c) return div.c("muted", "No cost line in this task's log: a task run from a VS Code tab or a plain CLI session has no Servex agent to price, and only a task Servex ran gets one, from Server/task-cost.mjs.");
 		const { root, own_usd, minions_usd, parent_task, at, window: win } = c.cost;
 		const agents = AICost.agent_count(c.cost);
 		const list = AICost.agents_of(m);
@@ -193,39 +193,39 @@ export default class AICost {
 	static usd = n => n == null ? null : AICost.money(n);
 	static minutes = ms => ms < 3600000 ? Math.round(ms / 60000) + " min" : (ms / 3600000).toFixed(1) + " h";
 
+	static CHILD_ROWS = 10;
+
 	static draw_session(s){
-		const { total, own, children, tasks } = s.cost, { done, total: all, stopped } = s.progress, c = s.counts.all;
+		const { total, own, children } = s.cost, { done, total: live, stopped } = s.progress, direct = s.counts.direct, all = s.counts.all;
+		const n = s.agents, mine = own ? "This session itself spent " + AICost.money(own.usd) : "What this session itself spent is unknown, because no transcript has been read for it yet";
 		div(() => {
 			span(AICost.money(total) + " in all");
-			span.c("muted", " — " + [
-				own ? "this session " + AICost.money(own.usd) : "this session's own spend is unknown: no transcript has been read for it yet",
-				"child sessions " + AICost.money(children),
-				"the agents on its tasks cost " + AICost.money(tasks) + " (counted inside the child sessions)",
-			].join(" · "));
+			span.c("muted", ". " + mine + ", and its " + n + " child session" + (n === 1 ? "" : "s") + " (the agents it started) spent " + AICost.money(children) + ".");
 		});
 		div(() => {
-			span(done + " of " + all + " tasks complete, " + (all - done) + " open");
-			span.c("muted", " — " + [
-				stopped && stopped + " stopped, left out of the count",
-				c.created + " created in all, " + c.started + " started, " + c.complete + " complete (this session and everything under it)",
-				s.span_ms && "over " + AICost.minutes(s.span_ms),
-			].filter(Boolean).join(" · "));
+			span(`This session has ${direct.created} tasks of its own`);
+			span.c("muted", ". " + [
+				stopped ? `${stopped} of them were stopped and are left out below. Of the other ${live}, ${done} are complete and ${live - done} are still open` : `${done} of them are complete and ${live - done} are still open`,
+			].join("") + `. Counting every task under it too, ${all.created} were created, ${all.started} started, ${all.complete} are complete and ${all.stopped} were stopped` + (s.span_ms ? `; its work spans ${AICost.minutes(s.span_ms)} from first to last` : "") + ".");
 		});
 		if (s.biggest?.length){
-			small.c("muted", "Costliest tasks");
-			table(() => tbody(() => s.biggest.forEach(t => tr(() => {
-				td(t.title ?? t.id); td(t.state); td(AICost.money(t.cost));
-			}))));
+			small.c("muted", "The tasks with the biggest cost lines (a task's cost is what the agents that worked in its folder spent):");
+			table(() => {
+				thead(() => tr(() => { th("task"); th("state"); th("cost"); }));
+				tbody(() => s.biggest.forEach(t => tr(() => { td(t.title ?? t.id); td(t.state); td(AICost.money(t.cost)); })));
+			});
 		}
 		if (!s.children?.length) return small.c("muted", "No child sessions are registered under this session.");
-		small.c("muted", s.agents + " child session" + (s.agents === 1 ? "" : "s") + ", each with what it and its own children cost");
+		const rows = AICost.flatten(s.children), shown = rows.slice(0, AICost.CHILD_ROWS);
+		small.c("muted", "Its child sessions. \"own\" is what that session itself spent; \"with its children\" adds everything the sessions it started spent, so it is never smaller than \"own\".");
 		table(() => {
 			thead(() => tr(() => { th("session"); th("role"); th("state"); th("own"); th("with its children"); }));
-			tbody(() => AICost.flatten(s.children).forEach(({ n, depth }) => tr(() => {
+			tbody(() => shown.forEach(({ n, depth }) => tr(() => {
 				td(n.id).style("padding-left", depth + "em");
 				td(n.role); td(n.state); td(AICost.money(n.cost)); td(AICost.money(n.total));
 			})));
 		});
+		if (rows.length > shown.length) small.c("muted", "…and " + (rows.length - shown.length) + " more child sessions, in the order Servex lists them (the item tool's answer has all of them).");
 	}
 
 	static flatten = (list, depth = 0) => list.flatMap(n => [{ n, depth }, ...AICost.flatten(n.children ?? [], depth + 1)]);
