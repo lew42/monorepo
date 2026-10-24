@@ -13,6 +13,7 @@ import { defaults as role_defaults, opening, injected, compact_after as role_com
 import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import Task from "../../public/framework/core/Task/Task.js";
+import Session from "../../public/framework/core/Session/Session.js";
 import TaskDirs from "../../Server/TaskDirs.mjs";
 import DatedFiles from "../../Server/DatedFiles.mjs";
 import PastWork from "../../Server/PastWork.mjs";
@@ -52,7 +53,7 @@ export class Agents {
 
 	/* `boot` names THIS host process — every registry row it writes carries it,
 	 * so the next boot can tell "alive a moment ago" from "long dead". */
-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
+	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = dir => this.agents_under(dir); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
 	assign(...args){ return Object.assign(this, ...args); }
 
 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
@@ -689,12 +690,31 @@ export class Agents {
 	task_cost(task){
 		if (!task) return 0;
 		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.join(MAIN_ROOT, "public", task) : path.resolve(MAIN_ROOT, task);
-		let sum = 0;
+		return (this.task_dirs().get(want.toLowerCase()) ?? []).reduce((s, id) => s + this.logged_cost(id), 0);
+	}
+
+	/* Registry rows by task dir (resolved, lower case), rebuilt at most once a minute: a session of 150 tasks asks task_cost 150 times,
+	 * and each used to walk all 3,000+ registry rows. */
+	task_dirs(){
+		if (this._task_dirs && Date.now() - this._task_dirs.at < 60e3) return this._task_dirs.map;
+		const map = new Map();
 		for (const row of Object.values(this.reg().read())){
 			let dir = null; try { dir = this.task_dir_for(row); } catch {}
-			if (dir && path.resolve(MAIN_ROOT, dir) === want) sum += this.logged_cost(row.id);
+			if (dir){ const k = path.resolve(MAIN_ROOT, dir).toLowerCase(); (map.get(k) ?? map.set(k, []).get(k)).push(row.id); }
 		}
-		return sum;
+		this._task_dirs = { at: Date.now(), map };
+		return map;
+	}
+
+	/* The agents whose task lives in or below `dir` (a session's folder): its child sessions, found by place (Session.agents_resolver). */
+	agents_under(dir){
+		const root = path.resolve(MAIN_ROOT, dir).toLowerCase(), rows = this.reg().read(), out = [];
+		for (const [k, ids] of this.task_dirs()) if (k === root || k.startsWith(root + path.sep)) for (const id of ids){
+			const r = rows[id] ?? {};
+			out.push({ id, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
+				cost: Math.round(this.logged_cost(id) * 100) / 100, started_at: r.started_at ?? null });
+		}
+		return out.sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
 	}
 
 	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */

@@ -663,10 +663,26 @@ function advance(root, line){
 	root.store.sig = sig(root.store.file);
 }
 
+/* A row per child task: its state, and (2026-10-23, the session snapshot) what it cost and how long it ran, both computed from the
+ * records (Task.cost reads the agents' logs through Task.cost_resolver; duration from the lines' own times). */
+function row_of(t){
+	const cost = Number(t.cost) || 0, ran_ms = typeof t.duration === "function" ? t.duration() : 0;
+	return { id: t.id, title: t.get_one("title"), state: t.state, ...(cost ? { cost: Math.round(cost * 100) / 100 } : {}), ...(ran_ms > 0 ? { ran_ms } : {}),
+		...(t.data?.completed_at ? { completed_at: t.data.completed_at } : {}), ...(t.state === "stopped" && t.data?.why ? { why: String(t.data.why).slice(0, 80) } : {}) };
+}
+
+// Every task in a tree, each once (a session's cost sums each task's own agents once, so nothing counts twice).
+function every_task(list, out = []){ for (const t of list ?? []){ out.push(t); every_task(t._tasks, out); } return out; }
+
 function task_state(Task, task){
-	const tasks = [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state }));
+	const tasks = [...(task._tasks ?? [])].map(row_of);
 	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.step?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
-	if (Task.name === "Session") return { class: "Session", completion: task.completion, progress: task.progress(), data: { ...task.data }, tasks };
+	if (Task.name === "Session"){
+		const all = every_task(task._tasks), cost = all.reduce((s, t) => s + (Number(t.cost) || 0), 0);
+		const dir = task.store?.file ? path.dirname(task.store.file) : null, agents = dir ? (Task.agents_resolver?.(dir) ?? []) : [];
+		return { class: "Session", completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
+			cost: Math.round(cost * 100) / 100, agents, data: { ...task.data }, tasks };
+	}
 	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
 }
 
