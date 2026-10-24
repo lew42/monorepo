@@ -568,8 +568,9 @@ try {
 			}
 			// the click test: every new page must be reachable from its parent page
 			const navPages = NavCheck.pages_of(dir, status.filter(s => s.status === "A").map(s => s.f));
-			if (navPages.length && wtBase) {
-				const results = await NavCheck.check(wtBase, navPages.map(url => ({ url, parent: NavCheck.parent_page(dir, url) })));
+			const navBase = navPages.length ? (wtBase ?? worktreeBase(dir)) : null;   // not wtBase alone: that is null when the screenshot step skipped every added page
+			if (navBase) {
+				const results = await NavCheck.check(navBase, navPages.map(url => ({ url, parent: NavCheck.parent_page(dir, url) })));
 				await Browser.close();
 				navRefusal = NavCheck.refusal(results);
 				if (navRefusal && noNav) { console.warn(`!!! --no-nav: ${noNav} — merging with unlinked new page(s) !!!\n${navRefusal}`); navRefusal = null; }
