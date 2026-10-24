@@ -1,3 +1,5 @@
+import { names } from "../Router/listing.js";
+
 // What listing() answers: files, dirs, pages (Map kid → js/jsonl), page (is this log a page?), log (the source file). (doc/decisions.md)
 export default class PageListing {
 
@@ -31,4 +33,50 @@ export default class PageListing {
 
 	// Is `name` a folder here, page or not?
 	folder(name){ return this.dirs.includes(name) || this.pages.has(name); }
+
+	// A folder's own file list: a loaded page's lines, else files.jsonl, else page.jsonl, else null. Memoised per folder. (doc/decisions.md)
+	static listing(P, url, fresh){
+		url = String(url).replace(/\/?$/, "/");
+		if (P.UNLOGGED.test(url)) return Promise.resolve(null);
+
+		const own = P.page_listing(url);
+		if (own) return Promise.resolve(own);
+
+		const memo = P.listings ??= new Map();
+		if (fresh || !memo.has(url)) memo.set(url, P.fetch_listing(url)
+			.then(listing => { (P.loaded_listings ??= new Map()).set(url, listing); return listing; }));
+		return memo.get(url);
+	}
+
+	// The two files, in the order the parent's listing suggests; the first one there wins.
+	static async fetch_listing(P, url){
+		const [, parent, name] = url.match(/^(.*\/)([^/]+)\/$/) ?? [];
+		const jsonl_first = parent && P.loaded_listing(parent)?.pages.get(name) === "jsonl";
+		let order = jsonl_first ? ["page.jsonl", "files.jsonl"] : ["files.jsonl", "page.jsonl"];
+
+		// On the dev server the folder's names say which log exists, so a folder with neither asks for nothing (no 404s). Static site: null, probe as before.
+		const listed = names(url);
+		if (Array.isArray(listed)) order = order.filter(file => listed.includes(file));
+
+		for (const file of order){
+			const reader = await new P.Reader({ url: url + file }).load();
+			if (reader.loaded) return P.Listing.from(reader.entries, file === "page.jsonl" ? undefined : false, file);
+		}
+		return null;
+	}
+
+	// A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
+	static page_listing(P, url){
+		const page = P.log_pages?.get(url);
+		if (!page) return null;
+		return P.Listing.from([...page.listed?.values() ?? []].map(file => ({ file })), true, "page.jsonl");
+	}
+
+	// The listing, only if it is already here — a loaded jsonl page, or a `listing()`
+	// call that has come back; never fetches.
+	// undefined = not asked yet, null = asked, no file list.
+	static loaded_listing(P, url){
+		url = String(url).replace(/\/?$/, "/");
+		return P.page_listing(url) ?? P.loaded_listings?.get(url);
+	}
 }

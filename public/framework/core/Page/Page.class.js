@@ -9,6 +9,7 @@ import PageInbox from "./PageInbox.js";
 import PageChildren from "./Children.js";
 import PageLogReader from "./Reader.js";
 import PageListing from "./Listing.js";
+import PageLoad from "./Load.js";
 import PagePrefs from "./Prefs.js";
 import PageRelated from "./Related.js";
 import PagePreviews from "./Previews.js";
@@ -16,7 +17,6 @@ import PageColumns from "./Columns.js";
 import PageLinks from "./Links.js";
 import PageJsonl from "./Jsonl.js";
 import PageContent from "./PageContent.js";
-import { names } from "../Router/listing.js";
 
 // history and reasons: doc/Page-notes.md
 
@@ -217,42 +217,13 @@ export class Page extends Item {
 	static jsonl(url){ return this.Jsonl.load(this, url); }
 
 	// A folder's own file list: a loaded page's lines, else files.jsonl, else page.jsonl, else null. Memoised per folder. (doc/decisions.md)
-	static listing(url, fresh){
-		url = String(url).replace(/\/?$/, "/");
-		if (Page.UNLOGGED.test(url)) return Promise.resolve(null);
-
-		const own = Page.page_listing(url);
-		if (own) return Promise.resolve(own);
-
-		const memo = Page.listings ??= new Map();
-		if (fresh || !memo.has(url)) memo.set(url, Page.fetch_listing(url)
-			.then(listing => { (Page.loaded_listings ??= new Map()).set(url, listing); return listing; }));
-		return memo.get(url);
-	}
+	static listing(url, fresh){ return Page.Listing.listing(Page, url, fresh); }
 
 	// The two files, in the order the parent's listing suggests; the first one there wins.
-	static async fetch_listing(url){
-		const [, parent, name] = url.match(/^(.*\/)([^/]+)\/$/) ?? [];
-		const jsonl_first = parent && Page.loaded_listing(parent)?.pages.get(name) === "jsonl";
-		let order = jsonl_first ? ["page.jsonl", "files.jsonl"] : ["files.jsonl", "page.jsonl"];
-
-		// On the dev server the folder's names say which log exists, so a folder with neither asks for nothing (no 404s). Static site: null, probe as before.
-		const listed = names(url);
-		if (Array.isArray(listed)) order = order.filter(file => listed.includes(file));
-
-		for (const file of order){
-			const reader = await new Page.Reader({ url: url + file }).load();
-			if (reader.loaded) return Page.Listing.from(reader.entries, file === "page.jsonl" ? undefined : false, file);
-		}
-		return null;
-	}
+	static fetch_listing(url){ return Page.Listing.fetch_listing(Page, url); }
 
 	// A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
-	static page_listing(url){
-		const page = Page.log_pages?.get(url);
-		if (!page) return null;
-		return Page.Listing.from([...page.listed?.values() ?? []].map(file => ({ file })), true, "page.jsonl");
-	}
+	static page_listing(url){ return Page.Listing.page_listing(Page, url); }
 
 	// ⚠ Folders inside a dated task folder get no log (PageFiles.js covers()): answer null at once. (doc/watch-out.md)
 	static UNLOGGED = /^\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/[^/]+\//;
@@ -260,10 +231,7 @@ export class Page extends Item {
 	// The listing, only if it is already here — a loaded jsonl page, or a `listing()`
 	// call that has come back; never fetches.
 	// undefined = not asked yet, null = asked, no file list.
-	static loaded_listing(url){
-		url = String(url).replace(/\/?$/, "/");
-		return Page.page_listing(url) ?? Page.loaded_listings?.get(url);
-	}
+	static loaded_listing(url){ return Page.Listing.loaded_listing(Page, url); }
 
 	static log_class(module, url){ return this.Jsonl.log_class(this, module, url); }
 
@@ -492,74 +460,21 @@ export class Page extends Item {
 	}
 
 	// Last resort: a `.md` beside me IS a page. ⚠ The SPA fallback answers a miss with index.html at 200: content-type is the 404. (doc/watch-out.md)
-	static async file(url){
-		const res = await fetch(url).catch(() => null);
-		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
-
-		const text = await res.text();
-		const { default: md } = await import("../../ext/markdown/md.js");
-		const href = new URL(url, location.origin).href;
-
-		md.cache[href] ??= Promise.resolve(text);
-
-		return {
-			title: text.match(/^#\s+(.+?)\s*$/m)?.[1],
-			content(){ return md.file({ url: href }, href, { h1: false }); },
-		};
-	}
+	static file(url){ return Page.Load.file(Page, url); }
 
 	// A module that throws is NOT a module that isn't there. ⚠ `levels` bounds its subtree (nothing = its own `depth`). (doc/watch-out.md)
-	static async load(url, levels){
-		try {
-			const page = (await import(url + "page.js")).default ?? null;
-			return page instanceof Page ? page.load_all_children(levels) : page;
-		}
-		catch (error){
-			if (!Page.missing(error))
-				console.error(`Page.load("${url}page.js") — the file EXISTS but failed to load:`, error);
-			return null;
-		}
-	}
+	static load(url, levels){ return Page.Load.load(Page, url, levels); }
 
 	// ⚠ The SPA fallback answers a miss with index.html at 200: content-type is the 404. `opts` goes to fetch. (doc/decisions.md)
-	static async read_json(url, opts){
-		const res = await fetch(url, opts).catch(() => null);
-		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
-		return res.json().catch(() => null);
-	}
+	static read_json(url, opts){ return Page.Load.read_json(Page, url, opts); }
 
-	static async from(source, adopt){
-		const url  = is.str(source) ? source.replace(/\/?$/, "/") : null;
-		const data = url ? await this.read_json(url + "page.json") : source;
-		if (!data) return null;
+	static from(source, adopt){ return this.Load.from(this, source, adopt); }
 
-		const page = new this({ url, ...this.props(data, data.mode ?? {}) }, adopt);
+	static props(data, mode){ return Page.Load.props(Page, data, mode); }
 
-		for (const name of data.children ?? [])
-			page.add(name, (url && await this.from(url + name + "/")) ?? { title: name });
+	static missing(error){ return Page.Load.missing(Page, error); }
 
-		return page;
-	}
-
-	static props(data, mode){
-		return {
-			title: data.title, icon: data.icon, description: data.description,
-			navigation: mode.navigation, arrangement: mode.arrangement,
-			surface: mode.surface, background: mode.background,
-			type_size: mode.type,
-			width: mode.room ?? mode.width,
-			content: mode.content,
-		};
-	}
-
-	static missing(error){
-		return /Failed to fetch dynamically imported module|error loading dynamically imported module|MIME type|Expected a JavaScript/i
-			.test(error?.message ?? "");
-	}
-
-	static slug(title){
-		return String(title).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-	}
+	static slug(title){ return Page.Load.slug(Page, title); }
 
 	container(){
 		const mine = this.parent?.regions?.get(this.name);
@@ -770,6 +685,7 @@ Item.register(Page, "Page");
 
 Page.Reader = PageLogReader;
 Page.Listing = PageListing;
+Page.Load = PageLoad;
 Page.Prefs = PagePrefs;
 Page.Jsonl = PageJsonl;
 Page.Content = PageContent;
