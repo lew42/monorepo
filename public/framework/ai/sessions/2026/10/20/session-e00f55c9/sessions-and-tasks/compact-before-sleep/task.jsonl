@@ -10,3 +10,8 @@
 {"review":{"at":"2026-10-23T19:44:23-05:00","answer":{"n":3,"reply":"Called out in the ready line for the deputy; off switch SERVEX_ROLE_IN_SYSTEM=0."}}}
 {"review":{"at":"2026-10-23T19:44:23-05:00","answer":{"n":4,"reply":"Same as the first review: check the first why:sleep compact line after the restart."}}}
 {"review":{"at":"2026-10-23T19:44:23-05:00","answer":{"n":5,"reply":"Ready line logged on the process-system record at eaae198ca."}}}
+{"review":{"at":"2026-10-23T19:44:48-05:00","answer":{"n":1,"reply":"fixed: in 13328daec; no reminder with an own system prompt, and with the off switch it names only the file."}}}
+{"review":{"at":"2026-10-23T19:44:48-05:00","answer":{"n":2,"reply":"fixed: context-drift.md names the one-time cold write and the double role text where prompt recording is off."}}}
+{"review":{"at":"2026-10-23T19:44:48-05:00","answer":{"n":3,"reply":"noted: called out in the ready line; the off switch is SERVEX_ROLE_IN_SYSTEM=0."}}}
+{"review":{"at":"2026-10-23T19:44:48-05:00","answer":{"n":4,"reply":"noted: check the first why:sleep compact line after the restart."}}}
+{"review":{"at":"2026-10-23T19:44:48-05:00","answer":{"n":5,"reply":"noted: the ready line is on the process-system record."}}}

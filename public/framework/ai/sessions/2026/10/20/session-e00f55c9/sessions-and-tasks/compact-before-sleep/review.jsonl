@@ -12,3 +12,17 @@
 {"finding":{"at":"2026-10-23T19:43:41-05:00","n":4,"kind":"note","text":"The compaction cost (ask 3) was measured on an older nudge compaction (158k → 17k, $0.24, 61 s), not on one this new hook triggered. Check the first real `compact` line with `why: \"sleep\"` against it after the restart."}}
 {"finding":{"at":"2026-10-23T19:43:41-05:00","n":5,"kind":"note","text":"The previous review's note 3 is fixed. `compact_done` now passes the real wait to `mark_slept` (`g.wait_ms?.(this) ?? 0`). Ask 6 (\"ready: <branch> <sha>\" and \"needs restart\") is a log step outside the diff, and this review cannot check it. The branch head is 993af2c9d."}}
 {"phase":{"at":"2026-10-23T19:43:41-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0.7784008,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-10-23T19:44:38-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-10-23T19:44:38-05:00","n":1,"reply":"Fixed in 13328daec: no reminder with an own system prompt; with the off switch it names only the file. Test check added."}}
+{"answer":{"at":"2026-10-23T19:44:38-05:00","n":2,"reply":"context-drift.md now names the one-time cold write and the double role text where prompt recording is not on."}}
+{"answer":{"at":"2026-10-23T19:44:38-05:00","n":3,"reply":"Called out in the ready line for the deputy; off switch SERVEX_ROLE_IN_SYSTEM=0."}}
+{"answer":{"at":"2026-10-23T19:44:38-05:00","n":4,"reply":"Same as the first review: check the first why:sleep compact line after the restart."}}
+{"answer":{"at":"2026-10-23T19:44:38-05:00","n":5,"reply":"Ready line logged on the process-system record at eaae198ca."}}
+{"phase":{"at":"2026-10-23T19:44:38-05:00","n":2,"kind":"answers","status":"done"}}
+{"phase":{"at":"2026-10-23T19:44:48-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-10-23T19:44:48-05:00","n":1,"reply":"fixed: in 13328daec; no reminder with an own system prompt, and with the off switch it names only the file."}}
+{"answer":{"at":"2026-10-23T19:44:48-05:00","n":2,"reply":"fixed: context-drift.md names the one-time cold write and the double role text where prompt recording is off."}}
+{"answer":{"at":"2026-10-23T19:44:48-05:00","n":3,"reply":"noted: called out in the ready line; the off switch is SERVEX_ROLE_IN_SYSTEM=0."}}
+{"answer":{"at":"2026-10-23T19:44:48-05:00","n":4,"reply":"noted: check the first why:sleep compact line after the restart."}}
+{"answer":{"at":"2026-10-23T19:44:48-05:00","n":5,"reply":"noted: the ready line is on the process-system record."}}
+{"phase":{"at":"2026-10-23T19:44:48-05:00","n":2,"kind":"answers","status":"done"}}
