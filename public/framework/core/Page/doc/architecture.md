@@ -33,6 +33,7 @@ AISessionDetail (extends Page) — the default session template
 | `Page` | `core/Page/Page.class.js` | Applies a delta. The six page words (`navigation`, `width`, `arrangement`, `surface`, `background`, `type_size`) arrive as a delta and redraw the page; a `tab` line with a `title` or `content` builds that tab's page. |
 | `Page.Reader` | same file | One per `page.jsonl`: tails it, hands each new line to `page.set()`. |
 | `PageFrame` | `core/Page/Frame.js` | Draws the words. With `navigation: "tabs"`, the page's own content is the first tab. |
+| helpers: `Jsonl`, `Columns`, `Previews`, `Links`, `Related`, `Prefs` | `core/Page/<Name>.js` | Each is made once per page, on first use, by `page._helper("Jsonl")` (own map per page, so a `Template.clone()` builds its own; the class is read from `this.constructor`, so a subclass can swap one). The forwarders on `Page` (`tab()`, `column()`, `previews()`, `prefs()` …) call it. `PageFrame` is not one: it draws, so each render builds a new one. Why not getters named for the class: `columns`, `related` and `links` are page words or card fields, `previews` and `prefs` are methods. |
 | `tabs()` | `ext/tabs/tabs.js` | The one tab strip, also inside a column page. `home` holds the page's own content. |
 | `AISessionDetail` | `ai/AISession/AISessionDetail.js` | The session page; its folder's `page.jsonl` reshapes it on top of the template. |
 
