@@ -164,9 +164,9 @@
 		.page--ai.page.full:has(> .inbox-shell) > .inbox-shell { flex: none; height: auto; }
 		.page--ai .inbox-rail, .page--ai .inbox-stream { display: block; }
 		.page--ai .inbox-rows { overflow: visible; }
-		/* title above, tabs below on one scrolling line, never a two-row tower */
-		.page--ai .inbox-head > .tabs > .tab-bar { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-inline-end: 0; }
-		.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: none; }
+		/* title above, tabs below WRAPPED (2026-10-23): a scrolling line gave no sign that Sessions and Tests were off the right edge, so all eight labels now show, two short rows */
+		.page--ai .inbox-head > .tabs > .tab-bar { flex: 1 1 100%; flex-wrap: wrap; overflow: visible; padding-inline: 0.5rem; }
+		.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: 1 1 auto; }
 		.page--ai .inbox-head .doc-well { padding-block: 0.4em 0.1em; }
 	}
 }

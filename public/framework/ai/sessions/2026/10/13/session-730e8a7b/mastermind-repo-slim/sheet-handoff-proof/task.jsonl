@@ -57,3 +57,4 @@
 {"log":{"at":"2026-10-17T22:05:47-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-17T22:06:16-05:00","heartbeat":"answered","msg":"Done and idle. Nothing is in progress: the rule 4b edit is merged, the proof passed (task folder at 7.9 s, feed row at 9.2 s, no restart), and the `finish` line is logged and committed."}}
 {"log":{"at":"2026-10-17T22:10:10-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"at":"2026-10-24T00:04:01-05:00","why":"abandoned: no agent since 2026-10-17T22:10:10-05:00; closed by StaleClose 2026-10-24","by":"StaleClose"}}

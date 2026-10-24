@@ -1,2 +1,3 @@
 {"session":{"id":"9098993a-506e-4ecd-977a-0b3c76b08222","kind":"vscode-tab","at":"2026-10-23T02:29:36.241Z"},"by":"SessionRecord --links"}
 {"task":"/framework/ai/sessions/2026/10/12/session-9098993a/smoke-gate/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.242Z"}
+{"stop":{"at":"2026-10-24T00:03:57-05:00","why":"abandoned: no agent since 2026-10-23T02:29:36.242Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}

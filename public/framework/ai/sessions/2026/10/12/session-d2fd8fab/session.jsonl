@@ -1,2 +1,3 @@
 {"session":{"id":"d2fd8fab-6a32-4cab-8209-b124fd179f60","kind":"vscode-tab","at":"2026-10-23T02:29:36.258Z"},"by":"SessionRecord --links"}
 {"task":"/framework/ai/sessions/2026/10/12/session-d2fd8fab/owner-inbox/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.258Z"}
+{"stop":{"at":"2026-10-24T00:03:59-05:00","why":"abandoned: no agent since 2026-10-23T02:29:36.258Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}

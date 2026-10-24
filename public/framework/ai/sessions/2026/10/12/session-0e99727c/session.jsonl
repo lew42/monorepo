@@ -1,2 +1,3 @@
 {"session":{"id":"0e99727c-5a54-425b-97ef-635bcd53b804","kind":"vscode-tab","at":"2026-10-23T02:29:36.211Z"},"by":"SessionRecord --links"}
 {"task":"/framework/ai/sessions/2026/10/12/session-0e99727c/voice-to-session-page/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.212Z"}
+{"stop":{"at":"2026-10-24T00:03:54-05:00","why":"abandoned: no agent since 2026-10-23T02:29:36.212Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}

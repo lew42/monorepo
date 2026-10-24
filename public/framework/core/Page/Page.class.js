@@ -405,10 +405,29 @@ export class Page extends Item {
 		const doc = md && await this.child_md(name, levels);
 		if (doc) return doc;
 
+		const readme = !kind && await this.child_readme(name, listing, levels);   // the listing shows no page.js, so it is not probed (a 404)
+		if (readme) return readme;
+
 		const page = await Page.load(this.url + name + "/", 0);
 		if (page) return this.add(name, page).load_all_children(levels);
 
 		return md ? null : this.child_md(name, levels);
+	}
+
+	// A folder with no page.js or page.jsonl but its own readme.md opens as a page showing that readme (doc/subpages.md). Only a folder the parent's listing knows is asked.
+	async child_readme(name, listing, levels){
+		if (!listing?.folder(name)) return null;
+
+		const url = this.url + name + "/", own = await Page.listing(url);
+		if (!own?.files.includes("readme.md")) return null;
+
+		const file = await Page.file(url + "readme.md");
+		if (!file) return null;
+
+		const label = file.title?.split(/\s+[—–]\s+/)[0].replaceAll("`", "") || name;   // the sidebar gets "Events", not the readme's whole first heading
+		const more = own.dirs.includes("doc") || own.files.some(f => f.endsWith(".md") && f !== "readme.md");   // its other .md files get one link to the Markdown Explorer, since a plain Page has no md tab
+		const content = more ? () => file.content().then(doc => doc && doc.append(() => { p.c("muted").append(() => { a("Every .md file in this folder").href(url + "md/"); }); })) : file.content;
+		return this.add(name, { ...file, content, label, folder: url }).load_all_children(levels);
 	}
 
 	// ⚠ Imported on first use, like md_folder: core/Task imports Page.

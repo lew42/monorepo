@@ -54,6 +54,16 @@ pool.top_up = () => {};
 await pool.give_back("qf-1");
 assert.equal(pool.take_sync("agent-b").id, "qf-1", "take, return, take");
 
+// a server log that the slot's server dirtied and michael/dev also changed must not block the return
+fs.writeFileSync(path.join(main, "files.jsonl"), "1\n"); git(main, "add", "."); git(main, "commit", "-qm", "files");
+git(wt("qf-1"), "merge", "-q", "--ff-only", "michael/dev");
+Object.assign(pool, { slots: [{ id: "qf-1", path: wt("qf-1").split(path.sep).join("/"), branch: "worktree/qf-1", state: "taken", taken_by: "x", baseline: {} }] });
+fs.writeFileSync(path.join(wt("qf-1"), "files.jsonl"), "1\n2\n");          // the slot's server wrote a line
+fs.writeFileSync(path.join(main, "files.jsonl"), "1\n3\n"); git(main, "commit", "-qam", "dev changed files.jsonl");
+pool.remove = () => {};
+await pool.give_back("qf-1");
+assert.equal(git(wt("qf-1"), "rev-parse", "HEAD"), git(main, "rev-parse", "HEAD"), "server-log clash: fast-forwarded anyway");
+
 const long = "task-mastermind-" + "x".repeat(90);
 assert.ok(Log.safe(long).length <= 64 && Log.safe(long) === Log.safe(long) && Log.safe("short-name") === "short-name", "long log names shortened");
 console.log("pool-heal: all checks passed");

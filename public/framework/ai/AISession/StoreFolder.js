@@ -1,10 +1,11 @@
-import { Page, div, a, p } from "/app.js";
+import { Page, div, a, p, small } from "/app.js";
 import { AITask } from "/framework/ai/AITask/AITask.js";
 import CardDir from "/framework/ai/cards/CardDir.js";
+import { names } from "/framework/core/Router/listing.js";
 
 /* One folder of the sessions store, routed by its own path: /framework/ai/sessions/2026/10/12/<session>/<task>/.
    Tasks live here since 2026-10-12 (ai/doc/task-folders.md); the flat /framework/ai/sessions/<id>/ session route is untouched.
-   A year, month or day lists the tasks under it; a folder with a task.jsonl opens as a task (AITask); a folder with its own
+   A year lists its months, a month its days and a day its sessions (StoreFolder.sessions); a folder with a task.jsonl opens as a task (AITask); a folder with its own
    page.js is left to Page.child()'s probe; any other folder (a session's) lists its tasks and links the session page. */
 export default class StoreFolder extends Page {
 
@@ -111,6 +112,7 @@ export default class StoreFolder extends Page {
 		if (this.segs.length === 4) p(() => a().href(this.home.url + name + "/").text("This session's page →"));
 		if (this.segs.length === 3) p(() => a().href("/framework/ai/" + this.segs.join("-") + "/").text("This day's dashboard →"));
 		const box = div.c("flow");   // captured now: the list fills in after the fetch (no DOM after an await)
+		if (this.segs.length < 4) return this.sessions(box);
 		StoreFolder.urls().then(urls => {
 			const mine = urls.filter(u => u.startsWith(this.url) && u !== this.url);
 			box.append(() => {
@@ -118,5 +120,36 @@ export default class StoreFolder extends Page {
 				for (const u of mine) div(() => a().href(u).text(u.slice(this.url.length).replace(/\/$/, "")));
 			});
 		});
+	}
+
+	static usd(n){ return "$" + (n >= 100 ? n.toFixed(0) : n.toFixed(2)); }
+
+	/** A year lists its months, a month its days (both from the rolled-up index.json, with session counts and cost), a day lists its sessions (the day's index.json snapshots). */
+	sessions(box){
+		const level = this.segs.length, base = this.url, pad = n => String(n).padStart(2, "0");
+		const listed = names(base);   // not every folder has a rolled-up index.json (2026/08 has none): ask only when the listing shows one, so no page 404s
+		const day_index = listed && !listed.includes("index.json") ? Promise.resolve(null) : fetch(base + "index.json").then(r => r.ok ? r.json() : null, () => null);
+		const tasks = level < 3 ? StoreFolder.urls() : Promise.resolve([]);
+		Promise.all([day_index, tasks]).then(([ix, urls]) => box.append(() => {
+			if (level === 3){
+				const rows = [...(ix?.snapshots ?? [])].sort((x, y) => (x.first_at ?? "").localeCompare(y.first_at ?? ""));
+				if (!rows.length) return p.c("muted", "No sessions are recorded for this day.");
+				p.c("muted", `${rows.length} sessions, in the order they started.`);
+				for (const r of rows) div.c("flex gap-50", () => {
+					a().href(this.home.url + r.folder + "/").text(r.title || r.agent || r.folder);
+					small.c("muted", [r.agent && r.agent !== r.title ? r.agent : "", StoreFolder.usd(r.tree_usd ?? r.usd ?? 0), r.state].filter(Boolean).join(" · "));
+				});
+				return;
+			}
+			const known = level === 1 ? ix?.months : ix?.days;
+			const seen = new Set(Object.keys(known ?? {}));
+			for (const u of urls) { const seg = u.slice(base.length).split("/")[0]; if (u.startsWith(base) && /^\d\d$/.test(seg)) seen.add(seg); }
+			if (!seen.size) return p.c("muted", "No sessions are recorded under this folder.");
+			for (const k of [...seen].sort().reverse()) div.c("flex gap-50", () => {
+				const row = known?.[k];
+				a().href(base + k + "/").text(level === 1 ? `${this.segs[0]}-${pad(k)}` : `${this.segs[0]}-${this.segs[1]}-${pad(k)}`);
+				small.c("muted", row ? `${row.count} sessions · ${StoreFolder.usd(row.usd ?? 0)}${row.flagged ? " · " + row.flagged + " flagged" : ""}` : "no summary has been rolled up for it yet");
+			});
+		}));
 	}
 }

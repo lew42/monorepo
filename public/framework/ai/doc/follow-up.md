@@ -1,36 +1,37 @@
 # Follow-up: what fell through the cracks
 
-Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-10-23 05:00 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
+Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-10-24 05:04 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
 
-**1 landed with unmerged commits · 0 merged but never landed · 118 quiet over 2 h · 0 landed with no outcome · 0 open asks with no live owner · 1081 healthy of 1200.** (Servex was down: agent states unknown.)
+**2 landed with unmerged commits · 0 merged but never landed · 24 quiet over 2 h · 0 landed with no outcome · 0 open asks with no live owner · 1302 healthy of 1328.**
 
-## unmerged: 1
+## unmerged: 2
 
 landed, but commits are not on michael/dev: review the diff, then `merge.mjs`.
 
-- [sessions-tab-polish](/framework/ai/sessions/2026/10/03/sessions-tab-polish/sessions-tab-polish/) (`worktree/sessions-tab-polish`, 12 ahead): task-mastermind-sessions-tab-polish, last log 3 h ago, step 11/7, agent ?
+- [figma-phase2](/framework/ai/sessions/2026/10/12/session-cd792e48/figma-phase2/) (`worktree/qf-4`, 1 ahead): mastermind-figma-phase2, last log 27 h ago, step 1/0, agent dormant
+- [sessions-tab-polish](/framework/ai/sessions/2026/10/03/sessions-tab-polish/sessions-tab-polish/) (`worktree/sessions-tab-polish`, 12 ahead): task-mastermind-sessions-tab-polish, last log 27 h ago, step 11/7, agent dormant
 
-## quiet: 118
+## quiet: 24
 
 the state calls it in_flight or stale and its log is silent for over 2 h: resume it or close it.
 
-- [minion-held-2](/framework/ai/sessions/2026/10/22/spawned/minion-held-2/): minion-held, last log 2 h ago, step 0/0, agent ?
-- [minion-held-3](/framework/ai/sessions/2026/10/22/spawned/minion-held-3/): minion-held, last log 2 h ago, step 0/0, agent ?
-- [minion-held-4](/framework/ai/sessions/2026/10/22/spawned/minion-held-4/): minion-held, last log 2 h ago, step 0/0, agent ?
-- [minion-dead-4](/framework/ai/sessions/2026/10/22/spawned/minion-dead-4/): minion-dead, last log 2 h ago, step 0/0, agent ?
-- [minion-dead-3](/framework/ai/sessions/2026/10/22/spawned/minion-dead-3/): minion-dead, last log 2 h ago, step 0/0, agent ?
-- [minion-dead-2](/framework/ai/sessions/2026/10/22/spawned/minion-dead-2/): minion-dead, last log 2 h ago, step 0/0, agent ?
-- [readmes-page](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/): mastermi, last log 3 h ago, step 0/0, agent ?
-- [voice-20261016](/framework/ai/sessions/2026/10/16/voice-20261016/): helper-whisper-log, last log 3 h ago, step 1/0, agent ?
-- [session-fb77ab71](/framework/ai/sessions/2026/10/12/session-fb77ab71/): no agent, last log 3 h ago, step 0/0, agent ?
-- [session-f90a4e29](/framework/ai/sessions/2026/10/12/session-f90a4e29/): no agent, last log 3 h ago, step 0/0, agent ?
-- [session-fb723164](/framework/ai/sessions/2026/10/12/session-fb723164/): no agent, last log 3 h ago, step 0/0, agent ?
-- [session-f73e4a4a](/framework/ai/sessions/2026/10/12/session-f73e4a4a/): no agent, last log 3 h ago, step 0/0, agent ?
-- …106 more in [follow-up-full.md](follow-up-full.md)
+- [session-data](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-data/): no agent, last log 3 h ago, step 0/0, agent unknown
+- [smoke-adopt](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/): no agent, last log 3 h ago, step 0/0, agent unknown
+- [task-queue-plan](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/): no agent, last log 3 h ago, step 0/0, agent unknown
+- [review-heartbeat-fixes](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-heartbeat-fixes/): no agent, last log 3 h ago, step 0/0, agent unknown
+- [session-snapshot](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/): no agent, last log 3 h ago, step 0/0, agent unknown
+- [ai-system-mastermind](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/ai-system-mastermind/): no agent, last log 4 h ago, step 0/0, agent unknown
+- [compact-before-sleep](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/): no agent, last log 4 h ago, step 0/0, agent unknown
+- [proposals](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/): minion-proposals, last log 4 h ago, step 0/0, agent dormant
+- [process-names](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/process-names/): minion-process-names, last log 4 h ago, step 0/0, agent stopped
+- [voice-20261016](/framework/ai/sessions/2026/10/16/voice-20261016/): helper-whisper-log, last log 5 h ago, step 1/0, agent dormant
+- [merge-approvals](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/merge-approvals/): minion-merge-approvals, last log 5 h ago, step 0/0, agent stopped
+- [tasks-list](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/tasks-list/): minion-tasks-list, last log 5 h ago, step 0/0, agent stopped
+- …12 more in [follow-up-full.md](follow-up-full.md)
 
 ## Check
 
-1081 healthy + 119 flagged = 1200; the state lists 1200 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/index.json (under a minute old). 294 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
+1302 healthy + 26 flagged = 1328; the state lists 1328 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/index.json (under a minute old). 315 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
 
 ## How each row is counted
 

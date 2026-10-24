@@ -12,3 +12,4 @@
 {"review":{"at":"2026-10-22T19:52:06-05:00","answer":{"n":7,"reply":"fixed, max-block-size 28em on the grid; the full-page 4000px was a screenshot artifact of the windowed grid"}}}
 {"review":{"at":"2026-10-22T19:52:06-05:00","answer":{"n":8,"reply":"noted: layered view filed as a child task (layered-view)"}}}
 {"review":{"at":"2026-10-22T19:52:06-05:00","answer":{"n":9,"reply":"fixed, intro capped at 40em"}}}
+{"stop":{"at":"2026-10-24T00:04:03-05:00","why":"abandoned: no agent since 2026-10-22T19:48:01-05:00; closed by StaleClose 2026-10-24","by":"StaleClose"}}

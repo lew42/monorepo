@@ -1,0 +1,44 @@
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index 5612e91e9..5ee63e749 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -405,12 +405,27 @@ export class Page extends Item {
+ 		const doc = md && await this.child_md(name, levels);
+ 		if (doc) return doc;
+ 
++		const readme = !kind && await this.child_readme(name, listing, levels);   // the listing shows no page.js, so it is not probed (a 404)
++		if (readme) return readme;
++
+ 		const page = await Page.load(this.url + name + "/", 0);
+ 		if (page) return this.add(name, page).load_all_children(levels);
+ 
+ 		return md ? null : this.child_md(name, levels);
+ 	}
+ 
++	// A folder with no page.js or page.jsonl but its own readme.md opens as a page showing that readme (doc/subpages.md). Only a folder the parent's listing knows is asked.
++	async child_readme(name, listing, levels){
++		if (!listing?.folder(name)) return null;
++
++		const url = this.url + name + "/";
++		if (!(await Page.listing(url))?.files.includes("readme.md")) return null;
++
++		const file = await Page.file(url + "readme.md");
++		const label = file?.title?.split(/\s+[—–-]\s+/)[0].replaceAll("`", "") || name;   // the sidebar gets "Events", not the readme's whole first heading
++		return file ? this.add(name, { ...file, label, folder: url }).load_all_children(levels) : null;
++	}
++
+ 	// ⚠ Imported on first use, like md_folder: core/Task imports Page.
+ 	async tasks_folder(){
+ 		const { default: TasksPage } = await import("../Task/TasksPage.js");
+diff --git a/public/framework/core/Page/doc/subpages.md b/public/framework/core/Page/doc/subpages.md
+index 2aa0583b6..85e8ab097 100644
+--- a/public/framework/core/Page/doc/subpages.md
++++ b/public/framework/core/Page/doc/subpages.md
+@@ -40,3 +40,7 @@ Related: [ai-api.md](ai-api.md) (the tool and its table), [jsonl-pages.md](jsonl
+ **What came of the past `page.clone` request** ([owner notes](/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/owner-notes-3.md)): it was built on `Template` only, not on `Page`. `core/Page/Template/Template.js` has `clone(data)` (`Object.create(this)`: reads through to the template, writes only to the clone, so a base change flows to every clone) and `copy(data)` (a hard copy, no link). `Page.class.js` has no `clone`.
+ 
+ **So, can a child use its parent?** Yes when the parent is a `Template` (a Template is a Page): `parent.clone({...})` is the child, as a page.js page. Not yet from a jsonl line: a line like `{"template":"../"}` in the child's `page.jsonl` would need the loader to find the parent's Template and call `clone`. **Not built**; it is a separate decision because it makes a child's content depend on its parent's code, and the two storage variants above already cover pages that stand alone.
++
++## A folder with only a `readme.md` is a page
++
++The last step of `child(name)`'s search: when the parent's listing shows `name` is a folder with no `page.js` or `page.jsonl`, and that folder's own listing has a `readme.md`, `child_readme()` opens it as a page. Its content is the readme, its title is the readme's first heading, and its sidebar `label` is that heading's first part with backticks stripped (`# Events — `on` / `off` …` shows as Events), or the folder name when the readme has no heading, and its other `.md` files are at `<url>md/`. A folder without a readme makes no extra request, and a `page.js` or `page.jsonl` added later wins, because the listing then names it and this step is skipped. Such a page is a plain `Page`, not a `Doc`, so it has no tab strip and no `md` tab (`md_tab()` belongs to `Doc`); the `md/` url is the way in.

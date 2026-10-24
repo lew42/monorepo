@@ -1,2 +1,3 @@
 {"session":{"id":"54aa047d-0bdc-4a9f-89fa-da7ea3eee73c","kind":"vscode-tab","at":"2026-10-23T02:29:36.187Z"},"by":"SessionRecord --links"}
 {"task":"/framework/ai/sessions/2026/10/09/session-54aa047d/dup-chat-bubbles/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.187Z"}
+{"stop":{"at":"2026-10-24T00:03:52-05:00","why":"abandoned: no agent since 2026-10-23T02:29:36.187Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}

@@ -1,2 +1,3 @@
 {"session":{"id":"f808e806-d507-4535-bed4-d8b5b8f40601","kind":"vscode-tab","at":"2026-10-23T02:29:35.951Z"},"by":"SessionRecord --links"}
 {"task":"/framework/ai/sessions/2026/09/22/session-f808e806/review-3-days/","by":"SessionRecord --links","ts":"2026-10-23T02:29:35.951Z"}
+{"stop":{"at":"2026-10-24T00:03:51-05:00","why":"abandoned: no agent since 2026-10-23T02:29:35.951Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}

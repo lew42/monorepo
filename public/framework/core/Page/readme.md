@@ -28,7 +28,7 @@ Then add `"hello"` to the **parent** page's `children:`. A page nobody declares 
 
 ## How a url becomes a page
 
-The Router ([core/Router](/framework/core/Router/)) calls `page = await page.child(name)` once per folder name. `child()` tries, in order: memory (`this.children`) → a declared `page.jsonl` → the built-in `md/` and `fs/` → the page's `route(name)` → `page.js` → a bare `.md` file → not found (the Router falls back to a real navigation). A declared child skips `route()`. Code and the two traps: [doc/loading.md](doc/loading.md).
+The Router ([core/Router](/framework/core/Router/)) calls `page = await page.child(name)` once per folder name. `child()` tries, in order: memory (`this.children`) → a declared `page.jsonl` → the built-in `md/` and `fs/` → the page's `route(name)` → a folder's own `readme.md`, when the listing shows no `page.js` ([doc/subpages.md](doc/subpages.md)) → `page.js` → a bare `.md` file → not found (the Router falls back to a real navigation). A declared child skips `route()`. Code and the two traps: [doc/loading.md](doc/loading.md).
 
 **Where a child opens:** a page shows its children as preview cards (`page.previews()`), and a click opens that child's full page in place of the list; the address changes, so Back returns to the list. A page with its own navigation (tabs, a rail) keeps it and the child opens inside it. A linked markdown page follows the same rule. Miller columns are opt-in code: a page that calls `columns()` itself gets them. The rule, the seven ways a page can navigate and their shots: [design/navigation](/framework/design/navigation/readme.md).
 
