@@ -116,7 +116,7 @@ export default class AISessionsPage extends Page {
 
 	static MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-	/** One clickable trail: All sessions / 2026 / October / 13, the last part current; the arrows step the level (newer/older). */
+	/** One clickable trail: Sessions / 2026 / October / 13, the last part current; the arrows step the level (newer/older). */
 	render_scope(){
 		const parts = this.scope.split("-"), pad = AISessionsPage.pad;
 		const step = dir => {
@@ -646,7 +646,7 @@ export default class AISessionsPage extends Page {
 			title: id === "readme" ? "Sessions readme" : "Sessions docs",
 			url: home.url + id + "/",
 			content(){
-				a.c("page-link", "← all sessions").href(home.url);
+				a.c("page-link", "← Sessions").href(home.url);
 				div.c("flow").append(md.file(sessions_dir, file));
 			},
 		});

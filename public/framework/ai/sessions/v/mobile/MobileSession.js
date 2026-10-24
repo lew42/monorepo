@@ -28,7 +28,7 @@ export default class MobileSession extends AISessionDetail {
 	content(){
 		const root = div.c("mob-session");
 		const top = div.c("mob-title");
-		const bar = div.c("mob-bar-wrap", () => div.c("mob-bar", () => { a.c("mob-back", icon("arrow_back")).href(MobileData.HOME).attr("title", "all sessions"); this.$bar_title = strong.c("mob-bar-title", this.title); this.head_tools(); }));
+		const bar = div.c("mob-bar-wrap", () => div.c("mob-bar", () => { a.c("mob-back", icon("arrow_back")).href(MobileData.HOME).attr("title", "Sessions"); this.$bar_title = strong.c("mob-bar-title", this.title); this.head_tools(); }));
 		this.tabs = new SwipeTabs({ tabs: [["overview", "Overview"], ["tasks", "Tasks"], ["chat", "Chat"]] });
 		new IntersectionObserver(([e]) => bar.el.classList.toggle("is-on", !e.isIntersecting)).observe(top.el);
 		this.fill(top);

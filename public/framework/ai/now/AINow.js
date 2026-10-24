@@ -28,7 +28,7 @@ export default class AINow extends View {
 		this.$list = div.c("an-list");
 		div.c("an-foot", () => {
 			a.c("an-link").href("/framework/ai/").attr("target", "_self").text("Today's sessions");
-			a.c("an-link").href("/framework/ai/sessions/").text("All sessions");
+			a.c("an-link").href("/framework/ai/sessions/").text("Sessions");
 		});
 		this.paint();
 		this.ask();
