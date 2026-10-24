@@ -19,7 +19,7 @@ export default class Session extends Item {
 	constructor(id){ super(); if (id !== undefined) this.id = id; }
 
 	// A session HAS tasks, made on first use like Task.tasks; its progress is counted from them on read, never stored.
-	get tasks(){ return this._tasks ??= new List({ owner: this, name: "tasks" }); }
+	get tasks(){ if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this._tasks.of = Task; } return this._tasks; }
 	set tasks(list){ this._tasks = list; }
 	lists(){ const { _tasks, ...rest } = super.lists(); return { ...rest, ...(_tasks ? { tasks: _tasks } : {}) }; }
 
@@ -91,7 +91,7 @@ export default class Session extends Item {
 			delete delta.decide;
 		}
 		for (const k of Object.keys(delta)){   // a nested task changed: {"<task id>":{…}} goes to that task
-			const kid = delta[k] && typeof delta[k] === "object" ? this._tasks?.find(k) : undefined;
+			const kid = delta[k] && typeof delta[k] === "object" && this._tasks ? this.find(k) : undefined;   // at any depth: a bare id may name a grandchild
 			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }
 		}
 		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.put(k, v);

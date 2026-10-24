@@ -50,7 +50,7 @@ export class Task extends Item {
 	// Made on first use (a replayed log rarely has subtasks). `_tasks` is hidden from
 	// `lists()` below so the saved key is still "tasks", which `hydrate()` assigns back.
 	get tasks(){
-		if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this.watch(this._tasks); }
+		if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
 		return this._tasks;
 	}
 	set tasks(list){ this._tasks = list; this.watch(list); }
@@ -87,6 +87,9 @@ export class Task extends Item {
 		if (this.mode === "series"){ const next = kids.find(t => t.state !== "complete"); if (next?.state === "idle") next.start(); }
 		else for (const t of kids) if (t.state === "idle") t.start();
 	}
+
+	// A nested task by id, at any depth below me (never me): a line may name a grandchild by its bare id.
+	below(id){ const hit = this.find(id); return hit === this ? undefined : hit; }
 
 	// Resolves with the task once it is complete or stopped (at once if it already is).
 	settled(){
@@ -445,7 +448,7 @@ export class Task extends Item {
 		for (const k of Object.keys(line)) {
 			const v = line[k];
 			if (!v || typeof v !== "object" || Array.isArray(v) || LINE_KEYS.has(k) || !this._tasks) continue;
-			const kid = this._tasks.find(k);
+			const kid = this.below(k);
 			if (!kid?.replay_line) continue;
 			kid.replay_line(v);
 			if (typeof v.state === "string" && !VERBS.some(w => v[w])) kid.put("state", v.state);
