@@ -10,7 +10,7 @@
 	summary.mob-card-head { cursor: pointer; list-style: none; background: none; border: 0; border-bottom: 1px solid var(--mob-line); border-radius: 0; width: auto; }
 	summary.mob-card-head::-webkit-details-marker { display: none; }
 	.mob-fold:not([open]) > summary { border-bottom: 0; }
-	.mob-count { color: #6b7178; background: #f1f2f4; border-radius: 99px; padding: 0 .55em; font-size: .8em; }
+	.mob-count { color: #6b7178; background: #f1f2f4; border-radius: 99px; padding: .15em .55em; font-size: .8em; }
 	.mob-group-icon { font-size: 1.2em; color: var(--mob-grey); }
 	.mob-group-needs .mob-group-icon { color: var(--mob-red); }
 	.mob-group-running .mob-group-icon { color: var(--mob-amber); }

@@ -75,7 +75,7 @@ export default class VariantsPage extends Page {
 			icon(node.project ? "folder" : node.done ? "check_box" : "check_box_outline_blank").ac("svv-icon", node.project ? "is-project" : "is-task");
 			span.c("svv-row-title", node.title);
 			if (node.project) new SegBar({ node });   // a leaf's checkbox already says done; only a project gets a bar
-		}).ac(on ? "is-on" : "").attr("style", `--depth:${node.depth() - 1}`).click(() => pick?.(node));
+		}).ac(on ? "is-on" : "").attr("style", `--depth:${Math.max(0, node.depth() - 1)}`).click(() => pick?.(node));
 	}
 
 	inline(tree){
