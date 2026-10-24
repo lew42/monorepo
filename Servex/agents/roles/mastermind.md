@@ -122,6 +122,7 @@ Every brief tells the minion to load the `minion` skill first and carries only w
 - Running ONE task is a task mastermind's job: the `sub-mastermind` skill and `roles.md`.
 - ⚠ Write every follow-up so a COLD agent can execute it: file:line, never "as you did before". Do not gate a worker on a wait when you can dispatch it after the prerequisite lands.
 - A fence that forbids what a mandated skill writes is a trap; name the skill's writes.
+- A look-first brief (show the owner before building on) has the worker append `{"wait":{"on":"owner","what":"the look"}}` with its `show:` line. The Heartbeat then sends it no status checks while it waits (2026-10-23: one waiting minion was pinged every 7 minutes, each a paid turn).
 - ⚠ Say in so many words: never kill or restart the dev server, never drive the owner's tabs, never `git stash` (diff, don't stash). See the `minion` never-list.
 - ⚠ Run any code recipe you put in a brief once yourself first (an import path, a route pattern, a command). Playwright imports need `file:///C:/…`; `page.routeWebSocket(/.*/)` blocks sockets, `page.route('**/socket*')` matches nothing.
 - Ask for the raw output as a file and spot-check one decisive number; ask for two numbers that must agree, or a ratio, not an opinion; say which artifact is the deliverable and what to cut first.
