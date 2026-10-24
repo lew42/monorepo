@@ -418,12 +418,16 @@ export class Page extends Item {
 	async child_readme(name, listing, levels){
 		if (!listing?.folder(name)) return null;
 
-		const url = this.url + name + "/";
-		if (!(await Page.listing(url))?.files.includes("readme.md")) return null;
+		const url = this.url + name + "/", own = await Page.listing(url);
+		if (!own?.files.includes("readme.md")) return null;
 
 		const file = await Page.file(url + "readme.md");
-		const label = file?.title?.split(/\s+[—–-]\s+/)[0].replaceAll("`", "") || name;   // the sidebar gets "Events", not the readme's whole first heading
-		return file ? this.add(name, { ...file, label, folder: url }).load_all_children(levels) : null;
+		if (!file) return null;
+
+		const label = file.title?.split(/\s+[—–]\s+/)[0].replaceAll("`", "") || name;   // the sidebar gets "Events", not the readme's whole first heading
+		const more = own.dirs.includes("doc") || own.files.some(f => f.endsWith(".md") && f !== "readme.md");   // its other .md files get one link to the Markdown Explorer, since a plain Page has no md tab
+		const content = more ? () => file.content().then(doc => doc && doc.append(() => { p.c("muted").append(() => { a("Every .md file in this folder").href(url + "md/"); }); })) : file.content;
+		return this.add(name, { ...file, content, label, folder: url }).load_all_children(levels);
 	}
 
 	// ⚠ Imported on first use, like md_folder: core/Task imports Page.
