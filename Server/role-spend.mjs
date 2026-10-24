@@ -9,6 +9,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { fileURLToPath } from "node:url";
 
 // A role's earlier ids count as the same role: the AI system mastermind was mastermind-servex*, then mastermind-system-architect*.
 export const ALIASES = { "ai-system-mastermind": ["ai-system-mastermind", "mastermind-system-architect", "mastermind-servex"] };
@@ -52,7 +53,7 @@ export function spend(prefixes, { dir = path.join(home(), "logs"), registry = nu
 	return { prefixes, agents: { own: own.size, children: all.size - own.size }, ...rows };
 }
 
-const main = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, "$1"));
+const main = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (main){
 	const args = process.argv.slice(2), json = args.includes("--json"), word = args.find(a => !a.startsWith("--"));
 	if (!word){ console.error("usage: node Server/role-spend.mjs <role or id prefix> [--json]"); process.exit(1); }

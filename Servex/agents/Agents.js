@@ -675,7 +675,7 @@ export class Agents {
 			throw new Error(`Agent ${id} is a fork: it answered once and is not woken again.`);
 		if (!live?.session_id && !row?.session_id) throw new Error(`Agent ${id} never got a session, so there is nothing to wake.`);
 		const role = live?.role ?? row?.role, why = renew_why(renew_of(role), live?.started_at ?? row?.started_at, live?.context ?? row?.context);
-		if (why){   // RENEWAL (Agent.renew): a fresh session under the same id instead of a resume
+		if (why && (!live || live.state === "stopped")){   // RENEWAL: a stopped one is spawned fresh; a live dormant one renews in awaken()
 			const base = strip(live ? live.recipe() : (row.spec ?? {}));
 			const fresh = this.spawn(strip({ ...base, role, id, cwd: base.cwd ?? row?.cwd, resume: undefined, fork: undefined,
 				prompt: renewal_text(id, live?.session_id ?? row?.session_id, why) }));

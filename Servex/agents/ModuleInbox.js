@@ -106,7 +106,7 @@ export default class ModuleInbox {
 				size: { type: "string", enum: ["small", "architecture"], description: "small: a readme-level ask. architecture: classes, moves, hierarchy; the reviewer reads architecture docs too." },
 				fix: { type: "string", description: "FEEDBACK (module `ai`, the AI system mastermind's inbox): your suggested fix for the problem in `essence`." },
 				repeat_of: { type: "string", description: "The id of an earlier line about the same problem (list unread first). The third time wakes the AI system mastermind." },
-				obvious: { type: "boolean", description: "An obvious problem with a clear fix: wakes the AI system mastermind at once." } } },
+				obvious: { type: "boolean", description: "An obvious problem with a clear fix (give `fix` too; a line with no fix is an ask and wakes nobody): wakes the AI system mastermind at once." } } },
 			handler: json((a, ctx) => {
 				const inbox = new ModuleInbox(a.module);
 				if (!a.essence) return { ok: true, module: inbox.module, unread: inbox.unread() };
