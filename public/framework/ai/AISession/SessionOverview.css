@@ -1,0 +1,36 @@
+/* The session page's Overview cards and sticky stats bar (SessionOverview, SessionStats, SessionTaskRow). Prefix sov-. The mob- classes (sessions/v/mobile/mobile.css) draw the card, head and row; only what the desktop adds is here. */
+@layer site {
+	.sov, .sov-stats { --mob-green: #2e9e5b; --mob-amber: #e0a100; --mob-red: #d6453d; --mob-grey: #b5bac0; --mob-line: #eceef0; }
+
+	/* the stats bar: four figures, the one bar, its caption; sticky under the page head on every tab */
+	.sov-stats { position: sticky; top: 0; z-index: 6; display: flex; flex-direction: column; gap: .5em; padding: .75em 1em; background: #fff; border-bottom: 1px solid var(--mob-line); border-radius: 4px; }
+	.sov-stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr)); gap: .5em 1.5em; }
+	.sov-stat { display: flex; flex-direction: column; min-width: 0; }
+	.sov-k { color: #6b7178; text-transform: uppercase; font-size: .7em; letter-spacing: .06em; }
+	.sov-v { font-size: 1.3rem; line-height: 1.2; overflow-wrap: anywhere; }
+	.sov-bar .task-bar, .sov-card .task-bar { margin: 0; width: 100%; max-width: none; display: flex; }
+	.sov-bar .task-seg { flex: 1 1 0; }
+	.sov-bar .task-meter, .sov-card .task-meter { flex: 1 1 auto; width: auto; height: .45em; }
+
+	/* the page grid keeps its children in a 40em main column; the stats, tabs and panels take the wide span, so the cards can sit side by side */
+	.page > .sov-stats, .page > .sessions-tabs, .page > .sessions-detail-body { grid-column: wide-start / wide-end; }
+	.sov-chat { max-width: 70rem; }
+	.sov-caption { color: #6b7178; }
+
+	/* the cards: four side by side where there is room, one column on a phone */
+	.sov-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--gap-50, .75rem); align-items: start; }
+	.sov-cards > .sov-card { margin: 0; }
+	.sov-card .mob-row-title { font-size: .95rem; font-weight: 600; line-height: 1.3; }
+	.sov-card .mob-row-sub { font-size: .8rem; line-height: 1.3; }
+	.sov-card .mob-card-head > strong { text-transform: uppercase; font-size: .75em; letter-spacing: .06em; color: #6b7178; }
+	.sov-task .mob-go, .sov-task .mob-run-btn { display: none; }   /* the dot says the state; the task page has the buttons */
+	.sov-card .mob-more { text-align: center; text-decoration: none; }
+	.sov-cost { flex: 0 0 auto; align-self: flex-start; padding-top: .8em; color: #6b7178; }
+	.sov-project { display: flex; flex-direction: column; gap: .15em; padding: .7em .75em; color: inherit; text-decoration: none; border-top: 1px solid var(--mob-line); }
+	.mob-card-head + .sov-project { border-top: 0; }
+	.sov-project-head { display: flex; gap: .6em; justify-content: space-between; }
+	.sov-project-head .sov-cost { padding-top: 0; }
+	.sov-dropped { display: flex; align-items: flex-start; gap: .6em; padding: .7em .75em; color: inherit; text-decoration: none; border-top: 1px solid var(--mob-line); }
+	.mob-card-head + .sov-dropped { border-top: 0; }
+	.sov-dropped .mob-group-icon { color: var(--mob-grey); }
+}

@@ -18,13 +18,21 @@ export default class SessionWork extends View {
 	static DONE = ["complete", "stopped"];
 	get classes(){ return "sw"; }
 
+	/** The session's work sorted for the Overview: projects (a task folder directly under the session that holds tasks), then every other task as open (not done, nothing open under it), done, or dropped (stopped: not counted). `counted` is what "done X of Y" counts. */
+	static split(root){
+		const projects = root.kids.filter(k => k.kids.length), below = root.all().slice(1).filter(n => !projects.includes(n));
+		const counted = below.filter(n => n.state !== "stopped");
+		const open = counted.filter(n => !SessionWork.DONE.includes(n.state) && !n.kids.some(c => !SessionWork.DONE.includes(c.state)));
+		return { projects, counted, open, done: counted.filter(n => n.state === "complete"), dropped: below.filter(n => n.state === "stopped"), running: counted.filter(n => n.state === "running").length };
+	}
+
 	render(){
 		this.$bar = div.c("sw-head-top", () => { this.pill = TimeFilter.add({}); });   // no title here: the page head already shows it
 		this.$head = div.c("sw-head");
 		this.$list = div.c("sw-list");
 		this.pill.watch(this.$list);
 		this.streams = new Map();
-		this.load();
+		this.loaded = this.load();   // the Overview waits on this, then reads this.tree: one load for both tabs
 	}
 
 	async load(){
