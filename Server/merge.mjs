@@ -74,6 +74,7 @@ const bool = name => argv.includes(name) && (argv.splice(argv.indexOf(name), 1),
 const skipSmoke = bool("--skip-smoke");
 const skipTests = bool("--skip-tests");   // for proofs on a scratch repo only, like --skip-smoke
 const dryRun = bool("--dry-run");
+const gateOnly = bool("--gate-only");   // print the review gate's answer for this worktree's head and exit: no lock, no merge (the Merge page asks this of a branch that moved)
 const mainArg = flag("--main");
 const noReview = flag("--no-review");
 const reviewDir = flag("--review-dir");   // the task dir to look in when it sits under a session older than the 4-day scan (a long-lived mastermind's tasks)
@@ -433,6 +434,11 @@ const untrackedAmong = list => chunks(list).flatMap(c => lines(git(MAIN, "status
 
 const printPlan = plan => console.log(plan.map(p => `  ${p.action.toUpperCase().padEnd(8)} ${p.f} — ${p.why}`).join("\n"));
 
+if (gateOnly) {
+	const why = reviewGate(git(dir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim(), git(dir, "rev-parse", "HEAD").stdout.trim());
+	console.log(why ? `gate: ${why}` : "gate: ok");
+	process.exit(why ? 1 : 0);
+}
 if (skipSmoke) console.warn("\n!!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!\n");
 if (dryRun) console.log("DRY RUN: computing only; no lock, no hold, nothing written.");
 if (!dryRun && !(await takeLock())) { console.error("gave up waiting for .merge.lock"); process.exit(3); }
