@@ -401,11 +401,16 @@ export class Task extends Item {
 	// Browser only: open the child's file through the shared Store, then attach (replay + live tail) onto the stub.
 	static async open_ref(kid, ref){
 		const dir = String(ref).replace(/\/?$/, "/");
-		// The likely file first, as TaskPage does, so the usual link makes no 404: <module>/tasks/<slug>/ holds task.jsonl, a session folder session.jsonl.
-		const [a, b] = /\/tasks\/[^/]+\/$/.test(dir) ? ["task.jsonl", "session.jsonl"] : ["session.jsonl", "task.jsonl"];
+		// The folder's listing (dev server only) says which record it keeps, as in TaskPage; a folder with neither (a running agent's
+		// record a worktree does not have yet) is missing without a request, so no page 404s on it (the merge smoke fails on any 404).
+		// Off the dev server, the likely file first: <module>/tasks/<slug>/ holds task.jsonl, a session folder session.jsonl.
+		const listed = (await import("../Router/listing.js")).names(dir);
+		if (listed && !listed.includes("session.jsonl") && !listed.includes("task.jsonl")){ kid.set({ state: "missing" }); return; }
+		const [a, b] = listed ? [listed.includes("session.jsonl") ? "session.jsonl" : "task.jsonl"]
+			: /\/tasks\/[^/]+\/$/.test(dir) ? ["task.jsonl", "session.jsonl"] : ["session.jsonl", "task.jsonl"];
 		let store = this.Store.for(dir + a);
 		try { await store.open(); } catch { /* treated as missing below */ }
-		if (!store.host && !store.count){   // the other name: an old session folder kept task.jsonl, a task moved into a child session has session.jsonl (item-move)
+		if (b && !store.host && !store.count){   // the other name: an old session folder kept task.jsonl, a task moved into a child session has session.jsonl (item-move)
 			const s = this.Store.for(dir + b);
 			try { await s.open(); if (s.host || s.count) store = s; } catch { /* still missing */ }
 		}
