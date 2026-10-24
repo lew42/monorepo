@@ -16,6 +16,10 @@ The owner-facing server also starts `whisper-server` for dictation on its own â€
 [`plugins/Whisper.js`](./plugins/Whisper.js), `NO_WHISPER=1` to opt out; see
 [`ux/Dictate`](/framework/ux/Dictate/).
 
+## Routes the dev server adds for the pages
+
+- `GET /api/folder-names?dir=/framework/ai/sessions/2026/10/20/` ([`plugins/FolderNames.js`](./plugins/FolderNames.js)) answers `{"names": [...]}`, the entry names of one folder under `public/`, always a 200 (a missing folder is `[]`). `ai/AITask/listing.js` asks it once per folder, so opening a task folder checks `session.jsonl`, `task.jsonl`, `page.js` and `requirements.md` without a 404 probe for each. It is a new route: a dev server started before it landed answers no listing, and the pages fall back to the old probes (and their 404s) until the server restarts.
+
 ## Scripts (one line each; the full paragraph for every one is in [`doc/script-notes.md`](./doc/script-notes.md))
 
 - `node Server/ModuleLog.mjs <path>` â€” one folder's work log, graded against git; beside `PastWork.mjs`.

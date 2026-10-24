@@ -43,11 +43,15 @@ export class Store {
 	// writer — ext/JSONL/live.js is imported ONLY here, dynamically, so this file
 	// (and Item.js, which never imports it either) still loads in plain node.
 	open(){
-		const host = globalThis.location?.hostname;
-		const local = host === "localhost" || host === "127.0.0.1" || !!host?.endsWith(".localhost");
-		if (!local) return this.moved().then(() => this.load());
+		if (!Store.local()) return this.moved().then(() => this.load());
 
 		return this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
+	}
+
+	// True on the dev server (localhost, 127.0.0.1, *.localhost); false on the deployed static site and in plain node.
+	static local(){
+		const host = globalThis.location?.hostname;
+		return host === "localhost" || host === "127.0.0.1" || !!host?.endsWith(".localhost");
 	}
 
 	// A session folder's record moved from task.jsonl to its new name (ai/sessions/doc/session-record.md).

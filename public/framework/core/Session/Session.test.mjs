@@ -62,6 +62,17 @@ check("the session snapshot (2026-10-23): line times, a reopened session, stoppe
 		&& s.first_at === "2026-10-20T00:00:00.000Z" && s.span_ms === 2 * 86400e3 + 4 * 3600e3 && Task.clock === null;
 });
 
+check("replay: a bare child id walks to a nested task, two levels down (process-system lines 120-129)", () => {
+	const lines = [{ session: "r2" }, { tasks: { add: { type: "Task", id: "top", title: "top" } } },
+		{ tasks: { top: { tasks: { add: { id: "kid", title: "kid" } } } } },   // an untyped add under a task is a Task
+		{ top: { start: {} } },
+		{ top: { kid: { complete: EV } } },   // the id nested inside the first
+		{ top: { tasks: { add: { id: "kid2", title: "kid2" } } } },
+		{ kid2: { complete: EV } }];   // a nested id at the TOP level of the line
+	const s = Session.replay(lines), top = s.tasks.find("top"), kid = top.tasks.find("kid"), kid2 = top.tasks.find("kid2");
+	return top instanceof Task && kid instanceof Task && kid.state === "complete" && kid2.state === "complete" && top.progress().done === 2 && top.progress().total === 2 && !("kid2" in s.data);
+});
+
 process.exit(results.every(Boolean) ? 0 : 1);
 
 import Day from "./Day.js";

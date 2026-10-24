@@ -50,7 +50,7 @@ export class Task extends Item {
 	// Made on first use (a replayed log rarely has subtasks). `_tasks` is hidden from
 	// `lists()` below so the saved key is still "tasks", which `hydrate()` assigns back.
 	get tasks(){
-		if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this.watch(this._tasks); }
+		if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
 		return this._tasks;
 	}
 	set tasks(list){ this._tasks = list; this.watch(list); }
@@ -87,6 +87,9 @@ export class Task extends Item {
 		if (this.mode === "series"){ const next = kids.find(t => t.state !== "complete"); if (next?.state === "idle") next.start(); }
 		else for (const t of kids) if (t.state === "idle") t.start();
 	}
+
+	// A nested task by id, at any depth below me (never me): a line may name a grandchild by its bare id.
+	below(id){ const hit = this.find(id); return hit === this ? undefined : hit; }
 
 	// Resolves with the task once it is complete or stopped (at once if it already is).
 	settled(){
@@ -126,7 +129,9 @@ export class Task extends Item {
 
 	// Warn like `Item`'s own `locate()`/`hydrate()` do: once per distinct message,
 	// never a throw, and the call site still gets `this` back so a no-op chains.
+	// Silent while a recorded verb replays: the log already happened, and an old line that starts a finished task is history, not a call to fix.
 	warn(message){
+		if (this._applying) return this;
 		this.constructor.warned ??= new Set();
 		if (!this.constructor.warned.has(message)){
 			this.constructor.warned.add(message);
@@ -396,10 +401,12 @@ export class Task extends Item {
 	// Browser only: open the child's file through the shared Store, then attach (replay + live tail) onto the stub.
 	static async open_ref(kid, ref){
 		const dir = String(ref).replace(/\/?$/, "/");
-		let store = this.Store.for(dir + "task.jsonl");
+		// The likely file first, as TaskPage does, so the usual link makes no 404: <module>/tasks/<slug>/ holds task.jsonl, a session folder session.jsonl.
+		const [a, b] = /\/tasks\/[^/]+\/$/.test(dir) ? ["task.jsonl", "session.jsonl"] : ["session.jsonl", "task.jsonl"];
+		let store = this.Store.for(dir + a);
 		try { await store.open(); } catch { /* treated as missing below */ }
-		if (!store.host && !store.count){   // a session folder's log is session.jsonl (a task moved into a child session, item-move)
-			const s = this.Store.for(dir + "session.jsonl");
+		if (!store.host && !store.count){   // the other name: an old session folder kept task.jsonl, a task moved into a child session has session.jsonl (item-move)
+			const s = this.Store.for(dir + b);
 			try { await s.open(); if (s.host || s.count) store = s; } catch { /* still missing */ }
 		}
 		if (store.host){   // another reader (TaskPage) is already attached and live: this stub takes a snapshot of the same file
@@ -467,7 +474,7 @@ export class Task extends Item {
 		for (const k of Object.keys(line)) {
 			const v = line[k];
 			if (!v || typeof v !== "object" || Array.isArray(v) || LINE_KEYS.has(k) || !this._tasks) continue;
-			const kid = this._tasks.find(k);
+			const kid = this.below(k);
 			if (!kid?.replay_line) continue;
 			kid.replay_line(v);
 			if (typeof v.state === "string" && !VERBS.some(w => v[w])) kid.put("state", v.state);
@@ -476,10 +483,11 @@ export class Task extends Item {
 		if (verdict || verb){
 			if (!rp.explicit){ rp.explicit = true; this.replay_legacy(true); }
 			this._at = rp.at;
+			this._applying = true;
 			try {
 				if (verdict) this[verdict.is]({ by: verdict.by, note: verdict.note });
 				else { const { at: _a, ...args } = line[verb]; this[verb](verb === "stop" ? args.why : args); }
-			} finally { this._at = null; }   // so a live Store.read never leaves the clock pinned
+			} finally { this._at = null; this._applying = false; }   // so a live Store.read never leaves the clock pinned
 		}
 		return this;
 	}

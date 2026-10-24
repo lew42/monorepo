@@ -304,7 +304,7 @@ export class Item extends Events(Object) {
 		const raw = json && typeof json === "object" ? json : {};
 		if (raw !== json) warn(`expected an object, got ${typeof json}`);
 
-		const Class = raw.type ? Item.types.get(raw.type) : Item;
+		const Class = raw.type ? Item.types.get(raw.type) : this;   // `this`: a list of Tasks (`of = Task`) makes an untyped member a Task
 		if (raw.type && !Class) warn(`unknown type "${raw.type}" — preserved as Item`, raw.type);
 
 		let id = raw.id;

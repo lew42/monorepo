@@ -20,7 +20,9 @@ export function shot_wall(list){
 export const shot_thumb = s => thumb(s);
 
 function thumb(s){
-	const src = "/screenshot?path=" + encodeURIComponent(s.path);
+	// a shot is a file outside the repo (`path`, served by /screenshot) or an image committed beside its task (`url`)
+	const src = s.path ? "/screenshot?path=" + encodeURIComponent(s.path) : /\.(png|jpe?g|webp|gif)$/i.test(s.url ?? "") ? s.url : null;
+	if (!src) return div.c("surface ai-shot missing", () => div.c("ui-panel-foot ai-shot-label muted", s.label ?? "screenshot"));
 	let $shot;
 	const body = () => {
 		if (LOCAL) img.c("ai-shot-img").attr("src", src).attr("loading", "lazy")
