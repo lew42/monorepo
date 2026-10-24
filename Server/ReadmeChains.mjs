@@ -13,24 +13,31 @@ export default class ReadmeChains {
 	static tokens(text){ return Math.round(text.length / 4); }
 
 	/** One row per folder with a readme: {dir, levels, tokens, own, chain:[{path, tokens}]}, biggest chain first. */
-	static rows(){
-		const rows = [];
+	/** Every readme under `root` (absolute paths, sorted): the one walk the Readmes page and ReadmeAudit share, so their lists agree. */
+	static readmes(root = REPO){
+		const out = [];
 		const walk = (d, depth) => {
 			if (this.SKIP.test(d) || depth > 8) return;
 			let ents; try { ents = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
-			if (ents.some(e => e.isFile() && /^readme\.md$/i.test(e.name))){
-				const chain = readme_chain(d).map(r => ({ path: r.path, tokens: this.tokens(r.text) }));
-				rows.push({
-					dir: path.relative(REPO, d).split(path.sep).join("/") || ".",
-					levels: chain.length,
-					tokens: chain.reduce((n, r) => n + r.tokens, 0),
-					own: chain.at(-1)?.tokens ?? 0,
-					chain,
-				});
-			}
+			const r = ents.find(e => e.isFile() && /^readme\.md$/i.test(e.name));
+			if (r) out.push(path.join(d, r.name));
 			for (const e of ents) if (e.isDirectory() && !e.name.startsWith(".")) walk(path.join(d, e.name), depth + 1);
 		};
-		walk(REPO, 0);
+		walk(root, 0);
+		return out.sort();
+	}
+
+	static rows(){
+		const rows = this.readmes().map(f => path.dirname(f)).map(d => {
+			const chain = readme_chain(d).map(r => ({ path: r.path, tokens: this.tokens(r.text) }));
+			return {
+				dir: path.relative(REPO, d).split(path.sep).join("/") || ".",
+				levels: chain.length,
+				tokens: chain.reduce((n, r) => n + r.tokens, 0),
+				own: chain.at(-1)?.tokens ?? 0,
+				chain,
+			};
+		});
 		return rows.sort((a, b) => b.tokens - a.tokens || a.dir.localeCompare(b.dir));
 	}
 

@@ -40,7 +40,7 @@ export default class ReadmesView extends View {
 			},
 			filters: false,
 			sort_rows: (rows, sort) => DataGrid.prototype.sort_rows.call(this.grid, rows, sort ?? { key: "tokens", dir: "desc" }),
-			row: row => div.c("datagrid-row rm-row", () => this.grid.cells(row)).attr("title", row.audit?.note || "").on("click", () => this.show(row)),
+			row: row => div.c("datagrid-row rm-row", () => this.grid.cells(row)).attr("title", row.dir + (row.audit?.note ? "\n" + row.audit.note : "")).on("click", () => this.show(row)),
 		});
 		this.$panel = div.c("rm-panel", () => p("Click a folder to see its chain here."));
 	}
@@ -76,7 +76,7 @@ export default class ReadmesView extends View {
 			}));
 			const au = row.audit;
 			if (au) div.c("rm-audit", () => {
-				p(`Audit: ${au.words} words, shape ${au.shape || "not judged yet"}, ${au.unnamed.length} unnamed, ${au.dead_links.length} dead links, ${au.dated_lines} dated lines${au.docs_folder ? ", has a docs/ folder" : ""}${au.orphan ? ", not named by the readme above" : ""}${au.crowded ? ", crowded" : ""}.`);
+				p(`Audit: ${au.words} words, shape ${au.shape || "not judged yet"}, ${au.unnamed.length} unnamed, ${au.dead_links.length} dead links, ${au.dated_lines} dated line${au.dated_lines === 1 ? "" : "s"}${au.docs_folder ? ", has a docs/ folder" : ""}${au.orphan ? ", not named by the readme above" : ""}${au.crowded ? ", crowded" : ""}.`);
 				if (au.note) p(au.note);
 				if (au.unnamed.length) small.c("muted", "Unnamed: " + au.unnamed.slice(0, 12).join(", ") + (au.unnamed.length > 12 ? ", …" : ""));
 				if (au.dead_links.length) small.c("muted", "Dead: " + au.dead_links.slice(0, 8).join(", "));

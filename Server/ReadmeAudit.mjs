@@ -33,19 +33,8 @@ index = short list of parts with links; essay = prose explaining things that bel
 
 	rel(p){ return path.relative(this.repo, p).split(path.sep).join("/"); }
 
-	/* Every readme the Readmes page lists: the same walk and skip as ReadmeChains.rows(). */
-	readmes(){
-		const out = [], skip = ReadmeChains.SKIP;
-		const walk = (d, depth) => {
-			if (skip.test(d) || depth > 8) return;
-			let ents; try { ents = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
-			const r = ents.find(e => e.isFile() && /^readme\.md$/i.test(e.name));
-			if (r) out.push(path.join(d, r.name));
-			for (const e of ents) if (e.isDirectory() && !e.name.startsWith(".")) walk(path.join(d, e.name), depth + 1);
-		};
-		walk(this.repo, 0);
-		return out.sort();
-	}
+	/* Every readme the Readmes page lists: ReadmeChains' own walk (review 2026-10-24, note 2). */
+	readmes(){ return ReadmeChains.readmes(this.repo); }
 
 	/* The set of readme folders (repo-relative) that the readme above them never names. */
 	orphans(){ return new Set(new ReadmeOrphans(this.repo).run().map(r => r.dir)); }
