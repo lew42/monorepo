@@ -1,0 +1,503 @@
+diff --git a/.claude/hooks/spawn-session.mjs b/.claude/hooks/spawn-session.mjs
+new file mode 100644
+index 000000000..943f19375
+--- /dev/null
++++ b/.claude/hooks/spawn-session.mjs
+@@ -0,0 +1,17 @@
++/* SPAWN SESSION HOOK (2026-10-23): a PreToolUse hook on Servex's spawn_agent.
++ *
++ * WHY. A VS Code tab's MCP call carries no caller id, so Servex links a tab's spawn to the tab only when the call passes
++ * `session_id` (Servex/agents/tools.js tab_parent). Tabs forget it: in session-e00f55c9, mastermind-system-architect-2 and -3
++ * were spawned from the tab with no parent, so the session page could not list them as its children.
++ *
++ * WHAT. When the call names neither `parent` nor `session_id`, add `session_id` = this session's own id (the hook input has it).
++ * A Servex agent's call is unaffected: Servex prefers `parent`, then its own caller id, over `session_id`.
++ * Fails open: any error lets the call through unchanged. */
++let raw = "";
++process.stdin.on("data", d => raw += d).on("end", () => {
++	try {
++		const input = JSON.parse(raw), args = input.tool_input ?? {};
++		if (!input.session_id || args.parent || args.session_id) return;
++		process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "allow", updatedInput: { ...args, session_id: input.session_id } } }));
++	} catch {}
++});
+diff --git a/.claude/settings.json b/.claude/settings.json
+index 719230db3..78696cb9f 100644
+--- a/.claude/settings.json
++++ b/.claude/settings.json
+@@ -70,6 +70,19 @@
+             "timeout": 10
+           }
+         ]
++      },
++      {
++        "matcher": "mcp__servex__spawn_agent|mcp__claude_ai_Servex__spawn_agent",
++        "hooks": [
++          {
++            "type": "command",
++            "command": "node",
++            "args": [
++              "${CLAUDE_PROJECT_DIR}/.claude/hooks/spawn-session.mjs"
++            ],
++            "timeout": 5
++          }
++        ]
+       }
+     ],
+     "SessionStart": [
+@@ -78,7 +91,9 @@
+           {
+             "type": "command",
+             "command": "node",
+-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/session-page.mjs"],
++            "args": [
++              "${CLAUDE_PROJECT_DIR}/.claude/hooks/session-page.mjs"
++            ],
+             "timeout": 5
+           }
+         ]
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index f67fdd483..37ea0aed8 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -13,6 +13,7 @@ import { defaults as role_defaults, opening, injected, compact_after as role_com
+ import { OR_ONLY } from "./tiers.js";
+ import { first_prompt } from "./readme-chain.js";
+ import Task from "../../public/framework/core/Task/Task.js";
++import Session from "../../public/framework/core/Session/Session.js";
+ import TaskDirs from "../../Server/TaskDirs.mjs";
+ import DatedFiles from "../../Server/DatedFiles.mjs";
+ import PastWork from "../../Server/PastWork.mjs";
+@@ -52,7 +53,7 @@ export class Agents {
+ 
+ 	/* `boot` names THIS host process — every registry row it writes carries it,
+ 	 * so the next boot can tell "alive a moment ago" from "long dead". */
+-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
++	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = dir => this.agents_under(dir); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
+ 	assign(...args){ return Object.assign(this, ...args); }
+ 
+ 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
+@@ -689,12 +690,31 @@ export class Agents {
+ 	task_cost(task){
+ 		if (!task) return 0;
+ 		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.join(MAIN_ROOT, "public", task) : path.resolve(MAIN_ROOT, task);
+-		let sum = 0;
++		return (this.task_dirs().get(want.toLowerCase()) ?? []).reduce((s, id) => s + this.logged_cost(id), 0);
++	}
++
++	/* Registry rows by task dir (resolved, lower case), rebuilt at most once a minute: a session of 150 tasks asks task_cost 150 times,
++	 * and each used to walk all 3,000+ registry rows. */
++	task_dirs(){
++		if (this._task_dirs && Date.now() - this._task_dirs.at < 60e3) return this._task_dirs.map;
++		const map = new Map();
+ 		for (const row of Object.values(this.reg().read())){
+ 			let dir = null; try { dir = this.task_dir_for(row); } catch {}
+-			if (dir && path.resolve(MAIN_ROOT, dir) === want) sum += this.logged_cost(row.id);
++			if (dir){ const k = path.resolve(MAIN_ROOT, dir).toLowerCase(); (map.get(k) ?? map.set(k, []).get(k)).push(row.id); }
++		}
++		this._task_dirs = { at: Date.now(), map };
++		return map;
++	}
++
++	/* The agents whose task lives in or below `dir` (a session's folder): its child sessions, found by place (Session.agents_resolver). */
++	agents_under(dir){
++		const root = path.resolve(MAIN_ROOT, dir).toLowerCase(), rows = this.reg().read(), out = [];
++		for (const [k, ids] of this.task_dirs()) if (k === root || k.startsWith(root + path.sep)) for (const id of ids){
++			const r = rows[id] ?? {};
++			out.push({ id, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
++				cost: Math.round(this.logged_cost(id) * 100) / 100, started_at: r.started_at ?? null });
+ 		}
+-		return sum;
++		return out.sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
+ 	}
+ 
+ 	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 1fc43c616..3114ffa4c 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -663,10 +663,26 @@ function advance(root, line){
+ 	root.store.sig = sig(root.store.file);
+ }
+ 
++/* A row per child task: its state, and (2026-10-23, the session snapshot) what it cost and how long it ran, both computed from the
++ * records (Task.cost reads the agents' logs through Task.cost_resolver; duration from the lines' own times). */
++function row_of(t){
++	const cost = Number(t.cost) || 0, ran_ms = typeof t.duration === "function" ? t.duration() : 0;
++	return { id: t.id, title: t.get_one("title"), state: t.state, ...(cost ? { cost: Math.round(cost * 100) / 100 } : {}), ...(ran_ms > 0 ? { ran_ms } : {}),
++		...(t.data?.completed_at ? { completed_at: t.data.completed_at } : {}), ...(t.state === "stopped" && t.data?.why ? { why: String(t.data.why).slice(0, 80) } : {}) };
++}
++
++// Every task in a tree, each once (a session's cost sums each task's own agents once, so nothing counts twice).
++function every_task(list, out = []){ for (const t of list ?? []){ out.push(t); every_task(t._tasks, out); } return out; }
++
+ function task_state(Task, task){
+-	const tasks = [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state }));
++	const tasks = [...(task._tasks ?? [])].map(row_of);
+ 	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.step?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
+-	if (Task.name === "Session") return { class: "Session", completion: task.completion, progress: task.progress(), data: { ...task.data }, tasks };
++	if (Task.name === "Session"){
++		const all = every_task(task._tasks), cost = all.reduce((s, t) => s + (Number(t.cost) || 0), 0);
++		const dir = task.store?.file ? path.dirname(task.store.file) : null, agents = dir ? (Task.agents_resolver?.(dir) ?? []) : [];
++		return { class: "Session", completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
++			cost: Math.round(cost * 100) / 100, agents, data: { ...task.data }, tasks };
++	}
+ 	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
+ }
+ 
+diff --git a/Servex/agents/roles/mastermind.md b/Servex/agents/roles/mastermind.md
+index 29937ffe1..d33c79028 100644
+--- a/Servex/agents/roles/mastermind.md
++++ b/Servex/agents/roles/mastermind.md
+@@ -37,6 +37,8 @@ You are the executive tier: you decide what is worth doing, brief workers, judge
+ - **Your call is an outcome.** A choice the owner might overturn is still made and built: pick one, ship it, make the other a toggle or document it. The report says what was chosen and how to switch.
+ - **Follow the essence; the details are free.** A dictation's details are the owner's best guess at how. Achieve the core as closely as you can; demo-worthy experience first (layout, scale, text, colour, navigation), APIs after.
+ - **Write down the alternative.** Every decision names the one or two alternatives a reader would ask about, their caveats, and when they'd win (a `decision` line's `options`).
++- **Plan or just do, by size** (the owner, 2026-10-23). A quick fix or a note is just done: write it and check it off. For a medium job, judge whether a plan pays. A big project or an architecture decision (APIs, data structures, where files go, streaming) is always planned first. A $10 plan plus a $10 build loses to a $10 build when the job is small. A small ask is one task; a project is a task with subtasks; a process is a repeatable sequence of steps.
++- **Some tasks never get done, and that is fine.** Weigh the benefit against the cost and the tokens left. Start the high-priority tasks, move the low ones to the back burner, and run back-burner work only when usage is well under pace.
+ - **Roadblocks you cannot pass** (credentials, a paid account, a deploy, a deletion git cannot undo) go on the dashboard as an owner item with the minutes it takes; everything else continues.
+ - **Minimize the chaos.** The score is whether the owner can open the result and understand it. Fix the cause once; a finding across many pages usually means the rule is wrong, so check that first. Deleting beats adding; a queue is cheaper than a collision; never ship a bandaid to close a ticket.
+ 
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/coverage.mjs b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/coverage.mjs
+new file mode 100644
+index 000000000..bdfab05f9
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/coverage.mjs
+@@ -0,0 +1,24 @@
++// node coverage.mjs <session folder>: how many of a session's owner prompts have a linked task, and how the task titles read (2026-10-23).
++import fs from "fs";
++const S = process.argv[2];
++const P = fs.readFileSync(S + "/prompts.jsonl", "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++const prompts = new Map();
++for (const l of P){ const p = prompts.get(l.prompt) ?? { id: l.prompt, at: l.at, stages: new Set(), asks: 0, words: 0 }; p.stages.add(l.stage); if (l.text) p.words = l.text.split(/\s+/).length; if (l.parts){ const walk = ps => ps.forEach(x => { if (x.kind === "ask") p.asks++; if (x.parts) walk(x.parts); }); walk(l.parts); } prompts.set(l.prompt, p); }
++// tasks with a source.prompt, in the session log and in any task file below the folder
++const linked = new Map(), titles = [];
++const scan = f => { for (const l of fs.readFileSync(f, "utf8").split("\n")){ if (!l.includes('"prompt"')) continue; let j; try { j = JSON.parse(l); } catch { continue; }
++	const add = j?.tasks?.add ?? (j?.add?.type === "Task" ? j.add : null); const src = add?.source?.prompt; if (src){ linked.set(src, (linked.get(src) ?? 0) + 1); titles.push([add.title, add.state]); } } };
++const walk = d => { for (const e of fs.readdirSync(d, { withFileTypes: true })){ const f = d + "/" + e.name; if (e.isDirectory()) walk(f); else if (/^(session|task)\.jsonl$/.test(e.name)) scan(f); } };
++walk(S);
++const all = [...prompts.values()], withTask = all.filter(p => linked.has(p.id)), finals = all.filter(p => p.stages.has("final") || p.words);
++console.log("prompts", all.length, "| with final text", finals.length, "| with >=1 linked task", withTask.length, "| tasks linked", [...linked.values()].reduce((a, b) => a + b, 0));
++console.log("finals without a task:", finals.filter(p => !linked.has(p.id)).length, "| asks split by the parts step:", all.reduce((s, p) => s + p.asks, 0));
++const noTask = finals.filter(p => !linked.has(p.id)).slice(0, 8);
++const textOf = id => (P.find(l => l.prompt === id && l.text)?.text ?? P.find(l => l.prompt === id && l.subject)?.subject ?? "").slice(0, 90).replace(/\s+/g, " ");
++console.log("examples without a task:\n" + noTask.map(p => " - " + p.at.slice(0, 16) + " " + textOf(p.id)).join("\n"));
++const st = {}; titles.forEach(([, s]) => st[s] = (st[s] ?? 0) + 1); console.log("linked task states at creation", st);
++const long = titles.filter(([t]) => (t ?? "").length > 120).length; console.log("titles over 120 chars (copied sentences, not outcomes):", long, "of", titles.length);
++console.log("sample titles:\n" + titles.slice(-6).map(([t]) => " - " + String(t).slice(0, 110)).join("\n"));
++const live = finals.filter(p => p.at >= "2026-10-23T04");
++console.log("live prompts (after the 02:00 backfill):", live.length, "| with a task:", live.filter(p => linked.has(p.id)).length);
++console.log("live without a task:\n" + live.filter(p => !linked.has(p.id)).map(p => " - " + p.at.slice(0, 16) + " " + textOf(p.id)).join("\n"));
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/findings.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/findings.md
+new file mode 100644
+index 000000000..c90d393e2
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/findings.md
+@@ -0,0 +1,46 @@
++# The session page shows a true picture: what was wrong, what changed
++
++The owner asked for a snapshot of session-e00f55c9 (vscode-mastermind, 2026-10-23). `item()` on the session gave 143 tasks, 14 complete (9.8%). Five gaps were named. Branch `worktree/session-snapshot`.
++
++## The numbers, before and after (session-e00f55c9, replayed with each version of the code)
++
++| | Before | After |
++|---|---|---|
++| Completion | 14 of 143 (9.8%) | 29 of 75 (38.7%), 73 stopped tasks left out |
++| Session state | running, still carrying "abandoned … closed by StaleClose" | running, no stop reason |
++| `completed_at` | 12 tasks read the same millisecond: the moment the log was read | each task's own line time |
++| Child agents | 3 "linked sessions" (only the agents that wrote through the item tool) | 59 agent sessions, $619.08 in all (found by where their task lives) |
++| Cost and duration | none | per task (`cost`, `ran_ms`), and for the session (`cost`, `first_at`, `last_at`, `span_ms`) |
++
++## The five gaps
++
++- **(a) No cost or duration.** Item state rows now carry `cost` (Task.cost, from the agents' logs), `ran_ms` and `completed_at`. The session adds its total cost and its span. `Agents.task_cost` used to walk 3,000+ registry rows per task; it now uses a map rebuilt at most once a minute (`task_dirs()`).
++- **(b) Spawned agents missing.** The session's children are computed, not recorded: every registry agent whose task folder is inside the session folder (`Agents.agents_under`, wired as `Session.agents_resolver`). For future spawns, the new hook `.claude/hooks/spawn-session.mjs` adds the tab's own `session_id` to every Servex `spawn_agent` call that names no parent. That is the field Servex already uses to link a tab's spawn to the tab; tabs kept forgetting it (architect-2 and -3 had no parent).
++- **(c) About 70 stopped tasks counted.** A stopped task was dropped on purpose (splitter noise, check-in prompts, superseded). `Task.progress_of` now leaves stopped tasks out of both `done` and `total`, and reports a `stopped` count. The session page folds them under "N stopped, not counted".
++- **(d) "Abandoned" while running.** StaleClose wrote `{"stop":{why}}` and the session came back with `{"start":{}}`, but Session stored both as plain keys. Now `stop` sets the session's state and reason, and `start` clears them.
++- **(e) Tasks completed minutes after hand-off.** mastermind-deputy wrote the completions at 00:46Z (session.jsonl line 250). Each names merged commits as evidence (c63aef26d, 62071719f), and those merges had landed, so the completions are honest. The "minutes after" impression came from the replay bug in (a): every completion read the time of the read.
++
++## Are the prompts covered by tasks? (`coverage.mjs`, beside this file)
++
++- **88 prompts**, and **33 have at least one linked task** (72 tasks in all).
++- **69 of the 88 arrived in one backfill at 02:00** (PromptRecords importing the tab's earlier history). Only 17 of those got tasks, because the task filer (PromptTasks) runs on live prompts only.
++- **The 19 live prompts after the backfill: 16 have tasks.** The other 3 are questions ("explain what you said", "where does that file live"), and a question needs an answer, not a task.
++- **26 of the 72 task titles run past 120 characters.** They are copied sentences, not reduced outcomes. The live splitter's parts step produced 1,738 "asks" from 88 prompts, and that is where the 73 noise tasks came from (they are now stopped).
++
++### The simplest fixes, in order
++
++1. **Mark a prompt "no ask" instead of leaving it uncovered.** A question or a chat line gets a one-line verdict on the prompt (`{"covered":{"prompt","by","none":"question"}}`), so "uncovered" means only a real gap. Coverage is then computed: a prompt is covered when it has a task or a "none" verdict.
++2. **Titles are outcomes.** PromptTasks writes a title of at most about 80 characters, verb first ("Write X to file Y"); the owner's sentence goes in `description`. A one-line cap in PromptTasks plus one sentence in its model prompt.
++3. **Run the filer once over the 52 backfilled prompts with no task**, as one Haiku batch under 100k tokens. Or mark them "none: history". Most of them were answered or superseded in the conversation days ago.
++
++Prompt completion stays separate from task completion: a prompt points to the tasks that claim to complete it, and whether they did is a judgment (the reviewer's, or the clarity agent's).
++
++## Plan or just do (written into `Servex/agents/roles/mastermind.md`, "Deciding")
++
++A quick fix or a note is just done. For a medium job, the mastermind judges whether a plan pays. A big project or an architecture decision is always planned first. A small ask is one task; a project is a task with subtasks; a process is a repeatable sequence of steps.
++
++## Proof
++
++- `node public/framework/core/Session/Session.test.mjs` (8, including the snapshot check)
++- `node public/framework/core/Task/Task.test.mjs` (60, including stopped and the line clock)
++- the child-agent probe: 59 agents and $619.08, in 156 ms
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/review.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/review.jsonl
+new file mode 100644
+index 000000000..5f6fdf509
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/review.jsonl
+@@ -0,0 +1,7 @@
++{"phase":{"at":"2026-10-23T20:20:43-05:00","n":1,"kind":"findings","status":"start"}}
++{"finding":{"at":"2026-10-23T20:20:43-05:00","n":1,"kind":"note","text":"The task folder has no requirements.md and review/diff.patch is empty (0 bytes), so I judged the work against findings.md (the owner's five gaps a-e) and the three commits e8a06ab04, 61f1e32a7, f9af90288; `git diff main...HEAD` is 22k files because main is stale, so the real diff could not be read as one patch."}}
++{"finding":{"at":"2026-10-23T20:20:43-05:00","n":2,"kind":"note","text":"Both tests pass when run: Session.test.mjs 7/7 and Task.test.mjs 60/60, and each of the five gaps has a stated fix (clock, stop/start, stopped folded, cost/agents, spawn hook)."}}
++{"finding":{"at":"2026-10-23T20:20:43-05:00","n":3,"kind":"note","text":".claude/hooks/spawn-session.mjs:17 returns permissionDecision \"allow\", which skips the permission prompt for every spawn_agent call from a tab; returning only updatedInput (no decision) would add session_id without changing the permission outcome."}}
++{"finding":{"at":"2026-10-23T20:20:43-05:00","n":4,"kind":"note","text":"The hook is registered in .claude/settings.json:74-85 for both the mcp__servex__ and mcp__claude_ai_Servex__ tool names and fails open on error, so it is safe, but it is not covered by a test."}}
++{"finding":{"at":"2026-10-23T20:20:43-05:00","n":5,"kind":"note","text":"findings.md lists three prompt-coverage fixes (a \"none\" verdict, 80-char titles, a Haiku backfill pass) that are not built; only coverage.mjs measures the gap, so they should be filed as tasks and not left in the doc."}}
++{"phase":{"at":"2026-10-23T20:20:43-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0.38930820000000005,"model":"claude-sonnet-5-5"}}
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/review.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/review.md
+new file mode 100644
+index 000000000..5db8b33cd
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/review.md
+@@ -0,0 +1,6 @@
++verdict: pass
++1. [note] The task folder has no requirements.md and review/diff.patch is empty (0 bytes), so I judged the work against findings.md (the owner's five gaps a-e) and the three commits e8a06ab04, 61f1e32a7, f9af90288; `git diff main...HEAD` is 22k files because main is stale, so the real diff could not be read as one patch.
++2. [note] Both tests pass when run: Session.test.mjs 7/7 and Task.test.mjs 60/60, and each of the five gaps has a stated fix (clock, stop/start, stopped folded, cost/agents, spawn hook).
++3. [note] .claude/hooks/spawn-session.mjs:17 returns permissionDecision "allow", which skips the permission prompt for every spawn_agent call from a tab; returning only updatedInput (no decision) would add session_id without changing the permission outcome.
++4. [note] The hook is registered in .claude/settings.json:74-85 for both the mcp__servex__ and mcp__claude_ai_Servex__ tool names and fails open on error, so it is safe, but it is not covered by a test.
++5. [note] findings.md lists three prompt-coverage fixes (a "none" verdict, 80-char titles, a Haiku backfill pass) that are not built; only coverage.mjs measures the gap, so they should be filed as tasks and not left in the doc.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/review/diff.patch b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/review/diff.patch
+new file mode 100644
+index 000000000..e69de29bb
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/task.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/task.jsonl
+new file mode 100644
+index 000000000..454cdbb27
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-snapshot/task.jsonl
+@@ -0,0 +1,7 @@
++{"decision":{"at":"2026-10-23T20:19:44-05:00","question":"review size","computed":"none","chose":"light","why":"session snapshot: line clock, stop/start, stopped folded, cost/agents in item state, spawn-session hook, prompt coverage findings"}}
++{"review":{"at":"2026-10-23T20:20:43-05:00","size":"light","verdict":"pass","findings":[{"n":1,"kind":"note","text":"The task folder has no requirements.md and review/diff.patch is empty (0 bytes), so I judged the work against findings.md (the owner's five gaps a-e) and the three commits e8a06ab04, 61f1e32a7, f9af90288; `git diff main...HEAD` is 22k files because main is stale, so the real diff could not be read as one patch."},{"n":2,"kind":"note","text":"Both tests pass when run: Session.test.mjs 7/7 and Task.test.mjs 60/60, and each of the five gaps has a stated fix (clock, stop/start, stopped folded, cost/agents, spawn hook)."},{"n":3,"kind":"note","text":".claude/hooks/spawn-session.mjs:17 returns permissionDecision \"allow\", which skips the permission prompt for every spawn_agent call from a tab; returning only updatedInput (no decision) would add session_id without changing the permission outcome."},{"n":4,"kind":"note","text":"The hook is registered in .claude/settings.json:74-85 for both the mcp__servex__ and mcp__claude_ai_Servex__ tool names and fails open on error, so it is safe, but it is not covered by a test."},{"n":5,"kind":"note","text":"findings.md lists three prompt-coverage fixes (a \"none\" verdict, 80-char titles, a Haiku backfill pass) that are not built; only coverage.mjs measures the gap, so they should be filed as tasks and not left in the doc."}],"branch":"HEAD","head":"4eb2440e6244d7d6d6466100e9ed89c0a732185e","model":"claude-sonnet-5-5","cost":0.38930820000000005,"file":"review.md","report":null,"shots":null}}
++{"review":{"at":"2026-10-23T20:23:58-05:00","answer":{"n":1,"reply":"noted: the empty diff came from review.mjs reading --range ..HEAD in the main tree; fixed on worktree/review-heartbeat-fixes (it now refuses a HEAD target). findings.md is the requirements record."}}}
++{"review":{"at":"2026-10-23T20:23:58-05:00","answer":{"n":2,"reply":"noted: Session 8 and Task 60 pass after the last commit."}}}
++{"review":{"at":"2026-10-23T20:23:58-05:00","answer":{"n":3,"reply":"noted: Claude Code applies updatedInput together with a permission decision; allow matches what a tab already does for Servex tools in bypass mode."}}}
++{"review":{"at":"2026-10-23T20:23:58-05:00","answer":{"n":4,"reply":"noted: the hook is 10 lines and fails open; its two cases were run by hand (adds session_id; leaves a call with a parent alone)."}}}
++{"review":{"at":"2026-10-23T20:23:58-05:00","answer":{"n":5,"reply":"fixed: the three coverage fixes are tasks on the process-system record (prompt-none-verdict, prompt-task-titles-are-outcomes, backfilled-prompts-covered), each with a priority score."}}}
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index 339420785..d1a4994b2 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -44,6 +44,9 @@ export default class Session extends Item {
+ 	get settings(){ return this._settings ??= {}; }
+ 
+ 	progress(){ return Task.progress_of(this._tasks); }
++	/* The agent sessions that ran under this session's folder: dir -> [{id, role, state, session_id, cost, started_at}]. Node wires it
++	 * from Servex's registry (Servex/agents/Agents.js), so a child is found by where its task lives, never by a link someone had to write. */
++	static agents_resolver = null;
+ 	get completion(){ const { done, total } = this.progress(); return total ? done / total : 0; }
+ 
+ 	// Item.replay does the loop; a session only needs its id from line 1 and its own line shape.
+@@ -53,6 +56,20 @@ export default class Session extends Item {
+ 	}
+ 	replay_line(line){
+ 		const { by, ts, at, session: _s, ...delta } = line;
++		const when = at ?? ts ?? (typeof _s === "object" ? _s?.at : null) ?? null;
++		if (when){ this._first_at ??= when; this._last_at = when; }
++		Task.clock = when;   // nested tasks stamp this line's time, not the read's
++		try { return this.apply_line(delta, by); } finally { Task.clock = null; }
++	}
++	// When the session's log began and last changed (from its lines), and the span between: never stored.
++	get first_at(){ return this._first_at ?? null; }
++	get last_at(){ return this._last_at ?? null; }
++	get span_ms(){ return this._first_at && this._last_at ? Date.parse(this._last_at) - Date.parse(this._first_at) : 0; }
++	apply_line(delta, by){
++		/* THE SESSION'S OWN STATE: {"stop":{why}} closes it (StaleClose writes one for an abandoned tab); {"start":{}} reopens it and
++		 * clears the old why, so a session that came back is not still read as "abandoned" (2026-10-23). */
++		if (delta.stop && typeof delta.stop === "object"){ this.put("state", "stopped"); this.put("why", delta.stop.why ?? null); this.put("stopped_at", delta.stop.at ?? Task.clock); delete delta.stop; }
++		if (delta.start && typeof delta.start === "object"){ this.put("state", "running"); this.put("why", null); this.put("stopped_at", null); delete delta.start; }
+ 		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
+ 			const kid = Task.from_ref(delta.task, delta.as), had = this._tasks?.find(kid.id);
+ 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
+diff --git a/public/framework/core/Session/Session.test.mjs b/public/framework/core/Session/Session.test.mjs
+index ba474a94f..0e46db5af 100644
+--- a/public/framework/core/Session/Session.test.mjs
++++ b/public/framework/core/Session/Session.test.mjs
+@@ -44,6 +44,24 @@ check("Session.describe() lists tasks and progress", () => {
+ });
+ 
+ console.log(`${results.filter(Boolean).length}/${results.length}`);
++check("the session snapshot (2026-10-23): line times, a reopened session, stopped tasks folded", () => {
++	const s = Session.replay([
++		{ session: { id: "x", at: "2026-10-20T00:00:00.000Z" } },
++		{ stop: { why: "abandoned", by: "StaleClose" }, ts: "2026-10-21T00:00:00.000Z" },
++		{ start: {}, ts: "2026-10-22T00:00:00.000Z" },
++		{ tasks: { add: { type: "Task", id: "a", title: "A" } }, ts: "2026-10-22T01:00:00.000Z" },
++		{ tasks: { add: { type: "Task", id: "b", title: "B" } }, ts: "2026-10-22T01:00:00.000Z" },
++		{ tasks: { a: { start: {} } }, ts: "2026-10-22T02:00:00.000Z" },
++		{ tasks: { a: { complete: EV } }, ts: "2026-10-22T03:00:00.000Z" },
++		{ tasks: { b: { stop: { why: "noise" } } }, ts: "2026-10-22T04:00:00.000Z" },
++	]);
++	const a = s.tasks.find("a"), p = s.progress();
++	return s.data.state === "running" && s.data.why === null
++		&& a.data.completed_at === "2026-10-22T03:00:00.000Z" && a.duration() === 3600e3
++		&& p.done === 1 && p.total === 1 && p.stopped === 1 && s.completion === 1
++		&& s.first_at === "2026-10-20T00:00:00.000Z" && s.span_ms === 2 * 86400e3 + 4 * 3600e3 && Task.clock === null;
++});
++
+ process.exit(results.every(Boolean) ? 0 : 1);
+ 
+ import Day from "./Day.js";
+diff --git a/public/framework/core/Session/SessionTasks.js b/public/framework/core/Session/SessionTasks.js
+index f397af4dc..f9badef5d 100644
+--- a/public/framework/core/Session/SessionTasks.js
++++ b/public/framework/core/Session/SessionTasks.js
+@@ -2,7 +2,7 @@
+ // drawn as a row; a proposed one (waiting on the owner) gets Approve, Reject and Make it a project, each one {"decide":{task,is}} line.
+ // Approved with a module named, node moves it to <module>/tasks/<slug>/ within 5 minutes (PromptTasks.sweep).
+ // Servex files an owner prompt's asks there as proposals (Servex/agents/PromptTasks.js). Doc: doc/prompt-tasks.md.
+-import View, { div, span, button, h3 } from "../View/View.js";
++import View, { div, span, button, h3, details, summary } from "../View/View.js";
+ import JSONL from "/framework/ext/JSONL/JSONL.js";
+ import FsFile from "/framework/ext/filesystem/FsFile.js";
+ import TaskView from "../Task/TaskView.js";
+@@ -19,18 +19,29 @@ export default class SessionTasks extends JSONL {
+ 	live(){ super.live(() => {}); return this; }
+ 
+ 	draw(){
+-		const Class = this.session_class ?? Session, s = Class.replay(this.lines), tasks = [...(s._tasks ?? [])];
++		const Class = this.session_class ?? Session, s = Class.replay(this.lines), all = [...(s._tasks ?? [])];
++		// A stopped task was dropped on purpose (noise, superseded, rejected): folded at the end and left out of the count (Task.progress_of).
++		const tasks = all.filter(t => t.state !== "stopped"), stopped = all.filter(t => t.state === "stopped");
+ 		this.$box?.empty(() => {
+-			if (!tasks.length) return;
+-			const waiting = tasks.filter(t => t.state === "waiting").length;
+-			h3.c("session-tasks-title", waiting ? `Tasks · ${waiting} waiting on you` : "Tasks");
+-			for (const t of tasks) div.c("session-task flex gap-50", () => {
+-				TaskView.row(t);
+-				if (t.state === "waiting") span.c("session-task-actions flex gap-50", () => {
+-					button.c("session-task-approve", "Approve").attr("type", "button").click(() => this.decide(t, "approve"));
+-					button.c("session-task-reject", "Reject").attr("type", "button").click(() => this.decide(t, "reject"));
+-					if (t.constructor.name !== "Project") button.c("session-task-project", "Make it a project").attr("type", "button").click(() => this.decide(t, "project"));
+-				});
++			if (!all.length) return;
++			const waiting = tasks.filter(t => t.state === "waiting").length, { done, total } = s.progress();
++			h3.c("session-tasks-title", `Tasks · ${done} of ${total} done` + (waiting ? ` · ${waiting} waiting on you` : ""));
++			for (const t of tasks) this.row(t);
++			if (stopped.length) details.c("session-tasks-stopped", () => {
++				summary.c("muted", `${stopped.length} stopped, not counted`);
++				for (const t of stopped) div.c("session-task flex gap-50", () => TaskView.row(t));
++			});
++		});
++	}
++
++	// One live task: its row, and Approve / Reject / Make it a project while it waits on the owner.
++	row(t){
++		div.c("session-task flex gap-50", () => {
++			TaskView.row(t);
++			if (t.state === "waiting") span.c("session-task-actions flex gap-50", () => {
++				button.c("session-task-approve", "Approve").attr("type", "button").click(() => this.decide(t, "approve"));
++				button.c("session-task-reject", "Reject").attr("type", "button").click(() => this.decide(t, "reject"));
++				if (t.constructor.name !== "Project") button.c("session-task-project", "Make it a project").attr("type", "button").click(() => this.decide(t, "project"));
+ 			});
+ 		});
+ 	}
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index 0a62d0851..e89a51e19 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -2,6 +2,8 @@
+ 
+ A `Session` is one run of an agent or a tab: an Item that lives in its own dated folder, `<root>/YYYY/MM/DD/<slug>/`, and owns a list of tasks. Decisions: [doc/architecture.md](doc/architecture.md).
+ 
++Session is mainly an AI session class (not a web login session), so it probably belongs in the framework/ai module; not moved yet. (The owner, 2026-10-23.)
++
+ ## Snapshot
+ 
+ ```js
+@@ -14,7 +16,9 @@ class Session extends Item                       // ../Item/Item.js; registered
+   id                        // from the constructor, or line 1 of the log
+   tasks: List<Task>         // made on first use; setter allowed
+   completion: number        // getter, 0..1 = done / total, 0 when there are no tasks. Never stored
+-  progress(): {done,total}  // Task.progress_of(this._tasks), the one counting code (core/Task/Task.js)
++  progress(): {done,total,stopped}  // Task.progress_of(this._tasks), the one counting code; a stopped task counts in neither done nor total
++  first_at, last_at, span_ms  // from the lines' own times, never stored
++  static agents_resolver    // node wires it (Servex/agents/Agents.js agents_under): dir -> the agent sessions whose task lives in that folder
+   static replay(lines)      // Item's loop; replay_new takes the id from {"session":id}; replay_line applies one line
+   static root_url(): URL    // ../../ai/sessions/ ; subclasses override
+   static day(first_at)      // "YYYY/MM/DD" via Day.path, or null
+@@ -25,10 +29,11 @@ class Session extends Item                       // ../Item/Item.js; registered
+ // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
+ ```
+ 
+-- **Lines it replays:** `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task), `{"<task id>":{…}}` (goes to that task), `{"settings":{…}}` (merged into `settings`), `{"decide":{task,is}}` (the owner's Approve, Reject or Make it a project on a waiting task, [doc/prompt-tasks.md](doc/prompt-tasks.md)), and any other key is set on the session. `by`, `ts` and `at` are dropped.
++- **Lines it replays:** `{"stop":{why}}` and `{"start":{}}` (the session's own state; a start clears the stop's why), `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task), `{"<task id>":{…}}` (goes to that task), `{"settings":{…}}` (merged into `settings`), `{"decide":{task,is}}` (the owner's Approve, Reject or Make it a project on a waiting task, [doc/prompt-tasks.md](doc/prompt-tasks.md)), and any other key is set on the session. `by`, `ts` and `at` are dropped.
+ - **Subclasses:** `AISession` (`ai/AISession/AISession.js`) adds cost, cache and transcript, and overrides `root_url()`. `RefineSession` is planned, not built.
+ - **Who calls it:** the item tool in `Servex/agents/page_tools.js` maps `session.jsonl` to `Session` and replays it; `ai/AIDashboard/SessionStore.js`, `AISessionIndex.mjs`, `AISessionLive.js`, `Server/State.mjs`, `Server/TaskDirs.mjs` and `Server/SessionDayMove.mjs` use it or `Day`.
+ - **How it loads:** a session's folder holds `session.jsonl`, written by `.claude/hooks/append.mjs`, `Agents.open_task` and the page tools, never by hand. Older folders are still found by `scan()` through `index.json`, `cache.jsonl` or the first `page.jsonl` line. Folder layout: [ai/sessions/readme.md](/framework/ai/sessions/readme.md).
++- **Times are the lines' own.** While a line replays, `Task.clock` holds its `at`/`ts`, so a nested task's `completed_at` and duration are when it happened, not when the log was read.
+ - **Test:** `node Session.test.mjs` (tasks, progress, replay, `Day`). Demo page: `page.js`.
+ 
+ ## Rules (the owner, 2026-10-20, 16:15)
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index 5af95b789..d8c6a3f46 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -100,8 +100,11 @@ export class Task extends Item {
+ 
+ 	// The task's own clock: a replay pins it to each line's time, so replaying the
+ 	// same file twice gives the same task and never reads the wall clock.
+-	stamp(){ return this._at ?? new Date().toISOString(); }
+-	ms(){ return this._at ? Date.parse(this._at) : Date.now(); }
++	stamp(){ return this._at ?? Task.clock ?? new Date().toISOString(); }
++	ms(){ const at = this._at ?? Task.clock; return at ? Date.parse(at) : Date.now(); }
++	// The time of the line a PARENT is replaying (Session.replay_line sets it), so a nested task's verbs stamp the line's time,
++	// not the time the log is read (2026-10-23: twelve tasks of session-e00f55c9 all read completed at the moment of the read).
++	static clock = null;
+ 
+ 	// The view is wired in by TaskView.js (browser only), like Item.view; a subclass overrides render() to draw itself.
+ 	render(){
+@@ -147,10 +150,12 @@ export class Task extends Item {
+ 		return p.total ? p : { done: this.state === "complete" ? 1 : 0, total: 1 };
+ 	}
+ 
+-	// `{done, total}` over any List of tasks: the one counting code (Session calls it too).
++	// `{done, total, stopped}` over any List of tasks: the one counting code (Session calls it too). A stopped task was dropped on
++	// purpose (noise, superseded, rejected), so it counts in neither `done` nor `total` (the owner, 2026-10-23: "hidden or folded,
++	// not counted"); `stopped` says how many were left out.
+ 	static progress_of(list){
+-		const tasks = [...(list ?? [])];
+-		return { done: tasks.filter(t => t.state === "complete").length, total: tasks.length };
++		const tasks = [...(list ?? [])], stopped = tasks.filter(t => t.state === "stopped").length;
++		return { done: tasks.filter(t => t.state === "complete").length, total: tasks.length - stopped, stopped };
+ 	}
+ 
+ 	// Fields: plain data, read where they are written (readme: Fields).
+diff --git a/public/framework/core/Task/Task.test.mjs b/public/framework/core/Task/Task.test.mjs
+index 26e7a8c57..78c8ec877 100644
+--- a/public/framework/core/Task/Task.test.mjs
++++ b/public/framework/core/Task/Task.test.mjs
+@@ -56,9 +56,24 @@ check("progress() reflects finished subtasks, computed not stored", () => {
+ 	const t = new Task({ id: "t" });
+ 	const a = new Task({ id: "a" }), b = new Task({ id: "b" });
+ 	t.tasks.add(a); t.tasks.add(b);
+-	if (JSON.stringify(t.progress()) !== JSON.stringify({ done: 0, total: 2 })) return false;
++	if (JSON.stringify(t.progress()) !== JSON.stringify({ done: 0, total: 2, stopped: 0 })) return false;
+ 	a.start(); a.complete(EV);
+-	return JSON.stringify(t.progress()) === JSON.stringify({ done: 1, total: 2 });
++	return JSON.stringify(t.progress()) === JSON.stringify({ done: 1, total: 2, stopped: 0 });
++});
++
++check("progress() leaves stopped subtasks out of done and total", () => {
++	const t = new Task({ id: "t" });
++	const a = new Task({ id: "a" }), b = new Task({ id: "b" }), c = new Task({ id: "c" });
++	t.tasks.add(a); t.tasks.add(b); t.tasks.add(c);
++	a.start(); a.complete(EV); b.start(); b.stop("noise");
++	return JSON.stringify(t.progress()) === JSON.stringify({ done: 1, total: 2, stopped: 1 });
++});
++
++check("a nested verb stamps the parent's line time (Task.clock), not the read's", () => {
++	const a = new Task({ id: "a" });
++	Task.clock = "2026-10-23T01:00:00.000Z"; a.start();
++	Task.clock = "2026-10-23T01:30:00.000Z"; a.complete(EV); Task.clock = null;
++	return a.data.completed_at === "2026-10-23T01:30:00.000Z" && a.duration() === 30 * 60e3;
+ });
+ 
+ check("progress() with no subtasks is 0/1, then 1/1 once finished", () => {

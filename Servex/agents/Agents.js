@@ -9,10 +9,11 @@ import { fileURLToPath } from "node:url";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./Registry.js";
-import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder } from "./roles.js";
+import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, singleton_id, renew_of } from "./roles.js";
 import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import Task from "../../public/framework/core/Task/Task.js";
+import Session from "../../public/framework/core/Session/Session.js";
 import TaskDirs from "../../Server/TaskDirs.mjs";
 import DatedFiles from "../../Server/DatedFiles.mjs";
 import PastWork from "../../Server/PastWork.mjs";
@@ -52,7 +53,7 @@ export class Agents {
 
 	/* `boot` names THIS host process — every registry row it writes carries it,
 	 * so the next boot can tell "alive a moment ago" from "long dead". */
-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
+	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = dir => this.agents_under(dir); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
 	assign(...args){ return Object.assign(this, ...args); }
 
 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
@@ -127,6 +128,18 @@ export class Agents {
 	 * — `directory_of` returns null for it and nothing is added. */
 	spawn(spec){
 		const again = spec.resume;
+		/* A SINGLETON ROLE (the owner, 2026-10-23; roles.js `singleton`): its id is the role's own word, never `-2`. A second
+		 * spawn while it is live sends it the prompt instead; a stopped or never-started one is spawned under that same id. */
+		const renewing = spec.renewing;
+		if (renewing){ spec = { ...spec }; delete spec.renewing; }
+		const single = !again && singleton_id(spec.role);
+		if (single){
+			const cur = this.live.get(single), from = spec.parent ?? "spawn";
+			if (cur && cur.state !== "stopped"){ if (spec.prompt) cur.send(spec.prompt, { from }); return cur; }
+			/* Only in the registry (after a restart): wake it, so it resumes, or renews if it is due (wake() decides). */
+			if (!renewing && !cur && this.reg().read()[single]?.session_id) try { const w = this.wake(single); if (spec.prompt) w.send(spec.prompt, { from }); return w; } catch {}
+			spec = { ...spec, id: single };
+		}
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
 		const id = spec.id && !taken ? spec.id : this.name(spec);
 		/* AT MOST 30 RUNNING (An assistant on every page, 2026-09-25): before any spawn,
@@ -666,6 +679,14 @@ export class Agents {
 		if (live?.one_shot || (live?.role ?? row?.role) === "fork")
 			throw new Error(`Agent ${id} is a fork: it answered once and is not woken again.`);
 		if (!live?.session_id && !row?.session_id) throw new Error(`Agent ${id} never got a session, so there is nothing to wake.`);
+		const role = live?.role ?? row?.role, why = renew_why(renew_of(role), live?.started_at ?? row?.started_at, live?.context ?? row?.context);
+		if (why && (!live || live.state === "stopped")){   // RENEWAL: a stopped one is spawned fresh; a live dormant one renews in awaken()
+			const base = strip(live ? live.recipe() : (row.spec ?? {}));
+			const fresh = this.spawn(strip({ ...base, role, id, cwd: base.cwd ?? row?.cwd, resume: undefined, fork: undefined, renewing: true,
+				prompt: renewal_text(id, live?.session_id ?? row?.session_id, why) }));
+			fresh.emit?.({ type: "renew", why, replaces: live?.session_id ?? row?.session_id, session: fresh.session_id });
+			return fresh;
+		}
 		return this.reopen({ ...row, ...(live ? { spec: live.recipe(), session_id: live.session_id } : {}), id });
 	}
 
@@ -689,12 +710,31 @@ export class Agents {
 	task_cost(task){
 		if (!task) return 0;
 		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.join(MAIN_ROOT, "public", task) : path.resolve(MAIN_ROOT, task);
-		let sum = 0;
+		return (this.task_dirs().get(want.toLowerCase()) ?? []).reduce((s, id) => s + this.logged_cost(id), 0);
+	}
+
+	/* Registry rows by task dir (resolved, lower case), rebuilt at most once a minute: a session of 150 tasks asks task_cost 150 times,
+	 * and each used to walk all 3,000+ registry rows. */
+	task_dirs(){
+		if (this._task_dirs && Date.now() - this._task_dirs.at < 60e3) return this._task_dirs.map;
+		const map = new Map();
 		for (const row of Object.values(this.reg().read())){
 			let dir = null; try { dir = this.task_dir_for(row); } catch {}
-			if (dir && path.resolve(MAIN_ROOT, dir) === want) sum += this.logged_cost(row.id);
+			if (dir){ const k = path.resolve(MAIN_ROOT, dir).toLowerCase(); (map.get(k) ?? map.set(k, []).get(k)).push(row.id); }
 		}
-		return sum;
+		this._task_dirs = { at: Date.now(), map };
+		return map;
+	}
+
+	/* The agents whose task lives in or below `dir` (a session's folder): its child sessions, found by place (Session.agents_resolver). */
+	agents_under(dir){
+		const root = path.resolve(MAIN_ROOT, dir).toLowerCase(), rows = this.reg().read(), out = [];
+		for (const [k, ids] of this.task_dirs()) if (k === root || k.startsWith(root + path.sep)) for (const id of ids){
+			const r = rows[id] ?? {};
+			out.push({ id, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
+				cost: Math.round(this.logged_cost(id) * 100) / 100, started_at: r.started_at ?? null });
+		}
+		return out.sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
 	}
 
 	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */
@@ -1431,7 +1471,9 @@ Agents.Agent = class Agent {
 	awaken(by){
 		if (this.state !== "dormant") return this;
 		const slept = this.dormant_at;
-		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
+		const renew = this.renew_due();
+		if (renew) this.renew(renew);
+		else this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
 		this.last_at = stamp();
 		/* item 2's `mark_phantom` sets `marked_phantom` once, so it does not re-log the same
 		 * episode on every `working()` call — but a genuinely NEW phantom episode later in this
@@ -1448,6 +1490,24 @@ Agents.Agent = class Agent {
 		this.emit({ type: "awake", by: by ?? null, slept_since: slept, replayed: held.length || undefined });
 		this.host?.register?.(this);
 		return this;
+	}
+
+	/* RENEWAL (the owner, 2026-10-23): a role with `renew: {hours, tokens}` (the AI system mastermind) wakes as a FRESH session
+	 * under the same id once its session is that old or that big, instead of resuming. Nothing runs while it sleeps, so it is
+	 * never kept alive when unused, and no handover file is needed: the fresh session's first turn reads the readmes.
+	 * Returns why ("age" | "tokens") or null. */
+	renew_due(now = Date.now()){
+		const line = renew_of(this.role);
+		if (!line || this.one_shot || this.system) return null;
+		return renew_why(line, this.started_at, this.context, now);
+	}
+
+	renew(why){
+		const replaces = this.session_id, session_id = randomUUID();
+		const prompt = (this.host?.whoami?.(this.id, session_id) ?? "") + opening(this.role, renewal_text(this.id, replaces, why), { in_system: !!this.role_prompt() });
+		this.assign({ resume: null, fork: false, session_id, minted: true, prompt, context: 0, last_usage: null, reminded_context: 0,
+			remind_compacted: false, compacted_turn: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now(), started_at: new Date().toISOString() });
+		this.emit({ type: "renew", why, replaces, session: session_id });
 	}
 
 	/* COMPACTION (dormant-idle, 2026-09-30). `/compact` as a turn of its own: the
@@ -1492,7 +1552,7 @@ Agents.Agent = class Agent {
 		if (this.state !== "idle" || this.one_shot || this.compacting || STANDING.test(this.id ?? "")) return null;
 		if (this.task?.dir && task_landed(this.task.dir)) return null;
 		const after = role_compact_after(this.role);
-		if (after === null) return null;
+		if (after === null || renew_of(this.role)) return null;   // a renewing role gets a fresh session instead (Agent.renew_due)
 		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
 		const limit = after?.tokens ?? this.host?.nudge_tokens ?? (Number(process.env.SERVEX_NUDGE_TOKENS) || 200000);
 		const context = this.context ?? 0;
@@ -1514,7 +1574,7 @@ Agents.Agent = class Agent {
 	sleep_compact(){
 		if (this.one_shot || this.compacting || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return false;
 		const after = role_compact_after(this.role);
-		if (after === null) return false;
+		if (after === null || renew_of(this.role)) return false;   // a renewing role gets a fresh session instead (Agent.renew_due)
 		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
 		const line = Math.min(after?.sleep ?? this.host?.sleep_compact_tokens ?? (Number(process.env.SERVEX_SLEEP_COMPACT_TOKENS) || SLEEP_COMPACT_TOKENS), Math.round(window / 2));
 		return (this.context ?? 0) > line;
@@ -2185,6 +2245,19 @@ Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
 
 /* A nudged agent that declined is nudged again only after its context grew this much. */
 export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
+/* RENEWAL helpers (Agent.renew_due, Agents.wake): why a renewing role is due a fresh session, and that session's first words. */
+export function renew_why(line, started_at, context, now = Date.now()){
+	if (!line) return null;
+	const born = Date.parse(started_at ?? "");
+	if (line.hours && born && now - born >= line.hours * 3600e3) return "age";
+	if (line.tokens && (context ?? 0) >= line.tokens) return "tokens";
+	return null;
+}
+export function renewal_text(id, replaces, why){
+	return `You are a fresh session of ${id}, replacing session ${replaces ?? "(unknown)"} (${why === "age" ? "it was a day old" : "its context passed the renewal line"}). ` +
+		"Read public/framework/ai/readme.md and public/framework/ai/priority.md, then your feedback inbox (module_inbox, module \"ai\"), and continue. Any message that woke you comes next.";
+}
+
 export const REMIND_TOKENS = 100000;   // a role reminder each time the context grows this much (SERVEX_REMIND_TOKENS)
 export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
 export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)
