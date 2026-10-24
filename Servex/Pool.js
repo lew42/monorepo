@@ -216,7 +216,22 @@ export default class Pool extends Events {
         }
         if (unmerged) throw new Error(`Refused: ${id} holds commits not yet in ${this.base} — merge them first. Nothing was discarded.\n${unmerged}`);
 
-        const ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+        let ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+        if (!ff.ok && /local changes/.test(ff.out)){
+            /* michael/dev changed a file the slot's own server keeps rewriting (files.jsonl, page.jsonl): own_dirt() called
+             * the slot clean, but git will not overwrite it. Stop the server first (it rewrites the file within a second),
+             * put the noise back to HEAD, fast-forward, and make a fresh slot: this one's server is gone. */
+            this.kill(slot.watcher_pid, /health-supervisor/i);
+            this.kill(slot.server_pid, this.server_cmd(slot));
+            for (const d of await this.dirt(slot)) if (Pool.server_log(d.file)) this.restore(slot, d.file);
+            ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+            if (ff.ok){
+                this.remove(slot);
+                this.top_up();
+                this.say(`pool: ${id} returned; its server's log files blocked the fast-forward, so it is removed and a fresh one made`, { id });
+                return this.list();
+            }
+        }
         if (!ff.ok) throw new Error(`Refused: ${id} would not fast-forward to ${this.base}: ${ff.out}`);
         Object.assign(slot, { state: "ready", taken_by: null, taken_at: null, idle_since: stamp() });
         this.save();
