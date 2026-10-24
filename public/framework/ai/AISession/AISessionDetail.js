@@ -15,6 +15,7 @@ import PromptLog from "./PromptLog.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import VoiceFlow from "/framework/ext/Refine/stages/VoiceFlow.js";
 import Item from "/framework/core/Item/Item.js";
+import { fetch_names } from "/framework/core/Router/listing.js";
 import Role from "/framework/core/Role/Role.js";
 import RoleView from "/framework/core/Role/RoleView.js";
 import Property from "/framework/core/Property/Property.js";
@@ -123,9 +124,11 @@ export default class AISessionDetail extends Page {
 	head_tools(){ return new SessionMenu({ session: new AISession(this.id), url: this.url, page: this }).draw(); }
 	// The session's record, session.jsonl, beside its page.jsonl in the same folder.
 	async record_url(){ const [own] = await this.log_urls(); return own ? own.replace(/page\.jsonl$/, "session.jsonl") : null; }
+	/** The record only when its folder holds one: a VS Code tab's folder can have page.jsonl and no session.jsonl, and reading it would 404. Off the dev server the listing is null, so it is read as before. */
+	async record_if_there(){ const file = await this.record_url(); if (!file) return null; const listed = await fetch_names(file.replace(/[^/]*$/, "")); return !listed || listed.includes("session.jsonl") ? file : null; }
 	/** The session's role: the word on line 1 of its record (new sessions), else the registry's. Shown as core/Role does on the roles page. */
 	async show_role($el, row, session_id){
-		const file = await this.record_url();
+		const file = await this.record_if_there();
 		const first = file ? await fetch(file).then(r => r.ok ? r.text() : "").then(t => { try { return JSON.parse(t.match(/^.*/)[0]); } catch { return null; } }).catch(() => null) : null;
 		const agents = await Role.agents();
 		const live = agents.find(x => x.session_id === session_id);
@@ -232,7 +235,7 @@ export default class AISessionDetail extends Page {
 			this.log_urls().then(() => PromptLog.read(session_id)).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
 			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
-			this.record_url().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks }).live(); });
+			this.record_if_there().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks }).live(); });
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
 			this.log_urls().then(urls => {
 				if (this.logs) return;
