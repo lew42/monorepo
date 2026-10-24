@@ -27,6 +27,8 @@ A process that is killed hard (`taskkill /F`) cannot write its own end line. The
 - **On landing.** `Server/on-landing.mjs` calls `reap(task)`: everything that task owns stops — its server (the `server.js` wrapper first, because it restarts `run.js` if only the child dies), its health watcher, its browsers, and its idle helper agents.
 - **On the heartbeat.** Servex wraps the heartbeat's tick (`Heartbeat.js` itself is unchanged) and runs `sweep()` at most every 5 minutes. It closes anything whose task has landed, whose task log has been silent for over 2 hours, or that has no task at all and has run over 2 hours. It also stops idle one-pass agents (reviewer, clarity, checker, critic, fork) once their answer is written, and it reclaims pool worktrees whose holder has stopped, only when nobody still works in them and they hold no work ([pool.md](pool.md#a-taken-worktree-stays-taken)).
 
+- **It must not block Servex.** The sweep runs inside Servex, so a blocking call stalls every route and every agent's prompt hook (the SDK gives a hook 30 s). The process list is read with async `execFile` (`processes_async()`), and `task_for_worktree()` reads one task-log index kept 30 s (`Server/worktree-sweep.mjs`) instead of re-walking `ai/` per worktree (that was ~20 s of frozen event loop per sweep). Measure stalls with the gaps between the 5-second heartbeat lines in `logs/crumbs.log`.
+
 Every close writes an `end` line whose `why` says the reason in plain words.
 
 ## 3. What is never touched
