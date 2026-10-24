@@ -31,6 +31,10 @@ narrows by the query alone. This is how [`core/Sidebar`](/framework/core/Sidebar
 it, its first real caller, above a `ux/Tree`: `search_field: "text"` reads a tree node
 directly, no reshaping.
 
+## Filter pills
+
+`class FilterPill extends Dropdown` (`ext/Dropdown`) is one filter worn as a rounded pill, its choice kept in the url (`?<param>=`). `class TimeFilter extends FilterPill` is the **Today ▾** pill (Today, Week, Month, Year): `TimeFilter.add({ root, changed })` hides every element under `root` whose `data-at` falls outside the window. First user: [sessions/v/review](/framework/ai/sessions/v/review/). Files: `FilterPill.js`, `TimeFilter.js`, `FilterPill.css`.
+
 ## Watch out
 
 - **Not `this.text`.** `View` already has a `text()` getter/setter every instance inherits,

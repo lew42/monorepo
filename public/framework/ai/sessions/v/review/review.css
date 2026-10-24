@@ -1,0 +1,32 @@
+/* v/review: the review list on top of the phone variant's cards and rows (mobile.css). Prefix rv-. Doc: readme.md here. */
+@layer site {
+	/* one column on a phone; the head card beside the list once the page is wide enough (the page's width, not the screen's) */
+	.rv-day { container-type: inline-size; padding-block: 1px; }
+	.rv-grid { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; max-width: 120em; margin-inline: auto; }
+	@container (min-width: 56em) {
+		.rv-grid { grid-template-columns: minmax(20em, 26em) minmax(0, 1fr); }
+		.rv-head { position: sticky; top: 8px; }
+	}
+	.rv-head-top { display: flex; flex-wrap: wrap; align-items: center; gap: .4em .8em; }
+	.rv-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4em; padding: 0 .75em .6em; }
+	.rv-stat { display: flex; flex-direction: column; padding: .35em .6em; border-radius: 4px; background: #f3f4f6; border-inline-start: 3px solid #9aa0a6; min-width: 0; }
+	.rv-stat small { color: #6b7178; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.rv-stat-usd { font-size: 1.25em; font-weight: 700; font-variant-numeric: tabular-nums; }
+	.rv-stat-approved { border-color: var(--ok); }
+	.rv-stat-waiting { border-color: var(--warn); }
+	.rv-stat-leak.rv-stat-some { border-color: var(--error); }
+	.rv-stat-leak.rv-stat-some .rv-stat-usd { color: var(--error); }
+	.rv-approve { flex: none; align-self: center; margin-inline-end: .75em; font: inherit; font-size: .8em; padding: .2em .8em; border: 1px solid var(--ok); border-radius: 2em; background: #fff; color: inherit; cursor: pointer; }
+	.rv-approve:disabled { opacity: .5; cursor: default; }
+	.rv-approve-all { margin: 0 .75em .7em; font-size: .9em; padding: .35em 1em; background: var(--ok); border-color: var(--ok); color: #fff; font-weight: 600; }
+	.rv-note:empty { display: none; }
+	.rv-note { padding: 0 .75em .6em; color: var(--error); font-size: .9em; }
+	.mob-row.rv-row { display: flex; align-items: flex-start; }
+	.rv-row > .mob-row-link { flex: 1 1 auto; min-width: 0; }
+	.rv-row > .rv-approve { margin-top: .8em; }
+	.rv-context { color: #6b7178; }
+	.rv-state { font-weight: 600; }
+	.rv-approved .rv-state { color: var(--ok); }
+	.rv-leak .rv-state, .rv-leak .mob-row-title { color: var(--error); }
+	.rv-slug { margin-inline-start: .5em; font-family: var(--mono, monospace); font-size: .9em; opacity: .8; }
+}
