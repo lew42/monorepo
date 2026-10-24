@@ -1,0 +1,780 @@
+{
+ "removals": 58,
+ "rows": [
+  {
+   "branch": "michael/live-page",
+   "sha": "75b098518ecca39914ac48378e7b4489c0ca4c44",
+   "removed_at": "2026-10-17T15:15:17.257Z",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "michael/live-post",
+   "sha": "e60d39ef67b1aeb69ad9ecb226d49439290234d3",
+   "removed_at": "2026-10-17T15:15:17.257Z",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/catalog-previews",
+   "sha": "b943f97d8c61ee172ae5abe1bc6165d28c63f9e1",
+   "removed_at": "2026-10-17T15:15:17.257Z",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/nav-model-400",
+   "sha": "1b1c3efb1249b767c0bc8152f7d7f1be796f3ce4",
+   "removed_at": "2026-10-17T15:15:17.257Z",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "michael/remote-registry",
+   "sha": "d3ddfbf90614df8383b508e69a8a86d592cf898b",
+   "removed_at": "2026-10-17T15:15:17.257Z",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "michael/spawn-policy",
+   "sha": "23c31ee57200624619482b3a650c14309c6f8679",
+   "removed_at": "2026-10-17T15:15:17.257Z",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree-handover-query",
+   "sha": "2a1eadd3d88c2f388fef70a98282588befb1c4cc",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "task/project-class",
+   "sha": "81615fc1508e71e62ac98f1453e3861720b17d75",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "task/sessions-not-tasks",
+   "sha": "e4cf16da5ce30a6d75e4eb459d247f0ea33f095c",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/task-system",
+   "sha": "92d6180639e122d6e727478f86bbb99b6979b98c",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/ai-dashboard",
+   "sha": "079c590e7dabd7ecaa0f5cf9e9ae1aebd8bf950e",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/ai-system-page",
+   "sha": "a35cfa1d73815e676f35dfea336f71f2010a4a24",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/architecture-md-4",
+   "sha": "6882d29e8df8485f25264f3c9657b69b5c38207e",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/dictate-next-4",
+   "sha": "86edfbce9b4faee3aa006a2143505266cd67c0bb",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/live-archive",
+   "sha": "f215fa3619988796e0d010b1e8b12b470134ed37",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/nav-model",
+   "sha": "7aff7f4a05fb9b264afc4705585e9084c6c5a5ae",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/one-store",
+   "sha": "0d91cfb04c0d3b3ee179dae45fff1f6917bf9254",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/orphans",
+   "sha": "bbad3c3f09b195123f9b4434579e65e52abcf93f",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "deleted",
+   "ahead": 2
+  },
+  {
+   "branch": "worktree/readmeaudit",
+   "sha": "19b63fffd252308c1056a20af847a3bee850f9ed",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "deleted",
+   "ahead": 2
+  },
+  {
+   "branch": "worktree/refine-audit",
+   "sha": "ffd6a7fa114b5aba2af79042dd240baaf818bedd",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/refine-build",
+   "sha": "35ce58293a7278aa7db35a225485c812694a835a",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/refine-confidence",
+   "sha": "09ed6abe02dc3da11b60f630de22265a7c377b6c",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/refine-demo",
+   "sha": "3e770f35d99f1c0f542325c0124f4463fff0a676",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/refine-mic",
+   "sha": "50c9a6a5900e6b3755754e694667b53a27e005c1",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/refine-pipeline",
+   "sha": "8dcc4ae6ee4d91375ee411722da8fe20266d875f",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/refined-asks",
+   "sha": "4c8bb72213c6968976831988bb8b3287634e4cc4",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "deleted",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/sessions-layout2",
+   "sha": "d68990a9894223421dbb3a1b67606ddb97d9e15d",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "worktree/undone-to-tasks",
+   "sha": "7c1bcf636862f54a31cda821e1fdc7fcd4399f00",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1
+  },
+  {
+   "branch": "task/process-system",
+   "sha": "6154954e6e9591a1184aa79aece9573059601550",
+   "removed_at": "2026-10-22T21:21:26-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/architect-requests",
+   "sha": "bf0e0d7f90d71f03e431bcd5207c0edee7d1fc65",
+   "removed_at": "2026-10-22T22:00:28-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/readmes-page",
+   "sha": "7d6486170e17c7ee8c7ab833ce8050488a72b162",
+   "removed_at": "2026-10-22T22:00:31-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/stale-close-live-tab",
+   "sha": "2007ae0fca3318b4bd1eada434610773864be229",
+   "removed_at": "2026-10-22T22:40:28-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "fix/child-verb-walk",
+   "sha": "8c8a66d213e042a2e2ecaf8e98c23fb7dac25501",
+   "removed_at": "2026-10-22T23:01:50-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/prompt-tasks",
+   "sha": "3d9d8185ff09bbaf394c942258bc6ba7c3ba4833",
+   "removed_at": "2026-10-22T23:01:54-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/item-move",
+   "sha": "f3b2733942a8dcbcb143747556657b418f63a9d2",
+   "removed_at": "2026-10-22T23:09:51-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/session-flow",
+   "sha": "7385a907bfc164616cfdbec803877b9702328faa",
+   "removed_at": "2026-10-22T23:29:52-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/prompt-records",
+   "sha": "807b9469aecc279ca3271fe00c48e6ffeb79d001",
+   "removed_at": "2026-10-22T23:47:47-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/honest-completion",
+   "sha": "68e7b3a2192a43767e80a12a256dee67f2b3153b",
+   "removed_at": "2026-10-23T01:02:07-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/restart-revive",
+   "sha": "d2a3f29a99dc8cbb0f4dfadb12cfab802901ca65",
+   "removed_at": "2026-10-23T01:02:11-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/prompt-human-only",
+   "sha": "4db341b52e031f20315097cf7a8d21c9cb6d2bae",
+   "removed_at": "2026-10-23T01:46:26-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/mobile-picks",
+   "sha": null,
+   "removed_at": "2026-10-23T01:54:25-05:00",
+   "how": "missing",
+   "ahead": 0
+  },
+  {
+   "branch": "task/handover-test",
+   "sha": "f38a0585119f0f797fc6e154b0a21036bcd88db4",
+   "removed_at": "2026-10-23T03:18:20-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/task-chase",
+   "sha": "86ba7a10d952f56d59dde062364f50960045c00e",
+   "removed_at": "2026-10-23T03:18:24-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/test-temp-store",
+   "sha": "d2b86ce94234e8359a0c979fe39de48416856c2e",
+   "removed_at": "2026-10-23T03:18:28-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/tasks-page-loading",
+   "sha": "d72e74de39908aa7012986b41e0898258a2ea4bb",
+   "removed_at": "2026-10-23T04:08:21-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/cracks-inbox-wait",
+   "sha": "7ba297b14022fa9b90a50af03daafa52f4b39a9a",
+   "removed_at": "2026-10-23T04:18:18-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "task/review-false-pass",
+   "sha": "8996cca1c3bcfe2e22c6c8d0b79072d6696e6910",
+   "removed_at": "2026-10-23T20:38:46-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/process-names",
+   "sha": "a5519184a8224f7cc588a891d6570bf65647177b",
+   "removed_at": "2026-10-23T21:23:03-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/index-step",
+   "sha": null,
+   "removed_at": "2026-10-23T21:41:28-05:00",
+   "how": "missing",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/compact-before-sleep",
+   "sha": null,
+   "removed_at": "2026-10-23T21:52:38-05:00",
+   "how": "missing",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/ai-system-mastermind",
+   "sha": null,
+   "removed_at": "2026-10-23T22:34:00-05:00",
+   "how": "missing",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/review-heartbeat-fixes",
+   "sha": null,
+   "removed_at": "2026-10-23T22:34:07-05:00",
+   "how": "missing",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/session-snapshot",
+   "sha": null,
+   "removed_at": "2026-10-23T22:34:14-05:00",
+   "how": "missing",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/task-queue-plan",
+   "sha": null,
+   "removed_at": "2026-10-23T22:42:38-05:00",
+   "how": "missing",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/agent-cost-resume",
+   "sha": "a7df59dc591bf4a48ec172c286996a5d8cb732b9",
+   "removed_at": "2026-10-23T23:41:19-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/router-walk",
+   "sha": null,
+   "removed_at": "2026-10-23T23:41:46-05:00",
+   "how": "missing",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/smoke-ignored",
+   "sha": "a15673f87c70ea4845d659631ec72e125f919bf7",
+   "removed_at": "2026-10-23T23:41:51-05:00",
+   "how": "branch",
+   "ahead": 0
+  },
+  {
+   "branch": "worktree/qf3-work-tab",
+   "sha": null,
+   "removed_at": "2026-10-24T00:00:25-05:00",
+   "how": "missing",
+   "ahead": 0
+  }
+ ],
+ "out": [
+  {
+   "branch": "worktree-handover-query",
+   "sha": "2a1eadd3d88c2f388fef70a98282588befb1c4cc",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 1,
+   "real_files": 0,
+   "same": 0,
+   "older": 0,
+   "unique": [],
+   "verdict": "noise only",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "task/project-class",
+   "sha": "81615fc1508e71e62ac98f1453e3861720b17d75",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 3,
+   "real_files": 3,
+   "same": 0,
+   "older": 0,
+   "unique": [
+    "public/framework/ai/sessions/2026/10/19/cloud-voice-agent/task-system/project-class/review.jsonl",
+    "public/framework/ai/sessions/2026/10/19/cloud-voice-agent/task-system/project-class/review.md",
+    "public/framework/ai/sessions/2026/10/19/cloud-voice-agent/task-system/project-class/task.jsonl"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "task/ai-dashboard",
+   "sha": "079c590e7dabd7ecaa0f5cf9e9ae1aebd8bf950e",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 62,
+   "real_files": 24,
+   "same": 0,
+   "older": 0,
+   "unique": [
+    "public/framework/ai/doc/ai-dashboard-plan/shots1/localhost-51718-framework-ai/1200.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots1/localhost-51718-framework-ai/1920.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots1/localhost-51718-framework-ai/3440.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots1/localhost-51718-framework-ai/400.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots1/localhost-51718-framework-ai/layout.json",
+    "public/framework/ai/doc/ai-dashboard-plan/shots1/localhost-51718-framework-ai/sheet.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots2/localhost-51718-framework-ai-inbox/1200.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots2/localhost-51718-framework-ai-inbox/1920.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots2/localhost-51718-framework-ai-inbox/400.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots2/localhost-51718-framework-ai-inbox/layout.json",
+    "public/framework/ai/doc/ai-dashboard-plan/shots2/localhost-51718-framework-ai-inbox/sheet.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots2/localhost-51718-framework-ai-open-3db83139-de1e-466b-8cce-6f62ae4af7fc/1920.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots2/localhost-51718-framework-ai-open-3db83139-de1e-466b-8cce-6f62ae4af7fc/400.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots2/localhost-51718-framework-ai-open-3db83139-de1e-466b-8cce-6f62ae4af7fc/layout.json",
+    "public/framework/ai/doc/ai-dashboard-plan/shots2/localhost-51718-framework-ai-open-3db83139-de1e-466b-8cce-6f62ae4af7fc/sheet.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/layout.json",
+    "public/framework/ai/doc/ai-dashboard-plan/shots3/localhost-51718-framework-ai/sheet.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots4/localhost-51718-framework-ai/layout.json",
+    "public/framework/ai/doc/ai-dashboard-plan/shots4/localhost-51718-framework-ai/sheet.png",
+    "public/framework/ai/doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/layout.json",
+    "public/framework/ai/doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/sheet.png",
+    "public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/review.jsonl",
+    "public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/review/diff.patch",
+    "public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/review/report.md"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/ai-system-page",
+   "sha": "a35cfa1d73815e676f35dfea336f71f2010a4a24",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 60,
+   "real_files": 1,
+   "same": 0,
+   "older": 0,
+   "unique": [
+    "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/ai-system-page/docs-check.md"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/architecture-md-4",
+   "sha": "6882d29e8df8485f25264f3c9657b69b5c38207e",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 34,
+   "real_files": 3,
+   "same": 0,
+   "older": 1,
+   "unique": [
+    "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/drawer/lines.json",
+    "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-4/drawer/task.jsonl"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/dictate-next-4",
+   "sha": "86edfbce9b4faee3aa006a2143505266cd67c0bb",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 103,
+   "real_files": 4,
+   "same": 0,
+   "older": 1,
+   "unique": [
+    "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-next-4/review.jsonl",
+    "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-next-4/review.md",
+    "public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-next-4/review/diff.patch"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/live-archive",
+   "sha": "f215fa3619988796e0d010b1e8b12b470134ed37",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 27,
+   "real_files": 1,
+   "same": 0,
+   "older": 0,
+   "unique": [
+    "public/live/archive/manifest.json"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/nav-model",
+   "sha": "7aff7f4a05fb9b264afc4705585e9084c6c5a5ae",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 407,
+   "real_files": 312,
+   "same": 0,
+   "older": 311,
+   "unique": [
+    "public/framework/core/Page/navigation/model/model.css"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/one-store",
+   "sha": "0d91cfb04c0d3b3ee179dae45fff1f6917bf9254",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 59,
+   "real_files": 1,
+   "same": 1,
+   "older": 0,
+   "unique": [],
+   "verdict": "nothing new",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/orphans",
+   "sha": "bbad3c3f09b195123f9b4434579e65e52abcf93f",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "deleted",
+   "ahead": 2,
+   "changed": 202,
+   "real_files": 6,
+   "same": 1,
+   "older": 3,
+   "unique": [
+    "public/framework/core/Page/doc/indexing-2026-10-08.md",
+    "public/framework/ext/page.js"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/readmeaudit",
+   "sha": "19b63fffd252308c1056a20af847a3bee850f9ed",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "deleted",
+   "ahead": 2,
+   "changed": 198,
+   "real_files": 5,
+   "same": 0,
+   "older": 2,
+   "unique": [
+    "public/framework/ai/2026-10-08/ai-system-docs/review.jsonl",
+    "public/framework/ai/2026-10-08/ai-system-docs/review.md",
+    "public/framework/ai/2026-10-08/ai-system-docs/task.jsonl"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/refine-audit",
+   "sha": "ffd6a7fa114b5aba2af79042dd240baaf818bedd",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 4,
+   "real_files": 4,
+   "same": 0,
+   "older": 0,
+   "unique": [
+    "public/framework/ai/sessions/2026/10/15/voice-20261015/refine-audit/review.jsonl",
+    "public/framework/ai/sessions/2026/10/15/voice-20261015/refine-audit/review/diff.patch",
+    "public/framework/ai/sessions/2026/10/15/voice-20261015/refine-audit/review/report.md",
+    "public/framework/ai/sessions/2026/10/15/voice-20261015/refine-audit/task.jsonl"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/refine-build",
+   "sha": "35ce58293a7278aa7db35a225485c812694a835a",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 17,
+   "real_files": 2,
+   "same": 0,
+   "older": 0,
+   "unique": [
+    "public/framework/ai/sessions/2026/10/16/voice-20261016/refine-build/docs-check.md",
+    "public/framework/ai/sessions/2026/10/16/voice-20261016/task.jsonl"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/refine-confidence",
+   "sha": "09ed6abe02dc3da11b60f630de22265a7c377b6c",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 63,
+   "real_files": 1,
+   "same": 1,
+   "older": 0,
+   "unique": [],
+   "verdict": "nothing new",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/refine-demo",
+   "sha": "3e770f35d99f1c0f542325c0124f4463fff0a676",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 1,
+   "real_files": 1,
+   "same": 0,
+   "older": 0,
+   "unique": [
+    "public/framework/ai/2026-10-08/refine-demo/task.jsonl"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/refine-mic",
+   "sha": "50c9a6a5900e6b3755754e694667b53a27e005c1",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 55,
+   "real_files": 1,
+   "same": 1,
+   "older": 0,
+   "unique": [],
+   "verdict": "nothing new",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/refine-pipeline",
+   "sha": "8dcc4ae6ee4d91375ee411722da8fe20266d875f",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 61,
+   "real_files": 1,
+   "same": 0,
+   "older": 0,
+   "unique": [
+    "public/framework/ai/sessions/session-flags.json"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/refined-asks",
+   "sha": "4c8bb72213c6968976831988bb8b3287634e4cc4",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "deleted",
+   "ahead": 1,
+   "changed": 60,
+   "real_files": 3,
+   "same": 2,
+   "older": 0,
+   "unique": [
+    "public/framework/core/Property/doc/refined-asks.md"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/sessions-layout2",
+   "sha": "d68990a9894223421dbb3a1b67606ddb97d9e15d",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 1,
+   "real_files": 1,
+   "same": 1,
+   "older": 0,
+   "unique": [],
+   "verdict": "nothing new",
+   "what": "",
+   "recommend": ""
+  },
+  {
+   "branch": "worktree/undone-to-tasks",
+   "sha": "7c1bcf636862f54a31cda821e1fdc7fcd4399f00",
+   "removed_at": "2026-10-22T21:39:34.965Z",
+   "how": "branch",
+   "ahead": 1,
+   "changed": 90,
+   "real_files": 8,
+   "same": 2,
+   "older": 3,
+   "unique": [
+    "public/framework/ai/sessions/2026/10/17/.smoke/task.jsonl",
+    "public/framework/core/tasks/make-field-extend-property-with-its-own/task.jsonl",
+    "public/framework/ext/Figma/tasks/make-the-figma-design-preview-open-to-sh/task.jsonl"
+   ],
+   "verdict": "has unique work",
+   "what": "",
+   "recommend": ""
+  }
+ ]
+}
