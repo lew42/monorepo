@@ -22,7 +22,7 @@ import PageContent from "./PageContent.js";
 View.stylesheet(import.meta, "Page.css");
 
 // ⚠ Localhost only, the gate dev/Socket keeps: nothing below may ship behaviour.
-const dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
+const dev = PageLogReader.dev;   // one localhost test, in Reader.js
 const marked = el => el?.matches(".page.active-page, .page.active-ancestor, .page.default");
 
 const ALIAS = { surface: "card", wash: "tint" };
@@ -50,6 +50,13 @@ export class Page extends Item {
 	}
 
 	assign(...args){ return Object.assign(this, ...args); }
+
+	// Page.replay(lines) in node (the item tool, Page.test.mjs): the lines are only being REPLAYED, so a `file` line records itself and imports nothing.
+	static replay_new(lines){
+		const page = new this();
+		page.store = { replaying: true };
+		return page;
+	}
 
 	log_label(){ return `page{${this.url ?? "…"}}`; }
 

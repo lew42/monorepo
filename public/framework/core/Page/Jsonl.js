@@ -2,8 +2,9 @@ import { View, div, p, code, table, thead, tbody, tr, th, td, is } from "../View
 import List from "../List/List.js";
 import { page_settings } from "./settings/settings.js";
 import PageListing from "./Listing.js";
+import PageLogReader from "./Reader.js";
 
-const dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
+const dev = PageLogReader.dev;   // one localhost test, in Reader.js
 
 // "kid/page.jsonl" → ["kid", "jsonl"]; key_of() keys a file line by its FIRST path segment, latest wins. (doc/decisions.md)
 const { CHILD, key_of } = PageListing;

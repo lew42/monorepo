@@ -17,10 +17,7 @@ import Property from "/framework/core/Property/Property.js";
 import SessionMenu from "/framework/core/Session/SessionMenu.js";
 import SessionSettings from "/framework/core/Session/SessionSettings.js";
 import SessionTasks from "/framework/core/Session/SessionTasks.js";
-import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
-import "/framework/core/Page/parts/PageText.js";
-import "/framework/core/Page/parts/PageCard.js";
-import "/framework/core/Page/parts/PageLink.js";
+import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
 // view). Built with `new AISessionDetail({ home, id })`: `home` is the Sessions page it hangs under.
