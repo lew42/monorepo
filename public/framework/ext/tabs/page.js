@@ -21,6 +21,7 @@ content(){ this.tabs("what why"); }`);
 		demo(() => {
 			demo.app(sample({
 				title: "",
+				url: "/tabs-demo/",
 				children: {
 					what: { label: "what", title: "", content(){ md("This panel is a real page, mounted in its parent's region. Reload it."); } },
 					why:  { label: "why",  title: "", content(){ md("The selected tab is read off the url, so clicking produces byte-identical output to reloading."); } },
@@ -58,6 +59,7 @@ this.tabs().ac("vertical")         // …inside one section's own render()`);
 		demo(() => {
 			demo.app(sample({
 				title: "",
+				url: "/tabs-demo-block/",
 				children: {
 					state: { label: "state", title: "", content(){ md("The same set, wearing `block` — same urls, same marking, same panel. Only the bar's skin changed."); } },
 					notes: { label: "notes", title: "", content(){ md("The selected tab has no fill: its interior **is** the page, so it merges on any background, in light and dark."); } },
