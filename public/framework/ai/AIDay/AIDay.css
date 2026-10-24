@@ -10,7 +10,7 @@
 	.aid-session { display: flex; flex-direction: column; gap: 0.4em; min-width: 0; padding: 0.6em 0.8em; border: 1px solid var(--line); border-radius: 0.5em; }
 	.aid-shead { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6em; min-width: 0; font-weight: 600; }
 	.aid-sname { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; color: inherit; }
-	.aid-sum { flex: none; font-size: 0.8em; opacity: 0.7; font-weight: 400; }
+	.aid-sum, .aid-from { flex: none; font-size: 0.8em; opacity: 0.7; font-weight: 400; }
 	.aid-task { display: flex; flex-direction: column; gap: 0.1em; min-width: 0; }
 	.aid-row { display: flex; align-items: baseline; gap: 0.5em; min-width: 0; }
 	.aid-mark { flex: none; }
