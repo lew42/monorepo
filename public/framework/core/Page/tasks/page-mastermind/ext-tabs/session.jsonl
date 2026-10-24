@@ -18,3 +18,4 @@
 {"review":{"at":"2026-10-23T21:53:32-05:00","answer":{"n":5,"reply":"noted: the 3 FAIL are outside ext/tabs and failed before the change; /framework/ext/tabs/ smokes 0 FAIL"}}}
 {"log":{"at":"2026-10-23T21:56:00-05:00","msg":"landed: worktree/ext-tabs merged into michael/dev at 4e13b2273 (merge.mjs, smoke passed); worktree removed"}}
 {"finish":{"at":"2026-10-23T21:56:00-05:00"}}
+{"log":{"at":"2026-10-23T21:55:29-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
