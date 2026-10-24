@@ -132,7 +132,7 @@ export default class AISessionDetail extends Page {
 		const agent_id = first?.assign?.agent ?? row?.agent ?? row?.id ?? live?.id;
 		const role = word ? Role.find(roles, word) : Role.from_agent_id(roles, agent_id);
 		if (!word && !role) return;
-		await AISessionRows.load_index(this.url);
+		await AISessionRows.load_index(this.home.url);
 		const ix = AISession.of(session_id).ix;
 		const real = { model: live?.model ?? row?.model ?? ix?.model, effort: ix?.effort ?? row?.effort ?? live?.effort };
 		$el.empty(() => {
@@ -204,9 +204,9 @@ export default class AISessionDetail extends Page {
 			conv.session = session_id;
 			const coverage = new AISessionCoverage(session_id);
 			$coverage.append(coverage.view);
-			// The prompt records (ext/Refine/doc/prompt-records.md). Only a VS Code tab has a prompts.jsonl (the prompt hook writes it), and a tab
-			// has no sessions.json row, so a Servex agent's page skips the read rather than 404 on both of its folders.
-			if (!row) PromptLog.read(session_id).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});
+			// The prompt records (ext/Refine/doc/prompt-records.md). Only a VS Code tab has a prompts.jsonl (the prompt hook writes it), and a Servex agent's
+			// folder has none, so the page asks only when directory.json lists the file rather than 404 on both of its folders.
+			AISessionDetail.dir_index().then(() => AISessionDetail.with_prompts.has(session_id.slice(0, 8)) ? PromptLog.read(session_id) : []).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});
 			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
 			this.record_url().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks }).live(); });
@@ -366,6 +366,7 @@ export default class AISessionDetail extends Page {
 	static NO_TRANSCRIPT = "No transcript for this session yet: either /ai-logs/ (the dev-server-only route this reads it through) isn't running, or this session's own file has no real prompt in it yet.";
 
 	/** Every `ai/<Y>/<M>/<D>/<slug>-<id8>/` folder, keyed by its id8: one walk of /framework/directory.json, shared by the grid and the detail page. */
+	static with_prompts = new Set();   // id8 of the sessions whose folder holds a prompts.jsonl (filled by dir_index), so a page asks only for files that exist
 	static async dir_index(){
 		const dir = await AISessionRows.get_json("/framework/directory.json");
 		const ai = dir?.files?.find(f => f.name === "ai")?.children ?? [];
@@ -380,6 +381,7 @@ export default class AISessionDetail extends Page {
 						if (s.type !== "dir") continue;
 						const hit = /-([0-9a-f]{8})$/.exec(s.name);
 						if (hit && s.children?.some(c => c.name === "page.jsonl")) index.set(hit[1], `/framework/ai/${y.name}/${m.name}/${d.name}/${s.name}/`);
+						if (hit && s.children?.some(c => c.name === PromptLog.FILE)) AISessionDetail.with_prompts.add(hit[1]);
 					}
 				}
 			}
