@@ -16,8 +16,11 @@ t.done();   // prints PASS/FAIL, sets the exit code on failure
 - **Names:** `X.test.mjs` is a node test, passing when it exits 0 (old tests without `Test` count too). `X.test.js` is reserved for browser tests; none yet.
 - **The one command:** `node public/framework/core/Test/TestRunner.mjs [folders…]`: whole repo by default, each file in its own process, 60 s timeout, 4 at once.
 - **Coverage:** a test covers its own folder plus every file it imports, transitively. `--covers <file>` lists them; `--list [folders]` lists tests.
+- **Near:** `--near <file>` lists the tests *near* a changed file: the `*.test.mjs` in its folder plus the tests that import it directly (one level, cheaper than `--covers`). A single test file path runs that file.
 - **On change:** `TestRunner.mjs --watch core/Item core/Task` runs the covering tests (300 ms debounce, `.js`/`.mjs` only).
 - **Results:** one line per run appended to [results.jsonl](./results.jsonl) `{file, ok, ms, at, trigger, tail}`; the [page](/framework/core/Test/) shows the latest per file, failures first.
+- **Trigger values** (the `trigger` field): `manual` (the command), `change:<file>` (`--watch`), `merge` (`Server/merge.mjs` runs the tests covering the diff on the branch), `merge-base` (a branch failure re-run on the merge base to see if it already failed; cached per `sha` in a line that also carries `sha`, which the page ignores), `save` (`Servex/WorktreeWatch.js`, below).
+- **Saves:** a taken worktree's watcher runs the near tests on each `.js`/`.mjs` save and writes the line, with a `worktree` field, to [save-results.jsonl](./save-results.jsonl) (git-ignored machine state, one line per save), never to `results.jsonl`. The watcher's "was passing" comes from that worktree's last save line, else dev's latest `results.jsonl` line, else unknown, and unknown is never reported.
 - **What earns a test:** something broke silently, or it is built to a spec. Never for what is certain to pass. When something fails that no test caught, add the one test that would have caught it, named after the bug. Test-first where it pays.
 
 ## Watch out

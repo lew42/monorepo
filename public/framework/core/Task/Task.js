@@ -100,8 +100,11 @@ export class Task extends Item {
 
 	// The task's own clock: a replay pins it to each line's time, so replaying the
 	// same file twice gives the same task and never reads the wall clock.
-	stamp(){ return this._at ?? new Date().toISOString(); }
-	ms(){ return this._at ? Date.parse(this._at) : Date.now(); }
+	stamp(){ return this._at ?? Task.clock ?? new Date().toISOString(); }
+	ms(){ const at = this._at ?? Task.clock; return at ? Date.parse(at) : Date.now(); }
+	// The time of the line a PARENT is replaying (Session.replay_line sets it), so a nested task's verbs stamp the line's time,
+	// not the time the log is read (2026-10-23: twelve tasks of session-e00f55c9 all read completed at the moment of the read).
+	static clock = null;
 
 	// The view is wired in by TaskView.js (browser only), like Item.view; a subclass overrides render() to draw itself.
 	render(){
@@ -147,10 +150,12 @@ export class Task extends Item {
 		return p.total ? p : { done: this.state === "complete" ? 1 : 0, total: 1 };
 	}
 
-	// `{done, total}` over any List of tasks: the one counting code (Session calls it too).
+	// `{done, total, stopped}` over any List of tasks: the one counting code (Session calls it too). A stopped task was dropped on
+	// purpose (noise, superseded, rejected), so it counts in neither `done` nor `total` (the owner, 2026-10-23: "hidden or folded,
+	// not counted"); `stopped` says how many were left out.
 	static progress_of(list){
-		const tasks = [...(list ?? [])];
-		return { done: tasks.filter(t => t.state === "complete").length, total: tasks.length };
+		const tasks = [...(list ?? [])], stopped = tasks.filter(t => t.state === "stopped").length;
+		return { done: tasks.filter(t => t.state === "complete").length, total: tasks.length - stopped, stopped };
 	}
 
 	// Fields: plain data, read where they are written (readme: Fields).

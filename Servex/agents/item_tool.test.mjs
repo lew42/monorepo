@@ -245,7 +245,9 @@ try {
 
 			const size = fs.statSync(qfile).size;
 			r = await call("item", { path: QURL, delta: { progress: {}, cost: {} } });
-			ok(r.ok && r.answer.progress.total >= 5 && r.answer.cost === 0.5, "a query delta answers {ok, answer:{key:value}}");
+			// A record whose line 1 is {session:{id,kind}} replays as a Session (core/Session): its cost is its own Claude cost plus its child
+			// agents, and the tasks' costs beside them (session_state), so the kid-1 task's 1.5 shows as cost.tasks.
+			ok(r.ok && r.answer.progress.total >= 5 && r.answer.cost.tasks === 1.5 && r.answer.cost.total === 0, "a query delta answers {ok, answer:{key:value}}");
 			ok(fs.statSync(qfile).size === size, "a query writes no line (file size before = after)");
 
 			r = await call("item", { path: QURL, delta: { cost: {}, title: "x" } });
@@ -276,12 +278,15 @@ try {
 
 			r = await call("item", { path: QURL, delta: { summary: {} } });
 			const s = r.answer.summary;
-			ok(s.id === "sum-1" && s.kind === "agent", "summary: a session record answers with its session id");
-			ok(s.states.complete === 1 && s.states.running === 2 && s.progress.done === 1, "summary: counts by state");
-			ok(s.open.length === 5 && s.open.every(t => Object.keys(t).join() === "id,title,state") && !s.open.some(t => t.id === "b"), "summary: open tasks only, as id/title/state");
-			ok(s.cost === 2 && r.answer.summary.children.length === 1 && s.children[0].path === kid_url, "summary: cost = own + folders; children = only tasks whose folder holds a session record");
-			ok(typeof s.duration === "number" && s.duration >= 0 && Math.abs(s.completion - s.progress.done / s.progress.total) < 1e-9, "summary: duration and completion");
+			ok(s.class === "Session" && s.id === "sum-1", "summary: a session record answers as a Session, with its session id");
+			ok(s.counts.direct.complete === 1 && s.counts.direct.started >= 3 && s.progress.done === 1, "summary: task counts by state");
+			ok(s.cost.tasks === 1.5 && Array.isArray(s.children) && Math.abs(s.completion - s.progress.done / s.progress.total) < 1e-9, "summary: cost, child agents and completion");
 			ok(fs.statSync(qfile).size === size, "summary writes nothing");
+
+			// A Task answers summary itself (Task.summary): counts by state, the open tasks only, its cost and child sessions.
+			r = await call("item", { path: QURL, target: ["a"], delta: { summary: {} } });
+			const ts = r.answer?.summary;
+			ok(r.ok && ts.id === "a" && ts.kind === "task" && ts.progress.total === 1 && Array.isArray(ts.open) && typeof ts.duration === "number", "summary on a task: its id, progress, open tasks and duration (Task.summary)");
 
 			r = await call("item", { path: QURL, delta: { tasks: { add: [{ id: "e", title: "E" }, { id: "f", title: "F" }] } } });
 			ok(r.ok && ["e", "f"].every(id => r.state.tasks.some(t => t.id === id)) && !r.state.tasks.some(t => t.id === "task"), "an array tasks.add is two tasks, never one Array child");

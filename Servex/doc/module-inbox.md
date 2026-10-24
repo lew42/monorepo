@@ -33,6 +33,10 @@ public/framework/ux/Dictate  3 unread  deep  sonnet  12 readmes/docs  ~21406 tok
 
 When the reviewing mastermind writes or changes a rule because of a line, it **should** word it as a *should/could*: name the factors (file size, how often, who is affected) and the clearly good and clearly bad sides, then leave the judgment call to the reader. A *must* that prescribes a judgment call fails at the edge cases, and every caveat loaded every time is context pollution. A hard rule is for what actually breaks, and says what broke. (The owner, ask 1.)
 
+## The feedback inbox (the owner, 2026-10-23)
+
+Module `ai` (`public/framework/ai/inbox.jsonl`) is also the AI system mastermind's feedback inbox. Any agent logs a problem with the system as `essence` plus its suggested `fix`. If the same problem was logged before, `repeat_of` names the first line's id. `ModuleInbox.repeats(id)` counts them. The tool wakes `ai-system-mastermind` on the third repeat (`FEEDBACK_WAKE`), or at once for `obvious: true`. It wakes through `spawn`, which reaches the one live session or starts it. A line with no `fix` is an ordinary ask and wakes nobody. Test: `node Servex/agents/singleton.test.mjs`.
+
 ## Next
 
 - `ModuleReview --run`: spawn per module with `readme_chain`, record `outcome`; a periodic trigger in `TaskLoop`.

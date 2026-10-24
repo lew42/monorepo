@@ -90,6 +90,14 @@ if (!base) {
 		const entry = Object.values(JSON.parse(fs.readFileSync(f, "utf8"))).find(e => norm(e.path) === norm(dir));
 		if (entry) { base = `http://127.0.0.1:${entry.port}`; break; }
 	}
+	// Not registered (made with plain `git worktree add`): worktree-restart.mjs adopts it, boots its server and registers it.
+	if (!base && path.basename(path.dirname(path.resolve(dir))) === "worktrees") {
+		const root = path.resolve(here, "..");
+		const r = spawnSync(process.execPath, [path.join(root, "Server", "worktree-restart.mjs"), path.basename(path.resolve(dir)), "--path", path.resolve(dir)], { cwd: root, encoding: "utf8", windowsHide: true });
+		const entry = r.status === 0 ? Object.values(JSON.parse(fs.readFileSync(path.join(root, ".worktrees.json"), "utf8"))).find(e => norm(e.path) === norm(dir)) : null;
+		if (entry) { base = `http://127.0.0.1:${entry.port}`; console.log("smoke: adopted and booted " + dir); }
+		else console.error((r.stdout || "") + (r.stderr || ""));
+	}
 	if (!base) usage("no worktree entry for " + dir + " in .worktrees.json (use --port or --base)");
 }
 base = base.replace(/\/$/, "");

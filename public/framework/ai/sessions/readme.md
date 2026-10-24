@@ -47,6 +47,7 @@ A session folder is one of three kinds:
 - **Variants**: `/framework/ai/sessions/v/<name>/` is another look at the same data, for example [v/mobile/](/framework/ai/sessions/v/mobile/) (the phone pages: day list, nested sessions, a session, a task). `AISessionsPage.route()` passes the name `v` through to that folder instead of reading it as a session id.
 - **Routine sessions are hidden** behind one chip per kind (prompt cleaning, short headless runs, reviews): [doc/buckets.md](doc/buckets.md).
 - **Tasks**: `Server/State.mjs` folds every task log into `ai/state.json`.
+- **For an agent**: `item({path: <session url>})` answers a session's own cost, its child sessions nested with their costs, task counts and the biggest tasks, all computed on read: [core/Session/readme.md](/framework/core/Session/readme.md), "What item() answers for a session".
 
 ## Top-level files here (generated; never hand-edit)
 
