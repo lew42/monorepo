@@ -1,0 +1,442 @@
+diff --git a/Server/TaskQueue.mjs b/Server/TaskQueue.mjs
+new file mode 100644
+index 000000000..5a9346df2
+--- /dev/null
++++ b/Server/TaskQueue.mjs
+@@ -0,0 +1,44 @@
++// Server/TaskQueue.mjs — the thin adapter: gathers the open tasks' records, hands them to core/Task/TaskQueue.js (the one ranking), and registers
++// the read-only "taskqueue" query source for /framework/ai/queue/. Check: node Server/TaskQueue.mjs --check
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import SessionIndex from "./SessionIndex.mjs";
++import QueryServer from "../public/framework/ext/Query/QueryServer.mjs";
++import TaskQueue from "../public/framework/core/Task/TaskQueue.js";
++
++const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
++const ASKS = path.join(REPO, "public/framework/ext/Refine/queue/asks.jsonl");
++
++const read = file => { try { return fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l ? [JSON.parse(l)] : []; } catch { return []; } }); } catch { return []; } };
++
++/** The records the class ranks: open tasks (idle, waiting, running) with their lines, landed tasks' real costs, and the refined asks. */
++export function gather(ix = SessionIndex.shared){
++	const open = [], landed = [];
++	for (const r of ix.tasks()){
++		const module = SessionIndex.module_of(r.dir) ?? "ai";
++		if (r.landed){ if (r.usd > 0) landed.push({ module, usd: r.usd }); continue; }
++		if (!["idle", "waiting", "running"].includes(r.state)) continue;
++		const file = path.join(REPO, r.dir, "task.jsonl");
++		if (fs.existsSync(file)) open.push({ slug: r.slug, url: r.url, module, state: r.state, usd: r.usd, agent: r.agent, lines: read(file) });
++	}
++	return { open, ctx: { landed, asks: read(ASKS) } };
++}
++
++export const build = ix => { const g = gather(ix); return TaskQueue.build(g.open, g.ctx); };
++
++QueryServer.source("taskqueue", {
++	load: () => SessionIndex.shared.load(),
++	items: () => build(SessionIndex.shared),
++	on: fn => SessionIndex.shared.on(fn),
++	shape: r => r,
++	unload_after: 24 * 3600e3,
++});
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url) && process.argv[2] === "--check"){
++	const ix = SessionIndex.shared; await ix.load();
++	const q = build(ix);
++	console.log(q.length, "queued");
++	for (const x of q.slice(0, 20)) console.log(x.rank, x.score, `big${x.big}`, x.state, `$${x.est_usd}`, `re${x.re_asks}`, x.module, "|", x.title.slice(0, 60));
++	process.exit(0);
++}
+diff --git a/Server/run.js b/Server/run.js
+index 9e1cea644..272705910 100644
+--- a/Server/run.js
++++ b/Server/run.js
+@@ -14,6 +14,7 @@ import Runtime from "./plugins/SocketServer/Runtime.js";
+ import AILogs from "./plugins/AILogs.js";
+ import QueryServer from "../public/framework/ext/Query/QueryServer.mjs";
+ import "./InFlight.mjs";   // registers the "inflight" query source (ai/now/)
++import "./TaskQueue.mjs";   // registers the "taskqueue" query source (ai/queue/)
+ import "./SessionIndex.mjs";   // registers the "tasks" query source (Server/doc/session-index.md)
+ import AISessionTailer, { AISessionSub } from "../public/framework/ai/AISession/AISessionTailer.mjs";
+ import Ask, { AskRoute } from "./plugins/Ask.js";
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index d738e86f7..45365f78c 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -35,7 +35,7 @@ export default new Page({
+ 	leaf: true,
+ 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
+ 	classes: v1() ? undefined : is_dash() ? "ad-page" : "full fill",
+-	children: "now readmes tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
++	children: "now queue readmes tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
+ 
+ 	// `board_drawn` stays true so the board's own hand-back (v/3/page.js) never paints it here. Doc: doc/ai-page-notes.md.
+ 	board_drawn: true,
+diff --git a/public/framework/ai/queue/TaskQueueView.css b/public/framework/ai/queue/TaskQueueView.css
+new file mode 100644
+index 000000000..add9cf38e
+--- /dev/null
++++ b/public/framework/ai/queue/TaskQueueView.css
+@@ -0,0 +1,47 @@
++@layer base, theme, site, util;
++@layer site {
++	.page.tq-page { --measure: none; }
++	.tq-view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em; padding: 0.8em clamp(0.6em, 3cqi, 1.5em) 2em; align-items: start; }
++	.tq-side { display: flex; flex-direction: column; gap: 0.6em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
++	.tq-h { margin: 0.4em 0 0; font-size: 1em; opacity: 0.7; }
++	.tq-count { font-size: 2.2em; font-weight: 700; }
++	.tq-bigs { display: flex; flex-direction: column; gap: 0.3em; }
++	.tq-bigrow { display: flex; gap: 0.6em; align-items: baseline; }
++	.tq-n { flex: none; min-width: 2em; font-weight: 700; font-variant-numeric: tabular-nums; }
++	.tq-bname { min-width: 0; }
++	.tq-note { margin: 0; font-size: 0.85em; opacity: 0.7; }
++	.tq-formula { margin: 0; font-weight: 600; }
++	.tq-rules { display: flex; flex-direction: column; gap: 0.3em; font-size: 0.85em; }
++	.tq-main { container-type: inline-size; display: flex; flex-direction: column; gap: 0.5em; min-width: 0; }
++	.tq-head { font-size: 1.1em; font-weight: 600; }
++	.tq-cols { display: none; }
++	.tq-list { display: flex; flex-direction: column; gap: 0.5em; }
++	.tq-row { display: grid; grid-template-columns: 2em minmax(0, 1fr) auto; gap: 0.25em 0.6em; padding: 0.6em 0.8em; border: 1px solid var(--line); border-radius: 0.5em; min-width: 0; }
++	.tq-rank { font-weight: 700; opacity: 0.55; font-variant-numeric: tabular-nums; }
++	.tq-task { min-width: 0; }
++	.tq-view { line-height: 1.35; }
++	.tq-title { font-weight: 600; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
++	.tq-title:hover { text-decoration: underline; }
++	.tq-score { grid-column: 3; grid-row: 1; font-variant-numeric: tabular-nums; font-weight: 700; }
++	.tq-crumb { font-size: 0.78em; opacity: 0.65; }
++	.tq-meta { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 0.1em 1em; font-size: 0.85em; min-width: 0; }
++	.tq-why, .tq-cell, .tq-state { overflow-wrap: anywhere; min-width: 0; }
++	.tq-link { color: inherit; }
++	.tq-label { opacity: 0.6; }
++	.tq-state { font-weight: 600; }
++	.tq-running .tq-state { color: var(--ok); }
++	.tq-waiting { opacity: 0.75; }
++	.tq-empty { padding: 1.5em 0; opacity: 0.8; }
++
++	@media (min-width: 1000px) {
++		.tq-view { grid-template-columns: minmax(16em, 22em) minmax(0, 1fr); }
++		.tq-side { position: sticky; top: 1em; }
++	}
++	@container (min-width: 60em) {
++		.tq-cols, .tq-row { display: grid; grid-template-columns: 2.2em minmax(12em, 3fr) minmax(7em, 1fr) 4.5em 3.5em 5em 6em 4.5em; gap: 0.8em; align-items: start; }
++		.tq-cols { padding: 0 0.8em; font-size: 0.78em; text-transform: uppercase; opacity: 0.6; letter-spacing: 0.04em; }
++		.tq-meta { display: contents; font-size: 0.85em; }
++		.tq-row .tq-label { display: none; }
++		.tq-score { grid-column: auto; grid-row: auto; text-align: right; }
++	}
++}
+diff --git a/public/framework/ai/queue/TaskQueueView.js b/public/framework/ai/queue/TaskQueueView.js
+new file mode 100644
+index 000000000..c650520cc
+--- /dev/null
++++ b/public/framework/ai/queue/TaskQueueView.js
+@@ -0,0 +1,100 @@
++import { View, div, span, a, p, h2 } from "/app.js";
++import QueryClient from "/framework/ext/Query/QueryClient.js";
++import TaskQueue from "/framework/core/Task/TaskQueue.js";
++
++View.stylesheet(import.meta, "TaskQueueView.css");
++
++/** TaskQueueView — the top of the task queue. Beside the list: how many are queued, per big thing, and the one score formula with its numbers.
++ *  The list: one row per task (rank, task and breadcrumb, why, estimated cost, priority, re-asks, state, score); a card per task on a phone, columns when wide.
++ *  Rows come from the dev server's "taskqueue" query source (Server/TaskQueue.mjs, ranked by core/Task/TaskQueue.js); a changed row is pushed, never polled. Readme: readme.md. */
++export default class TaskQueueView extends View {
++	static LIMIT = 20;
++	static BIG = { 1: "See and approve the work", 2: "Every ask becomes a task that finishes", 3: "Agents that know the rules" };
++	static usd(n){ return "$" + (n || 0).toFixed(2); }
++
++	get classes(){ return "tq-view"; }
++
++	// ⚠ render() runs inside View's constructor, before class fields exist: set state in initialize().
++	initialize(){
++		this.rows = new Map();
++		this.error = "";
++		this.loading = true;
++		this.client = new QueryClient("taskqueue", { row: r => this.change(r), stale: () => this.ask() });
++		super.initialize();
++	}
++
++	render(){
++		this.$side = div.c("tq-side");
++		this.$main = div.c("tq-main", () => {
++			this.$head = div.c("tq-head");
++			this.$cols = div.c("tq-cols", () => ["#", "Task and where it lives", "Why", "Cost", "Big", "Re-asked", "State", "Score"].forEach(h => span.c("tq-colh", h)));
++			this.$list = div.c("tq-list");
++		});
++		this.paint();
++		this.ask();
++	}
++
++	async ask(){
++		const res = await this.client.ask({ sort: { by: "score", dir: "desc" }, limit: 500 }, { timeout: 30000 });
++		this.loading = false;
++		if (res.error){ this.error = res.error; return this.paint(); }
++		this.error = ""; this.rows = new Map(res.rows.map(r => [r.id, r]));
++		this.paint();
++	}
++
++	change(r){ this.rows.set(r.id, r); this.paint(); }
++
++	top(){ return [...this.rows.values()].sort((x, y) => y.score - x.score).slice(0, TaskQueueView.LIMIT); }
++
++	crumb(r){ const parts = String(r.parent ?? "").split("/").filter(Boolean); return [r.module, parts.at(-1)].filter(Boolean).join(" › "); }
++
++	paint(){
++		const rows = this.top(), all = [...this.rows.values()], total = all.length;
++		if (this.el) this.el.dataset.ready = String(!this.loading);
++		this.$side.empty(() => {
++			h2.c("tq-h", "What is in the queue");
++			if (this.loading) return void p.c("tq-note", "Reading the task records…");
++			div.c("tq-big", () => { span.c("tq-count", String(total)); span.c("tq-what", total === 1 ? " task queued" : " tasks queued"); });
++			div.c("tq-bigs", () => [1, 2, 3].forEach(b => div.c("tq-bigrow", () => {
++				span.c("tq-n", String(all.filter(r => r.big === b).length));
++				span.c("tq-bname", `#${b} ${TaskQueueView.BIG[b]}`);
++			})));
++			div.c("tq-bigrow", () => { span.c("tq-n", String(all.filter(r => !r.big).length)); span.c("tq-bname", "accepted earlier, no big thing"); });
++			p.c("tq-note", `The top ${rows.length} are listed. Estimates add up to ${TaskQueueView.usd(rows.reduce((n, r) => n + r.est_usd, 0))}; ${all.filter(r => r.state === "running").length} running, ${all.filter(r => r.state === "waiting").length} waiting on someone.`);
++			h2.c("tq-h", "How it is ranked");
++			p.c("tq-formula", "score = importance × (1 + re-asks × 0.5) ÷ (1 + estimated cost ÷ $2)");
++			div.c("tq-rules", () => {
++				div.c("tq-rule", () => { span.c("tq-label", "Importance "); span(`the big thing it serves: #1 = ${TaskQueue.IMPORTANCE[1]}, #2 = ${TaskQueue.IMPORTANCE[2]}, #3 = ${TaskQueue.IMPORTANCE[3]}, none = 1 (priority.md)`); });
++				div.c("tq-rule", () => { span.c("tq-label", "Cost "); span("the median cost of landed tasks in the same module (real cost lines)"); });
++				div.c("tq-rule", () => { span.c("tq-label", "Re-asks "); span("sessions that asked for it again while it stayed unfinished (the refined asks)"); });
++			});
++			p.c("tq-note", "Every number is computed from the task records, never written by an agent. It updates live.");
++		});
++		this.$head.empty(() => {
++			if (this.loading) return;
++			span.c("tq-what", `Top ${rows.length} of ${total}, best score first`);
++		});
++		this.$list.empty(() => {
++			if (this.loading) return;
++			if (this.error) return void p.c("tq-empty", this.error === "no socket" || this.error === "no source"
++				? "This list needs the dev server (a static copy has no one to ask)."
++				: "Could not ask the server: " + this.error);
++			if (!rows.length) return void p.c("tq-empty", "Nothing is queued.");
++			rows.forEach(r => div.c("tq-row tq-" + r.state, () => {
++				span.c("tq-rank", String(r.rank));
++				div.c("tq-task", () => {
++					a.c("tq-title").href(r.url).text(r.title);
++					div.c("tq-crumb", this.crumb(r));
++				});
++				div.c("tq-meta", () => {
++					div.c("tq-why", () => r.why_url ? a.c("tq-link").href(r.why_url).text("the owner's ask").attr("title", r.why) : span("no source recorded"));
++					div.c("tq-cell", () => { span.c("tq-label", "Cost "); span(TaskQueueView.usd(r.est_usd)); }).attr("title", r.est_basis);
++					div.c("tq-cell", () => { span.c("tq-label", "Big thing "); span(r.big ? `#${r.big}` : "none"); }).attr("title", TaskQueueView.BIG[r.big] ?? "accepted before the three big things");
++					div.c("tq-cell", () => { span.c("tq-label", "Re-asked "); span(r.re_asks + "×"); });
++					div.c("tq-state", r.state + (r.state === "running" && r.agent ? " · " + r.agent : ""));
++				});
++				span.c("tq-score").attr("title", "importance × (1 + 0.5 × re-asks) ÷ (1 + estimate ÷ $2)").text(r.score.toFixed(2));
++			}));
++		});
++	}
++}
+diff --git a/public/framework/ai/queue/files.jsonl b/public/framework/ai/queue/files.jsonl
+new file mode 100644
+index 000000000..c604b1f08
+--- /dev/null
++++ b/public/framework/ai/queue/files.jsonl
+@@ -0,0 +1,4 @@
++{"file":"page.js"}
++{"file":"TaskQueueView.css"}
++{"file":"TaskQueueView.js"}
++{"file":"readme.md"}
+diff --git a/public/framework/ai/queue/page.js b/public/framework/ai/queue/page.js
+new file mode 100644
+index 000000000..3c73d88f2
+--- /dev/null
++++ b/public/framework/ai/queue/page.js
+@@ -0,0 +1,12 @@
++import { Page } from "/app.js";
++import TaskQueueView from "./TaskQueueView.js";
++
++export default new Page({
++	meta: import.meta,
++	title: "Task queue",
++	description: "Every accepted task, ranked: what it is, why, its estimated cost and its priority. Computed from the task records, live.",
++	icon: "list",
++	classes: "tq-page",
++	settings: { tab: true },
++	content(){ new TaskQueueView(); },
++});
+diff --git a/public/framework/ai/queue/readme.md b/public/framework/ai/queue/readme.md
+new file mode 100644
+index 000000000..5374c6c99
+--- /dev/null
++++ b/public/framework/ai/queue/readme.md
+@@ -0,0 +1,19 @@
++# Task queue `ai/queue/`
++
++The queue of accepted tasks, ranked, at `/framework/ai/queue/`: for each, what it is, why, its estimated cost, its big thing and its state. Read only; every number is computed from records.
++
++| Piece | Job |
++|---|---|
++| `core/Task/TaskQueue.js` (`class TaskQueue`) | the one ranking: estimate, re-asks, score, `build(open, ctx)`. No DOM, no node imports |
++| `Server/TaskQueue.mjs` | the adapter: reads each open task's `task.jsonl`, the landed tasks' `usd` (from `SessionIndex`) and `ext/Refine/queue/asks.jsonl`; registers the `taskqueue` query source. `node Server/TaskQueue.mjs --check` prints the top 20 |
++| `TaskQueueView.js` (`extends View`) | the page's view: a summary column plus the list; asks the source, repaints on pushed rows |
++| `TaskQueueView.css` | `tq-` rules: cards below 1700 px, table columns above |
++
++**The score:** `importance × (1 + 0.5 × re-asks) ÷ (1 + estimated cost ÷ $2)`. Importance is the big thing in [priority.md](../priority.md) (1 → 3, 2 → 2, 3 → 1, none → 1). The estimate is the median real cost of landed tasks in the same module. Re-asks are the other sessions that asked for it again. The numbers are statics on `TaskQueue`.
++
++**A task is in the queue** when it is open (idle, waiting or running, not landed) and has a `priority` line in its `task.jsonl`. Plan, alternatives and the order of what exists: [plan.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/plan.md).
++
++## Watch out
++
++- Needs the dev server (the source is a socket); a change to `Server/TaskQueue.mjs` needs a dev-server restart.
++- TaskLoop and the Dispatcher do not read this queue yet.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/plan.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/plan.md
+new file mode 100644
+index 000000000..b5e5104e0
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/plan.md
+@@ -0,0 +1,35 @@
++# Task queue: the class, the page, and the look
++
++Brief: [requirements.md](requirements.md). What exists and why this is the one queue: [what-exists.md](what-exists.md).
++
++## Name and home (settled first)
++
++- **Class:** `TaskQueue`, in `public/framework/core/Task/TaskQueue.js`. DOM-free and free of node imports, so the page, TaskLoop and tests import the same one (the deputy's call, 2026-10-23). Alternative I rejected: a class in `Server/`, which the browser could not import and TaskLoop would have to copy.
++- **Adapter:** `Server/TaskQueue.mjs` gathers the records and registers the `taskqueue` query source. It holds no ranking.
++- **Page:** `public/framework/ai/queue/` (`page.js`, `TaskQueueView.js`, `.css`, `readme.md`), at `/framework/ai/queue/`, in the AI page's `children` list.
++
++## Each queued item (all computed, law 7)
++
++| Property | Where it comes from |
++|---|---|
++| **what** | the task's `title` line; the breadcrumb is its module plus its parent task's name |
++| **why** | the task's `source` link (the owner's words); the `priority.why` line |
++| **estimated cost** | the median real `usd` of landed tasks in the same module (3 or more), else of all landed tasks, else $1.50. The basis shows on hover |
++| **priority** | one score: `importance × (1 + 0.5 × re_asks) ÷ (1 + est_usd ÷ 2)` |
++| **state** | `running` (replayed state), `waiting` (a `wait` line and no `approve`), else `queued`; the running agent's id is shown |
++
++Tuning numbers, all in one place (`TaskQueue` statics): `IMPORTANCE` {1: 3, 2: 2, 3: 1, none: 1} from the big thing in priority.md; `REASK_WEIGHT` 0.5 (each re-ask adds half an importance); `COST_K` $2 (a task estimated at $2 scores half of a free one); `FALLBACK_USD`; `MIN_SAME_MODULE` 3.
++
++**Re-asks:** the number of other sessions with a refined ask that shares 3 or more words with the task's title, minus the first. Today it is mostly 0 (`--repeats` finds none at 3+ sessions); the number is real, not hidden, and the matching is crude (assumption: good enough for a first look, a task-id link on each refined ask would be exact).
++
++**Known weakness the look shows:** the first ten rows tie at 0.74, because they share a big thing and a module, so the estimate is the same. Next step if the owner likes the look: a tie-break by oldest ask, and a per-template estimate.
++
++## How it shows live
++
++The page's `TaskQueueView` asks the `taskqueue` source through `QueryClient` and takes pushed row changes: no polling. The source recomputes when the task index changes. Running agents appear in the State column, so the owner sees what is spawned and what waits. The Dispatcher and TaskLoop are not changed in this slice.
++
++## The look
++
++Shots, built from real records on the worktree's server: [400](shots/queue-400.png) · [1200](shots/queue-1200.png) · [1920](shots/queue-1920.png). At 1920 the summary and formula sit beside the list and the list becomes table columns; below 1700 each task is a card.
++
++Not built, waiting for the look to be approved: the review report, TaskLoop reading this order, estimates per template, the tie-break.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-1200.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-1200.png
+new file mode 100644
+index 000000000..95c6f5b0c
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-1920.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-1920.png
+new file mode 100644
+index 000000000..2974e9d5c
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-1920.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-400.png
+new file mode 100644
+index 000000000..f5445aa86
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/what-exists.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/what-exists.md
+new file mode 100644
+index 000000000..983f9ee63
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/what-exists.md
+@@ -0,0 +1,18 @@
++# What already orders or holds work, and which one becomes the queue
++
++| Piece | What it orders | Data | Read by | Becomes |
++|---|---|---|---|---|
++| **Task.rank** (`core/Task/Task.js`) | Tasks by recency (halves every 3 days) × `priority.score` × (1 + children). No cost, no re-asks | each task's `task.jsonl` `priority` line | task pages and lists | **Input.** Its weight idea moves into the queue's score; `rank()` stays for lists that have no cost |
++| **TaskLoop** (`Servex/TaskLoop.js`, [doc](/Servex/doc/task-loop.md)) | Nothing by value. It launches an approved task that carries an `agent` config, writes a `queue` line when the machine is hot and retries each tick, and chases quiet tasks | `task.jsonl` lines (`queue`, `spawn`, `approve`) | itself, every 5 minutes | **Consumer, later.** It should take its launch order from the queue. Not touched in this slice |
++| **Dispatcher** (`Servex/agents/Dispatcher.js`) | A routed spoken ask becomes an agent, first come first served; `max` slots, a `queue` array in memory | the `prompts` log | itself | **Left alone.** It is the door in, not an order |
++| **priority.md** (`ai/priority.md`) | The three big things, by hand | the file | every mastermind | **Input.** The `big` number on a task's `priority` line is the importance |
++| **Triage** (`ai/asks/triage.jsonl`) | 22 tasks accepted with `priority {score, big}`, 219 sent to the backlog | one line per task | the Undone asks page | **Input.** Its approvals are the queue's entry ticket |
++| **Asks ledger** (`ai/asks.jsonl`) + inbox (`waiting_on: "owner"`) | Asks by status, by owner agent | the ledger | the asks pages, the Inbox | **View of it**, as the "why" link |
++| **Refine asks** (`ext/Refine/queue/asks.jsonl`, `node Server/RefineQueue.mjs --repeats`) | Each ask the owner made, per session, with a short key | 1224 refined asks | `--repeats` | **Input.** Counting the sessions that asked again is the re-ask number |
++| **"tasks" query source** (`Server/SessionIndex.mjs`) | Every task row, with the real `usd` | `task.jsonl` files | the AI pages, live | **Input.** Real cost lines, for the estimate; the pattern the queue's own source copies |
++
++## The one that becomes the queue
++
++None of these ranks by cost and re-asks together, so the queue is **a new class**, `TaskQueue` in `core/Task/TaskQueue.js` (beside `Task.js`), not a second copy of any of them. It uses `Task.replay` state and the `priority` lines, and it feeds nothing new into the data: it only reads. A thin node adapter (`Server/TaskQueue.mjs`) gathers records and serves the live `taskqueue` source for the page at `/framework/ai/queue/`.
++
++Found while reading: only 22 tasks carry `big`; 143 open tasks carry a `priority` line in all (older ones from the asks sort have a `score` with no `big`), so the queue holds 143 and shows the top 20.
+diff --git a/public/framework/core/Task/TaskQueue.js b/public/framework/core/Task/TaskQueue.js
+new file mode 100644
+index 000000000..3557c0041
+--- /dev/null
++++ b/public/framework/core/Task/TaskQueue.js
+@@ -0,0 +1,60 @@
++// core/Task/TaskQueue.js — the task queue: open tasks the owner accepted into a priority, ranked by one score. DOM-free, no node imports: the page,
++// Servex's TaskLoop and the tests all import this one class. The server adapter (Server/TaskQueue.mjs) only gathers the records and hands them in.
++// Every field is computed from records (law 7). Formula and tuning numbers: ai/queue/readme.md.
++export default class TaskQueue {
++
++	/** Tuning numbers. Importance is the big thing in priority.md (1 is the most important); COST_K is the dollars at which cost halves a score. */
++	static IMPORTANCE = { 1: 3, 2: 2, 3: 1 };
++	static REASK_WEIGHT = 0.5;
++	static COST_K = 2;
++	static FALLBACK_USD = 1.5;
++	static MIN_SAME_MODULE = 3;
++
++	static words(s){ return new Set(String(s ?? "").toLowerCase().match(/[a-z]{4,}/g) ?? []); }
++
++	static median(a){ if (!a.length) return null; a = [...a].sort((x, y) => x - y); const m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
++
++	/** importance x (1 + REASK_WEIGHT x re_asks) / (1 + est_usd / COST_K). Bigger runs first. */
++	static score({ importance, re_asks, est_usd }){
++		return +(importance * (1 + TaskQueue.REASK_WEIGHT * re_asks) / (1 + est_usd / TaskQueue.COST_K)).toFixed(3);
++	}
++
++	/** Estimate from real cost lines: the median usd of landed tasks in the same module (3+), else of all landed tasks, else a fixed fallback. `landed` is [{module, usd}]. */
++	static estimate(landed, module){
++		const own = landed.filter(l => l.module === module).map(l => l.usd);
++		if (own.length >= TaskQueue.MIN_SAME_MODULE) return { usd: +TaskQueue.median(own).toFixed(2), basis: `median of ${own.length} landed ${module} tasks` };
++		if (landed.length) return { usd: +TaskQueue.median(landed.map(l => l.usd)).toFixed(2), basis: `median of ${landed.length} landed tasks (few in ${module})` };
++		return { usd: TaskQueue.FALLBACK_USD, basis: "fixed fallback" };
++	}
++
++	/** Sessions that asked for this again: refined asks ([{session, key, ask}]) sharing 3+ words with the title (or all of a short key), minus the first. */
++	static re_asks(asks, title){
++		const w = TaskQueue.words(title);
++		if (w.size < 2) return 0;
++		const sessions = new Set();
++		for (const a of asks){ const k = TaskQueue.words(a.key ?? a.ask); let n = 0; for (const x of k) if (w.has(x)) n++; if (n >= 3 || (k.size && n === k.size && n >= 2)) sessions.add(a.session); }
++		return Math.max(0, sessions.size - 1);
++	}
++
++	/** One queue row from an open task: `t` = {slug, url, module, state, usd, agent, lines} (lines = the task.jsonl lines, parsed). Null when the task carries no priority. */
++	static row(t, { landed = [], asks = [] } = {}){
++		const lines = t.lines ?? [], pl = lines.findLast(l => l.priority && typeof l.priority === "object")?.priority;
++		if (!pl) return null;
++		const first = lines[0] ?? {}, title = lines.findLast(l => typeof l.title === "string")?.title ?? first.title ?? first.assign?.title ?? t.slug;
++		const wait = lines.findLast(l => l.wait)?.wait, approved = lines.findLast(l => l.approve)?.approve;
++		const est = TaskQueue.estimate(landed, t.module), importance = TaskQueue.IMPORTANCE[pl.big] ?? 1, re = TaskQueue.re_asks(asks, title);
++		return {
++			id: t.slug, url: t.url, title, module: t.module, parent: first.parent ?? null, why_url: first.source ?? null, why: pl.why ?? "",
++			big: pl.big ?? null, importance, re_asks: re, est_usd: est.usd, est_basis: est.basis, spent_usd: t.usd || 0,
++			score: TaskQueue.score({ importance, re_asks: re, est_usd: est.usd }),
++			state: t.state === "running" ? "running" : (wait && !approved ? "waiting" : "queued"),
++			born: lines.find(l => l.ts)?.ts ?? "",
++			agent: t.agent || (first.sessions?.[0]?.id ?? null),
++		};
++	}
++
++	/** The queue: every open task with a priority, ranked best first (equal scores: the oldest task first), `rank` 1..n. */
++	static build(open, ctx){
++		return open.map(t => TaskQueue.row(t, ctx)).filter(Boolean).sort((a, b) => b.score - a.score || a.born.localeCompare(b.born)).map((r, i) => ({ ...r, rank: i + 1 }));
++	}
++}
+diff --git a/readme.md b/readme.md
+index aaea77014..eb8434edc 100644
+--- a/readme.md
++++ b/readme.md
+@@ -22,6 +22,7 @@ Servex holds port 80 and starts the site the first time you visit it (`Servex/re
+ - **Page system** (pages, routing, JSONL streaming): [core/Page](public/framework/core/Page/readme.md) · [ext/JSONL](public/framework/ext/JSONL/readme.md)
+ - **Organization** (what goes where, the System class): [organization.md](public/framework/ai/doc/organization.md)
+ - **Skills and CLAUDE.md** (what every agent reads first): [CLAUDE.md](CLAUDE.md) · [skills](.claude/skills/)
++- **Task queue** (accepted tasks ranked by importance, cost and re-asks, live): [ai/queue](public/framework/ai/queue/readme.md) · [TaskQueue.js](public/framework/core/Task/TaskQueue.js)
+ - **Dashboard, Log, Inbox, tasks**: [ai/readme.md](public/framework/ai/readme.md) · [all systems, with size and freshness](public/framework/ai/systems-map.md)
+ - **New today (2026-10-12):** [core/Property](public/framework/core/Property/readme.md) (`Property.of`) · [core/Page/Template](public/framework/core/Page/Template/readme.md) (page templates, `BigCard`) · [ext/Shots](public/framework/ext/Shots/readme.md) · [ext/Query](public/framework/ext/Query/readme.md) · [ext/DataGrid](public/framework/ext/DataGrid/readme.md) · [code/performance](public/framework/code/performance/readme.md)
+ - **PageInbox** (a note left on a page reaches its owner): [PageInbox.js](public/framework/core/Page/PageInbox.js) · [inbox tab doc](public/framework/core/Page/doc/inbox-tab.md)
