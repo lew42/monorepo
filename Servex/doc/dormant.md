@@ -143,8 +143,8 @@ with a summary of about 10-20k tokens instead of reloading the whole history.
 - **Measured cost of one compaction** (Servex's own `compact` lines; `turn_cost` is the compaction turn
   alone): a Sonnet task mastermind went from 158,513 to 16,746 tokens for **$0.24 in 61 s**, about 1 minute
   after its turn ended (warm). A 57k context went to 5k for $0.08 in 15 s. Waking that 158k agent cold
-  without compacting re-writes all 158k to cache, roughly $0.60 at Sonnet's cache-write price, and every
-  later turn re-reads the full history. One compaction pays for itself at the first wake.
+  without compacting re-writes all 158k to cache (1.25 times the input price: about $0.59 at $3 per
+  million input tokens), and every later turn re-reads the full history. One compaction pays for itself at the first wake.
 - Test: `node Servex/agents/compact-before-sleep.test.mjs` (23 checks).
 
 **The other two rules still run:**
