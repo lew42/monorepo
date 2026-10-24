@@ -22,6 +22,7 @@ export class Item extends Events(Object) {
 
 	constructor(...args){
 		super();
+		this.data = Object.create(null);   // before assign(): a field passed to the constructor goes into data, not onto the object as an own property that would shadow its accessor
 		this.assign(...args);
 		// Null-prototype data bag: no collision with built-in names
 		this.data = is_data(this.data) ? this.data : Object.create(null);
