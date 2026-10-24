@@ -19,7 +19,7 @@ export default class Role {
 	static find(list, word){ return list.find(r => r.words.includes(word)); }
 	/** An older session has no recorded role: guess it from the agent id (`<prefix>-<name>`), longest prefix first. */
 	static from_agent_id(list, id){
-		return [...list].sort((a, b) => b.prefix.length - a.prefix.length).find(r => id === r.prefix || id?.startsWith(r.prefix + "-"));
+		return [...list].sort((a, b) => b.prefix.length - a.prefix.length || !!a.retired - !!b.retired).find(r => id === r.prefix || id?.startsWith(r.prefix + "-"));
 	}
 	toJSON(){ return { ...this }; }
 
@@ -28,7 +28,7 @@ export default class Role {
 		const res = await fetch(new URL("roles.json", import.meta.url));
 		return res.ok ? Role.from_json(await res.json()) : [];
 	}
-	/** Servex's live agent list (the page's own host first, then Servex's port). */
+	/** Servex's live agent list (Servex's port first, then the page's own host). */
 	static async agents(base = "http://127.0.0.1:8090"){
 		for (const url of [base + "/api/agents", "/api/agents"]) {
 			try { const res = await fetch(url); if (res.ok) { const j = await res.json(); if (Array.isArray(j)) return j; } } catch {}

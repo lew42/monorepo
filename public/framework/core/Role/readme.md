@@ -1,6 +1,6 @@
 # Role: one Servex role as an object
 
-`Role` is one row of `ROLES` in [Servex/agents/roles.js](/Servex/agents/roles.js) (the one source of the rows) as a plain object: name, tier, model, effort, permission mode, readme, skills, id prefix, alias, compact_after, singleton, renew, retired. It uses no node or DOM imports, so Servex and the pages share it.
+`Role` is one row of `ROLES` in [Servex/agents/roles.js](/framework/servex/fs/agents/roles.js) (the one source of the rows) as a plain object: name, tier, model, effort, permission mode, readme, skills, id prefix, alias, compact_after, singleton, renew, retired. It uses no node or DOM imports, so Servex and the pages share it.
 
 ## On disk
 - `Role.js`: the class. `Role.from_rows(ROLES)` builds it in node; `Role.load()` reads `roles.json` in the browser; `Role.agents()` reads Servex's live agent list; `role.instances(agents)` filters the agents in that role; `Role.from_agent_id(roles, id)` guesses an older session's role from its agent id.

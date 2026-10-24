@@ -15,9 +15,9 @@ export default class RoleView {
 	static usd = n => typeof n === "number" ? "$" + n.toFixed(2) : "—";
 
 	/** The role's name over a grid of its properties (empty ones left out), then its live agents. `agents` may be omitted.
-	 *  `defaults` titles the card "Role: <name> (its defaults)", for a session page where the session's own model may differ. */
-	static draw(role, agents, { link = true, defaults = false } = {}){
-		div.c("surface pad flow role-card", () => {
+	 *  `defaults` titles the card "Role: <name> (its defaults)", for a session page; `this_session` adds a row under effort with the session's own model and effort. */
+	static draw(role, agents, { link = true, defaults = false, this_session = "" } = {}){
+		div.c("surface pad role-card", () => {
 			div.c("flex gap-50 wrap v-center", () => {
 				if (link) a.c("h4", defaults ? `Role: ${role.name} (its defaults)` : role.name).attr("href", `/framework/servex/roles/#${role.name}`);
 				else span.c("h4", role.name);
@@ -29,10 +29,11 @@ export default class RoleView {
 					if (!v) continue;
 					small.c("muted", label);
 					span(String(v));
+					if (label === "effort" && this_session){ small.c("muted", "this session"); span(this_session); }
 				}
 			});
 			if (agents) RoleView.instances(role, agents);
-		}).attr("id", role.name);
+		}).attr("id", role.name).style({ display: "grid", gap: "0.75em" });
 	}
 
 	/** The parts of an agent's model and effort that differ from the role's defaults ("claude-opus-5-5 · xhigh"); "" when it matches. */

@@ -139,8 +139,7 @@ export default class AISessionDetail extends Page {
 			small.c("muted", word ? "Role (recorded when the session started, else from the Servex registry):" : "Role (guessed from the agent id: this session recorded none):");
 			if (role){
 				const diff = RoleView.differs(role, real);
-				if (diff) p.c("h4", "this session: " + diff);
-				RoleView.draw(role, agents.filter(x => (x.session_id ?? x.id) === session_id), { defaults: true });
+								RoleView.draw(role, agents.filter(x => (x.session_id ?? x.id) === session_id), { defaults: true, this_session: diff });
 			} else p("Role: " + word + " (not a row in roles.js)");
 		});
 	}
