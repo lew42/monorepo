@@ -1,0 +1,11 @@
+@layer base, theme, site, util;
+
+@layer site {
+	.pn { display: flex; flex-wrap: wrap; gap: 0.4em; }
+	.pn-link { display: inline-flex; align-items: center; gap: 0.4em; padding: 0.25em 0.8em; border: 1px solid var(--line); border-radius: 2em; color: inherit; text-decoration: none; font-size: 0.9em; }
+	.pn-link:hover { background: var(--tint); }
+	.pn-primary { background: var(--prime); border-color: var(--prime); color: var(--prime-ink); font-weight: 600; padding-block: 0.4em; font-size: 1em; }
+	.pn-primary:hover { background: var(--prime); filter: brightness(0.95); }
+	.pn-count { display: none; }
+	.pn-count-on { display: inline-block; min-width: 1.4em; padding: 0 0.4em; border-radius: 1em; background: var(--prime-ink); color: var(--prime); font-size: 0.85em; text-align: center; font-variant-numeric: tabular-nums; }
+}
