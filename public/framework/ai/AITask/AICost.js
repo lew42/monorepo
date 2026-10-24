@@ -140,7 +140,7 @@ export default class AICost {
 					td(x.id);
 					td(AICost.model_name(x.model));
 					td(x.usd == null ? "not measured" : AICost.money(x.usd));
-					if (has_cache_col) td(x.cache_read_pct != null ? x.cache_read_pct + "% of $" : "—");
+					if (has_cache_col) td(x.cache_read_pct != null ? x.cache_read_pct + "% of $" : "not measured");
 				})));
 			});
 			// The root is shared by every task it ran; this one's share is its time.
