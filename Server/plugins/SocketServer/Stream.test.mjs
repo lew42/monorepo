@@ -4,22 +4,21 @@
 import fs from "node:fs";
 import path from "node:path";
 import { register } from "node:module";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 process.chdir(ROOT);   // Tail.js resolves "public" from the cwd
-// Site-absolute imports ("/framework/…", what the browser files use) map to public/ — a loader hook of our own, so this test needs nothing from Servex/.
-const PUBLIC_URL = pathToFileURL(path.join(ROOT, "public") + path.sep).href;
-register("data:text/javascript," + encodeURIComponent(`export async function resolve(spec, ctx, next){ return next(spec.startsWith("/framework/") ? ${JSON.stringify(PUBLIC_URL)} + spec.slice(1) : spec, ctx); }`));
+// Site-absolute imports ("/framework/…", what the browser files use) map to public/: the one shared hook.
+register("../../../Servex/agents/site-hooks.mjs", import.meta.url);
 
 // What a browser tab would have: a localhost location (Store.open streams only there).
 globalThis.location = new URL("http://localhost/");
-globalThis.Element ??= class Element {};   // View.js reads Element.prototype at load (node: until worktree/qf-5 merges its guard)
 
 const { default: Test } = await import("../../../public/framework/core/Test/Test.js");
 const { default: Tail } = await import("./Tail.js");
 const { default: Page } = await import("../../../public/framework/core/Page/Page.class.js");
 const { default: Socket } = await import("../../../public/framework/dev/Socket/Socket.js");
+await import("../../../public/framework/core/Page/parts/kinds.js");   // the part types register by import, as in the browser
 await import("../../../public/framework/ext/JSONL/live.js");   // installs Socket.prototype.jsonl / jsonl_reset
 
 const t = new Test("Server/SocketServer Tail -> browser tail -> Page");
