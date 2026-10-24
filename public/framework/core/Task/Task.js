@@ -374,7 +374,7 @@ export class Task extends Item {
 			this.resolving.add(ref);   // a cycle of references stops here
 			const Own = Item.types.get(lines[0]?.class);   // line 1 may name a subclass (a Process): replay it as that, when it is loaded
 			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
-			if (kid.id === "tasks" || as) kid.id = id;   // a module list's line 1 says "tasks": a property name, and the same for every module
+			if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
 			kid = new this({ id });
 			kid.put("title", id);

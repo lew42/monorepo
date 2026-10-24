@@ -65,7 +65,12 @@ BEFORE THIS TASK CLOSES (CLAUDE.md law 9), answer both:
 			notes.push(`(line ${i + 1}: ${verb}.at was ${body.at ? `the bare date ${body.at}` : "missing"}; filled with ${t})`);
 			return { ...o, [verb]: { ...body, at: t } };
 		};
-		const filled = list.map((o, i) => ({ ...fix_date(this.stamp(this.fill(bare(o), t), t), i), ...own(o), ...meta }));
+		// A page.jsonl line is an Item delta, where a top-level `at` is the old path key (Item.apply): stamp `ts`, as the item tool does.
+		const page_log = basename(target) === "page.jsonl";
+		const stamped = (o, i) => page_log
+			? (o && typeof o === "object" && !Array.isArray(o) && !("at" in o) && !o.ts ? { ts: t, ...o } : o)
+			: fix_date(this.stamp(o, t), i);
+		const filled = list.map((o, i) => ({ ...stamped(this.fill(bare(o), t), i), ...own(o), ...meta }));
 
 		const refused = filled.map((o, i) => [i, check(target, o)]).filter(([, why]) => why);
 		if (refused.length){

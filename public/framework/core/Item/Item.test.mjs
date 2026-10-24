@@ -103,4 +103,11 @@ n++;
 	t(lines.length === 1, "so the child's later delta is NOT logged to the parent's store (known gap)");
 }
 
+// A field passed to the constructor lands in data, so a later set() of it is read back (it used to become a shadowing own property).
+{
+	const g = new Foo({ title: "first" });
+	g.set({ title: "second" });
+	t(g.title === "second" && g.get_one("title") === "second", "new Foo({title}) then set({title}) reads back the new title");
+}
+
 console.log(`ok — ${n} assertions passed`);

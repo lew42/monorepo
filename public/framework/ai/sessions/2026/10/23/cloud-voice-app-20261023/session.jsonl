@@ -1,0 +1,9 @@
+{"session":{"id":"cloud-voice-app-20261023","kind":"cloud-voice-agent","caller":"voice-app","at":1792808310649}}
+{"tool_call":{"at":"2026-10-24T02:18:30.650Z","tool":"send_to_agent","args_hash":"8ac024b5e683","caller":"voice-app"}}
+{"log":{"at":"2026-10-23T21:25:44-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-23T21:30:48-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"tool_call":{"at":"2026-10-24T02:31:29.507Z","tool":"send_to_agent","args_hash":"c57a88ff7421","caller":"voice-app"}}
+{"log":{"at":"2026-10-23T21:40:51-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-23T21:47:14-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-23T21:52:20-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-10-23T21:57:20-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
