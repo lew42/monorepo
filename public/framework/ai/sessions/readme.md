@@ -42,7 +42,7 @@ A session folder is one of three kinds:
 ## How data is read
 
 - **The page**: `page.js` builds `AISessionsPage` (`ai/AISession/`), a table or rail of cards over [ext/DataGrid](/framework/ext/DataGrid/). Rows are `AISessionView`, order and nesting `AISessionsPage.arrange()`, built from `session-tree.json` plus the live `index.json` snapshots pushed over the page's socket.
-- **One session**: `/framework/ai/sessions/<id>/` → `AISessionDetail` (prompts, cost, Coverage tab: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md)).
+- **One session**: `/framework/ai/sessions/<id>/` → `AISessionDetail`: a sticky stats bar, then the tabs Overview · Tasks · Chat (the Work view is the Tasks tab; `?tab=work` and `?tab=conversation` still map), then Coverage, Cost and the rest. The stats bar reads `SessionWork`'s task tree; files `SessionOverview`, `SessionStats`, `SessionTaskRow` are in [AISession](/framework/ai/AISession/readme.md). Coverage tab: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md).
 - **The class**: `class AISession extends Session` (`AISession.js`): totals, `apply_line()` per transcript line, `AISession.of(id)`, `AISession.log()`, `AISession.record(id)`. Classes of the detail page: [doc/ui/classes.md](doc/ui/classes.md).
 - **Variants**: `/framework/ai/sessions/v/<name>/` is another look at the same data, for example [v/mobile/](/framework/ai/sessions/v/mobile/) (the phone pages: day list, nested sessions, a session, a task). `AISessionsPage.route()` passes the name `v` through to that folder instead of reading it as a session id.
 - **Routine sessions are hidden** behind one chip per kind (prompt cleaning, short headless runs, reviews): [doc/buckets.md](doc/buckets.md).
