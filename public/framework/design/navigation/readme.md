@@ -2,6 +2,26 @@
 
 Navigation is how a reader gets anywhere on the site and finds their way back: tabs, a rail, a sidebar, a sheet, a modal, full screen. Moved here from the old `page` skill's Navigation questions.
 
+## The one rule: which navigation stays, which is replaced
+
+**A page with its own navigation keeps it, and its children open inside it. A page without navigation is replaced by its child.** Put another way: the nearest page above you that has navigation (tabs, a sidebar, a rail, a columns row) stays on screen, and everything below it swaps. Core already works this way: `container()` in [`Page.class.js`](/framework/core/Page/Page.class.js) mounts a child in its parent's tab or rail panel, else in the nearest ancestor's columns row, else where the parent was drawn, so it replaces the parent.
+
+A linked markdown page (`<page>/md/<doc>/`) is an ordinary child, so the same rule decides: under a page with navigation it opens inside it (in a columns tree, as the next column), and under a page with none it replaces that page. A markdown page never brings navigation of its own. The one exception is the `md/` explorer, whose file list is the point of that page.
+
+The seven ways a page can navigate today (shots live in [core/Page/tasks/page-mastermind/](/framework/core/Page/tasks/page-mastermind/)):
+
+| Way | What stays on screen | What changes | Shot |
+|---|---|---|---|
+| **Top tabs** | the tab strip | the one panel under it | [tabs at 1920](../../core/Page/tasks/page-mastermind/nav-tabs-1920.png) |
+| **Left sidebar** | the site's page tree | the content area beside it | the same shot, left side |
+| **Rail** | a list on the left or right | the panel beside it | no real page uses it (only the `/imagine/paging/` labs) |
+| **List and detail** (`ux/Browse`) | the list | the detail pane | [md/ explorer at 1400](../../core/Page/tasks/page-mastermind/md-explorer-1400.png) |
+| **Miller columns** (`Page.columns()`) | every open column | a new column opens to the right | [even at 3440](../../core/Page/tasks/page-mastermind/nav-columns-even-3440.png), [measured at 3440](../../core/Page/tasks/page-mastermind/nav-columns-measured-3440.png) |
+| **No navigation** | nothing of the page | the child replaces the page | [at 1920](../../core/Page/tasks/page-mastermind/nav-takeover-1920.png) |
+| **Expand** | the row | the row grows in place; the address does not change | [expand at 1920](../../core/Page/tasks/page-mastermind/nav-expand-1920.png) |
+
+**Expand is for things that are not pages**, like an FAQ answer: it changes no address, so whatever it opens cannot be linked to. Never use it for a child page. **Columns default to even:** the row is shared equally between as many columns as the recommended width fits, and a page opts out with `columns({ even: false })` ([doc/columns.md](/framework/core/Page/doc/columns.md)).
+
 ## Use
 
 **Route everything.** Any view a click reaches — a tab, a selected item, an open panel — has its own URL, so a reload or the back button lands in the same place. This is the single rule everything else here checks.

@@ -30,6 +30,8 @@ Then add `"hello"` to the **parent** page's `children:`. A page nobody declares 
 
 The Router ([core/Router](/framework/core/Router/)) calls `page = await page.child(name)` once per folder name. `child()` tries, in order: memory (`this.children`) → a declared `page.jsonl` → the built-in `md/` and `fs/` → the page's `route(name)` → `page.js` → a bare `.md` file → not found (the Router falls back to a real navigation). A declared child skips `route()`. Code and the two traps: [doc/loading.md](doc/loading.md).
 
+**Where a child opens:** a page with its own navigation (tabs, a rail, a columns row) keeps it and its children open inside it; a page without navigation is replaced by its child. A linked markdown page follows the same rule and never brings navigation of its own. The rule, the seven ways a page can navigate and their shots: [design/navigation](/framework/design/navigation/readme.md).
+
 ## How a line reaches the screen (streaming)
 
 ```
