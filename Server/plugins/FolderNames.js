@@ -24,7 +24,7 @@ export default class FolderNames {
 
 	route(server){
 		server.router.get("/api/folder-names", (req, res) => {
-			const segments = decodeURIComponent(String(req.query.dir ?? "")).split("/").filter(Boolean);
+			const segments = String(req.query.dir ?? "").split("/").filter(Boolean);
 			if (segments.some(denied)) return res.status(403).end();
 
 			const abs = path.resolve(PUBLIC, ...segments);
