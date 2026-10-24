@@ -26,7 +26,7 @@ That is the whole API. Each url segment is one `page.child(name)`, a miss is an 
 - [doc/navigated.md](./doc/navigated.md) — `app.navigated?.(page, from)`; why no `page.entered`.
 - [doc/measured.md](./doc/measured.md) — 0.2ms warm navigation; the serial walk's cost.
 - Members: `doc/method/<name>.md`, `doc/property/<name>.md`, `doc/file/<path>.md` — rendered under the source by `Doc`.
-- Files: `Router.js` (the class), `page.js` (the Doc index), `doc/` (one topic each).
+- Files: `Router.js` (the class), `listing.js` (the one folder listing for routing: `names(dir)` asks the dev server's `/api/folder-names` synchronously, `has(url)` and `is_record_folder(url)` build on it; a page's `route(sub)` uses them so it probes no file that may be missing — `AITask` and `TaskPage` open step folders this way), `page.js` (the Doc index), `doc/` (one topic each).
 
 ## Notes from your asks
 

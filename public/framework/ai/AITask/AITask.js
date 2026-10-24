@@ -10,7 +10,7 @@ import { asks as ask_wall } from "./asks.js";
 import { needs_of } from "./needs.js";
 import { decisions as decision_wall } from "./decisions.js";
 import { progress, spend } from "./stats.js";
-import { names } from "./listing.js";
+import { names, has, is_record_folder } from "../../core/Router/listing.js";
 import { segments, current, links_row } from "./card.js";
 import { shot_wall } from "./shots.js";
 import { chat } from "../../ext/Ask/chat.js";
@@ -79,19 +79,15 @@ export class AITask extends Page {
 
 	route(sub){
 		if (sub.includes(".")) return;
-		const at = this.url?.match(/\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/.+?)\/?$/)?.[1];
-		const list = at ? names(`${at}/${sub}`) : null;
-		if (list ? (!list.includes("task.jsonl") || list.includes("page.js"))
-			: (!(AITask.has(this.url + sub + "/task.jsonl") || AITask.has(this.url + sub + "/session.jsonl")) || AITask.has(this.url + sub + "/page.js"))) return;   // the sessions store: no listing, so ask the server
-		return new AITask({ title: sub, icon: "receipt_long", url: this.url + sub + "/", src: this.url + sub + "/session.json" });
+		const url = this.url + sub + "/";
+		if (!is_record_folder(url)) return;
+		return new AITask({ title: sub, icon: "receipt_long", url, src: url + "session.json" });
 	}
 
-	static has(url){
-		const x = new XMLHttpRequest();
-		x.open("HEAD", url, false);
-		try { x.send(); } catch { return false; }
-		return x.status >= 200 && x.status < 300 && !(x.getResponseHeader("content-type") ?? "").includes("html");
-	}
+	// Does this file exist? Asked of the folder's listing (core/Router/listing.js): ONE request per folder,
+	// always a 200, so a missing session.jsonl / task.jsonl / page.js / requirements.md is never
+	// a 404 probe. Off the dev server there is no listing, and it falls back to a HEAD probe.
+	static has(url){ return has(url); }
 
 	content(){
 		div.c("ai-task flow wide", async $s => {
@@ -102,10 +98,13 @@ export class AITask extends Page {
 	}
 
 	async session(){
-		const t = new TaskJSONL({ url: this.base() + "task.jsonl" });
+		// The record is session.jsonl or task.jsonl, mixed per folder: name the one that is there,
+		// so Store.record_url never HEADs the wrong one (a 404). Neither yet: task.jsonl, as before.
+		const record = AITask.has(this.base() + "session.jsonl") ? "session.jsonl" : "task.jsonl";
+		const t = new TaskJSONL({ url: this.base() + record });
 		// Keep the parsed lines the stream already read, so this.task replays them without a second fetch.
 		const read = t.read.bind(t), reset = t.reset.bind(t);
-		t.read = entries => { (t.entries ??= []).push(...entries); this.task = Task.replay(t.entries); return read(entries); };
+		t.read = entries => { (t.entries ??= []).push(...entries); t.task = this.task = Task.replay(t.entries); return read(entries); };
 		t.reset = () => { t.entries = []; return reset(); };
 		await t.live(() => this.streamed(t));
 		if (t.loaded) return t;
@@ -131,6 +130,7 @@ export class AITask extends Page {
 
 	async requirements(){
 		if (Array.isArray(this.known_files) && !this.known_files.includes("requirements.md")) return null;
+		if (names(this.base()) && !AITask.has(this.base() + "requirements.md")) return null;
 		const res = await fetch(this.base() + "requirements.md").catch(() => null);
 		return res?.ok && !res.headers.get("content-type")?.includes("html") ? res.text() : null;
 	}
