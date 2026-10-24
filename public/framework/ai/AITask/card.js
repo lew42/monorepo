@@ -36,9 +36,10 @@ const tag = t => t.m?.group &&
 	a.c("ai-tag", t.m.group.replaceAll("-", " ")).href("/framework/ai/effort/" + t.m.group + "/");
 
 /** The pill row of a manifest's own deliverable links — one function, called
-    from the card AND the task page (AITask.js's `links()`), so the two never drift. */
+    from the card AND the task page (AITask.js's `links()`), so the two never drift.
+    A link is {url, label} or a plain url string (some task logs write strings; they drew "undefined"). */
 export const links_row = m => m?.links?.length && div.c("ai-links flex wrap", () =>
-	m.links.forEach(l => a.c("ai-link", l.label ?? l.url).href(route(l.url, m))));
+	m.links.forEach(l => { const u = typeof l === "string" ? l : l.url; a.c("ai-link", l.label ?? u).href(route(u, m)); }));
 
 /** Is this url a place a browser can go, or a path relative to something? */
 export const web_url = url => /^([a-z]+:|[/#])/i.test(String(url ?? ""));
