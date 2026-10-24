@@ -1,0 +1,393 @@
+diff --git a/public/framework/core/Page/Listing.js b/public/framework/core/Page/Listing.js
+index c650f1f13..df77570ab 100644
+--- a/public/framework/core/Page/Listing.js
++++ b/public/framework/core/Page/Listing.js
+@@ -1,3 +1,5 @@
++import { names } from "../Router/listing.js";
++
+ // What listing() answers: files, dirs, pages (Map kid → js/jsonl), page (is this log a page?), log (the source file). (doc/decisions.md)
+ export default class PageListing {
+ 
+@@ -31,4 +33,50 @@ export default class PageListing {
+ 
+ 	// Is `name` a folder here, page or not?
+ 	folder(name){ return this.dirs.includes(name) || this.pages.has(name); }
++
++	// A folder's own file list: a loaded page's lines, else files.jsonl, else page.jsonl, else null. Memoised per folder. (doc/decisions.md)
++	static listing(P, url, fresh){
++		url = String(url).replace(/\/?$/, "/");
++		if (P.UNLOGGED.test(url)) return Promise.resolve(null);
++
++		const own = P.page_listing(url);
++		if (own) return Promise.resolve(own);
++
++		const memo = P.listings ??= new Map();
++		if (fresh || !memo.has(url)) memo.set(url, P.fetch_listing(url)
++			.then(listing => { (P.loaded_listings ??= new Map()).set(url, listing); return listing; }));
++		return memo.get(url);
++	}
++
++	// The two files, in the order the parent's listing suggests; the first one there wins.
++	static async fetch_listing(P, url){
++		const [, parent, name] = url.match(/^(.*\/)([^/]+)\/$/) ?? [];
++		const jsonl_first = parent && P.loaded_listing(parent)?.pages.get(name) === "jsonl";
++		let order = jsonl_first ? ["page.jsonl", "files.jsonl"] : ["files.jsonl", "page.jsonl"];
++
++		// On the dev server the folder's names say which log exists, so a folder with neither asks for nothing (no 404s). Static site: null, probe as before.
++		const listed = names(url);
++		if (Array.isArray(listed)) order = order.filter(file => listed.includes(file));
++
++		for (const file of order){
++			const reader = await new P.Reader({ url: url + file }).load();
++			if (reader.loaded) return P.Listing.from(reader.entries, file === "page.jsonl" ? undefined : false, file);
++		}
++		return null;
++	}
++
++	// A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
++	static page_listing(P, url){
++		const page = P.log_pages?.get(url);
++		if (!page) return null;
++		return P.Listing.from([...page.listed?.values() ?? []].map(file => ({ file })), true, "page.jsonl");
++	}
++
++	// The listing, only if it is already here — a loaded jsonl page, or a `listing()`
++	// call that has come back; never fetches.
++	// undefined = not asked yet, null = asked, no file list.
++	static loaded_listing(P, url){
++		url = String(url).replace(/\/?$/, "/");
++		return P.page_listing(url) ?? P.loaded_listings?.get(url);
++	}
+ }
+diff --git a/public/framework/core/Page/Load.js b/public/framework/core/Page/Load.js
+new file mode 100644
+index 000000000..d00bcf454
+--- /dev/null
++++ b/public/framework/core/Page/Load.js
+@@ -0,0 +1,75 @@
++import { is } from "../View/View.js";
++
++// The loading statics of Page: each takes the class (P) first; Page keeps one-line forwarders. (doc/architecture.md)
++export default class PageLoad {
++
++	// Last resort: a `.md` beside me IS a page. ⚠ The SPA fallback answers a miss with index.html at 200: content-type is the 404. (doc/watch-out.md)
++	static async file(P, url){
++		const res = await fetch(url).catch(() => null);
++		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
++
++		const text = await res.text();
++		const { default: md } = await import("../../ext/markdown/md.js");
++		const href = new URL(url, location.origin).href;
++
++		md.cache[href] ??= Promise.resolve(text);
++
++		return {
++			title: text.match(/^#\s+(.+?)\s*$/m)?.[1],
++			content(){ return md.file({ url: href }, href, { h1: false }); },
++		};
++	}
++
++	// A module that throws is NOT a module that isn't there. ⚠ `levels` bounds its subtree (nothing = its own `depth`). (doc/watch-out.md)
++	static async load(P, url, levels){
++		try {
++			const page = (await import(url + "page.js")).default ?? null;
++			return page instanceof P ? page.load_all_children(levels) : page;
++		}
++		catch (error){
++			if (!P.missing(error))
++				console.error(`Page.load("${url}page.js") — the file EXISTS but failed to load:`, error);
++			return null;
++		}
++	}
++
++	// ⚠ The SPA fallback answers a miss with index.html at 200: content-type is the 404. `opts` goes to fetch. (doc/decisions.md)
++	static async read_json(P, url, opts){
++		const res = await fetch(url, opts).catch(() => null);
++		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
++		return res.json().catch(() => null);
++	}
++
++	static async from(P, source, adopt){
++		const url  = is.str(source) ? source.replace(/\/?$/, "/") : null;
++		const data = url ? await P.read_json(url + "page.json") : source;
++		if (!data) return null;
++
++		const page = new P({ url, ...P.props(data, data.mode ?? {}) }, adopt);
++
++		for (const name of data.children ?? [])
++			page.add(name, (url && await P.from(url + name + "/")) ?? { title: name });
++
++		return page;
++	}
++
++	static props(P, data, mode){
++		return {
++			title: data.title, icon: data.icon, description: data.description,
++			navigation: mode.navigation, arrangement: mode.arrangement,
++			surface: mode.surface, background: mode.background,
++			type_size: mode.type,
++			width: mode.room ?? mode.width,
++			content: mode.content,
++		};
++	}
++
++	static missing(P, error){
++		return /Failed to fetch dynamically imported module|error loading dynamically imported module|MIME type|Expected a JavaScript/i
++			.test(error?.message ?? "");
++	}
++
++	static slug(P, title){
++		return String(title).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
++	}
++}
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index 544ccb161..d7a3c9e83 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -9,6 +9,7 @@ import PageInbox from "./PageInbox.js";
+ import PageChildren from "./Children.js";
+ import PageLogReader from "./Reader.js";
+ import PageListing from "./Listing.js";
++import PageLoad from "./Load.js";
+ import PagePrefs from "./Prefs.js";
+ import PageRelated from "./Related.js";
+ import PagePreviews from "./Previews.js";
+@@ -16,7 +17,6 @@ import PageColumns from "./Columns.js";
+ import PageLinks from "./Links.js";
+ import PageJsonl from "./Jsonl.js";
+ import PageContent from "./PageContent.js";
+-import { names } from "../Router/listing.js";
+ 
+ // history and reasons: doc/Page-notes.md
+ 
+@@ -217,42 +217,13 @@ export class Page extends Item {
+ 	static jsonl(url){ return this.Jsonl.load(this, url); }
+ 
+ 	// A folder's own file list: a loaded page's lines, else files.jsonl, else page.jsonl, else null. Memoised per folder. (doc/decisions.md)
+-	static listing(url, fresh){
+-		url = String(url).replace(/\/?$/, "/");
+-		if (Page.UNLOGGED.test(url)) return Promise.resolve(null);
+-
+-		const own = Page.page_listing(url);
+-		if (own) return Promise.resolve(own);
+-
+-		const memo = Page.listings ??= new Map();
+-		if (fresh || !memo.has(url)) memo.set(url, Page.fetch_listing(url)
+-			.then(listing => { (Page.loaded_listings ??= new Map()).set(url, listing); return listing; }));
+-		return memo.get(url);
+-	}
++	static listing(url, fresh){ return Page.Listing.listing(Page, url, fresh); }
+ 
+ 	// The two files, in the order the parent's listing suggests; the first one there wins.
+-	static async fetch_listing(url){
+-		const [, parent, name] = url.match(/^(.*\/)([^/]+)\/$/) ?? [];
+-		const jsonl_first = parent && Page.loaded_listing(parent)?.pages.get(name) === "jsonl";
+-		let order = jsonl_first ? ["page.jsonl", "files.jsonl"] : ["files.jsonl", "page.jsonl"];
+-
+-		// On the dev server the folder's names say which log exists, so a folder with neither asks for nothing (no 404s). Static site: null, probe as before.
+-		const listed = names(url);
+-		if (Array.isArray(listed)) order = order.filter(file => listed.includes(file));
+-
+-		for (const file of order){
+-			const reader = await new Page.Reader({ url: url + file }).load();
+-			if (reader.loaded) return Page.Listing.from(reader.entries, file === "page.jsonl" ? undefined : false, file);
+-		}
+-		return null;
+-	}
++	static fetch_listing(url){ return Page.Listing.fetch_listing(Page, url); }
+ 
+ 	// A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
+-	static page_listing(url){
+-		const page = Page.log_pages?.get(url);
+-		if (!page) return null;
+-		return Page.Listing.from([...page.listed?.values() ?? []].map(file => ({ file })), true, "page.jsonl");
+-	}
++	static page_listing(url){ return Page.Listing.page_listing(Page, url); }
+ 
+ 	// ⚠ Folders inside a dated task folder get no log (PageFiles.js covers()): answer null at once. (doc/watch-out.md)
+ 	static UNLOGGED = /^\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/[^/]+\//;
+@@ -260,10 +231,7 @@ export class Page extends Item {
+ 	// The listing, only if it is already here — a loaded jsonl page, or a `listing()`
+ 	// call that has come back; never fetches.
+ 	// undefined = not asked yet, null = asked, no file list.
+-	static loaded_listing(url){
+-		url = String(url).replace(/\/?$/, "/");
+-		return Page.page_listing(url) ?? Page.loaded_listings?.get(url);
+-	}
++	static loaded_listing(url){ return Page.Listing.loaded_listing(Page, url); }
+ 
+ 	static log_class(module, url){ return this.Jsonl.log_class(this, module, url); }
+ 
+@@ -492,74 +460,21 @@ export class Page extends Item {
+ 	}
+ 
+ 	// Last resort: a `.md` beside me IS a page. ⚠ The SPA fallback answers a miss with index.html at 200: content-type is the 404. (doc/watch-out.md)
+-	static async file(url){
+-		const res = await fetch(url).catch(() => null);
+-		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
+-
+-		const text = await res.text();
+-		const { default: md } = await import("../../ext/markdown/md.js");
+-		const href = new URL(url, location.origin).href;
+-
+-		md.cache[href] ??= Promise.resolve(text);
+-
+-		return {
+-			title: text.match(/^#\s+(.+?)\s*$/m)?.[1],
+-			content(){ return md.file({ url: href }, href, { h1: false }); },
+-		};
+-	}
++	static file(url){ return Page.Load.file(Page, url); }
+ 
+ 	// A module that throws is NOT a module that isn't there. ⚠ `levels` bounds its subtree (nothing = its own `depth`). (doc/watch-out.md)
+-	static async load(url, levels){
+-		try {
+-			const page = (await import(url + "page.js")).default ?? null;
+-			return page instanceof Page ? page.load_all_children(levels) : page;
+-		}
+-		catch (error){
+-			if (!Page.missing(error))
+-				console.error(`Page.load("${url}page.js") — the file EXISTS but failed to load:`, error);
+-			return null;
+-		}
+-	}
++	static load(url, levels){ return Page.Load.load(Page, url, levels); }
+ 
+ 	// ⚠ The SPA fallback answers a miss with index.html at 200: content-type is the 404. `opts` goes to fetch. (doc/decisions.md)
+-	static async read_json(url, opts){
+-		const res = await fetch(url, opts).catch(() => null);
+-		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
+-		return res.json().catch(() => null);
+-	}
++	static read_json(url, opts){ return Page.Load.read_json(Page, url, opts); }
+ 
+-	static async from(source, adopt){
+-		const url  = is.str(source) ? source.replace(/\/?$/, "/") : null;
+-		const data = url ? await this.read_json(url + "page.json") : source;
+-		if (!data) return null;
++	static from(source, adopt){ return this.Load.from(this, source, adopt); }
+ 
+-		const page = new this({ url, ...this.props(data, data.mode ?? {}) }, adopt);
++	static props(data, mode){ return Page.Load.props(Page, data, mode); }
+ 
+-		for (const name of data.children ?? [])
+-			page.add(name, (url && await this.from(url + name + "/")) ?? { title: name });
+-
+-		return page;
+-	}
++	static missing(error){ return Page.Load.missing(Page, error); }
+ 
+-	static props(data, mode){
+-		return {
+-			title: data.title, icon: data.icon, description: data.description,
+-			navigation: mode.navigation, arrangement: mode.arrangement,
+-			surface: mode.surface, background: mode.background,
+-			type_size: mode.type,
+-			width: mode.room ?? mode.width,
+-			content: mode.content,
+-		};
+-	}
+-
+-	static missing(error){
+-		return /Failed to fetch dynamically imported module|error loading dynamically imported module|MIME type|Expected a JavaScript/i
+-			.test(error?.message ?? "");
+-	}
+-
+-	static slug(title){
+-		return String(title).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+-	}
++	static slug(title){ return Page.Load.slug(Page, title); }
+ 
+ 	container(){
+ 		const mine = this.parent?.regions?.get(this.name);
+@@ -770,6 +685,7 @@ Item.register(Page, "Page");
+ 
+ Page.Reader = PageLogReader;
+ Page.Listing = PageListing;
++Page.Load = PageLoad;
+ Page.Prefs = PagePrefs;
+ Page.Jsonl = PageJsonl;
+ Page.Content = PageContent;
+diff --git a/public/framework/core/Page/doc/architecture.md b/public/framework/core/Page/doc/architecture.md
+index 379ef2c2b..8071e25a5 100644
+--- a/public/framework/core/Page/doc/architecture.md
++++ b/public/framework/core/Page/doc/architecture.md
+@@ -34,6 +34,7 @@ AISessionDetail (extends Page) — the default session template
+ | `Page.Reader` | same file | One per `page.jsonl`: tails it, hands each new line to `page.set()`. |
+ | `PageFrame` | `core/Page/Frame.js` | Draws the words. With `navigation: "tabs"`, the page's own content is the first tab. |
+ | helpers: `Jsonl`, `Columns`, `Previews`, `Links`, `Related`, `Prefs` | `core/Page/<Name>.js` | Each is made once per page, on first use, by `page._helper("Jsonl")` (own map per page, so a `Template.clone()` builds its own; the class is read from `this.constructor`, so a subclass can swap one). The forwarders on `Page` (`tab()`, `column()`, `previews()`, `prefs()` …) call it. `PageFrame` is not one: it draws, so each render builds a new one. Why not getters named for the class: `columns`, `related` and `links` are page words or card fields, `previews` and `prefs` are methods. |
++| loading statics: `Listing.js`, `Load.js` | `core/Page/Listing.js` (`listing`, `fetch_listing`, `page_listing`, `loaded_listing`), `core/Page/Load.js` (`file`, `load`, `read_json`, `from`, `props`, `missing`, `slug`) | Each is a static that takes the page class as its first argument; `Page` keeps a one-line static forwarder for each, so no caller changed (`Page.load`, `Page.from`, `Page.listing` …). `Page` versus `this` is kept per method: `Page` where the body used `Page.` (the `listings`, `loaded_listings` and `log_pages` memos are one shared by every subclass; `load` checks `instanceof Page`), `this` for `from`, which builds `new this(...)` so a subclass gets its own kind. A moved body calls its siblings through the class it was given, so a subclass override still wins. Neither file imports `Page.class.js`. Script and manifest: `doc/split-statics.mjs`. |
+ | `tabs()` | `ext/tabs/tabs.js` | The one tab strip, also inside a column page. `home` holds the page's own content. |
+ | `AISessionDetail` | `ai/AISession/AISessionDetail.js` | The session page; its folder's `page.jsonl` reshapes it on top of the template. |
+ 
+diff --git a/public/framework/core/Page/doc/classes.md b/public/framework/core/Page/doc/classes.md
+index 9abd84d46..4c99af871 100644
+--- a/public/framework/core/Page/doc/classes.md
++++ b/public/framework/core/Page/doc/classes.md
+@@ -55,6 +55,7 @@ class PageMarkdown extends Page              // Markdown.js:14, the `md/` child
+ | `Jsonl.js` | `PageJsonl` | What a `page.jsonl` does to a page: loader, file steps, tab state, placed files | 2, Page.class.js |
+ | `Reader.js` | `PageLogReader` (Item.Store) | One store per `page.jsonl` URL; `page.store` is this once loaded | 2, Page.class.js |
+ | `Listing.js` | `PageListing` | The answer of `listing()`: files, dirs, child pages, is-it-a-page | 3, Page.class.js, Jsonl.js |
++| `Load.js` | `PageLoad` | The loading statics (`file`, `load`, `read_json`, `from`, `props`, `missing`, `slug`); `Page` forwards to it | Page.class.js |
+ | `Children.js` | `PageChildren` (Map) | A Map-shaped view over `page.pages`; stubs read as `null` | 2, Page.class.js |
+ | `PageContent.js` | `PageContent` (List) | A page's `content`, one list for its life | 1, Page.class.js |
+ | `PageContentItem.js` | `PageContentItem` (Item) | Base of the three content kinds; never written to `page.jsonl` | 4, the three kinds |
+diff --git a/public/framework/core/Page/doc/split-statics.mjs b/public/framework/core/Page/doc/split-statics.mjs
+new file mode 100644
+index 000000000..109744eaa
+--- /dev/null
++++ b/public/framework/core/Page/doc/split-statics.mjs
+@@ -0,0 +1,53 @@
++// Narrower Page step 2: moves the listing and loading statics out of Page.class.js (pattern: split-extract-2.mjs). `--dry` prints the manifest only.
++import fs from "node:fs";
++const dry = process.argv.includes("--dry");
++const dir = new URL("..", import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1");
++const file = dir + "Page.class.js";
++let src = fs.readFileSync(file, "utf8").split("\n");
++
++const nums = src.map((_, i) => i + 1);
++const GROUPS = [
++	{ to: "Listing.js", cls: "Listing", methods: ["listing", "fetch_listing", "page_listing", "loaded_listing"] },
++	{ to: "Load.js", cls: "Load", methods: ["file", "load", "read_json", "from", "props", "missing", "slug"] },
++];
++
++const manifest = [], moved = { Listing: [], Load: [] };
++for (const { to, cls, methods } of GROUPS) for (const name of methods){
++	const start = src.findIndex(l => new RegExp(`^\\tstatic (async )?${name}\\(`).test(l));
++	if (start < 0) throw new Error("no static " + name);
++	let from = start;
++	while (/^\t\/\//.test(src[from - 1])) from--;
++	let depth = 0, end = start, seen = false;
++	for (; end < src.length; end++){
++		for (const ch of src[end].replace(/\/\/.*$/, "")){ if (ch === "{") { depth++; seen = true; } else if (ch === "}") depth--; }
++		if (seen && depth === 0) break;
++	}
++	const chunk = src.slice(from, end + 1);
++	const head = chunk[start - from];
++	const [, isAsync, params] = head.match(/^\tstatic (async )?\w+\(([^)]*)\)/);
++	const body = chunk.slice(start - from).join("\n");
++	const base = /\bPage\./.test(body) || /instanceof Page/.test(body) ? "Page" : /\bthis\b/.test(body) ? "this" : "Page";
++	let text = chunk.join("\n")
++		.replace(/\bPage\b/g, "P").replace(/\bthis\b/g, "P")
++		.replace(new RegExp(`^\\tstatic (async )?${name}\\(`, "m"), `\tstatic $1${name}(P${params ? ", " : ""}`);
++	text = text.replace(/\tstatic (async )?(\w+)\(P(?:, )?([^)]*)\)\{ *(.*)/, (m) => m);
++	const forwarder = `\tstatic ${name}(${params}){ return ${base}.${cls}.${name}(${base}${params ? ", " + params : ""}); }`;
++	manifest.push({ method: name, old_lines: `${nums[from]}-${nums[end]}`, new_file: to, binds: base === "this" ? "this" : "Page" });
++	moved[cls].push({ text, comments: chunk.slice(0, start - from) });
++	nums.splice(from, end - from + 1, ...nums.slice(from, start), nums[start]);
++	src.splice(from, end - from + 1, ...chunk.slice(0, start - from), forwarder);
++}
++console.log(JSON.stringify(manifest, null, 1));
++if (dry) process.exit(0);
++
++const listing = fs.readFileSync(dir + "Listing.js", "utf8");
++const listingOut = `import { names } from "../Router/listing.js";\n\n` +
++	listing.replace(/\n}\n*$/, "\n\n" + moved.Listing.map(m => m.text).join("\n\n") + "\n}\n");
++const loadOut = `import { is } from "../View/View.js";\n\n// The loading statics of Page: each takes the class (P) first; Page keeps one-line forwarders. (doc/architecture.md)\nexport default class PageLoad {\n\n${moved.Load.map(m => m.text).join("\n\n")}\n}\n`;
++fs.writeFileSync(dir + "Listing.js", listingOut);
++fs.writeFileSync(dir + "Load.js", loadOut);
++
++let out = src.join("\n");
++out = out.replace('import PageListing from "./Listing.js";', 'import PageListing from "./Listing.js";\nimport PageLoad from "./Load.js";')
++	.replace("Page.Listing = PageListing;", "Page.Listing = PageListing;\nPage.Load = PageLoad;");
++fs.writeFileSync(file, out);

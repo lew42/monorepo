@@ -5,3 +5,6 @@
 {"file":"statics-before.json"}
 {"file":"manifest.json"}
 {"file":"statics-after.json"}
+{"file":"review/"}
+{"file":"review.md"}
+{"file":"review.jsonl"}
