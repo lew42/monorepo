@@ -12,7 +12,7 @@
 	.tq-note { margin: 0; font-size: 0.85em; opacity: 0.7; }
 	.tq-formula { margin: 0; font-weight: 600; }
 	.tq-rules { display: flex; flex-direction: column; gap: 0.3em; font-size: 0.85em; }
-	.tq-main { display: flex; flex-direction: column; gap: 0.5em; min-width: 0; }
+	.tq-main { container-type: inline-size; display: flex; flex-direction: column; gap: 0.5em; min-width: 0; }
 	.tq-head { font-size: 1.1em; font-weight: 600; }
 	.tq-cols { display: none; }
 	.tq-list { display: flex; flex-direction: column; gap: 0.5em; }
@@ -24,7 +24,8 @@
 	.tq-title:hover { text-decoration: underline; }
 	.tq-score { grid-column: 3; grid-row: 1; font-variant-numeric: tabular-nums; font-weight: 700; }
 	.tq-crumb { font-size: 0.78em; opacity: 0.65; }
-	.tq-why, .tq-cell, .tq-state { grid-column: 2 / -1; font-size: 0.85em; overflow-wrap: anywhere; min-width: 0; }
+	.tq-meta { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 0.1em 1em; font-size: 0.85em; min-width: 0; }
+	.tq-why, .tq-cell, .tq-state { overflow-wrap: anywhere; min-width: 0; }
 	.tq-link { color: inherit; }
 	.tq-label { opacity: 0.6; }
 	.tq-state { font-weight: 600; }
@@ -36,11 +37,11 @@
 		.tq-view { grid-template-columns: minmax(16em, 22em) minmax(0, 1fr); }
 		.tq-side { position: sticky; top: 1em; }
 	}
-	@media (min-width: 1700px) {
+	@container (min-width: 60em) {
 		.tq-cols, .tq-row { display: grid; grid-template-columns: 2.2em minmax(12em, 3fr) minmax(7em, 1fr) 4.5em 3.5em 5em 6em 4.5em; gap: 0.8em; align-items: start; }
 		.tq-cols { padding: 0 0.8em; font-size: 0.78em; text-transform: uppercase; opacity: 0.6; letter-spacing: 0.04em; }
-		.tq-why, .tq-cell, .tq-state { grid-column: auto; }
-		.tq-label { display: none; }
+		.tq-meta { display: contents; font-size: 0.85em; }
+		.tq-row .tq-label { display: none; }
 		.tq-score { grid-column: auto; grid-row: auto; text-align: right; }
 	}
 }

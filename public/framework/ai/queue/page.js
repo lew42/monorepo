@@ -7,5 +7,6 @@ export default new Page({
 	description: "Every accepted task, ranked: what it is, why, its estimated cost and its priority. Computed from the task records, live.",
 	icon: "list",
 	classes: "tq-page",
+	settings: { tab: true },
 	content(){ new TaskQueueView(); },
 });

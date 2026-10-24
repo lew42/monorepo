@@ -86,11 +86,13 @@ export default class TaskQueueView extends View {
 					a.c("tq-title").href(r.url).text(r.title);
 					div.c("tq-crumb", this.crumb(r));
 				});
-				div.c("tq-why", () => r.why_url ? a.c("tq-link").href(r.why_url).text("the owner's ask") : span("no source recorded"));
-				div.c("tq-cell", () => { span.c("tq-label", "Cost "); span(TaskQueueView.usd(r.est_usd)); }).attr("title", r.est_basis);
-				div.c("tq-cell", () => { span.c("tq-label", "Big thing "); span(r.big ? `#${r.big}` : "none"); }).attr("title", TaskQueueView.BIG[r.big] ?? "accepted before the three big things");
-				div.c("tq-cell", () => { span.c("tq-label", "Re-asked "); span(r.re_asks + "×"); });
-				div.c("tq-state", r.state + (r.state === "running" && r.agent ? " · " + r.agent : ""));
+				div.c("tq-meta", () => {
+					div.c("tq-why", () => r.why_url ? a.c("tq-link").href(r.why_url).text("the owner's ask").attr("title", r.why) : span("no source recorded"));
+					div.c("tq-cell", () => { span.c("tq-label", "Cost "); span(TaskQueueView.usd(r.est_usd)); }).attr("title", r.est_basis);
+					div.c("tq-cell", () => { span.c("tq-label", "Big thing "); span(r.big ? `#${r.big}` : "none"); }).attr("title", TaskQueueView.BIG[r.big] ?? "accepted before the three big things");
+					div.c("tq-cell", () => { span.c("tq-label", "Re-asked "); span(r.re_asks + "×"); });
+					div.c("tq-state", r.state + (r.state === "running" && r.agent ? " · " + r.agent : ""));
+				});
 				span.c("tq-score").attr("title", "importance × (1 + 0.5 × re-asks) ÷ (1 + estimate ÷ $2)").text(r.score.toFixed(2));
 			}));
 		});
