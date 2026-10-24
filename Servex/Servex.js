@@ -283,7 +283,7 @@ export default class Servex extends Events {
         this.task_loop = new this.constructor.TaskLoop({ servex: this, root: REPO });
         if (!process.env.SERVEX_NO_TASKLOOP) this.task_loop.start();
         page_tool_hooks.approved = file => this.task_loop.launch(file);   // an approve line starts a templated task's agent (doc/templates.md)
-        /* THE PROCESS RUNNER (process-system, 2026-10-22): a process's phases run in order because node runs them. Woken by
+        /* THE PROCESS RUNNER (process-system, 2026-10-22): a process's steps run in order because node runs them. Woken by
          * any item-tool write to a process, by an agent's turn end, and by the TaskLoop tick (resume after a restart).
          * Doc: public/framework/core/Task/doc/process.md. */
         this.process_runner = new ProcessRunner({ servex: this, root: REPO });

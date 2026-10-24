@@ -351,9 +351,9 @@ const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jso
 const LOADERS = {
 	Task: async () => (await import("../../public/framework/core/Task/Task.js")).default,
 	Session: async () => (await import("../../public/framework/core/Session/Session.js")).default,
-	Process: async () => (await import("../../public/framework/core/Task/Process.js")).default,
+	Process: async () => (await import("../../public/framework/core/Task/processes/index.js")).default,
 };
-const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/Task.js", "core/Item/Item.js"] };
+const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"] };
 // Fields a Session line may carry: its identity, a title, and its tasks.
 const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class"];
 
@@ -476,12 +476,12 @@ function make_child(parent_dir, add, ctx, home){
 }
 
 /* A process (core/Task/doc/process.md) always gets its own folder inside the caller's folder, never a module home: line 1 and one
- * add per phase come from Process.DEFINITIONS, and ProcessRunner starts it (hooks.changed). Refused: an unknown process, a taken slug. */
+ * add per step come from the Process template (core/Task/processes/), and ProcessRunner starts it (hooks.changed). Refused: an unknown process, a taken slug. */
 async function process_home(parent_dir, add){
 	const Process = await LOADERS.Process();
-	if (!Process.DEFINITIONS[add.process] && !Process.from_steps(add.steps)) return { why: add.steps
+	if (!Process.template(add.process) && !Process.from_steps(add.steps)) return { why: add.steps
 		? "`steps` must be a non-empty list of {title, do, session?} with distinct titles (an id that is a line key or verb, like file or improve, gets -step added)"
-		: `no process "${add.process}"; the processes are: ${Object.keys(Process.DEFINITIONS).join(", ")}, or give your own \`steps\`` };
+		: `no process "${add.process}"; the processes are: ${Process.names().join(", ")}, or give your own \`steps\`` };
 	const slug = slug_of(add.id ?? add.title), dir = path.join(parent_dir, slug);
 	// A folder that only holds a brief is fine (write the brief, then start the process in it); one with a log is taken.
 	if (["task.jsonl", "session.jsonl"].some(f => fs.existsSync(path.join(dir, f)))) return { why: `"${slug}" already holds a task in this folder; nothing was written. Give the process another id or title.` };
@@ -665,7 +665,7 @@ function advance(root, line){
 
 function task_state(Task, task){
 	const tasks = [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state }));
-	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, phase: task.phase?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
+	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.step?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
 	if (Task.name === "Session") return { class: "Session", completion: task.completion, progress: task.progress(), data: { ...task.data }, tasks };
 	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
 }

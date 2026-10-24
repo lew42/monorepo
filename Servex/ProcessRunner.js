@@ -4,8 +4,8 @@ import { stamp } from "./home.js";
 import Process from "../public/framework/core/Task/Process.js";
 import { move_home } from "./agents/page_tools.js";
 
-/* THE PROCESS RUNNER: a process's phases run in order because node runs them, never because an agent remembers.
- * Process.next() (core/Task/Process.js) decides; this class writes the line it asks for and launches the phase's session.
+/* THE PROCESS RUNNER: a process's steps run in order because node runs them, never because an agent remembers.
+ * Process.next() (core/Task/Process.js) decides; this class writes the line it asks for and launches the step's session.
  * Woken by the item tool after any write to a process (page_tools hooks.changed), by an agent's turn end (Agents.js),
  * and by the TaskLoop tick (the retry, and the resume after a restart). Doc: public/framework/core/Task/doc/process.md.
  * Not Processes.js, which watches OS processes. */
@@ -17,10 +17,10 @@ export default class ProcessRunner {
 		this.root ??= process.cwd();
 		this.public ??= path.join(this.root, "public");
 		this.chains = new Map();     // file -> the step in flight, so two wakes never step one file at once
-		this.by_agent = new Map();   // agent id -> the process file whose running phase it holds
+		this.by_agent = new Map();   // agent id -> the process file whose running step it holds
 		this.files = new Set();      // every process file seen since boot
 		this.pending = new Map();    // "<file>#<agent>" -> the after-turn wake already queued
-		this.grace = new Set();      // "<file>#<phase>": sent to an agent mid-turn, so the turn that ends next is not this phase's
+		this.grace = new Set();      // "<file>#<step>": sent to an agent mid-turn, so the turn that ends next is not this step's
 		this.pulse_after_ms ??= 1500;
 	}
 
@@ -60,14 +60,14 @@ export default class ProcessRunner {
 			const a = p.next();
 			if (!a) return;
 			if (a.start === true) await this.write(file, { start: {} });
-			else if (a.complete){ await this.write(file, { complete: {} }); this.tell(p.creator, `Process ${this.url(file)} is complete: every phase is done.`); return; }
+			else if (a.complete){ await this.write(file, { complete: {} }); this.tell(p.creator, `Process ${this.url(file)} is complete: every step is done.`); return; }
 			else if (a.wait){
-				const ph = p.phases.find(x => x.id === a.wait);
+				const ph = p.steps.find(x => x.id === a.wait);
 				await this.write(file, { [a.wait]: { wait: { on: "owner", what: ph?.get_one("do") ?? a.wait } } });
 				this.tell(p.creator, `Process ${this.url(file)} waits on the owner: ${ph?.get_one("title") ?? a.wait}.`);
 			}
 			else if (a.halt){
-				const agent = p.phases.find(x => x.id === a.halt)?.get_one("spawned")?.agent;
+				const agent = p.steps.find(x => x.id === a.halt)?.get_one("spawned")?.agent;
 				try { if (agent) this.servex?.agents?.stop?.(agent, { by: "process-runner" }); } catch {}
 				await this.write(file, { [a.halt]: { stop: { why: `the process was stopped${agent ? `; its agent ${agent} was stopped too` : ""}` } } });
 			}
@@ -85,43 +85,43 @@ export default class ProcessRunner {
 		}
 	}
 
-	// Start the phase's session: fresh (spawn), same (the previous phase's agent), owner (the process's creator). False = held back.
+	// Start the step's session: fresh (spawn), same (the previous step's agent), owner (the process's creator). False = held back.
 	async launch(file, p, id){
-		const ph = p.phases.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = p.run_of(ph);
+		const ph = p.steps.find(x => x.id === id), s = ph.get_one("session") ?? {}, run = p.run_of(ph);
 		const prompt = p.prompt(id, this.url(file)), agents = this.servex?.agents;
 		if (!agents) return false;
 		if (run === "fresh"){
 			const hot = this.servex.monitor?.flag?.reason;
-			if (hot){ if (!ph.get_one("queued")) await this.write(file, { queue: { phase: id, why: hot } }); return false; }
+			if (hot){ if (!ph.get_one("queued")) await this.write(file, { queue: { step: id, why: hot } }); return false; }
 			const agent = agents.spawn({
 				role: s.role ?? "helper", name: `${p.id}-${id}`.slice(0, 40), model: s.model, effort: s.effort,
 				permission_mode: s.permission_mode ?? "bypassPermissions", prompt,
 				task: { dir: this.rel(path.join(path.dirname(file), id)), title: `${p.get_one("title") ?? p.id}: ${ph.get_one("title") ?? id}`, ...(p.get_one("brief") ? { brief: p.get_one("brief") } : {}) },
 			});
-			await this.write(file, { spawn: { phase: id, run, agent: agent.id, session_id: agent.session_id ?? null, cost_before: 0 } });
+			await this.write(file, { spawn: { step: id, run, agent: agent.id, session_id: agent.session_id ?? null, cost_before: 0 } });
 			this.by_agent.set(agent.id, file);
 			return true;
 		}
 		const to = run === "same" ? this.previous_agent(p, id) : p.creator;
 		try {
-			if (!to) throw new Error(run === "same" ? "no earlier phase has an agent" : "the process names no creator");
-			if (agents.live?.get?.(to)?.state === "working") this.grace.add(`${file}#${id}`);   // run 1: the plan phase was pulsed by the investigate turn's own end
+			if (!to) throw new Error(run === "same" ? "no earlier step has an agent" : "the process names no creator");
+			if (agents.live?.get?.(to)?.state === "working") this.grace.add(`${file}#${id}`);   // run 1: the plan step was pulsed by the investigate turn's own end
 			agents.send(to, prompt, { from: "process-runner" });
-		} catch (e){   // nobody to send it to: the phase waits on whoever made the process, and says why
-			await this.write(file, { [id]: { wait: { on: p.creator ?? "owner", what: `run the ${id} phase (${e.message || e})` } } });
+		} catch (e){   // nobody to send it to: the step waits on whoever made the process, and says why
+			await this.write(file, { [id]: { wait: { on: p.creator ?? "owner", what: `run the ${id} step (${e.message || e})` } } });
 			return false;
 		}
-		await this.write(file, { spawn: { phase: id, run, agent: to, session_id: null, cost_before: this.cost_of(to) } });
+		await this.write(file, { spawn: { step: id, run, agent: to, session_id: null, cost_before: this.cost_of(to) } });
 		this.by_agent.set(to, file);
 		return true;
 	}
 
 	previous_agent(p, id){
-		const at = p.phases.findIndex(x => x.id === id);
-		return p.phases.slice(0, at).reverse().find(x => x.get_one("spawned")?.agent)?.get_one("spawned").agent ?? null;
+		const at = p.steps.findIndex(x => x.id === id);
+		return p.steps.slice(0, at).reverse().find(x => x.get_one("spawned")?.agent)?.get_one("spawned").agent ?? null;
 	}
 
-	remember(p, file){ for (const ph of p.phases){ const a = ph.get_one("spawned")?.agent; if (a && ph.state === "running") this.by_agent.set(a, file); } }
+	remember(p, file){ for (const ph of p.steps){ const a = ph.get_one("spawned")?.agent; if (a && ph.state === "running") this.by_agent.set(a, file); } }
 
 	cost_of(id){
 		const live = this.servex?.agents?.live?.get?.(id);
@@ -129,14 +129,14 @@ export default class ProcessRunner {
 		return Number.isFinite(n) ? n : 0;
 	}
 
-	// An agent ended a turn (Agents.js result). Measure what it finished; pulse a phase it left open.
+	// An agent ended a turn (Agents.js result). Measure what it finished; pulse a step it left open.
 	turn_ended(agent){
 		const file = this.by_agent.get(agent?.id);
 		if (!file) return;
 		setTimeout(() => this.queue_turn(file, agent.id), this.pulse_after_ms).unref?.();
 	}
 
-	// After-turn work joins the file's chain, so two turn ends never both measure one phase (run 1 wrote review's cost twice).
+	// After-turn work joins the file's chain, so two turn ends never both measure one step (run 1 wrote review's cost twice).
 	// A second wake for the same agent while one is still queued is the same turn end (run 1 got two): it joins the first.
 	queue_turn(file, id){
 		file = path.resolve(file);
@@ -152,28 +152,28 @@ export default class ProcessRunner {
 		const p = this.read(file);
 		if (!p) return;
 		const url = this.url(file);
-		// Still working: a message queued during the turn (the next phase's prompt, a pulse) starts another turn, which ends here again.
+		// Still working: a message queued during the turn (the next step's prompt, a pulse) starts another turn, which ends here again.
 		const busy = this.servex?.agents?.live?.get?.(id)?.state === "working";
 		let holds = false;
-		for (const ph of p.phases){
+		for (const ph of p.steps){
 			const sp = ph.get_one("spawned");
 			if (sp?.agent !== id) continue;
 			if (ph.state === "complete" && !ph.get_one("measure")){
 				const usd = Math.max(0, this.cost_of(id) - (Number(sp.cost_before) || 0));
-				await this.write(file, { measure: { phase: ph.id, agent: id, usd: Number(usd.toFixed(4)), shared: sp.run !== "fresh" } });
+				await this.write(file, { measure: { step: ph.id, agent: id, usd: Number(usd.toFixed(4)), shared: sp.run !== "fresh" } });
 			}
 			if (ph.state !== "running") continue;
 			holds = true;
 			if (busy) continue;
-			if (this.grace.delete(`${path.resolve(file)}#${ph.id}`)) continue;   // that turn began before this phase was sent
+			if (this.grace.delete(`${path.resolve(file)}#${ph.id}`)) continue;   // that turn began before this step was sent
 			const n = Number(ph.get_one("pulses")) || 0;
 			if (n < 1){
 				const line = `item({path: "${url}", delta: {"${ph.id}": {"complete": {"outcome": "…", "evidence": ["…"]}}}})`;
-				try { this.servex.agents.send(id, `The ${ph.id} phase of ${url} is not recorded as complete. If it is done, record it: ${line}. If something blocks it, write {"${ph.id}": {"wait": {"on": "<who>", "what": "<what you need>"}}} with the same tool.`, { from: "process-runner" }); } catch {}
-				await this.write(file, { pulse: { phase: ph.id, n: n + 1, agent: id } });
+				try { this.servex.agents.send(id, `The ${ph.id} step of ${url} is not recorded as complete. If it is done, record it: ${line}. If something blocks it, write {"${ph.id}": {"wait": {"on": "<who>", "what": "<what you need>"}}} with the same tool.`, { from: "process-runner" }); } catch {}
+				await this.write(file, { pulse: { step: ph.id, n: n + 1, agent: id } });
 			} else {
-				await this.write(file, { [ph.id]: { wait: { on: p.creator ?? "owner", what: `the ${ph.id} agent (${id}) ended ${n + 1} turns without completing the phase` } } });
-				this.tell(p.creator, `Process ${url}: the ${ph.id} phase stalled (${id} ended ${n + 1} turns without completing it). It now waits on you.`);
+				await this.write(file, { [ph.id]: { wait: { on: p.creator ?? "owner", what: `the ${ph.id} agent (${id}) ended ${n + 1} turns without completing the step` } } });
+				this.tell(p.creator, `Process ${url}: the ${ph.id} step stalled (${id} ended ${n + 1} turns without completing it). It now waits on you.`);
 			}
 		}
 		if (!holds) this.by_agent.delete(id);
