@@ -30,7 +30,7 @@
      `key` / `label` would have rewritten nine files that draw these lists.        */
 
 /* ── NAVIGATION ────────────────────────────────────────────────────────────────
-   ONE WORD, SEVEN ANSWERS, and each settles two questions at once: how the children
+   ONE WORD, SIX ANSWERS, and each settles two questions at once: how the children
    are DRAWN, and what a click on one DOES.
 
    `stable` — does this move what I was already looking at? A stable word never does.
@@ -50,11 +50,10 @@ export const NAVIGATION = [
 	{ id: "rail-right", title: "Right rail", icon: "view_sidebar", stable: true,  swaps: true,
 	  means: "The list on the other side, so your eye keeps its home edge on the left." },
 	{ id: "expand",     title: "Expand",     icon: "expand_more",  stable: false,
-	  means: "Each child is a row you open in place. The row grows downward, everything below it moves down, and the address never changes — so an opened row cannot be linked to." },
+	  means: "Each child is a row you open in place. The row grows downward, everything below it moves down, and the address never changes — so an opened row cannot be linked to. For details that are not pages (an FAQ answer), never for a child page." },
 	{ id: "columns",    title: "Columns",    icon: "view_column",  stable: false,
-	  means: "Each child is a row you click, and it opens as a new column to the right. Everything already on screen shifts left to make room." },
-	{ id: "takeover",   title: "Takeover",   icon: "open_in_full", stable: false,
-	  means: "The child fills the whole screen and everything behind it collapses into the trail at the top." },
+	  means: "Each child is a row you click, and it opens as a new column to the right. The same as the page calling `columns()`; opt-in only, since the owner dropped Miller columns as the default on 2026-10-23." },
+	// `takeover` was retired 2026-10-23: a page that says it gets what `none` gets (the child replaces the page). Only the /imagine/paging lab keeps its own copy (paging/blocks.js).
 ];
 
 /* THE TWO WORDS FOR THE SPLIT ABOVE, spelled once — three files used to re-type the
