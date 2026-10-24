@@ -28,8 +28,7 @@ export class Item extends Events(Object) {
 		// accessor (a live rename never reached page.title, Stream.test.mjs), and not through set(), which would
 		// record a line and emit an event for an object that is still being built (Page.set, Template.set).
 		const bag = this.data = Object.create(null);
-		building.add(this);
-		try { this.assign(...args); } finally { building.delete(this); }
+		this.build_assign(...args);
 		if (this.data !== bag && is_data(this.data)) for (const k in bag) if (!(k in this.data)) this.data[k] = bag[k];   // {title, data} together: keep both
 		// Null-prototype data bag: no collision with built-in names
 		this.data = is_data(this.data) ? this.data : Object.create(null);
@@ -37,6 +36,10 @@ export class Item extends Events(Object) {
 	}
 
 	assign(...args){ return Object.assign(this, ...args); }
+
+	// assign() for an object still being built: its fields go straight into data, never through set(). A subclass that
+	// assigns again after its own class fields exist (Page's constructor) calls this, not assign().
+	build_assign(...args){ building.add(this); try { return this.assign(...args); } finally { building.delete(this); } }
 
 	get_one(key){ return this.data[key]; }
 	put(key, value){ this.data[key] = value; }

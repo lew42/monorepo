@@ -64,6 +64,12 @@ try {
 	console.log(`stream trip: subscribe + 2 live lines in ${ms} ms`);
 	t.ok(ms < 5000, "the whole trip took under 5 seconds");
 	page.store?.close?.();
+
+	// The bug Item.js fixed was found on Page: a constructor title shadowed its accessor, so a live rename never reached page.title.
+	const p = new Page({ title: "first" });
+	t.eq(p.jsonl_lines?.length ?? 0, 0, "new Page({title}) records no line (constructor fields go into data, not through set())");
+	p.set({ title: "second" });
+	t.eq(p.title, "second", "new Page({title}) then set({title}) reads back the new title");
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 
 t.done();

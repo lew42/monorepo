@@ -40,7 +40,7 @@ export class Page extends Item {
 	constructor(...args){
 		super(...args);
 		this.hoist_content();
-		this.assign(...args);
+		this.build_assign(...args);   // again, so args win over Page's own class fields; build_assign: no set(), no line
 		if (!this.data || typeof this.data !== "object" || Array.isArray(this.data)) this.data = Object.create(null);
 		Page.track(this);
 		this.naming();
