@@ -1,3 +1,4 @@
+import { servex_url } from "/framework/dev/servex_url.js";
 import { Page, div, span, small, p, a, button } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
@@ -197,10 +198,14 @@ export default class AISessionDetail extends Page {
 		AISessionDetail.load_row(url, id).then(async row => {
 			const session_id = row?.session_id ?? id;
 			AISessionRows.load_index(url).then(() => this.retitle(AISessionRows.display_name(row ?? { id, session_id }, AISessionRows.tree).text));   // a VS Code tab has no sessions.json row; its title is in the index
+			if (!/^[0-9a-f]{8}-/.test(session_id)){   // a name no agent list or index maps to a uuid: nothing on disk to ask for
+				$conv.append(() => p.c("muted", "This agent has no session id yet, so there is no transcript or log to show."));
+				return;
+			}
 			conv.session = session_id;
 			const coverage = new AISessionCoverage(session_id);
 			$coverage.append(coverage.view);
-			PromptLog.read(session_id).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
+			this.log_urls().then(() => PromptLog.read(session_id)).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
 			this.record_url().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks }).live(); });
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
@@ -355,7 +360,15 @@ export default class AISessionDetail extends Page {
 	/** This session's row (tab_title, model, source...) from sessions.json, which is a computed cache and never the record. */
 	static async load_row(root_url, id){
 		const snap = await AISessionRows.get_json(root_url + "sessions.json");
-		return snap?.rows?.find(r => r.id === id || r.session_id === id) ?? null;
+		return snap?.rows?.find(r => r.id === id || r.session_id === id) ?? await AISessionDetail.agent_row(id);
+	}
+
+	/** A named Servex agent (`reviewer-x`, `minion-y`) is a grid row before sessions.json knows it: its uuid comes from the live agent list, else null (a name is never a transcript id). */
+	static async agent_row(id){
+		if (/^[0-9a-f]{8}-/.test(id)) return null;
+		const agents = (await AISessionRows.get_json(servex_url("/api/agents"))) ?? [];
+		const a = Array.isArray(agents) ? agents.find(x => x.id === id) : null;
+		return a ? { id: a.id, session_id: a.session_id ?? null, source: "servex", role: a.role, model: a.model, tab_title: a.id, started_at: a.started_at } : null;
 	}
 
 	/** The raw transcript lines of a session whose id the live tail cannot follow (null when there are none). */
