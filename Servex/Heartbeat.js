@@ -124,7 +124,7 @@ export default class Heartbeat {
                 if (!t || t.done){ this.watch.delete(file); if (t?.done) await this.skipped(file, t); continue; }
                 const w = this.watch.get(file) ?? {};
                 this.watch.set(file, Object.assign(w, { owner: t.owner, card: t.card }));
-                if (t.escalated || this.queued_revive(file)) continue;
+                if (t.escalated || t.held || this.queued_revive(file)) continue;
                 const live = this.agents.live.get(t.owner), alive = live && live.state !== "stopped";
                 const s = this.seen.get(t.owner), last = s?.at ?? (alive ? this.booted : t.mtime);
                 if (w.check_at){
@@ -197,7 +197,10 @@ export default class Heartbeat {
         // the OWNER's session: its registry row first, so a revive never resumes line 1's old session under a new id
         const session_id = this.agents.reg?.().read()?.[owner]?.session_id ?? state.session_id ?? first.session_id;
         const done = Landed.of_file(file);   // the one rule: Task.replay says complete or stopped
-        return { owner, session_id, card: state.card, paused: !!state.paused, done, skipped, escalated, revives,
+        /* WAITING OR PAUSED IS NOT SILENT (2026-10-23): a task waiting on the owner's look (a {"wait":{"on":"owner"}} line) or paused
+         * gets no status checks; minion-queue was pinged every ~7 min after its show: line, each one a paid turn. */
+        const replayed = Landed.state(file), held = replayed === "waiting" || replayed === "paused";
+        return { owner, session_id, card: state.card, paused: !!state.paused, held, done, skipped, escalated, revives,
             mtime: fs.statSync(file).mtimeMs, slug: this.servex.task_loop?.slug(file) ?? path.basename(path.dirname(file)) };
     }
 
