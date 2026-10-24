@@ -41,6 +41,8 @@ try {
 	ok(fs_?.map(x => x.id).join() === "file-step,improve-step,write-the-docs", "from_steps: a step id that is a line key or verb gets -step, not a refusal");
 	ok(fl?.[0].process === "steps" && fl.length === 3, "lines(): own steps under an unknown process name become process \"steps\"");
 	ok(["build", "design", "investigate"].every(n => Process.template(n)?.prototype instanceof Process) && Process.names().length === 3 && !Process.template("nope"), "Process.template(name) finds one subclass per template; names() lists them");
+	const ids = n => Process.template(n).steps.map(s => s.id).join();
+	ok(ids("build").includes("execute,index,review") && ids("design").includes("code,index,review"), "build and design both run the index step between the work and the review");
 	const old_ = Process.replay([...Process.lines({ process: "build" }), { spawn: { phase: "plan", agent: "a9" } }, { spawn: { step: "investigate", agent: "a8" } }]);
 	ok(old_.steps.find(x => x.id === "plan").get_one("spawned")?.agent === "a9" && old_.steps.find(x => x.id === "investigate").get_one("spawned")?.agent === "a8", "an old {spawn:{phase}} line still lands on its step; a new {spawn:{step}} line does too");
 	let r = await item({ tasks: { add: { title: "Fix X", process: "nope" } } }, "mm1");
@@ -52,7 +54,7 @@ try {
 	ok(read(SESSION).some(l => l.task === PURL), "the session's record references it");
 	await settle(FILE);
 	let L = read(FILE);
-	ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 7, "line 1 is a Process, seven step lines");
+	ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 8, "line 1 is a Process, eight step lines");
 	ok(L.some(l => l.start) && L.some(l => l.investigate?.start) && L.some(l => l.spawn?.step === "investigate" && l.spawn.agent === "a1"), "node started it and spawned the investigate session");
 	ok(spawned[0].model === "claude-sonnet-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`"investigate": {"complete"`), "the spawn carries the step's model, a folder inside the process, and the completing line");
 
@@ -77,6 +79,7 @@ try {
 	await step({ "approve-plan": { complete: { outcome: "approved", evidence: ["test"] } } }, "mm1");
 	ok(spawned[2]?.role === "helper" && spawned[2].prompt.includes("approved"), "execute is a fresh builder");
 	await step({ execute: { complete: { outcome: "branch task/fix-x, 2 commits", evidence: ["test"] } } }, "a3");
+	await step({ index: { complete: { outcome: "readme line and parent link added", evidence: ["test"] } } }, "a3");
 	await step({ review: { complete: { outcome: "ready to merge: task/fix-x", evidence: ["test"] } } }, "a4");
 	let p = runner.read(FILE);
 	ok(p.step.id === "merge" && p.step.state === "waiting" && p.state === "running", "merge waits on the owner; the process is not complete");
@@ -130,7 +133,7 @@ try {
 	ok(Task.replay(imp)._tasks.find("move-x-into-y").weight === 2 && state.tasks.length === 1, "its weight is 2, computed on replay");
 
 	r = await run_item({ path: PURL }, { caller: "mm1" });
-	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 7, "item({path}) reads the process back: class, state, steps");
+	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 8, "item({path}) reads the process back: class, state, steps");
 
 	// A SIMPLE PROCESS THROUGH THE TOOL (the owner, 2026-10-22): create it with your own steps, node prompts step 1, then step 2 when step 1 returns.
 	r = await item({ tasks: { add: { title: "Dup", steps: [{ title: "Same" }, { title: "Same" }] } } }, "mm1");

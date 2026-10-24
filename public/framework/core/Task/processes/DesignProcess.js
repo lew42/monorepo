@@ -17,6 +17,8 @@ export class DesignProcess extends Process {
 		do: "Read variants.md and the shots. Complete with outcome 'code: <names>' (in autonomous mode the creator picks), or 'redesign: <what>'." },
 	{ id: "code", title: "Code the picked variants", session: { run: "fresh", role: "helper", model: SONNET, effort: "medium" },
 		do: "In a served worktree (take_worktree), code the default as a real page and each picked variant as a subpage <page>/v/<name>/ whose view extends its parent's view and changes only its difference; sub-versions nest (v/<name>/v/<sub>/). The default page lists the tree as links, so the owner can click through on the phone. Load each with check_page; commit each step; never merge. Outcome: branch, worktree url, the variant urls." },
+	{ id: "index", title: "Index it", session: { run: "same" },
+		do: "Make what you built findable, on the same branch: a line in the readme of every folder it touched (the readme names every part; the documentation skill, section 4), and a link to every new page from its parent's navigation (its children: or the parent page). Load the parent page and click through to the new one. Outcome: the readme lines and the links you added." },
 	{ id: "review", title: "Review the pages", session: { run: "fresh", role: "reviewer", model: SONNET, effort: "medium" },
 		do: "Shoot every variant page at 400 and 1200 px (the shot tool) at the worktree url, check the console, compare each with its Figma frame. Outcome: 'ready to merge: <branch>' with the shot paths, only when every page loads clean; else 'not checked: <why>'." },
 	{ id: "merge", title: "Merge", session: { run: "wait" },
