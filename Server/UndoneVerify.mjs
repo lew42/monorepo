@@ -25,6 +25,10 @@
  *   --merge <dir>                    task -> verified undone + verified_module; done (path checked) -> done; obsolete -> retired; note -> note
  *   --counts3                        sorted = task + done + obsolete + note, and how many are still open
  *
+ * Fourth pass, the priority triage (doc: ai/asks/readme.md): `--batches <dir> --question priority` writes the proposals still waiting on the
+ * owner, 25 per batch, one question each (which of the three big things in priority.md); `--run <dir>` as above; the answers are read and applied
+ * by Server/ProposalTriage.mjs (--plan, --apply), not merged into undone.json.
+ *
  * A "done" verdict is accepted only if its evidence names a path:line that exists in the repo (checked here, not by the model);
  * otherwise it is kept as "unclear" with the reason. Nothing is written to undone.json except the verified_* fields of an ask.
  */
@@ -485,6 +489,26 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 		return { sorted: mine.length, ...c, open: this.pending3(d).length, agree: c.task + c.done + c.obsolete + c.note === mine.length };
 	}
 
+	/** The priority pass (Server/ProposalTriage.mjs): the proposals still waiting on the owner, 25 per batch, ONE question each: which of the three big things. */
+	async write_batches_priority(outdir){
+		const { default: ProposalTriage } = await import("./ProposalTriage.mjs");
+		const t = new ProposalTriage({ root: this.root }), items = t.proposals();
+		fs.mkdirSync(outdir, { recursive: true });
+		const mf = path.join(outdir, "manifest.json"), manifest = fs.existsSync(mf) ? JSON.parse(fs.readFileSync(mf, "utf8")) : [];
+		const mine = [];
+		for (const chunk of UndoneVerify.chunks(items, UndoneVerify.BATCH3)){
+			const name = String(manifest.length + 1).padStart(2, "0") + "-priority", bdir = path.join(outdir, name);
+			fs.mkdirSync(bdir, { recursive: true });
+			const rel = path.relative(this.root, path.join(bdir, "results.json")).split(path.sep).join("/");
+			fs.writeFileSync(path.join(bdir, "brief.md"), t.brief(chunk, rel));
+			fs.writeFileSync(path.join(bdir, "asks.json"), JSON.stringify(chunk.map(a => a.id)));
+			const row = { batch: name, kind: "priority", asks: chunk.length, brief: path.relative(this.root, path.join(bdir, "brief.md")).split(path.sep).join("/") };
+			manifest.push(row); mine.push(row);
+		}
+		fs.writeFileSync(mf, JSON.stringify(manifest, null, 1));
+		return mine;
+	}
+
 	/** True when a batches dir was written by a second-pass --question run (its manifest rows carry a kind). */
 	static has_kinds(dir){ try { return !!JSON.parse(fs.readFileSync(path.join(dir, "manifest.json"), "utf8"))[0]?.kind; } catch { return false; } }
 
@@ -500,6 +524,9 @@ ${asks.map((a, i) => `${i + 1}. \`${a.id}\` (${a.days ?? "?"} days old): ${a.tex
 		} else if (argv.includes("--route")){
 			const r = u.route(); console.log("routed " + r.routed + " to needs-owner;", r);
 			if (!r.agree) process.exitCode = 1;
+		} else if (argv.includes("--batches") && val("--question") === "priority"){
+			const m = await u.write_batches_priority(path.resolve(val("--batches")));
+			console.log(m.map(b => b.batch.padEnd(14) + " " + String(b.asks).padStart(3) + " proposals").join("\n") + "\n\n" + m.length + " batches, " + m.reduce((n, b) => n + b.asks, 0) + " proposals");
 		} else if (argv.includes("--batches") && val("--question") === "sort"){
 			const m = u.write_batches3(path.resolve(val("--batches")));
 			console.log(m.map(b => b.batch.padEnd(10) + " " + String(b.asks).padStart(3) + " asks").join("\n") + "\n\n" + m.length + " batches, " + m.reduce((n, b) => n + b.asks, 0) + " asks");

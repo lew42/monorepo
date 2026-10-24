@@ -1,0 +1,47 @@
+# Which big thing does each proposed task plainly serve? (25 tasks)
+
+You sort; you do not build. Do NOT edit any file. This brief has everything you need: do not search the repo. Your final message is ONLY the JSON array described below (the runner saves it to `public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/06-priority/results.json`).
+
+The owner has three big things:
+
+1. **See and approve the work** — One page per day where the owner sees every session, opens a demo, and approves a whole session with one press. Approving a session approves everything inside it. Spend that never gets approved shows red, as a leak. What is ready to merge sits on the same page. - **Now:** the review page is being built on the AI dashboard ([/framework/ai/], brief: [review-page]). The Merge list is live at [/framework/ai/merge/] and folds into the review page. - **Inside it:** the phone pages for sessions ([sessions/v/mobile]) and the design picks they follow ([mobile-cards.md]); the session page with its tasks; a time filter (Today, Week, Month, Year) inside a session; the 19 closed worktrees whose commits n
+2. **Every ask becomes a task that finishes** — Each thing the owner asks for is filed as a task the first time, runs step by step, and ends done or documented, with its proof. Nothing is lost between sessions. - **Now:** the 230 proposed tasks from old asks are being sorted under these three things (accepted into a priority, or parked in a backlog the owner can approve in one press). Process names are decided (*step*, one class per template, handoff by moving the task) and the rename is under way. - **Inside it:** prompt records (each prompt split into parts, its completion computed: [prompt-records.md]); processes ([process.md]); task resolution ([resolution.md]); node chases a started task that goes quiet (the "task chase" and "status 
+3. **Agents that know the rules** — Every agent knows where things go and what was decided, from short readmes it can trust, and the right model does each job. - **Now:** the documentation rule is written (documentation skill §4: `readme.md` is the index, a sibling `<topic>.md` for an often-read topic, `doc/` for the rest; no dated logs in readmes; the mastermind owns its area's docs). Next: a cheap pass that makes every readme follow it. The model experiment: one Opus builder that designs and builds a whole slice, compared with an Opus planner plus Sonnet builders ([models]). - **Inside it:** the readme system ([doc/readme-system.md]); seeing which readmes, skills and tools each agent got ([agent-context.md], the readmes page
+
+For each task below answer ONE question: which of the three big things does finishing it **plainly** serve: 1, 2, 3, or none? Answer `none` when in doubt. A task that merely touches the same folder is `none`; it must plainly be part of the thing's own description above.
+
+## Output
+
+A JSON array, one object per task, same ids, nothing else in your message:
+
+```json
+[{"id":"abc1234567","priority":1,"why":"one short line"}]   // priority is 1, 2, 3 or "none"
+```
+
+## The 25 tasks
+
+1. `d5fb04e30d` [design/color] Decide transparent backgrounds for list-of-sections pages — Open decision: no transparent-background rule exists in styles/layers/site; it depends on the contrast hierarchy in ask 2104fca85e.
+2. `8a50698f18` [ext/Figma] Show several nested sidebars on the right pages with layered slots — public/framework/ext/Figma/doc/use-figma.md:98 - "a nested Site template > Section template navigation system" is one nesting. No page shows several nested sidebars shown on the right pages.
+3. `201fbba1ff` [ext/System] Wire the navigation system to page templates and the table of contents — public/framework/ext/System/NavigationSystem.js exists, but public/framework/ext/System/readme.md has no mention of toc or template. The page-template and toc pieces are not connected to it.
+4. `7738531181` [core/Page] Make the table of contents overview page page number one — Not built: the overview's band order is declared in BANDS (core/Page/overview/readme.md:3), and nothing in core/Page/overview/weight.jsonl puts the TOC first (it holds only a data note).
+5. `da9d619f70` [core/Page] Explore whether pages can be sorted — Not built: the only reorder found in core/Page is for cards (core/Page/doc/ai-api.md:36, reorder all cards); no page sort was found.
+6. `52e7a3995d` [ui/icon] Confirm the Material Symbols font is available and use it for the icons — public/framework/ui/icon/doc/icons.md:17 - The site loads Material Icons; Figma draws with Material Symbols. styles/layouts/apidoc/page.js:226 says the same. Figma loads Symbols (ext/Figma/tokens/page.js:7), the site does not.
+7. `0267906446` [ext/Figma] Regroup icons into 3 to 5 categories of 5 to 10, with a UI category — public/framework/ext/Figma/doc/icons.md:6 - "Categories: Arrows, People, Files & trees, Actions, Flow, Status." Six categories, 159 glyphs, no UI category, and the per-category counts are far above 5 to 10.
+8. `a19fd87c60` [ext/Figma] Do not make every icon a component, so the whole system does not lag — public/framework/ext/Figma/doc/icons.md:6 - "**Glyph components** (159 after the 2026-10-13 swap ... `Icon / <Category> / <name>`)" Every icon is still a component, which is the thing the owner said not to do.
+9. `8059e070f3` [ext/Figma] Include a user avatar icon — public/framework/ext/Figma/doc/file-map.md:16 - "avatar" appears only as a component in DS · 1 Elements. No user or person glyph is named in public/framework/ext/Figma/doc/icons.md.
+10. `5f06398043` [ext/Figma] Include folder open and folder closed icons, and tree icons — public/framework/ext/Figma/doc/icons.md:6 - "Files & trees" is a category, but no folder_open or folder glyph is named in ext/Figma docs. Only account_tree is named, at public/framework/ext/Figma/doc/use-figma.md:71.
+11. `209707af2f` [ext/Figma] Include flowchart connectors and other icons useful for designing — public/framework/ext/Figma/doc/icons.md:6 - "Flow" is a category, but no connector glyph is named. public/framework/ext/Figma/inbox.jsonl:112 - "Consider using Figma's default arrow tool arrows as connectors" is still an open idea.
+12. `9619a38363` [ext/Figma] Decide when colour permutations show full breakouts or one locked permutation — No decision recorded; the condensed-views ask at refined-asks.md:11 is open.
+13. `064abde320` [ext/Figma] Determine whether colors can be dragged and dropped from the permutation views — No doc covers dragging from permutation views; ext/Figma/doc/builder.md:9 covers drag only for the mobile builder toolbox.
+14. `9a4047b7db` [ext/Figma] Investigate why nested layers confuse and why opaque cards match across columns — ext/Figma/doc/observations.md:7 explains only the alpha nested shades; no doc explains identical opaque cards; refined-asks.md:135 is open.
+15. `d637a6a159` [ext/Figma] Evaluate whether lighten and darken make card colours adapt — refined-asks.md:148 is open. styles/system/studies/color/adaptive.js:1 is the site bg-lighten lab, not a test of Figma card colours.
+16. `631af9ce85` [ext/Figma] Build a colour scheme stack that runs each colour through full permutations — A search of ext/Figma found no stack view; refined-asks.md:11 is open.
+17. `cf659dcbd7` [ext/Figma] Add light, dark, prime and white permutations to the stack view — Depends on the stack view above; no permutation list for it exists in ext/Figma.
+18. `629d86a302` [ext/Figma] Filter out overly subtle colour variations using automatic contrast ratios — ext/Figma/scripts/contrast.figma.txt:9 grades ratios as invisible or decorative, but nothing filters on them; ext/Figma/readme.md:53 says the script is read-only.
+19. `2e72539770` [ext/Figma] Replace the old blue layers on Figma page seven with prime — The blue layers live in the Figma file, not the repo. No record in ext/Figma that they were replaced; the open task is ext/Figma/tasks/read-the-root-frame-on-page-seven-for-th/.
+20. `c26cdbe2ce` [ext/Figma] Build each palette as one master component duplicated onto four containers — public/framework/ext/Figma/doc/refined-asks.md:152 - Build one master component system for color variations (still open). Related open task: ext/Figma/tasks/possibly-duplicate-the-four-column-syste/.
+21. `0cae5bbc03` [ext/Figma] Explore the UI space in this master-and-duplicate way generally — Only the palette uses this so far; refined-asks.md:153 is still open and ext/Figma/tasks/make-everything-an-instance-of-a-compone/ is open.
+22. `11d0af4338` [ext/Figma] Build a full-colour section with opaque cards on top to test contrast — A search of ext/Figma markdown for opaque found nothing; refined-asks.md:149 is still open.
+23. `73fc13b3f1` [ext/Figma] Work out how the primary scheme should be handled — Open task ext/Figma/tasks/explore-the-prime-background-in-both-lig/; palette/spec-1-schemes.md:12 only defines the prime base, and no decision is recorded.
+24. `e3eb920220` [ext/Figma] Work out what content goes into each scheme — palette/spec-1-schemes.md:12 defines content for the prime base; a search found no content spec for the other schemes.
+25. `f07fa769e9` [styles/layouts/cols] Build a two-column layouts page with variants from mobile to mega — styles/layouts/cols/matrix/page.js:53 compares one box at two widths only; a case-insensitive grep for mega in styles/layouts/cols finds nothing, so no mobile-to-mega variant page exists.

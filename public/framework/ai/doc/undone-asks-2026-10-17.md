@@ -171,3 +171,10 @@ Crack 2 in [cracks.md](/framework/core/Task/doc/cracks.md): asks that never beca
 **Cost:** 23 batches cost $19.14 (the runs log is `sort/runs.jsonl` in the task folder), plus about $0.78 for a first test run whose answer was not parsed. That is about $0.04 an ask, the same as the first check.
 
 **How to read it:** the proposals are the owner's to approve, improve or reject on each module's task list. A "note" is a rule or a preference, not work. If one is wrong, delete the line; git keeps it.
+
+## 2026-10-23: proposal triage
+
+241 proposed tasks waited on the owner. Ten Haiku batches (25 each, $1.99) judged each against the three big things in `ai/priority.md`; the dry run
+(`node Server/ProposalTriage.mjs --count`) reads **241 = 11 (priority 1) + 4 (priority 2) + 7 (priority 3) + 219 backlog**, and the numbers agree.
+Only a plain fit is accepted (22); in doubt means backlog. The real pass (`--apply`) runs after the merge and writes `ai/asks/triage.jsonl`;
+the Undone asks page then shows the card with **Approve all**. Method and files: `ai/asks/readme.md`, "Triage".

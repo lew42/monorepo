@@ -1,0 +1,13 @@
+/* The ProposalTriage card (ProposalTriage.js): the sorted-proposals summary at the top of the Undone asks page.
+   Prefix `triage-`. The chips and the Approve all button are plain pills; the card, the gaps and the muted text are the site's own words. */
+@layer theme {
+	.triage-card { border: 1px solid var(--line); border-radius: .5em; }
+	.triage-head { font-weight: 600; margin: 0; }
+	.triage-counts { display: flex; flex-wrap: wrap; gap: .4em .5em; }
+	.triage-chip, .triage-approve-all { font: inherit; padding: .2em .8em; border: 1px solid var(--line); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; text-align: left; }
+	.triage-chip:hover { border-color: var(--prime); }
+	.triage-chip.on { background: var(--prime); border-color: var(--prime); color: var(--on-prim, white); }
+	.triage-approve-all { align-self: start; border-color: var(--prime); font-weight: 600; }
+	.triage-approve-all:hover { background: var(--prime); color: var(--on-prim, white); }
+	.triage-list { max-height: 16em; overflow: auto; padding-top: .25em; }
+}
