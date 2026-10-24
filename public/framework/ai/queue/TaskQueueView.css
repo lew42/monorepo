@@ -1,5 +1,6 @@
 @layer base, theme, site, util;
 @layer site {
+	.page.tq-page { --gutter-x: clamp(0.6em, 2cqi, 1.5em); --pad-y: 0.8em; }
 	.tq-view { width: 100%; max-width: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em; padding: 0 0 2em; align-items: start; }
 	.tq-side { display: flex; flex-direction: column; gap: 0.6em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
 	.tq-h { margin: 0.4em 0 0; font-size: 1em; }
