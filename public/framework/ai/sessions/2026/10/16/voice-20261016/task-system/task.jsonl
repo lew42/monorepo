@@ -176,3 +176,4 @@
 {"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-skills/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.609Z"}
 {"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/task-view/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.610Z"}
 {"task":"/framework/ai/sessions/2026/10/16/voice-20261016/task-system/tool-files-refs/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.611Z"}
+{"log":{"at":"2026-10-23T19:14:28-05:00","msg":"cost record (from mastermind-task-system inbox report, 2026-10-17T00:05): the two minions for steps 3d and 10 cost $6.32 ($3.71 + $2.61) against a planned $3; both stopped after their work merged. Under Servex/doc/budget.md (the owner, 2026-10-22: a budget is an estimate, not a cap) this is an estimate miss, not a guard failure."}}
