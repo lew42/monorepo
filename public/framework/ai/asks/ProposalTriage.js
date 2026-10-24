@@ -1,6 +1,8 @@
-import { div, span, button, a, p, small } from "/framework/core/View/View.js";
+import View, { div, span, button, a, p, small } from "/framework/core/View/View.js";
 import Task from "/framework/core/Task/Task.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
+
+View.stylesheet(import.meta, "triage.css");
 
 /**
  * class ProposalTriage — the one card that answers "what became of the proposed tasks?" (the owner, 2026-10-23).
@@ -51,9 +53,9 @@ export default class ProposalTriage {
 			if (!this.rows.length) return p("No triage has run yet.");
 			const bl = this.backlog();
 			p.c("triage-head").text(`${this.rows.length} proposals sorted: ${[1, 2, 3].reduce((n, k) => n + this.accepted(k).length, 0)} accepted into a priority, ${bl.length} in the backlog.`);
-			div.c("flex wrap gap-50 triage-counts", () => {
-				for (const n of [1, 2, 3]) button.c("sessions-chip", `${n} · ${ProposalTriage.PRIORITY[n]}: ${this.accepted(n).length}`).attr("type", "button").click(() => { this.open = this.open === n ? null : n; paint(); });
-				button.c("sessions-chip", `Backlog: ${bl.length}`).attr("type", "button").click(() => { this.open = this.open === "backlog" ? null : "backlog"; paint(); });
+			div.c("triage-counts", () => {
+				for (const n of [1, 2, 3]) button.c(`triage-chip${this.open === n ? " on" : ""}`, `${n} · ${ProposalTriage.PRIORITY[n]}: ${this.accepted(n).length}`).attr("type", "button").click(() => { this.open = this.open === n ? null : n; paint(); });
+				button.c(`triage-chip${this.open === "backlog" ? " on" : ""}`, `Backlog: ${bl.length}`).attr("type", "button").click(() => { this.open = this.open === "backlog" ? null : "backlog"; paint(); });
 			});
 			if (bl.length) button.c("triage-approve-all", `Approve all ${bl.length} backlog proposals`).attr("type", "button").click(async () => { await this.approve_all(); paint(); });
 			const list = this.open === "backlog" ? bl : this.open ? this.accepted(this.open) : [];
