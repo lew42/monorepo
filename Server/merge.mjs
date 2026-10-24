@@ -192,23 +192,35 @@ function reviewGate(branch, head){
 	}
 	let best = null;
 	// Day dirs: ai/YYYY-MM-DD/ and, since sessions moved, ai/sessions/YYYY/MM/DD/ (2026-10-12).
-	const days = fs.readdirSync(aiDir).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && daysAgo(d) <= 3 && daysAgo(d) >= 0).map(d => path.join(aiDir, d));
-	for (let i = 0; i <= 3; i++) {
-		const [y, m, dd] = TaskDirs.day(new Date(Date.now() - i * 86400000)).split("-");
-		const p = path.join(aiDir, "sessions", y, m, dd);
-		if (fs.existsSync(p)) days.push(p);
-	}
-	for (const day of [...days, ...(reviewDir ? [path.resolve(MAIN, reviewDir)] : [])])
-		for (const tj of taskLogs(day)) {
-			const td = path.dirname(tj);
-			for (const l of lines(fs.readFileSync(tj, "utf8"))) {
-				let e; try { e = JSON.parse(l); } catch { continue; }
-				if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || e.review.at > best.e.review.at)) best = { td, e };
-			}
+	// Read in BOTH trees (2026-10-23): a review run from the worktree writes its lines into the
+	// worktree's copy of the task record and commits them on the branch, so the main tree never
+	// sees them until the merge this gate is guarding. The newest review naming the branch wins,
+	// in whichever tree it sits; its report, shots and answers are read beside it.
+	function dayDirs(root){
+		const ai = path.join(root, "public/framework/ai");
+		if (!fs.existsSync(ai)) return [];
+		const out = fs.readdirSync(ai).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && daysAgo(d) <= 3 && daysAgo(d) >= 0).map(d => path.join(ai, d));
+		for (let i = 0; i <= 3; i++) {
+			const [y, m, dd] = TaskDirs.day(new Date(Date.now() - i * 86400000)).split("-");
+			const p = path.join(ai, "sessions", y, m, dd);
+			if (fs.existsSync(p)) out.push(p);
 		}
+		if (reviewDir && fs.existsSync(path.resolve(root, reviewDir))) out.push(path.resolve(root, reviewDir));
+		return out;
+	}
+	const roots = [MAIN, ...(path.resolve(dir).toLowerCase() === path.resolve(MAIN).toLowerCase() ? [] : [dir])];
+	for (const root of roots)
+		for (const day of dayDirs(root))
+			for (const tj of taskLogs(day)) {
+				const td = path.dirname(tj);
+				for (const l of lines(fs.readFileSync(tj, "utf8"))) {
+					let e; try { e = JSON.parse(l); } catch { continue; }
+					if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || e.review.at > best.e.review.at)) best = { td, e, root };
+				}
+			}
 	// no review yet: guess the task dir from the branch name so the printed command is runnable as-is
 	const guessedTd = best ? null : guessTaskDir(aiDir, branch);
-	const cmd = `node Server/review.mjs ${best ? path.relative(MAIN, best.td).replaceAll("\\", "/") : guessedTd ? path.relative(MAIN, guessedTd).replaceAll("\\", "/") : "<taskdir or public/framework/ai/<date>/<slug>>"} ${dir}`;
+	const cmd = `node Server/review.mjs ${best ? path.relative(best.root, best.td).replaceAll("\\", "/") : guessedTd ? path.relative(MAIN, guessedTd).replaceAll("\\", "/") : "<taskdir or public/framework/ai/<date>/<slug>>"} ${dir}`;
 	if (!best) return `refused: ${branch} is size ${sizeOf(nameStatus, numstat)} and has no review; run: ${cmd}`;
 	const current = best.e.review.head === head || git(MAIN, "merge-base", "--is-ancestor", best.e.review.head, head).status === 0;
 	if (!current) return `refused: ${branch}'s review is stale; run: ${cmd}`;
@@ -231,7 +243,7 @@ function reviewGate(branch, head){
 		const walk = d => { try { for (const e of fs.readdirSync(d, { withFileTypes: true })) e.isDirectory() ? walk(path.join(d, e.name)) : /^\d+\.png$/.test(e.name) && have.add(Number(e.name.slice(0, -4))); } catch {} };
 		walk(path.join(best.td, "shots"));
 		const missing = need.filter(w => !have.has(w));
-		if (missing.length) return `refused: ${branch} changes a page but ${path.relative(MAIN, best.td).replaceAll("\\", "/")}/shots/ has no screenshot at ${missing.join(", ")}px; re-run: ${cmd}  (--no-review "why" skips, and is logged)`;
+		if (missing.length) return `refused: ${branch} changes a page but ${path.relative(best.root, best.td).replaceAll("\\", "/")}/shots/ has no screenshot at ${missing.join(", ")}px; re-run: ${cmd}  (--no-review "why" skips, and is logged)`;
 	}
 	return null;
 }
