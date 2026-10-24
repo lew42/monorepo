@@ -49,3 +49,8 @@
 {"review":{"at":"2026-10-23T21:10:46-05:00","answer":{"n":6,"reply":"noted: predates this branch; added to the core/Page navigation task (tab bar wraps to 3 rows at 1200)"}},"by":"mastermind-page"}
 {"log":{"at":"2026-10-23T21:10:46-05:00","msg":"ready: worktree/qf-5 at 38cdb3098 the item tool answers any item: queries without writing, a session summary in one call, the real Page on the server, bad lines refused before the write; navigation picture moved to doc/. Review pass (6 notes: 2 fixed, 4 noted); item_tool 92, page_tools 27, Page 15 pass. Needs a Servex restart after the merge."},"by":"mastermind-page"}
 {"log":{"at":"2026-10-23T21:46:06-05:00","msg":"ready: worktree/qf-5 at 5c24a8d34 the item tool (unchanged from 38cdb3098), now current with michael/dev. The merge kept try_line beside dev's session_state in page_tools.js. A session record replays as a Session on dev, so its summary, cost and progress queries are answered from session_state, one picture. The 'changed nothing' check now ignores clock fields (a running child's ran_ms grows between reads). item_tool.test 91/91, core tests 13/13. Set aside, not committed: health-watch cards written into the worktree's board.jsonl and core/Page/task.jsonl ($TEMP/claude-scratch/qf5-aside/)."}}
+{"set":{"state":"waiting"},"by":"owner","ts":"2026-10-24T03:15:33.160Z"}
+{"set":{"waiting_on":"owner"},"by":"owner","ts":"2026-10-24T03:15:33.753Z"}
+{"set":{"waiting_what":"the merge: worktree/qf-5 5c24a8d34 is on the Merge list (reviewed, tests pass)"},"by":"owner","ts":"2026-10-24T03:15:33.764Z"}
+{"set":{"waiting_since":"2026-10-24T03:15:32.643Z"},"by":"owner","ts":"2026-10-24T03:15:33.773Z"}
+{"set":{"ran_ms":0},"by":"owner","ts":"2026-10-24T03:15:33.784Z"}

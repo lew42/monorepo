@@ -13,3 +13,8 @@
 {"review":{"at":"2026-10-23T21:22:49-05:00","answer":{"n":5,"reply":"noted: once qf-5 (View guard, Servex/agents/site-hooks.mjs) is on michael/dev, Stream.test.mjs:13-17 drops its stubs and its own loader. Logged as a follow-up on the page-mastermind task."}}}
 {"review":{"at":"2026-10-23T21:22:49-05:00","answer":{"n":6,"reply":"noted: the three tests are not subtasks on this record, so there is nothing to mark complete; the pass counts are in the ready line below, and the task completes when the branch merges."}}}
 {"log":{"at":"2026-10-23T21:22:49-05:00","msg":"ready: worktree/page-tests at ee9d7835b Store, List and Stream tests (Store 10 checks, Stream 8 checks, trip 5 ms; List passes except add([a,b]), fixed on qf-5) plus the Item constructor-field fix (Item.build_assign; Page uses it). Merge after worktree/qf-5. Smoke: 1 FAIL, /framework/core/Page/navigation/ levels-1920.png, fixed on qf-5 (f5d2a7f6a). Review: pass, 6 notes answered."}}
+{"set":{"state":"waiting"},"by":"owner","ts":"2026-10-24T03:15:33.158Z"}
+{"set":{"waiting_on":"owner"},"by":"owner","ts":"2026-10-24T03:15:33.750Z"}
+{"set":{"waiting_what":"the merge: worktree/page-tests ee9d7835b is ready; it merges after worktree/qf-5"},"by":"owner","ts":"2026-10-24T03:15:33.761Z"}
+{"set":{"waiting_since":"2026-10-24T03:15:32.643Z"},"by":"owner","ts":"2026-10-24T03:15:33.768Z"}
+{"set":{"ran_ms":0},"by":"owner","ts":"2026-10-24T03:15:33.779Z"}
