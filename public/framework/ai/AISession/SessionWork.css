@@ -17,7 +17,7 @@
 	.sw-note { color: var(--error); }
 	.sw-list { display: flex; flex-direction: column; }
 	.sw-node, details.sw-node { border: 0; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); border-radius: 0; background: none; padding: 0; margin: 0; box-shadow: none; }   /* flat rows (mobile-cards.md), not the theme's details card */
-	.sw-sum { list-style: none; cursor: pointer; }
+	.sw-sum { list-style: none; cursor: pointer; display: block; width: auto; min-height: 0; padding: 0; font-size: inherit; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; }   /* a summary wears the control box (framework.css, the control grammar); a row is not a control */
 	.sw-sum::-webkit-details-marker { display: none; }
 	.sw-row { display: flex; align-items: flex-start; gap: .6em; padding: .55em .2em; }
 	details.sw-node > .sw-sum .sw-name::before { content: "▸ "; }
