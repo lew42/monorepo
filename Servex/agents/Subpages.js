@@ -103,18 +103,6 @@ export default class Subpages {
 		fs.appendFileSync(file, (text.length && !text.endsWith("\n") ? "\n" : "") + JSON.stringify(obj) + "\n");
 	}
 
-	// Computes the new page.js text (children string edited); nothing is written here.
-	js_edit(fn){
-		const file = path.join(this.dir, "page.js"), src = fs.readFileSync(file, "utf8"), next = fn(src);
-		return { file, next };
-	}
-
-	js_children(src, change){
-		const m = /(children:\s*")([^"]*)(")/.exec(src);
-		if (!m) throw new Error("parent page.js has no `children: \"...\"` string to extend");
-		const list = change(m[2].split(/\s+/).filter(Boolean));
-		return src.slice(0, m.index + m[1].length) + list.join(" ") + src.slice(m.index + m[1].length + m[2].length);
-	}
 }
 
 const rel = p => p.replaceAll("\\", "/");   // absolute, so a dry run on another tree reads true

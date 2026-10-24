@@ -113,17 +113,19 @@ try {
 		ok(!bad.ok, "a bad subpage name is refused");
 	}
 
-	// page.js parent: the children string is edited in place.
+	// page.js parent: a page.js is code and is never edited (17c696fa6); the child is noted in the parent's page.jsonl, which Page.child reads (645ccbe33).
 	{
 		const js = path.join(DIR, "pj");
 		fs.mkdirSync(js);
-		fs.writeFileSync(path.join(js, "page.js"), 'export default { title: "P", children: "a/page.jsonl" };\n');
+		const src = 'export default { title: "P", children: "a/page.jsonl" };\n';
+		fs.writeFileSync(path.join(js, "page.js"), src);
 		const sub = new Subpages(js);
 		sub.add({ name: "b", title: "B" });
-		ok(/children: "a\/page.jsonl b\/page.jsonl"/.test(fs.readFileSync(path.join(js, "page.js"), "utf8")), "page.js parent: children gets the new name");
+		ok(Subpages.listed(path.join(js, "page.jsonl")).join() === "b" && fs.readFileSync(path.join(js, "page.js"), "utf8") === src, "page.js parent: the child is noted in page.jsonl, page.js untouched");
 		sub.rename({ name: "b", to: "c" });
+		ok(Subpages.listed(path.join(js, "page.jsonl")).join() === "c", "page.js parent: rename relinks");
 		sub.remove("c");
-		ok(/children: "a\/page.jsonl"/.test(fs.readFileSync(path.join(js, "page.js"), "utf8")), "page.js parent: rename then remove leaves children clean");
+		ok(Subpages.listed(path.join(js, "page.jsonl")).length === 0 && fs.readFileSync(path.join(js, "page.js"), "utf8") === src, "page.js parent: remove unlinks, page.js still untouched");
 	}
 
 	// a session route deeper than the page resolves to the session's own subpage folder.

@@ -253,6 +253,24 @@ try {
 			r = await call("item", { path: QURL, delta: { summary: {}, tasks: { add: { title: "z" } } } });
 			ok(r.ok === false && fs.statSync(qfile).size === size, "a mixed delta (query + list add) is refused, nothing written");
 
+			// a line that would break replay is refused before it is written (a getter-only field in a child add once made a log unreadable)
+			{
+				r = await call("item", { path: QURL, delta: { tasks: { add: { id: "getter", title: "Has commits", commits: ["abc123"] } } } });
+				ok(r.ok === false && /commits/.test(r.why) && /Nothing was written/.test(r.why) && fs.statSync(qfile).size === size, "a child add with a getter-only field (commits) is refused by name, nothing written");
+				r = await call("item", { path: QURL, delta: { tasks: { add: [{ id: "fine-1", title: "Fine" }, { id: "getter-2", title: "Bad", commits: ["x"] }] } } });
+				ok(r.ok === false && fs.statSync(qfile).size === size, "an array add with one bad member writes none of them");
+				r = await call("item", { path: QURL });
+				ok(r.ok && r.state.tasks.length >= 5, "the file still reads after the refusals");
+			}
+
+			for (const bad of ["some text", 5, false]){
+				r = await call("item", { path: QURL, delta: { summary: bad } });
+				ok(r.ok === false && /summary is a query/.test(r.why) && /Nothing was written/.test(r.why) && !r.answer && fs.statSync(qfile).size === size, `a query given ${JSON.stringify(bad)} is refused, never answered or written`);
+			}
+			r = await call("item", { path: QURL, delta: { a: { cost: "x" } } });
+			ok(r.ok === false && /a\.cost is a query/.test(r.why) && fs.statSync(qfile).size === size, "a nested query given a value is refused with its path");
+			ok((await call("item", { path: QURL, delta: { summary: true } })).ok, "a query given true is still an ask");
+
 			r = await call("item", { path: QURL, target: ["a"], delta: { progress: {} } });
 			ok(r.ok && r.answer.progress.total === 1 && fs.statSync(qfile).size === size, "target walks into a child for a query");
 
