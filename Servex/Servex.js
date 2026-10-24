@@ -681,6 +681,34 @@ export default class Servex extends Events {
             res.json(await run_item({ path: url, target, delta }, { caller: "owner" }));
         });
 
+        /* THE MERGE BUTTON (merge-approvals, 2026-10-23) — the branches agents marked `ready:` and the
+         * one button that lands them. All the logic is Server/ReadyToMerge.mjs; the button only ever
+         * runs Server/merge.mjs. Loopback only; a worktree page's post is stubbed; one merge at a time. */
+        const local_only = (req, res) => {
+            const ip = req.socket.remoteAddress;
+            if (ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1") return true;
+            res.status(403).json({ ok: false, why: "loopback only" }); return false;
+        };
+        router.options("/api/ready-to-merge", cors, (req, res) => res.status(204).end());
+        router.get("/api/ready-to-merge", cors, async (req, res) => {
+            if (!local_only(req, res)) return;
+            try { res.json((await import("../Server/ReadyToMerge.mjs")).readyRows()); }
+            catch (e) { res.status(500).json({ ok: false, why: String(e?.message || e) }); }
+        });
+        router.options("/api/merge", cors, (req, res) => res.status(204).end());
+        router.post("/api/merge", cors, express.json({ limit: "4kb" }), async (req, res) => {
+            if (!local_only(req, res)) return;
+            const via = this.via(req);
+            if (via) return res.json({ ok: true, stubbed: true, via });
+            const branch = req.body?.branch;
+            if (typeof branch !== "string" || !branch) return res.status(400).json({ ok: false, why: "body must be {branch}" });
+            if (this.merging) return res.json({ ok: false, why: "another merge is running; try again in a minute" });
+            this.merging = true;
+            try { res.json((await import("../Server/ReadyToMerge.mjs")).mergeBranch(branch)); }
+            catch (e) { res.status(500).json({ ok: false, why: String(e?.message || e) }); }
+            finally { this.merging = false; }
+        });
+
         /* THE HIT-API CHAT CALLS (chat-hitl, 2026-09-29) — two small no-tools
          * model calls the human-in-the-loop chat uses: `marks` (per-sentence
          * purpose + ambiguity flag) and `rename` (five title alternatives).

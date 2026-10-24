@@ -1,0 +1,17 @@
+@layer base, theme, site, util;
+@layer site {
+	.page.rm-page { --measure: 44em; }
+	.rm-list { padding: 0.8em clamp(0.6em, 3cqi, 1.5em) 2em; }
+	.rm-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24em), 1fr)); gap: 0.8em; align-items: start; }
+	.rm-card { display: flex; flex-direction: column; gap: 0.4em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
+	.rm-title { font-weight: 600; color: inherit; overflow-wrap: anywhere; }
+	.rm-what { margin: 0; overflow-wrap: anywhere; }
+	.rm-meta { display: flex; flex-wrap: wrap; gap: 0.2em 1em; font-size: 0.82em; opacity: 0.75; }
+	.rm-branch { overflow-wrap: anywhere; }
+	.rm-merge { align-self: flex-start; padding: 0.4em 1.2em; font-weight: 600; cursor: pointer; }
+	.rm-merge[disabled] { cursor: default; opacity: 0.6; }
+	.rm-out { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.82em; }
+	.rm-ok { color: var(--ok); }
+	.rm-bad { color: var(--error); }
+	.rm-none { opacity: 0.8; }
+}

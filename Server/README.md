@@ -25,6 +25,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 - `node Server/window-lint.mjs` — repo-wide sweep for a `spawn`/`exec` missing `windowsHide: true`; `Browser.mjs` is the one Chromium launcher; `window-watch.mjs` is the live catcher ([`doc/browser.md`](./doc/browser.md)).
 - `node Server/padding-check.mjs <url>` — does any text sit at 0 from an edge; non-zero exit when it does.
 - `Server/on-landing.mjs` — runs on the first `landed_at`: text-check, layout-check, padding-check, `doc-check.mjs` ([`doc/on-landing.md`](./doc/on-landing.md)); `Server/owner-check.mjs` is its last check. The ledger hook refuses a `landed_at` with no `outcome`.
+- `node Server/ReadyToMerge.mjs [--json]` — the branches agents marked `ready:` (not yet in michael/dev), with review phrase and worktree; Servex serves it to the Merge button on [`/framework/ai/merge/`](/framework/ai/merge/) ([`ai/merge/readme.md`](../public/framework/ai/merge/readme.md)).
 - `node Server/review.mjs <taskdir> [<worktree>]` — a fresh agent says pass or fix before `merge.mjs` takes a branch; run on `michael/dev` it reviews the task record's worktree or refuses, never a false pass ([`doc/review.md`](./doc/review.md)).
 - `node Server/Audit.mjs <taskdir...>` — computes the consensus of several task audits; no AI writes it from memory.
 - `Server/AskEach.mjs` `askOnce()` — one cheap Q&A turn, optionally on OpenRouter; ⚠ the SDK mis-prices an OpenRouter turn.
