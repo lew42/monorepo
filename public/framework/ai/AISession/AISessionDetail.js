@@ -279,7 +279,7 @@ export default class AISessionDetail extends Page {
 			// Raw: the session's own task log and its transcript (/ai-logs is dev-server only), on every session, row or not
 				$box.append(() => div.c("flex gap-50 v-center muted", () => {
 					small("Raw");
-					const record = AITask.has(own_dir + "session.jsonl") ? "session.jsonl" : "task.jsonl";
+					const record = AISession.slugs.has(session_id) && !AITask.has(own_dir + "session.jsonl") ? "task.jsonl" : "session.jsonl";   // no probe until the dated folder is known (own_dir is a flat path that 404s before then)
 					a.c("", record).href(own_dir + record);
 					a.c("", "transcript").href("/ai-logs/" + session_id);
 				}));
