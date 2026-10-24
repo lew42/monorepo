@@ -377,6 +377,7 @@
 	.sessions-status .sessions-asof { margin-inline-start: auto; }
 	.sessions-status .sessions-asof + .sessions-status-open { margin-inline-start: 0; }
 	@container (width < 40em) {
+		.sessions-page .datagrid-bar { position: static; justify-content: flex-end; margin-block-end: .5rem; }   /* on a phone the Table / Rail toggle is its own line, not on top of the chips */
 		.sessions-status .ai-meter { display: none; }   /* a phone keeps the counts and the open-tasks chip; the meters are on the Inbox */
 		.sessions-page :is(.sessions-kinds, .sessions-chiprow) { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }   /* each chip row is one swipeable line on a phone, not three */
 		.sessions-page :is(.sessions-kinds, .sessions-chiprow) > *, .sessions-page .sessions-chips > .sessions-chip { flex: none; white-space: nowrap; }
