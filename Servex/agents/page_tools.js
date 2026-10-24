@@ -632,6 +632,7 @@ function notify_requests(live, at, body, requests, by){
 let collect = null;
 const sig = file => { try { const st = fs.statSync(file); return `${st.size}:${st.mtimeMs}`; } catch { return "none"; } };
 export function link_refs(Task){
+	Task.session_resolver ??= ref => { const dir = path.resolve(PUBLIC, String(ref ?? "").replace(/^[\/]+/, "")); return dir.startsWith(PUBLIC + path.sep) && path.basename(SessionRecord.file(dir) ?? "") === "session.jsonl"; };   // Task.children: does this folder hold a session record
 	Task.resolver ??= ref => {
 		const dir = path.resolve(PUBLIC, String(ref).replace(/^[\/]+/, ""));
 		if (!dir.startsWith(PUBLIC + path.sep)) return null;
@@ -653,6 +654,7 @@ function live_root(Class, file){
 	try { root = Class.replay(parse_lines(file)); } finally { collect = null; }
 	Object.assign(store, { host: root, sig: sig(file), deps, file });
 	root.store = store;
+	root.at_path = "/" + path.relative(PUBLIC, path.dirname(file)).split(path.sep).join("/") + "/";   // a session record has no `path` field: its cost is looked up by its folder
 	return root;
 }
 
@@ -702,6 +704,41 @@ export function tell_parent_caveats(task_dir, caveats, by = "node"){
 	if (!log) return null;
 	write_line(log, { note: { id: "caveats-" + path.basename(task_dir), msg: `${app_path(task_dir)} completed with caveats: ${list.join("; ")}` }, by, ts: now() }, true);
 	return log;
+}
+
+/* QUERIES (class `static queries`): a delta whose keys are all queries runs them and writes nothing. `{"cost":{}}`, `{"summary":{}}`,
+ * and into a child by `target` or by id: `{"tasks":{"<id>":{"cost":{}}}}` or `{"<id>":{"cost":{}}}`. A query's value is its argument:
+ * {} / true / null = none, an array = the arguments, any other object = one argument. */
+function query_args(arg){ return Array.isArray(arg) ? arg : is_plain(arg) && Object.keys(arg).length ? [arg] : []; }
+function walk_queries(node, delta, trail = "", out = { answer: {}, queried: false, other: [] }){
+	const into = (kid, sub, here, put) => { const r = walk_queries(kid, sub, here); out.queried ||= r.queried; out.other.push(...r.other); if (r.queried) put(r.answer); };
+	for (const [key, arg] of Object.entries(delta)){
+		const here = trail ? `${trail}.${key}` : key;
+		if (node.constructor.queries?.includes(key)){
+			out.queried = true;
+			const v = node[key];
+			out.answer[key] = typeof v === "function" ? v.apply(node, query_args(arg)) : v;
+		} else if (key === "tasks" && is_plain(arg) && !LIST_VERBS.some(v => v in arg)){
+			for (const [id, sub] of Object.entries(arg)){
+				const kid = is_plain(sub) ? node._tasks?.find(id) : null;
+				if (kid) into(kid, sub, `${here}.${id}`, a => ((out.answer.tasks ??= {})[id] = a));
+				else out.other.push(`${here}.${id}`);
+			}
+		} else if (is_plain(arg) && node._tasks?.find(key)) into(node._tasks.find(key), arg, here, a => (out.answer[key] = a));
+		else out.other.push(here);
+	}
+	return out;
+}
+const LIST_VERBS = ["add", "remove", "move", "order", "clear"];
+
+// null = not a query delta (run it as a change); {ok:false} = a mix, refused; else the answer. Nothing here writes.
+function ask(root, target, delta){
+	let node = root;
+	for (const id of target){ node = node._tasks?.find(id); if (!node) return { ok: false, why: `no task "${id}" under this path to ask` }; }
+	const r = walk_queries(node, delta);
+	if (!r.queried) return null;
+	if (r.other.length) return { ok: false, why: `this delta asks (${Object.keys(r.answer).join(", ")}) and also changes (${r.other.join(", ")}). A delta either asks or changes: send two calls. Nothing was written.` };
+	return { ok: true, answer: r.answer };
 }
 
 function refusal(why, Class){
@@ -785,6 +822,7 @@ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alia
 		told.set(`${ctx.caller}|${kind}`, true);
 		return { ok: true, instructions: await instructions_for(kind, Class) };
 	}
+	if (Class?.replay){ const asked = ask(root(), at.target, flat); if (asked) return asked; }
 	// An improvement proposed again adds weight, never a duplicate (the owner, 2026-10-22; readme-system.md): the same title becomes
 	// {"<id>": {"reinforce": {why}}} on the existing one, and Task.weight counts them.
 	if (path.basename(at.file) === "improvements.jsonl" && is_plain(flat.tasks?.add) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1){

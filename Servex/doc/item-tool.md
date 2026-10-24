@@ -21,3 +21,19 @@
   - One goal task per module holds the long-lived work; new related work goes under it.
   - An idea to keep beside a module while designing is a note, not a task.
   - The tool files the session reference and picks the home folder; never write either by hand.
+
+## Queries: ask without writing (2026-10-23)
+
+A **query** is a method or getter that only reads. A class lists them in `static queries` (`core/Item/Item.js`; `Item.describe()` returns them). A delta whose keys are ALL queries is answered at once and **writes no line**: `{ok, answer:{<key>:value}}`. The grammar is the same one ("a key naming a method calls it"): there is no `get` key. `target` walks into a child first (`target:["a"]`), then asks. A delta that mixes a query with a change (`{"cost":{},"title":"x"}`) is refused with `{ok:false, why}` and writes nothing: send two calls. The item tool holds one live replayed instance per file, so a query is a method call on memory (a 132-task session answers in about 135 ms).
+
+```
+item({path:"/framework/ai/sessions/2026/10/20/session-e00f55c9/", delta:{"summary":{}}})
+item({path, delta:{"progress":{}, "cost":{}}})            // several queries in one call
+item({path, target:["a"], delta:{"progress":{}}})          // the same, on the child "a"
+```
+
+`Task.queries` = `progress`, `cost` (this folder's agents, USD), `total_cost` (plus every child that has a folder), `duration` (ms, from the start/stop lines), `children` (child **sessions**: tasks whose `path` folder holds a session record), `summary` (id, title, state, completion, progress, counts by state, the open tasks only as id/title/state, cost, duration, children). Cost is computed by `Task.cost_resolver`, which `Agents.js` wires; with no Agents instance (a plain script) it reads 0.
+
+**Session or Task? A session folder stays a Task with queries (decided 2026-10-23).** `core/Session` is the page-level view of a run (menu, settings, `AISession` cost and transcript), and `Session.completion` and `Task.completion` count the same thing with the same code. `class_of` already replays a session folder as a Task (`SessionRecord.log_file`), because the log holds task lines, `start`/`stop` spans and verbs that only Task understands. Switching to `Session` would lose those and need a second copy of `duration`, `cost` and `summary`. So `summary` and `children` live on Task and answer for a session's `session.jsonl` too (line 1's `{"session":{id,kind,…}}` is kept as `record`, so the summary reports the session id and kind). The alternative, a `Session` loader that extends Task, stays open if the view needs menu or settings through the tool.
+
+Tests: `item_tool.test.mjs` (a query writes no line, a mixed delta is refused, the session summary with inline and referenced children, an array `tasks.add` is two tasks).

@@ -153,6 +153,7 @@ export class List extends Item {
 	// checks properties first, so an id that shadowed one would be unreachable by
 	// name forever. Refused, once per id, rather than silently inserted-but-dead.
 	insert(x, { after } = {}){
+		if (Array.isArray(x)) return x.map(each => this.insert(each, { after })).at(-1);   // {"add":[a, b]} is two members, never one Array member
 		const made = this.make(x);
 		const id = this.key(made);
 		if (id != null){
@@ -193,6 +194,7 @@ export class List extends Item {
 	// `after` can arrive two ways: the live two-argument form (`list.add(x, {after})`)
 	// or, on replay, inside `x` itself. The options form wins when both are given.
 	add(x, opts = {}){
+		if (Array.isArray(x)) return x.map(each => this.add(each, opts)).at(-1);   // {"add":[a, b]} is two adds, in order
 		const after = "after" in opts ? opts.after : (is_plain(x) ? x.after : undefined);
 		const before = this.length;
 		const made = this.insert(x, { after });

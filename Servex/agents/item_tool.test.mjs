@@ -219,6 +219,56 @@ try {
 		// old: 8 x 0.5^3 = 1; fresh: ~0.89; mid: (1+3) x 0.5 = 2
 		ok(Task.rank([old_heavy, fresh, mid_kids], now).map(t => t.id).join() === "mid,old,fresh", "Task.rank: weight x recency order");
 	}
+	// ---- queries: a delta whose keys all READ answers and writes no line ----
+	{
+		const { Task } = await import("../../public/framework/core/Task/Task.js");
+		const QDIR = DIR + "-query", QURL = URL.replace(/\/$/, "") + "-query/", qfile = path.join(QDIR, "session.jsonl");
+		const kid_dir = path.join(QDIR, "child-session"), kid_url = QURL + "child-session/", plain_dir = path.join(QDIR, "plain-task");
+		const was = Task.cost_resolver;
+		Task.cost_resolver = p => p === QURL ? 0.5 : p === kid_url ? 1.5 : 0;
+		fs.mkdirSync(kid_dir, { recursive: true });
+		fs.mkdirSync(plain_dir, { recursive: true });
+		try {
+			fs.writeFileSync(qfile, JSON.stringify({ session: { id: "sum-1", kind: "agent", at: "2026-10-16T10:00:00Z" } }) + "\n");
+			fs.writeFileSync(path.join(kid_dir, "session.jsonl"), JSON.stringify({ session: { id: "kid-1", kind: "agent" } }) + "\n" + JSON.stringify({ tasks: { add: { id: "k1", title: "Kid task" } } }) + "\n");
+			fs.writeFileSync(path.join(plain_dir, "task.jsonl"), JSON.stringify({ assign: { slug: "plain-task", title: "Plain" } }) + "\n");
+			await call("item", { path: QURL, delta: { tasks: { add: { id: "a", title: "A" } } } });
+			await call("item", { path: QURL, delta: { tasks: { add: { id: "b", title: "B" } } } });
+			await call("item", { path: QURL, delta: { tasks: { add: [{ id: "c", title: "C" }, { id: "d", title: "D" }] } } });
+			let r = await call("item", { path: QURL, delta: { a: { tasks: { add: { id: "a1", title: "Nested A1" } } } } });
+			ok(r.ok, "a nested task is added under a");
+			await call("item", { path: QURL, delta: { a: { start: {} } } });
+			await call("item", { path: QURL, delta: { b: { start: {} } } });
+			await call("item", { path: QURL, delta: { b: { complete: { outcome: "done", evidence: ["a test"], confidence: "high" } } } });
+			fs.appendFileSync(qfile, JSON.stringify({ tasks: { add: { type: "Task", id: "kid-1", title: "Child session", path: kid_url, state: "running" } } }) + "\n");
+			fs.appendFileSync(qfile, JSON.stringify({ tasks: { add: { type: "Task", id: "plain", title: "Plain task", path: QURL + "plain-task/" } } }) + "\n");
+
+			const size = fs.statSync(qfile).size;
+			r = await call("item", { path: QURL, delta: { progress: {}, cost: {} } });
+			ok(r.ok && r.answer.progress.total >= 5 && r.answer.cost === 0.5, "a query delta answers {ok, answer:{key:value}}");
+			ok(fs.statSync(qfile).size === size, "a query writes no line (file size before = after)");
+
+			r = await call("item", { path: QURL, delta: { cost: {}, title: "x" } });
+			ok(r.ok === false && /ask/.test(r.why) && /Nothing was written/.test(r.why) && fs.statSync(qfile).size === size, "a mixed delta (query + assign) is refused, nothing written");
+			r = await call("item", { path: QURL, delta: { summary: {}, tasks: { add: { title: "z" } } } });
+			ok(r.ok === false && fs.statSync(qfile).size === size, "a mixed delta (query + list add) is refused, nothing written");
+
+			r = await call("item", { path: QURL, target: ["a"], delta: { progress: {} } });
+			ok(r.ok && r.answer.progress.total === 1 && fs.statSync(qfile).size === size, "target walks into a child for a query");
+
+			r = await call("item", { path: QURL, delta: { summary: {} } });
+			const s = r.answer.summary;
+			ok(s.id === "sum-1" && s.kind === "agent", "summary: a session record answers with its session id");
+			ok(s.states.complete === 1 && s.states.running === 2 && s.progress.done === 1, "summary: counts by state");
+			ok(s.open.length === 5 && s.open.every(t => Object.keys(t).join() === "id,title,state") && !s.open.some(t => t.id === "b"), "summary: open tasks only, as id/title/state");
+			ok(s.cost === 2 && r.answer.summary.children.length === 1 && s.children[0].path === kid_url, "summary: cost = own + folders; children = only tasks whose folder holds a session record");
+			ok(typeof s.duration === "number" && s.duration >= 0 && Math.abs(s.completion - s.progress.done / s.progress.total) < 1e-9, "summary: duration and completion");
+			ok(fs.statSync(qfile).size === size, "summary writes nothing");
+
+			r = await call("item", { path: QURL, delta: { tasks: { add: [{ id: "e", title: "E" }, { id: "f", title: "F" }] } } });
+			ok(r.ok && ["e", "f"].every(id => r.state.tasks.some(t => t.id === id)) && !r.state.tasks.some(t => t.id === "task"), "an array tasks.add is two tasks, never one Array child");
+		} finally { Task.cost_resolver = was; fs.rmSync(QDIR, { recursive: true, force: true }); }
+	}
 	// ---- move_item: a nested task moves home with id and history, one reference left behind ----
 	{
 		const { ledgers } = await import("./page_tools.js");
@@ -271,17 +321,19 @@ try {
 			ok([...Session.replay(plines()).tasks].length === 2, "two children after two moves");
 
 			// open_task handoff: task {dir, from, id} moves the subtask into the new agent's folder, by the spawner; a refusal is logged there
-			const { open_task } = await import("./Agents.js");
-			await call("item", { path: MURL, delta: { tasks: { add: { id: "z", title: "Z task" } } } });
-			const settle = async f => { for (let i = 0; i < 50 && !f(); i++) await new Promise(res => setTimeout(res, 20)); };
-			open_task({ dir: path.join(MDIR, "agent-d"), from: MURL, id: "z" }, { session_id: "s-d", agent: "agent-d", by: "spawner" });
-			await settle(() => plines().at(-1).as === "z");
-			const dl = fs.readFileSync(SessionRecord_file(path.join(MDIR, "agent-d")), "utf8").trim().split("\n").map(l => JSON.parse(l));
-			ok(dl[0].assign && dl[1].id === "z" && plines().at(-1).as === "z" && plines().at(-1).by === "spawner" && JSON.parse(ledger().at(-1)).by === "spawner", "open_task hands the subtask to the new folder, by the spawner");
-			open_task({ dir: path.join(MDIR, "agent-e"), from: MURL, id: "nobody" }, { session_id: "s-e", agent: "agent-e", by: "spawner" });
-			const ef = SessionRecord_file(path.join(MDIR, "agent-e"));
-			await settle(() => fs.readFileSync(ef, "utf8").includes("refused"));
-			ok(/"handoff".*"refused"/.test(fs.readFileSync(ef, "utf8")), "a refused handoff is written into the new log");
+			const open_task = await import("./Agents.js").then(m => m.open_task, e => { console.log("open_task handoff checks skipped: " + e.code); return null; });   // a worktree has no Servex/node_modules
+			if (open_task){
+				await call("item", { path: MURL, delta: { tasks: { add: { id: "z", title: "Z task" } } } });
+				const settle = async f => { for (let i = 0; i < 50 && !f(); i++) await new Promise(res => setTimeout(res, 20)); };
+				open_task({ dir: path.join(MDIR, "agent-d"), from: MURL, id: "z" }, { session_id: "s-d", agent: "agent-d", by: "spawner" });
+				await settle(() => plines().at(-1).as === "z");
+				const dl = fs.readFileSync(SessionRecord_file(path.join(MDIR, "agent-d")), "utf8").trim().split("\n").map(l => JSON.parse(l));
+				ok(dl[0].assign && dl[1].id === "z" && plines().at(-1).as === "z" && plines().at(-1).by === "spawner" && JSON.parse(ledger().at(-1)).by === "spawner", "open_task hands the subtask to the new folder, by the spawner");
+				open_task({ dir: path.join(MDIR, "agent-e"), from: MURL, id: "nobody" }, { session_id: "s-e", agent: "agent-e", by: "spawner" });
+				const ef = SessionRecord_file(path.join(MDIR, "agent-e"));
+				await settle(() => fs.readFileSync(ef, "utf8").includes("refused"));
+				ok(/"handoff".*"refused"/.test(fs.readFileSync(ef, "utf8")), "a refused handoff is written into the new log");
+			}
 		} finally { fs.rmSync(MDIR, { recursive: true, force: true }); }
 	}
 	console.log(`item_tool: ${n} checks passed`);
