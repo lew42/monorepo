@@ -1,0 +1,247 @@
+diff --git a/Servex/agents/item_tool.test.mjs b/Servex/agents/item_tool.test.mjs
+index 32f4a0837..6b4dc62b8 100644
+--- a/Servex/agents/item_tool.test.mjs
++++ b/Servex/agents/item_tool.test.mjs
+@@ -359,5 +359,20 @@ try {
+ 			}
+ 		} finally { fs.rmSync(MDIR, { recursive: true, force: true }); }
+ 	}
++	// part types: part-view and part-file are accepted on a page, part-nope is refused with the list
++	{
++		const PDIR = DIR + "-page", PURL = URL.replace(/\/$/, "-page/");
++		fs.mkdirSync(PDIR, { recursive: true });
++		fs.writeFileSync(path.join(PDIR, "page.jsonl"), JSON.stringify({ title: "Parts" }) + "\n");
++		try {
++			for (const part of [{ type: "part-view", class: "./A.js", data: { value: 1 } }, { type: "part-file", file: "./r.md" }]){
++				const r = await call("item", { path: PURL, delta: { content: { add: part } } });
++				ok(r.ok, `a ${part.type} line is accepted`);
++			}
++			const r = await call("item", { path: PURL, delta: { content: { add: { type: "part-nope" } } } });
++			ok(r.ok === false && /part-view/.test(r.why) && /part-file/.test(r.why), "part-nope is refused and the refusal lists the types");
++		} finally { fs.rmSync(PDIR, { recursive: true, force: true }); }
++	}
++
+ 	console.log(`item_tool: ${n} checks passed`);
+ } finally { fs.rmSync(DIR, { recursive: true, force: true }); fs.rmSync(DIR + "-homes", { recursive: true, force: true }); }
+diff --git a/public/framework/core/Page/Page.test.mjs b/public/framework/core/Page/Page.test.mjs
+index a2abe6ce2..982e13686 100644
+--- a/public/framework/core/Page/Page.test.mjs
++++ b/public/framework/core/Page/Page.test.mjs
+@@ -32,6 +32,15 @@ const names = list => [...list].map(x => `${x.constructor.name}:${x.id}`);
+ 	ok(Page.types === Item.types, "the node Page and the tool share one type registry");
+ }
+ 
++// ---- 1b. part-view and part-file replay into their classes, with their fields ----
++{
++	const page = Page.replay([{ title: "T" }, { content: { add: { id: "v", type: "part-view", class: "./A.js", data: { value: 92 } } } }, { content: { add: { id: "f", type: "part-file", file: "./r.md" } } }]);
++	ok(names(page.content).join() === "PageView:v,PageFile:f", "part-view and part-file become PageView and PageFile: " + names(page.content));
++	const [view, file] = [...page.content];
++	ok(view.get("class") === "./A.js" && file.get("file") === "./r.md", "their class and file fields are kept");
++	ok(view.parent === page, "a part's parent is its page");
++}
++
+ // ---- 2. replay: an unknown type is reported, never thrown ----
+ {
+ 	const warned = [], was = console.warn;
+@@ -71,13 +80,19 @@ const names = list => [...list].map(x => `${x.constructor.name}:${x.id}`);
+ 		ok(r.ok === false && /private/.test(r.why) && size() === before, "item: a private key is refused, nothing written");
+ 		r = await call("item", { path: URL, delta: { content: { add: { id: "n", _hidden: true, type: "part-text" } } } });
+ 		ok(r.ok === false && /_hidden/.test(r.why) && size() === before, "item: a private key nested in an added part is refused");
++		for (const item of [{ type: "part-view", class: "./A.js", data: { value: 1 } }, { type: "part-file", file: "./r.md" }]){
++			r = await call("item", { path: URL, delta: { content: { add: item } } });
++			ok(r.ok, `item: a ${item.type} line is accepted`);
++		}
++		r = await call("item", { path: URL, delta: { content: { add: { type: "part-nope" } } } });
++		ok(!r.ok && /part-view/.test(r.why) && /part-file/.test(r.why), "the refusal lists the two new types");
+ 
+ 		r = await call("item", { path: URL, delta: { content: { add: { id: "h", type: "part-heading", text: "Hello" } } } });
+ 		ok(r.ok && size() > before, "item: a known part type is written");
+ 		r = await call("page_add", { path: URL, item: { type: "card", title: "plain data typed card" } });
+ 		ok(r.ok, "a plain (non part-) type is still written: pages hold card/note/request/task data");
+ 		const page = Page.replay(parse(fs.readFileSync(FILE, "utf8")));
+-		ok(names(page.content)[0] === "PageHeading:h", "what the tool wrote replays as the real class");
++		ok(names(page.content).includes("PageHeading:h") && names(page.content).includes("PageView:" + [...page.content][0].id), "what the tool wrote replays as the real class");
+ 	} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
+ }
+ 
+diff --git a/public/framework/core/Page/doc/ai-api.md b/public/framework/core/Page/doc/ai-api.md
+index cf6452847..d7d587141 100644
+--- a/public/framework/core/Page/doc/ai-api.md
++++ b/public/framework/core/Page/doc/ai-api.md
+@@ -29,6 +29,8 @@ The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`
+ | add a heading | `{"content":{"add":{"type":"part-heading","text":"Findings"}}}` |
+ | add a card | `{"content":{"add":{"type":"part-card","title":"Cache","text":"Hit rate 92%."}}}` |
+ | add a paragraph | `{"content":{"add":{"type":"part-text","text":"Some **markdown**."}}}` |
++| add a view (a module in the page's folder) | `{"content":{"add":{"type":"part-view","class":"./MyChart.js","data":{"value":92}}}}`: if the default export has a `render`, it is built as `new Default({ page, item, ...data })`, else called as `fn(page, box, data)` |
++| add a markdown file | `{"content":{"add":{"type":"part-file","file":"./readme.md"}}}`: rendered in place |
+ | add after a card | `{"content":{"add":{…,"after":"c1"}}}` (`"after":null` puts it first) |
+ | update a card | `{"c1":{"text":"Hit rate 95%."}}` (the id `page_set` returned) |
+ | move a card | `{"content":{"move":{"id":"c1","after":"h1"}}}` |
+@@ -53,7 +55,7 @@ A bad line is refused before it is written: a `_` key, a `part-*` type nobody re
+ ## Names, once
+ 
+ - **page**: anything with a url. **subpage**: a page inside another, with its own folder and url.
+-- **content**: the page's own list of cards. **card**: one item in it (`part-heading`, `part-text`, `part-card`; any registered type).
++- **content**: the page's own list of cards. **card**: one item in it (`part-heading`, `part-text`, `part-card`, `part-link`, `part-view`, `part-file`; any registered type). `part-text` already takes a whole block of markdown (paragraphs, lists, code blocks), so there is no separate type for one.
+ - **delta**: the JSON object you send. **line**: that delta, stamped and appended to `page.jsonl`.
+ 
+ ## Old tool names still work
+diff --git a/public/framework/core/Page/parts/PageFile.js b/public/framework/core/Page/parts/PageFile.js
+new file mode 100644
+index 000000000..7114f12b2
+--- /dev/null
++++ b/public/framework/core/Page/parts/PageFile.js
+@@ -0,0 +1,13 @@
++import Item from "../../Item/Item.js";
++import View from "../../View/View.js";
++
++/* {"type":"part-file","file":"./readme.md"} — a markdown file in the page's folder, rendered here.
++   One implementation with the page-level `place` line: Jsonl.draw_md (Jsonl.js). */
++export default class PageFile extends Item {}
++PageFile.View = class PageFileView extends View {
++	render(){
++		const page = this.item.parent;   // a part's parent is the page that holds it (root() would walk on to the site root)
++		return page.draw_md(new URL(this.item.get("file"), location.origin + page.log_folder()).href);
++	}
++};
++Item.register(PageFile, "part-file");
+diff --git a/public/framework/core/Page/parts/PageView.js b/public/framework/core/Page/parts/PageView.js
+new file mode 100644
+index 000000000..e1b97c853
+--- /dev/null
++++ b/public/framework/core/Page/parts/PageView.js
+@@ -0,0 +1,14 @@
++import Item from "../../Item/Item.js";
++import View from "../../View/View.js";
++
++/* {"type":"part-view","class":"./MyChart.js","data":{"value":92}} — a module in the page's folder, drawn here.
++   One implementation with the page-level `place` line: Jsonl.draw_module (Jsonl.js). */
++export default class PageView extends Item {}
++PageView.View = class PageViewView extends View {
++	render(){
++		const page = this.item.parent;   // a part's parent is the page that holds it (root() would walk on to the site root)
++		const url = new URL(this.item.get("class"), location.origin + page.log_folder()).href;
++		return page.draw_module(url, { item: this.item, ...this.item.get("data") });
++	}
++};
++Item.register(PageView, "part-view");
+diff --git a/public/framework/core/Page/parts/kinds.js b/public/framework/core/Page/parts/kinds.js
+index 4fa61ffd1..f32695308 100644
+--- a/public/framework/core/Page/parts/kinds.js
++++ b/public/framework/core/Page/parts/kinds.js
+@@ -4,5 +4,7 @@ import "./PageHeading.js";
+ import "./PageText.js";
+ import "./PageCard.js";
+ import "./PageLink.js";
++import "./PageView.js";
++import "./PageFile.js";
+ 
+-export const PART_TYPES = ["part-heading", "part-text", "part-card", "part-link"];
++export const PART_TYPES = ["part-heading", "part-text", "part-card", "part-link", "part-view", "part-file"];
+diff --git a/public/framework/core/Page/parts/page.jsonl b/public/framework/core/Page/parts/page.jsonl
+index 141adc39d..626395c49 100644
+--- a/public/framework/core/Page/parts/page.jsonl
++++ b/public/framework/core/Page/parts/page.jsonl
+@@ -27,3 +27,7 @@
+ {"file":"PageText.js"}
+ {"file":"PageLink.js"}
+ {"file":"kinds.js"}
++{"file":"PageFile.js"}
++{"file":"PageView.js"}
++{"file":"types/"}
++{"file":"types/page.jsonl"}
+diff --git a/public/framework/core/Page/parts/readme.md b/public/framework/core/Page/parts/readme.md
+index 3422b7b93..8e7316b98 100644
+--- a/public/framework/core/Page/parts/readme.md
++++ b/public/framework/core/Page/parts/readme.md
+@@ -14,6 +14,7 @@ Make a folder with a `page.jsonl`; line 1 names the class, later lines are the p
+ Agents write these with `page_set` / `page_add`; code calls the content list: `page.content.add(...)`, `.move(...)`, `.remove(...)`. A plain `Page` draws them; `"class": "./Parts.js"` still works (an empty `PartsPage` subclass).
+ 
+ ## Index
++- **The six types** (the one list is [kinds.js](kinds.js)); every one has a live line on [types/](/framework/core/Page/parts/types/): `part-heading` (`text`), `part-text` (`text`, a whole markdown block), `part-card` (`title`, `text`), `part-link` (`path`), `part-view` (`class`, `data`: a module beside the page, drawn as `new Default({ page, item, ...data })` or `fn(page, box, data)`), `part-file` (`file`: a markdown file, rendered in place). `part-view` and `part-file` draw through `Jsonl.draw_module` and `Jsonl.draw_md`, the same code as the page-level `place` line.
+ - Classes: `PageHeading`, `PageText`, `PageCard`, `PageLink` (a card to a child page; [../doc/part-link.md](../doc/part-link.md)), each an `Item` with its own `View` (no base class); `Part.js`, `HeadingPart.js`, `TextPart.js`, `CardPart.js` and `Parts.js` (`PartsPage`) are shims for the old names — [doc/architecture.md](doc/architecture.md), [../doc/content.md](../doc/content.md)
+ - `MdToParts.mjs` — turns a markdown file into parts lines (`node MdToParts.mjs in.md out.json "Title"`)
+ 
+diff --git a/public/framework/core/Page/parts/types/Meter.js b/public/framework/core/Page/parts/types/Meter.js
+new file mode 100644
+index 000000000..00daaec90
+--- /dev/null
++++ b/public/framework/core/Page/parts/types/Meter.js
+@@ -0,0 +1,12 @@
++import View, { div } from "../../../View/View.js";
++
++/* A tiny part-view module. The part hands it { page, item, ...data }, and a View puts those on `this`. */
++export default class Meter extends View {
++	render(){
++		const value = this.value ?? 0;
++		div.c("types-meter card", () => {
++			div.c("types-meter-label", `${this.label ?? "Value"}: ${value}%`);
++			div.c("types-meter-bar").style("width", value + "%").style("height", "0.75em").style("background", "currentColor");
++		});
++	}
++}
+diff --git a/public/framework/core/Page/parts/types/doc/files.jsonl b/public/framework/core/Page/parts/types/doc/files.jsonl
+new file mode 100644
+index 000000000..e4fcd2fc2
+--- /dev/null
++++ b/public/framework/core/Page/parts/types/doc/files.jsonl
+@@ -0,0 +1,6 @@
++{"file":"types-400.png"}
++{"file":"types-1200.png"}
++{"file":"types-1920.png"}
++{"file":"types-3440.png"}
++{"file":"live-before.png"}
++{"file":"live-after.png"}
+diff --git a/public/framework/core/Page/parts/types/doc/live-after.png b/public/framework/core/Page/parts/types/doc/live-after.png
+new file mode 100644
+index 000000000..5b70ac512
+Binary files /dev/null and b/public/framework/core/Page/parts/types/doc/live-after.png differ
+diff --git a/public/framework/core/Page/parts/types/doc/live-before.png b/public/framework/core/Page/parts/types/doc/live-before.png
+new file mode 100644
+index 000000000..b9db460ac
+Binary files /dev/null and b/public/framework/core/Page/parts/types/doc/live-before.png differ
+diff --git a/public/framework/core/Page/parts/types/doc/types-1200.png b/public/framework/core/Page/parts/types/doc/types-1200.png
+new file mode 100644
+index 000000000..b9db460ac
+Binary files /dev/null and b/public/framework/core/Page/parts/types/doc/types-1200.png differ
+diff --git a/public/framework/core/Page/parts/types/doc/types-1920.png b/public/framework/core/Page/parts/types/doc/types-1920.png
+new file mode 100644
+index 000000000..c17e269b5
+Binary files /dev/null and b/public/framework/core/Page/parts/types/doc/types-1920.png differ
+diff --git a/public/framework/core/Page/parts/types/doc/types-3440.png b/public/framework/core/Page/parts/types/doc/types-3440.png
+new file mode 100644
+index 000000000..8230178a7
+Binary files /dev/null and b/public/framework/core/Page/parts/types/doc/types-3440.png differ
+diff --git a/public/framework/core/Page/parts/types/doc/types-400.png b/public/framework/core/Page/parts/types/doc/types-400.png
+new file mode 100644
+index 000000000..0d4ab707d
+Binary files /dev/null and b/public/framework/core/Page/parts/types/doc/types-400.png differ
+diff --git a/public/framework/core/Page/parts/types/notes.md b/public/framework/core/Page/parts/types/notes.md
+new file mode 100644
+index 000000000..f72fa2258
+--- /dev/null
++++ b/public/framework/core/Page/parts/types/notes.md
+@@ -0,0 +1,6 @@
++# A markdown file, drawn in place
++
++This block is `notes.md`, a real file in this folder. A `part-file` line named it, and the page drew it where the line sits.
++
++- Edit the file and reload to see the change.
++- The same file is also a readme you can open on its own.
+diff --git a/public/framework/core/Page/parts/types/page.jsonl b/public/framework/core/Page/parts/types/page.jsonl
+new file mode 100644
+index 000000000..65b6f45a7
+--- /dev/null
++++ b/public/framework/core/Page/parts/types/page.jsonl
+@@ -0,0 +1,11 @@
++{"title":"Part types","icon":"view_agenda","class":"../Parts.js","description":"One part of each of the six types a page.jsonl line can add."}
++{"content":{"add":{"id":"t-heading","type":"part-heading","text":"The six part types, one each"}}}
++{"content":{"add":{"id":"t-text","type":"part-text","text":"**part-text** takes a whole block of markdown: paragraphs, lists, `code`. Every block below is one line in this page's own `page.jsonl`."}}}
++{"content":{"add":{"id":"t-card","type":"part-card","title":"part-card","text":"A boxed title with a line under it."}}}
++{"content":{"add":{"id":"t-link","type":"part-link","path":"../example/","title":"part-link","text":"A card for another page: this one opens the parts example."}}}
++{"content":{"add":{"id":"t-view","type":"part-view","class":"./Meter.js","data":{"label":"part-view","value":92}}}}
++{"content":{"add":{"id":"t-file","type":"part-file","file":"./notes.md"}}}
++{"content":{"add":{"id":"t-live","type":"part-card","title":"Added while open","text":"This line was appended after the page loaded."}}}
++{"file":"doc/"}
++{"file":"Meter.js"}
++{"file":"notes.md"}

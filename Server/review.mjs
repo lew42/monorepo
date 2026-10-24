@@ -701,6 +701,8 @@ async function main() {
 	const taskDir = path.resolve(taskDirArg);
 	let worktreeDir = null;
 	if (!range) try { worktreeDir = branchTree(taskDir, path.resolve(worktreeArg || process.cwd())); } catch (e) { console.error(e.message); process.exit(1); }
+	// a range still names its worktree for the shots: without it a page review shot the MAIN site, where an unmerged page is a 404 (2026-10-23, part-types)
+	else if (worktreeArg) worktreeDir = path.resolve(worktreeArg);
 	// The main repo this worktree belongs to (the same trick merge.mjs uses): never assume it is
 	// wherever THIS copy of review.mjs happens to live — a worktree carries its own copy of this
 	// file, and .worktrees.json / Server/layout-check.mjs / the task's public/framework/ai only
