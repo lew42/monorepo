@@ -1,4 +1,4 @@
-import { Prompts } from "/framework/ai/v/3/Prompts.js";
+import { servex_url } from "/framework/dev/servex_url.js";
 import { Page, div, span, small, p, a, button } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
@@ -366,7 +366,7 @@ export default class AISessionDetail extends Page {
 	/** A named Servex agent (`reviewer-x`, `minion-y`) is a grid row before sessions.json knows it: its uuid comes from the live agent list, else null (a name is never a transcript id). */
 	static async agent_row(id){
 		if (/^[0-9a-f]{8}-/.test(id)) return null;
-		const agents = (await AISessionRows.get_json(Prompts.base() + "/api/agents")) ?? (await AISessionRows.get_json("/api/agents")) ?? [];
+		const agents = (await AISessionRows.get_json(servex_url("/api/agents"))) ?? [];
 		const a = Array.isArray(agents) ? agents.find(x => x.id === id) : null;
 		return a ? { id: a.id, session_id: a.session_id ?? null, source: "servex", role: a.role, model: a.model, tab_title: a.id, started_at: a.started_at } : null;
 	}
