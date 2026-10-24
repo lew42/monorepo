@@ -128,6 +128,17 @@ function uncommitted_in_main(p){
 	return st.status === 0 && st.stdout.trim() !== "";
 }
 
+/* A 404 on a file the main tree HOLDS but git does not track (ignored machine state: an index, a cache, a tree file; or
+ * a record not committed yet) can never load in a worktree, whatever the branch changed, so it is a warning, not a FAIL
+ * (2026-10-23: the session page 404ed sessions.json, session-tree.json, spend-tree.json and three more in every
+ * worktree). The one rule behind most of the special cases below; a TRACKED file, or one the main tree lacks too,
+ * still fails. One git call per failing url. */
+function untracked_in_main(u){
+	const rel = "public" + decodeURIComponent(new URL(u).pathname);
+	if (norm(MAIN) === norm(dir) || !fs.existsSync(path.join(MAIN, rel))) return false;
+	return spawnSync("git", ["-C", MAIN, "ls-files", "--error-unmatch", "--", rel], { windowsHide: true, stdio: "ignore" }).status !== 0;
+}
+
 let browser;
 try { browser = await launch(); } catch (e) { usage("cannot start Playwright: " + e.message); }
 const context = await browser.newContext();
@@ -395,7 +406,8 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 			|| /\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/index\.jsonl?$/.test(u)   // the day composite and the day stream: gitignored, written in the main tree only (2026-10-20)
 			|| /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/spend\.json$/.test(u)
 			|| /\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/[^/]+\/(task|session)\.jsonl$/.test(u) || /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/day\.jsonl$/.test(u)
-			|| /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/.*\/shots\/[^/]+\.(png|jpg|jpeg|webp)$/.test(u)){ warns.push(`HTTP ${r.status()}: ${u}`); return; }
+			|| /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/.*\/shots\/[^/]+\.(png|jpg|jpeg|webp)$/.test(u)
+			|| (u.startsWith(base) && r.status() === 404 && untracked_in_main(u))){ warns.push(`HTTP ${r.status()}: ${u}`); return; }
 		// Same-origin (this worktree's own server) is always an error, any other request kind —
 		// a plain `fetch()` 404 used to slip through here because only script/stylesheet/
 		// document were checked. Cross-origin (Servex on :8090, off in a worktree) stays a warn.
