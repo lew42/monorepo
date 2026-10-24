@@ -53,7 +53,7 @@ export const NAVIGATION = [
 	  means: "Each child is a row you open in place. The row grows downward, everything below it moves down, and the address never changes — so an opened row cannot be linked to. For details that are not pages (an FAQ answer), never for a child page." },
 	{ id: "columns",    title: "Columns",    icon: "view_column",  stable: false,
 	  means: "Each child is a row you click, and it opens as a new column to the right. The same as the page calling `columns()`; opt-in only, since the owner dropped Miller columns as the default on 2026-10-23." },
-	// `takeover` was retired 2026-10-24: a page that says it gets what `none` gets (the child replaces the page). Only the /imagine/paging lab keeps its own copy (paging/blocks.js).
+	// `takeover` was retired 2026-10-23: a page that says it gets what `none` gets (the child replaces the page). Only the /imagine/paging lab keeps its own copy (paging/blocks.js).
 ];
 
 /* THE TWO WORDS FOR THE SPLIT ABOVE, spelled once — three files used to re-type the

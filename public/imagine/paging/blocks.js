@@ -43,7 +43,7 @@
 import { NAVIGATION as CORE_NAVIGATION, ROOM, ARRANGEMENT, SURFACES, TYPE, STABLE, DYNAMIC, arrangement_of, layout_url }
 	from "/framework/core/Page/words.js";
 
-// Core retired `takeover` (2026-10-24, it means `none` there); this lab's stage.js still runs it, so the lab's list keeps the entry.
+// Core retired `takeover` (2026-10-23, it means `none` there); this lab's stage.js still runs it, so the lab's list keeps the entry.
 export const NAVIGATION = [...CORE_NAVIGATION, { id: "takeover", title: "Takeover", icon: "open_in_full", stable: false,
 	means: "The child fills the whole screen and everything behind it collapses into the trail at the top." }];
 export const nav_of = id => NAVIGATION.find(nav => nav.id === id) ?? NAVIGATION[0];
