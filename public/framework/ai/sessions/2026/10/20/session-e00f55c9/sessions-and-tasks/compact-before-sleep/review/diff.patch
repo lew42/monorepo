@@ -1,0 +1,267 @@
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 1dcfcbe3d..b4faf9100 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -1330,6 +1330,9 @@ Agents.Agent = class Agent {
+ 		   last minute is never put back to sleep. */
+ 		if (this.awoken_at && Date.now() - this.awoken_at < 60_000) return false;
+ 		if (this.bg_tasks > 0) return false;
++		/* COMPACT BEFORE SLEEP (the owner, 2026-10-23, doc/dormant.md "Compaction"): a big context
++		 * compacts first, then sleeps, so the next wake reloads a summary, not the whole history. */
++		if (why === "idle" && this.sleep_compact() && this.compact("sleep")) return false;
+ 		this.gen = (this.gen ?? 0) + 1;   // the old pump's end is not news
+ 		/* NEVER-LOSE-A-WAKE, item 5 (fresh-eyes review finding 4): this only ever runs while
+ 		 * `state === "idle"`, which means nothing is queued behind the last turn — `result()`
+@@ -1445,6 +1448,21 @@ Agents.Agent = class Agent {
+ 		return `Context: ${context.toLocaleString("en-US")} tokens (${Math.round(context / window * 100)}% of the window), cache ${warm ? "warm" : "cold"} (last turn ${minutes} minute${minutes === 1 ? "" : "s"} ago). You are idle. Compact at your next natural break (an investigation done, no tools in flight): now, unless something in flight needs this context.`;
+ 	}
+ 
++	/* COMPACT BEFORE SLEEP (the owner, 2026-10-23): true when this agent, about to go dormant, holds more than its
++	 * sleep line: roles.js `compact_after.sleep`, else SERVEX_SLEEP_COMPACT_TOKENS (100k), never more than half the
++	 * window. Not for minions (`compact_after: null`), the front desk (STANDING), a fork, or a context already
++	 * compacted since its last turn. Runs at the sleep moment, not at turn end, so an agent that gets another message
++	 * within its idle wait keeps its context; that wait is 3 minutes or less for most roles, under the 5-minute cache
++	 * TTL, so the compaction reads a warm cache. */
++	sleep_compact(){
++		if (this.one_shot || this.compacting || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return false;
++		const after = role_compact_after(this.role);
++		if (after === null) return false;
++		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
++		const line = Math.min(after?.sleep ?? this.host?.sleep_compact_tokens ?? (Number(process.env.SERVEX_SLEEP_COMPACT_TOKENS) || SLEEP_COMPACT_TOKENS), Math.round(window / 2));
++		return (this.context ?? 0) > line;
++	}
++
+ 	/* The agent's answer to the nudge (the `compact_self` tool): compact when this turn ends. */
+ 	request_compact(){
+ 		this.compact_requested = true;
+@@ -2094,7 +2112,12 @@ Agents.Agent = class Agent {
+ 		this.settle();
+ 		/* Compacted for MEMORY: a process keeps the heap it grew, so restart it
+ 		 * from the compacted session (checkpoint-and-restart). */
+-		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")) this.awaken("compaction");
++		/* A new process starts small: forget the old heap's size, or the next check compacts again for nothing
++		 * (task-mastermind-voice-opus, 2026-10-19: three memory compactions in four minutes on a stale 698 MB). */
++		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")){ this.rss_mb = null; this.awaken("compaction"); }
++		/* Compacted on the way to sleep: now sleep (`compacted_turn` stops a second compaction). A message that
++		 * arrived meanwhile left it working, and then it stays awake for that turn. */
++		if (c.why === "sleep" && this.state === "idle" && this.sleep("idle")) try { this.host?.servex?.global?.mark_slept(this, 0); } catch {}
+ 	}
+ };
+ 
+@@ -2102,6 +2125,7 @@ Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
+ 
+ /* A nudged agent that declined is nudged again only after its context grew this much. */
+ export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
++export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
+ export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)
+ 
+ export const ONE_PASS = ["reviewer", "clarity", "checker"];
+diff --git a/Servex/agents/compact-before-sleep.test.mjs b/Servex/agents/compact-before-sleep.test.mjs
+new file mode 100644
+index 000000000..e3de206e1
+--- /dev/null
++++ b/Servex/agents/compact-before-sleep.test.mjs
+@@ -0,0 +1,86 @@
++/* node Servex/agents/compact-before-sleep.test.mjs — compact before going dormant (the owner, 2026-10-23; doc/dormant.md).
++ * A fake agent built from Agent.prototype: no process, no SDK. Checks the decision, the sleep → /compact → sleep
++ * sequence, and who is left out. */
++import assert from "node:assert";
++import fs from "fs";
++import os from "os";
++import path from "path";
++
++process.env.SERVEX_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "servex-sleepcompact-"));
++delete process.env.SERVEX_SLEEP_COMPACT_TOKENS; delete process.env.SERVEX_WINDOW_TOKENS;
++const { Agents, SLEEP_COMPACT_TOKENS } = await import("./Agents.js");
++
++let n = 0;
++const t = (ok, what) => { assert.ok(ok, what); n++; };
++
++function fake(over = {}){
++	const events = [], turns = [], logs = [], slept = [];
++	const a = Object.create(Agents.Agent.prototype);
++	Object.assign(a, {
++		id: "mastermind-x", role: "mastermind", state: "idle", turns: 3, context: 0, session_id: "s-1",
++		queue: { items: [], closed: false, push(x){ this.items.push(x); turns.push(x); }, close(){ this.closed = true; } },
++		query: { close(){} }, aborter: { abort(){} },
++		turn: text => text, emit: e => events.push(e), log: l => logs.push(l), settle(){}, add_cost(){},
++		host: { register(){}, servex: { global: { mark_slept: (ag, w) => slept.push([ag.id, w]) } } },
++		...over });
++	return { a, events, turns, logs, slept };
++}
++
++t(SLEEP_COMPACT_TOKENS === 100000, "the default sleep line is 100k");
++
++{ // under the line: sleeps at once, no compaction
++	const { a, turns } = fake({ context: 90000 });
++	t(a.sleep_compact() === false, "90k: no compaction");
++	t(a.sleep("idle") === true && a.state === "dormant" && turns.length === 0, "90k: straight to dormant");
++}
++{ // over the line: /compact first, then dormant
++	const { a, turns, events, logs, slept } = fake({ context: 120000 });
++	t(a.sleep_compact() === true, "120k mastermind: compact before sleep");
++	t(a.sleep("idle") === false, "sleep() refuses while it compacts");
++	t(a.state === "working" && turns[0] === "/compact" && a.compacting?.why === "sleep", "queued /compact, why=sleep");
++	t(events.some(e => e.type === "compacting" && e.why === "sleep" && e.context === 120000), "logged compacting with the size before");
++	a.context = 15000;   // what the compaction left
++	a.compact_done({ queued_turn_count: 0 });
++	t(logs.some(l => l.type === "compact" && l.why === "sleep" && l.before === 120000 && l.after === 15000), "compact line: before and after");
++	t(a.state === "dormant", "then it sleeps");
++	t(slept.length === 1 && slept[0][0] === "mastermind-x", "the dormant line goes through Global.mark_slept");
++	t(events.filter(e => e.type === "dormant").length === 1, "exactly one sleep");
++}
++{ // a message that arrived during the compaction: it stays awake for that turn
++	const { a } = fake({ context: 120000 });
++	a.sleep("idle");
++	a.compact_done({ queued_turn_count: 1 });
++	t(a.state === "working", "a queued message keeps it awake");
++}
++{ // compacted since its last turn: not again, even if the summary is still big
++	const { a, turns } = fake({ context: 130000, compacted_turn: 3 });
++	t(a.sleep_compact() === false && a.sleep("idle") === true && turns.length === 0, "already compacted this turn: just sleeps");
++}
++{ // only the idle sleep: a landed task or the memory restart does not compact first
++	const { a, turns } = fake({ context: 300000 });
++	t(a.sleep("landed") === true && turns.length === 0, "landed: sleeps without compacting");
++}
++{ // left out: minions, the front desk, forks
++	t(fake({ role: "minion", id: "minion-x", context: 900000 }).a.sleep_compact() === false, "minion: never");
++	t(fake({ role: "master-assistant", id: "master-assistant", context: 900000 }).a.sleep_compact() === false, "front desk: never");
++	t(fake({ role: "page-assistant", id: "assistant-x", context: 900000 }).a.sleep_compact() === false, "page assistant: never");
++	t(fake({ context: 900000, one_shot: true }).a.sleep_compact() === false, "fork: never");
++}
++{ // other roles: the host default; half the window caps the line
++	t(fake({ role: "reviewer", id: "reviewer-x", context: 110000 }).a.sleep_compact() === true, "a role with no compact_after: the 100k default");
++	const small = fake({ role: "reviewer", id: "reviewer-x", context: 90000, host: { window_tokens: 160000 } }).a;
++	t(small.sleep_compact() === true, "a 160k window: the line is 80k (half the window)");
++	process.env.SERVEX_SLEEP_COMPACT_TOKENS = "200000";
++	t(fake({ role: "reviewer", id: "reviewer-x", context: 150000 }).a.sleep_compact() === false, "env raises the default line");
++	delete process.env.SERVEX_SLEEP_COMPACT_TOKENS;
++}
++{ // the memory restart forgets the old heap size (no repeat memory compactions)
++	const { a } = fake({ context: 60000, rss_mb: 698 });
++	a.awaken = function(){ this.state = "idle"; return this; };
++	a.compacting = { why: "memory", before: 60000, rss_mb: 698, at: Date.now() };
++	a.state = "working";
++	a.compact_done({ queued_turn_count: 0 });
++	t(a.rss_mb === null, "after a memory compaction rss_mb is cleared");
++	t(a.oversized() === null, "so the next check does not compact again");
++}
++console.log(`compact-before-sleep: ${n} checks passed`);
+diff --git a/Servex/agents/doc/owner-2026-10-16-compaction.md b/Servex/agents/doc/owner-2026-10-16-compaction.md
+index b28ec0585..8eefecdca 100644
+--- a/Servex/agents/doc/owner-2026-10-16-compaction.md
++++ b/Servex/agents/doc/owner-2026-10-16-compaction.md
+@@ -32,3 +32,17 @@ Remind sooner and in steps: at about 30% of the window, then every 5% (on a 1M w
+ ✅ **Built (2026-10-22, `Agent.nudge()` in `Servex/agents/Agents.js`):** after the first reminder, the next comes each time the context grows another **5% of the window** (`WINDOW_TOKENS` 1M, `SERVEX_WINDOW_TOKENS` overrides): 150k, 200k, 250k… for a mastermind, up to the 400k forced compaction. Each reminder gives the size, its share of the window and the cache state, and asks for a compaction at the next natural break. **Reconsidered:** the first reminder stays at the role's line (150k for a mastermind, 200k otherwise), not 30%. With a 400k ceiling, a first reminder at 300k would leave only two before the forced one. Test: `node Servex/agents/compact-nudge.test.mjs` (24 checks).
+ 
+ **What compaction keeps (the owner's worry, 2026-10-22):** the system prompt, CLAUDE.md and tool definitions sit outside the conversation and are kept verbatim; the conversation, including a role readme or brief injected into the first message, is summarized. ⬜ So after a compaction node must re-inject the role readme and the brief verbatim (the `SessionStart:compact` hook already re-adds a line for VS Code tabs). Alternative: summarize and start a fresh session with the role readme as its first message.
++
++## The owner, 2026-10-23: compact before sleep
++
++✅ **Built (`Agent.sleep_compact()` in `Servex/agents/Agents.js`):** going dormant used to never compact. Now an
++agent about to sleep with more than 100k tokens (or half the window, whichever is lower; per role as
++`compact_after.sleep`) runs `/compact` first, then sleeps, so it wakes small. It runs at the sleep moment, which is
++inside the cache TTL for every default idle wait, so the compaction reads a warm cache. It does not break the
++2026-10-16 rule "never compact in an interruptible way": the agent is idle and about to drop its process anyway,
++and a message that arrives during the compaction simply runs after it. Minions, the front desk and forks are
++left out. Measured: one warm compaction of 158k cost $0.24 (61 s) and left 17k. Full rule and numbers:
++[`Servex/doc/dormant.md`](../../doc/dormant.md), "Compaction".
++
++Also fixed: after a memory compaction restarts the process, the old process's memory reading is cleared. The
++stale 698 MB reading made `task-mastermind-voice-opus` compact three times in four minutes on 2026-10-19.
+diff --git a/Servex/agents/roles.js b/Servex/agents/roles.js
+index f0048539f..72f6c4713 100644
+--- a/Servex/agents/roles.js
++++ b/Servex/agents/roles.js
+@@ -26,8 +26,10 @@ import { model, provider } from "./tiers.js";
+  * is {tokens}: once an IDLE agent's context passes `tokens`, Servex sends it ONE nudge (context size, cache warm/cold)
+  * and the agent decides, answering with the `compact_self` tool; it never auto-compacts mid-flight. Age is no reason.
+  * `null` = never (minions live 10-30 min). A row with no field uses the host default (SERVEX_NUDGE_TOKENS, 200k).
+- * Everyone (but minions and the front desk) is auto-compacted at turn end only past the safety ceiling (400k) or memory. */
+-export const MASTERMIND_COMPACT = { tokens: 150000 };
++ * Everyone (but minions and the front desk) is auto-compacted at turn end only past the safety ceiling (400k) or memory.
++ * `sleep` (the owner, 2026-10-23): an agent about to go dormant with more context than this compacts first, then sleeps,
++ * so it wakes small. Default SERVEX_SLEEP_COMPACT_TOKENS (100k), never above half the window (Agent.sleep_compact). */
++export const MASTERMIND_COMPACT = { tokens: 150000, sleep: 100000 };
+ export function compact_after(role){ const r = ROLES[canonical(role)]; return r && "compact_after" in r ? r.compact_after : undefined; }
+ 
+ export const ROLES = {
+diff --git a/Servex/doc/dormant.md b/Servex/doc/dormant.md
+index 91f6a0a1a..7ea2ed872 100644
+--- a/Servex/doc/dormant.md
++++ b/Servex/doc/dormant.md
+@@ -12,8 +12,9 @@ for a role that is neither the voice pair nor a one-off worker, is still **3 min
+ At most **5 agents work at once**. A new spawn above that waits in the spawn queue until one
+ of them ends its turn.
+ 
+-An agent whose context passes **200k tokens**, or whose process passes **500 MB**, is
+-**compacted** when its turn ends.
++An agent about to go dormant with more than **100k tokens** of context **compacts first, then
++sleeps**, so it wakes small. Past **400k tokens** or **500 MB** it is compacted when its turn ends,
++whatever happens next. Details: "Compaction", below.
+ 
+ ## The states
+ 
+@@ -120,6 +121,34 @@ of RAM given back this way.
+ 
+ ## Compaction
+ 
++**Compact before sleep (the owner, 2026-10-23).** When an agent is about to go dormant and its context is
++over its sleep line, it runs `/compact` first and sleeps when that turn ends. The next message wakes it
++with a summary of about 10-20k tokens instead of reloading the whole history.
++
++- **The line:** 100k tokens (`SERVEX_SLEEP_COMPACT_TOKENS`), or half the model window if that is lower.
++  A role can set its own as `compact_after.sleep` in `agents/roles.js` (masterminds: 100k).
++- **Who:** every agent that sleeps, except minions (`compact_after: null`), the standing front desk
++  (`assistant-*`, `manager-*`, `master-assistant`, `session-*`, the Dispatcher) and forks.
++- **When:** at the sleep moment (`Agent.sleep("idle")` → `Agent.sleep_compact()`), not at the turn end. An
++  agent that gets another message within its idle wait keeps its full context. The wait is 3 minutes
++  (30 s when RAM is tight, 0 for a task mastermind), all under the 5-minute cache TTL, so the
++  compaction reads a warm cache. Only an agent given `dormant_after` over 300 s compacts cold, and that
++  is still cheaper than one cold wake of the full context.
++- **Once:** an agent already compacted since its last turn just sleeps. A sleep for a landed task
++  (`sleep("landed")`) never compacts: that agent is not expected back.
++- **A message during the compaction** queues behind `/compact` and runs after it; the agent stays awake
++  for that turn and tries to sleep again after it.
++- **Logged:** `compacting` and `compact` lines with `why: "sleep"` and the tokens before and after, then the
++  usual `dormant` line.
++- **Measured cost of one compaction** (Servex's own `compact` lines; `turn_cost` is the compaction turn
++  alone): a Sonnet task mastermind went from 158,513 to 16,746 tokens for **$0.24 in 61 s**, about 1 minute
++  after its turn ended (warm). A 57k context went to 5k for $0.08 in 15 s. Waking that 158k agent cold
++  without compacting re-writes all 158k to cache (1.25 times the input price: about $0.59 at $3 per
++  million input tokens), and every later turn re-reads the full history. One compaction pays for itself at the first wake.
++- Test: `node Servex/agents/compact-before-sleep.test.mjs` (23 checks).
++
++**The other two rules still run:**
++
+ - At the end of a turn an idle agent past its line (a mastermind 150k, others `SERVEX_NUDGE_TOKENS` 200k) gets ONE
+   nudge message with its context size and whether its cache is warm; it compacts itself (`compact_self`) or not.
+   See `agents/doc/lifecycle.md`, "Compaction".
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/requirements.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/requirements.md
+new file mode 100644
+index 000000000..6cb4951a0
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/requirements.md
+@@ -0,0 +1,21 @@
++# Servex: compact before sleep
++
++**Source:** the owner's prompt `e008bc50-aaf1-4c3d-8f68-5cf167b87df6` in [`../../prompts.jsonl`](../../prompts.jsonl), routed by vscode-mastermind to mastermind-system-architect-3 (2026-10-23).
++
++## The ask
++
++Going dormant never compacted. Today Servex forces `/compact` only at the 400k ceiling or 500 MB, and nudges masterminds at 150k ([`Servex/doc/dormant.md`](../../../../../../../../../../Servex/doc/dormant.md), [`Servex/agents/doc/owner-2026-10-16-compaction.md`](../../../../../../../../../../Servex/agents/doc/owner-2026-10-16-compaction.md)).
++
++1. When an agent is about to go dormant and its context is over a threshold (100k, or 50% of the window, whichever is lower; per role in `roles.js` `compact_after`), run `/compact` first, then sleep, so it wakes small.
++2. Do it while the cache is still warm if possible.
++3. Measure the cost of one compaction.
++4. Minions and the standing front desk stay excluded.
++5. Update `dormant.md` and the compaction doc as conclusions.
++6. Worktree, test, review from the worktree, then log "ready: <branch> <sha>" and "needs restart". mastermind-deputy merges. Budget about $10.
++
++## Done
++
++- `Agent.sleep_compact()` plus a hook in `Agent.sleep("idle")`, in `Servex/agents/Agents.js`. `compact_done` sleeps afterwards. `roles.js` sets `MASTERMIND_COMPACT.sleep`.
++- Warm cache: compaction runs at the sleep moment, which falls inside the 5-minute cache TTL for every default idle wait.
++- Cost, from Servex's logs: 158k → 17k tokens for $0.24 in 61 s (Sonnet, warm).
++- Test: `node Servex/agents/compact-before-sleep.test.mjs` (23 checks).

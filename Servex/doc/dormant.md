@@ -121,49 +121,16 @@ of RAM given back this way.
 
 ## Compaction
 
-**Compact before sleep (the owner, 2026-10-23).** When an agent is about to go dormant and its context is
-over its sleep line, it runs `/compact` first and sleeps when that turn ends. The next message wakes it
-with a summary of about 10-20k tokens instead of reloading the whole history.
+All compaction rules and the factors behind them now live in one place: [`public/framework/ai/doc/compaction.md`](../../public/framework/ai/doc/compaction.md). In short:
 
-- **The line:** 100k tokens (`SERVEX_SLEEP_COMPACT_TOKENS`), or half the model window if that is lower.
-  A role can set its own as `compact_after.sleep` in `agents/roles.js` (masterminds: 100k).
-- **Who:** every agent that sleeps, except minions (`compact_after: null`), the standing front desk
-  (`assistant-*`, `manager-*`, `master-assistant`, `session-*`, the Dispatcher) and forks.
-- **When:** at the sleep moment (`Agent.sleep("idle")` → `Agent.sleep_compact()`), not at the turn end. An
-  agent that gets another message within its idle wait keeps its full context. The wait is 3 minutes
-  (30 s when RAM is tight, 0 for a task mastermind), all under the 5-minute cache TTL, so the
-  compaction reads a warm cache. Only an agent given `dormant_after` over 300 s compacts cold, and that
-  is still cheaper than one cold wake of the full context.
-- **Once:** an agent already compacted since its last turn just sleeps. A sleep for a landed task
-  (`sleep("landed")`) never compacts: that agent is not expected back.
-- **A message during the compaction** queues behind `/compact` and runs after it; the agent stays awake
-  for that turn and tries to sleep again after it.
-- **Logged:** `compacting` and `compact` lines with `why: "sleep"` and the tokens before and after, then the
-  usual `dormant` line.
-- **Measured cost of one compaction** (Servex's own `compact` lines; `turn_cost` is the compaction turn
-  alone): a Sonnet task mastermind went from 158,513 to 16,746 tokens for **$0.24 in 61 s**, about 1 minute
-  after its turn ended (warm). A 57k context went to 5k for $0.08 in 15 s. Waking that 158k agent cold
-  without compacting re-writes all 158k to cache (1.25 times the input price: about $0.59 at $3 per
-  million input tokens), and every later turn re-reads the full history. One compaction pays for itself at the first wake.
-- Test: `node Servex/agents/compact-before-sleep.test.mjs` (23 checks).
-
-**The other two rules still run:**
-
-- At the end of a turn an idle agent past its line (a mastermind 150k, others `SERVEX_NUDGE_TOKENS` 200k) gets ONE
-  nudge message with its context size and whether its cache is warm; it compacts itself (`compact_self`) or not.
-  See `agents/doc/lifecycle.md`, "Compaction".
-- `Agent.oversized()` is only the safety net: past `SERVEX_COMPACT_TOKENS` (400000) or the process memory
-  (`SERVEX_COMPACT_MB`, 500) the agent runs `/compact` as a turn of its own. That turn wakes no parent and keeps
-  the last turn's words.
-- Memory is read every 5 minutes (`Global.measure()`): each claude.exe's working set, matched to
-  its agent by the session id on its command line.
-- Compacted **for memory**, the process is also restarted from the compacted session
-  (checkpoint-and-restart), because a process keeps the heap it grew.
-- **Not compacted:** the front desk. Layers.js restarts a page's assistant and manager fresh
-  from a checkpoint instead ("fresh, not compacted", the owner).
-- Once per turn: a summary still over the line is not compacted again until it has worked more.
-- The context check runs the moment a turn ends, so an agent goes dormant already compacted.
-  The memory check runs every 5 minutes, so it only reaches agents still awake by then.
+- **Compact before sleep** (2026-10-23): an agent about to go dormant with more than 100k tokens (or half the
+  window) compacts first, then sleeps, so it wakes small. `Agent.sleep_compact()`, hooked into `Agent.sleep("idle")`;
+  the line can be set per role as `compact_after.sleep`. One warm compaction of 158k cost $0.24 and left 17k.
+- **The nudge:** an idle agent past 150k (mastermind) or 200k gets one message and may `compact_self`.
+- **The ceiling:** past 400k tokens or 500 MB, compacted at turn end; a memory compaction restarts the process.
+- **Left out:** minions, the standing front desk, forks.
+- Memory is read every 5 minutes (`Global.measure()`), each claude.exe matched to its agent by session id.
+- Tests: `node Servex/agents/compact-before-sleep.test.mjs`, `node Servex/agents/compact-nudge.test.mjs`.
 
 ## Proof
 
