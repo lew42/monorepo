@@ -21,3 +21,4 @@
 {"log":{"at":"2026-10-24T01:14:26-05:00","heartbeat":"check","msg":"status check sent to minion-narrow-page"}}
 {"log":{"at":"2026-10-24T01:15:01-05:00","heartbeat":"answered","msg":"Done: the work is finished and nothing is running. `worktree/qf-6` is at `a9814f45e` with 46 of 47 forwarders converted. Tests and smoke are unchanged before and after. The `ready:` line is in `narrow"}}
 {"log":{"at":"2026-10-24T01:20:00-05:00","by":"mastermind-page","msg":"merge 1 refused: Servex/agents/item_tool.test.mjs failed on the branch with ENOTEMPTY while removing its own temp folder (public/framework/zz-item-tool-test-38624), a cleanup race, not this change. Re-ran it twice in qf-6: 94 checks passed both times. Leftovers moved aside to the scratchpad; merge re-run."}}
+{"log":{"at":"2026-10-24T01:29:27-05:00","heartbeat":"deliberate","msg":"minion-narrow-page its agent is not running: it was stopped on purpose by mastermind-page at 2026-10-24T01:19:23-05:00; not revived."}}
