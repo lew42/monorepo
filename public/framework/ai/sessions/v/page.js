@@ -8,6 +8,5 @@ export default new Page({
 	content(){
 		p("Each variant extends the class that draws the real page, and reads the same files.");
 		div.c("flow", () => a("mobile — the sessions pages for a 400 px phone: day list, nested sessions, a session, a task").href("/framework/ai/sessions/v/mobile/"));
-		div.c("flow", () => a("review — recent sessions nested by parent, the last day by default, Approve on each, leaks in red").href("/framework/ai/sessions/v/review/"));
 	},
 });
