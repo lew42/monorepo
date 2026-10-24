@@ -1,7 +1,7 @@
 /* node public/framework/ai/AITask/tree.test.mjs [day-dir]
    1. The made-up plan: phase 1 is three tasks in parallel, phase 2 is two in
       parallel after all of them — asserted twice, from `after` edges and from times alone.
-   2. A real day, read-only from disk (default: the main tree's 2026-09-29), printed as an outline. */
+   2. A real day, read-only from disk (default: sessions/2026/09/29 beside this module), printed as an outline. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -62,7 +62,9 @@ for (const edges of [true, false]){
 console.log("tree.test: all assertions pass (plan by edges, plan by time, inbox children and leaves, stopped leaves, exact after, titles)");
 
 // the real day
-const day = process.argv[2] ?? "C:/Code/lew42/monorepo/public/framework/ai/2026-09-29";
+// The day moved into the dated store on 2026-10-12 (sessions/task-moves.jsonl); with no folder there is no outline to print.
+const day = process.argv[2] ?? path.resolve(import.meta.dirname, "../sessions/2026/09/29");
+if (!fs.existsSync(day)){ console.log(`\n(no ${day}: the real-day outline is skipped)`); process.exit(0); }
 const read = f => fs.existsSync(f) ? fs.readFileSync(f, "utf8").split("\n").filter(s => s.trim())
 	.flatMap(s => { try { return [JSON.parse(s)]; } catch { return []; } }) : [];
 const manifests = [];
