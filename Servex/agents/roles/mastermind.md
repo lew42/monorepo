@@ -129,6 +129,7 @@ Every brief tells the minion to load the `minion` skill first and carries only w
 - ⚠ Run any code recipe you put in a brief once yourself first (an import path, a route pattern, a command). Playwright imports need `file:///C:/…`; `page.routeWebSocket(/.*/)` blocks sockets, `page.route('**/socket*')` matches nothing.
 - Ask for the raw output as a file and spot-check one decisive number; ask for two numbers that must agree, or a ratio, not an opinion; say which artifact is the deliverable and what to cut first.
 - Findings go in the worker's own `task.jsonl` as `log` lines, never a `findings.md`.
+- Make a worktree with `take_worktree` or `node Server/worktree-up.mjs <name>`, never plain `git worktree add`: those two register it in `.worktrees.json`, where the merge smoke finds its server. (An unregistered one is adopted by `worktree-restart.mjs --path` when smoke meets it, 2026-10-23.)
 - A worker that must see its work loads its worktree URL (`take_worktree` / `worktree-up.mjs`); Servex starts other servers (`start_server`). The `server-guard` hook refuses `node server.js`.
 - ⚠ Search with Glob/rg scoped to the repo, never `find /` (orphaned root-scans burned cores for hours).
 - Mandate ONE evidence line in `.claude/skills/<skill>/improvements.md` for a skill that misled the worker (`skill-improvement`).
