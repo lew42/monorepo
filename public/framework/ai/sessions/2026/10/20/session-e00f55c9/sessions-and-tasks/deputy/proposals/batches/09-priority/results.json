@@ -1,0 +1,127 @@
+[
+ {
+  "id": "dda95b5cff",
+  "priority": "none",
+  "why": "AI v2 line verb validation is not named in any of the three things."
+ },
+ {
+  "id": "83b2c033e1",
+  "priority": 1,
+  "why": "Naming the sessions tab is part of the day page where the owner sees every session."
+ },
+ {
+  "id": "50895c9f4a",
+  "priority": "none",
+  "why": "Sidebar scrolling is a layout choice the repo already decided against, and the sidebar is not named."
+ },
+ {
+  "id": "afdc30ec2b",
+  "priority": "none",
+  "why": "The ext/Refine haiku link is not in any of the three things."
+ },
+ {
+  "id": "fffc8104c7",
+  "priority": 1,
+  "why": "Session indexing decides which sessions the owner sees on the review page."
+ },
+ {
+  "id": "ff81c3fefe",
+  "priority": 1,
+  "why": "Showing stored fields in the sessions table is part of seeing each session."
+ },
+ {
+  "id": "a9e07c29e8",
+  "priority": 1,
+  "why": "Spend accuracy matters because unapproved spend shows red as a leak on the review page."
+ },
+ {
+  "id": "3a72a31aa0",
+  "priority": 1,
+  "why": "Session detail page cleanup is part of the session page with its tasks."
+ },
+ {
+  "id": "3a5903dc42",
+  "priority": 1,
+  "why": "Session detail page cleanup is part of the session page with its tasks."
+ },
+ {
+  "id": "48a22399cb",
+  "priority": 1,
+  "why": "A load error on the session page blocks the owner from reviewing and approving that session."
+ },
+ {
+  "id": "309613f33c",
+  "priority": 1,
+  "why": "Making every session row visible and clickable is how the owner opens each session."
+ },
+ {
+  "id": "95b02c7b13",
+  "priority": "none",
+  "why": "Site-wide padding sweep with no testable outcome; not plainly part of the review page."
+ },
+ {
+  "id": "36de0de1d6",
+  "priority": 1,
+  "why": "Hierarchy and text placement on the sessions tab is the review page the owner reads."
+ },
+ {
+  "id": "4e1b8d8f84",
+  "priority": 1,
+  "why": "Every sessions-list item being visible and clickable is how the owner reaches each session."
+ },
+ {
+  "id": "725a20941d",
+  "priority": "none",
+  "why": "'Make use of session contents' has no defined target and is not plainly part of any of the three things."
+ },
+ {
+  "id": "a90087394d",
+  "priority": "none",
+  "why": "Core router pages walk; not named in any of the three things."
+ },
+ {
+  "id": "a35455a5f8",
+  "priority": "none",
+  "why": "Page Inbox read and archive behaviour is not one of the three things."
+ },
+ {
+  "id": "6cab9e0155",
+  "priority": "none",
+  "why": "Page settings persistence is not named in any of the three things."
+ },
+ {
+  "id": "75774baa20",
+  "priority": "none",
+  "why": "Template cloning and mock rewiring is not named in any of the three things."
+ },
+ {
+  "id": "c6adcf7143",
+  "priority": "none",
+  "why": "The voice refine pipeline is not named in any of the three things."
+ },
+ {
+  "id": "99f4432968",
+  "priority": 2,
+  "why": "Logging the backup location as a checkable inbox item keeps work from being lost between sessions."
+ },
+ {
+  "id": "8309c41534",
+  "priority": "none",
+  "why": "UI template-tier overhaul is not named in any of the three things."
+ },
+ {
+  "id": "cc8bce2fc0",
+  "priority": 3,
+  "why": "Recording model, effort and output per agent tier serves the right-model-per-job goal."
+ },
+ {
+  "id": "f0506cbf0e",
+  "priority": "none",
+  "why": "Property tests are core framework work, not named in any of the three things."
+ },
+ {
+  "id": "a2d01a32d6",
+  "priority": 2,
+  "why": "Reviewing the task system serves the every-ask-becomes-a-finished-task goal."
+ }
+]

@@ -1,0 +1,62 @@
+[
+ {
+  "batch": "01-priority",
+  "kind": "priority",
+  "asks": 25,
+  "brief": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/01-priority/brief.md"
+ },
+ {
+  "batch": "02-priority",
+  "kind": "priority",
+  "asks": 25,
+  "brief": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/02-priority/brief.md"
+ },
+ {
+  "batch": "03-priority",
+  "kind": "priority",
+  "asks": 25,
+  "brief": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/03-priority/brief.md"
+ },
+ {
+  "batch": "04-priority",
+  "kind": "priority",
+  "asks": 25,
+  "brief": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/04-priority/brief.md"
+ },
+ {
+  "batch": "05-priority",
+  "kind": "priority",
+  "asks": 25,
+  "brief": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/05-priority/brief.md"
+ },
+ {
+  "batch": "06-priority",
+  "kind": "priority",
+  "asks": 25,
+  "brief": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/06-priority/brief.md"
+ },
+ {
+  "batch": "07-priority",
+  "kind": "priority",
+  "asks": 25,
+  "brief": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/07-priority/brief.md"
+ },
+ {
+  "batch": "08-priority",
+  "kind": "priority",
+  "asks": 25,
+  "brief": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/08-priority/brief.md"
+ },
+ {
+  "batch": "09-priority",
+  "kind": "priority",
+  "asks": 25,
+  "brief": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/09-priority/brief.md"
+ },
+ {
+  "batch": "10-priority",
+  "kind": "priority",
+  "asks": 16,
+  "brief": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/batches/10-priority/brief.md"
+ }
+]

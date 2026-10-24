@@ -1,0 +1,127 @@
+[
+ {
+  "id": "184a12298f",
+  "priority": "none",
+  "why": "Mobile layout before/after study is design/layout work, not the review page, process, or agent rules."
+ },
+ {
+  "id": "0d51d23075",
+  "priority": "none",
+  "why": "Sidebar layouts belong to the sidebar work, which is not one of the three big things."
+ },
+ {
+  "id": "d76bcef237",
+  "priority": "none",
+  "why": "Showing designs in color schemes is a styles study, not one of the three big things."
+ },
+ {
+  "id": "1e4eec84c9",
+  "priority": "none",
+  "why": "A site-wide color-scheme mode is a styling change, not one of the three big things."
+ },
+ {
+  "id": "4342b60be4",
+  "priority": "none",
+  "why": "Mobile adjacency of layouts is layout exploration, not one of the three big things."
+ },
+ {
+  "id": "05c228418d",
+  "priority": "none",
+  "why": "Padding token use on the color study is styling, not one of the three big things."
+ },
+ {
+  "id": "e6b4858ffc",
+  "priority": "none",
+  "why": "Building sidebar-based layouts is sidebar work, not one of the three big things."
+ },
+ {
+  "id": "e51714b461",
+  "priority": "none",
+  "why": "Figma and browser harmonising is the Figma module, not the approval, task, or agent-rules work."
+ },
+ {
+  "id": "f3fce43d18",
+  "priority": "none",
+  "why": "A screenshot closeness score is Shots/DesignTool tooling, not one of the three big things."
+ },
+ {
+  "id": "d753c97963",
+  "priority": "none",
+  "why": "Joining browser and Figma into one UI loop is design tooling, not one of the three big things."
+ },
+ {
+  "id": "1734eda909",
+  "priority": "none",
+  "why": "Sidebar spacing tokens are styling work, not one of the three big things."
+ },
+ {
+  "id": "718e253e5c",
+  "priority": "none",
+  "why": "Converging the V2 and V3 sidebars is AI dashboard styling, not the review page or task flow."
+ },
+ {
+  "id": "b9987330d2",
+  "priority": "none",
+  "why": "A shared sidebar padding for V2 and V3 is styling, not one of the three big things."
+ },
+ {
+  "id": "e45dd8e9a7",
+  "priority": "none",
+  "why": "A site-wide phone pass is layout work, not the session phone pages in big thing 1."
+ },
+ {
+  "id": "da0b5e5780",
+  "priority": "none",
+  "why": "An icon tree UI is ux/Tree work, not one of the three big things."
+ },
+ {
+  "id": "005fd4cd3b",
+  "priority": "none",
+  "why": "Mobile list and tree styles are ux exploration, not one of the three big things."
+ },
+ {
+  "id": "18c5ef86d3",
+  "priority": "none",
+  "why": "A layer tree sheet is ux/Tree work, not the review page or agent rules."
+ },
+ {
+  "id": "718de70d33",
+  "priority": "none",
+  "why": "Sidebar item layout is sidebar redesign, not one of the three big things."
+ },
+ {
+  "id": "ae37818bfb",
+  "priority": "none",
+  "why": "Adding a logo to the sidebar is branding work, not one of the three big things."
+ },
+ {
+  "id": "25c6e22c63",
+  "priority": "none",
+  "why": "Column width fitting is layout styling, not one of the three big things."
+ },
+ {
+  "id": "878105a662",
+  "priority": "none",
+  "why": "A wrap-up clean-tree check is a procedure tweak; it does not plainly make tasks finish or agents know rules."
+ },
+ {
+  "id": "02b81c8f92",
+  "priority": "3",
+  "why": "Adding the file-change rule to the mastermind skill is a rule agents read, so it belongs to agents knowing the rules."
+ },
+ {
+  "id": "23c41f9080",
+  "priority": "3",
+  "why": "Putting the file-change rule in CLAUDE.md puts a decided rule where every agent reads it."
+ },
+ {
+  "id": "2104fca85e",
+  "priority": "none",
+  "why": "A background-contrast hierarchy is styling, not one of the three big things."
+ },
+ {
+  "id": "b5a243242d",
+  "priority": "none",
+  "why": "Auditing transparent pages is a styling audit, not one of the three big things."
+ }
+]
