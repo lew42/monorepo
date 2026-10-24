@@ -15,5 +15,6 @@ Data path: `sessions/YYYY/MM/DD/**/task.jsonl|session.jsonl` → `SessionIndex` 
 - Needs the dev server (a static host has no socket); the page says so.
 - A task counts as landed only when its own record says so (`complete`, or a landing line from `finish-task`); a minion's `ready:` line or a parent's log line is not a landing.
 - A session from an older day shows its start day beside its name and links to its own dated folder.
+- A task that lands today in an older folder appears on reload, not live: the server pushes changes for the last query only, and that is the folder-day ask. One query with an "any of" clause in `ext/Query` would make both live; it needs a dev server restart.
 - Spend is shown only when a row carries `usd`; task rows rarely do, so most days show none.
 - A depth-1 folder of the day is a session; every row below it is a task.
