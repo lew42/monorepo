@@ -1,0 +1,3 @@
+{"log":{"at":"2026-10-24T01:32:29-05:00","task":"session-report","msg":"landed — the Report tab shows a session's real cost, child sessions and counts; year and month pages list sessions (0fe5bc9b6)"}}
+{"log":{"at":"2026-10-24T01:32:29-05:00","task":"session-desktop","msg":"landed — a session's page on desktop follows the Figma session frames: stats bar, Overview, Tasks, Chat (54842b802)"}}
+{"log":{"at":"2026-10-24T01:32:29-05:00","task":"named-rows","msg":"landed — a named agent's row on the sessions page opens a working page, 0 failed requests (10613c206)"}}
