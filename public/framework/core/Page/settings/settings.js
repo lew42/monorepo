@@ -20,51 +20,15 @@
 // the SPA's index.html-as-404 (content-type is the tell) all answer `{ nav: true }` — the
 // "brand new page, nobody has ever touched its settings" answer.
 //
-// ⚠ 2026-09-29 fix round, finding 4: this used to fetch settings.jsonl, page.jsonl (as a
-// fallback) and then weight.jsonl and page.jsonl AGAIN inside weight() — four probes, none
-// of which exist for most pages, so the console filled with 404s just from opening the
-// drawer's Settings tab. `has_file()` below checks the dev server's own file list
-// (`/directory.json`, the same tree `ext/files/fs.js` and `core/Page/Markdown.js` already
-// read — no new server route) BEFORE fetching, so a page with none of these three files
-// costs one shared, cached lookup and zero real requests. Off the dev server (production,
-// no `/directory.json` at all) `has_file()` answers `undefined` — "can't know" — and this
-// falls back to fetching blind, exactly as it always did; that half never changed.
-//
-// ⚠ Reads `/directory.json` itself, the same shape `core/Page/Markdown.js`'s own
-// `tree()`/`node()` walk — NOT by importing that file. This module is imported
-// directly by `Page.class.js` (`tab_visible()`/`nav_ready()`, folded in from the
-// deleted PageLog class, 2026-10-03): importing `Markdown.js`, which imports
-// `Page.class.js`, would close a cycle back through the very class still being
-// defined — `Page.class.js → settings.js → Markdown.js → Page.class.js` — and threw
-// "Cannot access 'Page' before initialization" on every single page, sitewide, the one
-// time this was tried (2026-09-29). A dozen lines duplicated here is cheaper than that.
+// has_file() (weight/has-file.js) says which of these files exist, so a page with none of them costs no request.
 
 import { weight } from "../weight/weight.js";
-
-let tree;
-function directory_tree(){
-	return tree ??= fetch("/directory.json").then(res => res.ok ? res.json() : null).catch(() => null);
-}
+import { has_file } from "../weight/has-file.js";
 
 async function fetch_lines(url){
 	const res = await fetch(url).catch(() => null);
 	if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
 	return (await res.text()).split("\n");
-}
-
-// Is `name` a real FILE right beside `page_url`, according to the tree the dev server
-// already keeps? `undefined` means "no tree at all" (production) — the caller can't know,
-// and falls back to trying the fetch, same as before this fix.
-async function has_file(page_url, name){
-	const data = await directory_tree();
-	if (!data) return undefined;
-
-	let node = { children: data.files };
-	for (const part of page_url.split("/").filter(Boolean)){
-		node = node.children?.find(child => child.name === part);
-		if (!node) return false;
-	}
-	return !!node.children?.some(child => child.type === "file" && child.name === name);
 }
 
 // weight.js's own math (`1 + distinct referenced_by + the latest manual weight`), run

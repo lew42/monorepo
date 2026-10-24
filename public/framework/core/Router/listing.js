@@ -23,9 +23,27 @@ export function names(dir){
 	const x = new XMLHttpRequest();
 	x.open("GET", "/api/folder-names?dir=" + encodeURIComponent(dir), false);
 	try { x.send(); } catch { return null; }
+	if (x.status === 403) return null;   // a denied folder (a dot segment, node_modules): this one folder only, never `missing`
 	if (x.status !== 200 || !(x.getResponseHeader("content-type") ?? "").includes("json")) return (missing = true, null);
 
 	const listed = JSON.parse(x.responseText).names;
+	cache.set(dir, { names: listed, at: Date.now() });
+	return listed;
+}
+
+/** The same listing and cache as names(), asked with fetch: for callers that can await. */
+export async function fetch_names(dir){
+	if (missing || !Store.local()) return null;
+
+	const hit = cache.get(dir);
+	if (hit && Date.now() - hit.at < 3000) return hit.names;
+
+	let res;
+	try { res = await fetch("/api/folder-names?dir=" + encodeURIComponent(dir)); } catch { return null; }
+	if (res.status === 403) return null;
+	if (!res.ok || !(res.headers.get("content-type") ?? "").includes("json")) return (missing = true, null);
+
+	const listed = (await res.json()).names;
 	cache.set(dir, { names: listed, at: Date.now() });
 	return listed;
 }

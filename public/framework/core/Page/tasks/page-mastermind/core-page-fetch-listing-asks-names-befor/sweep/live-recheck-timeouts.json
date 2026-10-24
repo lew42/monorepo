@@ -1,0 +1,83 @@
+{
+ "base": "http://monorepo.localhost",
+ "rows": [
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/cloud-sessions-listed/",
+   "ms": 469,
+   "folder_names_calls": 13,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/",
+   "ms": 147,
+   "folder_names_calls": 1,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/day-page/",
+   "ms": 163,
+   "folder_names_calls": 0,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/ai-system-mastermind/",
+   "ms": 156,
+   "folder_names_calls": 0,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/cracks-inbox-wait/",
+   "ms": 161,
+   "folder_names_calls": 1,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/handover-test/",
+   "ms": 173,
+   "folder_names_calls": 1,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/honest-completion/",
+   "ms": 170,
+   "folder_names_calls": 0,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/test-temp-store/",
+   "ms": 168,
+   "folder_names_calls": 1,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/project-move/",
+   "ms": 163,
+   "folder_names_calls": 0,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit/",
+   "ms": 1130,
+   "folder_names_calls": 0,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/tab-session-record/",
+   "ms": 234,
+   "folder_names_calls": 0,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/tunnel-keeper/",
+   "ms": 209,
+   "folder_names_calls": 1,
+   "errs": []
+  },
+  {
+   "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/updates-tool/",
+   "ms": 199,
+   "folder_names_calls": 1,
+   "errs": []
+  }
+ ]
+}
