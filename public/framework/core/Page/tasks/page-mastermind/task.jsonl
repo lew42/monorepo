@@ -33,3 +33,5 @@
 {"action":{"at":"2026-10-23T20:25:42-05:00","did":"edit","files":["public/framework/core/Page/tasks/page-mastermind/item-tool/requirements.md"]}}
 {"task":"/framework/core/Page/tasks/page-mastermind/item-tool/","as":"item-tool-instant-read-query-and-crud-of","moved_from":"/framework/core/Page/tasks/page-mastermind/#item-tool-instant-read-query-and-crud-of","by":"mastermind-page","ts":"2026-10-24T01:25:51.136Z"}
 {"now":"building: the item tool for any item (minion-item-tool in qf-5, task item-tool/); show: plan.md v3 (0d726f6c7)","by":"mastermind-page","ts":"2026-10-24T01:27:14.264Z"}
+{"log":{"at":"2026-10-23T20:27:34-05:00","msg":"worktree-watch: /framework/core/List/ breaks at 1920/3440 px: empty share 0.631/0.758 (over 0.6). Shot: C:/Code/lew42/monorepo/public/framework/core/Page/tasks/page-mastermind/shots/framework-core-List-1920.png. 14 s after your save. (qf-5)"}}
+{"log":{"at":"2026-10-23T20:27:34-05:00","msg":"worktree-watch: /framework/ breaks at 1920/3440 px: empty share 0.633/0.702 (over 0.6). Shot: C:/Code/lew42/monorepo/public/framework/core/Page/tasks/page-mastermind/shots/framework-1920.png. 14 s after your save. (qf-5)"}}
