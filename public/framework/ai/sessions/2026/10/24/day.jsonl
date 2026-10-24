@@ -2,3 +2,6 @@
 {"log":{"at":"2026-10-24T01:32:29-05:00","task":"session-desktop","msg":"landed — a session's page on desktop follows the Figma session frames: stats bar, Overview, Tasks, Chat (54842b802)"}}
 {"log":{"at":"2026-10-24T01:32:29-05:00","task":"named-rows","msg":"landed — a named agent's row on the sessions page opens a working page, 0 failed requests (10613c206)"}}
 {"log":{"at":"2026-10-24T01:40:58-05:00","task":"day-landed","msg":"landed — the day page counts tasks that landed that day from any folder: 4 landed on 2026-10-24, was 0 (a8cb11090)"}}
+{"log":{"at":"2026-10-24T02:11:45-05:00","task":"roles","msg":"landed — the roles page /framework/servex/roles/ and the Role block on each session page's Models and tokens tab (bbbf16724)"}}
+{"log":{"at":"2026-10-24T02:11:45-05:00","task":"queue","msg":"landed — the task queue /framework/ai/queue/: 143 accepted tasks ranked by importance, cost and re-asks, live, from the Queue tab (17181c28a)"}}
+{"log":{"at":"2026-10-24T02:11:45-05:00","task":"day-approve","msg":"landed — the day page has Approve per session and today's Ready to merge list (51a321c39, 6978be3ea)"}}

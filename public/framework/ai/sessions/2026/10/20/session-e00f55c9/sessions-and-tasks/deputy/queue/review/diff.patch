@@ -75,52 +75,53 @@ index d738e86f7..45365f78c 100644
  	board_drawn: true,
 diff --git a/public/framework/ai/queue/TaskQueueView.css b/public/framework/ai/queue/TaskQueueView.css
 new file mode 100644
-index 000000000..add9cf38e
+index 000000000..2db73c768
 --- /dev/null
 +++ b/public/framework/ai/queue/TaskQueueView.css
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,48 @@
 +@layer base, theme, site, util;
 +@layer site {
-+	.page.tq-page { --measure: none; }
-+	.tq-view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em; padding: 0.8em clamp(0.6em, 3cqi, 1.5em) 2em; align-items: start; }
++	.page.tq-page { --gutter-x: clamp(0.6em, 2cqi, 1.5em); --pad-y: 0.8em; }
++	.tq-view { width: 100%; max-width: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em; padding: 0 clamp(0.5em, 2cqi, 1.2em) 2em; align-items: start; }
 +	.tq-side { display: flex; flex-direction: column; gap: 0.6em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
-+	.tq-h { margin: 0.4em 0 0; font-size: 1em; opacity: 0.7; }
++	.tq-h { margin: 0.4em 0 0; font-size: 1em; }
 +	.tq-count { font-size: 2.2em; font-weight: 700; }
 +	.tq-bigs { display: flex; flex-direction: column; gap: 0.3em; }
 +	.tq-bigrow { display: flex; gap: 0.6em; align-items: baseline; }
 +	.tq-n { flex: none; min-width: 2em; font-weight: 700; font-variant-numeric: tabular-nums; }
 +	.tq-bname { min-width: 0; }
-+	.tq-note { margin: 0; font-size: 0.85em; opacity: 0.7; }
++	.tq-note { margin: 0; font-size: 0.85em; }
 +	.tq-formula { margin: 0; font-weight: 600; }
 +	.tq-rules { display: flex; flex-direction: column; gap: 0.3em; font-size: 0.85em; }
++	.tq-side { order: 2; }
 +	.tq-main { container-type: inline-size; display: flex; flex-direction: column; gap: 0.5em; min-width: 0; }
 +	.tq-head { font-size: 1.1em; font-weight: 600; }
 +	.tq-cols { display: none; }
 +	.tq-list { display: flex; flex-direction: column; gap: 0.5em; }
 +	.tq-row { display: grid; grid-template-columns: 2em minmax(0, 1fr) auto; gap: 0.25em 0.6em; padding: 0.6em 0.8em; border: 1px solid var(--line); border-radius: 0.5em; min-width: 0; }
-+	.tq-rank { font-weight: 700; opacity: 0.55; font-variant-numeric: tabular-nums; }
++	.tq-rank { font-weight: 700; font-variant-numeric: tabular-nums; }
 +	.tq-task { min-width: 0; }
 +	.tq-view { line-height: 1.35; }
 +	.tq-title { font-weight: 600; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
 +	.tq-title:hover { text-decoration: underline; }
 +	.tq-score { grid-column: 3; grid-row: 1; font-variant-numeric: tabular-nums; font-weight: 700; }
-+	.tq-crumb { font-size: 0.78em; opacity: 0.65; }
++	.tq-crumb { font-size: 0.78em; }
 +	.tq-meta { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 0.1em 1em; font-size: 0.85em; min-width: 0; }
 +	.tq-why, .tq-cell, .tq-state { overflow-wrap: anywhere; min-width: 0; }
 +	.tq-link { color: inherit; }
-+	.tq-label { opacity: 0.6; }
++	.tq-label { }
 +	.tq-state { font-weight: 600; }
 +	.tq-running .tq-state { color: var(--ok); }
-+	.tq-waiting { opacity: 0.75; }
-+	.tq-empty { padding: 1.5em 0; opacity: 0.8; }
++	.tq-waiting { }
++	.tq-empty { padding: 1.5em 0; }
 +
 +	@media (min-width: 1000px) {
 +		.tq-view { grid-template-columns: minmax(16em, 22em) minmax(0, 1fr); }
-+		.tq-side { position: sticky; top: 1em; }
++		.tq-side { order: 0; position: sticky; top: 1em; }
 +	}
 +	@container (min-width: 60em) {
-+		.tq-cols, .tq-row { display: grid; grid-template-columns: 2.2em minmax(12em, 3fr) minmax(7em, 1fr) 4.5em 3.5em 5em 6em 4.5em; gap: 0.8em; align-items: start; }
-+		.tq-cols { padding: 0 0.8em; font-size: 0.78em; text-transform: uppercase; opacity: 0.6; letter-spacing: 0.04em; }
++		.tq-cols, .tq-row { display: grid; grid-template-columns: 2.2em minmax(12em, 3fr) minmax(10em, 2fr) 4.5em 3.5em 5em 6em 4.5em; gap: 0.8em; align-items: start; }
++		.tq-cols { white-space: nowrap; padding: 0 0.8em; font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; }
 +		.tq-meta { display: contents; font-size: 0.85em; }
 +		.tq-row .tq-label { display: none; }
 +		.tq-score { grid-column: auto; grid-row: auto; text-align: right; }
@@ -128,10 +129,10 @@ index 000000000..add9cf38e
 +}
 diff --git a/public/framework/ai/queue/TaskQueueView.js b/public/framework/ai/queue/TaskQueueView.js
 new file mode 100644
-index 000000000..c650520cc
+index 000000000..11b5309fb
 --- /dev/null
 +++ b/public/framework/ai/queue/TaskQueueView.js
-@@ -0,0 +1,100 @@
+@@ -0,0 +1,104 @@
 +import { View, div, span, a, p, h2 } from "/app.js";
 +import QueryClient from "/framework/ext/Query/QueryClient.js";
 +import TaskQueue from "/framework/core/Task/TaskQueue.js";
@@ -146,7 +147,7 @@ index 000000000..c650520cc
 +	static BIG = { 1: "See and approve the work", 2: "Every ask becomes a task that finishes", 3: "Agents that know the rules" };
 +	static usd(n){ return "$" + (n || 0).toFixed(2); }
 +
-+	get classes(){ return "tq-view"; }
++	get classes(){ return "tq-view block wide"; }
 +
 +	// ⚠ render() runs inside View's constructor, before class fields exist: set state in initialize().
 +	initialize(){
@@ -161,7 +162,7 @@ index 000000000..c650520cc
 +		this.$side = div.c("tq-side");
 +		this.$main = div.c("tq-main", () => {
 +			this.$head = div.c("tq-head");
-+			this.$cols = div.c("tq-cols", () => ["#", "Task and where it lives", "Why", "Cost", "Big", "Re-asked", "State", "Score"].forEach(h => span.c("tq-colh", h)));
++			this.$cols = div.c("tq-cols muted", () => ["#", "Task and where it lives", "Why", "Cost", "Big", "Re-asks", "State", "Score"].forEach(h => span.c("tq-colh", h)));
 +			this.$list = div.c("tq-list");
 +		});
 +		this.paint();
@@ -186,23 +187,23 @@ index 000000000..c650520cc
 +		const rows = this.top(), all = [...this.rows.values()], total = all.length;
 +		if (this.el) this.el.dataset.ready = String(!this.loading);
 +		this.$side.empty(() => {
-+			h2.c("tq-h", "What is in the queue");
-+			if (this.loading) return void p.c("tq-note", "Reading the task records…");
++			h2.c("tq-h muted", "What is in the queue");
++			if (this.loading) return void p.c("tq-note muted", "Reading the task records…");
 +			div.c("tq-big", () => { span.c("tq-count", String(total)); span.c("tq-what", total === 1 ? " task queued" : " tasks queued"); });
 +			div.c("tq-bigs", () => [1, 2, 3].forEach(b => div.c("tq-bigrow", () => {
 +				span.c("tq-n", String(all.filter(r => r.big === b).length));
 +				span.c("tq-bname", `#${b} ${TaskQueueView.BIG[b]}`);
 +			})));
 +			div.c("tq-bigrow", () => { span.c("tq-n", String(all.filter(r => !r.big).length)); span.c("tq-bname", "accepted earlier, no big thing"); });
-+			p.c("tq-note", `The top ${rows.length} are listed. Estimates add up to ${TaskQueueView.usd(rows.reduce((n, r) => n + r.est_usd, 0))}; ${all.filter(r => r.state === "running").length} running, ${all.filter(r => r.state === "waiting").length} waiting on someone.`);
-+			h2.c("tq-h", "How it is ranked");
++			p.c("tq-note muted", `The top ${rows.length} are listed. Estimates add up to ${TaskQueueView.usd(rows.reduce((n, r) => n + r.est_usd, 0))}; ${all.filter(r => r.state === "running").length} running, ${all.filter(r => r.state === "waiting").length} waiting on someone.`);
++			h2.c("tq-h muted", "How it is ranked");
 +			p.c("tq-formula", "score = importance × (1 + re-asks × 0.5) ÷ (1 + estimated cost ÷ $2)");
 +			div.c("tq-rules", () => {
-+				div.c("tq-rule", () => { span.c("tq-label", "Importance "); span(`the big thing it serves: #1 = ${TaskQueue.IMPORTANCE[1]}, #2 = ${TaskQueue.IMPORTANCE[2]}, #3 = ${TaskQueue.IMPORTANCE[3]}, none = 1 (priority.md)`); });
-+				div.c("tq-rule", () => { span.c("tq-label", "Cost "); span("the median cost of landed tasks in the same module (real cost lines)"); });
-+				div.c("tq-rule", () => { span.c("tq-label", "Re-asks "); span("sessions that asked for it again while it stayed unfinished (the refined asks)"); });
++				div.c("tq-rule", () => { span.c("tq-label muted", "Importance "); span(`the big thing it serves: #1 = ${TaskQueue.IMPORTANCE[1]}, #2 = ${TaskQueue.IMPORTANCE[2]}, #3 = ${TaskQueue.IMPORTANCE[3]}, none = 1 (priority.md)`); });
++				div.c("tq-rule", () => { span.c("tq-label muted", "Cost "); span("the median cost of landed tasks in the same module (real cost lines)"); });
++				div.c("tq-rule", () => { span.c("tq-label muted", "Re-asks "); span("sessions that asked for it again while it stayed unfinished (the refined asks)"); });
 +			});
-+			p.c("tq-note", "Every number is computed from the task records, never written by an agent. It updates live.");
++			p.c("tq-note muted", "Every number is computed from the task records, never written by an agent. It updates live.");
 +		});
 +		this.$head.empty(() => {
 +			if (this.loading) return;
@@ -210,21 +211,25 @@ index 000000000..c650520cc
 +		});
 +		this.$list.empty(() => {
 +			if (this.loading) return;
-+			if (this.error) return void p.c("tq-empty", this.error === "no socket" || this.error === "no source"
++			if (this.error) return void p.c("tq-empty muted", this.error === "no socket" || this.error === "no source"
 +				? "This list needs the dev server (a static copy has no one to ask)."
 +				: "Could not ask the server: " + this.error);
-+			if (!rows.length) return void p.c("tq-empty", "Nothing is queued.");
++			if (!rows.length) return void p.c("tq-empty muted", "Nothing is queued.");
 +			rows.forEach(r => div.c("tq-row tq-" + r.state, () => {
-+				span.c("tq-rank", String(r.rank));
++				span.c("tq-rank muted", String(r.rank));
 +				div.c("tq-task", () => {
 +					a.c("tq-title").href(r.url).text(r.title);
-+					div.c("tq-crumb", this.crumb(r));
++					div.c("tq-crumb muted", this.crumb(r));
 +				});
 +				div.c("tq-meta", () => {
-+					div.c("tq-why", () => r.why_url ? a.c("tq-link").href(r.why_url).text("the owner's ask").attr("title", r.why) : span("no source recorded"));
-+					div.c("tq-cell", () => { span.c("tq-label", "Cost "); span(TaskQueueView.usd(r.est_usd)); }).attr("title", r.est_basis);
-+					div.c("tq-cell", () => { span.c("tq-label", "Big thing "); span(r.big ? `#${r.big}` : "none"); }).attr("title", TaskQueueView.BIG[r.big] ?? "accepted before the three big things");
-+					div.c("tq-cell", () => { span.c("tq-label", "Re-asked "); span(r.re_asks + "×"); });
++					div.c("tq-why", () => {
++						if (r.why) span(r.why + " ");
++						if (r.why_url) a.c("tq-link").href(r.why_url).text(r.why ? "(source)" : "the owner's ask");
++						else if (!r.why) span("no source recorded");
++					});
++					div.c("tq-cell", () => { span.c("tq-label muted", "Cost "); span(TaskQueueView.usd(r.est_usd)); }).attr("title", r.est_basis);
++					div.c("tq-cell", () => { span.c("tq-label muted", "Big thing "); span(r.big ? `#${r.big}` : "none"); }).attr("title", TaskQueueView.BIG[r.big] ?? "accepted before the three big things");
++					div.c("tq-cell", () => { span.c("tq-label muted", "Re-asked "); span(r.re_asks + "×"); });
 +					div.c("tq-state", r.state + (r.state === "running" && r.agent ? " · " + r.agent : ""));
 +				});
 +				span.c("tq-score").attr("title", "importance × (1 + 0.5 × re-asks) ÷ (1 + estimate ÷ $2)").text(r.score.toFixed(2));
@@ -234,20 +239,25 @@ index 000000000..c650520cc
 +}
 diff --git a/public/framework/ai/queue/files.jsonl b/public/framework/ai/queue/files.jsonl
 new file mode 100644
-index 000000000..c604b1f08
+index 000000000..260447547
 --- /dev/null
 +++ b/public/framework/ai/queue/files.jsonl
-@@ -0,0 +1,4 @@
+@@ -0,0 +1,9 @@
 +{"file":"page.js"}
 +{"file":"TaskQueueView.css"}
 +{"file":"TaskQueueView.js"}
 +{"file":"readme.md"}
++{"file":"settings.jsonl"}
++{"file":"sedWxAbd7"}
++{"file":"sedNaddHh"}
++{"file":"sedWxAbd7","gone":true}
++{"file":"sedNaddHh","gone":true}
 diff --git a/public/framework/ai/queue/page.js b/public/framework/ai/queue/page.js
 new file mode 100644
-index 000000000..3c73d88f2
+index 000000000..5e6df089b
 --- /dev/null
 +++ b/public/framework/ai/queue/page.js
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,11 @@
 +import { Page } from "/app.js";
 +import TaskQueueView from "./TaskQueueView.js";
 +
@@ -256,13 +266,12 @@ index 000000000..3c73d88f2
 +	title: "Task queue",
 +	description: "Every accepted task, ranked: what it is, why, its estimated cost and its priority. Computed from the task records, live.",
 +	icon: "list",
-+	classes: "tq-page",
-+	settings: { tab: true },
++	classes: "tq-page full",
 +	content(){ new TaskQueueView(); },
 +});
 diff --git a/public/framework/ai/queue/readme.md b/public/framework/ai/queue/readme.md
 new file mode 100644
-index 000000000..5374c6c99
+index 000000000..ad665b0b7
 --- /dev/null
 +++ b/public/framework/ai/queue/readme.md
 @@ -0,0 +1,19 @@
@@ -275,7 +284,7 @@ index 000000000..5374c6c99
 +| `core/Task/TaskQueue.js` (`class TaskQueue`) | the one ranking: estimate, re-asks, score, `build(open, ctx)`. No DOM, no node imports |
 +| `Server/TaskQueue.mjs` | the adapter: reads each open task's `task.jsonl`, the landed tasks' `usd` (from `SessionIndex`) and `ext/Refine/queue/asks.jsonl`; registers the `taskqueue` query source. `node Server/TaskQueue.mjs --check` prints the top 20 |
 +| `TaskQueueView.js` (`extends View`) | the page's view: a summary column plus the list; asks the source, repaints on pushed rows |
-+| `TaskQueueView.css` | `tq-` rules: cards below 1700 px, table columns above |
++| `TaskQueueView.css` | `tq-` rules: cards when narrow, table columns when the list is 60em wide |
 +
 +**The score:** `importance × (1 + 0.5 × re-asks) ÷ (1 + estimated cost ÷ $2)`. Importance is the big thing in [priority.md](../priority.md) (1 → 3, 2 → 2, 3 → 1, none → 1). The estimate is the median real cost of landed tasks in the same module. Re-asks are the other sessions that asked for it again. The numbers are statics on `TaskQueue`.
 +
@@ -285,9 +294,16 @@ index 000000000..5374c6c99
 +
 +- Needs the dev server (the source is a socket); a change to `Server/TaskQueue.mjs` needs a dev-server restart.
 +- TaskLoop and the Dispatcher do not read this queue yet.
+diff --git a/public/framework/ai/queue/settings.jsonl b/public/framework/ai/queue/settings.jsonl
+new file mode 100644
+index 000000000..0315e28d1
+--- /dev/null
++++ b/public/framework/ai/queue/settings.jsonl
+@@ -0,0 +1 @@
++{"settings":{"at":"2026-10-24T01:41:51-05:00","tab":true,"weight":1}}
 diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/plan.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/plan.md
 new file mode 100644
-index 000000000..b5e5104e0
+index 000000000..f806f10af
 --- /dev/null
 +++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/plan.md
 @@ -0,0 +1,35 @@
@@ -323,20 +339,24 @@ index 000000000..b5e5104e0
 +
 +## The look
 +
-+Shots, built from real records on the worktree's server: [400](shots/queue-400.png) · [1200](shots/queue-1200.png) · [1920](shots/queue-1920.png). At 1920 the summary and formula sit beside the list and the list becomes table columns; below 1700 each task is a card.
++Shots, built from real records on the worktree's server: [400](shots/queue-400.png) · [1200](shots/queue-1200.png) · [1920](shots/queue-1920.png). Beside the list the summary and formula sit left from 1000 px; the list becomes table columns once it is 60em wide (wide desktops), and is a compact card per task below that.
 +
 +Not built, waiting for the look to be approved: the review report, TaskLoop reading this order, estimates per template, the tie-break.
 diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-1200.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-1200.png
 new file mode 100644
-index 000000000..95c6f5b0c
+index 000000000..f0257fd03
 Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-1200.png differ
 diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-1920.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-1920.png
 new file mode 100644
-index 000000000..2974e9d5c
+index 000000000..b106e6730
 Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-1920.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-3440.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-3440.png
+new file mode 100644
+index 000000000..ad806fa95
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-3440.png differ
 diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-400.png
 new file mode 100644
-index 000000000..f5445aa86
+index 000000000..0e1b1f62f
 Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/shots/queue-400.png differ
 diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/what-exists.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/what-exists.md
 new file mode 100644
