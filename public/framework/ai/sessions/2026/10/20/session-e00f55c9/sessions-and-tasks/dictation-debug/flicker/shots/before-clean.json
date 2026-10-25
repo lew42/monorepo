@@ -1,0 +1,151 @@
+{
+ "scenario": "clean",
+ "frames": 100,
+ "every_ms": 156,
+ "words_gone": 22,
+ "explained_by_clean": 3,
+ "agree": false,
+ "words_moved": 4,
+ "flickers": [
+  {
+   "from": 29,
+   "to": 30,
+   "ms": 4680,
+   "word": "the",
+   "lost": 2
+  },
+  {
+   "from": 29,
+   "to": 30,
+   "ms": 4680,
+   "word": "first",
+   "lost": 1
+  },
+  {
+   "from": 29,
+   "to": 30,
+   "ms": 4680,
+   "word": "thing",
+   "lost": 1
+  },
+  {
+   "from": 29,
+   "to": 30,
+   "ms": 4680,
+   "word": "is",
+   "lost": 1
+  },
+  {
+   "from": 29,
+   "to": 30,
+   "ms": 4680,
+   "word": "flicker",
+   "lost": 1
+  },
+  {
+   "from": 29,
+   "to": 30,
+   "ms": 4680,
+   "word": "words",
+   "lost": 1
+  },
+  {
+   "from": 29,
+   "to": 30,
+   "ms": 4680,
+   "word": "should",
+   "lost": 1
+  },
+  {
+   "from": 29,
+   "to": 30,
+   "ms": 4680,
+   "word": "stay",
+   "lost": 1
+  },
+  {
+   "from": 29,
+   "to": 30,
+   "ms": 4680,
+   "word": "where",
+   "lost": 1
+  },
+  {
+   "from": 29,
+   "to": 30,
+   "ms": 4680,
+   "word": "they",
+   "lost": 1
+  },
+  {
+   "from": 29,
+   "to": 30,
+   "ms": 4680,
+   "word": "are",
+   "lost": 1
+  },
+  {
+   "from": 35,
+   "to": 36,
+   "ms": 5616,
+   "word": "then",
+   "lost": 1
+  },
+  {
+   "from": 48,
+   "to": 49,
+   "ms": 7641,
+   "word": "the",
+   "lost": 1
+  },
+  {
+   "from": 48,
+   "to": 49,
+   "ms": 7641,
+   "word": "thing",
+   "lost": 1
+  },
+  {
+   "from": 48,
+   "to": 49,
+   "ms": 7641,
+   "word": "then",
+   "lost": 1
+  },
+  {
+   "from": 48,
+   "to": 49,
+   "ms": 7641,
+   "word": "second",
+   "lost": 1
+  },
+  {
+   "from": 48,
+   "to": 49,
+   "ms": 7641,
+   "word": "comes",
+   "lost": 1
+  },
+  {
+   "from": 48,
+   "to": 49,
+   "ms": 7641,
+   "word": "along",
+   "lost": 1
+  }
+ ],
+ "moves": [
+  {
+   "from": 38,
+   "to": 39,
+   "ms": 6083,
+   "words": "The first thing is the flicker. Words should stay where they are. | And then the second thing"
+  }
+ ],
+ "sent": [
+  "The first thing is the flicker. Words should stay where they are.",
+  "Then the second thing comes along."
+ ],
+ "final_words": "The first thing is the flicker. Words should stay where they are. | Then the second thing comes along.",
+ "errors": []
+}
