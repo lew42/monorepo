@@ -15,3 +15,6 @@
 {"review":{"at":"2026-10-25T18:03:10-05:00","answer":{"n":1,"reply":"noted: landed_at is written and the file committed right after the merge"}}}
 {"review":{"at":"2026-10-25T18:03:10-05:00","answer":{"n":2,"reply":"noted: comment fix queued with the next Agents.js change (a commit now would make this review stale)"}}}
 {"review":{"at":"2026-10-25T18:03:10-05:00","answer":{"n":3,"reply":"noted: an error with no result is not covered; the SDK ends a failed turn with a result in every case seen, and the doc names the other limits"}}}
+{"assign":{"now":"landed","at":"2026-10-25T18:04:58-05:00"}}
+{"log":{"at":"2026-10-25T18:04:58-05:00","msg":"Merged to michael/dev (fix: Servex.stale landed check; follow-ack per-turn kinds list). Live use needs node Servex/sustain.mjs --restart."}}
+{"finish":{"at":"2026-10-25T18:04:58-05:00"}}
