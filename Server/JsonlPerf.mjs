@@ -49,6 +49,7 @@ export async function measure_item(source = null){
 	if (!src) return null;
 	const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "jsonlperf-pub-")), dir = path.join(scratch, "framework", "ai", "sessions", "zz-jsonlperf");   // SERVEX_PUBLIC (page_tools.js) points the item tool at a scratch public/ tree
 	process.env.SERVEX_PUBLIC = scratch;
+	if (!/SERVEX_PUBLIC/.test(fs.readFileSync(path.join(REPO, "Servex", "agents", "page_tools.js"), "utf8"))){ fs.rmSync(scratch, { recursive: true, force: true }); return { error: "this checkout's page_tools.js ignores SERVEX_PUBLIC; --item skipped so no probe lands in the real records", writes: [] }; }
 	const clean = () => fs.rmSync(scratch, { recursive: true, force: true });
 	process.once("exit", clean);
 	fs.mkdirSync(dir, { recursive: true });
