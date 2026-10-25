@@ -1,6 +1,6 @@
 # The Docs tab — this module's readme and docs, read inside the dictation sheet
 
-**What it is.** A third tab beside AI and Debug. It shows the [readme](../readme.md) of `ux/Dictate`, rendered by the site's one markdown renderer ([ext/markdown](/framework/ext/markdown/), `md.file`), with a row of the docs a reader wants first above it: settings, architecture, Whisper, the Debug tab, the voice architecture. A click on one (or on any `.md` link inside the text) opens it in the same tab with a **← Back to the readme** button. Nothing leaves the tab.
+**What it is.** A third tab beside AI and Debug. It shows the [readme](../readme.md) of `ux/Dictate`, rendered by the site's one markdown renderer ([ext/markdown](/framework/ext/markdown/), `md.file`), with a row of the docs a reader wants first above it: how a chat is made ([pipeline.md](pipeline.md), first), the map, the voice architecture, the wake policy, the Debug tab, settings. A click on one (or on any `.md` link inside the text) opens it in the same tab with a **← Back to the readme** button. Nothing leaves the tab.
 
 Open it from the sheet's **More** row (Debug · Docs · Settings), the drawer's tab row, or at `<page>/ai/docs/` (for example [/framework/ext/drawer/ai/docs/](/framework/ext/drawer/ai/docs/)).
 
@@ -13,3 +13,7 @@ Open it from the sheet's **More** row (Debug · Docs · Settings), the drawer's 
 ## The top of the readme
 
 "How messages travel" is the first section of the readme, with a numbered `file:line` footnote for every claim. If you change the code it names, change the footnotes.
+
+## The list, and what was dropped (2026-10-25)
+
+`DictateDocs.DOCS` is ordered structure first. Dropped from it, still reachable by link: [whisper.md](whisper.md) (says Whisper is asked about every 1.5 s; the code re-sends every 900 ms, `guess_ms` in `ext/Chat/Mic.js`) and [architecture.md](architecture.md) (the "two engines" transport detail, last edited 2026-10-14; the pipeline doc and the map replace it).
