@@ -38,7 +38,7 @@ Alternative considered: rank by the prompt order only (simplest, but the owner a
 
 Every line of the session's `session.jsonl` and its prompts (`page.jsonl` Prompt items), in time order, one compact row each: prompt (its subject, cites one click down), task added, task done (green check), child session started/landed (state, cost), note, decision. A **Filters ▾** menu (the same dropdown as the list's header, one component) picks the kinds; default hides `log` and tag lines. Live through the same tail.
 
-### 2c. Chat (dropped for now, ninth pass 2026-10-25: the chat tab IS the shared chat component that mastermind-dictation-2 owns; it stays a slot until that interface is agreed)
+### 2c. Chat (interface agreed 2026-10-25: `new ChatV2({url, $box}).live()` from ext/Chat/v2, mounted behind a "Chat v2" toggle by mastermind-chat-v2 after 2b lands)
 
 The Coverage tab (`AISessionCoverage.records_view`) already is the chat view: a bubble per prompt, a card per part with cites (`S4, S7–18`), raw words one click down. Add, inside each ask card, the flow: its task's state icon (same icon as 2a) → "agent launched" (the child session: state, model, cost, link) → green check when done. Live from the same tail; a new prompt's breakdown appears as `prompts.jsonl` grows. The tab is named Chat; today's Chat (the transcript) moves to More ▾ as "Transcript". **Agree with ai-system-mastermind first** (the chat view is its plan; the deputy said so, 2026-10-24): one message before 2c starts.
 
