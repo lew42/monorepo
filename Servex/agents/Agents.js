@@ -10,7 +10,8 @@ import { fileURLToPath } from "node:url";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./Registry.js";
-import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, role_readme_path, singleton_id, renew_of } from "./roles.js";
+import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, role_readme_path, alias_path, path_check, path_note } from "./roles.js";
+import { dir_of } from "./directory.js";
 import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import Task from "../../public/framework/core/Task/Task.js";
@@ -139,17 +140,17 @@ export class Agents {
 	 * — `directory_of` returns null for it and nothing is added. */
 	spawn(spec){
 		const again = spec.resume;
-		/* A SINGLETON ROLE (the owner, 2026-10-23; roles.js `singleton`): its id is the role's own word, never `-2`. A second
-		 * spawn while it is live sends it the prompt instead; a stopped or never-started one is spawned under that same id. */
-		const renewing = spec.renewing;
-		if (renewing){ spec = { ...spec }; delete spec.renewing; }
-		const single = !again && singleton_id(spec.role);
-		if (single){
-			const cur = this.live.get(single), from = spec.parent ?? "spawn";
-			if (cur && cur.state !== "stopped"){ if (spec.prompt) cur.send(spec.prompt, { from }); return cur; }
-			/* Only in the registry (after a restart): wake it, so it resumes, or renews if it is due (wake() decides). */
-			if (!renewing && !cur && this.reg().read()[single]?.session_id) try { const w = this.wake(single); if (spec.prompt) w.send(spec.prompt, { from }); return w; } catch {}
-			spec = { ...spec, id: single };
+		/* SPAWNED AT A PATH (the owner, 2026-10-25; roles/mastermind.md "Spawned at a path"). \`path\` (a repo path or a site path) loads that
+		 * path's readme chain and its mastermind.md into the SYSTEM PROMPT (roles.js role_system). An alias word with a default path
+		 * (\`ai-system-mastermind\`) is the \`mastermind\` role at that path; a caller's own \`path\` wins. The id's name is the path's last folder
+		 * (mastermind-ai) unless the caller named it. */
+		if (!again){
+			const dflt = alias_path(spec.role);
+			if (dflt) spec = { ...spec, role: "mastermind", path: spec.path ?? dflt };
+			if (spec.path){
+				spec = { ...spec, path: dir_of(spec.path) };
+				if (!spec.name && !spec.id) spec = { ...spec, name: path.posix.basename(spec.path) };
+			}
 		}
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
 		const id = spec.id && !taken ? spec.id : this.name(spec);
@@ -227,12 +228,18 @@ export class Agents {
 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
 		const fresh = !again && !spec.system;
-		const dir = fresh ? directory_of(spec) : null;
-		const in_system = !spec.system && process.env.SERVEX_ROLE_IN_SYSTEM !== "0" && !!role_system(spec.role);   // Agent.role_prompt() puts it there
-		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + opening(spec.role, spec.prompt, { in_system });
+		const append = !spec.system && process.env.SERVEX_ROLE_IN_SYSTEM !== "0" ? role_system(spec.role, { path: spec.path }) : null;   // Agent.role_prompt() puts it in the system prompt
+		const in_system = !!append;
+		/* A PATH IS LOADED INTO THE SYSTEM PROMPT, NOT THE FIRST MESSAGE (no duplicate): Servex checks that every file is inside the final
+		 * text, logs it, and tells the agent in its first message what it has (or what is missing and must be read by hand). With no
+		 * system prompt (SERVEX_ROLE_IN_SYSTEM=0, or its own system brief) the old way still applies: the chain rides in the first message. */
+		const path_loaded = fresh && spec.path && in_system ? path_check(append, spec.path) : null;
+		const dir = fresh && !path_loaded ? directory_of(spec) : null;
+		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + (path_loaded ? path_note(path_loaded) + "\n\n" : "") + opening(spec.role, spec.prompt, { in_system });
 		if (!again && !spec.system) {
 			const names = injected(spec.role);
-			this.store().append("skills", { at: stamp(), agent: id, role: spec.role ?? null, injected: names, where: in_system ? "system" : "message", fallback: names.length ? undefined : true }).catch(() => {});
+			this.store().append("skills", { at: stamp(), agent: id, role: spec.role ?? null, injected: names, where: in_system ? "system" : "message", fallback: names.length ? undefined : true,
+				...(path_loaded ? { path: path_loaded.path, files: path_loaded.files, mastermind: path_loaded.mastermind, ok: path_loaded.ok, ...(path_loaded.ok ? {} : { missing: path_loaded.missing }) } : {}) }).catch(() => {});
 		}
 		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
 		const prompt = spec.task
@@ -251,6 +258,7 @@ export class Agents {
 		agent.host = this;
 		this.live.set(agent.id, agent);
 		agent.start();
+		if (path_loaded) agent.emit?.({ type: "path_loaded", ...path_loaded });
 		this.register(agent);
 		try { this.servex?.lifecycle?.agent_started(agent, spec); } catch {}   // lifecycle.jsonl: Servex/Lifecycle.js
 		return agent;
@@ -690,14 +698,6 @@ export class Agents {
 		if (live?.one_shot || (live?.role ?? row?.role) === "fork")
 			throw new Error(`Agent ${id} is a fork: it answered once and is not woken again.`);
 		if (!live?.session_id && !row?.session_id) throw new Error(`Agent ${id} never got a session, so there is nothing to wake.`);
-		const role = live?.role ?? row?.role, why = renew_why(renew_of(role), live?.started_at ?? row?.started_at, live?.context ?? row?.context);
-		if (why && (!live || live.state === "stopped")){   // RENEWAL: a stopped one is spawned fresh; a live dormant one renews in awaken()
-			const base = strip(live ? live.recipe() : (row.spec ?? {}));
-			const fresh = this.spawn(strip({ ...base, role, id, cwd: base.cwd ?? row?.cwd, resume: undefined, fork: undefined, renewing: true,
-				prompt: renewal_text(id, live?.session_id ?? row?.session_id, why) }));
-			fresh.emit?.({ type: "renew", why, replaces: live?.session_id ?? row?.session_id, session: fresh.session_id });
-			return fresh;
-		}
 		return this.reopen({ ...row, ...(live ? { spec: live.recipe(), session_id: live.session_id } : {}), id });
 	}
 
@@ -706,7 +706,7 @@ export class Agents {
 	 * session ran and its model come from the session file when the row does
 	 * not say. Shared by `wake()` and `revive()`. */
 	reopen(row){
-		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "provider", "effort", "cwd",
+		const keys = ["role", "name", "topics", "page", "path", "parent", "visibility", "model", "provider", "effort", "cwd",
 			"permission_mode", "allowed_tools", "setting_sources", "budget_usd"];
 		const base = strip(row.spec ?? Object.fromEntries(keys.map(k => [k, row[k]])));
 		const facts = base.cwd && base.model ? {} : session_facts(row.session_id);
@@ -1015,6 +1015,7 @@ export class Agents {
  * present (a plain minion, most forks, the fast assistant) -> null, and
  * `spawn()` adds nothing. */
 function directory_of(spec){
+	if (spec.path) return spec.path;   // spawned at a path: its chain rides in the first message only when the system prompt cannot carry it
 	if (spec.task?.dir) return spec.task.dir;
 	// forward slashes always, even on Windows (path.join would use `\`), so the
 	// "Where you are" line reads the same as a repo-relative task.dir does.
@@ -1241,7 +1242,7 @@ Agents.Agent = class Agent {
 	 * `env` are code or secrets and are not kept; a fork keeps none. */
 	recipe(){
 		if (this.one_shot) return null;
-		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "provider", "effort", "cwd",
+		const keys = ["role", "name", "topics", "page", "path", "parent", "visibility", "model", "provider", "effort", "cwd",
 			"permission_mode", "allowed_tools", "setting_sources", "system"];
 		return strip(Object.fromEntries(keys.map(k => [k, this[k]])));
 	}
@@ -1279,7 +1280,7 @@ Agents.Agent = class Agent {
 	 * old way. */
 	role_prompt(){
 		if (process.env.SERVEX_ROLE_IN_SYSTEM === "0" || this.system) return null;
-		const append = role_system(this.role);
+		const append = role_system(this.role, { path: this.path ?? alias_path(this.role) ?? undefined });
 		return append ? { type: "preset", preset: "claude_code", append } : null;
 	}
 
@@ -1552,9 +1553,7 @@ Agents.Agent = class Agent {
 	awaken(by){
 		if (this.state !== "dormant") return this;
 		const slept = this.dormant_at;
-		const renew = this.renew_due();
-		if (renew) this.renew(renew);
-		else this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
+		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
 		this.last_at = stamp();
 		/* item 2's `mark_phantom` sets `marked_phantom` once, so it does not re-log the same
 		 * episode on every `working()` call — but a genuinely NEW phantom episode later in this
@@ -1571,24 +1570,6 @@ Agents.Agent = class Agent {
 		this.emit({ type: "awake", by: by ?? null, slept_since: slept, replayed: held.length || undefined });
 		this.host?.register?.(this);
 		return this;
-	}
-
-	/* RENEWAL (the owner, 2026-10-23): a role with `renew: {hours, tokens}` (the AI system mastermind) wakes as a FRESH session
-	 * under the same id once its session is that old or that big, instead of resuming. Nothing runs while it sleeps, so it is
-	 * never kept alive when unused, and no handover file is needed: the fresh session's first turn reads the readmes.
-	 * Returns why ("age" | "tokens") or null. */
-	renew_due(now = Date.now()){
-		const line = renew_of(this.role);
-		if (!line || this.one_shot || this.system) return null;
-		return renew_why(line, this.started_at, this.context, now);
-	}
-
-	renew(why){
-		const replaces = this.session_id, session_id = randomUUID();
-		const prompt = (this.host?.whoami?.(this.id, session_id) ?? "") + opening(this.role, renewal_text(this.id, replaces, why), { in_system: !!this.role_prompt() });
-		this.assign({ resume: null, fork: false, session_id, minted: true, prompt, context: 0, last_usage: null, reminded_context: 0,
-			remind_compacted: false, compacted_turn: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now(), started_at: new Date().toISOString() });
-		this.emit({ type: "renew", why, replaces, session: session_id });
 	}
 
 	/* COMPACTION (dormant-idle, 2026-09-30). `/compact` as a turn of its own: the
@@ -1646,7 +1627,7 @@ Agents.Agent = class Agent {
 		if (this.state !== "idle" || this.one_shot || this.compacting || STANDING.test(this.id ?? "")) return null;
 		if (this.task?.dir && task_landed(this.task.dir)) return null;
 		const after = role_compact_after(this.role);
-		if (after === null || renew_of(this.role)) return null;   // a renewing role gets a fresh session instead (Agent.renew_due)
+		if (after === null) return null;
 		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
 		const limit = after?.tokens ?? this.host?.nudge_tokens ?? (Number(process.env.SERVEX_NUDGE_TOKENS) || 200000);
 		const context = this.context ?? 0;
@@ -1668,7 +1649,7 @@ Agents.Agent = class Agent {
 	sleep_compact(){
 		if (this.one_shot || this.compacting || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return false;
 		const after = role_compact_after(this.role);
-		if (after === null || renew_of(this.role)) return false;   // a renewing role gets a fresh session instead (Agent.renew_due)
+		if (after === null) return false;
 		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
 		const line = Math.min(after?.sleep ?? this.host?.sleep_compact_tokens ?? (Number(process.env.SERVEX_SLEEP_COMPACT_TOKENS) || SLEEP_COMPACT_TOKENS), Math.round(window / 2));
 		return (this.context ?? 0) > line;
@@ -2342,18 +2323,6 @@ Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
 
 /* A nudged agent that declined is nudged again only after its context grew this much. */
 export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
-/* RENEWAL helpers (Agent.renew_due, Agents.wake): why a renewing role is due a fresh session, and that session's first words. */
-export function renew_why(line, started_at, context, now = Date.now()){
-	if (!line) return null;
-	const born = Date.parse(started_at ?? "");
-	if (line.hours && born && now - born >= line.hours * 3600e3) return "age";
-	if (line.tokens && (context ?? 0) >= line.tokens) return "tokens";
-	return null;
-}
-export function renewal_text(id, replaces, why){
-	return `You are a fresh session of ${id}, replacing session ${replaces ?? "(unknown)"} (${why === "age" ? "it was a day old" : "its context passed the renewal line"}). ` +
-		"Read public/framework/ai/readme.md and public/framework/ai/priority.md, then your feedback inbox (module_inbox, module \"ai\"), and continue. Any message that woke you comes next.";
-}
 
 export const REMIND_TOKENS = 100000;   // a role reminder each time the context grows this much (SERVEX_REMIND_TOKENS)
 export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
