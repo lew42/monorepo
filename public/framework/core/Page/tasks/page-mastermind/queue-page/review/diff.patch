@@ -1,0 +1,367 @@
+diff --git a/public/framework/ai/AIDay/AIDay.js b/public/framework/ai/AIDay/AIDay.js
+index f46b44ac7..9bef74a5b 100644
+--- a/public/framework/ai/AIDay/AIDay.js
++++ b/public/framework/ai/AIDay/AIDay.js
+@@ -51,7 +51,7 @@ export default class AIDay extends View {
+ 			if (after <= AIDay.today()) a.c("aid-link", after + " ›").href(`/framework/ai/${after}/`);
+ 		});
+ 		this.$head = div.c("aid-head");
+-		if (this.day === AIDay.today()) div.c("aid-merge", () => { div.c("aid-mhead", "Ready to merge"); new ReadyToMerge(); });
++		if (this.day === AIDay.today()) div.c("aid-merge", () => { div.c("aid-mhead", "Ready to merge"); new ReadyToMerge(); a.c("aid-link", "Task queue, best first →").href("/framework/ai/queue/").attr("target", "_self"); });
+ 		this.$list = div.c("aid-list");
+ 		div.c("aid-more", () => {
+ 			fold("Prompts of the day (the owner's dictations)", () => this.prompts());
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 993e1d8d4..6f3516705 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -193,6 +193,7 @@ export default class AISessionDetail extends Page {
+ 		new SessionStats({ ready });   // Figma band E: stats first, sticky, on every tab
+ 		div.c("sessions-tabs flex gap-50 wrap", () => {
+ 			TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
++			a.c("sessions-chip", "Task queue →").href("/framework/ai/queue/").attr("target", "_self");
+ 			button.c("sessions-chip sov-fs-on", icon("fullscreen")).attr("title", "Full screen").on("click", () => this.full_screen(true));
+ 		});
+ 		div.c("sov-float", () => {   // Figma band E, C: in full screen the head is gone, so back and the session menu float over the page
+diff --git a/public/framework/ai/queue/TaskQueueView.css b/public/framework/ai/queue/TaskQueueView.css
+index 2db73c768..05291721e 100644
+--- a/public/framework/ai/queue/TaskQueueView.css
++++ b/public/framework/ai/queue/TaskQueueView.css
+@@ -1,42 +1,51 @@
+ @layer base, theme, site, util;
+ @layer site {
+ 	.page.tq-page { --gutter-x: clamp(0.6em, 2cqi, 1.5em); --pad-y: 0.8em; }
+-	.tq-view { width: 100%; max-width: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em; padding: 0 clamp(0.5em, 2cqi, 1.2em) 2em; align-items: start; }
++	.tq-view { width: 100%; max-width: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em; padding: 0 clamp(0.5em, 2cqi, 1.2em) 2em; align-items: start; line-height: 1.35; }
+ 	.tq-side { display: flex; flex-direction: column; gap: 0.6em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
+ 	.tq-h { margin: 0.4em 0 0; font-size: 1em; }
+-	.tq-count { font-size: 2.2em; font-weight: 700; }
++	.tq-big { display: flex; flex-direction: column; }
++	.tq-count { font-size: 4.5em; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
++	.tq-big .tq-what { font-size: 1.2em; font-weight: 600; }
+ 	.tq-bigs { display: flex; flex-direction: column; gap: 0.3em; }
+ 	.tq-bigrow { display: flex; gap: 0.6em; align-items: baseline; }
+ 	.tq-n { flex: none; min-width: 2em; font-weight: 700; font-variant-numeric: tabular-nums; }
+ 	.tq-bname { min-width: 0; }
+ 	.tq-note { margin: 0; font-size: 0.85em; }
++	.tq-go { font-weight: 600; }
+ 	.tq-formula { margin: 0; font-weight: 600; }
+-	.tq-rules { display: flex; flex-direction: column; gap: 0.3em; font-size: 0.85em; }
+-	.tq-side { order: 2; }
+-	.tq-main { container-type: inline-size; display: flex; flex-direction: column; gap: 0.5em; min-width: 0; }
++	.tq-rules { display: flex; flex-direction: column; gap: 0.3em; max-width: 50em; }
++	.tq-main { container-type: inline-size; display: flex; flex-direction: column; gap: 0.7em; min-width: 0; }
+ 	.tq-head { font-size: 1.1em; font-weight: 600; }
++	.tq-empty { padding: 1.5em 0; }
++
++	.tq-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22em), 1fr)); gap: 0.8em; }
++	.tq-card { display: flex; flex-direction: column; gap: 0.35em; min-width: 0; color: inherit; text-decoration: none; border: 1px solid var(--line); }
++	.tq-card:hover { border-color: currentColor; }
++	.tq-cardtop { display: flex; justify-content: space-between; gap: 0.6em; font-size: 0.8em; }
++	.tq-card .tq-rank { font-weight: 700; font-variant-numeric: tabular-nums; }
++	.tq-card .tq-title { font-size: 1.05em; font-weight: 700; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
++	.tq-card .tq-why { font-size: 0.88em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
++	.tq-chips { display: flex; flex-wrap: wrap; gap: 0.2em 0.9em; margin-top: auto; padding-top: 0.2em; font-size: 0.78em; }
++	.tq-state { font-weight: 600; }
++	.tq-running .tq-state { color: var(--ok); }
++
+ 	.tq-cols { display: none; }
+ 	.tq-list { display: flex; flex-direction: column; gap: 0.5em; }
+ 	.tq-row { display: grid; grid-template-columns: 2em minmax(0, 1fr) auto; gap: 0.25em 0.6em; padding: 0.6em 0.8em; border: 1px solid var(--line); border-radius: 0.5em; min-width: 0; }
+-	.tq-rank { font-weight: 700; font-variant-numeric: tabular-nums; }
++	.tq-row .tq-rank { font-weight: 700; font-variant-numeric: tabular-nums; }
+ 	.tq-task { min-width: 0; }
+-	.tq-view { line-height: 1.35; }
+-	.tq-title { font-weight: 600; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+-	.tq-title:hover { text-decoration: underline; }
++	.tq-row .tq-title { font-weight: 600; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
++	.tq-row .tq-title:hover { text-decoration: underline; }
+ 	.tq-score { grid-column: 3; grid-row: 1; font-variant-numeric: tabular-nums; font-weight: 700; }
+ 	.tq-crumb { font-size: 0.78em; }
+ 	.tq-meta { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 0.1em 1em; font-size: 0.85em; min-width: 0; }
+-	.tq-why, .tq-cell, .tq-state { overflow-wrap: anywhere; min-width: 0; }
++	.tq-row .tq-why, .tq-cell, .tq-row .tq-state { overflow-wrap: anywhere; min-width: 0; }
+ 	.tq-link { color: inherit; }
+-	.tq-label { }
+-	.tq-state { font-weight: 600; }
+-	.tq-running .tq-state { color: var(--ok); }
+-	.tq-waiting { }
+-	.tq-empty { padding: 1.5em 0; }
+ 
+ 	@media (min-width: 1000px) {
+ 		.tq-view { grid-template-columns: minmax(16em, 22em) minmax(0, 1fr); }
+-		.tq-side { order: 0; position: sticky; top: 1em; }
++		.tq-side { position: sticky; top: 1em; }
+ 	}
+ 	@container (min-width: 60em) {
+ 		.tq-cols, .tq-row { display: grid; grid-template-columns: 2.2em minmax(12em, 3fr) minmax(10em, 2fr) 4.5em 3.5em 5em 6em 4.5em; gap: 0.8em; align-items: start; }
+diff --git a/public/framework/ai/queue/TaskQueueView.js b/public/framework/ai/queue/TaskQueueView.js
+index ed0f03c4d..aa9ca3dcf 100644
+--- a/public/framework/ai/queue/TaskQueueView.js
++++ b/public/framework/ai/queue/TaskQueueView.js
+@@ -4,101 +4,158 @@ import TaskQueue from "/framework/core/Task/TaskQueue.js";
+ 
+ View.stylesheet(import.meta, "TaskQueueView.css");
+ 
+-/** TaskQueueView — the top of the task queue. Beside the list: how many are queued, per big thing, and the one score formula with its numbers.
+- *  The list: one row per task (rank, task and breadcrumb, why, estimated cost, priority, re-asks, state, score); a card per task on a phone, columns when wide.
++/** TaskQueueView — the task queue, three views of the same ranked rows (`mode`):
++ *    "top"     the page itself: the count, the per-big-thing split and the first few tasks as preview cards; a click opens that task
++ *    "all"     ?view=all: every queued task, one row each (rank, task, why, cost, big thing, re-asks, state, score)
++ *    "ranking" ?view=ranking: how the score is worked out (needs no rows)
+  *  Rows come from the dev server's "taskqueue" query source (Server/TaskQueue.mjs, ranked by core/Task/TaskQueue.js); a changed row is pushed, never polled. Readme: readme.md. */
+ export default class TaskQueueView extends View {
+-	static LIMIT = 20;
++	static PREVIEWS = 8;
+ 	static BIG = { 1: "See and approve the work", 2: "Every ask becomes a task that finishes", 3: "Agents that know the rules" };
++	static RETRY = [1000, 2000, 4000, 8000];
+ 	static usd(n){ return "$" + (n || 0).toFixed(2); }
+ 
+-	get classes(){ return "tq-view block wide"; }
++	/** The view is in the address (?view=all, ?view=ranking), so a reload or Back lands in the same place. */
++	get mode(){ const v = new URLSearchParams(location.search).get("view"); return v === "all" || v === "ranking" ? v : "top"; }
++
++	get classes(){ return "tq-view block wide tq-" + this.mode; }
+ 
+ 	// ⚠ render() runs inside View's constructor, before class fields exist: set state in initialize().
+ 	initialize(){
+ 		this.rows = new Map();
+ 		this.error = "";
+-		this.loading = true;
++		this.loaded = this.mode === "ranking";
++		this.failed = false;
+ 		this.client = new QueryClient("taskqueue", { row: r => this.change(r), stale: () => this.ask() });
+ 		super.initialize();
+ 	}
+ 
+ 	render(){
+ 		this.$side = div.c("tq-side");
+-		this.$main = div.c("tq-main", () => {
+-			this.$head = div.c("tq-head");
+-			this.$cols = div.c("tq-cols muted", () => ["#", "Task and where it lives", "Why", "Cost", "Big", "Re-asks", "State", "Score"].forEach(h => span.c("tq-colh", h)));
+-			this.$list = div.c("tq-list");
+-		});
++		this.$main = div.c("tq-main");
+ 		this.paint();
+-		this.ask();
++		if (this.mode !== "ranking") this.ask();
+ 	}
+ 
++	/** A count is drawn only from a successful answer. Until one arrives the page says "Reading…" and asks again, a few times with a growing delay; only then does it say what is wrong, with no number. */
+ 	async ask(){
+-		const res = await this.client.ask({ sort: { by: "score", dir: "desc" }, limit: 500 }, { timeout: 30000 });
+-		this.loading = false;
+-		if (res.error){ this.error = res.error; return this.paint(); }
+-		this.error = ""; this.rows = new Map(res.rows.map(r => [r.id, r]));
++		if (this.asking) return;
++		this.asking = true;
++		for (let n = 0; ; n++){
++			const res = await this.client.ask({ sort: { by: "score", dir: "desc" }, limit: 500 }, { timeout: 30000 });
++			if (!res.error){
++				this.error = ""; this.failed = false; this.loaded = true;
++				this.rows = new Map(res.rows.map(r => [r.url, r]));
++				break;
++			}
++			this.error = res.error;
++			if (this.loaded) break;
++			if (n >= TaskQueueView.RETRY.length){ this.failed = true; break; }
++			this.paint();
++			await new Promise(r => setTimeout(r, TaskQueueView.RETRY[n]));
++		}
++		this.asking = false;
+ 		this.paint();
+ 	}
+ 
+-	change(r){ this.rows.set(r.id, r); this.paint(); }
++	problem(){
++		return this.error === "no socket" ? "This list needs the dev server (a static copy has no one to ask)."
++			: this.error === "no source" ? "The dev server has not loaded the queue yet: it starts the next time the dev server restarts (Server/TaskQueue.mjs)."
++			: this.error === "timeout" ? "The dev server is still reading the task records and has not answered after several tries. Reload in a minute."
++			: "Could not ask the server: " + this.error;
++	}
++
++	change(r){ this.rows.set(r.url, r); this.paint(); }
+ 
+-	top(){ return [...this.rows.values()].sort((x, y) => y.score - x.score).slice(0, TaskQueueView.LIMIT); }
++	sorted(){ return [...this.rows.values()].sort((x, y) => y.score - x.score); }
+ 
+ 	crumb(r){ const parts = String(r.parent ?? "").split("/").filter(Boolean); return [r.module, parts.at(-1)].filter(Boolean).join(" › "); }
+ 
++	/** The triage note "serves priority N: <name>" only repeats the big-thing chip; a card shows a why only when it says more. */
++	own_why(r){ return r.why && !/^serves priority \d+:/.test(r.why) ? r.why : ""; }
++
++	state(r){ return r.state + (r.state === "running" && r.agent ? " · " + r.agent : ""); }
++
+ 	paint(){
+-		const rows = this.top(), all = [...this.rows.values()], total = all.length;
+-		if (this.el) this.el.dataset.ready = String(!this.loading);
+-		this.$side.empty(() => {
+-			h2.c("tq-h muted", "What is in the queue");
+-			if (this.loading) return void p.c("tq-note muted", "Reading the task records…");
+-			div.c("tq-big", () => { span.c("tq-count", String(total)); span.c("tq-what", total === 1 ? " task queued" : " tasks queued"); });
+-			div.c("tq-bigs", () => [1, 2, 3].forEach(b => div.c("tq-bigrow", () => {
+-				span.c("tq-n", String(all.filter(r => r.big === b).length));
+-				span.c("tq-bname", `#${b} ${TaskQueueView.BIG[b]}`);
+-			})));
+-			div.c("tq-bigrow", () => { span.c("tq-n", String(all.filter(r => !r.big).length)); span.c("tq-bname", "accepted earlier, no big thing"); });
+-			p.c("tq-note muted", `The top ${rows.length} are listed. Estimates add up to ${TaskQueueView.usd(rows.reduce((n, r) => n + r.est_usd, 0))}; ${all.filter(r => r.state === "running").length} running, ${all.filter(r => r.state === "waiting").length} waiting on someone.`);
+-			h2.c("tq-h muted", "How it is ranked");
+-			p.c("tq-formula", "score = importance × (1 + re-asks × 0.5) ÷ (1 + estimated cost ÷ $2)");
+-			div.c("tq-rules", () => {
+-				div.c("tq-rule", () => { span.c("tq-label muted", "Importance "); span(`the big thing it serves: #1 = ${TaskQueue.IMPORTANCE[1]}, #2 = ${TaskQueue.IMPORTANCE[2]}, #3 = ${TaskQueue.IMPORTANCE[3]}, none = 1 (priority.md)`); });
+-				div.c("tq-rule", () => { span.c("tq-label muted", "Cost "); span("the median real cost of the 5 landed tasks with the most title words in common (else the module median)"); });
+-				div.c("tq-rule", () => { span.c("tq-label muted", "Re-asks "); span("sessions that asked for it again while it stayed unfinished (the refined asks)"); });
+-			});
+-			p.c("tq-note muted", "Every number is computed from the task records, never written by an agent. It updates live.");
++		if (this.el) this.el.dataset.ready = String(this.loaded);
++		const all = this.sorted();
++		this.$side.empty(() => this.mode === "ranking" ? this.drawBack() : this.drawSide(all));
++		this.$main.empty(() => {
++			if (!this.loaded) return void p.c("tq-empty muted", this.failed ? this.problem() : "Reading the task records…");
++			if (this.mode === "ranking") return void this.drawRanking();
++			if (!all.length) return void p.c("tq-empty muted", "Nothing is queued.");
++			if (this.mode === "all") return void this.drawAll(all);
++			this.drawPreviews(all);
+ 		});
+-		this.$head.empty(() => {
+-			if (this.loading) return;
+-			span.c("tq-what", `Top ${rows.length} of ${total}, best score first`);
++	}
++
++	drawBack(){
++		h2.c("tq-h muted", "Task queue");
++		a.c("tq-go").href("/framework/ai/queue/").attr("target", "_self").text("← Back to the top of the queue");
++	}
++
++	drawSide(all){
++		h2.c("tq-h muted", "Queued tasks");
++		if (!this.loaded) return void p.c("tq-note muted", this.failed ? this.problem() : "Reading the task records…");
++		const total = all.length, n = f => all.filter(f).length;
++		div.c("tq-big", () => { span.c("tq-count", String(total)); span.c("tq-what", total === 1 ? "task queued" : "tasks queued"); });
++		div.c("tq-bigs", () => {
++			[1, 2, 3].forEach(b => div.c("tq-bigrow", () => { span.c("tq-n", String(n(r => r.big === b))); span.c("tq-bname", `#${b} ${TaskQueueView.BIG[b]}`); }));
++			div.c("tq-bigrow", () => { span.c("tq-n", String(n(r => !r.big))); span.c("tq-bname", "accepted earlier, no big thing"); });
+ 		});
+-		this.$list.empty(() => {
+-			if (this.loading) return;
+-			if (this.error) return void p.c("tq-empty muted", this.error === "no socket" ? "This list needs the dev server (a static copy has no one to ask)."
+-				: this.error === "no source" ? "The dev server has not loaded the queue yet: it starts the next time the dev server restarts (Server/TaskQueue.mjs)."
+-				: "Could not ask the server: " + this.error);
+-			if (!rows.length) return void p.c("tq-empty muted", "Nothing is queued.");
+-			rows.forEach(r => div.c("tq-row tq-" + r.state, () => {
+-				span.c("tq-rank muted", String(r.rank));
+-				div.c("tq-task", () => {
+-					a.c("tq-title").href(r.url).text(r.title);
+-					div.c("tq-crumb muted", this.crumb(r));
+-				});
+-				div.c("tq-meta", () => {
+-					div.c("tq-why", () => {
+-						if (r.why) span(r.why + " ");
+-						if (r.why_url) a.c("tq-link").href(r.why_url).text(r.why ? "(source)" : "the owner's ask");
+-						else if (!r.why) span("no source recorded");
+-					});
+-					div.c("tq-cell", () => { span.c("tq-label muted", "Cost "); span(TaskQueueView.usd(r.est_usd)); }).attr("title", r.est_basis);
+-					div.c("tq-cell", () => { span.c("tq-label muted", "Big thing "); span(r.big ? `#${r.big}` : "none"); }).attr("title", TaskQueueView.BIG[r.big] ?? "accepted before the three big things");
+-					div.c("tq-cell", () => { span.c("tq-label muted", "Re-asked "); span(r.re_asks + "×"); });
+-					div.c("tq-state", r.state + (r.state === "running" && r.agent ? " · " + r.agent : ""));
++		p.c("tq-note muted", `${n(r => r.state === "running")} running, ${n(r => r.state === "waiting")} waiting on someone. Estimated cost of all: ${TaskQueueView.usd(all.reduce((s, r) => s + r.est_usd, 0))}.`);
++		a.c("tq-go").href("/framework/ai/queue/?view=all").attr("target", "_self").text(`All ${total} ranked →`);
++		a.c("tq-go").href("/framework/ai/queue/?view=ranking").attr("target", "_self").text("How the ranking works →");
++	}
++
++	drawPreviews(all){
++		const top = all.slice(0, TaskQueueView.PREVIEWS);
++		div.c("tq-head", () => span.c("tq-what", `Next up: the top ${top.length}, best score first`));
++		div.c("tq-cards", () => top.forEach(r => a.c("tq-card card tq-" + r.state).href(r.url).append(() => {
++			div.c("tq-cardtop", () => { span.c("tq-rank", "#" + r.rank); span.c("tq-state", this.state(r)); });
++			div.c("tq-title", r.title);
++			if (this.own_why(r)) div.c("tq-why", r.why);
++			div.c("tq-chips muted", () => {
++				span.c("tq-chip", TaskQueueView.usd(r.est_usd)).attr("title", r.est_basis);
++				span.c("tq-chip", TaskQueueView.BIG[r.big] ?? "No big thing").attr("title", r.big ? `Big thing #${r.big}` : "accepted before the three big things");
++				span.c("tq-chip", this.crumb(r));
++			});
++		})));
++	}
++
++	drawAll(all){
++		div.c("tq-head", () => span.c("tq-what", `All ${all.length}, best score first`));
++		div.c("tq-cols muted", () => ["#", "Task and where it lives", "Why", "Cost", "Big", "Re-asks", "State", "Score"].forEach(h => span.c("tq-colh", h)));
++		div.c("tq-list", () => all.forEach(r => div.c("tq-row tq-" + r.state, () => {
++			span.c("tq-rank muted", String(r.rank));
++			div.c("tq-task", () => {
++				a.c("tq-title").href(r.url).text(r.title);
++				div.c("tq-crumb muted", this.crumb(r));
++			});
++			div.c("tq-meta", () => {
++				div.c("tq-why", () => {
++					if (r.why) span(r.why + " ");
++					if (r.why_url) a.c("tq-link").href(r.why_url).text(r.why ? "(source)" : "the owner's ask");
++					else if (!r.why) span("no source recorded");
+ 				});
+-				span.c("tq-score").attr("title", "importance × (1 + 0.5 × re-asks) ÷ (1 + estimate ÷ $2)").text(r.score.toFixed(2));
+-			}));
++				div.c("tq-cell", () => { span.c("tq-label muted", "Cost "); span(TaskQueueView.usd(r.est_usd)); }).attr("title", r.est_basis);
++				div.c("tq-cell", () => { span.c("tq-label muted", "Big thing "); span(r.big ? `#${r.big}` : "none"); }).attr("title", TaskQueueView.BIG[r.big] ?? "accepted before the three big things");
++				div.c("tq-cell", () => { span.c("tq-label muted", "Re-asked "); span(r.re_asks + "×"); });
++				div.c("tq-state", this.state(r));
++			});
++			span.c("tq-score").attr("title", "importance × (1 + 0.5 × re-asks) ÷ (1 + estimate ÷ $2)").text(r.score.toFixed(2));
++		})));
++	}
++
++	drawRanking(){
++		const I = TaskQueue.IMPORTANCE;
++		div.c("tq-head", () => span.c("tq-what", "How the ranking works"));
++		p.c("tq-formula", "score = importance × (1 + re-asks × 0.5) ÷ (1 + estimated cost ÷ $2)");
++		div.c("tq-rules", () => {
++			div.c("tq-rule", () => { span.c("tq-label muted", "Importance "); span(`the big thing it serves: #1 = ${I[1]}, #2 = ${I[2]}, #3 = ${I[3]}, none = 1 (priority.md)`); });
++			div.c("tq-rule", () => { span.c("tq-label muted", "Cost "); span("the median real cost of the 5 landed tasks with the most title words in common (else the module median)"); });
++			div.c("tq-rule", () => { span.c("tq-label muted", "Re-asks "); span("sessions that asked for it again while it stayed unfinished (the refined asks)"); });
+ 		});
++		p.c("tq-note muted", "Every number is computed from the task records, never written by an agent. It updates live.");
+ 	}
+ }
+diff --git a/public/framework/ai/queue/readme.md b/public/framework/ai/queue/readme.md
+index 8c66220fe..a0707fda3 100644
+--- a/public/framework/ai/queue/readme.md
++++ b/public/framework/ai/queue/readme.md
+@@ -1,13 +1,15 @@
+ # Task queue `ai/queue/`
+ 
+-The queue of accepted tasks, ranked, at `/framework/ai/queue/`: for each, what it is, why, its estimated cost, its big thing and its state. Read only; every number is computed from records.
++The queue of accepted tasks, ranked, at `/framework/ai/queue/`. The page opens on one screen: the count as one big number with its split by big thing, then the top 8 as preview cards (rank, title, state, cost, the big thing's name, a why only when the task has one of its own). A card opens that task. One click down: `?view=all` (every task, one row each) and `?view=ranking` (how the score is worked out). Read only; every number is computed from records.
++
++Linked from the AI tab bar and page, the rail's footer words (`queue`, on the day and card pages), the day page under Ready to merge, and the session page's tab row. Those links carry no count: a second `QueryClient` on a page steals the host's live pushes (the server keeps one watcher per browser).
+ 
+ | Piece | Job |
+ |---|---|
+ | `core/Task/TaskQueue.js` (`class TaskQueue`) | the one ranking: estimate, re-asks, score, `build(open, ctx)`. No DOM, no node imports |
+ | `Server/TaskQueue.mjs` | the adapter: reads each open task's `task.jsonl`, the landed tasks' `usd` (from `SessionIndex`) and `ext/Refine/queue/asks.jsonl`; registers the `taskqueue` query source. `node Server/TaskQueue.mjs --check` prints the top 20 |
+-| `TaskQueueView.js` (`extends View`) | the page's view: a summary column plus the list; asks the source, repaints on pushed rows |
+-| `TaskQueueView.css` | `tq-` rules: cards when narrow, table columns when the list is 60em wide |
++| `TaskQueueView.js` (`extends View`) | the page's view: the three views by `mode` (`top`, `all`, `ranking`, from `?view=`); asks the source, retries while it is cold, repaints on pushed rows; rows are keyed by `url` (two tasks can share a slug) |
++| `TaskQueueView.css` | `tq-` rules: preview cards, the side column, table columns when the list is 60em wide |
+ 
+ **The score:** `importance × (1 + 0.5 × re-asks) ÷ (1 + estimated cost ÷ $2)`. Importance is the big thing in [priority.md](../priority.md) (1 → 3, 2 → 2, 3 → 1, none → 1). The estimate is the median real cost of the 5 landed tasks whose titles share the most words with this one (filler words like "with" or "make" don't count; at least 2 shared, at least 3 such tasks); with fewer it falls back to the module median, then all landed, then $1.50. Hover the Cost cell for the basis. Re-asks are the other sessions that asked for it again. The numbers are statics on `TaskQueue`.
+ 
+@@ -15,6 +17,7 @@ The queue of accepted tasks, ranked, at `/framework/ai/queue/`: for each, what i
+ 
+ ## Watch out
+ 
++- Cold start: a freshly started dev server needs about 10 s to read the task records, so the page says "Reading the task records…" and asks again (1, 2, 4, 8 s) and never draws a count before an answer; after the last try it says what is wrong, with no number.
+ - Needs the dev server (the source is a socket); a change to `Server/TaskQueue.mjs` needs a dev-server restart.
+ - TaskLoop and the Dispatcher do not read this queue yet.
+ 
+diff --git a/public/framework/ai/rail/rail.js b/public/framework/ai/rail/rail.js
+index a89c822d3..ec8505bd0 100644
+--- a/public/framework/ai/rail/rail.js
++++ b/public/framework/ai/rail/rail.js
+@@ -124,6 +124,7 @@ export default class AIRail extends Inbox.Rail {
+ 	foot_words(){
+ 		a.c("inbox-word page-link").href(this.url + "view/today/").attr("title", "today, open, all, or a tag").text("views");
+ 		a.c("inbox-word page-link").href(this.url + "tasks/lanes/").attr("title", "today in three columns: in flight, queued, landed").text("lanes");
++		a.c("inbox-word page-link").href("/framework/ai/queue/").attr("title", "the ranked list of accepted tasks, best first").text("queue");
+ 	}
+ 
+ 	shell_extra(){
