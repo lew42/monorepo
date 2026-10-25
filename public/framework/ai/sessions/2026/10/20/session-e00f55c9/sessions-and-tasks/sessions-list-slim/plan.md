@@ -34,7 +34,7 @@ Alternative considered: rank by the prompt order only (simplest, but the owner a
 - **Live:** redraw on each record replay (the hook `SessionFeed.record` already gets; reuse it).
 - Before/after shots of `/framework/ai/sessions/e00f55c9-bad4-4ee2-899e-d629ea1eede6/` at 390 and 1920.
 
-### 2b. Timeline (in flight: [timeline/requirements.md](timeline/requirements.md))
+### 2b. Timeline (landed, 5c2eac4f3: [timeline/](timeline/))
 
 Every line of the session's `session.jsonl` and its prompts (`page.jsonl` Prompt items), in time order, one compact row each: prompt (its subject, cites one click down), task added, task done (green check), child session started/landed (state, cost), note, decision. A **Filters ▾** menu (the same dropdown as the list's header, one component) picks the kinds; default hides `log` and tag lines. Live through the same tail.
 
