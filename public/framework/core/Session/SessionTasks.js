@@ -20,6 +20,7 @@ export default class SessionTasks extends JSONL {
 
 	draw(){
 		const Class = this.session_class ?? Session, s = Class.replay(this.lines), all = [...(s._tasks ?? [])];
+		this.on_session?.(s);   // the session page's Overview list reads the same replay
 		// A stopped task was dropped on purpose (noise, superseded, rejected): folded at the end and left out of the count (Task.progress_of).
 		const tasks = all.filter(t => t.state !== "stopped"), stopped = all.filter(t => t.state === "stopped");
 		this.$box?.empty(() => {

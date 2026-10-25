@@ -25,6 +25,7 @@ import SessionTasks from "/framework/core/Session/SessionTasks.js";
 import SessionWork from "./SessionWork.js";
 import SessionStats from "./SessionStats.js";
 import SessionOverview from "./SessionOverview.js";
+import SessionFeed from "./SessionFeed.js";
 import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
@@ -183,7 +184,7 @@ export default class AISessionDetail extends Page {
 		let $role, $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work, work;
 		const ready = new Promise(resolve => this.work_ready = resolve);   // the loaded SessionWork, for the stats bar and the Overview
 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
-		const TABS = [["overview", "Overview"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
+		const TABS = [["overview", "Overview"], ["board", "Board"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
 		const old_keys = { work: "tasks", conversation: "chat" }, asked = new URLSearchParams(location.search).get("tab"), want = old_keys[asked] ?? asked, panels = {}, buttons = {};
 		const show = key => {
 			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
@@ -202,7 +203,8 @@ export default class AISessionDetail extends Page {
 		});
 		if (new URLSearchParams(location.search).has("full")) setTimeout(() => this.full_screen(true));
 		div.c("sessions-detail-body", () => {
-			panels.overview = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
+			panels.overview = div.c("flow sessions-panel", () => { this.feed = new SessionFeed({ ready, sid: id }); });   // every task and child session, newest first (SessionFeed)
+			panels.board = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
 			panels.tasks = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
 			panels.chat = div.c("flow sessions-panel sov-chat", () => {
 				$tasks = div.c("flow session-tasks");   // the session's tasks, live; an owner prompt's asks arrive here as proposals (core/Session/SessionTasks.js)
@@ -236,7 +238,7 @@ export default class AISessionDetail extends Page {
 			this.log_urls().then(() => PromptLog.read(session_id)).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
 			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
-			this.record_if_there().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks }).live(); });
+			this.record_if_there().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks, on_session: s => this.feed?.record(s) }).live(); });
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
 			this.log_urls().then(urls => {
 				if (this.logs) return;
