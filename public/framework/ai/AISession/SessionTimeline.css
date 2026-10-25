@@ -1,0 +1,38 @@
+/* The session page's Timeline tab (SessionTimeline). Prefix stl-. One row per event: time, icon, one line; the list scrolls inside the panel and opens at the bottom. */
+@layer site {
+	.stl { --stl-cols: 3.9rem 1.25rem minmax(0, 1fr); width: 100%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: .5rem; }
+	.stl-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+	.stl-count { font-size: .85rem; }
+	.stl-list { min-width: 0; max-height: min(72dvh, 70rem); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; border-block: 1px solid var(--mob-line, color-mix(in srgb, var(--ink) 15%, transparent)); }
+	.stl-none { padding: 1rem .25rem; margin: 0; }
+	.stl-day { position: sticky; top: 0; z-index: 1; padding: .2rem .25rem; font-size: .75rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; background: var(--paper, Canvas); color: color-mix(in srgb, var(--ink) 60%, transparent); border-bottom: 1px solid var(--mob-line, color-mix(in srgb, var(--ink) 15%, transparent)); }
+	.stl-row { display: grid; grid-template-columns: var(--stl-cols); align-items: start; column-gap: .5rem; padding: .35rem .25rem; min-width: 0; border-top: 1px solid color-mix(in srgb, var(--ink) 8%, transparent); }
+	.stl-day + .stl-row { border-top: 0; }
+	.stl-sum { display: grid; grid-template-columns: var(--stl-cols); column-gap: .5rem; align-items: start; cursor: pointer; list-style: none; padding: 0; width: auto; min-height: 0; font-size: inherit; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; }   /* a summary wears the control box (framework.css control grammar); a row is not a control */
+	.stl-sum::-webkit-details-marker { display: none; }
+	details.stl-row { display: block; }
+	.stl-raw { margin: .35rem 0 .25rem 4.4rem; padding: .4rem .6rem; border-inline-start: 2px solid color-mix(in srgb, var(--ink) 20%, transparent); white-space: pre-wrap; overflow-wrap: anywhere; font-size: .9rem; max-height: 22rem; overflow-y: auto; }
+	.stl-time { white-space: nowrap; font-size: .75rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
+	.stl-icon { font-size: 1.25rem; line-height: 1; width: 1.25rem; text-align: center; color: color-mix(in srgb, var(--ink) 55%, transparent); }
+	.stl-row .soutline-state { font-size: 1.25rem; }
+	.stl-main { min-width: 0; display: flex; flex-direction: column; gap: .05rem; }
+	.stl-line { min-width: 0; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35; }
+	.stl-main:has(.stl-more) .stl-line { -webkit-line-clamp: 1; }   /* a row is at most two lines: a second line (outcome, source) shortens the first */
+	.stl-link { margin-inline-start: .35em; font-weight: 600; }
+	.stl-meta { margin-inline-start: .5em; font-size: .75rem; }
+	.stl-more { font-size: .78rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+	.stl-prompt .stl-text { font-weight: 600; }
+	.stl-done .stl-icon, .stl-landed .stl-icon { color: var(--ok, #2e9d5b); }
+	.stl-log, .stl-tag, .stl-other { opacity: .75; }
+	.stl-menu { display: flex; flex-direction: column; gap: .15rem; min-inline-size: 14rem; }
+	.stl-filter { display: flex; align-items: center; gap: .5rem; padding: .25rem .25rem; cursor: pointer; font-size: .9rem; }
+	.stl-filter input { flex: none; margin: 0; }
+	.stl-n { margin-inline-start: auto; font-variant-numeric: tabular-nums; }
+	.ux-popover.stl-pop { max-inline-size: min(22rem, calc(100vw - 1rem)); }
+
+	@media (min-width: 900px) {
+		.stl { --stl-cols: 5rem 1.25rem minmax(0, 1fr); }
+		.stl-row, .stl-sum { column-gap: .75rem; }
+		.stl-raw { margin-inline-start: 6.1rem; }
+	}
+}

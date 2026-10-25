@@ -18,7 +18,7 @@ AISessionFlags.usd_of = r => AISessionRows.claude_usd_of(r);   // flags_of reads
 import QueryClient from "/framework/ext/Query/QueryClient.js";
 import Day from "/framework/core/Session/Day.js";
 import PageWork from "/framework/core/Page/ai/PageWork.js";
-import Popover from "/framework/ux/Popover/Popover.js";
+import SessionPopover from "./SessionPopover.js";
 
 const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
 View.stylesheet(sessions_dir, "sessions.css");
@@ -215,7 +215,7 @@ export default class AISessionsPage extends Page {
 
 	/** One full-width sticky row: the range menu, the search box, the Filters menu (everything else the old controls drew). */
 	build_header(){
-		const page = this, pop = (anchor, content, cls) => new Popover({ anchor: anchor.el, role: "dialog", content }).draw().ac("sessions-pop " + cls);
+		const page = this, pop = SessionPopover.open;
 		return div.c("sessions-header", () => {
 			this.$range_btn = button.c("sessions-hbtn", this.range_label() + " ▾").attr("type", "button").attr("title", "Which days are listed");
 			pop(this.$range_btn, function(){
@@ -731,6 +731,8 @@ export default class AISessionsPage extends Page {
 	/** Waits for the session rows before a detail page is built, so its title is the name on the first paint (route() cannot wait). */
 	async child(name, levels){
 		if (name && !name.includes(".") && !/^\d{4}$/.test(name) && name !== "doc" && name !== "readme"){
+			const full = await AISessionDetail.expand(this.url, name);   // an 8-character short id names the full session: both urls are one page
+			if (full !== name){ (this.folders ??= new Map()).set(name, this.url + full + "/"); return super.child(name, levels); }
 			await AISessionDetail.preload(this.url, name);
 			(this.folders ??= new Map()).set(name, await AISessionDetail.folder_for(this.url, name));   // route() cannot wait: the session's dated folder is looked up here
 		}

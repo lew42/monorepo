@@ -29,12 +29,12 @@ export default class StoreFolder extends Page {
 	    log (Server/TaskMove.mjs writes it; Server/TaskDirs.mjs redirect() is the node twin), because route() must answer now. */
 	static moved(url){
 		if (!this._moves){
-			this._moves = new Map();
+			this._moves = new Map(); this._task_dirs = new Set();   // _task_dirs: where a moved TASK now lives (a redirect's target is a session folder, never a task)
 			const x = new XMLHttpRequest();
 			x.open("GET", "/framework/ai/sessions/task-moves.jsonl", false);
 			try { x.send(); } catch {}
 			if (x.status === 200 && !(x.getResponseHeader("content-type") ?? "").includes("html"))
-				for (const l of x.responseText.split("\n")) try { const e = JSON.parse(l); if (e.from && e.to && !e.undone && e.kind !== "stub") this._moves.set("/" + e.from.replace(/^public\//, ""), "/" + e.to.replace(/^public\//, "")); } catch {}
+				for (const l of x.responseText.split("\n")) try { const e = JSON.parse(l); if (e.from && e.to && !e.undone && e.kind !== "stub"){ this._moves.set("/" + e.from.replace(/^public\//, ""), "/" + e.to.replace(/^public\//, "")); if (e.kind !== "redirect") this._task_dirs.add("/" + e.to.replace(/^public\//, "")); } } catch {}
 		}
 		const m = /^(\/framework\/ai\/\d{4}-\d{2}-\d{2})(\/[^/]+)?/.exec(url);
 		if (!m) return null;
@@ -91,7 +91,7 @@ export default class StoreFolder extends Page {
 			try { x.send(); } catch {}
 			let pages = [];
 			if (x.status === 200 && !(x.getResponseHeader("content-type") ?? "").includes("html")) try { pages = JSON.parse(x.responseText).pages ?? []; } catch {}
-			this._known = { tasks: new Set(this._moves.values()), pages: new Set(pages.map(u => u.replace(/\/$/, ""))) };
+			this._known = { tasks: new Set(this._task_dirs), pages: new Set(pages.map(u => u.replace(/\/$/, ""))) };
 		}
 		return this._known;
 	}

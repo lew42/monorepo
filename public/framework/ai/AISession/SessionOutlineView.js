@@ -43,6 +43,7 @@ export default class SessionOutlineView extends View {
 
 	draw(){
 		const outline = this.outline = this.build();
+		this.on_draw?.(outline);   // the Timeline tab names the same child sessions
 		this.empty(() => {
 			this.head(outline);
 			const kids = outline.groups.filter(g => g.kind === "child");
