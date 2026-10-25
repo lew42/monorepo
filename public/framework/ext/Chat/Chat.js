@@ -326,7 +326,7 @@ export function card_of(b){
 export function sticky_scroll(box, { observe = true, end } = {}){   // end(): scrollTop of the true bottom of the content when blank padding sits under it (Widget's Thread); default scrollHeight   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
 	let locked = true, last = 0;
 	const bottom = () => Math.max(0, Math.min(end ? end() : box.scrollHeight, box.scrollHeight) - box.clientHeight);   // the scrollTop that shows the last line at the box's bottom
-	const at_bottom = () => bottom() - box.scrollTop < 4;
+	const at_bottom = () => bottom() - box.scrollTop < 40;   // within ~40px counts as pinned
 	const $btn = document.createElement("button");
 	$btn.type = "button";
 	$btn.className = "chatbox-jump";
@@ -338,10 +338,14 @@ export function sticky_scroll(box, { observe = true, end } = {}){   // end(): sc
 	const show = on => { $btn.hidden = !on; };
 	const go_down = () => { if ($btn !== box.lastChild) box.appendChild($btn); box.scrollTop = bottom(); last = box.scrollTop; };
 	$btn.addEventListener("click", () => { locked = true; show(false); go_down(); });
+	// only the reader can unlock: a scroll event from a redraw, a clamp or a pin() never counts (it used to, and the log jumped)
+	let gesture = 0;
+	const touch = () => { gesture = Date.now(); };
+	for (const ev of ["wheel", "touchmove", "keydown", "pointerdown"]) box.addEventListener(ev, touch, { passive: true });
 	box.addEventListener("scroll", () => {
 		const top = box.scrollTop;
 		if (at_bottom()){ locked = true; show(false); }
-		else if (top < last){ locked = false; show(true); }
+		else if (top < last && Date.now() - gesture < 1000){ locked = false; show(true); }
 		last = top;
 	}, { passive: true });
 	const pin = () => { if (locked) go_down(); else if ($btn !== box.lastChild) box.appendChild($btn); };   // the button stays last, even if a redraw emptied the box
