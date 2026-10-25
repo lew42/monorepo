@@ -6,18 +6,16 @@
 // the owner's words in the chat, as a multiset of plain words.
 // The proof is two numbers that must agree: words that left the screen between shot N and N+1, and those the clean-up explains
 // (a word the cleaned text really dropped or changed). Anything else is a word that flickered. Exit 1 when they differ.
-import { pathToFileURL } from "url";
 import fs from "fs";
 import path from "path";
 
 const [base = "http://monorepo.localhost", shots_arg, only] = process.argv.slice(2);
-const PW = process.env.PWENTRY ?? "C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
 const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const shots_root = shots_arg ?? path.resolve(here, "../../../ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots");
 const SAY_MS = 3000;      // Servex's answer to session/say: slow, the way a busy Servex is (its limit is 10 s)
 const REFINE_MS = 900;    // the live refine's answer (scenario "clean")
-const { chromium } = await import(pathToFileURL(PW).href);
-const browser = await chromium.launch();
+const { default: Browser } = await import(new URL("../../../../../Server/Browser.mjs", import.meta.url).href);   // the shared launcher: no window
+const browser = await Browser.launch();
 const kill = setTimeout(() => { console.log("FAIL killed after 240 s"); process.exit(2); }, 240000);
 
 // What is said, and what the clean-up makes of it. A word in `raw` but not in `clean` is one the clean-up may take away.

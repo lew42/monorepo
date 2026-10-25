@@ -2,16 +2,14 @@
 //   node public/framework/ux/Dictate/test/debug-tab.mjs <base-url> <shots dir>
 // Headless; every Servex session verb is stubbed (the "AI" answers from a stub session file), the mic is jfk.wav.
 // Exit 1 on any failure.
-import { pathToFileURL } from "url";
 import fs from "fs";
 
 const [base = "http://monorepo.localhost", shots = "."] = process.argv.slice(2);
 fs.mkdirSync(shots, { recursive: true });
-const PW = process.env.PWENTRY ?? "C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
 const here = new URL("../../../ai/recordings/jfk.wav", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const wav = process.env.WAV ?? (fs.existsSync(here) ? here : "C:/Code/lew42/monorepo/public/framework/ai/recordings/jfk.wav");
-const { chromium } = await import(pathToFileURL(PW).href);
-const browser = await chromium.launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
+const { default: Browser } = await import(new URL("../../../../../Server/Browser.mjs", import.meta.url).href);   // the shared launcher: no window
+const browser = await Browser.launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
 const kill = setTimeout(() => { console.log("FAIL killed after 240 s"); process.exit(2); }, 240000);
 let failed = 0;
 const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
@@ -97,6 +95,19 @@ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now
 	await page.waitForSelector(".drawer-ai-page-body .dictate-debug", { timeout: 20000 }).catch(() => {});
 	check(await page.$(".drawer-ai-page-body .dictate-debug") !== null, "a reload at 1920 keeps the Debug view (" + new URL(page.url()).pathname + ")");
 	check(!run.errors.length, "no page errors at 1920: " + run.errors.join(" | "));
+	await ctx.close();
+}
+
+// ---- the old name: ?drawer=dictation and <path>/ai/dictation/ still open Debug (one alias, AIPage.old_link), at 390 and 1920
+for (const width of [390, 1920]){
+	const { ctx, page, run } = await context({ width, height: width < 800 ? 844 : 1080 });
+	for (const old of ["/framework/ext/drawer/?drawer=dictation", "/framework/ext/drawer/ai/dictation/"]){
+		await page.goto(base + old, { waitUntil: "domcontentloaded" });
+		const ok = await page.waitForSelector(".dictate-debug", { state: "attached", timeout: 20000 }).then(() => true, () => false);
+		const at = new URL(page.url()).pathname;
+		check(ok && at === "/framework/ext/drawer/ai/debug/", `${width}: the old link ${old} opens Debug at ${at}`);
+	}
+	check(!run.errors.length, `no page errors on the old links at ${width}: ` + run.errors.join(" | "));
 	await ctx.close();
 }
 
