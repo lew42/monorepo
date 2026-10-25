@@ -6,7 +6,7 @@ The default page at `/framework/ai/`: what matters most, in order. A place to sa
 
 | File | Class | Job |
 |---|---|---|
-| `AIDashboard.js` | `AIDashboard extends View` | the page body: a three-column grid (two columns at 60em, one on a phone), then usage pace, then the pill row |
+| `AIDashboard.js` | `AIDashboard extends View` | the page body: the pill row (under the page title), then a three-column grid (two columns at 60em, one on a phone), then usage pace |
 | `DashNeeds.js` | `DashNeeds extends View` | "Needs you": waiting count + top 3 rows, and the ready-to-merge count + top 3 |
 | `DashBig.js` | `DashBig extends View` | "The big things now": each `### N. Title` in `ai/priority.md` with its `- **Now:**` line, cut to whole sentences |
 | `DashQueue.js` | `DashQueue extends View` | "Task queue": count and the top 3 by score |
@@ -14,7 +14,8 @@ The default page at `/framework/ai/`: what matters most, in order. A place to sa
 | `PageNav.js` | `PageNav extends View` | a row of pill links (`links: [{href, label, title, primary, count}]`); the dashboard, the sessions page and `/live/` use it. `PageNav.merge_link()` is the Merge pill with the waiting count |
 | `AIDashboard.css` | | all rules `ad-` prefixed, in `@layer site` |
 | `PageNav.css` | | the pill row, `pn-` prefixed; on a phone the row is one line that scrolls sideways |
-| `SessionStore.js`, `SessionTree.js`, `SessionRow.js`, `DayStrip.js`, `OriginChips.js` | | **not used by this page any more** (it used to be the sessions list). Kept, not deleted; nothing imports them |
+
+The five files that drew the old sessions list are retired to [archive/retired/AIDashboard/](../archive/retired/AIDashboard/readme.md).
 
 `page.js` shows the dashboard when the path is exactly `/framework/ai/`. Plan history: [doc/ai-dashboard-plan.md](../doc/ai-dashboard-plan.md).
 
@@ -33,6 +34,9 @@ The default page at `/framework/ai/`: what matters most, in order. A place to sa
 A failed read is said out loud ("Servex did not answer…"); a count is never drawn from a failure.
 
 ## Watch out
+
+- The Say-something card hides itself while the right drawer shows its AI tab, which has the same chat (`html:has(.drawer.on .drawer-ai) .ad-say`, CSS only).
+- "Needs you" lists each card once (by card or id, then by title); the big count is still every row Servex lists.
 
 - **Only one live `QueryClient` per page.** Pushes route by `QueryClient.current`, so `DashQueue` saves and restores it. A second live client would starve "what is running".
 - `render()` runs before subclass fields exist: set state in `initialize()`, use getters for `classes`.
