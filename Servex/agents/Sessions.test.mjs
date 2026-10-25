@@ -338,4 +338,17 @@ check("the smart seat: Opus 5.5, medium effort, bypassPermissions; every voice a
 	}
 });
 
+check("load() repoints a session whose record voice-backfill moved into the dated store", () => {
+	const at = Date.parse("2026-10-17T13:25:37-05:00"), d = new Date(at);
+	const store = Sessions.session_path("/a/", "v-old0001", d);
+	fs.mkdirSync(path.dirname(path.join(repo, "public", store)), { recursive: true });
+	fs.writeFileSync(path.join(repo, "public", store), "{}\n");
+	const file = path.join(repo, `sessions-${++n}.json`);
+	fs.writeFileSync(file, JSON.stringify({ "v-old0001": { id: "v-old0001", home: "/a/", file: "/a/ai/v-old0001.jsonl", at, fast: null, smart: null } }));
+	const s = new Sessions({ repo, file, assistant: "fast" });
+	s.load();
+	assert.equal(s.map["v-old0001"].file, store);
+	assert.equal(JSON.parse(fs.readFileSync(file, "utf8"))["v-old0001"].file, store, "saved, so the next start does not need the move");
+});
+
 console.log(`Sessions.test.mjs: ${checks} checks passed`);

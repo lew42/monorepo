@@ -403,10 +403,22 @@ export default class Sessions {
 
 	load(){
 		try { this.map = JSON.parse(fs.readFileSync(this.file, "utf8")); } catch { this.map = {}; }
+		let moved = 0;
 		for (const [id, s] of Object.entries(this.map)){
+			if (this.relocate(s)) moved++;
 			delete s.floor;   // a floor from before a restart is stale: nobody is still talking into it
 			for (const role of ["fast", "smart"]) if (s[role]) this.by_agent.set(s[role], { id, role });
 		}
+		if (moved){ console.log(`sessions: ${moved} session${moved === 1 ? "" : "s"} repointed to the dated store`); this.save(); }
+	}
+
+	/* A record that voice-backfill.mjs moved into the dated store (/framework/ai/sessions/YYYY/MM/DD/<id>/) is found there by its
+	 * id and day, and `s.file` is repointed to it, so sessions.json is never edited by hand. */
+	relocate(s){
+		if (!s.file || /^\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\//.test(s.file) || !Number.isFinite(+new Date(s.at))) return false;
+		const file = Sessions.session_path(s.home, s.id, new Date(s.at));
+		if (!fs.existsSync(this.disk(file))) return false;
+		s.file = file; return true;
 	}
 
 	/* Every folder a session belongs to: its home, then each page it passed through. */
