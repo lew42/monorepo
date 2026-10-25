@@ -1,0 +1,4083 @@
+{
+ "generated_at": "2026-10-25T02:01:06.986Z",
+ "days": 7,
+ "note": "Computed by Server/TrackingCheck.mjs; never edit by hand. Doc: public/framework/ai/tracking/readme.md",
+ "untracked": {
+  "totals": {
+   "sessions": 623,
+   "usd": 1952.4016,
+   "untracked_usd": 1143.461,
+   "tokens": 2682064875,
+   "untracked_tokens": 1416512097,
+   "share_usd": 0.5857,
+   "share_tokens": 0.5281
+  },
+  "by_day": [
+   {
+    "day": "2026-10-18",
+    "usd": 172.4114,
+    "untracked_usd": 151.8806,
+    "share_usd": 0.8809
+   },
+   {
+    "day": "2026-10-19",
+    "usd": 233.5284,
+    "untracked_usd": 181.934,
+    "share_usd": 0.7791
+   },
+   {
+    "day": "2026-10-20",
+    "usd": 259.8977,
+    "untracked_usd": 85.1811,
+    "share_usd": 0.3277
+   },
+   {
+    "day": "2026-10-21",
+    "usd": 30.0479,
+    "untracked_usd": 22.4302,
+    "share_usd": 0.7465
+   },
+   {
+    "day": "2026-10-22",
+    "usd": 252.4416,
+    "untracked_usd": 131.0899,
+    "share_usd": 0.5193
+   },
+   {
+    "day": "2026-10-23",
+    "usd": 388.5592,
+    "untracked_usd": 201.5241,
+    "share_usd": 0.5186
+   },
+   {
+    "day": "2026-10-24",
+    "usd": 178.0196,
+    "untracked_usd": 104.4809,
+    "share_usd": 0.5869
+   }
+  ],
+  "sessions": [
+   {
+    "id": "730e8a7b-4cbf-4d09-90bd-d61d2bf9384a",
+    "folder": "2026/10/13/session-730e8a7b",
+    "agent": null,
+    "role": null,
+    "title": "Ultracode",
+    "day": "2026/10/13",
+    "last_at": "2026-10-20T12:36:11.796Z",
+    "usd": 646.1416,
+    "untracked_usd": 472.8357,
+    "tokens": 335784478,
+    "untracked_tokens": 211722562,
+    "messages": 873,
+    "untracked_messages": 524,
+    "share_usd": 0.7318,
+    "share_tokens": 0.6305,
+    "task_events": 346,
+    "spans": 49,
+    "first_untracked_at": "2026-10-13T20:30:54.196Z",
+    "stored_usd": 646.1416
+   },
+   {
+    "id": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "folder": "2026/10/20/session-e00f55c9",
+    "agent": "vscode-mastermind",
+    "role": null,
+    "title": "Session and task systems documentation",
+    "day": "2026/10/20",
+    "last_at": "2026-10-25T02:00:05.768Z",
+    "usd": 260.0008,
+    "untracked_usd": 78.6214,
+    "tokens": 350416859,
+    "untracked_tokens": 116639682,
+    "messages": 1230,
+    "untracked_messages": 442,
+    "share_usd": 0.3024,
+    "share_tokens": 0.3329,
+    "task_events": 318,
+    "spans": 24,
+    "first_untracked_at": "2026-10-20T19:58:27.807Z",
+    "stored_usd": 260.0008
+   },
+   {
+    "id": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "folder": "2026/10/23/session-83e9996a",
+    "agent": "mastermind-page",
+    "role": "mastermind",
+    "title": "Page mastermind onboarding",
+    "day": "2026/10/23",
+    "last_at": "2026-10-25T01:54:20.617Z",
+    "usd": 107.0578,
+    "untracked_usd": 55.5913,
+    "tokens": 176507577,
+    "untracked_tokens": 96502158,
+    "messages": 1218,
+    "untracked_messages": 625,
+    "share_usd": 0.5193,
+    "share_tokens": 0.5467,
+    "task_events": 27,
+    "spans": 4,
+    "first_untracked_at": "2026-10-24T02:21:24.973Z",
+    "stored_usd": 109.5453
+   },
+   {
+    "id": "7e6b7107-5b7c-4fc6-bcef-53eea5a57e7e",
+    "folder": "2026/10/23/session-7e6b7107",
+    "agent": "mastermind-system-architect-3",
+    "role": "mastermind",
+    "title": "Process system architecture and task work",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T02:39:31.448Z",
+    "usd": 49.6702,
+    "untracked_usd": 49.6702,
+    "tokens": 84680401,
+    "untracked_tokens": 84680401,
+    "messages": 571,
+    "untracked_messages": 571,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 14,
+    "spans": 2,
+    "first_untracked_at": "2026-10-23T23:26:16.603Z",
+    "stored_usd": 49.6703
+   },
+   {
+    "id": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "folder": "2026/10/23/session-d9c3caec",
+    "agent": "mastermind-deputy",
+    "role": "mastermind",
+    "title": "Sessions and tasks deputy",
+    "day": "2026/10/23",
+    "last_at": "2026-10-25T02:00:19.585Z",
+    "usd": 170.5123,
+    "untracked_usd": 36.062,
+    "tokens": 317224165,
+    "untracked_tokens": 67797835,
+    "messages": 1687,
+    "untracked_messages": 309,
+    "share_usd": 0.2115,
+    "share_tokens": 0.2137,
+    "task_events": 7,
+    "spans": 2,
+    "first_untracked_at": "2026-10-24T06:58:53.796Z",
+    "stored_usd": 170.3592
+   },
+   {
+    "id": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "folder": "2026/10/22/session-8d452ffd",
+    "agent": "mastermind-system-architect",
+    "role": "mastermind",
+    "title": "Process system sessions and tasks",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T02:12:57.818Z",
+    "usd": 69.2022,
+    "untracked_usd": 34.6172,
+    "tokens": 125577832,
+    "untracked_tokens": 64574071,
+    "messages": 663,
+    "untracked_messages": 339,
+    "share_usd": 0.5002,
+    "share_tokens": 0.5142,
+    "task_events": 36,
+    "spans": 5,
+    "first_untracked_at": "2026-10-23T00:05:53.056Z",
+    "stored_usd": 71.6177
+   },
+   {
+    "id": "c0abf29c-9521-4f1f-9499-c0c9846c8156",
+    "folder": "2026/10/22/session-c0abf29c",
+    "agent": "mastermind-prompt",
+    "role": "mastermind",
+    "title": "Prompt records task",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T07:05:25.105Z",
+    "usd": 41.1754,
+    "untracked_usd": 23.0935,
+    "tokens": 71497219,
+    "untracked_tokens": 41208066,
+    "messages": 448,
+    "untracked_messages": 260,
+    "share_usd": 0.5609,
+    "share_tokens": 0.5764,
+    "task_events": 3,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T02:49:17.776Z",
+    "stored_usd": 41.1754
+   },
+   {
+    "id": "607e82b5-0fa1-462d-aaa2-c5b3ce2a66ad",
+    "folder": "2026/10/20/session-607e82b5",
+    "agent": "mastermind-system-architect",
+    "role": null,
+    "title": "System architect",
+    "day": "2026/10/20",
+    "last_at": "2026-10-20T21:47:27.617Z",
+    "usd": 21.158,
+    "untracked_usd": 21.158,
+    "tokens": 36715788,
+    "untracked_tokens": 36715788,
+    "messages": 217,
+    "untracked_messages": 217,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-20T20:52:56.833Z",
+    "stored_usd": 21.158
+   },
+   {
+    "id": "afbe3e40-c145-4fbc-b5b3-7e906859a969",
+    "folder": "2026/10/23/session-afbe3e40",
+    "agent": "minion-review-page",
+    "role": "minion",
+    "title": "Review page design and build",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T03:30:02.621Z",
+    "usd": 20.555,
+    "untracked_usd": 20.555,
+    "tokens": 36027937,
+    "untracked_tokens": 36027937,
+    "messages": 164,
+    "untracked_messages": 164,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-24T00:11:20.481Z",
+    "stored_usd": 20.555
+   },
+   {
+    "id": "855b2d6a-d503-4037-90a1-d9311a31d70f",
+    "folder": "2026/10/22/session-855b2d6a",
+    "agent": "mastermind-system-architect-2",
+    "role": "mastermind",
+    "title": "Sessions and tasks process system",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T09:10:53.858Z",
+    "usd": 14.8083,
+    "untracked_usd": 14.8083,
+    "tokens": 23139626,
+    "untracked_tokens": 23139626,
+    "messages": 223,
+    "untracked_messages": 223,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 14,
+    "spans": 2,
+    "first_untracked_at": "2026-10-23T02:17:14.893Z",
+    "stored_usd": 15.6496
+   },
+   {
+    "id": "037b7c00-5220-4dbf-8360-40311851b09b",
+    "folder": "2026/10/22/session-037b7c00",
+    "agent": "mastermind-figma-cards",
+    "role": "mastermind",
+    "title": "Figma cards",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T05:18:18.156Z",
+    "usd": 24.7111,
+    "untracked_usd": 13.2447,
+    "tokens": 36042390,
+    "untracked_tokens": 19921464,
+    "messages": 271,
+    "untracked_messages": 195,
+    "share_usd": 0.536,
+    "share_tokens": 0.5527,
+    "task_events": 3,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T00:48:09.515Z",
+    "stored_usd": 25.3239
+   },
+   {
+    "id": "6688813b-d241-4e45-bdc3-367ffac90dac",
+    "folder": "2026/10/16/session-6688813b",
+    "agent": "mastermind-task-migrate",
+    "role": "mastermind",
+    "title": "Task system migration",
+    "day": "2026/10/16",
+    "last_at": "2026-10-23T07:23:42.423Z",
+    "usd": 11.4628,
+    "untracked_usd": 11.4628,
+    "tokens": 15499235,
+    "untracked_tokens": 15499235,
+    "messages": 139,
+    "untracked_messages": 139,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-17T03:58:21.097Z",
+    "stored_usd": 11.4628
+   },
+   {
+    "id": "2da03974-92b2-4dbf-8bea-97c3ee479d45",
+    "folder": "2026/10/24/session-2da03974",
+    "agent": "ai-system-mastermind",
+    "role": "ai-system-mastermind",
+    "title": "ai-system-mastermind session",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T02:00:57.738Z",
+    "usd": 9.5164,
+    "untracked_usd": 9.5164,
+    "tokens": 26106211,
+    "untracked_tokens": 26106211,
+    "messages": 222,
+    "untracked_messages": 222,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T05:49:23.038Z",
+    "stored_usd": 9.5164
+   },
+   {
+    "id": "272d452d-faea-4091-bb45-0b07c960e7ce",
+    "folder": "2026/10/20/session-272d452d",
+    "agent": "mastermind-voice-20261020",
+    "role": "mastermind",
+    "title": "Voice mastermind session",
+    "day": "2026/10/20",
+    "last_at": "2026-10-21T13:07:39.917Z",
+    "usd": 13.6439,
+    "untracked_usd": 7.6086,
+    "tokens": 11375071,
+    "untracked_tokens": 2139172,
+    "messages": 117,
+    "untracked_messages": 17,
+    "share_usd": 0.5577,
+    "share_tokens": 0.1881,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-21T01:16:18.155Z",
+    "stored_usd": 13.6439
+   },
+   {
+    "id": "66add291-c7f5-4e6d-aaff-1696e605d30f",
+    "folder": "2026/10/22/session-66add291",
+    "agent": "mastermind-item",
+    "role": "mastermind",
+    "title": "UI actions as deltas",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T02:47:53.692Z",
+    "usd": 10.8724,
+    "untracked_usd": 7.3862,
+    "tokens": 16286706,
+    "untracked_tokens": 12361063,
+    "messages": 166,
+    "untracked_messages": 119,
+    "share_usd": 0.6794,
+    "share_tokens": 0.759,
+    "task_events": 4,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T01:41:01.293Z",
+    "stored_usd": 11.1401
+   },
+   {
+    "id": "b888b2f3-cc10-4b1a-9429-6b658e3e860e",
+    "folder": "2026/10/16/session-b888b2f3",
+    "agent": "helper-compact-nudge",
+    "role": "helper",
+    "title": "Compact nudge idle-time policy",
+    "day": "2026/10/16",
+    "last_at": "2026-10-18T22:48:35.928Z",
+    "usd": 6.1417,
+    "untracked_usd": 6.1417,
+    "tokens": 7540280,
+    "untracked_tokens": 7540280,
+    "messages": 90,
+    "untracked_messages": 90,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-17T01:33:23.008Z",
+    "stored_usd": 6.1417
+   },
+   {
+    "id": "5b7e7068-29fe-49db-949f-9fdd39a45211",
+    "folder": "2026/10/22/minion-mobile-picks-5b7e7068",
+    "agent": "minion-mobile-picks",
+    "role": "minion",
+    "title": "Mobile picks as routed",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T02:17:41.253Z",
+    "usd": 5.9898,
+    "untracked_usd": 5.9898,
+    "tokens": 17491224,
+    "untracked_tokens": 17491224,
+    "messages": 150,
+    "untracked_messages": 150,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T01:19:23.353Z",
+    "stored_usd": 5.9898
+   },
+   {
+    "id": "62b60b33-8ece-4adf-abba-2d98348ccccc",
+    "folder": "2026/10/19/session-62b60b33",
+    "agent": "mastermind-card-merges",
+    "role": "mastermind",
+    "title": "Card merges",
+    "day": "2026/10/19",
+    "last_at": "2026-10-19T16:38:21.264Z",
+    "usd": 5.3764,
+    "untracked_usd": 5.3764,
+    "tokens": 15912007,
+    "untracked_tokens": 15912007,
+    "messages": 139,
+    "untracked_messages": 139,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-19T16:05:23.598Z",
+    "stored_usd": 5.3764
+   },
+   {
+    "id": "3535994c-7a0a-4047-9d81-1a111b0484d7",
+    "folder": "2026/10/19/session-3535994c",
+    "agent": "task-mastermind-voice-logging",
+    "role": "task-mastermind",
+    "title": "Voice logging",
+    "day": "2026/10/19",
+    "last_at": "2026-10-20T01:09:15.913Z",
+    "usd": 4.927,
+    "untracked_usd": 4.927,
+    "tokens": 16334962,
+    "untracked_tokens": 16334962,
+    "messages": 140,
+    "untracked_messages": 140,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-20T00:02:57.205Z",
+    "stored_usd": 4.927
+   },
+   {
+    "id": "9af95aed-fe94-440b-9c99-7295c499d762",
+    "folder": "2026/10/17/session-9af95aed",
+    "agent": "helper-bubbles-anchor",
+    "role": "helper",
+    "title": "Bubbles anchor chat scroll",
+    "day": "2026/10/17",
+    "last_at": "2026-10-18T03:47:19.346Z",
+    "usd": 4.6481,
+    "untracked_usd": 4.6481,
+    "tokens": 8573282,
+    "untracked_tokens": 8573282,
+    "messages": 79,
+    "untracked_messages": 79,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-17T15:40:16.514Z",
+    "stored_usd": 4.6481
+   },
+   {
+    "id": "fb13f066-4ba0-4a32-a023-3c6cf23b1899",
+    "folder": "2026/10/23/session-fb13f066",
+    "agent": "minion-nav-links",
+    "role": "minion",
+    "title": "Nav links deputy",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T04:53:40.916Z",
+    "usd": 4.5436,
+    "untracked_usd": 4.5436,
+    "tokens": 14432894,
+    "untracked_tokens": 14432894,
+    "messages": 114,
+    "untracked_messages": 114,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-24T03:48:14.525Z",
+    "stored_usd": 4.5436
+   },
+   {
+    "id": "70558dc8-b696-4fba-bd9e-7d691a7936b6",
+    "folder": "2026/10/17/session-70558dc8",
+    "agent": "helper-sheet-double-mount",
+    "role": "helper",
+    "title": "Sheet double mount",
+    "day": "2026/10/17",
+    "last_at": "2026-10-18T02:52:15.331Z",
+    "usd": 4.4399,
+    "untracked_usd": 4.4399,
+    "tokens": 9241623,
+    "untracked_tokens": 9241623,
+    "messages": 80,
+    "untracked_messages": 80,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-17T16:19:27.363Z",
+    "stored_usd": 4.4399
+   },
+   {
+    "id": "b66b4c24-a54e-4363-be9c-c5bfaa64139b",
+    "folder": "2026/10/20/session-b66b4c24",
+    "agent": "mastermind-dictation-map-plan",
+    "role": "mastermind",
+    "title": "Dictation map planning",
+    "day": "2026/10/20",
+    "last_at": "2026-10-21T03:17:04.733Z",
+    "usd": 3.8951,
+    "untracked_usd": 3.8951,
+    "tokens": 5114389,
+    "untracked_tokens": 5114389,
+    "messages": 40,
+    "untracked_messages": 40,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-21T03:09:41.221Z",
+    "stored_usd": 3.8951
+   },
+   {
+    "id": "94c3f1ff-d635-497d-844f-a7dd1818be57",
+    "folder": "2026/10/20/session-94c3f1ff",
+    "agent": "mastermind-mobile-sheet",
+    "role": "mastermind",
+    "title": "Mobile sheet layout",
+    "day": "2026/10/20",
+    "last_at": "2026-10-21T00:58:44.049Z",
+    "usd": 13.7178,
+    "untracked_usd": 3.8348,
+    "tokens": 26204246,
+    "untracked_tokens": 8542686,
+    "messages": 136,
+    "untracked_messages": 33,
+    "share_usd": 0.2796,
+    "share_tokens": 0.326,
+    "task_events": 2,
+    "spans": 1,
+    "first_untracked_at": "2026-10-21T00:53:00.845Z",
+    "stored_usd": 13.7178
+   },
+   {
+    "id": "36cc28a7-82ce-43dc-a4d7-43463e779917",
+    "folder": "2026/10/19/session-36cc28a7",
+    "agent": "helper-markdown-explorer",
+    "role": "helper",
+    "title": "Markdown explorer",
+    "day": "2026/10/19",
+    "last_at": "2026-10-19T13:12:03.438Z",
+    "usd": 3.8214,
+    "untracked_usd": 3.8214,
+    "tokens": 12071970,
+    "untracked_tokens": 12071970,
+    "messages": 105,
+    "untracked_messages": 105,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-19T12:40:29.893Z",
+    "stored_usd": 3.8214
+   },
+   {
+    "id": "a3a10195-8498-4be8-9325-74a9d28c1b01",
+    "folder": "2026/10/19/session-a3a10195",
+    "agent": "mastermind-card-merges-2",
+    "role": "mastermind",
+    "title": "Card merges 2",
+    "day": "2026/10/19",
+    "last_at": "2026-10-19T17:37:28.954Z",
+    "usd": 3.2443,
+    "untracked_usd": 3.2443,
+    "tokens": 9049967,
+    "untracked_tokens": 9049967,
+    "messages": 87,
+    "untracked_messages": 87,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-19T17:09:42.927Z",
+    "stored_usd": 3.2443
+   },
+   {
+    "id": "8db78a1a-9e4b-4e06-b12f-157567429ed0",
+    "folder": "2026/10/19/session-8db78a1a",
+    "agent": "helper-one-dashboard-filters",
+    "role": "helper",
+    "title": "One dashboard filters",
+    "day": "2026/10/19",
+    "last_at": "2026-10-19T22:43:21.969Z",
+    "usd": 3.1959,
+    "untracked_usd": 3.1959,
+    "tokens": 8583278,
+    "untracked_tokens": 8583278,
+    "messages": 74,
+    "untracked_messages": 74,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-19T22:22:18.118Z",
+    "stored_usd": 3.1959
+   },
+   {
+    "id": "3ba092e5-8907-441a-a736-f3f3743b58d3",
+    "folder": "2026/10/19/session-3ba092e5",
+    "agent": "helper-class-cards",
+    "role": "helper",
+    "title": "Class-cards system",
+    "day": "2026/10/19",
+    "last_at": "2026-10-19T13:53:05.448Z",
+    "usd": 3.0468,
+    "untracked_usd": 3.0468,
+    "tokens": 8773831,
+    "untracked_tokens": 8773831,
+    "messages": 82,
+    "untracked_messages": 82,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-19T13:32:29.431Z",
+    "stored_usd": 3.0468
+   },
+   {
+    "id": "9d796347-2338-4d90-ac6b-3b4062712318",
+    "folder": "2026/10/17/session-9d796347",
+    "agent": "helper-dictate-wide",
+    "role": "helper",
+    "title": "Dictate wide",
+    "day": "2026/10/17",
+    "last_at": "2026-10-18T04:09:20.460Z",
+    "usd": 3.0298,
+    "untracked_usd": 3.0298,
+    "tokens": 6008557,
+    "untracked_tokens": 6008557,
+    "messages": 65,
+    "untracked_messages": 65,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-17T17:50:55.902Z",
+    "stored_usd": 3.0298
+   },
+   {
+    "id": "904b1b2e-a3f7-44bb-9d05-aa56f34919d4",
+    "folder": "2026/10/23/session-904b1b2e",
+    "agent": "ai-system-mastermind",
+    "role": null,
+    "title": "AI system mastermind session",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T05:16:11.476Z",
+    "usd": 2.8948,
+    "untracked_usd": 2.8948,
+    "tokens": 8950265,
+    "untracked_tokens": 8950265,
+    "messages": 80,
+    "untracked_messages": 80,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T04:24:52.840Z",
+    "stored_usd": 2.8948
+   },
+   {
+    "id": "efe19ab3-13c4-4e3f-a0c6-b76d2aa1dd48",
+    "folder": "2026/10/17/session-efe19ab3",
+    "agent": "helper-sheet-handoff-proof",
+    "role": "helper",
+    "title": "Sheet handoff proof",
+    "day": "2026/10/17",
+    "last_at": "2026-10-18T03:06:16.572Z",
+    "usd": 4.2509,
+    "untracked_usd": 2.8414,
+    "tokens": 9099083,
+    "untracked_tokens": 5406559,
+    "messages": 80,
+    "untracked_messages": 46,
+    "share_usd": 0.6684,
+    "share_tokens": 0.5942,
+    "task_events": 4,
+    "spans": 1,
+    "first_untracked_at": "2026-10-17T18:16:37.618Z",
+    "stored_usd": 4.2509
+   },
+   {
+    "id": "34cbbcfc-e84d-448d-b990-a384b88c66b5",
+    "folder": "2026/10/16/session-34cbbcfc",
+    "agent": "mastermind-voice-20261016",
+    "role": "mastermind",
+    "title": "Voice mastermind 2026-10-16",
+    "day": "2026/10/16",
+    "last_at": "2026-10-24T00:14:40.251Z",
+    "usd": 2.7911,
+    "untracked_usd": 2.7911,
+    "tokens": 2663875,
+    "untracked_tokens": 2663875,
+    "messages": 29,
+    "untracked_messages": 29,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 6,
+    "spans": 1,
+    "first_untracked_at": "2026-10-16T19:10:39.851Z",
+    "stored_usd": 2.7911
+   },
+   {
+    "id": "2d436468-fecf-47fb-8bca-a1147b4e7218",
+    "folder": "2026/10/23/session-2d436468",
+    "agent": "minion-qf3-work-tab",
+    "role": "minion",
+    "title": "Page mastermind qf3 work tab",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T03:42:25.336Z",
+    "usd": 2.6361,
+    "untracked_usd": 2.6361,
+    "tokens": 8199715,
+    "untracked_tokens": 8199715,
+    "messages": 69,
+    "untracked_messages": 69,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-24T02:51:19.305Z",
+    "stored_usd": 2.6361
+   },
+   {
+    "id": "f3c3bb26-2786-4b01-86b9-b0c82edca350",
+    "folder": "2026/10/19/session-f3c3bb26",
+    "agent": "helper-command-characters",
+    "role": "helper",
+    "title": "Command characters",
+    "day": "2026/10/19",
+    "last_at": "2026-10-19T13:29:59.950Z",
+    "usd": 2.6176,
+    "untracked_usd": 2.6176,
+    "tokens": 8462473,
+    "untracked_tokens": 8462473,
+    "messages": 67,
+    "untracked_messages": 67,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-19T13:16:37.510Z",
+    "stored_usd": 2.6176
+   },
+   {
+    "id": "ed6aaf84-ae7d-4a82-9d6e-67f0f2acf4c2",
+    "folder": "2026/10/23/session-ed6aaf84",
+    "agent": "minion-merge-latest",
+    "role": "minion",
+    "title": "Merge latest",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T04:45:53.971Z",
+    "usd": 2.5824,
+    "untracked_usd": 2.5824,
+    "tokens": 7870952,
+    "untracked_tokens": 7870952,
+    "messages": 64,
+    "untracked_messages": 64,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-24T03:47:43.039Z",
+    "stored_usd": 2.5824
+   },
+   {
+    "id": "957dbae7-af0c-4f60-8385-cdedd788addb",
+    "folder": "2026/10/23/session-957dbae7",
+    "agent": "minion-proposals",
+    "role": "minion",
+    "title": "Deputy proposals",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T00:38:52.201Z",
+    "usd": 2.5634,
+    "untracked_usd": 2.5634,
+    "tokens": 7042768,
+    "untracked_tokens": 7042768,
+    "messages": 68,
+    "untracked_messages": 68,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-24T00:20:56.172Z",
+    "stored_usd": 2.5634
+   },
+   {
+    "id": "3df8e85f-6a3b-4b40-9edd-ddc3125a69b9",
+    "folder": "2026/10/17/session-3df8e85f",
+    "agent": "helper-readme-trim",
+    "role": "helper",
+    "title": "Readme trim",
+    "day": "2026/10/17",
+    "last_at": "2026-10-18T02:52:18.059Z",
+    "usd": 2.5385,
+    "untracked_usd": 2.5385,
+    "tokens": 3893217,
+    "untracked_tokens": 3893217,
+    "messages": 41,
+    "untracked_messages": 41,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-17T19:30:09.037Z",
+    "stored_usd": 2.5385
+   },
+   {
+    "id": "56c71827-5c5d-4190-88ad-2b36b640f983",
+    "folder": "2026/10/19/session-56c71827",
+    "agent": "minion-sheet-redesign",
+    "role": "minion",
+    "title": "Sheet redesign",
+    "day": "2026/10/19",
+    "last_at": "2026-10-20T04:39:32.687Z",
+    "usd": 2.5186,
+    "untracked_usd": 2.5186,
+    "tokens": 3364846,
+    "untracked_tokens": 3364846,
+    "messages": 31,
+    "untracked_messages": 31,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-19T23:06:41.366Z",
+    "stored_usd": 2.5186
+   },
+   {
+    "id": "bf9d211e-b216-4756-ac84-578466415266",
+    "folder": "2026/10/19/session-bf9d211e",
+    "agent": "mastermind-card-merge-frames",
+    "role": "mastermind",
+    "title": "Card merge frames",
+    "day": "2026/10/19",
+    "last_at": "2026-10-19T17:07:24.716Z",
+    "usd": 2.5151,
+    "untracked_usd": 2.5151,
+    "tokens": 7255909,
+    "untracked_tokens": 7255909,
+    "messages": 66,
+    "untracked_messages": 66,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-19T16:41:50.793Z",
+    "stored_usd": 2.5151
+   },
+   {
+    "id": "610c5637-4acd-4d4b-becf-71a632573536",
+    "folder": "2026/10/20/session-610c5637",
+    "agent": "mastermind-dated-projects",
+    "role": "mastermind",
+    "title": "Store index query dated projects",
+    "day": "2026/10/20",
+    "last_at": "2026-10-21T00:10:52.402Z",
+    "usd": 2.4255,
+    "untracked_usd": 2.4255,
+    "tokens": 7899380,
+    "untracked_tokens": 7899380,
+    "messages": 65,
+    "untracked_messages": 65,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-20T23:54:33.067Z",
+    "stored_usd": 2.4255
+   },
+   {
+    "id": "a1aeeb74-2a3c-4636-96bb-fb90e48f028e",
+    "folder": "2026/10/18/session-a1aeeb74",
+    "agent": "helper-spawn-task-dir",
+    "role": "helper",
+    "title": "Spawn always task",
+    "day": "2026/10/18",
+    "last_at": "2026-10-18T22:52:03.188Z",
+    "usd": 2.4064,
+    "untracked_usd": 2.4064,
+    "tokens": 6680833,
+    "untracked_tokens": 6680833,
+    "messages": 60,
+    "untracked_messages": 60,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-18T22:36:31.266Z",
+    "stored_usd": 2.4064
+   },
+   {
+    "id": "a4fff110-ca94-4a15-9c55-5b87b6bc200d",
+    "folder": "2026/10/18/session-a4fff110",
+    "agent": "helper-session-day",
+    "role": "helper",
+    "title": "Mastermind repo slim session-day",
+    "day": "2026/10/18",
+    "last_at": "2026-10-18T12:45:06.271Z",
+    "usd": 2.3563,
+    "untracked_usd": 2.3563,
+    "tokens": 6537800,
+    "untracked_tokens": 6537800,
+    "messages": 53,
+    "untracked_messages": 53,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-18T12:36:17.886Z",
+    "stored_usd": 2.3563
+   },
+   {
+    "id": "7a3a1dc5-ce4c-4f88-84a6-b295d52a999c",
+    "folder": "2026/10/19/session-7a3a1dc5",
+    "agent": "task-mastermind-task-system",
+    "role": "task-mastermind",
+    "title": "Task system overview",
+    "day": "2026/10/19",
+    "last_at": "2026-10-20T02:27:05.972Z",
+    "usd": 4.2088,
+    "untracked_usd": 2.3409,
+    "tokens": 11119523,
+    "untracked_tokens": 6657420,
+    "messages": 106,
+    "untracked_messages": 69,
+    "share_usd": 0.5562,
+    "share_tokens": 0.5987,
+    "task_events": 2,
+    "spans": 1,
+    "first_untracked_at": "2026-10-20T01:36:51.099Z",
+    "stored_usd": 4.2088
+   },
+   {
+    "id": "e2451f3c-99da-4751-a3fb-a876e5bb28a6",
+    "folder": "2026/10/19/session-e2451f3c",
+    "agent": "voice-assistant-v-timqv56",
+    "role": "voice-assistant",
+    "title": "Session start test",
+    "day": "2026/10/19",
+    "last_at": "2026-10-19T23:12:24.160Z",
+    "usd": 2.3134,
+    "untracked_usd": 2.3134,
+    "tokens": 12807179,
+    "untracked_tokens": 12807179,
+    "messages": 153,
+    "untracked_messages": 153,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-19T22:29:04.599Z",
+    "stored_usd": 2.3134
+   },
+   {
+    "id": "748a3eae-93fa-4515-b1ba-b50d8dac6967",
+    "folder": "2026/10/20/session-748a3eae",
+    "agent": "mastermind-dated-sessions",
+    "role": "mastermind",
+    "title": "Dated sessions store index query",
+    "day": "2026/10/20",
+    "last_at": "2026-10-21T00:31:51.549Z",
+    "usd": 2.0155,
+    "untracked_usd": 2.0155,
+    "tokens": 5974626,
+    "untracked_tokens": 5974626,
+    "messages": 47,
+    "untracked_messages": 47,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-21T00:24:51.448Z",
+    "stored_usd": 2.0155
+   },
+   {
+    "id": "930852eb-fc56-490f-9a06-b6f74dcf4f75",
+    "folder": "2026/10/20/session-930852eb",
+    "agent": "mastermind-day-page",
+    "role": "mastermind",
+    "title": "Day page",
+    "day": "2026/10/20",
+    "last_at": "2026-10-21T02:51:25.220Z",
+    "usd": 1.9682,
+    "untracked_usd": 1.9682,
+    "tokens": 4853760,
+    "untracked_tokens": 4853760,
+    "messages": 42,
+    "untracked_messages": 42,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-21T02:45:48.170Z",
+    "stored_usd": 1.9682
+   },
+   {
+    "id": "713e6f20-8acf-4bee-891e-cfbfe2ef8b30",
+    "folder": "2026/10/18/session-713e6f20",
+    "agent": "helper-servex-small-2",
+    "role": "helper",
+    "title": "Servex small agent task deliverables",
+    "day": "2026/10/18",
+    "last_at": "2026-10-18T19:49:12.185Z",
+    "usd": 1.9374,
+    "untracked_usd": 1.9374,
+    "tokens": 5930044,
+    "untracked_tokens": 5930044,
+    "messages": 53,
+    "untracked_messages": 53,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-18T19:44:45.998Z",
+    "stored_usd": 1.9374
+   },
+   {
+    "id": "0703aa6f-8f7a-4769-8285-bf191c763405",
+    "folder": "2026/10/17/session-0703aa6f",
+    "agent": "helper-layout-check-path",
+    "role": "helper",
+    "title": "Layout-check-path",
+    "day": "2026/10/17",
+    "last_at": "2026-10-18T04:14:19.304Z",
+    "usd": 1.8022,
+    "untracked_usd": 1.8022,
+    "tokens": 2330437,
+    "untracked_tokens": 2330437,
+    "messages": 31,
+    "untracked_messages": 31,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-17T19:30:08.608Z",
+    "stored_usd": 1.8022
+   },
+   {
+    "id": "344a9fde-4bf8-4866-87a8-e9d79ede28ed",
+    "folder": "2026/10/19/session-344a9fde",
+    "agent": "mastermind-card-merge-docwell",
+    "role": "mastermind",
+    "title": "Card merge docwell",
+    "day": "2026/10/19",
+    "last_at": "2026-10-19T20:37:38.071Z",
+    "usd": 1.8016,
+    "untracked_usd": 1.8016,
+    "tokens": 5257142,
+    "untracked_tokens": 5257142,
+    "messages": 44,
+    "untracked_messages": 44,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-19T20:25:29.797Z",
+    "stored_usd": 1.8016
+   },
+   {
+    "id": "08b1772e-17bc-4bfb-b23e-f0fc81bf81ef",
+    "folder": "2026/10/19/session-08b1772e",
+    "agent": "task-mastermind-voice-opus",
+    "role": "task-mastermind",
+    "title": "Mastermind voice opus",
+    "day": "2026/10/19",
+    "last_at": "2026-10-20T04:40:05.230Z",
+    "usd": 17.7443,
+    "untracked_usd": 1.7074,
+    "tokens": 28531492,
+    "untracked_tokens": 356699,
+    "messages": 190,
+    "untracked_messages": 5,
+    "share_usd": 0.0962,
+    "share_tokens": 0.0125,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-20T00:34:02.556Z",
+    "stored_usd": 17.7443
+   },
+   {
+    "id": "2ab2bfbe-45d8-4dee-9162-7918a3240d5a",
+    "folder": "2026/10/22/session-2ab2bfbe",
+    "agent": "minion-honest-completion",
+    "role": "minion",
+    "title": "Honest completion process system",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T02:43:48.755Z",
+    "usd": 1.6061,
+    "untracked_usd": 1.6061,
+    "tokens": 4778414,
+    "untracked_tokens": 4778414,
+    "messages": 42,
+    "untracked_messages": 42,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T02:32:31.936Z",
+    "stored_usd": 1.6061
+   },
+   {
+    "id": "aefb1e4d-22b2-4d4b-ba61-8cec9208c26d",
+    "folder": "2026/10/24/session-aefb1e4d",
+    "agent": "task-mastermind-queue-top",
+    "role": "task-mastermind",
+    "title": "Queue-top session fixes",
+    "day": "2026/10/24",
+    "last_at": "2026-10-24T14:58:02.627Z",
+    "usd": 3.0232,
+    "untracked_usd": 1.5324,
+    "tokens": 8607763,
+    "untracked_tokens": 4861511,
+    "messages": 96,
+    "untracked_messages": 58,
+    "share_usd": 0.5069,
+    "share_tokens": 0.5648,
+    "task_events": 2,
+    "spans": 1,
+    "first_untracked_at": "2026-10-24T13:15:32.013Z",
+    "stored_usd": 3.0232
+   },
+   {
+    "id": "40853ef7-e091-4c2f-a3f7-a9443e07350a",
+    "folder": "2026/10/24/session-40853ef7",
+    "agent": "ai-system-mastermind",
+    "role": null,
+    "title": "AI system mastermind",
+    "day": "2026/10/24",
+    "last_at": "2026-10-24T05:39:24.247Z",
+    "usd": 1.4607,
+    "untracked_usd": 1.4607,
+    "tokens": 4697576,
+    "untracked_tokens": 4697576,
+    "messages": 42,
+    "untracked_messages": 42,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T05:28:46.048Z",
+    "stored_usd": 1.4607
+   },
+   {
+    "id": "a267d87a-8f81-48da-b89a-3e8564f32ea7",
+    "folder": "2026/10/22/session-a267d87a",
+    "agent": "task-mastermind-worktree-closure",
+    "role": "task-mastermind",
+    "title": "Worktree closure",
+    "day": "2026/10/22",
+    "last_at": "2026-10-22T21:44:46.420Z",
+    "usd": 1.4541,
+    "untracked_usd": 1.4541,
+    "tokens": 4007864,
+    "untracked_tokens": 4007864,
+    "messages": 36,
+    "untracked_messages": 36,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-22T21:36:31.292Z",
+    "stored_usd": 1.4541
+   },
+   {
+    "id": "c4b17c70-fedf-4e7a-9524-d5ed8b9746a4",
+    "folder": "2026/10/22/session-c4b17c70",
+    "agent": "minion-session-flow-fixes",
+    "role": "minion",
+    "title": "Session-flow review fixes",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T02:27:49.088Z",
+    "usd": 1.4449,
+    "untracked_usd": 1.4449,
+    "tokens": 4354242,
+    "untracked_tokens": 4354242,
+    "messages": 44,
+    "untracked_messages": 44,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T02:18:31.663Z",
+    "stored_usd": 1.4449
+   },
+   {
+    "id": "69fa894f-0e47-4ca0-b030-320039ebf4d6",
+    "folder": "2026/10/23/session-69fa894f",
+    "agent": "minion-merge-approvals",
+    "role": "minion",
+    "title": "Merge approvals process system",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T00:07:24.637Z",
+    "usd": 1.4206,
+    "untracked_usd": 1.4206,
+    "tokens": 3672678,
+    "untracked_tokens": 3672678,
+    "messages": 35,
+    "untracked_messages": 35,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T23:34:38.787Z",
+    "stored_usd": 1.4206
+   },
+   {
+    "id": "473a0f14-558d-4ff4-bc7c-1b2e6e376a4a",
+    "folder": "2026/10/24/session-473a0f14",
+    "agent": "minion-narrow-page",
+    "role": "minion",
+    "title": "Narrow page session 1",
+    "day": "2026/10/24",
+    "last_at": "2026-10-24T06:15:01.335Z",
+    "usd": 1.3701,
+    "untracked_usd": 1.3701,
+    "tokens": 4185248,
+    "untracked_tokens": 4185248,
+    "messages": 40,
+    "untracked_messages": 40,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-24T05:52:31.155Z",
+    "stored_usd": 1.3701
+   },
+   {
+    "id": "c6f70cb9-03d2-4ce2-ac4f-e4636079839d",
+    "folder": "2026/10/24/session-c6f70cb9",
+    "agent": "minion-ext-tabs",
+    "role": "minion",
+    "title": "ext-tabs",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T02:52:52.012Z",
+    "usd": 1.3597,
+    "untracked_usd": 1.3597,
+    "tokens": 4352075,
+    "untracked_tokens": 4352075,
+    "messages": 40,
+    "untracked_messages": 40,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 2,
+    "spans": 1,
+    "first_untracked_at": "2026-10-24T02:38:56.384Z",
+    "stored_usd": 1.3597
+   },
+   {
+    "id": "5fd75685-deec-4988-811e-c6c74b9540e4",
+    "folder": "2026/10/18/session-5fd75685",
+    "agent": "helper-stale-close",
+    "role": "helper",
+    "title": "Stale close requirements",
+    "day": "2026/10/18",
+    "last_at": "2026-10-18T13:03:47.817Z",
+    "usd": 1.3504,
+    "untracked_usd": 1.3504,
+    "tokens": 3616272,
+    "untracked_tokens": 3616272,
+    "messages": 31,
+    "untracked_messages": 31,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-18T12:58:55.182Z",
+    "stored_usd": 1.3504
+   },
+   {
+    "id": "460a80d9-ce00-45ca-a0f2-c374affc56ed",
+    "folder": "2026/10/17/session-460a80d9",
+    "agent": "minion-task-rules",
+    "role": "minion",
+    "title": "Task rules for mastermind repo slim",
+    "day": "2026/10/17",
+    "last_at": "2026-10-18T04:11:32.702Z",
+    "usd": 1.3478,
+    "untracked_usd": 1.3478,
+    "tokens": 4145252,
+    "untracked_tokens": 4145252,
+    "messages": 44,
+    "untracked_messages": 44,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-18T04:06:27.465Z",
+    "stored_usd": 1.3478
+   },
+   {
+    "id": "13a564fc-fa29-47f3-942c-f67027de0ad5",
+    "folder": "2026/10/19/session-13a564fc",
+    "agent": "minion-session-dirs",
+    "role": "minion",
+    "title": "Session dirs minion",
+    "day": "2026/10/19",
+    "last_at": "2026-10-19T22:44:19.232Z",
+    "usd": 1.3363,
+    "untracked_usd": 1.3363,
+    "tokens": 3946149,
+    "untracked_tokens": 3946149,
+    "messages": 44,
+    "untracked_messages": 44,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-19T22:38:11.189Z",
+    "stored_usd": 1.3363
+   },
+   {
+    "id": "fd470dca-3d2b-4f11-8a98-d93da6d156ed",
+    "folder": "2026/10/18/session-fd470dca",
+    "agent": "helper-merge-new-files",
+    "role": "helper",
+    "title": "Merge new files",
+    "day": "2026/10/18",
+    "last_at": "2026-10-18T22:20:01.300Z",
+    "usd": 1.282,
+    "untracked_usd": 1.282,
+    "tokens": 3625818,
+    "untracked_tokens": 3625818,
+    "messages": 36,
+    "untracked_messages": 36,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-18T22:16:54.401Z",
+    "stored_usd": 1.282
+   },
+   {
+    "id": "c07c9b8c-4379-44ec-b511-7bfc70126907",
+    "folder": "2026/10/22/session-c07c9b8c",
+    "agent": "reviewer-session-flow",
+    "role": "reviewer",
+    "title": "Session flow review",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T02:16:12.442Z",
+    "usd": 1.2708,
+    "untracked_usd": 1.2708,
+    "tokens": 1068577,
+    "untracked_tokens": 1068577,
+    "messages": 14,
+    "untracked_messages": 14,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-23T02:14:02.873Z",
+    "stored_usd": 1.2708
+   },
+   {
+    "id": "7e97822c-b62c-4588-9c2f-3b7f48455b47",
+    "folder": "2026/10/22/session-7e97822c",
+    "agent": "minion-item-act",
+    "role": "minion",
+    "title": "Item UI actions as deltas",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T01:38:59.394Z",
+    "usd": 1.2493,
+    "untracked_usd": 1.2493,
+    "tokens": 3396564,
+    "untracked_tokens": 3396564,
+    "messages": 31,
+    "untracked_messages": 31,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T01:35:48.570Z",
+    "stored_usd": 1.2493
+   },
+   {
+    "id": "aaccbbec-eb96-4087-aa73-9c91b9b6655f",
+    "folder": "2026/10/22/session-aaccbbec",
+    "agent": "reviewer-prompt-records",
+    "role": "reviewer",
+    "title": "Prompt records review",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T02:41:06.331Z",
+    "usd": 1.2407,
+    "untracked_usd": 1.2407,
+    "tokens": 1189836,
+    "untracked_tokens": 1189836,
+    "messages": 15,
+    "untracked_messages": 15,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-23T02:39:40.084Z",
+    "stored_usd": 1.2407
+   },
+   {
+    "id": "012433ce-4b02-4801-99a3-8f5bd314e67f",
+    "folder": "2026/10/22/session-012433ce",
+    "agent": "minion-item-move",
+    "role": "minion",
+    "title": "Item move build",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T02:11:42.150Z",
+    "usd": 1.2312,
+    "untracked_usd": 1.2312,
+    "tokens": 3109231,
+    "untracked_tokens": 3109231,
+    "messages": 29,
+    "untracked_messages": 29,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T02:01:33.052Z",
+    "stored_usd": 1.2312
+   },
+   {
+    "id": "4f4bdbd4-0494-434e-978c-74c590e31316",
+    "folder": "2026/10/23/session-4f4bdbd4",
+    "agent": "reviewer-review-page",
+    "role": "reviewer",
+    "title": "Review-page code review",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T03:10:20.119Z",
+    "usd": 1.2235,
+    "untracked_usd": 1.2235,
+    "tokens": 964135,
+    "untracked_tokens": 964135,
+    "messages": 11,
+    "untracked_messages": 11,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T03:07:21.780Z",
+    "stored_usd": 1.2235
+   },
+   {
+    "id": "dc244f8f-c0f8-4d09-8c16-7e052ab73e57",
+    "folder": "2026/10/19/session-dc244f8f",
+    "agent": "reviewer-help",
+    "role": null,
+    "title": "AI dashboard review",
+    "day": "2026/10/19",
+    "last_at": "2026-10-20T01:54:07.257Z",
+    "usd": 1.2053,
+    "untracked_usd": 1.2053,
+    "tokens": 802407,
+    "untracked_tokens": 802407,
+    "messages": 11,
+    "untracked_messages": 11,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-20T01:52:53.091Z",
+    "stored_usd": 1.2054
+   },
+   {
+    "id": "d7e9f73d-6b99-4318-8d1d-a3a939c1a80d",
+    "folder": "2026/10/23/session-d7e9f73d",
+    "agent": "reviewer-ai-system-mastermind-3",
+    "role": "reviewer",
+    "title": "AI system mastermind review",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T01:13:17.073Z",
+    "usd": 1.1817,
+    "untracked_usd": 1.1817,
+    "tokens": 990115,
+    "untracked_tokens": 990115,
+    "messages": 11,
+    "untracked_messages": 11,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T01:11:40.483Z",
+    "stored_usd": 1.1817
+   },
+   {
+    "id": "0dbc4c6f-7a7c-4b74-a093-ce9978f3437c",
+    "folder": "2026/10/21/session-0dbc4c6f",
+    "agent": "mastermind-prompt-audit",
+    "role": "mastermind",
+    "title": "Prompt audit",
+    "day": "2026/10/21",
+    "last_at": "2026-10-21T23:29:11.097Z",
+    "usd": 1.1775,
+    "untracked_usd": 1.1775,
+    "tokens": 2552487,
+    "untracked_tokens": 2552487,
+    "messages": 24,
+    "untracked_messages": 24,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-21T23:22:20.581Z",
+    "stored_usd": 1.1775
+   },
+   {
+    "id": "6f5104a2-480c-4da6-9fd1-4fac41368fa7",
+    "folder": "2026/10/19/session-6f5104a2",
+    "agent": "mastermind-live-page",
+    "role": "mastermind",
+    "title": "Mastermind live page sessions",
+    "day": "2026/10/19",
+    "last_at": "2026-10-20T05:38:00.846Z",
+    "usd": 4.612,
+    "untracked_usd": 1.1763,
+    "tokens": 12179928,
+    "untracked_tokens": 2578573,
+    "messages": 105,
+    "untracked_messages": 17,
+    "share_usd": 0.2551,
+    "share_tokens": 0.2117,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-20T00:18:29.760Z",
+    "stored_usd": 4.612
+   },
+   {
+    "id": "e4cf39ff-e1c9-4721-bc52-f1cf1580d953",
+    "folder": "2026/10/22/session-e4cf39ff",
+    "agent": null,
+    "role": null,
+    "title": "Mastermind repo cleanup and AI system refinement",
+    "day": "2026/10/22",
+    "last_at": "2026-10-22T20:46:12.940Z",
+    "usd": 1.1737,
+    "untracked_usd": 1.1737,
+    "tokens": 211419,
+    "untracked_tokens": 211419,
+    "messages": 1,
+    "untracked_messages": 1,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-22T20:46:12.914Z",
+    "stored_usd": 1.1737
+   },
+   {
+    "id": "31e90f69-18a0-4e34-87a7-a29d56a0fc96",
+    "folder": "2026/10/22/session-31e90f69",
+    "agent": "mastermind-test",
+    "role": "mastermind",
+    "title": "Test system",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T02:31:56.103Z",
+    "usd": 6.7404,
+    "untracked_usd": 1.1693,
+    "tokens": 11413457,
+    "untracked_tokens": 1766766,
+    "messages": 92,
+    "untracked_messages": 15,
+    "share_usd": 0.1735,
+    "share_tokens": 0.1548,
+    "task_events": 3,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T02:26:20.897Z",
+    "stored_usd": 6.7404
+   },
+   {
+    "id": "8922f452-635c-4f72-81e7-8cc2f901decf",
+    "folder": "2026/10/23/session-8922f452",
+    "agent": "reviewer-cracks-inbox-wait",
+    "role": "reviewer",
+    "title": "Cracks inbox wait review",
+    "day": "2026/10/23",
+    "last_at": "2026-10-23T06:10:24.066Z",
+    "usd": 1.1651,
+    "untracked_usd": 1.1651,
+    "tokens": 1080064,
+    "untracked_tokens": 1080064,
+    "messages": 14,
+    "untracked_messages": 14,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-23T06:08:46.252Z",
+    "stored_usd": 1.1651
+   },
+   {
+    "id": "ab6813c1-4793-449b-b5d9-91276551c296",
+    "folder": "2026/10/22/session-ab6813c1",
+    "agent": "minion-restart-revive",
+    "role": "minion",
+    "title": "Process system restart-revive",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T02:52:47.881Z",
+    "usd": 1.1555,
+    "untracked_usd": 1.1555,
+    "tokens": 3445537,
+    "untracked_tokens": 3445537,
+    "messages": 35,
+    "untracked_messages": 35,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T02:32:35.592Z",
+    "stored_usd": 1.1555
+   },
+   {
+    "id": "cb694ee7-3e0f-43d4-80d8-6b3a79feed19",
+    "folder": "2026/10/22/session-cb694ee7",
+    "agent": "reviewer-mobile-picks",
+    "role": "reviewer",
+    "title": "Mobile picks review",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T04:49:15.956Z",
+    "usd": 1.138,
+    "untracked_usd": 1.138,
+    "tokens": 933662,
+    "untracked_tokens": 933662,
+    "messages": 13,
+    "untracked_messages": 13,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-23T04:47:37.528Z",
+    "stored_usd": 1.138
+   },
+   {
+    "id": "9fbe3af4-8f33-4fad-a6dc-98dcfa750a49",
+    "folder": "2026/10/22/session-9fbe3af4",
+    "agent": "reviewer-process-system",
+    "role": "reviewer",
+    "title": "Reviewer process system",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T00:55:55.272Z",
+    "usd": 1.1263,
+    "untracked_usd": 1.1263,
+    "tokens": 975700,
+    "untracked_tokens": 975700,
+    "messages": 12,
+    "untracked_messages": 12,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-23T00:54:18.086Z",
+    "stored_usd": 1.1263
+   },
+   {
+    "id": "1c343e7b-2843-4440-bcdc-dad4fdf7b9bf",
+    "folder": "2026/10/23/session-1c343e7b",
+    "agent": "ai-system-mastermind",
+    "role": null,
+    "title": "Ai-system-mastermind session renewal",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T03:54:40.433Z",
+    "usd": 1.1237,
+    "untracked_usd": 1.1237,
+    "tokens": 3298227,
+    "untracked_tokens": 3298227,
+    "messages": 30,
+    "untracked_messages": 30,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T03:45:20.314Z",
+    "stored_usd": 1.1237
+   },
+   {
+    "id": "0be6bc3a-6a2b-4edb-947b-c18d7de00e19",
+    "folder": "2026/10/20/session-0be6bc3a",
+    "agent": "minion-ai-index-rename",
+    "role": "minion",
+    "title": "AI index rename",
+    "day": "2026/10/20",
+    "last_at": "2026-10-20T21:28:18.438Z",
+    "usd": 1.1221,
+    "untracked_usd": 1.1221,
+    "tokens": 3241922,
+    "untracked_tokens": 3241922,
+    "messages": 35,
+    "untracked_messages": 35,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-20T21:22:57.960Z",
+    "stored_usd": 1.1221
+   },
+   {
+    "id": "5e9b802f-0ee9-462d-9113-8aa6d68fbb57",
+    "folder": "2026/10/23/session-5e9b802f",
+    "agent": "reviewer-item-tool-3",
+    "role": "reviewer",
+    "title": "Item tool review",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T02:08:37.301Z",
+    "usd": 1.1132,
+    "untracked_usd": 1.1132,
+    "tokens": 935337,
+    "untracked_tokens": 935337,
+    "messages": 11,
+    "untracked_messages": 11,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T02:06:41.639Z",
+    "stored_usd": 1.1132
+   },
+   {
+    "id": "5c55b81a-7f71-4d8a-8c37-a1acf192ab47",
+    "folder": "2026/10/22/session-5c55b81a",
+    "agent": "reviewer-prompt-tasks",
+    "role": "reviewer",
+    "title": "Reviewer prompt tasks",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T01:12:44.940Z",
+    "usd": 1.1123,
+    "untracked_usd": 1.1123,
+    "tokens": 1029586,
+    "untracked_tokens": 1029586,
+    "messages": 14,
+    "untracked_messages": 14,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-23T01:10:49.763Z",
+    "stored_usd": 1.1123
+   },
+   {
+    "id": "fbd2b3a8-4493-4263-96d5-5069239d0413",
+    "folder": "2026/10/20/session-fbd2b3a8",
+    "agent": "minion-log-tool",
+    "role": "minion",
+    "title": "Log-tool",
+    "day": "2026/10/20",
+    "last_at": "2026-10-20T21:30:56.855Z",
+    "usd": 1.1069,
+    "untracked_usd": 1.1069,
+    "tokens": 2618262,
+    "untracked_tokens": 2618262,
+    "messages": 25,
+    "untracked_messages": 25,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-20T21:27:49.580Z",
+    "stored_usd": 1.1069
+   },
+   {
+    "id": "981bdb90-7500-49e1-bb45-9a3724779eb0",
+    "folder": "2026/10/22/session-981bdb90",
+    "agent": null,
+    "role": null,
+    "title": "Readmes page execute",
+    "day": "2026/10/22",
+    "last_at": "2026-10-22T23:55:48.137Z",
+    "usd": 1.1018,
+    "untracked_usd": 1.1018,
+    "tokens": 3221946,
+    "untracked_tokens": 3221946,
+    "messages": 37,
+    "untracked_messages": 37,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-22T23:52:51.374Z",
+    "stored_usd": 1.1018
+   },
+   {
+    "id": "a3fff049-31e0-4c65-a83d-fc7ac0437966",
+    "folder": "2026/10/23/session-a3fff049",
+    "agent": "reviewer-ai-system-mastermind-2",
+    "role": "reviewer",
+    "title": "AI system mastermind review",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T01:07:44.015Z",
+    "usd": 1.0971,
+    "untracked_usd": 1.0971,
+    "tokens": 870782,
+    "untracked_tokens": 870782,
+    "messages": 11,
+    "untracked_messages": 11,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T01:05:56.565Z",
+    "stored_usd": 1.0971
+   },
+   {
+    "id": "4de00c00-c9fc-4da2-86ae-7e9d2fa41743",
+    "folder": "2026/10/19/session-4de00c00",
+    "agent": "reviewer-one-dashboard",
+    "role": "reviewer",
+    "title": "One dashboard review",
+    "day": "2026/10/19",
+    "last_at": "2026-10-19T21:51:35.704Z",
+    "usd": 1.0898,
+    "untracked_usd": 1.0898,
+    "tokens": 545091,
+    "untracked_tokens": 545091,
+    "messages": 7,
+    "untracked_messages": 7,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-19T21:50:21.321Z",
+    "stored_usd": 1.0898
+   },
+   {
+    "id": "ea5f4096-7c3f-4f05-b6ec-b6090c012aca",
+    "folder": "2026/10/20/session-ea5f4096",
+    "agent": "minion-jsonl-unsubscribe",
+    "role": "minion",
+    "title": "JSONL unsubscribe",
+    "day": "2026/10/20",
+    "last_at": "2026-10-20T21:34:03.951Z",
+    "usd": 1.085,
+    "untracked_usd": 1.085,
+    "tokens": 3166545,
+    "untracked_tokens": 3166545,
+    "messages": 35,
+    "untracked_messages": 35,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-20T21:30:17.033Z",
+    "stored_usd": 1.085
+   },
+   {
+    "id": "768f05a2-ac7c-4182-96c0-a12c6f4b73fb",
+    "folder": "2026/10/24/session-768f05a2",
+    "agent": "reviewer-queue",
+    "role": "reviewer",
+    "title": "Servex reviewer queue agent review",
+    "day": "2026/10/24",
+    "last_at": "2026-10-24T06:38:12.170Z",
+    "usd": 1.0844,
+    "untracked_usd": 1.0844,
+    "tokens": 798059,
+    "untracked_tokens": 798059,
+    "messages": 10,
+    "untracked_messages": 10,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T06:36:09.748Z",
+    "stored_usd": 1.0844
+   },
+   {
+    "id": "0fa28613-6bd3-4aca-8287-f988fa3dd3e6",
+    "folder": "2026/10/24/session-0fa28613",
+    "agent": "reviewer-queue-2",
+    "role": "reviewer",
+    "title": "Reviewer queue session e00f55c9",
+    "day": "2026/10/24",
+    "last_at": "2026-10-24T06:38:17.027Z",
+    "usd": 1.0819,
+    "untracked_usd": 1.0819,
+    "tokens": 720911,
+    "untracked_tokens": 720911,
+    "messages": 9,
+    "untracked_messages": 9,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T06:36:18.371Z",
+    "stored_usd": 1.0819
+   },
+   {
+    "id": "ff35bc38-ada3-40b5-91ba-9a3a3b0ea55b",
+    "folder": "2026/10/23/session-ff35bc38",
+    "agent": "reviewer-process-names",
+    "role": "reviewer",
+    "title": "Process names reviewer",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T00:18:04.287Z",
+    "usd": 1.0793,
+    "untracked_usd": 1.0793,
+    "tokens": 797917,
+    "untracked_tokens": 797917,
+    "messages": 10,
+    "untracked_messages": 10,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T00:16:30.406Z",
+    "stored_usd": 1.0793
+   },
+   {
+    "id": "79839d65-2f8c-4ed2-bd2a-39072ce32127",
+    "folder": "2026/10/22/session-79839d65",
+    "agent": "reviewer-item-move",
+    "role": "reviewer",
+    "title": "Item-move review",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T02:07:52.853Z",
+    "usd": 1.0721,
+    "untracked_usd": 1.0721,
+    "tokens": 1164663,
+    "untracked_tokens": 1164663,
+    "messages": 17,
+    "untracked_messages": 17,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-23T02:06:25.367Z",
+    "stored_usd": 1.0721
+   },
+   {
+    "id": "871614d4-a29a-4839-b1f8-e945898aa575",
+    "folder": "2026/10/22/session-871614d4",
+    "agent": "reviewer-readmes-page",
+    "role": null,
+    "title": "Readmes page review",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T00:20:57.709Z",
+    "usd": 1.0642,
+    "untracked_usd": 1.0642,
+    "tokens": 1025282,
+    "untracked_tokens": 1025282,
+    "messages": 15,
+    "untracked_messages": 15,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-23T00:19:33.393Z",
+    "stored_usd": 1.0642
+   },
+   {
+    "id": "59968f42-a8cd-49c9-bb58-1b77b08d8e50",
+    "folder": "2026/10/24/session-59968f42",
+    "agent": "reviewer-queue-3",
+    "role": "reviewer",
+    "title": "Reviewer queue 3 session",
+    "day": "2026/10/24",
+    "last_at": "2026-10-24T06:42:20.911Z",
+    "usd": 1.0342,
+    "untracked_usd": 1.0342,
+    "tokens": 725837,
+    "untracked_tokens": 725837,
+    "messages": 9,
+    "untracked_messages": 9,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T06:40:44.846Z",
+    "stored_usd": 1.0342
+   },
+   {
+    "id": "d852e2be-664c-4b73-8725-dd1e80291590",
+    "folder": "2026/10/23/session-d852e2be",
+    "agent": "reviewer-item-tool",
+    "role": "reviewer",
+    "title": "item-tool review",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T02:05:10.475Z",
+    "usd": 1.0048,
+    "untracked_usd": 1.0048,
+    "tokens": 739561,
+    "untracked_tokens": 739561,
+    "messages": 9,
+    "untracked_messages": 9,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T02:01:45.257Z",
+    "stored_usd": 1.0048
+   },
+   {
+    "id": "fab8f364-33b7-4012-8b2f-db0d842a357a",
+    "folder": "2026/10/23/session-fab8f364",
+    "agent": "ai-system-mastermind",
+    "role": null,
+    "title": "AI system mastermind session renewal",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T04:19:05.407Z",
+    "usd": 1.0015,
+    "untracked_usd": 1.0015,
+    "tokens": 3095037,
+    "untracked_tokens": 3095037,
+    "messages": 32,
+    "untracked_messages": 32,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T04:09:21.247Z",
+    "stored_usd": 1.0015
+   },
+   {
+    "id": "32209ceb-603f-45f2-906b-5b882a3425ca",
+    "folder": "2026/10/22/session-32209ceb",
+    "agent": "reviewer-readme-roles",
+    "role": "reviewer",
+    "title": "Readme roles review",
+    "day": "2026/10/22",
+    "last_at": "2026-10-22T23:37:53.067Z",
+    "usd": 0.9824,
+    "untracked_usd": 0.9824,
+    "tokens": 623953,
+    "untracked_tokens": 623953,
+    "messages": 9,
+    "untracked_messages": 9,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-22T23:36:39.340Z",
+    "stored_usd": 0.9824
+   },
+   {
+    "id": "10ee7a39-61b8-40e5-b23b-4f5a94976e04",
+    "folder": "2026/10/23/session-10ee7a39",
+    "agent": "reviewer-item-tool-2",
+    "role": "reviewer",
+    "title": "Item tool review",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T02:07:34.728Z",
+    "usd": 0.9721,
+    "untracked_usd": 0.9721,
+    "tokens": 721013,
+    "untracked_tokens": 721013,
+    "messages": 9,
+    "untracked_messages": 9,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-24T02:06:25.627Z",
+    "stored_usd": 0.9721
+   },
+   {
+    "id": "4508f9b3-e67c-4f91-918f-d12fa7bfbf0e",
+    "folder": "2026/10/24/session-4508f9b3",
+    "agent": "minion-session-feed",
+    "role": "minion",
+    "title": "Session feed minion",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T01:55:19.275Z",
+    "usd": 0.971,
+    "untracked_usd": 0.971,
+    "tokens": 2593992,
+    "untracked_tokens": 2593992,
+    "messages": 23,
+    "untracked_messages": 23,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-25T01:47:11.680Z",
+    "stored_usd": 0.971
+   },
+   {
+    "id": "7f014f32-c416-44a7-8bf8-0e3030959f3e",
+    "folder": "2026/10/22/session-7f014f32",
+    "agent": "reviewer-readmes-page",
+    "role": "reviewer",
+    "title": "Readmes page review",
+    "day": "2026/10/22",
+    "last_at": "2026-10-23T00:48:11.254Z",
+    "usd": 0.9642,
+    "untracked_usd": 0.9642,
+    "tokens": 834812,
+    "untracked_tokens": 834812,
+    "messages": 12,
+    "untracked_messages": 12,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-23T00:46:39.962Z",
+    "stored_usd": 0.9642
+   },
+   {
+    "id": "c5dab844-059a-4284-8187-5fc5d6231bdd",
+    "folder": "2026/10/19/session-c5dab844",
+    "agent": "task-mastermind-docs",
+    "role": "task-mastermind",
+    "title": "Documentation system restructuring",
+    "day": "2026/10/19",
+    "last_at": "2026-10-20T02:22:52.165Z",
+    "usd": 5.1745,
+    "untracked_usd": 0.9612,
+    "tokens": 14206419,
+    "untracked_tokens": 3510957,
+    "messages": 127,
+    "untracked_messages": 28,
+    "share_usd": 0.1858,
+    "share_tokens": 0.2471,
+    "task_events": 2,
+    "spans": 1,
+    "first_untracked_at": "2026-10-20T01:54:58.183Z",
+    "stored_usd": 6.2917
+   },
+   {
+    "id": "88f69e40-e100-4d97-9515-ae0b676eed99",
+    "folder": "2026/10/19/session-88f69e40",
+    "agent": "reviewer-ai-dashboard-2",
+    "role": "reviewer",
+    "title": "AI dashboard review",
+    "day": "2026/10/19",
+    "last_at": "2026-10-20T02:15:13.495Z",
+    "usd": 0.9455,
+    "untracked_usd": 0.9455,
+    "tokens": 722558,
+    "untracked_tokens": 722558,
+    "messages": 10,
+    "untracked_messages": 10,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-20T02:14:03.653Z",
+    "stored_usd": 0.9455
+   }
+  ]
+ },
+ "children": {
+  "checked": 163,
+  "problems": 163,
+  "no_parent": 75,
+  "parent_is_name": 88,
+  "not_listed": 67,
+  "rows": [
+   {
+    "agent": "minion-session-feed",
+    "role": "minion",
+    "session_id": "4508f9b3-e67c-4f91-918f-d12fa7bfbf0e",
+    "started_at": "2026-10-25T01:46:38.339Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "voice-assistant-v-zg6h7hl",
+    "role": "voice-assistant",
+    "session_id": "354c7583-29ae-4498-bb9b-27870b7e26b2",
+    "started_at": "2026-10-25T01:42:25.258Z",
+    "parent": "sessions",
+    "parent_session": null,
+    "problems": [
+     "parent is an agent name",
+     "parent has no session"
+    ]
+   },
+   {
+    "agent": "minion-top-tabs",
+    "role": "minion",
+    "session_id": "baa9e982-e4af-4e60-a4f0-2e396572e123",
+    "started_at": "2026-10-25T01:27:03.299Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "task-mastermind-past-work-file-docs",
+    "role": "task-mastermind",
+    "session_id": "811780ce-0f7e-4d65-beb7-3aade32464eb",
+    "started_at": "2026-10-25T01:00:38.957Z",
+    "parent": "vscode-mastermind",
+    "parent_session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-queue-page",
+    "role": "minion",
+    "session_id": "b793a5a4-fd70-4b77-a225-dc212fe2af10",
+    "started_at": "2026-10-25T00:37:39.746Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "master-assistant",
+    "role": "master-assistant",
+    "session_id": "570e273a-7890-436c-a465-f4cf737a2ac5",
+    "started_at": "2026-10-25T00:16:31.178Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "fixer-1",
+    "role": "fixer",
+    "session_id": "b08b40d6-22b2-4e9c-94b1-8204bb42cb2d",
+    "started_at": "2026-10-25T00:16:27.196Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "assistant-fast",
+    "role": "assistant",
+    "session_id": "13c52d8d-ebe7-4188-abf4-6a41d898a705",
+    "started_at": "2026-10-25T00:16:26.485Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "task-mastermind-queue-top",
+    "role": "task-mastermind",
+    "session_id": "aefb1e4d-22b2-4d4b-ba61-8cec9208c26d",
+    "started_at": "2026-10-24T13:03:44.484Z",
+    "parent": "vscode-mastermind",
+    "parent_session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "minion-readme-audit",
+    "role": "minion",
+    "session_id": "5bc192bc-28ca-462b-bf88-c3c1d6200b88",
+    "started_at": "2026-10-24T07:36:54.517Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-queue-estimate",
+    "role": "minion",
+    "session_id": "80352848-0edb-41fc-aa97-b7632e069413",
+    "started_at": "2026-10-24T07:14:28.318Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-unlanded-worktrees",
+    "role": "minion",
+    "session_id": "43920631-4449-468f-a2c6-935891348d79",
+    "started_at": "2026-10-24T07:13:40.483Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-day-approve",
+    "role": "minion",
+    "session_id": "33cf7c87-9682-4d01-857a-daad1116ec52",
+    "started_at": "2026-10-24T06:42:36.282Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-narrow-page-2",
+    "role": "minion",
+    "session_id": "d3620165-9c91-4ed4-b7a9-fef560265149",
+    "started_at": "2026-10-24T06:19:39.960Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-named-rows",
+    "role": "minion",
+    "session_id": "8338ef5d-c8c2-4a3a-8716-9897b5ca4917",
+    "started_at": "2026-10-24T05:51:40.393Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-narrow-page",
+    "role": "minion",
+    "session_id": "473a0f14-558d-4ff4-bc7c-1b2e6e376a4a",
+    "started_at": "2026-10-24T05:49:57.600Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-weight-names",
+    "role": "minion",
+    "session_id": "b90d2fe1-87a5-477a-9768-57c2a6ff3883",
+    "started_at": "2026-10-24T05:49:03.469Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "ai-system-mastermind",
+    "role": "ai-system-mastermind",
+    "session_id": "2da03974-92b2-4dbf-8bea-97c3ee479d45",
+    "started_at": "2026-10-24T05:48:48.718Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-session-desktop",
+    "role": "minion",
+    "session_id": "9efe1cd4-05af-478d-9db2-a5ffc1032b3f",
+    "started_at": "2026-10-24T04:57:17.308Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-readme-pages",
+    "role": "minion",
+    "session_id": "c8b668e2-03db-4815-aaf3-e692faf7cfb9",
+    "started_at": "2026-10-24T04:47:58.893Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-session-report",
+    "role": "minion",
+    "session_id": "6dbeef95-e6ab-4a9f-83c9-9ef98ae02ab0",
+    "started_at": "2026-10-24T04:11:39.097Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-sessions-fit",
+    "role": "minion",
+    "session_id": "5e657510-bf52-495f-8b12-37068e237f0e",
+    "started_at": "2026-10-24T04:10:32.993Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion",
+    "role": "minion",
+    "session_id": "3b5a16b4-f0f7-4ea8-a743-aa00b6715d76",
+    "started_at": "2026-10-24T03:48:03.306Z",
+    "parent": "ai-system-mastermind",
+    "parent_session": "2da03974-92b2-4dbf-8bea-97c3ee479d45",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-nav-links",
+    "role": "minion",
+    "session_id": "fb13f066-4ba0-4a32-a023-3c6cf23b1899",
+    "started_at": "2026-10-24T03:47:39.419Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-merge-latest",
+    "role": "minion",
+    "session_id": "ed6aaf84-ae7d-4a82-9d6e-67f0f2acf4c2",
+    "started_at": "2026-10-24T03:47:09.496Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "task-mastermind-sessions-shots",
+    "role": "task-mastermind",
+    "session_id": "c7f6cfbc-6f51-4503-a231-14a967226b39",
+    "started_at": "2026-10-24T03:29:30.237Z",
+    "parent": "vscode-mastermind",
+    "parent_session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "minion-nav-rule",
+    "role": "minion",
+    "session_id": "14e52e1a-e24c-44b9-8b73-cbd71de86256",
+    "started_at": "2026-10-24T03:07:23.941Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-qf3-work-tab",
+    "role": "minion",
+    "session_id": "2d436468-fecf-47fb-8bca-a1147b4e7218",
+    "started_at": "2026-10-24T02:49:11.561Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-part-types",
+    "role": "minion",
+    "session_id": "885ff356-ebf4-4907-8aac-2d6524c0f4d5",
+    "started_at": "2026-10-24T02:46:20.995Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-ext-tabs",
+    "role": "minion",
+    "session_id": "c6f70cb9-03d2-4ce2-ac4f-e4636079839d",
+    "started_at": "2026-10-24T02:38:23.625Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-near-tests",
+    "role": "minion",
+    "session_id": "b5097795-f0b9-45ec-9bf9-f0aedc648e53",
+    "started_at": "2026-10-24T02:12:43.365Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-router-walk",
+    "role": "minion",
+    "session_id": "d72304d3-2e14-4a06-b387-7d74d4e41bfd",
+    "started_at": "2026-10-24T02:12:29.637Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-page-tests",
+    "role": "minion",
+    "session_id": "07ed6ef2-9320-43f8-9912-c87fbb6e6ac6",
+    "started_at": "2026-10-24T02:02:46.881Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "task-mastermind-roles",
+    "role": "task-mastermind",
+    "session_id": "7bebb96f-6837-44aa-8cfd-21cba3c64571",
+    "started_at": "2026-10-24T01:38:26.852Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-item-tool",
+    "role": "minion",
+    "session_id": "8d549a5f-2a2a-49cb-8412-81720ac258ff",
+    "started_at": "2026-10-24T01:25:51.026Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "task-mastermind-note-tasks",
+    "role": "task-mastermind",
+    "session_id": "aa149fd0-4eed-4881-b5a9-1df7d45d21e7",
+    "started_at": "2026-10-24T01:11:20.035Z",
+    "parent": "vscode-mastermind",
+    "parent_session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "minion-queue",
+    "role": "minion",
+    "session_id": "b6737f28-0b10-4861-b87b-d85354197081",
+    "started_at": "2026-10-24T00:48:17.605Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "mastermind-page",
+    "role": "mastermind",
+    "session_id": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "started_at": "2026-10-24T00:20:43.357Z",
+    "parent": "vscode-mastermind",
+    "parent_session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "minion-proposals",
+    "role": "minion",
+    "session_id": "957dbae7-af0c-4f60-8385-cdedd788addb",
+    "started_at": "2026-10-24T00:20:21.366Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-process-names",
+    "role": "minion",
+    "session_id": "ab4dde4f-7ad9-4839-9ef5-4090d2a36882",
+    "started_at": "2026-10-24T00:12:57.299Z",
+    "parent": "mastermind-system-architect-3",
+    "parent_session": "7e6b7107-5b7c-4fc6-bcef-53eea5a57e7e",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-review-page",
+    "role": "minion",
+    "session_id": "afbe3e40-c145-4fbc-b5b3-7e906859a969",
+    "started_at": "2026-10-24T00:10:46.222Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "mastermind-deputy",
+    "role": "mastermind",
+    "session_id": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "started_at": "2026-10-24T00:01:41.187Z",
+    "parent": "vscode-mastermind",
+    "parent_session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "minion-merge-approvals",
+    "role": "minion",
+    "session_id": "69fa894f-0e47-4ca0-b030-320039ebf4d6",
+    "started_at": "2026-10-23T23:34:04.445Z",
+    "parent": "mastermind-system-architect-3",
+    "parent_session": "7e6b7107-5b7c-4fc6-bcef-53eea5a57e7e",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-tasks-list",
+    "role": "minion",
+    "session_id": "43fe6e64-6b95-488d-b5f9-a40232327bf5",
+    "started_at": "2026-10-23T23:29:11.472Z",
+    "parent": "mastermind-system-architect-3",
+    "parent_session": "7e6b7107-5b7c-4fc6-bcef-53eea5a57e7e",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "mastermind-system-architect-3",
+    "role": "mastermind",
+    "session_id": "7e6b7107-5b7c-4fc6-bcef-53eea5a57e7e",
+    "started_at": "2026-10-23T23:25:41.233Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-tasks-page-loading",
+    "role": "minion",
+    "session_id": "83a9e20a-a2df-4064-818d-d71cf2a413d3",
+    "started_at": "2026-10-23T06:47:02.364Z",
+    "parent": "mastermind-system-architect-2",
+    "parent_session": "855b2d6a-d503-4037-90a1-d9311a31d70f",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-review-fixes",
+    "role": "minion",
+    "session_id": "3e23526c-42d4-44e1-ba39-b4050b3d74a9",
+    "started_at": "2026-10-23T06:12:17.891Z",
+    "parent": "mastermind-system-architect-2",
+    "parent_session": "855b2d6a-d503-4037-90a1-d9311a31d70f",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-cracks-inbox-wait",
+    "role": "minion",
+    "session_id": "2d34940a-88a6-4de4-84ae-19dc1dd1d0de",
+    "started_at": "2026-10-23T05:30:28.281Z",
+    "parent": "mastermind-system-architect-2",
+    "parent_session": "855b2d6a-d503-4037-90a1-d9311a31d70f",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-handover-test",
+    "role": "minion",
+    "session_id": "b53a69cd-092e-440a-9064-f72c6735bbc2",
+    "started_at": "2026-10-23T05:25:39.779Z",
+    "parent": "mastermind-system-architect-2",
+    "parent_session": "855b2d6a-d503-4037-90a1-d9311a31d70f",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-test-temp-store",
+    "role": "minion",
+    "session_id": "57ff4845-5b68-49f3-a85a-59f6576733a0",
+    "started_at": "2026-10-23T05:24:35.849Z",
+    "parent": "mastermind-system-architect-2",
+    "parent_session": "855b2d6a-d503-4037-90a1-d9311a31d70f",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-task-chase",
+    "role": "minion",
+    "session_id": "dcab0d51-8190-4eb6-bf31-d2f2122c3bb3",
+    "started_at": "2026-10-23T05:24:32.581Z",
+    "parent": "mastermind-system-architect-2",
+    "parent_session": "855b2d6a-d503-4037-90a1-d9311a31d70f",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-session-page-tasks",
+    "role": "minion",
+    "session_id": "9ff12957-e5e5-44a2-b6d7-869858ceda50",
+    "started_at": "2026-10-23T02:58:57.229Z",
+    "parent": "mastermind-system-architect",
+    "parent_session": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-role-readmes",
+    "role": "minion",
+    "session_id": "4d6e31bb-449e-41f2-9fb5-f0fcc8df1ce6",
+    "started_at": "2026-10-23T02:50:58.687Z",
+    "parent": "mastermind-system-architect",
+    "parent_session": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-restart-revive",
+    "role": "minion",
+    "session_id": "ab6813c1-4793-449b-b5d9-91276551c296",
+    "started_at": "2026-10-23T02:32:01.891Z",
+    "parent": "mastermind-system-architect-2",
+    "parent_session": "855b2d6a-d503-4037-90a1-d9311a31d70f",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-honest-completion",
+    "role": "minion",
+    "session_id": "2ab2bfbe-45d8-4dee-9162-7918a3240d5a",
+    "started_at": "2026-10-23T02:31:58.221Z",
+    "parent": "mastermind-system-architect-2",
+    "parent_session": "855b2d6a-d503-4037-90a1-d9311a31d70f",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-session-flow-fixes",
+    "role": "minion",
+    "session_id": "c4b17c70-fedf-4e7a-9524-d5ed8b9746a4",
+    "started_at": "2026-10-23T02:17:57.745Z",
+    "parent": "mastermind-system-architect-2",
+    "parent_session": "855b2d6a-d503-4037-90a1-d9311a31d70f",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "mastermind-system-architect-2",
+    "role": "mastermind",
+    "session_id": "855b2d6a-d503-4037-90a1-d9311a31d70f",
+    "started_at": "2026-10-23T02:16:41.766Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-test-builder",
+    "role": "minion",
+    "session_id": "29e36ac5-67b3-4bca-9d19-69f737300a53",
+    "started_at": "2026-10-23T02:09:46.331Z",
+    "parent": "mastermind-test",
+    "parent_session": "31e90f69-18a0-4e34-87a7-a29d56a0fc96",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "mastermind-test",
+    "role": "mastermind",
+    "session_id": "31e90f69-18a0-4e34-87a7-a29d56a0fc96",
+    "started_at": "2026-10-23T02:07:03.947Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-e2e-check-process-questions",
+    "role": "helper",
+    "session_id": "dcd3edaa-7ada-4a73-92f6-39de36ace0f0",
+    "started_at": "2026-10-23T02:04:55.257Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-item-move",
+    "role": "minion",
+    "session_id": "012433ce-4b02-4801-99a3-8f5bd314e67f",
+    "started_at": "2026-10-23T02:00:59.342Z",
+    "parent": "mastermind-item",
+    "parent_session": "66add291-c7f5-4e6d-aaff-1696e605d30f",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-figma-process",
+    "role": "minion",
+    "session_id": "c1d4a4c9-9ddf-4812-9b26-8e846080abee",
+    "started_at": "2026-10-23T02:00:42.392Z",
+    "parent": "mastermind-figma-cards",
+    "parent_session": "037b7c00-5220-4dbf-8360-40311851b09b",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "mastermind-prompt",
+    "role": "mastermind",
+    "session_id": "c0abf29c-9521-4f1f-9499-c0c9846c8156",
+    "started_at": "2026-10-23T01:51:20.727Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-item-act",
+    "role": "minion",
+    "session_id": "7e97822c-b62c-4588-9c2f-3b7f48455b47",
+    "started_at": "2026-10-23T01:35:13.365Z",
+    "parent": "mastermind-item",
+    "parent_session": "66add291-c7f5-4e6d-aaff-1696e605d30f",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "mastermind-item",
+    "role": "mastermind",
+    "session_id": "66add291-c7f5-4e6d-aaff-1696e605d30f",
+    "started_at": "2026-10-23T01:32:06.950Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-mobile-picks",
+    "role": "minion",
+    "session_id": "5b7e7068-29fe-49db-949f-9fdd39a45211",
+    "started_at": "2026-10-23T01:18:45.911Z",
+    "parent": "mastermind-figma-cards",
+    "parent_session": "037b7c00-5220-4dbf-8360-40311851b09b",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "task-mastermind-readmes-page-fix",
+    "role": "task-mastermind",
+    "session_id": "abc171da-8477-4af0-8cfa-b9b383cf5d7e",
+    "started_at": "2026-10-23T00:23:57.680Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-figma-cards",
+    "role": "mastermind",
+    "session_id": "037b7c00-5220-4dbf-8360-40311851b09b",
+    "started_at": "2026-10-23T00:19:19.907Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-websearch-probe",
+    "role": "minion",
+    "session_id": "cdbe8d65-c8fe-4b10-aadc-1a1237543b11",
+    "started_at": "2026-10-22T23:49:44.681Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-system-architect",
+    "role": "mastermind",
+    "session_id": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "started_at": "2026-10-22T23:36:27.252Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "task-mastermind-worktree-closure",
+    "role": "task-mastermind",
+    "session_id": "a267d87a-8f81-48da-b89a-3e8564f32ea7",
+    "started_at": "2026-10-22T21:35:56.102Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "task-mastermind-agent-context",
+    "role": "task-mastermind",
+    "session_id": "97f36736-0f9a-4049-b693-05b07bd2aba0",
+    "started_at": "2026-10-22T21:32:56.675Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-readme-roles",
+    "role": "mastermind",
+    "session_id": "f6ab074a-de79-4a55-8567-e5e7f5358c68",
+    "started_at": "2026-10-22T21:15:27.772Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-prompt-audit-system",
+    "role": "mastermind",
+    "session_id": "12c360cd-b6da-4704-917f-0f0dfe69e4ed",
+    "started_at": "2026-10-21T23:42:26.464Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-prompt-audit",
+    "role": "mastermind",
+    "session_id": "0dbc4c6f-7a7c-4b74-a093-ce9978f3437c",
+    "started_at": "2026-10-21T23:21:46.547Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-figma-sessions",
+    "role": "mastermind",
+    "session_id": "80191cd3-d1f4-4187-8c31-ffa01e23d367",
+    "started_at": "2026-10-21T03:53:25.425Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-sessions-views",
+    "role": "mastermind",
+    "session_id": "7c740b9e-64ca-464a-be60-f78b5b439bf5",
+    "started_at": "2026-10-21T03:21:40.101Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-dictation-map-plan",
+    "role": "mastermind",
+    "session_id": "b66b4c24-a54e-4363-be9c-c5bfaa64139b",
+    "started_at": "2026-10-21T03:09:34.574Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "task-mastermind-2",
+    "role": "task-mastermind",
+    "session_id": "2f3274ad-2563-4846-9009-86681a05b193",
+    "started_at": "2026-10-21T02:56:58.815Z",
+    "parent": "fixer-1",
+    "parent_session": "b08b40d6-22b2-4e9c-94b1-8204bb42cb2d",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "voice-assistant-v-lhvz99u",
+    "role": "voice-assistant",
+    "session_id": "6f5fc1ca-f9cd-4f2c-ac8e-3279f0b730cf",
+    "started_at": "2026-10-21T02:50:23.577Z",
+    "parent": "sessions",
+    "parent_session": null,
+    "problems": [
+     "parent is an agent name",
+     "parent has no session"
+    ]
+   },
+   {
+    "agent": "mastermind-dictation-map",
+    "role": "mastermind",
+    "session_id": "49e482e9-ac95-4bf0-8ae9-b78cf77937d7",
+    "started_at": "2026-10-21T02:50:16.636Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "task-mastermind",
+    "role": "task-mastermind",
+    "session_id": "11a78e1b-9df2-4c96-aa41-6ffff39567eb",
+    "started_at": "2026-10-21T02:46:19.375Z",
+    "parent": "fixer-1",
+    "parent_session": "b08b40d6-22b2-4e9c-94b1-8204bb42cb2d",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "mastermind-day-page",
+    "role": "mastermind",
+    "session_id": "930852eb-fc56-490f-9a06-b6f74dcf4f75",
+    "started_at": "2026-10-21T02:45:42.926Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "voice-assistant-v-7bnqmeh",
+    "role": "voice-assistant",
+    "session_id": "41871131-50d8-4fb2-8034-8e704c1bb0ad",
+    "started_at": "2026-10-21T00:47:23.851Z",
+    "parent": "sessions",
+    "parent_session": null,
+    "problems": [
+     "parent is an agent name",
+     "parent has no session"
+    ]
+   },
+   {
+    "agent": "minion-well-asks",
+    "role": "minion",
+    "session_id": "deec6042-f263-41d6-a99f-53427c366469",
+    "started_at": "2026-10-21T00:35:36.490Z",
+    "parent": "mastermind-mobile-sheet",
+    "parent_session": "94c3f1ff-d635-497d-844f-a7dd1818be57",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "mastermind-mobile-sheet",
+    "role": "mastermind",
+    "session_id": "94c3f1ff-d635-497d-844f-a7dd1818be57",
+    "started_at": "2026-10-21T00:34:58.137Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-dated-queries",
+    "role": "mastermind",
+    "session_id": "4098c883-3ea9-48bd-bc9f-64eb93e93433",
+    "started_at": "2026-10-21T00:33:11.124Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-dated-sessions",
+    "role": "mastermind",
+    "session_id": "748a3eae-93fa-4515-b1ba-b50d8dac6967",
+    "started_at": "2026-10-21T00:24:47.080Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "voice-assistant-v-4lwslx3",
+    "role": "voice-assistant",
+    "session_id": "6a6bb8f1-0e30-430e-ac4a-0c6bd8094cc9",
+    "started_at": "2026-10-21T00:17:17.554Z",
+    "parent": "sessions",
+    "parent_session": null,
+    "problems": [
+     "parent is an agent name",
+     "parent has no session"
+    ]
+   },
+   {
+    "agent": "mastermind-whisper-demo",
+    "role": "mastermind",
+    "session_id": "570d20f5-4646-4057-bcb6-2b872a5921ba",
+    "started_at": "2026-10-21T00:12:28.219Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-dated-projects",
+    "role": "mastermind",
+    "session_id": "610c5637-4acd-4d4b-becf-71a632573536",
+    "started_at": "2026-10-20T23:54:28.348Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-ask-never-lost",
+    "role": "mastermind",
+    "session_id": "91b1f69e-d8c3-45cb-bf43-423b691edd79",
+    "started_at": "2026-10-20T23:50:20.104Z",
+    "parent": "mastermind-voice-20261020",
+    "parent_session": "272d452d-faea-4091-bb45-0b07c960e7ce",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "mastermind-store-index-query",
+    "role": "mastermind",
+    "session_id": "fb698bfc-ab61-4155-ae30-f11a25d80b5e",
+    "started_at": "2026-10-20T23:48:35.353Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-async-ask",
+    "role": "mastermind",
+    "session_id": "a9e73350-b444-4239-8e2d-ad9d9e6ec3b0",
+    "started_at": "2026-10-20T23:29:22.117Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-updates-tool",
+    "role": "mastermind",
+    "session_id": "1f91e156-9117-4af0-96f1-b7782826af92",
+    "started_at": "2026-10-20T23:16:46.199Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-index-record-sessions",
+    "role": "mastermind",
+    "session_id": "b8884a9f-3a14-4910-80a3-173ee35508c4",
+    "started_at": "2026-10-20T22:59:22.028Z",
+    "parent": "mastermind-voice-20261020",
+    "parent_session": "272d452d-faea-4091-bb45-0b07c960e7ce",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "mastermind-voice-20261020",
+    "role": "mastermind",
+    "session_id": "272d452d-faea-4091-bb45-0b07c960e7ce",
+    "started_at": "2026-10-20T22:58:31.688Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-cloud-sessions-listed",
+    "role": "mastermind",
+    "session_id": "431d19fe-c2f6-47bb-ae55-b46bca78a772",
+    "started_at": "2026-10-20T22:57:54.625Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-named-tunnel",
+    "role": "minion",
+    "session_id": "cbb4577a-6f27-46c2-b80e-d46605421e87",
+    "started_at": "2026-10-20T22:01:05.656Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-item-page-docs",
+    "role": "minion",
+    "session_id": "177144ba-467b-4a61-a0eb-9adc1170b51b",
+    "started_at": "2026-10-20T21:50:34.415Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-project-move",
+    "role": "mastermind",
+    "session_id": "a806be6a-a0db-4f84-819a-fa5ab05cd2c9",
+    "started_at": "2026-10-20T21:50:20.462Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-skills-audit",
+    "role": "minion",
+    "session_id": "51721af3-a64f-45be-884c-6bae649d64ae",
+    "started_at": "2026-10-20T21:42:19.634Z",
+    "parent": "mastermind-system-architect",
+    "parent_session": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-pool-leak",
+    "role": "minion",
+    "session_id": "ec650d17-9d64-4b55-891f-965e324851bd",
+    "started_at": "2026-10-20T21:42:15.245Z",
+    "parent": "mastermind-system-architect",
+    "parent_session": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-item-storage",
+    "role": "minion",
+    "session_id": "eb5474e1-f804-4fe6-9686-f07aacf86c74",
+    "started_at": "2026-10-20T21:40:52.625Z",
+    "parent": "mastermind-system-architect",
+    "parent_session": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "mastermind-index-stream",
+    "role": "mastermind",
+    "session_id": "3afa9b3c-9b2b-4abe-b025-8b987d6ec7bb",
+    "started_at": "2026-10-20T21:40:28.290Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-jsonl-unsubscribe",
+    "role": "minion",
+    "session_id": "ea5f4096-7c3f-4f05-b6ec-b6090c012aca",
+    "started_at": "2026-10-20T21:30:12.303Z",
+    "parent": "mastermind-system-architect",
+    "parent_session": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-session-class-readme",
+    "role": "minion",
+    "session_id": "dae2134f-793b-4100-a044-81643fdbbcc2",
+    "started_at": "2026-10-20T21:27:48.967Z",
+    "parent": "mastermind-system-architect",
+    "parent_session": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-log-tool",
+    "role": "minion",
+    "session_id": "fbd2b3a8-4493-4263-96d5-5069239d0413",
+    "started_at": "2026-10-20T21:27:45.161Z",
+    "parent": "mastermind-system-architect",
+    "parent_session": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-ai-index-rename",
+    "role": "minion",
+    "session_id": "0be6bc3a-6a2b-4edb-947b-c18d7de00e19",
+    "started_at": "2026-10-20T21:22:47.150Z",
+    "parent": "mastermind-system-architect",
+    "parent_session": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-ai-folder-audit",
+    "role": "minion",
+    "session_id": "b4b43814-ae92-40a3-b5b4-f08feff110f5",
+    "started_at": "2026-10-20T21:22:43.279Z",
+    "parent": "mastermind-system-architect",
+    "parent_session": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-tab-session-record",
+    "role": "minion",
+    "session_id": "92f98643-ba6d-4d62-ad10-66c37194a1fa",
+    "started_at": "2026-10-20T21:08:42.194Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "assistant-probe-session-rule",
+    "role": "assistant",
+    "session_id": "446f9be1-e33a-45bb-bc4f-1a678f83ea5d",
+    "started_at": "2026-10-20T20:16:36.890Z",
+    "parent": "minion-session-record",
+    "parent_session": "da34f5c4-5279-492c-86f9-5cce2ac0327b",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-tunnel-keeper",
+    "role": "minion",
+    "session_id": "6cfb0e53-b69d-40fd-b55d-170ae2f84caf",
+    "started_at": "2026-10-20T20:05:42.245Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-session-record",
+    "role": "minion",
+    "session_id": "da34f5c4-5279-492c-86f9-5cce2ac0327b",
+    "started_at": "2026-10-20T20:04:19.125Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "task-mastermind-session-detail-page",
+    "role": "task-mastermind",
+    "session_id": "48d6a1bf-c188-48f9-91e0-dc0f7731a002",
+    "started_at": "2026-10-20T03:32:39.207Z",
+    "parent": "v-g6wux1j",
+    "parent_session": null,
+    "problems": [
+     "parent is an agent name",
+     "parent has no session"
+    ]
+   },
+   {
+    "agent": "voice-assistant-v-g6wux1j",
+    "role": "voice-assistant",
+    "session_id": "10f859e3-2f34-493e-9bde-ea55bfee746a",
+    "started_at": "2026-10-20T03:26:35.268Z",
+    "parent": "sessions",
+    "parent_session": null,
+    "problems": [
+     "parent is an agent name",
+     "parent has no session"
+    ]
+   },
+   {
+    "agent": "task-mastermind-project-class",
+    "role": "task-mastermind",
+    "session_id": "95507c71-01e3-4aac-9965-b76216ec2be8",
+    "started_at": "2026-10-20T02:19:01.058Z",
+    "parent": "task-mastermind-task-system",
+    "parent_session": "7a3a1dc5-ce4c-4f88-84a6-b295d52a999c",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "task-mastermind-docs",
+    "role": "task-mastermind",
+    "session_id": "c5dab844-059a-4284-8187-5fc5d6231bdd",
+    "started_at": "2026-10-20T01:40:42.980Z",
+    "parent": "voice-app",
+    "parent_session": "voice-20261019-live-page",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "task-mastermind-ai-dashboard",
+    "role": "task-mastermind",
+    "session_id": "9e48af72-30fa-4e77-96f4-e72b08de99a4",
+    "started_at": "2026-10-20T01:31:29.849Z",
+    "parent": "voice-app",
+    "parent_session": "voice-20261019-live-page",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "task-mastermind-tasks-layout",
+    "role": "task-mastermind",
+    "session_id": "b7977a9f-0af3-48fd-b86f-e63e70a90d36",
+    "started_at": "2026-10-20T01:16:49.769Z",
+    "parent": "voice-app",
+    "parent_session": "voice-20261019-live-page",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "task-mastermind-task-system",
+    "role": "task-mastermind",
+    "session_id": "7a3a1dc5-ce4c-4f88-84a6-b295d52a999c",
+    "started_at": "2026-10-20T01:00:04.060Z",
+    "parent": "voice-app",
+    "parent_session": "voice-20261019-live-page",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "task-mastermind-voice-logging",
+    "role": "task-mastermind",
+    "session_id": "3535994c-7a0a-4047-9d81-1a111b0484d7",
+    "started_at": "2026-10-20T00:02:22.842Z",
+    "parent": "voice-app",
+    "parent_session": "voice-20261019-live-page",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "minion-voice-logging",
+    "role": "minion",
+    "session_id": "7377b5eb-09f5-4e1c-91d2-e8943d360d7d",
+    "started_at": "2026-10-20T00:01:45.104Z",
+    "parent": "voice-app",
+    "parent_session": "voice-20261019-live-page",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "minion-sheet-redesign",
+    "role": "minion",
+    "session_id": "56c71827-5c5d-4190-88ad-2b36b640f983",
+    "started_at": "2026-10-19T23:52:04.156Z",
+    "parent": "task-mastermind-voice-opus",
+    "parent_session": "08b1772e-17bc-4bfb-b23e-f0fc81bf81ef",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "voice-assistant-v-timqv56",
+    "role": "voice-assistant",
+    "session_id": "e2451f3c-99da-4751-a3fb-a876e5bb28a6",
+    "started_at": "2026-10-19T22:44:57.130Z",
+    "parent": "sessions",
+    "parent_session": null,
+    "problems": [
+     "parent is an agent name",
+     "parent has no session"
+    ]
+   },
+   {
+    "agent": "minion-session-dirs",
+    "role": "minion",
+    "session_id": "13a564fc-fa29-47f3-942c-f67027de0ad5",
+    "started_at": "2026-10-19T22:37:37.060Z",
+    "parent": "task-mastermind-voice-opus",
+    "parent_session": "08b1772e-17bc-4bfb-b23e-f0fc81bf81ef",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "task-mastermind-voice-opus",
+    "role": "task-mastermind",
+    "session_id": "08b1772e-17bc-4bfb-b23e-f0fc81bf81ef",
+    "started_at": "2026-10-19T22:31:21.310Z",
+    "parent": "session-smart-v-timqv56",
+    "parent_session": "3db83139-de1e-466b-8cce-6f62ae4af7fc",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "helper-one-dashboard-filters",
+    "role": "helper",
+    "session_id": "8db78a1a-9e4b-4e06-b12f-157567429ed0",
+    "started_at": "2026-10-19T22:21:43.477Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-live-page",
+    "role": "mastermind",
+    "session_id": "6f5104a2-480c-4da6-9fd1-4fac41368fa7",
+    "started_at": "2026-10-19T22:09:54.607Z",
+    "parent": "voice-app",
+    "parent_session": "voice-20261019-live-page",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "helper-one-dashboard",
+    "role": "helper",
+    "session_id": "a0de4eb3-ab10-45b5-a667-229df6da11e0",
+    "started_at": "2026-10-19T21:18:59.057Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-card-merge-docwell",
+    "role": "mastermind",
+    "session_id": "344a9fde-4bf8-4866-87a8-e9d79ede28ed",
+    "started_at": "2026-10-19T20:24:55.736Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-worktree-watch",
+    "role": "helper",
+    "session_id": "1474e221-879e-4858-b78d-c58fa37742fd",
+    "started_at": "2026-10-19T17:47:04.490Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-date-only-stamps",
+    "role": "helper",
+    "session_id": "8ff05983-8dd1-4243-9f2c-ce3e38a14f89",
+    "started_at": "2026-10-19T17:40:47.397Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-card-merges-2",
+    "role": "mastermind",
+    "session_id": "a3a10195-8498-4be8-9325-74a9d28c1b01",
+    "started_at": "2026-10-19T17:09:07.613Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-card-merge-frames",
+    "role": "mastermind",
+    "session_id": "bf9d211e-b216-4756-ac84-578466415266",
+    "started_at": "2026-10-19T16:41:14.701Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-card-followups",
+    "role": "helper",
+    "session_id": "b18b3d4e-cf55-4a64-8fca-0a4bc952af83",
+    "started_at": "2026-10-19T16:41:11.919Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-card-merges",
+    "role": "mastermind",
+    "session_id": "62b60b33-8ece-4adf-abba-2d98348ccccc",
+    "started_at": "2026-10-19T16:04:49.072Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-class-cards",
+    "role": "helper",
+    "session_id": "3ba092e5-8907-441a-a736-f3f3743b58d3",
+    "started_at": "2026-10-19T13:31:50.136Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-command-characters",
+    "role": "helper",
+    "session_id": "f3c3bb26-2786-4b01-86b9-b0c82edca350",
+    "started_at": "2026-10-19T13:16:03.289Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-md-explorer-404",
+    "role": "helper",
+    "session_id": "1b08dd0b-7d7b-4d3c-99e2-1526e9807ea1",
+    "started_at": "2026-10-19T13:15:57.988Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-markdown-explorer",
+    "role": "helper",
+    "session_id": "36cc28a7-82ce-43dc-a4d7-43463e779917",
+    "started_at": "2026-10-19T12:39:51.538Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-clarity-one-pass",
+    "role": "helper",
+    "session_id": "c6ee4cfd-51cf-4b50-8847-98373b0dfad2",
+    "started_at": "2026-10-19T12:34:38.278Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-servex-crash",
+    "role": "helper",
+    "session_id": "ec7fb5ac-ef86-4ae6-b1cd-c09ce5b5a2ed",
+    "started_at": "2026-10-19T01:28:55.611Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-servex-small-3",
+    "role": "helper",
+    "session_id": "6e3aa2c4-212f-42f0-bd1c-a43d7a01d27a",
+    "started_at": "2026-10-19T01:18:28.772Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-restart-sweep",
+    "role": "helper",
+    "session_id": "eaea234a-0402-4ba2-905f-ae0daffa1b72",
+    "started_at": "2026-10-18T22:56:34.230Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-compact-nudge",
+    "role": "helper",
+    "session_id": "b888b2f3-cc10-4b1a-9429-6b658e3e860e",
+    "started_at": "2026-10-18T22:42:20.208Z",
+    "parent": "voice-app",
+    "parent_session": "voice-20261019-live-page",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "helper-spawn-task-dir",
+    "role": "helper",
+    "session_id": "a1aeeb74-2a3c-4636-96bb-fb90e48f028e",
+    "started_at": "2026-10-18T22:35:57.269Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-spawn-always-task",
+    "role": "helper",
+    "session_id": "3b05eb44-f9dd-42b4-9577-d74f038d50a1",
+    "started_at": "2026-10-18T22:33:56.138Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-exists-at-creation",
+    "role": "helper",
+    "session_id": "cf533138-45e2-4121-ab34-c61b18bf0cf2",
+    "started_at": "2026-10-18T22:22:44.607Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-merge-new-files",
+    "role": "helper",
+    "session_id": "fd470dca-3d2b-4f11-8a98-d93da6d156ed",
+    "started_at": "2026-10-18T22:16:21.679Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-todo-verdicts",
+    "role": "helper",
+    "session_id": "829c7941-0660-4b85-9f29-7b0c30fa50a8",
+    "started_at": "2026-10-18T22:08:05.742Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-servex-small-2",
+    "role": "helper",
+    "session_id": "713e6f20-8acf-4bee-891e-cfbfe2ef8b30",
+    "started_at": "2026-10-18T19:44:13.877Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-servex-small",
+    "role": "helper",
+    "session_id": "e0bc8e8c-c599-47ff-8c11-b54de094cb10",
+    "started_at": "2026-10-18T15:30:03.702Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-todo-scout",
+    "role": "helper",
+    "session_id": "30e71b60-e13e-40e4-bf97-7587bae75766",
+    "started_at": "2026-10-18T15:22:26.624Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-landed-line",
+    "role": "helper",
+    "session_id": "e14bb793-4310-49d4-a64a-935cb4d689d7",
+    "started_at": "2026-10-18T14:14:37.095Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-orphan-asks",
+    "role": "helper",
+    "session_id": "1046ffed-f4a1-4963-8f74-11bfe345b540",
+    "started_at": "2026-10-18T14:07:29.258Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-stale-close",
+    "role": "helper",
+    "session_id": "5fd75685-deec-4988-811e-c6c74b9540e4",
+    "started_at": "2026-10-18T12:58:21.989Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-followup-state",
+    "role": "helper",
+    "session_id": "90df89a5-cb43-406c-b0d3-4e21caad5858",
+    "started_at": "2026-10-18T12:50:39.883Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-property-of-merge",
+    "role": "helper",
+    "session_id": "f95a1cdc-e526-47cb-9625-bad7e81d337d",
+    "started_at": "2026-10-18T12:35:43.477Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-session-day",
+    "role": "helper",
+    "session_id": "a4fff110-ca94-4a15-9c55-5b87b6bc200d",
+    "started_at": "2026-10-18T12:35:43.376Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "helper-heartbeat-landed",
+    "role": "helper",
+    "session_id": "2b711b08-cc56-48a2-9634-690d438678c7",
+    "started_at": "2026-10-18T04:17:20.062Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-task-rules",
+    "role": "minion",
+    "session_id": "460a80d9-ce00-45ca-a0f2-c374affc56ed",
+    "started_at": "2026-10-18T04:05:53.292Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "mastermind-one-state",
+    "role": "mastermind",
+    "session_id": "8c3e1a83-77bf-44c6-a78f-4e509ce7cec7",
+    "started_at": "2026-10-18T03:48:19.890Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   }
+  ]
+ },
+ "numbers": {
+  "count": 5,
+  "rows": [
+   {
+    "id": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
+    "agent": "mastermind-system-architect",
+    "what": "usd",
+    "stored": 71.6177,
+    "computed": 69.2022,
+    "why": "index.json usd against the transcript read again now"
+   },
+   {
+    "id": "855b2d6a-d503-4037-90a1-d9311a31d70f",
+    "agent": "mastermind-system-architect-2",
+    "what": "usd",
+    "stored": 15.6496,
+    "computed": 14.8083,
+    "why": "index.json usd against the transcript read again now"
+   },
+   {
+    "id": "c5dab844-059a-4284-8187-5fc5d6231bdd",
+    "agent": "task-mastermind-docs",
+    "what": "usd",
+    "stored": 6.2917,
+    "computed": 5.1745,
+    "why": "index.json usd against the transcript read again now"
+   },
+   {
+    "id": "7c740b9e-64ca-464a-be60-f78b5b439bf5",
+    "agent": "mastermind-sessions-views",
+    "what": "usd",
+    "stored": 7.2999,
+    "computed": 6.5181,
+    "why": "index.json usd against the transcript read again now"
+   },
+   {
+    "id": "48d6a1bf-c188-48f9-91e0-dc0f7731a002",
+    "agent": "task-mastermind-session-detail-page",
+    "what": "usd",
+    "stored": 0.1452,
+    "computed": 0,
+    "why": "index.json usd against the transcript read again now"
+   }
+  ]
+ }
+}
