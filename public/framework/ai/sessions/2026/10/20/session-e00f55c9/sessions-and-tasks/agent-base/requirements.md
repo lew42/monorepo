@@ -56,3 +56,8 @@ For `ai-system-mastermind`. The owner's words are in the prompt log (2026-10-24,
     - Do items 11 and 13 together, and say what changes in `Servex/agents/roles.js` and the singleton code.
 
 14. **(the owner, 2026-10-25) RAM is the real limit, so act on it.** 20 `claude.exe` processes were running while only 7 agents worked. Idle and finished agents must release their process (a dormant agent is a record, not a process), and Servex should show RAM per agent on the dashboard. The mastermind winds agents down when a phase ends: when it's idle with context over 100k, the next phase goes to a fresh agent. Do this first among your agent-base items.
+
+15. **(the owner, 2026-10-25) Sweep out legacy systems still steering agents.**
+    - The voice agent told the owner it has a directive to use only OpenRouter, a leftover from a night the tokens ran out. Find every such directive (role readmes, `session-smart.md`, `Servex/agents/roles.js` `VOICE_MODELS`, `session-backend.txt`) and remove it. Claude is the default and OpenRouter is used only when asked.
+    - **"Task mastermind" goes away as a separate idea.** A mastermind is a mastermind: it works on its own and spawns agents, whether it has a narrow scope or a broad one. Fold `task-mastermind` and `sub-mastermind` into the one mastermind role (with item 13, a mastermind per path), keeping the useful rules (own one task end to end, land it).
+    - List any other legacy roles or switches you find, with a keep or retire verdict for each.
