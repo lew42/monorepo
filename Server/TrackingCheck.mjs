@@ -178,7 +178,7 @@ export async function prompt_coverage(){
 		const raw_lines = read_lines(file).filter(l => l.stage === "raw").length;
 		const folder = path.relative(SESSIONS, dir).split(path.sep).join("/");
 		let r; try { r = new PromptRecords(m[1]); } catch { rows.push({ id: m[1], folder, no_transcript: true, log_lines: raw_lines, unique: 0, recorded: 0, pct: null, unrecorded: [] }); return; }
-		const recorded = r.rows(), unique = r.prompts, by_raw = new Map(Object.values(recorded).map(x => [x.raw, x.id])), rid = p => p.id ?? by_raw.get(p.text) ?? p.uuid, missing = unique.filter(p => !recorded[rid(p)]?.parts?.length);
+		const recorded = r.rows(), unique = r.prompts, by_raw = new Map(); for (const x of Object.values(recorded)) if (!by_raw.has(x.raw)) by_raw.set(x.raw, x.id), rid = p => p.id ?? by_raw.get(p.text) ?? p.uuid, missing = unique.filter(p => !recorded[rid(p)]?.parts?.length);
 		rows.push({ id: m[1], folder, no_transcript: false, log_lines: raw_lines, transcript_prompts: PromptAudit.prompts(r.transcript).length, unique: unique.length, recorded: unique.length - missing.length, pct: unique.length ? r4((unique.length - missing.length) / unique.length) : null,
 			unrecorded: missing.map(p => ({ line: p.line, at: p.at, chars: p.text.length })) });
 	});
