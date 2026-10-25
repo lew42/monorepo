@@ -23,6 +23,7 @@ Budget: $30 total, children included. You are a task mastermind (load the `sub-m
 3. **The writers.**
    - The fast seat (voice-assistant, `Servex/agents/Sessions.js` `voice_say`) writes Prompts only: raw text plus cleaned paragraphs, using the small deltas mastermind-prompt-task lands.
    - The smart seat (the voice mastermind, `Servex/agents/session-smart.md`) writes the tasks, questions and replies onto the prompt.
+   - The page talks to the assistants too (chat-shape.md, "Two more"): UI errors, clicks and page context go down the same POST as speech, tagged `kind`: `speech`, `error`, `click`, `context`. The fast seat files errors as log lines; the smart seat reads them as context.
    - `Sessions.js` is also touched by the wake branch (`worktree/dictation-wake`). Start this step only after your parent says it has merged. A Servex change goes live only with `node Servex/sustain.mjs --restart`, which your parent schedules.
 
 Hold the "Chat v2 replaces v1" step until the owner has tried it.
@@ -34,6 +35,20 @@ Hold the "Chat v2 replaces v1" step until the owner has tried it.
 - Never kill or restart the dev server or Servex, never drive the owner's tabs (headless only), never stash.
 - Update `ext/Chat/readme.md` and add `ext/Chat/v2/readme.md` (what it is, its on-disk shape, who writes the data, which class reads it).
 
+## What the owner sees
+
+```
+session
+└── Prompt (root, no bubble)        ← the owner's words, as paragraphs
+    ├── 🧠 reply (anchored to a sentence or word range)
+    ├── 🧠 question
+    └── 🧠 task card
+```
+
 ## Done when
 
-Steps 1–3 are merged, the owner can open a voice session and see its prompts with the assistant's cards nested under them, and the readmes say so.
+- [ ] Step 1: renderer merged, with 390 and 1920 shots
+- [ ] Step 2: "Chat v2" toggle mounted in the session's Chat tab and the ✦ sheet
+- [ ] Step 3: fast seat writes Prompts, smart seat writes replies, tasks and questions onto them
+- [ ] The owner can open a voice session and see its prompts with the assistant's cards nested under them
+- [ ] `ext/Chat/readme.md` and `ext/Chat/v2/readme.md` say so
