@@ -3,3 +3,4 @@
 {"tasks":{"add":{"type":"Prompt","id":"p-1761382900000","raw":["and then one more thing the sheet should open on the latest prompt"],"paragraphs":[{"id":"c","text":"And then one more thing. The sheet should open on the latest prompt."}]}}}
 {"tasks":{"add":{"type":"Question","id":"q-1761382910000","text":"Should the sheet scroll to the newest prompt on open?","from":"p-1761382900000"}}}
 {"q-1761382836000":{"answer":{"text":"Yes: the answer lands on the question, wherever you are in the chat.","by":"smart","ts":"2026-10-25T09:02:00Z"}}}
+{"tasks":{"add":{"type":"Prompt","id":"p-1761382950000","subject":"A quick aside about naming","paragraphs":[{"id":"d","text":"One more thing. Call it a sidebar, not a tangent."}],"replies":[{"id":"r-1761382955000","text":"Noted — sidebar it is.","by":"smart","ts":"2026-10-25T09:01:00Z","anchor":{"sentence":"d2","from":0,"to":2}}]}}}

@@ -5,6 +5,9 @@
 	.chat-v2 { display: flex; flex-direction: column; gap: calc(var(--gap, 1rem) * 2); max-width: 46rem; margin-inline: auto; padding: var(--pad, 1rem); }
 	.chat-v2-empty { color: var(--subtle); }
 	.chat-v2-prompt { display: flex; flex-direction: column; gap: .6em; }
+	/* head/raw-wrap/nest are the three parts a live patch can re-render on their own (ChatV2.patch): empty ones take no space. */
+	.chat-v2-head, .chat-v2-raw-wrap { display: flex; flex-direction: column; gap: .6em; }
+	.chat-v2-head:empty, .chat-v2-raw-wrap:empty, .chat-v2-nest:empty { display: none; }
 	.chat-v2-title { margin: 0; font-size: 1.15em; }
 	.chat-v2-text, .chat-v2-reply-text, .chat-v2-answer { white-space: pre-wrap; overflow-wrap: anywhere; }
 	.chat-v2-label { color: var(--subtle); display: block; margin-top: .4em; }
