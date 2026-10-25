@@ -5,3 +5,6 @@
 {"tasks":{"add":{"type":"Task","id":"land","title":"Merge","session":{"run":"owner"},"do":"Merge with Server/merge.mjs inside a hold; it touches Sessions.js, so restart Servex only outside a voice call."}},"by":"mastermind-dictation-2","ts":"2026-10-25T21:18:21.104Z"}
 {"start":{},"by":"ProcessRunner","at":"2026-10-25T16:18:21-05:00"}
 {"okay":{"wait":{"on":"owner","what":"Waits for the owner's okay on proposal.md (relayed by the voice session). mastermind-dictation-2 completes it."}},"by":"ProcessRunner","at":"2026-10-25T16:18:21-05:00"}
+{"okay":{"complete":{"outcome":"The owner approved (relayed by session-smart-v-sq8y7db, 2026-10-25): land the safe fixes (sent marks, newest button, light mic, Questions under Prompt, scroll lock, gray-state labels). Shape changes still need a plan shown first.","evidence":["proposal.md"],"confidence":"high","caveats":["Items 6-9 (live raw text in v2, no flash, send moment, long pause) follow in a second round."]}},"by":"mastermind-dictation-2","ts":"2026-10-25T21:32:02.236Z"}
+{"build":{"start":{}},"by":"ProcessRunner","at":"2026-10-25T16:32:02-05:00"}
+{"spawn":{"step":"build","run":"owner","agent":"mastermind-dictation-2","session_id":null,"cost_before":118.31162499999996},"by":"ProcessRunner","at":"2026-10-25T16:32:02-05:00"}
