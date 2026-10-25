@@ -3,7 +3,10 @@
 Budget: $5. Load the `minion` skill first. The owner's ask is in `../requirements.md` (dictation that never fails); this is one bug from a real session.
 
 ## The bug
-`public/framework/ai/sessions/2026/10/25/v-xhx7fmx/session.jsonl` line 34: the chat line's `text` is right, but its `raw` repeats a tail span ("…But all right. now with a question mark. And then on a new line, it says, can you hear me? …"). Words from the middle of the sentence come back after its end. `ComposerMic.collapse_repeat` (`ext/Chat/Mic.js:634`) only catches a whole-text doubling (first half = second half), so a repeated tail gets through. If the cleaner had not dropped it, the bubble would show it too.
+Seen in `public/framework/ai/sessions/2026/10/25/v-xhx7fmx/session.jsonl` line 34:
+- **What happens:** `text` is right, but `raw` repeats a tail span ("…But all right. now with a question mark. And then on a new line, it says, can you hear me? …"). Words from the middle come back after the end.
+- **Why it gets through:** `ComposerMic.collapse_repeat` (`ext/Chat/Mic.js:634`) only catches a whole-text doubling (first half = second half).
+- **Risk:** if the cleaner had not dropped it, the bubble would show it too.
 
 ## Do
 1. Worktree: `node Server/worktree-up.mjs dictation-repeat`, then work only there (branch worktree/dictation-repeat).

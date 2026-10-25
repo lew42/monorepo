@@ -1772,3 +1772,6 @@
 {"at":"2026-10-25T09:15:05.155Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/servex-oom/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-10-25T09:16:13.256Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/servex-oom/requirements.md","verdict":"spawned","to":"clarity-servex-oom"}
 {"at":"2026-10-25T11:53:15.038Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim","verdict":"skipped","what":"a sub-task: its parent task gets the one check"}
+{"at":"2026-10-25T15:49:18.990Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/repeat/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-25T15:50:19.869Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/repeat/requirements.md","verdict":"spawned","to":"clarity-repeat"}
+{"at":"2026-10-25T15:51:06Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/repeat/requirements.md","verdict":"rewrote","what":"Split 110-word bug paragraph into three bullets","to":"requirements.md"}
