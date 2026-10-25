@@ -1,6 +1,6 @@
 # Chat: the proposal for every ask so far
 
-**Planning mode.** The owner set this in voice session v-sq8y7db on 2026-10-25: nothing is built or merged until the owner okays this proposal. One build is paused at commit `c3069554b` on its own branch, and nothing from it is live. Each of the four steps below is a process task whose first step waits for that okay, so nothing starts on its own.
+**The hold is lifted for safe fixes** (the owner, later on 2026-10-25); shape changes still get a plan shown first. **Planning mode** was set in voice session v-sq8y7db on 2026-10-25: nothing is built or merged until the owner okays this proposal. One build is paused at commit `c3069554b` on its own branch, and nothing from it is live. Each of the four steps below is a process task whose first step waits for that okay, so nothing starts on its own.
 
 ## The shape
 
@@ -78,7 +78,7 @@ All 31 cards in v-sq8y7db are written as `"type":"Prompt"`, and `core/Task/Promp
 
 ## The four steps, highest priority first
 
-1. **Tasks get done** (about $5, HIGH) · [brief](task-completion/requirements.md) · [process](chat-tasks-get-done/)
+1. **Tasks get done** (HIGH; now owned by mastermind-tasks-completion, with the Tasks tab in the drawer; my process is stopped) · [brief](task-completion/requirements.md) · [process](chat-tasks-get-done/)
    - ⬜ Measure v-sq8y7db: each task's state, owner, and why it is open
    - ⬜ Every task made in a session gets an owner when it is made; the session shows "N of M done"
    - ⬜ Time from a spoken ask to its task on screen; tasks appear live, without a pause

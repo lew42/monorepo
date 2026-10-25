@@ -7,3 +7,4 @@
 {"tasks":{"add":{"type":"Task","id":"land","title":"Merge","session":{"run":"owner"},"do":"Merge with Server/merge.mjs inside a hold; restart Servex only outside a voice call."}},"by":"mastermind-dictation-2","ts":"2026-10-25T21:18:10.086Z"}
 {"start":{},"by":"ProcessRunner","at":"2026-10-25T16:18:10-05:00"}
 {"okay":{"wait":{"on":"owner","what":"Waits for the owner's okay on proposal.md (relayed by the voice session). mastermind-dictation-2 completes it."}},"by":"ProcessRunner","at":"2026-10-25T16:18:11-05:00"}
+{"stop":{"why":"Moved to mastermind-tasks-completion, which owns task completion and the Tasks tab and reuses task-completion/requirements.md as its brief (its reply, 2026-10-25)."},"by":"mastermind-dictation-2","ts":"2026-10-25T21:34:09.101Z"}
