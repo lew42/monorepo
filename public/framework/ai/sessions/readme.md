@@ -14,7 +14,7 @@ sessions/
   <top level>                              generated indexes and move ledgers (last section)
 ```
 
-**One `index.jsonl` per scope** (derived, gitignored, append-only; a line is never rewritten). The writer is `AIIndexStream.append` (`Server/AIIndexStream.mjs`), called by `DatedFiles.sync` and `AIIndex`; the backfill is `node Server/SessionScopes.mjs` (dry run, `--apply` writes). Nothing in the browser reads the month, year or root lists yet; the rolled `index.json` totals stay as they are.
+**One `index.jsonl` per scope** (derived, gitignored, append-only; a line is never rewritten). The writer is `AIIndexStream.append` (`Server/AIIndexStream.mjs`), called by `DatedFiles` (`create`, `move`, `sync`) and `AIIndex`; the backfill is `node Server/SessionScopes.mjs` (dry run, `--apply` writes). Nothing in the browser reads the month, year or root lists yet; the rolled `index.json` totals stay as they are.
 
 | File | Lists | Line |
 |---|---|---|

@@ -20,7 +20,7 @@ export default class AIIndexStream {
 		fs.mkdirSync(path.dirname(file), { recursive: true });
 		const first = !fs.existsSync(file) || fs.statSync(file).size === 0;
 		fs.appendFileSync(file, line + "\n");
-		if (first) this.scopes(sess, Day.of(at));
+		if (first) try { this.scopes(sess, Day.of(at)); } catch (e) { console.error("AIIndexStream: scope list -", e.message); }   // the row has landed; SessionScopes.mjs fills a missed scope line
 		return line;
 	}
 
