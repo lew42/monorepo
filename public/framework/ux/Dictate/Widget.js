@@ -363,7 +363,7 @@ Widget.Thread = class WidgetThread extends View {
 		let n = 0, from = 0;
 		for (let i = rest.length - 1; i >= 0; i--) if (rest[i]?.chat && ++n >= Widget.HISTORY){ from = i; break; }
 		const chunk = rest.slice(from);
-		this.waiting = rest.slice(0, from);
+		this.waiting = rest.slice(0, from);   // before the draws: hold_orphan() then re-holds only lines for sentences still waiting, never the ones replayed below
 		const box = this.el, host = this.$bubbles.el, before = box.scrollHeight - box.scrollTop;
 		const shown = [...host.children];
 		shown.forEach(c => c.remove());
