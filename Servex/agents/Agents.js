@@ -2243,6 +2243,7 @@ Agents.Agent = class Agent {
 		const c = this.last_usage;
 		if (c) this.context = (c.input_tokens ?? 0) + (c.cache_read_input_tokens ?? 0)
 			+ (c.cache_creation_input_tokens ?? 0) + (c.output_tokens ?? 0);
+		this.context_alert();
 		this.host?.register?.(this);
 		this.settle();
 		/* ONE-SHOT (a fork): its first result is its answer — the wake above has
@@ -2309,6 +2310,21 @@ Agents.Agent = class Agent {
 		return true;
 	}
 
+	/* CONTEXT ALERTS (agent-base item 12; ai/doc/context.md): the first time a child's context passes 50% and then 75% of the window,
+	 * one line lands in its own session log, which its parent already tails, so the parent decides. A compaction re-arms both. */
+	context_alert(){
+		if (!this.parent || this.parent === this.id || this.one_shot || !this.task?.dir) return;
+		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS), context = Math.max(this.context ?? 0, 0);
+		if (context < window * ALERT_PCTS[0] / 100) this.context_alerted = [];
+		for (const pct of ALERT_PCTS){
+			if (context < window * pct / 100 || (this.context_alerted ??= []).includes(pct)) continue;
+			this.context_alerted.push(pct);
+			const msg = `alert: context ${Math.round(context / window * 100)}% (${context.toLocaleString("en-US")} of ${window.toLocaleString("en-US")} tokens): ${this.id}. Wind down: finish, compact (send it the compact nudge) or give the next phase to a fresh agent.`;
+			try { fs.appendFileSync(SessionRecord.log_file(path.resolve(MAIN_ROOT, this.task.dir)) ?? path.resolve(MAIN_ROOT, this.task.dir, "task.jsonl"), JSON.stringify({ log: { at: stamp(), msg } }) + "\n"); } catch {}
+			this.emit({ type: "context_alert", pct, context });
+		}
+	}
+
 	/* The end of a `/compact` turn: logged, no parent woken, the last turn's words kept. */
 	compact_done(message){
 		const c = this.compacting;
@@ -2355,6 +2371,7 @@ export function renewal_text(id, replaces, why){
 		"Read public/framework/ai/readme.md and public/framework/ai/priority.md, then your feedback inbox (module_inbox, module \"ai\"), and continue. Any message that woke you comes next.";
 }
 
+export const ALERT_PCTS = [50, 75];   // % of the window at which a child's parent is told (context_alert)
 export const REMIND_TOKENS = 100000;   // a role reminder each time the context grows this much (SERVEX_REMIND_TOKENS)
 export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
 export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)

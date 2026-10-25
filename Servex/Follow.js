@@ -64,7 +64,7 @@ export default class Follow {
 	 * `pointer` = a file the owner should know about (a log whose message names a file or starts show:/ready:/wrote:, a shot, a review's verdict line).
 	 * Everything else (steps, actions, decisions, node's worktree-watch lines) is `other` and costs the parent a paid turn for nothing. */
 	static STATE = /^(assign|start|resume|wait|complete|finish|stop|pause|task|tasks|landed)$/;
-	static POINTER = /^(show|ready|wrote):|^[\w./-]+\.(md|mjs|js|jsonl|css|html|png)\b/;
+	static POINTER = /^(show|ready|wrote|alert):|^[\w./-]+\.(md|mjs|js|jsonl|css|html|png)\b/;
 	static LINE_MAX = 600;
 
 	/** The lines of a child's log a parent is woken for: not heartbeat or commit housekeeping, only state and pointer lines, each cut to LINE_MAX characters. */
