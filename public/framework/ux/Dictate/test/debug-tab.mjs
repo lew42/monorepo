@@ -63,6 +63,12 @@ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now
 	console.log("  phone:", url, live.join(" "));
 	check(url === "/framework/ext/drawer/ai/debug/", "picking Debug routes the sheet to <path>/ai/debug/ (" + url + ")");
 	check(["mic", "whisper", "transcripts", "sent", "llm"].every(id => live.includes(id + "=ok")), "every layer is green while dictating: " + live.join(" "));
+	const fit = await page.evaluate(() => {   // all five rows on one phone screen, with the chat's last lines still above them
+		const steps = [...document.querySelectorAll(".drawer-rail-sheet .dictate-debug .voice-conn-step")].filter(s => s.offsetParent);
+		const chat = document.querySelector(".drawer-rail-sheet .ux-dictate-widget-thread")?.getBoundingClientRect().height ?? 0;
+		return { rows: steps.length, below: steps.filter(s => s.getBoundingClientRect().bottom > innerHeight).map(s => s.dataset.step), chat: Math.round(chat) };
+	});
+	check(fit.rows === 5 && !fit.below.length && fit.chat > 30, `all five Debug rows fit one 390×844 screen, chat ${fit.chat}px above them` + (fit.below.length ? "; below the fold: " + fit.below.join(", ") : ""));
 	await page.screenshot({ path: shots + "/debug-390.png" });
 	page.on("dialog", d => d.accept());
 	await page.reload({ waitUntil: "domcontentloaded" });
