@@ -6,7 +6,10 @@ Budget: $10. Sonnet, high effort. Load the `minion` skill first, then `code`. Ow
 
 ## The measurements (read first)
 
-[../load-perf/report.md](../load-perf/report.md) has every number, with file:line. Its harnesses `load.mjs` and `freeze.mjs` are in that folder: copy them into `ux/Dictate/test/` as `load.mjs` and `freeze.mjs` so anyone can re-run them, and pass the worktree's own URL (from `.worktrees.json`), never `monorepo.localhost`, which is the main tree.
+[../load-perf/report.md](../load-perf/report.md) has every number, with file:line.
+
+- Copy its harnesses `load.mjs` and `freeze.mjs` into `ux/Dictate/test/`, so anyone can re-run them.
+- Pass the worktree's own URL (from `.worktrees.json`), never `monorepo.localhost`, which is the main tree.
 
 Before (median of 3, 390 px, cold): first bubble 1.4 s at 1x, 7.2 s at 4x CPU. Longest freeze while dictating: 264 ms at 4x, 22 tasks over 50 ms per minute.
 
@@ -27,4 +30,12 @@ Before (median of 3, 390 px, cold): first bubble 1.4 s at 1x, 7.2 s at 4x CPU. L
 - `node Server/smoke.mjs <worktree>` shows no FAIL.
 - `ux/Dictate/doc/voice-assistant.md#nothing-jumps` and the `ext/Session` readme (on `watch()`) say what the code now does.
 
-Deliverable: `perf/report.md`, one screen with a before/after table. Findings go as `log` lines in `perf/session.jsonl`. Work in a worktree (`node Server/worktree-up.mjs dictation-perf`), and don't merge: message your parent in two sentences when it is ready. Stub `/api/hitl` in every run; the first probe sent 531 real paid calls. Never kill or restart the dev server or Servex, never drive the owner's tabs, never stash.
+## Deliverable
+
+`perf/report.md`: one screen with a before/after table. Findings go as `log` lines in `perf/session.jsonl`.
+
+## Rules
+
+- Work in a worktree (`node Server/worktree-up.mjs dictation-perf`). Don't merge: message your parent in two sentences when it is ready.
+- Stub `/api/hitl` in every run; the first probe sent 531 real paid calls.
+- Never kill or restart the dev server or Servex, never drive the owner's tabs, never stash.
