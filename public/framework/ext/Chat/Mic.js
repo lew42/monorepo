@@ -12,28 +12,34 @@ import { collapse_tail } from "/framework/ux/Dictate/repeat.js";
 export const SETTINGS = {
 	send_mode: "pause",         // "pause" (sentences + the silence remainder) | "sentences" (no silence send)
 	sentences_per_send: 0,      // 0 = off; N = one message per N finished sentences (the old way)
-	paragraph_pause_ms: 700,   // quiet after a finished sentence that sends everything so far; see doc/mic-notes.md#settings
+	paragraph_pause_ms: 2000,   // quiet after a finished sentence that sends everything so far; see doc/mic-notes.md#settings
 	chunk_chars: 1200,          // safety: a message this long is cut at the next sentence end
 	chunk_ms: 60000,            // safety: words waiting this long are cut at the next sentence end
-	pause_send_ms: 1500,   // quiet before everything left on screen is sent; see doc/mic-notes.md#settings
+	pause_send_ms: 2000,   // quiet before everything left on screen is sent; see doc/mic-notes.md#settings
 	break_pause_ms: 1500,       // quiet before a segment may start a new paragraph in the box
 	guess_ms: 900,              // how often the growing sentence is re-sent to Whisper
 	box_lines: 3,   // box grows to this many lines, then scrolls; see doc/mic-notes.md#settings
 	fillers: "ah uh um er erm hmm mm",   // words that never reach the box
 	clean: true,   // on: a composer with `revise:` runs the clean-up; off: all raw; see doc/mic-notes.md#settings
 	into: "chat",   // "chat" = growing bubble in the chat log, "box" = the text box; see doc/mic-notes.md#settings
+	wake_gap_s: null,   // smart assistant: quiet seconds before it hears a batch (null = Servex's own default); pushed to the session
+	wake_every: null,   // smart assistant: or this many sentences, whichever comes first (null = Servex's default)
 };
-const STORE = "chat.mic.settings.3";   // .3: the shorter 2026-09-30 defaults must not be shadowed by an old saved value
+const STORE = "chat.mic.settings.4";   // .4: the 2 s send delay must not be shadowed by the old 700 / 1500 ms defaults
 // Carry the owner's saved values over from the old key; drop stale defaults. see doc/mic-notes.md#settings-migration
 try {
-	const saved = JSON.parse(localStorage.getItem(STORE) ?? localStorage.getItem("chat.mic.settings.2") ?? "{}");
-	if (saved.pause_send_ms === 4000 || saved.pause_send_ms === 2500) delete saved.pause_send_ms;
-	if (saved.paragraph_pause_ms === 2500 || saved.paragraph_pause_ms === 1500) delete saved.paragraph_pause_ms;
+	const own = localStorage.getItem(STORE);   // a value saved under the current key is the owner's own choice: kept as is
+	const saved = JSON.parse(own ?? localStorage.getItem("chat.mic.settings.3") ?? localStorage.getItem("chat.mic.settings.2") ?? "{}");
+	if (own === null){   // carried over from an older key: drop the old defaults
+		if (saved.pause_send_ms === 4000 || saved.pause_send_ms === 2500 || saved.pause_send_ms === 1500) delete saved.pause_send_ms;
+		if (saved.paragraph_pause_ms === 2500 || saved.paragraph_pause_ms === 1500 || saved.paragraph_pause_ms === 700) delete saved.paragraph_pause_ms;
+	}
 	// A saved "manual" send mode can no longer be chosen: reset it. see doc/mic-notes.md#settings-migration
 	if (saved.send_mode === "manual") saved.send_mode = "pause";
 	Object.assign(SETTINGS, saved);
 } catch {}
 export const save_settings = () => { try { localStorage.setItem(STORE, JSON.stringify(SETTINGS)); } catch {} };
+const WAKE_PLACEHOLDERS = { wake_gap_s: 12, wake_every: 6 };   // = WAKE_DEFAULTS in Servex/agents/WakePolicy.js (gap_ms / 1000, every)
 export const CHECK_MS = 250;
 // Fired on `document` when the gear's "clean" checkbox changes (`detail` is the new value), for nodes outside this mic.
 export const CLEAN_CHANGED_EVENT = "chat-mic-clean-changed";
@@ -305,21 +311,35 @@ export class ComposerMic extends Dictate {
 		const panel = document.createElement("div");
 		panel.className = "chatbox-mic-settings";
 		const rows = [
+			["send_delay", "send delay (s): keep talking within it and the words join one prompt", "seconds"],
 			["clean", "clean transcription (fast assistant clean-up)", "boolean"],
 			["into", "dictation goes into", ["chat", "box"]],
-			["send_mode", "send mode", ["pause", "sentences"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], ["paragraph_pause_ms", "natural pause (ms)", "number"],
-			["pause_send_ms", "silence before send (ms)", "number"], ["break_pause_ms", "paragraph pause (ms)", "number"],
+			["send_mode", "send mode", ["pause", "sentences"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], ["break_pause_ms", "paragraph pause (ms)", "number"],
+		];
+		const expert = [   // under the closed "More" below the smart assistant rows
 			["guess_ms", "guess every (ms)", "number"], ["box_lines", "box lines before scroll", "number"], ["chunk_chars", "safety chunk (chars)", "number"], ["chunk_ms", "safety chunk (ms)", "number"], ["fillers", "filler words", "text"],
 		];
-		for (const [key, label, kind] of rows){
+		const more = document.createElement("details");
+		more.style.cssText = "grid-column: 1 / -1; margin-block-start: 0.6em";
+		const grid = document.createElement("div");
+		grid.style.cssText = "display: grid; grid-template-columns: auto auto; gap: 0.4em 0.75em; align-items: center; margin-block-start: 0.4em";
+		const summary = document.createElement("summary"); summary.textContent = "More";
+		more.append(summary, grid);
+		for (const [key, label, kind, into] of [...rows.map(r => [...r, panel]), ...expert.map(r => [...r, grid])]){
 			const name = document.createElement("label"); name.textContent = label;
 			const input = Array.isArray(kind) ? document.createElement("select") : document.createElement("input");
 			if (Array.isArray(kind)) for (const o of kind) input.add(new Option(o, o));
 			else if (kind === "boolean") input.type = "checkbox";
-			else input.type = kind;
-			if (kind === "boolean") input.checked = !!SETTINGS[key]; else input.value = SETTINGS[key];
+			else input.type = kind === "seconds" ? "number" : kind;
+			input.dataset.key = key;
+			if (kind === "seconds") input.step = "0.5";
+			if (kind === "boolean") input.checked = !!SETTINGS[key]; else input.value = kind === "seconds" ? SETTINGS.pause_send_ms / 1000 : SETTINGS[key];
 			input.style.width = kind === "boolean" ? "auto" : "10em";
 			input.addEventListener("change", () => {
+				if (key === "send_delay"){   // one knob, both waits: the natural pause after a sentence and the silence before the tail
+					SETTINGS.paragraph_pause_ms = SETTINGS.pause_send_ms = Math.max(0, Math.round((Number(input.value) || 0) * 1000));
+					return save_settings();
+				}
 				SETTINGS[key] = kind === "number" ? Math.max(0, Number(input.value) || 0) : kind === "boolean" ? input.checked : input.value;
 				if (key === "send_mode") this.send_mode = undefined;   // the panel wins over a per-mic override
 				if (key === "into") this.into = undefined;   // same rule, for the mode table's own "into" override
@@ -329,9 +349,46 @@ export class ComposerMic extends Dictate {
 				if (key === "clean") document.dispatchEvent(new CustomEvent(CLEAN_CHANGED_EVENT, { detail: SETTINGS.clean }));
 				save_settings();
 			});
+			into.append(name, input);
+		}
+		this.wake_rows(panel);
+		panel.append(more);
+		return panel;
+	}
+
+	// The smart assistant's batch knobs live in Servex, per session (ux/Dictate/doc/wake-policy.md); the browser keeps the owner's pick and re-sends it to each session.
+	wake_rows(panel){
+		const head = document.createElement("div");
+		head.className = "chatbox-mic-settings-head";
+		head.textContent = "Smart assistant (hears your words in batches)";
+		head.style.cssText = "grid-column: 1 / -1; font-weight: 600; margin-block-start: 0.6em";
+		panel.append(head);
+		for (const [key, label, max] of [["wake_gap_s", "batch after quiet (s, 1 to 60)", 60], ["wake_every", "or after this many sentences (1 to 50)", 50]]){
+			const name = document.createElement("label"); name.textContent = label;
+			const input = document.createElement("input");
+			input.type = "number"; input.min = 1; input.max = max; input.placeholder = `default (${WAKE_PLACEHOLDERS[key]})`; input.dataset.key = key;
+			input.value = SETTINGS[key] ?? "";
+			input.style.width = "10em";
+			input.addEventListener("change", () => {
+				const n = Number(input.value);
+				SETTINGS[key] = input.value === "" || !(n >= 1) ? null : Math.min(max, Math.round(n));
+				input.value = SETTINGS[key] ?? "";
+				save_settings();
+				this.push_wake(true).catch(e => console.warn("[dictate] smart assistant knobs:", e));
+			});
 			panel.append(name, input);
 		}
-		return panel;
+	}
+
+	// POST the saved batch knobs to the current voice session (null = back to Servex's default). `wake_session` is set by the widget.
+	async push_wake(force){
+		const session = this.wake_session?.();
+		if (!session || !force && SETTINGS.wake_gap_s == null && SETTINGS.wake_every == null) return;
+		const { servex_url } = await import("/framework/dev/servex_url.js");
+		const res = await fetch(servex_url("/api/session/settings"), { method: "POST", signal: AbortSignal.timeout(10000), headers: { "content-type": "application/json" },
+			body: JSON.stringify({ session, gap_ms: SETTINGS.wake_gap_s == null ? null : SETTINGS.wake_gap_s * 1000, every: SETTINGS.wake_every }) });
+		const out = await res.json().catch(() => ({ ok: false, error: "HTTP " + res.status }));
+		if (!out.ok) throw new Error("Servex refused session/settings: " + (out.error ?? res.status));
 	}
 
 	// The owner typed or pasted: text before the dictated tail is theirs; an edit inside the dictation makes the whole box theirs.

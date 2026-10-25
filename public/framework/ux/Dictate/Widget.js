@@ -783,6 +783,7 @@ Widget.Composer = class WidgetComposer extends View {
 			on_live: w.mic_preset.bubble ? state => this.widget.$thread?.live?.(state) : undefined,
 		});
 		w.dictate = view.mic;
+		if (view.mic) view.mic.wake_session = () => w.session?.();   // chat.js says which voice session this is
 		new MicIndicator();   // the one shared "mic is open" indicator
 		// the preset lands on this one mic, never the shared SETTINGS
 		if (view.mic){

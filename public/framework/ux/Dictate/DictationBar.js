@@ -90,6 +90,9 @@ export default class DictationBar extends View {
 			this.$type = button.c("dictation-bar-type", "⌨").attr("aria-label", "Type").attr("type", "button").attr("aria-pressed", "false")
 				.attr("title", "Show the box to type in")
 				.click(() => this.typing(!this.compose.hasAttribute("data-typing")));
+			// the composer's own gear (ext/Chat/Composer.js) is hidden with its row; this one presses it, so the settings panel is the same one
+			this.$gear = button.c("dictation-bar-gear", "⚙").attr("aria-label", "Dictation settings").attr("type", "button").attr("title", "Dictation settings: send delay, smart assistant batches")
+				.click(() => this.compose.querySelector(".chatbox-compose-menu")?.click());
 		}
 		this.constructor.watch(mic, this);
 		this.refresh();

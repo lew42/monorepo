@@ -41,6 +41,8 @@ ever appeared — no error, no clue why.
 
 **When is the smart assistant woken?** Not per sentence: on a pause, a question or name, or every N sentences; the two knobs are per session: [`doc/wake-policy.md`](doc/wake-policy.md).
 
+**Settings panel:** the ⚙ beside ⌨ on the sheet's bar (and the gear on a plain composer) opens "Dictation settings": the send delay (2 s) and the smart assistant's batch seconds and sentences; values live in `localStorage` key `chat.mic.settings.4` (`ext/Chat/Mic.js` `SETTINGS`): [`doc/settings.md`](doc/settings.md).
+
 **How fast is the first reply?** Measured hop by hop, before and after: [`doc/latency.md`](doc/latency.md).
 
 **Class architecture of the voice UI** (which class owns what, what is a copy of what): [`doc/voice-architecture.md`](doc/voice-architecture.md). **`VoiceStrip`** is the compact panel Refine and the demo below use; **mobile**: [`doc/mobile-socket-2026-10-09.md`](doc/mobile-socket-2026-10-09.md).
