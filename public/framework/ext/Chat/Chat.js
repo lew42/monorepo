@@ -334,9 +334,34 @@ export function card_of(b){
 }
 
 /** One sticky-bottom scroll for every chat log; call `pin()` after drawing. See doc/notes.md#sticky-scroll */
-export function sticky_scroll(box, { observe = true, end } = {}){   // end(): scrollTop of the true bottom of the content when blank padding sits under it (Widget's Thread); default scrollHeight   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
+export function sticky_scroll(box, { observe = true } = {}){   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
 	let locked = true, last = 0;
-	const bottom = () => Math.max(0, Math.min(end ? end() : box.scrollHeight, box.scrollHeight) - box.clientHeight);   // the scrollTop that shows the last line at the box's bottom
+	// A fixed/sticky bar (the bottom toolbar) can sit over the box's bottom edge: the last line must land just above it, so the box grows tail room as tall as the overlap.
+	let tail = -1, tail_base = null;   // -1: the first make_room() always writes
+	const BREATH = 14;   // px of air between the last line and the bar / the box edge (the owner, 2026-10-25: not flush)
+	const overlap = () => {
+		const r = box.getBoundingClientRect(), y = Math.min(r.bottom, innerHeight) - 2;
+		if (!r.height || y <= r.top) return 0;
+		let top = Infinity;
+		for (const el of document.elementsFromPoint(r.left + r.width / 2, y)){
+			if (el === box || box.contains(el)) break;   // reached the box itself: everything before this was drawn over it
+			const pos = getComputedStyle(el).position;
+			if (pos === "fixed" || pos === "sticky") top = Math.min(top, el.getBoundingClientRect().top);
+		}
+		return top === Infinity ? 0 : Math.max(0, Math.min(y + 2 - top, r.height / 2));
+	};
+	const make_room = () => {
+		const ov = Math.round(overlap());
+		if (ov === tail) return ov;
+		if (tail_base === null || tail <= 0){ box.style.paddingBlockEnd = ""; tail_base = parseFloat(getComputedStyle(box).paddingBlockEnd) || 0; }
+		box.style.paddingBlockEnd = tail_base + ov + BREATH + "px";
+		tail = ov;
+		return ov;
+	};
+	const bottom = () => {   // the scrollTop that shows the last line at the box's bottom, or just above an overlay bar
+		const ov = make_room();
+		return Math.max(0, box.scrollHeight - box.clientHeight);
+	};
 	const at_bottom = () => bottom() - box.scrollTop < 40;   // within ~40px counts as pinned
 	const $btn = document.createElement("button");
 	$btn.type = "button";
@@ -361,6 +386,10 @@ export function sticky_scroll(box, { observe = true, end } = {}){   // end(): sc
 	}, { passive: true });
 	const pin = () => { if (locked) go_down(); else if ($btn !== box.lastChild) box.appendChild($btn); };   // the button stays last, even if a redraw emptied the box
 	if (observe && typeof ResizeObserver === "function") new ResizeObserver(pin).observe(box);
+	if (observe && typeof MutationObserver === "function"){   // late growth (live edits, refinements) re-pins while locked; a reader who scrolled up is never moved
+		let raf = 0;
+		new MutationObserver(() => { if (locked && !raf) raf = requestAnimationFrame(() => { raf = 0; pin(); }); }).observe(box, { childList: true, subtree: true, characterData: true });
+	}
 	return { pin, locked: () => locked };
 }
 
