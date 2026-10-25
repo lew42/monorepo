@@ -28,4 +28,14 @@ ok(of(A) === 3 && of(B) === 2 && of(C) === 1, "a session's turns are its own: 3 
 const old = turn_costs([L({ type: "result", turn_cost: 1 }), L({ type: "result", turn_cost: 2 })].join("\n"));
 ok(old.turns.every(t => t.session === null) && old.turns.length === 2, "an old log with no marker: turns with session null (session_turns then keeps them all)");
 ok(turn_costs(log, { openrouter: true }).turns.map(t => t.session).join() === [A, A, B, B, C].join(), "openrouter turns are tagged the same way");
+// a spawn with its own system brief (assistant-fast): no whoami; its markers are the spawn's renew line and, in old logs, the CLI's transcript line
+const D = "dddddddd-0000-4000-8000-000000000004", E = "eeeeeeee-0000-4000-8000-000000000005";
+const desk = turn_costs([
+	L({ type: "renew", why: "spawn", replaces: null, session: D }),
+	L({ type: "result", turn_cost: 1, sdk_total: 1 }),
+	L({ type: "transcript", text: `session ${E} · claude-haiku-5-5 · bypassPermissions`, meta: true }),
+	L({ type: "transcript", text: `session ${A} is quoted in a reply`, meta: false }),   // not the CLI's line: no " · " after the id
+	L({ type: "result", turn_cost: 2, sdk_total: 2 }),
+].join("\n"));
+ok(desk.turns.map(t => t.session).join() === [D, E].join(), "a spawn line and the CLI's transcript line mark a session; quoted text does not");
 console.log(`${n} passing`);

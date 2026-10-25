@@ -11,16 +11,20 @@
  *
  * SESSION (2026-10-24, core/Session/doc/identity.md): one agent id runs as several Claude sessions (a renewal, a reused id), so each
  * turn also says which session it belongs to: the line's own `session_id` (result lines since 2026-10-24), else the last marker before
- * it, a `renew` line's `session` or the host's whoami message ("Your own page is /framework/ai/sessions/<uuid>/"). null before any marker. */
+ * it: a `renew` line's `session`, the host's whoami message ("Your own page is /framework/ai/sessions/<uuid>/") or the `transcript` line
+ * Agent.began() writes when the CLI announces a new session ("session <uuid> · <model> · …"; the only marker a spawn with its own system
+ * brief, like assistant-fast, gets). null before any marker. */
+const BEGAN = /^session ([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}) · /;
 const WHOAMI = "Your own page is /framework/ai/sessions/", WHOAMI_ID = /Your own page is \/framework\/ai\/sessions\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\//;
 export function turn_costs(text, { openrouter = false } = {}){
 	const turns = [];
 	let proc = 0, last = 0, session = null;
 	for (const line of String(text).split("\n")){
-		const whoami = line.includes(WHOAMI);
-		if (!line.includes('"turn_cost"') && !line.includes('"state":"started"') && !line.includes('"type":"renew"') && !whoami) continue;
+		const whoami = line.includes(WHOAMI), began = line.includes('"type":"transcript","text":"session ');
+		if (!line.includes('"turn_cost"') && !line.includes('"state":"started"') && !line.includes('"type":"renew"') && !whoami && !began) continue;
 		let j; try { j = JSON.parse(line); } catch { continue; }
 		if (whoami && j.type === "agent_msg" && j.from === "host"){ session = String(j.text ?? "").match(WHOAMI_ID)?.[1] ?? session; continue; }
+		if (began && j.type === "transcript"){ session = BEGAN.exec(String(j.text ?? ""))?.[1] ?? session; continue; }
 		if (j.type === "process" && j.state === "started"){ proc = 0; continue; }
 		if (j.type === "renew"){ proc = last = 0; session = j.session ?? session; continue; }   // a fresh session under the same id
 		if (!("turn_cost" in j)) continue;

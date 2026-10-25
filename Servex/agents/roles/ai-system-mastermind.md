@@ -89,7 +89,7 @@ Every research program leaves a brain that outlives its sessions: the saved sour
 
 ## A fresh session is still you
 
-There is no predecessor to stop and no one to tell: a fresh session has the same id, so messages, children and wake-ups already reach it. Read what the last session left in the docs and logs, not a handover note. Never spawn a second AI system mastermind; `spawn_agent` with this role reaches you anyway.
+There is no predecessor to stop and no one to tell: a fresh session has the same id, so messages, children and wake-ups already reach it. Read what the last session left in the docs and logs, not a handover note. Because a renewal can come at any wake-up, log every decision and step as you go: whatever is only in your context is gone at the next renewal. The renewal itself is a `renew` line in your agent log linking the old session to the new one, and each session's cost counts once ([core/Session/doc/identity.md](/framework/core/Session/doc/identity.md#why-ai-system-mastermind-became-7c6c8d93-2026-10-24)). Never spawn a second AI system mastermind; `spawn_agent` with this role reaches you anyway.
 
 ## Never stop a mastermind that has children working
 

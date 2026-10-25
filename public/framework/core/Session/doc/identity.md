@@ -40,7 +40,25 @@ Every session has one dated folder, `public/framework/ai/sessions/YYYY/MM/DD/<na
 | **SDK resume** (`resume: <id>`: a dormant agent woken, a revive after a Servex restart) | Same | The registry row's `resumed_from` (= its own id after a plain resume). |
 | **Fork** (`fork_self`, `spawn_agent {resume, fork: true}`) | New | The registry row's `forked_from`. A fork's transcript starts with a copy of the parent's history, so the same message ids appear in two files. The check counts any shared ids. |
 | **Renewal** (a role with `renew`) | New | The agent log's `renew` line (`replaces` → `session`). Nothing on disk under `ai/sessions` links the two folders yet (⬜ below). |
+| **Respawn under a reused id** (a reviewer reusing its name, `assistant-fast` on every Servex boot) | New | Since 2026-10-24, the spawn writes a `renew` line with `why: "respawn"` (`replaces` → `session`). Before that, nothing linked them. A spawn with its own system brief also writes `why: "spawn"` for its first session, because it gets no whoami line. |
 | **Another MCP's "session"** (Figma `create_session`) | Not a Claude id | It lives only in tool arguments. Readers must use the **top-level** `sessionId` of a transcript line, never grep for a uuid. |
+
+### A Servex restart keeps every id (proved on the 23:13 restart, 2026-10-24)
+
+The rule: a restart revives each agent by SDK resume, so its id never changes. Only a renewal or a respawn may give an agent id a new session, and either one writes a `renew` line linking the two.
+
+The proof, computed from the registry, the agent logs and the transcripts:
+- **11 of 11** agents revived after the restart kept their id. Each has `resumed_from` equal to its `session_id`, a process start within 15 minutes of the restart, and one transcript with lines both before and after it. None carries a foreign id. Among them: `mastermind-deputy` (d9c3caec), `mastermind-page` (83e9996a), `ai-system-mastermind` (7c6c8d93) and this task (83b71020).
+- **3 agents got a new id after the restart, and none of them is a fork.** `assistant-fast` starts a fresh session on every boot by design (`Assistant.start()`; its memory is the prompts log). `reviewer-minion-tracking-perf` and `-2` were spawned again under their old names at 23:29 and 23:33. All three were unlinked until this change.
+
+### Why ai-system-mastermind became 7c6c8d93 (2026-10-24)
+
+1. At 21:07:56, session `2da03974` went dormant with **130,131 tokens** of context, past the role's `renew` line of 100k tokens.
+2. At 21:32:54, a message woke it ("session-is-a-task brief, part 4"). `wake()` saw that `renew_due` was `tokens` and spawned a fresh session, `7c6c8d93`, under the same id. The agent log's line 3901 records the switch: `{"type":"renew","why":"tokens","replaces":"2da03974…","session":"7c6c8d93…"}`.
+3. The held message was replayed to the new session. Nothing was in flight: a renewal only happens from dormant or stopped.
+4. **Cost is counted once.** Each transcript is priced on its own (2da03974 $10.59, 7c6c8d93 $11.95), and no message id is in both. In the agent ledger, each turn now carries its own session (`turn_costs`).
+
+The role readme says so: the role can be renewed at any time, so it logs everything as it goes and needs no hand-off ([ai-system-mastermind.md](/Servex/agents/roles/ai-system-mastermind.md)).
 
 ## Who writes to which `session.jsonl`
 

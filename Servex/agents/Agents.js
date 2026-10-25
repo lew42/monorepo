@@ -245,6 +245,11 @@ export class Agents {
 			...(again ? { [spec.fork ? "forked_from" : "resumed_from"]: again } : {})
 		});
 		agent.host = this;
+		/* A ROLLOVER IS LOGGED (core/Session/doc/identity.md, 2026-10-24): a fresh spawn under an id that already had a session (a
+		 * reviewer reusing its name, assistant-fast on every boot) links the two ids, the way renew() does; a spawn with its own
+		 * system brief gets no whoami line, so it marks its first session here too. turn_costs reads both as session markers. */
+		const prev = !again && !spec.renewing ? this.reg().read()[id]?.session_id : null;
+		if (!again && !spec.renewing && ((prev && prev !== session_id) || spec.system)) agent.emit({ type: "renew", why: prev ? "respawn" : "spawn", replaces: prev ?? null, session: session_id });
 		this.live.set(agent.id, agent);
 		agent.start();
 		this.register(agent);
