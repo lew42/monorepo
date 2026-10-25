@@ -146,7 +146,7 @@ Session.report_pause(() => GLOBAL.ctl.session);
 export default function chat(el, { path = location.pathname, card, placeholder, keep = true, level, source, debug, revision, models, mode = "dictate" } = {}){
 	const target = { path, card };
 	const owner = keep ? GLOBAL : create_controller({ persist: false });
-	let panel, stop_watch = null, stop_stream = null, own_ats = new Set(), watching = "unset";
+	let panel, pushed_for = null, stop_watch = null, stop_stream = null, own_ats = new Set(), watching = "unset";
 	let resume_label = null, resume_session = null, watching_since = null, wire_timer = null, link_why = null;
 	let link = { state: "open" };   // the live wire to Servex: "open" | "down" {why, since}, down only past WIRE_GRACE_MS; the sheet's Reconnect button shows it
 	const on_link = new Set();
@@ -159,6 +159,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	new View({ el, capture: false }).append(() => {
 		panel = new Widget({
 			placeholder, level, source, debug, revision, models, mode,
+			session: () => owner.ctl.session,
 			marks: true,
 			deliver: async entry => {
 				try {
@@ -166,6 +167,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 					owner.sync_from_storage();
 					await owner.ensure(target);
 					if (!owner.ctl.session){ DictateHealth.fail("sent", new Error(`Servex did not start a voice session for ${target.path}`), "not sent"); return false; }
+					if (pushed_for !== owner.ctl.session){ pushed_for = owner.ctl.session; panel.dictate?.push_wake?.().catch(e => quiet_note("the smart assistant's batch settings were not sent", e)); }   // the saved batch knobs reach each new session once
 					const via = entry.via === "typed" ? "text" : "voice";
 					floor.stamp(entry);
 					const thread = entry.thread ? { re: entry.thread, thread: true } : {};

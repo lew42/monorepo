@@ -5,7 +5,7 @@
 @layer site {
 	.dictation-bar { display: grid; justify-items: center; align-items: center; }
 	/* full: ONE compact row, [mic] [word · hint] [⌨] */
-	.dictation-bar[data-size="full"] { grid-template-columns: auto 1fr auto; justify-items: start; column-gap: 0.6em; block-size: 2.75rem; }
+	.dictation-bar[data-size="full"] { grid-template-columns: auto 1fr auto auto; justify-items: start; column-gap: 0.6em; block-size: 2.75rem; }
 	.dictation-bar[data-size="compact"] { grid-template-columns: auto 1fr; justify-items: start; column-gap: 0.6em; block-size: 2.75rem; }
 
 	.dictation-bar-mic {
@@ -36,6 +36,8 @@
 	.dictation-bar-word { font-weight: 600; }
 
 	.dictation-bar-type { grid-column: 3; justify-self: end; align-self: center; border: 0; background: none; color: inherit; font: inherit; font-size: 1.2em; line-height: 1; padding: 0.4em 0.5em; opacity: 0.8; white-space: nowrap; }
+	.dictation-bar-gear { grid-column: 4; justify-self: end; align-self: center; border: 0; background: none; color: inherit; font: inherit; font-size: 1.2em; line-height: 1; padding: 0.4em 0.5em; opacity: 0.6; white-space: nowrap; }
+	.dictation-bar-gear:hover, .dictation-bar-gear:focus-visible { opacity: 1; }
 	.dictation-bar-type[aria-pressed="true"] { opacity: 1; color: var(--prime); }
 }
 
