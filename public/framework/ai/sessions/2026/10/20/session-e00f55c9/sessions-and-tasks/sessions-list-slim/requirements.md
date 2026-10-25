@@ -20,3 +20,14 @@ For `mastermind-page`, after (or alongside) the top-tabs task, since the two sti
 - Child sessions nest only once they're linked to their parent's session id. The deputy is building that now: `../session-is-a-task/requirements.md` (item 3). Use the same data; don't build a second linking system.
 - Shots at 390 and 1920, scrolled and unscrolled. In the phone shot, the first session card must sit near the top of the first screen.
 - Land ready to merge, with a `show:` line that has links. The merge is the owner's.
+
+## The owner again (2026-10-24, after seeing the page)
+
+- **The controls go above the card stack, in one full-width sticky header** with its own opaque background. The stack of session cards is the big scrolling area below it.
+- **Condense it greatly.** There are about a dozen controls today, and the owner has used none of them and isn't sure they work.
+  - Keep the one or two common ones visible (the date, "Today ▾").
+  - Put the rest in a dropdown menu. Don't break them; hide them.
+- **Then, in order:**
+  1. redesign the session card previews;
+  2. then the session detail page.
+  Each is its own step, and each lands before the next starts.
