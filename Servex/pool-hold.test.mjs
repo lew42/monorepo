@@ -33,6 +33,7 @@ function fake_pool(registry, opts = {}){
 	pool.slots = [{ id: "qf-1", path: path.join(dir, "qf-1"), branch: "worktree/qf-1", url: "http://127.0.0.1:9/",
 		state: "taken", taken_by: "fixer-1", taken_at: "2026-10-01T00:00:00-05:00" }];
 	pool.give_back_calls = 0;
+	pool.give_back_real = Pool.prototype.give_back;
 	pool.give_back = async id => { pool.give_back_calls++; return { id, state: "ready" }; };
 	return pool;
 }
@@ -43,6 +44,13 @@ await check("a PHANTOM slot (taken, but no worktree on disk) is dropped, even fr
 	await pool.reclaim();
 	assert.equal(pool.slots.length, 0, "the phantom slot was forgotten");
 	assert.equal(pool.give_back_calls, 0, "nothing to give back: there was no worktree");
+});
+
+await check("give_back refuses a slot another live agent is working in (the parent asking for a child's slot)", async () => {
+	const pool = fake_pool([{ id: "child-1", state: "working", cwd: path.join(dir, "qf-1") }, { id: "fixer-1", state: "idle" }]);
+	pool.holders = () => [{ id: "child-1", state: "working", cwd: path.join(dir, "qf-1") }];
+	await assert.rejects(pool.give_back_real("qf-1", "fixer-1"), /is in use — child-1/);
+	await assert.rejects(pool.give_back_real("qf-1", "child-1"), e => !/is in use/.test(e.message), "the worker itself may return it");
 });
 
 await check("the baseline this feature changes: NOT held, holder looks stopped -> reclaim hands it back", async () => {
