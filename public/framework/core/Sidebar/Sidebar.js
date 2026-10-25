@@ -133,7 +133,7 @@ export class Sidebar extends View {
 	}
 
 	// Visibility rules and filters: doc/sidebar-notes.md
-	// ⚠ ASYNC for cold-load race; ⚠ Tree nodes by index; ⚠ Deeper branches open lazily
+	// ⚠ ASYNC for cold-load race; ⚠ Tree nodes matched by name (a leaf's pinned list is a subset); ⚠ Deeper branches open lazily
 	async visible_nodes(page, nodes){
 		const visible = await Promise.all(nodes.map(node => page.nav_ready(node.name)));   // by name: a leaf's `pinned` list is a subset of its children
 
