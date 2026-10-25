@@ -628,6 +628,7 @@ export default class AISessionsPage extends Page {
 		const ok = await this.remote_ask({ first: true });
 		if (!ok) { this.remote = null; this.client = null; return false; }
 		this.remote_controls();
+		AISessionRows.load_tree(this.data_url).then(tree => { AISessionRows.tree = this.tree = tree; if (this.remote) this.grid.apply(false); });   // the cards' child counts and root-only rail read the tree, in remote mode too
 		const get_json = AISessionRows.get_json;
 		get_json(this.data_url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });
 		get_json(this.data_url + "../sessions/openrouter-reconcile.json").then(r => { this.reconcile = r; this.render_stats(); }).catch(() => {});
