@@ -32,7 +32,7 @@ item({ path: "<session file>", delta: { place: { re: "<the sentence's at>", to: 
 ```
 Sessions            Servex/agents/Sessions.js       the orchestrator: writes each {chat} line, wakes the voice assistant
  └ voice assistant  roles.js row "voice-assistant"  the agent: one placement per sentence (.claude/skills/voice-assistant/)
-item tool           Servex/agents/page_tools.js     writes the {place} line into the session file (works today)
+item tool           Servex/agents/page_tools.js     writes the {place} line into the session file; `place` must be in SESSION_KEYS there, or the tool refuses it as an unknown key and no placement is ever written (fixed 2026-10-25, proof in item_tool.test.mjs)
 chat()              ux/Dictate/chat.js              tails the session file; hands {chat}, {para}, {place} to the widget
 Widget.Thread       ux/Dictate/Widget.js            draws the bubbles; live() = the draft piece in place; place() = apply a placement
 ```
