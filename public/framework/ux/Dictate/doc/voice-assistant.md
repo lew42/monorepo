@@ -32,8 +32,8 @@ item({ path: "<session file>", delta: { place: { re: "<the sentence's at>", to: 
 ```
 Sessions            Servex/agents/Sessions.js       the orchestrator: writes each {chat} line, wakes the voice assistant
  └ voice assistant  roles.js row "voice-assistant"  the agent: one placement per sentence (.claude/skills/voice-assistant/)
-item tool           Servex/agents/page_tools.js     writes the {place} line into the session file (works today)
-chat()              ux/Dictate/chat.js              tails the session file; hands {chat}, {para}, {place} to the widget
+item tool           Servex/agents/page_tools.js     writes the {place} and {summary} lines into the session file: `place` and `summary` are in SESSION_KEYS, and a `{summary:{card,…}}` is written as a line, not run as the summary query (proof: item_tool.test.mjs)
+chat()              ux/Dictate/chat.js              tails the session file; hands {chat}, {para}, {place}, {summary} to the widget
 Widget.Thread       ux/Dictate/Widget.js            draws the bubbles; live() = the draft piece in place; place() = apply a placement
 ```
 

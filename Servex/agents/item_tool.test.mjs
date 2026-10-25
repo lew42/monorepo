@@ -78,6 +78,11 @@ try {
 		ok(r.ok && /changed nothing/.test(r.warning ?? ""), "a verb that changes nothing says so");
 		r = await call("item", { path: SURL, delta: { tasks: { nobody: { start: {} } } } });
 		ok(r.ok && /changed nothing/.test(r.warning ?? ""), "a verb sent to a missing child says so");
+		fs.writeFileSync(path.join(SDIR, "session.jsonl"), JSON.stringify({ session: { id: "v-fixture", kind: "voice" } }) + "\n");   // the real voice session's line 1 (an object), so the file is a Session
+		r = await call("item", { path: SURL, delta: { place: { re: "2026-10-25T00:54:22.355-05:00", to: "same", edit: "nothing" } } });
+		ok(r.ok && fs.readFileSync(path.join(SDIR, "session.jsonl"), "utf8").includes('"place":{"re":"2026-10-25T00:54:22.355-05:00"'), "the voice assistant's {place} line is written to session.jsonl (it was refused as an unknown key)");
+		r = await call("item", { path: SURL, delta: { summary: { card: "2026-10-25T00:54:22.355-05:00", text: "two sentences, one card" } } });
+		ok(r.ok && fs.readFileSync(path.join(SDIR, "session.jsonl"), "utf8").includes('"summary":{"card":"2026-10-25T00:54:22.355-05:00"'), "the voice assistant's {summary} line is written to session.jsonl");
 		r = await call("item", { path: SURL, delta: { nonsense_key: 1 } });
 		ok(r.ok === false && /names no method/.test(r.why), "a session log refuses unknown keys");
 	} finally { fs.rmSync(SDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
