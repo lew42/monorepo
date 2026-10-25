@@ -52,9 +52,10 @@ A part is a run of sentences with one meaning; cite them all by number. Every se
 - rule: a standing direction for agents ("always", "never", "we don't want X", "the mastermind manages these"). It becomes a doc note, never a task; "file" is the doc it belongs in when obvious (CLAUDE.md, a module's readme.md), else "".
 - question: the owner wants an answer. idea: thinking aloud, a maybe, a hedge ("maybe", "I wonder"). conversation: narration, thanks, filler.
 When the owner corrects themselves, the later word wins: cite both sentences in one part.
+A bare follow-up ("make sure that is noted", "look into it", "let me know", "do that too") is never a part of its own: cite its sentence in the part it refers to (usually the one just before it), or nest it there.
 Answer with ONE JSON object and nothing else:
 {"subject": "a few of the owner's words", "parts": [{"cites": [0, 1], "kind": "ask|rule|question|idea|conversation", "text": "one line, the owner's names", "file": "", "module": "", "parts": []}]}
-"module": the site module a main ask concerns when the prompt names one (ext/Refine, core/Task, ai/sessions), else "".`;
+"module": the site module or page a main part (ask, question, rule or idea) concerns when the prompt names one (ext/Refine, core/Task, ai/sessions), else "".`;
 
 	/** The outcomes step's system prompt. */
 	static OUTCOMES_BRIEF = `You judge what came of the owner's prompts in ONE session of AI coding agents working on a web-framework repo (cwd is the repo). The user message gives each prompt's parts (already found, each with an id) and the condensed record of what the session did (owner prompts, the agent's replies, one line per tool call; L<n> is the transcript line).

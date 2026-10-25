@@ -2,6 +2,7 @@ import { div, p, span, small, a, details, summary, strong, md } from "/app.js";
 import RefinedCard from "/framework/ext/Refine/RefinedCard.js";
 import AISessionConversation from "./AISessionConversation.js";
 import Prompt from "/framework/ext/Refine/Prompt.js";
+import { icon } from "/framework/core/View/View.js";
 
 /**
  * class AISessionCoverage — the session page's Coverage tab: every ask found in the owner's prompts (the `refined` cards
@@ -19,7 +20,8 @@ import Prompt from "/framework/ext/Refine/Prompt.js";
 export default class AISessionCoverage {
 
 	static OUTCOMES = "/framework/ai/doc/asks-outcomes.jsonl";
-	static COLOR = { "done": "var(--ok)", "partly": "var(--warn)", "not done": "var(--hot)", "open": "var(--prim-ink)", "unreviewed": "var(--ink)" };
+	static GLYPH = { ask: "task_alt", question: "help_outline", rule: "gavel", idea: "lightbulb", conversation: "chat_bubble_outline" };
+	static COLOR ={ "done": "var(--ok)", "partly": "var(--warn)", "not done": "var(--hot)", "open": "var(--prim-ink)", "unreviewed": "var(--ink)" };
 
 	constructor(session){
 		this.session = session;
@@ -87,38 +89,74 @@ export default class AISessionCoverage {
 		});
 	}
 
-	/* PROMPT RECORDS: how many prompts are complete, then one row per prompt: its completion and every part with its outcome.
+	/* PROMPT RECORDS, drawn as a chat: a bubble per prompt (heading, coverage score, its opening words), a card per top-level part wearing
+	 * the module it concerns, its outcome and its S-cites; a click on a cite shows those raw sentences, highlighted, in the bubble. Nested
+	 * details settle with their parent (Prompt.settled looks at top-level parts only), so a card only counts them.
 	 * A "task" outcome counts as open here until its task is complete (the browser does not resolve task states yet). */
 	records_view(recs, open){
 		const done = recs.filter(r => r.complete()).length, loose = recs.reduce((n, r) => n + r.open().length + r.uncovered.length, 0);
 		div.c("flow", () => {
 			div.c("flex gap-50 wrap v-center", () => { strong(`${done} of ${recs.length} prompts complete`); small.c("muted", `${loose} open parts or uncited sentences · a prompt is complete when everything it asks is done or documented`); });
 			recs.sort((x, y) => (x.at ?? "").localeCompare(y.at ?? "")).forEach((r, i) => {
-				const { done: d, total } = r.progress(), box = details.c("flow session-coverage-row").style({ "border-bottom": "1px solid var(--line, #8883)", margin: "0", padding: "0" });
+				const { done: d, total } = r.progress(), box = details.c("flow session-bubble").style({ margin: "0" });
 				box.el.id = "r" + r.prompt_id.slice(0, 8);
 				if (open.has(box.el.id)) box.el.open = true;
 				box.append(() => {
 					summary(() => {
 						AISessionCoverage.tag(r.complete() ? "done" : "open", r.complete() ? "complete" : `${d}/${total}`);
 						strong(` ${i + 1}. ${r.subject || r.parts.find(x => x.kind === "ask")?.text || "Prompt"}`);
+						small.c("muted", ` · ${AISessionCoverage.score(r)}% of ${r.clean.length} sentences cited`);
 					}).style({ border: "0", background: "none", margin: "0", padding: "0.3em 0", "box-shadow": "none" });
-					const part = x => div.c("flex gap-50", () => {
-						const is = x.outcome?.is ?? "open";
-						AISessionCoverage.tag(Prompt.SETTLED.includes(is) ? "done" : is === "task" ? "partly" : "open", is);
-						span(() => {
-							span(`${x.kind}: ${x.text} `);
-							small.c("muted", "S" + (x.cites ?? []).join(", S"));
-							if (x.outcome?.ref) { span(" · "); /^\/|^[\w./-]+\.(md|js|mjs|jsonl)$/.test(x.outcome.ref) ? a.c("muted", x.outcome.ref).href(x.outcome.ref.startsWith("/") ? x.outcome.ref : "/" + x.outcome.ref.replace(/^public\//, "")) : small.c("muted", x.outcome.ref); }
-							if (x.outcome?.why) small.c("muted", " · " + x.outcome.why);
-						});
-					});
-					r.parts.forEach(part);
+					p.c("session-words", AISessionCoverage.words(r));
+					r.parts.filter(x => x.kind !== "conversation" || x.outcome?.is).forEach(x => this.card(box, r, x));
 					if (r.uncovered.length) small.c("muted", `Sentences no part cites: S${r.uncovered.join(", S")}. They keep the prompt open.`);
+					div.c("session-raw flow");
 					details(() => { summary("Raw prompt"); div.c("flow", () => r.clean.forEach(c => p(`S${c.n}. ${c.text}`))); });
 				});
 			});
 		});
 	}
+
+	/** One top-level part: its module (the card's wrapper), kind, outcome tag, text, its details counted, and the cite that opens the raw words. */
+	card(bubble, r, x){
+		const is = x.outcome?.is ?? "open", ref = x.outcome?.ref, nested = x.parts ?? [];
+		div.c("session-card", () => {
+			div.c("session-card-mod", () => {
+				icon(AISessionCoverage.GLYPH[x.kind] ?? "article");
+				span(() => { strong(x.module || "no module named"); small.c("muted", x.kind); });
+			});
+			div.c("session-card-body flow", () => {
+				div.c("flex gap-50 wrap v-center", () => {
+					AISessionCoverage.tag(Prompt.SETTLED.includes(is) ? "done" : is === "task" ? "partly" : "open", is);
+					span(x.text);
+				});
+				if (nested.length) small.c("muted", "+ " + nested.length + " detail" + (nested.length > 1 ? "s" : "") + ": " + nested.map(n => n.kind).join(", "));
+				div.c("flex gap-50 wrap", () => {
+					if (x.cites?.length) a.c("muted", AISessionCoverage.ranges(x.cites)).href("#" + bubble.el.id).on("click", e => { e.preventDefault(); this.show_cites(bubble, r, x.cites); });
+					if (ref) /^\/|^[\w./-]+\.(md|js|mjs|jsonl)$/.test(ref) ? a.c("muted", ref).href(ref.startsWith("/") ? ref : "/" + ref.replace(/^public\//, "")) : small.c("muted", ref);
+					if (x.outcome?.why) small.c("muted", x.outcome.why);
+				});
+			});
+		});
+	}
+
+	/** Plain DOM (a click runs outside any capture): the cited sentences, highlighted, in the bubble's raw area. */
+	show_cites(bubble, r, cites){
+		const box = bubble.el.querySelector(".session-raw"), el = (tag, text, cls) => Object.assign(document.createElement(tag), { textContent: text, ...(cls ? { className: cls } : {}) });
+		bubble.el.open = true;
+		box.replaceChildren(...r.clean.filter(c => cites.includes(c.n)).map(c => el("p", `S${c.n}. ${c.text}`, "sessions-flag")));
+		box.firstElementChild?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+	}
+
+	/** Cited sentences ÷ all sentences, as a whole percent. */
+	static score(r){ return r.clean.length ? Math.round((r.clean.length - r.uncovered.length) / r.clean.length * 100) : 0; }
+	/** [4, 7, 8, 9] → "S4, S7–9". */
+	static ranges(ns){
+		const out = []; [...ns].sort((a, b) => a - b).forEach(n => { const l = out[out.length - 1]; l && n === l[1] + 1 ? l[1] = n : out.push([n, n]); });
+		return out.map(([a, b]) => a === b ? "S" + a : b === a + 1 ? `S${a}, S${b}` : `S${a}–${b}`).join(", ");
+	}
+	/** The bubble's quoted opening: the first sentences, cut. */
+	static words(r){ const t = r.clean.map(c => c.text).join(" "); return "“" + (t.length > 220 ? t.slice(0, 220).trimEnd() + "…" : t) + "”"; }
 
 	/** One prompt: its refined form and asks up front; the structured outline and the raw words one click down. */
 	prompt(c, n, open){

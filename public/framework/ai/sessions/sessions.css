@@ -385,6 +385,17 @@
 
 }
 
+/* The Coverage tab as a chat: a bubble per prompt, a card per part (module on the left, the part and its outcome on the right). */
+@layer components {
+	.session-bubble { border: 1px solid var(--line, #8883); border-radius: .75rem; padding: .5rem .75rem; container-type: inline-size; }
+	.session-words { color: var(--muted, inherit); font-style: italic; margin: 0; }
+	.session-card { display: grid; grid-template-columns: minmax(7rem, 10rem) 1fr; gap: .5rem .75rem; padding: .5rem 0; border-top: 1px solid var(--line, #8883); }
+	.session-card-mod { display: flex; gap: .4rem; align-items: flex-start; }
+	.session-card-mod > span { display: grid; }
+	.session-raw:empty { display: none; }
+	@container (width < 40em) { .session-card { grid-template-columns: 1fr; } }
+}
+
 /* Hides, in util so they beat `.flex`: the cache link and the date pickers (the scope trail replaces them); the ancestor
    page's footer chips (open tasks, "Inbox · 1, 1 new", AI cost) go: the open tasks return as a chip in the status line. */
 @layer util {
