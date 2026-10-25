@@ -80,3 +80,14 @@
 {"log":{"at":"2026-10-25T04:48:26-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-25T04:52:45-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-25T04:56:28-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T05:16:51-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T05:16:52-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T05:20:46-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T05:26:44-05:00","heartbeat":"check","msg":"status check sent to mastermind-sessions-page"}}
+{"log":{"at":"2026-10-25T05:26:46-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T05:27:18-05:00","heartbeat":"answered","msg":"I'm idle with nothing running. The sessions-page brief has fully landed, including the Tasks tab (live on michael/dev and checked on a phone-width screen), so no wake-up is set."}}
+{"log":{"at":"2026-10-25T05:30:46-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T05:41:44-05:00","heartbeat":"check","msg":"status check sent to mastermind-sessions-page"}}
+{"log":{"at":"2026-10-25T05:41:47-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T05:42:17-05:00","heartbeat":"answered","msg":"I'm still idle and nothing is running. The sessions-page brief is done and live on michael/dev, so there's no work and no wake-up pending."}}
+{"log":{"at":"2026-10-25T05:45:47-05:00","msg":"session ended (other) without landing"}}
