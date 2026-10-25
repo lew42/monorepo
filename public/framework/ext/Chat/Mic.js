@@ -526,8 +526,9 @@ export class ComposerMic extends Dictate {
 			const rest = joined.slice(sents.slice(0, cut).join("").length).trim();
 			if (this.base.trim()){ texts[0].text = this.base.trim() + " " + texts[0].text; this.base = ""; }
 			this.held = rest ? [{ text: rest, raw: rest, br: false, ready: Promise.resolve() }] : [];
+			const items = texts.map(t => this.take_out(t)).filter(Boolean);   // drawn in the chat now, before the caption loses them
 			this.draw_caption();
-			this.enqueue(texts);
+			this.enqueue(items);
 		} catch (e){ console.error("chat: sending finished sentences failed", e); }
 		finally { this.sending_sentences = false; }
 	}
@@ -569,11 +570,14 @@ export class ComposerMic extends Dictate {
 			if (!text) return;   // the owner cleared the box, or a stop already sent it, while this was waiting
 			this.notify_if_failed((this.held ?? []).filter(h => !h.gone));
 			const raw = (this.base + (this.base && !/\s$/.test(this.base) ? " " : "") + this.build_tail(true)).trim() || text;
+			const item = this.take_out({ text, raw });   // in the chat now, where the draft was: the waits below never empty the screen
 			this.consume_sent();
 			this.draw_caption();   // empty the box now, in this same tick, so no second check can send it again
-			// One last live-refine call (`final: true`); paragraphed slots replace `text` when the route answers.
+			if (!item) return;
+			// One last live-refine call (`final: true`); paragraphed slots replace `text` when the route answers (the drawn piece is patched in place).
 			const live = await this.refine_final(raw);
-			this.enqueue([{ text: live?.slots?.length ? ComposerMic.paragraph_from_slots(live.slots, live.outline) : text, raw }]);
+			if (live?.slots?.length) item.text = ComposerMic.paragraph_from_slots(live.slots, live.outline);
+			this.enqueue([item]);
 		} finally { this.sending_screen = false; }
 	}
 
@@ -605,11 +609,14 @@ export class ComposerMic extends Dictate {
 		const raw = held.map(h => h.raw ?? h.text).join(" ").trim();
 		this.held = [];
 		if (!text) return;
+		const item = this.take_out({ text, raw });
 		this.draw_caption();
 		if (!this.pending?.length && !this.partial_text) this.release_height();
+		if (!item) return;
 		// One last live-refine call, as in `send_screen()`.
 		const live = await this.refine_final(raw);
-		return this.post_held({ text: live?.slots?.length ? ComposerMic.paragraph_from_slots(live.slots, live.outline) : text, raw });
+		if (live?.slots?.length) item.text = ComposerMic.paragraph_from_slots(live.slots, live.outline);
+		return this.post_held(item);
 	}
 
 	// Hand the words to `deliver(entry)`; on failure they go to Dictate's fallback log. see doc/mic-notes.md#post_held
@@ -631,11 +638,30 @@ export class ComposerMic extends Dictate {
 		return strip_words(h2, h1) === "" ? h1 : text;
 	}
 
-	async post_held(item){
+	/** The words leave the caption: one item `{text, raw, at}`, handed to `on_out` in this same step so the chat draws it where the
+	 * draft was, before any wait (clean-up, refine, the send queue); the send follows with the same `at`. null = a duplicate, dropped.
+	 * Why: the flicker (ux/Dictate/doc/flicker.md). */
+	take_out(item){
 		const got = typeof item === "string" ? { text: item, raw: null } : item;
 		const text = ComposerMic.collapse_repeat(got.text), raw = got.raw && ComposerMic.collapse_repeat(got.raw);
-		if (this.same_as_last_send(text)){ console.warn("chat: dropped a duplicate send (same words, " + ComposerMic.DUP_WINDOW_MS + "ms window):", text); return; }
-		const entry = { type: "prompt", by: "owner", text, via: "whisper" };
+		if (this.same_as_last_send(text)){ console.warn("chat: dropped a duplicate send (same words, " + ComposerMic.DUP_WINDOW_MS + "ms window):", text); return null; }
+		const out = { text, raw, at: ComposerMic.stamp() };
+		try { this.on_out?.(out); } catch (e){ console.error("chat: drawing the sent words failed", e); }
+		return out;
+	}
+
+	// A unique, rising `at`: two sentences taken out in the same millisecond must not share one bubble piece.
+	static stamp(){
+		const t = Math.max(Date.now(), (ComposerMic.last_stamp ?? 0) + 1);
+		ComposerMic.last_stamp = t;
+		return new Date(t).toISOString();
+	}
+
+	async post_held(item){
+		const got = item?.at ? item : this.take_out(item);   // an item not taken out yet (a caller of its own) is taken out here
+		if (!got) return;
+		const { text, raw } = got;
+		const entry = { type: "prompt", by: "owner", text, via: "whisper", at: got.at };
 		if (raw && raw.trim() && raw.trim() !== text.trim()){ entry.raw = raw; entry.level = "clean"; }
 		const re = this.re?.();
 		if (re){ entry.re = re; entry.selected = re; }
@@ -663,6 +689,7 @@ export class ComposerMic extends Dictate {
 	}
 }
 ComposerMic.prototype.mode = "open";   // the mic stays on; draw_caption() types into the box
+ComposerMic.prototype.on_out = null;   // ({text, raw, at}) => … — words just left the caption (take_out); the chat draws them at once
 ComposerMic.DUP_WINDOW_MS = 4000;   // same words from the same mic this close together are one send (see post_held)
 ComposerMic.DELIVER_MS = 25000;   // the backstop: Session.js gives up after 10 s per call, so only a deliver with no timeout of its own reaches this
 ComposerMic.mounted = new Set();   // every composer mic built, for heir(); a detached one is dropped the next time heir() looks

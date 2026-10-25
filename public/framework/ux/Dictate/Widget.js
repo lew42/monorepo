@@ -72,10 +72,18 @@ export default class Widget extends View {
 		Promise.resolve(this.deliver(entry)).then(ok => { if (!ok) this.$thread?.mark_failed(at); });
 	}
 
+	/** Dictated words just left the draft to be sent (ComposerMic.take_out): the settled piece takes the draft's exact spot in this
+	 * same step, so nothing vanishes while the send waits (doc/flicker.md). The send arrives later at submit_entry() with the same `at`. */
+	show_out({ text, at }){
+		this.$thread?.settle_draft?.();
+		this.$thread?.draw({ chat: { at, from: { kind: "owner" }, text, via: "whisper" } });
+	}
+
 	/** The new composer's deliver; entry is {text, via, at?, raw?, level?}; returns true/false (or a promise). */
 	submit_entry(entry){
 		const at = entry.at ?? new Date().toISOString();
-		this.$thread?.settle_draft?.();   // the settled piece takes the draft's exact spot: nothing moves (doc/voice-assistant.md)
+		// Drawn already by show_out() (a refined text patches that piece in place), or a typed line, which leaves the dictation draft alone:
+		// settling here dropped whatever draft was live when a slow send landed, i.e. the next sentence being said (doc/flicker.md).
 		this.$thread?.draw({ chat: { at, from: { kind: "owner" }, text: entry.text, via: entry.via } });
 		if (typeof this.deliver !== "function") return true;
 		const full = { ...entry, at };
@@ -309,6 +317,8 @@ Widget.Thread = class WidgetThread extends View {
 
 	/** Re-apply the two views over the lines (a redraw of a bubble rebuilds its nodes): raw look, and folded cards. Idempotent. */
 	refresh(){
+		const d = this.draft;   // a redraw of the draft's host bubble (Chat.js fill) puts the pieces after the draft: it goes back to the end
+		if (d?.host && d.host.lastElementChild !== d.el) d.host.append(d.el);
 		for (const [at, line] of this.lines){
 			const node = line.bubble?.querySelector(`:scope > [data-re="${CSS.escape(String(at))}"]`);
 			node?.classList.toggle("ux-dictate-raw", !!line.spoken && !this.settled.has(at));
@@ -696,6 +706,7 @@ Widget.Composer = class WidgetComposer extends View {
 			revise: w.revision || false,
 			on_text: text => w.on_text?.(text),
 			deliver: entry => w.submit_entry(entry),
+			on_out: item => w.show_out(item),   // the words are in the chat the moment they leave the draft or the box, before the send
 			// pulse and level read the same 0..1 meter
 			on_meter: (w.level || w.pulse) ? level => { this.set_level(level); w.$pulse?.set_level(level); } : undefined,
 			// mode "live" only: leaving on_live undefined keeps dictation in the box
