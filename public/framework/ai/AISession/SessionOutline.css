@@ -1,0 +1,49 @@
+/* The session page's Overview (SessionOutline + SessionOutlineView). Prefix soutline-. Groups are .card boxes in a multi-column grid; a task is one full-width row. */
+@layer site {
+	.soutline { width: 100%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 1rem; }
+	.soutline-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+	.soutline-count { margin: 0; font-weight: 600; }
+	.soutline-toggle { font-size: .8rem; padding: .25em .75em; cursor: pointer; }
+	.soutline-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr)); gap: 1rem; align-items: start; min-width: 0; }
+	.soutline-group { min-width: 0; box-sizing: border-box; padding: .5rem .75rem; }
+	.soutline-group.is-dropped { opacity: .55; }
+	.soutline-sum { display: flex; flex-direction: column; gap: .15rem; cursor: pointer; list-style: none; position: relative; padding-block: 0; padding-inline-end: 0; padding-inline-start: 1.25rem; width: auto; min-height: 0; font-size: inherit; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; }   /* a summary wears the control box (framework.css control grammar); a row is not a control */
+	.soutline-sum::-webkit-details-marker { display: none; }
+	.soutline-sum::before { content: "▸"; position: absolute; inset-inline-start: 0; top: 0; color: color-mix(in srgb, var(--ink) 50%, transparent); }
+	details[open] > .soutline-sum::before { content: "▾"; }
+	.soutline-body { padding-top: .5rem; min-width: 0; }
+	.soutline-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem .75rem; min-width: 0; }
+	.soutline-name { font-weight: 600; overflow-wrap: anywhere; }
+	.soutline-meta { display: flex; flex-wrap: wrap; gap: .1rem .75rem; }
+	.soutline-own { display: flex; flex-direction: column; gap: .75rem; }
+	.soutline-own-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem 1rem; }
+	.soutline-own-title { font-size: 1.05rem; }
+
+	.soutline-list { min-width: 0; overflow-wrap: anywhere; }
+	.soutline-item { min-width: 0; border-top: 1px solid var(--mob-line, color-mix(in srgb, var(--ink) 15%, transparent)); }
+	.soutline-list > .soutline-item:first-child { border-top: 0; }
+	.soutline-item.is-dropped { opacity: .5; }
+	.soutline-item.is-dropped .soutline-ttl { text-decoration: line-through; }
+	.soutline-item > .soutline-sum { display: block; padding-inline-start: 0; }
+	.soutline-item > .soutline-sum::before { content: none; }
+	.soutline-row { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; min-width: 0; width: 100%; }
+	.soutline-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1rem; }
+	.soutline-ttl { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+	.soutline-prog { flex: 0 0 auto; }
+	.soutline-agent { display: flex; flex-wrap: wrap; gap: .1rem .75rem; align-items: baseline; }
+	.soutline-link { font-size: .8rem; }
+
+	.soutline-state { flex: 0 0 auto; display: inline-block; font-size: 1.25rem; line-height: 1; width: 1.25rem; text-align: center; }
+	.soutline-state.is-open { color: color-mix(in srgb, var(--ink) 55%, transparent); }
+	.soutline-state.is-done { color: var(--ok, #2e9d5b); }
+	.soutline-state.is-dropped { color: color-mix(in srgb, var(--ink) 35%, transparent); }
+	.soutline-state.is-running { width: .65rem; height: .65rem; margin: .3rem .3rem 0; border-radius: 50%; background: #e8a317; }
+	small.soutline-state { width: auto; font-size: .8rem; }
+
+	.soutline-kids { margin-inline-start: 1.25rem; border-inline-start: 1px solid var(--mob-line, color-mix(in srgb, var(--ink) 15%, transparent)); padding-inline-start: .5rem; }
+	.soutline-proof { display: flex; flex-direction: column; gap: .35rem; padding: .25rem 0 .6rem 1.85rem; min-width: 0; }
+	.soutline-outcome { margin: 0; overflow-wrap: anywhere; }
+	.soutline-refs { display: flex; flex-wrap: wrap; gap: .25rem 1rem; }
+	.soutline-ref { font-size: .85rem; overflow-wrap: anywhere; }
+	.soutline-none { margin: 0; padding: .25rem 0; }
+}

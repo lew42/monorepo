@@ -35,13 +35,19 @@ try {
 	r = await run_item({ path: URL, delta: { tasks: { add: { type: "Process", title: "Build it", id: "build-it" } } } }, { caller: "t1" });
 	ok(r.ok, "an object, and an object with a type, are taken");
 
+	r = await run_item({ path: URL, delta: { "build-it": { title: "Build it better", description: "refined while the owner talks" } } }, { caller: "t1" });
+	ok(r.ok, "a task is refined in place by a line addressed to its id (the voice mastermind's way to revise as the owner talks)");
 	r = await run_item({ path: URL }, { caller: "t1" });
-	ok(r.state.counts.direct.created === 3 && r.state.tasks.length === 3, "read back through the tool: 3 own tasks, counted on read");
+	ok(r.state.tasks.find(t => t.id === "build-it")?.title === "Build it better", "the refined title shows on the next read");
+	r = await run_item({ path: URL, delta: { tasks: { add: { type: "Session", title: "A planned child session", id: "planned-child" } } } }, { caller: "t1" });
+	ok(r.ok, "a child session is added as a typed entry");
+	r = await run_item({ path: URL }, { caller: "t1" });
+	ok(r.state.counts.direct.created === 4 && r.state.tasks.length === 4, "read back through the tool: 4 own tasks, counted on read");
 
 	const s = Session.replay(fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l)));
-	ok(s instanceof Session && s.tasks.length === 3 && s.tasks.find("build-it")?.constructor.name === "Process", "a fresh replay of the file has them, the typed one as its class");
+	ok(s instanceof Session && s.tasks.length === 4 && s.tasks.find("build-it")?.constructor.name === "Process", "a fresh replay of the file has them, the typed one as its class");
 	ok([...s.tasks].every(t => t.created_at), "each has the time of the line that added it (for newest-first lists)");
-	ok(s.completion === 0 && s.progress().total === 3, "completion is computed from the tasks");
+	ok(s.completion === 0 && s.progress().total === 4, "completion is computed from the tasks");
 	console.log(`session_tasks: ${n} checks passed`);
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });

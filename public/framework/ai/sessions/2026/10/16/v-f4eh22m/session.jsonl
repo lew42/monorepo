@@ -1,0 +1,7 @@
+{"session":{"id":"v-f4eh22m","home":"/framework/ux/Dictate/","at":"2026-10-16T01:35:01.769-05:00","project":"refine-build","host":"localhost:57946","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-10-16T01:35:01.851-05:00","fast":"0e61399f-df82-4e37-b53f-fe72ab2bc60e","smart":null,"how":{"fast":"new"}}}
+{"chat":{"at":"2026-10-16T01:35:05.429-05:00","session":"v-f4eh22m","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.","floor":"speaking","cues":{"mic_on_at":"2026-10-16T06:34:53.989Z","pauses":[{"start":642,"end":1042,"ms":400},{"start":2242,"end":2672,"ms":430},{"start":4822,"end":5252,"ms":430},{"start":7032,"end":null,"ms":756}],"speaking_ms":5509}}}
+{"backing":{"at":"2026-10-16T01:35:05.506-05:00","fast":"0e61399f-df82-4e37-b53f-fe72ab2bc60e","smart":"f8cb2996-2d64-4e99-88a0-903337361e22","how":{"smart":"new"}}}
+{"skip":{"at":"2026-10-16T01:35:15.353-05:00","role":"fast","text":"(listening)","re":"2026-10-16T01:35:05.429-05:00"}}
+{"react":{"at":"2026-10-16T01:35:18.392-05:00","session":"v-f4eh22m","re":"2026-10-16T01:35:05.429-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-f4eh22m"}}}
+{"chat":{"at":"2026-10-16T09:21:31.569-05:00","session":"v-f4eh22m","path":"/framework/ux/Dictate/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-16T01:35:05.429-05:00"}}

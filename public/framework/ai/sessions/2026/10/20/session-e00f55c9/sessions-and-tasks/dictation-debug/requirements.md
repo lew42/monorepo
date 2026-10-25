@@ -122,3 +122,17 @@ The voice mastermind is woken on every sentence, which floods it and multiplies 
 6. **Settings, back again.** The dictation widget gets a small settings panel: the delay before sending (say 2 s; if the owner keeps talking, the words join the same prompt instead of a new one), and the other knobs. That also answers the per-sentence flood (Part 5).
 7. **A Docs tab in the sheet** (AI · Debug · Docs). It shows the Dictate module's own readme and docs (`ux/Dictate`), ideally with small live demos of each stage (Whisper, placement). Answers to the owner's questions get written there, not in chat.
 8. **Order of work:** get it working and solid first (items 1–5), then 6 and 7. Then the owner tries new ideas live in the browser through the voice mastermind loop (Part 6).
+
+## Part 8: the fast + smart assistant shape, scaffold it NOW so the owner can test (the owner, 2026-10-25, ~02:10)
+
+Run past-work on "fast assistant" and "smart assistant" first (Sessions.js fast/smart seats, the retired session-fast, voice-assistant). Much of this exists.
+
+- **The fast assistant (Haiku) gets the per-sentence flood.**
+  - It's ONE persistent session that keeps context across the whole prompt; not a fresh call per sentence.
+  - Its only job is the raw Whisper text: clean each sentence (capitals, upgraded references), place it (same paragraph, a new paragraph, or a new bubble), give each prompt or topic a title, and make context cards when the owner talks about a specific thing.
+  - It never answers, spawns or decides. The owner wants to watch it do this live.
+- **The smart assistant (Opus, the voice mastermind) gets batches,** not sentences. The fast assistant forwards at the end of an idea, or at least every ~10–15 s (configurable in the settings panel), so the smart one stays close to the live stream without being flooded. The smart one does the real refinement: tasks, child sessions, launching agents.
+- **The fast assistant is a child of the smart one,** so its cost is counted there. It lives inside the parent's session as a session instance: no folder of its own, writing into the parent's session data. Say whether that works with today's session entries (the deputy's Session entries), and do the smallest version that does.
+- **Errors log themselves to the voice session.** Any disconnect, mic failure or Whisper error is written by the UI into the voice session automatically, so the owner never has to report it and the smart assistant sees it.
+- **First, answer the owner in one plain paragraph in the Docs tab (or the Dictate readme):** how messages travel today (browser → Servex, by socket or HTTP?), who creates the voice session, and how fast and smart are fed.
+- **The VS Code tab's Haiku refinement hook is switched OFF tonight** (pace). This browser path is the one that matters now.

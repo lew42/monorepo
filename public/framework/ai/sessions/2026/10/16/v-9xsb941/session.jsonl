@@ -1,0 +1,7 @@
+{"session":{"id":"v-9xsb941","home":"/framework/ux/Dictate/","at":"2026-10-16T23:54:41.483-05:00","project":"monorepo","host":"monorepo.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-10-16T23:54:41.626-05:00","fast":"936f7cfc-dd2d-40c9-99ec-2fb8d5eb8304","smart":null,"how":{"fast":"new"}}}
+{"chat":{"at":"2026-10-16T23:55:19.544-05:00","session":"v-9xsb941","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"first demo sentence about sessions","floor":"done"}}
+{"backing":{"at":"2026-10-16T23:55:19.659-05:00","fast":"936f7cfc-dd2d-40c9-99ec-2fb8d5eb8304","smart":"da31657d-4046-4cd9-86ed-a32f5654b8be","how":{"smart":"new"}}}
+{"skip":{"at":"2026-10-16T23:55:20.787-05:00","role":"fast","text":"(listening)","re":"2026-10-16T23:55:19.544-05:00"}}
+{"react":{"at":"2026-10-16T23:55:28.932-05:00","session":"v-9xsb941","re":"2026-10-16T23:55:19.544-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-9xsb941"}}}
+{"chat":{"at":"2026-10-17T00:12:49.619-05:00","session":"v-9xsb941","path":"/framework/ux/Dictate/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-16T23:55:19.544-05:00"}}

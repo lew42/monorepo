@@ -1,0 +1,5 @@
+{"session":{"id":"v-03nd2g8","home":"/framework/ux/Dictate/","at":"2026-10-04T23:26:59.833-05:00","project":"monorepo","host":"127.0.0.1:54155","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"chat":{"at":"2026-10-04T23:26:59.838-05:00","session":"v-03nd2g8","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"headless proof: what is 2 + 2?","floor":"done"}}
+{"backing":{"at":"2026-10-04T23:26:59.903-05:00","fast":"9cad8358-a1f3-4c66-b142-814df3dc56cb","smart":null,"how":{"fast":"new"}}}
+{"backing":{"at":"2026-10-04T23:26:59.998-05:00","fast":"9cad8358-a1f3-4c66-b142-814df3dc56cb","smart":"45f804a9-105f-412e-97b8-87bf60fe38fe","how":{"smart":"new"}}}
+{"chat":{"at":"2026-10-04T23:27:04.436-05:00","session":"v-03nd2g8","path":"/framework/ux/Dictate/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-03nd2g8"},"via":"text","text":"4","re":"2026-10-04T23:26:59.838-05:00"}}

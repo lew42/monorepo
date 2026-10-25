@@ -1,0 +1,72 @@
+{"session":{"id":"v-ih8xwwd","home":"/framework/","at":"2026-10-13T22:46:20.241-05:00","project":"monorepo","host":"monorepo.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-10-13T22:46:20.363-05:00","fast":"13402be5-3bba-4f36-9017-35bd9407970e","smart":null,"how":{"fast":"new"}}}
+{"chat":{"at":"2026-10-13T22:46:20.369-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"This is","floor":"done","cues":{"mic_on_at":"2026-10-14T03:46:19.308Z","pauses":[],"speaking_ms":320}}}
+{"backing":{"at":"2026-10-13T22:46:20.673-05:00","fast":"13402be5-3bba-4f36-9017-35bd9407970e","smart":"d8b8952b-bd34-4f94-9662-9087c21dc036","how":{"smart":"new"}}}
+{"skip":{"at":"2026-10-13T22:46:23.171-05:00","role":"fast","text":"(listening)","re":"2026-10-13T22:46:20.369-05:00"}}
+{"chat":{"at":"2026-10-13T22:46:25.423-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"This is an end-to-end test of the dictation.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:46:21.894Z","pauses":[{"start":2669,"end":null,"ms":858}],"speaking_ms":2400}}}
+{"chat":{"at":"2026-10-13T22:46:25.693-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"flow.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:46:21.894Z","pauses":[{"start":3527,"end":null,"ms":238}],"speaking_ms":0}}}
+{"quiet":{"at":"2026-10-13T22:46:27.066-05:00","ms":2500,"path":"/framework/"}}
+{"skip":{"at":"2026-10-13T22:46:28.264-05:00","role":"fast","text":"(listening)","re":"2026-10-13T22:46:25.693-05:00"}}
+{"chat":{"at":"2026-10-13T22:46:38.782-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"Smart Assistant, which page lists all the sessions.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:46:21.894Z","pauses":[{"start":3765,"end":12609,"ms":8844},{"start":13549,"end":14010,"ms":461},{"start":15889,"end":null,"ms":875}],"speaking_ms":2751}}}
+{"quiet":{"at":"2026-10-13T22:46:40.285-05:00","ms":2500,"path":"/framework/"}}
+{"chat":{"at":"2026-10-13T22:46:41.500-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"assistant","id":"fast","agent":"session-fast-v-ih8xwwd"},"via":"text","text":"I think it's probably the /framework/ home page, but the smart assistant will confirm.","re":"2026-10-13T22:46:38.782-05:00"}}
+{"chat":{"at":"2026-10-13T22:46:54.305-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"The sheet should show every bubble in the order I set it.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:46:21.894Z","pauses":[{"start":16765,"end":28809,"ms":12045},{"start":31389,"end":null,"ms":867}],"speaking_ms":2570}}}
+{"quiet":{"at":"2026-10-13T22:46:55.785-05:00","ms":2500,"path":"/framework/"}}
+{"skip":{"at":"2026-10-13T22:46:57.021-05:00","role":"fast","text":"(listening)","re":"2026-10-13T22:46:54.305-05:00"}}
+{"chat":{"at":"2026-10-13T22:47:02.371-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-ih8xwwd"},"via":"text","text":"### Sessions list `/framework/ai/sessions/`\n> Which page lists all the sessions?\n\nIt's `/framework/ai/sessions/`. The source is `public/framework/ai/sessions/page.js`.\n\n---\n\n### Dictation test `/framework/`\nThe dictation arrived whole: all three of your lines came through in order. The last one was \"The sheet should show every bubble in the order I set it.\" I don't know which sheet you mean, so I haven't touched anything. Say which page it's on and I'll pass it on as a task.","re":"2026-10-13T22:46:54.305-05:00"}}
+{"chat":{"at":"2026-10-13T22:47:08.613-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"Smart Assistant, please reply with one short line to end the test.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:46:21.894Z","pauses":[{"start":32256,"end":41379,"ms":9123},{"start":42329,"end":42859,"ms":530},{"start":45349,"end":null,"ms":1170}],"speaking_ms":3424}}}
+{"quiet":{"at":"2026-10-13T22:47:09.745-05:00","ms":2500,"path":"/framework/"}}
+{"chat":{"at":"2026-10-13T22:47:11.184-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"assistant","id":"fast","agent":"session-fast-v-ih8xwwd"},"via":"text","text":"Test ended; the fast assistant is signing off here.","re":"2026-10-13T22:47:08.613-05:00"}}
+{"chat":{"at":"2026-10-13T22:47:13.355-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-ih8xwwd"},"via":"text","text":"Test complete: dictation, replies and the session name all worked end to end. ✅","re":"2026-10-13T22:47:08.613-05:00"}}
+{"chat":{"at":"2026-10-13T22:47:41.743-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"an end-to-end test of the dictation flow.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:46:21.894Z","pauses":[{"start":46519,"end":76339,"ms":29820},{"start":78859,"end":null,"ms":903}],"speaking_ms":2441}}}
+{"quiet":{"at":"2026-10-13T22:47:41.978-05:00","ms":1223,"mic_off":true,"path":"/framework/"}}
+{"pause":{"at":"2026-10-13T22:47:42.077-05:00","phase":"start"}}
+{"skip":{"at":"2026-10-13T22:47:43.215-05:00","role":"fast","text":"(listening)","re":"2026-10-13T22:47:41.743-05:00"}}
+{"react":{"at":"2026-10-13T22:47:44.886-05:00","session":"v-ih8xwwd","re":"2026-10-13T22:47:41.743-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-ih8xwwd"}}}
+{"chat":{"at":"2026-10-13T22:49:14.414-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"This is an end-to-end test of the dictation flow.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:49:10.860Z","pauses":[{"start":2643,"end":null,"ms":898}],"speaking_ms":2410}}}
+{"quiet":{"at":"2026-10-13T22:49:22.923-05:00","ms":2500,"path":"/framework/"}}
+{"skip":{"at":"2026-10-13T22:49:23.571-05:00","role":"fast","text":"(listening)","re":"2026-10-13T22:49:14.414-05:00"}}
+{"chat":{"at":"2026-10-13T22:49:25.804-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-ih8xwwd"},"via":"text","text":"✅ Heard, the dictation flow is working.","re":"2026-10-13T22:49:14.414-05:00"}}
+{"chat":{"at":"2026-10-13T22:49:27.877-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"Smart Assistant, which page lists all the sessions.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:49:10.860Z","pauses":[{"start":3541,"end":12573,"ms":9032},{"start":13523,"end":13983,"ms":460},{"start":15863,"end":null,"ms":1144}],"speaking_ms":2769}}}
+{"quiet":{"at":"2026-10-13T22:49:29.235-05:00","ms":2500,"path":"/framework/"}}
+{"chat":{"at":"2026-10-13T22:49:30.554-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"assistant","id":"fast","agent":"session-fast-v-ih8xwwd"},"via":"text","text":"I think it's probably the /framework/ home page; the smart assistant will confirm.","re":"2026-10-13T22:49:27.877-05:00"}}
+{"chat":{"at":"2026-10-13T22:49:32.422-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-ih8xwwd"},"via":"text","text":"`/framework/ai/sessions/` lists all the sessions. The source is `public/framework/ai/sessions/page.js`.","re":"2026-10-13T22:49:27.877-05:00"}}
+{"chat":{"at":"2026-10-13T22:49:43.125-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"The sheet should show every bubble in the order I set it.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:49:10.860Z","pauses":[{"start":17007,"end":28783,"ms":11776},{"start":31363,"end":null,"ms":893}],"speaking_ms":2580}}}
+{"quiet":{"at":"2026-10-13T22:49:44.725-05:00","ms":2500,"path":"/framework/"}}
+{"skip":{"at":"2026-10-13T22:49:45.811-05:00","role":"fast","text":"(listening)","re":"2026-10-13T22:49:43.125-05:00"}}
+{"chat":{"at":"2026-10-13T22:49:51.639-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-ih8xwwd"},"via":"text","text":"I couldn't find a page called \"Sheet\", so I don't know which one you mean and haven't changed anything. Tell me which page or sheet it is and I'll send it to a task. The ask is that it shows every bubble in the order you set.","re":"2026-10-13T22:49:43.125-05:00"}}
+{"chat":{"at":"2026-10-13T22:49:57.126-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"Smart assistant, please reply with one short line to end the test.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:49:10.860Z","pauses":[{"start":32256,"end":41363,"ms":9107},{"start":42303,"end":42843,"ms":540},{"start":45323,"end":null,"ms":934}],"speaking_ms":3390}}}
+{"quiet":{"at":"2026-10-13T22:50:01.869-05:00","ms":2500,"path":"/framework/"}}
+{"skip":{"at":"2026-10-13T22:50:02.992-05:00","role":"fast","text":"(listening)","re":"2026-10-13T22:49:57.126-05:00"}}
+{"chat":{"at":"2026-10-13T22:50:04.525-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-ih8xwwd"},"via":"text","text":"Test ended: all replies arrived. ✅","re":"2026-10-13T22:49:57.126-05:00"}}
+{"chat":{"at":"2026-10-13T22:50:30.713-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"This is an end-to-end test of the dictation flow.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:49:10.860Z","pauses":[{"start":46257,"end":76313,"ms":30056},{"start":78833,"end":null,"ms":922}],"speaking_ms":2429}}}
+{"quiet":{"at":"2026-10-13T22:50:31.275-05:00","ms":1580,"mic_off":true,"path":"/framework/"}}
+{"pause":{"at":"2026-10-13T22:50:31.384-05:00","phase":"start"}}
+{"nav":{"at":"2026-10-13T22:50:32.327-05:00","from":"/framework/","to":"/framework/"}}
+{"skip":{"at":"2026-10-13T22:50:32.638-05:00","role":"fast","text":"(listening)","re":"2026-10-13T22:50:30.713-05:00"}}
+{"react":{"at":"2026-10-13T22:50:36.524-05:00","session":"v-ih8xwwd","re":"2026-10-13T22:50:30.713-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-ih8xwwd"}}}
+{"chat":{"at":"2026-10-13T22:53:41.760-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"This is a","floor":"done","cues":{"mic_on_at":"2026-10-14T03:53:40.949Z","pauses":[],"speaking_ms":289}}}
+{"skip":{"at":"2026-10-13T22:53:43.255-05:00","role":"fast","text":"(listening)","re":"2026-10-13T22:53:41.760-05:00"}}
+{"react":{"at":"2026-10-13T22:53:51.312-05:00","session":"v-ih8xwwd","re":"2026-10-13T22:53:41.760-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-ih8xwwd"}}}
+{"nav":{"at":"2026-10-13T22:58:31.983-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T22:58:31.986-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T22:58:39.557-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T22:59:31.068-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T22:59:31.070-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T22:59:38.725-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T22:59:47.447-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T22:59:47.450-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T22:59:55.297-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:00:36.185-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:00:36.188-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:00:44.187-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:00:54.056-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:00:54.059-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:01:02.247-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:01:37.222-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:01:37.224-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:01:44.881-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:01:54.569-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:01:54.572-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:02:02.545-05:00","from":"/framework/","to":"/framework/"}}
+{"chat":{"at":"2026-10-14T12:18:44.417-05:00","session":"v-ih8xwwd","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-13T22:53:41.760-05:00"}}

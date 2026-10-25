@@ -321,7 +321,7 @@ check("fast mode is untouched: it still sends `[on <path>] <text>` to session-fa
 	assert.equal(last_sent("fast"), "[on /a/] plain again");
 });
 
-check("the smart seat: Opus 5.5, medium effort, bypassPermissions, the full Claude Code preset", () => {
+check("the smart seat: Opus 5.5, medium effort, bypassPermissions; every voice agent is tied to its session by parent_session, and kept on parent \"sessions\" for events", () => {
 	const spawned = [];
 	const real = agents.spawn;
 	agents.spawn = spec => { spawned.push(spec); return real(spec); };
@@ -334,6 +334,24 @@ check("the smart seat: Opus 5.5, medium effort, bypassPermissions, the full Clau
 	assert.ok(smart, "a session-smart agent was spawned");
 	assert.equal(smart.model, "claude-opus-5-5"); assert.equal(smart.effort, "medium"); assert.equal(smart.permission_mode, "bypassPermissions");
 	assert.equal(smart.system.preset, "claude_code", "the full Claude Code tool set, not the lean no-tools seat");
+	assert.ok(smart.system.append.includes("Your session's page") && smart.system.append.includes(path.posix.dirname(s.map[made.session].file) + "/"), "the smart seat is told its own session folder, for the item tool");
+	assert.match(s.map[made.session].file, /^\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/[^/]+\/session\.jsonl$/);
+	for (const sp of spawned.filter(x => /^(voice-assistant|session-smart|session-fast)$/.test(x.role))){
+		assert.equal(sp.parent, "sessions"); assert.equal(sp.parent_session, made.session);
+	}
+});
+
+check("load() repoints a session whose record voice-backfill moved into the dated store", () => {
+	const at = Date.parse("2026-10-17T13:25:37-05:00"), d = new Date(at);
+	const store = Sessions.session_path("/a/", "v-old0001", d);
+	fs.mkdirSync(path.dirname(path.join(repo, "public", store)), { recursive: true });
+	fs.writeFileSync(path.join(repo, "public", store), "{}\n");
+	const file = path.join(repo, `sessions-${++n}.json`);
+	fs.writeFileSync(file, JSON.stringify({ "v-old0001": { id: "v-old0001", home: "/a/", file: "/a/ai/v-old0001.jsonl", at, fast: null, smart: null } }));
+	const s = new Sessions({ repo, file, assistant: "fast" });
+	s.load();
+	assert.equal(s.map["v-old0001"].file, store);
+	assert.equal(JSON.parse(fs.readFileSync(file, "utf8"))["v-old0001"].file, store, "saved, so the next start does not need the move");
 });
 
 check("over the weekly pace the smart seat drops to Sonnet; the fast seat is its own tier either way", () => {
