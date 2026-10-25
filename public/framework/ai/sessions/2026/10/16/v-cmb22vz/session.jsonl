@@ -1,0 +1,7 @@
+{"session":{"id":"v-cmb22vz","home":"/framework/ux/Dictate/","at":"2026-10-16T23:56:46.574-05:00","project":"monorepo","host":"monorepo.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-10-16T23:56:46.728-05:00","fast":"c1a39b55-caa8-4916-a4c6-fb8dbec6b82b","smart":null,"how":{"fast":"new"}}}
+{"chat":{"at":"2026-10-16T23:57:04.488-05:00","session":"v-cmb22vz","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"first demo sentence about sessions","floor":"done"}}
+{"backing":{"at":"2026-10-16T23:57:04.594-05:00","fast":"c1a39b55-caa8-4916-a4c6-fb8dbec6b82b","smart":"005d5545-c2c2-4e45-8131-a92204eda27a","how":{"smart":"new"}}}
+{"skip":{"at":"2026-10-16T23:57:09.596-05:00","role":"fast","text":"(listening)","re":"2026-10-16T23:57:04.488-05:00"}}
+{"react":{"at":"2026-10-16T23:57:13.098-05:00","session":"v-cmb22vz","re":"2026-10-16T23:57:04.488-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-cmb22vz"}}}
+{"chat":{"at":"2026-10-17T00:12:49.620-05:00","session":"v-cmb22vz","path":"/framework/ux/Dictate/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-16T23:57:04.488-05:00"}}

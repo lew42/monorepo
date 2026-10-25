@@ -1,0 +1,12 @@
+{"session":{"id":"v-ee5vql4","home":"/framework/ux/Dictate/","at":"2026-10-16T23:58:09.331-05:00","project":"monorepo","host":"monorepo.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-10-16T23:58:09.474-05:00","fast":"b39077da-4ee1-4959-a2f3-53d75dc31e36","smart":null,"how":{"fast":"new"}}}
+{"chat":{"at":"2026-10-17T00:00:28.909-05:00","session":"v-ee5vql4","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"first demo sentence about sessions","floor":"done"}}
+{"backing":{"at":"2026-10-17T00:00:29.025-05:00","fast":"b39077da-4ee1-4959-a2f3-53d75dc31e36","smart":"3f4eeafd-587e-473c-88ca-f07876fe8d86","how":{"smart":"new"}}}
+{"skip":{"at":"2026-10-17T00:00:30.452-05:00","role":"fast","text":"(listening)","re":"2026-10-17T00:00:28.909-05:00"}}
+{"react":{"at":"2026-10-17T00:00:41.518-05:00","session":"v-ee5vql4","re":"2026-10-17T00:00:28.909-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-ee5vql4"}}}
+{"chat":{"at":"2026-10-17T00:01:03.912-05:00","session":"v-ee5vql4","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"kept second sentence","floor":"done"}}
+{"backing":{"at":"2026-10-17T00:01:04.074-05:00","fast":"b39077da-4ee1-4959-a2f3-53d75dc31e36","smart":"3f4eeafd-587e-473c-88ca-f07876fe8d86","how":{"fast":"resume"}}}
+{"backing":{"at":"2026-10-17T00:01:04.197-05:00","fast":"b39077da-4ee1-4959-a2f3-53d75dc31e36","smart":"3f4eeafd-587e-473c-88ca-f07876fe8d86","how":{"smart":"resume"}}}
+{"skip":{"at":"2026-10-17T00:01:10.394-05:00","role":"fast","text":"(listening)","re":"2026-10-17T00:01:03.912-05:00"}}
+{"react":{"at":"2026-10-17T00:01:11.678-05:00","session":"v-ee5vql4","re":"2026-10-17T00:01:03.912-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-ee5vql4"}}}
+{"chat":{"at":"2026-10-17T00:12:49.621-05:00","session":"v-ee5vql4","path":"/framework/ux/Dictate/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-17T00:01:03.912-05:00"}}

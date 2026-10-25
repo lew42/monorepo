@@ -1,0 +1,10 @@
+{"session":{"id":"v-bb219z5","home":"/framework/ux/Dictate/","at":"2026-10-16T23:55:45.337-05:00","project":"monorepo","host":"monorepo.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-10-16T23:55:45.476-05:00","fast":"a2f2d542-86ce-4b44-8912-8c1be6696d2e","smart":null,"how":{"fast":"new"}}}
+{"chat":{"at":"2026-10-16T23:55:48.869-05:00","session":"v-bb219z5","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"kept second sentence","floor":"done"}}
+{"backing":{"at":"2026-10-16T23:55:48.985-05:00","fast":"a2f2d542-86ce-4b44-8912-8c1be6696d2e","smart":"4ba8fd92-2bb1-4ff5-a801-1db29f33d463","how":{"smart":"new"}}}
+{"skip":{"at":"2026-10-16T23:55:49.894-05:00","role":"fast","text":"(listening)","re":"2026-10-16T23:55:48.869-05:00"}}
+{"chat":{"at":"2026-10-16T23:56:00.426-05:00","session":"v-bb219z5","path":"/framework/ux/Dictate/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-bb219z5"},"via":"text","text":"I've named the session, but I haven't acted on \"kept second sentence\". It doesn't tell me what to change, and I'm waiting for the rest of the thought.","re":"2026-10-16T23:55:48.869-05:00"}}
+{"chat":{"at":"2026-10-16T23:56:22.051-05:00","session":"v-bb219z5","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"first demo sentence about sessions","floor":"done"}}
+{"skip":{"at":"2026-10-16T23:56:22.997-05:00","role":"fast","text":"(listening)","re":"2026-10-16T23:56:22.051-05:00"}}
+{"react":{"at":"2026-10-16T23:56:27.149-05:00","session":"v-bb219z5","re":"2026-10-16T23:56:22.051-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-bb219z5"}}}
+{"chat":{"at":"2026-10-17T00:12:49.619-05:00","session":"v-bb219z5","path":"/framework/ux/Dictate/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-16T23:56:22.051-05:00"}}

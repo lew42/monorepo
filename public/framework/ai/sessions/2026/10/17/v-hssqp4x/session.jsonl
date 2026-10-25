@@ -1,0 +1,11 @@
+{"session":{"id":"v-hssqp4x","home":"/framework/ux/Dictate/","at":"2026-10-17T00:00:48.266-05:00","project":"monorepo","host":"monorepo.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-10-17T00:00:48.409-05:00","fast":"85cc6140-33cb-4f2c-80ec-274835673ea0","smart":null,"how":{"fast":"new"}}}
+{"chat":{"at":"2026-10-17T00:03:44.357-05:00","session":"v-hssqp4x","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"kept second sentence","floor":"done"}}
+{"backing":{"at":"2026-10-17T00:03:44.491-05:00","fast":"0209cab8-d8cc-44eb-bec1-11dc1a3e1972","smart":null,"how":{"fast":"fresh"}}}
+{"backing":{"at":"2026-10-17T00:03:44.615-05:00","fast":"0209cab8-d8cc-44eb-bec1-11dc1a3e1972","smart":"b19da352-175e-4342-8b48-f0c5a538586b","how":{"smart":"new"}}}
+{"skip":{"at":"2026-10-17T00:03:46.068-05:00","role":"fast","text":"(listening)","re":"2026-10-17T00:03:44.357-05:00"}}
+{"chat":{"at":"2026-10-17T00:03:52.772-05:00","session":"v-hssqp4x","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"first demo sentence about sessions","floor":"done"}}
+{"react":{"at":"2026-10-17T00:03:53.139-05:00","session":"v-hssqp4x","re":"2026-10-17T00:03:44.357-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-hssqp4x"}}}
+{"skip":{"at":"2026-10-17T00:03:53.534-05:00","role":"fast","text":"(listening)","re":"2026-10-17T00:03:52.772-05:00"}}
+{"react":{"at":"2026-10-17T00:03:55.511-05:00","session":"v-hssqp4x","re":"2026-10-17T00:03:52.772-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-hssqp4x"}}}
+{"chat":{"at":"2026-10-17T00:12:49.622-05:00","session":"v-hssqp4x","path":"/framework/ux/Dictate/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-17T00:03:52.772-05:00"}}

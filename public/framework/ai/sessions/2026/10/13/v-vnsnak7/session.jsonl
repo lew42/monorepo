@@ -1,0 +1,39 @@
+{"session":{"id":"v-vnsnak7","home":"/framework/","at":"2026-10-13T22:56:35.255-05:00","project":"monorepo","host":"monorepo.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-10-13T22:56:35.594-05:00","fast":"fb79bb13-7967-41f5-a98b-cd61d8bf6413","smart":null,"how":{"fast":"new"}}}
+{"chat":{"at":"2026-10-13T22:56:35.599-05:00","session":"v-vnsnak7","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"This is an end-to-end test of the dictation flow.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:56:31.779Z","pauses":[{"start":2571,"end":null,"ms":913}],"speaking_ms":2300}}}
+{"backing":{"at":"2026-10-13T22:56:35.987-05:00","fast":"fb79bb13-7967-41f5-a98b-cd61d8bf6413","smart":"7ef2964c-b7f5-4a86-9569-39f896c839d9","how":{"smart":"new"}}}
+{"quiet":{"at":"2026-10-13T22:56:36.853-05:00","ms":2500,"path":"/framework/"}}
+{"para":{"at":"2026-10-13T22:56:40.433-05:00","re":"2026-10-13T22:56:35.599-05:00"}}
+{"chat":{"at":"2026-10-13T22:56:40.435-05:00","session":"v-vnsnak7","path":"/framework/","from":{"kind":"assistant","id":"fast","agent":"session-fast-v-vnsnak7"},"via":"text","text":"Heard: end-to-end test of the dictation flow, received on /framework/.","re":"2026-10-13T22:56:35.599-05:00"}}
+{"react":{"at":"2026-10-13T22:56:47.043-05:00","session":"v-vnsnak7","re":"2026-10-13T22:56:35.599-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-vnsnak7"}}}
+{"chat":{"at":"2026-10-13T22:56:48.943-05:00","session":"v-vnsnak7","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"Smart Assistant, which page lists all the sessions.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:56:31.779Z","pauses":[{"start":3484,"end":12501,"ms":9017},{"start":13451,"end":13911,"ms":460},{"start":15791,"end":null,"ms":1233}],"speaking_ms":2771}}}
+{"quiet":{"at":"2026-10-13T22:56:50.071-05:00","ms":2500,"path":"/framework/"}}
+{"skip":{"at":"2026-10-13T22:56:51.074-05:00","role":"fast","text":"(listening)","re":"2026-10-13T22:56:48.943-05:00"}}
+{"chat":{"at":"2026-10-13T22:56:55.187-05:00","session":"v-vnsnak7","path":"/framework/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-vnsnak7"},"via":"text","text":"### 🗂️ Sessions list `/framework/ai/sessions/`\n\nAll sessions are listed at [/framework/ai/sessions/](/framework/ai/sessions/). Its data lives in `public/framework/ai/sessions/`, organized by date.","re":"2026-10-13T22:56:48.943-05:00"}}
+{"chat":{"at":"2026-10-13T22:57:06.165-05:00","session":"v-vnsnak7","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"This third sentence only checks the order.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:56:31.779Z","pauses":[{"start":17024,"end":28701,"ms":11677},{"start":30671,"end":null,"ms":854}],"speaking_ms":1911}}}
+{"chat":{"at":"2026-10-13T22:57:06.180-05:00","session":"v-vnsnak7","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"It is not a test.","floor":"done","cues":{"mic_on_at":"2026-10-14T03:56:31.779Z","pauses":[{"start":31525,"end":31571,"ms":46},{"start":32531,"end":null,"ms":1862}],"speaking_ms":960}}}
+{"quiet":{"at":"2026-10-13T22:57:07.188-05:00","ms":2500,"path":"/framework/"}}
+{"skip":{"at":"2026-10-13T22:57:07.959-05:00","role":"fast","text":"(listening)","re":"2026-10-13T22:57:06.180-05:00"}}
+{"react":{"at":"2026-10-13T22:57:11.194-05:00","session":"v-vnsnak7","re":"2026-10-13T22:57:06.180-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-vnsnak7"}}}
+{"chat":{"at":"2026-10-13T22:57:19.346-05:00","session":"v-vnsnak7","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"Smart assistant, please reply with one short line to end the test.","floor":"speaking","cues":{"mic_on_at":"2026-10-14T03:56:31.779Z","pauses":[{"start":34392,"end":42551,"ms":8159},{"start":43501,"end":44031,"ms":530},{"start":46531,"end":null,"ms":744}],"speaking_ms":3419}}}
+{"quiet":{"at":"2026-10-13T22:57:20.813-05:00","ms":2500,"path":"/framework/"}}
+{"chat":{"at":"2026-10-13T22:57:21.661-05:00","session":"v-vnsnak7","path":"/framework/","from":{"kind":"assistant","id":"fast","agent":"session-fast-v-vnsnak7"},"via":"text","text":"Test ended on /framework/. Smart assistant has the final word.","re":"2026-10-13T22:57:19.346-05:00"}}
+{"chat":{"at":"2026-10-13T22:57:25.177-05:00","session":"v-vnsnak7","path":"/framework/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-vnsnak7"},"via":"text","text":"Test complete: dictation reached me in order, and every line arrived.","re":"2026-10-13T22:57:19.346-05:00"}}
+{"quiet":{"at":"2026-10-13T22:57:51.251-05:00","ms":0,"mic_off":true,"path":"/framework/"}}
+{"pause":{"at":"2026-10-13T22:57:51.255-05:00","phase":"start"}}
+{"chat":{"at":"2026-10-13T22:57:51.372-05:00","session":"v-vnsnak7","path":"/framework/","from":{"kind":"owner"},"via":"voice","text":"an end-to-end test of the dictation.","floor":"done","cues":{"mic_on_at":"2026-10-14T03:56:31.779Z","pauses":[{"start":47275,"end":77531,"ms":30256}],"speaking_ms":1873}}}
+{"skip":{"at":"2026-10-13T22:57:52.189-05:00","role":"fast","text":"(listening)","re":"2026-10-13T22:57:51.372-05:00"}}
+{"react":{"at":"2026-10-13T22:57:54.338-05:00","session":"v-vnsnak7","re":"2026-10-13T22:57:51.372-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-vnsnak7"}}}
+{"nav":{"at":"2026-10-13T22:59:06.949-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T22:59:06.952-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T22:59:14.612-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:00:06.414-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:00:06.417-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:00:10.924-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:01:11.395-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:01:11.398-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:01:19.217-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:11:24.838-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:11:24.841-05:00","from":"/framework/","to":"/framework/"}}
+{"nav":{"at":"2026-10-13T23:11:32.485-05:00","from":"/framework/","to":"/framework/"}}
+{"chat":{"at":"2026-10-14T12:18:44.419-05:00","session":"v-vnsnak7","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-13T22:57:51.372-05:00"}}
