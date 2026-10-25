@@ -105,3 +105,20 @@ The voice mastermind is woken on every sentence, which floods it and multiplies 
 
 - **A live fix-and-test loop with the owner, through the voice mastermind.** The owner dictates in the browser; the voice mastermind passes each dictation ask straight to you (`send_to_agent mastermind-dictation-2`); you make a small fix, merge it fast, and tell the voice agent it's live; the owner tests and replies. Keep each fix small enough to merge in minutes. Reply to the voice agent's session, not only to your log.
 - **Whisper process leak, found by the tab.** There were 8 `whisper-server.exe` processes, each loading the large model (up to 1.9 GB each); RAM fell to 0.4 GB free and every agent queued. Only the one on port 8178 belongs to Servex. The others were on random ports from test runs (stall and smoke harnesses?), started from `cmd.exe` and never stopped. The tab stopped the four oldest (10-23 to 10-25 00:54); 3 recent ones (01:13–01:18) were left in case a test uses them. Fix the harnesses so they reuse the 8178 server, or stop what they start, with a test that proves no whisper process outlives its test.
+
+## Part 7: the owner's deep-investigation list (2026-10-25, ~02:05)
+
+"Every piece of the dictation system bolted down, with clear insight into it… I need to be able to see the problem to understand the solution." The goal is dictation in the browser that never fails, so the owner can build everything live from the page.
+
+1. **The Reconnect button** appears seemingly at random, and the last press seemed to crash the page.
+   - What does it reconnect: Whisper, the socket to Servex, the agent?
+   - Make it work. Make it say what it's reconnecting and why. Show it only when that link is really down.
+2. **Error handling and freezes.**
+   - Catch errors at every stage, and show or ignore each one deliberately.
+   - The page sometimes freezes: profile it (a performance trace), don't guess.
+3. **A compact Debug tab.** The status sits as a row of green or red lights at the top, so "all green = should work". Under it, a compact log, not paragraphs, with a resize handle between it and the chat (the "sheet within a sheet").
+4. **The log shows each sentence's life:** Whisper's raw text, its amendments, finalized, then placed in a bubble. A summary line per record, with the raw data one click down.
+5. **The misordered bubbles are a data-structure bug.** If the data is sound, rendering is right. Find whether order comes from Whisper's amend-and-finalize flow, the placement step (the AI deciding new paragraph vs same paragraph: does that still exist, and is it the right shape?) or the render. Fix it at the data.
+6. **Settings, back again.** The dictation widget gets a small settings panel: the delay before sending (say 2 s; if the owner keeps talking, the words join the same prompt instead of a new one), and the other knobs. That also answers the per-sentence flood (Part 5).
+7. **A Docs tab in the sheet** (AI · Debug · Docs). It shows the Dictate module's own readme and docs (`ux/Dictate`), ideally with small live demos of each stage (Whisper, placement). Answers to the owner's questions get written there, not in chat.
+8. **Order of work:** get it working and solid first (items 1–5), then 6 and 7. Then the owner tries new ideas live in the browser through the voice mastermind loop (Part 6).
