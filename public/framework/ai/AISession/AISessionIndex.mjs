@@ -128,7 +128,7 @@ export default class AISessionIndex {
 		const times = [ms(head.at), ...lines.slice(1).map(l => ms(Object.values(l)[0]?.at))].filter(t => t != null);
 		const first = times.length ? Math.min(...times) : fs.statSync(path.join(dir, "session.jsonl")).birthtimeMs, last = times.length ? Math.max(...times) : first;
 		const usd = r4(+lines.findLast(l => l.cost?.usd != null)?.cost.usd || 0), title = (() => { try { return JSON.parse(fs.readFileSync(path.join(dir, "session.summary.json"), "utf8")).title; } catch {} })() || lines.find(l => typeof l.title === "string")?.title || head.title || name;
-		return { id: name, kind: head.kind ?? null, state: Date.now() - last < AISessionIndex.ACTIVE_MS ? "active" : "idle", model: null, effort: null, provider: "claude", usd, usd_source: "recorded", tree_usd: usd, children: 0,
+		return { id: name, kind: head.kind ?? (/^v-/.test(name) ? "voice" : null), state: Date.now() - last < AISessionIndex.ACTIVE_MS ? "active" : "idle", model: null, effort: null, provider: "claude", usd, usd_source: "recorded", tree_usd: usd, children: 0,
 			wall_ms: last - first, flags: 0, tokens: 0, first_at: new Date(first).toISOString(), last_activity: new Date(last).toISOString(), day: Day.of(first), folder: name, tags: [], alerts: 0, parent: null, agent: null, title, core: [], files: 0 };
 	}
 
@@ -187,6 +187,7 @@ export default class AISessionIndex {
 	/** Every snapshot gets its `links` (card, task, brief, report, parent, children), computed from the real folders; rewritten only when they changed. */
 	link_all(){
 		this.kids = children_map([...this.snaps.values()]);
+		for (const s of [...this.snaps.values()]) if (s.kind === "voice") this.roll_voice(s.id);
 		for (const snap of this.snaps.values()){ const links = this.links(snap); if (!same(links, snap.links)){ snap.links = links; this.queue(snap.id); } }
 	}
 
@@ -279,7 +280,7 @@ export default class AISessionIndex {
 			provider: pv.provider === "openrouter" ? "openrouter" : "claude", usd: own, usd_source, cost_v: AISession.STATE_V, tree_usd: r4(own + below),
 			children: prev?.children ?? 0, wall_ms: Math.round(pv.wall_ms), flags: pv.flags.length, tokens, first_at: s.first_at ?? null, last_activity: s.last_at ?? null,
 			day: AISession.day(s.first_at) ?? prev?.day ?? null, folder: this.dirs.has(id) ? path.basename(this.dirs.get(id)) : (this.snaps.get(id)?.folder ?? null), tags: prev?.tags ?? [], alerts: prev?.alerts ?? 0,
-			parent: reg?.parent ?? prev?.parent ?? null, agent: reg?.id ?? prev?.agent ?? null,
+			parent: (reg?.parent === "sessions" ? reg.parent_session : reg?.parent) ?? prev?.parent ?? null, agent: reg?.id ?? prev?.agent ?? null,
 			title: s.title ?? prev?.title ?? null,
 			core: AISessionIndex.modules_of(s.touched), files: Object.keys(s.touched ?? {}).length,   // from the transcript's own Edit/Write calls; the task audit join (below) wins where it has one   // the tab's own title (VS Code sidebar / phone), from the transcript's title lines
 		};
@@ -302,11 +303,23 @@ export default class AISessionIndex {
 		const changed = Object.keys(snap).filter(k => !before || !same(before[k], snap[k]));
 		if (before && !changed.length) return [];
 		this.snaps.set(snap.id, snap);
+		if (snap.parent && this.snaps.get(snap.parent)?.kind === "voice"){
+			if (this.kids){ const l = this.kids.get(snap.parent) ?? this.kids.set(snap.parent, []).get(snap.parent); if (!l.includes(snap.id)) l.push(snap.id); }
+			this.roll_voice(snap.parent);
+		}
 		this.listeners.forEach(fn => { try { fn(snap, changed, before) } catch (e){ this.log("AISessionIndex: listener — " + e.message); } });
 		this.queue(snap.id); this.queue_day(AISessionIndex.day_of(snap));
 		this.stream_line(snap, before);
 		if (before && AISessionIndex.day_of(before) !== AISessionIndex.day_of(snap)) this.queue_day(AISessionIndex.day_of(before));
 		return changed;
+	}
+
+	/** A voice session has no transcript of its own: its cost and child count are the sum of the sessions whose parent is it (its fast and smart agents, and what they spawn). */
+	roll_voice(id){
+		const v = this.snaps.get(id); if (!v || v.kind !== "voice") return;
+		const kids = [...this.snaps.values()].filter(s => s.parent === id), tree_usd = r4((v.usd ?? 0) + kids.reduce((n, k) => n + (k.tree_usd ?? k.usd ?? 0), 0));
+		if (tree_usd === v.tree_usd && kids.length === v.children) return;
+		const up = { ...v, tree_usd, children: kids.length }; if (this.kids) up.links = this.links(up); this.snaps.set(id, up); this.queue(id); this.queue_day(AISessionIndex.day_of(up));
 	}
 
 	/** A session born in the last ten minutes, or one whose state or title changed, is one line on today's day stream (Server/AIIndexStream.mjs). A start-up read of old sessions writes none. */

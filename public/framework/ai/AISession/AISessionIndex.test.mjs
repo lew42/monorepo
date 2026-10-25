@@ -24,3 +24,17 @@ await ix.stop();
 const written = JSON.parse(fs.readFileSync(path.join(day, "index.json"), "utf8"));
 assert.equal(written.snapshots.length, 1); assert.equal(written.snapshots[0].id, "cloud-voice-demo");
 console.log("AISessionIndex record-only: ok");
+
+// a voice session (v-…, kind voice) takes its children's dollars and count from the sessions whose parent is it
+const voice = put("v-abc1234", { session: { id: "v-abc1234", kind: "voice", home: "/framework/", at } });
+const vsnap = AISessionIndex.record_snap(voice);
+assert.equal(vsnap.kind, "voice"); assert.equal(vsnap.usd, 0);
+assert.equal(AISessionIndex.record_snap(put("v-nokind", { session: { id: "v-nokind", at } })).kind, "voice");   // an old record with no kind is still a voice session
+const vx = new AISessionIndex({ base: path.join(root, "none"), root, repo: root }); vx.no_heal = true;
+await vx.load_records();
+const kid = (id, usd) => ({ id, parent: "v-abc1234", usd, tree_usd: usd, kind: null, state: "idle", first_at: "2026-10-20T22:51:00.000Z", last_activity: "2026-10-20T22:52:00.000Z", day: "2026-10-20" });
+vx.set(kid("child-fast", 0.1)); vx.set(kid("child-smart", 0.4));
+const rolled = vx.snaps.get("v-abc1234");
+assert.equal(rolled.children, 2); assert.equal(rolled.tree_usd, 0.5);
+await vx.stop();
+console.log("AISessionIndex voice roll-up: ok");
