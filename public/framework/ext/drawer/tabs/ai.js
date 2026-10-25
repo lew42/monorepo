@@ -13,6 +13,7 @@ import { DEV } from "../tabs.js";
 import Inbox from "../inbox.js";   // the page's inbox, at the top of this tab (doc/inbox.md)
 import * as Session from "/framework/ext/Session/Session.js";
 import floor from "/framework/ux/Dictate/floor.js";
+import ChatView from "../ChatView.js";   // the v2 chip, shared with the phone sheet
 
 const SESSION_KEY = "lew42-voice-session";
 
@@ -135,7 +136,7 @@ async function fetch_agent_states(session){
  *  below the same way it already disposes the chat mount, so reopening this tab ten times
  *  never leaves nine stale timers running (review finding 3's own bug, for the mount —
  *  this strip is new code, so it is built with that fix already in it, not after). */
-function session_header({ card }){
+function session_header({ card, view }){
 	const $box = div.c("drawer-ai-session flex v");
 	let $chips = null, chip_timer = null;
 
@@ -179,6 +180,7 @@ function session_header({ card }){
 			let $list;
 			div.c("drawer-ai-switcher flex v-center wrap", () => {
 				chat.new_session_button(() => live_chat, { label: "+ New session" });
+					view.chip("drawer-ai-switch-btn");
 				if (elsewhere) button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button")
 					.click(() => { $list.el.hidden = !$list.el.hidden; });
 			});
@@ -227,6 +229,8 @@ function session_header({ card }){
 let live_chat = null;
 let live_header = null;
 let live_feed = null;   // the feed goes with its chat: one pair, never a feed left behind
+let live_view = null;   // Chat v2's chip and box (ChatView.js) and its follow-the-session subscription
+let live_view_off = null;
 let live_slot = null;   // the box the chat mounted in: emptied with it, so a shut dock keeps no hidden second widget
 function dispose_chat(){
 	const handle = live_chat;
@@ -234,6 +238,10 @@ function dispose_chat(){
 	handle?.remove();
 	live_feed?.stop();
 	live_feed = null;
+	live_view_off?.(); live_view_off = null;
+	live_view?.release(); live_view = null;
+	live_view_off?.(); live_view_off = null;
+	live_view?.release(); live_view = null;
 	live_slot?.replaceChildren();
 	live_slot = null;
 	live_header?.stop();
@@ -260,7 +268,8 @@ export default function ai({ page, card, tabs }){
 	let mine = null;
 	div.c("drawer-ai flex v", () => {
 		inbox.view();
-		live_header = session_header({ card });
+		const view = live_view = new ChatView({ slot: () => live_slot, mount: () => live_chat });
+		live_header = session_header({ card, view });
 		const $slot = div.c("drawer-ai-panel");
 		live_slot = $slot.el;
 		const handle = mine = live_chat = chat($slot.el, {
@@ -268,6 +277,8 @@ export default function ai({ page, card, tabs }){
 			card: card?.id,
 			placeholder: card ? "talk into this card" : "say something",
 		});
+		live_view_off = chat.on_change(() => view.sync());   // a new or resumed session: Chat v2 follows its file
+		view.sync();
 		const feed = live_feed = AIFeed.on($slot.el, page);   // this page's events among the bubbles (sheet step 7)
 		// The OTHER way this mount's content can leave the drawer: a different tab's
 		// own refill clears $slot's own parent out from under it (see the doc above).
@@ -282,6 +293,7 @@ export default function ai({ page, card, tabs }){
 				if (live_chat === handle) live_chat = null;
 				live_header?.stop();
 				live_header = null;
+				if (live_view === view){ live_view_off?.(); live_view_off = null; view.release(); live_view = null; }
 			});
 			mo.observe(host, { childList: true });
 		}

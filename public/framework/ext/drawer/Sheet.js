@@ -10,7 +10,7 @@ import AIPage from "./AIPage.js";
 import AIFeed from "./AIFeed.js";
 import DictationBar from "/framework/ux/Dictate/DictationBar.js";
 import Socket from "/framework/dev/Socket/Socket.js";
-import ChatV2 from "/framework/ext/Chat/v2/ChatV2.js";
+import ChatView from "./ChatView.js";
 
 View.stylesheet(import.meta, "rail.css");
 
@@ -273,7 +273,8 @@ export class SheetPanel extends View {
 				this.$title = button.c("drawer-rail-sheet-title", this.title + " ▾").attr("type", "button").attr("aria-haspopup", "menu").attr("aria-expanded", "false")
 					.click(e => { e.stopPropagation(); this.toggle_menu(); });
 				this.new_session_button();   // one tap, as in the desktop AI tab (voice-e2e-review 2026-10-13)
-				this.v2_chip();
+				this.v2 = new ChatView({ slot: () => this.$slot?.el, mount: () => this.mount });
+				this.v2.chip();
 				this.$path = span.c("drawer-rail-sheet-path muted");
 			});
 			this.$menu = div.c("drawer-rail-sheet-menu").attr("role", "menu");
@@ -405,39 +406,6 @@ export class SheetPanel extends View {
 		this.size_to("60dvh");   // a real default height, about four bubbles (dictate-next-4)
 	}
 
-	// Chat v2 beside the old chat, to compare them (ext/Chat/v2/readme.md, "Where it shows"): the chip swaps the bubbles for Chat v2's
-	// drawing of the same session file; the composer and the mic footer stay. The choice is kept on this device.
-	static CHAT_VIEW_KEY = "lew42.sheet.chat_view";
-	v2_chip(){
-		this.v2_on = (() => { try { return localStorage.getItem(this.constructor.CHAT_VIEW_KEY) === "v2"; } catch { return false; } })();
-		this.$v2_chip = button.c("drawer-rail-sheet-link drawer-rail-sheet-v2-chip", "v2").attr("type", "button")
-			.attr("aria-pressed", String(this.v2_on)).attr("title", "Chat v2: this conversation as Prompts, the raw words one click down")
-			.click(() => this.chat_view(!this.v2_on));
-	}
-
-	chat_view(on){
-		this.v2_on = on;
-		this.$v2_chip?.attr("aria-pressed", String(on));
-		try { on ? localStorage.setItem(this.constructor.CHAT_VIEW_KEY, "v2") : localStorage.removeItem(this.constructor.CHAT_VIEW_KEY); } catch {}   // storage off: the choice lasts until reload
-		this.sync_v2();
-	}
-
-	// Draws (or drops) the Chat v2 box inside the chat's card, above the composer; called on a toggle and whenever the session changes.
-	sync_v2(){
-		this.$slot?.el.classList.toggle("drawer-rail-sheet-v2-on", !!(this.v2_on && this.mount));
-		const file = this.v2_on ? this.mount?.file?.() ?? null : null;
-		if (this.v2_file === file && (file || !this.v2_on)) return;
-		this.chat_v2?.unsubscribe(); this.chat_v2 = null; this.v2_file = file;
-		if (!this.v2_on || !this.mount){ this.$v2?.el.remove(); this.$v2 = null; return; }
-		if (!this.$v2?.el.isConnected){
-			this.$v2 = div.c("drawer-rail-sheet-v2 flow");
-			const card = this.$slot.el.querySelector(".ux-dictate-widget-card") ?? this.$slot.el;
-			card.prepend(this.$v2.el);
-		}
-		if (file) this.chat_v2 = new ChatV2({ url: file, $box: this.$v2 }).live();
-		else this.$v2.empty(() => div.c("chat-v2-empty", "Say something: Chat v2 draws this conversation once it has started."));
-	}
-
 	active_card(){
 		const active = this.rail?.app?.router?.active;
 		return active?.shell?.ai2 && active.id && typeof active.subs === "function" ? active : null;
@@ -457,8 +425,8 @@ export class SheetPanel extends View {
 		const heard = this.panel.on_text;
 		this.panel.on_text = text => { heard?.(text); this.said(text); };   // the strip's last line said
 		this.feed = AIFeed.on(this.$slot.el, drawer.page());   // this page's events among the bubbles (step 7)
-		this.v2_off_change = chat.on_change(() => this.sync_v2());   // a new or resumed session: Chat v2 follows its file
-		this.sync_v2();
+		this.v2_off_change = chat.on_change(() => this.v2.sync());   // a new or resumed session: Chat v2 follows its file
+		this.v2.sync();
 		return this.mount;
 	}
 
@@ -516,9 +484,9 @@ export class SheetPanel extends View {
 		this.hide();
 		this.mount?.remove();
 		this.feed?.stop();
-		this.v2_off_change?.(); this.chat_v2?.unsubscribe();
+		this.v2_off_change?.(); this.v2?.release();
 		this.$slot?.empty();
-		this.mount = this.panel = this.feed = this.v2_off_change = this.chat_v2 = this.$v2 = this.v2_file = null;
+		this.mount = this.panel = this.feed = this.v2_off_change = null;
 		return this;
 	}
 
