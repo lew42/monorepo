@@ -64,7 +64,7 @@ A session's `tasks` is the one list of everything to be done: prompts, tasks and
 - **The shape:** one line on the parent's record, nested under the task that caused the spawn:
   `{"<cause id>": {"task": "<child folder url>", "type": "Session", "spawn": {role, model, effort, role_readme, brief, session_id, agent, at, placed}}, "by": "Servex", "ts": …}`.
   Its id is the folder name, because an agent id is reused across spawns and two entries with one id replace each other on replay. `role_readme` is a path, never the text.
-- **The cause** (`cause_of` in `Servex/agents/Agents.js`; `placed` records which rule chose it): (a) `task.cause` given to `spawn_agent`, when that task is on the record; (b) a handoff (`task: {from, id}`): the subtask itself is upgraded in place, and `move_item` leaves `{"task", "as": <its id>, "type": "Session", "spawn"}`; (c) the record's most recently started task that is still running; (d) none of these: the top level.
+- **The cause** (`cause_of` in `Servex/agents/Agents.js`; `placed` records which rule chose it): (a) `task.cause` given to `spawn_agent`, when that task is on the record; (b) a handoff: the spawn names an existing task on the parent's record (`spawn_agent` with `task: {from: <record url>, id: <task id>}`), and that task moves into the child's folder with its history (`move_item` in `page_tools.js`). The moved task is upgraded in place: the line left behind keeps its id and becomes the entry, `{"task", "as": <its id>, "type": "Session", "spawn"}`; (c) the record's most recently started task that is still running; (d) none of these: the top level.
 - **The writer:** `SessionRecord.add_ref` and `entry_line` (`Server/SessionRecord.mjs`), called by `link_parent` and `ChildLinks.link` from `open_task`.
 - **The reader:** `Task.from_ref(ref, as, entry)` (`core/Task/Task.js`) builds a `Session` when the entry says `type: "Session"`, or when the child's record is a session's (a `{session}` line 1, or a spawn's `{assign}` line anywhere), and keeps `spawn` on it. `Task.children` lists them at any depth.
 - **The three costs** (`session_state` in `Servex/agents/page_tools.js`, computed on read):
@@ -80,7 +80,7 @@ A session's `tasks` is the one list of everything to be done: prompts, tasks and
     - `add`: the folder has no reference yet.
     - `ref` or `entry`: nothing to do.
   - Entries go at the top level: with 100+ open tasks, a guessed cause would often be wrong.
-  - It also prints item 33's check: the folders that are neither a session nor a project.
+  - It also prints item 33's check: the folders that are neither a session nor a project. It only lists them: `--apply` writes the `upgrade` and `add` lines and never moves or changes those folders.
 - **Numbers on session-e00f55c9** (2026-10-25; dry run on the live tree, then `--apply` on a copy):
   - The plan: 95 upgrades, 0 adds, 25 plain task folders.
   - Child sessions from entries, at every depth: 127 before, 133 after.
