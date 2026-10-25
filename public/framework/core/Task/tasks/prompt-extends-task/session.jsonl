@@ -11,3 +11,5 @@
 {"commit":"c52883c8aebd"}
 {"commit":"4dc16df305c3"}
 {"commit":"14529321474e"}
+{"commit":"f617cb1ba3f5"}
+{"assign":{"landed_at":"2026-10-25T02:47:56-05:00","title":"Prompt and Question extend Task","outcome":"Prompt and Question are Tasks in session.jsonl; PromptRecords mirrors new dictations there, 6 sessions migrated (17 older folders have no session.jsonl), trace query and docs landed. Live Servex mirrors only after node Servex/sustain.mjs --restart.","links":["/framework/core/Task/md/doc/prompt/","/framework/core/Task/tasks/prompt-extends-task/"]}}
