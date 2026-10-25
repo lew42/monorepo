@@ -601,6 +601,7 @@
 
 @layer site {
 	/* "fast ✓ 0.4 s · smart …": which assistant has this line; greyed until it has */
+	.chatbox-sent, .chat-v2-sent { display: none; }   /* the "fast ✓ / smart …" timing marks were noise (the owner, 2026-10-25); the tooltip text stays in sent_badge() */
 	.chatbox-sent { font-size: .72em; white-space: nowrap; }
 	.chatbox-sent > span { opacity: .55; }
 	.chatbox-sent > .chatbox-sent-done { opacity: 1; color: var(--prime-ink); }
