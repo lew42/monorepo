@@ -14,7 +14,9 @@ const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "task.jsonl");
 TaskHomes.INDEX = DIR + "-homes/task.jsonl";   // never the real /tasks/ index
 const URL = "/" + REL.slice("public/".length) + "/";
 const tools = Object.fromEntries(page_tools().map(t => [t.name, t]));
-const call = async (name, args, caller = "t1") => JSON.parse(await tools[name].handler(args, { caller }));
+// A write answers {ok, ids, line, now} (session-is-a-task item 12): the picture after it is a separate read, done here so the checks see it.
+const read_back = async (r, url, caller) => r?.ok && r.line && r.state === undefined && url ? { ...r, state: JSON.parse(JSON.stringify(await run_item({ path: url }, { caller }))).state } : r;
+const call = async (name, args, caller = "t1") => { const r = JSON.parse(await tools[name].handler(args, { caller })); return name === "item" && args.delta !== undefined ? read_back(r, args.path ?? URL, caller) : r; };
 const lines = () => fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l));
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
@@ -84,7 +86,7 @@ try {
 	fs.mkdirSync(MOD, { recursive: true });
 	const app = d => "/" + path.relative(path.join(ROOT, "public"), d).split(path.sep).join("/") + "/";
 	try {
-		const add = async (delta, ctx = {}) => JSON.parse(JSON.stringify(await run_item({ path: URL, delta }, { caller: "t1", module_root: MODS, ...ctx })));
+		const add = async (delta, ctx = {}) => read_back(JSON.parse(JSON.stringify(await run_item({ path: URL, delta }, { caller: "t1", module_root: MODS, ...ctx }))), URL, "t1");
 		const before = lines().length;
 		r = await add({ tasks: { add: { type: "Task", title: "Module job", module: "fakemod", expected: "it works" } } });
 		const home = path.join(MOD, "tasks", "module-job");
@@ -135,7 +137,7 @@ try {
 		fs.writeFileSync(path.join(MDIR, "sub", "task.jsonl"), JSON.stringify({ id: "sub", title: "Sub" }) + "\n");
 		fs.writeFileSync(CLOG, JSON.stringify({ id: "caller" }) + "\n");
 		try {
-			const run = (url, delta, ctx = {}) => run_item({ path: url, delta }, { caller: "t1", ...ctx }).then(x => JSON.parse(JSON.stringify(x)));
+			const run = (url, delta, ctx = {}) => run_item({ path: url, delta }, { caller: "t1", ...ctx }).then(x => read_back(JSON.parse(JSON.stringify(x)), url, "t1"));
 			const clines = () => fs.readFileSync(CLOG, "utf8").trim().split("\n").map(l => JSON.parse(l));
 			r = await run(URL, { tasks: { add: { title: "Ref job", module: MODN } } }, { caller_log: CLOG });
 			ok(clines().length === 2 && clines()[1].task === r.homes[0].path && clines()[1].by === "t1" && clines()[1].ts, "caller log: exactly one reference line");

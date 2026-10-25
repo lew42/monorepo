@@ -25,7 +25,9 @@ try {
 	ok(plain.tasks.find("fix-the-tab-bar")?.get_one("title") === "Fix the tab bar", "tasks.add(\"a string\") makes a Task titled by it");
 
 	let r = await run_item({ path: URL, delta: { tasks: { add: "Fix the tab bar" } } }, { caller: "t1" });
-	ok(r.ok && r.state.class === "Session" && r.state.tasks.some(t => t.title === "Fix the tab bar"), "the item tool takes a string; the answer already lists the task");
+	ok(r.ok && r.line && r.now && r.state === undefined && JSON.stringify({ ...r, instructions: undefined }).length < 2000, "a write answers with the line written (small), not the session picture");
+	r = await run_item({ path: URL }, { caller: "t1" });
+	ok(r.state.class === "Session" && r.state.tasks.some(t => t.title === "Fix the tab bar"), "the next read already lists the task");
 	const written = fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l)).find(l => l.tasks?.add);
 	ok(written?.tasks.add.title === "Fix the tab bar" && typeof written.tasks.add.id === "string", "the line written is an object with an id, never a bare string");
 
