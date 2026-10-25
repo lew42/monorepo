@@ -172,10 +172,7 @@ export const now_ms = () => {
  * Claude itself refuses it for usage limits, no setting change needed. That refusal is the
  * whole point of this switch: Dictate keeps answering even once Claude is cut off. */
 export const SESSION_BACKENDS = ["auto", "claude", "openrouter", "local"];
-/* VOICE MODEL POLICY (the owner, 2026-10-12, ai/2026-10-12/refine-haiku-live: "while we pay for Claude tokens anyway, keep
- * OpenRouter to a minimum"): "auto" now means CLAUDE. OpenRouter only when session-backend.txt says `openrouter`, or when
- * Claude refuses a session (usage limit, logged out: the automatic fallback in woken()). Was: luna first (2026-10-05..08). */
-export const VOICE_MODELS = { fast: "openai/gpt-6-luna", smart: "openai/gpt-6-luna" };
+/* VOICE MODEL POLICY (the owner, 2026-10-12, 2026-10-25): Claude is the default (see claude_model). OpenRouter runs a voice seat only when session-backend.txt says `openrouter`, or when Claude refuses that session (usage limit, logged out: the automatic fallback in woken()). */
 export const FALLBACK_MODEL = "openai/gpt-6-luna";
 /* Overridable (review finding 6) so a test can point this at a throwaway file instead of the
  * real one every live Servex reads — `prove-fallback.mjs` sets this before importing. */
