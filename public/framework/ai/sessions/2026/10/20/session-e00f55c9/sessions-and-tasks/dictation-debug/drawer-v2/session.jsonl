@@ -1,0 +1,1 @@
+{"log":{"at":"2026-10-25T14:32:17-05:00","msg":"drawer-v2 done: ChatView.js (new, one class for Sheet + tabs/ai.js chip, same localStorage key). Tests: ChatV2.test 43/43, sheet probe chip+v2 on/off ok. Shots drawer-v2/proof: v2-1920 and v2-3440 show chip beside + New session and Chat v2 prompts in the AI tab; v2-400 sheet still shows v2 chip with prompts. Commit 94b3ea495"}}
