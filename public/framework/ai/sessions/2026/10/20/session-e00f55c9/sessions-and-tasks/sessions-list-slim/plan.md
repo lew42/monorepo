@@ -2,7 +2,7 @@
 
 Brief: [requirements.md](requirements.md) (five passes). Order from pass 4: **1** the list's slim sticky header, **2** the session detail page (the main job), **3** the list's cards. Each lands before the next starts. One Sonnet minion per sub-step, briefed by the mastermind, in sequence (one page, one minion).
 
-## 1. The list's sticky header (in flight)
+## 1. The list's sticky header (landed, dc05cd9ac)
 
 Brief: [header/requirements.md](header/requirements.md). One sticky row: "Today ▾", search, "Filters ▾" holding every other control; `v/classic/` keeps the old controls as the backup.
 
@@ -25,7 +25,7 @@ Brief: [header/requirements.md](header/requirements.md). One sticky row: "Today 
 
 Alternative considered: rank by the prompt order only (simplest, but the owner asked for cost as the main weight). Another: an importance score from the model (costs tokens per view; not now).
 
-### 2a. Overview (the first landing)
+### 2a. Overview (landed, e2fc11061: grouped by child session, see the eighth pass)
 
 - One **full-width row per task** (no narrow column; the title wraps over at most two lines on a phone, then ellipsis; full title on open).
 - **State icon, ours:** empty circle while open, amber dot running, **green check (`check_circle`, `var(--ok)`) when done**, struck grey when dropped. Never a form checkbox. **No play, pause or stop buttons**: `TaskView.row(t, { verbs: false })` (an additive option in `core/Task/TaskView.js`; the verbs stay on the task's own page).
@@ -34,11 +34,11 @@ Alternative considered: rank by the prompt order only (simplest, but the owner a
 - **Live:** redraw on each record replay (the hook `SessionFeed.record` already gets; reuse it).
 - Before/after shots of `/framework/ai/sessions/e00f55c9-bad4-4ee2-899e-d629ea1eede6/` at 390 and 1920.
 
-### 2b. Timeline
+### 2b. Timeline (in flight: [timeline/requirements.md](timeline/requirements.md))
 
 Every line of the session's `session.jsonl` and its prompts (`page.jsonl` Prompt items), in time order, one compact row each: prompt (its subject, cites one click down), task added, task done (green check), child session started/landed (state, cost), note, decision. A **Filters ▾** menu (the same dropdown as the list's header, one component) picks the kinds; default hides `log` and tag lines. Live through the same tail.
 
-### 2c. Chat (the Coverage tab, re-dressed; not a second renderer)
+### 2c. Chat (dropped for now, ninth pass 2026-10-25: the chat tab IS the shared chat component that mastermind-dictation-2 owns; it stays a slot until that interface is agreed)
 
 The Coverage tab (`AISessionCoverage.records_view`) already is the chat view: a bubble per prompt, a card per part with cites (`S4, S7–18`), raw words one click down. Add, inside each ask card, the flow: its task's state icon (same icon as 2a) → "agent launched" (the child session: state, model, cost, link) → green check when done. Live from the same tail; a new prompt's breakdown appears as `prompts.jsonl` grows. The tab is named Chat; today's Chat (the transcript) moves to More ▾ as "Transcript". **Agree with ai-system-mastermind first** (the chat view is its plan; the deputy said so, 2026-10-24): one message before 2c starts.
 
@@ -58,6 +58,6 @@ When a task moves into a session made for it, its old spot stays, dimmed, with a
 
 AI → Sessions → find the session → click → the Overview opens by default → the chat tab. A headless shot at each step, at 390.
 
-## 3. The list's cards
+## 3. The list's cards (landed, 8c19962ad and 817712fc4)
 
 After 2. One white card per root session, children nested inside, the session's own cost labeled as own and the total one click down (one cost function), default range read from the per-level `index.jsonl` files. Briefed when 2 lands.
