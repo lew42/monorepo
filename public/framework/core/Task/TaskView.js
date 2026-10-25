@@ -11,7 +11,7 @@ export default class TaskView extends View {
 	static VERBS = [["start", "play_arrow", "Start"], ["pause", "pause", "Pause"], ["resume", "play_arrow", "Resume"], ["stop", "stop", "Stop"], ["approve", "check", "Approve"]];   // [verb, Material icon, label]: the buttons, shown when Task.can(verb)
 	static SEGMENTS = 8;   // past this many children the bar is one meter and a count, so the title keeps the room
 	static chip(task){ return new this({ task, size: "chip" }); }
-	static row(task, opts = {}){ return new this({ task, size: "row", ...opts }); }   // opts: { verbs: false } leaves out the start/pause/stop/approve buttons (this row and its subtask rows)
+	static row(task){ return new this({ task, size: "row" }); }
 	static card(task){ return new this({ task, size: "card" }); }
 
 	initialize(){
@@ -59,14 +59,13 @@ export default class TaskView extends View {
 		if (!kids.length) return;
 		const shown = this.expanded ? kids : open.slice(0, this.constructor.PREVIEW);
 		div.c("task-row-kids", () => {
-			shown.forEach(k => this.constructor.row(k, { verbs: this.verbs }));
+			shown.forEach(k => this.constructor.row(k));
 			if (!this.expanded && open.length > shown.length) small.c("task-row-more", `+ ${open.length - shown.length} more open`).click(() => { this.expanded = true; this.redraw(); });
 		});
 	}
 
 	// The verbs this task's state allows, as small icon buttons; a click saves the VERB (task.act), the row does not toggle.
 	actions(){
-		if (this.verbs === false) return;
 		const verbs = this.constructor.VERBS.filter(([verb]) => this.task.can(verb));
 		if (!verbs.length) return;
 		span.c("task-actions", () => verbs.forEach(([verb, glyph, label]) => {
