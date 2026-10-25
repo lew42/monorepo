@@ -40,7 +40,7 @@ Every line of the session's `session.jsonl` and its prompts (`page.jsonl` Prompt
 
 ### 2c. Chat (the Coverage tab, re-dressed; not a second renderer)
 
-The Coverage tab (`AISessionCoverage.records_view`) already is the chat view: a bubble per prompt, a card per part with cites (`S4, S7–18`), raw words one click down. Add, inside each ask card, the flow: its task's state icon (same icon as 2a) → "agent launched" (the child session: state, model, cost, link) → green check when done. Live from the same tail; a new prompt's breakdown appears as `prompts.jsonl` grows. The tab is named Chat; today's Chat (the transcript) moves to More ▾ as "Transcript". **Agree with the deputy first:** it owns the session page; one message saying this, before 2c starts.
+The Coverage tab (`AISessionCoverage.records_view`) already is the chat view: a bubble per prompt, a card per part with cites (`S4, S7–18`), raw words one click down. Add, inside each ask card, the flow: its task's state icon (same icon as 2a) → "agent launched" (the child session: state, model, cost, link) → green check when done. Live from the same tail; a new prompt's breakdown appears as `prompts.jsonl` grows. The tab is named Chat; today's Chat (the transcript) moves to More ▾ as "Transcript". **Agree with ai-system-mastermind first** (the chat view is its plan; the deputy said so, 2026-10-24): one message before 2c starts.
 
 ### 2d. Tasks
 
