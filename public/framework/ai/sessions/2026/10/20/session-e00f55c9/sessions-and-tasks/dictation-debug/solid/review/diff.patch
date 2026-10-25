@@ -1,406 +1,1113 @@
-diff --git a/public/framework/dev/Socket/Socket.js b/public/framework/dev/Socket/Socket.js
-index 5f12a9ad8..22ecddd61 100644
---- a/public/framework/dev/Socket/Socket.js
-+++ b/public/framework/dev/Socket/Socket.js
-@@ -16,6 +16,10 @@ export default class Socket {
- 
- 	static STATE = "dev-reload-state";
- 
-+	// A reload deferred while a mic was busy waits until the page has been quiet this long, so stopping the mic and
-+	// starting it again never lands on a reloading page (ux/Dictate/test/refresh.mjs, scenario restart).
-+	static QUIET_MS = 30000;
-+
- 	static singleton() {
- 		if (!this._instance) {
- 			this._instance = new this();
-@@ -166,7 +170,7 @@ export default class Socket {
- 
- 	mark_stale(text = "This page is out of date — reload") {
- 		if (this.pill || !document.body) return;
--		this.inject_style("dev-stale", "@layer util { .dev-stale-pill { position: fixed; inset-block-end: 1rem; inset-inline-start: 1rem; z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }");
-+		this.inject_style("dev-stale", "@layer util { .dev-stale-pill { position: fixed; inset-block-start: 0.5rem; inset-inline-start: 50%; transform: translateX(-50%); max-inline-size: calc(100vw - 2rem); z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }");
- 		const pill = this.pill = document.createElement("button");
- 		pill.className = "dev-stale-pill";
- 		pill.textContent = text;
-@@ -178,7 +182,13 @@ export default class Socket {
- 	busy() { for (const fn of this.busy_hooks ?? []) try { if (fn()) return true; } catch {} return false; }
- 	defer() {
- 		if (this.deferring) return;
--		this.deferring = setInterval(() => { if (!this.busy()) { clearInterval(this.deferring); this.deferring = null; this.reload(); } }, 1000);
-+		let quiet_since = 0;
-+		this.deferring = setInterval(() => {
-+			if (this.busy()) { quiet_since = 0; return; }
-+			quiet_since ||= Date.now();
-+			if (Date.now() - quiet_since < this.constructor.QUIET_MS) return;
-+			clearInterval(this.deferring); this.deferring = null; this.reload();
-+		}, 1000);
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-1920.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-1920.png
+new file mode 100644
+index 000000000..24b2768dc
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-1920.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-390-reloaded.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-390-reloaded.png
+new file mode 100644
+index 000000000..c9198da08
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-390-reloaded.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-390-send.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-390-send.png
+new file mode 100644
+index 000000000..ce6895617
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-390-send.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-390.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-390.png
+new file mode 100644
+index 000000000..5403a4034
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-390.png differ
+diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
+index af3190d02..1d9261aca 100644
+--- a/public/framework/ext/Chat/Mic.js
++++ b/public/framework/ext/Chat/Mic.js
+@@ -389,7 +389,7 @@ export class ComposerMic extends Dictate {
+ 	watch_capture(){
+ 		const cap = this.mic, track = cap?.stream?.getAudioTracks()[0];
+ 		if (cap?.ctx) cap.ctx.onstatechange = () => {
+-			if (cap.ctx.state === "suspended" && this.state === "listening") cap.ctx.resume().catch(() => {});
++			if (cap.ctx.state === "suspended" && this.state === "listening") cap.ctx.resume().catch(() => {});   // ignored on purpose: a suspended audio context that cannot resume shows up as no sound (the Mic light's own level check)
+ 		};
+ 		track?.addEventListener("ended", async () => {
+ 			if (this.mic !== cap || this.state !== "listening" || this.reviving) return;
+@@ -529,7 +529,7 @@ export class ComposerMic extends Dictate {
+ 			const items = texts.map(t => this.take_out(t)).filter(Boolean);   // drawn in the chat now, before the caption loses them
+ 			this.draw_caption();
+ 			this.enqueue(items);
+-		} catch (e){ console.error("chat: sending finished sentences failed", e); }
++		} catch (e){ DictateHealth.fail("sentence", e, "sending the finished sentences"); }
+ 		finally { this.sending_sentences = false; }
  	}
  
- 	skip() {
-@@ -250,6 +260,7 @@ export default class Socket {
- 		if ($f && "value" in $f && $f.value)
- 			state.focus = { at: where($f), value: $f.value, caret: $f.selectionStart };
- 
-+		try { this.emit("stash", state); } catch {}   // a view adds what it needs back (the AI sheet: its size)
- 		try { sessionStorage.setItem(this.constructor.STATE, JSON.stringify(state)); } catch {}
+@@ -540,7 +540,7 @@ export class ComposerMic extends Dictate {
+ 		// returned, so a watcher (ux/Dictate/DictationBar.js WATCHED) hears the END of a send too, not only its start: the "sending" word went stale
+ 		return this.post_tail = (this.post_tail ?? Promise.resolve())
+ 			.then(async () => { for (const it of items) await this.post_held(it); })
+-			.catch(e => console.error("chat: sending failed", e))
++			.catch(e => DictateHealth.fail("sent", e, "the send queue"))
+ 			.finally(() => { this.posting--; });
  	}
  
-@@ -262,6 +273,7 @@ export default class Socket {
- 		} catch {}
+@@ -554,7 +554,7 @@ export class ComposerMic extends Dictate {
+ 			if (SETTINGS.paragraph_pause_ms > 0 && quiet >= SETTINGS.paragraph_pause_ms && this.ends_sentence(text)) return this.send_screen();   // a natural pause
+ 			if (this.mode_now() === "pause" && quiet >= SETTINGS.pause_send_ms) this.send_screen();   // the tail
+ 			else this.check_chunk();
+-		} catch (e){ console.error("chat: automatic send failed", e); }
++		} catch (e){ DictateHealth.fail("sentence", e, "the automatic send"); }
+ 	}
  
- 		if (!state || state.url !== location.pathname + location.search || Date.now() - state.at > 20000) return;
-+		this.restored = state;   // read once by whoever stashed something in it (the AI sheet)
+ 	// Everything visible goes out as one message after waiting for clean-ups. see doc/mic-notes.md#send_screen
+@@ -644,9 +644,10 @@ export class ComposerMic extends Dictate {
+ 	take_out(item){
+ 		const got = typeof item === "string" ? { text: item, raw: null } : item;
+ 		const text = ComposerMic.collapse_repeat(got.text), raw = got.raw && ComposerMic.collapse_repeat(got.raw);
+-		if (this.same_as_last_send(text)){ console.warn("chat: dropped a duplicate send (same words, " + ComposerMic.DUP_WINDOW_MS + "ms window):", text); return null; }
++		if (this.same_as_last_send(text)){ DictateHealth.event("sentence", "wait", `dropped a duplicate (same words within ${ComposerMic.DUP_WINDOW_MS} ms): “${text.slice(0, 60)}”`, { text }); return null; }
+ 		const out = { text, raw, at: ComposerMic.stamp() };
+-		try { this.on_out?.(out); } catch (e){ console.error("chat: drawing the sent words failed", e); }
++		try { this.on_out?.(out); } catch (e){ DictateHealth.fail("page", e, "drawing the sent words"); }
++		DictateHealth.set("sentence", "ok", `left the draft: “${text.replace(/s+/g, " ").slice(0, 60)}”`, { always: true, raw: out });
+ 		return out;
+ 	}
  
- 		let tries = 0;
- 		const put = () => {
+@@ -672,7 +673,7 @@ export class ComposerMic extends Dictate {
+ 		const late = new Promise(r => { timer = setTimeout(() => r("late"), ComposerMic.DELIVER_MS); });
+ 		// A deliver that throws (ext/Chat/ChatPanel.js's own can) is a failed send: its words still go to the fallback log below.
+ 		// No Sent-row write here: ux/Dictate/chat.js, the deliver behind the Debug tab, writes it and never throws (review note 3).
+-		const sending = Promise.resolve().then(() => this.deliver?.(entry)).catch(e => { console.error("chat: deliver threw", e); return false; });
++		const sending = Promise.resolve().then(() => this.deliver?.(entry)).catch(e => { DictateHealth.fail("sent", e, "the send threw"); return false; });
+ 		try { ok = await Promise.race([sending, late]); } finally { clearTimeout(timer); this.posting--; }
+ 		if (ok === "late"){
+ 			// The queue moves on now; the open send keeps its chance to land. Only a send that then fails counts as not sent
+@@ -687,7 +688,7 @@ export class ComposerMic extends Dictate {
+ 	// Words that did not reach the deliver go to Dictate's fallback log, so nothing said is lost.
+ 	async log_fallback(entry){
+ 		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
+-		catch (e){ console.warn("chat: could not log this utterance", e); }
++		catch (e){ DictateHealth.fail("sentence", e, "could not save this utterance (Servex down, dev-server fallback also failed)"); }
+ 	}
+ }
+ ComposerMic.prototype.mode = "open";   // the mic stays on; draw_caption() types into the box
+diff --git a/public/framework/ext/Session/Session.js b/public/framework/ext/Session/Session.js
+index 5a4c4caf4..2bdfb0387 100644
+--- a/public/framework/ext/Session/Session.js
++++ b/public/framework/ext/Session/Session.js
+@@ -206,20 +206,27 @@ export async function recent_project({ limit = 10, host = location.host } = {}){
+ }
+ 
+ /** Poll `file` every 1.5 s (never cached) and hand each new line, parsed, to `on_line`.
+- *  Returns `stop()`. A missing file (404) is just "nothing yet". */
+-export function watch(file, on_line, { every = 1500 } = {}){
+-	let seen = 0, timer = null, stopped = false;
++ *  Returns `stop()`. A missing file (404) is just "nothing yet". `on_status(kind, detail)` hears what would otherwise be silent:
++ *  "poll_failed" (a non-404 status or a network error; heard again each failed poll), "poll_ok" (the first good poll after
++ *  failures), "bad_line" (a line that is not JSON) and "line_failed" (`on_line` threw: that line is skipped, the next ones still arrive). */
++export function watch(file, on_line, { every = 1500, on_status } = {}){
++	let seen = 0, timer = null, stopped = false, failing = false;
++	const status = (kind, detail) => { try { on_status?.(kind, detail); } catch (e){ console.error("Session.watch on_status:", e); } };
+ 	async function tick(){
+ 		try {
+ 			const res = await fetch(file, { cache: "no-store" });
+-			if (res.ok){
+-				const lines = (await res.text()).split("\n").filter(l => l.trim());
+-				for (; seen < lines.length; seen++){
+-					let line; try { line = JSON.parse(lines[seen]); } catch { continue; }
+-					on_line(line);
++			if (res.ok || res.status === 404){
++				if (failing){ failing = false; status("poll_ok", { status: res.status }); }
++				if (res.ok){
++					const lines = (await res.text()).split("\n").filter(l => l.trim());
++					for (; seen < lines.length; seen++){
++						let line;
++						try { line = JSON.parse(lines[seen]); } catch (e){ status("bad_line", { n: seen + 1, text: lines[seen].slice(0, 200), error: e }); continue; }
++						try { on_line(line); } catch (e){ status("line_failed", { n: seen + 1, line, error: e }); }
++					}
+ 				}
+-			}
+-		} catch {}
++			} else { failing = true; status("poll_failed", { status: res.status, error: new Error(`HTTP ${res.status}`) }); }
++		} catch (e){ failing = true; status("poll_failed", { error: e }); }
+ 		if (!stopped) timer = setTimeout(tick, every);
+ 	}
+ 	tick();
 diff --git a/public/framework/ext/drawer/Sheet.js b/public/framework/ext/drawer/Sheet.js
-index 05a227280..d2cd3d541 100644
+index d2cd3d541..b3bc70928 100644
 --- a/public/framework/ext/drawer/Sheet.js
 +++ b/public/framework/ext/drawer/Sheet.js
-@@ -9,6 +9,7 @@ import drawer from "./drawer.js";
- import AIPage from "./AIPage.js";
- import AIFeed from "./AIFeed.js";
- import DictationBar from "/framework/ux/Dictate/DictationBar.js";
-+import Socket from "/framework/dev/Socket/Socket.js";
- 
- View.stylesheet(import.meta, "rail.css");
- 
-@@ -30,6 +31,19 @@ export default class Sheet extends View {
- 		this.watch_history();
- 		this.watch_nav();
- 		this.restore();
-+		this.keep_on_reload();
-+	}
-+
-+	// A dev reload (a file changed) brings the sheet back at its size, its mic bar saying why the mic is off:
-+	// ux/Dictate/doc/debug-tab.md#refresh-then-dictate. The mic is not restarted: a reload carries no tap, and the browser wants one.
-+	keep_on_reload(){
-+		const socket = Socket.singleton();
-+		socket.on("stash", state => { if (this.mode && this.mode !== "closed") state.sheet = this.mode; });
-+		const mode = socket.restored?.sheet;
-+		if (!mode || !this.small()) return;
-+		socket.restored.sheet = null;
-+		DictationBar.note = "the page reloaded because a file changed: tap 🎤 to keep talking";
-+		setTimeout(() => this.to(mode), 0);
+@@ -505,9 +505,36 @@ export class SheetPanel extends View {
+ 		this.$tabbody = div.c("drawer-rail-sheet-tabbody");
+ 		this.$tabs.el.append(this.$tabbody.el);
+ 		this.el.append(this.$tabs.el);
++		this.$tabs.append(() => this.tabs_grip());
++		this.tabs_to(this.saved_tabs_h());
+ 		this.pick(name ?? this.tab_name ?? tabs.current?.name ?? "ai");
  	}
  
- 	watch_breakpoint(){
++	// The handle between the chat and the picked tab (a sheet within a sheet): drag its top edge up for more tab, down for more chat.
++	// The height is kept on this device and comes back after a reload; a double-click puts the default back (doc/debug-tab.md#the-handle).
++	static TABS_KEY = "lew42.sheet.tabs_h";
++	saved_tabs_h(){
++		try { const h = parseFloat(localStorage.getItem(this.constructor.TABS_KEY)); return h > 0 ? h : null; }
++		catch { return null; }   // private mode: the default height, nothing to report
++	}
++	tabs_to(px){
++		const el = this.$tabs?.el;
++		if (!el) return null;
++		if (!px){ el.classList.remove("drawer-rail-sheet-tabs-sized"); el.style.removeProperty("--tabs-h"); return null; }
++		const h = Math.round(Math.max(px, 96));   // the top limit is rail.css's: the chat keeps its head, a few lines and the mic footer, however tall the screen is when this comes back
++		el.classList.add("drawer-rail-sheet-tabs-sized");
++		el.style.setProperty("--tabs-h", h + "px");
++		return h;
++	}
++	tabs_grip(){
++		return grip({
++			axis: "y",
++			write: px => this.tabs_to(px),
++			done: h => { try { localStorage.setItem(this.constructor.TABS_KEY, String(h)); } catch {} },   // private mode: the height lasts until the reload
++			reset: () => { this.tabs_to(null); try { localStorage.removeItem(this.constructor.TABS_KEY); } catch {} },   // same: nothing to remove
++		});
++	}
++
+ 	unmount_tabs(){
+ 		this.$tabs?.el.remove();
+ 		this.$tabs = null;
+diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+index aff33fe1a..ffac11c8d 100644
+--- a/public/framework/ext/drawer/rail.css
++++ b/public/framework/ext/drawer/rail.css
+@@ -375,6 +375,10 @@
+ 	   phone screen (390×844, test/debug-tab.mjs). Follows the DOM (:has), so it ends the moment the tab body is unmounted. */
+ 	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs):not(.drawer-rail-sheet-chat-only) .drawer-rail-sheet-panel { flex: 0 0 10em; }
+ 	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs):not(.drawer-rail-sheet-chat-only) > .drawer-rail-sheet-tabs { flex: 1 1 auto; }
++	/* The handle between them (Sheet.tabs_grip): once dragged, the tab keeps --tabs-h and the chat takes what is left. */
++	.drawer-rail-sheet-tabs { position: relative; }
++	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs-sized):not(.drawer-rail-sheet-chat-only) > .drawer-rail-sheet-tabs { flex: 0 0 min(var(--tabs-h), calc(100% - 10.5rem)); }
++	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs-sized):not(.drawer-rail-sheet-chat-only) .drawer-rail-sheet-panel { flex: 1 1 0; min-block-size: 4em; }
+ }
+ 
+ /* AIPage (<path>/ai/): a page above 52em; below it the Sheet shows it, so the page behind stays the one it is about. */
+diff --git a/public/framework/ux/Dictate/Connection.css b/public/framework/ux/Dictate/Connection.css
+index 957fbd193..bc31df784 100644
+--- a/public/framework/ux/Dictate/Connection.css
++++ b/public/framework/ux/Dictate/Connection.css
+@@ -22,4 +22,13 @@
+ 	.voice-conn[data-layout="rows"] .voice-conn-head { block-size: auto; flex-wrap: wrap; }
+ 	.voice-conn[data-layout="rows"] .voice-conn-why { block-size: auto; display: block; overflow: visible; overflow-wrap: anywhere; }
+ 	.voice-conn-ask { font-weight: 400; font-size: 0.9em; }
++
++	/* layout: "lights" (the Debug tab's top row): a dot and a name per stage, all on one row when they fit; the reason is on
++	   hover (title) and, on a tap, in the line under the row (DictateDebug.pick). A picked light keeps a ring. */
++	.voice-conn[data-layout="lights"] { display: flex; flex-wrap: wrap; gap: 0.35em; margin: 0; font-size: 0.85em; }
++	.app .voice-conn[data-layout="lights"] .voice-conn-step { display: inline-flex; padding: 0.2em 0.65em 0.2em 0.5em; min-block-size: 2rem; border: 1px solid var(--line, #ccc);
++		border-radius: 999px; background: none; color: inherit; font: inherit; cursor: pointer; }
++	.voice-conn[data-layout="lights"] .voice-conn-head { block-size: auto; gap: 0.35em; }
++	.voice-conn[data-layout="lights"] .voice-conn-step[aria-pressed="true"] { border-color: currentColor; box-shadow: 0 0 0 1px currentColor; }
++	.voice-conn[data-layout="lights"] .voice-conn-step[data-state="bad"] { border-color: var(--error, #d33); }
+ }
+diff --git a/public/framework/ux/Dictate/Connection.js b/public/framework/ux/Dictate/Connection.js
+index 4d0f53670..821aa73f7 100644
+--- a/public/framework/ux/Dictate/Connection.js
++++ b/public/framework/ux/Dictate/Connection.js
+@@ -21,6 +21,7 @@ View.stylesheet(import.meta, "Connection.css");
+  *
+  * `layout: "rows"` stacks the steps, one per line, with the reason in full (the Debug tab, `DictateDebug.js`);
+  * a step with an `ask` shows that question under its name. `on_check(up, why)` hears every Whisper check.
++ * `layout: "lights"` is one row of small lights, a dot and a name each, the reason on hover; a tap calls `on_pick(id)` (the Debug tab).
+  */
+ export default class Connection extends View {
+ 
+@@ -41,19 +42,21 @@ export default class Connection extends View {
+ 		this.steps = this.steps ?? Connection.steps;   // a caller may show fewer: new Connection({ steps })
+ 		this.style("--steps", this.steps.length);
+ 		if (this.layout) this.attr("data-layout", this.layout);
++		const lights = this.layout === "lights";
+ 		this.steps.forEach((s, i) => {
+ 			this.state[s.id] = { state: "idle", why: "not yet" };
+-			div.c("voice-conn-step", () => {
++			const step = (lights ? button : div).c("voice-conn-step", () => {
+ 				div.c("voice-conn-head", () => {
+ 					span.c("voice-conn-dot");
+ 					span.c("voice-conn-label", s.label);
+-					if (s.ask) span.c("voice-conn-ask muted", s.ask);
+-					if (s.id === "whisper") this.$retry = button("↻").ac("voice-conn-retry").attr("type", "button")
++					if (s.ask && !lights) span.c("voice-conn-ask muted", s.ask);   // a light is a dot and a name; the question is its title (hover)
++					if (s.id === "whisper" && !lights) this.$retry = button("↻").ac("voice-conn-retry").attr("type", "button")
+ 						.attr("title", "Check Whisper again").click(() => this.check_whisper());
+ 				});
+ 				if (s.id === "level") new LevelMeter.View({ subject: this.meter });
+-				else span.c("voice-conn-why");
++				else if (!lights) span.c("voice-conn-why");
+ 			}).attr("data-step", s.id);
++			if (lights) step.attr("type", "button").attr("aria-pressed", "false").click(() => this.on_pick?.(s.id));
+ 		});
+ 		this.draw();
+ 	}
+@@ -82,6 +85,7 @@ export default class Connection extends View {
+ 			el.dataset.state = state;
+ 			const w = el.querySelector(".voice-conn-why");
+ 			if (w){ w.textContent = why; w.title = why; }
++			if (this.layout === "lights") el.title = why;   // hover shows the last word; a tap shows it in full (on_pick)
+ 		}
+ 	}
+ 
 diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
-index e455f665c..482aed996 100644
+index b8d94a3cb..18c424317 100644
 --- a/public/framework/ux/Dictate/Dictate.js
 +++ b/public/framework/ux/Dictate/Dictate.js
-@@ -234,7 +234,12 @@ export default class Dictate extends View {
- 	}
- 
- 
--	toggle(){ (this.state === "idle" || this.state === "error") ? this.start() : this.stop(); }
-+	toggle(){
-+		if (this.state === "idle" || this.state === "error") return this.start();
-+		// Still finishing the last sentence after a stop: a press is "listen again" once it is done, never ignored (test/refresh.mjs, again).
-+		if (this.state === "transcribing"){ this.again = true; this.$status?.text("finishing the last sentence, then listening again"); return; }
-+		return this.stop();
-+	}
- 
- 	/** Instant secure-context check; the Web Speech constructor exists but fails silently off https. see doc/notes.md#insecure-context */
- 	insecure_context_message(){
-@@ -243,7 +248,17 @@ export default class Dictate extends View {
- 		return `The mic needs https or localhost: open http://localhost${port} on this machine, or see doc/https-lan.md for https on the LAN.`;
- 	}
- 
-+	/** One start at a time. Two at once (✦ starts the mic, and a press during the Whisper check started it again) closed
-+	 *  one start’s audio while it loaded: "AbortError: Unable to load a worklet’s module", the mic that would not start
-+	 *  (test/refresh.mjs). A start pressed after a cancelled one waits for it, then runs. */
+@@ -253,7 +253,7 @@ export default class Dictate extends View {
+ 	 *  (test/refresh.mjs). A start pressed after a cancelled one waits for it, then runs. */
  	async start(){
-+		if (this.start_promise && !this.cancel_connect) return this.start_promise;
-+		if (this.start_promise) await this.start_promise.catch(() => {});
-+		if (this.state === "listening" || this.state === "connecting") return;
-+		return this.start_promise = this.start_now().finally(() => { this.start_promise = null; });
+ 		if (this.start_promise && !this.cancel_connect) return this.start_promise;
+-		if (this.start_promise) await this.start_promise.catch(() => {});
++		if (this.start_promise) await this.start_promise.catch(() => {});   // ignored on purpose: the start's own failure was already shown by start() (set_error)
+ 		if (this.state === "listening" || this.state === "connecting") return;
+ 		return this.start_promise = this.start_now().finally(() => { this.start_promise = null; });
+ 	}
+@@ -500,7 +500,7 @@ export default class Dictate extends View {
+ 		const seq = ++this.req_seq;
+ 		this.inflight = this.transcribe(samples, "interim");
+ 		let text;
+-		try { text = await this.inflight; } catch { return; } finally { this.inflight = null; }
++		try { text = await this.inflight; } catch (e){ DictateHealth.fail("whisper", e, "a guess request"); return; } finally { this.inflight = null; }
+ 		// Stale answers are dropped (epoch + ticket). see doc/notes.md#duplicate-bubble-race
+ 		if (epoch !== this.segment_epoch || seq <= this.applied_seq){ this.on_trace?.("stale", { kind: "interim", req: seq, msg: text }); return; }
+ 		this.applied_seq = seq;
+@@ -584,7 +584,7 @@ export default class Dictate extends View {
+ 		else { this.steps.whisper = reply; this.draw_diag(); this.on_step?.("whisper", reply); }   // every answer updates the line; only the first is console-logged
+ 		// Whisper puts "\n" between its own segments; collapse them (real breaks come from real pauses).
+ 		const text = (body.text ?? "").replace(/\s+/g, " ").trim();
+-		DictateHealth.heard({ kind, text, ms: Math.round(this.whisper_ms) });
++		DictateHealth.heard({ kind, text, ms: Math.round(this.whisper_ms), raw: body });
+ 		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000), req, segment, body });
+ 		if (this.log_raw) this.log_whisper({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000), req, segment, body });
+ 		return text;
+@@ -593,7 +593,7 @@ export default class Dictate extends View {
+ 	/** Save the raw Whisper reply: one line in the day file through `WhisperLog.record()`, fire and forget, never throws. see audio/Whisper/doc/demo.md */
+ 	log_whisper({ body, ...line }){
+ 		const session = typeof this.session === "function" ? this.session() : this.session;
+-		try { WhisperLog.record({ ...line, body, session: session || undefined }); } catch {}
++		try { WhisperLog.record({ ...line, body, session: session || undefined }); } catch {}   // ignored on purpose: the raw Whisper log is a bonus copy; the Debug log already holds this answer
+ 	}
+ 
+ 	/** Debug seam: `window.$DICTATE_DUMP = true` also writes each WAV to dump_file. see doc/notes.md#debug-dump */
+@@ -712,14 +712,14 @@ export default class Dictate extends View {
+ 		const entry = { type: "prompt", by: "owner", text, via: "whisper", id };
+ 		if (await post_prompt(entry, this.log_url)) return;
+ 		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
+-		catch (e) { console.warn("ux/Dictate: could not log this utterance (Servex down, dev-server fallback also failed):", e); }
++		catch (e) { DictateHealth.fail("sentence", e, "could not save this utterance (Servex down, dev-server fallback also failed)"); }
+ 	}
+ 
+ 	async log_revision(text, level, re){
+ 		const entry = { chat: { at: new Date().toISOString(), from: { kind: "assistant", id: "revise" }, via: "voice", text, re, level } };
+ 		if (await post_prompt(entry, this.log_url)) return;
+ 		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
+-		catch (e) { console.warn("ux/Dictate: could not log this revision (Servex down, dev-server fallback also failed):", e); }
++		catch (e) { DictateHealth.fail("sentence", e, "could not save this revision (Servex down, dev-server fallback also failed)"); }
+ 	}
+ 
+ 	/** Annotations like *shriek* or [BLANK_AUDIO] are never speech: a rule about shape, not a phrase list. see doc/notes.md#annotations */
+diff --git a/public/framework/ux/Dictate/DictateDebug.css b/public/framework/ux/Dictate/DictateDebug.css
+index fcd948050..fc2695a7c 100644
+--- a/public/framework/ux/Dictate/DictateDebug.css
++++ b/public/framework/ux/Dictate/DictateDebug.css
+@@ -1,19 +1,35 @@
+ @layer base, theme, site, util;
+ 
+-/* The Debug tab (class DictateDebug): the layers beside what happened. One column in the drawer and on a phone,
+-   two side by side once there is room for both (each column at least 24rem; the pair at most 100rem, so a line stays readable at 3440).
+-   ⚠ the column's max must be 1fr: auto-fit counts columns from a definite max, so `48rem` gave one column at 1920. */
++/* The Debug tab (class DictateDebug): a row of lights, the picked light's last word, a small action bar, then a compact live log
++   that fills the rest and scrolls. One column at every width; at 3440 the lines stop at 100rem so a log line stays readable.
++   Doc: doc/debug-tab.md#the-lights */
+ @layer site {
+-	.dictate-debug { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); max-inline-size: 100rem; gap: 1.5em 2.5em; align-items: start; }
+-	.dictate-debug-col { display: grid; gap: 0.6em; min-inline-size: 0; }
+-	.dictate-debug-col > h3 { margin: 0; }
+-	.dictate-debug-col > p { margin: 0; }
+-	.dictate-debug-list { gap: 0.15em; max-block-size: 28em; overflow-y: auto; font-size: 0.9em; }
+-	.dictate-debug-event { display: grid; grid-template-columns: auto auto 1fr; gap: 0.6em; padding-block: 0.2em; border-block-end: 1px solid var(--wash, #ddd); }
+-	.dictate-debug-layer { font-weight: 600; white-space: nowrap; }
+-	.dictate-debug-why { min-inline-size: 0; overflow-wrap: anywhere; }
+-	.dictate-debug-event[data-state="bad"] .dictate-debug-why { color: var(--error, #d33); }
+-	.dictate-debug-event[data-state="ok"] .dictate-debug-layer { color: #2a9d4b; }
+-	.dictate-debug-event[data-state="wait"] .dictate-debug-layer { color: #b07d00; }
+-	.dictate-debug-links { gap: 0.3em; }
++	/* The tab hands the view the height it has, so the lights stay put and only the log scrolls (the sheet's tab body, or the page's own scroll at 1920 where the log stops at 75vh). */
++	.drawer-debug { display: flex; flex-direction: column; block-size: 100%; min-block-size: 0; }
++	.drawer-debug > .dictate-debug { flex: 1 1 auto; }
++	.dictate-debug { gap: 0.5em; max-inline-size: 100rem; min-block-size: 0; block-size: 100%; }
++	.dictate-debug > * { flex: none; }
++	.dictate-debug-detail { font-size: 0.85em; min-block-size: 1.4em; overflow-wrap: anywhere; }
++	.dictate-debug-detail[data-state="bad"] .dictate-debug-detail-why { color: var(--error, #d33); }
++	.dictate-debug-bar { gap: 0.4em 0.75em; font-size: 0.85em; }
++	.app .dictate-debug-bar button { font: inherit; padding: 0.2em 0.6em; min-block-size: 2rem; }
++	.dictate-debug-links { gap: 0.25em 0.75em; }
++
++	/* The log: one line per record, newest on top; a click opens its raw data underneath. */
++	.dictate-debug .dictate-debug-log { flex: 1 1 auto; min-block-size: 6em; max-block-size: 75vh; overflow-y: auto; font: 0.8em/1.35 ui-monospace, SFMono-Regular, Consolas, monospace;
++		border-block-start: 1px solid var(--line, #ddd); }
++	.dictate-debug .dictate-debug-line { border: 0; border-block-end: 1px solid var(--wash, #eee); border-radius: 0; background: none; padding: 0; margin: 0; }
++	.dictate-debug .dictate-debug-line-sum { border: 0; border-radius: 0; background: none; box-shadow: none; gap: 0.6em; padding-block: 0.15em; cursor: pointer; list-style: none; white-space: nowrap; }
++	.dictate-debug-line-sum::-webkit-details-marker { display: none; }
++	.dictate-debug-when { flex: none; }
++	.dictate-debug-tag { flex: none; inline-size: 5.5em; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
++	.dictate-debug-why { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
++	.dictate-debug-line[open] .dictate-debug-why { white-space: normal; overflow-wrap: anywhere; }
++	.dictate-debug-raw { margin: 0 0 0.4em 0; padding: 0.4em 0.6em; max-block-size: 20em; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere;
++		background: var(--wash, #f4f4f4); color: inherit; opacity: 1; border-radius: 0.3em; }
++	.dictate-debug-line[data-state="ok"] .dictate-debug-tag { color: #2a7d3f; }
++	.dictate-debug-line[data-state="wait"] .dictate-debug-tag { color: #946800; }
++	.dictate-debug-line[data-state="bad"] .dictate-debug-tag,
++	.dictate-debug-line[data-state="bad"] .dictate-debug-why { color: var(--error, #d33); }
++	.dictate-debug-empty { font-size: 0.85em; }
+ }
+diff --git a/public/framework/ux/Dictate/DictateDebug.js b/public/framework/ux/Dictate/DictateDebug.js
+index b47594c9a..4bbf38eb8 100644
+--- a/public/framework/ux/Dictate/DictateDebug.js
++++ b/public/framework/ux/Dictate/DictateDebug.js
+@@ -1,4 +1,4 @@
+-import { View, div, span, button, a, h3, p } from "../../core/View/View.js";
++import { View, div, span, button, a, details, summary, pre } from "../../core/View/View.js";
+ import Dictate from "./Dictate.js";
+ import Connection from "./Connection.js";
+ import DictateHealth from "./DictateHealth.js";
+@@ -7,49 +7,45 @@ import chat from "./chat.js";
+ View.stylesheet(import.meta, "DictateDebug.css");
+ 
+ /**
+- * class DictateDebug — the Debug tab: dictation, layer by layer, live. One row per layer (`DictateHealth.LAYERS`,
+- * drawn by the shared `Connection` row in its `rows` layout): green works, amber is waiting, red failed and says
+- * why in full. Beside it, the last things that happened, newest first, and the logs to open.
++ * class DictateDebug — the Debug tab: a row of lights, one per stage a spoken sentence passes through (`DictateHealth.LAYERS`,
++ * drawn by the shared `Connection` row in its `lights` layout), so "all green = should work". Hover or tap a light for its
++ * last word; a tap also narrows the log to that stage. Under it, a compact live log: one line per record, its time and
++ * stage, the raw data one click down. Doc: doc/debug-tab.md.
+  *
+  *   new DictateDebug();   // reads DictateHealth; starts nothing: the mic, Whisper and Servex are the chat's own
+  *
+- * It only reads: the mic is the chat's (`ux/Dictate/chat.js`), so the layers fill as soon as you talk there.
+- * The one request it makes is "Check Whisper", on load and on the button. Doc: doc/debug-tab.md.
++ * The one request it makes is "Check Whisper", on load and on the button.
+  */
+ export default class DictateDebug extends View {
+ 
+-	static AGE_MS = 1000;   // how often the "4 s ago" words are redrawn while the tab is on screen (display only, no request)
++	static AGE_MS = 1000;   // how often the picked light's "4 s ago" is redrawn while the tab is on screen (display only, no request)
++	static LINES = 200;     // log lines kept on screen (DictateHealth.KEEP)
+ 
+ 	render(){
+-		this.ac("dictate-debug");
+-		div.c("dictate-debug-col dictate-debug-layers", () => {
+-			h3("Dictation, layer by layer");
+-			p.c("muted", "Each row is one step a spoken sentence passes through, from the microphone to the AI's answer. Green works, amber is waiting, red failed, and says why.");
+-			this.conn = new Connection({ whisper_url: Dictate.prototype.whisper_url, layout: "rows", steps: DictateHealth.LAYERS,
+-				on_check: (up, why) => DictateHealth.set("whisper", up ? "ok" : "bad", why) });
+-			div.c("dictate-debug-actions flex wrap gap", () => {
+-				button.c("dictate-debug-copy", "Copy the report").attr("type", "button").attr("title", "Every layer and event as JSON, to paste into a chat or a bug")
+-					.click(() => this.copy());
+-				this.$copied = span.c("muted");
+-			});
+-		});
+-		div.c("dictate-debug-col dictate-debug-events", () => {
+-			h3("What happened, newest first");
+-			this.$events = div.c("dictate-debug-list flex v");
+-			h3("Logs");
+-			div.c("dictate-debug-links flex v", () => {
+-				this.$session = a("this conversation's session log").attr("target", "_blank");
+-				a("every Whisper answer and connection drop").href("/framework/audio/Whisper/log/");
+-				// the file is git-ignored and written on this machine at the first failure: until then (and on the static site) it would 404
+-				this.$failures = a("dictation errors (ux/Dictate/failures.jsonl)").href(DictateHealth.MODULE + "failures.jsonl").attr("target", "_blank");
+-				this.$no_failures = span.c("muted", "dictation errors: no failures yet (ux/Dictate/failures.jsonl, written on this machine at the first one)");
+-				fetch(DictateHealth.MODULE + "failures.jsonl", { method: "HEAD", cache: "no-store" }).then(r => { this.failures_file = r.ok; this.draw(); }).catch(() => {});
+-				a("the dictation playground").href("/framework/ux/Dictate/playground/");
++		this.ac("dictate-debug flex v");
++		this.conn = new Connection({ whisper_url: Dictate.prototype.whisper_url, layout: "lights", steps: DictateHealth.LAYERS,
++			on_pick: id => this.pick(this.only === id ? null : id),
++			on_check: (up, why) => DictateHealth.set("whisper", up ? "ok" : "bad", why) });
++		this.$detail = div.c("dictate-debug-detail").attr("aria-live", "polite");
++		div.c("dictate-debug-bar flex wrap v-center", () => {
++			button.c("dictate-debug-check", "Check Whisper").attr("type", "button").click(() => this.conn.check_whisper());
++			button.c("dictate-debug-copy", "Copy report").attr("type", "button").attr("title", "Every light and log line as JSON, to paste into a chat or a bug")
++				.click(() => this.copy());
++			this.$copied = span.c("muted");
++			span.c("dictate-debug-links flex wrap", () => {
++				this.$session = a("session log").attr("target", "_blank").attr("title", "this conversation's own file, as Servex wrote it");
++				a("Whisper log").href("/framework/audio/Whisper/log/").attr("title", "every Whisper answer and connection drop");
++				// git-ignored and written on this machine at the first failure: until then (and on the static site) it would 404
++				this.$failures = a("failures").href(DictateHealth.MODULE + "failures.jsonl").attr("target", "_blank").attr("title", "ux/Dictate/failures.jsonl: every light that turned red");
++				fetch(DictateHealth.MODULE + "failures.jsonl", { method: "HEAD", cache: "no-store" }).then(r => { this.failures_file = r.ok; this.draw(); })
++					.catch(() => {});   // ignored on purpose: no file is the normal case, the link stays hidden
+ 			});
+ 		});
++		this.$log = div.c("dictate-debug-log").attr("role", "log");
++		this.$empty = span.c("dictate-debug-empty muted", "Nothing yet. Press the mic in the chat and say something.");
+ 		this.stop = DictateHealth.on(() => this.draw());
+ 		this.conn.check_whisper();
+-		this.timer = setInterval(() => this.el.isConnected ? this.draw() : this.dispose(), this.constructor.AGE_MS);
++		this.timer = setInterval(() => this.el.isConnected ? this.draw_detail() : this.dispose(), this.constructor.AGE_MS);
+ 		this.draw();
+ 	}
+ 
+@@ -61,33 +57,72 @@ export default class DictateDebug extends View {
+ 		return s < 2 ? "just now" : s < 120 ? s + " s ago" : Math.round(s / 60) + " min ago";
+ 	}
+ 
++	static time(at){
++		const d = new Date(at);
++		return d.toLocaleTimeString([], { hour12: false }) + "." + String(d.getMilliseconds()).padStart(3, "0");
 +	}
 +
-+	async start_now(){
- 		const insecure = this.insecure_context_message();
- 		if (insecure){ this.log_step("mic", "refused: insecure context"); this.set_error(insecure); return; }
++	static label(id){ return DictateHealth.LAYERS.find(l => l.id === id)?.label ?? id; }
++
++	/** A light was tapped: its last word in full above the log, and the log narrowed to its stage (tap again for all). */
++	pick(id){
++		this.only = id;
++		for (const el of this.conn.el.querySelectorAll("[data-step]")) el.setAttribute("aria-pressed", String(el.dataset.step === id));
++		for (const el of this.$log.el.children) el.hidden = !!id && el.dataset.layer !== id;
++		this.draw_detail();
++	}
++
+ 	draw(){
+-		const L = DictateHealth.layers, ago = this.constructor.ago;
+-		for (const { id } of DictateHealth.LAYERS){
+-			const l = L[id], age = l.at ? (l.state === "wait" ? " · waiting " + ago(l.since ?? l.at).replace(/ ago$/, "") : " · " + ago(l.at)) : "";
+-			this.conn.set(id, l.state, l.why + age);
+-		}
++		const L = DictateHealth.layers;
++		for (const { id, label } of DictateHealth.LAYERS) this.conn.set(id, L[id].state, `${label}: ${L[id].why}`);
+ 		const file = chat.file?.();
+ 		this.$session.href(file);
+ 		this.$session.el.hidden = !file;
+-		const failures = this.failures_file || DictateHealth.LAYERS.some(({ id }) => L[id].state === "bad");   // a red layer has just written it
+-		this.$failures.el.hidden = !failures; this.$no_failures.el.hidden = failures;
+-		const rows = DictateHealth.events.slice().reverse();
+-		if (rows.length === this.drawn && rows[0]?.at === this.newest) return;   // nothing new: only the ages above changed
+-		this.drawn = rows.length; this.newest = rows[0]?.at;
+-		this.$events.empty(() => {
+-			if (!rows.length) span.c("muted", "Nothing yet. Press the mic in the chat and say something.");
+-			for (const e of rows) div.c("dictate-debug-event", () => {
+-				span.c("dictate-debug-when muted", new Date(e.at).toLocaleTimeString());
+-				span.c("dictate-debug-layer", DictateHealth.LAYERS.find(l => l.id === e.layer)?.label ?? e.layer);
+-				span.c("dictate-debug-why", e.why);
+-			}).attr("data-state", e.state);
+-		});
++		this.$failures.el.hidden = !(this.failures_file || DictateHealth.LAYERS.some(({ id }) => L[id].state === "bad"));   // a red light has just written it
++		this.draw_log();
++		this.draw_detail();
++	}
++
++	draw_detail(){
++		const id = this.only;
++		if (!id){ this.$detail.text("All green = it should work. Tap a light for its last word; the log below is newest first."); return; }
++		const l = DictateHealth.layers[id], ask = DictateHealth.LAYERS.find(x => x.id === id)?.ask ?? "";
++		const age = l.at ? (l.state === "wait" ? " · waiting " + this.constructor.ago(l.since ?? l.at).replace(/ ago$/, "") : " · " + this.constructor.ago(l.at)) : "";
++		this.$detail.empty(() => {
++			span.c("dictate-debug-detail-ask muted", ask + " ");
++			span.c("dictate-debug-detail-why", l.why + age);
++		}).attr("data-state", l.state);
++	}
++
++	/** New events only, newest on top; an open line (its raw data showing) stays open. */
++	draw_log(){
++		const events = DictateHealth.events, start = events.lastIndexOf(this.last_event) + 1;
++		const fresh = this.last_event && start === 0 ? events : events.slice(start);   // start 0 with a last_event: it scrolled out, draw them all
++		if (!fresh.length) return;
++		this.last_event = events.at(-1);
++		const T = this.constructor;
++		for (const e of fresh){
++			const raw = e.raw === undefined ? null : e.raw;
++			const line = new View({ el: document.createElement("details"), capture: false }).append(() => {
++				summary.c("dictate-debug-line-sum flex", () => {
++					span.c("dictate-debug-when muted", T.time(e.at));
++					span.c("dictate-debug-tag", T.label(e.layer));
++					span.c("dictate-debug-why", e.why);
++				});
++				pre.c("dictate-debug-raw", raw === null ? e.why : typeof raw === "string" ? raw : JSON.stringify(raw, null, 2));
++			});
++			line.el.className = "dictate-debug-line";
++			line.el.dataset.layer = e.layer; line.el.dataset.state = e.state;
++			if (this.only && this.only !== e.layer) line.el.hidden = true;
++			this.$log.el.prepend(line.el);
++		}
++		while (this.$log.el.children.length > T.LINES) this.$log.el.lastElementChild.remove();
++		this.$empty.el.hidden = this.$log.el.children.length > 0;
+ 	}
  
-@@ -265,8 +280,10 @@ export default class Dictate extends View {
- 		this.on_start?.();
+ 	async copy(){
+ 		const report = JSON.stringify({ at: new Date().toISOString(), page: location.href, ...DictateHealth.snapshot() }, null, 2);
+ 		try { await navigator.clipboard.writeText(report); this.$copied.text("copied"); }
+-		catch { this.$copied.text("the browser refused the clipboard: the report is in the console"); console.log(report); }
++		catch { this.$copied.text("the browser refused the clipboard: the report is in the console"); console.log(report); }   // shown, not silent
+ 	}
+ }
+diff --git a/public/framework/ux/Dictate/DictateHealth.js b/public/framework/ux/Dictate/DictateHealth.js
+index 2636d3f63..8da2273c7 100644
+--- a/public/framework/ux/Dictate/DictateHealth.js
++++ b/public/framework/ux/Dictate/DictateHealth.js
+@@ -1,14 +1,15 @@
+ import ErrorLog from "/framework/ext/ErrorLog/ErrorLog.js";
  
- 		this.log_step("mic", "checking the engine…");
-+		this.set_state("connecting");   // the bar says "starting" while Whisper is checked (up to ~5 s), never "off" after a press
- 		// Shared check, not detect_engine() raw. see doc/notes.md#one-health-check-per-tab
- 		const { engine, steps } = await shared_detect_engine(this);
-+		if (this.cancel_connect) return;   // stopped during the check: stop() already set idle
- 		this.engine = engine;
- 		this.steps.socket = steps.socket; this.steps.whisper = steps.whisper;
- 		this.draw_diag();
-@@ -301,6 +318,7 @@ export default class Dictate extends View {
- 		try {
- 			await this.open_engine();
- 		} catch (e){
-+			if (this.cancel_connect){ this.mic?.stop(); return; }   // stopped while it opened: stop() already said "off"; the abort is ours, not a fault
- 			this.log_step("mic", "refused: " + (e?.name ?? e?.message ?? e));
- 			this.set_error(this.explain(e));
- 			return;
-@@ -352,6 +370,7 @@ export default class Dictate extends View {
- 				if (!this.settled && this.skipped_silent)
- 					this.$status.text("nothing loud enough to transcribe was heard — check the level meter moves while you talk");
+ /**
+- * class DictateHealth — what each layer of dictation is doing right now, in the owner's five questions:
+- * is the mic connected, is Whisper connected, are transcripts coming back, is the text being sent to the AI,
+- * and is the AI connected and answering. One store per browser tab (static), filled by the objects that do
+- * the work, read by the Debug tab (`DictateDebug.js`). Nothing here polls or starts anything.
++ * class DictateHealth — what each stage of dictation is doing right now: eight lights, one per stage a spoken sentence
++ * passes through (mic, Whisper, the answers heard, the sentence, the send, the reply, the live wire, the page), and a log of
++ * what happened, each record with its raw data. One store per browser tab (static), filled by the objects that do the
++ * work, read by the Debug tab (`DictateDebug.js`). Nothing here polls or starts anything.
+  *
+  *   DictateHealth.set("sent", "bad", "Servex did not answer in 10 s");   // state: idle | wait | ok | bad
+  *   DictateHealth.step("mic", "requesting…");                           // Dictate's own stage words, mapped
+  *   DictateHealth.on(() => redraw());                                    // returns stop()
++ *   DictateHealth.fail("page", error, "drawing a bubble");               // a red light, a log line, the raw error one click down
+  *   DictateHealth.snapshot();                                            // {layers, events}, plain data
+  *
+  * A layer that turns bad also becomes one line in its module's failures log (`ErrorLog.report`), so whoever
+@@ -20,35 +21,56 @@ export default class DictateHealth {
+ 	static LAYERS = [
+ 		{ id: "mic", label: "Mic", ask: "Is the mic connected?" },
+ 		{ id: "whisper", label: "Whisper", ask: "Is Whisper connected?" },
+-		{ id: "transcripts", label: "Transcripts", ask: "Are raw Whisper transcripts coming back?" },
+-		{ id: "sent", label: "Sent to the AI", ask: "Is the text being sent to the AI?" },
+-		{ id: "llm", label: "AI", ask: "Is the AI connected, and is it answering?" },
++		{ id: "transcripts", label: "Heard", ask: "Are Whisper's raw answers coming back?" },
++		{ id: "sentence", label: "Sentence", ask: "Do your words become sentences that leave the draft?" },
++		{ id: "sent", label: "Send", ask: "Is the text being sent to the AI?" },
++		{ id: "llm", label: "Reply", ask: "Is the AI answering?" },
++		{ id: "wire", label: "Wire", ask: "Is the live wire to Servex open?" },
++		{ id: "page", label: "Page", ask: "Did anything on the page fail?" },
+ 	];
+ 	static MODULE = "/framework/ux/Dictate/";
+-	static KEEP = 60;   // events kept for the Debug tab's list
++	static KEEP = 200;   // log records kept for the Debug tab
+ 
+ 	static layers = Object.fromEntries(this.LAYERS.map(l => [l.id, { state: "idle", why: "nothing yet", at: 0 }]));
++	static { this.layers.page = { state: "ok", why: "no errors on this page since it loaded", at: 0 }; }   // nothing to wait for: green until something fails
+ 	static events = [];
+ 	static listeners = new Set();
+ 	static timers = {};
+ 
+ 	/** Set one layer. `late_ms` + `late` (with state "wait"): if the layer is still this same wait after late_ms, it turns bad with `late`. */
+-	static set(id, state, why = "", { late_ms, late, quiet = false } = {}){
++	static set(id, state, why = "", { late_ms, late, quiet = false, raw, always = false } = {}){
+ 		const was = this.layers[id];
+ 		if (!was) return;
+ 		const now = Date.now(), changed = was.state !== state || was.why !== why;
+ 		const row = this.layers[id] = { state, why, at: now, since: was.state === state ? was.since ?? was.at : now };
+ 		clearTimeout(this.timers[id]);
+ 		if (state === "wait" && late_ms) this.timers[id] = setTimeout(() => { if (this.layers[id] === row) this.set(id, "bad", late); }, late_ms);
+-		if (changed && !quiet) this.event(id, state, why);
+-		if (state === "bad" && was.state !== "bad") this.report(id, why);
++		if ((changed || always) && !quiet) this.event(id, state, why, raw);
++		if (state === "bad" && was.state !== "bad" && id !== "page") this.report(id, why);   // the page's own errors already reach their module through app.js's ErrorLog.watch
+ 		this.tell();
+ 	}
+ 
+-	/** An event for the list only, no state change (a transcript, a send). */
+-	static event(layer, state, why){
+-		this.events.push({ at: Date.now(), layer, state, why });
++	/** A log record only, no state change (a transcript, a send). `raw` is the data one click down in the Debug tab. */
++	static event(layer, state, why, raw){
++		this.events.push(raw === undefined ? { at: Date.now(), layer, state, why } : { at: Date.now(), layer, state, why, raw });
+ 		if (this.events.length > this.KEEP) this.events.shift();
++		this.tell();
++	}
++
++	/** The one way to show an error: the stage's light turns red with the words, and the log gets the raw error and its stack. Never throws. */
++	static fail(layer, error, where = ""){
++		try {
++			const msg = String(error?.message ?? error?.reason ?? error);
++			this.set(layer, "bad", where ? `${where}: ${msg}` : msg, { always: true, raw: { error: msg, where, stack: error?.stack ?? null } });
++		} catch (e){ console.error("DictateHealth.fail:", e); }   // the one place an error report may only reach the console
++	}
++
++	/** Every uncaught error and unhandled promise rejection on the page lands on the Page light. Once per tab. */
++	static watch_window(){
++		if (this.watching || typeof window === "undefined") return;
++		this.watching = true;
++		window.addEventListener("error", e => this.fail("page", e.error ?? e.message ?? "script error", "uncaught" + (e.filename ? ` (${e.filename.split("/").slice(-2).join("/")}:${e.lineno ?? "?"})` : "")));
++		window.addEventListener("unhandledrejection", e => this.fail("page", e.reason ?? "rejected promise", "unhandled promise rejection"));
+ 	}
+ 
+ 	/** `ux/Dictate`'s own stage words (log_step) as layer states. */
+@@ -69,11 +91,12 @@ export default class DictateHealth {
+ 	static error(msg){ this.set(/whisper/i.test(msg) ? "whisper" : "mic", "bad", String(msg)); }
+ 
+ 	/** One Whisper answer came back. */
+-	static heard({ kind, text, ms }){
++	static heard({ kind, text, ms, raw }){
+ 		this.count = (this.count ?? 0) + 1;
+ 		const why = `${this.count} answers · last ${kind === "final" ? "final" : "guess"} in ${ms} ms: “${String(text ?? "").slice(0, 80) || "(silence)"}”`;
+ 		this.set("transcripts", "ok", why, { quiet: true });
+-		if (kind === "final") this.event("transcripts", "ok", `final in ${ms} ms: “${String(text ?? "").slice(0, 120)}”`);
++		if (this.layers.whisper.state === "bad" || this.layers.whisper.state === "wait") this.set("whisper", "ok", "answering again");   // an answer is the proof it is back
++		this.event("transcripts", "ok", `${kind === "final" ? "final" : kind} in ${ms} ms: “${String(text ?? "").slice(0, 120) || "(silence)"}”`, { kind, text, ms, ...(raw === undefined ? {} : { whisper: raw }) });   // every answer: guess, amendment, final
+ 	}
+ 
+ 	static on(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); }
+@@ -87,4 +110,5 @@ export default class DictateHealth {
+ 	}
+ }
+ 
++DictateHealth.watch_window();
+ globalThis.DictateHealth = DictateHealth;   // headless-test seam (test/stall.mjs) and the console
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index 01fb8747b..5c6be29a1 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -203,7 +203,7 @@ Widget.ThreadV1 = class WidgetThreadV1 extends View {
+ 			const m = out?.marks?.[0];
+ 			if (!m) return;
+ 			$bubble.append(() => span.c("ux-dictate-widget-mark muted", m.mark === "unclear" ? " ?" : " ✓").attr("title", m.purpose ?? ""));
+-		}).catch(() => {});
++		}).catch(() => {});   // ignored on purpose: the check/? mark is a bonus on a bubble; no mark just means nothing was judged
+ 	}
+ 
+ 	mark_failed(at){
+@@ -528,7 +528,7 @@ Widget.Thread = class WidgetThread extends View {
+ 			if (!m) return;
+ 			patch_piece(bubble, ref.id, { mark: m });
+ 			this.refresh();
+-		}).catch(() => {});
++		}).catch(() => {});   // ignored on purpose: the check/? mark is a bonus on a bubble; no mark just means nothing was judged
+ 	}
+ 
+ 	mark_failed(at){
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index bbdb417c3..c61e9a1fd 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -3,6 +3,7 @@ import Widget from "./Widget.js";
+ import floor from "./floor.js";
+ import * as Session from "/framework/ext/Session/Session.js";
+ import DictateHealth from "./DictateHealth.js";
++import * as report from "/framework/ext/Chat/v2/report.js";
+ 
+ // One chat box, every surface: doc/chat-notes.md
+ const SESSION_KEY = "lew42-voice-session";
+@@ -26,7 +27,7 @@ function read_saved(){
+ }
+ function write_saved(v){
+ 	try { v ? sessionStorage.setItem(SESSION_KEY, JSON.stringify(v)) : sessionStorage.removeItem(SESSION_KEY); }
+-	catch {}
++	catch {}   // ignored on purpose: sessionStorage is off (private mode), so the session is just not remembered across a reload
+ }
+ 
+ // Controller factory: doc/chat-notes.md. Built GLOBAL (per-tab) or per-mount
+@@ -59,7 +60,7 @@ function create_controller({ persist }){
+ 		if (path === ctl.nav_path && card === ctl.nav_card) return;
+ 		const from = ctl.nav_path;
+ 		ctl.nav_path = path; ctl.nav_card = card;
+-		Session.nav({ session: ctl.session, from, to: path, card }).catch(() => {});
++		Session.nav({ session: ctl.session, from, to: path, card }).catch(e => quiet_note("the page change was not reported to the session", e));
+ 	}
+ 
+ 	// First sentence starts (or resumes) the one session until reset
+@@ -85,7 +86,7 @@ function create_controller({ persist }){
+ 			if (session !== ctl.session || Date.now() - started > 30000) return clearInterval(floor_watch);
+ 			if (floor.state() !== "done") return;
+ 			clearInterval(floor_watch);
+-			Session.floor({ session, floor: "done" }).catch(() => {});
++			Session.floor({ session, floor: "done" }).catch(e => quiet_note("the floor change was not reported", e));
+ 		}, 250);
+ 	}
+ 
+@@ -112,6 +113,8 @@ const quote = t => "“" + (String(t ?? "").replace(/\s+/g, " ").trim().slice(0,
+ export const ANSWER_MS = 60000;   // no answer this long after a sentence went out turns the AI layer red
+ export const LATE_ECHO_MS = 120000;   // after a timed-out send, how long its late echo still heals the bubble instead of drawing a copy
+ export const WIRE_GRACE_MS = 8000;   // a live-wire drop shorter than this is only an event, not a red row
++// A failure that loses nothing you said (a page change, a selection, the resume offer): a log line, no red light, so it cannot hide a real fault.
++const quiet_note = (what, e) => DictateHealth.event("page", "wait", `${what}: ${e?.message ?? e}`, { error: String(e?.message ?? e), stack: e?.stack ?? null });
+ const secs = ms => (ms / 1000).toFixed(1) + " s";
+ let sent_at = 0;   // when the last sentence went out: the AI row times its answer from here
+ // The timing of each step (doc/flicker.md): the words were on screen at `t.out`, left for Servex after the clean-up and queue wait, Servex took them.
+@@ -133,7 +136,7 @@ const GLOBAL = create_controller({ persist: true });
+ // ONE on-screen selection per tab, on GLOBAL controller only
+ window.addEventListener("selection-change", e => {
+ 	GLOBAL.ctl.selection = e.detail ?? null;
+-	if (GLOBAL.ctl.session) Session.select({ session: GLOBAL.ctl.session, selection: GLOBAL.ctl.selection }).catch(() => {});
++	if (GLOBAL.ctl.session) Session.select({ session: GLOBAL.ctl.session, selection: GLOBAL.ctl.selection }).catch(e => quiet_note("the selection was not reported", e));
+ });
+ 
+ Session.report_quiet(() => GLOBAL.ctl.session);
+@@ -162,7 +165,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 					DictateHealth.set("sent", "wait", `sending ${quote(entry.text)}…`);
+ 					owner.sync_from_storage();
+ 					await owner.ensure(target);
+-					if (!owner.ctl.session){ DictateHealth.set("sent", "bad", `not sent: Servex did not start a voice session for ${target.path}`); return false; }
++					if (!owner.ctl.session){ DictateHealth.fail("sent", new Error(`Servex did not start a voice session for ${target.path}`), "not sent"); return false; }
+ 					const via = entry.via === "typed" ? "text" : "voice";
+ 					floor.stamp(entry);
+ 					const thread = entry.thread ? { re: entry.thread, thread: true } : {};
+@@ -187,12 +190,12 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 					return true;
+ 				} catch (e) {
+ 					Session.stream.log("say failed", { session: owner.ctl.session, error: String(e?.message ?? e) });
+-					DictateHealth.set("sent", "bad", `not sent ${quote(entry.text)}: ${e?.message ?? e}`);
++					DictateHealth.fail("sent", e, `not sent ${quote(entry.text)}`);
+ 					return false;
+ 				}
+ 			},
+ 			answer: choice => {
+-				if (choice === resume_label) owner.resume_to(resume_session).catch(() => {});
++				if (choice === resume_label) owner.resume_to(resume_session).catch(e => DictateHealth.fail("page", e, "resuming the last conversation"));
+ 			},
+ 			react: r => owner.ctl.session
+ 				? Session.react({ session: owner.ctl.session, ...r })
+@@ -200,7 +203,11 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		});
+ 	});
+ 
++	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
+ 	function draw(line){
++		try { draw_line(line); } catch (e){ DictateHealth.fail("page", e, "drawing a session line"); }
++	}
++	function draw_line(line){
+ 		if (line?.react) return void panel.say({ react: line.react });
+ 		if (line?.para) return void panel.say({ para: line.para });
+ 		if (line?.place) return void panel.say({ place: line.place });   // the voice assistant's placement (doc/voice-assistant.md)
+@@ -235,7 +242,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 			resume_label = `${row.title ?? "The last conversation"} · ${ago(at)}`;
+ 			resume_session = row.session;
+ 			panel.say({ type: "ask", heading: "Pick up where you left off?", choices: [resume_label], at: new Date().toISOString() });
+-		}).catch(() => {});
++		}).catch(e => quiet_note("could not look up the last conversation to offer", e));
+ 	}
+ 
+ 	// Cold reload fix: every session appearance redraws from line 0: doc/chat-notes.md
+@@ -255,7 +262,14 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		if (!(was === null && watching)) panel.reset();
+ 		if (!owner.ctl.session){ maybe_offer(); return; }
+ 		watching_since = Date.now();   // lines older than this are history, not an answer just now
+-		stop_watch = Session.watch(owner.ctl.file, draw);
++		report.init(owner.ctl.session);   // the page's own errors reach the assistants too (ext/Chat/v2/report.js): a log line, never a wake-up
++		stop_watch = Session.watch(owner.ctl.file, draw, { on_status: (kind, d) => {
++			// The poll reads the session file every 1.5 s; its trouble is the Wire light's, so a dead file cannot pass for "no answer yet".
++			if (kind === "poll_failed") DictateHealth.set("wire", "bad", `poll of the session log failed: ${d.error?.message ?? d.error}`, { always: true, raw: { error: String(d.error?.message ?? d.error), status: d.status ?? null, file: owner.ctl.file } });
++			else if (kind === "poll_ok") DictateHealth.set("wire", "ok", "polling the session log works again", { always: true, raw: { status: d.status } });
++			else if (kind === "bad_line") DictateHealth.fail("wire", d.error, `line ${d.n} of the session log is not JSON`);
++			else if (kind === "line_failed") DictateHealth.fail("page", d.error, `drawing line ${d.n} of the session log`);
++		} });
+ 		stop_stream = Session.stream(owner.ctl.session, ev => {
+ 			if (ev.kind === "stream"){ panel.stream(ev.role, ev.text); if (ev.text) DictateHealth.set("llm", "ok", `${ev.role} is writing an answer…`, { quiet: true }); }
+ 			else if (ev.kind === "line") draw(ev.line);
+@@ -266,17 +280,17 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 				if (link.state === "down"){ set_link({ ...link, why }); return; }   // still down: a retry failed, keep the first `since`
+ 				link_why = why;
+ 				if (wire_timer) return;   // already counting this drop
+-				DictateHealth.event("llm", "wait", `the live wire to Servex dropped (${why}). It reconnects by itself.`);
++				DictateHealth.event("wire", "wait", `the live wire to Servex dropped (${why}). It reconnects by itself.`);
+ 				wire_timer = setTimeout(() => {
+ 					wire_timer = null;
+ 					set_link({ state: "down", why: link_why ?? why, since: since || Date.now() });
+-					DictateHealth.set("llm", "bad", `the live wire to Servex is down: ${link_why ?? why}. It retries by itself (1 s, doubling to 15 s); Reconnect tries now.`);
++					DictateHealth.set("wire", "bad", `the live wire to Servex is down: ${link_why ?? why}. It retries by itself (1 s, doubling to 15 s); Reconnect tries now.`);
+ 				}, WIRE_GRACE_MS);
+ 				return;
  			}
-+			if (this.again){ this.again = false; this.on_stop?.(); return this.start(); }   // pressed while the last sentence finished
- 		} else {
- 			this.stop_browser();   // set_state("idle") happens in onend, once Chrome truly stops
- 		}
-@@ -362,6 +381,7 @@ export default class Dictate extends View {
- 		if (e?.name === "NotAllowedError")
- 			return "The browser is not allowed to use the microphone — allow it for this site and press 🎤 again.";
- 		if (e?.name === "NotFoundError") return "No microphone was found on this machine.";
-+		if (e?.name === "WorkletError") return `The mic could not start: ${e.message}. The microphone was released; press 🎤 again.`;
- 		if (e?.name === "NotReadableError" || e?.name === "TrackStartError")
- 			return "The microphone is being used by another app (or another browser tab) — close it and press 🎤 again.";
- 		if (e?.name === "SecurityError") return this.insecure_context_message() ?? "The browser refused the microphone for security reasons.";
-diff --git a/public/framework/ux/Dictate/DictationBar.js b/public/framework/ux/Dictate/DictationBar.js
-index bd03c4275..07b747789 100644
---- a/public/framework/ux/Dictate/DictationBar.js
-+++ b/public/framework/ux/Dictate/DictationBar.js
-@@ -19,6 +19,7 @@ export default class DictationBar extends View {
- 	static HOLD_MS = 600;
- 	static WATCHED = ["set_state", "set_error", "send_screen", "send_sentences", "enqueue"];   // the mic's methods that change what the word says
- 	static HINTS = { starting: "connecting…", listening: "sends when you pause", sending: "one moment", paused: "tap to talk", off: "tap to talk" };
-+	static note = null;   // a one-off reason the mic is off (the AI sheet after a dev reload), shown instead of "tap to talk" until the mic starts
- 
- 	/** Put the bar in the widget's composer (full size) and, if `live` is given, a compact one in that row (the strip size). */
- 	static mount(widget, live){
-@@ -108,14 +109,14 @@ export default class DictationBar extends View {
- 	/** Redraw the word, the hint and the mic's look. `error` is the reason when the mic just failed. */
- 	refresh(error){
- 		const m = this.mic;
--		if (m.state === "listening" || m.state === "connecting") { m.$was_on = true; m.$off = false; }
-+		if (m.state === "listening" || m.state === "connecting") { m.$was_on = true; m.$off = false; this.constructor.note = null; }
- 		if (m.state === "error") this.error = String(error?.message ?? error ?? this.error ?? "the microphone stopped");
- 		else if (m.state !== "idle") this.error = null;
- 		const word = this.state();
- 		this.attr("data-state", word);
- 		this.$word.text(word[0].toUpperCase() + word.slice(1));
- 		if (word !== "listening" && word !== "sending") this.$mic.style("--level", "0");   // no meter while the mic is off
--		const hint = m.state === "error" && this.error ? this.error : this.constructor.HINTS[word];
-+		const hint = m.state === "error" && this.error ? this.error : (word === "off" && this.constructor.note) || this.constructor.HINTS[word];
- 		this.$hint.text(this.compact ? "" : " · " + hint).attr("title", m.state === "error" ? this.error : "");
- 		this.$mic.attr("aria-pressed", String(word === "listening" || word === "sending")).attr("aria-label", "Microphone, " + word);
+ 			clearTimeout(wire_timer); wire_timer = null; link_why = null;
+ 			if (link.state !== "open") set_link({ state: "open" });
+-			if (DictateHealth.layers.llm.state === "idle" || DictateHealth.layers.llm.why.startsWith("the live wire")) DictateHealth.set("llm", "ok", "connected to Servex; nothing asked yet");
++			if (DictateHealth.layers.wire.state === "idle" || DictateHealth.layers.wire.why.startsWith("the live wire")) DictateHealth.set("wire", "ok", "the live wire to Servex is open");
+ 		} });
  	}
-diff --git a/public/framework/ux/Dictate/capture.js b/public/framework/ux/Dictate/capture.js
-index a4790e44c..cf31e2454 100644
---- a/public/framework/ux/Dictate/capture.js
-+++ b/public/framework/ux/Dictate/capture.js
-@@ -34,6 +34,8 @@ export default class Capture {
- 	 *  the owner see which device moves the bars before committing to a take. */
- 	keep = true;
+ 	function set_link(next){ link = next; for (const fn of on_link) try { fn(link); } catch (e){ console.error("chat on_link:", e); } }
+diff --git a/public/framework/ux/Dictate/doc/debug-tab.md b/public/framework/ux/Dictate/doc/debug-tab.md
+index 50825c0c0..4aced5165 100644
+--- a/public/framework/ux/Dictate/doc/debug-tab.md
++++ b/public/framework/ux/Dictate/doc/debug-tab.md
+@@ -1,22 +1,44 @@
+-# The Debug tab — dictation, layer by layer, and why it used to stop
++# The Debug tab — dictation, stage by stage: a row of lights and a live log
  
-+	chunks = [];   // empty from the start: the mic's heartbeat may ask for a snapshot while the audio module still loads
+-**What it is.** A tab in the drawer and the phone sheet (it replaced the old Dictation tab, 2026-10-24) that shows, live, each step a spoken sentence passes through. Each step is one row, green when it works, amber while it waits, red when it failed, with the real reason in words. Open it from the sheet's **AI ▾** menu, or at `<page>/ai/debug/` (for example [/framework/ext/drawer/ai/debug/](/framework/ext/drawer/ai/debug/)).
++**What it is.** A tab in the drawer and the phone sheet that shows, live, each stage a spoken sentence passes through. At the top, one light per stage: green works, amber is waiting, red failed. **All green = it should work.** Under the lights, a compact live log: one line per record, newest first, the raw data one click down. Open it from the sheet’s **AI ▾** menu, or at `<page>/ai/debug/` (for example [/framework/ext/drawer/ai/debug/](/framework/ext/drawer/ai/debug/)).
+ 
+-Shots, from the proof run (`test/debug-tab.mjs`): [phone, 390](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/build/shots/debug-390.png) · [phone after a reload](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/build/shots/debug-390-reloaded.png) · [1920](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/build/shots/debug-1920.png).
++Shots (`test/debug-tab.mjs`): [phone, 390](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-390.png) · [1920](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/shots/debug-1920.png).
+ 
+-## The five layers
++## The lights
+ 
+-The rows are the owner's five questions. One store holds them, `class DictateHealth` ([DictateHealth.js](../DictateHealth.js)), one per browser tab; the objects that do the work write into it, and the tab only reads it.
++One store holds every stage, `class DictateHealth` ([DictateHealth.js](../DictateHealth.js)), one per browser tab. The objects that do the work write into it; the tab only reads it. Hover a light for its last word. A tap shows it in full above the log and narrows the log to that stage; tap again for everything.
+ 
+-| Layer | The question | Written by |
++| Light | The question | Written by |
+ |---|---|---|
+-| Mic | Is the mic connected? | `Dictate.log_step()` and `set_error()` ([Dictate.js](../Dictate.js)); `heartbeat()` when the mic's box leaves the page |
+-| Whisper | Is Whisper connected? | the same `log_step()` stages; the tab's own "Check Whisper" (`Connection.check_whisper`) |
+-| Transcripts | Are raw Whisper transcripts coming back? | `Dictate.transcribe()`, after every answer: count, last text, time |
+-| Sent to the AI | Is the text being sent to the AI? | `chat.js` around `Session.say()`: sending, sent, or not sent with Servex's own reason; `ComposerMic.post_held()` for a send still open after 25 s |
+-| AI | Is the AI connected, and is it answering? | `chat.js`: the live wire's state (`Session.stream`; a drop counts only if it lasts 8 s, since the LAN proxy cuts the wire every 30 s and it is back in a second), a reply being written, the answer line; no answer 60 s after a send turns it red |
++| Mic | Is the mic connected? | `Dictate.log_step()` and `set_error()` ([Dictate.js](../Dictate.js)); `heartbeat()` when the mic’s box leaves the page |
++| Whisper | Is Whisper connected? | the same `log_step()` stages; the tab’s **Check Whisper** (`Connection.check_whisper`) |
++| Heard | Are Whisper’s raw transcripts coming back? | `Dictate.transcribe()` → `DictateHealth.heard()`: a log line per answer (guess, amended, final) |
++| Sentence | Do your words become sentences that leave the draft? | `ComposerMic.take_out()` ([ext/Chat/Mic.js](/framework/ext/Chat/Mic.js)), and its errors |
++| Send | Is the text being sent to the AI? | `chat.js` around `Session.say()`: sending, sent, or not sent with Servex’s own reason; `ComposerMic.post_held()` for a send still open after 25 s; "Servex wrote it" when its line comes back |
++| Reply | Is the AI answering? | `chat.js`: a reply being written, the answer; no answer 60 s after a send turns it red |
++| Wire | Is the live wire to Servex open? | `chat.js` from `Session.stream`: amber at a drop, red only after 8 s (the LAN proxy cuts it every 30 s and it is back in a second); the 1.5 s poll’s failures |
++| Page | Did anything on the page fail? | `DictateHealth.fail("page", …)`: a bubble that could not be drawn; every uncaught error and unhandled promise rejection on the page (`DictateHealth.watch_window`) |
+ 
+-The view is `class DictateDebug` ([DictateDebug.js](../DictateDebug.js)): the rows are the shared `Connection` row ([Connection.js](../Connection.js)) in its new `rows` layout, so there is still one step-row component. Beside them: what happened, newest first (the last 60 events), a "Copy the report" button (all of it as JSON), and the logs to open. The drawer's tab file is [ext/drawer/tabs/debug.js](/framework/ext/drawer/tabs/debug.js).
++The lights are the shared `Connection` row ([Connection.js](../Connection.js)) in its `lights` layout, so there is still one step-row component. The view is `class DictateDebug` ([DictateDebug.js](../DictateDebug.js)); the drawer’s tab file is [ext/drawer/tabs/debug.js](/framework/ext/drawer/tabs/debug.js).
 +
- 	constructor(...args){ this.assign(...args); }
- 	assign(...args){ return Object.assign(this, ...args); }
- 
-@@ -55,7 +57,11 @@ export default class Capture {
- 		}
- 
- 		this.ctx = new AudioContext({ sampleRate: this.sample_rate });
--		await this.ctx.audioWorklet.addModule(new URL("./pcm-worklet.js", import.meta.url));
-+		try { await this.load_worklet(); }
-+		catch (e){   // never hold the mic after a failed start
-+			this.stop();
-+			throw Object.assign(new Error(`the mic’s audio module (pcm-worklet.js) did not load after 3 tries: ${e?.message ?? e}`), { name: "WorkletError" });
-+		}
- 
- 		this.node = new AudioWorkletNode(this.ctx, "dictate-pcm");
- 		this.chunks = [];
-@@ -67,6 +73,16 @@ export default class Capture {
- 		this.ctx.createMediaStreamSource(this.stream).connect(this.node);
- 	}
- 
-+	/** The audio module, three tries: on a fresh page it sometimes fails once ("Unable to load a worklet’s module",
-+	 *  ux/Dictate/test/refresh.mjs) and loads on the next try. */
-+	async load_worklet(){
-+		const url = new URL("./pcm-worklet.js", import.meta.url);
-+		for (let i = 0; ; i++){
-+			try { return await this.ctx.audioWorklet.addModule(url); }
-+			catch (e){ if (i >= 2) throw e; await new Promise(res => setTimeout(res, 300 * (i + 1))); }
-+		}
-+	}
++## The log
 +
- 	/** ⚠ `exact:`, not a bare `deviceId`. A plain `deviceId` is a *preference* the
- 	 *  browser may silently ignore, and a picker that quietly opens a different
- 	 *  microphone than the one named in it is worse than no picker at all. */
-diff --git a/public/framework/ux/Dictate/test/refresh.mjs b/public/framework/ux/Dictate/test/refresh.mjs
++One line per record: the time to the millisecond, the stage, a one-line summary. Click a line for the raw data: Whisper’s raw text (each guess, each amendment, the final), each send, Servex writing it, each reply, each placement, each error with its stack. The last 200 records are kept (`DictateHealth.KEEP`). **Copy report** puts every light and record on the clipboard as JSON; beside it, the session log, the Whisper log and the failures file.
++
++## The handle
++
++In the phone sheet, the Debug panel sits under the chat. A handle on its top edge resizes it: drag it up for more log, down for more chat (a sheet within a sheet). Its height is saved on this device (`localStorage`, `lew42.sheet.tabs_h`), so it survives a reload; a double-click puts the default back (`Sheet.Panel.tabs_grip`, [ext/drawer/Sheet.js](/framework/ext/drawer/Sheet.js)).
++
++## Every error caught
++
++Each stage catches its errors and either shows them (a red light and a log line, with the raw error) or ignores them on purpose, with a one-line comment in the code saying why. `DictateHealth.fail(stage, error, where)` is the one way to show one. What changed on 2026-10-25 (`test/errors.mjs`):
++- **One bad line no longer freezes the chat.** `Session.watch` caught everything around the whole poll, so a line that failed to draw stopped the rest and was retried every 1.5 s, forever, in silence. Now each line is drawn on its own, a failure is on the Page light, and the poll’s own failures (and recovery) are on the Wire light. A half-written last line is read again on the next poll instead of being skipped.
++- Errors that went only to the console now light their stage: the sentence queue, the pause that sends, a deliver that threw, a guess request, the fallback log refusing the words, a failed poll or a half-bad session log.
++- Deliberately ignored, each with its reason in a one-line comment beside it: the check or ? mark on a bubble (a bonus), a suspended audio context that cannot resume (shows as no sound), the Whisper log copy (the Debug log holds the answer), a start's own failure shown once by `start()`.
++
++## Reconnect
++
++The sheet’s Reconnect reopens one thing: the chat’s live wire to Servex, the Wire light. It shows only after that wire has been down 8 s, saying for how long and why, and a press never throws or opens a second wire. Details: [ext/drawer/doc/sheet.md](/framework/ext/drawer/doc/sheet.md#reconnect-2026-10-25).
+ 
+ ## What the stall was (reproduced 2026-10-24, `test/stall.mjs`)
+ 
+@@ -30,6 +52,16 @@ Three separate faults, each found by a headless run with a fake microphone (jfk.
+ 
+ **Whisper dying** already stopped the mic with a reason; the run confirms the bar says it.
+ 
++## Refresh then dictate
++
++The owner's failure: reload the page, press the mic, nothing works. `test/refresh.mjs` reproduces it headless (a phone, a fake mic, every Servex verb stubbed) in six scenarios (plain, pill, deferred, restart, again, twice). It found four causes:
++- **The "page is out of date" pill covered the mic**, so a tap meant for the mic hit the pill and reloaded. The pill now sits at the top centre (`dev/Socket/Socket.js`).
++- **A reload deferred while the mic was busy fired 1 s after the mic stopped**, landing on a stop-then-start. It now waits until the page has been quiet `QUIET_MS` (30 s); until then the pill shows. See [dev/Socket](/framework/dev/Socket/readme.md).
++- **Two starts at once.** The page starts the mic by itself, and during the up-to-5 s Whisper check `Dictate` still said `idle`, so a press ran a second `start()`. One start's AudioContext was closed while its audio module loaded ("Unable to load a worklet's module"). `Dictate.start` is now single-flight, the state is `connecting` from the press, and a cancelled start shows no false error. `Capture.chunks` also did not exist until the module loaded, so the 200 ms heartbeat threw; it is now a field.
++- **A dev reload dropped the sheet.** The sheet now comes back at its size (`Sheet.keep_on_reload`), and the mic bar says "the page reloaded because a file changed: tap the mic to keep talking".
++
++Proof: `node public/framework/ux/Dictate/test/refresh.mjs <base-url> [runs] [scenario]`; five runs in a row, all six scenarios, exit 0: `ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/proof/refresh-5-runs.txt`.
++
+ ## Routed
+ 
+ The tab is the subpath `<page>/ai/debug/`, the AIPage view url that already exists on every width (a desktop shows it in the page). On a phone the sheet writes that url with `history.replaceState` when Debug is picked, so the size steps in history are untouched, and a reload opens the full sheet on Debug again (`SheetPanel.route_tab`, `Sheet.routed`, `Sheet.apply`). Picking the chat, or a smaller sheet, gives the page's own url back. **Instead:** a peer path `<page>/debug/`, which would collide with a real child page of that name and is not an AI view. The old `?drawer=dictation` and `<page>/ai/dictation/` open Debug.
+@@ -47,23 +79,16 @@ Proof: `test/deltas.mjs` replays a sequence with a repeat, a late line, stream c
+ 
+ A layer that turns red becomes one line in [ux/Dictate/failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: the file is git-ignored and appears on this machine at the first failure, so the link 404s before that and on the static site; `ErrorLog.report`, [ext/ErrorLog](/framework/ext/ErrorLog/)), the file whoever follows `ux/Dictate` hears. Every page's uncaught errors go the same way, to the module that threw (`app.js` calls `ErrorLog.watch()`). The proposal for re-running pages when their files change: [ext/ErrorLog/doc/page-watcher.md](/framework/ext/ErrorLog/doc/page-watcher.md).
+ 
+-## Refresh then dictate
+-
+-The owner's failure: reload the page, press the mic, nothing works. `test/refresh.mjs` reproduces it headless (a phone, a fake mic, every Servex verb stubbed) in six scenarios (plain, pill, deferred, restart, again, twice). It found four causes:
+-- **The "page is out of date" pill covered the mic**, so a tap meant for the mic hit the pill and reloaded. The pill now sits at the top centre (`dev/Socket/Socket.js`).
+-- **A reload deferred while the mic was busy fired 1 s after the mic stopped**, landing on a stop-then-start. It now waits until the page has been quiet `QUIET_MS` (30 s); until then the pill shows. See [dev/Socket](/framework/dev/Socket/readme.md).
+-- **Two starts at once.** The page starts the mic by itself, and during the up-to-5 s Whisper check `Dictate` still said `idle`, so a press ran a second `start()`. One start's AudioContext was closed while its audio module loaded ("Unable to load a worklet's module"). `Dictate.start` is now single-flight, the state is `connecting` from the press, and a cancelled start shows no false error. `Capture.chunks` also did not exist until the module loaded, so the 200 ms heartbeat threw; it is now a field.
+-- **A dev reload dropped the sheet.** The sheet now comes back at its size (`Sheet.keep_on_reload`), and the mic bar says "the page reloaded because a file changed: tap the mic to keep talking".
+-
+-Proof: `node public/framework/ux/Dictate/test/refresh.mjs <base-url> [runs] [scenario]`; five runs in a row, all six scenarios, exit 0: `ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/proof/refresh-5-runs.txt`.
+-
+ ## Run the proofs
+ 
+ ```
+ node public/framework/ux/Dictate/test/stall.mjs <base-url> [hang|refuse|whisper|reload]
+ node public/framework/ux/Dictate/test/debug-tab.mjs <base-url> <shots dir>
+ node public/framework/ux/Dictate/test/deltas.mjs <base-url>
+-node public/framework/ux/Dictate/test/refresh.mjs <base-url> [runs] [scenario]
++node public/framework/ux/Dictate/test/reconnect.mjs <base-url> [shots dir]
++node public/framework/ux/Dictate/test/refresh.mjs <base-url> [runs] [scenario,…]
++node public/framework/ux/Dictate/test/errors.mjs <base-url>
++node public/framework/ux/Dictate/test/marks.mjs <base-url>
+ ```
+ 
+-**Still open:** the AI row turns red 60 s after a send with no answer, but it cannot yet say *why* Servex's assistants did not answer (asleep, held by the floor until you are quiet, or crashed). The next step is a reason on Servex's side: `Servex/agents/Sessions.js` would write a `{status}` line to the session (held, waking, answering, failed) that `chat.js` already reads.
++**Still open:** the Reply light turns red 60 s after a send with no answer, but it cannot yet say *why* Servex's assistants did not answer (asleep, held by the floor until you are quiet, or crashed). The next step is a reason on Servex's side: `Servex/agents/Sessions.js` would write a `{status}` line to the session (held, waking, answering, failed) that `chat.js` already reads.
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index af67a7052..0710f5017 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -1,6 +1,6 @@
+ # Dictate — a mic button that always shows what is happening
+ 
+-**Dictation stopped, or the AI never answered? Open the Debug tab** (each step from the mic to the AI's answer, live, with the real error; what the stall was and how it was fixed): [`doc/debug-tab.md`](doc/debug-tab.md). `class DictateHealth` (the five layers, [DictateHealth.js](DictateHealth.js)) · `class DictateDebug` (the view, [DictateDebug.js](DictateDebug.js)) · proofs `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`, `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)). Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: git-ignored, written on this machine at the first failure).
++**Dictation stopped, or the AI never answered? Open the Debug tab** (each step from the mic to the AI's answer, live, with the real error; what the stall was and how it was fixed): [`doc/debug-tab.md`](doc/debug-tab.md). `class DictateHealth` (the eight lights: Mic, Whisper, Heard, Sentence, Send, Reply, Wire, Page; every error from every stage lands here, and `window` errors and rejections too; [DictateHealth.js](DictateHealth.js)) · `class DictateDebug` (the view, [DictateDebug.js](DictateDebug.js)) · `chat.js` calls `report.init(session)` (ext/Chat/v2/report.js) once the voice session id is known; the Debug panel in the phone sheet has a resize handle whose height survives a reload (`Sheet.tabs_grip`); proofs `test/errors.mjs` (every error is caught and shown), `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`, `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)). Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: git-ignored, written on this machine at the first failure).
+ 
+ **Words vanished and came back?** The flicker, its cause and the fix: your words become the sent piece in the draft's spot the moment they leave it (`ComposerMic.take_out` → `Widget.show_out`), proof `test/flicker.mjs`: [`doc/flicker.md`](doc/flicker.md).
+ 
+diff --git a/public/framework/ux/Dictate/test/debug-tab.mjs b/public/framework/ux/Dictate/test/debug-tab.mjs
+index b47b34a66..4825feaa7 100644
+--- a/public/framework/ux/Dictate/test/debug-tab.mjs
++++ b/public/framework/ux/Dictate/test/debug-tab.mjs
+@@ -1,4 +1,5 @@
+-// The Debug tab, proven: it fills live while you talk, it is routed (a reload keeps you on it), shot on a phone and at 1920.
++// The Debug tab, proven: a row of lights, all green while you talk; a compact live log, the raw data one click down; a tap on
++// a light narrows the log; the handle between the chat and the tab keeps its height over a reload; routed; shot at 390 and 1920.
+ //   node public/framework/ux/Dictate/test/debug-tab.mjs <base-url> <shots dir>
+ // Headless; every Servex session verb is stubbed (the "AI" answers from a stub session file), the mic is jfk.wav.
+ // Exit 1 on any failure.
+@@ -28,7 +29,7 @@ async function context(viewport, mobile){
+ 	await page.route(/\/api\/session\//, async route => {
+ 		const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
+ 		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+-		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
++		if (verb.endsWith("/stream")) return route.continue();   // the real Servex wire for an unknown session: it stays open and says nothing (read-only)
+ 		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
+ 		if (verb === "say") run.said.push({ text: body.text, at: new Date().toISOString() });
+ 		const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : verb === "say" ? { ok: true, at: run.said.at(-1).at } : { ok: true };
+@@ -44,6 +45,7 @@ async function context(viewport, mobile){
+ 	await page.route(/\/log\/prompts/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: "{}" }));
+ 	return { ctx, page, run };
+ }
++const LIGHTS = ["mic", "whisper", "transcripts", "sentence", "sent", "llm", "wire", "page"];
+ const layers = page => page.evaluate(() => [...document.querySelectorAll(".dictate-debug .voice-conn-step")].filter(s => s.offsetParent).map(s => s.dataset.step + "=" + s.dataset.state));
+ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now() - t < ms){ if (await fn()) return true; await page.waitForTimeout(500); } return false; };
+ 
+@@ -62,14 +64,41 @@ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now
+ 	const url = new URL(page.url()).pathname, live = await layers(page);
+ 	console.log("  phone:", url, live.join(" "));
+ 	check(url === "/framework/ext/drawer/ai/debug/", "picking Debug routes the sheet to <path>/ai/debug/ (" + url + ")");
+-	check(["mic", "whisper", "transcripts", "sent", "llm"].every(id => live.includes(id + "=ok")), "every layer is green while dictating: " + live.join(" "));
+-	const fit = await page.evaluate(() => {   // all five rows on one phone screen, with the chat's last lines still above them
++	check(LIGHTS.every(id => live.includes(id + "=ok")), "all eight lights are green while dictating: " + live.join(" "));
++	const fit = await page.evaluate(() => {   // the lights on top in at most two rows, the log under them with room, the chat still above
+ 		const steps = [...document.querySelectorAll(".drawer-rail-sheet .dictate-debug .voice-conn-step")].filter(s => s.offsetParent);
++		const rows = new Set(steps.map(s => Math.round(s.getBoundingClientRect().top))).size;
++		const log = document.querySelector(".drawer-rail-sheet .dictate-debug-log")?.getBoundingClientRect();
+ 		const chat = document.querySelector(".drawer-rail-sheet .ux-dictate-widget-thread")?.getBoundingClientRect().height ?? 0;
+-		return { rows: steps.length, below: steps.filter(s => s.getBoundingClientRect().bottom > innerHeight).map(s => s.dataset.step), chat: Math.round(chat) };
++		const lines = [...document.querySelectorAll(".drawer-rail-sheet .dictate-debug-line")];
++		const one_line = lines.slice(0, 20).every(l => l.querySelector("summary").getBoundingClientRect().height < 30);
++		return { lights: steps.length, rows, log_h: Math.round(log?.height ?? 0), log_bottom: Math.round(log?.bottom ?? 0), chat: Math.round(chat), lines: lines.length,
++			heard: lines.filter(l => l.dataset.layer === "transcripts").length, one_line };
+ 	});
+-	check(fit.rows === 5 && !fit.below.length && fit.chat > 30, `all five Debug rows fit one 390×844 screen, chat ${fit.chat}px above them` + (fit.below.length ? "; below the fold: " + fit.below.join(", ") : ""));
++	console.log("  fit:", JSON.stringify(fit));
++	check(fit.lights === 8 && fit.rows <= 2, `eight lights in ${fit.rows} row(s) at 390`);
++	check(fit.log_h >= 120 && fit.log_bottom <= 844 && fit.chat > 30, `the log has ${fit.log_h}px under the lights, the chat ${fit.chat}px above`);
++	check(fit.lines >= 5 && fit.heard >= 2 && fit.one_line, `a compact log: ${fit.lines} lines, ${fit.heard} of them Whisper answers, each one line`);
++	// the raw data, one click down
++	await page.click('.drawer-rail-sheet .dictate-debug-line[data-layer="transcripts"] summary');
++	const raw = await page.evaluate(() => document.querySelector(".drawer-rail-sheet .dictate-debug-line[open] .dictate-debug-raw")?.textContent ?? "");
++	check(/"text":/.test(raw) && /"kind":/.test(raw), "a click on a Whisper line shows its raw answer: " + raw.replace(/\s+/g, " ").slice(0, 90));
+ 	await page.screenshot({ path: shots + "/debug-390.png" });
++	// a tap on a light: its last word in full, the log narrowed to it; a second tap for everything
++	await page.click('.drawer-rail-sheet .voice-conn-step[data-step="sent"]');
++	const only = await page.evaluate(() => ({ detail: document.querySelector(".drawer-rail-sheet .dictate-debug-detail")?.textContent ?? "",
++		shown: [...document.querySelectorAll(".drawer-rail-sheet .dictate-debug-line")].filter(l => !l.hidden).map(l => l.dataset.layer) }));
++	check(/sent/.test(only.detail) && only.shown.length > 0 && only.shown.every(l => l === "sent"), `a tap on Send: “${only.detail.slice(0, 70)}”, ${only.shown.length} Send lines only`);
++	await page.screenshot({ path: shots + "/debug-390-send.png" });
++	await page.click('.drawer-rail-sheet .voice-conn-step[data-step="sent"]');
++	// the handle: drag it 150 px down (the Debug panel shorter, the chat taller: the panel already fills the sheet); the height survives the reload below
++	const tabs_h = () => page.evaluate(() => Math.round(document.querySelector(".drawer-rail-sheet-tabs")?.getBoundingClientRect().height ?? 0));
++	const before_h = await tabs_h();
++	const g = await page.evaluate(() => { const r = document.querySelector(".drawer-rail-sheet-tabs > .grip")?.getBoundingClientRect(); return r && { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
++	if (g){ await page.mouse.move(g.x, g.y); await page.mouse.down(); await page.mouse.move(g.x, g.y + 75, { steps: 5 }); await page.mouse.move(g.x, g.y + 150, { steps: 5 }); await page.mouse.up(); }
++	await page.waitForTimeout(300);
++	const dragged_h = await tabs_h();
++	check(!!g && before_h - dragged_h > 100, `the handle between the chat and Debug drags: ${before_h}px → ${dragged_h}px`);
+ 	page.on("dialog", d => d.accept());
+ 	await page.reload({ waitUntil: "domcontentloaded" });
+ 	await page.waitForSelector(".drawer-rail-sheet.on .dictate-debug", { timeout: 20000 }).catch(() => {});
+@@ -77,6 +106,8 @@ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now
+ 	console.log("  after reload:", JSON.stringify(after));
+ 	check(after.debug && after.full && after.path === url, "a reload opens the full sheet on the Debug tab again");
+ 	await page.waitForTimeout(800);
++	const reload_h = await tabs_h();
++	check(Math.abs(reload_h - dragged_h) <= 4, `the dragged height survives the reload: ${dragged_h}px → ${reload_h}px`);
+ 	await page.screenshot({ path: shots + "/debug-390-reloaded.png" });
+ 	check(!run.errors.length, "no page errors on the phone: " + run.errors.join(" | "));
+ 	await ctx.close();
+@@ -95,7 +126,7 @@ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now
+ 	await page.waitForTimeout(1200);
+ 	const live = await layers(page);
+ 	console.log("  1920:", new URL(page.url()).pathname, live.join(" "));
+-	check(live.length === 5 && live.every(l => l.endsWith("=ok")), "the Debug view shows the five layers at 1920, all green: " + live.join(" "));
++	check(live.length === 8 && live.every(l => l.endsWith("=ok")), "the Debug view shows the eight lights at 1920, all green: " + live.join(" "));
+ 	await page.screenshot({ path: shots + "/debug-1920.png" });
+ 	await page.reload({ waitUntil: "domcontentloaded" });
+ 	await page.waitForSelector(".drawer-ai-page-body .dictate-debug", { timeout: 20000 }).catch(() => {});
+diff --git a/public/framework/ux/Dictate/test/errors.mjs b/public/framework/ux/Dictate/test/errors.mjs
 new file mode 100644
-index 000000000..930f719a4
+index 000000000..498b4a57a
 --- /dev/null
-+++ b/public/framework/ux/Dictate/test/refresh.mjs
-@@ -0,0 +1,170 @@
-+// Proof: refresh, then dictate. The owner's typical failure: reload the page, press the mic, nothing works.
-+//   node public/framework/ux/Dictate/test/refresh.mjs <base-url> [runs=1] [scenario]
-+// Headless phone (400, touch), a fake mic playing jfk.wav, the real whisper-server on :8178, every Servex session verb stubbed
-+// (nothing is posted). Each round is what the owner does: press ✦, press the mic, speak; it passes when a sentence goes out
-+// (a `say` POST with words). Scenarios (default: all):
-+//   plain     dictate, reload, dictate again
-+//   pill      dictate; a file changes (a dev reload is deferred because the mic is busy: "This page is out of date"); press the pill; dictate again
-+//   deferred  dictate; a file changes; stop the mic (the tap must reach the mic, not the pill): no reload by itself; press the pill; dictate again
-+//   restart   dictate; a file changes; stop the mic and start it 1.5 s later: no reload under the owner
-+//   again     stop the mic and press it again 0.3 s later: it listens again, or the bar says why
-+//   twice     two reloads back to back, then dictate
-+// Exit 1 on any failure. Doc: ux/Dictate/doc/debug-tab.md#refresh-then-dictate
-+import fs from "fs";
++++ b/public/framework/ux/Dictate/test/errors.mjs
+@@ -0,0 +1,83 @@
++// Proof: nothing in dictation fails silently. Each error lands on its stage's light (red) and in the Debug log, with the raw error one click down.
++//   node public/framework/ux/Dictate/test/errors.mjs <base-url>
++// Headless phone sheet, Servex stubbed. Five faults, one at a time:
++//   draw      drawing one session line throws: that line is reported on the Page light, and the lines after it still draw
++//   poll      the session file answers 500, then 200 again: the Wire log says the poll failed, then that it works again
++//   uncaught  a script throws with nobody catching it: the Page light turns red
++//   rejection a promise rejects with nobody catching it: the Page light turns red
++//   send      Servex refuses a sentence: the Send light turns red with Servex's own reason, the raw error in the log
++// Exit 1 on any failure. Doc: ux/Dictate/doc/debug-tab.md#every-error-caught
 +import Browser from "../../../../../Server/Browser.mjs";
 +
-+const [base = "http://monorepo.localhost", runs_arg = "1", only] = process.argv.slice(2);
-+const RUNS = +runs_arg || 1;
-+const here = new URL("../../../ai/recordings/jfk.wav", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
-+const wav = process.env.WAV ?? (fs.existsSync(here) ? here : "C:/Code/lew42/monorepo/public/framework/ai/recordings/jfk.wav");   // recordings/ is git-ignored
-+const browser = await Browser.browser({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
-+const kill = setTimeout(() => { console.log(`FAIL killed after ${360 * RUNS} s`); process.exit(2); }, 360000 * RUNS);   // about 4.5 min a run
++const [base = "http://monorepo.localhost"] = process.argv.slice(2);
++const browser = await Browser.browser();
++setTimeout(() => { console.log("FAIL killed after 90 s"); process.exit(2); }, 90000).unref();
++const page = await (await browser.newContext({ viewport: { width: 400, height: 800 }, hasTouch: true })).newPage();
 +let failed = 0;
 +const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
-+const INFERENCE = /(:8178|\/whisper)\/inference/;   // whisper-server's transcribe call, direct or through the dev server's proxy
 +const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
++const json = (r, body, status = 200) => r.fulfill({ status, contentType: "application/json", headers: cors, body: JSON.stringify(body) });
++const line = (text, i) => JSON.stringify({ chat: { at: new Date(Date.now() - 600000 + i * 1000).toISOString(), text, via: "voice", from: { kind: "owner" } } });
++let file = ["first line.", "BOOM line.", "third line."].map(line).join("\n") + "\n", file_status = 200, say = "ok";
++await page.route(/\/api\/session\//, async r => {
++	const req = r.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
++	if (req.method() === "OPTIONS") return r.fulfill({ status: 204, headers: cors });
++	if (verb.endsWith("/stream")) return r.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
++	if (verb === "say" && say === "refuse") return json(r, { ok: false, error: 'no session "stub-session"' }, 404);
++	return json(r, { ok: true, session: "stub-session", file: "/stub-session.jsonl", at: new Date().toISOString() });
++});
++await page.route(/\/api\/sessions\?/, r => json(r, { ok: true, sessions: [] }));
++await page.route(/\/api\/hitl/, r => json(r, { ok: true, marks: [] }));
++await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: file_status, contentType: "text/plain", body: file_status === 200 ? file : "boom" }));
++await page.addInitScript(() => {
++	sessionStorage.setItem("lew42-voice-session", JSON.stringify({ session: "stub-session", file: "/stub-session.jsonl" }));
++	// The fault for "draw": the chat's thread throws on the line that says BOOM (installed as soon as the widget exists).
++	const arm = setInterval(() => {
++		const t = globalThis.$dictate_widget?.$thread;
++		if (!t || t.$armed) return;
++		const draw = t.draw.bind(t); t.$armed = true;
++		t.draw = entry => { if (/BOOM/.test(entry?.chat?.text ?? "")) throw new Error("test fault: this line cannot be drawn"); return draw(entry); };
++		clearInterval(arm);
++	}, 20);
++});
++const health = () => page.evaluate(() => ({ layers: globalThis.DictateHealth.layers, events: globalThis.DictateHealth.events }));
++const text = () => page.evaluate(() => document.querySelector(".drawer-rail-sheet")?.textContent ?? "");
++const wait_for = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < ms){ if (await fn()) return true; await page.waitForTimeout(250); } return false; };
 +
-+async function context(){
-+	const ctx = await browser.newContext({ viewport: { width: 400, height: 800 }, permissions: ["microphone"], hasTouch: true, isMobile: true });
-+	const page = await ctx.newPage();
-+	const run = { said: [], errors: [], loads: 0 };
-+	page.on("pageerror", e => run.errors.push(String(e).slice(0, 200)));
-+	page.on("dialog", d => d.accept());   // the mic's reload guard ("Leave site?") is accepted, as the owner would
-+	page.on("load", () => run.loads++);
-+	// The mic’s audio module: every request for it, and how it ended (a failed load is "the mic will not start").
-+	run.worklet = [];
-+	page.on("requestfailed", q => { if (/pcm-worklet/.test(q.url())) run.worklet.push("failed " + q.failure()?.errorText); });
-+	page.on("response", res => { if (/pcm-worklet/.test(res.url())) run.worklet.push(String(res.status()) + (res.fromServiceWorker() ? " (service worker)" : "")); });
-+	await page.route(/\/api\/session\//, async route => {
-+		const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
-+		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
-+		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
-+		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
-+		if (verb === "say") run.said.push({ text: body.text, t: Date.now() });
-+		const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : verb === "say" ? { ok: true, at: new Date().toISOString() } : { ok: true };
-+		await route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) });
-+	});
-+	await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: "" }));
-+	await page.route(/\/api\/sessions\?/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify({ ok: true, sessions: [] }) }));
-+	await page.route(/\/api\/hitl/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify({ ok: true, marks: [{ mark: "clear" }] }) }));
-+	await page.route(/\/log\/prompts/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: "{}" }));
-+	await page.goto(base + "/framework/ext/drawer/", { waitUntil: "domcontentloaded" });
-+	return { ctx, page, run };
-+}
++await page.goto(base + "/framework/", { waitUntil: "domcontentloaded" });
++await page.waitForSelector(".drawer-rail-ai", { timeout: 20000 });
++await page.click(".drawer-rail-ai");
++await page.waitForSelector(".drawer-rail-sheet.on", { timeout: 20000 });
++await page.evaluate(() => globalThis.$dictate_widget?.stop_mic?.());   // no mic in this test
 +
-+// What the reader sees: the mic's state, the bar's words, the stale pill, and every mic on the page.
-+const look = page => page.evaluate(() => {
-+	const bar = document.querySelector(".drawer-rail-sheet .dictation-bar");
-+	return { sheet: !!document.querySelector(".drawer-rail-sheet.on"), mic: globalThis.$dictate_widget?.dictate?.state ?? null,
-+		bar: bar?.textContent?.replace(/\s+/g, " ").trim().slice(0, 160), pill: document.querySelector(".dev-stale-pill")?.textContent ?? null,
-+		health: Object.fromEntries(Object.entries(globalThis.DictateHealth?.layers ?? {}).map(([k, v]) => [k, v.state + ": " + v.why.slice(0, 90)])) };
-+}).catch(e => ({ gone: String(e).slice(0, 80) }));
-+const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now() - t < ms){ try { if (await fn()) return true; } catch {} await page.waitForTimeout(300); } return false; };
++// draw
++await wait_for(async () => (await text()).includes("third line."), 10000);
++let h = await health();
++check((await text()).includes("third line.") && !(await text()).includes("BOOM"), "draw: the line that throws is skipped, the line after it still drawn");
++check(h.layers.page.state === "bad" && /drawing a (session|live) line|drawing a bubble/.test(h.layers.page.why), `draw: the Page light is red: “${h.layers.page.why}”`);
++check(h.events.some(e => e.layer === "page" && e.raw?.error?.includes("test fault")), "draw: the Debug log holds the raw error");
 +
-+// One round: open the sheet with ✦ (unless open), press the mic (unless on), wait for a sentence with words to go out.
-+async function dictate(page, run, label){
-+	const t0 = Date.now(), before = run.said.length;
-+	await page.waitForSelector(".drawer-rail-ai", { timeout: 20000 });
-+	if (!await page.$(".drawer-rail-sheet.on")) await page.click(".drawer-rail-ai");
-+	await page.waitForSelector(".drawer-rail-sheet.on .dictation-bar-mic", { timeout: 20000 });
-+	await page.waitForTimeout(300);
-+	if (!["listening", "connecting"].includes((await look(page)).mic)) await page.click(".drawer-rail-sheet.on .dictation-bar-mic");   // ✦ starts the mic itself: press only when it is off
-+	const ok = await wait_for(page, () => run.said.slice(before).some(s => /\w{3}/.test(s.text ?? "")), 40000);
-+	const v = await look(page);
-+	check(ok, `${label}: a sentence went out ${ok ? ((run.said.find((s, i) => i >= before)?.t - t0) / 1000).toFixed(1) + " s after ✦" : "— none in 40 s"}${ok ? "" : " · " + JSON.stringify(v)}`);
-+	return ok;
-+}
++// poll
++file_status = 500;
++const poll_down = await wait_for(async () => (await health()).events.some(e => e.layer === "wire" && /poll .* failed/.test(e.why)), 6000);
++file_status = 200;
++const poll_up = await wait_for(async () => (await health()).events.some(e => e.layer === "wire" && /works again/.test(e.why)), 6000);
++check(poll_down && poll_up, `poll: a failed poll is logged (${poll_down}) and so is its recovery (${poll_up})`);
 +
-+// A file the page loaded changed: what LiveReload sends. The mic is busy, so Socket defers it and shows the pill.
-+const file_changed = page => page.evaluate(async () => { const { default: Socket } = await import("/framework/dev/Socket/Socket.js"); Socket.singleton().changed([location.pathname + "page.js"]); });
-+// The mic button, pressed as a finger would: whatever is on top at its centre gets the tap.
-+const tap_mic = page => page.evaluate(() => { const b = document.querySelector(".drawer-rail-sheet.on .dictation-bar-mic"), r = b.getBoundingClientRect();
-+	const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); (top ?? b).click(); return top === b || b.contains(top) ? "mic" : top?.className || top?.tagName; });
++// uncaught
++await page.evaluate(() => setTimeout(() => { throw new Error("test uncaught error"); }));
++check(await wait_for(async () => /test uncaught error/.test((await health()).layers.page.why), 3000), "uncaught: the Page light says “" + (await health()).layers.page.why + "”");
 +
-+// After a dev reload the sheet comes back open by itself, and the mic bar says why the mic is off.
-+async function back_with_note(page){
-+	const open = await wait_for(page, async () => (await look(page)).sheet, 8000);
-+	const v = await look(page);
-+	check(open && /reloaded because a file changed/.test(v.bar ?? ""), `after the reload the sheet is back, the bar saying “${v.bar}”`);
-+}
++// rejection
++await page.evaluate(() => { Promise.reject(new Error("test rejection")); });
++check(await wait_for(async () => /test rejection/.test((await health()).layers.page.why), 3000), "rejection: the Page light says “" + (await health()).layers.page.why + "”");
 +
-+const scenarios = {
-+	async plain({ page, run }){
-+		await dictate(page, run, "before the reload");
-+		await page.reload({ waitUntil: "domcontentloaded" });
-+		await dictate(page, run, "after a reload");
-+	},
-+	async pill({ page, run }){
-+		await dictate(page, run, "before");
-+		await file_changed(page);
-+		const pill = await wait_for(page, async () => !!(await look(page)).pill, 5000);
-+		check(pill, "a file change while dictating shows the stale pill, not a reload under the mic");
-+		const loads = run.loads;
-+		await page.click(".dev-stale-pill");
-+		await wait_for(page, () => run.loads > loads, 15000);
-+		await page.waitForLoadState("domcontentloaded");
-+		await back_with_note(page);
-+		await dictate(page, run, "after pressing the pill");
-+	},
-+	async deferred({ page, run }){
-+		await dictate(page, run, "before");
-+		await file_changed(page);
-+		await wait_for(page, async () => !!(await look(page)).pill, 5000);
-+		const loads = run.loads;
-+		const hit = await tap_mic(page);   // the owner stops the mic, with the pill showing
-+		check(hit === "mic", `with the pill showing, a tap on the mic reaches the mic (it reached: ${hit})`);
-+		if (hit !== "mic") await page.evaluate(() => document.querySelector(".drawer-rail-sheet.on .dictation-bar-mic").click());
-+		await page.waitForTimeout(6000);
-+		check(run.loads === loads && !!(await look(page)).pill, `6 s after the stop: ${run.loads === loads ? "no reload by itself, the pill waits for the owner" : "the page reloaded by itself"}`);
-+		await page.click(".dev-stale-pill");
-+		await wait_for(page, () => run.loads > loads, 15000);
-+		await page.waitForLoadState("domcontentloaded");
-+		await back_with_note(page);
-+		await dictate(page, run, "after the pill");
-+	},
-+	async restart({ page, run }){
-+		await dictate(page, run, "before");
-+		await file_changed(page);
-+		await wait_for(page, async () => !!(await look(page)).pill, 5000);
-+		const loads = run.loads, mic = () => page.evaluate(() => document.querySelector(".drawer-rail-sheet.on .dictation-bar-mic").click());
-+		await mic(); await page.waitForTimeout(1500); await mic();   // stop, then start again: the owner wants to keep talking
-+		await page.waitForTimeout(4000);
-+		check(run.loads === loads, `the mic stopped for 1.5 s and on again: ${run.loads === loads ? "no reload under it" : "the page reloaded under the owner"}`);
-+		await dictate(page, run, "after stop and start");
-+	},
-+	async again({ page, run }){   // "the mic sometimes will not start": stop, then press again at once
-+		await dictate(page, run, "before");
-+		const mic = () => page.evaluate(() => document.querySelector(".drawer-rail-sheet.on .dictation-bar-mic").click());
-+		await page.route(INFERENCE, async route => { await new Promise(r => setTimeout(r, 3000)); route.continue().catch(() => {}); });   // a slow Whisper (the LAN proxy, a busy GPU)
-+		await mic(); await page.waitForTimeout(300);
-+		const mid = await look(page);
-+		await mic(); await page.waitForTimeout(4000);
-+		const v = await look(page);
-+		await page.unroute(INFERENCE);
-+		check(v.mic === "listening" || v.mic === "connecting" || /·/.test(v.bar ?? "") && v.mic === "error",
-+			`pressed again 0.3 s after stopping (it was ${mid.mic}): the mic is ${v.mic}, the bar says “${v.bar}”`);
-+		await dictate(page, run, "after stop and press again");
-+	},
-+	async twice({ page, run }){
-+		await dictate(page, run, "before");
-+		await page.reload({ waitUntil: "domcontentloaded" });
-+		await page.reload({ waitUntil: "domcontentloaded" });
-+		await dictate(page, run, "after two reloads");
-+	},
-+};
++// send
++say = "refuse";
++await page.evaluate(() => { const w = globalThis.$dictate_widget; w.deliver({ text: "a typed sentence.", via: "typed", at: new Date().toISOString() }); });
++check(await wait_for(async () => /no session/.test((await health()).layers.sent.why), 12000), "send: the Send light says “" + (await health()).layers.sent.why + "”");
++check((await health()).events.some(e => e.layer === "sent" && e.raw?.error?.includes("no session")), "send: the Debug log holds the raw error");
 +
-+for (let n = 1; n <= RUNS; n++){
-+	for (const [name, fn] of Object.entries(scenarios)){
-+		if (only && !only.split(",").includes(name)) continue;
-+		console.log(`-- run ${n}/${RUNS}: ${name}`);
-+		const { ctx, page, run } = await context();
-+		try { await fn({ page, run }); } catch (e){ check(false, name + " threw: " + e.message.split("\n")[0]); console.log("     " + JSON.stringify(await look(page))); }
-+		if (failed) console.log("     pcm-worklet.js requests: " + (run.worklet.join(", ") || "none"));
-+		check(!run.errors.length, run.errors.length ? "page errors: " + run.errors.join(" | ") : "no page errors");
-+		await Promise.race([ctx.close(), new Promise(r => setTimeout(r, 15000))]);   // a page stuck mid-reload must not hold the run (it once hung 30 min)
-+	}
-+}
 +await Browser.close();
-+clearTimeout(kill);
 +console.log(failed ? `${failed} FAILED` : "all passed");
 +process.exit(failed ? 1 : 0);

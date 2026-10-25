@@ -2,3 +2,7 @@
 {"commit":"3409b21d8d5d"}
 {"commit":"cd0416bd9270"}
 {"commit":"5f69e76496b8"}
+{"commit":"12c2769e4342"}
+{"log":{"at":"2026-10-25T09:54:52-05:00","msg":"Steps 3 and 4 landed as ONE merge (12c2769e4 on michael/dev), not two: both steps sit on one branch and splitting would have needed a second worktree; the alternative was merging 3409b21d8 alone first. Review: 11 findings, all answered in solid/session.jsonl (9 fixed, 2 noted). Proofs in solid/proof/: errors 8/8, debug-tab all passed, refresh all passed. merge.mjs left the files staged; committed by exact path and checked by content on michael/dev. Notes: the smoke failed once on /framework/audio/Whisper/log/ (layout, 316 rows) because my proof runs filled the ignored worktree bucket.jsonl; moved it aside and it passed. ChatV2.test.mjs fails on branch and base (merge says it does not block), so it is not fixed on michael/dev from this worktree. Docs updated: ux/Dictate readme and doc/debug-tab.md, ext/Session readme and architecture, ext/drawer/doc/sheet.md."}}
+{"finish":{"at":"2026-10-25T09:54:52-05:00"}}
+{"log":{"at":"2026-10-25T09:55:16-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
