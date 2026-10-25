@@ -20,6 +20,7 @@ Try it: [/framework/ext/Chat/v2/](/framework/ext/Chat/v2/) draws [fixture/sessio
   tasks:[ …child Task / Question entries… ]}}}
 {tasks:{add:{type:"Question", id:"q-<ms>", text, from:"p-<ms>", answer?:{text, by, ts}}}}
 {"<id>":{answer:{…}}}  {"<id>":{complete:{}}}  {"<id>":{replies:{add:{…}}}}   // later lines edit by id
+{"<prompt id>":{"<task id>":{complete:{…}}}}   // or through the parent, as the item tool writes it: the change is the child's
 ```
 
 Sentences are computed, not stored: a sentence id is its paragraph id plus a 1-based index (`a1`, `a2`, `b1`). A Question is open (no answer), answered (answer, not complete) or complete. A prompt's children are its own `tasks` plus any root Question or Task whose `from` is its id. A prompt with no title or text draws its paragraphs; an anchored reply sits beside its sentence (below on a phone) with the words marked.
