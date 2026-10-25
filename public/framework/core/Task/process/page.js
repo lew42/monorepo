@@ -36,8 +36,8 @@ export default new Doc({
 		div.c("flex v gap", () => {
 			run.steps.forEach((s, i) => {
 				const sp = s.get_one("spawned"), m = s.get_one("measure"), w = s.get_one("wait");
-				div.c("flex wrap gap v-center", () => {
-					span.c("h4", `${i + 1}. ${s.get_one("title") ?? s.id}`).style("flex", "1 1 10em");
+				div.c("flex gap v-center", () => {
+					span.c("h4", `${i + 1}. ${s.get_one("title") ?? s.id}`).style("flex", "1 1 8em");
 					span.c("", `${MARK[s.state] ?? "·"} ${s.state}`).style("color", s.state === "complete" ? "var(--success, green)" : s.state === "waiting" ? "var(--warning, #b60)" : "");
 					span.c("muted", sp ? `${sp.run}: ${sp.agent}` : (s.get_one("session")?.run ?? "") + (w ? ` · waits on ${w.on}` : ""));
 					span.c("muted", m ? `$${Number(m.usd).toFixed(2)}` : "");
