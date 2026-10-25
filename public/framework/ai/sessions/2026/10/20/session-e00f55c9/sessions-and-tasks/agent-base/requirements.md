@@ -34,3 +34,5 @@ For `ai-system-mastermind`. The owner's words are in the prompt log (2026-10-24,
    - Explain why Servex reported "working 6/5" tonight: what slipped past the cap?
    - The mastermind makes these calls; write the rule into the mastermind role readme.
 8. **Fresh sessions stay safe because the files are the truth.** A new session started in a task's folder should have everything it needs. Make that a check in review: could a fresh agent continue from the folder alone?
+
+9. **(the owner, 2026-10-24) When unsure, try it small.** A plan with nothing built makes the owner nervous, because the asks quietly never get built. And a pile of questions for the owner isn't the answer either. So for anything uncertain, build the smallest working version, see how it does, and keep or drop it. Plan-only is for big or architectural work (the plan-or-do rule). Add this to task-buckets.md, beside "approval defaults to do".
