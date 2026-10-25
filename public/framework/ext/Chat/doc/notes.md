@@ -66,7 +66,7 @@ Three ways to open the row of reactions on a bubble: hold it (a phone, about hal
 
 For a caller using the bare `speak()` primitive instead of the full `chat()` factory (`ux/Dictate/Widget.js`'s `Thread`), the same things `chat()`'s `mark_owner_piece()`/`resolve_mark()` do internally.
 
-- `patch_piece(bubble, id, patch)`: change a piece's `mark`/`via`/`failed` (or any field `piece_body()` reads) and redraw its bubble in place. `id` is the piece's own id (`speak()`'s `id`, usually its `at`). False when no piece has that id.
+- `patch_piece(bubble, id, patch)`: change a piece's `mark`/`via`/`failed` (or any field `piece_body()` reads) and swap only that piece's node in place; the whole bubble is redrawn only when it is refined or the node is missing. `id` is the piece's own id (`speak()`'s `id`, usually its `at`). False when no piece has that id.
 - `retag_piece(bubble, old_id, new_id)`: rekey a piece's id with no redraw (the id is never shown). `Thread.retag()`: a bubble drawn under a local echo's `at` before the real server answered with a different final one; without this, `patch_piece()` under the new `at` finds nothing.
 - `split_bubble($box, bubble, at_id)` (the `para` marker, one-dictation): the piece named `at_id` and every piece merged after it move into a brand-new bubble placed right after the original, same sender and look, built the way `speak()` would and registered in this module's piece-tracking, so a later merge, mark or `retag()` on either half still works. Exported (rather than letting a caller reach into private state) for `Thread`. Null when `at_id` is not on this bubble or is its first piece.
 
