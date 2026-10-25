@@ -81,11 +81,11 @@ A session's `tasks` is the one list of everything to be done: prompts, tasks and
     - `ref` or `entry`: nothing to do.
   - Entries go at the top level: with 100+ open tasks, a guessed cause would often be wrong.
   - It also prints item 33's check: the folders that are neither a session nor a project. It only lists them: `--apply` writes the `upgrade` and `add` lines and never moves or changes those folders.
-- **Numbers on session-e00f55c9** (2026-10-25; dry run on the live tree, then `--apply` on a copy):
-  - The plan: 95 upgrades, 0 adds, 25 plain task folders.
-  - Child sessions from entries, at every depth: 127 before, 133 after.
-  - 94 agents with no entry: 61 reviewers and 29 clarity agents with no folder, plus 4 minions.
-  - Cost: own $293.26, children $851.70, total $1144.96, the same before and after (nothing counted twice).
+- **Numbers on session-e00f55c9** (2026-10-25 00:50; dry run on the live tree, then `--apply` on a copy):
+  - The plan: 97 upgrades, 0 adds, 25 plain task folders.
+  - Child sessions from entries, at every depth: 128 before, 135 after.
+  - Agents with no entry: 97 before, 95 after; nearly all are reviewers and clarity agents that node started with no folder.
+  - Cost: own $293.26, children $862.31, total $1155.57, the same before and after (nothing counted twice).
 
 **References.**
 - A session is named by its **session id**: its page is `/framework/ai/sessions/<id>/`, and a child names its parent by `parent_session`.
