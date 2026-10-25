@@ -66,3 +66,14 @@ What the detail page shows:
 - `prompts.jsonl` (raw, clean sentences, parts with cites);
 - the deputy's work: Prompt extends Task, child sessions as tasks, and live cached sessions.
 Agree one component for the chat view with the deputy. Land it in small, visible steps.
+
+## The owner, fifth pass (2026-10-24): what the detail page must let them do
+
+**"I want to see all the things that were requested in this session, verify they're all done, and click through to the proof."**
+- **An Overview view, first:** the session's work ranked by recency and importance, with **task cost as the main weight**, so the big things rise to the top. It gives a strong understanding of what the session did at a glance. The chronological view and the chat view sit beside it.
+- **Grouped, never flat.** Each prompt → its main tasks → their subtasks, checked off by the agents building them, live. Small asks nest under the task they belong to: the item tool's add-as-subtask, or a move with a back reference when one was filed flat.
+- **Checkmarks:**
+  - an empty box while open;
+  - a **green checkmark when done**, drawn as our own icon, not a form checkbox;
+  - clicking a done task opens its proof (its outcome, links and commit).
+- **Show the state; drop the play and stop buttons.** Today they break the layout, so take a screenshot of the current page first, for the before-and-after.
