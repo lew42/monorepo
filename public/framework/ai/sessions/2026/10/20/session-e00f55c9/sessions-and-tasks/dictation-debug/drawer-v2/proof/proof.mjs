@@ -8,10 +8,7 @@ for (const [w, h] of [[1920, 1000], [3440, 1200], [400, 800]]){
   page.on("pageerror", e => errs.push(w + " " + e.message));
   await page.addInitScript(() => { sessionStorage.setItem("lew42-voice-session", JSON.stringify({ session: "v-probe", file: "/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl" })); localStorage.setItem("lew42.sheet.chat_view", "v2"); });
   await page.goto(BASE + "/framework/ux/Dictate/", { waitUntil: "networkidle" });
-  if (w >= 1000){
-    const open = page.locator(".drawer-toggle, .drawer-open, [data-drawer-open]").first();
-    console.log(w, "toggle candidates", await page.locator("[class*=drawer]").evaluateAll(els => els.slice(0, 12).map(e => e.className)));
-  } else await page.click(".drawer-rail-ai");
+  if (w < 1000) await page.click(".drawer-rail-ai");
   await page.waitForTimeout(2500);
   console.log(w, "chip", await page.locator(".drawer-rail-sheet-v2-chip").count(), "prompts", await page.locator(".chat-v2-prompt").count());
   await page.screenshot({ path: OUT + `v2-${w}.png` });

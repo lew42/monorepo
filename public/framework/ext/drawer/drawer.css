@@ -182,6 +182,7 @@
 	.drawer-ai-chip-asleep { opacity: 0.6; }
 
 	.drawer-ai-switcher { gap: 0.4em; position: relative; }
+	.drawer-ai-switcher .drawer-rail-sheet-v2-chip { align-self: stretch; }   /* as tall as the New session button beside it */
 	.drawer .drawer-ai-switch-btn {
 		min-block-size: 0;
 		padding: 0.25em 0.5em;

@@ -2,6 +2,9 @@
 @layer base, theme, site, util;
 @layer theme {
 	.drawer-rail-sheet-v2-chip[aria-pressed="true"] { background: var(--fill-a16); border-color: var(--ink); font-weight: 600; }
-	.drawer-rail-sheet-v2-on .ux-dictate-widget-thread { display: none; }
 	.drawer-rail-sheet-v2 { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; padding-inline: 0.6em; }   /* the same inset as the thread it replaces */
+}
+/* util layer: the thread also wears the .flex utility, which would beat a theme-layer display:none */
+@layer util {
+	.drawer-rail-sheet-v2-on .ux-dictate-widget-thread { display: none; }
 }
