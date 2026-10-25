@@ -278,11 +278,11 @@ export default class AISessionsPage extends Page {
 		});
 	}
 
-	/** The rail shows one card per root session: a session that has a parent appears only in that parent's count. The table keeps nesting. */
+	/** The rail shows one card per root session: a session whose parent is in the list appears only in that parent's count. A child whose parent is outside the range keeps its own card. The table keeps nesting. */
 	roots_for_cards(rows){
 		if (this.grid?.view !== "rail") return rows;
-		const tree = AISessionRows.tree;
-		return rows.filter(r => !tree?.[r.session_id || r.id]?.parent);
+		const tree = AISessionRows.tree, id = r => r.session_id || r.id, listed = new Set(rows.map(id));
+		return rows.filter(r => !listed.has(tree?.[id(r)]?.parent));
 	}
 
 	/** The page's width follows the grid's view: the table fills the row, the rail is a narrow list with the detail beside it. */
