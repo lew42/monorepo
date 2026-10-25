@@ -46,6 +46,9 @@ class Session extends Task                       // ../Task/Task.js (Task extend
 **An AI spawns a child session.** `spawn_agent` (Servex):
 - `open_task` (`Servex/agents/Agents.js`) writes the child's line 1 into its task folder.
 - `SessionRecord.link_parent` appends `{"task":"<child folder url>"}` to the parent's record.
+- A child whose folder is **outside** the parent session's folder gets its line from `ChildLinks.link` (`Server/ChildLinks.mjs`, called by `open_task`): `{"task":"<child folder url>","as":"<agent id>"}` on the parent session's record, found by `parent_session`. `SessionRecord.add_ref` never writes the same reference twice. So the parent's numbers come from its own references, and a finished child moves its completion.
+- `node Server/ChildLinks.mjs` is the backfill for children spawned before this: a dry run by default (one line per child: session, folder url, agent, and what it would do), `--apply` appends. It covers every registry row with `parent_session`, plus older rows matched by name for session-e00f55c9.
+- Tests: `node Servex/agents/child-links.test.mjs`.
 - The registry row records `parent_session`, the parent's session id at spawn.
 - `Agents.agents_under` finds the child for the parent's cost and children. It matches `parent_session` exactly, and older rows by the parent's name within the parent's span.
 - The child shows on the parent's page as the task it carries, with its model, cost and a link to its own session page.
@@ -77,6 +80,10 @@ class Session extends Task                       // ../Task/Task.js (Task extend
 | `progress`, `completion` | done of total, stopped tasks left out | `Task.progress_of` |
 | `first_at`, `last_at`, `span_ms` | when the record began and last changed | the lines' own times |
 
+**Recompute only what changed.** A child record's parsed lines are kept by file and reused while the file keeps the same size and modified time (`lines_of` in `page_tools.js`, used by the node resolver). So a read re-reads and re-parses only the child files that changed. Every replay still builds fresh task objects from those lines, because a kept object would have the parent's lines addressed to it (`{"<child id>":{…}}`) applied again on each re-replay; the parent's totals (progress, completion, counts) are added up on every read from the children it holds. Time to answer `{"summary":{}}` on session-e00f55c9 (101 child records) right after one child file changed, measured back to back in the same conditions: about 140-285 ms without the cache, 76-99 ms with it. Keeping whole child objects measured 12-20 ms when the machine was quiet, but was dropped for the double-apply bug; it could return if a parent line that addresses a child evicted that child's entry. The cache holds at most 4000 files. Test: `node Servex/agents/ref-cache.test.mjs` (it builds a scratch tree in the OS temp folder: `SERVEX_PUBLIC` points the item tool's `public/` at it).
+
+**Completion at once, for any session.** `item({path: "/framework/ai/sessions/<uuid>/", delta: {"completion": {}}})`, or the dated folder's url, answers `{ok: true, answer: {completion: {done, total, stopped, completion}}}`: the tally of its tasks' current states and the number. It only reads and writes nothing. It works for a past session too, as long as its folder holds a record; a folder with no record is refused, and nothing is written. On session-e00f55c9: `{done: 30, total: 132, stopped: 74, completion: 0.227}`.
+
 Test: `node Servex/agents/session-state.test.mjs`.
 
 ## Rules (the owner, 2026-10-20, 16:15)
@@ -85,6 +92,10 @@ Test: `node Servex/agents/session-state.test.mjs`.
 2. **Its completion is computed from its tasks**, never typed in: `completion` is the share of tasks in state `complete`. *Built.* One gap: with no tasks it reads 0, and nothing marks the session itself finished.
 3. **A session is never marked complete while a loose end exists.** If something is left over, add a task for it instead of closing. *Not built yet:* no code refuses a close. Queued as step 5, "Task as a line", in [sessions-and-tasks.md](/framework/ai/doc/sessions-and-tasks.md).
 4. **The session system should be portable** (the owner, 2026-10-20, session-e00f55c9 prompt line 1931): "a reusable, portable system, closer to a dev server than a Servex thing". *Not built yet:* `Session` and `Day` need only `Item` and a dated folder, but the writers (the SessionStart hook, `prompt-relay.mjs`, the item tool) live in this repo's `.claude/hooks` and `Servex/`, so another project cannot use it on its own.
+
+## Open items
+
+- Auditing the completion of every past session is later.
 
 ## More
 

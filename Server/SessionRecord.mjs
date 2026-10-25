@@ -100,10 +100,10 @@ export default class SessionRecord {
 		return /^session-[0-9a-f]{8}$/.test(path.basename(top)) && fs.existsSync(rec) ? rec : null;
 	}
 	/** One {"task":"<url>"} line on `log`, unless it already names the url (a reference, or a tasks.add with this path). Returns `log`. */
-	static add_ref(log, url, by){
+	static add_ref(log, url, by, as = undefined){
 		let text = ""; try { text = fs.readFileSync(log, "utf8"); } catch {}
 		if (text.includes(`"task":"${url}"`) || text.includes(`"path":"${url}"`)) return log;
-		fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify({ task: url, by, ts: new Date().toISOString() }) + "\n");
+		fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify({ task: url, as, by, ts: new Date().toISOString() }) + "\n");
 		return log;
 	}
 	/** The census behind `--links`: every folder below a session folder that has a log, and whether its parent references it.

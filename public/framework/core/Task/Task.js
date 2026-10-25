@@ -202,7 +202,7 @@ export class Task extends Item {
 
 	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
 	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
-	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary"];
+	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion"];
 	static session_resolver = null;
 	get children(){
 		const is_session = this.constructor.session_resolver;
