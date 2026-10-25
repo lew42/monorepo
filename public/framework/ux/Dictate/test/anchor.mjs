@@ -31,6 +31,7 @@ page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
 await page.route(/\/api\/session\//, async route => {
 	const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
 	let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
+	if (verb.endsWith("/stream")) return;   // the live wire stays pending, never refused or closed: a dead wire shows the sheet's "Servex link down" banner after 8 s, a real 52 px shift that is not streaming
 	if (verb === "say") said.push(body.text);
 	const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : verb === "say" ? { ok: true, at: new Date().toISOString() } : { ok: true };
 	await route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(out) });

@@ -111,7 +111,6 @@ const scenarios = {
 	},
 	async late(){
 		const { ctx, page, run } = await open({ say: "late" });
-		await page.evaluate(() => globalThis.$dictate_widget.stop_mic());   // one sentence is enough: the first say is the slow one
 		await wait_for(page, () => run.said.length >= 1, 40000);
 		await page.evaluate(() => globalThis.$dictate_widget.stop_mic());
 		await page.waitForTimeout(16000);   // past the 10 s limit, the 12 s answer, and a 1.5 s poll
