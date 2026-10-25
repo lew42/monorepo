@@ -116,4 +116,13 @@ Not shown (over the size cap); read them yourself: ${dropped.join(", ")}`;
 	return out;
 }
 
-export default { readme_chain, first_prompt };
+/* capped_chain(dir) — the same chain and the same size cap as first_prompt, as data: {kept, dropped}, each a
+ * readme entry {path, text, truncated}. The system-prompt path blocks (roles.js path_parts) use it. */
+export function capped_chain(dir){
+	const chain = readme_chain(dir);
+	const blocks = chain.map(r => `${r.path}\n${r.text}`);
+	const kept = within_cap(`Where you are: readmes from the root down to ${dir}`, blocks);
+	return { kept: chain.filter((r, i) => kept.includes(blocks[i])), dropped: chain.filter((r, i) => !kept.includes(blocks[i])) };
+}
+
+export default { readme_chain, first_prompt, capped_chain };

@@ -203,7 +203,7 @@ When your work touches another mastermind's directory, you should propose the ch
 
 ## A standing system architect, and logs over chat (the owner, 2026-10-22)
 
-- **You are not the system architect.** One mastermind, `ai-system-mastermind`, holds the AI system (sessions, tasks, roles, skills, spawning) and keeps its docs current (`roles/ai-system-mastermind.md`). Send it system questions instead of studying the system yourself: `send_to_agent` or `spawn_agent` with role `ai-system-mastermind` both reach the one live session or start it. Log a problem with a suggested fix in its feedback inbox (`module_inbox`, module `ai`, `fix`; `repeat_of` when it was logged before).
+- **You are not the system architect.** A mastermind spawned at `public/framework/ai/` (role `mastermind` with `path`; the old word `ai-system-mastermind` means exactly that) holds the AI system (sessions, tasks, roles, skills, spawning) and keeps its docs current (`public/framework/ai/mastermind.md`). Send system questions to a live one (`mastermind-ai`, or the old `ai-system-mastermind` while it still runs) with `send_to_agent`, or spawn one at that path; do not study the system yourself. Log a problem with a suggested fix in its feedback inbox (`module_inbox`, module `ai`, `fix`; `repeat_of` when it was logged before).
 - **Log, don't chat, between agents.** `send_to_agent` is fine for a quick nudge, but it is not a record. A request that matters is a logged item (a task or note in the right JSONL, through the `item` tool) that the other agent watches and answers in place, so it shows in the views and can be queried later.
 - **Autonomous is the default** (the owner, 2026-10-22): plan, approve, build and merge yourself when the work is reviewed, checks out and is not dangerous; easy fixes the owner asked for just get done. Slow down and prioritize only under a token crunch. Plan before approving, and make it visible which tasks are queued to run on their own, so the owner can stop or start one while dictating. Anything dangerous still waits for the owner.
 - **A quick question is a documentation gap.** When an agent has to ask another agent something, the answer also goes into the readme or doc it belongs in, so the next agent need not ask.
@@ -229,3 +229,16 @@ A running session is a `claude.exe` in RAM (about 0.7 GB with its tools), and th
 ## Idle is not empty: pull from the queue (the owner, 2026-10-23)
 
 When the work in flight lands, the mastermind does not stop. It takes the next open row of [priority.md](/framework/ai/priority.md), or the open items in the last architect's log, and starts it. It sets a wake-up for as long as any priority row is open and the budget allows. "Nothing is running, so no check" left the queue standing for 16 hours on 2026-10-23.
+
+## Spawned at a path (the owner, 2026-10-25)
+
+There is one generic `mastermind` role. `spawn_agent({role: "mastermind", path: "public/framework/ai/"})` (a repo path or a site path like `/framework/ai/`) makes it the mastermind of that folder. Servex puts two things in your SYSTEM prompt, after this role text, so they survive compaction (the first message does not):
+
+- `<path-readmes path="…">`: the readme chain from the repo root down to the path, each readme headed by its repo path, cut to the same size cap as the first-message chain (middle levels go first).
+- `<path-mastermind file="…">`: the path's own instructions for its mastermind, from `<path>/mastermind.md`, else `<path>/ai/mastermind.md`. Absent is fine: only the readmes load.
+
+**The check.** At spawn Servex verifies every listed file's text is inside the final system prompt, then writes one line to the `skills` log (`where: "system"`, `path`, `files`, `mastermind`, `ok`; `missing` when `ok` is false) and an agent event `path_loaded`. Your first message opens with one line saying what was loaded, or a WARNING naming what was not (read those files yourself). The log lines live in the `skills` store; the event shows on the agent's card.
+
+**Ids and parents.** The id is `mastermind-<last folder of the path>` (`mastermind-ai`, then `-2`). The spawner is the parent and its cost counts there. The path is stored in the agent's recipe and registry row, so a wake or revive keeps it. `ai-system-mastermind` and `servex-mastermind` are only words for `mastermind` at `public/framework/ai/`; a `path` you pass wins. There is no singleton and no renewal: start a fresh agent per project and reuse one only while its context is small.
+
+**Edges.** A spawn with both `path` and `task` takes its chain from the path (in the system prompt); the task folder's own readme chain is not also added to the first message. A `path` that does not exist makes `spawn` throw (from `dir_of`) instead of starting an agent with nothing loaded; that is on purpose, so a typo is loud. An agent already running (such as `ai-system-mastermind`) keeps its id and gets this role text plus the path blocks the next time it resumes.

@@ -31,7 +31,7 @@ So a 30-turn read-only job holding about 116k: Haiku over 100k is about **$0.17 
 ## Where model and effort are set today
 
 1. **`Servex/agents/tiers.js`**: a *tier* becomes a model id, in one line each: `fast` and `scan` are `claude-haiku-5-5`, `manager` and `architect` are `claude-sonnet-5-5` (all Sonnet since 2026-10-07; Opus only for a stated reason). The `session-backend.txt` switch moves every Anthropic tier to OpenRouter.
-2. **`Servex/agents/roles.js`**: each role row names its `tier` (so its model) and its `effort`: minion is `scan` / low; task-mastermind, reviewer, clarity are `manager` / medium; every mastermind (`ai-system-mastermind`, `core-page-mastermind`, `mastermind`) is `architect` / high; the voice and card assistants are `fast` / low.
+2. **`Servex/agents/roles.js`**: each role row names its `tier` (so its model) and its `effort`: minion is `scan` / low; task-mastermind, reviewer, clarity are `manager` / medium; every mastermind (`core-page-mastermind`, and the generic `mastermind`, which `ai-system-mastermind` now names at `public/framework/ai/`) is `architect` / high; the voice and card assistants are `fast` / low.
 3. **A caller can override both** for one spawn (`spawn_agent` takes `model` and `effort`); a caller's value wins over the row.
 
 ## What to run each kind of job on

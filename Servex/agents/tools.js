@@ -344,6 +344,7 @@ return [
 			model: { type: "string", description: "Model id. Default `claude-sonnet-5-5`. Cheap scans: `claude-haiku-5-5`. An OpenRouter slug (anything with a `/`, e.g. `deepseek/deepseek-v4.1-flash`) runs through OpenRouter automatically — see `provider`." },
 			provider: { type: "string", description: "`anthropic` (default) or `openrouter`. Usually leave it out: a `model` with a `/` in it already implies `openrouter`. Needs an OpenRouter key at %LOCALAPPDATA%\\lew42\\servex\\openrouter.key (Servex/ext/openrouter/readme.md) — missing key fails the spawn with one clear line." },
 			effort: { type: "string", description: "`low` `medium` `high` `xhigh` `max`. Default `high`." },
+			path: { type: "string", description: "A repo path or site path (e.g. `public/framework/ai/` or `/framework/ai/`). Loads that folder's readme chain, plus its `mastermind.md` (or `ai/mastermind.md`) if present, into the agent's SYSTEM prompt, so it survives compaction. Meant for the `mastermind` role (`ai-system-mastermind` is `mastermind` at `public/framework/ai`). The log line says which files were loaded." },
 			cwd: { type: "string", description: "Directory it works in. Default the Servex process's own." },
 			visibility: { type: "string", description: "Who the dashboard shows it to — `team` (default), `owner`, `private`. A label; nothing enforces it yet." },
 			permission_mode: { type: "string", description: "`acceptEdits` (default) lets it edit files; `bypassPermissions` lets it do anything, including run commands; `plan` lets it do nothing." },

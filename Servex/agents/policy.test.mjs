@@ -32,6 +32,7 @@ t(!m("task-mastermind-x", "assistant-a").ok, "task-mastermind to assistant refus
 t(m("task-mastermind-x", "mastermind-servex-3").ok, "task-mastermind to a numbered mastermind-servex");
 t(m("mastermind-servex-3", "task-mastermind-x").rule === "system", "a numbered mastermind-servex messages freely, like the plain one");
 t(p.kind("mastermind-servex-3") === "servex" && p.kind("servex-mastermind-12") === "servex", "numbered ids are still kind servex");
+t(p.kind("mastermind-ai") === "servex" && p.kind("mastermind-ai-2") === "servex" && p.kind("mastermind-ai-sessions") !== "servex", "the path-spawned AI mastermind is kind servex, like the id it replaces");
 // D4: parent/child both ways for two task masterminds — a child mastermind messaging its parent, and back
 {
 	const rec = new Map([["task-mastermind-child", { parent: "task-mastermind-x" }], ["task-mastermind-x", { parent: null }]]);
