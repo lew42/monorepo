@@ -36,7 +36,7 @@ Completion is computed, never written: a context card or Prompt is complete when
 |---|---|---|
 | `raw` push (`{push}`, string, array) | all three | `{push}` only |
 | `paragraphs` add / append / replace | all three; one paragraph per id | add and append; **replace ignored**, a repeated id shows twice |
-| sentences | `sentences.js`, ids `a1…` | its own splitter (**differs**: "session.json" is split) |
+| sentences | `sentences.js`, ids `a1…` | its own splitter (**differs**: "session.json" is split; open) |
 | smart `title` / `text` | kept (was dropped; fixed here) | kept |
 | `replies`, `tasks`, `Question` | kept | kept |
 
@@ -44,7 +44,7 @@ Completion is computed, never written: a context card or Prompt is complete when
 
 1. **Placement is not by topic.** `Sessions.assign_prompt` groups by quiet/floor only and always grows paragraph `a`; `PromptLines.add_paragraph` has no caller. 56 Prompts, none with a second paragraph. The fast assistant's `{place}` and `(new paragraph)` reach only the V1 chat (`Widget.Thread`), never the Prompt. *Servex: map `place` onto lines 2-5.* Open.
 2. **A pause ends the Prompt** (`s.prompt = null` in `release_thought` and `say`), so one topic said in three bursts is three Prompts. Open, same fix.
-3. **Two sentence splitters.** A reply anchored to `a2` meant different words in core and in the chat (any text with "session.json" or "3.5" numbers differently). Core now uses `core/Task/sentences.js`; `ChatV2Model.sentences` should import it (one line, `mastermind-dictation-2`). Core side fixed.
+3. **Two sentence splitters.** The chat's `ChatV2Model.sentences` splits inside "session.json" and "3.5"; core does not, so a reply anchored to `a2` can mean different words in the two. Nothing changes in behaviour yet: core's rule now lives in `core/Task/sentences.js`, and the whole fix is one import in `ChatV2Model` (`mastermind-dictation-2`). Open.
 4. **Refined `text` was lost on node replay** (25 of 56 Prompts have a smart title or text; the node Prompt kept only `title`), so `Prompt.trace` and any item query missed it. Fixed: `text` is a line field, `cleaned` is the paragraph join.
 5. **The chat's fold ignores `paragraphs.replace` and duplicates a repeated paragraph id** (core keeps one). A cleaned rewrite by the smart seat would not show. `mastermind-dictation-2`.
 6. **A rewrite renumbers sentences**, so a reply anchored to `a2` can silently point at other words. Proposal: an anchor may carry a `quote` (the words), checked on read. Open.

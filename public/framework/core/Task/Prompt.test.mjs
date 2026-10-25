@@ -36,7 +36,7 @@ check("the smart assistant's refined {title, text} survives replay; cleaned text
 	return p.text === "Refined version." && p.get_one("title") === "A title" && p.cleaned.startsWith("Yeah, so") && p.sentences.map(s => s.id).join() === "a1,a2" && p.label === "A title";
 });
 
-check("one splitter: 3.5 and session.json stay whole, a newline ends a sentence", () => {
+check("the shared splitter (sentences.js): 3.5 and session.json stay whole, a newline ends a sentence", () => {
 	const p = make({ p1: { paragraphs: { replace: { id: "a", text: "Pi is 3.5 or so. See session.json now.\nNext." } } } }).tasks.find("p1");
 	return p.sentences.map(s => s.text).join("|") === "Pi is 3.5 or so.|See session.json now.|Next.";
 });

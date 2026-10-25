@@ -16,6 +16,7 @@ Session
 | `raw` | Array of text chunks, exactly as heard or typed. Only ever appended to; never edited or dropped. |
 | `paragraphs` | The cleaned text, a list of `{id, text}`. |
 | `sentences` | Computed from the paragraphs, never stored: `<paragraph id><n>` (`a1`, `a2`…), or `r<n>` before any paragraph exists. A migrated paragraph may carry its own `sentences` array so the old numbering still holds. |
+| `title`, `text` | The smart assistant's refined version of the Prompt. `prompt.text` returns it, or the cleaned paragraphs when there is none; `prompt.cleaned` is always the paragraphs joined. |
 | `replies` | A list of `{id, text, by, anchor}`. `anchor` is `{sentence: "a2"}` or `{sentence: "a2", from: 3, to: 7}` (word positions); no anchor means the reply is to the whole prompt. |
 | `tasks` | The asks made from it (Tasks, Questions), as for any Task. |
 | `parts`, `subject`, `refined`, `notes`, `handled`, `process` | The splitter's record, kept as plain data ([ext/Refine/doc/prompt-records.md](/framework/ext/Refine/md/doc/prompt-records/)). `parts[].cites` are sentence ids. |
