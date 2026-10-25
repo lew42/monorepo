@@ -146,7 +146,7 @@ export const now_ms = () => {
 /* THE SESSION MODEL SWITCH (dictate-without-claude, 2026-10-04 — the owner: "we're facing a
  * Claude shutdown... I have to rely entirely on the website and whether the voice dictation
  * system works"). ONE setting decides what BOTH session agents spawn on:
- *   - "claude" (default, unchanged): fast on Sonnet, smart on Usage.pick("smart", repo).
+ *   - "claude" (default, unchanged): fast on Sonnet, smart on Opus 5.5 (tier voice_smart, the owner 2026-10-25), Sonnet only while the week is over pace.
  *   - "openrouter": both on FALLBACK_MODEL. Picked from the new-brain eval
  *     (ai/sessions/2026/10/04/new-brain/new-brain/eval-results.json): openai/gpt-6-luna tied the BEST score on
  *     level c (the real job — refine a raw owner prompt into numbered sentences, 10/10, same
@@ -1090,7 +1090,7 @@ export default class Sessions {
 		return this.claude_model(role);
 	}
 
-	claude_model(role){ return role === "fast" ? tier_model("fast") : Usage.pick("smart", this.repo); }
+	claude_model(role){ return role === "fast" ? tier_model("fast") : Usage.over_pace(this.repo) ? tier_model("manager") : tier_model("voice_smart"); }
 
 	/* OpenRouter usable right now? A key, and the spend guard (cached, never a network call here) says yes. */
 	or_ready(){ try { return has_key() && spend_guard().ok; } catch { return false; } }
@@ -1172,7 +1172,7 @@ export default class Sessions {
 		if (reseat){ s.fast = null; (s.backing ??= {}).fast = null; }
 		const old = s.backing?.[role];
 		/* Only a change of PROVIDER forces a fresh spawn (review finding 5): the default Claude
-		 * path already switches `smart` between Sonnet and Opus on its own (`Usage.pick()`,
+		 * path already switches `smart` between Opus and Sonnet on its own (`Usage.over_pace()`,
 		 * weekly pace) — a Claude session id can resume under either, so that alone must not
 		 * restart the agent fresh and lose its 40-line tail. Only Claude <-> OpenRouter/local
 		 * (or OpenRouter <-> local) actually can't resume. */
