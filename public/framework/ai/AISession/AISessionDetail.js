@@ -24,6 +24,7 @@ import SessionSettings from "/framework/core/Session/SessionSettings.js";
 import SessionTasks from "/framework/core/Session/SessionTasks.js";
 import SessionWork from "./SessionWork.js";
 import SessionStats from "./SessionStats.js";
+import AICost from "/framework/ai/AITask/AICost.js";
 import SessionOverview from "./SessionOverview.js";
 import SessionFeed from "./SessionFeed.js";
 import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
@@ -191,7 +192,8 @@ export default class AISessionDetail extends Page {
 			const q = new URLSearchParams(location.search); key === "overview" ? q.delete("tab") : q.set("tab", key);
 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
 		};
-		new SessionStats({ ready });   // Figma band E: stats first, sticky, on every tab
+		const row_p = AISessionDetail.load_row(url, id);   // this session's sessions.json row: the stats bar says "this tab" from its source
+		new SessionStats({ ready, row: row_p, open_cost: () => show("cost") });   // Figma band E: stats first, sticky, on every tab
 		div.c("sessions-tabs flex gap-50 wrap", () => {
 			TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
 			a.c("sessions-chip", "Task queue →").href("/framework/ai/queue/").attr("target", "_self");
@@ -213,7 +215,7 @@ export default class AISessionDetail extends Page {
 				$conv = div.c("flow sessions-conv");   // the live conversation
 			});
 			panels.coverage = div.c("flow sessions-panel", () => { $coverage = div.c("flow"); });   // every ask in the owner's prompts, its status, the raw words one click down (AISessionCoverage)
-			panels.cost = div.c("flow sessions-panel", () => { $costs = div.c("flow"); $trace = div.c("flow"); });   // logged cost, the cost-over-time chart and the per-tool table
+			panels.cost = div.c("flow sessions-panel", () => { const $sum = div.c("flow"); ready.then(w => $sum.empty(() => AICost.report(w.id ? AICost.session_url(w.id) : w.dir))); $costs = div.c("flow"); $trace = div.c("flow"); });   // the summary first (the cost line's total and every child session behind it), then the logged cost, the cost-over-time chart and the per-tool table
 			panels.models = div.c("flow sessions-panel", () => { $role = div.c("flow session-role"); $session = div.c("flow"); });   // the Session class: cost tree, model + effort, tokens by purpose, audit
 			panels.related = div.c("flow sessions-panel", () => { $spawn = div.c("flow"); $related = div.c("flow"); });   // who spawned this and what it spawned; the other records of this session
 		});
@@ -225,7 +227,7 @@ export default class AISessionDetail extends Page {
 
 		// `row` first: for a Servex row the url's id is the AGENT's id, a different string from its session_id,
 		// and the transcript and the date-path lookup both need the session_id.
-		AISessionDetail.load_row(url, id).then(async row => {
+		row_p.then(async row => {
 			const session_id = row?.session_id ?? id;
 			AISessionRows.load_index(url).then(() => this.retitle(AISessionRows.display_name(row ?? { id, session_id }, AISessionRows.tree).text));   // a VS Code tab has no sessions.json row; its title is in the index
 			if (!/^[0-9a-f]{8}-/.test(session_id)){   // a name no agent list or index maps to a uuid: nothing on disk to ask for

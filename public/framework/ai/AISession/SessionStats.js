@@ -25,15 +25,16 @@ export default class SessionStats extends View {
 
 	/** The session's total cost, from the item tool's `summary` (the same answer, and the same cache, as the Report tab's AICost.report):
 	 *  one computation of a session's cost for every surface. SessionWork's own sum adds the day snapshots' older, inflated `usd`. */
-	static cost($v, base){
-		const hit = AICost.known.get(base);
-		const got = hit && Date.now() - hit.at <= AICost.STALE_MS ? Promise.resolve(hit.answer)
-			: AICost.ask(base).then(answer => (AICost.known.set(base, { at: Date.now(), answer }), answer));
-		got.then(({ summary, why }) => {
-			const total = summary?.cost?.total;
-			if (total != null) $v.text(AICost.money(total));
-			else { $v.text("not known"); $v.attr("title", why ?? "Servex gave no total for this session."); }
+	static cost($v, work, { row, open } = {}){
+		const base = work.id ? AICost.session_url(work.id) : work.dir, own_usd = work.tree?.snap?.usd ?? null;
+		const draw = (cost, tab) => $v.text(AICost.cost_line({ cost, own_usd, tab }).text);
+		Promise.all([AICost.summary(base), Promise.resolve(row).catch(() => null)]).then(([{ summary, why }, r]) => {
+			const tab = AICost.is_tab(r, summary);
+			if (summary?.cost) return draw(summary.cost, tab);
+			draw(null, tab); $v.attr("title", why ?? "Servex gave no total for this session.");
 		});
+		draw(null, false);
+		if (open) $v.attr("title", "Open the Cost tab: what this session spent and every child session behind the total").on("click", open);
 	}
 
 	draw(work){
@@ -43,7 +44,7 @@ export default class SessionStats extends View {
 		const { done, total } = Task.progress_of(part.counted);
 		this.empty(() => {
 			div.c("sov-stat-row", () => {
-				div.c("sov-stat", () => { small.c("sov-k", "Cost"); SessionStats.cost(strong.c("sov-v", "…"), work.dir); });
+				div.c("sov-stat", () => { small.c("sov-k", "Cost"); SessionStats.cost(strong.c("sov-v" + (this.open_cost ? " sov-link" : ""), "…"), work, { row: this.row, open: this.open_cost }); });
 				for (const [label, value] of [["Model", tree.snap?.model ?? "—"], ["Running for", SessionStats.elapsed(root.ms())], ["Task folders done", total ? `${done} of ${total}` : "no task folders"]])
 					div.c("sov-stat", () => { small.c("sov-k", label); strong.c("sov-v", value); });
 			});

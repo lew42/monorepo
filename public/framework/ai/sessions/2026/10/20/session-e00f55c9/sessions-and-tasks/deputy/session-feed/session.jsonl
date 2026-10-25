@@ -5,3 +5,5 @@
 {"log":{"at":"2026-10-24T21:01:31-05:00","heartbeat":"answered","msg":"I'm done and idle. The session page's Overview now lists every task and child session of the session, newest first, with the head line \"Own tasks: N · Total: M\". The four cards moved to a new Board ta"}}
 {"log":{"at":"2026-10-24T21:12:20-05:00","heartbeat":"check","msg":"status check sent to minion-session-feed"}}
 {"log":{"at":"2026-10-24T21:12:54-05:00","heartbeat":"answered","msg":"Still done and idle, with nothing new since my last report. The session-feed work is committed as `9c35435b0` on `worktree/qf-4`, and the merge is yours. The one open point is that record tasks with n"}}
+{"log":{"at":"2026-10-24T21:33:54-05:00","heartbeat":"check","msg":"status check sent to minion-session-feed"}}
+{"log":{"at":"2026-10-24T21:34:41-05:00","heartbeat":"answered","msg":"Unchanged: I'm idle and the work is finished. The session-feed commit `9c35435b0` on `worktree/qf-4` is waiting for you to merge it."}}

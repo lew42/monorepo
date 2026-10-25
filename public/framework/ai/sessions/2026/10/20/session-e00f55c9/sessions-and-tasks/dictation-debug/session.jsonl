@@ -33,3 +33,10 @@
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/dictate-to-tab/","by":"Servex","ts":"2026-10-25T04:20:40.396Z"}
 {"log":{"at":"2026-10-24T23:26:02-05:00","msg":"session resumed"}}
 {"decision":{"at":"2026-10-24T23:40:00-05:00","what":"dictate-to-tab stopped on the owner's course change: dictation goes website -> SDK agent only; minion-dictate-to-tab writes what it learned (one paragraph, core/Page/ai/doc/dictation.md) and closes as stopped","instead":"finish the UserPromptSubmit fallback; would win only if the owner wants the VS Code tab back as a target"}}
+{"log":{"at":"2026-10-24T23:27:38-05:00","msg":"session resumed"}}
+{"action":{"at":"2026-10-24T23:41:33-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/polish/requirements.md"]}}
+{"log":{"at":"2026-10-24T23:42:32-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-24T23:50:11-05:00","msg":"session resumed"}}
+{"action":{"at":"2026-10-24T23:59:38-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/requirements.md"]}}
+{"log":{"at":"2026-10-25T00:01:13-05:00","msg":"Debug tab, both stalls, bubbles, per-module failures.jsonl and the UI rule landed on michael/dev (146e37c73); the dictate-to-tab finding is in core/Page/ai/doc/dictation.md (92ba4d3c8). Next: the flicker (flicker/requirements.md), the same builder, the polish list after it."}}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/","by":"SessionRecord --links","ts":"2026-10-25T05:01:32.758Z"}

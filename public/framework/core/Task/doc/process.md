@@ -4,7 +4,7 @@
 
 A **process** is a standard way of doing a kind of work: *build* is investigate → plan → improve → approve → execute → index → review → merge. You create a task with a process named on it, and from that moment node starts step 1, launches the session each step names, chases a step that stalls, and starts the next step when one completes. The task is complete only when every step is. A one-off fix needs no process.
 
-The owner's words: [the 2026-10-22 dictation](/framework/ai/sessions/2026/10/20/session-e00f55c9/) (tab transcript `e00f55c9`, 23:34 UTC) and [owner-2026-10-20 §5](owner-2026-10-20-projects-and-completion.md). Brief: [process-system](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/requirements.md).
+The owner's words: `the 2026-10-22 dictation` (tab transcript `e00f55c9`, 23:34 UTC) and [owner-2026-10-20 §5](owner-2026-10-20-projects-and-completion.md). Brief: `process-system/requirements.md` in that session folder.
 
 ## The classes
 
@@ -39,6 +39,10 @@ A process lives in its own folder inside the session that made it: `<session fol
 
 **Creating one is one call** (never two steps): `item({path: <your session>, delta: {tasks: {add: {title, process: "build", brief}}}})`. The item tool sees `process`, makes the folder, writes line 1 and the step lines from the definition (the add's own `steps_over` overrides change a step's session), and tells ProcessRunner, which starts step 1.
 
+## Does finishing step N hand step N+1 its instructions? Yes
+
+Node does it, with no agent remembering. The `complete` line the step's agent writes through the item tool wakes `ProcessRunner.step()` (`page_tools` `hooks.changed`). `ProcessRunner.run()` replays the file and asks `Process.next()`: with step N complete, the first open step is N+1, idle, so `next()` answers `{start: N+1}`; the next loop turn answers `{launch: N+1}`. `ProcessRunner.launch()` then sends `Process.prompt(N+1)`: to a new agent (`fresh`), the previous step's agent (`same`) or the creator (`owner`). That prompt holds N+1's `do`, the brief, the `outcome` of every complete step, and the line that completes it. Test: "plan runs in the same session, told what investigate found" in `Servex/ProcessRunner.test.mjs`. The page that shows it live: [/framework/core/Task/process/](/framework/core/Task/process/).
+
 ## Draft in the session, then move home
 
 A process starts as a draft in the session that made it. When it names a `module` (`tasks.add: {title, process, module}`), it moves to `<module>/tasks/<id>/` once the plan is approved. The step marked `home_after` (build: approve-plan) completing makes `next()` answer `{move}`, and ProcessRunner calls `move_home` in `Servex/agents/page_tools.js`. The move does five things:
@@ -66,7 +70,7 @@ The prompt node sends is built from the step's `do`, the brief, and the outcomes
 
 ## The templates (`core/Task/processes/`, one subclass each, kept small)
 
-- **build**: investigate (fresh, Sonnet low: questions ranked, the known structure as class sketches, sources) → plan (same: tasks, class sketch, checked against the brief; if it changes what the owner sees, the look first, a Figma frame or a slice's screenshot) → improve-plan (fresh reviewer: an independent read of the plan) → approve-plan (the creator: approve, or name changes; this approves the look too) → execute (fresh builder, in a worktree) → index (same: a line in the readme of every folder it touched and a link to every new page from its parent's navigation, [documentation skill §4](/.claude/skills/documentation/SKILL.md)) → review (fresh reviewer: the diff) → merge (waits on the owner).
+- **build**: investigate (fresh, Sonnet low: questions ranked, the known structure as class sketches, sources) → plan (same: tasks, class sketch, checked against the brief; if it changes what the owner sees, the look first, a Figma frame or a slice's screenshot) → improve-plan (fresh reviewer: an independent read of the plan) → approve-plan (the creator: approve, or name changes; this approves the look too) → execute (fresh builder, in a worktree) → index (same: a line in the readme of every folder it touched and a link to every new page from its parent's navigation, `documentation skill §4`) → review (fresh reviewer: the diff) → merge (waits on the owner).
 - **design** (design to code, the owner 2026-10-22): design (fresh: a default plus two to four variants per view in Figma, each named for its one change, the tree in `variants.md`) → review-shots (fresh reviewer: a screenshot of every frame, keep or cut) → pick (the creator: `code: <names>`) → code (fresh, in a served worktree: the default as a real page, each picked variant a subpage `<page>/v/<name>/` whose view **extends its parent's view** and changes only its difference; sub-versions nest; the default lists the tree, so the owner clicks through on the phone) → index (same: readme lines and links from the parent's navigation) → review (shots at 400 and 1200 px of every variant page, a clean console) → merge (waits on the owner). A variant is a set of changes on its parent, so in code it is a subclass.
 - **investigate**: questions (rank them; name what is known as class sketches) → scout (Haiku scouts, one per top question, each under 100k, web search allowed) → synthesize (answers; where two scouts agree, say so). Run on its own or, later, as build's first step.
 
@@ -98,12 +102,12 @@ Every step change, spawn, pulse and cost is a line node writes. `measure` lines 
 
 - **Task.mode "series"** already starts the next child in memory; Process turns that off and has node write the line instead, so state is always from the file.
 - **Task templates** ([templates.md](templates.md)) are the per-task version (one agent, approve → spawn); a step's `session` uses the same launch path (`TaskLoop.launch` shape).
-- **Steps** ([Servex/doc/steps.md](/Servex/doc/steps.md)) are steps inside one agent's session; a Process whose steps all run `same` does the same job with real state. Steps stays until it is migrated.
+- **Steps** (`Servex/doc/steps.md`) are steps inside one agent's session; a Process whose steps all run `same` does the same job with real state. Steps stays until it is migrated.
 - **Project.STAGES** (six stage names in one field) is the same idea without children; a Project should hold a build Process instead. Not changed in this slice.
 
 ## Run 1 (2026-10-22): the readmes page, through build
 
-The brief: [run-1/readmes-page/requirements.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/requirements.md); its log is the `task.jsonl` beside it. It ran on a private Servex started from the worktree (`Servex/proof/process-run.mjs`). One `item` call created it. Node then ran every step with no agent remembering anything, from 18:49 to 18:56 (7.5 minutes). It ended with `task/readmes-page` built and reviewed, and the merge step waiting on the owner.
+The brief: `run-1/readmes-page/requirements.md` in the process-system folder; its log is the `task.jsonl` beside it. It ran on a private Servex started from the worktree (`Servex/proof/process-run.mjs`). One `item` call created it. Node then ran every step with no agent remembering anything, from 18:49 to 18:56 (7.5 minutes). It ended with `task/readmes-page` built and reviewed, and the merge step waiting on the owner.
 
 | Step | Session | Measured cost |
 |---|---|---|

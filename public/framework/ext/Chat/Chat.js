@@ -196,8 +196,10 @@ export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark
 	// join: false never merges onto the last bubble (doc/notes.md#speak)
 	const last = join ? mergeable($box, sender, at) : null, piece = { id, text, at, via, mark, failed };
 	if (last){
-		bubbles.get(last).pieces.push(piece);
-		last.dataset.at = at;
+		// in time order: a line that arrives late (the poll after the live wire) goes before the later ones, never at the end
+		const pieces = bubbles.get(last).pieces, i = pieces.findIndex(pc => pc.at > at);
+		i < 0 ? pieces.push(piece) : pieces.splice(i, 0, piece);
+		last.dataset.at = Math.max(Number(last.dataset.at) || 0, at);
 		fill(last);
 		return last;
 	}

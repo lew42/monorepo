@@ -12,6 +12,8 @@ ErrorLog turns an error on the page into one log line a session can follow. Entr
 ## One file per day by ISO date
 
 **Decided:** errors write to `/framework/ai/errors/<YYYY-MM-DD>.jsonl`, rotated at midnight.
+
+**Changed 2026-10-24:** each error is written first to `failures.jsonl` in the module that broke, the per-module log `follow` delivers (`ErrorLog.module_of`); the day file stays as the index until its readers move ([page-watcher.md](./page-watcher.md)).
 **Why:** keeps the working file small; old files move to archive; a session can tail today's file once.
 **Instead:** one global file (harder to archive) or hourly splits (more files to track).
 **Detail:** [design — Spam and size](./design.md#spam-and-size)

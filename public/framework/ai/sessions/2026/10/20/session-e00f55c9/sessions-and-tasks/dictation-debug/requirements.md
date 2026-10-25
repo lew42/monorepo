@@ -59,3 +59,15 @@ The owner wants to dictate on the website and have it reach this VS Code sidebar
 Report what works, test it once end to end, and write the result in the dictation doc.
 
 **Stopped (the owner, 2026-10-24, later the same night):** website dictation goes straight to an SDK agent; the VS Code tab and the Claude app are no longer dictation targets. What was learned is in [core/Page/ai/doc/dictation.md](/framework/core/Page/ai/doc/dictation.md), "Why not dictate into a VS Code tab". The focus is the Debug tab, both stalls and the bubbles, made reliable.
+
+## The owner, on the whole chain from Whisper to the bubble (2026-10-24)
+
+- **The flicker is the bug to kill.** Press dictate and start talking: raw text flashes in, vanishes, and comes back a while later (perhaps while the LLM cleans it). "A very jarring experience."
+- **The driving principle:** while dictation is on, the words appear **in place in the chat bubble, as if already sent.** No text area that the words then move out of, and no UI jumping. Put each word in the best place as soon as possible.
+- **The flow:**
+  1. Whisper's raw text is chunked by sentence.
+  2. Each sentence goes to ONE cleaning-and-refinement step (whichever agent runs it).
+  3. That produces structured content (tasks, questions, notes) through the item tool.
+  4. As the prompt grows, the cards are **updated a little, never rewritten wholesale.** Nothing the owner is reading should vanish or change unasked, unless it's a real mistake or the owner asked for it.
+- **Roles:** the refiner makes the data structures. Upgrading a task into a session (launching an agent) is the mastermind's call, not the refiner's.
+- **Investigate the whole chain end to end** (mic → Whisper → sentences → refine → item tool → bubble). Show each stage on the Debug tab, and prove there's no flicker with a short screen recording or a burst of shots.

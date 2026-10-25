@@ -11,3 +11,5 @@
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim/header/","by":"Servex","ts":"2026-10-25T04:42:27.000Z"}
 {"action":{"at":"2026-10-24T23:43:41-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim/plan.md"]}}
 {"log":{"at":"2026-10-24T23:43:53-05:00","msg":"plan.md written (header, detail page in 4 sub-steps, cards). Step 1 brief at header/requirements.md; minion-sessions-header queued (Servex 8/8). Deputy told of the plan."}}
+{"action":{"at":"2026-10-24T23:44:18-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim/overview/requirements.md"]}}
+{"log":{"at":"2026-10-24T23:44:28-05:00","heartbeat":"revive-queued","msg":"mastermind-sessions-page it did not answer the status check; a revive is queued"}}

@@ -19,7 +19,8 @@ Brief: [header/requirements.md](header/requirements.md). One sticky row: "Today 
 `ai/AISession/SessionOutline.js`: built from what the page already loads, no new fetch beyond `prompts.jsonl`.
 - **Groups = prompts.** A record task with `source.prompt` joins the prompt of that id in the session's `prompts.jsonl` (its `subject` is the group's heading; measured: 294 of 446 tasks on `e00f55c9` carry it). Tasks without one go in one group "Other work".
 - **Under a task:** its subtasks (`t._tasks`), and the task folder it points at (`path`), which is a `SessionWork` tree node; a node with `session` is a **child session** (state, model, cost, link) and is drawn on its task's row, not in a separate list. Folder nodes no record task points at are tasks of "Other work".
-- **Weight = cost.** Each task's cost is `SessionWork`'s rolled cost of its folder (own + below; the one cost function, `SessionWork` facts, which the deputy's cost-line fix feeds). A group's weight is the sum of its tasks'.
+- **Weight = cost; money printed = `AICost`.** Rows are weighted by `SessionWork`'s rolled cost, but every printed dollar comes from `AICost.summary` / `cost_line` (the deputy, 2026-10-24: the rolled sum adds older, inflated day snapshots).
+- **Structure from the record when it has it** (the deputy): Prompt entries in `session.tasks` with asks nested, spawns as Session entries under their task (`../deputy/session-entries/plan.md`). Until then the `source.prompt` join lives in ONE method, `SessionOutline.source()`.
 - **Rank:** score = rolled cost × 0.5^(age in days ÷ 2) + a small recency term, so a $40 task from yesterday outranks a $0 ask from an hour ago, and among free asks the newest is first. A toggle "newest first" sorts by time only. Caveat written beside the code: prompt-filed asks have no cost until an agent runs them, so most groups rank by recency; that is intended.
 
 Alternative considered: rank by the prompt order only (simplest, but the owner asked for cost as the main weight). Another: an importance score from the model (costs tokens per view; not now).
@@ -39,11 +40,19 @@ Every line of the session's `session.jsonl` and its prompts (`page.jsonl` Prompt
 
 ### 2c. Chat (the Coverage tab, re-dressed; not a second renderer)
 
-The Coverage tab (`AISessionCoverage.records_view`) already is the chat view: a bubble per prompt, a card per part with cites (`S4, S7–18`), raw words one click down. Add, inside each ask card, the flow: its task's state icon (same icon as 2a) → "agent launched" (the child session: state, model, cost, link) → green check when done. Live from the same tail; a new prompt's breakdown appears as `prompts.jsonl` grows. The tab is named Chat; today's Chat (the transcript) moves to More ▾ as "Transcript". **Agree with the deputy first:** it owns the session page; one message saying this, before 2c starts.
+The Coverage tab (`AISessionCoverage.records_view`) already is the chat view: a bubble per prompt, a card per part with cites (`S4, S7–18`), raw words one click down. Add, inside each ask card, the flow: its task's state icon (same icon as 2a) → "agent launched" (the child session: state, model, cost, link) → green check when done. Live from the same tail; a new prompt's breakdown appears as `prompts.jsonl` grows. The tab is named Chat; today's Chat (the transcript) moves to More ▾ as "Transcript". **Agree with ai-system-mastermind first** (the chat view is its plan; the deputy said so, 2026-10-24): one message before 2c starts.
 
 ### 2d. Tasks
 
 The task list on `ext/DataGrid` (the sessions list's grid, one component for both): one full-width row, filters state · day · kind, so a four-day session is browsed by day.
+
+## Later (the sixth pass, not now)
+
+When a task moves into a session made for it, its old spot stays, dimmed, with a small "moved" arrow that scrolls to the new home; the item there carries a "moved in" arrow top-left. Built once moves exist (item 32 of session-is-a-task).
+
+## Every landing tests the owner's path (seventh pass)
+
+AI → Sessions → find the session → click → the Overview opens by default → the chat tab. A headless shot at each step, at 390.
 
 ## 3. The list's cards
 
