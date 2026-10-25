@@ -2,6 +2,7 @@ import { Doc, md, h2, code, div, span, p } from "/app.js";
 import Process from "../Process.js";
 import "../processes/index.js";
 
+const MARK = { complete: "✓", running: "▶", waiting: "⏳", idle: "○", stopped: "■" };
 const RUN = "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/";
 
 export default new Doc({
@@ -15,10 +16,13 @@ export default new Doc({
 	methods: "next run_of prompt moves_home",
 	files: "page.js",
 
-	async content(){
-		let lines;   // only the step log: a {task} line would swap a step for its own folder's file
-		try { lines = (await (await fetch(RUN + "task.jsonl")).text()).split(/\r?\n/).filter(l => l.trim()).map(l => JSON.parse(l)).filter(l => typeof l.task !== "string"); } catch {}
-		div.c("flex v gap", () => this.body(lines)).style({ "max-width": "60em", width: "100%" });
+	content(){
+		const box = div.c("flex v gap").style({ "max-width": "60em", width: "100%" });
+		box.empty(() => p.c("muted", "Loading the run log…"));
+		fetch(RUN + "task.jsonl").then(r => r.text())
+			.then(t => t.split(/\r?\n/).filter(l => l.trim()).map(l => JSON.parse(l)).filter(l => typeof l.task !== "string"))   // the step log only: a {task} line would swap a step for its own folder's file
+			.catch(() => null)
+			.then(lines => box.empty(() => this.body(lines)));
 	},
 
 	body(lines){
@@ -34,7 +38,7 @@ export default new Doc({
 				const sp = s.get_one("spawned"), m = s.get_one("measure"), w = s.get_one("wait");
 				div.c("flex wrap gap v-center", () => {
 					span.c("h4", `${i + 1}. ${s.get_one("title") ?? s.id}`).style("flex", "1 1 10em");
-					span.c("", s.state);
+					span.c("", `${MARK[s.state] ?? "·"} ${s.state}`).style("color", s.state === "complete" ? "var(--success, green)" : s.state === "waiting" ? "var(--warning, #b60)" : "");
 					span.c("muted", sp ? `${sp.run}: ${sp.agent}` : (s.get_one("session")?.run ?? "") + (w ? ` · waits on ${w.on}` : ""));
 					span.c("muted", m ? `$${Number(m.usd).toFixed(2)}` : "");
 				});
