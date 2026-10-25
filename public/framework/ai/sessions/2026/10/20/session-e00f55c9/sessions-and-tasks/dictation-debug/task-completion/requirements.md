@@ -11,7 +11,7 @@ Budget $5, Sonnet. Load the `minion` skill first. Card: [chat-show-when-your-wor
 
 ## What exists (read first, don't rebuild)
 
-- [core/Task/doc/completion.md](/framework/core/Task/doc/completion.md): [`Servex/Dropped.js`](../../../../../../../../../../Servex/Dropped.js) flags an open task with no working owner and gives it a **Dropped code**, the reason it was flagged (such as `never-assigned` or `owner-gone`); `Task.rates()` and the `completion` query in [`core/Task/Task.js`](/framework/core/Task/Task.js) ([readme](/framework/core/Task/readme.md)) count a session's tasks.
+- [core/Task/doc/completion.md](/framework/core/Task/doc/completion.md): [`Servex/Dropped.js`](../../../../../../../../../../../Servex/Dropped.js) flags an open task with no working owner and gives it a **Dropped code**, the reason it was flagged (such as `never-assigned` or `owner-gone`); `Task.rates()` and the `completion` query in [`core/Task/Task.js`](/framework/core/Task/Task.js) ([readme](/framework/core/Task/readme.md)) count a session's tasks.
 - [core/Task/doc/cracks.md](/framework/core/Task/doc/cracks.md): where tasks fall through today, with counts.
 - The completion project: `../completion/` (its `readme.md` and `session.jsonl`).
 
