@@ -37,3 +37,4 @@
 {"review":{"at":"2026-10-25T04:54:42.993Z","answer":{"n":3,"reply":"noted: polish/requirements.md, the surfaces row gets shots/debug-1920.png"}}}
 {"review":{"at":"2026-10-25T04:54:42.993Z","answer":{"n":4,"reply":"noted: polish/requirements.md, the cut-off dropped-wire line"}}}
 {"review":{"at":"2026-10-25T04:54:42.993Z","answer":{"n":5,"reply":"noted: report.md is the builder record; the docs are current in the diff"}}}
+{"log":{"at":"2026-10-25T00:01:13-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
