@@ -692,7 +692,7 @@ export default class Sessions {
 
 	/* `card` (voice-sessions, card sessions, 2026-09-29): with a card id, the session's HOME is
 	 * that card's own folder, `/framework/ai/<card>/`, instead of the nearest folder to `path` —
-	 * so its file sits beside the card's `page.jsonl` and its folder-index lines land there too.
+	 * so its folder-index lines land there. Its own file is in the dated store like every voice session (`session_path()`), not beside the card.
 	 * `path` is still kept as where the owner actually stood (unchanged: it is `asked` below). */
 	create({ path: at, card, host = null, fresh = false } = {}){
 		const asked = page_path(at);
