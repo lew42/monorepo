@@ -36,3 +36,5 @@ For `ai-system-mastermind`. The owner's words are in the prompt log (2026-10-24,
 8. **Fresh sessions stay safe because the files are the truth.** A new session started in a task's folder should have everything it needs. Make that a check in review: could a fresh agent continue from the folder alone?
 
 9. **(the owner, 2026-10-24) When unsure, try it small.** A plan with nothing built makes the owner nervous, because the asks quietly never get built. And a pile of questions for the owner isn't the answer either. So for anything uncertain, build the smallest working version, see how it does, and keep or drop it. Plan-only is for big or architectural work (the plan-or-do rule). Add this to task-buckets.md, beside "approval defaults to do".
+
+10. **(note only, the owner, 2026-10-24) Roles per folder.** Any folder can be an AI system with its readme, plus optional role files that only that role loads (e.g. a `mastermind.md`, or `framework/ai/system.md` for the AI system mastermind: its own role, abilities and operating procedure). Not now; write it as an idea in role-process-skill-session.md.

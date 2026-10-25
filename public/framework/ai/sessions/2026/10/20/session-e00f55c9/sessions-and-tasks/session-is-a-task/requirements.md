@@ -167,3 +167,16 @@ The tab has been asking agents for `show:` log lines. That's a loose convention 
     - **Today, child links are only 17 `{"task": "<folder>"}` lines** (SessionRecord), and none of the 284 task entries is a Session. That's why the page can't show its child sessions in place. Make each spawn add a Session entry, under the prompt or task that caused it (item 24), and backfill this session's existing children from the agent registry by script, with a manifest.
     - **When a session is instantiated it loads its children,** in Servex's live cache, not the browser.
     - **Cost is three numbers, computed at read time:** own (from the transcript, read incrementally), children (the sum of each child's total), and total. One function, used by the card, the detail page and the item read.
+
+## Part 8 (the owner, 2026-10-24): a task upgrades into a child session
+
+32. **(deputy) Upgrading a task into a session is the one way work is handed off.**
+    - When a task needs an agent, the task *becomes* a child session. Its title, requirements and source prompt carry over. It gets its own folder with its own `session.jsonl`, and folders inside that when needed.
+    - The parent's entry turns into a Session entry that records the spawn's full configuration: role, model, effort, the system prompt or role readme, the brief path, and the session id.
+    - The hand-off is the folder, never a chat message.
+    - Tasks the parent creates for that work go into the child's record.
+    - `spawn_agent` with a `task.dir` is most of this already. Make it write the parent's entry by code (items 24 and 31) and record the configuration there.
+33. **(deputy) Defaults for task folders, written plainly in the core/Task readme.**
+    - A task is a line in its parent's record, with no folder of its own by default.
+    - A folder only when it becomes a session, or a project that needs one, and then it's indexed by its parent.
+    - Explain today's mismatch in the readme fix: 46 folders on disk under e00f55c9, 17 link lines, and 0 Session entries. Backfill so every folder is an entry.

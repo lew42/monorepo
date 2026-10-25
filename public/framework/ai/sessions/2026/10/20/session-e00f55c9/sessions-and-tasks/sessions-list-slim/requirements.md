@@ -77,3 +77,7 @@ Agree one component for the chat view with the deputy. Land it in small, visible
   - a **green checkmark when done**, drawn as our own icon, not a form checkbox;
   - clicking a done task opens its proof (its outcome, links and commit).
 - **Show the state; drop the play and stop buttons.** Today they break the layout, so take a screenshot of the current page first, for the before-and-after.
+
+## The owner, sixth pass (2026-10-24): an idea for later, not now
+
+When a task moves into a session made for it, its old spot in the chat stays, dimmed, with a small "moved" arrow. Clicking it scrolls to the new home, and the item in its new home carries a small "moved in" arrow in its top-left corner. That way nothing is shown twice without saying so. Build it once moves exist (item 32 of session-is-a-task). Note it in your plan.

@@ -66,3 +66,5 @@ The pipeline already does most of what the owner described:
    - Follow (`follow`) the session's `prompts.jsonl`.
    - After each prompt, compare the raw sentences with the tasks Haiku made; fix names, add what it missed, and embellish where the detail matters.
    - The refined tasks render at once on the session detail page.
+
+10. **(the owner, 2026-10-24) Refinement groups its tasks.** 241 flat tasks from one session is unusable. When a prompt's asks belong together, refinement makes one parent task (the outcome) with the asks nested as its subtasks, or files them under an existing open task they belong to. Measure the root-level task count before and after on e00f55c9.
