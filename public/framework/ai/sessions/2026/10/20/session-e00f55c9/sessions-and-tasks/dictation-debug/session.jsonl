@@ -102,3 +102,4 @@
 {"log":{"at":"2026-10-25T03:41:28-05:00","msg":"Chat v2 in-place merged 36b74ef29 (43/43); writers round 2 in progress (kind on /api/session/say, Prompt on first say, Prompt id to smart seat); solid proof still running; fallback cron 04:08"}}
 {"action":{"at":"2026-10-25T04:15:04-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/servex-oom/requirements.md"]}}
 {"log":{"at":"2026-10-25T04:21:36-05:00","msg":"dropped: wake: owner minion-dictation-wake is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/wake/","reason":"owner-stopped"}}
+{"log":{"at":"2026-10-25T05:06:40-05:00","msg":"dropped: solid: owner minion-dictation-solid is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/","reason":"owner-stopped"}}
