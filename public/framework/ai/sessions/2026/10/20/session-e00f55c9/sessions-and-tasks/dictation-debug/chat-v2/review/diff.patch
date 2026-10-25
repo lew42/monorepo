@@ -1,308 +1,130 @@
-diff --git a/.gitignore b/.gitignore
-index 142bfad5c..1f2c2b746 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -227,3 +227,6 @@ public/framework/ai/index.jsonl.lock
- # Save-time test results (WorktreeWatch): machine state, one line per save, never committed.
- public/framework/core/Test/save-results.jsonl
- **/failures.jsonl
+diff --git a/public/framework/ext/Chat/v2/readme.md b/public/framework/ext/Chat/v2/readme.md
+index 4307d8b1e..cf876169d 100644
+--- a/public/framework/ext/Chat/v2/readme.md
++++ b/public/framework/ext/Chat/v2/readme.md
+@@ -28,11 +28,11 @@ Sentences are computed, not stored: a sentence id is its paragraph id plus a 1-b
+ 
+ Step 3 landed, round 2 (chat-v2-writers): a Prompt starts the moment the owner starts speaking — any seat, voice or not. `Servex/agents/Sessions.js`'s `say()` opens it (`assign_prompt`) on the first line of a thought, pushes raw words and grows the one paragraph "a" on every later line of the same thought, through the one small writer `Servex/agents/PromptLines.js` (every function it exports matches a line shape above). The Prompt closes the moment its thought is handed to a seat (`release_thought`, or a standalone line with nothing held) — `s.prompt` is cleared there, so the next line always starts fresh, and a fallback respawn (`woken()`, re-sending the last owner line) never writes a second one. The smart seat writes the refined title/text, replies, questions and their answers through the `item` tool directly (it is an LLM, not code); its instructions are the "Chat v2" section of `Servex/agents/session-smart.md`. **Both seats are told the Prompt's id**: every message either gets, as a trailing `(prompt p-…)` line (`voice_say`, `release_thought`, `feed_smart`) — there is no other way for either seat to learn an id `say()` just minted. Needs a Servex restart to take effect (dev-server-only code).
+ 
+-**The page's own reports** (errors, opt-in clicks, context) reach the assistants down the REAL dictation path, `POST /api/session/say` (`Servex/agents/Sessions.js`'s `say()`), tagged `kind`: `speech` (the default, an owner utterance, unchanged) or `error`/`click`/`context`. `public/framework/ext/Chat/v2/report.js`: `init(session)` once, then `window.onerror`/`unhandledrejection` post themselves; `click(label)`/`context(text)` are opt-in calls. A non-speech `say()` call never wakes a seat and never touches a Prompt: `error` is filed as a `log` line on that session, `click`/`context` are queued for the smart seat's next turn. Not wired into any page yet — that is for whoever owns the page (`ux/Dictate` is another agent's fence); `report.js` is ready to `import` and call.
++**The page's own reports** (errors, opt-in clicks, context) reach the assistants down the REAL dictation path, `POST /api/session/say` (`Servex/agents/Sessions.js`'s `say()`), tagged `kind`: `speech` (the default, an owner utterance, unchanged) or `error`/`click`/`context`. `public/framework/ext/Chat/v2/report.js`: `init(session)` once, then `window.onerror`/`unhandledrejection` post themselves; `click(label)`/`context(text)` are opt-in calls. A non-speech `say()` call never wakes a seat and never touches a Prompt: `error` is filed as a `log` line on that session, `click`/`context` are queued for the smart seat's next turn. Wired into `ux/Dictate/chat.js`, which calls `init(session)` each time its voice session changes.
+ 
+ **Checked once:** the smart seat's `item` tool writes land in a session folder's `session.jsonl`, not a stray `page.jsonl` beside it. `Servex/agents/page_tools.js`'s own file-resolution rule (`resolve_file`, item-tool mode) run against a real voice session folder with no `page.jsonl` (`public/framework/ai/sessions/2026/10/01/v-6jvcrk2/`) resolved to that folder's `session.jsonl`, matching the rule verbatim: a folder with no `page.jsonl` is checked for `task.jsonl` then `session.jsonl` before falling back to `page.jsonl`.
+ 
+-**Where it shows:** the standalone page (`?src=<session.jsonl url>`) and the session page's Chat tab, under its **Chat v2** chip (`?tab=chat&chat_view=v2`; `ai/AISession/AISessionDetail.js`). Sessions migrated by `Server/PromptsToSession.mjs` already hold Prompts, for example [session e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/?tab=chat&chat_view=v2).
++**Where it shows:** the standalone page (`?src=<session.jsonl url>`), the session page's Chat tab under its **Chat v2** chip (`?tab=chat&chat_view=v2`; `ai/AISession/AISessionDetail.js`), and the ✦ sheet under the **v2** chip in its head (`ext/drawer/Sheet.js`, `sync_v2()`): it draws the sheet's own voice session file in place of the bubbles, follows a New session or a resume, and keeps the choice on this device (`localStorage` `lew42.sheet.chat_view`); the composer and the mic footer stay. Sessions migrated by `Server/PromptsToSession.mjs` already hold Prompts, for example [session e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/?tab=chat&chat_view=v2).
+ 
+ ## Decisions
+ 
+diff --git a/public/framework/ext/drawer/Sheet.js b/public/framework/ext/drawer/Sheet.js
+index b3bc70928..a9ce3b589 100644
+--- a/public/framework/ext/drawer/Sheet.js
++++ b/public/framework/ext/drawer/Sheet.js
+@@ -10,6 +10,7 @@ import AIPage from "./AIPage.js";
+ import AIFeed from "./AIFeed.js";
+ import DictationBar from "/framework/ux/Dictate/DictationBar.js";
+ import Socket from "/framework/dev/Socket/Socket.js";
++import ChatV2 from "/framework/ext/Chat/v2/ChatV2.js";
+ 
+ View.stylesheet(import.meta, "rail.css");
+ 
+@@ -272,6 +273,7 @@ export class SheetPanel extends View {
+ 				this.$title = button.c("drawer-rail-sheet-title", this.title + " ▾").attr("type", "button").attr("aria-haspopup", "menu").attr("aria-expanded", "false")
+ 					.click(e => { e.stopPropagation(); this.toggle_menu(); });
+ 				this.new_session_button();   // one tap, as in the desktop AI tab (voice-e2e-review 2026-10-13)
++				this.v2_chip();
+ 				this.$path = span.c("drawer-rail-sheet-path muted");
+ 			});
+ 			this.$menu = div.c("drawer-rail-sheet-menu").attr("role", "menu");
+@@ -402,6 +404,39 @@ export class SheetPanel extends View {
+ 		this.size_to("60dvh");   // a real default height, about four bubbles (dictate-next-4)
+ 	}
+ 
++	// Chat v2 beside the old chat, to compare them (ext/Chat/v2/readme.md, "Where it shows"): the chip swaps the bubbles for Chat v2's
++	// drawing of the same session file; the composer and the mic footer stay. The choice is kept on this device.
++	static CHAT_VIEW_KEY = "lew42.sheet.chat_view";
++	v2_chip(){
++		this.v2_on = (() => { try { return localStorage.getItem(this.constructor.CHAT_VIEW_KEY) === "v2"; } catch { return false; } })();
++		this.$v2_chip = button.c("drawer-rail-sheet-link drawer-rail-sheet-v2-chip", "v2").attr("type", "button")
++			.attr("aria-pressed", String(this.v2_on)).attr("title", "Chat v2: this conversation as Prompts, the raw words one click down")
++			.click(() => this.chat_view(!this.v2_on));
++	}
 +
-+# ChatV2.test.mjs writes a per-run live copy of its fixture and deletes it at the end; a killed run would leave it
-+public/framework/ext/Chat/v2/fixture/live-*.jsonl
-diff --git a/public/framework/ai/2026/10/files.jsonl b/public/framework/ai/2026/10/files.jsonl
-index e62b1f0b7..d82b96592 100644
---- a/public/framework/ai/2026/10/files.jsonl
-+++ b/public/framework/ai/2026/10/files.jsonl
-@@ -14,3 +14,4 @@
- {"file":"22/","gone":true}
- {"file":"25/","gone":true}
- {"file":"22/"}
-+{"file":"22/","gone":true}
-diff --git a/public/framework/ai/AISession/files.jsonl b/public/framework/ai/AISession/files.jsonl
-index 324c9b7fd..16a1e83a2 100644
---- a/public/framework/ai/AISession/files.jsonl
-+++ b/public/framework/ai/AISession/files.jsonl
-@@ -61,3 +61,4 @@
- {"file":"failures.jsonl"}
- {"file":"SessionTasksGrid.css"}
- {"file":"SessionTasksGrid.js"}
-+{"file":"failures.jsonl","gone":true}
-diff --git a/public/framework/ai/files.jsonl b/public/framework/ai/files.jsonl
-index c591ab18c..c2ae06952 100644
---- a/public/framework/ai/files.jsonl
-+++ b/public/framework/ai/files.jsonl
-@@ -1071,3 +1071,18 @@
- {"file":"v-omwdzl5.summary.json"}
- {"file":"v-rs7u4o7.summary.json"}
- {"file":"v-s9g6vd1.summary.json"}
-+{"file":"recordings/","gone":true}
-+{"file":"usage.json","gone":true}
-+{"file":"openrouter-usage.json","gone":true}
-+{"file":"servex-queue.json","gone":true}
-+{"file":"tasks.json","gone":true}
-+{"file":"v-h999x0j.summary.json","gone":true}
-+{"file":"v-s9g6vd1.summary.json","gone":true}
-+{"file":"v-omwdzl5.summary.json","gone":true}
-+{"file":"page-work.json","gone":true}
-+{"file":"screenshots/","gone":true}
-+{"file":"v-rs7u4o7.summary.json","gone":true}
-+{"file":"state.json","gone":true}
-+{"file":"index.jsonl.lock","gone":true}
-+{"file":"index.json","gone":true}
-+{"file":"index.jsonl","gone":true}
-diff --git a/public/framework/ai/queue/files.jsonl b/public/framework/ai/queue/files.jsonl
-index f42e7f249..e6f01601f 100644
---- a/public/framework/ai/queue/files.jsonl
-+++ b/public/framework/ai/queue/files.jsonl
-@@ -20,3 +20,7 @@
- {"file":"dropped.json"}
- {"file":"failures.jsonl"}
- {"file":"tasks/"}
-+{"file":"tasks/","gone":true}
-+{"file":"done-check.json","gone":true}
-+{"file":"dropped.json","gone":true}
-+{"file":"failures.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/files.jsonl b/public/framework/ai/sessions/files.jsonl
-index 804007493..3dbe135f7 100644
---- a/public/framework/ai/sessions/files.jsonl
-+++ b/public/framework/ai/sessions/files.jsonl
-@@ -30481,3 +30481,16 @@
- {"file":"transcripts/"}
- {"file":"week.json"}
- {"file":"a56900e3-8b50-49d0-bb1c-42f986cd407b/","gone":true}
-+{"file":"a56900e3-8b50-49d0-bb1c-42f986cd407b/"}
-+{"file":"transcripts/","gone":true}
-+{"file":"sessions.json","gone":true}
-+{"file":"spend-tree.json","gone":true}
-+{"file":"week.json","gone":true}
-+{"file":"session-index.json","gone":true}
-+{"file":"session-tree.json","gone":true}
-+{"file":"openrouter-reconcile.json","gone":true}
-+{"file":"openrouter-costs.json","gone":true}
-+{"file":"screenshots/","gone":true}
-+{"file":"index.jsonl","gone":true}
-+{"file":"failures.jsonl","gone":true}
-+{"file":"70f4fedc-e673-4e10-9cdf-425c8e808bcd/","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/add-load-thresholds-a-preview-may-not-ne/files.jsonl b/public/framework/ai/sessions/tasks/add-load-thresholds-a-preview-may-not-ne/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/add-load-thresholds-a-preview-may-not-ne/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/add-load-thresholds-a-preview-may-not-ne/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/default-the-sessions-preview-to-a-limite/files.jsonl b/public/framework/ai/sessions/tasks/default-the-sessions-preview-to-a-limite/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/default-the-sessions-preview-to-a-limite/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/default-the-sessions-preview-to-a-limite/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/explore-the-consequences-of-an-agent-usi/files.jsonl b/public/framework/ai/sessions/tasks/explore-the-consequences-of-an-agent-usi/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/explore-the-consequences-of-an-agent-usi/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/explore-the-consequences-of-an-agent-usi/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/files.jsonl b/public/framework/ai/sessions/tasks/files.jsonl
-index ac0b0fd89..932a10cab 100644
---- a/public/framework/ai/sessions/tasks/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/files.jsonl
-@@ -81,3 +81,23 @@
- {"file":"use-the-sub-navigation-on-the-ai-session/page.js"}
- {"file":"verify-the-system-is-tailing-sessions-as/page.js"}
- {"file":"wire-up-the-session-data-task-data-and-c/page.js"}
-+{"file":"add-load-thresholds-a-preview-may-not-ne/"}
-+{"file":"default-the-sessions-preview-to-a-limite/"}
-+{"file":"explore-the-consequences-of-an-agent-usi/"}
-+{"file":"look-into-how-our-system-works-and-figur/"}
-+{"file":"look-into-what-the-eb0f-session-is/"}
-+{"file":"screenshot-the-pages-at-framework-ai-ses/"}
-+{"file":"smoke-test-our-pages-the-deputy-roles-pa/"}
-+{"file":"the-review-page-should-be-an-existing-pa/"}
-+{"file":"the-session-detail-view-should-be-the-ho/"}
-+{"file":"the-sessions-ai-slash-sessions-page-need/"}
-+{"file":"this-session-id-should-have-one-folder-w/"}
-+{"file":"thoroughly-document-the-whole-problem-an/"}
-+{"file":"those-session-cards-should-probably-be-a/"}
-+{"file":"track-costs-properly-and-accurately-we-n/"}
-+{"file":"track-the-session-id-switch-the-owner-sa/"}
-+{"file":"use-the-sub-navigation-on-the-ai-session/"}
-+{"file":"verify-the-system-is-tailing-sessions-as/"}
-+{"file":"wire-up-the-session-data-task-data-and-c/"}
-+{"file":"task.jsonl","gone":true}
-+{"file":"look-into-the-dynamic-query-system-or-wh/page.js","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/look-into-how-our-system-works-and-figur/files.jsonl b/public/framework/ai/sessions/tasks/look-into-how-our-system-works-and-figur/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/look-into-how-our-system-works-and-figur/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/look-into-how-our-system-works-and-figur/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/look-into-what-the-eb0f-session-is/files.jsonl b/public/framework/ai/sessions/tasks/look-into-what-the-eb0f-session-is/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/look-into-what-the-eb0f-session-is/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/look-into-what-the-eb0f-session-is/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/the-sessions-ai-slash-sessions-page-need/files.jsonl b/public/framework/ai/sessions/tasks/the-sessions-ai-slash-sessions-page-need/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/the-sessions-ai-slash-sessions-page-need/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/the-sessions-ai-slash-sessions-page-need/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/this-session-id-should-have-one-folder-w/files.jsonl b/public/framework/ai/sessions/tasks/this-session-id-should-have-one-folder-w/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/this-session-id-should-have-one-folder-w/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/this-session-id-should-have-one-folder-w/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/thoroughly-document-the-whole-problem-an/files.jsonl b/public/framework/ai/sessions/tasks/thoroughly-document-the-whole-problem-an/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/thoroughly-document-the-whole-problem-an/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/thoroughly-document-the-whole-problem-an/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/those-session-cards-should-probably-be-a/files.jsonl b/public/framework/ai/sessions/tasks/those-session-cards-should-probably-be-a/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/those-session-cards-should-probably-be-a/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/those-session-cards-should-probably-be-a/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/track-costs-properly-and-accurately-we-n/files.jsonl b/public/framework/ai/sessions/tasks/track-costs-properly-and-accurately-we-n/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/track-costs-properly-and-accurately-we-n/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/track-costs-properly-and-accurately-we-n/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/track-the-session-id-switch-the-owner-sa/files.jsonl b/public/framework/ai/sessions/tasks/track-the-session-id-switch-the-owner-sa/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/track-the-session-id-switch-the-owner-sa/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/track-the-session-id-switch-the-owner-sa/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/verify-the-system-is-tailing-sessions-as/files.jsonl b/public/framework/ai/sessions/tasks/verify-the-system-is-tailing-sessions-as/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/verify-the-system-is-tailing-sessions-as/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/verify-the-system-is-tailing-sessions-as/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/ai/sessions/tasks/wire-up-the-session-data-task-data-and-c/files.jsonl b/public/framework/ai/sessions/tasks/wire-up-the-session-data-task-data-and-c/files.jsonl
-index 29ad4da59..a19d0363a 100644
---- a/public/framework/ai/sessions/tasks/wire-up-the-session-data-task-data-and-c/files.jsonl
-+++ b/public/framework/ai/sessions/tasks/wire-up-the-session-data-task-data-and-c/files.jsonl
-@@ -1,2 +1,4 @@
- {"file":"page.js"}
- {"file":"task.jsonl"}
-+{"file":"page.js","gone":true}
-+{"file":"task.jsonl","gone":true}
-diff --git a/public/framework/dev/Socket/files.jsonl b/public/framework/dev/Socket/files.jsonl
-index 03696fefc..ec8103d75 100644
---- a/public/framework/dev/Socket/files.jsonl
-+++ b/public/framework/dev/Socket/files.jsonl
-@@ -8,3 +8,4 @@
- {"file":"failures.jsonl"}
- {"file":"failures.jsonl","gone":true}
- {"file":"failures.jsonl"}
-+{"file":"failures.jsonl","gone":true}
-diff --git a/public/framework/ext/Chat/files.jsonl b/public/framework/ext/Chat/files.jsonl
-index 7549d8171..aeec0db15 100644
---- a/public/framework/ext/Chat/files.jsonl
-+++ b/public/framework/ext/Chat/files.jsonl
-@@ -24,3 +24,4 @@
- {"file":"failures.jsonl"}
- {"file":"failures.jsonl","gone":true}
- {"file":"failures.jsonl"}
-+{"file":"failures.jsonl","gone":true}
-diff --git a/public/framework/ext/Chat/v2/ChatV2.test.mjs b/public/framework/ext/Chat/v2/ChatV2.test.mjs
-index f3c82c3a7..295384a0f 100644
---- a/public/framework/ext/Chat/v2/ChatV2.test.mjs
-+++ b/public/framework/ext/Chat/v2/ChatV2.test.mjs
-@@ -1,10 +1,16 @@
- // node ChatV2.test.mjs [base-url] [shots-dir] — headless: order, nesting, show raw, live append, in-place patching. Needs the global playwright and the dev server.
- import { browser as get_browser, close as close_browser } from "../../../../../Server/Browser.mjs";
- import { copyFileSync, appendFileSync, rmSync, mkdirSync } from "node:fs";
-+import { execFileSync } from "node:child_process";
- import { fileURLToPath } from "node:url";
++	chat_view(on){
++		this.v2_on = on;
++		this.$v2_chip?.attr("aria-pressed", String(on));
++		try { on ? localStorage.setItem(this.constructor.CHAT_VIEW_KEY, "v2") : localStorage.removeItem(this.constructor.CHAT_VIEW_KEY); } catch {}   // storage off: the choice lasts until reload
++		this.sync_v2();
++	}
++
++	// Draws (or drops) the Chat v2 box inside the chat's card, above the composer; called on a toggle and whenever the session changes.
++	sync_v2(){
++		this.$slot?.el.classList.toggle("drawer-rail-sheet-v2-on", !!(this.v2_on && this.mount));
++		const file = this.v2_on ? this.mount?.file?.() ?? null : null;
++		if (this.v2_file === file && (file || !this.v2_on)) return;
++		this.chat_v2?.unsubscribe(); this.chat_v2 = null; this.v2_file = file;
++		if (!this.v2_on || !this.mount){ this.$v2?.el.remove(); this.$v2 = null; return; }
++		if (!this.$v2?.el.isConnected){
++			this.$v2 = div.c("drawer-rail-sheet-v2 flow");
++			const card = this.$slot.el.querySelector(".ux-dictate-widget-card") ?? this.$slot.el;
++			card.prepend(this.$v2.el);
++		}
++		if (file) this.chat_v2 = new ChatV2({ url: file, $box: this.$v2 }).live();
++		else this.$v2.empty(() => div.c("chat-v2-empty", "Say something: Chat v2 draws this conversation once it has started."));
++	}
++
+ 	active_card(){
+ 		const active = this.rail?.app?.router?.active;
+ 		return active?.shell?.ai2 && active.id && typeof active.subs === "function" ? active : null;
+@@ -421,6 +456,8 @@ export class SheetPanel extends View {
+ 		const heard = this.panel.on_text;
+ 		this.panel.on_text = text => { heard?.(text); this.said(text); };   // the strip's last line said
+ 		this.feed = AIFeed.on(this.$slot.el, drawer.page());   // this page's events among the bubbles (step 7)
++		this.v2_off_change = chat.on_change(() => this.sync_v2());   // a new or resumed session: Chat v2 follows its file
++		this.sync_v2();
+ 		return this.mount;
+ 	}
  
- const base = process.argv[2] ?? "http://monorepo.localhost", shots = process.argv[3];   // base: the main site; pass a worktree url to test a branch
--const dir = fileURLToPath(new URL("./fixture/", import.meta.url)), copy = dir + "live-copy.jsonl";
-+// The live copy goes in the tree the site at `base` serves: with no url that is the main tree (first in `git worktree list`), even when
-+// this file runs from a worktree or merge.mjs's .merge-base checkout; with a url, this checkout. One name per run, so two runs never share a file.
-+const here = fileURLToPath(new URL(".", import.meta.url)), rel = "public/framework/ext/Chat/v2/fixture/";
-+const main_tree = (() => { try { return execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: here, windowsHide: true, encoding: "utf8" }).split("\n")[0].replace(/^worktree /, "").trim(); } catch { return null; } })();
-+const served = process.argv[2] || !main_tree ? here + "fixture/" : `${main_tree}/${rel}`;
-+const dir = here + "fixture/", name = `live-${process.pid}.jsonl`, copy = served + name, src = `/framework/ext/Chat/v2/fixture/${name}`;
- let pass = 0, fail = 0;
- const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
+@@ -478,8 +515,9 @@ export class SheetPanel extends View {
+ 		this.hide();
+ 		this.mount?.remove();
+ 		this.feed?.stop();
++		this.v2_off_change?.(); this.chat_v2?.unsubscribe();
+ 		this.$slot?.empty();
+-		this.mount = this.panel = this.feed = null;
++		this.mount = this.panel = this.feed = this.v2_off_change = this.chat_v2 = this.$v2 = this.v2_file = null;
+ 		return this;
+ 	}
  
-@@ -52,7 +58,7 @@ try {
- 	} else await tap(first + " .chat-v2-toggle");
+diff --git a/public/framework/ext/drawer/doc/sheet.md b/public/framework/ext/drawer/doc/sheet.md
+index ead5eb806..2228011e7 100644
+--- a/public/framework/ext/drawer/doc/sheet.md
++++ b/public/framework/ext/drawer/doc/sheet.md
+@@ -8,7 +8,7 @@ Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
  
- 	// 2. live: ?src= a copy of the fixture, append a Prompt, it appears without a reload; raw state survives the redraw
--	await page.goto(`${base}/framework/ext/Chat/v2/?src=/framework/ext/Chat/v2/fixture/live-copy.jsonl`); await on_chat();
-+	await page.goto(`${base}/framework/ext/Chat/v2/?src=${src}`); await on_chat();
- 	check("?src= draws the copy", (await page.$$(".chat-v2 > .chat-v2-prompt")).length === 3);
- 	await tap(first + " .chat-v2-toggle");
- 	await page.evaluate(() => { window.__no_reload = true; });
-@@ -66,7 +72,7 @@ try {
+ ## One layout, opened in place, and the reconnect (2026-10-20)
  
- 	// 3. in-place updates: each append patches only what it touched. Every element not named by that
- 	// line keeps its exact DOM object (never recreated) and stays connected; the scroll position holds.
--	await page.goto(`${base}/framework/ext/Chat/v2/?src=/framework/ext/Chat/v2/fixture/live-copy.jsonl`); await on_chat();
-+	await page.goto(`${base}/framework/ext/Chat/v2/?src=${src}`); await on_chat();
- 	// The page scrolls inside its own frame, not the window: find the chat's scrolling ancestor and scroll it mid-page.
- 	await page.setViewportSize({ width: 1920, height: 600 });
- 	await page.evaluate(() => {
-diff --git a/public/framework/ext/Chat/v2/fixture/files.jsonl b/public/framework/ext/Chat/v2/fixture/files.jsonl
-index b6d88856f..9b8a2d0ed 100644
---- a/public/framework/ext/Chat/v2/fixture/files.jsonl
-+++ b/public/framework/ext/Chat/v2/fixture/files.jsonl
-@@ -43,3 +43,5 @@
- {"file":"live-copy.jsonl","gone":true}
- {"file":"live-copy.jsonl"}
- {"file":"live-copy.jsonl","gone":true}
-+{"file":"live-3020.jsonl"}
-+{"file":"live-3020.jsonl","gone":true}
-diff --git a/public/framework/servex/tasks/pool-restore-freeze/files.jsonl b/public/framework/servex/tasks/pool-restore-freeze/files.jsonl
-index 662af3ba6..64d02496f 100644
---- a/public/framework/servex/tasks/pool-restore-freeze/files.jsonl
-+++ b/public/framework/servex/tasks/pool-restore-freeze/files.jsonl
-@@ -1,3 +1,5 @@
- {"file":"requirements.md"}
- {"file":"session.jsonl"}
- {"file":"past-work.md"}
-+{"file":"session.jsonl","gone":true}
-+{"file":"past-work.md","gone":true}
+-**What the owner sees now.** ✦ opens the sheet over the page, and the page stays visible above it. The sheet is three rows at every height: the head (AI ▾, New session, ✕), the chat well, and the mic footer. Dragging the top edge only changes the height: the well grows or shrinks, nothing swaps. At 90% it snaps open to the full screen. Dragged down to the bottom it is the compact strip: the same head and footer, with the well at 0 px. The 40 px series, before and after: [Voice and chat surfaces](/framework/ux/Dictate/surfaces/#the-phone-sheet-step-by-step).
++**What the owner sees now.** ✦ opens the sheet over the page, and the page stays visible above it. The sheet is three rows at every height: the head (AI ▾, New session, v2, ✕), the chat well, and the mic footer. The **v2** chip swaps the bubbles for [Chat v2](/framework/ext/Chat/v2/readme.md) drawing the same session; the choice stays on this device. Dragging the top edge only changes the height: the well grows or shrinks, nothing swaps. At 90% it snaps open to the full screen. Dragged down to the bottom it is the compact strip: the same head and footer, with the well at 0 px. The 40 px series, before and after: [Voice and chat surfaces](/framework/ux/Dictate/surfaces/#the-phone-sheet-step-by-step).
+ 
+ - **The well:** full width, padding left and right only, no top or bottom padding (bubbles scroll under the head and the footer), square, in an unpadded parent (`rail.css`, "FULL-WIDTH CHAT"). The owner's words, 10-19 and 10-20: [asks.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/well-asks/asks.md).
+ - **No unexplained arrows.** The strip's ⌃ and ▾ buttons are gone (drag the edge instead). The chat's jump button says its job: **↓ Newest**, a pill stuck to the well's bottom edge (`ext/Chat`, `sticky_scroll()`).
+diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+index ffac11c8d..d014c210a 100644
+--- a/public/framework/ext/drawer/rail.css
++++ b/public/framework/ext/drawer/rail.css
+@@ -326,6 +326,14 @@
+ 	}
+ 	.drawer-rail-sheet-new:hover { filter: brightness(1.1); }
+ 
++	/* CHAT V2 IN THE SHEET — the "v2" chip in the head swaps the old bubbles for
++	   ext/Chat/v2's drawing of the same session (Sheet.js sync_v2); the composer
++	   and the mic footer stay. aria-pressed marks the chip on. */
++	.drawer-rail-sheet-heading .drawer-rail-sheet-v2-chip { flex: none; font-size: 0.8em; padding: 0.3em 0.7em; min-block-size: 2rem; }
++	.drawer-rail-sheet-v2-chip[aria-pressed="true"] { background: var(--fill-a16); border-color: var(--ink); font-weight: 600; }
++	.drawer-rail-sheet-v2-on .ux-dictate-widget-thread { display: none; }
++	.drawer-rail-sheet-v2 { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; padding-inline: 0.6em; }   /* the same inset as the thread it replaces (below, .ux-dictate-widget-thread) */
++
+ 	/* LINKS BEHIND "MORE" (sheet-regression, 2026-09-30): the links row is folded
+ 	   until "More" in the head is tapped, so the conversation and the mic are
+ 	   what the sheet shows first. */

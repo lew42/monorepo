@@ -24,7 +24,9 @@ export default class ChatV2 extends JSONL {
 		return this;
 	}
 	reset(){ this.lines = []; this.model = null; this.els.clear(); this.parts.clear(); return super.reset(); }   // the file was rewritten: the replay that follows is a first draw
-	live(){ super.live(() => {}); return this; }
+	// JSONL.live() starts its stream only after the record's url resolves, so an unsubscribe() before then would miss it: stopped remembers.
+	live(){ super.live(() => {}).then(() => { if (this.stopped) super.unsubscribe(); }); return this; }
+	unsubscribe(){ this.stopped = true; return super.unsubscribe(); }
 
 	draw(){
 		this.model = this.constructor.Model.fold(this.lines);
