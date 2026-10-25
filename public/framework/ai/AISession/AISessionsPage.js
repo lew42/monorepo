@@ -267,9 +267,9 @@ export default class AISessionsPage extends Page {
 			columns: AISessionRows.COLUMNS.map(c => ({ ...c, width: AISessionsPage.WIDTHS[c.key], ...(c.key === "name" && { min: "12rem" }) })),
 			rows: [], filters: false, row_height: null, page_size: AISessionsPage.PAGE_SIZE,
 			prefs_id: "sessions", settings: this.settings,
-			href: r => this.url + r.id + "/",
+			href: r => this.data_url + r.id + "/",   // the session page lives under the real list url, also from v/classic/
 			row: r => this.row_view(r, this.nests.get(r)),
-			card: r => new AISessionView({ row: r, url: this.url, spend: this.spend, session_index: this.session_index, card: true }),
+			card: r => new AISessionView({ row: r, url: this.data_url, spend: this.spend, session_index: this.session_index, card: true }),
 			sort_rows: (rows, sort) => this.remote ? this.remote_sort(rows, sort) : this.arrange(rows, sort),
 			has_more: () => !!this.remote && this.remote.rows.length < this.remote.total,   // the server holds the rest: the drawer's sentinel asks for it
 			load_more: () => this.remote_ask({ more: true }),
@@ -345,7 +345,7 @@ export default class AISessionsPage extends Page {
 	}
 
 	row_view(row, nest){
-		return new AISessionView({ row, url: this.url, page_dirs: this.page_dirs, spend: this.spend, session_index: this.session_index, nest });
+		return new AISessionView({ row, url: this.data_url, page_dirs: this.page_dirs, spend: this.spend, session_index: this.session_index, nest });
 	}
 
 	/** Builds the filter controls the first time real rows arrive (so the role list is never a guess), then redraws the grid. */
