@@ -113,9 +113,10 @@ export default class Tree extends View {
 	 * that core calls on the first ask, and that call is inside this one
 	 * (core/Page/doc/data-children.md). Declared-but-unresolved children resolve here
 	 * too — that is what the await is for. */
-	static async nodes_of(page){
-		await page.load_all_children(1).loading;
-		return [...page.children.keys()].map(name => this.node_of(page, name));
+	static async nodes_of(page, names){
+		if (names) await Promise.all(names.map(name => page.child(name, 0)));   // only the pinned ones (below), not every child
+		else await page.load_all_children(1).loading;
+		return (names ?? [...page.children.keys()]).filter(name => page.children.has(name)).map(name => this.node_of(page, name));
 	}
 
 	/* One child, as a node. Deeper levels are a FUNCTION, so the tree fetches a branch
@@ -127,19 +128,23 @@ export default class Tree extends View {
 	 * `tree_nodes()` saw it). `count` rides along too — the real number of children a
 	 * live Page already knows about, synchronously, even before this branch is ever
 	 * opened; `Tree.Drag.commit()` reads it so a drop into a closed branch still lands
-	 * after all of them (ux/Tree/doc/decisions.md, 2026-09-18). */
+	 * after all of them (ux/Tree/doc/decisions.md, 2026-09-18).
+	 * `pinned: "queue"` on a leaf page: the few children a tree still shows under it (the AI page
+	 * stays one link in the site sidebar, with only its task queue beneath, 2026-10-24). */
 	static node_of(page, name){
 		const child = page.children.get(name);
 		const nav = page.nav_for(name);
-		const deeper = child && !child.leaf && (child.child_source || child.children?.size);
+		const pinned = child?.leaf && child.pinned?.split(/\s+/).filter(Boolean);
+		const deeper = child && (pinned ? pinned.length : !child.leaf && (child.child_source || child.children?.size));
 
 		return {
+			name,
 			text: nav.label,
 			href: nav.url,
 			icon: nav.icon && (() => icon(nav.icon)),
 			page: child,
 			count: child?.children.size,
-			children: deeper ? () => this.nodes_of(child) : undefined,
+			children: deeper ? () => this.nodes_of(child, pinned || undefined) : undefined,
 		};
 	}
 

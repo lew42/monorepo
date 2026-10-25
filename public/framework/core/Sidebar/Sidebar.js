@@ -135,13 +135,11 @@ export class Sidebar extends View {
 	// Visibility rules and filters: doc/sidebar-notes.md
 	// ⚠ ASYNC for cold-load race; ⚠ Tree nodes by index; ⚠ Deeper branches open lazily
 	async visible_nodes(page, nodes){
-		const names = [...page.children.keys()];
-		const visible = await Promise.all(names.map(name => page.nav_ready(name)));
+		const visible = await Promise.all(nodes.map(node => page.nav_ready(node.name)));   // by name: a leaf's `pinned` list is a subset of its children
 
-		return names
-			.map((name, i) => [nodes[i], visible[i]])
-			.filter(([, ok]) => ok)
-			.map(([node]) => !node.children ? node : {
+		return nodes
+			.filter((node, i) => visible[i])
+			.map(node => !node.children ? node : {
 				...node,
 				children: () => Promise.resolve(node.children()).then(kids => this.visible_nodes(node.page, kids)),
 			});
@@ -182,7 +180,8 @@ export class Sidebar extends View {
 					if (node.href) out.push({ text: node.text, href: node.href, trail: trail.join(" › ") });
 					let kids = is.fn(node.children) ? await node.children() : node.children;
 					// A `leaf: true` page (ui/, ...) draws flat in the rail but its declared children are still pages; data-fed ones (ai/ days) stay out.
-					if (!kids && node.page?.leaf && node.page.children.size && !node.page.child_source)
+					// ⚠ Every child, even when the leaf draws a few `pinned` ones: the filter still finds the rest.
+					if (node.page?.leaf && node.page.children.size && !node.page.child_source)
 						kids = await this.visible_nodes(node.page, await Tree.nodes_of(node.page));
 					if (is.arr(kids)) await walk(kids, [...trail, node.text]);
 				}));

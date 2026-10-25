@@ -33,6 +33,7 @@ export default new Page({
 
 	// One nav link, whatever the date children say: the rail below is the way in.
 	leaf: true,
+	pinned: "queue",   // ...except the task queue, shown under AI in the site sidebar (the owner, 2026-10-24: "there's no link to it")
 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
 	classes: v1() ? undefined : is_dash() ? "ad-page" : "full fill",
 	children: "now queue readmes tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
