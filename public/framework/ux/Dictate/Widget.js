@@ -278,6 +278,7 @@ Widget.Thread = class WidgetThread extends View {
 
 	/** Same contract as WidgetThreadV1.draw(); speak() decides merge or new bubble; also takes {para:{re}}. */
 	draw(entry){
+		if (this.hold_orphan(entry)) return;
 		if (entry?.type === "ask") return this.follow(() => this.draw_ask(entry));
 		if (entry?.type === "refined") return this.draw_refined(entry);
 		if (entry?.place) return this.place(entry.place);
@@ -345,6 +346,16 @@ Widget.Thread = class WidgetThread extends View {
 		this.$earlier.textContent = "show earlier (" + n + ")";
 	}
 
+	/** A {place}, {refined} or {para} line whose sentence is still behind "show earlier" is held by that sentence's `at` and drawn
+	 * right after it in load_earlier(), so a placement in the shown part is never lost (doc/voice-assistant.md#nothing-jumps). */
+	hold_orphan(entry){
+		if (!this.waiting?.length) return false;
+		const re = entry?.place?.re ?? (entry?.type === "refined" ? entry.re : null) ?? (entry?.para ?? (entry?.type === "para" ? entry : null))?.re;
+		if (!re || this.lines.has(re) || !this.waiting.some(l => l?.chat?.at === re)) return false;
+		(this.orphans ??= new Map()).set(re, [...(this.orphans.get(re) ?? []), entry]);
+		return true;
+	}
+
 	/** Draw the previous chunk ABOVE what is shown, keeping the reader where they were. speak() only merges onto the last bubble, so the
 	 * chunk is drawn into an emptied box and the shown bubbles put back after it (the same trick as ext/Chat's load_earlier). */
 	load_earlier(){
@@ -356,7 +367,11 @@ Widget.Thread = class WidgetThread extends View {
 		const box = this.el, host = this.$bubbles.el, before = box.scrollHeight - box.scrollTop;
 		const shown = [...host.children];
 		shown.forEach(c => c.remove());
-		for (const line of chunk) this.waiting_draw(line);
+		for (const line of chunk){
+			this.waiting_draw(line);
+			const re = line?.chat?.at, held = re && this.orphans?.get(re);
+			if (held){ this.orphans.delete(re); held.forEach(l => this.draw(l)); }
+		}
 		host.append(...shown);   // moves a draft or live bubble that follow() re-added back to its place
 		this.show_earlier_button();
 		box.scrollTop = box.scrollHeight - before;
@@ -637,7 +652,7 @@ Widget.Thread = class WidgetThread extends View {
 		this.settled = new Set();
 		this.summaries = new Map();
 		this.draft = null;
-		this.waiting = null; this.show_earlier_button();
+		this.waiting = null; this.orphans = null; this.show_earlier_button();
 		this.$bubbles.empty();
 		this.$bubbles.el.style.paddingBlockEnd = ""; this.pad = 0; this.newest = null;
 		this.$empty.show();
