@@ -1,0 +1,19 @@
+verdict: fix
+
+1. [fix] `Server/DoneCheck.mjs` is a new node script under `Server/` but isn't added to `Server/readme.md`'s "Scripts (one line each)" index (Server/readme.md:23-41) or `doc/script-notes.md`, breaking the "index everything you create" rule the rest of that list follows — a reader who opens the Server module index alone would never learn this script exists.
+2. [note] `public/framework/core/Task/doc/completion.md:861-863` ("Still to build: 5 ... 6 ...") is already one step behind the session's own log: `session.jsonl:14` (after this diff's last commit) reports item 5 needs no new code ("Prompt.completion and Question inherit Task.completion"). Not a blocker — a fresh agent who also reads `session.jsonl` gets the update — but the committed doc itself should catch up at the next edit so it doesn't silently drift further as item 6 proceeds.
+3. [note] Confirmed this is all on the unmerged `worktree/completion` branch (head `b480b8d28`, not yet in `michael/dev`); `node Servex/Dropped.test.mjs`, `node Server/DoneCheck.test.mjs` and `node public/framework/core/Task/Task.test.mjs` all pass (65/65) in that worktree. No code defects found in `Dropped.js`'s `judge()`/`rates()`/`collect()` or `DoneCheck.mjs`'s evidence check against the test cases and a manual read.
+4. [note] Requirement item 1 asks for a check "run at every heartbeat"; it runs inside `TaskLoop.tick()` instead (Servex/TaskLoop.js, `Dropped.tick()` call) — already caught and accepted by the prior fresh review (`review.jsonl` finding 3) as meeting the owner's intent (periodic, code-only) even though the named module differs.
+5. [note] Item 6 of requirements.md ("close this session properly," walk the 302 open tasks to 100% accounted for) is explicitly deferred in `completion.md`'s "Still to build" list and `session.jsonl`'s own next-steps line (merge, restart, run DoneCheck, walk the 253) — an honest, disclosed partial step rather than a silent gap, consistent with the owner's "keep working, never wait" rule.
+
+## Requirements
+- Item 1 "a node check, run at every heartbeat, finds every open task whose owner agent isn't working" — met in substance (runs in `TaskLoop.tick()`, no AI, tested) — Servex/Dropped.js, Servex/Dropped.test.mjs; see finding 4.
+- Item 2 "deferral is a real state, never a quiet stop" (home + decide-by) — yes — `Task.wait({on, what, decide_by, deferred})` (Task.js:745-753), `Task.test.mjs` "a plain wait is not a deferral…".
+- Item 3 "each session shows its deferral and stop rate... red-flagged over ~20%" — yes — `Task.rates()` (Task.js:708-715), `Task.RATES = {red:0.2, min:5}`, surfaced via `session_state()`'s `rates` field and the queue page's `drawRed()`.
+- Item 4 "a completed owner ask needs proof... Haiku check... marked done, not done" — yes — `Task.proof_problem`/`unproven()` (code check, every tick) plus `Server/DoneCheck.mjs` (Haiku, on demand), both tested; reopen wired via `CAN.start` including `"complete"` and `TaskView`'s Reopen button.
+- Item 5 "a completion value for every item... session, task, prompt, question, process, project" — reported done without new code (session.jsonl log) but the committed doc still lists it as outstanding — see finding 2.
+- Item 6 "close this session properly... 100% accounted for" — not done yet, explicitly deferred — see finding 5.
+- Item 7 "this prompt is a task of its own... complete only when items 1-6 land" — correctly still open; nothing in the diff marks the parent task complete.
+
+## Words
+`requirements.md` and `public/framework/core/Task/doc/completion.md` are both plain, concrete, and name real measured numbers (68 open checked, 53 dropped, 1.3s; 2 completed tasks without evidence) rather than vague claims — matches the "compute, don't recall" and "clear beats brief" rules. No wording issues found.
