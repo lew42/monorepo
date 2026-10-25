@@ -26,6 +26,13 @@ Chat v2 is a direct picture of the session's data. Every new line (a delta from 
    - After each one, assert three things. Every element not touched by that line is still the same object (`===`) and still connected. The touched element shows the new text. `scrollY` (and the chat scroller's `scrollTop`, if it has one) is unchanged.
    - Report the pass count.
 4. **Write the design decision into `ext/Chat/v2/readme.md`** under Decisions, in two or three sentences: one element per id, what gets replaced on a change and why, and the alternative (a keyed diff of the whole tree) with when it would win.
+5. **Match the real Prompt and Question classes, which landed after this brief was written** (michael/dev `5c88565d9`: `public/framework/core/Task/Prompt.js`, `Question.js`, doc `core/Task/doc/prompt.md`). First merge michael/dev into `worktree/chat-v2`. Keep `ChatV2Model` a plain fold; don't build Item trees in the browser view. Make its static reads give the same answers as the classes:
+   - the title reads `title ?? subject`, the same order as `Prompt.label`;
+   - an anchor accepts core's `{sentence, from, to}` as well as the older `{sentence, words:[s,e)}`;
+   - an answer's time reads `at ?? ts`;
+   - `phase` follows `Question.phase`: complete if the state is complete, answered if there is an answer, else open.
+   
+   Add one fixture line per new shape (a prompt with `subject` and no `title`, and a reply anchored with `from`/`to`) and check both. Don't edit `core/`. Add one line under Decisions: a plain fold rather than the classes, because the view needs the lines and not an Item tree. The alternative is `Prompt.from(line)` getters, which win once core exposes a cheap read-only fold.
 
 ## Rules
 

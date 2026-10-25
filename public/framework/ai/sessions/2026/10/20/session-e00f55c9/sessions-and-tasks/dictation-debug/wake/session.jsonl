@@ -17,3 +17,4 @@
 {"log":{"at":"2026-10-25T02:26:20-05:00","heartbeat":"answered","msg":"Status: finished and waiting on a merge. The review fixes are committed in `worktree/dictation-wake`, and the tests pass (WakePolicy 16, Sessions 24, fixer 6).\n\n- **New numbers:** wakes 44 → 35 (2.77 "}}
 {"log":{"at":"2026-10-25T02:37:32-05:00","heartbeat":"check","msg":"status check sent to minion-dictation-wake"}}
 {"log":{"at":"2026-10-25T02:38:18-05:00","heartbeat":"answered","msg":"I'm idle: the work is finished and waiting for someone to merge it.\n\nThe review fixes are committed in `worktree/dictation-wake`. The tests pass (WakePolicy 16, Sessions 24, fixer 6). The final number"}}
+{"log":{"at":"2026-10-25T02:59:33-05:00","heartbeat":"deliberate","msg":"minion-dictation-wake its agent is not running: it was stopped on purpose by mastermind-dictation-2 at 2026-10-25T02:39:00-05:00; not revived."}}

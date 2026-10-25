@@ -19,12 +19,15 @@ Read the decision first: `public/framework/ai/sessions/2026/10/20/session-e00f55
 {"p-<ms>":{"raw":{"push":"whisper text"}}}
 {"p-<ms>":{"paragraphs":{"add":{"id":"a","text":"…"}}}}          // or {"append":{"id":"a","text":" more"}}
 {"p-<ms>":{"title":"…","text":"…"}}                                 // smart seat: the refined version
-{"p-<ms>":{"replies":{"add":{"id":"r-<ms>","text":"…","by":"smart","ts":"<iso>","anchor":{"sentence":"a1","words":[0,3]}}}}}   // anchor optional
+{"p-<ms>":{"replies":{"add":{"id":"r-<ms>","text":"…","by":"smart","ts":"<iso>","anchor":{"sentence":"a1","from":0,"to":3}}}}}   // anchor optional
 {"p-<ms>":{"tasks":{"add":{"type":"Question","id":"q-<ms>","text":"…","from":"p-<ms>"}}}}
-{"q-<ms>":{"answer":{"text":"…","by":"smart","ts":"<iso>"}}}
+{"q-<ms>":{"answer":{"text":"…","by":"smart","at":"<iso>"}}}
 ```
 
-The real `core/Task/Prompt.js` and `Question.js` classes are being built by `mastermind-prompt-task` and have not landed. Don't write them or depend on them; write the plain lines.
+**⚠ Changed after this brief was written: Prompts are already being written.** michael/dev `5c88565d9` landed `core/Task/Prompt.js` and `Question.js` (doc: `public/framework/core/Task/doc/prompt.md`, read it whole). `Server/PromptRecords.mjs`'s `add()` → `mirror()` now writes each prompt into the session's `session.jsonl` as a Prompt: a `tasks.add` the first time, then update deltas. It uses `prompt_delta` and `has_prompt` from `Server/PromptsToSession.mjs`, and the Prompt's id is the prompts.jsonl row id. So:
+- **Never make a second Prompt for one utterance** (CLAUDE.md law 6). In the look-first step, find out whether a voice session's utterances already reach `session.jsonl` as Prompts through that path. If they do, the fast seat adds only what is missing (for example a `raw.push` per utterance). If they don't, the fast seat writes them using the same id scheme and `prompt_delta`, and doesn't invent `p-<ms>` ids. Say which case it was in plan.md.
+- Use core's field names where they differ from the table below: an anchor is `{"sentence":"a1","from":0,"to":3}` (not `words`), and an answer is `{text, by, at}` (not `ts`). The refined title goes in `title`; `Prompt.label` reads `title` before `subject`.
+- You may import from `Server/PromptsToSession.mjs` and `core/Task/*`, but don't edit them. Base the worktree on current michael/dev first (merge it in).
 
 ## Build
 
