@@ -120,6 +120,7 @@ const scenarios = {
 		console.log("  late:", JSON.stringify(v));
 		check(v.copies === 1, `a send that timed out but succeeded is drawn once (${v.copies})`);
 		check(v.failed === 0, "and its \"not sent\" mark is taken off");
+		check(/^sent/.test(v.sent), "and the Sent row says it was sent: " + v.sent);
 		await ctx.close();
 	},
 	async reload(){

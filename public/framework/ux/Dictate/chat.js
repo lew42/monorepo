@@ -166,6 +166,8 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 						r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text,
 							via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: owner.ctl.selection, ...thread });
 					} catch (e){
+						// Its line already came back (the poll or the live wire): it WAS sent, only the answer to the POST was slow.
+						if (mine.echoed && /did not answer/.test(e?.message ?? "")){ health_sent(entry.text); return true; }
 						// Timed out is not refused: Servex may still write the line. Keep watching for its echo, which heals the bubble
 						// ("not sent" off, no second copy) instead of drawing the sentence twice (Session.POST_MS, doc/debug-tab.md).
 						if (/did not answer/.test(e?.message ?? "")){ mine.late = true; setTimeout(() => { const i = sending.indexOf(mine); if (i >= 0) sending.splice(i, 1); }, LATE_ECHO_MS); }
@@ -202,6 +204,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
 		if (echo){
 			own_ats.add(line.chat.at); panel.retag(echo.at, line.chat.at);
+			echo.echoed = true;   // a timeout after this is a slow answer, not a lost send (deliver's catch)
 			if (echo.late){   // the send timed out but Servex took it after all: one bubble, marked sent
 				sending.splice(sending.indexOf(echo), 1);
 				panel.$thread?.mark_sent?.(line.chat.at);
