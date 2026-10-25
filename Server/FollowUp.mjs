@@ -12,7 +12,7 @@ import LandingCheck from "./LandingCheck.mjs";
 import SessionRecord from "./SessionRecord.mjs";
 import AIIndex from "./AIIndex.mjs";
 
-const QUIET_H = 2, OPEN_ASK = new Set(["building", "routed", "queued", "stalled", undefined]), LIVE = new Set(["working", "idle", "dormant"]);
+const QUIET_H = 2, UNWORKED_D = 7, OPEN_ASK = new Set(["building", "routed", "queued", "stalled", undefined]), LIVE = new Set(["working", "idle", "dormant"]);
 const DOC = path.join(TaskDirs.AI, "doc"), ts = s => { const t = Date.parse(s); return Number.isNaN(t) ? 0 : t; };
 const git = (...a) => { try { return execFileSync("git", a, { cwd: TaskDirs.REPO, encoding: "utf8", windowsHide: true, maxBuffer: 1 << 26 }).trim(); } catch { return null; } };
 const link = r => `[${path.basename(r.dir)}](${r.url})`;
@@ -90,7 +90,13 @@ export default class FollowUp {
 		"no-outcome": "landed with no outcome text: add one line saying what shipped",
 	};
 	flagged(kind){ return this.rows.filter(r => r.flags[0] === kind || (kind === "no-outcome" && r.flags.includes(kind) && r.flags.length === 1)).sort((a, b) => b.last - a.last); }   // newest first: the freshest are the most recoverable
-	counts(){ const c = {}; for (const k of FollowUp.ORDER) c[k] = this.rows.filter(r => r.flags.includes(k)).length; c.asks = this.asks.length; c.healthy = this.rows.filter(r => !r.flags.length).length; return c; }
+	/** Open tasks nobody works: bucket idle, queued or waiting-on-no-owner whose last log line is over UNWORKED_D days old. Read from the whole state, not the days window, since the window drops exactly these. Newest first. */
+	unworked(){
+		if (!this._unworked) this._unworked = this.state.tasks.filter(t => ["idle", "queued", "waiting"].includes(t.bucket) && t.waiting_on !== "owner" && this.now - (ts(t.last) || ts(t.started)) > UNWORKED_D * 864e5)
+			.map(t => ({ dir: t.dir, url: t.url, title: t.title, bucket: t.bucket, last: ts(t.last) || ts(t.started) })).sort((a, b) => b.last - a.last);
+		return this._unworked;
+	}
+	counts(){ const c = {}; for (const k of FollowUp.ORDER) c[k] = this.rows.filter(r => r.flags.includes(k)).length; c.unworked = this.unworked().length; c.asks = this.asks.length; c.healthy = this.rows.filter(r => !r.flags.length).length; return c; }
 
 	cell(r){
 		const when = ms => new Date(ms).toISOString().slice(5, 16).replace("T", " ");
@@ -112,7 +118,7 @@ export default class FollowUp {
 	page(){
 		const c = this.counts(), L = [], day = new Date(this.now).toISOString().slice(0, 16).replace("T", " ");
 		L.push(`# Follow-up: what fell through the cracks`, "", `Counted by the one state ([one-state.md](one-state.md), \`Server/AIIndex.mjs\`): every task below is a row of \`ai/index.json\`. Computed ${day} UTC by \`node Server/FollowUp.mjs --write\` from the state's tasks touched in the last ${this.days} days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).`, "",
-			`**${c.unmerged} landed with unmerged commits · ${c["merged-not-landed"]} merged but never landed · ${c.quiet} quiet over ${QUIET_H} h · ${c["no-outcome"]} landed with no outcome · ${c.asks} open asks with no live owner · ${c.healthy} healthy of ${this.rows.length}.**` + (this.registry ? "" : " (Servex was down: agent states unknown.)"), "");
+			`**${c.unmerged} landed with unmerged commits · ${c["merged-not-landed"]} merged but never landed · ${c.quiet} quiet over ${QUIET_H} h · ${c["no-outcome"]} landed with no outcome · ${c.unworked} open tasks untouched over ${UNWORKED_D} days · ${c.asks} open asks with no live owner · ${c.healthy} healthy of ${this.rows.length}.**` + (this.registry ? "" : " (Servex was down: agent states unknown.)"), "");
 		const diff = this.diff_stat();
 		if (diff) L.push(`## ⚠️ The owner decides: \`${FollowUp.DECIDE}\``, "", "Its commits are code and not on `michael/dev`; this task does not merge it.", "```", diff, "```", "");
 		for (const k of FollowUp.ORDER) {
@@ -121,6 +127,13 @@ export default class FollowUp {
 			L.push(`## ${k}: ${rows.length}`, "", `${FollowUp.TODO[k]}.`, "");
 			for (const r of shown) L.push(`- ${link(r)}${r.branch && r.ahead ? ` (\`${r.branch}\`, ${r.ahead} ahead)` : ""}: ${r.agent || (r.session ?? "").slice(0, 8) || "no agent"}, last log ${r.quiet_h > 48 ? Math.round(r.quiet_h / 24) + " d" : Math.round(r.quiet_h) + " h"} ago, step ${r.step}/${r.steps}, agent ${r.state}`);
 			if (rows.length > shown.length) L.push(`- …${rows.length - shown.length} more in [follow-up-full.md](follow-up-full.md)`);
+			L.push("");
+		}
+		const un = this.unworked();
+		if (un.length) {
+			L.push(`## unworked: ${un.length}`, "", `Open tasks (idle, queued or waiting, none on the owner) whose last log line is over ${UNWORKED_D} days old. Nothing runs from the queue by itself, so these only get done if someone looks: do it, group it into a real task, or stop it with a reason (through the item tool). Newest first.`, "");
+			for (const u of un.slice(0, 10)) L.push(`- [${path.basename(u.dir)}](${u.url}): ${u.bucket}, last log ${Math.round((this.now - u.last) / 864e5)} d ago`);
+			if (un.length > 10) L.push(`- …${un.length - 10} more in [follow-up-full.md](follow-up-full.md)`);
 			L.push("");
 		}
 		if (this.asks.length) {
@@ -142,6 +155,7 @@ export default class FollowUp {
 		"**landed with unmerged commits**: bucket `landed`, its branch (read from the state's listed dir) has commits and its files are not on `michael/dev` (`LandingCheck`).",
 		"**merged but never landed**: any bucket but `landed`, its branch is already on `michael/dev`.",
 		"**landed with no outcome**: bucket `landed` and the state's `line` is empty.",
+		"**unworked**: the state's bucket is `idle`, `queued` or `waiting` (not on the owner) and the last log line is over "+UNWORKED_D+" days old. Counted over the whole state, not only the window, because a task nobody touches drops out of the window. The 133 stale queue tasks of 2026-10-24 (nothing picks tasks from the queue by itself) are what this exists to catch early; it also counts idle and waiting tasks outside the queue, so its number is larger.",
 		"**open asks with no live owner**: `asks.jsonl` as before, joined on the state's `agents`.",
 		"**an orphaned ask is re-filed, not reopened**: `node Server/OrphanAsks.mjs --plan` lists these same asks with the module home each belongs to; `--apply` makes (or matches) an idle task there and appends a `tracked` line to `asks.jsonl`, which drops it from this list (manifest `ai/asks/orphan-asks.jsonl`).",
 		"First run 2026-10-18: of the 30 rows the old reader called quiet, 26 survive (all `stale`: no finish line, no working agent) and 4 drop out (bucket `stopped`, an explicit stop).",
@@ -151,6 +165,8 @@ export default class FollowUp {
 		const L = ["# Follow-up: every task of the last " + this.days + " days", "", `${this.rows.length} tasks, flagged first. Summary: [follow-up.md](follow-up.md).`, "", FollowUp.HEAD];
 		const rank = r => r.flags.length ? FollowUp.ORDER.indexOf(r.flags[0]) : 99;
 		for (const r of [...this.rows].sort((a, b) => rank(a) - rank(b) || b.last - a.last)) L.push(this.cell(r));
+		L.push("", "## Unworked tasks (open, untouched over " + UNWORKED_D + " days)", "");
+		for (const u of this.unworked()) L.push(`- [${path.basename(u.dir)}](${u.url}): ${u.bucket}, ${new Date(u.last).toISOString().slice(0, 10)}`);
 		L.push("", "## Open asks with no live owner", "");
 		for (const a of this.asks) L.push(`- ${a.title} (${a.status}, owner \`${a.owner}\` ${a.state}, card ${a.card ?? "-"})`);
 		return L.join("\n") + "\n";

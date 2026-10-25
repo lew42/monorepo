@@ -48,3 +48,26 @@ Opus, high effort. Work in a worktree and land ready to merge; the merge is the 
 ## Also (the owner, 2026-10-24)
 
 The web live-transcribe is "wonky and broken". The chat bubbles aren't made robustly, and the deltas that build them are applied glitchily. The owner wants web transcription working again, so they can use it instead of the app. Include the bubble and delta path in your investigation.
+
+## Also (the owner, 2026-10-24): dictate on the website into the VS Code tab's session
+
+The owner wants to dictate on the website and have it reach this VS Code sidebar session (e00f55c9), with the same prompt refinement, instead of switching to the app.
+- Find whether a message can be pushed into a running VS Code tab. Claude Code has local cross-session messaging (other sessions can message a tab, and it arrives as a notification it reads). Test whether a Servex-side Claude session, or a hook, can deliver web dictations that way.
+- Fallback: a `UserPromptSubmit` hook that injects pending web dictations on the tab's next prompt (the tab's check-ins every 30 minutes count as prompts).
+- Never resume the tab's session id from a second process: two writers on one transcript.
+
+Report what works, test it once end to end, and write the result in the dictation doc.
+
+**Stopped (the owner, 2026-10-24, later the same night):** website dictation goes straight to an SDK agent; the VS Code tab and the Claude app are no longer dictation targets. What was learned is in [core/Page/ai/doc/dictation.md](/framework/core/Page/ai/doc/dictation.md), "Why not dictate into a VS Code tab". The focus is the Debug tab, both stalls and the bubbles, made reliable.
+
+## The owner, on the whole chain from Whisper to the bubble (2026-10-24)
+
+- **The flicker is the bug to kill.** Press dictate and start talking: raw text flashes in, vanishes, and comes back a while later (perhaps while the LLM cleans it). "A very jarring experience."
+- **The driving principle:** while dictation is on, the words appear **in place in the chat bubble, as if already sent.** No text area that the words then move out of, and no UI jumping. Put each word in the best place as soon as possible.
+- **The flow:**
+  1. Whisper's raw text is chunked by sentence.
+  2. Each sentence goes to ONE cleaning-and-refinement step (whichever agent runs it).
+  3. That produces structured content (tasks, questions, notes) through the item tool.
+  4. As the prompt grows, the cards are **updated a little, never rewritten wholesale.** Nothing the owner is reading should vanish or change unasked, unless it's a real mistake or the owner asked for it.
+- **Roles:** the refiner makes the data structures. Upgrading a task into a session (launching an agent) is the mastermind's call, not the refiner's.
+- **Investigate the whole chain end to end** (mic → Whisper → sentences → refine → item tool → bubble). Show each stage on the Debug tab, and prove there's no flicker with a short screen recording or a burst of shots.

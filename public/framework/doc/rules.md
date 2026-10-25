@@ -20,6 +20,13 @@ Level 1 is one page, mostly above the fold: what the thing is, **shown**; its ma
 
 **Route everything.** Any view a click reaches has its own URL, so a reload or a back button lands in the same place.
 
+**Anything that can fail tells the user what went wrong** (the owner, 2026-10-24: "I can't see a damn thing about why. No error."). Every step that can fail (a microphone, a request, a socket, a model) shows the reader, where they are looking, which step failed and the real reason in plain words, so they can diagnose it without opening a console. Three parts make it true:
+- **A visible reason, not a silent stop.** A failure changes what the reader sees (a red step, a "not sent" on the bubble, an error line), and the words name the step and the cause ("Servex did not answer session/say in 10 s"), not "something went wrong".
+- **Nothing waits forever.** Every request has a time limit, and running out of time is itself a failure with a reason. One unanswered request must never hold up the next ones.
+- **The error is logged where its module lives.** A failure becomes one line in `failures.jsonl` in that module's own folder ([ext/ErrorLog](/framework/ext/ErrorLog/)), so whoever follows the module hears it. The goal is pages with zero errors.
+
+The worked example is dictation's Debug tab, one row per step, live: [ux/Dictate/doc/debug-tab.md](/framework/ux/Dictate/doc/debug-tab.md).
+
 **Link every mention, and every page** (the owner, 2026-10-08): the owner browses the website, not the file system, so a file that is not linked will never be found. Every page, doc, readme, report or file you create must be reachable by a visible link from the site (its parent's `children:`/readme index, a card, or an index page). Whenever text names something that exists and has a URL (a page, class, module, session, task, card, model such as `/framework/ai/models`, a file), it is a link, on UI cards and content alike: use the mention system (`ext/Mention`, `#Page` `@agent` `/path`) instead of plain names. Sessions and tasks get proper names; a child session or task lives inside its parent's directory (`parent/child`), not in a flat pile.
 
 **⚠ Still broken, so read this twice (the owner, 2026-10-23):** a page reached only by typing its URL, or linked only from a readme, does not exist for the owner. `/framework/ai/merge/` shipped that way: a readme line, no link on any page. A new page is not done until it is clickable from its parent page's navigation on the live site, and the person who built it has clicked through to it from there.

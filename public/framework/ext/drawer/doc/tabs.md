@@ -2,7 +2,7 @@
 
 ![The drawer open on its AI tab, beside a page — the ☰ at the page's top right](/framework/ext/drawer/doc/tabs.png)
 
-**Every page has a ☰ in its top right corner.** Click it and the drawer opens on the right with three tabs: **AI**, **Dictation** and **Settings**. A fourth, **Element**, appears after Settings while something on the page is selected, and goes away when the selection clears. Click the ☰ again, or the drawer's ✕, and it shuts.
+**Every page has a ☰ in its top right corner.** Click it and the drawer opens on the right with three tabs: **AI**, **Debug** and **Settings**. A fourth, **Element**, appears after Settings while something on the page is selected, and goes away when the selection clears. Click the ☰ again, or the drawer's ✕, and it shuts.
 
 **AI and Sessions used to be two separate tabs** (one-dictation drawer-chat, 2026-10-02 — the owner: "I feel like the AI and the sessions should be kind of the same thing"). They are one tab now: the AI tab's own header strip, right above the chat, IS what the Sessions tab used to show — see the table below. **Admin used to be its own tab too**; it is a section inside Settings now (same code, `tabs/admin.js`, just called from `tabs/settings.js` instead of routed on its own) — both changes exist for the same reason: the tab row fits one line at the drawer's 19rem default width, instead of wrapping onto two the way six tabs used to.
 
@@ -11,11 +11,11 @@
 | Tab | What it shows | Built from |
 |---|---|---|
 | AI | A header strip — the live session's name, a link to its raw log, the fast/smart assistants as working/idle/asleep chips, a switcher to other recent sessions, and "+ New session" — then the page's [inbox](/framework/ext/drawer/doc/inbox/) and the one global conversation (`ux/Dictate/chat.js`'s own mount, the exact same call the ✦ sheet makes) | [`ux/Dictate/chat.js`](/framework/ux/Dictate/) for the conversation; `session_header()` in `tabs/ai.js` for the strip |
-| Dictation | The dictation playground | [`ux/Dictate/playground/`](/framework/ux/Dictate/playground/) |
+| Debug | Dictation layer by layer, live: is the mic connected, is Whisper, are transcripts coming back, is the text sent, is the AI answering; each with the real error. Was the Dictation tab (the playground) until 2026-10-24; `?drawer=dictation` still opens it | [`tabs/debug.js`](../tabs/debug.js) → [`ux/Dictate/DictateDebug.js`](/framework/ux/Dictate/DictateDebug.js), [doc](/framework/ux/Dictate/doc/debug-tab.md) |
 | Settings | Edit mode, the reload block, the width line, the x-ray outline, "this page", then an **Admin** section — who holds reloads, the route, the dev server, the page structure, links | the dev bar's own controls; `tabs/admin.js`'s own function for the Admin section |
 | Element | What is selected on the page: what it is and where it lives; "Ask about this" | [doc/select.md](/framework/ext/drawer/doc/select/) |
 
-**Off the dev server** (any host but `localhost`, `127.0.0.1` or `*.localhost`) the ☰ and the AI and Dictation tabs stay; Settings drives the dev server, so it is not shown, and the AI tab does not call Servex.
+**Off the dev server** (any host but `localhost`, `127.0.0.1` or `*.localhost`) the ☰ and the AI and Debug tabs stay; Settings drives the dev server, so it is not shown, and the AI tab does not call Servex.
 
 ## The route word
 

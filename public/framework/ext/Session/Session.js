@@ -29,11 +29,22 @@ import mic_floor from "/framework/ux/Dictate/floor.js";   // `floor` is the verb
 /** A refined line's `level`: the owner's words cleaned, edited, or summed up. */
 export const LEVELS = ["clean", "edit", "summary"];
 
+/* Every verb gives up after POST_MS with a sentence that says which call and why. Without it one
+ * request Servex never answers held the mic's send queue forever: every later sentence waited behind it
+ * and nothing said so (the stall, 2026-10-24: ux/Dictate/test/stall.mjs, ext/drawer/doc/debug-tab.md). */
+export const POST_MS = 10000;
 async function post(verb, body){
-	const res = await fetch(servex_url(`/api/session/${verb}`), { method: "POST",
-		headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+	let res;
+	try {
+		res = await fetch(servex_url(`/api/session/${verb}`), { method: "POST", signal: AbortSignal.timeout(POST_MS),
+			headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+	} catch (e){
+		throw new Error(e?.name === "TimeoutError" || e?.name === "AbortError"
+			? `Servex did not answer session/${verb} in ${POST_MS / 1000} s`
+			: `Servex is not reachable for session/${verb} (${e?.message || "network error"})`);
+	}
 	const out = await res.json().catch(() => ({ ok: false, error: `HTTP ${res.status}` }));
-	if (!out.ok) throw new Error(out.error ?? `session/${verb} failed`);
+	if (!out.ok) throw new Error(`Servex refused session/${verb}: ${out.error ?? "HTTP " + res.status}`);
 	return out;
 }
 

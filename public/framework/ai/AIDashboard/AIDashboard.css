@@ -1,6 +1,10 @@
 @layer site {
-	.page.ad-page { --measure: none; --page-pad: 1.5em clamp(0.8em, 3%, 3em); }
-	.ad-dash { display: flex; flex-direction: column; gap: 1em; padding: 0.8em 0 2em; }
+	/* The AI head (ai/page.js `head()`) runs edge to edge as on every AI page, so the page has no padding and the dashboard keeps its own.
+	   The head names the page: core's big title and its "Folder" link go (⚠ `!important`: core writes that link's display inline). */
+	.page.ad-page { --measure: none; --page-pad: 0; }
+	.page.ad-page > :is(.page-title, .page-fs-link) { display: none !important; }
+	.ad-dash { display: flex; flex-direction: column; gap: 1em; padding: 1em clamp(0.8em, 3%, 3em) 2em; }
+	.page.ad-page > .ad-dash { margin-block-start: 0; }   /* the page's flow gap (`:where(.flow) > * + *`) would double the padding under the head */
 	.ad-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1em; align-items: start; }
 	.ad-col { display: flex; flex-direction: column; gap: 1em; min-width: 0; }
 	.ad-sec { display: flex; flex-direction: column; gap: 0.5em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }

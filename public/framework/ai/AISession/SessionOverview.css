@@ -6,6 +6,7 @@
 	.sov-stat { display: flex; flex-direction: column; min-width: 0; }
 	.sov-k { color: color-mix(in srgb, var(--ink) 60%, transparent); text-transform: uppercase; font-size: .7em; letter-spacing: .06em; }
 	.sov-v { font-size: 1.3rem; line-height: 1.2; overflow-wrap: anywhere; }
+	.sov-link { cursor: pointer; text-decoration: underline dotted color-mix(in srgb, var(--ink) 40%, transparent); text-underline-offset: .2em; }   /* the cost line opens the Cost tab */
 	.sov-bar .task-bar, .sov-card .task-bar { margin: 0; width: 100%; max-width: none; display: flex; }
 	.sov-bar .task-seg { flex: 1 1 0; }
 	.sov-bar .task-meter, .sov-card .task-meter { flex: 1 1 auto; width: auto; height: .45em; }

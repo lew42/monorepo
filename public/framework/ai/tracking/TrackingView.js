@@ -6,7 +6,7 @@ View.stylesheet(import.meta, "TrackingView.css");
 const pct = x => `${Math.round(x * 100)}%`;
 const usd = x => `$${x.toFixed(2)}`;
 
-/** TrackingView — the four tracking checks from report.json (written by `node Server/TrackingCheck.mjs`). Readme: readme.md. */
+/** TrackingView — the six tracking checks from report.json (written by `node Server/TrackingCheck.mjs`). Readme: readme.md. */
 export default class TrackingView extends View {
 	get classes(){ return "tr-view"; }
 
@@ -24,7 +24,7 @@ export default class TrackingView extends View {
 
 	draw(r){
 		if (!r) { p("No report yet. Run `node Server/TrackingCheck.mjs`."); return; }
-		const t = r.untracked.totals, c = r.children, n = r.numbers, idn = r.identity;
+		const t = r.untracked.totals, c = r.children, n = r.numbers, pc = r.prompts, pf = r.perf, idn = r.identity;
 
 		p(`Report written ${r.generated_at.replace("T", " ").slice(0, 16)} UTC, over the last ${r.days} days. Re-run \`node Server/TrackingCheck.mjs\` to refresh it.`);
 		a.c("tr-rule").href("/framework/ai/doc/task-buckets.md").text("The rule being checked: task buckets");
@@ -33,6 +33,8 @@ export default class TrackingView extends View {
 			this.card(pct(t.share_usd), "of spend had no task open", `${usd(t.untracked_usd)} of ${usd(t.usd)}, ${t.sessions} sessions`);
 			this.card(`${c.problems} of ${c.checked}`, "child sessions with a link problem", `${c.no_parent} no parent, ${c.parent_is_name} parent is a name, ${c.not_listed} not listed by the parent`);
 			this.card(String(n.count), "stored numbers that disagree", "with what the transcript or the children compute now");
+			if (pc) this.card(pc.pct == null ? "n/a" : pct(pc.pct), "of owner prompts have refinement parts", `${pc.recorded} of ${pc.unique} unique prompts, ${pc.sessions} sessions`);
+			if (pf) { const slow = pf.files.filter(f => f.over).length, w = [...(pf.item?.writes ?? []), ...(pf.http?.writes ?? [])], worst = Math.max(0, ...w.map(x => x.ms)); this.card(`${slow} slow`, "records over the read limit", `limits: read+parse ${pf.limits.read_ms} ms, write ${pf.limits.write_ms} ms; slowest write seen ${w.length ? Math.round(worst) + " ms" : "not measured"}`); }
 			if (idn) this.card(`${idn.failing} of ${idn.checked}`, "recent sessions with an identity problem", "one id, one folder, cost agrees, no shared messages, children linked");
 		});
 
@@ -84,8 +86,51 @@ export default class TrackingView extends View {
 			],
 			rows: n.rows, filters: false,
 		});
+		if (pc) {
+			h2("4. Owner prompts without a refinement record");
+			p("Per session with a `prompts.jsonl`: the owner's unique prompts in the transcript (a compaction replays old ones; they count once) against those with parts. The last column lists the transcript lines of the prompts with none.");
+			new DataGrid({
+				columns: [
+					{ key: "folder", label: "Session", width: "3fr", min: "14em" },
+					{ key: "unique", label: "Unique prompts", type: "number", width: "10em" },
+					{ key: "recorded", label: "With parts", type: "number", width: "8em" },
+					{ key: "share", label: "Covered", type: "number", width: "6em", format: v => v == null ? "n/a" : pct(v) },
+					{ key: "log_lines", label: "Log lines", type: "number", width: "6em" },
+					{ key: "missing", label: "Unrecorded transcript lines", width: "3fr", min: "12em" },
+				],
+				rows: pc.rows.map(x => ({ ...x, share: x.pct, missing: x.no_transcript ? "(no transcript on this machine)" : x.unrecorded.map(u => "L" + u.line).join(" ") })), filters: false,
+			});
+		}
 
-		h2("4. Session identity");
+		if (pf) {
+			h2("5. JSONL read and write time");
+			p(`The largest records, read and parsed on every run (over ${pf.limits.read_ms} ms is flagged), then three item-tool writes on a copy (over ${pf.limits.write_ms} ms is flagged). ${pf.verdict}.`);
+			new DataGrid({
+				columns: [
+					{ key: "file", label: "Record", width: "4fr", min: "24em" },
+					{ key: "kb", label: "KB", type: "number", width: "6em" },
+					{ key: "lines", label: "Lines", type: "number", width: "6em" },
+					{ key: "read_ms", label: "Read ms", type: "number", width: "7em" },
+					{ key: "parse_ms", label: "Parse ms", type: "number", width: "7em" },
+					{ key: "append_ms", label: "Append ms", type: "number", width: "7em" },
+					{ key: "flag", label: "Limit", width: "6em" },
+				],
+				rows: pf.files.map(f => ({ ...f, flag: f.over ? "OVER" : "ok" })), filters: false,
+			});
+			const writes = [...(pf.item?.writes ?? []).map(w => ({ ...w, via: "item tool in-process, on " + pf.item.source, at: pf.item.measured_at })), ...(pf.http?.writes ?? []).map(w => ({ ...w, via: "Servex HTTP, on " + pf.http.source, at: pf.http.measured_at }))];
+			if (writes.length) new DataGrid({
+				columns: [
+					{ key: "via", label: "Item write", width: "4fr", min: "16em" },
+					{ key: "ms", label: "ms", type: "number", width: "8em" },
+					{ key: "flag", label: "Limit", width: "6em" },
+					{ key: "at", label: "Measured", width: "10em", format: v => v?.replace("T", " ").slice(0, 16) },
+				],
+				rows: writes.map(w => ({ ...w, flag: w.ms > pf.limits.write_ms ? "OVER" : "ok" })), filters: false,
+			});
+			else p("No write timing yet: run `node Server/TrackingCheck.mjs --item` (add `--http <page url>` to time Servex's door).");
+		}
+
+		h2("6. Session identity");
 		p("For the most recent sessions: the transcript holds only this session's id, there is one dated folder, the stored cost matches a recount from the transcript, no message is shared with another transcript, and every child session is linked from its parent. A ✅ means all five hold.");
 		if (!idn) p("No identity rows yet. Re-run `node Server/TrackingCheck.mjs`.");
 		else new DataGrid({

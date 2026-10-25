@@ -109,7 +109,7 @@ An idle `claude` process holds about 250 MB, so nothing is left running by accid
 | `SERVEX_REAP_EVERY_MS` | 60000 | how often the reaper looks |
 | `SERVEX_REAP_MS` | 180000 (3 min) | how long a finished minion, helper or fork may sit idle |
 | `SERVEX_AGENT_CAP` | 30 | most live agents before a new spawn waits |
-| `SERVEX_MIN_FREE_MB` | 4096 | free memory needed before a spawn starts |
+| `SERVEX_MIN_FREE_MB` | 2560 | free memory needed before a spawn starts |
 | `SERVEX_MASTER_BATCH_MS` | 20000 | least time between two batches sent to `master-assistant` |
 | `SERVEX_POLICY` | on | `off` disables every message and spawn check |
 | `SERVEX_NO_LAYERS` | unset | set to skip the card assistants and managers |

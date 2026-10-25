@@ -41,5 +41,5 @@ sentences (two asks, then "Send it off."): three fast lines, **one** hand-off, t
 - **Mastermind gets the refined prompt once per batch** (Refine JSON), never per sentence; queue if busy.
 - **Names:** nothing renamed. `Chain` is the fast tier + batch seam; the smart tier is not built yet
   (next slice: wake it on the batch boundary, suggest only, no tools).
-- **Gaps:** Dictate sends no page (read-only for this task); `Echo.call` refuses under a 4 GB RAM floor
+- **Gaps:** Dictate sends no page (read-only for this task); `Echo.call` refuses under a 2.5 GB RAM floor
   (the proof lowers it); the smart tier and the Steps.mjs/TaskLoop loop (ask 5) are not wired.

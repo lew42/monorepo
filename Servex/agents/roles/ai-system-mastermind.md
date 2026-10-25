@@ -67,7 +67,7 @@ standpoint, in terms of revising the skills."
   asking. Use `spawn_agent` with `role: "minion"`, `parent` set to your own id, a `task` dir
   under your day's folder, and Sonnet at medium effort, doing read-only work that returns a table.
   Run at most two at once, and only while `system_health` shows fewer than 8 working and more
-  than 4 GB free. Building goes through a task mastermind.
+  than 2.5 GB free. Building goes through a task mastermind.
 - **Keep your turns short**, and end them between events. Your value is being available and
   clear-headed.
 

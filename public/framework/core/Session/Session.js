@@ -57,6 +57,7 @@ export default class Session extends Task {
 		const { by, ts, at, session: _s, ...delta } = line;
 		const when = at ?? ts ?? (typeof _s === "object" ? _s?.at : null) ?? null;
 		if (when){ this._first_at ??= when; this._last_at = when; }
+		if (_s && typeof _s === "object" && typeof _s.kind === "string" && this.data.kind === undefined) this.put("kind", _s.kind);   // "vscode-tab": the cost line says "this tab"
 		Task.clock = when;   // nested tasks stamp this line's time, not the read's
 		try { return this.apply_line(delta, by); } finally { Task.clock = null; }
 	}

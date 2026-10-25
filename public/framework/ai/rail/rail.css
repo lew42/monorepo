@@ -164,6 +164,8 @@
 	.page--ai .inbox-head > .tabs > .tab-bar { flex: 1 1 0; min-width: 0; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; }
 	.page--ai .inbox-head > .tabs > .tab-bar::-webkit-scrollbar { display: none; }
 	.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: none; white-space: nowrap; }
+	/* An Inbox filter marks its own tab `aria-current` (ai/page.js head()); Router.mark_links lights Home too (same path), so Home is un-lit. */
+	.page--ai .inbox-head .tab-bar:has(> .tab[aria-current]:not(.tab-default)) > .tab-default.active { color: var(--subtle); border-color: transparent; border-bottom-color: var(--line); background: none; }
 
 	@media (width < 40em) {
 		/* the scroll is the TOPIC's now (core/Sidebar: a topic with a `.tabs.stick` scrolls, header and all) */

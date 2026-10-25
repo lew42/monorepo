@@ -66,3 +66,18 @@ The pipeline already does most of what the owner described:
    - Follow (`follow`) the session's `prompts.jsonl`.
    - After each prompt, compare the raw sentences with the tasks Haiku made; fix names, add what it missed, and embellish where the detail matters.
    - The refined tasks render at once on the session detail page.
+
+10. **(the owner, 2026-10-24) Refinement groups its tasks.** 241 flat tasks from one session is unusable. When a prompt's asks belong together, refinement makes one parent task (the outcome) with the asks nested as its subtasks, or files them under an existing open task they belong to. Measure the root-level task count before and after on e00f55c9.
+
+11. **(the owner, 2026-10-24) Refinement is a small set of guiding principles.** Who runs it (Haiku, Sonnet, the tab) matters less than doing it properly.
+    - Each prompt becomes tasks, questions, rules and observations.
+    - The cleaned sentences also get light formatting. A spoken "Claude exe" becomes `claude.exe`, and spoken references are upgraded to real names and links where they're clear.
+    - Write the principles as one short doc that `PARTS_BRIEF` is built from.
+    - Today it's one Agent SDK call per prompt (`PromptRecords.ask`), never resumed, with no context of earlier prompts and no tools. Say whether the previous prompt's breakdown should be passed in as context.
+12. **Let the tab see the breakdown the moment it lands.** Today the tab only reads `prompts.jsonl` when it checks, so it doesn't review in real time. Try it small: the `UserPromptSubmit` hook (or the next prompt's hook) adds the latest finished breakdown to the tab's context, so the tab can fix it with the item tool straight away. The hook's 15 s limit may be too short for the current prompt, so the previous one is fine. Measure how often it arrives in time.
+
+13. **(the owner, 2026-10-24)**
+    - **Context:** a refiner with no memory of the earlier prompts may be a mistake. Test passing the session's recent breakdowns in.
+    - **One agent may beat a hook plus Haiku.** The owner leans toward one agent doing the refinement and the managing, if the coordination keeps failing. Weigh it in the refinement map.
+    - **`follow` skips your own writes.** A follower shouldn't get echoes of lines it wrote itself (match on `by`), only other agents' lines. Do it in Servex's follow.
+    - **A VS Code tab can't receive follow messages,** so for the tab use the hook route (item 12).

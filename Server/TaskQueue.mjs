@@ -22,7 +22,9 @@ export function gather(ix = SessionIndex.shared){
 		const file = path.join(REPO, r.dir, "task.jsonl");
 		if (fs.existsSync(file)) open.push({ slug: r.slug, url: r.url, module, state: r.state, usd: r.usd, agent: r.agent, lines: read(file) });
 	}
-	return { open, ctx: { landed, asks: read(ASKS) } };
+	// A task tagged "bucket" stands for the tasks it links ({"task":url} lines): the queue ranks the bucket, not its children.
+	const nested = new Set(open.filter(o => o.lines[0]?.tags?.includes("bucket")).flatMap(o => o.lines.filter(l => typeof l.task === "string").map(l => l.task)));
+	return { open: open.filter(o => !nested.has(o.url)), ctx: { landed, asks: read(ASKS) } };
 }
 
 export const build = ix => { const g = gather(ix); return TaskQueue.build(g.open, g.ctx); };

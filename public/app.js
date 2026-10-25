@@ -121,6 +121,11 @@ export { Sidebar } from "./framework/core/Sidebar/Sidebar.js";
 export { default as md, marked } from "./framework/ext/markdown/md.js";
 export { default as demo } from "./framework/ext/demo/demo.js";
 
+// Every page's uncaught errors and rejections become one line in failures.jsonl of the module that
+// broke (ext/ErrorLog), which `follow` delivers: the goal is pages with zero errors. A no-op off localhost.
+import ErrorLog from "./framework/ext/ErrorLog/ErrorLog.js";
+ErrorLog.watch();
+
 // Patches demo.app() on: a real Page tree playing App and Router inside a box.
 // The side effect IS the export — same shape as tree and tabs below.
 import "./framework/ext/demo/app.js";

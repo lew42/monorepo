@@ -3,6 +3,7 @@ import Dictate from "/framework/ux/Dictate/Dictate.js";
 import Capture from "/framework/ux/Dictate/capture.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 import RefineSystem from "/framework/ext/Refine/RefineSystem.js";
+import DictateHealth from "/framework/ux/Dictate/DictateHealth.js";
 
 /** The microphone of a composer: `ux/Dictate` with a few methods redirected; speech goes into the composer's box and goes out as one message. see doc/mic-notes.md#overrides */
 // Every knob of the whisper-to-box flow, read live everywhere. see doc/mic-notes.md#settings
@@ -152,6 +153,14 @@ export class ComposerMic extends Dictate {
 			if (!text){ this.partial_text = ""; this.draw_caption(); return; }
 		}
 		super.commit(text);
+	}
+
+	render(){ super.render(); ComposerMic.mounted.add(this); }
+
+	/** The mic that carries on when this one's box leaves the page mid-dictation (Dictate.heartbeat): the newest one still on the page and not listening. */
+	heir(){
+		for (const m of ComposerMic.mounted) if (!m.el.isConnected && m !== this) ComposerMic.mounted.delete(m);
+		return [...ComposerMic.mounted].reverse().find(m => m !== this && m.el.isConnected && (m.state === "idle" || m.state === "error")) ?? null;
 	}
 
 	active(){
@@ -632,11 +641,28 @@ export class ComposerMic extends Dictate {
 		if (re){ entry.re = re; entry.selected = re; }
 		this.posting = (this.posting ?? 0) + 1;
 		let ok;
-		try { ok = await this.deliver?.(entry); } finally { this.posting--; }
-		if (ok) return;
+		// A send that never settles must not hold the queue: every later sentence waits behind it (the stall, test/stall.mjs).
+		let timer;
+		const late = new Promise(r => { timer = setTimeout(() => r("late"), ComposerMic.DELIVER_MS); });
+		const sending = Promise.resolve().then(() => this.deliver?.(entry)).catch(e => { DictateHealth.set("sent", "bad", "not sent: " + (e?.message ?? e)); return false; });
+		try { ok = await Promise.race([sending, late]); } finally { clearTimeout(timer); this.posting--; }
+		if (ok === "late"){
+			// The queue moves on now; the open send keeps its chance to land. Only a send that then fails counts as not sent
+			// (and goes to the fallback log), so a slow success is neither a false "not sent" nor a second copy.
+			DictateHealth.set("sent", "wait", `a send is still open after ${ComposerMic.DELIVER_MS / 1000} s; the next sentences go on without waiting for it`);
+			sending.then(sent => sent ? DictateHealth.set("sent", "ok", "the slow send landed after all") : this.log_fallback(entry));
+			return;
+		}
+		if (!ok) await this.log_fallback(entry);
+	}
+
+	// Words that did not reach the deliver go to Dictate's fallback log, so nothing said is lost.
+	async log_fallback(entry){
 		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
 		catch (e){ console.warn("chat: could not log this utterance", e); }
 	}
 }
 ComposerMic.prototype.mode = "open";   // the mic stays on; draw_caption() types into the box
 ComposerMic.DUP_WINDOW_MS = 4000;   // same words from the same mic this close together are one send (see post_held)
+ComposerMic.DELIVER_MS = 25000;   // the backstop: Session.js gives up after 10 s per call, so only a deliver with no timeout of its own reaches this
+ComposerMic.mounted = new Set();   // every composer mic built, for heir(); a detached one is dropped the next time heir() looks

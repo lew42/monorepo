@@ -42,3 +42,17 @@ Write `core/Session/doc/identity.md`, linked from the core/Session readme and th
 - [ ] StaleClose is fixed and tested.
 - [ ] The proposals are written; any fix is small, reviewed and ready to merge.
 - [ ] The task is completed with its outcome and links.
+
+## Added (the owner, 2026-10-24)
+
+- **A Servex restart must never fork a session id.** Prove it: agents revived after the 23:13 restart keep their ids (the deputy kept d9c3caec).
+- **A singleton role (ai-system-mastermind) may get a new id on purpose,** but only as a logged rollover. The old id and the new one are linked, cost counts once, and the role's docs say it can be restarted at any time, so it always logs everything and needs no elaborate hand-off.
+- Explain why it rolled over tonight (2da03974 → 7c6c8d93).
+
+## Added (the owner, 2026-10-24): typo-proof session paths
+
+"What if the session ID drifts in context by one character, and now we're writing to a different session directory?"
+- The hooks (`session-page.mjs`, `prompt-relay.mjs`) and the scripts (`TaskDirs` via `$CLAUDE_CODE_SESSION_ID`) take the id from Claude Code itself, so they're safe. **The risk is ids and paths an agent types by hand,** in item-tool `path`s and briefs.
+- **Make a write to a session folder that doesn't exist get refused, never created.** Session folders are created only by the hook, `TaskDirs` or the spawn.
+- **Give agents a "my own session" path** that the tool resolves itself, so no id is typed. Check whether `item` with no `path` already does this for a VS Code tab (its MCP call may not carry the tab's id), and fix it if not.
+- **Document it in identity.md.** Cover how a tab gets its folder: the SessionStart hook `session-page.mjs` writes line 1 into `sessions/YYYY/MM/DD/session-<first 8 of the id>/`. The page URL uses the full id. Say why the folder is id-based (stable and unique) while the page shows a readable title.

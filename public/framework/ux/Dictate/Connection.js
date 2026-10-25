@@ -18,6 +18,9 @@ View.stylesheet(import.meta, "Connection.css");
  *
  * Whisper is asked once, never polled (stream, don't poll): `check_whisper()` is called by the page
  * on load and by the Retry click. Everything else is pushed in by the caller's events.
+ *
+ * `layout: "rows"` stacks the steps, one per line, with the reason in full (the Debug tab, `DictateDebug.js`);
+ * a step with an `ask` shows that question under its name. `on_check(up, why)` hears every Whisper check.
  */
 export default class Connection extends View {
 
@@ -37,12 +40,14 @@ export default class Connection extends View {
 		this.meter = new LevelMeter();
 		this.steps = this.steps ?? Connection.steps;   // a caller may show fewer: new Connection({ steps })
 		this.style("--steps", this.steps.length);
+		if (this.layout) this.attr("data-layout", this.layout);
 		this.steps.forEach((s, i) => {
 			this.state[s.id] = { state: "idle", why: "not yet" };
 			div.c("voice-conn-step", () => {
 				div.c("voice-conn-head", () => {
 					span.c("voice-conn-dot");
 					span.c("voice-conn-label", s.label);
+					if (s.ask) span.c("voice-conn-ask muted", s.ask);
 					if (s.id === "whisper") this.$retry = button("↻").ac("voice-conn-retry").attr("type", "button")
 						.attr("title", "Check Whisper again").click(() => this.check_whisper());
 				});
@@ -89,13 +94,15 @@ export default class Connection extends View {
 		try {
 			const r = await fetch(url + "/", { signal: ctrl.signal });
 			const ms = performance.now() - t;
-			if (!r.ok) return this.set("whisper", "bad", `error: HTTP ${r.status}`), false;
+			if (!r.ok){ this.set("whisper", "bad", `error: HTTP ${r.status}`); this.on_check?.(false, this.state.whisper.why); return false; }
 			this.note = await Connection.restart_line();
 			this.set("whisper", "ok", `connected, ${(ms / 1000).toFixed(1)} s` + (this.note ? " · " + this.note : ""));
+			this.on_check?.(true, this.state.whisper.why);
 			return true;
 		} catch (e){
 			this.note = await Connection.restart_line();
-			this.set("whisper", "bad", `error: ${e?.name === "AbortError" ? "no answer in 2.5 s" : "not reachable"}` + (this.note ? " · " + this.note : ""));
+			this.set("whisper", "bad", `error: ${e?.name === "AbortError" ? "no answer in 2.5 s" : "not reachable"} at ${url}` + (this.note ? " · " + this.note : ""));
+			this.on_check?.(false, this.state.whisper.why);
 			return false;
 		} finally { clearTimeout(timer); }
 	}

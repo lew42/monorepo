@@ -31,3 +31,59 @@ For `mastermind-page`, after (or alongside) the top-tabs task, since the two sti
   1. redesign the session card previews;
   2. then the session detail page.
   Each is its own step, and each lands before the next starts.
+
+## The owner, third pass (2026-10-24, after looking at the list and this session's detail page)
+
+- **Load only what the view needs.**
+  - The default view is a short range (today, or the month), read from the per-level index files: `ai/sessions/index.jsonl` → year → month → day, which the deputy just merged.
+  - Never load every session to draw the list.
+- **Totals come from Servex's live cached sessions,** the `live_root` instances that the deputy's fast-write work keeps current. A card can then show its total, including children, without loading hundreds of child sessions in the browser.
+  - Until that's ready, the card shows the session's own cost, clearly labeled, and the full total one click down.
+  - Both numbers come from ONE cost function, the deputy's fix for the $2xx-card vs $9xx-detail mismatch.
+- **On the detail page, the task list is broken:**
+  - each task sits in a narrow column, so its text wraps over 3–6 lines and looks cut short;
+  - every row has play and stop buttons nobody explained. Find out what they do and whether they work; hide them if not.
+  
+  Make each task one full-width row. Then give the tasks the same filterable grid as the sessions list (state, day, kind), so a 4-day session can be browsed by day. One component for both.
+
+## The owner, fourth pass (2026-10-24): the session detail page is the focus
+
+**New order:** (1) the slim sticky header on the list (small); then **(2) the session detail page, the main job;** then (3) the list's cards.
+
+What the detail page shows:
+- **A chronological view: everything in the session's `session.jsonl`, in order.**
+  - Its prompts, tasks, child sessions and notes, as they happened. "Just show me everything in there."
+  - Configurable, so the owner sees what's needed and not much more.
+- **A chat view, live:**
+  - each owner prompt appears as its refined form: a heading, then its asks, questions and notes as cards, each citing its sentences (S4, S7–18). The raw transcript is one click down, never repeated in full;
+  - the flow plays out in place as it happens: prompt → refined prompt → task → "agent launched" (the child session, with its state and cost) → checked off when done;
+  - when the owner dictates in the VS Code tab and switches to the site, the new prompt's refinement is already appearing.
+- **Child sessions are shown** where their task is, not in a separate dump.
+- **Today's flat list of 100+ one-line tasks is replaced,** because it gave the owner no confidence about what they were looking at.
+
+**Build on what exists:**
+- the AI system mastermind's chat-view plan (merged tonight; see `ai/doc/` and `../prompt-breakdown/`);
+- `prompts.jsonl` (raw, clean sentences, parts with cites);
+- the deputy's work: Prompt extends Task, child sessions as tasks, and live cached sessions.
+Agree one component for the chat view with the deputy. Land it in small, visible steps.
+
+## The owner, fifth pass (2026-10-24): what the detail page must let them do
+
+**"I want to see all the things that were requested in this session, verify they're all done, and click through to the proof."**
+- **An Overview view, first:** the session's work ranked by recency and importance, with **task cost as the main weight**, so the big things rise to the top. It gives a strong understanding of what the session did at a glance. The chronological view and the chat view sit beside it.
+- **Grouped, never flat.** Each prompt → its main tasks → their subtasks, checked off by the agents building them, live. Small asks nest under the task they belong to: the item tool's add-as-subtask, or a move with a back reference when one was filed flat.
+- **Checkmarks:**
+  - an empty box while open;
+  - a **green checkmark when done**, drawn as our own icon, not a form checkbox;
+  - clicking a done task opens its proof (its outcome, links and commit).
+- **Show the state; drop the play and stop buttons.** Today they break the layout, so take a screenshot of the current page first, for the before-and-after.
+
+## The owner, sixth pass (2026-10-24): an idea for later, not now
+
+When a task moves into a session made for it, its old spot in the chat stays, dimmed, with a small "moved" arrow. Clicking it scrolls to the new home, and the item in its new home carries a small "moved in" arrow in its top-left corner. That way nothing is shown twice without saying so. Build it once moves exist (item 32 of session-is-a-task). Note it in your plan.
+
+## The owner, seventh pass (2026-10-24)
+
+The sessions list and the session detail page are "the core truth". The queue page is secondary.
+- **The detail page opens on the prioritized view (Overview) by default.** The chat view is a tab beside it.
+- **The owner must be able to:** open AI → Sessions, find this session, click through, and see both views. Test exactly that path, with a shot of each step.

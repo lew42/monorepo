@@ -215,6 +215,15 @@ When your work touches another mastermind's directory, you should propose the ch
 - **Keep artifacts portable:** a record is one JSONL file, or one self-contained directory, that can move without breaking anything else.
 - **When you decide what to call a new thing and where it lives, do it before spawning,** and tell the worker the name and the home (CLAUDE.md law 8).
 
+## Slots go to the highest priority; wind down the lowest (the owner, 2026-10-24)
+
+A running session is a `claude.exe` in RAM (about 0.7 GB with its tools), and the work in flight is a queue of sessions. A session is a task, so it has a priority: the `priority` line of its task (`reprioritise_task`), ranked on [the queue](/framework/ai/queue/).
+
+- **Cap:** at most 8 agents work at once (`SERVEX_WORKING_CAP`), and a spawn waits below 2.5 GB free memory. A message that wakes an agent is never held, so `working 6/5`-style overshoots are normal; only new spawns queue. The numbers: [dormant.md](/Servex/doc/dormant.md), "Measured".
+- **When a higher-priority spawn is waiting at the gate and a low-priority background session is working** (a long audit, a census, a research fan-out, a build nobody is waiting on): wind the low one down. Message it to stop at its next safe point and write its state and next step into its task log, then `stop_agent` it. The log and the folder are the truth, so a fresh session can pick it up later; add one line on the task, "wound down for <task>, resume from <step>".
+- **Never wind down:** a mastermind with children working, the owner's tab, the front desk, or a session that is about to merge. Prefer the lowest priority, then the largest and idlest.
+- **The mastermind decides;** no code picks the victim. Look at `list_agents`, the queue and `node Server/usage-now.mjs`, say the choice in one log line, and move on.
+
 ## Idle is not empty: pull from the queue (the owner, 2026-10-23)
 
 When the work in flight lands, the mastermind does not stop. It takes the next open row of [priority.md](/framework/ai/priority.md), or the open items in the last architect's log, and starts it. It sets a wake-up for as long as any priority row is open and the budget allows. "Nothing is running, so no check" left the queue standing for 16 hours on 2026-10-23.
