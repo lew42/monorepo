@@ -68,3 +68,13 @@
 {"file":"left.jpg"}
 {"file":"rail-foot.jpg"}
 {"file":"right.jpg"}
+{"file":"both.jpg","gone":true}
+{"file":"canvas.jpg","gone":true}
+{"file":"columns.jpg","gone":true}
+{"file":"foot.jpg","gone":true}
+{"file":"head-foot.jpg","gone":true}
+{"file":"inner-bar.jpg","gone":true}
+{"file":"inner-rail.jpg","gone":true}
+{"file":"left.jpg","gone":true}
+{"file":"rail-foot.jpg","gone":true}
+{"file":"right.jpg","gone":true}
