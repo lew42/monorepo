@@ -51,4 +51,17 @@ try {
 	t.ok(kid instanceof Session && kid.tasks.length === 1, "a referenced session record is a child Session with its own tasks");
 } finally { Task.resolver = was; }
 
+// A dropped subtask (stopped, with a reason) is settled: the parent completes, as progress counts it; an open one still blocks.
+const d = Task.replay([
+	{ tasks: { add: { type: "Task", id: "a", title: "A" } } },
+	{ tasks: { add: { type: "Task", id: "b", title: "B" } } },
+	{ tasks: { a: { complete: { outcome: "done", evidence: ["t"] } } } },
+	{ tasks: { b: { stop: { why: "not needed" } } } },
+]);
+d.complete({ outcome: "done", evidence: ["t"] });
+t.eq(d.state, "complete", "a stopped subtask does not block its parent's complete()");
+const o = Task.replay([{ tasks: { add: { type: "Task", id: "a", title: "A" } } }]);
+o.complete({ outcome: "done", evidence: ["t"] });
+t.ok(o.state !== "complete", "an open subtask still blocks complete()");
+
 t.done();

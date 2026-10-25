@@ -83,7 +83,8 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - **Abandoned tasks are closed by script:** [`Server/StaleClose.mjs`](/Server/StaleClose.mjs) appends a `stop` line (`by: StaleClose`) to every `stale` task silent over 24 h, daily from `Servex/TaskLoop.js`; the manifest is `ai/stale-closes.jsonl`, `--undo` appends `start` (`resume` is refused from `stopped`). [Server/doc/stale-close.md](/framework/servex/fs/?file=Server/doc/stale-close.md)
 - **`complete()` needs evidence** (2026-10-22, [resolution.md](doc/resolution.md) section 6): `{outcome, evidence: [file | commit | shot | test], confidence: "high" | "medium" | "low" (default medium), caveats: [] }`. No evidence, or a plain string, is refused and the message says what to pass; the item tool refuses before it writes a line. Caveats are appended to the parent's log (`tell_parent_caveats` in `Servex/agents/page_tools.js`). Exempt: replaying a recorded finish (old logs have none), the automatic completion when the last child completes (`complete({auto: true})`), and node-written closes, which use `stop` (`StaleClose`) or the legacy `landed_at`. **`approve()` makes the task accepted (`idle`)**; the agent's own `start()` begins it.
 - **`complete()` refuses while a subtask is open** — it warns ("… isn't complete yet —
-  complete that first") and leaves the state unchanged, never throws. Every illegal
+  complete that first") and leaves the state unchanged, never throws. A stopped subtask (dropped,
+  with its reason) is settled and does not block, the same way progress leaves it out. Every illegal
   transition (`pause()` on an idle task) behaves the same way.
 - **Every transition is one `set()` call**, so it's one replayable delta line and
   fires the same `change`/`delta` events `Item.set_one()` already does — nothing

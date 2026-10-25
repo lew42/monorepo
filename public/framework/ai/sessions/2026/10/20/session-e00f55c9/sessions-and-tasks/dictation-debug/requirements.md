@@ -48,3 +48,12 @@ Opus, high effort. Work in a worktree and land ready to merge; the merge is the 
 ## Also (the owner, 2026-10-24)
 
 The web live-transcribe is "wonky and broken". The chat bubbles aren't made robustly, and the deltas that build them are applied glitchily. The owner wants web transcription working again, so they can use it instead of the app. Include the bubble and delta path in your investigation.
+
+## Also (the owner, 2026-10-24): dictate on the website into the VS Code tab's session
+
+The owner wants to dictate on the website and have it reach this VS Code sidebar session (e00f55c9), with the same prompt refinement, instead of switching to the app.
+- Find whether a message can be pushed into a running VS Code tab. Claude Code has local cross-session messaging (other sessions can message a tab, and it arrives as a notification it reads). Test whether a Servex-side Claude session, or a hook, can deliver web dictations that way.
+- Fallback: a `UserPromptSubmit` hook that injects pending web dictations on the tab's next prompt (the tab's check-ins every 30 minutes count as prompts).
+- Never resume the tab's session id from a second process: two writers on one transcript.
+
+Report what works, test it once end to end, and write the result in the dictation doc.
