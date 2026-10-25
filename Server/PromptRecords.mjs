@@ -189,14 +189,14 @@ Answer at the end with ONE JSON object and nothing else after it:
 			const t0 = Date.parse(p.at); if (this.def.file !== "proposals" && live.some(t => t >= t0 && t - t0 < 15 * 6e4)){ console.log(`  L${p.line}: live proposals exist; not filed again`); continue; }
 			let changed = false;
 			const parts = [];
-			let n = 0;
-			for (const x of row.parts){   // past file_cap an ask stays an open part on the record: never lost, never a sixth proposal
-				if (!this.def.file_kinds.includes(x.kind) || x.outcome?.is !== "open" || n >= (this.def.file_cap ?? Infinity)){ parts.push(x); continue; }
-				n++;
+			const todo = row.parts.filter(x => this.def.file_kinds.includes(x.kind) && x.outcome?.is === "open").slice(0, this.def.file_cap ?? Infinity);   // past file_cap an ask stays an open part: never lost
+			const sub = todo.length >= 2 ? await this.parent_for(p, row, todo, record) : null;   // two or more asks: one outcome task, the asks its subtasks
+			for (const x of row.parts){
+				if (!todo.includes(x)){ parts.push(x); continue; }
 				const add = { title: (x.kind === "rule" ? "Write down: " : "") + x.text.slice(0, 180), state: "idle", from: "owner",   /* open work for the session, idle: never waiting on the owner (one writer, 2026-10-24) */
-					source: { session: this.id, line: p.line, prompt: this.rid(p), part: x.id }, description: [x.outcome?.why, ...(x.parts ?? []).map(d => "- " + d.text)].filter(Boolean).join("\n").slice(0, 800), ...(x.file ? { file_hint: x.file } : {}), ...(x.module ? { module_hint: x.module } : {}) };
-				const r = await run_item({ path: record, delta: { tasks: { add } } }, { caller: this.by }, true);
-				const ref = r?.homes?.[0]?.path ?? r?.ids?.[0];
+					source: { session: this.id, line: p.line, prompt: this.rid(p), part: x.id }, description: [x.outcome?.why, ...(x.parts ?? []).map(d => "- " + d.text)].filter(Boolean).join("\n").slice(0, 800), ...(x.file ? { file_hint: x.file } : {}), ...(x.module && !sub ? { module_hint: x.module } : {}) };
+				const r = await run_item({ path: record, delta: sub ? { [sub]: { tasks: { add } } } : { tasks: { add } } }, { caller: this.by }, true);
+				const ref = sub ? r?.ids?.[0] : (r?.homes?.[0]?.path ?? r?.ids?.[0]);
 				if (r?.ok && ref){ parts.push({ ...x, outcome: { is: "task", ref, why: x.outcome?.why ?? "" } }); made.push(ref); changed = true; }
 				else { parts.push(x); console.log(`✗ ${p.line} ${x.id}: ${r?.why ?? "refused"}`); }
 			}
@@ -205,10 +205,37 @@ Answer at the end with ONE JSON object and nothing else after it:
 		return made;
 	}
 
+	/** The task a prompt's asks go under: an open root task the model says is the same work (attach_to), else a new outcome task named
+	 *  from the prompt's subject. Returns its id, or null (the asks then file as roots, as before). */
+	async parent_for(p, row, todo, record){
+		const { run_item } = await import(pathToFileURL(path.join(ROOT, "Servex/agents/page_tools.js")).href);
+		const state = this.task_state(), open = [];
+		for (const l of PromptAudit.read(path.join(this.folder, "session.jsonl"))){ const a = l.tasks?.add; if (a?.id && !a.source?.part && !["complete", "stopped"].includes(state(a.id))) open.push({ id: a.id, title: a.title }); }
+		const attach = await this.attach_to(row, todo, open.slice(-40));
+		if (attach) return attach;
+		const title = (row.subject || todo[0].text).replace(/\s+/g, " ").trim().replace(/[.:;,]+$/, "").slice(0, 120);
+		const mods = new Set(todo.map(x => x.module).filter(Boolean));
+		const add = { title, state: "idle", from: "owner", source: { session: this.id, line: p.line, prompt: this.rid(p) }, ...(mods.size === 1 && todo.every(x => x.module) ? { module_hint: [...mods][0] } : {}) };
+		const r = await run_item({ path: record, delta: { tasks: { add } } }, { caller: this.by }, true);
+		return r?.ok ? (r.ids?.[0] ?? null) : null;
+	}
+
+	/** One Haiku call, no tools: is this prompt more work on one of the open tasks? Its id, or null; a failure means no match. */
+	async attach_to(row, todo, open){
+		if (!open.length) return null;
+		try {
+			const list = (xs, f) => xs.map(f).join("\n");
+			const r = await this.call(`Prompt subject: ${row.subject}\nAsks:\n${list(todo, x => "- " + x.text)}\n\nOpen tasks:\n${list(open, t => `${t.id}: ${t.title}`)}\n\nIs this prompt more work on ONE of the open tasks (the same outcome)? Answer JSON only: {"attach_to": "<task id>"|null}. When unsure, null.`,
+				{ model: this.def.parts.model, system: "You match a new request to an existing task. Match only when it is clearly the same work." });
+			const id = PromptAudit.json(r.text).attach_to;
+			return open.some(t => t.id === id) ? id : null;
+		} catch (e){ return null; }
+	}
+
 	/** A task's state by its ref (a folder path or a nested id), read from the files: what completion needs. */
 	task_state(){
 		const session = PromptAudit.read(path.join(this.folder, "session.jsonl")), nested = new Map();
-		for (const l of session){ const a = l.tasks?.add; if (a?.id) nested.set(a.id, a.state ?? "idle"); for (const [k, v] of Object.entries(l)) if (nested.has(k) && v && typeof v === "object"){ const verb = Object.keys(v)[0]; if (["complete", "finish"].includes(verb)) nested.set(k, "complete"); else if (["stop", "reject"].includes(verb)) nested.set(k, "stopped"); else if (["start", "approve", "resume"].includes(verb)) nested.set(k, "running"); } }
+		for (const l of session){ const a = l.tasks?.add; if (a?.id) nested.set(a.id, a.state ?? "idle"); for (const [k, v] of Object.entries(l)) if (nested.has(k) && v?.tasks?.add?.id) nested.set(v.tasks.add.id, v.tasks.add.state ?? "idle"); for (const [k, v] of Object.entries(l)) if (nested.has(k) && v && typeof v === "object"){ const verb = Object.keys(v)[0]; if (["complete", "finish"].includes(verb)) nested.set(k, "complete"); else if (["stop", "reject"].includes(verb)) nested.set(k, "stopped"); else if (["start", "approve", "resume"].includes(verb)) nested.set(k, "running"); } }
 		// A ref names a task folder however the model wrote it ("/framework/…/", "public/framework/…/requirements.md", "…/session.jsonl").
 		// Its state is AIIndex.fold's (Task.replay): the one rule every board uses.
 		return ref => {
