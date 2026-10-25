@@ -15,12 +15,11 @@ The owner's rule (2026-10-25): no more work under revived old agents. mastermind
 - ✅ **Drawer split:** back on the AI tab the chat takes full height; Chat v2 prompts are cards with room below ([drawer-split](drawer-split/), merge of `worktree/qf-3`).
 - ✅ **Pipeline doc:** [ux/Dictate/doc/pipeline.md](/framework/ux/Dictate/doc/pipeline.md), first in the Docs tab ([pipeline-doc](pipeline-doc/), merge of `worktree/qf-5`). It found `core/Session/Session.js` already extends Task, so proposal.md's ⬜ on Session is wrong (fix it there).
 
+- ✅ **Round 1, [chat-sent](chat-sent/):** sent marks ("fast ✓ 0.4 s · smart ✓ 3.1 s") in both views, the jump button bottom-right in both, V1 Questions under their Prompt, the light mic (merge 812751847). ⚠ The server half, `mark_sent` in `Servex/agents/Sessions.js`, shows only after a Servex restart, at a time the owner picks. Review notes 6–10 (the test's hard-coded path, mic colour tokens, "fast …" left for a line sent straight to smart, a Question that can't be completed from chat) go to round 2.
+
 ## In flight
 
-- **Round 1, [chat-sent](chat-sent/)** (minion-chat-sent, Sonnet). Branch `worktree/dictation-chat-sent`, worktree `C:/Code/lew42/worktrees/dictation-chat-sent`, head `0d3727c74`, merges clean. First review said fix; the follow-up fixed all five asks. **Next:** read the re-review (`chat-sent/review.md`, latest `review` line in `chat-sent/session.jsonl`), answer each finding (findings about raw-live, the long pause and refresh loss: "declined: moved to ../chat-live/"; readme goal lines: "done by pipeline-doc"), then
-  `MSYS_NO_PATHCONV=1 node Server/merge.mjs C:/Code/lew42/worktrees/dictation-chat-sent /framework/ux/Dictate/ /framework/ext/Chat/v2/ --review-dir <this folder>/chat-sent`
-  inside `node Server/hold.mjs on|off <your id>`. ⚠ It changes `Servex/agents/Sessions.js` (`mark_sent`): server-side sent marks show only after a Servex restart, at a time the owner picks.
-- Its process, [chat-see-your-words-live-and-know-when-t](chat-see-your-words-live-and-know-when-t/), waits at the build step: complete it after the merge, then review-step and land.
+- Nothing. Round 1's process, [chat-see-your-words-live-and-know-when-t](chat-see-your-words-live-and-know-when-t/), still waits at its build step: complete it, then its review and land steps (the work is merged).
 
 ## Queued, in order
 
@@ -41,6 +40,17 @@ The owner's rule (2026-10-25): no more work under revived old agents. mastermind
   - Facts for pipeline.md: smart's {title, text} refine the Prompt and the cleaned paragraphs stay; core `Prompt.text` returns the refined text, else the cleaned.
   - The fast seat's `{place}` never becomes a Prompt paragraph (0 of 56 prompts in v-sq8y7db have a second one); the Servex writer fix is theirs, proposed to mastermind-ai.
 
+## The owner's new asks (2026-10-25, relayed by session-smart)
+
+Answered: [wake-policy.md, "Next: the smart seat tails its own session log"](/framework/ux/Dictate/doc/wake-policy.md) (how the smart seat is woken today, what tailing its log would take, the send-after-pause timeout).
+
+1. **The smart seat should tail its own `session.jsonl`** through the existing follow tool, with a gather window that can be set, and a wake for every placed sentence (the owner accepts the token cost). The WakePolicy batching (12 s quiet, a question, its name, 6 sentences) and `feed_smart` go. What it takes is in that doc: a line filter so its own replies and raw pushes do not wake it, a subscription made when the session starts, a Servex restart. This is a shape change, so the plan is shown to the owner first.
+2. **What each seat does.** The fast seat places each sentence (a new Prompt, or add to the last one) and makes a Question item for a question, nothing more. The smart seat writes titles, restructures and states outcomes. Roles are in `Servex/agents/roles.js` (`voice-assistant`) and its role text.
+3. **V2 shows the live raw whisper text**, as V1 does: the owner needs it to know they were heard. This is already round 2's first item ([chat-live](chat-live/requirements.md)).
+4. **Refined cards converge.** They show ranked, conclusive outcomes and open decisions, and merge or shrink rather than grow; the raw sentences tuck inside the card. Mostly the smart seat's role text, plus the card layout in `ext/Chat/v2/`.
+5. **V2 renders markdown:** numbered items are drawn as plain text today; draw real lists. Small; fits round 2.
+6. **One data source:** both views read the same Prompt data (V1 compact, V2 rich is fine). This is the [one-chat-view](one-chat-view/requirements.md) plan.
+
 ## Known defects
 
 - **Merge gate tests against the live site:** MergeTests runs the branch's new tests against the main site, which still serves old code, so a new test fails before the merge. Prove it on the worktree url, then `--skip-tests`. Worth filing as an improvement on the merge tooling.
@@ -49,7 +59,7 @@ The owner's rule (2026-10-25): no more work under revived old agents. mastermind
 
 ## Agents
 
-- minion-chat-sent: working on round 1, idle after it; may take round 2.
+- minion-chat-sent: round 1 merged; it is a revived old agent, so by the owner's rule round 2 goes to a fresh minion under the new mastermind. Stop it.
 - minion-drawer-split, minion-pipeline-doc: done; stop them.
 - Old worktree `fix-v2-nested-state`: merged, only `files.jsonl` churn; close it with `node Server/worktree-down.mjs`.
 
