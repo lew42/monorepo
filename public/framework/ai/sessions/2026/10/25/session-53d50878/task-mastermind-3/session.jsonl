@@ -16,3 +16,9 @@
 {"review":{"at":"2026-10-25T18:07:30-05:00","answer":{"n":6,"reply":"noted: Widget.Thread path is covered by chat-sent.mjs lock/button checks"}}}
 {"review":{"at":"2026-10-25T18:07:30-05:00","answer":{"n":7,"reply":"fixed: earlier.mjs line is in ai/todo.md, committed with the landing"}}}
 {"commit":"e8476f1b321e"}
+{"commit":"6f148f149e08"}
+{"log":{"at":"2026-10-25T18:08:23-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T18:14:18-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-3"}}
+{"log":{"at":"2026-10-25T18:14:21-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T18:14:55-05:00","msg":"skill: finish-task"}}
+{"assign":{"step":0,"landed_at":"2026-10-25T18:15:07-05:00","title":"Chat scroll: locked and pinned to the bottom, no jumps","outcome":"**Chat scroll fix is merged** (`e8476f1b3`, reviewed: 5 fixed/answered, 2 noted) — [what it does](/framework/ext/Chat/doc/scroll.md)\n\n- [x] Locked and pinned on every update, live whisper line included: `prove-scroll.mjs`, pinned through growth\n- [x] Unlocks only on a deliberate scroll-up; re-locks within 40px or on the newest button: wheel-up probe\n- [x] Newest button lands the last bubble above the bottom toolbar: 4px gap over a 60px bar\n- [x] No jumps: no scroll write unless locked, one pin per frame\n- [x] fast/smart marks gone: hidden in CSS, V1 no longer builds them; `chat-sent.mjs` asserts it\n- [x] No horizontal scroll: `scrollWidth <= clientWidth`\n\nLeft: `earlier.mjs` fails the same on `michael/dev` (queued in `ai/todo.md`); scroll-event cost of `elementsFromPoint` unmeasured; no committed proof for Chat V2. Merged with `--skip-tests`.","links":[{"url":"/framework/ext/Chat/doc/scroll.md","label":"Smart scroll"},{"url":"/framework/ux/Dictate/doc/voice-assistant.md","label":"Nothing jumps"}],"window":{"after":0.55},"tokens":null}}
