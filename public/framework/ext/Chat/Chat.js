@@ -687,8 +687,9 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 			const last = mergeable($box, who, at);
 			const piece = { id: c.at, text: c.text, at, via: c.via, place: c.place };
 			if (last){
-				bubbles.get(last).pieces.push(piece);
-				last.dataset.at = at;
+				const pieces = bubbles.get(last).pieces, i = pieces.findIndex(pc => pc.at > at);   // in time order, as speak() does
+				i < 0 ? pieces.push(piece) : pieces.splice(i, 0, piece);
+				last.dataset.at = Math.max(Number(last.dataset.at) || 0, at);
 				fill(last);
 				fix_index.set(c.at, { bubble: last, piece });
 				target(c.at, last);

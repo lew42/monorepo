@@ -1,3 +1,5 @@
+**Status (2026-10-25):** step 1 is on michael/dev (ce1f45f58); steps 2-3 are built on worktree/dictation-order-2 (not merged); a Servex restart is needed for `said_at` to be written on the line (the client works without it).
+
 # Why "now?" showed above "Can you hear me?"
 
 **The render puts them out of order, because the chat's ordering time comes from two different clocks.** The log is in the right order, and so is everything Whisper and the placement step did. Proof: [`ux/Dictate/test/order.mjs`](/framework/ux/Dictate/test/order.mjs) fails today (commit `f133bedd0` on `worktree/dictation-order`).
@@ -31,7 +33,7 @@ The same cause predicts a second symptom, not yet tested: a new owner bubble can
 ## The fix (short plan)
 
 1. **`ext/Chat/Chat.js` `retag_piece`:** change the id only, never `pc.at`. I tried this one change: `order.mjs` then passes at both skews. It was reverted, since the brief fences off code edits here.
-2. **One clock for new stamps:** `Session.say`'s answer gives the offset (`r.at` minus the midpoint of the request). Keep it on `Session` (`Session.clock_offset`), and have `ComposerMic.stamp()` add it. Phone-drawn bubbles are then on Servex's clock, so `place()` sorts them correctly against the replies.
+2. **One clock for new stamps:** `Session.say`'s answer gives the offset (`r.at` minus the midpoint of the request). Keep it on `Session` (`Session.clock.offset`), and have `ComposerMic.stamp()` add it. Phone-drawn bubbles are then on Servex's clock, so `place()` sorts them correctly against the replies.
 3. **Into the record:** `chat.js` `deliver` sends `said_at: entry.at` with `Session.say`, and Servex writes it on the chat line. Then a reload orders the lines by the same key the live screen used, even when a slow send lands after a later one (the `DELIVER_MS` path in `Mic.js:677`).
 4. **Proof:** `order.mjs` passes. Add a third run in which a reply sits between the two sentences, to cover the cross-bubble case.
 

@@ -5,10 +5,10 @@
 // The phone stamps each sentence when it leaves the draft (ComposerMic.stamp); Servex writes the line with ITS clock and answers
 // with that `at`; chat.js retags the bubble piece to it, and Chat.js retag_piece moves the piece's `at` too. The next sentence,
 // drawn with the phone's stamp, is then "earlier" than the one before it, and speak() splices it in front.
-// Three runs: skew 0 (the control, both clocks agree), skew SKEW_MS (the PC ahead of the phone), and skew SKEW_MS with the assistant's
-// reply between the two sentences. Exit 1 when either of the first two reads out of order. The third is the KNOWN cross-bubble case:
-// a new owner bubble (phone clock) is placed against the reply (Servex's clock) by Chat.js place(); it waits for one clock for new
-// stamps (order/report.md, step 2), and it fails the run too (one clock: Session.clock.offset).
+// Four runs: skew 0 (the control, both clocks agree), skew SKEW_MS (the PC ahead of the phone), skew SKEW_MS with the assistant's
+// reply between the two sentences (the cross-bubble case: a new owner bubble and a reply compared on one clock, Session.clock.offset),
+// and a reload from a session file whose lines are out of order but carry `said_at` (Chat.js orders by said_at ?? at). Any run out of
+// order fails the script (exit 1).
 import path from "path";
 
 const [base = "http://monorepo.localhost", skew_arg] = process.argv.slice(2);
@@ -20,7 +20,7 @@ const { default: Browser } = await import(new URL("../../../../../Server/Browser
 const browser = await Browser.launch();
 const kill = setTimeout(() => { console.log("FAIL killed after 120 s"); process.exit(2); }, 120000);
 
-async function run(skew, { reply = false } = {}){
+async function run(skew, { reply = false, reload = false } = {}){
 	const ctx = await browser.newContext({ viewport: { width: 400, height: 800 }, hasTouch: true, isMobile: true });
 	const page = await ctx.newPage();
 	const errors = [], lines = [];
@@ -45,6 +45,11 @@ async function run(skew, { reply = false } = {}){
 	await page.route(/\/log\/prompts/, r => json(r, {}));
 	await page.route(/\/api\/hitl/, r => json(r, { ok: true, marks: [{ mark: "ok" }] }));
 	await page.route(/\/api\/refine\/live/, r => json(r, { ok: true, slots: [], outline: { sections: [] } }));
+	if (reload){   // a file written in arrival order, not spoken order: B's send was slow, so it was written after A's... the other way round
+		const T = Date.now();
+		const ln = (at, said_at, text) => ({ chat: { at: new Date(T + at).toISOString(), said_at: new Date(T + said_at).toISOString(), from: { kind: "owner" }, via: "voice", text } });
+		lines.push(ln(1000, 3000, SAID[1]), ln(2000, 1000, SAID[0]));   // file order: "now?" then "Can you hear me?"; spoken order the reverse
+	}
 	await page.goto(base + "/framework/ext/drawer/", { waitUntil: "domcontentloaded" });
 	await page.waitForSelector(".drawer-rail-ai", { timeout: 20000 });
 	await page.evaluate(async () => { const { default: Sheet } = await import("/framework/ext/drawer/Sheet.js"); window.$sheet = Sheet.of(); await window.$sheet.to("full", { listen: false }); });
@@ -52,7 +57,13 @@ async function run(skew, { reply = false } = {}){
 	await page.waitForTimeout(800);
 
 	// Say the first sentence, pause (it sends), wait for Servex's answer (the retag), then say the second and pause again.
-	const trace = await page.evaluate(async ({ SAID, SAY_MS, REPLY, reply, skew }) => {
+	const trace = reload ? await page.evaluate(async () => {
+		await (await import("/framework/ux/Dictate/chat.js")).resume("stub-session");
+		await new Promise(r => setTimeout(r, 2500));
+		const pieces = [...globalThis.$dictate_widget.$thread.el.querySelectorAll(".chatbox-you [data-re], .chatbox-reply [data-re]")]
+			.map(n => ({ text: n.querySelector(".chatbox-text")?.textContent.trim() ?? n.textContent.trim(), re: n.dataset.re }));
+		return [{ step: "reloaded", pieces }];
+	}) : await page.evaluate(async ({ SAID, SAY_MS, REPLY, reply, skew }) => {
 		const m = globalThis.$dictate_widget.dictate, wait = ms => new Promise(r => setTimeout(r, ms));
 		m.state = "listening";
 		m.revise = false;
@@ -88,8 +99,8 @@ async function run(skew, { reply = false } = {}){
 	const norm = t => String(t).toLowerCase().replace(/[^a-z ]+/g, "").trim();
 	const want = reply ? [SAID[0], REPLY, SAID[1]] : SAID;
 	const ok = got.length === want.length && got.every((t, i) => norm(t).endsWith(norm(want[i])));
-	const label = (ok ? "ok  " : "FAIL") + ` skew ${skew} ms (${skew ? "PC clock ahead of the phone" : "clocks agree"}${reply ? ", a reply between; the cross-bubble case" : ""})`;
-	console.log(`${label}: the chat reads ${got.map(t => JSON.stringify(t)).join(" then ")}; want ${want.map(t => JSON.stringify(t)).join(" then ")}`);
+	const label = (ok ? "ok  " : "FAIL") + ` skew ${skew} ms (${reload ? "lines carry said_at" : skew ? "PC clock ahead of the phone" : "clocks agree"}${reply ? ", a reply between; the cross-bubble case" : ""})`;
+	console.log(`${label}: ${reload ? "reload from a file out of order: " : ""}the chat reads ${got.map(t => JSON.stringify(t)).join(" then ")}; want ${want.map(t => JSON.stringify(t)).join(" then ")}`);
 	for (const s of trace) console.log(`       ${s.step}: ${s.pieces.map(p => `${JSON.stringify(p.text)} @${p.re}`).join(" | ")}`);
 	console.log(`       Servex wrote: ${lines.map(l => `${JSON.stringify(l.chat.text)} @${l.chat.at}`).join(" | ")}`);
 	if (errors.length) console.log(`FAIL skew ${skew} ms: page error — ${errors[0]}`);
@@ -99,7 +110,8 @@ async function run(skew, { reply = false } = {}){
 
 let all = true;
 for (const skew of [0, SKEW_MS]) all = (await run(skew)) && all;
-all = (await run(SKEW_MS, { reply: true })) && all;   // the cross-bubble case: one clock (ComposerMic.stamp + clock_offset) fixes it
+all = (await run(SKEW_MS, { reply: true })) && all;   // the cross-bubble case: one clock (ComposerMic.stamp + clock.offset) fixes it
+all = (await run(0, { reload: true })) && all;   // a reload orders by said_at, not by file order
 clearTimeout(kill);
 await browser.close();
 process.exit(all ? 0 : 1);
