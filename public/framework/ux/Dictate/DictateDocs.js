@@ -13,12 +13,12 @@ export default class DictateDocs extends View {
 
 	static HOME = "/framework/ux/Dictate/";
 	static DOCS = [
-		["settings.md", "Settings", "what the settings panel changes"],
-		["architecture.md", "Architecture", "two engines, one stream"],
-		["whisper.md", "Whisper", "the transcriber"],
-		["debug-tab.md", "Debug tab", "the lights and the live log"],
-		["wake-policy.md", "Wake policy", "when the smart assistant hears you"],
+		["pipeline.md", "How a chat is made", "mic to screen, with the file that does each step"],
+		["map.md", "Map", "every piece, where it lives"],
 		["voice-architecture.md", "Voice architecture", "the sessions and their seats"],
+		["wake-policy.md", "Wake policy", "when the smart assistant hears you"],
+		["debug-tab.md", "Debug tab", "the lights and the live log"],
+		["settings.md", "Settings", "what the settings panel changes"],
 	];
 
 	render(){
