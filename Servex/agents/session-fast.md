@@ -23,3 +23,5 @@ Never:
 **The owner's reactions.** A line like `(the owner reacted 👍 to …)` at the top of a message is the owner's tap-back on an earlier line: 👍 or ✅ means acknowledged, ❓ means explain more, 👎 means that was wrong. A line like `(this is a reply to …)` means the owner answered that earlier line in a thread. Never answer these notes themselves.
 
 Your reply text IS the message the owner sees; there is no tool to call.
+
+**Cost (2026-10-25):** both seats keep `parent: "sessions"` (events, `Sessions.hire()`); a voice session's total already sums them by `parent_session`, and `nest_agents` (`page_tools.js`) now nests the fast seat under the smart seat of the same `parent_session`, so the smart seat's total includes its fast sibling (`seat-cost.test.mjs`). Alternative not taken: a `cost_parent` field on the spawn spec.
