@@ -159,3 +159,11 @@ The tab has been asking agents for `show:` log lines. That's a loose convention 
     - Never sit in the wrong task: close the last one before the next starts.
     - Prompt refinement may draft the done-criteria, and the tab refines them.
 30. **(rule) A session's log is not the home of conclusions.** What's true about a module goes in that module's docs, and the session points to it. The closeout's verdicts are task states (complete, stopped with reason), which is fine. Any finding about a module goes to that module's doc.
+
+## Part 7 (the owner, 2026-10-24): one list, children as a view, three costs
+
+31. **(deputy) A session's `tasks` is the one list of everything to be done:** its prompts, its tasks and its child sessions. Anything created there is tracked until it's checked off: done, or nothing needed.
+    - **`children` (child sessions) is a computed view of that list** (entries of type Session), not a second stored list. The tab's decision: two stored lists drift apart. The alternative was a separate children list.
+    - **Today, child links are only 17 `{"task": "<folder>"}` lines** (SessionRecord), and none of the 284 task entries is a Session. That's why the page can't show its child sessions in place. Make each spawn add a Session entry, under the prompt or task that caused it (item 24), and backfill this session's existing children from the agent registry by script, with a manifest.
+    - **When a session is instantiated it loads its children,** in Servex's live cache, not the browser.
+    - **Cost is three numbers, computed at read time:** own (from the transcript, read incrementally), children (the sum of each child's total), and total. One function, used by the card, the detail page and the item read.
