@@ -67,6 +67,8 @@ const look = page => page.evaluate(() => {
 	const m = globalThis.$dictate_widget?.dictate, bar = document.querySelector(".drawer-rail-sheet .dictation-bar[data-size=full]");
 	return { state: m?.state, posting: m?.posting ?? 0, held: (m?.held ?? []).length, bar: bar?.textContent?.replace(/\s+/g, " ").trim(),
 		failed: document.querySelectorAll(".drawer-rail-sheet .chatbox-failed").length,
+		last: [...document.querySelectorAll(".drawer-rail-sheet .chatbox")].slice(-2).map(b => b.outerHTML.slice(0, 300)),
+		lines: [...(globalThis.$dictate_widget?.$thread?.lines?.keys?.() ?? [])],
 		health: globalThis.DictateHealth?.snapshot?.() ?? null };
 });
 const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now() - t < ms){ if (await fn()) return true; await page.waitForTimeout(500); } return false; };

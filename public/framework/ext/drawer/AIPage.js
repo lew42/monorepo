@@ -15,9 +15,19 @@ export default class AIPage extends Page {
 		["chat", "Chat", () => import("./tabs/ai.js")],
 		["live", "Live", null],                          // AIFeed, sheet step 7
 		["sessions", "Sessions", () => import("./tabs/sessions.js")],
-		["dictation", "Dictation", () => import("./tabs/dictation.js")],
+		["debug", "Debug", () => import("./tabs/debug.js")],             // dictation layer by layer (was Dictation, the playground, until 2026-10-24)
+		["dictation", "Dictation", () => import("./tabs/debug.js")],     // the old url still opens it; not in the row of views (HIDDEN)
 		["settings", "Settings", () => import("./tabs/settings.js")],
 	];
+
+	static HIDDEN = new Set(["dictation"]);   // views kept only so an old url opens; never drawn in the row
+
+	// The view a url names inside an AI page ("debug" for <path>/ai/debug/), "chat" for <path>/ai/ itself, null outside one.
+	static view_of(pathname = location.pathname, ai = this.current){
+		if (!ai?.url || !pathname.startsWith(ai.url)) return null;
+		const name = pathname.slice(ai.url.length).split("/")[0];
+		return name && this.VIEWS.some(v => v[0] === name) ? (name === "dictation" ? "debug" : name) : "chat";
+	}
 
 	// The AI page showing now, or null: Sheet.routed() reads it.
 	static current = null;
@@ -40,7 +50,7 @@ export default class AIPage extends Page {
 		const [, , load] = this.constructor.VIEWS.find(v => v[0] === name);
 		div.c("drawer-ai-page-views flex wrap", () => {
 			span.c("drawer-ai-page-about muted").append(() => { span("about "); a(this.about).href(this.about); });
-			this.constructor.VIEWS.forEach(([n, label]) =>
+			this.constructor.VIEWS.filter(([n]) => !this.constructor.HIDDEN.has(n)).forEach(([n, label]) =>
 				a.c("drawer-ai-page-view", label).ac(n === name && "on").href(this.url + (n === "chat" ? "" : n + "/")));
 		});
 		const $box = div.c("drawer-ai-page-body", () => { span.c("muted", "loading…"); });

@@ -3,6 +3,7 @@ import Dictate from "/framework/ux/Dictate/Dictate.js";
 import Capture from "/framework/ux/Dictate/capture.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 import RefineSystem from "/framework/ext/Refine/RefineSystem.js";
+import DictateHealth from "/framework/ux/Dictate/DictateHealth.js";
 
 /** The microphone of a composer: `ux/Dictate` with a few methods redirected; speech goes into the composer's box and goes out as one message. see doc/mic-notes.md#overrides */
 // Every knob of the whisper-to-box flow, read live everywhere. see doc/mic-notes.md#settings
@@ -632,11 +633,15 @@ export class ComposerMic extends Dictate {
 		if (re){ entry.re = re; entry.selected = re; }
 		this.posting = (this.posting ?? 0) + 1;
 		let ok;
-		try { ok = await this.deliver?.(entry); } finally { this.posting--; }
+		// A send that never settles must not hold the queue: every later sentence waits behind it (the stall, test/stall.mjs).
+		const late = new Promise(r => setTimeout(() => r("late"), ComposerMic.DELIVER_MS));
+		try { ok = await Promise.race([this.deliver?.(entry), late]); } catch (e){ ok = false; DictateHealth.set("sent", "bad", "not sent: " + (e?.message ?? e)); } finally { this.posting--; }
+		if (ok === "late"){ ok = false; DictateHealth.set("sent", "bad", `not sent: the send was still open after ${ComposerMic.DELIVER_MS / 1000} s, so the next sentences go on without it (its words are kept in the fallback log)`); }
 		if (ok) return;
 		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
 		catch (e){ console.warn("chat: could not log this utterance", e); }
 	}
 }
 ComposerMic.prototype.mode = "open";   // the mic stays on; draw_caption() types into the box
-ComposerMic.DUP_WINDOW_MS = 4000;   // same words from the same mic this close together are one send (see post_held)
+ComposerMic.DUP_WINDOW_MS = 4000;
+ComposerMic.DELIVER_MS = 25000;   // the backstop: Session.js gives up after 10 s per call, so only a deliver with no timeout of its own reaches this   // same words from the same mic this close together are one send (see post_held)

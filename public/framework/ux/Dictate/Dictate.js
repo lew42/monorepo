@@ -7,6 +7,7 @@ import MicIndicator from "./MicIndicator.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import WhisperLog from "/framework/audio/Whisper/WhisperLog.js";
+import DictateHealth from "./DictateHealth.js";
 
 View.stylesheet(import.meta, "Dictate.css");
 
@@ -181,6 +182,7 @@ export default class Dictate extends View {
 		(this.stage_log ??= []).push({ stage, detail, ms, at: Date.now() });
 		if (this.stage_log.length > 12) this.stage_log.shift();
 		console.log(`[dictate] ${stage}: ${detail}`);
+		DictateHealth.step(stage, detail);   // the Debug tab's layers (DictateHealth.js)
 		this.on_step?.(stage, detail);   // optional: a caller drawing its own connection view (ux/Dictate/Connection)
 		this.draw_diag();
 		this.draw_stage_tray?.();
@@ -373,6 +375,7 @@ export default class Dictate extends View {
 		const was_listening = this.state === "listening";
 		this.state = state;
 		if (state === "idle" && this.steps?.mic === "on, level ok") this.log_step("mic", "idle");   // the diag line must not say "on" after stop
+		else if (state === "idle" && DictateHealth.layers.mic.state === "ok") DictateHealth.set("mic", "idle", "off");
 		(state === "listening" || state === "connecting") ? LIVE.add(this) : LIVE.delete(this);
 		MicIndicator.set_open(LIVE.size > 0);
 		if (state === "listening" && !was_listening) floor.mic_on(this);   // the floor: `floor.js`
@@ -396,6 +399,7 @@ export default class Dictate extends View {
 		this.$button.rc("listening transcribing connecting");
 		this.$status.ac("error").text(msg);
 		console.error("ux/Dictate:", msg);
+		DictateHealth.error(msg);
 		this.on_error?.(msg);
 	}
 
@@ -427,7 +431,11 @@ export default class Dictate extends View {
 	}
 
 	heartbeat(){
-		if (!this.el.isConnected){ this.stop(); this.mic?.stop(); try { this.rec?.abort?.(); } catch {} return; }
+		if (!this.el.isConnected){
+			// the box holding this mic left the page (the chat was redrawn or released): say so, never stop silently
+			DictateHealth.set("mic", "idle", "stopped: the chat holding this mic was taken off the page (redrawn, or the window crossed the phone width). Press 🎤 again.");
+			this.stop(); this.mic?.stop(); try { this.rec?.abort?.(); } catch {} return;
+		}
 		const now = performance.now();
 		if (this.engine === "whisper"){
 			if (this.has_speech && now - this.last_loud_at >= this.pause_ms) this.close_segment("pause");
@@ -546,6 +554,7 @@ export default class Dictate extends View {
 		else { this.steps.whisper = reply; this.draw_diag(); this.on_step?.("whisper", reply); }   // every answer updates the line; only the first is console-logged
 		// Whisper puts "\n" between its own segments; collapse them (real breaks come from real pauses).
 		const text = (body.text ?? "").replace(/\s+/g, " ").trim();
+		DictateHealth.heard({ kind, text, ms: Math.round(this.whisper_ms) });
 		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000), req, segment, body });
 		if (this.log_raw) this.log_whisper({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000), req, segment, body });
 		return text;

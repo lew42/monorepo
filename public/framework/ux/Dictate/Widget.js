@@ -100,7 +100,7 @@ export default class Widget extends View {
 
 	/** A reply still being written: one bubble per speaker, redrawn whole, kept out of speak() merging (see doc/widget-notes.md#streaming-replies). */
 	stream(who, text){
-		if (!text) return;
+		if (!text) return void this.$thread?.end_stream?.("stream:" + who);   // the reply's text ended: no blinking cursor left behind
 		this.$thread?.draw({ chat: { at: "stream:" + who, from: { kind: "assistant", id: who }, text, fix: true } });
 	}
 
@@ -123,7 +123,8 @@ Widget.prototype.marks = false;
 Widget.prototype.v1 = false;         // true = the OLD thread (one bubble per sentence) + composer (Dictate's own open mic)
 Widget.prototype.mode = "dictate";
 Widget.MODES = MODES;
-Widget.HEADROOM = 0.75;   // a new bubble keeps this share of the box under it before the page turns (doc/voice-assistant.md#nothing-jumps)
+Widget.HEADROOM = 0.75;
+Widget.STREAM_END_MS = 15000;   // an ended stream bubble with no settled line after this long goes (the reply was dropped or became a reaction)   // a new bubble keeps this share of the box under it before the page turns (doc/voice-assistant.md#nothing-jumps)
 
 /** The old thread (v1: true): one bubble per line, never merged. */
 Widget.ThreadV1 = class WidgetThreadV1 extends View {
@@ -281,6 +282,14 @@ Widget.Thread = class WidgetThread extends View {
 		// a settled reply replaces a live bubble from the same sender
 		if (assistant) this.drop_live("stream:" + (chat.from?.id ?? "assistant"));
 
+		// ONE bubble piece per `at`: the same line again (the live wire and the poll both carry it) changes nothing,
+		// and a line with new text for a known `at` (a `fix`) updates its piece in place, never a second copy
+		const known = this.lines.get(at);
+		if (known){
+			if (known.said !== chat.text && known.bubble){ patch_piece(known.bubble, known.ref.id, { text: chat.text }); known.said = chat.text; this.refresh(); this.anchor(); }
+			return;
+		}
+
 		const sender = chat.from?.id || chat.from?.kind || (assistant ? "assistant" : "owner");
 		const who = chat.from?.id ?? (assistant ? "assistant" : "owner");
 		const bubble = this.follow(() => speak(this.$bubbles, {
@@ -288,8 +297,8 @@ Widget.Thread = class WidgetThread extends View {
 			who, text: chat.text, sender, at, id: at, via: chat.via,
 			join: this.widget.join,
 		}));
-		// the new piece is always the bubble's last child
-		const text_node = bubble.lastElementChild;
+		// the new piece is found by its id: a late line is put in time order, so it is not always the last child
+		const text_node = bubble.querySelector(`:scope > [data-re="${CSS.escape(String(at))}"]`) ?? bubble.lastElementChild;
 		const ref = { id: at };
 		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text, spoken: !assistant && (chat.via === "voice" || chat.via === "whisper") });   // `said`: the raw words, kept when a placement improves the text
 		this.refresh();
@@ -397,6 +406,7 @@ Widget.Thread = class WidgetThread extends View {
 	show_stream(key, who, text){
 		this.$empty.hide();
 		let hit = this.lives.get(key);
+		if (hit?.timer){ clearTimeout(hit.timer); hit.timer = null; hit.el.classList.add("chatbox-streaming"); }   // more text after an end: writing again
 		if (!hit){
 			// same look as a settled reply plus chatbox-streaming (the blinking cursor)
 			let node, text_el;
@@ -481,6 +491,15 @@ Widget.Thread = class WidgetThread extends View {
 		this.refresh();
 		this.anchor();
 		return true;
+	}
+
+	/** The stream said its text ended: stop the cursor; the settled line normally replaces it at once, else it goes after STREAM_END_MS. */
+	end_stream(key){
+		const hit = this.lives.get(key);
+		if (!hit) return;
+		hit.el.classList.remove("chatbox-streaming");
+		clearTimeout(hit.timer);
+		hit.timer = setTimeout(() => this.drop_live(key), Widget.STREAM_END_MS);
 	}
 
 	/** Remove a live bubble and clear its fade timer. */

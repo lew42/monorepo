@@ -47,6 +47,8 @@ export default class Sheet extends View {
 		const ai = AIPage.current, st = history.state ?? {}, m = st[this.constructor.KEY];
 		const open = ai?.url && location.pathname.startsWith(ai.url) || st.here === location.pathname;
 		if (!open) return "closed";
+		const view = AIPage.view_of();
+		if (view && view !== "chat") return "full";   // a tab's own url (<path>/ai/debug/): its body shows only in the full sheet
 		return m in this.constructor.Size.RANK && m !== "closed" ? m : "split";
 	}
 
@@ -137,6 +139,8 @@ export default class Sheet extends View {
 		const sheet = this.sheet();
 		if (!sheet.showing()) sheet.show({ listen });
 		sheet.state(mode);
+		const view = mode === "full" && AIPage.view_of();
+		if (view && view !== "chat" && sheet.tab_name !== view) sheet.choose(view);   // a reload on <path>/ai/debug/ comes back to that tab
 	}
 
 	// Router → app.navigated → here, after the Router's own pushState (hence the timeout).
@@ -285,7 +289,7 @@ export class SheetPanel extends View {
 	more_button(){
 		const $more = button.c("drawer-rail-sheet-more", "More").attr("type", "button")
 			.attr("aria-expanded", "false")
-			.attr("title", "Sessions, dictation, settings, the full AI")
+			.attr("title", "Debug, settings, the full AI")
 			.click(() => {
 				const open = this.$links.el.classList.toggle("drawer-rail-sheet-links-folded") === false;
 				$more.attr("aria-expanded", String(open));
@@ -295,7 +299,7 @@ export class SheetPanel extends View {
 
 	links(){
 		return div.c("drawer-rail-sheet-links flex wrap", () => {
-			this.link("Dictation", "dictation");
+			this.link("Debug", "debug");
 			this.link("Settings", "settings");
 			this.link("Open full AI", "ai");
 		});
@@ -465,14 +469,16 @@ export class SheetPanel extends View {
 	unmount_tabs(){
 		this.$tabs?.el.remove();
 		this.$tabs = null;
+		if (this.tab_name) this.route_tab(null);
 		this.tab_name = null;
 		this.$title?.text(this.title + " ▾");
 	}
 
 	pick(name){
 		const shown = tabs.shown();
-		const tab = shown.find(t => t.name === name) ?? shown[0];
+		const tab = shown.find(t => t.name === (name === "dictation" ? "debug" : name)) ?? shown[0];
 		this.tab_name = tab.name;
+		this.route_tab(tab.name);
 		this.$title.text((tab.name === "ai" ? this.title : tab.label) + " ▾");   // the title says which tab is showing
 		if (tab.name === "ai"){ this.$tabbody.empty(); this.ac("drawer-rail-sheet-chat-only"); return; }   // the chat above IS the AI tab
 		this.rc("drawer-rail-sheet-chat-only");
@@ -482,6 +488,18 @@ export class SheetPanel extends View {
 			.catch(e => body.empty(() => { span.c("drawer-wait muted", "This tab could not load: " + e.message); }));
 	}
 }
+
+/* THE TAB IS ROUTED (2026-10-24): a picked tab is the url <path>/ai/<tab>/, the AIPage view url every width
+ * already has, written with replaceState so the size steps in history are untouched; a reload on it
+ * opens the full sheet on that tab (Sheet.routed/apply). The chat, or a smaller sheet, gives the url
+ * back. Why a subpath and not a peer path (<path>/debug/): ux/Dictate/doc/debug-tab.md#routed. */
+SheetPanel.prototype.route_tab = function(name){
+	const about = drawer.page().replace(/\/?$/, "/"), ai = about + "ai/", here = location.pathname;
+	const want = name && name !== "ai" ? ai + name + "/" : (AIPage.view_of(here) && AIPage.view_of(here) !== "chat" ? (this.url_before ?? about) : null);
+	if (!want || want === here) return;
+	if (name && name !== "ai" && !AIPage.view_of(here)) this.url_before = here;   // opened in place: the page's own url comes back after
+	history.replaceState(history.state, "", want + location.search + location.hash);
+};
 
 SheetPanel.prototype.title = "AI";   // the ✦ AI button's own word
 // The old chain's stamped names, kept so the DOM is unchanged (rail.css keys on drawer-rail-sheet; nothing keys on the other three).
