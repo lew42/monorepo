@@ -1,0 +1,406 @@
+diff --git a/public/framework/dev/Socket/Socket.js b/public/framework/dev/Socket/Socket.js
+index 5f12a9ad8..22ecddd61 100644
+--- a/public/framework/dev/Socket/Socket.js
++++ b/public/framework/dev/Socket/Socket.js
+@@ -16,6 +16,10 @@ export default class Socket {
+ 
+ 	static STATE = "dev-reload-state";
+ 
++	// A reload deferred while a mic was busy waits until the page has been quiet this long, so stopping the mic and
++	// starting it again never lands on a reloading page (ux/Dictate/test/refresh.mjs, scenario restart).
++	static QUIET_MS = 30000;
++
+ 	static singleton() {
+ 		if (!this._instance) {
+ 			this._instance = new this();
+@@ -166,7 +170,7 @@ export default class Socket {
+ 
+ 	mark_stale(text = "This page is out of date — reload") {
+ 		if (this.pill || !document.body) return;
+-		this.inject_style("dev-stale", "@layer util { .dev-stale-pill { position: fixed; inset-block-end: 1rem; inset-inline-start: 1rem; z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }");
++		this.inject_style("dev-stale", "@layer util { .dev-stale-pill { position: fixed; inset-block-start: 0.5rem; inset-inline-start: 50%; transform: translateX(-50%); max-inline-size: calc(100vw - 2rem); z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }");
+ 		const pill = this.pill = document.createElement("button");
+ 		pill.className = "dev-stale-pill";
+ 		pill.textContent = text;
+@@ -178,7 +182,13 @@ export default class Socket {
+ 	busy() { for (const fn of this.busy_hooks ?? []) try { if (fn()) return true; } catch {} return false; }
+ 	defer() {
+ 		if (this.deferring) return;
+-		this.deferring = setInterval(() => { if (!this.busy()) { clearInterval(this.deferring); this.deferring = null; this.reload(); } }, 1000);
++		let quiet_since = 0;
++		this.deferring = setInterval(() => {
++			if (this.busy()) { quiet_since = 0; return; }
++			quiet_since ||= Date.now();
++			if (Date.now() - quiet_since < this.constructor.QUIET_MS) return;
++			clearInterval(this.deferring); this.deferring = null; this.reload();
++		}, 1000);
+ 	}
+ 
+ 	skip() {
+@@ -250,6 +260,7 @@ export default class Socket {
+ 		if ($f && "value" in $f && $f.value)
+ 			state.focus = { at: where($f), value: $f.value, caret: $f.selectionStart };
+ 
++		try { this.emit("stash", state); } catch {}   // a view adds what it needs back (the AI sheet: its size)
+ 		try { sessionStorage.setItem(this.constructor.STATE, JSON.stringify(state)); } catch {}
+ 	}
+ 
+@@ -262,6 +273,7 @@ export default class Socket {
+ 		} catch {}
+ 
+ 		if (!state || state.url !== location.pathname + location.search || Date.now() - state.at > 20000) return;
++		this.restored = state;   // read once by whoever stashed something in it (the AI sheet)
+ 
+ 		let tries = 0;
+ 		const put = () => {
+diff --git a/public/framework/ext/drawer/Sheet.js b/public/framework/ext/drawer/Sheet.js
+index 05a227280..d2cd3d541 100644
+--- a/public/framework/ext/drawer/Sheet.js
++++ b/public/framework/ext/drawer/Sheet.js
+@@ -9,6 +9,7 @@ import drawer from "./drawer.js";
+ import AIPage from "./AIPage.js";
+ import AIFeed from "./AIFeed.js";
+ import DictationBar from "/framework/ux/Dictate/DictationBar.js";
++import Socket from "/framework/dev/Socket/Socket.js";
+ 
+ View.stylesheet(import.meta, "rail.css");
+ 
+@@ -30,6 +31,19 @@ export default class Sheet extends View {
+ 		this.watch_history();
+ 		this.watch_nav();
+ 		this.restore();
++		this.keep_on_reload();
++	}
++
++	// A dev reload (a file changed) brings the sheet back at its size, its mic bar saying why the mic is off:
++	// ux/Dictate/doc/debug-tab.md#refresh-then-dictate. The mic is not restarted: a reload carries no tap, and the browser wants one.
++	keep_on_reload(){
++		const socket = Socket.singleton();
++		socket.on("stash", state => { if (this.mode && this.mode !== "closed") state.sheet = this.mode; });
++		const mode = socket.restored?.sheet;
++		if (!mode || !this.small()) return;
++		socket.restored.sheet = null;
++		DictationBar.note = "the page reloaded because a file changed: tap 🎤 to keep talking";
++		setTimeout(() => this.to(mode), 0);
+ 	}
+ 
+ 	watch_breakpoint(){
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index e455f665c..482aed996 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -234,7 +234,12 @@ export default class Dictate extends View {
+ 	}
+ 
+ 
+-	toggle(){ (this.state === "idle" || this.state === "error") ? this.start() : this.stop(); }
++	toggle(){
++		if (this.state === "idle" || this.state === "error") return this.start();
++		// Still finishing the last sentence after a stop: a press is "listen again" once it is done, never ignored (test/refresh.mjs, again).
++		if (this.state === "transcribing"){ this.again = true; this.$status?.text("finishing the last sentence, then listening again"); return; }
++		return this.stop();
++	}
+ 
+ 	/** Instant secure-context check; the Web Speech constructor exists but fails silently off https. see doc/notes.md#insecure-context */
+ 	insecure_context_message(){
+@@ -243,7 +248,17 @@ export default class Dictate extends View {
+ 		return `The mic needs https or localhost: open http://localhost${port} on this machine, or see doc/https-lan.md for https on the LAN.`;
+ 	}
+ 
++	/** One start at a time. Two at once (✦ starts the mic, and a press during the Whisper check started it again) closed
++	 *  one start’s audio while it loaded: "AbortError: Unable to load a worklet’s module", the mic that would not start
++	 *  (test/refresh.mjs). A start pressed after a cancelled one waits for it, then runs. */
+ 	async start(){
++		if (this.start_promise && !this.cancel_connect) return this.start_promise;
++		if (this.start_promise) await this.start_promise.catch(() => {});
++		if (this.state === "listening" || this.state === "connecting") return;
++		return this.start_promise = this.start_now().finally(() => { this.start_promise = null; });
++	}
++
++	async start_now(){
+ 		const insecure = this.insecure_context_message();
+ 		if (insecure){ this.log_step("mic", "refused: insecure context"); this.set_error(insecure); return; }
+ 
+@@ -265,8 +280,10 @@ export default class Dictate extends View {
+ 		this.on_start?.();
+ 
+ 		this.log_step("mic", "checking the engine…");
++		this.set_state("connecting");   // the bar says "starting" while Whisper is checked (up to ~5 s), never "off" after a press
+ 		// Shared check, not detect_engine() raw. see doc/notes.md#one-health-check-per-tab
+ 		const { engine, steps } = await shared_detect_engine(this);
++		if (this.cancel_connect) return;   // stopped during the check: stop() already set idle
+ 		this.engine = engine;
+ 		this.steps.socket = steps.socket; this.steps.whisper = steps.whisper;
+ 		this.draw_diag();
+@@ -301,6 +318,7 @@ export default class Dictate extends View {
+ 		try {
+ 			await this.open_engine();
+ 		} catch (e){
++			if (this.cancel_connect){ this.mic?.stop(); return; }   // stopped while it opened: stop() already said "off"; the abort is ours, not a fault
+ 			this.log_step("mic", "refused: " + (e?.name ?? e?.message ?? e));
+ 			this.set_error(this.explain(e));
+ 			return;
+@@ -352,6 +370,7 @@ export default class Dictate extends View {
+ 				if (!this.settled && this.skipped_silent)
+ 					this.$status.text("nothing loud enough to transcribe was heard — check the level meter moves while you talk");
+ 			}
++			if (this.again){ this.again = false; this.on_stop?.(); return this.start(); }   // pressed while the last sentence finished
+ 		} else {
+ 			this.stop_browser();   // set_state("idle") happens in onend, once Chrome truly stops
+ 		}
+@@ -362,6 +381,7 @@ export default class Dictate extends View {
+ 		if (e?.name === "NotAllowedError")
+ 			return "The browser is not allowed to use the microphone — allow it for this site and press 🎤 again.";
+ 		if (e?.name === "NotFoundError") return "No microphone was found on this machine.";
++		if (e?.name === "WorkletError") return `The mic could not start: ${e.message}. The microphone was released; press 🎤 again.`;
+ 		if (e?.name === "NotReadableError" || e?.name === "TrackStartError")
+ 			return "The microphone is being used by another app (or another browser tab) — close it and press 🎤 again.";
+ 		if (e?.name === "SecurityError") return this.insecure_context_message() ?? "The browser refused the microphone for security reasons.";
+diff --git a/public/framework/ux/Dictate/DictationBar.js b/public/framework/ux/Dictate/DictationBar.js
+index bd03c4275..07b747789 100644
+--- a/public/framework/ux/Dictate/DictationBar.js
++++ b/public/framework/ux/Dictate/DictationBar.js
+@@ -19,6 +19,7 @@ export default class DictationBar extends View {
+ 	static HOLD_MS = 600;
+ 	static WATCHED = ["set_state", "set_error", "send_screen", "send_sentences", "enqueue"];   // the mic's methods that change what the word says
+ 	static HINTS = { starting: "connecting…", listening: "sends when you pause", sending: "one moment", paused: "tap to talk", off: "tap to talk" };
++	static note = null;   // a one-off reason the mic is off (the AI sheet after a dev reload), shown instead of "tap to talk" until the mic starts
+ 
+ 	/** Put the bar in the widget's composer (full size) and, if `live` is given, a compact one in that row (the strip size). */
+ 	static mount(widget, live){
+@@ -108,14 +109,14 @@ export default class DictationBar extends View {
+ 	/** Redraw the word, the hint and the mic's look. `error` is the reason when the mic just failed. */
+ 	refresh(error){
+ 		const m = this.mic;
+-		if (m.state === "listening" || m.state === "connecting") { m.$was_on = true; m.$off = false; }
++		if (m.state === "listening" || m.state === "connecting") { m.$was_on = true; m.$off = false; this.constructor.note = null; }
+ 		if (m.state === "error") this.error = String(error?.message ?? error ?? this.error ?? "the microphone stopped");
+ 		else if (m.state !== "idle") this.error = null;
+ 		const word = this.state();
+ 		this.attr("data-state", word);
+ 		this.$word.text(word[0].toUpperCase() + word.slice(1));
+ 		if (word !== "listening" && word !== "sending") this.$mic.style("--level", "0");   // no meter while the mic is off
+-		const hint = m.state === "error" && this.error ? this.error : this.constructor.HINTS[word];
++		const hint = m.state === "error" && this.error ? this.error : (word === "off" && this.constructor.note) || this.constructor.HINTS[word];
+ 		this.$hint.text(this.compact ? "" : " · " + hint).attr("title", m.state === "error" ? this.error : "");
+ 		this.$mic.attr("aria-pressed", String(word === "listening" || word === "sending")).attr("aria-label", "Microphone, " + word);
+ 	}
+diff --git a/public/framework/ux/Dictate/capture.js b/public/framework/ux/Dictate/capture.js
+index a4790e44c..cf31e2454 100644
+--- a/public/framework/ux/Dictate/capture.js
++++ b/public/framework/ux/Dictate/capture.js
+@@ -34,6 +34,8 @@ export default class Capture {
+ 	 *  the owner see which device moves the bars before committing to a take. */
+ 	keep = true;
+ 
++	chunks = [];   // empty from the start: the mic's heartbeat may ask for a snapshot while the audio module still loads
++
+ 	constructor(...args){ this.assign(...args); }
+ 	assign(...args){ return Object.assign(this, ...args); }
+ 
+@@ -55,7 +57,11 @@ export default class Capture {
+ 		}
+ 
+ 		this.ctx = new AudioContext({ sampleRate: this.sample_rate });
+-		await this.ctx.audioWorklet.addModule(new URL("./pcm-worklet.js", import.meta.url));
++		try { await this.load_worklet(); }
++		catch (e){   // never hold the mic after a failed start
++			this.stop();
++			throw Object.assign(new Error(`the mic’s audio module (pcm-worklet.js) did not load after 3 tries: ${e?.message ?? e}`), { name: "WorkletError" });
++		}
+ 
+ 		this.node = new AudioWorkletNode(this.ctx, "dictate-pcm");
+ 		this.chunks = [];
+@@ -67,6 +73,16 @@ export default class Capture {
+ 		this.ctx.createMediaStreamSource(this.stream).connect(this.node);
+ 	}
+ 
++	/** The audio module, three tries: on a fresh page it sometimes fails once ("Unable to load a worklet’s module",
++	 *  ux/Dictate/test/refresh.mjs) and loads on the next try. */
++	async load_worklet(){
++		const url = new URL("./pcm-worklet.js", import.meta.url);
++		for (let i = 0; ; i++){
++			try { return await this.ctx.audioWorklet.addModule(url); }
++			catch (e){ if (i >= 2) throw e; await new Promise(res => setTimeout(res, 300 * (i + 1))); }
++		}
++	}
++
+ 	/** ⚠ `exact:`, not a bare `deviceId`. A plain `deviceId` is a *preference* the
+ 	 *  browser may silently ignore, and a picker that quietly opens a different
+ 	 *  microphone than the one named in it is worse than no picker at all. */
+diff --git a/public/framework/ux/Dictate/test/refresh.mjs b/public/framework/ux/Dictate/test/refresh.mjs
+new file mode 100644
+index 000000000..930f719a4
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/refresh.mjs
+@@ -0,0 +1,170 @@
++// Proof: refresh, then dictate. The owner's typical failure: reload the page, press the mic, nothing works.
++//   node public/framework/ux/Dictate/test/refresh.mjs <base-url> [runs=1] [scenario]
++// Headless phone (400, touch), a fake mic playing jfk.wav, the real whisper-server on :8178, every Servex session verb stubbed
++// (nothing is posted). Each round is what the owner does: press ✦, press the mic, speak; it passes when a sentence goes out
++// (a `say` POST with words). Scenarios (default: all):
++//   plain     dictate, reload, dictate again
++//   pill      dictate; a file changes (a dev reload is deferred because the mic is busy: "This page is out of date"); press the pill; dictate again
++//   deferred  dictate; a file changes; stop the mic (the tap must reach the mic, not the pill): no reload by itself; press the pill; dictate again
++//   restart   dictate; a file changes; stop the mic and start it 1.5 s later: no reload under the owner
++//   again     stop the mic and press it again 0.3 s later: it listens again, or the bar says why
++//   twice     two reloads back to back, then dictate
++// Exit 1 on any failure. Doc: ux/Dictate/doc/debug-tab.md#refresh-then-dictate
++import fs from "fs";
++import Browser from "../../../../../Server/Browser.mjs";
++
++const [base = "http://monorepo.localhost", runs_arg = "1", only] = process.argv.slice(2);
++const RUNS = +runs_arg || 1;
++const here = new URL("../../../ai/recordings/jfk.wav", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
++const wav = process.env.WAV ?? (fs.existsSync(here) ? here : "C:/Code/lew42/monorepo/public/framework/ai/recordings/jfk.wav");   // recordings/ is git-ignored
++const browser = await Browser.browser({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
++const kill = setTimeout(() => { console.log(`FAIL killed after ${360 * RUNS} s`); process.exit(2); }, 360000 * RUNS);   // about 4.5 min a run
++let failed = 0;
++const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
++const INFERENCE = /(:8178|\/whisper)\/inference/;   // whisper-server's transcribe call, direct or through the dev server's proxy
++const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
++
++async function context(){
++	const ctx = await browser.newContext({ viewport: { width: 400, height: 800 }, permissions: ["microphone"], hasTouch: true, isMobile: true });
++	const page = await ctx.newPage();
++	const run = { said: [], errors: [], loads: 0 };
++	page.on("pageerror", e => run.errors.push(String(e).slice(0, 200)));
++	page.on("dialog", d => d.accept());   // the mic's reload guard ("Leave site?") is accepted, as the owner would
++	page.on("load", () => run.loads++);
++	// The mic’s audio module: every request for it, and how it ended (a failed load is "the mic will not start").
++	run.worklet = [];
++	page.on("requestfailed", q => { if (/pcm-worklet/.test(q.url())) run.worklet.push("failed " + q.failure()?.errorText); });
++	page.on("response", res => { if (/pcm-worklet/.test(res.url())) run.worklet.push(String(res.status()) + (res.fromServiceWorker() ? " (service worker)" : "")); });
++	await page.route(/\/api\/session\//, async route => {
++		const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
++		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
++		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
++		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
++		if (verb === "say") run.said.push({ text: body.text, t: Date.now() });
++		const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : verb === "say" ? { ok: true, at: new Date().toISOString() } : { ok: true };
++		await route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) });
++	});
++	await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: "" }));
++	await page.route(/\/api\/sessions\?/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify({ ok: true, sessions: [] }) }));
++	await page.route(/\/api\/hitl/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify({ ok: true, marks: [{ mark: "clear" }] }) }));
++	await page.route(/\/log\/prompts/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: "{}" }));
++	await page.goto(base + "/framework/ext/drawer/", { waitUntil: "domcontentloaded" });
++	return { ctx, page, run };
++}
++
++// What the reader sees: the mic's state, the bar's words, the stale pill, and every mic on the page.
++const look = page => page.evaluate(() => {
++	const bar = document.querySelector(".drawer-rail-sheet .dictation-bar");
++	return { sheet: !!document.querySelector(".drawer-rail-sheet.on"), mic: globalThis.$dictate_widget?.dictate?.state ?? null,
++		bar: bar?.textContent?.replace(/\s+/g, " ").trim().slice(0, 160), pill: document.querySelector(".dev-stale-pill")?.textContent ?? null,
++		health: Object.fromEntries(Object.entries(globalThis.DictateHealth?.layers ?? {}).map(([k, v]) => [k, v.state + ": " + v.why.slice(0, 90)])) };
++}).catch(e => ({ gone: String(e).slice(0, 80) }));
++const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now() - t < ms){ try { if (await fn()) return true; } catch {} await page.waitForTimeout(300); } return false; };
++
++// One round: open the sheet with ✦ (unless open), press the mic (unless on), wait for a sentence with words to go out.
++async function dictate(page, run, label){
++	const t0 = Date.now(), before = run.said.length;
++	await page.waitForSelector(".drawer-rail-ai", { timeout: 20000 });
++	if (!await page.$(".drawer-rail-sheet.on")) await page.click(".drawer-rail-ai");
++	await page.waitForSelector(".drawer-rail-sheet.on .dictation-bar-mic", { timeout: 20000 });
++	await page.waitForTimeout(300);
++	if (!["listening", "connecting"].includes((await look(page)).mic)) await page.click(".drawer-rail-sheet.on .dictation-bar-mic");   // ✦ starts the mic itself: press only when it is off
++	const ok = await wait_for(page, () => run.said.slice(before).some(s => /\w{3}/.test(s.text ?? "")), 40000);
++	const v = await look(page);
++	check(ok, `${label}: a sentence went out ${ok ? ((run.said.find((s, i) => i >= before)?.t - t0) / 1000).toFixed(1) + " s after ✦" : "— none in 40 s"}${ok ? "" : " · " + JSON.stringify(v)}`);
++	return ok;
++}
++
++// A file the page loaded changed: what LiveReload sends. The mic is busy, so Socket defers it and shows the pill.
++const file_changed = page => page.evaluate(async () => { const { default: Socket } = await import("/framework/dev/Socket/Socket.js"); Socket.singleton().changed([location.pathname + "page.js"]); });
++// The mic button, pressed as a finger would: whatever is on top at its centre gets the tap.
++const tap_mic = page => page.evaluate(() => { const b = document.querySelector(".drawer-rail-sheet.on .dictation-bar-mic"), r = b.getBoundingClientRect();
++	const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); (top ?? b).click(); return top === b || b.contains(top) ? "mic" : top?.className || top?.tagName; });
++
++// After a dev reload the sheet comes back open by itself, and the mic bar says why the mic is off.
++async function back_with_note(page){
++	const open = await wait_for(page, async () => (await look(page)).sheet, 8000);
++	const v = await look(page);
++	check(open && /reloaded because a file changed/.test(v.bar ?? ""), `after the reload the sheet is back, the bar saying “${v.bar}”`);
++}
++
++const scenarios = {
++	async plain({ page, run }){
++		await dictate(page, run, "before the reload");
++		await page.reload({ waitUntil: "domcontentloaded" });
++		await dictate(page, run, "after a reload");
++	},
++	async pill({ page, run }){
++		await dictate(page, run, "before");
++		await file_changed(page);
++		const pill = await wait_for(page, async () => !!(await look(page)).pill, 5000);
++		check(pill, "a file change while dictating shows the stale pill, not a reload under the mic");
++		const loads = run.loads;
++		await page.click(".dev-stale-pill");
++		await wait_for(page, () => run.loads > loads, 15000);
++		await page.waitForLoadState("domcontentloaded");
++		await back_with_note(page);
++		await dictate(page, run, "after pressing the pill");
++	},
++	async deferred({ page, run }){
++		await dictate(page, run, "before");
++		await file_changed(page);
++		await wait_for(page, async () => !!(await look(page)).pill, 5000);
++		const loads = run.loads;
++		const hit = await tap_mic(page);   // the owner stops the mic, with the pill showing
++		check(hit === "mic", `with the pill showing, a tap on the mic reaches the mic (it reached: ${hit})`);
++		if (hit !== "mic") await page.evaluate(() => document.querySelector(".drawer-rail-sheet.on .dictation-bar-mic").click());
++		await page.waitForTimeout(6000);
++		check(run.loads === loads && !!(await look(page)).pill, `6 s after the stop: ${run.loads === loads ? "no reload by itself, the pill waits for the owner" : "the page reloaded by itself"}`);
++		await page.click(".dev-stale-pill");
++		await wait_for(page, () => run.loads > loads, 15000);
++		await page.waitForLoadState("domcontentloaded");
++		await back_with_note(page);
++		await dictate(page, run, "after the pill");
++	},
++	async restart({ page, run }){
++		await dictate(page, run, "before");
++		await file_changed(page);
++		await wait_for(page, async () => !!(await look(page)).pill, 5000);
++		const loads = run.loads, mic = () => page.evaluate(() => document.querySelector(".drawer-rail-sheet.on .dictation-bar-mic").click());
++		await mic(); await page.waitForTimeout(1500); await mic();   // stop, then start again: the owner wants to keep talking
++		await page.waitForTimeout(4000);
++		check(run.loads === loads, `the mic stopped for 1.5 s and on again: ${run.loads === loads ? "no reload under it" : "the page reloaded under the owner"}`);
++		await dictate(page, run, "after stop and start");
++	},
++	async again({ page, run }){   // "the mic sometimes will not start": stop, then press again at once
++		await dictate(page, run, "before");
++		const mic = () => page.evaluate(() => document.querySelector(".drawer-rail-sheet.on .dictation-bar-mic").click());
++		await page.route(INFERENCE, async route => { await new Promise(r => setTimeout(r, 3000)); route.continue().catch(() => {}); });   // a slow Whisper (the LAN proxy, a busy GPU)
++		await mic(); await page.waitForTimeout(300);
++		const mid = await look(page);
++		await mic(); await page.waitForTimeout(4000);
++		const v = await look(page);
++		await page.unroute(INFERENCE);
++		check(v.mic === "listening" || v.mic === "connecting" || /·/.test(v.bar ?? "") && v.mic === "error",
++			`pressed again 0.3 s after stopping (it was ${mid.mic}): the mic is ${v.mic}, the bar says “${v.bar}”`);
++		await dictate(page, run, "after stop and press again");
++	},
++	async twice({ page, run }){
++		await dictate(page, run, "before");
++		await page.reload({ waitUntil: "domcontentloaded" });
++		await page.reload({ waitUntil: "domcontentloaded" });
++		await dictate(page, run, "after two reloads");
++	},
++};
++
++for (let n = 1; n <= RUNS; n++){
++	for (const [name, fn] of Object.entries(scenarios)){
++		if (only && !only.split(",").includes(name)) continue;
++		console.log(`-- run ${n}/${RUNS}: ${name}`);
++		const { ctx, page, run } = await context();
++		try { await fn({ page, run }); } catch (e){ check(false, name + " threw: " + e.message.split("\n")[0]); console.log("     " + JSON.stringify(await look(page))); }
++		if (failed) console.log("     pcm-worklet.js requests: " + (run.worklet.join(", ") || "none"));
++		check(!run.errors.length, run.errors.length ? "page errors: " + run.errors.join(" | ") : "no page errors");
++		await Promise.race([ctx.close(), new Promise(r => setTimeout(r, 15000))]);   // a page stuck mid-reload must not hold the run (it once hung 30 min)
++	}
++}
++await Browser.close();
++clearTimeout(kill);
++console.log(failed ? `${failed} FAILED` : "all passed");
++process.exit(failed ? 1 : 0);
