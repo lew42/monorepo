@@ -19,6 +19,8 @@ Queued behind `../chat-sent/` and `../v2-speed/`, which touch the same files. St
 - [ ] **Topic cards** that hold Questions, tasks and statements
 - [ ] **Question** is its own widget, open until answered and accepted
 - [ ] **Sentences feed live** as they arrive
+- [ ] **One form for every Prompt** (title + cleaned paragraph; raw only until refined)
+- [ ] **A cap per Prompt:** bubble, its tasks and Questions, one short reply; the rest collapses
 
 Details for each follow.
 
@@ -51,6 +53,8 @@ Chat has two views today: the first one, which has no name, and Chat v2, behind 
 **Sentences feed as they arrive.** Each raw whisper sentence is sent as it arrives and placed by topic: into the last Prompt or a new one, then the last paragraph or a new one. Paragraph headings don't matter yet. What matters: the refined Prompt looks right, and the raw text is on screen live.
 
 **The Prompt record shape and the grouping rule** (new Prompt or add to the last one, and topic cards) are owned by mastermind-tasks-completion (the owner, 2026-10-25). Read its proposal and align the plan with it; don't design a second one. The view side is this brief's; the record side is theirs. **UI over text everywhere:** a completed task shows checked off, anything with detail expands on click, everything that can be interactive is.
+
+**One form for every Prompt, and a cap on what shows** (the owner, 2026-10-25). Today in Chat v2 some prompts show raw and others refined. Every Prompt looks the same: a title and a cleaned paragraph, with the raw text shown only until the refinement arrives (then behind "show raw"). Per Prompt, show at most: the bubble, its tasks and Questions, and one short reply; everything else collapses. `plan.md` gets a "What shows, what collapses" table.
 
 Start from `../pipeline-doc/` (the pipeline doc, once it lands): it says how each item is logged today and where V1 and V2 differ.
 
