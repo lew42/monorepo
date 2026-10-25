@@ -69,7 +69,7 @@ function resolve_file(url, item = false){
  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
  * resolves the plain way above. Returns { file, target } or null. */
 const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
-const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary"];   // Task.queries: answered from the record, never written
+const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion"];   // Task.queries: answered from the record, never written
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 async function resolve(url, target = [], item = false){
@@ -646,7 +646,23 @@ function notify_requests(live, at, body, requests, by){
 // Node's resolver for Task.from_ref: an app path -> that folder's parsed task.jsonl, or null. While a root is being replayed, `collect` gathers every child file it read.
 let collect = null;
 const sig = file => { try { const st = fs.statSync(file); return `${st.size}:${st.mtimeMs}`; } catch { return "none"; } };
+/* RECOMPUTE ONLY WHAT CHANGED: a replayed child is kept by ref and reused while its own file, and every file it read in turn, keep the same
+ * size and mtime. One changed child re-replays only itself (and the parent that holds it); an ancestor's totals are computed on read from
+ * its children, so they are never stale. The deps a child read are also handed up to the enclosing scope, so a root still knows all its files. */
+const kids = new Map();
+function ref_scope(key, build){
+	const hit = kids.get(key);
+	if (hit && hit.deps.every(([f, s]) => sig(f) === s)){ collect?.push(...hit.deps); return hit.kid; }
+	const outer = collect, mine = [];
+	collect = mine;
+	try {
+		const kid = build();
+		kids.set(key, { kid, deps: mine });
+		return kid;
+	} finally { collect = outer; outer?.push(...mine); }
+}
 export function link_refs(Task){
+	Task.ref_scope ??= ref_scope;
 	Task.session_resolver ??= ref => { const dir = path.resolve(PUBLIC, String(ref ?? "").replace(/^[\/]+/, "")); return dir.startsWith(PUBLIC + path.sep) && path.basename(SessionRecord.file(dir) ?? "") === "session.jsonl"; };   // Task.children: does this folder hold a session record
 	Task.resolver ??= ref => {
 		const dir = path.resolve(PUBLIC, String(ref).replace(/^[\/]+/, ""));
@@ -802,12 +818,14 @@ export function tell_parent_caveats(task_dir, caveats, by = "node"){
  * {} / true / null = none, an array = the arguments, any other object = one argument. */
 function query_args(arg){ return Array.isArray(arg) ? arg : is_plain(arg) && Object.keys(arg).length ? [arg] : []; }
 // A Session's queries are answered here, from session_state (its one picture), because its cost needs node: own_cost reads cache.jsonl.
+// `completion` is the one tally every Task-family node answers: its tasks' current states and the number computed from them.
+const TALLY = n => ({ stopped: 0, ...n.progress(), completion: n.completion });
 const NODE_QUERIES = { Session: { progress: n => n.progress(), cost: n => session_state(n, []).cost, summary: n => session_state(n, []) } };
 function walk_queries(node, delta, trail = "", out = { answer: {}, queried: false, other: [], set: [] }){
 	const into = (kid, sub, here, put) => { const r = walk_queries(kid, sub, here); out.queried ||= r.queried; out.other.push(...r.other); out.set.push(...r.set); if (r.queried) put(r.answer); };
 	for (const [key, arg] of Object.entries(delta)){
 		const here = trail ? `${trail}.${key}` : key;
-		const node_query = NODE_QUERIES[node.constructor.name]?.[key];
+		const node_query = NODE_QUERIES[node.constructor.name]?.[key] ?? (key === "completion" && node.constructor.queries?.includes(key) ? TALLY : null);
 		if (node_query || node.constructor.queries?.includes(key)){
 			out.queried = true;
 			if (typeof arg === "string" || typeof arg === "number" || arg === false){ out.set.push(here); continue; }   // a value is an attempt to SET a read-only key
@@ -959,6 +977,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		return { ok: true, instructions: await instructions_for(kind, Class) };
 	}
 	if (Class?.replay){ const asked = ask(root(), at.target, flat); if (asked) return asked; }
+	else if (Object.keys(flat).length === 1 && "completion" in flat) return { ok: false, why: `no task record at "${url}" (${path.basename(at.file)} is not a session or task record), so there is no completion to answer. Nothing was written.` };
 	// An improvement proposed again adds weight, never a duplicate (the owner, 2026-10-22; readme-system.md): the same title becomes
 	// {"<id>": {"reinforce": {why}}} on the existing one, and Task.weight counts them.
 	if (path.basename(at.file) === "improvements.jsonl" && is_plain(flat.tasks?.add) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1){
