@@ -50,9 +50,9 @@ assert.deepEqual([s.check.landed_today.state, s.check.landed_today.walk], [2, 2]
 assert.equal(s.check.ok, true, JSON.stringify(s.check));
 assert.equal(s.counts.landed, 2); assert.equal(s.landed.length, 3);   // the dashboard's window holds the week, its count is today
 
-// Break one on purpose: a start line after the finish. Task.js refuses it (a complete task cannot start), so AIIndex counts the task landed; the plain walk reads the last state verb as start and does not.
-put(S + "t-finish", { assign: { session_id: "s1", title: "Landed then restarted", requested_at: "2026-10-17T09:00:00-05:00" } },
-	{ finish: { at: "2026-10-18T03:30:00Z", outcome: "Done tonight." } }, { start: { at: "2026-10-18T03:40:00Z" } });
+// Break one on purpose: a start line after the finish. Task.js refuses it (a complete task cannot wait; it can start, which reopens it), so AIIndex counts the task landed; the plain walk reads the last state verb as wait and does not.
+put(S + "t-finish", { assign: { session_id: "s1", title: "Landed then waited", requested_at: "2026-10-17T09:00:00-05:00" } },
+	{ finish: { at: "2026-10-18T03:30:00Z", outcome: "Done tonight." } }, { wait: { at: "2026-10-18T03:40:00Z", on: "owner", what: "a late wait" } });
 const b = new AIIndex({ root, registry, now }).snapshot();
 assert.equal(b.check.ok, false);
 assert.deepEqual([b.check.landed_today.state, b.check.landed_today.walk], [2, 1]);

@@ -42,6 +42,9 @@
 	.tq-meta { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 0.1em 1em; font-size: 0.85em; min-width: 0; }
 	.tq-row .tq-why, .tq-cell, .tq-row .tq-state { overflow-wrap: anywhere; min-width: 0; }
 	.tq-link { color: inherit; }
+	.tq-head.tq-dropped { margin-top: 1.5em; }
+	.tq-dropped-row { grid-template-columns: minmax(0, 1fr); }
+	.tq-dropped-row .tq-meta { grid-column: 1; }
 
 	@media (min-width: 1000px) {
 		.tq-view { grid-template-columns: minmax(16em, 22em) minmax(0, 1fr); }
@@ -52,6 +55,8 @@
 		.tq-cols { white-space: nowrap; padding: 0 0.8em; font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; }
 		.tq-meta { display: contents; font-size: 0.85em; }
 		.tq-row .tq-label { display: none; }
+		.tq-dropped-row { grid-template-columns: minmax(12em, 2fr) minmax(0, 3fr); }
+		.tq-dropped-row .tq-meta { display: flex; gap: 0.8em; }
 		.tq-score { grid-column: auto; grid-row: auto; text-align: right; }
 	}
 }

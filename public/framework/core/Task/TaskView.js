@@ -69,6 +69,7 @@ export default class TaskView extends View {
 		const verbs = this.constructor.VERBS.filter(([verb]) => this.task.can(verb));
 		if (!verbs.length) return;
 		span.c("task-actions", () => verbs.forEach(([verb, glyph, label]) => {
+			if (verb === "start" && this.task.state === "complete") [glyph, label] = ["undo", "Reopen"];   // start from complete reopens it
 			const b = span.c("task-action", () => icon(glyph)).attr("role", "button").attr("title", label).attr("aria-label", label).attr("data-verb", verb);
 			b.click(e => { e.stopPropagation(); this.task.act(verb); });
 		}));

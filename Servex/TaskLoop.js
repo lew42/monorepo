@@ -7,6 +7,7 @@ import { CHECK, read_inbox } from "./Heartbeat.js";
 import Steps from "../Server/Steps.mjs";
 import TaskDirs from "../Server/TaskDirs.mjs";
 import Task from "../public/framework/core/Task/Task.js";
+import Dropped from "./Dropped.js";
 
 /* THE TASK LOOP — nobody should have to remember to land a task.
  *
@@ -77,7 +78,7 @@ export default class TaskLoop {
     }
 
     stop(){ this.stopping = true; clearInterval(this.timer); clearTimeout(this.state_timer); try { this.state_watch?.kill(); } catch {} }
-    status(){ return this.status_now; }
+    status(){ return { ...this.status_now, dropped: this.dropped_now?.dropped ?? null }; }
 
     /* ── one tick ─────────────────────────────────────────────────────── */
 
@@ -95,6 +96,9 @@ export default class TaskLoop {
             await this.servex.respawn?.tick().catch(() => {});   // a standing agent a day old and not busy gets a fresh session (agents/Respawn.js)
             await this.servex.prompt_tasks?.sweep().catch(() => {});   // an approved prompt task that names a module moves home (agents/PromptTasks.js)
             const now = this.clock(), registry = this.servex.agents.registry_list();
+            // completion, 2026-10-25: every open task whose owner is not working gets ONE line in its parent's log and a row on the queue page's "Dropped" list (Dropped.js, no AI)
+            this.dropped ??= new Dropped({ root: this.root, clock: this.clock, write: (f, o) => this.write_line(f, o) });
+            this.dropped_now = await this.dropped.tick(registry, now).catch(e => { this.servex.say?.(`task-loop: dropped scan failed: ${e.message || e}`); return this.dropped_now; });
             let open = 0, quiet = 0, escalations = 0;
 
             for (const file of this.find_task_files()){
@@ -219,7 +223,7 @@ export default class TaskLoop {
             if (obj.follow_up) follow_ups.push(obj.follow_up);
             if (obj.spawn) spawned = true;
             if (obj.queue) queued = true;
-            if (obj.follow_up || obj.log?.nudge !== undefined || obj.log?.heartbeat !== undefined) continue;   // our own and Heartbeat's reminder lines are neither activity nor an ask
+            if (obj.follow_up || obj.log?.nudge !== undefined || obj.log?.heartbeat !== undefined || obj.log?.dropped !== undefined) continue;   // our own, Heartbeat's and Dropped's lines are neither activity nor an ask
             const ours = obj.log && (obj.log.ask !== undefined || obj.log.flag !== undefined);
             last_line_ours = !!ours;
             if (ours){

@@ -119,6 +119,10 @@ scratch*.json
 # Servex machine state, regenerated continuously — not a record (2026-10-07, clean-tree pass)
 public/framework/ai/openrouter-usage.json
 public/framework/ai/servex-queue.json
+# the dropped-work snapshot Servex/Dropped.js rewrites every task-loop tick (2026-10-25); the "Dropped" lines it writes into task logs are the record
+public/framework/ai/queue/dropped.json
+# the Haiku "marked done, not done" verdicts Server/DoneCheck.mjs writes (2026-10-25); flagged asks also get a line in the log that holds the task
+public/framework/ai/queue/done-check.json
 
 # Session class machine state (Server/session-summary.mjs writes these)
 public/framework/ai/sessions/session-index.json

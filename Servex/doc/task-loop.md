@@ -37,6 +37,10 @@ After **three asks in a row with no new line** (the third sat unanswered), or wh
 - **Waiting on an agent or a task path.** `TaskLoop.remind_other()`: after `SERVEX_TASKLOOP_FOLLOWUP_MIN`, and again each interval, the agent waited on (an agent id, or the owning agent of a task path) is told "Task x is waiting on you for <what>" (a `follow_up` line). After 3 reminders with no change, ONE flag card (`follow_up` with `flag:true`).
 - Test: `node Servex/TaskLoop-cracks.test.mjs` (temp store, fake clock).
 
+## Dropped work (completion, 2026-10-25)
+
+Each tick, before the chase, `Dropped.tick()` ([Servex/Dropped.js](/Servex/Dropped.js)) finds every open task whose owner is not working (stopped, dormant, gone, never assigned; or a deferral with no home or past its time), writes ONE `{log:{dropped,reason}}` line into the parent's log, and rewrites `queue/dropped.json` for the queue page. Those lines are not activity: `read_task` skips them. `status()` carries the `dropped` count. Rules and codes: [core/Task completion.md](../../public/framework/core/Task/doc/completion.md). Test: `node Servex/Dropped.test.mjs`.
+
 ## Close
 
 A task can leave the loop two ways: it completes or stops, or the owner

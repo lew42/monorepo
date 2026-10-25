@@ -354,6 +354,32 @@ check("replay of an old complete line with no evidence still completes; the last
 	return old.state === "complete" && p.state === "complete";
 });
 
+check("rates(): deferral and stop share of every task and of the owner's asks; red over 20% of at least 5", () => {
+	const ask = (id, source = { session: "s", line: 1, part: id }) => ({ tasks: { add: { type: "Task", id, title: id, source } } });
+	const lines = [A, ask("a"), ask("b"), ask("c"), ask("d"), ask("e"), ask("f"), ask("g", "servex:minion"), { tasks: { b: { start: {} } } }, { tasks: { b: { wait: { on: "/framework/core/Task/", what: "later", decide_by: "2026-11-01T00:00:00Z" } } } }, { tasks: { c: { stop: { note: "noise" } } } }];
+	const r = Task.replay(lines).rates();
+	const calm = Task.replay([A, ask("a"), ask("b"), ask("c"), ask("d"), ask("e"), ask("f"), { tasks: { c: { stop: { note: "x" } } } }]).rates();
+	return r.total === 7 && r.owner.total === 6 && r.deferred === 1 && r.stopped === 1 && r.owner.rate === 0.333 && r.red === true && calm.owner.rate === 0.167 && calm.red === false;
+});
+check("a plain wait is not a deferral; one with decide_by or deferred:true is", () => {
+	const w = a => { const t = Task.replay([A, { start: {} }, { wait: a }]); return t.data.deferred === true; };
+	return !w({ on: "owner", what: "x" }) && w({ on: "m", decide_by: "2026-11-01T00:00:00Z" }) && w({ on: "m", deferred: true });
+});
+
+check("reopen: start from complete runs the task again and counts the reopening", () => {
+	const t = Task.replay([A, { start: {} }, { complete: EV }]);
+	const done = t.state === "complete" && Task.can("complete", "start");
+	t.start();
+	return done && t.state === "running" && t.data.reopen_count === 1 && !!t.data.reopened_at;
+});
+check("unproven(): a completed owner ask with no outcome or evidence is listed; a proven one and an agent-filed one are not", () => {
+	const add = (id, source) => ({ tasks: { add: { type: "Task", id, title: id, source, state: "idle" } } });
+	const t = Task.replay([A, { start: {} }, add("a", { session: "s", line: 1, part: "a" }), add("b", { session: "s", line: 2, part: "a" }), add("c", "servex:x"),
+		{ tasks: { a: { state: "complete" } } }, { tasks: { b: { complete: EV } } }, { tasks: { c: { state: "complete" } } }]);
+	const u = t.unproven();
+	return u.length === 1 && u[0].task.id === "a" && u[0].problem === "no outcome and no evidence";
+});
+
 const passed = results.filter(Boolean).length;
 console.log(`\n${passed} / ${results.length} passing`);
 if (passed !== results.length) process.exit(1);

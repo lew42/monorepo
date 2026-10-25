@@ -134,4 +134,5 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 - **References in the browser (step 14b):** `Task.from_ref` returns a "loading" stub that opens the child's own `task.jsonl` through the Store and tails it live ("missing" only after a 404); `Task.rank(list)` sorts by recency x weight.
 
+- **Completion, 2026-10-25:** an open task whose owner is not working is flagged as dropped by code, and a deferral is a `wait` with a home and a `decide_by`: [doc/completion.md](doc/completion.md).
 - **Owner notes, 2026-10-20:** `complete()` the verb, `completion` the number; a module keeps projects (`projects/YYYY/MM/DD/`), a session keeps tasks; the dated breakout as one shared system: [doc/owner-2026-10-20-projects-and-completion.md](doc/owner-2026-10-20-projects-and-completion.md).

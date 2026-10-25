@@ -8,6 +8,7 @@ View.stylesheet(import.meta, "TaskQueueView.css");
  *    "top"     the page itself: the count, the per-big-thing split and the first few tasks as preview cards; a click opens that task
  *    "all"     ?view=all: every queued task, one row each (rank, task, why, cost, big thing, re-asks, state, score)
  *    "ranking" ?view=ranking: how the score is worked out (needs no rows)
+ *    "dropped" ?view=dropped: every open task whose owner is not working (Servex/Dropped.js, read once from queue/dropped.json; also a short list on the page itself)
  *  Rows come from the dev server's "taskqueue" query source (Server/TaskQueue.mjs, ranked by core/Task/TaskQueue.js); a changed row is pushed, never polled. Readme: readme.md. */
 export default class TaskQueueView extends View {
 	static PREVIEWS = 8;
@@ -16,7 +17,7 @@ export default class TaskQueueView extends View {
 	static usd(n){ return "$" + (n || 0).toFixed(2); }
 
 	/** The view is in the address (?view=all, ?view=ranking), so a reload or Back lands in the same place. */
-	get mode(){ const v = new URLSearchParams(location.search).get("view"); return v === "all" || v === "ranking" ? v : "top"; }
+	get mode(){ const v = new URLSearchParams(location.search).get("view"); return v === "all" || v === "ranking" || v === "dropped" ? v : "top"; }
 
 	get classes(){ return "tq-view block wide tq-" + this.mode; }
 
@@ -25,6 +26,7 @@ export default class TaskQueueView extends View {
 		this.rows = new Map();
 		this.error = "";
 		this.loaded = this.mode === "ranking";
+		this.dropped = null;   // { at, dropped, rows } once queue/dropped.json has been read; null when there is no such file (a static copy)
 		this.failed = false;
 		this.client = new QueryClient("taskqueue", { row: r => this.change(r), stale: () => this.ask() });
 		super.initialize();
@@ -35,6 +37,14 @@ export default class TaskQueueView extends View {
 		this.$main = div.c("tq-main");
 		this.paint();
 		if (this.mode !== "ranking") this.ask();
+		this.read_dropped();
+	}
+
+	/** One read, not a poll: the snapshot Servex/Dropped.js rewrites every task-loop tick. Reload to refresh. No file = no section. */
+	async read_dropped(){
+		try { const res = await fetch("/framework/ai/queue/dropped.json", { cache: "no-store" }); if (res.ok) this.dropped = await res.json(); } catch {}
+		try { const res = await fetch("/framework/ai/queue/done-check.json", { cache: "no-store" }); if (res.ok) this.done_check = await res.json(); } catch {}
+		this.paint();
 	}
 
 	/** A count is drawn only from a successful answer. Until one arrives the page says "Reading…" and asks again, a few times with a growing delay; only then does it say what is wrong, with no number. */
@@ -79,13 +89,14 @@ export default class TaskQueueView extends View {
 	paint(){
 		if (this.el) this.el.dataset.ready = String(this.loaded);
 		const all = this.sorted();
-		this.$side.empty(() => this.mode === "ranking" ? this.drawBack() : this.drawSide(all));
+		this.$side.empty(() => this.mode === "ranking" || this.mode === "dropped" ? this.drawBack() : this.drawSide(all));
 		this.$main.empty(() => {
+			if (this.mode === "dropped") return void this.drawDropped(this.dropped?.rows ?? [], true);
 			if (!this.loaded) return void p.c("tq-empty muted", this.failed ? this.problem() : "Reading the task records…");
 			if (this.mode === "ranking") return void this.drawRanking();
-			if (!all.length) return void p.c("tq-empty muted", "Nothing is queued.");
-			if (this.mode === "all") return void this.drawAll(all);
-			this.drawPreviews(all);
+			if (this.mode === "all") return void (all.length ? this.drawAll(all) : p.c("tq-empty muted", "Nothing is queued."));
+			if (all.length) this.drawPreviews(all); else p.c("tq-empty muted", "Nothing is queued.");
+			this.drawDropped((this.dropped?.rows ?? []).slice(0, TaskQueueView.PREVIEWS), false);
 		});
 	}
 
@@ -105,6 +116,7 @@ export default class TaskQueueView extends View {
 		});
 		p.c("tq-note muted", `${n(r => r.state === "running")} running, ${n(r => r.state === "waiting")} waiting on someone. Estimated cost of all: ${TaskQueueView.usd(all.reduce((s, r) => s + r.est_usd, 0))}.`);
 		a.c("tq-go").href("/framework/ai/queue/?view=all").attr("target", "_self").text(`All ${total} ranked →`);
+		if (this.dropped) a.c("tq-go tq-dropped-go").href("/framework/ai/queue/?view=dropped").attr("target", "_self").text(`${this.dropped.dropped} dropped →`);
 		a.c("tq-go").href("/framework/ai/queue/?view=ranking").attr("target", "_self").text("How the ranking works →");
 	}
 
@@ -144,6 +156,43 @@ export default class TaskQueueView extends View {
 				div.c("tq-state", this.state(r));
 			});
 			span.c("tq-score").attr("title", "importance × (1 + 0.5 × re-asks) ÷ (1 + estimate ÷ $2)").text(r.score.toFixed(2));
+		})));
+	}
+
+	/** Dropped: an open task nobody is working (owner stopped, dormant, gone or never assigned, or a deferral with no home or past its time). Computed by code, doc: core/Task/doc/completion.md. */
+	drawDropped(rows, full){
+		if (!this.dropped) return void (full && p.c("tq-empty muted", "Reading the dropped list… (needs the dev server and a task-loop tick; it appears within 5 minutes of a Servex start)"));
+		this.drawRed();
+		this.drawProof(full);
+		div.c("tq-head tq-dropped", () => span.c("tq-what", full ? `${this.dropped.dropped} dropped, as of ${this.dropped.at}` : `Dropped: ${this.dropped.dropped} open tasks nobody is working`));
+		if (!rows.length) return void p.c("tq-empty muted", "Nothing is dropped.");
+		div.c("tq-list", () => rows.forEach(r => div.c("tq-row tq-dropped-row", () => {
+			div.c("tq-task", () => { a.c("tq-title").href(r.url).text(r.title); div.c("tq-crumb muted", r.owner ? `owner ${r.owner}` : "no owner"); });
+			div.c("tq-meta", () => { div.c("tq-why", r.why); div.c("tq-state", r.code); div.c("tq-cell muted", `quiet ${r.quiet_min} min`); });
+		})));
+		if (!full && this.dropped.dropped > rows.length) a.c("tq-go").href("/framework/ai/queue/?view=dropped").attr("target", "_self").text(`All ${this.dropped.dropped} dropped →`);
+	}
+
+	/** Completed owner asks with no outcome or evidence (code, Dropped.js) and asks Haiku judged "marked done, not done" (Server/DoneCheck.mjs). Reopen from the task's page. */
+	drawProof(full){
+		const none = this.dropped?.unproven ?? [], bad = this.done_check?.flagged ?? [], cap = full ? 500 : 5;
+		const list = (head, rows, why) => { if (!rows.length) return;
+			div.c("tq-head tq-dropped", () => span.c("tq-what", head));
+			div.c("tq-list", () => rows.slice(0, cap).forEach(r => div.c("tq-row tq-dropped-row", () => {
+				div.c("tq-task", () => { a.c("tq-title").href(r.url).text(r.title); div.c("tq-crumb muted", "completed owner ask"); });
+				div.c("tq-meta", () => div.c("tq-why", why(r)));
+			}))); };
+		list(`${none.length} completed owner asks with no proof`, none, r => r.why);
+		list(`${bad.length} marked done, not done`, bad, r => r.why);
+	}
+
+	/** A session whose owner asks are more than 20% deferred or stopped (Task.rates(), flagged by Servex/Dropped.js). */
+	drawRed(){
+		const red = this.dropped?.red ?? [];
+		if (!red.length) return;
+		div.c("tq-list tq-red", () => red.forEach(r => div.c("tq-row tq-dropped-row", () => {
+			div.c("tq-task", () => { a.c("tq-title").href(r.url).text(r.title); div.c("tq-crumb muted", "red-flagged session"); });
+			div.c("tq-meta", () => div.c("tq-why", `${Math.round(r.rates.owner.rate * 100)}% of ${r.rates.owner.total} owner asks are deferred or stopped (${r.rates.owner.deferred} deferred, ${r.rates.owner.stopped} stopped); the limit is 20%`));
 		})));
 	}
 

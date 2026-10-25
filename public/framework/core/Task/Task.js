@@ -12,7 +12,7 @@ const OPEN = new Set(["idle", "running", "paused", "waiting"]);   // a child in 
 // Which states each verb may start FROM — named by the verb, so the rule next to
 // the verb is the rule that uses it.
 const CAN = {
-	start: new Set(["idle", "stopped"]),
+	start: new Set(["idle", "stopped", "complete"]),   // from "complete" it REOPENS: the owner can reopen any task (completion.md)
 	pause: new Set(["running"]),
 	resume: new Set(["paused"]),
 	stop: new Set(["idle", "running", "paused", "waiting"]),
@@ -202,7 +202,7 @@ export class Task extends Item {
 
 	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
 	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
-	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "unread"];
+	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "rates", "unread"];
 	/* A child is a SESSION when it replayed as one (a Session entry, or a folder whose record is a session's), or, for an old plain
 	   reference node has not replayed, when its folder holds session.jsonl (`session_resolver`). */
 	static session_resolver = null;
@@ -219,13 +219,37 @@ export class Task extends Item {
 		return this.sessions_below().map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state, path: t.get_one("path"),
 			...(t.get_one("spawn") ? { spawn: t.get_one("spawn") } : {}), children: t.children }));
 	}
+	/* DEFERRAL AND STOP RATES (completion item 3, core/Task/doc/completion.md): over every task below me (a session entry's own tasks are its own), how many ended
+	   deferred (waiting with `deferred`) or stopped, and the same for the OWNER'S asks only (filed from a prompt: `source` is {session,line,part}, "prompt:<id>", voice-app, vscode or dictate; never "servex:<agent>").
+	   `red` = the owner's asks are at least RATES.min and more than RATES.red of them are deferred or stopped. Computed on read, never stored. */
+	static RATES = { red: 0.2, min: 5 };
+	static is_owner_ask(t){ const s = t.get_one("source"); return !!s && (typeof s === "object" ? !!(s.line ?? s.part ?? s.session) : !/^servex:/.test(s) && !s.startsWith("/")); }
+	// Proof for a completed task (completion.md): an outcome (what is now true) and evidence (a file, commit, shot or test). Null when it has both.
+	static proof_problem(t){
+		const outcome = String(t.get_one("outcome") ?? "").trim(), ev = [].concat(t.get_one("evidence") ?? []).filter(e => String(e ?? "").trim());
+		return !outcome && !ev.length ? "no outcome and no evidence" : !outcome ? "no outcome" : !ev.length ? "no evidence" : null;
+	}
+	/** Every completed owner ask under this task with no proof, as [{task, problem}]; child sessions are their own record. */
+	unproven(){
+		const out = [], walk = list => { for (const t of list ?? []){ if (Task.is_child_session(t)) continue; if (t.state === "complete" && Task.is_owner_ask(t)){ const problem = Task.proof_problem(t); if (problem) out.push({ task: t, problem }); } walk(t._tasks); } };
+		walk(this._tasks);
+		return out;
+	}
+	rates(){
+		const all = [], walk = list => { for (const t of list ?? []){ if (Task.is_child_session(t)) continue; all.push(t); walk(t._tasks); } };
+		walk(this._tasks);
+		const tally = list => { const deferred = list.filter(t => t.state === "waiting" && t.get_one("deferred")).length, stopped = list.filter(t => t.state === "stopped").length;
+			return { total: list.length, deferred, stopped, rate: list.length ? Math.round((deferred + stopped) / list.length * 1000) / 1000 : 0 }; };
+		const owner = tally(all.filter(Task.is_owner_ask));
+		return { ...tally(all), owner, red: owner.total >= Task.RATES.min && owner.rate > Task.RATES.red };
+	}
 	// One screen for a task or a session: counts by state, the open tasks only, completion, cost, time and child sessions.
 	summary(){
 		const tasks = [...(this._tasks ?? [])], states = {};
 		for (const t of tasks) states[t.state] = (states[t.state] ?? 0) + 1;
 		return {
 			id: this.get_one("record")?.id ?? this.id, title: this.get_one("title") ?? null, kind: this.get_one("record")?.kind ?? "task", state: this.state, completion: this.completion,
-			progress: Task.progress_of(this._tasks), states,
+			progress: Task.progress_of(this._tasks), states, rates: this.rates(),
 			open: tasks.filter(t => OPEN.has(t.state)).map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state })),
 			cost: this.total_cost, duration: this.duration(), children: this.children,
 		};
@@ -302,8 +326,9 @@ export class Task extends Item {
 
 	start(){
 		if (!CAN.start.has(this.state)) return this.warn(`start(): can't start from "${this.state}"`);
+		const reopen = this.state === "complete";
 		this._ran_since = this.ms();
-		this.set({ state: "running", started_at: this.data.started_at ?? this.stamp() });
+		this.set({ state: "running", started_at: this.data.started_at ?? this.stamp(), ...(reopen ? { reopened_at: this.stamp(), reopen_count: (this.data.reopen_count ?? 0) + 1 } : {}) });
 		this.start_children();
 		return this;
 	}

@@ -69,7 +69,7 @@ function resolve_file(url, item = false){
  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
  * resolves the plain way above. Returns { file, target } or null. */
 const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
-const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "unread"];   // Task.queries: answered from the record, never written
+const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "rates", "unread"];   // Task.queries: answered from the record, never written
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /* TYPO-PROOF SESSION PATHS (2026-10-24, core/Session/doc/identity.md "A typed id that drifts"): a session folder is made only by the
@@ -815,7 +815,7 @@ export function session_state(task, tasks = []){
 	const unlinked = nest_agents(agents.filter(a => !counted.has(a.id))).map(a => ({ ...a, agent: a.id, linked: false }));
 	const child_cost = entries.reduce((s, c) => s + c.total, 0) + unlinked.reduce((s, a) => s + (a.total || 0), 0);
 	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
-	return { class: "Session", id: task.id, completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
+	return { class: "Session", id: task.id, completion: task.completion, progress: task.progress(), rates: task.rates(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
 		cost: { total: r2((own?.usd ?? 0) + child_cost), own, children: r2(child_cost), tasks: r2(task_cost) },
 		counts: { direct: counts(task._tasks ?? []), all: counts(all), children: { entries: count_entries(entries), unlinked: agents.filter(a => !counted.has(a.id)).length } },
 		biggest, children: [...entries, ...unlinked], agents: agents.length,
