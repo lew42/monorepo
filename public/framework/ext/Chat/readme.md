@@ -25,6 +25,7 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 ## Files that matter
 
 - `Chat.js` / `Chat.css`: The message log, bubbles, and auto-scroll engine.
+- `Mic.js`: the composer's microphone (speech → sentences → sends). Gear settings `send_on_period`, `send_on_question`, `send_on_comma` (default: the first two on, comma off) pick which marks `cut_re()` cuts a send at — detail in [`doc/mic-notes.md`](./doc/mic-notes.md).
 - `ChatPanel.js`: Combined view wrapping log, composer, and drill-in shell.
 - `Composer.js`: Text buffer, input autosizing, and audio controls.
 - `Drill.js`: Deep-dive modal shell for inspecting sub-cards.

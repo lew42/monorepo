@@ -61,14 +61,16 @@ ${ev(queue.splice(0))}` });
 	await page.keyboard.press("Enter");
 	await page.waitForTimeout(2800);
 	await page.screenshot({ path: `${shots}/${tag}-1-sent-fast.png` });
-	const mark_sel = v2 ? ".chat-v2-cursor, .chat-v2-smart-stamp" : ".chatbox-sent";
+	const mark_sel = v2 ? ".chat-v2-cursor, .chat-v2-smart-cursor" : ".chatbox-sent";
 	console.log(tag, "badges at 2.8 s:", JSON.stringify(await page.evaluate(sel => [...document.querySelectorAll(sel)].map(n => n.textContent || n.className), mark_sel)));
 	await page.waitForTimeout(4000);
 	await page.screenshot({ path: `${shots}/${tag}-1-sent-smart.png` });
 	const sentText = await page.evaluate(sel => [...document.querySelectorAll(sel)].map(n => n.textContent || n.className), mark_sel);
 	console.log(tag, "sent badges:", JSON.stringify(sentText));
 	if (v2) check(sentText.some(t => /done/.test(t)), `${tag}: the moving ✓ cursor reached "done" (reached the fast seat)`);
-	else check(sentText.some(t => t.trim() === "✓✓"), `${tag}: the owner line's badge reaches "✓✓" (both assistants handled it)`);
+	// Round 3 review fix 2: once both assistants have it, the V1 tick disappears — "a mark only when
+	// pending", never a standing ✓✓ left on a handled message forever.
+	else check(sentText.length === 0, `${tag}: the owner line's tick is gone once both assistants have it (no standing ✓✓)`);
 	if (!v2) check(await page.locator(".ux-dictate-widget-refined").count() === 1, `${tag}: a refined line that arrives twice draws ONE block`);
 	queue.push({ tasks: { add: { id: "p-proof", type: "Prompt", title: "A prompt", text: "A prompt about sending." } } });
 	queue.push({ "p-proof": { tasks: { add: { id: "q-proof", type: "Question", text: "Do you want the proof to show this question?", from: "p-proof" } } } });

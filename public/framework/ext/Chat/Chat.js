@@ -64,19 +64,19 @@ function failed_badge(){
 	return b;
 }
 
-/** Messenger-style ticks, one per BUBBLE not per sentence (the owner, 2026-10-25): ✓ reached the
- * assistants, ✓✓ handled (cleaned/refined by smart). Nothing shows until the first tick, so a
- * handled message carries no standing mark once it no longer needs one — the opposite of the old
- * "fast ✓ 2.6 s · smart …" row that sat under every message whether or not it meant anything to the
- * owner (17:31: "mean nothing to me, I asked for sent-visibility, not this"). The timing moves into
- * the tick's title. Alternative tried: a per-sentence border/mark on each span — rejected, the ticks
- * read faster at a glance and match the chat convention the owner named. Returns null until sent. */
+/** Messenger-style tick, one per BUBBLE not per sentence (the owner, 2026-10-25): ✓ reached the fast
+ * seat, nothing shown once both have it. Ask 2 is "a mark only when pending or wrong, nothing once
+ * handled" — a standing ✓✓ left on every handled message forever (round 1's shape) is exactly the
+ * standing mark the owner asked to remove (17:31: "mean nothing to me, I asked for sent-visibility,
+ * not this"), so round 3 drops the ✓✓ state entirely: this returns null once `smart` is set, same as
+ * before anything is sent. The timing moves into the ✓'s title while it is showing. Alternative tried:
+ * leaving ✓✓ as a quiet "done" marker — rejected per review round 3 finding 2. */
 export function sent_badge(pc){
 	const fast = pc.sent?.fast, smart = pc.sent?.smart;
-	if (!fast && !smart) return null;
+	if (!fast || smart) return null;
 	const secs = ms => (ms < 100 ? "0" : (ms / 1000).toFixed(1)) + " s";
 	const b = el("chatbox-sent muted", "span");
-	b.textContent = smart ? "✓✓" : "✓";
+	b.textContent = "✓";
 	b.title = [["fast", fast], ["smart", smart]].map(([seat, got]) =>
 		seat + (got ? ": reached" + (got.delay_ms != null ? ", " + secs(got.delay_ms) + " after the words left the draft" : "") : ": not yet"))
 		.join(" · ");
