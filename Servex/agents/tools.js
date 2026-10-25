@@ -46,7 +46,7 @@ const ID = { type: "string", description: "The agent's human-readable id, as `li
  * word "session" to never auto-sleep for as long as this is a live, ongoing session (the voice
  * pair's own default). Left out, the agent's ROLE picks a sensible default
  * (`Global.default_after`): the voice pair's "session", 0 for one-off workers (minion, reviewer,
- * task-mastermind), the plain few-minutes timer for everyone else. */
+ * a one-task mastermind), the plain few-minutes timer for everyone else. */
 const DORMANT_AFTER = { description: "Seconds to stay idle before sleeping to free RAM (resumes in place on the next message), or the word \"session\" to never auto-sleep while this is a live session. Omit it to use the role's own default — see Servex/agents/Global.js's `default_after`.",
 	anyOf: [{ type: "number" }, { type: "string", enum: ["session"] }] };
 
