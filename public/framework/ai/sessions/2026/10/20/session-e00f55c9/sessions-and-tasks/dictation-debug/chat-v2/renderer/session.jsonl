@@ -15,3 +15,4 @@
 {"review":{"at":"2026-10-25T02:34:06-05:00","answer":{"n":5,"reply":"fixed: ChatV2Model.label(n); ChatV2.child reads M.label(n) (1b70ef22d)"}}}
 {"review":{"at":"2026-10-25T02:34:06-05:00","answer":{"n":6,"reply":"fixed: ext/Chat/page.js children 'panel drill v2' (1b70ef22d)"}}}
 {"log":{"at":"2026-10-25T02:35:31-05:00","heartbeat":"deliberate","msg":"minion-chat-v2-renderer its agent is not running: it was stopped on purpose by mastermind-chat-v2 at 2026-10-25T02:29:44-05:00; not revived."}}
+{"assign":{"landed_at":"2026-10-25T02:39:31-05:00","title":"Chat v2: read-only renderer","outcome":"Live on michael/dev (9d977135f) at /framework/ext/Chat/v2/; ?src=<session.jsonl> draws any session live. Test 19/19, smoke ok, review answered (4 fixed, 1 noted, 1 declined).","links":["/framework/ext/Chat/v2/","/framework/ext/Chat/v2/readme.md"]}}
