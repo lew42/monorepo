@@ -30414,3 +30414,5 @@
 {"file":"spend-tree.json"}
 {"file":"transcripts/"}
 {"file":"week.json"}
+{"file":"session-entries.jsonl"}
+{"file":"failures.jsonl","gone":true}
