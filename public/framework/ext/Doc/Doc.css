@@ -13,7 +13,7 @@
 
 		--measure: none;
 		--page-pad: 0;
-		--gutter-x: clamp(2em, 4%, 5em);
+		--gutter-x: clamp(1em, 4%, 5em);
 		--well: light-dark(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.35));
 		--tab-fill: var(--wash);
 	}
