@@ -28,24 +28,26 @@ export default new Doc({
 	body(lines){
 		md("A **process** is a standard way of doing a kind of work, written down as steps. Node starts step 1, launches the session each step names, and when a step is done it starts the next. No agent has to remember the order.");
 
-		h2("A real run: the readmes page, through build");
+		h2("A real run");
 		if (!lines) return p("The run log could not be loaded.");
 		const run = Process.replay(lines);
 		const total = lines.filter(l => l.measure).reduce((n, l) => n + (l.measure.usd || 0), 0);
 		md(`**${run.get_one("title") ?? run.id}**, process \`${run.process}\`, state **${run.state}**, ${run.steps.length} steps, measured cost **$${total.toFixed(2)}**. Read live from [its log](${RUN}task.jsonl), not copied.`);
-		div.c("flex v gap", () => {
+		const narrow = innerWidth < 600;   // the session goes on its own line under the name
+		const stop = lines.find(l => l.stop)?.stop?.why;
+		md(`The run reads **${run.state}** while step 7 is waiting: ${stop ? `its own log says "${stop}"` : "the run was stopped before the merge step was done"}.`);
+		div.c("grid gap-50", () => {
 			run.steps.forEach((s, i) => {
 				const sp = s.get_one("spawned"), m = s.get_one("measure"), w = s.get_one("wait");
-				div.c("flex gap v-center", () => {
-					span.c("h4", `${i + 1}. ${s.get_one("title") ?? s.id}`).style("flex", "1 1 8em");
-					span.c("", `${MARK[s.state] ?? "·"} ${s.state}`).style("color", s.state === "complete" ? "var(--success, green)" : s.state === "waiting" ? "var(--warning, #b60)" : "");
-					span.c("muted", sp ? `${sp.run}: ${sp.agent}` : (s.get_one("session")?.run ?? "") + (w ? ` · waits on ${w.on}` : ""));
-					span.c("muted", m ? `$${Number(m.usd).toFixed(2)}` : "");
-				});
+				span.c("h4", `${i + 1}. ${s.get_one("title") ?? s.id}`).style("white-space", "nowrap");
+				span.c("", `${MARK[s.state] ?? "·"} ${s.state}`).style("color", s.state === "complete" ? "var(--success, green)" : s.state === "waiting" ? "var(--warning, #b60)" : "");
+				const session = () => span.c("muted", sp ? `${sp.run}: ${sp.agent}` : (s.get_one("session")?.run ?? "") + (w ? ` · waits on ${w.on}` : "")).style(narrow ? { "grid-column": "1 / -1", "margin-top": "-0.4em" } : { "min-width": "0" });
+				const cost = () => span.c("muted", m ? `$${Number(m.usd).toFixed(2)}` : "").style("text-align", "right");
+				if (narrow){ cost(); session(); } else { session(); cost(); }
 			});
-		});
+		}).style({ "grid-template-columns": narrow ? "1fr max-content max-content" : "max-content max-content minmax(0, 1fr) max-content", "column-gap": "1.5em", "row-gap": "0.6em", "align-items": "baseline" });
 
-		h2("Does finishing step N hand step N+1 its instructions?");
+		h2("Does step N start step N+1?");
 		md("**Yes, node does it, in a chain.** The agent's `complete` line wakes `ProcessRunner.step()` (the item tool hook). `run()` reads the file and asks `Process.next()`: step N is complete, so the first open step, N+1, is idle and the answer is `{start: N+1}`. `run()` writes that line, asks again, gets `{launch: N+1}`, and `launch()` sends `Process.prompt(N+1)` to the step's session: a new agent (`fresh`), the previous agent (`same`) or the creator (`owner`). That prompt carries N+1's job, the brief, **and the outcome text of every finished step**. See `ProcessRunner.js` `run` and `launch`, `Process.js` `next` and `prompt`.");
 		code.js(`// the prompt step 2 gets, built from the real run above
 ${run.prompt("plan", "/run/").split("\n").slice(0, 8).join("\n")}`);
