@@ -18,3 +18,7 @@ Sonnet, high effort. Work in a worktree and land ready to merge. **The owner app
 - The website's default voice agent (the smart half of a voice session) **is the owner's mastermind:** Opus 5.5 at medium effort, with mastermind abilities (spawn agents, the item tool, Servex tools). It **persists** across the session; it doesn't sleep or reset between turns.
 - **Today:** the `session-smart` row in `roles.js:102` says Sonnet ("the owner, 2026-10-05, saving credits", now overruled), and `Sessions.claude_model("smart")` picks by usage pace (`Usage.pick`). Make it Opus 5.5 regardless of pace, unless the week goes over pace.
 - **Ship this part first, on its own:** a small merge plus a Servex restart, before the folder work.
+
+## The owner (2026-10-25, ~01:30): the voice agent works through its own session
+
+The voice mastermind uses the item tool on its own session's record: it adds tasks, child sessions and notes, and refines them as the owner keeps talking, instead of only replying in chat. Give it the item tool, with its own session path resolved for it, and say so in `session-smart.md`. The chat that shows it is the shared chat component, owned by mastermind-dictation-2.

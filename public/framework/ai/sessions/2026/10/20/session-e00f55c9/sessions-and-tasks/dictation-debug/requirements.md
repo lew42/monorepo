@@ -90,3 +90,9 @@ What the owner hit tonight, all of it to fix:
 7. **Then the end-to-end chain,** written as one diagram in the Dictate readme (mic → Whisper → sentence → clean/refine → item tool → bubble → agent reply), each stage with its owner file and its failure mode.
 
 Prove each fix with shots or a short burst, including a refresh-then-dictate test, which is the owner's typical failure.
+
+## Part 4: one chat everywhere, and the voice agent builds its session (the owner, 2026-10-25, ~01:30)
+
+- **One chat component.** The chat in the mobile sheet (the AI button that opens dictation) and the chat tab of the session detail page are the SAME component. Dictation is wired into it, so every place a chat appears gets dictation with no extra setup. You (dictation-2) own the component; the sessions-page mastermind uses it for its chat tab, so agree the interface with it.
+- **The chat shows the session, not just replies.** The voice agent's turn is more than markdown in a bubble: it uses the item tool to add tasks, child sessions and notes to its own session and refine them as the prompt continues, and the chat renders those items (cards with state), not just text. The dictate widget is effectively a global session view.
+- **Messages as session items** (like tasks and sessions) may come later. Note it; don't build it now.
