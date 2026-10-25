@@ -55,7 +55,7 @@ export default class SessionStats extends View {
 					AISessionRows.load_index("/framework/ai/sessions/").then(index => {
 						const ix = AISessionRows.row_of(index, work.id), ok = ix?.wall_ms > 0;
 						$run.text(ok ? span_active(ix.wall_ms, ix.active_ms) : own).attr("title", ok ? "From the session's first line to its last (a stop and restart does not reset it), and the hours it was working: the session index's wall_ms and active_ms" : "This session is not in the session index yet, so this is the Task's banked running time");
-					});
+					}).catch(() => $run.text(own));   // an index that fails to load keeps the banked time, never a stuck ellipsis
 				});
 				div.c("sov-stat", () => { small.c("sov-k", "Task folders done"); strong.c("sov-v", total ? `${done} of ${total}` : "no task folders"); });
 			});
