@@ -465,7 +465,7 @@ async function turnsCmd(taskDir) {
 	try {
 		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model: "claude-sonnet-5-5", effort: "medium", permission_mode: "bypassPermissions", cwd: root, parent: SessionRecord.task_agent(taskDir) ?? undefined });
 		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
-		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
+		const waited = await waitAgent(spawned.id);
 		cost = waited.cost ?? 0;
 		await mcp("stop_agent", { id: spawned.id }, 20000);
 		const replyPath = path.join(taskDir, "review", "reply.md");
@@ -623,6 +623,17 @@ async function mcp(name, args, ms = 30000) {
 	const j = await r.json();
 	const text = j.result?.content?.[0]?.text ?? j.error?.message ?? "";
 	try { return JSON.parse(text); } catch { return { raw: text }; }
+}
+
+// Node's fetch gives up when no response headers arrive within 300 s, so one 900 s wait_for_agent fails on any review over 5 minutes
+// (2026-10-25). Wait in 240 s slices until the agent answers, up to 900 s in all.
+async function waitAgent(id, total_s = 900) {
+	const end = Date.now() + total_s * 1000;
+	for (;;) {
+		const slice = Math.max(1, Math.min(240, Math.round((end - Date.now()) / 1000)));
+		const r = await mcp("wait_for_agent", { id, timeout_s: slice }, (slice + 10) * 1000);
+		if (!r.timed_out || Date.now() >= end) return r;
+	}
 }
 
 // Both reviewer prompts end with this one check (2026-10-24): docs are final before merge, and the files are the truth.
@@ -821,7 +832,7 @@ async function main() {
 		for (let attempt = 1; attempt <= 3 && !fs.existsSync(reviewPath); attempt++) {
 			const spawned = await mcp("spawn_agent", { role: "reviewer", name: attempt > 1 ? `${name}-r${attempt}` : name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root, parent: SessionRecord.task_agent(taskDir) ?? undefined });
 			if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
-			const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
+			const waited = await waitAgent(spawned.id);
 			cost += waited.cost ?? 0;   // list_agents' row carries no cost field today; wait_for_agent's own answer does
 			await mcp("stop_agent", { id: spawned.id }, 20000);
 			started = (waited.cost ?? 0) >= 0.01;
@@ -833,7 +844,8 @@ async function main() {
 	} catch (e) {
 		findings = [{ n: 1, kind: "fix", text: `reviewer failed to run: ${String(e?.message || e).slice(0, 200)}` }];
 		fs.mkdirSync(path.dirname(reviewPath), { recursive: true });
-		fs.writeFileSync(reviewPath, `verdict: fix\n\n1. [fix] reviewer failed to run: ${String(e?.message || e).slice(0, 200)}\n`);
+		if (fs.existsSync(reviewPath)) ({ verdict, findings } = parseReview(fs.readFileSync(reviewPath, "utf8")));   // a review the reviewer did write is never overwritten by the failure
+		else fs.writeFileSync(reviewPath, `verdict: fix\n\n1. [fix] reviewer failed to run: ${String(e?.message || e).slice(0, 200)}\n`);
 	}
 	const review = { at: now(), size, verdict, findings, branch, head, model, cost, file: reviewRelFile, report: pageReview ? reviewRelFile : null, shots: pageReview ? "shots/" : null };
 	appendJSON(taskJsonl, { review });
