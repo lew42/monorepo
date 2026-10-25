@@ -89,17 +89,18 @@ export default class TrackingView extends View {
 		p("For the most recent sessions: the transcript holds only this session's id, there is one dated folder, the stored cost matches a recount from the transcript, no message is shared with another transcript, and every child session is linked from its parent. A ✅ means all five hold.");
 		if (!idn) p("No identity rows yet. Re-run `node Server/TrackingCheck.mjs`.");
 		else new DataGrid({
+			row_height: null,   // rows of any height: the check text wraps instead of being cut off
 			columns: [
-				{ key: "label", label: "Session", width: "3fr", min: "14em" },
-				{ key: "check", label: "Check", width: "4fr", min: "30em" },
-				{ key: "cache_usd", label: "Stored cost", type: "number", width: "8em", format: v => v == null ? "none" : usd(v) },
-				{ key: "recount_usd", label: "Recount", type: "number", width: "7em", format: v => v == null ? "none" : usd(v) },
-				{ key: "shared_messages", label: "Shared msgs", type: "number", width: "8em" },
-				{ key: "folders", label: "Folders", type: "number", width: "6em" },
-				{ key: "unlinked", label: "Unlinked", type: "number", width: "7em" },
+				{ key: "label", label: "Session", width: "2fr", min: "10em" },
+				{ key: "check", label: "Check", width: "4fr", min: "14em" },
+				{ key: "cache_usd", label: "Stored cost", type: "number", width: "6em", format: v => v == null ? "none" : usd(v) },
+				{ key: "recount_usd", label: "Recount", type: "number", width: "6em", format: v => v == null ? "none" : usd(v) },
+				{ key: "shared_messages", label: "Shared msgs", type: "number", width: "6em" },
+				{ key: "folders", label: "Folders", type: "number", width: "5em" },
+				{ key: "unlinked", label: "Unlinked", type: "number", width: "6em" },
 			],
 			rows: idn.rows.map(x => ({ ...x, label: x.title || x.id.slice(0, 8), check: x.ok ? "✅" : x.first_problem })), filters: false,
-		});
+		}).ac("tr-wrap");
 	}
 
 	card(big, label, detail){
