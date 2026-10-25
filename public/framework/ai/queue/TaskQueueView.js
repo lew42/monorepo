@@ -44,7 +44,7 @@ export default class TaskQueueView extends View {
 			const res = await this.client.ask({ sort: { by: "score", dir: "desc" }, limit: 500 }, { timeout: 30000 });
 			if (!res.error){
 				this.error = ""; this.failed = false; this.loaded = true;
-				this.rows = new Map(res.rows.map(r => [r.id, r]));
+				this.rows = new Map(res.rows.map(r => [r.url, r]));
 				break;
 			}
 			this.error = res.error;
@@ -64,7 +64,7 @@ export default class TaskQueueView extends View {
 			: "Could not ask the server: " + this.error;
 	}
 
-	change(r){ this.rows.set(r.id, r); this.paint(); }
+	change(r){ this.rows.set(r.url, r); this.paint(); }
 
 	top(){ return [...this.rows.values()].sort((x, y) => y.score - x.score).slice(0, TaskQueueView.LIMIT); }
 
