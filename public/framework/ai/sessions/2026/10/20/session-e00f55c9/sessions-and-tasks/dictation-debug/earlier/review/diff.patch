@@ -1,0 +1,171 @@
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index abc098567..ab05e1bb8 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -278,6 +278,7 @@ Widget.Thread = class WidgetThread extends View {
+ 
+ 	/** Same contract as WidgetThreadV1.draw(); speak() decides merge or new bubble; also takes {para:{re}}. */
+ 	draw(entry){
++		if (this.hold_orphan(entry)) return;
+ 		if (entry?.type === "ask") return this.follow(() => this.draw_ask(entry));
+ 		if (entry?.type === "refined") return this.draw_refined(entry);
+ 		if (entry?.place) return this.place(entry.place);
+@@ -345,6 +346,16 @@ Widget.Thread = class WidgetThread extends View {
+ 		this.$earlier.textContent = "show earlier (" + n + ")";
+ 	}
+ 
++	/** A {place}, {refined} or {para} line whose sentence is still behind "show earlier" is held by that sentence's `at` and drawn
++	 * right after it in load_earlier(), so a placement in the shown part is never lost (doc/voice-assistant.md#nothing-jumps). */
++	hold_orphan(entry){
++		if (!this.waiting?.length) return false;
++		const re = entry?.place?.re ?? (entry?.type === "refined" ? entry.re : null) ?? (entry?.para ?? (entry?.type === "para" ? entry : null))?.re;
++		if (!re || this.lines.has(re) || !this.waiting.some(l => l?.chat?.at === re)) return false;
++		(this.orphans ??= new Map()).set(re, [...(this.orphans.get(re) ?? []), entry]);
++		return true;
++	}
++
+ 	/** Draw the previous chunk ABOVE what is shown, keeping the reader where they were. speak() only merges onto the last bubble, so the
+ 	 * chunk is drawn into an emptied box and the shown bubbles put back after it (the same trick as ext/Chat's load_earlier). */
+ 	load_earlier(){
+@@ -356,7 +367,11 @@ Widget.Thread = class WidgetThread extends View {
+ 		const box = this.el, host = this.$bubbles.el, before = box.scrollHeight - box.scrollTop;
+ 		const shown = [...host.children];
+ 		shown.forEach(c => c.remove());
+-		for (const line of chunk) this.waiting_draw(line);
++		for (const line of chunk){
++			this.waiting_draw(line);
++			const re = line?.chat?.at, held = re && this.orphans?.get(re);
++			if (held){ this.orphans.delete(re); held.forEach(l => this.draw(l)); }
++		}
+ 		host.append(...shown);   // moves a draft or live bubble that follow() re-added back to its place
+ 		this.show_earlier_button();
+ 		box.scrollTop = box.scrollHeight - before;
+@@ -637,7 +652,7 @@ Widget.Thread = class WidgetThread extends View {
+ 		this.settled = new Set();
+ 		this.summaries = new Map();
+ 		this.draft = null;
+-		this.waiting = null; this.show_earlier_button();
++		this.waiting = null; this.orphans = null; this.show_earlier_button();
+ 		this.$bubbles.empty();
+ 		this.$bubbles.el.style.paddingBlockEnd = ""; this.pad = 0; this.newest = null;
+ 		this.$empty.show();
+diff --git a/public/framework/ux/Dictate/doc/voice-assistant.md b/public/framework/ux/Dictate/doc/voice-assistant.md
+index 320adf0a0..4db9e97f0 100644
+--- a/public/framework/ux/Dictate/doc/voice-assistant.md
++++ b/public/framework/ux/Dictate/doc/voice-assistant.md
+@@ -57,7 +57,7 @@ In live mode the words you are saying grow in a **separate draft bubble** at the
+ 
+ ## Nothing jumps
+ 
+-The chat thread is anchored on the **top of the newest bubble**, not on the bottom edge. Words growing inside a bubble never scroll the box, so the lines above them stay where you are reading them. The box turns a page only twice: when a new bubble starts with less than 75% of a box left under it (`Widget.HEADROOM`), and when one bubble grows taller than the box (its tail then lands mid-box, half a box at a time). If you scrolled up, nothing moves at all. The code is `Widget.Thread.anchor()` in `Widget.js` (it sets `data-turns` on the thread for the proof); the proof is `test/anchor.mjs` (fake mic, five sentences at 400): before, 27 to 38 older-line moves in the split size; after, 0 while words stream in, 5 page turns, and 0 when the reader had scrolled up. The strip has no thread to move. **Cost (2026-10-25, ask `perf`):** `anchor()` only asks for a frame; one animation frame reads layout once, however many lines were drawn or captions redrawn in it (`place_anchor()` is the old body). A replay of history refreshes the lines once after the batch (`refresh_after_batch()`), not once per line. The sheet draws only the newest `Widget.HISTORY` (50) chat lines of a long session; the rest wait behind **show earlier (N)** (`hold_history()`, `load_earlier()`: the older chunk is drawn above while the reader stays where they were; `test/earlier.mjs`). `Session.watch()` tails the file by byte range ([ext/Session/doc/watch.md](/framework/ext/Session/doc/watch.md)), and the mic's meter is written once per frame (`Dictate.paint_level()`). Measured at 4x CPU, 390 px, 207 bubbles: first bubble 8.0 to 8.8 s before, about 0.4 s after; tasks over 50 ms while talking 14 before, 0 after ([perf report](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/perf/report.md)). Known loss: a placement or refinement line in the shown part that points at a bubble still behind the button finds nothing to change and is not re-applied when that bubble is drawn. **Rejected:** pinning the newest line to the bottom (`overflow-anchor` plus scroll-to-bottom), because every added line shifts every older bubble up; and pinning the newest line at the very top at every turn, because it hides the reply you were reading the moment you speak.
++The chat thread is anchored on the **top of the newest bubble**, not on the bottom edge. Words growing inside a bubble never scroll the box, so the lines above them stay where you are reading them. The box turns a page only twice: when a new bubble starts with less than 75% of a box left under it (`Widget.HEADROOM`), and when one bubble grows taller than the box (its tail then lands mid-box, half a box at a time). If you scrolled up, nothing moves at all. The code is `Widget.Thread.anchor()` in `Widget.js` (it sets `data-turns` on the thread for the proof); the proof is `test/anchor.mjs` (fake mic, five sentences at 400): before, 27 to 38 older-line moves in the split size; after, 0 while words stream in, 5 page turns, and 0 when the reader had scrolled up. The strip has no thread to move. **Cost (2026-10-25, ask `perf`):** `anchor()` only asks for a frame; one animation frame reads layout once, however many lines were drawn or captions redrawn in it (`place_anchor()` is the old body). A replay of history refreshes the lines once after the batch (`refresh_after_batch()`), not once per line. The sheet draws only the newest `Widget.HISTORY` (50) chat lines of a long session; the rest wait behind **show earlier (N)** (`hold_history()`, `load_earlier()`: the older chunk is drawn above while the reader stays where they were; `test/earlier.mjs`). `Session.watch()` tails the file by byte range ([ext/Session/doc/watch.md](/framework/ext/Session/doc/watch.md)), and the mic's meter is written once per frame (`Dictate.paint_level()`). Measured at 4x CPU, 390 px, 207 bubbles: first bubble 8.0 to 8.8 s before, about 0.4 s after; tasks over 50 ms while talking 14 before, 0 after ([perf report](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/perf/report.md)). A placement, refinement or paragraph line in the shown part that points at a sentence still behind the button is held by that sentence (`hold_orphan()`) and applied right after it is drawn; `test/earlier.mjs` proves it on a 70-sentence fixture (`test/earlier-fixture.jsonl`). **Rejected:** pinning the newest line to the bottom (`overflow-anchor` plus scroll-to-bottom), because every added line shifts every older bubble up; and pinning the newest line at the very top at every turn, because it hides the reply you were reading the moment you speak.
+ 
+ ---
+ 
+diff --git a/public/framework/ux/Dictate/test/earlier-fixture.jsonl b/public/framework/ux/Dictate/test/earlier-fixture.jsonl
+new file mode 100644
+index 000000000..f0d534fb3
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/earlier-fixture.jsonl
+@@ -0,0 +1,72 @@
++{"session":{"id":"earlier-fixture","kind":"voice"}}
++{"chat":{"at":"2026-10-25T15:00:00.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 1 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:04.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 2 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:08.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 3 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:12.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 4 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:16.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 5 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:20.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 6 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:24.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 7 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:28.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 8 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:32.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 9 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:36.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 10 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:40.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 11 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:44.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 12 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:48.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 13 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:52.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 14 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:00:56.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 15 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:00.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 16 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:04.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 17 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:08.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 18 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:12.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 19 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:16.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 20 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:20.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 21 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:24.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 22 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:28.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 23 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:32.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 24 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:36.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 25 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:40.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 26 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:44.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 27 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:48.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 28 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:52.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 29 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:01:56.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 30 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:00.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 31 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:04.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 32 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:08.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 33 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:12.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 34 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:16.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 35 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:20.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 36 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:24.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 37 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:28.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 38 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:32.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 39 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:36.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 40 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:40.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 41 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:44.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 42 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:48.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 43 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:52.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 44 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:02:56.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 45 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:00.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 46 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:04.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 47 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:08.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 48 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:12.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 49 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:16.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 50 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:20.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 51 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:24.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 52 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:28.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 53 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:32.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 54 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:36.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 55 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:40.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 56 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:44.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 57 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:48.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 58 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:52.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 59 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:03:56.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 60 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:04:00.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 61 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:04:04.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 62 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:04:08.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 63 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:04:12.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 64 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:04:16.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 65 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:04:20.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 66 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:04:24.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 67 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:04:28.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 68 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:04:32.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 69 of the fixture."}}
++{"chat":{"at":"2026-10-25T15:04:36.000Z","from":{"kind":"owner"},"via":"voice","text":"Sentence number 70 of the fixture."}}
++{"place":{"re":"2026-10-25T15:00:08.000Z","to":"card","edit":"nothing"},"by":"voice-assistant"}
+diff --git a/public/framework/ux/Dictate/test/earlier.mjs b/public/framework/ux/Dictate/test/earlier.mjs
+index 3eebacffc..4bfda2449 100644
+--- a/public/framework/ux/Dictate/test/earlier.mjs
++++ b/public/framework/ux/Dictate/test/earlier.mjs
+@@ -2,7 +2,7 @@
+ // node earlier.mjs <base> <page> <session-file>   (Servex and hitl are stubbed; pass the worktree URL, never monorepo.localhost)
+ import path from "path";
+ import { pathToFileURL } from "url";
+-const [base = "http://monorepo.localhost", page_path = "/framework/ext/drawer/", file = "/framework/ai/sessions/2026/10/05/v-yxnts4l/session.jsonl"] = process.argv.slice(2);
++const [base = "http://monorepo.localhost", page_path = "/framework/ext/drawer/", file = "/framework/ux/Dictate/test/earlier-fixture.jsonl"] = process.argv.slice(2);
+ const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
+ const { default: Browser } = await import(pathToFileURL(path.join(here, "../../../../../Server/Browser.mjs")).href);
+ const browser = await Browser.browser({});
+@@ -50,6 +50,14 @@ while (last.button && clicks < 10){
+ 	last = next; clicks++;
+ }
+ if (last.button) fail.push("the button never ran out");
+-console.log(JSON.stringify({ first, last, clicks, fail }));
++// a {place} line in the shown part whose sentence was behind "show earlier" is applied once that sentence is drawn (Widget.Thread.hold_orphan)
++const cards = await page.evaluate(async file => {
++	const lines = (await (await fetch(file)).text()).split("\n").filter(Boolean).map(l => JSON.parse(l));
++	const want = lines.filter(l => l.place?.to === "card").map(l => l.place.re);
++	const t = document.querySelector(".drawer-rail-sheet.on .ux-dictate-widget-thread");
++	return { want: want.length, placed: want.filter(re => [...t.querySelectorAll("[data-re]")].find(n => n.dataset.re === re)?.closest(".ux-dictate-placed-card")).length };
++}, file);
++if (cards.placed < cards.want) fail.push(`${cards.want - cards.placed} of ${cards.want} card placements for earlier sentences were lost`);
++console.log(JSON.stringify({ first, last, clicks, cards, fail }));
+ await Browser.close();
+ process.exit(fail.length ? 1 : 0);
