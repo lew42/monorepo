@@ -10,6 +10,7 @@ View.stylesheet(import.meta, "TaskQueueView.css");
 export default class TaskQueueView extends View {
 	static LIMIT = 20;
 	static BIG = { 1: "See and approve the work", 2: "Every ask becomes a task that finishes", 3: "Agents that know the rules" };
+	static RETRY = [1000, 2000, 4000, 8000];
 	static usd(n){ return "$" + (n || 0).toFixed(2); }
 
 	get classes(){ return "tq-view block wide"; }
@@ -18,7 +19,8 @@ export default class TaskQueueView extends View {
 	initialize(){
 		this.rows = new Map();
 		this.error = "";
-		this.loading = true;
+		this.loaded = false;
+		this.failed = false;
 		this.client = new QueryClient("taskqueue", { row: r => this.change(r), stale: () => this.ask() });
 		super.initialize();
 	}
@@ -34,12 +36,32 @@ export default class TaskQueueView extends View {
 		this.ask();
 	}
 
+	/** A count is drawn only from a successful answer. Until one arrives the page says "Reading…" and asks again, a few times with a growing delay; only then does it say what is wrong, with no number. */
 	async ask(){
-		const res = await this.client.ask({ sort: { by: "score", dir: "desc" }, limit: 500 }, { timeout: 30000 });
-		this.loading = false;
-		if (res.error){ this.error = res.error; return this.paint(); }
-		this.error = ""; this.rows = new Map(res.rows.map(r => [r.id, r]));
+		if (this.asking) return;
+		this.asking = true;
+		for (let n = 0; ; n++){
+			const res = await this.client.ask({ sort: { by: "score", dir: "desc" }, limit: 500 }, { timeout: 30000 });
+			if (!res.error){
+				this.error = ""; this.failed = false; this.loaded = true;
+				this.rows = new Map(res.rows.map(r => [r.id, r]));
+				break;
+			}
+			this.error = res.error;
+			if (this.loaded) break;
+			if (n >= TaskQueueView.RETRY.length){ this.failed = true; break; }
+			this.paint();
+			await new Promise(r => setTimeout(r, TaskQueueView.RETRY[n]));
+		}
+		this.asking = false;
 		this.paint();
+	}
+
+	problem(){
+		return this.error === "no socket" ? "This list needs the dev server (a static copy has no one to ask)."
+			: this.error === "no source" ? "The dev server has not loaded the queue yet: it starts the next time the dev server restarts (Server/TaskQueue.mjs)."
+			: this.error === "timeout" ? "The dev server is still reading the task records and has not answered after several tries. Reload in a minute."
+			: "Could not ask the server: " + this.error;
 	}
 
 	change(r){ this.rows.set(r.id, r); this.paint(); }
@@ -50,10 +72,10 @@ export default class TaskQueueView extends View {
 
 	paint(){
 		const rows = this.top(), all = [...this.rows.values()], total = all.length;
-		if (this.el) this.el.dataset.ready = String(!this.loading);
+		if (this.el) this.el.dataset.ready = String(this.loaded);
 		this.$side.empty(() => {
 			h2.c("tq-h muted", "What is in the queue");
-			if (this.loading) return void p.c("tq-note muted", "Reading the task records…");
+			if (!this.loaded) return void p.c("tq-note muted", this.failed ? this.problem() : "Reading the task records…");
 			div.c("tq-big", () => { span.c("tq-count", String(total)); span.c("tq-what", total === 1 ? " task queued" : " tasks queued"); });
 			div.c("tq-bigs", () => [1, 2, 3].forEach(b => div.c("tq-bigrow", () => {
 				span.c("tq-n", String(all.filter(r => r.big === b).length));
@@ -71,14 +93,11 @@ export default class TaskQueueView extends View {
 			p.c("tq-note muted", "Every number is computed from the task records, never written by an agent. It updates live.");
 		});
 		this.$head.empty(() => {
-			if (this.loading) return;
+			if (!this.loaded) return;
 			span.c("tq-what", `Top ${rows.length} of ${total}, best score first`);
 		});
 		this.$list.empty(() => {
-			if (this.loading) return;
-			if (this.error) return void p.c("tq-empty muted", this.error === "no socket" ? "This list needs the dev server (a static copy has no one to ask)."
-				: this.error === "no source" ? "The dev server has not loaded the queue yet: it starts the next time the dev server restarts (Server/TaskQueue.mjs)."
-				: "Could not ask the server: " + this.error);
+			if (!this.loaded) return void p.c("tq-empty muted", this.failed ? this.problem() : "Reading the task records…");
 			if (!rows.length) return void p.c("tq-empty muted", "Nothing is queued.");
 			rows.forEach(r => div.c("tq-row tq-" + r.state, () => {
 				span.c("tq-rank muted", String(r.rank));
