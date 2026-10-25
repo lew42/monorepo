@@ -21,7 +21,7 @@ import AISession from "./AISession.js";
  *   const prompts = PromptLog.fold(await PromptLog.read(session_id));                // browser or node: { id → prompt }
  *   prompts[id].clean   // ["sentence 0", …]     prompts[id].refined, .notes, .raw, .final
  *
- * `fold()` is also how a replay of a saved session becomes a `Prompt` (`ext/Refine/Prompt.js` `Prompt.from_log`).
+ * `fold()` is also how a replay of a saved session becomes a `Prompt` (`ext/Refine/PromptRun.js` `PromptRun.from_log`).
  * Sessions page tail: the same file, read with `AISession.read_text`, so a page can follow it live.
  */
 export default class PromptLog {

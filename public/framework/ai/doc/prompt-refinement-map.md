@@ -27,7 +27,7 @@ owner types a prompt in a VS Code tab
   → PromptRecords "live"            sentences (code) → parts (Haiku) → file
        prompts.jsonl                raw, clean sentences, parts {id, cites, kind, text, outcome, parts[]}
        session.jsonl                one task per top-level ask (source {session, line, prompt, part}), max 15
-  → Prompt (ext/Refine/Prompt.js)   computes completion from the parts and those tasks' states
+  → PromptRun (ext/Refine/PromptRun.js)  computes completion from the parts and those tasks' states
   → session page, Coverage tab      AISessionCoverage.js draws it
 ```
 
