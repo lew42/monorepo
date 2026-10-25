@@ -69,7 +69,7 @@ function resolve_file(url, item = false){
  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
  * resolves the plain way above. Returns { file, target } or null. */
 const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
-const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion"];   // Task.queries: answered from the record, never written
+const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "unread"];   // Task.queries: answered from the record, never written
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /* TYPO-PROOF SESSION PATHS (2026-10-24, core/Session/doc/identity.md "A typed id that drifts"): a session folder is made only by the
@@ -420,7 +420,8 @@ const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", 
 const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tags", "tasks", "task", "path", "parent", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];
 
 // A Process adds its own line-1 field and the lines only ProcessRunner writes (core/Task/doc/process.md).
-const KEYS = { Task: TASK_KEYS, Session: SESSION_KEYS, Process: [...TASK_KEYS, "process", "class", "spawn", "queue", "pulse", "measure"] };
+const PROMPT_KEYS = [...TASK_KEYS, "raw", "paragraphs", "replies", "subject", "parts", "process", "handled", "text", "from"];   // core/Task/Prompt.js
+const KEYS = { Task: TASK_KEYS, Session: SESSION_KEYS, Prompt: PROMPT_KEYS, Question: [...TASK_KEYS, "text", "from", "answer"], Process: [...TASK_KEYS, "process", "class", "spawn", "queue", "pulse", "measure"] };
 
 const told = new Map();   // `${caller}|${class}` -> true once its instructions went out
 
@@ -481,7 +482,7 @@ const FRAMEWORK = path.join(PUBLIC, "framework");
 const MODULE_NAME = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
 const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/") + "/";
 // The class a new subtask is written as: a known task class it names (session-is-a-task: a Project, a Process, a child Session), else Task.
-const task_type = a => ["Project", "Process", "Session"].includes(a?.type) ? a.type : "Task";
+const task_type = a => ["Project", "Process", "Session", "Prompt", "Question"].includes(a?.type) ? a.type : "Task";
 export const slug_of = text => Task.slug(text);   // one slug rule, Task's (a string added in the browser gets the same id)
 
 // The module an app path sits in: the nearest folder under public/framework/ with a readme.md. Never a dated ai/sessions/ folder.
@@ -860,13 +861,19 @@ function verb_in(delta){
 
 /* HONEST COMPLETION (core/Task/doc/resolution.md, section 6): every complete/finish call in a delta, as its argument object.
  * A bare string or empty value counts as a call with no evidence. A new task's own fields ("add") are not a call. */
-function complete_calls(delta, out = []){
+function complete_calls(delta, out = [], trail = []){
 	if (!is_plain(delta)) return out;
 	for (const [k, v] of Object.entries(delta)){
-		if (k === "complete" || k === "finish") out.push(v);
-		else if (k !== "add") complete_calls(v, out);
+		if (k === "complete" || k === "finish") out.push({ args: v, trail });
+		else if (k !== "add") complete_calls(v, out, k === "tasks" ? trail : [...trail, k]);
 	}
 	return out;
+}
+// The task a target (then a trail of child ids) names, walking `_tasks` one id at a time; the deepest one found (a Question's own rules apply to it, not the session's).
+function node_at(root, ...paths){
+	let node = root;
+	for (const id of paths.flat()){ const kid = node?._tasks?.find(id); if (!kid) return node; node = kid; }
+	return node;
 }
 
 /* A task that completes with caveats tells its parent: one line on the parent's log (the session or task SessionRecord.parent_log finds),
@@ -1069,11 +1076,12 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 			return r.why ? { ok: false, why: r.why } : { ok: true, moved: { from: r.from, to: r.to }, state: state() };
 		}
 	}
-	if (Class?.replay){ const no = validate(Class, root(), flat); if (no) return no; }
+	if (Class?.replay){ const node = node_at(root(), at.target); const no = validate(node?.constructor ?? Class, node ?? root(), flat); if (no) return no; }
 	else if (kind === "Page"){ const no = await page_refusal(at, flat); if (no) return no; }
 	// A complete without evidence is refused BEFORE a line is written: a written line would replay as a recorded fact.
-	if (Class?.replay) for (const args of complete_calls(flat)){
-		const why = Class.completion_problem?.(args);
+	if (Class?.replay) for (const { args, trail } of complete_calls(flat)){
+		const node = node_at(root(), at.target, trail), Own = node?.constructor ?? Class;
+		const why = Own.completion_problem?.(args, node);
 		if (why) return { ok: false, why };
 	}
 

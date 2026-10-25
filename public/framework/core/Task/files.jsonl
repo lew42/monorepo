@@ -31,3 +31,7 @@
 {"file":"process/page.js"}
 {"file":"Process.test.mjs"}
 {"file":"failures.jsonl","gone":true}
+{"file":"Prompt.js"}
+{"file":"Question.js"}
+{"file":"Prompt.test.mjs"}
+{"file":"Question.test.mjs"}

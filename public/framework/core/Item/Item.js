@@ -316,7 +316,7 @@ export class Item extends Events(Object) {
 		for (const key in raw){
 			if (key === "type" || key === "id" || key === "after") continue;
 			if (key === "data"){ if (is_data(raw.data)) Object.assign(data, raw.data); else if (raw.data !== undefined) warn(`data must be an object`); continue; }
-			if (Array.isArray(raw[key])){ lists[key] = raw[key]; continue; }
+			if (Array.isArray(raw[key])){ if (Class?.plain_lists?.includes(key)) data[key] = raw[key]; else lists[key] = raw[key]; continue; }   // plain_lists: arrays of text or records that are data, not child Items (Prompt.raw)
 			data[key] = raw[key];
 		}
 
@@ -325,7 +325,8 @@ export class Item extends Events(Object) {
 		for (const key in lists){
 			if (!Item.makeList){ warn(`hydrate(): "${key}" is an array but List.js never loaded — kept as plain data`, "hydrate:nolist"); item.data[key] = lists[key]; continue; }
 
-			const list = item[key] = Item.makeList({ owner: item, name: key });
+			item[key] = Item.makeList({ owner: item, name: key });
+			const list = item[key];   // read back: a class with its own `paragraphs` setter keeps its own List subclass
 			lists[key].forEach(kid => list.insert(Item.hydrate(kid, seen)));
 		}
 
