@@ -61,6 +61,15 @@ const gear = async page => {   // open the gear panel (the old "Dictation settin
 	({ page, errors } = await open(ctx));
 	await gear(page);
 	check(await page.inputValue("input[data-key=send_delay]") === "3", "after a reload the send delay still reads 3 s");
+	check(await page.locator("input[data-key=wake_gap_s]").getAttribute("placeholder") === "default (12)", "the batch seconds placeholder shows Servex's default, 12");
+	await page.fill("input[data-key=send_delay]", "1.5");   // 1.5 s was an old default that the migration used to drop
+	await page.locator("input[data-key=send_delay]").dispatchEvent("change");
+	await page.close();
+	({ page, errors } = await open(ctx));
+	await gear(page);
+	check(await page.inputValue("input[data-key=send_delay]") === "1.5", "after a reload a send delay of 1.5 s still reads 1.5 s");
+	check(await page.evaluate(() => document.querySelector(".chatbox-compose-menu-panel input[data-key]").dataset.key) === "send_delay", "send delay is the first row of the panel");
+	check(await page.locator("details:not([open]) input[data-key=guess_ms]").count() === 1, "the expert knobs sit under a closed More");
 	check(errors.length === 0, "no page errors" + (errors[0] ? ": " + errors[0] : ""));
 	await ctx.close();
 }

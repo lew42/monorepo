@@ -41,6 +41,8 @@ is the default and the only behaviour a reader can pick, everywhere.
 was 1500, then 2500 before that. `can_break()` still requires the sentence to actually END in
 `. ! ?` first — a pause mid-sentence is only a breath, never a send.)
 
+2026-10-25 — both waits (this one and `pause_send_ms`) became ONE "send delay", 2 s by default, store `chat.mic.settings.4`; see [ux/Dictate/doc/settings.md](/framework/ux/Dictate/doc/settings.md).
+
 ## Settings: box_lines history
 
 mastermind's decided shape: a textarea, one line empty, 3 lines ceiling (the owner's 2026-10-04 cap kept),
@@ -347,7 +349,7 @@ This is the one seam every outgoing send already passes through, so it is the on
 place that can catch all of them: the same text (case/space-insensitive), from the
 SAME mic, within `DUP_WINDOW_MS`, is logged and dropped instead of posted again.
 A real, separately-spoken repeat ("yes. yes.") is two SEGMENTS at least a pause
-apart, almost always well outside this window — `pause_ms` (700ms) plus the time to
+apart, almost always well outside this window — `pause_ms` (now the 2 s send delay) plus the time to
 actually say the word.
 
 ## Settings: paragraph_pause_ms

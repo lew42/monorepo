@@ -7,6 +7,10 @@ import path from "node:path";
 import WakePolicy, { WAKE_DEFAULTS, WAKE_LIMITS, sentence_count, is_question, is_addressed } from "./WakePolicy.js";
 import Sessions from "./Sessions.js";
 
+// These checks were written against a 6 s gap; the shipped default is now WAKE_DEFAULTS.gap_ms (12 s), so they pin 6 s here.
+const GAP6 = { gap_ms: 6000, every: WAKE_DEFAULTS.every };
+process.env.SERVEX_SESSION_WAKE_GAP_MS = "6000";
+
 let checks = 0;
 const check = (name, fn) => { fn(); checks++; };
 
@@ -31,7 +35,7 @@ export function fake_clock(){
 
 function rig(opts = {}){
 	const clock = fake_clock(), wakes = [];
-	const policy = new WakePolicy({ clock, flush: (id, lines, why, info) => wakes.push({ at: clock.now, id, why, n: lines.length, sentences: info.sentences }), ...opts });
+	const policy = new WakePolicy({ clock, flush: (id, lines, why, info) => wakes.push({ at: clock.now, id, why, n: lines.length, sentences: info.sentences }), defaults: GAP6, ...opts });
 	return { clock, wakes, policy, say: (text, id = "s1") => policy.add(id, { at: clock.now, text }) };
 }
 
@@ -126,7 +130,7 @@ check("the knobs: per-session values override the defaults, are validated, and n
 	const own = { s1: { gap_ms: 2000, every: 2 } };
 	const { clock, wakes, say, policy } = rig({ stored: id => own[id] });
 	assert.deepEqual(policy.knobs("s1"), { gap_ms: 2000, every: 2 });
-	assert.deepEqual(policy.knobs("other"), WAKE_DEFAULTS);
+	assert.deepEqual(policy.knobs("other"), GAP6);
 	say("one."); clock.advance(2000);
 	assert.equal(wakes.length, 1, "this session's gap is 2 s");
 	say("a.", "other"); clock.advance(2000);
@@ -229,7 +233,7 @@ check("Sessions: typed lines join the same gate with the short typed hold", () =
 check("Sessions: settings() stores the knobs on the session, validated, and they change the rule", () => {
 	sent.length = 0;
 	const { s, clock, made } = make();
-	assert.deepEqual(s.settings({ session: made.session }), { ok: true, ...WAKE_DEFAULTS });
+	assert.deepEqual(s.settings({ session: made.session }), { ok: true, ...GAP6 });
 	assert.deepEqual(s.settings({ session: made.session, every: 2, gap_ms: 3000 }), { ok: true, every: 2, gap_ms: 3000 });
 	assert.deepEqual(s.map[made.session].wake, { every: 2, gap_ms: 3000 });
 	assert.deepEqual(JSON.parse(fs.readFileSync(s.file, "utf8"))[made.session].wake, { every: 2, gap_ms: 3000 }, "saved to sessions.json");
@@ -237,7 +241,7 @@ check("Sessions: settings() stores the knobs on the session, validated, and they
 	assert.equal(smart_prompts().length, 1);
 	assert.throws(() => s.settings({ session: made.session, every: 0 }), e => e.status === 400);
 	assert.throws(() => s.settings({ session: "no-such" }), e => e.status === 404);
-	assert.deepEqual(s.settings({ session: made.session, every: null, gap_ms: null }), { ok: true, ...WAKE_DEFAULTS });
+	assert.deepEqual(s.settings({ session: made.session, every: null, gap_ms: null }), { ok: true, ...GAP6 });
 	assert.equal("wake" in s.map[made.session], false);
 });
 

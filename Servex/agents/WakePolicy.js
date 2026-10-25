@@ -9,7 +9,7 @@
 /* THE KNOBS, in one place. Per session they live on the session's entry in Servex's sessions.json (`wake`, set through
  * POST /api/session/settings {session, gap_ms, every}); a session with none uses these (env overrides at boot). The
  * dictation widget's settings panel sets them through that route. */
-export const WAKE_DEFAULTS = { gap_ms: 6000, every: 6 };
+export const WAKE_DEFAULTS = { gap_ms: 12000, every: 6 };   // 12 s: the owner asked for a batch every ~10-15 s. ext/Chat/Mic.js shows these as its placeholders; change both together
 export const WAKE_LIMITS = { gap_ms: [1000, 60000], every: [1, 50] };
 
 /* Addressed by name: a sentence that STARTS with "smart"/"mastermind" (optionally after hey/okay), or says "smart assistant" not as

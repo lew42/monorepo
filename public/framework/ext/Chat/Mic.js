@@ -28,14 +28,18 @@ export const SETTINGS = {
 const STORE = "chat.mic.settings.4";   // .4: the 2 s send delay must not be shadowed by the old 700 / 1500 ms defaults
 // Carry the owner's saved values over from the old key; drop stale defaults. see doc/mic-notes.md#settings-migration
 try {
-	const saved = JSON.parse(localStorage.getItem(STORE) ?? localStorage.getItem("chat.mic.settings.3") ?? localStorage.getItem("chat.mic.settings.2") ?? "{}");
-	if (saved.pause_send_ms === 4000 || saved.pause_send_ms === 2500 || saved.pause_send_ms === 1500) delete saved.pause_send_ms;
-	if (saved.paragraph_pause_ms === 2500 || saved.paragraph_pause_ms === 1500 || saved.paragraph_pause_ms === 700) delete saved.paragraph_pause_ms;
+	const own = localStorage.getItem(STORE);   // a value saved under the current key is the owner's own choice: kept as is
+	const saved = JSON.parse(own ?? localStorage.getItem("chat.mic.settings.3") ?? localStorage.getItem("chat.mic.settings.2") ?? "{}");
+	if (own === null){   // carried over from an older key: drop the old defaults
+		if (saved.pause_send_ms === 4000 || saved.pause_send_ms === 2500 || saved.pause_send_ms === 1500) delete saved.pause_send_ms;
+		if (saved.paragraph_pause_ms === 2500 || saved.paragraph_pause_ms === 1500 || saved.paragraph_pause_ms === 700) delete saved.paragraph_pause_ms;
+	}
 	// A saved "manual" send mode can no longer be chosen: reset it. see doc/mic-notes.md#settings-migration
 	if (saved.send_mode === "manual") saved.send_mode = "pause";
 	Object.assign(SETTINGS, saved);
 } catch {}
 export const save_settings = () => { try { localStorage.setItem(STORE, JSON.stringify(SETTINGS)); } catch {} };
+const WAKE_PLACEHOLDERS = { wake_gap_s: 12, wake_every: 6 };   // = WAKE_DEFAULTS in Servex/agents/WakePolicy.js (gap_ms / 1000, every)
 export const CHECK_MS = 250;
 // Fired on `document` when the gear's "clean" checkbox changes (`detail` is the new value), for nodes outside this mic.
 export const CLEAN_CHANGED_EVENT = "chat-mic-clean-changed";
@@ -307,13 +311,21 @@ export class ComposerMic extends Dictate {
 		const panel = document.createElement("div");
 		panel.className = "chatbox-mic-settings";
 		const rows = [
+			["send_delay", "send delay (s): keep talking within it and the words join one prompt", "seconds"],
 			["clean", "clean transcription (fast assistant clean-up)", "boolean"],
 			["into", "dictation goes into", ["chat", "box"]],
-			["send_mode", "send mode", ["pause", "sentences"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], 
-			["send_delay", "send delay (s): keep talking within it and the words join one prompt", "seconds"], ["break_pause_ms", "paragraph pause (ms)", "number"],
+			["send_mode", "send mode", ["pause", "sentences"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], ["break_pause_ms", "paragraph pause (ms)", "number"],
+		];
+		const expert = [   // under the closed "More" below the smart assistant rows
 			["guess_ms", "guess every (ms)", "number"], ["box_lines", "box lines before scroll", "number"], ["chunk_chars", "safety chunk (chars)", "number"], ["chunk_ms", "safety chunk (ms)", "number"], ["fillers", "filler words", "text"],
 		];
-		for (const [key, label, kind] of rows){
+		const more = document.createElement("details");
+		more.style.cssText = "grid-column: 1 / -1; margin-block-start: 0.6em";
+		const grid = document.createElement("div");
+		grid.style.cssText = "display: grid; grid-template-columns: auto auto; gap: 0.4em 0.75em; align-items: center; margin-block-start: 0.4em";
+		const summary = document.createElement("summary"); summary.textContent = "More";
+		more.append(summary, grid);
+		for (const [key, label, kind, into] of [...rows.map(r => [...r, panel]), ...expert.map(r => [...r, grid])]){
 			const name = document.createElement("label"); name.textContent = label;
 			const input = Array.isArray(kind) ? document.createElement("select") : document.createElement("input");
 			if (Array.isArray(kind)) for (const o of kind) input.add(new Option(o, o));
@@ -337,9 +349,10 @@ export class ComposerMic extends Dictate {
 				if (key === "clean") document.dispatchEvent(new CustomEvent(CLEAN_CHANGED_EVENT, { detail: SETTINGS.clean }));
 				save_settings();
 			});
-			panel.append(name, input);
+			into.append(name, input);
 		}
 		this.wake_rows(panel);
+		panel.append(more);
 		return panel;
 	}
 
@@ -353,7 +366,7 @@ export class ComposerMic extends Dictate {
 		for (const [key, label, max] of [["wake_gap_s", "batch after quiet (s, 1 to 60)", 60], ["wake_every", "or after this many sentences (1 to 50)", 50]]){
 			const name = document.createElement("label"); name.textContent = label;
 			const input = document.createElement("input");
-			input.type = "number"; input.min = 1; input.max = max; input.placeholder = "default (6)"; input.dataset.key = key;
+			input.type = "number"; input.min = 1; input.max = max; input.placeholder = `default (${WAKE_PLACEHOLDERS[key]})`; input.dataset.key = key;
 			input.value = SETTINGS[key] ?? "";
 			input.style.width = "10em";
 			input.addEventListener("change", () => {
