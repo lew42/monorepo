@@ -85,6 +85,49 @@ export default class TrackingView extends View {
 			],
 			rows: n.rows, filters: false,
 		});
+		if (pc) {
+			h2("4. Owner prompts without a refinement record");
+			p("Per session with a `prompts.jsonl`: the owner's unique prompts in the transcript (a compaction replays old ones; they count once) against those with parts. The last column lists the transcript lines of the prompts with none.");
+			new DataGrid({
+				columns: [
+					{ key: "folder", label: "Session", width: "3fr", min: "14em" },
+					{ key: "unique", label: "Unique prompts", type: "number", width: "8em" },
+					{ key: "recorded", label: "With parts", type: "number", width: "7em" },
+					{ key: "share", label: "Covered", type: "number", width: "6em", format: v => v == null ? "n/a" : pct(v) },
+					{ key: "log_lines", label: "Log lines", type: "number", width: "6em" },
+					{ key: "missing", label: "Unrecorded transcript lines", width: "3fr", min: "12em" },
+				],
+				rows: pc.rows.map(x => ({ ...x, share: x.pct, missing: x.no_transcript ? "(no transcript on this machine)" : x.unrecorded.map(u => "L" + u.line).join(" ") })), filters: false,
+			});
+		}
+
+		if (pf) {
+			h2("5. JSONL read and write time");
+			p(`The largest records, read and parsed on every run (over ${pf.limits.read_ms} ms is flagged), then three item-tool writes on a copy (over ${pf.limits.write_ms} ms is flagged). ${pf.verdict}.`);
+			new DataGrid({
+				columns: [
+					{ key: "file", label: "Record", width: "4fr", min: "16em" },
+					{ key: "kb", label: "KB", type: "number", width: "6em" },
+					{ key: "lines", label: "Lines", type: "number", width: "6em" },
+					{ key: "read_ms", label: "Read ms", type: "number", width: "7em" },
+					{ key: "parse_ms", label: "Parse ms", type: "number", width: "7em" },
+					{ key: "append_ms", label: "Append ms", type: "number", width: "7em" },
+					{ key: "flag", label: "Limit", width: "6em" },
+				],
+				rows: pf.files.map(f => ({ ...f, flag: f.over ? "OVER" : "ok" })), filters: false,
+			});
+			const writes = [...(pf.item?.writes ?? []).map(w => ({ ...w, via: "item tool in-process, on " + pf.item.source, at: pf.item.measured_at })), ...(pf.http?.writes ?? []).map(w => ({ ...w, via: "Servex HTTP, on " + pf.http.source, at: pf.http.measured_at }))];
+			if (writes.length) new DataGrid({
+				columns: [
+					{ key: "via", label: "Item write", width: "4fr", min: "16em" },
+					{ key: "ms", label: "ms", type: "number", width: "8em" },
+					{ key: "flag", label: "Limit", width: "6em" },
+					{ key: "at", label: "Measured", width: "10em", format: v => v?.replace("T", " ").slice(0, 16) },
+				],
+				rows: writes.map(w => ({ ...w, flag: w.ms > pf.limits.write_ms ? "OVER" : "ok" })), filters: false,
+			});
+			else p("No write timing yet: run `node Server/TrackingCheck.mjs --item` (add `--http <page url>` to time Servex's door).");
+		}
 	}
 
 	card(big, label, detail){
