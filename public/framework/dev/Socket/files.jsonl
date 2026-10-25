@@ -6,3 +6,4 @@
 {"file":"doc/"}
 {"file":"tasks/"}
 {"file":"failures.jsonl"}
+{"file":"failures.jsonl","gone":true}

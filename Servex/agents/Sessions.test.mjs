@@ -51,7 +51,9 @@ function make(){
 	return s;
 }
 
-const last_sent = role => sent.filter(c => c.id.startsWith(`session-${role}`)).at(-1)?.text;
+// Chat v2: every seat message now ends with the Prompt it answers, `\n(prompt p-…)`; PromptLines.say.test.mjs checks that tail, so these checks read the message without it.
+const no_prompt = t => t?.replace(/\n\(prompt p-[\w-]+\)$/, "");
+const last_sent = role => no_prompt(sent.filter(c => c.id.startsWith(`session-${role}`)).at(-1)?.text);
 const lines = file => fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
 
 // ── item 1: nav carries the card, and notes the fast assistant ─────────────────────────
@@ -274,7 +276,7 @@ check("voice seat: each sentence sends the whole prompt so far, the new sentence
 	const made = s.create({ path: "/a/" });
 	const at1 = s.say({ session: made.session, path: "/a/", text: "one", via: "text" }).at;
 	const at2 = s.say({ session: made.session, path: "/a/", text: "two", via: "text" }).at;
-	const text = sent.filter(c => c.id.startsWith("voice-assistant")).at(-1).text;
+	const text = no_prompt(sent.filter(c => c.id.startsWith("voice-assistant")).at(-1).text);
 	assert.match(text, new RegExp(`The prompt so far:\\n\\[${at1.replace(/[+.]/g, "\\$&")}\\] one\\n`));
 	assert.match(text, new RegExp(`New sentence to place[^\\n]*\\n\\[${at2.replace(/[+.]/g, "\\$&")}\\] two\\n`));
 	assert.ok(text.endsWith(`Session file: ${made.file}`));
@@ -286,7 +288,7 @@ check("voice seat: a held spoken thought is sent as ALL its new sentences at onc
 	const made = s.create({ path: "/a/" });
 	const a = s.say({ session: made.session, path: "/a/", text: "alpha", via: "voice", floor: "speaking" }).at;
 	const b = s.say({ session: made.session, path: "/a/", text: "beta", via: "voice", floor: "done" }).at;   // releases the thought
-	const text = sent.filter(c => c.id.startsWith("voice-assistant")).at(-1).text;
+	const text = no_prompt(sent.filter(c => c.id.startsWith("voice-assistant")).at(-1).text);
 	assert.match(text, /New sentences to place/);
 	assert.ok(text.includes(`[${a}] alpha`) && text.includes(`[${b}] beta`));
 	assert.match(text, /prompt so far:[^\n]*\(nothing yet\)/i);

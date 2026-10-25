@@ -157,8 +157,10 @@ function make(){
 	s.waker.clock = clock;
 	return { s, clock, made: s.create({ path: "/a/" }) };
 }
-const smart_prompts = () => sent.filter(c => c.id.startsWith("session-smart")).map(c => c.text);
-const fast_prompts = () => sent.filter(c => c.id.startsWith("session-fast")).map(c => c.text);
+// Chat v2: every seat message now ends with the Prompt it answers, `\n(prompt p-…)`; PromptLines.say.test.mjs checks that tail, so these checks read the message without it.
+const no_prompt = t => t?.replace(/\n\(prompt p-[\w-]+\)$/, "");
+const smart_prompts = () => sent.filter(c => c.id.startsWith("session-smart")).map(c => no_prompt(c.text));
+const fast_prompts = () => sent.filter(c => c.id.startsWith("session-fast")).map(c => no_prompt(c.text));
 // A spoken line from a page that reports the floor, released by a 2.6 s quiet event (what the browser sends).
 const speak = (s, made, text) => s.say({ session: made.session, path: "/a/", text, via: "voice", floor: "done", quiet_ms: 2600 });
 

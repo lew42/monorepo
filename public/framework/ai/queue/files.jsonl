@@ -13,3 +13,6 @@
 {"file":"tasks/"}
 {"file":"done-check.json"}
 {"file":"dropped.json"}
+{"file":"tasks/","gone":true}
+{"file":"done-check.json","gone":true}
+{"file":"dropped.json","gone":true}

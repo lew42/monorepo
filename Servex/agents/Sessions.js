@@ -13,6 +13,7 @@ import { has_key, spend_guard } from "../ext/openrouter/provider.js";
 import { clean } from "../../public/framework/ext/Refine/engine.js";
 import { structure } from "../../public/framework/ext/Refine/structure.js";
 import WakePolicy from "./WakePolicy.js";
+import * as PromptLines from "./PromptLines.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
@@ -257,16 +258,20 @@ export default class Sessions {
 				...(process.env.SERVEX_SESSION_WAKE_EVERY ? { every: env("SERVEX_SESSION_WAKE_EVERY", 6) } : {}) } });
 	}
 
-	/* The ONE place the owner's words reach the smart seat (a model turn). `why` is the cue it is told. */
+	/* The ONE place the owner's words reach the smart seat (a model turn). `why` is the cue it is told.
+	 * CHAT V2 (round 2 §2): each line already carries which Prompt it belongs to (`line.prompt`, set in `say()`), so
+	 * the smart seat is told it here, the same `(prompt p-…)` tail `voice_say` gives the fast seat -- the only place
+	 * either seat is ever told, since neither has another way to learn an id `say()` just minted. */
 	feed_smart(id, lines, why){
 		const s = this.map[id];
 		if (!s) return;
 		const moves = (s.moves ?? []).splice(0);
 		const nav = moves.length ? `(now on ${moves[moves.length - 1]})\n` : "";
+		const prompt = lines[lines.length - 1]?.prompt;
 		s.smart_re = lines[lines.length - 1].at;
 		this.save();
 		this.wake(s, "smart");
-		this.send(s, "smart", nav + lines.map(l => `${selected_prefix(l.selection)}[on ${l.path} at ${l.at}] ${l.text}`).join("\n") + `\n(${why})`);
+		this.send(s, "smart", nav + lines.map(l => `${selected_prefix(l.selection)}[on ${l.path} at ${l.at}] ${l.text}`).join("\n") + `\n(${why})` + (prompt ? `\n(prompt ${prompt})` : ""));
 	}
 
 	/* The knobs of one session (dictation widget settings panel): POST /api/session/settings {session, gap_ms?, every?};
@@ -422,15 +427,42 @@ export default class Sessions {
 
 	/* WAKE THE VOICE ASSISTANT (voice-assistant-plan): the whole prompt so far (each owner line with its `at`), then the
 	 * new sentence(s), then the session file to write into. It answers by writing one {"place"} line per new sentence
-	 * with the item tool; it writes no chat reply (`heard()` drops its text). */
+	 * with the item tool; it writes no chat reply (`heard()` drops its text).
+	 *
+	 * CHAT V2 (round 2, §1-2): this is also called with the LAST OWNER LINE AGAIN on a fallback respawn (`woken()`
+	 * below) -- re-sending an already-logged line to a fresh model, never a new utterance. The Prompt itself is
+	 * written in `say()`, at the moment each line is first heard, exactly once; `voice_say` only ever builds text
+	 * for the fast seat, so a respawn can never write a second Prompt for the same words. `fresh` lines already
+	 * carry which Prompt they belong to (`l.prompt`, set in `say()`) -- told to the fast seat the same way
+	 * `feed_smart` tells the smart one, so either seat can be asked about a Prompt it was never separately handed. */
 	voice_say(s, fresh){
 		const news = new Set(fresh.map(l => l.at));
 		const said = l => `[${l.at}] ${selected_prefix(l.selection)}${l.text}`;
 		const before = this.owner_lines(s).filter(l => !news.has(l.at));
+		const prompt = fresh[fresh.length - 1]?.prompt;
 		const text = (before.length ? `The prompt so far:\n${before.map(said).join("\n")}\n\n` : "The prompt so far: (nothing yet)\n\n")
 			+ `New sentence${fresh.length === 1 ? "" : "s"} to place (one {place} line each, \`re\` = its \`at\`):\n${fresh.map(said).join("\n")}\n\n`
-			+ `Session file: ${s.file}`;
+			+ `Session file: ${s.file}` + (prompt ? `\n(prompt ${prompt})` : "");
 		this.send(s, "fast", text);
+	}
+
+	/* CHAT V2 (Option C, chat-shape.md; round 2 §1): the Prompt THIS owner line belongs to -- every owner line, any
+	 * seat, never gated on `voice_seat()` (finding 4). `s.prompt` is the thought still open: a line that continues
+	 * one pushes its raw words and grows the one paragraph "a" in place, live, as it is said -- never waiting for
+	 * the pause (findings 2, 3). The CALLER (`say()`) clears `s.prompt` the moment this thought is handed to a seat,
+	 * so a later, unrelated line is never wrongly merged into a Prompt that is already done. Returns the Prompt's
+	 * id, written onto the chat line itself (`line.prompt`) so either seat can be told which Prompt it is answering
+	 * (`feed_smart`/`voice_say`, which have no other way to learn an id `say()` just minted). */
+	assign_prompt(s, { text, raw }){
+		if (s.prompt){
+			this.write(s, PromptLines.push_raw(s.prompt, raw ?? text));
+			this.write(s, PromptLines.append_paragraph(s.prompt, { para_id: "a", text: " " + text }));
+			return s.prompt;
+		}
+		const id = PromptLines.prompt_id();
+		this.write(s, PromptLines.add_prompt({ id, raw: raw ?? text, text }));
+		s.prompt = id;
+		return id;
 	}
 
 	// ── state ────────────────────────────────────────────────────────────────
@@ -441,6 +473,7 @@ export default class Sessions {
 		for (const [id, s] of Object.entries(this.map)){
 			if (this.relocate(s)) moved++;
 			delete s.floor;   // a floor from before a restart is stale: nobody is still talking into it
+			delete s.prompt;  // the held thought (this.thoughts) is in memory only, so an open Prompt from before a restart is closed: the next line starts a fresh one
 			for (const role of ["fast", "smart"]) if (s[role]) this.by_agent.set(s[role], { id, role });
 		}
 		if (moved){ console.log(`sessions: ${moved} session${moved === 1 ? "" : "s"} repointed to the dated store`); this.save(); }
@@ -885,13 +918,34 @@ export default class Sessions {
 	/* A THREADED reply (the owner pressed Reply on a bubble): `re` = that bubble's `at`,
 	 * `thread: true`. It is kept on the owner's line, the assistants are told which line
 	 * it answers, and their replies to it are threaded under the same bubble. */
-	say({ session, path: at, text, via = "text", raw, floor, cues, quiet_ms, re, thread, selection } = {}){
-		const s = this.get(session);
+	/* CHAT V2 (round 2, requirements-2.md §3): `kind` other than "speech" is the page reporting something, not the
+	 * owner speaking -- it never wakes a seat, never touches a Prompt, and never runs through the speech logic
+	 * below at all (an early return). `session` must be an OWN key of `this.map` (`Object.hasOwn`, never a bare
+	 * `this.map[session]`, which a name like "constructor" would resolve to a prototype value and crash past this
+	 * guard) -- this is the real dictation path (`/api/session/say`), the one the page's own error/click reports
+	 * now travel down too, so the same hardening the speech branch already gets from `this.get()` is given here
+	 * explicitly. `error` is filed as a `log` line (ISO `at`, like every other log line in this repo); `click`/
+	 * `context` are queued onto the smart seat's `notes`, the same way `nav()`/`react()` already tell it something
+	 * happened without starting a new thought -- read on its next turn. */
+	say({ session, path: at, text, via = "text", raw, floor, cues, quiet_ms, re, thread, selection, kind = "speech" } = {}){
+		if (!["speech", "error", "click", "context"].includes(kind)) throw Object.assign(new Error("kind is speech, error, click or context"), { status: 400 });
 		if (!String(text ?? "").trim()) throw Object.assign(new Error("text is required"), { status: 400 });
+		if (kind !== "speech"){
+			if (!Object.hasOwn(this.map, session)) throw Object.assign(new Error(`no session "${session}"`), { status: 404 });
+			const s = this.map[session];
+			if (kind === "error") this.write(s, { log: { at: now_ms(), msg: String(text).slice(0, 2000) } });
+			else { ((s.notes ??= {}).smart ??= []).push(`(the page reports a ${kind}: ${String(text).slice(0, 500)})`); this.save(); }
+			return { ok: true };
+		}
+		const s = this.get(session);
 		if (floor != null && !FLOORS.includes(floor)) throw Object.assign(new Error(`floor is ${FLOORS.join(" or ")}`), { status: 400 });
 		const site = page_path(at) ?? s.path;
 		if (site !== s.path) this.nav({ session, from: s.path, to: site });
-		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text,
+		/* CHAT V2 (round 2, §1): the Prompt this line belongs to -- the one already open (`s.prompt`), grown live, or
+		 * a fresh one otherwise. Whoever hands this line's thought to a seat below clears `s.prompt` once that
+		 * happens, so the NEXT line (continuing or not) is never wrongly merged into a Prompt that is already done. */
+		const prompt = this.assign_prompt(s, { text, raw });
+		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text, prompt,
 			...(raw && String(raw).trim() && raw !== text ? { raw: String(raw) } : {}),
 			...(floor ? { floor } : {}), ...(cues && typeof cues === "object" ? { cues } : {}),
 			...(thread && re ? { re: String(re), thread: true } : {}),
@@ -923,8 +977,9 @@ export default class Sessions {
 			s.fast_re = s.fast_thought_at = line.at;
 			s.fast_heard = text;
 			if (this.voice_seat()) this.voice_say(s, [line]);
-			else this.send(s, "fast", `${selected_prefix(selection)}[on ${site}] ${text}`);
+			else this.send(s, "fast", `${selected_prefix(selection)}[on ${site}] ${text}\n(prompt ${prompt})`);
 			this.gather(s, line);
+			s.prompt = null;   // CHAT V2 (round 2, §1): handed to a seat already, with nothing more coming -- done
 		}
 		return { ok: true, at: line.at, answered_by: [
 			{ kind: "assistant", id: "fast", agent: s.fast }, { kind: "assistant", id: "smart", agent: s.smart }] };
@@ -1049,8 +1104,10 @@ export default class Sessions {
 		if (!h?.lines.length) return false;
 		clearTimeout(h.timer);
 		this.thoughts.delete(s.id);
+		s.prompt = null;   // CHAT V2 (round 2 §1): the thought is done; the next line (typed or spoken) starts a fresh Prompt
 		const said = h.lines.map(l => `${selected_prefix(l.selection)}[on ${l.path}] ${l.text}`).join("\n");
-		const tail = `\n(the owner has stopped: ${why})`;
+		const prompt = h.lines[h.lines.length - 1]?.prompt;
+		const tail = `\n(the owner has stopped: ${why})` + (prompt ? `\n(prompt ${prompt})` : "");
 		s.fast_re = h.lines[h.lines.length - 1].at;
 		s.fast_heard = said;
 		s.fast_thought_at = h.lines[0].at;   // the FIRST owner line of this thought — a `(new paragraph)` marker's `re`
