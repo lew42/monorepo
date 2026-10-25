@@ -60,3 +60,7 @@ The owner is weighing splitting the VS Code tab into a lighter **voice agent** t
 - **For:** all agents on one system (one set of logs, tasks and costs); local tools run in-process; dictation from the phone works (the cloud voice agent already shows the shape).
 - **Against:** two contexts (the voice tab does not know what the mastermind was asked unless every hand-off is logged); the roles must be coordinated (a strict forwarder that only monitors risks losing the thread); the prompt is passed off automatically, so the splitter's task becomes the only record.
 - **Not decided.** Effort and model matter less than the hand-off being automatic. If taken up, start from the [tab relays to a deputy](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/plan.md) routine already in use, which is this split with the tab still doing the forwarding. Source: the prompt `76cbf230…` in `ai/sessions/2026/10/20/session-e00f55c9/prompts.jsonl`, S23–48.
+
+## Idea (the owner, 2026-10-24, not now): roles per folder
+
+Any folder can be an AI system: its readme, plus optional role files that only that role loads (a `mastermind.md` beside the module's readme, or `framework/ai/system.md` for the AI system mastermind: its own role, abilities and operating procedure). A spawn would read the readme chain as now, then the role file in each folder on the way down if one exists for its role. Not built; source: agent-base item 10 (`ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/agent-base/requirements.md`).
