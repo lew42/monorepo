@@ -224,3 +224,13 @@
 {"log":{"at":"2026-10-24T21:58:17-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-24T21:59:47-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-24T22:04:15-05:00","msg":"show: the AI dashboard landed on michael/dev: /framework/ai/ opens on needs you, the big things now, what is running (live, with cost), the task queue top 3 and usage pace; the sessions list is one click down. Try it: http://monorepo.localhost/framework/ai/ (phone: http://10.0.0.135:8137/framework/ai/). Shot: public/framework/core/Page/tasks/page-mastermind/ai-dashboard/shots/live-1920.png. Review Opus pass, 7 notes answered. Open: Ready to merge reads 0 until worktree/merge-list-module-tasks lands (asked vscode-mastermind); AI tab row vs pill row filed in ai/AIDashboard/improvements.jsonl."}}
+{"log":{"at":"2026-10-24T22:05:17-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-24T22:11:24-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-24T22:29:02-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-24T22:29:02-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-24T22:29:02-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-24T22:41:09-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-24T22:49:55-05:00","msg":"session resumed"}}
+{"action":{"at":"2026-10-24T22:58:31-05:00","did":"edit","files":["public/framework/core/Page/tasks/page-mastermind/ai-head-row/requirements.md"]}}
+{"log":{"at":"2026-10-24T22:58:56-05:00","msg":"ai-head-row: owner priority 1 (third time), one-row AI head on every AI page. Sessions pages already one row on michael/dev at 320-4000 px from first paint; the two misses were /framework/ai/ (dashboard drew core's title alone) and /framework/ai/tasks/ (its filter url was captured by the dashboard). Fixed on worktree/ai-head-row a798f2ba0; fresh review running. Brief: ai-head-row/requirements.md"}}
+{"decision":{"at":"2026-10-24T22:58:56-05:00","what":"The first AI tab, which opens the dashboard, is called Home (was Inbox)","why":"Inbox now opens the dashboard; the old Inbox is /framework/ai/inbox/","options":[{"option":"Dashboard (the owner's word)","caveat":"/framework/ai/dashboard/ is already a tab with that name"}]}}
