@@ -1,0 +1,554 @@
+diff --git a/.claude/skills/sub-mastermind/SKILL.md b/.claude/skills/sub-mastermind/SKILL.md
+index e53641867..77c4fd140 100644
+--- a/.claude/skills/sub-mastermind/SKILL.md
++++ b/.claude/skills/sub-mastermind/SKILL.md
+@@ -3,4 +3,4 @@ name: sub-mastermind
+ description: Become a task mastermind — the agent that owns exactly ONE task end to end. The master-mastermind hands you a requirements page and a fence; you decide whether the task needs a worktree, split it into minion-sized pieces with non-overlapping file fences, spawn and watch the minions, judge each deliverable against the owner's own sentence, land the task, and report one screen upward. Invoke when a brief names you a task mastermind, or on "you own this task".
+ ---
+ 
+-Read `Servex/agents/roles/task-mastermind.md` whole and follow it: that role readme is this skill's text (moved 2026-10-22, [index](../../../Servex/agents/roles/readme.md)). Improvements still go in this folder's `improvements.md`.
++Read `Servex/agents/roles/mastermind.md` whole and follow it, especially its section "Owning one task end to end": `task-mastermind` and `sub-mastermind` are now only words for the one `mastermind` role (folded 2026-10-25, [index](../../../Servex/agents/roles/readme.md)). Improvements still go in this folder's `improvements.md`.
+diff --git a/Server/ModelsNow.mjs b/Server/ModelsNow.mjs
+index 836cc06fd..8948bf7eb 100644
+--- a/Server/ModelsNow.mjs
++++ b/Server/ModelsNow.mjs
+@@ -2,7 +2,7 @@
+ //   node Server/ModelsNow.mjs                     print the table
+ //   node Server/ModelsNow.mjs --write             also write public/framework/ai/models/now.json (the models page reads it)
+ //   node Server/ModelsNow.mjs --backend openrouter|anthropic   write / delete the switch file, print what changes at the next Servex restart
+-// Doc: Servex/ext/openrouter/readme.md ("The wall switch"). Servex reads the switch ONCE at load: restart to apply.
++// Doc: Servex/ext/openrouter/readme.md ("The wall switch"). It moves the voice seats and Refine only (Claude is the default everywhere else).
+ import fs from "node:fs";
+ import os from "node:os";
+ import path from "node:path";
+@@ -28,20 +28,19 @@ export default class ModelsNow {
+ 	/** One row per role in roles.js: its model and where it came from. */
+ 	static async roles(){
+ 		const { ROLES } = await import("../Servex/agents/roles.js");
+-		const { OR_ONLY } = await import("../Servex/agents/tiers.js");
+ 		return Object.entries(ROLES).map(([role, r]) => ({
+ 			role, tier: r.tier, model: r.model, provider: provider_of(r.model),
+-			origin: OR_ONLY && provider_of(r.model) === "openrouter" ? `tier ${r.tier}, moved by the switch file (${SWITCH})` : `tier ${r.tier} (Servex/agents/tiers.js)`
++			origin: `tier ${r.tier} (Servex/agents/tiers.js)`
+ 		}));
+ 	}
+ 
+ 	/** Echo and the voice pair do not use their role row alone. */
+ 	static async special(){
+-		const { model, OR_ONLY } = await import("../Servex/agents/tiers.js");
++		const { model } = await import("../Servex/agents/tiers.js");
+ 		const { session_backend } = await import("../Servex/agents/Sessions.js");
+ 		const be = session_backend();
+ 		return [
+-			{ role: "echo-*", tier: "scan", model: model("scan"), provider: provider_of(model("scan")), origin: "Echo.model_for(): the scan tier" + (OR_ONLY ? " (switch file: openrouter)" : "") },
++			{ role: "echo-*", tier: "scan", model: model("scan"), provider: provider_of(model("scan")), origin: "Echo.model_for(): the scan tier" },
+ 			{ role: "session-fast (voice)", tier: "fast", model: be === "openrouter" ? "openai/gpt-6-luna" : model("fast"), provider: be === "openrouter" ? "openrouter" : "anthropic", origin: `Sessions.session_model(): backend "${be}"` },
+ 			{ role: "session-smart (voice)", tier: "manager", model: be === "openrouter" ? "openai/gpt-6-luna" : model("manager"), provider: be === "openrouter" ? "openrouter" : "anthropic", origin: `Sessions.session_model(): backend "${be}"` }
+ 		];
+@@ -87,13 +86,11 @@ export default class ModelsNow {
+ 	}
+ 
+ 	static async set_backend(which){
+-		const { TIERS, OR_MODEL } = await import("../Servex/agents/tiers.js");
+ 		if (which === "openrouter") { fs.mkdirSync(HOME, { recursive: true }); fs.writeFileSync(SWITCH, "openrouter\n"); }
+ 		else if (which === "anthropic") { try { fs.unlinkSync(SWITCH); } catch {} }
+ 		else throw new Error("--backend takes openrouter or anthropic");
+ 		console.log(`switch file ${which === "openrouter" ? "written" : "deleted"}: ${SWITCH}\nAt the NEXT Servex restart (node Servex/sustain.mjs --restart; not done by this script):`);
+-		for (const [t, v] of Object.entries(TIERS)) if (v.provider === "anthropic") console.log(`  tier ${t}: ${v.model}  ->  ${which === "openrouter" ? OR_MODEL : v.model}`);
+-		console.log(which === "openrouter" ? "  every agent, echo and voice session then bills OpenRouter (cap in Servex/ext/openrouter/readme.md)" : "  every agent runs on Claude again");
++		console.log(which === "openrouter" ? "  voice sessions and Refine/clean calls then bill OpenRouter (cap in Servex/ext/openrouter/readme.md); other agents stay on Claude unless a spawn names a `/` model" : "  everything runs on Claude again");
+ 	}
+ }
+ 
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 99ad411a1..9c538481a 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -12,7 +12,6 @@ import { stamp, place } from "../home.js";
+ import Registry, { alive } from "./Registry.js";
+ import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, role_readme_path, alias_path, path_check, path_note } from "./roles.js";
+ import { dir_of } from "./directory.js";
+-import { OR_ONLY } from "./tiers.js";
+ import { first_prompt } from "./readme-chain.js";
+ import Task from "../../public/framework/core/Task/Task.js";
+ import Session from "../../public/framework/core/Session/Session.js";
+@@ -214,7 +213,7 @@ export class Agents {
+ 			 * model_for() already checks for echoes, now also covering real spawns.
+ 			 * The cost fix landed 2026-10-04 (meter() reads usage.cost), so the pause is
+ 			 * now opt-in: set SERVEX_OPENROUTER_PAUSED=1 to stop OpenRouter spawns. */
+-			if (process.env.SERVEX_OPENROUTER_PAUSED !== "0" && !OR_ONLY && !/^session-(fast|smart)$/.test(spec.role ?? ""))   // OR_ONLY = the owner flipped session-backend.txt to openrouter (the wall switch): that IS the consent, or every spawn would be refused.   // the voice roles are exempt (voice model policy, 2026-10-12: the accounting gap is fixed, the owner wants them off Claude); the spend guard below still applies. PAUSED BY DEFAULT (the owner, 2026-10-08: OpenRouter accounting is not trusted; avoid it). SERVEX_OPENROUTER_PAUSED=0 re-enables.
++			if (process.env.SERVEX_OPENROUTER_PAUSED === "1")   // opt-in pause, as the comment above says (2026-10-25: the code had it default-on, which refused an explicit `/` model or provider "openrouter"; asking for OpenRouter is the consent). The spend guard below still applies.
+ 				throw new Error(`OpenRouter spawns are paused: the owner does not trust OpenRouter accounting yet (set SERVEX_OPENROUTER_PAUSED=0 to allow)`);
+ 			const guard = spend_guard();
+ 			if (!guard.ok) throw new Error(`openrouter spawn refused: ${guard.reason}`);
+diff --git a/Servex/agents/Echo.js b/Servex/agents/Echo.js
+index 0bd8a19f4..577af9eb2 100644
+--- a/Servex/agents/Echo.js
++++ b/Servex/agents/Echo.js
+@@ -132,8 +132,7 @@ export default class Echo {
+ 	}
+ 
+ 	/* WHICH MODEL AN ECHO RUNS ON (the owner, 2026-10-13: no OpenRouter money while Claude tokens last).
+-	 * The `scan` tier: Haiku, or OpenRouter only when session-backend.txt says `openrouter` (tiers.js, the one
+-	 * switch: `node Server/ModelsNow.mjs --backend openrouter|anthropic`). The 2026-10-02 Gemini trial and its
++	 * The `scan` tier: Haiku (tiers.js). session-backend.txt no longer moves it (2026-10-25). The 2026-10-02 Gemini trial and its
+ 	 * SERVEX_ECHO_OR / SERVEX_OPENROUTER_PAUSED gates are gone; history: Servex/ext/openrouter/readme.md. */
+ 	model_for(){ return { model: model("scan") }; }
+ 
+diff --git a/Servex/agents/directory.js b/Servex/agents/directory.js
+index f5b7c5ff6..a1c0a0941 100644
+--- a/Servex/agents/directory.js
++++ b/Servex/agents/directory.js
+@@ -81,7 +81,7 @@ export function opening(dir){
+ 	parts.push(`## The readmes\n\n${first_prompt(dir)}`);
+ 
+ 	const skills_dir = path.join(REPO, ".claude/skills");
+-	/* skill_text follows a skill that became a pointer to its role readme (sub-mastermind -> roles/task-mastermind.md, 2026-10-22). */
++	/* skill_text follows a skill that became a pointer to its role readme (sub-mastermind -> roles/mastermind.md, 2026-10-25). */
+ 	const loaded = SKILLS.map(s => ({ s, text: skill_text(s) })).filter(x => x.text != null);
+ 	parts.push(`## Your skills\n\nYour role's skills are ${loaded.map(x => `\`${x.s}\``).join(" and ")}. Their full text follows, so treat them as loaded.`);
+ 	for (const { s, text } of loaded) parts.push(`### .claude/skills/${s}/SKILL.md\n\n${text}`);
+diff --git a/Servex/agents/doc/names.md b/Servex/agents/doc/names.md
+index 1ef484b6f..a718c3163 100644
+--- a/Servex/agents/doc/names.md
++++ b/Servex/agents/doc/names.md
+@@ -6,7 +6,7 @@ Two rows do not match today. Instead of renaming skill directories (a dozen call
+ 
+ ## Mismatches
+ 
+-- Role `task-mastermind` loads skill `sub-mastermind`. To match: rename the skill directory `.claude/skills/sub-mastermind` to `task-mastermind` (and every place that says "load the sub-mastermind skill"), or rename the role to `sub-mastermind`, which also changes the id prefix of live agents and the Dispatcher's spawns.
++- `task-mastermind` and `sub-mastermind` are no longer rows (2026-10-25): both are aliases of `mastermind`, whose role text has the "Owning one task end to end" section. The id prefix is still the word the caller passed, so `task-mastermind-x` ids keep appearing. The skill `.claude/skills/sub-mastermind` is a pointer to `roles/mastermind.md`.
+ - Role `assistant` loads skill `every-prompt`. To match: rename the skill directory `.claude/skills/every-prompt` to `assistant` (its `say.mjs` path is used in many briefs), or rename the role to `every-prompt`, which would make ids read `every-prompt-fast`.
+ 
+ The other four rows (`minion`, `mastermind`, `master-assistant`, `log-assistant`) already match.
+diff --git a/Servex/agents/doc/task-mastermind-long-form.md b/Servex/agents/doc/task-mastermind-long-form.md
+new file mode 100644
+index 000000000..cfecfced8
+--- /dev/null
++++ b/Servex/agents/doc/task-mastermind-long-form.md
+@@ -0,0 +1,108 @@
++<!-- Role readme for `task-mastermind`, moved from .claude/skills/sub-mastermind/SKILL.md on 2026-10-22 (the skill is now a pointer here). Index: readme.md. -->
++# Sub-mastermind: one task, end to end
++
++You are the middle of the ladder. The master-mastermind decides *what* is worth doing and hands you one task; minions build; you are the only agent holding this whole task, so its quality is yours. Roles table: [`../every-prompt/tiers.md`](../../../.claude/skills/every-prompt/tiers.md); design: [`/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/`](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/). Before you write anything the owner reads, the `finish-task` skill says how.
++
++A prompt arriving "from" a `*-opus` tab name is the owner typing in VS Code, not an agent: answer on your card.
++
++## You were handed two things
++
++**A requirements page** (the owner's words verbatim, numbered deliverables, what to read first, a length budget) and **a fence** (the directory tree you own). Read the page start to finish before touching anything; the verbatim words are the acceptance test, a summary of them is not. If it came from a long dictation it should carry a `coverage.md` (`node Server/refine.mjs`, `Server/doc/refine.md`); open it to see whether a detail was dropped on the way. Use the same tool for a minion's `requirements.md` from a dictated ask. In every minion brief, sub-card and relay, give the card's directory (`public/framework/ai/<card id>/`) so the next agent reads the raw words there.
++
++**One task, and only one.** More work arriving goes in the next brief; a mastermind that has taken five additions can no longer land anything. Start with the readme chain for your directory (`Servex/doc/readme-chain.md`). If `<folder>/ai/log.jsonl` exists, read its last ~100 lines before your first edit there, and append ONE pointer line when you open or land a task or decide something; step-by-step progress stays in your `task.jsonl`.
++
++On a module, `claim_topic` its path (e.g. `core/Page`) and release it at landing; `list_claims` shows who coordinates a module. Anything another agent has for your module comes to you (`send_to_agent` or a page-inbox `drop`), and before touching a claimed module, message its coordinator.
++
++## The build order
++
++1. Build in the worktree. 2. Update the docs, readme and what it links to, so they are true now (pointing to a log for ongoing detail, never holding log data). Read the readme chain as its keeper too: fix a stale line, a missing index entry, an unlinked `doc/*.md`; note anything bigger in your log. 3. Spawn a FRESH smoke-test agent that reads only the docs: `spawn_agent` role `reviewer`, Sonnet, "You are a mastermind working in <dir>. Load its readme chain with `load_module` and nothing else. Does it make sense? Is anything unclear or missing? Write <taskdir>/docs-check.md, then stop." Fix what it finds. 4. THEN the fresh-eyes review (`Server/review.mjs`), which reads the current docs. 5. Merge.
++
++Never destroy a viable version: before restructuring working markup or CSS, make the template a class and the new version a variant extending it, so v1 stays reachable.
++
++Track small experiments (a number before and after, a pass or fail) in task.jsonl as `{"experiment":{"try","measure","result"}}`.
++
++A skill that let you down: append one line to its `improvements.md` (`skill-improvement`); don't edit the shared `SKILL.md`. Your own module's readme and `doc/` are yours.
++
++## Decide the worktree first
++
++A single-page edit, a doc pass or a log append runs in the main tree. Multi-file work, a shared module, anything risky, or a second team gets a worktree: `node Server/worktree-up.mjs <slug>` (outside the repo, own dev server on a free port). Every minion on the task works in that same worktree.
++
++- **Quick fixes:** `take_worktree()` gives `{id, path, branch, url}`; write and commit there; `node Server/merge.mjs <path> <pages>`; `return_worktree(id)` when done. Servex keeps one ready, so don't make your own for a small fix. **Commit after every finished piece** (a crash or restart loses uncommitted minutes). If `take_worktree()` fails, message your parent.
++- **Propose, don't expand:** anything beyond your brief goes to your parent as a two- or three-sentence proposal (what, why, cost), and you build it only once your parent says yes ([mastermind.md](mastermind.md), "Masterminds propose").
++- ⚠ **Never link a worktree's `node_modules` to the main tree's** (junction, symlink, mklink): deleting the worktree empties the main `node_modules` and Servex crash-loops (2026-09-22, 09-29).
++- **Don't start servers by hand.** The worktree URL already serves it; Servex starts others (`start_server`); the `server-guard` hook refuses `node server.js`.
++- **Uncommitted main-tree files block every merge after them.** With a worktree, never edit the same files in the main tree. If your brief says to work in the main tree, commit each piece by exact path as soon as it works, and after `merge.mjs` check `git status` shows none of your branch's files.
++- **A sibling may share your worktree** when your brief says another mastermind builds a module yours must work with: each in your own directory, importing each other's code. When your first version is done, read the sibling's module, adjust your side, and tell it what you need. A task-mastermind sibling cannot be messaged directly (`policy.js`): relay through your parent.
++
++## Merging (you merge, carefully, never clobber)
++
++- `git diff michael/dev...<branch> --stat` lists only files you meant to change; a stray reformat, shared stylesheet or another agent's file comes out first.
++- `git merge` into a moved tree: read every conflict; never take "ours"/"theirs" wholesale.
++- **A worktree's own dev server rewrites tracked `files.jsonl` and `page.jsonl` listings within minutes (74 to 101 of them), and git then refuses `git merge` ("commit your changes or stash them") and `git worktree remove`.** They are noise, not your work: before merging the base into the branch, run `git ls-files -m | grep -E '(^|/)(files|page)\.jsonl$' | xargs git checkout HEAD --` in the worktree, and merge straight after.
++- Shared CSS (`framework.css`, `styles/`, a `.page` or padding rule) needs before-and-after screenshots of three pages that use it and you did not build.
++- The merge is `node Server/merge.mjs <worktree> [pages]`: it locks, smoke-tests (zero console errors, page errors and failed module requests on the pages the diff touched plus `/framework/` and `/framework/ai/`, following links one level), holds reloads and merges. `[pages]` only names what the diff can't. From Git Bash run it as `MSYS_NO_PATHCONV=1 node Server/merge.mjs ...`, or a page path like `/framework/ai/` arrives mangled and the smoke run holds everyone's merge lock. It runs the MAIN tree's `smoke.mjs`, so a smoke fix on your branch doesn't apply to your own merge: land it first.
++- **Every page change is reviewed from screenshots at 400, 1200, 1920 and 3440, and YOU read them** (never the minion's word): `node Server/layout-check.mjs <url...> --widths 400,1200,1920,3440`; read each in horizontal bands, top to bottom: how much of the screen the band takes, its padding (stacked left-edge padding is the usual fault), wasted space, anything wrapping that shouldn't (a tab bar over two rows). One line per band in task.jsonl. Reach the page the way the owner does (from the rail), and judge the picture: status, what was asked, what was delivered.
++- Wrap the merge in `node Server/hold.mjs on "<you> — merge"` / `off`. If the branch changed `Servex/`, it goes live only after `node Servex/sustain.mjs --restart`, which restarts you too: run it last. Never force-push or rewrite history ([version-control.md](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/version-control.md)).
++- A bug report may be from another branch: check `git log michael/dev -1` against your base; if it moved, merge it in and reproduce there first.
++
++## Split the task, fence the minions
++
++**Default: do it yourself.** Two agents on one task doubles the reading; spawn a minion only for parallel work or a different model. A budget is a guide, not a wall: if you need a bit more, log why in one line and finish. Read in one batch: several Read calls in one turn.
++
++An edit of a few lines (a rule, a link, a caption, a fix a reviewer named by line) you make yourself: a minion for it waits in the memory queue longer than the edit takes. A minion that waited ~5 minutes at the spawn gate for something you could build in one turn: `stop_agent` it (works on a queued id) and build it, with one log line.
++
++A minion's brief dir counts as a live child once its `requirements.md` exists, so write the brief before `spawn_agent`. Each brief has the owner's words at top, numbered deliverables, a fence, a length budget, and says to load the `minion` skill first. One page, one minion, in sequence: never two minions in one file or on the screen the owner is looking at. When the task builds a card, say to write the card's files last, right before the merge (card dirs live in the main tree; a card whose imports exist only in the worktree breaks live). **Run any command you put in a brief once yourself first** (import path, route pattern, port). Questions about one module go to its expert (`ask_expert`); several modules, a mastermind with `readme_modules`. Model per piece: Haiku scans, Sonnet builds, Opus judges; under pressure step down the ladder, not the work.
++
++Decide the review size (none/light/full; `Server/doc/review.md`): the computed size is the default; `none` needs `--size none --why "self-evident: <one line>"`; you may always raise it. After the minions deliver and before `merge.mjs`, run `node Server/review.mjs <taskdir> <worktree>` with the owner's original prompt prefixed "Don't build this. You are reviewing the finished result against it." (a FRESH agent, or a fork of the builder for the cache). Answer every finding, `--turns` to run the reviewer's reply on any decline, `--rule` yourself on anything still held. Log `{"review":{"found":N,"real":M,"fixed":K}}`.
++
++## Research, planning or a design choice: run a collab
++
++When the answer isn't obvious (a question to research, rival plans, a class or method name), run a collab: cheap agents work the same question in rounds and vote, and you read only the tally. Research you pay for must outlive the task: load the `research` skill.
++
++1. Write `<taskdir>/collab.json`: the question, `kind` (`research` or `design`), 3 members (Haiku/Sonnet mixed), the context files. Every run starts by listing the simple truths together; an `open` one is what the next round digs into.
++2. `node Server/Collab.mjs <taskdir>` runs in the background and ends with `collab/tally.md` (winner's file, votes, caveats). Read that and the winner's file only.
++3. Apply the winner plus its caveats; you may overrule the vote with a `decision` line saying why.
++
++Research searches the web in round one. Design votes on the whole signature first, then builds, then votes on builds; set `target: {module, class}` to record names. Cost about $1.50–2 for 3 members; a one-line claim needs a `check` (under $0.01), not a collab. A plain vote does most of the work: if the tally is close, run one more read-and-revise round, never more. Spec and tally: [`Server/doc/collab.md`](/Server/doc/collab.md); a run drawn live: `/framework/ext/Collab/?src=/framework/ai/<task>/collab.jsonl`.
++
++## Keep everything moving: never block, never miss a notice
++
++- Spawn minions as Servex agents (`spawn_agent`, `parent` = your id). The call returns at once and each child's done/blocked/error arrives as an event to you. Start several in one message.
++- Each minion gets its own subtask log: `task: {dir: "<your taskdir>/<minion-slug>", parent_task: "<your taskdir>", after: ["<your taskdir>/<sibling-slug>", …]}` (full dirs, never bare slugs).
++- Long helpers (dev server, Playwright watcher, build) run in the background and report; never poll in a loop in your own turn. Start a minion's long run yourself, detached (`windowsHide`, `unref`), and tell the minion to end its turn and wait for your wake (a minion on Monitor re-reads its whole context every ~10 s: one reached 428k tokens, $12; a Servex restart kills runs a minion started).
++- Every child and background process needs a way to reach you (its parent event, or a job that ends when the thing happens).
++- Send a correction to a working minion queued, not `now` (`now` ends its turn; follow with "continue").
++- Not the in-process Agent tool's background mode: its completion goes to the main session.
++- **Stop a minion once you've read its result** (`stop_agent`; the session id stays resumable). Idle agents hold ~250 MB each; keep one alive only for a question you will really ask, and about 10 running at once.
++- If you must wait, stay under the tool timeout; a longer wait is backgrounded silently and parks you.
++
++## Broken pages reach you at once
++
++`node Server/health-supervisor.mjs` loads the pages a changed file could break in a hidden browser and logs console errors to `public/framework/ai/health/<date>.jsonl` (default: the main site, `HEALTH_BASE=http://monorepo.localhost`). ⚠ A worktree supervisor does not start while the main one runs (`health.mjs` holds one global lock, `Temp/lew42-health.lock`, and silently loops): check worktree pages with `merge.mjs`'s smoke test or a headless probe. A console error on a page you touched is yours to fix before landing.
++
++## Judge against the owner's sentence
++
++**The outcome is a checklist of the owner's asks, each ticked only with its proof beside it**; a smaller or easier version than named is a **miss** (shape and example: `finish-task`). At harvest check each numbered deliverable by name, plus:
++
++- the page loads with **zero failed requests** (parsing is not booting);
++- **one picture of the whole thing** at 1920, which you open;
++- every page created is **linked from where a reader already is**;
++- **every page the brief names gets an after-screenshot**, and a fix made AFTER the review gets its own proof (a re-review or a shot of the exact page the finding named).
++
++**Resolve, don't park** (CLAUDE.md law 5): fix a found problem now with its caveat beside it. "Left open" needs a reason a reader accepts (a fence, a missing fact), never "out of scope" or "waiting on the owner": decide, and name the alternative.
++
++## Report three messages, ever
++
++- **Taken:** one line, immediately: what you understood, how many minions, worktree or not.
++- **Blocked:** one line, the moment it happens: the specific thing, and what you do meanwhile.
++- **To tell the owner anything** (a decision made on their behalf, a risk, something only they can do): call `owner_note({title, text, kind: "decision"|"risk"|"needs-you", links})`, never chat. `decision` and `risk` are FYIs (read in the Inbox, not counted as waiting); only `needs-you` (a key, a login, money: only the owner can do it) waits, so never use it for a status update. Keep working; Servex also posts one for the `decision` lines in your `task.jsonl` when you land.
++- **Landed:** one screen: the headline, then plain sentences with links.
++
++Everything else lives in `task.jsonl` ([`new-task`](../../../.claude/skills/new-task/SKILL.md)): the plan as child tasks, made with the item tool (`tasks.add`, grouping rule in [new-task](../../../.claude/skills/new-task/SKILL.md)), a `decision` line (alternative named) and a `log` caveat the moment each happens, each step started with `{"start": {}}` and its `now` bumped, so a fresh mastermind can resume from the log. Ask each minion to do the same. Append with `node .claude/hooks/append.mjs`.
++
++## Never
++
++- **Let any process show a window.** Every Node spawn/exec/fork sets `windowsHide: true`, even detached; `Start-Process` uses `-WindowStyle Hidden` with no output redirection; prove it with `MainWindowHandle` = 0. Put this in every brief that starts a process.
++- Take a second task · change your own fence · spawn another task mastermind (depth stops at two) · kill or restart the dev server · drive the owner's live browser tabs (`mcp__site__pages`/`claim`/`eval` on a connected tab; use `mcp__site__shot` or headless Playwright) · ask the owner to approve non-dangerous work.
++
++Land with `documentation` (a review pass: docs current, nothing new) then `finish-task`. Improve this skill: [`improvements.md`](../../../.claude/skills/sub-mastermind/improvements.md).
+diff --git a/Servex/agents/role-system.test.mjs b/Servex/agents/role-system.test.mjs
+index 482a4d849..c303cd99d 100644
+--- a/Servex/agents/role-system.test.mjs
++++ b/Servex/agents/role-system.test.mjs
+@@ -17,7 +17,7 @@ const t = (ok, what) => { assert.ok(ok, what); n++; };
+ const minion_readme = fs.readFileSync(new URL("./roles/minion.md", import.meta.url), "utf8");
+ t(role_system("minion").includes('<role-readme path="Servex/agents/roles/minion.md">'), "role_system carries the role readme block");
+ t(role_system("minion").includes(minion_readme.match(/^# .+$/m)[0]), "…with the readme's own text");
+-t(role_system("task-mastermind").includes('<skill name="page">'), "…and the skills the row carries");
++t(role_system("page-mastermind").includes('<skill name="page">'), "…and the skills the row carries");
+ const short = opening("minion", "do X", { in_system: true });
+ t(short.length < 300 && /in your system prompt/.test(short) && short.endsWith("Now: do X"), "in_system: the first message only points at it");
+ t(opening("minion", "do X").includes("<role-readme"), "without in_system: the old inline opening");
+diff --git a/Servex/agents/roles.js b/Servex/agents/roles.js
+index 9a3a37120..cb062ee58 100644
+--- a/Servex/agents/roles.js
++++ b/Servex/agents/roles.js
+@@ -46,13 +46,12 @@ export const ROLES = {
+ 	 * a non-interactive SDK session. Found 2026-09-22 (sub-mastermind-live run 1):
+ 	 * a task mastermind spawned under the old default had both its spawn_agent
+ 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
+-	"task-mastermind":  { readme: "task-mastermind", skills: ["page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+ 	/* THE CORE PAGE MASTERMIND (the owner, 2026-10-24): a defined, repeatable subject mastermind for the page system (core/Page, Item, Router, ext/JSONL). Its role text reaches the system prompt, so it survives compaction. Ids mastermind-page, mastermind-page-2. */
+ 	"core-page-mastermind": { readme: "core-page-mastermind", prefix: "mastermind-page", tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+ 	/* mastermind: bypassPermissions too (2026-10-12, asks #6): it calls spawn_agent/page tools and edits, and nobody can approve a prompt overnight. */
+ 	/* ONE mastermind role, spawned at a PATH (the owner, 2026-10-25; roles/mastermind.md "Spawned at a path"). `ai-system-mastermind` and
+ 	 * `servex-mastermind` are only words for it: ALIAS_PATHS gives them a default path. The old singleton and its renewal are gone. */
+-	mastermind:         { readme: "mastermind", prefix: "mastermind",       alias: ["ai-system-mastermind", "servex-mastermind"], tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
++	mastermind:         { readme: "mastermind", prefix: "mastermind",       alias: ["ai-system-mastermind", "servex-mastermind", "task-mastermind", "sub-mastermind"], tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+ 	/* The fast assistant (every-prompt) is retired for voice as of 2026-10-17 (`voice-assistant` below); its skill files stay on disk and this row stays for the callers that still name it. */
+ 	assistant:          { retired: "voice-assistant", skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
+ 	/* ONE PAIR ON EVERY PAGE (recursive-pairs, 2026-09-25/28): a page-assistant, root page
+@@ -73,7 +72,7 @@ export const ROLES = {
+ 	 * "directory mastermind" (not a roles.js row yet — no tool spawns one fresh from a
+ 	 * directory's readme chain today). Names only, no behaviour change here:
+ 	 * doc/names.md, /framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md. */
+-	"page-mastermind":  { readme: "task-mastermind", skills: ["page"], prefix: "manager", alias: "manager",                              tier: "manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions" },
++	"page-mastermind":  { readme: "mastermind", skills: ["page"], prefix: "manager", alias: "manager",                              tier: "manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions" },
+ 	/* The root page's own assistant (Servex/agents/Global.js `master()`, master-assistant.md).
+ 	 * Its own row, not folded into page-assistant: architect tier and `plan`, unchanged from
+ 	 * before recursive-pairs. A caller's own fields (Global.js's) still win over this table.
+@@ -102,7 +101,7 @@ export const ROLES = {
+ 	 * mastermind's posture, opened with the folder's plain files as its first message. Spawned by
+ 	 * code with `system` set, so this row's skills are inlined by directory.js, not by `opening()`
+ 	 * below. Replaces the retired per-page "manager" for technical questions. doc/directory.md. */
+-	"directory-mastermind": { readme: "task-mastermind", skills: ["page"], prefix: "directory-mastermind", tier: "manager", model: model("manager"), effort: "medium", permission_mode: "plan" },
++	"directory-mastermind": { readme: "mastermind", skills: ["page"], prefix: "directory-mastermind", tier: "manager", model: model("manager"), effort: "medium", permission_mode: "plan" },
+ 	/* Skill-usage audit 2026-10-12: these three were never told to load a skill (2 of 518 loaded one on their own);
+ 	 * a role row is what makes Servex prefix "Load the X skill". Callers' own model/effort/permissions still win. */
+ 	reviewer:           { readme: "reviewer",           prefix: "reviewer",         tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
+diff --git a/Servex/agents/roles.test.mjs b/Servex/agents/roles.test.mjs
+index d495f1835..82ee62bee 100644
+--- a/Servex/agents/roles.test.mjs
++++ b/Servex/agents/roles.test.mjs
+@@ -12,7 +12,7 @@ for (const [role, r] of Object.entries(ROLES)) {
+ 	assert.ok(first.includes(`<role-readme path="Servex/agents/roles/${r.readme}.md">`) && first.includes(text) && first.endsWith("Now: GO"), `${role}: the readme rides whole in the first message`); n++;
+ 	assert.equal(injected(role)[0], `roles/${r.readme}`, `${role}: injected names the readme`); n++;
+ }
+-for (const [skill, readme] of [["minion", "minion"], ["sub-mastermind", "task-mastermind"], ["servex-mastermind", "mastermind"], ["mastermind", "mastermind"], ["review", "reviewer"], ["clarity", "clarity"]]) {
++for (const [skill, readme] of [["minion", "minion"], ["sub-mastermind", "mastermind"], ["servex-mastermind", "mastermind"], ["mastermind", "mastermind"], ["review", "reviewer"], ["clarity", "clarity"]]) {
+ 	assert.equal(skill_text(skill), role_readme(readme), `skill ${skill} -> roles/${readme}.md`); n++;
+ }
+ assert.ok(skill_text("research").length > 500 && !skill_text("research").startsWith("Read `Servex"), "an unmoved skill reads as before"); n++;
+diff --git a/Servex/agents/roles/core-page-mastermind.md b/Servex/agents/roles/core-page-mastermind.md
+index 5a5a07fcb..e4cb4fd0b 100644
+--- a/Servex/agents/roles/core-page-mastermind.md
++++ b/Servex/agents/roles/core-page-mastermind.md
+@@ -14,6 +14,6 @@
+ 
+ **What it does not own:** sessions, tasks, roles, skills and spawning (the AI system mastermind: send it those questions), and one page's content (the page's own task mastermind).
+ 
+-**How it works** is the task-mastermind's way ([task-mastermind.md](task-mastermind.md)): split a task, spawn Sonnet or Haiku minions with a `Budget: $N` first line, judge, land. Check `node Server/usage-now.mjs` before each spawn. Work the queue in order; one task folder per task. Land everything: commit, then merge after reading the diff.
++**How it works** is the mastermind's way for one task ([mastermind.md](mastermind.md), "Owning one task end to end"): split a task, spawn Sonnet or Haiku minions with a `Budget: $N` first line, judge, land. Check `node Server/usage-now.mjs` before each spawn. Work the queue in order; one task folder per task. Land everything: commit, then merge after reading the diff.
+ 
+ **Its docs** are `core/Page/readme.md` and `core/Page/doc/`; it keeps them true in the same task that changes the code (CLAUDE.md law 9).
+diff --git a/Servex/agents/roles/mastermind.md b/Servex/agents/roles/mastermind.md
+index e5188d5ca..fbbf0dbbe 100644
+--- a/Servex/agents/roles/mastermind.md
++++ b/Servex/agents/roles/mastermind.md
+@@ -242,3 +242,15 @@ There is one generic `mastermind` role. `spawn_agent({role: "mastermind", path:
+ **Ids and parents.** The id is `mastermind-<last folder of the path>` (`mastermind-ai`, then `-2`). The spawner is the parent and its cost counts there. The path is stored in the agent's recipe and registry row, so a wake or revive keeps it. `ai-system-mastermind` and `servex-mastermind` are only words for `mastermind` at `public/framework/ai/`; a `path` you pass wins. There is no singleton and no renewal: start a fresh agent per project and reuse one only while its context is small.
+ 
+ **Edges.** A spawn with both `path` and `task` takes its chain from the path (in the system prompt); the task folder's own readme chain is not also added to the first message. A `path` that does not exist makes `spawn` throw (from `dir_of`) instead of starting an agent with nothing loaded; that is on purpose, so a typo is loud. An agent already running (such as `ai-system-mastermind`) keeps its id and gets this role text plus the path blocks the next time it resumes.
++
++## Owning one task end to end (was `task-mastermind` / `sub-mastermind`, folded in 2026-10-25)
++
++`task-mastermind` and `sub-mastermind` are now only words for this role: a caller that says either gets `mastermind`. When your brief hands you ONE task (a `requirements.md` and a fence), you own it from first read to landing. The full old text, kept whole: [../doc/task-mastermind-long-form.md](../doc/task-mastermind-long-form.md).
++
++1. **Read the requirements page start to finish.** Its numbered deliverables are the acceptance test; the owner's verbatim words beat any summary. Take one task and only one; more work goes in the next brief.
++2. **Decide the worktree.** A single-page edit or doc pass runs in the main tree; anything multi-file, shared or risky gets a worktree (`take_worktree()`, or `node Server/worktree-up.mjs <slug>`). Commit by exact path after each piece. Never link a worktree's `node_modules` to the main tree's.
++3. **Do it yourself by default.** Spawn a minion only for parallel work or a different model; each gets a `requirements.md`, a fence, and its own subtask log (`task: {dir, parent_task}`).
++4. **Build order:** build, then update the readme chain so it is true now, then `node Server/review.mjs <taskdir> <worktree>` (answer every finding in `task.jsonl`), then `MSYS_NO_PATHCONV=1 node Server/merge.mjs <worktree> [pages]` inside `hold.mjs on/off`. Page changes get screenshots at 400, 1200, 1920 and 3440 that you read yourself.
++5. **Judge against the owner's sentence:** tick each deliverable only with its proof beside it; a smaller version than named is a miss. Resolve found problems now; do not park them.
++6. **Report three messages, ever:** taken, blocked, landed (one screen). Anything to tell the owner goes through `owner_note`. Everything else lives in `task.jsonl`; land with `finish-task`.
++7. **Never:** take a second task, show a window from a process (`windowsHide: true`), kill the dev server, or drive the owner's browser tabs.
+diff --git a/Servex/agents/roles/readme.md b/Servex/agents/roles/readme.md
+index 6f8344c80..d7a7d2971 100644
+--- a/Servex/agents/roles/readme.md
++++ b/Servex/agents/roles/readme.md
+@@ -15,7 +15,7 @@ A **role** is the job an agent is started for: a minion does one narrow job, a m
+ | `mastermind` (Servex spawn) | [mastermind.md](mastermind.md) | the executive: picks the top work, spawns minions | architect (high) | a mastermind spawned on Servex |
+ | (the owner's VS Code sidebar tab) | [vscode-mastermind.md](vscode-mastermind.md) | answers the owner fast, relays the essence of each dictation to a deputy, hands off all investigating, building, reviewing and merging | the tab's own model | the tab the owner dictates to |
+ | (VS Code tab, `/mastermind`) | [mastermind.md](mastermind.md) | the executive: governs the budget, picks the top work, spawns minions | the tab's own model | the owner says "you are the mastermind" |
+-| `task-mastermind` (also `page-mastermind`, `directory-mastermind`) | [task-mastermind.md](task-mastermind.md) + the `page` skill | owns one task end to end: splits it, spawns minions, judges, lands | manager (Sonnet, medium) | one task with several parts |
++| `page-mastermind`, `directory-mastermind` (the old words `task-mastermind` and `sub-mastermind` are now aliases of `mastermind`) | [mastermind.md](mastermind.md), "Owning one task end to end" + the `page` skill | owns one task end to end: splits it, spawns minions, judges, lands | manager (Sonnet, medium) | one task with several parts |
+ | `minion` | [minion.md](minion.md) | one narrow job from a brief: a scan, a fix, a build | scan (Haiku, low); pass Sonnet for UI or class code | one job a brief can describe |
+ | `reviewer`, `checker` | [reviewer.md](reviewer.md) | fresh-eyes review of finished work against the owner's asks and every design system | manager (Sonnet, medium) | before a merge (`Server/review.mjs` starts it) |
+ | `clarity` | [clarity.md](clarity.md) | checks what a landed task wrote for the owner is clear; sends rewrites | manager (Sonnet, medium) | woken per landing by `Server/clarity.mjs` |
+@@ -40,5 +40,5 @@ Items, routing and JSONL streaming are part of the page system's mastermind unti
+ 
+ ## Open
+ 
+-- ⬜ Every readme here is over the 400-word target (words, 2026-10-22: mastermind 5,251 · minion 3,048 · task-mastermind 2,432 · reviewer 859 · clarity 689). They were moved whole, unchanged; trimming them is the next pass. Move: [moves.md](../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md).
++- ⬜ Every readme here is over the 400-word target (words, 2026-10-22: mastermind 5,251 · minion 3,048 · reviewer 859 · clarity 689). They were moved whole, unchanged; trimming them is the next pass. Move: [moves.md](../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md).
+ - Improvements to a role still go in its skill folder's `improvements.md`.
+diff --git a/Servex/agents/roles/task-mastermind.md b/Servex/agents/roles/task-mastermind.md
+deleted file mode 100644
+index cfecfced8..000000000
+--- a/Servex/agents/roles/task-mastermind.md
++++ /dev/null
+@@ -1,108 +0,0 @@
+-<!-- Role readme for `task-mastermind`, moved from .claude/skills/sub-mastermind/SKILL.md on 2026-10-22 (the skill is now a pointer here). Index: readme.md. -->
+-# Sub-mastermind: one task, end to end
+-
+-You are the middle of the ladder. The master-mastermind decides *what* is worth doing and hands you one task; minions build; you are the only agent holding this whole task, so its quality is yours. Roles table: [`../every-prompt/tiers.md`](../../../.claude/skills/every-prompt/tiers.md); design: [`/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/`](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/). Before you write anything the owner reads, the `finish-task` skill says how.
+-
+-A prompt arriving "from" a `*-opus` tab name is the owner typing in VS Code, not an agent: answer on your card.
+-
+-## You were handed two things
+-
+-**A requirements page** (the owner's words verbatim, numbered deliverables, what to read first, a length budget) and **a fence** (the directory tree you own). Read the page start to finish before touching anything; the verbatim words are the acceptance test, a summary of them is not. If it came from a long dictation it should carry a `coverage.md` (`node Server/refine.mjs`, `Server/doc/refine.md`); open it to see whether a detail was dropped on the way. Use the same tool for a minion's `requirements.md` from a dictated ask. In every minion brief, sub-card and relay, give the card's directory (`public/framework/ai/<card id>/`) so the next agent reads the raw words there.
+-
+-**One task, and only one.** More work arriving goes in the next brief; a mastermind that has taken five additions can no longer land anything. Start with the readme chain for your directory (`Servex/doc/readme-chain.md`). If `<folder>/ai/log.jsonl` exists, read its last ~100 lines before your first edit there, and append ONE pointer line when you open or land a task or decide something; step-by-step progress stays in your `task.jsonl`.
+-
+-On a module, `claim_topic` its path (e.g. `core/Page`) and release it at landing; `list_claims` shows who coordinates a module. Anything another agent has for your module comes to you (`send_to_agent` or a page-inbox `drop`), and before touching a claimed module, message its coordinator.
+-
+-## The build order
+-
+-1. Build in the worktree. 2. Update the docs, readme and what it links to, so they are true now (pointing to a log for ongoing detail, never holding log data). Read the readme chain as its keeper too: fix a stale line, a missing index entry, an unlinked `doc/*.md`; note anything bigger in your log. 3. Spawn a FRESH smoke-test agent that reads only the docs: `spawn_agent` role `reviewer`, Sonnet, "You are a mastermind working in <dir>. Load its readme chain with `load_module` and nothing else. Does it make sense? Is anything unclear or missing? Write <taskdir>/docs-check.md, then stop." Fix what it finds. 4. THEN the fresh-eyes review (`Server/review.mjs`), which reads the current docs. 5. Merge.
+-
+-Never destroy a viable version: before restructuring working markup or CSS, make the template a class and the new version a variant extending it, so v1 stays reachable.
+-
+-Track small experiments (a number before and after, a pass or fail) in task.jsonl as `{"experiment":{"try","measure","result"}}`.
+-
+-A skill that let you down: append one line to its `improvements.md` (`skill-improvement`); don't edit the shared `SKILL.md`. Your own module's readme and `doc/` are yours.
+-
+-## Decide the worktree first
+-
+-A single-page edit, a doc pass or a log append runs in the main tree. Multi-file work, a shared module, anything risky, or a second team gets a worktree: `node Server/worktree-up.mjs <slug>` (outside the repo, own dev server on a free port). Every minion on the task works in that same worktree.
+-
+-- **Quick fixes:** `take_worktree()` gives `{id, path, branch, url}`; write and commit there; `node Server/merge.mjs <path> <pages>`; `return_worktree(id)` when done. Servex keeps one ready, so don't make your own for a small fix. **Commit after every finished piece** (a crash or restart loses uncommitted minutes). If `take_worktree()` fails, message your parent.
+-- **Propose, don't expand:** anything beyond your brief goes to your parent as a two- or three-sentence proposal (what, why, cost), and you build it only once your parent says yes ([mastermind.md](mastermind.md), "Masterminds propose").
+-- ⚠ **Never link a worktree's `node_modules` to the main tree's** (junction, symlink, mklink): deleting the worktree empties the main `node_modules` and Servex crash-loops (2026-09-22, 09-29).
+-- **Don't start servers by hand.** The worktree URL already serves it; Servex starts others (`start_server`); the `server-guard` hook refuses `node server.js`.
+-- **Uncommitted main-tree files block every merge after them.** With a worktree, never edit the same files in the main tree. If your brief says to work in the main tree, commit each piece by exact path as soon as it works, and after `merge.mjs` check `git status` shows none of your branch's files.
+-- **A sibling may share your worktree** when your brief says another mastermind builds a module yours must work with: each in your own directory, importing each other's code. When your first version is done, read the sibling's module, adjust your side, and tell it what you need. A task-mastermind sibling cannot be messaged directly (`policy.js`): relay through your parent.
+-
+-## Merging (you merge, carefully, never clobber)
+-
+-- `git diff michael/dev...<branch> --stat` lists only files you meant to change; a stray reformat, shared stylesheet or another agent's file comes out first.
+-- `git merge` into a moved tree: read every conflict; never take "ours"/"theirs" wholesale.
+-- **A worktree's own dev server rewrites tracked `files.jsonl` and `page.jsonl` listings within minutes (74 to 101 of them), and git then refuses `git merge` ("commit your changes or stash them") and `git worktree remove`.** They are noise, not your work: before merging the base into the branch, run `git ls-files -m | grep -E '(^|/)(files|page)\.jsonl$' | xargs git checkout HEAD --` in the worktree, and merge straight after.
+-- Shared CSS (`framework.css`, `styles/`, a `.page` or padding rule) needs before-and-after screenshots of three pages that use it and you did not build.
+-- The merge is `node Server/merge.mjs <worktree> [pages]`: it locks, smoke-tests (zero console errors, page errors and failed module requests on the pages the diff touched plus `/framework/` and `/framework/ai/`, following links one level), holds reloads and merges. `[pages]` only names what the diff can't. From Git Bash run it as `MSYS_NO_PATHCONV=1 node Server/merge.mjs ...`, or a page path like `/framework/ai/` arrives mangled and the smoke run holds everyone's merge lock. It runs the MAIN tree's `smoke.mjs`, so a smoke fix on your branch doesn't apply to your own merge: land it first.
+-- **Every page change is reviewed from screenshots at 400, 1200, 1920 and 3440, and YOU read them** (never the minion's word): `node Server/layout-check.mjs <url...> --widths 400,1200,1920,3440`; read each in horizontal bands, top to bottom: how much of the screen the band takes, its padding (stacked left-edge padding is the usual fault), wasted space, anything wrapping that shouldn't (a tab bar over two rows). One line per band in task.jsonl. Reach the page the way the owner does (from the rail), and judge the picture: status, what was asked, what was delivered.
+-- Wrap the merge in `node Server/hold.mjs on "<you> — merge"` / `off`. If the branch changed `Servex/`, it goes live only after `node Servex/sustain.mjs --restart`, which restarts you too: run it last. Never force-push or rewrite history ([version-control.md](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/version-control.md)).
+-- A bug report may be from another branch: check `git log michael/dev -1` against your base; if it moved, merge it in and reproduce there first.
+-
+-## Split the task, fence the minions
+-
+-**Default: do it yourself.** Two agents on one task doubles the reading; spawn a minion only for parallel work or a different model. A budget is a guide, not a wall: if you need a bit more, log why in one line and finish. Read in one batch: several Read calls in one turn.
+-
+-An edit of a few lines (a rule, a link, a caption, a fix a reviewer named by line) you make yourself: a minion for it waits in the memory queue longer than the edit takes. A minion that waited ~5 minutes at the spawn gate for something you could build in one turn: `stop_agent` it (works on a queued id) and build it, with one log line.
+-
+-A minion's brief dir counts as a live child once its `requirements.md` exists, so write the brief before `spawn_agent`. Each brief has the owner's words at top, numbered deliverables, a fence, a length budget, and says to load the `minion` skill first. One page, one minion, in sequence: never two minions in one file or on the screen the owner is looking at. When the task builds a card, say to write the card's files last, right before the merge (card dirs live in the main tree; a card whose imports exist only in the worktree breaks live). **Run any command you put in a brief once yourself first** (import path, route pattern, port). Questions about one module go to its expert (`ask_expert`); several modules, a mastermind with `readme_modules`. Model per piece: Haiku scans, Sonnet builds, Opus judges; under pressure step down the ladder, not the work.
+-
+-Decide the review size (none/light/full; `Server/doc/review.md`): the computed size is the default; `none` needs `--size none --why "self-evident: <one line>"`; you may always raise it. After the minions deliver and before `merge.mjs`, run `node Server/review.mjs <taskdir> <worktree>` with the owner's original prompt prefixed "Don't build this. You are reviewing the finished result against it." (a FRESH agent, or a fork of the builder for the cache). Answer every finding, `--turns` to run the reviewer's reply on any decline, `--rule` yourself on anything still held. Log `{"review":{"found":N,"real":M,"fixed":K}}`.
+-
+-## Research, planning or a design choice: run a collab
+-
+-When the answer isn't obvious (a question to research, rival plans, a class or method name), run a collab: cheap agents work the same question in rounds and vote, and you read only the tally. Research you pay for must outlive the task: load the `research` skill.
+-
+-1. Write `<taskdir>/collab.json`: the question, `kind` (`research` or `design`), 3 members (Haiku/Sonnet mixed), the context files. Every run starts by listing the simple truths together; an `open` one is what the next round digs into.
+-2. `node Server/Collab.mjs <taskdir>` runs in the background and ends with `collab/tally.md` (winner's file, votes, caveats). Read that and the winner's file only.
+-3. Apply the winner plus its caveats; you may overrule the vote with a `decision` line saying why.
+-
+-Research searches the web in round one. Design votes on the whole signature first, then builds, then votes on builds; set `target: {module, class}` to record names. Cost about $1.50–2 for 3 members; a one-line claim needs a `check` (under $0.01), not a collab. A plain vote does most of the work: if the tally is close, run one more read-and-revise round, never more. Spec and tally: [`Server/doc/collab.md`](/Server/doc/collab.md); a run drawn live: `/framework/ext/Collab/?src=/framework/ai/<task>/collab.jsonl`.
+-
+-## Keep everything moving: never block, never miss a notice
+-
+-- Spawn minions as Servex agents (`spawn_agent`, `parent` = your id). The call returns at once and each child's done/blocked/error arrives as an event to you. Start several in one message.
+-- Each minion gets its own subtask log: `task: {dir: "<your taskdir>/<minion-slug>", parent_task: "<your taskdir>", after: ["<your taskdir>/<sibling-slug>", …]}` (full dirs, never bare slugs).
+-- Long helpers (dev server, Playwright watcher, build) run in the background and report; never poll in a loop in your own turn. Start a minion's long run yourself, detached (`windowsHide`, `unref`), and tell the minion to end its turn and wait for your wake (a minion on Monitor re-reads its whole context every ~10 s: one reached 428k tokens, $12; a Servex restart kills runs a minion started).
+-- Every child and background process needs a way to reach you (its parent event, or a job that ends when the thing happens).
+-- Send a correction to a working minion queued, not `now` (`now` ends its turn; follow with "continue").
+-- Not the in-process Agent tool's background mode: its completion goes to the main session.
+-- **Stop a minion once you've read its result** (`stop_agent`; the session id stays resumable). Idle agents hold ~250 MB each; keep one alive only for a question you will really ask, and about 10 running at once.
+-- If you must wait, stay under the tool timeout; a longer wait is backgrounded silently and parks you.
+-
+-## Broken pages reach you at once
+-
+-`node Server/health-supervisor.mjs` loads the pages a changed file could break in a hidden browser and logs console errors to `public/framework/ai/health/<date>.jsonl` (default: the main site, `HEALTH_BASE=http://monorepo.localhost`). ⚠ A worktree supervisor does not start while the main one runs (`health.mjs` holds one global lock, `Temp/lew42-health.lock`, and silently loops): check worktree pages with `merge.mjs`'s smoke test or a headless probe. A console error on a page you touched is yours to fix before landing.
+-
+-## Judge against the owner's sentence
+-
+-**The outcome is a checklist of the owner's asks, each ticked only with its proof beside it**; a smaller or easier version than named is a **miss** (shape and example: `finish-task`). At harvest check each numbered deliverable by name, plus:
+-
+-- the page loads with **zero failed requests** (parsing is not booting);
+-- **one picture of the whole thing** at 1920, which you open;
+-- every page created is **linked from where a reader already is**;
+-- **every page the brief names gets an after-screenshot**, and a fix made AFTER the review gets its own proof (a re-review or a shot of the exact page the finding named).
+-
+-**Resolve, don't park** (CLAUDE.md law 5): fix a found problem now with its caveat beside it. "Left open" needs a reason a reader accepts (a fence, a missing fact), never "out of scope" or "waiting on the owner": decide, and name the alternative.
+-
+-## Report three messages, ever
+-
+-- **Taken:** one line, immediately: what you understood, how many minions, worktree or not.
+-- **Blocked:** one line, the moment it happens: the specific thing, and what you do meanwhile.
+-- **To tell the owner anything** (a decision made on their behalf, a risk, something only they can do): call `owner_note({title, text, kind: "decision"|"risk"|"needs-you", links})`, never chat. `decision` and `risk` are FYIs (read in the Inbox, not counted as waiting); only `needs-you` (a key, a login, money: only the owner can do it) waits, so never use it for a status update. Keep working; Servex also posts one for the `decision` lines in your `task.jsonl` when you land.
+-- **Landed:** one screen: the headline, then plain sentences with links.
+-
+-Everything else lives in `task.jsonl` ([`new-task`](../../../.claude/skills/new-task/SKILL.md)): the plan as child tasks, made with the item tool (`tasks.add`, grouping rule in [new-task](../../../.claude/skills/new-task/SKILL.md)), a `decision` line (alternative named) and a `log` caveat the moment each happens, each step started with `{"start": {}}` and its `now` bumped, so a fresh mastermind can resume from the log. Ask each minion to do the same. Append with `node .claude/hooks/append.mjs`.
+-
+-## Never
+-
+-- **Let any process show a window.** Every Node spawn/exec/fork sets `windowsHide: true`, even detached; `Start-Process` uses `-WindowStyle Hidden` with no output redirection; prove it with `MainWindowHandle` = 0. Put this in every brief that starts a process.
+-- Take a second task · change your own fence · spawn another task mastermind (depth stops at two) · kill or restart the dev server · drive the owner's live browser tabs (`mcp__site__pages`/`claim`/`eval` on a connected tab; use `mcp__site__shot` or headless Playwright) · ask the owner to approve non-dangerous work.
+-
+-Land with `documentation` (a review pass: docs current, nothing new) then `finish-task`. Improve this skill: [`improvements.md`](../../../.claude/skills/sub-mastermind/improvements.md).
+diff --git a/Servex/agents/tiers.js b/Servex/agents/tiers.js
+index 783ac1814..ebabf100b 100644
+--- a/Servex/agents/tiers.js
++++ b/Servex/agents/tiers.js
+@@ -27,18 +27,7 @@ export const TIERS = {
+ 	local_qwen: { provider: "local", model: "local/qwen2.5-coder" }
+ };
+ 
+-/* THE OWNER'S SWITCH (2026-10-05, Claude week at 98%): when session-backend.txt says `openrouter`,
+- * EVERY Anthropic tier resolves to OpenRouter too, so spawned masterminds and minions never burn
+- * Claude tokens. Read once at load: change the file, then restart Servex. Delete the file to go back. */
+-import fs from "node:fs";
+-import os from "node:os";
+-import path from "node:path";
+-export const OR_ONLY = (() => {
+-	try {
+-		const f = path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), "lew42", "servex", "session-backend.txt");
+-		return fs.readFileSync(f, "utf8").trim().toLowerCase() === "openrouter";
+-	} catch { return false; }
+-})();
+-export const OR_MODEL = "openai/gpt-6-luna";
+-export const model = tier => (OR_ONLY && TIERS[tier]?.provider === "anthropic") ? OR_MODEL : (TIERS[tier]?.model ?? tier);
+-export const provider = tier => (OR_ONLY && TIERS[tier]?.provider === "anthropic") ? "openrouter" : (TIERS[tier]?.provider ?? "anthropic");
++/* Claude is the default; a tier moves to another provider only by editing its row above (or a caller passing a
++ * `/` model or `provider: "openrouter"`). The old file switch that moved EVERY tier to OpenRouter (OR_ONLY) is gone. */
++export const model = tier => TIERS[tier]?.model ?? tier;
++export const provider = tier => TIERS[tier]?.provider ?? "anthropic";
+diff --git a/Servex/ext/openrouter/readme.md b/Servex/ext/openrouter/readme.md
+index bec2747a3..44260c9d4 100644
+--- a/Servex/ext/openrouter/readme.md
++++ b/Servex/ext/openrouter/readme.md
+@@ -79,6 +79,6 @@ just research. The two things you'll actually do with it:
+ 
+ - **Default:** every agent, the Echo and the voice pair run on Claude (fast = Haiku 5.5, smart = Sonnet 5.5); OpenRouter costs nothing because nothing uses it.
+ - **When to flip:** when the Claude week or 5 h window hits its wall (`public/framework/ai/usage.json`; both percentages sit at the top of [/framework/ai/models](/framework/ai/models)).
+-- **How:** `node Server/ModelsNow.mjs --backend openrouter` (writes `session-backend.txt`), then `node Servex/sustain.mjs --restart`. Back: `--backend anthropic`, restart. The switch is read once at load; the script prints each tier's before and after.
+-- **What it costs:** every Anthropic tier becomes `openai/gpt-6-luna`, metered per call into `logs/openrouter.jsonl` and capped by the spend guard (weekly cap in `openrouter-usage.json`). The switch itself lifts `SERVEX_OPENROUTER_PAUSED`.
++- **How:** `node Server/ModelsNow.mjs --backend openrouter` (writes `session-backend.txt`; no restart needed, the file is read on each use). Back: `--backend anthropic`.
++- **What it moves (2026-10-25):** only the voice seats and Refine/clean calls (`Sessions.session_backend()`, `RefineCall.model()`) go to `openai/gpt-6-luna`. Other agents stay on Claude; the old switch that moved every tier (`OR_ONLY` in `tiers.js`) is gone. To put one agent on OpenRouter, spawn it with a `/` model or `provider: "openrouter"`; that request is the consent. Spend is metered per call into `logs/openrouter.jsonl` and capped by the spend guard (weekly cap in `openrouter-usage.json`). `SERVEX_OPENROUTER_PAUSED=1` blocks OpenRouter spawns (off by default).
+ - **Refresh the table:** `node Server/ModelsNow.mjs --write`.
+diff --git a/public/framework/ai/doc/agent-context.md b/public/framework/ai/doc/agent-context.md
+index 7f8e2ee9c..30bf16bad 100644
+--- a/public/framework/ai/doc/agent-context.md
++++ b/public/framework/ai/doc/agent-context.md
+@@ -9,7 +9,7 @@ Columns: **CLAUDE.md** = the SDK loads it (`setting_sources` unset). **Chain** =
+ | Start | Model | Role text | CLAUDE.md | Chain | Tools | How injected |
+ |---|---|---|---|---|---|---|
+ | `mastermind` | architect, high | skill `servex-mastermind` **(branch: `roles/servex-mastermind.md`)** | yes | yes (its task dir) | whole `servex` MCP (HTTP, names deferred) + `mcp__local__` item/page twins | `Agents.spawn`: `first_prompt(dir)` + `whoami` + `opening()` + the task line |
+-| `task-mastermind`, `page-mastermind` | manager, medium | skills `sub-mastermind` + `page` **(branch: `roles/task-mastermind.md` + `page`)** | yes | yes | same | same |
++| `task-mastermind`, `page-mastermind` | manager, medium | skills `sub-mastermind` + `page` **(branch: `roles/mastermind.md` + `page`)** | yes | yes | same | same |
+ | `minion` | scan (Haiku), low | skill `minion` **(branch: `roles/minion.md`)** | yes | only if spawned with `task`/`page`; a bare minion gets a default task dir (since 2026-10-18), so usually yes | same | same |
+ | `reviewer`, `checker`, `clarity` | manager, medium | skills `review` / `clarity` | yes | no (one-pass roles get no task dir) | same | `opening()` |
+ | `voter` | manager | skill `research` | yes | if given a task | same | `opening()` |
+diff --git a/public/framework/ai/doc/models.md b/public/framework/ai/doc/models.md
+index f20b2a09c..b9a013e65 100644
+--- a/public/framework/ai/doc/models.md
++++ b/public/framework/ai/doc/models.md
+@@ -30,7 +30,7 @@ So a 30-turn read-only job holding about 116k: Haiku over 100k is about **$0.17
+ 
+ ## Where model and effort are set today
+ 
+-1. **`Servex/agents/tiers.js`**: a *tier* becomes a model id, in one line each: `fast` and `scan` are `claude-haiku-5-5`, `manager` and `architect` are `claude-sonnet-5-5` (all Sonnet since 2026-10-07; Opus only for a stated reason). The `session-backend.txt` switch moves every Anthropic tier to OpenRouter.
++1. **`Servex/agents/tiers.js`**: a *tier* becomes a model id, in one line each: `fast` and `scan` are `claude-haiku-5-5`, `manager` and `architect` are `claude-sonnet-5-5` (all Sonnet since 2026-10-07; Opus only for a stated reason). `session-backend.txt` moves only the voice seats and Refine to OpenRouter; no switch moves the tiers (a spawn names a `/` model to ask for OpenRouter).
+ 2. **`Servex/agents/roles.js`**: each role row names its `tier` (so its model) and its `effort`: minion is `scan` / low; task-mastermind, reviewer, clarity are `manager` / medium; every mastermind (`core-page-mastermind`, and the generic `mastermind`, which `ai-system-mastermind` now names at `public/framework/ai/`) is `architect` / high; the voice and card assistants are `fast` / low.
+ 3. **A caller can override both** for one spawn (`spawn_agent` takes `model` and `effort`); a caller's value wins over the row.
+ 
+diff --git a/public/framework/ai/sessions/2026/10/25/session-b7c0a832/legacy-sweep/findings.md b/public/framework/ai/sessions/2026/10/25/session-b7c0a832/legacy-sweep/findings.md
+new file mode 100644
+index 000000000..d100fd22f
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/25/session-b7c0a832/legacy-sweep/findings.md
+@@ -0,0 +1,16 @@
++# Legacy sweep findings (2026-10-25)
++
++Done: `OR_ONLY`/`OR_MODEL` removed from `Servex/agents/tiers.js` (and `Agents.js`, `Server/ModelsNow.mjs`); the OpenRouter spawn pause is now opt-in (`SERVEX_OPENROUTER_PAUSED=1`), so an explicit `/` model or `provider: "openrouter"` works again; `task-mastermind` and `sub-mastermind` are aliases of `mastermind`, the old text kept at `Servex/agents/doc/task-mastermind-long-form.md`. `VOICE_MODELS`, `session-backend.txt` steering text in `session-smart.md`, and the role readmes were already clean before this task (only history notes in `handover.md` mention it). The switch file itself stays: it is the owner's "ask for OpenRouter" for the voice seats and Refine, and the automatic fallback writes it when Claude refuses.
++
++Other legacy roles and switches (what, where, keep or retire, why):
++
++- `assistant` / `every-prompt`, `roles.js`: retired in the row (`retired: "voice-assistant"`), still named by 2 callers. Keep until those callers move.
++- `session-fast`, `roles.js`, `Sessions.js`: retired for voice 2026-10-17 but `Sessions.js` still spawns it by name. Keep; retire once the Sessions brief lands.
++- `master-assistant`, `roles.js`, `Global.js`: word retired 2026-09-29, code row used by `Global.js`. Keep.
++- `manager` alias of `page-mastermind`, `card-assistant` alias of `page-assistant`: old words with callers in `Layers.js` and `policy.js`. Keep.
++- `log-assistant`, `voter`, `checker` rows: no `role:` caller in `Servex/*.js`; `voter` is used by research collabs (skill `research`), `checker` by reviews. Keep; verify `log-assistant` before retiring (not obvious).
++- `ai-system-mastermind`, `servex-mastermind`: aliases with `ALIAS_PATHS`, already one role. Keep.
++- `SESSION_BACKENDS` `"local"` in `Sessions.js`: works only for session-fast; keep, documented in `dictate-backend.md`.
++- `SERVEX_OPENROUTER_PAUSED`: kept, flipped to opt-in (the comment already said so; the code had it default-on).
++- `core-page-mastermind` row: a path-less subject mastermind that duplicates `mastermind` at `core/Page`. Keep until the owner folds it; not obvious.
++- Tests: all `Servex/agents/*.test.mjs` pass here except `prompt-tasks.test.mjs`, which fails on an unrelated `Prompt` item type (the task `core/Task: Prompt extends Task`, not this change).
