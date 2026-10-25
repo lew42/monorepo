@@ -56,7 +56,7 @@ export default class SessionOutlineView extends View {
 			if (kids.length) div.c("soutline-groups", () => kids.forEach((g, n) => this.child_group(g, n)));
 			this.own_group(outline.groups.at(-1));
 		});
-		this.counts = outline.found.counts;   // read by the proofs and the log: how many children each source found
+		this.el.dataset.children = JSON.stringify(outline.found.counts); this.el.dataset.drawn = outline.drawn;   // how many children each source found, and tasks drawn: read by the proofs
 	}
 
 	head(outline){

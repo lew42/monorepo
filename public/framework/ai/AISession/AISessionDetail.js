@@ -58,7 +58,7 @@ export default class AISessionDetail extends Page {
 			// The name lives in the day index snapshot (session-index.json can be days stale): fold in the row's own snapshot, as the live feed would.
 			const row = snap?.rows?.find(r => r.id === id || r.session_id === id), sid = row?.session_id ?? id;
 			if (!AISession.all.get(sid)?.ix?.title){
-				const days = [...new Set([row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))).filter(Boolean))];
+				const days = [...new Set([AISession.days.get(sid), ...[row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at)))].filter(Boolean))];   // the day the feed already gave the session comes first: a session sessions.json has no row for is found there
 				for (const day of days){
 					const hit = (await AISessionRows.get_json(new URL(`./${day}/index.json`, AISession.root_url()).pathname))?.snapshots?.find(x => x.id === sid);
 					if (hit){ AISession.apply_delta(hit); break; }
@@ -105,10 +105,18 @@ export default class AISessionDetail extends Page {
 		});
 	}
 
+	/** The days from `first` ("2026/10/20") to today, newest first, at most a month: where a session's index snapshot can be. */
+	static days_since(first){
+		if (!first) return [];
+		const out = [], from = new Date(first.replaceAll("/", "-") + "T00:00:00");
+		for (let d = new Date(); d >= from && out.length < 32; d = new Date(d.getTime() - 864e5)) out.push(AISession.day(d));
+		return out;
+	}
+
 	/** The session's folder name, read from the day index of its last activity (where AISessionIndex writes its snapshot), folded in so AISession.dir_url() knows it. */
 	static async folder_from_day(row, session_id){
 		// sessions.json can be days stale, so its last activity, then today, then the start day: the first index naming the folder wins.
-		const days = [...new Set([row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))).filter(Boolean))];
+		const days = [...new Set([...[row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))), ...AISessionDetail.days_since(AISession.days.get(session_id))].filter(Boolean))];   // a session sessions.json has no row for: every day from the one the feed gave it (its first) to today
 		for (const day of days){
 			const ix = await AISessionRows.get_json(new URL(`./${day}/index.json`, AISession.root_url()).pathname);
 			const snap = ix?.snapshots?.find(x => x.id === session_id);
@@ -246,7 +254,7 @@ export default class AISessionDetail extends Page {
 			this.log_urls().then(() => PromptLog.read(session_id)).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
 			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
-			this.record_if_there().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks, on_session: s => this.feed?.record(s) }).live(); });
+			this.record_if_there().then(file => {  if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks, on_session: s => this.feed?.record(s) }).live(); });
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
 			this.log_urls().then(urls => {
 				if (this.logs) return;
@@ -265,8 +273,10 @@ export default class AISessionDetail extends Page {
 			await AISessionRows.load_index(url);   // fills AISession.days; without this wait own_dir was computed before the index arrived, so the cost log and trace silently never showed
 			const fill = async () => {
 			await this.follow?.catch(() => {});   // the first feed pull names the real folder (a card-slug folder is not <id>/) via AISession.slugs
+			if (!AISession.slugs.has(session_id)) await AISessionDetail.folder_from_day(row, session_id).catch(() => {});   // the day index names the folder; without it the work tree below was read from <day>/<uuid>/ and the Overview stayed empty
 			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;
-			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
+			if (!this.work && !AISession.slugs.has(session_id) && !this.work_waited) setTimeout(() => { this.work_waited = true; fill(); }, 10000);   // a session whose folder is its uuid never gets a slug: after 10 s the work tree is read from there
+			if (!this.work && (AISession.slugs.has(session_id) || this.work_waited)){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
 			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
 			const [costs, trace] = await Promise.all([
 				AISessionDetail.load_cost_log(own).then(async c => c ?? AISessionDetail.load_cost_log(await old_dir())),
