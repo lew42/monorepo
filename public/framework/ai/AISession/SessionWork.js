@@ -96,6 +96,9 @@ export default class SessionWork extends View {
 		n.kids.forEach(k => this.judge(k, n.approved, now));
 	}
 
+	/** `fn` runs after every paint (the tree loaded, or an approval changed): the Tasks grid redraws from it. */
+	on_paint(fn){ (this.painters ??= []).push(fn); }
+
 	paint(){
 		const root = this.tree.root;
 		this.judge(root, null);
@@ -116,6 +119,7 @@ export default class SessionWork extends View {
 			if (!kids.length) small.c("muted", "No tasks recorded in this session.");
 			kids.forEach(k => this.node(k));
 		});
+		this.painters?.forEach(fn => fn());
 	}
 
 	/** One row; its children fold under it. `data-at` (its subtree's last moment) is what the Today pill reads. */

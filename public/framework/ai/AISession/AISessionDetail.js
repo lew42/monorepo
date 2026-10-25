@@ -23,6 +23,7 @@ import SessionMenu from "/framework/core/Session/SessionMenu.js";
 import SessionSettings from "/framework/core/Session/SessionSettings.js";
 import SessionTasks from "/framework/core/Session/SessionTasks.js";
 import SessionWork from "./SessionWork.js";
+import SessionTasksGrid from "./SessionTasksGrid.js";
 import SessionStats from "./SessionStats.js";
 import AICost from "/framework/ai/AITask/AICost.js";
 import Day from "/framework/core/Session/Day.js";
@@ -225,7 +226,7 @@ export default class AISessionDetail extends Page {
 		const { home, id } = this, url = home.url;
 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
 		this.parts = new AISessionDetail.Parts($parts);
-		let $role, $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work, work;
+		let $role, $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work, $tgrid, work;
 		const ready = new Promise(resolve => this.work_ready = resolve);   // the loaded SessionWork, for the stats bar and the Overview
 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
 		const MAIN = [["overview", "Overview"], ["timeline", "Timeline"], ["chat", "Chat"], ["tasks", "Tasks"]], MORE = [["board", "Board"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]], TABS = [...MAIN, ...MORE];
@@ -262,7 +263,7 @@ export default class AISessionDetail extends Page {
 			panels.overview = div.c("flow sessions-panel", () => { this.feed = new SessionOutlineView({ ready, sid: id, on_draw: o => this.timeline?.children(o.found.list) }); });   // child sessions as groups, then this session's own work by prompt (SessionOutline)
 			panels.timeline = div.c("flow sessions-panel", () => { this.timeline = new SessionTimeline({ sid: id }); });   // everything in the record and the prompt log, in time order (SessionTimeline)
 			panels.board = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
-			panels.tasks = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
+			panels.tasks = div.c("flow sessions-panel", () => { $tgrid = div.c("flow"); $work = div.c("flow"); });   // the tasks as a grid with filters (SessionTasksGrid); its Nested chip shows $work, the nested view with Approve (SessionWork)
 			panels.chat = div.c("flow sessions-panel sov-chat", () => {
 				// Chat v1 (below) or Chat v2 (the session's Prompts from session.jsonl, ext/Chat/v2); ?chat_view=v2 keeps the choice on reload (?chat= belongs to the DevBar assistant). v1 stays the default until v2 replaces it.
 				const pick = {};
@@ -337,7 +338,7 @@ export default class AISessionDetail extends Page {
 			if (this.filled === own_dir) return;   // the folder event folder_from_day raises runs fill() again: once per folder
 			this.filled = own_dir;
 			if (!this.prompt_tail) this.prompt_tail = new SessionTimeline.Tail({ url: own_dir + "prompts.jsonl", on_lines: lines => { this.timeline?.prompts(lines); coverage.read_records(PromptLog.fold(lines)); } }).live();   // the prompt log, followed live: the Timeline rows and the Coverage records both read this one tail (ext/Refine/doc/prompt-records.md)
-			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
+			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); $tgrid.append(new SessionTasksGrid({ work, sid: session_id, nested: $work.el })); work.loaded.then(() => this.work_ready(work)); }
 			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
 			const [costs, trace] = await Promise.all([
 				AISessionDetail.load_cost_log(own).then(async c => c ?? AISessionDetail.load_cost_log(await old_dir())),
