@@ -23,6 +23,16 @@ item({ path: "<the session file you were given>", delta: { place: { re: "<the ne
 
 Always write the line, even for `same` and `nothing`: one line per sentence is how a node check tells "decided same" from "never answered".
 
+## A question gets a Question too (the owner, 2026-10-25)
+
+When the new sentence IS a question (ends in "?", or is clearly one even without the mark), write a second line, after your `{place}` line, making a Question task from it so the smart seat and the screen both see it is open:
+
+```js
+item({ path: "<the session file you were given>", delta: { "<the current Prompt's id>": { tasks: { add: { type: "Question", id: "q-<ms>", text: "<the question, cleaned>", from: "<the current Prompt's id>" } } } } })
+```
+
+The Prompt id is given to you the same way it is given to the smart seat: a trailing `(prompt p-…)` line on the message you were sent. Nothing else of yours changes: you still place the sentence, you still never write a card's title, text, a reply or the `working` sign — those stay the smart seat's (`Servex/agents/session-smart.md`). A Question goes under the `(prompt p-…)` id you were sent, even when you also place that sentence to a new card. One Question per question; if the same question was already filed moments ago (same text, same Prompt), don't file it twice.
+
 ## Never
 
 - Never drop a sentence or merge two into one: every raw sentence stays findable (a node check counts them).

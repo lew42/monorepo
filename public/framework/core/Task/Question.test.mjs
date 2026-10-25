@@ -46,6 +46,13 @@ check("unread query: answered but not complete is one query", () => {
 	return u.length === 1 && u[0].id === "q1" && u[0].answer.text === "A" && u[0].from === "p1";
 });
 
+check("working: set with {by, at}, read back, cleared with working: null", () => {
+	const s = make({ p1: { q1: { working: { by: "smart", at: "2026-10-25T00:00:00.000Z" } } } });
+	const after_set = q(s, "q1").working;
+	const s2 = make({ p1: { q1: { working: { by: "smart", at: "2026-10-25T00:00:00.000Z" } } } }, { p1: { q1: { working: null } } });
+	return after_set?.by === "smart" && after_set?.at === "2026-10-25T00:00:00.000Z" && q(s2, "q1").working === null && q(s, "q2").working === null;
+});
+
 check("a Question under a Prompt appears in its trace", () => {
 	const hit = Prompt.trace(make(), "slow chat")[0];
 	return hit.id === "p1" && hit.tasks.map(t => t.id).sort().join() === "q1,q2";

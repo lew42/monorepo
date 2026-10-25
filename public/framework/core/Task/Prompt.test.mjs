@@ -68,6 +68,13 @@ check("asks made from a prompt are its own tasks; completion and cost roll up on
 
 check("a prompt with no asks and no parts stays idle (nothing to settle)", () => { const p = make().tasks.find("p1"); return p.state === "idle" && p.completion === 0; });
 
+check("working: the smart seat's sign, {by, at} until cleared with working: null", () => {
+	const p = make({ p1: { working: { by: "smart", at: "2026-10-25T00:00:00.000Z" } } }).tasks.find("p1");
+	const seen = p.working;
+	const cleared = make({ p1: { working: { by: "smart", at: "2026-10-25T00:00:00.000Z" } } }, { p1: { working: null } }).tasks.find("p1").working;
+	return seen?.by === "smart" && seen?.at === "2026-10-25T00:00:00.000Z" && cleared === null && make().tasks.find("p1").working === null;
+});
+
 check("parts: completion is settled parts over parts + uncited sentences; a task part settles when its task completes", () => {
 	const s = make({ p1: { parts: [{ id: "x", cites: ["a1"], kind: "ask", text: "do it", outcome: { is: "task", ref: "t1" } }, { id: "y", cites: ["a2"], kind: "idea", text: "maybe", outcome: { is: "no-action" } }] } }, { p1: { tasks: { add: { id: "t1", title: "do it" } } } });
 	const p = s.tasks.find("p1");
