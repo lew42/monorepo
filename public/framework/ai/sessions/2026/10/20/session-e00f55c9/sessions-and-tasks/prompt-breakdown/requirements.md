@@ -75,3 +75,9 @@ The pipeline already does most of what the owner described:
     - Write the principles as one short doc that `PARTS_BRIEF` is built from.
     - Today it's one Agent SDK call per prompt (`PromptRecords.ask`), never resumed, with no context of earlier prompts and no tools. Say whether the previous prompt's breakdown should be passed in as context.
 12. **Let the tab see the breakdown the moment it lands.** Today the tab only reads `prompts.jsonl` when it checks, so it doesn't review in real time. Try it small: the `UserPromptSubmit` hook (or the next prompt's hook) adds the latest finished breakdown to the tab's context, so the tab can fix it with the item tool straight away. The hook's 15 s limit may be too short for the current prompt, so the previous one is fine. Measure how often it arrives in time.
+
+13. **(the owner, 2026-10-24)**
+    - **Context:** a refiner with no memory of the earlier prompts may be a mistake. Test passing the session's recent breakdowns in.
+    - **One agent may beat a hook plus Haiku.** The owner leans toward one agent doing the refinement and the managing, if the coordination keeps failing. Weigh it in the refinement map.
+    - **`follow` skips your own writes.** A follower shouldn't get echoes of lines it wrote itself (match on `by`), only other agents' lines. Do it in Servex's follow.
+    - **A VS Code tab can't receive follow messages,** so for the tab use the hook route (item 12).
