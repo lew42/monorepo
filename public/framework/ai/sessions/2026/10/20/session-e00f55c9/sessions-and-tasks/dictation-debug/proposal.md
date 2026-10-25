@@ -10,6 +10,20 @@
 - **Many looks over one file.** Both views already read the same file, through two different readers. One reader replaces the two. A dropdown then picks how to draw it. Suggested names: **Stream** (the first view), **Threads** (Chat v2), and **Structure** (the item tree).
 - **Your live paragraph stays at the bottom.** When a reply arrives while you are still talking, your paragraph moves below the reply. This happens only on screen, in the last few seconds; the file keeps its order.
 
+## What happens today (from the code)
+
+- **The mic icon** shows how a line came in: a mic means it was spoken; "typed" means it was typed (`ext/Chat/Chat.js:46`).
+- **The green check is the clarity mark, and it is still live.** A model reads each line you say: it shows ✓ when the line is clear and ? when it isn't (`Servex/agents/Hitl.js:16`, drawn at `Chat.js:108`). For an unclear line it also suggests two readings, but nothing shows them.
+- **The fast assistant waits for a pause before it gets anything.** Lines are held until you have been quiet for 2.5 s; turning the mic off, typing, or an 8 s limit also releases them. It then places each sentence in the same paragraph, its own paragraph, or its own card (`Sessions.js:246`, `:984`).
+- **The smart assistant is woken by fixed rules, not by paragraphs.** The rules are a 12 s pause, a line ending in "?", saying its name, or 6 sentences (`WakePolicy.js:1`).
+- **The server keeps sessions, but not as objects.** One `Sessions` object holds every session, and each session is plain data (`Sessions.js:227`, `:798`).
+
+**So the change is small in idea:**
+- Feed the fast assistant at every sentence instead of every pause.
+- Let its "own paragraph" choice wake the smart assistant, in place of the fixed rules.
+- Give each session its own object on the server: one `Session` instance per chat. The alternative is to keep plain data plus methods on `Sessions`, which is cheaper now, but the logic stays spread out.
+- Show the two readings beside a "?".
+
 ## The four steps
 
 1. **Small fixes** (about $6; mostly built, paused)
