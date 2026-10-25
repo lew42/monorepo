@@ -1476,6 +1476,7 @@ Agents.Agent = class Agent {
 		const skip = this.watchdog_refusal(from);
 		if (skip) return this.watchdog_skipped(from, skip);
 		if (this.state === "dormant") this.awaken(from);
+		this.follow_only = from === "servex-follow" ? this.follow_only !== false : false;   // true only while every message since the last result was a followed line
 		this.emit({ type: "agent_msg", from: from ?? null, reply_to: reply_to ?? null, priority: priority ?? null, text });
 		const turn = this.turn(this.envelope(text, { from, reply_to }), priority);
 		if (!this.queue.push(turn)){
@@ -1774,7 +1775,10 @@ Agents.Agent = class Agent {
 		/* The turn that answers a compact nudge is housekeeping, not news: its "done" wakes nobody. */
 		const nudge_turn = event.type === "result" && !event.stopped && this.nudge_pending;
 		if (nudge_turn) this.nudge_pending = false;
-		if (event.type === "result" && !nudge_turn && !(event.stopped && !event.mid_turn)) this.host?.wake_parent?.(this,
+		/* A turn started only by followed lines whose answer is a short ack ("nothing for me") is housekeeping, not news: its "done" wakes nobody (2026-10-25: followers woke the smart seat on every followed line). A long answer, BLOCKED, an error or a stop still wake the parent. */
+		const quiet_follow = event.type === "result" && !event.stopped && this.follow_only && (this.last_text ?? "").trim().length < 200 && !this.last_text?.startsWith("BLOCKED");
+		if (event.type === "result") this.follow_only = undefined;
+		if (event.type === "result" && !nudge_turn && !quiet_follow && !(event.stopped && !event.mid_turn)) this.host?.wake_parent?.(this,
 			event.stopped ? "stopped"
 			: this.one_shot && event.ok === false ? "error"
 			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done");

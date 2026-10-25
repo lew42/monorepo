@@ -128,6 +128,10 @@ of RAM given back this way.
 - **Decision:** default cap 8, the free-memory floor (2.5 GB) stays as the second gate. Try 10 only after a week in which free memory stayed above the floor with 8 working; `GET /api/processes` gives the numbers. Set `SERVEX_WORKING_CAP` to change it without code.
 - **Priority:** when a higher-priority task needs a slot, the mastermind winds a low-priority session down: [mastermind.md](/Servex/agents/roles/mastermind.md), "Slots go to the highest priority".
 
+### A queued spawn is never dropped for lack of RAM, and a drop tells the parent (2026-10-25)
+
+No timer drops a queued spawn: memory, the cap and the monitor only keep it queued (`queued()` lists position and reason). `Servex.stale` is the one place an entry is dropped; it counts "landed" only against a task dir the spec names (`spec.task.dir`), so a fresh spawn by id (`ai-system-mastermind`) is not matched to an old landed task of that name, and a drop is sent to the parent as a message (`Servex/Gate-stale.test.mjs`).
+
 ## Compaction
 
 All compaction rules and the factors behind them now live in one place: [`public/framework/ai/doc/compaction.md`](../../public/framework/ai/doc/compaction.md). In short:
