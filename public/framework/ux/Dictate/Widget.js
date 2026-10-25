@@ -133,6 +133,7 @@ Widget.prototype.v1 = false;         // true = the OLD thread (one bubble per se
 Widget.prototype.mode = "dictate";
 Widget.MODES = MODES;
 Widget.HISTORY = 50;   // the sheet draws only this many newest chat lines of a long session; the rest wait behind "show earlier (N)" (doc/voice-assistant.md#nothing-jumps)
+Widget.PIN_BOTTOM = true;   // locked = pinned to the bottom on every update, live whisper line included (the owner, 2026-10-25). false = the old page-turn anchor on the newest bubble's top (doc/voice-assistant.md#nothing-jumps)
 Widget.HEADROOM = 0.75;   // a new bubble keeps this share of the box under it before the page turns (doc/voice-assistant.md#nothing-jumps)
 Widget.STREAM_END_MS = 15000;   // an ended stream bubble with no settled line after this long goes (the reply was dropped or became a reaction)
 
@@ -260,6 +261,7 @@ Widget.Thread = class WidgetThread extends View {
 	place_anchor(){
 		const box = this.el, host = this.$bubbles.el, b = host.lastElementChild;
 		if (!b || !this.scroll.locked()) return;
+		if (Widget.PIN_BOTTOM){ this.scroll.pin(); return; }
 		const r = b.getBoundingClientRect(), top = r.top - box.getBoundingClientRect().top + box.scrollTop, view = box.clientHeight;
 		const room = b !== this.newest ? Math.max(r.height, view * Widget.HEADROOM) : r.height;   // a bubble that just started asks for room to grow
 		this.newest = b;
