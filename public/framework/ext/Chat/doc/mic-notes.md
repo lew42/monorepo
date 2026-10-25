@@ -118,6 +118,19 @@ while a dead device is reopened, and the sentence still being posted.
 
 `text` without the words `sent` already covers at its start. A guess that went out with Send is
 
+⚠ `strip_words` is a fuzzy PREFIX match over the whole span (score must beat 0.35) — when Whisper's final reworks a
+segment enough, or chops the leading characters off a word on a fresh segment ("ssion.jsonl" for "session.jsonl"),
+it can score too low and return `text` unstripped, so the already-sent words go out a second time (the
+2026-10-25 regression, doc/duplicate-bubbles.md cause 1 recurring with a bigger reword than the first fix covered).
+`strip_sent` (`strip.js`, used by `close_segment`/`commit`/`build_tail`/`live_guess` — never `same_as_last_send`,
+which needs the stricter match) tries `strip_words` first, then lines up the LAST words of `sent` against the
+FIRST words of `text` (tolerant of that chopped leading character), largest overlap first; if nothing lines up
+at all it drops the duplicate-looking prefix rather than resend it. Pure, tested without a browser: `strip.test.mjs`.
+
+Every Whisper final is already logged raw, voice sessions included: `Dictate.prototype.log_raw` defaults to
+`true` and `ComposerMic` never overrides it, so `log_whisper()` → `WhisperLog.record()` runs for every mic. The
+bucket file (`/framework/ai/whisper/bucket.jsonl`) held none of the 2026-10-25 incident's lines when checked —
+worth its own look, not this task's fix.
 
 ## Paragraph gaps
 

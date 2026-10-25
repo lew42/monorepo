@@ -6,6 +6,7 @@ import RefineSystem from "/framework/ext/Refine/RefineSystem.js";
 import { clock } from "/framework/ext/Session/Session.js";
 import DictateHealth from "/framework/ux/Dictate/DictateHealth.js";
 import { collapse_tail } from "/framework/ux/Dictate/repeat.js";
+import { strip_words, strip_sent } from "./strip.js";
 
 /** The microphone of a composer: `ux/Dictate` with a few methods redirected; speech goes into the composer's box and goes out as one message. see doc/mic-notes.md#overrides */
 // Every knob of the whisper-to-box flow, read live everywhere. see doc/mic-notes.md#settings
@@ -82,38 +83,6 @@ export function unfill(text){
 	return t;
 }
 
-// `text` minus the words `sent` already covers at its start, fuzzy-matched. see doc/mic-notes.md#strip_words-duplicate-bubble
-export function strip_words(text, sent){
-	const norm = w => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
-	const tw = text.split(/\s+/).filter(Boolean), sw = sent.split(/\s+/).filter(Boolean);
-	const T = tw.map(norm), S = sw.map(norm);
-	const lev = (a, b) => {
-		let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
-		for (let i = 1; i <= a.length; i++){
-			const cur = [i];
-			for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-			prev = cur;
-		}
-		return prev[b.length];
-	};
-	const word = (a, b) => a === b ? 0 : Math.min(1, lev(a, b) / Math.max(a.length, b.length, 1));
-	const D = Array.from({ length: S.length + 1 }, (_, i) => Array(T.length + 1).fill(i));
-	for (let j = 0; j <= T.length; j++) D[0][j] = j;
-	for (let i = 1; i <= S.length; i++) for (let j = 1; j <= T.length; j++)
-		D[i][j] = Math.min(D[i - 1][j] + 1, D[i][j - 1] + 1, D[i - 1][j - 1] + word(S[i - 1], T[j - 1]));
-	// Match all of `sent` to the front of `text`, or all of `text` to the front of `sent`.
-	let best = null;
-	const consider = (i, j) => {
-		if (!i || !j) return;
-		const score = D[i][j] / Math.max(i, j);
-		if (score > 0.35 || (best && (score > best.score || (score === best.score && j <= best.j)))) return;
-		best = { score, i, j };
-	};
-	for (let j = 1; j <= T.length; j++) consider(S.length, j);
-	for (let i = 1; i <= S.length; i++) consider(i, T.length);
-	return best ? tw.slice(best.j).join(" ") : text;
-}
-
 export class ComposerMic extends Dictate {
 
 	static REFINE_WAIT_MS = 1500;   // the longest a send waits for the live refine's paragraphed text
@@ -139,7 +108,7 @@ export class ComposerMic extends Dictate {
 				(this.gaps ??= []).push(gap); this.gap_before = 0;
 				let guess = unfill(this.partial_text ?? "");
 				const sent = this.dropped && this.dropped.epoch === this.segment_epoch ? this.dropped.text : "";
-				if (sent){ this.dropped = null; guess = strip_words(guess, sent); }   // the guess was already sent: its final must not re-add it
+				if (sent){ this.dropped = null; guess = strip_sent(guess, sent); }   // the guess was already sent: its final must not re-add it
 				if (guess || sent) (this.pending ??= []).push(mine = { text: guess, gap, sent });
 			}
 		} catch {}
@@ -153,10 +122,10 @@ export class ComposerMic extends Dictate {
 		const item = this.pending?.shift();
 		text = unfill(text).replace(/\s+/g, " ").trim();   // a segment's own newlines never become paragraphs
 		if (item?.sent){   // a segment whose guess (or earlier text) was already sent by Send
-			text = strip_words(text, item.sent);
+			text = strip_sent(text, item.sent);
 			if (!text){ this.partial_text = ""; this.draw_caption(); return; }
 		} else if (this.dropped){   // a segment whose words were already sent (or edited in): only the rest is new
-			text = strip_words(text, this.dropped.text);
+			text = strip_sent(text, this.dropped.text);
 			this.dropped = null;
 			if (!text){ this.partial_text = ""; this.draw_caption(); return; }
 		}
@@ -180,7 +149,7 @@ export class ComposerMic extends Dictate {
 		const parts = (this.held ?? []).filter(h => !h.gone).map((h, i) => (i ? (h.br ? "\n\n" : " ") : "") + (use_raw ? (h.raw ?? h.text) : h.text));
 		for (const p of (this.pending ?? []).filter(p => p.text)) parts.push((parts.length ? (this.can_break(parts.join(""), p.gap) ? "\n\n" : " ") : "") + p.text);
 		let guess = unfill(this.partial_text ?? "");
-		if (guess && this.dropped && this.dropped.epoch === this.segment_epoch) guess = strip_words(guess, this.dropped.text);
+		if (guess && this.dropped && this.dropped.epoch === this.segment_epoch) guess = strip_sent(guess, this.dropped.text);
 		if (guess) parts.push((parts.length ? ((this.has_speech && this.can_break(parts.join(""), this.gap_before ?? 0)) ? "\n\n" : " ") : "") + guess);
 		return parts.join("");
 	}
@@ -280,7 +249,7 @@ export class ComposerMic extends Dictate {
 
 	live_guess(){
 		let guess = unfill(this.partial_text ?? "");
-		if (guess && this.dropped && this.dropped.epoch === this.segment_epoch) guess = strip_words(guess, this.dropped.text);
+		if (guess && this.dropped && this.dropped.epoch === this.segment_epoch) guess = strip_sent(guess, this.dropped.text);
 		return guess;
 	}
 
