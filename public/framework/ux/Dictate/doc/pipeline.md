@@ -108,4 +108,4 @@ The last line is the nested form: `{"<prompt>":{"<task>":{"complete":{…}}}}`. 
 
 ## More
 
-[readme](../readme.md) · [Chat v2](/framework/ext/Chat/v2/readme.md) · [map of every piece](map.md) · [Debug tab](debug-tab.md) (each stage, live) · [wake policy](wake-policy.md)
+[readme](../readme.md) · [Chat v2](/framework/ext/Chat/v2/readme.md) · [map of every piece](map.md) · [Debug tab](debug-tab.md) (each stage, live) · [wake policy](wake-policy.md) · [Whisper timeline](whisper-timeline.md) (guesses, finals, the 15 s cap, when a line is written)
