@@ -1,6 +1,8 @@
 # Servex: name the call that blocks the event loop for 75 s
 
-**What is wrong:** Servex writes a heartbeat line to `crumbs.log` every 5 s (`Servex/Crumbs.js`). On 2026-10-24 the heartbeat stopped for 72–88 s at a time, every few minutes: 03:08:59, 03:16:35, 03:22:18, 03:24:36, 03:26:51 and 03:30:11 UTC. During each gap, every route and every agent's tool call waits. The session page's cost tile took 74 s to fill, and polls such as `/api/processes` sat unanswered for 60 s.
+**What is wrong:** Servex writes a heartbeat line to `crumbs.log` every 5 s (`Servex/Crumbs.js`). On 2026-10-24 it stopped for 72–88 s, six times in 20 minutes (03:08:59, 03:16:35, 03:22:18, 03:24:36, 03:26:51, 03:30:11 UTC).
+
+**What that cost:** during each gap every route and every agent tool call waits. The session page's cost tile took 74 s to fill, and `/api/processes` sat unanswered for 60 s.
 
 **What is known:**
 - The session summary that the cost tile asks for (`POST /api/item {summary:{}}`) answers in 0.06–0.2 s from curl, and in 3.5 s cold in a separate process.
