@@ -29,7 +29,32 @@ Every session has one dated folder, `public/framework/ai/sessions/YYYY/MM/DD/<na
 
 **Two code paths name the same folder**, `DatedFiles.session_dir` (Server side) and `Session.locate` (the class). They agree on the name `session-<id8>`. Both now check that a `session-<id8>` folder found on disk belongs to the id: `DatedFiles.owner(dir)` reads `index.json`, the cache summary, then line 1 of the record, the same sources `Session.scan` uses. If it belongs to another id, the new session gets a folder named by its full uuid. Folding the two paths into one is a ⬜ on [core/Session's readme](../readme.md).
 
-**A session stays on the day it began.** `session_dir` looks back 31 days. Until 2026-10-24 it looked back 4, which split this tab across `2026/10/20/session-e00f55c9/` and `2026/10/24/session-e00f55c9/`. That second folder is still there, and the session page reads both. The check below reports it as `split`.
+**A session stays on the day it began.** `session_dir` walks every day folder oldest first and takes the first one that holds the id (`DatedFiles.days()`: 66 days, 6 ms). Until 2026-10-24 it looked back 4 days, then 31, newest first, so `TaskDirs --new` found or opened a later folder: this tab was split across `2026/10/20/session-e00f55c9/` and `2026/10/24/session-e00f55c9/`. The check below reports a split as `split`.
+
+## One session, one folder, one URL (2026-10-25)
+
+The owner: "We don't want two folders for the same thing… the web page at a different path than the actual path that saves all of its stuff… that's confusing and wrong" ([brief, last section](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-identity/requirements.md)).
+
+**The folder.** A session's one folder is `ai/sessions/YYYY/MM/DD/session-<first 8 hex>/` on the day it began. Everything it writes goes there: its record (`session.jsonl`), its prompts (`prompts.jsonl`, and the prompt cards in `page.jsonl`), its cache and its task folders. The folder is **named by the id** because an id is stable and unique: a title changes, an id never does. The page shows the readable title.
+
+**How a tab gets its folder.** The SessionStart hook `.claude/hooks/session-page.mjs` gets the id from Claude Code itself and writes line 1, `{"session":{"id","kind":"vscode-tab"}}`, into `DatedFiles.sessions.session_dir(id)`. Every later writer finds the same folder with the same call: the prompt hook `prompt-relay.mjs`, `TaskDirs --new` (through `$CLAUDE_CODE_SESSION_ID`) and the item tool (through `Session.scan`, which reads that line 1).
+
+**What was split, and how it was folded.** e00f55c9 had three folders: the record (10/20); the old card folder `ai/2026/10/20/session-e00f55c9/`, where `prompt-relay.mjs` wrote every prompt card (504 lines) through a tmp marker; and `ai/sessions/2026/10/24/session-e00f55c9/` (2 task folders), opened by `TaskDirs`. Now:
+- `prompt-relay.mjs` writes to `session_dir(id)`, the record's folder; the marker is no longer read.
+- `session_dir` takes the oldest folder (above).
+- `node Server/SessionConsolidate.mjs <uuid>` (dry run) and `--apply --manifest <file>` fold every second folder into the first: subfolders move in (a `task` line in `ai/sessions/task-moves.jsonl`), `.jsonl` lines are appended in order (no duplicates, URLs rewritten), originals are copied to `%LOCALAPPDATA%/lew42/servex/moved-aside/<run>/` first (`page.jsonl` is gitignored, so git cannot undo it), a `redirect` line maps the old URL, and links in `.md`/`.js` files are rewritten.
+
+**The URL.** The page is the folder's own path, `/framework/ai/sessions/2026/10/20/session-e00f55c9/`. The uuid URL `/framework/ai/sessions/<uuid>/` only redirects there (the AISession readme says how the router does it).
+
+**The stray `ai/sessions/a56900e3-…/`.** A session whose transcript holds no message (126 bytes; title "Dictation cleanup and outline instructions"). `Session.locate` leaves an old flat folder in place until the session's `first_at` is known, and an empty session never gets one. It now files such a folder by the folder's own date.
+
+## A typed id that drifts (typo-proof paths, 2026-10-25)
+
+The owner: "What if the session ID drifts in context by one character, and now we're writing to a different session directory?" Hooks and scripts take the id from Claude Code, so they cannot drift. **The risk is a path an agent types**, in an item-tool `path` or a brief.
+
+- **A session folder is made only by the SessionStart hook, `TaskDirs` or a spawn**, never because a path was typed. The page tools (`Servex/agents/page_tools.js`, `resolve()`) refuse, and write nothing, when a path names a uuid with no folder, no transcript and no Servex agent; an agent name the registry does not know; or a dated session folder (or a folder inside one) that is not on disk. The answer names the nearest real id or folder (one character off is distance 1). Tests: `node Servex/agents/page_tools.test.mjs`.
+- **Your own session, with no id typed:** omit `path`. A Servex agent's MCP connection carries its id (`?as=<agent id>`), so `item({delta})` writes to its own page.
+- **A VS Code tab cannot do that yet.** Its MCP connection (`.mcp.json`) carries no caller, so an omitted `path` has no owner and the tab must pass the path the SessionStart hook printed. The refusal above is what protects it. ⬜ The fix is a caller on the tab's connection, for example `"url": "http://servex.localhost/mcp?as=${CLAUDE_CODE_SESSION_ID}"` if Claude Code expands that variable when it connects. That is shared config and changes how every tab is addressed, so it is proposed to `ai-system-mastermind`, not made here.
 
 ## Every way an id can change
 
@@ -149,7 +174,8 @@ These change Servex's lifecycle, so they go to `ai-system-mastermind` as proposa
 
 - ⬜ A renewal writes a record line linking the two sessions (`{"session":{"id":<new>,"replaces":<old>,"agent":<id>}}` in the new folder), so the session page can show the chain.
 - ⬜ Stamp the caller's session id on item-tool writes. A tab's writes carry its own id.
-- ⬜ Merge the `2026/10/24/session-e00f55c9/` folder into `2026/10/20/` with a scripted move (manifest, dry run).
+- ⬜ Run `Server/SessionConsolidate.mjs` over every session the check reports as `split` (e00f55c9 is folded first, by hand, once its hook fix is live).
+- ⬜ Give a VS Code tab's MCP connection its caller, so `item` with no `path` finds its own page (above).
 - ⬜ Re-index `2026/09/19/session-a1c1d1e1/`: move its mixed `cache.jsonl` aside so the indexer rebuilds one folder per id. Low value: these were test sessions.
 - ⬜ Fold `DatedFiles.session_dir` and `Session.locate` into one naming rule.
 - ⬜ Compaction: auto-compact threshold and timeout (above), proposed to `ai-system-mastermind`.
