@@ -12,6 +12,12 @@ Chat has two views today: the first one, which has no name, and Chat v2, behind 
 
 **Replies never land inside the owner's dictation** (a long-standing problem). Today an assistant reply can appear between two of the owner's transcription lines and break up the flow. In the one view, a reply is anchored under the Prompt it answers, or waits until the owner pauses. Choose one, and write the other down as the alternative. Read `../place/` first: an earlier placement fix lives there.
 
+**One source, one placement, many looks** (the owner, a later dictation in the same session). The owner wants ONE source of data and ONE process that places items, with each version being only a different rendered style or configuration of it (a session has one or more views). Converge on one system, not two. The owner is unsure whether both views use the same agents and data today: **answer that first, in `plan.md`, from the code with file:line**, so it can be reported back.
+
+**The owner's words always land at the bottom.** A bug the owner saw after switching to the first view: the bubble being transcribed into was not the last one; a reply from the smart assistant sat below it, and new words went into the earlier bubble. The owner's incoming words must always appear at the bottom, and assistant messages must never land just before or after the owner's live bubble in a confusing order. Reproduce it headless first. Read `../order/` too: earlier ordering work lives there.
+
+**No long walls.** The first view puts a long run of transcription into one bubble. In the one view, a long dictation breaks into readable blocks (by Prompt, or at pauses), the way Chat v2 does it.
+
 **A Structure view in the dropdown.** The owner wants to see the chat's structure, the Prompt and its children (refined text, replies, Questions, tasks), to check that transcriptions are refined properly ("that is the only way to make progress"). Add a "Structure" entry to the version dropdown that draws the session's item tree: each item's type, id and text, nested under its parent, live as lines arrive. Reuse an existing tree or item renderer if one exists; look before building.
 
 ## Steps

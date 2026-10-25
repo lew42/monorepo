@@ -181,3 +181,5 @@
 {"action":{"at":"2026-10-25T15:54:26-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/v2-speed/requirements.md"]}}
 {"action":{"at":"2026-10-25T15:55:18-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/one-chat-view/requirements.md"]}}
 {"log":{"at":"2026-10-25T15:57:29-05:00","msg":"session resumed"}}
+{"action":{"at":"2026-10-25T16:03:11-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/proposal.md"]}}
+{"wait":{"at":"2026-10-25T16:03:28-05:00","on":"owner","what":"okay on proposal.md before any chat build or merge (planning mode, v-sq8y7db)","links":["proposal.md"]}}

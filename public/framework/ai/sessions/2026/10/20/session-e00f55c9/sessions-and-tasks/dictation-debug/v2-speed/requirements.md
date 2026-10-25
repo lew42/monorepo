@@ -14,6 +14,9 @@ Chat v2 (the V2 button at the top of the chat) shows replies much later than the
 
 4. **Make the task state readable.** A task card in the chat shows something like "task idle" next to a small checkbox, and the owner does not understand what that means. Replace it with a label a newcomer reads at a glance: what state the task is in, and what the checkbox does. Fix it in the shared component, so every surface that shows a task picks it up.
 
+5. **Settings that explain themselves** (the owner, same session: "I don't understand what these mean"). In the chat's Settings panel (built in `../settings/`), every label should say what it does in plain words, so a newcomer understands it without trying it. The owner named four: "Dictation goes into chat versus box"; "send delay" (keep talking within it and the words join one prompt); "Clean transcription" (the fast assistant cleans up the words); "send mode: pause or sentences". For each, give a short label plus a one-line hint under it saying what changes when you flip it. Screenshot the panel before and after.
+6. **Bubbles use the width, and code blocks render.** Chat bubbles today do not use the available width. Make a bubble widen sensibly with the view (a readable maximum, not a narrow column), and render fenced code blocks inside a bubble as code (monospace, its own box, scrolls sideways if long). The smart assistant sent a reply with a code block in session v-sq8y7db to test it. Fix it in the shared bubble, so both chat views get it. Screenshot at 400, 1200 and 1920.
+
 ## Where to start
 
 `ext/Chat/v2/readme.md`, `ext/drawer/ChatView.js` (the switch between the two views), and `../chat-v2/` (how v2 was built).
