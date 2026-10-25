@@ -33,12 +33,15 @@ export default class ChatV2Model {
 		return node;
 	}
 
+	is_kid(node, id){ const kid = this.by_id.get(id); return !!kid && kid !== node && (node.kids.includes(kid) || (node.id && kid.from === node.id)); }
+
 	edit(node, delta){
 		let touch = { id: node.id, parent: undefined, added: false };
 		for (const [k, v] of Object.entries(delta)) {
 			if (k === "tasks") { if (v?.add){ const kid = this.add(node.kids, v.add); if (kid) touch = { id: kid.id, parent: node.id, added: true }; } }
 			// A child addressed through its parent ({"<prompt>":{"<task>":{"complete":{…}}}}): the change is the child's, not a field on the parent.
-			else if (node.kids.some(c => c.id === k) && v && typeof v === "object") touch = this.edit(this.by_id.get(k), v);
+			// Its kids are its own `tasks` plus root Tasks/Questions whose `from` is its id (`children()`).
+			else if (this.is_kid(node, k) && v && typeof v === "object") touch = this.edit(this.by_id.get(k), v);
 			else if (k === "raw" && v && !Array.isArray(v)) { if (v.push !== undefined) (node.raw ??= []).push(v.push); }
 			else if (k === "paragraphs" && v && !Array.isArray(v)) {
 				const list = node.paragraphs ??= [];
