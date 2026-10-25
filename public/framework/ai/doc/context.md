@@ -30,6 +30,8 @@ Whatever the last agent had read is gone when it is replaced: a new session, a r
 - A brief must be complete: the paths to read, the goal, the budget. The agent is not "the same one, with a refresher".
 - A handover is computed from the files (`task.jsonl`, the session page), never remembered ([context-loss.md](context-loss.md)).
 
+**Start fresh over long sessions** (the owner, 2026-10-24): for a new, unrelated task, start a fresh agent rather than reuse a long one and fight compaction; reuse only a short, low-context session. It costs nothing because the logs hold the state and the docs hold how things work. The mastermind rule: [mastermind.md](/Servex/agents/roles/mastermind.md), "Context".
+
 ## Context pollution: the second pass follows the first
 
 An agent that reads a previous pass's findings before it looks for itself tends to agree with them. It spends its effort checking what it was handed, not searching, and any mistake in the first pass is now two passes' worth of confidence. This hits reviewers, auditors and "second opinion" agents hardest. So:
