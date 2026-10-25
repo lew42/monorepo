@@ -218,3 +218,4 @@ public/framework/ai/index.jsonl.lock
 
 # Save-time test results (WorktreeWatch): machine state, one line per save, never committed.
 public/framework/core/Test/save-results.jsonl
+**/failures.jsonl

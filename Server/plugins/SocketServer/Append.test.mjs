@@ -68,7 +68,7 @@ try {
 		appender.append(file, ["not valid json at all"], 0);
 		ok(/append refused/.test(calls[0].response), "a string line that isn't even valid JSON is refused, schema or not: " + calls[0].response);
 		appender.append(file, ['{"already":"serialized"}'], 0);
-		ok(calls.at(-1).response === "append successful", "a string line that IS already-serialized JSON is still accepted");
+		ok(/append refused/.test(calls.at(-1).response), "a string line, even serialized JSON, is refused: ONE shape is an array of objects (Append.js, 2026-10-02)");
 	}
 } finally {
 	fs.rmSync(testDir, { recursive: true, force: true });
