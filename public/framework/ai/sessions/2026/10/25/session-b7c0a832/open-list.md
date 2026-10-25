@@ -10,3 +10,5 @@ Next, in order:
 3. Restart Servex once so the Pool and Agents fixes are live (pending dictation's RAM need; not done now).
 4. Outcome lines for inbox items on pool names and `i-mvnb0hn1cif`; items for others: `i-mvn5jp23ahw` (item tool page.jsonl/task.jsonl split), `i-mvndoowl03x` (session-identity), backup push (owner approves).
 5. `node Server/usage-now.mjs` and `node Server/role-spend.mjs ai-system-mastermind` at the next wake; update the Now column of `ai/priority.md`.
+
+**Update (01:40):** Servex restarted (Pool, compaction and give_back fixes live). The qf-8 branch (context alerts + prompt grouping) was reviewed, tested and merged. qf-8 slot still held by minion-prompt-grouping (give_back guard refused it, correctly). Still open: minion-mastermind-path (qf-3) merge; one more restart for context alerts; items 15, 4, 5 above.
