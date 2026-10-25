@@ -65,6 +65,7 @@ export class Task extends Item {
 		}
 	};
 	// The id a title makes: the item tool's slug_of (Servex/agents/page_tools.js) is the same rule.
+	static settled(t){ return t.state === "complete" || t.state === "stopped"; }   // done, or dropped with its reason: neither blocks a parent
 	static slug(text){ return String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task"; }
 	// Item.get() skips a prototype getter, so a fresh Task answered undefined for "tasks" and {tasks:{add}} was stored as data (2026-10-22; child-verb.test.mjs).
 	get(key){ return key === "tasks" ? this.tasks : super.get(key); }
@@ -89,14 +90,16 @@ export class Task extends Item {
 		kid._watched_by = this;
 		kid.on("change", function(key){ if (key === "state" && this === kid) kid._watched_by?.child_changed(kid); });
 	}
+	// A child that is done or dropped (Task.settled) moves a series on; when every child is settled and at least one is complete, the parent completes.
 	child_changed(kid){
-		if (kid.state !== "complete" || this.state !== "running") return;
+		if (!Task.settled(kid) || this.state !== "running") return;
 		if (this.mode === "series") this.start_children();
-		if ([...this._tasks].every(t => t.state === "complete")) this.complete({ auto: true });
+		const kids = [...this._tasks];
+		if (kids.every(Task.settled) && kids.some(t => t.state === "complete")) this.complete({ auto: true });
 	}
 	start_children(){
 		const kids = [...(this._tasks ?? [])];
-		if (this.mode === "series"){ const next = kids.find(t => t.state !== "complete"); if (next?.state === "idle") next.start(); }
+		if (this.mode === "series"){ const next = kids.find(t => !Task.settled(t)); if (next?.state === "idle") next.start(); }
 		else for (const t of kids) if (t.state === "idle") t.start();
 	}
 
@@ -368,7 +371,7 @@ export class Task extends Item {
 		const { completion, complete, outcome, evidence, confidence, caveats, auto } = args && typeof args === "object" ? args : {};
 
 		// A recorded finish is a fact during replay (this._rp): a {task: ref} child the worker only filed is not a reason to refuse it. Server/doc/state.md
-		const open = this._rp ? null : [...(this._tasks ?? [])].find(t => t.state !== "complete" && t.state !== "stopped");
+		const open = this._rp ? null : [...(this._tasks ?? [])].find(t => !Task.settled(t));
 		if (open) return this.warn(`complete(): "${open.get("title") ?? open.id}" isn't complete yet — complete that first`);
 
 		if (!CAN.complete.has(this.state)) return this.warn(`complete(): can't complete from "${this.state}"`);
