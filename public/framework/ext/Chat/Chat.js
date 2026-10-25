@@ -234,12 +234,7 @@ export function retag_piece(bubble, old_id, new_id){
 	const st = bubble && bubbles.get(bubble);
 	const pc = st?.pieces.find(pc => pc.id === old_id);
 	if (!pc || old_id === new_id) return false;
-	pc.id = new_id;
-	const t = Date.parse(new_id);
-	if (Number.isFinite(t) && t !== pc.at){
-		pc.at = t;
-		if (st.pieces[st.pieces.length - 1] === pc){ bubble.dataset.at = t; place(bubble); }
-	}
+	pc.id = new_id;   // never pc.at: it is the time the piece was drawn by, and the new id is another clock (doc/notes.md#bubble-order)
 	return true;
 }
 

@@ -5,18 +5,22 @@
 // The phone stamps each sentence when it leaves the draft (ComposerMic.stamp); Servex writes the line with ITS clock and answers
 // with that `at`; chat.js retags the bubble piece to it, and Chat.js retag_piece moves the piece's `at` too. The next sentence,
 // drawn with the phone's stamp, is then "earlier" than the one before it, and speak() splices it in front.
-// Two runs: skew 0 (the control, both clocks agree) and skew SKEW_MS (the PC ahead of the phone). Exit 1 when any run reads out of order.
+// Three runs: skew 0 (the control, both clocks agree), skew SKEW_MS (the PC ahead of the phone), and skew SKEW_MS with the assistant's
+// reply between the two sentences. Exit 1 when either of the first two reads out of order. The third is the KNOWN cross-bubble case:
+// a new owner bubble (phone clock) is placed against the reply (Servex's clock) by Chat.js place(); it waits for one clock for new
+// stamps (order/report.md, step 2), so it is reported but does not fail the run.
 import path from "path";
 
 const [base = "http://monorepo.localhost", skew_arg] = process.argv.slice(2);
 const SKEW_MS = Number(skew_arg ?? 1500);   // the PC's clock ahead of the phone's; the incident's record proves at least 280 ms
 const SAY_MS = 150;                          // Servex answers session/say quickly, so the first answer lands before the second sentence
 const SAID = ["Can you hear me?", "now?"];
+const REPLY = "Yes, I can hear you.";
 const { default: Browser } = await import(new URL("../../../../../Server/Browser.mjs", import.meta.url).href);   // the shared launcher: no window
 const browser = await Browser.launch();
 const kill = setTimeout(() => { console.log("FAIL killed after 120 s"); process.exit(2); }, 120000);
 
-async function run(skew){
+async function run(skew, { reply = false } = {}){
 	const ctx = await browser.newContext({ viewport: { width: 400, height: 800 }, hasTouch: true, isMobile: true });
 	const page = await ctx.newPage();
 	const errors = [], lines = [];
@@ -48,7 +52,7 @@ async function run(skew){
 	await page.waitForTimeout(800);
 
 	// Say the first sentence, pause (it sends), wait for Servex's answer (the retag), then say the second and pause again.
-	const trace = await page.evaluate(async ({ SAID, SAY_MS }) => {
+	const trace = await page.evaluate(async ({ SAID, SAY_MS, REPLY, reply, skew }) => {
 		const m = globalThis.$dictate_widget.dictate, wait = ms => new Promise(r => setTimeout(r, ms));
 		m.state = "listening";
 		m.revise = false;
@@ -59,8 +63,8 @@ async function run(skew){
 			m.partial_text = "";
 			m.log_prompt(text, ++chunk);   // Whisper's final
 		};
-		// every piece in the owner's bubbles, in DOM order, with the `at` it is ordered by
-		const pieces = () => [...globalThis.$dictate_widget.$thread.el.querySelectorAll(".chatbox-you [data-re]")]
+		// every piece in the bubbles (the owner's, and the reply's in the third run), in DOM order, with the `at` it is ordered by
+		const pieces = () => [...globalThis.$dictate_widget.$thread.el.querySelectorAll(".chatbox-you [data-re], .chatbox-reply [data-re]")]
 			.map(n => ({ text: n.querySelector(".chatbox-text")?.textContent.trim() ?? n.textContent.trim(), re: n.dataset.re }));
 		const out = [];
 		await wait(300);
@@ -68,17 +72,24 @@ async function run(skew){
 		m.send_screen();
 		await wait(SAY_MS + 600);    // the first send is answered: its piece now carries Servex's `at`
 		out.push({ step: "first sent and answered", pieces: pieces() });
+		if (reply){   // the assistant answers, written by Servex with its own clock, the way chat.js draws a line from the live wire
+			globalThis.$dictate_widget.say({ chat: { at: new Date(Date.now() + skew).toISOString(), from: { kind: "assistant", id: "smart" }, via: "text", text: REPLY } });
+			await wait(300);
+			out.push({ step: "the reply drawn", pieces: pieces() });
+		}
 		await say(SAID[1]);
 		m.send_screen();
 		await wait(SAY_MS + 1500);   // the second is answered too, and the poll has run
 		out.push({ step: "both sent and answered", pieces: pieces() });
 		return out;
-	}, { SAID, SAY_MS });
+	}, { SAID, SAY_MS, REPLY, reply, skew });
 
 	const got = trace.at(-1).pieces.map(p => p.text);
 	const norm = t => String(t).toLowerCase().replace(/[^a-z ]+/g, "").trim();
-	const ok = got.length === SAID.length && got.every((t, i) => norm(t).endsWith(norm(SAID[i])));
-	console.log(`${ok ? "ok  " : "FAIL"} skew ${skew} ms (${skew ? "PC clock ahead of the phone" : "clocks agree"}): the chat reads ${got.map(t => JSON.stringify(t)).join(" then ")}; said ${SAID.map(t => JSON.stringify(t)).join(" then ")}`);
+	const want = reply ? [SAID[0], REPLY, SAID[1]] : SAID;
+	const ok = got.length === want.length && got.every((t, i) => norm(t).endsWith(norm(want[i])));
+	const label = (ok ? "ok  " : reply ? "KNOWN" : "FAIL") + ` skew ${skew} ms (${skew ? "PC clock ahead of the phone" : "clocks agree"}${reply ? ", a reply between, the cross-bubble case for step 2" : ""})`;
+	console.log(`${label}: the chat reads ${got.map(t => JSON.stringify(t)).join(" then ")}; want ${want.map(t => JSON.stringify(t)).join(" then ")}`);
 	for (const s of trace) console.log(`       ${s.step}: ${s.pieces.map(p => `${JSON.stringify(p.text)} @${p.re}`).join(" | ")}`);
 	console.log(`       Servex wrote: ${lines.map(l => `${JSON.stringify(l.chat.text)} @${l.chat.at}`).join(" | ")}`);
 	if (errors.length) console.log(`FAIL skew ${skew} ms: page error — ${errors[0]}`);
@@ -88,6 +99,7 @@ async function run(skew){
 
 let all = true;
 for (const skew of [0, SKEW_MS]) all = (await run(skew)) && all;
+await run(SKEW_MS, { reply: true });   // KNOWN: reported, never fails the run (see the header)
 clearTimeout(kill);
 await browser.close();
 process.exit(all ? 0 : 1);
