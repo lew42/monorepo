@@ -104,7 +104,7 @@ export default class StoreFolder extends Page {
 				if (/^[0-9a-f]{8}-/.test(who.session_id)){ AISession.slugs.set(who.session_id, name); AISession.days.set(who.session_id, this.segs.join("/")); }   // so page_url() and the detail's own-folder reads agree with this url
 				await AISessionDetail.preload(this.home.url, who.id);
 				const segs = [...this.segs, name];
-				return this.add(name, new AISessionDetail({ home: this.home, id: who.id, segs, below: sub => new StoreFolder({ home: this.home, segs }).route(sub) })).load_all_children(levels);
+				return this.add(name, new AISessionDetail({ home: this.home, id: who.id, segs, below: (sub, at = []) => new StoreFolder({ home: this.home, segs: [...segs, ...at] }).route(sub) })).load_all_children(levels);
 			}
 		}
 		return super.child(name, levels);

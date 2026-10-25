@@ -195,7 +195,11 @@ export default class AISessionDetail extends Page {
 		const dir = this.sub_dirs?.get(name);
 		if (dir && !(this.children.get(name) instanceof Page)){
 			const page = await Page.jsonl(dir);
-			if (page){ page.url = this.url + name + "/"; return this.add(name, page).load_all_children(levels); }
+			if (page){
+				page.url = this.url + name + "/";
+				if (this.below && typeof page.route !== "function") page.route = sub => this.below(sub, [name]);   // a project folder drawn from its own page.jsonl: its task folders still open as tasks (StoreFolder.route)
+				return this.add(name, page).load_all_children(levels);
+			}
 		}
 		return super.child(name, levels);
 	}
