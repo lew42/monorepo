@@ -1,5 +1,6 @@
 import { View, div, button } from "/framework/core/View/View.js";
 import ChatV2 from "/framework/ext/Chat/v2/ChatV2.js";
+import { sticky_scroll } from "/framework/ext/Chat/Chat.js";
 
 View.stylesheet(import.meta, "ChatView.css");
 
@@ -38,10 +39,15 @@ export default class ChatView {
 		const file = this.on ? mount?.file?.() ?? null : null;
 		if (this.file === file && (file || !this.on)) return;
 		this.chat_v2?.unsubscribe(); this.chat_v2 = null; this.file = file;
-		if (!this.on || !mount){ this.$box?.el.remove(); this.$box = null; return; }
+		if (!this.on || !mount){ this.pin_watch?.disconnect(); this.$box?.el.remove(); this.$box = null; return; }
 		if (!this.$box?.el.isConnected){
 			this.$box = div.c("drawer-rail-sheet-v2 flow");
 			(slot.querySelector(".ux-dictate-widget-card") ?? slot).prepend(this.$box.el);
+			// the same scroll lock and jump button as the bubbles chat (Chat.js sticky_scroll); Chat v2 grows by patching, so pin on every change
+			const scroll = sticky_scroll(this.$box.el);
+			this.pin_watch?.disconnect();
+			this.pin_watch = new MutationObserver(() => scroll.pin());
+			this.pin_watch.observe(this.$box.el, { childList: true, subtree: true, characterData: true });
 		}
 		if (file) this.chat_v2 = new ChatV2({ url: file, $box: this.$box }).live();
 		else this.$box.empty(() => div.c("chat-v2-empty", "Say something: Chat v2 draws this conversation once it has started."));
@@ -49,7 +55,7 @@ export default class ChatView {
 
 	// The chat gave its box back: stop the stream and forget the box (the slot is emptied by the caller).
 	release(){
-		this.chat_v2?.unsubscribe();
+		this.chat_v2?.unsubscribe(); this.pin_watch?.disconnect();
 		this.chat_v2 = this.$box = this.file = null;
 	}
 }

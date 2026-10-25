@@ -271,6 +271,7 @@ export default class Sessions {
 		s.smart_re = lines[lines.length - 1].at;
 		this.save();
 		this.wake(s, "smart");
+		this.mark_sent(s, "smart", lines);
 		this.send(s, "smart", nav + lines.map(l => `${selected_prefix(l.selection)}[on ${l.path} at ${l.at}] ${l.text}`).join("\n") + `\n(${why})` + (prompt ? `\n(prompt ${prompt})` : ""));
 	}
 
@@ -596,6 +597,17 @@ export default class Sessions {
 		let lead = "";
 		try { const size = fs.statSync(file).size; if (size){ const fd = fs.openSync(file, "r"), b = Buffer.alloc(1); fs.readSync(fd, b, 0, 1, size - 1); fs.closeSync(fd); if (b[0] !== 10) lead = "\n"; } } catch {}
 		fs.appendFileSync(file, lead + JSON.stringify(line) + "\n");
+	}
+
+	/* A `{sent}` line: these owner lines have just been handed to the `to` seat ("fast" | "smart"). `delay_ms` is the time from the
+	 * words leaving the owner's draft (`said_at`, else arrival) to now. The chat draws it beside each line (ux/Dictate/Widget.js `Thread.sent`). */
+	mark_sent(s, to, lines){
+		try {
+			const ls = (lines ?? []).filter(l => l?.at);
+			if (!ls.length) return;
+			const last = ls[ls.length - 1], at = now_ms(), from = Date.parse(last.said_at ?? last.at);
+			this.write(s, { sent: { to, at, re: ls.map(l => l.at), ...(Number.isNaN(from) ? {} : { delay_ms: Math.max(0, Date.parse(at) - from) }) } });
+		} catch (e){ console.error(`sessions: could not mark a line sent: ${e.message}`); }
 	}
 
 	write(s, line){
@@ -979,6 +991,7 @@ export default class Sessions {
 			s.fast_heard = text;
 			if (this.voice_seat()) this.voice_say(s, [line]);
 			else this.send(s, "fast", `${selected_prefix(selection)}[on ${site}] ${text}\n(prompt ${prompt})`);
+			this.mark_sent(s, "fast", [line]);
 			this.gather(s, line);
 			s.prompt = null;   // CHAT V2 (round 2, §1): handed to a seat already, with nothing more coming -- done
 		}
@@ -1116,6 +1129,7 @@ export default class Sessions {
 		this.wake(s, "fast");
 		if (this.voice_seat()) this.voice_say(s, h.lines);
 		else this.send(s, "fast", said + tail);
+		this.mark_sent(s, "fast", h.lines);
 		this.waker.add(s.id, h.lines, typed ? { hold_ms: this.quiet_ms } : { elapsed_ms: quiet ?? 0 });
 		if (mic_off) this.waker.flush(s.id, "the mic went off");
 		else if (quiet != null) this.waker.silence(s.id, quiet);

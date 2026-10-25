@@ -57,6 +57,19 @@ function failed_badge(){
 	return b;
 }
 
+/** "fast ✓ 2.6 s · smart …": when this owner line reached each assistant, counted from the words leaving the draft (a `{sent}` session line). */
+function sent_badge(pc){
+	const b = el("chatbox-sent muted", "span");
+	const secs = ms => (ms < 100 ? "0" : (ms / 1000).toFixed(1)) + " s";
+	b.append(...["fast", "smart"].flatMap((seat, i) => {
+		const got = pc.sent?.[seat], part = el("chatbox-sent-" + seat + (got ? " chatbox-sent-done" : ""), "span");
+		part.textContent = seat + (got ? " ✓" + (got.delay_ms != null ? " " + secs(got.delay_ms) : "") : " …");
+		part.title = got ? `Reached the ${seat} assistant${got.delay_ms != null ? ", " + secs(got.delay_ms) + " after the words left the draft" : ""}.` : `Not yet sent to the ${seat} assistant.`;
+		return i ? [" · ", part] : [part];
+	}));
+	return b;
+}
+
 // see doc/notes.md#place-card
 export function place_card(place){
 	// on_chosen is ours: pulled off before rest reaches the module's constructor
@@ -118,6 +131,7 @@ function piece_body(pc){
 	if (pc.mark) append_mark(node, pc.mark);
 	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));
 	if (pc.failed) (node.lastElementChild ?? node).append(" ", failed_badge());
+	if (pc.track) (node.lastElementChild ?? node).append(" ", sent_badge(pc));
 	return node;
 }
 
@@ -191,10 +205,10 @@ function draw_reacts(b){
 }
 
 /** Draw one message: a new bubble, or a paragraph on the bubble it merges into. See doc/notes.md#speak */
-export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark, failed, join = true }){
+export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark, failed, track, join = true }){
 	at = Date.parse(at ?? 0) || Date.now();
 	// join: false never merges onto the last bubble (doc/notes.md#speak)
-	const last = join ? mergeable($box, sender, at) : null, piece = { id, text, at, via, mark, failed };
+	const last = join ? mergeable($box, sender, at) : null, piece = { id, text, at, via, mark, failed, track };
 	if (last){
 		// in time order: a line that arrives late (the poll after the live wire) goes before the later ones, never at the end
 		const pieces = bubbles.get(last).pieces, i = pieces.findIndex(pc => pc.at > at);
@@ -315,11 +329,11 @@ export function sticky_scroll(box, { observe = true } = {}){   // observe:false 
 	$btn.className = "chatbox-jump";
 	$btn.title = "jump to the newest message";
 	$btn.setAttribute("aria-label", "jump to the newest message");
-	$btn.textContent = "↓ Newest";   // says its job (the owner, 2026-10-20: an unlabelled grey arrow reads as nothing)
+	$btn.textContent = "↓";   // small round button at the bottom; its title and aria-label say the job (the owner, 2026-10-25)
 	$btn.hidden = true;
 	box.appendChild($btn);
 	const show = on => { $btn.hidden = !on; };
-	const go_down = () => { box.appendChild($btn); box.scrollTop = box.scrollHeight; last = box.scrollTop; };
+	const go_down = () => { if ($btn !== box.lastChild) box.appendChild($btn); box.scrollTop = box.scrollHeight; last = box.scrollTop; };
 	$btn.addEventListener("click", () => { locked = true; show(false); go_down(); });
 	box.addEventListener("scroll", () => {
 		const top = box.scrollTop;
@@ -327,7 +341,7 @@ export function sticky_scroll(box, { observe = true } = {}){   // observe:false 
 		else if (top < last){ locked = false; show(true); }
 		last = top;
 	}, { passive: true });
-	const pin = () => { if (locked) go_down(); };
+	const pin = () => { if (locked) go_down(); else if ($btn !== box.lastChild) box.appendChild($btn); };   // the button stays last, even if a redraw emptied the box
 	if (observe && typeof ResizeObserver === "function") new ResizeObserver(pin).observe(box);
 	return { pin, locked: () => locked };
 }
