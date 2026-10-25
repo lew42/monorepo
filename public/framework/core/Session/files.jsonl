@@ -13,3 +13,5 @@
 {"file":"session-task.test.mjs"}
 {"file":"tasks/"}
 {"file":"session-task.test.mjs"}
+{"file":"failures.jsonl","gone":true}
+{"file":"tasks/","gone":true}
