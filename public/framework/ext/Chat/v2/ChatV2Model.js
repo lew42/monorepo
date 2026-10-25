@@ -1,5 +1,5 @@
 // ChatV2Model.js — a session.jsonl folded into plain objects, in list order. Every field read the chat does is a method here, so a renamed field or the real Prompt/Question classes (core/Task/Prompt.js) change this one file. See readme.md.
-import split from "../../core/Task/sentences.js";
+import split from "../../../core/Task/sentences.js";
 const VERB_STATE = { start: "running", pause: "paused", resume: "running", stop: "stopped", complete: "complete", finish: "complete", wait: "waiting" };
 
 export default class ChatV2Model {
