@@ -1,4 +1,5 @@
-import View, { div, span, small, strong } from "/framework/core/View/View.js";
+import View, { div, span, small, strong, a } from "/framework/core/View/View.js";
+import { names } from "/framework/core/Router/listing.js";
 import TaskView from "/framework/core/Task/TaskView.js";
 import Task from "/framework/core/Task/Task.js";
 import SessionWork from "./SessionWork.js";
@@ -43,11 +44,17 @@ export default class SessionStats extends View {
 		this.empty(() => {
 			div.c("sov-stat-row", () => {
 				div.c("sov-stat", () => { small.c("sov-k", "Cost"); SessionStats.cost(strong.c("sov-v", "…"), work.dir); });
-				for (const [label, value] of [["Model", tree.snap?.model ?? "—"], ["Running for", SessionStats.elapsed(root.ms())], ["Done", total ? `${done} of ${total}` : "no tasks"]])
+				for (const [label, value] of [["Model", tree.snap?.model ?? "—"], ["Running for", SessionStats.elapsed(root.ms())], ["Task folders done", total ? `${done} of ${total}` : "no task folders"]])
 					div.c("sov-stat", () => { small.c("sov-k", label); strong.c("sov-v", value); });
 			});
 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));
-			small.c("sov-caption", `${done} done · ${part.running} running · ${part.open.length - part.running} open · ${part.dropped.length} dropped (not counted)`);
+			small.c("sov-caption", `Task folders: ${done} done · ${part.running} running · ${total - done - part.running} queued or waiting · ${part.dropped.length} dropped (not counted)`);   // one count each, so the parts add up to the total
+			const folders = root.folders ?? [work.dir];   // the session's folders, one per day it filed work under (SessionTree.load)
+			small.c("sov-links", () => {
+				span("This session's record: ");
+				folders.forEach((f, i) => { const have = names(f), log = !have ? "session.jsonl" : ["session.jsonl", "task.jsonl"].find(n => have.includes(n)); if (!log) return; if (i) span(" · "); a.c("", folders.length > 1 ? `log, ${f.match(/\d{4}\/\d\d\/\d\d/)?.[0] ?? f}` : `the session log (${log})`).href(f + log).attr("target", "_blank"); });
+				if (work.id) { span(" · "); a.c("", "the transcript").href("/ai-logs/" + work.id).attr("target", "_blank"); }
+			});
 		});
 		this.el.hidden = false;
 	}

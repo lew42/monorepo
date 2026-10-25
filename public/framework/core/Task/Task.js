@@ -50,10 +50,22 @@ export class Task extends Item {
 	// Made on first use (a replayed log rarely has subtasks). `_tasks` is hidden from
 	// `lists()` below so the saved key is still "tasks", which `hydrate()` assigns back.
 	get tasks(){
-		if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
+		if (!this._tasks){ this._tasks = new Task.List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
 		return this._tasks;
 	}
 	set tasks(list){ this._tasks = list; this.watch(list); }
+	/* A task list takes anything (the owner, 2026-10-24, session-is-a-task): a plain string is a Task with that title; an object with no
+	   `type` is a Task; an object with a `type` is that class (Process, Project, Session), through Item.hydrate. */
+	static List = class TaskList extends List {
+		make(x){
+			if (typeof x !== "string") return super.make(x);
+			let id = Task.slug(x);
+			for (let n = 2; this.find?.(id); n++) id = `${Task.slug(x)}-${n}`;   // the same title twice gets "-2", as the item tool suggests
+			return super.make({ id, title: x });
+		}
+	};
+	// The id a title makes: the item tool's slug_of (Servex/agents/page_tools.js) is the same rule.
+	static slug(text){ return String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task"; }
 	// Item.get() skips a prototype getter, so a fresh Task answered undefined for "tasks" and {tasks:{add}} was stored as data (2026-10-22; child-verb.test.mjs).
 	get(key){ return key === "tasks" ? this.tasks : super.get(key); }
 
@@ -205,6 +217,8 @@ export class Task extends Item {
 		};
 	}
 	get session(){ return this.get_one("session") ?? this.get_one("session_id"); }
+	// When it was asked for: the time of the line that added it to its parent (Session.apply_line keeps it in memory), else its own record's.
+	get created_at(){ return this._created_at ?? this.get_one("requested_at") ?? this.get_one("started_at") ?? null; }
 	get priority(){ return this.get_one("priority") ?? null; }
 	get commits(){ return [...(this.data.commits ?? [])]; }
 	commit(hash){
@@ -220,6 +234,25 @@ export class Task extends Item {
 		this.put("reinforced", [...(this.data.reinforced ?? []), { ...(why ? { why } : {}), ...(by ? { by } : {}) }]);
 		return this;
 	}
+
+	/* TOKENS ATTRIBUTED TO TASKS (session-is-a-task item 5): a task is a bucket, and every turn the session (or the agent working this task) spends between a task's start and
+	   its end (complete or stopped; still open = now) belongs to it. With several open, the one started last gets it (the innermost bucket);
+	   with none open, the turn is untracked. `turns` = [{ms, cost}] (node: Task.turns_resolver reads an agent's own log). Computed, never stored. */
+	attribute(turns = []){
+		const span = t => { const a = Date.parse(t.get_one("started_at") ?? t.created_at ?? ""), b = Date.parse(t.get_one("completed_at") ?? t.get_one("stopped_at") ?? ""); return isNaN(a) ? null : { t, a, b: isNaN(b) ? Infinity : b }; };
+		const spans = [], walk = list => { for (const t of list ?? []){ const s = span(t); if (s) spans.push(s); walk(t._tasks); } };
+		walk(this._tasks);
+		const by = new Map(); let untracked = 0, tracked = 0;
+		for (const { ms, cost } of turns){
+			let hit = null;
+			for (const s of spans) if (ms >= s.a && ms <= s.b && (!hit || s.a > hit.a)) hit = s;
+			if (hit){ by.set(hit.t, (by.get(hit.t) ?? 0) + cost); tracked += cost; } else untracked += cost;
+		}
+		const r2 = n => Math.round(n * 100) / 100;
+		return { tracked: r2(tracked), untracked: r2(untracked), tasks: [...by].sort((x, y) => y[1] - x[1]).map(([t, usd]) => ({ id: t.id, title: t.get_one("title") ?? t.id, usd: r2(usd) })) };
+	}
+	static turns_resolver = null;   // node: session id -> [{ms, cost}] of that session's own turns (Servex/agents/Agents.js); a VS Code tab has none recorded yet
+
 
 	// The owner checking the task off is final.
 	check({ by } = {}){
@@ -377,7 +410,7 @@ export class Task extends Item {
 		let kid;
 		if (lines?.length){
 			this.resolving.add(ref);   // a cycle of references stops here
-			const Own = Item.types.get(lines[0]?.class);   // line 1 may name a subclass (a Process): replay it as that, when it is loaded
+			const Own = Item.types.get(lines[0]?.class ?? (lines[0]?.session ? "Session" : undefined));   // line 1 may name a subclass (a Process), or be a session record ({session:{…}}): replay it as that, when it is loaded
 			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
 			if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
 		} else {   // no file (node), or not read yet (browser): a stub, never a throw

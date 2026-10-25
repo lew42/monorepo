@@ -6,11 +6,14 @@
 
 import Item from "../Item/Item.js";
 import Day from "./Day.js";
-import List from "../List/List.js";
 import Task from "../Task/Task.js";
 import "../Task/Project.js";   // registers "Project": a proposal can be made one (decide is "project")
+import "../Task/Process.js";   // registers "Process": a task added with {type: "Process"} replays as one
 
-export default class Session extends Item {
+/* A Session IS a Task (the owner, 2026-10-24, session-is-a-task): Task's states, completion, `tasks` list (strings, objects, typed
+   children: Task, Process, Project, Session), queries and cost. What a session adds: its dated folder, its record's line shape (replay_line
+   below), its menu and settings. Its own state lines are {"start"}/{"stop"} on the record, kept as they were. */
+export default class Session extends Task {
 	static days = new Map();     // id -> "2026/10/03"
 	static slugs = new Map();    // id -> folder name; a session with no slug is in an old uuid-named folder
 	static scanned = false;
@@ -18,10 +21,7 @@ export default class Session extends Item {
 	// super() with no args: Item assigns its args onto itself, and a string id would spread into characters.
 	constructor(id){ super(); if (id !== undefined) this.id = id; }
 
-	// A session HAS tasks, made on first use like Task.tasks; its progress is counted from them on read, never stored.
-	get tasks(){ if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this._tasks.of = Task; } return this._tasks; }
-	set tasks(list){ this._tasks = list; }
-	lists(){ const { _tasks, ...rest } = super.lists(); return { ...rest, ...(_tasks ? { tasks: _tasks } : {}) }; }
+	// Its tasks are Task's own list (made on first use); its progress is counted from them on read, never stored.
 
 	/* THE SESSION MENU (the owner, 2026-10-22; doc/menu.md): a session DECLARES what its menu holds, as a template a subclass
 	   extends (`static MENU = [...Session.MENU, {…}]`). An entry is a sub-page (`page: true`, routed at <session url>/<name>/)
@@ -43,11 +43,10 @@ export default class Session extends Item {
 	// The settings now: every {"settings":{…}} line merged in order, so a later line wins. Never stored whole.
 	get settings(){ return this._settings ??= {}; }
 
-	progress(){ return Task.progress_of(this._tasks); }
+	progress(){ return Task.progress_of(this._tasks); }   // no tasks is 0 of 0, not Task's 0 of 1
 	/* The agent sessions that ran under this session's folder: dir -> [{id, role, state, session_id, cost, started_at}]. Node wires it
 	 * from Servex's registry (Servex/agents/Agents.js), so a child is found by where its task lives, never by a link someone had to write. */
 	static agents_resolver = null;
-	get completion(){ const { done, total } = this.progress(); return total ? done / total : 0; }
 
 	// Item.replay does the loop; a session only needs its id from line 1 and its own line shape.
 	static replay_new(lines){
@@ -64,6 +63,8 @@ export default class Session extends Item {
 	// When the session's log began and last changed (from its lines), and the span between: never stored.
 	get first_at(){ return this._first_at ?? null; }
 	get last_at(){ return this._last_at ?? null; }
+	// The record has no legacy fields to infer a state from (Task.replay_end would read it as running): its state is its own lines'.
+	replay_end(){ this._at = null; return this; }
 	get span_ms(){ return this._first_at && this._last_at ? Date.parse(this._last_at) - Date.parse(this._first_at) : 0; }
 	apply_line(delta, by){
 		/* THE SESSION'S OWN STATE: {"stop":{why}} closes it (StaleClose writes one for an abandoned tab); {"start":{}} reopens it and
@@ -72,10 +73,15 @@ export default class Session extends Item {
 		if (delta.start && typeof delta.start === "object"){ this.put("state", "running"); this.put("why", null); this.put("stopped_at", null); delete delta.start; }
 		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
 			const kid = Task.from_ref(delta.task, delta.as), had = this._tasks?.find(kid.id);
+			kid._created_at ??= Task.clock;
 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
 			delete delta.task; delete delta.as; delete delta.moved_from;
 		}
-		if (delta.tasks && typeof delta.tasks === "object") this.tasks.set(delta.tasks);
+		if (delta.tasks && typeof delta.tasks === "object"){
+			const had = new Set([...(this._tasks ?? [])]);
+			this.tasks.set(delta.tasks);
+			for (const kid of this._tasks) if (!had.has(kid)) kid._created_at ??= Task.clock;   // the line's time, in memory only (never data: a move compares data): Task.created_at
+		}
 		delete delta.tasks;
 		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
 		// The owner's answer to a proposed task, from the session page: {"decide":{"task":id,"is":"approve"|"improve"|"reject","note"}}.

@@ -185,7 +185,7 @@ export default class DatedFiles extends Dated {
 	/** A session's folder without a scan: `session-<id8>` or the uuid, on the given day or up to 3 days before; else where a new one goes. Absolute. */
 	session_dir(id, day = new Date()){
 		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day;
-		for (let back = 0; back < 4; back++){
+		for (let back = 0; back < 31; back++){   // 4 until 2026-10-24: a tab resumed on its fifth day got a second folder (session-e00f55c9 on 10/20 and 10/24)
 			const d = this.day_dir(new Date(t.getTime() - back * 864e5));
 			for (const name of [id, "session-" + id.slice(0, 8)]) if (fs.existsSync(path.join(d, name))) return path.join(d, name);
 		}

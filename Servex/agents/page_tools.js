@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import Subpages from "./Subpages.js";
 import Promote from "./Promote.js";
 import TaskHomes from "../../Server/TaskHomes.mjs";
+import Task from "../../public/framework/core/Task/Task.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -68,6 +69,7 @@ function resolve_file(url, item = false){
  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
  * resolves the plain way above. Returns { file, target } or null. */
 const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
+const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary"];   // Task.queries: answered from the record, never written
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 async function resolve(url, target = [], item = false){
@@ -431,7 +433,9 @@ export const RULES = [
 const FRAMEWORK = path.join(PUBLIC, "framework");
 const MODULE_NAME = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
 const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/") + "/";
-export const slug_of = text => String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task";
+// The class a new subtask is written as: a known task class it names (session-is-a-task: a Project, a Process, a child Session), else Task.
+const task_type = a => ["Project", "Process", "Session"].includes(a?.type) ? a.type : "Task";
+export const slug_of = text => Task.slug(text);   // one slug rule, Task's (a string added in the browser gets the same id)
 
 // The module an app path sits in: the nearest folder under public/framework/ with a readme.md. Never a dated ai/sessions/ folder.
 function module_of(url, root = FRAMEWORK){
@@ -737,20 +741,26 @@ export function session_state(task, tasks = []){
 	// A task's cost is its folder's agents, so two tasks naming one folder (a task and its re-filed twin) count it once.
 	const all = every_task(task._tasks), seen = new Set(), costed = all.filter(t => Number(t.cost) > 0 && !seen.has(t.get_one("path")) && seen.add(t.get_one("path")));
 	const task_cost = costed.reduce((s, t) => s + t.cost, 0);
-	const dir = task.store?.file ? path.dirname(task.store.file) : null, agents = dir ? (task.constructor.agents_resolver?.(dir) ?? []) : [];
+	// Its agents: those whose task is in its folder, and (by its uuid) those it spawned anywhere since it began.
+	const dir = task.store?.file ? path.dirname(task.store.file) : null, uuid = /^[0-9a-f]{8}-/.test(task.id ?? "") ? task.id : null;
+	const agents = dir ? (task.constructor.agents_resolver?.(dir, { session_id: uuid, since: task.first_at ? new Date(task.first_at).toISOString() : null }) ?? []) : [];
 	const own = dir ? own_cost(dir) : null;
 	const child_cost = agents.reduce((s, a) => s + (a.cost || 0), 0);
 	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
 	return { class: "Session", id: task.id, completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
 		cost: { total: r2((own?.usd ?? 0) + child_cost), own, children: r2(child_cost), tasks: r2(task_cost) },
-		counts: { direct: counts(task._tasks ?? []), all: counts(all) }, biggest, children: nest_agents(agents), agents: agents.length, data: { ...task.data }, tasks };
+		counts: { direct: counts(task._tasks ?? []), all: counts(all) }, biggest, children: nest_agents(agents), agents: agents.length,
+		// Its own turns bucketed by the task open at the time (Task.attribute); null when no per-turn record exists (a VS Code tab today).
+		by_task: (turns => turns.length ? task.attribute(turns) : null)(task.constructor.turns_resolver?.(uuid) ?? []), data: { ...task.data }, tasks };
 }
 
 function task_state(Task, task){
 	const tasks = [...(task._tasks ?? [])].map(row_of);
 	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.step?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
 	if (Task.name === "Session") return session_state(task, tasks);
-	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
+	// A task an agent works (its record names the session): that agent's turns bucketed by the subtask open at the time (Task.attribute).
+	const sid = task.session, turns = sid && Task.turns_resolver ? Task.turns_resolver(sid) : [];
+	return { class: "Task", state: task.state, completion: task.completion, ...(turns.length && task._tasks?.length ? { by_task: task.attribute(turns) } : {}), data: { ...task.data }, tasks };
 }
 
 // The first task verb anywhere in a delta ({"tasks":{"<id>":{"start":{}}}} -> "start"), or null.
@@ -916,8 +926,15 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	url ??= own_page(ctx);
 	let caller_log = ctx.caller_log ?? null;
 	try { caller_log ??= ctx.resolve_log?.(ctx.caller) ?? null; } catch { caller_log = null; }   // a broken resolver never breaks the call
-	const at = await resolve(url, target, true);
+	let at = await resolve(url, target, true);
 	if (!at) return { ok: false, why: `"${url}" is not a page under public/` };
+	// A session route's file is its page.jsonl (cards, tabs). A READ or a query there asks about the session itself, so it reads the record
+	// beside it, session.jsonl: cost, span, children, counts (core/Session/readme.md, "What item() answers"). Writes still go to the page.
+	const routed = SESSION_ROUTE.exec(String(url ?? ""));
+	if (routed && !/^\d{4}$/.test(routed[1]) && !at.target.length && path.basename(at.file) === "page.jsonl" && (delta === undefined || (is_plain(delta) && Object.keys(delta).length && Object.keys(delta).every(k => SESSION_QUERIES.includes(k))))){
+		const record = path.join(path.dirname(at.file), "session.jsonl");
+		if (fs.existsSync(record)) at = { file: record, target: [] };
+	}
 
 	const kind = class_of(at.file);
 	const Class = LOADERS[kind] ? await LOADERS[kind]().catch(() => null) : null;
@@ -985,15 +1002,16 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		const owner_agent = root().get_one("agent"), asker = ctx.caller && ctx.caller !== owner_agent && owner_agent ? ctx.caller : null;
 		// Check everything first: a refused slug writes nothing at all.
 		const plan = [];
-		for (const a of [].concat(add)){
-			if (!is_plain(a)) return { ok: false, why: "`tasks.add` takes an object (the new task's fields)" };
+		for (let a of [].concat(add)){
+			if (typeof a === "string" && a.trim()) a = { title: a.trim() };   // a plain string is a task with that title (session-is-a-task, 2026-10-24); the line written is the object
+			if (!is_plain(a)) return { ok: false, why: "`tasks.add` takes a title (a string) or an object (the new task's fields)" };
 			const home = typeof a.process === "string" || Array.isArray(a.steps) ? await process_home(path.dirname(at.file), a) : path.basename(at.file) === "improvements.jsonl" ? null : task_home(path.dirname(at.file), a, ctx.module_root, url);   // an improvement nests in its folder's list (mastermind role readme)
 			if (home?.why) return { ok: false, why: home.why };
 			if (home?.taken) return { ok: false, why: `a task "${home.slug}" already exists under ${home.list.module}/tasks/; nothing was written. Use the id "${home.free}" (or a different title), or work on the existing one.`, suggest: home.free };
 			const id = home ? null : slug_of(a.id ?? a.title);
 			if (id && (root()._tasks?.find(id) || plan.some(p => p.id === id)))
 				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Use the id "${id}-2" (or a different title), or change the existing one.`, suggest: id + "-2" };
-			if (!home && Class?.replay) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: "Task", ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
+			if (!home && Class?.replay) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: task_type(a), ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
 			plan.push({ a: asker && a.from === undefined ? { ...a, from: asker } : a, home, id });
 		}
 		for (const { a, home, id } of plan){
@@ -1010,7 +1028,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 				const { type: _t, data, ...fields } = a;
 				ids.push(id);
 				if (asker) requests.push({ to: owner_agent, from: asker, id, title: a.title ?? id, path: app_path(path.dirname(at.file)) });
-				put({ tasks: { add: { type: "Task", ...data, ...stamp_ids(fields, ids), id } }, by, ts: now() });
+				put({ tasks: { add: { type: task_type(a), ...data, ...stamp_ids(fields, ids), id } }, by, ts: now() });
 			}
 		}
 		const { tasks: _t, ...more } = body;
