@@ -51,7 +51,7 @@ export default class AIDay extends View {
 			if (after <= AIDay.today()) a.c("aid-link", after + " ›").href(`/framework/ai/${after}/`);
 		});
 		this.$head = div.c("aid-head");
-		if (this.day === AIDay.today()) div.c("aid-merge", () => { div.c("aid-mhead", "Ready to merge"); new ReadyToMerge(); });
+		if (this.day === AIDay.today()) div.c("aid-merge", () => { div.c("aid-mhead", "Ready to merge"); new ReadyToMerge(); a.c("aid-link", "Task queue, best first →").href("/framework/ai/queue/").attr("target", "_self"); });
 		this.$list = div.c("aid-list");
 		div.c("aid-more", () => {
 			fold("Prompts of the day (the owner's dictations)", () => this.prompts());

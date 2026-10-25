@@ -71,6 +71,9 @@ export default class TaskQueueView extends View {
 
 	crumb(r){ const parts = String(r.parent ?? "").split("/").filter(Boolean); return [r.module, parts.at(-1)].filter(Boolean).join(" › "); }
 
+	/** The triage note "serves priority N: <name>" only repeats the big-thing chip; a card shows a why only when it says more. */
+	own_why(r){ return r.why && !/^serves priority \d+:/.test(r.why) ? r.why : ""; }
+
 	state(r){ return r.state + (r.state === "running" && r.agent ? " · " + r.agent : ""); }
 
 	paint(){
@@ -111,10 +114,10 @@ export default class TaskQueueView extends View {
 		div.c("tq-cards", () => top.forEach(r => a.c("tq-card card tq-" + r.state).href(r.url).append(() => {
 			div.c("tq-cardtop", () => { span.c("tq-rank", "#" + r.rank); span.c("tq-state", this.state(r)); });
 			div.c("tq-title", r.title);
-			div.c("tq-why", r.why || "No source recorded.");
+			if (this.own_why(r)) div.c("tq-why", r.why);
 			div.c("tq-chips muted", () => {
 				span.c("tq-chip", TaskQueueView.usd(r.est_usd)).attr("title", r.est_basis);
-				span.c("tq-chip", r.big ? `Big thing #${r.big}` : "No big thing").attr("title", TaskQueueView.BIG[r.big] ?? "accepted before the three big things");
+				span.c("tq-chip", TaskQueueView.BIG[r.big] ?? "No big thing").attr("title", r.big ? `Big thing #${r.big}` : "accepted before the three big things");
 				span.c("tq-chip", this.crumb(r));
 			});
 		})));

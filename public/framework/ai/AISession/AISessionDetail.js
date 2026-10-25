@@ -193,6 +193,7 @@ export default class AISessionDetail extends Page {
 		new SessionStats({ ready });   // Figma band E: stats first, sticky, on every tab
 		div.c("sessions-tabs flex gap-50 wrap", () => {
 			TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
+			a.c("sessions-chip", "Task queue →").href("/framework/ai/queue/").attr("target", "_self");
 			button.c("sessions-chip sov-fs-on", icon("fullscreen")).attr("title", "Full screen").on("click", () => this.full_screen(true));
 		});
 		div.c("sov-float", () => {   // Figma band E, C: in full screen the head is gone, so back and the session menu float over the page

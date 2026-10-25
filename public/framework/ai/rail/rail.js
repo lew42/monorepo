@@ -124,6 +124,7 @@ export default class AIRail extends Inbox.Rail {
 	foot_words(){
 		a.c("inbox-word page-link").href(this.url + "view/today/").attr("title", "today, open, all, or a tag").text("views");
 		a.c("inbox-word page-link").href(this.url + "tasks/lanes/").attr("title", "today in three columns: in flight, queued, landed").text("lanes");
+		a.c("inbox-word page-link").href("/framework/ai/queue/").attr("title", "the ranked list of accepted tasks, best first").text("queue");
 	}
 
 	shell_extra(){
