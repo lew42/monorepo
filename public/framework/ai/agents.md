@@ -25,7 +25,7 @@ This is the short base for any agent on this repo (a mastermind or a worker, Cla
 
 ## Work as a task
 
-Open a task before real work, log as you go, close it: [doc/task-buckets.md](doc/task-buckets.md). A fresh agent must be able to continue from the task folder alone. A long session is the exception, not the goal: start a fresh agent for unrelated work ([doc/context.md](doc/context.md)).
+Open a task before real work, log as you go, close it: [doc/task-buckets.md](doc/task-buckets.md). A fresh agent must be able to continue from the task folder alone. Keep a working agent rather than switching for context size alone (fresh sessions make sense around 300–500k or when a project is documented); decisions go in the module's docs as they are made ([doc/context.md](doc/context.md)).
 
 ## Where this file goes
 

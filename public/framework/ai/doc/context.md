@@ -34,7 +34,7 @@ Whatever the last agent had read is gone when it is replaced: a new session, a r
 - A brief must be complete: the paths to read, the goal, the budget. The agent is not "the same one, with a refresher".
 - A handover is computed from the files (`task.jsonl`, the session page), never remembered ([context-loss.md](context-loss.md)).
 
-**Start fresh over long sessions** (the owner, 2026-10-24): for a new, unrelated task, start a fresh agent rather than reuse a long one and fight compaction; reuse only a short, low-context session. It costs nothing because the logs hold the state and the docs hold how things work. The mastermind rule: [mastermind.md](/Servex/agents/roles/mastermind.md), "Context".
+**Keep a working agent; context loss is the bigger risk** (the owner, 2026-10-25, correcting 2026-10-24): agents run to about 1M tokens, so 100–200k is not a reason to switch. Consider a fresh session around 300–500k, or when a project is done and documented. Switching loses what was investigated and decided, and several masterminds for one project split the record and the session view; one mastermind per project is the norm. Hand-off safety comes from docs: architectural and design decisions go in the module's docs as they are made, so a fresh agent could pick them up from there, and a Process (design, build, review, document, merge; [core/Task/process](/framework/core/Task/process/)) makes sure the document step is never skipped. The mastermind rule: [mastermind.md](/Servex/agents/roles/mastermind.md), "Context".
 
 ## Context pollution: the second pass follows the first
 
