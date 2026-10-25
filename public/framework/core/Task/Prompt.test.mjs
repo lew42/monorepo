@@ -31,6 +31,16 @@ check("paragraphs: add a new one, append to an existing one by id", () => {
 	return p.paragraphs.length === 2 && p.sentences.map(s => s.id).join() === "a1,a2,a3,b1" && p.sentence("a3").text === "Then this." && p.text.endsWith("Second.");
 });
 
+check("the smart assistant's refined {title, text} survives replay; cleaned text stays; sentences are unaffected", () => {
+	const p = make({ p1: { title: "A title", text: "Refined version." } }).tasks.find("p1");
+	return p.text === "Refined version." && p.get_one("title") === "A title" && p.cleaned.startsWith("Yeah, so") && p.sentences.map(s => s.id).join() === "a1,a2" && p.label === "A title";
+});
+
+check("the shared splitter (sentences.js): 3.5 and session.json stay whole, a newline ends a sentence", () => {
+	const p = make({ p1: { paragraphs: { replace: { id: "a", text: "Pi is 3.5 or so. See session.json now.\nNext." } } } }).tasks.find("p1");
+	return p.sentences.map(s => s.text).join("|") === "Pi is 3.5 or so.|See session.json now.|Next.";
+});
+
 check("append to a paragraph that does not exist yet makes it", () => {
 	const p = make({ p1: { paragraphs: { append: { id: "z", text: "New." } } } }).tasks.find("p1");
 	return p.paragraphs.find("z")?.get_one("text") === "New.";

@@ -4,6 +4,7 @@
 import Task from "./Task.js";
 import Item from "../Item/Item.js";
 import List from "../List/List.js";
+import split from "./sentences.js";
 
 /* One paragraph of the cleaned text: {id, text}. Its sentences are computed from `text` (Prompt.split), numbered `<id>1`, `<id>2`…;
    a migrated paragraph may carry them explicitly in `sentences`, so the old cites keep their meaning (Server/PromptsToSession.mjs). */
@@ -38,7 +39,7 @@ export class Prompt extends Task {
 	// migrated `refined` cards and `notes` (Server/PromptsToSession.mjs).
 	static plain_lists = ["raw", "parts", "refined", "notes"];
 	// Plain fields a log line may set (Task.replay_line reads Task.FIELDS and these).
-	static line_fields = ["subject", "process", "handled", "refined", "notes"];
+	static line_fields = ["subject", "process", "handled", "refined", "notes", "text"];
 	static queries = [...Task.queries, "sentences", "settled_parts"];
 
 	static KINDS = ["ask", "question", "rule", "idea", "conversation"];
@@ -49,8 +50,8 @@ export class Prompt extends Task {
 		const o = part?.outcome ?? {};
 		return Prompt.SETTLED.includes(o.is) || (o.is === "task" && task_state(o.ref) === "complete");
 	}
-	/** Sentences of a text: split after . ! ? … (with closing quotes), at whitespace; a newline always ends one. "3.5" stays whole. */
-	static split(text){ return String(text ?? "").split(/(?<=[.!?…]["'”’)\]]*)\s+|\n+/).map(s => s.trim()).filter(Boolean); }
+	/** Sentences of a text (core/Task/sentences.js; the chat's fold should use it too, prompt-record.md defect 3). */
+	static split(text){ return split(text); }
 
 	// ---- the words ----
 	/** Everything that was said, in order: text chunks, never edited or dropped. */
@@ -93,7 +94,10 @@ export class Prompt extends Task {
 	/** The replies that answer a sentence (and, with a word range, the words), in order. */
 	replies_to(sentence_id){ return [...this.replies].filter(r => r.get_one("anchor")?.sentence === sentence_id); }
 	/** The cleaned text, paragraphs joined by a blank line; before any paragraph, the raw words. */
-	get text(){ const ps = [...this.paragraphs].map(p => p.get_one("text") ?? ""); return ps.length ? ps.join("\n\n") : this.raw_text; }
+	get cleaned(){ const ps = [...this.paragraphs].map(p => p.get_one("text") ?? ""); return ps.length ? ps.join("\n\n") : this.raw_text; }
+	/** The text the chat draws: the smart assistant's refined version when it wrote one (`{text}`, with `title`), else the cleaned text. */
+	get text(){ return this.get_one("text") ?? this.cleaned; }
+	set text(value){ this.put("text", value); }
 	get label(){ return this.get_one("title") ?? this.get_one("subject") ?? (this.sentences[0]?.text ?? this.id).slice(0, 80); }
 
 	// ---- completion: the owner's rule is "complete when everything it asks is done or documented" ----
@@ -154,7 +158,7 @@ export class Prompt extends Task {
 		const hits = [];
 		for (const p of everything){
 			if (!(p instanceof Prompt)) continue;
-			const hay = [p.raw_text, p.text, p.get_one("subject") ?? ""].join(" ").toLowerCase();
+			const hay = [p.raw_text, p.cleaned, p.text, p.get_one("title") ?? "", p.get_one("subject") ?? ""].join(" ").toLowerCase();
 			const score = tokens.filter(t => hay.includes(t)).length / tokens.length;
 			if (score < min) continue;
 			const mine = new Set();
