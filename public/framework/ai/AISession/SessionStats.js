@@ -4,6 +4,7 @@ import TaskView from "/framework/core/Task/TaskView.js";
 import Task from "/framework/core/Task/Task.js";
 import SessionWork from "./SessionWork.js";
 import { span_active } from "/framework/ai/AITask/stats.js";
+import AISessionRows from "./AISessionRows.js";
 import AICost from "/framework/ai/AITask/AICost.js";
 
 View.stylesheet(import.meta, "SessionOverview.css");
@@ -49,7 +50,7 @@ export default class SessionStats extends View {
 				const running = { el: null };
 				for (const [label, value] of [["Model", tree.snap?.model ?? "—"], ["Running for", SessionStats.elapsed(root.ms())], ["Task folders done", total ? `${done} of ${total}` : "no task folders"]])
 					div.c("sov-stat", () => { small.c("sov-k", label); const v = strong.c("sov-v", value); if (label === "Running for") running.el = v; });
-				if (work.id && running.el) AICost.summary(AICost.session_url(work.id)).then(({ summary: s }) => { const ms = s?.span_ms ?? (s?.first_at && s?.last_at ? Date.parse(s.last_at) - Date.parse(s.first_at) : 0); if (ms > 0) running.el.text(span_active(ms, s.cost?.own?.active_ms)).attr("title", "From the session's first line to its last (a stop and restart does not reset it), and the hours it was actually working"); });
+				if (work.id && running.el) AISessionRows.load_index("/framework/ai/sessions/").then(index => { const ix = AISessionRows.row_of(index, work.id); if (ix?.wall_ms > 0) running.el.text(span_active(ix.wall_ms, ix.active_ms)).attr("title", "From the session's first line to its last (a stop and restart does not reset it), and the hours it was working: the session index's wall_ms and active_ms"); });
 			});
 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));
 			small.c("sov-caption", `Task folders: ${done} done · ${part.running} running · ${total - done - part.running} queued or waiting · ${part.dropped.length} dropped (not counted)`);   // one count each, so the parts add up to the total
