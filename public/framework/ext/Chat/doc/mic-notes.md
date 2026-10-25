@@ -48,6 +48,9 @@ mastermind's decided shape: a textarea, one line empty, 3 lines ceiling (the own
 hit transcribe, the text area grows… gets so big I can't read anything else"
 — before that 7.)
 
+## Whisper repeats (collapse_repeat)
+`ComposerMic.collapse_repeat` runs on `text` and `raw` as words leave the draft. It collapses (1) a whole-text doubling of 2+ words to its first half and (2) a tail of 5 or more words that repeats the span just before it (Whisper looping inside one long reply; `ux/Dictate/repeat.js`, proof `ux/Dictate/test/repeat.mjs`). A repeat of fewer than 5 words inside the text ("no, no, no") is never touched, and neither is a tail whose words repeat with a period of 1 or 2 ("Yes. Yes. Yes. …"). Dictate does not stitch overlapping windows: each segment is cut and sent once, so the loop is Whisper's own.
+
 ## Settings: clean kill switch
 
 on, a composer built with `revise:` set (`ai2/compose.js` turns it on by default)
@@ -362,7 +365,3 @@ the box grows to this many lines, then scrolls (one-input, 2026-10-12 — the
 ## Settings: clean
 
 KILL SWITCH (ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode, deliverable 4):
-
-
-## Whisper repeats (collapse_repeat)
-`ComposerMic.collapse_repeat` runs on `text` and `raw` as words leave the draft. It collapses (1) a whole-text doubling of 2+ words to its first half and (2) a tail of 5 or more words that repeats the span just before it (Whisper looping inside one long reply; `ux/Dictate/repeat.js`, proof `ux/Dictate/test/repeat.mjs`). A repeat of fewer than 5 words inside the text ("no, no, no") is never touched. Dictate does not stitch overlapping windows: each segment is cut and sent once, so the loop is Whisper's own.

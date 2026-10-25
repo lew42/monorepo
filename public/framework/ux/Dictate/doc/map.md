@@ -60,6 +60,7 @@ The same chain, told by surface, with screenshots: [surfaces/](../surfaces/) and
 | File | Class | One job | Importers | Site | Last commit |
 |---|---|---|---|---|---|
 | [ux/Dictate/Dictate.js](../Dictate.js) | `Dictate` | **the live engine**: mic button, Whisper calls, browser fallback, then hands each chunk to Revise | 19 (11/2/6) | ✅ | 10-20 |
+| [ux/Dictate/repeat.js](../repeat.js) | `collapse_tail` | drops a 5+ word tail that repeats the span before it (Whisper looping); called by `ComposerMic.collapse_repeat` | 1 (`ext/Chat/Mic.js`) | ✅ | 10-25 |
 | [audio/Transcriber/Whisper.js](/framework/audio/Transcriber/) | `Whisper` (as `Transcriber.Whisper`) | a **second** Whisper engine, copied from Dictate.js (lines 4-5 say "read-only for this task") | 1 (index.js) | ⬜ | 09-30 |
 | audio/Transcriber/WhisperSegments.js | `WhisperSegments` | a third variant: Whisper with per-word timestamps | 1 | ⬜ | 09-29 |
 | audio/Transcriber/Browser.js | `Browser` | Chrome's own recognizer | 1 | ⬜ | 09-29 |
