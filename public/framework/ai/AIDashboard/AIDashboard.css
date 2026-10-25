@@ -1,6 +1,6 @@
 @layer site {
 	.page.ad-page { --measure: none; --page-pad: 1.5em clamp(0.8em, 3%, 3em); }
-	.ad-dash { display: flex; flex-direction: column; gap: 0.6em; padding: 0.8em clamp(0.6em, 3cqi, 1.5em) 2em; }
+	.ad-dash { display: flex; flex-direction: column; gap: 0.6em; padding: 0.8em 0 2em; }
 	.ad-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2em 1em; }
 	.ad-title { display: flex; align-items: center; gap: 0.3em; margin: 0; font-size: 1.4em; }
 	.ad-sum { font-size: 0.9em; opacity: 0.75; }
