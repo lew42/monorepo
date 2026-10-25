@@ -1,10 +1,16 @@
 // node ChatV2.test.mjs [base-url] [shots-dir] — headless: order, nesting, show raw, live append, in-place patching. Needs the global playwright and the dev server.
 import { browser as get_browser, close as close_browser } from "../../../../../Server/Browser.mjs";
 import { copyFileSync, appendFileSync, rmSync, mkdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const base = process.argv[2] ?? "http://monorepo.localhost", shots = process.argv[3];   // base: the main site; pass a worktree url to test a branch
-const dir = fileURLToPath(new URL("./fixture/", import.meta.url)), copy = dir + "live-copy.jsonl";
+// The live copy goes in the tree the site at `base` serves: with no url that is the main tree (first in `git worktree list`), even when
+// this file runs from a worktree or merge.mjs's .merge-base checkout; with a url, this checkout. One name per run, so two runs never share a file.
+const here = fileURLToPath(new URL(".", import.meta.url)), rel = "public/framework/ext/Chat/v2/fixture/";
+const main_tree = (() => { try { return execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: here, windowsHide: true, encoding: "utf8" }).split("\n")[0].replace(/^worktree /, "").trim(); } catch { return null; } })();
+const served = process.argv[2] || !main_tree ? here + "fixture/" : `${main_tree}/${rel}`;
+const dir = here + "fixture/", name = `live-${process.pid}.jsonl`, copy = served + name, src = `/framework/ext/Chat/v2/fixture/${name}`;
 let pass = 0, fail = 0;
 const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
 
@@ -52,7 +58,7 @@ try {
 	} else await tap(first + " .chat-v2-toggle");
 
 	// 2. live: ?src= a copy of the fixture, append a Prompt, it appears without a reload; raw state survives the redraw
-	await page.goto(`${base}/framework/ext/Chat/v2/?src=/framework/ext/Chat/v2/fixture/live-copy.jsonl`); await on_chat();
+	await page.goto(`${base}/framework/ext/Chat/v2/?src=${src}`); await on_chat();
 	check("?src= draws the copy", (await page.$$(".chat-v2 > .chat-v2-prompt")).length === 3);
 	await tap(first + " .chat-v2-toggle");
 	await page.evaluate(() => { window.__no_reload = true; });
@@ -66,7 +72,7 @@ try {
 
 	// 3. in-place updates: each append patches only what it touched. Every element not named by that
 	// line keeps its exact DOM object (never recreated) and stays connected; the scroll position holds.
-	await page.goto(`${base}/framework/ext/Chat/v2/?src=/framework/ext/Chat/v2/fixture/live-copy.jsonl`); await on_chat();
+	await page.goto(`${base}/framework/ext/Chat/v2/?src=${src}`); await on_chat();
 	// The page scrolls inside its own frame, not the window: find the chat's scrolling ancestor and scroll it mid-page.
 	await page.setViewportSize({ width: 1920, height: 600 });
 	await page.evaluate(() => {
