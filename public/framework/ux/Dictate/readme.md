@@ -1,5 +1,21 @@
 # Dictate — a mic button that always shows what is happening
 
+## How messages travel
+
+You speak and Whisper turns the sound into text, one sentence at a time. The page then sends each sentence to Servex with a plain HTTP `POST` to `/api/session/say` (no WebSocket carries your words out; the only live wire is a one-way `EventSource` stream, `/api/session/<id>/stream`, that brings the chat's new lines back).[1][2] The page does not make the voice session: the first time a sentence needs one, `chat.js` asks Servex with `POST /api/session/new`, and Servex's `Sessions.create()` picks the id (`v-…`), writes the session file and starts the fast assistant warming up.[3][4] The fast assistant is fed per thought, not per word: your sentences are held while you are still speaking and handed to it together once you have been quiet for 2.5 s (a typed line goes straight in).[5][6] The smart assistant is fed in batches by `WakePolicy`: one batch when you pause for 12 s, or ask a question, or call it by name, or when 6 sentences have piled up, and you can change the 12 s and the 6 in the dictation settings panel.[7][8]
+
+1. `ext/Session/Session.js:39` (`post()`: `fetch(servex_url("/api/session/<verb>"), {method: "POST"})`) and `:150-170` (`stream()`: `new EventSource(…/api/session/<id>/stream)`).
+2. `ext/Session/Session.js:83` (`say()` posts `say`); `Servex/agents/Sessions.js:1468` (the stream route) and `:1471` (the POST route for `new`, `say`, `settings` and the rest).
+3. `ux/Dictate/chat.js:72` (`Session.start(…)`, one shared promise so two mounts make one session) and `ext/Session/Session.js:56-57` (`start()` posts `new`).
+4. `Servex/agents/Sessions.js:766` (`create()`), `:783` (the `v-` id), `:792` (`prewarm_fast`).
+5. `Servex/agents/Sessions.js:970-972` (a spoken line is held with `hold_thought`, released when the floor is not "speaking" and the quiet is at least `answer_quiet_ms`, default 2500 at `:246`), `:975-982` (a typed line goes straight to the fast seat).
+6. `Servex/agents/Sessions.js:1107-1117` (`release_thought()` hands the held lines to the fast seat in one message).
+7. `Servex/agents/Sessions.js:1119` (the same lines also go to `waker.add()`) and `:254-265` (`waker` flushes into `feed_smart()`).
+8. `Servex/agents/WakePolicy.js:12` (`WAKE_DEFAULTS = {gap_ms: 12000, every: 6}`), `:66` (the sentence count flush), `:2-5` (pause, question or name, count); the settings panel posts `POST /api/session/settings`: `ext/Chat/Mic.js:388`.
+
+
+**Reading this inside the app:** the sheet's **Docs** tab shows this readme and the module's docs ([`doc/docs-tab.md`](doc/docs-tab.md)).
+
 **Dictation stopped, or the AI never answered? Open the Debug tab** (each step from the mic to the AI's answer, live, with the real error; what the stall was and how it was fixed): [`doc/debug-tab.md`](doc/debug-tab.md).
 
 - `class DictateHealth` (the eight lights, [DictateHealth.js](DictateHealth.js); every error from every stage lands here, and `window` errors and rejections too)

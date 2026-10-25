@@ -64,6 +64,7 @@ export class DrawerTabs {
 	list = [
 		{ name: "ai",        label: "AI",        load: () => import("./tabs/ai.js") },
 		{ name: "debug",     label: "Debug",     load: () => import("./tabs/debug.js") },   // was Dictation (the playground) until 2026-10-24: tabs/debug.js
+		{ name: "docs",      label: "Docs",      load: () => import("./tabs/docs.js") },   // the ux/Dictate readme and docs: ux/Dictate/doc/docs-tab.md
 		{ name: "settings",  label: "Settings",  load: () => import("./tabs/settings.js"), when: () => DEV },
 		// Only while something on the page is selected (select.js sets `selected`).
 		{ name: "element",   label: "Element",   load: () => import("./tabs/element.js"),  when: () => !!this.selected },

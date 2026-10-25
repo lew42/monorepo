@@ -315,6 +315,7 @@ export class SheetPanel extends View {
 	links(){
 		return div.c("drawer-rail-sheet-links flex wrap", () => {
 			this.link("Debug", "debug");
+			this.link("Docs", "docs");
 			this.link("Settings", "settings");
 			this.link("Open full AI", "ai");
 		});
