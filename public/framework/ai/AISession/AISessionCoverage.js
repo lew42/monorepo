@@ -109,6 +109,8 @@ export default class AISessionCoverage {
 					}).style({ border: "0", background: "none", margin: "0", padding: "0.3em 0", "box-shadow": "none" });
 					p.c("session-words", AISessionCoverage.words(r));
 					r.parts.filter(x => x.kind !== "conversation" || x.outcome?.is).forEach(x => this.card(box, r, x));
+					const hidden = r.parts.filter(x => x.kind === "conversation" && !x.outcome?.is).length;
+					if (hidden) small.c("muted", `${hidden} conversation part${hidden > 1 ? "s" : ""} hidden.`);
 					if (r.uncovered.length) small.c("muted", `Sentences no part cites: S${r.uncovered.join(", S")}. They keep the prompt open.`);
 					div.c("session-raw flow");
 					details(() => { summary("Raw prompt"); div.c("flow", () => r.clean.forEach(c => p(`S${c.n}. ${c.text}`))); });

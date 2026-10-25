@@ -42,7 +42,7 @@ In the session-is-a-task design the session's own `session.jsonl` already carrie
 
 ## What stays Haiku
 
-The retroactive days (mechanisms 3, 4, 8) stay on Haiku whatever the live process uses: they run in bulk over hundreds of prompts, and the owner asked for Haiku there. The measured numbers below say Sonnet 5.5 was cheaper per prompt than Haiku 5.5 on the parts step, so check that claim with the script before the next bulk run.
+The retroactive days (mechanisms 3, 4, 8) stay on Haiku whatever the live process uses: they run in bulk over hundreds of prompts, and the owner asked for Haiku there. In the measured run below the dollars the SDK reported were higher for Haiku 5.5 than for Sonnet 5.5, which does not fit the per-token prices in [models.md](models.md) (Haiku is 20 times cheaper per token). The likely cause is an unknown model id priced with a fallback rate, so recompute the cost from token counts with the script before the next bulk run and do not take the dollar gap as a fact.
 
 ## Model comparison: Haiku 5.5 against Sonnet 5.5 on the parts step
 
@@ -67,5 +67,5 @@ Eight real prompts from tab `e00f55c9` (7 to 55 sentences; five have 15 or more)
 - **Asks missed.** On the 55-sentence prompt `c210bb26` Haiku found 4 asks and Sonnet 9: Haiku dropped "explain how sessions and tasks are saved and nested", "the difference between a session and a task" and the DNS-token ask. On the 46-sentence prompt Haiku listed 15 asks, several of them fragments of one want.
 - Both cited every sentence in every prompt (100%), so coverage does not tell them apart.
 
-**Recommendation: Sonnet 5.5 for the live process, with one known cost: it merges two wants into one ask more often than Haiku on long prompts (6 cases against 2), which the "never merge" line does not fully stop.** It cost $0.30 against $1.13 (about 3.8 times less: Haiku 5.5 is priced like Opus per token and writes longer JSON), cited everything, and found more asks on the hardest prompt. Haiku is enough for short prompts (under about 20 sentences, where the two agree within one ask) and is not enough for long ones: it dropped about 5 asks on the longest. This is one run of eight prompts, a small sample; rerun the script before changing a default.
+**Recommendation: Sonnet 5.5 for the live process, with one known cost: it merges two wants into one ask more often than Haiku on long prompts (6 cases against 2), which the "never merge" line does not fully stop.** The SDK reported $0.30 for Sonnet against $1.13 for Haiku, but by [models.md](models.md) Haiku should be 20 times cheaper per token, so treat that dollar gap as a pricing artefact, not a finding. Sonnet cited everything, and found more asks on the hardest prompt. Haiku is enough for short prompts (under about 20 sentences, where the two agree within one ask) and is not enough for long ones: it dropped about 5 asks on the longest. This is one run of eight prompts, a small sample; rerun the script before changing a default. **The default has not changed:** `live` in `PromptRecords.mjs` still runs the parts step on Haiku; switching it to Sonnet is a one-line change for the owner to decide.
 
