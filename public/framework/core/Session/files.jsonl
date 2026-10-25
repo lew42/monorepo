@@ -10,3 +10,10 @@
 {"file":"SessionTasks.js"}
 {"file":"improvements.jsonl"}
 {"file":"session-task.test.mjs"}
+{"file":"failures.jsonl"}
+{"file":"session-task.test.mjs"}
+{"file":"tasks/"}
+{"file":"session-task.test.mjs"}
+{"file":"failures.jsonl","gone":true}
+{"file":"tasks/","gone":true}
+{"file":"tasks/"}

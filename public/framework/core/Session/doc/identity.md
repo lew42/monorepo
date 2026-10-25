@@ -83,7 +83,7 @@ The proof, computed from the registry, the agent logs and the transcripts:
 3. The held message was replayed to the new session. Nothing was in flight: a renewal only happens from dormant or stopped.
 4. **Cost is counted once.** Each transcript is priced on its own (2da03974 $10.59, 7c6c8d93 $11.95), and no message id is in both. In the agent ledger, each turn now carries its own session (`turn_costs`).
 
-The role readme says so: the role can be renewed at any time, so it logs everything as it goes and needs no hand-off ([ai-system-mastermind.md](/Servex/agents/roles/ai-system-mastermind.md)).
+Since 2026-10-25 this cannot recur: the singleton was retired. The AI system architect is a normal mastermind spawned at `public/framework/ai/`, with no automatic renewal; a fresh agent is started per project ([ai/mastermind.md](/framework/ai/mastermind.md)).
 
 ## Who writes to which `session.jsonl`
 
@@ -159,7 +159,7 @@ One caveat from review: in an agent log that has markers, a turn written before 
 - **No parent-side view** of a child's window size, % used and age in one place. The numbers are in the registry and the agent log, but no tool or page shows them together.
 - **Renewal ignores topic.** A follow-up five minutes after a renewal starts cold.
 
-**Options for "singletons":**
+**Options for "singletons"** (settled 2026-10-25: the singleton was retired instead, and masterminds start fresh per project, [ai/mastermind.md](/framework/ai/mastermind.md); kept for the reasoning):
 - **(A) One session forever, compacted between tasks.** It keeps the context, but drift and compaction cost grow. The role reminder fights the drift ([context-drift](/framework/ai/doc/context-drift.md)).
 - **(B) Today's renewal by age or size.** Simple and cheap. It loses context at arbitrary moments.
 - **(C) Reuse by topic and recency** (the owner's idea). A message on the same topic within ~30 min reopens the warm session. A new topic, or a long gap, renews. It needs a topic per message, which the asks ledger and `claim_topic` already give for many. Cost: a topic match per wake (code, not an LLM).

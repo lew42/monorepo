@@ -39,7 +39,7 @@ const SURFACES = [
 		file: "/framework/ux/Dictate/push-to-talk.js", agent: "fast + smart", log: "`ai/<id>.jsonl`", shot: "floating-mic-1920.png",
 		says: "A small button, not a chat. It speaks into the same global session, so the words land in the drawer chat." },
 	{ name: "Debug tab", where: "Drawer and phone sheet, Debug tab (<page>/ai/debug/; was the Dictation tab until 2026-10-24)",
-		file: "/framework/ext/drawer/tabs/debug.js", agent: "none", log: "`ux/Dictate/failures.jsonl` (a red layer)", shot: "drawer-dictation-1920.png",
+		file: "/framework/ext/drawer/tabs/debug.js", agent: "none", log: "`ux/Dictate/failures.jsonl` (a red layer)", shot: "drawer-debug-1920.png",
 		says: "Dictation layer by layer, live, read from the chat's own mic: each step green, waiting or red with the real error. Nobody answers here (doc/debug-tab.md)." },
 	{ name: "Card chat", where: "A card's page, Activity tab",
 		file: "/framework/ai/cards/card.js", agent: "whoever is attached to the card, or none", log: "the card's `page.jsonl`", shot: "card-chat-1920.png",

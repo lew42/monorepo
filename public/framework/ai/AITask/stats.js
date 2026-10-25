@@ -12,6 +12,13 @@ export const dur = ms => {
 	return m < 60 ? m + "m" : Math.floor(m / 60) + "h " + (m % 60) + "m";
 };
 
+/** A session's real span with its active time: "4 days · 9h active" (span from its first line, not from the last restart). */
+export const span_active = (span_ms, active_ms) => {
+	if (!(span_ms > 0)) return "—";
+	const h = Math.round(span_ms / 36e5), span = h < 1 ? dur(span_ms) : h < 48 ? h + "h" : Math.round(h / 24) + " days";
+	return span + (active_ms > 0 ? " · " + (active_ms < 36e5 ? Math.round(active_ms / 6e4) + "m" : Math.round(active_ms / 36e5) + "h") + " active" : "");
+};
+
 /** A chip that puts `value` on the clipboard — a session id or a turn ref. */
 export function ref(value, label = value.slice(0, 8)){
 	return button.c("ai-ref", label)

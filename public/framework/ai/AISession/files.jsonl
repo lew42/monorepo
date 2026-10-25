@@ -36,5 +36,10 @@
 {"file":"SessionOverview.js"}
 {"file":"SessionStats.js"}
 {"file":"SessionTaskRow.js"}
+{"file":"failures.jsonl"}
 {"file":"SessionFeed.css"}
 {"file":"SessionFeed.js"}
+{"file":"inbox.jsonl"}
+{"file":"SessionFeed.css"}
+{"file":"SessionFeed.js"}
+{"file":"failures.jsonl","gone":true}

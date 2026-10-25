@@ -35,3 +35,5 @@
 
 - **Open tasks need an owner.** Nothing assigns an agent to a new idle task automatically; the tab that took the prompt starts it, else the TaskLoop or a mastermind picks it up.
 - **Choosing the module.** The module is the splitter's guess (`module_hint`). There is no control yet to change it before it starts.
+
+Grouping: a prompt with two or more asks files one parent task with the asks as subtasks, [prompt-breakdown.md](prompt-breakdown.md).

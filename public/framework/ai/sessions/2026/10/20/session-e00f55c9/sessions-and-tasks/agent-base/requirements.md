@@ -47,3 +47,19 @@ For `ai-system-mastermind`. The owner's words are in the prompt log (2026-10-24,
     - Compact sooner rather than later.
     - **After any compaction, re-inject the role:** "you are X, here are your principles". The role readme is already the system prompt for SDK agents, so check the reminder fires after every compaction.
     - Say what exists (`nudge`, compact-before-sleep, the reminder every 100k) and fill only the gap.
+
+13. **(the owner, 2026-10-25, now a decision rather than a note) A mastermind for any folder, with no new role per module.**
+    - Spawning a mastermind *at a path* makes it read that path's readme chain, plus an optional `mastermind.md` (or `ai/mastermind.md`) in that folder if one exists, holding whatever a mastermind there needs to know.
+    - Today there's one role row per subject (ai-system, core-page and so on). Replace that with one generic mastermind role plus the path.
+    - "AI system mastermind" becomes a normal mastermind spawned at `framework/ai/` by whoever needs it, parented to that spawner, with its cost counted there. Retire the parentless singleton setup.
+    - The hand-off risk (the owner: "risky to assume it just works") is covered by a check at spawn: Servex confirms the path's readme and mastermind file were loaded into the system prompt, and logs which files.
+    - Do items 11 and 13 together, and say what changes in `Servex/agents/roles.js` and the singleton code.
+
+14. **(the owner, 2026-10-25) RAM is the real limit, so act on it.** 20 `claude.exe` processes were running while only 7 agents worked. Idle and finished agents must release their process (a dormant agent is a record, not a process), and Servex should show RAM per agent on the dashboard. The mastermind winds agents down when a phase ends: when it's idle with context over 100k, the next phase goes to a fresh agent. Do this first among your agent-base items.
+
+15. **(the owner, 2026-10-25) Sweep out legacy systems still steering agents.**
+    - The voice agent told the owner it has a directive to use only OpenRouter, a leftover from a night the tokens ran out. Find every such directive (role readmes, `session-smart.md`, `Servex/agents/roles.js` `VOICE_MODELS`, `session-backend.txt`) and remove it. Claude is the default and OpenRouter is used only when asked.
+    - **"Task mastermind" goes away as a separate idea.** A mastermind is a mastermind: it works on its own and spawns agents, whether it has a narrow scope or a broad one. Fold `task-mastermind` and `sub-mastermind` into the one mastermind role (with item 13, a mastermind per path), keeping the useful rules (own one task end to end, land it).
+    - List any other legacy roles or switches you find, with a keep or retire verdict for each.
+
+16. **(the tab, 2026-10-25) Queued spawns are lost on a Servex restart.** It happened twice tonight: mastermind-sessions-page at 22:49, and mastermind-dictation-2 around 01:15–02:00. A queued spawn must survive a restart (`spawn-queue.json` exists, so check it is reloaded), with a test.

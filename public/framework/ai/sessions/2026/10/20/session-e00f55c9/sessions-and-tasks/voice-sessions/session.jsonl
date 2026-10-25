@@ -1,0 +1,14 @@
+{"assign":{"session_id":"59bb9c3b-c5d9-4a21-a023-677936152c32","agent":"task-mastermind-voice-sessions","role":"task-mastermind","card":"Voice sessions: filed in the dated store, indexed, costed; smart agent on Opus","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/voice-sessions/requirements.md","model":"claude-sonnet-5-5","parent_task":"public/framework/ai/sessions/2026/10/20/session-e00f55c9","home":"/framework/ai/sessions/","requested_at":"2026-10-25T00:24:12-05:00","now":"starting"}}
+{"commit":"227f2f6d1f0f"}
+{"commit":"100cb993f164"}
+{"commit":"9fadc005e7f9"}
+{"commit":"bee0f2b32cf1"}
+{"commit":"987b68e38d43"}
+{"commit":"0401dcea9e94"}
+{"decision":{"text":"Voice agents link to their voice session through the registry parent_session (not a second linking system); the index sums their cost into the v- snapshot. Alternative: Session entries in the v- record (session-entries-2 shape), which can read this as a fallback. Shape relayed to session-entries-2 via mastermind-deputy.","at":"2026-10-25T00:40:15-05:00"}}
+{"log":{"msg":"Code, tests, backfill script and docs committed in worktree voice-sessions; docs-check agent running; review next.","at":"2026-10-25T00:40:15-05:00"}}
+{"action":{"at":"2026-10-25T00:45:48-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/voice-sessions/docs-check.md"]}}
+{"commit":"4f3c77008680"}
+{"commit":"161c58da943d"}
+{"commit":"08eee99df70b"}
+{"action":{"at":"2026-10-25T00:49:28-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/voice-sessions/review.md"]}}

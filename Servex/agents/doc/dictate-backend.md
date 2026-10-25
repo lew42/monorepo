@@ -105,6 +105,6 @@ stubbed auth failure, plus that only ONE card gets posted across a run with two 
 
 ## Lean smart assistant, quiet fast assistant (2026-10-14, dictate-next-4)
 
-- The smart assistant starts with `setting_sources: []` and no claude.ai connectors, so it no longer loads CLAUDE.md, skills or memory: `session-smart.md` is the only rule it follows. Deliberate: context 68k to 44k tokens, first reply 46 s to 6.8 s. Do not add a skill it cannot load; put the rule in the brief.
+- The smart assistant starts with `setting_sources: []` and no claude.ai connectors, so it no longer loads CLAUDE.md, skills or memory: `session-smart.md` is the only rule it follows. Still true on the Opus 5.5 seat (2026-10-25): "mastermind permissions" are tools and the Servex door, not CLAUDE.md; the brief carries the owner's rules a mastermind needs. Deliberate: context 68k to 44k tokens, first reply 46 s to 6.8 s. Do not add a skill it cannot load; put the rule in the brief.
 - The fast assistant is dropped in code (`FAST_NAMED` in `Sessions.js`) unless the sentence it heard starts with "fast" or says "fast assistant" (not "fast assistant's"). Proof: `public/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-next-4/replay.mjs`.
 Caveats (review): no `site` tools for the smart assistant (project .mcp.json dropped); a smart agent revived after a Servex restart loses the spec `env`, so it starts with connectors again (bigger, not broken); `s.fast_heard` is one slot per session. Left: add a "Fast assistant, …" sentence to the replay.

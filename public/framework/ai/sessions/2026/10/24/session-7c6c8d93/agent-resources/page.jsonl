@@ -1,0 +1,5 @@
+{"assign":{"title":"ai: working cap 8, wind-down rule, unworked-task flag (agent-base items 6 and 7)","now":"running","brief":"Agent-base brief items 6 and 7: explain working 6/5, measure RAM per agent, set the cap to 8, write the priority wind-down rule into the mastermind readme, and make the daily follow-up count open tasks untouched over 7 days."},"by":"ai-system-mastermind","ts":"2026-10-25T04:08:33.038Z"}
+{"file":"review/"}
+{"file":"review.md"}
+{"file":"task.jsonl"}
+{"file":"review.jsonl"}

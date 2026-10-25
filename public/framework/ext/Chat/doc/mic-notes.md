@@ -326,9 +326,9 @@ that ran) would still be true and this `finally` would beep "stop" a SECOND time
 two overlapping chimes landing as one garbled noise instead of one clean tone,
 which read to the owner as "the sound isn't playing properly", not as two sounds.
 
-## post_held
+## take_out and post_held
 
-Hand the finished words to the caller's `deliver(entry)` (how a send is posted is
+When words leave the caption, `take_out()` gives them an `at` and hands them to `on_out` in the same step, so the chat draws them where the draft was before any wait. `post_held()` then hands the same item, with the same `at`, to the caller's `deliver(entry)` (how a send is posted is the caller's business); if the clean-up changed the text, the chat swaps only that piece ([ux/Dictate/doc/flicker.md](/framework/ux/Dictate/doc/flicker.md)).
 
 
 ## Duplicate sends

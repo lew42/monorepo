@@ -56,3 +56,25 @@ Write `core/Session/doc/identity.md`, linked from the core/Session readme and th
 - **Make a write to a session folder that doesn't exist get refused, never created.** Session folders are created only by the hook, `TaskDirs` or the spawn.
 - **Give agents a "my own session" path** that the tool resolves itself, so no id is typed. Check whether `item` with no `path` already does this for a VS Code tab (its MCP call may not carry the tab's id), and fix it if not.
 - **Document it in identity.md.** Cover how a tab gets its folder: the SessionStart hook `session-page.mjs` writes line 1 into `sessions/YYYY/MM/DD/session-<first 8 of the id>/`. The page URL uses the full id. Say why the folder is id-based (stable and unique) while the page shows a readable title.
+
+## Added, PRIORITY 1 NOW (the owner, 2026-10-25): one session, one folder, one URL
+
+"We don't want two folders for the same thing… the web page at a different path than the actual path that saves all of its stuff… that's confusing and wrong."
+
+What the tab found for e00f55c9 (verified on disk):
+1. `ai/sessions/2026/10/20/session-e00f55c9/` is **the real record**: session.jsonl, prompts.jsonl, cache.jsonl, and sessions-and-tasks/.
+2. `ai/2026/10/20/session-e00f55c9/page.jsonl` is **a second folder**, the old card folder. The prompt hook (`prompt-relay.mjs`, `page_add`) still writes every owner prompt there (406+ lines).
+3. `ai/sessions/2026/10/24/session-e00f55c9/` is **a third**, opened tonight by `TaskDirs --new` (2 task folders). The deputy left it in place.
+4. `/framework/ai/sessions/<full uuid>/` is **a route, not a folder.** It resolves to the record, but it is a second URL for the same page.
+
+Fix:
+- One folder: (1).
+- The hook writes prompts into the real record's folder.
+- (2) and (3) are moved into (1) by a script with a manifest, so nothing is lost.
+- The page lives at the folder's own path, `/framework/ai/sessions/2026/10/20/session-e00f55c9/`, and every link points there. The uuid URL only redirects to it.
+- `TaskDirs` never opens a second day folder for a running session.
+- Also find out what the stray `ai/sessions/a56900e3-…/` folder is.
+
+## Added (2026-10-25): refinement calls are cost, not sessions
+
+The hook's refiner (`PromptRecords.ask`) runs one Agent SDK `query()` per prompt, inside Servex, with a temp-folder cwd. It's not spawned as a Servex agent, so it gets no session folder and doesn't show on the sessions page. That's right: hundreds of one-shot mini sessions would bury the list. But **its cost ($36.76 so far for e00f55c9, recorded as `usd` on each prompts.jsonl line) must count toward the session it served,** as its own line ("refinement $X"), exactly once. Add it to the one cost function, and confirm its transcripts aren't also counted somewhere else.

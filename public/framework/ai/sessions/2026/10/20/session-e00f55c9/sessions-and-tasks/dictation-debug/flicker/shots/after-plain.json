@@ -1,0 +1,18 @@
+{
+ "scenario": "plain",
+ "frames": 92,
+ "every_ms": 157,
+ "words_gone": 0,
+ "explained_by_clean": 0,
+ "agree": true,
+ "words_moved": 0,
+ "flickers": [],
+ "moves": [],
+ "sent": [
+  "So the first thing is the flicker. Words should stay where they are.",
+  "And then the second thing comes along."
+ ],
+ "sent_row": "sent “And then the second thing comes along.” at 12:33:49 AM; on screen at once, sent 0.6 s later (clean-up and queue), Servex took it in 3.0 s",
+ "final_words": "So the first thing is the flicker. Words should stay where they are. | And then the second thing comes along.",
+ "errors": []
+}

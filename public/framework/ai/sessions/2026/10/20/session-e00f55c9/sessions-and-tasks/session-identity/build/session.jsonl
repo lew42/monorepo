@@ -1,0 +1,4 @@
+{"assign":{"session_id":"64af66ee-8943-4dd2-b29a-d3df2ea896b0","agent":"minion-identity-build","role":"minion","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-identity/build-brief.md","title":"Session identity: per-session turns and the identity check","model":"claude-sonnet-5-5","worktree":"C:\\Code\\lew42\\worktrees\\session-identity","parent_task":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-identity","home":"/framework/core/Session/","requested_at":"2026-10-24T23:14:21-05:00","now":"starting"}}
+{"commit":"c21ec5a49e12"}
+{"commit":"6ba71292fda4"}
+{"commit":"ee037aa0123c"}

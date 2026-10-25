@@ -14,6 +14,8 @@ export function composer({
 	on_revised,        // (text, {raw, level}) => … — forwarded the same way, straight from `ux/Dictate`; does nothing unset
 	try_command,       // (text) => boolean — an HITL command ("rename this") the box swallows instead of sending; true = handled
 	on_live,           // ({text, settled, guess, sent}) => … — dictation goes into a growing chat bubble, not the box (Mic.js SETTINGS.into)
+	on_out,            // ({text, raw, at}) => … — dictated words just left the bubble or box to be sent: draw them in the chat NOW, at `at`;
+	                    // the send (`deliver`) follows with the same `at`, after any clean-up wait (ComposerMic.take_out, ux/Dictate/doc/flicker.md)
 	on_send_start,     // (raw_text) => … — a send just started, BEFORE the clean-up wait (deliverable 3: instant feedback); forwarded to ComposerMic
 	on_meter,          // (level) => … — forwarded straight to `ComposerMic`/`Dictate`'s own `on_meter`: a caller's own bigger level bar
 	                    // beside the mic button (`ux/Dictate/Widget.js`'s `level: true` option, one-dictation review finding 4).
@@ -44,6 +46,7 @@ export function composer({
 				revise,
 				on_clean: on_revised,   // NOT `on_revised:` — that name would shadow ComposerMic's own method (Mic.js, on_revised)
 				on_live,
+				on_out,
 				on_send_start,
 				on_meter, device_id,
 				on_refine_live,

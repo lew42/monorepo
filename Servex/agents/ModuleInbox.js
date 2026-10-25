@@ -80,7 +80,9 @@ export default class ModuleInbox {
 
 	/** The MCP tool, in `mcp.tool()`'s shape. */
 	static FEEDBACK = "ai";              // the module whose inbox is the AI system mastermind's feedback inbox
-	static FEEDBACK_AGENT = "ai-system-mastermind";
+	static FEEDBACK_AGENT = "ai-system-mastermind";   // the live old-style one, if it still runs; a new one is a `mastermind` at FEEDBACK_PATH
+	static FEEDBACK_LIVE = /^(ai-system-mastermind|mastermind-ai(-\d+)?)$/;
+	static FEEDBACK_PATH = "public/framework/ai";
 	static FEEDBACK_WAKE = 3;            // the repeat that wakes it
 
 	/** Should this new line wake the feedback agent? A feedback line (has a fix) that is obvious, the third repeat (once), or a repeat after an outcome. */
@@ -115,9 +117,11 @@ export default class ModuleInbox {
 				const why = inbox.wake_for(line);
 				let woke = null;
 				if (why && servex?.agents) try {
-					// spawn, not send: the role is a singleton, so this reaches the live one or starts it under its one id
-					servex.agents.spawn({ role: ModuleInbox.FEEDBACK_AGENT, parent: null, prompt: `Feedback inbox (${why}): ${line.id}. Problem: ${line.essence} Suggested fix: ${line.fix} Source: ${line.source}. Fix it, then record an outcome line.` });
-					woke = ModuleInbox.FEEDBACK_AGENT;
+					const text = `Feedback inbox (${why}): ${line.id}. Problem: ${line.essence} Suggested fix: ${line.fix} Source: ${line.source}. Fix it, then record an outcome line.`;
+					// a live one (the old id, or a mastermind already spawned at the AI folder) gets the line; otherwise a normal mastermind is spawned at the AI folder, parentless (this is Servex itself)
+					const live = [...servex.agents.live.values()].find(x => ModuleInbox.FEEDBACK_LIVE.test(x.id) && x.state !== "stopped");
+					if (live){ servex.agents.send(live.id, text); woke = live.id; }
+					else woke = servex.agents.spawn({ role: "mastermind", path: ModuleInbox.FEEDBACK_PATH, parent: null, prompt: text }).id;
 				} catch (e){ woke = `not woken: ${e.message || e}`; }
 				return { ok: true, module: inbox.module, line, repeats: line.fix ? inbox.repeats(line.id) : undefined, woke };
 			})

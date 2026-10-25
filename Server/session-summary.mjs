@@ -78,7 +78,7 @@ export function print_audit(r){
 /** One grid row as the short array the index stores.  */
 export function slim_of(r){
 	const r4 = n => Math.round(n * 1e4) / 1e4;
-	return [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, AISession.day(r.first_at) ?? 0, r.provider === "openrouter" ? "openrouter" : 0];
+	return [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags, AISession.day(r.first_at) ?? 0, r.provider === "openrouter" ? "openrouter" : 0, Math.round(r.active_ms ?? 0)];
 }
 
 export async function build_index({ days = 30 } = {}){
@@ -135,7 +135,7 @@ export async function build_index({ days = 30 } = {}){
 	}
 	// sessions that have a trace.json: the page asks for one only for these (a 404 is a smoke-test failure)
 	const traces = Object.keys(slim).filter(id => fs.existsSync(path.join(fileURLToPath(AISession.dir_url(id, AISession.day(rows[id].first_at) ?? undefined)), "trace.json")));
-	const index = { generated_at: new Date().toISOString(), days, traces, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day", "provider"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
+	const index = { generated_at: new Date().toISOString(), days, traces, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day", "provider", "active_ms"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-tree.json"), JSON.stringify(tree));
 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-index.json"), JSON.stringify(index));
 	return { ...index, rows: undefined, new_lines };

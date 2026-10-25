@@ -16,18 +16,17 @@ export default class AIPage extends Page {
 		["live", "Live", null],                          // AIFeed, sheet step 7
 		["sessions", "Sessions", () => import("./tabs/sessions.js")],
 		["debug", "Debug", () => import("./tabs/debug.js")],             // dictation layer by layer (was Dictation, the playground, until 2026-10-24)
-		["dictation", "Dictation", () => import("./tabs/debug.js")],     // the old url still opens it; not in the row of views (HIDDEN)
 		["settings", "Settings", () => import("./tabs/settings.js")],
 	];
 
-	static HIDDEN = new Set(["dictation"]);   // views kept only so an old url opens; never drawn in the row
-	static WIDE = new Set(["debug", "dictation"]);   // views drawn across the page's wide track (two columns at 1920), not the reading column
+	static ALIASES = { dictation: "debug" };   // an old view name: old_link() rewrites it once, before the Router reads the url
+	static WIDE = new Set(["debug"]);   // views drawn across the page's wide track (two columns at 1920), not the reading column
 
 	// The view a url names inside an AI page ("debug" for <path>/ai/debug/), "chat" for <path>/ai/ itself, null outside one.
 	static view_of(pathname = location.pathname, ai = this.current){
 		if (!ai?.url || !pathname.startsWith(ai.url)) return null;
 		const name = pathname.slice(ai.url.length).split("/")[0];
-		return name && this.VIEWS.some(v => v[0] === name) ? (name === "dictation" ? "debug" : name) : "chat";
+		return name && this.VIEWS.some(v => v[0] === name) ? name : "chat";
 	}
 
 	// The AI page showing now, or null: Sheet.routed() reads it.
@@ -51,7 +50,7 @@ export default class AIPage extends Page {
 		const [, , load] = this.constructor.VIEWS.find(v => v[0] === name);
 		div.c("drawer-ai-page-views flex wrap", () => {
 			span.c("drawer-ai-page-about muted").append(() => { span("about "); a(this.about).href(this.about); });
-			this.constructor.VIEWS.filter(([n]) => !this.constructor.HIDDEN.has(n)).forEach(([n, label]) =>
+			this.constructor.VIEWS.forEach(([n, label]) =>
 				a.c("drawer-ai-page-view", label).ac(n === name && "on").href(this.url + (n === "chat" ? "" : n + "/")));
 		});
 		const $box = div.c("drawer-ai-page-body", () => { span.c("muted", "loading…"); }).ac(this.constructor.WIDE.has(name) && "wide");   // .wide: the page grid's own word for the wide track
@@ -122,10 +121,15 @@ export default class AIPage extends Page {
 		drawer.page(null);
 	}
 
-	// An old `?drawer=x` or `?sheet=…` link, as its `<path>/ai/x/` url, or null. Rewritten once by the Sheet.
+	// An old `?drawer=x` or `?sheet=…` link, or an old view name (`<path>/ai/dictation/`), as its `<path>/ai/x/` url, or null.
+	// Rewritten once by the Sheet; the one place an old name is mapped (ALIASES).
 	static old_link(href = location.href){
-		const url = new URL(href), tab = url.searchParams.get("drawer"), sheet = url.searchParams.get("sheet");
-		if (tab === null && sheet === null) return null;
+		const url = new URL(href), sheet = url.searchParams.get("sheet");
+		const old = url.pathname.match(/\/ai\/(\w+)\/$/)?.[1], alias = this.ALIASES[old];
+		let tab = url.searchParams.get("drawer");
+		if (tab === null && sheet === null && !alias) return null;
+		if (alias) url.pathname = url.pathname.replace(/\/ai\/\w+\/$/, "/ai/" + alias + "/");
+		tab = this.ALIASES[tab] ?? tab;
 		url.searchParams.delete("drawer");
 		url.searchParams.delete("sheet");
 		const view = this.VIEWS.some(v => v[0] === tab && tab !== "chat") ? tab + "/" : "";

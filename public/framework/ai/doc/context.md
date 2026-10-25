@@ -22,6 +22,10 @@ Yes. Servex records `context` on every agent: the tokens the last turn had in it
 
 Servex compacts for you in three places, all described in [compaction.md](compaction.md): before an agent sleeps (over 100k), when an idle agent is nudged and chooses to (a mastermind at 150k), and at a safety ceiling (400k tokens or 500 MB). The Claude CLI has its own auto-compact near the full window, which Servex never turns off. A compaction is a turn that replaces the conversation with a summary of about 10 to 20k tokens.
 
+## Context alerts to the parent
+
+The nudge above talks to the agent itself. A child with a parent also tells the parent: the first time its context passes 50% of the window, and again at 75%, `context_alert()` (Agents.js) appends one `alert: context 52% (520,000 of 1,000,000 tokens): <id>. Wind down: …` line to the child's own session log. The parent already tails that log (a `alert:` line is one Follow forwards), so the parent decides: wind the child down, send it the compact nudge, or give the next phase to a fresh agent. A compaction that drops the context below 50% re-arms both levels. No parent, or a one-shot fork: no line.
+
 ## Context dependency: a fresh agent knows only what was written down
 
 Whatever the last agent had read is gone when it is replaced: a new session, a renewed mastermind, a minion that ends, a compaction. The only things that carry over are the system prompt and CLAUDE.md, the files in the repo, and the logs. So:
@@ -29,6 +33,8 @@ Whatever the last agent had read is gone when it is replaced: a new session, a r
 - A decision that is only in chat does not exist for the next agent. Write it where it belongs (the module's readme or `doc/`) and link the prompt it came from (CLAUDE.md, "Context must not die in sessions").
 - A brief must be complete: the paths to read, the goal, the budget. The agent is not "the same one, with a refresher".
 - A handover is computed from the files (`task.jsonl`, the session page), never remembered ([context-loss.md](context-loss.md)).
+
+**Start fresh over long sessions** (the owner, 2026-10-24): for a new, unrelated task, start a fresh agent rather than reuse a long one and fight compaction; reuse only a short, low-context session. It costs nothing because the logs hold the state and the docs hold how things work. The mastermind rule: [mastermind.md](/Servex/agents/roles/mastermind.md), "Context".
 
 ## Context pollution: the second pass follows the first
 
