@@ -85,7 +85,7 @@ export default class Global {
 			// more direct measurement of resume overhead alone ever crosses 3 s, raise this.
 			// Detail and the raw numbers: doc/dormant.md.
 			grace_ms: env("SERVEX_DORMANT_GRACE_MS", 0), dormant_freed_mb: 0,
-			measure_every_ms: env("SERVEX_MEASURE_EVERY_MS", 5 * 60000), last_measure: 0, cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 4096),
+			measure_every_ms: env("SERVEX_MEASURE_EVERY_MS", 5 * 60000), last_measure: 0, cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 2560),
 			pending: [], timer: null, last_sent: 0, touched: new Map(), idle_seen: new Map(), ready: null };
 	}
 
