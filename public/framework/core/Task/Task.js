@@ -427,7 +427,7 @@ export class Task extends Item {
 		if (lines?.length){
 			this.resolving.add(ref);   // a cycle of references stops here
 			// The entry's type; else line 1 may name a subclass (a Process) or be a session's record ({session:{…}}, or a spawn's {assign}): replay it as that, when it is loaded.
-			const Own = Item.types.get(entry?.type ?? lines[0]?.class ?? (lines[0]?.session || Task.spawned(lines[0]) ? "Session" : undefined));
+			const Own = Item.types.get(entry?.type ?? lines[0]?.class ?? (lines[0]?.session || lines.some(Task.spawned) ? "Session" : undefined));
 			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
 			if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
@@ -445,7 +445,7 @@ export class Task extends Item {
 	}
 
 	// A reference's id is its folder name; a module's list (/framework/core/Task/tasks/) is "core-Task-tasks", so lists side by side (/tasks/) never collide.
-	// A spawn's line 1, which only Servex's open_task writes: {"assign":{"session_id","agent",…}}. Its folder is a session's.
+	// A spawn's line (line 1, or after a queued brief's own assign line), which only Servex's open_task writes: {"assign":{"session_id","agent",…}}. Its folder is a session's.
 	static spawned(line){ const a = line?.assign; return !!(a && typeof a === "object" && a.session_id && a.agent); }
 	static ref_id(ref){
 		const segs = String(ref).split("/").filter(Boolean);
