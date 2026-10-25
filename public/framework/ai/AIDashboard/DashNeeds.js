@@ -27,7 +27,7 @@ export default class DashNeeds extends View {
 	static unique(rows){
 		const keys = new Set(), titles = new Set();
 		return rows.filter(r => {
-			const key = r.card || r.id, title = String(r.title || r.question || "").replace(/s+/g, " ").trim().toLowerCase();
+			const key = r.card || r.id, title = String(r.title || r.question || "").replace(/\s+/g, " ").trim().toLowerCase();
 			if ((key && keys.has(key)) || (title && titles.has(title))) return false;
 			if (key) keys.add(key);
 			if (title) titles.add(title);
