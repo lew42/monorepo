@@ -277,7 +277,7 @@ export default class AISessionIndex {
 		const snap = {
 			id, state: age < AISessionIndex.ACTIVE_MS ? "active" : "idle", model: pv.model === "unknown" ? null : pv.model, effort: pv.effort ?? null,
 			provider: pv.provider === "openrouter" ? "openrouter" : "claude", usd: own, usd_source, cost_v: AISession.STATE_V, tree_usd: r4(own + below),
-			children: prev?.children ?? 0, wall_ms: Math.round(pv.wall_ms), flags: pv.flags.length, tokens, first_at: s.first_at ?? null, last_activity: s.last_at ?? null,
+			children: prev?.children ?? 0, wall_ms: Math.round(pv.wall_ms), active_ms: Math.round(pv.active_ms ?? 0), flags: pv.flags.length, tokens, first_at: s.first_at ?? null, last_activity: s.last_at ?? null,
 			day: AISession.day(s.first_at) ?? prev?.day ?? null, folder: this.dirs.has(id) ? path.basename(this.dirs.get(id)) : (this.snaps.get(id)?.folder ?? null), tags: prev?.tags ?? [], alerts: prev?.alerts ?? 0,
 			parent: reg?.parent ?? prev?.parent ?? null, agent: reg?.id ?? prev?.agent ?? null,
 			title: s.title ?? prev?.title ?? null,

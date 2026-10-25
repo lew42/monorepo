@@ -108,7 +108,7 @@ export default class AISessionRows {
 		if (ses?.ix.usd != null) return ses.index_row();
 		const v = index?.rows?.[id];
 		if (!v) return null;
-		return { id, usd: v[0], tree_usd: v[1], children: v[2], wall_ms: v[3], model: v[4] || null, effort: v[5] || null, flags: v[6], day: v[7] || null, provider: v[8] || "claude" };
+		return { id, usd: v[0], tree_usd: v[1], children: v[2], wall_ms: v[3], model: v[4] || null, effort: v[5] || null, flags: v[6], day: v[7] || null, provider: v[8] || "claude", active_ms: v[9] };
 	}
 
 	// ---- one row's facts ----------------------------------------------------------------------------
@@ -183,7 +183,7 @@ export default class AISessionRows {
 		if (r.source === "servex" && r.tab_title) return { text: r.tab_title, from: "agent" };
 		// a prompt that is only a routing tag or a skill preamble says nothing about the session
 		if (r.last_prompt_first_line && !/^\[from:|^Base directory for this skill/.test(r.last_prompt_first_line)) return { text: r.last_prompt_first_line.replace(/\s+/g, " ").trim().slice(0, 70), from: "prompt" };
-		return { text: (AISessionRows.SOURCE[r.source]?.label ?? "session") + " " + String(sid).slice(0, 8), from: "id" };
+		return { text: (r.source === "vscode" || r.kind === "vscode-tab" ? "VS Code tab" : AISessionRows.SOURCE[r.source]?.label ?? "session") + " " + String(sid).slice(0, 8), from: "id" };
 	}
 
 	/** `end` if it is a real time at or after `start`, else null. */

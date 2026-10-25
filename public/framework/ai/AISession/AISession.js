@@ -378,7 +378,7 @@ export default class AISession extends Session {
 	// `all` is the registry. A light Session carries only the grid's fields in `ix`; the full computed totals stay in `s`
 	// (blank here) and arrive from the session's own cache when its detail page opens.
 	static all = new Map();
-	static INDEX_COLUMNS = ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day", "provider"];
+	static INDEX_COLUMNS = ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags", "day", "provider", "active_ms"];
 
 	/** The light Session for an id, made from one index row (the short array build_index writes). Re-reading the index refreshes it in place. */
 	static from_index(id, arr, columns = AISession.INDEX_COLUMNS){
@@ -432,7 +432,7 @@ export default class AISession extends Session {
 	}
 
 	/** The grid row for this session in the object shape AISessionRows.row_of has always returned. */
-	index_row(){ const { usd, tree_usd, children, wall_ms, model, effort, flags, day, provider } = this.ix; return { id: this.id, usd, tree_usd, children, wall_ms, model, effort, flags, day, provider: provider || "claude" }; }
+	index_row(){ const { usd, tree_usd, children, wall_ms, model, effort, flags, day, provider, active_ms } = this.ix; return { id: this.id, usd, tree_usd, children, wall_ms, model, effort, flags, day, provider: provider || "claude", active_ms }; }
 
 	static root_url(){
 		// SESSIONS_ROOT (node only) lets a script run from a worktree write into the main tree's sessions/ folder.
