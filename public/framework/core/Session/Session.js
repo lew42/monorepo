@@ -143,7 +143,9 @@ export default class Session extends Task {
 		let day = this.day(first_at);
 		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
 			try { for (const l of (await fs.readFile(new URL("cache.jsonl", flat), "utf8")).split("\n")) if (l.startsWith('{"summary"')) day = this.day(JSON.parse(l).summary?.first_at) ?? day; } catch {}
-			if (!day) return flat;             // known only by an old flat folder: leave it until its first_at is known
+			// No first_at: a session whose transcript has no message never gets one (a56900e3, 2026-10-25, stayed flat forever), so the folder's own date files it.
+			if (!day) try { day = this.day((await fs.stat(flat)).birthtime); } catch {}
+			if (!day) return flat;
 		}
 		day ??= this.day(new Date());
 		this.days.set(id, day);
