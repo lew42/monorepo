@@ -34,16 +34,9 @@ export default class SessionOutlineView extends View {
 
 	/** Every session's index snapshot (name, parent, state, model, cost) from the session's folder day to today: the day files the tree is built from. */
 	async read_snaps(tree){
-		const day = tree?.day;
-		if (!day) return [];
-		const base = new Date(day.replaceAll("/", "-") + "T12:00:00"), today = Day.of(), out = [];
-		for (let i = 0; i <= 31; i++){
-			const d = Day.of(new Date(base.getTime() + i * 864e5)); if (d > today) break;
-			const res = await fetch(`/framework/ai/sessions/${Day.path(d)}/index.json`).catch(() => null);
-			const json = res?.ok && !(res.headers.get("content-type") ?? "").includes("html") ? await res.json().catch(() => null) : null;
-			out.push(...(json?.snapshots ?? []));
-		}
-		return out;
+		const days = Day.range(tree?.day);
+		const files = await Promise.all(days.map(day => fetch(`/framework/ai/sessions/${day}/index.json`).then(res => res.ok && !(res.headers.get("content-type") ?? "").includes("html") ? res.json() : null).catch(() => null)));
+		return files.flatMap(json => json?.snapshots ?? []);
 	}
 
 	build(){ return new SessionOutline({ session: this.session, tree: this.tree, prompts: this.prompts ?? {}, snaps: this.snaps ?? [], self: this.sid, mode: this.mode }); }
@@ -113,7 +106,7 @@ export default class SessionOutlineView extends View {
 				small.c("muted", this.progress_text(g));
 				this.self_cost();
 			});
-			if (!g.groups.length) return void p.c("muted", "No tasks or child sessions recorded for this session yet.");
+			if (!g.groups.length) return void p.c("muted", this.outline.found.list.length ? "No work of its own yet." : "No tasks or child sessions recorded for this session yet.");
 			div.c("soutline-groups", () => g.groups.forEach(sub => {
 				const key = "p:" + (sub.prompt ?? sub.kind);
 				this.fold(key, "soutline-group card", () => {

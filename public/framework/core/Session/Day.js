@@ -12,4 +12,11 @@ export default class Day {
 	}
 	/** "YYYY/MM/DD", the folder path of the same day. */
 	static path(t){ const s = Day.of(t); return s && s.replaceAll("-", "/"); }
+	/** The folder paths ("YYYY/MM/DD") of every day from `first` (a day, "2026/10/20" or "2026-10-20") to today, oldest first, at most `max`: where a session's index snapshots can be. */
+	static range(first, max = 32){
+		const start = Day.of(String(first ?? "").replaceAll("/", "-")), today = Day.of(), out = [];
+		if (!start) return out;
+		for (let t = Date.parse(start + "T12:00:00"); out.length < max; t += 864e5){ const d = Day.of(t); if (d > today) break; out.push(Day.path(d)); }
+		return out;
+	}
 }

@@ -149,7 +149,7 @@ export default class SessionOutline {
 		const own_items = subs.flatMap(g => g.items);
 		const own = { kind: "own", name: "This session's own work", groups: this.sort(subs), items: own_items, ...SessionOutline.progress(own_items), usd: own_items.reduce((s, i) => s + i.usd, 0), at: Math.max(0, ...subs.map(g => g.at)) };
 		this.groups = [...this.sort(child_groups), own];
-		this.drawn = SessionOutline.count(this.groups.flatMap(g => g.kind === "own" ? g.items : g.items));
+		this.drawn = SessionOutline.count(this.groups.flatMap(g => g.items));
 	}
 
 	group(g){

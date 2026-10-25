@@ -25,6 +25,7 @@ import SessionTasks from "/framework/core/Session/SessionTasks.js";
 import SessionWork from "./SessionWork.js";
 import SessionStats from "./SessionStats.js";
 import AICost from "/framework/ai/AITask/AICost.js";
+import Day from "/framework/core/Session/Day.js";
 import SessionOverview from "./SessionOverview.js";
 import SessionOutlineView from "./SessionOutlineView.js";
 import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
@@ -105,20 +106,12 @@ export default class AISessionDetail extends Page {
 		});
 	}
 
-	/** The days from `first` ("2026/10/20") to today, newest first, at most a month: where a session's index snapshot can be. */
-	static days_since(first){
-		if (!first) return [];
-		const out = [], from = new Date(first.replaceAll("/", "-") + "T00:00:00");
-		for (let d = new Date(); d >= from && out.length < 32; d = new Date(d.getTime() - 864e5)) out.push(AISession.day(d));
-		return out;
-	}
-
 	/** The session's folder name, read from the day index of its last activity (where AISessionIndex writes its snapshot), folded in so AISession.dir_url() knows it. */
 	static async folder_from_day(row, session_id){
 		// sessions.json can be days stale, so its last activity, then today, then the start day: the first index naming the folder wins.
-		const days = [...new Set([...[row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))), ...AISessionDetail.days_since(AISession.days.get(session_id))].filter(Boolean))];   // a session sessions.json has no row for: every day from the one the feed gave it (its first) to today
-		for (const day of days){
-			const ix = await AISessionRows.get_json(new URL(`./${day}/index.json`, AISession.root_url()).pathname);
+		const days = [...new Set([...[row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))), ...Day.range(AISession.days.get(session_id)).reverse()].filter(Boolean))];   // a session sessions.json has no row for: every day from the one the feed gave it (its first) to today
+		const indexes = await Promise.all(days.map(day => AISessionRows.get_json(new URL(`./${day}/index.json`, AISession.root_url()).pathname)));   // all at once; the first day in the list that names the folder wins
+		for (const ix of indexes){
 			const snap = ix?.snapshots?.find(x => x.id === session_id);
 			if (snap?.folder) return AISession.apply_delta({ id: session_id, folder: snap.folder, ...(snap.day ? { day: snap.day } : {}) });
 		}
