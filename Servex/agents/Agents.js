@@ -10,7 +10,8 @@ import { fileURLToPath } from "node:url";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./Registry.js";
-import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, singleton_id, renew_of } from "./roles.js";
+import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, role_readme_path, alias_path, path_check, path_note } from "./roles.js";
+import { dir_of } from "./directory.js";
 import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import Task from "../../public/framework/core/Task/Task.js";
@@ -62,7 +63,7 @@ export class Agents {
 
 	/* `boot` names THIS host process — every registry row it writes carries it,
 	 * so the next boot can tell "alive a moment ago" from "long dead". */
-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); Task.turns_resolver = sid => this.session_turns(sid); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
+	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); Session.agents_at_resolver = task => this.agents_at(task); Task.turns_resolver = sid => this.session_turns(sid); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
 	assign(...args){ return Object.assign(this, ...args); }
 
 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
@@ -139,17 +140,17 @@ export class Agents {
 	 * — `directory_of` returns null for it and nothing is added. */
 	spawn(spec){
 		const again = spec.resume;
-		/* A SINGLETON ROLE (the owner, 2026-10-23; roles.js `singleton`): its id is the role's own word, never `-2`. A second
-		 * spawn while it is live sends it the prompt instead; a stopped or never-started one is spawned under that same id. */
-		const renewing = spec.renewing;
-		if (renewing){ spec = { ...spec }; delete spec.renewing; }
-		const single = !again && singleton_id(spec.role);
-		if (single){
-			const cur = this.live.get(single), from = spec.parent ?? "spawn";
-			if (cur && cur.state !== "stopped"){ if (spec.prompt) cur.send(spec.prompt, { from }); return cur; }
-			/* Only in the registry (after a restart): wake it, so it resumes, or renews if it is due (wake() decides). */
-			if (!renewing && !cur && this.reg().read()[single]?.session_id) try { const w = this.wake(single); if (spec.prompt) w.send(spec.prompt, { from }); return w; } catch {}
-			spec = { ...spec, id: single };
+		/* SPAWNED AT A PATH (the owner, 2026-10-25; roles/mastermind.md "Spawned at a path"). `path` (a repo path or a site path) loads that
+		 * path's readme chain and its mastermind.md into the SYSTEM PROMPT (roles.js role_system). An alias word with a default path
+		 * (`ai-system-mastermind`) is the `mastermind` role at that path; a caller's own `path` wins. The id's name is the path's last folder
+		 * (mastermind-ai) unless the caller named it. */
+		if (!again){
+			const dflt = alias_path(spec.role);
+			if (dflt) spec = { ...spec, role: "mastermind", path: spec.path ?? dflt };
+			if (spec.path){
+				spec = { ...spec, path: dir_of(spec.path) };
+				if (!spec.name && !spec.id) spec = { ...spec, name: path.posix.basename(spec.path) };
+			}
 		}
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
 		const id = spec.id && !taken ? spec.id : this.name(spec);
@@ -223,16 +224,22 @@ export class Agents {
 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
 		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
-		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_session: spec.parent ? spec.parent_session ?? this.session_of(spec.parent) : null, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, effort: spec.effort ?? role_defaults(spec.role).effort ?? null, role_readme: role_readme_path(spec.role), worktree: worktree_of(spec.cwd), parent_session: spec.parent ? spec.parent_session ?? this.session_of(spec.parent) : null, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
 		const fresh = !again && !spec.system;
-		const dir = fresh ? directory_of(spec) : null;
-		const in_system = !spec.system && process.env.SERVEX_ROLE_IN_SYSTEM !== "0" && !!role_system(spec.role);   // Agent.role_prompt() puts it there
-		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + opening(spec.role, spec.prompt, { in_system });
+		const append = !spec.system && process.env.SERVEX_ROLE_IN_SYSTEM !== "0" ? role_system(spec.role, { path: spec.path }) : null;   // Agent.role_prompt() puts it in the system prompt
+		const in_system = !!append;
+		/* A PATH IS LOADED INTO THE SYSTEM PROMPT, NOT THE FIRST MESSAGE (no duplicate): Servex checks that every file is inside the final
+		 * text, logs it, and tells the agent in its first message what it has (or what is missing and must be read by hand). With no
+		 * system prompt (SERVEX_ROLE_IN_SYSTEM=0, or its own system brief) the old way still applies: the chain rides in the first message. */
+		const path_loaded = fresh && spec.path && in_system ? path_check(append, spec.path) : null;
+		const dir = fresh && !path_loaded ? directory_of(spec) : null;
+		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + (path_loaded ? path_note(path_loaded) + "\n\n" : "") + opening(spec.role, spec.prompt, { in_system });
 		if (!again && !spec.system) {
 			const names = injected(spec.role);
-			this.store().append("skills", { at: stamp(), agent: id, role: spec.role ?? null, injected: names, where: in_system ? "system" : "message", fallback: names.length ? undefined : true }).catch(() => {});
+			this.store().append("skills", { at: stamp(), agent: id, role: spec.role ?? null, injected: names, where: in_system ? "system" : "message", fallback: names.length ? undefined : true,
+				...(path_loaded ? { path: path_loaded.path, files: path_loaded.files, mastermind: path_loaded.mastermind, ok: path_loaded.ok, ...(path_loaded.ok ? {} : { missing: path_loaded.missing }) } : {}) }).catch(() => {});
 		}
 		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
 		const prompt = spec.task
@@ -251,6 +258,7 @@ export class Agents {
 		agent.host = this;
 		this.live.set(agent.id, agent);
 		agent.start();
+		if (path_loaded) agent.emit?.({ type: "path_loaded", ...path_loaded });
 		this.register(agent);
 		try { this.servex?.lifecycle?.agent_started(agent, spec); } catch {}   // lifecycle.jsonl: Servex/Lifecycle.js
 		return agent;
@@ -690,14 +698,6 @@ export class Agents {
 		if (live?.one_shot || (live?.role ?? row?.role) === "fork")
 			throw new Error(`Agent ${id} is a fork: it answered once and is not woken again.`);
 		if (!live?.session_id && !row?.session_id) throw new Error(`Agent ${id} never got a session, so there is nothing to wake.`);
-		const role = live?.role ?? row?.role, why = renew_why(renew_of(role), live?.started_at ?? row?.started_at, live?.context ?? row?.context);
-		if (why && (!live || live.state === "stopped")){   // RENEWAL: a stopped one is spawned fresh; a live dormant one renews in awaken()
-			const base = strip(live ? live.recipe() : (row.spec ?? {}));
-			const fresh = this.spawn(strip({ ...base, role, id, cwd: base.cwd ?? row?.cwd, resume: undefined, fork: undefined, renewing: true,
-				prompt: renewal_text(id, live?.session_id ?? row?.session_id, why) }));
-			fresh.emit?.({ type: "renew", why, replaces: live?.session_id ?? row?.session_id, session: fresh.session_id });
-			return fresh;
-		}
 		return this.reopen({ ...row, ...(live ? { spec: live.recipe(), session_id: live.session_id } : {}), id });
 	}
 
@@ -706,7 +706,7 @@ export class Agents {
 	 * session ran and its model come from the session file when the row does
 	 * not say. Shared by `wake()` and `revive()`. */
 	reopen(row){
-		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "provider", "effort", "cwd",
+		const keys = ["role", "name", "topics", "page", "path", "parent", "visibility", "model", "provider", "effort", "cwd",
 			"permission_mode", "allowed_tools", "setting_sources", "budget_usd"];
 		const base = strip(row.spec ?? Object.fromEntries(keys.map(k => [k, row[k]])));
 		const facts = base.cwd && base.model ? {} : session_facts(row.session_id);
@@ -719,10 +719,13 @@ export class Agents {
 	}
 
 	/* A task's cost: logged_cost summed over the agents whose task dir is this task's (`task` = its app path or dir). Task.cost reads it. */
-	task_cost(task){
-		if (!task) return 0;
+	task_cost(task){ return this.agents_at(task).reduce((s, a) => s + a.cost, 0); }
+	/* The agents whose task dir is exactly this task's folder (`task` = its app path or dir), each with its logged cost: [{id, cost}].
+	 * A Session entry's own cost is this sum, and its ids are what the session's cost does not count a second time (Session.agents_at_resolver). */
+	agents_at(task){
+		if (!task) return [];
 		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.resolve(MAIN_ROOT, "public", "." + task) : path.resolve(MAIN_ROOT, task);   // resolve, not join: a url path ends in "/", and the keys have no trailing separator
-		return (this.task_dirs().get(want.toLowerCase()) ?? []).reduce((s, id) => s + this.logged_cost(id), 0);
+		return (this.task_dirs().get(want.toLowerCase()) ?? []).map(id => ({ id, cost: this.logged_cost(id) }));
 	}
 
 	/* Registry rows by task dir (resolved, lower case), rebuilt at most once a minute: a session of 150 tasks asks task_cost 150 times,
@@ -1012,6 +1015,7 @@ export class Agents {
  * present (a plain minion, most forks, the fast assistant) -> null, and
  * `spawn()` adds nothing. */
 function directory_of(spec){
+	if (spec.path) return spec.path;   // spawned at a path: its chain rides in the first message only when the system prompt cannot carry it
 	if (spec.task?.dir) return spec.task.dir;
 	// forward slashes always, even on Windows (path.join would use `\`), so the
 	// "Where you are" line reads the same as a repo-relative task.dir does.
@@ -1031,7 +1035,7 @@ function directory_of(spec){
  * a caller opened earlier (or a sibling agent shares), it just adds one more
  * assign line with the same facts, exactly like every other `assign` a task
  * log collects over its life — never touching what came before it. */
-export function open_task(task, { session_id, agent, role, by, model, worktree, parent_dir, parent_session }){
+export function open_task(task, { session_id, agent, role, by, model, effort = null, role_readme = null, worktree, parent_dir, parent_session }){
 	// An old-shaped dir (ai/YYYY-MM-DD/<slug>/) from a brief goes to the task store instead (Server/TaskDirs.mjs,
 	// ai/doc/task-folders.md); task.dir is rewritten so everything after this (directory_of, the inbox) sees the real place.
 	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
@@ -1047,24 +1051,48 @@ export function open_task(task, { session_id, agent, role, by, model, worktree, 
 	// `after` is task dirs in the same form as parent_task, so the tree matches them exactly.
 	const after = Array.isArray(task.after) && task.after.length ? task.after.map(rel) : undefined;
 	const line = JSON.stringify({ assign: strip({ session_id, agent, role, card: task.card, brief: task.brief, title: task.title,
-		model, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
+		model, effort: effort ?? undefined, role_readme: role_readme ?? undefined, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
 	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
 	// A handoff (`task: {from, id}`) is referenced by move_item's own `as` line; a second plain one would replay as a twin child, so link only without a handoff (or when it is refused, below).
-	const link = () => { try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch (e){ console.warn("link_parent failed for", dir, e); }
-		// A folder outside the parent SESSION's own folder (core/Page/tasks/…, spawned/…) is still its child: one {"task","as"} line on the session's record (ChildLinks).
-		if (parent_session) try { ChildLinks.link(dir, parent_session, agent, { by: "Servex", parent_dir }); } catch (e){ console.warn("ChildLinks.link failed for", dir, e); } };
+	/* THE SESSION ENTRY (core/Session/readme.md, "Session entries"): the reference is {"task":url,"type":"Session","spawn":{…}}, nested under
+	 * the task that caused the spawn (cause_of, below). The configuration is what this spawn ran with; a role readme is named by its path, never retyped. */
+	const spawn = strip({ role, model, effort, role_readme, brief: task.brief, session_id, agent, at: stamp() });
+	const entry = { type: "Session", spawn, cause: log => cause_of(log, task.cause) };
+	const link = () => { try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id, entry }); } catch (e){ console.warn("link_parent failed for", dir, e); }
+		// A folder outside the parent SESSION's own folder (core/Page/tasks/…, spawned/…) is still its child: one entry on the session's record (ChildLinks).
+		if (parent_session) try { ChildLinks.link(dir, parent_session, agent, { by: "Servex", parent_dir, entry }); } catch (e){ console.warn("ChildLinks.link failed for", dir, e); } };
 	const handoff = !!(task.from && task.id);
 	if (!handoff) link();
-	// Handoff by task: `task: {from, id}` moves that subtask out of the spawner's log into this folder (page_tools.js move_item).
+	// Handoff by task: `task: {from, id}` moves that subtask out of the spawner's log into this folder (page_tools.js move_item). The subtask is
+	// upgraded in place: its reference keeps its id and becomes the Session entry (cause rule b, "handoff").
 	// Not awaited (open_task is synchronous): the history lands just after the first turn starts. A refusal is written into the new log, so it is seen.
 	if (handoff){
 		const log = SessionRecord.start_file(dir, JSON.parse(line)), refused = why => { fs.appendFileSync(log, JSON.stringify({ handoff: { from: task.from, id: task.id, refused: why }, by: "servex", ts: stamp() }) + "\n"); link(); };
-		move_item({ from: task.from, id: task.id, to: "/" + path.relative(path.join(process.cwd(), "public"), dir).split(path.sep).join("/") + "/", by: task.by ?? by ?? "spawn" })
+		move_item({ from: task.from, id: task.id, to: "/" + path.relative(path.join(process.cwd(), "public"), dir).split(path.sep).join("/") + "/", by: task.by ?? by ?? "spawn", entry: { type: "Session", spawn: { ...spawn, placed: "handoff" } } })
 			.then(r => { if (r.why) refused(r.why); }, e => refused(String(e.message || e)));
 	}
 	return dir;
+}
+
+/* WHICH TASK CAUSED A SPAWN, on the log its Session entry goes on (SessionRecord.add_ref calls this with that log). In order:
+ * (a) `explicit`, the spawn's `task.cause`, when that task is on the log; (c) the log's most recently started task that is still running
+ * (an inline task, never another child session); (d) none: the entry goes at the top. (b), a handoff, is open_task's own: the moved subtask
+ * itself. Returns {id, placed}. Replays with no resolver, so no child file is read: a reference stays a stub, which is never "running". */
+export function cause_of(log, explicit = null){
+	let lines; try { lines = fs.readFileSync(log, "utf8").split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch { return { id: null, placed: "top" }; }
+	if (!lines.length) return { id: null, placed: "top" };
+	const Class = lines[0]?.session && typeof lines[0].session === "object" ? Session : Task, saved = Task.resolver;
+	let root; Task.resolver = null;
+	try { root = Class.replay(lines); } catch { return { id: null, placed: "top" }; } finally { Task.resolver = saved; }
+	if (explicit && root._tasks && root.find(explicit) && root.find(explicit) !== root) return { id: explicit, placed: "explicit" };
+	let hit = null;
+	const walk = list => { for (const t of list ?? []){ if (t._own_file || t.is_session) continue;
+		if (t.state === "running" && (!hit || Date.parse(t.get_one("started_at") ?? "") >= Date.parse(hit.get_one("started_at") ?? ""))) hit = t;
+		walk(t._tasks); } };
+	walk(root._tasks);
+	return hit ? { id: hit.id, placed: "running" } : { id: null, placed: "top" };
 }
 
 /* Queued siblings a landed task unblocks: task dirs next to it whose `assign.after` names it, that no agent has
@@ -1214,7 +1242,7 @@ Agents.Agent = class Agent {
 	 * `env` are code or secrets and are not kept; a fork keeps none. */
 	recipe(){
 		if (this.one_shot) return null;
-		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "provider", "effort", "cwd",
+		const keys = ["role", "name", "topics", "page", "path", "parent", "visibility", "model", "provider", "effort", "cwd",
 			"permission_mode", "allowed_tools", "setting_sources", "system"];
 		return strip(Object.fromEntries(keys.map(k => [k, this[k]])));
 	}
@@ -1252,7 +1280,7 @@ Agents.Agent = class Agent {
 	 * old way. */
 	role_prompt(){
 		if (process.env.SERVEX_ROLE_IN_SYSTEM === "0" || this.system) return null;
-		const append = role_system(this.role);
+		const append = role_system(this.role, { path: this.path ?? alias_path(this.role) ?? undefined });
 		return append ? { type: "preset", preset: "claude_code", append } : null;
 	}
 
@@ -1395,7 +1423,7 @@ Agents.Agent = class Agent {
 		 * finding 1, dictate-without-claude 2026-10-04): the old check dropped a spec's own
 		 * `this.env` whenever there was no provider env to merge it with, silently losing it on
 		 * today's default Claude path. */
-		if (!url) return strip({ mcpServers: this.mcp_servers, env: (or_env || this.env || task_env) ? { ...process.env, ...or_env, ...task_env, ...this.env } : undefined });
+		if (!url) return strip({ mcpServers: this.mcp_servers, env: { ...process.env, CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: process.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE ?? "95", ...or_env, ...task_env, ...this.env } });
 
 		/* The page tools in-process, as `mcp__local__*` (step 12, Servex/doc/item-tool.md); the HTTP twins are
 		 * disallowed so each tool shows once. `SERVEX_LOCAL_TOOLS=0` keeps HTTP only. */
@@ -1403,7 +1431,7 @@ Agents.Agent = class Agent {
 		return {
 			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...(local ? { local: local.server } : {}), ...this.mcp_servers },
 			...(local ? { disallowedTools: local.twins } : {}),
-			env: { ...process.env, SERVEX_MCP: url, ...(or_env ?? {}), ...task_env, ...this.env }
+			env: { ...process.env, CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: process.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE ?? "95", SERVEX_MCP: url, ...(or_env ?? {}), ...task_env, ...this.env }
 		};
 	}
 
@@ -1525,9 +1553,7 @@ Agents.Agent = class Agent {
 	awaken(by){
 		if (this.state !== "dormant") return this;
 		const slept = this.dormant_at;
-		const renew = this.renew_due();
-		if (renew) this.renew(renew);
-		else this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
+		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
 		this.last_at = stamp();
 		/* item 2's `mark_phantom` sets `marked_phantom` once, so it does not re-log the same
 		 * episode on every `working()` call — but a genuinely NEW phantom episode later in this
@@ -1546,24 +1572,6 @@ Agents.Agent = class Agent {
 		return this;
 	}
 
-	/* RENEWAL (the owner, 2026-10-23): a role with `renew: {hours, tokens}` (the AI system mastermind) wakes as a FRESH session
-	 * under the same id once its session is that old or that big, instead of resuming. Nothing runs while it sleeps, so it is
-	 * never kept alive when unused, and no handover file is needed: the fresh session's first turn reads the readmes.
-	 * Returns why ("age" | "tokens") or null. */
-	renew_due(now = Date.now()){
-		const line = renew_of(this.role);
-		if (!line || this.one_shot || this.system) return null;
-		return renew_why(line, this.started_at, this.context, now);
-	}
-
-	renew(why){
-		const replaces = this.session_id, session_id = randomUUID();
-		const prompt = (this.host?.whoami?.(this.id, session_id) ?? "") + opening(this.role, renewal_text(this.id, replaces, why), { in_system: !!this.role_prompt() });
-		this.assign({ resume: null, fork: false, session_id, minted: true, prompt, context: 0, last_usage: null, reminded_context: 0,
-			remind_compacted: false, compacted_turn: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now(), started_at: new Date().toISOString() });
-		this.emit({ type: "renew", why, replaces, session: session_id });
-	}
-
 	/* COMPACTION (dormant-idle, 2026-09-30). `/compact` as a turn of its own: the
 	 * CLI summarises the conversation and continues from the summary, so the
 	 * context, the process and the next resume all shrink. It is not a turn anyone
@@ -1577,7 +1585,20 @@ Agents.Agent = class Agent {
 		this.queue.push(this.turn("/compact"));
 		this.state = "working";
 		this.host?.register?.(this);
+		/* A /compact the CLI never answers must not leave the agent "working" for ever (inbox, 2026-10-25): after COMPACT_TIMEOUT_MS the
+		 * flag is cleared and logged, and the process released so the next message resumes the session. */
+		const c = this.compacting;
+		c.timer = setTimeout(() => this.compact_timeout(c), Agents.Agent.COMPACT_TIMEOUT_MS);
+		c.timer.unref?.();
 		return true;
+	}
+
+	compact_timeout(c){
+		if (this.compacting !== c) return;
+		this.compacting = null;
+		this.log({ at: stamp(), agent: this.id, type: "compact-timeout", why: c.why, before: c.before, duration_ms: Date.now() - c.at });
+		this.state = "idle";
+		if (!this.sleep("compact-timeout")) this.host?.register?.(this);
 	}
 
 	/* Why this agent MUST compact now, or null: only the safety ceiling (the model window) and the
@@ -1606,7 +1627,7 @@ Agents.Agent = class Agent {
 		if (this.state !== "idle" || this.one_shot || this.compacting || STANDING.test(this.id ?? "")) return null;
 		if (this.task?.dir && task_landed(this.task.dir)) return null;
 		const after = role_compact_after(this.role);
-		if (after === null || renew_of(this.role)) return null;   // a renewing role gets a fresh session instead (Agent.renew_due)
+		if (after === null) return null;
 		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
 		const limit = after?.tokens ?? this.host?.nudge_tokens ?? (Number(process.env.SERVEX_NUDGE_TOKENS) || 200000);
 		const context = this.context ?? 0;
@@ -1628,7 +1649,7 @@ Agents.Agent = class Agent {
 	sleep_compact(){
 		if (this.one_shot || this.compacting || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return false;
 		const after = role_compact_after(this.role);
-		if (after === null || renew_of(this.role)) return false;   // a renewing role gets a fresh session instead (Agent.renew_due)
+		if (after === null) return false;
 		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS);
 		const line = Math.min(after?.sleep ?? this.host?.sleep_compact_tokens ?? (Number(process.env.SERVEX_SLEEP_COMPACT_TOKENS) || SLEEP_COMPACT_TOKENS), Math.round(window / 2));
 		return (this.context ?? 0) > line;
@@ -2203,6 +2224,7 @@ Agents.Agent = class Agent {
 		const c = this.last_usage;
 		if (c) this.context = (c.input_tokens ?? 0) + (c.cache_read_input_tokens ?? 0)
 			+ (c.cache_creation_input_tokens ?? 0) + (c.output_tokens ?? 0);
+		this.context_alert();
 		this.host?.register?.(this);
 		this.settle();
 		/* ONE-SHOT (a fork): its first result is its answer — the wake above has
@@ -2269,9 +2291,25 @@ Agents.Agent = class Agent {
 		return true;
 	}
 
+	/* CONTEXT ALERTS (agent-base item 12; ai/doc/context.md): the first time a child's context passes 50% and then 75% of the window,
+	 * one line lands in its own session log, which its parent already tails, so the parent decides. A compaction re-arms both. */
+	context_alert(){
+		if (!this.parent || this.parent === this.id || this.one_shot || !this.task?.dir) return;
+		const window = this.host?.window_tokens ?? (Number(process.env.SERVEX_WINDOW_TOKENS) || WINDOW_TOKENS), context = Math.max(this.context ?? 0, 0);
+		if (context < window * ALERT_PCTS[0] / 100) this.context_alerted = [];
+		for (const pct of ALERT_PCTS){
+			if (context < window * pct / 100 || (this.context_alerted ??= []).includes(pct)) continue;
+			this.context_alerted.push(pct);
+			const msg = `alert: context ${Math.round(context / window * 100)}% (${context.toLocaleString("en-US")} of ${window.toLocaleString("en-US")} tokens): ${this.id}. Wind down: finish, compact (send it the compact nudge) or give the next phase to a fresh agent.`;
+			try { fs.appendFileSync(SessionRecord.log_file(path.resolve(MAIN_ROOT, this.task.dir)) ?? path.resolve(MAIN_ROOT, this.task.dir, "task.jsonl"), JSON.stringify({ log: { at: stamp(), msg } }) + "\n"); } catch {}
+			this.emit({ type: "context_alert", pct, context });
+		}
+	}
+
 	/* The end of a `/compact` turn: logged, no parent woken, the last turn's words kept. */
 	compact_done(message){
 		const c = this.compacting;
+		clearTimeout(c?.timer);
 		this.compacting = null;
 		this.compacted_turn = this.turns;
 		this.compacted_at = stamp();
@@ -2296,23 +2334,13 @@ Agents.Agent = class Agent {
 	}
 };
 
+Agents.Agent.COMPACT_TIMEOUT_MS = 10 * 60000;
 Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
 
 /* A nudged agent that declined is nudged again only after its context grew this much. */
 export const NUDGE_GROWTH = 20000;   // the least growth between two nudges; the step is 5% of the window when that is more
-/* RENEWAL helpers (Agent.renew_due, Agents.wake): why a renewing role is due a fresh session, and that session's first words. */
-export function renew_why(line, started_at, context, now = Date.now()){
-	if (!line) return null;
-	const born = Date.parse(started_at ?? "");
-	if (line.hours && born && now - born >= line.hours * 3600e3) return "age";
-	if (line.tokens && (context ?? 0) >= line.tokens) return "tokens";
-	return null;
-}
-export function renewal_text(id, replaces, why){
-	return `You are a fresh session of ${id}, replacing session ${replaces ?? "(unknown)"} (${why === "age" ? "it was a day old" : "its context passed the renewal line"}). ` +
-		"Read public/framework/ai/readme.md and public/framework/ai/priority.md, then your feedback inbox (module_inbox, module \"ai\"), and continue. Any message that woke you comes next.";
-}
 
+export const ALERT_PCTS = [50, 75];   // % of the window at which a child's parent is told (context_alert)
 export const REMIND_TOKENS = 100000;   // a role reminder each time the context grows this much (SERVEX_REMIND_TOKENS)
 export const SLEEP_COMPACT_TOKENS = 100000;   // compact before going dormant past this (capped at half the window)
 export const WINDOW_TOKENS = 1000000;   // the model window the step reminders are a share of (SERVEX_WINDOW_TOKENS overrides)

@@ -43,3 +43,8 @@
 {"file":"test/"}
 {"file":"DictationBar.css"}
 {"file":"DictationBar.js"}
+{"file":"DictateDebug.css"}
+{"file":"DictateDebug.js"}
+{"file":"DictateHealth.js"}
+{"file":"failures.jsonl"}
+{"file":"failures.jsonl","gone":true}

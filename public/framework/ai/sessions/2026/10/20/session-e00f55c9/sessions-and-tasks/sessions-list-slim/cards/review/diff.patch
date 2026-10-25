@@ -1,0 +1,109 @@
+diff --git a/public/framework/ai/AISession/AISessionView.js b/public/framework/ai/AISession/AISessionView.js
+index b3b06347c..a4da42272 100644
+--- a/public/framework/ai/AISession/AISessionView.js
++++ b/public/framework/ai/AISession/AISessionView.js
+@@ -100,23 +100,26 @@ export default class AISessionView extends View {
+ 		span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : ready ? "ready" : "idle")).attr("title", r.state + (working ? "" : ready ? " (alive, waiting for work)" : " (not working right now)")).text(working ? "▶" : ready ? "●" : "•");
+ 	}
+ 
+-	/** The rail card (the grid's `card` hook): a snapshot of one session in three lines. Redraws itself on a live change, like a row. */
++	/** The rail card (the grid's `card` hook): four things: the title, the cost line, how many sessions it started, its state. Redraws itself on a live change, like a row. */
+ 	render_card(){
+-		const { row: r } = this, { WORKING_STATES, display_name, role_label, row_of, SOURCE } = AISessionRows, { usd, state_dot, flag_tags } = AISessionView;
+-		const working = WORKING_STATES.has(r.state), name = display_name(r, AISessionRows.tree);
+-		div.c("sessions-card-line", () => {
+-			state_dot(r);
+-			span.c("sessions-row-title", name.text);
+-			flag_tags(r);
++		const { row: r } = this, { display_name, row_of, tree } = AISessionRows, { usd, state_dot } = AISessionView, id = r.session_id || r.id;
++		div.c("sessions-card-line", () => span.c("sessions-row-title", display_name(r, tree).text));
++		div.c("sessions-card-line muted", () => {
++			const ix = row_of(this.session_index, id);
++			if (ix) AISessionView.cost_parts(ix, r, true); else small(typeof r.cost_claude_usd === "number" ? usd(r.cost_claude_usd) : typeof r.cost === "number" ? usd(r.cost) : "—");
+ 		});
++		const kids = AISessionView.descendants(tree, id), direct = tree?.[id]?.kids?.length ?? 0;
+ 		div.c("sessions-card-line muted", () => {
+-			const ix = row_of(this.session_index, r.session_id || r.id);
+-			const cost = ix ? null : typeof r.cost_claude_usd === "number" ? usd(r.cost_claude_usd) : typeof r.cost === "number" ? usd(r.cost) : "—";
+-			if (ix) AISessionView.cost_parts(ix, r, true); else small(cost);
+-			if (ix?.flags) small.c("sessions-flag").text("⚠ " + ix.flags).attr("title", "Open the session to read the flags");
+-			small("· " + (working ? "updated now" : r.last_activity ? "updated " + age(r.last_activity) : "—")).attr("title", r.last_activity ?? "");
++			state_dot(r); small(r.state || "—");
++			if (direct) small(`· ${direct} child session${direct > 1 ? "s" : ""}${kids > direct ? ` · ${kids} in all` : ""}`);
+ 		});
+-		small.c("muted sessions-card-line", [r.role && role_label(r.role).label, (SOURCE[r.source] ?? { label: r.source }).label, row_of(this.session_index, r.session_id || r.id)?.model || r.model].filter(Boolean).join(" · "));
++	}
++
++	/** How many sessions sit under `id` in the parent tree, at any depth. */
++	static descendants(tree, id, seen = new Set()){
++		let n = 0;
++		for (const k of tree?.[id]?.kids ?? []){ if (seen.has(k)) continue; seen.add(k); n += 1 + AISessionView.descendants(tree, k, seen); }
++		return n;
+ 	}
+ 
+ 	/** One small red tag per flag that applies to the row (AISessionFlags). */
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index a4aaa6ce9..24f4f1221 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -104,7 +104,8 @@ export default class AISessionsPage extends Page {
+ 		this.$empty.el.hidden = true;
+ 		panel.main.append(div.c("sessions-body").append(this.nav_view(), div.c("sessions-main").append(new PageNav({ links: AISessionsPage.NAV }), ...(this.classic ? [this.$scope, this.$controls] : [this.$header]), this.grid, this.$empty, this.$status)));
+ 		this.arrange_for(this.grid.view);
+-		this.grid.watch(g => this.arrange_for(g.view));
++		let shown = this.grid.view;
++		this.grid.watch(g => { this.arrange_for(g.view); if (g.view !== shown){ shown = g.view; g.apply(false); } });   // the rail and the table list different rows
+ 		const grid = this.grid;
+ 		page_settings(this.url).then(s => { if (s.view) grid.default_view(s.view); });   // the default in settings.jsonl, unless the url or your last toggle chose
+ 		this.snapshot_rows = [];
+@@ -270,13 +271,20 @@ export default class AISessionsPage extends Page {
+ 			href: r => this.data_url + r.id + "/",   // the session page lives under the real list url, also from v/classic/
+ 			row: r => this.row_view(r, this.nests.get(r)),
+ 			card: r => new AISessionView({ row: r, url: this.data_url, spend: this.spend, session_index: this.session_index, card: true }),
+-			sort_rows: (rows, sort) => this.remote ? this.remote_sort(rows, sort) : this.arrange(rows, sort),
++			sort_rows: (rows, sort) => this.roots_for_cards(this.remote ? this.remote_sort(rows, sort) : this.arrange(rows, sort)),
+ 			has_more: () => !!this.remote && this.remote.rows.length < this.remote.total,   // the server holds the rest: the drawer's sentinel asks for it
+ 			load_more: () => this.remote_ask({ more: true }),
+ 			natural_dir: key => AISessionRows.natural_dir(key),
+ 		});
+ 	}
+ 
++	/** The rail shows one card per root session: a session that has a parent appears only in that parent's count. The table keeps nesting. */
++	roots_for_cards(rows){
++		if (this.grid?.view !== "rail") return rows;
++		const tree = AISessionRows.tree;
++		return rows.filter(r => !tree?.[r.session_id || r.id]?.parent);
++	}
++
+ 	/** The page's width follows the grid's view: the table fills the row, the rail is a narrow list with the detail beside it. */
+ 	arrange_for(view){
+ 		const width = view === "rail" ? "small" : "fill";
+diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
+index 49b12f08a..fe09bc23a 100644
+--- a/public/framework/ai/AISession/readme.md
++++ b/public/framework/ai/AISession/readme.md
+@@ -4,6 +4,7 @@
+ 
+ - `AISession.js` — one session's cost, read from its raw transcript (browser and node).
+ - `AISessionsPage.js` · `AISessionView.js` · `AISessionRows.js` · `AISessionBuckets.js` — the grid page, its row, how rows nest and fold.
++- `new AISessionsPage({ meta, classic: true })` draws the old all-controls-in-rows layout (`sessions/v/classic/`); its `data_url` getter strips a trailing `v/classic/` so every data file and row link still points at the real list. A rail card (`AISessionView` with `card: true`) shows four things: title, the one cost line, "N child sessions · M in all" and state.
+ - `AISessionDetail.js` · `AISessionConversation.js` · `AISessionCoverage.js` · `AISessionTrace.js` — a session's own page and its tabs. A clicked row opens that session's full page in place of the list (previews plus full detail views: [design/navigation](/framework/design/navigation/readme.md)); the sessions page no longer calls `columns()`. A named agent's url (`/framework/ai/sessions/<name>/`, a `reviewer-*` or `minion-*` row) resolves the name to its session through Servex's live agent list (`AISessionDetail.agent_row`), and every load asks the folder listing first, so the page never asks for a file that is not there.
+ - The session page's tabs are **Overview · Board · Tasks · Chat**, then Coverage, Cost, Models and tokens, Related. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, done X of Y, the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's cost is one line from one function, `AICost.cost_line`: "$282 this tab · $1035 with children"** ("this session" when it is not a VS Code tab). The Cost tile, the Sessions list's Cost cell and its rail card all draw it. The own figure is the summary's `cost.own.usd` (before it arrives, the day snapshot's `usd`); "with children" is `summary.cost.total`, which the item tool computes (`AICost.summary(AICost.session_url(id))`, one cached answer per session for every surface), never `SessionWork`'s own sum. The list never asks for every row: it shows an answer already here, else a small "with children …" button that asks for that one row. Clicking the Cost tile opens the Cost tab, whose first block lists every child session behind the total (`AICost.draw_session`). `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the Overview tab: one list, newest first, of the session's task folders (a folder an agent session ran shows that session's model, cost and a link) and its record tasks (`SessionTasks` hands it each replay through `on_session`), subtasks folded under a parent with "N of M done", dropped ones dimmed, and the head line `Own tasks: N · Total: M`. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
+ - `SessionWork.js` (+ `.css`) — the **Tasks** tab (the old Work view; its `SessionWork.split(root)` also feeds the stats bar and the Overview): its work nested by task folder (`sessions/doc/variants/SessionTree.js` over `ai/index.json`), own and rolled cost, tasks complete of created, open tasks, the Today ▾ pill (`ux/Filter/TimeFilter`), Approve. `Approvals.js` writes `{"approve":{"at","by":"owner"}}` to the session's own `session.jsonl` plus a pointer in that day's `day.jsonl` (the line the tab streams); `Review.js` is the leak rule and its numbers (finished 1 h, over $0.50, over a day old).
+diff --git a/public/framework/ai/sessions/sessions.css b/public/framework/ai/sessions/sessions.css
+index dbeea806c..819ab1c44 100644
+--- a/public/framework/ai/sessions/sessions.css
++++ b/public/framework/ai/sessions/sessions.css
+@@ -53,9 +53,10 @@
+ 	.sessions-page .datagrid-view-rail .datagrid-rail { max-block-size: none; }
+ 	.sessions-page:has(.datagrid-view-rail) .sessions-stats, .sessions-page:has(.datagrid-view-rail) .sessions-chiprow, .sessions-page:has(.datagrid-view-rail) .sessions-summary { display: none; }
+ 	.sessions-page:has(.datagrid-view-rail) .sessions-kinds .sessions-chip { font-size: .8em; padding: .05em .55em; }    /* the rail keeps the routine chips, small */
+-	.sessions-card { display: flex; flex-direction: column; gap: var(--gap-35); padding: var(--gap-50); min-width: 0; }
++	.sessions-card { display: flex; flex-direction: column; gap: 0; padding: .3em var(--gap-50); min-width: 0; }
++	.sessions-page .datagrid-view-rail .datagrid-card { padding: 0; gap: 0; line-height: 1.25; }
+ 	.sessions-card-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-35); min-width: 0; }
+-	.sessions-card .sessions-row-title { flex: 1 1 8em; white-space: normal; overflow-wrap: anywhere; }   /* a card has the room to wrap a long name; the table row keeps its one line */
++	.sessions-card .sessions-row-title { flex: 1 1 8em; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* a card title is one line, ellipsis */
+ 
+ 
+ 	.sessions-row { display: contents; }

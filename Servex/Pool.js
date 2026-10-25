@@ -101,7 +101,7 @@ export default class Pool extends Events {
                 + " michael/dev); it is then fast-forwarded to michael/dev and marked ready. Anything uncommitted or unmerged is"
                 + " refused with the list — nothing is ever discarded.",
             inputSchema: { type: "object", required: ["id"], properties: { id: { type: "string", description: "The id take_worktree gave, e.g. qf-1." } } },
-            handler: async args => JSON.stringify(await this.give_back(args.id), null, 2)
+            handler: async (args, ctx) => JSON.stringify(await this.give_back(args.id, ctx?.caller), null, 2)
         }];
     }
 
@@ -194,10 +194,17 @@ export default class Pool extends Events {
         return { id, held_by: null };
     }
 
-    async give_back(id){
+    async give_back(id, by){
         const slot = this.slots.find(s => s.id === id);
         if (!slot) throw new Error(`No worktree "${id}" in the pool. It has: ${this.slots.map(s => s.id).join(", ") || "none"}.`);
         if (slot.state !== "taken") return { id, state: slot.state, note: "It was not taken; nothing to do." };
+
+        /* A slot is recorded under the PARENT that spawned the minion, so the parent can ask for it back while the minion is still
+         * writing in it (2026-10-25: qf-8 went back to ready under minion-context-alerts and was handed to two more minions). */
+        const base = slash(path.resolve(slot.path)).toLowerCase();
+        const inside = cwd => { const c = slash(path.resolve(String(cwd || "."))).toLowerCase(); return !!cwd && (c === base || c.startsWith(base + "/")); };
+        const worker = this.holders().find(r => r.id !== by && ["working", "queued", "starting"].includes(r.state) && inside(r.cwd));
+        if (worker) throw new Error(`Refused: ${id} is in use — ${worker.id} (${worker.state}) works in it. Return it once that agent has finished.`);
 
         const dirty = await this.own_dirt(slot);
         if (dirty.length) throw new Error(`Refused: ${id} has uncommitted changes — commit and merge them, or move them, first. Nothing was discarded.\n`
@@ -267,7 +274,16 @@ export default class Pool extends Events {
         const rows = this.holders(), queued = this.queued_cwds();
         const reclaimed = [], kept = [];
         for (const slot of this.slots.filter(s => s.state === "taken")){
-            const holder = slot.taken_by, held = this.held(slot, rows, queued);
+            const holder = slot.taken_by;
+            /* A PHANTOM slot: the pool says "taken" but the folder holds no git worktree (qf-5 and qf-9, 2026-10-25, held for days by a
+             * dormant and a renewed agent while three spawns waited). There is no git state to protect, so the slot is forgotten, the folder left on disk
+             * (free_id moves it aside); a live agent whose cwd is inside it keeps it. */
+            if (!fs.existsSync(path.join(slot.path, ".git")) && !rows.some(r => ["idle", "working", "queued", "starting"].includes(r.state) && r.cwd && slash(path.resolve(String(r.cwd))).toLowerCase().startsWith(slash(path.resolve(slot.path)).toLowerCase()))){
+                this.say(`pool: ${slot.id} has no git worktree on disk (taken by ${holder}); the slot is dropped`, { id: slot.id, from: holder });
+                this.forget(slot);
+                continue;
+            }
+            const held = this.held(slot, rows, queued);
             if (held){
                 if (held.dead) { kept.push({ id: slot.id, holder, why: held.why }); this.once(slot, `pool: ${slot.id} is held by stopped ${holder} but kept — ${held.why}`, holder); }
                 continue;
@@ -370,7 +386,7 @@ export default class Pool extends Events {
         if (logs.length){
             aside = path.join(this.main, ".worktree-logs", `${slot.id}-${stamp().slice(0, 10)}-logs-${Date.now()}.patch`);
             fs.mkdirSync(path.dirname(aside), { recursive: true });
-            fs.writeFileSync(aside, execFileSync("git", ["-C", slot.path, "diff", "HEAD", "--", ...logs], { windowsHide: true, maxBuffer: 256 << 20 }));
+            fs.writeFileSync(aside, execFileSync("git", ["-C", slot.path, "diff", "HEAD", "--pathspec-from-file=-"], { input: logs.join("\n"), windowsHide: true, maxBuffer: 256 << 20 }));   // by stdin: thousands of paths overflowed the Windows command line (ENAMETOOLONG, qf-7)
             for (const file of logs) this.restore(slot, file);
         }
         const status = (await this.git(slot.path, ["status", "--porcelain", "--untracked-files=all"])).out;
@@ -430,7 +446,17 @@ export default class Pool extends Events {
             const dir = path.resolve(this.main, "..", "worktrees", id);
             if (taken.has(id)) continue;
             if (fs.existsSync(dir)){
-                try { if (fs.readdirSync(dir).length) continue; fs.rmdirSync(dir); } catch { continue; }   // an EMPTY leftover folder (qf-7, 09-30) frees its name
+                try {
+                    if (fs.readdirSync(dir).length){
+                        /* A folder with files but no .git is what a removed worktree leaves when Windows kept a file open (qf-1, qf-2, qf-8, 2026-10-25: three names blocked for days).
+                         * It is moved aside to worktrees/_retired/, never deleted; if a process still holds it the move fails and the name stays skipped. */
+                        if (fs.existsSync(path.join(dir, ".git"))) continue;
+                        const away = path.resolve(dir, "..", "_retired");
+                        fs.mkdirSync(away, { recursive: true });
+                        fs.renameSync(dir, path.join(away, `${id}-${stamp().slice(0, 10)}-${Date.now()}`));
+                        this.say(`pool: ${id} was a leftover folder with no git worktree in it; moved to worktrees/_retired/`, { id });
+                    } else fs.rmdirSync(dir);
+                } catch { continue; }   // an EMPTY leftover folder (qf-7, 09-30) frees its name
             }
             try { execFileSync("git", ["rev-parse", "--verify", "--quiet", `refs/heads/worktree/${id}`], { cwd: this.main, windowsHide: true, stdio: "ignore" }); }
             catch { return id; }   // no such branch: free

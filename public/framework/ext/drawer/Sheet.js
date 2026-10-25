@@ -476,7 +476,7 @@ export class SheetPanel extends View {
 
 	pick(name){
 		const shown = tabs.shown();
-		const tab = shown.find(t => t.name === (name === "dictation" ? "debug" : name)) ?? shown[0];
+		const tab = shown.find(t => t.name === name) ?? shown[0];
 		this.tab_name = tab.name;
 		this.route_tab(tab.name);
 		this.$title.text((tab.name === "ai" ? this.title : tab.label) + " ▾");   // the title says which tab is showing

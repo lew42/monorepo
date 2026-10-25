@@ -18,6 +18,7 @@ AISessionFlags.usd_of = r => AISessionRows.claude_usd_of(r);   // flags_of reads
 import QueryClient from "/framework/ext/Query/QueryClient.js";
 import Day from "/framework/core/Session/Day.js";
 import PageWork from "/framework/core/Page/ai/PageWork.js";
+import Popover from "/framework/ux/Popover/Popover.js";
 
 const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
 View.stylesheet(sessions_dir, "sessions.css");
@@ -61,6 +62,9 @@ export default class AISessionsPage extends Page {
 		}, ...args);
 	}
 
+	/** The folder the data files live in: v/classic is a variant page but reads the real page's files. */
+	get data_url(){ return this.url.replace(/v\/classic\/$/, ""); }
+
 	content(){
 		const panel = new Panel2({ title: "Sessions" }).ac("wide sessions-frame");   // `wide`: a plain Page's track is the narrow prose column; its header is hidden (sessions.css), the tab names it
 		this.$asof = null;
@@ -75,9 +79,11 @@ export default class AISessionsPage extends Page {
 		this.last_rows = [];        // the latest merged rows, UNFILTERED: filters and sort redraw from this
 		this.filtered_count = 0;    // the "sessions shown" count
 
-		this.scope = new URLSearchParams(location.search).get("scope") || AISessionsPage.month_of(today);   // month is the default view
-		if (/^\d{4}(-\d{2}){0,2}$/.test(this.scope)) [this.date_from, this.date_to] = AISessionsPage.range(this.scope, new URLSearchParams(location.search).has("scope") ? null : this.date_from);
-		else this.scope = AISessionsPage.month_of(today);
+		const asked = new URLSearchParams(location.search).get("scope");
+		const fallback = this.classic ? AISessionsPage.month_of(today) : Day.of(today);   // the slim header opens on Today; v/classic keeps the month
+		this.scope = asked || fallback;
+		if (/^\d{4}(-\d{2}){0,2}$/.test(this.scope)) [this.date_from, this.date_to] = AISessionsPage.range(this.scope, asked || !this.classic ? null : this.date_from);
+		else this.scope = fallback;
 
 		this.$scope = div.c("sessions-scope");
 		this.render_scope();
@@ -85,17 +91,21 @@ export default class AISessionsPage extends Page {
 		this.$stats = div.c("sessions-stats");
 		this.$status = div.c("sessions-status");   // the footer: one line of small things (counts, plan meters, open tasks)
 		this.$status.append(() => { this.$asof = small.c("muted sessions-asof", "loading…"); });   // "updated 9:35 PM", once the panel header's
-		this.$status.append(this.$stats, this.$asof, span.c("sessions-status-open").append(PageWork.line(this.url)));
+		this.$status.append(...(this.classic ? [this.$stats] : []), this.$asof, span.c("sessions-status-open").append(PageWork.line(this.url)));
 		this.render_stats();
 
 		this.$controls = div.c("sessions-controls");
+		this.$filters_body = this.classic ? this.$controls : div.c("sessions-filters-body");   // where render_controls draws: the old controls, or the Filters menu
+		if (!this.classic) this.$header = this.build_header();
 
 		this.grid = this.make_grid();
+		if (!this.classic && this.$view_slot){ this.$view_slot.append(this.grid.$toggle); this.grid.$bar.el.hidden = true; }   // one row of buttons: the view toggle lives in the Filters menu
 		this.$empty = p.c("muted", "No sessions with an id yet.");
 		this.$empty.el.hidden = true;
-		panel.main.append(div.c("sessions-body").append(this.nav_view(), div.c("sessions-main").append(new PageNav({ links: AISessionsPage.NAV }), this.$scope, this.$controls, this.grid, this.$empty, this.$status)));
+		panel.main.append(div.c("sessions-body").append(this.nav_view(), div.c("sessions-main").append(new PageNav({ links: AISessionsPage.NAV }), ...(this.classic ? [this.$scope, this.$controls] : [this.$header]), this.grid, this.$empty, this.$status)));
 		this.arrange_for(this.grid.view);
-		this.grid.watch(g => this.arrange_for(g.view));
+		let shown = this.grid.view;
+		this.grid.watch(g => { this.arrange_for(g.view); if (g.view !== shown){ shown = g.view; g.apply(false); } });   // the rail and the table list different rows
 		const grid = this.grid;
 		page_settings(this.url).then(s => { if (s.view) grid.default_view(s.view); });   // the default in settings.jsonl, unless the url or your last toggle chose
 		this.snapshot_rows = [];
@@ -118,6 +128,7 @@ export default class AISessionsPage extends Page {
 
 	/** One clickable trail: 2026 / October / 13, the last part current; the arrows step the level (newer/older). */
 	render_scope(){
+		if (!this.scope) return void this.$scope?.empty();   // a custom window has no trail
 		const parts = this.scope.split("-"), pad = AISessionsPage.pad;
 		const step = dir => {
 			const [y, m, d] = parts.map(Number);
@@ -152,6 +163,8 @@ export default class AISessionsPage extends Page {
 		const url = new URL(location.href); url.searchParams.set("scope", scope);
 		history.replaceState(history.state, "", url);
 		this.render_scope();
+		this.$range_btn?.text(this.range_label() + " ▾");
+		this.show_custom?.(false);
 		if (this.$from) this.$from.el.value = this.date_from;
 		if (this.$to) this.$to.el.value = this.date_to;
 		this.set_from(this.date_from);
@@ -165,6 +178,86 @@ export default class AISessionsPage extends Page {
 			a.c("sessions-nav-item" + (i === 0 ? " sessions-nav-on" : ""), () => { icon(glyph); span(text); }).href(href).attr("title", tip)));
 	}
 
+	// ---- the slim sticky header: range, search, Filters ------------------------------------------------
+
+	static RANGES = ["Today", "Yesterday", "Last 7 days", "This month", "Custom…"];
+
+	/** The button label for the window on screen: a scope day/month/year, or the two dates. */
+	range_label(){
+		const today = Day.of(new Date()), yesterday = Day.of(new Date(Date.now() - 864e5));
+		if (this.scope === today) return "Today";
+		if (this.scope === yesterday) return "Yesterday";
+		if (this.scope === AISessionsPage.month_of(new Date())) return "This month";
+		return this.scope || (this.date_from === this.date_to ? this.date_from : `${this.date_from.slice(5)} – ${this.date_to.slice(5)}`);
+	}
+
+	/** One range from the menu: sets the window and asks again (set_from → render_rows, or the remote query). */
+	pick_range(name){
+		const now = new Date(), day = n => Day.of(new Date(now.getFullYear(), now.getMonth(), now.getDate() - n));
+		if (name === "Today") return this.set_scope(day(0));
+		if (name === "Yesterday") return this.set_scope(day(1));
+		if (name === "This month") return this.set_scope(AISessionsPage.month_of(now));
+		this.scope = null; this.render_scope();
+		if (name === "Last 7 days"){ this.date_to = day(0); this.date_from = day(6); this.show_custom?.(false); }
+		else this.show_custom?.(true);   // Custom…: the two date inputs
+		this.$range_btn?.text(this.range_label() + " ▾");
+		if (this.$from) this.$from.el.value = this.date_from;
+		if (this.$to) this.$to.el.value = this.date_to;
+		if (name === "Last 7 days") return this.set_from(this.date_from);
+	}
+
+	set_to(to){
+		if (!to) return;
+		this.date_to = to; this.scope = null; this.render_scope();
+		this.$range_btn?.text(this.range_label() + " ▾");
+		this.remote ? this.remote_ask() : this.render_rows();
+	}
+
+	/** One full-width sticky row: the range menu, the search box, the Filters menu (everything else the old controls drew). */
+	build_header(){
+		const page = this, pop = (anchor, content, cls) => new Popover({ anchor: anchor.el, role: "dialog", content }).draw().ac("sessions-pop " + cls);
+		return div.c("sessions-header", () => {
+			this.$range_btn = button.c("sessions-hbtn", this.range_label() + " ▾").attr("type", "button").attr("title", "Which days are listed");
+			pop(this.$range_btn, function(){
+				div.c("sessions-range-list", () => {
+					AISessionsPage.RANGES.forEach(name => button.c("ux-popover-item", name).attr("type", "button").on("click", () => { page.pick_range(name); if (name !== "Custom…") this.close(); }));
+				});
+				const custom = div.c("sessions-daterange flex gap-50 v-center", () => {
+					small.c("muted", "from");
+					page.$from = input().attr("type", "date");
+					page.$from.el.value = page.date_from;
+					page.$from.on("change", () => { page.scope = null; page.render_scope(); page.set_from(page.$from.el.value); page.$range_btn.text(page.range_label() + " ▾"); });
+					small.c("muted", "to");
+					page.$to = input().attr("type", "date");
+					page.$to.el.value = page.date_to;
+					page.$to.on("change", () => page.set_to(page.$to.el.value));
+				});
+				custom.el.hidden = true;
+				page.show_custom = on => { custom.el.hidden = !on; };
+			}, "sessions-pop-range");
+
+			const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search").attr("aria-label", "search name, agent, id, role, model, tag")
+				.attr("title", "Searches every loaded session, routine and closed ones too, whatever the other filters say (name, agent, id, role, model, tag).");
+			let wait;
+			$q.on("input", () => { clearTimeout(wait); wait = setTimeout(() => {
+				const q = $q.el.value.trim();
+				if (this.remote){ this.remote.search = q; this.remote_ask(); } else { this.search = q.toLowerCase(); this.render_rows(); }
+			}, 200); });
+
+			this.$filters_btn = button.c("sessions-hbtn", "Filters ▾").attr("type", "button").attr("title", "Closed, attention, in flight, routine kinds, roles, the totals and the plan meters");
+			pop(this.$filters_btn, () => {
+				div.c("sessions-filters-top flex wrap gap-50", () => {
+					for (const [text, href] of [["Docs", this.url + "doc/"], ["Readme", this.url + "readme/"], ...AISessionsPage.NAV.filter(l => l.label).map(l => [l.label, l.href])]) a.c("page-link", text).href(href);
+					a.c("page-link", "Old layout").href(this.url + "v/classic/").attr("title", "The page as it was before the slim header: every control in rows above the list");
+					this.$view_slot = div.c("sessions-filters-view");   // the grid's Table/Rail toggle lands here once the grid exists (constructor), so the header stays one row
+				});
+				div.c("sessions-filters-trail").append(this.$scope);
+				div.c("sessions-filters-main").append(this.$filters_body);
+				div.c("sessions-filters-stats").append(this.$stats);
+			}, "sessions-pop-filters");
+		});
+	}
+
 	// ---- drawing -------------------------------------------------------------------------------------
 
 	static WIDTHS = { state: "3rem", name: "1fr", cost: "8.5rem", updated: "5rem", duration: "5rem", role: "11rem", source: "7rem", model: "9rem" };
@@ -175,14 +268,21 @@ export default class AISessionsPage extends Page {
 			columns: AISessionRows.COLUMNS.map(c => ({ ...c, width: AISessionsPage.WIDTHS[c.key], ...(c.key === "name" && { min: "12rem" }) })),
 			rows: [], filters: false, row_height: null, page_size: AISessionsPage.PAGE_SIZE,
 			prefs_id: "sessions", settings: this.settings,
-			href: r => this.url + r.id + "/",
+			href: r => this.data_url + r.id + "/",   // the session page lives under the real list url, also from v/classic/
 			row: r => this.row_view(r, this.nests.get(r)),
-			card: r => new AISessionView({ row: r, url: this.url, spend: this.spend, session_index: this.session_index, card: true }),
-			sort_rows: (rows, sort) => this.remote ? this.remote_sort(rows, sort) : this.arrange(rows, sort),
+			card: r => new AISessionView({ row: r, url: this.data_url, spend: this.spend, session_index: this.session_index, card: true }),
+			sort_rows: (rows, sort) => this.roots_for_cards(this.remote ? this.remote_sort(rows, sort) : this.arrange(rows, sort)),
 			has_more: () => !!this.remote && this.remote.rows.length < this.remote.total,   // the server holds the rest: the drawer's sentinel asks for it
 			load_more: () => this.remote_ask({ more: true }),
 			natural_dir: key => AISessionRows.natural_dir(key),
 		});
+	}
+
+	/** The rail shows one card per root session: a session whose parent is in the list appears only in that parent's count. A child whose parent is outside the range keeps its own card. The table keeps nesting. */
+	roots_for_cards(rows){
+		if (this.grid?.view !== "rail") return rows;
+		const tree = AISessionRows.tree, id = r => r.session_id || r.id, listed = new Set(rows.map(id));
+		return rows.filter(r => !listed.has(tree?.[id(r)]?.parent));
 	}
 
 	/** The page's width follows the grid's view: the table fills the row, the rail is a narrow list with the detail beside it. */
@@ -253,7 +353,7 @@ export default class AISessionsPage extends Page {
 	}
 
 	row_view(row, nest){
-		return new AISessionView({ row, url: this.url, page_dirs: this.page_dirs, spend: this.spend, session_index: this.session_index, nest });
+		return new AISessionView({ row, url: this.data_url, page_dirs: this.page_dirs, spend: this.spend, session_index: this.session_index, nest });
 	}
 
 	/** Builds the filter controls the first time real rows arrive (so the role list is never a guess), then redraws the grid. */
@@ -267,13 +367,15 @@ export default class AISessionsPage extends Page {
 			$box.on("change", () => { this[key] = $box.el.checked; this.render_rows(); });
 			this[key + "_text"] = span(text);
 		}).attr("title", title);
-		this.$controls.empty(() => {
-			div.c("sessions-filters flex gap-100 v-center wrap", () => {   // one compact row: search, closed, attention, in flight, dates
-				const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model, tag")
-					.attr("title", "Searches every loaded session, routine and closed ones too, whatever the other filters say. Older days: \"show 30 more days\".");
-				$q.el.value = this.search ?? "";
-				let wait;
-				$q.on("input", () => { clearTimeout(wait); wait = setTimeout(() => { this.search = $q.el.value.trim().toLowerCase(); this.render_rows(); }, 150); });
+		this.$filters_body.empty(() => {
+			div.c("sessions-filters flex gap-100 v-center wrap", () => {   // one compact row: search, closed, attention, in flight, dates (the slim header owns search and dates)
+				if (this.classic){
+					const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model, tag")
+						.attr("title", "Searches every loaded session, routine and closed ones too, whatever the other filters say. Older days: \"show 30 more days\".");
+					$q.el.value = this.search ?? "";
+					let wait;
+					$q.on("input", () => { clearTimeout(wait); wait = setTimeout(() => { this.search = $q.el.value.trim().toLowerCase(); this.render_rows(); }, 150); });
+				}
 				check("show closed", "show_closed", "Sessions you marked done are hidden by default. They are never deleted.");
 				const red = AISessionFlags.counts(this.last_rows), flagged = red.any;
 					check(`needs attention · ${flagged}`, "attention_only", "Sessions with a red flag (expensive, stalled, context bloat, Opus minion) or an alert in their session.jsonl record.");
@@ -281,7 +383,7 @@ export default class AISessionsPage extends Page {
 					this.$red_counts = small.c("sessions-redflag-counts").attr("title", "How many sessions carry each red flag right now");
 				check("in flight", "inflight_only", "Only sessions working right now (a transcript that moved in the last 5 minutes, or a Servex agent that is running).");
 					this.records_filter ??= new URLSearchParams(location.search).get("records") || "";   // /sessions/?records=has-card still works (doc/patterns.md); the tag, category, core and records pickers were cut (2026-10-12)
-				div.c("sessions-daterange flex gap-50 v-center", () => {
+				if (this.classic) div.c("sessions-daterange flex gap-50 v-center", () => {
 					small.c("muted", "from");
 					const $from = input().attr("type", "date");
 					$from.el.value = this.date_from;
@@ -452,14 +554,14 @@ export default class AISessionsPage extends Page {
 				soon();
 			});
 		} catch {}
-		clearInterval(this.tick); let n = 0; this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length){ this.render_stats(); if (++n % 4 === 0) AISessionFlags.load(this.url).then(() => this.draw()); } this.follow_live(); }, 30000);   // the 1.4 MB flags file and a full redraw: every 2 minutes, not every 30 s   // running times advance
+		clearInterval(this.tick); let n = 0; this.tick = setInterval(() => { if (!document.hidden && this.last_rows.length){ this.render_stats(); if (++n % 4 === 0) AISessionFlags.load(this.data_url).then(() => this.draw()); } this.follow_live(); }, 30000);   // the 1.4 MB flags file and a full redraw: every 2 minutes, not every 30 s   // running times advance
 
-		AISessionFlags.load(this.url).then(() => {   // roles and red flags: the roles change, so the role filter is rebuilt from them
+		AISessionFlags.load(this.data_url).then(() => {   // roles and red flags: the roles change, so the role filter is rebuilt from them
 			if (!this.last_rows.length) return;
 			this.role_filter = null;
 			this.build_rows(); this.render_controls(); this.render_rows();
 		});
-		get_json(this.url + "sessions.json").then(async snap => {
+		get_json(this.data_url + "sessions.json").then(async snap => {
 			this.snapshot_rows = snap?.rows ?? [];
 			this.last_agents = await fetch_agents();
 			if (this.polling){ this.draw(); poll(); }
@@ -467,13 +569,13 @@ export default class AISessionsPage extends Page {
 
 		// ⚠ Each feed below redraws ONLY if real rows are already on screen: render_controls() builds the role and
 		// trigger filters once from real data, so a redraw on an empty list would lock them to an empty Set forever.
-		load_tree(this.url).then(tree => { AISessionRows.tree = this.tree = tree; if (this.last_rows.length) this.render_rows(); });
-		load_index(this.url).then(index => {
+		load_tree(this.data_url).then(tree => { AISessionRows.tree = this.tree = tree; if (this.last_rows.length) this.render_rows(); });
+		load_index(this.data_url).then(index => {
 			this.session_index = AISessionRows.ix = index;
 			if (this.last_rows.length) this.render_rows();
 			this.follow_live();
 		});
-		load_spend_tree(this.url).then(spend => {
+		load_spend_tree(this.data_url).then(spend => {
 			this.spend = spend;
 			if (!this.last_rows.length) return;
 			this.trigger_filter = null;   // rebuild it now that the real trigger tags exist
@@ -484,8 +586,8 @@ export default class AISessionsPage extends Page {
 			this.page_dirs = index;
 			if (this.last_rows.length) this.draw();   // upgrades drawn rows to their date-path links
 		});
-		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });   // the plan's own meter, kept fresh by Servex
-		get_json(this.url + "../sessions/openrouter-reconcile.json").then(r => { this.reconcile = r; this.render_stats(); }).catch(() => {});   // written by Server/openrouter-reconcile.mjs
+		get_json(this.data_url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });   // the plan's own meter, kept fresh by Servex
+		get_json(this.data_url + "../sessions/openrouter-reconcile.json").then(r => { this.reconcile = r; this.render_stats(); }).catch(() => {});   // written by Server/openrouter-reconcile.mjs
 	}
 
 	/** Load the day files the date filter needs (real files: closed days, plus today's live one), then ask the dev socket to push today's changes. With no dev socket the 30-second tick re-reads today's file. A cost change redraws its own row (AISessionView); a new or active/idle session redraws the grid now, a newer last activity a moment later. */
@@ -496,9 +598,9 @@ export default class AISessionsPage extends Page {
 		this.live ??= new AISessionLive((moved, later) => redraw(moved.length ? 100 : 1500));
 		if (this.live_day !== today){
 			this.live_day = today;
-			await this.live.load(await AISessionLive.days(this.url, this.date_from, this.date_to));
+			await this.live.load(await AISessionLive.days(this.data_url, this.date_from, this.date_to));
 			this.draw();
-		} else if (!AISessionLive.socket()) await this.live.load([`${this.url}${today.replace(/-/g, "/")}/index.json`]);   // static host: re-read the file
+		} else if (!AISessionLive.socket()) await this.live.load([`${this.data_url}${today.replace(/-/g, "/")}/index.json`]);   // static host: re-read the file
 		this.live.follow(today);
 	}
 
@@ -509,7 +611,7 @@ export default class AISessionsPage extends Page {
 		if (this.$from) this.$from.el.value = from;
 		if (this.remote) return void this.remote_ask();
 		this.render_rows(); this.render_stats();
-		if (this.live){ await this.live.load(await AISessionLive.days(this.url, from, this.date_to)); this.draw(); }
+		if (this.live){ await this.live.load(await AISessionLive.days(this.data_url, from, this.date_to)); this.draw(); }
 	}
 
 	// ---- remote mode: node holds the sessions, the browser asks for the rows it shows (ext/Query, doc/server-query.md) --------------
@@ -526,9 +628,10 @@ export default class AISessionsPage extends Page {
 		const ok = await this.remote_ask({ first: true });
 		if (!ok) { this.remote = null; this.client = null; return false; }
 		this.remote_controls();
+		AISessionRows.load_tree(this.data_url).then(tree => { AISessionRows.tree = this.tree = tree; if (this.remote) this.grid.apply(false); });   // the cards' child counts and root-only rail read the tree, in remote mode too
 		const get_json = AISessionRows.get_json;
-		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });
-		get_json(this.url + "../sessions/openrouter-reconcile.json").then(r => { this.reconcile = r; this.render_stats(); }).catch(() => {});
+		get_json(this.data_url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });
+		get_json(this.data_url + "../sessions/openrouter-reconcile.json").then(r => { this.reconcile = r; this.render_stats(); }).catch(() => {});
 		return true;
 	}
 
@@ -601,15 +704,17 @@ export default class AISessionsPage extends Page {
 			$box.on("change", () => { this[key] = $box.el.checked; this.remote_ask(); });
 			this[key + "_text"] = span(text);
 		}).attr("title", title);
-		this.$controls.empty(() => { div.c("sessions-filters flex gap-100 v-center wrap", () => {
-			const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model, tag")
-				.attr("title", "Searches every session in node (ext/Query `contains`), routine and closed ones too, whatever the other filters say.");
-			let t = null;
-			$q.on("input", () => { clearTimeout(t); t = setTimeout(() => { this.remote.search = $q.el.value.trim(); this.remote_ask(); }, 250); });
+		this.$filters_body.empty(() => { div.c("sessions-filters flex gap-100 v-center wrap", () => {
+			if (this.classic){
+				const $q = input.c("sessions-search").attr("type", "search").attr("placeholder", "search name, agent, id, role, model, tag")
+					.attr("title", "Searches every session in node (ext/Query `contains`), routine and closed ones too, whatever the other filters say.");
+				let t = null;
+				$q.on("input", () => { clearTimeout(t); t = setTimeout(() => { this.remote.search = $q.el.value.trim(); this.remote_ask(); }, 250); });
+			}
 			check("show closed", "show_closed", "Sessions you marked done are hidden by default. They are never deleted.");
 			check("needs attention", "attention_only", "Sessions with a red flag (expensive, stalled, context bloat, Opus minion) or an alert in their session.jsonl record.");
 			check("in flight", "inflight_only", "Only sessions working right now.");
-			div.c("sessions-daterange flex gap-50 v-center", () => {
+			if (this.classic) div.c("sessions-daterange flex gap-50 v-center", () => {
 				small.c("muted", "from");
 				const $from = input().attr("type", "date"); $from.el.value = this.date_from; this.$from = $from;
 				$from.on("change", () => this.set_from($from.el.value));

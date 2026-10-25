@@ -29,7 +29,7 @@ const CAN = {
 const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent", "outcome", "brief", "from"];
 
 // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
-const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
+const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "type", "spawn", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
 
 export class Task extends Item {
@@ -203,10 +203,21 @@ export class Task extends Item {
 	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
 	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
 	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion"];
+	/* A child is a SESSION when it replayed as one (a Session entry, or a folder whose record is a session's), or, for an old plain
+	   reference node has not replayed, when its folder holds session.jsonl (`session_resolver`). */
 	static session_resolver = null;
+	get is_session(){ return false; }
+	static is_child_session(t){ return !!t && (t.is_session || !!Task.session_resolver?.(t.get_one("path"))); }
+	/* The child sessions in my task tree, at any depth: a Session entry nests under the task that caused it, so it is found below that
+	   task, not only in my own list. A child session's own children are its `children`, never mine. Computed on read, never stored. */
+	sessions_below(){
+		const out = [], walk = list => { for (const t of list ?? []) if (Task.is_child_session(t)) out.push(t); else walk(t._tasks); };
+		walk(this._tasks);
+		return out;
+	}
 	get children(){
-		const is_session = this.constructor.session_resolver;
-		return [...(this._tasks ?? [])].filter(t => is_session?.(t.get_one("path"))).map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state, path: t.get_one("path") }));
+		return this.sessions_below().map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state, path: t.get_one("path"),
+			...(t.get_one("spawn") ? { spawn: t.get_one("spawn") } : {}), children: t.children }));
 	}
 	// One screen for a task or a session: counts by state, the open tasks only, completion, cost, time and child sessions.
 	summary(){
@@ -407,28 +418,35 @@ export class Task extends Item {
 	// task.jsonl into that stub through the Store (the way TaskPage does) and tails it live. "missing" only after a 404.
 	static resolver = null;
 	static resolving = new Set();
-	static from_ref(ref, as){
+	/* `entry` is the reference line itself. A Session entry says {"type":"Session","spawn":{role, model, effort, role_readme, brief,
+	   session_id, agent, at, placed}} (core/Session/readme.md, "Session entries"): its type wins over the child's line 1, and its spawn is kept on the child. */
+	static from_ref(ref, as, entry = null){
 		const lines = !this.resolving.has(ref) && this.resolver ? this.resolver(ref) : null;
 		const id = as ?? this.ref_id(ref);   // `as`: the id the task had in the parent (a moved item keeps it, whatever its new folder is called)
 		let kid;
 		if (lines?.length){
 			this.resolving.add(ref);   // a cycle of references stops here
-			const Own = Item.types.get(lines[0]?.class ?? (lines[0]?.session ? "Session" : undefined));   // line 1 may name a subclass (a Process), or be a session record ({session:{…}}): replay it as that, when it is loaded
+			// The entry's type; else line 1 may name a subclass (a Process) or be a session's record ({session:{…}}, or a spawn's {assign}): replay it as that, when it is loaded.
+			const Own = Item.types.get(entry?.type ?? lines[0]?.class ?? (lines[0]?.session || lines.some(Task.spawned) ? "Session" : undefined));
 			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
 			if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
-			kid = new this({ id });
+			const Own = Item.types.get(entry?.type);
+			kid = Own && Own.prototype instanceof this && Own.name === "Session" ? new Own(id) : new this({ id });   // Session's constructor takes the id itself
 			kid.put("title", id);
 			const browser = !this.resolver && typeof document !== "undefined" && !this.resolving.has(ref);
 			kid.put("state", browser ? "loading" : "missing");
 			if (browser) kid.ready = this.open_ref(kid, ref);   // a promise: resolves once the file is read (or 404s)
 		}
 		if (kid.data.path === undefined) kid.put("path", ref);
+		if (entry?.spawn && typeof entry.spawn === "object") kid.put("spawn", entry.spawn);
 		kid._own_file = ref;   // a referenced child lives in its own file: the parent Store never records its changes (Store.js owned_below)
 		return kid;
 	}
 
 	// A reference's id is its folder name; a module's list (/framework/core/Task/tasks/) is "core-Task-tasks", so lists side by side (/tasks/) never collide.
+	// A spawn's line (line 1, or after a queued brief's own assign line), which only Servex's open_task writes: {"assign":{"session_id","agent",…}}. Its folder is a session's.
+	static spawned(line){ const a = line?.assign; return !!(a && typeof a === "object" && a.session_id && a.agent); }
 	static ref_id(ref){
 		const segs = String(ref).split("/").filter(Boolean);
 		return segs.at(-1) === "tasks" && segs.length > 1 ? segs.slice(segs[0] === "framework" ? 1 : 0).join("-") : segs.at(-1) ?? "";
@@ -488,7 +506,7 @@ export class Task extends Item {
 			if (session_id !== undefined) this.put("session", session_id);
 		}
 		if (typeof line.task === "string"){   // a later reference with the same id (the folder name) replaces the earlier one: the task moved home
-			const kid = Task.from_ref(line.task, line.as), had = this.tasks.find(kid.id);
+			const kid = Task.from_ref(line.task, line.as, line), had = this.tasks.find(kid.id);
 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
 			this.adopt_child(kid);
 		}

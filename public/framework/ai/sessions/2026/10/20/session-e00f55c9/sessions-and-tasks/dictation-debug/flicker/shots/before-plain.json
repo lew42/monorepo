@@ -1,0 +1,80 @@
+{
+ "scenario": "plain",
+ "frames": 93,
+ "every_ms": 157,
+ "words_gone": 7,
+ "explained_by_clean": 0,
+ "agree": false,
+ "words_moved": 2,
+ "flickers": [
+  {
+   "from": 40,
+   "to": 41,
+   "ms": 6480,
+   "word": "the",
+   "lost": 1
+  },
+  {
+   "from": 40,
+   "to": 41,
+   "ms": 6480,
+   "word": "thing",
+   "lost": 1
+  },
+  {
+   "from": 40,
+   "to": 41,
+   "ms": 6480,
+   "word": "and",
+   "lost": 1
+  },
+  {
+   "from": 40,
+   "to": 41,
+   "ms": 6480,
+   "word": "then",
+   "lost": 1
+  },
+  {
+   "from": 40,
+   "to": 41,
+   "ms": 6480,
+   "word": "second",
+   "lost": 1
+  },
+  {
+   "from": 40,
+   "to": 41,
+   "ms": 6480,
+   "word": "comes",
+   "lost": 1
+  },
+  {
+   "from": 40,
+   "to": 41,
+   "ms": 6480,
+   "word": "along",
+   "lost": 1
+  }
+ ],
+ "moves": [
+  {
+   "from": 27,
+   "to": 28,
+   "ms": 4450,
+   "words": "And | So the first thing is the flicker. Words should stay where they are."
+  },
+  {
+   "from": 28,
+   "to": 29,
+   "ms": 4607,
+   "words": "So the first thing is the flicker. Words should stay where they are. | And then"
+  }
+ ],
+ "sent": [
+  "So the first thing is the flicker. Words should stay where they are.",
+  "And then the second thing comes along."
+ ],
+ "final_words": "So the first thing is the flicker. Words should stay where they are. | And then the second thing comes along.",
+ "errors": []
+}

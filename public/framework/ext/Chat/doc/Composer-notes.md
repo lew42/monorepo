@@ -34,6 +34,7 @@ Function options:
 - `on_revised` callback: (text, {raw, level}) => … — forwarded from `ux/Dictate`.
 - `try_command(text)`: boolean — an HITL command ("rename this") the box swallows instead of sending.
 - `on_live`: ({text, settled, guess, sent}) => … — dictation goes into a growing chat bubble.
+- `on_out`: ({text, raw, at}) => … — dictated words just left the bubble or box to be sent: draw them in the chat now, at `at`. The send (`deliver`) follows later with the same `at`, after any clean-up wait, so nothing on screen vanishes in between ([ux/Dictate/doc/flicker.md](/framework/ux/Dictate/doc/flicker.md)).
 - `on_send_start`: (raw_text) => … — a send just started, BEFORE the clean-up wait (deliverable 3).
 - `on_meter`: (level) => … — forwarded to `ComposerMic`/`Dictate` for a caller's own level bar.
 - `device_id`: forwarded to `Dictate` — a caller that already picked one mic by hand.

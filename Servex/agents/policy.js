@@ -13,7 +13,7 @@ const NO_SPAWN = ["task-mastermind", "manager", "mastermind", "master-assistant"
  * Servex's own) counts as THE mastermind for messaging purposes (D4,
  * 2026-09-25/28): `task-mastermind-recursive-pairs` was refused when it
  * messaged `mastermind-servex-3` only because the id had a `-3` on it. */
-const SERVEX_ID = /^(mastermind-servex|servex-mastermind|ai-system-mastermind)(-\d+)?$/;
+const SERVEX_ID = /^(mastermind-servex|servex-mastermind|ai-system-mastermind|mastermind-ai)(-\d+)?$/;
 
 export class Policy {
 
@@ -38,7 +38,7 @@ export class Policy {
 		if(id.startsWith("master-assistant")) return "master";
 		if(SERVEX_ID.test(id)) return "servex";
 		if(id.startsWith("task-mastermind-")) return "task-mastermind";
-		if(id.startsWith("session-smart-")) return "smart"; // the voice session's smart assistant: the owner's mastermind while Claude is out (2026-10-05)
+		if(id.startsWith("session-smart-")) return "smart"; // the voice session's smart assistant: the owner's own mastermind on Opus 5.5 (tier voice_smart, 2026-10-25)
 		if(id === "dispatcher") return "system";
 		if(this.registered_external(id)) return "external";
 		return "worker";

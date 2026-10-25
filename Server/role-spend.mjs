@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { turn_costs } from "../Servex/agents/turn-costs.js";
 
 // A role's earlier ids count as the same role: the AI system mastermind was mastermind-servex*, then mastermind-system-architect*.
-export const ALIASES = { "ai-system-mastermind": ["ai-system-mastermind", "mastermind-system-architect", "mastermind-servex"] };
+export const ALIASES = { "ai-system-mastermind": ["ai-system-mastermind", "mastermind-ai", "mastermind-system-architect", "mastermind-servex"] };
 
 const home = () => process.env.SERVEX_HOME ?? path.join(process.env.LOCALAPPDATA ?? path.join(os.homedir(), "AppData", "Local"), "lew42", "servex");
 

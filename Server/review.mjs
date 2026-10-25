@@ -465,7 +465,7 @@ async function turnsCmd(taskDir) {
 	try {
 		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model: "claude-sonnet-5-5", effort: "medium", permission_mode: "bypassPermissions", cwd: root, parent: SessionRecord.task_agent(taskDir) ?? undefined });
 		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
-		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
+		const waited = await waitAgent(spawned.id);
 		cost = waited.cost ?? 0;
 		await mcp("stop_agent", { id: spawned.id }, 20000);
 		const replyPath = path.join(taskDir, "review", "reply.md");
@@ -625,11 +625,26 @@ async function mcp(name, args, ms = 30000) {
 	try { return JSON.parse(text); } catch { return { raw: text }; }
 }
 
+// Node's fetch gives up when no response headers arrive within 300 s, so one 900 s wait_for_agent fails on any review over 5 minutes
+// (2026-10-25). Wait in 240 s slices until the agent answers, up to 900 s in all.
+async function waitAgent(id, total_s = 900) {
+	const end = Date.now() + total_s * 1000;
+	for (;;) {
+		const slice = Math.max(1, Math.min(240, Math.round((end - Date.now()) / 1000)));
+		const r = await mcp("wait_for_agent", { id, timeout_s: slice }, (slice + 10) * 1000);
+		if (!r.timed_out || Date.now() >= end) return r;
+	}
+}
+
+// Both reviewer prompts end with this one check (2026-10-24): docs are final before merge, and the files are the truth.
+const DOCS_CHECK = "Also: re-read the readme and doc/ of each module the diff touches. Is anything new unindexed or anything now stale? Could a fresh agent continue from this task folder alone? Report each gap as a [fix].";
+
 function buildPrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shotPaths, size) {
 	const rel = p => path.relative(root, p).replaceAll("\\", "/");
 	const files = [rel(path.join(taskDir, "requirements.md")), ...ownerWordsFiles.map(rel), ...(cardDir ? [rel(cardDir)] : []), rel(diffPath), ...shotPaths.map(rel)];
 	const q = "Does it do what the owner asked in requirements.md? Is anything broken? Is there a simpler way?"
-		+ (size === "full" && shotPaths.length ? " Also, from the screenshots: is the space used well, is the order right, can the reader find everything, is the navigation clear?" : "");
+		+ (size === "full" && shotPaths.length ? " Also, from the screenshots: is the space used well, is the order right, can the reader find everything, is the navigation clear?" : "")
+		+ " " + DOCS_CHECK;
 	return `You are reviewing someone else's finished work with fresh eyes — you have never seen their conversation, only these files. Repo root: ${root.replaceAll("\\", "/")}.\n\n`
 		+ `Read: ${files.join(", ")}.\n\n${q}\n\n`
 		+ `Write ${rel(path.join(taskDir, "review.md"))}: its first line is exactly "verdict: pass" or "verdict: fix". Then numbered findings, one per line: "N. [fix] ..." for something that must change, or "N. [note] ..." for an observation worth a look — one or two plain sentences each, naming a file:line or a screenshot's file name.\n\n`
@@ -650,6 +665,7 @@ function buildPagePrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shot
 	return `Load the review skill at ${reviewSkillPath().replaceAll("\\", "/")} and follow it — you are the fresh-eyes reviewer it describes.\n\n`
 		+ `Read: ${files.join(", ")} (and each page's own layout.json inside ${rel(shotsDir)}/<page>/, as evidence under the layout, sizing, wrapping and spacing questions).\n\n`
 		+ `Write ${rel(path.join(taskDir, "review", "report.md"))} in the exact shape the review skill gives.\n\n`
+		+ `${DOCS_CHECK}\n\n`
 		+ `Make no code edits. One pass, then stop.`;
 }
 
@@ -816,7 +832,7 @@ async function main() {
 		for (let attempt = 1; attempt <= 3 && !fs.existsSync(reviewPath); attempt++) {
 			const spawned = await mcp("spawn_agent", { role: "reviewer", name: attempt > 1 ? `${name}-r${attempt}` : name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root, parent: SessionRecord.task_agent(taskDir) ?? undefined });
 			if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
-			const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
+			const waited = await waitAgent(spawned.id);
 			cost += waited.cost ?? 0;   // list_agents' row carries no cost field today; wait_for_agent's own answer does
 			await mcp("stop_agent", { id: spawned.id }, 20000);
 			started = (waited.cost ?? 0) >= 0.01;
@@ -828,7 +844,8 @@ async function main() {
 	} catch (e) {
 		findings = [{ n: 1, kind: "fix", text: `reviewer failed to run: ${String(e?.message || e).slice(0, 200)}` }];
 		fs.mkdirSync(path.dirname(reviewPath), { recursive: true });
-		fs.writeFileSync(reviewPath, `verdict: fix\n\n1. [fix] reviewer failed to run: ${String(e?.message || e).slice(0, 200)}\n`);
+		if (fs.existsSync(reviewPath)) ({ verdict, findings } = parseReview(fs.readFileSync(reviewPath, "utf8")));   // a review the reviewer did write is never overwritten by the failure
+		else fs.writeFileSync(reviewPath, `verdict: fix\n\n1. [fix] reviewer failed to run: ${String(e?.message || e).slice(0, 200)}\n`);
 	}
 	const review = { at: now(), size, verdict, findings, branch, head, model, cost, file: reviewRelFile, report: pageReview ? reviewRelFile : null, shots: pageReview ? "shots/" : null };
 	appendJSON(taskJsonl, { review });

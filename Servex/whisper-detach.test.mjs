@@ -1,7 +1,13 @@
 /* node Servex/whisper-detach.test.mjs — proves a Servex restart no longer kills whisper-server (2026-10-12).
  * Runner A starts a real whisper-server on a private port; A "dies" (release(), what shutdown() does for a
  * detached runner); runner B (the next Servex) must ADOPT the same pid with no second model load.
- * Needs the installed whisper-server + model, like Dictate. Doc: Server/doc/transcription-crash-2026-10-12.md */
+ * Needs the installed whisper-server + model, like Dictate. Doc: Server/doc/transcription-crash-2026-10-12.md
+ *
+ * No whisper-server outlives this test (2026-10-25: TestRunner killed it at 60 s three times while RAM was
+ * low, its `finally` never ran, and three 1.6 GB servers were left on random ports). So: it sweeps any left
+ * by an earlier killed run before it starts, it gives up by itself at 45 s (under the runner's 60 s) so its
+ * cleanup always runs, the cleanup finds them by their temp dir in the command line, not only the pid file,
+ * and the last check is that none is left. Under 3 GB free it skips: a model load then outlasts any limit. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import net from "node:net";
@@ -9,7 +15,20 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
-const dir = fs.mkdtempSync(path.join(os.tmpdir(), "whisper-detach-test-"));
+const TAG = "whisper-detach-test-";
+/** The pids of every whisper-server (and its cmd.exe) whose command line names `needle`. */
+const strays = needle => {
+	const ps = `Get-CimInstance Win32_Process | ? { $_.CommandLine -like '*${needle}*' -and ($_.Name -eq 'whisper-server.exe' -or $_.Name -eq 'cmd.exe') } | % { $_.ProcessId }`;
+	const r = spawnSync("powershell", ["-NoProfile", "-Command", ps], { encoding: "utf8" });
+	return (r.stdout || "").split(/\s+/).filter(Boolean).map(Number).filter(p => p !== process.pid);
+};
+const kill = pids => { for (const p of pids) spawnSync("taskkill", ["/pid", String(p), "/t", "/f"]); };
+
+const left = strays(TAG);
+if (left.length) { kill(left); console.log(`swept ${left.length} process(es) left by an earlier killed run`); }
+if (os.freemem() < 3 * 2 ** 30) { console.log(`skip — ${(os.freemem() / 2 ** 30).toFixed(1)} GB free, under the 3 GB a model load needs to finish in time`); process.exit(0); }
+
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), TAG));
 process.env.SERVEX_HOME = dir;   // home.js freezes HOME at import time
 const { default: Process } = await import("./Process.js");
 
@@ -26,10 +45,19 @@ const until = async (fn, ms) => { const end = Date.now() + ms; while (Date.now()
 const pid_of = () => JSON.parse(fs.readFileSync(path.join(dir, "procs", "whisper.json"), "utf8")).pid;
 const alive = pid => { try { process.kill(pid, 0); return true; } catch { return false; } };
 
+const cleanup = async () => {
+	try { kill([pid_of()]); } catch {}           // the pid is cmd.exe's; /t takes whisper-server too
+	kill(strays(path.basename(dir)));             // and anything else this run started, found by its temp dir
+	await new Promise(r => setTimeout(r, 1500));
+	try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+};
+const deadline = setTimeout(async () => { console.error("FAIL — gave up at 45 s (whisper-server did not come online); cleaned up"); await cleanup(); process.exit(1); }, 45000);
+
+let code = 0;
 const a = runner();
 try {
 	await a.start();
-	assert.ok(await until(() => a.status === "online", 60000), "A: whisper-server came online");
+	assert.ok(await until(() => a.status === "online", 40000), "A: whisper-server came online");
 	const pid = pid_of();
 	const t0 = Date.now();
 	a.release();                                   // Servex A goes away
@@ -42,9 +70,12 @@ try {
 	assert.ok(said.some(m => /^adopted: pid/.test(m)), "B said it adopted");
 	console.log(`ok — adopted pid ${pid} ${Date.now() - t0} ms after the restart; whisper never went down`);
 	b.release();
-} finally {
-	try { spawnSync("taskkill", ["/pid", String(pid_of()), "/t", "/f"]); } catch {}   // the pid is cmd.exe's; /t takes whisper-server too
-	await new Promise(r => setTimeout(r, 1500));
-	try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
-	process.exit(0);
+} catch (e) { console.error(e.message); code = 1; }
+finally {
+	clearTimeout(deadline);
+	await cleanup();
+	const still = strays(path.basename(dir));
+	if (still.length) { console.error(`FAIL — ${still.length} whisper process(es) outlived the test: ${still}`); code = 1; }
+	else console.log("ok — no whisper-server outlived the test");
+	process.exit(code);
 }

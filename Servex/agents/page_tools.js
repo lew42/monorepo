@@ -578,7 +578,8 @@ export async function move_nested_home(record, id, module, by = "PromptTasks"){
  * {"task": to, "as": id, "moved_from": "<from>#<id>"}, which Task/Session replay swap for the nested child (same id).
  * Order: check everything, then write the new file, the old-home reference and the ledger line. A refusal writes nothing.
  * Returns {from, to, file} or {why}. Callers: the item tool's `move` key, open_task (handoff), move_nested_home. */
-export async function move_item({ from, id, to, by = "agent", module } = {}){
+// `entry` ({type, spawn}, a spawn's handoff): the reference left behind is the Session entry, so the subtask is upgraded in place.
+export async function move_item({ from, id, to, by = "agent", module, entry = null } = {}){
 	const pf = resolve_file(from, true), dir = typeof to === "string" ? path.resolve(PUBLIC, to.replace(/^[\\/]+/, "")) : null;
 	if (!pf || !fs.existsSync(pf)) return { why: `no record at ${from}` };
 	if (!dir || !dir.startsWith(PUBLIC + path.sep)) return { why: `"${to}" is not a folder under public/` };
@@ -618,7 +619,7 @@ export async function move_item({ from, id, to, by = "agent", module } = {}){
 	if (!fs.existsSync(path.join(dir, "page.js"))) fs.writeFileSync(path.join(dir, "page.js"), PAGE_JS);
 	// 5. The old home: one reference, with the id it had here. 6. The ledger.
 	const at = now();
-	write_line(pf, { task: url, as: id, moved_from, by, ts: at }, true);
+	write_line(pf, { task: url, as: id, ...(entry?.type ? { type: entry.type } : {}), ...(entry?.spawn ? { spawn: entry.spawn } : {}), moved_from, by, ts: at }, true);
 	fs.mkdirSync(path.dirname(ledgers.task_moves), { recursive: true });
 	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: `${rel(pf)}#${id}`, to: rel(dir), session: parent_url, ...(module ? { module } : {}), by, git: false }) + "\n");
 	return { from: moved_from, to: url, file: nf };
@@ -756,15 +757,38 @@ export function session_state(task, tasks = []){
 	// Its agents: those whose task is in its folder, and (by its uuid) those it spawned anywhere since it began.
 	const dir = task.store?.file ? path.dirname(task.store.file) : null, uuid = /^[0-9a-f]{8}-/.test(task.id ?? "") ? task.id : null;
 	const agents = dir ? (task.constructor.agents_resolver?.(dir, { session_id: uuid, since: task.first_at ? new Date(task.first_at).toISOString() : null }) ?? []) : [];
-	const own = dir ? own_cost(dir) : null;
-	const child_cost = agents.reduce((s, a) => s + (a.cost || 0), 0);
+	/* THE THREE COSTS (session-is-a-task item 32): own, children = the sum of each child's total, total = own + children. Computed on read.
+	 * Own is the tab's transcript (cache.jsonl), else, for a spawned agent's record, the agents whose task is this folder. Children come from the
+	 * Session entries first (entry_children); an agent with no entry yet (not backfilled) still counts through the registry (`agents`), once. */
+	const at = task.constructor.agents_at_resolver, counted = new Set();
+	let own = dir ? own_cost(dir) : null;
+	if (!own && dir && at){ const mine = at(app_path(dir)); mine.forEach(a => counted.add(a.id)); if (mine.length) own = { usd: r2(mine.reduce((s, a) => s + a.cost, 0)), agents: mine.map(a => a.id) }; }
+	const entries = entry_children(task, at, counted);
+	const unlinked = nest_agents(agents.filter(a => !counted.has(a.id))).map(a => ({ ...a, agent: a.id, linked: false }));
+	const child_cost = entries.reduce((s, c) => s + c.total, 0) + unlinked.reduce((s, a) => s + (a.total || 0), 0);
 	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
 	return { class: "Session", id: task.id, completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
 		cost: { total: r2((own?.usd ?? 0) + child_cost), own, children: r2(child_cost), tasks: r2(task_cost) },
-		counts: { direct: counts(task._tasks ?? []), all: counts(all) }, biggest, children: nest_agents(agents), agents: agents.length,
+		counts: { direct: counts(task._tasks ?? []), all: counts(all), children: { entries: count_entries(entries), unlinked: agents.filter(a => !counted.has(a.id)).length } },
+		biggest, children: [...entries, ...unlinked], agents: agents.length,
 		// Its own turns bucketed by the task open at the time (Task.attribute); null when no per-turn record exists (a VS Code tab today).
 		by_task: (turns => turns.length ? task.attribute(turns) : null)(task.constructor.turns_resolver?.(uuid) ?? []), data: { ...task.data }, tasks };
 }
+
+/* The child sessions as a tree, from the entries (Task.sessions_below: a Session entry at any depth of the task tree, under its cause).
+ * Each: its own cost (the agents whose task is its folder; `counted` collects their ids so the registry fallback never counts them again),
+ * its own children the same way, and its total. Rows keep the registry rows' shape (id, state, role, session_id, cost, total, children). */
+function entry_children(node, at, counted){
+	return node.sessions_below().map(kid => {
+		const p = kid.get_one("path"), spawn = kid.get_one("spawn") ?? null, mine = (at?.(p) ?? []).filter(a => !counted.has(a.id));
+		mine.forEach(a => counted.add(a.id));
+		const cost = r2(mine.reduce((s, a) => s + a.cost, 0)), children = entry_children(kid, at, counted);
+		return { id: kid.id, title: kid.get_one("title") ?? kid.id, state: kid.state, path: p, linked: true,
+			agent: spawn?.agent ?? kid.get_one("agent") ?? mine[0]?.id ?? null, role: spawn?.role ?? kid.get_one("role") ?? null,
+			session_id: spawn?.session_id ?? kid.get_one("session") ?? null, spawn, cost, total: r2(cost + children.reduce((s, c) => s + c.total, 0)), children };
+	});
+}
+const count_entries = list => list.reduce((n, c) => n + 1 + count_entries(c.children), 0);
 
 function task_state(Task, task){
 	const tasks = [...(task._tasks ?? [])].map(row_of);
@@ -816,7 +840,7 @@ function query_args(arg){ return Array.isArray(arg) ? arg : is_plain(arg) && Obj
 // A Session's queries are answered here, from session_state (its one picture), because its cost needs node: own_cost reads cache.jsonl.
 // `completion` is the one tally every Task-family node answers: its tasks' current states and the number computed from them.
 const TALLY = n => ({ stopped: 0, ...n.progress(), completion: n.completion });
-const NODE_QUERIES = { Session: { progress: n => n.progress(), cost: n => session_state(n, []).cost, summary: n => session_state(n, []) } };
+const NODE_QUERIES = { Session: { progress: n => n.progress(), cost: n => session_state(n, []).cost, children: n => session_state(n, []).children, summary: n => session_state(n, []) } };
 function walk_queries(node, delta, trail = "", out = { answer: {}, queried: false, other: [], set: [] }){
 	const into = (kid, sub, here, put) => { const r = walk_queries(kid, sub, here); out.queried ||= r.queried; out.other.push(...r.other); out.set.push(...r.set); if (r.queried) put(r.answer); };
 	for (const [key, arg] of Object.entries(delta)){
