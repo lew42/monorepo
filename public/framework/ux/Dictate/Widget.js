@@ -123,8 +123,8 @@ Widget.prototype.marks = false;
 Widget.prototype.v1 = false;         // true = the OLD thread (one bubble per sentence) + composer (Dictate's own open mic)
 Widget.prototype.mode = "dictate";
 Widget.MODES = MODES;
-Widget.HEADROOM = 0.75;
-Widget.STREAM_END_MS = 15000;   // an ended stream bubble with no settled line after this long goes (the reply was dropped or became a reaction)   // a new bubble keeps this share of the box under it before the page turns (doc/voice-assistant.md#nothing-jumps)
+Widget.HEADROOM = 0.75;   // a new bubble keeps this share of the box under it before the page turns (doc/voice-assistant.md#nothing-jumps)
+Widget.STREAM_END_MS = 15000;   // an ended stream bubble with no settled line after this long goes (the reply was dropped or became a reaction)
 
 /** The old thread (v1: true): one bubble per line, never merged. */
 Widget.ThreadV1 = class WidgetThreadV1 extends View {

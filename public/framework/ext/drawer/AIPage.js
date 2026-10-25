@@ -20,8 +20,8 @@ export default class AIPage extends Page {
 		["settings", "Settings", () => import("./tabs/settings.js")],
 	];
 
-	static HIDDEN = new Set(["dictation"]);
-	static WIDE = new Set(["debug", "dictation"]);   // views drawn across the page's wide track (two columns at 1920), not the reading column   // views kept only so an old url opens; never drawn in the row
+	static HIDDEN = new Set(["dictation"]);   // views kept only so an old url opens; never drawn in the row
+	static WIDE = new Set(["debug", "dictation"]);   // views drawn across the page's wide track (two columns at 1920), not the reading column
 
 	// The view a url names inside an AI page ("debug" for <path>/ai/debug/), "chat" for <path>/ai/ itself, null outside one.
 	static view_of(pathname = location.pathname, ai = this.current){

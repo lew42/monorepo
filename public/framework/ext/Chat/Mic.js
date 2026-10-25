@@ -651,6 +651,6 @@ export class ComposerMic extends Dictate {
 	}
 }
 ComposerMic.prototype.mode = "open";   // the mic stays on; draw_caption() types into the box
-ComposerMic.DUP_WINDOW_MS = 4000;
-ComposerMic.DELIVER_MS = 25000;
-ComposerMic.mounted = new Set();   // every composer mic built, for heir(); a detached one is dropped the next time heir() looks   // the backstop: Session.js gives up after 10 s per call, so only a deliver with no timeout of its own reaches this   // same words from the same mic this close together are one send (see post_held)
+ComposerMic.DUP_WINDOW_MS = 4000;   // same words from the same mic this close together are one send (see post_held)
+ComposerMic.DELIVER_MS = 25000;   // the backstop: Session.js gives up after 10 s per call, so only a deliver with no timeout of its own reaches this
+ComposerMic.mounted = new Set();   // every composer mic built, for heir(); a detached one is dropped the next time heir() looks
