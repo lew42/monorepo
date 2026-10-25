@@ -192,7 +192,7 @@ export default class TaskQueueView extends View {
 		if (!red.length) return;
 		div.c("tq-list tq-red", () => red.forEach(r => div.c("tq-row tq-dropped-row", () => {
 			div.c("tq-task", () => { a.c("tq-title").href(r.url).text(r.title); div.c("tq-crumb muted", "red-flagged session"); });
-			div.c("tq-meta", () => div.c("tq-why", `${Math.round(r.rates.owner.rate * 100)}% of ${r.rates.owner.total} owner asks are deferred or stopped (${r.rates.owner.deferred} deferred, ${r.rates.owner.stopped} stopped); the limit is 20%`));
+			div.c("tq-meta", () => div.c("tq-why", `${Math.round(r.rates.owner.rate * 100)}% of ${r.rates.owner.total} owner asks are deferred or stopped (${r.rates.owner.deferred} deferred, ${r.rates.owner.stopped} stopped${r.rates.owner.fair ? `; ${r.rates.owner.fair} fair stops not counted` : ""}); the limit is 20%`));
 		})));
 	}
 

@@ -223,6 +223,8 @@ export class Task extends Item {
 	   deferred (waiting with `deferred`) or stopped, and the same for the OWNER'S asks only (filed from a prompt: `source` is {session,line,part}, "prompt:<id>", voice-app, vscode or dictate; never "servex:<agent>").
 	   `red` = the owner's asks are at least RATES.min and more than RATES.red of them are deferred or stopped. Computed on read, never stored. */
 	static RATES = { red: 0.2, min: 5 };
+	static FAIR_KINDS = ["duplicate", "noise", "standing", "filler", "superseded"];
+	static is_fair_stop(t){ return t.state === "stopped" && Task.FAIR_KINDS.includes(String(t.get_one("fair") ?? "").trim()); }
 	static is_owner_ask(t){ const s = t.get_one("source"); return !!s && (typeof s === "object" ? !!(s.line ?? s.part ?? s.session) : !/^servex:/.test(s) && !s.startsWith("/")); }
 	// Proof for a completed task (completion.md): an outcome (what is now true) and evidence (a file, commit, shot or test). Null when it has both.
 	static proof_problem(t){
@@ -238,8 +240,10 @@ export class Task extends Item {
 	rates(){
 		const all = [], walk = list => { for (const t of list ?? []){ if (Task.is_child_session(t)) continue; all.push(t); walk(t._tasks); } };
 		walk(this._tasks);
-		const tally = list => { const deferred = list.filter(t => t.state === "waiting" && t.get_one("deferred")).length, stopped = list.filter(t => t.state === "stopped").length;
-			return { total: list.length, deferred, stopped, rate: list.length ? Math.round((deferred + stopped) / list.length * 1000) / 1000 : 0 }; };
+		// A FAIR stop (a stopped task whose `fair` field names why: duplicate, noise, standing rule, filler, superseded) is no miss: it leaves both the count and the total, and shows as `fair`.
+		const tally = every => { const fair = every.filter(Task.is_fair_stop).length, list = every.filter(t => !Task.is_fair_stop(t));
+			const deferred = list.filter(t => t.state === "waiting" && t.get_one("deferred")).length, stopped = list.filter(t => t.state === "stopped").length;
+			return { total: list.length, deferred, stopped, fair, rate: list.length ? Math.round((deferred + stopped) / list.length * 1000) / 1000 : 0 }; };
 		const owner = tally(all.filter(Task.is_owner_ask));
 		return { ...tally(all), owner, red: owner.total >= Task.RATES.min && owner.rate > Task.RATES.red };
 	}

@@ -361,6 +361,13 @@ check("rates(): deferral and stop share of every task and of the owner's asks; r
 	const calm = Task.replay([A, ask("a"), ask("b"), ask("c"), ask("d"), ask("e"), ask("f"), { tasks: { c: { stop: { note: "x" } } } }]).rates();
 	return r.total === 7 && r.owner.total === 6 && r.deferred === 1 && r.stopped === 1 && r.owner.rate === 0.333 && r.red === true && calm.owner.rate === 0.167 && calm.red === false;
 });
+check("rates(): a stop with a `fair` reason leaves the count and the total; a plain stop still counts", () => {
+	const ask = id => ({ tasks: { add: { type: "Task", id, title: id, source: { session: "s", line: 1, part: id } } } });
+	const stop = id => ({ tasks: { [id]: { stop: { why: "x" } } } });
+	const r = Task.replay([A, ask("a"), ask("b"), ask("c"), ask("d"), ask("e"), ask("f"), stop("b"), stop("c"), { tasks: { b: { fair: "duplicate" } } }]).rates();
+	const free = Task.replay([A, ask("a"), ask("b"), stop("b"), { tasks: { b: { fair: "because" } } }]).rates(), blank = Task.replay([A, ask("a"), ask("b"), stop("b"), { tasks: { b: { fair: "" } } }]).rates();
+	return r.owner.total === 5 && r.owner.stopped === 1 && r.owner.fair === 1 && r.owner.rate === 0.2 && r.red === false && free.owner.stopped === 1 && free.owner.fair === 0 && blank.owner.stopped === 1;
+});
 check("a plain wait is not a deferral; one with decide_by or deferred:true is", () => {
 	const w = a => { const t = Task.replay([A, { start: {} }, { wait: a }]); return t.data.deferred === true; };
 	return !w({ on: "owner", what: "x" }) && w({ on: "m", decide_by: "2026-11-01T00:00:00Z" }) && w({ on: "m", deferred: true });
