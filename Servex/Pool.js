@@ -101,7 +101,7 @@ export default class Pool extends Events {
                 + " michael/dev); it is then fast-forwarded to michael/dev and marked ready. Anything uncommitted or unmerged is"
                 + " refused with the list — nothing is ever discarded.",
             inputSchema: { type: "object", required: ["id"], properties: { id: { type: "string", description: "The id take_worktree gave, e.g. qf-1." } } },
-            handler: async args => JSON.stringify(await this.give_back(args.id), null, 2)
+            handler: async (args, ctx) => JSON.stringify(await this.give_back(args.id, ctx?.caller), null, 2)
         }];
     }
 
@@ -194,10 +194,17 @@ export default class Pool extends Events {
         return { id, held_by: null };
     }
 
-    async give_back(id){
+    async give_back(id, by){
         const slot = this.slots.find(s => s.id === id);
         if (!slot) throw new Error(`No worktree "${id}" in the pool. It has: ${this.slots.map(s => s.id).join(", ") || "none"}.`);
         if (slot.state !== "taken") return { id, state: slot.state, note: "It was not taken; nothing to do." };
+
+        /* A slot is recorded under the PARENT that spawned the minion, so the parent can ask for it back while the minion is still
+         * writing in it (2026-10-25: qf-8 went back to ready under minion-context-alerts and was handed to two more minions). */
+        const base = slash(path.resolve(slot.path)).toLowerCase();
+        const inside = cwd => { const c = slash(path.resolve(String(cwd || "."))).toLowerCase(); return !!cwd && (c === base || c.startsWith(base + "/")); };
+        const worker = this.holders().find(r => r.id !== by && ["working", "queued", "starting"].includes(r.state) && inside(r.cwd));
+        if (worker) throw new Error(`Refused: ${id} is in use — ${worker.id} (${worker.state}) works in it. Return it once that agent has finished.`);
 
         const dirty = await this.own_dirt(slot);
         if (dirty.length) throw new Error(`Refused: ${id} has uncommitted changes — commit and merge them, or move them, first. Nothing was discarded.\n`
