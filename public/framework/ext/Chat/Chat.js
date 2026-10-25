@@ -322,7 +322,7 @@ export function card_of(b){
 }
 
 /** One sticky-bottom scroll for every chat log; call `pin()` after drawing. See doc/notes.md#sticky-scroll */
-export function sticky_scroll(box, { observe = true, end } = {}){   // end(): scrollTop of the true bottom of the content when blank padding sits under it (Widget's Thread); default scrollHeight   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
+export function sticky_scroll(box, { observe = true } = {}){   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
 	let locked = true, last = 0;
 	// A fixed/sticky bar (the bottom toolbar) can sit over the box's bottom edge: the last line must land just above it, so the box grows tail room as tall as the overlap.
 	let tail = 0, tail_base = null;
@@ -347,7 +347,7 @@ export function sticky_scroll(box, { observe = true, end } = {}){   // end(): sc
 	};
 	const bottom = () => {   // the scrollTop that shows the last line at the box's bottom, or just above an overlay bar
 		const ov = make_room();
-		return Math.max(0, Math.min((end ? end() + ov : box.scrollHeight), box.scrollHeight) - box.clientHeight);
+		return Math.max(0, box.scrollHeight - box.clientHeight);
 	};
 	const at_bottom = () => bottom() - box.scrollTop < 40;   // within ~40px counts as pinned
 	const $btn = document.createElement("button");

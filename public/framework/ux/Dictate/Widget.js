@@ -133,8 +133,6 @@ Widget.prototype.v1 = false;         // true = the OLD thread (one bubble per se
 Widget.prototype.mode = "dictate";
 Widget.MODES = MODES;
 Widget.HISTORY = 50;   // the sheet draws only this many newest chat lines of a long session; the rest wait behind "show earlier (N)" (doc/voice-assistant.md#nothing-jumps)
-Widget.PIN_BOTTOM = true;   // locked = pinned to the bottom on every update, live whisper line included (the owner, 2026-10-25). false = the old page-turn anchor on the newest bubble's top (doc/voice-assistant.md#nothing-jumps)
-Widget.HEADROOM = 0.75;   // a new bubble keeps this share of the box under it before the page turns (doc/voice-assistant.md#nothing-jumps)
 Widget.STREAM_END_MS = 15000;   // an ended stream bubble with no settled line after this long goes (the reply was dropped or became a reaction)
 
 /** The old thread (v1: true): one bubble per line, never merged. */
@@ -243,33 +241,16 @@ Widget.Thread = class WidgetThread extends View {
 		this.$empty = div.c("ux-dictate-widget-empty muted", "Say something, or press the mic. Your words show up here.");
 		this.$bubbles = div.c("ux-dictate-widget-bubbles flex v gap");
 		// this.el scrolls, not $bubbles (see doc/widget-notes.md#sticky-scroll)
-		this.scroll = sticky_scroll(this.el, { observe: false, end: () => {   // the blank page under the newest bubble is not content: "newest" lands its bottom at the box bottom
-			const b = this.$bubbles.el.lastElementChild;
-			return b ? b.getBoundingClientRect().bottom - this.el.getBoundingClientRect().top + this.el.scrollTop : 0;
-		} });   // its resize re-pin is bottom-only; anchor() answers a resize itself
+		this.scroll = sticky_scroll(this.el, { observe: false });   // its resize re-pin is skipped: anchor() answers resizes and mutations once per frame
 		if (typeof ResizeObserver === "function") new ResizeObserver(() => this.anchor()).observe(this.el);
 		if (typeof MutationObserver === "function") new MutationObserver(() => this.anchor()).observe(this.el, { childList: true, subtree: true, characterData: true });   // a live whisper line or a streamed reply grows in place: whatever draws it, the pin follows
 	}
 
-	/** The anchor is the NEWEST bubble's top: growing never moves older lines. The box turns the page (once, as a bubble starts)
-	 * when under HEADROOM of a box is left below it, and again, half a box at a time, for a bubble taller than the box. A reader who
-	 * scrolled up is never moved. Rule and the alternative: doc/voice-assistant.md#nothing-jumps */
+	/** Locked = pinned to the bottom after every change, once per animation frame (a replay of 200 lines or 3 caption redraws a second
+	 * reads layout once). A reader who scrolled up is never moved. Rule: doc/voice-assistant.md#nothing-jumps */
 	anchor(){
-		if (this.anchor_frame) return;   // once per animation frame: a replay of 200 lines or 3 caption redraws a second reads layout once (ux/Dictate/doc/voice-assistant.md#nothing-jumps)
-		this.anchor_frame = requestAnimationFrame(() => { this.anchor_frame = 0; this.place_anchor(); });
-	}
-
-	place_anchor(){
-		const box = this.el, host = this.$bubbles.el, b = host.lastElementChild;
-		if (!b || !this.scroll.locked()) return;
-		if (Widget.PIN_BOTTOM){ this.scroll.pin(); return; }
-		const r = b.getBoundingClientRect(), top = r.top - box.getBoundingClientRect().top + box.scrollTop, view = box.clientHeight;
-		const room = b !== this.newest ? Math.max(r.height, view * Widget.HEADROOM) : r.height;   // a bubble that just started asks for room to grow
-		this.newest = b;
-		if (top + room <= box.scrollTop + view) return;   // fits: nothing moves
-		if (this.pad !== view){ host.style.paddingBlockEnd = view + "px"; this.pad = view; }   // blank page under the newest bubble: its top can reach the box top, and shrinking text never clamps the scroll
-		box.scrollTop = r.height < view ? top : top + r.height - view / 2;   // a page turn: a tall bubble's tail lands mid-box and grows into the blank below
-		box.dataset.turns = (+box.dataset.turns || 0) + 1;   // for the proof (test/anchor.mjs) and for anyone debugging a jump
+		if (this.anchor_frame) return;
+		this.anchor_frame = requestAnimationFrame(() => { this.anchor_frame = 0; if (this.scroll.locked()) this.scroll.pin(); });
 	}
 
 	/** Lifts live bubbles out while fn runs so mergeable() never takes one for the last real bubble. */
@@ -712,7 +693,6 @@ Widget.Thread = class WidgetThread extends View {
 		this.draft = null;
 		this.waiting = null; this.orphans = null; this.show_earlier_button();
 		this.$bubbles.empty();
-		this.$bubbles.el.style.paddingBlockEnd = ""; this.pad = 0; this.newest = null;
 		this.$empty.show();
 	}
 };
