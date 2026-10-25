@@ -270,22 +270,40 @@ export default class Sessions {
 		const prompt = lines[lines.length - 1]?.prompt;
 		s.smart_re = lines[lines.length - 1].at;
 		this.save();
-		this.wake(s, "smart");
+		const fresh = this.wake(s, "smart");
 		this.mark_sent(s, "smart", lines);
+		const tailing = s.tail ? this.tail_log(s) : false;
+		if (tailing && !fresh) return;   // awake and tailing its own file: Follow already delivers these lines raw
 		this.send(s, "smart", nav + lines.map(l => `${selected_prefix(l.selection)}[on ${l.path} at ${l.at}] ${l.text}`).join("\n") + `\n(${why})` + (prompt ? `\n(prompt ${prompt})` : ""));
+	}
+
+	/* TAIL MODE (opt-in, `s.tail`, 2026-10-25): the smart seat follows its OWN session.jsonl through Servex/Follow.js and hears the
+	 * owner's raw lines as they land, instead of a prompt built from them. `skip_by` keeps its own writes (and the fast seat's) out, so
+	 * its replies never wake it. Follow drops the row when the agent stops; the next feed_smart (the wake gate still revives a sleeping
+	 * seat) subscribes again. Returns true when the subscription is in place. */
+	tail_log(s){
+		const follow = this.servex.follow, agent = s.smart;
+		if (!follow || !agent || !s.file) return false;
+		const rel = path.relative(process.cwd(), this.disk(s.file)).split(path.sep).join("/");
+		if (follow.list(agent).some(f => f.path === rel)) return true;
+		try {
+			follow.follow({ agent, path: rel, gather_ms: s.tail_ms ?? 1500, skip_by: [agent, s.fast, "fast", "smart"].filter(Boolean) });
+			return true;
+		} catch (e){ console.error(`sessions: tail ${s.id}: ${e.message}`); return false; }
 	}
 
 	/* The knobs of one session (dictation widget settings panel): POST /api/session/settings {session, gap_ms?, every?};
 	 * null drops a knob back to the default. Returns the knobs now in force. */
-	settings({ session, gap_ms, every } = {}){
+	settings({ session, gap_ms, every, tail } = {}){
 		const s = this.get(session);
+		if (tail !== undefined){ tail ? s.tail = true : delete s.tail; }
 		const patch = {};
 		if (gap_ms !== undefined) patch.gap_ms = gap_ms;
 		if (every !== undefined) patch.every = every;
 		const next = this.waker.checked(s.id, patch);
 		Object.keys(next).length ? s.wake = next : delete s.wake;
 		this.save();
-		return { ok: true, ...this.waker.knobs(s.id) };
+		return { ok: true, ...this.waker.knobs(s.id), tail: !!s.tail };
 	}
 
 	install(){

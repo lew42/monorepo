@@ -73,6 +73,12 @@ export default class Follow {
 			.map(l => l.length > this.LINE_MAX ? l.slice(0, this.LINE_MAX) + "…" : l);
 	}
 
+	/** Lines not written by `skip_by` (agent ids): a top-level `by`, or a chat line's `from.agent`. An agent tailing its OWN log skips itself, or its replies wake it. */
+	static without(lines, skip_by){
+		if (!skip_by?.length) return lines;
+		return lines.filter(l => { try { const j = JSON.parse(l); return !skip_by.includes(j.by) && !skip_by.includes(j.chat?.from?.agent); } catch { return true; } });
+	}
+
 	/** The kind of one jsonl line: "state", "pointer", "watcher" or "other". */
 	static kind(line){
 		let j; try { j = JSON.parse(line); } catch { return "other"; }
@@ -113,13 +119,13 @@ export default class Follow {
 	/* ── the three verbs ──────────────────────────────────────────────── */
 
 	/* `of`: the agent whose log this is (a parent tailing its child, Agents.follow_child); the row ends when that agent stops. */
-	follow({ agent, path: rel, gather_ms = 2000, of } = {}){
+	follow({ agent, path: rel, gather_ms = 2000, of, skip_by } = {}){
 		if (!agent) throw new Error("follow needs an agent (or a caller Servex already knows).");
 		const why = refused(rel);
 		if (why) throw new Error(why);
 		const clean = norm(rel);
 		if (!this.subs.some(s => s.agent === agent && s.path === clean))
-			this.subs.push({ agent, path: clean, gather_ms, ...(of ? { of } : {}) });
+			this.subs.push({ agent, path: clean, gather_ms, ...(of ? { of } : {}), ...(skip_by?.length ? { skip_by: [].concat(skip_by) } : {}) });
 		this.save();
 		this.rescope();
 		return this.list(agent);
@@ -279,8 +285,9 @@ export default class Follow {
 	queue(sub, item){
 		// a parent tailing its child (`of`) is told the work, not the housekeeping: heartbeat and bare commit lines wake nobody (2026-10-20)
 		if (sub.of && item.lines){ item = { ...item, lines: this.constructor.worth_waking(item.lines) }; if (!item.lines.length) return; }
+		if (sub.skip_by && item.lines){ item = { ...item, lines: this.constructor.without(item.lines, sub.skip_by) }; if (!item.lines.length) return; }
 		const bucket = this.pending.get(sub.agent) ?? this.pending.set(sub.agent, []).get(sub.agent);
-		bucket.push({ ...item, under: sub.path, ...(sub.of ? { of: sub.of } : {}) });
+		bucket.push({ ...item, under: sub.path, ...(sub.of ? { of: sub.of } : {}), ...(sub.skip_by ? { skip_by: sub.skip_by } : {}) });
 		if (!this.timers.has(sub.agent))
 			this.timers.set(sub.agent, setTimeout(() => this.flush(sub.agent), sub.gather_ms ?? 2000));
 	}
@@ -311,7 +318,7 @@ export default class Follow {
 			if (!item.lines || done.has(item.file)) continue;
 			done.add(item.file);
 			const more = this.new_lines(abs(item.file));
-			const wake = item.of ? this.constructor.worth_waking(more) : more;
+			const wake = this.constructor.without(item.of ? this.constructor.worth_waking(more) : more, item.skip_by);
 			if (wake.length) item.lines.push(...wake);
 		}
 		/* An id that is not a live Claude session and not a registered
@@ -377,6 +384,7 @@ export default class Follow {
 				description: "Watch a file or directory and get told what changes, one message per burst (default"
 					+ " every 2s). A .jsonl file's new complete lines arrive verbatim; anything else arrives as its path.",
 				inputSchema: { type: "object", required: ["path"], properties: { agent: AGENT, path: PATH,
+					skip_by: { type: "array", items: { type: "string" }, description: "Agent ids whose own lines are not delivered (a line's `by`, or a chat line's `from.agent`). Set it to yourself when you follow your own log, or your replies wake you." },
 					gather_ms: { type: "number", description: "Collect changes this long after the first one, then send one message. Default 2000." } } },
 				handler: (args = {}, ctx = {}) => JSON.stringify(this.follow({ ...args, agent: args.agent ?? ctx.caller }), null, 2) },
 			{ name: "unfollow",
