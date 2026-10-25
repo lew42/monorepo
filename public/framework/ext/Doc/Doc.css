@@ -13,7 +13,7 @@
 
 		--measure: none;
 		--page-pad: 0;
-		--gutter-x: clamp(2em, 4%, 5em);
+		--gutter-x: clamp(1em, 4%, 5em);
 		--well: light-dark(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.35));
 		--tab-fill: var(--wash);
 	}
@@ -37,6 +37,10 @@
 		display: flex; align-items: center;
 		padding: 1.5em 0.8em 0.5em var(--gutter-x);
 	}
+	/* ⚠ Above the stuck strip beside it: ext/tabs paints that strip's band LEFTWARD over its earlier siblings (z-index 3), and this title is one.
+	   Once the title scrolls away it slides over a band of its own colour. One rule per module, never a generic sibling rule.
+	   ⚠ Opaque for the same reason: the band underneath it is a second `--well`, and a translucent title would show it as a darker patch. */
+	.page.doc-page > .doc-well { position: relative; z-index: 4; background: linear-gradient(var(--well), var(--well)), var(--ground, var(--wash)); }
 	.doc-title { margin: 0; display: flex; align-items: center; gap: 0.3em; }
 	.doc-title > .icon { font-size: 0.9em; }
 
@@ -47,45 +51,28 @@
 	   ⚠ One inset serves both shapes: beside the title it reads as a gutter-wide gap,
 	     and once the basis no longer fits and the strip wraps to its own line, it lands
 	     the LABELS on the axis (the tab boxes hang one tab-padding to their left). */
-	/* ⚠ Persistent navigation never moves or hides (CLAUDE.md's own law) — so THIS
-	   bar wraps its tabs onto a second row rather than scrolling or clipping, once
-	   there isn't room for all of them on one line: at 1920 a 13-tab module's last
-	   few (API, Docs, Files) sat past the fold of `overflow: auto`'s hidden
-	   scrollbar, and with the right drawer open the SAME thing happened to the
-	   first few at 1280 (2026-09-29, navfix). This overrides ext/tabs' own
-	   `.tab-bar { flex-wrap: nowrap; overflow: auto }` (tabs.css) — deliberately
-	   never-wrap there, because a fifty-member RAIL wrapped is 500px of chrome
-	   above the content it navigates (that file's own note). Doc's own top bar is
-	   never that big — Overview, the module's declared children, API, Docs, Files
-	   — so the trade is different, and only THIS selector (0,3,0, Doc's own) says
-	   so; the shared rule in ext/tabs is untouched and every other tab strip on
-	   the site still scrolls.
-	   ⚠ Below 600px this reasoning flips back: the `@media` block near the end of
-	   this file (2026-10-04, mobile-doc-header) un-does exactly this wrap, because
-	   a wrapped strip there costs MORE chrome than a scrolling one does — the
-	   opposite trade, at a width small enough that it's the right one. Not an
-	   oversight; read that block for why. */
-	/* ⚠ `flex-wrap: wrap` — the strip has 7 labels (overview/api/doc/files/…) and
-	     `tabs.css` scrolls them sideways with nothing to say so below ~450px
-	     (measured: content 644px in a 400px bar). Wrapping to a second row shows
-	     every label instead. Doc.css:2026-09-29. */
+	/* ONE ROW THAT SCROLLS SIDEWAYS AT EVERY WIDTH (the owner, 2026-10-24, top-tabs).
+	   This bar wrapped onto a second row above 600px (navfix, 2026-09-29: at 1920 a
+	   13-tab module's last tabs sat past the fold of a scrollbar-less `overflow: auto`)
+	   and scrolled below it. The owner reversed that: every tab row is one row that
+	   side-scrolls, so this rule no longer overrides ext/tabs' own `.tab-bar`
+	   (`nowrap`, `overflow: auto`) and the phone block at the end of this file only
+	   gives the strip its own line. The old wrap is in git (2026-10-23 and before). */
+	/* ⚠ The paint is `ext/tabs`' `.tabs.stick` rule (opaque `--well` over the ground, so
+	   the strip can stick); Doc.js adds `stick` to this set. */
 	.page.doc-page > .tabs > .tab-bar {
-		background: var(--well);
 		flex: 1 1 24em; min-width: 0;
 		align-items: flex-end;
-		flex-wrap: wrap;
 		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
-		overflow: visible;
 
-		/* ⚠ The wrap above stops a tab from being CLIPPED — it does not stop one
-		   from landing UNDER the ☰ drawer button, which is `position: fixed` in
-		   this same top-right corner (`.drawer-menu`, ext/drawer/drawer.css:
+		/* ⚠ The strip scrolls, but the last tab can still land UNDER the ☰ drawer
+		   button, which is `position: fixed` in this same top-right corner (`.drawer-menu`, ext/drawer/drawer.css:
 		   2.2rem wide, 0.5rem from the edge) and so never pushes flow content out
 		   of its way. At 1920, this bar runs the FULL width of the page (the
 		   "full-bleed band" above), so its last tab on row 1 reached the exact
 		   same corner and rendered behind the button, invisible — the API tab,
 		   2026-09-29 fix round. `padding-inline-end` reserves that corner so
-		   nothing ever wraps AT it: the button's own footprint (2.2rem) plus its
+		   nothing ever sits AT it (scrolled to the end, the last tab stops short): the button's own footprint (2.2rem) plus its
 		   inset (0.5rem) plus a hair of breathing room.
 		   ⚠ Bigger than strictly measured on purpose — `--rail-push` (drawer.css)
 		   can nudge the button further in mid-open; this stays clear either way. */
@@ -170,14 +157,10 @@
 		.doc-title { font-size: 0.85em; }
 		.doc-well { padding-block: 0.9em 0.4em; }
 
-		.page.doc-page > .tabs > .tab-bar {
-			flex-basis: 100%;
-			flex-wrap: nowrap;
-			overflow-x: auto;
-			/* No drawer button to dodge here: a scrolling row never sits under it the
-			   way a wrapped one could (the desktop rule's own reason for 3.5rem). */
-			padding-inline-end: 0.8em;
-		}
+		/* The strip takes its own line under the title. No drawer button to dodge, so
+		   the end padding shrinks. (Used to also force nowrap + scroll; that is the
+		   rule at every width now.) */
+		.page.doc-page > .tabs > .tab-bar { flex-basis: 100%; padding-inline-end: 0.8em; }
 	}
 
 	/* THE CLASS CARD (ext/Doc/ClassCard.js, doc/class-card.md): the API tab's home for a class.

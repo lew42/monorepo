@@ -1,7 +1,7 @@
 // Finds, runs, watches and records node tests (X.test.mjs). Node only. Design: tasks/test-system/plan.md
 import fs from "node:fs";
 import path from "node:path";
-import { spawn } from "node:child_process";
+import { spawn, execFileSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -86,10 +86,26 @@ export default class TestRunner {
 		});
 	}
 
+	/* In a git worktree Servex/node_modules is absent (it is gitignored); node gets a resolver that falls back to the main checkout's copy. Read-only: nothing is linked. */
+	node_args(){
+		if (this._args) return this._args;
+		this._args = [];
+		try {
+			if (!fs.existsSync(path.join(this.root, "Servex", "node_modules"))) {
+				const main = execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: this.root, windowsHide: true, encoding: "utf8" }).split(String.fromCharCode(10))[0].replace(/^worktree /, "").trim();
+				if (main && path.resolve(main) !== path.resolve(this.root) && fs.existsSync(path.join(main, "Servex", "node_modules"))) {
+					this._args = ["--import", pathToFileURL(path.join(HERE, "fallback-modules.mjs")).href];
+					this._env = { ...process.env, TEST_FALLBACK_FROM: main };
+				}
+			}
+		} catch {}
+		return this._args;
+	}
+
 	one(file, trigger, extra = {}){
 		return new Promise(resolve => {
 			const t0 = Date.now(); let out = "", timedOut = false;
-			const child = spawn(process.execPath, [file], { cwd: this.root, windowsHide: true });
+			const child = spawn(process.execPath, [...this.node_args(), file], { cwd: this.root, windowsHide: true, env: this._env ?? process.env });
 			const timer = setTimeout(() => { timedOut = true; child.kill(); }, this.timeout);
 			child.stdout.on("data", d => out += d);
 			child.stderr.on("data", d => out += d);

@@ -24,3 +24,14 @@ Sonnet, medium effort. Work in a worktree and land ready to merge. The system al
 - [ ] Basic tests exist for every `core/` class, all passing.
 - [ ] Failure reports are debounced and go to the builder, with one test proving it.
 - [ ] Red tests: 28 → 0 (or each remaining one has a written reason). Log a `show:` line with the test page link, `/framework/core/Test/`.
+
+
+## One subscription system (the owner, 2026-10-24, the next prompt)
+
+"We want to basically use the same system everywhere... the same way an agent subscribes to a sub-agent session log, an agent can subscribe to a certain module, and just by subscribing it automatically gets test errors or browser errors... lean into our one solid system rather than redesigning a subscription system for every new use case."
+
+- **The one system is Servex `follow`.** It watches a file or a folder (module level), and a `.jsonl` file's new lines arrive verbatim, batched every 2 seconds.
+- **So a test failure or a page error is just a line appended to a log in the module's own folder** (data lives with its module). Whoever follows that module gets it. No direct `send` from the watcher, and no second subscription mechanism.
+- **The builder follows the modules it is changing,** the mastermind follows its children's session logs, and both use the same tool.
+- **The noise rule still applies:** report a failure only if it still fails after a quiet spell. Passes are logged as one "clear" line.
+- **`ai/errors/` (one global folder) moves toward per-module logs.** Say how in your outcome.

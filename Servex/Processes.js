@@ -349,6 +349,8 @@ const round = (n, places = 1) => Math.round(n * 10 ** places) / 10 ** places;
 /** "…/public/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/process-monitor" -> "2026-09-30/process-monitor" */
 export function task_key(dir){
 	const parts = String(dir).split(/[\\/]+/), i = parts.lastIndexOf("ai");
+	const day = i >= 0 ? parts.slice(i + 1).join("/").match(/^sessions\/(\d{4})\/(\d\d)\/(\d\d)\//) : null;
+	if (day) return `${day[1]}-${day[2]}-${day[3]}/${parts.at(-1)}`;
 	return i >= 0 ? parts.slice(i + 1).join("/") : parts.slice(-2).join("/");
 }
 

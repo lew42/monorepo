@@ -1,0 +1,305 @@
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index 50de99bed..f22d7bbf0 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -48,7 +48,7 @@ export default new Page({
+ 				// The title is the way back to the inbox from any page under it (the owner, 2026-10-13: the header did not navigate back).
+ 				div.c("doc-well", () => h1.c("doc-title h2", () => a.c("inbox-head-home").href(this.url).attr("title", "Back to the AI inbox")
+ 					.append(() => { icon(this.icon); span(this.title ?? "AI"); })));
+-				div.c("tabs block", () => {
++				div.c("tabs block stick", () => {
+ 					const $bar = div.c("tab-bar", () => { a.c("tab tab-default").href(this.url).text("Inbox"); });
+ 					// Tabs are detected by AIOverview.detectTabs() and render after mark(). Doc: doc/ai-page-notes.md.
+ 					AIOverview.detectTabs(this).then(tabs => {
+diff --git a/public/framework/ai/rail/rail.css b/public/framework/ai/rail/rail.css
+index 123a40058..4cd0afaa5 100644
+--- a/public/framework/ai/rail/rail.css
++++ b/public/framework/ai/rail/rail.css
+@@ -159,15 +159,15 @@
+ 	.page--ai .dash-chip-sub { padding-inline-start: 0; }
+ 
+ 	@media (width < 40em) {
+-		.pages:has(> .page--ai:is(.active-page, .active-ancestor) > .inbox-shell) { overflow-y: auto; }
++		/* the scroll is the TOPIC's now (core/Sidebar: a topic with a `.tabs.stick` scrolls, header and all) */
+ 		.page--ai.page.full:has(> .inbox-shell) { height: auto; min-height: 100%; overflow: visible; }
+ 		.page--ai.page.full:has(> .inbox-shell) > .inbox-shell { flex: none; height: auto; }
+ 		.page--ai .inbox-rail, .page--ai .inbox-stream { display: block; }
+ 		.page--ai .inbox-rows { overflow: visible; }
+-		/* title stays put above; only the tab strip side-scrolls, one row (owner 2026-10-24, replacing the 2026-10-23 wrap) */
+-		.page--ai .inbox-head > .tabs > .tab-bar { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; padding-inline: 0.5rem; }
+-		.page--ai .inbox-head > .tabs > .tab-bar::-webkit-scrollbar { display: none; }
+-		.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: none; white-space: nowrap; }
++		/* title above, tabs below as one row that side-scrolls (owner 2026-10-24; the shared `.tab-bar` already does the scrolling). `display: contents` frees the strip from the 73px head so `.stick` can hold it for the whole page: a sticky box stays inside its parent. */
++		.page--ai .inbox-head { display: contents; }
++		.page--ai .inbox-head > .tabs > .tab-bar { flex: none; padding-inline: 0.5rem; }
++		.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: none; }
+ 		.page--ai .inbox-head .doc-well { padding-block: 0.4em 0.1em; }
+ 	}
+ }
+diff --git a/public/framework/core/Page/Page.css b/public/framework/core/Page/Page.css
+index ea68c5b3d..8d18504c8 100644
+--- a/public/framework/core/Page/Page.css
++++ b/public/framework/core/Page/Page.css
+@@ -170,7 +170,8 @@
+ 	.page {
+ 		--measure: 40em;
+ 		--page-pad: initial;
+-		--gutter-x: clamp(2em, 4%, 5em);
++		/* ⚠ The floor was `2em` until 2026-10-24 (top-tabs): 28px a side at 390, and the white cards pay `--pad-card` on top of it. `1em` halves the phone inset (about 15px at 390) and changes nothing from ~700px up, where 4% takes over. ext/Doc/Doc.css restates this clamp; keep the two equal. */
++		--gutter-x: clamp(1em, 4%, 5em);
+ 		/* ⚠ A clamp, was a flat `3em` (2026-08-17). 48px above every `h1` is a quarter
+ 		   of the fold at 390 — 10 findings on 9 pages. The same idiom `--gutter-x`
+ 		   already uses, so the page's two insets scale together: 24px at 390, 42px at
+diff --git a/public/framework/core/Page/doc/css.md b/public/framework/core/Page/doc/css.md
+index 11796dc0b..7ce2d802f 100644
+--- a/public/framework/core/Page/doc/css.md
++++ b/public/framework/core/Page/doc/css.md
+@@ -205,7 +205,7 @@ site having the identical fight inside a box that is already off the outer axis.
+ **Verdict (blessed by the owner, 2026-08-12): title, prose, walls and exhibits share
+ ONE left edge; wider blocks grow rightward only.** The opt-in
+ `.page.standard.left` variant *became* the template. The gutter is fixed —
+-`--gutter-x: clamp(2em, 4%, 5em)`, so 400px pays 32px and never more than 5em —
++`--gutter-x: clamp(1em, 4%, 5em)` (the floor was `2em` until 2026-10-24), so 400px pays 16px and never more than 5em —
+ `main` and `wide` start on the same grid line, and the whole leftover `1fr` is
+ spent on the right. `.page` lost its `margin-inline: auto` in the same change: a
+ shape that opts out of the template (`full`, a page in a tab panel) agrees
+@@ -275,7 +275,7 @@ The `100%` resolves against the **grid**, not the window, so a grid nested in a
+ tab panel or a catalog region breaks out of the right box. ⚠ A percentage inside
+ `minmax()` is exactly the class of thing that silently drops a whole template:
+ after touching this, re-measure that `main` is still 936px at 3440 and that the
+-gutters never fall below `2em`.
++gutters never fall below `1em`.
+ 
+ ## Rhythm: one flow token, and registration reversed
+ 
+diff --git a/public/framework/core/Page/readme.md b/public/framework/core/Page/readme.md
+index d8291105f..471b33a74 100644
+--- a/public/framework/core/Page/readme.md
++++ b/public/framework/core/Page/readme.md
+@@ -53,6 +53,8 @@ Opening a page is the same road from offset 0. Off localhost there is no socket:
+ 
+ `content` is a list of parts (heading, text, card), one `page.jsonl` line each: [parts/](parts/readme.md). Templates (one layout, many data rows): [doc/templates.md](doc/templates.md). Binding a view to its data: [doc/binding.md](doc/binding.md). A page whose data lives in node: [doc/server.md](doc/server.md). Pick a layout from the catalog before inventing one: [layout/](layout/).
+ 
++A page's side inset is `--gutter-x: clamp(1em, 4%, 5em)` (`Page.css`; `ext/Doc/Doc.css` restates it, keep the two equal): about 15px at 390 and unchanged from ~700px up. The floor was `2em` until 2026-10-24, when the phone inset was halved at the source rather than with a per-page word.
++
+ ## Which class
+ 
+ A **List** when something is ordered and watched; an **Item** when it is a thing (an icon, a title, saved); a **Page** when it has a url.
+diff --git a/public/framework/core/Sidebar/Sidebar.css b/public/framework/core/Sidebar/Sidebar.css
+index cd354e384..8299a515b 100644
+--- a/public/framework/core/Sidebar/Sidebar.css
++++ b/public/framework/core/Sidebar/Sidebar.css
+@@ -308,6 +308,7 @@
+ 	   in /styles.css. The menu is absolute against the sticky bar, so opening it
+ 	   moves nothing else. */
+ 	@media (max-width: 52em) {
++		/* (A topic holding a `.tabs.stick` strip turns this header into normal scrolling content: styles.css, same breakpoint.) */
+ 		.sidebar {
+ 			position: sticky; top: 0; z-index: 10;
+ 			border-right: none;
+diff --git a/public/framework/core/Sidebar/readme.md b/public/framework/core/Sidebar/readme.md
+index 031eb712c..fb5ad351c 100644
+--- a/public/framework/core/Sidebar/readme.md
++++ b/public/framework/core/Sidebar/readme.md
+@@ -29,7 +29,7 @@ this file's.
+ - Anything that renders links late must re-run `mark_links()`; no view compares `window.location` — `reveal()` already does this once the tree's own rows exist. [`../Router/doc/marking.md`](../Router/doc/marking.md)
+ - Placement is one line at the call site, always the shared token, no fallback — resizing overrides `--sidebar` LOCALLY, on the panel itself, never the shared one other files read. [`doc/placement.md`](./doc/placement.md)
+ - The width lives under one localStorage key, `lew42:sidebar` — every `Sidebar` on the site shares it, on purpose (it's persistent chrome, not a per-page setting). [`doc/decisions.md`](./doc/decisions.md)
+-- Below 52em the panel is a sticky top bar with a burger, and CSS turns the resize handle off — nothing to drag on a phone. [`doc/narrow.md`](./doc/narrow.md)
++- Below 52em the panel is a sticky top bar with a burger, and CSS turns the resize handle off — nothing to drag on a phone. [`doc/narrow.md`](./doc/narrow.md) A page holding a `.tabs.stick` strip (Doc pages, the AI head) is the exception: `styles.css` makes the topic the scroller and the bar `relative`, so the header scrolls away and the tab row sticks (2026-10-24).
+ - A `root:` tree now respects `leaf: true` the same way `pages:` data always did — fixed in `ux/Tree` 2026-09-18, no longer a caveat here. [`../../ux/Tree/doc/decisions.md`](../../ux/Tree/doc/decisions.md)
+ - A leaf page can still show a few children: `pinned: "queue"` beside `leaf: true` draws only those under it (the AI page shows its task queue this way). Search still indexes all of its children. `Tree.node_of()` reads it.
+ - Search finds every page, loaded or not: a query swaps the tree for a flat result list from `index()`, one walk of the whole page tree (about 2 s the first time, then cached). The query is routed (`?q=`), Arrow keys move through results, Enter opens the first. Results rank exact title first, then shallowest url; a `leaf: true` page's children are indexed too. [`doc/index.md`](./doc/index.md)
+diff --git a/public/framework/ext/Doc/Doc.css b/public/framework/ext/Doc/Doc.css
+index 24edf4d13..335c82ac6 100644
+--- a/public/framework/ext/Doc/Doc.css
++++ b/public/framework/ext/Doc/Doc.css
+@@ -13,7 +13,7 @@
+ 
+ 		--measure: none;
+ 		--page-pad: 0;
+-		--gutter-x: clamp(2em, 4%, 5em);
++		--gutter-x: clamp(1em, 4%, 5em);
+ 		--well: light-dark(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.35));
+ 		--tab-fill: var(--wash);
+ 	}
+@@ -47,45 +47,28 @@
+ 	   ⚠ One inset serves both shapes: beside the title it reads as a gutter-wide gap,
+ 	     and once the basis no longer fits and the strip wraps to its own line, it lands
+ 	     the LABELS on the axis (the tab boxes hang one tab-padding to their left). */
+-	/* ⚠ Persistent navigation never moves or hides (CLAUDE.md's own law) — so THIS
+-	   bar wraps its tabs onto a second row rather than scrolling or clipping, once
+-	   there isn't room for all of them on one line: at 1920 a 13-tab module's last
+-	   few (API, Docs, Files) sat past the fold of `overflow: auto`'s hidden
+-	   scrollbar, and with the right drawer open the SAME thing happened to the
+-	   first few at 1280 (2026-09-29, navfix). This overrides ext/tabs' own
+-	   `.tab-bar { flex-wrap: nowrap; overflow: auto }` (tabs.css) — deliberately
+-	   never-wrap there, because a fifty-member RAIL wrapped is 500px of chrome
+-	   above the content it navigates (that file's own note). Doc's own top bar is
+-	   never that big — Overview, the module's declared children, API, Docs, Files
+-	   — so the trade is different, and only THIS selector (0,3,0, Doc's own) says
+-	   so; the shared rule in ext/tabs is untouched and every other tab strip on
+-	   the site still scrolls.
+-	   ⚠ Below 600px this reasoning flips back: the `@media` block near the end of
+-	   this file (2026-10-04, mobile-doc-header) un-does exactly this wrap, because
+-	   a wrapped strip there costs MORE chrome than a scrolling one does — the
+-	   opposite trade, at a width small enough that it's the right one. Not an
+-	   oversight; read that block for why. */
+-	/* ⚠ `flex-wrap: wrap` — the strip has 7 labels (overview/api/doc/files/…) and
+-	     `tabs.css` scrolls them sideways with nothing to say so below ~450px
+-	     (measured: content 644px in a 400px bar). Wrapping to a second row shows
+-	     every label instead. Doc.css:2026-09-29. */
++	/* ONE ROW THAT SCROLLS SIDEWAYS AT EVERY WIDTH (the owner, 2026-10-24, top-tabs).
++	   This bar wrapped onto a second row above 600px (navfix, 2026-09-29: at 1920 a
++	   13-tab module's last tabs sat past the fold of a scrollbar-less `overflow: auto`)
++	   and scrolled below it. The owner reversed that: every tab row is one row that
++	   side-scrolls, so this rule no longer overrides ext/tabs' own `.tab-bar`
++	   (`nowrap`, `overflow: auto`) and the phone block at the end of this file only
++	   gives the strip its own line. The old wrap is in git (2026-10-23 and before). */
++	/* ⚠ The paint is `ext/tabs`' `.tabs.stick` rule (opaque `--well` over the ground, so
++	   the strip can stick); Doc.js adds `stick` to this set. */
+ 	.page.doc-page > .tabs > .tab-bar {
+-		background: var(--well);
+ 		flex: 1 1 24em; min-width: 0;
+ 		align-items: flex-end;
+-		flex-wrap: wrap;
+ 		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
+-		overflow: visible;
+ 
+-		/* ⚠ The wrap above stops a tab from being CLIPPED — it does not stop one
+-		   from landing UNDER the ☰ drawer button, which is `position: fixed` in
+-		   this same top-right corner (`.drawer-menu`, ext/drawer/drawer.css:
++		/* ⚠ The strip scrolls, but the last tab can still land UNDER the ☰ drawer
++		   button, which is `position: fixed` in this same top-right corner (`.drawer-menu`, ext/drawer/drawer.css:
+ 		   2.2rem wide, 0.5rem from the edge) and so never pushes flow content out
+ 		   of its way. At 1920, this bar runs the FULL width of the page (the
+ 		   "full-bleed band" above), so its last tab on row 1 reached the exact
+ 		   same corner and rendered behind the button, invisible — the API tab,
+ 		   2026-09-29 fix round. `padding-inline-end` reserves that corner so
+-		   nothing ever wraps AT it: the button's own footprint (2.2rem) plus its
++		   nothing ever sits AT it (scrolled to the end, the last tab stops short): the button's own footprint (2.2rem) plus its
+ 		   inset (0.5rem) plus a hair of breathing room.
+ 		   ⚠ Bigger than strictly measured on purpose — `--rail-push` (drawer.css)
+ 		   can nudge the button further in mid-open; this stays clear either way. */
+@@ -170,14 +153,10 @@
+ 		.doc-title { font-size: 0.85em; }
+ 		.doc-well { padding-block: 0.9em 0.4em; }
+ 
+-		.page.doc-page > .tabs > .tab-bar {
+-			flex-basis: 100%;
+-			flex-wrap: nowrap;
+-			overflow-x: auto;
+-			/* No drawer button to dodge here: a scrolling row never sits under it the
+-			   way a wrapped one could (the desktop rule's own reason for 3.5rem). */
+-			padding-inline-end: 0.8em;
+-		}
++		/* The strip takes its own line under the title. No drawer button to dodge, so
++		   the end padding shrinks. (Used to also force nowrap + scroll; that is the
++		   rule at every width now.) */
++		.page.doc-page > .tabs > .tab-bar { flex-basis: 100%; padding-inline-end: 0.8em; }
+ 	}
+ 
+ 	/* THE CLASS CARD (ext/Doc/ClassCard.js, doc/class-card.md): the API tab's home for a class.
+diff --git a/public/framework/ext/Doc/Doc.js b/public/framework/ext/Doc/Doc.js
+index de59c9388..9aca73ff9 100644
+--- a/public/framework/ext/Doc/Doc.js
++++ b/public/framework/ext/Doc/Doc.js
+@@ -351,7 +351,7 @@ export class Doc extends Page {
+ 		const fresh = !this.view;
+ 		const view = this.view ??= div.c(`page ${nested ? "doc-section" : "doc-page"}`, () => {
+ 			if (!nested) this.well();
+-			this.tabs(this.bar().join(" ")).ac(nested ? "vertical" : "block");
++			this.tabs(this.bar().join(" ")).ac(nested ? "vertical" : "block stick");
+ 		})
+ 			.ac(this.name && "page--" + this.name)
+ 			.ac(this.classes);
+diff --git a/public/framework/ext/tabs/readme.md b/public/framework/ext/tabs/readme.md
+index 0149eef36..b56011928 100644
+--- a/public/framework/ext/tabs/readme.md
++++ b/public/framework/ext/tabs/readme.md
+@@ -20,7 +20,8 @@ the panel, with the selected tab cut out of its top edge.
+ - A tab wears the **control grammar's metrics** (2026-09-06) — the same font-size, `min-height: 2.4em` and padding as a button or a field, so a strip lines up with a toolbar and `.size-small` shrinks both. Its skin stays its own. [/framework/ui/controls/](/framework/ui/controls/)
+ - Only the first `tabs()` on a page can own the parent's url; two sets sharing a child name collide silently — [doc/decisions.md](./doc/decisions.md)
+ - A tab bar suits a page with no prose of its own whose children flip *between* and fit its measure; otherwise `previews()` — [doc/usage.md](./doc/usage.md)
+-- A bar is one strip that scrolls, never a wrapping block; past ~fifty members it is untested — [doc/overflow.md](./doc/overflow.md)
++- A bar is one strip that scrolls, never a wrapping block, at every width — ext/Doc, the AI head and `ux/Inbox` no longer override it (2026-10-24); past ~fifty members it is untested — [doc/overflow.md](./doc/overflow.md)
++- `.ac("stick")` (a page's own top strip, `block stick`) holds the bar at the top of the scroll under an opaque `--well`-over-ground fill; a sticky box stays inside its parent, so use it where the set's parent is as tall as the page (Doc and the AI head do). On a phone `styles.css` makes the topic the scroller, so the header above scrolls away.
+ - A nested set with no `app` never highlights on a cold load; anything rendering links late owes `mark_links()` — [doc/decisions.md](./doc/decisions.md)
+ - Under a stand-in app (`demo.app`) `[aria-current]` is the third selected mark — [doc/decisions.md](./doc/decisions.md)
+ 
+diff --git a/public/framework/ext/tabs/tabs.css b/public/framework/ext/tabs/tabs.css
+index 0c73e91b3..611fb261b 100644
+--- a/public/framework/ext/tabs/tabs.css
++++ b/public/framework/ext/tabs/tabs.css
+@@ -56,10 +56,24 @@
+ 	     Don't re-add it without asking. */
+ 	.tab-bar {
+ 		display: flex; flex-wrap: nowrap;
+-		overflow: auto; scrollbar-width: none;
++		overflow: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+ 		border-bottom: 1px solid var(--line);
+ 	}
+ 
++	/* `.stick` (2026-10-24, top-tabs): the page's own top strip stays at the top of its
++	   scroll while the content passes under it. ⚠ Opaque on purpose: the strip is a
++	   `--well` shadow over the ground (ext/Doc, the AI head set `--well`), so a
++	   translucent paint would show the text scrolling underneath. A page that sets no
++	   `--well` gets a plain ground. ⚠ A sticky box is held inside its PARENT, so the set
++	   must be a child of something as tall as the scroll (`.tabs` is `display: contents`
++	   in Doc and the AI head, so the page is its parent). On a phone the header above
++	   scrolls away because core/Sidebar makes the topic the scroller for any topic that
++	   holds a `.stick`. */
++	.tabs.stick > .tab-bar {
++		position: sticky; top: 0; z-index: 3;
++		background: linear-gradient(var(--well, #0000), var(--well, #0000)), var(--ground, var(--wash));
++	}
++
+ 	/* Quiet by construction: a text label, a hairline under the set, a 2px mark under
+ 	   the selected one. No box, no fill, no gap between tabs — the strip is the group. */
+ 	/* ⚠ A TAB IS A CONTROL, and it wears the grammar's METRICS — the same font-size,
+diff --git a/public/framework/ux/Inbox/Inbox.css b/public/framework/ux/Inbox/Inbox.css
+index 6af003fdd..0251dc307 100644
+--- a/public/framework/ux/Inbox/Inbox.css
++++ b/public/framework/ux/Inbox/Inbox.css
+@@ -98,11 +98,15 @@
+ 
+ 	.inbox-head > .tabs { display: contents; }
+ 
++	/* A `.stick` strip is painted by ext/tabs (opaque, so it can stick). */
++	.inbox-head > .tabs:not(.stick) > .tab-bar { background: var(--well); }
++
++	/* One row that side-scrolls at every width (the owner, 2026-10-24, top-tabs): ext/tabs' own
++	   `nowrap` + `overflow: auto` applies. It wrapped here on a phone (2026-10-12) to keep SESSIONS/TESTS
++	   visible; the owner reversed that. */
+ 	.inbox-head > .tabs > .tab-bar {
+-		background: var(--well);
+ 		flex: 1 1 16em;
+ 		min-width: 0;
+-		flex-wrap: wrap;   /* a handful of tabs: wrap on a phone rather than hide SESSIONS/TESTS off the edge with no scroll cue (2026-10-12) */
+ 		align-items: flex-end;
+ 		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
+ 		padding-inline-end: 0.8em;
+diff --git a/public/styles.css b/public/styles.css
+index d898950c1..c29d3338e 100644
+--- a/public/styles.css
++++ b/public/styles.css
+@@ -305,6 +305,19 @@
+ 	@media (max-width: 52em) {
+ 		.page.topic { flex-direction: column; overflow: visible; }
+ 		.topic > .sidebar { flex: 0 0 auto; }
++
++		/* THE HEADER SCROLLS AWAY when the page has a `.tabs.stick` strip (ext/tabs; the
++		   owner, 2026-10-24: "the framework header should scroll away like normal
++		   content, and the tab row should stick at the top instead"). The header is a
++		   SIBLING above `.pages`, which is the scroller, so it could never leave; for
++		   such a topic the TOPIC scrolls and `.pages` just grows with its content
++		   (`1 0 auto`: a short page still fills the screen, so a `fill` child keeps its
++		   height). The header is `relative`, not static: its open menu is absolute
++		   against it. Opt-in through `:has()`, so an app page with its own inner scroll
++		   (chat, make) keeps the old model. `site` layer, like the rules it overrides. */
++		.page.topic:has(.tabs.stick > .tab-bar) { overflow: auto; }
++		.topic:has(.tabs.stick > .tab-bar) > .sidebar { position: relative; }
++		.topic:has(.tabs.stick > .tab-bar) > .pages { flex: 1 0 auto; overflow: visible; }
+ 	}
+ 
+ 	/* Rhythm is NOT here. It used to be two rules in this file AND four in Page.css,

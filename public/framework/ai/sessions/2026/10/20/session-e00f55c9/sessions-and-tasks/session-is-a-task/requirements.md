@@ -110,3 +110,34 @@ The tab has been asking agents for `show:` log lines. That's a loose convention 
 20. **(deputy, adds to 12c) A long session reads fast, with no history lost.**
     - The owner's gut is right that replaying a 4-day log shouldn't take 60s. Measure (12b) whether the time goes on the replay or on the extra work after the append.
     - If the replay itself is slow, add checkpoint lines, so a replay starts from the latest checkpoint while every older line stays in the file. Nothing is deleted or rewritten.
+
+
+## One subscription system (the owner, 2026-10-24, the next prompt)
+
+"We want to basically use the same system everywhere... the same way an agent subscribes to a sub-agent session log, an agent can subscribe to a certain module, and just by subscribing it automatically gets test errors or browser errors... lean into our one solid system rather than redesigning a subscription system for every new use case."
+
+- **The one system is Servex `follow`.** It watches a file or a folder (module level), and a `.jsonl` file's new lines arrive verbatim, batched every 2 seconds.
+- **So a test failure or a page error is just a line appended to a log in the module's own folder** (data lives with its module). Whoever follows that module gets it. No direct `send` from the watcher, and no second subscription mechanism.
+- **The builder follows the modules it is changing,** the mastermind follows its children's session logs, and both use the same tool.
+- **The noise rule still applies:** report a failure only if it still fails after a quiet spell. Passes are logged as one "clear" line.
+- **`ai/errors/` (one global folder) moves toward per-module logs.** Say how in your outcome.
+
+## Part 5: prompts are tasks too (the owner, 2026-10-24, the prompt starting "I'm getting kind of confused on the structured content thing")
+
+21. **(deputy) `Prompt extends Task`.**
+    - Each owner prompt is a Prompt in `session.tasks`, and the asks made from it are nested in the Prompt's own `tasks`. The owner likes this picture: tasks sit in context, under the words that asked for them.
+    - Completion and cost roll up: task → prompt → session, all computed at read time.
+    - **The tab's decision (the alternative was a flat task list with prompt references): nest.** A reference breaks when its target moves or is renamed; a nested child has no reference to keep in sync.
+    - **When the work for an ask moves** (to a module's `tasks/` folder, or to an agent's folder), the task stays under its prompt as the record of the ask. It keeps one `path` pointer to where the work is, and the work folder points back with its parent. Moves are scripted with a manifest, as with any move.
+    - **Cheap first step:** the prompt records in `prompts.jsonl` (raw, clean sentences, parts with `cites`) become Prompt instances with no data lost. The cites stay, so the chat view and the coverage score (prompt-breakdown brief) come straight from them.
+22. **(ai-system-mastermind) Approval defaults to "do".**
+    - The owner often doesn't read replies, so asks are done without waiting for approval, unless the owner says "plan" (or "propose"). The owner will try to say "plan" or "do".
+    - Write it into `ai/doc/task-buckets.md`.
+    - Name the open question, one kind of task done at once and another that needs a sign-off, and leave it open.
+23. **(ai-system-mastermind) 100% completion is a top priority for every session.**
+    - A task ends one of three ways: done properly; reworded so it can be done properly; or stopped as no longer needed, with the reason (the owner can reverse a stop).
+    - Nothing is deleted, ever.
+    - Add each session's completion to the tracking page (`/framework/ai/tracking/`), and put this rule in task-buckets.md.
+    - This session (e00f55c9) is goal number one. The closeout is in `../session-closeout/`, and its write waits for the fast write.
+
+21b. **(deputy) Name it so it reads plainly.** "Session extends Task, and its tasks are prompts" is a mouthful (the owner). Write the shape in the readme in plain words, and consider a clearer list name, e.g. a session's `prompts`, while it is still a Task list underneath. Pick one and say why. **Moving tasks out of a session into a module is NOT in scope.** It's a note in core/Task's inbox, for a later shape discussion that the owner signs off.
