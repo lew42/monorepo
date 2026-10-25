@@ -1,11 +1,13 @@
 Budget: $8
 
-# Legacy sweep (agent-base item 15)
+# Legacy sweep: one provider default, one mastermind role
 
-The owner's words: `public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/agent-base/requirements.md`, item 15. Work in a worktree (`take_worktree`), commit by pathspec, review with `node Server/review.mjs <taskdir> <worktree>`, then report; the mastermind merges.
+Owner's words: [agent-base item 15](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/agent-base/requirements.md)
 
-1. **Remove every "use only OpenRouter" directive** that steers an agent: role readmes, `session-smart.md`, `Servex/agents/roles.js` `VOICE_MODELS`, `session-backend.txt`, skills, and any env or default that forces `provider: openrouter`. Claude is the default; OpenRouter is used only when asked (a `model` with a `/`, or `provider: "openrouter"`, still works, unchanged). Grep widely (`OpenRouter`, `openrouter`, `OR_ONLY` in `Servex/agents/tiers.js`) and decide per hit: steering text = remove; the OpenRouter provider code itself = keep.
-2. **Fold `task-mastermind` and `sub-mastermind` into the one `mastermind` role.** The singleton and renewal are already gone: `mastermind` is spawned at a `path` (see `Servex/agents/roles/mastermind.md`, "Spawned at a path"). Keep the useful rules (own one task end to end, land it) as a short section of `roles/mastermind.md`. Keep `task-mastermind` and `sub-mastermind` as ALIAS words so existing callers and registry rows still resolve; remove the separate row, readme and prefix only where nothing breaks. Update `roles.test.mjs` and any test that names them; run all `Servex/agents/*.test.mjs`.
-3. **List other legacy roles or switches** you find, with a keep or retire verdict each, in `findings.md` beside this brief (one line each: what, where, verdict, why). Retire only the obvious; list the rest.
+Work in a worktree (`take_worktree`), commit by pathspec, review with `node Server/review.mjs <taskdir> <worktree>`, then report. The mastermind merges.
 
-Done = tests pass, readmes updated to match the code (CLAUDE.md law 9), branch ready to merge, `findings.md` written. No Servex restart needed from you.
+- [ ] **1. Claude is the default, OpenRouter only on request.** Delete every "use only OpenRouter" directive (role readmes, `session-smart.md`, `VOICE_MODELS` in `Servex/agents/roles.js`, `session-backend.txt`, skills, `OR_ONLY` in `Servex/agents/tiers.js`). Steering text goes; the provider code stays, and a `/` model or `provider: "openrouter"` still works.
+- [ ] **2. One `mastermind` role.** Fold `task-mastermind` and `sub-mastermind` into `roles/mastermind.md` as a short "own one task end to end, land it" section (a mastermind is spawned at a `path`; see its "Spawned at a path"). Keep both names as alias words so old callers and registry rows still resolve. Update `roles.test.mjs`; run every `Servex/agents/*.test.mjs`.
+- [ ] **3. `findings.md`** beside this brief. One line per other legacy role or switch: what, where, keep or retire, why. Retire only the obvious.
+
+Done = tests pass, readmes match the code, branch ready to merge.
