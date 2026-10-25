@@ -495,7 +495,7 @@ export class SheetPanel extends View {
  * back. Why a subpath and not a peer path (<path>/debug/): ux/Dictate/doc/debug-tab.md#routed. */
 SheetPanel.prototype.route_tab = function(name){
 	const about = drawer.page().replace(/\/?$/, "/"), ai = about + "ai/", here = location.pathname;
-	const want = name && name !== "ai" ? ai + name + "/" : (AIPage.view_of(here) && AIPage.view_of(here) !== "chat" ? (this.url_before ?? about) : null);
+	const want = name && name !== "ai" ? ai + name + "/" : (AIPage.view_of(here) && AIPage.view_of(here) !== "chat" ? (this.url_before ?? ai) : null);   // no url_before: opened straight at the view url, so <page>/ai/ (still open on a reload)
 	if (!want || want === here) return;
 	if (name && name !== "ai" && !AIPage.view_of(here)) this.url_before = here;   // opened in place: the page's own url comes back after
 	history.replaceState(history.state, "", want + location.search + location.hash);
