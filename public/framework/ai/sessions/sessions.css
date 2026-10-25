@@ -193,7 +193,7 @@
 	/* The detail is one panel at a time under a tab strip (AISessionDetail.content): each panel is its own section, full width, so a table is never squeezed. */
 	.sessions-tabs { padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
 	.sessions-panel { padding: var(--gap-50); background: var(--tint); border-radius: var(--radius); }
-	.sessions-panel { display: grid; gap: var(--gap-50); align-content: start; }
+	.sessions-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap-50); align-content: start; }   /* minmax(0,…): a wide child (the Tasks grid) scrolls in its own box instead of stretching the column at 390 */
 	.sessions-panel > * { margin: 0; }
 	.sessions-panel > :not(:has(*:not(:empty))) { display: none; }   /* a slot with nothing in it (no voice stages, no spawn) takes no space: no blank band above the chat */
 	.sessions-panel[hidden] { display: none; }
