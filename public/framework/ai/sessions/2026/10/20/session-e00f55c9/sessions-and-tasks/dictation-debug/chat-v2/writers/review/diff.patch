@@ -1,0 +1,301 @@
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index cb7b7f284..a2e828219 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -44,7 +44,7 @@ import Dispatcher from "./agents/Dispatcher.js";
+ import Cards from "./cards/Cards.js";
+ import Asks from "./asks/Asks.js";
+ import Layers from "./agents/Layers.js";
+-import Sessions from "./agents/Sessions.js";
++import Sessions, { now_ms } from "./agents/Sessions.js";
+ import Global, { claude_processes } from "./agents/Global.js";
+ import { alive } from "./agents/Registry.js";
+ import External from "./agents/External.js";
+@@ -806,12 +806,31 @@ export default class Servex extends Events {
+ 
+         /* VOICE TO THE SESSION PAGE (ai/sessions/2026/10/12/session-0e99727c/voice-to-session-page): while someone talks, the browser
+          * posts the words so far and each one lands on the session's page as a page-tool delta
+-         * (Servex/ext/refine/VoicePage.js). `final: true` closes the raw stage; /api/refine writes the rest. */
++         * (Servex/ext/refine/VoicePage.js). `final: true` closes the raw stage; /api/refine writes the rest.
++         *
++         * `kind` (chat-v2-writers, "the page talks to the assistants too"): default "speech" is this unchanged
++         * behavior. For `error`/`click`/`context`, `session` names a live VOICE session (Sessions.js's own id,
++         * "v-…" -- NOT the uuid above, which is Live-Refine's own unrelated transcript id) instead: a miss answers
++         * {ok:false} rather than throwing, since the page may be reporting about a session that already ended. An
++         * `error` is filed as a `log` line on that session (the same top-level verb this repo already logs progress
++         * with; never a chat bubble). `click`/`context` are queued onto the smart seat's own `notes`, the same way
++         * `nav()`/`react()` already tell it something happened without starting a new thought -- read on its next
++         * turn, never forcing an extra model call just to report a click. */
+         router.options("/api/voice", cors, (req, res) => res.status(204).end());
+ 
+         router.post("/api/voice", cors, express.json({ limit: "64kb" }), async (req, res) => {
+-            const { session, prompt, text, final = false, source } = req.body ?? {};
+-            if (!/^[0-9a-f-]{36}$/.test(session ?? "") || !/^[\w-]{4,60}$/.test(prompt ?? "") || typeof text !== "string" || !text.trim()) return res.status(400).json({ ok: false, why: "needs session (uuid), prompt (id) and text" });
++            const { session, prompt, text, final = false, source, kind = "speech" } = req.body ?? {};
++            if (!["speech", "error", "click", "context"].includes(kind)) return res.status(400).json({ ok: false, why: "kind must be speech, error, click or context" });
++            if (typeof text !== "string" || !text.trim()) return res.status(400).json({ ok: false, why: "needs text" });
++            if (kind !== "speech"){
++                const s = this.sessions.map[session];
++                if (!s) return res.json({ ok: false, why: `no live voice session "${session}"` });
++                if (kind === "error") this.sessions.write(s, { log: { at: now_ms(), msg: text.slice(0, 2000) } });
++                else ((s.notes ??= {}).smart ??= []).push(`(the page reports a ${kind}: ${text.slice(0, 500)})`);
++                this.sessions.save();
++                return res.json({ ok: true });
++            }
++            if (!/^[0-9a-f-]{36}$/.test(session ?? "") || !/^[\w-]{4,60}$/.test(prompt ?? "")) return res.status(400).json({ ok: false, why: "needs session (uuid) and prompt (id)" });
+             try { await VoicePage.get(session, prompt).raw(text.slice(0, 20000), { final: !!final, source }); res.json({ ok: true }); }
+             catch (e){ res.json({ ok: false, why: String(e?.message ?? e) }); }
+         });
+diff --git a/Servex/agents/PromptLines.js b/Servex/agents/PromptLines.js
+new file mode 100644
+index 000000000..a40405295
+--- /dev/null
++++ b/Servex/agents/PromptLines.js
+@@ -0,0 +1,51 @@
++/* PromptLines.js — the delta lines that make a session's chat (chat-shape.md, Option C): a Prompt task holding the
++ * owner's raw words and cleaned paragraphs, replies anchored to a sentence, and Questions nested under it. Pure
++ * functions, no fs: the caller appends the result through its OWN single writer (Sessions.js's `write`/`append` for
++ * the fast seat; the `item` tool for the smart seat, documented in session-smart.md). One function per line shape in
++ * the brief, matched 1:1 against what `ChatV2Model.js` folds and what `core/Task/Prompt.js`/`Question.js` replay.
++ *
++ * VOICE SESSIONS ONLY (the look-first step, chat-v2-writers): a voice session's `session.jsonl` is never touched by
++ * `Server/PromptsToSession.mjs` / `PromptRecords.mjs` — those two only mirror a VS CODE TAB's prompts.jsonl (guarded by
++ * `kind !== "vscode-tab"` in `Servex/agents/PromptTasks.js`'s `record_for()`). A voice session's own id ("v-…") is not
++ * even a transcript uuid PromptAudit could look up. So THIS is the first and only writer for a voice session's
++ * Prompts: no risk of a second Prompt for one utterance (CLAUDE.md law 6), because nothing else ever makes one here. */
++
++const now_iso = () => new Date().toISOString();
++
++/** One Prompt id: a timestamp, same scheme as chat-shape.md's examples ("nothing else depends on their shape"). */
++export function prompt_id(at = Date.now()){ return `p-${at}`; }
++export function question_id(at = Date.now()){ return `q-${at}`; }
++export function reply_id(at = Date.now()){ return `r-${at}`; }
++
++/** The fast seat: a new Prompt, born with its raw words and (if given) one cleaned paragraph "a". */
++export function add_prompt({ id, raw = [], text = "", by = "fast" } = {}){
++	return { tasks: { add: { type: "Prompt", id, raw: [].concat(raw).filter(Boolean), paragraphs: text ? [{ id: "a", text }] : [] } }, ts: now_iso(), by };
++}
++
++/** The fast seat: more raw words heard, same Prompt (mid-sentence or a correction after the Prompt already exists). */
++export function push_raw(id, text, by = "fast"){ return { [id]: { raw: { push: text } }, ts: now_iso(), by }; }
++
++/** The fast seat: a new paragraph (a new idea within the same Prompt), or more text onto an existing one. */
++export function add_paragraph(id, { para_id, text }, by = "fast"){ return { [id]: { paragraphs: { add: { id: para_id, text } } }, ts: now_iso(), by }; }
++export function append_paragraph(id, { para_id, text }, by = "fast"){ return { [id]: { paragraphs: { append: { id: para_id, text } } }, ts: now_iso(), by }; }
++
++/** The smart seat: its refined version of the Prompt (what the chat shows at the root, chat-shape.md "Two more"). */
++export function refine_prompt(id, { title, text } = {}, by = "smart"){
++	return { [id]: { ...(title !== undefined ? { title } : {}), ...(text !== undefined ? { text } : {}) }, ts: now_iso(), by };
++}
++
++/** The smart seat: a reply to the whole Prompt, or to one sentence (`anchor: {sentence, from?, to?}`). */
++export function add_reply(id, { id: rid, text, anchor } = {}, by = "smart"){
++	return { [id]: { replies: { add: { id: rid, text, by, ...(anchor ? { anchor } : {}) } } }, ts: now_iso(), by };
++}
++
++/** The smart seat: a task made from the Prompt, nested under it. `task` is any Task-shaped object (title, …) or a Question (below). */
++export function add_task(prompt_id, task, by = "smart"){ return { [prompt_id]: { tasks: { add: task } }, ts: now_iso(), by }; }
++
++/** The smart seat: a question it heard in the Prompt, open until answered. */
++export function add_question(prompt_id, { id, text } = {}, by = "smart"){
++	return { [prompt_id]: { tasks: { add: { type: "Question", id, text, from: prompt_id } } }, ts: now_iso(), by };
++}
++
++/** The smart seat: answers a Question. `{complete:{}}` (a separate item-tool call) is the "the owner has read it" step; not this. */
++export function answer_question(id, { text, at = now_iso() } = {}, by = "smart"){ return { [id]: { answer: { text, by, at } }, ts: now_iso(), by }; }
+diff --git a/Servex/agents/PromptLines.test.mjs b/Servex/agents/PromptLines.test.mjs
+new file mode 100644
+index 000000000..74a32561f
+--- /dev/null
++++ b/Servex/agents/PromptLines.test.mjs
+@@ -0,0 +1,76 @@
++// Node test for PromptLines — writes each line shape into a temp session.jsonl, exactly as the fast/smart seats
++// would (one fs.appendFileSync per line, the shape of Sessions.js's own `write`/`append`), then folds the file
++// with ChatV2Model.js (what Chat v2 actually reads) and checks the Prompt, raw, paragraphs, reply, question and
++// answer all come out. No DOM, no server. Run: `node PromptLines.test.mjs`.
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import * as PromptLines from "./PromptLines.js";
++import ChatV2Model from "../../public/framework/ext/Chat/v2/ChatV2Model.js";
++
++const results = [];
++const check = (title, fn) => {
++	let ok;
++	try { ok = !!fn(); } catch (e){ ok = false; console.error(e); }
++	results.push(ok);
++	console.log(`${ok ? "PASS" : "FAIL"} — ${title}`);
++};
++
++const file = path.join(os.tmpdir(), `prompt-lines-test-${Date.now()}.jsonl`);
++const append = line => fs.appendFileSync(file, JSON.stringify(line) + "\n");
++const fold = () => ChatV2Model.fold(fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)));
++
++const PID = "p-1000", QID = "q-2000", RID = "r-3000";
++
++append(PromptLines.add_prompt({ id: PID, raw: ["so the page should"], text: "So the page should show every bubble in order." }));
++append(PromptLines.push_raw(PID, "in order"));
++append(PromptLines.add_paragraph(PID, { para_id: "b", text: "A second idea." }));
++append(PromptLines.append_paragraph(PID, { para_id: "b", text: " Still going." }));
++append(PromptLines.refine_prompt(PID, { title: "Bubble order", text: "The chat should show every bubble in order." }));
++append(PromptLines.add_reply(PID, { id: RID, text: "Already true: list order, never sorted.", anchor: { sentence: "a1" } }));
++append(PromptLines.add_question(PID, { id: QID, text: "Does this also cover a typed line?" }));
++append(PromptLines.answer_question(QID, { text: "Yes — say() treats it the same." }));
++
++check("add_prompt makes a Prompt with raw and one cleaned paragraph", () => {
++	const m = fold(), p = m.by_id.get(PID);
++	return p && ChatV2Model.kind(p) === "Prompt" && p.raw[0] === "so the page should" && ChatV2Model.paragraphs(p)[0].text === "So the page should show every bubble in order.";
++});
++
++check("push_raw appends to raw without touching the paragraphs", () => {
++	const p = fold().by_id.get(PID);
++	return p.raw.join("|") === "so the page should|in order" && ChatV2Model.paragraphs(p).length === 2;   // "a" plus the "b" paragraph added below
++});
++
++check("add_paragraph then append_paragraph: a second paragraph, grown in place", () => {
++	const p = fold().by_id.get(PID), b = ChatV2Model.paragraphs(p).find(x => x.id === "b");
++	return b && b.text === "A second idea. Still going.";
++});
++
++check("refine_prompt sets the smart assistant's title and text", () => {
++	const p = fold().by_id.get(PID);
++	return ChatV2Model.title(p) === "Bubble order" && ChatV2Model.text(p) === "The chat should show every bubble in order." && ChatV2Model.refined(p) === true;
++});
++
++check("add_reply anchors a reply to a sentence of the Prompt", () => {
++	const p = fold().by_id.get(PID), r = ChatV2Model.replies(p)[0];
++	return r.text === "Already true: list order, never sorted." && ChatV2Model.anchor(r)?.sentence === "a1";
++});
++
++check("add_question nests a Question under the Prompt, found by ChatV2Model.children", () => {
++	const m = fold(), p = m.by_id.get(PID), q = m.by_id.get(QID);
++	return ChatV2Model.kind(q) === "Question" && q.from === PID && m.children(p).some(c => c.id === QID);
++});
++
++check("answer_question moves the Question's phase to answered", () => {
++	const q = fold().by_id.get(QID);
++	return ChatV2Model.answer(q)?.text === "Yes — say() treats it the same." && ChatV2Model.phase(q) === "answered";
++});
++
++check("roots() draws the Prompt once; the Question is reached only as its child", () => {
++	const m = fold();
++	return m.roots().length === 1 && m.roots()[0].id === PID;
++});
++
++fs.rmSync(file, { force: true });
++console.log(`${results.filter(Boolean).length} of ${results.length} passed`);
++if (results.includes(false)) process.exit(1);
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index bec10e5fa..d759521e2 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -13,6 +13,7 @@ import { has_key, spend_guard } from "../ext/openrouter/provider.js";
+ import { clean } from "../../public/framework/ext/Refine/engine.js";
+ import { structure } from "../../public/framework/ext/Refine/structure.js";
+ import WakePolicy from "./WakePolicy.js";
++import * as PromptLines from "./PromptLines.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const REPO = path.join(HERE, "../..");
+@@ -422,7 +423,16 @@ export default class Sessions {
+ 
+ 	/* WAKE THE VOICE ASSISTANT (voice-assistant-plan): the whole prompt so far (each owner line with its `at`), then the
+ 	 * new sentence(s), then the session file to write into. It answers by writing one {"place"} line per new sentence
+-	 * with the item tool; it writes no chat reply (`heard()` drops its text). */
++	 * with the item tool; it writes no chat reply (`heard()` drops its text).
++	 *
++	 * CHAT V2 (chat-v2-writers, chat-shape.md Option C): every call here is also ONE new Prompt task, written through
++	 * `this.write` -- the same single writer `say()`/`nav()`/`react()` already use, never a second fs.appendFile path.
++	 * `fresh` is already one coherent thought by the time it reaches here (a lone `say()` line, or a whole
++	 * `release_thought()` batch held until the owner paused), so "one Prompt per voice_say call" is a close match for
++	 * "one Prompt per idea" without the fast assistant having to decide anything extra -- chat-shape.md leaves the
++	 * finer split (a long dictation becoming SEVERAL Prompts) open; this is the simplest version that works. `raw` is
++	 * each line's pre-cleanup Whisper text when the browser sent one (`say()`'s own `raw` field), else the cleaned
++	 * text itself; the one paragraph "a" is the cleaned text these lines carry. */
+ 	voice_say(s, fresh){
+ 		const news = new Set(fresh.map(l => l.at));
+ 		const said = l => `[${l.at}] ${selected_prefix(l.selection)}${l.text}`;
+@@ -430,6 +440,8 @@ export default class Sessions {
+ 		const text = (before.length ? `The prompt so far:\n${before.map(said).join("\n")}\n\n` : "The prompt so far: (nothing yet)\n\n")
+ 			+ `New sentence${fresh.length === 1 ? "" : "s"} to place (one {place} line each, \`re\` = its \`at\`):\n${fresh.map(said).join("\n")}\n\n`
+ 			+ `Session file: ${s.file}`;
++		this.write(s, PromptLines.add_prompt({ id: PromptLines.prompt_id(),
++			raw: fresh.map(l => l.raw ?? l.text), text: fresh.map(l => l.text).join(" ") }));
+ 		this.send(s, "fast", text);
+ 	}
+ 
+diff --git a/Servex/agents/session-smart.md b/Servex/agents/session-smart.md
+index 34ba26607..71fee35a7 100644
+--- a/Servex/agents/session-smart.md
++++ b/Servex/agents/session-smart.md
+@@ -58,3 +58,17 @@ Presence and decisions only, one line each: never step-by-step progress. When yo
+ **React instead of writing, when that is all it needs.** If the owner's words only need "heard you" or "okay, we'll do that", make your whole final text ONE emoji: ✅ for "okay, agreed / done", 👍 for "heard you". A reply that is exactly one emoji is pinned on the owner's message as a tap-back (like SMS), not sent as a message. You make this call: the fast assistant waits about 8 seconds for you and stays quiet if you answered first, so only one acknowledgement goes out.
+ 
+ **The owner's reactions.** A line like `(the owner reacted 👍 to the smart assistant's line "…")` at the top of a message is the owner's tap-back on an earlier line: 👍 or ✅ means acknowledged (nothing more to say), ❓ means explain that line more, 👎 means it was wrong or unwanted. A ❓ reaches you at once, with a request to explain. A line like `(this is a reply to …)` means the owner answered that earlier line in a thread; your answer is threaded under it by itself.
++
++## Chat v2: write the conversation, not just chat lines (chat-v2-writers, chat-shape.md)
++
++The fast assistant already wrote a **Prompt** task for every thought you were just sent (one per batch of new sentences, id `p-<ms>`), nested under this session with its raw words and one cleaned paragraph. Chat v2 (`/framework/ext/Chat/v2/`) draws that Prompt as the owner's bubble. You add what it recommends against that same Prompt — never a second Prompt for the words you were just sent, only things ON it. Use the `item` tool, `path` = your session's own page (the url from your first message, the same one "Keep the session's own record with the item tool" already has you using), `target` empty (root) unless noted.
++
++- **Your refined version** (what the chat shows at the bubble's root, chat-shape.md "Two more"): `item({path, delta: {"p-<ms>": {title: "a few words", text: "your cleaned version of what they meant"}}}})`. Do this once you have actually understood the Prompt, not before.
++- **A plain reply** (an answer that isn't a new task): `item({path, delta: {"p-<ms>": {replies: {add: {id: "r-<ms>", text: "…", anchor: {sentence: "a2"}}}}}}})`. `anchor` is optional (omit it to answer the whole Prompt); `sentence` is a paragraph id plus a 1-based number (`a1`, `a2`…) — the Prompt's own sentences, computed from its paragraph text, never something you invent.
++- **A question you heard in it**, open until answered: `item({path, delta: {"p-<ms>": {tasks: {add: {type: "Question", id: "q-<ms>", text: "does X mean Y?", from: "p-<ms>"}}}}}})`.
++- **Answering your own (or an earlier) question**: `item({path, delta: {"q-<ms>": {answer: {text: "…", by: "smart", at: "<iso now>"}}}}})`. The owner reading it is a separate step (`{"q-<ms>": {complete: {}}}`) — never yours to call.
++- **A real task** (something to build or fix): the usual `tasks: {add: {title, description, …}}` on the Prompt, exactly as "A task from an ask" above already has you writing it — nesting it under the Prompt (instead of the session root) is what lets the chat show it under the right bubble.
++
++The fast assistant never makes tasks, questions or refinements — that is entirely yours (chat-shape.md's Decision, "The fast assistant does not make tasks or questions").
++
++**The page reports things too**, down the same channel as speech, tagged by `kind`. An `error` (a UI crash) is filed as a `log` line on this session, nothing for you to act on unless asked. A `click` or `context` line is queued onto what you are sent next as `(the page reports a click: …)` / `(the page reports a context: …)` — treat it exactly like a `(the owner moved to …)` note: context for your next reply, never a cue to answer on its own.
+diff --git a/public/framework/ext/Chat/v2/readme.md b/public/framework/ext/Chat/v2/readme.md
+index d61788cac..c33d7cf26 100644
+--- a/public/framework/ext/Chat/v2/readme.md
++++ b/public/framework/ext/Chat/v2/readme.md
+@@ -26,7 +26,9 @@ Sentences are computed, not stored: a sentence id is its paragraph id plus a 1-b
+ 
+ ## Who writes the data
+ 
+-Not wired yet: the fast assistant writes Prompts (raw and paragraphs; `Servex/agents/Sessions.js` `voice_say`), the smart assistant writes replies, questions and tasks. Both land in step 3 of [chat-v2](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/requirements.md). Until then the fixture is the only data.
++Step 3 landed (chat-v2-writers): the fast seat writes one Prompt per thought — `Servex/agents/Sessions.js`'s `voice_say`, through the one small writer `Servex/agents/PromptLines.js`, every function it exports matching a line shape above. The smart seat writes the refined title/text, replies, questions and their answers through the `item` tool directly (it is an LLM, not code); its instructions are the "Chat v2" section of `Servex/agents/session-smart.md`. Needs a Servex restart to take effect (dev-server-only code).
++
++**The page's own reports** (errors, opt-in clicks, context) reach the assistants the same way the owner's speech does, tagged by `kind`: `public/framework/ext/Chat/v2/report.js`, `init(session)` once, then `window.onerror`/`unhandledrejection` post themselves; `click(label)`/`context(text)` are opt-in calls. They POST `/api/voice` (`Servex/Servex.js`), which files `error` as a `log` line on that voice session and queues `click`/`context` for the smart seat's next turn. Not wired into any page yet — that is for whoever owns the page (`ux/Dictate` is another agent's fence); `report.js` is ready to `import` and call.
+ 
+ ## Decisions
+ 
+diff --git a/public/framework/ext/Chat/v2/report.js b/public/framework/ext/Chat/v2/report.js
+new file mode 100644
+index 000000000..c214b5b2a
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/report.js
+@@ -0,0 +1,32 @@
++// report.js — the page talks to the assistants too (chat-shape.md "Two more"): a UI error or an opt-in click posts
++// down the same channel as speech, POST /api/voice, tagged by `kind` so the fast seat files it as a `log` line
++// (error) and the smart seat sees it as context on its next turn (click/context) — Servex/Servex.js's /api/voice
++// route. Never touches ux/Dictate (another agent's fence); whoever wires a live voice session into a page calls
++// `init(session)` once that session id is known.
++const ENDPOINT = "/api/voice";
++
++function post(session, kind, text){
++	if (!session) return;
++	fetch(ENDPOINT, { method: "POST", headers: { "content-type": "application/json" },
++		body: JSON.stringify({ session, kind, text: String(text ?? "").slice(0, 2000) }) }).catch(() => {});   // best-effort: a report that fails to report is not worth a retry loop
++}
++
++let current_session = null;
++let installed = false;
++
++function on_error(e){ post(current_session, "error", `${e.message ?? e.reason ?? e}${e.filename ? ` (${e.filename}:${e.lineno ?? "?"})` : ""}`); }
++
++/** Call once a voice session id is known (or changes). `window.onerror`/`unhandledrejection` are wired the first time; later calls just update which session they report to. */
++export function init(session){
++	current_session = session || null;
++	if (installed) return;
++	installed = true;
++	window.addEventListener("error", e => on_error(e));
++	window.addEventListener("unhandledrejection", e => on_error(e));
++}
++
++/** Opt-in: a click the caller decides is worth telling the smart assistant about (not every click — the caller picks). `label` is what to say, e.g. the element's text or a selector. */
++export function click(label){ post(current_session, "click", label); }
++
++/** Opt-in: any other page context worth a mention ("the drawer is now open", a page's own state). */
++export function context(text){ post(current_session, "context", text); }
