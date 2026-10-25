@@ -1,7 +1,7 @@
 # Test — node tests that run when the code they cover changes, with results you can open
 
 ## Index
-- [Test.test.mjs](./Test.test.mjs) · [fallback-modules.mjs](./fallback-modules.mjs) + [fallback-resolve.mjs](./fallback-resolve.mjs) — the test of Test; the SDK fallback for worktrees
+- [TestRunner.test.mjs](./TestRunner.test.mjs) · [Test.test.mjs](./Test.test.mjs) · [fallback-modules.mjs](./fallback-modules.mjs) + [fallback-resolve.mjs](./fallback-resolve.mjs) — the test of Test; the SDK fallback for worktrees
 - [Test.js](./Test.js) — `class Test`: `ok`, `eq`, `throws`, `done`; portable, no DOM, no node imports
 - [TestRunner.mjs](./TestRunner.mjs) — `class TestRunner` (node only): find, run, cover, watch, record
 - [TestResults.js](./TestResults.js) + [page.js](./page.js) — the live page of `results.jsonl`
