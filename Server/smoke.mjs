@@ -326,6 +326,13 @@ async function layout_edge_problems(page){
 		}
 
 		// ── 2. something above the title ──
+		const clipped = (el, r) => {
+			for (let a = el.parentElement; a && a !== root; a = a.parentElement) {
+				if (!/(auto|scroll|hidden|clip)/.test(getComputedStyle(a).overflowY)) continue;
+				if (r.bottom <= a.getBoundingClientRect().top + 1) return true;
+			}
+			return false;
+		};
 		const title = root.querySelector("h1.page-title, h1.doc-title");
 		if (title && !excluded(title) && !hidden(title)) {
 			const tr = title.getBoundingClientRect(), floor = tr.top;
@@ -338,6 +345,9 @@ async function layout_edge_problems(page){
 				const r = el.getBoundingClientRect();
 				if (r.width === 0 && r.height === 0) continue;
 				if (r.bottom >= floor) continue;
+				// Scrolled out of view inside a scroll box is not painted above the title: a log pinned to its
+				// bottom keeps its early rows above the box's top edge (/framework/audio/Whisper/log/, 2026-10-25).
+				if (clipped(el, r)) continue;
 				// Above means in the title's own column: a side rail's name sits higher than the title but
 				// beside it, not over it (/imagine/paging/navigation/screen/, 2026-10-23).
 				if (r.right <= tr.left || r.left >= tr.right) continue;
