@@ -763,7 +763,7 @@ export class Agents {
 
 	/* { cost, sdk_total } from the agent's log: its turns rebuilt by turn_costs() (turn-costs.js says why a log needs rebuilding). */
 	// Kept per log until its size or mtime changes: a session's item() read asks this once per task and once per child agent,
-	// and re-reading 11 MB of logs each time took 21 s for session-e00f55c9 (312 tasks, 71 agents; 2026-10-24).
+	// and re-reading 11 MB of logs each time took 21 s for session-e00f55c9 (2,652 lookups; 2026-10-24, session-is-a-task/slow-write.md).
 	log_cost(id){
 		const file = this.store().file(`agent-${id}`).path;
 		let st; try { st = fs.statSync(file); } catch { return { cost: 0, sdk_total: 0 }; }

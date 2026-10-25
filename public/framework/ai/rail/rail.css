@@ -158,16 +158,19 @@
 	.page--ai .dash-chips :is(.sessions-chip, .dash-chip-head, .dash-total) { flex: none; white-space: nowrap; }
 	.page--ai .dash-chip-sub { padding-inline-start: 0; }
 
+	/* ONE row at every width (owner 2026-10-24): icon + title fixed, only the tab strip swipes sideways. Keep it a plain flex row. */
+	.page--ai .inbox-head { flex-wrap: nowrap; }
+	.page--ai .inbox-head > .doc-well { flex: none; }
+	.page--ai .inbox-head > .tabs > .tab-bar { flex: 1 1 0; min-width: 0; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; }
+	.page--ai .inbox-head > .tabs > .tab-bar::-webkit-scrollbar { display: none; }
+	.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: none; white-space: nowrap; }
+
 	@media (width < 40em) {
 		.pages:has(> .page--ai:is(.active-page, .active-ancestor) > .inbox-shell) { overflow-y: auto; }
 		.page--ai.page.full:has(> .inbox-shell) { height: auto; min-height: 100%; overflow: visible; }
 		.page--ai.page.full:has(> .inbox-shell) > .inbox-shell { flex: none; height: auto; }
 		.page--ai .inbox-rail, .page--ai .inbox-stream { display: block; }
 		.page--ai .inbox-rows { overflow: visible; }
-		/* title stays put above; only the tab strip side-scrolls, one row (owner 2026-10-24, replacing the 2026-10-23 wrap) */
-		.page--ai .inbox-head > .tabs > .tab-bar { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; padding-inline: 0.5rem; }
-		.page--ai .inbox-head > .tabs > .tab-bar::-webkit-scrollbar { display: none; }
-		.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: none; white-space: nowrap; }
 		.page--ai .inbox-head .doc-well { padding-block: 0.4em 0.1em; }
 	}
 }

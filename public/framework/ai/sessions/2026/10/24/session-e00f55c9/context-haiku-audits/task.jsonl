@@ -45,3 +45,7 @@
 {"log":{"at":"2026-10-24T20:35:02-05:00","msg":"show: no new MCP tool needed, the item tool already adds a process and spawns from it; roles, processes, skills and sessions, one recommendation (four roles, four small changes, none built) /framework/ai/doc/role-process-skill-session.md"},"by":"ai-system-mastermind","session":"2da03974-92b2-4dbf-8bea-97c3ee479d45"}
 {"log":{"at":"2026-10-24T20:35:03-05:00","msg":"show: structured output first added to the agent rules (form of results, write at once, sidebar exception) /framework/ai/doc/agent-rules.md"},"by":"ai-system-mastermind","session":"2da03974-92b2-4dbf-8bea-97c3ee479d45"}
 {"log":{"at":"2026-10-24T20:35:04-05:00","msg":"show: module audit stays queued, not built; open question with a proposed answer, RAM and overnight note /framework/ai/doc/module-audit.md"},"by":"ai-system-mastermind","session":"2da03974-92b2-4dbf-8bea-97c3ee479d45"}
+{"log":{"at":"2026-10-24T20:39:53-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-24T20:44:53-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-24T20:50:06-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-10-24T20:55:06-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
