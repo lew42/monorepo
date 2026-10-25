@@ -39,3 +39,40 @@
 - [ ] `Session extends Task`, with tests passing, and `tasks.add` taking a string or an object.
 - [ ] This session's page (`/framework/ai/sessions/e00f55c9-bad4-4ee2-899e-d629ea1eede6/`) lists every child session and task, newest first. It shows own and total task counts, and cost and duration computed from the children. Shot at 1920, reached from the AI page.
 - [ ] The readme flow is written, the rule is in the framework, and the monitor page is linked. Ready to merge; the merge is the owner's.
+
+## Part 2: the owner's next prompt (2026-10-24, right after the sessions-page prompt)
+
+"Let's go ahead and make session extend task... make sure that we properly transition from whatever it is now to the new state. And we do want to create unit tests or automated tests."
+
+### For the deputy (adds to items 1–7)
+
+10. **The transition is a planned migration, not just a class edit.**
+    - Write down every caller of Session and every record shape it reads.
+    - Move them over in small merges, each one smoke-tested.
+    - Old records must still read correctly.
+11. **Tests go in the existing test system:** `core/Test`, run by WorktreeWatch and the merge gate (the page mastermind's "five tests" task).
+    - Add a few fast tests: a Session is a Task, `tasks.add` with a string or an object, a child session linked, live totals.
+    - No test sprawl, and nothing that bogs down the machine.
+12. **Item writes must be fast.** A write appends one line, so the file's size shouldn't matter. But a write through the item tool currently takes 60s+ on this session's record (145 KB). After appending, `item` builds and returns the whole session picture: `session_state` in `Servex/agents/page_tools.js` walks every task's cost, resolves the agents (the registry is 3 MB) and reads `cache.jsonl`.
+    - Make a write return just `{ok, id, line}`; the full state is a separate read.
+    - Measure the time before and after.
+13. **One source of truth, in the readme.** State can live in four places: the file, the dev server, Servex and the browser. The file (the jsonl) is the only truth. Every other place replays it and never keeps edits of its own, and writes go only through the append. Pick one parent reference, session id or path, and use it everywhere.
+
+### For ai-system-mastermind (adds to items 8–9): when to make a task
+
+14. **The rule.**
+    - If what you're doing fits the scope of the task you're on, just do it, with no child task.
+    - If it's unrelated, open a sibling or child task.
+    - The point is that tokens get counted against what was actually done.
+    - With a plan, the tasks are made up front. In autonomous mode, the agent opens each one as it goes.
+15. **Every agent starts with a task.**
+    - A spawned agent is handed one already made, so the mastermind and the agent both hold its link.
+    - An agent that gets a prompt with no task opens one as its first act. A node hook can enforce this.
+16. **One writer per task.**
+    - Once the mastermind hands a task off, only that agent updates it until it hands it back.
+    - The hand-back starts the review.
+    - Write down who may update what.
+17. **Notes, decisions and findings belong to the task** ("we need to figure out how this works, look into it, write it down, move on").
+    - Tasks can hold notes and content cards.
+    - A session's log references its tasks and notes in order, so one log renders as a timeline you can replay.
+    - Propose how content cards get added to tasks and sessions with the item tool. Show the proposal; don't build it yet.
