@@ -180,7 +180,7 @@ function session_header({ card, view }){
 			let $list;
 			div.c("drawer-ai-switcher flex v-center wrap", () => {
 				chat.new_session_button(() => live_chat, { label: "+ New session" });
-					view.chip("drawer-ai-switch-btn");
+				view.chip("drawer-ai-switch-btn");
 				if (elsewhere) button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button")
 					.click(() => { $list.el.hidden = !$list.el.hidden; });
 			});
@@ -238,8 +238,6 @@ function dispose_chat(){
 	handle?.remove();
 	live_feed?.stop();
 	live_feed = null;
-	live_view_off?.(); live_view_off = null;
-	live_view?.release(); live_view = null;
 	live_view_off?.(); live_view_off = null;
 	live_view?.release(); live_view = null;
 	live_slot?.replaceChildren();
