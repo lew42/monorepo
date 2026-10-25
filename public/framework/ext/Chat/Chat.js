@@ -8,11 +8,16 @@ View.stylesheet(import.meta, "Chat.css");
 // see doc/notes.md#one-bubble-per-run
 export const MERGE_GAP_MS = 10000;
 export const GUESS_TITLE = "Gray words: the transcriber's guess, still changing. They turn black once it settles.";
-export const LIVE_SENT_TITLE = "Faded: already sent, waiting for the cleaned-up line, which replaces this and turns black.";
+export const LIVE_SENT_TITLE = "Sent, waiting for the cleaned-up line, which replaces this — the text itself stays full strength; the left rule marks the wait.";
 
 export function mergeable($box, sender, at){
 	const last = $box.el.lastElementChild;
-	if (!sender || last?.dataset.sender !== sender) return null;
+	// A live bubble (the mic's growing draft, or a fading "sent, waiting" one) is never a merge target:
+	// it carries the same dataset.sender/at a real line does (so it sorts into place) but is never
+	// registered in `bubbles` — merging a real piece onto it threw (bubbles.get(last) was undefined)
+	// and, found while chasing a reported black-then-gray-then-black flicker, is the one path that can
+	// make a just-committed, already-black line sit inside an element still carrying the live gray guess.
+	if (!sender || last?.classList.contains("chatbox-live") || last?.dataset.sender !== sender) return null;
 	return at - Number(last.dataset.at) < MERGE_GAP_MS ? last : null;
 }
 
@@ -59,16 +64,22 @@ function failed_badge(){
 	return b;
 }
 
-/** "fast ✓ 2.6 s · smart …": when this owner line reached each assistant, counted from the words leaving the draft (a `{sent}` session line). */
+/** Messenger-style tick, one per BUBBLE not per sentence (the owner, 2026-10-25): ✓ reached the fast
+ * seat, nothing shown once both have it. Ask 2 is "a mark only when pending or wrong, nothing once
+ * handled" — a standing ✓✓ left on every handled message forever (round 1's shape) is exactly the
+ * standing mark the owner asked to remove (17:31: "mean nothing to me, I asked for sent-visibility,
+ * not this"), so round 3 drops the ✓✓ state entirely: this returns null once `smart` is set, same as
+ * before anything is sent. The timing moves into the ✓'s title while it is showing. Alternative tried:
+ * leaving ✓✓ as a quiet "done" marker — rejected per review round 3 finding 2. */
 export function sent_badge(pc){
-	const b = el("chatbox-sent muted", "span");
+	const fast = pc.sent?.fast, smart = pc.sent?.smart;
+	if (!fast || smart) return null;
 	const secs = ms => (ms < 100 ? "0" : (ms / 1000).toFixed(1)) + " s";
-	b.append(...["fast", "smart"].flatMap((seat, i) => {
-		const got = pc.sent?.[seat], part = el("chatbox-sent-" + seat + (got ? " chatbox-sent-done" : ""), "span");
-		part.textContent = seat + (got ? " ✓" + (got.delay_ms != null ? " " + secs(got.delay_ms) : "") : " …");
-		part.title = got ? `Reached the ${seat} assistant${got.delay_ms != null ? ", " + secs(got.delay_ms) + " after the words left the draft" : ""}.` : `Not yet sent to the ${seat} assistant.`;
-		return i ? [" · ", part] : [part];
-	}));
+	const b = el("chatbox-sent muted", "span");
+	b.textContent = "✓";
+	b.title = [["fast", fast], ["smart", smart]].map(([seat, got]) =>
+		seat + (got ? ": reached" + (got.delay_ms != null ? ", " + secs(got.delay_ms) + " after the words left the draft" : "") : ": not yet"))
+		.join(" · ");
 	return b;
 }
 
@@ -133,6 +144,7 @@ function piece_body(pc){
 	if (pc.mark) append_mark(node, pc.mark);
 	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));
 	if (pc.failed) (node.lastElementChild ?? node).append(" ", failed_badge());
+	if (pc.track){ const badge = sent_badge(pc); if (badge) (node.lastElementChild ?? node).append(" ", badge); }
 	return node;
 }
 
