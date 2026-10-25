@@ -1,0 +1,3 @@
+# Dictation: placements for sentences behind "show earlier"
+
+The ask: perf review note 5 (`../perf/session.jsonl`). A `{place}`, `{refined}` or `{para}` line in the shown part that points at a sentence still behind "show earlier" was never applied. Built by mastermind-dictation-2 in worktree dictation-earlier: `Widget.Thread.hold_orphan()` holds the line by its sentence, and `load_earlier()` applies it right after that sentence is drawn. Proof: `ux/Dictate/test/earlier.mjs` on `test/earlier-fixture.jsonl` (70 sentences; the card placement for sentence 3 is lost without the fix and applied with it).
