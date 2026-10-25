@@ -55,3 +55,9 @@ Alternatives not taken: linking the previous session and reading its tasks (a ch
 4. **The role's queue folder** for the AI system mastermind, named in its role readme, with sessions referencing only the tasks they take up. The ranked read waits on mastermind-page's `query-without-writing`.
 
 Each step is a worktree, a test and a review, then merge.
+
+## Buckets: the queue holds real work, not every small ask (2026-10-24)
+
+A task tagged `bucket` stands for the tasks it links (`{"task":url}` lines): `Server/TaskQueue.mjs` `gather()` ranks the bucket and hides its children, so the queue is a short list. The 133 open tasks of 2026-10-17 and 10-23 (backfilled and ledger asks, most about pages since redesigned) were triaged into 58 stopped (done, obsolete or duplicate, each with its reason in the task's own `stop` line) and 75 kept, grouped under 15 buckets. Triage record: `public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/queue-triage/`.
+
+**What picks from the queue, and when.** Nothing yet: plan step 2 above (TaskLoop starting the top-ranked bucket) is not built. Until it is, the mastermind (or deputy) opens `/framework/ai/queue/` at the start of each work block and takes the top bucket only when `node Server/usage-now.mjs` is on pace and the spawn gate has a slot.
