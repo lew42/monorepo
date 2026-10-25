@@ -127,7 +127,6 @@ export class DrawerTabs {
 	 *  `rail.js`'s own link, still lands somewhere real now that the two are one tab. */
 	open(name){
 		if (name === "sessions") name = "ai";
-		if (name === "dictation") name = "debug";   // the old Dictation tab is the Debug tab now
 		// A real click on ☰ — the one moment this file is allowed to touch the
 		// network (see the comment on `DEV` above). Memoized in Ask.js: cheap to call every time.
 		if (!DEV) ask_probe().then(() => { if (http_ask_ready) DEV = true; });

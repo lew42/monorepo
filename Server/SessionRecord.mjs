@@ -68,19 +68,20 @@ export default class SessionRecord {
 	 *  Task.replay read it as a subtask. Never twice, never above the session folder. Returns the parent's log file, or null. */
 	/*  Options: `parent` (an explicit parent folder, e.g. open_task's parent_task: the task that handed work to a child session) wins over
 	 *  the nearest folder; `session_id` (the full id of the session that made the folder) lets a VS Code tab's `session-<id8>/` folder,
-	 *  which has no log of its own yet, get one: its first line is {"session":{id, kind:"vscode-tab"}}, then the reference. */
-	static link_parent(dir, by = "TaskDirs", { parent = null, session_id = null } = {}){
+	 *  which has no log of its own yet, get one: its first line is {"session":{id, kind:"vscode-tab"}}, then the reference; `entry`
+	 *  ({type, spawn, cause}) makes that reference a Session entry (add_ref). */
+	static link_parent(dir, by = "TaskDirs", { parent = null, session_id = null, entry = null } = {}){
 		const abs = path.resolve(dir), pub = slash(abs).match(/^(.*\/public)\//)?.[1];
 		const url = pub && "/" + slash(path.relative(pub, abs)) + "/";
 		const log = this.parent_log(abs, { parent });
-		if (log) return this.add_ref(log, url, by);
+		if (log) return this.add_ref(log, url, by, undefined, entry);
 		// No log up to the session folder: a tab's session-<id8>/ holding only its transcript cache or digest tags. Its record is session.jsonl.
 		const top = this.session_top(abs), id8 = top && path.basename(top).match(/^session-([0-9a-f]{8})$/)?.[1];
 		if (!id8) return null;   // spawned/, cards/, cloud-voice-*: containers or sessions that keep their own log
 		if (!String(session_id ?? "").startsWith(id8)) return null;   // never invent a session id
 		const rec = path.join(top, this.NEW);
 		fs.appendFileSync(rec, JSON.stringify({ session: { id: session_id, kind: "vscode-tab", at: new Date().toISOString() }, by }) + "\n");
-		return this.add_ref(rec, url, by);
+		return this.add_ref(rec, url, by, undefined, entry);
 	}
 	/** The session folder (`.../framework/ai/sessions/YYYY/MM/DD/<session>`) above `abs`, or null when `abs` is outside the store or is that folder itself. */
 	static session_top(abs){
@@ -100,11 +101,23 @@ export default class SessionRecord {
 		return /^session-[0-9a-f]{8}$/.test(path.basename(top)) && fs.existsSync(rec) ? rec : null;
 	}
 	/** One {"task":"<url>"} line on `log`, unless it already names the url (a reference, or a tasks.add with this path). Returns `log`. */
-	static add_ref(log, url, by, as = undefined){
+	/*  A SESSION ENTRY (core/Session/readme.md, "Session entries"): with `entry` = {type: "Session", spawn: {…}, cause}, the line is
+	 *  {"task":url,"type":"Session","spawn":{…,"placed"}}, nested under the task that caused it: {"<cause id>":{that}}. `cause` is a task id,
+	 *  or a function (log) => {id, placed} that reads the log the line is about to go on (Agents.js cause_of); `placed` says which rule chose it. */
+	static add_ref(log, url, by, as = undefined, entry = null){
 		let text = ""; try { text = fs.readFileSync(log, "utf8"); } catch {}
 		if (text.includes(`"task":"${url}"`) || text.includes(`"path":"${url}"`)) return log;
-		fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify({ task: url, as, by, ts: new Date().toISOString() }) + "\n");
+		fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify(this.entry_line(log, url, by, as, entry)) + "\n");
 		return log;
+	}
+	/** The reference line add_ref writes: a plain {"task":url,"as"} line, or a Session entry nested under its cause. */
+	static entry_line(log, url, by, as, entry){
+		const ts = new Date().toISOString();
+		if (!entry) return { task: url, as, by, ts };
+		let cause = typeof entry.cause === "function" ? entry.cause(log) : entry.cause ? { id: entry.cause, placed: "explicit" } : null;
+		if (!cause?.id) cause = { id: null, placed: cause?.placed ?? "top" };
+		const body = { task: url, as, type: entry.type ?? "Session", ...(entry.spawn ? { spawn: { ...entry.spawn, placed: cause.placed } } : {}) };
+		return cause.id ? { [cause.id]: body, by, ts } : { ...body, by, ts };
 	}
 	/** The census behind `--links`: every folder below a session folder that has a log, and whether its parent references it.
 	 *  Returns { total, linked, missing: [{dir, session_id}], unhomed: [dir] } (unhomed: no log up to the session folder and no way to start one). */

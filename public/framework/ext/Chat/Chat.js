@@ -223,7 +223,9 @@ export function patch_piece(bubble, id, patch){
 	const pc = st?.pieces.find(pc => pc.id === id);
 	if (!pc) return false;
 	Object.assign(pc, patch);
-	fill(bubble);
+	// in place: only this piece's node is swapped, so nothing else in the bubble is redrawn (ux/Dictate/doc/flicker.md)
+	const node = !st.refined && bubble.querySelector(`:scope > [data-re="${CSS.escape(String(id))}"]`);
+	if (node) node.replaceWith(piece_node(pc)); else fill(bubble);
 	return true;
 }
 

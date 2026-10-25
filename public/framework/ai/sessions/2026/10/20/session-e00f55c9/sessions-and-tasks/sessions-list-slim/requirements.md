@@ -94,3 +94,7 @@ The sessions list and the session detail page are "the core truth". The queue pa
 - **Every child session has its own detail page, the same component, recursively.** Click through from the parent and see everything inside: its tasks, its own children, cost and outcome. "Drilling down and figuring out what these things actually did should not be terribly hard."
 - **Child sessions get no chat tab.** Their agent-to-agent chat is kept to a minimum and isn't the record; the files are. Only the VS Code tab's session processes the owner's prompts, so only it gets the chat tab.
 - Test the drill-down: AI → Sessions → this session → the deputy → one of the deputy's children. A shot at each step.
+
+## Ninth pass (2026-10-25): the chat tab is the shared chat component
+
+The detail page's chat tab uses the same chat component as the mobile sheet's dictation chat, which mastermind-dictation-2 owns. Agree the interface with it, so dictation works in the chat tab with no extra wiring.

@@ -47,13 +47,32 @@ export default class Session extends Task {
 	/* The agent sessions that ran under this session's folder: dir -> [{id, role, state, session_id, cost, started_at}]. Node wires it
 	 * from Servex's registry (Servex/agents/Agents.js), so a child is found by where its task lives, never by a link someone had to write. */
 	static agents_resolver = null;
+	// The agents whose task is exactly this folder, [{id, cost}] (Agents.agents_at): a Session entry's own cost, and the ids the registry fallback skips.
+	static agents_at_resolver = null;
 
 	// Item.replay does the loop; a session only needs its id from line 1 and its own line shape.
 	static replay_new(lines){
+		if (lines[0]?.assign) return new this(lines[0].assign.slug ?? lines[0].assign.task ?? "task")._as("task");   // a spawned agent's record: Task's id rule (the folder name stands in, Task.from_ref)
 		const s = lines.find(l => l?.session)?.session;   // a VS Code tab's line 1 is {session:{id,kind,cwd,at}} (the SessionStart hook)
-		return new this((s && typeof s === "object" ? s.id : s) ?? lines.find(l => l?.id)?.id);
+		const own = new this((s && typeof s === "object" ? s.id : s) ?? lines.find(l => l?.id)?.id);
+		// A task folder (line 1 is the task's own {id, path, title}) that a spawn later wrote its {assign} into is a task log too.
+		return own._as(!lines[0]?.session && lines.some(Task.spawned) ? "task" : "record");
 	}
+	_as(shape){ this._shape = shape; return this; }
+	get is_session(){ return true; }
+	/* TWO RECORD SHAPES, set by replay_new from the lines. A tab's or a voice call's record ({session:…} first) is read by apply_line
+	   below. A spawned agent's record ({assign:…} first, open_task, or a task folder a spawn later wrote into) is a task log: it replays
+	   through Task.replay_line whole, so the same lines give the same state, completion and fields they gave as a Task, and the Session
+	   adds only its class (children, cost). A Session built some other way (new Session(id), then lines) reads as the record shape. */
 	replay_line(line){
+		this._shape ??= line?.assign ? "task" : "record";
+		if (this._shape === "task"){
+			const when = line.at ?? line.ts ?? line.assign?.requested_at ?? null;
+			if (when){ this._first_at ??= when; this._last_at = when; }
+			if (line.settings && typeof line.settings === "object") Object.assign(this.settings, line.settings);
+			Task.clock = when;
+			try { return super.replay_line(line); } finally { Task.clock = null; }
+		}
 		const { by, ts, at, session: _s, ...delta } = line;
 		const when = at ?? ts ?? (typeof _s === "object" ? _s?.at : null) ?? null;
 		if (when){ this._first_at ??= when; this._last_at = when; }
@@ -65,7 +84,7 @@ export default class Session extends Task {
 	get first_at(){ return this._first_at ?? null; }
 	get last_at(){ return this._last_at ?? null; }
 	// The record has no legacy fields to infer a state from (Task.replay_end would read it as running): its state is its own lines'.
-	replay_end(){ this._at = null; return this; }
+	replay_end(){ if (this._shape === "task") return super.replay_end(); this._at = null; return this; }
 	get span_ms(){ return this._first_at && this._last_at ? Date.parse(this._last_at) - Date.parse(this._first_at) : 0; }
 	apply_line(delta, by){
 		/* THE SESSION'S OWN STATE: {"stop":{why}} closes it (StaleClose writes one for an abandoned tab); {"start":{}} reopens it and
@@ -73,10 +92,10 @@ export default class Session extends Task {
 		if (delta.stop && typeof delta.stop === "object"){ this.put("state", "stopped"); this.put("why", delta.stop.why ?? null); this.put("stopped_at", delta.stop.at ?? Task.clock); delete delta.stop; }
 		if (delta.start && typeof delta.start === "object"){ this.put("state", "running"); this.put("why", null); this.put("stopped_at", null); delete delta.start; }
 		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
-			const kid = Task.from_ref(delta.task, delta.as), had = this._tasks?.find(kid.id);
+			const kid = Task.from_ref(delta.task, delta.as, delta), had = this._tasks?.find(kid.id);   // a Session entry's type and spawn ride on the same line
 			kid._created_at ??= Task.clock;
 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
-			delete delta.task; delete delta.as; delete delta.moved_from;
+			delete delta.task; delete delta.as; delete delta.moved_from; delete delta.type; delete delta.spawn;
 		}
 		if (delta.tasks && typeof delta.tasks === "object"){
 			const had = new Set([...(this._tasks ?? [])]);

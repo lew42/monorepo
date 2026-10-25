@@ -176,3 +176,5 @@
 {"file":"keep-one-singleton-persistent-ai-system/page.js"}
 {"file":"state.jsonl","gone":true}
 {"file":"state.jsonl.lock","gone":true}
+{"file":"state.jsonl"}
+{"file":"state.jsonl.lock"}

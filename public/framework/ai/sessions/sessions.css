@@ -53,9 +53,10 @@
 	.sessions-page .datagrid-view-rail .datagrid-rail { max-block-size: none; }
 	.sessions-page:has(.datagrid-view-rail) .sessions-stats, .sessions-page:has(.datagrid-view-rail) .sessions-chiprow, .sessions-page:has(.datagrid-view-rail) .sessions-summary { display: none; }
 	.sessions-page:has(.datagrid-view-rail) .sessions-kinds .sessions-chip { font-size: .8em; padding: .05em .55em; }    /* the rail keeps the routine chips, small */
-	.sessions-card { display: flex; flex-direction: column; gap: var(--gap-35); padding: var(--gap-50); min-width: 0; }
+	.sessions-card { display: flex; flex-direction: column; gap: 0; padding: .3em var(--gap-50); min-width: 0; }
+	.sessions-page .datagrid-view-rail .datagrid-card { padding: 0; gap: 0; line-height: 1.25; }
 	.sessions-card-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-35); min-width: 0; }
-	.sessions-card .sessions-row-title { flex: 1 1 8em; white-space: normal; overflow-wrap: anywhere; }   /* a card has the room to wrap a long name; the table row keeps its one line */
+	.sessions-card .sessions-row-title { flex: 1 1 8em; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* a card title is one line, ellipsis */
 
 
 	.sessions-row { display: contents; }
@@ -384,6 +385,28 @@
 		.sessions-page :is(.sessions-kinds, .sessions-chiprow) > *, .sessions-page .sessions-chips > .sessions-chip { flex: none; white-space: nowrap; }
 	}
 
+
+	/* THE SLIM HEADER (2026-10-24): one opaque sticky row (range menu, search, Filters menu) above the list; everything else is in the Filters popover (ux/Popover, top layer). */
+	.sessions-header { --sessions-header-h: 3.25rem; box-sizing: border-box; block-size: var(--sessions-header-h); position: sticky; inset-block-start: var(--sessions-header-top, 0); z-index: 5; display: flex; align-items: center; gap: .5rem; padding: .4rem .5rem; background: var(--surface); border-block-end: 1px solid var(--line); }
+	.sessions-main:has(> .sessions-header) > .pn { display: none; }   /* one row of buttons at every width: the page links (Ready to merge, Variants…) are in the Filters menu */
+	.sessions-page:has(.sessions-header) .datagrid-head { inset-block-start: calc(var(--sessions-header-top, 0px) + 3.25rem); }   /* the table's column heads stick under the slim header, not behind it (both share one scroller; 3.25rem = the header's fixed block-size) */
+	.sessions-header .sessions-search { flex: 1 1 5em; min-inline-size: 0; max-inline-size: 24em; inline-size: auto; padding-block: .15em; }
+	.sessions-hbtn { flex: none; font: inherit; padding: .2em .7em; border: 1px solid var(--line); border-radius: var(--radius); background: transparent; color: inherit; cursor: pointer; white-space: nowrap; }
+	.sessions-hbtn:hover { background: var(--tint); }
+	.ux-popover.sessions-pop { max-inline-size: min(44rem, calc(100vw - 1rem)); max-block-size: 80dvh; padding: .5rem; }
+	.sessions-pop-range { min-inline-size: 11rem; }
+	.sessions-range-list { display: flex; flex-direction: column; }
+	.sessions-pop .sessions-daterange { padding: .5rem .25rem 0; flex-wrap: wrap; }
+	.sessions-pop-filters { display: flex; flex-direction: column; gap: .5rem; }
+	.sessions-pop-filters:not(:popover-open) { display: none; }
+	.sessions-pop-filters .sessions-filters label { font-size: .85em; }
+	.sessions-pop-filters .sessions-stats { margin: 0; }
+	.sessions-pop-filters .ai-meter { min-inline-size: 0; }
+	@media (max-width: 40rem) {
+		.sessions-page, .browse-detail:has(> .sessions-page) { overflow: visible; }   /* on a phone the outer page scrolls; a clipping ancestor would be the header's scroller and it would never stick */
+		.sessions-page .sessions-nav { display: none; }   /* the phone's first screen is the list; these links are in the Filters menu */
+		.ux-popover.sessions-pop { position-area: none; inset-inline: .5rem; inset-block-start: calc(anchor(bottom) + 6px); inline-size: auto; max-inline-size: none; }
+	}
 }
 
 /* The Coverage tab as a chat: a bubble per prompt, a card per part (module on the left, the part and its outcome on the right). */

@@ -112,13 +112,19 @@ const quote = t => "“" + (String(t ?? "").replace(/\s+/g, " ").trim().slice(0,
 export const ANSWER_MS = 60000;   // no answer this long after a sentence went out turns the AI layer red
 export const LATE_ECHO_MS = 120000;   // after a timed-out send, how long its late echo still heals the bubble instead of drawing a copy
 export const WIRE_GRACE_MS = 8000;   // a live-wire drop shorter than this is only an event, not a red row
-function health_sent(text){
-	DictateHealth.set("sent", "ok", `sent ${quote(text)} at ${new Date().toLocaleTimeString()}`);
+const secs = ms => (ms / 1000).toFixed(1) + " s";
+let sent_at = 0;   // when the last sentence went out: the AI row times its answer from here
+// The timing of each step (doc/flicker.md): the words were on screen at `t.out`, left for Servex after the clean-up and queue wait, Servex took them.
+function health_sent(text, t){
+	sent_at = Date.now();
+	const timing = t ? `; on screen at once, sent ${secs(t.wait)} later (clean-up and queue), Servex took it in ${secs(t.say)}` : "";
+	DictateHealth.set("sent", "ok", `sent ${quote(text)} at ${new Date().toLocaleTimeString()}${timing}`);
 	DictateHealth.set("llm", "wait", `waiting for an answer to ${quote(text)}`, { late_ms: ANSWER_MS,
 		late: `no answer ${ANSWER_MS / 1000} s after ${quote(text)}: Servex took the sentence, but no assistant has written back. They may be asleep, busy or crashed: open the session log from the Debug tab.` });
 }
 function health_answer(line){
-	DictateHealth.set("llm", "ok", `${line.chat?.from?.id ?? "the assistant"} answered ${quote(line.chat?.text)}`);
+	const after = sent_at ? `, ${secs(Date.now() - sent_at)} after the send` : "";
+	DictateHealth.set("llm", "ok", `${line.chat?.from?.id ?? "the assistant"} answered ${quote(line.chat?.text)}${after}`);
 }
 
 // Module-level GLOBAL: one per browser tab (ES module singleton)
@@ -162,6 +168,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 					const thread = entry.thread ? { re: entry.thread, thread: true } : {};
 					const mine = { text: flat(entry.text), at: entry.at }; sending.push(mine);
 					let r;
+					const t_say = Date.now(), t_out = Date.parse(entry.at) || t_say;
 					try {
 						r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text,
 							via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: owner.ctl.selection, ...thread });
@@ -176,7 +183,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 					own_ats.add(r.at);
 					panel.retag(entry.at, r.at);
 					if (entry.floor === "speaking") owner.watch_floor();
-					health_sent(entry.text);
+					health_sent(entry.text, { wait: Math.max(0, t_say - t_out), say: Date.now() - t_say });
 					return true;
 				} catch (e) {
 					Session.stream.log("say failed", { session: owner.ctl.session, error: String(e?.message ?? e) });
@@ -255,7 +262,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 			// The noise rule: the LAN proxy cuts the wire every 30 s and it is back in a second, so a drop is a failure only if it lasts WIRE_GRACE_MS.
 			clearTimeout(wire_timer);
 			if (s === "down"){
-				DictateHealth.event("llm", "wait", `the live wire to Servex dropped (${why}); reconnecting`);
+				DictateHealth.event("llm", "wait", `the live wire to Servex dropped (${why}). It reconnects by itself.`);
 				wire_timer = setTimeout(() => DictateHealth.set("llm", "bad", `the live wire to Servex is down: ${why}. It retries by itself (1 s, doubling to 15 s); Reconnect tries now.`), WIRE_GRACE_MS);
 			} else if (DictateHealth.layers.llm.state === "idle" || DictateHealth.layers.llm.why.startsWith("the live wire")) DictateHealth.set("llm", "ok", "connected to Servex; nothing asked yet");
 		} });

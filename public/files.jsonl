@@ -79,3 +79,6 @@
 {"file":"Servex/"}
 {"file":"Servex/","gone":true}
 {"file":"data/","gone":true}
+{"file":"data/"}
+{"file":"failures.jsonl"}
+{"file":"public/"}

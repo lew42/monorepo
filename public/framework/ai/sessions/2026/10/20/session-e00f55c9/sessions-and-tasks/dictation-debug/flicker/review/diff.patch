@@ -1,0 +1,952 @@
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/after-clean-029.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/after-clean-029.png
+new file mode 100644
+index 000000000..936d1a65d
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/after-clean-029.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/after-clean-030.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/after-clean-030.png
+new file mode 100644
+index 000000000..6cd9957f4
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/after-clean-030.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/after-clean.json b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/after-clean.json
+new file mode 100644
+index 000000000..b70222a08
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/after-clean.json
+@@ -0,0 +1,18 @@
++{
++ "scenario": "clean",
++ "frames": 100,
++ "every_ms": 156,
++ "words_gone": 2,
++ "explained_by_clean": 2,
++ "agree": true,
++ "words_moved": 0,
++ "flickers": [],
++ "moves": [],
++ "sent": [
++  "The first thing is the flicker. Words should stay where they are.",
++  "Then the second thing comes along."
++ ],
++ "sent_row": "sent “Then the second thing comes along.” at 12:34:08 AM; on screen at once, sent 1.1 s later (clean-up and queue), Servex took it in 3.0 s",
++ "final_words": "The first thing is the flicker. Words should stay where they are. | Then the second thing comes along.",
++ "errors": []
++}
+\ No newline at end of file
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/after-plain.json b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/after-plain.json
+new file mode 100644
+index 000000000..3555c9095
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/after-plain.json
+@@ -0,0 +1,18 @@
++{
++ "scenario": "plain",
++ "frames": 92,
++ "every_ms": 157,
++ "words_gone": 0,
++ "explained_by_clean": 0,
++ "agree": true,
++ "words_moved": 0,
++ "flickers": [],
++ "moves": [],
++ "sent": [
++  "So the first thing is the flicker. Words should stay where they are.",
++  "And then the second thing comes along."
++ ],
++ "sent_row": "sent “And then the second thing comes along.” at 12:33:49 AM; on screen at once, sent 0.6 s later (clean-up and queue), Servex took it in 3.0 s",
++ "final_words": "So the first thing is the flicker. Words should stay where they are. | And then the second thing comes along.",
++ "errors": []
++}
+\ No newline at end of file
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/before-clean-029.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/before-clean-029.png
+new file mode 100644
+index 000000000..936d1a65d
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/before-clean-029.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/before-clean-030.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/before-clean-030.png
+new file mode 100644
+index 000000000..8b767250e
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/before-clean-030.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/before-clean.json b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/before-clean.json
+new file mode 100644
+index 000000000..ce1f219cf
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/before-clean.json
+@@ -0,0 +1,151 @@
++{
++ "scenario": "clean",
++ "frames": 100,
++ "every_ms": 156,
++ "words_gone": 22,
++ "explained_by_clean": 3,
++ "agree": false,
++ "words_moved": 4,
++ "flickers": [
++  {
++   "from": 29,
++   "to": 30,
++   "ms": 4680,
++   "word": "the",
++   "lost": 2
++  },
++  {
++   "from": 29,
++   "to": 30,
++   "ms": 4680,
++   "word": "first",
++   "lost": 1
++  },
++  {
++   "from": 29,
++   "to": 30,
++   "ms": 4680,
++   "word": "thing",
++   "lost": 1
++  },
++  {
++   "from": 29,
++   "to": 30,
++   "ms": 4680,
++   "word": "is",
++   "lost": 1
++  },
++  {
++   "from": 29,
++   "to": 30,
++   "ms": 4680,
++   "word": "flicker",
++   "lost": 1
++  },
++  {
++   "from": 29,
++   "to": 30,
++   "ms": 4680,
++   "word": "words",
++   "lost": 1
++  },
++  {
++   "from": 29,
++   "to": 30,
++   "ms": 4680,
++   "word": "should",
++   "lost": 1
++  },
++  {
++   "from": 29,
++   "to": 30,
++   "ms": 4680,
++   "word": "stay",
++   "lost": 1
++  },
++  {
++   "from": 29,
++   "to": 30,
++   "ms": 4680,
++   "word": "where",
++   "lost": 1
++  },
++  {
++   "from": 29,
++   "to": 30,
++   "ms": 4680,
++   "word": "they",
++   "lost": 1
++  },
++  {
++   "from": 29,
++   "to": 30,
++   "ms": 4680,
++   "word": "are",
++   "lost": 1
++  },
++  {
++   "from": 35,
++   "to": 36,
++   "ms": 5616,
++   "word": "then",
++   "lost": 1
++  },
++  {
++   "from": 48,
++   "to": 49,
++   "ms": 7641,
++   "word": "the",
++   "lost": 1
++  },
++  {
++   "from": 48,
++   "to": 49,
++   "ms": 7641,
++   "word": "thing",
++   "lost": 1
++  },
++  {
++   "from": 48,
++   "to": 49,
++   "ms": 7641,
++   "word": "then",
++   "lost": 1
++  },
++  {
++   "from": 48,
++   "to": 49,
++   "ms": 7641,
++   "word": "second",
++   "lost": 1
++  },
++  {
++   "from": 48,
++   "to": 49,
++   "ms": 7641,
++   "word": "comes",
++   "lost": 1
++  },
++  {
++   "from": 48,
++   "to": 49,
++   "ms": 7641,
++   "word": "along",
++   "lost": 1
++  }
++ ],
++ "moves": [
++  {
++   "from": 38,
++   "to": 39,
++   "ms": 6083,
++   "words": "The first thing is the flicker. Words should stay where they are. | And then the second thing"
++  }
++ ],
++ "sent": [
++  "The first thing is the flicker. Words should stay where they are.",
++  "Then the second thing comes along."
++ ],
++ "final_words": "The first thing is the flicker. Words should stay where they are. | Then the second thing comes along.",
++ "errors": []
++}
+\ No newline at end of file
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/before-plain.json b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/before-plain.json
+new file mode 100644
+index 000000000..0ff40d078
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/before-plain.json
+@@ -0,0 +1,80 @@
++{
++ "scenario": "plain",
++ "frames": 93,
++ "every_ms": 157,
++ "words_gone": 7,
++ "explained_by_clean": 0,
++ "agree": false,
++ "words_moved": 2,
++ "flickers": [
++  {
++   "from": 40,
++   "to": 41,
++   "ms": 6480,
++   "word": "the",
++   "lost": 1
++  },
++  {
++   "from": 40,
++   "to": 41,
++   "ms": 6480,
++   "word": "thing",
++   "lost": 1
++  },
++  {
++   "from": 40,
++   "to": 41,
++   "ms": 6480,
++   "word": "and",
++   "lost": 1
++  },
++  {
++   "from": 40,
++   "to": 41,
++   "ms": 6480,
++   "word": "then",
++   "lost": 1
++  },
++  {
++   "from": 40,
++   "to": 41,
++   "ms": 6480,
++   "word": "second",
++   "lost": 1
++  },
++  {
++   "from": 40,
++   "to": 41,
++   "ms": 6480,
++   "word": "comes",
++   "lost": 1
++  },
++  {
++   "from": 40,
++   "to": 41,
++   "ms": 6480,
++   "word": "along",
++   "lost": 1
++  }
++ ],
++ "moves": [
++  {
++   "from": 27,
++   "to": 28,
++   "ms": 4450,
++   "words": "And | So the first thing is the flicker. Words should stay where they are."
++  },
++  {
++   "from": 28,
++   "to": 29,
++   "ms": 4607,
++   "words": "So the first thing is the flicker. Words should stay where they are. | And then"
++  }
++ ],
++ "sent": [
++  "So the first thing is the flicker. Words should stay where they are.",
++  "And then the second thing comes along."
++ ],
++ "final_words": "So the first thing is the flicker. Words should stay where they are. | And then the second thing comes along.",
++ "errors": []
++}
+\ No newline at end of file
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/polish-debug-1920.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/polish-debug-1920.png
+new file mode 100644
+index 000000000..aa98309e9
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/polish-debug-1920.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/polish-debug-390.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/polish-debug-390.png
+new file mode 100644
+index 000000000..94b211853
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/polish-debug-390.png differ
+diff --git a/public/framework/ext/Chat/Chat.js b/public/framework/ext/Chat/Chat.js
+index 376b8b0e7..8bd0fccb9 100644
+--- a/public/framework/ext/Chat/Chat.js
++++ b/public/framework/ext/Chat/Chat.js
+@@ -223,7 +223,9 @@ export function patch_piece(bubble, id, patch){
+ 	const pc = st?.pieces.find(pc => pc.id === id);
+ 	if (!pc) return false;
+ 	Object.assign(pc, patch);
+-	fill(bubble);
++	// in place: only this piece's node is swapped, so nothing else in the bubble is redrawn (ux/Dictate/doc/flicker.md)
++	const node = !st.refined && bubble.querySelector(`:scope > [data-re="${CSS.escape(String(id))}"]`);
++	if (node) node.replaceWith(piece_node(pc)); else fill(bubble);
+ 	return true;
+ }
+ 
+diff --git a/public/framework/ext/Chat/Composer.js b/public/framework/ext/Chat/Composer.js
+index 0bbdd7b56..fd9e97ab3 100644
+--- a/public/framework/ext/Chat/Composer.js
++++ b/public/framework/ext/Chat/Composer.js
+@@ -14,6 +14,8 @@ export function composer({
+ 	on_revised,        // (text, {raw, level}) => … — forwarded the same way, straight from `ux/Dictate`; does nothing unset
+ 	try_command,       // (text) => boolean — an HITL command ("rename this") the box swallows instead of sending; true = handled
+ 	on_live,           // ({text, settled, guess, sent}) => … — dictation goes into a growing chat bubble, not the box (Mic.js SETTINGS.into)
++	on_out,            // ({text, raw, at}) => … — dictated words just left the bubble or box to be sent: draw them in the chat NOW, at `at`;
++	                    // the send (`deliver`) follows with the same `at`, after any clean-up wait (ComposerMic.take_out, ux/Dictate/doc/flicker.md)
+ 	on_send_start,     // (raw_text) => … — a send just started, BEFORE the clean-up wait (deliverable 3: instant feedback); forwarded to ComposerMic
+ 	on_meter,          // (level) => … — forwarded straight to `ComposerMic`/`Dictate`'s own `on_meter`: a caller's own bigger level bar
+ 	                    // beside the mic button (`ux/Dictate/Widget.js`'s `level: true` option, one-dictation review finding 4).
+@@ -44,6 +46,7 @@ export function composer({
+ 				revise,
+ 				on_clean: on_revised,   // NOT `on_revised:` — that name would shadow ComposerMic's own method (Mic.js, on_revised)
+ 				on_live,
++				on_out,
+ 				on_send_start,
+ 				on_meter, device_id,
+ 				on_refine_live,
+diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
+index 448532558..af3190d02 100644
+--- a/public/framework/ext/Chat/Mic.js
++++ b/public/framework/ext/Chat/Mic.js
+@@ -526,8 +526,9 @@ export class ComposerMic extends Dictate {
+ 			const rest = joined.slice(sents.slice(0, cut).join("").length).trim();
+ 			if (this.base.trim()){ texts[0].text = this.base.trim() + " " + texts[0].text; this.base = ""; }
+ 			this.held = rest ? [{ text: rest, raw: rest, br: false, ready: Promise.resolve() }] : [];
++			const items = texts.map(t => this.take_out(t)).filter(Boolean);   // drawn in the chat now, before the caption loses them
+ 			this.draw_caption();
+-			this.enqueue(texts);
++			this.enqueue(items);
+ 		} catch (e){ console.error("chat: sending finished sentences failed", e); }
+ 		finally { this.sending_sentences = false; }
+ 	}
+@@ -569,11 +570,14 @@ export class ComposerMic extends Dictate {
+ 			if (!text) return;   // the owner cleared the box, or a stop already sent it, while this was waiting
+ 			this.notify_if_failed((this.held ?? []).filter(h => !h.gone));
+ 			const raw = (this.base + (this.base && !/\s$/.test(this.base) ? " " : "") + this.build_tail(true)).trim() || text;
++			const item = this.take_out({ text, raw });   // in the chat now, where the draft was: the waits below never empty the screen
+ 			this.consume_sent();
+ 			this.draw_caption();   // empty the box now, in this same tick, so no second check can send it again
+-			// One last live-refine call (`final: true`); paragraphed slots replace `text` when the route answers.
++			if (!item) return;
++			// One last live-refine call (`final: true`); paragraphed slots replace `text` when the route answers (the drawn piece is patched in place).
+ 			const live = await this.refine_final(raw);
+-			this.enqueue([{ text: live?.slots?.length ? ComposerMic.paragraph_from_slots(live.slots, live.outline) : text, raw }]);
++			if (live?.slots?.length) item.text = ComposerMic.paragraph_from_slots(live.slots, live.outline);
++			this.enqueue([item]);
+ 		} finally { this.sending_screen = false; }
+ 	}
+ 
+@@ -605,11 +609,14 @@ export class ComposerMic extends Dictate {
+ 		const raw = held.map(h => h.raw ?? h.text).join(" ").trim();
+ 		this.held = [];
+ 		if (!text) return;
++		const item = this.take_out({ text, raw });
+ 		this.draw_caption();
+ 		if (!this.pending?.length && !this.partial_text) this.release_height();
++		if (!item) return;
+ 		// One last live-refine call, as in `send_screen()`.
+ 		const live = await this.refine_final(raw);
+-		return this.post_held({ text: live?.slots?.length ? ComposerMic.paragraph_from_slots(live.slots, live.outline) : text, raw });
++		if (live?.slots?.length) item.text = ComposerMic.paragraph_from_slots(live.slots, live.outline);
++		return this.post_held(item);
+ 	}
+ 
+ 	// Hand the words to `deliver(entry)`; on failure they go to Dictate's fallback log. see doc/mic-notes.md#post_held
+@@ -631,11 +638,30 @@ export class ComposerMic extends Dictate {
+ 		return strip_words(h2, h1) === "" ? h1 : text;
+ 	}
+ 
+-	async post_held(item){
++	/** The words leave the caption: one item `{text, raw, at}`, handed to `on_out` in this same step so the chat draws it where the
++	 * draft was, before any wait (clean-up, refine, the send queue); the send follows with the same `at`. null = a duplicate, dropped.
++	 * Why: the flicker (ux/Dictate/doc/flicker.md). */
++	take_out(item){
+ 		const got = typeof item === "string" ? { text: item, raw: null } : item;
+ 		const text = ComposerMic.collapse_repeat(got.text), raw = got.raw && ComposerMic.collapse_repeat(got.raw);
+-		if (this.same_as_last_send(text)){ console.warn("chat: dropped a duplicate send (same words, " + ComposerMic.DUP_WINDOW_MS + "ms window):", text); return; }
+-		const entry = { type: "prompt", by: "owner", text, via: "whisper" };
++		if (this.same_as_last_send(text)){ console.warn("chat: dropped a duplicate send (same words, " + ComposerMic.DUP_WINDOW_MS + "ms window):", text); return null; }
++		const out = { text, raw, at: ComposerMic.stamp() };
++		try { this.on_out?.(out); } catch (e){ console.error("chat: drawing the sent words failed", e); }
++		return out;
++	}
++
++	// A unique, rising `at`: two sentences taken out in the same millisecond must not share one bubble piece.
++	static stamp(){
++		const t = Math.max(Date.now(), (ComposerMic.last_stamp ?? 0) + 1);
++		ComposerMic.last_stamp = t;
++		return new Date(t).toISOString();
++	}
++
++	async post_held(item){
++		const got = item?.at ? item : this.take_out(item);   // an item not taken out yet (a caller of its own) is taken out here
++		if (!got) return;
++		const { text, raw } = got;
++		const entry = { type: "prompt", by: "owner", text, via: "whisper", at: got.at };
+ 		if (raw && raw.trim() && raw.trim() !== text.trim()){ entry.raw = raw; entry.level = "clean"; }
+ 		const re = this.re?.();
+ 		if (re){ entry.re = re; entry.selected = re; }
+@@ -644,7 +670,9 @@ export class ComposerMic extends Dictate {
+ 		// A send that never settles must not hold the queue: every later sentence waits behind it (the stall, test/stall.mjs).
+ 		let timer;
+ 		const late = new Promise(r => { timer = setTimeout(() => r("late"), ComposerMic.DELIVER_MS); });
+-		const sending = Promise.resolve().then(() => this.deliver?.(entry)).catch(e => { DictateHealth.set("sent", "bad", "not sent: " + (e?.message ?? e)); return false; });
++		// A deliver that throws (ext/Chat/ChatPanel.js's own can) is a failed send: its words still go to the fallback log below.
++		// No Sent-row write here: ux/Dictate/chat.js, the deliver behind the Debug tab, writes it and never throws (review note 3).
++		const sending = Promise.resolve().then(() => this.deliver?.(entry)).catch(e => { console.error("chat: deliver threw", e); return false; });
+ 		try { ok = await Promise.race([sending, late]); } finally { clearTimeout(timer); this.posting--; }
+ 		if (ok === "late"){
+ 			// The queue moves on now; the open send keeps its chance to land. Only a send that then fails counts as not sent
+@@ -663,6 +691,7 @@ export class ComposerMic extends Dictate {
+ 	}
+ }
+ ComposerMic.prototype.mode = "open";   // the mic stays on; draw_caption() types into the box
++ComposerMic.prototype.on_out = null;   // ({text, raw, at}) => … — words just left the caption (take_out); the chat draws them at once
+ ComposerMic.DUP_WINDOW_MS = 4000;   // same words from the same mic this close together are one send (see post_held)
+ ComposerMic.DELIVER_MS = 25000;   // the backstop: Session.js gives up after 10 s per call, so only a deliver with no timeout of its own reaches this
+ ComposerMic.mounted = new Set();   // every composer mic built, for heir(); a detached one is dropped the next time heir() looks
+diff --git a/public/framework/ext/drawer/AIPage.js b/public/framework/ext/drawer/AIPage.js
+index d4ef9c9f5..9dd739b18 100644
+--- a/public/framework/ext/drawer/AIPage.js
++++ b/public/framework/ext/drawer/AIPage.js
+@@ -16,18 +16,17 @@ export default class AIPage extends Page {
+ 		["live", "Live", null],                          // AIFeed, sheet step 7
+ 		["sessions", "Sessions", () => import("./tabs/sessions.js")],
+ 		["debug", "Debug", () => import("./tabs/debug.js")],             // dictation layer by layer (was Dictation, the playground, until 2026-10-24)
+-		["dictation", "Dictation", () => import("./tabs/debug.js")],     // the old url still opens it; not in the row of views (HIDDEN)
+ 		["settings", "Settings", () => import("./tabs/settings.js")],
+ 	];
+ 
+-	static HIDDEN = new Set(["dictation"]);   // views kept only so an old url opens; never drawn in the row
+-	static WIDE = new Set(["debug", "dictation"]);   // views drawn across the page's wide track (two columns at 1920), not the reading column
++	static ALIASES = { dictation: "debug" };   // an old view name: old_link() rewrites it once, before the Router reads the url
++	static WIDE = new Set(["debug"]);   // views drawn across the page's wide track (two columns at 1920), not the reading column
+ 
+ 	// The view a url names inside an AI page ("debug" for <path>/ai/debug/), "chat" for <path>/ai/ itself, null outside one.
+ 	static view_of(pathname = location.pathname, ai = this.current){
+ 		if (!ai?.url || !pathname.startsWith(ai.url)) return null;
+ 		const name = pathname.slice(ai.url.length).split("/")[0];
+-		return name && this.VIEWS.some(v => v[0] === name) ? (name === "dictation" ? "debug" : name) : "chat";
++		return name && this.VIEWS.some(v => v[0] === name) ? name : "chat";
+ 	}
+ 
+ 	// The AI page showing now, or null: Sheet.routed() reads it.
+@@ -51,7 +50,7 @@ export default class AIPage extends Page {
+ 		const [, , load] = this.constructor.VIEWS.find(v => v[0] === name);
+ 		div.c("drawer-ai-page-views flex wrap", () => {
+ 			span.c("drawer-ai-page-about muted").append(() => { span("about "); a(this.about).href(this.about); });
+-			this.constructor.VIEWS.filter(([n]) => !this.constructor.HIDDEN.has(n)).forEach(([n, label]) =>
++			this.constructor.VIEWS.forEach(([n, label]) =>
+ 				a.c("drawer-ai-page-view", label).ac(n === name && "on").href(this.url + (n === "chat" ? "" : n + "/")));
+ 		});
+ 		const $box = div.c("drawer-ai-page-body", () => { span.c("muted", "loading…"); }).ac(this.constructor.WIDE.has(name) && "wide");   // .wide: the page grid's own word for the wide track
+@@ -122,10 +121,15 @@ export default class AIPage extends Page {
+ 		drawer.page(null);
+ 	}
+ 
+-	// An old `?drawer=x` or `?sheet=…` link, as its `<path>/ai/x/` url, or null. Rewritten once by the Sheet.
++	// An old `?drawer=x` or `?sheet=…` link, or an old view name (`<path>/ai/dictation/`), as its `<path>/ai/x/` url, or null.
++	// Rewritten once by the Sheet; the one place an old name is mapped (ALIASES).
+ 	static old_link(href = location.href){
+-		const url = new URL(href), tab = url.searchParams.get("drawer"), sheet = url.searchParams.get("sheet");
+-		if (tab === null && sheet === null) return null;
++		const url = new URL(href), sheet = url.searchParams.get("sheet");
++		const old = url.pathname.match(/\/ai\/(\w+)\/$/)?.[1], alias = this.ALIASES[old];
++		let tab = url.searchParams.get("drawer");
++		if (tab === null && sheet === null && !alias) return null;
++		if (alias) url.pathname = url.pathname.replace(/\/ai\/\w+\/$/, "/ai/" + alias + "/");
++		tab = this.ALIASES[tab] ?? tab;
+ 		url.searchParams.delete("drawer");
+ 		url.searchParams.delete("sheet");
+ 		const view = this.VIEWS.some(v => v[0] === tab && tab !== "chat") ? tab + "/" : "";
+diff --git a/public/framework/ext/drawer/Sheet.js b/public/framework/ext/drawer/Sheet.js
+index b9f8dd905..1d6b9ddf6 100644
+--- a/public/framework/ext/drawer/Sheet.js
++++ b/public/framework/ext/drawer/Sheet.js
+@@ -476,7 +476,7 @@ export class SheetPanel extends View {
+ 
+ 	pick(name){
+ 		const shown = tabs.shown();
+-		const tab = shown.find(t => t.name === (name === "dictation" ? "debug" : name)) ?? shown[0];
++		const tab = shown.find(t => t.name === name) ?? shown[0];
+ 		this.tab_name = tab.name;
+ 		this.route_tab(tab.name);
+ 		this.$title.text((tab.name === "ai" ? this.title : tab.label) + " ▾");   // the title says which tab is showing
+diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+index 39a3572c0..c7cfad8bd 100644
+--- a/public/framework/ext/drawer/rail.css
++++ b/public/framework/ext/drawer/rail.css
+@@ -368,6 +368,10 @@
+ 	.drawer-rail-sheet-tabs { flex: 0 1 45%; min-block-size: 0; border-top: 1px solid var(--line); }
+ 	.drawer-rail-sheet-tabbody { flex: 1 1 auto; min-block-size: 0; overflow: auto; }
+ 	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { display: none; }
++	/* A PICKED TAB GETS THE ROOM (2026-10-25): the chat above keeps only its last lines, so all five Debug rows fit one
++	   phone screen (390×844, test/debug-tab.mjs). Follows the DOM (:has), so it ends the moment the tab body is unmounted. */
++	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs):not(.drawer-rail-sheet-chat-only) .drawer-rail-sheet-panel { flex: 0 0 10em; }
++	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs):not(.drawer-rail-sheet-chat-only) > .drawer-rail-sheet-tabs { flex: 1 1 auto; }
+ }
+ 
+ /* AIPage (<path>/ai/): a page above 52em; below it the Sheet shows it, so the page behind stays the one it is about. */
+diff --git a/public/framework/ext/drawer/tabs.js b/public/framework/ext/drawer/tabs.js
+index befcad3c9..1ba34da3b 100644
+--- a/public/framework/ext/drawer/tabs.js
++++ b/public/framework/ext/drawer/tabs.js
+@@ -127,7 +127,6 @@ export class DrawerTabs {
+ 	 *  `rail.js`'s own link, still lands somewhere real now that the two are one tab. */
+ 	open(name){
+ 		if (name === "sessions") name = "ai";
+-		if (name === "dictation") name = "debug";   // the old Dictation tab is the Debug tab now
+ 		// A real click on ☰ — the one moment this file is allowed to touch the
+ 		// network (see the comment on `DEV` above). Memoized in Ask.js: cheap to call every time.
+ 		if (!DEV) ask_probe().then(() => { if (http_ask_ready) DEV = true; });
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index b7db438ec..288f24090 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -72,10 +72,18 @@ export default class Widget extends View {
+ 		Promise.resolve(this.deliver(entry)).then(ok => { if (!ok) this.$thread?.mark_failed(at); });
+ 	}
+ 
++	/** Dictated words just left the draft to be sent (ComposerMic.take_out): the settled piece takes the draft's exact spot in this
++	 * same step, so nothing vanishes while the send waits (doc/flicker.md). The send arrives later at submit_entry() with the same `at`. */
++	show_out({ text, at }){
++		this.$thread?.settle_draft?.();
++		this.$thread?.draw({ chat: { at, from: { kind: "owner" }, text, via: "whisper" } });
++	}
++
+ 	/** The new composer's deliver; entry is {text, via, at?, raw?, level?}; returns true/false (or a promise). */
+ 	submit_entry(entry){
+ 		const at = entry.at ?? new Date().toISOString();
+-		this.$thread?.settle_draft?.();   // the settled piece takes the draft's exact spot: nothing moves (doc/voice-assistant.md)
++		// Drawn already by show_out() (a refined text patches that piece in place), or a typed line, which leaves the dictation draft alone:
++		// settling here dropped whatever draft was live when a slow send landed, i.e. the next sentence being said (doc/flicker.md).
+ 		this.$thread?.draw({ chat: { at, from: { kind: "owner" }, text: entry.text, via: entry.via } });
+ 		if (typeof this.deliver !== "function") return true;
+ 		const full = { ...entry, at };
+@@ -309,6 +317,8 @@ Widget.Thread = class WidgetThread extends View {
+ 
+ 	/** Re-apply the two views over the lines (a redraw of a bubble rebuilds its nodes): raw look, and folded cards. Idempotent. */
+ 	refresh(){
++		const d = this.draft;   // a redraw of the draft's host bubble (Chat.js fill) puts the pieces after the draft: it goes back to the end
++		if (d?.host && d.host.lastElementChild !== d.el) d.host.append(d.el);
+ 		for (const [at, line] of this.lines){
+ 			const node = line.bubble?.querySelector(`:scope > [data-re="${CSS.escape(String(at))}"]`);
+ 			node?.classList.toggle("ux-dictate-raw", !!line.spoken && !this.settled.has(at));
+@@ -696,6 +706,7 @@ Widget.Composer = class WidgetComposer extends View {
+ 			revise: w.revision || false,
+ 			on_text: text => w.on_text?.(text),
+ 			deliver: entry => w.submit_entry(entry),
++			on_out: item => w.show_out(item),   // the words are in the chat the moment they leave the draft or the box, before the send
+ 			// pulse and level read the same 0..1 meter
+ 			on_meter: (w.level || w.pulse) ? level => { this.set_level(level); w.$pulse?.set_level(level); } : undefined,
+ 			// mode "live" only: leaving on_live undefined keeps dictation in the box
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index ab8ef5b7b..0ffa3ee55 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -112,13 +112,19 @@ const quote = t => "“" + (String(t ?? "").replace(/\s+/g, " ").trim().slice(0,
+ export const ANSWER_MS = 60000;   // no answer this long after a sentence went out turns the AI layer red
+ export const LATE_ECHO_MS = 120000;   // after a timed-out send, how long its late echo still heals the bubble instead of drawing a copy
+ export const WIRE_GRACE_MS = 8000;   // a live-wire drop shorter than this is only an event, not a red row
+-function health_sent(text){
+-	DictateHealth.set("sent", "ok", `sent ${quote(text)} at ${new Date().toLocaleTimeString()}`);
++const secs = ms => (ms / 1000).toFixed(1) + " s";
++let sent_at = 0;   // when the last sentence went out: the AI row times its answer from here
++// The timing of each step (doc/flicker.md): the words were on screen at `t.out`, left for Servex after the clean-up and queue wait, Servex took them.
++function health_sent(text, t){
++	sent_at = Date.now();
++	const timing = t ? `; on screen at once, sent ${secs(t.wait)} later (clean-up and queue), Servex took it in ${secs(t.say)}` : "";
++	DictateHealth.set("sent", "ok", `sent ${quote(text)} at ${new Date().toLocaleTimeString()}${timing}`);
+ 	DictateHealth.set("llm", "wait", `waiting for an answer to ${quote(text)}`, { late_ms: ANSWER_MS,
+ 		late: `no answer ${ANSWER_MS / 1000} s after ${quote(text)}: Servex took the sentence, but no assistant has written back. They may be asleep, busy or crashed: open the session log from the Debug tab.` });
+ }
+ function health_answer(line){
+-	DictateHealth.set("llm", "ok", `${line.chat?.from?.id ?? "the assistant"} answered ${quote(line.chat?.text)}`);
++	const after = sent_at ? `, ${secs(Date.now() - sent_at)} after the send` : "";
++	DictateHealth.set("llm", "ok", `${line.chat?.from?.id ?? "the assistant"} answered ${quote(line.chat?.text)}${after}`);
+ }
+ 
+ // Module-level GLOBAL: one per browser tab (ES module singleton)
+@@ -162,6 +168,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 					const thread = entry.thread ? { re: entry.thread, thread: true } : {};
+ 					const mine = { text: flat(entry.text), at: entry.at }; sending.push(mine);
+ 					let r;
++					const t_say = Date.now(), t_out = Date.parse(entry.at) || t_say;
+ 					try {
+ 						r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text,
+ 							via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: owner.ctl.selection, ...thread });
+@@ -176,7 +183,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 					own_ats.add(r.at);
+ 					panel.retag(entry.at, r.at);
+ 					if (entry.floor === "speaking") owner.watch_floor();
+-					health_sent(entry.text);
++					health_sent(entry.text, { wait: Math.max(0, t_say - t_out), say: Date.now() - t_say });
+ 					return true;
+ 				} catch (e) {
+ 					Session.stream.log("say failed", { session: owner.ctl.session, error: String(e?.message ?? e) });
+@@ -255,7 +262,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 			// The noise rule: the LAN proxy cuts the wire every 30 s and it is back in a second, so a drop is a failure only if it lasts WIRE_GRACE_MS.
+ 			clearTimeout(wire_timer);
+ 			if (s === "down"){
+-				DictateHealth.event("llm", "wait", `the live wire to Servex dropped (${why}); reconnecting`);
++				DictateHealth.event("llm", "wait", `the live wire to Servex dropped (${why}). It reconnects by itself.`);
+ 				wire_timer = setTimeout(() => DictateHealth.set("llm", "bad", `the live wire to Servex is down: ${why}. It retries by itself (1 s, doubling to 15 s); Reconnect tries now.`), WIRE_GRACE_MS);
+ 			} else if (DictateHealth.layers.llm.state === "idle" || DictateHealth.layers.llm.why.startsWith("the live wire")) DictateHealth.set("llm", "ok", "connected to Servex; nothing asked yet");
+ 		} });
+diff --git a/public/framework/ux/Dictate/doc/flicker.md b/public/framework/ux/Dictate/doc/flicker.md
+new file mode 100644
+index 000000000..700c02809
+--- /dev/null
++++ b/public/framework/ux/Dictate/doc/flicker.md
+@@ -0,0 +1,32 @@
++# The flicker — why your words vanished and came back, and the fix
++
++**The rule (the owner, 2026-10-24):** while dictation is on, your words appear in place in the chat bubble, as if already sent. Nothing you are reading vanishes or moves. A later stage (the clean-up, the refine) may change a word only in place.
++
++## What was wrong (reproduced 2026-10-25, `test/flicker.mjs`, before the fix)
++
++A pause sends everything you said. Three steps broke the rule:
++
++1. **The words left the draft before the sent bubble existed.** `ComposerMic.send_screen()` emptied the growing draft at once, then waited: for the live refine (up to 1.5 s) and for every earlier sentence still being sent (each `Session.say` can take up to 10 s). Only then did the sent bubble appear. In the run, both sentences were gone for 0.9 s.
++2. **A slow send wiped the next sentence.** When that send finally landed, `Widget.submit_entry()` dropped whatever draft was live, which by then was the next sentence you were saying.
++3. **A redraw put new words before old ones.** Any redraw of the bubble (a ✓ mark arriving, a merge) re-added its sent pieces after the draft, so the words swapped order until the next Whisper guess.
++
++## The fix
++
++- **Show first, send after.** When words leave the draft, `ComposerMic.take_out()` ([ext/Chat/Mic.js](/framework/ext/Chat/Mic.js)) gives them an `at` and hands them to `on_out` in the same step. The chat (`Widget.show_out()`, [Widget.js](../Widget.js)) draws them as the sent piece in the draft's exact spot. The send follows later with the same `at`; if the refine changed the text, only that piece is swapped (`patch_piece` in [ext/Chat/Chat.js](/framework/ext/Chat/Chat.js)).
++- `submit_entry()` no longer touches the draft, and `Thread.refresh()` puts the draft back at the end after any redraw.
++- **Timing on the Debug tab:** the Sent row says how long the words waited before going out and how long Servex took (`sent “…”; on screen at once, sent 0.6 s later (clean-up and queue), Servex took it in 3.0 s`), and the AI row says how long the answer took after the send. The Transcripts row already showed Whisper's time.
++
++## The proof
++
++`node public/framework/ux/Dictate/test/flicker.mjs <base-url> [shots-dir] [plain|clean]` plays three sentences into the phone sheet: Whisper's growing guess, its final, the clean-up (scenario `clean`), a pause that sends, and more talking while that send is still open (Servex stubbed, answering in 3 s). It takes a shot about every 150 ms and counts the words that left the screen between two shots, and how many of those the clean-up explains. The two numbers must agree, and no word may change place.
++
++| Run | Words gone | Explained by the clean-up | Words moved |
++|---|---|---|---|
++| plain, before | 7 | 0 | 2 |
++| clean, before | 22 | 3 | 4 |
++| plain, after | 0 | 0 | 0 |
++| clean, after | 2 | 2 | 0 |
++
++Shots and numbers: [flicker/shots/](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots/) (`before-clean-030.png`: the empty chat; `after-clean-030.png`: the same moment, words in place).
++
++**Not covered yet:** `ext/Chat/ChatPanel.js` uses the same composer without `on_out`, so its chat still draws a sentence only when the send lands. Wiring it is one `on_out` line once its thread has a `show_out`.
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index efecbef97..208390c57 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -2,6 +2,8 @@
+ 
+ **Dictation stopped, or the AI never answered? Open the Debug tab** (each step from the mic to the AI's answer, live, with the real error; what the stall was and how it was fixed): [`doc/debug-tab.md`](doc/debug-tab.md). `class DictateHealth` (the five layers, [DictateHealth.js](DictateHealth.js)) · `class DictateDebug` (the view, [DictateDebug.js](DictateDebug.js)) · proofs `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`. Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: git-ignored, written on this machine at the first failure).
+ 
++**Words vanished and came back?** The flicker, its cause and the fix: your words become the sent piece in the draft's spot the moment they leave it (`ComposerMic.take_out` → `Widget.show_out`), proof `test/flicker.mjs`: [`doc/flicker.md`](doc/flicker.md).
++
+ **Map of every dictation piece** (mic, Whisper, cleaners, chat, voice session, assistants; the duplicates and the plan): [doc/map.md](doc/map.md).
+ 
+ **Every voice and chat surface, one page** (screenshots, who answers, the flow, the 30-second first reply): [`surfaces/`](./surfaces/) · [long form](doc/surfaces.md).
+diff --git a/public/framework/ux/Dictate/surfaces/drawer-debug-1920.png b/public/framework/ux/Dictate/surfaces/drawer-debug-1920.png
+new file mode 100644
+index 000000000..709f11c36
+Binary files /dev/null and b/public/framework/ux/Dictate/surfaces/drawer-debug-1920.png differ
+diff --git a/public/framework/ux/Dictate/surfaces/page.js b/public/framework/ux/Dictate/surfaces/page.js
+index 998249068..a0fcfb6eb 100644
+--- a/public/framework/ux/Dictate/surfaces/page.js
++++ b/public/framework/ux/Dictate/surfaces/page.js
+@@ -39,7 +39,7 @@ const SURFACES = [
+ 		file: "/framework/ux/Dictate/push-to-talk.js", agent: "fast + smart", log: "`ai/<id>.jsonl`", shot: "floating-mic-1920.png",
+ 		says: "A small button, not a chat. It speaks into the same global session, so the words land in the drawer chat." },
+ 	{ name: "Debug tab", where: "Drawer and phone sheet, Debug tab (<page>/ai/debug/; was the Dictation tab until 2026-10-24)",
+-		file: "/framework/ext/drawer/tabs/debug.js", agent: "none", log: "`ux/Dictate/failures.jsonl` (a red layer)", shot: "drawer-dictation-1920.png",
++		file: "/framework/ext/drawer/tabs/debug.js", agent: "none", log: "`ux/Dictate/failures.jsonl` (a red layer)", shot: "drawer-debug-1920.png",
+ 		says: "Dictation layer by layer, live, read from the chat's own mic: each step green, waiting or red with the real error. Nobody answers here (doc/debug-tab.md)." },
+ 	{ name: "Card chat", where: "A card's page, Activity tab",
+ 		file: "/framework/ai/cards/card.js", agent: "whoever is attached to the card, or none", log: "the card's `page.jsonl`", shot: "card-chat-1920.png",
+diff --git a/public/framework/ux/Dictate/test/debug-tab.mjs b/public/framework/ux/Dictate/test/debug-tab.mjs
+index 81652c295..b47b34a66 100644
+--- a/public/framework/ux/Dictate/test/debug-tab.mjs
++++ b/public/framework/ux/Dictate/test/debug-tab.mjs
+@@ -2,16 +2,14 @@
+ //   node public/framework/ux/Dictate/test/debug-tab.mjs <base-url> <shots dir>
+ // Headless; every Servex session verb is stubbed (the "AI" answers from a stub session file), the mic is jfk.wav.
+ // Exit 1 on any failure.
+-import { pathToFileURL } from "url";
+ import fs from "fs";
+ 
+ const [base = "http://monorepo.localhost", shots = "."] = process.argv.slice(2);
+ fs.mkdirSync(shots, { recursive: true });
+-const PW = process.env.PWENTRY ?? "C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+ const here = new URL("../../../ai/recordings/jfk.wav", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
+ const wav = process.env.WAV ?? (fs.existsSync(here) ? here : "C:/Code/lew42/monorepo/public/framework/ai/recordings/jfk.wav");
+-const { chromium } = await import(pathToFileURL(PW).href);
+-const browser = await chromium.launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
++const { default: Browser } = await import(new URL("../../../../../Server/Browser.mjs", import.meta.url).href);   // the shared launcher: no window
++const browser = await Browser.launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
+ const kill = setTimeout(() => { console.log("FAIL killed after 240 s"); process.exit(2); }, 240000);
+ let failed = 0;
+ const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
+@@ -65,6 +63,12 @@ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now
+ 	console.log("  phone:", url, live.join(" "));
+ 	check(url === "/framework/ext/drawer/ai/debug/", "picking Debug routes the sheet to <path>/ai/debug/ (" + url + ")");
+ 	check(["mic", "whisper", "transcripts", "sent", "llm"].every(id => live.includes(id + "=ok")), "every layer is green while dictating: " + live.join(" "));
++	const fit = await page.evaluate(() => {   // all five rows on one phone screen, with the chat's last lines still above them
++		const steps = [...document.querySelectorAll(".drawer-rail-sheet .dictate-debug .voice-conn-step")].filter(s => s.offsetParent);
++		const chat = document.querySelector(".drawer-rail-sheet .ux-dictate-widget-thread")?.getBoundingClientRect().height ?? 0;
++		return { rows: steps.length, below: steps.filter(s => s.getBoundingClientRect().bottom > innerHeight).map(s => s.dataset.step), chat: Math.round(chat) };
++	});
++	check(fit.rows === 5 && !fit.below.length && fit.chat > 30, `all five Debug rows fit one 390×844 screen, chat ${fit.chat}px above them` + (fit.below.length ? "; below the fold: " + fit.below.join(", ") : ""));
+ 	await page.screenshot({ path: shots + "/debug-390.png" });
+ 	page.on("dialog", d => d.accept());
+ 	await page.reload({ waitUntil: "domcontentloaded" });
+@@ -100,6 +104,19 @@ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now
+ 	await ctx.close();
+ }
+ 
++// ---- the old name: ?drawer=dictation and <path>/ai/dictation/ still open Debug (one alias, AIPage.old_link), at 390 and 1920
++for (const width of [390, 1920]){
++	const { ctx, page, run } = await context({ width, height: width < 800 ? 844 : 1080 });
++	for (const old of ["/framework/ext/drawer/?drawer=dictation", "/framework/ext/drawer/ai/dictation/"]){
++		await page.goto(base + old, { waitUntil: "domcontentloaded" });
++		const ok = await page.waitForSelector(".dictate-debug", { state: "attached", timeout: 20000 }).then(() => true, () => false);
++		const at = new URL(page.url()).pathname;
++		check(ok && at === "/framework/ext/drawer/ai/debug/", `${width}: the old link ${old} opens Debug at ${at}`);
++	}
++	check(!run.errors.length, `no page errors on the old links at ${width}: ` + run.errors.join(" | "));
++	await ctx.close();
++}
++
+ await browser.close();
+ clearTimeout(kill);
+ console.log(failed ? `${failed} FAILED` : "all passed");
+diff --git a/public/framework/ux/Dictate/test/flicker.mjs b/public/framework/ux/Dictate/test/flicker.mjs
+new file mode 100644
+index 000000000..5f6e0ff02
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/flicker.mjs
+@@ -0,0 +1,178 @@
++// The flicker, measured: do the owner's words stay on screen from the moment they appear until they are sent and answered?
++//   node public/framework/ux/Dictate/test/flicker.mjs <base-url> [shots-dir] [plain|clean]
++// Headless, phone sheet at 400, every Servex call stubbed (nothing is posted). The mic is driven by hand, so the run is the same every
++// time: Whisper's growing guess word by word, its final, the clean-up for that sentence (scenario "clean" only), a pause that sends
++// everything, and talking on while that send is still open (Servex answers `say` after SAY_MS). A shot every ~150 ms, and at each shot
++// the owner's words in the chat, as a multiset of plain words.
++// The proof is two numbers that must agree: words that left the screen between shot N and N+1, and those the clean-up explains
++// (a word the cleaned text really dropped or changed). Anything else is a word that flickered. Exit 1 when they differ.
++import fs from "fs";
++import path from "path";
++
++const [base = "http://monorepo.localhost", shots_arg, only] = process.argv.slice(2);
++const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
++const shots_root = shots_arg ?? path.resolve(here, "../../../ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/shots");
++const SAY_MS = 3000;      // Servex's answer to session/say: slow, the way a busy Servex is (its limit is 10 s)
++const REFINE_MS = 900;    // the live refine's answer (scenario "clean")
++const { default: Browser } = await import(new URL("../../../../../Server/Browser.mjs", import.meta.url).href);   // the shared launcher: no window
++const browser = await Browser.launch();
++const kill = setTimeout(() => { console.log("FAIL killed after 240 s"); process.exit(2); }, 240000);
++
++// What is said, and what the clean-up makes of it. A word in `raw` but not in `clean` is one the clean-up may take away.
++const SENTENCES = [
++	{ raw: "So um the first thing is the flicker.", clean: "The first thing is the flicker." },
++	{ raw: "Words should stay where they are.", clean: "Words should stay where they are." },
++	{ raw: "And then the uh second thing comes along.", clean: "Then the second thing comes along." },
++];
++const norm = t => String(t).toLowerCase().replace(/[^a-z0-9' ]+/g, " ").split(/\s+/).filter(Boolean);
++const count = ws => ws.reduce((m, w) => m.set(w, (m.get(w) ?? 0) + 1), new Map());
++// unfill() in Mic.js drops these before they ever reach the chat, so they are never on screen to lose
++const FILLERS = new Set("ah uh um er erm hmm mm".split(" "));
++const cleanable = new Set(SENTENCES.flatMap(s => { const c = new Set(norm(s.clean)); return norm(s.raw).filter(w => !c.has(w) && !FILLERS.has(w)); }));
++
++async function run(scenario){
++	const dir = path.join(shots_root, scenario);
++	fs.mkdirSync(dir, { recursive: true });
++	for (const f of fs.readdirSync(dir)) if (f.endsWith(".png")) fs.unlinkSync(path.join(dir, f));
++	const ctx = await browser.newContext({ viewport: { width: 400, height: 800 }, hasTouch: true, isMobile: true });
++	const page = await ctx.newPage();
++	const errors = [], lines = [];
++	page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
++	const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
++	const json = (route, out) => route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) }).catch(() => {});
++	await page.route(/\/api\/session\//, async route => {
++		const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
++		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
++		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
++		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
++		if (verb === "say"){   // written at once (the poll sees it), answered late
++			const at = new Date().toISOString();
++			lines.push({ chat: { at, from: { kind: "owner" }, via: "voice", text: body.text } });
++			await new Promise(r => setTimeout(r, SAY_MS));
++			return json(route, { ok: true, at });
++		}
++		return json(route, verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : { ok: true });
++	});
++	await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: lines.map(l => JSON.stringify(l)).join("\n") }));
++	await page.route(/\/api\/sessions\?/, r => json(r, { ok: true, sessions: [] }));
++	await page.route(/\/log\/prompts/, r => json(r, {}));
++	await page.route(/\/api\/hitl/, async r => { await new Promise(res => setTimeout(res, 300)); json(r, { ok: true, marks: [{ mark: "ok" }] }); });
++	await page.route(/\/api\/refine\/live/, async r => {
++		let body = {}; try { body = JSON.parse(r.request().postData() ?? "{}"); } catch {}
++		await new Promise(res => setTimeout(res, REFINE_MS));
++		// the refined slots: the cleaned sentences the text holds, numbered
++		const slots = SENTENCES.filter(s => norm(body.text).join(" ").includes(norm(s.clean).slice(-3).join(" "))).map((s, i) => ({ n: i + 1, clean: s.clean, raw: s.raw }));
++		json(r, { ok: true, slots, outline: { sections: [] } });
++	});
++	await page.goto(base + "/framework/ext/drawer/", { waitUntil: "domcontentloaded" });
++	await page.waitForSelector(".drawer-rail-ai", { timeout: 20000 });
++	await page.evaluate(async () => { const { default: Sheet } = await import("/framework/ext/drawer/Sheet.js"); window.$sheet = Sheet.of(); await window.$sheet.to("full", { listen: false }); });
++	await page.waitForSelector(".drawer-rail-sheet.on .ux-dictate-widget", { timeout: 20000 });
++	await page.waitForTimeout(800);
++
++	// The owner's words on screen right now: every owner bubble and the growing draft, badges and avatars left out.
++	await page.evaluate(() => {
++		globalThis.$flicker_words = () => {
++			const t = globalThis.$dictate_widget?.$thread?.el;
++			if (!t) return "";
++			const out = [];
++			for (const b of t.querySelectorAll(".chatbox-you")){
++				const copy = b.cloneNode(true);
++				copy.querySelectorAll(".chatbox-who, .chatbox-via, .chatbox-mark, .chatbox-failed, .chatbox-reacts, .chatbox-pieces, .chatbox-from, button").forEach(n => n.remove());
++				if (b.matches(".ux-dictate-swallowed:not(.open)")) copy.querySelectorAll(":scope > [data-re]").forEach(n => n.remove());   // folded under a summary: not visible
++				for (const p of copy.querySelectorAll(".chatbox-text, .ux-dictate-summary-text")) out.push(p.textContent.trim());
++			}
++			return out.filter(Boolean).join(" | ");
++		};
++	});
++
++	// The script, run inside the page, not awaited: the shots below run beside it.
++	await page.evaluate(({ SENTENCES, scenario }) => {
++		const m = globalThis.$dictate_widget.dictate, wait = ms => new Promise(r => setTimeout(r, ms));
++		m.state = "listening";   // the mic is "on": consume_sent keeps listening, arm() sends on its own rules
++		if (scenario === "clean") m.revise = "clean"; else m.revise = false;
++		let chunk = 0;
++		const say = async s => {
++			const words = s.raw.replace(/[.!?]$/, "").split(" ");
++			for (let n = 1; n <= words.length; n++){ m.partial_text = words.slice(0, n).join(" "); m.draw_caption(); await wait(220); }
++			const id = ++chunk;
++			m.partial_text = "";
++			m.log_prompt(s.raw.replace(/\b(um|uh)\b ?/g, "").replace(/\s+/g, " ").trim(), id);   // Whisper's final (Dictate.commit unfills before log_prompt)
++			if (scenario === "clean"){ await wait(400); m.on_revised(s.clean, { chunk_id: id }); }
++		};
++		globalThis.$flicker_done = (async () => {
++			await wait(300);
++			await say(SENTENCES[0]);
++			await say(SENTENCES[1]);
++			await wait(300);
++			m.send_screen();          // a natural pause: everything on screen goes out
++			await wait(250);
++			await say(SENTENCES[2]);  // talking on while that send is still open
++			await wait(300);
++			m.send_screen();
++			await wait(8000);         // both sends answered, echoes in
++			return true;
++		})();
++	}, { SENTENCES, scenario });
++
++	const frames = [];
++	const t0 = Date.now();
++	while (Date.now() - t0 < 20000){
++		const tick = Date.now();
++		const words = await page.evaluate(() => globalThis.$flicker_words());
++		const n = frames.length;
++		const file = path.join(dir, String(n).padStart(3, "0") + ".png");
++		await page.locator(".drawer-rail-sheet.on .ux-dictate-widget-thread").screenshot({ path: file }).catch(() => {});
++		frames.push({ n, ms: tick - t0, words });
++		if (await page.evaluate(() => globalThis.$flicker_done && Promise.race([globalThis.$flicker_done, new Promise(r => setTimeout(() => r(false), 0))]))) break;
++		const left = 150 - (Date.now() - tick);
++		if (left > 0) await page.waitForTimeout(left);
++	}
++
++	// N -> N+1: every word that left the screen, and whether the clean-up explains it
++	let gone = 0, explained = 0, moved = 0;
++	const events = [], moves = [];
++	for (let i = 0; i + 1 < frames.length; i++){
++		const a = count(norm(frames[i].words)), b = count(norm(frames[i + 1].words));
++		for (const [w, k] of a){
++			const lost = k - (b.get(w) ?? 0);
++			if (lost <= 0) continue;
++			gone += lost;
++			const ok = scenario === "clean" && cleanable.has(w);
++			if (ok) explained += lost;
++			else events.push({ from: i, to: i + 1, ms: frames[i + 1].ms, word: w, lost });
++		}
++		// words on both shots that changed their order (a piece drawn before the words it follows): both minus their longest common run
++		const x = norm(frames[i].words), y = norm(frames[i + 1].words), cy = count(y);
++		const both = [...count(x)].reduce((s, [w, k]) => s + Math.min(k, cy.get(w) ?? 0), 0);
++		const L = Array.from({ length: x.length + 1 }, () => new Array(y.length + 1).fill(0));
++		for (let a = 1; a <= x.length; a++) for (let c = 1; c <= y.length; c++) L[a][c] = x[a - 1] === y[c - 1] ? L[a - 1][c - 1] + 1 : Math.max(L[a - 1][c], L[a][c - 1]);
++		const m = both - L[x.length][y.length];
++		if (m > 0){ moved += m; moves.push({ from: i, to: i + 1, ms: frames[i + 1].ms, words: frames[i + 1].words.slice(0, 120) }); }
++	}
++	const sent = lines.map(l => l.chat.text);
++	const sent_row = await page.evaluate(async () => (await import("/framework/ux/Dictate/DictateHealth.js")).default.layers.sent.why);
++	const final_words = frames.at(-1)?.words ?? "";
++	const report = { scenario, frames: frames.length, every_ms: Math.round((frames.at(-1)?.ms ?? 0) / Math.max(1, frames.length - 1)),
++		words_gone: gone, explained_by_clean: explained, agree: gone === explained, words_moved: moved, flickers: events.slice(0, 40), moves: moves.slice(0, 20), sent, sent_row, final_words, errors };
++	fs.writeFileSync(path.join(dir, "frames.json"), JSON.stringify(frames, null, 1));
++	fs.writeFileSync(path.join(dir, "numbers.json"), JSON.stringify(report, null, 1));
++	console.log(`${report.agree ? "ok  " : "FAIL"} ${scenario}: ${frames.length} shots every ~${report.every_ms} ms; words that left the screen ${gone}, explained by the clean-up ${explained}`);
++	for (const e of events.slice(0, 8)) console.log(`       shot ${e.from}->${e.to} (${e.ms} ms): "${e.word}" vanished`);
++	console.log(`${moved ? "FAIL" : "ok  "} ${scenario}: words that changed place between two shots ${moved}`);
++	for (const e of moves.slice(0, 4)) console.log(`       shot ${e.from}->${e.to} (${e.ms} ms): "${e.words}"`);
++	const last = norm(final_words).join(" "), want = norm(SENTENCES.map(s => scenario === "clean" ? s.clean : s.raw).join(" ")).filter(w => !FILLERS.has(w)).join(" ");
++	const ok_end = last === want;
++	console.log(`${ok_end ? "ok  " : "FAIL"} ${scenario}: the chat ends with every sentence once, in order ("${last.slice(0, 120)}")`);
++	const timed = /on screen at once, sent [0-9.]+ s later .*Servex took it in [0-9.]+ s/.test(sent_row ?? "");
++	console.log(`${timed ? "ok  " : "FAIL"} ${scenario}: the Debug tab's Sent row times each step: ${sent_row}`);
++	console.log(`${errors.length ? "FAIL" : "ok  "} ${scenario}: no page errors${errors.length ? " — " + errors[0] : ""}`);
++	await ctx.close();
++	return report.agree && !moved && ok_end && timed && !errors.length;
++}
++
++let all = true;
++for (const s of ["plain", "clean"]) if (!only || only === s) all = (await run(s)) && all;
++clearTimeout(kill);
++await browser.close();
++process.exit(all ? 0 : 1);

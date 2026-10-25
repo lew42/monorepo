@@ -1,11 +1,20 @@
 # Follow-up: every task of the last 10 days
 
-1328 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
+1371 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
 
 | task | group | session | model | started | last log | step | state bucket | outcome | branch | agent | flags |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | [figma-phase2](/framework/ai/sessions/2026/10/12/session-cd792e48/figma-phase2/) | - | cd792e48 | sonnet-5-5 | 10-12 06:03 | 10-23 02:29 | 1/0 | landed | yes | 1 ahead | dormant | unmerged |
 | [sessions-tab-polish](/framework/ai/sessions/2026/10/03/sessions-tab-polish/sessions-tab-polish/) | - | 8de620c5 | sonnet-5 | 10-03 22:04 | 10-23 02:29 | 11/7 | landed | yes | 12 ahead | dormant | unmerged |
+| [test-basics](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/test-basics/) | - | f6e3f9e1 | sonnet-5-5 | 10-25 02:18 | 10-25 03:00 | 0/0 | stale | yes | - | stopped | quiet |
+| [smoke-links](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/fast-write/smoke-links/) | - | 5d4b5faf | sonnet-5-5 | 10-25 02:52 | 10-25 02:52 | 0/0 | stale | yes | - | dormant | quiet |
+| [session-feed](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session-feed/) | - | 4508f9b3 | sonnet-5-5 | 10-25 01:46 | 10-25 02:34 | 0/0 | stale | yes | - | stopped | quiet |
+| [sidebar-pins](/framework/core/Page/tasks/page-mastermind/sidebar-pins/) | - | - | - | 10-25 01:20 | 10-25 01:21 | 0/0 | stale | no | - | unknown | quiet |
+| [batch2](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/queue-top/batch2/) | - | - | - | 10-24 13:45 | 10-24 14:21 | 0/0 | stale | no | - | unknown | quiet |
+| [process-system](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/) | - | 7e6b7107 | opus-5-5 | 10-23 23:25 | 10-24 05:03 | 0/0 | stale | yes | - | stopped | quiet |
+| [nav-links](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/nav-links/) | - | fb13f066 | sonnet-5-5 | 10-24 03:47 | 10-24 04:53 | 0/0 | stale | yes | - | stopped | quiet |
+| [merge-latest](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/merge-latest/) | - | ed6aaf84 | sonnet-5-5 | 10-24 03:47 | 10-24 04:45 | 0/0 | stale | yes | - | stopped | quiet |
+| [sessions-shots](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-shots/) | - | c7f6cfbc | sonnet-5-5 | 10-24 03:29 | 10-24 03:43 | 0/0 | stale | yes | - | dormant | quiet |
 | [session-data](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/session-data/) | - | - | - | 10-24 01:46 | 10-24 01:46 | 0/0 | stale | no | - | unknown | quiet |
 | [smoke-adopt](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/smoke-adopt/) | - | - | - | 10-24 01:45 | 10-24 01:45 | 0/0 | stale | no | - | unknown | quiet |
 | [task-queue-plan](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-queue-plan/) | - | - | - | 10-24 01:41 | 10-24 01:41 | 0/0 | stale | no | - | unknown | quiet |
@@ -26,36 +35,110 @@
 | [cracks-inbox-wait](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/cracks-inbox-wait/) | - | 2d34940a | sonnet-5-5 | 10-23 05:30 | 10-23 06:10 | 0/0 | stale | yes | - | stopped | quiet |
 | [task-chase](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-chase/) | - | dcab0d51 | sonnet-5-5 | 10-23 05:24 | 10-23 06:09 | 0/0 | stale | yes | - | stopped | quiet |
 | [handover-test](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/handover-test/) | - | b53a69cd | sonnet-5-5 | 10-23 05:25 | 10-23 06:09 | 0/0 | stale | yes | - | stopped | quiet |
-| [figma-cards](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/) | - | 037b7c00 | opus-5-5 | 10-23 00:19 | 10-23 05:18 | 0/0 | stale | yes | - | dormant | quiet |
-| [session-flow](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-flow/) | - | - | - | 10-23 02:17 | 10-23 02:17 | 0/0 | stale | no | - | unknown | quiet |
-| [build](/framework/ai/sessions/tasks/code-the-approved-mobile-picks-as-routed/build/) | - | 5b7e7068 | sonnet-5-5 | 10-23 01:18 | 10-23 02:17 | 0/0 | stale | yes | - | stopped | quiet |
-| [questions](/framework/ai/sessions/2026/10/22/cloud-voice-session-system-test/e2e-check-process/questions/) | - | dcd3edaa | sonnet-5-5 | 10-23 02:04 | 10-23 02:10 | 0/0 | stale | yes | - | stopped | quiet |
+| [minion-agent-base](/framework/ai/sessions/2026/10/24/session-7c6c8d93/minion-agent-base/) | - | 7cc36afa | sonnet-5-5 | 10-25 04:43 | 10-25 05:02 | 0/0 | in_flight | yes | - | working | ok |
+| [minion-process-page](/framework/ai/sessions/2026/10/24/session-7c6c8d93/minion-process-page/) | - | f33eca16 | sonnet-5-5 | 10-25 04:13 | 10-25 05:01 | 0/0 | stale | yes | - | working | ok |
+| [sessions-and-tasks](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/) | ai-sessions | e00f55c9 | fable-5-1 | 10-20 20:03 | 10-25 05:01 | 0/0 | stale | yes | - | unknown | ok |
+| [queue-top](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/queue-top/) | - | aefb1e4d | sonnet-5-5 | 10-24 13:03 | 10-25 05:01 | 0/0 | landed | yes | - | stopped | ok |
+| [deputy](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/) | - | d9c3caec | opus-5-5 | 10-24 00:01 | 10-25 05:01 | 0/0 | in_flight | yes | branch gone | working | ok |
+| [dictation-debug](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/) | - | f0a2fbdb | opus-5-5 | 10-25 02:08 | 10-25 05:01 | 0/0 | stale | yes | - | idle | ok |
+| [flicker](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/) | - | - | - | 10-25 05:01 | 10-25 05:01 | 0/0 | stale | no | - | dormant | ok |
+| [build](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/build/) | - | b3995118 | opus-5-5 | 10-25 03:28 | 10-25 05:01 | 0/0 | landed | yes | merged | dormant | ok |
+| [minion-tracking-perf-2](/framework/ai/sessions/2026/10/24/session-7c6c8d93/minion-tracking-perf-2/) | - | a21512f9 | sonnet-5-5 | 10-25 04:13 | 10-25 04:59 | 0/0 | stale | yes | - | dormant | ok |
+| [cost-line](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/cost-line/) | - | - | - | 10-25 04:26 | 10-25 04:56 | 0/0 | landed | yes | - | unknown | ok |
+| [session-e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/) | - | prompt-t | - | 10-23 01:31 | 10-25 04:55 | 0/0 | stale | no | - | unknown | ok |
+| [cloud-voice-app-20261024](/framework/ai/sessions/2026/10/24/cloud-voice-app-20261024/) | - | - | - | 10-24 06:09 | 10-25 04:55 | 0/0 | stale | no | - | unknown | ok |
+| [min-free-2560](/framework/ai/sessions/2026/10/24/session-7c6c8d93/min-free-2560/) | - | ai-syste | - | 10-25 04:23 | 10-25 04:55 | 0/0 | stale | no | - | unknown | ok |
+| [session-entries](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session-entries/) | - | eee5a36a | opus-5-5 | 10-25 04:48 | 10-25 04:54 | 0/0 | in_flight | yes | - | working | ok |
+| [session-identity](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-identity/) | - | 83b71020 | opus-5-5 | 10-25 03:50 | 10-25 04:50 | 3/0 | in_flight | yes | - | working | ok |
+| [sessions-list-slim](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim/) | - | f6d07c38 | opus-5-5 | 10-25 03:41 | 10-25 04:50 | 0/0 | stale | yes | - | idle | ok |
+| [running-for](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/running-for/) | - | 8a1c4423 | sonnet-5-5 | 10-25 04:47 | 10-25 04:47 | 0/0 | in_flight | yes | - | working | ok |
+| [cloud-voice-session-system-test](/framework/ai/sessions/2026/10/22/cloud-voice-session-system-test/) | - | voice-ap | - | 10-23 02:04 | 10-25 04:47 | 0/0 | stale | no | - | unknown | ok |
+| [session-d88339a2](/framework/ai/sessions/2026/10/23/session-d88339a2/) | - | - | - | 10-23 06:49 | 10-25 04:47 | 0/0 | stale | no | - | unknown | ok |
+| [header](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim/header/) | - | 9277116c | sonnet-5-5 | 10-25 04:42 | 10-25 04:44 | 0/0 | in_flight | yes | - | working | ok |
+| [minion-tracking-perf](/framework/ai/sessions/2026/10/24/session-7c6c8d93/minion-tracking-perf/) | - | b82c81af | sonnet-5-5 | 10-25 03:13 | 10-25 04:39 | 0/0 | landed | yes | - | dormant | ok |
+| [session-e00f55c9](/framework/ai/sessions/2026/10/24/session-e00f55c9/) | - | - | - | 10-25 00:21 | 10-25 04:32 | 0/0 | stale | no | - | unknown | ok |
+| [session-closeout](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-closeout/) | - | cb53aa0e | sonnet-5-5 | 10-25 02:10 | 10-25 04:30 | 0/0 | stale | yes | - | dormant | ok |
+| [dictate-to-tab](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/dictate-to-tab/) | - | 292ca58a | opus-5-5 | 10-25 04:20 | 10-25 04:27 | 0/0 | stopped | yes | - | dormant | ok |
+| [cloud-voice-app-20261023](/framework/ai/sessions/2026/10/23/cloud-voice-app-20261023/) | - | - | - | 10-24 02:25 | 10-25 04:23 | 0/0 | stale | no | - | unknown | ok |
+| [session-700549e4](/framework/ai/sessions/2026/10/24/session-700549e4/) | - | - | - | 10-25 03:03 | 10-25 04:23 | 0/0 | stale | no | - | unknown | ok |
+| [minion-refine-map](/framework/ai/sessions/2026/10/24/session-7c6c8d93/minion-refine-map/) | - | 12771dff | sonnet-5-5 | 10-25 03:03 | 10-25 04:23 | 0/0 | stale | yes | - | stopped | ok |
+| [tasks](/framework/ai/sessions/tasks/) | - | - | - | 10-23 00:48 | 10-25 04:18 | 0/0 | idle | no | - | unknown | ok |
+| [the-session-detail-view-should-be-the-ho](/framework/ai/sessions/tasks/the-session-detail-view-should-be-the-ho/) | - | - | - | 10-25 04:10 | 10-25 04:18 | 0/0 | stale | yes | - | unknown | ok |
+| [page-mastermind](/framework/core/Page/tasks/page-mastermind/) | - | 83e9996a | opus-5-5 | 10-24 00:20 | 10-25 04:16 | 0/0 | waiting | yes | - | dormant | ok |
+| [build](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-identity/build/) | - | 64af66ee | sonnet-5-5 | 10-25 04:14 | 10-25 04:14 | 0/0 | stale | yes | - | dormant | ok |
+| [agent-resources](/framework/ai/sessions/2026/10/24/session-7c6c8d93/agent-resources/) | - | ai-syste | - | 10-25 04:11 | 10-25 04:13 | 0/0 | landed | yes | - | unknown | ok |
+| [queue-triage](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/queue-triage/) | - | ae400159 | sonnet-5-5 | 10-25 04:01 | 10-25 04:13 | 0/0 | stale | yes | - | dormant | ok |
+| [agent-rules-skills-usage-and-the-health](/framework/ai/tasks/agent-rules-skills-usage-and-the-health/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [design-vision-loop-screenshot-read-chang](/framework/ai/tasks/design-vision-loop-screenshot-read-chang/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [now-page-topic-sub-cards-from-refined-pr](/framework/ai/tasks/now-page-topic-sub-cards-from-refined-pr/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [youtube-channel-planning-the-owner-s-own](/framework/ai/tasks/youtube-channel-planning-the-owner-s-own/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [ai-folder-cleanup-date-folder-two-year-t](/framework/ai/tasks/ai-folder-cleanup-date-folder-two-year-t/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [docs-architecture-md-per-module-the-syst](/framework/ai/tasks/docs-architecture-md-per-module-the-syst/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [inbox-and-sessions-one-data-source-date](/framework/ai/tasks/inbox-and-sessions-one-data-source-date/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [models-expiry-aware-token-use-and-what-t](/framework/ai/tasks/models-expiry-aware-token-use-and-what-t/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [sessions-store-use-shrink-and-archive-th](/framework/ai/tasks/sessions-store-use-shrink-and-archive-th/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [prompt-refinement-hand-off-to-a-mastermi](/framework/ai/tasks/prompt-refinement-hand-off-to-a-mastermi/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [session-costs-newest-first-condensed-old](/framework/ai/tasks/session-costs-newest-first-condensed-old/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [sessions-page-layout-fixes-after-the-vie](/framework/ai/tasks/sessions-page-layout-fixes-after-the-vie/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [steps-and-nudges-make-the-process-struct](/framework/ai/tasks/steps-and-nudges-make-the-process-struct/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [repo-size-backup-and-worktree-cleanup](/framework/ai/tasks/repo-size-backup-and-worktree-cleanup/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [sessions-page-performance-audit-lag-unde](/framework/ai/tasks/sessions-page-performance-audit-lag-unde/) | - | task-mas | - | 10-25 04:05 | 10-25 04:11 | 0/0 | idle | no | - | unknown | ok |
+| [fix-the-page-http-monorepo-localhost-fra](/framework/ai/merge/tasks/fix-the-page-http-monorepo-localhost-fra/) | - | - | - | 10-24 03:29 | 10-25 04:09 | 0/0 | landed | yes | - | unknown | ok |
+| [write-down-that-http-monorepo-localhost](/framework/ai/merge/tasks/write-down-that-http-monorepo-localhost/) | - | - | - | 10-24 03:29 | 10-25 04:09 | 0/0 | landed | yes | - | unknown | ok |
+| [the-ai-queue-page-has-0-tasks-queued-loo](/framework/ai/queue/tasks/the-ai-queue-page-has-0-tasks-queued-loo/) | - | - | - | 10-25 00:31 | 10-25 04:09 | 0/0 | landed | yes | - | unknown | ok |
+| [screenshot-the-pages-at-framework-ai-ses](/framework/ai/sessions/tasks/screenshot-the-pages-at-framework-ai-ses/) | - | - | - | 10-24 03:27 | 10-25 04:09 | 0/0 | landed | yes | - | unknown | ok |
+| [smoke-test-our-pages-the-deputy-roles-pa](/framework/ai/sessions/tasks/smoke-test-our-pages-the-deputy-roles-pa/) | - | - | - | 10-24 03:24 | 10-25 04:09 | 0/0 | landed | yes | - | unknown | ok |
+| [use-the-sub-navigation-on-the-ai-session](/framework/ai/sessions/tasks/use-the-sub-navigation-on-the-ai-session/) | - | - | - | 10-24 00:22 | 10-25 04:09 | 0/0 | landed | yes | - | unknown | ok |
+| [keep-one-singleton-persistent-ai-system](/framework/ai/tasks/keep-one-singleton-persistent-ai-system/) | - | - | - | 10-24 00:52 | 10-25 04:09 | 0/0 | landed | yes | - | unknown | ok |
+| [do-not-move-the-ai-session-class-now-wri](/framework/core/Session/tasks/do-not-move-the-ai-session-class-now-wri/) | - | - | - | 10-24 01:11 | 10-25 04:09 | 0/0 | landed | yes | - | unknown | ok |
+| [record-ai-probe-results-e-g-sdk-web-sear](/framework/servex/tasks/record-ai-probe-results-e-g-sdk-web-sear/) | - | - | - | 10-25 04:09 | 10-25 04:09 | 0/0 | stale | yes | - | unknown | ok |
+| [child-tasks](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/child-tasks/) | - | 079367b0 | sonnet-5-5 | 10-25 03:40 | 10-25 04:09 | 0/0 | landed | yes | - | dormant | ok |
+| [context-haiku-audits](/framework/ai/sessions/2026/10/24/session-e00f55c9/context-haiku-audits/) | - | ai-syste | - | 10-25 01:12 | 10-25 04:04 | 0/0 | stale | no | - | unknown | ok |
+| [review-the-ext-ai-task-system](/framework/ai/AITask/tasks/review-the-ext-ai-task-system/) | - | helper-u | - | 10-23 06:00 | 10-25 04:04 | 0/0 | stopped | no | - | unknown | ok |
+| [make-the-dashboard-more-compact](/framework/ai/tasks/make-the-dashboard-more-compact/) | - | helper-u | - | 10-23 06:00 | 10-25 04:04 | 0/0 | stopped | no | - | unknown | ok |
+| [ai-head-row](/framework/core/Page/tasks/page-mastermind/ai-head-row/) | - | - | - | 10-25 04:00 | 10-25 04:00 | 0/0 | stale | no | - | unknown | ok |
+| [stopped-settles](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/stopped-settles/) | - | - | - | 10-25 03:59 | 10-25 03:59 | 0/0 | stale | no | - | unknown | ok |
+| [session-indexes](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session-indexes/) | - | 7ee0632c | sonnet-5-5 | 10-25 03:13 | 10-25 03:53 | 0/0 | landed | yes | - | dormant | ok |
+| [prompt-breakdown](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/) | - | ai-syste | - | 10-25 03:20 | 10-25 03:40 | 0/0 | stale | yes | - | unknown | ok |
+| [servex-crumbs](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/servex-crumbs/) | - | - | - | 10-25 03:37 | 10-25 03:37 | 0/0 | stale | no | - | unknown | ok |
+| [session-is-a-task](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-is-a-task/) | - | - | - | 10-25 02:04 | 10-25 03:14 | 0/0 | stale | no | - | unknown | ok |
+| [fast-write](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/fast-write/) | - | mastermi | - | 10-25 02:39 | 10-25 03:12 | 0/0 | landed | yes | - | unknown | ok |
+| [v-zg6h7hl](/framework/ai/sessions/2026/10/24/v-zg6h7hl/) | - | - | - | 10-25 00:20 | 10-25 01:42 | 0/0 | idle | no | - | unknown | ok |
+| [past-work-per-file-docs](/framework/ai/sessions/2026/10/24/session-e00f55c9/past-work-per-file-docs/) | - | 811780ce | haiku-5-5 | 10-25 01:00 | 10-25 01:18 | 0/0 | landed | yes | - | dormant | ok |
+| [surface-stored-session-information-that](/framework/ai/AISession/tasks/surface-stored-session-information-that/) | - | helper-u | - | 10-23 06:00 | 10-24 14:21 | 0/0 | idle | no | - | unknown | ok |
+| [make-the-chat-window-a-live-preview-of-t](/framework/ai/tasks/make-the-chat-window-a-live-preview-of-t/) | - | helper-u | - | 10-17 16:10 | 10-24 14:21 | 0/0 | stopped | no | - | unknown | ok |
+| [log-the-backup-location-as-a-checkable-a](/framework/ai/tasks/log-the-backup-location-as-a-checkable-a/) | - | helper-u | - | 10-23 06:00 | 10-24 14:21 | 0/0 | landed | yes | - | unknown | ok |
+| [apply-the-code-driven-loop-principle-acr](/framework/ai/tasks/apply-the-code-driven-loop-principle-acr/) | - | helper-u | - | 10-23 06:00 | 10-24 14:21 | 0/0 | landed | yes | - | unknown | ok |
+| [proposals-a-proposal-class-review-decide](/framework/ai/tasks/proposals-a-proposal-class-review-decide/) | - | helper-u | - | 10-23 06:00 | 10-24 13:47 | 0/0 | stopped | no | - | unknown | ok |
+| [check-whether-the-sessions-cost-breakdow](/framework/ai/AISession/tasks/check-whether-the-sessions-cost-breakdow/) | - | helper-u | - | 10-23 06:00 | 10-24 13:47 | 0/0 | landed | yes | - | unknown | ok |
+| [fix-the-cluttered-sessions-tab-so-it-has](/framework/ai/tasks/fix-the-cluttered-sessions-tab-so-it-has/) | - | helper-u | - | 10-23 06:00 | 10-24 13:47 | 0/0 | landed | yes | - | unknown | ok |
+| [make-all-sessions-items-visible-and-clic](/framework/ai/tasks/make-all-sessions-items-visible-and-clic/) | - | helper-u | - | 10-23 06:00 | 10-24 13:47 | 0/0 | landed | yes | - | unknown | ok |
+| [make-every-item-visible-and-clickable-in](/framework/ai/tasks/make-every-item-visible-and-clickable-in/) | - | helper-u | - | 10-23 06:00 | 10-24 13:47 | 0/0 | landed | yes | - | unknown | ok |
+| [check-how-sessions-are-indexed-and-wheth](/framework/ai/AISession/tasks/check-how-sessions-are-indexed-and-wheth/) | - | helper-u | - | 10-23 06:00 | 10-24 13:08 | 0/0 | landed | yes | - | unknown | ok |
+| [consider-one-name-for-the-sessions-tab-u](/framework/ai/AISession/tasks/consider-one-name-for-the-sessions-tab-u/) | - | helper-u | - | 10-23 06:00 | 10-24 13:08 | 0/0 | landed | yes | - | unknown | ok |
+| [fix-the-page-load-error-that-appears-aft](/framework/ai/AISession/tasks/fix-the-page-load-error-that-appears-aft/) | - | helper-u | - | 10-23 06:00 | 10-24 13:08 | 0/0 | landed | yes | - | unknown | ok |
+| [remove-the-top-line-that-repeats-the-ses](/framework/ai/AISession/tasks/remove-the-top-line-that-repeats-the-ses/) | - | helper-u | - | 10-23 06:00 | 10-24 13:08 | 0/0 | landed | yes | - | unknown | ok |
+| [remove-the-all-sessions-back-button-on-t](/framework/ai/AISession/tasks/remove-the-all-sessions-back-button-on-t/) | - | helper-u | - | 10-23 06:00 | 10-24 13:08 | 0/0 | landed | yes | - | unknown | ok |
+| [readme-audit](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/readme-audit/) | - | 5bc192bc | sonnet-5-5 | 10-24 07:36 | 10-24 07:52 | 0/0 | landed | yes | - | dormant | ok |
+| [shot-paths](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/shot-paths/) | - | mastermi | - | 10-24 07:45 | 10-24 07:45 | 0/0 | landed | yes | - | unknown | ok |
+| [queue-estimate](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue-estimate/) | - | 80352848 | sonnet-5-5 | 10-24 07:14 | 10-24 07:34 | 0/0 | landed | yes | - | dormant | ok |
+| [unlanded-worktrees](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/unlanded-worktrees/) | - | 43920631 | sonnet-5-5 | 10-24 07:13 | 10-24 07:34 | 0/0 | landed | yes | - | dormant | ok |
+| [day-approve](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/day-approve/) | - | 33cf7c87 | sonnet-5-5 | 10-24 06:42 | 10-24 07:12 | 0/0 | landed | yes | - | dormant | ok |
+| [queue](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/) | - | b6737f28 | sonnet-5-5 | 10-24 00:48 | 10-24 07:05 | 0/0 | landed | yes | - | dormant | ok |
+| [roles](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/roles/) | - | 7bebb96f | sonnet-5-5 | 10-24 01:38 | 10-24 06:58 | 0/0 | landed | yes | - | dormant | ok |
+| [day-landed](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/day-landed/) | - | mastermi | - | 10-24 06:40 | 10-24 06:40 | 0/0 | landed | yes | - | unknown | ok |
+| [named-rows](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/named-rows/) | - | 8338ef5d | sonnet-5-5 | 10-24 05:51 | 10-24 06:31 | 0/0 | landed | yes | - | stopped | ok |
+| [session-desktop](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session-desktop/) | - | 9efe1cd4 | sonnet-5-5 | 10-24 04:57 | 10-24 06:31 | 0/0 | landed | yes | - | stopped | ok |
+| [session-report](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session-report/) | - | 6dbeef95 | sonnet-5-5 | 10-24 04:11 | 10-24 06:31 | 0/0 | landed | yes | - | stopped | ok |
+| [ai-system-mastermind-2](/framework/ai/sessions/2026/10/23/spawned/ai-system-mastermind-2/) | - | a27f7b83 | sonnet-5-5 | 10-24 02:56 | 10-24 06:20 | 0/0 | stopped | yes | - | working | ok |
+| [failing-tests](/framework/ai/sessions/2026/10/23/spawned/ai-system-mastermind-2/failing-tests/) | - | 3b5a16b4 | sonnet-5-5 | 10-24 03:48 | 10-24 05:34 | 0/0 | landed | yes | - | dormant | ok |
 | [prompt-tasks](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-tasks/) | - | - | - | 10-24 05:04 | 10-24 05:04 | 0/0 | stopped | no | - | unknown | ok |
 | [prompt-human-only](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/prompt-human-only/) | - | - | - | 10-24 05:04 | 10-24 05:04 | 0/0 | stopped | no | - | unknown | ok |
-| [session-report](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session-report/) | - | 6dbeef95 | sonnet-5-5 | 10-24 04:11 | 10-24 05:03 | 0/0 | stale | yes | - | dormant | ok |
-| [cloud-voice-app-20261023](/framework/ai/sessions/2026/10/23/cloud-voice-app-20261023/) | - | - | - | 10-24 02:25 | 10-24 05:03 | 0/0 | stale | no | - | unknown | ok |
-| [process-system](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/) | - | 7e6b7107 | opus-5-5 | 10-23 23:25 | 10-24 05:03 | 0/0 | stale | yes | - | stopped | ok |
-| [sessions-and-tasks](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/) | ai-sessions | e00f55c9 | fable-5-1 | 10-20 20:03 | 10-24 05:03 | 0/0 | stale | yes | - | unknown | ok |
-| [ai-system-mastermind-2](/framework/ai/sessions/2026/10/23/spawned/ai-system-mastermind-2/) | - | a27f7b83 | sonnet-5-5 | 10-24 02:56 | 10-24 04:58 | 0/0 | stale | yes | - | dormant | ok |
-| [deputy](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/) | - | d9c3caec | opus-5-5 | 10-24 00:01 | 10-24 04:58 | 0/0 | in_flight | yes | branch gone | working | ok |
-| [session-desktop](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session-desktop/) | - | 9efe1cd4 | sonnet-5-5 | 10-24 04:57 | 10-24 04:57 | 0/0 | in_flight | yes | - | working | ok |
-| [nav-links](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/nav-links/) | - | fb13f066 | sonnet-5-5 | 10-24 03:47 | 10-24 04:53 | 0/0 | stale | yes | - | stopped | ok |
-| [page-mastermind](/framework/core/Page/tasks/page-mastermind/) | - | 83e9996a | opus-5-5 | 10-24 00:20 | 10-24 04:52 | 0/0 | in_flight | yes | - | working | ok |
-| [merge-latest](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/merge-latest/) | - | ed6aaf84 | sonnet-5-5 | 10-24 03:47 | 10-24 04:45 | 0/0 | stale | yes | - | stopped | ok |
-| [failing-tests](/framework/ai/sessions/2026/10/23/spawned/ai-system-mastermind-2/failing-tests/) | - | 3b5a16b4 | sonnet-5-5 | 10-24 03:48 | 10-24 04:29 | 0/0 | stale | yes | - | dormant | ok |
-| [cloud-voice-session-system-test](/framework/ai/sessions/2026/10/22/cloud-voice-session-system-test/) | - | voice-ap | - | 10-23 02:04 | 10-24 04:24 | 0/0 | stale | no | - | unknown | ok |
-| [session-d88339a2](/framework/ai/sessions/2026/10/23/session-d88339a2/) | - | - | - | 10-23 06:49 | 10-24 04:24 | 0/0 | stale | no | - | unknown | ok |
-| [sessions-shots](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-shots/) | - | c7f6cfbc | sonnet-5-5 | 10-24 03:29 | 10-24 03:43 | 0/0 | stale | yes | - | dormant | ok |
-| [session-e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/) | - | prompt-t | - | 10-23 01:31 | 10-24 03:29 | 0/0 | stale | no | - | unknown | ok |
 | [review-page](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/review-page/) | - | afbe3e40 | opus-5-5 | 10-24 00:10 | 10-24 03:29 | 0/0 | waiting | yes | - | dormant | ok |
-| [roles](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/roles/) | - | 7bebb96f | sonnet-5-5 | 10-24 01:38 | 10-24 02:17 | 0/0 | waiting | yes | - | dormant | ok |
-| [ai-system-mastermind](/framework/ai/sessions/2026/10/23/spawned/ai-system-mastermind/) | - | 7432fb5e | sonnet-5-5 | 10-24 01:51 | 10-24 02:16 | 0/0 | stopped | yes | - | dormant | ok |
+| [ai-system-mastermind](/framework/ai/sessions/2026/10/23/spawned/ai-system-mastermind/) | - | 7432fb5e | sonnet-5-5 | 10-24 01:51 | 10-24 02:16 | 0/0 | stopped | yes | - | working | ok |
 | [task-mastermind-note-tasks](/framework/ai/sessions/2026/10/23/spawned/task-mastermind-note-tasks/) | - | aa149fd0 | sonnet-5-5 | 10-24 01:11 | 10-24 01:28 | 0/0 | landed | yes | - | dormant | ok |
-| [queue](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/queue/) | - | b6737f28 | sonnet-5-5 | 10-24 00:48 | 10-24 01:20 | 0/0 | waiting | yes | - | dormant | ok |
-| [tasks](/framework/ai/sessions/tasks/) | - | - | - | 10-23 00:48 | 10-24 00:52 | 0/0 | idle | no | - | unknown | ok |
 | [the-review-page-should-be-an-existing-pa](/framework/ai/sessions/tasks/the-review-page-should-be-an-existing-pa/) | - | - | - | 10-24 00:22 | 10-24 00:46 | 0/0 | idle | no | - | unknown | ok |
-| [make-the-mobile-sheet-match-the-desktop](/framework/ai/tasks/make-the-mobile-sheet-match-the-desktop/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [make-the-dashboard-more-compact](/framework/ai/tasks/make-the-dashboard-more-compact/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [make-the-mobile-sheet-match-the-desktop](/framework/ai/tasks/make-the-mobile-sheet-match-the-desktop/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [make-miller-column-list-items-more-compa](/framework/core/Page/tasks/make-miller-column-list-items-more-compa/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [try-resizing-the-columns-slightly-so-the](/framework/core/Page/tasks/try-resizing-the-columns-slightly-so-the/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [check-whether-css-properties-can-be-trac](/framework/ext/tasks/check-whether-css-properties-can-be-trac/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
@@ -70,42 +153,30 @@
 | [build-a-per-region-visual-diff-filter-th](/framework/ext/Shots/tasks/build-a-per-region-visual-diff-filter-th/) | - | helper-u | - | 10-23 05:58 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [decide-whether-the-headless-instance-run](/framework/servex/lifecycle/tasks/decide-whether-the-headless-instance-run/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [decide-how-base-updates-propagate-to-ext](/framework/ext/tasks/decide-how-base-updates-propagate-to-ext/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [review-the-ext-ai-task-system](/framework/ai/AITask/tasks/review-the-ext-ai-task-system/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
 | [build-rock-solid-data-structures-that-gi](/framework/core/Property/tasks/build-rock-solid-data-structures-that-gi/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [verify-that-the-systems-are-tuned-and-wo](/framework/servex/tasks/verify-that-the-systems-are-tuned-and-wo/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
 | [ui-framework-ui-overhaul-later](/framework/ui/tasks/ui-framework-ui-overhaul-later/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [log-the-backup-location-as-a-checkable-a](/framework/ai/tasks/log-the-backup-location-as-a-checkable-a/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
 | [find-out-where-the-assistant-transcripti](/framework/ext/Refine/tasks/find-out-where-the-assistant-transcripti/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [decide-whether-templates-are-cloned-and](/framework/core/Page/Template/tasks/decide-whether-templates-are-cloned-and/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [page-settings-must-persist-properly](/framework/core/Page/settings/tasks/page-settings-must-persist-properly/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [let-inbox-items-be-read-then-archived-or](/framework/core/Page/ext/tasks/let-inbox-items-be-read-then-archived-or/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [route-paths-through-the-pages-route-even](/framework/core/Router/tasks/route-paths-through-the-pages-route-even/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [work-out-how-to-make-use-of-the-contents](/framework/ai/tasks/work-out-how-to-make-use-of-the-contents/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [make-every-item-visible-and-clickable-in](/framework/ai/tasks/make-every-item-visible-and-clickable-in/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
-| [fix-the-cluttered-sessions-tab-so-it-has](/framework/ai/tasks/fix-the-cluttered-sessions-tab-so-it-has/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
 | [fix-the-layout-problems-areas-with-colou](/framework/design/layout/tasks/fix-the-layout-problems-areas-with-colou/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [make-all-sessions-items-visible-and-clic](/framework/ai/tasks/make-all-sessions-items-visible-and-clic/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
-| [fix-the-page-load-error-that-appears-aft](/framework/ai/AISession/tasks/fix-the-page-load-error-that-appears-aft/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
-| [remove-the-top-line-that-repeats-the-ses](/framework/ai/AISession/tasks/remove-the-top-line-that-repeats-the-ses/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
-| [remove-the-all-sessions-back-button-on-t](/framework/ai/AISession/tasks/remove-the-all-sessions-back-button-on-t/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
-| [check-whether-the-sessions-cost-breakdow](/framework/ai/AISession/tasks/check-whether-the-sessions-cost-breakdow/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
-| [surface-stored-session-information-that](/framework/ai/AISession/tasks/surface-stored-session-information-that/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
-| [check-how-sessions-are-indexed-and-wheth](/framework/ai/AISession/tasks/check-how-sessions-are-indexed-and-wheth/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
 | [check-the-chat-bubble-link-to-refine-hai](/framework/ext/Refine/tasks/check-the-chat-bubble-link-to-refine-hai/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [consider-making-the-right-sidebar-scroll](/framework/ai/AISession/tasks/consider-making-the-right-sidebar-scroll/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [consider-one-name-for-the-sessions-tab-u](/framework/ai/AISession/tasks/consider-one-name-for-the-sessions-tab-u/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
-| [logs-unknown-verbs-on-ai-2-the-validator](/framework/ai/v/2/tasks/logs-unknown-verbs-on-ai-2-the-validator/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [consider-making-the-right-sidebar-scroll](/framework/ai/AISession/tasks/consider-making-the-right-sidebar-scroll/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
+| [logs-unknown-verbs-on-ai-2-the-validator](/framework/ai/v/2/tasks/logs-unknown-verbs-on-ai-2-the-validator/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [monitor-a-playwright-agent-on-main-templ](/framework/ai/health/tasks/monitor-a-playwright-agent-on-main-templ/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [selection-tap-to-select-and-drill-down-o](/framework/dev/mobile/tasks/selection-tap-to-select-and-drill-down-o/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [voice-mastermind-answer-within-seconds-e](/framework/ext/Session/tasks/voice-mastermind-answer-within-seconds-e/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [lock-in-the-foundational-components-so-t](/framework/library/tasks/lock-in-the-foundational-components-so-t/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [create-the-simplest-most-foundational-mo](/framework/design/tasks/create-the-simplest-most-foundational-mo/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [keep-screenshots-out-of-the-repo](/framework/ai/tasks/keep-screenshots-out-of-the-repo/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [consider-alternatives-to-committing-thos](/framework/ai/tasks/consider-alternatives-to-committing-thos/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [check-what-is-committed-to-git-whether-w](/framework/ai/tasks/check-what-is-committed-to-git-whether-w/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [keep-screenshots-out-of-the-repo](/framework/ai/tasks/keep-screenshots-out-of-the-repo/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
+| [consider-alternatives-to-committing-thos](/framework/ai/tasks/consider-alternatives-to-committing-thos/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
+| [check-what-is-committed-to-git-whether-w](/framework/ai/tasks/check-what-is-committed-to-git-whether-w/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [move-the-three-worktrees-outside-the-wor](/framework/ai/tasks/move-the-three-worktrees-outside-the-wor/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [build-worktree-cleanup-into-the-workflow](/framework/ai/quick-fix/tasks/build-worktree-cleanup-into-the-workflow/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [make-quick-fix-worktrees-reusable](/framework/ai/quick-fix/tasks/make-quick-fix-worktrees-reusable/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [make-quick-fix-worktrees-reusable](/framework/ai/quick-fix/tasks/make-quick-fix-worktrees-reusable/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [aim-for-a-blank-state-framework-that-can](/framework/start/tasks/aim-for-a-blank-state-framework-that-can/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [use-the-right-git-branching-strategy-to](/framework/ai/tasks/use-the-right-git-branching-strategy-to/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [keep-a-legacy-branch-so-old-work-is-not](/framework/ai/tasks/keep-a-legacy-branch-so-old-work-is-not/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
@@ -114,9 +185,9 @@
 | [check-the-size-of-one-worktree-then-incl](/framework/ai/tasks/check-the-size-of-one-worktree-then-incl/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [find-a-sensible-folder-on-the-e-drive-fo](/framework/ai/tasks/find-a-sensible-folder-on-the-e-drive-fo/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [back-up-the-whole-monorepo-full-history](/framework/ai/tasks/back-up-the-whole-monorepo-full-history/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [find-out-which-files-change-during-work](/framework/ai/tasks/find-out-which-files-change-during-work/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [find-out-which-files-change-during-work](/framework/ai/tasks/find-out-which-files-change-during-work/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [review-the-inbox-and-sessions-together-a](/framework/ai/tasks/review-the-inbox-and-sessions-together-a/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [build-a-landing-page-showing-recent-acti](/framework/ai/now/tasks/build-a-landing-page-showing-recent-acti/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [build-a-landing-page-showing-recent-acti](/framework/ai/now/tasks/build-a-landing-page-showing-recent-acti/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [create-an-architecture-md-per-module-ref](/framework/ai/readmes/tasks/create-an-architecture-md-per-module-ref/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
 | [find-out-why-layout-failures-keep-recurr](/framework/design/layout/tasks/find-out-why-layout-failures-keep-recurr/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [make-the-footer-a-minimal-status-rail-wi](/framework/core/Shell/tasks/make-the-footer-a-minimal-status-rail-wi/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
@@ -127,11 +198,10 @@
 | [carefully-review-the-categorisation-proc](/framework/ai/tasks/carefully-review-the-categorisation-proc/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [port-everything-to-one-single-data-struc](/framework/ai/tasks/port-everything-to-one-single-data-struc/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [audit-the-vs-code-file-tree-and-remove-o](/framework/audit/tasks/audit-the-vs-code-file-tree-and-remove-o/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [apply-the-code-driven-loop-principle-acr](/framework/ai/tasks/apply-the-code-driven-loop-principle-acr/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
 | [include-multiple-left-sidebars-a-global](/framework/styles/layouts/sidebar/tasks/include-multiple-left-sidebars-a-global/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [include-left-and-right-sidebars-and-a-mi](/framework/styles/layouts/sidebar/tasks/include-left-and-right-sidebars-and-a-mi/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [create-a-file-called-lists-if-none-exist](/framework/styles/elements/lists/tasks/create-a-file-called-lists-if-none-exist/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [check-whether-a-tree-widget-already-exis](/framework/ai/tasks/check-whether-a-tree-widget-already-exis/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [check-whether-a-tree-widget-already-exis](/framework/ai/tasks/check-whether-a-tree-widget-already-exis/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [show-examples-of-all-nestings-subheading](/framework/ui/tree/tasks/show-examples-of-all-nestings-subheading/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [treat-the-toc-as-a-tree-widget](/framework/ext/toc/tasks/treat-the-toc-as-a-tree-widget/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [let-section-titles-carry-icons-larger-th](/framework/styles/elements/text/tasks/let-section-titles-carry-icons-larger-th/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
@@ -173,7 +243,7 @@
 | [check-which-pages-are-transparent-and-wh](/framework/design/color/tasks/check-which-pages-are-transparent-and-wh/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [establish-a-default-background-contrast](/framework/design/color/tasks/establish-a-default-background-contrast/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [decide-whether-the-same-file-change-rule](/framework/ai/tasks/decide-whether-the-same-file-change-rule/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
-| [add-to-the-mastermind-skill-whenever-a-f](/framework/ai/tasks/add-to-the-mastermind-skill-whenever-a-f/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
+| [add-to-the-mastermind-skill-whenever-a-f](/framework/ai/tasks/add-to-the-mastermind-skill-whenever-a-f/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [before-wrapping-up-clear-the-working-tre](/framework/ai/tasks/before-wrapping-up-clear-the-working-tre/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [consider-resizing-the-columns-slightly-t](/framework/styles/layouts/tasks/consider-resizing-the-columns-slightly-t/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [add-the-website-s-logo-svg-to-the-top-le](/framework/core/Sidebar/tasks/add-the-website-s-logo-svg-to-the-top-le/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
@@ -182,8 +252,8 @@
 | [explore-more-list-ui-styles-especially-a](/framework/ux/Tree/tasks/explore-more-list-ui-styles-especially-a/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [build-a-tree-ui-with-icons-using-the-goo](/framework/ux/Tree/tasks/build-a-tree-ui-with-icons-using-the-goo/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [make-the-mobile-design-work-stronger-and](/framework/styles/tasks/make-the-mobile-design-work-stronger-and/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [find-an-in-between-padding-and-spacing-t](/framework/ai/tasks/find-an-in-between-padding-and-spacing-t/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [stop-keeping-v2-and-v3-as-two-divergent](/framework/ai/tasks/stop-keeping-v2-and-v3-as-two-divergent/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [find-an-in-between-padding-and-spacing-t](/framework/ai/tasks/find-an-in-between-padding-and-spacing-t/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
+| [stop-keeping-v2-and-v3-as-two-divergent](/framework/ai/tasks/stop-keeping-v2-and-v3-as-two-divergent/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [build-a-robust-minimal-set-of-layout-tok](/framework/core/Sidebar/tasks/build-a-robust-minimal-set-of-layout-tok/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [build-a-system-that-works-in-both-the-br](/framework/ext/Figma/tasks/build-a-system-that-works-in-both-the-br/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [build-a-diff-tool-that-compares-two-scre](/framework/ext/Shots/tasks/build-a-diff-tool-that-compares-two-scre/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
@@ -198,7 +268,7 @@
 | [keep-the-darkened-primary-token-for-cont](/framework/design/color/tasks/keep-the-darkened-primary-token-for-cont/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [reduce-overuse-of-the-shaded-primary-col](/framework/design/color/tasks/reduce-overuse-of-the-shaded-primary-col/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [refine-css-into-a-much-simpler-component](/framework/styles/tasks/refine-css-into-a-much-simpler-component/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [run-a-css-audit](/framework/ai/tasks/run-a-css-audit/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [run-a-css-audit](/framework/ai/tasks/run-a-css-audit/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [show-components-in-action-not-only-stati](/framework/ui/tasks/show-components-in-action-not-only-stati/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [give-some-component-types-e-g](/framework/ui/tasks/give-some-component-types-e-g/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [make-unifying-and-simplifying-the-css-th](/framework/styles/tasks/make-unifying-and-simplifying-the-css-th/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
@@ -209,9 +279,9 @@
 | [work-out-how-these-layouts-fit-on-mobile](/framework/styles/layouts/tasks/work-out-how-these-layouts-fit-on-mobile/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [organize-the-color-and-nesting-examples](/framework/styles/stacks/tasks/organize-the-color-and-nesting-examples/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [organize-color-modes-around-the-text-use](/framework/design/color/tasks/organize-color-modes-around-the-text-use/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [explore-using-darken-and-lighten-togethe](/framework/ai/tasks/explore-using-darken-and-lighten-togethe/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [explore-using-darken-and-lighten-togethe](/framework/ai/tasks/explore-using-darken-and-lighten-togethe/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [push-checkboxes-radio-buttons-and-toggle](/framework/ui/controls/tasks/push-checkboxes-radio-buttons-and-toggle/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [explore-fixed-height-mobile-dropdowns-an](/framework/ai/tasks/explore-fixed-height-mobile-dropdowns-an/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [explore-fixed-height-mobile-dropdowns-an](/framework/ai/tasks/explore-fixed-height-mobile-dropdowns-an/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [explore-dropdown-menus-and-the-kinds-of](/framework/ext/Dropdown/tasks/explore-dropdown-menus-and-the-kinds-of/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [explore-a-big-icon-with-title-overlaid-o](/framework/ui/background/tasks/explore-a-big-icon-with-title-overlaid-o/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [explore-icon-size-matched-to-title-size](/framework/ui/icon/tasks/explore-icon-size-matched-to-title-size/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
@@ -228,19 +298,19 @@
 | [experiment-with-other-ui-designs-that-co](/framework/design/ui/tasks/experiment-with-other-ui-designs-that-co/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [build-a-library-of-simple-foundational-l](/framework/styles/layouts/tasks/build-a-library-of-simple-foundational-l/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [vary-the-color-schemes-across-the-layout](/framework/design/color/tasks/vary-the-color-schemes-across-the-layout/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [identify-robust-versatile-simple-layouts](/framework/ai/tasks/identify-robust-versatile-simple-layouts/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [identify-robust-versatile-simple-layouts](/framework/ai/tasks/identify-robust-versatile-simple-layouts/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [take-one-specific-layout-and-show-four-o](/framework/styles/layouts/tasks/take-one-specific-layout-and-show-four-o/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [explore-whether-clicking-items-flips-the](/framework/ux/Browse/tasks/explore-whether-clicking-items-flips-the/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [play-with-different-color-schemes-for-th](/framework/design/color/tasks/play-with-different-color-schemes-for-th/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [build-a-two-column-layout-with-a-title-a](/framework/styles/layouts/tasks/build-a-two-column-layout-with-a-title-a/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [identify-very-foundational-fundamental-l](/framework/ai/tasks/identify-very-foundational-fundamental-l/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [identify-very-foundational-fundamental-l](/framework/ai/tasks/identify-very-foundational-fundamental-l/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [email-channels-that-list-an-address-to-r](/framework/ai/tasks/email-channels-that-list-an-address-to-r/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [work-out-how-to-discover-footage-from-ot](/framework/ai/tasks/work-out-how-to-discover-footage-from-ot/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [develop-a-youtube-content-idea-on-privat](/framework/ai/tasks/develop-a-youtube-content-idea-on-privat/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [develop-a-youtube-content-idea-on-big-ho](/framework/ai/tasks/develop-a-youtube-content-idea-on-big-ho/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [develop-a-youtube-content-idea-on-luxury](/framework/ai/tasks/develop-a-youtube-content-idea-on-luxury/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [develop-a-youtube-content-idea-on-sports](/framework/ai/tasks/develop-a-youtube-content-idea-on-sports/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [if-images-cannot-be-searched-or-generate](/framework/ai/tasks/if-images-cannot-be-searched-or-generate/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [if-images-cannot-be-searched-or-generate](/framework/ai/tasks/if-images-cannot-be-searched-or-generate/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [find-generic-images-through-image-search](/framework/ai/tasks/find-generic-images-through-image-search/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [find-out-whether-claude-can-be-linked-in](/framework/ai/tasks/find-out-whether-claude-can-be-linked-in/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [work-out-how-the-planning-output-moves-i](/framework/ai/tasks/work-out-how-the-planning-output-moves-i/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
@@ -288,17 +358,17 @@
 | [give-everything-a-url-and-tags-so-it-can](/framework/library/tasks/give-everything-a-url-and-tags-so-it-can/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [give-every-module-an-architecture-md-rec](/framework/ext/Doc/tasks/give-every-module-an-architecture-md-rec/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
 | [make-class-instances-and-the-app-structu](/framework/code/objects/tasks/make-class-instances-and-the-app-structu/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [now-card-topics-as-nested-sub-cards-from](/framework/ai/now/tasks/now-card-topics-as-nested-sub-cards-from/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [now-card-topics-as-nested-sub-cards-from](/framework/ai/now/tasks/now-card-topics-as-nested-sub-cards-from/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [framework-home-grids-without-voids-expli](/framework/styles/layouts/tasks/framework-home-grids-without-voids-expli/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [padding-percentage-padding-a-wrapper-per](/framework/design/layout/tasks/padding-percentage-padding-a-wrapper-per/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
-| [proposals-a-proposal-class-review-decide](/framework/ai/tasks/proposals-a-proposal-class-review-decide/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
-| [task-pages-grey-checkboxes-full-width-ba](/framework/ai/AITask/tasks/task-pages-grey-checkboxes-full-width-ba/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
+| [task-pages-grey-checkboxes-full-width-ba](/framework/ai/AITask/tasks/task-pages-grey-checkboxes-full-width-ba/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | stopped | no | - | unknown | ok |
 | [selection-tap-to-select-and-drill-down-o](/framework/ext/Ask/tasks/selection-tap-to-select-and-drill-down-o/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [templates-weight-per-use-use-template-sk](/framework/core/Page/Template/tasks/templates-weight-per-use-use-template-sk/) | - | helper-u | - | 10-23 06:00 | 10-24 00:44 | 0/0 | waiting | no | - | unknown | ok |
 | [.item-tool-test-2432-caller](/framework/ai/sessions/2026/10/16/.item-tool-test-2432-caller/) | - | - | - | 10-24 00:44 | 10-24 00:44 | 0/0 | idle | no | - | unknown | ok |
 | [.item-tool-test-36876-caller](/framework/ai/sessions/2026/10/16/.item-tool-test-36876-caller/) | - | - | - | 10-24 00:43 | 10-24 00:43 | 0/0 | idle | no | - | unknown | ok |
 | [task-system](/framework/ai/sessions/2026/10/16/voice-20261016/task-system/) | - | d9427ae3 | opus-5-5 | 10-17 00:26 | 10-24 00:14 | 1/0 | stopped | yes | - | dormant | ok |
 | [ui-system-class-framework-ui-library-of](/framework/ui/tasks/ui-system-class-framework-ui-library-of/) | - | helper-u | - | 10-17 16:10 | 10-23 06:24 | 0/0 | idle | no | - | unknown | ok |
+| [figma-cards](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/) | - | 037b7c00 | opus-5-5 | 10-23 00:19 | 10-23 05:18 | 0/0 | landed | yes | - | dormant | ok |
 | [session-48083d9d](/framework/ai/sessions/2026/10/09/session-48083d9d/) | - | - | - | 10-23 02:29 | 10-23 05:00 | 0/0 | stopped | no | - | unknown | ok |
 | [code-the-approved-mobile-picks-as-routed](/framework/ai/sessions/tasks/code-the-approved-mobile-picks-as-routed/) | - | mastermi | - | 10-23 00:48 | 10-23 04:53 | 0/0 | landed | yes | - | unknown | ok |
 | [mobile-picks](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/mobile-picks/) | - | - | - | 10-23 04:49 | 10-23 04:49 | 0/0 | stopped | no | - | unknown | ok |
@@ -427,11 +497,11 @@
 | [session-costs](/framework/ai/sessions/2026/10/02/session-costs/) | session-costs | - | sonnet-5 | 10-03 04:06 | 10-23 02:29 | 2/5 | stopped | yes | - | unknown | ok |
 | [framework-home](/framework/ai/sessions/2026/10/02/framework-home/) | framework-home | task-mas | sonnet-5 | 10-02 05:00 | 10-23 02:29 | 5/5 | landed | yes | - | unknown | ok |
 | [inspect](/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/) | inspect | bc9e77bd | sonnet-5 | 10-02 03:47 | 10-23 02:29 | 6/6 | stopped | yes | - | unknown | ok |
-| [quick-fix-path](/framework/ai/sessions/2026/10/01/quick-fix-path/) | - | - | fable-5-1 | 10-01 21:30 | 10-23 02:29 | quick-merge/0 | landed | yes | branch gone | stopped | ok |
+| [quick-fix-path](/framework/ai/sessions/2026/10/01/quick-fix-path/) | - | - | fable-5-1 | 10-01 21:30 | 10-23 02:29 | quick-merge/0 | landed | yes | merged | stopped | ok |
 | [openrouter-harness](/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/) | harness | b0a0d2e2 | opus-5-5 | 10-01 03:55 | 10-23 02:29 | 8/11 | stopped | yes | merged | stopped | ok |
 | [test-library](/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/) | - | 2364f172 | sonnet-5 | 10-01 05:06 | 10-23 02:29 | 2/0 | stopped | yes | - | stopped | ok |
 | [rule-tests](/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/rule-tests/) | - | 2dd8d9fb | sonnet-5 | 10-01 04:30 | 10-23 02:29 | 2/0 | stopped | yes | - | stopped | ok |
-| [voice-sessions](/framework/ai/sessions/2026/09/30/voice-sessions/voice-sessions/) | - | 54d84d0f | opus-5-5 | 09-30 00:12 | 10-23 02:29 | 8/7 | landed | yes | branch gone | stopped | ok |
+| [voice-sessions](/framework/ai/sessions/2026/09/30/voice-sessions/voice-sessions/) | - | 54d84d0f | opus-5-5 | 09-30 00:12 | 10-23 02:29 | 8/7 | landed | yes | merged | stopped | ok |
 | [system](/framework/ai/sessions/2026/09/30/ui-system/system/) | - | 3b619139 | sonnet-5 | 10-03 18:25 | 10-23 02:29 | 1/0 | stopped | yes | - | dormant | ok |
 | [ui-system](/framework/ai/sessions/2026/09/30/ui-system/) | - | - | - | 09-30 20:52 | 10-23 02:29 | 0/0 | stopped | yes | - | unknown | ok |
 | [servex-mastermind](/framework/ai/sessions/2026/09/30/servex-mastermind/) | servex | - | fable-5-1 | 09-30 17:20 | 10-23 02:29 | 0/4 | stopped | yes | - | unknown | ok |
@@ -485,6 +555,9 @@
 | [figma](/framework/ai/sessions/2026/08/18/figma/) | layout | ac4373c3 | opus-5[1m] | 08-18 06:50 | 10-23 02:29 | 6/6 | landed | yes | - | unknown | ok |
 | [ask-tab-binding](/framework/ai/sessions/2026/08/18/ask-tab-binding/) | web-ui | a14ec0db | opus | 08-18 22:02 | 10-23 02:29 | 8/8 | landed | yes | - | unknown | ok |
 | [review-fixes](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-flow/review-fixes/) | - | c4b17c70 | sonnet-5-5 | 10-23 02:17 | 10-23 02:27 | 0/0 | stopped | yes | - | stopped | ok |
+| [session-flow](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-flow/) | - | - | - | 10-23 02:17 | 10-23 02:17 | 0/0 | stopped | no | - | unknown | ok |
+| [build](/framework/ai/sessions/tasks/code-the-approved-mobile-picks-as-routed/build/) | - | 5b7e7068 | sonnet-5-5 | 10-23 01:18 | 10-23 02:17 | 0/0 | stopped | yes | - | stopped | ok |
+| [questions](/framework/ai/sessions/2026/10/22/cloud-voice-session-system-test/e2e-check-process/questions/) | - | dcd3edaa | sonnet-5-5 | 10-23 02:04 | 10-23 02:10 | 0/0 | stopped | yes | - | stopped | ok |
 | [item-move](/framework/core/Item/tasks/item-move/) | - | - | - | 10-23 01:57 | 10-23 02:07 | 0/0 | idle | no | - | unknown | ok |
 | [readmes-page](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readmes-page/) | - | - | - | 10-23 00:30 | 10-23 00:48 | 0/0 | stopped | no | - | dormant | ok |
 | [review](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/review/) | - | 1f566fdd | sonnet-5-5 | 10-22 23:55 | 10-22 23:56 | 0/0 | stopped | yes | - | unknown | ok |
@@ -652,12 +725,12 @@
 | [01-look](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unclear-asks/pass2b/01-look/) | - | e2e2637d | haiku-5-5 | 10-17 17:56 | 10-17 18:08 | 0/0 | stopped | yes | - | stopped | ok |
 | [undone-to-tasks](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/undone-to-tasks/) | - | f098b045 | sonnet-5-5 | 10-17 16:05 | 10-17 17:58 | 0/0 | stopped | yes | - | stopped | ok |
 | [decide-later-how-to-prioritise-data-bind](/framework/core/Item/tasks/decide-later-how-to-prioritise-data-bind/) | - | helper-u | - | 10-17 17:58 | 10-17 17:58 | 0/0 | idle | no | - | unknown | ok |
-| [build-a-named-system-that-defines-its-ow](/framework/ai/tasks/build-a-named-system-that-defines-its-ow/) | - | helper-u | - | 10-17 17:58 | 10-17 17:58 | 0/0 | idle | no | - | unknown | ok |
+| [build-a-named-system-that-defines-its-ow](/framework/ai/tasks/build-a-named-system-that-defines-its-ow/) | - | helper-u | - | 10-17 17:58 | 10-17 17:58 | 0/0 | stopped | no | - | unknown | ok |
 | [build-a-tree-ui-with-icons-from-the-goog](/framework/ext/Refine/tasks/build-a-tree-ui-with-icons-from-the-goog/) | - | helper-u | - | 10-17 17:58 | 10-17 17:58 | 0/0 | idle | no | - | unknown | ok |
 | [use-a-single-consistent-preview-scale-or](/framework/ext/Refine/tasks/use-a-single-consistent-preview-scale-or/) | - | helper-u | - | 10-17 17:58 | 10-17 17:58 | 0/0 | idle | no | - | unknown | ok |
 | [solve-the-page-boundary-problem-through](/framework/core/Page/tasks/solve-the-page-boundary-problem-through/) | - | helper-u | - | 10-17 17:58 | 10-17 17:58 | 0/0 | idle | no | - | unknown | ok |
 | [make-page-data-structure-the-go-to-wrapp](/framework/core/Page/tasks/make-page-data-structure-the-go-to-wrapp/) | - | helper-u | - | 10-17 17:58 | 10-17 17:58 | 0/0 | idle | no | - | unknown | ok |
-| [bind-data-held-by-sessions-tasks-message](/framework/ai/tasks/bind-data-held-by-sessions-tasks-message/) | - | helper-u | - | 10-17 17:58 | 10-17 17:58 | 0/0 | idle | no | - | unknown | ok |
+| [bind-data-held-by-sessions-tasks-message](/framework/ai/tasks/bind-data-held-by-sessions-tasks-message/) | - | helper-u | - | 10-17 17:58 | 10-17 17:58 | 0/0 | stopped | no | - | unknown | ok |
 | [investigate-whether-updates-can-be-buffe](/framework/ai/tasks/investigate-whether-updates-can-be-buffe/) | - | helper-u | - | 10-17 17:58 | 10-17 17:58 | 0/0 | idle | no | - | unknown | ok |
 | [look-through-other-pages-such-as-page-se](/framework/ext/Figma/tasks/look-through-other-pages-such-as-page-se/) | - | helper-u | - | 10-17 17:58 | 10-17 17:58 | 0/0 | idle | no | - | unknown | ok |
 | [if-on-pace-when-finished-sync-the-figma](/framework/ext/Figma/tasks/if-on-pace-when-finished-sync-the-figma/) | - | helper-u | - | 10-17 17:58 | 10-17 17:58 | 0/0 | idle | no | - | unknown | ok |
@@ -748,7 +821,7 @@
 | [attach-special-instructions-to-task-type](/framework/ai/tasks/attach-special-instructions-to-task-type/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [nudge-the-minion-within-a-minute-or-two](/framework/ai/tasks/nudge-the-minion-within-a-minute-or-two/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [nudge-the-agent-through-every-step-of-th](/framework/ai/tasks/nudge-the-agent-through-every-step-of-th/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [automate-the-process-so-it-does-not-depe](/framework/ai/tasks/automate-the-process-so-it-does-not-depe/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
+| [automate-the-process-so-it-does-not-depe](/framework/ai/tasks/automate-the-process-so-it-does-not-depe/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
 | [make-the-task-process-structured-the-ai](/framework/ai/tasks/make-the-task-process-structured-the-ai/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [run-parallel-agents-that-each-refine-a-l](/framework/ai/tasks/run-parallel-agents-that-each-refine-a-l/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [have-the-mastermind-read-all-the-images](/framework/ai/tasks/have-the-mastermind-read-all-the-images/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
@@ -805,44 +878,44 @@
 | [instantiate-the-page-on-the-server-side](/framework/core/Page/tasks/instantiate-the-page-on-the-server-side/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [document-every-path-based-and-per-direct](/framework/core/Page/tasks/document-every-path-based-and-per-direct/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [send-the-refined-prompt-to-a-mastermind](/framework/ai/tasks/send-the-refined-prompt-to-a-mastermind/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [have-a-fast-assistant-transcribe-each-wh](/framework/ai/tasks/have-a-fast-assistant-transcribe-each-wh/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [use-one-global-assistant-rather-than-per](/framework/ai/tasks/use-one-global-assistant-rather-than-per/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [remove-or-relocate-the-out-of-place-expa](/framework/ai/tasks/remove-or-relocate-the-out-of-place-expa/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
+| [have-a-fast-assistant-transcribe-each-wh](/framework/ai/tasks/have-a-fast-assistant-transcribe-each-wh/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [use-one-global-assistant-rather-than-per](/framework/ai/tasks/use-one-global-assistant-rather-than-per/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [remove-or-relocate-the-out-of-place-expa](/framework/ai/tasks/remove-or-relocate-the-out-of-place-expa/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
 | [filter-the-inbox-by-date-to-see-what-hap](/framework/ai/tasks/filter-the-inbox-by-date-to-see-what-hap/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [let-the-owner-browse-past-items-by-entit](/framework/ai/tasks/let-the-owner-browse-past-items-by-entit/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [merge-ai-2026-and-ai-sessions-2026-into](/framework/ai/tasks/merge-ai-2026-and-ai-sessions-2026-into/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [remove-the-framework-ai-2026-10-13-date](/framework/ai/tasks/remove-the-framework-ai-2026-10-13-date/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [fix-the-inbox-items-so-each-links-to-its](/framework/ai/tasks/fix-the-inbox-items-so-each-links-to-its/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [if-the-owner-does-not-answer-a-question](/framework/ai/tasks/if-the-owner-does-not-answer-a-question/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
+| [if-the-owner-does-not-answer-a-question](/framework/ai/tasks/if-the-owner-does-not-answer-a-question/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
 | [smart-assistant-does-prompt-refinement-c](/framework/ai/tasks/smart-assistant-does-prompt-refinement-c/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [fast-assistant-does-not-reply-in-chat-it](/framework/ai/tasks/fast-assistant-does-not-reply-in-chat-it/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [fast-assistant-cleans-each-chunk-punctua](/framework/ai/tasks/fast-assistant-cleans-each-chunk-punctua/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [clarifying-questions-time-out-then-proce](/framework/ai/tasks/clarifying-questions-time-out-then-proce/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [the-fast-assistant-speaks-only-when-call](/framework/ai/tasks/the-fast-assistant-speaks-only-when-call/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [only-the-smart-assistant-replies-in-chat](/framework/ai/tasks/only-the-smart-assistant-replies-in-chat/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
+| [fast-assistant-does-not-reply-in-chat-it](/framework/ai/tasks/fast-assistant-does-not-reply-in-chat-it/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [fast-assistant-cleans-each-chunk-punctua](/framework/ai/tasks/fast-assistant-cleans-each-chunk-punctua/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [clarifying-questions-time-out-then-proce](/framework/ai/tasks/clarifying-questions-time-out-then-proce/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [the-fast-assistant-speaks-only-when-call](/framework/ai/tasks/the-fast-assistant-speaks-only-when-call/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [only-the-smart-assistant-replies-in-chat](/framework/ai/tasks/only-the-smart-assistant-replies-in-chat/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
 | [build-a-pre-programmed-node-loop-that-st](/framework/ai/tasks/build-a-pre-programmed-node-loop-that-st/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [let-code-not-ai-memory-close-worktrees-a](/framework/ai/tasks/let-code-not-ai-memory-close-worktrees-a/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [keep-the-fast-assistant-on-haiku-under-1](/framework/ai/tasks/keep-the-fast-assistant-on-haiku-under-1/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [rail-has-no-outer-padding-each-rail-item](/framework/ai/tasks/rail-has-no-outer-padding-each-rail-item/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [let-the-ai-read-live-streaming-pages-and](/framework/ai/tasks/let-the-ai-read-live-streaming-pages-and/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [address-that-a-single-provider-s-models](/framework/ai/tasks/address-that-a-single-provider-s-models/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [consider-a-multi-ai-setup-where-several](/framework/ai/tasks/consider-a-multi-ai-setup-where-several/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
+| [keep-the-fast-assistant-on-haiku-under-1](/framework/ai/tasks/keep-the-fast-assistant-on-haiku-under-1/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [rail-has-no-outer-padding-each-rail-item](/framework/ai/tasks/rail-has-no-outer-padding-each-rail-item/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [let-the-ai-read-live-streaming-pages-and](/framework/ai/tasks/let-the-ai-read-live-streaming-pages-and/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [address-that-a-single-provider-s-models](/framework/ai/tasks/address-that-a-single-provider-s-models/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [consider-a-multi-ai-setup-where-several](/framework/ai/tasks/consider-a-multi-ai-setup-where-several/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
 | [audit-session-logs-for-how-often-each-sk](/framework/ai/tasks/audit-session-logs-for-how-often-each-sk/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [lean-away-from-skills-toward-a-more-acce](/framework/ai/tasks/lean-away-from-skills-toward-a-more-acce/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [decide-whether-rules-become-skills-or-li](/framework/ai/tasks/decide-whether-rules-become-skills-or-li/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [consider-structuring-rules-as-a-weighted](/framework/ai/tasks/consider-structuring-rules-as-a-weighted/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
+| [lean-away-from-skills-toward-a-more-acce](/framework/ai/tasks/lean-away-from-skills-toward-a-more-acce/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [decide-whether-rules-become-skills-or-li](/framework/ai/tasks/decide-whether-rules-become-skills-or-li/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [consider-structuring-rules-as-a-weighted](/framework/ai/tasks/consider-structuring-rules-as-a-weighted/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
 | [ai-systems-git-context-cost-pages-collec](/framework/ai/tasks/ai-systems-git-context-cost-pages-collec/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [find-an-archive-process-for-old-sessions](/framework/ai/tasks/find-an-archive-process-for-old-sessions/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [reduce-how-many-sessions-are-saved](/framework/ai/tasks/reduce-how-many-sessions-are-saved/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [design-a-dynamic-index-where-querying-an](/framework/ai/tasks/design-a-dynamic-index-where-querying-an/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [document-every-prompt-and-its-outcome-in](/framework/ai/tasks/document-every-prompt-and-its-outcome-in/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
+| [design-a-dynamic-index-where-querying-an](/framework/ai/tasks/design-a-dynamic-index-where-querying-an/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [document-every-prompt-and-its-outcome-in](/framework/ai/tasks/document-every-prompt-and-its-outcome-in/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
 | [skip-re-auditing-tasks-already-audited-r](/framework/ai/tasks/skip-re-auditing-tasks-already-audited-r/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [use-the-navigation-rail-for-documentatio](/framework/ai/tasks/use-the-navigation-rail-for-documentatio/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [decide-whether-the-date-based-view-belon](/framework/ai/tasks/decide-whether-the-date-based-view-belon/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [use-headless-playwright-to-scroll-the-se](/framework/ai/tasks/use-headless-playwright-to-scroll-the-se/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [take-a-screenshot-of-monorepo-localhost](/framework/ai/tasks/take-a-screenshot-of-monorepo-localhost/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [fix-the-usage-item-sidebar-so-it-shows-i](/framework/ai/tasks/fix-the-usage-item-sidebar-so-it-shows-i/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [keep-the-split-bar-defaulting-to-50-with](/framework/ai/tasks/keep-the-split-bar-defaulting-to-50-with/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
+| [use-the-navigation-rail-for-documentatio](/framework/ai/tasks/use-the-navigation-rail-for-documentatio/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [decide-whether-the-date-based-view-belon](/framework/ai/tasks/decide-whether-the-date-based-view-belon/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [use-headless-playwright-to-scroll-the-se](/framework/ai/tasks/use-headless-playwright-to-scroll-the-se/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [take-a-screenshot-of-monorepo-localhost](/framework/ai/tasks/take-a-screenshot-of-monorepo-localhost/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [fix-the-usage-item-sidebar-so-it-shows-i](/framework/ai/tasks/fix-the-usage-item-sidebar-so-it-shows-i/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [keep-the-split-bar-defaulting-to-50-with](/framework/ai/tasks/keep-the-split-bar-defaulting-to-50-with/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
 | [reduce-the-excess-padding-above-the-chat](/framework/ai/tasks/reduce-the-excess-padding-above-the-chat/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [give-the-chat-area-its-own-padding-and-b](/framework/ai/tasks/give-the-chat-area-its-own-padding-and-b/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [widen-the-right-sidebar-which-is-about-3](/framework/ai/tasks/widen-the-right-sidebar-which-is-about-3/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
@@ -850,20 +923,19 @@
 | [show-logged-costs-newest-first](/framework/ai/tasks/show-logged-costs-newest-first/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [fix-the-detail-page-layout-problems-so-t](/framework/ai/tasks/fix-the-detail-page-layout-problems-so-t/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [run-a-performance-audit-of-the-sessions](/framework/ai/tasks/run-a-performance-audit-of-the-sessions/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [take-screenshots-of-the-sessions-and-det](/framework/ai/tasks/take-screenshots-of-the-sessions-and-det/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
+| [take-screenshots-of-the-sessions-and-det](/framework/ai/tasks/take-screenshots-of-the-sessions-and-det/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
 | [fix-the-model-label-on-the-night-masterm](/framework/ai/tasks/fix-the-model-label-on-the-night-masterm/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [add-insight-into-what-was-spent-and-on-w](/framework/ai/tasks/add-insight-into-what-was-spent-and-on-w/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [take-a-screenshot-of-the-session-grid-to](/framework/ai/tasks/take-a-screenshot-of-the-session-grid-to/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
+| [take-a-screenshot-of-the-session-grid-to](/framework/ai/tasks/take-a-screenshot-of-the-session-grid-to/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
 | [make-the-title-cell-grow-to-fit-a-flag-e](/framework/ai/tasks/make-the-title-cell-grow-to-fit-a-flag-e/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [fix-the-session-grid-columns-so-the-titl](/framework/ai/tasks/fix-the-session-grid-columns-so-the-titl/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [find-out-whether-refinement-can-be-added](/framework/ai/tasks/find-out-whether-refinement-can-be-added/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [make-the-chat-window-a-live-preview-of-t](/framework/ai/tasks/make-the-chat-window-a-live-preview-of-t/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [try-buffering-by-cloning-the-data-grid-c](/framework/ai/tasks/try-buffering-by-cloning-the-data-grid-c/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [build-a-unified-indexed-filterable-templ](/framework/ai/tasks/build-a-unified-indexed-filterable-templ/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
+| [build-a-unified-indexed-filterable-templ](/framework/ai/tasks/build-a-unified-indexed-filterable-templ/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
 | [let-sessions-pull-in-references-to-thing](/framework/ai/tasks/let-sessions-pull-in-references-to-thing/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [consider-hiding-or-separating-cost-entri](/framework/ai/tasks/consider-hiding-or-separating-cost-entri/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [keep-the-in-flight-list-live-and-separat](/framework/ai/tasks/keep-the-in-flight-list-live-and-separat/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
-| [have-the-ai-mastermind-and-the-page-mast](/framework/ai/tasks/have-the-ai-mastermind-and-the-page-mast/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
+| [keep-the-in-flight-list-live-and-separat](/framework/ai/tasks/keep-the-in-flight-list-live-and-separat/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
+| [have-the-ai-mastermind-and-the-page-mast](/framework/ai/tasks/have-the-ai-mastermind-and-the-page-mast/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | stopped | no | - | unknown | ok |
 | [treat-session-merging-as-order-and-time](/framework/ai/tasks/treat-session-merging-as-order-and-time/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [if-feasible-write-a-script-that-goes-thr](/framework/ai/tasks/if-feasible-write-a-script-that-goes-thr/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
 | [make-everything-an-instance-of-a-compone](/framework/ext/Figma/tasks/make-everything-an-instance-of-a-compone/) | - | helper-u | - | 10-17 16:10 | 10-17 16:10 | 0/0 | idle | no | - | unknown | ok |
@@ -1303,35 +1375,248 @@
 | [usage-pace-line](/framework/ai/sessions/2026/10/15/voice-opus/usage-pace-line/) | - | 8f866486 | sonnet-5-5 | 10-15 20:52 | 10-15 21:24 | 1/0 | landed | yes | - | dormant | ok |
 | [voice-mcp-directives](/framework/ai/sessions/2026/10/15/voice-opus/voice-mcp-directives/) | - | 92760713 | sonnet-5-5 | 10-15 21:21 | 10-15 21:24 | 1/0 | landed | yes | - | dormant | ok |
 | [voice-mastermind](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-mastermind/) | - | eda55316 | sonnet-5-5 | 10-15 20:39 | 10-15 20:47 | 1/0 | landed | yes | - | dormant | ok |
-| [oo-census](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/oo-census/) | - | 20326269 | sonnet-5-5 | 10-15 00:28 | 10-15 01:14 | 1/0 | landed | yes | - | dormant | ok |
-| [refine-topic-index](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/refine-topic-index/) | - | c69fde26 | sonnet-5-5 | 10-15 00:04 | 10-15 01:00 | 6/0 | landed | yes | - | dormant | ok |
-| [demo-2](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/demo-2/) | - | 6fd116b6 | sonnet-5-5 | 10-15 00:33 | 10-15 00:59 | 1/0 | stopped | yes | - | dormant | ok |
-| [tasks-dashboard](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/tasks-dashboard/) | - | 7aa8a8d8 | sonnet-5-5 | 10-15 00:16 | 10-15 00:41 | 1/0 | landed | yes | - | dormant | ok |
-| [voice-connector](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-connector/) | - | a43a79b3 | sonnet-5-5 | 10-15 00:29 | 10-15 00:38 | 1/0 | landed | yes | - | gone | ok |
-| [cards](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/cards/) | - | 38a99cb7 | sonnet-5-5 | 10-15 00:32 | 10-15 00:38 | 1/0 | stopped | yes | - | dormant | ok |
-| [schemes](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/schemes/) | - | 4bff10f1 | sonnet-5-5 | 10-15 00:33 | 10-15 00:37 | 1/0 | stopped | yes | - | dormant | ok |
-| [type](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/type/) | - | 9446b75f | sonnet-5-5 | 10-14 23:43 | 10-15 00:35 | 1/0 | landed | yes | - | dormant | ok |
-| [catalog-previews](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/catalog-previews/) | - | 195f4e8b | sonnet-5-5 | 10-14 23:52 | 10-15 00:34 | 1/0 | landed | yes | - | dormant | ok |
-| [dictate-next-4](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-next-4/) | - | 8d468a69 | sonnet-5-5 | 10-14 23:58 | 10-15 00:33 | 1/0 | landed | yes | - | dormant | ok |
-| [architecture-md-7](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/architecture-md-7/) | - | b6d60f5c | sonnet-5-5 | 10-14 23:55 | 10-15 00:30 | 1/0 | landed | yes | - | gone | ok |
-| [fluid-audit](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/fluid-audit/) | - | 81277d72 | sonnet-5-5 | 10-14 23:40 | 10-15 00:28 | 1/0 | stopped | yes | - | dormant | ok |
-| [foundations](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/foundations/) | - | 47ec98ee | sonnet-5-5 | 10-14 23:40 | 10-15 00:28 | 1/0 | stopped | yes | - | dormant | ok |
-| [essentials](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/essentials/) | - | 3280fd74 | sonnet-5-5 | 10-14 23:39 | 10-15 00:25 | 1/0 | stopped | yes | - | dormant | ok |
-| [captions](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/captions/) | - | 5bae46a9 | sonnet-5-5 | 10-14 23:37 | 10-15 00:23 | 1/0 | stopped | yes | - | dormant | ok |
-| [scripts-rename-5](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/scripts-rename-5/) | - | 76b50ffd | sonnet-5-5 | 10-14 23:52 | 10-15 00:15 | 1/0 | landed | yes | - | dormant | ok |
-| [branch-audit-merge](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/branch-audit-merge/) | - | 438074f7 | sonnet-5-5 | 10-14 23:52 | 10-15 00:04 | 1/0 | landed | yes | - | dormant | ok |
-| [nav-model](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/nav-model/) | - | e9f013e5 | opus-5-5 | 10-14 19:00 | 10-15 00:02 | 4/0 | landed | yes | - | dormant | ok |
-| [dogfood](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/dogfood/) | - | 2676a5d8 | sonnet-5-5 | 10-14 23:51 | 10-15 00:01 | 1/0 | landed | yes | - | dormant | ok |
-| [r2-archive](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/r2-archive/) | - | e88409a1 | sonnet-5-5 | 10-14 23:52 | 10-15 00:00 | 1/0 | landed | yes | - | dormant | ok |
-| [module-inbox-loop](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/module-inbox-loop/) | - | ef693241 | sonnet-5-5 | 10-14 19:00 | 10-14 23:58 | 1/0 | landed | yes | - | dormant | ok |
-| [demo](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/demo/) | - | c3c905da | sonnet-5-5 | 10-14 23:39 | 10-14 23:49 | 1/0 | stopped | yes | - | dormant | ok |
-| [inbox-browse](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/inbox-browse/) | - | 6214b71d | opus-5-5 | 10-14 19:00 | 10-14 19:23 | 5/5 | landed | yes | - | dormant | ok |
-| [page-templates-merge](/framework/ai/sessions/2026/10/12/session-ceb73541/page-templates-merge/) | - | ceb73541 | sonnet-5-5 | 10-12 20:22 | 10-14 19:04 | 1/0 | stopped | yes | - | stopped | ok |
-| [page-templates-binding-merge](/framework/ai/sessions/2026/10/12/session-21449a90/page-templates-binding-merge/) | - | 21449a90 | sonnet-5-5 | 10-12 20:39 | 10-14 19:04 | 1/0 | stopped | yes | - | stopped | ok |
-| [screenshots-never-committed](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/screenshots-never-committed/) | - | d60d1ad7 | sonnet-5-5 | 10-14 18:40 | 10-14 18:47 | 1/0 | landed | yes | - | gone | ok |
-| [unreferenced-census-fix](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/unreferenced-census-fix/) | - | b0ca1fa2 | sonnet-5-5 | 10-14 18:42 | 10-14 18:46 | 1/0 | landed | yes | - | dormant | ok |
-| [sessions-next](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/sessions-next/) | - | 7c2c3708 | sonnet-5-5 | 10-14 03:17 | 10-14 08:26 | 1/0 | stopped | yes | - | dormant | ok |
-| [reading-page](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/reading-page/) | - | 26feca31 | sonnet-5-5 | 10-14 04:06 | 10-14 05:30 | 1/0 | landed | yes | - | dormant | ok |
+
+## Unworked tasks (open, untouched over 7 days)
+
+- [coral-badge-when-readme-is-staying](/framework/ext/drawer/tasks/coral-badge-when-readme-is-staying/): idle, 2026-10-17
+- [readme-links-the-architecture-doc](/framework/ext/drawer/tasks/readme-links-the-architecture-doc/): idle, 2026-10-17
+- [decide-later-how-to-prioritise-data-bind](/framework/core/Item/tasks/decide-later-how-to-prioritise-data-bind/): idle, 2026-10-17
+- [build-a-tree-ui-with-icons-from-the-goog](/framework/ext/Refine/tasks/build-a-tree-ui-with-icons-from-the-goog/): idle, 2026-10-17
+- [use-a-single-consistent-preview-scale-or](/framework/ext/Refine/tasks/use-a-single-consistent-preview-scale-or/): idle, 2026-10-17
+- [solve-the-page-boundary-problem-through](/framework/core/Page/tasks/solve-the-page-boundary-problem-through/): idle, 2026-10-17
+- [make-page-data-structure-the-go-to-wrapp](/framework/core/Page/tasks/make-page-data-structure-the-go-to-wrapp/): idle, 2026-10-17
+- [investigate-whether-updates-can-be-buffe](/framework/ai/tasks/investigate-whether-updates-can-be-buffe/): idle, 2026-10-17
+- [look-through-other-pages-such-as-page-se](/framework/ext/Figma/tasks/look-through-other-pages-such-as-page-se/): idle, 2026-10-17
+- [if-on-pace-when-finished-sync-the-figma](/framework/ext/Figma/tasks/if-on-pace-when-finished-sync-the-figma/): idle, 2026-10-17
+- [if-under-pace-when-finished-synchronize](/framework/ext/Figma/tasks/if-under-pace-when-finished-synchronize/): idle, 2026-10-17
+- [analyse-the-edit-that-clobbered-the-mobi](/framework/ext/Figma/tasks/analyse-the-edit-that-clobbered-the-mobi/): idle, 2026-10-17
+- [document-generic-design-guidance-such-as](/framework/design/tasks/document-generic-design-guidance-such-as/): idle, 2026-10-17
+- [make-prompt-refinement-cards-familiar-an](/framework/ai/cards/tasks/make-prompt-refinement-cards-familiar-an/): idle, 2026-10-17
+- [explain-prompt-refinement-cards-using-te](/framework/ai/cards/tasks/explain-prompt-refinement-cards-using-te/): idle, 2026-10-17
+- [move-the-dictation-extension-into-the-ai](/framework/ext/tasks/move-the-dictation-extension-into-the-ai/): idle, 2026-10-17
+- [do-not-create-more-events-or-subscriptio](/framework/core/Events/tasks/do-not-create-more-events-or-subscriptio/): idle, 2026-10-17
+- [unsubscribe-from-changes-when-objects-ar](/framework/core/Events/tasks/unsubscribe-from-changes-when-objects-ar/): idle, 2026-10-17
+- [revisit-the-ai-model-testing-system-and](/framework/ai/models/tasks/revisit-the-ai-model-testing-system-and/): idle, 2026-10-17
+- [when-claude-tokens-are-available-especia](/framework/ai/models/tasks/when-claude-tokens-are-available-especia/): idle, 2026-10-17
+- [give-each-inbox-card-a-right-sidebar-to](/framework/ux/Inbox/tasks/give-each-inbox-card-a-right-sidebar-to/): idle, 2026-10-17
+- [reuse-the-existing-data-grid-class-s-con](/framework/ux/Inbox/tasks/reuse-the-existing-data-grid-class-s-con/): idle, 2026-10-17
+- [store-inbox-cards-as-an-appendable-jsonl](/framework/ux/Inbox/tasks/store-inbox-cards-as-an-appendable-jsonl/): idle, 2026-10-17
+- [inbox-priority-50-only-log-everything-a](/framework/ux/Inbox/tasks/inbox-priority-50-only-log-everything-a/): idle, 2026-10-17
+- [harmonize-the-framework-ui-system-with-2](/framework/ui/tasks/harmonize-the-framework-ui-system-with-2/): idle, 2026-10-17
+- [integrate-framework-ui-and-framework-u-2](/framework/ui/tasks/integrate-framework-ui-and-framework-u-2/): idle, 2026-10-17
+- [harmonize-the-framework-ui-system-with-t](/framework/ui/tasks/harmonize-the-framework-ui-system-with-t/): idle, 2026-10-17
+- [integrate-framework-ui-and-framework-ux](/framework/ui/tasks/integrate-framework-ui-and-framework-ux/): idle, 2026-10-17
+- [let-the-related-items-rail-be-configurab](/framework/ui/tasks/let-the-related-items-rail-be-configurab/): idle, 2026-10-17
+- [build-a-browsable-mobile-ui-collection-w](/framework/ui/tasks/build-a-browsable-mobile-ui-collection-w/): idle, 2026-10-17
+- [let-clone-take-a-pojo-and-assign-to-any](/framework/core/tasks/let-clone-take-a-pojo-and-assign-to-any/): idle, 2026-10-17
+- [make-field-extend-property-with-its-own](/framework/core/tasks/make-field-extend-property-with-its-own/): idle, 2026-10-17
+- [keep-a-thousand-item-data-grid-with-tens](/framework/core/Property/tasks/keep-a-thousand-item-data-grid-with-tens/): idle, 2026-10-17
+- [mark-bindable-by-instanceof-property-or](/framework/core/Property/tasks/mark-bindable-by-instanceof-property-or/): idle, 2026-10-17
+- [bind-one-property-to-another-with-expres](/framework/core/Property/tasks/bind-one-property-to-another-with-expres/): idle, 2026-10-17
+- [make-properties-bindable-so-ui-controls](/framework/core/Property/tasks/make-properties-bindable-so-ui-controls/): idle, 2026-10-17
+- [stream-transcription-in-the-mobile-rail](/framework/ux/Dictate/tasks/stream-transcription-in-the-mobile-rail/): idle, 2026-10-17
+- [show-a-prioritized-list-of-past-cloudfla](/framework/ux/Dictate/tasks/show-a-prioritized-list-of-past-cloudfla/): idle, 2026-10-17
+- [test-chunk-boundaries-sentence-as-baseli](/framework/ux/Dictate/tasks/test-chunk-boundaries-sentence-as-baseli/): idle, 2026-10-17
+- [make-the-sidebar-and-mobile-sheet-run-th](/framework/ux/Dictate/tasks/make-the-sidebar-and-mobile-sheet-run-th/): idle, 2026-10-17
+- [find-why-dictation-is-routed-to-openrout](/framework/ux/Dictate/tasks/find-why-dictation-is-routed-to-openrout/): idle, 2026-10-17
+- [show-before-after-states-of-the-streamin](/framework/ux/Dictate/tasks/show-before-after-states-of-the-streamin/): idle, 2026-10-17
+- [build-permutations-of-dictation-transcri](/framework/ux/Dictate/tasks/build-permutations-of-dictation-transcri/): idle, 2026-10-17
+- [servex-restart-plan-a-restart-must-not-d](/framework/servex/tasks/servex-restart-plan-a-restart-must-not-d/): idle, 2026-10-17
+- [evaluate-cloudflare-durable-objects-d1-a](/framework/servex/tasks/evaluate-cloudflare-durable-objects-d1-a/): idle, 2026-10-17
+- [support-backups-to-an-external-hard-driv](/framework/servex/tasks/support-backups-to-an-external-hard-driv/): idle, 2026-10-17
+- [investigate-wiring-an-mcp-for-fal-higgs](/framework/servex/tasks/investigate-wiring-an-mcp-for-fal-higgs/): idle, 2026-10-17
+- [shade-a-layout-red-by-css-when-it-needs](/framework/servex/tasks/shade-a-layout-red-by-css-when-it-needs/): idle, 2026-10-17
+- [use-node-tool-functions-for-all-tool-cal](/framework/servex/tasks/use-node-tool-functions-for-all-tool-cal/): idle, 2026-10-17
+- [servex-worktree-pool-stuck-qf-6-qf-9-hel](/framework/servex/tasks/servex-worktree-pool-stuck-qf-6-qf-9-hel/): idle, 2026-10-17
+- [attach-special-instructions-to-task-type](/framework/ai/tasks/attach-special-instructions-to-task-type/): idle, 2026-10-17
+- [nudge-the-minion-within-a-minute-or-two](/framework/ai/tasks/nudge-the-minion-within-a-minute-or-two/): idle, 2026-10-17
+- [nudge-the-agent-through-every-step-of-th](/framework/ai/tasks/nudge-the-agent-through-every-step-of-th/): idle, 2026-10-17
+- [make-the-task-process-structured-the-ai](/framework/ai/tasks/make-the-task-process-structured-the-ai/): idle, 2026-10-17
+- [run-parallel-agents-that-each-refine-a-l](/framework/ai/tasks/run-parallel-agents-that-each-refine-a-l/): idle, 2026-10-17
+- [have-the-mastermind-read-all-the-images](/framework/ai/tasks/have-the-mastermind-read-all-the-images/): idle, 2026-10-17
+- [make-the-refinement-loop-screenshot-read](/framework/ai/tasks/make-the-refinement-loop-screenshot-read/): idle, 2026-10-17
+- [use-the-refined-prompt-as-the-handoff-so](/framework/ext/Refine/tasks/use-the-refined-prompt-as-the-handoff-so/): idle, 2026-10-17
+- [make-prompt-refinement-output-json-strea](/framework/ext/Refine/tasks/make-prompt-refinement-output-json-strea/): idle, 2026-10-17
+- [re-check-existing-confidence-weights-sin](/framework/ext/Refine/tasks/re-check-existing-confidence-weights-sin/): idle, 2026-10-17
+- [layer-each-prompt-verbatim-then-what-was](/framework/ext/Refine/tasks/layer-each-prompt-verbatim-then-what-was/): idle, 2026-10-17
+- [test-all-of-these-refinement-and-confide](/framework/ext/Refine/tasks/test-all-of-these-refinement-and-confide/): idle, 2026-10-17
+- [run-prompt-refinement-on-past-sessions-d](/framework/ext/Refine/tasks/run-prompt-refinement-on-past-sessions-d/): idle, 2026-10-17
+- [run-refinement-structure-and-card-creati](/framework/ext/Refine/tasks/run-refinement-structure-and-card-creati/): idle, 2026-10-17
+- [make-context-cards-linkable-with-a-launc](/framework/ext/Refine/tasks/make-context-cards-linkable-with-a-launc/): idle, 2026-10-17
+- [expand-the-pill-frame-padding-icon-name](/framework/ext/Refine/tasks/expand-the-pill-frame-padding-icon-name/): idle, 2026-10-17
+- [once-context-is-on-screen-work-out-the-s](/framework/ext/Refine/tasks/once-context-is-on-screen-work-out-the-s/): idle, 2026-10-17
+- [upgrade-the-refined-prompt-so-each-sente](/framework/ext/Refine/tasks/upgrade-the-refined-prompt-so-each-sente/): idle, 2026-10-17
+- [enlarge-group-headings-on-index-pages-so](/framework/ext/Refine/tasks/enlarge-group-headings-on-index-pages-so/): idle, 2026-10-17
+- [wrap-each-group-on-the-full-size-index-p](/framework/ext/Refine/tasks/wrap-each-group-on-the-full-size-index-p/): idle, 2026-10-17
+- [put-the-layer-tree-in-a-small-mobile-she](/framework/ext/Refine/tasks/put-the-layer-tree-in-a-small-mobile-she/): idle, 2026-10-17
+- [explore-list-ui-styles-especially-a-tree](/framework/ext/Refine/tasks/explore-list-ui-styles-especially-a-tree/): idle, 2026-10-17
+- [make-the-miller-columns-more-compact-sin](/framework/ext/Refine/tasks/make-the-miller-columns-more-compact-sin/): idle, 2026-10-17
+- [harmonize-the-framework-sidebars-with-th](/framework/ext/Refine/tasks/harmonize-the-framework-sidebars-with-th/): idle, 2026-10-17
+- [harmonize-framework-sidebars-with-the-si](/framework/ext/Refine/tasks/harmonize-framework-sidebars-with-the-si/): idle, 2026-10-17
+- [amend-the-refined-prompt-incrementally-a](/framework/ext/Refine/tasks/amend-the-refined-prompt-incrementally-a/): idle, 2026-10-17
+- [make-refinement-real-time-processing-cle](/framework/ext/Refine/tasks/make-refinement-real-time-processing-cle/): idle, 2026-10-17
+- [fall-back-to-open-router-when-claude-tok](/framework/ext/Refine/tasks/fall-back-to-open-router-when-claude-tok/): idle, 2026-10-17
+- [let-page-types-store-data-as-json-snapsh](/framework/core/Page/tasks/let-page-types-store-data-as-json-snapsh/): idle, 2026-10-17
+- [add-a-per-page-inbox-in-page-jsonl-and-i](/framework/core/Page/tasks/add-a-per-page-inbox-in-page-jsonl-and-i/): idle, 2026-10-17
+- [lay-out-each-page-inside-a-1920px-wide-w](/framework/core/Page/tasks/lay-out-each-page-inside-a-1920px-wide-w/): idle, 2026-10-17
+- [give-each-page-a-background-color-distin](/framework/core/Page/tasks/give-each-page-a-background-color-distin/): idle, 2026-10-17
+- [use-default-pad-x-and-pad-y-tokens-for-s](/framework/core/Page/tasks/use-default-pad-x-and-pad-y-tokens-for-s/): idle, 2026-10-17
+- [wrap-each-page-preview-in-its-own-templa](/framework/core/Page/tasks/wrap-each-page-preview-in-its-own-templa/): idle, 2026-10-17
+- [work-out-how-linked-clones-stay-in-sync](/framework/core/Page/tasks/work-out-how-linked-clones-stay-in-sync/): idle, 2026-10-17
+- [add-a-page-clone-that-records-duplicates](/framework/core/Page/tasks/add-a-page-clone-that-records-duplicates/): idle, 2026-10-17
+- [pages-define-a-render-method-that-wraps](/framework/core/Page/tasks/pages-define-a-render-method-that-wraps/): idle, 2026-10-17
+- [a-page-can-change-its-layout-background](/framework/core/Page/tasks/a-page-can-change-its-layout-background/): idle, 2026-10-17
+- [allow-a-newly-created-template-to-be-mar](/framework/core/Page/tasks/allow-a-newly-created-template-to-be-mar/): idle, 2026-10-17
+- [rank-templates-by-how-frequently-they-ar](/framework/core/Page/tasks/rank-templates-by-how-frequently-they-ar/): idle, 2026-10-17
+- [skip-screenshots-of-max-width-content-th](/framework/core/Page/tasks/skip-screenshots-of-max-width-content-th/): idle, 2026-10-17
+- [let-certain-cards-be-sub-pages-where-it](/framework/core/Page/tasks/let-certain-cards-be-sub-pages-where-it/): idle, 2026-10-17
+- [build-screenshotting-into-the-templating](/framework/core/Page/tasks/build-screenshotting-into-the-templating/): idle, 2026-10-17
+- [store-screenshots-in-a-per-page-or-per-s](/framework/core/Page/tasks/store-screenshots-in-a-per-page-or-per-s/): idle, 2026-10-17
+- [investigate-whether-specific-templates-c](/framework/core/Page/tasks/investigate-whether-specific-templates-c/): idle, 2026-10-17
+- [decide-whether-a-page-dropped-into-a-pag](/framework/core/Page/tasks/decide-whether-a-page-dropped-into-a-pag/): idle, 2026-10-17
+- [decide-whether-a-page-can-hold-child-pag](/framework/core/Page/tasks/decide-whether-a-page-can-hold-child-pag/): idle, 2026-10-17
+- [make-the-assembler-block-or-suggest-a-fi](/framework/core/Page/tasks/make-the-assembler-block-or-suggest-a-fi/): idle, 2026-10-17
+- [make-the-inbox-a-secondary-page-not-the](/framework/core/Page/tasks/make-the-inbox-a-secondary-page-not-the/): idle, 2026-10-17
+- [let-the-server-trigger-a-full-load-async](/framework/core/Page/tasks/let-the-server-trigger-a-full-load-async/): idle, 2026-10-17
+- [make-the-client-not-auto-load-everything](/framework/core/Page/tasks/make-the-client-not-auto-load-everything/): idle, 2026-10-17
+- [document-in-the-page-class-whether-any-s](/framework/core/Page/tasks/document-in-the-page-class-whether-any-s/): idle, 2026-10-17
+- [allow-server-side-page-instances-to-be-u](/framework/core/Page/tasks/allow-server-side-page-instances-to-be-u/): idle, 2026-10-17
+- [make-the-headless-server-side-instance-s](/framework/core/Page/tasks/make-the-headless-server-side-instance-s/): idle, 2026-10-17
+- [instantiate-the-page-in-the-browser-with](/framework/core/Page/tasks/instantiate-the-page-in-the-browser-with/): idle, 2026-10-17
+- [decide-which-page-functions-actually-nee](/framework/core/Page/tasks/decide-which-page-functions-actually-nee/): idle, 2026-10-17
+- [instantiate-the-page-on-the-server-side](/framework/core/Page/tasks/instantiate-the-page-on-the-server-side/): idle, 2026-10-17
+- [document-every-path-based-and-per-direct](/framework/core/Page/tasks/document-every-path-based-and-per-direct/): idle, 2026-10-17
+- [send-the-refined-prompt-to-a-mastermind](/framework/ai/tasks/send-the-refined-prompt-to-a-mastermind/): idle, 2026-10-17
+- [filter-the-inbox-by-date-to-see-what-hap](/framework/ai/tasks/filter-the-inbox-by-date-to-see-what-hap/): idle, 2026-10-17
+- [let-the-owner-browse-past-items-by-entit](/framework/ai/tasks/let-the-owner-browse-past-items-by-entit/): idle, 2026-10-17
+- [merge-ai-2026-and-ai-sessions-2026-into](/framework/ai/tasks/merge-ai-2026-and-ai-sessions-2026-into/): idle, 2026-10-17
+- [remove-the-framework-ai-2026-10-13-date](/framework/ai/tasks/remove-the-framework-ai-2026-10-13-date/): idle, 2026-10-17
+- [fix-the-inbox-items-so-each-links-to-its](/framework/ai/tasks/fix-the-inbox-items-so-each-links-to-its/): idle, 2026-10-17
+- [smart-assistant-does-prompt-refinement-c](/framework/ai/tasks/smart-assistant-does-prompt-refinement-c/): idle, 2026-10-17
+- [build-a-pre-programmed-node-loop-that-st](/framework/ai/tasks/build-a-pre-programmed-node-loop-that-st/): idle, 2026-10-17
+- [let-code-not-ai-memory-close-worktrees-a](/framework/ai/tasks/let-code-not-ai-memory-close-worktrees-a/): idle, 2026-10-17
+- [audit-session-logs-for-how-often-each-sk](/framework/ai/tasks/audit-session-logs-for-how-often-each-sk/): idle, 2026-10-17
+- [ai-systems-git-context-cost-pages-collec](/framework/ai/tasks/ai-systems-git-context-cost-pages-collec/): idle, 2026-10-17
+- [find-an-archive-process-for-old-sessions](/framework/ai/tasks/find-an-archive-process-for-old-sessions/): idle, 2026-10-17
+- [reduce-how-many-sessions-are-saved](/framework/ai/tasks/reduce-how-many-sessions-are-saved/): idle, 2026-10-17
+- [skip-re-auditing-tasks-already-audited-r](/framework/ai/tasks/skip-re-auditing-tasks-already-audited-r/): idle, 2026-10-17
+- [reduce-the-excess-padding-above-the-chat](/framework/ai/tasks/reduce-the-excess-padding-above-the-chat/): idle, 2026-10-17
+- [give-the-chat-area-its-own-padding-and-b](/framework/ai/tasks/give-the-chat-area-its-own-padding-and-b/): idle, 2026-10-17
+- [widen-the-right-sidebar-which-is-about-3](/framework/ai/tasks/widen-the-right-sidebar-which-is-about-3/): idle, 2026-10-17
+- [condense-the-very-granular-logged-costs](/framework/ai/tasks/condense-the-very-granular-logged-costs/): idle, 2026-10-17
+- [show-logged-costs-newest-first](/framework/ai/tasks/show-logged-costs-newest-first/): idle, 2026-10-17
+- [fix-the-detail-page-layout-problems-so-t](/framework/ai/tasks/fix-the-detail-page-layout-problems-so-t/): idle, 2026-10-17
+- [run-a-performance-audit-of-the-sessions](/framework/ai/tasks/run-a-performance-audit-of-the-sessions/): idle, 2026-10-17
+- [fix-the-model-label-on-the-night-masterm](/framework/ai/tasks/fix-the-model-label-on-the-night-masterm/): idle, 2026-10-17
+- [add-insight-into-what-was-spent-and-on-w](/framework/ai/tasks/add-insight-into-what-was-spent-and-on-w/): idle, 2026-10-17
+- [make-the-title-cell-grow-to-fit-a-flag-e](/framework/ai/tasks/make-the-title-cell-grow-to-fit-a-flag-e/): idle, 2026-10-17
+- [fix-the-session-grid-columns-so-the-titl](/framework/ai/tasks/fix-the-session-grid-columns-so-the-titl/): idle, 2026-10-17
+- [find-out-whether-refinement-can-be-added](/framework/ai/tasks/find-out-whether-refinement-can-be-added/): idle, 2026-10-17
+- [try-buffering-by-cloning-the-data-grid-c](/framework/ai/tasks/try-buffering-by-cloning-the-data-grid-c/): idle, 2026-10-17
+- [let-sessions-pull-in-references-to-thing](/framework/ai/tasks/let-sessions-pull-in-references-to-thing/): idle, 2026-10-17
+- [consider-hiding-or-separating-cost-entri](/framework/ai/tasks/consider-hiding-or-separating-cost-entri/): idle, 2026-10-17
+- [treat-session-merging-as-order-and-time](/framework/ai/tasks/treat-session-merging-as-order-and-time/): idle, 2026-10-17
+- [if-feasible-write-a-script-that-goes-thr](/framework/ai/tasks/if-feasible-write-a-script-that-goes-thr/): idle, 2026-10-17
+- [make-everything-an-instance-of-a-compone](/framework/ext/Figma/tasks/make-everything-an-instance-of-a-compone/): idle, 2026-10-17
+- [make-prototypes-fixed-height-with-a-scro](/framework/ext/Figma/tasks/make-prototypes-fixed-height-with-a-scro/): idle, 2026-10-17
+- [determine-whether-figma-exposes-shared-c](/framework/ext/Figma/tasks/determine-whether-figma-exposes-shared-c/): idle, 2026-10-17
+- [web-search-for-figma-apis-for-team-colla](/framework/ext/Figma/tasks/web-search-for-figma-apis-for-team-colla/): idle, 2026-10-17
+- [investigate-why-the-agent-s-avatar-was-v](/framework/ext/Figma/tasks/investigate-why-the-agent-s-avatar-was-v/): idle, 2026-10-17
+- [open-the-file-september-2026-so-the-owne](/framework/ext/Figma/tasks/open-the-file-september-2026-so-the-owne/): idle, 2026-10-17
+- [find-out-how-to-join-the-figma-file-sept](/framework/ext/Figma/tasks/find-out-how-to-join-the-figma-file-sept/): idle, 2026-10-17
+- [web-search-the-figma-api-for-collaborati](/framework/ext/Figma/tasks/web-search-the-figma-api-for-collaborati/): idle, 2026-10-17
+- [consider-the-one-click-claude-plugin-ins](/framework/ext/Figma/tasks/consider-the-one-click-claude-plugin-ins/): idle, 2026-10-17
+- [explain-the-workflow-what-becomes-a-comp](/framework/ext/Figma/tasks/explain-the-workflow-what-becomes-a-comp/): idle, 2026-10-17
+- [decide-whether-to-bring-in-the-entire-go](/framework/ext/Figma/tasks/decide-whether-to-bring-in-the-entire-go/): idle, 2026-10-17
+- [on-the-wizard-step-frame-place-the-next](/framework/ext/Figma/tasks/on-the-wizard-step-frame-place-the-next/): idle, 2026-10-17
+- [always-apply-auto-layout-with-correct-sp](/framework/ext/Figma/tasks/always-apply-auto-layout-with-correct-sp/): idle, 2026-10-17
+- [review-all-files-claude-created-look-at](/framework/ext/Figma/tasks/review-all-files-claude-created-look-at/): idle, 2026-10-17
+- [work-only-in-figma-not-code-and-never-cr](/framework/ext/Figma/tasks/work-only-in-figma-not-code-and-never-cr/): idle, 2026-10-17
+- [possibly-duplicate-the-four-column-syste](/framework/ext/Figma/tasks/possibly-duplicate-the-four-column-syste/): idle, 2026-10-17
+- [maybe-use-two-primary-columns](/framework/ext/Figma/tasks/maybe-use-two-primary-columns/): idle, 2026-10-17
+- [explore-the-prime-background-in-both-lig](/framework/ext/Figma/tasks/explore-the-prime-background-in-both-lig/): idle, 2026-10-17
+- [use-color-scheme-breakout-to-explore-lig](/framework/ext/Figma/tasks/use-color-scheme-breakout-to-explore-lig/): idle, 2026-10-17
+- [document-in-the-figma-skill-avoid-overwr](/framework/ext/Figma/tasks/document-in-the-figma-skill-avoid-overwr/): idle, 2026-10-17
+- [if-the-figma-mcp-handoff-includes-the-va](/framework/ext/Figma/tasks/if-the-figma-mcp-handoff-includes-the-va/): idle, 2026-10-17
+- [make-each-page-layout-a-copy-paste-templ](/framework/ext/Figma/tasks/make-each-page-layout-a-copy-paste-templ/): idle, 2026-10-17
+- [build-two-column-1920-layouts-with-varia](/framework/ext/Figma/tasks/build-two-column-1920-layouts-with-varia/): idle, 2026-10-17
+- [create-more-page-layouts-starting-with-t](/framework/ext/Figma/tasks/create-more-page-layouts-starting-with-t/): idle, 2026-10-17
+- [create-index2-under-the-index-page-with](/framework/ext/Figma/tasks/create-index2-under-the-index-page-with/): idle, 2026-10-17
+- [fix-clipped-content-in-specimen-cards-in](/framework/ext/Figma/tasks/fix-clipped-content-in-specimen-cards-in/): idle, 2026-10-17
+- [use-auto-layout-properly-for-page-templa](/framework/ext/Figma/tasks/use-auto-layout-properly-for-page-templa/): idle, 2026-10-17
+- [limit-the-color-pairings-to-a-specific-s](/framework/ext/Figma/tasks/limit-the-color-pairings-to-a-specific-s/): idle, 2026-10-17
+- [define-which-color-tokens-and-text-schem](/framework/ext/Figma/tasks/define-which-color-tokens-and-text-schem/): idle, 2026-10-17
+- [read-the-root-frame-on-page-seven-for-th](/framework/ext/Figma/tasks/read-the-root-frame-on-page-seven-for-th/): idle, 2026-10-17
+- [consider-a-runnable-prototype-for-the-ov](/framework/ext/Figma/tasks/consider-a-runnable-prototype-for-the-ov/): idle, 2026-10-17
+- [harmonize-the-designs-we-currently-have](/framework/ext/Figma/tasks/harmonize-the-designs-we-currently-have/): idle, 2026-10-17
+- [try-uploading-the-logo-svg-to-figma-and](/framework/ext/Figma/tasks/try-uploading-the-logo-svg-to-figma-and/): idle, 2026-10-17
+- [work-out-how-to-harmonise-the-figma-desi](/framework/ext/Figma/tasks/work-out-how-to-harmonise-the-figma-desi/): idle, 2026-10-17
+- [merge-the-custom-css-of-the-ext-figma-de](/framework/ext/Figma/tasks/merge-the-custom-css-of-the-ext-figma-de/): idle, 2026-10-17
+- [consider-reproducing-the-figma-layout-to](/framework/ext/Figma/tasks/consider-reproducing-the-figma-layout-to/): idle, 2026-10-17
+- [during-the-sync-review-the-ui-elements-c](/framework/ext/Figma/tasks/during-the-sync-review-the-ui-elements-c/): idle, 2026-10-17
+- [merge-the-custom-css-ported-over-for-the](/framework/ext/Figma/tasks/merge-the-custom-css-ported-over-for-the/): idle, 2026-10-17
+- [reproduce-the-figma-layout-tokens-on-the](/framework/ext/Figma/tasks/reproduce-the-figma-layout-tokens-on-the/): idle, 2026-10-17
+- [consider-using-figma-s-default-arrow-t-2](/framework/ext/Figma/tasks/consider-using-figma-s-default-arrow-t-2/): idle, 2026-10-17
+- [consider-splitting-connector-lines-into](/framework/ext/Figma/tasks/consider-splitting-connector-lines-into/): idle, 2026-10-17
+- [build-flowchart-arrows-that-automaticall](/framework/ext/Figma/tasks/build-flowchart-arrows-that-automaticall/): idle, 2026-10-17
+- [find-out-what-is-possible-for-a-zigzag-p](/framework/ext/Figma/tasks/find-out-what-is-possible-for-a-zigzag-p/): idle, 2026-10-17
+- [explore-whether-figma-auto-layout-based](/framework/ext/Figma/tasks/explore-whether-figma-auto-layout-based/): idle, 2026-10-17
+- [consider-splitting-arrow-lines-so-one-pa](/framework/ext/Figma/tasks/consider-splitting-arrow-lines-so-one-pa/): idle, 2026-10-17
+- [try-linking-flowchart-nodes-with-auto-la](/framework/ext/Figma/tasks/try-linking-flowchart-nodes-with-auto-la/): idle, 2026-10-17
+- [consider-using-figma-s-default-arrow-too](/framework/ext/Figma/tasks/consider-using-figma-s-default-arrow-too/): idle, 2026-10-17
+- [find-out-whether-a-zigzag-path-can-fill](/framework/ext/Figma/tasks/find-out-whether-a-zigzag-path-can-fill/): idle, 2026-10-17
+- [experiment-with-building-auto-layout-bas](/framework/ext/Figma/tasks/experiment-with-building-auto-layout-bas/): idle, 2026-10-17
+- [produce-a-responsive-video-schematic-cov](/framework/ext/Figma/tasks/produce-a-responsive-video-schematic-cov/): idle, 2026-10-17
+- [judge-how-filler-word-alignment-reads-fr](/framework/ext/Figma/tasks/judge-how-filler-word-alignment-reads-fr/): idle, 2026-10-17
+- [build-robust-reusable-layouts-combining](/framework/ext/Figma/tasks/build-robust-reusable-layouts-combining/): idle, 2026-10-17
+- [identify-which-size-and-style-combinatio](/framework/ext/Figma/tasks/identify-which-size-and-style-combinatio/): idle, 2026-10-17
+- [explore-these-text-layouts-for-mobile-an](/framework/ext/Figma/tasks/explore-these-text-layouts-for-mobile-an/): idle, 2026-10-17
+- [explore-how-word-count-and-filler-size-c](/framework/ext/Figma/tasks/explore-how-word-count-and-filler-size-c/): idle, 2026-10-17
+- [try-centered-left-or-right-top-or-bottom](/framework/ext/Figma/tasks/try-centered-left-or-right-top-or-bottom/): idle, 2026-10-17
+- [make-filler-words-like-the-of-a-smaller](/framework/ext/Figma/tasks/make-filler-words-like-the-of-a-smaller/): idle, 2026-10-17
+- [auto-layout-two-line-titles-with-the-top](/framework/ext/Figma/tasks/auto-layout-two-line-titles-with-the-top/): idle, 2026-10-17
+- [build-raw-text-layouts-for-two-three-and](/framework/ext/Figma/tasks/build-raw-text-layouts-for-two-three-and/): idle, 2026-10-17
+- [study-netflix-and-amazon-prime-video-tit](/framework/ext/Figma/tasks/study-netflix-and-amazon-prime-video-tit/): idle, 2026-10-17
+- [work-on-layouts-and-figma-title-card-des](/framework/ext/Figma/tasks/work-on-layouts-and-figma-title-card-des/): idle, 2026-10-17
+- [isolate-the-core-building-blocks-into-a](/framework/ext/Figma/tasks/isolate-the-core-building-blocks-into-a/): idle, 2026-10-17
+- [pull-the-svg-logo-the-website-uses-into](/framework/ext/Figma/tasks/pull-the-svg-logo-the-website-uses-into/): idle, 2026-10-17
+- [maybe-get-figma-to-design-a-new-layout-f](/framework/ext/Figma/tasks/maybe-get-figma-to-design-a-new-layout-f/): idle, 2026-10-17
+- [use-the-white-light-and-dark-schemes-sta](/framework/ext/Figma/tasks/use-the-white-light-and-dark-schemes-sta/): idle, 2026-10-17
+- [flag-primary-background-usage-as-an-impo](/framework/ext/Figma/tasks/flag-primary-background-usage-as-an-impo/): idle, 2026-10-17
+- [design-widgets-and-data-grid-tables-gett](/framework/ext/Figma/tasks/design-widgets-and-data-grid-tables-gett/): idle, 2026-10-17
+- [find-out-whether-the-embeds-cause-the-la](/framework/ext/Figma/tasks/find-out-whether-the-embeds-cause-the-la/): idle, 2026-10-17
+- [make-the-figma-design-preview-open-to-sh](/framework/ext/Figma/tasks/make-the-figma-design-preview-open-to-sh/): idle, 2026-10-17
+- [raw-lines-get-swallowed-into-a-refined-s](/framework/ux/Dictate/tasks/raw-lines-get-swallowed-into-a-refined-s/): idle, 2026-10-17
+- [place-each-sentence-paragraph-new-paragr](/framework/ux/Dictate/tasks/place-each-sentence-paragraph-new-paragr/): idle, 2026-10-17
+- [rename-the-session-log-task-jsonl-to-ses](/framework/ai/tasks/rename-the-session-log-task-jsonl-to-ses/): idle, 2026-10-17
+- [task-templates-node-carries-out-the-rout](/framework/core/Task/tasks/task-templates-node-carries-out-the-rout/): idle, 2026-10-17
+- [find-lost-past-work-and-mine-old-prompts](/framework/ai/tasks/find-lost-past-work-and-mine-old-prompts/): idle, 2026-10-17
+- [task-system-build](/framework/core/Task/tasks/task-system-build/): idle, 2026-10-17
+- [refine-dictation-to-cards-and-tasks](/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/): idle, 2026-10-17
+- [the-selected-card-is-the-voice-context-a](/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/the-selected-card-is-the-voice-context-a/): idle, 2026-10-17
+- [a-decision-holds-a-ranked-live-list-of-o](/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/a-decision-holds-a-ranked-live-list-of-o/): idle, 2026-10-17
+- [interactive-cards-buttons-forms-and-data](/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/interactive-cards-buttons-forms-and-data/): idle, 2026-10-17
+- [refine-looks-up-past-work-as-a-step-then](/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/refine-looks-up-past-work-as-a-step-then/): idle, 2026-10-17
+- [the-input-box-shows-whisper-typing-and-c](/framework/ext/Refine/tasks/refine-dictation-to-cards-and-tasks/the-input-box-shows-whisper-typing-and-c/): idle, 2026-10-17
+- [indexing-and-finding-past-work](/framework/ai/tasks/indexing-and-finding-past-work/): idle, 2026-10-17
+- [a-where-ideas-go-line-at-the-top-of-ai-r](/framework/ai/tasks/indexing-and-finding-past-work/a-where-ideas-go-line-at-the-top-of-ai-r/): idle, 2026-10-17
+- [a-node-built-index-of-all-tasks-ai-tasks](/framework/ai/tasks/indexing-and-finding-past-work/a-node-built-index-of-all-tasks-ai-tasks/): idle, 2026-10-17
+- [class-architecture-overviews-write-the-f](/framework/ai/tasks/indexing-and-finding-past-work/class-architecture-overviews-write-the-f/): idle, 2026-10-17
+- [a-related-list-in-each-readme-one-mentio](/framework/ai/tasks/indexing-and-finding-past-work/a-related-list-in-each-readme-one-mentio/): idle, 2026-10-17
+- [every-directory-carries-an-index-of-what](/framework/ai/tasks/indexing-and-finding-past-work/every-directory-carries-an-index-of-what/): idle, 2026-10-17
+- [a-voice-alt-string-a-spoken-rendering-of](/framework/audio/Voice/tasks/voice-conversation/a-voice-alt-string-a-spoken-rendering-of/): idle, 2026-10-17
+- [voice-conversation](/framework/audio/Voice/tasks/voice-conversation/): idle, 2026-10-17
+- [said-is-not-heard-on-an-interruption-onl](/framework/audio/Voice/tasks/voice-conversation/said-is-not-heard-on-an-interruption-onl/): idle, 2026-10-17
+- [interjection-a-short-interjection-then-y](/framework/audio/Voice/tasks/voice-conversation/interjection-a-short-interjection-then-y/): idle, 2026-10-17
+- [servex-tools-and-live-agent-control](/framework/servex/tasks/servex-tools-and-live-agent-control/): idle, 2026-10-17
+- [node-prompted-procedures-a-trigger-a-cod](/framework/servex/tasks/servex-tools-and-live-agent-control/node-prompted-procedures-a-trigger-a-cod/): idle, 2026-10-17
+- [test-what-the-sdk-does-with-several-queu](/framework/servex/tasks/servex-tools-and-live-agent-control/test-what-the-sdk-does-with-several-queu/): idle, 2026-10-17
+- [real-time-interrupt-browser-events-queue](/framework/servex/tasks/servex-tools-and-live-agent-control/real-time-interrupt-browser-events-queue/): idle, 2026-10-17
+- [one-overview-of-how-sessions-tools-skill](/framework/servex/tasks/servex-tools-and-live-agent-control/one-overview-of-how-sessions-tools-skill/): idle, 2026-10-17
+- [track-every-tool-call-how-often-with-wha](/framework/servex/tasks/servex-tools-and-live-agent-control/track-every-tool-call-how-often-with-wha/): idle, 2026-10-17
+- [local-agents-get-a-small-in-process-tool](/framework/servex/tasks/servex-tools-and-live-agent-control/local-agents-get-a-small-in-process-tool/): idle, 2026-10-17
+- [complete-checks-each-expected-string-yes](/framework/core/Task/tasks/task-system-build/complete-checks-each-expected-string-yes/): idle, 2026-10-17
+- [live-a-presentation-mode-and-a-prioritis](/framework/core/Task/tasks/task-system-build/live-a-presentation-mode-and-a-prioritis/): idle, 2026-10-17
 
 ## Open asks with no live owner
 

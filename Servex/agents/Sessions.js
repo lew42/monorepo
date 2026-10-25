@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { place, HOME } from "../home.js";
 import LogLine from "../../Server/LogLine.mjs";
 import { model as tier_model } from "./tiers.js";
+import Usage from "../Usage.js";
 import { page_path } from "./Layers.js";
 import Cards from "../cards/Cards.js";
 import { session_facts } from "./Agents.js";
@@ -132,8 +133,8 @@ export const now_ms = () => {
  *
  * LIFE (memory first): /new and resume spawn NOTHING. The first say spawns the FAST
  * agent and sends it the line at once; the SMART one is spawned on the next tick and
- * loads its big context while the fast one answers. A pair that hears nothing for 5
- * minutes is stopped (`SERVEX_SESSION_IDLE_MS`); the next say resumes it by its backing
+ * loads its big context while the fast one answers. A pair that hears nothing for 30
+ * minutes is stopped (`SERVEX_SESSION_IDLE_MS`; was 5, raised 2026-10-25 so the owner's mastermind seat stays up through a working session); the next say resumes it by its backing
  * session id. At most 2 pairs are live machine-wide (`SERVEX_SESSION_MAX_PAIRS`): a
  * third stops the oldest idle one first. A /new on a page whose session spoke in the
  * last hour returns THAT session (`SERVEX_SESSION_RESUME_MS`).
@@ -145,7 +146,7 @@ export const now_ms = () => {
 /* THE SESSION MODEL SWITCH (dictate-without-claude, 2026-10-04 — the owner: "we're facing a
  * Claude shutdown... I have to rely entirely on the website and whether the voice dictation
  * system works"). ONE setting decides what BOTH session agents spawn on:
- *   - "claude" (default, unchanged): fast on Sonnet, smart on Opus 5.5 (tier voice_smart, the owner 2026-10-25).
+ *   - "claude" (default, unchanged): fast on Sonnet, smart on Opus 5.5 (tier voice_smart, the owner 2026-10-25), Sonnet only while the week is over pace.
  *   - "openrouter": both on FALLBACK_MODEL. Picked from the new-brain eval
  *     (ai/sessions/2026/10/04/new-brain/new-brain/eval-results.json): openai/gpt-6-luna tied the BEST score on
  *     level c (the real job — refine a raw owner prompt into numbered sentences, 10/10, same
@@ -237,7 +238,7 @@ export default class Sessions {
 			/* 1500, was 8000 (first-reply, 2026-10-13): the smart one never answered inside 8 s, so the wait only delayed
 			 * the first reply; ai/.../first-reply/ and ux/Dictate/doc/latency.md. Set the env to 8000 for the old pace. */
 			fast_wait_ms: env("SERVEX_SESSION_FAST_WAIT_MS", 1500), prewarm: env("SERVEX_SESSION_PREWARM", 1),
-			idle_ms: env("SERVEX_SESSION_IDLE_MS", 5 * 60000), resume_ms: env("SERVEX_SESSION_RESUME_MS", 60 * 60000),
+			idle_ms: env("SERVEX_SESSION_IDLE_MS", 30 * 60000), resume_ms: env("SERVEX_SESSION_RESUME_MS", 60 * 60000),
 			max_pairs: env("SERVEX_SESSION_MAX_PAIRS", 2), floor_wait_ms: env("SERVEX_SESSION_FLOOR_WAIT_MS", 8000),
 			/* THE THOUGHT (dictation-stream, 2026-09-30): a spoken line is held from BOTH assistants until the
 			 * owner has been quiet `answer_quiet_ms` (the browser's `quiet` event, ux/Dictate/floor.js's
@@ -1101,7 +1102,7 @@ export default class Sessions {
 		return this.claude_model(role);
 	}
 
-	claude_model(role){ return role === "fast" ? tier_model("fast") : tier_model("voice_smart"); }
+	claude_model(role){ return role === "fast" ? tier_model("fast") : Usage.over_pace(this.repo) ? tier_model("manager") : tier_model("voice_smart"); }
 
 	/* OpenRouter usable right now? A key, and the spend guard (cached, never a network call here) says yes. */
 	or_ready(){ try { return has_key() && spend_guard().ok; } catch { return false; } }
@@ -1182,8 +1183,9 @@ export default class Sessions {
 		const reseat = !!(seat && (s.fast || s.backing?.fast) && (s.fast_seat ?? "fast") !== seat);
 		if (reseat){ s.fast = null; (s.backing ??= {}).fast = null; }
 		const old = s.backing?.[role];
-		/* Only a change of PROVIDER forces a fresh spawn (review finding 5): a Claude
-		 * session id can resume under any Claude model, so that alone must not
+		/* Only a change of PROVIDER forces a fresh spawn (review finding 5): the default Claude
+		 * path already switches `smart` between Opus and Sonnet on its own (`Usage.over_pace()`,
+		 * weekly pace) — a Claude session id can resume under either, so that alone must not
 		 * restart the agent fresh and lose its 40-line tail. Only Claude <-> OpenRouter/local
 		 * (or OpenRouter <-> local) actually can't resume. */
 		const same_claude_family = m => String(m).startsWith("claude");

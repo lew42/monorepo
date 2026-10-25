@@ -52,3 +52,4 @@
 {"log":{"at":"2026-10-23T00:17:39-05:00","heartbeat":"check","msg":"status check sent to mastermind-figma-cards"}}
 {"log":{"at":"2026-10-23T00:17:42-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-23T00:18:18-05:00","heartbeat":"answered","msg":"Still not merged. `worktree/mobile-picks` is ready at 60f7674b4 and I'm idle until the merge. After it, I'll run `worktree-down` to remove the worktree."}}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/process-views/","type":"Session","spawn":{"role":"minion","model":"claude-sonnet-5-5","effort":"medium","role_readme":"Servex/agents/roles/minion.md","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-cards/process-views/requirements.md","session_id":"c1d4a4c9-9ddf-4812-9b26-8e846080abee","agent":"minion-figma-process","at":"2026-10-22T21:00:40-05:00","placed":"backfill"},"by":"ChildLinks --entries","ts":"2026-10-25T06:13:18.883Z"}

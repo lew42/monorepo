@@ -1,6 +1,6 @@
 import { View, div, span, small, p, a } from "/app.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
-import { dur, elapsed } from "/framework/ai/AITask/stats.js";
+import { dur, elapsed, span_active } from "/framework/ai/AITask/stats.js";
 import AISessionRows from "./AISessionRows.js";
 import AISession from "./AISession.js";
 import AISessionFlags from "./AISessionFlags.js";
@@ -86,7 +86,7 @@ export default class AISessionView extends View {
 		});
 
 		div.c("sessions-cell", () => small.c("muted").text(working ? "now" : (r.last_activity ? age(r.last_activity) : "—")).attr("title", r.last_activity ?? ""));
-		div.c("sessions-cell", () => small.c("muted", dur(AISessionRows.span_ms(r))));
+		div.c("sessions-cell", () => { const ix = row_of(this.session_index, r.session_id || r.id); small.c("muted", ix?.wall_ms > 0 ? span_active(ix.wall_ms, ix.active_ms) : dur(AISessionRows.span_ms(r))).attr("title", "From the session's first line to its last (a stop and restart does not reset it), and the hours it was actually working"); });
 		div.c("sessions-cell", () => { if (r.role) { const { label: text, title } = role_label(r.role); small.c("muted").attr("title", title).text(text); } { const f = AISessionFlags.of(r); if (f?.last){ const { tier, why } = AISessionResume.tier(f), t = AISessionResume.TIERS[tier]; span.c("sessions-tag sessions-tier sessions-tier-" + tier, t.label).attr("title", t.title + " (" + why + ")"); } } if (AISessionFlags.is_mastermind(r)) span.c("sessions-tag sessions-tag-mm", "mastermind").attr("title", "A mastermind: it registered as one in Servex, or its first prompt loads the mastermind skill."); });
 		div.c("sessions-cell", () => span.c("sessions-tag sessions-tag-" + r.source, src.label));
 		// Plain `if`s, not `&&`: a cell callback's return value can end up rendered as a stray text node (a `false` once printed "false").
@@ -100,23 +100,26 @@ export default class AISessionView extends View {
 		span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : ready ? "ready" : "idle")).attr("title", r.state + (working ? "" : ready ? " (alive, waiting for work)" : " (not working right now)")).text(working ? "▶" : ready ? "●" : "•");
 	}
 
-	/** The rail card (the grid's `card` hook): a snapshot of one session in three lines. Redraws itself on a live change, like a row. */
+	/** The rail card (the grid's `card` hook): four things: the title, the cost line, how many sessions it started, its state. Redraws itself on a live change, like a row. */
 	render_card(){
-		const { row: r } = this, { WORKING_STATES, display_name, role_label, row_of, SOURCE } = AISessionRows, { usd, state_dot, flag_tags } = AISessionView;
-		const working = WORKING_STATES.has(r.state), name = display_name(r, AISessionRows.tree);
-		div.c("sessions-card-line", () => {
-			state_dot(r);
-			span.c("sessions-row-title", name.text);
-			flag_tags(r);
-		});
+		const { row: r } = this, { display_name, row_of, tree } = AISessionRows, { usd, state_dot } = AISessionView, id = r.session_id || r.id;
+		div.c("sessions-card-line", () => span.c("sessions-row-title", display_name(r, tree).text));
 		div.c("sessions-card-line muted", () => {
-			const ix = row_of(this.session_index, r.session_id || r.id);
-			const cost = ix ? null : typeof r.cost_claude_usd === "number" ? usd(r.cost_claude_usd) : typeof r.cost === "number" ? usd(r.cost) : "—";
-			if (ix) AISessionView.cost_parts(ix, r, true); else small(cost);
-			if (ix?.flags) small.c("sessions-flag").text("⚠ " + ix.flags).attr("title", "Open the session to read the flags");
-			small("· " + (working ? "updated now" : r.last_activity ? "updated " + age(r.last_activity) : "—")).attr("title", r.last_activity ?? "");
+			const ix = row_of(this.session_index, id);
+			if (ix) AISessionView.cost_parts(ix, r, true); else small(typeof r.cost_claude_usd === "number" ? usd(r.cost_claude_usd) : typeof r.cost === "number" ? usd(r.cost) : "—");
 		});
-		small.c("muted sessions-card-line", [r.role && role_label(r.role).label, (SOURCE[r.source] ?? { label: r.source }).label, row_of(this.session_index, r.session_id || r.id)?.model || r.model].filter(Boolean).join(" · "));
+		const kids = AISessionView.descendants(tree, id), direct = tree?.[id]?.kids?.length ?? 0;
+		div.c("sessions-card-line muted", () => {
+			state_dot(r); small(r.state || "—");
+			if (direct) small(`· ${direct} child session${direct > 1 ? "s" : ""}${kids > direct ? ` · ${kids} in all` : ""}`);
+		});
+	}
+
+	/** How many sessions sit under `id` in the parent tree, at any depth. */
+	static descendants(tree, id, seen = new Set()){
+		let n = 0;
+		for (const k of tree?.[id]?.kids ?? []){ if (seen.has(k)) continue; seen.add(k); n += 1 + AISessionView.descendants(tree, k, seen); }
+		return n;
 	}
 
 	/** One small red tag per flag that applies to the row (AISessionFlags). */

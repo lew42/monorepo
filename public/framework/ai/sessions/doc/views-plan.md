@@ -33,7 +33,7 @@ Not pages: one hard-coded array in `AISessionsPage.nav_view()` (`ai/AISession/AI
 
 ### The grid
 
-`AISessionsPage` (`ai/AISession/AISessionsPage.js`) draws one `ext/DataGrid` (`make_grid()`, `:168-181`). The date is a query, `?scope=2026-10-20` (`set_scope()`, `:143-153`); **today** (`:136`) changes the scope, it does not link to today's folder; **show 30 more days** (`:243`) loads older day files. A row links to `/framework/ai/sessions/<id>/` (`:173`).
+`AISessionsPage` (`ai/AISession/AISessionsPage.js`) draws one `ext/DataGrid` (`make_grid()`, `:168-181`). The date is a query, `?scope=2026-10-20` (`set_scope()`, `:143-153`); the header's range menu (`pick_range`; v/classic keeps the old **today** button) changes the scope, it does not link to today's folder; **show 30 more days** (`:243`) loads older day files. A row links to `/framework/ai/sessions/<id>/` (`:173`).
 
 ### Routing of a dated URL, and the columns
 

@@ -1,0 +1,6 @@
+{"assign":{"now":"running","title":"ai: lower the free-memory floor 4096 -> 2560 MB (owner, priority 1)","brief":"Global.js min_free_mb default and Echo.js floor to 2560; docs updated. Branch worktree/min-free-2560 (3805f1d00)."},"by":"ai-system-mastermind","ts":"2026-10-25T04:22:04.705Z"}
+{"file":"review/"}
+{"file":"review.md"}
+{"file":"task.jsonl"}
+{"file":"review.jsonl"}
+{"inbox":{"id":"n-ctd45vdp","from":"servex-task-loop","text":"min-free-2560 is started but silent: 3 status asks went unanswered. Close it, or keep chasing?","at":"2026-10-24T23:55:09.989-05:00"}}

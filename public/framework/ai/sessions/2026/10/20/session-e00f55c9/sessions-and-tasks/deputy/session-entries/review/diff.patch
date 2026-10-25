@@ -1,0 +1,799 @@
+diff --git a/Server/ChildLinks.mjs b/Server/ChildLinks.mjs
+index eb43bb666..3877919e8 100644
+--- a/Server/ChildLinks.mjs
++++ b/Server/ChildLinks.mjs
+@@ -1,11 +1,17 @@
+ // A child session is a task in its PARENT SESSION's record (doc: public/framework/core/Session/readme.md, "How work gets into a session").
+ //   node Server/ChildLinks.mjs [--root <repo>] [--registry <registry.json>] [--names <session id>]   dry run: one manifest line per child, then the counts. Writes nothing.
+ //   node Server/ChildLinks.mjs --apply [...]                                                          appends the lines
++//   node Server/ChildLinks.mjs --entries [--names <session id>] [--root <repo>] [--registry <file>] [--list] [--apply]
++//       THE SESSION-ENTRIES BACKFILL (core/Session/readme.md, "Session entries"): every folder under the session's day folders, and every child
++//       the registry puts under it, becomes an entry on its parent's record; an old plain link to a session's folder gets a later line with the same
++//       id that adds type and spawn. Dry run by default (the manifest printed, nothing written); --apply appends the lines and the manifest
++//       (public/framework/ai/sessions/session-entries.jsonl). Entries go at the top level: with 100+ open tasks, a guessed cause is often wrong.
+ // As a module: ChildLinks.link(child_dir, parent_session, agent) is what Agents.open_task calls at spawn; ChildLinks.plan() / apply() are this script.
+ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+ import SessionRecord from "./SessionRecord.mjs";
++import { role_readme_path } from "../Servex/agents/roles.js";
+ 
+ const SELF_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const slash = p => String(p).replaceAll("\\", "/");
+@@ -55,8 +61,10 @@ export default class ChildLinks {
+ 
+ 	/** THE WRITE: the child's folder becomes a task on its parent SESSION's record, when it does not already sit inside that session's folder
+ 	 *  (SessionRecord.link_parent has it then). One {"task":url,"as":agent} line, never twice (add_ref). Returns
+-	 *  { why } when nothing was written (no-session, no-record, inside, no-folder, self), else { log, wrote: bool }. */
+-	static link(child_dir, parent_session, agent, { root = process.cwd(), by = this.by, map = null, parent_dir = null } = {}){
++	 *  { why } when nothing was written (no-session, no-record, inside, no-folder, self), else { log, wrote: bool }.
++	 *  With `entry` (a spawn's {type, spawn, cause}) the line is a Session entry, and its id is the folder name: an agent id is reused across
++	 *  spawns, and two entries with one id replace each other on replay (the agent id is kept in spawn.agent). */
++	static link(child_dir, parent_session, agent, { root = process.cwd(), by = this.by, map = null, parent_dir = null, entry = null } = {}){
+ 		const abs = path.resolve(root, child_dir), url = this.url_of(abs, root);
+ 		if (!url) return { why: "no-folder" };
+ 		let top = this.session_dir(parent_session, path.resolve(root), map);
+@@ -68,7 +76,7 @@ export default class ChildLinks {
+ 		const log = SessionRecord.file(top);
+ 		if (!log) return { why: "no-record" };
+ 		const before = fs.statSync(log).size;
+-		SessionRecord.add_ref(log, url, by, agent);
++		SessionRecord.add_ref(log, url, by, entry ? undefined : agent, entry);
+ 		return { log, url, wrote: fs.statSync(log).size !== before };
+ 	}
+ 
+@@ -112,6 +120,95 @@ export default class ChildLinks {
+ 		return out;
+ 	}
+ 
++	static ENTRIES = "public/framework/ai/sessions/session-entries.jsonl";   // what `--entries --apply` wrote, one row per line, so it can be undone
++
++	/** A folder's kind from its record: "session" (a {session} line 1, or a spawn's {assign} line anywhere: a queued brief writes its own assign first),
++	 *  "project" ({class:"Project"}), else "task". The same rule as Task.from_ref. */
++	static kind(lines){
++		const line1 = lines[0];
++		if (line1?.session && typeof line1.session === "object") return "session";
++		if (lines.some(l => l?.assign?.session_id && l.assign.agent)) return "session";
++		return line1?.class === "Project" || line1?.type === "Project" ? "project" : "task";
++	}
++	/** The spawn line of a session folder's record: the first {assign} with a session_id and an agent, else line 1. */
++	static spawn_line(lines){ return lines.find(l => l?.assign?.session_id && l.assign.agent) ?? lines[0]; }
++	/** The spawn configuration of a session folder, from its own line 1 and the registry row: what a Session entry carries. */
++	static spawn_of(line1, rows = {}){
++		const a = line1?.assign ?? {}, r = rows[a.agent] ?? {};
++		const out = { role: a.role ?? r.role, model: a.model ?? r.model, effort: a.effort ?? r.effort, role_readme: a.role_readme ?? (a.role || r.role ? role_readme_path(a.role ?? r.role) : null),
++			brief: a.brief, session_id: a.session_id ?? line1?.session?.id, agent: a.agent, at: a.requested_at ?? line1?.session?.at, placed: "backfill" };
++		return Object.fromEntries(Object.entries(out).filter(([, v]) => v != null));
++	}
++	/** The lines of a log that point at `url`: [{cause, as, typed}] (a reference at the top, or nested one level under a cause, or a tasks.add with this path). */
++	static refs_in(lines, url){
++		const out = [];
++		for (const l of lines){
++			if (l?.task === url) out.push({ cause: null, as: l.as ?? null, typed: l.type === "Session" });
++			for (const [k, v] of Object.entries(l ?? {})) if (v && typeof v === "object" && v.task === url) out.push({ cause: k, as: v.as ?? null, typed: v.type === "Session" });
++			for (const a of [].concat(l?.tasks?.add ?? [])) if (a?.path === url) out.push({ cause: null, as: a.id ?? null, typed: a.type === "Session", inline: true });
++		}
++		return out;
++	}
++
++	/** The backfill's dry run for one session: every folder below its day folders (by the parent_log rule), then the registry's children outside
++	 *  them. Returns { rows: [{url, log, kind, action, line?}], counts }. action: add (no reference yet), upgrade (a plain reference to a session
++	 *  folder), entry (already a Session entry), ref (a task or project folder already referenced), registry rows as ChildLinks.plan has them. */
++	static entries_plan(rows = {}, root = SELF_ROOT, { names_session = E00 } = {}){
++		const rec = new SessionRecord({ root }), id8 = names_session.slice(0, 8), out = [], texts = new Map(), seen = new Set();
++		const lines_of = f => { if (!texts.has(f)) texts.set(f, fs.readFileSync(f, "utf8").split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } })); return texts.get(f); };
++		const line1 = f => lines_of(f)[0] ?? null;
++		const url_of = d => "/" + slash(path.relative(path.join(root, "public"), d)) + "/";
++		const by = "ChildLinks --entries", ts = new Date().toISOString();
++		const consider = (dir, log) => {
++			const own = SessionRecord.log_file(dir); if (!own || !log) return;
++			const url = url_of(dir), all = lines_of(own), l1 = this.spawn_line(all), kind = this.kind(all);
++			if (seen.has(url)) return; seen.add(url);   // a folder is planned once, on the first log that is its parent (the walk comes before the registry)
++			const refs = this.refs_in(lines_of(log), url), row = { url, log: slash(path.relative(root, log)), kind };
++			const spawn = kind === "session" ? this.spawn_of(l1, rows) : null;
++			if (!refs.length){
++				row.action = "add";
++				row.line = kind === "session" ? { task: url, type: "Session", spawn, by, ts } : { task: url, by, ts };
++			} else if (kind === "session" && !refs.some(r => r.typed)){
++				const r = refs.at(-1), body = { task: url, ...(r.as ? { as: r.as } : {}), type: "Session", spawn };
++				row.action = "upgrade";
++				row.line = r.cause ? { [r.cause]: body, by, ts } : { ...body, by, ts };   // the same id (and the same cause) as the line it upgrades: a later reference replaces the earlier
++			} else row.action = refs.some(r => r.typed) ? "entry" : "ref";
++			out.push(row);
++		};
++		const tops = [...rec.day_children()].filter(d => path.basename(d) === "session-" + id8 || path.basename(d) === names_session);
++		const walk = dir => { for (const e of fs.readdirSync(dir, { withFileTypes: true })){
++			if (!e.isDirectory() || ["node_modules", "screenshots", "transcripts"].includes(e.name)) continue;
++			const c = path.join(dir, e.name), own = SessionRecord.log_file(c);
++			if (own){ const all = lines_of(own), a = (this.spawn_line(all) ?? all[0])?.assign ?? {}; consider(c, SessionRecord.parent_log(c, { parent: a.parent_task && path.resolve(root, a.parent_task) })); }
++			walk(c);
++		} };
++		for (const top of tops) walk(top);
++		// The registry's children whose folder is outside the session's folders (core/Page/tasks/…, spawned/…): an entry on the session's own record.
++		const map = this.sessions(root, rows);
++		for (const p of this.plan(rows, root, { names_session })){
++			if (!p.url || ["no-folder", "no-session", "no-record", "self", "inside"].includes(p.why)) continue;
++			const top = this.session_dir(p.session_id, root, map), log = top && SessionRecord.file(top);
++			if (log) consider(path.join(root, "public", p.url), log);
++		}
++		const counts = {}; for (const r of out){ counts[r.action] = (counts[r.action] ?? 0) + 1; counts["kind:" + r.kind] = (counts["kind:" + r.kind] ?? 0) + 1; }
++		return { rows: out, counts, session_folders: tops.map(d => slash(path.relative(root, d))) };
++	}
++	/** Append each planned line (add, upgrade) to its log, and the manifest. Never twice: a row whose url is already a Session entry is skipped. Returns the number written. */
++	static entries_apply(plan, root = SELF_ROOT){
++		const run = new Date().toISOString(), manifest = [{ run, kind: "session-entries", counts: plan.counts }];
++		let n = 0;
++		for (const r of plan.rows){
++			if (!r.line) continue;
++			const log = path.join(root, r.log), text = fs.readFileSync(log, "utf8");
++			if (this.refs_in(text.split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }), r.url).some(x => x.typed)) continue;
++			fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify(r.line) + "\n");
++			manifest.push({ run, log: r.log, url: r.url, action: r.action, line: r.line }); n++;
++		}
++		const mf = path.join(root, this.ENTRIES); fs.mkdirSync(path.dirname(mf), { recursive: true });
++		fs.appendFileSync(mf, manifest.map(l => JSON.stringify(l)).join("\n") + "\n");
++		return n;
++	}
++
+ 	/** Append the lines the plan says (`why: "append"`). Returns the number written. */
+ 	static apply(plan, root = SELF_ROOT, rows = {}){
+ 		const map = this.sessions(root, rows);
+@@ -127,6 +224,17 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href){
+ 	let regfile = arg("--registry");
+ 	if (!regfile){ const { place } = await import("../Servex/home.js"); regfile = place("registry.json"); }
+ 	const rows = JSON.parse(fs.readFileSync(regfile, "utf8"));
++	if (process.argv.includes("--entries")){
++		const plan = ChildLinks.entries_plan(rows, root, arg("--names") ? { names_session: arg("--names") } : {});
++		console.log("session folders:", plan.session_folders.join("  "));
++		for (const r of plan.rows) if (process.argv.includes("--list") || r.line) console.log(`${r.action.padEnd(8)} ${r.kind.padEnd(8)} ${r.url}  -> ${r.log}`);
++		console.log("counts:", JSON.stringify(plan.counts));
++		const stray = plan.rows.filter(r => r.kind === "task");
++		console.log(`item 33 check: ${stray.length} folder(s) are neither a session nor a project (a task that should have been a line)` + (stray.length ? ": " + stray.slice(0, 8).map(r => r.url).join("  ") + (stray.length > 8 ? " …" : "") : ""));
++		if (process.argv.includes("--apply")) console.log(`appended ${ChildLinks.entries_apply(plan, root)} line(s); manifest ${ChildLinks.ENTRIES}`);
++		else console.log(`dry run: --apply would append ${plan.rows.filter(r => r.line).length} line(s)`);
++		process.exit(0);
++	}
+ 	const plan = ChildLinks.plan(rows, root, arg("--names") ? { names_session: arg("--names") } : {});
+ 	for (const r of plan) console.log(`${r.session}  ${r.url ?? "-"}  ${r.agent}  ${r.why}`);
+ 	const by = {}; for (const r of plan) by[r.why] = (by[r.why] ?? 0) + 1;
+diff --git a/Server/SessionRecord.mjs b/Server/SessionRecord.mjs
+index 3d4a75afb..60ea23da9 100644
+--- a/Server/SessionRecord.mjs
++++ b/Server/SessionRecord.mjs
+@@ -68,19 +68,20 @@ export default class SessionRecord {
+ 	 *  Task.replay read it as a subtask. Never twice, never above the session folder. Returns the parent's log file, or null. */
+ 	/*  Options: `parent` (an explicit parent folder, e.g. open_task's parent_task: the task that handed work to a child session) wins over
+ 	 *  the nearest folder; `session_id` (the full id of the session that made the folder) lets a VS Code tab's `session-<id8>/` folder,
+-	 *  which has no log of its own yet, get one: its first line is {"session":{id, kind:"vscode-tab"}}, then the reference. */
+-	static link_parent(dir, by = "TaskDirs", { parent = null, session_id = null } = {}){
++	 *  which has no log of its own yet, get one: its first line is {"session":{id, kind:"vscode-tab"}}, then the reference; `entry`
++	 *  ({type, spawn, cause}) makes that reference a Session entry (add_ref). */
++	static link_parent(dir, by = "TaskDirs", { parent = null, session_id = null, entry = null } = {}){
+ 		const abs = path.resolve(dir), pub = slash(abs).match(/^(.*\/public)\//)?.[1];
+ 		const url = pub && "/" + slash(path.relative(pub, abs)) + "/";
+ 		const log = this.parent_log(abs, { parent });
+-		if (log) return this.add_ref(log, url, by);
++		if (log) return this.add_ref(log, url, by, undefined, entry);
+ 		// No log up to the session folder: a tab's session-<id8>/ holding only its transcript cache or digest tags. Its record is session.jsonl.
+ 		const top = this.session_top(abs), id8 = top && path.basename(top).match(/^session-([0-9a-f]{8})$/)?.[1];
+ 		if (!id8) return null;   // spawned/, cards/, cloud-voice-*: containers or sessions that keep their own log
+ 		if (!String(session_id ?? "").startsWith(id8)) return null;   // never invent a session id
+ 		const rec = path.join(top, this.NEW);
+ 		fs.appendFileSync(rec, JSON.stringify({ session: { id: session_id, kind: "vscode-tab", at: new Date().toISOString() }, by }) + "\n");
+-		return this.add_ref(rec, url, by);
++		return this.add_ref(rec, url, by, undefined, entry);
+ 	}
+ 	/** The session folder (`.../framework/ai/sessions/YYYY/MM/DD/<session>`) above `abs`, or null when `abs` is outside the store or is that folder itself. */
+ 	static session_top(abs){
+@@ -100,12 +101,24 @@ export default class SessionRecord {
+ 		return /^session-[0-9a-f]{8}$/.test(path.basename(top)) && fs.existsSync(rec) ? rec : null;
+ 	}
+ 	/** One {"task":"<url>"} line on `log`, unless it already names the url (a reference, or a tasks.add with this path). Returns `log`. */
+-	static add_ref(log, url, by, as = undefined){
++	/*  A SESSION ENTRY (core/Session/readme.md, "Session entries"): with `entry` = {type: "Session", spawn: {…}, cause}, the line is
++	 *  {"task":url,"type":"Session","spawn":{…,"placed"}}, nested under the task that caused it: {"<cause id>":{that}}. `cause` is a task id,
++	 *  or a function (log) => {id, placed} that reads the log the line is about to go on (Agents.js cause_of); `placed` says which rule chose it. */
++	static add_ref(log, url, by, as = undefined, entry = null){
+ 		let text = ""; try { text = fs.readFileSync(log, "utf8"); } catch {}
+ 		if (text.includes(`"task":"${url}"`) || text.includes(`"path":"${url}"`)) return log;
+-		fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify({ task: url, as, by, ts: new Date().toISOString() }) + "\n");
++		fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify(this.entry_line(log, url, by, as, entry)) + "\n");
+ 		return log;
+ 	}
++	/** The reference line add_ref writes: a plain {"task":url,"as"} line, or a Session entry nested under its cause. */
++	static entry_line(log, url, by, as, entry){
++		const ts = new Date().toISOString();
++		if (!entry) return { task: url, as, by, ts };
++		let cause = typeof entry.cause === "function" ? entry.cause(log) : entry.cause ? { id: entry.cause, placed: "explicit" } : null;
++		if (!cause?.id) cause = { id: null, placed: cause?.placed ?? "top" };
++		const body = { task: url, as, type: entry.type ?? "Session", ...(entry.spawn ? { spawn: { ...entry.spawn, placed: cause.placed } } : {}) };
++		return cause.id ? { [cause.id]: body, by, ts } : { ...body, by, ts };
++	}
+ 	/** The census behind `--links`: every folder below a session folder that has a log, and whether its parent references it.
+ 	 *  Returns { total, linked, missing: [{dir, session_id}], unhomed: [dir] } (unhomed: no log up to the session folder and no way to start one). */
+ 	links(){
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 88ffce476..63460e668 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
+ import Log from "../Log.js";
+ import { stamp, place } from "../home.js";
+ import Registry, { alive } from "./Registry.js";
+-import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, singleton_id, renew_of } from "./roles.js";
++import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, role_readme_path, singleton_id, renew_of } from "./roles.js";
+ import { OR_ONLY } from "./tiers.js";
+ import { first_prompt } from "./readme-chain.js";
+ import Task from "../../public/framework/core/Task/Task.js";
+@@ -62,7 +62,7 @@ export class Agents {
+ 
+ 	/* `boot` names THIS host process — every registry row it writes carries it,
+ 	 * so the next boot can tell "alive a moment ago" from "long dead". */
+-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); Task.turns_resolver = sid => this.session_turns(sid); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
++	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); Session.agents_at_resolver = task => this.agents_at(task); Task.turns_resolver = sid => this.session_turns(sid); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
+ 	assign(...args){ return Object.assign(this, ...args); }
+ 
+ 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
+@@ -223,7 +223,7 @@ export class Agents {
+ 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
+ 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
+ 		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
+-		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_session: spec.parent ? spec.parent_session ?? this.session_of(spec.parent) : null, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
++		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, effort: spec.effort ?? role_defaults(spec.role).effort ?? null, role_readme: role_readme_path(spec.role), worktree: worktree_of(spec.cwd), parent_session: spec.parent ? spec.parent_session ?? this.session_of(spec.parent) : null, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+ 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
+ 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
+ 		const fresh = !again && !spec.system;
+@@ -719,10 +719,13 @@ export class Agents {
+ 	}
+ 
+ 	/* A task's cost: logged_cost summed over the agents whose task dir is this task's (`task` = its app path or dir). Task.cost reads it. */
+-	task_cost(task){
+-		if (!task) return 0;
++	task_cost(task){ return this.agents_at(task).reduce((s, a) => s + a.cost, 0); }
++	/* The agents whose task dir is exactly this task's folder (`task` = its app path or dir), each with its logged cost: [{id, cost}].
++	 * A Session entry's own cost is this sum, and its ids are what the session's cost does not count a second time (Session.agents_at_resolver). */
++	agents_at(task){
++		if (!task) return [];
+ 		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.resolve(MAIN_ROOT, "public", "." + task) : path.resolve(MAIN_ROOT, task);   // resolve, not join: a url path ends in "/", and the keys have no trailing separator
+-		return (this.task_dirs().get(want.toLowerCase()) ?? []).reduce((s, id) => s + this.logged_cost(id), 0);
++		return (this.task_dirs().get(want.toLowerCase()) ?? []).map(id => ({ id, cost: this.logged_cost(id) }));
+ 	}
+ 
+ 	/* Registry rows by task dir (resolved, lower case), rebuilt at most once a minute: a session of 150 tasks asks task_cost 150 times,
+@@ -1031,7 +1034,7 @@ function directory_of(spec){
+  * a caller opened earlier (or a sibling agent shares), it just adds one more
+  * assign line with the same facts, exactly like every other `assign` a task
+  * log collects over its life — never touching what came before it. */
+-export function open_task(task, { session_id, agent, role, by, model, worktree, parent_dir, parent_session }){
++export function open_task(task, { session_id, agent, role, by, model, effort = null, role_readme = null, worktree, parent_dir, parent_session }){
+ 	// An old-shaped dir (ai/YYYY-MM-DD/<slug>/) from a brief goes to the task store instead (Server/TaskDirs.mjs,
+ 	// ai/doc/task-folders.md); task.dir is rewritten so everything after this (directory_of, the inbox) sees the real place.
+ 	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
+@@ -1047,26 +1050,50 @@ export function open_task(task, { session_id, agent, role, by, model, worktree,
+ 	// `after` is task dirs in the same form as parent_task, so the tree matches them exactly.
+ 	const after = Array.isArray(task.after) && task.after.length ? task.after.map(rel) : undefined;
+ 	const line = JSON.stringify({ assign: strip({ session_id, agent, role, card: task.card, brief: task.brief, title: task.title,
+-		model, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
++		model, effort: effort ?? undefined, role_readme: role_readme ?? undefined, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
+ 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
+ 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
+ 	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
+ 	// A handoff (`task: {from, id}`) is referenced by move_item's own `as` line; a second plain one would replay as a twin child, so link only without a handoff (or when it is refused, below).
+-	const link = () => { try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch (e){ console.warn("link_parent failed for", dir, e); }
+-		// A folder outside the parent SESSION's own folder (core/Page/tasks/…, spawned/…) is still its child: one {"task","as"} line on the session's record (ChildLinks).
+-		if (parent_session) try { ChildLinks.link(dir, parent_session, agent, { by: "Servex", parent_dir }); } catch (e){ console.warn("ChildLinks.link failed for", dir, e); } };
++	/* THE SESSION ENTRY (core/Session/readme.md, "Session entries"): the reference is {"task":url,"type":"Session","spawn":{…}}, nested under
++	 * the task that caused the spawn (cause_of, below). The configuration is what this spawn ran with; a role readme is named by its path, never retyped. */
++	const spawn = strip({ role, model, effort, role_readme, brief: task.brief, session_id, agent, at: stamp() });
++	const entry = { type: "Session", spawn, cause: log => cause_of(log, task.cause) };
++	const link = () => { try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id, entry }); } catch (e){ console.warn("link_parent failed for", dir, e); }
++		// A folder outside the parent SESSION's own folder (core/Page/tasks/…, spawned/…) is still its child: one entry on the session's record (ChildLinks).
++		if (parent_session) try { ChildLinks.link(dir, parent_session, agent, { by: "Servex", parent_dir, entry }); } catch (e){ console.warn("ChildLinks.link failed for", dir, e); } };
+ 	const handoff = !!(task.from && task.id);
+ 	if (!handoff) link();
+-	// Handoff by task: `task: {from, id}` moves that subtask out of the spawner's log into this folder (page_tools.js move_item).
++	// Handoff by task: `task: {from, id}` moves that subtask out of the spawner's log into this folder (page_tools.js move_item). The subtask is
++	// upgraded in place: its reference keeps its id and becomes the Session entry (cause rule b, "handoff").
+ 	// Not awaited (open_task is synchronous): the history lands just after the first turn starts. A refusal is written into the new log, so it is seen.
+ 	if (handoff){
+ 		const log = SessionRecord.start_file(dir, JSON.parse(line)), refused = why => { fs.appendFileSync(log, JSON.stringify({ handoff: { from: task.from, id: task.id, refused: why }, by: "servex", ts: stamp() }) + "\n"); link(); };
+-		move_item({ from: task.from, id: task.id, to: "/" + path.relative(path.join(process.cwd(), "public"), dir).split(path.sep).join("/") + "/", by: task.by ?? by ?? "spawn" })
++		move_item({ from: task.from, id: task.id, to: "/" + path.relative(path.join(process.cwd(), "public"), dir).split(path.sep).join("/") + "/", by: task.by ?? by ?? "spawn", entry: { type: "Session", spawn: { ...spawn, placed: "handoff" } } })
+ 			.then(r => { if (r.why) refused(r.why); }, e => refused(String(e.message || e)));
+ 	}
+ 	return dir;
+ }
+ 
++/* WHICH TASK CAUSED A SPAWN, on the log its Session entry goes on (SessionRecord.add_ref calls this with that log). In order:
++ * (a) `explicit`, the spawn's `task.cause`, when that task is on the log; (c) the log's most recently started task that is still running
++ * (an inline task, never another child session); (d) none: the entry goes at the top. (b), a handoff, is open_task's own: the moved subtask
++ * itself. Returns {id, placed}. Replays with no resolver, so no child file is read: a reference stays a stub, which is never "running". */
++export function cause_of(log, explicit = null){
++	let lines; try { lines = fs.readFileSync(log, "utf8").split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch { return { id: null, placed: "top" }; }
++	if (!lines.length) return { id: null, placed: "top" };
++	const Class = lines[0]?.session && typeof lines[0].session === "object" ? Session : Task, saved = Task.resolver;
++	let root; Task.resolver = null;
++	try { root = Class.replay(lines); } catch { return { id: null, placed: "top" }; } finally { Task.resolver = saved; }
++	if (explicit && root._tasks && root.find(explicit) && root.find(explicit) !== root) return { id: explicit, placed: "explicit" };
++	let hit = null;
++	const walk = list => { for (const t of list ?? []){ if (t._own_file || t.is_session) continue;
++		if (t.state === "running" && (!hit || Date.parse(t.get_one("started_at") ?? "") >= Date.parse(hit.get_one("started_at") ?? ""))) hit = t;
++		walk(t._tasks); } };
++	walk(root._tasks);
++	return hit ? { id: hit.id, placed: "running" } : { id: null, placed: "top" };
++}
++
+ /* Queued siblings a landed task unblocks: task dirs next to it whose `assign.after` names it, that no agent has
+  * started, and whose every `after` has landed. [{dir, brief}], repo-relative like `after` itself. */
+ export function next_briefs(dir){
+diff --git a/Servex/agents/child-links.test.mjs b/Servex/agents/child-links.test.mjs
+index 838ccdd54..3214a20ab 100644
+--- a/Servex/agents/child-links.test.mjs
++++ b/Servex/agents/child-links.test.mjs
+@@ -27,24 +27,24 @@ try {
+ 	// spawn: a child whose folder is OUTSIDE the parent session's folder
+ 	open_task({ dir: OUT }, { session_id: CID, agent: "kid-x", parent_session: PID });
+ 	t.eq(refs(CURL).length, 1, "the spawn put one reference to the outside folder on the parent's record");
+-	t.eq(refs(CURL)[0]?.as, "kid-x", "the line says which agent it is (as)");
++	t.ok(refs(CURL)[0]?.type === "Session" && refs(CURL)[0]?.spawn?.agent === "kid-x" && refs(CURL)[0]?.as === undefined, "the line is a Session entry naming its agent (spawn.agent); its id is the folder name, since agent ids are reused");
+ 	open_task({ dir: OUT }, { session_id: CID, agent: "kid-x", parent_session: PID });
+ 	t.eq(refs(CURL).length, 1, "spawning again adds nothing (never twice)");
+ 	const P = () => Session.replay(read(PFILE));
+-	t.ok(P().tasks.find("kid-x"), "the parent's replay has the child as a task");
++	t.ok(P().tasks.find("child") instanceof Session, "the parent's replay has the child as a task, a Session");
+ 	t.eq(P().progress().total, 1, "the parent's tasks count includes the child");
+ 	t.eq(P().completion, 0, "an unfinished child: completion 0");
+ 
+ 	// a child folder INSIDE the parent's folder keeps link_parent's plain line, and ChildLinks adds no second one
+ 	open_task({ dir: path.relative(ROOT, IN) }, { session_id: "0e0e0e0e-aaaa-4bbb-8ccc-000000000002", agent: "kid-in", parent_session: PID });
+ 	const inside = refs(PURL + "inside-kid/");
+-	t.ok(inside.length === 1 && inside[0].as === undefined, "a folder inside the parent's: one plain line from link_parent, none from ChildLinks");
++	t.ok(inside.length === 1 && inside[0].as === undefined && inside[0].spawn?.agent === "kid-in", "a folder inside the parent's: one entry from link_parent, none from ChildLinks");
+ 	t.eq(P().progress().total, 2, "two children now");
+ 
+ 	// complete the outside child; the parent's completion moves
+ 	const r = await run_item({ path: CURL, delta: { complete: { outcome: "done", evidence: ["test"] } } }, { caller: "kid-x" });
+ 	t.ok(r.ok, "the child completes its own task: " + (r.why ?? ""));
+-	t.ok(P().tasks.find("kid-x")?.state === "complete" && P().progress().done === 1, "the parent sees the child complete");
++	t.ok(P().tasks.find("child")?.state === "complete" && P().progress().done === 1, "the parent sees the child complete");
+ 	t.eq(P().completion, 0.5, "completion moved 0 -> 0.5 (one of two children done)");
+ 
+ 	// the backfill: a registry row for a third child, dry run writes nothing, apply writes once
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 009fee6ef..70d33b9cf 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -578,7 +578,8 @@ export async function move_nested_home(record, id, module, by = "PromptTasks"){
+  * {"task": to, "as": id, "moved_from": "<from>#<id>"}, which Task/Session replay swap for the nested child (same id).
+  * Order: check everything, then write the new file, the old-home reference and the ledger line. A refusal writes nothing.
+  * Returns {from, to, file} or {why}. Callers: the item tool's `move` key, open_task (handoff), move_nested_home. */
+-export async function move_item({ from, id, to, by = "agent", module } = {}){
++// `entry` ({type, spawn}, a spawn's handoff): the reference left behind is the Session entry, so the subtask is upgraded in place.
++export async function move_item({ from, id, to, by = "agent", module, entry = null } = {}){
+ 	const pf = resolve_file(from, true), dir = typeof to === "string" ? path.resolve(PUBLIC, to.replace(/^[\\/]+/, "")) : null;
+ 	if (!pf || !fs.existsSync(pf)) return { why: `no record at ${from}` };
+ 	if (!dir || !dir.startsWith(PUBLIC + path.sep)) return { why: `"${to}" is not a folder under public/` };
+@@ -618,7 +619,7 @@ export async function move_item({ from, id, to, by = "agent", module } = {}){
+ 	if (!fs.existsSync(path.join(dir, "page.js"))) fs.writeFileSync(path.join(dir, "page.js"), PAGE_JS);
+ 	// 5. The old home: one reference, with the id it had here. 6. The ledger.
+ 	const at = now();
+-	write_line(pf, { task: url, as: id, moved_from, by, ts: at }, true);
++	write_line(pf, { task: url, as: id, ...(entry?.type ? { type: entry.type } : {}), ...(entry?.spawn ? { spawn: entry.spawn } : {}), moved_from, by, ts: at }, true);
+ 	fs.mkdirSync(path.dirname(ledgers.task_moves), { recursive: true });
+ 	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: `${rel(pf)}#${id}`, to: rel(dir), session: parent_url, ...(module ? { module } : {}), by, git: false }) + "\n");
+ 	return { from: moved_from, to: url, file: nf };
+@@ -756,16 +757,39 @@ export function session_state(task, tasks = []){
+ 	// Its agents: those whose task is in its folder, and (by its uuid) those it spawned anywhere since it began.
+ 	const dir = task.store?.file ? path.dirname(task.store.file) : null, uuid = /^[0-9a-f]{8}-/.test(task.id ?? "") ? task.id : null;
+ 	const agents = dir ? (task.constructor.agents_resolver?.(dir, { session_id: uuid, since: task.first_at ? new Date(task.first_at).toISOString() : null }) ?? []) : [];
+-	const own = dir ? own_cost(dir) : null;
+-	const child_cost = agents.reduce((s, a) => s + (a.cost || 0), 0);
++	/* THE THREE COSTS (session-is-a-task item 32): own, children = the sum of each child's total, total = own + children. Computed on read.
++	 * Own is the tab's transcript (cache.jsonl), else, for a spawned agent's record, the agents whose task is this folder. Children come from the
++	 * Session entries first (entry_children); an agent with no entry yet (not backfilled) still counts through the registry (`agents`), once. */
++	const at = task.constructor.agents_at_resolver, counted = new Set();
++	let own = dir ? own_cost(dir) : null;
++	if (!own && dir && at){ const mine = at(app_path(dir)); mine.forEach(a => counted.add(a.id)); if (mine.length) own = { usd: r2(mine.reduce((s, a) => s + a.cost, 0)), agents: mine.map(a => a.id) }; }
++	const entries = entry_children(task, at, counted);
++	const unlinked = nest_agents(agents.filter(a => !counted.has(a.id))).map(a => ({ ...a, agent: a.id, linked: false }));
++	const child_cost = entries.reduce((s, c) => s + c.total, 0) + unlinked.reduce((s, a) => s + (a.total || 0), 0);
+ 	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
+ 	return { class: "Session", id: task.id, completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
+ 		cost: { total: r2((own?.usd ?? 0) + child_cost), own, children: r2(child_cost), tasks: r2(task_cost) },
+-		counts: { direct: counts(task._tasks ?? []), all: counts(all) }, biggest, children: nest_agents(agents), agents: agents.length,
++		counts: { direct: counts(task._tasks ?? []), all: counts(all), children: { entries: count_entries(entries), unlinked: agents.filter(a => !counted.has(a.id)).length } },
++		biggest, children: [...entries, ...unlinked], agents: agents.length,
+ 		// Its own turns bucketed by the task open at the time (Task.attribute); null when no per-turn record exists (a VS Code tab today).
+ 		by_task: (turns => turns.length ? task.attribute(turns) : null)(task.constructor.turns_resolver?.(uuid) ?? []), data: { ...task.data }, tasks };
+ }
+ 
++/* The child sessions as a tree, from the entries (Task.sessions_below: a Session entry at any depth of the task tree, under its cause).
++ * Each: its own cost (the agents whose task is its folder; `counted` collects their ids so the registry fallback never counts them again),
++ * its own children the same way, and its total. Rows keep the registry rows' shape (id, state, role, session_id, cost, total, children). */
++function entry_children(node, at, counted){
++	return node.sessions_below().map(kid => {
++		const p = kid.get_one("path"), spawn = kid.get_one("spawn") ?? null, mine = (at?.(p) ?? []).filter(a => !counted.has(a.id));
++		mine.forEach(a => counted.add(a.id));
++		const cost = r2(mine.reduce((s, a) => s + a.cost, 0)), children = entry_children(kid, at, counted);
++		return { id: kid.id, title: kid.get_one("title") ?? kid.id, state: kid.state, path: p, linked: true,
++			agent: spawn?.agent ?? kid.get_one("agent") ?? mine[0]?.id ?? null, role: spawn?.role ?? kid.get_one("role") ?? null,
++			session_id: spawn?.session_id ?? kid.get_one("session") ?? null, spawn, cost, total: r2(cost + children.reduce((s, c) => s + c.total, 0)), children };
++	});
++}
++const count_entries = list => list.reduce((n, c) => n + 1 + count_entries(c.children), 0);
++
+ function task_state(Task, task){
+ 	const tasks = [...(task._tasks ?? [])].map(row_of);
+ 	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.step?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
+@@ -816,7 +840,7 @@ function query_args(arg){ return Array.isArray(arg) ? arg : is_plain(arg) && Obj
+ // A Session's queries are answered here, from session_state (its one picture), because its cost needs node: own_cost reads cache.jsonl.
+ // `completion` is the one tally every Task-family node answers: its tasks' current states and the number computed from them.
+ const TALLY = n => ({ stopped: 0, ...n.progress(), completion: n.completion });
+-const NODE_QUERIES = { Session: { progress: n => n.progress(), cost: n => session_state(n, []).cost, summary: n => session_state(n, []) } };
++const NODE_QUERIES = { Session: { progress: n => n.progress(), cost: n => session_state(n, []).cost, children: n => session_state(n, []).children, summary: n => session_state(n, []) } };
+ function walk_queries(node, delta, trail = "", out = { answer: {}, queried: false, other: [], set: [] }){
+ 	const into = (kid, sub, here, put) => { const r = walk_queries(kid, sub, here); out.queried ||= r.queried; out.other.push(...r.other); out.set.push(...r.set); if (r.queried) put(r.answer); };
+ 	for (const [key, arg] of Object.entries(delta)){
+diff --git a/Servex/agents/roles.js b/Servex/agents/roles.js
+index b1221ee11..87fc8e323 100644
+--- a/Servex/agents/roles.js
++++ b/Servex/agents/roles.js
+@@ -231,6 +231,13 @@ export function injected(role){
+ export const SKILLS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.claude/skills");
+ export const ROLES_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "roles");
+ 
++/* The repo path of a role's readme (`Servex/agents/roles/<readme>.md`), or null when the role has none. A spawn records this path,
++ * never the text (a Session entry's spawn.role_readme, open_task's line 1). */
++export function role_readme_path(role){
++	const r = row(role);
++	return r?.readme && fs.existsSync(path.join(ROLES_DIR, `${r.readme}.md`)) ? `Servex/agents/roles/${r.readme}.md` : null;
++}
++
+ /* A role readme's text without its leading move comment, or null. */
+ export function role_readme(name){
+ 	try { return fs.readFileSync(path.join(ROLES_DIR, `${name}.md`), "utf8").replace(/^<!--[\s\S]*?-->\r?\n/, "").trim(); }
+diff --git a/Servex/agents/session-entries.test.mjs b/Servex/agents/session-entries.test.mjs
+new file mode 100644
+index 000000000..e0f5a30d0
+--- /dev/null
++++ b/Servex/agents/session-entries.test.mjs
+@@ -0,0 +1,90 @@
++// Every spawn is a Session entry in its parent's record, under the task that caused it (session-is-a-task items 31-33).
++// `node Servex/agents/session-entries.test.mjs`. A scratch tree in the OS temp folder (SERVEX_PUBLIC points the item tool at it): the live public/ is never touched.
++// The registry is stubbed at its two resolvers (Session.agents_at_resolver, Session.agents_resolver): the test checks how costs add up, not Servex's cost log.
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import Test from "../../public/framework/core/Test/Test.js";
++
++const ROOT = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "session-entries-")));
++process.env.SERVEX_PUBLIC = path.join(ROOT, "public");
++const HOME = process.cwd();
++process.chdir(ROOT);   // open_task resolves task.dir against cwd
++const { default: Session } = await import("../../public/framework/core/Session/Session.js");
++const { run_item } = await import("./page_tools.js");
++const { open_task } = await import("./Agents.js");
++const SESS = "public/framework/ai/sessions", PID = "0c0c0c0c-aaaa-4bbb-8ccc-000000000000", KID = "0d0d0d0d-aaaa-4bbb-8ccc-000000000001";
++const PARENT = path.join(ROOT, SESS, "2026/10/24", "parent"), PFILE = path.join(PARENT, "session.jsonl");
++const url = dir => "/" + path.relative(path.join(ROOT, "public"), dir).replaceAll("\\", "/") + "/";
++const PURL = url(PARENT), CHILD = path.join(PARENT, "kid"), CURL = url(CHILD);
++const read = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
++const entries = f => read(f).flatMap(l => l.type === "Session" ? [{ cause: null, e: l }] : Object.entries(l).filter(([, v]) => v?.type === "Session").map(([cause, e]) => ({ cause, e })));
++const item = (p, delta) => run_item({ path: p, delta }, { caller: "test" });
++const SPAWN = { role: "minion", model: "claude-sonnet-5", effort: "medium", role_readme: "Servex/agents/roles/minion.md" };
++
++// The registry, stubbed: what each agent has spent so far.
++const spent = { kid: 0, orphan: 0.25 };
++Session.agents_at_resolver = p => p === CURL ? [{ id: "kid", cost: spent.kid }] : [];
++Session.agents_resolver = () => [{ id: "kid", parent: "test", cost: spent.kid }, { id: "orphan", parent: "test", cost: spent.orphan }];
++
++const t = new Test("session-entries: a spawn is a Session entry under the task that caused it; children and the three costs come from the entries");
++fs.mkdirSync(PARENT, { recursive: true });
++fs.writeFileSync(PFILE, JSON.stringify({ session: { id: PID, kind: "vscode-tab", at: "2026-10-24T10:00:00.000Z" } }) + "\n");
++try {
++	// 1. The parent's task "x" is running.
++	t.ok((await item(PURL, { tasks: { add: { id: "x", title: "x" } } })).ok, "the parent has a task x");
++	t.ok((await item(PURL, { x: { start: {} } })).ok, "x is started");
++
++	// 2. A spawn under that parent: one Session entry, nested under x, carrying the configuration.
++	open_task({ dir: path.relative(ROOT, CHILD), brief: "kid/requirements.md" }, { session_id: KID, agent: "kid", ...SPAWN, parent_session: PID });
++	const es = entries(PFILE);
++	t.eq(es.length, 1, "the parent's record has one Session entry");
++	t.eq(es[0]?.cause, "x", "nested under x, the task that was running");
++	const sp = es[0]?.e.spawn ?? {};
++	t.ok(sp.role === "minion" && sp.model === "claude-sonnet-5" && sp.effort === "medium" && sp.session_id === KID && sp.agent === "kid", "it carries role, model, effort, session id and agent");
++	t.ok(sp.role_readme === "Servex/agents/roles/minion.md" && sp.brief === "kid/requirements.md" && sp.placed === "running", "and the role readme's path, the brief, and which rule placed it");
++	const line1 = read(path.join(CHILD, "session.jsonl"))[0].assign;
++	t.ok(line1.effort === "medium" && line1.role_readme === "Servex/agents/roles/minion.md", "the child's own line 1 records effort and role readme too");
++	open_task({ dir: path.relative(ROOT, CHILD) }, { session_id: KID, agent: "kid", ...SPAWN, parent_session: PID });
++	t.eq(entries(PFILE).length, 1, "spawning into the same folder again adds no second entry");
++
++	// 3. Replay: the entry is a Session under x; children is a view of the entries.
++	const P = () => Session.replay(read(PFILE));
++	const kid = P().find("x")?.tasks.find("kid");
++	t.ok(kid instanceof Session && kid.get_one("spawn")?.agent === "kid", "replayed, the entry is a Session under x, with its spawn");
++	t.ok(P().tasks.find("kid") === undefined, "and not a second, top-level task");
++	t.eq(P().children.map(c => c.id).join(), "kid", "children (computed) lists it, though it sits under x");
++
++	// 4. The item tool: children and cost before the child works, then after it completes.
++	const before = (await item(PURL, { summary: {} })).answer.summary;
++	t.eq(before.counts.children.entries, 1, "summary: one child session from the entries");
++	t.eq(before.cost.children, 0.25, "children cost before: 0 for the child + 0.25 for an agent with no entry (the registry fallback)");
++	spent.kid = 1.5;
++	t.ok((await item(CURL, { complete: { outcome: "done", evidence: ["session-entries.test.mjs"] } })).ok, "the child completes its own task");
++	const after = (await item(PURL, { summary: {} })).answer.summary;
++	t.eq(after.cost.children, 1.75, "children cost after: the child's 1.5 + the unlinked 0.25, the child counted once, not twice");
++	t.eq(after.cost.total, after.cost.children + (after.cost.own?.usd ?? 0), "total = own + children");
++	t.eq(after.children.find(c => c.linked)?.state, "complete", "the child row says complete");
++	t.eq(P().find("x").completion, 1, "x's completion moved 0 -> 1 (its one child session is complete)");
++	t.ok(before.counts.all.complete + 1 === after.counts.all.complete, "the parent's completed count moved by one");
++	const kids = (await item(PURL, { children: {} })).answer.children;
++	t.ok(kids.length === 2 && kids[0].id === "kid" && kids[0].total === 1.5 && kids[1].linked === false, "{children:{}}: the entry (total 1.5), then the unlinked agent");
++
++	// 5. The other cause rules: an explicit cause, no running task (top), and a handoff (the subtask itself becomes the entry).
++	await item(PURL, { tasks: { add: { id: "y", title: "y" } } });
++	open_task({ dir: path.relative(ROOT, path.join(PARENT, "k2")), cause: "y" }, { session_id: "0e0e0e0e-aaaa-4bbb-8ccc-000000000002", agent: "k2", ...SPAWN });
++	t.ok(entries(PFILE).some(x => x.cause === "y" && x.e.spawn?.placed === "explicit"), "an explicit task.cause places the entry under y");
++	await item(PURL, { x: { stop: { why: "test" } } });
++	open_task({ dir: path.relative(ROOT, path.join(PARENT, "k3")) }, { session_id: "0f0f0f0f-aaaa-4bbb-8ccc-000000000003", agent: "k3", ...SPAWN });
++	t.ok(entries(PFILE).some(x => x.cause === null && x.e.spawn?.agent === "k3" && x.e.spawn?.placed === "top"), "with no running task, the entry goes at the top");
++	await item(PURL, { tasks: { add: { id: "h", title: "hand me off" } } });
++	open_task({ dir: path.relative(ROOT, path.join(PARENT, "h-home")), from: PURL, id: "h" }, { session_id: "0a0a0a0a-aaaa-4bbb-8ccc-000000000004", agent: "k4", ...SPAWN });
++	for (let i = 0; i < 50 && !read(PFILE).some(l => l.as === "h"); i++) await new Promise(r => setTimeout(r, 20));
++	const h = read(PFILE).find(l => l.as === "h");
++	t.ok(h?.type === "Session" && h.spawn?.placed === "handoff" && h.spawn?.agent === "k4", "a handoff upgrades the subtask in place: its reference is the Session entry");
++	t.ok(P().tasks.find("h") instanceof Session, "and h replays as a Session, keeping its id");
++} finally {
++	process.chdir(HOME);
++	fs.rmSync(ROOT, { recursive: true, force: true });
++}
++t.done();
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index e9c5a69d0..81457f081 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -47,13 +47,28 @@ export default class Session extends Task {
+ 	/* The agent sessions that ran under this session's folder: dir -> [{id, role, state, session_id, cost, started_at}]. Node wires it
+ 	 * from Servex's registry (Servex/agents/Agents.js), so a child is found by where its task lives, never by a link someone had to write. */
+ 	static agents_resolver = null;
++	// The agents whose task is exactly this folder, [{id, cost}] (Agents.agents_at): a Session entry's own cost, and the ids the registry fallback skips.
++	static agents_at_resolver = null;
+ 
+ 	// Item.replay does the loop; a session only needs its id from line 1 and its own line shape.
+ 	static replay_new(lines){
++		if (lines[0]?.assign) return new this(lines[0].assign.slug ?? lines[0].assign.task ?? "task");   // a spawned agent's record: Task's id rule (the folder name stands in, Task.from_ref)
+ 		const s = lines.find(l => l?.session)?.session;   // a VS Code tab's line 1 is {session:{id,kind,cwd,at}} (the SessionStart hook)
+ 		return new this((s && typeof s === "object" ? s.id : s) ?? lines.find(l => l?.id)?.id);
+ 	}
++	get is_session(){ return true; }
++	/* TWO RECORD SHAPES, told apart by the first line replayed. A tab's or a voice call's record ({session:…} first) is read by apply_line
++	   below. A spawned agent's record ({assign:…} first, open_task) is a task log: it replays through Task.replay_line whole, so the same
++	   lines give the same state, completion and fields they gave as a Task, and the Session adds only its class (children, cost). */
+ 	replay_line(line){
++		this._shape ??= line?.assign ? "task" : "record";
++		if (this._shape === "task"){
++			const when = line.at ?? line.ts ?? line.assign?.requested_at ?? null;
++			if (when){ this._first_at ??= when; this._last_at = when; }
++			if (line.settings && typeof line.settings === "object") Object.assign(this.settings, line.settings);
++			Task.clock = when;
++			try { return super.replay_line(line); } finally { Task.clock = null; }
++		}
+ 		const { by, ts, at, session: _s, ...delta } = line;
+ 		const when = at ?? ts ?? (typeof _s === "object" ? _s?.at : null) ?? null;
+ 		if (when){ this._first_at ??= when; this._last_at = when; }
+@@ -65,7 +80,7 @@ export default class Session extends Task {
+ 	get first_at(){ return this._first_at ?? null; }
+ 	get last_at(){ return this._last_at ?? null; }
+ 	// The record has no legacy fields to infer a state from (Task.replay_end would read it as running): its state is its own lines'.
+-	replay_end(){ this._at = null; return this; }
++	replay_end(){ if (this._shape === "task") return super.replay_end(); this._at = null; return this; }
+ 	get span_ms(){ return this._first_at && this._last_at ? Date.parse(this._last_at) - Date.parse(this._first_at) : 0; }
+ 	apply_line(delta, by){
+ 		/* THE SESSION'S OWN STATE: {"stop":{why}} closes it (StaleClose writes one for an abandoned tab); {"start":{}} reopens it and
+@@ -73,10 +88,10 @@ export default class Session extends Task {
+ 		if (delta.stop && typeof delta.stop === "object"){ this.put("state", "stopped"); this.put("why", delta.stop.why ?? null); this.put("stopped_at", delta.stop.at ?? Task.clock); delete delta.stop; }
+ 		if (delta.start && typeof delta.start === "object"){ this.put("state", "running"); this.put("why", null); this.put("stopped_at", null); delete delta.start; }
+ 		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
+-			const kid = Task.from_ref(delta.task, delta.as), had = this._tasks?.find(kid.id);
++			const kid = Task.from_ref(delta.task, delta.as, delta), had = this._tasks?.find(kid.id);   // a Session entry's type and spawn ride on the same line
+ 			kid._created_at ??= Task.clock;
+ 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
+-			delete delta.task; delete delta.as; delete delta.moved_from;
++			delete delta.task; delete delta.as; delete delta.moved_from; delete delta.type; delete delta.spawn;
+ 		}
+ 		if (delta.tasks && typeof delta.tasks === "object"){
+ 			const had = new Set([...(this._tasks ?? [])]);
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index 8daad2121..a39eba6c5 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -19,7 +19,11 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+   progress(): {done,total,stopped}  // Task.progress_of(this._tasks), the one counting code; a stopped task counts in neither done nor total
+   first_at, last_at, span_ms  // from the lines' own times, never stored
+   static agents_resolver    // node wires it (Servex/agents/Agents.js agents_under): dir -> [{id, parent, role, state, cost, …}], the agent sessions whose task lives in that folder
+-  static replay(lines)      // Item's loop; replay_new takes the id from {"session":id}; replay_line applies one line
++  static agents_at_resolver // node wires it (Agents.agents_at): folder url -> [{id, cost}], the agents whose task is exactly that folder (a Session entry's own cost)
++  is_session: true          // Task's is false; Task.sessions_below() and `children` find child sessions by it
++  children                  // computed: the Session entries anywhere in the task tree (under their cause), each with its own children. Never stored
++  static replay(lines)      // Item's loop; replay_new takes the id from {"session":id}; replay_line applies one line. Two record shapes, told by the first line:
++                            // {"session":…} (a tab, a voice call) is read by apply_line; {"assign":…} (a spawned agent's record) replays through Task.replay_line whole
+   static root_url(): URL    // ../../ai/sessions/ ; subclasses override
+   static day(first_at)      // "YYYY/MM/DD" via Day.path, or null
+   static dir_url(id, day?)  // sync: the dated folder, else the old flat <id>/
+@@ -29,7 +33,7 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+ // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
+ ```
+ 
+-- **Lines it replays:** `{"stop":{why}}` and `{"start":{}}` (the session's own state; a start clears the stop's why), `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task), `{"<task id>":{…}}` (goes to that task), `{"settings":{…}}` (merged into `settings`), `{"decide":{task,is}}` (the owner's Approve, Reject or Make it a project on a waiting task, [doc/prompt-tasks.md](doc/prompt-tasks.md)), and any other key is set on the session. `by`, `ts` and `at` are dropped.
++- **Lines it replays:** `{"stop":{why}}` and `{"start":{}}` (the session's own state; a start clears the stop's why), `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task; with `"type":"Session","spawn":{…}` a Session entry, below), `{"<task id>":{…}}` (goes to that task), `{"settings":{…}}` (merged into `settings`), `{"decide":{task,is}}` (the owner's Approve, Reject or Make it a project on a waiting task, [doc/prompt-tasks.md](doc/prompt-tasks.md)), and any other key is set on the session. `by`, `ts` and `at` are dropped.
+ - **Subclasses:** `AISession` (`ai/AISession/AISession.js`) adds cost, cache and transcript, and overrides `root_url()`. `RefineSession` is planned, not built.
+ - **Who calls it:** the item tool in `Servex/agents/page_tools.js` maps `session.jsonl` to `Session` and replays it; `ai/AIDashboard/SessionStore.js`, `AISessionIndex.mjs`, `AISessionLive.js`, `Server/State.mjs`, `Server/TaskDirs.mjs` and `Server/SessionDayMove.mjs` use it or `Day`.
+ - **How it loads:** a session's folder holds `session.jsonl`, written by `.claude/hooks/append.mjs`, `Agents.open_task` and the page tools, never by hand. Older folders are still found by `scan()` through `index.json`, `cache.jsonl` or the first `page.jsonl` line. Folder layout: [ai/sessions/readme.md](/framework/ai/sessions/readme.md).
+@@ -43,16 +47,46 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+ - `Session.replay` reads it. The session page's Overview (`ai/AISession/SessionFeed.js`) streams the same file, so the task shows at once.
+ - Test: `node Servex/agents/session_tasks.test.mjs`.
+ 
+-**An AI spawns a child session.** `spawn_agent` (Servex):
+-- `open_task` (`Servex/agents/Agents.js`) writes the child's line 1 into its task folder.
+-- `SessionRecord.link_parent` appends `{"task":"<child folder url>"}` to the parent's record.
+-- A child whose folder is **outside** the parent session's folder gets its line from `ChildLinks.link` (`Server/ChildLinks.mjs`, called by `open_task`): `{"task":"<child folder url>","as":"<agent id>"}` on the parent session's record, found by `parent_session`. `SessionRecord.add_ref` never writes the same reference twice. So the parent's numbers come from its own references, and a finished child moves its completion.
+-- `node Server/ChildLinks.mjs` is the backfill for children spawned before this: a dry run by default (one line per child: session, folder url, agent, and what it would do), `--apply` appends. It covers every registry row with `parent_session`, plus older rows matched by name for session-e00f55c9.
+-- Tests: `node Servex/agents/child-links.test.mjs`.
++**An AI spawns a child session.** `spawn_agent` (Servex) makes one **Session entry** on the parent's record (next section):
++- `open_task` (`Servex/agents/Agents.js`) writes the child's line 1 into its task folder: `{"assign":{session_id, agent, role, model, effort, role_readme, brief, …}}`.
++- `SessionRecord.link_parent` appends the entry to the parent's record (the spawner's task folder, else the nearest record above the child's folder).
++- A child whose folder is **outside** the parent session's folder gets its entry from `ChildLinks.link` (`Server/ChildLinks.mjs`, called by `open_task`) on the parent session's record, found by `parent_session`. `SessionRecord.add_ref` never writes the same reference twice. So the parent's numbers come from its own entries, and a finished child moves its completion.
++- `node Server/ChildLinks.mjs` is the older backfill (a plain reference per registry child); `--entries` is the Session-entry backfill (next section).
++- Tests: `node Servex/agents/child-links.test.mjs`, `node Servex/agents/session-entries.test.mjs`.
+ - The registry row records `parent_session`, the parent's session id at spawn.
+ - `Agents.agents_under` finds the child for the parent's cost and children. It matches `parent_session` exactly, and older rows by the parent's name within the parent's span.
+ - The child shows on the parent's page as the task it carries, with its model, cost and a link to its own session page.
+ 
++## Session entries
++
++A session's `tasks` is the one list of everything to be done: prompts, tasks and child sessions. A child session is an entry in that list, and `children` is a view of those entries, never a second list (session-is-a-task items 31-33).
++
++- **The shape:** one line on the parent's record, nested under the task that caused the spawn:
++  `{"<cause id>": {"task": "<child folder url>", "type": "Session", "spawn": {role, model, effort, role_readme, brief, session_id, agent, at, placed}}, "by": "Servex", "ts": …}`.
++  Its id is the folder name, because an agent id is reused across spawns and two entries with one id replace each other on replay. `role_readme` is a path, never the text.
++- **The cause** (`cause_of` in `Servex/agents/Agents.js`; `placed` records which rule chose it): (a) `task.cause` given to `spawn_agent`, when that task is on the record; (b) a handoff: the spawn names an existing task on the parent's record (`spawn_agent` with `task: {from: <record url>, id: <task id>}`), and that task moves into the child's folder with its history (`move_item` in `page_tools.js`). The moved task is upgraded in place: the line left behind keeps its id and becomes the entry, `{"task", "as": <its id>, "type": "Session", "spawn"}`; (c) the record's most recently started task that is still running; (d) none of these: the top level.
++- **The writer:** `SessionRecord.add_ref` and `entry_line` (`Server/SessionRecord.mjs`), called by `link_parent` and `ChildLinks.link` from `open_task`.
++- **The reader:** `Task.from_ref(ref, as, entry)` (`core/Task/Task.js`) builds a `Session` when the entry says `type: "Session"`, or when the child's record is a session's (a `{session}` line 1, or a spawn's `{assign}` line anywhere), and keeps `spawn` on it. `Task.children` lists them at any depth.
++- **The three costs** (`session_state` in `Servex/agents/page_tools.js`, computed on read):
++  - `own`: the tab's `cache.jsonl`; for a spawned agent's record, the agents whose task is its folder.
++  - `children`: the sum of each child entry's total. A child's total is its own agents' logged cost (`Session.agents_at_resolver`) plus its own children's totals.
++  - `total`: own + children.
++  - An agent with no entry still counts through `agents_under`, but only once: its id is skipped when an entry already counted it. That is an agent spawned before this and not backfilled, or a reviewer or clarity agent node started with no folder.
++  - `children` rows say `linked: true` (an entry) or `linked: false` (the registry fallback), and `counts.children` is `{entries, unlinked}`.
++- **The backfill:** `node Server/ChildLinks.mjs --entries [--names <session id>] [--root <repo>] [--list] [--apply]`.
++  - Dry run by default. `--apply` appends the lines and writes its manifest to `public/framework/ai/sessions/session-entries.jsonl`.
++  - It plans every folder below the session's day folders, and every registry child outside them. The actions:
++    - `upgrade`: a plain reference to a session folder gets a later line with the same id that adds `type` and `spawn`.
++    - `add`: the folder has no reference yet.
++    - `ref` or `entry`: nothing to do.
++  - Entries go at the top level: with 100+ open tasks, a guessed cause would often be wrong.
++  - It also prints item 33's check: the folders that are neither a session nor a project. It only lists them: `--apply` writes the `upgrade` and `add` lines and never moves or changes those folders.
++- **Numbers on session-e00f55c9** (2026-10-25; dry run on the live tree, then `--apply` on a copy):
++  - The plan: 95 upgrades, 0 adds, 25 plain task folders.
++  - Child sessions from entries, at every depth: 127 before, 133 after.
++  - 94 agents with no entry: 61 reviewers and 29 clarity agents with no folder, plus 4 minions.
++  - Cost: own $293.26, children $851.70, total $1144.96, the same before and after (nothing counted twice).
++
+ **References.**
+ - A session is named by its **session id**: its page is `/framework/ai/sessions/<id>/`, and a child names its parent by `parent_session`.
+ - A task is named by its **path**: `{"task": "<folder url>"}`.
+@@ -73,7 +107,7 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+ | Field | What it is | Read from (written by) |
+ |---|---|---|
+ | `cost.own` | the session's own Claude spend: `usd`, `parts` (in, out, cache read, cache write), `active_ms`, `models`, `through` (last transcript line's time), `read_to` (bytes read), `at` | the newest `{"summary"}` in the folder's `cache.jsonl` (`AISessionIndex` reads the transcript's new bytes, `ai/AISession/AISession.js`). `null` until that cache exists |
+-| `children` | child agent sessions as a tree: `{id, parent, role, state, cost, total, children}` (`total` = its own plus everything under it) | the Servex registry: every agent whose task folder is inside this folder, plus every agent the session spawned since it began (by `parent_session`, else its name and span) and their descendants (`Agents.agents_under`, wired as `Session.agents_resolver`), nested by `parent`. An agent's cost counts only its turns since the session began |
++| `children` | child sessions as a tree: first the Session entries (`{id, title, state, path, agent, role, session_id, spawn, cost, total, children, linked: true}`), then the registry's agents with no entry (`linked: false`); `total` = its own plus everything under it | the entries in the replayed record ("Session entries" above); for the fallback, the Servex registry: every agent whose task folder is inside this folder, plus every agent the session spawned since it began (by `parent_session`, else its name and span) and their descendants (`Agents.agents_under`, wired as `Session.agents_resolver`), nested by `parent`. An agent's cost counts only its turns since the session began |
+ | `cost.children`, `cost.total` | the children's spend; own plus children | the agents' own logs (`turn_cost` lines, `Agents.logged_cost`) |
+ | `cost.tasks`, `biggest` | spend per task folder (each folder once), and the five costliest tasks | `Task.cost` (the agents of the task's `path`) |
+ | `counts.direct`, `counts.all` | `{created, started, complete, stopped}` for the session's own tasks, and for every task below it | the replayed tasks |
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index 5f10ed4ed..7828c1e30 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -29,7 +29,7 @@ const CAN = {
+ const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent", "outcome", "brief", "from"];
+ 
+ // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
+-const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
++const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "type", "spawn", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
+ const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
+ 
+ export class Task extends Item {
+@@ -203,10 +203,21 @@ export class Task extends Item {
+ 	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
+ 	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
+ 	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion"];
++	/* A child is a SESSION when it replayed as one (a Session entry, or a folder whose record is a session's), or, for an old plain
++	   reference node has not replayed, when its folder holds session.jsonl (`session_resolver`). */
+ 	static session_resolver = null;
++	get is_session(){ return false; }
++	static is_child_session(t){ return !!t && (t.is_session || !!Task.session_resolver?.(t.get_one("path"))); }
++	/* The child sessions in my task tree, at any depth: a Session entry nests under the task that caused it, so it is found below that
++	   task, not only in my own list. A child session's own children are its `children`, never mine. Computed on read, never stored. */
++	sessions_below(){
++		const out = [], walk = list => { for (const t of list ?? []) if (Task.is_child_session(t)) out.push(t); else walk(t._tasks); };
++		walk(this._tasks);
++		return out;
++	}
+ 	get children(){
+-		const is_session = this.constructor.session_resolver;
+-		return [...(this._tasks ?? [])].filter(t => is_session?.(t.get_one("path"))).map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state, path: t.get_one("path") }));
++		return this.sessions_below().map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state, path: t.get_one("path"),
++			...(t.get_one("spawn") ? { spawn: t.get_one("spawn") } : {}), children: t.children }));
+ 	}
+ 	// One screen for a task or a session: counts by state, the open tasks only, completion, cost, time and child sessions.
+ 	summary(){
+@@ -407,28 +418,35 @@ export class Task extends Item {
+ 	// task.jsonl into that stub through the Store (the way TaskPage does) and tails it live. "missing" only after a 404.
+ 	static resolver = null;
+ 	static resolving = new Set();
+-	static from_ref(ref, as){
++	/* `entry` is the reference line itself. A Session entry says {"type":"Session","spawn":{role, model, effort, role_readme, brief,
++	   session_id, agent, at, placed}} (core/Session/readme.md, "Session entries"): its type wins over the child's line 1, and its spawn is kept on the child. */
++	static from_ref(ref, as, entry = null){
+ 		const lines = !this.resolving.has(ref) && this.resolver ? this.resolver(ref) : null;
+ 		const id = as ?? this.ref_id(ref);   // `as`: the id the task had in the parent (a moved item keeps it, whatever its new folder is called)
+ 		let kid;
+ 		if (lines?.length){
+ 			this.resolving.add(ref);   // a cycle of references stops here
+-			const Own = Item.types.get(lines[0]?.class ?? (lines[0]?.session ? "Session" : undefined));   // line 1 may name a subclass (a Process), or be a session record ({session:{…}}): replay it as that, when it is loaded
++			// The entry's type; else line 1 may name a subclass (a Process) or be a session's record ({session:{…}}, or a spawn's {assign}): replay it as that, when it is loaded.
++			const Own = Item.types.get(entry?.type ?? lines[0]?.class ?? (lines[0]?.session || lines.some(Task.spawned) ? "Session" : undefined));
+ 			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
+ 			if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
+ 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
+-			kid = new this({ id });
++			const Own = Item.types.get(entry?.type);
++			kid = Own && Own.prototype instanceof this && Own.name === "Session" ? new Own(id) : new this({ id });   // Session's constructor takes the id itself
+ 			kid.put("title", id);
+ 			const browser = !this.resolver && typeof document !== "undefined" && !this.resolving.has(ref);
+ 			kid.put("state", browser ? "loading" : "missing");
+ 			if (browser) kid.ready = this.open_ref(kid, ref);   // a promise: resolves once the file is read (or 404s)
+ 		}
+ 		if (kid.data.path === undefined) kid.put("path", ref);
++		if (entry?.spawn && typeof entry.spawn === "object") kid.put("spawn", entry.spawn);
+ 		kid._own_file = ref;   // a referenced child lives in its own file: the parent Store never records its changes (Store.js owned_below)
+ 		return kid;
+ 	}
+ 
+ 	// A reference's id is its folder name; a module's list (/framework/core/Task/tasks/) is "core-Task-tasks", so lists side by side (/tasks/) never collide.
++	// A spawn's line (line 1, or after a queued brief's own assign line), which only Servex's open_task writes: {"assign":{"session_id","agent",…}}. Its folder is a session's.
++	static spawned(line){ const a = line?.assign; return !!(a && typeof a === "object" && a.session_id && a.agent); }
+ 	static ref_id(ref){
+ 		const segs = String(ref).split("/").filter(Boolean);
+ 		return segs.at(-1) === "tasks" && segs.length > 1 ? segs.slice(segs[0] === "framework" ? 1 : 0).join("-") : segs.at(-1) ?? "";
+@@ -488,7 +506,7 @@ export class Task extends Item {
+ 			if (session_id !== undefined) this.put("session", session_id);
+ 		}
+ 		if (typeof line.task === "string"){   // a later reference with the same id (the folder name) replaces the earlier one: the task moved home
+-			const kid = Task.from_ref(line.task, line.as), had = this.tasks.find(kid.id);
++			const kid = Task.from_ref(line.task, line.as, line), had = this.tasks.find(kid.id);
+ 			if (had) this.tasks.replace(had, kid); else this.tasks.insert(kid);
+ 			this.adopt_child(kid);
+ 		}
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index 783725709..93cc03820 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -22,6 +22,7 @@ complete`), timestamps, a running-time clock that pauses with the task, and a
+ - **File each ask the first time it is heard.** When an owner prompt asks for something, the agent that reads it adds it to its session's record as a task (`tasks.add` with the item tool), or writes it as a one-line note in the readme it concerns when it is a rule or a preference rather than work.
+ - **A task is a proposal until accepted:** accepted, optional, an option (one of several ways), back-burner, or rejected, each with a one-line reason. Nothing is accepted only because it was asked.
+ - **A plan with several tasks to check off is a project** ([Project.js](Project.js)), not one big task; it lives in the session's record until it has a module home ([projects](/framework/ai/tasks/doc/projects.md)).
++- **A task is a line by default** (the owner, 2026-10-24, session-is-a-task item 33). It gets a folder only when it becomes a **session** (it is handed off by a spawn, and its entry becomes a Session entry: [core/Session, "Session entries"](../Session/readme.md#session-entries)) or a **project**. The parent indexes that folder with one reference line. Today's mismatch, from `node Server/ChildLinks.mjs --entries` on session-e00f55c9 (2026-10-25): 120 folders below the session, 95 of them sessions, 0 projects, and 25 plain task folders that should have been lines (mostly brief, review and docs-check folders a parent made before or after a spawn). The script lists them; moving them is not done yet.
+ - **Plan before building:** list the tasks (or the project's steps) and check them against [past work](/framework/servex/fs/?file=public/framework/ai/past-work-index.md) before the first edit.
+ - **Loose ends found later stay apart:** the [prompt audit](/framework/ai/doc/prompt-audit.md) writes them beside the session, never into a finished session's tasks.
+ 
+@@ -55,7 +56,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+ - `Task.replay(lines)` is `Item.replay` (inherited): `Item.Store.read` runs the same `replay_line` per entry in the browser. Task only overrides `replay_new`, `replay_line` and `replay_end` for the legacy mapping. It builds a task from parsed `task.jsonl` objects, using each line's own time (`at`, `assign.at|landed_at|requested_at`), never the wall clock, so the same file always gives the same task. Explicit lines (`{"start":{}}`, `pause`, `resume`, `stop`, `complete` (old `finish` too), `wait`, `approve`, `improve`, `reject`) call the method of that name; once one appears, they decide the state.
+ - No explicit line (an old file): `landed_at` alone is `complete`, `closed_by` is `stopped`, anything else is `running`. `assign` fields merge into `data` (latest wins; `session_id` becomes `session`).
+ - `waiting` is a sixth state: `wait({on, what})` (from idle, running, paused), then a verdict, each stored as `verdict: {is, note, by}`: `approve(note?)` (to running; a queue that delays it to idle does not exist yet), `improve(note)` (to running, to revise and wait again), `reject(note)` (to stopped). `stop` and `complete` accept it.
+-- **Homes and references (step 14a):** `tasks.add` through the item tool makes the child its own folder, `<module>/tasks/<slug>/` when `public/framework/<module>/` exists (never created), else `<parent folder>/<slug>/`. Line 1 is `{id, path, parent, title, module, …}`; the parent gets one `{"task": "<app path>"}` line and no copied data. Replay turns each such line into a live child with `Task.from_ref(path)`, using `Task.resolver` (node sets it, `page_tools.link_refs`); a missing file gives a stub child with `state: "missing"`. Old inline `{"tasks":{"add":…}}` lines still replay inline. A reference may carry `as`, the id the child had before it moved (`{"task": url, "as": "x"}`, written by the item tool's `move` key); replay then uses that id instead of the folder name, so a moved child keeps its id ([core/Item, moving](../Item/doc/architecture.md#an-item-moves-home-with-its-id-its-history-and-one-reference)). The browser Store resolving them is step 14b.
++- **Homes and references (step 14a):** `tasks.add` through the item tool makes the child its own folder, `<module>/tasks/<slug>/` when `public/framework/<module>/` exists (never created), else `<parent folder>/<slug>/`. Line 1 is `{id, path, parent, title, module, …}`; the parent gets one `{"task": "<app path>"}` line and no copied data. Replay turns each such line into a live child with `Task.from_ref(path)`, using `Task.resolver` (node sets it, `page_tools.link_refs`); a missing file gives a stub child with `state: "missing"`. Old inline `{"tasks":{"add":…}}` lines still replay inline. A reference may carry `as`, the id the child had before it moved (`{"task": url, "as": "x"}`, written by the item tool's `move` key); replay then uses that id instead of the folder name, so a moved child keeps its id ([core/Item, moving](../Item/doc/architecture.md#an-item-moves-home-with-its-id-its-history-and-one-reference)). A reference with `"type":"Session","spawn":{…}` is a Session entry: `from_ref(ref, as, entry)` builds that class and keeps `spawn` on the child, and a child whose record holds a spawn's `{assign}` line is a Session too ([core/Session, "Session entries"](../Session/readme.md#session-entries)). The browser Store resolving them is step 14b.
+ - `tasks` is made on first use, so a task with no subtasks costs no `List`.
+ - **Migration:** [`Server/TaskMigrate.mjs`](/Server/TaskMigrate.mjs) gives an old session task whose module is clear a home here. The home's `sessions` field (`[{id, task}]`) names the old folder, and the old folder gains one `{"home":"<url>"}` line, kept as `data.home`. It runs as a dry run by default and never deletes. [Plan](/framework/servex/fs/?file=public/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/plan.md) · [dry run](/framework/servex/fs/?file=public/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/dry-run.md).
+ 

@@ -368,6 +368,10 @@
 	.drawer-rail-sheet-tabs { flex: 0 1 45%; min-block-size: 0; border-top: 1px solid var(--line); }
 	.drawer-rail-sheet-tabbody { flex: 1 1 auto; min-block-size: 0; overflow: auto; }
 	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { display: none; }
+	/* A PICKED TAB GETS THE ROOM (2026-10-25): the chat above keeps only its last lines, so all five Debug rows fit one
+	   phone screen (390×844, test/debug-tab.mjs). Follows the DOM (:has), so it ends the moment the tab body is unmounted. */
+	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs):not(.drawer-rail-sheet-chat-only) .drawer-rail-sheet-panel { flex: 0 0 10em; }
+	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs):not(.drawer-rail-sheet-chat-only) > .drawer-rail-sheet-tabs { flex: 1 1 auto; }
 }
 
 /* AIPage (<path>/ai/): a page above 52em; below it the Sheet shows it, so the page behind stays the one it is about. */

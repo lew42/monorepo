@@ -88,6 +88,7 @@ export const ROLES = {
 	clarity:            { readme: "clarity",          prefix: "clarity",          tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
 	/* ONE PAIR PER VOICE SESSION (Sessions.js, ai/sessions/2026/09/30/voice-sessions/voice-sessions): spawned by code with
 	 * their own briefs (session-fast.md, session-smart.md), which win over these rows. No skill.
+	 * Tiers: `session-fast` is `fast`, `session-smart` is `voice_smart` (tiers.js).
 	 * `session-smart` shares the "files for the next agent, cards for the owner" write discipline
 	 * with `task-mastermind` (both `every-prompt` and `sub-mastermind` carry it), but never its
 	 * judging-against-the-owner's-sentence or landing parts — it spawns a task mastermind to do
@@ -99,7 +100,7 @@ export const ROLES = {
 	/* THE VOICE ASSISTANT (2026-10-17, ux/Dictate/doc/voice-assistant.md): one plain assistant per voice session, the fast seat.
 	 * Per sentence it writes ONE placement, {"place":{re, to, where, edit}}, into the session file with the item tool. */
 	"voice-assistant":  { skill: "voice-assistant",  prefix: "voice-assistant",  tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
-	"session-smart":    { prefix: "session-smart",    tier: "voice_smart", model: model("voice_smart"), /* Opus 5.5 (the owner, 2026-10-25; was Sonnet from 2026-10-05): the owner dictates to it directly and it acts. "Mastermind permissions" = permission_mode bypassPermissions + the full Claude Code tool preset + Servex's MCP door (spawn, item, owner_note). */ effort: "medium", permission_mode: "bypassPermissions" },
+	"session-smart":    { prefix: "session-smart",    tier: "voice_smart", model: model("voice_smart"), /* Opus 5.5 (the owner, 2026-10-25; was Sonnet from 2026-10-05): the owner dictates to it directly and it acts. Sessions.claude_model drops to Sonnet only while the week is over pace. "Mastermind permissions" = permission_mode bypassPermissions + the full Claude Code tool preset + Servex's MCP door (spawn, item, owner_note). */ effort: "medium", permission_mode: "bypassPermissions" },
 	/* A FRESH mastermind for one folder (Servex/agents/directory.js, `ask_directory`): the task
 	 * mastermind's posture, opened with the folder's plain files as its first message. Spawned by
 	 * code with `system` set, so this row's skills are inlined by directory.js, not by `opening()`
@@ -230,6 +231,13 @@ export function injected(role){
 
 export const SKILLS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.claude/skills");
 export const ROLES_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "roles");
+
+/* The repo path of a role's readme (`Servex/agents/roles/<readme>.md`), or null when the role has none. A spawn records this path,
+ * never the text (a Session entry's spawn.role_readme, open_task's line 1). */
+export function role_readme_path(role){
+	const r = row(role);
+	return r?.readme && fs.existsSync(path.join(ROLES_DIR, `${r.readme}.md`)) ? `Servex/agents/roles/${r.readme}.md` : null;
+}
 
 /* A role readme's text without its leading move comment, or null. */
 export function role_readme(name){

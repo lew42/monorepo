@@ -19,7 +19,11 @@ class Session extends Task                       // ../Task/Task.js (Task extend
   progress(): {done,total,stopped}  // Task.progress_of(this._tasks), the one counting code; a stopped task counts in neither done nor total
   first_at, last_at, span_ms  // from the lines' own times, never stored
   static agents_resolver    // node wires it (Servex/agents/Agents.js agents_under): dir -> [{id, parent, role, state, cost, …}], the agent sessions whose task lives in that folder
-  static replay(lines)      // Item's loop; replay_new takes the id from {"session":id}; replay_line applies one line
+  static agents_at_resolver // node wires it (Agents.agents_at): folder url -> [{id, cost}], the agents whose task is exactly that folder (a Session entry's own cost)
+  is_session: true          // Task's is false; Task.sessions_below() and `children` find child sessions by it
+  children                  // computed: the Session entries anywhere in the task tree (under their cause), each with its own children. Never stored
+  static replay(lines)      // Item's loop; replay_new takes the id from {"session":id}; replay_line applies one line. Two record shapes, told by the first line:
+                            // {"session":…} (a tab, a voice call) is read by apply_line; {"assign":…} (a spawned agent's record) replays through Task.replay_line whole
   static root_url(): URL    // ../../ai/sessions/ ; subclasses override
   static day(first_at)      // "YYYY/MM/DD" via Day.path, or null
   static dir_url(id, day?)  // sync: the dated folder, else the old flat <id>/
@@ -29,7 +33,7 @@ class Session extends Task                       // ../Task/Task.js (Task extend
 // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
 ```
 
-- **Lines it replays:** `{"stop":{why}}` and `{"start":{}}` (the session's own state; a start clears the stop's why), `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task), `{"<task id>":{…}}` (goes to that task), `{"settings":{…}}` (merged into `settings`), `{"decide":{task,is}}` (the owner's Approve, Reject or Make it a project on a waiting task, [doc/prompt-tasks.md](doc/prompt-tasks.md)), and any other key is set on the session. `by`, `ts` and `at` are dropped.
+- **Lines it replays:** `{"stop":{why}}` and `{"start":{}}` (the session's own state; a start clears the stop's why), `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task; with `"type":"Session","spawn":{…}` a Session entry, below), `{"<task id>":{…}}` (goes to that task), `{"settings":{…}}` (merged into `settings`), `{"decide":{task,is}}` (the owner's Approve, Reject or Make it a project on a waiting task, [doc/prompt-tasks.md](doc/prompt-tasks.md)), and any other key is set on the session. `by`, `ts` and `at` are dropped.
 - **Subclasses:** `AISession` (`ai/AISession/AISession.js`) adds cost, cache and transcript, and overrides `root_url()`. `RefineSession` is planned, not built.
 - **Who calls it:** the item tool in `Servex/agents/page_tools.js` maps `session.jsonl` to `Session` and replays it; `ai/AIDashboard/SessionStore.js`, `AISessionIndex.mjs`, `AISessionLive.js`, `Server/State.mjs`, `Server/TaskDirs.mjs` and `Server/SessionDayMove.mjs` use it or `Day`.
 - **How it loads:** a session's folder holds `session.jsonl`, written by `.claude/hooks/append.mjs`, `Agents.open_task` and the page tools, never by hand. Older folders are still found by `scan()` through `index.json`, `cache.jsonl` or the first `page.jsonl` line. Folder layout: [ai/sessions/readme.md](/framework/ai/sessions/readme.md).
@@ -43,15 +47,45 @@ class Session extends Task                       // ../Task/Task.js (Task extend
 - `Session.replay` reads it. The session page's Overview (`ai/AISession/SessionFeed.js`) streams the same file, so the task shows at once.
 - Test: `node Servex/agents/session_tasks.test.mjs`.
 
-**An AI spawns a child session.** `spawn_agent` (Servex):
-- `open_task` (`Servex/agents/Agents.js`) writes the child's line 1 into its task folder.
-- `SessionRecord.link_parent` appends `{"task":"<child folder url>"}` to the parent's record.
-- A child whose folder is **outside** the parent session's folder gets its line from `ChildLinks.link` (`Server/ChildLinks.mjs`, called by `open_task`): `{"task":"<child folder url>","as":"<agent id>"}` on the parent session's record, found by `parent_session`. `SessionRecord.add_ref` never writes the same reference twice. So the parent's numbers come from its own references, and a finished child moves its completion.
-- `node Server/ChildLinks.mjs` is the backfill for children spawned before this: a dry run by default (one line per child: session, folder url, agent, and what it would do), `--apply` appends. It covers every registry row with `parent_session`, plus older rows matched by name for session-e00f55c9.
-- Tests: `node Servex/agents/child-links.test.mjs`.
+**An AI spawns a child session.** `spawn_agent` (Servex) makes one **Session entry** on the parent's record (next section):
+- `open_task` (`Servex/agents/Agents.js`) writes the child's line 1 into its task folder: `{"assign":{session_id, agent, role, model, effort, role_readme, brief, …}}`.
+- `SessionRecord.link_parent` appends the entry to the parent's record (the spawner's task folder, else the nearest record above the child's folder).
+- A child whose folder is **outside** the parent session's folder gets its entry from `ChildLinks.link` (`Server/ChildLinks.mjs`, called by `open_task`) on the parent session's record, found by `parent_session` (`ChildLinks.session_dir`: a record's session id, its first 8 hex, or its folder name, so a voice record `v-<id>/` is found as `parent_session: "v-<id>"`; a folder made a moment ago is looked for by name in today's and yesterday's day folders before a full rescan). `SessionRecord.add_ref` never writes the same reference twice. So the parent's numbers come from its own entries, and a finished child moves its completion.
+- `node Server/ChildLinks.mjs` is the older backfill (a plain reference per registry child); `--entries` is the Session-entry backfill (next section).
+- Tests: `node Servex/agents/child-links.test.mjs`, `node Servex/agents/session-entries.test.mjs`.
 - The registry row records `parent_session`, the parent's session id at spawn.
 - `Agents.agents_under` finds the child for the parent's cost and children. It matches `parent_session` exactly, and older rows by the parent's name within the parent's span.
 - The child shows on the parent's page as the task it carries, with its model, cost and a link to its own session page.
+
+## Session entries
+
+A session's `tasks` is the one list of everything to be done: prompts, tasks and child sessions. A child session is an entry in that list, and `children` is a view of those entries, never a second list (session-is-a-task items 31-33).
+
+- **The shape:** one line on the parent's record, nested under the task that caused the spawn:
+  `{"<cause id>": {"task": "<child folder url>", "type": "Session", "spawn": {role, model, effort, role_readme, brief, session_id, agent, at, placed}}, "by": "Servex", "ts": …}`.
+  Its id is the folder name, because an agent id is reused across spawns and two entries with one id replace each other on replay. `role_readme` is a path, never the text.
+- **The cause** (`cause_of` in `Servex/agents/Agents.js`; `placed` records which rule chose it): (a) `task.cause` given to `spawn_agent`, when that task is on the record; (b) a handoff: the spawn names an existing task on the parent's record (`spawn_agent` with `task: {from: <record url>, id: <task id>}`), and that task moves into the child's folder with its history (`move_item` in `page_tools.js`). The moved task is upgraded in place: the line left behind keeps its id and becomes the entry, `{"task", "as": <its id>, "type": "Session", "spawn"}`; (c) the record's most recently started task that is still running, among the tasks written inline on the record (a task with its own folder is a reference whose state lives in that folder, so this rule does not look into it; a spawner whose tasks each have a folder gets its entries at the top); (d) none of these: the top level.
+- **The writer:** `SessionRecord.add_ref` and `entry_line` (`Server/SessionRecord.mjs`), called by `link_parent` and `ChildLinks.link` from `open_task`.
+- **The reader:** `Task.from_ref(ref, as, entry)` (`core/Task/Task.js`) builds a `Session` when the entry says `type: "Session"`, or when the child's record is a session's (a `{session}` line 1, or a spawn's `{assign}` line anywhere), and keeps `spawn` on it. `Task.children` lists them at any depth.
+- **The three costs** (`session_state` in `Servex/agents/page_tools.js`, computed on read):
+  - `own`: the tab's `cache.jsonl`; for a spawned agent's record, the agents whose task is its folder.
+  - `children`: the sum of each child entry's total. A child's total is its own agents' logged cost (`Session.agents_at_resolver`) plus its own children's totals.
+  - `total`: own + children.
+  - An agent with no entry still counts through `agents_under`, but only once: its id is skipped when an entry already counted it. That is an agent spawned before this and not backfilled, or a reviewer or clarity agent node started with no folder.
+  - `children` rows say `linked: true` (an entry) or `linked: false` (the registry fallback), and `counts.children` is `{entries, unlinked}`.
+- **The backfill:** `node Server/ChildLinks.mjs --entries [--names <session id>] [--root <repo>] [--list] [--apply]`.
+  - Dry run by default. `--apply` appends the lines and writes its manifest to `public/framework/ai/sessions/session-entries.jsonl`.
+  - It plans every folder below the session's day folders, and every registry child outside them. The actions:
+    - `upgrade`: a plain reference to a session folder gets a later line with the same id that adds `type` and `spawn`.
+    - `add`: the folder has no reference yet.
+    - `ref` or `entry`: nothing to do.
+  - Entries go at the top level: with 100+ open tasks, a guessed cause would often be wrong.
+  - It also prints item 33's check: the folders that are neither a session nor a project. It only lists them: `--apply` writes the `upgrade` and `add` lines and never moves or changes those folders.
+- **Numbers on session-e00f55c9** (2026-10-25 00:50; dry run on the live tree, then `--apply` on a copy):
+  - The plan: 97 upgrades, 0 adds, 25 plain task folders.
+  - Child sessions from entries, at every depth: 128 before, 135 after.
+  - Agents with no entry: 97 before, 95 after; nearly all are reviewers and clarity agents that node started with no folder.
+  - Cost: own $293.26, children $862.31, total $1155.57, the same before and after (nothing counted twice).
 
 **References.**
 - A session is named by its **session id**: its page is `/framework/ai/sessions/<id>/`, and a child names its parent by `parent_session`.
@@ -73,7 +107,7 @@ class Session extends Task                       // ../Task/Task.js (Task extend
 | Field | What it is | Read from (written by) |
 |---|---|---|
 | `cost.own` | the session's own Claude spend: `usd`, `parts` (in, out, cache read, cache write), `active_ms`, `models`, `through` (last transcript line's time), `read_to` (bytes read), `at` | the newest `{"summary"}` in the folder's `cache.jsonl` (`AISessionIndex` reads the transcript's new bytes, `ai/AISession/AISession.js`). `null` until that cache exists |
-| `children` | child agent sessions as a tree: `{id, parent, role, state, cost, total, children}` (`total` = its own plus everything under it) | the Servex registry: every agent whose task folder is inside this folder, plus every agent the session spawned since it began (by `parent_session`, else its name and span) and their descendants (`Agents.agents_under`, wired as `Session.agents_resolver`), nested by `parent`. An agent's cost counts only its turns since the session began |
+| `children` | child sessions as a tree: first the Session entries (`{id, title, state, path, agent, role, session_id, spawn, cost, total, children, linked: true}`), then the registry's agents with no entry (`linked: false`); `total` = its own plus everything under it | the entries in the replayed record ("Session entries" above); for the fallback, the Servex registry: every agent whose task folder is inside this folder, plus every agent the session spawned since it began (by `parent_session`, else its name and span) and their descendants (`Agents.agents_under`, wired as `Session.agents_resolver`), nested by `parent`. An agent's cost counts only its turns since the session began |
 | `cost.children`, `cost.total` | the children's spend; own plus children | the agents' own logs (`turn_cost` lines, `Agents.logged_cost`) |
 | `cost.tasks`, `biggest` | spend per task folder (each folder once), and the five costliest tasks | `Task.cost` (the agents of the task's `path`) |
 | `counts.direct`, `counts.all` | `{created, started, complete, stopped}` for the session's own tasks, and for every task below it | the replayed tasks |
