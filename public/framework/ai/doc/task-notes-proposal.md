@@ -31,6 +31,8 @@ item({ path: "<task folder url>", delta: { "content": { "add": { "type": "part-t
 
 **4. Who writes what.** The assignee writes the notes of its own task ([one writer per task](task-buckets.md#one-writer-per-task-item-16)); the mastermind writes notes on the session.
 
+**5. Logs group under the open task, like `console.group` (the owner, 2026-10-24, session-is-a-task item 28).** Once a task is started, the session's log lines and notes go to that task until it completes: node reads which task is open (the same `open_spans` replay the tracking check uses) and files a plain log line or note under it, so no agent has to name the task each time. An agent may still write to a task by its path to override the grouping. Two tasks open at once (a child of the running one) group under the innermost. A note or card may be added to any part of a session, a prompt or a subtask included, not only the session: the `content.add` line above works on any of their paths. Nothing is built; it follows `Session extends Task`.
+
 ## Not decided, with my pick
 
 - *Cards in `task.jsonl` or in `page.jsonl`?* Pick `task.jsonl` (`content`): one file per task, so the one-writer rule and the cost replay see everything. `page.jsonl` stays for hand-built task pages.

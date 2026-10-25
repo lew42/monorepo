@@ -143,7 +143,7 @@ export default class TaskLoop {
             if (err) return this.servex?.log?.append("servex", { type: "task-loop-error", error: "follow-up: " + String(err.message || err) }).catch(() => {});
             const c = (out.match(/\{[\s\S]*?\}/) || [""])[0]; let n = {}; try { n = JSON.parse(c.replace(/'/g, "").replace(/([\w-]+):/g, '"$1":')); } catch {}
             const flagged = ["unmerged", "merged-not-landed", "quiet", "no-outcome", "asks"].reduce((t, k) => t + (n[k] || 0), 0);
-            this.servex?.cards?.owner_note?.({ title: `Follow-up ${day}: ${flagged} flagged`, text: `${flagged} rows fell through today (${n.healthy ?? "?"} healthy): see the list`, kind: "risk", links: ["/framework/ai/doc/follow-up.md"], by: "task-loop" })?.catch?.(() => {});
+            this.servex?.cards?.owner_note?.({ title: `Follow-up ${day}: ${flagged} flagged`, text: `${flagged} rows fell through today (${n.healthy ?? "?"} healthy)${n.unworked ? `; ${n.unworked} open tasks untouched over 7 days` : ""}: see the list`, kind: "risk", links: ["/framework/ai/doc/follow-up.md"], by: "task-loop" })?.catch?.(() => {});
         }));
     }
 

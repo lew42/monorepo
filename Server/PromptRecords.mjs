@@ -39,7 +39,7 @@ export default class PromptRecords {
 
 	/** The processes: the same steps, different instructions and context. Measured on tab e00f55c9 (doc, "The experiment"). */
 	static PROCESSES = {
-		live:   { steps: ["sentences", "parts", "file"], parts: { model: HAIKU }, file: "proposals", file_kinds: ["ask"], file_cap: 5,
+		live:   { steps: ["sentences", "parts", "file"], parts: { model: HAIKU }, file: "proposals", file_kinds: ["ask"], file_cap: 15,
 		          why: "fast and blind: a prompt's asks become proposals before anything is done; no evidence search" },
 		review: { steps: ["sentences", "parts", "outcomes", "file"], parts: { model: HAIKU }, outcomes: { model: HAIKU, window_chars: 150_000, max_turns: 12 }, file: "open", file_kinds: ["ask", "rule"],
 		          why: "after the fact: parts need no context (recall 0.95-1.0 blind), outcomes read what the session did and confirm in the repo" },
@@ -48,13 +48,14 @@ export default class PromptRecords {
 	/** The parts step's system prompt. The live and review processes share it: what a prompt says does not depend on what was done. */
 	static PARTS_BRIEF = `You break ONE prompt the owner of a web-framework repo dictated to an AI coding agent into parts. Dictation rambles and repeats; keep every want, lose nothing said. You cannot see the code.
 A part is a run of sentences with one meaning; cite them all by number. Every sentence is cited by exactly one part.
-- ask: something should happen. Give every ask the prompt really holds, as many as there are, and never merge two asks into one: better safe than sorry, include everything. Nest an ask's own specific suggestions, numbers and sub-asks under it in "parts" (same shape). Never invent a fix the owner did not suggest. Where the owner's words carry a degree or a qualifier ("a bit", "mostly", "at least"), or are unclear, keep them in "text" in quotation marks as the owner's words, so a later agent can go back to the source.
+- ask: something should happen. Give every ask the prompt really holds, as many as there are, and never merge two asks into one: better safe than sorry, include everything. When the owner's exact words carry a degree or a qualifier ("probably", "at least", "never"), or are unclear, quote them inside "text" in quotation marks so later agents can go back to the source. Nest an ask's own specific suggestions, numbers and sub-asks under it in "parts" (same shape). Never invent a fix the owner did not suggest.
 - rule: a standing direction for agents ("always", "never", "we don't want X", "the mastermind manages these"). It becomes a doc note, never a task; "file" is the doc it belongs in when obvious (CLAUDE.md, a module's readme.md), else "".
 - question: the owner wants an answer. idea: thinking aloud, a maybe, a hedge ("maybe", "I wonder"). conversation: narration, thanks, filler.
 When the owner corrects themselves, the later word wins: cite both sentences in one part.
+A bare follow-up ("make sure that is noted", "look into it", "let me know", "do that too") is never a part of its own: cite its sentence in the part it refers to (usually the one just before it), or nest it there.
 Answer with ONE JSON object and nothing else:
 {"subject": "a few of the owner's words", "parts": [{"cites": [0, 1], "kind": "ask|rule|question|idea|conversation", "text": "one line, the owner's names", "file": "", "module": "", "parts": []}]}
-"module": the site module a main ask concerns when the prompt names one (ext/Refine, core/Task, ai/sessions), else "".`;
+"module": the site module or page a main part (ask, question, rule or idea) concerns when the prompt names one (ext/Refine, core/Task, ai/sessions), else "".`;
 
 	/** The outcomes step's system prompt. */
 	static OUTCOMES_BRIEF = `You judge what came of the owner's prompts in ONE session of AI coding agents working on a web-framework repo (cwd is the repo). The user message gives each prompt's parts (already found, each with an id) and the condensed record of what the session did (owner prompts, the agent's replies, one line per tool call; L<n> is the transcript line).

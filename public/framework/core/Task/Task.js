@@ -65,6 +65,7 @@ export class Task extends Item {
 		}
 	};
 	// The id a title makes: the item tool's slug_of (Servex/agents/page_tools.js) is the same rule.
+	static settled(t){ return t.state === "complete" || t.state === "stopped"; }   // done, or dropped with its reason: neither blocks a parent
 	static slug(text){ return String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task"; }
 	// Item.get() skips a prototype getter, so a fresh Task answered undefined for "tasks" and {tasks:{add}} was stored as data (2026-10-22; child-verb.test.mjs).
 	get(key){ return key === "tasks" ? this.tasks : super.get(key); }
@@ -89,14 +90,16 @@ export class Task extends Item {
 		kid._watched_by = this;
 		kid.on("change", function(key){ if (key === "state" && this === kid) kid._watched_by?.child_changed(kid); });
 	}
+	// A child that is done or dropped (Task.settled) moves a series on. The parent completes itself only when every child is complete: a dropped
+	// one leaves that to a deliberate complete() (a session whose last open task is dropped stays running; Session.test, the 2026-10-23 snapshot).
 	child_changed(kid){
-		if (kid.state !== "complete" || this.state !== "running") return;
+		if (!Task.settled(kid) || this.state !== "running") return;
 		if (this.mode === "series") this.start_children();
 		if ([...this._tasks].every(t => t.state === "complete")) this.complete({ auto: true });
 	}
 	start_children(){
 		const kids = [...(this._tasks ?? [])];
-		if (this.mode === "series"){ const next = kids.find(t => t.state !== "complete"); if (next?.state === "idle") next.start(); }
+		if (this.mode === "series"){ const next = kids.find(t => !Task.settled(t)); if (next?.state === "idle") next.start(); }
 		else for (const t of kids) if (t.state === "idle") t.start();
 	}
 
@@ -199,7 +202,7 @@ export class Task extends Item {
 
 	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
 	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
-	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary"];
+	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion"];
 	static session_resolver = null;
 	get children(){
 		const is_session = this.constructor.session_resolver;
@@ -361,14 +364,14 @@ export class Task extends Item {
 		return null;
 	}
 
-	// Refuses while any subtask is not complete: names the first open one, the
-	// same "tell them what to do next" shape as Item.locate()'s own warnings.
+	// Refuses while any subtask is still open: names the first one, the same "tell them what to do next" shape as Item.locate()'s own
+	// warnings. A stopped subtask (dropped, with its reason) is settled, as progress_of counts it (2026-10-24: a dropped fold-back blocked a finished task).
 	complete(args){
 		if (this.state === "complete") return this;
 		const { completion, complete, outcome, evidence, confidence, caveats, auto } = args && typeof args === "object" ? args : {};
 
 		// A recorded finish is a fact during replay (this._rp): a {task: ref} child the worker only filed is not a reason to refuse it. Server/doc/state.md
-		const open = this._rp ? null : [...(this._tasks ?? [])].find(t => t.state !== "complete");
+		const open = this._rp ? null : [...(this._tasks ?? [])].find(t => !Task.settled(t));
 		if (open) return this.warn(`complete(): "${open.get("title") ?? open.id}" isn't complete yet — complete that first`);
 
 		if (!CAN.complete.has(this.state)) return this.warn(`complete(): can't complete from "${this.state}"`);

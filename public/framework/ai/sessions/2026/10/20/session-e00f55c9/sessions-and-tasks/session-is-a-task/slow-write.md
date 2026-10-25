@@ -66,3 +66,17 @@ The write answer and the log-cost memo shipped on their own, ahead of the rest. 
 - Both answered with the new shape (`{ok, ids, line, size, now}`).
 - They were stamped 0.43 s apart (03:12:25.078Z and 03:12:25.505Z).
 - Before the fix, one write on this record took 20 to 60 s and stalled Servex.
+
+## The read that still froze Servex: found and fixed (2026-10-24, 22:49)
+
+- **What the owner saw:** the session page's cost tile stayed on "…" for 74 s.
+- **What Servex did:** its 5 s heartbeat (`crumbs.log`) stopped for 72–107 s at a time, every few minutes, and every route and agent waited.
+- **What named it:** new breadcrumbs ([servex-crumbs](../deputy/servex-crumbs/requirements.md)) caught `item> …/session-e00f55c9/ summary by owner`, followed by `item< 103311ms`.
+- **What a live CPU profile showed:** `existsSync` 31 s and `readdir` 26 s, under `TaskDirs.list` < `TaskLoop.find_task_files` < `Heartbeat.find_task_dir` < `Agents.task_dir_for` < `Agents.task_dirs` < `task_cost`.
+- **The cause:**
+  - `task_dirs()` groups the registry rows by task folder.
+  - For each of 3,000+ rows with no recorded `task_dir`, it fell back to `find_task_dir`, which reads every recent task log. That fallback was meant for one stopped agent at revive.
+  - Its 60 s cache meant the full scan ran again whenever a page asked a cost.
+- **Why the measurements above missed it:** they ran in a separate process with no Heartbeat attached, so the fallback did nothing there.
+- **The fix (76b63287f):** `task_dirs()` reads only each row's own `task_dir` and the heartbeat's owner map.
+- **Live after the restart:** the summary's first, cold call takes 5–9 s, then 0.14–0.19 s.

@@ -6,7 +6,7 @@ The default page at `/framework/ai/`: what matters most, in order. A place to sa
 
 | File | Class | Job |
 |---|---|---|
-| `AIDashboard.js` | `AIDashboard extends View` | the page body: the pill row (under the page title), then a three-column grid (two columns at 60em, one on a phone), then usage pace |
+| `AIDashboard.js` | `AIDashboard extends View` | the page body under the AI head (ai/page.js `head()`): a three-column grid (two columns at 60em, one on a phone), then usage pace, then a More pages pill row (the AI pages the tab row does not name) |
 | `DashNeeds.js` | `DashNeeds extends View` | "Needs you": waiting count + top 3 rows, and the ready-to-merge count + top 3 |
 | `DashBig.js` | `DashBig extends View` | "The big things now": each `### N. Title` in `ai/priority.md` with its `- **Now:**` line, cut to whole sentences |
 | `DashQueue.js` | `DashQueue extends View` | "Task queue": count and the top 3 by score |

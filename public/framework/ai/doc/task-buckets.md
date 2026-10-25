@@ -69,3 +69,32 @@ A note, a decision or a finding belongs to the task it came out of, not to chat.
 ## One subscription system
 
 Everything an agent needs to hear arrives through Servex `follow`; no second mechanism. The rule, and the two second mechanisms still to move (WorktreeWatch's direct send, the global errors folder), are in Servex/doc/follow.md, "One subscription system".
+
+## Do by default; 100% completion per session (items 22–23, the owner, 2026-10-24)
+
+**Approval defaults to "do".** An agent given a task does it, unless the owner's words say "plan" ("let's plan this", "plan first"). Only then does it write a plan and stop for the owner's look; even then the plan comes with a picture or mockup, never a bare question. A task that "needs approval" by default is a bug in the task, not a wait (CLAUDE.md law 5).
+
+**Every session is driven to 100% completion; it is always a top priority.** Each task of a session ends in exactly one of three ways, and every part of every prompt is covered by one:
+- **done** (or documented), with its link;
+- **reworded** so it can be done (a task that cannot be completed as written is rewritten, not left open);
+- **stopped**, with the reason written on it.
+
+A task is never deleted to reach 100%: a stopped one stays, with its why. The completion of each session is shown on the session's row on [the tracking page](/framework/ai/tracking/) and as the prompt completion on its Coverage tab, both computed from the records, never written by hand.
+
+*Status of the tracking-page column:* the Coverage tab's `done of N prompts complete` line exists; the tracking page's per-session column is not built yet and stays in the tracking page's own task list.
+
+## What done looks like, and the size of an ask (item 29, the owner, 2026-10-24)
+
+**Every ask of substance gets a "what done looks like" before work starts:** one or two lines naming the check that proves it (a page that opens, a test that passes, a number before and after). Where a quick option and a robust one both exist, name both and propose the shape early; the default is the quick one that can be improved, and the robust one is the alternative recorded (law 5).
+
+**Size it by the question "does it fit the task I am on?":**
+- **A quick job:** it fits the open task. Do it; no task of its own.
+- **A task:** one piece of work with its own done-criteria and a start and an end.
+- **A project:** several tasks planned up front (a plan, then each task started as you reach it).
+
+**No skill chooses the size; this rule does** (checked 2026-10-24: none of the skills in `.claude/skills` covers it). **Never sit in the wrong task:** close the one you leave before the next starts, or leave it open on purpose with `wait`. Prompt refinement may draft the done-criteria as a line on the ask's task; the tab refines it.
+
+## A session's log is not the home of conclusions (item 30)
+
+What is true about a module goes in that module's readme or docs, and the session points to it. A session log holds task states (added, started, complete, stopped, each with its reason), the closeout's verdicts, and pointers to files; a finding about a module is written in that module's doc, in the task that found it, and linked.
+

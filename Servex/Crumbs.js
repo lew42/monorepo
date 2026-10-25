@@ -32,7 +32,7 @@ export default class Crumbs {
 	}
 
 	static install(){
-		if (globalThis.__crumbs) return; globalThis.__crumbs = true;
+		if (globalThis.__crumbs) return; globalThis.__crumbs = Crumbs;   // the class itself, so a caller drops a crumb without importing (an import installs)
 		for (const name of ["spawn", "spawnSync", "exec", "execFile", "execSync", "execFileSync", "fork"]){
 			const real = cp[name];
 			cp[name] = function(...args){

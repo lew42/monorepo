@@ -26,7 +26,7 @@ Every nudge, compaction and reminder is logged in the agent's Servex log as `com
 - **A compaction is a turn.** `/compact` is queued like a message. A message that arrives during it runs after it, in order. A sleep-compaction that finds a message waiting stays awake for that turn.
 - **Repeat compactions.** Each rule fires at most once per turn (`compacted_turn`). A memory compaction clears the old process's memory reading, so it is not compacted again for nothing. On 2026-10-19, `task-mastermind-voice-opus` compacted three times in four minutes on a stale 698 MB reading.
 - **The CLI's own auto-compact** (`autoCompactEnabled`, `trigger: "auto"`) can still fire near the model window. Servex never turns it off.
-- **A compaction holds a working slot** while it runs (the working cap of 5, [dormant.md](/Servex/doc/dormant.md)).
+- **A compaction holds a working slot** while it runs (the working cap, default 8, [dormant.md](/Servex/doc/dormant.md)).
 - **The system prompt is recorded once** per session (the SDK's `snapshot`). A changed role readme reaches a running session only at its next compaction.
 
 ## History and sources

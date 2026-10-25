@@ -11,11 +11,10 @@ const AI = path.resolve(HERE, "..", "..", "public", "framework", "ai");
  * prompt-relay.mjs writes each owner prompt as a `Prompt` item on the session's page.jsonl (the old card folder,
  * ai/YYYY/MM/DD/<slug>/); page_add calls `hooks.prompted` (page_tools.js). Here, one at a time:
  *   1. the prompt's record is started in the session's prompts.jsonl, the `live` process of Server/PromptRecords.mjs: raw, numbered
- *      sentences, then ONE Haiku call that splits it into parts, 1 to 3 main asks with their details nested, rules kept apart
+ *      sentences, then ONE Haiku call that splits it into parts, every ask the prompt holds, with their details nested, rules kept apart
  *      (PromptRecords.PARTS_BRIEF; 2026-10-23: brief v3 filed one flat task per sentence, directions included);
- *   2. each top-level ask is filed as a PROPOSED task (state waiting, on the owner; its details in the description) in the session's own record,
- *      ai/sessions/YYYY/MM/DD/<slug>/session.jsonl, through the item tool, so the session page shows it live and the
- *      owner approves or rejects it there (a `decide` line, core/Session/Session.js).
+ *   2. each top-level ask is filed as an idle task (its details in the description) in the session's own record,
+ *      ai/sessions/YYYY/MM/DD/<slug>/session.jsonl, through the item tool, so the session page shows it live; nothing waits on the owner.
  * ONLY THE OWNER'S OWN VS CODE TABS (the owner, 2026-10-22): the page_add caller must be "owner" (prompt-relay.mjs, which skips
  * Servex-started sessions) and the record's line 1 must say kind "vscode-tab" (session-page.mjs, which also skips them). An SDK
  * agent's prompt is never refined here.

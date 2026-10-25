@@ -13,13 +13,10 @@ View.stylesheet(import.meta, "AIDashboard.css");
  *  The day's sessions list is one click down, on the Sessions tab. Every section reads real state and says so when it cannot: nothing is drawn from a failed read.
  *  The page's one live source is `AINow` (the "inflight" query); the queue, the waiting list, the merge list and priority.md are each read once. Class table: readme.md */
 export default class AIDashboard extends View {
-	// This page is a leaf, so `children:` draws no links: every page below that people need is linked here. Merge first, it is the one that needs a decision.
+	// This page is a leaf, so `children:` draws no links: the pages the tab row above does not name (Sessions, Tasks, Queue are tabs;
+	// Merge is the "Needs you" count) are linked here, in one quiet row at the bottom (the owner, 2026-10-24: one head row on every AI page).
 	static NAV = [
-		PageNav.merge_link(),
-		{ href: "/framework/ai/sessions/", label: "Sessions", title: "Every session, newest first, with filters" },
 		{ href: "/framework/ai/now/", label: "Now", title: "Every session active in the last hour" },
-		{ href: "/framework/ai/tasks/", label: "Tasks", title: "The task log and board" },
-		{ href: "/framework/ai/queue/", label: "Queue", title: "Every accepted task, ranked: what it is, why, its cost and its priority" },
 		{ href: "/framework/ai/asks/", label: "Asks", title: "Every ask, who owns it, whether it landed" },
 		{ href: "/framework/ai/review/", label: "Review", title: "Review pages" },
 		{ href: "/framework/ai/readmes/", label: "Readmes", title: "What an agent in each folder is given to read" },
@@ -32,7 +29,6 @@ export default class AIDashboard extends View {
 	get classes(){ return "ad-dash"; }
 
 	render(){
-		new PageNav({ links: AIDashboard.NAV });
 		div.c("ad-grid", () => {
 			div.c("ad-col ad-col-a", () => {
 				div.c("ad-sec ad-say", () => {
@@ -52,5 +48,6 @@ export default class AIDashboard extends View {
 			});
 		});
 		div.c("ad-sec ad-usage-sec", () => { h2.c("ad-h", "Usage pace"); new UsageLine(); });
+		div.c("ad-sec ad-more-sec", () => { h2.c("ad-h", "More pages"); new PageNav({ links: AIDashboard.NAV }); });
 	}
 }

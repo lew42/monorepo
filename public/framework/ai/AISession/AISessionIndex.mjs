@@ -56,7 +56,9 @@ export default class AISessionIndex {
 	// ---- life -----------------------------------------------------------------------------------------------------
 	start(){
 		this.ready = this.load().catch(e => this.log("AISessionIndex: load failed — " + e.message));
+		this.watched = new Set();
 		for (const d of this.project_dirs()) this.watch(d);
+		this.watch_base();
 		this.watch_records();
 		this.sweeper = setInterval(() => this.sweep(), AISessionIndex.SWEEP_MS); this.sweeper.unref?.();
 		this.freezer = setInterval(() => this.freeze(), AISessionIndex.FREEZE_MS); this.freezer.unref?.();
@@ -75,7 +77,21 @@ export default class AISessionIndex {
 
 	project_dirs(){ try { return fs.readdirSync(this.base).filter(d => /^c--code-lew42-/i.test(d)).map(d => path.join(this.base, d)); } catch { return []; } }
 
+	/** A project folder made after start-up (a new worktree's first Claude session) is watched too, and its transcripts the index has not seen are queued. */
+	watch_base(){
+		try {
+			this.watchers.push(fs.watch(this.base, (_, name) => {
+				if (!name || !/^c--code-lew42-/i.test(String(name))) return;
+				const dir = path.join(this.base, String(name));
+				if (this.watched.has(dir) || !fs.existsSync(dir)) return;
+				this.watch(dir);
+				for (const f of fs.readdirSync(dir)){ const m = TRANSCRIPT.exec(f); if (m && !this.snaps.has(m[1])) this.schedule(m[1], path.join(dir, f)); }
+			}));
+		} catch (e){ this.log("AISessionIndex: cannot watch " + this.base + " — " + e.message); }
+	}
+
 	watch(dir){
+		this.watched?.add(dir);
 		try {
 			this.watchers.push(fs.watch(dir, { recursive: true }, (_, name) => {
 				const m = name && TRANSCRIPT.exec(String(name));
