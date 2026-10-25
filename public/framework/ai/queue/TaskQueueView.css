@@ -2,7 +2,7 @@
 @layer site {
 	.page.tq-page { --gutter-x: clamp(0.6em, 2cqi, 1.5em); --pad-y: 0.8em; }
 	.tq-view { width: 100%; max-width: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em; padding: 0 clamp(0.5em, 2cqi, 1.2em) 2em; align-items: start; line-height: 1.35; }
-	.tq-side { order: 2; display: flex; flex-direction: column; gap: 0.6em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
+	.tq-side { display: flex; flex-direction: column; gap: 0.6em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
 	.tq-h { margin: 0.4em 0 0; font-size: 1em; }
 	.tq-big { display: flex; flex-direction: column; }
 	.tq-count { font-size: 4.5em; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -45,7 +45,7 @@
 
 	@media (min-width: 1000px) {
 		.tq-view { grid-template-columns: minmax(16em, 22em) minmax(0, 1fr); }
-		.tq-side { order: 0; position: sticky; top: 1em; }
+		.tq-side { position: sticky; top: 1em; }
 	}
 	@container (min-width: 60em) {
 		.tq-cols, .tq-row { display: grid; grid-template-columns: 2.2em minmax(12em, 3fr) minmax(10em, 2fr) 4.5em 3.5em 5em 6em 4.5em; gap: 0.8em; align-items: start; }
