@@ -6,7 +6,7 @@ View.stylesheet(import.meta, "TrackingView.css");
 const pct = x => `${Math.round(x * 100)}%`;
 const usd = x => `$${x.toFixed(2)}`;
 
-/** TrackingView — the three tracking checks from report.json (written by `node Server/TrackingCheck.mjs`). Readme: readme.md. */
+/** TrackingView — the four tracking checks from report.json (written by `node Server/TrackingCheck.mjs`). Readme: readme.md. */
 export default class TrackingView extends View {
 	get classes(){ return "tr-view"; }
 
@@ -24,7 +24,7 @@ export default class TrackingView extends View {
 
 	draw(r){
 		if (!r) { p("No report yet. Run `node Server/TrackingCheck.mjs`."); return; }
-		const t = r.untracked.totals, c = r.children, n = r.numbers;
+		const t = r.untracked.totals, c = r.children, n = r.numbers, idn = r.identity;
 
 		p(`Report written ${r.generated_at.replace("T", " ").slice(0, 16)} UTC, over the last ${r.days} days. Re-run \`node Server/TrackingCheck.mjs\` to refresh it.`);
 		a.c("tr-rule").href("/framework/ai/doc/task-buckets.md").text("The rule being checked: task buckets");
@@ -33,6 +33,7 @@ export default class TrackingView extends View {
 			this.card(pct(t.share_usd), "of spend had no task open", `${usd(t.untracked_usd)} of ${usd(t.usd)}, ${t.sessions} sessions`);
 			this.card(`${c.problems} of ${c.checked}`, "child sessions with a link problem", `${c.no_parent} no parent, ${c.parent_is_name} parent is a name, ${c.not_listed} not listed by the parent`);
 			this.card(String(n.count), "stored numbers that disagree", "with what the transcript or the children compute now");
+			if (idn) this.card(`${idn.failing} of ${idn.checked}`, "recent sessions with an identity problem", "one id, one folder, cost agrees, no shared messages, children linked");
 		});
 
 		h2("1. Work with no task open");
@@ -82,6 +83,22 @@ export default class TrackingView extends View {
 				{ key: "why", label: "Why", width: "3fr", min: "14em" },
 			],
 			rows: n.rows, filters: false,
+		});
+
+		h2("4. Session identity");
+		p("For the most recent sessions: the transcript holds only this session's id, there is one dated folder, the stored cost matches a recount from the transcript, no message is shared with another transcript, and every child session is linked from its parent. A ✅ means all five hold.");
+		if (!idn) p("No identity rows yet. Re-run `node Server/TrackingCheck.mjs`.");
+		else new DataGrid({
+			columns: [
+				{ key: "label", label: "Session", width: "3fr", min: "14em" },
+				{ key: "check", label: "Check", width: "4fr", min: "16em" },
+				{ key: "cache_usd", label: "Stored cost", type: "number", width: "8em", format: v => v == null ? "none" : usd(v) },
+				{ key: "recount_usd", label: "Recount", type: "number", width: "7em", format: v => v == null ? "none" : usd(v) },
+				{ key: "shared_messages", label: "Shared msgs", type: "number", width: "8em" },
+				{ key: "folders", label: "Folders", type: "number", width: "6em" },
+				{ key: "unlinked", label: "Unlinked", type: "number", width: "7em" },
+			],
+			rows: idn.rows.map(x => ({ ...x, label: x.title || x.id.slice(0, 8), check: x.ok ? "✅" : x.first_problem })), filters: false,
 		});
 	}
 

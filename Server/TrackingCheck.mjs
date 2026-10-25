@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 // Server/TrackingCheck.mjs: does the work get tracked? Reads the real records and writes public/framework/ai/tracking/report.json (the page /framework/ai/tracking/ draws it).
 //   node Server/TrackingCheck.mjs [--days 7] [--id <session id>] [--print]
-// Three checks (doc: public/framework/ai/tracking/readme.md):
+// Four checks (doc: public/framework/ai/tracking/readme.md):
 //   1. untracked work   every assistant message in a session's transcript is "tracked" if a task was open at that moment (start..complete), else "untracked"; shares in dollars and tokens
 //   2. unlinked children   Servex agent sessions with no parent, a parent that is an agent name and not a session id, or a parent record that does not list them
 //   3. stored numbers   a stored dollar number (index.json tree_usd, children, usd) against what the children / the raw transcript give now
+//   4. session identity   Server/SessionIdentity.mjs for the 10 most recent sessions in the window (plus --id): one id per transcript, one folder, cost agrees with a recount, no shared messages, children linked
 // Read-only on every record; the one write is report.json.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import SessionIdentity from "./SessionIdentity.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(process.env.TRACKING_ROOT || path.join(HERE, ".."));   // TRACKING_ROOT: read the main checkout's records from a worktree (index.json and cache.jsonl are gitignored)
@@ -236,7 +238,19 @@ export async function run({ days = 7, id = null } = {}){
 	}
 	for (const x of sessions) if (x.stored_usd != null && Math.abs(x.stored_usd - x.usd) > Math.max(0.05, x.usd * 0.03)) numbers.push({ id: x.id, agent: x.agent, what: "usd", stored: x.stored_usd, computed: x.usd, why: "index.json usd against the transcript read again now" });
 
-	return { generated_at: new Date().toISOString(), days, note: "Computed by Server/TrackingCheck.mjs; never edit by hand. Doc: public/framework/ai/tracking/readme.md", untracked: { totals, by_day, sessions: sessions.slice(0, 100) }, children, numbers: { count: numbers.length, rows: numbers.slice(0, 200) } };
+	// 4. session identity: the 10 most recent sessions that have a transcript, plus the one asked for
+	const checker = new SessionIdentity({ repo: REPO }), identity_rows = [];
+	const recent = scope.filter(s => files.has(s.id)).sort((a, b) => b.last - a.last).slice(0, 10);
+	if (id && !recent.some(s => s.id === id) && files.has(id)) recent.push(by_id.get(id) ?? { id, snap: {} });
+	for (const s of recent){
+		try {
+			const r = await checker.check(s.id);
+			identity_rows.push({ id: s.id, title: s.snap.title ?? s.snap.agent ?? null, ok: r.ok, problems: r.problems.length, first_problem: r.problems[0] ?? null, cache_usd: r.cost.cache_usd, recount_usd: r.cost.recount_usd, shared_messages: r.cost.shared_messages.count, folders: r.folders.list.length, unlinked: r.children.unlinked });
+		} catch (e){ identity_rows.push({ id: s.id, title: s.snap.title ?? null, ok: false, problems: 1, first_problem: "The identity check failed: " + e.message, cache_usd: null, recount_usd: null, shared_messages: 0, folders: 0, unlinked: 0 }); }
+	}
+	const identity = { checked: identity_rows.length, failing: identity_rows.filter(x => !x.ok).length, rows: identity_rows };
+
+	return { generated_at: new Date().toISOString(), days, note: "Computed by Server/TrackingCheck.mjs; never edit by hand. Doc: public/framework/ai/tracking/readme.md", untracked: { totals, by_day, sessions: sessions.slice(0, 100) }, children, numbers: { count: numbers.length, rows: numbers.slice(0, 200) }, identity };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
@@ -247,4 +261,5 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 	console.log(`untracked: ${(t.share_usd * 100).toFixed(0)}% of $${t.usd} (${t.sessions} sessions, ${(t.share_tokens * 100).toFixed(0)}% of tokens)`);
 	console.log(`children: ${c.problems} of ${c.checked} have a problem (no parent ${c.no_parent}, parent is a name ${c.parent_is_name}, not listed ${c.not_listed})`);
 	console.log(`stored numbers that disagree: ${report.numbers.count}`);
+	console.log(`session identity: ${report.identity.failing} of ${report.identity.checked} have a problem`);
 }
