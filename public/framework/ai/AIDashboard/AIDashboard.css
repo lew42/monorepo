@@ -30,6 +30,7 @@
 	.ad-running .an-now { padding: 0; gap: 0.5em; }
 	.ad-running .an-foot { display: none; }
 	.ad-usage-sec .ad-usage { gap: 0.3em 1.5em; font-size: 0.85em; }
+	html:has(.drawer.on .drawer-ai) .ad-say { display: none; }
 	.ad-col-a { grid-area: a; } .ad-col-b { grid-area: b; } .ad-col-c { grid-area: c; }
 	.ad-grid { grid-template-areas: "a" "b" "c"; }
 	@media (min-width: 60em) {
