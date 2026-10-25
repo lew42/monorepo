@@ -4,6 +4,24 @@ Budget: $10. Load the `minion` skill first. Model: Sonnet. Card: `public/framewo
 
 Queued behind `../chat-sent/` and `../v2-speed/`, which touch the same files. Start from current `michael/dev` after both have merged.
 
+## The asks at a glance (each is proven in the outcome as `- [x]` with a screenshot, or `- [ ]`)
+
+- [ ] **One chat view** with everything both views have
+- [ ] **Version dropdown** replaces the V2 button; every version named, the first included
+- [ ] **Replies never land inside the owner's dictation**
+- [ ] **One source, one placement, many looks** (`plan.md` answers first whether both views share agents and data)
+- [ ] **The owner's words always land at the bottom**
+- [ ] **Long dictation breaks into readable blocks**
+- [ ] **Structure entry** in the dropdown: the live item tree
+- [ ] **Fast and smart assistants** each have a role; every item is marked fast or smart
+- [ ] **Out-of-place words get a yellow "?"**
+- [ ] **One refinement** drives both views, no sentence ids shown
+- [ ] **Topic cards** that hold Questions, tasks and statements
+- [ ] **Question** is its own widget, open until answered and accepted
+- [ ] **Sentences feed live** as they arrive
+
+Details for each follow.
+
 ## The owner's direction (not yet a decision on how)
 
 Chat has two views today: the first one, which has no name, and Chat v2, behind the V2 button at the top of the chat. Chat v2 shows the refinements: refined text, replies, Questions and tasks. The first view does not, but it has the jump-to-newest button and streams replies. The owner does not want two versions that drift apart. The aim is **one chat view** that has everything both have: the first view gets the refinements, and both use the same shared parts.
