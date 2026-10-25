@@ -63,7 +63,7 @@ A session folder is one of three kinds:
 
 ## Top-level files here (generated; never hand-edit)
 
-`session-index.json`, `session-tree.json`, `sessions.json` (`Server/session-summary.mjs`) · `session-buckets.json` (`Server/session-buckets.mjs`) · `session-flags.json` (`Server/session-flags.mjs`) · `spend-tree.json` (`Server/spend-tree.mjs`) · `*-moves.jsonl`, `task-manifest.json` (move ledgers, so a move can be undone) · `settings.jsonl` (the page's saved view) · `page.js`, `system.js` (the page and its `ReadmeSystem`).
+`session-index.json`, `session-tree.json`, `sessions.json` (`Server/session-summary.mjs`) · `session-buckets.json` (`Server/session-buckets.mjs`) · `session-flags.json` (`Server/session-flags.mjs`) · `spend-tree.json` (`Server/spend-tree.mjs`) · `session-links.jsonl`, `session-entries.jsonl` (`Server/ChildLinks.mjs`'s backfill manifests, written by `--apply` and `--entries --apply`: one line for every child reference or Session entry it appended, so a backfill can be audited and undone; [core/Session/readme.md](/framework/core/Session/readme.md), "Session entries") · `*-moves.jsonl`, `task-manifest.json` (move ledgers, so a move can be undone) · `settings.jsonl` (the page's saved view) · `page.js`, `system.js` (the page and its `ReadmeSystem`).
 
 ## More
 
