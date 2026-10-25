@@ -42,15 +42,30 @@ export default class ChildLinks {
 	/** A registry task_dir (an absolute path in the main tree or a worktree) as a folder under `root`. */
 	static local(dir, root = SELF_ROOT){ const u = this.url_of(dir, root); return u ? path.join(root, "public", u) : path.resolve(dir); }
 
-	/** The folder of session `id` (full id, else its first 8), or null. Looks in the cache first. */
+	/** The folder of session `id` (full id, else its first 8), or null. Looks in the cache first. A folder made a moment ago (a voice
+	 * call's v-<id>/, then its agents' spawns) is not in a map built before it, so a miss looks for it by name in today's and yesterday's
+	 * day folders, then rescans. A rescan of the live tree takes ~0.8 s (2026-10-25), so spawns within a second of one share it. */
 	static session_dir(id, root = SELF_ROOT, map = null){
 		if (!id) return null;
 		const hit = m => m.get(id) ?? m.get(String(id).slice(0, 8)) ?? null;
 		if (map) return hit(map);
-		let c = this.cache.get(root), found = c && hit(c.map);
+		const c = this.cache.get(root), found = c && hit(c.map);
 		if (found && SessionRecord.file(found)) return found;
-		if (!c || Date.now() - c.at > 10000){ c = { at: Date.now(), map: this.sessions(root) }; this.cache.set(root, c); found = hit(c.map); }
-		return found;
+		const recent = this.recent_dir(id, root);
+		if (recent){ c?.map.set(id, recent); return recent; }
+		if (c && Date.now() - c.at < 1000) return found;
+		const fresh = { at: Date.now(), map: this.sessions(root) };
+		this.cache.set(root, fresh);
+		return hit(fresh.map);
+	}
+	// A session folder named `id` (or session-<first 8>) with a record, in today's or yesterday's day folder.
+	static recent_dir(id, root){
+		const day = d => path.join(root, "public/framework/ai/sessions", String(d.getFullYear()), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0"));
+		for (const d of [new Date(), new Date(Date.now() - 864e5)]) for (const name of [String(id), "session-" + String(id).slice(0, 8)]){
+			const dir = path.join(day(d), name);
+			if (SessionRecord.file(dir)) return dir;
+		}
+		return null;
 	}
 
 	/** The url of a folder under `<root>/public`, "/framework/…/", or null. A path from another tree (a worktree, the main tree) is matched on its `/public/`. */

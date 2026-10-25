@@ -92,7 +92,8 @@ try {
 	const m = P().tasks.find("mixed");
 	t.ok(m instanceof Session && m.state === "complete", "a task folder a spawn later wrote into is a Session, and its complete line still reads complete");
 	// 7. A voice record (ai/sessions/<day>/v-<id>/, line 1 {session:{kind:"voice"}}) is found by its folder name as a parent_session.
-	const VOICE = path.join(ROOT, SESS, "2026/10/24", "v-test");
+	const now = new Date(), today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("/");
+	const VOICE = path.join(ROOT, SESS, today, "v-test");   // made just now, after the cache was built: found by name in today's folder
 	fs.mkdirSync(VOICE, { recursive: true });
 	fs.writeFileSync(path.join(VOICE, "session.jsonl"), JSON.stringify({ session: { kind: "voice", at: "2026-10-24T11:00:00.000Z" } }) + "\n");
 	// The child sits outside the voice folder, so its record is found by parent_session, not by walking up.
