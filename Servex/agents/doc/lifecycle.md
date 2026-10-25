@@ -18,7 +18,7 @@ A running Servex needs `node Servex/sustain.mjs --restart` to load this.
 
 ## Fresh once a day (the owner, 2026-10-22)
 
-**The compaction policy for long-running agents, as it stands:** never mid-task. Node nudges an idle agent with its context size, and the agent decides whether to compact (above). The only forced `/compact` is the 400k safety ceiling, and it runs at a turn's end. On top of that, a standing agent gets a **fresh session about once a day**, so its context starts small instead of being compacted again and again.
+**The compaction policy for long-running agents, as it stands:** never mid-task. Node nudges an idle agent with its context size, and the agent decides whether to compact (above). The only forced `/compact` is the 400k safety ceiling, and it runs at a turn's end. On top of that, an agent listed in `Respawn.AGENTS` gets a **fresh session about once a day**, so its context starts small instead of being compacted again and again. That list is empty now (see the first bullet).
 
 - **No renewal, no singleton (2026-10-25).** The daily respawn was replaced by renewal on wake on 2026-10-23, and renewal is gone too: the AI system mastermind is an ordinary `mastermind` spawned at `public/framework/ai/` (`roles.js` `ALIAS_PATHS`), a fresh agent per project, reused only while its context is small. A second `spawn` is a second agent (`mastermind-ai-2`). Test: `node Servex/agents/path-mastermind.test.mjs`.
 - **Who (Respawn):** `Respawn.AGENTS` in `Servex/agents/Respawn.js` is empty since then; the class stays for an agent that must be fresh on a timer.
