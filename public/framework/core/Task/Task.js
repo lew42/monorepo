@@ -361,14 +361,14 @@ export class Task extends Item {
 		return null;
 	}
 
-	// Refuses while any subtask is not complete: names the first open one, the
-	// same "tell them what to do next" shape as Item.locate()'s own warnings.
+	// Refuses while any subtask is still open: names the first one, the same "tell them what to do next" shape as Item.locate()'s own
+	// warnings. A stopped subtask (dropped, with its reason) is settled, as progress_of counts it (2026-10-24: a dropped fold-back blocked a finished task).
 	complete(args){
 		if (this.state === "complete") return this;
 		const { completion, complete, outcome, evidence, confidence, caveats, auto } = args && typeof args === "object" ? args : {};
 
 		// A recorded finish is a fact during replay (this._rp): a {task: ref} child the worker only filed is not a reason to refuse it. Server/doc/state.md
-		const open = this._rp ? null : [...(this._tasks ?? [])].find(t => t.state !== "complete");
+		const open = this._rp ? null : [...(this._tasks ?? [])].find(t => t.state !== "complete" && t.state !== "stopped");
 		if (open) return this.warn(`complete(): "${open.get("title") ?? open.id}" isn't complete yet — complete that first`);
 
 		if (!CAN.complete.has(this.state)) return this.warn(`complete(): can't complete from "${this.state}"`);
