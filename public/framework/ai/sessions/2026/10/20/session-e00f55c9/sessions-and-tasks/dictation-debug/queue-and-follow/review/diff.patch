@@ -1,0 +1,225 @@
+diff --git a/Servex/Gate-stale.test.mjs b/Servex/Gate-stale.test.mjs
+new file mode 100644
+index 000000000..faccd9d8e
+--- /dev/null
++++ b/Servex/Gate-stale.test.mjs
+@@ -0,0 +1,19 @@
++/* node Servex/Gate-stale.test.mjs — a held spawn is checked for "landed" only against a task dir the spec names (a fresh `ai-system-mastermind` was dropped 2026-10-25 because an OLD task of that name had landed), and a drop tells the parent. */
++import assert from "node:assert/strict";
++import Servex from "./Servex.js";
++
++function run(spec){
++	const asked = [], logged = [], told = [];
++	const self = { log: { append: (...a) => (logged.push(a), Promise.resolve()) },
++		agents: { blocked: (row, opts) => (asked.push(opts), spec.__block ?? null), reg: () => ({ read: () => ({}) }), send: (...a) => told.push(a) } };
++	return { stale: Servex.prototype.stale.call(self, spec), asked, logged, told };
++}
++
++assert.equal(run({ id: "ai-system-mastermind" }).asked[0].landed, false, "a fresh spawn with no task dir never matches an old landed task");
++assert.equal(run({ id: "x", resume: true }).asked[0].landed, false, "a held resume is never dropped for landing");
++assert.equal(run({ id: "x", task: { dir: "t/x" } }).asked[0].landed, true, "a spec naming its task dir is checked against it");
++const dropped = run({ id: "m", parent: "p", __block: { why: "landed", text: "its task x has landed" } });
++assert.equal(dropped.stale, true);
++assert.equal(dropped.told[0][0], "p", "the parent is told");
++assert.match(dropped.told[0][1], /dropped from the spawn queue/);
++console.log("Gate-stale: ok");
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index acf93ccb7..62238f56a 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -1301,8 +1301,11 @@ export default class Servex extends Events {
+     stale(spec){
+         const no = this.agents.blocked?.({ id: spec.id, cwd: spec.cwd, task_dir: spec.task?.dir && path.resolve(spec.task.dir),
+             ...(spec.resume ? { stopped_by: this.agents.reg().read()[spec.id]?.stopped_by } : {}) },
+-            { landed: !spec.resume });   // a held RESUME is a long-lived agent coming back: its first task landing is no reason to drop it
+-        if (no) this.log.append("system", { type: "gate", state: "dropped", id: spec.id ?? null, why: no.text }).catch(() => {});
++            { landed: !spec.resume && !!spec.task?.dir });   // landed counts only against the task dir the spec names: a held RESUME or a fresh spawn by id (ai-system-mastermind, 2026-10-25) must not be matched to an OLD landed task of the same name
++        if (no){
++            this.log.append("system", { type: "gate", state: "dropped", id: spec.id ?? null, why: no.text }).catch(() => {});
++            if (spec.parent) try { this.agents.send(spec.parent, `${spec.id ?? spec.name ?? spec.role ?? "a queued spawn"} was dropped from the spawn queue and will not start: ${no.text}. Spawn it again if you still want it.`, { from: "servex" }); } catch {}
++        }
+         return !!no;
+     }
+ 
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 098da5e48..6ba8110e4 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -970,7 +970,7 @@ export class Agents {
+ 	 * (`Agent.send()`'s own default), never dropped. Off with
+ 	 * `SERVEX_DISABLE_WAKE=1` or `{ no_wake: true }` on the host — the proof
+ 	 * for this reproduces the old parking by disabling it first. */
+-	wake_parent(child, kind){
++	wake_parent(child, kind, { quiet = false } = {}){
+ 		if (this.no_wake || process.env.SERVEX_DISABLE_WAKE) return;
+ 		if (!child.parent || child.parent === child.id) return;
+ 		if (child.one_shot && child.woke) return;
+@@ -989,6 +989,7 @@ export class Agents {
+ 		const next = kind === "done" && child.task?.dir && task_landed(child.task.dir) ? next_briefs(child.task.dir) : [];
+ 		const note = next.length ? `\n\nNext: ${next.map(n => `${n.dir}${n.brief ? ` (brief ${n.brief})` : ""}`).join("; ")}. Its \`after\` edge is met; start it.` : "";
+ 		this.inbox(child, kind, text);
++		if (quiet && !note) return;   // a short ack after only followed lines: recorded in the inbox, but the parent is not woken; a landed task still tells it what it unblocks
+ 		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
+ 		child.parent = this.holder(child.parent);   // a child of a retired mastermind-servex-N reports to the live one
+ 		const parent = this.live.get(child.parent), by = this.stopped_on_purpose?.(child.parent)
+@@ -1478,6 +1479,7 @@ Agents.Agent = class Agent {
+ 		if (this.state === "dormant") this.awaken(from);
+ 		this.emit({ type: "agent_msg", from: from ?? null, reply_to: reply_to ?? null, priority: priority ?? null, text });
+ 		const turn = this.turn(this.envelope(text, { from, reply_to }), priority);
++		if (from === "servex-follow") Object.defineProperty(turn, "followed", { value: true });   // read by the queue's kinds list; not part of the message the SDK sees
+ 		if (!this.queue.push(turn)){
+ 			(this.held_messages ??= []).push(turn);
+ 			this.emit({ type: "held", why: "the queue closed before this message could be pushed; it will be replayed on the next awaken" });
+@@ -1774,10 +1776,13 @@ Agents.Agent = class Agent {
+ 		/* The turn that answers a compact nudge is housekeeping, not news: its "done" wakes nobody. */
+ 		const nudge_turn = event.type === "result" && !event.stopped && this.nudge_pending;
+ 		if (nudge_turn) this.nudge_pending = false;
++		/* A turn started only by followed lines whose answer is a short ack ("nothing for me") is housekeeping, not news: its "done" wakes nobody (2026-10-25: followers woke the smart seat on every followed line). A long answer, BLOCKED, an error or a stop still wake the parent. */
++		const followed = event.type === "result" && !(event.stopped && !event.mid_turn) && this.queue?.kinds?.shift() === true;   // the kind of the turn this result ends, in queue order; an idle stop ran no turn
++		const quiet_follow = followed && !event.stopped && (this.last_text ?? "").trim().length < 200 && !this.last_text?.startsWith("BLOCKED");
+ 		if (event.type === "result" && !nudge_turn && !(event.stopped && !event.mid_turn)) this.host?.wake_parent?.(this,
+ 			event.stopped ? "stopped"
+ 			: this.one_shot && event.ok === false ? "error"
+-			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done");
++			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done", { quiet: quiet_follow });
+ 		if (event.type === "error") this.host?.wake_parent?.(this, "error");
+ 		if (event.type === "result") try { this.host?.servex?.process_runner?.turn_ended(this); } catch {}   // a process step this agent holds is measured, or pulsed if left open
+ 		return event;
+@@ -2369,6 +2374,7 @@ Agents.Agent.Queue = class AgentQueue {
+ 	 * apart from a real success. `Agent.send()` is the one caller that acts on it. */
+ 	push(item){
+ 		if (this.done) return false;
++		(this.kinds ??= []).push(!!item?.followed);   // one entry per turn, in order: true = started by a followed line (Agent.emit judges each result by it)
+ 		const wake = this.waiting.shift();
+ 		if (wake) wake({ value: item, done: false });
+ 		else this.items.push(item);
+diff --git a/Servex/agents/Follow-ack.test.mjs b/Servex/agents/Follow-ack.test.mjs
+new file mode 100644
+index 000000000..b0be74593
+--- /dev/null
++++ b/Servex/agents/Follow-ack.test.mjs
+@@ -0,0 +1,60 @@
++/* node Servex/agents/Follow-ack.test.mjs — a turn started only by followed lines that ends with a short ack does not wake the parent (Agents.wake_parent's `quiet`); a real message, a long answer, BLOCKED or a landed task still do. */
++import "./test-store.mjs";
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++
++const dir = fs.mkdtempSync(path.join(os.tmpdir(), "follow-ack-test-"));
++process.env.SERVEX_HOME = dir;
++const { Agents } = await import("./Agents.js");
++
++class FakeAgent extends Agents.Agent {
++	start(){ this.queue = new this.constructor.Queue(); this.aborter = { abort(){} }; this.query = { close(){} }; this.claude_pid = process.pid; this.session_id ??= "fake-" + Math.random().toString(36).slice(2); this.state = "idle"; if (this.prompt) this.queue.push(this.turn(this.prompt)); return this; }
++}
++class Host extends Agents { wake_parent(child, kind, opts){ (this.calls ??= []).push({ kind, quiet: !!opts?.quiet }); } }
++Host.Agent = FakeAgent;
++const host = new Host({ registry_dir: path.join(dir, "reg"), servex: { say(){} } });
++const agent = host.spawn({ task: false, id: "mastermind-f", role: "mastermind", name: "f", parent: "session-p" });
++
++Agents.Agent.prototype.emit.call(agent, { type: "result", ok: true });   // the spawn's own first turn ends first
++function turn(messages, text){
++	for (const from of messages) agent.send("x", { from });
++	agent.emit({ type: "transcript", text });
++	host.calls = [];
++	Agents.Agent.prototype.emit.call(agent, { type: "result", ok: true });
++	return host.calls;
++}
++const isquiet = c => c.length === 1 && c[0].quiet;
++
++assert.ok(isquiet(turn(["servex-follow"], "nothing for me")), "short ack after a followed line is quiet");
++assert.ok(!isquiet(turn(["servex-follow"], "x".repeat(300))), "a long answer wakes the parent");
++assert.ok(!isquiet(turn(["servex-follow"], "BLOCKED: need a key")), "BLOCKED wakes the parent");
++assert.ok(!isquiet(turn(["session-p"], "yes")), "an answer to a real message wakes the parent");
++const done = text => { agent.emit({ type: "transcript", text }); host.calls = []; Agents.Agent.prototype.emit.call(agent, { type: "result", ok: true }); return host.calls; };
++agent.send("f", { from: "servex-follow" }); agent.send("q", { from: "session-p" });   // a followed turn runs, a real question waits behind it
++assert.ok(isquiet(done("ok")), "turn 1 (followed) is quiet");
++agent.send("g", { from: "servex-follow" });   // another followed line arrives while the question's turn runs
++assert.ok(!isquiet(done("yes")), "turn 2 (the real question) still wakes the parent");
++assert.ok(isquiet(done("ok")), "then the followed line's turn is quiet");
++agent.queue.push(agent.turn("/compact"));   // /compact is direct
++assert.ok(!isquiet(done("compacted")), "a /compact turn is never quiet");
++// the first prompt is a real message: a followed line arriving while the brief's turn runs does not make its short reply quiet
++const briefed = host.spawn({ task: false, id: "mastermind-b", role: "mastermind", name: "b", parent: "session-p", prompt: "go" });
++briefed.send("f", { from: "servex-follow" });
++briefed.emit({ type: "transcript", text: "Spawned the minion." }); host.calls = [];
++Agents.Agent.prototype.emit.call(briefed, { type: "result", ok: true });
++assert.ok(!isquiet(host.calls), "the brief's own turn is not swallowed");
++
++// the real wake_parent: quiet skips only the message to the parent
++const sent = [];
++class Real extends Agents { send(id, text){ sent.push({ id, text }); } }
++Real.Agent = FakeAgent;
++const real = new Real({ registry_dir: path.join(dir, "reg2"), servex: { say(){} } });
++const child = { id: "mastermind-r", parent: "session-p", last_text: "nothing for me", cost: 1 };
++real.wake_parent(child, "done", { quiet: true });
++assert.equal(sent.length, 0, "quiet: the parent is not messaged");
++real.wake_parent({ ...child, woke: false }, "done");
++assert.equal(sent.length, 1, "not quiet: the parent is messaged");
++console.log("Follow-ack: ok");
++process.exit(0);
+diff --git a/Servex/agents/session-smart.md b/Servex/agents/session-smart.md
+index 66448e554..b4bba2cce 100644
+--- a/Servex/agents/session-smart.md
++++ b/Servex/agents/session-smart.md
+@@ -47,7 +47,7 @@ Presence and decisions only, one line each: never step-by-step progress. When yo
+ - **A statement is not a request.** "The sheet should show every bubble in order" describes, it does not ask. Do NOT spawn anything or call `quick_fix` for it: answer in ONE line ("Want me to make that change?") and wait for a yes. Spawn only on a clear ask ("make", "fix", "build", "change", "add").
+ - For new work (building, fixing, a change to files) that nothing in flight already covers, start a `mastermind` with `spawn_agent` (role `mastermind`, `path` = the folder the work is about, `name` = its job such as `dictation-fix`, `model: "sonnet"` unless the work is architecture or judgment (a `mastermind` defaults to Opus, high), the polished brief) and say that you did; the id comes out `mastermind-<name>`, which says what it is for. Do not edit files yourself. **Do not spawn a bare `minion` for file changes** — a `mastermind` takes a worktree and lands through `node Server/merge.mjs` (its smoke test, its review, its shots at 400 and 1920), the same gate every task goes through; a session has no mastermind watching over a lone minion to run that gate for it. If you do spawn one anyway, Servex now moves it into a pool worktree for you (`Agents.spawn`, `Servex/Pool.js`'s `take_sync`), or refuses the spawn outright if no worktree is ready — never a silent fallback to the main tree — so it can never land straight there; a moved minion still must merge through `merge.mjs` and say "ready to merge" on its card before anyone treats its work as done.
+ - If you save the polished brief itself as a file (an `owner-words.md` in a new folder under `ai/<date>/`, rather than only pasting it into the spawn prompt), write that folder's `task.jsonl` line 1 FIRST, the same shape every other task dir has: `{"assign":{"now":"session","agent":"<this session id>","at":"<now, ISO>","brief":"owner-words.md"}}`. Without it the folder has files but no task, and AI 2's log 404s trying to read it.
+-- **When you hand work to a mastermind about this session** (a new one, or one you route to), tell it to `follow` this session's file, `public<home>ai/<session>.jsonl`: `follow({agent: "<its id>", path: "public<home>ai/<session>.jsonl", gather_ms: 2000})`. Then it hears the owner at the same moment you do, and can pick up a correction without waiting for you. Your handoff message is still the polished brief, never the raw words. How follow works: `Servex/doc/follow.md`.
++- **When you hand work to a mastermind about this session** (a new one, or one you route to), tell it to `follow` this session's file, `public<home>ai/<session>.jsonl`: `follow({agent: "<its id>", path: "public<home>ai/<session>.jsonl", gather_ms: 2000})`. Then it hears the owner at the same moment you do, and can pick up a correction without waiting for you. Your handoff message is still the polished brief, never the raw words. How follow works: `Servex/doc/follow.md`. A follower that has nothing to say should end its turn with a word or two: a short reply to a followed line (under 200 characters) wakes nobody; news goes through `send_to_agent`.
+ - For a technical question about one folder, ask a fresh directory mastermind with `ask_directory({dir, question, session: "<this session id>"})` rather than reading everything yourself (`Servex/agents/doc/directory.md`).
+ - Keep what you learn: this session is long-lived, and later messages refer back. If you were started fresh after a pause, the session's last lines are in this prompt; read the whole file when you need more.
+ 
+diff --git a/Servex/doc/dormant.md b/Servex/doc/dormant.md
+index a75975826..9048b591e 100644
+--- a/Servex/doc/dormant.md
++++ b/Servex/doc/dormant.md
+@@ -128,6 +128,10 @@ of RAM given back this way.
+ - **Decision:** default cap 8, the free-memory floor (2.5 GB) stays as the second gate. Try 10 only after a week in which free memory stayed above the floor with 8 working; `GET /api/processes` gives the numbers. Set `SERVEX_WORKING_CAP` to change it without code.
+ - **Priority:** when a higher-priority task needs a slot, the mastermind winds a low-priority session down: [mastermind.md](/Servex/agents/roles/mastermind.md), "Slots go to the highest priority".
+ 
++### A queued spawn is never dropped for lack of RAM, and a drop tells the parent (2026-10-25)
++
++No timer drops a queued spawn: memory, the cap and the monitor only keep it queued (`queued()` lists position and reason). `Servex.stale` is the one place an entry is dropped; it counts "landed" only against a task dir the spec names (`spec.task.dir`), so a fresh spawn by id (`ai-system-mastermind`) is not matched to an old landed task of that name, and a drop is sent to the parent as a message (`Servex/Gate-stale.test.mjs`).
++
+ ## Compaction
+ 
+ All compaction rules and the factors behind them now live in one place: [`public/framework/ai/doc/compaction.md`](../../public/framework/ai/doc/compaction.md). In short:
+diff --git a/Servex/doc/follow.md b/Servex/doc/follow.md
+index e2d80d8c9..a02b21754 100644
+--- a/Servex/doc/follow.md
++++ b/Servex/doc/follow.md
+@@ -175,6 +175,10 @@ event never fires (the trap above) still delivers every line.
+ 
+ A subscription made by `Agents.follow_child` (it has `of:`) is filtered: `Follow.worth_waking` forwards only the lines `Follow.kind` calls `state` (a task added, started, waiting, complete) or `pointer` (a file the owner should know about, a shot, a review verdict), each cut to 600 characters. Steps, actions, decisions, commits, heartbeat and `worktree-watch:` lines are dropped, and a burst with nothing left sends no message, so it wakes nobody. A subscription you make yourself with the `follow` tool still gets every line. Test: `node Servex/Follow-kind.test.mjs`; cost: `node Server/FollowCost.mjs` (the rule and the measured numbers: `public/framework/ai/doc/task-buckets.md`).
+ 
++## A follower's ack does not wake its parent
++
++A followed line reaches the follower through `agents.send` (the same message queue as `send_to_agent`, `from: "servex-follow"`) and starts a turn. Nothing tells the follower to reply: when any child's turn ends, `Agents.wake_parent` sends its last words to its parent as `done: …` with a `[from: <child> · reply to: log agent-<parent>]` header, so every "nothing for me" woke the parent. Every message put on the agent's queue (`AgentQueue.push`, so the first prompt, `/compact` and held replays too) is recorded in `kinds`: true when `Agent.send` marked it as a followed line. Each result shifts one entry and judges by it: a turn started by a followed line that ends with under 200 characters of text and not `BLOCKED` skips the wake. A longer answer, `BLOCKED`, an error or a stop still wakes the parent. The wake still writes the parent's inbox and the landed task's "Next:" note; only the message to the parent is skipped (test `node Servex/agents/Follow-ack.test.mjs`). A follower with news should `send_to_agent`; a short reply to a followed line is read as an ack. Known limit: the list assumes the SDK ends each queued message with its own result; if it ever merges two into one turn, or a `priority: "now"` message does not end the running turn with its own result, the list slips by one; an awaken starts a fresh list.
++
+ ## An agent following its own log: `skip_by` and `heard`
+ 
+ `follow({agent, path, skip_by: ["<agent id>", …]})` drops every line whose top-level `by`, or `chat.from.agent`, is in `skip_by`, so an agent tailing its own session file is not woken by its own replies (`Follow.without`; test `node Servex/Follow-skip.test.mjs`). `heard: true` is the allow-list for a session seat (`Follow.heard`): only the owner's chat lines, `{place}` lines and Question items are delivered, since the server also writes `sent`, `refined`, `quiet` and `skip` lines into the same file. Both are set when the subscription is made and not updated on an existing one. The smart voice seat uses it in tail mode: [wake-policy.md](/framework/ux/Dictate/doc/wake-policy.md). A real run showed a session reads its new lines this way verbatim, about 3 s after they are written (the `updates` tool is for external sessions only; a spawned agent gets the lines as messages from `servex-follow`).
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/queue-and-follow/requirements.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/queue-and-follow/requirements.md
+new file mode 100644
+index 000000000..df969f4f7
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/queue-and-follow/requirements.md
+@@ -0,0 +1,15 @@
++# queue-and-follow
++
++The owner's words (voice, polished by session-smart-v-sq8y7db, 2026-10-25):
++
++1. Servex dropped `ai-system-mastermind` from the spawn queue after 1.5 min "because only 2.3 GB RAM was free". A queued task must not be abandoned for lack of RAM: it stays queued until it can start, or the parent is told and it re-queues; never silently lost.
++2. Agents that follow() the smart seat's file answer every followed line with a `[from: X · reply to: log agent-session-smart…]` message that wakes the seat, even for a thumbs-up. Find who tells them to reply; followers should read silently and message only with something to say.
++
++## Findings and fixes
++
++- Queue: no RAM timeout exists. The drop reason was "its task ai-system-mastermind has landed": `Servex.stale` let `Agents.blocked` match an OLD landed task by id. Now "landed" counts only against `spec.task.dir`; a drop messages the parent. Docs: [Servex/doc/dormant.md](/Servex/doc/dormant.md). Test: `node Servex/Gate-stale.test.mjs`.
++- Follow: delivery is `agents.send` (the message queue). Nothing tells followers to reply; `Agents.wake_parent` sends every child turn's last words to its parent. A turn that answers a followed line and ends under 200 characters (not BLOCKED, not stopped) now skips the message to the parent only. Docs: [Servex/doc/follow.md](/Servex/doc/follow.md). Test: `node Servex/agents/Follow-ack.test.mjs`.
++
++## Not built
++
++- Auto re-queue after a drop: the only drop was the wrong "landed" match, now removed; a real drop (cwd gone, stopped on purpose, a named task already landed) means the spec cannot run, so re-queueing would loop. The parent is told and spawns again if it still wants it.
