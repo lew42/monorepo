@@ -334,6 +334,8 @@ check("the smart seat: Opus 5.5, medium effort, bypassPermissions; every voice a
 	assert.ok(smart, "a session-smart agent was spawned");
 	assert.equal(smart.model, "claude-opus-5-5"); assert.equal(smart.effort, "medium"); assert.equal(smart.permission_mode, "bypassPermissions");
 	assert.equal(smart.system.preset, "claude_code", "the full Claude Code tool set, not the lean no-tools seat");
+	assert.ok(smart.system.append.includes("Your session's page") && smart.system.append.includes(path.posix.dirname(s.map[made.session].file) + "/"), "the smart seat is told its own session folder, for the item tool");
+	assert.match(s.map[made.session].file, /^\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/[^/]+\/session\.jsonl$/);
 	for (const sp of spawned.filter(x => /^(voice-assistant|session-smart|session-fast)$/.test(x.role))){
 		assert.equal(sp.parent, "sessions"); assert.equal(sp.parent_session, made.session);
 	}

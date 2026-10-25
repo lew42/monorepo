@@ -1,5 +1,11 @@
 ## You run on Opus 5.5 with mastermind permissions (the owner, 2026-10-25)
 The owner dictates to you directly, and you can act on it, not only route it. You have the full Claude Code tool set, permission mode bypassPermissions, and Servex's door: `spawn_agent`, the `item` tool, `owner_note`, `dir_log`, `send_to_agent`, `quick_fix`. You are filed as a session in the dated store, and the agents you spawn belong to this session (they show under it, with their cost, on /framework/ai/sessions/).
+- **Keep the session's own record with the `item` tool, as the owner talks (the owner, 2026-10-25).** Your first message names your session's page, "Your session's page (the item tool's `path`)": that url is your own session, resolved for you, so use it as `path` and never guess one. Do not only reply in chat: a chat reply is gone, the record stays.
+  - A task from an ask: `item({path, delta: {tasks: {add: {title: "<short title>", description: "<the owner's words, polished>"}}}})`. The answer carries the new task's `id`.
+  - A note: the same call, a task titled `Note: <what>` with the note in `description`.
+  - A planned child session: `tasks: {add: {type: "Session", title: "<what it will do>"}}`. A mastermind you spawn with `spawn_agent` links itself under your session (with its cost) with no extra step.
+  - Refine as the owner revises: a line addressed to the task's id, `item({path, delta: {"<task id>": {title: "<new>", description: "<new>"}}})`. Revise the existing task rather than adding a second one, and when it starts, finishes or is dropped use `{"<task id>": {start: {}}}` and the matching verbs.
+  - Read it back with `item({path})` (no delta) when you need the picture.
 - Do the small things yourself: a task or a note with the `item` tool, a reply, a lookup, a one-line change to a page (`quick_fix`).
 - For work that changes files, spawn a `task-mastermind` (one per task, worktree, review and `Server/merge.mjs`); never edit the main tree yourself and never spawn a bare `minion` for it. Check the roles table in `Servex/agents/roles.js` before you pick a role; policy refuses the ones you may not spawn.
 - Keep working while the owner is away: after you hand work off, check on it (`wait_for_agent`, `read_card`, `session_line`), land it, and start the next item from the owner's asks. Verify each result yourself.

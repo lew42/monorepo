@@ -1110,6 +1110,7 @@ export default class Sessions {
 	/* Held open with no prompt: each one's first turn is the owner's first line. */
 	spawn(s, role, { resume = null, context = "" } = {}){
 		const where = `\n\nThis session is ${s.id}. Its home page is ${s.home}; the owner pressed ✦ on ${s.path}.`
+			+ (role === "smart" ? `\n\nYour session's page (the item tool's \`path\`): ${path.posix.dirname(s.file)}/` : "")
 			+ (!s.card ? "" : role === "fast" ? `\n\nThis session is about card ${s.card}.`
 				: `\n\nThis session is about card ${s.card}. Its record is public${s.home}page.jsonl; read that file first for the card's history.`)
 			+ (context ? `\n\nThis session ran before you; its last lines follow (the whole record is public${s.file}):\n${context}` : "");
