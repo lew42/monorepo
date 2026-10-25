@@ -25,8 +25,9 @@ import SessionTasks from "/framework/core/Session/SessionTasks.js";
 import SessionWork from "./SessionWork.js";
 import SessionStats from "./SessionStats.js";
 import AICost from "/framework/ai/AITask/AICost.js";
+import Day from "/framework/core/Session/Day.js";
 import SessionOverview from "./SessionOverview.js";
-import SessionFeed from "./SessionFeed.js";
+import SessionOutlineView from "./SessionOutlineView.js";
 import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
@@ -58,7 +59,7 @@ export default class AISessionDetail extends Page {
 			// The name lives in the day index snapshot (session-index.json can be days stale): fold in the row's own snapshot, as the live feed would.
 			const row = snap?.rows?.find(r => r.id === id || r.session_id === id), sid = row?.session_id ?? id;
 			if (!AISession.all.get(sid)?.ix?.title){
-				const days = [...new Set([row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))).filter(Boolean))];
+				const days = [...new Set([AISession.days.get(sid), ...[row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at)))].filter(Boolean))];   // the day the feed already gave the session comes first: a session sessions.json has no row for is found there
 				for (const day of days){
 					const hit = (await AISessionRows.get_json(new URL(`./${day}/index.json`, AISession.root_url()).pathname))?.snapshots?.find(x => x.id === sid);
 					if (hit){ AISession.apply_delta(hit); break; }
@@ -108,9 +109,9 @@ export default class AISessionDetail extends Page {
 	/** The session's folder name, read from the day index of its last activity (where AISessionIndex writes its snapshot), folded in so AISession.dir_url() knows it. */
 	static async folder_from_day(row, session_id){
 		// sessions.json can be days stale, so its last activity, then today, then the start day: the first index naming the folder wins.
-		const days = [...new Set([row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))).filter(Boolean))];
-		for (const day of days){
-			const ix = await AISessionRows.get_json(new URL(`./${day}/index.json`, AISession.root_url()).pathname);
+		const days = [...new Set([...[row?.last_activity, new Date().toISOString(), row?.started_at].map(at => at && AISession.day(new Date(at))), ...Day.range(AISession.days.get(session_id)).reverse()].filter(Boolean))];   // a session sessions.json has no row for: every day from the one the feed gave it (its first) to today
+		const indexes = await Promise.all(days.map(day => AISessionRows.get_json(new URL(`./${day}/index.json`, AISession.root_url()).pathname)));   // all at once; the first day in the list that names the folder wins
+		for (const ix of indexes){
 			const snap = ix?.snapshots?.find(x => x.id === session_id);
 			if (snap?.folder) return AISession.apply_delta({ id: session_id, folder: snap.folder, ...(snap.day ? { day: snap.day } : {}) });
 		}
@@ -188,6 +189,7 @@ export default class AISessionDetail extends Page {
 		const TABS = [["overview", "Overview"], ["board", "Board"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
 		const old_keys = { work: "tasks", conversation: "chat" }, asked = new URLSearchParams(location.search).get("tab"), want = old_keys[asked] ?? asked, panels = {}, buttons = {};
 		const show = key => {
+			if (!this.chat_ok && (key === "chat" || key === "coverage")) key = "overview";   // a child session has no chat or coverage: only a VS Code tab (or a session with prompts.jsonl) does
 			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
 			const q = new URLSearchParams(location.search); key === "overview" ? q.delete("tab") : q.set("tab", key);
 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
@@ -205,7 +207,7 @@ export default class AISessionDetail extends Page {
 		});
 		if (new URLSearchParams(location.search).has("full")) setTimeout(() => this.full_screen(true));
 		div.c("sessions-detail-body", () => {
-			panels.overview = div.c("flow sessions-panel", () => { this.feed = new SessionFeed({ ready, sid: id }); });   // every task and child session, newest first (SessionFeed)
+			panels.overview = div.c("flow sessions-panel", () => { this.feed = new SessionOutlineView({ ready, sid: id }); });   // child sessions as groups, then this session's own work by prompt (SessionOutline)
 			panels.board = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
 			panels.tasks = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
 			panels.chat = div.c("flow sessions-panel sov-chat", () => {
@@ -220,6 +222,7 @@ export default class AISessionDetail extends Page {
 			panels.related = div.c("flow sessions-panel", () => { $spawn = div.c("flow"); $related = div.c("flow"); });   // who spawned this and what it spawned; the other records of this session
 		});
 		show(TABS.some(([k]) => k === want) ? want : "overview");
+		["chat", "coverage"].forEach(k => buttons[k].el.hidden = true);   // shown again below once the row says this is a VS Code tab
 		const conv = new AISessionConversation();
 		const voice = new VoiceFlow();
 		$voice.append(voice.view);
@@ -229,6 +232,10 @@ export default class AISessionDetail extends Page {
 		// and the transcript and the date-path lookup both need the session_id.
 		row_p.then(async row => {
 			const session_id = row?.session_id ?? id;
+			await AISessionRows.load_index(url).catch(() => {});
+			const snap = await AISessionDetail.load_snapshot(session_id).catch(() => null), has_prompts = await PromptLog.read(session_id).then(l => l.length > 0).catch(() => false);
+			this.chat_ok = has_prompts || AICost.is_tab(row ?? (snap ? { id: snap.agent, role: snap.agent } : null));
+			if (this.chat_ok){ ["chat", "coverage"].forEach(k => buttons[k].el.hidden = false); if (want === "chat" || want === "coverage") show(want); }
 			AISessionRows.load_index(url).then(() => this.retitle(AISessionRows.display_name(row ?? { id, session_id }, AISessionRows.tree).text));   // a VS Code tab has no sessions.json row; its title is in the index
 			if (!/^[0-9a-f]{8}-/.test(session_id)){   // a name no agent list or index maps to a uuid: nothing on disk to ask for
 				$conv.append(() => p.c("muted", "This agent has no session id yet, so there is no transcript or log to show."));
@@ -259,7 +266,10 @@ export default class AISessionDetail extends Page {
 			await AISessionRows.load_index(url);   // fills AISession.days; without this wait own_dir was computed before the index arrived, so the cost log and trace silently never showed
 			const fill = async () => {
 			await this.follow?.catch(() => {});   // the first feed pull names the real folder (a card-slug folder is not <id>/) via AISession.slugs
-			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;
+			if (!AISession.slugs.has(session_id)) await AISessionDetail.folder_from_day(row, session_id).catch(() => {});   // the day index names the folder; without it the work tree below was read from <day>/<uuid>/ and the Overview stayed empty
+			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;   // the slug's folder, or <day>/<uuid>/ when the day index has none
+			if (this.filled === own_dir) return;   // the folder event folder_from_day raises runs fill() again: once per folder
+			this.filled = own_dir;
 			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
 			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
 			const [costs, trace] = await Promise.all([
