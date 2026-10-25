@@ -30393,6 +30393,7 @@
 {"file":"week.json"}
 {"file":"index.jsonl"}
 {"file":"transcripts/"}
+{"file":"failures.jsonl"}
 {"file":"transcripts/","gone":true}
 {"file":"sessions.json","gone":true}
 {"file":"spend-tree.json","gone":true}
