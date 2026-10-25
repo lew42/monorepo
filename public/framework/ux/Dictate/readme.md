@@ -1,5 +1,9 @@
 # Dictate — a mic button that always shows what is happening
 
+**How a chat is made, mic to screen** (the pipeline, the two views, the class sketch, the colours, the item tool; one file:line per stage): [`doc/pipeline.md`](doc/pipeline.md).
+
+- ⬜ **Goal:** the owner calls the whole experience "chat", so it is one thing under that name (no renames yet): the first view and [Chat v2](/framework/ext/Chat/v2/readme.md) become one chat. Matching line in [Chat v2's readme](/framework/ext/Chat/v2/readme.md).
+
 ## How messages travel
 
 You speak and Whisper turns the sound into text, one sentence at a time. The page then sends each sentence to Servex with a plain HTTP `POST` to `/api/session/say` (no WebSocket carries your words out; the only live wire is a one-way `EventSource` stream, `/api/session/<id>/stream`, that brings the chat's new lines back).<sup>[<a href="#fn1">1</a>]</sup><sup>[<a href="#fn2">2</a>]</sup> The page does not make the voice session: the first time a sentence needs one, `chat.js` asks Servex with `POST /api/session/new`, and Servex's `Sessions.create()` picks the id (`v-…`), writes the session file and starts the fast assistant warming up.<sup>[<a href="#fn3">3</a>]</sup><sup>[<a href="#fn4">4</a>]</sup> The fast assistant is fed per thought, not per word: your sentences are held while you are still speaking and handed to it together once you have been quiet for 2.5 s (a typed line goes straight in).<sup>[<a href="#fn5">5</a>]</sup><sup>[<a href="#fn6">6</a>]</sup> The smart assistant is fed in batches by `WakePolicy`: one batch when you pause for 12 s, or ask a question, or call it by name, or when 6 sentences have piled up, and you can change the 12 s and the 6 in the dictation settings panel.<sup>[<a href="#fn7">7</a>]</sup><sup>[<a href="#fn8">8</a>]</sup>

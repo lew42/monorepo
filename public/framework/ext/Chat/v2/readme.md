@@ -1,5 +1,7 @@
 # Chat v2: a session's chat, drawn from its `tasks` list
 
+- ⬜ **Goal:** the owner calls the whole experience "chat": the first view ([`ux/Dictate`](/framework/ux/Dictate/readme.md)) and Chat v2 become one chat, no renames yet. How a chat is made today, and where the two views differ: [`ux/Dictate/doc/pipeline.md`](/framework/ux/Dictate/doc/pipeline.md).
+
 Read-only step 1 of the new chat (the owner's decision, [chat-shape.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md)): a session's conversation is its `tasks` list in `session.jsonl`. Each Prompt sits at the root of the chat (no bubbles, no card) as the smart assistant's refined version; its replies, questions and child tasks nest under it, marked 🧠. The raw Whisper text and the fast assistant's cleaned paragraphs are one click down, "show raw", never dropped. The old chat ([Chat.js](../Chat.js), `ux/Dictate/chat.js`) is untouched until v2 replaces it.
 
 Try it: [/framework/ext/Chat/v2/](/framework/ext/Chat/v2/) draws [fixture/session.jsonl](fixture/session.jsonl); `?src=<url of any session.jsonl>` draws that session, live.

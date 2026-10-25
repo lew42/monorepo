@@ -10,6 +10,7 @@ import { page_work_strip } from "/framework/core/Page/ai/work.js";
    module (new child pages) would be the graduated version of this once one
    exists for a page whose children are already this settled. */
 const CONCEPTS = [
+	{ name: "How a chat is made", icon: "route", href: "md/doc/pipeline/", blurb: "mic to screen: the pipeline, the two views, the colours of your words, with the file that does each step" },
 	{ name: "Workspace", icon: "space_dashboard", href: "workspace/", blurb: "long dictation stream: sentences become movable cards beside raw transcript" },
 	{ name: "The mic button", icon: "mic", href: "demo/", blurb: "press it, watch the state — idle → listening → transcribing" },
 	{ name: "Playground", icon: "science", href: "playground/", blurb: "raw whisper text, the fast assistant's corrections, and the live diff" },
