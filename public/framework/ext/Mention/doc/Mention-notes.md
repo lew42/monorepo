@@ -28,7 +28,7 @@ A page nobody has loaded yet has no live instance to ask, so the cache is still 
 
 ## Live agent ids
 
-A live agent's own id is never in `people.js` — Servex mints one per task (`task-mastermind-inbox-cards-work`, `minion-card`, …), unbounded. There is no roster to keep in sync the way `refs.js`'s fixed pages are (bug, 2026-10-03: a card's own text named `@task-mastermind-…` and it stayed plain words). No page of its own to link to, but it still reads as a small icon mention by its own shape, using the four kinds `activity.js`'s `who_word()` already names in plain sentences.
+A live agent's own id is never in `people.js` — Servex mints one per task (`task-mastermind-inbox-cards-work`, `minion-card`, …), unbounded. There is no roster to keep in sync the way `refs.js`'s fixed pages are (bug, 2026-10-03: a card's own text named `@task-mastermind-…` and it stayed plain words). It links to `/framework/ai/sessions/<id>/`, which opens a Servex agent by its id (`AISessionDetail.agent_row`), and reads as a small icon mention by its own shape, using the four kinds `activity.js`'s `who_word()` already names in plain sentences.
 
 ## Path as parent/child lookup
 
@@ -67,3 +67,8 @@ The pattern matches `#` and `@` mentions and `/` paths:
 - `#fff` (a colour written in prose) matches the shape but almost never the map, so it falls through to plain text — same as any other typo.
 
 `/` must START a word (only after a space, `(` or the start), so "and/or", "1/2" and a url's inner slashes never match.
+
+
+## Inline code that is only a reference (2026-10-25)
+
+An inline `code` whose whole text is one reference (`/framework/ai/`, `@owner`, or a bare agent id such as `mastermind-x`) becomes the same link; `mentions()` does it before the text walk (`upgrade_code`). Longer code and `pre` stay code. Owner's ask: anything referenceable is clickable, never only a code snippet.
