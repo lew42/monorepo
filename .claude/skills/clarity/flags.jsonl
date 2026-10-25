@@ -1771,3 +1771,4 @@
 {"at":"2026-10-25T09:00:57Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim/tasks/requirements.md","verdict":"clear","what":"Agent brief, title and ask clear, proof listed; text-check flags only past-work.md (901 words), not this target","to":"none"}
 {"at":"2026-10-25T09:15:05.155Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/servex-oom/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-10-25T09:16:13.256Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/servex-oom/requirements.md","verdict":"spawned","to":"clarity-servex-oom"}
+{"at":"2026-10-25T11:53:15.038Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim","verdict":"skipped","what":"a sub-task: its parent task gets the one check"}
