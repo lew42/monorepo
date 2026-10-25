@@ -14,6 +14,17 @@ sessions/
   <top level>                              generated indexes and move ledgers (last section)
 ```
 
+**One `index.jsonl` per scope** (derived, gitignored, append-only; a line is never rewritten). The writer is `AIIndexStream.append` (`Server/AIIndexStream.mjs`), called by `DatedFiles.sync` and `AIIndex`; the backfill is `node Server/SessionScopes.mjs` (dry run, `--apply` writes). Nothing in the browser reads the month, year or root lists yet; the rolled `index.json` totals stay as they are.
+
+| File | Lists | Line |
+|---|---|---|
+| `sessions/index.jsonl` | the years | `{"year":"2026"}` |
+| `YYYY/index.jsonl` | the months | `{"month":"2026/10"}` |
+| `YYYY/MM/index.jsonl` | the days | `{"day":"2026/10/24"}` |
+| `YYYY/MM/DD/index.jsonl` | the sessions, tasks and projects started that day | `{"session":{id,path,url,title,state,at}}` |
+
+When a day's `index.jsonl` gets its first row, the writer adds the day to its month's list; a month's first day adds the month to the year's list; a year's first month adds the year to the root list.
+
 A session folder is one of three kinds:
 
 | Kind | Folder name | Files | Written by |
