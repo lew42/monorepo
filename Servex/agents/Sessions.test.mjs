@@ -320,4 +320,22 @@ check("fast mode is untouched: it still sends `[on <path>] <text>` to session-fa
 	assert.equal(last_sent("fast"), "[on /a/] plain again");
 });
 
+check("the smart seat: Opus 5.5, medium effort, bypassPermissions; every voice agent is tied to its session by parent_session, and kept on parent \"sessions\" for events", () => {
+	const spawned = [];
+	const real = agents.spawn;
+	agents.spawn = spec => { spawned.push(spec); return real(spec); };
+	const s = make(); s.assistant = "voice";
+	const made = s.create({ path: "/a/" });
+	s.say({ session: made.session, path: "/a/", text: "first sentence", via: "text" });
+	s.wake(s.map[made.session], "smart");
+	agents.spawn = real;
+	const smart = spawned.find(x => x.role === "session-smart");
+	assert.ok(smart, "a session-smart agent was spawned");
+	assert.equal(smart.model, "claude-opus-5-5"); assert.equal(smart.effort, "medium"); assert.equal(smart.permission_mode, "bypassPermissions");
+	assert.equal(smart.system.preset, "claude_code", "the full Claude Code tool set, not the lean no-tools seat");
+	for (const sp of spawned.filter(x => /^(voice-assistant|session-smart|session-fast)$/.test(x.role))){
+		assert.equal(sp.parent, "sessions"); assert.equal(sp.parent_session, made.session);
+	}
+});
+
 console.log(`Sessions.test.mjs: ${checks} checks passed`);
