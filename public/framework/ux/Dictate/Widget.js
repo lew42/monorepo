@@ -1,12 +1,13 @@
-import { View, div, span, button, select, option, label, textarea, details, summary, strong } from "../../core/View/View.js";
+import { View, div, span, button, select, option, label, textarea, details, summary, strong, icon } from "../../core/View/View.js";
 import MicIndicator from "./MicIndicator.js";
 import Dictate, { remember_device, remembered_device } from "./Dictate.js";
 import { pg } from "./playground/Playground.js";
 import { marks as fetch_marks } from "../Understand/Understand.js";
 import { md_into } from "../../ext/Chat/md.js";
 import { who_label } from "../../ext/Chat/roles.js";
-import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll, mergeable } from "../../ext/Chat/Chat.js";
+import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll, mergeable, GUESS_TITLE } from "../../ext/Chat/Chat.js";
 import { composer } from "../../ext/Chat/Composer.js";
+import TaskView from "../../core/Task/TaskView.js";
 
 View.stylesheet(import.meta, "Widget.css");
 
@@ -281,8 +282,10 @@ Widget.Thread = class WidgetThread extends View {
 		if (this.hold_orphan(entry)) return;
 		if (entry?.type === "ask") return this.follow(() => this.draw_ask(entry));
 		if (entry?.type === "refined") return this.draw_refined(entry);
+		if (entry?.task) return this.show_task(entry.task);
 		if (entry?.place) return this.place(entry.place);
 		if (entry?.summary) return this.summarise(entry.summary);
+		if (entry?.sent) return this.sent(entry.sent);
 		const para = entry?.para ?? (entry?.type === "para" ? entry : null);
 		if (para?.re) return this.split_paragraph(para.re);
 		const chat = entry?.chat;
@@ -310,12 +313,13 @@ Widget.Thread = class WidgetThread extends View {
 		const bubble = this.follow(() => speak(this.$bubbles, {
 			cls: assistant ? "chatbox-reply" : "chatbox-you",
 			who, text: chat.text, sender, at: chat.said_at ?? at, id: at, via: chat.via,   // ordered by when it was said (doc/notes.md#bubble-order), keyed by its own `at`
-			join: this.widget.join,
+			join: this.widget.join, track: !assistant && !entry.history,   // a live owner line shows its fast and smart marks; a replayed one only once a {sent} line names it
 		}));
 		// the new piece is found by its id: a late line is put in time order, so it is not always the last child
 		const text_node = bubble.querySelector(`:scope > [data-re="${CSS.escape(String(at))}"]`) ?? bubble.lastElementChild;
 		const ref = { id: at };
 		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text, spoken: !assistant && (chat.via === "voice" || chat.via === "whisper") });   // `said`: the raw words, kept when a placement improves the text
+		this.apply_sent(at);
 		entry.history ? this.refresh_after_batch() : this.refresh();   // a replay of 200 lines walks the lines once, not 200 times
 		this.anchor();
 		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks); new lines only: each mark is a paid model call
@@ -459,6 +463,35 @@ Widget.Thread = class WidgetThread extends View {
 		this.anchor();
 	}
 
+	/** A Task or Question from a prompt (ChatV2Model's fold): one row under the owner bubble that opened its Prompt (the end of the chat if that bubble is not drawn), patched in place when its stage or answer changes. */
+	show_task(t){
+		this.$empty.hide();
+		const rows = this.task_rows ??= new Map(), old = rows.get(t.id);
+		let node;
+		const parent = t.at && this.lines.get(t.at)?.bubble;
+		this.$bubbles.append(() => {
+			node = div.c("chatbox chatbox-reply chatbox-task", () => {
+				who_label("assistant");
+				div.c("chatbox-text", () => {
+					icon(t.question ? WidgetThread.QUESTION_ICON[t.phase] : TaskView.STAGE[t.phase] ?? "help").ac("chat-v2-state", "is-" + t.phase);
+					strong(` ${t.question ? "Question" : "Task"} · ${t.phase} `);
+					span(t.label);
+					if (t.answer) div.c("muted", t.answer);
+				});
+			}).attr("data-id", t.id).el;
+		});
+		if (old) old.replaceWith(node);
+		else if (parent){   // under its Prompt: after the bubble, its refined block and the rows already put there
+			let after = parent;
+			while (after.nextElementSibling?.matches(".ux-dictate-widget-refined, .chatbox-task[data-under]")) after = after.nextElementSibling;
+			after.insertAdjacentElement("afterend", node);
+		}
+		if (parent) node.dataset.under = t.at;
+		rows.set(t.id, node);
+		this.anchor();
+	}
+	static QUESTION_ICON = { open: "help_outline", answered: "mark_chat_unread", complete: "check_box" };
+
 	/** Collapsed <details> after the owner bubble `re` for a {refined} line; skipped if that bubble is not drawn. */
 	draw_refined(entry){
 		const line = this.lines.get(entry.re);
@@ -528,7 +561,7 @@ Widget.Thread = class WidgetThread extends View {
 		}
 		if (d.host && d.host.lastElementChild !== d.el) d.host.append(d.el);   // a redraw of the host (a mark) appended pieces after it
 		d.text.textContent = settled;
-		if (guess) d.text.append(span.c("chatbox-guess").text((settled ? " " : "") + guess).el);
+		if (guess) { const g = span.c("chatbox-guess").text((settled ? " " : "") + guess).el; g.title = GUESS_TITLE; d.text.append(g); }
 		this.anchor();
 	}
 
@@ -600,6 +633,24 @@ Widget.Thread = class WidgetThread extends View {
 		}).catch(() => {});   // ignored on purpose: the check/? mark is a bonus on a bubble; no mark just means nothing was judged
 	}
 
+	/** A {sent:{to, at, re:[line at…], delay_ms}} session line: those owner lines reached the `to` seat ("fast" | "smart"). A line this
+	 * thread has not drawn or retagged yet (the stream can beat the POST's answer) waits in `pending_sent` for apply_sent(). */
+	sent({ to, at, re = [], delay_ms }){
+		for (const r of re){
+			(this.pending_sent ??= new Map()).set(r, { ...this.pending_sent.get(r), [to]: { at, delay_ms } });
+			this.apply_sent(r);
+		}
+	}
+
+	apply_sent(at){
+		const got = this.pending_sent?.get(at), line = this.lines.get(at);
+		if (!got || !line) return;
+		this.pending_sent.delete(at);
+		line.sent = { ...line.sent, ...got };
+		patch_piece(line.bubble, line.ref.id, { sent: line.sent, track: true });
+		this.refresh();
+	}
+
 	mark_failed(at){
 		const line = this.lines.get(at);
 		if (!line) return;
@@ -622,6 +673,7 @@ Widget.Thread = class WidgetThread extends View {
 		this.lines.set(new_at, line);
 		retag_piece(line.bubble, line.ref.id, new_at);   // so a pending mark()/mark_failed() under the new id still finds the piece
 		line.ref.id = new_at;
+		this.apply_sent(new_at);
 		if (this.settled.delete(old_at)) this.settled.add(new_at);
 		if (this.summaries.has(old_at)){ this.summaries.set(new_at, this.summaries.get(old_at)); this.summaries.delete(old_at); }
 		this.refresh();

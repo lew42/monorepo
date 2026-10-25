@@ -240,19 +240,23 @@
 		inset-block-end: 0.5em;
 		z-index: 2;
 		display: block;
-		margin: 0.3em auto 0.5em;
-		padding: 0.35em 0.9em;
-		border-radius: 999px;
+		inline-size: 1.75rem;
+		block-size: 1.75rem;
+		margin: 0 0.5em 0.25em auto;   /* small, at the bottom right of the box */
+		align-self: flex-end;   /* a flex-column box (the bubbles thread, a `.flex.v` util) zeroes the auto margin: this keeps it on the right there too */
+		padding: 0;
+		border-radius: 50%;
 		border: 0;
 		background: var(--ink);
 		color: var(--surface);
-		box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+		box-shadow: 0 1px 6px rgb(0 0 0 / 0.3);
 		cursor: pointer;
 		font: inherit;
-		font-size: 0.85em;
+		font-size: 0.95em;
 		font-weight: 600;
-		line-height: 1.2;
+		line-height: 1;
 	}
+	.chatbox-jump:not([hidden]) { display: grid; place-items: center; }
 	.chatbox-jump[hidden] { display: none; }
 
 	/* ONE LINE PER THING SAID — who, then what. Updates are quieter than talk. */
@@ -532,7 +536,9 @@
 	   until its real line replaces it; a streaming reply ends in a caret. */
 	.chatbox-draft .chatbox-text { white-space: pre-wrap; }
 	.chatbox-guess { opacity: 0.55; }
-	.chatbox-live-sent { opacity: 0.6; }
+	.chatbox-live-sent { opacity: 1; }
+	.chatbox-live-sent > :not(.chatbox-live-mark) { opacity: 0.6; }   /* same fade as before, but the "cleaning…" label beside it stays full strength */
+	.chatbox-live-mark { display: block; font-size: 0.8em; }
 	.chatbox-streaming .chatbox-text > :last-child::after { content: "▍"; opacity: 0.5; }
 
 	/* DRILL IN (Drill.js, doc/drill.md) — the Open button a selected card grows,
@@ -588,4 +594,11 @@
 
 @layer theme {
 	.chatbox-earlier { align-self: center; margin-block: var(--gap-35); cursor: pointer; }
+}
+
+@layer site {
+	/* "fast ✓ 0.4 s · smart …": which assistant has this line; greyed until it has */
+	.chatbox-sent { font-size: .72em; white-space: nowrap; }
+	.chatbox-sent > span { opacity: .55; }
+	.chatbox-sent > .chatbox-sent-done { opacity: 1; color: var(--prime-ink); }
 }

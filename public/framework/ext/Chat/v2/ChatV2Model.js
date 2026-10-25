@@ -13,6 +13,17 @@ export default class ChatV2Model {
 	// field changed on a node that already exists (`parent` is undefined: there is nothing new to place).
 	apply(line){
 		if (!line || typeof line !== "object") return null;
+		// An owner chat line names its prompt: remembered so a later {sent} line (which names the chat line's `at`) finds the prompt.
+		if (line.chat){ const c = line.chat; if (c.from?.kind === "owner" && c.prompt) (this.prompt_of ??= new Map()).set(c.at, c.prompt); return null; }
+		// {sent:{to:"fast"|"smart", at, re:[owner line at…], delay_ms}}: that prompt reached an assistant (Servex Sessions.mark_sent).
+		if (line.sent){
+			let touch = null;
+			for (const r of line.sent.re ?? []){
+				const n = this.by_id.get(this.prompt_of?.get(r));
+				if (n){ (n.sent ??= {})[line.sent.to] = { at: line.sent.at, delay_ms: line.sent.delay_ms }; touch = { id: n.id, parent: undefined, added: false }; }
+			}
+			return touch;
+		}
 		if (line.tasks?.add){
 			const node = this.add(this.root, line.tasks.add);
 			return node ? { id: node.id, parent: null, added: true } : null;

@@ -17,12 +17,13 @@
 	.dictation-bar[data-size="compact"] .dictation-bar-mic { inline-size: 2.5rem; block-size: 2.5rem; font-size: 1.15rem; }
 	.dictation-bar-icon { line-height: 1; }
 
-	/* THE MIC IS THE LEVEL METER: a dark translucent disc, filled from the bottom with --prime up to --level (0 to 1, set per frame by DictationBar.level) */
+	/* THE MIC IS THE LEVEL METER: a light gray disc (so the --prime level fill shows clearly), filled from the bottom with --prime up to --level (0 to 1, set per frame by DictationBar.level); dark ink on it, readable in both themes */
 	.dictation-bar-mic { --level: 0; }
 	.dictation-bar[data-state="listening"] .dictation-bar-mic,
 	.dictation-bar[data-state="sending"] .dictation-bar-mic {
 		border-color: var(--prime);
-		background: linear-gradient(to top, var(--prime) calc(var(--level) * 100%), rgb(0 0 0 / 0.55) calc(var(--level) * 100%));
+		color: #1f2328;
+		background: linear-gradient(to top, var(--prime) calc(var(--level) * 100%), #e9ebee calc(var(--level) * 100%));
 		transition: none;
 	}
 	.dictation-bar[data-state="starting"] .dictation-bar-mic { border-color: var(--prime); animation: dictation-bar-pulse 0.8s ease-in-out infinite; }
