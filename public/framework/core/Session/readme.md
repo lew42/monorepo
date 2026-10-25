@@ -102,7 +102,7 @@ A session's `tasks` is the one list of everything to be done: prompts, tasks and
 
 ## What item() answers for a session
 
-`item({path: <session url>})` replays the folder's `session.jsonl` as a `Session` (any record whose line 1 is `{"session":{…}}`, so VS Code tabs too), and `session_state` in `Servex/agents/page_tools.js` adds what node can compute. Nothing here is stored; every field is read from records on each call.
+`item({path: <session url>})` replays the folder's `session.jsonl` as a `Session` (any record whose line 1 is `{"session":{…}}`, so VS Code tabs too), and `session_state` in `Servex/agents/page_tools.js` adds what node can compute. Nothing here is stored; every field is read from records on each call. An older folder with no `session.jsonl` gets the one-line record `{"session":{id,kind,at}}` from its `index.json` the first time a query (`summary`, `cost`, `children`…) asks for it, from `/sessions/<id>/` or the dated url; a query is never written into `page.jsonl`. Test: `node Servex/agents/session-query-record.test.mjs`.
 
 | Field | What it is | Read from (written by) |
 |---|---|---|

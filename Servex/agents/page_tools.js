@@ -1020,10 +1020,18 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	if (!at || at.why) return { ok: false, why: at?.why ?? `"${url}" is not a page under public/` };
 	// A session route's file is its page.jsonl (cards, tabs). A READ or a query there asks about the session itself, so it reads the record
 	// beside it, session.jsonl: cost, span, children, counts (core/Session/readme.md, "What item() answers"). Writes still go to the page.
-	const routed = SESSION_ROUTE.exec(String(url ?? ""));
-	if (routed && !/^\d{4}$/.test(routed[1]) && !at.target.length && path.basename(at.file) === "page.jsonl" && (delta === undefined || (is_plain(delta) && Object.keys(delta).length && Object.keys(delta).every(k => SESSION_QUERIES.includes(k))))){
-		const record = path.join(path.dirname(at.file), "session.jsonl");
+	const routed = SESSION_ROUTE.exec(String(url ?? "")), dated = DATED_SESSION.exec(String(url ?? ""));
+	const session_url = (routed && !/^\d{4}$/.test(routed[1])) || (dated && !(dated[2] ?? "").replace(/\//g, ""));   // /sessions/<id>/ or the dated folder itself, never a subpage
+	if (session_url && !at.target.length && path.basename(at.file) === "page.jsonl" && (delta === undefined || (is_plain(delta) && Object.keys(delta).length && Object.keys(delta).every(k => SESSION_QUERIES.includes(k))))){
+		const dir = path.dirname(at.file), record = path.join(dir, "session.jsonl");
+		// An older folder has no record yet (page.jsonl, cache.jsonl, index.json only): a query asks for it, so it gets the one-line record a tab gets, never a `{"summary":{}}` line in the page.
+		if (!fs.existsSync(record) && !fs.existsSync(path.join(dir, "task.jsonl")) && SessionRecord.is_session_dir(dir) && delta !== undefined){
+			let id = null, born = null; try { ({ id, first_at: born } = JSON.parse(fs.readFileSync(path.join(dir, "index.json"), "utf8"))); } catch {}
+			id ??= UUID.test(routed?.[1]) ? routed[1] : null;
+			if (id) write_line(record, { session: { id, kind: "vscode-tab", at: born ?? now() }, by: "item (first query)" }, true);
+		}
 		if (fs.existsSync(record)) at = { file: record, target: [] };
+		else if (delta !== undefined) return { ok: false, why: `"${url}" has no session record to answer ${Object.keys(delta).join(", ")}, and these keys are never written to its page. Nothing was written.` };
 	}
 
 	const kind = class_of(at.file);
