@@ -10,3 +10,12 @@
 {"file":"tasks/"}
 {"file":"PageNav.css"}
 {"file":"PageNav.js"}
+{"file":"improvements.jsonl"}
+{"file":"DashBig.js"}
+{"file":"DashNeeds.js"}
+{"file":"DashQueue.js"}
+{"file":"SessionStore.js","gone":true}
+{"file":"SessionTree.js","gone":true}
+{"file":"SessionRow.js","gone":true}
+{"file":"DayStrip.js","gone":true}
+{"file":"OriginChips.js","gone":true}
