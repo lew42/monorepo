@@ -45,7 +45,7 @@
 	}
 
 	.ux-dictate-widget-thread {
-		flex: 1 1 auto; min-block-size: 3em; max-block-size: 22em; overflow-y: auto;
+		flex: 1 1 auto; min-block-size: 3em; max-block-size: 22em; overflow-y: auto; overflow-x: hidden; min-inline-size: 0; overflow-wrap: anywhere;
 		position: relative;   /* the containing block for `.chatbox-jump`, ext/Chat/Chat.css */
 		overflow-anchor: none;   /* Widget.Thread.anchor() owns the scroll position; the browser's own anchoring shifted it mid-sentence (doc/voice-assistant.md#nothing-jumps) */
 	}

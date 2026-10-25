@@ -222,6 +222,9 @@
 		min-height: 1.5em;
 		max-height: 30vh;
 		overflow-y: auto;
+		overflow-x: hidden;   /* never a side scroll */
+		min-inline-size: 0;
+		overflow-wrap: anywhere;
 		margin-block-end: 0.35em;
 		font-size: 0.9em;
 		position: relative;   /* the containing block for `.chatbox-jump` below */

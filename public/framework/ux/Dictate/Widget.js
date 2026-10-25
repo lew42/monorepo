@@ -242,7 +242,10 @@ Widget.Thread = class WidgetThread extends View {
 		this.$empty = div.c("ux-dictate-widget-empty muted", "Say something, or press the mic. Your words show up here.");
 		this.$bubbles = div.c("ux-dictate-widget-bubbles flex v gap");
 		// this.el scrolls, not $bubbles (see doc/widget-notes.md#sticky-scroll)
-		this.scroll = sticky_scroll(this.el, { observe: false });   // its resize re-pin is bottom-only; anchor() answers a resize itself
+		this.scroll = sticky_scroll(this.el, { observe: false, end: () => {   // the blank page under the newest bubble is not content: "newest" lands its bottom at the box bottom
+			const b = this.$bubbles.el.lastElementChild;
+			return b ? b.getBoundingClientRect().bottom - this.el.getBoundingClientRect().top + this.el.scrollTop : 0;
+		} });   // its resize re-pin is bottom-only; anchor() answers a resize itself
 		if (typeof ResizeObserver === "function") new ResizeObserver(() => this.anchor()).observe(this.el);
 	}
 

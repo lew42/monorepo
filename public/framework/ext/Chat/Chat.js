@@ -323,9 +323,10 @@ export function card_of(b){
 }
 
 /** One sticky-bottom scroll for every chat log; call `pin()` after drawing. See doc/notes.md#sticky-scroll */
-export function sticky_scroll(box, { observe = true } = {}){   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
+export function sticky_scroll(box, { observe = true, end } = {}){   // end(): scrollTop of the true bottom of the content when blank padding sits under it (Widget's Thread); default scrollHeight   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
 	let locked = true, last = 0;
-	const at_bottom = () => box.scrollHeight - box.scrollTop - box.clientHeight < 4;
+	const bottom = () => Math.max(0, Math.min(end ? end() : box.scrollHeight, box.scrollHeight) - box.clientHeight);   // the scrollTop that shows the last line at the box's bottom
+	const at_bottom = () => bottom() - box.scrollTop < 4;
 	const $btn = document.createElement("button");
 	$btn.type = "button";
 	$btn.className = "chatbox-jump";
@@ -335,7 +336,7 @@ export function sticky_scroll(box, { observe = true } = {}){   // observe:false 
 	$btn.hidden = true;
 	box.appendChild($btn);
 	const show = on => { $btn.hidden = !on; };
-	const go_down = () => { if ($btn !== box.lastChild) box.appendChild($btn); box.scrollTop = box.scrollHeight; last = box.scrollTop; };
+	const go_down = () => { if ($btn !== box.lastChild) box.appendChild($btn); box.scrollTop = bottom(); last = box.scrollTop; };
 	$btn.addEventListener("click", () => { locked = true; show(false); go_down(); });
 	box.addEventListener("scroll", () => {
 		const top = box.scrollTop;
