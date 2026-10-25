@@ -29,3 +29,5 @@
 {"review":{"at":"2026-10-23T19:00:36-05:00","answer":{"n":4,"reply":"noted: 14-day window is enough for now; the review page work replaces the day walk with the session index"}}}
 {"review":{"at":"2026-10-23T19:00:36-05:00","answer":{"n":5,"reply":"noted: this branch is the qf-1 work plus a dev merge; vscode-mastermind merges it directly"}}}
 {"log":{"at":"2026-10-23T19:07:17-05:00","heartbeat":"answered","msg":"I'm done and idle. The work is ready to merge as `worktree/qf-1` at `7c88de6cf`, and I'm waiting on that merge.\n\nThe second review's fix is in: the Merge button now runs `merge.mjs` as an async child "}}
+{"complete":{"outcome":"Merge button runs merge.mjs as an async child; task/merge-approvals merged.","evidence":["3dc7f4a13"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:18.307Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/merge-approvals/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:18.312Z"}

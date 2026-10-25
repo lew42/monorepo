@@ -29,3 +29,6 @@
 {"log":{"at":"2026-10-02T22:30:04-05:00","heartbeat":"deliberate","msg":"minion-chat-autoscroll its agent is not running: it was stopped on purpose by owner at 2026-10-01T19:28:46-05:00; not revived."}}
 {"log":{"at":"2026-10-02T22:35:10-05:00","heartbeat":"deliberate","msg":"minion-chat-autoscroll its agent is not running: it was stopped on purpose by owner at 2026-10-01T19:28:46-05:00; not revived."}}
 {"home":"/framework/ux/Dictate/tasks/chat-autoscroll/"}
+{"stop":"Owner stopped deliberately on 2026-10-01; no commits, feature likely superseded or deprioritized.","by":"minion-review-stops","ts":"2026-10-25T13:33:22.436Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/01/chat-autoscroll/chat-autoscroll/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:22.439Z"}
+{"stop":{"why":"Owner stopped deliberately on 2026-10-01; no commits, feature likely superseded or deprioritized."},"by":"minion-review-stops","ts":"2026-10-25T13:33:47.495Z"}

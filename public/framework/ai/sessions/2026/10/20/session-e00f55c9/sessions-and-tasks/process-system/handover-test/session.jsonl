@@ -8,3 +8,5 @@
 {"review":{"at":"2026-10-23T01:16:07-05:00","answer":{"n":3,"reply":"declined: the linker cannot tell cheaply whether from is the real parent, and a second link risks the twin child this branch removed; the daily --links backfill covers the gap"}}}
 {"review":{"at":"2026-10-23T01:16:07-05:00","answer":{"n":4,"reply":"declined: open_task and move_item take no root option, so a tmp root is not possible without a wider change; the dot-folder is removed in finally"}}}
 {"review":{"at":"2026-10-23T01:16:07-05:00","answer":{"n":5,"reply":"declined: the build-to-review block is the only check that complete without evidence is refused, and it stays separate so the existing two-step process test keeps its meaning"}}}
+{"complete":{"outcome":"Handover test landed; review answered declined (build-to-review block stays separate).","evidence":["f38a0585"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:14.165Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/handover-test/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:14.169Z"}

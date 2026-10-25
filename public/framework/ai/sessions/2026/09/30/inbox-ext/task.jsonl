@@ -6,3 +6,5 @@
 {"task":"/framework/ai/sessions/2026/09/30/inbox-ext/card-body/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.011Z"}
 {"task":"/framework/ai/sessions/2026/09/30/inbox-ext/page-ext/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.012Z"}
 {"task":"/framework/ai/sessions/2026/09/30/inbox-ext/tabs/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.013Z"}
+{"wait":{"on":"/framework/ai/","what":"Detailed brief for inbox extension system and move to /framework/ai/; not yet started.","decide_by":"2026-10-27T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:33:21.281Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/09/30/inbox-ext/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:21.283Z"}

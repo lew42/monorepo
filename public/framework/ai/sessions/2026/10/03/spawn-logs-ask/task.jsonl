@@ -1,2 +1,4 @@
 {"assign":{"now":"queued","title":"Servex: every spawned task writes its own line in the asks ledger","brief":"public/framework/ai/2026-10-03/spawn-logs-ask/requirements.md","owner":"mastermind-servex","queue":"after the day-audit seven (vscode-mastermind, 2026-10-03)","model":"claude-sonnet-5","effort":"medium"}}
 {"home":"/framework/servex/tasks/spawn-logs-ask/"}
+{"wait":{"on":"/framework/servex/tasks/spawn-logs-ask/","what":"Never-assigned mastermind-servex task queued with $3 budget; real work (asks ledger auto-written on spawn).","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:06.573Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/spawn-logs-ask/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:06.585Z"}

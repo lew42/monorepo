@@ -55,3 +55,5 @@
 {"task":"/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/part1-panel2/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.154Z"}
 {"task":"/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/part1b-inbox-restructure/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.155Z"}
 {"task":"/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/part2-sessions-dashboard/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.156Z"}
+{"stop":{"why":"Minion crashed (exit code 4294967295) before completion; complex Panel2 + Sessions dashboard not finished."},"by":"minion-review-stops","ts":"2026-10-25T13:33:55.581Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/02/panel2-sessions/panel2-sessions/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:55.582Z"}

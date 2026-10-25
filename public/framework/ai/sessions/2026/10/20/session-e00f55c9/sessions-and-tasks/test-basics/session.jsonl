@@ -6,3 +6,5 @@
 {"log":{"at":"2026-10-24T21:58:11-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-24T21:58:12-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-24T22:00:31-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"why":"Session ended without landing; no commits. The same work landed under write-some-basic-tests-to-start (6899cd807)."},"by":"minion-review-stops","ts":"2026-10-25T13:34:41.841Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/test-basics/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:41.845Z"}

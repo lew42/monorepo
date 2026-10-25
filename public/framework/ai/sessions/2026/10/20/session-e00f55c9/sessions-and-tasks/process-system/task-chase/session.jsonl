@@ -10,3 +10,5 @@
 {"review":{"at":"2026-10-23T01:16:07-05:00","answer":{"n":5,"reply":"noted: launch() starting an accepted task with approved_by is intended (approve now leads to idle, resolution.md build item 2); flagged for the merge reviewer"}}}
 {"review":{"at":"2026-10-23T01:16:07-05:00","answer":{"n":6,"reply":"noted: the scan window (today, yesterday, TaskDirs.list(2)) predates this change; the docs say every started task and a task older than two days is out of reach"}}}
 {"review":{"at":"2026-10-23T01:16:07-05:00","answer":{"n":7,"reply":"fixed: 86ba7a10d — leftover const n / void n removed; TaskLoop-steps EPERM left as briefed (same on michael/dev)"}}}
+{"complete":{"outcome":"TaskLoop chase: heartbeat log lines reset, leftover const removed, review answered fixed.","evidence":["86ba7a10d"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:12.582Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/task-chase/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:12.585Z"}

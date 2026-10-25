@@ -9,3 +9,5 @@
 {"review":{"at":"2026-10-23T01:16:07-05:00","answer":{"n":6,"reply":"declined: send to an error or asleep agent wakes it, which is the wanted delivery; a stopped or gone agent gets the card"}}}
 {"review":{"at":"2026-10-23T01:16:07-05:00","answer":{"n":7,"reply":"noted: remind_other uses post_card directly so the chase's flag count stays separate; one flag is enough there"}}}
 {"review":{"at":"2026-10-23T01:16:07-05:00","answer":{"n":8,"reply":"noted: the diff includes task-chase and test-temp-store because they were merged in on purpose; merge those first"}}}
+{"complete":{"outcome":"Cracks inbox wait landed; review answered noted.","evidence":["66a102e1d"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:14.947Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/cracks-inbox-wait/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:14.951Z"}

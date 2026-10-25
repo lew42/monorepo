@@ -1,3 +1,5 @@
 {"assign":{"now":"queued","title":"Servex: one standing voice pair, recycled like fixer-1","brief":"public/framework/ai/2026-10-02/standing-voice-pair/requirements.md","owner":"mastermind-servex","queue":"after known-issues (checkpoint-11 item 2c)","model":"claude-sonnet-5","effort":"high"}}
 {"action":{"at":"2026-10-02T23:08:31-05:00","did":"edit","files":["public/framework/ai/2026-10-02/standing-voice-pair/requirements.md"]}}
 {"home":"/framework/servex/tasks/standing-voice-pair/"}
+{"wait":{"on":"/framework/servex/","what":"Standing voice pair system (like fixer-1) for Servex; not started.","decide_by":"2026-10-29T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:33:57.103Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/02/standing-voice-pair/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:57.105Z"}

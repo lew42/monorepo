@@ -2,3 +2,5 @@
 {"action":{"at":"2026-10-02T22:08:10-05:00","did":"edit","files":["public/framework/ai/2026-10-02/known-issues/seed.json"]}}
 {"action":{"at":"2026-10-02T22:08:15-05:00","did":"edit","files":["public/framework/ai/2026-10-02/known-issues/requirements.md"]}}
 {"home":"/framework/servex/tasks/known-issues/"}
+{"wait":{"on":"/framework/servex/","what":"Detailed Servex infrastructure brief; one live list with mastermind triage and injected start line.","decide_by":"2026-10-28T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:33:26.796Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/02/known-issues/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:26.798Z"}

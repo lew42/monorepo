@@ -1,2 +1,4 @@
 {"assign":{"now":"queued","title":"Servex: free the RAM held by idle dev servers, now","brief":"public/framework/ai/2026-10-03/node-reap-run/requirements.md","owner":"mastermind-servex","queue":"top (vscode-mastermind, 01:37)","model":"claude-sonnet-5","effort":"medium"}}
 {"home":"/framework/servex/tasks/node-reap-run/"}
+{"wait":{"on":"/framework/servex/","what":"Servex infrastructure: free RAM held by idle dev servers; not started.","decide_by":"2026-10-30T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:33:59.331Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/node-reap-run/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:59.333Z"}

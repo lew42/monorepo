@@ -8,3 +8,5 @@
 {"review":{"at":"2026-10-23T01:16:07-05:00","answer":{"n":4,"reply":"fixed: d2b86ce94 — cost.test now calls clean(); fixer.test has no clean exit point and its sonnet-5 vs sonnet-5-5 failure predates this work, so it is not reported as passing"}}}
 {"review":{"at":"2026-10-23T01:16:07-05:00","answer":{"n":5,"reply":"noted: post_card on the awaken-race fake was needed for the test to pass; it is test-only"}}}
 {"review":{"at":"2026-10-23T01:16:07-05:00","answer":{"n":6,"reply":"declined: the move-aside destination is the owner's decision on the main tree and is outside this branch's files; noted for vscode-mastermind to commit with the removals"}}}
+{"complete":{"outcome":"Test temp store landed; review answered declined (move-aside decision is on the main tree).","evidence":["d2b86ce94"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:13.370Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/test-temp-store/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:13.372Z"}

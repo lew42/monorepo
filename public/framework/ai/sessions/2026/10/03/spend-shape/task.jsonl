@@ -1,2 +1,4 @@
 {"assign":{"now":"queued","title":"Servex: spend goes where results are, and you can see who spawned whom","brief":"public/framework/ai/2026-10-03/spend-shape/requirements.md","owner":"mastermind-servex","queue":"top, with merge-commits (vscode-mastermind, owner ask 2026-10-03 23:40)","model":"claude-sonnet-5","effort":"medium"}}
 {"home":"/framework/servex/tasks/spend-shape/"}
+{"wait":{"on":"/framework/servex/tasks/spend-shape/","what":"Never-assigned mastermind-servex task queued with $5 budget; real work (spawn tracking, clarity gating, small-task rule).","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:07.396Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/spend-shape/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:07.406Z"}

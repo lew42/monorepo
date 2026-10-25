@@ -48,3 +48,6 @@
 {"assign":{"cost_usd":6.1803,"cost":{"root":"minion-clean-dictate-mode","agents":[{"id":"minion-clean-dictate-mode","model":"claude-sonnet-5","role":"minion","usd":6.1803}],"own_usd":6.18,"minions_usd":0,"parent_task":null,"open":0,"window":{"from":"2026-10-01T14:55:08-05:00","to":null},"at":"2026-10-01T19:29:00-05:00"}}}
 {"log":{"at":"2026-10-01T20:36:29-05:00","heartbeat":"escalated","msg":"minion-clean-dictate-mode its agent is not running, and the revive failed: Agent minion-clean-dictate-mode was not woken: it was stopped on purpose by owner at 2026-10-01T19:28:55-05:00. Pass revive: true to wake it anyway."}}
 {"home":"/framework/ux/Dictate/tasks/clean-dictate-mode/"}
+{"stop":"Owner stopped deliberately on 2026-10-01; revive attempt failed.","by":"minion-review-stops","ts":"2026-10-25T13:33:23.641Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/01/clean-dictate-mode/clean-dictate-mode/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:23.642Z"}
+{"stop":{"why":"Owner stopped deliberately on 2026-10-01; revive attempt failed."},"by":"minion-review-stops","ts":"2026-10-25T13:33:51.672Z"}

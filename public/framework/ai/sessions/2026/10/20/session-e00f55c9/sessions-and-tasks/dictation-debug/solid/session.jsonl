@@ -21,3 +21,5 @@
 {"log":{"at":"2026-10-25T03:40:09-05:00","heartbeat":"check","msg":"status check sent to minion-dictation-solid"}}
 {"log":{"at":"2026-10-25T03:41:34-05:00","heartbeat":"answered","msg":"The 5-run refresh proof is running again, now detached and hidden (PID 45104, no window) so a Servex restart can't kill it. It takes about 10–20 minutes, and step 2 merges when it passes.\n\nWhy it was "}}
 {"log":{"at":"2026-10-25T04:02:14-05:00","heartbeat":"check","msg":"status check sent to minion-dictation-solid"}}
+{"wait":{"on":"/framework/ai/merge/","what":"Two merged commits; c3056d659 on worktree/chat-v2 unmerged, proof run unfinished.","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:35.893Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:35.896Z"}

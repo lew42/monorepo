@@ -1,2 +1,4 @@
 {"assign":{"now":"queued","title":"Review: an empty diff is refused, never passed unreviewed","brief":"public/framework/ai/2026-10-03/review-empty-diff/requirements.md","owner":"mastermind-servex","queue":"first (vscode-mastermind's review of 2026-10-03)","model":"claude-sonnet-5","effort":"medium"}}
 {"home":"/framework/ai/review/tasks/review-empty-diff/"}
+{"wait":{"on":"/framework/ai/review/tasks/review-empty-diff/","what":"Never-assigned mastermind-servex task queued with $2 budget; real work (review gate refuses empty diffs).","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:05.796Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/review-empty-diff/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:05.800Z"}

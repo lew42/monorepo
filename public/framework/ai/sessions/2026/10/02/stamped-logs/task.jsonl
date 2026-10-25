@@ -1,3 +1,5 @@
 {"assign":{"now":"queued","title":"Servex: logs stamped by code, never typed by an AI","brief":"public/framework/ai/2026-10-02/stamped-logs/requirements.md","owner":"mastermind-servex","queue":"after token-reduction, before card-pipeline-2; replaces checkpoint-10's JSONL gaps 2-5","model":"claude-sonnet-5","effort":"high"}}
 {"action":{"at":"2026-10-02T21:43:14-05:00","did":"edit","files":["public/framework/ai/2026-10-02/stamped-logs/requirements.md"]}}
 {"home":"/framework/servex/tasks/stamped-logs/"}
+{"wait":{"on":"/framework/servex/","what":"Servex infrastructure: logs stamped by code, not typed by AI; foundational work not started.","decide_by":"2026-10-29T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:33:56.371Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/02/stamped-logs/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:56.387Z"}

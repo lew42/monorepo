@@ -41,3 +41,5 @@
 {"log":{"at":"2026-10-24T23:23:40-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-24T23:30:00-05:00","msg":"landed: verdicts applied to e00f55c9 record; replay 95 of 203 complete (was 30); 30 running, 78 stopped, 61 idle, 9 waiting; splitter fix awaits Servex restart"}}
 {"log":{"at":"2026-10-24T23:26:05-05:00","msg":"session ended (other) without landing"}}
+{"stop":{"why":"Session ended without landing; four merged commits are prep work with no delivered outcome."},"by":"minion-review-stops","ts":"2026-10-25T13:34:40.691Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-closeout/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:40.693Z"}

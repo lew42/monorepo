@@ -5,3 +5,5 @@
 {"review":{"at":"2026-10-23T19:18:22-05:00","answer":{"n":4,"reply":"noted: Process.js cannot import its subclasses (cycle); Process.js comment says to import processes/index.js, which page_tools does"}}}
 {"review":{"at":"2026-10-23T19:18:22-05:00","answer":{"n":5,"reply":"noted: lines appended to session.jsonl in the main task folder"}}}
 {"review":{"at":"2026-10-23T19:18:22-05:00","answer":{"n":6,"reply":"noted: no caller passed phases:, steps_over is the chosen name"}}}
+{"complete":{"outcome":"Process names done and merged; tests passing.","evidence":["de0a9656d"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:19.077Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/process-names/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:19.084Z"}

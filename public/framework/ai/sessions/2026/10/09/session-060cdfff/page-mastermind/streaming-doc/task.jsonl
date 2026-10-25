@@ -6,3 +6,5 @@
 {"log":{"at":"2026-10-09T18:28:32-05:00","heartbeat":"deliberate","msg":"minion-page-streaming-doc its agent is not running: it was stopped on purpose by mastermind-page-system at 2026-10-09T17:51:24-05:00; not revived."}}
 {"log":{"at":"2026-10-09T18:44:31-05:00","heartbeat":"deliberate","msg":"minion-page-streaming-doc its agent is not running: it was stopped on purpose by mastermind-page-system at 2026-10-09T17:51:24-05:00; not revived."}}
 {"home":"/framework/core/Page/tasks/streaming-doc/"}
+{"wait":{"on":"/framework/core/Page/tasks/streaming-doc/","what":"Mastermind-stopped 2026-10-09 before work landed; real work remains.","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:10.873Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/09/session-060cdfff/page-mastermind/streaming-doc/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:10.876Z"}

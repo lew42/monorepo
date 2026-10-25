@@ -44,3 +44,6 @@
 {"log":{"at":"2026-10-01T21:42:08-05:00","heartbeat":"deliberate","msg":"minion-openrouter-wire its agent is not running: it was stopped on purpose by task-mastermind-openrouter at 2026-09-30T23:49:55-05:00; not revived."}}
 {"log":{"at":"2026-10-01T23:39:30-05:00","heartbeat":"deliberate","msg":"minion-openrouter-wire its agent is not running: it was stopped on purpose by task-mastermind-openrouter at 2026-09-30T23:49:55-05:00; not revived."}}
 {"home":"/framework/ext/AITask/tasks/wire-provider/"}
+{"stop":"Mastermind stopped deliberately on 2026-09-30; feature not implemented.","by":"minion-review-stops","ts":"2026-10-25T13:33:25.403Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/wire-provider/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:25.405Z"}
+{"stop":{"why":"Mastermind stopped deliberately on 2026-09-30; feature not implemented."},"by":"minion-review-stops","ts":"2026-10-25T13:33:53.439Z"}

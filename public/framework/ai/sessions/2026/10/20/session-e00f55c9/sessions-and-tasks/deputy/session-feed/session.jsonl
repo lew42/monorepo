@@ -7,3 +7,5 @@
 {"log":{"at":"2026-10-24T21:12:54-05:00","heartbeat":"answered","msg":"Still done and idle, with nothing new since my last report. The session-feed work is committed as `9c35435b0` on `worktree/qf-4`, and the merge is yours. The one open point is that record tasks with n"}}
 {"log":{"at":"2026-10-24T21:33:54-05:00","heartbeat":"check","msg":"status check sent to minion-session-feed"}}
 {"log":{"at":"2026-10-24T21:34:41-05:00","heartbeat":"answered","msg":"Unchanged: I'm idle and the work is finished. The session-feed commit `9c35435b0` on `worktree/qf-4` is waiting for you to merge it."}}
+{"complete":{"outcome":"Session feed (Overview as one list of every task and child session) merged.","evidence":["9c35435b0"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:30.686Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session-feed/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:30.688Z"}

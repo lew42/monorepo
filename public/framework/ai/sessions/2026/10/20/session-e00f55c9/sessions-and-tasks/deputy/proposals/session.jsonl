@@ -17,3 +17,5 @@
 {"review":{"at":"2026-10-23T19:40:14-05:00","answer":{"n":5,"reply":"noted: the labels are priority.md's three headings"}}}
 {"review":{"at":"2026-10-23T19:40:14-05:00","answer":{"n":6,"reply":"noted: the batch data is the Haiku record the brief wanted kept"}}}
 {"log":{"at":"2026-10-23T19:44:22-05:00","heartbeat":"refused","msg":"status check not sent to minion-proposals: a wake costs about $3.92 and it has spent $10.72 of $10.00"}}
+{"complete":{"outcome":"Proposals reviewed and merged (ProposalTriage card, approve all).","evidence":["da92cbac5"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:28.234Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:28.236Z"}

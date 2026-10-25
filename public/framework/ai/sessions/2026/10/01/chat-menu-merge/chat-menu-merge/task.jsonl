@@ -32,3 +32,6 @@
 {"log":{"at":"2026-10-02T22:30:05-05:00","heartbeat":"deliberate","msg":"minion-chat-menu-merge its agent is not running: it was stopped on purpose by owner at 2026-10-01T19:28:49-05:00; not revived."}}
 {"log":{"at":"2026-10-02T22:35:11-05:00","heartbeat":"deliberate","msg":"minion-chat-menu-merge its agent is not running: it was stopped on purpose by owner at 2026-10-01T19:28:49-05:00; not revived."}}
 {"home":"/framework/ux/Dictate/tasks/chat-menu-merge/"}
+{"stop":"Owner stopped deliberately on 2026-10-01; work not completed.","by":"minion-review-stops","ts":"2026-10-25T13:33:23.038Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/01/chat-menu-merge/chat-menu-merge/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:23.043Z"}
+{"stop":{"why":"Owner stopped deliberately on 2026-10-01; work not completed."},"by":"minion-review-stops","ts":"2026-10-25T13:33:47.605Z"}

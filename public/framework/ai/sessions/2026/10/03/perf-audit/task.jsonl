@@ -1,3 +1,5 @@
 {"assign":{"now":"queued","title":"Servex: find the slowest common path and make it faster","brief":"public/framework/ai/2026-10-03/perf-audit/requirements.md","owner":"mastermind-servex","queue":"after restart-keeps-agents (vscode-mastermind, 2026-10-03)","model":"claude-sonnet-5","effort":"high"}}
 {"action":{"at":"2026-10-03T22:51:14-05:00","did":"edit","files":["public/framework/ai/2026-10-03/perf-audit/requirements.md"]}}
 {"home":"/framework/servex/tasks/perf-audit/"}
+{"wait":{"on":"/framework/servex/","what":"Servex infrastructure: find and optimize slowest common path; not started.","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:00.027Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/perf-audit/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:00.028Z"}

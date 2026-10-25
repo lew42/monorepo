@@ -106,3 +106,5 @@
 {"task":"/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/hotkeys-module/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.166Z"}
 {"task":"/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/ptt-proof/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.167Z"}
 {"task":"/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/ptt-wiring/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.168Z"}
+{"stop":{"why":"Mastermind stopped deliberately on 2026-10-04; push-to-talk feature not implemented."},"by":"minion-review-stops","ts":"2026-10-25T13:34:02.079Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/push-to-talk/push-to-talk/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:02.080Z"}

@@ -23,3 +23,5 @@
 {"log":{"at":"2026-10-23T23:37:04-05:00","heartbeat":"check","msg":"status check sent to minion-merge-latest"}}
 {"log":{"at":"2026-10-23T23:45:17-05:00","heartbeat":"check","msg":"status check sent to minion-merge-latest"}}
 {"log":{"at":"2026-10-23T23:45:53-05:00","heartbeat":"answered","msg":"Finished and idle. `worktree/merge-latest` (`6dbf29064`) is merged into `michael/dev` and Servex has been restarted. I'm not working on anything."}}
+{"complete":{"outcome":"merge-latest merged into michael/dev and Servex restarted.","evidence":["6dbf29064"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:29.039Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/merge-latest/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:29.045Z"}

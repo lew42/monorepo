@@ -53,3 +53,5 @@
 {"log":{"at":"2026-10-04T21:45:35-05:00","heartbeat":"deliberate","msg":"minion-data-grid-build its agent is not running: it was stopped on purpose by task-mastermind-data-grid at 2026-10-03T22:29:25-05:00; not revived."}}
 {"log":{"at":"2026-10-04T23:25:38-05:00","heartbeat":"deliberate","msg":"minion-data-grid-build its agent is not running: it was stopped on purpose by task-mastermind-data-grid at 2026-10-03T22:29:25-05:00; not revived."}}
 {"home":"/framework/ext/DataGrid/tasks/build/"}
+{"stop":{"why":"Mastermind stopped deliberately on 2026-10-03; DataGrid feature not completed."},"by":"minion-review-stops","ts":"2026-10-25T13:33:57.899Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/016756ee-1cb3-4b42-b20f-3ef5f0659261/data-grid/build/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:57.902Z"}

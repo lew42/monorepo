@@ -1,2 +1,4 @@
 {"assign":{"now":"queued","title":"Servex: worktree servers survive a restart, so 4 finished landings can merge","brief":"public/framework/ai/2026-10-03/worktree-servers-revive/requirements.md","owner":"mastermind-servex","queue":"second, after review-empty-diff (vscode-mastermind's review of 2026-10-03)","model":"claude-sonnet-5","effort":"medium"}}
 {"home":"/framework/servex/tasks/worktree-servers-revive/"}
+{"wait":{"on":"/framework/servex/tasks/worktree-servers-revive/","what":"Never-assigned mastermind-servex task queued with $3 budget; real work (worktree registration, reaper stale cache).","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:08.272Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/worktree-servers-revive/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:08.283Z"}

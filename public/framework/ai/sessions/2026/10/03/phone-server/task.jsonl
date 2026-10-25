@@ -1,2 +1,4 @@
 {"assign":{"now":"queued","title":"Servex: the phone site (port 8137) is always up, started by Servex","brief":"public/framework/ai/2026-10-03/phone-server/requirements.md","owner":"mastermind-servex","queue":"top: an owner ask (vscode-mastermind, 2026-10-03 23:00)","model":"claude-sonnet-5","effort":"medium"}}
 {"home":"/framework/servex/tasks/phone-server/"}
+{"wait":{"on":"/framework/servex/","what":"Servex infrastructure: port 8137 phone site always up, started by Servex; not started.","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:00.773Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/phone-server/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:00.774Z"}

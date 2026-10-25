@@ -13,3 +13,6 @@
 {"log":{"at":"2026-09-30T13:45:04-05:00","heartbeat":"deliberate","msg":"minion-review-fixes its agent is not running: it was stopped on purpose by task-mastermind-review at 2026-09-30T13:39:59-05:00; not revived."}}
 {"log":{"at":"2026-09-30T13:45:06-05:00","heartbeat":"deliberate","msg":"minion-review-fixes its agent is not running: it was stopped on purpose by task-mastermind-review at 2026-09-30T13:39:59-05:00; not revived."}}
 {"home":"/framework/ai/review/tasks/fixes/"}
+{"stop":"Minion fix task stopped on purpose; one-time code review task completed and closed.","by":"minion-review-stops","ts":"2026-10-25T13:33:21.812Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/09/30/review/review/fixes/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:21.815Z"}
+{"stop":{"why":"Minion fix task stopped on purpose; one-time code review task completed and closed."},"by":"minion-review-stops","ts":"2026-10-25T13:33:46.486Z"}

@@ -23,3 +23,6 @@
 {"log":{"at":"2026-10-01T23:45:27-05:00","msg":"found via a real 1920 screenshot: the tab strip stayed visible at wide width even though every panel was already shown as a column. Cause: the tabs div carries the util-layer 'flex gap' utility classes, and styles/doc/cascade.md's own rule says util always beats theme regardless of specificity -- my theme-layer display:none inside the media query could never win. Fixed per that doc's own remedy: moved just that one override into its own @layer util block (same layer as .flex, later source order, no !important)."}}
 {"action":{"at":"2026-10-01T23:45:27-05:00","did":"edit","files":["public/framework/ux/Dictate/playground/Playground.css"]}}
 {"home":"/framework/ux/Dictate/playground/tasks/minion-part2/"}
+{"stop":"Owner stopped; session ended without landing work.","by":"minion-review-stops","ts":"2026-10-25T13:33:26.137Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/minion-part2/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:26.140Z"}
+{"stop":{"why":"Owner stopped; session ended without landing work."},"by":"minion-review-stops","ts":"2026-10-25T13:33:54.158Z"}

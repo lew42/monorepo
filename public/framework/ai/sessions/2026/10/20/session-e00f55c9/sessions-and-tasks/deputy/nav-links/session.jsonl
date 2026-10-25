@@ -25,3 +25,5 @@
 {"review":{"at":"2026-10-23T23:46:53-05:00","answer":{"n":5,"reply":"noted: matches the brief (count pill if cheap)"}}}
 {"log":{"at":"2026-10-23T23:52:15-05:00","heartbeat":"check","msg":"status check sent to minion-nav-links"}}
 {"log":{"at":"2026-10-23T23:53:40-05:00","heartbeat":"answered","msg":"Done and waiting. All three deliverables are built and committed on `worktree/qf-2` at `18861f31b`, and the `ready:` line is logged in `.../deputy/nav-links/session.jsonl`.\n\n- **Merge link:** Merge is"}}
+{"complete":{"outcome":"All three nav-links deliverables built and merged.","evidence":["18861f31b"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:29.788Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/nav-links/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:29.793Z"}

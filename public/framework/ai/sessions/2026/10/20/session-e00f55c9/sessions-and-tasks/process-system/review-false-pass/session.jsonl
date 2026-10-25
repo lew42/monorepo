@@ -6,3 +6,5 @@
 {"review":{"at":"2026-10-23T18:30:30-05:00","answer":{"n":3,"reply":"fixed: worktreeOf parses each line as JSON; an escaped Windows path is tested"}}}
 {"review":{"at":"2026-10-23T18:30:30-05:00","answer":{"n":4,"reply":"fixed: branchTree throws; main() prints it and exits 1"}}}
 {"review":{"at":"2026-10-23T18:30:30-05:00","answer":{"n":5,"reply":"fixed: Server/doc/review.md says to run it from the worktree and what happens on michael/dev"}}}
+{"complete":{"outcome":"Review false pass: doc fix landed (Server/doc/review.md); task/review-false-pass merged.","evidence":["7246c8b1a"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:19.942Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-false-pass/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:19.944Z"}

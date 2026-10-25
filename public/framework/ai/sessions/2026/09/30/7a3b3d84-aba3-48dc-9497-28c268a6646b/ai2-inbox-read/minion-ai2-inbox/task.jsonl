@@ -26,3 +26,6 @@
 {"log":{"at":"2026-09-30T15:10:15-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-09-30T15:14:02-05:00","msg":"session ended (other) without landing"}}
 {"home":"/framework/ai2/tasks/minion-ai2-inbox/"}
+{"stop":"Owner stopped the session deliberately; no work landed (log: session ended without landing).","by":"minion-review-stops","ts":"2026-10-25T13:33:19.886Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/09/30/7a3b3d84-aba3-48dc-9497-28c268a6646b/ai2-inbox-read/minion-ai2-inbox/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:19.889Z"}
+{"stop":{"why":"Owner stopped the session deliberately; no work landed (log: session ended without landing)."},"by":"minion-review-stops","ts":"2026-10-25T13:33:45.192Z"}
