@@ -6,7 +6,7 @@ View.stylesheet(import.meta, "TrackingView.css");
 const pct = x => `${Math.round(x * 100)}%`;
 const usd = x => `$${x.toFixed(2)}`;
 
-/** TrackingView — the three tracking checks from report.json (written by `node Server/TrackingCheck.mjs`). Readme: readme.md. */
+/** TrackingView — the five tracking checks from report.json (written by `node Server/TrackingCheck.mjs`). Readme: readme.md. */
 export default class TrackingView extends View {
 	get classes(){ return "tr-view"; }
 
@@ -24,7 +24,7 @@ export default class TrackingView extends View {
 
 	draw(r){
 		if (!r) { p("No report yet. Run `node Server/TrackingCheck.mjs`."); return; }
-		const t = r.untracked.totals, c = r.children, n = r.numbers;
+		const t = r.untracked.totals, c = r.children, n = r.numbers, pc = r.prompts, pf = r.perf;
 
 		p(`Report written ${r.generated_at.replace("T", " ").slice(0, 16)} UTC, over the last ${r.days} days. Re-run \`node Server/TrackingCheck.mjs\` to refresh it.`);
 		a.c("tr-rule").href("/framework/ai/doc/task-buckets.md").text("The rule being checked: task buckets");
@@ -33,6 +33,8 @@ export default class TrackingView extends View {
 			this.card(pct(t.share_usd), "of spend had no task open", `${usd(t.untracked_usd)} of ${usd(t.usd)}, ${t.sessions} sessions`);
 			this.card(`${c.problems} of ${c.checked}`, "child sessions with a link problem", `${c.no_parent} no parent, ${c.parent_is_name} parent is a name, ${c.not_listed} not listed by the parent`);
 			this.card(String(n.count), "stored numbers that disagree", "with what the transcript or the children compute now");
+			if (pc) this.card(pc.pct == null ? "n/a" : pct(pc.pct), "of owner prompts have refinement parts", `${pc.recorded} of ${pc.unique} unique prompts, ${pc.sessions} sessions`);
+			if (pf) { const slow = pf.files.filter(f => f.over).length, w = [...(pf.item?.writes ?? []), ...(pf.http?.writes ?? [])], worst = Math.max(0, ...w.map(x => x.ms)); this.card(`${slow} slow`, "records over the read limit", `limits: read+parse ${pf.limits.read_ms} ms, write ${pf.limits.write_ms} ms; slowest write seen ${w.length ? Math.round(worst) + " ms" : "not measured"}`); }
 		});
 
 		h2("1. Work with no task open");
