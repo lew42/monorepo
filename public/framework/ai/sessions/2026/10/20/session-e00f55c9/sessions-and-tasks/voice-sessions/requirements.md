@@ -22,3 +22,7 @@ Sonnet, high effort. Work in a worktree and land ready to merge. **The owner app
 ## The owner (2026-10-25, ~01:30): the voice agent works through its own session
 
 The voice mastermind uses the item tool on its own session's record: it adds tasks, child sessions and notes, and refines them as the owner keeps talking, instead of only replying in chat. Give it the item tool, with its own session path resolved for it, and say so in `session-smart.md`. The chat that shows it is the shared chat component, owned by mastermind-dictation-2.
+
+## The owner (2026-10-25, ~01:55): the voice mastermind talks to mastermind-dictation-2
+
+A dictation ask the owner makes in the browser goes from the voice mastermind straight to `mastermind-dictation-2` (`send_to_agent`), and that agent's "it's live, try it" comes back into the voice session. Write it in `session-smart.md`.

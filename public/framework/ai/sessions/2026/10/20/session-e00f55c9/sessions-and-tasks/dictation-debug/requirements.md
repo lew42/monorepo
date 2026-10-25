@@ -100,3 +100,8 @@ Prove each fix with shots or a short burst, including a refresh-then-dictate tes
 ## Part 5 (the owner, 2026-10-25): per-sentence waking is too costly
 
 The voice mastermind is woken on every sentence, which floods it and multiplies the tokens. Keep fast per-sentence work cheap: placing words in bubbles, and a Haiku-level refine into cards. Wake the Opus mastermind only when a thought ends (a pause), when it's asked something, or every N sentences. Measure the tokens per minute of dictation before and after.
+
+## Part 6 (2026-10-25, ~01:55)
+
+- **A live fix-and-test loop with the owner, through the voice mastermind.** The owner dictates in the browser; the voice mastermind passes each dictation ask straight to you (`send_to_agent mastermind-dictation-2`); you make a small fix, merge it fast, and tell the voice agent it's live; the owner tests and replies. Keep each fix small enough to merge in minutes. Reply to the voice agent's session, not only to your log.
+- **Whisper process leak, found by the tab.** There were 8 `whisper-server.exe` processes, each loading the large model (up to 1.9 GB each); RAM fell to 0.4 GB free and every agent queued. Only the one on port 8178 belongs to Servex. The others were on random ports from test runs (stall and smoke harnesses?), started from `cmd.exe` and never stopped. The tab stopped the four oldest (10-23 to 10-25 00:54); 3 recent ones (01:13–01:18) were left in case a test uses them. Fix the harnesses so they reuse the 8178 server, or stop what they start, with a test that proves no whisper process outlives its test.
