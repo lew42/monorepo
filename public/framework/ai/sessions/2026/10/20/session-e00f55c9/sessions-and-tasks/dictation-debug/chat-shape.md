@@ -99,3 +99,8 @@ The chat is drawn in **list order**, the order Node appended the entries, never 
 - **The trace is the point.** "Didn't I ask for this?" must be answerable by search: the raw prompt, when it was said, the tasks made from it, and whether each was done. The raw Whisper text stays on the Prompt.
 - **Layout, first pass (Figma mock later):** no left/right bubbles. Your transcription sits at the root of the chat area, not in a card. The smart assistant's replies and cards nest under the prompt they answer, marked with the brain icon.
 - **Build it as Chat v2, a new widget.** The current dictation chat stays as it is until v2 replaces it. Call it chat: dictation is one feature of the chat.
+
+### Two more (the owner, 2026-10-25, next prompt)
+
+- **The main view shows the refined prompt and its outcome, not the process.** Each prompt draws as the smart assistant's refined version, with its tasks and their state. The raw Whisper text and the fast assistant's cleaned text are kept, one click down ("show raw"), and are never dropped.
+- **The page talks to the assistants, not only the mic.** UI errors, button clicks and page context go to the assistants down the same path as a spoken sentence: a POST to the voice session, marked by kind (`speech`, `error`, `click`, `context`). The fast assistant files errors as log lines and needs no UI for them. The smart assistant sees them as context when it next reads the session.
