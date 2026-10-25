@@ -6,3 +6,8 @@
 {"review":{"at":"2026-10-25T14:35:28-05:00","answer":{"n":5,"reply":"declined: Playwright imports by file:///C:/… are the repo convention (role text, Briefs); proof scripts are per-machine records"}}}
 {"review":{"at":"2026-10-25T14:35:28-05:00","answer":{"n":7,"reply":"noted: drawer-rail-sheet-v2* kept on purpose so the sheet and its probe do not break; a rename goes under ChatView's own prefix if ever"}}}
 {"commit":"d1763b4ad721"}
+{"review":{"at":"2026-10-25T14:37:39-05:00","answer":{"n":1,"reply":"fixed: readme names ChatView.sync() (d1763b4ad)"}}}
+{"review":{"at":"2026-10-25T14:37:39-05:00","answer":{"n":2,"reply":"fixed: one log line per shot, the probe output, and the no-reuse line (d1763b4ad)"}}}
+{"review":{"at":"2026-10-25T14:37:39-05:00","answer":{"n":3,"reply":"fixed: the old thread wears .flex, which beat the theme-layer hide; the hide moved to the util layer in ChatView.css, and the 1920 reshoot is clean (d1763b4ad)"}}}
+{"review":{"at":"2026-10-25T14:37:39-05:00","answer":{"n":4,"reply":"fixed: the unused locator and the debug log line are gone (d1763b4ad)"}}}
+{"review":{"at":"2026-10-25T14:37:39-05:00","answer":{"n":6,"reply":"fixed: the desktop chip stretches to match + New session, and the sheet chip is untouched (d1763b4ad)"}}}
