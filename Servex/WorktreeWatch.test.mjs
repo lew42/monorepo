@@ -36,6 +36,8 @@ assert.deepEqual(WorktreeWatch.judge({ ...clean, errors: ["400: " + nf, "400: " 
 const sent = [], task_dir = path.join(root, "main", "task"); fs.mkdirSync(task_dir, { recursive: true });
 const watch = new WorktreeWatch({ id: "qf-t", path: path.join(root, "worktree"), port: 1, owner: "minion-x", main: path.join(root, "main"), task_dir: "task", send: (to, text) => sent.push([to, text]) });
 watch.stopped = false;   // run() without a socket
+const plog = [];   // what report() was given: nothing is sent, a line goes to the module's failures.jsonl
+watch.report = (dir, ev) => { plog.push([dir, ev]); if (ev.fail) sent.push([watch.owner, ev.fail.msg]); };
 let layout = clean;
 const png = path.join(root, "pngs"); fs.mkdirSync(png); fs.writeFileSync(path.join(png, "400.png"), "png");
 watch.measure = async urls => new Map(urls.map(u => [u, { res: layout, dir: png }]));
@@ -45,7 +47,8 @@ const go = async () => { watch.pending.add("/framework/x/"); await watch.run(); 
 layout = { ...clean, widths: { ...clean.widths, 400: w(0.1, true) } };
 await go();
 assert.equal(sent.length, 1);
-assert.equal(sent[0][0], "minion-x");
+assert.equal(plog[0][0], "public/framework/x", "the line goes to the page's own module folder");
+assert.equal(plog[0][1].fail.worktree, "qf-t");
 assert.match(sent[0][1], /\/framework\/x\/ breaks at 400 px: overflow_x true.*shots[\\/]|shots\/.*400\.png/);
 assert.ok(fs.existsSync(path.join(task_dir, "shots", "framework-x-400.png")) || fs.existsSync(path.join(task_dir, "shots", "-framework-x-400.png")) || fs.readdirSync(path.join(task_dir, "shots")).some(f => f.endsWith("-400.png")), "the shot is kept");
 await go();
@@ -53,9 +56,8 @@ assert.equal(sent.length, 1, "still broken within 10 minutes: no second message"
 layout = clean;
 await go();
 assert.equal(sent.length, 1, "recovery sends nothing");
-const lines = fs.readFileSync(path.join(task_dir, "task.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l).log.msg);
-assert.equal(lines.length, 2, "one break line, one clear line");
-assert.match(lines[1], /clear/);
+assert.deepEqual(plog.map(([, e]) => Object.keys(e)[0]), ["fail", "clear"], "one break line, one clear line");
+assert.match(plog[1][1].clear.msg, /clear/);
 watch.pages.get("/framework/x/").messaged_at -= WorktreeWatch.QUIET_MS + 1;
 layout = { ...clean, errors: ["400: boom"] };
 await go();
@@ -72,6 +74,7 @@ const testWatch = (id, execute) => {
     t.stopped = false; t.ran = [];
     t.runner = async () => ({ results: path.join(root, "no-results.jsonl") });
     t.near = async urls => urls.some(u => u.endsWith("Thing.mjs")) ? ["x/Thing.test.mjs"] : [];
+    t.logs = []; t.report = (dir, ev) => { if (ev.fail) msgs.push(ev.fail.msg); else t.logs.push(ev.clear.msg); t.dir = dir; };
     t.execute = async file => { t.ran.push(file); return execute(file); };
     return { t, msgs };
 };
@@ -93,9 +96,31 @@ assert.equal(tmsgs.length, 1, "steady fail says nothing");
 ok = true;
 tw.changed(["/framework/x/Thing.mjs"]); await idle();
 assert.equal(tmsgs.length, 1, "fail to pass is a log line, not a message");
-const tlog = fs.readFileSync(path.join(tmain, "task", "task.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l).log.msg);
-assert.equal(tlog.length, 2, "one fail line, one passes-again line");
-assert.match(tlog[0], /now fails/); assert.match(tlog[1], /passes again/);
+assert.equal(tw.logs.length, 1); assert.match(tw.logs[0], /passes again/);
+assert.equal(tw.dir, "x", "the test's own folder");
+
+// debounce: a break fixed by the next save (inside the quiet window) is never told; one still broken when the saves stop is
+WorktreeWatch.DEBOUNCE_MS = 120; tw.ran.length = 0; tmsgs.length = 0;
+ok = false; tw.changed(["/framework/x/Thing.mjs"]);                    // save 1 of 2 breaks it
+await sleep(50); ok = true; tw.changed(["/framework/x/Thing.mjs"]);    // save 2, inside the window, fixes it
+await sleep(60); assert.deepEqual(tw.ran, [], "nothing runs while saves keep coming");
+await sleep(150); await idle();
+assert.equal(tw.ran.length, 1, "one run after the saves stop");
+assert.equal(tmsgs.length, 0, "a break fixed within the window is never told");
+ok = false; tw.changed(["/framework/x/Thing.mjs"]);
+await sleep(50); assert.equal(tmsgs.length, 0, "a break is not told inside the window");
+await sleep(150); await idle();
+assert.equal(tmsgs.length, 1, "still broken when the saves stop: told once, to the owner");
+ok = true; tw.changed(["/framework/x/Thing.mjs"]); await idle();
+WorktreeWatch.DEBOUNCE_MS = 15;
+
+// report() itself: one line appended to failures.jsonl in the module's folder of the MAIN checkout
+const real = new WorktreeWatch({ id: "rr", path: path.join(root, "worktree"), port: 1, main: tmain });
+const log0 = console.log; console.log = () => {};
+real.report("public/framework/x", { fail: { kind: "test", msg: "boom", worktree: "rr" } }); real.report("public/framework/x", { clear: { kind: "test", msg: "ok", worktree: "rr" } });
+console.log = log0;
+const fl = fs.readFileSync(path.join(tmain, "public/framework/x/failures.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l));
+assert.deepEqual(fl.map(l => Object.keys(l).filter(k => k !== "at")[0]), ["fail", "clear"], "a fail line then a clear line, in the module's own folder");
 
 // a timeout is no result: the state stays, nothing is told
 const { t: tt, msgs: tmsgs2 } = testWatch("tt", async () => ({ ok: false, timeout: true, tail: "TIMED OUT" }));
@@ -114,7 +139,6 @@ const empty = path.join(root, "rt-empty"); fs.mkdirSync(empty, { recursive: true
 const unknown = withRt("tu", empty);
 unknown.t.changed(["/framework/x/Thing.mjs"]); await idle();
 assert.equal(unknown.msgs.length, 0, "no earlier result: a log line, no message");
-assert.match(fs.readFileSync(path.join(tmain, "task", "task.jsonl"), "utf8"), /fails \(no earlier result\)/);
 const own = path.join(root, "rt-own"); fs.mkdirSync(own, { recursive: true });
 fs.copyFileSync(path.join(rt, "results.jsonl"), path.join(own, "results.jsonl"));
 fs.writeFileSync(path.join(own, "save-results.jsonl"), JSON.stringify({ file: F, ok: false, trigger: "save", worktree: "to" }) + "\n" + JSON.stringify({ file: F, ok: true, trigger: "save", worktree: "other" }) + "\n");
