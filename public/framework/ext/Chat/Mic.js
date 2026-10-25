@@ -155,6 +155,14 @@ export class ComposerMic extends Dictate {
 		super.commit(text);
 	}
 
+	render(){ super.render(); ComposerMic.mounted.add(this); }
+
+	/** The mic that carries on when this one's box leaves the page mid-dictation (Dictate.heartbeat): the newest one still on the page and not listening. */
+	heir(){
+		for (const m of ComposerMic.mounted) if (!m.el.isConnected && m !== this) ComposerMic.mounted.delete(m);
+		return [...ComposerMic.mounted].reverse().find(m => m !== this && m.el.isConnected && (m.state === "idle" || m.state === "error")) ?? null;
+	}
+
 	active(){
 		return !!(this.starting || this.reviving || this.posting || this.held?.length || this.state === "listening" || this.state === "transcribing" || this.state === "connecting");
 	}
@@ -644,4 +652,5 @@ export class ComposerMic extends Dictate {
 }
 ComposerMic.prototype.mode = "open";   // the mic stays on; draw_caption() types into the box
 ComposerMic.DUP_WINDOW_MS = 4000;
-ComposerMic.DELIVER_MS = 25000;   // the backstop: Session.js gives up after 10 s per call, so only a deliver with no timeout of its own reaches this   // same words from the same mic this close together are one send (see post_held)
+ComposerMic.DELIVER_MS = 25000;
+ComposerMic.mounted = new Set();   // every composer mic built, for heir(); a detached one is dropped the next time heir() looks   // the backstop: Session.js gives up after 10 s per call, so only a deliver with no timeout of its own reaches this   // same words from the same mic this close together are one send (see post_held)

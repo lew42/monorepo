@@ -432,9 +432,18 @@ export default class Dictate extends View {
 
 	heartbeat(){
 		if (!this.el.isConnected){
-			// the box holding this mic left the page (the chat was redrawn or released): say so, never stop silently
-			DictateHealth.set("mic", "idle", "stopped: the chat holding this mic was taken off the page (redrawn, or the window crossed the phone width). Press 🎤 again.");
-			this.stop(); this.mic?.stop(); try { this.rec?.abort?.(); } catch {} return;
+			// The box holding this mic left the page while it listened (the chat moved: page, dock, sheet). A mic mounted since
+			// carries on (`heir()`, ComposerMic); with none, say so. Never a silent stop (it was one, until 2026-10-24).
+			// The new box can arrive a moment later (the dock loads its tab first), so look for it for up to ~2 s.
+			clearInterval(this.timer);
+			const hand_over = (tries = 8) => {
+				const heir = this.heir?.();
+				if (heir){ DictateHealth.set("mic", "wait", "the chat moved (page, dock or sheet): reopening the mic in its new place"); return heir.start(); }
+				if (tries > 0 && this.heir) return setTimeout(() => hand_over(tries - 1), 250);
+				DictateHealth.set("mic", "idle", "stopped: the chat holding this mic was taken off the page (redrawn, or the window crossed the phone width). Press 🎤 again.");
+			};
+			Promise.resolve(this.stop()).finally(() => hand_over());
+			this.mic?.stop(); try { this.rec?.abort?.(); } catch {} return;
 		}
 		const now = performance.now();
 		if (this.engine === "whisper"){

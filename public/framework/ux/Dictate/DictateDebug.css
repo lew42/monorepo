@@ -1,9 +1,10 @@
 @layer base, theme, site, util;
 
 /* The Debug tab (class DictateDebug): the layers beside what happened. One column in the drawer and on a phone,
-   two side by side once there is room for both (each column at least 22rem, at most 48rem: a line stays readable at 3440). */
+   two side by side once there is room for both (each column at least 24rem; the pair at most 100rem, so a line stays readable at 3440).
+   ⚠ the column's max must be 1fr: auto-fit counts columns from a definite max, so `48rem` gave one column at 1920. */
 @layer site {
-	.dictate-debug { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 48rem)); gap: 1.5em 2.5em; align-items: start; }
+	.dictate-debug { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); max-inline-size: 100rem; gap: 1.5em 2.5em; align-items: start; }
 	.dictate-debug-col { display: grid; gap: 0.6em; min-inline-size: 0; }
 	.dictate-debug-col > h3 { margin: 0; }
 	.dictate-debug-col > p { margin: 0; }

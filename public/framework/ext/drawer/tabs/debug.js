@@ -4,7 +4,7 @@ import { div } from "/framework/core/View/View.js";
    dictation layer by layer, live, read from the chat's own mic. Routed as <path>/ai/debug/ (AIPage.VIEWS);
    ?drawer=dictation and <path>/ai/dictation/ still open it. Imported only when the tab opens. ux/Dictate/doc/debug-tab.md */
 export default function debug(){
-	div.c("drawer-debug", $d => {
+	div.c("drawer-debug pad", $d => {   // .pad: text never touches the sheet's edge
 		import("/framework/ux/Dictate/DictateDebug.js")
 			.then(m => $d.append(() => { new m.default(); }))
 			.catch(e => $d.append(() => { div.c("muted", "The Debug tab could not load: " + e.message); }));

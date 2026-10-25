@@ -20,7 +20,8 @@ export default class AIPage extends Page {
 		["settings", "Settings", () => import("./tabs/settings.js")],
 	];
 
-	static HIDDEN = new Set(["dictation"]);   // views kept only so an old url opens; never drawn in the row
+	static HIDDEN = new Set(["dictation"]);
+	static WIDE = new Set(["debug", "dictation"]);   // views drawn across the page's wide track (two columns at 1920), not the reading column   // views kept only so an old url opens; never drawn in the row
 
 	// The view a url names inside an AI page ("debug" for <path>/ai/debug/), "chat" for <path>/ai/ itself, null outside one.
 	static view_of(pathname = location.pathname, ai = this.current){
@@ -53,7 +54,7 @@ export default class AIPage extends Page {
 			this.constructor.VIEWS.filter(([n]) => !this.constructor.HIDDEN.has(n)).forEach(([n, label]) =>
 				a.c("drawer-ai-page-view", label).ac(n === name && "on").href(this.url + (n === "chat" ? "" : n + "/")));
 		});
-		const $box = div.c("drawer-ai-page-body", () => { span.c("muted", "loading…"); });
+		const $box = div.c("drawer-ai-page-body", () => { span.c("muted", "loading…"); }).ac(this.constructor.WIDE.has(name) && "wide");   // .wide: the page grid's own word for the wide track
 		if (!load) return $box.empty(() => { p.c("muted", "The live feed (this page's events beside the chat) arrives with AIFeed, sheet step 7."); });
 		if (name === "chat") this.chat_box = $box;
 		this.fill($box, name, load);
