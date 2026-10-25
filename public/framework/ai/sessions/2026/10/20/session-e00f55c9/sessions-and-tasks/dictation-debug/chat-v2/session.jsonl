@@ -51,3 +51,4 @@
 {"log":{"at":"2026-10-25T05:01:40-05:00","msg":"dropped: writers: owner minion-chat-v2-writers is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/writers/","reason":"owner-stopped"}}
 {"wait":{"on":"/framework/ai/merge/","what":"Five unmerged commits (5e3ff2a46, etc.) on worktree/chat-v2 need review and merge.","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:38.290Z"}
 {"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:38.293Z"}
+{"log":{"at":"2026-10-25T09:11:07-05:00","msg":"session ended (other) without landing"}}
