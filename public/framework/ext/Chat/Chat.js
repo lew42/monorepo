@@ -650,7 +650,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		const cls = (c.from?.kind ?? "") === "owner" ? "chatbox-you" : "chatbox-reply";
 		const who = c.from?.id || c.from?.kind || "";
 		if (!c.fix && !c.level) cls === "chatbox-you" ? drop_live([...lives.keys()].find(k => k.startsWith("sent:"))) : drop_live("stream:" + who);
-		const at = Date.parse(c.at ?? 0) || Date.now();
+		const at = Date.parse(c.said_at ?? c.at ?? 0) || Date.now();   // said_at = when the owner said it, on Servex's clock (doc/notes.md#bubble-order); old lines have none
 
 		if (c.fix){
 			const hit = fix_index.get(c.at);

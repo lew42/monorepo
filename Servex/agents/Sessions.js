@@ -927,7 +927,7 @@ export default class Sessions {
 	 * explicitly. `error` is filed as a `log` line (ISO `at`, like every other log line in this repo); `click`/
 	 * `context` are queued onto the smart seat's `notes`, the same way `nav()`/`react()` already tell it something
 	 * happened without starting a new thought -- read on its next turn. */
-	say({ session, path: at, text, via = "text", raw, floor, cues, quiet_ms, re, thread, selection, kind = "speech" } = {}){
+	say({ session, path: at, text, via = "text", raw, floor, cues, quiet_ms, re, thread, selection, kind = "speech", said_at } = {}){
 		if (!["speech", "error", "click", "context"].includes(kind)) throw Object.assign(new Error("kind is speech, error, click or context"), { status: 400 });
 		if (!String(text ?? "").trim()) throw Object.assign(new Error("text is required"), { status: 400 });
 		if (kind !== "speech"){
@@ -946,6 +946,7 @@ export default class Sessions {
 		 * happens, so the NEXT line (continuing or not) is never wrongly merged into a Prompt that is already done. */
 		const prompt = this.assign_prompt(s, { text, raw });
 		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text, prompt,
+			...(said_at && !Number.isNaN(Date.parse(said_at)) ? { said_at: String(said_at) } : {}),
 			...(raw && String(raw).trim() && raw !== text ? { raw: String(raw) } : {}),
 			...(floor ? { floor } : {}), ...(cues && typeof cues === "object" ? { cues } : {}),
 			...(thread && re ? { re: String(re), thread: true } : {}),

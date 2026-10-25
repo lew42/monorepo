@@ -10,3 +10,4 @@
 {"log":{"at":"2026-10-25T02:02:17-05:00","msg":"placement step: 0 place lines over 58 chat lines in v-xhx7fmx, so the voice assistant placed nothing in that session; not the cause here, worth a look by the parent."}}
 {"log":{"at":"2026-10-25T02:02:25-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
 {"log":{"at":"2026-10-25T02:05:56-05:00","msg":"step 1 done on worktree/dictation-order (155c6c4a7): Chat.js retag_piece changes the id only; notes.md :70 and #bubble-order updated; order.mjs ok at skew 0 and 1500; third run (reply between) KNOWN: 'now?' lands above the reply, the cross-bubble case left for step 2. smoke.mjs: no FAIL. Not merged; parent merges."}}
+{"log":{"at":"2026-10-25T10:44:42-05:00","msg":"steps 2-3 done: Session.clock.offset kept by say(), ComposerMic.stamp adds it; chat.js sends said_at; Sessions.say writes it (live after a Servex restart); chat_line orders by said_at ?? at. order/flicker/reconnect/refresh/earlier pass."}}

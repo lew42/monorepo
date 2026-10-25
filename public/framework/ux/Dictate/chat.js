@@ -173,7 +173,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 					let r;
 					const t_say = Date.now(), t_out = Date.parse(entry.at) || t_say;
 					try {
-						r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text,
+						r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text, said_at: entry.at,
 							via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: owner.ctl.selection, ...thread });
 					} catch (e){
 						// Its line already came back (the poll or the live wire): it WAS sent, only the answer to the POST was slow.

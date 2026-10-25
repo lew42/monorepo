@@ -8,7 +8,7 @@
 // Three runs: skew 0 (the control, both clocks agree), skew SKEW_MS (the PC ahead of the phone), and skew SKEW_MS with the assistant's
 // reply between the two sentences. Exit 1 when either of the first two reads out of order. The third is the KNOWN cross-bubble case:
 // a new owner bubble (phone clock) is placed against the reply (Servex's clock) by Chat.js place(); it waits for one clock for new
-// stamps (order/report.md, step 2), so it is reported but does not fail the run.
+// stamps (order/report.md, step 2), and it fails the run too (one clock: Session.clock.offset).
 import path from "path";
 
 const [base = "http://monorepo.localhost", skew_arg] = process.argv.slice(2);
@@ -88,7 +88,7 @@ async function run(skew, { reply = false } = {}){
 	const norm = t => String(t).toLowerCase().replace(/[^a-z ]+/g, "").trim();
 	const want = reply ? [SAID[0], REPLY, SAID[1]] : SAID;
 	const ok = got.length === want.length && got.every((t, i) => norm(t).endsWith(norm(want[i])));
-	const label = (ok ? "ok  " : reply ? "KNOWN" : "FAIL") + ` skew ${skew} ms (${skew ? "PC clock ahead of the phone" : "clocks agree"}${reply ? ", a reply between, the cross-bubble case for step 2" : ""})`;
+	const label = (ok ? "ok  " : "FAIL") + ` skew ${skew} ms (${skew ? "PC clock ahead of the phone" : "clocks agree"}${reply ? ", a reply between; the cross-bubble case" : ""})`;
 	console.log(`${label}: the chat reads ${got.map(t => JSON.stringify(t)).join(" then ")}; want ${want.map(t => JSON.stringify(t)).join(" then ")}`);
 	for (const s of trace) console.log(`       ${s.step}: ${s.pieces.map(p => `${JSON.stringify(p.text)} @${p.re}`).join(" | ")}`);
 	console.log(`       Servex wrote: ${lines.map(l => `${JSON.stringify(l.chat.text)} @${l.chat.at}`).join(" | ")}`);
@@ -99,7 +99,7 @@ async function run(skew, { reply = false } = {}){
 
 let all = true;
 for (const skew of [0, SKEW_MS]) all = (await run(skew)) && all;
-await run(SKEW_MS, { reply: true });   // KNOWN: reported, never fails the run (see the header)
+all = (await run(SKEW_MS, { reply: true })) && all;   // the cross-bubble case: one clock (ComposerMic.stamp + clock_offset) fixes it
 clearTimeout(kill);
 await browser.close();
 process.exit(all ? 0 : 1);

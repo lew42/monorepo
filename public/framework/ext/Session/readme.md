@@ -3,6 +3,7 @@
 A session starts on the page you are on (its home), follows you from page to page, and keeps everything in one dated folder: `/framework/ai/sessions/YYYY/MM/DD/<session>/session.jsonl` (the central store; `home` is just a field) (sessions made before 2026-10-19 keep the flat `<home>ai/<session>.jsonl`). A fast assistant answers each line in a few seconds; a smart one thinks, decides, routes your words to work already in flight, and starts masterminds. Pressing ✦ again within an hour continues the same session, on the phone or the PC alike.
 
 - **The two roles:** `session-fast` is the fast assistant, `session-smart` the smart one (`Servex/agents/session-fast.md`, `session-smart.md`).
+- **One clock:** `say()` takes `said_at` (when the owner said it) and keeps `clock.offset`, Servex's clock minus this device's, from each answer; `ComposerMic.stamp()` adds it. Servex writes `said_at` on the chat line ([ext/Chat/doc/notes.md#bubble-order](/framework/ext/Chat/doc/notes.md)).
 - **The routes:** `/new` starts a session (or continues this page's from the last hour), `/say` sends one owner line to both assistants, `/nav` records a move to another page. `/resume`, `/floor` and `GET /api/sessions` are the rest ([doc/sessions.md](./doc/sessions.md)).
 - **Invisible markers:** a move to another page, the mic pausing, and what the reader has selected are all written to the file but never shown as chat bubbles — how they work, and how a reply gets credited to the right card: [doc/markers.md](./doc/markers.md).
 

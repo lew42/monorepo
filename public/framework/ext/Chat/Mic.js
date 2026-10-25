@@ -3,6 +3,7 @@ import Dictate from "/framework/ux/Dictate/Dictate.js";
 import Capture from "/framework/ux/Dictate/capture.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 import RefineSystem from "/framework/ext/Refine/RefineSystem.js";
+import { clock } from "/framework/ext/Session/Session.js";
 import DictateHealth from "/framework/ux/Dictate/DictateHealth.js";
 
 /** The microphone of a composer: `ux/Dictate` with a few methods redirected; speech goes into the composer's box and goes out as one message. see doc/mic-notes.md#overrides */
@@ -653,7 +654,7 @@ export class ComposerMic extends Dictate {
 
 	// A unique, rising `at`: two sentences taken out in the same millisecond must not share one bubble piece.
 	static stamp(){
-		const t = Math.max(Date.now(), (ComposerMic.last_stamp ?? 0) + 1);
+		const t = Math.max(Date.now() + (clock.offset), (ComposerMic.last_stamp ?? 0) + 1);
 		ComposerMic.last_stamp = t;
 		return new Date(t).toISOString();
 	}
