@@ -88,6 +88,7 @@ export const ROLES = {
 	clarity:            { readme: "clarity",          prefix: "clarity",          tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
 	/* ONE PAIR PER VOICE SESSION (Sessions.js, ai/sessions/2026/09/30/voice-sessions/voice-sessions): spawned by code with
 	 * their own briefs (session-fast.md, session-smart.md), which win over these rows. No skill.
+	 * Tiers: `session-fast` is `fast`, `session-smart` is `voice_smart` (tiers.js).
 	 * `session-smart` shares the "files for the next agent, cards for the owner" write discipline
 	 * with `task-mastermind` (both `every-prompt` and `sub-mastermind` carry it), but never its
 	 * judging-against-the-owner's-sentence or landing parts — it spawns a task mastermind to do
@@ -99,7 +100,7 @@ export const ROLES = {
 	/* THE VOICE ASSISTANT (2026-10-17, ux/Dictate/doc/voice-assistant.md): one plain assistant per voice session, the fast seat.
 	 * Per sentence it writes ONE placement, {"place":{re, to, where, edit}}, into the session file with the item tool. */
 	"voice-assistant":  { skill: "voice-assistant",  prefix: "voice-assistant",  tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
-	"session-smart":    { prefix: "session-smart",    tier: "manager",   model: model("manager"),   /* Sonnet, not Opus: the owner, 2026-10-05, saving credits; the one mastermind above the sessions stays Opus */    effort: "medium", permission_mode: "bypassPermissions" },
+	"session-smart":    { prefix: "session-smart",    tier: "voice_smart", model: model("voice_smart"), /* Opus 5.5 (the owner, 2026-10-25; was Sonnet from 2026-10-05): the owner dictates to it directly and it acts. Sessions.claude_model drops to Sonnet only while the week is over pace. "Mastermind permissions" = permission_mode bypassPermissions + the full Claude Code tool preset + Servex's MCP door (spawn, item, owner_note). */ effort: "medium", permission_mode: "bypassPermissions" },
 	/* A FRESH mastermind for one folder (Servex/agents/directory.js, `ask_directory`): the task
 	 * mastermind's posture, opened with the folder's plain files as its first message. Spawned by
 	 * code with `system` set, so this row's skills are inlined by directory.js, not by `opening()`

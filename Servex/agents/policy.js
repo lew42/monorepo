@@ -38,7 +38,7 @@ export class Policy {
 		if(id.startsWith("master-assistant")) return "master";
 		if(SERVEX_ID.test(id)) return "servex";
 		if(id.startsWith("task-mastermind-")) return "task-mastermind";
-		if(id.startsWith("session-smart-")) return "smart"; // the voice session's smart assistant: the owner's mastermind while Claude is out (2026-10-05)
+		if(id.startsWith("session-smart-")) return "smart"; // the voice session's smart assistant: the owner's own mastermind on Opus 5.5 (tier voice_smart, 2026-10-25)
 		if(id === "dispatcher") return "system";
 		if(this.registered_external(id)) return "external";
 		return "worker";
