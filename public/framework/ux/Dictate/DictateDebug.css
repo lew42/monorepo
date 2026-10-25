@@ -1,0 +1,19 @@
+@layer base, theme, site, util;
+
+/* The Debug tab (class DictateDebug): the layers beside what happened. One column in the drawer and on a phone,
+   two side by side once there is room for both (each column at least 24rem; the pair at most 100rem, so a line stays readable at 3440).
+   ⚠ the column's max must be 1fr: auto-fit counts columns from a definite max, so `48rem` gave one column at 1920. */
+@layer site {
+	.dictate-debug { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); max-inline-size: 100rem; gap: 1.5em 2.5em; align-items: start; }
+	.dictate-debug-col { display: grid; gap: 0.6em; min-inline-size: 0; }
+	.dictate-debug-col > h3 { margin: 0; }
+	.dictate-debug-col > p { margin: 0; }
+	.dictate-debug-list { gap: 0.15em; max-block-size: 28em; overflow-y: auto; font-size: 0.9em; }
+	.dictate-debug-event { display: grid; grid-template-columns: auto auto 1fr; gap: 0.6em; padding-block: 0.2em; border-block-end: 1px solid var(--wash, #ddd); }
+	.dictate-debug-layer { font-weight: 600; white-space: nowrap; }
+	.dictate-debug-why { min-inline-size: 0; overflow-wrap: anywhere; }
+	.dictate-debug-event[data-state="bad"] .dictate-debug-why { color: var(--error, #d33); }
+	.dictate-debug-event[data-state="ok"] .dictate-debug-layer { color: #2a9d4b; }
+	.dictate-debug-event[data-state="wait"] .dictate-debug-layer { color: #b07d00; }
+	.dictate-debug-links { gap: 0.3em; }
+}

@@ -63,7 +63,7 @@ export class DrawerTabs {
 	   two lines"). `tabs/admin.js` still exists and is still the one copy of that code. */
 	list = [
 		{ name: "ai",        label: "AI",        load: () => import("./tabs/ai.js") },
-		{ name: "dictation", label: "Dictation", load: () => import("./tabs/dictation.js") },
+		{ name: "debug",     label: "Debug",     load: () => import("./tabs/debug.js") },   // was Dictation (the playground) until 2026-10-24: tabs/debug.js
 		{ name: "settings",  label: "Settings",  load: () => import("./tabs/settings.js"), when: () => DEV },
 		// Only while something on the page is selected (select.js sets `selected`).
 		{ name: "element",   label: "Element",   load: () => import("./tabs/element.js"),  when: () => !!this.selected },
@@ -127,6 +127,7 @@ export class DrawerTabs {
 	 *  `rail.js`'s own link, still lands somewhere real now that the two are one tab. */
 	open(name){
 		if (name === "sessions") name = "ai";
+		if (name === "dictation") name = "debug";   // the old Dictation tab is the Debug tab now
 		// A real click on ☰ — the one moment this file is allowed to touch the
 		// network (see the comment on `DEV` above). Memoized in Ask.js: cheap to call every time.
 		if (!DEV) ask_probe().then(() => { if (http_ask_ready) DEV = true; });

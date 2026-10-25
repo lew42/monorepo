@@ -15,4 +15,11 @@
 	.voice-conn-retry { margin-inline-start: auto; padding: 0 0.4em; line-height: 1.4; }
 	.voice-conn .audio-levelmeter { margin-block-start: 0.3em; }
 	@media (max-width: 700px) { .voice-conn { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+	/* layout: "rows" (the Debug tab): one step per line, the question under the name, the reason in full */
+	.voice-conn[data-layout="rows"] { grid-template-columns: minmax(0, 1fr); gap: 0.6em; font-size: 0.95em; }
+	.voice-conn[data-layout="rows"] .voice-conn-step { padding-block: 0.35em; }
+	.voice-conn[data-layout="rows"] .voice-conn-head { block-size: auto; flex-wrap: wrap; }
+	.voice-conn[data-layout="rows"] .voice-conn-why { block-size: auto; display: block; overflow: visible; overflow-wrap: anywhere; }
+	.voice-conn-ask { font-weight: 400; font-size: 0.9em; }
 }
