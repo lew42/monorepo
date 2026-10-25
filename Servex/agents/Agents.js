@@ -726,8 +726,11 @@ export class Agents {
 	task_dirs(){
 		if (this._task_dirs && Date.now() - this._task_dirs.at < 60e3) return this._task_dirs.map;
 		const map = new Map();
+		// Only the cheap sources: the row's own task_dir, else the heartbeat's owner map. Never task_dir_for's last resort (find_task_dir reads every
+		// task log, meant for one stopped agent at revive): called here for each of 3,000+ rows, it held Servex's event loop 70-100 s a minute
+		// whenever a page asked a session's cost (profiled 2026-10-24, servex-crumbs).
 		for (const row of Object.values(this.reg().read())){
-			let dir = null; try { dir = this.task_dir_for(row); } catch {}
+			let dir = null; try { dir = row.task_dir ?? this.task_dir_of?.(row.id) ?? null; } catch {}
 			if (dir){ const k = path.resolve(MAIN_ROOT, dir).toLowerCase(); (map.get(k) ?? map.set(k, []).get(k)).push(row.id); }
 		}
 		this._task_dirs = { at: Date.now(), map };
