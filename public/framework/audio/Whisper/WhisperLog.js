@@ -50,12 +50,12 @@ export default class WhisperLog extends View {
 		const t = globalThis.performance ? +(performance.timeOrigin + performance.now()).toFixed(2) : Date.now();
 		const line = { seq, run: WhisperLog.run, t, at: new Date().toISOString(), src, kind, ...fields };
 		if (seq === 1) line.page = WhisperLog.where;
-		if (WhisperLog.automated()) return seq;
+		if (src === "connection" && WhisperLog.automated()) return seq;
 		try { FsFile.append(WhisperLog.path(), line).catch(() => {}); } catch {}
 		return seq;
 	}
 
-	/** A browser driven by a script (smoke, tests: `navigator.webdriver`) never writes the real bucket; a test of the log itself sets `window.$WHISPER_LOG_FORCE = true` first. */
+	/** The `connection` lines (`Session.stream.log`) of a browser driven by a script (smoke, tests stub the event stream as "stub-session": ux/Dictate/test/reconnect.mjs:24, Session.js:192) never reach the real bucket. Mic lines (server, dictate, composer, refine) always do, so a real or fake-audio mic test still logs. A test that wants connection lines sets `window.$WHISPER_LOG_FORCE = true` first. */
 	static automated(){ return !!globalThis.navigator?.webdriver && !globalThis.$WHISPER_LOG_FORCE; }
 
 	/** One whisper-server reply, in the shape `Dictate.on_whisper` and `WhisperSession.record` use. */
