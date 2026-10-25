@@ -82,7 +82,7 @@ A layer that turns red becomes one line in [ux/Dictate/failures.jsonl](/framewor
 ## Run the proofs
 
 ```
-node public/framework/ux/Dictate/test/stall.mjs <base-url> [hang|refuse|whisper|reload]
+node public/framework/ux/Dictate/test/stall.mjs <base-url> [hang|refuse|whisper|late|reload]
 node public/framework/ux/Dictate/test/debug-tab.mjs <base-url> <shots dir>
 node public/framework/ux/Dictate/test/deltas.mjs <base-url>
 node public/framework/ux/Dictate/test/reconnect.mjs <base-url> [shots dir]
