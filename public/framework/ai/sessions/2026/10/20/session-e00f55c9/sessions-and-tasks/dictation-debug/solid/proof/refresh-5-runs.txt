@@ -1,0 +1,157 @@
+-- run 1/5: plain
+ok   before the reload: a sentence went out 8.8 s after ✦
+ok   after a reload: a sentence went out 9.0 s after ✦
+ok   no page errors
+-- run 1/5: pill
+ok   before: a sentence went out 8.7 s after ✦
+ok   a file change while dictating shows the stale pill, not a reload under the mic
+ok   after the reload the sheet is back, the bar saying “🎤Off · the page reloaded because a file changed: tap 🎤 to keep talking⌨”
+ok   after pressing the pill: a sentence went out 8.2 s after ✦
+ok   no page errors
+-- run 1/5: deferred
+ok   before: a sentence went out 8.8 s after ✦
+ok   with the pill showing, a tap on the mic reaches the mic (it reached: mic)
+ok   6 s after the stop: no reload by itself, the pill waits for the owner
+ok   after the reload the sheet is back, the bar saying “🎤Off · the page reloaded because a file changed: tap 🎤 to keep talking⌨”
+ok   after the pill: a sentence went out 8.2 s after ✦
+ok   no page errors
+-- run 1/5: restart
+ok   before: a sentence went out 8.7 s after ✦
+ok   the mic stopped for 1.5 s and on again: no reload under it
+ok   after stop and start: a sentence went out 3.8 s after ✦
+ok   no page errors
+-- run 1/5: again
+ok   before: a sentence went out 8.7 s after ✦
+ok   pressed again 0.3 s after stopping (it was idle): the mic is listening, the bar says “🎤Listening · sends when you pause⌨”
+ok   after stop and press again: a sentence went out 3.8 s after ✦
+ok   no page errors
+-- run 1/5: twice
+ok   before: a sentence went out 8.7 s after ✦
+ok   after two reloads: a sentence went out 9.0 s after ✦
+ok   no page errors
+-- run 2/5: plain
+ok   before the reload: a sentence went out 8.7 s after ✦
+ok   after a reload: a sentence went out 9.0 s after ✦
+ok   no page errors
+-- run 2/5: pill
+ok   before: a sentence went out 8.7 s after ✦
+ok   a file change while dictating shows the stale pill, not a reload under the mic
+ok   after the reload the sheet is back, the bar saying “🎤Off · the page reloaded because a file changed: tap 🎤 to keep talking⌨”
+ok   after pressing the pill: a sentence went out 8.2 s after ✦
+ok   no page errors
+-- run 2/5: deferred
+ok   before: a sentence went out 8.7 s after ✦
+ok   with the pill showing, a tap on the mic reaches the mic (it reached: mic)
+ok   6 s after the stop: no reload by itself, the pill waits for the owner
+ok   after the reload the sheet is back, the bar saying “🎤Off · the page reloaded because a file changed: tap 🎤 to keep talking⌨”
+ok   after the pill: a sentence went out 8.2 s after ✦
+ok   no page errors
+-- run 2/5: restart
+ok   before: a sentence went out 8.7 s after ✦
+ok   the mic stopped for 1.5 s and on again: no reload under it
+ok   after stop and start: a sentence went out 3.8 s after ✦
+ok   no page errors
+-- run 2/5: again
+ok   before: a sentence went out 8.7 s after ✦
+ok   pressed again 0.3 s after stopping (it was idle): the mic is listening, the bar says “🎤Listening · sends when you pause⌨”
+ok   after stop and press again: a sentence went out 3.8 s after ✦
+ok   no page errors
+-- run 2/5: twice
+ok   before: a sentence went out 8.7 s after ✦
+ok   after two reloads: a sentence went out 9.0 s after ✦
+ok   no page errors
+-- run 3/5: plain
+ok   before the reload: a sentence went out 8.7 s after ✦
+ok   after a reload: a sentence went out 9.0 s after ✦
+ok   no page errors
+-- run 3/5: pill
+ok   before: a sentence went out 8.7 s after ✦
+ok   a file change while dictating shows the stale pill, not a reload under the mic
+ok   after the reload the sheet is back, the bar saying “🎤Off · the page reloaded because a file changed: tap 🎤 to keep talking⌨”
+ok   after pressing the pill: a sentence went out 8.2 s after ✦
+ok   no page errors
+-- run 3/5: deferred
+ok   before: a sentence went out 8.8 s after ✦
+ok   with the pill showing, a tap on the mic reaches the mic (it reached: mic)
+ok   6 s after the stop: no reload by itself, the pill waits for the owner
+ok   after the reload the sheet is back, the bar saying “🎤Off · the page reloaded because a file changed: tap 🎤 to keep talking⌨”
+ok   after the pill: a sentence went out 8.2 s after ✦
+ok   no page errors
+-- run 3/5: restart
+ok   before: a sentence went out 8.7 s after ✦
+ok   the mic stopped for 1.5 s and on again: no reload under it
+ok   after stop and start: a sentence went out 3.8 s after ✦
+ok   no page errors
+-- run 3/5: again
+ok   before: a sentence went out 8.7 s after ✦
+ok   pressed again 0.3 s after stopping (it was idle): the mic is listening, the bar says “🎤Listening · sends when you pause⌨”
+ok   after stop and press again: a sentence went out 3.8 s after ✦
+ok   no page errors
+-- run 3/5: twice
+ok   before: a sentence went out 8.7 s after ✦
+ok   after two reloads: a sentence went out 9.0 s after ✦
+ok   no page errors
+-- run 4/5: plain
+ok   before the reload: a sentence went out 8.7 s after ✦
+ok   after a reload: a sentence went out 9.0 s after ✦
+ok   no page errors
+-- run 4/5: pill
+ok   before: a sentence went out 8.7 s after ✦
+ok   a file change while dictating shows the stale pill, not a reload under the mic
+ok   after the reload the sheet is back, the bar saying “🎤Off · the page reloaded because a file changed: tap 🎤 to keep talking⌨”
+ok   after pressing the pill: a sentence went out 8.2 s after ✦
+ok   no page errors
+-- run 4/5: deferred
+ok   before: a sentence went out 8.7 s after ✦
+ok   with the pill showing, a tap on the mic reaches the mic (it reached: mic)
+ok   6 s after the stop: no reload by itself, the pill waits for the owner
+ok   after the reload the sheet is back, the bar saying “🎤Off · the page reloaded because a file changed: tap 🎤 to keep talking⌨”
+ok   after the pill: a sentence went out 8.2 s after ✦
+ok   no page errors
+-- run 4/5: restart
+ok   before: a sentence went out 8.8 s after ✦
+ok   the mic stopped for 1.5 s and on again: no reload under it
+ok   after stop and start: a sentence went out 3.8 s after ✦
+ok   no page errors
+-- run 4/5: again
+ok   before: a sentence went out 8.7 s after ✦
+ok   pressed again 0.3 s after stopping (it was idle): the mic is listening, the bar says “🎤Listening · sends when you pause⌨”
+ok   after stop and press again: a sentence went out 3.8 s after ✦
+ok   no page errors
+-- run 4/5: twice
+ok   before: a sentence went out 8.7 s after ✦
+ok   after two reloads: a sentence went out 9.0 s after ✦
+ok   no page errors
+-- run 5/5: plain
+ok   before the reload: a sentence went out 8.7 s after ✦
+ok   after a reload: a sentence went out 9.0 s after ✦
+ok   no page errors
+-- run 5/5: pill
+ok   before: a sentence went out 8.7 s after ✦
+ok   a file change while dictating shows the stale pill, not a reload under the mic
+ok   after the reload the sheet is back, the bar saying “🎤Off · the page reloaded because a file changed: tap 🎤 to keep talking⌨”
+ok   after pressing the pill: a sentence went out 8.2 s after ✦
+ok   no page errors
+-- run 5/5: deferred
+ok   before: a sentence went out 8.7 s after ✦
+ok   with the pill showing, a tap on the mic reaches the mic (it reached: mic)
+ok   6 s after the stop: no reload by itself, the pill waits for the owner
+ok   after the reload the sheet is back, the bar saying “🎤Off · the page reloaded because a file changed: tap 🎤 to keep talking⌨”
+ok   after the pill: a sentence went out 8.2 s after ✦
+ok   no page errors
+-- run 5/5: restart
+ok   before: a sentence went out 8.7 s after ✦
+ok   the mic stopped for 1.5 s and on again: no reload under it
+ok   after stop and start: a sentence went out 3.8 s after ✦
+ok   no page errors
+-- run 5/5: again
+ok   before: a sentence went out 8.7 s after ✦
+ok   pressed again 0.3 s after stopping (it was idle): the mic is listening, the bar says “🎤Listening · sends when you pause⌨”
+ok   after stop and press again: a sentence went out 3.8 s after ✦
+ok   no page errors
+-- run 5/5: twice
+ok   before: a sentence went out 8.7 s after ✦
+ok   after two reloads: a sentence went out 9.1 s after ✦
+ok   no page errors
+all passed
+exit 0
