@@ -42,12 +42,12 @@ try {
 	] }) });
 	ok(rec?.file === REC && rec.uuid === "00000000-0000-4000-8000-000000000001", "the prompt page maps to ai/sessions/<same day>/<same folder>/session.jsonl, uuid from line 1");
 
-	// 3. Each task-kind ask is filed as a proposed task, on the owner, in the session's record; a question is not.
+	// 3. Each task-kind ask is filed as an open idle task, not on the owner, in the session's record; a question is not.
 	const out = await pt.prompted(heard[0]);
 	const plog = read(path.join(REC_DIR, "prompts.jsonl"));
 	ok(["raw", "clean", "parts"].every(st => plog.some(l => l.stage === st)) && plog.find(l => l.stage === "parts").parts[0].parts[0].text === "settings first", "the prompt's record (raw, sentences, parts with nested details) is in the session's prompts.jsonl");
 	const adds = read(REC).filter(l => l.tasks?.add); 
-	ok(adds.length === 1 && adds[0].tasks.add.state === "waiting" && adds[0].tasks.add.waiting_on === "owner" && adds[0].tasks.add.from === "owner", "one proposed task per task-kind ask, waiting on the owner; the question stays on the card");
+	ok(adds.length === 1 && adds[0].tasks.add.state === "idle" && !("waiting_on" in adds[0].tasks.add) && adds[0].tasks.add.from === "owner", "one open (idle) task per task-kind ask, not waiting on the owner; the question stays on the card");
 	fs.mkdirSync(MOD_DIR, { recursive: true });
 	ok(!fs.existsSync(path.join(MOD_DIR, "tasks")), "a proposed task drafts in the session: no module folder is made before approval");
 	await pt.prompted(heard[0]);
@@ -89,23 +89,19 @@ try {
 	const off_now = (PromptTasks.set(false), PromptTasks.off()); PromptTasks.set(true);
 	ok(off_now === true && PromptTasks.off() === false, "the runtime switch file turns it off and back on");
 
-	// 4. The session replays it as waiting; a decide line from the page approves it.
+	// 4. The session replays it as idle open work; a decide line from the page approves it.
 	let s = Session.replay(read(REC));
 	const t = [...s.tasks][0];
-	ok(s.id === rec.uuid && t.state === "waiting" && t.get_one("title") === "Build the session menu", "the session reads the proposal as a waiting task");
-	s = Session.replay([...read(REC), { decide: { task: t.id, is: "approve", by: "owner" } }]);
-	ok([...s.tasks][0].state === "idle" && PromptTasks.accepted([...s.tasks][0]), "a decide line (Approve on the session page) accepts it: idle, approved");
-	s = Session.replay([...read(REC), { decide: { task: t.id, is: "reject", note: "not now" } }]);
-	ok([...s.tasks][0].state === "stopped", "Reject stops it, with the note as the reason");
-	s = Session.replay([...read(REC), { decide: { task: t.id, is: "project" } }]);
-	ok([...s.tasks][0].constructor.name === "Project" && [...s.tasks][0].get_one("title") === "Build the session menu", "Make it a project: same id, title and place, now a Project");
+	ok(s.id === rec.uuid && t.state === "idle" && t.get_one("waiting_on") == null && !PromptTasks.accepted(t) && t.get_one("title") === "Build the session menu", "the session reads it as open work: idle, not waiting on the owner, not yet started");
+	s = Session.replay([...read(REC), { tasks: { [t.id]: { start: {} } } }]);
+	ok([...s.tasks][0].state === "running" && PromptTasks.accepted([...s.tasks][0]), "a tab or agent that starts it (item tool start) accepts it");
 
-	// 5. Approved and naming a module: the TaskLoop sweep moves it to <module>/tasks/<slug>/, and the session references it there.
-	ok((await pt.sweep()).length === 0, "a proposal still waiting is not moved");
-	fs.appendFileSync(REC, JSON.stringify({ decide: { task: t.id, is: "approve", by: "owner" } }) + String.fromCharCode(10));
+	// 5. Started and naming a module: the TaskLoop sweep moves it to <module>/tasks/<slug>/, and the session references it there.
+	ok((await pt.sweep()).length === 0, "an idle task nobody started is not moved");
+	fs.appendFileSync(REC, JSON.stringify({ tasks: { [t.id]: { start: {} } } }) + String.fromCharCode(10));
 	const moved = await pt.sweep();
 	const home = path.join(MOD_DIR, "tasks", t.id, "task.jsonl");
-	ok(moved.length === 1 && fs.existsSync(home) && (h => h.get_one("title") === "Build the session menu" && h.state === "idle")(Task.replay(read(home))), "approved: it moves to <module>/tasks/<slug>/ with its data and state");
+	ok(moved.length === 1 && fs.existsSync(home) && (h => h.get_one("title") === "Build the session menu" && h.state === "running")(Task.replay(read(home))), "started: it moves to <module>/tasks/<slug>/ with its data and state");
 	s = Session.replay(read(REC));
 	ok(s.tasks.length === 1 && [...s.tasks][0].data.path === `/framework/${MOD}/tasks/${t.id}/`, "the session now references the moved task (same id replaces the nested one)");
 	ok((await pt.sweep()).length === 0 && fs.readFileSync(ledgers.task_moves, "utf8").includes(t.id), "moved once, and the move is in the ledger");
