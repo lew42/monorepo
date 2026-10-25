@@ -3,7 +3,6 @@
 import View, { div, span, button, h3, mark, blockquote, small, icon } from "/framework/core/View/View.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import TaskView from "/framework/core/Task/TaskView.js";
-import { sent_badge } from "/framework/ext/Chat/Chat.js";
 import ChatV2Model from "./ChatV2Model.js";
 View.stylesheet(import.meta, "ChatV2.css");
 
@@ -36,7 +35,26 @@ export default class ChatV2 extends JSONL {
 		this.$box?.empty(() => {
 			if (!roots.length) return div.c("chat-v2-empty", "Nothing said in this session yet.");
 			for (const n of roots) this.constructor.Model.kind(n) === "Prompt" ? this.prompt(n) : this.child(n);
+			this.smart_dots = div.c("chat-v2-smart-dots", "🧠").attr("hidden", "");
 		});
+		this.watch_smart();
+		this.place_cursor();
+	}
+
+	// ONE animated 🧠 for the whole chat (the owner, round 2 — replaces a mark per node): shown only while
+	// SOME prompt's `working:{by,at}` sign is both set and fresh (under ~10 min old; a dead smart seat must
+	// not leave it on forever — review finding 8). Checked on every patch and on a slow timer, since `at`
+	// ages even with no new line.
+	watch_smart(){
+		clearInterval(this._smart_timer);
+		this._smart_timer = setInterval(() => this.update_smart_dots(), 15000);
+		this.update_smart_dots();
+	}
+	update_smart_dots(){
+		if (!this.smart_dots) return;
+		const STALE_MS = 10 * 60 * 1000;
+		const working = [...this.model.by_id.values()].some(n => n.working && Date.now() - (Date.parse(n.working.at ?? 0) || 0) < STALE_MS);
+		this.smart_dots.el.hidden = !working;
 	}
 
 	// One streamed line, already folded into the model (see read()): patch only what it touched.
@@ -46,12 +64,18 @@ export default class ChatV2 extends JSONL {
 	apply_one(line){
 		const touch = this.model.apply(line);
 		if (!touch) return;
-		if (!touch.added) { this.patch(touch.id); return; }
+		this.update_smart_dots();
+		if (!touch.added) { this.patch(touch.id); this.place_cursor(); return; }
 		const M = this.constructor.Model, node = this.model.by_id.get(touch.id);
 		if (!node) return;
 		if (touch.parent === null) {
 			this.$box?.el.querySelector(":scope > .chat-v2-empty")?.remove();
-			if (M.kind(node) === "Prompt") { this.$box?.append(() => this.prompt(node)); return; }
+			if (M.kind(node) === "Prompt") {
+				this.$box?.append(() => this.prompt(node));
+				if (this.smart_dots) this.$box.el.append(this.smart_dots.el);   // keep the one bottom indicator last
+				this.place_cursor();
+				return;
+			}
 			const home = node.from && this.parts.get(node.from);   // a root Task or Question whose `from` names a drawn prompt sits in its nest (ChatV2Model.children)
 			home ? home.nest.append(() => this.child(node)) : this.$box?.append(() => this.child(node));
 			return;
@@ -123,15 +147,30 @@ export default class ChatV2 extends JSONL {
 		if (M.title(n)) h3.c("chat-v2-title", M.title(n));
 		if (refined && M.text(n)) div.c("chat-v2-text", M.text(n));
 		if (!refined) this.sentences(n, replies);
-		if (n.sent){ const badge = sent_badge({ sent: n.sent }); if (badge) div.c("chat-v2-sent").el.append(badge); }   // "waiting …" only while an assistant has not got it yet
-		this.working_dots(n);
+		this.smart_stamp(n);
 	}
 
-	// Brain-dots: only while the smart seat is actually writing a reply to THIS node right now (the owner,
-	// 2026-10-25 17:31: "his real ask: see that a reply to that chunk is being drafted"), never a standing mark.
-	working_dots(n){
-		if (!n.working) return;
-		span.c("chat-v2-working", "🧠 …").attr("title", (n.working.by ?? "smart") + " is drafting a reply");
+	// One 🧠 stamp, left after a Prompt once the smart seat has finished it (its title/text is written) —
+	// never a pulsing mark on the node itself; the pulse lives once, at the bottom of the whole chat
+	// (update_smart_dots), driven by `working`. One per Prompt, round 2 (supersedes the earlier per-node pulse).
+	smart_stamp(n){
+		if (this.constructor.Model.refined(n)) span.c("chat-v2-smart-stamp", "🧠").attr("title", "smart has handled this");
+	}
+
+	// ONE moving mark for the whole chat, round 2 (supersedes a tick per sentence and per bubble): sits after
+	// the NEWEST Prompt only — light gray while that Prompt has not yet reached the fast seat, green once it
+	// has (`sent.fast`). Moving to a new Prompt drops it from the old one; there is never more than one mark
+	// on screen. Caveat: the data has no separate "fast is answering" signal yet, only "reached the fast
+	// seat" (Sessions.mark_sent) — the exact Servex line for a true waiting/answered split is in proposal.md.
+	cursor_el(){ return this._cursor ??= span.c("chat-v2-cursor").el; }
+	last_prompt(){ const M = this.constructor.Model; const roots = this.model?.roots().filter(n => M.kind(n) === "Prompt") ?? []; return roots.at(-1) ?? null; }
+	place_cursor(){
+		const el = this.cursor_el();
+		el.remove();
+		const n = this.last_prompt(), owner = n && this.parts.get(n.id);
+		if (!owner) return;
+		el.classList.toggle("done", !!n.sent?.fast);
+		owner.head.el.append(el);
 	}
 
 	prompt_raw_wrap(n, replies){
@@ -210,7 +249,6 @@ export default class ChatV2 extends JSONL {
 				span.c("chat-v2-phase", phase);
 			});
 			if (answer) div.c("chat-v2-answer", answer.text);
-			this.working_dots(n);
 		});
 	}
 }

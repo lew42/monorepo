@@ -24,9 +24,9 @@ export const SETTINGS = {
 	into: "chat",   // "chat" = growing bubble in the chat log, "box" = the text box; see doc/mic-notes.md#settings
 	wake_gap_s: null,   // smart assistant: quiet seconds before it hears a batch (null = Servex's own default); pushed to the session
 	wake_every: null,   // smart assistant: or this many sentences, whichever comes first (null = Servex's default)
-	send_on_period: true,     // deliverable 15: cut a send at a period
-	send_on_question: true,   // deliverable 15: cut a send at a question mark
-	send_on_comma: true,      // deliverable 15: cut a send at a comma (a run-on with no clear end stays chunked together)
+	send_on_period: true,      // cut a send at . ! or … (one box: the three read as one "a sentence ended" mark)
+	send_on_question: true,   // cut a send at a question mark
+	send_on_comma: false,     // cut a send at a comma too; off by default — on, it fragments a sentence into pieces at every comma
 };
 const STORE = "chat.mic.settings.4";   // .4: the 2 s send delay must not be shadowed by the old 700 / 1500 ms defaults
 // Carry the owner's saved values over from the old key; drop stale defaults. see doc/mic-notes.md#settings-migration
@@ -142,6 +142,10 @@ export class ComposerMic extends Dictate {
 
 	// The guess stays on screen until its final arrives. see doc/mic-notes.md#the-guess-stays-on-screen-until-its-final-arrives
 	async close_segment(){
+		// Captured BEFORE super.close_segment(): Dictate.js's own close_segment resets has_speech to
+		// false synchronously, before the async whisper final even goes out, so reading it in commit()
+		// later always sees false (review finding 1 — it dropped real speech, not just silence).
+		(this.had_speech_q ??= []).push(this.has_speech);
 		let mine;
 		try {
 			const gap = this.gap_before ?? 0;
@@ -159,12 +163,14 @@ export class ComposerMic extends Dictate {
 
 	commit(text){
 		const gap = (this.gaps ??= []).shift() ?? 0;
+		const had_speech = (this.had_speech_q ??= []).shift() ?? this.has_speech;
 		this.next_break = this.can_break(this.held?.at(-1)?.text, gap);
 		const item = this.pending?.shift();
 		text = unfill(text).replace(/\s+/g, " ").trim();   // a segment's own newlines never become paragraphs
 		// Silence hallucination (the owner, 2026-10-25 17:30): Whisper said this with nothing actually
-		// spoken into this segment — drop it, never show it, never send it.
-		if (text && is_hallucination(text) && !this.has_speech){ this.partial_text = ""; this.draw_caption(); return; }
+		// spoken into THIS segment — drop it, never show it, never send it. `had_speech` is this
+		// segment's own flag, captured at close_segment() before Dictate.js resets it.
+		if (text && is_hallucination(text) && !had_speech){ this.partial_text = ""; this.draw_caption(); return; }
 		if (item?.sent){   // a segment whose guess (or earlier text) was already sent by Send
 			text = strip_words(text, item.sent);
 			if (!text){ this.partial_text = ""; this.draw_caption(); return; }
@@ -328,7 +334,7 @@ export class ComposerMic extends Dictate {
 			["clean", "clean transcription (fast assistant clean-up)", "boolean"],
 			["into", "dictation goes into", ["chat", "box"]],
 			["send_mode", "send mode", ["pause", "sentences"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], ["break_pause_ms", "paragraph pause (ms)", "number"],
-			["send_on_period", "send on period (.)", "boolean"], ["send_on_question", "send on question mark (?)", "boolean"], ["send_on_comma", "send on comma (,)", "boolean"],
+			["send_on_period", "send on a sentence end (. ! …)", "boolean"], ["send_on_question", "send on question mark (?)", "boolean"], ["send_on_comma", "send on comma (,) too — fragments sentences", "boolean"],
 		];
 		const expert = [   // under the closed "More" below the smart assistant rows
 			["guess_ms", "guess every (ms)", "number"], ["box_lines", "box lines before scroll", "number"], ["chunk_chars", "safety chunk (chars)", "number"], ["chunk_ms", "safety chunk (ms)", "number"], ["fillers", "filler words", "text"],
@@ -654,12 +660,13 @@ export class ComposerMic extends Dictate {
 		} finally { this.sending_screen = false; }
 	}
 
-	// Deliverable 15: which marks may end a send; all checked by default. A run-on with none of the
-	// checked marks at its end stays chunked together with what follows (no clear end to cut at).
+	// Which marks may end a send. "send on period" covers . ! … together (one "a sentence ended" mark,
+	// matching `ends_sentence()` below); "send on question mark" is just ?; comma is its own, separate
+	// and off by default (every comma cutting a send fragments a sentence into pieces). A run-on with
+	// none of the checked marks at its end stays chunked together with what follows.
 	cut_re(){
-		const marks = [SETTINGS.send_on_period && "." ,SETTINGS.send_on_question && "?", SETTINGS.send_on_comma && ","].filter(Boolean).join("");
-		const stops = marks || ".!?…";   // nothing checked: fall back to the old sentence-end set, never silently stop cutting at all
-		return new RegExp(`[^${stops}]*[${stops}]+["')\\]]*(?=\\s|$)`, "g");
+		const stops = (SETTINGS.send_on_period ? ".!…" : "") + (SETTINGS.send_on_question ? "?" : "") + (SETTINGS.send_on_comma ? "," : "");
+		return new RegExp(`[^${stops || ".!?…"}]*[${stops || ".!?…"}]+["')\\]]*(?=\\s|$)`, "g");   // nothing checked: fall back to the full set, never silently stop sending
 	}
 
 	held_text(){ return (this.held ?? []).filter(h => !h.gone).map(h => h.text).join(" ").trim(); }

@@ -12,7 +12,12 @@ export const LIVE_SENT_TITLE = "Faded: already sent, waiting for the cleaned-up 
 
 export function mergeable($box, sender, at){
 	const last = $box.el.lastElementChild;
-	if (!sender || last?.dataset.sender !== sender) return null;
+	// A live bubble (the mic's growing draft, or a fading "sent, waiting" one) is never a merge target:
+	// it carries the same dataset.sender/at a real line does (so it sorts into place) but is never
+	// registered in `bubbles` — merging a real piece onto it threw (bubbles.get(last) was undefined)
+	// and, found while chasing a reported black-then-gray-then-black flicker, is the one path that can
+	// make a just-committed, already-black line sit inside an element still carrying the live gray guess.
+	if (!sender || last?.classList.contains("chatbox-live") || last?.dataset.sender !== sender) return null;
 	return at - Number(last.dataset.at) < MERGE_GAP_MS ? last : null;
 }
 

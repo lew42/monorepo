@@ -1,7 +1,7 @@
 // Proof: the sent marks and the scroll lock, in the bubble chat and in Chat v2.
 //   node public/framework/ux/Dictate/test/chat-sent.mjs <base-url> <shots-dir> [width=400]
 // Headless, every Servex verb stubbed (nothing is posted). The session stream is a script: each (re)connect gets the next batch of lines.
-//   1. an owner line, then `sent` lines (fast, then smart) -> the line's badge goes "fast … · smart …" -> "fast ✓ · smart ✓"
+//   1. an owner line, then `sent` lines (fast, then smart) -> the badge goes from nothing -> "✓" -> "✓✓" (messenger ticks, round 2)
 //   2. 40 lines, scroll up, 3 more arrive -> the view stays put and the ↓ button shows; press it -> follows the newest again
 // Run for the bubble chat, then again with Chat v2 on (the "v2" chip). Exit 1 on any failure.
 import fs from "fs";
@@ -61,12 +61,14 @@ ${ev(queue.splice(0))}` });
 	await page.keyboard.press("Enter");
 	await page.waitForTimeout(2800);
 	await page.screenshot({ path: `${shots}/${tag}-1-sent-fast.png` });
-	console.log(tag, "badges at 2.8 s:", JSON.stringify(await page.evaluate(() => [...document.querySelectorAll(".chatbox-sent")].map(n => n.textContent))));
+	const mark_sel = v2 ? ".chat-v2-cursor, .chat-v2-smart-stamp" : ".chatbox-sent";
+	console.log(tag, "badges at 2.8 s:", JSON.stringify(await page.evaluate(sel => [...document.querySelectorAll(sel)].map(n => n.textContent || n.className), mark_sel)));
 	await page.waitForTimeout(4000);
 	await page.screenshot({ path: `${shots}/${tag}-1-sent-smart.png` });
-	const sentText = await page.evaluate(() => [...document.querySelectorAll(".chatbox-sent")].map(n => n.textContent));
+	const sentText = await page.evaluate(sel => [...document.querySelectorAll(sel)].map(n => n.textContent || n.className), mark_sel);
 	console.log(tag, "sent badges:", JSON.stringify(sentText));
-	check(sentText.some(t => /fast ✓.*smart ✓/.test(t)), `${tag}: the owner line shows both "fast ✓" and "smart ✓"`);
+	if (v2) check(sentText.some(t => /done/.test(t)), `${tag}: the moving ✓ cursor reached "done" (reached the fast seat)`);
+	else check(sentText.some(t => t.trim() === "✓✓"), `${tag}: the owner line's badge reaches "✓✓" (both assistants handled it)`);
 	if (!v2) check(await page.locator(".ux-dictate-widget-refined").count() === 1, `${tag}: a refined line that arrives twice draws ONE block`);
 	queue.push({ tasks: { add: { id: "p-proof", type: "Prompt", title: "A prompt", text: "A prompt about sending." } } });
 	queue.push({ "p-proof": { tasks: { add: { id: "q-proof", type: "Question", text: "Do you want the proof to show this question?", from: "p-proof" } } } });
