@@ -105,8 +105,8 @@ of RAM given back this way.
 
 ## The working cap
 
-- `SERVEX_WORKING_CAP` (default 5). `Agents.working()` counts agents in `working` or `starting`.
-- Every agent counts for itself, so a task mastermind with two working minions holds 3 of the 5.
+- `SERVEX_WORKING_CAP` (default 8, raised from 5 on 2026-10-24; see "Measured" below). `Agents.working()` counts agents in `working` or `starting`.
+- Every agent counts for itself, so a task mastermind with two working minions holds 3 slots.
 - An `idle` or `dormant` agent holds no slot. It counts again only while a message has it working.
 - **Not counted:** the front desk (`assistant-*`, `manager-*`, `master-assistant`, `session-*`,
   the Dispatcher) and an agent blocked inside `wait_for_agent`.
@@ -117,7 +117,16 @@ of RAM given back this way.
   lifecycle reaper closes a dormant agent whose task has landed, as it does an idle one.
 - The check is `Global.admit()`, one of the spawn gate's checks, so a held spawn is queued
   exactly like one held for memory. A turn ending drains the queue at once.
-- Shown as `working N/5` in `heartbeat_status` and in `system_health`'s first line.
+- Shown as `working N/cap` in `heartbeat_status` and in `system_health`'s first line.
+
+### Measured, and why "working 6/5" happens (2026-10-24)
+
+- **Why 6/5:** nothing slipped. A resume (a wake that delivers a message, such as a child's report) and the front desk are never held by the cap, so a woken mastermind pushes the working count past it while the spawn gate keeps queueing NEW spawns ("working 6/5: waits for a working agent to end its turn"). Seen live at 23:03: 6 working agents (page, deputy, architect, session-identity, queue-triage, one build minion) against a cap of 5, with three minion spawns waiting.
+- **RAM per agent:** a working `claude.exe` is about 0.5 to 0.65 GB; with its tool children one working agent's process group is 0.5 to 1.0 GB (about 0.7 GB on average); an idle one about 0.18 GB. Six working agents were about 4.2 GB of the 8.5 GB that is Servex's own (98 dev servers are 2 GB, about 20 MB each).
+- **The real limit is the rest of the PC:** of 32.5 GB, 20.6 GB belonged to other programs (Figma 3.8, VS Code 3.7, Chrome 3.1 GB), 5.2 GB was free, and the spawn gate holds spawns below 4 GB free (`SERVEX_MIN_FREE_MB`). Each extra working agent costs about 0.7 GB, so eight working agents leave about 3.8 GB free: the memory floor, not the count, is what stops the ninth.
+- **CPU and heat:** the agents are waiting on the API most of the time (0.0 to 0.2 % CPU each; all of Servex's 154 processes were 1.4 %), so more agents add RAM pressure, not heat. The CPU that was busy (93.7 %) belonged to other programs.
+- **Decision:** default cap 8, the 4 GB floor stays as the second gate. Try 10 only after a week in which free memory stayed above the floor with 8 working; `GET /api/processes` gives the numbers. Set `SERVEX_WORKING_CAP` to change it without code.
+- **Priority:** when a higher-priority task needs a slot, the mastermind winds a low-priority session down: [mastermind.md](/Servex/agents/roles/mastermind.md), "Slots go to the highest priority".
 
 ## Compaction
 
