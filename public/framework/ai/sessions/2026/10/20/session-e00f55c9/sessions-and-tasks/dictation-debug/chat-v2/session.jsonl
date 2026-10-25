@@ -37,3 +37,14 @@
 {"log":{"at":"2026-10-25T03:42:25-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-25T04:02:00-05:00","msg":"Writers merged on michael/dev (fd32ba0f4): one Prompt per spoken thought, written live from Sessions.say() through PromptLines.js; seats told the id via a (prompt p-…) line; kind (error|click|context) on /api/session/say; /api/voice reverted. Mastermind added: close an open Prompt on Servex restart (load() drops s.prompt), and updated Sessions/WakePolicy tests to read seat messages without the prompt tail (merge.mjs had refused). Needs a Servex restart, handed to mastermind-dictation-2."}}
 {"agent":{"task":"chat-v2-writers","kind":"servex","at":"2026-10-25T04:02:00-05:00","id":"minion-chat-v2-writers","session_id":"e981f24f-75ac-40b3-80c6-35fe7b8efee7","model":"claude-sonnet-5","cost":12.91,"outcome":"good: two rounds, all 11 review findings fixed or answered, a stub-Sessions test; missed two existing tests that assert exact seat messages, and ran over its $6 round budget (~$8.6 this round)."}}
+{"log":{"at":"2026-10-25T04:02:44-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T04:06:49-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T04:06:49-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T04:06:53-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T04:07:57-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T04:09:14-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T04:10:32-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T04:13:16-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T04:14:33-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T04:15:50-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T04:41:38-05:00","msg":"dropped: in-place: owner minion-chat-v2-inplace is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/in-place/","reason":"owner-stopped"}}

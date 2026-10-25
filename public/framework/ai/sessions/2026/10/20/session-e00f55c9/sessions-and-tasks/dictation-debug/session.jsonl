@@ -100,3 +100,5 @@
 {"log":{"at":"2026-10-25T03:10:27-05:00","msg":"Servex restarted 03:09 (sustain --restart, not by me): the wake gate (1dc931d92) is live from now. chat-v2 writers still need a restart after they merge."}}
 {"log":{"at":"2026-10-25T03:20:47-05:00","msg":"dropped: load-perf: owner minion-dictation-load-perf is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/load-perf/","reason":"owner-stopped"}}
 {"log":{"at":"2026-10-25T03:41:28-05:00","msg":"Chat v2 in-place merged 36b74ef29 (43/43); writers round 2 in progress (kind on /api/session/say, Prompt on first say, Prompt id to smart seat); solid proof still running; fallback cron 04:08"}}
+{"action":{"at":"2026-10-25T04:15:04-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/servex-oom/requirements.md"]}}
+{"log":{"at":"2026-10-25T04:21:36-05:00","msg":"dropped: wake: owner minion-dictation-wake is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/wake/","reason":"owner-stopped"}}

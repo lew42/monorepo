@@ -18,3 +18,6 @@
 {"log":{"at":"2026-10-25T03:20:46-05:00","heartbeat":"mid-tool","msg":"minion-dictation-solid is mid-tool; left alone"}}
 {"log":{"at":"2026-10-25T03:29:08-05:00","heartbeat":"check","msg":"status check sent to minion-dictation-solid"}}
 {"log":{"at":"2026-10-25T03:29:32-05:00","heartbeat":"answered","msg":"Plain reload failed once (`page.reload` timed out 30 s), two minutes after Servex's 03:09 restart; the worktree server answers in under 10 ms now and the run continues — I'll judge after it finishes, "}}
+{"log":{"at":"2026-10-25T03:40:09-05:00","heartbeat":"check","msg":"status check sent to minion-dictation-solid"}}
+{"log":{"at":"2026-10-25T03:41:34-05:00","heartbeat":"answered","msg":"The 5-run refresh proof is running again, now detached and hidden (PID 45104, no window) so a Servex restart can't kill it. It takes about 10–20 minutes, and step 2 merges when it passes.\n\nWhy it was "}}
+{"log":{"at":"2026-10-25T04:02:14-05:00","heartbeat":"check","msg":"status check sent to minion-dictation-solid"}}
