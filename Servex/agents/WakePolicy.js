@@ -16,7 +16,9 @@ export const WAKE_LIMITS = { gap_ms: [1000, 60000], every: [1, 50] };
  * a possessive. A mastermind merely mentioned ("go ahead and spawn that mastermind") does not wake it: only talking TO it does. */
 export const SMART_NAMED = /(?:^|\n|[.!?]\s+|\]\s)\W*(?:(?:hey|ok(?:ay)?|yo)\W+)?(?:smart|mastermind)\b|\bsmart assistant\b(?!['’]s)/i;
 
-export const sentence_count = text => Math.max(1, String(text ?? "").split(/(?<=[.!?])\s+/).filter(s => s.trim()).length);
+/* Counts only FINISHED sentences: a piece ending in . ! ? or … (optionally followed by a closing quote/bracket). An
+ * unfinished tail ("Yeah, so it seems") counts 0 — it is still flushed by the gap timer, "asked", or mic-off. */
+export const sentence_count = text => (String(text ?? "").match(/[.!?…]+["'’)\]]*(?=\s|$)/g) ?? []).length;
 /* A question is a line that ENDS asking. A rhetorical "?" in the middle of a long dictation, followed by more words, is not a wake. */
 export const is_question = text => /\?["'’)\]]*\s*$/.test(String(text ?? ""));
 export const is_addressed = text => SMART_NAMED.test(String(text ?? ""));
