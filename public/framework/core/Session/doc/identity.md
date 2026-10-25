@@ -99,6 +99,8 @@ What the two runs found (2026-10-24):
 
 The agent chain of 7c6c8d93 lists the 12 sessions `ai-system-mastermind` has run as. Their turn dollars (the SDK's own `total_cost_usd`) add to $43.66; their transcripts, priced by `AISession`, add to $33.29. Most sessions are 1.3 to 1.7 times higher in the log, so the two ledgers price the same tokens differently. Two neighbours swap (`94621591` $1.32 against $0.81, then `1c343e7b` $0.36 against $1.12), which means a turn near a renewal can land on the session before. Neither double-counts, because the two ledgers are never added together, but they disagree (⬜ below).
 
+One caveat from review: in an agent log that has markers, a turn written before the first marker has no session, so `session_turns` gives it to none (the "not at all" case). The check shows such turns as a `null` row in the chain. 7c6c8d93's chain has none.
+
 ## Long-lived roles and context (proposal; the owner is unsure)
 
 **What exists (Servex/agents/Agents.js, roles.js):**
