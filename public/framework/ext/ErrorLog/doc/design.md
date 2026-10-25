@@ -15,8 +15,8 @@ No manager class yet: one static class is enough until a second kind of event ne
 ## The flow
 
 1. A page calls `ErrorLog.watch(() => state)` once; `ErrorLog.report(e, ctx)` handles a caught error.
-2. `FsFile.append` writes one line to `ai/errors/<date>.jsonl`; the dev server's file watcher streams it.
-3. **Not built:** Servex follows that file and writes a one-line notice into the live voice session's stream (the session file the assistants already follow), so it shows up in the conversation.
+2. `FsFile.append` writes one line to `failures.jsonl` in the folder of the module that broke (`ErrorLog.module_of`: `context.module`, else the first `/framework/…` file in the stack, else the page's folder), the same file and `{at, fail:{…}}` shape `Servex/WorktreeWatch.js` writes for a failing test. A copy still goes to `ai/errors/<date>.jsonl`, the old index (since 2026-10-24; `app.js` now calls `watch()` on every page).
+3. Servex `follow` delivers a new line of a followed module's `failures.jsonl` to whoever follows it, so an agent changing a module hears its errors; nothing is sent directly ([Servex/doc/follow.md](/Servex/doc/follow.md)). **Not built:** a notice in the live voice session's stream; the page watcher that re-runs a page when its files change ([page-watcher.md](./page-watcher.md)).
 
 ## Options weighed (the owner's ideas, 2026-10-09)
 
@@ -27,10 +27,10 @@ No manager class yet: one static class is enough until a second kind of event ne
 
 ## Spam and size
 
-Only errors and one small state object, one line per distinct message per page load, one file per day. Compaction is archive, never delete: old day files move to `ai/errors/archive/`.
+Only errors and one small state object, one line per distinct message per page load: one `failures.jsonl` per module (git-ignored), plus one index file per day. Compaction is archive, never delete: old day files move to `ai/errors/archive/`.
 
 ## Open questions
 
 - The owner's second sentence ("have another…") and a consequence ("that would mean…") were cut off in dictation; unknown.
 - Does the voice session get every error, or one notice per burst?
-- Per-page error Item vs the one shared dated file: the slice uses the shared file.
+- Per-page error Item vs the one shared dated file: settled 2026-10-24 as neither, a per-MODULE log (`failures.jsonl`), because `follow` subscribes by folder and a builder follows the modules it changes.

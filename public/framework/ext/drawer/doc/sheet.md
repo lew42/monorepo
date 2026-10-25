@@ -27,12 +27,12 @@ Every failure is one line in the **Whisper bucket**, `ai/whisper/bucket.jsonl`, 
 |---|---|---|
 | closed | `/framework/ext/drawer/` | the bottom rail only |
 | open (strip, split or full) | `/framework/ext/drawer/ai/` | the sheet, about that page; the size is in `history.state`, not the url |
-| open on a view | `/framework/ext/drawer/ai/dictation/` | the same, on that view (chat, live, sessions, dictation, settings) |
+| open on a view | `/framework/ext/drawer/ai/debug/` | the same, on that view (chat, live, sessions, debug, settings); on a phone the full sheet opens on that tab, so a reload keeps it (`SheetPanel.route_tab`, [debug-tab.md#routed](/framework/ux/Dictate/doc/debug-tab.md#routed)) |
 
 - `<path>/ai/` is an [`AIPage`](../AIPage.js) (`class AIPage extends Page`). `Page.child()` mints one for any page with no real `ai/` page of its own. A real one wins: on `/framework/`, ✦ opens the sheet in place, because `/framework/ai/` is the AI system.
 - Above 52em the `AIPage` shows in the page (the chat and its views). Below it, the page is hidden and the sheet shows it, so the page it is about stays behind.
 - (Until 2026-10-20; on the phone ✦ now opens in place, see above.) ✦ goes to `<path>/ai/` at the strip. Each step up adds a history entry with the same url, so back steps down one size, then closes. A reload or a link lands at split, with `<path>` put underneath, so back closes it.
-- Old links are rewritten once with `replaceState`: `?sheet=open` becomes `<path>/ai/`, and `?drawer=dictation` becomes `<path>/ai/dictation/` (`AIPage.old_link()`).
+- Old links are rewritten once with `replaceState`: `?sheet=open` becomes `<path>/ai/`, and `?drawer=dictation` becomes `<path>/ai/dictation/` (`AIPage.old_link()`), which opens the Debug view (the old Dictation tab, renamed 2026-10-24).
 - ⚠ A page that writes `history.replaceState(null, …)` wipes the sheet's size. Pass `history.state` instead (the Dictate playground did this until 2026-10-17).
 
 ## One chat, one feed (2026-10-17)
