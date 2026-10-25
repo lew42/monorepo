@@ -87,6 +87,18 @@ There are two ledgers, and they must never be added together:
 
 `TrackingCheck` runs it for recent sessions and the [tracking page](/framework/ai/tracking/) shows a "Session identity" row for each. Runs: [e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-identity/identity-e00f55c9.json) (a tab), [7c6c8d93](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-identity/identity-7c6c8d93.json) (a renewed agent).
 
+What the two runs found (2026-10-24):
+
+| | e00f55c9 (VS Code tab, 59 MB) | 7c6c8d93 (ai-system-mastermind) |
+|---|---|---|
+| Foreign ids on its lines | 0 | 0 |
+| Compactions, id kept after each | 7, yes | none |
+| Stored cost against recount | $280.70 = $280.70 | $11.95 = $11.95 |
+| Messages shared with another transcript | 0 | 0 |
+| Problem | two dated folders (10/20 and 10/24) | one child (`minion-process-page`) has no `task_dir`, so nothing links it |
+
+The agent chain of 7c6c8d93 lists the 12 sessions `ai-system-mastermind` has run as. Their turn dollars (the SDK's own `total_cost_usd`) add to $43.66; their transcripts, priced by `AISession`, add to $33.29. Most sessions are 1.3 to 1.7 times higher in the log, so the two ledgers price the same tokens differently. Two neighbours swap (`94621591` $1.32 against $0.81, then `1c343e7b` $0.36 against $1.12), which means a turn near a renewal can land on the session before. Neither double-counts, because the two ledgers are never added together, but they disagree (⬜ below).
+
 ## Long-lived roles and context (proposal; the owner is unsure)
 
 **What exists (Servex/agents/Agents.js, roles.js):**
@@ -121,3 +133,5 @@ These change Servex's lifecycle, so they go to `ai-system-mastermind` as proposa
 - ⬜ Re-index `2026/09/19/session-a1c1d1e1/`: move its mixed `cache.jsonl` aside so the indexer rebuilds one folder per id. Low value: these were test sessions.
 - ⬜ Fold `DatedFiles.session_dir` and `Session.locate` into one naming rule.
 - ⬜ Compaction: auto-compact threshold and timeout (above), proposed to `ai-system-mastermind`.
+- ⬜ Find why the SDK's `total_cost_usd` runs 1.3 to 1.7 times the `AISession` price of the same transcript (likely the cache-write price or the model's rate), and why a turn near a renewal lands on the session before. Numbers above; one session pair is enough to test.
+- ⬜ Give every Servex child a `task_dir` (or link it by `parent_session` alone), so `minion-process-page` and its kind are reachable from the parent's record.
