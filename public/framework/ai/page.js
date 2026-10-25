@@ -59,16 +59,28 @@ export default new Page({
 
 	// THE HEAD every AI page wears, the dashboard included: icon, title and the tab strip in ONE row; only the strip swipes sideways
 	// (the owner, 2026-10-24; CSS: ux/Inbox/Inbox.css `.inbox-head`, ai/rail/rail.css). `Home` is the bare url, the dashboard; it wears `.tab-default`.
+	// ⚠ This page is built ONCE per load, as the dashboard or as the rail, so a link that crosses between the two is a full load
+	// (target=_self): Home and the title always; every tab while this is the dashboard or an Inbox filter (below).
 	head(){
+		const self = $a => $a.attr("target", "_self");
+		// An Inbox filter on the bare url (the Tasks tab forwards to `?…kind=task`) marks the tab it stands for; Router.mark_links
+		// matches paths only and lights Home as well, so rail.css un-lights Home beside an `aria-current` tab.
+		const filter = location.search && !v1() ? (new URLSearchParams(location.search).get("kind") === "task" ? "tasks" : "") : null;
+		const hard = is_dash() || filter != null;
 		div.c("inbox-head", () => {
 			// The title is the way home from any page under it (the owner, 2026-10-13: the header did not navigate back).
-			div.c("doc-well", () => h1.c("doc-title h2", () => a.c("inbox-head-home").href(this.url).attr("title", "Back to the AI home")
+			div.c("doc-well", () => h1.c("doc-title h2", () => self(a.c("inbox-head-home").href(this.url).attr("title", "Back to the AI home"))
 				.append(() => { icon(this.icon); span(this.title ?? "AI"); })));
 			div.c("tabs block stick", () => {
-				const $bar = div.c("tab-bar", () => { a.c("tab tab-default").href(this.url).text("Home"); });
+				const $bar = div.c("tab-bar", () => { self(a.c("tab tab-default").href(this.url).text("Home")); });
 				// Tabs are detected by AIOverview.detectTabs() and render after mark(). Doc: doc/ai-page-notes.md.
 				AIOverview.detectTabs(this).then(tabs => {
-					$bar.append(() => tabs.forEach(({ name }) => a.c("tab").href(this.url + name + "/").text(cap(name))));
+					$bar.append(() => tabs.forEach(({ name }) => {
+						const $tab = a.c("tab").href(this.url + name + "/").text(cap(name));
+						// Tasks forwards to an Inbox filter (ai/tasks/SavedFilter.js), which only a full load does: in-app it drew a blank page.
+						if (hard || name === "tasks") self($tab);
+						if (name === filter) $tab.attr("aria-current", "page");
+					}));
 					this.app?.router?.mark_links();
 				});
 			});
