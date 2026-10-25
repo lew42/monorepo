@@ -223,7 +223,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		const key = line.chat.at + (line.chat.fix ? "|fix|" + line.chat.text : "");
 		if (seen_chat.has(key)) return;
 		seen_chat.add(key);
-		panel.say({ chat: line.chat });
+		panel.say({ chat: line.chat, history: watching_since != null && Date.parse(line.chat.at) < watching_since });   // history: drawn, never re-marked
 	}
 
 	function maybe_offer(){
@@ -254,8 +254,8 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		// wiping them lost a sentence whose send then failed (stall.mjs "refuse"); the file replay that follows is deduped by `at`.
 		if (!(was === null && watching)) panel.reset();
 		if (!owner.ctl.session){ maybe_offer(); return; }
-		stop_watch = Session.watch(owner.ctl.file, draw);
 		watching_since = Date.now();   // lines older than this are history, not an answer just now
+		stop_watch = Session.watch(owner.ctl.file, draw);
 		stop_stream = Session.stream(owner.ctl.session, ev => {
 			if (ev.kind === "stream"){ panel.stream(ev.role, ev.text); if (ev.text) DictateHealth.set("llm", "ok", `${ev.role} is writing an answer…`, { quiet: true }); }
 			else if (ev.kind === "line") draw(ev.line);

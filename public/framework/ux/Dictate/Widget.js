@@ -54,7 +54,7 @@ export default class Widget extends View {
 		if (this.debug) new this.constructor.Debug({ widget: this });
 
 		if (typeof this.history === "function")
-			(this.history() ?? []).forEach(chat => this.$thread?.draw({ chat }));
+			(this.history() ?? []).forEach(chat => this.$thread?.draw({ chat, history: true }));
 
 		// headless-test seam: the last widget built wins
 		globalThis.$dictate_widget = this;
@@ -168,8 +168,8 @@ Widget.ThreadV1 = class WidgetThreadV1 extends View {
 		});
 		this.lines.set(at, { $bubble, $text });
 		this.scroll.pin();
-		// owner lines only; asked in the background, never blocks the bubble
-		if (!assistant && this.widget.marks) this.mark(chat.text, $bubble);
+		// owner lines only, new ones only (a replayed line was marked when it was new: each mark is a paid model call); never blocks the bubble
+		if (!assistant && this.widget.marks && !entry.history) this.mark(chat.text, $bubble);
 	}
 
 	/** A choice-button question; a click calls widget.answer(choice). */
@@ -311,8 +311,8 @@ Widget.Thread = class WidgetThread extends View {
 		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text, spoken: !assistant && (chat.via === "voice" || chat.via === "whisper") });   // `said`: the raw words, kept when a placement improves the text
 		this.refresh();
 		this.anchor();
-		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks)
-		if (!assistant && this.widget.marks) this.mark(chat.text, bubble, ref);
+		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks); new lines only: each mark is a paid model call
+		if (!assistant && this.widget.marks && !entry.history) this.mark(chat.text, bubble, ref);
 	}
 
 	/** Re-apply the two views over the lines (a redraw of a bubble rebuilds its nodes): raw look, and folded cards. Idempotent. */
