@@ -14,7 +14,7 @@ The page was redesigned to show the AI system itself rather than a board. The V3
 
 ## The band and tabs
 
-THE BAND is the title and tabs, one strip, as AI 2 has them. Inbox owns the bare URL and wears `.tab-default` (ext/tabs' "not really a match" flag), so a card URL (which matches no tab) lights Inbox by ext/tabs' first-child fallback.
+THE BAND is the icon, the title and the tabs in ONE row on every AI page, the dashboard included (`head()` in page.js; the strip swipes sideways). **Home** owns the bare URL (the dashboard) and wears `.tab-default` (ext/tabs' "not really a match" flag), so a card URL (which matches no tab) lights Home by ext/tabs' first-child fallback. The page is built once per load, as the dashboard or as the rail, so Home, the title, Tasks and every tab on the dashboard are full loads (`target=_self`). An Inbox filter on the bare url (the Tasks tab forwards to one) marks its own tab `aria-current`, and rail.css un-lights Home beside it.
 
 The REST of the strip is DETECTED, not hand-listed (AIOverview.js's `AIOverview.detectTabs()`, owner 2026-10-01): these links render after the page's own `mark()` pass, so they need their own `mark()`, same as a late ext/tabs strip does.
 
