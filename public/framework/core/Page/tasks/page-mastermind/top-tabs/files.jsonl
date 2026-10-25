@@ -7,3 +7,7 @@
 {"file":"shots/"}
 {"file":"review/"}
 {"file":"review.jsonl"}
+{"file":"session.jsonl","gone":true}
+{"file":"past-work.md","gone":true}
+{"file":"page.js","gone":true}
+{"file":"shots/","gone":true}
