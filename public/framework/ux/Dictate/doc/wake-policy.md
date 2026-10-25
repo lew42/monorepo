@@ -30,7 +30,11 @@ A typed line is a deliberate send, so it waits only the short `quiet_ms` (1.5 s)
 
 See `wake/report.md`. Short version: the recorded sessions are mostly short spoken questions ("can you hear me?"), which are asked-wakes by design, so the saving there is small; it is large for a continuous dictation of many sentences.
 
-## Next: the smart seat tails its own session log (asked 2026-10-25, not built)
+## Next: the smart seat tails its own session log (opt-in built 2026-10-25, policy not yet replaced)
+
+**Built, off by default.** `POST /api/session/settings {session, tail: true}` (`tail: false` turns it off) makes [`Sessions.js`](../../../../../Servex/agents/Sessions.js) `tail_log()` give the smart seat a Follow subscription on its own `session.jsonl` (`gather_ms` 1500, or `tail_ms` on the session) with `skip_by` set to the seat, the fast seat and the words `fast` and `smart`, so its own lines never wake it. `feed_smart()` still wakes a sleeping seat through the policy (and sends that first batch); once it is awake, the policy's batch message is skipped and Follow delivers the raw lines. Test: `node Servex/agents/WakePolicy.test.mjs` (last check). Needs a Servex restart, at a time the owner picks.
+
+**Caveats of the opt-in:** the policy still decides when a sleeping seat wakes and still records what it sent; every Follow delivery is a paid turn, so `gather_ms` is the cost knob; lines written while the seat slept are not replayed on a resume (a fresh spawn reads the last 40); `skip_by` is fixed when the subscription is made. **Still to do:** the Prompt-record shape for the fast seat's `{place}` lines, and deleting `waker` / `WakePolicy.js` once a live call proves tail mode.
 
 The owner wants one mechanism instead of this policy: the smart assistant follows its own `session.jsonl` with the existing follow tool ([`Servex/Follow.js`](../../../../../Servex/Follow.js)), with a gather window that can be set, and no separate message path.
 

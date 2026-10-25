@@ -245,5 +245,21 @@ check("Sessions: settings() stores the knobs on the session, validated, and they
 	assert.equal("wake" in s.map[made.session], false);
 });
 
+check("Sessions: tail mode follows session.jsonl once and stops sending the batches the smart seat already hears raw", () => {
+	sent.length = 0;
+	const { s, made } = make();
+	const subs = [];
+	s.servex.follow = { list: agent => subs.filter(f => f.agent === agent), follow: sub => subs.push(sub) };
+	assert.deepEqual(s.settings({ session: made.session, tail: true }), { ok: true, ...GAP6, tail: true });
+	for (const t of ["One.", "Two.", "Three.", "Four.", "Five.", "Six."]) speak(s, made, t);
+	assert.equal(subs.length, 1, "one subscription, however many batches");
+	assert.match(subs[0].path, /session\.jsonl$/);
+	assert.ok(subs[0].skip_by.includes(`session-smart-${made.session}`), "the seat's own lines are skipped");
+	const first = smart_prompts().length;
+	for (const t of ["Seven.", "Eight.", "Nine.", "Ten.", "Eleven.", "Twelve."]) speak(s, made, t);
+	assert.equal(smart_prompts().length, first, "an awake seat gets no second batch message: Follow carries it");
+	assert.deepEqual(s.settings({ session: made.session, tail: false }), { ok: true, ...GAP6 });
+});
+
 console.log(`WakePolicy.test.mjs: ${checks} checks passed`);
 process.exit(0);

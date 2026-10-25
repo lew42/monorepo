@@ -303,7 +303,7 @@ export default class Sessions {
 		const next = this.waker.checked(s.id, patch);
 		Object.keys(next).length ? s.wake = next : delete s.wake;
 		this.save();
-		return { ok: true, ...this.waker.knobs(s.id), tail: !!s.tail };
+		return { ok: true, ...this.waker.knobs(s.id), ...(s.tail ? { tail: true } : {}) };
 	}
 
 	install(){
