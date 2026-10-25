@@ -9,3 +9,5 @@
 {"file":"readme.md"}
 {"file":"report.json"}
 {"file":"screenshots/"}
+{"file":"screenshots/","gone":true}
+{"file":"failures.jsonl"}

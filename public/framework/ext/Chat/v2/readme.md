@@ -28,6 +28,8 @@ Sentences are computed, not stored: a sentence id is its paragraph id plus a 1-b
 
 Not wired yet: the fast assistant writes Prompts (raw and paragraphs; `Servex/agents/Sessions.js` `voice_say`), the smart assistant writes replies, questions and tasks. Both land in step 3 of [chat-v2](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/requirements.md). Until then the fixture is the only data.
 
+**Where it shows:** the standalone page (`?src=<session.jsonl url>`) and the session page's Chat tab, under its **Chat v2** chip (`?tab=chat&chat_view=v2`; `ai/AISession/AISessionDetail.js`). Sessions migrated by `Server/PromptsToSession.mjs` already hold Prompts, for example [session e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/?tab=chat&chat_view=v2).
+
 ## Decisions
 
 - Fields are read from a plain fold, not `Session.replay`: an unregistered `Prompt` hydrates as a bare Item that drops the raw strings, so the raw Whisper text would be lost. Swap to `s._tasks` once the classes land.

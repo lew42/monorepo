@@ -54,3 +54,5 @@
 {"file":"SessionTimeline.js"}
 {"file":"SessionTimeline.test.mjs"}
 {"file":"SessionTimelineRows.js"}
+{"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}

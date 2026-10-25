@@ -29,6 +29,7 @@ import Day from "/framework/core/Session/Day.js";
 import SessionOverview from "./SessionOverview.js";
 import SessionOutlineView from "./SessionOutlineView.js";
 import SessionTimeline from "./SessionTimeline.js";
+import ChatV2 from "/framework/ext/Chat/v2/ChatV2.js";
 import SessionPopover from "./SessionPopover.js";
 import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
 
@@ -116,7 +117,7 @@ export default class AISessionDetail extends Page {
 	// With tabs on (a `tab` line in the session's page.jsonl), the template itself is the first tab.
 	home_tab = "Conversation";
 
-	deactivated(){ this.tasks_log?.unsubscribe(); this.tasks_log = null; this.follow?.then(f => f.stop()); this.follow = null; this.live_off?.(); this.live_off = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
+	deactivated(){ this.tasks_log?.unsubscribe(); this.tasks_log = null; this.chat_v2?.then(c => c?.unsubscribe?.()); this.chat_v2 = null; this.follow?.then(f => f.stop()); this.follow = null; this.live_off?.(); this.live_off = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
 
 	/* THE SESSION'S OWN PAGE LOG (2026-10-09, the page tool): `page.jsonl` in the session's folder can
 	   reshape this page on top of the template — tabs, the six layout words — and carries the cards the
@@ -263,10 +264,24 @@ export default class AISessionDetail extends Page {
 			panels.board = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
 			panels.tasks = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
 			panels.chat = div.c("flow sessions-panel sov-chat", () => {
-				$tasks = div.c("flow session-tasks");   // the session's tasks, live; an owner prompt's asks arrive here as proposals (core/Session/SessionTasks.js)
-				$box = div.c("flow");     // which session this is (source tag, tab title, model)
-				$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
-				$conv = div.c("flow sessions-conv");   // the live conversation
+				// Chat v1 (below) or Chat v2 (the session's Prompts from session.jsonl, ext/Chat/v2); ?chat_view=v2 keeps the choice on reload (?chat= belongs to the DevBar assistant). v1 stays the default until v2 replaces it.
+				const pick = {};
+				div.c("flex gap-50 wrap", () => { pick.v1 = button.c("sessions-chip", "Chat").on("click", () => choose(false)); pick.v2 = button.c("sessions-chip", "Chat v2").on("click", () => choose(true)); });
+				const $v1 = div.c("flow", () => {
+					$tasks = div.c("flow session-tasks");   // the session's tasks, live; an owner prompt's asks arrive here as proposals (core/Session/SessionTasks.js)
+					$box = div.c("flow");     // which session this is (source tag, tab title, model)
+					$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
+					$conv = div.c("flow sessions-conv");   // the live conversation
+				});
+				const $v2 = div.c("flow chat-v2");
+				const choose = v2 => {
+					$v1.el.hidden = v2; $v2.el.hidden = !v2;
+					pick.v1.el.classList.toggle("sessions-chip-on", !v2); pick.v2.el.classList.toggle("sessions-chip-on", v2);
+					const q = new URLSearchParams(location.search); v2 ? q.set("chat_view", "v2") : q.delete("chat_view");
+					history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
+					if (v2) this.chat_v2 ??= this.record_if_there().then(file => file ? new ChatV2({ url: file, $box: $v2 }).live() : $v2.append(() => p.c("muted", "This session has no session.jsonl yet, so Chat v2 has nothing to draw.")));
+				};
+				choose(new URLSearchParams(location.search).get("chat_view") === "v2");
 			});
 			panels.coverage = div.c("flow sessions-panel", () => { $coverage = div.c("flow"); });   // every ask in the owner's prompts, its status, the raw words one click down (AISessionCoverage)
 			panels.cost = div.c("flow sessions-panel", () => { const $sum = div.c("flow"); ready.then(w => $sum.empty(() => AICost.report(w.id ? AICost.session_url(w.id) : w.dir))); $costs = div.c("flow"); $trace = div.c("flow"); });   // the summary first (the cost line's total and every child session behind it), then the logged cost, the cost-over-time chart and the per-tool table
