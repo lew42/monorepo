@@ -46,7 +46,7 @@ export default class Registry {
 			forked_from, resumed_from, ended, context, stopped_by, stopped_at, landing_nagged, turns } = agent;
 		const task_dir = agent.task?.dir ? path.resolve(agent.task.dir) : null;
 		return { id, role, name: name ?? null, topics: topics ?? null, page: page ?? null,
-			state, visibility, session_id, started_at, parent: parent ?? null,
+			state, visibility, session_id, started_at, parent: parent ?? null, parent_session: agent.parent_session ?? null,   // the parent's SESSION id at spawn (Agents.register): `parent` is a name a later tab can reuse
 			last_at: stamp(), boot: agent.host?.boot ?? null, pid: process.pid,
 			claude_pid: agent.claude_pid ?? null,   // the agent's own claude.exe (Agents.spawn_claude); pid is the HOST's
 			revivable: agent.revivable?.() ?? false,
@@ -66,6 +66,7 @@ export default class Registry {
 		const row = this.row(agent);
 		// a reopened session has no `task` spec; keep its dir — only for the SAME session (a reused id is a new agent)
 		if (!row.task_dir && rows[agent.id]?.session_id && rows[agent.id].session_id === row.session_id) row.task_dir = rows[agent.id].task_dir ?? null;
+		if (!row.parent_session && rows[agent.id]?.session_id === row.session_id) row.parent_session = rows[agent.id].parent_session ?? null;   // kept across a revive, like task_dir
 		if (!row.landing_nagged && rows[agent.id]?.session_id === row.session_id) row.landing_nagged = rows[agent.id].landing_nagged ?? null;   // the once-flag survives a revive
 		if (rows[agent.id]?.session_id === row.session_id && (rows[agent.id].cost ?? 0) > row.cost) row.cost = rows[agent.id].cost;   // never shrinks
 		rows[agent.id] = row;

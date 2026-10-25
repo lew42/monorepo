@@ -75,6 +75,8 @@ export class Agents {
 		if (agent.state === "stopped") try { this.servex?.lifecycle?.agent_ended(agent); } catch {}
 		// follow(path), 2026-09-29: a stopped agent's subscriptions end with it — Servex/Follow.js
 		if (agent.state === "stopped") try { this.servex?.follow?.agent_ended(agent); } catch {}
+		// A child is linked to its parent SESSION, not only to the parent's name (session-is-a-task, 2026-10-24): the id the parent runs as now.
+		if (agent.parent && agent.parent_session === undefined) agent.parent_session = this.live.get(agent.parent)?.session_id ?? this.reg().read()[agent.parent]?.session_id ?? null;
 		const row = this.reg().write(agent);
 		this.store().append("servex", { type: "registry", ...row }).catch(() => {});
 		return row;
@@ -737,7 +739,8 @@ export class Agents {
 		for (const [k, list] of this.task_dirs()) if (k === root || k.startsWith(root + path.sep)) list.forEach(id => ids.add(id));
 		if (session_id){
 			const names = new Set([session_id, ...Object.entries(rows).filter(([, r]) => r?.session_id === session_id).map(([id]) => id)]);
-			for (const [id, r] of Object.entries(rows)) if (names.has(r?.parent) && !names.has(id) && (!since || String(r.started_at ?? "") >= since)) ids.add(id);
+			// parent_session (recorded at spawn since 2026-10-24) is exact; an older row is matched by the parent's name and the session's span.
+			for (const [id, r] of Object.entries(rows)) if (!names.has(id) && (r?.parent_session ? r.parent_session === session_id : names.has(r?.parent) && (!since || String(r.started_at ?? "") >= since))) ids.add(id);
 			for (let grew = true; grew;){ grew = false; for (const [id, r] of Object.entries(rows)) if (!ids.has(id) && !names.has(id) && ids.has(r?.parent) && (!since || String(r.started_at ?? "") >= since)){ ids.add(id); grew = true; } }
 		}
 		for (const id of ids){
