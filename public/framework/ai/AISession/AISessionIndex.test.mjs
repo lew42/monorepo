@@ -36,5 +36,7 @@ const kid = (id, usd) => ({ id, parent: "v-abc1234", usd, tree_usd: usd, kind: n
 vx.set(kid("child-fast", 0.1)); vx.set(kid("child-smart", 0.4));
 const rolled = vx.snaps.get("v-abc1234");
 assert.equal(rolled.children, 2); assert.equal(rolled.tree_usd, 0.5);
+vx.set(AISessionIndex.record_snap(voice));   // the voice record grows after its children are in: the totals must survive
+assert.equal(vx.snaps.get("v-abc1234").children, 2); assert.equal(vx.snaps.get("v-abc1234").tree_usd, 0.5);
 await vx.stop();
 console.log("AISessionIndex voice roll-up: ok");

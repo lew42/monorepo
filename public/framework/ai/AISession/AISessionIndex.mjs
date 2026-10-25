@@ -299,6 +299,7 @@ export default class AISessionIndex {
 
 	/** Store a snapshot if anything changed. Tells the listeners (with the changed keys) and queues the file. Returns the changed keys. */
 	set(snap){
+		if (snap.kind === "voice") snap = { ...snap, ...this.voice_totals(snap) };
 		const before = this.snaps.get(snap.id);
 		const changed = Object.keys(snap).filter(k => !before || !same(before[k], snap[k]));
 		if (before && !changed.length) return [];
@@ -314,12 +315,17 @@ export default class AISessionIndex {
 		return changed;
 	}
 
+	voice_totals(v){
+		const kids = [...this.snaps.values()].filter(s => s.parent === v.id);
+		return { tree_usd: r4((v.usd ?? 0) + kids.reduce((n, k) => n + (k.tree_usd ?? k.usd ?? 0), 0)), children: kids.length };
+	}
+
 	/** A voice session has no transcript of its own: its cost and child count are the sum of the sessions whose parent is it (its fast and smart agents, and what they spawn). */
 	roll_voice(id){
 		const v = this.snaps.get(id); if (!v || v.kind !== "voice") return;
-		const kids = [...this.snaps.values()].filter(s => s.parent === id), tree_usd = r4((v.usd ?? 0) + kids.reduce((n, k) => n + (k.tree_usd ?? k.usd ?? 0), 0));
-		if (tree_usd === v.tree_usd && kids.length === v.children) return;
-		const up = { ...v, tree_usd, children: kids.length }; if (this.kids) up.links = this.links(up); this.snaps.set(id, up); this.queue(id); this.queue_day(AISessionIndex.day_of(up));
+		const t = this.voice_totals(v);
+		if (t.tree_usd === v.tree_usd && t.children === v.children) return;
+		const up = { ...v, ...t }; if (this.kids) up.links = this.links(up); this.snaps.set(id, up); this.queue(id); this.queue_day(AISessionIndex.day_of(up));
 	}
 
 	/** A session born in the last ten minutes, or one whose state or title changed, is one line on today's day stream (Server/AIIndexStream.mjs). A start-up read of old sessions writes none. */

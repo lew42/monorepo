@@ -87,7 +87,7 @@ A line from the smart assistant with `re` alone is a reply. With `re` AND `level
 
 `/new` takes an optional `card`, a card id such as `2026/09/29/audio-a-library-of-audio-parts-transcrip` (the same id `ai2/` pages use). With `card`:
 
-- The session's `home` becomes the card's own folder, `/framework/ai/<card>/`, instead of the nearest folder to `path` — so its file is `/framework/ai/<card>/ai/<session>.jsonl`, beside that card's `page.jsonl`. `path` is unchanged: still where the owner actually stood when they pressed ✦.
+- The session's `home` becomes the card's own folder, `/framework/ai/<card>/`, instead of the nearest folder to `path`. Its file is in the dated store like every other voice session (`ai/sessions/YYYY/MM/DD/<folder>/session.jsonl`); line 1's `home` is what ties it to the card. `path` is unchanged: still where the owner actually stood when they pressed ✦.
 - `card` must name a real card — `card_home()` in `Sessions.js` refuses anything with `..` or a backslash, and anything whose `public/framework/ai/<card>/page.jsonl` is not actually there, with a 400 explaining why.
 - **Resume is per card, the same one-hour rule as a page**: a second `/new` with the same `card` within the hour continues that card's session (unless `fresh`), and `GET /api/sessions?card=<id>` lists only that card's sessions.
 - **The pair gets the card as context**, appended to their opening prompt (`spawn()`'s `where`): the fast assistant gets one line, "This session is about card `<id>`."; the smart assistant is also told the path of the card's `page.jsonl` and to read it first for the card's history.
