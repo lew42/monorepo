@@ -113,7 +113,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - **`tags`** (getter): `[module, ...own tags, ...the parent task's tags]`, no duplicates or empties; own tags are a `tags` string array. **`expected`** is a string or an array of strings (the card draws one line each).
 - **`content`**: a `List` made on first use; a replay line `{"content":{"add":{"text":"…"}}}` adds to it, as on a Page. The card draws each item's `text` or `title`.
 - **`settled()`**: a Promise that resolves with the task at `complete` or `stopped`.
-- **The `item` tool** writes a Task: `item({path, delta})` appends one `task.jsonl` line (`{"start":{}}`, `{"tasks":{"add":{…}}}`) and answers with the replayed state. Refuses `_` keys and unknown keys. See [Servex/doc/item-tool.md](/Servex/doc/item-tool.md). `Task.replay` reads the same lines (`tasks`, `content`, and the plain fields in `Task.FIELDS`), so a tool write and a file read run the same code.
+- **The `item` tool** writes a Task: `item({path, delta})` appends one `task.jsonl` line (`{"start":{}}`, `{"tasks":{"add":{…}}}`) and answers with what it wrote: `{ok, ids, line, size, now: {state, completion}}`. The full state is a read: `item({path})` with no delta (2026-10-24: answering with the whole picture made a write on a big session take 20 s). Refuses `_` keys and unknown keys. See [Servex/doc/item-tool.md](/Servex/doc/item-tool.md). `Task.replay` reads the same lines (`tasks`, `content`, and the plain fields in `Task.FIELDS`), so a tool write and a file read run the same code.
 
 - **Commits are computed:** a task's `commit` lines come from the `post-commit` git hook via `SERVEX_TASK`, never typed by hand. See `Server/readme.md`, "Git hooks".
 
