@@ -17,6 +17,8 @@ The owner, 2026-10-24: errors are logged per page and per module, so we know the
 5. **Where it goes:** one `{at, fail:{kind:"page-error", page, msg}}` line in the module's `failures.jsonl`; a page that was failing and now loads clean writes one `{at, clear:{page}}` line. Nothing is sent to anyone directly: an agent changing a module follows it and hears it.
 6. **The zero-errors board:** a node script folds every `failures.jsonl` into one list (page, module, still failing since) for a page under [/framework/ai/errors/](/framework/ai/errors/), computed on read.
 
+**Open question: whose error is it?** Today the module that threw owns the line (`ErrorLog.module_of`: the first `/framework/…` file in the stack). An error thrown inside a shared helper (`core/View`) therefore lands in the helper's folder, not in the page's module that called it wrongly. The watcher knows which page it loaded, so it could also write the line to that page's module; deciding that is part of building it.
+
 **Cost and risk.** One Chromium page at a time, about 2 to 5 s per page; a save to a shared module (`core/View`) touches every page, so the import fan-out is capped (the first 20 pages by visits, the rest on the nightly crawl). Instead: run the whole crawl (`Server/health`) every few minutes, which is simpler but slow and would report old errors again and again.
 
 ## How the global `ai/errors/` folder moves to per-module logs
