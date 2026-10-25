@@ -14,3 +14,7 @@
 {"nav":{"at":"2026-10-25T13:29:08.602-05:00","from":"/framework/ux/Dictate/","to":"/framework/ux/Dictate/"}}
 {"nav":{"at":"2026-10-25T13:29:54.248-05:00","from":"/framework/ux/Dictate/","to":"/framework/ux/Dictate/"}}
 {"nav":{"at":"2026-10-25T13:30:04.130-05:00","from":"/framework/ux/Dictate/","to":"/framework/ux/Dictate/"}}
+{"log":{"at":"2026-10-25T13:35:12-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-25T13:40:12-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-25T13:45:12-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-10-25T13:50:13-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
