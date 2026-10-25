@@ -50,10 +50,17 @@ export class Task extends Item {
 	// Made on first use (a replayed log rarely has subtasks). `_tasks` is hidden from
 	// `lists()` below so the saved key is still "tasks", which `hydrate()` assigns back.
 	get tasks(){
-		if (!this._tasks){ this._tasks = new List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
+		if (!this._tasks){ this._tasks = new Task.List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
 		return this._tasks;
 	}
 	set tasks(list){ this._tasks = list; this.watch(list); }
+	/* A task list takes anything (the owner, 2026-10-24, session-is-a-task): a plain string is a Task with that title; an object with no
+	   `type` is a Task; an object with a `type` is that class (Process, Project, Session), through Item.hydrate. */
+	static List = class TaskList extends List {
+		make(x){ return typeof x === "string" ? super.make({ id: Task.slug(x), title: x }) : super.make(x); }
+	};
+	// The id a title makes: the item tool's slug_of (Servex/agents/page_tools.js) is the same rule.
+	static slug(text){ return String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task"; }
 	// Item.get() skips a prototype getter, so a fresh Task answered undefined for "tasks" and {tasks:{add}} was stored as data (2026-10-22; child-verb.test.mjs).
 	get(key){ return key === "tasks" ? this.tasks : super.get(key); }
 
@@ -205,6 +212,8 @@ export class Task extends Item {
 		};
 	}
 	get session(){ return this.get_one("session") ?? this.get_one("session_id"); }
+	// When it was asked for: the time of the line that added it to its parent (Session.apply_line keeps it in memory), else its own record's.
+	get created_at(){ return this._created_at ?? this.get_one("requested_at") ?? this.get_one("started_at") ?? null; }
 	get priority(){ return this.get_one("priority") ?? null; }
 	get commits(){ return [...(this.data.commits ?? [])]; }
 	commit(hash){
@@ -377,7 +386,7 @@ export class Task extends Item {
 		let kid;
 		if (lines?.length){
 			this.resolving.add(ref);   // a cycle of references stops here
-			const Own = Item.types.get(lines[0]?.class);   // line 1 may name a subclass (a Process): replay it as that, when it is loaded
+			const Own = Item.types.get(lines[0]?.class ?? (lines[0]?.session ? "Session" : undefined));   // line 1 may name a subclass (a Process), or be a session record ({session:{…}}): replay it as that, when it is loaded
 			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
 			if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
 		} else {   // no file (node), or not read yet (browser): a stub, never a throw
