@@ -10,3 +10,5 @@
 {"review":{"at":"2026-10-25T01:04:05-05:00","answer":{"n":6,"reply":"fixed: roots_for_cards now hides only a row whose parent is in the list; a child whose parent is outside the range keeps its card."}}}
 {"review":{"at":"2026-10-25T01:04:05-05:00","answer":{"n":7,"reply":"noted: cheap at this size; the owner asked for both direct and all-descendant counts, so 'in all' stays."}}}
 {"review":{"at":"2026-10-25T01:04:05-05:00","answer":{"n":8,"reply":"noted: nothing orphaned."}}}
+{"complete":{"outcome":"Session cards: root sessions only, tighter cards, 404s fixed; on michael/dev.","evidence":["dc05cd9ac"],"confidence":"medium","caveats":[]},"by":"mastermind-sessions-page","ts":"2026-10-25T11:52:59.262Z"}
+{"sessions":[{"id":"mastermind-sessions-page","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim/cards/"}],"by":"mastermind-sessions-page","ts":"2026-10-25T11:52:59.266Z"}
