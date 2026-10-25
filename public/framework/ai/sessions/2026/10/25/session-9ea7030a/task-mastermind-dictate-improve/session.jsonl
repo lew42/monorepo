@@ -26,3 +26,4 @@
 {"log":{"at":"2026-10-25T11:55:09-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-10-25T12:55:12-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-10-25T13:55:12-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-10-25T14:01:35-05:00","heartbeat":"deliberate","msg":"task-mastermind-dictate-improve its agent is not running: it was stopped on purpose by owner at 2026-10-25T01:15:57-05:00; not revived."}}
