@@ -15,4 +15,6 @@ A 5–10 second job is cheaper to do than to delegate: read a log line, check us
 
 ## How you hear back
 
-The deputy logs to its task's `session.jsonl` and writes "show: <url>" lines when there is something to open. Read its last lines when the owner asks, rather than polling. Its page and the [AI dashboard](/framework/ai/) are where the owner looks.
+A finished piece of work is its task's `complete`, with an `outcome` and `links`: that is what you relay, and the deputy writes no `show:` lines. Its session log holds only major states (a task added, started, waiting, complete) and pointer lines to files the owner should know about; decisions live in the module's own docs ([task-buckets.md](/framework/ai/doc/task-buckets.md)). Follow the deputy's log with the `follow` tool rather than polling, and read its state lines when the owner asks. Its page and the [AI dashboard](/framework/ai/) are where the owner looks.
+
+**Owner asks have one writer.** The prompt splitter files each ask as a task on your session; you take the splitter's task and never add one of your own for the same ask.

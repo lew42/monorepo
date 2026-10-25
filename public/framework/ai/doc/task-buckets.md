@@ -34,6 +34,34 @@ Once a mastermind hands a task off, **only the agent that holds it writes to it*
 
 A mastermind that needs something changed while the task is handed off **sends the assignee a message** (`send_to_agent`); it does not edit the file. If the assignee is gone (stopped, compacted away), the mastermind takes the task back with a logged hand-back line first, then writes.
 
+## One writer for owner asks
+
+An owner ask is filed as a task by **one writer: the prompt splitter** (`prompt-relay.mjs` hook and the Refine prompt records). The tab (`vscode-mastermind`, a voice session) **takes the splitter's task and never adds its own** for the same ask; two writers is how one ask becomes two tasks and its tokens are counted twice. A tab that finds no task for an ask yet (the splitter has not run) waits for it or opens one with the prompt's id as its source, so the splitter finds it and files nothing new. (Code: `task-mastermind-session-closeout` is changing it; this page is the rule it builds to.)
+
+## What a session log holds (item 18, the owner, 2026-10-24)
+
+The tab used to ask agents for `show:` log lines. That was a loose convention, not a system, and it is retired. Where each thing goes:
+
+| What | Where |
+|---|---|
+| A finished piece of work | The task's `complete`, with its `outcome` and `links` (the `finish-task` landing). This is what the tab relays to the owner. |
+| A state change | The session log, one line each: a task **added, started, waiting** (`wait` with `on` and `what`), **complete**. Nothing per step: the raw transcript already records every step. |
+| A file the owner should know about was written | A **pointer line**: its path and a one-line synopsis, e.g. `{"log":{"msg":"public/framework/ai/doc/x.md: why X beats Y"}}`. Shots go in a `shot` line. |
+| A decision, a design, a finding | The module's own docs (`architecture.md`, `doc/*.md`). The session log only points to them. |
+| A reviewer's verdict | One `review` line with the `verdict`; the findings are in the review file the line points to. |
+
+A look-first brief stops with `wait` (`on: "owner"`, `what: "the look"`, the shots in `links`), not with a `show:` line.
+
+## Following children (item 19)
+
+A parent does not poll or ask a child for status. **Servex follows the child's log for it:** `Agents.spawn` calls `follow_child`, so the parent receives the child's new lines, one message per 60-second burst (`Servex/Follow.js`, [Servex/doc/follow.md](/Servex/doc/follow.md)). A parent that wants another log (a grandchild, a worktree task) calls the `follow` tool on its `session.jsonl`.
+
+**Only the lines above reach the parent.** `Follow.kind(line)` sorts every line as `state`, `pointer`, `watcher` or `other`; a subscription made for a child (`of`) forwards only state and pointer lines, each cut to 600 characters, so a child's step logs, `action`, `decision` and node's own `worktree-watch:` lines wake nobody. A child whose log is still noisy has a logging problem to fix at the child (a brief that says "log states, not steps"), not a reason to stop following.
+
+**What following costs (measured):** `node Server/FollowCost.mjs --days 3` reads Servex's agent logs and prices every delivery. Before the filter, 3 days (2026-10-21 to 24): 159 deliveries and 83,299 tokens delivered to five masterminds, 31 wake-up turns; only 49 of the 708 forwarded lines were states and 84% of the tokens were chatter (single `review` findings alone: 281 lines). The same lines through the filter: 41 of the 159 deliveries send nothing (no wake-up), and 20,466 tokens remain (25%). Run it again after the next Servex restart to see the real figure. Tokens delivered are small next to what each wake-up turn costs (re-reading the follower's whole cached context), so the number to watch is *wake-up turns*, which falls with the silent deliveries.
+
+[The tracking page](/framework/ai/tracking/) (linked from the AI page's tabs) is the sibling check: it reports the untracked share of tokens, unlinked children and stale numbers.
+
 ## Where notes and findings live (item 17)
 
 A note, a decision or a finding belongs to the task it came out of, not to chat. The proposal for how the item tool adds them, and for the session log as a replayable timeline, is [task-notes-proposal.md](task-notes-proposal.md).
