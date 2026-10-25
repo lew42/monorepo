@@ -23,6 +23,18 @@ export default class DashNeeds extends View {
 		return fetch(url, { signal: AbortSignal.timeout(15000) }).then(r => r.ok ? r.json() : null).then(rows => Array.isArray(rows) ? rows : null).catch(() => null);
 	}
 
+	/** The rows with repeats dropped: by card or id first, then by title. The count above still says how many Servex listed. */
+	static unique(rows){
+		const keys = new Set(), titles = new Set();
+		return rows.filter(r => {
+			const key = r.card || r.id, title = String(r.title || r.question || "").replace(/s+/g, " ").trim().toLowerCase();
+			if ((key && keys.has(key)) || (title && titles.has(title))) return false;
+			if (key) keys.add(key);
+			if (title) titles.add(title);
+			return true;
+		});
+	}
+
 	title(r){ return String(r.title || r.question || r.card || "").replace(/\s+/g, " ").slice(0, 90); }
 
 	paint_waiting(rows){
@@ -34,7 +46,7 @@ export default class DashNeeds extends View {
 			a.c("ad-big").href("/framework/ai/inbox/").attr("target", "_self").attr("title", "The old Inbox lists them with the answer controls")
 				.append(() => { span.c("ad-num", String(rows.length)); span.c("ad-what", "waiting on you"); });
 			if (kinds) div.c("ad-sub", kinds);
-			rows.slice(0, DashNeeds.TOP).forEach(r => a.c("ad-line").href(r.card ? CardDir.page(r.card) : "/framework/ai/inbox/").attr("target", "_self").append(() => { span.c("ad-kind", DashNeeds.KINDS[r.kind] ?? r.kind); span(this.title(r)); }));
+			DashNeeds.unique(rows).slice(0, DashNeeds.TOP).forEach(r => a.c("ad-line").href(r.card ? CardDir.page(r.card) : "/framework/ai/inbox/").attr("target", "_self").append(() => { span.c("ad-kind", DashNeeds.KINDS[r.kind] ?? r.kind); span(this.title(r)); }));
 		});
 	}
 
