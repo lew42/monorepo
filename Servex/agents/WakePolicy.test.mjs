@@ -255,6 +255,7 @@ check("Sessions: tail mode follows session.jsonl once and stops sending the batc
 	assert.equal(subs.length, 1, "one subscription, however many batches");
 	assert.match(subs[0].path, /session\.jsonl$/);
 	assert.ok(subs[0].skip_by.includes(`session-smart-${made.session}`), "the seat's own lines are skipped");
+	assert.equal(subs[0].heard, true, "only owner chat, {place} and Question lines wake it, never the server's {sent} housekeeping");
 	const first = smart_prompts().length;
 	for (const t of ["Seven.", "Eight.", "Nine.", "Ten.", "Eleven.", "Twelve."]) speak(s, made, t);
 	assert.equal(smart_prompts().length, first, "an awake seat gets no second batch message: Follow carries it");

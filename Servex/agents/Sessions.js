@@ -287,13 +287,13 @@ export default class Sessions {
 		const rel = path.relative(process.cwd(), this.disk(s.file)).split(path.sep).join("/");
 		if (follow.list(agent).some(f => f.path === rel)) return true;
 		try {
-			follow.follow({ agent, path: rel, gather_ms: s.tail_ms ?? 1500, skip_by: [agent, s.fast, "fast", "smart"].filter(Boolean) });
+			follow.follow({ agent, path: rel, gather_ms: s.tail_ms ?? 1500, heard: true, skip_by: [agent] });
 			return true;
 		} catch (e){ console.error(`sessions: tail ${s.id}: ${e.message}`); return false; }
 	}
 
-	/* The knobs of one session (dictation widget settings panel): POST /api/session/settings {session, gap_ms?, every?};
-	 * null drops a knob back to the default. Returns the knobs now in force. */
+	/* The knobs of one session (dictation widget settings panel): POST /api/session/settings {session, gap_ms?, every?, tail?};
+	 * null drops a knob back to the default; `tail: true` makes the smart seat follow its own session.jsonl (`tail_log`). Returns the knobs now in force. */
 	settings({ session, gap_ms, every, tail } = {}){
 		const s = this.get(session);
 		if (tail !== undefined){ tail ? s.tail = true : delete s.tail; }

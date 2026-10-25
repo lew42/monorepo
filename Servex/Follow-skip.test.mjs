@@ -24,5 +24,15 @@ f.queue(sub, { file: "x.jsonl", lines: [lines[1], lines[3]] });
 assert.equal(f.pending.size, 0, "only own lines: nothing queued, no wake");
 f.queue(sub, { file: "x.jsonl", lines: lines.slice(0, 4) });
 assert.equal(f.pending.get(me)[0].lines.length, 2, "owner and fast lines still queued");
+
+const housekeeping = [L({ sent: { to: "smart", at: "t" } }), L({ refined: { at: "t" } }), L({ quiet: { ms: 1 } }), L({ skip: { why: "x" } }), L({ react: { emoji: "x" } }), L({ chat: { text: "reply", from: { kind: "assistant", agent: me } } })];
+const heard = [lines[0], L({ place: { to: "same" }, by: "voice-assistant-v-1" }), L({ tasks: { add: { type: "Question", id: "q1" } } })];
+assert.deepEqual(Follow.heard([...housekeeping, ...heard, "not json"]), heard, "`heard` keeps owner chat, {place} and Question items only");
+f.follow({ agent: "other", path: "public/framework/ai/sessions/2026/10/25/v-2/session.jsonl", gather_ms: 5, skip_by: ["other"], heard: true });
+assert.equal(f.list("other")[0].heard, true, "heard is stored on the subscription");
+f.queue(f.list("other")[0], { file: "y.jsonl", lines: housekeeping });
+assert.equal(f.pending.has("other"), false, "a {sent} line and the other housekeeping wake nobody");
+f.queue(f.list("other")[0], { file: "y.jsonl", lines: [...housekeeping, ...heard] });
+assert.equal(f.pending.get("other")[0].lines.length, 3, "owner chat, place and Question get through");
 f.stop();
 console.log("ok Follow.skip_by");
