@@ -52,3 +52,11 @@ Measured 2026-10-24 on session-e00f55c9's record (`session.jsonl`, 339 lines, 20
 ## 12d. Review, then build 2 and 3
 
 The branch (`worktree/qf-4`) goes to a fresh reviewer with this file as the plan. After it merges and Servex restarts, measure again on the live record and add the numbers here.
+
+## Item 20. Does a long session replay slowly?
+
+**No.** Replaying the whole 4-day record (339 lines, 206 tasks at all levels) takes 4–11 ms, and `cache.jsonl`'s newest summary is found in 4 ms. The time went on the work *after* the append, which is fixed above. **No checkpoint lines are needed.** They would be worth adding only if one record's replay passed about a second, which would take about 30,000 lines at this rate. Nothing is deleted or rewritten either way.
+
+## The first small merge
+
+The write answer and the log-cost memo shipped on their own, ahead of the rest. Task folder: [deputy/fast-write](../deputy/fast-write/requirements.md), branch `worktree/qf-3`, commit f795532e9. A write on a copy of this record: 254 ms on a caller's first write, then 10–14 ms.
