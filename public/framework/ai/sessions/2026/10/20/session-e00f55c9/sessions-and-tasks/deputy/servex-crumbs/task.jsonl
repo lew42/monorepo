@@ -4,3 +4,5 @@
 {"review":{"at":"2026-10-24T22:37:45-05:00","answer":{"n":2,"reply":"fixed: 7d10a8b94. The end marker waits for close, so a request whose client gave up still logs its time."}}}
 {"review":{"at":"2026-10-24T22:37:45-05:00","answer":{"n":3,"reply":"declined: the end marker after the gap names the call, as the note says; reading the line just after a gap is the method."}}}
 {"review":{"at":"2026-10-24T22:37:45-05:00","answer":{"n":4,"reply":"fixed: 7d10a8b94. Only a plain-object delta lists its keys (at most 6); a string or other value logs its type."}}}
+{"decision":{"at":"2026-10-24T22:48:25-05:00","question":"review size","computed":"full","chose":"none","why":"one-line live fix: task_dirs stops calling find_task_dir's full scan per registry row; profiled cause of 70-100 s Servex freezes; tests pass (cost, session_tasks, item_tool)"}}
+{"review":{"at":"2026-10-24T22:48:25-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/qf-6","head":"76b63287fa40571e05e95a4664dcc9ad580e7e74","model":null,"cost":0,"file":"review.md"}}
