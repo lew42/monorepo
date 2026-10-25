@@ -1,0 +1,50 @@
+diff --git a/Servex/agents/item_tool.test.mjs b/Servex/agents/item_tool.test.mjs
+index 1ad834e17..1d6e49db7 100644
+--- a/Servex/agents/item_tool.test.mjs
++++ b/Servex/agents/item_tool.test.mjs
+@@ -78,6 +78,11 @@ try {
+ 		ok(r.ok && /changed nothing/.test(r.warning ?? ""), "a verb that changes nothing says so");
+ 		r = await call("item", { path: SURL, delta: { tasks: { nobody: { start: {} } } } });
+ 		ok(r.ok && /changed nothing/.test(r.warning ?? ""), "a verb sent to a missing child says so");
++		fs.writeFileSync(path.join(SDIR, "session.jsonl"), JSON.stringify({ session: { id: "v-fixture", kind: "voice" } }) + "\n");   // the real voice session's line 1 (an object), so the file is a Session
++		r = await call("item", { path: SURL, delta: { place: { re: "2026-10-25T00:54:22.355-05:00", to: "same", edit: "nothing" } } });
++		ok(r.ok && fs.readFileSync(path.join(SDIR, "session.jsonl"), "utf8").includes('"place":{"re":"2026-10-25T00:54:22.355-05:00"'), "the voice assistant's {place} line is written to session.jsonl (it was refused as an unknown key)");
++		r = await call("item", { path: SURL, delta: { summary: { card: "2026-10-25T00:54:22.355-05:00", text: "two sentences, one card" } } });
++		ok(r.ok && fs.readFileSync(path.join(SDIR, "session.jsonl"), "utf8").includes('"summary":{"card":"2026-10-25T00:54:22.355-05:00"'), "the voice assistant's {summary} line is written to session.jsonl");
+ 		r = await call("item", { path: SURL, delta: { nonsense_key: 1 } });
+ 		ok(r.ok === false && /names no method/.test(r.why), "a session log refuses unknown keys");
+ 	} finally { fs.rmSync(SDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 5c6fe1126..518d53757 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -414,7 +414,7 @@ const page_class = () => page_loaded ??= (async () => {
+ })().catch(e => { console.warn(`item tool: Page.class.js did not import in node, so page lines are written unchecked (${e.message})`); return null; });
+ const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"] };
+ // Fields a Session line may carry: its identity, a title, and its tasks.
+-const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class"];
++const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class", "place", "summary"];   // "place" and "summary": the voice assistant's lines (one per sentence; one per card of 2+ sentences) (ux/Dictate/doc/voice-assistant.md)
+ 
+ // Fields a Task line may carry beyond its getters (plan section 2) and the legacy line keys Task.replay reads.
+ const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tags", "tasks", "task", "path", "parent", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];
+@@ -900,6 +900,7 @@ function walk_queries(node, delta, trail = "", out = { answer: {}, queried: fals
+ 	for (const [key, arg] of Object.entries(delta)){
+ 		const here = trail ? `${trail}.${key}` : key;
+ 		const node_query = NODE_QUERIES[node.constructor.name]?.[key] ?? (key === "completion" && node.constructor.queries?.includes(key) ? TALLY : null);
++		if (key === "summary" && is_plain(arg) && "card" in arg){ out.other.push(here); continue; }   // {summary:{card,text}} is the voice assistant's LINE (ux/Dictate/doc/voice-assistant.md), not the summary query
+ 		if (node_query || node.constructor.queries?.includes(key)){
+ 			out.queried = true;
+ 			if (typeof arg === "string" || typeof arg === "number" || arg === false){ out.set.push(here); continue; }   // a value is an attempt to SET a read-only key
+diff --git a/public/framework/ux/Dictate/doc/voice-assistant.md b/public/framework/ux/Dictate/doc/voice-assistant.md
+index 6422a7f8d..012c17041 100644
+--- a/public/framework/ux/Dictate/doc/voice-assistant.md
++++ b/public/framework/ux/Dictate/doc/voice-assistant.md
+@@ -32,7 +32,7 @@ item({ path: "<session file>", delta: { place: { re: "<the sentence's at>", to:
+ ```
+ Sessions            Servex/agents/Sessions.js       the orchestrator: writes each {chat} line, wakes the voice assistant
+  └ voice assistant  roles.js row "voice-assistant"  the agent: one placement per sentence (.claude/skills/voice-assistant/)
+-item tool           Servex/agents/page_tools.js     writes the {place} line into the session file (works today)
++item tool           Servex/agents/page_tools.js     writes the {place} and {summary} lines into the session file: `place` and `summary` are in SESSION_KEYS, and a `{summary:{card,…}}` is written as a line, not run as the summary query (proof: item_tool.test.mjs)
+ chat()              ux/Dictate/chat.js              tails the session file; hands {chat}, {para}, {place} to the widget
+ Widget.Thread       ux/Dictate/Widget.js            draws the bubbles; live() = the draft piece in place; place() = apply a placement
+ ```
