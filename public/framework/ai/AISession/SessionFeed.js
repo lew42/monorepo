@@ -19,7 +19,8 @@ export default class SessionFeed extends View {
 	/** Called with the replayed Session each time its record changes. */
 	record(session){ this.session = session; if (this.tree !== undefined) this.draw(); }
 
-	static time(x){ return Date.parse(x?.started ?? x?._at ?? x?._rp?.at ?? x?._last_ts ?? "") || 0; }
+	// A folder node's start; a record task's `created_at` (the time of the line that added it, Task.created_at), so both sort together.
+	static time(x){ return Date.parse(x?.started ?? x?.created_at ?? x?._at ?? x?._rp?.at ?? x?._last_ts ?? "") || 0; }
 
 	// The counts, computed: own = the record's direct tasks; total = record tasks with their subtasks plus the folders under the session.
 	counts(own, folders){
