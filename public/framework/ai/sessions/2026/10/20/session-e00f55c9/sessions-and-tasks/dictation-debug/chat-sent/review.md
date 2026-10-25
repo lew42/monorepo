@@ -1,30 +1,47 @@
 verdict: fix
-1. [fix] Ask 1 (refresh loss) was never done: session.jsonl's own log says "NOT STARTED: refresh-loss repro and fix". No headless reload test was run, and nothing was fixed. The only thing logged is the suspected cause (`ext/Session/Session.js:34` has no keepalive).
-2. [fix] Ask 1 extended: Chat v2 shows no sent marks. `shots/v2-400-1-sent-smart.png` still reads "Nothing said in this session yet", and `test/chat-sent.mjs:529` checks the marks only when `!v2`. The owner asked for both stages on each bubble, and the shared code in `ext/drawer/ChatView.js` draws no `{sent}` lines.
-3. [fix] Ask 1 extended: no verdict was logged on (a) feeding the fast assistant one sentence at a time or (b) a setting for how often it is fed. Each appears only as "NOT STARTED" in session.jsonl.
-4. [fix] Ask 4 is not done. The diff adds no `⬜` "chat" line to `ux/Dictate/readme.md` or to `ext/Chat/v2/readme.md`, and neither readme links the other.
-5. [fix] Ask 5 is only partly met. In the bubble chat, `Widget.js:463` `show_task` appends the Question at the end of the thread, not under its Prompt (`shots/bubbles-400-3-scrolled-up.png`: there is no prompt above it). Neither view gives the Question a way to be answered. The test also used a stub, not the real session v-sq8y7db that the brief named.
-6. [fix] Asks 6–9 (raw words live in v2, no flash from raw to cleaned, a clearer send moment, the long pause that did not send) have no code in the diff. They exist only as planning notes ("FLASH Q1–Q3") in session.jsonl. Either build them or move them, by name, to a follow-up brief so they don't look delivered.
-7. [fix] The docs are stale or missing pieces. `ext/Chat/doc/notes.md#sticky-scroll` (line 83) says `sticky_scroll` serves `chat()` and `Thread`, but ChatView v2 now uses it too, through a MutationObserver. The new `{sent:{to, at, re, delay_ms}}` session line (`Servex/agents/Sessions.js` `mark_sent`) is not documented in the Dictate readme or its doc/. The new proofs `test/chat-sent.mjs` and `test/chat-gray.mjs` are missing from the proofs list at `ux/Dictate/readme.md:26`.
-8. [fix] A fresh agent could not continue from this folder alone. The last log line ("ROUND 1 done", session.jsonl) uses item numbers that do not match requirements.md: its "item 5 gray labels" and "item 7 dedupe" are not in the brief. It also never lists what is still open. Add one line that maps each numbered ask to done or open.
-9. [note] The jump button is not in the same place in the two views. In bubbles it sits at the bottom left, beside a message (`shots/bubbles-400-3-scrolled-up.png`). In v2 it sits at the bottom right, touching the end of a text line (`shots/v2-400-3-scrolled-up.png`). The brief says it must never cover messages; the right margin in `Chat.css:60` does not hold in the bubbles box.
-10. [note] The shots were taken at 400 and 820, not 1200 or 1920. The log explains why: the sheet is not mounted at 52em or wider. `shots/mic-light.png` draws the mic as a stretched oval, which looks like an artifact of the test harness. The new mic colours `#1f2328` and `#e9ebee` (`DictationBar.css:248-249`) are hard-coded instead of theme tokens, so check them in dark mode.
-11. [note] A line that never goes through `say`/`release_thought` (for example, one routed straight to smart) will show "fast …" forever (`Chat.js` `sent_badge`). Only live lines are tracked, so this does not touch history, but the badge could hide a seat that does not apply.
-12. [note] Ask 2 (the small button and one shared scroll lock) and ask 3 (the light mic) look met in code and in the shots. ChatView now reuses `sticky_scroll` (CLAUDE.md law 6), and the bubble proof's checks pass. A simpler option for v2 would be calling `scroll.pin()` from ChatV2's own patch step instead of a subtree MutationObserver.
+1. [fix] Ask 1, the refresh check, is still not reproduced. The brief asks for a headless reload test before the cause is logged. session.jsonl only names a suspected cause from reading the code (`ext/Session/Session.js:34` has no keepalive, `ext/Chat/Mic.js:70`); no test reloaded the page and checked whether the lines arrived.
+2. [fix] Ask 1 extended, suggestions (a) and (b): no verdict is logged yet. The "REVIEW ANSWER" line in session.jsonl still lists both as open. Each needs one log line saying build or skip, and why. The `answer_quiet_ms` setting the minion found makes (b) look cheap.
+3. [fix] `ux/Dictate/doc/notes.md:580` (the new "The `sent` line" section) says chat.js passes the line "to `Widget.mark_sent`". That is a different, older method (`Widget.js:662`, the echo mark). The `{sent}` line really goes to `Thread.sent` / `apply_sent`, so a reader following the doc lands in the wrong place.
+4. [fix] The sent badge uses `--prime` for text (`ext/Chat/Chat.css`, `.chatbox-sent-done`) at 0.72em. framework.css:60-66 says that on lew42 `--prime` is 2.25:1 as ink on white and that text must use `--prime-ink`. The badge in `shots/v2-400-1-sent-smart.png` is faint orange on white. The owner asked for the badge to be easy to see, so use `--prime-ink`.
+5. [fix] A fresh agent can't tell what is finished from this folder. The last commit, 0d3727c74 (v2 sent marks, Questions under their Prompt, jump button on the right in both views, docs), has no log line in session.jsonl. The newest log line, "REVIEW ANSWER", still lists v2 sent marks and the button side as open. Add one line that marks each numbered ask, 1–9, done or open, and names where 6–9 went (the round-2 task `../chat-see-your-words-live-and-know-when-t/`).
+6. [note] Ask 5: an open Question now sits under its Prompt, and the proof checks this against the real session, read-only (`test/chat-sent.mjs:704-710`). The row has no way to complete or answer it, though `core/Task/Question.js` has `complete()`. The brief asked for one "if the Question class already has one", so this is worth a button or a logged reason.
+7. [note] `test/chat-sent.mjs:705` hard-codes `C:/Code/lew42/monorepo/...` and reads the real session by line numbers [28, 29, 32, 36, 37]. The test runs only on this machine, from the main tree. A path relative to `import.meta.url`, plus a search by id instead of line numbers, would be sturdier.
+8. [note] `test/chat-sent.mjs` writes `tmp-chat-sent.jsonl` into `public/…/test/` and deletes it only at the end of `round()`. A failed run leaves the file in the served tree.
+9. [note] The mic colours `#1f2328` / `#e9ebee` (`DictationBar.css`) are hard-coded rather than tokens. A light disc with dark ink reads in both themes, so this is about consistency, not contrast.
+10. [note] A line routed straight to smart, without passing through the fast seat, would show "fast …" forever (`Chat.js` `sent_badge`). This affects only live lines.
+
+Widths given: no review.mjs shots; the minion's own shots are at 400 and 820 (the sheet is not mounted at 52em or wider, see session.jsonl "ROUND 1 done").
 
 ## Requirements
-- 1 "A sent mark on each line… check whether lines before a refresh are lost" — partly — bubbles only (`shots/bubbles-400-1-sent-smart.png` "fast ✓ 0.4 s · smart ✓ 3.1 s"); refresh not done; v2 none; (a)/(b) no verdict
-- 2 "A smaller jump-to-newest button… Chat v2 too" — yes — round "↓" in both views, `shots/*-3-scrolled-up.png`, `*-4-jumped.png`
-- 3 "A light mic background" — yes — `DictationBar.css:248`, `shots/mic-light.png`
-- 4 "Chat, not dictation" readme lines — no — the diff touches no readme
-- 5 "Open Questions show under their Prompt" — partly — the bubbles view draws it at the end, with no answer; v2 already drew it (`shots/v2-400-3-scrolled-up.png`)
-- 6 "Raw transcription on screen in real time in Chat v2" — no
-- 7 "No flash from raw to cleaned" — no; named only in the log (`ext/Chat/Mic.js:510`)
-- 8 "A clearer send moment" — no
-- 9 "Why a long pause once did not send" — no; candidate paths only (`Mic.js:607`, `:621`)
-- Class page with live instances — n/a, no new class
-
+- 1 "A 'sent' mark on each line" — yes — `shots/bubbles-400-1-sent-smart.png`, `shots/v2-400-1-sent-smart.png`: "fast ✓ 0.4 s · smart ✓ 3.1 s"; Servex `Sessions.mark_sent` writes `delay_ms` from `said_at`
+- 1 "Check whether lines dictated before a page refresh are lost: reproduce it headless" — no — cause read from code only, no reload repro (finding 1)
+- 1 ext. "show both stages… inline" — yes — both views draw the shared `sent_badge` (ChatV2.js:126, Chat.js `piece_body`)
+- 1 ext. "Evaluate two of the owner's suggestions and log your verdict" — no — finding 2
+- 2 "A smaller jump-to-newest button… verify scroll lock… screenshots" — yes — `shots/*-2-pinned … -4-jumped.png` in both views; ChatView.js now uses the one `sticky_scroll`
+- 2 "Chat v2 too… one shared piece of code" — yes — `ext/drawer/ChatView.js:47-51`
+- 3 "A light mic background" — yes — `shots/mic-light.png`, DictationBar.css
+- 4 "'Chat', not 'dictation'… one ⬜ line in each readme, each linking the other" — yes — landed on michael/dev (`ux/Dictate/readme.md:5`, `ext/Chat/v2/readme.md:3`)
+- 5 "Open Questions show under their Prompt" — yes — proof against q-1792961349 (`test/chat-sent.mjs:710`); answering it: no (note 6)
+- 6–9 (raw words live in v2, no flash, a clearer send moment, the long pause) — n/a this round — the owner approved round 1 as the safe fixes only (`../chat-see-your-words-live-and-know-when-t/task.jsonl` line 8); not yet recorded as moved (finding 5)
+- New class shows its live instances — n/a — no new class (methods on Thread and ChatV2Model)
+## Page structure
+- n/a — no page changed shape; the chat sheet only gained a badge and a row
+## Navigation
+- techniques: a sheet (the ✦ chat), the ↓ jump button
+- jump button small and out of the way — yes — 1.75rem round, bottom right in both views (`shots/v2-400-3-scrolled-up.png`)
+## Layout
+- yes — `shots/bubbles-400-5-question.png`: the Question row reads as one bubble
+## Sizing
+- yes — the badge is 0.72em on one line (`white-space: nowrap`)
+## Wrapping
+- yes — no wrap in the 400 shots
+## Spacing and padding
+- yes — `shots/v2-400-1-sent-smart.png`: the badge sits one line under the text
+## Colour and contrast
+- sent badge text contrast — no — `--prime` as text (finding 4)
+- mic disc — yes — light disc, dark ink (`shots/mic-light.png`)
+## Flow
+- yes — scroll lock: pinned → scrolled up and held → jumped and following again (`shots/*-2…-4`)
 ## Words
-- New reader-facing text says "chat"? — yes — the badge titles ("Reached the fast assistant…") and the GUESS/LIVE_SENT titles use no "dictation"
-- Plain, clear sentences — yes — `Chat.js:10-11` titles are full sentences
-- Badge text "fast ✓ 0.4 s · smart …" — yes, though terse; the title explains it
+- reader text says "chat"? — yes — the new titles (`GUESS_TITLE`, `LIVE_SENT_TITLE`, the badge titles) say what they mean in plain words
+- docs current — no — `ux/Dictate/doc/notes.md:580` names the wrong method (finding 3)

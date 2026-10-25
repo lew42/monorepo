@@ -1,68 +1,154 @@
 diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/probe.mjs b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/probe.mjs
 new file mode 100644
-index 000000000..a8df2d4e8
+index 000000000..beb245ff5
 --- /dev/null
 +++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/probe.mjs
-@@ -0,0 +1,30 @@
-+import { browser } from "file:///C:/Code/lew42/worktrees/qf-3/Server/Browser.mjs";
-+const BASE = process.env.BASE || "http://qf-3.localhost";
-+const W = +(process.argv[2] || 400), H = +(process.argv[3] || 844);
-+const tag = process.argv[4] || "x";
+@@ -0,0 +1,29 @@
++// node probe.mjs <base url> <width> <height> <tag>   e.g. http://qf-3.localhost 400 844 after
++// Docs -> AI round trip in the drawer (phone sheet below 52em, desktop dock above); measures the tab area and the chat.
++import { browser } from "../../../../../../../../../../../Server/Browser.mjs";
++const BASE = process.argv[2] || process.env.BASE, W = +(process.argv[3] || 400), H = +(process.argv[4] || 844), tag = process.argv[5] || "x";
++const phone = W < 832;
 +const b = await browser();
 +const p = await (await b.newContext({ viewport: { width: W, height: H } })).newPage();
-+const stub = async r => r.fulfill({ status: 200, contentType: "application/json", body: "{}" });
-+await p.route(/\/(servex|api)\/.*(post|prompt)/, stub);
 +p.on("pageerror", e => console.log("pageerror", e.message));
 +await p.goto(BASE + "/framework/ext/drawer/ai/", { waitUntil: "networkidle" });
 +await p.waitForTimeout(2500);
-+const dir = new URL(".", import.meta.url).pathname.slice(1);
++const dir = new URL("./shots/", import.meta.url).pathname.replace(/^\/(\w:)/, "$1");
 +const measure = async label => {
 +  const m = await p.evaluate(() => {
 +    const r = s => { const e = document.querySelector(s); if (!e || !e.getClientRects().length) return null; const b = e.getBoundingClientRect(); return [Math.round(b.top), Math.round(b.height)]; };
-+    const sheet = document.querySelector(".drawer-rail-sheet");
-+    return {
-+      sheetCls: sheet?.className, sheet: r(".drawer-rail-sheet"), panel: r(".drawer-rail-sheet-panel"), tabs: r(".drawer-rail-sheet-tabs"),
-+      tabbody: r(".drawer-rail-sheet-tabbody"), grip: [...document.querySelectorAll("[class*=grip]")].map(e => e.className + ":" + JSON.stringify(e.getBoundingClientRect().toJSON())),
-+      url: location.pathname,
-+    };
++    return { sheet: r(".drawer-rail-sheet"), tabs: r(".drawer-rail-sheet-tabs"), tabbody: r(".drawer-rail-sheet-tabbody"), dock: r(".drawer-tabs"), body: r(".drawer-body"), chat: r(".drawer-ai-chat, .chatbox"), url: location.pathname };
 +  });
 +  console.log(label, JSON.stringify(m));
 +  await p.screenshot({ path: dir + `${tag}-${label}-${W}.png` });
 +};
++const pick = async name => {
++  if (phone){ await p.click(".drawer-rail-sheet-title"); await p.waitForTimeout(300); await p.locator(".drawer-rail-sheet-menu-item", { hasText: name }).first().click(); }
++  else await p.locator(".drawer-tab", { hasText: new RegExp("^" + name) }).first().click();
++  await p.waitForTimeout(1500);
++};
++if (!phone && !(await p.locator(".drawer-tab").count())){ await p.click(".drawer-menu"); await p.waitForTimeout(1500); }
 +await measure("0-start");
-+const pick = async name => { await p.click(".drawer-rail-sheet-title"); await p.waitForTimeout(300); await p.locator(".drawer-rail-sheet-menu-item", { hasText: name }).first().click(); await p.waitForTimeout(1500); };
 +await pick("Docs"); await measure("1-docs");
 +await pick("AI"); await measure("2-back-on-ai");
 +await b.close();
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-0-start-1200.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-0-start-1200.png
+new file mode 100644
+index 000000000..9ad2ea466
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-0-start-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-0-start-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-0-start-400.png
+new file mode 100644
+index 000000000..708f20fe0
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-0-start-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-1-docs-1200.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-1-docs-1200.png
+new file mode 100644
+index 000000000..9ce2ed5e0
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-1-docs-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-1-docs-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-1-docs-400.png
+new file mode 100644
+index 000000000..ef889ed03
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-1-docs-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-2-back-on-ai-1200.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-2-back-on-ai-1200.png
+new file mode 100644
+index 000000000..a6e64b924
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-2-back-on-ai-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-2-back-on-ai-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-2-back-on-ai-400.png
+new file mode 100644
+index 000000000..29a24f84a
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/after-2-back-on-ai-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-0-start-1200.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-0-start-1200.png
+new file mode 100644
+index 000000000..291ffb04f
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-0-start-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-0-start-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-0-start-400.png
+new file mode 100644
+index 000000000..708f20fe0
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-0-start-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-1-docs-1200.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-1-docs-1200.png
+new file mode 100644
+index 000000000..9ce2ed5e0
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-1-docs-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-1-docs-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-1-docs-400.png
+new file mode 100644
+index 000000000..ef889ed03
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-1-docs-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-2-back-on-ai-1200.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-2-back-on-ai-1200.png
+new file mode 100644
+index 000000000..5ccb91516
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-2-back-on-ai-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-2-back-on-ai-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-2-back-on-ai-400.png
+new file mode 100644
+index 000000000..3a5bb3ffb
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/before-2-back-on-ai-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-after-1200.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-after-1200.png
+new file mode 100644
+index 000000000..b28e49404
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-after-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-after-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-after-400.png
+new file mode 100644
+index 000000000..d8465fecf
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-after-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-after-bottom-1200.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-after-bottom-1200.png
+new file mode 100644
+index 000000000..2d70fa786
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-after-bottom-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-after-bottom-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-after-bottom-400.png
+new file mode 100644
+index 000000000..445adabb3
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-after-bottom-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-before-1200.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-before-1200.png
+new file mode 100644
+index 000000000..26db77672
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-before-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-before-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-before-400.png
+new file mode 100644
+index 000000000..4144ad62e
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-before-400.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-before-bottom-1200.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-before-bottom-1200.png
+new file mode 100644
+index 000000000..ff2e72a3f
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-before-bottom-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-before-bottom-400.png b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-before-bottom-400.png
+new file mode 100644
+index 000000000..68c1bb381
+Binary files /dev/null and b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/shots/v2-before-bottom-400.png differ
 diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/v2shot.mjs b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/v2shot.mjs
 new file mode 100644
-index 000000000..5ea43b8db
+index 000000000..4d840f3a7
 --- /dev/null
 +++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/v2shot.mjs
-@@ -0,0 +1,10 @@
-+import { browser } from "file:///C:/Code/lew42/worktrees/qf-3/Server/Browser.mjs";
-+const [W, tag] = [+process.argv[2], process.argv[3]];
+@@ -0,0 +1,15 @@
++// node v2shot.mjs <base url> <width> <tag>: a Chat v2 session at the top and scrolled to the bottom (the room under the last card)
++import { browser } from "../../../../../../../../../../../Server/Browser.mjs";
++const BASE = process.argv[2] || process.env.BASE, W = +process.argv[3], tag = process.argv[4];
++const dir = new URL("./shots/", import.meta.url).pathname.replace(/^\/(\w:)/, "$1");
 +const b = await browser();
 +const p = await (await b.newContext({ viewport: { width: W, height: 900 } })).newPage();
-+await p.goto("http://qf-3.localhost/framework/ext/Chat/v2/?src=/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl", { waitUntil: "networkidle" });
++await p.goto(BASE + "/framework/ext/Chat/v2/?src=/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl", { waitUntil: "networkidle" });
 +await p.waitForTimeout(2500);
 +await p.evaluate(() => document.querySelector(".chat-v2-toggle")?.click());
 +await p.waitForTimeout(500);
-+await p.screenshot({ path: `v2-${tag}-${W}.png`, fullPage: true });
++await p.screenshot({ path: dir + `v2-${tag}-${W}.png` });
++await p.evaluate(() => { const e = document.querySelector(".chat-v2"); for (let n = e; n; n = n.parentElement) n.scrollTop = 1e6; window.scrollTo(0, 1e6); });
++await p.waitForTimeout(500);
++await p.screenshot({ path: dir + `v2-${tag}-bottom-${W}.png` });
 +await b.close();
 diff --git a/public/framework/ext/Chat/v2/ChatV2.css b/public/framework/ext/Chat/v2/ChatV2.css
-index a47989c40..63f53b724 100644
+index a47989c40..6a01d97cb 100644
 --- a/public/framework/ext/Chat/v2/ChatV2.css
 +++ b/public/framework/ext/Chat/v2/ChatV2.css
-@@ -2,16 +2,16 @@
+@@ -1,17 +1,17 @@
+ @layer base, theme, site, util;
  
  @layer site {
- 	/* The chat column: one readable measure, centred; prompts sit at its root with no bubble or card. */
+-	/* The chat column: one readable measure, centred; prompts sit at its root with no bubble or card. */
 -	.chat-v2 { display: flex; flex-direction: column; gap: calc(var(--gap, 1rem) * 2); max-width: 46rem; margin-inline: auto; padding: var(--pad, 1rem); }
++	/* The chat column: one readable measure, centred; each prompt sits at its root as a card (surface background, a line, a small radius), no bubble. */
 +	.chat-v2 { display: flex; flex-direction: column; gap: calc(var(--gap, 1rem) * 2); max-width: 46rem; margin-inline: auto; padding: var(--pad, 1rem); padding-block-end: calc(var(--pad, 1rem) * 4); }
  	.chat-v2-empty { color: var(--subtle); }
 -	.chat-v2-prompt { display: flex; flex-direction: column; gap: .6em; }
-+	.chat-v2-prompt { display: flex; flex-direction: column; gap: .6em; background: var(--card-bg, #fff); border: 1px solid var(--line); border-radius: .6em; padding: var(--pad, 1rem); }
++	.chat-v2-prompt { display: flex; flex-direction: column; gap: .6em; background: var(--surface); border: 1px solid var(--line); border-radius: .6em; padding: var(--pad, 1rem); }
  	/* head/raw-wrap/nest are the three parts a live patch can re-render on their own (ChatV2.patch): empty ones take no space. */
  	.chat-v2-head, .chat-v2-raw-wrap { display: flex; flex-direction: column; gap: .6em; }
  	.chat-v2-head:empty, .chat-v2-raw-wrap:empty, .chat-v2-nest:empty { display: none; }
@@ -70,10 +156,22 @@ index a47989c40..63f53b724 100644
  	.chat-v2-text, .chat-v2-reply-text, .chat-v2-answer { white-space: pre-wrap; overflow-wrap: anywhere; }
  	.chat-v2-label { color: var(--subtle); display: block; margin-top: .4em; }
 -	.chat-v2-toggle { align-self: flex-start; background: none; border: 0; padding: .4em 0; min-height: 44px; color: var(--subtle); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85em; }
-+	.chat-v2-toggle { align-self: flex-start; background: none; border: 0; padding: .5em 0; margin-block: -.5em; min-height: 0; color: var(--subtle); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85em; }
++	.chat-v2-toggle { align-self: flex-start; background: none; border: 0; padding: 0; min-height: 44px; margin-block: -.8em; color: var(--subtle); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85em; }
  	.chat-v2-toggle:hover { color: inherit; }
  	.chat-v2-raw { display: flex; flex-direction: column; gap: .4em; padding-left: 1em; border-left: 2px dotted var(--line); }
  	.chat-v2-raw-line { margin: 0; color: var(--subtle); font-style: italic; overflow-wrap: anywhere; }
+diff --git a/public/framework/ext/Chat/v2/readme.md b/public/framework/ext/Chat/v2/readme.md
+index e58883baa..06fd1cc18 100644
+--- a/public/framework/ext/Chat/v2/readme.md
++++ b/public/framework/ext/Chat/v2/readme.md
+@@ -1,6 +1,6 @@
+ # Chat v2: a session's chat, drawn from its `tasks` list
+ 
+-Read-only step 1 of the new chat (the owner's decision, [chat-shape.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md)): a session's conversation is its `tasks` list in `session.jsonl`. Each Prompt sits at the root of the chat (no bubbles, no card) as the smart assistant's refined version; its replies, questions and child tasks nest under it, marked 🧠. The raw Whisper text and the fast assistant's cleaned paragraphs are one click down, "show raw", never dropped. The old chat ([Chat.js](../Chat.js), `ux/Dictate/chat.js`) is untouched until v2 replaces it.
++Read-only step 1 of the new chat (the owner's decision, [chat-shape.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md)): a session's conversation is its `tasks` list in `session.jsonl`. Each Prompt sits at the root of the chat (a card each, no bubbles) as the smart assistant's refined version; its replies, questions and child tasks nest under it, marked 🧠. The raw Whisper text and the fast assistant's cleaned paragraphs are one click down, "show raw", never dropped. The old chat ([Chat.js](../Chat.js), `ux/Dictate/chat.js`) is untouched until v2 replaces it.
+ 
+ Try it: [/framework/ext/Chat/v2/](/framework/ext/Chat/v2/) draws [fixture/session.jsonl](fixture/session.jsonl); `?src=<url of any session.jsonl>` draws that session, live.
+ 
 diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
 index 3e91c4ea4..783b05e24 100644
 --- a/public/framework/ext/drawer/rail.css
