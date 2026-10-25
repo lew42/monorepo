@@ -26,10 +26,11 @@ Paragraphs.prototype.of = Paragraph;
 
 export class Prompt extends Task {
 
-	// Arrays kept as data: `raw` (text chunks, appended only) and `parts` (the splitter's record, ext/Refine/doc/prompt-records.md).
-	static plain_lists = ["raw", "parts"];
+	// Arrays kept as data: `raw` (text chunks, appended only), `parts` (the splitter's record, ext/Refine/doc/prompt-records.md), and the
+	// migrated `refined` cards and `notes` (Server/PromptsToSession.mjs).
+	static plain_lists = ["raw", "parts", "refined", "notes"];
 	// Plain fields a log line may set (Task.replay_line reads Task.FIELDS and these).
-	static line_fields = ["subject", "process", "handled"];
+	static line_fields = ["subject", "process", "handled", "refined", "notes"];
 	static queries = [...Task.queries, "sentences", "settled_parts"];
 
 	static KINDS = ["ask", "question", "rule", "idea", "conversation"];

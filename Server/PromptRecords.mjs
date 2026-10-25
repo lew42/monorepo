@@ -7,7 +7,7 @@
  *   parts      model   runs of sentences, each with a kind; main asks with their details nested (PARTS_BRIEF) → a `parts` line
  *   outcomes   model   what came of each part, with evidence (OUTCOMES_BRIEF), one call per window of the session → a new `parts` line
  *   file       node    every part still open becomes a task on the session (item tool's run_item); done/documented ones never do
- *   completion code    Prompt.completion(): settled parts out of parts + uncited sentences (ext/Refine/Prompt.js)
+ *   completion code    PromptRun.completion(): settled parts out of parts + uncited sentences (ext/Refine/PromptRun.js)
  * Sources differ only in how raw text arrives: a VS Code tab transcript (PromptAudit.prompts), a Whisper/Dictate session's own
  * prompts.jsonl raw lines, the cloud voice log. Live: `live` (parts, then proposals). After the fact: `review`.
  *
@@ -26,7 +26,7 @@ import AIIndex from "./AIIndex.mjs";
 import RefineQueue from "./RefineQueue.mjs";
 import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
 import PromptLog from "../public/framework/ai/AISession/PromptLog.js";
-import Prompt from "../public/framework/ext/Refine/Prompt.js";
+import PromptRun from "../public/framework/ext/Refine/PromptRun.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const HAIKU = "claude-haiku-5-5";
@@ -143,7 +143,7 @@ Answer at the end with ONE JSON object and nothing else after it:
 		const r = await this.call(`The prompt, sentence by sentence:\n${sentences.map((s, i) => `${i}: ${s}`).join("\n")}`, { model: this.def.parts.model, system: PromptRecords.PARTS_BRIEF });
 		const o = PromptAudit.json(r.text), ids = { n: 0 };
 		const clean = ps => (ps ?? []).filter(x => x?.text).map(x => ({ id: `a${++ids.n}`, cites: (x.cites ?? []).map(Number).filter(n => Number.isInteger(n) && n >= 0 && n < sentences.length),
-			kind: Prompt.KINDS.includes(x.kind) ? x.kind : "ask", text: String(x.text).trim(), ...(x.file ? { file: String(x.file) } : {}), ...(x.module ? { module: String(x.module) } : {}), ...(x.parts?.length ? { parts: clean(x.parts) } : {}),
+			kind: PromptRun.KINDS.includes(x.kind) ? x.kind : "ask", text: String(x.text).trim(), ...(x.file ? { file: String(x.file) } : {}), ...(x.module ? { module: String(x.module) } : {}), ...(x.parts?.length ? { parts: clean(x.parts) } : {}),
 			outcome: x.kind === "conversation" ? { is: "no-action", why: "conversation" } : { is: "open" } }));
 		const parts = clean(o.parts);
 		await this.add({ prompt: this.rid(p), stage: "parts", process: this.process, step: "parts", subject: String(o.subject ?? ""), parts, model: this.def.parts.model, usd: +r.usd.toFixed(5) });
@@ -170,7 +170,7 @@ Answer at the end with ONE JSON object and nothing else after it:
 			const r = await this.call(msg, { model: this.def.outcomes.model, system: PromptRecords.OUTCOMES_BRIEF, tools: ["Read", "Grep", "Glob", "Bash"], max_turns: this.def.outcomes.max_turns });
 			let o; try { o = PromptAudit.json(r.text).outcomes ?? {}; } catch (e){ console.log(`✗ window L${w.lines[0]}: ${e.message}`); continue; }
 			for (const { p, row } of items){
-				const set = ps => ps.map(x => { const v = o[`${p.uuid.slice(0, 8)}.${x.id}`]; return { ...x, ...(v && Prompt.OUTCOMES.includes(v.is) ? { outcome: { is: v.is, ref: String(v.ref ?? ""), why: String(v.why ?? "") } } : {}) }; });
+				const set = ps => ps.map(x => { const v = o[`${p.uuid.slice(0, 8)}.${x.id}`]; return { ...x, ...(v && PromptRun.OUTCOMES.includes(v.is) ? { outcome: { is: v.is, ref: String(v.ref ?? ""), why: String(v.why ?? "") } } : {}) }; });
 				await this.add({ prompt: this.rid(p), stage: "parts", process: this.process, step: "outcomes", subject: row.subject ?? "", parts: set(row.parts), model: this.def.outcomes.model, usd: +(r.usd / items.length).toFixed(5) });
 			}
 			console.log(`✓ window L${w.lines.join(",L")}: ${flat.length} parts judged, $${r.usd.toFixed(3)} (spent $${this.spent.toFixed(2)})`);
@@ -225,7 +225,7 @@ Answer at the end with ONE JSON object and nothing else after it:
 		if (!open.length) return null;
 		try {
 			const list = (xs, f) => xs.map(f).join("\n");
-			const r = await this.call(`Prompt subject: ${row.subject}\nAsks:\n${list(todo, x => "- " + x.text)}\n\nOpen tasks:\n${list(open, t => `${t.id}: ${t.title}`)}\n\nIs this prompt more work on ONE of the open tasks (the same outcome)? Answer JSON only: {"attach_to": "<task id>"|null}. When unsure, null.`,
+			const r = await this.call(`PromptRun subject: ${row.subject}\nAsks:\n${list(todo, x => "- " + x.text)}\n\nOpen tasks:\n${list(open, t => `${t.id}: ${t.title}`)}\n\nIs this prompt more work on ONE of the open tasks (the same outcome)? Answer JSON only: {"attach_to": "<task id>"|null}. When unsure, null.`,
 				{ model: this.def.parts.model, system: "You match a new request to an existing task. Match only when it is clearly the same work." });
 			const id = PromptAudit.json(r.text).attach_to;
 			return open.some(t => t.id === id) ? id : null;
@@ -249,12 +249,12 @@ Answer at the end with ONE JSON object and nothing else after it:
 		};
 	}
 
-	/** Completion per prompt, computed (Prompt.completion). */
+	/** Completion per prompt, computed (PromptRun.completion). */
 	summary(){
 		const rows = this.rows(), state = this.task_state(), out = [];
 		for (const p of this.prompts){
 			const row = rows[this.rid(p)]; if (!row) { out.push({ line: p.line, recorded: false }); continue; }
-			const pr = Prompt.from_log(row, this.id), { done, total } = pr.progress(state);
+			const pr = PromptRun.from_log(row, this.id), { done, total } = pr.progress(state);
 			const kinds = {}; for (const x of pr.parts) kinds[x.outcome?.is ?? "?"] = (kinds[x.outcome?.is ?? "?"] ?? 0) + 1;
 			out.push({ line: p.line, at: p.at, subject: row.subject || pr.parts[0]?.text?.slice(0, 60) || "", parts: pr.parts.length, uncovered: pr.uncovered.length, done, total, complete: pr.complete(state), outcomes: kinds });
 		}

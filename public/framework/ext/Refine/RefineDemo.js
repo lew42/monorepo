@@ -3,7 +3,7 @@ import ErrorLog from "../ErrorLog/ErrorLog.js";
 import { composer } from "../Chat/Composer.js";
 import Whisper from "../../audio/Whisper/Whisper.js";
 import WhisperLog from "../../audio/Whisper/WhisperLog.js";
-import Prompt from "./Prompt.js";
+import PromptRun from "./PromptRun.js";
 import "./PromptView.js";
 import RefineSystem from "./RefineSystem.js";
 import RefineExplorer from "./RefineExplorer.js";
@@ -23,7 +23,7 @@ View.stylesheet(import.meta, "Prompt.css");
  *      own new session, shown with its model, time and cost (links to the session page);
  *   4. the Whisper log (`audio/Whisper` `WhisperSession.View`) and the instance explorer (`RefineExplorer`)
  *      update as you dictate.
- * One `Prompt` instance is the single source for all views, so they cannot disagree.
+ * One `PromptRun` instance is the single source for all views, so they cannot disagree.
  *
  * ONE CHAT INPUT, HERE TOO (`doc/one-input-2026-10-12.md`): this used to build its own
  * `VoiceStrip` + plain `<textarea>`; it is THE composer now (`ext/Chat/Composer.js`), same as
@@ -82,7 +82,7 @@ export default class RefineDemo extends View {
 				on_meter: () => {},
 				session: () => this.system.session_id,
 				// THE LIVE OUTLINE (law 2): `Mic.js`'s own `refine_tick`/`refine_final` already posted this —
-				// write it onto the SAME `Prompt` `RefineSystem.live()` would, so `draw()` below redraws it
+				// write it onto the SAME `PromptRun` `RefineSystem.live()` would, so `draw()` below redraws it
 				// through the one `on_change` path, never a second.
 				on_refine_live: out => this.system.set_live(out),
 			});
@@ -142,7 +142,7 @@ export default class RefineDemo extends View {
 
 	draw(){
 		const prompt = this.prompt;
-		this.$result.empty(() => new Prompt.View({ subject: prompt, show_raw: true, compact: true }));
+		this.$result.empty(() => new PromptRun.View({ subject: prompt, show_raw: true, compact: true }));
 		const st = prompt.status;
 		this.conn?.set("refine", st === "done" ? "ok" : st === "error" ? "bad" : st === "working" ? "wait" : "idle",
 			st === "done" ? `done, ${(prompt.ms / 1000).toFixed(1)} s` : st === "error" ? "error: " + String(prompt.error).slice(0, 60) : st === "working" ? "working…" : "not yet");

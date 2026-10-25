@@ -33,7 +33,7 @@ try {
 
 	// 2. The prompt page maps to the session's own record, and line 1's id is read from a VS Code tab's object.
 	// The model is stubbed: the live process's parts call answers one main ask (with a nested detail) and one question.
-	const pt = new PromptTasks({ say: m => console.log("say:", m) });
+	const pt = new PromptTasks({ say: m => console.log("say:", m), off: () => false });   // never the machine's own on/off switch
 	const rec = pt.record_for(heard[0].file);
 	const live = await pt.live(rec);
 	live.call = async (msg) => (pt.asked = msg, pt.asked_n = (pt.asked_n ?? 0) + 1, { usd: 0, text: JSON.stringify({ subject: "session menu", parts: [

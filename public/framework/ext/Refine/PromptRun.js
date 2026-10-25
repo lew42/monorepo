@@ -1,26 +1,27 @@
 import Scorer from "./Scorer.js";
 import Outline from "./Outline.js";
+import Prompt from "../../core/Task/Prompt.js";   // the one Prompt class (a Task); this file is the refine run's view-model, renamed so there are not two
 
 
 /**
- * class Prompt — ONE prompt, seen at every step of its refinement (the owner's design:
+ * class PromptRun — ONE prompt, seen at every step of its refinement (the owner's design:
  * `doc/vision-2026-10-08.md`, addendum 2). It only holds data; it does not clean,
  * structure or score anything itself — `RefineSystem` sends the text to Servex
  * (`/api/refine`), which runs the SAME `engine.js` `clean()` and `structure.js`
  * `structure()` Echo runs, so there is still exactly one pipeline.
  *
- *   const prompt = new Prompt({ on_change: () => redraw() });
+ *   const prompt = new PromptRun({ on_change: () => redraw() });
  *   prompt.load(await (await fetch("/api/refine", …)).json());   // RefineSystem does this for you
  *   prompt.clean[0]      // { n, text, clarity, weight, flags, alternates, names, card }
  *   prompt.refined       // [{ title, cites, cards: [{ text, cites, cards: [...] }] }]
- *   prompt.view          // a Prompt.View: the rendered result (the debug tree is DefaultView)
+ *   prompt.view          // a PromptRun.View: the rendered result (the debug tree is DefaultView)
  *
  * Only plain data lives on an instance (strings, numbers, arrays, objects) so the debug
  * tree (`ux/Content/Object/DefaultView.js`) can show every property by type.
  *
  * Scores come from `Scorer` (rules; see `doc/prompt.md`). The whole system: `doc/architecture.md`.
  */
-export default class Prompt {
+export default class PromptRun {
 
 	static icon = "article";
 	static LOW_CLARITY = 0.4;   // below this (under the 0.5 default, "not sure") a sentence gets the yellow flag
@@ -50,13 +51,10 @@ export default class Prompt {
 	 * A part is settled when its outcome is one of SETTLED, or it is carried by a task that is complete. A sentence no part cites
 	 * is one more unsettled unit: nothing said is allowed to vanish. `task_state(ref)` answers a task's state ("complete", …);
 	 * node passes the session's tasks, the browser its replayed Session. */
-	static KINDS = ["ask", "question", "rule", "idea", "conversation"];
-	static OUTCOMES = ["done", "documented", "answered", "task", "no-action", "open"];
-	static SETTLED = ["done", "documented", "answered", "no-action"];
-	static settled(part, task_state = () => null){
-		const o = part?.outcome ?? {};
-		return Prompt.SETTLED.includes(o.is) || (o.is === "task" && task_state(o.ref) === "complete");
-	}
+	static KINDS = Prompt.KINDS;
+	static OUTCOMES = Prompt.OUTCOMES;
+	static SETTLED = Prompt.SETTLED;
+	static settled = Prompt.settled;
 	/** Sentence numbers no part (or nested detail) cites. */
 	get uncovered(){
 		const cited = new Set(), walk = ps => (ps ?? []).forEach(p => { (p.cites ?? []).forEach(n => cited.add(n)); walk(p.parts); });
@@ -84,7 +82,7 @@ export default class Prompt {
 
 	/** Fill the instance from one `/api/refine` answer (also how a saved answer is replayed). */
 	load({ clean, structure, ms, clarity, stages, runs, notes, prompt: prompt_id, session }){
-		const parsed = Prompt.parse_outline(structure?.md ?? "");
+		const parsed = PromptRun.parse_outline(structure?.md ?? "");
 		this.subject = parsed.subject;
 		this.refined = parsed.sections;
 		this.ms = ms ?? 0;
@@ -127,7 +125,7 @@ export default class Prompt {
 	 */
 	static from_log(row, session = ""){
 		const up = cards => (cards ?? []).map(c => ({ ...c, cites: (c.cites ?? []).map(i => i + 1), cards: up(c.cards) }));
-		const prompt = new Prompt({ raw: row.raw ?? "", subject: row.subject ?? "", prompt_id: row.id, session, at: row.at ?? "" });
+		const prompt = new PromptRun({ raw: row.raw ?? "", subject: row.subject ?? "", prompt_id: row.id, session, at: row.at ?? "" });
 		prompt.clean = row.clean.map((text, i) => ({ n: i + 1, text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" }));
 		for (const n of row.notes ?? []){
 			const s = prompt.clean[n.i];
@@ -141,7 +139,7 @@ export default class Prompt {
 	}
 
 	/** Sentences worth a yellow flag: unclear enough, or the pipeline asked a question about them. */
-	get flagged(){ return this.clean.filter(s => (s.clarity ?? 1) < Prompt.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
+	get flagged(){ return this.clean.filter(s => (s.clarity ?? 1) < PromptRun.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
 
 	/** The outline `structure()` writes, as nested cards (`Outline.parse`). */
 	static parse_outline(md){ return Outline.parse(md); }

@@ -327,7 +327,7 @@ export class Item extends Events(Object) {
 
 			item[key] = Item.makeList({ owner: item, name: key });
 			const list = item[key];   // read back: a class with its own `paragraphs` setter keeps its own List subclass
-			lists[key].forEach(kid => list.insert(Item.hydrate(kid, seen)));
+			lists[key].forEach(kid => list.insert((list.of ?? Item).hydrate(kid, seen)));   // the list's own member class (Prompt.paragraphs holds Paragraphs)
 		}
 
 		return item;
