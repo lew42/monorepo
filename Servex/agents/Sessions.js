@@ -12,6 +12,7 @@ import { session_facts } from "./Agents.js";
 import { has_key, spend_guard } from "../ext/openrouter/provider.js";
 import { clean } from "../../public/framework/ext/Refine/engine.js";
 import { structure } from "../../public/framework/ext/Refine/structure.js";
+import WakePolicy from "./WakePolicy.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
@@ -242,8 +243,43 @@ export default class Sessions {
 			 * mark), or `hold_max_ms` passed with no such event (the browser engine has no level meter).
 			 * `thoughts` holds those lines; `held` (below, the floor) holds a fast REPLY. */
 			answer_quiet_ms: env("SERVEX_SESSION_ANSWER_QUIET_MS", 2500), hold_max_ms: env("SERVEX_SESSION_HOLD_MAX_MS", 8000),
-			map: {}, by_agent: new Map(), waiting: new Map(), held: new Map(), floor_timers: new Map(),
+			map: {}, by_agent: new Map(), held: new Map(), floor_timers: new Map(),
 			thoughts: new Map(), clients: new Map(), buffers: new Map() };
+	}
+
+	/* THE SMART SEAT'S WAKE GATE (dictation-wake, 2026-10-25): every smart-seat prompt that carries the owner's words goes through
+	 * here (WakePolicy.js, ux/Dictate/doc/wake-policy.md): one batch per pause, question, name or N sentences, never per sentence.
+	 * The knobs, gap_ms and every, live per session in sessions.json (`wake`); defaults and env overrides are in WakePolicy.js. */
+	get waker(){
+		return this._waker ??= new WakePolicy({ flush: (id, lines, why, info) => this.feed_smart(id, lines, why, info),
+			stored: id => this.map[id]?.wake,
+			defaults: { ...(process.env.SERVEX_SESSION_WAKE_GAP_MS ? { gap_ms: env("SERVEX_SESSION_WAKE_GAP_MS", 6000) } : {}),
+				...(process.env.SERVEX_SESSION_WAKE_EVERY ? { every: env("SERVEX_SESSION_WAKE_EVERY", 6) } : {}) } });
+	}
+
+	/* The ONE place the owner's words reach the smart seat (a model turn). `why` is the cue it is told. */
+	feed_smart(id, lines, why){
+		const s = this.map[id];
+		if (!s) return;
+		const moves = (s.moves ?? []).splice(0);
+		const nav = moves.length ? `(now on ${moves[moves.length - 1]})\n` : "";
+		s.smart_re = lines[lines.length - 1].at;
+		this.save();
+		this.wake(s, "smart");
+		this.send(s, "smart", nav + lines.map(l => `${selected_prefix(l.selection)}[on ${l.path} at ${l.at}] ${l.text}`).join("\n") + `\n(${why})`);
+	}
+
+	/* The knobs of one session (dictation widget settings panel): POST /api/session/settings {session, gap_ms?, every?};
+	 * null drops a knob back to the default. Returns the knobs now in force. */
+	settings({ session, gap_ms, every } = {}){
+		const s = this.get(session);
+		const patch = {};
+		if (gap_ms !== undefined) patch.gap_ms = gap_ms;
+		if (every !== undefined) patch.every = every;
+		const next = this.waker.checked(s.id, patch);
+		Object.keys(next).length ? s.wake = next : delete s.wake;
+		this.save();
+		return { ok: true, ...this.waker.knobs(s.id) };
 	}
 
 	install(){
@@ -343,7 +379,7 @@ export default class Sessions {
 			/* `wake()` gives the fresh agent the session's tail as CONTEXT, but context alone
 			 * starts no new turn, so without this the owner hears nothing until they speak
 			 * again, to an agent that never actually answered them (review finding 4). Re-send
-			 * it, to this one role only. */
+			 * it, to this one role only. Not gated by the wake policy: a recovery, not a new thought. */
 			try {
 					this.wake(s, from.role);
 					if (last_owner) from.role === "fast" && this.voice_seat() ? this.voice_say(s, [last_owner]) : this.send(s, from.role, last_owner.text);
@@ -878,11 +914,11 @@ export default class Sessions {
 			/* A spoken line from a page that reports the floor: held until the owner is quiet. */
 			this.hold_thought(s, line);
 			const q = quiet_ms == null ? null : Number(quiet_ms);
-			if (floor !== "speaking" && (q == null || q >= this.answer_quiet_ms)) this.release_thought(s, q == null ? "the mic is off" : `quiet for ${(q / 1000).toFixed(1)} s`);
+			if (floor !== "speaking" && (q == null || q >= this.answer_quiet_ms)) this.release_thought(s, q == null ? "the mic is off" : `quiet for ${(q / 1000).toFixed(1)} s`, q == null ? { mic_off: true } : { quiet: q });
 		} else if (this.thoughts.get(s.id)?.lines.length){
 			/* Typed while spoken words are still held: they all go together, in order (review note 4). */
 			this.hold_thought(s, line);
-			this.release_thought(s, "then typed this");
+			this.release_thought(s, "then typed this", { typed: true });
 		} else {
 			s.fast_re = s.fast_thought_at = line.at;
 			s.fast_heard = text;
@@ -916,7 +952,7 @@ export default class Sessions {
 
 	/* THE FLOOR (ext/Chat/doc/floor.md; the page assistant does the same in Assistant.heard()).
 	 * While the latest floor is "speaking", the FAST reply is held in memory (`held`, the
-	 * newest one only) and the smart quiet gap keeps restarting; "done" writes the held reply.
+	 * newest one only) and the smart seat's pause timer (WakePolicy.hold) stops; "done" writes the held reply and starts it again.
 	 * Like Assistant's `floor_wait_ms`, 8 s of "speaking" with nothing new counts as "done",
 	 * so a dropped mic never swallows a reply. */
 	floor({ session, floor } = {}){
@@ -931,7 +967,8 @@ export default class Sessions {
 	set_floor(s, floor){
 		s.floor = floor;
 		clearTimeout(this.floor_timers.get(s.id));
-		if (floor !== "speaking") return this.release(s);
+		if (floor !== "speaking"){ this.waker.resume(s.id); return this.release(s); }
+		this.waker.hold(s.id);   // the owner is talking, so no pause is running: the smart seat's pause timer stops until the floor is "done"
 		const t = setTimeout(() => this.set_floor(s, "done"), this.floor_wait_ms);
 		this.floor_timers.set(s.id, t);
 		t.unref?.();
@@ -969,6 +1006,7 @@ export default class Sessions {
 		for (const role of ["fast", "smart"]) ((s.notes ??= {})[role] ??= []).push(note);
 		this.save();
 		if (emoji === "❓" && line && line.from?.kind !== "owner"){
+			this.waker.flush(s.id, "asked: a reaction");   // what they said before it goes first, so the explanation lands in context
 			this.wake(s, "smart");
 			this.send(s, "smart", "The owner wants more on that line: explain it in two or three plain sentences.");
 		}
@@ -986,25 +1024,10 @@ export default class Sessions {
 		return null;
 	}
 
-	/* The smart assistant hears a thought, not its fragments: lines gathered over a
-	 * quiet gap (Layers.hear()'s pattern), with where the owner went since. The gap
-	 * restarts while the owner still has the floor. */
+	/* The smart assistant hears a thought, not its fragments: a TYPED line (or a spoken one from a page that reports no floor)
+	 * joins the wake gate with the short `quiet_ms` as its hold, since pressing send is deliberate. */
 	gather(s, line){
-		const w = this.waiting.get(s.id) ?? { lines: [] };
-		w.lines.push(line);
-		clearTimeout(w.timer);
-		const fire = () => {
-			if (this.speaking(s)){ w.timer = setTimeout(fire, this.quiet_ms); return; }
-			this.waiting.delete(s.id);
-			const moves = (s.moves ?? []).splice(0);
-			const nav = moves.length ? `(now on ${moves[moves.length - 1]})\n` : "";
-			s.smart_re = w.lines[w.lines.length - 1].at;
-			this.save();
-			this.wake(s, "smart");
-			this.send(s, "smart", nav + w.lines.map(l => `${selected_prefix(l.selection)}[on ${l.path} at ${l.at}] ${l.text}`).join("\n"));
-		};
-		w.timer = setTimeout(fire, this.quiet_ms);
-		this.waiting.set(s.id, w);
+		this.waker.add(s.id, line, { hold_ms: this.quiet_ms });
 	}
 
 	/* HELD until the owner stops (the floor): every spoken line waits here; both assistants hear
@@ -1013,29 +1036,31 @@ export default class Sessions {
 		const h = this.thoughts.get(s.id) ?? { lines: [] };
 		h.lines.push(line);
 		clearTimeout(h.timer);
-		h.timer = setTimeout(() => { try { this.release_thought(s, `no quiet event for ${Math.round(this.hold_max_ms / 1000)} s`); } catch (e){ console.error(`sessions: ${e.message}`); } }, this.hold_max_ms);
+		// No quiet event for hold_max_ms means no line arrived in that time, so it counts as that much silence: a guess, since this engine has no level meter.
+		h.timer = setTimeout(() => { try { this.release_thought(s, `no quiet event for ${Math.round(this.hold_max_ms / 1000)} s`, { quiet: this.hold_max_ms }); } catch (e){ console.error(`sessions: ${e.message}`); } }, this.hold_max_ms);
 		h.timer.unref?.();
 		this.thoughts.set(s.id, h);
 	}
 
-	release_thought(s, why){
+	/* The FAST seat hears the thought now; the SMART seat's copy goes through the wake gate (waker): `mic_off` flushes it at
+	 * once (the dictation ended), `quiet` counts real silence toward the gap, `typed` gives it the short typed hold. */
+	release_thought(s, why, { mic_off = false, quiet = null, typed = false } = {}){
 		const h = this.thoughts.get(s.id);
 		if (!h?.lines.length) return false;
 		clearTimeout(h.timer);
 		this.thoughts.delete(s.id);
-		const moves = (s.moves ?? []).splice(0);
-		const nav = moves.length ? `(now on ${moves[moves.length - 1]})\n` : "";
 		const said = h.lines.map(l => `${selected_prefix(l.selection)}[on ${l.path}] ${l.text}`).join("\n");
 		const tail = `\n(the owner has stopped: ${why})`;
-		s.fast_re = s.smart_re = h.lines[h.lines.length - 1].at;
+		s.fast_re = h.lines[h.lines.length - 1].at;
 		s.fast_heard = said;
 		s.fast_thought_at = h.lines[0].at;   // the FIRST owner line of this thought — a `(new paragraph)` marker's `re`
 		this.save();
 		this.wake(s, "fast");
 		if (this.voice_seat()) this.voice_say(s, h.lines);
 		else this.send(s, "fast", said + tail);
-		this.wake(s, "smart");
-		this.send(s, "smart", nav + said + tail);
+		this.waker.add(s.id, h.lines, typed ? { hold_ms: this.quiet_ms } : { elapsed_ms: quiet ?? 0 });
+		if (mic_off) this.waker.flush(s.id, "the mic went off");
+		else if (quiet != null) this.waker.silence(s.id, quiet);
 		return true;
 	}
 
@@ -1046,7 +1071,9 @@ export default class Sessions {
 		const n = Math.max(0, Math.round(Number(ms) || 0));
 		this.write(s, { quiet: { at: now_ms(), ms: n, ...(mic_off ? { mic_off: true } : {}), path: page_path(at) ?? s.path } });
 		const released = (mic_off || n >= this.answer_quiet_ms)
-			&& this.release_thought(s, mic_off ? "the mic went off" : `quiet for ${(n / 1000).toFixed(1)} s`);
+			&& this.release_thought(s, mic_off ? "the mic went off" : `quiet for ${(n / 1000).toFixed(1)} s`, mic_off ? { mic_off: true } : { quiet: n });
+		if (mic_off) this.waker.flush(s.id, "the mic went off");   // the thought may have been released earlier; its batch still waits
+		else this.waker.silence(s.id, n);
 		return { ok: true, released };
 	}
 
@@ -1381,7 +1408,7 @@ export default class Sessions {
 		 * localhost calls Servex directly, so there the body carries its own `location.host`. */
 		const host_of = (req, b) => req.headers["x-forwarded-host"] ?? b.host ?? req.headers.host ?? null;
 		router.get("/api/session/:id/stream", (req, res) => this.open_stream(req, res));
-		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["floor", "floor"], ["quiet", "quiet"], ["react", "react"], ["pause", "pause"], ["select", "select"]]){
+		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["floor", "floor"], ["quiet", "quiet"], ["react", "react"], ["pause", "pause"], ["select", "select"], ["settings", "settings"]]){
 			router.options(`/api/session/${verb}`, cors, (req, res) => res.status(204).end());
 			router.post(`/api/session/${verb}`, cors, async (req, res) => {
 				try { const b = await body(req); res.json(this[fn](verb === "new" ? { ...b, host: host_of(req, b) } : verb === "react" ? { ...b, from: { kind: "owner" } } : b)); }

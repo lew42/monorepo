@@ -30,6 +30,8 @@ ever appeared — no error, no clue why.
 
 **Is the raw Whisper reply saved?** Yes, every reply on every surface, by `log_whisper()` into the [Whisper](/framework/audio/Whisper/) bucket; watch them arrive on that page ([doc/demo.md](/framework/audio/Whisper/doc/demo.md)). History: [`audio/Whisper/doc/raw-log.md`](/framework/audio/Whisper/doc/raw-log.md).
 
+**When is the smart assistant woken?** Not per sentence: on a pause, a question or name, or every N sentences; the two knobs are per session: [`doc/wake-policy.md`](doc/wake-policy.md).
+
 **How fast is the first reply?** Measured hop by hop, before and after: [`doc/latency.md`](doc/latency.md).
 
 **Class architecture of the voice UI** (which class owns what, what is a copy of what): [`doc/voice-architecture.md`](doc/voice-architecture.md). **`VoiceStrip`** is the compact panel Refine and the demo below use; **mobile**: [`doc/mobile-socket-2026-10-09.md`](doc/mobile-socket-2026-10-09.md).
