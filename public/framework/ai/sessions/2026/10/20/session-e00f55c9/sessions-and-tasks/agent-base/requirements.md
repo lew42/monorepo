@@ -63,3 +63,9 @@ For `ai-system-mastermind`. The owner's words are in the prompt log (2026-10-24,
     - List any other legacy roles or switches you find, with a keep or retire verdict for each.
 
 16. **(the tab, 2026-10-25) Queued spawns are lost on a Servex restart.** It happened twice tonight: mastermind-sessions-page at 22:49, and mastermind-dictation-2 around 01:15–02:00. A queued spawn must survive a restart (`spawn-queue.json` exists, so check it is reloaded), with a test.
+
+17. **(the owner, 2026-10-25) Correction to item 1: keep a working agent; context loss is the bigger risk.**
+    - Agents run up to about 1M tokens. 100–200k is not a reason to switch. Think about a fresh session around 300–500k, or when a project is done and documented.
+    - Switching loses what was investigated and decided, and five masterminds for one project split the record and the session view. One mastermind per project is the norm.
+    - So hand-off safety comes from docs: architectural and design decisions go in the module's docs as they're made, and a fresh agent could pick them up from there. Use the Process template (design, build, review, document, merge; `/framework/core/Task/process/`) so the document step is never skipped.
+    - Reword item 1 and `ai/doc/context.md` to match.
