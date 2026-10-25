@@ -81,6 +81,10 @@ The smart assistant hears all of this by `follow` on its own session, which skip
 - **B:** the `timeline` list, plus code that keeps it in step with `tasks`.
 - **C:** `replies` / `answer` fields, and a chat renderer that draws a prompt's replies and child tasks under its bubble.
 
+## One rule from the misorder bug (applies to every option)
+
+The chat is drawn in **list order**, the order Node appended the entries, never sorted by a time stamp or by the `p-<ms>` id. Bubbles appeared out of order on 2026-10-25 because the chat sorted by a time that mixed the phone's clock with the PC's ([order/report.md](order/report.md)). One list with one writer is already in order, so a sort can only make it wrong. If a stamp is needed for display, it is Servex's `ts`.
+
 ## Still open
 
 - Should one prompt be one Prompt, or should the fast assistant split a long dictation into several (one per idea)? The recommendation is one per idea: the fast assistant already decides where the ideas break.
