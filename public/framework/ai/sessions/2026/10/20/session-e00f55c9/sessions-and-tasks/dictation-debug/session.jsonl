@@ -183,3 +183,8 @@
 {"log":{"at":"2026-10-25T15:57:29-05:00","msg":"session resumed"}}
 {"action":{"at":"2026-10-25T16:03:11-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/proposal.md"]}}
 {"wait":{"at":"2026-10-25T16:03:28-05:00","on":"owner","what":"okay on proposal.md before any chat build or merge (planning mode, v-sq8y7db)","links":["proposal.md"]}}
+{"action":{"at":"2026-10-25T16:17:14-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/task-completion/requirements.md"]}}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-tasks-get-done/","by":"mastermind-dictation-2","ts":"2026-10-25T21:18:10.088Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-see-your-words-live-and-know-when-t/","by":"mastermind-dictation-2","ts":"2026-10-25T21:18:21.105Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-polish/","by":"mastermind-dictation-2","ts":"2026-10-25T21:18:25.060Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-one-session-one-view/","by":"mastermind-dictation-2","ts":"2026-10-25T21:18:30.117Z"}

@@ -15,6 +15,13 @@ Worktree: `C:/Code/lew42/worktrees/dictation-chat-sent` (branch `worktree/dictat
 
 5. **Open Questions show under their Prompt** (the owner hit this: "I don't see the question you asked me"). The smart assistant added a Question with `item({path: "/framework/ai/sessions/2026/10/25/v-sq8y7db/", delta: {"p-1792961349385": {tasks: {add: {type: "Question", id: "q-1792961349", text: "...", from: "p-1792961349385"}}}}})`, and the chat UI does not draw it. Make an open Question render in the chat directly under the Prompt it belongs to, and give it a way to be answered if the Question class already has one. Use that real session as the test case, and keep its records intact.
 
+**Added in planning (the owner, v-sq8y7db, later the same day; see `../proposal.md`, step 2):**
+
+6. **Raw transcription on screen in real time in Chat v2** (priority). Today the owner sees nothing in v2 until he pauses.
+7. **No flash from raw to cleaned.** On a send, the long raw text shows for a moment and is then replaced by the cleaned text. Show the raw words live as they are spoken, then settle them into the cleaned sentences in place with no flash; keep the raw behind "show raw". Name the component that does the swap, with file:line.
+8. **A clearer send moment.** The "Sends when you pause" status flickers after about 2 s and goes back to listening. That can stay as the sent signal, but the moment of sending should read clearly.
+9. **Why a long pause once did not send.** Reproduce it or find the path in the code that skips the pause timer, and fix it.
+
 ## Where to start
 
 - Read `ux/Dictate/readme.md` and `ext/Chat/v2/readme.md` first. Earlier work in this folder is relevant: `../bucket/`, `../chat-v2/`, `../drawer-v2/`, `../solid/`. The order and send pipeline is described there.

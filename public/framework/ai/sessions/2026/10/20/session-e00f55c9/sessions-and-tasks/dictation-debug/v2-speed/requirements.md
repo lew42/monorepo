@@ -16,6 +16,8 @@ Chat v2 (the V2 button at the top of the chat) shows replies much later than the
 
 5. **Settings that explain themselves** (the owner, same session: "I don't understand what these mean"). In the chat's Settings panel (built in `../settings/`), every label should say what it does in plain words, so a newcomer understands it without trying it. The owner named four: "Dictation goes into chat versus box"; "send delay" (keep talking within it and the words join one prompt); "Clean transcription" (the fast assistant cleans up the words); "send mode: pause or sentences". For each, give a short label plus a one-line hint under it saying what changes when you flip it. Screenshot the panel before and after.
 6. **Bubbles use the width, and code blocks render.** Chat bubbles today do not use the available width. Make a bubble widen sensibly with the view (a readable maximum, not a narrow column), and render fenced code blocks inside a bubble as code (monospace, its own box, scrolls sideways if long). The smart assistant sent a reply with a code block in session v-sq8y7db to test it. Fix it in the shared bubble, so both chat views get it. Screenshot at 400, 1200 and 1920.
+7. **Tidy the cards** (the owner, later the same day). Leave padding below the last task at the bottom of Chat v2. Give cards a background (white is fine for now). "Show raw" has a big gap above it and little below, so it does not look tied to its card: fix that spacing.
+8. **"Cleaned paragraphs" are really sentences.** In "show raw", either show real paragraphs or change the label to say what they are.
 
 ## Where to start
 

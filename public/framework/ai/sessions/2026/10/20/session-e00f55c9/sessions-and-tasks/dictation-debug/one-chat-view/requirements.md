@@ -20,6 +20,10 @@ Chat has two views today: the first one, which has no name, and Chat v2, behind 
 
 **A Structure view in the dropdown.** The owner wants to see the chat's structure, the Prompt and its children (refined text, replies, Questions, tasks), to check that transcriptions are refined properly ("that is the only way to make progress"). Add a "Structure" entry to the version dropdown that draws the session's item tree: each item's type, id and text, nested under its parent, live as lines arrive. Reuse an existing tree or item renderer if one exists; look before building.
 
+**The two assistants' roles, and one Prompt per thought** (the owner, later the same day; `../proposal.md`, "The shape"). The fast assistant does only a strict first pass: it places each sentence in the last paragraph or a new one. The smart assistant tails the session file and writes the refinement (heading and breakdown) as sentences arrive. Each thought is one Prompt item holding the raw text as sentences plus its refined form. Every item shows a small mark for who made it (fast or smart).
+
+**Flag words that look wrong.** Whisper wrote "Mars" where the owner said "smart". A word that is out of place gets a small yellow "?", so the owner sees it and the AI does not take it as meant. Check whether whisper's per-word confidence is available and use it if so.
+
 ## Steps
 
 1. **Plan first, and stop after the plan.** Write `plan.md` in this folder: what each view has that the other lacks (a table, from the code with file:line), which one to keep as the base, how the other's features move into it, how the version dropdown lists and switches versions (and where the choice is saved), and which callers change (`ext/drawer/ChatView.js`, `Sheet.js`, `tabs/ai.js`, any others). Report it to mastermind-dictation-2 and wait for its answer before building. The mastermind decides; this is a structural change (CLAUDE.md, "Ask before": moving a responsibility).
