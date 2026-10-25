@@ -8,11 +8,22 @@ Planning mode (the owner, voice session v-sq8y7db, 2026-10-25): nothing new is b
 - **One placement process.** A single piece of code decides where each item goes. Two rules: the owner's words always arrive at the bottom, and a reply sits under the Prompt it answers, never in the middle of the owner's dictation.
 - **Many looks.** A version is only a way of drawing that same data, picked from a dropdown at the top of the chat. Suggested names (easy to change): **Stream** (today's first view), **Threads** (today's Chat v2), and **Structure** (the item tree, for checking that the refinement is right).
 
-Open question for the owner: whether the two views read the same data today. The running build answers it from the code; the answer will be added here.
+**Do both views read the same data today? Yes, the same file, but through two different readers.**
+- **One file, one writer.** Each session is one file, and only Servex writes to it (`Servex/agents/Sessions.js:613`). The assistants never write it themselves; Servex writes their lines for them.
+- **The first view** reads the file through `Session.watch` and `Session.stream` (`ux/Dictate/chat.js:269`, `:276`).
+- **Chat v2** reads the same file through its own path: `ext/drawer/ChatView.js:52`, then `ext/Chat/v2/ChatV2.js:28`, then `ext/JSONL/JSONL.js:55`.
+- **The gaps between the two readers.** The first view skips any line type it doesn't know (`ux/Dictate/chat.js:212`), which is why it shows no Questions. Its reader also streams faster.
+
+So "one source" is already true. The real work in step 3 is replacing the two readers with one reader and one placement process.
 
 ## The work, in four steps
 
-1. **Small fixes** (building now, about $6)
+1. **Small fixes** (about $6; paused at commit `c3069554b` on its own branch, nothing merged)
+   - **Built:** the sent marks ("fast ✓ 0.4 s · smart ✓ 3.1 s" beside each line; the times in the test are made up), the small round "↓" button, and the light mic.
+   - **Not proven yet:** scroll lock in Chat v2, and pinned-by-default in the first view, which failed one check.
+   - **Not done yet:** the refresh-loss fix, Questions under their Prompt, and the readme lines. The likely cause of refresh loss is that unsent words are dropped when the page closes (`ext/Session/Session.js:34`).
+
+   The full list for this step:
    - ⬜ A "sent" mark on each line: when it reached the fast assistant and when it reached the smart one, with the delay measured.
    - ⬜ A check that lines dictated before a page refresh are not lost.
    - ⬜ Scroll lock in both views: pinned to the bottom by default, scrolling up unpins it, and a small "newest" button that covers nothing pins it again.
