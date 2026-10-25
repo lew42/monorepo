@@ -46,7 +46,7 @@ const ID = { type: "string", description: "The agent's human-readable id, as `li
  * word "session" to never auto-sleep for as long as this is a live, ongoing session (the voice
  * pair's own default). Left out, the agent's ROLE picks a sensible default
  * (`Global.default_after`): the voice pair's "session", 0 for one-off workers (minion, reviewer,
- * task-mastermind), the plain few-minutes timer for everyone else. */
+ * a one-task mastermind), the plain few-minutes timer for everyone else. */
 const DORMANT_AFTER = { description: "Seconds to stay idle before sleeping to free RAM (resumes in place on the next message), or the word \"session\" to never auto-sleep while this is a live session. Omit it to use the role's own default — see Servex/agents/Global.js's `default_after`.",
 	anyOf: [{ type: "number" }, { type: "string", enum: ["session"] }] };
 
@@ -248,7 +248,7 @@ function session_tools(agents){
 			+ " big\", a word, a colour, a size) goes straight to the standing fixer, fixer-1 — no spawn, nothing new made,"
 			+ " landing in roughly 10-30 seconds. Writes the request to public/framework/ai/quick-fix/page.jsonl and hands it"
 			+ " to the fixer at once. If the fixer is mid-fix, this one queues behind it and the answer says how many are ahead."
-			+ " The fixer itself decides if the change turns out to be bigger than a quick fix and hands it to a task-mastermind"
+			+ " The fixer itself decides if the change turns out to be bigger than a quick fix and hands it to a mastermind"
 			+ " instead — you do not have to guess right before calling this.",
 			{ page: { type: "string", description: "The site path being looked at, e.g. `/framework/ext/Chat/`." },
 				selection: { type: "object", description: "The one element picked out, if any: `{kind, label, text, selector}` — the same shape `ext/drawer/select.js` reports." },

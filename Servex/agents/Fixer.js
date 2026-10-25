@@ -15,7 +15,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
  * own comment there tells the story of qf-9 looking "stopped" while its holder was still working.
  *
  * WHAT IT DOES NOT DO: this file never edits a page itself. The actual edit, the commit, the
- * `merge.mjs` call and the "too big, hand this to a task-mastermind" judgment are the AGENT's
+ * `merge.mjs` call and the "too big, hand this to a mastermind" judgment are the AGENT's
  * own work, following `fixer.md` (its system prompt, read once and cached — see `brief()`).
  * This class is only the plumbing that keeps one such agent warm and holding a slot: starting
  * it, and handing it a request (`quick_fix`, in Sessions.js + tools.js, is the door in). */

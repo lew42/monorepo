@@ -3,7 +3,7 @@
  * caller who doesn't name them — a caller's own fields always win (Agents.spawn()).
  *
  * The six roles are ../../public/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md.
- * `role` here is the short word a caller passes (`minion`, `task-mastermind`); the
+ * `role` here is the short word a caller passes (`minion`, `mastermind`); the
  * full id (`<role>-<name>`) is still built by Agents.name(). */
 /* THE table: one row per role — its role readme and/or the skills it loads, its id prefix, and its posture.
  * `readme: "minion"` is the role's one switch (2026-10-22): Servex inlines Servex/agents/roles/minion.md
@@ -38,13 +38,13 @@ export const ROLES = {
 	/* bypassPermissions (2026-10-02): a minion builds with Bash, node and the servex/site MCP
 	 * tools, and under acceptEdits every one of those is refused with nobody to approve — the
 	 * minion only finds out when its first call fails (minion-framework-home lost a turn this way;
-	 * the CLI-launcher version of the same bug is 2026-09-19's). Same reasoning as task-mastermind below. */
+	 * the CLI-launcher version of the same bug is 2026-09-19's). Same reasoning as the `mastermind` row below. */
 	minion:             { readme: "minion",           prefix: "minion",           tier: "scan",      model: model("scan"),       effort: "low", permission_mode: "bypassPermissions", compact_after: null },
 	/* bypassPermissions, not acceptEdits: this role's whole job is calling
 	 * spawn_agent/send_to_agent/list_agents, and an MCP tool call needs the same
 	 * approval a Bash command would under acceptEdits — approval nobody can give
 	 * a non-interactive SDK session. Found 2026-09-22 (sub-mastermind-live run 1):
-	 * a task mastermind spawned under the old default had both its spawn_agent
+	 * a mastermind spawned under the old default had both its spawn_agent
 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
 	/* THE CORE PAGE MASTERMIND (the owner, 2026-10-24): a defined, repeatable subject mastermind for the page system (core/Page, Item, Router, ext/JSONL). Its role text reaches the system prompt, so it survives compaction. Ids mastermind-page, mastermind-page-2. */
 	"core-page-mastermind": { readme: "core-page-mastermind", prefix: "mastermind-page", tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
@@ -86,8 +86,8 @@ export const ROLES = {
 	 * their own briefs (session-fast.md, session-smart.md), which win over these rows. No skill.
 	 * Tiers: `session-fast` is `fast`, `session-smart` is `voice_smart` (tiers.js).
 	 * `session-smart` shares the "files for the next agent, cards for the owner" write discipline
-	 * with `task-mastermind` (both `every-prompt` and `sub-mastermind` carry it), but never its
-	 * judging-against-the-owner's-sentence or landing parts — it spawns a task mastermind to do
+	 * with a `mastermind` owning one task (both `every-prompt` and `sub-mastermind` carry it), but never its
+	 * judging-against-the-owner's-sentence or landing parts — it spawns a `mastermind` (at the path of the work) to do
 	 * those instead of doing them itself. Detail: tiers-design/doc/roles.md. */
 	/* RETIRED 2026-10-17 (the owner: "drop the fast assistant for now"; plan: public/framework/ux/Dictate/doc/voice-assistant.md):
 	 * `voice-assistant` below takes this seat. The row stays, unchanged, because Sessions.js still spawns it by name until
