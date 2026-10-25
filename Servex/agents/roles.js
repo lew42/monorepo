@@ -231,6 +231,13 @@ export function injected(role){
 export const SKILLS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.claude/skills");
 export const ROLES_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "roles");
 
+/* The repo path of a role's readme (`Servex/agents/roles/<readme>.md`), or null when the role has none. A spawn records this path,
+ * never the text (a Session entry's spawn.role_readme, open_task's line 1). */
+export function role_readme_path(role){
+	const r = row(role);
+	return r?.readme && fs.existsSync(path.join(ROLES_DIR, `${r.readme}.md`)) ? `Servex/agents/roles/${r.readme}.md` : null;
+}
+
 /* A role readme's text without its leading move comment, or null. */
 export function role_readme(name){
 	try { return fs.readFileSync(path.join(ROLES_DIR, `${name}.md`), "utf8").replace(/^<!--[\s\S]*?-->\r?\n/, "").trim(); }

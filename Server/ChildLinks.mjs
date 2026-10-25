@@ -55,8 +55,10 @@ export default class ChildLinks {
 
 	/** THE WRITE: the child's folder becomes a task on its parent SESSION's record, when it does not already sit inside that session's folder
 	 *  (SessionRecord.link_parent has it then). One {"task":url,"as":agent} line, never twice (add_ref). Returns
-	 *  { why } when nothing was written (no-session, no-record, inside, no-folder, self), else { log, wrote: bool }. */
-	static link(child_dir, parent_session, agent, { root = process.cwd(), by = this.by, map = null, parent_dir = null } = {}){
+	 *  { why } when nothing was written (no-session, no-record, inside, no-folder, self), else { log, wrote: bool }.
+	 *  With `entry` (a spawn's {type, spawn, cause}) the line is a Session entry, and its id is the folder name: an agent id is reused across
+	 *  spawns, and two entries with one id replace each other on replay (the agent id is kept in spawn.agent). */
+	static link(child_dir, parent_session, agent, { root = process.cwd(), by = this.by, map = null, parent_dir = null, entry = null } = {}){
 		const abs = path.resolve(root, child_dir), url = this.url_of(abs, root);
 		if (!url) return { why: "no-folder" };
 		let top = this.session_dir(parent_session, path.resolve(root), map);
@@ -68,7 +70,7 @@ export default class ChildLinks {
 		const log = SessionRecord.file(top);
 		if (!log) return { why: "no-record" };
 		const before = fs.statSync(log).size;
-		SessionRecord.add_ref(log, url, by, agent);
+		SessionRecord.add_ref(log, url, by, entry ? undefined : agent, entry);
 		return { log, url, wrote: fs.statSync(log).size !== before };
 	}
 
