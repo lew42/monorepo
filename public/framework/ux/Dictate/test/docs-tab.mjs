@@ -22,6 +22,9 @@ for (const [w, h] of [[400, 844], [1920, 1000]]){
 	await page.waitForSelector(".dictate-docs-body h1", { timeout: 20000 }).catch(() => {});
 	const h1 = await heading(page);
 	check(/^Dictate/.test(h1 ?? ""), `${w}: the readme's heading shows (${h1})`);
+	check(await page.evaluate(() => document.querySelectorAll('.dictate-docs-body:not([hidden]) sup a[href^="#fn"]').length >= 8), `${w}: footnote marks are links`);
+	await page.locator('.dictate-docs-list a:visible', { hasText: "How messages travel" }).first().click();
+	check(new URL(page.url()).pathname === "/framework/ext/drawer/ai/docs/", `${w}: the top link stays in the tab`);
 	check(await page.evaluate(() => [...document.querySelectorAll(".dictate-docs-body h2")].some(x => x.textContent === "How messages travel")), `${w}: "How messages travel" is in the readme`);
 	await page.screenshot({ path: `${shots}/docs-${w}.png` });
 	await page.locator('.dictate-docs-list a:visible', { hasText: 'Settings' }).first().click();

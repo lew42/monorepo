@@ -2,16 +2,16 @@
 
 ## How messages travel
 
-You speak and Whisper turns the sound into text, one sentence at a time. The page then sends each sentence to Servex with a plain HTTP `POST` to `/api/session/say` (no WebSocket carries your words out; the only live wire is a one-way `EventSource` stream, `/api/session/<id>/stream`, that brings the chat's new lines back).[1][2] The page does not make the voice session: the first time a sentence needs one, `chat.js` asks Servex with `POST /api/session/new`, and Servex's `Sessions.create()` picks the id (`v-…`), writes the session file and starts the fast assistant warming up.[3][4] The fast assistant is fed per thought, not per word: your sentences are held while you are still speaking and handed to it together once you have been quiet for 2.5 s (a typed line goes straight in).[5][6] The smart assistant is fed in batches by `WakePolicy`: one batch when you pause for 12 s, or ask a question, or call it by name, or when 6 sentences have piled up, and you can change the 12 s and the 6 in the dictation settings panel.[7][8]
+You speak and Whisper turns the sound into text, one sentence at a time. The page then sends each sentence to Servex with a plain HTTP `POST` to `/api/session/say` (no WebSocket carries your words out; the only live wire is a one-way `EventSource` stream, `/api/session/<id>/stream`, that brings the chat's new lines back).<sup>[<a href="#fn1">1</a>]</sup><sup>[<a href="#fn2">2</a>]</sup> The page does not make the voice session: the first time a sentence needs one, `chat.js` asks Servex with `POST /api/session/new`, and Servex's `Sessions.create()` picks the id (`v-…`), writes the session file and starts the fast assistant warming up.<sup>[<a href="#fn3">3</a>]</sup><sup>[<a href="#fn4">4</a>]</sup> The fast assistant is fed per thought, not per word: your sentences are held while you are still speaking and handed to it together once you have been quiet for 2.5 s (a typed line goes straight in).<sup>[<a href="#fn5">5</a>]</sup><sup>[<a href="#fn6">6</a>]</sup> The smart assistant is fed in batches by `WakePolicy`: one batch when you pause for 12 s, or ask a question, or call it by name, or when 6 sentences have piled up, and you can change the 12 s and the 6 in the dictation settings panel.<sup>[<a href="#fn7">7</a>]</sup><sup>[<a href="#fn8">8</a>]</sup>
 
-1. `ext/Session/Session.js:39` (`post()`: `fetch(servex_url("/api/session/<verb>"), {method: "POST"})`) and `:150-170` (`stream()`: `new EventSource(…/api/session/<id>/stream)`).
-2. `ext/Session/Session.js:83` (`say()` posts `say`); `Servex/agents/Sessions.js:1468` (the stream route) and `:1471` (the POST route for `new`, `say`, `settings` and the rest).
-3. `ux/Dictate/chat.js:72` (`Session.start(…)`, one shared promise so two mounts make one session) and `ext/Session/Session.js:56-57` (`start()` posts `new`).
-4. `Servex/agents/Sessions.js:766` (`create()`), `:783` (the `v-` id), `:792` (`prewarm_fast`).
-5. `Servex/agents/Sessions.js:970-972` (a spoken line is held with `hold_thought`, released when the floor is not "speaking" and the quiet is at least `answer_quiet_ms`, default 2500 at `:246`), `:975-982` (a typed line goes straight to the fast seat).
-6. `Servex/agents/Sessions.js:1107-1117` (`release_thought()` hands the held lines to the fast seat in one message).
-7. `Servex/agents/Sessions.js:1119` (the same lines also go to `waker.add()`) and `:254-265` (`waker` flushes into `feed_smart()`).
-8. `Servex/agents/WakePolicy.js:12` (`WAKE_DEFAULTS = {gap_ms: 12000, every: 6}`), `:66` (the sentence count flush), `:2-5` (pause, question or name, count); the settings panel posts `POST /api/session/settings`: `ext/Chat/Mic.js:388`.
+1. <a id="fn1"></a>`ext/Session/Session.js:39` (`post()`: `fetch(servex_url("/api/session/<verb>"), {method: "POST"})`) and `:150-170` (`stream()`: `new EventSource(…/api/session/<id>/stream)`).
+2. <a id="fn2"></a>`ext/Session/Session.js:83` (`say()` posts `say`); `Servex/agents/Sessions.js:1468` (the stream route) and `:1471` (the POST route for `new`, `say`, `settings` and the rest).
+3. <a id="fn3"></a>`ux/Dictate/chat.js:72` (`Session.start(…)`, one shared promise so two mounts make one session) and `ext/Session/Session.js:56-57` (`start()` posts `new`).
+4. <a id="fn4"></a>`Servex/agents/Sessions.js:766` (`create()`), `:783` (the `v-` id), `:792` (`prewarm_fast`).
+5. <a id="fn5"></a>`Servex/agents/Sessions.js:970-972` (a spoken line is held with `hold_thought`, released when the floor is not "speaking" and the quiet is at least `answer_quiet_ms`, default 2500 at `:246`), `:977-982` (the else branch: a typed line goes straight to the fast seat).
+6. <a id="fn6"></a>`Servex/agents/Sessions.js:1107-1117` (`release_thought()` hands the held lines to the fast seat in one message).
+7. <a id="fn7"></a>`Servex/agents/Sessions.js:1119` (the same lines also go to `waker.add()`) and `:254-265` (`waker` flushes into `feed_smart()`).
+8. <a id="fn8"></a>`Servex/agents/WakePolicy.js:12` (`WAKE_DEFAULTS = {gap_ms: 12000, every: 6}`), `:66` (the sentence count flush), `:2-5` (pause, question or name, count); the settings panel posts `POST /api/session/settings`: `ext/Chat/Mic.js:388`.
 
 
 **Reading this inside the app:** the sheet's **Docs** tab shows this readme and the module's docs ([`doc/docs-tab.md`](doc/docs-tab.md)).
@@ -20,6 +20,7 @@ You speak and Whisper turns the sound into text, one sentence at a time. The pag
 
 - `class DictateHealth` (the eight lights, [DictateHealth.js](DictateHealth.js); every error from every stage lands here, and `window` errors and rejections too)
 - `class DictateDebug` (the view, [DictateDebug.js](DictateDebug.js))
+- `class DictateDocs` (the Docs tab: this readme and the docs, rendered in place; [DictateDocs.js](DictateDocs.js), [DictateDocs.css](DictateDocs.css); proof `test/docs-tab.mjs`)
 - `chat.js` calls `report.init(session)` ([ext/Chat/v2/report.js](/framework/ext/Chat/v2/report.js)) once the voice session id is known.
 - The Debug panel in the phone sheet has a resize handle whose height survives a reload ([`SheetPanel.tabs_grip`](/framework/ext/drawer/doc/sheet.md#the-debug-panel-handle-2026-10-25)).
 - Proofs `test/errors.mjs` (every error is caught and shown), `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`, `test/repeat.mjs` (Whisper's repeated tail), `test/order.mjs` (bubbles in the order spoken), `test/flicker.mjs` (no word vanishes or moves), `test/anchor.mjs` (the thread does not jump), `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)).
