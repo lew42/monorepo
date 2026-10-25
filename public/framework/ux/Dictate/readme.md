@@ -87,6 +87,6 @@ ever appeared — no error, no clue why.
 - **Sentence-per-send on the shared composer** (2026-10-16): `composer({ per_sentence: true })` makes each finished sentence leave the box while the next is still heard; the Refine page uses it, this page's `chat()` keeps the default (pause mode already sends each sentence as a bubble). Proof: `ext/Refine/test/composer-flow.mjs` and a fake-mic run of this page.
 
 - [`doc/sessions.md`](./doc/sessions.md) — one rolling voice session or many: the New session button tested, the decision (one rolling session is the direction, the button stays), and the dry-run chunker `chunk-session.mjs`
-- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why
+- [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why (no longer in the drawer's Docs tab: [why](doc/docs-tab.md))
 
 **The owner's direction, 2026-10-20: dictation on the website first** (one assistant, hands-free; a global named voice session with a session manager; the widget cleanup asks that never landed; the font flicker): [doc/owner-2026-10-20-dictation-first.md](doc/owner-2026-10-20-dictation-first.md).
