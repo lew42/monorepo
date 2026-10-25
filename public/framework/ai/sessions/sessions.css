@@ -399,6 +399,8 @@
 	.sessions-pop-filters .sessions-stats { margin: 0; }
 	.sessions-pop-filters .ai-meter { min-inline-size: 0; }
 	@media (max-width: 40rem) {
+		.sessions-page, .browse-detail:has(> .sessions-page) { overflow: visible; }   /* on a phone the outer page scrolls; a clipping ancestor would be the header's scroller and it would never stick */
+		.sessions-page .sessions-nav,.sessions-page .sessions-main > .pn { display: none; }   /* the phone's first screen is the list; these links are in the Filters menu */
 		.ux-popover.sessions-pop { position-area: none; inset-inline: .5rem; inset-block-start: calc(anchor(bottom) + 6px); inline-size: auto; max-inline-size: none; }
 	}
 }

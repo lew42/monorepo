@@ -99,6 +99,7 @@ export default class AISessionsPage extends Page {
 		if (!this.classic) this.$header = this.build_header();
 
 		this.grid = this.make_grid();
+		if (!this.classic && this.$view_slot){ this.$view_slot.append(this.grid.$toggle); this.grid.$bar.el.hidden = true; }   // one row of buttons: the view toggle lives in the Filters menu
 		this.$empty = p.c("muted", "No sessions with an id yet.");
 		this.$empty.el.hidden = true;
 		panel.main.append(div.c("sessions-body").append(this.nav_view(), div.c("sessions-main").append(new PageNav({ links: AISessionsPage.NAV }), ...(this.classic ? [this.$scope, this.$controls] : [this.$header]), this.grid, this.$empty, this.$status)));
@@ -244,8 +245,10 @@ export default class AISessionsPage extends Page {
 
 			this.$filters_btn = button.c("sessions-hbtn", "Filters ▾").attr("type", "button").attr("title", "Closed, attention, in flight, routine kinds, roles, the totals and the plan meters");
 			pop(this.$filters_btn, () => {
-				div.c("sessions-filters-top", () => {
+				div.c("sessions-filters-top flex wrap gap-50", () => {
+					for (const [text, href] of [["Docs", this.url + "doc/"], ["Readme", this.url + "readme/"], ...AISessionsPage.NAV.filter(l => l.label).map(l => [l.label, l.href])]) a.c("page-link", text).href(href);
 					a.c("page-link", "Old layout").href(this.url + "v/classic/").attr("title", "The page as it was before the slim header: every control in rows above the list");
+					this.$view_slot = div.c("sessions-filters-view");   // the grid's Table/Rail toggle lands here once the grid exists (constructor), so the header stays one row
 				});
 				div.c("sessions-filters-trail").append(this.$scope);
 				div.c("sessions-filters-main").append(this.$filters_body);
