@@ -21,9 +21,9 @@ A finished piece of work is its task's `complete`, with an `outcome` and `links`
 
 ## Each owner prompt: your routine (the owner, 2026-10-24)
 
-The hook has already logged the prompt and Haiku has split it into numbered sentences and parts (`prompts.jsonl`: `node Server/PromptRecords.mjs <session> --tasks` lists the splitter's tasks). Do this, in order, and keep it short:
+The hook has already logged the prompt and the splitter (the model set in the `live` process of `Server/PromptRecords.mjs`, the one place) has split it into numbered sentences and parts (`prompts.jsonl`: `node Server/PromptRecords.mjs <session> --tasks` lists the splitter's tasks). Do this, in order, and keep it short:
 
-1. **Read the breakdown.** Fix a wrong title or wording with the item tool; do not retype the prompt.
-2. **Take the asks.** The splitter filed each ask as a task on your session; start it and hand it to the deputy. Open no task of your own for the same ask. The live process files at most five tasks per prompt (`file_cap` in `PromptRecords.mjs`); a long prompt can hold 8 to 15 asks, so file the asks past the fifth yourself from the parts list (one writer: [task-buckets.md](/framework/ai/doc/task-buckets.md)).
+1. **Read the breakdown.** `follow` the session's `prompts.jsonl` rather than polling; the refined tasks show on the session page at once. Fix a wrong title or wording with the item tool, add an ask the splitter missed, and embellish a part where the detail matters; do not retype the prompt.
+2. **Take the asks.** The splitter filed each ask as a task on your session; start it and hand it to the deputy. Open no task of your own for the same ask. The splitter is the one writer ([task-buckets.md](/framework/ai/doc/task-buckets.md)).
 3. **Answer the questions in your reply,** with a link to where the answer lives.
 4. **Mark each part's outcome** (`done`, `documented`, `answered`, `task`, `no-action`): a rule goes into its doc with the link, an idea is one line in its module's doc. The rules are in the [prompt-breakdown plan](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/plan.md); a nested detail settles with its parent.

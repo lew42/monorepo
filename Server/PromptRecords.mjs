@@ -39,7 +39,7 @@ export default class PromptRecords {
 
 	/** The processes: the same steps, different instructions and context. Measured on tab e00f55c9 (doc, "The experiment"). */
 	static PROCESSES = {
-		live:   { steps: ["sentences", "parts", "file"], parts: { model: HAIKU }, file: "proposals", file_kinds: ["ask"], file_cap: 5,
+		live:   { steps: ["sentences", "parts", "file"], parts: { model: HAIKU }, file: "proposals", file_kinds: ["ask"], file_cap: 15,
 		          why: "fast and blind: a prompt's asks become proposals before anything is done; no evidence search" },
 		review: { steps: ["sentences", "parts", "outcomes", "file"], parts: { model: HAIKU }, outcomes: { model: HAIKU, window_chars: 150_000, max_turns: 12 }, file: "open", file_kinds: ["ask", "rule"],
 		          why: "after the fact: parts need no context (recall 0.95-1.0 blind), outcomes read what the session did and confirm in the repo" },
