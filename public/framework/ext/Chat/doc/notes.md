@@ -67,7 +67,7 @@ Three ways to open the row of reactions on a bubble: hold it (a phone, about hal
 For a caller using the bare `speak()` primitive instead of the full `chat()` factory (`ux/Dictate/Widget.js`'s `Thread`), the same things `chat()`'s `mark_owner_piece()`/`resolve_mark()` do internally.
 
 - `patch_piece(bubble, id, patch)`: change a piece's `mark`/`via`/`failed` (or any field `piece_body()` reads) and swap only that piece's node in place; the whole bubble is redrawn only when it is refined or the node is missing. `id` is the piece's own id (`speak()`'s `id`, usually its `at`). False when no piece has that id.
-- `retag_piece(bubble, old_id, new_id)`: rekey a piece's id with no redraw (the id is never shown). `Thread.retag()`: a bubble drawn under a local echo's `at` before the real server answered with a different final one; without this, `patch_piece()` under the new `at` finds nothing.
+- `retag_piece(bubble, old_id, new_id)`: rekey a piece's id with no redraw (the id is never shown). `Thread.retag()`: a bubble drawn under a local echo's `at` before the real server answered with a different final one; without this, `patch_piece()` under the new `at` finds nothing. Only the id changes, never the piece's `at`: the new id is Servex's clock, the piece was ordered by the phone's, and mixing the two put a later sentence first (#bubble-order).
 - `split_bubble($box, bubble, at_id)` (the `para` marker, one-dictation): the piece named `at_id` and every piece merged after it move into a brand-new bubble placed right after the original, same sender and look, built the way `speak()` would and registered in this module's piece-tracking, so a later merge, mark or `retag()` on either half still works. Exported (rather than letting a caller reach into private state) for `Thread`. Null when `at_id` is not on this bubble or is its first piece.
 
 ## dedupe-key
@@ -138,4 +138,6 @@ A fix (`fix: true`) is a later line with the same `at` as an earlier one, "here 
 
 ## bubble-order
 
-A bubble drawn late (a reply that beat its sentence, or a sentence whose Whisper time arrives after `retag_piece`) is moved before the first bubble with a later `data-at`, so the log reads in session-file order. `place()` does it; proof and before/after run: `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/bubble-order/`.
+A bubble drawn late (a reply that beat its sentence) is moved before the first bubble with a later `data-at`, so the log reads in session-file order. `place()` does it; proof and before/after run: `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/bubble-order/`.
+
+Order only works when every `at` it compares comes from one clock. A piece the owner said is drawn with the phone's stamp (`ComposerMic.stamp`), and Servex answers with its own; `retag_piece` therefore changes the id only. Before it did, a phone behind the PC showed "now?" above "Can you hear me?" (2026-10-25; proof `ux/Dictate/test/order.mjs`; cause `ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/order/report.md`). Still open: a new owner bubble placed against a reply compares the phone's clock with Servex's, so it can jump above that reply; the fix is one clock for new stamps (the report's step 2).
