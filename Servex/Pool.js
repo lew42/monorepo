@@ -230,7 +230,7 @@ export default class Pool extends Events {
              * put the noise back to HEAD, fast-forward, and make a fresh slot: this one's server is gone. */
             this.kill(slot.watcher_pid, /health-supervisor/i);
             this.kill(slot.server_pid, this.server_cmd(slot));
-            for (const d of await this.dirt(slot)) if (Pool.server_log(d.file)) this.restore(slot, d.file);
+            await this.restore(slot, (await this.dirt(slot)).filter(d => Pool.server_log(d.file)).map(d => d.file));
             ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
             if (ff.ok){
                 this.remove(slot);
@@ -377,7 +377,8 @@ export default class Pool extends Events {
     async salvage(slot, holder){
         this.kill(slot.watcher_pid, /health-supervisor/i);
         this.kill(slot.server_pid, this.server_cmd(slot));
-        for (const d of await this.dirt(slot)) if (Pool.server_log(d.file)) this.restore(slot, d.file);   // the server's noise stays out of salvage
+        const healed = await this.heal_tree(slot);   // a tree deleted wholesale is put back in one call, not walked file by file
+        await this.restore(slot, (await this.dirt(slot)).filter(d => Pool.server_log(d.file)).map(d => d.file));   // the server's noise stays out of salvage
         /* Live logs that michael/dev also tracks (ai/board.jsonl, a task.jsonl) change under every agent: salvage swept
          * unrelated board.jsonl churn into salvage/qf-6-2026-09-30-2. Their diff is kept aside as a patch in
          * .worktree-logs/, never committed here, and the file goes back to HEAD. A NEW *.jsonl is the task's own and stays in. */
@@ -389,11 +390,11 @@ export default class Pool extends Events {
             const chunks = [];   // `git diff` has no --pathspec-from-file (git printed its usage and recycle failed, 2026-10-25); 100 paths a call stays under the Windows command line limit (ENAMETOOLONG, qf-7)
             for (let i = 0; i < logs.length; i += 100) chunks.push(execFileSync("git", ["-C", slot.path, "diff", "HEAD", "--", ...logs.slice(i, i + 100)], { windowsHide: true, maxBuffer: 256 << 20 }));
             fs.writeFileSync(aside, Buffer.concat(chunks));
-            for (const file of logs) this.restore(slot, file);
+            await this.restore(slot, logs);
         }
         const status = (await this.git(slot.path, ["status", "--porcelain", "--untracked-files=all"])).out;
         const commits = (await this.git(slot.path, ["log", "--oneline", `${this.base}..HEAD`])).out;
-        const kept = aside ? `; ${logs.length} live log(s) left out, their diff kept at ${slash(aside)}` : "";
+        const kept = (healed ? `; ${healed} deleted file(s) put back first (a broken tree, not work)` : "") + (aside ? `; ${logs.length} live log(s) left out, their diff kept at ${slash(aside)}` : "");
         if (!status && !commits) return { branch: null, what: `nothing to salvage${kept}`, aside };
         const files = status ? status.split("\n").map(l => l.replace(/^\s*\S{1,2}\s+/, "").replace(/^"|"$/g, "")) : [];
         const numstat = (await this.git(slot.path, ["diff", "--numstat"])).out;
@@ -508,7 +509,7 @@ export default class Pool extends Events {
                 this.say(`pool: ${slot.id} left on disk at ${slot.path} — it holds ${own.length ? "uncommitted changes" : "unmerged commits"}`, { id: slot.id });
                 return;
             }
-            for (const d of await this.dirt(slot)) this.restore(slot, d.file);
+            await this.restore(slot, (await this.dirt(slot)).map(d => d.file));
             if (this.registry()[slot.id]) await this.script("worktree-down.mjs", slot.id);
             else {   // not registered (qf-6, 09-30: worktree-down refused, the slot stayed on disk and its name stayed taken)
                 const r = await this.git(this.main, ["worktree", "remove", slot.path]);
@@ -696,7 +697,7 @@ export default class Pool extends Events {
     }
 
     git(cwd, args){
-        return new Promise(resolve => execFile("git", ["-C", cwd, ...args], { windowsHide: true, encoding: "utf8" },
+        return new Promise(resolve => execFile("git", ["-C", cwd, ...args], { windowsHide: true, encoding: "utf8", maxBuffer: 256 << 20 },   // the 1 MB default cut a 40,000-line status short
             (e, out, err) => resolve({ ok: !e, out: String(e ? err || out : out).trim() })));
     }
 
@@ -713,7 +714,12 @@ export default class Pool extends Events {
         /* ⚠ ONE git per 200 files, never one per file (2026-09-29): a slot with thousands of
            untracked files spawned thousands of `git hash-object` at once, and Servex's main
            thread sat at 100% inside spawn() — every agent message timed out. */
-        const present = files.filter(file => fs.existsSync(path.join(slot.path, file)));
+        const present = [];   // async, 200 at a time: 40,000 existsSync calls held the event loop
+        for (let i = 0; i < files.length; i += 200){
+            const batch = files.slice(i, i + 200);
+            const here = await Promise.all(batch.map(file => fs.promises.access(path.join(slot.path, file)).then(() => true, () => false)));
+            batch.forEach((file, j) => here[j] && present.push(file));
+        }
         const hashes = {};
         for (let i = 0; i < present.length; i += 200){
             const chunk = present.slice(i, i + 200);
@@ -732,11 +738,53 @@ export default class Pool extends Events {
         return (await this.dirt(slot)).filter(d => !Pool.server_log(d.file) && slot.baseline?.[d.file] !== d.hash);
     }
 
-    /* A baseline file back to exactly what HEAD holds (a new one is deleted). */
-    restore(slot, file){
-        const full = path.join(slot.path, file);
-        try { fs.writeFileSync(full, execFileSync("git", ["-C", slot.path, "show", `HEAD:${file}`], { windowsHide: true, stdio: ["ignore", "pipe", "ignore"] })); }
-        catch { fs.rmSync(full, { force: true }); }
+    /* Baseline files back to exactly what HEAD holds (one not in HEAD is deleted). NEVER one git call per file, and never a
+     * synchronous one (2026-10-25: `git show` per file, sync, 26,000 times for qf-7 and qf-5 froze Servex for 2 hours): the
+     * paths are checked against HEAD ~100 per `git ls-tree`, then one `git checkout HEAD --pathspec-from-file` puts them all
+     * back, index entry included (the old write left a staged deletion standing, so the dirty count never dropped). */
+    async restore(slot, files){
+        if (!files.length) return;
+        const inHead = new Set();
+        for (let i = 0; i < files.length;){
+            let j = i, len = 0;
+            while (j < files.length && j - i < 100 && len < 20000) len += files[j++].length + 1;
+            const r = await this.git(slot.path, ["--literal-pathspecs", "ls-tree", "-z", "--name-only", "HEAD", "--", ...files.slice(i, j)]);
+            if (!r.ok) throw new Error(`restore in ${slot.id}: git ls-tree failed: ${r.out}`);
+            r.out.split("\0").filter(Boolean).forEach(f => inHead.add(f));
+            i = j;
+        }
+        const keep = files.filter(f => inHead.has(f));
+        if (keep.length){
+            const list = path.join(os.tmpdir(), `lew42-pool-restore-${slot.id}-${process.pid}-${Date.now()}`);
+            fs.writeFileSync(list, keep.join("\0") + "\0");
+            const r = await this.git(slot.path, ["--literal-pathspecs", "checkout", "HEAD", `--pathspec-from-file=${list}`, "--pathspec-file-nul"]);
+            fs.rmSync(list, { force: true });
+            if (!r.ok) throw new Error(`restore in ${slot.id}: git checkout failed: ${r.out}`);
+        }
+        const away = files.filter(f => !inHead.has(f));
+        for (let i = 0; i < away.length; i += 200) await Promise.all(away.slice(i, i + 200).map(f => fs.promises.rm(path.join(slot.path, f), { force: true })));
+    }
+
+    /* A slot whose tree was deleted wholesale (40,238 files qf-7, 2026-10-25: an interrupted `git worktree remove` or a salvage
+     * killed between `add -A` and its commit leaves them gone or staged as deleted) is NOT work and is not walked file by file.
+     * More than BROKEN files deleted against HEAD: the index goes back to HEAD (`reset`, the worktree untouched, so every real
+     * edit and new file stays for the salvage) and everything missing is checked out in one call. Returns how many came back. */
+    static BROKEN = 500;
+    async heal_tree(slot){
+        const gone = (await this.git(slot.path, ["diff", "--name-only", "--diff-filter=D", "-z", "HEAD"])).out.split("\0").filter(Boolean).length;
+        if (gone <= Pool.BROKEN) return 0;
+        const t0 = Date.now();
+        const step = async args => { const r = await this.git(slot.path, args); if (!r.ok) throw new Error(`healing ${slot.id} stopped at git ${args[0]}: ${r.out}`); return r.out; };
+        await step(["reset", "-q", "HEAD"]);
+        const list = path.join(os.tmpdir(), `lew42-pool-heal-${slot.id}-${process.pid}-${Date.now()}`);
+        const missing = await step(["ls-files", "-d", "-z"]);   // NUL-terminated; empty when the files are still on disk
+        if (missing){
+            fs.writeFileSync(list, missing);
+            try { await step(["--literal-pathspecs", "checkout", `--pathspec-from-file=${list}`, "--pathspec-file-nul"]); }
+            finally { fs.rmSync(list, { force: true }); }
+        }
+        this.say(`pool: ${slot.id} had ${gone} files deleted against HEAD (a broken tree, not work): put back in one call, ${((Date.now() - t0) / 1000).toFixed(1)} s`, { id: slot.id });
+        return gone;
     }
 
     async identity(slot){
