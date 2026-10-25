@@ -23,7 +23,8 @@ const v1 = () => new URLSearchParams(location.search).has("v1");
 
 // The bare url draws the AI dashboard; every other url under it (inbox/, a card, a day) keeps the rail. The Inbox link is a hard
 // navigation (target=_self), because the root page is built once per load. Doc: doc/ai-dashboard-plan.md.
-const is_dash = () => !v1() && location.pathname.replace(/\/?$/, "/") === "/framework/ai/";
+// ⚠ A query is an Inbox filter (the Tasks tab forwards to `?live&recent=today&kind=task`, ai/tasks/SavedFilter.js), so it keeps the rail.
+const is_dash = () => !v1() && !location.search && location.pathname.replace(/\/?$/, "/") === "/framework/ai/";
 
 export default new Page({
 	meta: import.meta,
@@ -41,22 +42,9 @@ export default new Page({
 	// `board_drawn` stays true so the board's own hand-back (v/3/page.js) never paints it here. Doc: doc/ai-page-notes.md.
 	board_drawn: true,
 	content(){
-		if (is_dash()) return void new AIDashboard();
+		if (is_dash()){ this.head(); return void new AIDashboard(); }
 		if (!v1()){
-			// Inbox owns the bare URL and wears `.tab-default`; the band is the title and tabs. Doc: doc/ai-page-notes.md.
-			div.c("inbox-head", () => {
-				// The title is the way back to the inbox from any page under it (the owner, 2026-10-13: the header did not navigate back).
-				div.c("doc-well", () => h1.c("doc-title h2", () => a.c("inbox-head-home").href(this.url).attr("title", "Back to the AI inbox")
-					.append(() => { icon(this.icon); span(this.title ?? "AI"); })));
-				div.c("tabs block stick", () => {
-					const $bar = div.c("tab-bar", () => { a.c("tab tab-default").href(this.url).text("Inbox"); });
-					// Tabs are detected by AIOverview.detectTabs() and render after mark(). Doc: doc/ai-page-notes.md.
-					AIOverview.detectTabs(this).then(tabs => {
-						$bar.append(() => tabs.forEach(({ name }) => a.c("tab").href(this.url + name + "/").text(cap(name))));
-						this.app?.router?.mark_links();
-					});
-				});
-			});
+			this.head();
 			// AIRail is the same class AI 2 builds (CLAUDE.md law 6): one of everything.
 			this.ai2 = new AIRail({ page: this }).mount();
 			return;
@@ -67,6 +55,24 @@ export default new Page({
 		const $title = $head.el.previousElementSibling;
 		if ($title?.matches(".page-title")) $head.el.prepend($title);
 		md("A card for each thing worth going back to. Everything else is in [the log](/framework/ai/log/).");
+	},
+
+	// THE HEAD every AI page wears, the dashboard included: icon, title and the tab strip in ONE row; only the strip swipes sideways
+	// (the owner, 2026-10-24; CSS: ux/Inbox/Inbox.css `.inbox-head`, ai/rail/rail.css). `Home` is the bare url, the dashboard; it wears `.tab-default`.
+	head(){
+		div.c("inbox-head", () => {
+			// The title is the way home from any page under it (the owner, 2026-10-13: the header did not navigate back).
+			div.c("doc-well", () => h1.c("doc-title h2", () => a.c("inbox-head-home").href(this.url).attr("title", "Back to the AI home")
+				.append(() => { icon(this.icon); span(this.title ?? "AI"); })));
+			div.c("tabs block stick", () => {
+				const $bar = div.c("tab-bar", () => { a.c("tab tab-default").href(this.url).text("Home"); });
+				// Tabs are detected by AIOverview.detectTabs() and render after mark(). Doc: doc/ai-page-notes.md.
+				AIOverview.detectTabs(this).then(tabs => {
+					$bar.append(() => tabs.forEach(({ name }) => a.c("tab").href(this.url + name + "/").text(cap(name))));
+					this.app?.router?.mark_links();
+				});
+			});
+		});
 	},
 	// ⚠ Both catalog() and previews() draw the V1 board and must stay off when V3 is showing.
 	initialize(){ if (v1()) this.catalog(); },
