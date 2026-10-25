@@ -1,0 +1,5 @@
+verdict: pass
+1. [note] The diff's real change is only `ChatV2.test.mjs` plus one `.gitignore` line: the live copy is now `live-<pid>.jsonl`, written into the tree the site at `base` serves, so a worktree run no longer 404s on `?src=`. The logic reads correct (`argv[2] || !main_tree` picks this checkout when a url is given), and `rmSync(copy)` at the end still cleans up.
+2. [note] About 25 other files in the diff are `files.jsonl` machine-state lines (many `"gone":true`) from unrelated modules, plus `fixture/files.jsonl` recording `live-3020.jsonl`; they are not part of the fix and add review noise.
+3. [note] `ext/Chat/v2/readme.md` does not mention the per-run `fixture/live-*` copy or that the test writes into the main tree when run from a worktree; one line there would help a fresh agent understand why a killed run leaves a file (the `.gitignore` comment covers only git).
+4. [note] No ask in `requirements.md` is touched (this is a test-harness fix for step 1's proof), so none is newly met or broken; `mkdirSync` imported at ChatV2.test.mjs:3 may now be unused.
