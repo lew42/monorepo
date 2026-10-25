@@ -1,1 +1,8 @@
 {"assign":{"session_id":"d094c003-6cf8-43d9-93fb-311f3212222f","agent":"minion-dictation-perf","role":"minion","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/perf/requirements.md","model":"claude-sonnet-5-5","effort":"high","role_readme":"Servex/agents/roles/minion.md","worktree":"C:/Code/lew42/worktrees/dictation-perf","parent_task":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug","home":"/framework/ux/Dictate/","requested_at":"2026-10-25T09:56:17-05:00","now":"starting"}}
+{"log":{"at":"2026-10-25T09:59:58-05:00","msg":"Baseline on current dev (4x, 390px, 3 runs): first bubble painted 8.0 / 8.2 / 8.8 s after tap (207 bubbles). Harnesses copied to ux/Dictate/test/load.mjs and freeze.mjs (repo path fixed, output to OUT_DIR). Plan: coalesce anchor() per frame, defer refresh() for history lines, on_level per frame, cap sheet history to newest 50 via Session.watch on_history, Session.watch byte-range tail. SSE (Sessions.js:605) pushes every written line but drops while the 30 s proxy cut reconnects, so the poll stays as a cheap tail read, not removed."}}
+{"commit":"e2817469d151"}
+{"commit":"b512a5d57869"}
+{"commit":"da241f402468"}
+{"commit":"fcd8c59b0ada"}
+{"commit":"e4a0918be696"}
+{"commit":"0013c29ae01a"}
