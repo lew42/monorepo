@@ -6,7 +6,8 @@ import AISessionDetail from "./AISessionDetail.js";
 import AISession from "./AISession.js";
 
 /* One folder of the sessions store, routed by its own path: /framework/ai/sessions/2026/10/12/<session>/<task>/.
-   Tasks live here since 2026-10-12 (ai/doc/task-folders.md); the flat /framework/ai/sessions/<id>/ session route is untouched.
+   Tasks live here since 2026-10-12 (ai/doc/task-folders.md). A session's own folder (YYYY/MM/DD/<folder>/) draws AISessionDetail (child() below): it is the session's one
+   url, and /framework/ai/sessions/<id>/ redirects to it (AISessionsPage.route).
    A year lists its months, a month its days and a day its sessions (StoreFolder.sessions); a folder with a task.jsonl opens as a task (AITask); a folder with its own
    page.js is left to Page.child()'s probe; any other folder (a session's) lists its tasks and links the session page. */
 export default class StoreFolder extends Page {

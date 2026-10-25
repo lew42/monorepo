@@ -9,7 +9,7 @@ This page says how ids are given out, every way one can change, who may write wh
 | Question | Answer | Evidence |
 |---|---|---|
 | What is `eb0fe509-…` in the tab's transcript? | **Not a Claude session.** It is the `sessionId` that the Figma MCP's `create_session` returned on 2026-10-21 03:44Z. The tab then passed it as an argument to Figma tool calls. Nothing in the session store is filed under it. | Transcript `e00f55c9-….jsonl`, line 3692: a `mcp__figma__create_session` result `{"sessionId":"eb0fe509-…"}`. Every top-level `sessionId` in the file is `e00f55c9`. A search of `ai/sessions/**/*.json*` for `eb0fe509` finds nothing. |
-| Does compaction keep the id? | **Yes, for tabs and for SDK agents.** | The tab's transcript: 18,306 lines, one top-level id, through its compactions. `7c6c8d93` (an SDK agent): 4 `compact_boundary` lines, one id. |
+| Does compaction keep the id? | **Yes, for tabs and for SDK agents.** | The tab's transcript: 18,653 lines, 7 compactions, one id after each. `7c6c8d93` (an SDK agent): 3,195 lines, 10 compactions, one id after each. Numbers from the two check runs linked under "The check". |
 | Why did `ai-system-mastermind` come back as `7c6c8d93`? | **A deliberate renewal**, not a resume or a fork. Its role has `renew: {hours: 24, tokens: 100000}` (`Servex/agents/roles.js`). Its last context was 130,131 tokens, so the next wake started a **fresh session** under the same agent id (`Agent.renew`, `Servex/agents/Agents.js`). | Its agent log `agent-ai-system-mastermind.jsonl`: `{"type":"renew","why":"tokens","replaces":"2da03974-…","session":"7c6c8d93-…"}` at 2026-10-24 21:32:54. That is 11 renewals since 10-23. |
 | Is the cost of both ids counted once? | **Yes, per transcript.** The two transcripts share 0 message ids and 0 line uuids, and each transcript is priced once, in its own folder (`session-2da03974`, `session-7c6c8d93`). **One bug:** `Agents.session_turns(sid)` returned every turn the agent id ever ran, so each renewed session counted its predecessors' turns as its own "untracked" spend. Fixed on this branch: each turn now carries its session. | 253 and 250 distinct messages, overlap 0. Fix: `Servex/agents/turn-costs.js`. |
 | Where do the new id's lines go? | **The agent log** stays one file per agent id (`logs/agent-<id>.jsonl`). **The task record** stays the agent's task: a renewal does not open a new one. **The transcript** is a new file, `<new id>.jsonl`, and the indexer gives it a new folder, `session-<new id8>/`. **Children** spawned after the renewal are filed under the new session's folder. | `Agent.renew` keeps `this.task`. `default_task` nests a child under `caller.session_id`. |
@@ -135,7 +135,7 @@ What the two runs found (2026-10-24):
 | | e00f55c9 (VS Code tab, 59 MB) | 7c6c8d93 (ai-system-mastermind) |
 |---|---|---|
 | Foreign ids on its lines | 0 | 0 |
-| Compactions, id kept after each | 7, yes | none |
+| Lines; compactions, id kept after each | 18,653; 7, yes | 3,195; 10, yes |
 | Stored cost against recount | $280.70 = $280.70 | $11.95 = $11.95 |
 | Messages shared with another transcript | 0 | 0 |
 | Problem | two dated folders (10/20 and 10/24) | one child (`minion-process-page`) has no `task_dir`, so nothing links it |
