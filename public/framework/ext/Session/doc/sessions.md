@@ -2,7 +2,7 @@
 
 ## The file
 
-One session is one append-only file, `public<home>ai/<session>.jsonl`. The browser reads it at the same path on the site (`<home>ai/<session>.jsonl`). The session id is `v-` plus a short base36 id.
+One session is one append-only file in the dated store: `public/framework/ai/sessions/YYYY/MM/DD/<session>/session.jsonl` (the local day it was opened; `Sessions.session_path()` is the one place that shape lives). The browser reads it at the same path on the site. The session id is `v-` plus a short base36 id. Line 1 is `{"session": {"id", "home", "kind": "voice", "at", …}}`: `home` is the page it was opened on and is only a field, not where the file lives. Records written before this (`<home>ai/<session>.jsonl`) are moved into the store by `node Servex/agents/voice-backfill.mjs` (dry run by default; `--apply` moves; `--manifest <file>` writes every old and new path; nothing is overwritten or deleted), and Servex repoints each session's `file` in `sessions.json` on its next start (`Sessions.relocate`).
 
 ```json
 {"session": {"id": "v-1xrmuro", "home": "/framework/", "at": "…", "project": "monorepo", "host": "…",
@@ -25,7 +25,7 @@ A spoken owner line also carries `floor` (`speaking`/`done`) and, when the clean
 
 `at` carries milliseconds, so two lines said in the same second never share one, and `re` always names exactly one owner line. `backing` maps the session to the Claude sessions behind it: `claude --resume <uuid>` reopens either one. When the assistants are respawned, a new `backing` line is written, and the latest one wins.
 
-**Beside it:** `<session>.summary.json` = `{id, home, title, summary, at, visited}`, written by the smart assistant's `session_summary` tool. The title is at most 6 words; the summary is one line.
+**Beside it:** `session.summary.json` = `{id, home, title, summary, at, visited}`, written by the smart assistant's `session_summary` tool. The title is at most 6 words; the summary is one line.
 
 ## The folder index: `<dir>/ai/log.jsonl`
 
@@ -110,7 +110,7 @@ event it goes after `SERVEX_SESSION_HOLD_MAX_MS` (8 s). The released message end
 ## The two assistants
 
 - **fast** (`session-fast-<id>`): Sonnet, effort low, no tools, no settings, no Servex door: a 1,400-token prompt, no CLAUDE.md, no skills. It hears each spoken thought once the owner stops (a typed line at once), prefixed `[on /page/]`, and mostly answers `(listening)`, which is never shown; it speaks only for a first hello, a misheard word, or a one-line answer. It writes nothing. Its brief: `Servex/agents/session-fast.md`.
-- **smart** (`session-smart-<id>`): the model `Usage.pick("smart")` gives, effort medium, the full Claude Code preset in the repo with Servex's tools. It hears the same released spoken thought (typed lines: gathered over a 1.5 s quiet gap, `SERVEX_SESSION_QUIET_MS`), each prefixed `[on /page/ at <at>]`, plus `(now on /x/)` when the owner moved. It knows what is in flight and routes to it, sends masterminds a polished brief (never the raw words), names the session, posts refined lines, and writes decisions to the folder index as it goes. Its brief: `Servex/agents/session-smart.md`.
+- **smart** (`session-smart-<id>`): Opus 5.5 (tier `voice_smart` in `Servex/agents/tiers.js`, set 2026-10-25), effort medium, mastermind permissions (`bypassPermissions`, the full Claude Code preset in the repo and Servex's door, so it can spawn, use the item tool and write notes: the owner dictates to it directly and it acts). Both seats are spawned with `parent_session` = the voice session's id, so the session index lists them as the voice session's child sessions and adds their cost to its total. It hears the same released spoken thought (typed lines: gathered over a 1.5 s quiet gap, `SERVEX_SESSION_QUIET_MS`), each prefixed `[on /page/ at <at>]`, plus `(now on /x/)` when the owner moved. It knows what is in flight and routes to it, sends masterminds a polished brief (never the raw words), names the session, posts refined lines, and writes decisions to the folder index as it goes. Its brief: `Servex/agents/session-smart.md`.
 
 A reply is the agent's final text for its turn, read from the host's event stream and written as a `chat` line.
 
@@ -144,7 +144,7 @@ Memory comes first: an idle `claude` process costs about 250 MB.
 
 ## Past problems
 
-- **The transcripts are committed, on purpose.** A session file is the record ("the full chat log could be logged somewhere… searched or read"), so `<home>ai/v-*.jsonl` is committed like any other page log and is not gitignored (fresh review item 10, declined).
+- **The transcripts are committed, on purpose.** A session file is the record ("the full chat log could be logged somewhere… searched or read"), so `ai/sessions/YYYY/MM/DD/v-*/session.jsonl` is committed like any other session record (the older `<home>ai/v-*.jsonl` location is gitignored, and the backfill empties it) (fresh review item 10, declined).
 
 - Before slice 2, every ✦ press leaked two agents forever: `session-` is in Global.js's `LONG` list (never reaped), and a stopped session agent was not revivable. On 2026-09-29 twelve idle ones held the machine at 1.7 GB of free memory. Starting on the first line, the 5-minute sleep and the 2-pair cap are the fix.
 - A session record lives in `sessions.json` in Servex's home (`SERVEX_SESSIONS_FILE` moves it), so a restart still finds a session's file.
