@@ -230,6 +230,25 @@ export class Task extends Item {
 		return this;
 	}
 
+	/* TOKENS ATTRIBUTED TO TASKS (session-is-a-task item 5): a task is a bucket, and every turn the session (or the agent working this task) spends between a task's start and
+	   its end (complete or stopped; still open = now) belongs to it. With several open, the one started last gets it (the innermost bucket);
+	   with none open, the turn is untracked. `turns` = [{ms, cost}] (node: Task.turns_resolver reads an agent's own log). Computed, never stored. */
+	attribute(turns = []){
+		const span = t => { const a = Date.parse(t.get_one("started_at") ?? t.created_at ?? ""), b = Date.parse(t.get_one("completed_at") ?? t.get_one("stopped_at") ?? ""); return isNaN(a) ? null : { t, a, b: isNaN(b) ? Infinity : b }; };
+		const spans = [], walk = list => { for (const t of list ?? []){ const s = span(t); if (s) spans.push(s); walk(t._tasks); } };
+		walk(this._tasks);
+		const by = new Map(); let untracked = 0, tracked = 0;
+		for (const { ms, cost } of turns){
+			let hit = null;
+			for (const s of spans) if (ms >= s.a && ms <= s.b && (!hit || s.a > hit.a)) hit = s;
+			if (hit){ by.set(hit.t, (by.get(hit.t) ?? 0) + cost); tracked += cost; } else untracked += cost;
+		}
+		const r2 = n => Math.round(n * 100) / 100;
+		return { tracked: r2(tracked), untracked: r2(untracked), tasks: [...by].sort((x, y) => y[1] - x[1]).map(([t, usd]) => ({ id: t.id, title: t.get_one("title") ?? t.id, usd: r2(usd) })) };
+	}
+	static turns_resolver = null;   // node: session id -> [{ms, cost}] of that session's own turns (Servex/agents/Agents.js); a VS Code tab has none recorded yet
+
+
 	// The owner checking the task off is final.
 	check({ by } = {}){
 		this.put("checked_by", by ?? "owner");

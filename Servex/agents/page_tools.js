@@ -748,14 +748,18 @@ export function session_state(task, tasks = []){
 	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
 	return { class: "Session", id: task.id, completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
 		cost: { total: r2((own?.usd ?? 0) + child_cost), own, children: r2(child_cost), tasks: r2(task_cost) },
-		counts: { direct: counts(task._tasks ?? []), all: counts(all) }, biggest, children: nest_agents(agents), agents: agents.length, data: { ...task.data }, tasks };
+		counts: { direct: counts(task._tasks ?? []), all: counts(all) }, biggest, children: nest_agents(agents), agents: agents.length,
+		// Its own turns bucketed by the task open at the time (Task.attribute); null when no per-turn record exists (a VS Code tab today).
+		by_task: (turns => turns.length ? task.attribute(turns) : null)(task.constructor.turns_resolver?.(uuid) ?? []), data: { ...task.data }, tasks };
 }
 
 function task_state(Task, task){
 	const tasks = [...(task._tasks ?? [])].map(row_of);
 	if (Task.name === "Process") return { class: "Process", process: task.process, state: task.state, step: task.step?.id ?? null, next: task.next(), completion: task.completion, data: { ...task.data }, tasks: [...(task._tasks ?? [])].map(t => ({ id: t.id, title: t.get_one("title"), state: t.state, outcome: t.get_one("outcome") ?? null })) };
 	if (Task.name === "Session") return session_state(task, tasks);
-	return { class: "Task", state: task.state, completion: task.completion, data: { ...task.data }, tasks };
+	// A task an agent works (its record names the session): that agent's turns bucketed by the subtask open at the time (Task.attribute).
+	const sid = task.session, turns = sid && Task.turns_resolver ? Task.turns_resolver(sid) : [];
+	return { class: "Task", state: task.state, completion: task.completion, ...(turns.length && task._tasks?.length ? { by_task: task.attribute(turns) } : {}), data: { ...task.data }, tasks };
 }
 
 // The first task verb anywhere in a delta ({"tasks":{"<id>":{"start":{}}}} -> "start"), or null.

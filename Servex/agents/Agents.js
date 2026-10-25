@@ -54,7 +54,7 @@ export class Agents {
 
 	/* `boot` names THIS host process — every registry row it writes carries it,
 	 * so the next boot can tell "alive a moment ago" from "long dead". */
-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
+	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); Task.turns_resolver = sid => this.session_turns(sid); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
 	assign(...args){ return Object.assign(this, ...args); }
 
 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
@@ -749,6 +749,12 @@ export class Agents {
 				cost: Math.round(this.logged_cost(id, since) * 100) / 100, started_at: r.started_at ?? null });
 		}
 		return out.sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
+	}
+
+	/* A session's own turns, [{ms, cost}], from the log of every agent that ran as it (Task.attribute buckets them by task). A VS Code tab has no agent log: []. */
+	session_turns(sid){
+		if (!sid) return [];
+		return Object.entries(this.reg().read()).filter(([, r]) => r?.session_id === sid).flatMap(([id]) => this.log_cost(id).turns ?? []);
 	}
 
 	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */

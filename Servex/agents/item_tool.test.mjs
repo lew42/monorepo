@@ -1,4 +1,5 @@
 // The item tool (page_tools.js), on a fixture task folder under public/. `node Servex/agents/item_tool.test.mjs`
+// Cleanup retries (maxRetries): a dev server watching public/ writes files.jsonl into a fixture folder while it is removed (ENOTEMPTY, 2026-10-24), which used to skip the next cleanup and leave the -caller folder behind.
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
@@ -79,7 +80,7 @@ try {
 		ok(r.ok && /changed nothing/.test(r.warning ?? ""), "a verb sent to a missing child says so");
 		r = await call("item", { path: SURL, delta: { nonsense_key: 1 } });
 		ok(r.ok === false && /names no method/.test(r.why), "a session log refuses unknown keys");
-	} finally { fs.rmSync(SDIR, { recursive: true, force: true }); }
+	} finally { fs.rmSync(SDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 
 	// ---- step 14a: task homes ----
 	const MODS = DIR + "-modules", MOD = path.join(MODS, "fakemod");
@@ -126,7 +127,7 @@ try {
 		fs.appendFileSync(FILE, JSON.stringify({ task: "/framework/ai/sessions/2026/10/16/no-such-" + process.pid + "/" }) + "\n");
 		r = await call("item", { path: URL });
 		ok(r.ok && r.state.tasks.some(t => t.state === "missing"), "a missing child file is a stub, no throw");
-	} finally { fs.rmSync(MODS, { recursive: true, force: true }); }
+	} finally { fs.rmSync(MODS, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 
 		// ---- step 16: caller's own log, module from the path, rules ----
 		const MODN = "zz-item-tool-test-" + process.pid, MDIR = path.join(ROOT, "public", "framework", MODN);
@@ -165,8 +166,8 @@ try {
 			r = await call("item", { path: URL, delta: { help: {} } }, "rules-caller");
 			ok(Array.isArray(r.instructions.rules) && r.instructions.rules.length === 5, "first-call instructions include rules");
 		} finally {
-			fs.rmSync(MDIR, { recursive: true, force: true });
-			fs.rmSync(CLOG_DIR, { recursive: true, force: true });
+			fs.rmSync(MDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+			fs.rmSync(CLOG_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 		}
 	// ---- step 3c: one live instance per file, nested subtasks, a folder on demand ----
 	{
@@ -210,7 +211,7 @@ try {
 			await call("page_log", { path: NURL, text: "now doing" });
 			await call("page_call", { path: NURL, method: "pause", args: {} });
 			ok(!fs.existsSync(path.join(NDIR, "page.jsonl")) && stored().data.title === "via page_set", "page tools on a task folder go to the task, no stray page.jsonl");
-		} finally { fs.rmSync(NDIR, { recursive: true, force: true }); }
+		} finally { fs.rmSync(NDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 	// ---- Task.rank: recency x weight ----
 	{
@@ -292,7 +293,7 @@ try {
 
 			r = await call("item", { path: QURL, delta: { tasks: { add: [{ id: "e", title: "E" }, { id: "f", title: "F" }] } } });
 			ok(r.ok && ["e", "f"].every(id => r.state.tasks.some(t => t.id === id)) && !r.state.tasks.some(t => t.id === "task"), "an array tasks.add is two tasks, never one Array child");
-		} finally { Task.cost_resolver = was; fs.rmSync(QDIR, { recursive: true, force: true }); }
+		} finally { Task.cost_resolver = was; fs.rmSync(QDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 	// ---- move_item: a nested task moves home with id and history, one reference left behind ----
 	{
@@ -359,7 +360,7 @@ try {
 				await settle(() => fs.readFileSync(ef, "utf8").includes("refused"));
 				ok(/"handoff".*"refused"/.test(fs.readFileSync(ef, "utf8")), "a refused handoff is written into the new log");
 			}
-		} finally { fs.rmSync(MDIR, { recursive: true, force: true }); }
+		} finally { fs.rmSync(MDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 	// part types: part-view and part-file are accepted on a page, part-nope is refused with the list
 	{
@@ -373,8 +374,8 @@ try {
 			}
 			const r = await call("item", { path: PURL, delta: { content: { add: { type: "part-nope" } } } });
 			ok(r.ok === false && /part-view/.test(r.why) && /part-file/.test(r.why), "part-nope is refused and the refusal lists the types");
-		} finally { fs.rmSync(PDIR, { recursive: true, force: true }); }
+		} finally { fs.rmSync(PDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 
 	console.log(`item_tool: ${n} checks passed`);
-} finally { fs.rmSync(DIR, { recursive: true, force: true }); fs.rmSync(DIR + "-homes", { recursive: true, force: true }); }
+} finally { fs.rmSync(DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); fs.rmSync(DIR + "-homes", { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }

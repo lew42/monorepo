@@ -25,6 +25,21 @@ s.tasks.add("Name the module");
 t.eq(s.tasks.find("name-the-module")?.get_one("title"), "Name the module", "tasks.add(\"a string\") makes a Task titled by it");
 t.eq(s.completion, 1 / 3, "a new task changes the totals at once");
 
+// Tokens are bucketed by the task open at the time: the one started last wins; none open is untracked.
+const ms = (h, m) => Date.parse(at(h, m));
+const b = Session.replay([
+	{ session: { id: "s2" } },
+	{ tasks: { add: { type: "Task", id: "outer", title: "Outer" } }, ts: at(12, 0) },
+	{ tasks: { outer: { start: {} } }, ts: at(12, 0) },
+	{ tasks: { add: { type: "Task", id: "inner", title: "Inner" } }, ts: at(12, 10) },
+	{ tasks: { inner: { start: {} } }, ts: at(12, 10) },
+	{ tasks: { inner: { complete: { outcome: "done", evidence: ["t"] } } }, ts: at(12, 20) },
+	{ tasks: { outer: { complete: { outcome: "done", evidence: ["t"] } } }, ts: at(12, 30) },
+]);
+const got = b.attribute([{ ms: ms(11, 0), cost: 1 }, { ms: ms(12, 5), cost: 2 }, { ms: ms(12, 15), cost: 4 }, { ms: ms(12, 25), cost: 8 }, { ms: ms(13, 0), cost: 16 }]);
+t.eq(JSON.stringify(got.tasks.map(x => [x.id, x.usd])), JSON.stringify([["outer", 10], ["inner", 4]]), "turns go to the task open at the time, the inner one while it runs");
+t.eq(got.untracked, 17, "turns with no task open are untracked");
+
 // A child session referenced by path ({"task": "<folder>"}) replays as a Session, not a plain Task.
 const was = Task.resolver;
 Task.resolver = ref => ref === "/x/child/" ? [{ session: { id: "child-1", kind: "servex" } }, { tasks: { add: { type: "Task", id: "a", title: "A" } } }] : null;
