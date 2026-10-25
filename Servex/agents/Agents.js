@@ -970,7 +970,7 @@ export class Agents {
 	 * (`Agent.send()`'s own default), never dropped. Off with
 	 * `SERVEX_DISABLE_WAKE=1` or `{ no_wake: true }` on the host — the proof
 	 * for this reproduces the old parking by disabling it first. */
-	wake_parent(child, kind){
+	wake_parent(child, kind, { quiet = false } = {}){
 		if (this.no_wake || process.env.SERVEX_DISABLE_WAKE) return;
 		if (!child.parent || child.parent === child.id) return;
 		if (child.one_shot && child.woke) return;
@@ -989,6 +989,7 @@ export class Agents {
 		const next = kind === "done" && child.task?.dir && task_landed(child.task.dir) ? next_briefs(child.task.dir) : [];
 		const note = next.length ? `\n\nNext: ${next.map(n => `${n.dir}${n.brief ? ` (brief ${n.brief})` : ""}`).join("; ")}. Its \`after\` edge is met; start it.` : "";
 		this.inbox(child, kind, text);
+		if (quiet && !note) return;   // a short ack after only followed lines: recorded in the inbox, but the parent is not woken; a landed task still tells it what it unblocks
 		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
 		child.parent = this.holder(child.parent);   // a child of a retired mastermind-servex-N reports to the live one
 		const parent = this.live.get(child.parent), by = this.stopped_on_purpose?.(child.parent)
@@ -1478,6 +1479,7 @@ Agents.Agent = class Agent {
 		if (this.state === "dormant") this.awaken(from);
 		this.emit({ type: "agent_msg", from: from ?? null, reply_to: reply_to ?? null, priority: priority ?? null, text });
 		const turn = this.turn(this.envelope(text, { from, reply_to }), priority);
+		if (from === "servex-follow") Object.defineProperty(turn, "followed", { value: true });   // read by the queue's kinds list; not part of the message the SDK sees
 		if (!this.queue.push(turn)){
 			(this.held_messages ??= []).push(turn);
 			this.emit({ type: "held", why: "the queue closed before this message could be pushed; it will be replayed on the next awaken" });
@@ -1774,10 +1776,13 @@ Agents.Agent = class Agent {
 		/* The turn that answers a compact nudge is housekeeping, not news: its "done" wakes nobody. */
 		const nudge_turn = event.type === "result" && !event.stopped && this.nudge_pending;
 		if (nudge_turn) this.nudge_pending = false;
+		/* A turn started only by followed lines whose answer is a short ack ("nothing for me") is housekeeping, not news: its "done" wakes nobody (2026-10-25: followers woke the smart seat on every followed line). A long answer, BLOCKED, an error or a stop still wake the parent. */
+		const followed = event.type === "result" && !(event.stopped && !event.mid_turn) && this.queue?.kinds?.shift() === true;   // the kind of the turn this result ends, in queue order; an idle stop ran no turn
+		const quiet_follow = followed && !event.stopped && (this.last_text ?? "").trim().length < 200 && !this.last_text?.startsWith("BLOCKED");
 		if (event.type === "result" && !nudge_turn && !(event.stopped && !event.mid_turn)) this.host?.wake_parent?.(this,
 			event.stopped ? "stopped"
 			: this.one_shot && event.ok === false ? "error"
-			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done");
+			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done", { quiet: quiet_follow });
 		if (event.type === "error") this.host?.wake_parent?.(this, "error");
 		if (event.type === "result") try { this.host?.servex?.process_runner?.turn_ended(this); } catch {}   // a process step this agent holds is measured, or pulsed if left open
 		return event;
@@ -2369,6 +2374,7 @@ Agents.Agent.Queue = class AgentQueue {
 	 * apart from a real success. `Agent.send()` is the one caller that acts on it. */
 	push(item){
 		if (this.done) return false;
+		(this.kinds ??= []).push(!!item?.followed);   // one entry per turn, in order: true = started by a followed line (Agent.emit judges each result by it)
 		const wake = this.waiting.shift();
 		if (wake) wake({ value: item, done: false });
 		else this.items.push(item);

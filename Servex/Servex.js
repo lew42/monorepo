@@ -1301,8 +1301,11 @@ export default class Servex extends Events {
     stale(spec){
         const no = this.agents.blocked?.({ id: spec.id, cwd: spec.cwd, task_dir: spec.task?.dir && path.resolve(spec.task.dir),
             ...(spec.resume ? { stopped_by: this.agents.reg().read()[spec.id]?.stopped_by } : {}) },
-            { landed: !spec.resume });   // a held RESUME is a long-lived agent coming back: its first task landing is no reason to drop it
-        if (no) this.log.append("system", { type: "gate", state: "dropped", id: spec.id ?? null, why: no.text }).catch(() => {});
+            { landed: !spec.resume && !!spec.task?.dir });   // landed counts only against the task dir the spec names: a held RESUME or a fresh spawn by id (ai-system-mastermind, 2026-10-25) must not be matched to an OLD landed task of the same name
+        if (no){
+            this.log.append("system", { type: "gate", state: "dropped", id: spec.id ?? null, why: no.text }).catch(() => {});
+            if (spec.parent) try { this.agents.send(spec.parent, `${spec.id ?? spec.name ?? spec.role ?? "a queued spawn"} was dropped from the spawn queue and will not start: ${no.text}. Spawn it again if you still want it.`, { from: "servex" }); } catch {}
+        }
         return !!no;
     }
 
