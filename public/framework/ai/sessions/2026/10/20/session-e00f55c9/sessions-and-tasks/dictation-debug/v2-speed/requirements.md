@@ -12,6 +12,8 @@ Chat v2 (the V2 button at the top of the chat) shows replies much later than the
 2. **Find the cause.** Possible causes to check: v2 only reads finished lines rather than streaming partial ones, a polling delay, or a debounce. Log the cause with file:line.
 3. **Fix it** so that v2 draws a reply as quickly as the first view does, with a stream and a `live()` tail rather than polling (CLAUDE.md, "Stream, don't poll"). Measure again and log both numbers.
 
+4. **Make the task state readable.** A task card in the chat shows something like "task idle" next to a small checkbox, and the owner does not understand what that means. Replace it with a label a newcomer reads at a glance: what state the task is in, and what the checkbox does. Fix it in the shared component, so every surface that shows a task picks it up.
+
 ## Where to start
 
 `ext/Chat/v2/readme.md`, `ext/drawer/ChatView.js` (the switch between the two views), and `../chat-v2/` (how v2 was built).
