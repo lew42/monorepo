@@ -1,0 +1,7 @@
+{"session":{"id":"cloud-voice-app-20261025","kind":"cloud-voice-agent","caller":"voice-app","at":1792911414737}}
+{"tool_call":{"at":"2026-10-25T06:56:54.737Z","tool":"system_health","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"log":{"at":"2026-10-25T02:06:20-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-25T02:16:19-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-25T02:21:28-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-10-25T02:26:28-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-10-25T07:47:46.536Z","tool":"return_worktree","args_hash":"00fae9b78de4","caller":"voice-app"}}

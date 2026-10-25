@@ -17,3 +17,5 @@
 {"log":{"at":"2026-10-24T23:18:49-05:00","msg":"task-loop status ask 3: could not ask: Agent minion-refine-map was not woken: it was stopped on purpose by ai-system-mastermind at 2026-10-24T22:56:06-05:00. Pass revive: true to wake it anyway.","ask":3}}
 {"log":{"at":"2026-10-24T23:23:52-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-10-25T00:24:52-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-10-25T01:25:32-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-10-25T02:36:29-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}

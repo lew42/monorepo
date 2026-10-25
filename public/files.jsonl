@@ -86,3 +86,11 @@
 {"file":"public/","gone":true}
 {"file":"failures.jsonl","gone":true}
 {"file":"public/"}
+{"file":"data/"}
+{"file":"failures.jsonl"}
+{"file":"Server/"}
+{"file":"Server/","gone":true}
+{"file":"Servex/"}
+{"file":"Server/"}
+{"file":"Servex/","gone":true}
+{"file":"Server/","gone":true}

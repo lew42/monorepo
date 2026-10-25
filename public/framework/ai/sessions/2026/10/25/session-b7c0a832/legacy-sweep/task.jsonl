@@ -21,3 +21,5 @@
 {"decision":{"at":"2026-10-25T02:38:34-05:00","msg":"task-mastermind/sub-mastermind are aliases of mastermind (architect/high); Dispatcher moved to page-mastermind to keep manager/medium + page skill; old long form moved to Servex/agents/doc/task-mastermind-long-form.md"}}
 {"review":{"at":"2026-10-25T02:40:36-05:00","answer":{"n":9,"reply":"noted: the landing line is written by the mastermind at merge"}}}
 {"decision":{"at":"2026-10-25T02:40:36-05:00","what":"merged legacy-sweep: OR_ONLY removed, task/sub-mastermind are aliases of mastermind, Dispatcher spawns page-mastermind","alternatives":"keep task-mastermind as its own row (rejected: one role, owner item 15)","by":"ai-system-mastermind"}}
+{"log":{"at":"2026-10-25T02:46:28-05:00","msg":"task-loop status ask 1: minion-legacy-sweep was stopped on purpose; not woken","ask":1}}
+{"log":{"at":"2026-10-25T02:51:31-05:00","msg":"task-loop status ask 2: minion-legacy-sweep was stopped on purpose; not woken","ask":2}}

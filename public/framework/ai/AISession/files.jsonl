@@ -49,3 +49,8 @@
 {"file":"SessionOutline.test.mjs"}
 {"file":"SessionOutlineView.js"}
 {"file":"failures.jsonl"}
+{"file":"SessionPopover.js"}
+{"file":"SessionTimeline.css"}
+{"file":"SessionTimeline.js"}
+{"file":"SessionTimeline.test.mjs"}
+{"file":"SessionTimelineRows.js"}
