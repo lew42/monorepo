@@ -9,11 +9,11 @@ Columns: **CLAUDE.md** = the SDK loads it (`setting_sources` unset). **Chain** =
 | Start | Model | Role text | CLAUDE.md | Chain | Tools | How injected |
 |---|---|---|---|---|---|---|
 | `mastermind` | architect, high | skill `servex-mastermind` **(branch: `roles/servex-mastermind.md`)** | yes | yes (its task dir) | whole `servex` MCP (HTTP, names deferred) + `mcp__local__` item/page twins | `Agents.spawn`: `first_prompt(dir)` + `whoami` + `opening()` + the task line |
-| `task-mastermind`, `page-mastermind` | manager, medium | skills `sub-mastermind` + `page` **(branch: `roles/task-mastermind.md` + `page`)** | yes | yes | same | same |
+| `page-mastermind` (the Dispatcher's one-task spawn; `task-mastermind` is now an alias of `mastermind`) | manager, medium | skill `page` **(branch: `roles/mastermind.md` + `page`)** | yes | yes | same | same |
 | `minion` | scan (Haiku), low | skill `minion` **(branch: `roles/minion.md`)** | yes | only if spawned with `task`/`page`; a bare minion gets a default task dir (since 2026-10-18), so usually yes | same | same |
 | `reviewer`, `checker`, `clarity` | manager, medium | skills `review` / `clarity` | yes | no (one-pass roles get no task dir) | same | `opening()` |
 | `voter` | manager | skill `research` | yes | if given a task | same | `opening()` |
-| `directory-mastermind` (`ask_directory`) | manager, plan | skills `sub-mastermind` + `page`, inlined by `directory.js` `opening(dir)` with the folder's plain files | **no** (`setting_sources: []`; CLAUDE.md and skills arrive as text) | its own, inside `opening(dir)` | `Edit/Write/NotebookEdit` disallowed | `spec.system` is set, so `spawn` sends `prompt` as is |
+| `directory-mastermind` (`ask_directory`) | manager, plan | skill `page` (with `roles/mastermind.md`), inlined by `directory.js` `opening(dir)` with the folder's plain files | **no** (`setting_sources: []`; CLAUDE.md and skills arrive as text) | its own, inside `opening(dir)` | `Edit/Write/NotebookEdit` disallowed | `spec.system` is set, so `spawn` sends `prompt` as is |
 | `master-assistant` (`Global.js`) | architect, plan | skill `master-assistant` | no | no | `allowed_tools: master_tools`; every other servex tool disallowed | `Global.js` options |
 | page-assistant (`Layers.js`) | fast, low | skill `every-prompt` | no | the page's chain (`Layers.js`) | `allowed_tools`: Read, Grep, Glob + a short servex list | `Layers.js` |
 | `session-smart` (voice, `Sessions.js`) | manager | brief `session-smart.md`, appended to the claude_code preset | no (no memory, no claude.ai connectors) | no | whole Claude Code preset + servex door | `system` option |

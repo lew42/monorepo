@@ -6,7 +6,7 @@ Two rows do not match today. Instead of renaming skill directories (a dozen call
 
 ## Mismatches
 
-- Role `task-mastermind` loads skill `sub-mastermind`. To match: rename the skill directory `.claude/skills/sub-mastermind` to `task-mastermind` (and every place that says "load the sub-mastermind skill"), or rename the role to `sub-mastermind`, which also changes the id prefix of live agents and the Dispatcher's spawns.
+- `task-mastermind` and `sub-mastermind` are no longer rows (2026-10-25): both are aliases of `mastermind`, whose role text has the "Owning one task end to end" section. The id prefix is still the word the caller passed, so `task-mastermind-x` ids keep appearing. The skill `.claude/skills/sub-mastermind` is a pointer to `roles/mastermind.md`.
 - Role `assistant` loads skill `every-prompt`. To match: rename the skill directory `.claude/skills/every-prompt` to `assistant` (its `say.mjs` path is used in many briefs), or rename the role to `every-prompt`, which would make ids read `every-prompt-fast`.
 
 The other four rows (`minion`, `mastermind`, `master-assistant`, `log-assistant`) already match.

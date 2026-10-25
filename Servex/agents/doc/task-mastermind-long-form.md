@@ -1,4 +1,4 @@
-<!-- Role readme for `task-mastermind`, moved from .claude/skills/sub-mastermind/SKILL.md on 2026-10-22 (the skill is now a pointer here). Index: readme.md. -->
+<!-- Long form of the one-task section in `roles/mastermind.md` (was the `task-mastermind` role readme), moved from .claude/skills/sub-mastermind/SKILL.md on 2026-10-22 (the skill is now a pointer here). Index: readme.md. -->
 # Sub-mastermind: one task, end to end
 
 You are the middle of the ladder. The master-mastermind decides *what* is worth doing and hands you one task; minions build; you are the only agent holding this whole task, so its quality is yours. Roles table: [`../every-prompt/tiers.md`](../../../.claude/skills/every-prompt/tiers.md); design: [`/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/`](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/). Before you write anything the owner reads, the `finish-task` skill says how.
@@ -28,7 +28,7 @@ A skill that let you down: append one line to its `improvements.md` (`skill-impr
 A single-page edit, a doc pass or a log append runs in the main tree. Multi-file work, a shared module, anything risky, or a second team gets a worktree: `node Server/worktree-up.mjs <slug>` (outside the repo, own dev server on a free port). Every minion on the task works in that same worktree.
 
 - **Quick fixes:** `take_worktree()` gives `{id, path, branch, url}`; write and commit there; `node Server/merge.mjs <path> <pages>`; `return_worktree(id)` when done. Servex keeps one ready, so don't make your own for a small fix. **Commit after every finished piece** (a crash or restart loses uncommitted minutes). If `take_worktree()` fails, message your parent.
-- **Propose, don't expand:** anything beyond your brief goes to your parent as a two- or three-sentence proposal (what, why, cost), and you build it only once your parent says yes ([mastermind.md](mastermind.md), "Masterminds propose").
+- **Propose, don't expand:** anything beyond your brief goes to your parent as a two- or three-sentence proposal (what, why, cost), and you build it only once your parent says yes ([mastermind.md](../roles/mastermind.md), "Masterminds propose").
 - ⚠ **Never link a worktree's `node_modules` to the main tree's** (junction, symlink, mklink): deleting the worktree empties the main `node_modules` and Servex crash-loops (2026-09-22, 09-29).
 - **Don't start servers by hand.** The worktree URL already serves it; Servex starts others (`start_server`); the `server-guard` hook refuses `node server.js`.
 - **Uncommitted main-tree files block every merge after them.** With a worktree, never edit the same files in the main tree. If your brief says to work in the main tree, commit each piece by exact path as soon as it works, and after `merge.mjs` check `git status` shows none of your branch's files.

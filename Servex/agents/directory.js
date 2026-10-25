@@ -81,7 +81,7 @@ export function opening(dir){
 	parts.push(`## The readmes\n\n${first_prompt(dir)}`);
 
 	const skills_dir = path.join(REPO, ".claude/skills");
-	/* skill_text follows a skill that became a pointer to its role readme (sub-mastermind -> roles/task-mastermind.md, 2026-10-22). */
+	/* skill_text follows a skill that became a pointer to its role readme (sub-mastermind -> roles/mastermind.md, 2026-10-25). */
 	const loaded = SKILLS.map(s => ({ s, text: skill_text(s) })).filter(x => x.text != null);
 	parts.push(`## Your skills\n\nYour role's skills are ${loaded.map(x => `\`${x.s}\``).join(" and ")}. Their full text follows, so treat them as loaded.`);
 	for (const { s, text } of loaded) parts.push(`### .claude/skills/${s}/SKILL.md\n\n${text}`);

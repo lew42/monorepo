@@ -2,7 +2,7 @@
 //   node Server/ModelsNow.mjs                     print the table
 //   node Server/ModelsNow.mjs --write             also write public/framework/ai/models/now.json (the models page reads it)
 //   node Server/ModelsNow.mjs --backend openrouter|anthropic   write / delete the switch file, print what changes at the next Servex restart
-// Doc: Servex/ext/openrouter/readme.md ("The wall switch"). Servex reads the switch ONCE at load: restart to apply.
+// Doc: Servex/ext/openrouter/readme.md ("The wall switch"). It moves the voice seats and Refine only (Claude is the default everywhere else).
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -28,20 +28,19 @@ export default class ModelsNow {
 	/** One row per role in roles.js: its model and where it came from. */
 	static async roles(){
 		const { ROLES } = await import("../Servex/agents/roles.js");
-		const { OR_ONLY } = await import("../Servex/agents/tiers.js");
 		return Object.entries(ROLES).map(([role, r]) => ({
 			role, tier: r.tier, model: r.model, provider: provider_of(r.model),
-			origin: OR_ONLY && provider_of(r.model) === "openrouter" ? `tier ${r.tier}, moved by the switch file (${SWITCH})` : `tier ${r.tier} (Servex/agents/tiers.js)`
+			origin: `tier ${r.tier} (Servex/agents/tiers.js)`
 		}));
 	}
 
 	/** Echo and the voice pair do not use their role row alone. */
 	static async special(){
-		const { model, OR_ONLY } = await import("../Servex/agents/tiers.js");
+		const { model } = await import("../Servex/agents/tiers.js");
 		const { session_backend } = await import("../Servex/agents/Sessions.js");
 		const be = session_backend();
 		return [
-			{ role: "echo-*", tier: "scan", model: model("scan"), provider: provider_of(model("scan")), origin: "Echo.model_for(): the scan tier" + (OR_ONLY ? " (switch file: openrouter)" : "") },
+			{ role: "echo-*", tier: "scan", model: model("scan"), provider: provider_of(model("scan")), origin: "Echo.model_for(): the scan tier" },
 			{ role: "session-fast (voice)", tier: "fast", model: be === "openrouter" ? "openai/gpt-6-luna" : model("fast"), provider: be === "openrouter" ? "openrouter" : "anthropic", origin: `Sessions.session_model(): backend "${be}"` },
 			{ role: "session-smart (voice)", tier: "manager", model: be === "openrouter" ? "openai/gpt-6-luna" : model("manager"), provider: be === "openrouter" ? "openrouter" : "anthropic", origin: `Sessions.session_model(): backend "${be}"` }
 		];
@@ -87,13 +86,11 @@ export default class ModelsNow {
 	}
 
 	static async set_backend(which){
-		const { TIERS, OR_MODEL } = await import("../Servex/agents/tiers.js");
 		if (which === "openrouter") { fs.mkdirSync(HOME, { recursive: true }); fs.writeFileSync(SWITCH, "openrouter\n"); }
 		else if (which === "anthropic") { try { fs.unlinkSync(SWITCH); } catch {} }
 		else throw new Error("--backend takes openrouter or anthropic");
 		console.log(`switch file ${which === "openrouter" ? "written" : "deleted"}: ${SWITCH}\nAt the NEXT Servex restart (node Servex/sustain.mjs --restart; not done by this script):`);
-		for (const [t, v] of Object.entries(TIERS)) if (v.provider === "anthropic") console.log(`  tier ${t}: ${v.model}  ->  ${which === "openrouter" ? OR_MODEL : v.model}`);
-		console.log(which === "openrouter" ? "  every agent, echo and voice session then bills OpenRouter (cap in Servex/ext/openrouter/readme.md)" : "  every agent runs on Claude again");
+		console.log(which === "openrouter" ? "  voice sessions and Refine/clean calls then bill OpenRouter (cap in Servex/ext/openrouter/readme.md); other agents stay on Claude unless a spawn names a `/` model" : "  everything runs on Claude again");
 	}
 }
 

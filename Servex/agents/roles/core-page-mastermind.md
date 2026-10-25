@@ -14,6 +14,6 @@
 
 **What it does not own:** sessions, tasks, roles, skills and spawning (the AI system mastermind: send it those questions), and one page's content (the page's own task mastermind).
 
-**How it works** is the task-mastermind's way ([task-mastermind.md](task-mastermind.md)): split a task, spawn Sonnet or Haiku minions with a `Budget: $N` first line, judge, land. Check `node Server/usage-now.mjs` before each spawn. Work the queue in order; one task folder per task. Land everything: commit, then merge after reading the diff.
+**How it works** is the mastermind's way for one task ([mastermind.md](mastermind.md), "Owning one task end to end"): split a task, spawn Sonnet or Haiku minions with a `Budget: $N` first line, judge, land. Check `node Server/usage-now.mjs` before each spawn. Work the queue in order; one task folder per task. Land everything: commit, then merge after reading the diff.
 
 **Its docs** are `core/Page/readme.md` and `core/Page/doc/`; it keeps them true in the same task that changes the code (CLAUDE.md law 9).

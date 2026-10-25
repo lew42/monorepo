@@ -46,13 +46,12 @@ export const ROLES = {
 	 * a non-interactive SDK session. Found 2026-09-22 (sub-mastermind-live run 1):
 	 * a task mastermind spawned under the old default had both its spawn_agent
 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
-	"task-mastermind":  { readme: "task-mastermind", skills: ["page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* THE CORE PAGE MASTERMIND (the owner, 2026-10-24): a defined, repeatable subject mastermind for the page system (core/Page, Item, Router, ext/JSONL). Its role text reaches the system prompt, so it survives compaction. Ids mastermind-page, mastermind-page-2. */
 	"core-page-mastermind": { readme: "core-page-mastermind", prefix: "mastermind-page", tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* mastermind: bypassPermissions too (2026-10-12, asks #6): it calls spawn_agent/page tools and edits, and nobody can approve a prompt overnight. */
 	/* ONE mastermind role, spawned at a PATH (the owner, 2026-10-25; roles/mastermind.md "Spawned at a path"). `ai-system-mastermind` and
 	 * `servex-mastermind` are only words for it: ALIAS_PATHS gives them a default path. The old singleton and its renewal are gone. */
-	mastermind:         { readme: "mastermind", prefix: "mastermind",       alias: ["ai-system-mastermind", "servex-mastermind"], tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+	mastermind:         { readme: "mastermind", prefix: "mastermind",       alias: ["ai-system-mastermind", "servex-mastermind", "task-mastermind", "sub-mastermind"], tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* The fast assistant (every-prompt) is retired for voice as of 2026-10-17 (`voice-assistant` below); its skill files stay on disk and this row stays for the callers that still name it. */
 	assistant:          { retired: "voice-assistant", skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
 	/* ONE PAIR ON EVERY PAGE (recursive-pairs, 2026-09-25/28): a page-assistant, root page
@@ -73,7 +72,7 @@ export const ROLES = {
 	 * "directory mastermind" (not a roles.js row yet — no tool spawns one fresh from a
 	 * directory's readme chain today). Names only, no behaviour change here:
 	 * doc/names.md, /framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md. */
-	"page-mastermind":  { readme: "task-mastermind", skills: ["page"], prefix: "manager", alias: "manager",                              tier: "manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions" },
+	"page-mastermind":  { readme: "mastermind", skills: ["page"], prefix: "manager", alias: "manager",                              tier: "manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions" },
 	/* The root page's own assistant (Servex/agents/Global.js `master()`, master-assistant.md).
 	 * Its own row, not folded into page-assistant: architect tier and `plan`, unchanged from
 	 * before recursive-pairs. A caller's own fields (Global.js's) still win over this table.
@@ -102,7 +101,7 @@ export const ROLES = {
 	 * mastermind's posture, opened with the folder's plain files as its first message. Spawned by
 	 * code with `system` set, so this row's skills are inlined by directory.js, not by `opening()`
 	 * below. Replaces the retired per-page "manager" for technical questions. doc/directory.md. */
-	"directory-mastermind": { readme: "task-mastermind", skills: ["page"], prefix: "directory-mastermind", tier: "manager", model: model("manager"), effort: "medium", permission_mode: "plan" },
+	"directory-mastermind": { readme: "mastermind", skills: ["page"], prefix: "directory-mastermind", tier: "manager", model: model("manager"), effort: "medium", permission_mode: "plan" },
 	/* Skill-usage audit 2026-10-12: these three were never told to load a skill (2 of 518 loaded one on their own);
 	 * a role row is what makes Servex prefix "Load the X skill". Callers' own model/effort/permissions still win. */
 	reviewer:           { readme: "reviewer",           prefix: "reviewer",         tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },

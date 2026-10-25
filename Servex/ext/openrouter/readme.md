@@ -79,6 +79,6 @@ just research. The two things you'll actually do with it:
 
 - **Default:** every agent, the Echo and the voice pair run on Claude (fast = Haiku 5.5, smart = Sonnet 5.5); OpenRouter costs nothing because nothing uses it.
 - **When to flip:** when the Claude week or 5 h window hits its wall (`public/framework/ai/usage.json`; both percentages sit at the top of [/framework/ai/models](/framework/ai/models)).
-- **How:** `node Server/ModelsNow.mjs --backend openrouter` (writes `session-backend.txt`), then `node Servex/sustain.mjs --restart`. Back: `--backend anthropic`, restart. The switch is read once at load; the script prints each tier's before and after.
-- **What it costs:** every Anthropic tier becomes `openai/gpt-6-luna`, metered per call into `logs/openrouter.jsonl` and capped by the spend guard (weekly cap in `openrouter-usage.json`). The switch itself lifts `SERVEX_OPENROUTER_PAUSED`.
+- **How:** `node Server/ModelsNow.mjs --backend openrouter` (writes `session-backend.txt`; no restart needed, the file is read on each use). Back: `--backend anthropic`.
+- **What it moves (2026-10-25):** only the voice seats and Refine/clean calls (`Sessions.session_backend()`, `RefineCall.model()`) go to `openai/gpt-6-luna`. Other agents stay on Claude; the old switch that moved every tier (`OR_ONLY` in `tiers.js`) is gone. To put one agent on OpenRouter, spawn it with a `/` model or `provider: "openrouter"`; that request is the consent. Spend is metered per call into `logs/openrouter.jsonl` and capped by the spend guard (weekly cap in `openrouter-usage.json`). `SERVEX_OPENROUTER_PAUSED=1` blocks OpenRouter spawns (off by default).
 - **Refresh the table:** `node Server/ModelsNow.mjs --write`.

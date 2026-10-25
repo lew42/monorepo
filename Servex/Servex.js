@@ -1179,7 +1179,7 @@ export default class Servex extends Events {
     bypass(spec = {}){
         return !!spec.urgent
             || ["assistant", "master-assistant", "helper"].includes(spec.role)
-            || (spec.role === "task-mastermind" && !!spec.parent && spec.parent === this.dispatcher?.id);
+            || (["task-mastermind", "page-mastermind"].includes(spec.role) && !!spec.parent && spec.parent === this.dispatcher?.id);
     }
 
     /* FINISHING ROLES FIRST (node-reliability, 2026-09-29). A reviewer, clarity

@@ -131,7 +131,7 @@ export default class Dispatcher {
 				+ " — it lands in the card they spoke this into, where they are reading." : "");
 
 		const agent = this.servex.agents.spawn({
-			role: "task-mastermind",
+			role: "page-mastermind",   // the one-task row: manager/medium + the page skill (task-mastermind is now an alias of the architect row)
 			name,
 			task: { dir: rel, title: String(task.brief || "").split("\n")[0].slice(0, 120), ...(task.card ? { card: task.card } : {}) },   // title: what past-work.md searches on (the first line of the ask)
 			model: model("manager"), effort: "medium",

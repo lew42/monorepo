@@ -12,7 +12,7 @@ for (const [role, r] of Object.entries(ROLES)) {
 	assert.ok(first.includes(`<role-readme path="Servex/agents/roles/${r.readme}.md">`) && first.includes(text) && first.endsWith("Now: GO"), `${role}: the readme rides whole in the first message`); n++;
 	assert.equal(injected(role)[0], `roles/${r.readme}`, `${role}: injected names the readme`); n++;
 }
-for (const [skill, readme] of [["minion", "minion"], ["sub-mastermind", "task-mastermind"], ["servex-mastermind", "mastermind"], ["mastermind", "mastermind"], ["review", "reviewer"], ["clarity", "clarity"]]) {
+for (const [skill, readme] of [["minion", "minion"], ["sub-mastermind", "mastermind"], ["servex-mastermind", "mastermind"], ["mastermind", "mastermind"], ["review", "reviewer"], ["clarity", "clarity"]]) {
 	assert.equal(skill_text(skill), role_readme(readme), `skill ${skill} -> roles/${readme}.md`); n++;
 }
 assert.ok(skill_text("research").length > 500 && !skill_text("research").startsWith("Read `Servex"), "an unmoved skill reads as before"); n++;

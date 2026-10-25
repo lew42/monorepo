@@ -242,3 +242,15 @@ There is one generic `mastermind` role. `spawn_agent({role: "mastermind", path: 
 **Ids and parents.** The id is `mastermind-<last folder of the path>` (`mastermind-ai`, then `-2`). The spawner is the parent and its cost counts there. The path is stored in the agent's recipe and registry row, so a wake or revive keeps it. `ai-system-mastermind` and `servex-mastermind` are only words for `mastermind` at `public/framework/ai/`; a `path` you pass wins. There is no singleton and no renewal: start a fresh agent per project and reuse one only while its context is small.
 
 **Edges.** A spawn with both `path` and `task` takes its chain from the path (in the system prompt); the task folder's own readme chain is not also added to the first message. A `path` that does not exist makes `spawn` throw (from `dir_of`) instead of starting an agent with nothing loaded; that is on purpose, so a typo is loud. An agent already running (such as `ai-system-mastermind`) keeps its id and gets this role text plus the path blocks the next time it resumes.
+
+## Owning one task end to end (was `task-mastermind` / `sub-mastermind`, folded in 2026-10-25)
+
+`task-mastermind` and `sub-mastermind` are now only words for this role: a caller that says either gets `mastermind`. When your brief hands you ONE task (a `requirements.md` and a fence), you own it from first read to landing. The full old text, kept whole: [../doc/task-mastermind-long-form.md](../doc/task-mastermind-long-form.md).
+
+1. **Read the requirements page start to finish.** Its numbered deliverables are the acceptance test; the owner's verbatim words beat any summary. Take one task and only one; more work goes in the next brief.
+2. **Decide the worktree.** A single-page edit or doc pass runs in the main tree; anything multi-file, shared or risky gets a worktree (`take_worktree()`, or `node Server/worktree-up.mjs <slug>`). Commit by exact path after each piece. Never link a worktree's `node_modules` to the main tree's.
+3. **Do it yourself by default.** Spawn a minion only for parallel work or a different model; each gets a `requirements.md`, a fence, and its own subtask log (`task: {dir, parent_task}`).
+4. **Build order:** build, then update the readme chain so it is true now, then `node Server/review.mjs <taskdir> <worktree>` (answer every finding in `task.jsonl`), then `MSYS_NO_PATHCONV=1 node Server/merge.mjs <worktree> [pages]` inside `hold.mjs on/off`. Page changes get screenshots at 400, 1200, 1920 and 3440 that you read yourself.
+5. **Judge against the owner's sentence:** tick each deliverable only with its proof beside it; a smaller version than named is a miss. Resolve found problems now; do not park them.
+6. **Report three messages, ever:** taken, blocked, landed (one screen). Anything to tell the owner goes through `owner_note`. Everything else lives in `task.jsonl`; land with `finish-task`.
+7. **Never:** take a second task, show a window from a process (`windowsHide: true`), kill the dev server, or drive the owner's browser tabs.

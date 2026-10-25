@@ -101,7 +101,7 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 `readme-chain.js` + `readme-chain.test.mjs` (a fresh, directory-bound agent's opening context,
 [`doc/readme-chain.md`](../doc/readme-chain.md)) ·
 `demo.mjs` · `fork-proof.mjs` · `experts-proof.mjs` · `revive-proof.mjs` · `revive-guard-proof.mjs` · `queue-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·
-`doc/traps.md` (what the SDK does not tell you) · `doc/jobs.md` · `doc/names.md`
+`doc/traps.md` (what the SDK does not tell you) · `doc/jobs.md` · `doc/names.md` · `doc/task-mastermind-long-form.md` (the long form of the one-task section in `roles/mastermind.md`)
 
 How agents should work together (the design, with a picture):
 [/framework/ai/sessions/2026/09/24/concurrency/concurrency/](/framework/ai/sessions/2026/09/24/concurrency/concurrency/).

@@ -132,8 +132,7 @@ export default class Echo {
 	}
 
 	/* WHICH MODEL AN ECHO RUNS ON (the owner, 2026-10-13: no OpenRouter money while Claude tokens last).
-	 * The `scan` tier: Haiku, or OpenRouter only when session-backend.txt says `openrouter` (tiers.js, the one
-	 * switch: `node Server/ModelsNow.mjs --backend openrouter|anthropic`). The 2026-10-02 Gemini trial and its
+	 * The `scan` tier: Haiku (tiers.js). session-backend.txt no longer moves it (2026-10-25). The 2026-10-02 Gemini trial and its
 	 * SERVEX_ECHO_OR / SERVEX_OPENROUTER_PAUSED gates are gone; history: Servex/ext/openrouter/readme.md. */
 	model_for(){ return { model: model("scan") }; }
 

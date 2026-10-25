@@ -17,7 +17,7 @@ const t = (ok, what) => { assert.ok(ok, what); n++; };
 const minion_readme = fs.readFileSync(new URL("./roles/minion.md", import.meta.url), "utf8");
 t(role_system("minion").includes('<role-readme path="Servex/agents/roles/minion.md">'), "role_system carries the role readme block");
 t(role_system("minion").includes(minion_readme.match(/^# .+$/m)[0]), "…with the readme's own text");
-t(role_system("task-mastermind").includes('<skill name="page">'), "…and the skills the row carries");
+t(role_system("page-mastermind").includes('<skill name="page">'), "…and the skills the row carries");
 const short = opening("minion", "do X", { in_system: true });
 t(short.length < 300 && /in your system prompt/.test(short) && short.endsWith("Now: do X"), "in_system: the first message only points at it");
 t(opening("minion", "do X").includes("<role-readme"), "without in_system: the old inline opening");

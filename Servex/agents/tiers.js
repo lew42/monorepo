@@ -27,18 +27,7 @@ export const TIERS = {
 	local_qwen: { provider: "local", model: "local/qwen2.5-coder" }
 };
 
-/* THE OWNER'S SWITCH (2026-10-05, Claude week at 98%): when session-backend.txt says `openrouter`,
- * EVERY Anthropic tier resolves to OpenRouter too, so spawned masterminds and minions never burn
- * Claude tokens. Read once at load: change the file, then restart Servex. Delete the file to go back. */
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-export const OR_ONLY = (() => {
-	try {
-		const f = path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), "lew42", "servex", "session-backend.txt");
-		return fs.readFileSync(f, "utf8").trim().toLowerCase() === "openrouter";
-	} catch { return false; }
-})();
-export const OR_MODEL = "openai/gpt-6-luna";
-export const model = tier => (OR_ONLY && TIERS[tier]?.provider === "anthropic") ? OR_MODEL : (TIERS[tier]?.model ?? tier);
-export const provider = tier => (OR_ONLY && TIERS[tier]?.provider === "anthropic") ? "openrouter" : (TIERS[tier]?.provider ?? "anthropic");
+/* Claude is the default; a tier moves to another provider only by editing its row above (or a caller passing a
+ * `/` model or `provider: "openrouter"`). The old file switch that moved EVERY tier to OpenRouter (OR_ONLY) is gone. */
+export const model = tier => TIERS[tier]?.model ?? tier;
+export const provider = tier => TIERS[tier]?.provider ?? "anthropic";

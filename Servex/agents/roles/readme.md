@@ -15,7 +15,7 @@ A **role** is the job an agent is started for: a minion does one narrow job, a m
 | `mastermind` (Servex spawn) | [mastermind.md](mastermind.md) | the executive: picks the top work, spawns minions | architect (high) | a mastermind spawned on Servex |
 | (the owner's VS Code sidebar tab) | [vscode-mastermind.md](vscode-mastermind.md) | answers the owner fast, relays the essence of each dictation to a deputy, hands off all investigating, building, reviewing and merging | the tab's own model | the tab the owner dictates to |
 | (VS Code tab, `/mastermind`) | [mastermind.md](mastermind.md) | the executive: governs the budget, picks the top work, spawns minions | the tab's own model | the owner says "you are the mastermind" |
-| `task-mastermind` (also `page-mastermind`, `directory-mastermind`) | [task-mastermind.md](task-mastermind.md) + the `page` skill | owns one task end to end: splits it, spawns minions, judges, lands | manager (Sonnet, medium) | one task with several parts |
+| `page-mastermind`, `directory-mastermind` (the old words `task-mastermind` and `sub-mastermind` are now aliases of `mastermind`, so an old caller using those words gets its architect/high posture) | [mastermind.md](mastermind.md), "Owning one task end to end" + the `page` skill | owns one task end to end: splits it, spawns minions, judges, lands | manager (Sonnet, medium) | one task with several parts |
 | `minion` | [minion.md](minion.md) | one narrow job from a brief: a scan, a fix, a build | scan (Haiku, low); pass Sonnet for UI or class code | one job a brief can describe |
 | `reviewer`, `checker` | [reviewer.md](reviewer.md) | fresh-eyes review of finished work against the owner's asks and every design system | manager (Sonnet, medium) | before a merge (`Server/review.mjs` starts it) |
 | `clarity` | [clarity.md](clarity.md) | checks what a landed task wrote for the owner is clear; sends rewrites | manager (Sonnet, medium) | woken per landing by `Server/clarity.mjs` |
@@ -40,5 +40,5 @@ Items, routing and JSONL streaming are part of the page system's mastermind unti
 
 ## Open
 
-- ⬜ Every readme here is over the 400-word target (words, 2026-10-22: mastermind 5,251 · minion 3,048 · task-mastermind 2,432 · reviewer 859 · clarity 689). They were moved whole, unchanged; trimming them is the next pass. Move: [moves.md](../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md).
+- ⬜ Every readme here is over the 400-word target (words, 2026-10-22: mastermind 5,251 · minion 3,048 · reviewer 859 · clarity 689). They were moved whole, unchanged; trimming them is the next pass. Move: [moves.md](../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md).
 - Improvements to a role still go in its skill folder's `improvements.md`.
