@@ -1,4 +1,4 @@
-// Recompute only what changed (item 25): a child record is replayed again only when its own file (or one it read) changed. `node Servex/agents/ref-cache.test.mjs`
+// Recompute only what changed (item 25): a child record is parsed again only when its own file changed, and every replay builds fresh tasks. `node Servex/agents/ref-cache.test.mjs`
 // Scratch tree in the OS temp folder (SERVEX_PUBLIC points the item tool at it): nothing under the live public/ is touched.
 import fs from "node:fs";
 import os from "node:os";
@@ -7,7 +7,7 @@ import Test from "../../public/framework/core/Test/Test.js";
 
 const ROOT = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "ref-cache-")));
 process.env.SERVEX_PUBLIC = path.join(ROOT, "public");
-const { default: Task } = await import("../../public/framework/core/Task/Task.js");
+
 const { run_item } = await import("./page_tools.js");
 const REL = "public/framework/ai/sessions/2026/10/22/refcache", DIR = path.join(ROOT, REL), URL = "/" + REL.slice("public/".length) + "/";
 const kid = n => path.join(DIR, "kid-" + n), line = o => JSON.stringify(o) + "\n";
@@ -20,18 +20,18 @@ for (const n of ["a", "b", "c"]){ fs.mkdirSync(kid(n)); fs.writeFileSync(path.jo
 try {
 	const read = async () => (await run_item({ path: URL }, { caller: "t" })).state;
 	let s = await read();   // the first read links the resolver (link_refs) for this process
-	const calls = [], resolver = Task.resolver;
-	Task.resolver = ref => (calls.push(ref.split("/").filter(Boolean).at(-1)), resolver(ref));
+	const calls = [], real_read = fs.readFileSync;   // which child files are read from disk (and so parsed) again
+	fs.readFileSync = (p, ...a) => (path.basename(String(p)) === "task.jsonl" && path.basename(path.dirname(String(p))).startsWith("kid-") && calls.push(path.basename(path.dirname(String(p)))), real_read(p, ...a));
 	t.eq(s.completion, 0, "three children, none done: completion 0");
 
 	calls.length = 0;
 	await read();
-	t.eq(calls.length, 0, "nothing changed: no child file is read or replayed again");
+	t.eq(calls.length, 0, "nothing changed: no child file is read again");
 
 	fs.appendFileSync(path.join(kid("a"), "task.jsonl"), line(done));   // only A changes
 	calls.length = 0;
 	s = await read();
-	t.eq(calls, ["kid-a"], "one child changed: only that child is replayed again");
+	t.eq(calls, ["kid-a"], "one child changed: only that child file is read again");
 	t.eq(s.progress.done, 1, "and the parent's total moved (1 of 3 done)");
 	t.ok(Math.abs(s.completion - 1 / 3) < 1e-9, "completion is 1/3");
 
@@ -45,16 +45,25 @@ try {
 	fs.appendFileSync(path.join(DIR, "session.jsonl"), line({ log: { text: "the parent's own file changed" } }));
 	calls.length = 0;
 	await read();
-	t.eq(calls.length, 0, "only the parent changed: no child is replayed again");
-	Task.resolver = resolver;
+	t.eq(calls.length, 0, "only the parent changed: no child file is read again");
+	fs.readFileSync = real_read;
+
+	// a parent line addressed to a child ({"a":{"tasks":{"add":…}}}) is applied once per replay of the parent, not again on top of an earlier replay
+	fs.appendFileSync(path.join(DIR, "session.jsonl"), line({ a: { tasks: { add: { title: "x", id: "x" } } } }));
+	for (let i = 0; i < 3; i++){
+		fs.appendFileSync(path.join(DIR, "session.jsonl"), line({ log: { text: "the parent changes again " + i } }));
+		await read();
+	}
+	const asked = await run_item({ path: URL, delta: { tasks: { a: { progress: {} } } } }, { caller: "t" });
+	t.eq(asked.answer?.tasks?.a?.progress?.total, 1, "the child holds the one task added to it, not one per replay of the parent");
 
 	// item 26: {"completion":{}} answers the tally and the number at once, and writes nothing
 	const size = fs.statSync(path.join(DIR, "session.jsonl")).size;
 	const r = await run_item({ path: URL, delta: { completion: {} } }, { caller: "t" });
-	t.eq(r.answer?.completion, { stopped: 0, done: 3, total: 3, completion: 1 }, "completion query: the tally (done, total, stopped) and the number");
+	t.eq(r.answer?.completion, { stopped: 0, done: 2, total: 3, completion: 2 / 3 }, "completion query: the tally (done, total, stopped) and the number");
 	t.eq(fs.statSync(path.join(DIR, "session.jsonl")).size, size, "and the query wrote nothing");
 	const kid_a = await run_item({ path: URL + "kid-a/", delta: { completion: {} } }, { caller: "t" });
-	t.ok(kid_a.ok && kid_a.answer?.completion?.done === 1, "a task folder answers it too");
+	t.ok(kid_a.ok && kid_a.answer?.completion?.total === 1, "a task folder answers it too");
 } finally {
 	fs.rmSync(ROOT, { recursive: true, force: true });
 }

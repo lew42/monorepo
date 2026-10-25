@@ -404,28 +404,22 @@ export class Task extends Item {
 	// task.jsonl into that stub through the Store (the way TaskPage does) and tails it live. "missing" only after a 404.
 	static resolver = null;
 	static resolving = new Set();
-	/** Node sets this to cache a replayed child by its file's signature: scope(key, build) returns the cached child while its file (and any file it read) is unchanged, else build(). Null in a browser. */
-	static ref_scope = null;
 	static from_ref(ref, as){
-		const make = () => {
-			const lines = !this.resolving.has(ref) && this.resolver ? this.resolver(ref) : null;
-			const id = as ?? this.ref_id(ref);
-			let kid;
-			if (lines?.length){
-				this.resolving.add(ref);   // a cycle of references stops here
-				const Own = Item.types.get(lines[0]?.class ?? (lines[0]?.session ? "Session" : undefined));   // line 1 may name a subclass (a Process), or be a session record ({session:{…}}): replay it as that, when it is loaded
-				try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
-				if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
-			} else {   // no file (node), or not read yet (browser): a stub, never a throw
-				kid = new this({ id });
-				kid.put("title", id);
-				const browser = !this.resolver && typeof document !== "undefined" && !this.resolving.has(ref);
-				kid.put("state", browser ? "loading" : "missing");
-				if (browser) kid.ready = this.open_ref(kid, ref);   // a promise: resolves once the file is read (or 404s)
-			}
-			return kid;
-		};
-		const kid = this.ref_scope && !this.resolving.has(ref) ? this.ref_scope(this.name + "|" + ref + "#" + (as ?? ""), make) : make();
+		const lines = !this.resolving.has(ref) && this.resolver ? this.resolver(ref) : null;
+		const id = as ?? this.ref_id(ref);   // `as`: the id the task had in the parent (a moved item keeps it, whatever its new folder is called)
+		let kid;
+		if (lines?.length){
+			this.resolving.add(ref);   // a cycle of references stops here
+			const Own = Item.types.get(lines[0]?.class ?? (lines[0]?.session ? "Session" : undefined));   // line 1 may name a subclass (a Process), or be a session record ({session:{…}}): replay it as that, when it is loaded
+			try { kid = (Own && Own.prototype instanceof this ? Own : this).replay(lines); } finally { this.resolving.delete(ref); }
+			if (kid.id === "tasks" || kid.id === "task" || as) kid.id = id;   // a module list's line 1 says "tasks", an id-less log replays as "task": both are the same for every sibling, so the folder name stands in
+		} else {   // no file (node), or not read yet (browser): a stub, never a throw
+			kid = new this({ id });
+			kid.put("title", id);
+			const browser = !this.resolver && typeof document !== "undefined" && !this.resolving.has(ref);
+			kid.put("state", browser ? "loading" : "missing");
+			if (browser) kid.ready = this.open_ref(kid, ref);   // a promise: resolves once the file is read (or 404s)
+		}
 		if (kid.data.path === undefined) kid.put("path", ref);
 		kid._own_file = ref;   // a referenced child lives in its own file: the parent Store never records its changes (Store.js owned_below)
 		return kid;

@@ -646,31 +646,26 @@ function notify_requests(live, at, body, requests, by){
 // Node's resolver for Task.from_ref: an app path -> that folder's parsed task.jsonl, or null. While a root is being replayed, `collect` gathers every child file it read.
 let collect = null;
 const sig = file => { try { const st = fs.statSync(file); return `${st.size}:${st.mtimeMs}`; } catch { return "none"; } };
-/* RECOMPUTE ONLY WHAT CHANGED: a replayed child is kept by ref and reused while its own file, and every file it read in turn, keep the same
- * size and mtime. One changed child re-replays only itself (and the parent that holds it); an ancestor's totals are computed on read from
- * its children, so they are never stale. The deps a child read are also handed up to the enclosing scope, so a root still knows all its files. */
-const kids = new Map();
-function ref_scope(key, build){
-	const hit = kids.get(key);
-	if (hit && hit.deps.every(([f, s]) => sig(f) === s)){ collect?.push(...hit.deps); return hit.kid; }
-	const outer = collect, mine = [];
-	collect = mine;
-	try {
-		const kid = build();
-		if (kids.size > 4000) kids.clear();   // bounded: a long-lived Servex never holds every child it ever read
-		kids.set(key, { kid, deps: mine });
-		return kid;
-	} finally { collect = outer; outer?.push(...mine); }
+/* RECOMPUTE ONLY WHAT CHANGED: a child record's parsed lines are kept by file and reused while the file keeps the same size and mtime, so
+ * reading a session re-reads and re-parses only the child files that changed. Each replay still builds fresh task objects from those lines
+ * (a cached object would get the parent's lines addressed to it applied again), and every total is computed on read. */
+const parsed = new Map();
+function lines_of(file){
+	const s = sig(file), hit = parsed.get(file);
+	if (hit && hit.sig === s) return hit.lines;
+	const lines = parse_lines(file);
+	if (parsed.size > 4000) parsed.clear();   // bounded: a long-lived Servex never holds every child file it ever read
+	parsed.set(file, { sig: s, lines });
+	return lines;
 }
 export function link_refs(Task){
-	Task.ref_scope ??= ref_scope;
 	Task.session_resolver ??= ref => { const dir = path.resolve(PUBLIC, String(ref ?? "").replace(/^[\/]+/, "")); return dir.startsWith(PUBLIC + path.sep) && path.basename(SessionRecord.file(dir) ?? "") === "session.jsonl"; };   // Task.children: does this folder hold a session record
 	Task.resolver ??= ref => {
 		const dir = path.resolve(PUBLIC, String(ref).replace(/^[\/]+/, ""));
 		if (!dir.startsWith(PUBLIC + path.sep)) return null;
 		const file = SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl");
 		collect?.push([file, sig(file)]);
-		return fs.existsSync(file) ? parse_lines(file) : null;
+		return fs.existsSync(file) ? lines_of(file) : null;
 	};
 }
 
