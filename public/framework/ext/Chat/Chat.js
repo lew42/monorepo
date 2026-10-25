@@ -350,6 +350,10 @@ export function sticky_scroll(box, { observe = true, end } = {}){   // end(): sc
 	}, { passive: true });
 	const pin = () => { if (locked) go_down(); else if ($btn !== box.lastChild) box.appendChild($btn); };   // the button stays last, even if a redraw emptied the box
 	if (observe && typeof ResizeObserver === "function") new ResizeObserver(pin).observe(box);
+	if (observe && typeof MutationObserver === "function"){   // late growth (live edits, refinements) re-pins while locked; a reader who scrolled up is never moved
+		let raf = 0;
+		new MutationObserver(() => { if (locked && !raf) raf = requestAnimationFrame(() => { raf = 0; pin(); }); }).observe(box, { childList: true, subtree: true, characterData: true });
+	}
 	return { pin, locked: () => locked };
 }
 
