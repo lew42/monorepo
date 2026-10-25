@@ -32,3 +32,4 @@
 {"action":{"at":"2026-10-25T03:00:26-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/tab/review.md"]}}
 {"commit":"b717c954f412"}
 {"log":{"at":"2026-10-25T03:09:45-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T03:32:36-05:00","msg":"Step 2 landed: Chat v2 chip in the session page's Chat tab (c125eb18e, ?chat_view=v2; review tab/ answered, shots in tab/shots). In-place harvested: added live root Task/Question adds and reset() dropping the model (f19ff1be6, 41/41); review running. Writers harvested (53cbf7374, 8/8); review running. Queued follow-up from mastermind-dictation-2: /api/session/say accepts kind (speech default | error | click | context); a non-speech line goes to session.jsonl tagged and never wakes the seats; /api/voice stays; the browser sender is wired into ux/Dictate only after minion-dictation-solid merges (parent will say)."}}

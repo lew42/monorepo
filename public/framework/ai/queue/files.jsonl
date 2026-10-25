@@ -10,3 +10,6 @@
 {"file":"ai/"}
 {"file":"tasks/"}
 {"file":"tasks/","gone":true}
+{"file":"tasks/"}
+{"file":"done-check.json"}
+{"file":"dropped.json"}

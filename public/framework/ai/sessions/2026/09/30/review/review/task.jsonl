@@ -50,3 +50,4 @@
 {"task":"/framework/ai/sessions/2026/09/30/review/review/skills/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.036Z"}
 {"task":"/framework/ai/sessions/2026/09/30/review/review/tooling/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.037Z"}
 {"task":"/framework/ai/sessions/2026/09/30/review/review/walkthrough/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.038Z"}
+{"log":{"at":"2026-10-25T03:20:47-05:00","msg":"dropped: fixes: owner minion-review-fixes is stopped","dropped":"/framework/ai/sessions/2026/09/30/review/review/fixes/","reason":"owner-stopped"}}

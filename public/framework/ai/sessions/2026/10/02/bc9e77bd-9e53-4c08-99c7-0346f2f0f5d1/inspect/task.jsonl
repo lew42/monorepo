@@ -41,3 +41,4 @@
 {"task":"/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/minion-part1/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.150Z"}
 {"task":"/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/minion-part2/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.150Z"}
 {"stop":{"at":"2026-10-24T00:03:51-05:00","why":"abandoned: no agent since 2026-10-23T02:29:36.150Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}
+{"log":{"at":"2026-10-25T03:20:47-05:00","msg":"dropped: minion-part2: owner minion-inspect-part2 is stopped","dropped":"/framework/ai/sessions/2026/10/02/bc9e77bd-9e53-4c08-99c7-0346f2f0f5d1/inspect/minion-part2/","reason":"owner-stopped"}}

@@ -1,0 +1,12 @@
+{"inbox":{"id":"n-fp8wj6zw","from":"servex-heartbeat","text":"minion-mastermind-path it did not answer the status check; Servex revived it and asked where it is at.","at":"2026-10-25T01:15:56.755-05:00"}}
+{"file":"session.jsonl"}
+{"inbox":{"id":"n-gar81gys","from":"servex-heartbeat","text":"minion-mastermind-path its agent is not running: it is queued at the spawn gate (only 2209 MB of memory is free; waiting for 2560 MB).","at":"2026-10-25T01:32:40.273-05:00"}}
+{"file":"review/"}
+{"file":"review.md"}
+{"file":"inbox.jsonl"}
+{"file":"review.jsonl"}
+{"inbox":{"id":"n-h2djjdgn","from":"servex-heartbeat","text":"minion-mastermind-path its agent is not running: it was stopped on purpose by ai-system-mastermind at 2026-10-25T01:48:20-05:00; not revived.","at":"2026-10-25T01:54:08.911-05:00"}}
+{"inbox":{"id":"n-h914klsh","from":"servex-heartbeat","text":"minion-mastermind-path its agent is not running: it was stopped on purpose by ai-system-mastermind at 2026-10-25T01:48:20-05:00; not revived.","at":"2026-10-25T01:59:19.412-05:00"}}
+{"inbox":{"id":"n-huweh0no","from":"servex-task-loop","text":"minion-mastermind-path is started but silent: 3 status asks went unanswered. Close it, or keep chasing?","at":"2026-10-25T02:16:19.721-05:00"}}
+{"inbox":{"id":"n-jrras708","from":"servex-heartbeat","text":"minion-mastermind-path its agent is not running: it was stopped on purpose by ai-system-mastermind at 2026-10-25T01:48:20-05:00; not revived.","at":"2026-10-25T03:09:52.372-05:00"}}
+{"inbox":{"id":"n-kgo5ds6t","from":"servex-task-loop","text":"minion-mastermind-path is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T03:29:14.689-05:00"}}
