@@ -126,6 +126,7 @@ export default class Session extends Task {
 			if (!id) try { id = JSON.parse(await fs.readFile(new URL("index.json", dir), "utf8")).id; } catch {}
 			if (!id) try { id = JSON.parse((await fs.readFile(new URL("cache.jsonl", dir), "utf8")).split("\n").find(l => l.startsWith('{"summary"'))).summary.id; } catch {}
 			if (!id) try { id = JSON.parse((await fs.readFile(new URL("page.jsonl", dir), "utf8")).split("\n")[0]).session; } catch {}   // a folder the page tool made first (Servex/agents/page_tools.js)
+			for (const log of ["session.jsonl", "task.jsonl"]) if (!id) try { id = JSON.parse((await fs.readFile(new URL(log, dir), "utf8")).split("\n")[0]).session?.id; } catch {}   // a tab's folder: the SessionStart hook writes only line 1, {"session":{"id"}}
 			if (!id || !UUID.test(id)) continue;
 			this.days.set(id, `${y}/${m}/${d}`);
 			if (name !== id) this.slugs.set(id, name);
