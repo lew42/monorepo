@@ -14,7 +14,7 @@ The rows are the owner's five questions. One store holds them, `class DictateHea
 | Whisper | Is Whisper connected? | the same `log_step()` stages; the tab's own "Check Whisper" (`Connection.check_whisper`) |
 | Transcripts | Are raw Whisper transcripts coming back? | `Dictate.transcribe()`, after every answer: count, last text, time |
 | Sent to the AI | Is the text being sent to the AI? | `chat.js` around `Session.say()`: sending, sent, or not sent with Servex's own reason; `ComposerMic.post_held()` for a send still open after 25 s |
-| AI | Is the AI connected, and is it answering? | `chat.js`: the live wire's state (`Session.stream`), a reply being written, the answer line; no answer 60 s after a send turns it red |
+| AI | Is the AI connected, and is it answering? | `chat.js`: the live wire's state (`Session.stream`; a drop counts only if it lasts 8 s, since the LAN proxy cuts the wire every 30 s and it is back in a second), a reply being written, the answer line; no answer 60 s after a send turns it red |
 
 The view is `class DictateDebug` ([DictateDebug.js](../DictateDebug.js)): the rows are the shared `Connection` row ([Connection.js](../Connection.js)) in its new `rows` layout, so there is still one step-row component. Beside them: what happened, newest first (the last 60 events), a "Copy the report" button (all of it as JSON), and the logs to open. The drawer's tab file is [ext/drawer/tabs/debug.js](/framework/ext/drawer/tabs/debug.js).
 
