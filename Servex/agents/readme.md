@@ -53,12 +53,12 @@ brief's title, `Agents.past_work()` calling `PastWork.task()`) and tells the age
 Every spawn has a task dir since 2026-10-18: a bare prompt gets `ai/sessions/<day>/<caller's session folder, else spawned>/<agent id>/` from `Agents.default_task()`; `task: false` is the one opt-out, and a one-pass role (reviewer, clarity, checker) never gets a dir (its output goes in the task it reviews) (`decision` in `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/spawn-always-task/task.jsonl`).
 The clarity hook (`Server/clarity.mjs`, `ClarityGate.skip`, test `Server/clarity.test.mjs`) skips an agent in the one-pass roles or whose id starts with `clarity-`: no reviewer of a reviewer, one log line per agent in `.claude/skills/clarity/flags.jsonl`.
 
-## The Dispatcher — a card becomes a task mastermind
+## The Dispatcher — a card becomes a mastermind
 
 When the assistant decides a sentence asked for something built, fixed, changed or looked
 into, its card carries `route: "task"` and a `task` line follows it, `state: "queued"`.
 [`Dispatcher.js`](./Dispatcher.js) watches the same `prompts` log for exactly that (the same
-`append` event `Assistant.listen()` hangs off) and spawns a `task-mastermind` agent — Sonnet,
+`append` event `Assistant.listen()` hangs off) and spawns a `mastermind` agent — Sonnet,
 effort medium, a deliberate override of this role's own Opus default while this whole feature
 runs in budget mode. At most two run at once; the rest wait queued. It is registered itself as
 a fake "parent" agent (`id: "dispatcher"`, just a `.send()`) sitting in the same `live` map real

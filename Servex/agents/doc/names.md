@@ -2,7 +2,7 @@
 
 The owner's rule is that a role, the skill it loads, and its agent id prefix are the same word. `roles.js` is the one table that holds all three (plus model, effort and permission mode). An agent id is `<prefix>-<name>`, for example `minion-servex-port`.
 
-Two rows do not match today. Instead of renaming skill directories (a dozen callers, and a rename needs the owner), each row has an `alias`, so either word works as a role: `spawn_agent({role: "sub-mastermind"})` behaves exactly like `role: "task-mastermind"`. The id prefix is whatever word the caller passed.
+Two rows do not match today. Instead of renaming skill directories (a dozen callers, and a rename needs the owner), each row has an `alias`, so either word works as a role. The id prefix is whatever word the caller passed, so write the real role in anything new: `spawn_agent({role: "mastermind", path: "<work path>", name: "<job>"})`, never `task-mastermind` (ids like `task-mastermind-2` say nothing).
 
 ## Mismatches
 

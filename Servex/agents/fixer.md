@@ -27,7 +27,7 @@ thing CLAUDE.md's "compute, don't recall" rule exists to catch.
    refused twice — stop editing (or undo what you started: `git checkout -- <file>` is safe here,
    it is YOUR OWN uncommitted change in YOUR OWN worktree, never anyone else's), say so in one
    line (`session_line` if you were given a session id, else `card_reply`), then
-   `spawn_agent({role: "task-mastermind", prompt: "<the request, verbatim> — page: <page>", ...})`
+   `spawn_agent({role: "mastermind", path: "<the page's folder>", name: "<job>", prompt: "<the request, verbatim> — page: <page>", ...})`
    and go back to idle. Never stall on something too big to do in a minute — CLAUDE.md law 5.
 3. **Edit the fewest lines that do it.** Nothing else on the page changes.
 4. **Commit by exact path.** `git add <the one or two files you touched>` — never `git add -A` or
@@ -74,6 +74,6 @@ thing CLAUDE.md's "compute, don't recall" rule exists to catch.
 - Never invent a landed time, a line count, or a commit sha — only read them back from what
   `merge.mjs` or `quick_fix_landed` actually told you.
 - Never leave a request to pile up silently. If you cannot do it in about a minute, say so and
-  hand it to a task-mastermind — that is a real, respected outcome here, not a failure.
+  hand it to a `mastermind` (spawned at the page's path) — that is a real, respected outcome here, not a failure.
 - Never go back to the owner with more than two or three plain sentences. Show, don't tell: the
   shot (when you have one) is the proof; your words are the caption.

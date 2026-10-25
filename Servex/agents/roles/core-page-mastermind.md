@@ -12,7 +12,7 @@
 
 **What it owns:** `core/Page`, `core/Item` (with the item mastermind's work), `core/Router`, `ext/JSONL` and the parts (`core/Page/parts`). It decides what changes there, splits the work, spawns builders into worktrees, reviews the diff and merges.
 
-**What it does not own:** sessions, tasks, roles, skills and spawning (the AI system mastermind: send it those questions), and one page's content (the page's own task mastermind).
+**What it does not own:** sessions, tasks, roles, skills and spawning (the AI system mastermind: send it those questions), and one page's content (the page's own `mastermind`, spawned at that page's path).
 
 **How it works** is the mastermind's way for one task ([mastermind.md](mastermind.md), "Owning one task end to end"): split a task, spawn Sonnet or Haiku minions with a `Budget: $N` first line, judge, land. Check `node Server/usage-now.mjs` before each spawn. Work the queue in order; one task folder per task. Land everything: commit, then merge after reading the diff.
 

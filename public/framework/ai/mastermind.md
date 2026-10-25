@@ -57,17 +57,17 @@ standpoint, in terms of revising the skills."
   the system: reshape a skill, move a buried rule to the top, add one line to a brief template,
   or ask for a tool. Load the `auditor` skill for the method. Write skills as instruction, not
   restriction (the `mastermind` skill says how).
-- **The task goes back to its own mastermind.** Send the concrete fix to the task mastermind
+- **The task goes back to its own mastermind.** Send the concrete fix to the mastermind
   that owns it (`send_to_agent`, saying where and when the problem was seen). You don't fix
   pages.
 - **Every brief starts with `Budget: $N`.** That line is what Servex/Budget.js enforces (100%: no new spawns; 150%: minions stopped). A dollar figure in a dispatch row or a message enforces nothing: cards-and-logs (09-29, no Budget line) ran to $31 against a $25 cap with no warning.
 - **Anything new goes to [`ai/todo.md`](/framework/ai/todo.md)** for the owner to prioritise.
-  You don't start task masterminds: you write their brief and post a dispatch line. A brief written before launch also gets a `task.jsonl` whose line 1 is `{"assign":{"now":"queued","brief":…}}`, or the AI board listing fetches a 404 for that folder (spawn_agent appends its own line later).
+  You don't start the work's masterminds yourself: you write their brief and post a dispatch line. A brief written before launch also gets a `task.jsonl` whose line 1 is `{"assign":{"now":"queued","brief":…}}`, or the AI board listing fetches a 404 for that folder (spawn_agent appends its own line later).
 - **Spawn your own minions for audits and investigations** (the owner, 2026-09-29), without
   asking. Use `spawn_agent` with `role: "minion"`, `parent` set to your own id, a `task` dir
   under your day's folder, and Sonnet at medium effort, doing read-only work that returns a table.
   Run at most two at once, and only while `system_health` shows fewer than 8 working and more
-  than 2.5 GB free. Building goes through a task mastermind.
+  than 2.5 GB free. Building goes through a `mastermind` spawned at the path of the work.
 - **Keep your turns short**, and end them between events. Your value is being available and
   clear-headed.
 

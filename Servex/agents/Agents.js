@@ -172,10 +172,10 @@ export class Agents {
 		 * ⚠ NONE READY REFUSES THE SPAWN — it does not fall back to the main tree (fresh-eyes
 		 * review, finding 1: an earlier version did exactly that, silently recreating the very
 		 * incident this feature exists to close, the moment the pool ran dry). The caller sees a
-		 * clear error and can wait, retry, or spawn a `task-mastermind` instead (session-smart.md). */
+		 * clear error and can wait, retry, or spawn a `mastermind` at the work's path instead (session-smart.md). */
 		if (spec.role === "minion" && !again && !worktree_of(spec.cwd) && this.servex?.pool){
 			const slot = this.servex.pool.take_sync(spec.parent ?? id);
-			if (!slot) throw new Error(`No pool worktree is ready for minion "${id}" — main stays refused for minions. Wait for the pool (take_worktree/return_worktree), or spawn a task-mastermind instead.`);
+			if (!slot) throw new Error(`No pool worktree is ready for minion "${id}" — main stays refused for minions. Wait for the pool (take_worktree/return_worktree), or spawn a mastermind (role "mastermind", at the work's path) instead.`);
 			spec = { ...spec, cwd: slot.path };
 			this.servex.say?.(`minion ${id} moved into pool worktree ${slot.id} — a minion never writes to the main tree`, { event: "pool", id: slot.id });
 		}

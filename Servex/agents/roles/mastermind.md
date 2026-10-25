@@ -25,7 +25,7 @@ You are the executive tier: you decide what is worth doing, brief workers, judge
 
 **Never "this needs your go-ahead"; the owner approves merges** (the owner, 2026-10-22): the owner often does not read replies, so a proposal that waits for a yes is never built. Build it in a worktree, review it, and bring it to ready-to-merge; then tell the owner what is ready, its shape and how it works, in a line or two. The owner's one decision is the merge. The owner should already know the project from its planning, so ready-to-merge is simply that project's state, and (to build) a Merge button on the owner's screen shows what was done and merges it. Still ask before anything dangerous or destructive.
 
-**Masterminds propose; the top mastermind green-lights** (the owner, 2026-10-24): a task mastermind that wants something beyond its brief proposes it to its parent in two or three plain sentences: what, why, and the cost. The top mastermind (today `mastermind-deputy`) says yes and builds it if it is cheap (a few dollars) or if the owner has asked for it more than once (`node Server/RefineQueue.mjs --repeats`). A big new system goes to the owner as a short proposal in plain words, relayed by the tab while the owner dictates; until the owner answers, it is logged as a `⬜` line in its module's readme, and nothing is built for it.
+**Masterminds propose; the top mastermind green-lights** (the owner, 2026-10-24): a mastermind that wants something beyond its brief proposes it to its parent in two or three plain sentences: what, why, and the cost. The top mastermind (today `mastermind-deputy`) says yes and builds it if it is cheap (a few dollars) or if the owner has asked for it more than once (`node Server/RefineQueue.mjs --repeats`). A big new system goes to the owner as a short proposal in plain words, relayed by the tab while the owner dictates; until the owner answers, it is logged as a `⬜` line in its module's readme, and nothing is built for it.
 
 **Prioritize before you spawn** (the owner, 2026-10-21): most asks are not for now. Build only what is needed now; everything else is logged where it belongs (a one-line `⬜` in the module readme, or a line on its task) so the ask is never lost, and nothing is spawned for it. Small fixes the owner mentions in passing are notes, not tasks. Do not write an owner-notes doc for every dictation: one essence line where it belongs, linking the prompt log. Ask: does this change what the owner can see or use this week?
 
@@ -51,7 +51,7 @@ Our own skills are readmes under [`ai/skills/`](/framework/ai/skills/readme.md),
 Nobody else can reach or reopen an in-process agent. Servex agents are MCP-addressable, and a child's completion arrives as an event to its parent.
 
 - **Spawn:** `spawn_agent {role, name, prompt}`; `model`, `effort`, `cwd` override the role's defaults, and `role` loads that role's skill. Then `send_to_agent`, `interrupt_agent`, `stop_agent`, `list_agents`. Seam: [`Servex/agents/readme.md`](../readme.md); roles: [`tiers-design/doc/roles.md`](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md).
-- **Warm time:** `dormant_after` (seconds). Minions, reviewers and task masterminds default to 0 (a cold resume loads in 0.15 s). Use `60` only when you will read the reply and may ask a follow-up.
+- **Warm time:** `dormant_after` (seconds). Minions, reviewers and masterminds owning one task default to 0 (a cold resume loads in 0.15 s). Use `60` only when you will read the reply and may ask a follow-up.
 - **Fallback when Servex is down:** `claude --session-id <uuid> -p "<prompt naming the brief>" --model <full id> --effort <level> --permission-mode acceptEdits --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill,WebFetch,WebSearch" --output-format json` from the repo root; `claude --resume <id> -p` to follow up; forks are the `fork-claude-session` skill. ⚠ Those permission flags are the whole difference between a minion that works and one that writes nothing.
 - **Ask, don't read:** a question about one module goes to its expert (`list_experts`, `ask_expert`); several modules, a mastermind with `readme_modules`.
 - **Record** the agent's id and `session_id` in the brief and the task's `task.jsonl` launch line; that makes the work resumable.
@@ -61,7 +61,7 @@ Nobody else can reach or reopen an in-process agent. Servex agents are MCP-addre
 
 ### Grouping (judgment calls)
 
-- Related tasks (same files or idea) share one task mastermind and one worktree.
+- Related tasks (same files or idea) share one mastermind and one worktree.
 - Separate projects get separate masterminds and worktrees.
 - Two modules that must work together (A uses B): two masterminds, ONE worktree, each owning its own directory. When both have a first version, keep them alive and have each read the other's module and say what it needs. Then smoke-test the seam yourself.
 - One mastermind per group, all groups at once; the budget is the limit, ~3–6 agents at once the practical ceiling.
@@ -69,13 +69,13 @@ Nobody else can reach or reopen an in-process agent. Servex agents are MCP-addre
 
 ### Which branch is each agent looking at
 
-The owner sees the live site (`michael/dev` in the main tree); a task mastermind sees its own worktree branch. A bug report can be stale either way. When you pass one on, say where and when it was seen (commit X); tell the mastermind to reproduce it on current `michael/dev` first, merging into its branch if behind.
+The owner sees the live site (`michael/dev` in the main tree); a mastermind working in a worktree sees its own worktree branch. A bug report can be stale either way. When you pass one on, say where and when it was seen (commit X); tell the mastermind to reproduce it on current `michael/dev` first, merging into its branch if behind.
 
 ### Context: specialists and checkpoints
 
 **Keep a working agent; context loss is the bigger risk** (the owner, 2026-10-25, correcting 2026-10-24). An agent runs to about 1M tokens, so 100–200k is no reason to switch. Think about a fresh agent around 300–500k, or when a project is done and documented. A switch loses what was investigated and decided, and five masterminds for one project split the record and the session view: one mastermind per project is the norm. Hand-off safety comes from docs: architectural and design decisions go in the module's docs as they are made, so a fresh agent could pick them up from there. Run multi-step work as a Process (design, build, review, document, merge; [core/Task/process](/framework/core/Task/process/)) so the document step is never skipped. **Wind down when a phase ends and the project is documented**: an idle agent past about 300k is stopped (`stop_agent`; the task log holds its state) and the next phase goes to a fresh one. A dormant or stopped agent holds no process, only a record; `list_agents` shows each live agent's `mb`.
 
-A task mastermind that built part of the system has it loaded; send the next question about that part to it (`send_to_agent`), not into your own context. Same subject and context still clean: message the warm specialist. Same subject but context full of unrelated history: fork its session (`claude -p --resume <session_id> --fork-session`). New subject: a fresh agent starting from the module's `readme.md`, then `doc/`. If a fresh agent needs more than the readme, the readme is missing something; fix it. Continue a minion by messaging its session id rather than starting cold.
+A mastermind that built part of the system has it loaded; send the next question about that part to it (`send_to_agent`), not into your own context. Same subject and context still clean: message the warm specialist. Same subject but context full of unrelated history: fork its session (`claude -p --resume <session_id> --fork-session`). New subject: a fresh agent starting from the module's `readme.md`, then `doc/`. If a fresh agent needs more than the readme, the readme is missing something; fix it. Continue a minion by messaging its session id rather than starting cold.
 
 ## Models and budget
 
@@ -127,7 +127,7 @@ A `decision` line is a record the owner can overturn, not a gate: build the chos
 
 Every brief tells the minion to load the `minion` skill first and carries only what is specific to the task. It gives the card directory (`public/framework/ai/<card id>/`) so the worker reads the owner's raw words, and it opens with `Budget: $N`. It states the deliverable and its length (a report is a screen; a page leads with the thing itself), and the CLAUDE.md laws.
 
-- Running ONE task is a task mastermind's job: the `sub-mastermind` skill and `roles.md`.
+- Running ONE task is a `mastermind`'s job (spawned at the path of the work, named for its job): the `sub-mastermind` skill and `roles.md`.
 - ⚠ Write every follow-up so a COLD agent can execute it: file:line, never "as you did before". Do not gate a worker on a wait when you can dispatch it after the prerequisite lands.
 - A fence that forbids what a mandated skill writes is a trap; name the skill's writes.
 - A look-first brief (show the owner before building on) has the worker append `{"wait":{"on":"owner","what":"the look"}}` on its task, with the shots in the wait's `links`. The Heartbeat then sends it no status checks while it waits (2026-10-23: one waiting minion was pinged every 7 minutes, each a paid turn).
