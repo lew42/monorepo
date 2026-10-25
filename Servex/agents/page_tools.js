@@ -920,7 +920,7 @@ export const hooks = {
 export async function run_item(args = {}, ctx = {}, alias = false){
 	// A breadcrumb before each call and after a slow one (crumbs.log, only when Servex installed Crumbs): an agent's tool call never passes an
 	// HTTP route, so this is what names an item call that held the event loop.
-	const crumbs = globalThis.__crumbs, t = Date.now(), what = `${args.path ?? "(own page)"} ${Object.keys(args.delta ?? {}).join(",") || "read"} by ${ctx.caller ?? ctx.agent ?? "?"}`;
+	const crumbs = globalThis.__crumbs, t = Date.now(), what = `${args.path ?? "(own page)"} ${is_plain(args.delta) ? Object.keys(args.delta).slice(0, 6).join(",") || "read" : args.delta == null ? "read" : typeof args.delta} by ${ctx.caller ?? ctx.agent ?? "?"}`;
 	crumbs?.drop?.(`item> ${what}`);
 	try { return await run_item_now(args, ctx, alias); }
 	catch (e) { if (e instanceof Refused) return { ok: false, why: `${e.message}. Nothing was written.` }; throw e; }

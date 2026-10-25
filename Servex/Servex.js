@@ -1579,8 +1579,8 @@ Servex.Dashboard = class Dashboard extends Server {
         this.app.use((req, res, next) => {
             const crumbs = globalThis.__crumbs; if (!crumbs?.drop) return next();
             const t = Date.now(), what = `${req.method} ${req.url.slice(0, 100)}`;
-            if (req.method !== "GET") crumbs.drop(`req> ${what}`);
-            res.on("finish", () => { const ms = Date.now() - t; if (ms > 1000) crumbs.drop(`req< ${ms}ms ${what}`); });
+            if (req.method !== "GET" || req.path.startsWith("/api/")) crumbs.drop(`req> ${what}`);   // static files are left out: they never compute
+            res.on("close", () => { const ms = Date.now() - t; if (ms > 1000) crumbs.drop(`req< ${ms}ms ${what}`); });   // close, not finish: a client that gave up still ends it
             next();
         });
 
