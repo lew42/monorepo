@@ -334,12 +334,15 @@ export class Task extends Item {
 	}
 
 	// Waiting on someone (`on`: "owner" or an agent id) for `what`. Banks running time like pause().
-	wait({ on, what } = {}){
+	// A DEFERRAL is a wait that postpones the task on purpose (core/Task/doc/completion.md): `{wait:{on: <home>, what: <reason>, decide_by: <ISO time>, deferred: true}}`.
+	// `on` is its home (the module path, task path or agent id that will decide it), never "owner". A deferral with no home, or one past `decide_by`, counts as dropped (Servex/Dropped.js).
+	wait({ on, what, decide_by, deferred } = {}){
 		if (!CAN.wait.has(this.state)) return this.warn(`wait(): can't wait from "${this.state}"`);
 		const ran_ms = this.duration();
 		this._ran_ms = ran_ms;
 		this._ran_since = null;
-		this.set({ state: "waiting", waiting_on: on ?? null, waiting_what: what ?? null, waiting_since: this.stamp(), ran_ms });
+		const defer = deferred || decide_by ? { deferred: true, decide_by: decide_by ?? null } : { deferred: null, decide_by: null };
+		this.set({ state: "waiting", waiting_on: on ?? null, waiting_what: what ?? null, waiting_since: this.stamp(), ran_ms, ...defer });
 		return this;
 	}
 
