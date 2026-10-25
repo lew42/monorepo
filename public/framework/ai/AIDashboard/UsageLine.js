@@ -12,7 +12,7 @@ export default class UsageLine extends View {
 		const $box = this.el; // captured now, filled after the fetch (no DOM after an await)
 		fetch(UsageLine.DATA).then(r => r.json()).catch(() => null).then(u => {
 			const limits = u?.utilization?.limits;
-			if (!limits?.length) return $box.remove();
+			if (!limits?.length) return ($box.closest(".ad-sec") ?? $box).remove();
 			this.append(() => limits.forEach(l => UsagePace.ratio(UsagePace.of(l))));
 		});
 	}

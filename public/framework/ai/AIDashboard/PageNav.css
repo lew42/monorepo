@@ -6,6 +6,8 @@
 	.pn-link:hover { background: var(--tint); }
 	.pn-primary { background: var(--prime); border-color: var(--prime); color: var(--prime-ink); font-weight: 600; padding-block: 0.4em; font-size: 1em; }
 	.pn-primary:hover { background: var(--prime); filter: brightness(0.95); }
+	.pn-link { white-space: nowrap; }
 	.pn-count { display: none; }
+	@media (max-width: 45.99em) { .pn { flex-wrap: nowrap; overflow-x: auto; } .pn-link { flex: none; } }
 	.pn-count-on { display: inline-block; min-width: 1.4em; padding: 0 0.4em; border-radius: 1em; background: var(--prime-ink); color: var(--prime); font-size: 0.85em; text-align: center; font-variant-numeric: tabular-nums; }
 }

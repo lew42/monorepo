@@ -205,7 +205,7 @@ site having the identical fight inside a box that is already off the outer axis.
 **Verdict (blessed by the owner, 2026-08-12): title, prose, walls and exhibits share
 ONE left edge; wider blocks grow rightward only.** The opt-in
 `.page.standard.left` variant *became* the template. The gutter is fixed —
-`--gutter-x: clamp(2em, 4%, 5em)`, so 400px pays 32px and never more than 5em —
+`--gutter-x: clamp(1em, 4%, 5em)` (the floor was `2em` until 2026-10-24), so 400px pays 16px and never more than 5em —
 `main` and `wide` start on the same grid line, and the whole leftover `1fr` is
 spent on the right. `.page` lost its `margin-inline: auto` in the same change: a
 shape that opts out of the template (`full`, a page in a tab panel) agrees
@@ -275,7 +275,7 @@ The `100%` resolves against the **grid**, not the window, so a grid nested in a
 tab panel or a catalog region breaks out of the right box. ⚠ A percentage inside
 `minmax()` is exactly the class of thing that silently drops a whole template:
 after touching this, re-measure that `main` is still 936px at 3440 and that the
-gutters never fall below `2em`.
+gutters never fall below `1em`.
 
 ## Rhythm: one flow token, and registration reversed
 

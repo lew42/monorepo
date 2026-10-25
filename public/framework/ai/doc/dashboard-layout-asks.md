@@ -11,6 +11,7 @@ The AI page ([/framework/ai/](/framework/ai/)) keeps coming back too crowded: a 
 | 5 | 2026-09-22 | two scrollbars | The "talk to this card" footer; two scrollbars |
 | 6 | 2026-09-24 | "I don't like these independently scrollable areas" | One column, no little scroll boxes |
 | 7 | 2026-10-19 | "the worst page I've ever seen": header + tabs + sticky toolbar ate ~80% of the screen, "waiting on you" scrolled inside the scroll, tabs stacked on a phone, no link to the tasks view | this note |
+| 8 | 2026-10-24 | "the inbox is horribly broken… default to a dashboard": `/framework/ai/` is now [AIDashboard](../AIDashboard/readme.md): say-something box, needs you, big things now, what is running, task queue, usage pace; sessions moved one click down | session-e00f55c9 page.jsonl line 402 |
 
 ## What the page is now (2026-10-19)
 

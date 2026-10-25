@@ -13,6 +13,7 @@ The owner's ask (2026-10-24, item 4 of [the brief](../sessions/2026/10/24/sessio
 
 | # | Step | Who | Writes |
 |---|---|---|---|
+| 0 | **Read the module's inbox** | the Haiku auditor, first | the module's own inbox log (the `module_inbox` tool): future-refactor notes left by agents. For each note: does it still apply, and does it become a proposed task? The answer goes at the top of `audit.md`, two lines per note. Tonight's two, for `ext/JSONL` and `Servex`: "one tail system (follow = live()) behind a swappable source adapter" |
 | 1 | **Pick** | manager mastermind (Sonnet, low), once per run | `audit-plan.json`: the modules, and per module the **depth** (how many files, most important first) and the **token budget** (the time per module). Node supplies the candidates ranked by size, files with no note, and days since the last audit |
 | 2 | **Files** | Haiku auditor, one per module (a long read, past 100k allowed: [agent-rules.md](agent-rules.md)) | `doc/file/<path>.md` for each file in importance order, only where the note is missing or older than the source. *Importance* is computed by node (how many files import it, then size), never judged |
 | 3 | **Audit** | Haiku, fresh context, reads **only the notes** and the readme, not the code | `<module>/audit.md`: a table of proposed changes ranked by **ease**, **benefit** and **priority**; then the duplicates (code that does what another module does) and the misplaced files (a file whose home is elsewhere, with the destination) |

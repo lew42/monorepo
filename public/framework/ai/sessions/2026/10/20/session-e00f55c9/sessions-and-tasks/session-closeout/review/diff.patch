@@ -1,0 +1,167 @@
+diff --git a/Server/PromptRecords.mjs b/Server/PromptRecords.mjs
+index d945a3a4e..8500223f3 100644
+--- a/Server/PromptRecords.mjs
++++ b/Server/PromptRecords.mjs
+@@ -14,6 +14,7 @@
+  *   node Server/PromptRecords.mjs <session 8hex> --dry                 # the unique prompts, what is recorded, the estimate
+  *   node Server/PromptRecords.mjs <session> --process review [--steps parts,outcomes] [--only 4136,5965] [--file]
+  *   node Server/PromptRecords.mjs <session> --summary                  # completion per prompt, computed
++ *   node Server/PromptRecords.mjs <session> --tasks [prompt id or line]   (the splitter's tasks for a prompt; default the latest)
+  *   node Server/PromptRecords.mjs <session> --handled <prompt uuid> --to <task path or agent> [--note …]
+  */
+ import fs from "node:fs";
+@@ -191,7 +192,7 @@ Answer at the end with ONE JSON object and nothing else after it:
+ 			for (const x of row.parts){   // past file_cap an ask stays an open part on the record: never lost, never a sixth proposal
+ 				if (!this.def.file_kinds.includes(x.kind) || x.outcome?.is !== "open" || n >= (this.def.file_cap ?? Infinity)){ parts.push(x); continue; }
+ 				n++;
+-				const add = { title: (x.kind === "rule" ? "Write down: " : "") + x.text.slice(0, 180), state: this.def.file === "proposals" ? "waiting" : "idle", ...(this.def.file === "proposals" ? { waiting_on: "owner" } : {}), from: "owner",
++				const add = { title: (x.kind === "rule" ? "Write down: " : "") + x.text.slice(0, 180), state: "idle", from: "owner",   /* open work for the session, idle: never waiting on the owner (one writer, 2026-10-24) */
+ 					source: { session: this.id, line: p.line, prompt: this.rid(p), part: x.id }, description: [x.outcome?.why, ...(x.parts ?? []).map(d => "- " + d.text)].filter(Boolean).join("\n").slice(0, 800), ...(x.file ? { file_hint: x.file } : {}), ...(x.module ? { module_hint: x.module } : {}) };
+ 				const r = await run_item({ path: record, delta: { tasks: { add } } }, { caller: this.by }, true);
+ 				const ref = r?.homes?.[0]?.path ?? r?.ids?.[0];
+@@ -232,12 +233,12 @@ Answer at the end with ONE JSON object and nothing else after it:
+ 		return out;
+ 	}
+ 
+-	/** The router's verb: a whole prompt's waiting proposals are handled (routed to one task or agent): each is completed with that note. */
++	/** The router's verb: a whole prompt's open (idle or waiting) tasks are handled (routed to one task or agent): each is completed with that note. */
+ 	async handled(uuid, to, note = ""){
+ 		const { run_item } = await import(pathToFileURL(path.join(ROOT, "Servex/agents/page_tools.js")).href);
+ 		const record = "/" + path.relative(path.join(ROOT, "public"), path.join(this.folder, "session.jsonl")).replace(/\\/g, "/");
+ 		const session = PromptAudit.read(path.join(this.folder, "session.jsonl")), done = [];
+-		for (const l of session){ const a = l.tasks?.add; if (a?.id && PromptRecords.from_prompt(a.source) && (a.source?.prompt === uuid || String(a.source).includes(uuid)) && (a.state ?? "") === "waiting"){
++		for (const l of session){ const a = l.tasks?.add; if (a?.id && PromptRecords.from_prompt(a.source) && (a.source?.prompt === uuid || String(a.source).includes(uuid)) && ["waiting", "idle"].includes(a.state ?? "")){
+ 			const r = await run_item({ path: record, delta: { [a.id]: { complete: { outcome: `routed to ${to}${note ? ": " + note : ""}` } } } }, { caller: this.by }, true);
+ 			if (r?.ok) done.push(a.id);
+ 		} }
+@@ -245,6 +246,19 @@ Answer at the end with ONE JSON object and nothing else after it:
+ 		return done;
+ 	}
+ 
++	/** The tasks the splitter filed for a prompt (default: the newest), with their state folded from the record: what a tab finds instead of adding its own.
++	 *  The tab then starts one with the item tool: {"tasks":{"<id>":{"start":{}}}} on the session record, setting `path` to the brief and `agent`. */
++	tasks(prompt = null){
++		const ps = this.prompts, p = prompt ? ps.find(x => this.rid(x) === prompt || String(x.line) === String(prompt)) : ps[ps.length - 1];
++		if (!p) return [];
++		const rid = this.rid(p), by = new Map();
++		for (const l of PromptAudit.read(path.join(this.folder, "session.jsonl"))){
++			const a = l.tasks?.add; if (a?.id && (a.source?.prompt === rid || String(a.source ?? "").includes(rid))) by.set(a.id, { id: a.id, title: a.title, state: a.state ?? "idle", line: p.line, prompt: rid });
++			for (const [k, v] of Object.entries(l.tasks ?? {})) if (by.has(k) && v && typeof v === "object"){ const verb = Object.keys(v)[0]; by.get(k).state = ["complete", "finish"].includes(verb) ? "complete" : ["stop", "reject"].includes(verb) ? "stopped" : ["start", "resume"].includes(verb) ? "running" : by.get(k).state; }
++		}
++		return [...by.values()];
++	}
++
+ 	async run({ steps = this.def.steps, only = null, file = false } = {}){
+ 		const ps = this.prompts.filter(p => !only || only.includes(p.line));
+ 		if (steps.includes("sentences")) await this.sentences(ps);
+@@ -263,6 +277,7 @@ Answer at the end with ONE JSON object and nothing else after it:
+ 	static async main(argv){
+ 		const flag = k => argv.includes(k), val = k => argv[argv.indexOf(k) + 1];
+ 		const r = new PromptRecords(argv.find(x => /^[0-9a-f-]{8,36}$/.test(x)), { process: flag("--process") ? val("--process") : "review", parallel: flag("--parallel") ? +val("--parallel") : 3 });
++		if (flag("--tasks")){ console.log(JSON.stringify(r.tasks(val("--tasks")?.startsWith("--") ? null : val("--tasks")), null, 1)); return; }   // --tasks [prompt id or line]; none = the latest prompt
+ 		if (flag("--handled")){ console.log(await r.handled(val("--handled"), val("--to"), flag("--note") ? val("--note") : "")); return; }
+ 		if (flag("--summary")){ const s = r.summary(); for (const x of s) console.log(x.recorded === false ? `  L${x.line} not recorded` : `${x.complete ? "✅" : "⬜"} L${x.line} ${x.done}/${x.total} ${x.uncovered ? `(${x.uncovered} uncited) ` : ""}${JSON.stringify(x.outcomes)} ${x.subject}`); console.log(`${s.filter(x => x.complete).length} of ${s.length} prompts complete`); return; }
+ 		if (flag("--dry")){ const rows = r.rows(); for (const p of r.prompts) console.log(`  L${p.line} ${p.at} ${p.text.length} chars ${rows[r.rid(p)]?.parts?.length ? "recorded" : ""}`); console.log(`${r.prompts.length} unique prompts (of ${PromptAudit.prompts(r.transcript).length} in the transcript), process ${r.process}: ${r.def.steps.join(" → ")}`); return; }
+diff --git a/Servex/agents/prompt-tasks.test.mjs b/Servex/agents/prompt-tasks.test.mjs
+index 7f9410841..8bacd2401 100644
+--- a/Servex/agents/prompt-tasks.test.mjs
++++ b/Servex/agents/prompt-tasks.test.mjs
+@@ -42,12 +42,12 @@ try {
+ 	] }) });
+ 	ok(rec?.file === REC && rec.uuid === "00000000-0000-4000-8000-000000000001", "the prompt page maps to ai/sessions/<same day>/<same folder>/session.jsonl, uuid from line 1");
+ 
+-	// 3. Each task-kind ask is filed as a proposed task, on the owner, in the session's record; a question is not.
++	// 3. Each task-kind ask is filed as an open idle task, not on the owner, in the session's record; a question is not.
+ 	const out = await pt.prompted(heard[0]);
+ 	const plog = read(path.join(REC_DIR, "prompts.jsonl"));
+ 	ok(["raw", "clean", "parts"].every(st => plog.some(l => l.stage === st)) && plog.find(l => l.stage === "parts").parts[0].parts[0].text === "settings first", "the prompt's record (raw, sentences, parts with nested details) is in the session's prompts.jsonl");
+ 	const adds = read(REC).filter(l => l.tasks?.add); 
+-	ok(adds.length === 1 && adds[0].tasks.add.state === "waiting" && adds[0].tasks.add.waiting_on === "owner" && adds[0].tasks.add.from === "owner", "one proposed task per task-kind ask, waiting on the owner; the question stays on the card");
++	ok(adds.length === 1 && adds[0].tasks.add.state === "idle" && !("waiting_on" in adds[0].tasks.add) && adds[0].tasks.add.from === "owner", "one open (idle) task per task-kind ask, not waiting on the owner; the question stays on the card");
+ 	fs.mkdirSync(MOD_DIR, { recursive: true });
+ 	ok(!fs.existsSync(path.join(MOD_DIR, "tasks")), "a proposed task drafts in the session: no module folder is made before approval");
+ 	await pt.prompted(heard[0]);
+@@ -89,23 +89,19 @@ try {
+ 	const off_now = (PromptTasks.set(false), PromptTasks.off()); PromptTasks.set(true);
+ 	ok(off_now === true && PromptTasks.off() === false, "the runtime switch file turns it off and back on");
+ 
+-	// 4. The session replays it as waiting; a decide line from the page approves it.
++	// 4. The session replays it as idle open work; a decide line from the page approves it.
+ 	let s = Session.replay(read(REC));
+ 	const t = [...s.tasks][0];
+-	ok(s.id === rec.uuid && t.state === "waiting" && t.get_one("title") === "Build the session menu", "the session reads the proposal as a waiting task");
+-	s = Session.replay([...read(REC), { decide: { task: t.id, is: "approve", by: "owner" } }]);
+-	ok([...s.tasks][0].state === "idle" && PromptTasks.accepted([...s.tasks][0]), "a decide line (Approve on the session page) accepts it: idle, approved");
+-	s = Session.replay([...read(REC), { decide: { task: t.id, is: "reject", note: "not now" } }]);
+-	ok([...s.tasks][0].state === "stopped", "Reject stops it, with the note as the reason");
+-	s = Session.replay([...read(REC), { decide: { task: t.id, is: "project" } }]);
+-	ok([...s.tasks][0].constructor.name === "Project" && [...s.tasks][0].get_one("title") === "Build the session menu", "Make it a project: same id, title and place, now a Project");
++	ok(s.id === rec.uuid && t.state === "idle" && t.get_one("waiting_on") == null && !PromptTasks.accepted(t) && t.get_one("title") === "Build the session menu", "the session reads it as open work: idle, not waiting on the owner, not yet started");
++	s = Session.replay([...read(REC), { tasks: { [t.id]: { start: {} } } }]);
++	ok([...s.tasks][0].state === "running" && PromptTasks.accepted([...s.tasks][0]), "a tab or agent that starts it (item tool start) accepts it");
+ 
+-	// 5. Approved and naming a module: the TaskLoop sweep moves it to <module>/tasks/<slug>/, and the session references it there.
+-	ok((await pt.sweep()).length === 0, "a proposal still waiting is not moved");
+-	fs.appendFileSync(REC, JSON.stringify({ decide: { task: t.id, is: "approve", by: "owner" } }) + String.fromCharCode(10));
++	// 5. Started and naming a module: the TaskLoop sweep moves it to <module>/tasks/<slug>/, and the session references it there.
++	ok((await pt.sweep()).length === 0, "an idle task nobody started is not moved");
++	fs.appendFileSync(REC, JSON.stringify({ tasks: { [t.id]: { start: {} } } }) + String.fromCharCode(10));
+ 	const moved = await pt.sweep();
+ 	const home = path.join(MOD_DIR, "tasks", t.id, "task.jsonl");
+-	ok(moved.length === 1 && fs.existsSync(home) && (h => h.get_one("title") === "Build the session menu" && h.state === "idle")(Task.replay(read(home))), "approved: it moves to <module>/tasks/<slug>/ with its data and state");
++	ok(moved.length === 1 && fs.existsSync(home) && (h => h.get_one("title") === "Build the session menu" && h.state === "running")(Task.replay(read(home))), "started: it moves to <module>/tasks/<slug>/ with its data and state");
+ 	s = Session.replay(read(REC));
+ 	ok(s.tasks.length === 1 && [...s.tasks][0].data.path === `/framework/${MOD}/tasks/${t.id}/`, "the session now references the moved task (same id replaces the nested one)");
+ 	ok((await pt.sweep()).length === 0 && fs.readFileSync(ledgers.task_moves, "utf8").includes(t.id), "moved once, and the move is in the ledger");
+diff --git a/public/framework/core/Session/doc/prompt-tasks.md b/public/framework/core/Session/doc/prompt-tasks.md
+index b3f9da369..9b9c8d611 100644
+--- a/public/framework/core/Session/doc/prompt-tasks.md
++++ b/public/framework/core/Session/doc/prompt-tasks.md
+@@ -1,6 +1,6 @@
+ # Owner prompts become tasks on the session page
+ 
+-**What it does.** When you type a prompt in a VS Code tab, each piece of work in it shows up a few seconds later as a **proposed task** at the top of that session's page (`/framework/ai/sessions/<id>/`, Conversation tab), with **Approve** and **Reject** beside it. Questions and plain statements are not tasks: they stay on the prompt's refined card (the Coverage tab). The owner asked for it on 2026-10-22: "owner prompts become tasks on the session page in real time".
++**What it does.** When you type a prompt in a VS Code tab, each piece of work in it shows up a few seconds later as an **open task** (idle, waiting on nobody) on that session's page (`/framework/ai/sessions/<id>/`, Conversation tab). Questions and plain statements are not tasks: they stay on the prompt's refined card (the Coverage tab). The owner asked for it on 2026-10-22: "owner prompts become tasks on the session page in real time".
+ 
+ ![Two proposed tasks on a session page at 1200 px](shots/session-tasks-1200.png) · [at 400 px](shots/session-tasks-400.png)
+ 
+@@ -9,21 +9,29 @@
+ 1. **The prompt is logged.** `.claude/hooks/prompt-relay.mjs` (the UserPromptSubmit hook) adds it as a `Prompt` item to the session's card page, `public/framework/ai/YYYY/MM/DD/session-<id8>/page.jsonl`, through Servex's `page_add` tool.
+ 2. **Servex hears it.** `page_add` calls `hooks.prompted` (`Servex/agents/page_tools.js`) for a `Prompt` item. Servex hands it to `PromptTasks` (`Servex/agents/PromptTasks.js`), which works through prompts one at a time. It skips prompts under 30 characters, `/commands`, any prompt whose `page_add` caller is not `owner`, and any session whose record does not start with `{"session":{"kind":"vscode-tab","id":…}}`. It also skips a turn you did not type: the tab's transcript stamps each user turn with `turnOrigin`, and only `"human"` is refined (a scheduled CronCreate check-in is `"scheduled"`; no line found = refined as before). So only what you type in your own VS Code tabs counts; an SDK agent's prompt never does.
+ 3. **The prompt's record starts, and one cheap call splits it** (since 2026-10-23; before, `RefineQueue.one()` brief v3 filed one flat task per sentence, directions included). The `live` process of `Server/PromptRecords.mjs` writes the raw text and numbered sentences into the session's `prompts.jsonl`, then one Haiku call (`PARTS_BRIEF`) splits the prompt into parts: 1 to 3 main asks with their details nested, rules, questions, ideas, conversation ([prompt records](/framework/ext/Refine/doc/prompt-records.md)).
+-4. **Each top-level ask is filed as a proposal** (rules and questions stay on the record; nested details go in the description) in the session's own record, `public/framework/ai/sessions/YYYY/MM/DD/session-<id8>/session.jsonl` (same day and folder name as the card page), through the item tool with caller `prompt-tasks`:
+-   `{"tasks":{"add":{"title","state":"waiting","waiting_on":"owner","from":"owner","source":{"session","line","prompt","part"},"description","module_hint"}}}`. Routed a prompt's proposals yourself? `node Server/PromptRecords.mjs <session> --handled <prompt id> --to <task path>` completes them as "routed to …" and marks the prompt handled.
+-   It drafts in the session. No module folder is made until it is approved and moved.
+-5. **The page shows it live.** `SessionTasks` (`core/Session/SessionTasks.js`) streams `session.jsonl`, replays it into a `Session`, and draws each task with `TaskView.row`. A waiting one gets **Approve**, **Reject** and **Make it a project**.
+-6. **Your press is one line.** `{"decide":{"task":"<id>","is":"approve"|"reject"|"project","by":"owner"}}` is appended through the dev socket. `Session.replay_line` applies it: Approve accepts the task (waiting → idle, with an approve verdict); Reject stops it; Make it a project replaces it with a `Project` (core/Task/Project.js) with the same id, data and place.
+-7. **Approved, it moves home.** Every 5 minutes the TaskLoop tick runs `PromptTasks.sweep()`. An accepted task (approved, or already started: `PromptTasks.accepted`) whose module is a folder under `public/framework/` moves to `<module>/tasks/<slug>/`, by `move_nested_home()` in `Servex/agents/page_tools.js`. Its data and state go to that folder's `task.jsonl` line 1. The session gets a same-id `{"task":"<new path>"}` reference, which replaces the nested one. The module list references the task too, and `ai/sessions/task-moves.jsonl` records the move. Its module is `module_hint`, else the module that holds its `file_hint` (`PromptTasks.module_of`: the deepest folder with a readme). **The default home is the session itself:** a task with neither, or a module that is not a folder there, stays a task in its own session's record, where the session page lists it and the session's completion counts it (crack 2 in [cracks.md](/framework/core/Task/doc/cracks.md)).
++4. **Each top-level ask is filed as an open task** (rules and questions stay on the record; nested details go in the description) in the session's own record, `public/framework/ai/sessions/YYYY/MM/DD/session-<id8>/session.jsonl` (same day and folder name as the card page), through the item tool with caller `prompt-tasks`:
++   `{"tasks":{"add":{"title","state":"idle","from":"owner","source":{"session","line","prompt","part"},"description","module_hint"}}}`. Routed a prompt's tasks yourself? `node Server/PromptRecords.mjs <session> --handled <prompt id> --to <task path>` completes its open ones as "routed to …" and marks the prompt handled.
++   It lives in the session. No module folder is made until someone starts it and it moves home.
++5. **The page shows it live.** `SessionTasks` (`core/Session/SessionTasks.js`) streams `session.jsonl`, replays it into a `Session`, and draws each task with `TaskView.row`.
++6. **Older proposals (waiting on you) keep their buttons.** Tasks filed before 2026-10-24 are still `waiting`; your press is one line. `{"decide":{"task":"<id>","is":"approve"|"reject"|"project","by":"owner"}}` is appended through the dev socket. `Session.replay_line` applies it: Approve accepts the task (waiting → idle, with an approve verdict); Reject stops it; Make it a project replaces it with a `Project` (core/Task/Project.js) with the same id, data and place.
++7. **Started, it moves home.** Every 5 minutes the TaskLoop tick runs `PromptTasks.sweep()`. An accepted task (started, running, paused or complete: `PromptTasks.accepted`; an idle task is not yet) whose module is a folder under `public/framework/` moves to `<module>/tasks/<slug>/`, by `move_nested_home()` in `Servex/agents/page_tools.js`. Its data and state go to that folder's `task.jsonl` line 1. The session gets a same-id `{"task":"<new path>"}` reference, which replaces the nested one. The module list references the task too, and `ai/sessions/task-moves.jsonl` records the move. Its module is `module_hint`, else the module that holds its `file_hint` (`PromptTasks.module_of`: the deepest folder with a readme). **The default home is the session itself:** a task with neither, or a module that is not a folder there, stays a task in its own session's record, where the session page lists it and the session's completion counts it (crack 2 in [cracks.md](/framework/core/Task/doc/cracks.md)).
++
++## One writer: the splitter files the tasks, the tab starts them
++
++`PromptTasks` is the only thing that turns an owner prompt into tasks (decided 2026-10-24: the tab and the splitter had each filed the same ask, so every ask appeared twice). **A tab never adds its own task for something you asked it.** To work on an ask, the tab:
++
++1. Finds the splitter's task for its latest prompt: `node Server/PromptRecords.mjs <session id> --tasks` (JSON: `id`, `title`, `state`, `line`, `prompt`). `--tasks <prompt id or line>` names another prompt. If the list is empty, wait a few seconds (the split takes one Haiku call) and ask again.
++2. Starts the one it takes, with the item tool on the session record: `{"tasks":{"<id>":{"start":{},"path":"<brief or task dir>","agent":"<agent id>"}}}`. A task another agent now owns carries that agent and path; the ask is **not complete** until the work is.
++3. Finishes it the same way (`complete` with evidence). The tab files a task of its own only for work **it** invents, never for something you asked.
+ 
+ ## Watch out
+ 
+-- **The `decide` verb is new in `.claude/hooks/jsonl-schema.mjs`.** The dev server loads that file when it starts, so a server started before this merge refuses the press until it restarts.
++- **Servex must restart to pick this up** (`PromptRecords.mjs` is loaded into the running Servex): until then new tasks are still filed waiting on the owner.
+ - **Only VS Code tab prompts are covered.** A session needs a `session.jsonl`, which the SessionStart hook writes. Prompts typed to a Servex agent from the dashboard do not go through `prompt-relay.mjs`.
+ - **Switch it on or off** with `node Servex/agents/PromptTasks.js off` (or `on`, or `status`). This writes or removes `prompt-tasks.off` in the Servex home (`%LOCALAPPDATA%/lew42/servex/`). It is checked on every prompt, so no restart is needed. `SERVEX_NO_PROMPT_TASKS=1` turns it off for a whole Servex run.
+-- Test: `node Servex/agents/prompt-tasks.test.mjs` (21 checks).
++- Test: `node Servex/agents/prompt-tasks.test.mjs` (23 checks).
+ 
+ ## Not built yet
+ 
+-- **Approved tasks need an owner.** Nothing assigns an agent to an approved task yet; a mastermind picks them up from the module's task list.
+-- **Choosing the module.** The module is the splitter's guess (`module_hint`). There is no control yet to change it before approving.
++- **Open tasks need an owner.** Nothing assigns an agent to a new idle task automatically; the tab that took the prompt starts it, else the TaskLoop or a mastermind picks it up.
++- **Choosing the module.** The module is the splitter's guess (`module_hint`). There is no control yet to change it before it starts.

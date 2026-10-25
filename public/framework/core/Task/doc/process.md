@@ -86,7 +86,7 @@ A step id never names a Task verb or field (`improve` would call `Task.improve()
 The item tool works both ways, and this is the rule for which happens where:
 
 - **Writes are raw delta lines.** The agent sends the delta; node stamps `by` and `ts` and appends it. The agent never types a time or an id.
-- **Reads instantiate on the server.** For Task, Session and Process files the tool replays the file into one live instance per file (`live_root` in `Servex/agents/page_tools.js`), checks the delta against that class before writing, and answers with the computed state. Pages are still replayed as plain data (the Page class needs a DOM).
+- **Reads instantiate on the server.** For Task, Session and Process files the tool replays the file into one live instance per file (`live_root` in `Servex/agents/page_tools.js`), checks the delta against that class before writing, and answers with what it wrote (`{ok, ids, line, size, now: {state, completion}}`); the full computed state is a read. Pages are still replayed as plain data (the Page class needs a DOM).
 
 So an agent asks its session for its state with `item({path: <session folder>})` (no delta): its tasks, each task's state, `completion` and `progress`, all computed from the files, with any process among them. Cost per task is the `cost` getter (`Task.cost_resolver`, wired in `Agents.js`).
 

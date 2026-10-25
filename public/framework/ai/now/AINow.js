@@ -66,7 +66,7 @@ export default class AINow extends View {
 			if (this.error) return void p.c("an-empty", this.error === "no socket" || this.error === "no source"
 				? "This list needs the dev server (a static copy has no one to ask). Today's sessions are on the page linked below."
 				: "Could not ask the server: " + this.error);
-			if (!rows.length) return void p.c("an-empty", "Nothing is running right now. The day's sessions are linked below.");
+			if (!rows.length) return void p.c("an-empty", "Nothing is running right now.");
 			rows.forEach(r => div.c("an-row" + (hot(r) ? "" : " an-quiet"), () => {
 				div.c("an-top", () => {
 					span.c("an-dot").attr("title", hot(r) ? "working now" : "quiet for a while");
