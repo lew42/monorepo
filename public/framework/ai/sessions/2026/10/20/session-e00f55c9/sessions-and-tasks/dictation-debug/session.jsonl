@@ -40,3 +40,6 @@
 {"action":{"at":"2026-10-24T23:59:38-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/requirements.md"]}}
 {"log":{"at":"2026-10-25T00:01:13-05:00","msg":"Debug tab, both stalls, bubbles, per-module failures.jsonl and the UI rule landed on michael/dev (146e37c73); the dictate-to-tab finding is in core/Page/ai/doc/dictation.md (92ba4d3c8). Next: the flicker (flicker/requirements.md), the same builder, the polish list after it."}}
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/","by":"SessionRecord --links","ts":"2026-10-25T05:01:32.758Z"}
+{"note":{"id":"caveats-flicker","msg":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/ completed with caveats: ext/Chat/ChatPanel.js uses the same composer without on_out, so it keeps the old gap; proof is a stubbed mic and Servex; not walked with a real voice on the owner's phone; docs out of date for the mastermind: ext/Chat/doc/mic-notes.md (take_out/on_out), ext/drawer/readme.md (dictation view removed from AIPage.VIEWS)"},"by":"minion-dictation-flicker","ts":"2026-10-25T05:54:50.030Z"}
+{"log":{"at":"2026-10-25T00:55:16-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T00:55:44-05:00","msg":"session resumed"}}
