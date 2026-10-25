@@ -362,7 +362,7 @@ check("over the weekly pace the smart seat drops to Sonnet; the fast seat is its
 		Usage.over_pace = () => true;
 		assert.equal(s.claude_model("smart"), "claude-sonnet-5-5");
 		Usage.over_pace = () => false;
-		assert.equal(s.claude_model("smart"), "claude-opus-5-5");
+		assert.equal(s.claude_model("smart"), TIERS.voice_smart.model);
 		assert.equal(s.claude_model("fast"), "claude-haiku-5-5");
 	} finally { Usage.over_pace = real; }
 });
