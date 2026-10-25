@@ -31,3 +31,17 @@ For `mastermind-page`, after (or alongside) the top-tabs task, since the two sti
   1. redesign the session card previews;
   2. then the session detail page.
   Each is its own step, and each lands before the next starts.
+
+## The owner, third pass (2026-10-24, after looking at the list and this session's detail page)
+
+- **Load only what the view needs.**
+  - The default view is a short range (today, or the month), read from the per-level index files: `ai/sessions/index.jsonl` → year → month → day, which the deputy just merged.
+  - Never load every session to draw the list.
+- **Totals come from Servex's live cached sessions,** the `live_root` instances that the deputy's fast-write work keeps current. A card can then show its total, including children, without loading hundreds of child sessions in the browser.
+  - Until that's ready, the card shows the session's own cost, clearly labeled, and the full total one click down.
+  - Both numbers come from ONE cost function, the deputy's fix for the $2xx-card vs $9xx-detail mismatch.
+- **On the detail page, the task list is broken:**
+  - each task sits in a narrow column, so its text wraps over 3–6 lines and looks cut short;
+  - every row has play and stop buttons nobody explained. Find out what they do and whether they work; hide them if not.
+  
+  Make each task one full-width row. Then give the tasks the same filterable grid as the sessions list (state, day, kind), so a 4-day session can be browsed by day. One component for both.
