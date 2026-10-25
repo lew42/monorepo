@@ -5,9 +5,9 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-24 00:03 UTC, last 24 h)
+## NOW (computed 2026-10-25 00:02 UTC, last 24 h)
 
-**Pace:** Week: 10% used · 27% gone · 37% of pace (room to spend, 5 days 2 hours left)
+**Pace:** Week: 24% used · 41% gone · 58% of pace (room to spend, 4 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
@@ -19,14 +19,14 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 
 **Latest commits on this branch:**
 ```
-3c4de7680 deputy brief: the owner's 2026-10-23 evening queue (review page, 230 proposals, docs system, model experiment)
-73f45981f process-system: qf-1 ready at 7c88de6cf
-fd11f070f Merge branch 'worktree/qf-2' into michael/dev
-7246c8b1a Merge branch 'task/review-false-pass' into michael/dev
-76987e941 usage: report all three numbers (used, gone, % of pace) in one line
-79b07d1c5 servex: log sweep (18 files)
-72e28278a process-system: landing nag was early; noted
-ba85ee41f process-system: merge-approvals ready, needs restart; priority 3b updated
+44cbb5e47 servex: log sweep (4 files)
+69ed74f3f servex: log sweep (2 files)
+6e0c5ea68 servex: log sweep (4 files)
+503bb9246 servex: log sweep (2 files)
+cc17c1dd5 servex: log sweep (4 files)
+e5363e5e6 servex: log sweep (2 files)
+ac4acf322 servex: log sweep (4 files)
+11d8e03fc servex: log sweep (2 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
