@@ -91,6 +91,13 @@ try {
 	fs.appendFileSync(PFILE, JSON.stringify({ task: MURL, as: "mixed" }) + "\n");
 	const m = P().tasks.find("mixed");
 	t.ok(m instanceof Session && m.state === "complete", "a task folder a spawn later wrote into is a Session, and its complete line still reads complete");
+	// 7. A voice record (ai/sessions/<day>/v-<id>/, line 1 {session:{kind:"voice"}}) is found by its folder name as a parent_session.
+	const VOICE = path.join(ROOT, SESS, "2026/10/24", "v-test");
+	fs.mkdirSync(VOICE, { recursive: true });
+	fs.writeFileSync(path.join(VOICE, "session.jsonl"), JSON.stringify({ session: { kind: "voice", at: "2026-10-24T11:00:00.000Z" } }) + "\n");
+	// The child sits outside the voice folder, so its record is found by parent_session, not by walking up.
+	open_task({ dir: path.relative(ROOT, path.join(ROOT, SESS, "2026/10/24", "elsewhere", "fast")) }, { session_id: "0c0c0c0c-aaaa-4bbb-8ccc-000000000006", agent: "voice-fast", ...SPAWN, parent_session: "v-test" });
+	t.ok(entries(path.join(VOICE, "session.jsonl")).some(x => x.e.spawn?.agent === "voice-fast"), "a spawn with parent_session v-test writes its entry on the voice record");
 } finally {
 	process.chdir(HOME);
 	fs.rmSync(ROOT, { recursive: true, force: true });

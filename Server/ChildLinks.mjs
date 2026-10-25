@@ -31,7 +31,7 @@ export default class ChildLinks {
 		for (const dir of rec.day_children()){
 			const f = SessionRecord.file(dir), l = f && line1(f), name = path.basename(dir);
 			const id = l?.assign?.session_id ?? l?.session?.id ?? (UUID.test(name) ? name : null);
-			const keys = [id, id && id.slice(0, 8), /^session-([0-9a-f]{8})$/.exec(name)?.[1]].filter(Boolean);
+			const keys = [id, id && id.slice(0, 8), /^session-([0-9a-f]{8})$/.exec(name)?.[1], name].filter(Boolean);   // the folder name too: a voice record v-<id> is its own parent_session
 			for (const k of keys) if (!map.has(k) || (f && !SessionRecord.file(map.get(k)))) map.set(k, dir);
 		}
 		// An agent session's own record is its task folder (Agents.open_task), wherever that sits: the registry knows it.
