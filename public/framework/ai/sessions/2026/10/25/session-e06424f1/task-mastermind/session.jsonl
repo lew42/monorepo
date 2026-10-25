@@ -20,3 +20,6 @@
 {"log":{"at":"2026-10-25T17:31:15-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
 {"log":{"at":"2026-10-25T17:31:20-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-25T17:31:21-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T17:33:23-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T17:33:25-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T17:34:02-05:00","msg":"session ended (other) without landing"}}
