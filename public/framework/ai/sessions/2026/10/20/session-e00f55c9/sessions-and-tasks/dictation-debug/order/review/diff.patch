@@ -1,0 +1,159 @@
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index a45bdbeaa..73ff82179 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -927,7 +927,7 @@ export default class Sessions {
+ 	 * explicitly. `error` is filed as a `log` line (ISO `at`, like every other log line in this repo); `click`/
+ 	 * `context` are queued onto the smart seat's `notes`, the same way `nav()`/`react()` already tell it something
+ 	 * happened without starting a new thought -- read on its next turn. */
+-	say({ session, path: at, text, via = "text", raw, floor, cues, quiet_ms, re, thread, selection, kind = "speech" } = {}){
++	say({ session, path: at, text, via = "text", raw, floor, cues, quiet_ms, re, thread, selection, kind = "speech", said_at } = {}){
+ 		if (!["speech", "error", "click", "context"].includes(kind)) throw Object.assign(new Error("kind is speech, error, click or context"), { status: 400 });
+ 		if (!String(text ?? "").trim()) throw Object.assign(new Error("text is required"), { status: 400 });
+ 		if (kind !== "speech"){
+@@ -946,6 +946,7 @@ export default class Sessions {
+ 		 * happens, so the NEXT line (continuing or not) is never wrongly merged into a Prompt that is already done. */
+ 		const prompt = this.assign_prompt(s, { text, raw });
+ 		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text, prompt,
++			...(said_at && !Number.isNaN(Date.parse(said_at)) ? { said_at: String(said_at) } : {}),
+ 			...(raw && String(raw).trim() && raw !== text ? { raw: String(raw) } : {}),
+ 			...(floor ? { floor } : {}), ...(cues && typeof cues === "object" ? { cues } : {}),
+ 			...(thread && re ? { re: String(re), thread: true } : {}),
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/order/session.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/order/session.jsonl
+index de2e0d8f9..0f1db6d1e 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/order/session.jsonl
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/order/session.jsonl
+@@ -10,3 +10,4 @@
+ {"log":{"at":"2026-10-25T02:02:17-05:00","msg":"placement step: 0 place lines over 58 chat lines in v-xhx7fmx, so the voice assistant placed nothing in that session; not the cause here, worth a look by the parent."}}
+ {"log":{"at":"2026-10-25T02:02:25-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+ {"log":{"at":"2026-10-25T02:05:56-05:00","msg":"step 1 done on worktree/dictation-order (155c6c4a7): Chat.js retag_piece changes the id only; notes.md :70 and #bubble-order updated; order.mjs ok at skew 0 and 1500; third run (reply between) KNOWN: 'now?' lands above the reply, the cross-bubble case left for step 2. smoke.mjs: no FAIL. Not merged; parent merges."}}
++{"log":{"at":"2026-10-25T10:44:42-05:00","msg":"steps 2-3 done: Session.clock.offset kept by say(), ComposerMic.stamp adds it; chat.js sends said_at; Sessions.say writes it (live after a Servex restart); chat_line orders by said_at ?? at. order/flicker/reconnect/refresh/earlier pass."}}
+diff --git a/public/framework/ext/Chat/Chat.js b/public/framework/ext/Chat/Chat.js
+index 373d34f9f..4f43061a4 100644
+--- a/public/framework/ext/Chat/Chat.js
++++ b/public/framework/ext/Chat/Chat.js
+@@ -650,7 +650,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 		const cls = (c.from?.kind ?? "") === "owner" ? "chatbox-you" : "chatbox-reply";
+ 		const who = c.from?.id || c.from?.kind || "";
+ 		if (!c.fix && !c.level) cls === "chatbox-you" ? drop_live([...lives.keys()].find(k => k.startsWith("sent:"))) : drop_live("stream:" + who);
+-		const at = Date.parse(c.at ?? 0) || Date.now();
++		const at = Date.parse(c.said_at ?? c.at ?? 0) || Date.now();   // said_at = when the owner said it, on Servex's clock (doc/notes.md#bubble-order); old lines have none
+ 
+ 		if (c.fix){
+ 			const hit = fix_index.get(c.at);
+diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
+index 27092624a..d1a3e203a 100644
+--- a/public/framework/ext/Chat/Mic.js
++++ b/public/framework/ext/Chat/Mic.js
+@@ -3,6 +3,7 @@ import Dictate from "/framework/ux/Dictate/Dictate.js";
+ import Capture from "/framework/ux/Dictate/capture.js";
+ import FsFile from "/framework/ext/filesystem/FsFile.js";
+ import RefineSystem from "/framework/ext/Refine/RefineSystem.js";
++import { clock } from "/framework/ext/Session/Session.js";
+ import DictateHealth from "/framework/ux/Dictate/DictateHealth.js";
+ 
+ /** The microphone of a composer: `ux/Dictate` with a few methods redirected; speech goes into the composer's box and goes out as one message. see doc/mic-notes.md#overrides */
+@@ -653,7 +654,7 @@ export class ComposerMic extends Dictate {
+ 
+ 	// A unique, rising `at`: two sentences taken out in the same millisecond must not share one bubble piece.
+ 	static stamp(){
+-		const t = Math.max(Date.now(), (ComposerMic.last_stamp ?? 0) + 1);
++		const t = Math.max(Date.now() + (clock.offset), (ComposerMic.last_stamp ?? 0) + 1);
+ 		ComposerMic.last_stamp = t;
+ 		return new Date(t).toISOString();
+ 	}
+diff --git a/public/framework/ext/Chat/doc/notes.md b/public/framework/ext/Chat/doc/notes.md
+index 911c44a40..44d41ff1f 100644
+--- a/public/framework/ext/Chat/doc/notes.md
++++ b/public/framework/ext/Chat/doc/notes.md
+@@ -140,4 +140,4 @@ A fix (`fix: true`) is a later line with the same `at` as an earlier one, "here
+ 
+ A bubble drawn late (a reply that beat its sentence) is moved before the first bubble with a later `data-at`, so the log reads in session-file order. `place()` does it; proof and before/after run: `ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/bubble-order/`.
+ 
+-Order only works when every `at` it compares comes from one clock. A piece the owner said is drawn with the phone's stamp (`ComposerMic.stamp`), and Servex answers with its own; `retag_piece` therefore changes the id only. Before it did, a phone behind the PC showed "now?" above "Can you hear me?" (2026-10-25; proof `ux/Dictate/test/order.mjs`; cause `ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/order/report.md`). Still open: a new owner bubble placed against a reply compares the phone's clock with Servex's, so it can jump above that reply; the fix is one clock for new stamps (the report's step 2).
++Order only works when every `at` it compares comes from one clock. A piece the owner said is drawn with the phone's stamp (`ComposerMic.stamp`), and Servex answers with its own; `retag_piece` therefore changes the id only. Before it did, a phone behind the PC showed "now?" above "Can you hear me?" (2026-10-25; proof `ux/Dictate/test/order.mjs`; cause `ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/order/report.md`). One clock now: `Session.say` keeps `clock.offset` (Servex's `at` minus the request's midpoint, updated each answer) and `ComposerMic.stamp()` adds it, so a new owner bubble sits on Servex's clock beside the replies. `ux/Dictate/chat.js` also sends `said_at` (the stamp); Servex `Sessions.say` writes it on the chat line, and `chat_line` orders by `said_at ?? at` (ids stay `at`), so a reload keeps the order the owner spoke in. Lines without `said_at` (older, or Servex not yet restarted) order by `at` as before. Proof, all three cases including a reply between: `ux/Dictate/test/order.mjs`.
+diff --git a/public/framework/ext/Session/Session.js b/public/framework/ext/Session/Session.js
+index 0f80087c2..c84205862 100644
+--- a/public/framework/ext/Session/Session.js
++++ b/public/framework/ext/Session/Session.js
+@@ -76,14 +76,22 @@ export async function recent(page = location.pathname, { limit = 10, host = loca
+  *  same shape `ext/drawer/select.js`'s `item()` already builds, `{kind, label, text, selector}` —
+  *  passed straight through to Servex, which prefixes `[Selected: …]` ahead of the words it sends
+  *  the assistants, the way `Layers.js`'s `heard()` already does for a card's own chip. */
+-export const say = ({ session, path = location.pathname, text, via = "text", raw, floor: f, cues, re, thread, selection }) => {
++export const say = async ({ session, path = location.pathname, text, via = "text", raw, floor: f, cues, re, thread, selection, said_at }) => {
+ 	const spoken = via === "voice";
+ 	f ??= spoken ? mic_floor.state() : undefined;
+-	return post("say", { session, path, text, via, ...(raw && raw !== text ? { raw } : {}),
++	const sent = Date.now();
++	const out = await post("say", { session, path, text, via, ...(said_at ? { said_at } : {}), ...(raw && raw !== text ? { raw } : {}),
+ 		...(f ? { floor: f } : {}), ...(cues ? { cues } : {}), ...(spoken ? { quiet_ms: mic_floor.quiet_ms() } : {}),
+ 		...(re && thread ? { re, thread: true } : {}), ...(selection ? { selection } : {}) });
++	const at = Date.parse(out?.at);
++	if (at) clock.offset = at - (sent + Date.now()) / 2;
++	return out;
+ };
+ 
++/** Servex's clock minus this device's, in ms: `at` of the latest `say` answer minus the midpoint of its request. 0 until the first answer.
++ *  `ComposerMic.stamp()` adds it, so a bubble drawn here is ordered on Servex's clock (ext/Chat/doc/notes.md#bubble-order). */
++export const clock = { offset: 0 };
++
+ /** The floor changed with no new words (the owner stopped talking): "done" writes a held fast reply. */
+ export const floor = ({ session, floor }) => post("floor", { session, floor });
+ 
+diff --git a/public/framework/ext/Session/readme.md b/public/framework/ext/Session/readme.md
+index eae4283f9..e170a9527 100644
+--- a/public/framework/ext/Session/readme.md
++++ b/public/framework/ext/Session/readme.md
+@@ -3,6 +3,7 @@
+ A session starts on the page you are on (its home), follows you from page to page, and keeps everything in one dated folder: `/framework/ai/sessions/YYYY/MM/DD/<session>/session.jsonl` (the central store; `home` is just a field) (sessions made before 2026-10-19 keep the flat `<home>ai/<session>.jsonl`). A fast assistant answers each line in a few seconds; a smart one thinks, decides, routes your words to work already in flight, and starts masterminds. Pressing ✦ again within an hour continues the same session, on the phone or the PC alike.
+ 
+ - **The two roles:** `session-fast` is the fast assistant, `session-smart` the smart one (`Servex/agents/session-fast.md`, `session-smart.md`).
++- **One clock:** `say()` takes `said_at` (when the owner said it) and keeps `clock.offset`, Servex's clock minus this device's, from each answer; `ComposerMic.stamp()` adds it. Servex writes `said_at` on the chat line ([ext/Chat/doc/notes.md#bubble-order](/framework/ext/Chat/doc/notes.md)).
+ - **The routes:** `/new` starts a session (or continues this page's from the last hour), `/say` sends one owner line to both assistants, `/nav` records a move to another page. `/resume`, `/floor` and `GET /api/sessions` are the rest ([doc/sessions.md](./doc/sessions.md)).
+ - **Invisible markers:** a move to another page, the mic pausing, and what the reader has selected are all written to the file but never shown as chat bubbles — how they work, and how a reply gets credited to the right card: [doc/markers.md](./doc/markers.md).
+ 
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index 0a1bc84ab..1468ccf81 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -173,7 +173,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 					let r;
+ 					const t_say = Date.now(), t_out = Date.parse(entry.at) || t_say;
+ 					try {
+-						r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text,
++						r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text, said_at: entry.at,
+ 							via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: owner.ctl.selection, ...thread });
+ 					} catch (e){
+ 						// Its line already came back (the poll or the live wire): it WAS sent, only the answer to the POST was slow.
+diff --git a/public/framework/ux/Dictate/test/order.mjs b/public/framework/ux/Dictate/test/order.mjs
+index 574e27fe5..232d37b53 100644
+--- a/public/framework/ux/Dictate/test/order.mjs
++++ b/public/framework/ux/Dictate/test/order.mjs
+@@ -8,7 +8,7 @@
+ // Three runs: skew 0 (the control, both clocks agree), skew SKEW_MS (the PC ahead of the phone), and skew SKEW_MS with the assistant's
+ // reply between the two sentences. Exit 1 when either of the first two reads out of order. The third is the KNOWN cross-bubble case:
+ // a new owner bubble (phone clock) is placed against the reply (Servex's clock) by Chat.js place(); it waits for one clock for new
+-// stamps (order/report.md, step 2), so it is reported but does not fail the run.
++// stamps (order/report.md, step 2), and it fails the run too (one clock: Session.clock.offset).
+ import path from "path";
+ 
+ const [base = "http://monorepo.localhost", skew_arg] = process.argv.slice(2);
+@@ -88,7 +88,7 @@ async function run(skew, { reply = false } = {}){
+ 	const norm = t => String(t).toLowerCase().replace(/[^a-z ]+/g, "").trim();
+ 	const want = reply ? [SAID[0], REPLY, SAID[1]] : SAID;
+ 	const ok = got.length === want.length && got.every((t, i) => norm(t).endsWith(norm(want[i])));
+-	const label = (ok ? "ok  " : reply ? "KNOWN" : "FAIL") + ` skew ${skew} ms (${skew ? "PC clock ahead of the phone" : "clocks agree"}${reply ? ", a reply between, the cross-bubble case for step 2" : ""})`;
++	const label = (ok ? "ok  " : "FAIL") + ` skew ${skew} ms (${skew ? "PC clock ahead of the phone" : "clocks agree"}${reply ? ", a reply between; the cross-bubble case" : ""})`;
+ 	console.log(`${label}: the chat reads ${got.map(t => JSON.stringify(t)).join(" then ")}; want ${want.map(t => JSON.stringify(t)).join(" then ")}`);
+ 	for (const s of trace) console.log(`       ${s.step}: ${s.pieces.map(p => `${JSON.stringify(p.text)} @${p.re}`).join(" | ")}`);
+ 	console.log(`       Servex wrote: ${lines.map(l => `${JSON.stringify(l.chat.text)} @${l.chat.at}`).join(" | ")}`);
+@@ -99,7 +99,7 @@ async function run(skew, { reply = false } = {}){
+ 
+ let all = true;
+ for (const skew of [0, SKEW_MS]) all = (await run(skew)) && all;
+-await run(SKEW_MS, { reply: true });   // KNOWN: reported, never fails the run (see the header)
++all = (await run(SKEW_MS, { reply: true })) && all;   // the cross-bubble case: one clock (ComposerMic.stamp + clock_offset) fixes it
+ clearTimeout(kill);
+ await browser.close();
+ process.exit(all ? 0 : 1);
