@@ -14,9 +14,21 @@ export default class RoleView {
 
 	static usd = n => typeof n === "number" ? "$" + n.toFixed(2) : "—";
 
+	/** The exact file(s) whose text becomes this role's system prompt (Servex/agents/roles.js: `readme: "<name>"` reads
+	 *  `Servex/agents/roles/<name>.md`, `skill: "<name>"` reads `.claude/skills/<name>/SKILL.md`) — not fetchable from the
+	 *  browser (outside `public/`), so shown as a path to open in the editor, not a link. `path` adds a mastermind's own
+	 *  folder readme chain + mastermind.md (Spawned at a path, roles/mastermind.md). */
+	static sources(role, path){
+		const out = [];
+		if (role.readme) out.push(`Servex/agents/roles/${role.readme}.md`);
+		for (const s of role.skills ?? []) out.push(`.claude/skills/${s}/SKILL.md`);
+		if (path) out.push(`${String(path).replace(/\/?$/, "")}/readme.md (and its chain up to the repo root)`, `${String(path).replace(/\/?$/, "")}/mastermind.md (if it exists)`);
+		return out;
+	}
+
 	/** The role's name over a grid of its properties (empty ones left out), then its live agents. `agents` may be omitted.
 	 *  `defaults` titles the card "Role: <name> (its defaults)", for a session page; `this_session` adds a row under effort with the session's own model and effort. */
-	static draw(role, agents, { link = true, defaults = false, this_session = "" } = {}){
+	static draw(role, agents, { link = true, defaults = false, this_session = "", path = "" } = {}){
 		div.c("surface pad role-card", () => {
 			div.c("flex gap-50 wrap v-center", () => {
 				if (link) a.c("h4", defaults ? `Role: ${role.name} (its defaults)` : role.name).attr("href", `/framework/servex/roles/#${role.name}`);
@@ -31,6 +43,11 @@ export default class RoleView {
 					span(String(v));
 					if (label === "effort" && this_session){ small.c("muted", "this session"); span(this_session); }
 				}
+			});
+			const sources = RoleView.sources(role, path);
+			if (sources.length) div.c("role-sources flow").style({ gap: "0.15em" }).append(() => {
+				small.c("muted", "Prompt source (the exact files this role's system prompt is built from; open in the editor — not fetchable from the browser):");
+				for (const s of sources) div(() => small(s).style({ fontFamily: "monospace" }));
 			});
 			if (agents) RoleView.instances(role, agents);
 		}).attr("id", role.name).style({ display: "grid", gap: "0.75em" });

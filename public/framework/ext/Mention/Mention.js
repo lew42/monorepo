@@ -105,7 +105,7 @@ const AGENT_KIND = [[/^task-mastermind-/, "psychology"], [/^mastermind-/, "psych
 	[/^minion-/, "smart_toy"], [/^manager-/, "support_agent"], [/^assistant/, "bolt"]];
 function agent_entry(name){
 	const icon = AGENT_KIND.find(([re]) => re.test(name))?.[1];
-	return icon ? { key: name, icon } : null;
+	return icon ? { key: name, icon, url: `/framework/ai/sessions/${name}/` } : null;   // that page opens a Servex agent by its id
 }
 
 // Path lookup: doc/Mention-notes.md
@@ -213,8 +213,21 @@ function replace_node(node, m, depth = 0){
 	}
 }
 
+// An inline `code` that holds ONLY one reference (`/framework/ai/`, `@owner`, `mastermind-x`) becomes the same link; longer code stays code.
+function upgrade_code(code, m){
+	let t = code.textContent.trim();
+	if (t.includes("-") && agent_entry(t)) t = "@" + t;   // a hyphen: the bare word "assistant" is prose
+	const match = new RegExp(PATTERN.source, "g").exec(t);
+	if (!match || match[0] !== t) return;
+	const sigil = match[1] ?? match[2], entry = lookup(m, sigil, match[3]);
+	if (entry && !entry.wait) code.replaceWith(build_row(shown(sigil, match[3], entry), as_kind(sigil, entry)));
+}
+
 /** Walk every text node under `el` and turn known mentions into icon links, in place. */
 export function mentions(el, m = maps){
+	for (const code of el.querySelectorAll("code"))
+		if (!code.closest("pre, a")) upgrade_code(code, m);
+
 	const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
 	const nodes = [];
 	let node;

@@ -22,6 +22,7 @@ Adding a name: open [`maps/refs.js`](maps/refs.js) (things — `#`) or
 `Name: { url, icon }`. `icon` is a [Material Symbols](https://fonts.google.com/icons) name, the
 same ones `ui.item` takes.
 
+- **Agent ids and inline code (2026-10-25):** `@mastermind-x` (or a bare `mastermind-x` alone in backticks) links to `/framework/ai/sessions/<id>/`, which opens that agent. An inline code span holding only one reference (`/framework/ai/`, `@owner`, an agent id) becomes the link; longer code and code blocks stay code. See [`doc/Mention-notes.md`](doc/Mention-notes.md).
 - **Three command characters (2026-10-19):** `/path` is a real site path (checked against the folder listings, no map), `@` an actor, `#` a class or concept, each with its own icon and colour; see [`doc/architecture.md`](doc/architecture.md) and the [demo](/framework/ext/Mention/).
 
 ## Watch out

@@ -39,7 +39,7 @@ export class Prompt extends Task {
 	// migrated `refined` cards and `notes` (Server/PromptsToSession.mjs).
 	static plain_lists = ["raw", "parts", "refined", "notes"];
 	// Plain fields a log line may set (Task.replay_line reads Task.FIELDS and these).
-	static line_fields = ["subject", "process", "handled", "refined", "notes", "text"];
+	static line_fields = ["subject", "process", "handled", "refined", "notes", "text", "working"];
 	static queries = [...Task.queries, "sentences", "settled_parts"];
 
 	static KINDS = ["ask", "question", "rule", "idea", "conversation"];
@@ -99,6 +99,8 @@ export class Prompt extends Task {
 	get text(){ return this.get_one("text") ?? this.cleaned; }
 	set text(value){ this.put("text", value); }
 	get label(){ return this.get_one("title") ?? this.get_one("subject") ?? (this.sentences[0]?.text ?? this.id).slice(0, 80); }
+	/** The smart seat's "seen it, writing" sign: `{by, at}` while it answers a Question or card under me, else null (`{working: null}` clears it). */
+	get working(){ return this.get_one("working") ?? null; }
 
 	// ---- completion: the owner's rule is "complete when everything it asks is done or documented" ----
 	get parts(){ return this.get_one("parts") ?? []; }

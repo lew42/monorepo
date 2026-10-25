@@ -148,6 +148,21 @@ try {
 	check("root question with from: nests under its prompt, other elements keep their DOM object", await untouched() === null, await untouched());
 	check("root adds: scroll position holds", await scroll_held());
 
+	// paragraphs.replace, duplicate paragraphs.add (core's one-paragraph-per-id no-op rule), and raw.push with an array (ChatV2Model fixes, mastermind-dictation-2)
+	// p-1761382900000 got a title above, so it reads "refined" now; its paragraphs only draw under "show raw".
+	await tap(second + " .chat-v2-toggle");
+	const raw_lines_before = (await page.$$(second + " .chat-v2-raw-line")).length;
+	live_append({ "p-1761382900000": { paragraphs: { replace: { id: "c", text: "Replaced paragraph text entirely." } } } });
+	await page.waitForFunction(() => [...document.querySelectorAll(".chat-v2-prompt[data-id='p-1761382900000'] .chat-v2-sentence-text")].some(e => e.textContent.includes("Replaced paragraph")), { timeout: 15000 });
+	check("paragraphs.replace: rewrites the paragraph in place", true);
+	live_append({ "p-1761382900000": { paragraphs: { add: { id: "c", text: "A duplicate id must be ignored." } } } });
+	await page.waitForTimeout(300);
+	const sentence_texts = await page.$$eval(second + " .chat-v2-sentence-text", els => els.map(e => e.textContent));
+	check("paragraphs.add with an id already present is a no-op, same as core's List.insert", sentence_texts.some(t => t.includes("Replaced paragraph")) && !sentence_texts.some(t => t.includes("must be ignored")), sentence_texts);
+	live_append({ "p-1761382900000": { raw: { push: ["one more raw line", "and another"] } } });
+	await page.waitForFunction(({ sel, n }) => document.querySelectorAll(sel).length === n, { sel: second + " .chat-v2-raw-line", n: raw_lines_before + 2 }, { timeout: 15000 });
+	check("raw.push with an array appends every string", true);
+
 	check("no page errors", errors.length === 0, errors);
 } finally {
 	await close_browser();
