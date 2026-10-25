@@ -305,6 +305,19 @@
 	@media (max-width: 52em) {
 		.page.topic { flex-direction: column; overflow: visible; }
 		.topic > .sidebar { flex: 0 0 auto; }
+
+		/* THE HEADER SCROLLS AWAY when the page has a `.tabs.stick` strip (ext/tabs; the
+		   owner, 2026-10-24: "the framework header should scroll away like normal
+		   content, and the tab row should stick at the top instead"). The header is a
+		   SIBLING above `.pages`, which is the scroller, so it could never leave; for
+		   such a topic the TOPIC scrolls and `.pages` just grows with its content
+		   (`1 0 auto`: a short page still fills the screen, so a `fill` child keeps its
+		   height). The header is `relative`, not static: its open menu is absolute
+		   against it. Opt-in through `:has()`, so an app page with its own inner scroll
+		   (chat, make) keeps the old model. `site` layer, like the rules it overrides. */
+		.page.topic:has(.tabs.stick > .tab-bar) { overflow: auto; }
+		.topic:has(.tabs.stick > .tab-bar) > .sidebar { position: relative; }
+		.topic:has(.tabs.stick > .tab-bar) > .pages { flex: 1 0 auto; overflow: visible; }
 	}
 
 	/* Rhythm is NOT here. It used to be two rules in this file AND four in Page.css,

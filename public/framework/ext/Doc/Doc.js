@@ -351,7 +351,7 @@ export class Doc extends Page {
 		const fresh = !this.view;
 		const view = this.view ??= div.c(`page ${nested ? "doc-section" : "doc-page"}`, () => {
 			if (!nested) this.well();
-			this.tabs(this.bar().join(" ")).ac(nested ? "vertical" : "block");
+			this.tabs(this.bar().join(" ")).ac(nested ? "vertical" : "block stick");
 		})
 			.ac(this.name && "page--" + this.name)
 			.ac(this.classes);
