@@ -1,4 +1,5 @@
 // ChatV2Model.js — a session.jsonl folded into plain objects, in list order. Every field read the chat does is a method here, so a renamed field or the real Prompt/Question classes (core/Task/Prompt.js) change this one file. See readme.md.
+import split from "../../core/Task/sentences.js";
 const VERB_STATE = { start: "running", pause: "paused", resume: "running", stop: "stopped", complete: "complete", finish: "complete", wait: "waiting" };
 
 export default class ChatV2Model {
@@ -53,11 +54,16 @@ export default class ChatV2Model {
 			// A child addressed through its parent ({"<prompt>":{"<task>":{"complete":{…}}}}): the change is the child's, not a field on the parent.
 			// Its kids are its own `tasks` plus root Tasks/Questions whose `from` is its id (`children()`).
 			else if (this.is_kid(node, k) && v && typeof v === "object") touch = this.edit(this.by_id.get(k), v);
-			else if (k === "raw" && v && !Array.isArray(v)) { if (v.push !== undefined) (node.raw ??= []).push(v.push); }
+			else if (k === "raw" && v !== undefined) {
+				const more = [].concat(v && typeof v === "object" && !Array.isArray(v) ? v.push ?? [] : v).filter(s => typeof s === "string" && s.length);
+				if (more.length) (node.raw ??= []).push(...more);
+			}
 			else if (k === "paragraphs" && v && !Array.isArray(v)) {
 				const list = node.paragraphs ??= [];
-				if (v.add) list.push({ ...v.add });
+				// An id already present is a no-op, the same rule as core's List.insert (one paragraph per id).
+				if (v.add && !list.some(x => x.id === v.add.id)) list.push({ ...v.add });
 				if (v.append) { const p = list.find(x => x.id === v.append.id); if (p) p.text = (p.text ?? "") + v.append.text; else list.push({ ...v.append }); }
+				if (v.replace) { const p = list.find(x => x.id === v.replace.id); if (p) Object.assign(p, v.replace); else list.push({ ...v.replace }); }
 			}
 			else if (k === "replies" && v && !Array.isArray(v)) {
 				if (v.add) { const r = { ...v.add }; (node.replies ??= []).push(r); if (r.id) this.by_id.set(r.id, r); touch = { id: r.id, parent: node.id, added: true, reply: true }; }
@@ -95,8 +101,7 @@ export default class ChatV2Model {
 	static sentences(prompt){
 		const out = [];
 		for (const para of this.paragraphs(prompt)) {
-			const parts = String(para.text ?? "").match(/[^.!?]+(?:[.!?]+["')\]]*|$)/g) ?? [];
-			parts.map(s => s.trim()).filter(Boolean).forEach((text, i) => out.push({ id: para.id + (i + 1), n: i + 1, para: para.id, text }));
+			split(para.text).forEach((text, i) => out.push({ id: para.id + (i + 1), n: i + 1, para: para.id, text }));
 		}
 		return out;
 	}
