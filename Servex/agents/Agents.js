@@ -1395,7 +1395,7 @@ Agents.Agent = class Agent {
 		 * finding 1, dictate-without-claude 2026-10-04): the old check dropped a spec's own
 		 * `this.env` whenever there was no provider env to merge it with, silently losing it on
 		 * today's default Claude path. */
-		if (!url) return strip({ mcpServers: this.mcp_servers, env: (or_env || this.env || task_env) ? { ...process.env, ...or_env, ...task_env, ...this.env } : undefined });
+		if (!url) return strip({ mcpServers: this.mcp_servers, env: { ...process.env, CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: process.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE ?? "95", ...or_env, ...task_env, ...this.env } });
 
 		/* The page tools in-process, as `mcp__local__*` (step 12, Servex/doc/item-tool.md); the HTTP twins are
 		 * disallowed so each tool shows once. `SERVEX_LOCAL_TOOLS=0` keeps HTTP only. */
@@ -1403,7 +1403,7 @@ Agents.Agent = class Agent {
 		return {
 			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...(local ? { local: local.server } : {}), ...this.mcp_servers },
 			...(local ? { disallowedTools: local.twins } : {}),
-			env: { ...process.env, SERVEX_MCP: url, ...(or_env ?? {}), ...task_env, ...this.env }
+			env: { ...process.env, CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: process.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE ?? "95", SERVEX_MCP: url, ...(or_env ?? {}), ...task_env, ...this.env }
 		};
 	}
 
@@ -1577,7 +1577,20 @@ Agents.Agent = class Agent {
 		this.queue.push(this.turn("/compact"));
 		this.state = "working";
 		this.host?.register?.(this);
+		/* A /compact the CLI never answers must not leave the agent "working" for ever (inbox, 2026-10-25): after COMPACT_TIMEOUT_MS the
+		 * flag is cleared and logged, and the process released so the next message resumes the session. */
+		const c = this.compacting;
+		c.timer = setTimeout(() => this.compact_timeout(c), Agents.Agent.COMPACT_TIMEOUT_MS);
+		c.timer.unref?.();
 		return true;
+	}
+
+	compact_timeout(c){
+		if (this.compacting !== c) return;
+		this.compacting = null;
+		this.log({ at: stamp(), agent: this.id, type: "compact-timeout", why: c.why, before: c.before, duration_ms: Date.now() - c.at });
+		this.state = "idle";
+		if (!this.sleep("compact-timeout")) this.host?.register?.(this);
 	}
 
 	/* Why this agent MUST compact now, or null: only the safety ceiling (the model window) and the
@@ -2272,6 +2285,7 @@ Agents.Agent = class Agent {
 	/* The end of a `/compact` turn: logged, no parent woken, the last turn's words kept. */
 	compact_done(message){
 		const c = this.compacting;
+		clearTimeout(c?.timer);
 		this.compacting = null;
 		this.compacted_turn = this.turns;
 		this.compacted_at = stamp();
@@ -2296,6 +2310,7 @@ Agents.Agent = class Agent {
 	}
 };
 
+Agents.Agent.COMPACT_TIMEOUT_MS = 10 * 60000;
 Agents.Agent.WATCHDOGS = new Set(["servex-heartbeat", "servex-compact-nudge"]);
 
 /* A nudged agent that declined is nudged again only after its context grew this much. */

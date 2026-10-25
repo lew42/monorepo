@@ -26,15 +26,24 @@ let checks = 0;
 const check = async (name, fn) => { await fn(); checks++; };
 
 /* One pool, one TAKEN slot, a fake Servex whose agent registry a test can set freely. */
-function fake_pool(registry){
+function fake_pool(registry, opts = {}){
 	const pool = new Pool({ main: dir, file: path.join(dir, `.worktree-pool-${Math.random().toString(36).slice(2)}.json`),
 		servex: { say(){}, agents: { registry_list: () => registry } } });
+	if (!opts.phantom){ fs.mkdirSync(path.join(dir, "qf-1"), { recursive: true }); fs.writeFileSync(path.join(dir, "qf-1", ".git"), "gitdir: fake"); }   // a real slot has a worktree on disk; reclaim() drops one that has none
 	pool.slots = [{ id: "qf-1", path: path.join(dir, "qf-1"), branch: "worktree/qf-1", url: "http://127.0.0.1:9/",
 		state: "taken", taken_by: "fixer-1", taken_at: "2026-10-01T00:00:00-05:00" }];
 	pool.give_back_calls = 0;
 	pool.give_back = async id => { pool.give_back_calls++; return { id, state: "ready" }; };
 	return pool;
 }
+
+await check("a PHANTOM slot (taken, but no worktree on disk) is dropped, even from a live-looking holder", async () => {
+	fs.rmSync(path.join(dir, "qf-1"), { recursive: true, force: true });
+	const pool = fake_pool([{ id: "fixer-1", name: "fixer-1", state: "idle", cwd: path.join(dir, "elsewhere") }], { phantom: true });
+	await pool.reclaim();
+	assert.equal(pool.slots.length, 0, "the phantom slot was forgotten");
+	assert.equal(pool.give_back_calls, 0, "nothing to give back: there was no worktree");
+});
 
 await check("the baseline this feature changes: NOT held, holder looks stopped -> reclaim hands it back", async () => {
 	const pool = fake_pool([{ id: "fixer-1", name: "fixer-1", state: "stopped" }]);
