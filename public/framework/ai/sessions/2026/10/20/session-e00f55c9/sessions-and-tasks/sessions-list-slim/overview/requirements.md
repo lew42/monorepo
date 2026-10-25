@@ -4,6 +4,13 @@ Budget: $10. Load the `minion` skill first, then `code`, `page`, `css`. Sonnet, 
 
 The owner's words: [../requirements.md](../requirements.md), the fourth, fifth, seventh and **eighth** passes (the eighth, 2026-10-25, changes the grouping: read it). The design you build: [../plan.md](../plan.md), section 2, "SessionOutline" and "2a". Read both before anything else; build exactly 2a, nothing from 2b–2d. Log as you go: `log` lines in `session.jsonl` in THIS folder through `node .claude/hooks/append.mjs`.
 
+## The eighth pass first: groups are child sessions, and the page drills down
+
+- **Groups = child sessions** (the eighth pass). Each child session of this session is one group: its name, state, model, cost line (AICost), and under it the tasks assigned to it (the record tasks whose `path` is that child's task folder or below it). Past children count, not only live ones: the session's `sessions` lines in `session.jsonl`, the `SessionWork` nodes with `session`, and the index's `links.children`. Use the union, de-duplicated by session id, and log the three counts. Last comes one group for this session's own work that no child holds, with its tasks sub-grouped by prompt (the `source.prompt` join of the fifth pass). Ranking (cost × 0.5^(age days ÷ 2) plus recency) orders the groups and the tasks inside them.
+- **Every child gets its own detail page, the same component, recursively.** The group's heading links to that child's session page, and that page is `AISessionDetail` drawing its own Overview from its own record, so its children are groups in turn. Use the session href helper (mastermind-session-identity is moving session URLs to the dated folder path, worktree/session-identity; use whatever helper `michael/dev` has when you start, and merge it in if it lands meanwhile). Never hand-build a session URL.
+- **No chat tab on a child.** `AISessionDetail` shows the Chat/Coverage tab only for a session that processes the owner's prompts, a VS Code tab (`AICost.is_tab`, or the session has a `prompts.jsonl`). Any other session drops that tab, and `?tab=coverage` on a child falls back to the Overview.
+- **Drill-down test** (eighth pass), headless at 390: AI → Sessions → session e00f55c9 → the deputy (mastermind-deputy) → one of the deputy's children. Save `drill-1.png` … `drill-4.png`, and log the children found at each level.
+
 ## The job
 
 On `/framework/ai/sessions/<id>/` the Overview tab today is `SessionFeed` (`public/framework/ai/AISession/SessionFeed.js`, wired in `AISessionDetail.js` around line 185–210): a flat list of every task. Replace it on that tab with:
