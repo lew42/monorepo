@@ -16,11 +16,12 @@ export default class AIPage extends Page {
 		["live", "Live", null],                          // AIFeed, sheet step 7
 		["sessions", "Sessions", () => import("./tabs/sessions.js")],
 		["debug", "Debug", () => import("./tabs/debug.js")],             // dictation layer by layer (was Dictation, the playground, until 2026-10-24)
+		["docs", "Docs", () => import("./tabs/docs.js")],                 // the ux/Dictate readme and docs, rendered in place
 		["settings", "Settings", () => import("./tabs/settings.js")],
 	];
 
 	static ALIASES = { dictation: "debug" };   // an old view name: old_link() rewrites it once, before the Router reads the url
-	static WIDE = new Set(["debug"]);   // views drawn across the page's wide track (two columns at 1920), not the reading column
+	static WIDE = new Set(["debug", "docs"]);   // views drawn across the page's wide track (two columns at 1920), not the reading column
 
 	// The view a url names inside an AI page ("debug" for <path>/ai/debug/), "chat" for <path>/ai/ itself, null outside one.
 	static view_of(pathname = location.pathname, ai = this.current){
