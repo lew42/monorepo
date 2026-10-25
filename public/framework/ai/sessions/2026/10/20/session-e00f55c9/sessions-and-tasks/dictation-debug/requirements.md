@@ -71,3 +71,22 @@ Report what works, test it once end to end, and write the result in the dictatio
   4. As the prompt grows, the cards are **updated a little, never rewritten wholesale.** Nothing the owner is reading should vanish or change unasked, unless it's a real mistake or the owner asked for it.
 - **Roles:** the refiner makes the data structures. Upgrading a task into a session (launching an agent) is the mastermind's call, not the refiner's.
 - **Investigate the whole chain end to end** (mic → Whisper → sentences → refine → item tool → bubble). Show each stage on the Debug tab, and prove there's no flicker with a short screen recording or a burst of shots.
+
+## Part 3: the dictation reliability and performance review (the owner, 2026-10-25, ~01:15)
+
+**For a FRESH Opus mastermind, `mastermind-dictation-2`, which now owns ALL dictation work.** Read `plan.md`, `build/` and the merged work first. `minion-dictation-flicker` (the flicker fix) is already running: take it over as your child; don't start a second one. The voice agent's own attempt (`task-mastermind-dictate-improve`, spawned on DeepSeek Flash with no brief) has been stopped. From now on, any dictation ask from the voice agent comes here (this brief, or `module_inbox ux/Dictate`), never as a new agent.
+
+What the owner hit tonight, all of it to fix:
+1. **Slow load.** The sheet loads fast (it looks like a timestamped log), then the chat arrives many seconds later. Profile the page and the session load: count files and requests (a waterfall?), and measure time to first bubble. Make it fast, and record the numbers before and after.
+2. **"This page is out of date" after a refresh,** and then nothing works. Find what shows it (ours or Chrome's), and why a refresh leaves dictation dead (the mic not released, a stale service worker or session, a socket that never reconnects).
+3. **The mic sometimes won't start.**
+4. **Misordered bubble:** "can you hear me now" showed as "now" first, then "can you hear me". The agent saw it fine in the log, so it's a UI ordering bug.
+5. **The voice agent replies too often** to read and answer. Tune it: reply when a thought ends or when asked, not on every sentence.
+6. **The Debug tab doesn't help enough:**
+   - it shares space with the chat;
+   - it needs a resize handle;
+   - it should read like a live log (the Whisper raw text, each stage with timestamps, errors);
+   - make it obvious which part is what.
+7. **Then the end-to-end chain,** written as one diagram in the Dictate readme (mic → Whisper → sentence → clean/refine → item tool → bubble → agent reply), each stage with its owner file and its failure mode.
+
+Prove each fix with shots or a short burst, including a refresh-then-dictate test, which is the owner's typical failure.
