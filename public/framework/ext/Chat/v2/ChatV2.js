@@ -123,7 +123,15 @@ export default class ChatV2 extends JSONL {
 		if (M.title(n)) h3.c("chat-v2-title", M.title(n));
 		if (refined && M.text(n)) div.c("chat-v2-text", M.text(n));
 		if (!refined) this.sentences(n, replies);
-		if (n.sent) div.c("chat-v2-sent").el.append(sent_badge({ sent: n.sent }));   // the same "fast ✓ 0.4 s · smart ✓" mark as the bubble chat
+		if (n.sent){ const badge = sent_badge({ sent: n.sent }); if (badge) div.c("chat-v2-sent").el.append(badge); }   // "waiting …" only while an assistant has not got it yet
+		this.working_dots(n);
+	}
+
+	// Brain-dots: only while the smart seat is actually writing a reply to THIS node right now (the owner,
+	// 2026-10-25 17:31: "his real ask: see that a reply to that chunk is being drafted"), never a standing mark.
+	working_dots(n){
+		if (!n.working) return;
+		span.c("chat-v2-working", "🧠 …").attr("title", (n.working.by ?? "smart") + " is drafting a reply");
 	}
 
 	prompt_raw_wrap(n, replies){
@@ -202,6 +210,7 @@ export default class ChatV2 extends JSONL {
 				span.c("chat-v2-phase", phase);
 			});
 			if (answer) div.c("chat-v2-answer", answer.text);
+			this.working_dots(n);
 		});
 	}
 }

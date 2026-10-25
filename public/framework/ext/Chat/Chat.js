@@ -59,16 +59,22 @@ function failed_badge(){
 	return b;
 }
 
-/** "fast ✓ 2.6 s · smart …": when this owner line reached each assistant, counted from the words leaving the draft (a `{sent}` session line). */
+/** Messenger-style ticks, one per BUBBLE not per sentence (the owner, 2026-10-25): ✓ reached the
+ * assistants, ✓✓ handled (cleaned/refined by smart). Nothing shows until the first tick, so a
+ * handled message carries no standing mark once it no longer needs one — the opposite of the old
+ * "fast ✓ 2.6 s · smart …" row that sat under every message whether or not it meant anything to the
+ * owner (17:31: "mean nothing to me, I asked for sent-visibility, not this"). The timing moves into
+ * the tick's title. Alternative tried: a per-sentence border/mark on each span — rejected, the ticks
+ * read faster at a glance and match the chat convention the owner named. Returns null until sent. */
 export function sent_badge(pc){
-	const b = el("chatbox-sent muted", "span");
+	const fast = pc.sent?.fast, smart = pc.sent?.smart;
+	if (!fast && !smart) return null;
 	const secs = ms => (ms < 100 ? "0" : (ms / 1000).toFixed(1)) + " s";
-	b.append(...["fast", "smart"].flatMap((seat, i) => {
-		const got = pc.sent?.[seat], part = el("chatbox-sent-" + seat + (got ? " chatbox-sent-done" : ""), "span");
-		part.textContent = seat + (got ? " ✓" + (got.delay_ms != null ? " " + secs(got.delay_ms) : "") : " …");
-		part.title = got ? `Reached the ${seat} assistant${got.delay_ms != null ? ", " + secs(got.delay_ms) + " after the words left the draft" : ""}.` : `Not yet sent to the ${seat} assistant.`;
-		return i ? [" · ", part] : [part];
-	}));
+	const b = el("chatbox-sent muted", "span");
+	b.textContent = smart ? "✓✓" : "✓";
+	b.title = [["fast", fast], ["smart", smart]].map(([seat, got]) =>
+		seat + (got ? ": reached" + (got.delay_ms != null ? ", " + secs(got.delay_ms) + " after the words left the draft" : "") : ": not yet"))
+		.join(" · ");
 	return b;
 }
 
@@ -133,7 +139,7 @@ function piece_body(pc){
 	if (pc.mark) append_mark(node, pc.mark);
 	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));
 	if (pc.failed) (node.lastElementChild ?? node).append(" ", failed_badge());
-	if (pc.track) (node.lastElementChild ?? node).append(" ", sent_badge(pc));
+	if (pc.track){ const badge = sent_badge(pc); if (badge) (node.lastElementChild ?? node).append(" ", badge); }
 	return node;
 }
 

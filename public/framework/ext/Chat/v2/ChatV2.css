@@ -35,4 +35,9 @@
 	.chat-v2-state.is-complete, .chat-v2-state.is-answered { color: var(--ok, currentColor); }
 	.chat-v2-state.is-open, .chat-v2-state.is-waiting { color: var(--task-amber, #e0a100); }
 	.chat-v2-answer { padding-left: 1.6em; color: var(--subtle); }
+	/* "waiting …" — a pending-only mark, never shown once both assistants have the line (Chat.js's sent_badge). */
+	.chat-v2-sent { font-size: .72em; color: var(--subtle); }
+	/* Brain-dots: only while the smart seat is drafting a reply to THIS node right now (n.working:{by,at}); a short pulse, not a standing mark. */
+	.chat-v2-working { font-size: .85em; color: var(--subtle); animation: chat-v2-pulse 1.1s ease-in-out infinite; }
+	@keyframes chat-v2-pulse { 0%, 100% { opacity: .4; } 50% { opacity: 1; } }
 }

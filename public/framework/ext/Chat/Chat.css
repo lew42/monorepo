@@ -539,9 +539,14 @@
 	   until its real line replaces it; a streaming reply ends in a caret. */
 	.chatbox-draft .chatbox-text { white-space: pre-wrap; }
 	.chatbox-guess { opacity: 0.55; }
-	.chatbox-live-sent { opacity: 1; }
-	.chatbox-live-sent > :not(.chatbox-live-mark) { opacity: 0.6; }   /* same fade as before, but the "cleaning…" label beside it stays full strength */
-	.chatbox-live-mark { display: block; font-size: 0.8em; }
+	/* "sent, waiting" is its own cue (a left rule, not the text's own opacity/colour) — found
+	   2026-10-25: this bubble-wide fade used to dim the SAME text opacity the live "heard, not
+	   sent yet" state uses (`.chatbox-guess`, above), so a sentence that had already turned
+	   black (sent) read as reverting to gray during the cleaning wait. The text now stays full
+	   strength once sent; only the rule and the "cleaning…"/"sent, waiting" label change. */
+	.chatbox-live-sent { opacity: 1; border-inline-start: 2px solid var(--line); padding-inline-start: 0.5em; }
+	.chatbox-live-sent > :not(.chatbox-live-mark) { opacity: 1; }
+	.chatbox-live-mark { display: block; font-size: 0.8em; opacity: 0.65; }
 	.chatbox-streaming .chatbox-text > :last-child::after { content: "▍"; opacity: 0.5; }
 
 	/* DRILL IN (Drill.js, doc/drill.md) — the Open button a selected card grows,
@@ -600,8 +605,6 @@
 }
 
 @layer site {
-	/* "fast ✓ 0.4 s · smart …": which assistant has this line; greyed until it has */
-	.chatbox-sent { font-size: .72em; white-space: nowrap; }
-	.chatbox-sent > span { opacity: .55; }
-	.chatbox-sent > .chatbox-sent-done { opacity: 1; color: var(--prime-ink); }
+	/* ✓ sent to the assistants, ✓✓ handled (cleaned/refined) — green, the owner's chosen colour for "done" (2026-10-25). */
+	.chatbox-sent { font-size: .85em; white-space: nowrap; color: var(--ok); font-weight: 600; }
 }

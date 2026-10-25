@@ -24,6 +24,9 @@ export const SETTINGS = {
 	into: "chat",   // "chat" = growing bubble in the chat log, "box" = the text box; see doc/mic-notes.md#settings
 	wake_gap_s: null,   // smart assistant: quiet seconds before it hears a batch (null = Servex's own default); pushed to the session
 	wake_every: null,   // smart assistant: or this many sentences, whichever comes first (null = Servex's default)
+	send_on_period: true,     // deliverable 15: cut a send at a period
+	send_on_question: true,   // deliverable 15: cut a send at a question mark
+	send_on_comma: true,      // deliverable 15: cut a send at a comma (a run-on with no clear end stays chunked together)
 };
 const STORE = "chat.mic.settings.4";   // .4: the 2 s send delay must not be shadowed by the old 700 / 1500 ms defaults
 // Carry the owner's saved values over from the old key; drop stale defaults. see doc/mic-notes.md#settings-migration
@@ -68,6 +71,13 @@ const all_mics = new Set();
 Socket.singleton().add_busy(() => [...all_mics].some(m => m.active()));
 // The last net: any reload or navigation while a mic is live asks first.
 addEventListener("beforeunload", e => { if ([...all_mics].some(m => m.active())){ e.preventDefault(); e.returnValue = ""; } });
+
+// Known silence hallucinations (the owner, 2026-10-25 17:30): Whisper emits these when it is fed
+// silent audio with nothing actually said. Dropped only when this segment had no real speech
+// (`has_speech` stayed false the whole time — see `on_level`), so a genuine "Thank you." said out
+// loud is never touched.
+const HALLUCINATIONS = new Set(["thank you", "thanks for watching", "thank you for watching", "you", "bye"]);
+function is_hallucination(text){ return HALLUCINATIONS.has(String(text ?? "").trim().toLowerCase().replace(/[.!?…]+$/, "")); }
 
 // Filler words never reach the box or the log (whole words, any case, with their comma).
 const filler_re = (flags, edge = "") => new RegExp(edge + String.raw`\b(?:` +SETTINGS.fillers.split(/[\s,]+/).filter(Boolean).map(w => w.slice(0, -1).replace(/[^\p{L}]/gu, "") + w.slice(-1) + "+").join("|") + String.raw`)\b` +(edge ? "" : ",?"), flags);
@@ -152,6 +162,9 @@ export class ComposerMic extends Dictate {
 		this.next_break = this.can_break(this.held?.at(-1)?.text, gap);
 		const item = this.pending?.shift();
 		text = unfill(text).replace(/\s+/g, " ").trim();   // a segment's own newlines never become paragraphs
+		// Silence hallucination (the owner, 2026-10-25 17:30): Whisper said this with nothing actually
+		// spoken into this segment — drop it, never show it, never send it.
+		if (text && is_hallucination(text) && !this.has_speech){ this.partial_text = ""; this.draw_caption(); return; }
 		if (item?.sent){   // a segment whose guess (or earlier text) was already sent by Send
 			text = strip_words(text, item.sent);
 			if (!text){ this.partial_text = ""; this.draw_caption(); return; }
@@ -315,6 +328,7 @@ export class ComposerMic extends Dictate {
 			["clean", "clean transcription (fast assistant clean-up)", "boolean"],
 			["into", "dictation goes into", ["chat", "box"]],
 			["send_mode", "send mode", ["pause", "sentences"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], ["break_pause_ms", "paragraph pause (ms)", "number"],
+			["send_on_period", "send on period (.)", "boolean"], ["send_on_question", "send on question mark (?)", "boolean"], ["send_on_comma", "send on comma (,)", "boolean"],
 		];
 		const expert = [   // under the closed "More" below the smart assistant rows
 			["guess_ms", "guess every (ms)", "number"], ["box_lines", "box lines before scroll", "number"], ["chunk_chars", "safety chunk (chars)", "number"], ["chunk_ms", "safety chunk (ms)", "number"], ["fillers", "filler words", "text"],
@@ -577,7 +591,7 @@ export class ComposerMic extends Dictate {
 			this.notify_if_failed(held);
 			const joined = held.map(h => h.text).join(" ");
 			const joined_raw = held.map(h => h.raw ?? h.text).join(" ");
-			const sents = joined.match(/[^.!?…]*[.!?…]+["')\]]*(?=\s|$)/g) ?? [];
+			const sents = joined.match(this.cut_re()) ?? [];
 			if (!sents.length || sents.length < n) return;
 			const per = Math.min(n, sents.length), cut = sents.length - sents.length % per, texts = [];
 			// `raw` goes on the first outgoing message only.
@@ -638,6 +652,14 @@ export class ComposerMic extends Dictate {
 			if (live?.slots?.length) item.text = ComposerMic.paragraph_from_slots(live.slots, live.outline);
 			this.enqueue([item]);
 		} finally { this.sending_screen = false; }
+	}
+
+	// Deliverable 15: which marks may end a send; all checked by default. A run-on with none of the
+	// checked marks at its end stays chunked together with what follows (no clear end to cut at).
+	cut_re(){
+		const marks = [SETTINGS.send_on_period && "." ,SETTINGS.send_on_question && "?", SETTINGS.send_on_comma && ","].filter(Boolean).join("");
+		const stops = marks || ".!?…";   // nothing checked: fall back to the old sentence-end set, never silently stop cutting at all
+		return new RegExp(`[^${stops}]*[${stops}]+["')\\]]*(?=\\s|$)`, "g");
 	}
 
 	held_text(){ return (this.held ?? []).filter(h => !h.gone).map(h => h.text).join(" ").trim(); }
