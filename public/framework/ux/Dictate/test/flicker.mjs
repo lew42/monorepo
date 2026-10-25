@@ -153,9 +153,10 @@ async function run(scenario){
 		if (m > 0){ moved += m; moves.push({ from: i, to: i + 1, ms: frames[i + 1].ms, words: frames[i + 1].words.slice(0, 120) }); }
 	}
 	const sent = lines.map(l => l.chat.text);
+	const sent_row = await page.evaluate(async () => (await import("/framework/ux/Dictate/DictateHealth.js")).default.layers.sent.why);
 	const final_words = frames.at(-1)?.words ?? "";
 	const report = { scenario, frames: frames.length, every_ms: Math.round((frames.at(-1)?.ms ?? 0) / Math.max(1, frames.length - 1)),
-		words_gone: gone, explained_by_clean: explained, agree: gone === explained, words_moved: moved, flickers: events.slice(0, 40), moves: moves.slice(0, 20), sent, final_words, errors };
+		words_gone: gone, explained_by_clean: explained, agree: gone === explained, words_moved: moved, flickers: events.slice(0, 40), moves: moves.slice(0, 20), sent, sent_row, final_words, errors };
 	fs.writeFileSync(path.join(dir, "frames.json"), JSON.stringify(frames, null, 1));
 	fs.writeFileSync(path.join(dir, "numbers.json"), JSON.stringify(report, null, 1));
 	console.log(`${report.agree ? "ok  " : "FAIL"} ${scenario}: ${frames.length} shots every ~${report.every_ms} ms; words that left the screen ${gone}, explained by the clean-up ${explained}`);
@@ -165,9 +166,11 @@ async function run(scenario){
 	const last = norm(final_words).join(" "), want = norm(SENTENCES.map(s => scenario === "clean" ? s.clean : s.raw).join(" ")).filter(w => !FILLERS.has(w)).join(" ");
 	const ok_end = last === want;
 	console.log(`${ok_end ? "ok  " : "FAIL"} ${scenario}: the chat ends with every sentence once, in order ("${last.slice(0, 120)}")`);
+	const timed = /on screen at once, sent [0-9.]+ s later .*Servex took it in [0-9.]+ s/.test(sent_row ?? "");
+	console.log(`${timed ? "ok  " : "FAIL"} ${scenario}: the Debug tab's Sent row times each step: ${sent_row}`);
 	console.log(`${errors.length ? "FAIL" : "ok  "} ${scenario}: no page errors${errors.length ? " — " + errors[0] : ""}`);
 	await ctx.close();
-	return report.agree && !moved && ok_end && !errors.length;
+	return report.agree && !moved && ok_end && timed && !errors.length;
 }
 
 let all = true;
