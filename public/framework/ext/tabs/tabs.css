@@ -72,6 +72,11 @@
 	.tabs.stick > .tab-bar {
 		position: sticky; top: 0; z-index: 3;
 		background: linear-gradient(var(--well, #0000), var(--well, #0000)), var(--ground, var(--wash));
+		/* ⚠ The strip can sit BESIDE the title (ext/Doc at desktop widths), so once the title has scrolled
+		   away the content showed through the empty spot to its left. The same paint, as an outset shadow
+		   clipped to the box extended leftward: nothing moves in the layout, and the scroller clips it. */
+		box-shadow: 0 0 0 100vw var(--well, #0000), 0 0 0 100vw var(--ground, var(--wash));
+		clip-path: inset(0 0 0 -100vw);
 	}
 
 	/* Quiet by construction: a text label, a hairline under the set, a 2px mark under
