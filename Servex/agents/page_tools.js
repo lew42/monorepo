@@ -769,9 +769,14 @@ function counts(list){
 }
 
 /* Child sessions as a tree: an agent whose parent is also in the list sits under it; each node has its own cost and its subtree total. */
-function nest_agents(agents){
+export function nest_agents(agents){
 	const by = new Map(agents.map(a => [a.id, { ...a, children: [] }])), roots = [];
-	for (const a of by.values()) (by.get(a.parent)?.children ?? roots).push(a);
+	// A voice session's fast seat is counted under its smart seat (same parent_session); both keep parent "sessions" for events (Sessions.js).
+	const smart = new Map([...by.values()].filter(a => a.role === "session-smart" && a.parent_session).map(a => [a.parent_session, a]));
+	for (const a of by.values()){
+		const seat = /^(session-fast|voice-assistant)$/.test(a.role) ? smart.get(a.parent_session) : null;
+		(seat && seat !== a ? seat : by.get(a.parent))?.children?.push(a) ?? roots.push(a);
+	}
 	const sum = a => (a.total = r2(a.cost + a.children.reduce((s, k) => s + sum(k), 0)));
 	roots.forEach(sum);
 	return roots;

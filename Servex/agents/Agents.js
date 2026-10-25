@@ -765,7 +765,7 @@ export class Agents {
 		}
 		for (const id of ids){
 			const r = rows[id] ?? {};
-			out.push({ id, parent: r.parent ?? null, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
+			out.push({ id, parent: r.parent ?? null, parent_session: r.parent_session ?? null, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
 				cost: Math.round(this.logged_cost(id, since) * 100) / 100, started_at: r.started_at ?? null });
 		}
 		return out.sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
