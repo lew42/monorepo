@@ -1,4 +1,5 @@
 // The item tool (page_tools.js), on a fixture task folder under public/. `node Servex/agents/item_tool.test.mjs`
+// Cleanup retries (maxRetries): a dev server watching public/ writes files.jsonl into a fixture folder while it is removed (ENOTEMPTY, 2026-10-24), which used to skip the next cleanup and leave the -caller folder behind.
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
@@ -14,7 +15,9 @@ const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "task.jsonl");
 TaskHomes.INDEX = DIR + "-homes/task.jsonl";   // never the real /tasks/ index
 const URL = "/" + REL.slice("public/".length) + "/";
 const tools = Object.fromEntries(page_tools().map(t => [t.name, t]));
-const call = async (name, args, caller = "t1") => JSON.parse(await tools[name].handler(args, { caller }));
+// A write answers {ok, ids, line, now} (session-is-a-task item 12): the picture after it is a separate read, done here so the checks see it.
+const read_back = async (r, url, caller) => r?.ok && r.line && r.state === undefined && url ? { ...r, state: JSON.parse(JSON.stringify(await run_item({ path: url }, { caller }))).state } : r;
+const call = async (name, args, caller = "t1") => { const r = JSON.parse(await tools[name].handler(args, { caller })); return name === "item" && args.delta !== undefined ? read_back(r, args.path ?? URL, caller) : r; };
 const lines = () => fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l));
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
@@ -77,14 +80,14 @@ try {
 		ok(r.ok && /changed nothing/.test(r.warning ?? ""), "a verb sent to a missing child says so");
 		r = await call("item", { path: SURL, delta: { nonsense_key: 1 } });
 		ok(r.ok === false && /names no method/.test(r.why), "a session log refuses unknown keys");
-	} finally { fs.rmSync(SDIR, { recursive: true, force: true }); }
+	} finally { fs.rmSync(SDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 
 	// ---- step 14a: task homes ----
 	const MODS = DIR + "-modules", MOD = path.join(MODS, "fakemod");
 	fs.mkdirSync(MOD, { recursive: true });
 	const app = d => "/" + path.relative(path.join(ROOT, "public"), d).split(path.sep).join("/") + "/";
 	try {
-		const add = async (delta, ctx = {}) => JSON.parse(JSON.stringify(await run_item({ path: URL, delta }, { caller: "t1", module_root: MODS, ...ctx })));
+		const add = async (delta, ctx = {}) => read_back(JSON.parse(JSON.stringify(await run_item({ path: URL, delta }, { caller: "t1", module_root: MODS, ...ctx }))), URL, "t1");
 		const before = lines().length;
 		r = await add({ tasks: { add: { type: "Task", title: "Module job", module: "fakemod", expected: "it works" } } });
 		const home = path.join(MOD, "tasks", "module-job");
@@ -124,7 +127,7 @@ try {
 		fs.appendFileSync(FILE, JSON.stringify({ task: "/framework/ai/sessions/2026/10/16/no-such-" + process.pid + "/" }) + "\n");
 		r = await call("item", { path: URL });
 		ok(r.ok && r.state.tasks.some(t => t.state === "missing"), "a missing child file is a stub, no throw");
-	} finally { fs.rmSync(MODS, { recursive: true, force: true }); }
+	} finally { fs.rmSync(MODS, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 
 		// ---- step 16: caller's own log, module from the path, rules ----
 		const MODN = "zz-item-tool-test-" + process.pid, MDIR = path.join(ROOT, "public", "framework", MODN);
@@ -135,7 +138,7 @@ try {
 		fs.writeFileSync(path.join(MDIR, "sub", "task.jsonl"), JSON.stringify({ id: "sub", title: "Sub" }) + "\n");
 		fs.writeFileSync(CLOG, JSON.stringify({ id: "caller" }) + "\n");
 		try {
-			const run = (url, delta, ctx = {}) => run_item({ path: url, delta }, { caller: "t1", ...ctx }).then(x => JSON.parse(JSON.stringify(x)));
+			const run = (url, delta, ctx = {}) => run_item({ path: url, delta }, { caller: "t1", ...ctx }).then(x => read_back(JSON.parse(JSON.stringify(x)), url, "t1"));
 			const clines = () => fs.readFileSync(CLOG, "utf8").trim().split("\n").map(l => JSON.parse(l));
 			r = await run(URL, { tasks: { add: { title: "Ref job", module: MODN } } }, { caller_log: CLOG });
 			ok(clines().length === 2 && clines()[1].task === r.homes[0].path && clines()[1].by === "t1" && clines()[1].ts, "caller log: exactly one reference line");
@@ -163,8 +166,8 @@ try {
 			r = await call("item", { path: URL, delta: { help: {} } }, "rules-caller");
 			ok(Array.isArray(r.instructions.rules) && r.instructions.rules.length === 5, "first-call instructions include rules");
 		} finally {
-			fs.rmSync(MDIR, { recursive: true, force: true });
-			fs.rmSync(CLOG_DIR, { recursive: true, force: true });
+			fs.rmSync(MDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+			fs.rmSync(CLOG_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 		}
 	// ---- step 3c: one live instance per file, nested subtasks, a folder on demand ----
 	{
@@ -208,7 +211,7 @@ try {
 			await call("page_log", { path: NURL, text: "now doing" });
 			await call("page_call", { path: NURL, method: "pause", args: {} });
 			ok(!fs.existsSync(path.join(NDIR, "page.jsonl")) && stored().data.title === "via page_set", "page tools on a task folder go to the task, no stray page.jsonl");
-		} finally { fs.rmSync(NDIR, { recursive: true, force: true }); }
+		} finally { fs.rmSync(NDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 	// ---- Task.rank: recency x weight ----
 	{
@@ -290,7 +293,7 @@ try {
 
 			r = await call("item", { path: QURL, delta: { tasks: { add: [{ id: "e", title: "E" }, { id: "f", title: "F" }] } } });
 			ok(r.ok && ["e", "f"].every(id => r.state.tasks.some(t => t.id === id)) && !r.state.tasks.some(t => t.id === "task"), "an array tasks.add is two tasks, never one Array child");
-		} finally { Task.cost_resolver = was; fs.rmSync(QDIR, { recursive: true, force: true }); }
+		} finally { Task.cost_resolver = was; fs.rmSync(QDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 	// ---- move_item: a nested task moves home with id and history, one reference left behind ----
 	{
@@ -357,7 +360,7 @@ try {
 				await settle(() => fs.readFileSync(ef, "utf8").includes("refused"));
 				ok(/"handoff".*"refused"/.test(fs.readFileSync(ef, "utf8")), "a refused handoff is written into the new log");
 			}
-		} finally { fs.rmSync(MDIR, { recursive: true, force: true }); }
+		} finally { fs.rmSync(MDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 	// part types: part-view and part-file are accepted on a page, part-nope is refused with the list
 	{
@@ -371,8 +374,8 @@ try {
 			}
 			const r = await call("item", { path: PURL, delta: { content: { add: { type: "part-nope" } } } });
 			ok(r.ok === false && /part-view/.test(r.why) && /part-file/.test(r.why), "part-nope is refused and the refusal lists the types");
-		} finally { fs.rmSync(PDIR, { recursive: true, force: true }); }
+		} finally { fs.rmSync(PDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 
 	console.log(`item_tool: ${n} checks passed`);
-} finally { fs.rmSync(DIR, { recursive: true, force: true }); fs.rmSync(DIR + "-homes", { recursive: true, force: true }); }
+} finally { fs.rmSync(DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); fs.rmSync(DIR + "-homes", { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }

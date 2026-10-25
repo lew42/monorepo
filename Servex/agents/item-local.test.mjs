@@ -32,7 +32,7 @@ fs.writeFileSync(path.join(DIR, "page.jsonl"), "");
 try {
 	const item = page_tools().find(t => t.name === "item");
 	const r = JSON.parse(await item.handler({ path: "/" + REL.slice("public/".length) + "/", delta: { start: {} } }, { caller: "minion-x" }));
-	ok(r.ok && r.state.state === "running", "item start -> running");
+	ok(r.ok && r.now?.state === "running", "item start -> running (a write answers the state it left, not the whole picture)");
 	console.log(`item-local: ${n} checks passed`);
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 process.exit(0);

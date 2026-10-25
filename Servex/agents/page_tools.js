@@ -1028,9 +1028,11 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		const verb = Class?.replay && !at.target.length ? verb_in(body) : null;
 		// Compared without the clocks: a running child's ran_ms (row_of) grows between the two reads, so it would always look changed.
 		const steady = state => JSON.stringify(state, (k, v) => k === "ran_ms" || k === "span_ms" || k === "last_at" ? undefined : v);
-		const was = verb ? steady(task_state(Class, root())) : null;
+		// A fingerprint without costs: the full picture (task_state) reads every agent's spend, twice per write.
+		const print = t => ({ state: t.state, completion: t.completion, data: t.data, kids: every_task(t._tasks).map(k => [k.id, k.state, k.data]) });
+		const was = verb ? steady(print(root())) : null;
 		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: now() }), !!Class?.replay);
-		if (verb && steady(task_state(Class, root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
+		if (verb && steady(print(root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
 	} else if (size === undefined) size = size_of(at.file);
 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.
 	if (Class?.replay && !at.target.length && body.approve !== undefined && hooks.approved) try { Promise.resolve(hooks.approved(at.file)).catch(() => {}); } catch {}
@@ -1044,7 +1046,15 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		const live = root(), list = live.sessions;
 		if (!list.some(s => s?.id === ctx.caller)) { const keep = line; put({ sessions: [...list, { id: ctx.caller, task: live.get_one("path") ?? app_path(path.dirname(at.file)) }], by, ts: now() }); line = keep; }
 	} catch {}
-	return { ok: true, ids, line, size, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(Class?.replay || !alias ? await extra() : {}) };
+	// A write to a task or session answers with what was written, never the whole picture (session-is-a-task item 12): a session's picture
+	// walks every task's cost and every child agent, which made each write 20 s on a 140 KB record, past the browser Store's 5 s timeout
+	// (it then appended the line itself: a twin). The picture is a read, item({path}) with no delta. A page's write still answers its page.
+	if (Class?.replay){
+		const live = root();
+		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}),
+			...(!alias && first_time() ? { instructions: await instructions_for(kind, Class) } : {}) };
+	}
+	return { ok: true, ids, line, size, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(!alias ? await extra() : {}) };
 }
 
 /* ---------- the six tools ---------- */
