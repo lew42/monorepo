@@ -9,7 +9,7 @@ Session [`2026/10/25/v-xhx7fmx`](/framework/ai/sessions/2026/10/25/v-xhx7fmx/), 
 - `{"chat":{"at":"2026-10-25T00:59:15.638-05:00", … "text":"Can you hear me?", "cues":{"mic_on_at":"…05:59:11.929Z","pauses":[{"start":2369,"end":null,"ms":798}]}}}`
 - `{"chat":{"at":"2026-10-25T00:59:15.922-05:00", … "text":"now?", "cues":{… "pauses":[{"start":3168,"end":null,"ms":262}]}}}`
 
-**The phone's clock was behind the PC's.** The `cues` are stamped by the phone at send time (`floor.stamp`): the first line was sent at phone time 15.096, the second at phone time 15.359. The second send waits for Servex to answer the first (`Mic.js` `enqueue` → `post_held`), and Servex wrote the first at PC time 15.638. So the phone was at least 0.28 s behind.
+**The phone's clock was behind the PC's.** The phone stamps `cues` at send time: the second line went at phone time 15.359. That send waits for Servex's answer to the first (`Mic.js` `post_held`), written at PC time 15.638. So the phone was at least 0.28 s behind.
 
 **The other two layers are clear.** `whisper/bucket.jsonl` stops at 2026-10-24 23:31, so there are no raw Whisper replies for this moment. The session has no `place` lines at all, so the placement step did not act. Its absence (0 placements over 58 chat lines) is a separate question.
 
@@ -38,5 +38,3 @@ The same cause predicts a second symptom, not yet tested: a new owner bubble can
 **Who:** step 1 is a three-line edit in `ext/Chat/Chat.js`. The `solid/` builder is editing `ux/Dictate/` and `ext/drawer/`, so steps 1–2 should land through the parent, after `solid/` or folded into it.
 
 **Docs this makes out of date:** `ext/Chat/doc/notes.md:70` (it says `retag_piece` only changes the id, but the code also moves `at`) and `:141` (#bubble-order) and the Dictate chain diagram (Part 7 item 7), which should name "one clock" at the bubble step.
-
-**Aside:** line 34's `raw` repeats its own tail ("…now with a question mark. And then … now with a question mark. And then …"). That is a Whisper doubling that `collapse_repeat` missed, because the repeat is not a whole-text repeat.
