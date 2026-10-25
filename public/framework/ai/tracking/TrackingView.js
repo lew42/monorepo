@@ -91,7 +91,7 @@ export default class TrackingView extends View {
 		else new DataGrid({
 			columns: [
 				{ key: "label", label: "Session", width: "3fr", min: "14em" },
-				{ key: "check", label: "Check", width: "4fr", min: "16em" },
+				{ key: "check", label: "Check", width: "4fr", min: "30em" },
 				{ key: "cache_usd", label: "Stored cost", type: "number", width: "8em", format: v => v == null ? "none" : usd(v) },
 				{ key: "recount_usd", label: "Recount", type: "number", width: "7em", format: v => v == null ? "none" : usd(v) },
 				{ key: "shared_messages", label: "Shared msgs", type: "number", width: "8em" },
