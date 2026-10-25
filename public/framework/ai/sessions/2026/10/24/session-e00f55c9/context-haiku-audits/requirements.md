@@ -32,3 +32,25 @@ For `ai-system-mastermind`. The owner's dictation (2026-10-24), verbatim in the 
 9. **Sessions show their tasks and completion.** The owner wants to see each session's tasks and how many are done, including this session (e00f55c9). Check that the session page shows it, and put the link in your show line.
 
 Land each with a `show:` log line and links. The AI dashboard rethink (`/framework/ai/` should open on a dashboard; the inbox is broken) is the page mastermind's, after it talks with the owner. Leave it out of this list.
+
+## Part 2: the owner's next dictation (2026-10-24, prompt log line 405)
+
+10. **Models and their costs: `ai/doc/models.md`, linked from the ai readme.**
+    - Web-search the current Anthropic API prices for each model, with the caveats: long-context price tiers, thinking tokens billed as output, cache write and read prices, the batch discount. Add each model's context window.
+    - Then recommend a model and effort for each kind of job, and say where model and effort are set today (`Servex/agents/roles.js`).
+    - The owner believes Haiku over 100k is still far cheaper than Sonnet. Check it against the real numbers.
+11. **Our own skill system: `framework/ai/skills/<name>/`.** Skills are plain readmes, so we stop leaning on Claude's skill system. Roles name the skills they lean on, and a skill can have one part per role.
+    - Start with `framework/ai/skills/past-work/`. It's a step to run before building almost anything.
+    - **The mastermind part:**
+      - split the owner's prompt into separate searches;
+      - give the worker the search terms, so both know what has been checked;
+      - reuse the same Haiku agent for follow-ups, so its cache is reused.
+    - **The worker part:** what the Haiku does, and logging each find the moment it's found.
+    - Index it from the ai readme and the mastermind role readme.
+    - Today's trial worked: `../past-work-per-file-docs/findings.md` found the `doc/file/` system, with 349 notes. Use its method notes.
+12. **No new MCP tools.** The item tool is how an AI acts on anything. Processes are defined in readmes and data. Find out whether the item tool can already add a process to a session and spawn an agent from it. If it can't, that's the target: plan it.
+13. **Roles, processes, skills, sessions.** How does a role or a process become a spawned session: its model, effort, system prompt, readmes and skills? Write a short design doc with one recommendation, and keep the number of roles small.
+14. **Structured output first.** Results are written to files first, in a structured form, and go to chat second. The sidebar chat is the one exception. Add this to `ai/doc/agent-rules.md`, only the part that CLAUDE.md law 5 doesn't already say.
+15. **The module audit (item 4) is queued, not built now.** It needs a mastermind, and it's heavy.
+    - Record the open question with a proposed answer: when a task enters the queue, is it built automatically, at what priority, and as a quick first version or fully planned?
+    - Each Haiku `claude.exe` takes 200–500 MB of RAM, so audits are overnight or downtime work, core modules first.

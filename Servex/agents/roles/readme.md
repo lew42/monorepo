@@ -11,6 +11,7 @@ A **role** is the job an agent is started for: a minion does one narrow job, a m
 | Role (`spawn_agent({role})`) | Readme | Does | Tier (model today) | Use it when |
 |---|---|---|---|---|
 | `ai-system-mastermind` (one only; old word `servex-mastermind`) | [ai-system-mastermind.md](ai-system-mastermind.md) | owns sessions, tasks, roles, skills and spawning; any question or feedback on them goes to it; fixes the system, not pages | architect (high) | always the same id; it sleeps when unused and wakes as a fresh session after a day |
+| `core-page-mastermind` (subject mastermind; ids `mastermind-page`, `-2`) | [core-page-mastermind.md](core-page-mastermind.md) | architect of the page system: `core/Page`, `core/Item`, `core/Router`, `ext/JSONL`; reads the Item readme first; works its own queue | architect (high) | any change to pages, routing, parts or the log that streams them |
 | `mastermind` (Servex spawn) | [mastermind.md](mastermind.md) | the executive: picks the top work, spawns minions | architect (high) | a mastermind spawned on Servex |
 | (the owner's VS Code sidebar tab) | [vscode-mastermind.md](vscode-mastermind.md) | answers the owner fast, relays the essence of each dictation to a deputy, hands off all investigating, building, reviewing and merging | the tab's own model | the tab the owner dictates to |
 | (VS Code tab, `/mastermind`) | [mastermind.md](mastermind.md) | the executive: governs the budget, picks the top work, spawns minions | the tab's own model | the owner says "you are the mastermind" |
@@ -20,6 +21,17 @@ A **role** is the job an agent is started for: a minion does one narrow job, a m
 | `clarity` | [clarity.md](clarity.md) | checks what a landed task wrote for the owner is clear; sends rewrites | manager (Sonnet, medium) | woken per landing by `Server/clarity.mjs` |
 
 The model column is today's: the tier decides the model, in [`../tiers.js`](../tiers.js). Spend per role over the last week: [ai/doc/readme-system.md](../../../public/framework/ai/doc/readme-system.md).
+
+## Subject masterminds: one per system
+
+A **subject mastermind** owns one system end to end: it decides what changes there, keeps that system's readme true, and splits the work. Ask the one that owns the subject; do not decide across systems from a generic mastermind.
+
+| Subject | Role | Owns |
+|---|---|---|
+| The AI system | `ai-system-mastermind` (one only) | sessions, tasks, roles, skills, the SDK, spawning, processes |
+| The page system | `core-page-mastermind` (repeatable) | pages, routing, parts, `core/Item`, the JSONL streaming path |
+
+Items, routing and JSONL streaming are part of the page system's mastermind until one of them needs its own role; add a row and a readme here then (a role row in `../roles.js` is what puts the text in the system prompt, so it survives compaction).
 
 ## Still skills (no role readme yet)
 
