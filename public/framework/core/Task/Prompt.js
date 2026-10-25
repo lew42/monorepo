@@ -50,7 +50,7 @@ export class Prompt extends Task {
 		const o = part?.outcome ?? {};
 		return Prompt.SETTLED.includes(o.is) || (o.is === "task" && task_state(o.ref) === "complete");
 	}
-	/** Sentences of a text (core/Task/sentences.js, shared with the chat's fold). */
+	/** Sentences of a text (core/Task/sentences.js; the chat's fold should use it too, prompt-record.md defect 3). */
 	static split(text){ return split(text); }
 
 	// ---- the words ----
