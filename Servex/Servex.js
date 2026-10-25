@@ -1574,6 +1574,16 @@ Servex.Dashboard = class Dashboard extends Server {
         this.app = express();
         this.router = express.Router();
 
+        /* A slow answer leaves a breadcrumb in crumbs.log (Crumbs.js, only when installed): a POST is marked as it starts and any answer over
+         * 1 s as it ends, so a gap in the 5 s heartbeat names the request that held the event loop (75 s gaps every few minutes, 2026-10-24). */
+        this.app.use((req, res, next) => {
+            const crumbs = globalThis.__crumbs; if (!crumbs?.drop) return next();
+            const t = Date.now(), what = `${req.method} ${req.url.slice(0, 100)}`;
+            if (req.method !== "GET" || req.path.startsWith("/api/")) crumbs.drop(`req> ${what}`);   // static files are left out: they never compute
+            res.on("close", () => { const ms = Date.now() - t; if (ms > 1000) crumbs.drop(`req< ${ms}ms ${what}`); });   // close, not finish: a client that gave up still ends it
+            next();
+        });
+
         this.app.use(express.static(path.join(HERE, "public"), { redirect: false }));
         this.app.use(express.static(path.join(HERE, "..", "public"), { redirect: false }));
         this.app.use(this.router);
