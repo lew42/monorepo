@@ -425,7 +425,7 @@ export class Task extends Item {
 			}
 			return kid;
 		};
-		const kid = this.ref_scope && !this.resolving.has(ref) ? this.ref_scope(ref + "#" + (as ?? ""), make) : make();
+		const kid = this.ref_scope && !this.resolving.has(ref) ? this.ref_scope(this.name + "|" + ref + "#" + (as ?? ""), make) : make();
 		if (kid.data.path === undefined) kid.put("path", ref);
 		kid._own_file = ref;   // a referenced child lives in its own file: the parent Store never records its changes (Store.js owned_below)
 		return kid;

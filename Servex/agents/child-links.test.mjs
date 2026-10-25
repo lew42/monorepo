@@ -1,19 +1,21 @@
 // A child session is a task in its parent session's record, wherever its folder is (item 24). `node Servex/agents/child-links.test.mjs`
-// Throwaway dot-folders in the real store (the handover test's way: the resolvers are bound to it), removed at the end.
+// Scratch tree in the OS temp folder (SERVEX_PUBLIC points the item tool at it): nothing under the live public/ is touched.
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import Test from "../../public/framework/core/Test/Test.js";
-import Session from "../../public/framework/core/Session/Session.js";
-import { run_item } from "./page_tools.js";
-import { open_task } from "./Agents.js";
-import ChildLinks from "../../Server/ChildLinks.mjs";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const ROOT = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "child-links-")));
+process.env.SERVEX_PUBLIC = path.join(ROOT, "public");
+const HOME = process.cwd();
 process.chdir(ROOT);   // open_task resolves task.dir against cwd
-const SESS = "public/framework/ai/sessions", PID = `0c0c0c0c-aaaa-4bbb-8ccc-${String(process.pid).padStart(12, "0")}`, CID = "0d0d0d0d-aaaa-4bbb-8ccc-000000000001";
-const PARENT = path.join(ROOT, SESS, "2026/10/22", `.childlinks-parent-${process.pid}`), PFILE = path.join(PARENT, "session.jsonl");
-const OUT = `${SESS}/tasks/.childlinks-child-${process.pid}`, IN = path.join(PARENT, "inside-kid");
+const { default: Session } = await import("../../public/framework/core/Session/Session.js");
+const { run_item } = await import("./page_tools.js");
+const { open_task } = await import("./Agents.js");
+const { default: ChildLinks } = await import("../../Server/ChildLinks.mjs");
+const SESS = "public/framework/ai/sessions", PID = "0c0c0c0c-aaaa-4bbb-8ccc-000000000000", CID = "0d0d0d0d-aaaa-4bbb-8ccc-000000000001";
+const PARENT = path.join(ROOT, SESS, "2026/10/22", "parent"), PFILE = path.join(PARENT, "session.jsonl");
+const OUT = `${SESS}/tasks/child`, IN = path.join(PARENT, "inside-kid");
 const CURL = "/" + OUT.slice("public/".length) + "/", PURL = "/" + path.relative(path.join(ROOT, "public"), PARENT).replaceAll("\\", "/") + "/";
 const read = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
 const refs = url => read(PFILE).filter(l => l.task === url);
@@ -46,7 +48,7 @@ try {
 	t.eq(P().completion, 0.5, "completion moved 0 -> 0.5 (one of two children done)");
 
 	// the backfill: a registry row for a third child, dry run writes nothing, apply writes once
-	const third = path.join(ROOT, SESS, "tasks", `.childlinks-third-${process.pid}`); fs.mkdirSync(third, { recursive: true });
+	const third = path.join(ROOT, SESS, "tasks", "third"); fs.mkdirSync(third, { recursive: true });
 	fs.writeFileSync(path.join(third, "task.jsonl"), JSON.stringify({ assign: { session_id: "0f0f0f0f-aaaa-4bbb-8ccc-000000000003", agent: "kid-3" } }) + "\n");
 	const rows = { "kid-3": { session_id: "0f0f0f0f-aaaa-4bbb-8ccc-000000000003", parent_session: PID, task_dir: third } };
 	const size = fs.statSync(PFILE).size, plan = ChildLinks.plan(rows, ROOT);
@@ -57,7 +59,7 @@ try {
 	t.eq(ChildLinks.plan(rows, ROOT)[0].why, "referenced", "and the manifest now says referenced");
 	fs.rmSync(third, { recursive: true, force: true });
 } finally {
-	fs.rmSync(PARENT, { recursive: true, force: true });
-	fs.rmSync(path.join(ROOT, OUT), { recursive: true, force: true });
+	process.chdir(HOME);
+	fs.rmSync(ROOT, { recursive: true, force: true });
 }
 t.done();

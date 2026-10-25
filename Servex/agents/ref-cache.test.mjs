@@ -1,14 +1,15 @@
 // Recompute only what changed (item 25): a child record is replayed again only when its own file (or one it read) changed. `node Servex/agents/ref-cache.test.mjs`
-// Throwaway dot-folders in the real store (the resolvers are bound to it), removed at the end.
+// Scratch tree in the OS temp folder (SERVEX_PUBLIC points the item tool at it): nothing under the live public/ is touched.
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import Test from "../../public/framework/core/Test/Test.js";
-import Task from "../../public/framework/core/Task/Task.js";
-import { run_item } from "./page_tools.js";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const REL = `public/framework/ai/sessions/2026/10/22/.refcache-${process.pid}`, DIR = path.join(ROOT, REL), URL = "/" + REL.slice("public/".length) + "/";
+const ROOT = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "ref-cache-")));
+process.env.SERVEX_PUBLIC = path.join(ROOT, "public");
+const { default: Task } = await import("../../public/framework/core/Task/Task.js");
+const { run_item } = await import("./page_tools.js");
+const REL = "public/framework/ai/sessions/2026/10/22/refcache", DIR = path.join(ROOT, REL), URL = "/" + REL.slice("public/".length) + "/";
 const kid = n => path.join(DIR, "kid-" + n), line = o => JSON.stringify(o) + "\n";
 const done = { complete: { outcome: "done", evidence: ["test"], confidence: "high", caveats: [] } };
 const t = new Test("ref-cache");
@@ -55,6 +56,6 @@ try {
 	const kid_a = await run_item({ path: URL + "kid-a/", delta: { completion: {} } }, { caller: "t" });
 	t.ok(kid_a.ok && kid_a.answer?.completion?.done === 1, "a task folder answers it too");
 } finally {
-	fs.rmSync(DIR, { recursive: true, force: true });
+	fs.rmSync(ROOT, { recursive: true, force: true });
 }
 t.done();

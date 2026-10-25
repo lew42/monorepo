@@ -57,6 +57,9 @@ export class Agents {
 	 * one is no longer matched to a session by its parent's name (agents_under). */
 	static NAMES_UNTIL = "2026-10-25T06:00:00.000Z";
 
+	/* The session id agent `id` runs as now: live first, else its registry row. */
+	session_of(id){ return this.live.get(id)?.session_id ?? this.reg().read()[id]?.session_id ?? null; }
+
 	/* `boot` names THIS host process — every registry row it writes carries it,
 	 * so the next boot can tell "alive a moment ago" from "long dead". */
 	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); Task.turns_resolver = sid => this.session_turns(sid); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
@@ -81,7 +84,7 @@ export class Agents {
 		// follow(path), 2026-09-29: a stopped agent's subscriptions end with it — Servex/Follow.js
 		if (agent.state === "stopped") try { this.servex?.follow?.agent_ended(agent); } catch {}
 		// A child is linked to its parent SESSION, not only to the parent's name (session-is-a-task, 2026-10-24): the id the parent runs as now.
-		if (agent.parent && agent.parent_session === undefined) agent.parent_session = this.live.get(agent.parent)?.session_id ?? this.reg().read()[agent.parent]?.session_id ?? null;
+		if (agent.parent && agent.parent_session === undefined) agent.parent_session = this.session_of(agent.parent);
 		const row = this.reg().write(agent);
 		this.store().append("servex", { type: "registry", ...row }).catch(() => {});
 		return row;
@@ -220,7 +223,7 @@ export class Agents {
 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
 		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
-		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_session: spec.parent ? spec.parent_session ?? this.live.get(spec.parent)?.session_id ?? this.reg().read()[spec.parent]?.session_id ?? null : null, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_session: spec.parent ? spec.parent_session ?? this.session_of(spec.parent) : null, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
 		const fresh = !again && !spec.system;

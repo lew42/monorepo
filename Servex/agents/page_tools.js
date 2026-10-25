@@ -9,7 +9,7 @@ import Task from "../../public/framework/core/Task/Task.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
-const PUBLIC = path.join(ROOT, "public");
+const PUBLIC = process.env.SERVEX_PUBLIC ? path.resolve(process.env.SERVEX_PUBLIC) : path.join(ROOT, "public");   // SERVEX_PUBLIC: a test points the records at a scratch tree
 
 /* SIX TOOLS over `Item.Store` (core/Item/Store.js), so an agent writes a LIVE page the
  * same small way a browser tab would — one line at a time, through the SAME file every
@@ -657,6 +657,7 @@ function ref_scope(key, build){
 	collect = mine;
 	try {
 		const kid = build();
+		if (kids.size > 4000) kids.clear();   // bounded: a long-lived Servex never holds every child it ever read
 		kids.set(key, { kid, deps: mine });
 		return kid;
 	} finally { collect = outer; outer?.push(...mine); }

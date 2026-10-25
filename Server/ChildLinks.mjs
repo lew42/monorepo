@@ -74,6 +74,7 @@ export default class ChildLinks {
 
 	/** Which parent session each registry row belongs to: its recorded `parent_session`; or, for a row from before spawns carried one, the
 	 *  parent's name inside `names_session`'s span (the rule of Agents.agents_under), and then anything whose parent is such a child. */
+	// `until` = Agents.NAMES_UNTIL: from then on every spawn carries parent_session, so a row is never matched by its parent's name.
 	static parents(rows, { names_session = E00, until = "2026-10-25T06:00:00.000Z", since = null } = {}){
 		const names = new Set([names_session, ...Object.entries(rows).filter(([, r]) => r?.session_id === names_session).map(([id]) => id)]), out = new Map();
 		for (const [id, r] of Object.entries(rows)){
