@@ -670,7 +670,9 @@ export class ComposerMic extends Dictate {
 		// A send that never settles must not hold the queue: every later sentence waits behind it (the stall, test/stall.mjs).
 		let timer;
 		const late = new Promise(r => { timer = setTimeout(() => r("late"), ComposerMic.DELIVER_MS); });
-		const sending = Promise.resolve().then(() => this.deliver?.(entry)).catch(e => { DictateHealth.set("sent", "bad", "not sent: " + (e?.message ?? e)); return false; });
+		// A deliver that throws (ext/Chat/ChatPanel.js's own can) is a failed send: its words still go to the fallback log below.
+		// No Sent-row write here: ux/Dictate/chat.js, the deliver behind the Debug tab, writes it and never throws (review note 3).
+		const sending = Promise.resolve().then(() => this.deliver?.(entry)).catch(e => { console.error("chat: deliver threw", e); return false; });
 		try { ok = await Promise.race([sending, late]); } finally { clearTimeout(timer); this.posting--; }
 		if (ok === "late"){
 			// The queue moves on now; the open send keeps its chance to land. Only a send that then fails counts as not sent

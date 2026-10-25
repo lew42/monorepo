@@ -262,7 +262,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 			// The noise rule: the LAN proxy cuts the wire every 30 s and it is back in a second, so a drop is a failure only if it lasts WIRE_GRACE_MS.
 			clearTimeout(wire_timer);
 			if (s === "down"){
-				DictateHealth.event("llm", "wait", `the live wire to Servex dropped (${why}); reconnecting`);
+				DictateHealth.event("llm", "wait", `the live wire to Servex dropped (${why}). It reconnects by itself.`);
 				wire_timer = setTimeout(() => DictateHealth.set("llm", "bad", `the live wire to Servex is down: ${why}. It retries by itself (1 s, doubling to 15 s); Reconnect tries now.`), WIRE_GRACE_MS);
 			} else if (DictateHealth.layers.llm.state === "idle" || DictateHealth.layers.llm.why.startsWith("the live wire")) DictateHealth.set("llm", "ok", "connected to Servex; nothing asked yet");
 		} });
