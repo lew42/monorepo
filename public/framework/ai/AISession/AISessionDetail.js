@@ -254,7 +254,7 @@ export default class AISessionDetail extends Page {
 			this.log_urls().then(() => PromptLog.read(session_id)).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
 			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
-			this.record_if_there().then(file => {  if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks, on_session: s => this.feed?.record(s) }).live(); });
+			this.record_if_there().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks, on_session: s => this.feed?.record(s) }).live(); });
 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
 			this.log_urls().then(urls => {
 				if (this.logs) return;
@@ -274,9 +274,10 @@ export default class AISessionDetail extends Page {
 			const fill = async () => {
 			await this.follow?.catch(() => {});   // the first feed pull names the real folder (a card-slug folder is not <id>/) via AISession.slugs
 			if (!AISession.slugs.has(session_id)) await AISessionDetail.folder_from_day(row, session_id).catch(() => {});   // the day index names the folder; without it the work tree below was read from <day>/<uuid>/ and the Overview stayed empty
-			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;
-			if (!this.work && !AISession.slugs.has(session_id) && !this.work_waited) setTimeout(() => { this.work_waited = true; fill(); }, 10000);   // a session whose folder is its uuid never gets a slug: after 10 s the work tree is read from there
-			if (!this.work && (AISession.slugs.has(session_id) || this.work_waited)){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
+			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;   // the slug's folder, or <day>/<uuid>/ when the day index has none
+			if (this.filled === own_dir) return;   // the folder event folder_from_day raises runs fill() again: once per folder
+			this.filled = own_dir;
+			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
 			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
 			const [costs, trace] = await Promise.all([
 				AISessionDetail.load_cost_log(own).then(async c => c ?? AISessionDetail.load_cost_log(await old_dir())),
