@@ -112,3 +112,7 @@
 {"quiet":{"at":"2026-10-25T01:34:36.058-05:00","ms":35,"mic_off":true,"path":"/framework/"}}
 {"nav":{"at":"2026-10-25T01:34:36.061-05:00","from":"/framework/","to":"/framework/"}}
 {"nav":{"at":"2026-10-25T01:34:36.063-05:00","from":"/framework/","to":"/framework/"}}
+{"pause":{"at":"2026-10-25T01:55:56.661-05:00","phase":"end"}}
+{"quiet":{"at":"2026-10-25T01:56:43.117-05:00","ms":2500,"path":"/framework/ai/debug/"}}
+{"quiet":{"at":"2026-10-25T01:56:43.855-05:00","ms":439,"mic_off":true,"path":"/framework/ai/debug/"}}
+{"pause":{"at":"2026-10-25T01:56:43.858-05:00","phase":"start"}}
