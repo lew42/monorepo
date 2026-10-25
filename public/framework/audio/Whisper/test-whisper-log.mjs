@@ -8,6 +8,7 @@ const b = await chromium.launch(); let fail = 0;
 for (const w of [400, 1920]) {
 	const p = await b.newPage({ viewport: { width: w, height: 1000 } });
 	const errs = []; p.on("pageerror", e => errs.push(String(e)));
+	await p.addInitScript(() => { window.$WHISPER_LOG_FORCE = true; });   // this test checks the log itself, so it opts in to writing
 	await p.route("**/ux/Dictate/Dictate.js", async r => {
 		const res = await r.fetch(); let t = await res.text();
 		t += "\n;{const s=Dictate.prototype.render;Dictate.prototype.render=function(...a){(window.__ds??=[]).push(this);return s.apply(this,a)}}";
