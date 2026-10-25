@@ -20,6 +20,7 @@ Session
 | `replies` | A list of `{id, text, by, anchor}`. `anchor` is `{sentence: "a2"}` or `{sentence: "a2", from: 3, to: 7}` (word positions); no anchor means the reply is to the whole prompt. |
 | `tasks` | The asks made from it (Tasks, Questions), as for any Task. |
 | `parts`, `subject`, `refined`, `notes`, `handled`, `process` | The splitter's record, kept as plain data ([ext/Refine/doc/prompt-records.md](/framework/ext/Refine/md/doc/prompt-records/)). `parts[].cites` are sentence ids. |
+| `working` | The smart seat's "seen it, writing" sign: `{by, at}` while it has seen this card and is writing its answer, `null` (the default, and how it clears) once written. Defined once on `Task.line_fields` for `Prompt` and `Question` (2026-10-25), so `{working: null}` or any other plain `{working:{...}}` line just works through the existing field replay — no extra wiring. The view (Chat V1/V2) draws a brain icon with animated dots while it reads non-null. |
 
 **Completion is computed on read, never stored.** With `parts` recorded, a Prompt is complete when every part is settled (done, documented, answered, no-action, or a task that is complete) and no sentence is left uncited. Otherwise it is the share of its own `tasks` that are complete. It reads `complete` by itself when that reaches 1, so a Session's tally counts it. Cost sums the same way: task → Prompt → Session.
 
@@ -33,7 +34,7 @@ Session
 
 ## Question
 
-`line_fields`: `text`, `from` (the Prompt it came from), `answer` (`{text, by, at}`). `question.phase` is `open` (no answer), `answered` (has an answer, not yet read) or `complete` (the owner read it). **Answered but not read is one query:** `item({path: SESSION, delta: {unread: {}}})` returns every answered, not-complete Question in the session. `{complete: {}}` needs no evidence on an answered Question; reading it is the evidence. A Question nests under its Prompt's `tasks`, or sits in the session's list with `from` naming the Prompt; both are found.
+`line_fields`: `text`, `from` (the Prompt it came from), `answer` (`{text, by, at}`), `working` (same sign as the Prompt's, above: set while the smart seat is writing the answer, cleared with `{working: null}` once it writes it). `question.phase` is `open` (no answer), `answered` (has an answer, not yet read) or `complete` (the owner read it). **Answered but not read is one query:** `item({path: SESSION, delta: {unread: {}}})` returns every answered, not-complete Question in the session. `{complete: {}}` needs no evidence on an answered Question; reading it is the evidence. A Question nests under its Prompt's `tasks`, or sits in the session's list with `from` naming the Prompt; both are found.
 
 ## One Prompt class (the decision)
 
