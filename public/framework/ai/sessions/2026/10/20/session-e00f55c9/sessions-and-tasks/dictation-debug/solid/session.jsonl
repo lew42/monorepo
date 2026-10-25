@@ -52,3 +52,4 @@
 {"review":{"at":"2026-10-25T09:46:50-05:00","answer":{"n":9,"reply":"fixed: 5f69e7649 test/debug-tab.mjs swaps EventSource for a fake that opens and stays quiet, so the proof never reaches the real Servex (a stubbed response would end and read as a dropped wire)"}}}
 {"review":{"at":"2026-10-25T09:46:50-05:00","answer":{"n":10,"reply":"fixed: 5f69e7649 DictateDebug uses DictateHealth.KEEP; set() pushes the record and tells once (event() still tells for a record alone)"}}}
 {"review":{"at":"2026-10-25T09:46:50-05:00","answer":{"n":11,"reply":"fixed: 5f69e7649 log line padding and line-height tightened. noted: the empty band above the lights belongs to the AI view layout (ext/drawer), outside this task"}}}
+{"log":{"at":"2026-10-25T10:51:43-05:00","msg":"dropped: review-fixes: owner minion-solid-fixes is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/review-fixes/","reason":"owner-stopped"}}

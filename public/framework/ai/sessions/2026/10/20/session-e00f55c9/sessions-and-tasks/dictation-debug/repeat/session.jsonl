@@ -13,3 +13,4 @@
 {"review":{"at":"2026-10-25T11:11:34-05:00","answer":{"n":6,"reply":"fixed: test/repeat.mjs added to the readme Proofs line"}}}
 {"review":{"at":"2026-10-25T11:11:34-05:00","answer":{"n":7,"reply":"noted: Dictate.js:521 close_segment logged in session.jsonl"}}}
 {"review":{"at":"2026-10-25T11:11:34-05:00","answer":{"n":8,"reply":"noted: the test calls collapse_tail because Mic.js imports browser URLs and cannot load in node; function kept in its own file for that reason"}}}
+{"log":{"at":"2026-10-25T11:20:00-05:00","heartbeat":"deliberate","msg":"minion-dictation-repeat its agent is not running: it was stopped on purpose by mastermind-dictation-2 at 2026-10-25T11:14:13-05:00; not revived."}}

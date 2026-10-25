@@ -10,3 +10,4 @@
 {"review":{"at":"2026-10-25T11:49:20-05:00","answer":{"n":3,"reply":"fixed: adbe7c808 lists order, flicker, anchor in readme.md:9 and late in debug-tab.md:85."}}}
 {"review":{"at":"2026-10-25T11:49:20-05:00","answer":{"n":4,"reply":"noted: the second log line (connecting state, e5c20130c) answers the first; the minion also checked stop_mic does not drop heard words."}}}
 {"commit":"adbe7c808","by":"mastermind-dictation-2"}
+{"log":{"at":"2026-10-25T11:56:14-05:00","heartbeat":"deliberate","msg":"minion-dictation-tests its agent is not running: it was stopped on purpose by mastermind-dictation-2 at 2026-10-25T11:50:58-05:00; not revived."}}
