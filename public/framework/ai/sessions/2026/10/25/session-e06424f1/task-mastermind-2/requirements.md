@@ -1,0 +1,16 @@
+# Requirements: chat/dictation round 2+ (task-mastermind-2)
+
+The owner's asks, numbered as in [plan.md](plan.md); the step table there says which are done. Source: [dictation-debug/handoff.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/handoff.md) and the voice session [v-sq8y7db](/framework/ai/sessions/2026/10/25/v-sq8y7db/).
+
+| # | Ask | Status |
+|---|---|---|
+| 1 | One shared reader of the Prompt data for Chat V1, V2 and the session detail page. Brief: [reader/](reader/requirements.md). | **Open** — not in this diff; V1 (`Chat.js`) and V2 (`ChatV2Model.js`) still each keep their own read of the Prompt fields. |
+| 2 | Live raw whisper text in V2: 3-state cue, no lost unsent words on refresh, drop Whisper silence hallucinations, replace the per-message "fast/smart" marks with a mark only when pending or wrong, brain-dots only while the smart seat drafts. Brief: [chat-live](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-live/requirements.md). | **Partly done** — hallucination drop and the per-message marks are built (`chat-live/result.md` rounds 1-3); the raw live draft is still not drawn in Chat v2 at all (no code path exists yet). |
+| 3 | Cards converge: one title plus one cleaned paragraph per prompt, ranked outcomes, real lists, a detail view with raw and a way back. | **Open** — not in this diff. |
+| 4 | Routing design: done, [routing/report.md](routing/report.md). | Done. |
+| 5 | Offscreen-completion cue on the newest button. | **Open** — not in this diff; no code touches the newest-button cue. |
+| 6 | Smart working indicator via `working:{by,at}`. | **Done** — `ChatV2.js`'s `place_cursors()`/`smart_dots` (round 2-3, `chat-live/result.md`). |
+| 7 | Fast seat places per sentence and makes Question items only; smart seat titles and restructures. Brief: [roles/](roles/requirements.md). | **Partly done** — the Question-only/placement rule is unchanged; `.claude/skills/voice-assistant/SKILL.md` now also tells the fast seat to clean each sentence's punctuation/filler/capitalization (round 1-2 review), which is additive to placement, not a title/restructure change, so it does not contradict this ask — confirmed consistent in round 2's review response. |
+| 8 | Windowed chat list (last ~20 rendered, older on scroll up). | **Open** — not in this diff. |
+| 9 | Agent and session ids clickable: done. | Done. |
+| 10 | Close out the predecessor's records: done. | Done. |
