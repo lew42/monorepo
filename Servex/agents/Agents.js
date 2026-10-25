@@ -760,10 +760,15 @@ export class Agents {
 		return out.sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
 	}
 
-	/* A session's own turns, [{ms, cost}], from the log of every agent that ran as it (Task.attribute buckets them by task). A VS Code tab has no agent log: []. */
+	/* A session's own turns, [{ms, cost}], from the log of every agent that ran as it (Task.attribute buckets them by task). A VS Code tab has no agent log: [].
+	 * Only the turns OF this session: one agent id runs as several sessions (a renewal, a reused id), and its log holds them all
+	 * (ai-system-mastermind: 12 sessions by 2026-10-24). A log with no session marker at all is an old single-session one: all its turns. Doc: core/Session/doc/identity.md. */
 	session_turns(sid){
 		if (!sid) return [];
-		return Object.entries(this.reg().read()).filter(([, r]) => r?.session_id === sid).flatMap(([id]) => this.log_cost(id).turns ?? []);
+		return Object.entries(this.reg().read()).filter(([, r]) => r?.session_id === sid).flatMap(([id]) => {
+			const c = this.log_cost(id);
+			return (c.turns ?? []).filter(t => c.marked ? t.session === sid : true);
+		});
 	}
 
 	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */
@@ -780,7 +785,7 @@ export class Agents {
 		if (hit && hit.size === st.size && hit.mtime === st.mtimeMs) return hit.out;
 		let text; try { text = fs.readFileSync(file, "utf8"); } catch { return { cost: 0, sdk_total: 0 }; }
 		const { turns, sdk_total } = turn_costs(text, { openrouter: this.reg().read()[id]?.provider === "openrouter" });
-		const out = { cost: turns.reduce((n, t) => n + t.cost, 0), sdk_total, turns: turns.map(t => ({ ms: Date.parse(t.line?.at ?? t.line?.ts ?? "") || 0, cost: t.cost })) };
+		const out = { cost: turns.reduce((n, t) => n + t.cost, 0), sdk_total, marked: turns.some(t => t.session), turns: turns.map(t => ({ ms: Date.parse(t.line?.at ?? t.line?.ts ?? "") || 0, cost: t.cost, session: t.session ?? null })) };
 		this._log_costs.set(file, { size: st.size, mtime: st.mtimeMs, out });
 		return out;
 	}
@@ -2179,6 +2184,7 @@ Agents.Agent = class Agent {
 			cost: this.cost,
 			turn_cost: this.turn_cost ?? 0,   // THE RECORD: this turn's own dollars; reopen() re-sums these (agent-cost, 2026-10-13)
 			sdk_total: this.provider === "openrouter" ? null : this.proc_cost ?? null,   // the SDK's session total after this turn: lets log_cost() diff across processes exactly
+			session_id: this.session_id ?? null,   // the session this turn belongs to: one agent id runs as several sessions (renew, fork), turn_costs() tags each turn by it
 			duration_ms: message.duration_ms,
 			turns: this.turns,
 			api_turns: message.num_turns,
