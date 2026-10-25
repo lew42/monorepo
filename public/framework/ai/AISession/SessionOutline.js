@@ -143,7 +143,7 @@ export default class SessionOutline {
 		lift(this.tree?.root ?? { kids: [] }, it => other.push(it));
 		for (const s of SessionOutline.session_nodes(this.tree)){ const c = this.holds(s.url); lift(s, it => (c ? by_child.get(c) : other).push(it)); }
 		const child_groups = this.found.list.map(c => this.group({ kind: "child", child: c, name: c.snap?.title ?? c.name ?? c.key, items: by_child.get(c) }));
-		const subs = [...mine].map(([id, items]) => this.group({ kind: "prompt", prompt: id, name: this.prompts[id]?.subject ?? this.prompts[id]?.clean ?? "Prompt " + String(id).slice(0, 8), items }));
+		const subs = [...mine].map(([id, items]) => this.group({ kind: "prompt", prompt: id, name: this.prompts[id]?.subject ?? this.prompts[id]?.refined?.subject ?? "Prompt " + String(id).slice(0, 8), items }));
 		if (other.length) subs.push(this.group({ kind: "other", name: "Other work", items: other }));
 		const own_items = subs.flatMap(g => g.items);
 		const own = { kind: "own", name: "This session's own work", groups: this.sort(subs), items: own_items, ...SessionOutline.progress(own_items), usd: own_items.reduce((s, i) => s + i.usd, 0), at: Math.max(0, ...subs.map(g => g.at)) };

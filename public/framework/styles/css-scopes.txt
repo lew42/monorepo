@@ -268,3 +268,4 @@ mob-
 # public/framework/ai/AISession — the desktop session page: Overview cards, sticky stats bar, Tasks tab (2026-10-24)
 sov-
 sw-
+soutline-

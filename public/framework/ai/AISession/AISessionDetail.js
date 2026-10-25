@@ -26,7 +26,7 @@ import SessionWork from "./SessionWork.js";
 import SessionStats from "./SessionStats.js";
 import AICost from "/framework/ai/AITask/AICost.js";
 import SessionOverview from "./SessionOverview.js";
-import SessionFeed from "./SessionFeed.js";
+import SessionOutlineView from "./SessionOutlineView.js";
 import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
 
 // One session's own page, opened at /framework/ai/sessions/<id>/ (a real route, so a reload lands on the same
@@ -188,6 +188,7 @@ export default class AISessionDetail extends Page {
 		const TABS = [["overview", "Overview"], ["board", "Board"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
 		const old_keys = { work: "tasks", conversation: "chat" }, asked = new URLSearchParams(location.search).get("tab"), want = old_keys[asked] ?? asked, panels = {}, buttons = {};
 		const show = key => {
+			if (!this.chat_ok && (key === "chat" || key === "coverage")) key = "overview";   // a child session has no chat or coverage: only a VS Code tab (or a session with prompts.jsonl) does
 			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
 			const q = new URLSearchParams(location.search); key === "overview" ? q.delete("tab") : q.set("tab", key);
 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
@@ -205,7 +206,7 @@ export default class AISessionDetail extends Page {
 		});
 		if (new URLSearchParams(location.search).has("full")) setTimeout(() => this.full_screen(true));
 		div.c("sessions-detail-body", () => {
-			panels.overview = div.c("flow sessions-panel", () => { this.feed = new SessionFeed({ ready, sid: id }); });   // every task and child session, newest first (SessionFeed)
+			panels.overview = div.c("flow sessions-panel", () => { this.feed = new SessionOutlineView({ ready, sid: id }); });   // child sessions as groups, then this session's own work by prompt (SessionOutline)
 			panels.board = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
 			panels.tasks = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
 			panels.chat = div.c("flow sessions-panel sov-chat", () => {
@@ -220,6 +221,7 @@ export default class AISessionDetail extends Page {
 			panels.related = div.c("flow sessions-panel", () => { $spawn = div.c("flow"); $related = div.c("flow"); });   // who spawned this and what it spawned; the other records of this session
 		});
 		show(TABS.some(([k]) => k === want) ? want : "overview");
+		["chat", "coverage"].forEach(k => buttons[k].el.hidden = true);   // shown again below once the row says this is a VS Code tab
 		const conv = new AISessionConversation();
 		const voice = new VoiceFlow();
 		$voice.append(voice.view);
@@ -229,6 +231,10 @@ export default class AISessionDetail extends Page {
 		// and the transcript and the date-path lookup both need the session_id.
 		row_p.then(async row => {
 			const session_id = row?.session_id ?? id;
+			await AISessionRows.load_index(url).catch(() => {});
+			const snap = await AISessionDetail.load_snapshot(session_id).catch(() => null), has_prompts = await PromptLog.read(session_id).then(l => l.length > 0).catch(() => false);
+			this.chat_ok = has_prompts || AICost.is_tab(row ?? (snap ? { id: snap.agent, role: snap.agent } : null));
+			if (this.chat_ok){ ["chat", "coverage"].forEach(k => buttons[k].el.hidden = false); if (want === "chat" || want === "coverage") show(want); }
 			AISessionRows.load_index(url).then(() => this.retitle(AISessionRows.display_name(row ?? { id, session_id }, AISessionRows.tree).text));   // a VS Code tab has no sessions.json row; its title is in the index
 			if (!/^[0-9a-f]{8}-/.test(session_id)){   // a name no agent list or index maps to a uuid: nothing on disk to ask for
 				$conv.append(() => p.c("muted", "This agent has no session id yet, so there is no transcript or log to show."));
