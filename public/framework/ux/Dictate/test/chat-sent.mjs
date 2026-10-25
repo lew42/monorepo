@@ -42,7 +42,8 @@ ${ev(queue.splice(0))}` });
 			const body = JSON.parse(req.postData() ?? "{}"), at = iso(Date.now());
 			out = { ok: true, at };
 			if (!v2_done.has(at)) setTimeout(() => { const r = { refined: { at: iso(Date.now()), re: at, sentences: [{ n: 1, text: "hello from the proof" }], sections: [], flags: [], cost_usd: 0.0123 } }; queue.push(r, r); }, 2200);
-			queue.push({ chat: { at, from: { kind: "owner" }, text: body.text, via: "text" } });
+			if (v2) queue.push({ tasks: { add: { id: "p-say", type: "Prompt", title: "Said", text: body.text } } });
+			queue.push({ chat: { at, from: { kind: "owner" }, text: body.text, via: "text", ...(v2 ? { prompt: "p-say" } : {}) } });
 			setTimeout(() => queue.push({ sent: { to: "fast", at: iso(Date.now()), re: [at], delay_ms: 420 } }), 1500);
 			setTimeout(() => queue.push({ sent: { to: "smart", at: iso(Date.now()), re: [at], delay_ms: 3100 } }), 5000);
 		}
@@ -65,12 +66,20 @@ ${ev(queue.splice(0))}` });
 	await page.screenshot({ path: `${shots}/${tag}-1-sent-smart.png` });
 	const sentText = await page.evaluate(() => [...document.querySelectorAll(".chatbox-sent")].map(n => n.textContent));
 	console.log(tag, "sent badges:", JSON.stringify(sentText));
-	if (!v2) check(sentText.some(t => /fast ✓.*smart ✓/.test(t)), `${tag}: the owner line shows both "fast ✓" and "smart ✓"`);
+	check(sentText.some(t => /fast ✓.*smart ✓/.test(t)), `${tag}: the owner line shows both "fast ✓" and "smart ✓"`);
 	if (!v2) check(await page.locator(".ux-dictate-widget-refined").count() === 1, `${tag}: a refined line that arrives twice draws ONE block`);
 	queue.push({ tasks: { add: { id: "p-proof", type: "Prompt", title: "A prompt", text: "A prompt about sending." } } });
 	queue.push({ "p-proof": { tasks: { add: { id: "q-proof", type: "Question", text: "Do you want the proof to show this question?", from: "p-proof" } } } });
 	await page.waitForTimeout(1500);
 	if (!v2) check(await page.locator(".chatbox-task[data-id=q-proof]").count() === 1, `${tag}: an open Question from the prompt shows in the chat`);
+	if (!v2){   // the real Question, read-only from the owner's own session: it must sit under ITS prompt, not at the end
+		const real = fs.readFileSync("C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl", "utf8").split(String.fromCharCode(10)).filter(Boolean);
+		queue.push(...[28, 29, 32, 36, 37].map(i => JSON.parse(real[i])).map((l, k) => (l.chat ? { chat: { ...l.chat, at: iso(Date.now() + k) } } : l)));
+		await page.waitForTimeout(1500);
+		const where = await page.evaluate(() => { const q = document.querySelector(".drawer-rail-sheet.on .chatbox-task[data-id=q-1792961349]"); return q && { before: q.previousElementSibling?.textContent.slice(0, 40), after: q.nextElementSibling?.textContent.slice(0, 40) }; });
+		console.log(tag, "real Question sits:", JSON.stringify(where));
+		check(!!where && /So, The words/.test(where.before) && /And then if I start/.test(where.after ?? ""), tag + ": the real Question q-1792961349 sits right under its own Prompt, before the next one");
+	}
 	await page.screenshot({ path: `${shots}/${tag}-5-question.png` });
 	queue.push(...Array.from({ length: 40 }, (_, i) => owner(i + 1, Date.now() + i)));
 

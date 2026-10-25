@@ -212,10 +212,13 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		try { draw_line(line); } catch (e){ DictateHealth.fail("page", e, "drawing a session line"); }
 	}
 	// Tasks and Questions under a Prompt arrive as edits ({tasks:{add}}, {"<prompt>":{tasks:{add}}}, {"<prompt>":{"<task>":{complete}}}): ChatV2Model folds them, one row each.
+	const parent_of = new Map(), prompt_at = new Map();   // task id -> its Prompt id; Prompt id -> its owner chat line
 	function draw_task(line){
 		const M = ChatV2Model, touch = (tasks ??= new M()).apply(line), n = touch && tasks.by_id.get(touch.id);
 		if (!n || !n.type || M.kind(n) === "Prompt") return;
-		panel.say({ task: { id: n.id, question: M.kind(n) === "Question", phase: M.phase(n), label: M.label(n), answer: M.answer(n)?.text } });
+		if (touch.parent) parent_of.set(n.id, touch.parent);
+		const at = prompt_at.get(parent_of.get(n.id));   // the owner line that opened this Prompt: the row sits under it
+		panel.say({ task: { at, id: n.id, question: M.kind(n) === "Question", phase: M.phase(n), label: M.label(n), answer: M.answer(n)?.text } });
 	}
 	function draw_line(line){
 		if (line?.react) return void panel.say({ react: line.react });
@@ -230,6 +233,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 			return void panel.say(Session.entry(line));
 		}
 		if (!line?.chat) return void draw_task(line);
+		if (line.chat.prompt && line.chat.from?.kind === "owner") prompt_at.set(line.chat.prompt, line.chat.at);
 		if (line.chat.from?.kind === "assistant" && Date.parse(line.chat.at) > (watching_since ?? 0)) health_answer(line);   // as times, never as text: Servex writes "…-05:00", the browser "…Z"
 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
 		if (echo){

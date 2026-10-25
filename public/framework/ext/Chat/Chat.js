@@ -60,7 +60,7 @@ function failed_badge(){
 }
 
 /** "fast ✓ 2.6 s · smart …": when this owner line reached each assistant, counted from the words leaving the draft (a `{sent}` session line). */
-function sent_badge(pc){
+export function sent_badge(pc){
 	const b = el("chatbox-sent muted", "span");
 	const secs = ms => (ms < 100 ? "0" : (ms / 1000).toFixed(1)) + " s";
 	b.append(...["fast", "smart"].flatMap((seat, i) => {

@@ -243,6 +243,7 @@
 		inline-size: 1.75rem;
 		block-size: 1.75rem;
 		margin: 0 0.5em 0.25em auto;   /* small, at the bottom right of the box */
+		align-self: flex-end;   /* a flex-column box (the bubbles thread, a `.flex.v` util) zeroes the auto margin: this keeps it on the right there too */
 		padding: 0;
 		border-radius: 50%;
 		border: 0;

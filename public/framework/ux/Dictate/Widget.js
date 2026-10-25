@@ -463,11 +463,12 @@ Widget.Thread = class WidgetThread extends View {
 		this.anchor();
 	}
 
-	/** A Task or Question from a prompt (ChatV2Model's fold): one row at the end of the chat, patched in place when its stage or answer changes. */
+	/** A Task or Question from a prompt (ChatV2Model's fold): one row under the owner bubble that opened its Prompt (the end of the chat if that bubble is not drawn), patched in place when its stage or answer changes. */
 	show_task(t){
 		this.$empty.hide();
 		const rows = this.task_rows ??= new Map(), old = rows.get(t.id);
 		let node;
+		const parent = t.at && this.lines.get(t.at)?.bubble;
 		this.$bubbles.append(() => {
 			node = div.c("chatbox chatbox-reply chatbox-task", () => {
 				who_label("assistant");
@@ -480,6 +481,12 @@ Widget.Thread = class WidgetThread extends View {
 			}).attr("data-id", t.id).el;
 		});
 		if (old) old.replaceWith(node);
+		else if (parent){   // under its Prompt: after the bubble, its refined block and the rows already put there
+			let after = parent;
+			while (after.nextElementSibling?.matches(".ux-dictate-widget-refined, .chatbox-task[data-under]")) after = after.nextElementSibling;
+			after.insertAdjacentElement("afterend", node);
+		}
+		if (parent) node.dataset.under = t.at;
 		rows.set(t.id, node);
 		this.anchor();
 	}

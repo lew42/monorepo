@@ -3,6 +3,7 @@
 import View, { div, span, button, h3, mark, blockquote, small, icon } from "/framework/core/View/View.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import TaskView from "/framework/core/Task/TaskView.js";
+import { sent_badge } from "/framework/ext/Chat/Chat.js";
 import ChatV2Model from "./ChatV2Model.js";
 View.stylesheet(import.meta, "ChatV2.css");
 
@@ -122,6 +123,7 @@ export default class ChatV2 extends JSONL {
 		if (M.title(n)) h3.c("chat-v2-title", M.title(n));
 		if (refined && M.text(n)) div.c("chat-v2-text", M.text(n));
 		if (!refined) this.sentences(n, replies);
+		if (n.sent) div.c("chat-v2-sent").el.append(sent_badge({ sent: n.sent }));   // the same "fast ✓ 0.4 s · smart ✓" mark as the bubble chat
 	}
 
 	prompt_raw_wrap(n, replies){
