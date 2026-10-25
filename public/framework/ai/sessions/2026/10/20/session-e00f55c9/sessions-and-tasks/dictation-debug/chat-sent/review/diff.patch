@@ -1,0 +1,572 @@
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index 73ff82179..d2a9962ae 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -271,6 +271,7 @@ export default class Sessions {
+ 		s.smart_re = lines[lines.length - 1].at;
+ 		this.save();
+ 		this.wake(s, "smart");
++		this.mark_sent(s, "smart", lines);
+ 		this.send(s, "smart", nav + lines.map(l => `${selected_prefix(l.selection)}[on ${l.path} at ${l.at}] ${l.text}`).join("\n") + `\n(${why})` + (prompt ? `\n(prompt ${prompt})` : ""));
+ 	}
+ 
+@@ -598,6 +599,17 @@ export default class Sessions {
+ 		fs.appendFileSync(file, lead + JSON.stringify(line) + "\n");
+ 	}
+ 
++	/* A `{sent}` line: these owner lines have just been handed to the `to` seat ("fast" | "smart"). `delay_ms` is the time from the
++	 * words leaving the owner's draft (`said_at`, else arrival) to now. The chat draws it beside each line (ux/Dictate/Widget.js `Thread.sent`). */
++	mark_sent(s, to, lines){
++		try {
++			const ls = (lines ?? []).filter(l => l?.at);
++			if (!ls.length) return;
++			const last = ls[ls.length - 1], at = now_ms(), from = Date.parse(last.said_at ?? last.at);
++			this.write(s, { sent: { to, at, re: ls.map(l => l.at), ...(Number.isNaN(from) ? {} : { delay_ms: Math.max(0, Date.parse(at) - from) }) } });
++		} catch (e){ console.error(`sessions: could not mark a line sent: ${e.message}`); }
++	}
++
+ 	write(s, line){
+ 		this.append(this.disk(s.file), line);
+ 		s.last_at = now_ms();
+@@ -979,6 +991,7 @@ export default class Sessions {
+ 			s.fast_heard = text;
+ 			if (this.voice_seat()) this.voice_say(s, [line]);
+ 			else this.send(s, "fast", `${selected_prefix(selection)}[on ${site}] ${text}\n(prompt ${prompt})`);
++			this.mark_sent(s, "fast", [line]);
+ 			this.gather(s, line);
+ 			s.prompt = null;   // CHAT V2 (round 2, §1): handed to a seat already, with nothing more coming -- done
+ 		}
+@@ -1116,6 +1129,7 @@ export default class Sessions {
+ 		this.wake(s, "fast");
+ 		if (this.voice_seat()) this.voice_say(s, h.lines);
+ 		else this.send(s, "fast", said + tail);
++		this.mark_sent(s, "fast", h.lines);
+ 		this.waker.add(s.id, h.lines, typed ? { hold_ms: this.quiet_ms } : { elapsed_ms: quiet ?? 0 });
+ 		if (mic_off) this.waker.flush(s.id, "the mic went off");
+ 		else if (quiet != null) this.waker.silence(s.id, quiet);
+diff --git a/public/framework/ext/Chat/Chat.css b/public/framework/ext/Chat/Chat.css
+index 5156c7aae..0debe5bb9 100644
+--- a/public/framework/ext/Chat/Chat.css
++++ b/public/framework/ext/Chat/Chat.css
+@@ -240,19 +240,22 @@
+ 		inset-block-end: 0.5em;
+ 		z-index: 2;
+ 		display: block;
+-		margin: 0.3em auto 0.5em;
+-		padding: 0.35em 0.9em;
+-		border-radius: 999px;
++		inline-size: 1.75rem;
++		block-size: 1.75rem;
++		margin: 0 0.5em 0.25em auto;   /* small, at the bottom right of the box */
++		padding: 0;
++		border-radius: 50%;
+ 		border: 0;
+ 		background: var(--ink);
+ 		color: var(--surface);
+-		box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
++		box-shadow: 0 1px 6px rgb(0 0 0 / 0.3);
+ 		cursor: pointer;
+ 		font: inherit;
+-		font-size: 0.85em;
++		font-size: 0.95em;
+ 		font-weight: 600;
+-		line-height: 1.2;
++		line-height: 1;
+ 	}
++	.chatbox-jump:not([hidden]) { display: grid; place-items: center; }
+ 	.chatbox-jump[hidden] { display: none; }
+ 
+ 	/* ONE LINE PER THING SAID — who, then what. Updates are quieter than talk. */
+@@ -532,7 +535,9 @@
+ 	   until its real line replaces it; a streaming reply ends in a caret. */
+ 	.chatbox-draft .chatbox-text { white-space: pre-wrap; }
+ 	.chatbox-guess { opacity: 0.55; }
+-	.chatbox-live-sent { opacity: 0.6; }
++	.chatbox-live-sent { opacity: 1; }
++	.chatbox-live-sent > :not(.chatbox-live-mark) { opacity: 0.6; }   /* same fade as before, but the "cleaning…" label beside it stays full strength */
++	.chatbox-live-mark { display: block; font-size: 0.8em; }
+ 	.chatbox-streaming .chatbox-text > :last-child::after { content: "▍"; opacity: 0.5; }
+ 
+ 	/* DRILL IN (Drill.js, doc/drill.md) — the Open button a selected card grows,
+@@ -589,3 +594,10 @@
+ @layer theme {
+ 	.chatbox-earlier { align-self: center; margin-block: var(--gap-35); cursor: pointer; }
+ }
++
++@layer site {
++	/* "fast ✓ 0.4 s · smart …": which assistant has this line; greyed until it has */
++	.chatbox-sent { font-size: .72em; white-space: nowrap; }
++	.chatbox-sent > span { opacity: .55; }
++	.chatbox-sent > .chatbox-sent-done { opacity: 1; color: var(--prime); }
++}
+diff --git a/public/framework/ext/Chat/Chat.js b/public/framework/ext/Chat/Chat.js
+index 40a3301fd..9fc3a3589 100644
+--- a/public/framework/ext/Chat/Chat.js
++++ b/public/framework/ext/Chat/Chat.js
+@@ -7,6 +7,8 @@ View.stylesheet(import.meta, "Chat.css");
+ // A chat log: scrolling message bubbles, yours right, others left. See doc/notes.md#chat-log
+ // see doc/notes.md#one-bubble-per-run
+ export const MERGE_GAP_MS = 10000;
++export const GUESS_TITLE = "Gray words: the transcriber's guess, still changing. They turn black once it settles.";
++export const LIVE_SENT_TITLE = "Faded: already sent, waiting for the cleaned-up line, which replaces this and turns black.";
+ 
+ export function mergeable($box, sender, at){
+ 	const last = $box.el.lastElementChild;
+@@ -57,6 +59,19 @@ function failed_badge(){
+ 	return b;
+ }
+ 
++/** "fast ✓ 2.6 s · smart …": when this owner line reached each assistant, counted from the words leaving the draft (a `{sent}` session line). */
++function sent_badge(pc){
++	const b = el("chatbox-sent muted", "span");
++	const secs = ms => (ms < 100 ? "0" : (ms / 1000).toFixed(1)) + " s";
++	b.append(...["fast", "smart"].flatMap((seat, i) => {
++		const got = pc.sent?.[seat], part = el("chatbox-sent-" + seat + (got ? " chatbox-sent-done" : ""), "span");
++		part.textContent = seat + (got ? " ✓" + (got.delay_ms != null ? " " + secs(got.delay_ms) : "") : " …");
++		part.title = got ? `Reached the ${seat} assistant${got.delay_ms != null ? ", " + secs(got.delay_ms) + " after the words left the draft" : ""}.` : `Not yet sent to the ${seat} assistant.`;
++		return i ? [" · ", part] : [part];
++	}));
++	return b;
++}
++
+ // see doc/notes.md#place-card
+ export function place_card(place){
+ 	// on_chosen is ours: pulled off before rest reaches the module's constructor
+@@ -118,6 +133,7 @@ function piece_body(pc){
+ 	if (pc.mark) append_mark(node, pc.mark);
+ 	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));
+ 	if (pc.failed) (node.lastElementChild ?? node).append(" ", failed_badge());
++	if (pc.track) (node.lastElementChild ?? node).append(" ", sent_badge(pc));
+ 	return node;
+ }
+ 
+@@ -191,10 +207,10 @@ function draw_reacts(b){
+ }
+ 
+ /** Draw one message: a new bubble, or a paragraph on the bubble it merges into. See doc/notes.md#speak */
+-export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark, failed, join = true }){
++export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark, failed, track, join = true }){
+ 	at = Date.parse(at ?? 0) || Date.now();
+ 	// join: false never merges onto the last bubble (doc/notes.md#speak)
+-	const last = join ? mergeable($box, sender, at) : null, piece = { id, text, at, via, mark, failed };
++	const last = join ? mergeable($box, sender, at) : null, piece = { id, text, at, via, mark, failed, track };
+ 	if (last){
+ 		// in time order: a line that arrives late (the poll after the live wire) goes before the later ones, never at the end
+ 		const pieces = bubbles.get(last).pieces, i = pieces.findIndex(pc => pc.at > at);
+@@ -315,11 +331,11 @@ export function sticky_scroll(box, { observe = true } = {}){   // observe:false
+ 	$btn.className = "chatbox-jump";
+ 	$btn.title = "jump to the newest message";
+ 	$btn.setAttribute("aria-label", "jump to the newest message");
+-	$btn.textContent = "↓ Newest";   // says its job (the owner, 2026-10-20: an unlabelled grey arrow reads as nothing)
++	$btn.textContent = "↓";   // small round button at the bottom; its title and aria-label say the job (the owner, 2026-10-25)
+ 	$btn.hidden = true;
+ 	box.appendChild($btn);
+ 	const show = on => { $btn.hidden = !on; };
+-	const go_down = () => { box.appendChild($btn); box.scrollTop = box.scrollHeight; last = box.scrollTop; };
++	const go_down = () => { if ($btn !== box.lastChild) box.appendChild($btn); box.scrollTop = box.scrollHeight; last = box.scrollTop; };
+ 	$btn.addEventListener("click", () => { locked = true; show(false); go_down(); });
+ 	box.addEventListener("scroll", () => {
+ 		const top = box.scrollTop;
+@@ -327,7 +343,7 @@ export function sticky_scroll(box, { observe = true } = {}){   // observe:false
+ 		else if (top < last){ locked = false; show(true); }
+ 		last = top;
+ 	}, { passive: true });
+-	const pin = () => { if (locked) go_down(); };
++	const pin = () => { if (locked) go_down(); else if ($btn !== box.lastChild) box.appendChild($btn); };   // the button stays last, even if a redraw emptied the box
+ 	if (observe && typeof ResizeObserver === "function") new ResizeObserver(pin).observe(box);
+ 	return { pin, locked: () => locked };
+ }
+@@ -799,6 +815,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 				lives.delete("draft");
+ 				const key = "sent:" + (++sent_n);
+ 				hit.el.classList.add("chatbox-live-sent");
++				hit.el.title = LIVE_SENT_TITLE;
+ 				set_mark(hit, "cleaning…");
+ 				hit.timer = setTimeout(() => set_mark(hit, "sent, waiting"), 2000);
+ 				lives.set(key, hit);
+@@ -807,7 +824,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select,
+ 			follow(() => {
+ 				const hit = live_bubble("draft", "chatbox-you chatbox-draft", "owner");
+ 				hit.text.textContent = settled;
+-				if (guess){ const g = el("chatbox-guess", "span"); g.textContent = (settled ? " " : "") + guess; hit.text.append(g); }
++				if (guess){ const g = el("chatbox-guess", "span"); g.textContent = (settled ? " " : "") + guess; g.title = GUESS_TITLE; hit.text.append(g); }
+ 			});
+ 		},
+ 		/** An assistant's reply while it is written; empty text removes it. */
+diff --git a/public/framework/ext/drawer/ChatView.js b/public/framework/ext/drawer/ChatView.js
+index bd24c2462..00a3e56b8 100644
+--- a/public/framework/ext/drawer/ChatView.js
++++ b/public/framework/ext/drawer/ChatView.js
+@@ -1,5 +1,6 @@
+ import { View, div, button } from "/framework/core/View/View.js";
+ import ChatV2 from "/framework/ext/Chat/v2/ChatV2.js";
++import { sticky_scroll } from "/framework/ext/Chat/Chat.js";
+ 
+ View.stylesheet(import.meta, "ChatView.css");
+ 
+@@ -38,10 +39,15 @@ export default class ChatView {
+ 		const file = this.on ? mount?.file?.() ?? null : null;
+ 		if (this.file === file && (file || !this.on)) return;
+ 		this.chat_v2?.unsubscribe(); this.chat_v2 = null; this.file = file;
+-		if (!this.on || !mount){ this.$box?.el.remove(); this.$box = null; return; }
++		if (!this.on || !mount){ this.pin_watch?.disconnect(); this.$box?.el.remove(); this.$box = null; return; }
+ 		if (!this.$box?.el.isConnected){
+ 			this.$box = div.c("drawer-rail-sheet-v2 flow");
+ 			(slot.querySelector(".ux-dictate-widget-card") ?? slot).prepend(this.$box.el);
++			// the same scroll lock and jump button as the bubbles chat (Chat.js sticky_scroll); Chat v2 grows by patching, so pin on every change
++			const scroll = sticky_scroll(this.$box.el);
++			this.pin_watch?.disconnect();
++			this.pin_watch = new MutationObserver(() => scroll.pin());
++			this.pin_watch.observe(this.$box.el, { childList: true, subtree: true, characterData: true });
+ 		}
+ 		if (file) this.chat_v2 = new ChatV2({ url: file, $box: this.$box }).live();
+ 		else this.$box.empty(() => div.c("chat-v2-empty", "Say something: Chat v2 draws this conversation once it has started."));
+@@ -49,7 +55,7 @@ export default class ChatView {
+ 
+ 	// The chat gave its box back: stop the stream and forget the box (the slot is emptied by the caller).
+ 	release(){
+-		this.chat_v2?.unsubscribe();
++		this.chat_v2?.unsubscribe(); this.pin_watch?.disconnect();
+ 		this.chat_v2 = this.$box = this.file = null;
+ 	}
+ }
+diff --git a/public/framework/ux/Dictate/DictationBar.css b/public/framework/ux/Dictate/DictationBar.css
+index 5ac78a340..2a630bed1 100644
+--- a/public/framework/ux/Dictate/DictationBar.css
++++ b/public/framework/ux/Dictate/DictationBar.css
+@@ -17,12 +17,13 @@
+ 	.dictation-bar[data-size="compact"] .dictation-bar-mic { inline-size: 2.5rem; block-size: 2.5rem; font-size: 1.15rem; }
+ 	.dictation-bar-icon { line-height: 1; }
+ 
+-	/* THE MIC IS THE LEVEL METER: a dark translucent disc, filled from the bottom with --prime up to --level (0 to 1, set per frame by DictationBar.level) */
++	/* THE MIC IS THE LEVEL METER: a light gray disc (so the --prime level fill shows clearly), filled from the bottom with --prime up to --level (0 to 1, set per frame by DictationBar.level); dark ink on it, readable in both themes */
+ 	.dictation-bar-mic { --level: 0; }
+ 	.dictation-bar[data-state="listening"] .dictation-bar-mic,
+ 	.dictation-bar[data-state="sending"] .dictation-bar-mic {
+ 		border-color: var(--prime);
+-		background: linear-gradient(to top, var(--prime) calc(var(--level) * 100%), rgb(0 0 0 / 0.55) calc(var(--level) * 100%));
++		color: #1f2328;
++		background: linear-gradient(to top, var(--prime) calc(var(--level) * 100%), #e9ebee calc(var(--level) * 100%));
+ 		transition: none;
+ 	}
+ 	.dictation-bar[data-state="starting"] .dictation-bar-mic { border-color: var(--prime); animation: dictation-bar-pulse 0.8s ease-in-out infinite; }
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index 79d772e74..82cdebee3 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -1,12 +1,13 @@
+-import { View, div, span, button, select, option, label, textarea, details, summary, strong } from "../../core/View/View.js";
++import { View, div, span, button, select, option, label, textarea, details, summary, strong, icon } from "../../core/View/View.js";
+ import MicIndicator from "./MicIndicator.js";
+ import Dictate, { remember_device, remembered_device } from "./Dictate.js";
+ import { pg } from "./playground/Playground.js";
+ import { marks as fetch_marks } from "../Understand/Understand.js";
+ import { md_into } from "../../ext/Chat/md.js";
+ import { who_label } from "../../ext/Chat/roles.js";
+-import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll, mergeable } from "../../ext/Chat/Chat.js";
++import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll, mergeable, GUESS_TITLE } from "../../ext/Chat/Chat.js";
+ import { composer } from "../../ext/Chat/Composer.js";
++import TaskView from "../../core/Task/TaskView.js";
+ 
+ View.stylesheet(import.meta, "Widget.css");
+ 
+@@ -281,8 +282,10 @@ Widget.Thread = class WidgetThread extends View {
+ 		if (this.hold_orphan(entry)) return;
+ 		if (entry?.type === "ask") return this.follow(() => this.draw_ask(entry));
+ 		if (entry?.type === "refined") return this.draw_refined(entry);
++		if (entry?.task) return this.show_task(entry.task);
+ 		if (entry?.place) return this.place(entry.place);
+ 		if (entry?.summary) return this.summarise(entry.summary);
++		if (entry?.sent) return this.sent(entry.sent);
+ 		const para = entry?.para ?? (entry?.type === "para" ? entry : null);
+ 		if (para?.re) return this.split_paragraph(para.re);
+ 		const chat = entry?.chat;
+@@ -310,12 +313,13 @@ Widget.Thread = class WidgetThread extends View {
+ 		const bubble = this.follow(() => speak(this.$bubbles, {
+ 			cls: assistant ? "chatbox-reply" : "chatbox-you",
+ 			who, text: chat.text, sender, at: chat.said_at ?? at, id: at, via: chat.via,   // ordered by when it was said (doc/notes.md#bubble-order), keyed by its own `at`
+-			join: this.widget.join,
++			join: this.widget.join, track: !assistant && !entry.history,   // a live owner line shows its fast and smart marks; a replayed one only once a {sent} line names it
+ 		}));
+ 		// the new piece is found by its id: a late line is put in time order, so it is not always the last child
+ 		const text_node = bubble.querySelector(`:scope > [data-re="${CSS.escape(String(at))}"]`) ?? bubble.lastElementChild;
+ 		const ref = { id: at };
+ 		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text, spoken: !assistant && (chat.via === "voice" || chat.via === "whisper") });   // `said`: the raw words, kept when a placement improves the text
++		this.apply_sent(at);
+ 		entry.history ? this.refresh_after_batch() : this.refresh();   // a replay of 200 lines walks the lines once, not 200 times
+ 		this.anchor();
+ 		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks); new lines only: each mark is a paid model call
+@@ -459,6 +463,28 @@ Widget.Thread = class WidgetThread extends View {
+ 		this.anchor();
+ 	}
+ 
++	/** A Task or Question from a prompt (ChatV2Model's fold): one row at the end of the chat, patched in place when its stage or answer changes. */
++	show_task(t){
++		this.$empty.hide();
++		const rows = this.task_rows ??= new Map(), old = rows.get(t.id);
++		let node;
++		this.$bubbles.append(() => {
++			node = div.c("chatbox chatbox-reply chatbox-task", () => {
++				who_label("assistant");
++				div.c("chatbox-text", () => {
++					icon(t.question ? WidgetThread.QUESTION_ICON[t.phase] : TaskView.STAGE[t.phase] ?? "help").ac("chat-v2-state", "is-" + t.phase);
++					strong(` ${t.question ? "Question" : "Task"} · ${t.phase} `);
++					span(t.label);
++					if (t.answer) div.c("muted", t.answer);
++				});
++			}).attr("data-id", t.id).el;
++		});
++		if (old) old.replaceWith(node);
++		rows.set(t.id, node);
++		this.anchor();
++	}
++	static QUESTION_ICON = { open: "help_outline", answered: "mark_chat_unread", complete: "check_box" };
++
+ 	/** Collapsed <details> after the owner bubble `re` for a {refined} line; skipped if that bubble is not drawn. */
+ 	draw_refined(entry){
+ 		const line = this.lines.get(entry.re);
+@@ -528,7 +554,7 @@ Widget.Thread = class WidgetThread extends View {
+ 		}
+ 		if (d.host && d.host.lastElementChild !== d.el) d.host.append(d.el);   // a redraw of the host (a mark) appended pieces after it
+ 		d.text.textContent = settled;
+-		if (guess) d.text.append(span.c("chatbox-guess").text((settled ? " " : "") + guess).el);
++		if (guess) { const g = span.c("chatbox-guess").text((settled ? " " : "") + guess).el; g.title = GUESS_TITLE; d.text.append(g); }
+ 		this.anchor();
+ 	}
+ 
+@@ -600,6 +626,24 @@ Widget.Thread = class WidgetThread extends View {
+ 		}).catch(() => {});   // ignored on purpose: the check/? mark is a bonus on a bubble; no mark just means nothing was judged
+ 	}
+ 
++	/** A {sent:{to, at, re:[line at…], delay_ms}} session line: those owner lines reached the `to` seat ("fast" | "smart"). A line this
++	 * thread has not drawn or retagged yet (the stream can beat the POST's answer) waits in `pending_sent` for apply_sent(). */
++	sent({ to, at, re = [], delay_ms }){
++		for (const r of re){
++			(this.pending_sent ??= new Map()).set(r, { ...this.pending_sent.get(r), [to]: { at, delay_ms } });
++			this.apply_sent(r);
++		}
++	}
++
++	apply_sent(at){
++		const got = this.pending_sent?.get(at), line = this.lines.get(at);
++		if (!got || !line) return;
++		this.pending_sent.delete(at);
++		line.sent = { ...line.sent, ...got };
++		patch_piece(line.bubble, line.ref.id, { sent: line.sent, track: true });
++		this.refresh();
++	}
++
+ 	mark_failed(at){
+ 		const line = this.lines.get(at);
+ 		if (!line) return;
+@@ -622,6 +666,7 @@ Widget.Thread = class WidgetThread extends View {
+ 		this.lines.set(new_at, line);
+ 		retag_piece(line.bubble, line.ref.id, new_at);   // so a pending mark()/mark_failed() under the new id still finds the piece
+ 		line.ref.id = new_at;
++		this.apply_sent(new_at);
+ 		if (this.settled.delete(old_at)) this.settled.add(new_at);
+ 		if (this.summaries.has(old_at)){ this.summaries.set(new_at, this.summaries.get(old_at)); this.summaries.delete(old_at); }
+ 		this.refresh();
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index ad857b523..18769fcf3 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -2,6 +2,7 @@ import { View, button } from "../../core/View/View.js";
+ import Widget from "./Widget.js";
+ import floor from "./floor.js";
+ import * as Session from "/framework/ext/Session/Session.js";
++import ChatV2Model from "/framework/ext/Chat/v2/ChatV2Model.js";
+ import DictateHealth from "./DictateHealth.js";
+ import * as report from "/framework/ext/Chat/v2/report.js";
+ 
+@@ -152,6 +153,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 	const on_link = new Set();
+ 	// Duplicate-draw fix: both watch() and stream() call draw(); dedupe by line: doc/chat-notes.md
+ 	let seen_chat = new Set();
++	let tasks = null;   // the ChatV2Model that folds this session's Task and Question lines
+ 	// In-flight echo: stream pushes owner's line before say() resolves
+ 	const sending = [];
+ 	const flat = t => String(t ?? "").replace(/\s+/g, " ").trim();
+@@ -209,13 +211,25 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 	function draw(line){
+ 		try { draw_line(line); } catch (e){ DictateHealth.fail("page", e, "drawing a session line"); }
+ 	}
++	// Tasks and Questions under a Prompt arrive as edits ({tasks:{add}}, {"<prompt>":{tasks:{add}}}, {"<prompt>":{"<task>":{complete}}}): ChatV2Model folds them, one row each.
++	function draw_task(line){
++		const M = ChatV2Model, touch = (tasks ??= new M()).apply(line), n = touch && tasks.by_id.get(touch.id);
++		if (!n || !n.type || M.kind(n) === "Prompt") return;
++		panel.say({ task: { id: n.id, question: M.kind(n) === "Question", phase: M.phase(n), label: M.label(n), answer: M.answer(n)?.text } });
++	}
+ 	function draw_line(line){
+ 		if (line?.react) return void panel.say({ react: line.react });
+ 		if (line?.para) return void panel.say({ para: line.para });
+ 		if (line?.place) return void panel.say({ place: line.place });   // the voice assistant's placement (doc/voice-assistant.md)
++		if (line?.sent) return void panel.say({ sent: line.sent });   // the line reached the fast or smart assistant (Servex mark_sent)
+ 		if (line?.summary) return void panel.say({ summary: line.summary });   // a card's summary swallows its raw lines (doc/voice-assistant.md#raw-and-refined)
+-		if (line?.refined) return void panel.say(Session.entry(line));
+-		if (!line?.chat) return;
++		if (line?.refined){   // the file replay and the live stream both deliver every line: one block per refined line
++			const key = "refined|" + line.refined.re + "|" + line.refined.at;
++			if (seen_chat.has(key)) return;
++			seen_chat.add(key);
++			return void panel.say(Session.entry(line));
++		}
++		if (!line?.chat) return void draw_task(line);
+ 		if (line.chat.from?.kind === "assistant" && Date.parse(line.chat.at) > (watching_since ?? 0)) health_answer(line);   // as times, never as text: Servex writes "…-05:00", the browser "…Z"
+ 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
+ 		if (echo){
+@@ -259,6 +273,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		if (link.state !== "open") set_link({ state: "open" });   // a new session's wire starts fresh
+ 		own_ats = new Set();
+ 		seen_chat = new Set();
++		tasks = null;
+ 		// No session → the one this mount's first sentence just started: keep the screen. Only the owner's own lines are on it, and
+ 		// wiping them lost a sentence whose send then failed (stall.mjs "refuse"); the file replay that follows is deduped by `at`.
+ 		if (!(was === null && watching)) panel.reset();
+diff --git a/public/framework/ux/Dictate/test/chat-gray.mjs b/public/framework/ux/Dictate/test/chat-gray.mjs
+new file mode 100644
+index 000000000..a509dfaa7
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/chat-gray.mjs
+@@ -0,0 +1,24 @@
++// Proof: the gray guess words and the faded sent bubble carry a title, and the "cleaning…" mark stays full strength.
++//   node public/framework/ux/Dictate/test/chat-gray.mjs <base-url> <shots-dir>
++import fs from "fs";
++import Browser from "../../../../../Server/Browser.mjs";
++const [base = "http://monorepo.localhost", shots = "."] = process.argv.slice(2);
++fs.mkdirSync(shots, { recursive: true });
++const browser = await Browser.browser({}), page = await (await browser.newContext({ viewport: { width: 400, height: 500 } })).newPage();
++await page.goto(base + "/framework/ext/drawer/", { waitUntil: "domcontentloaded" });
++const out = await page.evaluate(async () => {
++	const { chat } = await import("/framework/ext/Chat/Chat.js");
++	const c = chat({ source: () => {} }), host = document.createElement("div");
++	host.style.cssText = "position:fixed;inset:0;background:#fff;z-index:99999;padding:1em";
++	document.body.append(host); (c.view?.el ?? c.el ?? c).nodeType ? host.append(c.view?.el ?? c.el ?? c) : null;
++	c.live({ text: "this part is settled", settled: "this part is settled", guess: "and this still moving" });
++	const guess = document.querySelector(".chatbox-guess");
++	const g = { guess_title: guess?.title };
++	c.live({ text: "" , sent: true });
++	await new Promise(r => setTimeout(r, 2300));
++	const sent = document.querySelector(".chatbox-live-sent"), mark = document.querySelector(".chatbox-live-mark");
++	return { ...g, sent_title: sent?.title, mark: mark?.textContent, mark_opacity: mark && getComputedStyle(mark).opacity, text_opacity: sent && getComputedStyle(sent.querySelector(".chatbox-text")).opacity, bubble_opacity: sent && getComputedStyle(sent).opacity };
++});
++console.log(JSON.stringify(out, null, 1));
++await page.screenshot({ path: shots + "/gray-labels.png" });
++await browser.close();
+diff --git a/public/framework/ux/Dictate/test/chat-sent.mjs b/public/framework/ux/Dictate/test/chat-sent.mjs
+new file mode 100644
+index 000000000..4446f09b1
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/chat-sent.mjs
+@@ -0,0 +1,111 @@
++// Proof: the sent marks and the scroll lock, in the bubble chat and in Chat v2.
++//   node public/framework/ux/Dictate/test/chat-sent.mjs <base-url> <shots-dir> [width=400]
++// Headless, every Servex verb stubbed (nothing is posted). The session stream is a script: each (re)connect gets the next batch of lines.
++//   1. an owner line, then `sent` lines (fast, then smart) -> the line's badge goes "fast … · smart …" -> "fast ✓ · smart ✓"
++//   2. 40 lines, scroll up, 3 more arrive -> the view stays put and the ↓ button shows; press it -> follows the newest again
++// Run for the bubble chat, then again with Chat v2 on (the "v2" chip). Exit 1 on any failure.
++import fs from "fs";
++import Browser from "../../../../../Server/Browser.mjs";
++
++const [base = "http://monorepo.localhost", shots = ".", width = "400"] = process.argv.slice(2);
++fs.mkdirSync(shots, { recursive: true });
++const browser = await Browser.browser({});
++let failed = 0;
++const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
++const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
++const iso = ms => new Date(ms).toISOString();
++
++async function round(v2){
++	const tag = (v2 ? "v2" : "bubbles") + "-" + width;
++	const ctx = await browser.newContext({ viewport: { width: +width, height: 800 } });
++	if (v2) await ctx.addInitScript(() => localStorage.setItem("lew42.sheet.chat_view", "v2"));
++	const page = await ctx.newPage();
++	const errors = []; page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
++	const scratch = new URL("./tmp-chat-sent.jsonl", import.meta.url), file_url = "/framework/ux/Dictate/test/tmp-chat-sent.jsonl";
++	fs.writeFileSync(scratch, "");
++	const queue = [];   // the lines the next stream (re)connect delivers; the proof pushes into it, and every one is also appended to the scratch file (Chat v2 reads the file)
++	queue.push = (...ls) => { fs.appendFileSync(scratch, ls.map(l => JSON.stringify(l) + String.fromCharCode(10)).join("")); return Array.prototype.push.apply(queue, ls); };
++	const owner = (n, ms) => v2 ? { tasks: { add: { id: `p-fill-${n}`, type: "Prompt", title: `Prompt number ${n}`, text: `line number ${n} of the proof, with enough words to take a little room in the box` } } } : { chat: { at: iso(ms), from: { kind: "owner" }, text: `line number ${n} of the proof`, via: "voice" } };
++	const v2_done = new Set();
++	const ev = lines => lines.map(line => `data: ${JSON.stringify({ kind: "line", line })}
++
++`).join("");
++	await page.route(/\/api\/session\//, async route => {
++		const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
++		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
++		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: `retry: 1200
++
++${ev(queue.splice(0))}` });
++		let out = { ok: true };
++		if (verb === "new" || verb === "resume") out = { ok: true, session: "stub-session", file: file_url };
++		if (verb === "say"){
++			const body = JSON.parse(req.postData() ?? "{}"), at = iso(Date.now());
++			out = { ok: true, at };
++			if (!v2_done.has(at)) setTimeout(() => { const r = { refined: { at: iso(Date.now()), re: at, sentences: [{ n: 1, text: "hello from the proof" }], sections: [], flags: [], cost_usd: 0.0123 } }; queue.push(r, r); }, 2200);
++			queue.push({ chat: { at, from: { kind: "owner" }, text: body.text, via: "text" } });
++			setTimeout(() => queue.push({ sent: { to: "fast", at: iso(Date.now()), re: [at], delay_ms: 420 } }), 1500);
++			setTimeout(() => queue.push({ sent: { to: "smart", at: iso(Date.now()), re: [at], delay_ms: 3100 } }), 5000);
++		}
++		await route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) });
++	});
++		await page.route(/\/api\/sessions\?/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify({ ok: true, sessions: [] }) }));
++	await page.route(/\/api\/hitl/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify({ ok: true, marks: [{ mark: "clear" }] }) }));
++	await page.route(/\/log\/prompts/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: "{}" }));
++	await page.goto(base + "/framework/ext/drawer/", { waitUntil: "domcontentloaded" });
++	await page.waitForSelector(".drawer-rail-ai", { state: "attached", timeout: 20000 });
++	await page.evaluate(() => document.querySelector(".drawer-rail-ai").click());   // hidden at desktop widths, still wired
++	await page.waitForSelector(".drawer-rail-sheet.on", { timeout: 20000 });
++	await page.click(".drawer-rail-sheet.on .dictation-bar-type");
++	await page.fill(".drawer-rail-sheet.on .chatbox-field textarea, .drawer-rail-sheet.on .chatbox-field input", "hello from the proof");
++	await page.keyboard.press("Enter");
++	await page.waitForTimeout(2800);
++	await page.screenshot({ path: `${shots}/${tag}-1-sent-fast.png` });
++	console.log(tag, "badges at 2.8 s:", JSON.stringify(await page.evaluate(() => [...document.querySelectorAll(".chatbox-sent")].map(n => n.textContent))));
++	await page.waitForTimeout(4000);
++	await page.screenshot({ path: `${shots}/${tag}-1-sent-smart.png` });
++	const sentText = await page.evaluate(() => [...document.querySelectorAll(".chatbox-sent")].map(n => n.textContent));
++	console.log(tag, "sent badges:", JSON.stringify(sentText));
++	if (!v2) check(sentText.some(t => /fast ✓.*smart ✓/.test(t)), `${tag}: the owner line shows both "fast ✓" and "smart ✓"`);
++	if (!v2) check(await page.locator(".ux-dictate-widget-refined").count() === 1, `${tag}: a refined line that arrives twice draws ONE block`);
++	queue.push({ tasks: { add: { id: "p-proof", type: "Prompt", title: "A prompt", text: "A prompt about sending." } } });
++	queue.push({ "p-proof": { tasks: { add: { id: "q-proof", type: "Question", text: "Do you want the proof to show this question?", from: "p-proof" } } } });
++	await page.waitForTimeout(1500);
++	if (!v2) check(await page.locator(".chatbox-task[data-id=q-proof]").count() === 1, `${tag}: an open Question from the prompt shows in the chat`);
++	await page.screenshot({ path: `${shots}/${tag}-5-question.png` });
++	queue.push(...Array.from({ length: 40 }, (_, i) => owner(i + 1, Date.now() + i)));
++
++	await page.waitForTimeout(5000);
++	const box = () => page.evaluate(isV2 => {
++		const b = (isV2 ? document.querySelector(".drawer-rail-sheet-v2 > .chatbox-jump") : [...document.querySelectorAll(".drawer-rail-sheet.on .chatbox-jump")].find(j => !j.closest(".drawer-rail-sheet-v2")))?.parentElement;
++		const j = b?.querySelector(".chatbox-jump");
++		return b ? { top: Math.round(b.scrollTop), max: Math.round(b.scrollHeight - b.clientHeight), jump: !!j && !j.hidden && getComputedStyle(j).display !== "none", newest_in_view: (() => { const nb = [...b.querySelectorAll("[data-re]")].pop() ?? [...b.querySelectorAll(".chatbox")].pop(); if (!nb) return false; const r = nb.getBoundingClientRect(), br = b.getBoundingClientRect(); return r.bottom > br.top + 1 && r.top < br.bottom - 1; })() } : null;
++	}, v2);
++	if (v2) console.log("v2 box:", JSON.stringify(await page.evaluate(() => { const b = document.querySelector(".drawer-rail-sheet-v2"); return b ? { cls: b.className, h: b.clientHeight, text: b.innerText.slice(0, 200), ctl: localStorage.getItem("lew42-voice-session") } : null; })));
++	const s0 = await box();
++	console.log(tag, "after fill:", JSON.stringify(s0));
++	check(!!s0 && s0.max > 100 && (v2 ? Math.abs(s0.top - s0.max) < 4 : s0.newest_in_view), `${tag}: ${v2 ? "pinned to the bottom" : "the newest bubble is in view (V1 turns pages: newest top stays visible, blank below)"} by default`);
++	await page.screenshot({ path: `${shots}/${tag}-2-pinned.png` });
++	await page.evaluate(isV2 => { const b = (isV2 ? document.querySelector(".drawer-rail-sheet-v2 > .chatbox-jump") : [...document.querySelectorAll(".drawer-rail-sheet.on .chatbox-jump")].find(j => !j.closest(".drawer-rail-sheet-v2")))?.parentElement; b.scrollTop = 0; b.dispatchEvent(new Event("scroll")); }, v2);
++	await page.waitForTimeout(300);
++	const s1 = await box();
++	queue.push(...Array.from({ length: 3 }, (_, i) => owner(i + 50, Date.now() + i)));
++	await page.waitForTimeout(3000);
++	const s2 = await box();
++	console.log(tag, "scrolled up:", JSON.stringify(s1), "after new lines:", JSON.stringify(s2));
++	check(s2 && s2.top === s1.top && s2.max > s1.max - 1 && s2.jump, `${tag}: scrolled up, new lines arrive, the view stays put and the ↓ button shows`);
++	await page.screenshot({ path: `${shots}/${tag}-3-scrolled-up.png` });
++	await page.evaluate(isV2 => { const b = (isV2 ? document.querySelector(".drawer-rail-sheet-v2 > .chatbox-jump") : [...document.querySelectorAll(".drawer-rail-sheet.on .chatbox-jump")].find(j => !j.closest(".drawer-rail-sheet-v2")))?.parentElement; b.querySelector(".chatbox-jump").click(); }, v2);
++	await page.waitForTimeout(800);
++	const s3 = await box();
++	console.log(tag, "after the button:", JSON.stringify(s3));
++	check(s3 && Math.abs(s3.top - s3.max) < 4 && !s3.jump, `${tag}: the button jumps to the newest and hides`);
++	await page.screenshot({ path: `${shots}/${tag}-4-jumped.png` });
++	check(errors.length === 0, `${tag}: no page errors ${errors.join(" | ")}`);
++	await ctx.close();
++	fs.rmSync(scratch, { force: true });
++}
++
++await round(false);
++await round(true);
++await browser.close();
++process.exit(failed ? 1 : 0);

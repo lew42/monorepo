@@ -50,6 +50,8 @@ Chat has two views today: the first one, which has no name, and Chat v2, behind 
 
 **Sentences feed as they arrive.** Each raw whisper sentence is sent as it arrives and placed by topic: into the last Prompt or a new one, then the last paragraph or a new one. Paragraph headings don't matter yet. What matters: the refined Prompt looks right, and the raw text is on screen live.
 
+**The Prompt record shape and the grouping rule** (new Prompt or add to the last one, and topic cards) are owned by mastermind-tasks-completion (the owner, 2026-10-25). Read its proposal and align the plan with it; don't design a second one. The view side is this brief's; the record side is theirs. **UI over text everywhere:** a completed task shows checked off, anything with detail expands on click, everything that can be interactive is.
+
 Start from `../pipeline-doc/` (the pipeline doc, once it lands): it says how each item is logged today and where V1 and V2 differ.
 
 ## Steps
