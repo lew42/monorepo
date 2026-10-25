@@ -3,7 +3,6 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { place, HOME } from "../home.js";
-import Usage from "../Usage.js";
 import LogLine from "../../Server/LogLine.mjs";
 import { model as tier_model } from "./tiers.js";
 import { page_path } from "./Layers.js";
@@ -146,7 +145,7 @@ export const now_ms = () => {
 /* THE SESSION MODEL SWITCH (dictate-without-claude, 2026-10-04 — the owner: "we're facing a
  * Claude shutdown... I have to rely entirely on the website and whether the voice dictation
  * system works"). ONE setting decides what BOTH session agents spawn on:
- *   - "claude" (default, unchanged): fast on Sonnet, smart on Usage.pick("smart", repo).
+ *   - "claude" (default, unchanged): fast on Sonnet, smart on Opus 5.5 (tier voice_smart, the owner 2026-10-25).
  *   - "openrouter": both on FALLBACK_MODEL. Picked from the new-brain eval
  *     (ai/sessions/2026/10/04/new-brain/new-brain/eval-results.json): openai/gpt-6-luna tied the BEST score on
  *     level c (the real job — refine a raw owner prompt into numbered sentences, 10/10, same
@@ -1090,7 +1089,7 @@ export default class Sessions {
 		return this.claude_model(role);
 	}
 
-	claude_model(role){ return role === "fast" ? tier_model("fast") : Usage.pick("smart", this.repo); }
+	claude_model(role){ return role === "fast" ? tier_model("fast") : tier_model("voice_smart"); }
 
 	/* OpenRouter usable right now? A key, and the spend guard (cached, never a network call here) says yes. */
 	or_ready(){ try { return has_key() && spend_guard().ok; } catch { return false; } }
@@ -1111,7 +1110,7 @@ export default class Sessions {
 			system: this.voice_brief() + where,
 			env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
 			sdk: { tools: [] },
-			parent: "sessions"
+			parent: "sessions", parent_session: s.id
 		} : role === "fast" ? {
 			/* LEAN like the Layers page assistant: no settings, no connectors, no memory,
 			 * no tools, and no Servex door (`mcp_url: ""`). Its brief is its whole system prompt. */
@@ -1123,7 +1122,7 @@ export default class Sessions {
 			 * caller silently replace the provider's own credentials instead of adding to them). */
 			env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
 			sdk: { tools: [] },
-			parent: "sessions"
+			parent: "sessions", parent_session: s.id
 		} : {
 			/* The whole Claude Code preset (tools, CLAUDE.md, skills, Servex's MCP door), its brief appended. */
 			role: "session-smart", name: s.id, model: this.session_model(s, "smart"), effort: "medium", urgent: true,
@@ -1131,7 +1130,7 @@ export default class Sessions {
 			/* LEAN (dictate-next-4): no user/project settings (CLAUDE.md, skills, memory), no claude.ai connectors; the brief is the prompt. */
 			setting_sources: [], env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
 			system: { type: "preset", preset: "claude_code", append: this.brief("smart") + where },
-			parent: "sessions"
+			parent: "sessions", parent_session: s.id
 		};
 		const go = (sp, r) => this.servex.agents.spawn({ ...sp, ...(s[role] ? { id: s[role] } : {}), ...(r ? { resume: r } : {}) });
 		try { return go(spec, resume); }
@@ -1171,9 +1170,8 @@ export default class Sessions {
 		const reseat = !!(seat && (s.fast || s.backing?.fast) && (s.fast_seat ?? "fast") !== seat);
 		if (reseat){ s.fast = null; (s.backing ??= {}).fast = null; }
 		const old = s.backing?.[role];
-		/* Only a change of PROVIDER forces a fresh spawn (review finding 5): the default Claude
-		 * path already switches `smart` between Sonnet and Opus on its own (`Usage.pick()`,
-		 * weekly pace) — a Claude session id can resume under either, so that alone must not
+		/* Only a change of PROVIDER forces a fresh spawn (review finding 5): a Claude
+		 * session id can resume under any Claude model, so that alone must not
 		 * restart the agent fresh and lose its 40-line tail. Only Claude <-> OpenRouter/local
 		 * (or OpenRouter <-> local) actually can't resume. */
 		const same_claude_family = m => String(m).startsWith("claude");
