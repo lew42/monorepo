@@ -146,7 +146,7 @@ export const now_ms = () => {
 /* THE SESSION MODEL SWITCH (dictate-without-claude, 2026-10-04 — the owner: "we're facing a
  * Claude shutdown... I have to rely entirely on the website and whether the voice dictation
  * system works"). ONE setting decides what BOTH session agents spawn on:
- *   - "claude" (default, unchanged): fast on Sonnet, smart on Opus 5.5 (tier voice_smart, the owner 2026-10-25), Sonnet only while the week is over pace.
+ *   - "claude" (default, unchanged): fast on Sonnet, smart on tier voice_smart (Sonnet; tiers.js), Sonnet only while the week is over pace.
  *   - "openrouter": both on FALLBACK_MODEL. Picked from the new-brain eval
  *     (ai/sessions/2026/10/04/new-brain/new-brain/eval-results.json): openai/gpt-6-luna tied the BEST score on
  *     level c (the real job — refine a raw owner prompt into numbered sentences, 10/10, same
