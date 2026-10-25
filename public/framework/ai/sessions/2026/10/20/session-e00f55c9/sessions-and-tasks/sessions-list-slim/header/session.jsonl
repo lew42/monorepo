@@ -21,3 +21,5 @@
 {"review":{"at":"2026-10-25T00:36:54-05:00","answer":{"n":8,"reply":"noted: those are the existing nowrap scroll rows, unchanged by this branch"}}}
 {"log":{"at":"2026-10-25T00:42:32-05:00","heartbeat":"check","msg":"status check sent to minion-sessions-header"}}
 {"log":{"at":"2026-10-25T00:43:16-05:00","heartbeat":"answered","msg":"I'm done and idle. The slim header is landed on `worktree/sessions-header` and not merged. The reviewer's second-round findings are answered in `session.jsonl`, and the stale docs were fixed in commit"}}
+{"log":{"at":"2026-10-25T01:05:27-05:00","heartbeat":"check","msg":"status check sent to minion-sessions-header"}}
+{"log":{"at":"2026-10-25T01:06:15-05:00","heartbeat":"answered","msg":"I'm done and idle. The three card fixes are committed on `worktree/sessions-header` (not merged) and logged in `cards/session.jsonl`, and I'm waiting for the mastermind's review. I did not rerun `smok"}}
