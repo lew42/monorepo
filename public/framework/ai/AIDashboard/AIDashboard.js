@@ -32,6 +32,7 @@ export default class AIDashboard extends View {
 	get classes(){ return "ad-dash"; }
 
 	render(){
+		new PageNav({ links: AIDashboard.NAV });
 		div.c("ad-grid", () => {
 			div.c("ad-col ad-col-a", () => {
 				div.c("ad-sec ad-say", () => {
@@ -51,6 +52,5 @@ export default class AIDashboard extends View {
 			});
 		});
 		div.c("ad-sec ad-usage-sec", () => { h2.c("ad-h", "Usage pace"); new UsageLine(); });
-		new PageNav({ links: AIDashboard.NAV });
 	}
 }
