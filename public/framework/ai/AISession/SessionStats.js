@@ -1,4 +1,4 @@
-import View, { div, span, small, strong, a } from "/framework/core/View/View.js";
+import View, { div, span, small, strong, a, button } from "/framework/core/View/View.js";
 import { names } from "/framework/core/Router/listing.js";
 import TaskView from "/framework/core/Task/TaskView.js";
 import Task from "/framework/core/Task/Task.js";
@@ -39,23 +39,34 @@ export default class SessionStats extends View {
 		if (open) $v.attr("title", "Open the Cost tab: what this session spent and every child session behind the total").on("click", open);
 	}
 
+	/** The running time into `$run`: the session index's wall and active time, else the Task's banked time. */
+	static running($run, work, root){
+		const own = SessionStats.elapsed(root.ms());   // the Task's banked time, only if the index has no row for this session
+		if (!work.id) return void $run.text(own);
+		AISessionRows.load_index("/framework/ai/sessions/").then(index => {
+			const ix = AISessionRows.row_of(index, work.id), ok = ix?.wall_ms > 0;
+			$run.text(ok ? span_active(ix.wall_ms, ix.active_ms) : own).attr("title", ok ? "From the session's first line to its last (a stop and restart does not reset it), and the hours it was working: the session index's wall_ms and active_ms" : "This session is not in the session index yet, so this is the Task's banked running time");
+		}).catch(() => $run.text(own));   // an index that fails to load keeps the banked time, never a stuck ellipsis
+	}
+
 	draw(work){
 		const { tree } = work;
 		if (!tree) return void (this.el.hidden = true);
 		const root = tree.root, part = SessionWork.split(root);
 		const { done, total } = Task.progress_of(part.counted);
 		this.empty(() => {
+			// A phone shows only this line (cost · state · running); tapping it opens the full grid below (SessionOverview.css, max-width 599px).
+			button.c("sov-line", () => {
+				SessionStats.cost(span.c("sov-line-cost", "…"), work, { row: this.row });
+				const state = tree.snap?.state ?? root.state; if (state && state !== "unknown") span.c("sov-line-state", " · " + state);
+				span.c("sov-line-run", " · "); SessionStats.running(span.c("", "…"), work, root);
+				span.c("sov-line-more", "▾");
+			}).attr("type", "button").attr("title", "Show every figure").on("click", () => this.el.classList.toggle("sov-open"));
 			div.c("sov-stat-row", () => {
 				div.c("sov-stat", () => { small.c("sov-k", "Cost"); SessionStats.cost(strong.c("sov-v" + (this.open_cost ? " sov-link" : ""), "…"), work, { row: this.row, open: this.open_cost }); });
 				div.c("sov-stat", () => { small.c("sov-k", "Model"); strong.c("sov-v", tree.snap?.model ?? "—"); });
 				div.c("sov-stat", () => {
-					small.c("sov-k", "Running for"); const $run = strong.c("sov-v", "…");
-					const own = SessionStats.elapsed(root.ms());   // the Task's banked time, only if the index has no row for this session
-					if (!work.id) return void $run.text(own);
-					AISessionRows.load_index("/framework/ai/sessions/").then(index => {
-						const ix = AISessionRows.row_of(index, work.id), ok = ix?.wall_ms > 0;
-						$run.text(ok ? span_active(ix.wall_ms, ix.active_ms) : own).attr("title", ok ? "From the session's first line to its last (a stop and restart does not reset it), and the hours it was working: the session index's wall_ms and active_ms" : "This session is not in the session index yet, so this is the Task's banked running time");
-					}).catch(() => $run.text(own));   // an index that fails to load keeps the banked time, never a stuck ellipsis
+					small.c("sov-k", "Running for"); SessionStats.running(strong.c("sov-v", "…"), work, root);
 				});
 				div.c("sov-stat", () => { small.c("sov-k", "Task folders done"); strong.c("sov-v", total ? `${done} of ${total}` : "no task folders"); });
 			});

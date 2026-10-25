@@ -11,6 +11,20 @@
 	.sov-bar .task-seg { flex: 1 1 0; }
 	.sov-bar .task-meter, .sov-card .task-meter { flex: 1 1 auto; width: auto; height: .45em; }
 
+	.sov-line { display: none; }
+	/* a phone: the stats bar is one line; the grid, bar, caption and links open with a tap, and then scroll away with the page */
+	@media (max-width: 599px) {
+		.sov-stats { padding: .4em .75em; gap: .4em; }
+		.sov-line { display: flex; align-items: baseline; gap: 0; width: 100%; padding: 0; margin: 0; font: inherit; font-size: .95rem; text-align: start; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; min-height: 0; white-space: nowrap; overflow: hidden; }
+		.sov-line-cost { font-weight: 700; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+		.sov-line > :not(.sov-line-cost) { flex: none; }   /* the cost gives way, so state and running time stay visible */
+		.sessions-tabs { flex-wrap: nowrap; }
+		.sessions-tabs .sessions-chip { flex: none; white-space: nowrap; padding-inline: .6em; }
+		.sov-line-more { margin-inline-start: auto; padding-inline-start: .5em; flex: none; }
+		.sov-stats:not(.sov-open) > :not(.sov-line) { display: none; }
+		.sov-stats.sov-open { position: static; }
+	}
+
 	/* the page grid keeps its children in a 40em main column; the stats, tabs and panels take the wide span, so the cards can sit side by side */
 	.page > .sov-stats, .page > .sessions-tabs, .page > .sessions-detail-body { grid-column: wide-start / wide-end; }
 	.session-parts:empty { display: none; }   /* no page parts: no empty block (and its margin) between the title and the stats */
@@ -41,5 +55,8 @@
 	.page.sov-full > .sov-float { display: flex; order: -1; position: sticky; top: .75rem; height: 0; margin-bottom: -1rem; grid-column: bleed-start / bleed-end; justify-content: space-between; padding-inline: .75rem; z-index: 30; pointer-events: none; }
 	.page.sov-full > .sov-float > * { pointer-events: auto; }
 	.sov-float-btn { width: 2.5rem; height: 2.5rem; padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--mob-line); background: var(--surface); box-shadow: 0 1px 4px rgba(0, 0, 0, .15); cursor: pointer; }
-	.sov-fs-on { margin-left: auto; }
+	.sov-more-pop .sov-menu { display: flex; flex-direction: column; min-inline-size: 12rem; }
+	.sov-menu-item { display: flex; align-items: center; gap: .4rem; font: inherit; padding: .5rem .6rem; text-align: start; color: inherit; text-decoration: none; background: none; border: 0; border-radius: 4px; box-shadow: none; width: 100%; min-height: 0; cursor: pointer; }
+	.sov-menu-item:hover, .sov-menu-on { background: var(--tint); }
+	.sov-menu-on { font-weight: 600; }
 }

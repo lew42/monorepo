@@ -29,6 +29,7 @@ import Day from "/framework/core/Session/Day.js";
 import SessionOverview from "./SessionOverview.js";
 import SessionOutlineView from "./SessionOutlineView.js";
 import SessionTimeline from "./SessionTimeline.js";
+import SessionPopover from "./SessionPopover.js";
 import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
 
 // One session's own page, opened at its dated folder /framework/ai/sessions/YYYY/MM/DD/<folder>/ (StoreFolder.child builds it with `segs`);
@@ -226,21 +227,30 @@ export default class AISessionDetail extends Page {
 		let $role, $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work, work;
 		const ready = new Promise(resolve => this.work_ready = resolve);   // the loaded SessionWork, for the stats bar and the Overview
 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
-		const TABS = [["overview", "Overview"], ["timeline", "Timeline"], ["board", "Board"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
+		const MAIN = [["overview", "Overview"], ["timeline", "Timeline"], ["chat", "Chat"], ["tasks", "Tasks"]], MORE = [["board", "Board"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]], TABS = [...MAIN, ...MORE];
 		const old_keys = { work: "tasks", conversation: "chat" }, asked = new URLSearchParams(location.search).get("tab"), want = old_keys[asked] ?? asked, panels = {}, buttons = {};
+		let $more;
 		const show = key => {
 			if (!this.chat_ok && (key === "chat" || key === "coverage")) key = "overview";   // a child session has no chat or coverage: only a VS Code tab (or a session with prompts.jsonl) does
-			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
-				if (key === "timeline") this.timeline?.shown();
+			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle(MORE.some(([m]) => m === k) ? "sov-menu-on" : "sessions-chip-on", k === key); }
+			$more?.el.classList.toggle("sessions-chip-on", MORE.some(([k]) => k === key));
+			if (key === "timeline") this.timeline?.shown();
 			const q = new URLSearchParams(location.search); key === "overview" ? q.delete("tab") : q.set("tab", key);
 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
 		};
 		const row_p = AISessionDetail.load_row(url, id);   // this session's sessions.json row: the stats bar says "this tab" from its source
 		new SessionStats({ ready, row: row_p, open_cost: () => show("cost") });   // Figma band E: stats first, sticky, on every tab
-		div.c("sessions-tabs flex gap-50 wrap", () => {
-			TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
-			a.c("sessions-chip", "Task queue →").href("/framework/ai/queue/").attr("target", "_self");
-			button.c("sessions-chip sov-fs-on", icon("fullscreen")).attr("title", "Full screen").on("click", () => this.full_screen(true));
+		div.c("sessions-tabs flex gap-50", () => {   // one line: Overview · Timeline · Chat · Tasks · More ▾ (the rest, in a SessionPopover)
+			MAIN.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
+			$more = button.c("sessions-chip sov-more", "More ▾").attr("type", "button");
+			const page = this;
+			SessionPopover.open($more, function(){   // the Popover draws this once, right now: the More buttons exist from the start, so show() and buttons.coverage.el.hidden work. Never make it lazy.
+				div.c("sov-menu", () => {
+					MORE.forEach(([k, label]) => buttons[k] = button.c("sov-menu-item", label).attr("type", "button").on("click", () => { show(k); this.close(); }));
+					a.c("sov-menu-item", "Task queue →").href("/framework/ai/queue/").attr("target", "_self");
+					button.c("sov-menu-item", () => { icon("fullscreen"); span(" Full screen"); }).attr("type", "button").on("click", () => { page.full_screen(true); this.close(); });
+				});
+			}, "sov-more-pop");
 		});
 		div.c("sov-float", () => {   // Figma band E, C: in full screen the head is gone, so back and the session menu float over the page
 			button.c("sov-float-btn", icon("arrow_back")).attr("title", "Leave full screen").on("click", () => this.full_screen(false));
@@ -286,7 +296,6 @@ export default class AISessionDetail extends Page {
 			conv.session = session_id;
 			const coverage = new AISessionCoverage(session_id);
 			$coverage.append(coverage.view);
-			this.log_urls().then(() => PromptLog.read(session_id)).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
 			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
 			this.record_if_there().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks, on_session: (s, lines) => { this.feed?.record(s); this.timeline?.record(lines); } }).live(); else if (!file) this.timeline?.settle("record"); });
@@ -312,7 +321,7 @@ export default class AISessionDetail extends Page {
 			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;   // the slug's folder, or <day>/<uuid>/ when the day index has none
 			if (this.filled === own_dir) return;   // the folder event folder_from_day raises runs fill() again: once per folder
 			this.filled = own_dir;
-			if (!this.prompt_tail) this.prompt_tail = new SessionTimeline.Tail({ url: own_dir + "prompts.jsonl", on_lines: lines => this.timeline?.prompts(lines) }).live();   // the prompt log, followed live for the Timeline
+			if (!this.prompt_tail) this.prompt_tail = new SessionTimeline.Tail({ url: own_dir + "prompts.jsonl", on_lines: lines => { this.timeline?.prompts(lines); coverage.read_records(PromptLog.fold(lines)); } }).live();   // the prompt log, followed live: the Timeline rows and the Coverage records both read this one tail (ext/Refine/doc/prompt-records.md)
 			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
 			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
 			const [costs, trace] = await Promise.all([

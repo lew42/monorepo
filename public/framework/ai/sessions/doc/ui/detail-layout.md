@@ -1,6 +1,7 @@
 # Session detail layout (2026-10-12)
 
-**Chosen:** tabs on top (Conversation, Cost, Models and tokens, Related), `?tab=` in the URL. Conversation is the main tab; the chat fills the view and scrolls inside itself, so no other panel can push it away.
+**Chosen (updated 2026-10-25):** one tab row, `?tab=` in the URL: **Overview · Timeline · Chat · Tasks · More ▾**. More ▾ (a `SessionPopover`) holds Board, Coverage, Cost, Models and tokens, Related, Task queue → and Full screen; when the open tab is one of those, More shows as on. Chat and Coverage are hidden for a session with no chat (`chat_ok`). Old keys `work` and `conversation` still map to `tasks` and `chat`.
+**On a phone (under 600 px):** the sticky stats bar is one line (cost · state · running); a tap opens the full grid, unsticky. The Timeline's list grows and the page scrolls, so there is one scroll area; on a wide screen the list keeps its own 72dvh box because the panel is short beside the sticky bar.
 **Alternative recorded:** a left nav (same panels, always visible). Rejected: the detail already sits beside the session list, and a third column cramps the chat.
 **Dropped:** the "All sessions" back button and the id + `session-detail.js` line (the page title already names the session).
 **Footer** ("N open tasks on this page"): kept, but a compact chip with its own background; it re-reads `tasks.json` on every render so landed tasks vanish ([page-work-line.md](../../../core/Page/ai/doc/page-work-line.md)). It is not a stream yet.

@@ -15,19 +15,13 @@ View.stylesheet(import.meta, "SessionTimeline.css");
  *  popover (SessionPopover). Readme: ai/AISession/readme.md. */
 export default class SessionTimeline extends View {
 
-	/** The kinds, the hidden ones and the landed states live in SessionTimelineRows; the view uses them by these names. */
-	static KINDS = SessionTimelineRows.KINDS;
-	static HIDDEN = SessionTimelineRows.HIDDEN;
-	static rows = (...a) => SessionTimelineRows.rows(...a);
-	static landed_of = k => SessionTimelineRows.landed_of(k);
-
 	// ---- the view ------------------------------------------------------------------------------------------------------------
 
 	initialize(){
 		this.ac("stl");
 		this.lines = []; this.prompt_lines = []; this.kids = []; this.costs = new Map(); this.seen = new Set(); this.stick = true;
 		setTimeout(() => { this.seen.add("record").add("prompts"); this.later(); }, 4000);   // a missing file may never answer: after this, an empty list says so (a line arriving later still redraws)
-		this.on = new Set(SessionTimeline.KINDS.map(k => k[0]).filter(k => !SessionTimeline.HIDDEN.includes(k)));
+		this.on = new Set(SessionTimelineRows.KINDS.map(k => k[0]).filter(k => !SessionTimelineRows.HIDDEN.includes(k)));
 		this.counts = {};
 		this.empty(() => {
 			div.c("stl-head", () => {
@@ -41,7 +35,7 @@ export default class SessionTimeline extends View {
 
 	filter_menu(){
 		div.c("stl-menu", () => {
-			for (const [kind, text] of SessionTimeline.KINDS) label.c("stl-filter", () => {
+			for (const [kind, text] of SessionTimelineRows.KINDS) label.c("stl-filter", () => {
 				const box = input().attr("type", "checkbox");
 				box.el.checked = this.on.has(kind);
 				box.on("change", () => { box.el.checked ? this.on.add(kind) : this.on.delete(kind); this.draw(); });
@@ -61,15 +55,18 @@ export default class SessionTimeline extends View {
 	settle(source){ this.seen.add(source); }
 
 	later(){ if (this.queued) return; this.queued = setTimeout(() => { this.queued = null; this.draw(); }, 30); }
-	at_bottom(){ const e = this.$list.el; return e.scrollHeight - e.scrollTop - e.clientHeight < 48; }
+	/** The rows scroll in the list's own box on a wide screen; on a phone the list grows with the page (SessionTimeline.css), and the page is never scrolled for it, so the stats bar and tabs stay on the first screen. */
+	boxed(){ const e = this.$list.el; return e.scrollHeight > e.clientHeight && /auto|scroll/.test(getComputedStyle(e).overflowY); }
+	at_bottom(){ const e = this.$list.el; return !this.boxed() || e.scrollHeight - e.scrollTop - e.clientHeight < 48; }
+	to_end(){ if (this.boxed()) this.$list.el.scrollTop = this.$list.el.scrollHeight; }
 	/** The tab was opened: its list is laid out now, so land on the newest row. */
-	shown(){ this.stick = true; this.$list.el.scrollTop = this.$list.el.scrollHeight; }
+	shown(){ this.stick = true; this.to_end(); }
 
 	draw(){
-		const all = SessionTimeline.rows(this.lines, this.prompt_lines, SessionTimeline.landed_of(this.kids)), per = {};
+		const all = SessionTimelineRows.rows(this.lines, this.prompt_lines, SessionTimelineRows.landed_of(this.kids)), per = {};
 		all.forEach(r => per[r.kind] = (per[r.kind] ?? 0) + 1);
 		const rows = all.filter(r => this.on.has(r.kind)), stick = this.stick || this.at_bottom();
-		for (const [kind] of SessionTimeline.KINDS) if (this.counts[kind]) this.counts[kind].el.textContent = per[kind] ?? 0;
+		for (const [kind] of SessionTimelineRows.KINDS) if (this.counts[kind]) this.counts[kind].el.textContent = per[kind] ?? 0;
 		this.$count.el.textContent = !all.length ? (this.seen.size >= 2 ? "No events" : "Reading this session's record…") : rows.length === all.length ? `${all.length} event${all.length === 1 ? "" : "s"}` : `${rows.length} of ${all.length} events`;
 		this.el.dataset.total = all.length;
 		this.$list.empty(() => {
@@ -83,7 +80,7 @@ export default class SessionTimeline extends View {
 			}
 		});
 		this.el.dataset.rows = rows.length;
-		if (stick) this.$list.el.scrollTop = this.$list.el.scrollHeight;
+		if (stick) this.to_end();
 	}
 
 	kid(id){ return this.kids.find(c => c.id === id || c.name === id || c.key === id) ?? null; }
@@ -98,7 +95,7 @@ export default class SessionTimeline extends View {
 
 	icon_of(kind){
 		if (kind === "done") return SessionOutlineView.state_icon("complete");
-		return icon(SessionTimeline.KINDS.find(k => k[0] === kind)?.[2] ?? "more_horiz").ac("stl-icon");
+		return icon(SessionTimelineRows.KINDS.find(k => k[0] === kind)?.[2] ?? "more_horiz").ac("stl-icon");
 	}
 
 	row(r, d){

@@ -30,6 +30,11 @@
 	.stl-n { margin-inline-start: auto; font-variant-numeric: tabular-nums; }
 	.ux-popover.stl-pop { max-inline-size: min(22rem, calc(100vw - 1rem)); }
 
+	/* On a phone the page scrolls, not the list: one scroll area (the list's own box stays on a wide screen, where the panel is short beside the sticky bar). */
+	@media (max-width: 599px) {
+		.stl-list { max-height: none; overflow-y: visible; overscroll-behavior: auto; }
+	}
+
 	@media (min-width: 900px) {
 		.stl { --stl-cols: 5rem 1.25rem minmax(0, 1fr); }
 		.stl-row, .stl-sum { column-gap: .75rem; }
