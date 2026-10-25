@@ -1,5 +1,6 @@
 import { query, getSessionInfo, getSessionMessages } from "@anthropic-ai/claude-agent-sdk";
 import SessionRecord from "../../Server/SessionRecord.mjs";
+import ChildLinks from "../../Server/ChildLinks.mjs";
 import fs from "node:fs";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -219,7 +220,7 @@ export class Agents {
 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
 		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
-		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_session: spec.parent ? spec.parent_session ?? this.live.get(spec.parent)?.session_id ?? this.reg().read()[spec.parent]?.session_id ?? null : null, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
 		const fresh = !again && !spec.system;
@@ -1024,7 +1025,7 @@ function directory_of(spec){
  * a caller opened earlier (or a sibling agent shares), it just adds one more
  * assign line with the same facts, exactly like every other `assign` a task
  * log collects over its life — never touching what came before it. */
-export function open_task(task, { session_id, agent, role, by, model, worktree, parent_dir }){
+export function open_task(task, { session_id, agent, role, by, model, worktree, parent_dir, parent_session }){
 	// An old-shaped dir (ai/YYYY-MM-DD/<slug>/) from a brief goes to the task store instead (Server/TaskDirs.mjs,
 	// ai/doc/task-folders.md); task.dir is rewritten so everything after this (directory_of, the inbox) sees the real place.
 	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
@@ -1045,7 +1046,9 @@ export function open_task(task, { session_id, agent, role, by, model, worktree, 
 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
 	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
 	// A handoff (`task: {from, id}`) is referenced by move_item's own `as` line; a second plain one would replay as a twin child, so link only without a handoff (or when it is refused, below).
-	const link = () => { try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch (e){ console.warn("link_parent failed for", dir, e); } };
+	const link = () => { try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch (e){ console.warn("link_parent failed for", dir, e); }
+		// A folder outside the parent SESSION's own folder (core/Page/tasks/…, spawned/…) is still its child: one {"task","as"} line on the session's record (ChildLinks).
+		if (parent_session) try { ChildLinks.link(dir, parent_session, agent, { by: "Servex", parent_dir }); } catch (e){ console.warn("ChildLinks.link failed for", dir, e); } };
 	const handoff = !!(task.from && task.id);
 	if (!handoff) link();
 	// Handoff by task: `task: {from, id}` moves that subtask out of the spawner's log into this folder (page_tools.js move_item).
