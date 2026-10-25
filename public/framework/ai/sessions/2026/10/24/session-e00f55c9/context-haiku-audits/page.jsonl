@@ -1,0 +1,10 @@
+{"tasks":{"add":{"id":"ce12886c-04fa-468c-a2f2-686b001987ad","title":"ai/doc/context.md: context window, sizes, live reading, compaction, dependency, pollution, phases","kind":"doc"}},"by":"ai-system-mastermind","ts":"2026-10-25T01:03:29.096Z"}
+{"tasks":{"add":{"id":"58478095-df8b-4021-b91b-edfed26157d2","title":"agent-rules: when Haiku may go past 100k tokens (long reads, sweeps)","kind":"doc"}},"by":"ai-system-mastermind","ts":"2026-10-25T01:03:32.539Z"}
+{"tasks":{"add":{"id":"c9ff5af7-65c3-48bc-87bf-d38d51e528b9","title":"Parallel Haiku: independent agents, no shared reading, vary model/effort (idea, not built)","kind":"doc"}},"by":"ai-system-mastermind","ts":"2026-10-25T01:03:33.326Z"}
+{"tasks":{"add":{"id":"5f0e3cf6-1774-481a-beec-dd4db6233998","title":"Module audit process: manager picks modules, Haiku audits each, audit.md, proposes queue tasks, runs when idle (plan)","kind":"plan"}},"by":"ai-system-mastermind","ts":"2026-10-25T01:03:34.167Z"}
+{"tasks":{"add":{"id":"929bbb4e-5273-4d52-972d-ecae9ac9ca16","title":"Past work via Haiku child session with a results list (skill/tool design, after the item 2 trial)","kind":"plan"}},"by":"ai-system-mastermind","ts":"2026-10-25T01:03:34.995Z"}
+{"tasks":{"add":{"id":"289be7b8-6180-429b-a986-a48a870f1117","title":"Mastermind types: core page mastermind as a role row; Page readme points at Item; role readme lists subject masterminds","kind":"doc"}},"by":"ai-system-mastermind","ts":"2026-10-25T01:03:35.970Z"}
+{"tasks":{"add":{"id":"aae9655c-1f4d-476f-917f-a0b73218f69d","title":"Quick-fix worktree reuse: measure reuse vs new from the logs","kind":"measure"}},"by":"ai-system-mastermind","ts":"2026-10-25T01:03:36.696Z"}
+{"tasks":{"add":{"id":"7e033358-2095-4156-9930-b81cf7f13127","title":"Note only: per-module log view, filterable like a database (type, date, columns)","kind":"note"}},"by":"ai-system-mastermind","ts":"2026-10-25T01:03:37.404Z"}
+{"tasks":{"add":{"id":"0f584cb8-d714-4c00-bc43-be0fe0ac0e8f","title":"Sessions show their tasks and completion (check session e00f55c9)","kind":"check"}},"by":"ai-system-mastermind","ts":"2026-10-25T01:03:38.051Z"}
+{"file":"task.jsonl"}

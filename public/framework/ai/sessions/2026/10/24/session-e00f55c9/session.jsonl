@@ -3,3 +3,7 @@
 {"log":{"at":"2026-10-24T19:26:39-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-10-24T19:31:39-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
 {"log":{"at":"2026-10-24T19:36:39-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"task":"/framework/ai/sessions/2026/10/24/session-e00f55c9/past-work-per-file-docs/","by":"TaskDirs","ts":"2026-10-25T00:59:47.694Z"}
+{"task":"/framework/ai/sessions/2026/10/24/session-e00f55c9/context-haiku-audits/","by":"TaskDirs","ts":"2026-10-25T01:01:03.598Z"}
+{"log":{"at":"2026-10-24T20:08:12-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-24T20:13:12-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
