@@ -1,18 +1,18 @@
 import ErrorLog from "../ErrorLog/ErrorLog.js";
-import Prompt from "./Prompt.js";
+import PromptRun from "./PromptRun.js";
 import Placement from "./Placement.js";
 import Whisper from "../../audio/Whisper/Whisper.js";
 import { quick_clean } from "./engine.js";
 
 /**
  * class RefineSystem — the boss of the refine system (`doc/architecture.md`). It owns ONE live
- * `Prompt` (built from `chunks`, one per send, so earlier sentences are never replaced) and runs it through the steps: text in (typed, or from the dictation source) →
- * Servex `/api/refine` (the Cleaner, then the Structurer) → `Prompt.load()` (which runs the
+ * `PromptRun` (built from `chunks`, one per send, so earlier sentences are never replaced) and runs it through the steps: text in (typed, or from the dictation source) →
+ * Servex `/api/refine` (the Cleaner, then the Structurer) → `PromptRun.load()` (which runs the
  * `Scorer`). A page only ever talks to this class:
  *
  *   const system = new RefineSystem({ on_change: prompt => redraw(prompt) });
  *   await system.go("so the page should uh show a flag when unclear");
- *   system.prompt          // the live Prompt (status, raw, clean, refined)
+ *   system.prompt          // the live PromptRun (status, raw, clean, refined)
  *   system.quick(text);    // the instant clean (no model, ~1 ms): call it on every Whisper chunk
  *   system.next();         // start over with a fresh prompt
  *   system.whisper / system.session   // the Whisper server and this surface's WhisperSession (audio/Whisper)
@@ -45,17 +45,17 @@ export default class RefineSystem {
 
 	/** The architecture table the demo's class card draws (same rows as `doc/architecture.md`). */
 	static parts = [
-		{ name: "RefineSystem", job: "boss: runs one prompt through the steps, owns the live Prompt", relation: "composes all below", href: "/framework/ext/Refine/md/doc/architecture/" },
-		{ name: "Prompt", job: "in-memory prompt: raw, clean sentences, refined cards, scores, flags", relation: "data; has Prompt.View", href: "/framework/ext/Refine/md/doc/prompt/" },
-		{ name: "Prompt.View", job: "draws a Prompt: raw, clean with ⚑ flags, cards with S# links", relation: "extends View", href: "/framework/ext/Refine/Prompt.js" },
-		{ name: "Scorer", job: "rules that give each sentence clarity, weight and flags", relation: "used by Prompt.load()", href: "/framework/ext/Refine/Scorer.js" },
+		{ name: "RefineSystem", job: "boss: runs one prompt through the steps, owns the live PromptRun", relation: "composes all below", href: "/framework/ext/Refine/md/doc/architecture/" },
+		{ name: "PromptRun", job: "in-memory prompt: raw, clean sentences, refined cards, scores, flags", relation: "data; has PromptRun.View", href: "/framework/ext/Refine/md/doc/prompt/" },
+		{ name: "PromptRun.View", job: "draws a PromptRun: raw, clean with ⚑ flags, cards with S# links", relation: "extends View", href: "/framework/ext/Refine/PromptRun.js" },
+		{ name: "Scorer", job: "rules that give each sentence clarity, weight and flags", relation: "used by PromptRun.load()", href: "/framework/ext/Refine/Scorer.js" },
 		{ name: "Cleaner", job: "raw → numbered near-verbatim sentences (Cleaner.js)", relation: "step; runs in Servex", href: "/framework/ext/Refine/cleaner/" },
 		{ name: "Structurer", job: "sentences → outline of cards citing them (structure.js)", relation: "step; runs in Servex", href: "/framework/ext/Refine/structure.js" },
 		{ name: "DictationSource", job: "where words come from: mic (ux/Dictate) or the text box", relation: "wraps Dictate", href: "/framework/ux/Dictate/" },
 		{ name: "Echo", job: "the same steps on every VS Code prompt", relation: "second caller of the steps", href: "/framework/servex/" },
 	];
 
-	prompt = new Prompt();
+	prompt = new PromptRun();
 	whisper = Whisper.shared;
 	session = this.whisper.session("Refine demo");   // Dictate's on_whisper feeds it: system.session.record(line)
 	model = "";                                     // empty: the server picks (Haiku, or OpenRouter when session-backend.txt says so): ai/doc/models.md
@@ -146,7 +146,7 @@ export default class RefineSystem {
 
 	static rows(text){ return quick_clean(text).map(t => ({ n: t.n, text: t.text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" })); }
 
-	/** Rebuild the one `Prompt` from every sent chunk, then the sentence in flight, then the box: sentences only ever get added. */
+	/** Rebuild the one `PromptRun` from every sent chunk, then the sentence in flight, then the box: sentences only ever get added. */
 	compose(quick_ms){
 		const clean = [], refined = [], raws = [];
 		let at = 0, working = false, error = "", ms = 0;
@@ -190,7 +190,7 @@ export default class RefineSystem {
 			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model || undefined, session: this.session_id, prompt: chunk.prompt_id, source: this.source ?? "typed" }) });
 			const out = await res.json();
 			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
-			const one = new Prompt();   // scores this chunk alone (`Prompt.load`), then compose() renumbers it into the transcript
+			const one = new PromptRun();   // scores this chunk alone (`PromptRun.load`), then compose() renumbers it into the transcript
 			one.load(out);
 			Object.assign(chunk, { clean: one.clean, refined: one.refined, subject: one.subject, runs: one.runs, stages: one.stages, ms: one.ms, status: "done" });
 			for (const s of chunk.clean) s.placed = await this.placement.add(s, this.paragraphs);   // the placement step: one decision per sentence, in order
@@ -207,7 +207,7 @@ export default class RefineSystem {
 
 	/** Live refine for THIS prompt (`RefineSystem.post_live()` above): keeps only the newest `seq` (a reply
 	 *  for an older batch, arrived late, is dropped), and writes the outline straight onto the
-	 *  live `Prompt` so any host watching it (its own `on_change`, `Prompt.View`'s "3 · Outline"
+	 *  live `PromptRun` so any host watching it (its own `on_change`, `PromptRun.View`'s "3 · Outline"
 	 *  section) sees it update as the words arrive — the same redraw path `go()` and `quick()`
 	 *  already use, never a second one. */
 	async live(text, { final = false } = {}){
@@ -220,7 +220,7 @@ export default class RefineSystem {
 		return out;
 	}
 
-	/** Start over: the same Prompt object, emptied (so the debug tree keeps showing the live one). */
+	/** Start over: the same PromptRun object, emptied (so the debug tree keeps showing the live one). */
 	next(){
 		this.prompt_id = RefineSystem.new_prompt_id();
 		this.chunks = []; this.pending = ""; this.sending = null; this.live_sections = []; this.paragraphs = Placement.state();

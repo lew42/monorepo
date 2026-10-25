@@ -3,7 +3,7 @@
  * shaped like the real answer (it carries `prompt`, `session` and `notes`), and a saved log is replayed.
  *   1. Pressing Refine sends the page's session id and shows the Haiku notes (name, tag, alternate) and the
  *      "open the session" link.
- *   2. `Prompt.from_log(PromptLog.fold(lines))` rebuilds a finished prompt: 0-based cites come back as S numbers. */
+ *   2. `PromptRun.from_log(PromptLog.fold(lines))` rebuilds a finished prompt: 0-based cites come back as S numbers. */
 import { createRequire } from "module";
 const { chromium } = createRequire(process.env.PW_ROOT + "/")("playwright");
 const base = process.argv[2], dir = process.argv[3];
@@ -41,7 +41,7 @@ if (dir) await p.screenshot({ path: `${dir}/session-log-1400.png` });
 // Replay a saved log (no model).
 const replay = await p.evaluate(async () => {
 	const { default: PromptLog } = await import("/framework/ai/AISession/PromptLog.js");
-	const { default: Prompt } = await import("/framework/ext/Refine/Prompt.js");
+	const { default: PromptRun } = await import("/framework/ext/Refine/PromptRun.js");
 	const at = "2026-10-10T00:00:00Z";
 	const lines = [
 		{ prompt: "p1", stage: "raw", text: "um raw words", at },
@@ -50,7 +50,7 @@ const replay = await p.evaluate(async () => {
 		{ prompt: "p1", stage: "notes", notes: [{ i: 1, clarity: 0.9, why: "ok", alternates: ["2nd."], names: ["Second"], tags: ["core/Page"] }], at },
 	];
 	const row = PromptLog.fold(lines).p1;
-	const pr = Prompt.from_log(row, "sess");
+	const pr = PromptRun.from_log(row, "sess");
 	return { status: pr.status, clean: pr.clean.map(s => s.n + ":" + s.text), cites: pr.refined[0].cites, sub: pr.refined[0].cards[0].cites, note: pr.clean[1].names, tags: pr.clean[1].tags, id: pr.prompt_id };
 });
 check("replay: S numbers come back from indexes", replay.cites.join() === "1,2" && replay.sub.join() === "2" && replay.status === "done", replay);

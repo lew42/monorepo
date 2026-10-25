@@ -21,7 +21,7 @@ import AISession from "./AISession.js";
  *   const prompts = PromptLog.fold(await PromptLog.read(session_id));                // browser or node: { id → prompt }
  *   prompts[id].clean   // ["sentence 0", …]     prompts[id].refined, .notes, .raw, .final
  *
- * `fold()` is also how a replay of a saved session becomes a `Prompt` (`ext/Refine/Prompt.js` `Prompt.from_log`).
+ * `fold()` is also how a replay of a saved session becomes a `Prompt` (`ext/Refine/PromptRun.js` `PromptRun.from_log`).
  * Sessions page tail: the same file, read with `AISession.read_text`, so a page can follow it live.
  */
 export default class PromptLog {
@@ -67,12 +67,12 @@ export default class PromptLog {
 		return AISession.lines_of(await AISession.read_text(id, PromptLog.FILE));
 	}
 
-	/** Lines to prompts: `{ id → { id, raw, source, clean, final, refined, subject, notes, parts, process, handled, at } }`, in first-seen order. */
+	/** Lines to prompts: `{ id → { id, raw, source, ref, clean, final, refined, subject, notes, parts, process, handled, at } }`, in first-seen order. */
 	static fold(lines){
 		const out = {};
 		for (const l of lines){
-			const p = out[l.prompt] ??= { id: l.prompt, raw: null, source: "", clean: [], final: false, refined: [], subject: "", notes: [], parts: [], process: "", handled: null, at: l.at };
-			if (l.stage === "raw"){ p.raw = l.text; p.source = l.source ?? ""; }
+			const p = out[l.prompt] ??= { id: l.prompt, raw: null, source: "", ref: null, clean: [], final: false, refined: [], subject: "", notes: [], parts: [], process: "", handled: null, at: l.at };
+			if (l.stage === "raw"){ p.raw = l.text; p.source = l.source ?? ""; p.ref = l.ref ?? null; }
 			else if (l.stage === "clean" && !p.final){ p.clean = l.sentences; p.final = !!l.final; }
 			else if (l.stage === "refined"){ p.refined = l.cards; p.subject = l.subject ?? ""; }
 			else if (l.stage === "notes") p.notes = l.notes;

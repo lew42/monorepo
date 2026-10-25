@@ -1,0 +1,1795 @@
+diff --git a/Server/PromptGroup.test.mjs b/Server/PromptGroup.test.mjs
+index 35b9a6868..db625979d 100644
+--- a/Server/PromptGroup.test.mjs
++++ b/Server/PromptGroup.test.mjs
+@@ -5,6 +5,8 @@ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import PromptRecords from "./PromptRecords.mjs";
+ import TaskHomes from "./TaskHomes.mjs";
++import Session from "../public/framework/core/Session/Session.js";
++import Prompt from "../public/framework/core/Task/Prompt.js";
+ import { ledgers } from "../Servex/agents/page_tools.js";
+ 
+ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+@@ -19,7 +21,7 @@ try {
+ 	const parts = (...t) => t.map((x, i) => ({ id: `a${i + 1}`, cites: [i], kind: "ask", text: x, outcome: { is: "open" } }));
+ 	const put = async (id, subject, ps) => { await pr.add({ prompt: id, stage: "raw", text: id }); await pr.add({ prompt: id, stage: "parts", subject, parts: ps }); return { id, uuid: id, line: 1, at: "2026-10-25T01:00:00Z", text: id }; };
+ 	pr.attach_to = async () => null;
+-	const roots = () => read(REC).filter(l => l.tasks?.add);
++	const roots = () => read(REC).filter(l => l.tasks?.add && l.tasks.add.type !== "Prompt");
+ 	const refs = id => Object.values(pr.rows()).find(r => r.id === id).parts.map(x => x.outcome.ref);
+ 
+ 	const three = await put("p3", "Fix the menu.", parts("add a menu", "fix the footer", "rename the tab"));
+@@ -42,5 +44,7 @@ try {
+ 	const more = await put("p2", "More menu.", parts("menu icons", "menu colors"));
+ 	await pr.file([more]);
+ 	ok(roots().length === 2 && read(REC).filter(l => l[root0]?.tasks?.add).length === 5, "attach_to files the asks under the existing open task, no new parent");
++	const ps = [...Session.replay(read(REC)).tasks].filter(x => x instanceof Prompt);
++	ok(ps.length === 3 && ps.every(p => p.raw_text && p.parts.length), "every prompt is also written to session.jsonl as a Prompt (raw, parts), once, then updated in place");
+ 	console.log(`${n} passed`);
+ } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
+diff --git a/Server/PromptRecords.mjs b/Server/PromptRecords.mjs
+index a32fbce07..cddd5e3a4 100644
+--- a/Server/PromptRecords.mjs
++++ b/Server/PromptRecords.mjs
+@@ -7,7 +7,7 @@
+  *   parts      model   runs of sentences, each with a kind; main asks with their details nested (PARTS_BRIEF) → a `parts` line
+  *   outcomes   model   what came of each part, with evidence (OUTCOMES_BRIEF), one call per window of the session → a new `parts` line
+  *   file       node    every part still open becomes a task on the session (item tool's run_item); done/documented ones never do
+- *   completion code    Prompt.completion(): settled parts out of parts + uncited sentences (ext/Refine/Prompt.js)
++ *   completion code    Prompt.completion: settled parts out of parts + uncited sentences (core/Task/Prompt.js; the Prompt is mirrored into session.jsonl by add())
+  * Sources differ only in how raw text arrives: a VS Code tab transcript (PromptAudit.prompts), a Whisper/Dictate session's own
+  * prompts.jsonl raw lines, the cloud voice log. Live: `live` (parts, then proposals). After the fact: `review`.
+  *
+@@ -26,7 +26,9 @@ import AIIndex from "./AIIndex.mjs";
+ import RefineQueue from "./RefineQueue.mjs";
+ import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
+ import PromptLog from "../public/framework/ai/AISession/PromptLog.js";
+-import Prompt from "../public/framework/ext/Refine/Prompt.js";
++import PromptRun from "../public/framework/ext/Refine/PromptRun.js";
++import Prompt from "../public/framework/core/Task/Prompt.js";
++import { prompt_delta, has_prompt } from "./PromptsToSession.mjs";
+ 
+ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const HAIKU = "claude-haiku-5-5";
+@@ -111,7 +113,19 @@ Answer at the end with ONE JSON object and nothing else after it:
+ 	/** The record id of a prompt: an existing row with the same raw text (the live process wrote it first), else its transcript uuid. */
+ 	rid(p){ if (p.id) return p.id; const rows = this.rows(); return p.id = Object.values(rows).find(r => r.raw === p.text)?.id ?? p.uuid; }
+ 
+-	async add(line){ return PromptLog.add(this.id, line, this.by, pathToFileURL(this.folder + path.sep)); }
++	/* Every stage line goes to prompts.jsonl (the old readers: Dictate, Echo, the coverage card) AND the prompt's current state to session.jsonl as a
++	   Prompt task (core/Task/Prompt.js): the add on the first stage, then one update delta per stage. No session.jsonl, no Prompt. */
++	async add(line){
++		const out = await PromptLog.add(this.id, line, this.by, pathToFileURL(this.folder + path.sep));
++		this.mirror(line.prompt, out.at);
++		return out;
++	}
++	mirror(id, at){
++		const file = path.join(this.folder, "session.jsonl"), row = this.rows()[id];
++		if (!row || !fs.existsSync(file)) return;
++		const delta = prompt_delta(row, !has_prompt(file, id), at);
++		if (delta) fs.appendFileSync(file, JSON.stringify(delta) + "\n");
++	}
+ 
+ 	/** Step 1, code: raw text and numbered sentences, once per prompt (raw is immutable, a final clean is set in stone). */
+ 	async sentences(ps){
+@@ -210,7 +224,7 @@ Answer at the end with ONE JSON object and nothing else after it:
+ 	async parent_for(p, row, todo, record){
+ 		const { run_item } = await import(pathToFileURL(path.join(ROOT, "Servex/agents/page_tools.js")).href);
+ 		const state = this.task_state(), open = [];
+-		for (const l of PromptAudit.read(path.join(this.folder, "session.jsonl"))){ const a = l.tasks?.add; if (a?.id && !a.source?.part && !["complete", "stopped"].includes(state(a.id))) open.push({ id: a.id, title: a.title }); }
++		for (const l of PromptAudit.read(path.join(this.folder, "session.jsonl"))){ const a = l.tasks?.add; if (a?.id && a.type !== "Prompt" && !a.source?.part && !["complete", "stopped"].includes(state(a.id))) open.push({ id: a.id, title: a.title }); }
+ 		const attach = await this.attach_to(row, todo, open.slice(-40));
+ 		if (attach) return attach;
+ 		const title = (row.subject || todo[0].text).replace(/\s+/g, " ").trim().replace(/[.:;,]+$/, "").slice(0, 120);
+@@ -249,12 +263,12 @@ Answer at the end with ONE JSON object and nothing else after it:
+ 		};
+ 	}
+ 
+-	/** Completion per prompt, computed (Prompt.completion). */
++	/** Completion per prompt, computed (PromptRun.progress; the same maths as Prompt.completion). */
+ 	summary(){
+ 		const rows = this.rows(), state = this.task_state(), out = [];
+ 		for (const p of this.prompts){
+ 			const row = rows[this.rid(p)]; if (!row) { out.push({ line: p.line, recorded: false }); continue; }
+-			const pr = Prompt.from_log(row, this.id), { done, total } = pr.progress(state);
++			const pr = PromptRun.from_log(row, this.id), { done, total } = pr.progress(state);
+ 			const kinds = {}; for (const x of pr.parts) kinds[x.outcome?.is ?? "?"] = (kinds[x.outcome?.is ?? "?"] ?? 0) + 1;
+ 			out.push({ line: p.line, at: p.at, subject: row.subject || pr.parts[0]?.text?.slice(0, 60) || "", parts: pr.parts.length, uncovered: pr.uncovered.length, done, total, complete: pr.complete(state), outcomes: kinds });
+ 		}
+diff --git a/Server/PromptTrace.mjs b/Server/PromptTrace.mjs
+new file mode 100644
+index 000000000..8ef46554d
+--- /dev/null
++++ b/Server/PromptTrace.mjs
+@@ -0,0 +1,52 @@
++#!/usr/bin/env node
++// Server/PromptTrace.mjs — "didn't I ask for this?": words the owner said -> the Prompt, when, the tasks made from it, each task's state.
++//
++//   node Server/PromptTrace.mjs "words the owner said" [--session <slug or id8>] [--days 30] [--min 0.8] [--json]
++//
++// Reads every ai/sessions/YYYY/MM/DD/<slug>/session.jsonl (or one session), replays it, and asks Prompt.trace (core/Task/Prompt.js).
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import Session from "../public/framework/core/Session/Session.js";
++import Prompt from "../public/framework/core/Task/Prompt.js";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++export const SESSIONS = path.join(HERE, "..", "public", "framework", "ai", "sessions");
++
++const lines_of = file => fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
++const records = (root, days) => {
++	const out = [], cutoff = days ? Date.now() - days * 864e5 : 0;
++	for (const y of fs.readdirSync(root).filter(n => /^\d{4}$/.test(n)))
++		for (const m of fs.readdirSync(path.join(root, y)).filter(n => /^\d{2}$/.test(n)))
++			for (const d of fs.readdirSync(path.join(root, y, m)).filter(n => /^\d{2}$/.test(n))){
++				if (cutoff && Date.parse(`${y}-${m}-${d}`) < cutoff - 864e5) continue;
++				for (const slug of fs.readdirSync(path.join(root, y, m, d))){ const f = path.join(root, y, m, d, slug, "session.jsonl"); if (fs.existsSync(f)) out.push(f); }
++			}
++	return out;
++};
++
++/** [{session, ...hit}] for the words, best first, across the given session records (default: the last `days` days of the repo; days 0 = all). */
++export function trace(words, { files, root = SESSIONS, days = 30, min } = {}){
++	const hits = [];
++	for (const f of files ?? records(root, days)){
++		let s; try { s = Session.replay(lines_of(f)); } catch { continue; }
++		for (const h of Prompt.trace(s, words, min ? { min } : {})) hits.push({ session: path.relative(root, path.dirname(f)).split(path.sep).join("/"), ...h });
++	}
++	return hits.sort((a, b) => b.score - a.score || String(b.at ?? "").localeCompare(String(a.at ?? "")));
++}
++
++if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])){
++	const argv = process.argv.slice(2), val = n => argv.includes(n) ? argv[argv.indexOf(n) + 1] : undefined;
++	const skip = new Set(["--session", "--days", "--min"].flatMap(n => argv.includes(n) ? [argv.indexOf(n), argv.indexOf(n) + 1] : []));
++	const words = argv.filter((a, i) => !a.startsWith("--") && !skip.has(i)).join(" ");
++	if (!words){ console.error('usage: node Server/PromptTrace.mjs "words" [--session <slug or id8>] [--days 30] [--min 0.8] [--json]'); process.exit(1); }
++	let files; const one = val("--session");
++	if (one) files = records(SESSIONS, 0).filter(f => f.split(path.sep).slice(-2, -1)[0].includes(one));
++	const hits = trace(words, { files, days: Number(val("--days") ?? 30), min: val("--min") ? Number(val("--min")) : undefined });
++	if (argv.includes("--json")) console.log(JSON.stringify(hits, null, 1));
++	else if (!hits.length) console.log("no Prompt in range says that");
++	else for (const h of hits.slice(0, 8)){
++		console.log(`${h.at ?? "?"}  ${h.session}  ${h.id}  match ${Math.round(h.score * 100)}%  done ${Math.round(h.completion * 100)}%  ${h.subject ?? ""}`);
++		for (const t of h.tasks) console.log(`    ${t.state.padEnd(9)} ${t.id}  ${t.title}`);
++	}
++}
+diff --git a/Server/PromptTrace.test.mjs b/Server/PromptTrace.test.mjs
+new file mode 100644
+index 000000000..6e542154b
+--- /dev/null
++++ b/Server/PromptTrace.test.mjs
+@@ -0,0 +1,21 @@
++// Node test for the trace script. Run: `node Server/PromptTrace.test.mjs`.
++import assert from "node:assert";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { trace } from "./PromptTrace.mjs";
++
++const root = fs.mkdtempSync(path.join(os.tmpdir(), "ptrace-")), J = o => JSON.stringify(o) + "\n";
++const dir = path.join(root, "2026/10/25/session-cccc3333"); fs.mkdirSync(dir, { recursive: true });
++fs.writeFileSync(path.join(dir, "session.jsonl"),
++	J({ session: { id: "cccc3333-0000-4000-8000-000000000000" } })
++	+ J({ ts: "2026-10-25T09:00:00Z", tasks: { add: { type: "Prompt", id: "p1", raw: ["Make the garden page wider. Also fix the footer."], paragraphs: [{ id: "a", text: "Make the garden page wider. Also fix the footer." }] } } })
++	+ J({ p1: { tasks: { add: { id: "t1", title: "garden page wider" } } } })
++	+ J({ tasks: { add: { id: "t2", title: "footer", from: "p1" } } }));
++let n = 0; const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
++const hits = trace("garden page wider", { root, days: 0 });
++ok(hits.length === 1 && hits[0].id === "p1" && hits[0].session === "2026/10/25/session-cccc3333" && hits[0].at === "2026-10-25T09:00:00Z", "words find the Prompt, its session and its time");
++ok(hits[0].tasks.map(t => `${t.id}:${t.state}`).sort().join() === "t1:idle,t2:idle", "its tasks come back with their states (nested, and filed beside it with from)");
++ok(trace("zebra crossing", { root, days: 0 }).length === 0, "words nobody said find nothing");
++fs.rmSync(root, { recursive: true, force: true });
++console.log(`all ${n} passed`);
+diff --git a/Server/PromptsToSession.mjs b/Server/PromptsToSession.mjs
+new file mode 100644
+index 000000000..db4658a45
+--- /dev/null
++++ b/Server/PromptsToSession.mjs
+@@ -0,0 +1,89 @@
++#!/usr/bin/env node
++// Server/PromptsToSession.mjs — folds each session's prompts.jsonl into its session.jsonl as Prompt tasks (core/Task/Prompt.js).
++//
++//   node Server/PromptsToSession.mjs [--repo <checkout>]          DRY RUN (the default): prints what it would add, writes nothing
++//   node Server/PromptsToSession.mjs --apply [--repo <checkout>]  appends the Prompt lines and writes the manifest
++//
++// Per prompt (PromptLog.fold of the old file): ONE Prompt line `{tasks:{add:{type:"Prompt", id, raw:[raw], paragraphs:[{id:"a", text, sentences}],
++// subject, parts, refined, notes, process, handled, requested_at}}}`. The old clean sentences become ONE paragraph "a" that lists them
++// explicitly, so sentence i (0-based) is `a<i+1>` and every old cite (a 0-based index into clean) becomes that id, in parts and in refined cards.
++// Raw, sentences, parts, cites, notes and handled all survive. The old prompts.jsonl is left in place (nothing is deleted or rewritten);
++// a prompt already in the session.jsonl (same id) is skipped, so a second run adds nothing. Folders with no session.jsonl are listed, not made.
++// Manifest: ai/sessions/prompts-migration-manifest.json, one entry per file: {from, to, added: [prompt ids], skipped: [...]}.
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import PromptLog from "../public/framework/ai/AISession/PromptLog.js";
++
++const BY = "PromptsToSession", PARA = "a";
++const sid = i => `${PARA}${i + 1}`;
++
++/** One folded prompt (PromptLog.fold row) to the delta line that adds it as a Prompt. */
++export function prompt_line(row){
++	const ids = list => (list ?? []).map(sid);
++	const parts = ps => (ps ?? []).map(p => ({ ...p, cites: ids(p.cites), ...(p.parts ? { parts: parts(p.parts) } : {}) }));
++	const cards = cs => (cs ?? []).map(c => ({ ...c, cites: ids(c.cites), ...(c.cards ? { cards: cards(c.cards) } : {}) }));
++	const add = {
++		type: "Prompt", id: row.id, by: BY, requested_at: row.ref?.at ?? row.at,
++		raw: row.raw == null ? [] : [row.raw],
++		paragraphs: row.clean.length ? [{ id: PARA, text: row.clean.join(" "), sentences: row.clean }] : [],
++		...(row.subject ? { subject: row.subject } : {}),
++		...(row.source ? { via: row.source } : {}),
++		...(row.ref ? { ref: row.ref } : {}),
++		...(row.parts?.length ? { parts: parts(row.parts) } : {}),
++		...(row.refined?.length ? { refined: cards(row.refined) } : {}),
++		...(row.notes?.length ? { notes: row.notes } : {}),
++		...(row.process ? { process: row.process } : {}),
++		...(row.handled ? { handled: row.handled } : {}),
++	};
++	return { tasks: { add }, ts: row.ref?.at ?? row.at, by: BY };   // the line is stamped when it was SAID (Task#created_at reads the line ts)
++}
++
++/** True when session.jsonl already holds the add of Prompt `id`. */
++export function has_prompt(file, id){ try { return fs.readFileSync(file, "utf8").includes(`"type":"Prompt","id":${JSON.stringify(id)}`); } catch { return false; } }
++
++/** The line that brings a Prompt in session.jsonl up to a folded row: its add when `first`, else one update delta (PromptRecords.mirror writes it per stage). */
++export function prompt_delta(row, first, at = row.at){
++	const add = prompt_line(row);
++	if (first) return add;
++	const a = add.tasks.add, set = {};
++	for (const k of ["subject", "process", "handled", "parts", "refined", "notes"]) if (a[k] !== undefined) set[k] = a[k];
++	if (a.paragraphs.length) set.paragraphs = { replace: a.paragraphs[0] };
++	return { [row.id]: set, ts: at, by: BY };
++}
++
++const jsonl = file => { try { return fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } }); } catch { return []; } };
++const walk = dir => { let out = []; for (const e of fs.readdirSync(dir, { withFileTypes: true })){ const f = path.join(dir, e.name); if (e.isDirectory()) out = out.concat(walk(f)); else if (e.name === PromptLog.FILE) out.push(f); } return out; };
++
++/** The plan for one prompts.jsonl: the lines to add to the sibling session.jsonl, and what was skipped. */
++export function plan_for(file){
++	const to = path.join(path.dirname(file), "session.jsonl");
++	if (!fs.existsSync(to)) return { from: file, to, added: [], lines: [], skipped: [{ why: "no session.jsonl beside it" }] };
++	const have = new Set(); for (const l of jsonl(to)){ const a = l.tasks?.add; for (const x of [].concat(a ?? [])) if (x?.id) have.add(x.id); }
++	const rows = Object.values(PromptLog.fold(jsonl(file))), lines = [], added = [], skipped = [];
++	for (const row of rows){
++		if (have.has(row.id)) skipped.push({ id: row.id, why: "already in session.jsonl" });
++		else if (row.raw == null) skipped.push({ id: row.id, why: "no raw line" });
++		else { lines.push(prompt_line(row)); added.push(row.id); }
++	}
++	return { from: file, to, added, lines, skipped };
++}
++
++export function migrate({ repo, apply = false } = {}){
++	const sessions = path.join(repo, "public", "framework", "ai", "sessions");
++	const plans = walk(sessions).map(plan_for), manifest = path.join(sessions, "prompts-migration-manifest.json");
++	if (apply){
++		for (const p of plans) if (p.lines.length) fs.appendFileSync(p.to, p.lines.map(l => JSON.stringify(l)).join("\n") + "\n");
++		const rel = f => path.relative(repo, f).split(path.sep).join("/");
++		fs.writeFileSync(manifest, JSON.stringify({ at: new Date().toISOString(), by: BY, files: plans.map(p => ({ from: rel(p.from), to: rel(p.to), added: p.added, skipped: p.skipped })) }, null, "\t") + "\n");
++	}
++	return plans;
++}
++
++if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])){
++	const argv = process.argv.slice(2), here = path.dirname(fileURLToPath(import.meta.url));
++	const repo = path.resolve(argv.includes("--repo") ? argv[argv.indexOf("--repo") + 1] : path.join(here, ".."));
++	const apply = argv.includes("--apply"), plans = migrate({ repo, apply });
++	for (const p of plans) console.log(`${path.relative(repo, p.from)}: ${p.added.length} to add, ${p.skipped.length} skipped${p.skipped.length ? " (" + [...new Set(p.skipped.map(s => s.why))].join("; ") + ")" : ""}`);
++	console.log(`${apply ? "APPLIED" : "DRY RUN (nothing written; add --apply)"}: ${plans.reduce((n, p) => n + p.added.length, 0)} prompts in ${plans.length} files`);
++}
+diff --git a/Server/PromptsToSession.test.mjs b/Server/PromptsToSession.test.mjs
+new file mode 100644
+index 000000000..9ca06da70
+--- /dev/null
++++ b/Server/PromptsToSession.test.mjs
+@@ -0,0 +1,45 @@
++// Node test for the prompts.jsonl -> session.jsonl migration. Run: `node Server/PromptsToSession.test.mjs`.
++import assert from "node:assert";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { migrate, prompt_line } from "./PromptsToSession.mjs";
++import Session from "../public/framework/core/Session/Session.js";
++import Prompt from "../public/framework/core/Task/Prompt.js";
++
++const repo = fs.mkdtempSync(path.join(os.tmpdir(), "p2s-"));
++const dir = path.join(repo, "public/framework/ai/sessions/2026/10/20/session-aaaa1111"), orphan = path.join(repo, "public/framework/ai/sessions/2026/10/16/session-bbbb2222");
++fs.mkdirSync(dir, { recursive: true }); fs.mkdirSync(orphan, { recursive: true });
++const J = o => JSON.stringify(o) + "\n";
++fs.writeFileSync(path.join(dir, "session.jsonl"), J({ session: { id: "aaaa1111-0000-4000-8000-000000000000", kind: "vscode-tab" } }) + J({ tasks: { add: { id: "t0", title: "existing" } } }));
++fs.writeFileSync(path.join(dir, "prompts.jsonl"),
++	J({ prompt: "p1", stage: "raw", text: "Fix the chat. Why is it slow?", source: "vscode", ref: { at: "2026-10-20T19:58:22.752Z" }, at: "2026-10-23T02:00:00Z" })
++	+ J({ prompt: "p1", stage: "clean", sentences: ["Fix the chat.", "Why is it slow?"], final: true, at: "2026-10-23T02:00:01Z" })
++	+ J({ prompt: "p1", stage: "parts", process: "live", parts: [{ id: "a1", cites: [0], kind: "ask", text: "Fix the chat", outcome: { is: "done" } }, { id: "a2", cites: [1], kind: "question", text: "Why slow?", outcome: { is: "open" } }], at: "2026-10-23T02:00:02Z" })
++	+ J({ prompt: "p2", stage: "raw", text: "Another thing entirely.", at: "2026-10-23T03:00:00Z" }));
++fs.writeFileSync(path.join(orphan, "prompts.jsonl"), J({ prompt: "p9", stage: "raw", text: "No session record here.", at: "2026-10-16T00:00:00Z" }));
++const before = fs.readFileSync(path.join(dir, "prompts.jsonl"), "utf8");
++const read = () => fs.readFileSync(path.join(dir, "session.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l));
++let n = 0; const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
++
++const dry = migrate({ repo });
++ok(read().length === 2 && !fs.existsSync(path.join(repo, "public/framework/ai/sessions/prompts-migration-manifest.json")), "the dry run writes nothing");
++ok(dry.flatMap(p => p.added).join() === "p1,p2" && dry.find(p => p.skipped.length && !p.added.length).skipped[0].why.includes("no session.jsonl"), "it plans both prompts, and lists the folder with no session.jsonl instead of making one");
++
++migrate({ repo, apply: true });
++const s = Session.replay(read());
++const p = s.tasks.find("p1");
++ok(p instanceof Prompt && s.tasks.find("t0") && s.tasks.find("p2") instanceof Prompt, "the session replays the old task and both Prompts");
++ok(p.raw.join() === "Fix the chat. Why is it slow?" && p.sentences.map(x => x.id).join() === "a1,a2" && p.sentence("a2").text === "Why is it slow?", "raw is kept whole; clean sentences are numbered a1, a2");
++ok(p.parts[0].cites.join() === "a1" && p.parts[1].cites.join() === "a2" && p.uncovered.length === 0, "old 0-based cites became sentence ids; nothing is uncovered");
++ok(p.created_at === "2026-10-20T19:58:22.752Z", "the Prompt carries when it was said (the transcript time), not when the old file was written");
++ok(Math.abs(p.completion - 0.5) < 1e-9, "completion is computed from the parts: one done, one open question = 1/2");
++ok(Prompt.trace(s, "why slow chat")[0]?.id === "p1", "the trace finds a migrated Prompt by the words said");
++ok(fs.readFileSync(path.join(dir, "prompts.jsonl"), "utf8") === before, "the old prompts.jsonl is left exactly as it was");
++const man = JSON.parse(fs.readFileSync(path.join(repo, "public/framework/ai/sessions/prompts-migration-manifest.json"), "utf8"));
++ok(man.files.some(f => f.added.join() === "p1,p2" && f.to.endsWith("session-aaaa1111/session.jsonl")), "the manifest lists each file, its target and the prompt ids added");
++const size = read().length;
++migrate({ repo, apply: true });
++ok(read().length === size, "a second run adds nothing (same id = skipped)");
++fs.rmSync(repo, { recursive: true, force: true });
++console.log(`all ${n} passed`);
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 57500bb78..0453ae61f 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -69,7 +69,7 @@ function resolve_file(url, item = false){
+  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
+  * resolves the plain way above. Returns { file, target } or null. */
+ const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
+-const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion"];   // Task.queries: answered from the record, never written
++const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "unread"];   // Task.queries: answered from the record, never written
+ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+ 
+ /* TYPO-PROOF SESSION PATHS (2026-10-24, core/Session/doc/identity.md "A typed id that drifts"): a session folder is made only by the
+@@ -420,7 +420,8 @@ const SESSION_KEYS = ["id", "session", "title", "description", "module", "now",
+ const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tags", "tasks", "task", "path", "parent", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];
+ 
+ // A Process adds its own line-1 field and the lines only ProcessRunner writes (core/Task/doc/process.md).
+-const KEYS = { Task: TASK_KEYS, Session: SESSION_KEYS, Process: [...TASK_KEYS, "process", "class", "spawn", "queue", "pulse", "measure"] };
++const PROMPT_KEYS = [...TASK_KEYS, "raw", "paragraphs", "replies", "subject", "parts", "process", "handled", "text", "from"];   // core/Task/Prompt.js
++const KEYS = { Task: TASK_KEYS, Session: SESSION_KEYS, Prompt: PROMPT_KEYS, Question: [...TASK_KEYS, "text", "from", "answer"], Process: [...TASK_KEYS, "process", "class", "spawn", "queue", "pulse", "measure"] };
+ 
+ const told = new Map();   // `${caller}|${class}` -> true once its instructions went out
+ 
+@@ -481,7 +482,7 @@ const FRAMEWORK = path.join(PUBLIC, "framework");
+ const MODULE_NAME = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
+ const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/") + "/";
+ // The class a new subtask is written as: a known task class it names (session-is-a-task: a Project, a Process, a child Session), else Task.
+-const task_type = a => ["Project", "Process", "Session"].includes(a?.type) ? a.type : "Task";
++const task_type = a => ["Project", "Process", "Session", "Prompt", "Question"].includes(a?.type) ? a.type : "Task";
+ export const slug_of = text => Task.slug(text);   // one slug rule, Task's (a string added in the browser gets the same id)
+ 
+ // The module an app path sits in: the nearest folder under public/framework/ with a readme.md. Never a dated ai/sessions/ folder.
+@@ -860,14 +861,20 @@ function verb_in(delta){
+ 
+ /* HONEST COMPLETION (core/Task/doc/resolution.md, section 6): every complete/finish call in a delta, as its argument object.
+  * A bare string or empty value counts as a call with no evidence. A new task's own fields ("add") are not a call. */
+-function complete_calls(delta, out = []){
++function complete_calls(delta, out = [], trail = []){
+ 	if (!is_plain(delta)) return out;
+ 	for (const [k, v] of Object.entries(delta)){
+-		if (k === "complete" || k === "finish") out.push(v);
+-		else if (k !== "add") complete_calls(v, out);
++		if (k === "complete" || k === "finish") out.push({ args: v, trail });
++		else if (k !== "add") complete_calls(v, out, k === "tasks" ? trail : [...trail, k]);
+ 	}
+ 	return out;
+ }
++// The task a target (then a trail of child ids) names, walking `_tasks` one id at a time; the deepest one found (a Question's own rules apply to it, not the session's).
++function node_at(root, ...paths){
++	let node = root;
++	for (const id of paths.flat()){ const kid = node?._tasks?.find(id); if (!kid) return node; node = kid; }
++	return node;
++}
+ 
+ /* A task that completes with caveats tells its parent: one line on the parent's log (the session or task SessionRecord.parent_log finds),
+  * naming the task and what was asked and not done. Returns the log written, or null. */
+@@ -1069,11 +1076,12 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 			return r.why ? { ok: false, why: r.why } : { ok: true, moved: { from: r.from, to: r.to }, state: state() };
+ 		}
+ 	}
+-	if (Class?.replay){ const no = validate(Class, root(), flat); if (no) return no; }
++	if (Class?.replay){ const node = node_at(root(), at.target); const no = validate(node?.constructor ?? Class, node ?? root(), flat); if (no) return no; }
+ 	else if (kind === "Page"){ const no = await page_refusal(at, flat); if (no) return no; }
+ 	// A complete without evidence is refused BEFORE a line is written: a written line would replay as a recorded fact.
+-	if (Class?.replay) for (const args of complete_calls(flat)){
+-		const why = Class.completion_problem?.(args);
++	if (Class?.replay) for (const { args, trail } of complete_calls(flat)){
++		const node = node_at(root(), at.target, trail), Own = node?.constructor ?? Class;
++		const why = Own.completion_problem?.(args, node);
+ 		if (why) return { ok: false, why };
+ 	}
+ 
+diff --git a/Servex/agents/prompt-tasks.test.mjs b/Servex/agents/prompt-tasks.test.mjs
+index 8bacd2401..8d60577c1 100644
+--- a/Servex/agents/prompt-tasks.test.mjs
++++ b/Servex/agents/prompt-tasks.test.mjs
+@@ -33,7 +33,7 @@ try {
+ 
+ 	// 2. The prompt page maps to the session's own record, and line 1's id is read from a VS Code tab's object.
+ 	// The model is stubbed: the live process's parts call answers one main ask (with a nested detail) and one question.
+-	const pt = new PromptTasks({ say: m => console.log("say:", m) });
++	const pt = new PromptTasks({ say: m => console.log("say:", m), off: () => false });   // never the machine's own on/off switch
+ 	const rec = pt.record_for(heard[0].file);
+ 	const live = await pt.live(rec);
+ 	live.call = async (msg) => (pt.asked = msg, pt.asked_n = (pt.asked_n ?? 0) + 1, { usd: 0, text: JSON.stringify({ subject: "session menu", parts: [
+@@ -46,12 +46,12 @@ try {
+ 	const out = await pt.prompted(heard[0]);
+ 	const plog = read(path.join(REC_DIR, "prompts.jsonl"));
+ 	ok(["raw", "clean", "parts"].every(st => plog.some(l => l.stage === st)) && plog.find(l => l.stage === "parts").parts[0].parts[0].text === "settings first", "the prompt's record (raw, sentences, parts with nested details) is in the session's prompts.jsonl");
+-	const adds = read(REC).filter(l => l.tasks?.add); 
++	const adds = read(REC).filter(l => l.tasks?.add && l.tasks.add.type !== "Prompt"); 
+ 	ok(adds.length === 1 && adds[0].tasks.add.state === "idle" && !("waiting_on" in adds[0].tasks.add) && adds[0].tasks.add.from === "owner", "one open (idle) task per task-kind ask, not waiting on the owner; the question stays on the card");
+ 	fs.mkdirSync(MOD_DIR, { recursive: true });
+ 	ok(!fs.existsSync(path.join(MOD_DIR, "tasks")), "a proposed task drafts in the session: no module folder is made before approval");
+ 	await pt.prompted(heard[0]);
+-	ok(read(REC).filter(l => l.tasks?.add).length === 1, "the same prompt is never filed twice");
++	ok(read(REC).filter(l => l.tasks?.add && l.tasks.add.type !== "Prompt").length === 1, "the same prompt is never filed twice");
+ 	ok(adds[0].tasks.add.description.includes("settings first") && adds[0].tasks.add.module_hint === MOD, "a main ask carries its nested details and its module hint");
+ 	ok(adds[0].tasks.add.source.session === rec.uuid && adds[0].tasks.add.source.line === 1 && adds[0].tasks.add.source.part === "a1", "source names the session, the prompt's line and the part, so the receiver can read the raw words");
+ 	ok(adds[0].by === "prompt-tasks" && adds[0].tasks.add.from === "owner", "written by caller prompt-tasks, from the owner");
+@@ -91,10 +91,11 @@ try {
+ 
+ 	// 4. The session replays it as idle open work; a decide line from the page approves it.
+ 	let s = Session.replay(read(REC));
+-	const t = [...s.tasks][0];
++	const asks = s => [...s.tasks].filter(x => x.constructor.name !== "Prompt");   // the mirrored Prompt sits beside the asks
++	const t = asks(s)[0];
+ 	ok(s.id === rec.uuid && t.state === "idle" && t.get_one("waiting_on") == null && !PromptTasks.accepted(t) && t.get_one("title") === "Build the session menu", "the session reads it as open work: idle, not waiting on the owner, not yet started");
+ 	s = Session.replay([...read(REC), { tasks: { [t.id]: { start: {} } } }]);
+-	ok([...s.tasks][0].state === "running" && PromptTasks.accepted([...s.tasks][0]), "a tab or agent that starts it (item tool start) accepts it");
++	ok(asks(s)[0].state === "running" && PromptTasks.accepted(asks(s)[0]), "a tab or agent that starts it (item tool start) accepts it");
+ 
+ 	// 5. Started and naming a module: the TaskLoop sweep moves it to <module>/tasks/<slug>/, and the session references it there.
+ 	ok((await pt.sweep()).length === 0, "an idle task nobody started is not moved");
+@@ -103,7 +104,7 @@ try {
+ 	const home = path.join(MOD_DIR, "tasks", t.id, "task.jsonl");
+ 	ok(moved.length === 1 && fs.existsSync(home) && (h => h.get_one("title") === "Build the session menu" && h.state === "running")(Task.replay(read(home))), "started: it moves to <module>/tasks/<slug>/ with its data and state");
+ 	s = Session.replay(read(REC));
+-	ok(s.tasks.length === 1 && [...s.tasks][0].data.path === `/framework/${MOD}/tasks/${t.id}/`, "the session now references the moved task (same id replaces the nested one)");
++	ok(asks(s).length === 1 && asks(s)[0].data.path === `/framework/${MOD}/tasks/${t.id}/`, "the session now references the moved task (same id replaces the nested one)");
+ 	ok((await pt.sweep()).length === 0 && fs.readFileSync(ledgers.task_moves, "utf8").includes(t.id), "moved once, and the move is in the ledger");
+ } finally {
+ 	fs.rmSync(PAGE_DIR, { recursive: true, force: true });
+diff --git a/public/framework/ai/AISession/AISessionCoverage.js b/public/framework/ai/AISession/AISessionCoverage.js
+index 9ce86c549..edea0dc8a 100644
+--- a/public/framework/ai/AISession/AISessionCoverage.js
++++ b/public/framework/ai/AISession/AISessionCoverage.js
+@@ -1,7 +1,7 @@
+ import { div, p, span, small, a, details, summary, strong, md } from "/app.js";
+ import RefinedCard from "/framework/ext/Refine/RefinedCard.js";
+ import AISessionConversation from "./AISessionConversation.js";
+-import Prompt from "/framework/ext/Refine/Prompt.js";
++import PromptRun from "/framework/ext/Refine/PromptRun.js";
+ import { icon } from "/framework/core/View/View.js";
+ 
+ /**
+@@ -28,7 +28,7 @@ export default class AISessionCoverage {
+ 		this.cards = new Map();   // card id → refined card (later write wins)
+ 		this.raw = new Map();     // transcript uuid → the owner's words
+ 		this.outcomes = null;
+-		this.records = new Map();  // prompt id → Prompt with parts (Server/PromptRecords.mjs writes them)
++		this.records = new Map();  // prompt id → PromptRun with parts (Server/PromptRecords.mjs writes them)
+ 		this.view = div.c("flow session-coverage");
+ 		AISessionCoverage.load_outcomes().then(o => { this.outcomes = o; this.draw(); });
+ 	}
+@@ -40,7 +40,7 @@ export default class AISessionCoverage {
+ 	}
+ 
+ 	read_records(rows){
+-		for (const row of Object.values(rows ?? {})) if (row.parts?.length) this.records.set(row.id, Prompt.from_log(row, this.session));
++		for (const row of Object.values(rows ?? {})) if (row.parts?.length) this.records.set(row.id, PromptRun.from_log(row, this.session));
+ 		if (this.records.size) this.draw();
+ 	}
+ 
+@@ -91,7 +91,7 @@ export default class AISessionCoverage {
+ 
+ 	/* PROMPT RECORDS, drawn as a chat: a bubble per prompt (heading, coverage score, its opening words), a card per top-level part wearing
+ 	 * the module it concerns, its outcome and its S-cites; a click on a cite shows those raw sentences, highlighted, in the bubble. Nested
+-	 * details settle with their parent (Prompt.settled looks at top-level parts only), so a card only counts them.
++	 * details settle with their parent (PromptRun.settled looks at top-level parts only), so a card only counts them.
+ 	 * A "task" outcome counts as open here until its task is complete (the browser does not resolve task states yet). */
+ 	records_view(recs, open){
+ 		const done = recs.filter(r => r.complete()).length, loose = recs.reduce((n, r) => n + r.open().length + r.uncovered.length, 0);
+@@ -129,7 +129,7 @@ export default class AISessionCoverage {
+ 			});
+ 			div.c("session-card-body flow", () => {
+ 				div.c("flex gap-50 wrap v-center", () => {
+-					AISessionCoverage.tag(Prompt.SETTLED.includes(is) ? "done" : is === "task" ? "partly" : "open", is);
++					AISessionCoverage.tag(PromptRun.SETTLED.includes(is) ? "done" : is === "task" ? "partly" : "open", is);
+ 					span(x.text);
+ 				});
+ 				if (nested.length) small.c("muted", "+ " + nested.length + " detail" + (nested.length > 1 ? "s" : "") + ": " + nested.map(n => n.kind).join(", "));
+diff --git a/public/framework/ai/AISession/PromptLog.js b/public/framework/ai/AISession/PromptLog.js
+index 53b91b2c3..4c834516f 100644
+--- a/public/framework/ai/AISession/PromptLog.js
++++ b/public/framework/ai/AISession/PromptLog.js
+@@ -67,12 +67,12 @@ export default class PromptLog {
+ 		return AISession.lines_of(await AISession.read_text(id, PromptLog.FILE));
+ 	}
+ 
+-	/** Lines to prompts: `{ id → { id, raw, source, clean, final, refined, subject, notes, parts, process, handled, at } }`, in first-seen order. */
++	/** Lines to prompts: `{ id → { id, raw, source, ref, clean, final, refined, subject, notes, parts, process, handled, at } }`, in first-seen order. */
+ 	static fold(lines){
+ 		const out = {};
+ 		for (const l of lines){
+-			const p = out[l.prompt] ??= { id: l.prompt, raw: null, source: "", clean: [], final: false, refined: [], subject: "", notes: [], parts: [], process: "", handled: null, at: l.at };
+-			if (l.stage === "raw"){ p.raw = l.text; p.source = l.source ?? ""; }
++			const p = out[l.prompt] ??= { id: l.prompt, raw: null, source: "", ref: null, clean: [], final: false, refined: [], subject: "", notes: [], parts: [], process: "", handled: null, at: l.at };
++			if (l.stage === "raw"){ p.raw = l.text; p.source = l.source ?? ""; p.ref = l.ref ?? null; }
+ 			else if (l.stage === "clean" && !p.final){ p.clean = l.sentences; p.final = !!l.final; }
+ 			else if (l.stage === "refined"){ p.refined = l.cards; p.subject = l.subject ?? ""; }
+ 			else if (l.stage === "notes") p.notes = l.notes;
+diff --git a/public/framework/ai/SystemClasses.js b/public/framework/ai/SystemClasses.js
+index aa474168a..95b3dc693 100644
+--- a/public/framework/ai/SystemClasses.js
++++ b/public/framework/ai/SystemClasses.js
+@@ -19,9 +19,12 @@ const CLASSES = [
+ 	{ name: "Dispatcher", icon: "alt_route", file: "Servex/agents/Dispatcher.js", doc: "/framework/servex/",
+ 		gist: "Takes a prompt that arrives and routes it to the agent that owns it.",
+ 		api: ["queue", "running", "dispatch(prompt)", "pump()", "listen()"] },
+-	{ name: "Prompt", icon: "edit_note", file: "public/framework/ext/Refine/Prompt.js", doc: "/framework/ext/Refine/",
+-		gist: "One owner prompt: raw text, clean numbered sentences, structured sections. Its page shows the rendered result beside a live debug tree.",
+-		api: ["raw", "clean", "structure", "ms", "load({ clean, structure, ms })", "set(fields)", "sentence(n)", "render()"] },
++	{ name: "Prompt", icon: "edit_note", file: "public/framework/core/Task/Prompt.js", doc: "/framework/core/Task/",
++		gist: "One thing the owner said, as a Task: the raw words (never lost), cleaned paragraphs with numbered sentences, replies anchored to them, and the asks made from it as its own tasks. Completion and cost roll up to the session.",
++		api: ["raw", "paragraphs", "sentences", "replies", "tasks", "completion", "Prompt.trace(session, words)"] },
++	{ name: "PromptRun", icon: "article", file: "public/framework/ext/Refine/PromptRun.js", doc: "/framework/ext/Refine/",
++		gist: "The refine run's in-memory view-model of one prompt (raw, scored clean sentences, refined cards); its page shows the rendered result beside a live debug tree.",
++		api: ["raw", "clean", "refined", "ms", "load({ clean, structure, ms })", "set(fields)", "sentence(n)", "view"] },
+ 	{ name: "Session", icon: "history_toggle_off", file: "public/framework/ai/AISession/AISession.js", doc: "/framework/ai/classes/Session/",
+ 		gist: "One Claude session's cost and state, computed in code from its transcript. Same file runs on the server and in the browser.",
+ 		api: ["id", "ix", "s", "total_usd", "wall_ms", "render()", "on(fn)", "detail()", "Session.of(id)", "Session.all", "Session.apply_delta(line)"] },
+diff --git a/public/framework/core/Item/Item.js b/public/framework/core/Item/Item.js
+index f483c9ae5..6ffa3d655 100644
+--- a/public/framework/core/Item/Item.js
++++ b/public/framework/core/Item/Item.js
+@@ -316,7 +316,7 @@ export class Item extends Events(Object) {
+ 		for (const key in raw){
+ 			if (key === "type" || key === "id" || key === "after") continue;
+ 			if (key === "data"){ if (is_data(raw.data)) Object.assign(data, raw.data); else if (raw.data !== undefined) warn(`data must be an object`); continue; }
+-			if (Array.isArray(raw[key])){ lists[key] = raw[key]; continue; }
++			if (Array.isArray(raw[key])){ if (Class?.plain_lists?.includes(key)) data[key] = raw[key]; else lists[key] = raw[key]; continue; }   // plain_lists: arrays of text or records that are data, not child Items (Prompt.raw)
+ 			data[key] = raw[key];
+ 		}
+ 
+@@ -325,8 +325,9 @@ export class Item extends Events(Object) {
+ 		for (const key in lists){
+ 			if (!Item.makeList){ warn(`hydrate(): "${key}" is an array but List.js never loaded — kept as plain data`, "hydrate:nolist"); item.data[key] = lists[key]; continue; }
+ 
+-			const list = item[key] = Item.makeList({ owner: item, name: key });
+-			lists[key].forEach(kid => list.insert(Item.hydrate(kid, seen)));
++			item[key] = Item.makeList({ owner: item, name: key });
++			const list = item[key];   // read back: a class with its own `paragraphs` setter keeps its own List subclass
++			lists[key].forEach(kid => list.insert((list.of ?? Item).hydrate(kid, seen)));   // the list's own member class (Prompt.paragraphs holds Paragraphs)
+ 		}
+ 
+ 		return item;
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index ca8d39f41..c7023d24a 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -8,6 +8,8 @@ import Item from "../Item/Item.js";
+ import Day from "./Day.js";
+ import Task from "../Task/Task.js";
+ import "../Task/Project.js";   // registers "Project": a proposal can be made one (decide is "project")
++import "../Task/Prompt.js";    // registers "Prompt": a dictation, its paragraphs, replies and the asks made from it
++import "../Task/Question.js";  // registers "Question": open, answered, complete
+ import "../Task/Process.js";   // registers "Process": a task added with {type: "Process"} replays as one
+ 
+ /* A Session IS a Task (the owner, 2026-10-24, session-is-a-task): Task's states, completion, `tasks` list (strings, objects, typed
+diff --git a/public/framework/core/Session/files.jsonl b/public/framework/core/Session/files.jsonl
+index c34011427..465433c78 100644
+--- a/public/framework/core/Session/files.jsonl
++++ b/public/framework/core/Session/files.jsonl
+@@ -18,3 +18,4 @@
+ {"file":"tasks/","gone":true}
+ {"file":"failures.jsonl"}
+ {"file":"tasks/"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Task/Prompt.js b/public/framework/core/Task/Prompt.js
+new file mode 100644
+index 000000000..74dd005d0
+--- /dev/null
++++ b/public/framework/core/Task/Prompt.js
+@@ -0,0 +1,178 @@
++// A prompt the owner said or typed, as a Task (the owner, 2026-10-24/25; Option C in ai/.../dictation-debug/chat-shape.md): the raw words
++// (never lost), the cleaned paragraphs with numbered sentences, the replies anchored to them, and the asks made from it as its own `tasks`.
++// Completion and cost roll up on read: task -> prompt -> session. DOM-free, so node and the browser build the same Prompt from the same lines.
++import Task from "./Task.js";
++import Item from "../Item/Item.js";
++import List from "../List/List.js";
++
++/* One paragraph of the cleaned text: {id, text}. Its sentences are computed from `text` (Prompt.split), numbered `<id>1`, `<id>2`…;
++   a migrated paragraph may carry them explicitly in `sentences`, so the old cites keep their meaning (Server/PromptsToSession.mjs). */
++export class Paragraph extends Item {
++	static plain_lists = ["sentences"];   // an array of text: data, not child Items
++}
++Item.register(Paragraph, "Paragraph");
++
++export class Paragraphs extends List {
++	// Adds `text` to the end of paragraph `id` (made if it is not there yet): the fast assistant's one-call edit while someone is still talking.
++	append({ id, text } = {}){
++		if (id === undefined || typeof text !== "string") return this;
++		const p = this.find(id);
++		if (!p) return void this.add({ id, text });
++		p.set({ text: (p.get_one("text") ?? "") + text });
++		return this;
++	}
++	// Makes paragraph `id`, or sets its fields when it is there (the migration and PromptRecords rewrite the cleaned text this way).
++	replace({ id, ...fields } = {}){
++		if (id === undefined) return this;
++		const p = this.find(id);
++		if (!p) return void this.add({ id, ...fields });
++		p.set(fields);
++		return this;
++	}
++}
++Paragraphs.prototype.of = Paragraph;
++
++export class Prompt extends Task {
++
++	// Arrays kept as data: `raw` (text chunks, appended only), `parts` (the splitter's record, ext/Refine/doc/prompt-records.md), and the
++	// migrated `refined` cards and `notes` (Server/PromptsToSession.mjs).
++	static plain_lists = ["raw", "parts", "refined", "notes"];
++	// Plain fields a log line may set (Task.replay_line reads Task.FIELDS and these).
++	static line_fields = ["subject", "process", "handled", "refined", "notes"];
++	static queries = [...Task.queries, "sentences", "settled_parts"];
++
++	static KINDS = ["ask", "question", "rule", "idea", "conversation"];
++	static OUTCOMES = ["done", "documented", "answered", "task", "no-action", "open"];
++	static SETTLED = ["done", "documented", "answered", "no-action"];
++	/** A part is settled when its outcome is one of SETTLED, or a task carries it and that task is complete. `task_state(ref)` answers a task's state. */
++	static settled(part, task_state = () => null){
++		const o = part?.outcome ?? {};
++		return Prompt.SETTLED.includes(o.is) || (o.is === "task" && task_state(o.ref) === "complete");
++	}
++	/** Sentences of a text: split after . ! ? … (with closing quotes), at whitespace; a newline always ends one. "3.5" stays whole. */
++	static split(text){ return String(text ?? "").split(/(?<=[.!?…]["'”’)\]]*)\s+|\n+/).map(s => s.trim()).filter(Boolean); }
++
++	// ---- the words ----
++	/** Everything that was said, in order: text chunks, never edited or dropped. */
++	get raw(){ return [...(this.get_one("raw") ?? [])]; }
++	get raw_text(){ return this.raw.join(" "); }
++	/** Add to the raw words: `{raw: "more"}`, `{raw: {push: "more"}}` or `{raw: ["a", "b"]}` all append; nothing replaces what was heard. */
++	push_raw(value){
++		const more = [].concat(Array.isArray(value) ? value : value?.push ?? value).filter(s => typeof s === "string" && s.length);
++		if (!more.length) return this;
++		const old = this.raw;
++		this.put("raw", [...old, ...more]);
++		this.emit("change", "raw", this.raw, old);
++		this.emit("delta", { raw: { push: more } }, this);
++		return this;
++	}
++	set_one(key, value){ return key === "raw" ? void this.push_raw(value) : super.set_one(key, value); }
++
++	get paragraphs(){ return this._paragraphs ??= new Paragraphs({ owner: this, name: "paragraphs" }); }
++	set paragraphs(_plain){ void this.paragraphs; }   // Item.hydrate hands over a plain List; the typed one stays
++	get replies(){ return this._replies ??= new List({ owner: this, name: "replies" }); }
++	set replies(list){ this._replies = list; }
++	get(key){ return key === "paragraphs" ? this.paragraphs : key === "replies" ? this.replies : super.get(key); }
++	lists(){
++		const { _paragraphs, _replies, ...rest } = super.lists();
++		return { ...rest, ...(_paragraphs?.length ? { paragraphs: _paragraphs } : {}), ...(_replies?.length ? { replies: _replies } : {}) };
++	}
++
++	/** [{id, text, paragraph}]: the numbered sentences of the cleaned paragraphs (or of the raw words before any paragraph exists). */
++	get sentences(){
++		const out = [];
++		const paras = [...this.paragraphs];
++		if (!paras.length) this.raw_text && Prompt.split(this.raw_text).forEach((text, i) => out.push({ id: `r${i + 1}`, text, paragraph: null }));
++		for (const p of paras){
++			const given = p.get_one("sentences");
++			(Array.isArray(given) ? given : Prompt.split(p.get_one("text"))).forEach((text, i) => out.push({ id: `${p.id}${i + 1}`, text, paragraph: p.id }));
++		}
++		return out;
++	}
++	sentence(id){ return this.sentences.find(s => s.id === id); }
++	/** The replies that answer a sentence (and, with a word range, the words), in order. */
++	replies_to(sentence_id){ return [...this.replies].filter(r => r.get_one("anchor")?.sentence === sentence_id); }
++	/** The cleaned text, paragraphs joined by a blank line; before any paragraph, the raw words. */
++	get text(){ const ps = [...this.paragraphs].map(p => p.get_one("text") ?? ""); return ps.length ? ps.join("\n\n") : this.raw_text; }
++	get label(){ return this.get_one("title") ?? this.get_one("subject") ?? (this.sentences[0]?.text ?? this.id).slice(0, 80); }
++
++	// ---- completion: the owner's rule is "complete when everything it asks is done or documented" ----
++	get parts(){ return this.get_one("parts") ?? []; }
++	/** Sentence ids no part (or its nested detail) cites. */
++	get uncovered(){
++		const cited = new Set(), walk = ps => (ps ?? []).forEach(p => { (p.cites ?? []).forEach(n => cited.add(n)); walk(p.parts); });
++		walk(this.parts);
++		return this.sentences.map(s => s.id).filter(id => !cited.has(id));
++	}
++	/** A task's state by id or path: my own asks first, then anywhere in the session. */
++	task_state(ref){ const key = String(ref ?? "").split("/").filter(Boolean).at(-1); return (this.find(key) ?? this.root()?.find?.(key))?.state ?? null; }
++	/** {done, total}: parts settled, out of parts + uncited sentences. */
++	progress_parts(task_state = ref => this.task_state(ref)){
++		const done = this.parts.filter(p => Prompt.settled(p, task_state)).length;
++		return { done, total: this.parts.length + this.uncovered.length };
++	}
++	settled_parts(){ return this.parts.filter(p => Prompt.settled(p, ref => this.task_state(ref))); }
++	/* With parts recorded, completion is settled parts over parts + uncited sentences; else the asks filed under it (Task.progress_of); else
++	   my own stored state. Never reads `this.state`, which is computed from this. */
++	get completion(){
++		if (this.data.checked_by) return 1;
++		if (this.parts.length){ const { done, total } = this.progress_parts(); return total ? done / total : 0; }
++		const { done, total } = Task.progress_of(this._tasks);
++		if (total) return done / total;
++		return super.state === "complete" ? 1 : 0;
++	}
++	/* A prompt reads complete the moment everything it asks is settled, with nobody calling complete(): the session's tally then counts it. */
++	get state(){
++		const s = super.state;
++		if (s === "complete" || s === "stopped") return s;
++		const has_work = this.parts.length || Task.progress_of(this._tasks).total;
++		return has_work && this.completion === 1 ? "complete" : s;
++	}
++	progress(){
++		if (this.parts.length) return { ...this.progress_parts(), stopped: 0 };
++		return super.progress();
++	}
++
++	// ---- replay ----
++	replay_line(line){
++		super.replay_line(line);
++		if (line.raw !== undefined) this.push_raw(line.raw);
++		if (line.paragraphs && typeof line.paragraphs === "object") this.paragraphs.set(line.paragraphs);
++		if (line.replies && typeof line.replies === "object") this.replies.set(line.replies);
++		if (Array.isArray(line.parts)) this.put("parts", line.parts);
++		return this;
++	}
++
++	/* THE TRACE (the owner, 2026-10-25: "didn't I ask for this?"): the Prompts of a session whose words contain the asked words, best first.
++	   Each hit: {id, at, subject, score, sentences: [the matching sentence ids], tasks: [{id, title, state, path}], completion}.
++	   `tasks` are the asks nested under it plus anything in the session made from it (source.prompt or from = its id). Pure: reads the nodes. */
++	static trace(session, words, { min = 0.8 } = {}){
++		const tokens = [...new Set(String(words ?? "").toLowerCase().match(/[\p{L}\p{N}']+/gu) ?? [])];
++		if (!tokens.length) return [];
++		const everything = [];
++		session.walk(n => { if (n !== session) everything.push(n); });
++		const hits = [];
++		for (const p of everything){
++			if (!(p instanceof Prompt)) continue;
++			const hay = [p.raw_text, p.text, p.get_one("subject") ?? ""].join(" ").toLowerCase();
++			const score = tokens.filter(t => hay.includes(t)).length / tokens.length;
++			if (score < min) continue;
++			const mine = new Set();
++			const own = []; p.walk(n => { if (n !== p && n.get_one && n.state !== undefined) own.push(n); });
++			for (const n of own) mine.add(n);
++			for (const n of everything){
++				if (mine.has(n) || n === p || n instanceof Paragraph) continue;
++				const src = n.get_one?.("source");
++				if (n.get_one?.("from") === p.id || (src && typeof src === "object" && src.prompt === p.id)) mine.add(n);
++			}
++			const tasks = [...mine].filter(n => n.state !== undefined && n.get_one && !(n.parent?.owner instanceof Paragraph)).map(n => ({ id: n.id, title: n.get_one("title") ?? n.get_one("text") ?? n.id, state: n.state, ...(n.get_one("path") ? { path: n.get_one("path") } : {}) }));
++			const sentences = p.sentences.filter(s => tokens.some(t => s.text.toLowerCase().includes(t))).map(s => s.id);
++			hits.push({ id: p.id, at: p.created_at, subject: p.get_one("subject") ?? null, score, sentences, tasks, completion: p.completion });
++		}
++		return hits.sort((a, b) => b.score - a.score || String(b.at ?? "").localeCompare(String(a.at ?? "")));
++	}
++}
++
++export default Prompt;
++
++Item.register(Prompt, "Prompt");
+diff --git a/public/framework/core/Task/Prompt.test.mjs b/public/framework/core/Task/Prompt.test.mjs
+new file mode 100644
+index 000000000..8e4c7a361
+--- /dev/null
++++ b/public/framework/core/Task/Prompt.test.mjs
+@@ -0,0 +1,100 @@
++// Node test for Prompt — no DOM, no server. Run: `node Prompt.test.mjs`.
++import Session from "../Session/Session.js";
++import Task from "./Task.js";
++import Prompt from "./Prompt.js";
++import Question from "./Question.js";
++const EV = { outcome: "ok", evidence: ["test"] };
++
++const results = [];
++const check = (title, fn) => {
++	let ok;
++	try { ok = !!fn(); } catch (e){ ok = false; console.error(e); }
++	results.push(ok);
++	console.log(`${ok ? "PASS" : "FAIL"} — ${title}`);
++};
++const add = (extra = {}) => ({ tasks: { add: { type: "Prompt", id: "p1", raw: ["yeah so I think it is important. Do the thing."], paragraphs: [{ id: "a", text: "Yeah, so I think it is important. Do the thing." }], ...extra } } });
++const make = (...more) => Session.replay([{ session: "s" }, add(), ...more]);
++
++check("tasks.add({type: Prompt}) makes a Prompt with raw, paragraphs and numbered sentences", () => {
++	const p = make().tasks.find("p1");
++	return p instanceof Prompt && p instanceof Task && p.raw.length === 1 && p.paragraphs.length === 1
++		&& p.sentences.map(s => s.id).join() === "a1,a2" && p.sentence("a2").text === "Do the thing.";
++});
++
++check("raw only ever grows: push appends, a second array form appends too", () => {
++	const p = make({ "p1": { raw: { push: "and more" } } }, { p1: { raw: ["x"] } }).tasks.find("p1");
++	return p.raw.join("|") === "yeah so I think it is important. Do the thing.|and more|x";
++});
++
++check("paragraphs: add a new one, append to an existing one by id", () => {
++	const p = make({ p1: { paragraphs: { add: { id: "b", text: "Second." } } } }, { p1: { paragraphs: { append: { id: "a", text: " Then this." } } } }).tasks.find("p1");
++	return p.paragraphs.length === 2 && p.sentences.map(s => s.id).join() === "a1,a2,a3,b1" && p.sentence("a3").text === "Then this." && p.text.endsWith("Second.");
++});
++
++check("append to a paragraph that does not exist yet makes it", () => {
++	const p = make({ p1: { paragraphs: { append: { id: "z", text: "New." } } } }).tasks.find("p1");
++	return p.paragraphs.find("z")?.get_one("text") === "New.";
++});
++
++check("a reply anchors to a sentence, or a sentence plus a word range", () => {
++	const p = make({ p1: { replies: { add: [{ id: "r1", text: "Yes.", anchor: { sentence: "a2" } }, { id: "r2", text: "That word.", anchor: { sentence: "a2", from: 0, to: 1 } }, { id: "r3", text: "Hello." }] } } }).tasks.find("p1");
++	return p.replies.length === 3 && p.replies_to("a2").length === 2 && p.replies.find("r2").get_one("anchor").to === 1 && p.replies_to("a1").length === 0;
++});
++
++check("an explicit sentences list (a migrated paragraph) keeps its own ids", () => {
++	const s = Session.replay([{ session: "s" }, { tasks: { add: { type: "Prompt", id: "m", raw: ["x"], paragraphs: [{ type: "Paragraph", id: "a", text: "One. Two.", sentences: ["First one", "Second one", "Third"] }] } } }]);
++	return s.tasks.find("m").sentences.map(x => x.id + ":" + x.text).join() === "a1:First one,a2:Second one,a3:Third";
++});
++
++check("asks made from a prompt are its own tasks; completion and cost roll up on read", () => {
++	const s = make({ p1: { tasks: { add: [{ id: "t1", title: "one" }, { id: "t2", title: "two" }] } } });
++	const p = s.tasks.find("p1");
++	const before = p.completion === 0 && p.state === "idle" && s.completion === 0;
++	p.tasks.find("t1").complete(EV);
++	const half = p.completion === 0.5 && p.progress().done === 1;
++	p.tasks.find("t2").complete(EV);
++	return before && half && p.completion === 1 && p.state === "complete" && s.progress().done === 1 && s.completion === 1;
++});
++
++check("a prompt with no asks and no parts stays idle (nothing to settle)", () => { const p = make().tasks.find("p1"); return p.state === "idle" && p.completion === 0; });
++
++check("parts: completion is settled parts over parts + uncited sentences; a task part settles when its task completes", () => {
++	const s = make({ p1: { parts: [{ id: "x", cites: ["a1"], kind: "ask", text: "do it", outcome: { is: "task", ref: "t1" } }, { id: "y", cites: ["a2"], kind: "idea", text: "maybe", outcome: { is: "no-action" } }] } }, { p1: { tasks: { add: { id: "t1", title: "do it" } } } });
++	const p = s.tasks.find("p1");
++	const mid = p.progress().done === 1 && p.progress().total === 2 && p.completion === 0.5 && p.uncovered.length === 0;
++	p.tasks.find("t1").complete(EV);
++	return mid && p.completion === 1 && p.state === "complete";
++});
++
++check("a sentence no part cites keeps the prompt open", () => {
++	const p = make({ p1: { parts: [{ id: "x", cites: ["a1"], kind: "ask", text: "do it", outcome: { is: "done", ref: "f" } }] } }).tasks.find("p1");
++	return p.uncovered.join() === "a2" && p.completion === 0.5 && p.state === "idle";
++});
++
++check("the Prompt is listed in the session and the owner can check it off", () => {
++	const p = make().tasks.find("p1");
++	p.check({ by: "owner" });
++	return p.completion === 1;
++});
++
++check("trace: words find the prompt, its time, the tasks made from it and their states", () => {
++	const s = Session.replay([{ session: "s" }, { ts: "2026-10-25T10:00:00.000Z", ...add() }, { ts: "2026-10-25T10:01:00.000Z", tasks: { add: { type: "Prompt", id: "p2", raw: ["something else entirely about gardens"] } } },
++		{ p1: { tasks: { add: { id: "t1", title: "nested ask" } } } },
++		{ tasks: { add: { id: "t2", title: "filed at the root", source: { prompt: "p1" } } } },
++		{ tasks: { add: { type: "Question", id: "q1", text: "what?", from: "p1" } } }, { t2: { complete: EV } }]);
++	const hits = Prompt.trace(s, "important thing");
++	const h = hits[0];
++	return hits.length === 1 && h.id === "p1" && h.at === "2026-10-25T10:00:00.000Z" && h.score === 1
++		&& h.tasks.map(t => t.id + ":" + t.state).sort().join() === "q1:idle,t1:idle,t2:complete" && h.sentences.join() === "a1,a2"
++		&& Prompt.trace(s, "gardens")[0].id === "p2" && Prompt.trace(s, "zebra").length === 0;
++});
++
++check("a replayed log gives the same Prompt twice (no wall clock, no duplicate)", () => {
++	const lines = [{ session: "s" }, add(), { p1: { raw: { push: "more" } } }, { p1: { paragraphs: { append: { id: "a", text: " Tail." } } } }];
++	const a = Session.replay(lines).tasks.find("p1"), b = Session.replay(lines).tasks.find("p1");
++	return JSON.stringify(a.sentences) === JSON.stringify(b.sentences) && a.raw.length === 2 && b.raw.length === 2;
++});
++
++const failed = results.filter(r => !r).length;
++console.log(failed ? `${failed} FAILED of ${results.length}` : `all ${results.length} passed`);
++process.exit(failed ? 1 : 0);
+diff --git a/public/framework/core/Task/Question.js b/public/framework/core/Task/Question.js
+new file mode 100644
+index 000000000..5246f57b6
+--- /dev/null
++++ b/public/framework/core/Task/Question.js
+@@ -0,0 +1,31 @@
++// A question the owner asked, as a Task: open (asked) -> answered (has an `answer`) -> complete (the owner has read the answer).
++// "Answered but not complete" is one query: `{unread: {}}` on a session (Task.unread). It nests under the Prompt it came from, or sits in the
++// session's own list with `from` naming that Prompt; either way Prompt.trace finds it.
++import Task from "./Task.js";
++import Item from "../Item/Item.js";
++
++export class Question extends Task {
++
++	static line_fields = ["text", "from", "answer"];
++	static queries = [...Task.queries, "phase"];
++
++	get text(){ return this.get_one("text") ?? this.get_one("title") ?? null; }
++	/** {text, by, at}: what the answering assistant said; written once or replaced, never required to be long. */
++	get answer(){ return this.get_one("answer") ?? null; }
++	/** "open" | "answered" | "complete": computed on read from the answer and the state, never stored. */
++	get phase(){ return this.state === "complete" ? "complete" : this.answer ? "answered" : "open"; }
++
++	/* Reading the answer is the evidence, so an answered Question completes with a bare {complete: {}}; an unanswered one needs the
++	   usual evidence (an owner who drops a question writes why). `node` is the Question itself (the item tool passes it). */
++	static completion_problem(args, node){
++		if (node?.answer) return null;
++		return Task.completion_problem(args) && `${Task.completion_problem(args)} (this Question has no answer yet; once it has one, {complete:{}} is enough)`;
++	}
++	complete(args){
++		return super.complete({ auto: !!this.answer, ...(args && typeof args === "object" ? args : {}) });
++	}
++}
++
++export default Question;
++
++Item.register(Question, "Question");
+diff --git a/public/framework/core/Task/Question.test.mjs b/public/framework/core/Task/Question.test.mjs
+new file mode 100644
+index 000000000..c9ddaf37d
+--- /dev/null
++++ b/public/framework/core/Task/Question.test.mjs
+@@ -0,0 +1,56 @@
++// Node test for Question — no DOM, no server. Run: `node Question.test.mjs`.
++import Session from "../Session/Session.js";
++import Task from "./Task.js";
++import Prompt from "./Prompt.js";
++import Question from "./Question.js";
++
++const results = [];
++const check = (title, fn) => {
++	let ok;
++	try { ok = !!fn(); } catch (e){ ok = false; console.error(e); }
++	results.push(ok);
++	console.log(`${ok ? "PASS" : "FAIL"} — ${title}`);
++};
++const base = [
++	{ session: "s" },
++	{ tasks: { add: { type: "Prompt", id: "p1", raw: ["why is it slow. fix the chat."] } } },
++	{ p1: { tasks: { add: { type: "Question", id: "q1", text: "Why is it slow?", from: "p1" } } } },
++	{ p1: { tasks: { add: { type: "Question", id: "q2", text: "Is it cached?", from: "p1" } } } },
++];
++const make = (...more) => Session.replay([...base, ...more]);
++const q = (s, id) => s.tasks.find("p1").tasks.find(id);
++
++check("a Question is a Task with text and from, open until answered", () => {
++	const x = q(make(), "q1");
++	return x instanceof Question && x instanceof Task && x.text === "Why is it slow?" && x.get_one("from") === "p1" && x.phase === "open";
++});
++
++check("an answer makes it answered, not complete", () => {
++	const x = q(make({ p1: { q1: { answer: { text: "The poll loop.", by: "assistant" } } } }), "q1");
++	return x.phase === "answered" && x.state !== "complete" && x.answer.text === "The poll loop.";
++});
++
++check("complete after the answer needs no evidence: {complete: {}} is enough", () => {
++	const s = make({ p1: { q1: { answer: { text: "The poll loop." } } } }, { p1: { q1: { complete: {} } } });
++	return q(s, "q1").phase === "complete" && q(s, "q1").state === "complete";
++});
++
++check("completion_problem: refused without an answer or evidence, allowed with an answer", () => {
++	const s = make({ p1: { q1: { answer: { text: "x" } } } });
++	return !!Question.completion_problem({}, q(s, "q2")) && Question.completion_problem({}, q(s, "q1")) === null;
++});
++
++check("unread query: answered but not complete is one query", () => {
++	const s = make({ p1: { q1: { answer: { text: "A" } } } }, { p1: { q2: { answer: { text: "B" } } } }, { p1: { q2: { complete: {} } } });
++	const u = s.unread();
++	return u.length === 1 && u[0].id === "q1" && u[0].answer.text === "A" && u[0].from === "p1";
++});
++
++check("a Question under a Prompt appears in its trace", () => {
++	const hit = Prompt.trace(make(), "slow chat")[0];
++	return hit.id === "p1" && hit.tasks.map(t => t.id).sort().join() === "q1,q2";
++});
++
++const failed = results.filter(r => !r).length;
++console.log(failed ? `${failed} FAILED of ${results.length}` : `all ${results.length} passed`);
++process.exit(failed ? 1 : 0);
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index 7828c1e30..96deeffb8 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -202,7 +202,7 @@ export class Task extends Item {
+ 
+ 	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
+ 	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
+-	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion"];
++	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "unread"];
+ 	/* A child is a SESSION when it replayed as one (a Session entry, or a folder whose record is a session's), or, for an old plain
+ 	   reference node has not replayed, when its folder holds session.jsonl (`session_resolver`). */
+ 	static session_resolver = null;
+@@ -230,6 +230,12 @@ export class Task extends Item {
+ 			cost: this.total_cost, duration: this.duration(), children: this.children,
+ 		};
+ 	}
++	// The Questions below me that are answered but not yet complete (the owner has not read the answer): one walk, computed on read.
++	unread(){
++		const out = [];
++		this.walk(t => { if (t !== this && t.phase === "answered") out.push({ id: t.id, text: t.get_one("text") ?? null, from: t.get_one("from") ?? null, answer: t.get_one("answer") ?? null }); });
++		return out;
++	}
+ 	get session(){ return this.get_one("session") ?? this.get_one("session_id"); }
+ 	// When it was asked for: the time of the line that added it to its parent (Session.apply_line keeps it in memory), else its own record's.
+ 	get created_at(){ return this._created_at ?? this.get_one("requested_at") ?? this.get_one("started_at") ?? null; }
+@@ -520,7 +526,7 @@ export class Task extends Item {
+ 		}
+ 		if (line.content && typeof line.content === "object") this.content.set(line.content);
+ 		if (line.tasks && typeof line.tasks === "object" && !Array.isArray(line.tasks)) this.tasks.set(line.tasks);
+-		for (const k of FIELDS) if (line[k] !== undefined) this.put(k, line[k]);   // a plain field line, e.g. one the item tool wrote
++		for (const k of [...FIELDS, ...(this.constructor.line_fields ?? [])]) if (line[k] !== undefined) this.put(k, line[k]);   // a plain field line, e.g. one the item tool wrote
+ 		if (line.set && typeof line.set === "object") for (const [k, v] of Object.entries(line.set)) this.put(k, v);   // the browser Store's own change line
+ 		// A subtask given its own folder: {"file":"<child>/task.jsonl"} swaps the nested child for that file's task (same id).
+ 		if (typeof line.file === "string" && line.file.endsWith("/task.jsonl") && typeof this.data.path === "string"){
+diff --git a/public/framework/core/Task/doc/files.jsonl b/public/framework/core/Task/doc/files.jsonl
+index 78159a0e2..2a740c728 100644
+--- a/public/framework/core/Task/doc/files.jsonl
++++ b/public/framework/core/Task/doc/files.jsonl
+@@ -12,3 +12,4 @@
+ {"file":"cracks.md"}
+ {"file":"process-names.md"}
+ {"file":"file/"}
++{"file":"prompt.md"}
+diff --git a/public/framework/core/Task/doc/prompt.md b/public/framework/core/Task/doc/prompt.md
+new file mode 100644
+index 000000000..d62487ad4
+--- /dev/null
++++ b/public/framework/core/Task/doc/prompt.md
+@@ -0,0 +1,49 @@
++# Prompt and Question: what the owner said, as tasks
++
++A **Prompt** is one thing the owner said or typed, kept as a Task. A **Question** is a question asked of the owner or by the owner, kept as a Task. Both live in a session's `session.jsonl`, so the chat can show a dictation as a card holding its asks (Option C in [chat-shape.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md)). Code: [`Prompt.js`](../Prompt.js), [`Question.js`](../Question.js). Tests: `node Prompt.test.mjs`, `node Question.test.mjs` (in `core/Task/`).
++
++```
++Session
++└─ Prompt  (raw, paragraphs[id], sentences[id], replies[anchor])
++   ├─ Task   (an ask made from it)
++   └─ Question  open → answered → complete
++```
++
++## Prompt
++
++| Field | What it is |
++|---|---|
++| `raw` | Array of text chunks, exactly as heard or typed. Only ever appended to; never edited or dropped. |
++| `paragraphs` | The cleaned text, a list of `{id, text}`. |
++| `sentences` | Computed from the paragraphs, never stored: `<paragraph id><n>` (`a1`, `a2`…), or `r<n>` before any paragraph exists. A migrated paragraph may carry its own `sentences` array so the old numbering still holds. |
++| `replies` | A list of `{id, text, by, anchor}`. `anchor` is `{sentence: "a2"}` or `{sentence: "a2", from: 3, to: 7}` (word positions); no anchor means the reply is to the whole prompt. |
++| `tasks` | The asks made from it (Tasks, Questions), as for any Task. |
++| `parts`, `subject`, `refined`, `notes`, `handled`, `process` | The splitter's record, kept as plain data ([ext/Refine/doc/prompt-records.md](/framework/ext/Refine/md/doc/prompt-records/)). `parts[].cites` are sentence ids. |
++
++**Completion is computed on read, never stored.** With `parts` recorded, a Prompt is complete when every part is settled (done, documented, answered, no-action, or a task that is complete) and no sentence is left uncited. Otherwise it is the share of its own `tasks` that are complete. It reads `complete` by itself when that reaches 1, so a Session's tally counts it. Cost sums the same way: task → Prompt → Session.
++
++**Deltas** (one item-tool call each; `P` is the Prompt's path):
++
++- more words heard: `{raw: {push: "text"}}`
++- a new paragraph: `{paragraphs: {add: {id: "b", text: "…"}}}`
++- add to a paragraph: `{paragraphs: {append: {id: "b", text: " more"}}}` (makes it if missing)
++- rewrite a paragraph: `{paragraphs: {replace: {id: "b", text: "…"}}}`
++- a reply: `{replies: {add: {id: "r1", text: "…", anchor: {sentence: "b1"}}}}`
++
++## Question
++
++`line_fields`: `text`, `from` (the Prompt it came from), `answer` (`{text, by, at}`). `question.phase` is `open` (no answer), `answered` (has an answer, not yet read) or `complete` (the owner read it). **Answered but not read is one query:** `item({path: SESSION, delta: {unread: {}}})` returns every answered, not-complete Question in the session. `{complete: {}}` needs no evidence on an answered Question; reading it is the evidence. A Question nests under its Prompt's `tasks`, or sits in the session's list with `from` naming the Prompt; both are found.
++
++## One Prompt class (the decision)
++
++There was an older plain `Prompt` in `ext/Refine/Prompt.js`. It is now **`PromptRun`** (`ext/Refine/PromptRun.js`): the live refine demo's object, which keeps its scoring and view and borrows `KINDS`, `OUTCOMES`, `SETTLED` and `settled` from core `Prompt`. Core `Prompt extends Task` is the only class named Prompt, because the owner's chat needs a Prompt that is a Task (tasks nest, state rolls up, the item tool can address it). The alternative, making the Refine class extend Task, would pull a demo-only view and scorer into core.
++
++## Where Prompts are written, and the old file
++
++- **New prompts:** `Server/PromptRecords.mjs` still writes the session's `prompts.jsonl` (the Coverage card, Dictate and Echo read it), and **also** writes each Prompt into `session.jsonl`: one `tasks.add` of type `Prompt` the first time, then a delta updating its paragraphs, parts and subject. `prompts.jsonl` stays in place and is not deleted.
++- **Old prompts:** `node Server/PromptsToSession.mjs` (dry run by default; `--apply` writes; `--repo <checkout>` picks the tree) folds each session's `prompts.jsonl` into `session.jsonl` as Prompts, keeping raw, clean sentences (as explicit `sentences`, so the old cites keep their meaning), parts and cites. It writes a manifest of every session and prompt it touched, skips a prompt already present (safe to re-run), and skips an old folder with no `session.jsonl`.
++- **Asks already filed** stay where they are, at the session root, linked back by `source.prompt` / `from`.
++
++## The trace: "didn't I ask for this?"
++
++`node Server/PromptTrace.mjs "words you said" [--session <slug|id8>] [--days 30] [--min 0.8] [--json]` finds the Prompt whose words contain yours, when it was said, the tasks made from it and each one's state. The same query is `Prompt.trace(session, words)` (a static; test: `node Server/PromptTrace.test.mjs`).
+diff --git a/public/framework/core/Task/files.jsonl b/public/framework/core/Task/files.jsonl
+index bd88284ed..59e520c56 100644
+--- a/public/framework/core/Task/files.jsonl
++++ b/public/framework/core/Task/files.jsonl
+@@ -31,3 +31,7 @@
+ {"file":"process/page.js"}
+ {"file":"Process.test.mjs"}
+ {"file":"failures.jsonl","gone":true}
++{"file":"Prompt.js"}
++{"file":"Question.js"}
++{"file":"Prompt.test.mjs"}
++{"file":"Question.test.mjs"}
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index 55642db80..dd7e4a24d 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -60,6 +60,10 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+ - `tasks` is made on first use, so a task with no subtasks costs no `List`.
+ - **Migration:** [`Server/TaskMigrate.mjs`](/Server/TaskMigrate.mjs) gives an old session task whose module is clear a home here. The home's `sessions` field (`[{id, task}]`) names the old folder, and the old folder gains one `{"home":"<url>"}` line, kept as `data.home`. It runs as a dry run by default and never deletes. [Plan](/framework/servex/fs/?file=public/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/plan.md) · [dry run](/framework/servex/fs/?file=public/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/dry-run.md).
+ 
++## Prompt and Question (the chat's tasks)
++
++`Prompt extends Task` is one thing the owner said: `raw` words (never lost), `paragraphs` with ids, numbered `sentences`, `replies` anchored to a sentence or a word range, and its asks as its own `tasks`. `Question extends Task` is open, then answered (has an `answer`), then complete (read); `{unread:{}}` on a session lists the answered ones. Completion and cost roll up on read, task → Prompt → session. New Prompts are also written into `session.jsonl`; the old `prompts.jsonl` stays in place (Coverage, Dictate and Echo read it). Fields, deltas, migration and the "didn't I ask for this?" trace: [doc/prompt.md](doc/prompt.md).
++
+ ## State: counting across tasks
+ 
+ `Task.js` decides one task's state. Counting across all of them (how many landed today, what is in flight) is done once, in node, by [`Server/AIIndex.mjs`](/Server/AIIndex.mjs): it replays every task in both stores (the sessions store and every `tasks/` home) through `Task.replay` and writes `public/framework/ai/index.json`, with a self-check that a second, separate count must agree with. Nothing else counts tasks. Design: [Server/doc/ai-index.md](/framework/servex/fs/?file=Server/doc/ai-index.md). The three rules State's self-check found wrong are fixed (see Watch out).
+@@ -106,6 +110,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+ 
+ ## More
+ 
++- **Prompt and Question:** [doc/prompt.md](doc/prompt.md) · [`Prompt.js`](./Prompt.js) · [`Question.js`](./Question.js) · `node Prompt.test.mjs`, `node Question.test.mjs`
+ - **Templates** (`template: "code" | "doc" | "scan"` on line 1; an approved task with an `agent` spawns itself): [doc/templates.md](doc/templates.md) (proven live 2026-10-17: approve to spawn in about 1.5 s) · the owner's ask, and whether `task.jsonl` became `session.jsonl`: [doc/owner-2026-10-17-node-driven.md](doc/owner-2026-10-17-node-driven.md)
+ - **The owner's words, 2026-10-16:** [task system](doc/owner-2026-10-16-task-system.md) · [composition](doc/owner-2026-10-16-composition.md) · [top-down](doc/owner-2026-10-16-top-down.md) · [UI](doc/owner-2026-10-16-ui.md) · [node side](doc/owner-2026-10-16-node-side.md) · [migration](doc/owner-2026-10-16-migration.md)
+ - [Overview](/framework/core/Task/) · [Live](/framework/core/Task/live/) — start, pause,
+diff --git a/public/framework/core/Task/tasks/files.jsonl b/public/framework/core/Task/tasks/files.jsonl
+index 734ffe2fa..a3e06d178 100644
+--- a/public/framework/core/Task/tasks/files.jsonl
++++ b/public/framework/core/Task/tasks/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"the-item-tool-s-delta-design-studied-and/page.js"}
+ {"file":"templates-live-proof/page.js"}
+ {"file":"task-pages-grey-checkboxes-full-width-ba/page.js"}
++{"file":"prompt-extends-task/"}
+diff --git a/public/framework/core/Task/tasks/prompt-extends-task/files.jsonl b/public/framework/core/Task/tasks/prompt-extends-task/files.jsonl
+new file mode 100644
+index 000000000..b0625d019
+--- /dev/null
++++ b/public/framework/core/Task/tasks/prompt-extends-task/files.jsonl
+@@ -0,0 +1 @@
++{"file":"requirements.md"}
+diff --git a/public/framework/core/Task/tasks/prompt-extends-task/requirements.md b/public/framework/core/Task/tasks/prompt-extends-task/requirements.md
+index 113606d96..f8171f65f 100644
+--- a/public/framework/core/Task/tasks/prompt-extends-task/requirements.md
++++ b/public/framework/core/Task/tasks/prompt-extends-task/requirements.md
+@@ -2,25 +2,41 @@
+ 
+ **Why this exists.** The owner asked for `Prompt extends Task` on 2026-10-24 (session-is-a-task brief, items 21 and 21b). The deputy filed it as an open task on its record (`prompt-extends-task-prompts-in-session-t`), but it was deferred at review and never built. On 2026-10-25 the owner picked the chat shape it serves: Option C in [chat-shape.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md). Read that file's Decision section first, then items 21–21b and 31 of [session-is-a-task/requirements.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-is-a-task/requirements.md).
+ 
++Option C = the chat shows each dictation as a Prompt card holding its asks (see chat-shape.md).
++
+ ## Build
+ 
+-1. **`class Prompt extends Task`**, registered so `tasks.add({type: "Prompt", …})` makes one.
++```
++Session
++└─ Prompt  (raw, paragraphs[id], sentences[id], replies[anchor])
++   ├─ Task   (an ask made from it)
++   └─ Question  open → answered → complete
++```
++
++- [x] 1. **`class Prompt extends Task`**, registered so `tasks.add({type: "Prompt", …})` makes one.
++   - Proof: `core/Task/Prompt.js`, `Prompt.test.mjs` 13/13.
+    - It holds the raw Whisper or typed text (`raw`, never lost), the cleaned `paragraphs` (each with an id), the numbered sentences with ids, and `replies`.
+    - A reply may carry an anchor: a sentence id, or a sentence id plus a word range.
+    - Its own `tasks` hold the asks made from it. Completion and cost roll up on read: task → prompt → session.
+-2. **`class Question extends Task`**, with three states:
++- [x] 2. **`class Question extends Task`**, with three states:
++   - Proof: `core/Task/Question.js`, `Question.test.mjs` 6/6; `{unread:{}}` is the one query.
+    - **open** when it is asked;
+    - **answered** once it has an `answer`;
+    - **complete** once the owner has read it.
+    - "Answered but not complete" must be one query.
+-3. **Small deltas for the fast assistant:** add a paragraph, and append text to a paragraph by id (core/Item's inbox already notes partial string edits). Each one is one item-tool call, a few ms.
+-4. **Fold `prompts.jsonl` into the session.** Write a scripted migration with a dry run and a manifest: every record in a session's `prompts.jsonl` becomes a Prompt in that session's `session.jsonl`, keeping its raw text, clean sentences, parts and cites. `Server/PromptRecords.mjs` and the hook then write Prompts directly. Keep the old file in place, and say so in the readme.
+-5. **The trace query.** Given words the owner said, find the Prompt, its time, the tasks made from it, and each task's state. A node script or a Task static, plus a test.
+-6. **Tests and readme.** Put `Prompt.test.mjs` and `Question.test.mjs` beside the classes, and update `core/Task/readme.md` with the shape in plain words (item 21b).
++- [x] 3. **Small deltas for the fast assistant:** add a paragraph, and append text to a paragraph by id (core/Item's inbox already notes partial string edits). Each one is one item-tool call, a few ms.
++   - Proof: `paragraphs: {add|append|replace}`, `raw: {push}`, `replies: {add}`; tested in `Prompt.test.mjs`.
++- [x] 4. **Fold `prompts.jsonl` into the session.** Write a scripted migration with a dry run and a manifest: every record in a session's `prompts.jsonl` becomes a Prompt in that session's `session.jsonl`, keeping its raw text, clean sentences, parts and cites. `Server/PromptRecords.mjs` and the hook then write Prompts directly. Keep the old file in place, and say so in the readme.
++   - Proof: `Server/PromptsToSession.mjs` (dry run, manifest, idempotent), 11/11; `PromptRecords.mjs` mirrors into `session.jsonl`, `Server/PromptGroup.test.mjs` 7/7; readme says `prompts.jsonl` stays.
++- [x] 5. **The trace query.** Given words the owner said, find the Prompt, its time, the tasks made from it, and each task's state. A node script or a Task static, plus a test.
++   - Proof: `Server/PromptTrace.mjs` and `Prompt.trace`, `PromptTrace.test.mjs` 3/3.
++- [x] 6. **Tests and readme.** Put `Prompt.test.mjs` and `Question.test.mjs` beside the classes, and update `core/Task/readme.md` with the shape in plain words (item 21b).
++   - Proof: both tests beside the classes; `core/Task/readme.md` + `doc/prompt.md`.
+ 
+ ## Fences
+ 
+ - **Yours:** `core/Task/`, `core/Session/` (only what this needs), `Server/PromptRecords.mjs`, `Servex/agents/PromptTasks.js` and the migration script.
+ - **Not yours:** the chat widget. mastermind-dictation-2 builds Chat v2 on your classes; agree field names with it by message.
+-- `ext/Refine/Prompt.js` is the old plain class. Extend or replace it; don't leave two Prompt classes. Say which you chose and why.
++- [x] `ext/Refine/Prompt.js` is the old plain class. Extend or replace it; don't leave two Prompt classes. Say which you chose and why.
++  - Proof: replaced. The old class is now `PromptRun` (`ext/Refine/PromptRun.js`); core `Prompt extends Task` is the only Prompt. Why: [doc/prompt.md](../../doc/prompt.md#one-prompt-class-the-decision).
+ - Work in a worktree, then review, then merge via `node Server/merge.mjs <worktree folder>`.
+diff --git a/public/framework/ext/Refine/Prompt.js b/public/framework/ext/Refine/Prompt.js
+deleted file mode 100644
+index 6e85ed51b..000000000
+--- a/public/framework/ext/Refine/Prompt.js
++++ /dev/null
+@@ -1,152 +0,0 @@
+-import Scorer from "./Scorer.js";
+-import Outline from "./Outline.js";
+-
+-
+-/**
+- * class Prompt — ONE prompt, seen at every step of its refinement (the owner's design:
+- * `doc/vision-2026-10-08.md`, addendum 2). It only holds data; it does not clean,
+- * structure or score anything itself — `RefineSystem` sends the text to Servex
+- * (`/api/refine`), which runs the SAME `engine.js` `clean()` and `structure.js`
+- * `structure()` Echo runs, so there is still exactly one pipeline.
+- *
+- *   const prompt = new Prompt({ on_change: () => redraw() });
+- *   prompt.load(await (await fetch("/api/refine", …)).json());   // RefineSystem does this for you
+- *   prompt.clean[0]      // { n, text, clarity, weight, flags, alternates, names, card }
+- *   prompt.refined       // [{ title, cites, cards: [{ text, cites, cards: [...] }] }]
+- *   prompt.view          // a Prompt.View: the rendered result (the debug tree is DefaultView)
+- *
+- * Only plain data lives on an instance (strings, numbers, arrays, objects) so the debug
+- * tree (`ux/Content/Object/DefaultView.js`) can show every property by type.
+- *
+- * Scores come from `Scorer` (rules; see `doc/prompt.md`). The whole system: `doc/architecture.md`.
+- */
+-export default class Prompt {
+-
+-	static icon = "article";
+-	static LOW_CLARITY = 0.4;   // below this (under the 0.5 default, "not sure") a sentence gets the yellow flag
+-
+-	status = "empty";   // empty | working | done | error
+-	raw = "";
+-	subject = "";       // the "# heading" of the refined outline: what the prompt is about
+-	clean = [];
+-	refined = [];
+-	ms = 0;
+-	error = "";
+-	stages = {};        // { clean_ms, structure_ms, clarity_ms } from the server
+-	runs = [];          // one per model call: { stage, model, session_id, cost_usd, duration_ms, tokens }
+-	timings = {};       // { quick_ms } measured in the browser
+-	model = "";         // the model the server is using for the current run
+-	prompt_id = "";      // the id this prompt has in its session's log (PromptLog), when it was saved there
+-	session = "";         // the session whose prompts.jsonl holds it
+-	quick = false;      // true while `clean` holds the instant (no-model) clean, before the real one lands
+-	parts = [];         // THE RECORD (doc/prompt-records.md): [{ id, cites: [n…], kind, text, outcome: { is, ref, why }, parts: [details] }]
+-	process = "";       // the process that wrote `parts` (live | review), from the parts line
+-	at = "";            // when the prompt was first logged (its raw line)
+-	handled = null;     // { by, at, to, note }: whoever routed this prompt's proposals marked it handled
+-
+-	constructor(...args){ Object.assign(this, ...args); }
+-
+-	/* COMPLETION (the owner, 2026-10-22: "a prompt is complete when everything it asks is done or documented"). Computed, never stored.
+-	 * A part is settled when its outcome is one of SETTLED, or it is carried by a task that is complete. A sentence no part cites
+-	 * is one more unsettled unit: nothing said is allowed to vanish. `task_state(ref)` answers a task's state ("complete", …);
+-	 * node passes the session's tasks, the browser its replayed Session. */
+-	static KINDS = ["ask", "question", "rule", "idea", "conversation"];
+-	static OUTCOMES = ["done", "documented", "answered", "task", "no-action", "open"];
+-	static SETTLED = ["done", "documented", "answered", "no-action"];
+-	static settled(part, task_state = () => null){
+-		const o = part?.outcome ?? {};
+-		return Prompt.SETTLED.includes(o.is) || (o.is === "task" && task_state(o.ref) === "complete");
+-	}
+-	/** Sentence numbers no part (or nested detail) cites. */
+-	get uncovered(){
+-		const cited = new Set(), walk = ps => (ps ?? []).forEach(p => { (p.cites ?? []).forEach(n => cited.add(n)); walk(p.parts); });
+-		walk(this.parts);
+-		return this.clean.map(s => s.n).filter(n => !cited.has(n));
+-	}
+-	/** { done, total }: top-level parts settled, out of parts + uncovered sentences. */
+-	progress(task_state){
+-		const done = this.parts.filter(p => Prompt.settled(p, task_state)).length;
+-		return { done, total: this.parts.length + this.uncovered.length };
+-	}
+-	completion(task_state){ const { done, total } = this.progress(task_state); return total ? done / total : 0; }
+-	complete(task_state){ return this.parts.length > 0 && this.completion(task_state) === 1; }
+-	/** The parts still open (not settled), for a list of loose ends. */
+-	open(task_state){ return this.parts.filter(p => !Prompt.settled(p, task_state)); }
+-
+-	/** The number printed with its meaning (`doc/confidence.md`); a score without `scale: 2` is from the old scorer. */
+-	static label(s){
+-		const c = s.clarity;
+-		if (c == null) return "–";
+-		if (s.scale !== 2) return `${c} (old scale)`;
+-		if (c > 0.7) return `${c}: evidence: ${s.evidence || s.why || "none given"}`;
+-		return `confidence ${c}: ` + (c < 0.3 ? "probably wrong" : c < 0.45 ? "doubtful" : c <= 0.55 ? "not sure" : "leaning yes");
+-	}
+-
+-	/** Fill the instance from one `/api/refine` answer (also how a saved answer is replayed). */
+-	load({ clean, structure, ms, clarity, stages, runs, notes, prompt: prompt_id, session }){
+-		const parsed = Prompt.parse_outline(structure?.md ?? "");
+-		this.subject = parsed.subject;
+-		this.refined = parsed.sections;
+-		this.ms = ms ?? 0;
+-		this.clean = (clean?.sentences ?? []).map(s => ({
+-			n: s.n, text: s.text, clarity: 1, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "",
+-		}));
+-		Scorer.score(this, { clean, structure });
+-		// The cheap model's per-sentence score replaces the rule score when it answered; the rule
+-		// score stays as `rule_clarity` so both can be compared (doc/refine-v3-2026-10-09.md).
+-		for (const c of clarity ?? []){
+-			const s = this.sentence(c.n);
+-			if (s && c.clarity != null){ s.rule_clarity = s.clarity; s.clarity = +c.clarity.toFixed(2); s.why = c.why; s.scale = c.scale ?? null; s.evidence = c.clarity > 0.7 ? c.why : ""; }
+-		}
+-		// The Haiku pass (Servex/ext/refine/Annotator.js): alternates, names and tags per sentence, by 0-based index.
+-		for (const n of notes ?? []){
+-			const s = this.clean[n.i];
+-			if (s){ s.alternates = n.alternates ?? []; s.names = n.names ?? []; s.tags = n.tags ?? []; }
+-		}
+-		this.set({ status: "done", quick: false, stages: stages ?? {}, runs: runs ?? [], prompt_id: prompt_id ?? "", session: session ?? "" });
+-	}
+-
+-	set(fields){
+-		Object.assign(this, fields);
+-		this.on_change?.(this);
+-		return this;
+-	}
+-
+-	sentence(n){ return this.clean.find(s => s.n === n); }
+-
+-	/** The instant clean (no model): shown within a moment of each Whisper chunk, before any refinement. */
+-	load_quick(sentences, quick_ms){
+-		this.clean = sentences.map(t => ({ n: t.n, text: t.text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" }));
+-		this.timings = { ...this.timings, quick_ms };
+-		this.set({ quick: true });
+-	}
+-
+-	/**
+-	 * Replay one prompt from its session log (`PromptLog.fold` row): the saved raw, the final clean sentences,
+-	 * the cards (their 0-based cites become S numbers again) and the Haiku notes. No model call.
+-	 */
+-	static from_log(row, session = ""){
+-		const up = cards => (cards ?? []).map(c => ({ ...c, cites: (c.cites ?? []).map(i => i + 1), cards: up(c.cards) }));
+-		const prompt = new Prompt({ raw: row.raw ?? "", subject: row.subject ?? "", prompt_id: row.id, session, at: row.at ?? "" });
+-		prompt.clean = row.clean.map((text, i) => ({ n: i + 1, text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" }));
+-		for (const n of row.notes ?? []){
+-			const s = prompt.clean[n.i];
+-			if (s) Object.assign(s, { clarity: n.clarity ?? null, why: n.why ?? "", alternates: n.alternates ?? [], names: n.names ?? [], tags: n.tags ?? [] });
+-		}
+-		prompt.refined = up(row.refined);
+-		const num = ps => (ps ?? []).map(p => ({ ...p, cites: (p.cites ?? []).map(i => i + 1), ...(p.parts ? { parts: num(p.parts) } : {}) }));
+-		prompt.parts = num(row.parts); prompt.process = row.process ?? ""; prompt.handled = row.handled ?? null;
+-		prompt.status = row.final ? "done" : "working";
+-		return prompt;
+-	}
+-
+-	/** Sentences worth a yellow flag: unclear enough, or the pipeline asked a question about them. */
+-	get flagged(){ return this.clean.filter(s => (s.clarity ?? 1) < Prompt.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
+-
+-	/** The outline `structure()` writes, as nested cards (`Outline.parse`). */
+-	static parse_outline(md){ return Outline.parse(md); }
+-
+-	/** The rendered result. */
+-	get view(){ return new this.constructor.View({ subject: this }); }
+-
+-}
+diff --git a/public/framework/ext/Refine/PromptRun.js b/public/framework/ext/Refine/PromptRun.js
+new file mode 100644
+index 000000000..025dafddf
+--- /dev/null
++++ b/public/framework/ext/Refine/PromptRun.js
+@@ -0,0 +1,150 @@
++import Scorer from "./Scorer.js";
++import Outline from "./Outline.js";
++import Prompt from "../../core/Task/Prompt.js";   // the one Prompt class (a Task); this file is the refine run's view-model, renamed so there are not two
++
++
++/**
++ * class PromptRun — ONE prompt, seen at every step of its refinement (the owner's design:
++ * `doc/vision-2026-10-08.md`, addendum 2). It only holds data; it does not clean,
++ * structure or score anything itself — `RefineSystem` sends the text to Servex
++ * (`/api/refine`), which runs the SAME `engine.js` `clean()` and `structure.js`
++ * `structure()` Echo runs, so there is still exactly one pipeline.
++ *
++ *   const prompt = new PromptRun({ on_change: () => redraw() });
++ *   prompt.load(await (await fetch("/api/refine", …)).json());   // RefineSystem does this for you
++ *   prompt.clean[0]      // { n, text, clarity, weight, flags, alternates, names, card }
++ *   prompt.refined       // [{ title, cites, cards: [{ text, cites, cards: [...] }] }]
++ *   prompt.view          // a PromptRun.View: the rendered result (the debug tree is DefaultView)
++ *
++ * Only plain data lives on an instance (strings, numbers, arrays, objects) so the debug
++ * tree (`ux/Content/Object/DefaultView.js`) can show every property by type.
++ *
++ * Scores come from `Scorer` (rules; see `doc/prompt.md`). The whole system: `doc/architecture.md`.
++ */
++export default class PromptRun {
++
++	static icon = "article";
++	static LOW_CLARITY = 0.4;   // below this (under the 0.5 default, "not sure") a sentence gets the yellow flag
++
++	status = "empty";   // empty | working | done | error
++	raw = "";
++	subject = "";       // the "# heading" of the refined outline: what the prompt is about
++	clean = [];
++	refined = [];
++	ms = 0;
++	error = "";
++	stages = {};        // { clean_ms, structure_ms, clarity_ms } from the server
++	runs = [];          // one per model call: { stage, model, session_id, cost_usd, duration_ms, tokens }
++	timings = {};       // { quick_ms } measured in the browser
++	model = "";         // the model the server is using for the current run
++	prompt_id = "";      // the id this prompt has in its session's log (PromptLog), when it was saved there
++	session = "";         // the session whose prompts.jsonl holds it
++	quick = false;      // true while `clean` holds the instant (no-model) clean, before the real one lands
++	parts = [];         // THE RECORD (doc/prompt-records.md): [{ id, cites: [n…], kind, text, outcome: { is, ref, why }, parts: [details] }]
++	process = "";       // the process that wrote `parts` (live | review), from the parts line
++	at = "";            // when the prompt was first logged (its raw line)
++	handled = null;     // { by, at, to, note }: whoever routed this prompt's proposals marked it handled
++
++	constructor(...args){ Object.assign(this, ...args); }
++
++	/* COMPLETION (the owner, 2026-10-22: "a prompt is complete when everything it asks is done or documented"). Computed, never stored.
++	 * A part is settled when its outcome is one of SETTLED, or it is carried by a task that is complete. A sentence no part cites
++	 * is one more unsettled unit: nothing said is allowed to vanish. `task_state(ref)` answers a task's state ("complete", …);
++	 * node passes the session's tasks, the browser its replayed Session. */
++	static KINDS = Prompt.KINDS;
++	static OUTCOMES = Prompt.OUTCOMES;
++	static SETTLED = Prompt.SETTLED;
++	static settled = Prompt.settled;
++	/** Sentence numbers no part (or nested detail) cites. */
++	get uncovered(){
++		const cited = new Set(), walk = ps => (ps ?? []).forEach(p => { (p.cites ?? []).forEach(n => cited.add(n)); walk(p.parts); });
++		walk(this.parts);
++		return this.clean.map(s => s.n).filter(n => !cited.has(n));
++	}
++	/** { done, total }: top-level parts settled, out of parts + uncovered sentences. */
++	progress(task_state){
++		const done = this.parts.filter(p => Prompt.settled(p, task_state)).length;
++		return { done, total: this.parts.length + this.uncovered.length };
++	}
++	completion(task_state){ const { done, total } = this.progress(task_state); return total ? done / total : 0; }
++	complete(task_state){ return this.parts.length > 0 && this.completion(task_state) === 1; }
++	/** The parts still open (not settled), for a list of loose ends. */
++	open(task_state){ return this.parts.filter(p => !Prompt.settled(p, task_state)); }
++
++	/** The number printed with its meaning (`doc/confidence.md`); a score without `scale: 2` is from the old scorer. */
++	static label(s){
++		const c = s.clarity;
++		if (c == null) return "–";
++		if (s.scale !== 2) return `${c} (old scale)`;
++		if (c > 0.7) return `${c}: evidence: ${s.evidence || s.why || "none given"}`;
++		return `confidence ${c}: ` + (c < 0.3 ? "probably wrong" : c < 0.45 ? "doubtful" : c <= 0.55 ? "not sure" : "leaning yes");
++	}
++
++	/** Fill the instance from one `/api/refine` answer (also how a saved answer is replayed). */
++	load({ clean, structure, ms, clarity, stages, runs, notes, prompt: prompt_id, session }){
++		const parsed = PromptRun.parse_outline(structure?.md ?? "");
++		this.subject = parsed.subject;
++		this.refined = parsed.sections;
++		this.ms = ms ?? 0;
++		this.clean = (clean?.sentences ?? []).map(s => ({
++			n: s.n, text: s.text, clarity: 1, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "",
++		}));
++		Scorer.score(this, { clean, structure });
++		// The cheap model's per-sentence score replaces the rule score when it answered; the rule
++		// score stays as `rule_clarity` so both can be compared (doc/refine-v3-2026-10-09.md).
++		for (const c of clarity ?? []){
++			const s = this.sentence(c.n);
++			if (s && c.clarity != null){ s.rule_clarity = s.clarity; s.clarity = +c.clarity.toFixed(2); s.why = c.why; s.scale = c.scale ?? null; s.evidence = c.clarity > 0.7 ? c.why : ""; }
++		}
++		// The Haiku pass (Servex/ext/refine/Annotator.js): alternates, names and tags per sentence, by 0-based index.
++		for (const n of notes ?? []){
++			const s = this.clean[n.i];
++			if (s){ s.alternates = n.alternates ?? []; s.names = n.names ?? []; s.tags = n.tags ?? []; }
++		}
++		this.set({ status: "done", quick: false, stages: stages ?? {}, runs: runs ?? [], prompt_id: prompt_id ?? "", session: session ?? "" });
++	}
++
++	set(fields){
++		Object.assign(this, fields);
++		this.on_change?.(this);
++		return this;
++	}
++
++	sentence(n){ return this.clean.find(s => s.n === n); }
++
++	/** The instant clean (no model): shown within a moment of each Whisper chunk, before any refinement. */
++	load_quick(sentences, quick_ms){
++		this.clean = sentences.map(t => ({ n: t.n, text: t.text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" }));
++		this.timings = { ...this.timings, quick_ms };
++		this.set({ quick: true });
++	}
++
++	/**
++	 * Replay one prompt from its session log (`PromptLog.fold` row): the saved raw, the final clean sentences,
++	 * the cards (their 0-based cites become S numbers again) and the Haiku notes. No model call.
++	 */
++	static from_log(row, session = ""){
++		const up = cards => (cards ?? []).map(c => ({ ...c, cites: (c.cites ?? []).map(i => i + 1), cards: up(c.cards) }));
++		const prompt = new PromptRun({ raw: row.raw ?? "", subject: row.subject ?? "", prompt_id: row.id, session, at: row.at ?? "" });
++		prompt.clean = row.clean.map((text, i) => ({ n: i + 1, text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" }));
++		for (const n of row.notes ?? []){
++			const s = prompt.clean[n.i];
++			if (s) Object.assign(s, { clarity: n.clarity ?? null, why: n.why ?? "", alternates: n.alternates ?? [], names: n.names ?? [], tags: n.tags ?? [] });
++		}
++		prompt.refined = up(row.refined);
++		const num = ps => (ps ?? []).map(p => ({ ...p, cites: (p.cites ?? []).map(i => i + 1), ...(p.parts ? { parts: num(p.parts) } : {}) }));
++		prompt.parts = num(row.parts); prompt.process = row.process ?? ""; prompt.handled = row.handled ?? null;
++		prompt.status = row.final ? "done" : "working";
++		return prompt;
++	}
++
++	/** Sentences worth a yellow flag: unclear enough, or the pipeline asked a question about them. */
++	get flagged(){ return this.clean.filter(s => (s.clarity ?? 1) < PromptRun.LOW_CLARITY || s.flags.some(f => f.kind === "model" || f.kind === "mechanical")); }
++
++	/** The outline `structure()` writes, as nested cards (`Outline.parse`). */
++	static parse_outline(md){ return Outline.parse(md); }
++
++	/** The rendered result. */
++	get view(){ return new this.constructor.View({ subject: this }); }
++
++}
+diff --git a/public/framework/ext/Refine/PromptView.js b/public/framework/ext/Refine/PromptView.js
+index 3c81d93cf..200e6365c 100644
+--- a/public/framework/ext/Refine/PromptView.js
++++ b/public/framework/ext/Refine/PromptView.js
+@@ -1,12 +1,12 @@
+-import Prompt from "./Prompt.js";
++import PromptRun from "./PromptRun.js";
+ import { View, div, span, p, h4, button, a } from "../../core/View/View.js";
+ 
+ View.stylesheet(import.meta, "Prompt.css");
+ 
+-/* Sets Prompt.View: the DOM half of Prompt, split out 2026-10-23 so Prompt.js (the data and its completion) loads in node, the Task/TaskView pattern. Import this file wherever a prompt is drawn. */
+-/** Prompt.View — raw, clean (with scores and yellow flags), refined cards. A sentence and a
++/* Sets PromptRun.View: the DOM half of PromptRun, split out 2026-10-23 so PromptRun.js (the data and its completion) loads in node, the Task/TaskView pattern. Import this file wherever a prompt is drawn. */
++/** PromptRun.View — raw, clean (with scores and yellow flags), refined cards. A sentence and a
+  *  card's source chip are linked: click either and the other side lights up. */
+-Prompt.View = class extends View {
++PromptRun.View = class extends View {
+ 
+ 	/** Each stage names itself: a number, a plain title, what it is in one line, and the class that makes it. */
+ 	static STAGES = {
+@@ -30,7 +30,7 @@ Prompt.View = class extends View {
+ 		};
+ 		const secs = ms => (ms / 1000).toFixed(1) + " s";
+ 		const section = (key, note, fn) => {
+-			const st = Prompt.View.STAGES[key];
++			const st = PromptRun.View.STAGES[key];
+ 			return div.c("refine-section", () => {
+ 				h4.c("refine-prompt-h", () => { span(st.title); if (note) span.c("refine-s-scores", note); });
+ 				if (!this.compact) p.c("refine-what", () => { span(st.what + " "); a(st.by).href(st.href).ac("refine-class-key"); });   // `compact`: the stage title is the only label
+@@ -59,7 +59,7 @@ Prompt.View = class extends View {
+ 		});
+ 
+ 		// LIVE, NOT JUST DONE (one-input, 2026-10-12): `RefineSystem.live()` writes `refined`
+-		// straight onto this same `Prompt` as the mic talks, before a real Refine ever runs —
++		// straight onto this same `PromptRun` as the mic talks, before a real Refine ever runs —
+ 		// the outline underneath updates live, CLAUDE.md law 2's "the outline refines live
+ 		// underneath". `have` is true the instant there is anything to show, `done` only once
+ 		// a full Refine has actually finished (its own timing label still waits for that).
+@@ -85,7 +85,7 @@ Prompt.View = class extends View {
+ 			prompt.clean.forEach(s => div.c("refine-score", () => {
+ 				span.c("refine-s-num", "S" + s.n);
+ 				span.c("refine-bar").attr("style", `--v:${s.clarity ?? 0}`);
+-				span.c("refine-s-text", Prompt.label(s));
++				span.c("refine-s-text", PromptRun.label(s));
+ 				if (s.why) span.c("refine-s-scores", s.why);
+ 				if (s.names.length) span.c("refine-s-scores", "name: " + s.names.join(", "));
+ 				s.tags.forEach(t => span.c("refine-class-key", t));
+@@ -106,4 +106,4 @@ Prompt.View = class extends View {
+ };
+ 
+ 
+-export default Prompt.View;
++export default PromptRun.View;
+diff --git a/public/framework/ext/Refine/RefineDemo.js b/public/framework/ext/Refine/RefineDemo.js
+index 7e9f9d6d5..84d5573a6 100644
+--- a/public/framework/ext/Refine/RefineDemo.js
++++ b/public/framework/ext/Refine/RefineDemo.js
+@@ -3,7 +3,7 @@ import ErrorLog from "../ErrorLog/ErrorLog.js";
+ import { composer } from "../Chat/Composer.js";
+ import Whisper from "../../audio/Whisper/Whisper.js";
+ import WhisperLog from "../../audio/Whisper/WhisperLog.js";
+-import Prompt from "./Prompt.js";
++import PromptRun from "./PromptRun.js";
+ import "./PromptView.js";
+ import RefineSystem from "./RefineSystem.js";
+ import RefineExplorer from "./RefineExplorer.js";
+@@ -23,7 +23,7 @@ View.stylesheet(import.meta, "Prompt.css");
+  *      own new session, shown with its model, time and cost (links to the session page);
+  *   4. the Whisper log (`audio/Whisper` `WhisperSession.View`) and the instance explorer (`RefineExplorer`)
+  *      update as you dictate.
+- * One `Prompt` instance is the single source for all views, so they cannot disagree.
++ * One `PromptRun` instance is the single source for all views, so they cannot disagree.
+  *
+  * ONE CHAT INPUT, HERE TOO (`doc/one-input-2026-10-12.md`): this used to build its own
+  * `VoiceStrip` + plain `<textarea>`; it is THE composer now (`ext/Chat/Composer.js`), same as
+@@ -82,7 +82,7 @@ export default class RefineDemo extends View {
+ 				on_meter: () => {},
+ 				session: () => this.system.session_id,
+ 				// THE LIVE OUTLINE (law 2): `Mic.js`'s own `refine_tick`/`refine_final` already posted this —
+-				// write it onto the SAME `Prompt` `RefineSystem.live()` would, so `draw()` below redraws it
++				// write it onto the SAME `PromptRun` `RefineSystem.live()` would, so `draw()` below redraws it
+ 				// through the one `on_change` path, never a second.
+ 				on_refine_live: out => this.system.set_live(out),
+ 			});
+@@ -142,7 +142,7 @@ export default class RefineDemo extends View {
+ 
+ 	draw(){
+ 		const prompt = this.prompt;
+-		this.$result.empty(() => new Prompt.View({ subject: prompt, show_raw: true, compact: true }));
++		this.$result.empty(() => new PromptRun.View({ subject: prompt, show_raw: true, compact: true }));
+ 		const st = prompt.status;
+ 		this.conn?.set("refine", st === "done" ? "ok" : st === "error" ? "bad" : st === "working" ? "wait" : "idle",
+ 			st === "done" ? `done, ${(prompt.ms / 1000).toFixed(1)} s` : st === "error" ? "error: " + String(prompt.error).slice(0, 60) : st === "working" ? "working…" : "not yet");
+diff --git a/public/framework/ext/Refine/RefineSystem.js b/public/framework/ext/Refine/RefineSystem.js
+index 086fa9e45..43e11fb4e 100644
+--- a/public/framework/ext/Refine/RefineSystem.js
++++ b/public/framework/ext/Refine/RefineSystem.js
+@@ -1,18 +1,18 @@
+ import ErrorLog from "../ErrorLog/ErrorLog.js";
+-import Prompt from "./Prompt.js";
++import PromptRun from "./PromptRun.js";
+ import Placement from "./Placement.js";
+ import Whisper from "../../audio/Whisper/Whisper.js";
+ import { quick_clean } from "./engine.js";
+ 
+ /**
+  * class RefineSystem — the boss of the refine system (`doc/architecture.md`). It owns ONE live
+- * `Prompt` (built from `chunks`, one per send, so earlier sentences are never replaced) and runs it through the steps: text in (typed, or from the dictation source) →
+- * Servex `/api/refine` (the Cleaner, then the Structurer) → `Prompt.load()` (which runs the
++ * `PromptRun` (built from `chunks`, one per send, so earlier sentences are never replaced) and runs it through the steps: text in (typed, or from the dictation source) →
++ * Servex `/api/refine` (the Cleaner, then the Structurer) → `PromptRun.load()` (which runs the
+  * `Scorer`). A page only ever talks to this class:
+  *
+  *   const system = new RefineSystem({ on_change: prompt => redraw(prompt) });
+  *   await system.go("so the page should uh show a flag when unclear");
+- *   system.prompt          // the live Prompt (status, raw, clean, refined)
++ *   system.prompt          // the live PromptRun (status, raw, clean, refined)
+  *   system.quick(text);    // the instant clean (no model, ~1 ms): call it on every Whisper chunk
+  *   system.next();         // start over with a fresh prompt
+  *   system.whisper / system.session   // the Whisper server and this surface's WhisperSession (audio/Whisper)
+@@ -45,17 +45,17 @@ export default class RefineSystem {
+ 
+ 	/** The architecture table the demo's class card draws (same rows as `doc/architecture.md`). */
+ 	static parts = [
+-		{ name: "RefineSystem", job: "boss: runs one prompt through the steps, owns the live Prompt", relation: "composes all below", href: "/framework/ext/Refine/md/doc/architecture/" },
+-		{ name: "Prompt", job: "in-memory prompt: raw, clean sentences, refined cards, scores, flags", relation: "data; has Prompt.View", href: "/framework/ext/Refine/md/doc/prompt/" },
+-		{ name: "Prompt.View", job: "draws a Prompt: raw, clean with ⚑ flags, cards with S# links", relation: "extends View", href: "/framework/ext/Refine/Prompt.js" },
+-		{ name: "Scorer", job: "rules that give each sentence clarity, weight and flags", relation: "used by Prompt.load()", href: "/framework/ext/Refine/Scorer.js" },
++		{ name: "RefineSystem", job: "boss: runs one prompt through the steps, owns the live PromptRun", relation: "composes all below", href: "/framework/ext/Refine/md/doc/architecture/" },
++		{ name: "PromptRun", job: "in-memory prompt: raw, clean sentences, refined cards, scores, flags", relation: "data; has PromptRun.View", href: "/framework/ext/Refine/md/doc/prompt/" },
++		{ name: "PromptRun.View", job: "draws a PromptRun: raw, clean with ⚑ flags, cards with S# links", relation: "extends View", href: "/framework/ext/Refine/PromptRun.js" },
++		{ name: "Scorer", job: "rules that give each sentence clarity, weight and flags", relation: "used by PromptRun.load()", href: "/framework/ext/Refine/Scorer.js" },
+ 		{ name: "Cleaner", job: "raw → numbered near-verbatim sentences (Cleaner.js)", relation: "step; runs in Servex", href: "/framework/ext/Refine/cleaner/" },
+ 		{ name: "Structurer", job: "sentences → outline of cards citing them (structure.js)", relation: "step; runs in Servex", href: "/framework/ext/Refine/structure.js" },
+ 		{ name: "DictationSource", job: "where words come from: mic (ux/Dictate) or the text box", relation: "wraps Dictate", href: "/framework/ux/Dictate/" },
+ 		{ name: "Echo", job: "the same steps on every VS Code prompt", relation: "second caller of the steps", href: "/framework/servex/" },
+ 	];
+ 
+-	prompt = new Prompt();
++	prompt = new PromptRun();
+ 	whisper = Whisper.shared;
+ 	session = this.whisper.session("Refine demo");   // Dictate's on_whisper feeds it: system.session.record(line)
+ 	model = "";                                     // empty: the server picks (Haiku, or OpenRouter when session-backend.txt says so): ai/doc/models.md
+@@ -146,7 +146,7 @@ export default class RefineSystem {
+ 
+ 	static rows(text){ return quick_clean(text).map(t => ({ n: t.n, text: t.text, clarity: null, weight: 0, flags: [], alternates: [], names: [], tags: [], card: "", why: "" })); }
+ 
+-	/** Rebuild the one `Prompt` from every sent chunk, then the sentence in flight, then the box: sentences only ever get added. */
++	/** Rebuild the one `PromptRun` from every sent chunk, then the sentence in flight, then the box: sentences only ever get added. */
+ 	compose(quick_ms){
+ 		const clean = [], refined = [], raws = [];
+ 		let at = 0, working = false, error = "", ms = 0;
+@@ -190,7 +190,7 @@ export default class RefineSystem {
+ 			const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, model: this.model || undefined, session: this.session_id, prompt: chunk.prompt_id, source: this.source ?? "typed" }) });
+ 			const out = await res.json();
+ 			if (!out?.ok) throw new Error(out?.why ?? `Servex answered ${res.status}`);
+-			const one = new Prompt();   // scores this chunk alone (`Prompt.load`), then compose() renumbers it into the transcript
++			const one = new PromptRun();   // scores this chunk alone (`PromptRun.load`), then compose() renumbers it into the transcript
+ 			one.load(out);
+ 			Object.assign(chunk, { clean: one.clean, refined: one.refined, subject: one.subject, runs: one.runs, stages: one.stages, ms: one.ms, status: "done" });
+ 			for (const s of chunk.clean) s.placed = await this.placement.add(s, this.paragraphs);   // the placement step: one decision per sentence, in order
+@@ -207,7 +207,7 @@ export default class RefineSystem {
+ 
+ 	/** Live refine for THIS prompt (`RefineSystem.post_live()` above): keeps only the newest `seq` (a reply
+ 	 *  for an older batch, arrived late, is dropped), and writes the outline straight onto the
+-	 *  live `Prompt` so any host watching it (its own `on_change`, `Prompt.View`'s "3 · Outline"
++	 *  live `PromptRun` so any host watching it (its own `on_change`, `PromptRun.View`'s "3 · Outline"
+ 	 *  section) sees it update as the words arrive — the same redraw path `go()` and `quick()`
+ 	 *  already use, never a second one. */
+ 	async live(text, { final = false } = {}){
+@@ -220,7 +220,7 @@ export default class RefineSystem {
+ 		return out;
+ 	}
+ 
+-	/** Start over: the same Prompt object, emptied (so the debug tree keeps showing the live one). */
++	/** Start over: the same PromptRun object, emptied (so the debug tree keeps showing the live one). */
+ 	next(){
+ 		this.prompt_id = RefineSystem.new_prompt_id();
+ 		this.chunks = []; this.pending = ""; this.sending = null; this.live_sections = []; this.paragraphs = Placement.state();
+diff --git a/public/framework/ext/Refine/doc/prompt-records.md b/public/framework/ext/Refine/doc/prompt-records.md
+index 7ae2dc7a5..2923b9cc7 100644
+--- a/public/framework/ext/Refine/doc/prompt-records.md
++++ b/public/framework/ext/Refine/doc/prompt-records.md
+@@ -17,15 +17,15 @@ A prompt's record lives in its session's own `prompts.jsonl` ([PromptLog](/frame
+ - **`kind`:** `ask` (something should happen), `rule` (a standing direction for agents), `question`, `idea` (thinking aloud, a maybe), `conversation` (narration, filler). As many main asks as the prompt holds (never two merged into one); their specific suggestions are nested under them as `parts`, and the owner's own words are quoted where a degree or qualifier matters (loosened 2026-10-24).
+ - **`outcome.is`:** `done` (ref: a file, commit or task that shows it), `documented` (ref: the doc), `answered` (ref: the reply's transcript line), `task` (ref: the open task that carries it), `no-action` (conversation, or an idea not taken), `open` (nothing yet).
+ 
+-**Completion is computed, never stored** ([Prompt.js](../Prompt.js): `uncovered`, `progress()`, `completion()`, `complete()`):
++**Completion is computed, never stored** ([PromptRun.js](../PromptRun.js): `uncovered`, `progress()`, `completion()`, `complete()`):
+ 
+ - A part is **settled** when its outcome is `done`, `documented`, `answered` or `no-action`, or `task` and that task is complete.
+ - A sentence that **no part cites** counts as one more unsettled part. That is how a skipped sentence keeps its prompt open.
+ - `progress()` = settled parts out of (parts + uncited sentences); `complete()` is true when that is all of them.
+ 
+-**Where it is stored, and the alternatives.** One file per session, because a session can hold hundreds of prompts and PromptLog already kept them that way. One file (or folder) per prompt, as its own Item, wins when a prompt needs its own tasks, page and verbs; then `Prompt` becomes `Prompt extends Item` with these stages as its lines. Prompt lines inside `session.jsonl` were rejected: every session replay would load 300k characters of prompt text. The raw text is copied in, because the VS Code transcript lives outside the repo.
++**Where it is stored, and the alternatives.** One file per session, because a session can hold hundreds of prompts and PromptLog already kept them that way. One file (or folder) per prompt, as its own Item, wins when a prompt needs its own tasks, page and verbs; then `Prompt` becomes `Prompt extends Item` with these stages as its lines. Prompt lines inside `session.jsonl` were first rejected (every session replay would load 300k characters of prompt text); since 2026-10-25 they are written there too, as core `Prompt` tasks ([core/Task/doc/prompt.md](/framework/core/Task/md/doc/prompt/)), because the chat needs them as tasks. `prompts.jsonl` stays. The raw text is copied in, because the VS Code transcript lives outside the repo.
+ 
+-`Prompt` stays a plain data class, DOM-free since 2026-10-23 (its view moved to [PromptView.js](../PromptView.js)), so node and the browser compute completion with the same code.
++`PromptRun` (was `Prompt`) stays a plain data class, DOM-free since 2026-10-23 (its view moved to [PromptView.js](../PromptView.js)), so node and the browser compute completion with the same code.
+ 
+ ## One pipeline, two processes
+ 
+@@ -37,7 +37,7 @@ A prompt's record lives in its session's own `prompts.jsonl` ([PromptLog](/frame
+ | parts | Haiku, one call per prompt, no context (`PARTS_BRIEF`) | a `parts` line, every outcome `open` |
+ | outcomes | Haiku, one call per window of the session, with the condensed transcript and Read/Grep (`OUTCOMES_BRIEF`) | a `parts` line with outcomes and evidence |
+ | file | node, through the item tool's `run_item` | a task on the session for each part still open, `source: {session, line, prompt, part}` (the transcript line, so the raw words are one click away); the part's outcome becomes `task`, and it settles when that task completes |
+-| completion | code | nothing: `Prompt.completion()` reads the lines |
++| completion | code | nothing: `PromptRun.completion()` reads the lines |
+ 
+ The processes are data (`PromptRecords.PROCESSES`):
+ 
+diff --git a/public/framework/ext/Refine/doc/prompt.md b/public/framework/ext/Refine/doc/prompt.md
+index 48d31bbda..cb7a9cdf5 100644
+--- a/public/framework/ext/Refine/doc/prompt.md
++++ b/public/framework/ext/Refine/doc/prompt.md
+@@ -1,6 +1,6 @@
+ # Prompt — one prompt, seen at every step of its refinement
+ 
+-`Prompt` (`ext/Refine/Prompt.js`) is the class the owner asked for in [the vision](vision-2026-10-08.md): one object per prompt that holds what was said, the cleaned sentences, and the refined cards. You can use it live on the [Refine page](/framework/ext/Refine/).
++`PromptRun` (`ext/Refine/PromptRun.js`; was `Prompt` until 2026-10-25, when core `Prompt extends Task` took that name: [core/Task/doc/prompt.md](/framework/core/Task/md/doc/prompt/)) is the class the owner asked for in [the vision](vision-2026-10-08.md): one object per prompt that holds what was said, the cleaned sentences, and the refined cards. You can use it live on the [Refine page](/framework/ext/Refine/).
+ 
+ ## What it holds
+ 
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index ec209a800..425d1b068 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -4,7 +4,7 @@
+ 
+ **Also here: the refine queue** — every past owner prompt becomes a refined card on its session page's Coverage tab ([doc/refine-queue.md](doc/refine-queue.md), `Server/RefineQueue.mjs`).
+ 
+-The page opens on a **live demo**: a mic/text box, the result, and beside it the live `Prompt` instance and its class card. Class doc: `doc/prompt.md`. Files: `RefineSystem.js` (the boss), `Prompt.js` (data and completion, DOM-free), `PromptView.js` (its view), `Scorer.js`, `RefineDemo.js` (the demo view), `Prompt.css`; the server half is `Servex/ext/refine/run.js` (`POST /api/refine`).
++The page opens on a **live demo**: a mic/text box, the result, and beside it the live `Prompt` instance and its class card. Class doc: `doc/prompt.md`. Files: `RefineSystem.js` (the boss), `PromptRun.js` (data and completion, DOM-free; was `Prompt.js`), `PromptView.js` (its view), `Scorer.js`, `RefineDemo.js` (the demo view), `Prompt.css`; the server half is `Servex/ext/refine/run.js` (`POST /api/refine`).
+ 
+ `refine()` fetches one run of `Server/refine.mjs` (dev-only — see `Server/doc/refine.md`) and lays it out as four columns side by side: what was said, then each refinement step. Click an ask, or a bullet in Structured, and its source sentences light up in Clean and Raw — "wait, what did I actually say?" answered without reading anything twice.
+ 
+diff --git a/public/framework/ext/Refine/test/prompt-records.test.mjs b/public/framework/ext/Refine/test/prompt-records.test.mjs
+index 4420b2319..3d4357a6f 100644
+--- a/public/framework/ext/Refine/test/prompt-records.test.mjs
++++ b/public/framework/ext/Refine/test/prompt-records.test.mjs
+@@ -1,6 +1,6 @@
+ // node test/prompt-records.test.mjs — a prompt's completion, computed from its parts (doc/prompt-records.md).
+ import assert from "node:assert/strict";
+-import Prompt from "../Prompt.js";
++import PromptRun from "../PromptRun.js";
+ import PromptLog from "../../../ai/AISession/PromptLog.js";
+ 
+ const lines = [
+@@ -11,16 +11,16 @@ const lines = [
+ 		{ id: "a2", cites: [1], kind: "ask", text: "Y", outcome: { is: "documented", ref: "readme.md" } } ] },
+ ];
+ let row = PromptLog.fold(lines).p1;
+-let p = Prompt.from_log(row, "s");
++let p = PromptRun.from_log(row, "s");
+ assert.deepEqual(p.parts[0].cites, [1], "cites become 1-based sentence numbers");
+ assert.deepEqual(p.uncovered, [3], "the uncited sentence is uncovered");
+ assert.deepEqual(p.progress(() => "running"), { done: 1, total: 3 });
+ assert.equal(p.complete(() => "complete"), false, "an uncovered sentence keeps it open");
+ lines.push({ prompt: "p1", stage: "parts", process: "review", parts: [...lines[2].parts, { id: "c1", cites: [2], kind: "conversation", text: "Thanks", outcome: { is: "no-action", why: "conversation" } }] });
+-p = Prompt.from_log(PromptLog.fold(lines).p1, "s");
++p = PromptRun.from_log(PromptLog.fold(lines).p1, "s");
+ assert.equal(p.completion(() => "running"), 2 / 3);
+ assert.equal(p.complete(id => id === "t-x" ? "complete" : null), true, "complete once the carrying task is");
+-assert.equal(new Prompt().complete(), false, "no parts: not complete");
++assert.equal(new PromptRun().complete(), false, "no parts: not complete");
+ assert.ok(PromptLog.STAGES.parts({ parts: [{ text: "a", cites: [0], parts: [{ text: "b", cites: [1] }] }] }));
+ assert.ok(!PromptLog.STAGES.parts({ parts: [{ text: "a", cites: ["x"] }] }));
+ lines.push({ prompt: "p1", stage: "handled", to: "/framework/x/tasks/y/", note: "routed", by: "m", at: "t" });
+diff --git a/public/framework/ext/Refine/test/session-log.mjs b/public/framework/ext/Refine/test/session-log.mjs
+index 1573b56e3..fdb8cff0e 100644
+--- a/public/framework/ext/Refine/test/session-log.mjs
++++ b/public/framework/ext/Refine/test/session-log.mjs
+@@ -3,7 +3,7 @@
+  * shaped like the real answer (it carries `prompt`, `session` and `notes`), and a saved log is replayed.
+  *   1. Pressing Refine sends the page's session id and shows the Haiku notes (name, tag, alternate) and the
+  *      "open the session" link.
+- *   2. `Prompt.from_log(PromptLog.fold(lines))` rebuilds a finished prompt: 0-based cites come back as S numbers. */
++ *   2. `PromptRun.from_log(PromptLog.fold(lines))` rebuilds a finished prompt: 0-based cites come back as S numbers. */
+ import { createRequire } from "module";
+ const { chromium } = createRequire(process.env.PW_ROOT + "/")("playwright");
+ const base = process.argv[2], dir = process.argv[3];
+@@ -41,7 +41,7 @@ if (dir) await p.screenshot({ path: `${dir}/session-log-1400.png` });
+ // Replay a saved log (no model).
+ const replay = await p.evaluate(async () => {
+ 	const { default: PromptLog } = await import("/framework/ai/AISession/PromptLog.js");
+-	const { default: Prompt } = await import("/framework/ext/Refine/Prompt.js");
++	const { default: PromptRun } = await import("/framework/ext/Refine/PromptRun.js");
+ 	const at = "2026-10-10T00:00:00Z";
+ 	const lines = [
+ 		{ prompt: "p1", stage: "raw", text: "um raw words", at },
+@@ -50,7 +50,7 @@ const replay = await p.evaluate(async () => {
+ 		{ prompt: "p1", stage: "notes", notes: [{ i: 1, clarity: 0.9, why: "ok", alternates: ["2nd."], names: ["Second"], tags: ["core/Page"] }], at },
+ 	];
+ 	const row = PromptLog.fold(lines).p1;
+-	const pr = Prompt.from_log(row, "sess");
++	const pr = PromptRun.from_log(row, "sess");
+ 	return { status: pr.status, clean: pr.clean.map(s => s.n + ":" + s.text), cites: pr.refined[0].cites, sub: pr.refined[0].cards[0].cites, note: pr.clean[1].names, tags: pr.clean[1].tags, id: pr.prompt_id };
+ });
+ check("replay: S numbers come back from indexes", replay.cites.join() === "1,2" && replay.sub.join() === "2" && replay.status === "done", replay);

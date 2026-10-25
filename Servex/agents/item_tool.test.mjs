@@ -377,5 +377,23 @@ try {
 		} finally { fs.rmSync(PDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 
+	// Prompt and Question through the real tool: a Question completes bare once answered, and the unread query lists it (core/Task/doc/prompt.md)
+	{
+		let r = await call("item", { path: URL, delta: { tasks: { add: { type: "Prompt", id: "pq1", raw: ["Why is the sky blue? Also fix it."], paragraphs: [{ id: "a", text: "Why is the sky blue? Also fix it." }] } } } });
+		ok(r.ok, "tasks.add type Prompt is accepted");
+		r = await call("item", { path: URL, delta: { pq1: { tasks: { add: { type: "Question", id: "qq1", text: "Why is the sky blue?", from: "pq1" } } } } });
+		ok(r.ok, "a Question nests under its Prompt");
+		r = await call("item", { path: URL, delta: { pq1: { tasks: { qq1: { complete: {} } } } } });
+		ok(r.ok === false && /answer/.test(r.why), "an unanswered Question refuses a bare complete, and says why");
+		r = await call("item", { path: URL, delta: { pq1: { tasks: { qq1: { answer: { text: "Rayleigh scattering.", by: "t1" } } } } } });
+		ok(r.ok, "the answer is set");
+		r = await call("item", { path: URL, delta: { unread: {} } });
+		ok(r.ok && JSON.stringify(r).includes("qq1"), "unread lists the answered, not-yet-read Question");
+		r = await call("item", { path: URL, delta: { pq1: { tasks: { qq1: { complete: {} } } } } });
+		ok(r.ok, "an answered Question completes with a bare complete");
+		r = await call("item", { path: URL, delta: { unread: {} } });
+		ok(r.ok && !JSON.stringify(r).includes("qq1"), "once read it leaves the unread list");
+	}
+
 	console.log(`item_tool: ${n} checks passed`);
 } finally { fs.rmSync(DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); fs.rmSync(DIR + "-homes", { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }

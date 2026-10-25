@@ -1,7 +1,7 @@
 import { div, p, span, small, a, details, summary, strong, md } from "/app.js";
 import RefinedCard from "/framework/ext/Refine/RefinedCard.js";
 import AISessionConversation from "./AISessionConversation.js";
-import Prompt from "/framework/ext/Refine/Prompt.js";
+import PromptRun from "/framework/ext/Refine/PromptRun.js";
 import { icon } from "/framework/core/View/View.js";
 
 /**
@@ -28,7 +28,7 @@ export default class AISessionCoverage {
 		this.cards = new Map();   // card id → refined card (later write wins)
 		this.raw = new Map();     // transcript uuid → the owner's words
 		this.outcomes = null;
-		this.records = new Map();  // prompt id → Prompt with parts (Server/PromptRecords.mjs writes them)
+		this.records = new Map();  // prompt id → PromptRun with parts (Server/PromptRecords.mjs writes them)
 		this.view = div.c("flow session-coverage");
 		AISessionCoverage.load_outcomes().then(o => { this.outcomes = o; this.draw(); });
 	}
@@ -40,7 +40,7 @@ export default class AISessionCoverage {
 	}
 
 	read_records(rows){
-		for (const row of Object.values(rows ?? {})) if (row.parts?.length) this.records.set(row.id, Prompt.from_log(row, this.session));
+		for (const row of Object.values(rows ?? {})) if (row.parts?.length) this.records.set(row.id, PromptRun.from_log(row, this.session));
 		if (this.records.size) this.draw();
 	}
 
@@ -91,7 +91,7 @@ export default class AISessionCoverage {
 
 	/* PROMPT RECORDS, drawn as a chat: a bubble per prompt (heading, coverage score, its opening words), a card per top-level part wearing
 	 * the module it concerns, its outcome and its S-cites; a click on a cite shows those raw sentences, highlighted, in the bubble. Nested
-	 * details settle with their parent (Prompt.settled looks at top-level parts only), so a card only counts them.
+	 * details settle with their parent (PromptRun.settled looks at top-level parts only), so a card only counts them.
 	 * A "task" outcome counts as open here until its task is complete (the browser does not resolve task states yet). */
 	records_view(recs, open){
 		const done = recs.filter(r => r.complete()).length, loose = recs.reduce((n, r) => n + r.open().length + r.uncovered.length, 0);
@@ -129,7 +129,7 @@ export default class AISessionCoverage {
 			});
 			div.c("session-card-body flow", () => {
 				div.c("flex gap-50 wrap v-center", () => {
-					AISessionCoverage.tag(Prompt.SETTLED.includes(is) ? "done" : is === "task" ? "partly" : "open", is);
+					AISessionCoverage.tag(PromptRun.SETTLED.includes(is) ? "done" : is === "task" ? "partly" : "open", is);
 					span(x.text);
 				});
 				if (nested.length) small.c("muted", "+ " + nested.length + " detail" + (nested.length > 1 ? "s" : "") + ": " + nested.map(n => n.kind).join(", "));

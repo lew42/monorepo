@@ -7,7 +7,7 @@
  *   parts      model   runs of sentences, each with a kind; main asks with their details nested (PARTS_BRIEF) → a `parts` line
  *   outcomes   model   what came of each part, with evidence (OUTCOMES_BRIEF), one call per window of the session → a new `parts` line
  *   file       node    every part still open becomes a task on the session (item tool's run_item); done/documented ones never do
- *   completion code    Prompt.completion(): settled parts out of parts + uncited sentences (ext/Refine/Prompt.js)
+ *   completion code    Prompt.completion: settled parts out of parts + uncited sentences (core/Task/Prompt.js; the Prompt is mirrored into session.jsonl by add())
  * Sources differ only in how raw text arrives: a VS Code tab transcript (PromptAudit.prompts), a Whisper/Dictate session's own
  * prompts.jsonl raw lines, the cloud voice log. Live: `live` (parts, then proposals). After the fact: `review`.
  *
@@ -26,7 +26,9 @@ import AIIndex from "./AIIndex.mjs";
 import RefineQueue from "./RefineQueue.mjs";
 import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
 import PromptLog from "../public/framework/ai/AISession/PromptLog.js";
-import Prompt from "../public/framework/ext/Refine/Prompt.js";
+import PromptRun from "../public/framework/ext/Refine/PromptRun.js";
+import Prompt from "../public/framework/core/Task/Prompt.js";
+import { prompt_delta, has_prompt } from "./PromptsToSession.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const HAIKU = "claude-haiku-5-5";
@@ -111,7 +113,19 @@ Answer at the end with ONE JSON object and nothing else after it:
 	/** The record id of a prompt: an existing row with the same raw text (the live process wrote it first), else its transcript uuid. */
 	rid(p){ if (p.id) return p.id; const rows = this.rows(); return p.id = Object.values(rows).find(r => r.raw === p.text)?.id ?? p.uuid; }
 
-	async add(line){ return PromptLog.add(this.id, line, this.by, pathToFileURL(this.folder + path.sep)); }
+	/* Every stage line goes to prompts.jsonl (the old readers: Dictate, Echo, the coverage card) AND the prompt's current state to session.jsonl as a
+	   Prompt task (core/Task/Prompt.js): the add on the first stage, then one update delta per stage. No session.jsonl, no Prompt. */
+	async add(line){
+		const out = await PromptLog.add(this.id, line, this.by, pathToFileURL(this.folder + path.sep));
+		this.mirror(line.prompt, out.at);
+		return out;
+	}
+	mirror(id, at){
+		const file = path.join(this.folder, "session.jsonl"), row = this.rows()[id];
+		if (!row || !fs.existsSync(file)) return;
+		const delta = prompt_delta(row, !has_prompt(file, id), at);
+		if (delta) fs.appendFileSync(file, JSON.stringify(delta) + "\n");
+	}
 
 	/** Step 1, code: raw text and numbered sentences, once per prompt (raw is immutable, a final clean is set in stone). */
 	async sentences(ps){
@@ -210,7 +224,7 @@ Answer at the end with ONE JSON object and nothing else after it:
 	async parent_for(p, row, todo, record){
 		const { run_item } = await import(pathToFileURL(path.join(ROOT, "Servex/agents/page_tools.js")).href);
 		const state = this.task_state(), open = [];
-		for (const l of PromptAudit.read(path.join(this.folder, "session.jsonl"))){ const a = l.tasks?.add; if (a?.id && !a.source?.part && !["complete", "stopped"].includes(state(a.id))) open.push({ id: a.id, title: a.title }); }
+		for (const l of PromptAudit.read(path.join(this.folder, "session.jsonl"))){ const a = l.tasks?.add; if (a?.id && a.type !== "Prompt" && !a.source?.part && !["complete", "stopped"].includes(state(a.id))) open.push({ id: a.id, title: a.title }); }
 		const attach = await this.attach_to(row, todo, open.slice(-40));
 		if (attach) return attach;
 		const title = (row.subject || todo[0].text).replace(/\s+/g, " ").trim().replace(/[.:;,]+$/, "").slice(0, 120);
@@ -249,12 +263,12 @@ Answer at the end with ONE JSON object and nothing else after it:
 		};
 	}
 
-	/** Completion per prompt, computed (Prompt.completion). */
+	/** Completion per prompt, computed (PromptRun.progress; the same maths as Prompt.completion). */
 	summary(){
 		const rows = this.rows(), state = this.task_state(), out = [];
 		for (const p of this.prompts){
 			const row = rows[this.rid(p)]; if (!row) { out.push({ line: p.line, recorded: false }); continue; }
-			const pr = Prompt.from_log(row, this.id), { done, total } = pr.progress(state);
+			const pr = PromptRun.from_log(row, this.id), { done, total } = pr.progress(state);
 			const kinds = {}; for (const x of pr.parts) kinds[x.outcome?.is ?? "?"] = (kinds[x.outcome?.is ?? "?"] ?? 0) + 1;
 			out.push({ line: p.line, at: p.at, subject: row.subject || pr.parts[0]?.text?.slice(0, 60) || "", parts: pr.parts.length, uncovered: pr.uncovered.length, done, total, complete: pr.complete(state), outcomes: kinds });
 		}

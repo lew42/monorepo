@@ -1,12 +1,12 @@
-import Prompt from "./Prompt.js";
+import PromptRun from "./PromptRun.js";
 import { View, div, span, p, h4, button, a } from "../../core/View/View.js";
 
 View.stylesheet(import.meta, "Prompt.css");
 
-/* Sets Prompt.View: the DOM half of Prompt, split out 2026-10-23 so Prompt.js (the data and its completion) loads in node, the Task/TaskView pattern. Import this file wherever a prompt is drawn. */
-/** Prompt.View — raw, clean (with scores and yellow flags), refined cards. A sentence and a
+/* Sets PromptRun.View: the DOM half of PromptRun, split out 2026-10-23 so PromptRun.js (the data and its completion) loads in node, the Task/TaskView pattern. Import this file wherever a prompt is drawn. */
+/** PromptRun.View — raw, clean (with scores and yellow flags), refined cards. A sentence and a
  *  card's source chip are linked: click either and the other side lights up. */
-Prompt.View = class extends View {
+PromptRun.View = class extends View {
 
 	/** Each stage names itself: a number, a plain title, what it is in one line, and the class that makes it. */
 	static STAGES = {
@@ -30,7 +30,7 @@ Prompt.View = class extends View {
 		};
 		const secs = ms => (ms / 1000).toFixed(1) + " s";
 		const section = (key, note, fn) => {
-			const st = Prompt.View.STAGES[key];
+			const st = PromptRun.View.STAGES[key];
 			return div.c("refine-section", () => {
 				h4.c("refine-prompt-h", () => { span(st.title); if (note) span.c("refine-s-scores", note); });
 				if (!this.compact) p.c("refine-what", () => { span(st.what + " "); a(st.by).href(st.href).ac("refine-class-key"); });   // `compact`: the stage title is the only label
@@ -59,7 +59,7 @@ Prompt.View = class extends View {
 		});
 
 		// LIVE, NOT JUST DONE (one-input, 2026-10-12): `RefineSystem.live()` writes `refined`
-		// straight onto this same `Prompt` as the mic talks, before a real Refine ever runs —
+		// straight onto this same `PromptRun` as the mic talks, before a real Refine ever runs —
 		// the outline underneath updates live, CLAUDE.md law 2's "the outline refines live
 		// underneath". `have` is true the instant there is anything to show, `done` only once
 		// a full Refine has actually finished (its own timing label still waits for that).
@@ -85,7 +85,7 @@ Prompt.View = class extends View {
 			prompt.clean.forEach(s => div.c("refine-score", () => {
 				span.c("refine-s-num", "S" + s.n);
 				span.c("refine-bar").attr("style", `--v:${s.clarity ?? 0}`);
-				span.c("refine-s-text", Prompt.label(s));
+				span.c("refine-s-text", PromptRun.label(s));
 				if (s.why) span.c("refine-s-scores", s.why);
 				if (s.names.length) span.c("refine-s-scores", "name: " + s.names.join(", "));
 				s.tags.forEach(t => span.c("refine-class-key", t));
@@ -106,4 +106,4 @@ Prompt.View = class extends View {
 };
 
 
-export default Prompt.View;
+export default PromptRun.View;

@@ -202,7 +202,7 @@ export class Task extends Item {
 
 	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
 	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
-	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion"];
+	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "unread"];
 	/* A child is a SESSION when it replayed as one (a Session entry, or a folder whose record is a session's), or, for an old plain
 	   reference node has not replayed, when its folder holds session.jsonl (`session_resolver`). */
 	static session_resolver = null;
@@ -229,6 +229,12 @@ export class Task extends Item {
 			open: tasks.filter(t => OPEN.has(t.state)).map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state })),
 			cost: this.total_cost, duration: this.duration(), children: this.children,
 		};
+	}
+	// The Questions below me that are answered but not yet complete (the owner has not read the answer): one walk, computed on read.
+	unread(){
+		const out = [];
+		this.walk(t => { if (t !== this && t.phase === "answered") out.push({ id: t.id, text: t.get_one("text") ?? null, from: t.get_one("from") ?? null, answer: t.get_one("answer") ?? null }); });
+		return out;
 	}
 	get session(){ return this.get_one("session") ?? this.get_one("session_id"); }
 	// When it was asked for: the time of the line that added it to its parent (Session.apply_line keeps it in memory), else its own record's.
@@ -520,7 +526,7 @@ export class Task extends Item {
 		}
 		if (line.content && typeof line.content === "object") this.content.set(line.content);
 		if (line.tasks && typeof line.tasks === "object" && !Array.isArray(line.tasks)) this.tasks.set(line.tasks);
-		for (const k of FIELDS) if (line[k] !== undefined) this.put(k, line[k]);   // a plain field line, e.g. one the item tool wrote
+		for (const k of [...FIELDS, ...(this.constructor.line_fields ?? [])]) if (line[k] !== undefined) this.put(k, line[k]);   // a plain field line, e.g. one the item tool wrote
 		if (line.set && typeof line.set === "object") for (const [k, v] of Object.entries(line.set)) this.put(k, v);   // the browser Store's own change line
 		// A subtask given its own folder: {"file":"<child>/task.jsonl"} swaps the nested child for that file's task (same id).
 		if (typeof line.file === "string" && line.file.endsWith("/task.jsonl") && typeof this.data.path === "string"){

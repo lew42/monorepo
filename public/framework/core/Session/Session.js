@@ -8,6 +8,8 @@ import Item from "../Item/Item.js";
 import Day from "./Day.js";
 import Task from "../Task/Task.js";
 import "../Task/Project.js";   // registers "Project": a proposal can be made one (decide is "project")
+import "../Task/Prompt.js";    // registers "Prompt": a dictation, its paragraphs, replies and the asks made from it
+import "../Task/Question.js";  // registers "Question": open, answered, complete
 import "../Task/Process.js";   // registers "Process": a task added with {type: "Process"} replays as one
 
 /* A Session IS a Task (the owner, 2026-10-24, session-is-a-task): Task's states, completion, `tasks` list (strings, objects, typed

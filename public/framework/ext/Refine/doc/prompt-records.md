@@ -17,15 +17,15 @@ A prompt's record lives in its session's own `prompts.jsonl` ([PromptLog](/frame
 - **`kind`:** `ask` (something should happen), `rule` (a standing direction for agents), `question`, `idea` (thinking aloud, a maybe), `conversation` (narration, filler). As many main asks as the prompt holds (never two merged into one); their specific suggestions are nested under them as `parts`, and the owner's own words are quoted where a degree or qualifier matters (loosened 2026-10-24).
 - **`outcome.is`:** `done` (ref: a file, commit or task that shows it), `documented` (ref: the doc), `answered` (ref: the reply's transcript line), `task` (ref: the open task that carries it), `no-action` (conversation, or an idea not taken), `open` (nothing yet).
 
-**Completion is computed, never stored** ([Prompt.js](../Prompt.js): `uncovered`, `progress()`, `completion()`, `complete()`):
+**Completion is computed, never stored** ([PromptRun.js](../PromptRun.js): `uncovered`, `progress()`, `completion()`, `complete()`):
 
 - A part is **settled** when its outcome is `done`, `documented`, `answered` or `no-action`, or `task` and that task is complete.
 - A sentence that **no part cites** counts as one more unsettled part. That is how a skipped sentence keeps its prompt open.
 - `progress()` = settled parts out of (parts + uncited sentences); `complete()` is true when that is all of them.
 
-**Where it is stored, and the alternatives.** One file per session, because a session can hold hundreds of prompts and PromptLog already kept them that way. One file (or folder) per prompt, as its own Item, wins when a prompt needs its own tasks, page and verbs; then `Prompt` becomes `Prompt extends Item` with these stages as its lines. Prompt lines inside `session.jsonl` were rejected: every session replay would load 300k characters of prompt text. The raw text is copied in, because the VS Code transcript lives outside the repo.
+**Where it is stored, and the alternatives.** One file per session, because a session can hold hundreds of prompts and PromptLog already kept them that way. One file (or folder) per prompt, as its own Item, wins when a prompt needs its own tasks, page and verbs; then `Prompt` becomes `Prompt extends Item` with these stages as its lines. Prompt lines inside `session.jsonl` were first rejected (every session replay would load 300k characters of prompt text); since 2026-10-25 they are written there too, as core `Prompt` tasks ([core/Task/doc/prompt.md](/framework/core/Task/md/doc/prompt/)), because the chat needs them as tasks. `prompts.jsonl` stays. The raw text is copied in, because the VS Code transcript lives outside the repo.
 
-`Prompt` stays a plain data class, DOM-free since 2026-10-23 (its view moved to [PromptView.js](../PromptView.js)), so node and the browser compute completion with the same code.
+`PromptRun` (was `Prompt`) stays a plain data class, DOM-free since 2026-10-23 (its view moved to [PromptView.js](../PromptView.js)), so node and the browser compute completion with the same code.
 
 ## One pipeline, two processes
 
@@ -37,7 +37,7 @@ A prompt's record lives in its session's own `prompts.jsonl` ([PromptLog](/frame
 | parts | Haiku, one call per prompt, no context (`PARTS_BRIEF`) | a `parts` line, every outcome `open` |
 | outcomes | Haiku, one call per window of the session, with the condensed transcript and Read/Grep (`OUTCOMES_BRIEF`) | a `parts` line with outcomes and evidence |
 | file | node, through the item tool's `run_item` | a task on the session for each part still open, `source: {session, line, prompt, part}` (the transcript line, so the raw words are one click away); the part's outcome becomes `task`, and it settles when that task completes |
-| completion | code | nothing: `Prompt.completion()` reads the lines |
+| completion | code | nothing: `PromptRun.completion()` reads the lines |
 
 The processes are data (`PromptRecords.PROCESSES`):
 

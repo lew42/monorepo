@@ -1,6 +1,6 @@
 # Prompt — one prompt, seen at every step of its refinement
 
-`Prompt` (`ext/Refine/Prompt.js`) is the class the owner asked for in [the vision](vision-2026-10-08.md): one object per prompt that holds what was said, the cleaned sentences, and the refined cards. You can use it live on the [Refine page](/framework/ext/Refine/).
+`PromptRun` (`ext/Refine/PromptRun.js`; was `Prompt` until 2026-10-25, when core `Prompt extends Task` took that name: [core/Task/doc/prompt.md](/framework/core/Task/md/doc/prompt/)) is the class the owner asked for in [the vision](vision-2026-10-08.md): one object per prompt that holds what was said, the cleaned sentences, and the refined cards. You can use it live on the [Refine page](/framework/ext/Refine/).
 
 ## What it holds
 
