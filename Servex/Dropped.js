@@ -146,7 +146,10 @@ export default class Dropped {
 		return out;
 	}
 
-	/* Scan, write ONE line per newly dropped task into its parent's log (never twice for the same task and reason), and refresh queue/dropped.json. */
+	/* Scan, write ONE line per newly dropped task into its parent's log (never twice for the same task and reason), SETTLE the
+	 * task itself (a "stop" verb line on its own file, so it leaves `running`/`idle` for a terminal state with a reason — the
+	 * owner's bar, 2026-10-25: "node must guarantee every started task is completed, or stopped with a reason"), and refresh
+	 * queue/dropped.json. Settling is idempotent for free: once stopped, scan()'s state check drops the row from future ticks. */
 	async tick(registry, now = this.clock()){
 		const { rows, red, checked, queued, unproven } = this.scan(registry, now);
 		const by_parent = new Map();
@@ -160,6 +163,7 @@ export default class Dropped {
 				flagged++;
 			}
 		}
+		for (const r of rows) await this.write(r.file, { stop: { at: this.stamp(now), why: `dropped: ${r.why}` } });
 		for (const r of red){
 			let text = ""; try { text = fs.readFileSync(r.file, "utf8"); } catch {}
 			if (text.includes('"red":"rate"')) continue;

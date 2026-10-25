@@ -43,7 +43,11 @@ const by = Object.fromEntries(r1.rows.map(r => [path.basename(r.url.replace(/\/$
 assert.deepEqual(by, { sleeps: "owner-dormant", dead: "owner-stopped", gone: "owner-gone", nobody: "never-assigned", "defer-homeless": "deferral-no-home", "defer-late": "deferral-overdue" });
 assert.equal(r1.queued, 1, "the prioritised idle task is queued, not dropped");
 assert.equal(r1.flagged, 6, "one parent line per dropped task");
-assert.ok(written.every(w => w.f === path.join(session, "session.jsonl") && w.o.log.dropped && w.o.log.reason));
+const parent_writes = written.filter(w => w.f === path.join(session, "session.jsonl"));
+assert.ok(parent_writes.length === 6 && parent_writes.every(w => w.o.log.dropped && w.o.log.reason));
+const stop_writes = written.filter(w => w.o.stop);
+assert.equal(stop_writes.length, 6, "each dropped task is also settled on its own file: running/idle/waiting never stays open forever");
+assert.ok(stop_writes.every(w => w.o.stop.why && w.f !== path.join(session, "session.jsonl")), "the stop line lands on the task's own file, not the parent's");
 const snap = JSON.parse(fs.readFileSync(path.join(root, "public/framework/ai/queue/dropped.json"), "utf8"));
 assert.equal(snap.dropped, 6);
 
