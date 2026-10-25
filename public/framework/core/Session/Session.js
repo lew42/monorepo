@@ -52,14 +52,18 @@ export default class Session extends Task {
 
 	// Item.replay does the loop; a session only needs its id from line 1 and its own line shape.
 	static replay_new(lines){
-		if (lines[0]?.assign) return new this(lines[0].assign.slug ?? lines[0].assign.task ?? "task");   // a spawned agent's record: Task's id rule (the folder name stands in, Task.from_ref)
+		if (lines[0]?.assign) return new this(lines[0].assign.slug ?? lines[0].assign.task ?? "task")._as("task");   // a spawned agent's record: Task's id rule (the folder name stands in, Task.from_ref)
 		const s = lines.find(l => l?.session)?.session;   // a VS Code tab's line 1 is {session:{id,kind,cwd,at}} (the SessionStart hook)
-		return new this((s && typeof s === "object" ? s.id : s) ?? lines.find(l => l?.id)?.id);
+		const own = new this((s && typeof s === "object" ? s.id : s) ?? lines.find(l => l?.id)?.id);
+		// A task folder (line 1 is the task's own {id, path, title}) that a spawn later wrote its {assign} into is a task log too.
+		return own._as(!lines[0]?.session && lines.some(Task.spawned) ? "task" : "record");
 	}
+	_as(shape){ this._shape = shape; return this; }
 	get is_session(){ return true; }
-	/* TWO RECORD SHAPES, told apart by the first line replayed. A tab's or a voice call's record ({session:…} first) is read by apply_line
-	   below. A spawned agent's record ({assign:…} first, open_task) is a task log: it replays through Task.replay_line whole, so the same
-	   lines give the same state, completion and fields they gave as a Task, and the Session adds only its class (children, cost). */
+	/* TWO RECORD SHAPES, set by replay_new from the lines. A tab's or a voice call's record ({session:…} first) is read by apply_line
+	   below. A spawned agent's record ({assign:…} first, open_task, or a task folder a spawn later wrote into) is a task log: it replays
+	   through Task.replay_line whole, so the same lines give the same state, completion and fields they gave as a Task, and the Session
+	   adds only its class (children, cost). A Session built some other way (new Session(id), then lines) reads as the record shape. */
 	replay_line(line){
 		this._shape ??= line?.assign ? "task" : "record";
 		if (this._shape === "task"){

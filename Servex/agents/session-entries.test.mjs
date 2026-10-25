@@ -83,6 +83,14 @@ try {
 	const h = read(PFILE).find(l => l.as === "h");
 	t.ok(h?.type === "Session" && h.spawn?.placed === "handoff" && h.spawn?.agent === "k4", "a handoff upgrades the subtask in place: its reference is the Session entry");
 	t.ok(P().tasks.find("h") instanceof Session, "and h replays as a Session, keeping its id");
+
+	// 6. A task folder (line 1 is the task's own line) that a spawn later wrote into: a Session that replays as the task log it is.
+	const MIXED = path.join(PARENT, "mixed"), MURL = url(MIXED);
+	fs.mkdirSync(MIXED, { recursive: true });
+	fs.writeFileSync(path.join(MIXED, "task.jsonl"), [{ id: "mixed", path: MURL, title: "a task folder" }, { assign: { session_id: "0b0b0b0b-aaaa-4bbb-8ccc-000000000005", agent: "k5" } }, { complete: { outcome: "done" } }].map(l => JSON.stringify(l)).join("\n") + "\n");
+	fs.appendFileSync(PFILE, JSON.stringify({ task: MURL, as: "mixed" }) + "\n");
+	const m = P().tasks.find("mixed");
+	t.ok(m instanceof Session && m.state === "complete", "a task folder a spawn later wrote into is a Session, and its complete line still reads complete");
 } finally {
 	process.chdir(HOME);
 	fs.rmSync(ROOT, { recursive: true, force: true });
