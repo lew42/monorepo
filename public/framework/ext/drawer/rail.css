@@ -375,7 +375,6 @@
 	/* FULL STATE TABS: the drawer's own tab row + body under the chat (rail.js mount_tabs). */
 	.drawer-rail-sheet-tabs { flex: 0 1 45%; min-block-size: 0; border-top: 1px solid var(--line); }
 	.drawer-rail-sheet-tabbody { flex: 1 1 auto; min-block-size: 0; overflow: auto; }
-	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { display: none; }
 	/* A PICKED TAB GETS THE ROOM (2026-10-25): the chat above keeps only its last lines, so all five Debug rows fit one
 	   phone screen (390×844, test/debug-tab.mjs). Follows the DOM (:has), so it ends the moment the tab body is unmounted. */
 	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs):not(.drawer-rail-sheet-chat-only) .drawer-rail-sheet-panel { flex: 0 0 10em; }
@@ -397,6 +396,8 @@
    chat area; no top padding, the bubbles scroll under it"): inside the sheet the feed card drops its own `pad`, and only
    the scrolling thread keeps a side inset, so bubbles run edge to edge of the card and scroll under nothing. */
 @layer util {   /* util: the card's own `pad` utility lives in util and beats any site rule */
+	/* Back on the AI tab the tab area (and its handle) is gone and the chat takes the full height. In util because the area carries `.flex`, which lives in util and beat the same rule in theme (2026-10-25). */
+	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { display: none; }
 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-card { padding: 0; gap: 0; }
 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread { padding-inline: 0.6em; padding-block: 0; }
 }

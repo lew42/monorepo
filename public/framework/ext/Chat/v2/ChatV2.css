@@ -1,17 +1,17 @@
 @layer base, theme, site, util;
 
 @layer site {
-	/* The chat column: one readable measure, centred; prompts sit at its root with no bubble or card. */
-	.chat-v2 { display: flex; flex-direction: column; gap: calc(var(--gap, 1rem) * 2); max-width: 46rem; margin-inline: auto; padding: var(--pad, 1rem); }
+	/* The chat column: one readable measure, centred; each prompt sits at its root as a card (surface background, a line, a small radius), no bubble. */
+	.chat-v2 { display: flex; flex-direction: column; gap: calc(var(--gap, 1rem) * 2); max-width: 46rem; margin-inline: auto; padding: var(--pad, 1rem); padding-block-end: calc(var(--pad, 1rem) * 4); }
 	.chat-v2-empty { color: var(--subtle); }
-	.chat-v2-prompt { display: flex; flex-direction: column; gap: .6em; }
+	.chat-v2-prompt { display: flex; flex-direction: column; gap: .6em; background: var(--surface); border: 1px solid var(--line); border-radius: .6em; padding: var(--pad, 1rem); }
 	/* head/raw-wrap/nest are the three parts a live patch can re-render on their own (ChatV2.patch): empty ones take no space. */
 	.chat-v2-head, .chat-v2-raw-wrap { display: flex; flex-direction: column; gap: .6em; }
 	.chat-v2-head:empty, .chat-v2-raw-wrap:empty, .chat-v2-nest:empty { display: none; }
 	.chat-v2-title { margin: 0; font-size: 1.15em; }
 	.chat-v2-text, .chat-v2-reply-text, .chat-v2-answer { white-space: pre-wrap; overflow-wrap: anywhere; }
 	.chat-v2-label { color: var(--subtle); display: block; margin-top: .4em; }
-	.chat-v2-toggle { align-self: flex-start; background: none; border: 0; padding: .4em 0; min-height: 44px; color: var(--subtle); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85em; }
+	.chat-v2-toggle { align-self: flex-start; background: none; border: 0; padding: 0; min-height: 44px; margin-block: -.8em; color: var(--subtle); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85em; }
 	.chat-v2-toggle:hover { color: inherit; }
 	.chat-v2-raw { display: flex; flex-direction: column; gap: .4em; padding-left: 1em; border-left: 2px dotted var(--line); }
 	.chat-v2-raw-line { margin: 0; color: var(--subtle); font-style: italic; overflow-wrap: anywhere; }
