@@ -17,3 +17,5 @@
 {"review":{"at":"2026-10-25T10:28:07-05:00","answer":{"n":3,"reply":"fixed: load.mjs and earlier.mjs default to /framework/ai/sessions/2026/10/05/v-yxnts4l/session.jsonl; earlier.mjs passes on the worktree (fail: [])."}}}
 {"review":{"at":"2026-10-25T10:28:07-05:00","answer":{"n":4,"reply":"noted: stall.mjs late and anchor.mjs fail on michael/dev too; filed as a queued item in dictation-debug/session.jsonl for the dictation queue."}}}
 {"review":{"at":"2026-10-25T10:28:07-05:00","answer":{"n":5,"reply":"noted: acceptable for now, documented in voice-assistant.md#nothing-jumps; the fix (replay held targets in Widget.Thread.load_earlier) is queued in dictation-debug/session.jsonl."}}}
+{"commit":"d940e2d22387"}
+{"log":{"at":"2026-10-25T10:44:17-05:00","heartbeat":"deliberate","msg":"minion-dictation-perf its agent is not running: it was stopped on purpose by mastermind-dictation-2 at 2026-10-25T10:38:23-05:00; not revived."}}

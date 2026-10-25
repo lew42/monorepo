@@ -19,3 +19,7 @@
 {"file":"marks.mjs"}
 {"file":"refresh.mjs"}
 {"file":"errors.mjs"}
+{"file":"earlier.mjs"}
+{"file":"freeze.mjs"}
+{"file":"load.mjs"}
+{"file":"watch.mjs"}
