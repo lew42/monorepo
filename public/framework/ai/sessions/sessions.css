@@ -53,7 +53,8 @@
 	.sessions-page .datagrid-view-rail .datagrid-rail { max-block-size: none; }
 	.sessions-page:has(.datagrid-view-rail) .sessions-stats, .sessions-page:has(.datagrid-view-rail) .sessions-chiprow, .sessions-page:has(.datagrid-view-rail) .sessions-summary { display: none; }
 	.sessions-page:has(.datagrid-view-rail) .sessions-kinds .sessions-chip { font-size: .8em; padding: .05em .55em; }    /* the rail keeps the routine chips, small */
-	.sessions-card { display: flex; flex-direction: column; gap: .1em; padding: .4em var(--gap-50); min-width: 0; }
+	.sessions-card { display: flex; flex-direction: column; gap: 0; padding: .3em var(--gap-50); min-width: 0; }
+	.sessions-page .datagrid-view-rail .datagrid-card { padding: 0; gap: 0; line-height: 1.25; }
 	.sessions-card-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-35); min-width: 0; }
 	.sessions-card .sessions-row-title { flex: 1 1 8em; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* a card title is one line, ellipsis */
 
