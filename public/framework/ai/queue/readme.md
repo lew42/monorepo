@@ -19,7 +19,7 @@ Linked from the AI tab bar and page, the rail's footer words (`queue`, on the da
 
 - Cold start: a freshly started dev server needs about 10 s to read the task records, so the page says "Reading the task records…" and asks again (1, 2, 4, 8 s) and never draws a count before an answer; after the last try it says what is wrong, with no number.
 - Needs the dev server (the source is a socket); a change to `Server/TaskQueue.mjs` needs a dev-server restart.
-- TaskLoop and the Dispatcher do not read this queue yet.
+- TaskLoop and the Dispatcher do not read this queue yet, so nothing is picked from it by itself. What stops it silting up unseen (the 133 stale tasks of 2026-10-24): the daily [follow-up](/framework/ai/doc/follow-up.md) counts every open task untouched for 7 days (`unworked`, `Server/FollowUp.mjs`, whole state), and its daily owner card includes them in the flagged total.
 
 ## Next
 

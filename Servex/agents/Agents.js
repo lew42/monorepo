@@ -834,12 +834,12 @@ export class Agents {
 	list(){ return [...this.live.values()].map(agent => agent.card()); }
 
 	/* THE WORKING CAP (dormant-idle, 2026-09-30): at most `working_cap` agents
-	 * WORKING at once (SERVEX_WORKING_CAP, default 5). Every working agent counts
+	 * WORKING at once (SERVEX_WORKING_CAP, default 8; measured 2026-10-24, doc/dormant.md). Every working agent counts
 	 * for itself, so a task mastermind with two working minions holds three of
-	 * the five. Not counted: the standing front desk (assistants, managers,
+	 * the slots. Not counted: the standing front desk (assistants, managers,
 	 * master-assistant, voice sessions, the Dispatcher stand-in) and an agent
 	 * blocked in wait_for_agent. Global.admit() queues a new spawn above it. */
-	get working_cap(){ return Number(process.env.SERVEX_WORKING_CAP) || 5; }
+	get working_cap(){ return Number(process.env.SERVEX_WORKING_CAP) || 8; }
 
 	/* NEVER-LOSE-A-WAKE, item 2 (2026-10-01): a row counts toward the cap only while its
 	 * claude.exe is actually alive — `claude_pid` and a direct `process.kill(pid, 0)`, the same
