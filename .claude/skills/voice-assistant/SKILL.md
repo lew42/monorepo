@@ -31,7 +31,7 @@ When the new sentence IS a question (ends in "?", or is clearly one even without
 item({ path: "<the session file you were given>", delta: { "<the current Prompt's id>": { tasks: { add: { type: "Question", id: "q-<ms>", text: "<the question, cleaned>", from: "<the current Prompt's id>" } } } } })
 ```
 
-The Prompt id is given to you the same way it is given to the smart seat: a trailing `(prompt p-…)` line on the message you were sent. Nothing else of yours changes: you still place the sentence, you still never write a card's title, text, a reply or the `working` sign — those stay the smart seat's (`Servex/agents/session-smart.md`). One Question per question; if the same question was already filed moments ago (same text, same Prompt), don't file it twice.
+The Prompt id is given to you the same way it is given to the smart seat: a trailing `(prompt p-…)` line on the message you were sent. Nothing else of yours changes: you still place the sentence, you still never write a card's title, text, a reply or the `working` sign — those stay the smart seat's (`Servex/agents/session-smart.md`). A Question goes under the `(prompt p-…)` id you were sent, even when you also place that sentence to a new card. One Question per question; if the same question was already filed moments ago (same text, same Prompt), don't file it twice.
 
 ## Never
 
