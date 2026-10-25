@@ -11,6 +11,8 @@ This file holds the laws, safety and cost rules every agent needs. The framework
 2. **Your role's readme** — `Servex/agents/roles/readme.md` lists them (minion, mastermind, task mastermind, reviewer, clarity). A Servex agent gets its own readme in its first message; a VS Code tab reads it by hand.
 3. **`public/framework/ai/handover.md`** and `git log --oneline -20` (below, "Where to look").
 
+Any agent, Claude or not, starts from the short base in `public/framework/ai/agents.md`.
+
 ## Laws
 
 1. **Less is more — ASAP, As Simple As Possible.** Fastest working version first, then improve. Show, don't tell — a demo you can open beats a description. Question every word, line, section. Deep docs may breathe.

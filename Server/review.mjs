@@ -625,11 +625,15 @@ async function mcp(name, args, ms = 30000) {
 	try { return JSON.parse(text); } catch { return { raw: text }; }
 }
 
+// Both reviewer prompts end with this one check (2026-10-24): docs are final before merge, and the files are the truth.
+const DOCS_CHECK = "Also: re-read the readme and doc/ of each module the diff touches. Is anything new unindexed or anything now stale? Could a fresh agent continue from this task folder alone? Report each gap as a [fix].";
+
 function buildPrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shotPaths, size) {
 	const rel = p => path.relative(root, p).replaceAll("\\", "/");
 	const files = [rel(path.join(taskDir, "requirements.md")), ...ownerWordsFiles.map(rel), ...(cardDir ? [rel(cardDir)] : []), rel(diffPath), ...shotPaths.map(rel)];
 	const q = "Does it do what the owner asked in requirements.md? Is anything broken? Is there a simpler way?"
-		+ (size === "full" && shotPaths.length ? " Also, from the screenshots: is the space used well, is the order right, can the reader find everything, is the navigation clear?" : "");
+		+ (size === "full" && shotPaths.length ? " Also, from the screenshots: is the space used well, is the order right, can the reader find everything, is the navigation clear?" : "")
+		+ " " + DOCS_CHECK;
 	return `You are reviewing someone else's finished work with fresh eyes — you have never seen their conversation, only these files. Repo root: ${root.replaceAll("\\", "/")}.\n\n`
 		+ `Read: ${files.join(", ")}.\n\n${q}\n\n`
 		+ `Write ${rel(path.join(taskDir, "review.md"))}: its first line is exactly "verdict: pass" or "verdict: fix". Then numbered findings, one per line: "N. [fix] ..." for something that must change, or "N. [note] ..." for an observation worth a look — one or two plain sentences each, naming a file:line or a screenshot's file name.\n\n`
@@ -650,6 +654,7 @@ function buildPagePrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shot
 	return `Load the review skill at ${reviewSkillPath().replaceAll("\\", "/")} and follow it — you are the fresh-eyes reviewer it describes.\n\n`
 		+ `Read: ${files.join(", ")} (and each page's own layout.json inside ${rel(shotsDir)}/<page>/, as evidence under the layout, sizing, wrapping and spacing questions).\n\n`
 		+ `Write ${rel(path.join(taskDir, "review", "report.md"))} in the exact shape the review skill gives.\n\n`
+		+ `${DOCS_CHECK}\n\n`
 		+ `Make no code edits. One pass, then stop.`;
 }
 
