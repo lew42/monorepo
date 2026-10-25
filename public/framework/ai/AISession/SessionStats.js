@@ -47,10 +47,17 @@ export default class SessionStats extends View {
 		this.empty(() => {
 			div.c("sov-stat-row", () => {
 				div.c("sov-stat", () => { small.c("sov-k", "Cost"); SessionStats.cost(strong.c("sov-v" + (this.open_cost ? " sov-link" : ""), "…"), work, { row: this.row, open: this.open_cost }); });
-				const running = { el: null };
-				for (const [label, value] of [["Model", tree.snap?.model ?? "—"], ["Running for", SessionStats.elapsed(root.ms())], ["Task folders done", total ? `${done} of ${total}` : "no task folders"]])
-					div.c("sov-stat", () => { small.c("sov-k", label); const v = strong.c("sov-v", value); if (label === "Running for") running.el = v; });
-				if (work.id && running.el) AISessionRows.load_index("/framework/ai/sessions/").then(index => { const ix = AISessionRows.row_of(index, work.id); if (ix?.wall_ms > 0) running.el.text(span_active(ix.wall_ms, ix.active_ms)).attr("title", "From the session's first line to its last (a stop and restart does not reset it), and the hours it was working: the session index's wall_ms and active_ms"); });
+				div.c("sov-stat", () => { small.c("sov-k", "Model"); strong.c("sov-v", tree.snap?.model ?? "—"); });
+				div.c("sov-stat", () => {
+					small.c("sov-k", "Running for"); const $run = strong.c("sov-v", "…");
+					const own = SessionStats.elapsed(root.ms());   // the Task's banked time, only if the index has no row for this session
+					if (!work.id) return void $run.text(own);
+					AISessionRows.load_index("/framework/ai/sessions/").then(index => {
+						const ix = AISessionRows.row_of(index, work.id), ok = ix?.wall_ms > 0;
+						$run.text(ok ? span_active(ix.wall_ms, ix.active_ms) : own).attr("title", ok ? "From the session's first line to its last (a stop and restart does not reset it), and the hours it was working: the session index's wall_ms and active_ms" : "This session is not in the session index yet, so this is the Task's banked running time");
+					});
+				});
+				div.c("sov-stat", () => { small.c("sov-k", "Task folders done"); strong.c("sov-v", total ? `${done} of ${total}` : "no task folders"); });
 			});
 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));
 			small.c("sov-caption", `Task folders: ${done} done · ${part.running} running · ${total - done - part.running} queued or waiting · ${part.dropped.length} dropped (not counted)`);   // one count each, so the parts add up to the total

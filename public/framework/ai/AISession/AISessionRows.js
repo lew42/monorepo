@@ -181,9 +181,10 @@ export default class AISessionRows {
 		if (ix?.title) return { text: ix.title, from: "title", agent: named };   // the tab title first, the registered name beside it
 		if (named) return { text: named, from: "agent" };
 		if (r.source === "servex" && r.tab_title) return { text: r.tab_title, from: "agent" };
+		if (r.source === "vscode") return { text: "VS Code tab " + String(sid).slice(0, 8), from: "id" };   // an untitled tab: its last prompt says nothing a person would recognise
 		// a prompt that is only a routing tag or a skill preamble says nothing about the session
 		if (r.last_prompt_first_line && !/^\[from:|^Base directory for this skill/.test(r.last_prompt_first_line)) return { text: r.last_prompt_first_line.replace(/\s+/g, " ").trim().slice(0, 70), from: "prompt" };
-		return { text: (r.source === "vscode" || r.kind === "vscode-tab" ? "VS Code tab" : AISessionRows.SOURCE[r.source]?.label ?? "session") + " " + String(sid).slice(0, 8), from: "id" };
+		return { text: (AISessionRows.SOURCE[r.source]?.label ?? "session") + " " + String(sid).slice(0, 8), from: "id" };
 	}
 
 	/** `end` if it is a real time at or after `start`, else null. */
