@@ -28,6 +28,7 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 - `ChatPanel.js`: Combined view wrapping log, composer, and drill-in shell.
 - `Composer.js`: Text buffer, input autosizing, and audio controls.
 - `Drill.js`: Deep-dive modal shell for inspecting sub-cards.
+- [`v2/`](./v2/readme.md): Chat v2, a session's chat drawn from its `tasks` list (prompts at the root, replies and cards nested under them); read only, live demo at `/framework/ext/Chat/v2/`.
 - `roles.js`: Sender avatars and badges.
 
 ## Doc topics
