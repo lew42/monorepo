@@ -3,3 +3,5 @@
 {"file":"review.md"}
 {"file":"review.jsonl"}
 {"file":"task.jsonl"}
+{"file":"task.jsonl","gone":true}
+{"file":"task.jsonl"}
