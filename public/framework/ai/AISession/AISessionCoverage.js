@@ -123,7 +123,7 @@ export default class AISessionCoverage {
 		div.c("session-card", () => {
 			div.c("session-card-mod", () => {
 				icon(AISessionCoverage.GLYPH[x.kind] ?? "article");
-				span(() => { strong(x.module || "no module named"); small.c("muted", x.kind); });
+				span(() => { strong(x.module || "general"); small.c("muted", x.kind); });
 			});
 			div.c("session-card-body flow", () => {
 				div.c("flex gap-50 wrap v-center", () => {

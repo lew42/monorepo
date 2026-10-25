@@ -49,7 +49,7 @@ Look at [chat-view-mockup.html](chat-view-mockup.html) first.
 
 The voice-tab split is recorded as an open option in [role-process-skill-session.md](/framework/ai/doc/role-process-skill-session.md), no build.
 
-## 6. Built (2026-10-25) and the tab's two review findings
+## 6. Built, and what the tab's review of five breakdowns added
 
 - **Built:** the Coverage tab is the chat view (`AISessionCoverage.records_view`): a bubble per prompt with its coverage score, a card per top-level part wearing its module (a per-kind glyph and the module name; the module's own `icon:` is not looked up yet), the outcome tag, the cites (`S4, S7–9`) that show those raw sentences highlighted, and the nested details as a count. Seen headless on four real prompts of session e00f55c9.
 - **Bare follow-ups** ("Make sure that's noted", "Look into it") attach to the part they refer to: a line in `PARTS_BRIEF`. It takes effect after a Servex restart, and only for prompts broken down from then on.
