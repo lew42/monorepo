@@ -20,7 +20,8 @@ the panel, with the selected tab cut out of its top edge.
 - A tab wears the **control grammar's metrics** (2026-09-06) — the same font-size, `min-height: 2.4em` and padding as a button or a field, so a strip lines up with a toolbar and `.size-small` shrinks both. Its skin stays its own. [/framework/ui/controls/](/framework/ui/controls/)
 - Only the first `tabs()` on a page can own the parent's url; two sets sharing a child name collide silently — [doc/decisions.md](./doc/decisions.md)
 - A tab bar suits a page with no prose of its own whose children flip *between* and fit its measure; otherwise `previews()` — [doc/usage.md](./doc/usage.md)
-- A bar is one strip that scrolls, never a wrapping block; past ~fifty members it is untested — [doc/overflow.md](./doc/overflow.md)
+- A bar is one strip that scrolls, never a wrapping block, at every width — ext/Doc, the AI head and `ux/Inbox` no longer override it (2026-10-24); past ~fifty members it is untested — [doc/overflow.md](./doc/overflow.md)
+- `.ac("stick")` (a page's own top strip, `block stick`) holds the bar at the top of the scroll under an opaque `--well`-over-ground fill; a sticky box stays inside its parent, so use it where the set's parent is as tall as the page (Doc and the AI head do). On a phone `styles.css` makes the topic the scroller, so the header above scrolls away.
 - A nested set with no `app` never highlights on a cold load; anything rendering links late owes `mark_links()` — [doc/decisions.md](./doc/decisions.md)
 - Under a stand-in app (`demo.app`) `[aria-current]` is the third selected mark — [doc/decisions.md](./doc/decisions.md)
 
