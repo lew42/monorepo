@@ -81,3 +81,9 @@ Agree one component for the chat view with the deputy. Land it in small, visible
 ## The owner, sixth pass (2026-10-24): an idea for later, not now
 
 When a task moves into a session made for it, its old spot in the chat stays, dimmed, with a small "moved" arrow. Clicking it scrolls to the new home, and the item in its new home carries a small "moved in" arrow in its top-left corner. That way nothing is shown twice without saying so. Build it once moves exist (item 32 of session-is-a-task). Note it in your plan.
+
+## The owner, seventh pass (2026-10-24)
+
+The sessions list and the session detail page are "the core truth". The queue page is secondary.
+- **The detail page opens on the prioritized view (Overview) by default.** The chat view is a tab beside it.
+- **The owner must be able to:** open AI → Sessions, find this session, click through, and see both views. Test exactly that path, with a shot of each step.
