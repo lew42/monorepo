@@ -17,6 +17,7 @@ Host.Agent = FakeAgent;
 const host = new Host({ registry_dir: path.join(dir, "reg"), servex: { say(){} } });
 const agent = host.spawn({ task: false, id: "mastermind-f", role: "mastermind", name: "f", parent: "session-p" });
 
+Agents.Agent.prototype.emit.call(agent, { type: "result", ok: true });   // the spawn's own first turn ends first
 function turn(messages, text){
 	for (const from of messages) agent.send("x", { from });
 	agent.emit({ type: "transcript", text });
@@ -33,11 +34,18 @@ assert.ok(!isquiet(turn(["session-p"], "yes")), "an answer to a real message wak
 agent.send("f", { from: "servex-follow" }); agent.send("q", { from: "session-p" });   // a followed turn runs, a real question waits behind it
 agent.emit({ type: "transcript", text: "ok" }); host.calls = [];
 Agents.Agent.prototype.emit.call(agent, { type: "result", ok: true });
-assert.ok(isquiet(host.calls), "the followed turn ahead of it is quiet");
+assert.ok(!isquiet(host.calls), "a mix of followed and real messages is loud, never swallowed");
 agent.emit({ type: "transcript", text: "yes" }); host.calls = [];
 Agents.Agent.prototype.emit.call(agent, { type: "result", ok: true });
 assert.ok(!isquiet(host.calls), "the turn answering the real question is not swallowed");
 assert.ok(isquiet(turn(["servex-follow"], "ok")), "then followed lines are quiet again");
+// the first prompt is a real message: a followed line arriving while the brief's turn runs does not make its short reply quiet
+const briefed = host.spawn({ task: false, id: "mastermind-b", role: "mastermind", name: "b", parent: "session-p", prompt: "go" });
+briefed.send("f", { from: "servex-follow" });
+briefed.emit({ type: "transcript", text: "Spawned the minion." }); host.calls = [];
+Agents.Agent.prototype.emit.call(briefed, { type: "result", ok: true });
+assert.ok(!isquiet(host.calls), "the brief's own turn is not swallowed");
+
 // the real wake_parent: quiet skips only the message to the parent
 const sent = [];
 class Real extends Agents { send(id, text){ sent.push({ id, text }); } }
