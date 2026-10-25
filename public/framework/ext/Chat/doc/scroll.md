@@ -2,8 +2,10 @@
 
 The log keeps one true-or-false fact, `locked` (`talk.locked()` reads it). It starts true, which means "stay at the bottom".
 
-- **Scrolling up unlocks it.** The box's `scroll` event sets `locked` to false only when the box moved UP since the last event. A reader who scrolled up is never moved again.
-- **Reaching the bottom locks it again** (within 4px), and the next new line follows.
+- **Only the reader unlocks it** (2026-10-25). A `scroll` event unlocks only when the box moved UP within 1 s of a wheel, touch, key or pointer gesture; a redraw, a clamp or a `pin()` never counts. A reader who scrolled up is never moved again.
+- **Reaching the bottom locks it again** (within 40px), and the next new line follows.
+- **Late growth re-pins while locked** (a MutationObserver, once per frame; `observe: false` callers such as Widget's Thread do the same through their own `anchor()`).
+- **A fixed or sticky bar over the box's bottom edge** (the bottom toolbar) is measured with `elementsFromPoint`; the box gets that much tail padding, so "newest" lands the last line just above the bar.
 - **New lines follow only while locked.** After a line is drawn, the box jumps to the bottom if `locked` is true.
 - **A resize of the box re-pins the bottom.** A `ResizeObserver` watches the box itself: its first layout (it is 0px tall until the page is on screen) and the composer under it growing both change its size without firing any scroll event.
 - **A small ↓ button shows while unlocked** (chat-autoscroll, 2026-10-01) — a click jumps to the bottom and relocks, same as scrolling down by hand.

@@ -248,6 +248,7 @@ Widget.Thread = class WidgetThread extends View {
 			return b ? b.getBoundingClientRect().bottom - this.el.getBoundingClientRect().top + this.el.scrollTop : 0;
 		} });   // its resize re-pin is bottom-only; anchor() answers a resize itself
 		if (typeof ResizeObserver === "function") new ResizeObserver(() => this.anchor()).observe(this.el);
+		if (typeof MutationObserver === "function") new MutationObserver(() => this.anchor()).observe(this.el, { childList: true, subtree: true, characterData: true });   // a live whisper line or a streamed reply grows in place: whatever draws it, the pin follows
 	}
 
 	/** The anchor is the NEWEST bubble's top: growing never moves older lines. The box turns the page (once, as a bubble starts)
