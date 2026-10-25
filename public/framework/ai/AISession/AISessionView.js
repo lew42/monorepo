@@ -23,7 +23,7 @@ export default class AISessionView extends View {
 
 	prerender(){
 		super.prerender();
-		if (!this.card) this.href(this.url + this.row.id + "/");   // one route per session: this tab's own detail view
+		if (!this.card) this.href(AISession.page_url(this.row.session_id || this.row.id, this.url + this.row.id + "/"));   // one url per session: its dated folder (the id url redirects there)
 	}
 
 	// Subscribes to this row's Session: a delta from the live feed redraws THIS row and no other (doc/realtime.md).
@@ -181,7 +181,7 @@ export default class AISessionView extends View {
 		if (!row) return;
 		div.c("sessions-tree-row flex gap-50 v-center").style("padding-inline-start", depth * 1.5 + "em").append(() => {
 			const label = t.agent || id.slice(0, 8);
-			a(label).href("../" + (t.agent || id) + "/");
+			a(label).href(AISession.page_url(id, AISession.root_url().pathname + (t.agent || id) + "/"));
 			small.c("muted", `${t.role ?? ""} ${row.model ?? ""}${row.effort ? " · " + row.effort : ""}`);
 			span.c("sessions-tree-usd").text(usd(row.usd) + (row.children ? " own · " + usd(row.tree_usd) + " with children" : ""));
 		});

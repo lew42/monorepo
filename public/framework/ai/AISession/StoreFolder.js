@@ -2,6 +2,8 @@ import { Page, div, a, p, small } from "/app.js";
 import { AITask } from "/framework/ai/AITask/AITask.js";
 import CardDir from "/framework/ai/cards/CardDir.js";
 import { names } from "/framework/core/Router/listing.js";
+import AISessionDetail from "./AISessionDetail.js";
+import AISession from "./AISession.js";
 
 /* One folder of the sessions store, routed by its own path: /framework/ai/sessions/2026/10/12/<session>/<task>/.
    Tasks live here since 2026-10-12 (ai/doc/task-folders.md); the flat /framework/ai/sessions/<id>/ session route is untouched.
@@ -91,6 +93,21 @@ export default class StoreFolder extends Page {
 			this._known = { tasks: new Set(this._moves.values()), pages: new Set(pages.map(u => u.replace(/\/$/, ""))) };
 		}
 		return this._known;
+	}
+
+	/** A session folder (YYYY/MM/DD/<folder>/) is the session's page: line 1 of its record names the session, and AISessionDetail is drawn at the folder url. A moved task of the store stays a task. */
+	async child(name, levels){
+		const url = this.url + name + "/";
+		if (this.segs.length === 3 && !name.includes(".") && name !== "cards" && !this.children.get(name) && !StoreFolder.known().tasks.has(url.slice(0, -1))){
+			const who = await AISessionDetail.id_of_folder(this.home.url, url);
+			if (who){
+				if (/^[0-9a-f]{8}-/.test(who.session_id)){ AISession.slugs.set(who.session_id, name); AISession.days.set(who.session_id, this.segs.join("/")); }   // so page_url() and the detail's own-folder reads agree with this url
+				await AISessionDetail.preload(this.home.url, who.id);
+				const segs = [...this.segs, name];
+				return this.add(name, new AISessionDetail({ home: this.home, id: who.id, segs, below: sub => new StoreFolder({ home: this.home, segs }).route(sub) })).load_all_children(levels);
+			}
+		}
+		return super.child(name, levels);
 	}
 
 	route(name){

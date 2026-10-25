@@ -34,9 +34,38 @@ import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds 
 // The loaders are statics. Each degrades to null when its file is missing, and a missing piece just does not draw.
 export default class AISessionDetail extends Page {
 
-	constructor({ home, id }){
+	/** `segs` (YYYY, MM, DD, folder) puts the page at its dated folder, the session's one url; `below(name)` routes the folder's own subfolders (StoreFolder.route: tasks, nested folders). With neither, the page is at home.url + id (a session with no folder yet). */
+	constructor({ home, id, segs, below }){
 		// The title is the page's path, so it is shown whole (the header line is compact; the row's tab title sits in the conversation's head).
-		super({ home, id, width: "fill", title: AISessionDetail.first_title(home, id), url: home.url + id + "/" });
+		super({ home, id, width: "fill", title: AISessionDetail.first_title(home, id), url: segs ? home.url + segs.join("/") + "/" : home.url + id + "/" });
+		this.segs = segs; this.below = below;
+	}
+
+	route(name){ return this.below?.(name); }
+
+	/** The id (or Servex agent name) and uuid a session folder stands for, from line 1 of its record (`session` or `assign`; a task's launch line is not one), else from its `session-<id8>` name and the index. null: not a session folder. */
+	static async id_of_folder(root_url, url){
+		for (const file of ["session.jsonl", "task.jsonl"]){
+			if (!AITask.has(url + file)) continue;
+			const res = await fetch(url + file, { headers: { Range: "bytes=0-4095" } }).catch(() => null);
+			if (!res?.ok) continue;
+			try {
+				const first = JSON.parse((await res.text()).split("\n")[0]), id = first.assign?.agent ?? first.session?.id ?? first.assign?.session_id;
+				if (id) return { id, session_id: first.assign?.session_id ?? first.session?.id ?? id };
+			} catch {}
+		}
+		const id8 = /\/session-([0-9a-f]{8})\/$/.exec(url)?.[1];
+		const hit = id8 && Object.keys((await AISessionRows.load_index(root_url))?.rows ?? {}).find(k => k.startsWith(id8));
+		return hit ? { id: hit, session_id: hit } : null;
+	}
+
+	/** Where `/sessions/<id>/` should send the browser: the session's dated folder url, or null (no folder known, it is a task's deeper folder, or it holds no session record) and the id url stays the page. */
+	static async folder_for(root_url, name){
+		const row = await AISessionDetail.load_row(root_url, name), sid = row?.session_id ?? name;
+		if (!/^[0-9a-f]{8}-/.test(sid)) return null;
+		if (!AISession.slugs.has(sid)) await AISessionDetail.folder_from_day(row, sid);
+		const url = AISession.page_url(sid, null);
+		return url && await AISessionDetail.id_of_folder(root_url, url) ? url : null;
 	}
 
 	/** The name from rows AISessionsPage.child() preloaded, so the first paint already shows it; the id only when there is no row. */
@@ -95,7 +124,7 @@ export default class AISessionDetail extends Page {
 			if (!/^[0-9a-f]{8}-/.test(session_id)) return [];
 			await AISessionRows.load_index(this.home.url);   // fills AISession.days, so the dated folder is known
 			if (!AISession.slugs.has(session_id)) await AISessionDetail.folder_from_day(row, session_id);   // a named folder (2026/10/07/can-you-check-usage/): without it the log is looked for at <day>/<uuid>/ and 404s
-			const own =AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname
+			const own = this.segs ? this.url : AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname
 				: new URL(`./${AISession.day(new Date())}/${AISessionDetail.slug(row, session_id)}/`, AISession.root_url()).pathname;
 			this._old_url = AISessionDetail.dir_index().then(index => {
 				const old = AISessionDetail.dir_of(index, session_id);
