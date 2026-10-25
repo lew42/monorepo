@@ -21,7 +21,7 @@ export default class AISessionCoverage {
 
 	static OUTCOMES = "/framework/ai/doc/asks-outcomes.jsonl";
 	static GLYPH = { ask: "task_alt", question: "help_outline", rule: "gavel", idea: "lightbulb", conversation: "chat_bubble_outline" };
-	static COLOR ={ "done": "var(--ok)", "partly": "var(--warn)", "not done": "var(--hot)", "open": "var(--prim-ink)", "unreviewed": "var(--ink)" };
+	static COLOR = { "done": "var(--ok)", "partly": "var(--warn)", "not done": "var(--hot)", "open": "var(--prim-ink)", "unreviewed": "var(--ink)" };
 
 	constructor(session){
 		this.session = session;
