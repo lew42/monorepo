@@ -650,7 +650,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		const cls = (c.from?.kind ?? "") === "owner" ? "chatbox-you" : "chatbox-reply";
 		const who = c.from?.id || c.from?.kind || "";
 		if (!c.fix && !c.level) cls === "chatbox-you" ? drop_live([...lives.keys()].find(k => k.startsWith("sent:"))) : drop_live("stream:" + who);
-		const at = Date.parse(c.at ?? 0) || Date.now();
+		const at = Date.parse(c.said_at ?? c.at ?? 0) || Date.now();   // said_at = when the owner said it, on Servex's clock (doc/notes.md#bubble-order); old lines have none
 
 		if (c.fix){
 			const hit = fix_index.get(c.at);
@@ -687,8 +687,9 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 			const last = mergeable($box, who, at);
 			const piece = { id: c.at, text: c.text, at, via: c.via, place: c.place };
 			if (last){
-				bubbles.get(last).pieces.push(piece);
-				last.dataset.at = at;
+				const pieces = bubbles.get(last).pieces, i = pieces.findIndex(pc => pc.at > at);   // in time order, as speak() does
+				i < 0 ? pieces.push(piece) : pieces.splice(i, 0, piece);
+				last.dataset.at = Math.max(Number(last.dataset.at) || 0, at);
 				fill(last);
 				fix_index.set(c.at, { bubble: last, piece });
 				target(c.at, last);

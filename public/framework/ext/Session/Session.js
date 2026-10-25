@@ -76,13 +76,21 @@ export async function recent(page = location.pathname, { limit = 10, host = loca
  *  same shape `ext/drawer/select.js`'s `item()` already builds, `{kind, label, text, selector}` —
  *  passed straight through to Servex, which prefixes `[Selected: …]` ahead of the words it sends
  *  the assistants, the way `Layers.js`'s `heard()` already does for a card's own chip. */
-export const say = ({ session, path = location.pathname, text, via = "text", raw, floor: f, cues, re, thread, selection }) => {
+export const say = async ({ session, path = location.pathname, text, via = "text", raw, floor: f, cues, re, thread, selection, said_at }) => {
 	const spoken = via === "voice";
 	f ??= spoken ? mic_floor.state() : undefined;
-	return post("say", { session, path, text, via, ...(raw && raw !== text ? { raw } : {}),
+	const sent = Date.now();
+	const out = await post("say", { session, path, text, via, ...(said_at ? { said_at } : {}), ...(raw && raw !== text ? { raw } : {}),
 		...(f ? { floor: f } : {}), ...(cues ? { cues } : {}), ...(spoken ? { quiet_ms: mic_floor.quiet_ms() } : {}),
 		...(re && thread ? { re, thread: true } : {}), ...(selection ? { selection } : {}) });
+	const at = Date.parse(out?.at);
+	if (at) clock.offset = at - (sent + Date.now()) / 2;
+	return out;
 };
+
+/** Servex's clock minus this device's, in ms: `at` of the latest `say` answer minus the midpoint of its request. 0 until the first answer.
+ *  `ComposerMic.stamp()` adds it, so a bubble drawn here is ordered on Servex's clock (ext/Chat/doc/notes.md#bubble-order). */
+export const clock = { offset: 0 };
 
 /** The floor changed with no new words (the owner stopped talking): "done" writes a held fast reply. */
 export const floor = ({ session, floor }) => post("floor", { session, floor });

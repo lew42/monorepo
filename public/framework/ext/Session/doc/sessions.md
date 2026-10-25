@@ -8,7 +8,7 @@ One session is one append-only file in the dated store: `public/framework/ai/ses
 {"session": {"id": "v-1xrmuro", "home": "/framework/", "at": "…", "project": "monorepo", "host": "…",
              "fast": "session-fast-v-1xrmuro", "smart": "session-smart-v-1xrmuro",
              "backing": {"fast": "<claude session uuid>", "smart": "<claude session uuid>"}}}
-{"chat": {"at": "…", "session": "v-1xrmuro", "path": "/framework/", "from": {"kind": "owner"}, "via": "voice", "text": "can you hear me?"}}
+{"chat": {"at": "…", "session": "v-1xrmuro", "path": "/framework/", "from": {"kind": "owner"}, "via": "voice", "text": "can you hear me?", "said_at": "<optional: when the owner said it, on Servex's clock>"}}
 {"chat": {"at": "…", "session": "v-1xrmuro", "path": "/framework/", "from": {"kind": "assistant", "id": "fast", "agent": "session-fast-v-1xrmuro"}, "via": "text", "text": "…", "re": "<the owner line's at>"}}
 {"chat": {"at": "…", …, "from": {"kind": "assistant", "id": "smart", …}, "text": "<the owner's words, cleaned>", "re": "<the owner line's at>", "level": "clean"}}
 {"nav": {"at": "…", "from": "/framework/", "to": "/framework/ext/", "card": "<card id, when one is showing>"}}

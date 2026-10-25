@@ -308,7 +308,7 @@ Widget.Thread = class WidgetThread extends View {
 		const who = chat.from?.id ?? (assistant ? "assistant" : "owner");
 		const bubble = this.follow(() => speak(this.$bubbles, {
 			cls: assistant ? "chatbox-reply" : "chatbox-you",
-			who, text: chat.text, sender, at, id: at, via: chat.via,
+			who, text: chat.text, sender, at: chat.said_at ?? at, id: at, via: chat.via,   // ordered by when it was said (doc/notes.md#bubble-order), keyed by its own `at`
 			join: this.widget.join,
 		}));
 		// the new piece is found by its id: a late line is put in time order, so it is not always the last child
