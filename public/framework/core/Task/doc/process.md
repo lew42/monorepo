@@ -39,6 +39,10 @@ A process lives in its own folder inside the session that made it: `<session fol
 
 **Creating one is one call** (never two steps): `item({path: <your session>, delta: {tasks: {add: {title, process: "build", brief}}}})`. The item tool sees `process`, makes the folder, writes line 1 and the step lines from the definition (the add's own `steps_over` overrides change a step's session), and tells ProcessRunner, which starts step 1.
 
+## Does finishing step N hand step N+1 its instructions? Yes
+
+Node does it, with no agent remembering. The `complete` line the step's agent writes through the item tool wakes `ProcessRunner.step()` (`page_tools` `hooks.changed`). `ProcessRunner.run()` replays the file and asks `Process.next()`: with step N complete, the first open step is N+1, idle, so `next()` answers `{start: N+1}`; the next loop turn answers `{launch: N+1}`. `ProcessRunner.launch()` then sends `Process.prompt(N+1)`: to a new agent (`fresh`), the previous step's agent (`same`) or the creator (`owner`). That prompt holds N+1's `do`, the brief, the `outcome` of every complete step, and the line that completes it. Test: "plan runs in the same session, told what investigate found" in `Servex/ProcessRunner.test.mjs`. The page that shows it live: [/framework/core/Task/process/](/framework/core/Task/process/).
+
 ## Draft in the session, then move home
 
 A process starts as a draft in the session that made it. When it names a `module` (`tasks.add: {title, process, module}`), it moves to `<module>/tasks/<id>/` once the plan is approved. The step marked `home_after` (build: approve-plan) completing makes `next()` answer `{move}`, and ProcessRunner calls `move_home` in `Servex/agents/page_tools.js`. The move does five things:
