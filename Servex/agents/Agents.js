@@ -54,7 +54,7 @@ export class Agents {
 
 	/* `boot` names THIS host process — every registry row it writes carries it,
 	 * so the next boot can tell "alive a moment ago" from "long dead". */
-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = dir => this.agents_under(dir); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
+	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
 	assign(...args){ return Object.assign(this, ...args); }
 
 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
@@ -729,18 +729,28 @@ export class Agents {
 	}
 
 	/* The agents whose task lives in or below `dir` (a session's folder): its child sessions, found by place (Session.agents_resolver). */
-	agents_under(dir){
-		const root = path.resolve(MAIN_ROOT, dir).toLowerCase(), rows = this.reg().read(), out = [];
-		for (const [k, ids] of this.task_dirs()) if (k === root || k.startsWith(root + path.sep)) for (const id of ids){
+	/* Also, with `session_id`: every agent the session itself spawned, wherever its task lives, and all they spawned (the owner, 2026-10-24:
+	 * "every agent the tab spawns is a child session"). A VS Code tab reaches Servex under a name (`vscode-mastermind`) that later tabs
+	 * reuse, so a row counts only when its parent is one of the session's names and it started at or after `since` (the session's start). */
+	agents_under(dir, { session_id = null, since = null } = {}){
+		const root = path.resolve(MAIN_ROOT, dir).toLowerCase(), rows = this.reg().read(), ids = new Set(), out = [];
+		for (const [k, list] of this.task_dirs()) if (k === root || k.startsWith(root + path.sep)) list.forEach(id => ids.add(id));
+		if (session_id){
+			const names = new Set([session_id, ...Object.entries(rows).filter(([, r]) => r?.session_id === session_id).map(([id]) => id)]);
+			for (const [id, r] of Object.entries(rows)) if (names.has(r?.parent) && !names.has(id) && (!since || String(r.started_at ?? "") >= since)) ids.add(id);
+			for (let grew = true; grew;){ grew = false; for (const [id, r] of Object.entries(rows)) if (!ids.has(id) && !names.has(id) && ids.has(r?.parent) && (!since || String(r.started_at ?? "") >= since)){ ids.add(id); grew = true; } }
+		}
+		for (const id of ids){
 			const r = rows[id] ?? {};
 			out.push({ id, parent: r.parent ?? null, role: r.role ?? null, state: this.live.get(id)?.state ?? r.state ?? null, session_id: r.session_id ?? null,
-				cost: Math.round(this.logged_cost(id) * 100) / 100, started_at: r.started_at ?? null });
+				cost: Math.round(this.logged_cost(id, since) * 100) / 100, started_at: r.started_at ?? null });
 		}
 		return out.sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
 	}
 
 	/* The total recomputed from the records: every `turn_cost` in the agent's own log (Agent.result writes one per turn). */
-	logged_cost(id){ return this.log_cost(id).cost; }
+	// `since` (an ISO time): only the turns from then on. An agent id is reused across spawns (mastermind-page logged from 2026-09-30), so a session counts only its own span.
+	logged_cost(id, since = null){ const c = this.log_cost(id), from = since ? Date.parse(since) : NaN; return isNaN(from) ? c.cost : c.turns.reduce((n, t) => n + (t.ms >= from ? t.cost : 0), 0); }
 
 	/* { cost, sdk_total } from the agent's log: its turns rebuilt by turn_costs() (turn-costs.js says why a log needs rebuilding). */
 	// Kept per log until its size or mtime changes: a session's item() read asks this once per task and once per child agent,
@@ -752,7 +762,7 @@ export class Agents {
 		if (hit && hit.size === st.size && hit.mtime === st.mtimeMs) return hit.out;
 		let text; try { text = fs.readFileSync(file, "utf8"); } catch { return { cost: 0, sdk_total: 0 }; }
 		const { turns, sdk_total } = turn_costs(text, { openrouter: this.reg().read()[id]?.provider === "openrouter" });
-		const out = { cost: turns.reduce((n, t) => n + t.cost, 0), sdk_total };
+		const out = { cost: turns.reduce((n, t) => n + t.cost, 0), sdk_total, turns: turns.map(t => ({ ms: Date.parse(t.line?.at ?? t.line?.ts ?? "") || 0, cost: t.cost })) };
 		this._log_costs.set(file, { size: st.size, mtime: st.mtimeMs, out });
 		return out;
 	}

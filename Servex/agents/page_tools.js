@@ -738,7 +738,9 @@ export function session_state(task, tasks = []){
 	// A task's cost is its folder's agents, so two tasks naming one folder (a task and its re-filed twin) count it once.
 	const all = every_task(task._tasks), seen = new Set(), costed = all.filter(t => Number(t.cost) > 0 && !seen.has(t.get_one("path")) && seen.add(t.get_one("path")));
 	const task_cost = costed.reduce((s, t) => s + t.cost, 0);
-	const dir = task.store?.file ? path.dirname(task.store.file) : null, agents = dir ? (task.constructor.agents_resolver?.(dir) ?? []) : [];
+	// Its agents: those whose task is in its folder, and (by its uuid) those it spawned anywhere since it began.
+	const dir = task.store?.file ? path.dirname(task.store.file) : null, uuid = /^[0-9a-f]{8}-/.test(task.id ?? "") ? task.id : null;
+	const agents = dir ? (task.constructor.agents_resolver?.(dir, { session_id: uuid, since: task.first_at ? new Date(task.first_at).toISOString() : null }) ?? []) : [];
 	const own = dir ? own_cost(dir) : null;
 	const child_cost = agents.reduce((s, a) => s + (a.cost || 0), 0);
 	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
