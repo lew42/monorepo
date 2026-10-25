@@ -810,3 +810,8 @@
 {"run":"2026-10-25T04:41:24.861Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/shot-paths","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session.jsonl"}
 {"run":"2026-10-25T04:41:24.861Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/queue-top/batch2","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/queue-top/session.jsonl"}
 {"run":"2026-10-25T04:41:24.861Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-is-a-task","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/task.jsonl"}
+{"run":"2026-10-25T06:48:14.423Z","kind":"links","count":2}
+{"run":"2026-10-25T06:48:14.423Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/cost-line","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session.jsonl"}
+{"run":"2026-10-25T06:48:14.423Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/stopped-settles","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session.jsonl"}
+{"run":"2026-10-25T06:50:19.422Z","kind":"links","count":0}
+{"run":"2026-10-25T06:52:20.234Z","kind":"links","count":0}

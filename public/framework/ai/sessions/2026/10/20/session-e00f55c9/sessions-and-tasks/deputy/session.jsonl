@@ -286,3 +286,5 @@
 {"tasks":{"item-31-one-tasks-list-holds-prompts-tas":{"brief":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session-entries/requirements.md","note":"Items 32 and 33 (part 8: a task upgrades into a child session; tasks are lines by default, folders only for a session or project; backfill) are folded in: one brief and plan, deputy/session-entries/. Builder task-mastermind-session-entries (Opus high, $25), queued 2026-10-24 23:41."}},"by":"mastermind-deputy","ts":"2026-10-25T04:42:22.309Z"}
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/running-for/","by":"Servex","ts":"2026-10-25T04:47:44.487Z"}
 {"log":{"at":"2026-10-24T23:50:10-05:00","msg":"session resumed"}}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/cost-line/","by":"SessionRecord --links","ts":"2026-10-25T06:48:14.426Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/stopped-settles/","by":"SessionRecord --links","ts":"2026-10-25T06:48:14.427Z"}
