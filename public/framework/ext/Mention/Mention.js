@@ -216,7 +216,7 @@ function replace_node(node, m, depth = 0){
 // An inline `code` that holds ONLY one reference (`/framework/ai/`, `@owner`, `mastermind-x`) becomes the same link; longer code stays code.
 function upgrade_code(code, m){
 	let t = code.textContent.trim();
-	if (agent_entry(t)) t = "@" + t;
+	if (t.includes("-") && agent_entry(t)) t = "@" + t;   // a hyphen: the bare word "assistant" is prose
 	const match = new RegExp(PATTERN.source, "g").exec(t);
 	if (!match || match[0] !== t) return;
 	const sigil = match[1] ?? match[2], entry = lookup(m, sigil, match[3]);
