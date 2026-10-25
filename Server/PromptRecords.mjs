@@ -14,6 +14,7 @@
  *   node Server/PromptRecords.mjs <session 8hex> --dry                 # the unique prompts, what is recorded, the estimate
  *   node Server/PromptRecords.mjs <session> --process review [--steps parts,outcomes] [--only 4136,5965] [--file]
  *   node Server/PromptRecords.mjs <session> --summary                  # completion per prompt, computed
+ *   node Server/PromptRecords.mjs <session> --tasks [prompt id or line]   (the splitter's tasks for a prompt; default the latest)
  *   node Server/PromptRecords.mjs <session> --handled <prompt uuid> --to <task path or agent> [--note …]
  */
 import fs from "node:fs";
@@ -47,7 +48,7 @@ export default class PromptRecords {
 	/** The parts step's system prompt. The live and review processes share it: what a prompt says does not depend on what was done. */
 	static PARTS_BRIEF = `You break ONE prompt the owner of a web-framework repo dictated to an AI coding agent into parts. Dictation rambles and repeats; keep every want, lose nothing said. You cannot see the code.
 A part is a run of sentences with one meaning; cite them all by number. Every sentence is cited by exactly one part.
-- ask: something should happen. A long prompt usually has 1 to 3 MAIN asks: write each once, and nest its specific suggestions, numbers and sub-asks under it in "parts" (same shape). Never invent a fix the owner did not suggest.
+- ask: something should happen. Give every ask the prompt really holds, as many as there are, and never merge two asks into one: better safe than sorry, include everything. Nest an ask's own specific suggestions, numbers and sub-asks under it in "parts" (same shape). Never invent a fix the owner did not suggest. Where the owner's words carry a degree or a qualifier ("a bit", "mostly", "at least"), or are unclear, keep them in "text" in quotation marks as the owner's words, so a later agent can go back to the source.
 - rule: a standing direction for agents ("always", "never", "we don't want X", "the mastermind manages these"). It becomes a doc note, never a task; "file" is the doc it belongs in when obvious (CLAUDE.md, a module's readme.md), else "".
 - question: the owner wants an answer. idea: thinking aloud, a maybe, a hedge ("maybe", "I wonder"). conversation: narration, thanks, filler.
 When the owner corrects themselves, the later word wins: cite both sentences in one part.
@@ -191,7 +192,7 @@ Answer at the end with ONE JSON object and nothing else after it:
 			for (const x of row.parts){   // past file_cap an ask stays an open part on the record: never lost, never a sixth proposal
 				if (!this.def.file_kinds.includes(x.kind) || x.outcome?.is !== "open" || n >= (this.def.file_cap ?? Infinity)){ parts.push(x); continue; }
 				n++;
-				const add = { title: (x.kind === "rule" ? "Write down: " : "") + x.text.slice(0, 180), state: this.def.file === "proposals" ? "waiting" : "idle", ...(this.def.file === "proposals" ? { waiting_on: "owner" } : {}), from: "owner",
+				const add = { title: (x.kind === "rule" ? "Write down: " : "") + x.text.slice(0, 180), state: "idle", from: "owner",   /* open work for the session, idle: never waiting on the owner (one writer, 2026-10-24) */
 					source: { session: this.id, line: p.line, prompt: this.rid(p), part: x.id }, description: [x.outcome?.why, ...(x.parts ?? []).map(d => "- " + d.text)].filter(Boolean).join("\n").slice(0, 800), ...(x.file ? { file_hint: x.file } : {}), ...(x.module ? { module_hint: x.module } : {}) };
 				const r = await run_item({ path: record, delta: { tasks: { add } } }, { caller: this.by }, true);
 				const ref = r?.homes?.[0]?.path ?? r?.ids?.[0];
@@ -232,17 +233,32 @@ Answer at the end with ONE JSON object and nothing else after it:
 		return out;
 	}
 
-	/** The router's verb: a whole prompt's waiting proposals are handled (routed to one task or agent): each is completed with that note. */
+	/** The router's verb: a whole prompt's open (idle or waiting) tasks are handled (routed to one task or agent): each is completed with that note. */
 	async handled(uuid, to, note = ""){
 		const { run_item } = await import(pathToFileURL(path.join(ROOT, "Servex/agents/page_tools.js")).href);
 		const record = "/" + path.relative(path.join(ROOT, "public"), path.join(this.folder, "session.jsonl")).replace(/\\/g, "/");
-		const session = PromptAudit.read(path.join(this.folder, "session.jsonl")), done = [];
-		for (const l of session){ const a = l.tasks?.add; if (a?.id && PromptRecords.from_prompt(a.source) && (a.source?.prompt === uuid || String(a.source).includes(uuid)) && (a.state ?? "") === "waiting"){
-			const r = await run_item({ path: record, delta: { [a.id]: { complete: { outcome: `routed to ${to}${note ? ": " + note : ""}` } } } }, { caller: this.by }, true);
-			if (r?.ok) done.push(a.id);
-		} }
+		const done = [];
+		for (const t of this.tasks(uuid)){   // current state, so a task a tab already started is never closed as "routed"
+			if (!["waiting", "idle"].includes(t.state)) continue;
+			const r = await run_item({ path: record, delta: { [t.id]: { complete: { outcome: `routed to ${to}${note ? ": " + note : ""}` } } } }, { caller: this.by }, true);
+			if (r?.ok) done.push(t.id);
+		}
 		try { await this.add({ prompt: uuid, stage: "handled", to, note }); } catch (e){ console.log(`no record for ${uuid} (${e.message}); the proposals are closed anyway`); }
 		return done;
+	}
+
+	/** The tasks the splitter filed for a prompt (default: the newest), with their state folded from the record: what a tab finds instead of adding its own.
+	 *  The tab then starts one with the item tool: {"tasks":{"<id>":{"start":{}}}} on the session record, setting `path` to the brief and `agent`. */
+	tasks(prompt = null){
+		const ps = this.prompts, p = prompt ? ps.find(x => this.rid(x) === prompt || String(x.line) === String(prompt)) : ps[ps.length - 1];
+		if (!p) return [];
+		const rid = this.rid(p), by = new Map();
+		for (const l of PromptAudit.read(path.join(this.folder, "session.jsonl"))){
+			const a = l.tasks?.add; if (a?.id && (a.source?.prompt === rid || String(a.source ?? "").includes(rid))) by.set(a.id, { id: a.id, title: a.title, state: a.state ?? "idle", line: p.line, prompt: rid });
+			if (l.decide?.task && by.has(l.decide.task)) by.get(l.decide.task).state = l.decide.is === "reject" ? "stopped" : l.decide.is === "approve" ? "idle" : by.get(l.decide.task).state;
+			for (const [k, v] of Object.entries(l.tasks ?? {})) if (by.has(k) && v && typeof v === "object"){ const verb = Object.keys(v)[0]; by.get(k).state = ["complete", "finish"].includes(verb) ? "complete" : ["stop", "reject"].includes(verb) ? "stopped" : ["start", "resume"].includes(verb) ? "running" : verb === "approve" ? "idle" : by.get(k).state; }
+		}
+		return [...by.values()];
 	}
 
 	async run({ steps = this.def.steps, only = null, file = false } = {}){
@@ -263,6 +279,7 @@ Answer at the end with ONE JSON object and nothing else after it:
 	static async main(argv){
 		const flag = k => argv.includes(k), val = k => argv[argv.indexOf(k) + 1];
 		const r = new PromptRecords(argv.find(x => /^[0-9a-f-]{8,36}$/.test(x)), { process: flag("--process") ? val("--process") : "review", parallel: flag("--parallel") ? +val("--parallel") : 3 });
+		if (flag("--tasks")){ console.log(JSON.stringify(r.tasks(val("--tasks")?.startsWith("--") ? null : val("--tasks")), null, 1)); return; }   // --tasks [prompt id or line]; none = the latest prompt
 		if (flag("--handled")){ console.log(await r.handled(val("--handled"), val("--to"), flag("--note") ? val("--note") : "")); return; }
 		if (flag("--summary")){ const s = r.summary(); for (const x of s) console.log(x.recorded === false ? `  L${x.line} not recorded` : `${x.complete ? "✅" : "⬜"} L${x.line} ${x.done}/${x.total} ${x.uncovered ? `(${x.uncovered} uncited) ` : ""}${JSON.stringify(x.outcomes)} ${x.subject}`); console.log(`${s.filter(x => x.complete).length} of ${s.length} prompts complete`); return; }
 		if (flag("--dry")){ const rows = r.rows(); for (const p of r.prompts) console.log(`  L${p.line} ${p.at} ${p.text.length} chars ${rows[r.rid(p)]?.parts?.length ? "recorded" : ""}`); console.log(`${r.prompts.length} unique prompts (of ${PromptAudit.prompts(r.transcript).length} in the transcript), process ${r.process}: ${r.def.steps.join(" → ")}`); return; }

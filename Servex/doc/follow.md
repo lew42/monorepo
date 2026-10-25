@@ -171,6 +171,10 @@ following a directory that doesn't exist yet still catches a file born
 inside it, from its first line; and a burst whose final write's "change"
 event never fires (the trap above) still delivers every line.
 
+## A parent following its child hears only states
+
+A subscription made by `Agents.follow_child` (it has `of:`) is filtered: `Follow.worth_waking` forwards only the lines `Follow.kind` calls `state` (a task added, started, waiting, complete) or `pointer` (a file the owner should know about, a shot, a review verdict), each cut to 600 characters. Steps, actions, decisions, commits, heartbeat and `worktree-watch:` lines are dropped, and a burst with nothing left sends no message, so it wakes nobody. A subscription you make yourself with the `follow` tool still gets every line. Test: `node Servex/Follow-kind.test.mjs`; cost: `node Server/FollowCost.mjs` (the rule and the measured numbers: `public/framework/ai/doc/task-buckets.md`).
+
 ## Where it lives
 
 The whole mechanism is one class, [`Servex/Follow.js`](../Follow.js) — one
