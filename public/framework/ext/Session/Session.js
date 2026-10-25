@@ -144,31 +144,38 @@ export const select = ({ session, selection }) => post("select", { session, sele
  *  it, so a reply does not wait for the next poll). Server-sent events; the browser reconnects by
  *  itself, and each stream event carries the whole text, so a reconnect loses nothing. Returns `stop()`. */
 export function stream(session, on_event, { on_state } = {}){
-	if (typeof EventSource !== "function") return Object.assign(() => {}, { reconnect(){} });
-	let src = null, timer = null, wait = 1000, down_at = 0, stopped = false;
-	const state = (s, why) => { stream.state = s; on_state?.(s, why); };
+	if (typeof EventSource !== "function") return Object.assign(() => {}, { reconnect(){ return false; } });
+	let src = null, timer = null, wait = 1000, down_at = 0, stopped = false, opened_at = 0, tries = 0;
+	// `since`: when the wire went down (0 while open); `tries`: reopen attempts since then. The sheet's Reconnect label reads both.
+	const state = (s, why) => { stream.state = s; try { on_state?.(s, why, { since: down_at, tries }); } catch (e){ console.error("Session.stream on_state:", e); } };
 	function open(why){
 		clearTimeout(timer); src?.close();
+		opened_at = Date.now();
 		src = new EventSource(servex_url(`/api/session/${session}/stream`));
 		src.onopen = () => {
 			if (down_at) stream.log("reconnected", { session, why, down_ms: Date.now() - down_at });
-			down_at = 0; wait = 1000; state("open");
+			down_at = 0; tries = 0; wait = 1000; state("open");
 		};
-		src.onmessage = e => { try { on_event(JSON.parse(e.data)); } catch {} };
+		src.onmessage = e => { try { on_event(JSON.parse(e.data)); } catch (e){ console.error("Session.stream line:", e); } };
 		// A refused connection retries by itself; a non-200 answer (the /servex proxy's 502 while Servex
 		// restarts) CLOSES the EventSource for good, so we reopen it, 1 s then doubling to 15 s. doc: ext/drawer/doc/sheet.md
 		src.onerror = () => {
 			if (stopped) return;
 			const closed = src.readyState === EventSource.CLOSED;
 			if (!down_at){ down_at = Date.now(); stream.log("lost", { session, closed }); }
-			else if (closed) stream.log("retry failed", { session, next_ms: wait });
-			state("down", closed ? "Servex answered with an error" : "Servex is not answering");
+			else { tries++; if (closed) stream.log("retry failed", { session, next_ms: wait }); }
+			state("down", closed ? "Servex answered with an error (restarting?)" : "the connection to Servex was cut or refused");
 			if (closed){ timer = setTimeout(() => open("retry"), wait); wait = Math.min(wait * 2, 15000); }
 		};
 	}
 	open("start");
 	const stop = () => { stopped = true; clearTimeout(timer); src?.close(); };
-	stop.reconnect = () => { wait = 1000; stream.log("reconnect pressed", { session }); open("button"); };
+	/** Reopen now. Never throws; a no-op once stopped, while open, or within 0.5 s of the last attempt (a double tap). */
+	stop.reconnect = () => {
+		if (stopped || !down_at || Date.now() - opened_at < 500) return false;
+		try { wait = 1000; stream.log("reconnect pressed", { session, down_ms: Date.now() - down_at }); open("button"); return true; }
+		catch (e){ console.error("Session.stream reconnect:", e); return false; }
+	};
 	return stop;
 }
 stream.state = "open";

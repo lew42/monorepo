@@ -144,8 +144,8 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	const target = { path, card };
 	const owner = keep ? GLOBAL : create_controller({ persist: false });
 	let panel, stop_watch = null, stop_stream = null, own_ats = new Set(), watching = "unset";
-	let resume_label = null, resume_session = null, watching_since = null, wire_timer = null;
-	let link = { state: "open" };   // the live wire to Servex: "open" | "down" (Session.stream's on_state); the sheet's Reconnect button shows it
+	let resume_label = null, resume_session = null, watching_since = null, wire_timer = null, link_why = null;
+	let link = { state: "open" };   // the live wire to Servex: "open" | "down" {why, since}, down only past WIRE_GRACE_MS; the sheet's Reconnect button shows it
 	const on_link = new Set();
 	// Duplicate-draw fix: both watch() and stream() call draw(); dedupe by line: doc/chat-notes.md
 	let seen_chat = new Set();
@@ -246,6 +246,8 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		watching = owner.ctl.session;
 		stop_watch?.(); stop_watch = null;
 		stop_stream?.(); stop_stream = null;
+		clearTimeout(wire_timer); wire_timer = null; link_why = null;
+		if (link.state !== "open") set_link({ state: "open" });   // a new session's wire starts fresh
 		own_ats = new Set();
 		seen_chat = new Set();
 		// No session → the one this mount's first sentence just started: keep the screen. Only the owner's own lines are on it, and
@@ -257,16 +259,27 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		stop_stream = Session.stream(owner.ctl.session, ev => {
 			if (ev.kind === "stream"){ panel.stream(ev.role, ev.text); if (ev.text) DictateHealth.set("llm", "ok", `${ev.role} is writing an answer…`, { quiet: true }); }
 			else if (ev.kind === "line") draw(ev.line);
-		}, { on_state: (s, why) => {
-			link = { state: s, why }; for (const fn of on_link) fn(link);
-			// The noise rule: the LAN proxy cuts the wire every 30 s and it is back in a second, so a drop is a failure only if it lasts WIRE_GRACE_MS.
-			clearTimeout(wire_timer);
+		}, { on_state: (s, why, { since } = {}) => {
+			// The noise rule: the LAN proxy cuts the wire every 30 s and it is back in a second, so a drop counts
+			// (a red row, the Reconnect button) only once it has lasted WIRE_GRACE_MS. Shorter: one event line.
 			if (s === "down"){
+				if (link.state === "down"){ set_link({ ...link, why }); return; }   // still down: a retry failed, keep the first `since`
+				link_why = why;
+				if (wire_timer) return;   // already counting this drop
 				DictateHealth.event("llm", "wait", `the live wire to Servex dropped (${why}). It reconnects by itself.`);
-				wire_timer = setTimeout(() => DictateHealth.set("llm", "bad", `the live wire to Servex is down: ${why}. It retries by itself (1 s, doubling to 15 s); Reconnect tries now.`), WIRE_GRACE_MS);
-			} else if (DictateHealth.layers.llm.state === "idle" || DictateHealth.layers.llm.why.startsWith("the live wire")) DictateHealth.set("llm", "ok", "connected to Servex; nothing asked yet");
+				wire_timer = setTimeout(() => {
+					wire_timer = null;
+					set_link({ state: "down", why: link_why ?? why, since: since || Date.now() });
+					DictateHealth.set("llm", "bad", `the live wire to Servex is down: ${link_why ?? why}. It retries by itself (1 s, doubling to 15 s); Reconnect tries now.`);
+				}, WIRE_GRACE_MS);
+				return;
+			}
+			clearTimeout(wire_timer); wire_timer = null; link_why = null;
+			if (link.state !== "open") set_link({ state: "open" });
+			if (DictateHealth.layers.llm.state === "idle" || DictateHealth.layers.llm.why.startsWith("the live wire")) DictateHealth.set("llm", "ok", "connected to Servex; nothing asked yet");
 		} });
 	}
+	function set_link(next){ link = next; for (const fn of on_link) try { fn(link); } catch (e){ console.error("chat on_link:", e); } }
 
 	attach();
 	owner.report_nav(target.path, target.card);
@@ -279,8 +292,8 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		file: () => owner.ctl.file,
 		link: () => link,
 		on_link(fn){ on_link.add(fn); fn(link); return () => on_link.delete(fn); },
-		/** The Reconnect button: reopen the live wire now (it also retries by itself, 1 s doubling to 15 s). */
-		reconnect(){ stop_stream?.reconnect?.(); },
+		/** The Reconnect button: reopen the live wire now (it also retries by itself, 1 s doubling to 15 s). Never throws; false = nothing to do. */
+		reconnect(){ try { return !!stop_stream?.reconnect?.(); } catch (e){ console.error("chat reconnect:", e); return false; } },
 		reset(){ owner.reset(); },
 		remove(){
 			unsubscribe();

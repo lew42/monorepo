@@ -157,8 +157,11 @@
 	   well squeezed to 0 px, sitting above the bottom bar so ⌂ ✦ ☰ stay in reach. Nothing is hidden or swapped. */
 	.drawer-rail-sheet-strip { inset-block-end: var(--rail-bar-h, 0px); }
 	/* Reconnect: shows only while the live wire to Servex is down (Sheet.Panel, chat.js on_link). */
-	.app .drawer-rail-sheet-reconnect { flex: none; font: inherit; font-size: 0.8em; font-weight: 600; padding: 0.3em 0.7em; min-block-size: 2rem; color: var(--surface); background: var(--ink); border: 0; border-radius: 999px; }
-	.app .drawer-rail-sheet-reconnect[hidden] { display: none; }
+	/* One line under the head, full width, so the reason is readable on a phone. */
+	.drawer-rail-sheet-reconnect { gap: 0.6em; padding: 0.35em 0.75em; font-size: 0.85em; color: #78350f; background: #fef3c7; border-block-end: 1px solid #f59e0b; }
+	.drawer-rail-sheet-reconnect[hidden] { display: none !important; }
+	.drawer-rail-sheet-reconnect-why { flex: 1; min-inline-size: 0; }
+	.app .drawer-rail-sheet-reconnect-go { flex: none; font: inherit; font-weight: 600; padding: 0.3em 0.8em; min-block-size: 2rem; color: var(--surface); background: var(--ink); border: 0; border-radius: 999px; }
 	/* A drag down on the head steps one size down (Sheet.Panel.head_drag): the head must not pan the page. */
 	.drawer-rail-sheet-head { touch-action: none; }
 

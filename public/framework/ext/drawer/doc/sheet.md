@@ -15,7 +15,17 @@ Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
 - **Opened in place.** On the phone, ✦ no longer routes to `<path>/ai/`: that page replaced the page behind with an empty "The chat is in the sheet" page. The size is in `history.state`, so back still steps it down. A link or a reload of `<path>/ai/` still opens the sheet. The alternative, not built: keep the route and draw the page it is about behind it.
 - **First click opens the three rows** at the remembered height (60% the first time), not the one-line strip: the full wall of text is the mode while we debug.
 
-**Why it stopped reconnecting.** On the phone, Servex is reached through the dev server's `/servex` proxy. While Servex restarts, the proxy answers **502**, and a browser `EventSource` that gets a non-200 answer closes for good. On localhost the connection is simply refused, which the browser does retry, so it only failed on the phone. Now `Session.stream()` (`ext/Session`) reopens itself, 1 s then doubling up to 15 s, and the sheet's head shows a **Reconnect** button while the wire is down (press it to try at once). Proof without restarting anything: `ux/Dictate/test/reconnect.mjs` answers the stream with 502 for a few seconds and checks the button, the automatic reopen, and the log lines (5/5 pass).
+**Why it stopped reconnecting.** On the phone, Servex is reached through the dev server's `/servex` proxy. While Servex restarts, the proxy answers **502**, and a browser `EventSource` that gets a non-200 answer closes for good. On localhost the connection is simply refused, which the browser does retry, so it only failed on the phone. Now `Session.stream()` (`ext/Session`) reopens itself, 1 s then doubling up to 15 s, and the sheet shows a **Reconnect** line while the wire is down (press it to try at once).
+
+### Reconnect (2026-10-25)
+
+**What it reconnects:** one thing, the chat's live wire to Servex (`Session.stream`, the server-sent events that bring the AI's replies as they are written). Not Whisper, not the mic, not the agent: those have their own rows on the [Debug tab](/framework/ux/Dictate/doc/debug-tab.md).
+
+**When it shows:** only after the wire has been down for 8 s (`WIRE_GRACE_MS` in `ux/Dictate/chat.js`). Before 2026-10-25 it showed on every drop, and the LAN proxy cuts the wire every 30 s and it is back in a second, so it flashed at random (8 times in 8 s in the probe). It is a line under the head, full width, saying what and why: "Servex link down 12 s: Servex answered with an error (restarting?) · Reconnect", the seconds counting up (`SheetPanel.link_state`).
+
+**A press:** reopens the wire at once and says "trying now…". It never throws, does nothing once the chat is gone or the wire is already open, and ignores a second tap within 0.5 s, so there is never a second wire (`stop.reconnect` in `ext/Session/Session.js`). The "crash" after a press was not the button: the probe pressed it in every state with no page error. It shows exactly when Servex restarts, and a Servex restart also brings the dev server back, which reloads the page (or shows "This page is out of date") right after.
+
+Proof: `ux/Dictate/test/reconnect.mjs` (stream cuts every second: never shown; 502: hidden for 8 s, then shown with its reason; one press asks at once; ten fast presses open one wire; Servex back: hides; 8/8 pass).
 
 ### The log
 
