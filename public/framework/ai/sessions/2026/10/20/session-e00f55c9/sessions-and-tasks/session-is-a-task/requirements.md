@@ -141,3 +141,21 @@ The tab has been asking agents for `show:` log lines. That's a loose convention 
     - This session (e00f55c9) is goal number one. The closeout is in `../session-closeout/`, and its write waits for the fast write.
 
 21b. **(deputy) Name it so it reads plainly.** "Session extends Task, and its tasks are prompts" is a mouthful (the owner). Write the shape in the readme in plain words, and consider a clearer list name, e.g. a session's `prompts`, while it is still a Task list underneath. Pick one and say why. **Moving tasks out of a session into a module is NOT in scope.** It's a note in core/Task's inbox, for a later shape discussion that the owner signs off.
+
+## Part 6 (the owner, 2026-10-24, the prompt starting "for any session, we should be able to just use an item tool to check the session's completion")
+
+24. **(deputy) A child session is a task in its parent's `session.jsonl`,** written by code at spawn, with no agent remembering to do it. The parent's completion then depends on the child's. Today this is "half there" (slow-write.md 12c.2). Finish it, and prove it with a test: spawn → the parent's `tasks` has the child → the child completes → the parent's numbers move.
+25. **(deputy) Recompute only what changed.** A write to one session updates that session (and its ancestors' totals), never every session or every task. The cost of a session that hasn't changed is never recomputed. Confirm the fast write holds to this, and say so in plain words in the readme.
+26. **(deputy) One item-tool read gives any session's completion.** A tally of its tasks' current state that answers quickly, for this session and for any past one. Auditing all past sessions to completion is later (a note only, not now).
+27. **(ai-system-mastermind) Show the process system to the owner.**
+    - The owner has never seen it. `core/Task/Process.js` and `processes/` exist.
+    - Give it a page with the object-oriented view: the class, its properties and API, and a live demo with real data.
+    - Say whether finishing step N injects step N+1's instructions automatically. If not, add that, small.
+28. **(ai-system-mastermind) Logs group under the open task,** like `console.group`: once a task starts, the session's log lines and notes go to that task until it completes. An agent may also write to a task by its path. Notes and cards can be added to any part of a session (a prompt, a subtask), not only the session. Fold this into `task-notes-proposal.md`.
+29. **(ai-system-mastermind) Every ask of substance gets a "what done looks like".**
+    - Weigh the quick option against the robust one, and propose the shape early.
+    - Size it: a quick task (no task needed if it fits the current one), a task, or a project.
+    - Say whether a skill for choosing the size exists; if not, write the rule in task-buckets.md.
+    - Never sit in the wrong task: close the last one before the next starts.
+    - Prompt refinement may draft the done-criteria, and the tab refines them.
+30. **(rule) A session's log is not the home of conclusions.** What's true about a module goes in that module's docs, and the session points to it. The closeout's verdicts are task states (complete, stopped with reason), which is fine. Any finding about a module goes to that module's doc.

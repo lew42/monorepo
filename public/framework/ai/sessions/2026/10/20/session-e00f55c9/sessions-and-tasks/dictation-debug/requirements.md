@@ -44,3 +44,7 @@ Opus, high effort. Work in a worktree and land ready to merge; the merge is the 
 - **The builder follows the modules it is changing,** the mastermind follows its children's session logs, and both use the same tool.
 - **The noise rule still applies:** report a failure only if it still fails after a quiet spell. Passes are logged as one "clear" line.
 - **`ai/errors/` (one global folder) moves toward per-module logs.** Say how in your outcome.
+
+## Also (the owner, 2026-10-24)
+
+The web live-transcribe is "wonky and broken". The chat bubbles aren't made robustly, and the deltas that build them are applied glitchily. The owner wants web transcription working again, so they can use it instead of the app. Include the bubble and delta path in your investigation.

@@ -60,3 +60,9 @@ The pipeline already does most of what the owner described:
    - Retroactive passes over days of logs stay on Haiku.
    - Compare Sonnet and Haiku on the same 5–10 real prompts (coverage, missed asks, merged asks) and recommend one with the numbers.
 8. **Keep the hook.** It's the one writer (decided with the owner). Its output becomes Prompt instances in `session.tasks` (session-is-a-task, item 21, the deputy's). Write that flow into the map.
+
+9. **(the owner, 2026-10-24) The vscode-mastermind role readme must teach a new sidebar tab the hook.**
+   - The hook exists, and this is how it works.
+   - Follow (`follow`) the session's `prompts.jsonl`.
+   - After each prompt, compare the raw sentences with the tasks Haiku made; fix names, add what it missed, and embellish where the detail matters.
+   - The refined tasks render at once on the session detail page.
