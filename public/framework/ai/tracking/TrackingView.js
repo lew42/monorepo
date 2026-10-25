@@ -91,8 +91,8 @@ export default class TrackingView extends View {
 			new DataGrid({
 				columns: [
 					{ key: "folder", label: "Session", width: "3fr", min: "14em" },
-					{ key: "unique", label: "Unique prompts", type: "number", width: "8em" },
-					{ key: "recorded", label: "With parts", type: "number", width: "7em" },
+					{ key: "unique", label: "Unique prompts", type: "number", width: "10em" },
+					{ key: "recorded", label: "With parts", type: "number", width: "8em" },
 					{ key: "share", label: "Covered", type: "number", width: "6em", format: v => v == null ? "n/a" : pct(v) },
 					{ key: "log_lines", label: "Log lines", type: "number", width: "6em" },
 					{ key: "missing", label: "Unrecorded transcript lines", width: "3fr", min: "12em" },
@@ -106,7 +106,7 @@ export default class TrackingView extends View {
 			p(`The largest records, read and parsed on every run (over ${pf.limits.read_ms} ms is flagged), then three item-tool writes on a copy (over ${pf.limits.write_ms} ms is flagged). ${pf.verdict}.`);
 			new DataGrid({
 				columns: [
-					{ key: "file", label: "Record", width: "4fr", min: "16em" },
+					{ key: "file", label: "Record", width: "4fr", min: "24em" },
 					{ key: "kb", label: "KB", type: "number", width: "6em" },
 					{ key: "lines", label: "Lines", type: "number", width: "6em" },
 					{ key: "read_ms", label: "Read ms", type: "number", width: "7em" },

@@ -1,16 +1,16 @@
 {
- "generated_at": "2026-10-25T02:01:06.986Z",
+ "generated_at": "2026-10-25T04:19:50.409Z",
  "days": 7,
  "note": "Computed by Server/TrackingCheck.mjs; never edit by hand. Doc: public/framework/ai/tracking/readme.md",
  "untracked": {
   "totals": {
-   "sessions": 623,
-   "usd": 1952.4016,
-   "untracked_usd": 1143.461,
-   "tokens": 2682064875,
-   "untracked_tokens": 1416512097,
-   "share_usd": 0.5857,
-   "share_tokens": 0.5281
+   "sessions": 703,
+   "usd": 2133.9896,
+   "untracked_usd": 1196.7758,
+   "tokens": 3068832062,
+   "untracked_tokens": 1538126846,
+   "share_usd": 0.5608,
+   "share_tokens": 0.5012
   },
   "by_day": [
    {
@@ -40,20 +40,20 @@
    {
     "day": "2026-10-22",
     "usd": 252.4416,
-    "untracked_usd": 131.0899,
-    "share_usd": 0.5193
+    "untracked_usd": 127.944,
+    "share_usd": 0.5068
    },
    {
     "day": "2026-10-23",
-    "usd": 388.5592,
-    "untracked_usd": 201.5241,
-    "share_usd": 0.5186
+    "usd": 402.4226,
+    "untracked_usd": 211.1653,
+    "share_usd": 0.5247
    },
    {
     "day": "2026-10-24",
-    "usd": 178.0196,
-    "untracked_usd": 104.4809,
-    "share_usd": 0.5869
+    "usd": 376.3604,
+    "untracked_usd": 172.9869,
+    "share_usd": 0.4596
    }
   ],
   "sessions": [
@@ -79,46 +79,46 @@
     "stored_usd": 646.1416
    },
    {
-    "id": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
-    "folder": "2026/10/20/session-e00f55c9",
-    "agent": "vscode-mastermind",
-    "role": null,
-    "title": "Session and task systems documentation",
-    "day": "2026/10/20",
-    "last_at": "2026-10-25T02:00:05.768Z",
-    "usd": 260.0008,
-    "untracked_usd": 78.6214,
-    "tokens": 350416859,
-    "untracked_tokens": 116639682,
-    "messages": 1230,
-    "untracked_messages": 442,
-    "share_usd": 0.3024,
-    "share_tokens": 0.3329,
-    "task_events": 318,
-    "spans": 24,
-    "first_untracked_at": "2026-10-20T19:58:27.807Z",
-    "stored_usd": 260.0008
-   },
-   {
     "id": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
     "folder": "2026/10/23/session-83e9996a",
     "agent": "mastermind-page",
     "role": "mastermind",
     "title": "Page mastermind onboarding",
     "day": "2026/10/23",
-    "last_at": "2026-10-25T01:54:20.617Z",
-    "usd": 107.0578,
-    "untracked_usd": 55.5913,
-    "tokens": 176507577,
-    "untracked_tokens": 96502158,
-    "messages": 1218,
-    "untracked_messages": 625,
-    "share_usd": 0.5193,
-    "share_tokens": 0.5467,
-    "task_events": 27,
+    "last_at": "2026-10-25T04:16:54.180Z",
+    "usd": 128.6778,
+    "untracked_usd": 77.2113,
+    "tokens": 213494233,
+    "untracked_tokens": 133488814,
+    "messages": 1447,
+    "untracked_messages": 854,
+    "share_usd": 0.6,
+    "share_tokens": 0.6253,
+    "task_events": 28,
     "spans": 4,
     "first_untracked_at": "2026-10-24T02:21:24.973Z",
-    "stored_usd": 109.5453
+    "stored_usd": 131.1653
+   },
+   {
+    "id": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "folder": "2026/10/20/session-e00f55c9",
+    "agent": "vscode-mastermind",
+    "role": null,
+    "title": "Session and task systems documentation",
+    "day": "2026/10/20",
+    "last_at": "2026-10-25T04:14:11.864Z",
+    "usd": 280.6993,
+    "untracked_usd": 56.726,
+    "tokens": 393347877,
+    "untracked_tokens": 80387315,
+    "messages": 1354,
+    "untracked_messages": 272,
+    "share_usd": 0.2021,
+    "share_tokens": 0.2044,
+    "task_events": 536,
+    "spans": 12,
+    "first_untracked_at": "2026-10-20T19:58:27.807Z",
+    "stored_usd": 280.6993
    },
    {
     "id": "7e6b7107-5b7c-4fc6-bcef-53eea5a57e7e",
@@ -148,19 +148,19 @@
     "role": "mastermind",
     "title": "Sessions and tasks deputy",
     "day": "2026/10/23",
-    "last_at": "2026-10-25T02:00:19.585Z",
-    "usd": 170.5123,
-    "untracked_usd": 36.062,
-    "tokens": 317224165,
-    "untracked_tokens": 67797835,
-    "messages": 1687,
-    "untracked_messages": 309,
-    "share_usd": 0.2115,
-    "share_tokens": 0.2137,
-    "task_events": 7,
+    "last_at": "2026-10-25T04:19:34.497Z",
+    "usd": 221.3336,
+    "untracked_usd": 39.2608,
+    "tokens": 419353844,
+    "untracked_tokens": 73797004,
+    "messages": 2071,
+    "untracked_messages": 344,
+    "share_usd": 0.1774,
+    "share_tokens": 0.176,
+    "task_events": 9,
     "spans": 2,
     "first_untracked_at": "2026-10-24T06:58:53.796Z",
-    "stored_usd": 170.3592
+    "stored_usd": 221.059
    },
    {
     "id": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
@@ -289,6 +289,27 @@
     "stored_usd": 25.3239
    },
    {
+    "id": "7c6c8d93-e066-4ee5-b4b1-35480048f0a0",
+    "folder": "2026/10/24/session-7c6c8d93",
+    "agent": "ai-system-mastermind",
+    "role": "ai-system-mastermind",
+    "title": "AI system mastermind session",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T04:19:22.006Z",
+    "usd": 12.1091,
+    "untracked_usd": 12.1091,
+    "tokens": 38451932,
+    "untracked_tokens": 38451932,
+    "messages": 332,
+    "untracked_messages": 332,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 4,
+    "spans": 4,
+    "first_untracked_at": "2026-10-25T02:33:29.178Z",
+    "stored_usd": 12.0815
+   },
+   {
     "id": "6688813b-d241-4e45-bdc3-367ffac90dac",
     "folder": "2026/10/16/session-6688813b",
     "agent": "mastermind-task-migrate",
@@ -313,22 +334,22 @@
     "id": "2da03974-92b2-4dbf-8bea-97c3ee479d45",
     "folder": "2026/10/24/session-2da03974",
     "agent": "ai-system-mastermind",
-    "role": "ai-system-mastermind",
+    "role": null,
     "title": "ai-system-mastermind session",
     "day": "2026/10/24",
-    "last_at": "2026-10-25T02:00:57.738Z",
-    "usd": 9.5164,
-    "untracked_usd": 9.5164,
-    "tokens": 26106211,
-    "untracked_tokens": 26106211,
-    "messages": 222,
-    "untracked_messages": 222,
+    "last_at": "2026-10-25T02:04:14.042Z",
+    "usd": 10.5947,
+    "untracked_usd": 10.5947,
+    "tokens": 29292189,
+    "untracked_tokens": 29292189,
+    "messages": 253,
+    "untracked_messages": 253,
     "share_usd": 1,
     "share_tokens": 1,
     "task_events": 0,
     "spans": 0,
     "first_untracked_at": "2026-10-24T05:49:23.038Z",
-    "stored_usd": 9.5164
+    "stored_usd": 10.5947
    },
    {
     "id": "272d452d-faea-4091-bb45-0b07c960e7ce",
@@ -457,27 +478,6 @@
     "stored_usd": 4.927
    },
    {
-    "id": "9af95aed-fe94-440b-9c99-7295c499d762",
-    "folder": "2026/10/17/session-9af95aed",
-    "agent": "helper-bubbles-anchor",
-    "role": "helper",
-    "title": "Bubbles anchor chat scroll",
-    "day": "2026/10/17",
-    "last_at": "2026-10-18T03:47:19.346Z",
-    "usd": 4.6481,
-    "untracked_usd": 4.6481,
-    "tokens": 8573282,
-    "untracked_tokens": 8573282,
-    "messages": 79,
-    "untracked_messages": 79,
-    "share_usd": 1,
-    "share_tokens": 1,
-    "task_events": 1,
-    "spans": 1,
-    "first_untracked_at": "2026-10-17T15:40:16.514Z",
-    "stored_usd": 4.6481
-   },
-   {
     "id": "fb13f066-4ba0-4a32-a023-3c6cf23b1899",
     "folder": "2026/10/23/session-fb13f066",
     "agent": "minion-nav-links",
@@ -499,25 +499,46 @@
     "stored_usd": 4.5436
    },
    {
-    "id": "70558dc8-b696-4fba-bd9e-7d691a7936b6",
-    "folder": "2026/10/17/session-70558dc8",
-    "agent": "helper-sheet-double-mount",
-    "role": "helper",
-    "title": "Sheet double mount",
-    "day": "2026/10/17",
-    "last_at": "2026-10-18T02:52:15.331Z",
-    "usd": 4.4399,
-    "untracked_usd": 4.4399,
-    "tokens": 9241623,
-    "untracked_tokens": 9241623,
-    "messages": 80,
-    "untracked_messages": 80,
+    "id": "cb53aa0e-c7c9-47a4-a8ae-44652f65d0e1",
+    "folder": "2026/10/24/session-cb53aa0e",
+    "agent": "task-mastermind-session-closeout",
+    "role": "task-mastermind",
+    "title": "Session closeout",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T04:11:01.019Z",
+    "usd": 4.4181,
+    "untracked_usd": 4.4181,
+    "tokens": 12253149,
+    "untracked_tokens": 12253149,
+    "messages": 110,
+    "untracked_messages": 110,
     "share_usd": 1,
     "share_tokens": 1,
     "task_events": 1,
     "spans": 1,
-    "first_untracked_at": "2026-10-17T16:19:27.363Z",
-    "stored_usd": 4.4399
+    "first_untracked_at": "2026-10-25T02:11:02.410Z",
+    "stored_usd": 4.4181
+   },
+   {
+    "id": "65d347f6-695b-46e0-b420-a8adec6c42ac",
+    "folder": "2026/10/24/session-65d347f6",
+    "agent": "minion-child-tasks",
+    "role": "minion",
+    "title": "Servex agent minion child tasks",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T04:14:54.475Z",
+    "usd": 4.3504,
+    "untracked_usd": 4.3504,
+    "tokens": 13469835,
+    "untracked_tokens": 13469835,
+    "messages": 109,
+    "untracked_messages": 109,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-25T03:44:24.208Z",
+    "stored_usd": 4.3504
    },
    {
     "id": "b66b4c24-a54e-4363-be9c-c5bfaa64139b",
@@ -583,6 +604,27 @@
     "stored_usd": 3.8214
    },
    {
+    "id": "f6e3f9e1-34bc-40e7-beb3-09bfcca9820c",
+    "folder": "2026/10/24/session-f6e3f9e1",
+    "agent": "task-mastermind-test-basics",
+    "role": "task-mastermind",
+    "title": "Test basics",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T03:00:30.519Z",
+    "usd": 3.6721,
+    "untracked_usd": 3.6721,
+    "tokens": 10975739,
+    "untracked_tokens": 10975739,
+    "messages": 98,
+    "untracked_messages": 98,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-25T02:20:48.465Z",
+    "stored_usd": 3.6721
+   },
+   {
     "id": "a3a10195-8498-4be8-9325-74a9d28c1b01",
     "folder": "2026/10/19/session-a3a10195",
     "agent": "mastermind-card-merges-2",
@@ -646,27 +688,6 @@
     "stored_usd": 3.0468
    },
    {
-    "id": "9d796347-2338-4d90-ac6b-3b4062712318",
-    "folder": "2026/10/17/session-9d796347",
-    "agent": "helper-dictate-wide",
-    "role": "helper",
-    "title": "Dictate wide",
-    "day": "2026/10/17",
-    "last_at": "2026-10-18T04:09:20.460Z",
-    "usd": 3.0298,
-    "untracked_usd": 3.0298,
-    "tokens": 6008557,
-    "untracked_tokens": 6008557,
-    "messages": 65,
-    "untracked_messages": 65,
-    "share_usd": 1,
-    "share_tokens": 1,
-    "task_events": 1,
-    "spans": 1,
-    "first_untracked_at": "2026-10-17T17:50:55.902Z",
-    "stored_usd": 3.0298
-   },
-   {
     "id": "904b1b2e-a3f7-44bb-9d05-aa56f34919d4",
     "folder": "2026/10/23/session-904b1b2e",
     "agent": "ai-system-mastermind",
@@ -686,27 +707,6 @@
     "spans": 0,
     "first_untracked_at": "2026-10-24T04:24:52.840Z",
     "stored_usd": 2.8948
-   },
-   {
-    "id": "efe19ab3-13c4-4e3f-a0c6-b76d2aa1dd48",
-    "folder": "2026/10/17/session-efe19ab3",
-    "agent": "helper-sheet-handoff-proof",
-    "role": "helper",
-    "title": "Sheet handoff proof",
-    "day": "2026/10/17",
-    "last_at": "2026-10-18T03:06:16.572Z",
-    "usd": 4.2509,
-    "untracked_usd": 2.8414,
-    "tokens": 9099083,
-    "untracked_tokens": 5406559,
-    "messages": 80,
-    "untracked_messages": 46,
-    "share_usd": 0.6684,
-    "share_tokens": 0.5942,
-    "task_events": 4,
-    "spans": 1,
-    "first_untracked_at": "2026-10-17T18:16:37.618Z",
-    "stored_usd": 4.2509
    },
    {
     "id": "34cbbcfc-e84d-448d-b990-a384b88c66b5",
@@ -749,6 +749,27 @@
     "spans": 1,
     "first_untracked_at": "2026-10-24T02:51:19.305Z",
     "stored_usd": 2.6361
+   },
+   {
+    "id": "b3995118-87de-4ee6-83bd-11422ba167f4",
+    "folder": "2026/10/24/session-b3995118",
+    "agent": "minion-dictation-debug-build",
+    "role": "minion",
+    "title": "Dictation debug build",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T04:19:31.899Z",
+    "usd": 22.09,
+    "untracked_usd": 2.618,
+    "tokens": 41669420,
+    "untracked_tokens": 5578137,
+    "messages": 145,
+    "untracked_messages": 13,
+    "share_usd": 0.1185,
+    "share_tokens": 0.1339,
+    "task_events": 3,
+    "spans": 1,
+    "first_untracked_at": "2026-10-25T04:15:29.444Z",
+    "stored_usd": 21.7077
    },
    {
     "id": "f3c3bb26-2786-4b01-86b9-b0c82edca350",
@@ -812,27 +833,6 @@
     "spans": 1,
     "first_untracked_at": "2026-10-24T00:20:56.172Z",
     "stored_usd": 2.5634
-   },
-   {
-    "id": "3df8e85f-6a3b-4b40-9edd-ddc3125a69b9",
-    "folder": "2026/10/17/session-3df8e85f",
-    "agent": "helper-readme-trim",
-    "role": "helper",
-    "title": "Readme trim",
-    "day": "2026/10/17",
-    "last_at": "2026-10-18T02:52:18.059Z",
-    "usd": 2.5385,
-    "untracked_usd": 2.5385,
-    "tokens": 3893217,
-    "untracked_tokens": 3893217,
-    "messages": 41,
-    "untracked_messages": 41,
-    "share_usd": 1,
-    "share_tokens": 1,
-    "task_events": 1,
-    "spans": 1,
-    "first_untracked_at": "2026-10-17T19:30:09.037Z",
-    "stored_usd": 2.5385
    },
    {
     "id": "56c71827-5c5d-4190-88ad-2b36b640f983",
@@ -1045,27 +1045,6 @@
     "stored_usd": 1.9374
    },
    {
-    "id": "0703aa6f-8f7a-4769-8285-bf191c763405",
-    "folder": "2026/10/17/session-0703aa6f",
-    "agent": "helper-layout-check-path",
-    "role": "helper",
-    "title": "Layout-check-path",
-    "day": "2026/10/17",
-    "last_at": "2026-10-18T04:14:19.304Z",
-    "usd": 1.8022,
-    "untracked_usd": 1.8022,
-    "tokens": 2330437,
-    "untracked_tokens": 2330437,
-    "messages": 31,
-    "untracked_messages": 31,
-    "share_usd": 1,
-    "share_tokens": 1,
-    "task_events": 1,
-    "spans": 1,
-    "first_untracked_at": "2026-10-17T19:30:08.608Z",
-    "stored_usd": 1.8022
-   },
-   {
     "id": "344a9fde-4bf8-4866-87a8-e9d79ede28ed",
     "folder": "2026/10/19/session-344a9fde",
     "agent": "mastermind-card-merge-docwell",
@@ -1085,6 +1064,27 @@
     "spans": 1,
     "first_untracked_at": "2026-10-19T20:25:29.797Z",
     "stored_usd": 1.8016
+   },
+   {
+    "id": "b82c81af-be79-4c80-85b1-14cc67c242c7",
+    "folder": "2026/10/24/session-b82c81af",
+    "agent": "minion-tracking-perf",
+    "role": "minion",
+    "title": "JSONL performance measurement and tracking coverage",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T04:18:56.406Z",
+    "usd": 1.7373,
+    "untracked_usd": 1.7373,
+    "tokens": 4963574,
+    "untracked_tokens": 4963574,
+    "messages": 37,
+    "untracked_messages": 37,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-25T03:14:12.052Z",
+    "stored_usd": 1.5189
    },
    {
     "id": "08b1772e-17bc-4bfb-b23e-f0fc81bf81ef",
@@ -1108,6 +1108,27 @@
     "stored_usd": 17.7443
    },
    {
+    "id": "83a9e20a-a2df-4064-818d-d71cf2a413d3",
+    "folder": "2026/10/24/session-83a9e20a",
+    "agent": "minion-tasks-page-loading",
+    "role": "minion",
+    "title": "Tasks page loading",
+    "day": "2026/10/23",
+    "last_at": "2026-10-23T07:00:21.384Z",
+    "usd": 1.61,
+    "untracked_usd": 1.61,
+    "tokens": 5130245,
+    "untracked_tokens": 5130245,
+    "messages": 52,
+    "untracked_messages": 52,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T06:47:36.150Z",
+    "stored_usd": 1.61
+   },
+   {
     "id": "2ab2bfbe-45d8-4dee-9162-7918a3240d5a",
     "folder": "2026/10/22/session-2ab2bfbe",
     "agent": "minion-honest-completion",
@@ -1127,6 +1148,48 @@
     "spans": 1,
     "first_untracked_at": "2026-10-23T02:32:31.936Z",
     "stored_usd": 1.6061
+   },
+   {
+    "id": "12771dff-fe64-4958-875d-40c10efbb44b",
+    "folder": "2026/10/24/session-12771dff",
+    "agent": "minion-refine-map",
+    "role": "minion",
+    "title": "Prompt refinement map",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T03:56:03.156Z",
+    "usd": 1.5981,
+    "untracked_usd": 1.5981,
+    "tokens": 3892458,
+    "untracked_tokens": 3892458,
+    "messages": 30,
+    "untracked_messages": 30,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-25T03:04:04.371Z",
+    "stored_usd": 1.5981
+   },
+   {
+    "id": "ab4dde4f-7ad9-4839-9ef5-4090d2a36882",
+    "folder": "2026/10/24/session-ab4dde4f",
+    "agent": "minion-process-names",
+    "role": "minion",
+    "title": "Process names",
+    "day": "2026/10/23",
+    "last_at": "2026-10-24T00:38:54.943Z",
+    "usd": 1.5857,
+    "untracked_usd": 1.5857,
+    "tokens": 4825808,
+    "untracked_tokens": 4825808,
+    "messages": 44,
+    "untracked_messages": 44,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-24T00:13:30.992Z",
+    "stored_usd": 1.5857
    },
    {
     "id": "aefb1e4d-22b2-4d4b-ba61-8cec9208c26d",
@@ -1276,6 +1339,27 @@
     "stored_usd": 1.3597
    },
    {
+    "id": "51edc4fd-a462-484d-94d3-be473a682729",
+    "folder": "2026/10/24/session-51edc4fd",
+    "agent": "reviewer-session-is-a-task",
+    "role": "reviewer",
+    "title": "Session naming agent reviewer",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T03:14:32.145Z",
+    "usd": 1.3563,
+    "untracked_usd": 1.3563,
+    "tokens": 1245443,
+    "untracked_tokens": 1245443,
+    "messages": 13,
+    "untracked_messages": 13,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-25T03:12:38.223Z",
+    "stored_usd": 1.3563
+   },
+   {
     "id": "5fd75685-deec-4988-811e-c6c74b9540e4",
     "folder": "2026/10/18/session-5fd75685",
     "agent": "helper-stale-close",
@@ -1297,27 +1381,6 @@
     "stored_usd": 1.3504
    },
    {
-    "id": "460a80d9-ce00-45ca-a0f2-c374affc56ed",
-    "folder": "2026/10/17/session-460a80d9",
-    "agent": "minion-task-rules",
-    "role": "minion",
-    "title": "Task rules for mastermind repo slim",
-    "day": "2026/10/17",
-    "last_at": "2026-10-18T04:11:32.702Z",
-    "usd": 1.3478,
-    "untracked_usd": 1.3478,
-    "tokens": 4145252,
-    "untracked_tokens": 4145252,
-    "messages": 44,
-    "untracked_messages": 44,
-    "share_usd": 1,
-    "share_tokens": 1,
-    "task_events": 1,
-    "spans": 1,
-    "first_untracked_at": "2026-10-18T04:06:27.465Z",
-    "stored_usd": 1.3478
-   },
-   {
     "id": "13a564fc-fa29-47f3-942c-f67027de0ad5",
     "folder": "2026/10/19/session-13a564fc",
     "agent": "minion-session-dirs",
@@ -1337,6 +1400,48 @@
     "spans": 1,
     "first_untracked_at": "2026-10-19T22:38:11.189Z",
     "stored_usd": 1.3363
+   },
+   {
+    "id": "dcab0d51-8190-4eb6-bf31-d2f2122c3bb3",
+    "folder": "2026/10/24/session-dcab0d51",
+    "agent": "minion-task-chase",
+    "role": "minion",
+    "title": "Task chase process system",
+    "day": "2026/10/23",
+    "last_at": "2026-10-23T05:29:09.967Z",
+    "usd": 1.32,
+    "untracked_usd": 1.32,
+    "tokens": 3738777,
+    "untracked_tokens": 3738777,
+    "messages": 35,
+    "untracked_messages": 35,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T05:25:06.299Z",
+    "stored_usd": 1.32
+   },
+   {
+    "id": "3e23526c-42d4-44e1-ba39-b4050b3d74a9",
+    "folder": "2026/10/24/session-3e23526c",
+    "agent": "minion-review-fixes",
+    "role": "minion",
+    "title": "Review fixes across four worktrees",
+    "day": "2026/10/23",
+    "last_at": "2026-10-23T06:16:22.209Z",
+    "usd": 1.2942,
+    "untracked_usd": 1.2942,
+    "tokens": 3906349,
+    "untracked_tokens": 3906349,
+    "messages": 41,
+    "untracked_messages": 41,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-23T06:12:52.043Z",
+    "stored_usd": 1.2942
    },
    {
     "id": "fd470dca-3d2b-4f11-8a98-d93da6d156ed",
@@ -1484,6 +1589,27 @@
     "spans": 0,
     "first_untracked_at": "2026-10-20T01:52:53.091Z",
     "stored_usd": 1.2054
+   },
+   {
+    "id": "39362e48-0409-4d29-9e6c-56af2f4a2adc",
+    "folder": "2026/10/24/session-39362e48",
+    "agent": "minion-process-page",
+    "role": "minion",
+    "title": "Minion process page setup",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T04:19:09.753Z",
+    "usd": 1.1896,
+    "untracked_usd": 1.1896,
+    "tokens": 3689253,
+    "untracked_tokens": 3689253,
+    "messages": 38,
+    "untracked_messages": 38,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-25T04:14:21.823Z",
+    "stored_usd": 1.1896
    },
    {
     "id": "d7e9f73d-6b99-4318-8d1d-a3a939c1a80d",
@@ -1822,6 +1948,27 @@
     "stored_usd": 1.0971
    },
    {
+    "id": "4508f9b3-e67c-4f91-918f-d12fa7bfbf0e",
+    "folder": "2026/10/24/session-4508f9b3",
+    "agent": "minion-session-feed",
+    "role": "minion",
+    "title": "Session feed minion",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T02:34:41.776Z",
+    "usd": 1.0914,
+    "untracked_usd": 1.0914,
+    "tokens": 3002489,
+    "untracked_tokens": 3002489,
+    "messages": 26,
+    "untracked_messages": 26,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 1,
+    "spans": 1,
+    "first_untracked_at": "2026-10-25T01:47:11.680Z",
+    "stored_usd": 1.0914
+   },
+   {
     "id": "4de00c00-c9fc-4da2-86ae-7e9d2fa41743",
     "folder": "2026/10/19/session-4de00c00",
     "agent": "reviewer-one-dashboard",
@@ -1883,6 +2030,27 @@
     "spans": 0,
     "first_untracked_at": "2026-10-24T06:36:09.748Z",
     "stored_usd": 1.0844
+   },
+   {
+    "id": "ac76c683-b305-4936-ba1a-bc494957ecd5",
+    "folder": "2026/10/24/session-ac76c683",
+    "agent": "reviewer-fast-write",
+    "role": "reviewer",
+    "title": "Fast-write review for session e00f55c9",
+    "day": "2026/10/24",
+    "last_at": "2026-10-25T02:39:36.730Z",
+    "usd": 1.0835,
+    "untracked_usd": 1.0835,
+    "tokens": 1258113,
+    "untracked_tokens": 1258113,
+    "messages": 17,
+    "untracked_messages": 17,
+    "share_usd": 1,
+    "share_tokens": 1,
+    "task_events": 0,
+    "spans": 0,
+    "first_untracked_at": "2026-10-25T02:36:56.161Z",
+    "stored_usd": 1.0835
    },
    {
     "id": "0fa28613-6bd3-4aca-8287-f988fa3dd3e6",
@@ -1969,203 +2137,250 @@
     "stored_usd": 1.0642
    },
    {
-    "id": "59968f42-a8cd-49c9-bb58-1b77b08d8e50",
-    "folder": "2026/10/24/session-59968f42",
-    "agent": "reviewer-queue-3",
+    "id": "e42beec2-75f3-4fb4-a15c-a7fac5eb4521",
+    "folder": "2026/10/24/session-e42beec2",
+    "agent": "reviewer-fast-write-2",
     "role": "reviewer",
-    "title": "Reviewer queue 3 session",
+    "title": "Fast-write deputy review",
     "day": "2026/10/24",
-    "last_at": "2026-10-24T06:42:20.911Z",
-    "usd": 1.0342,
-    "untracked_usd": 1.0342,
-    "tokens": 725837,
-    "untracked_tokens": 725837,
-    "messages": 9,
-    "untracked_messages": 9,
+    "last_at": "2026-10-25T02:41:59.953Z",
+    "usd": 1.0536,
+    "untracked_usd": 1.0536,
+    "tokens": 1262919,
+    "untracked_tokens": 1262919,
+    "messages": 18,
+    "untracked_messages": 18,
     "share_usd": 1,
     "share_tokens": 1,
     "task_events": 0,
     "spans": 0,
-    "first_untracked_at": "2026-10-24T06:40:44.846Z",
-    "stored_usd": 1.0342
-   },
-   {
-    "id": "d852e2be-664c-4b73-8725-dd1e80291590",
-    "folder": "2026/10/23/session-d852e2be",
-    "agent": "reviewer-item-tool",
-    "role": "reviewer",
-    "title": "item-tool review",
-    "day": "2026/10/23",
-    "last_at": "2026-10-24T02:05:10.475Z",
-    "usd": 1.0048,
-    "untracked_usd": 1.0048,
-    "tokens": 739561,
-    "untracked_tokens": 739561,
-    "messages": 9,
-    "untracked_messages": 9,
-    "share_usd": 1,
-    "share_tokens": 1,
-    "task_events": 0,
-    "spans": 0,
-    "first_untracked_at": "2026-10-24T02:01:45.257Z",
-    "stored_usd": 1.0048
-   },
-   {
-    "id": "fab8f364-33b7-4012-8b2f-db0d842a357a",
-    "folder": "2026/10/23/session-fab8f364",
-    "agent": "ai-system-mastermind",
-    "role": null,
-    "title": "AI system mastermind session renewal",
-    "day": "2026/10/23",
-    "last_at": "2026-10-24T04:19:05.407Z",
-    "usd": 1.0015,
-    "untracked_usd": 1.0015,
-    "tokens": 3095037,
-    "untracked_tokens": 3095037,
-    "messages": 32,
-    "untracked_messages": 32,
-    "share_usd": 1,
-    "share_tokens": 1,
-    "task_events": 0,
-    "spans": 0,
-    "first_untracked_at": "2026-10-24T04:09:21.247Z",
-    "stored_usd": 1.0015
-   },
-   {
-    "id": "32209ceb-603f-45f2-906b-5b882a3425ca",
-    "folder": "2026/10/22/session-32209ceb",
-    "agent": "reviewer-readme-roles",
-    "role": "reviewer",
-    "title": "Readme roles review",
-    "day": "2026/10/22",
-    "last_at": "2026-10-22T23:37:53.067Z",
-    "usd": 0.9824,
-    "untracked_usd": 0.9824,
-    "tokens": 623953,
-    "untracked_tokens": 623953,
-    "messages": 9,
-    "untracked_messages": 9,
-    "share_usd": 1,
-    "share_tokens": 1,
-    "task_events": 0,
-    "spans": 0,
-    "first_untracked_at": "2026-10-22T23:36:39.340Z",
-    "stored_usd": 0.9824
-   },
-   {
-    "id": "10ee7a39-61b8-40e5-b23b-4f5a94976e04",
-    "folder": "2026/10/23/session-10ee7a39",
-    "agent": "reviewer-item-tool-2",
-    "role": "reviewer",
-    "title": "Item tool review",
-    "day": "2026/10/23",
-    "last_at": "2026-10-24T02:07:34.728Z",
-    "usd": 0.9721,
-    "untracked_usd": 0.9721,
-    "tokens": 721013,
-    "untracked_tokens": 721013,
-    "messages": 9,
-    "untracked_messages": 9,
-    "share_usd": 1,
-    "share_tokens": 1,
-    "task_events": 0,
-    "spans": 0,
-    "first_untracked_at": "2026-10-24T02:06:25.627Z",
-    "stored_usd": 0.9721
-   },
-   {
-    "id": "4508f9b3-e67c-4f91-918f-d12fa7bfbf0e",
-    "folder": "2026/10/24/session-4508f9b3",
-    "agent": "minion-session-feed",
-    "role": "minion",
-    "title": "Session feed minion",
-    "day": "2026/10/24",
-    "last_at": "2026-10-25T01:55:19.275Z",
-    "usd": 0.971,
-    "untracked_usd": 0.971,
-    "tokens": 2593992,
-    "untracked_tokens": 2593992,
-    "messages": 23,
-    "untracked_messages": 23,
-    "share_usd": 1,
-    "share_tokens": 1,
-    "task_events": 1,
-    "spans": 1,
-    "first_untracked_at": "2026-10-25T01:47:11.680Z",
-    "stored_usd": 0.971
-   },
-   {
-    "id": "7f014f32-c416-44a7-8bf8-0e3030959f3e",
-    "folder": "2026/10/22/session-7f014f32",
-    "agent": "reviewer-readmes-page",
-    "role": "reviewer",
-    "title": "Readmes page review",
-    "day": "2026/10/22",
-    "last_at": "2026-10-23T00:48:11.254Z",
-    "usd": 0.9642,
-    "untracked_usd": 0.9642,
-    "tokens": 834812,
-    "untracked_tokens": 834812,
-    "messages": 12,
-    "untracked_messages": 12,
-    "share_usd": 1,
-    "share_tokens": 1,
-    "task_events": 0,
-    "spans": 0,
-    "first_untracked_at": "2026-10-23T00:46:39.962Z",
-    "stored_usd": 0.9642
-   },
-   {
-    "id": "c5dab844-059a-4284-8187-5fc5d6231bdd",
-    "folder": "2026/10/19/session-c5dab844",
-    "agent": "task-mastermind-docs",
-    "role": "task-mastermind",
-    "title": "Documentation system restructuring",
-    "day": "2026/10/19",
-    "last_at": "2026-10-20T02:22:52.165Z",
-    "usd": 5.1745,
-    "untracked_usd": 0.9612,
-    "tokens": 14206419,
-    "untracked_tokens": 3510957,
-    "messages": 127,
-    "untracked_messages": 28,
-    "share_usd": 0.1858,
-    "share_tokens": 0.2471,
-    "task_events": 2,
-    "spans": 1,
-    "first_untracked_at": "2026-10-20T01:54:58.183Z",
-    "stored_usd": 6.2917
-   },
-   {
-    "id": "88f69e40-e100-4d97-9515-ae0b676eed99",
-    "folder": "2026/10/19/session-88f69e40",
-    "agent": "reviewer-ai-dashboard-2",
-    "role": "reviewer",
-    "title": "AI dashboard review",
-    "day": "2026/10/19",
-    "last_at": "2026-10-20T02:15:13.495Z",
-    "usd": 0.9455,
-    "untracked_usd": 0.9455,
-    "tokens": 722558,
-    "untracked_tokens": 722558,
-    "messages": 10,
-    "untracked_messages": 10,
-    "share_usd": 1,
-    "share_tokens": 1,
-    "task_events": 0,
-    "spans": 0,
-    "first_untracked_at": "2026-10-20T02:14:03.653Z",
-    "stored_usd": 0.9455
+    "first_untracked_at": "2026-10-25T02:40:07.274Z",
+    "stored_usd": 1.0536
    }
   ]
  },
  "children": {
-  "checked": 163,
-  "problems": 163,
-  "no_parent": 75,
-  "parent_is_name": 88,
-  "not_listed": 67,
+  "checked": 176,
+  "problems": 176,
+  "no_parent": 72,
+  "parent_is_name": 104,
+  "not_listed": 72,
   "rows": [
+   {
+    "agent": "minion-identity-build",
+    "role": "minion",
+    "session_id": "64af66ee-8943-4dd2-b29a-d3df2ea896b0",
+    "started_at": "2026-10-25T04:14:23.306Z",
+    "parent": "mastermind-session-identity",
+    "parent_session": "83b71020-b54f-4a4b-9429-0fa708145fef",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "master-assistant",
+    "role": "master-assistant",
+    "session_id": "570e273a-7890-436c-a465-f4cf737a2ac5",
+    "started_at": "2026-10-25T04:14:15.419Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "assistant-fast",
+    "role": "assistant",
+    "session_id": "1264101b-66ef-43b4-b6a6-9b1bf7f9c08e",
+    "started_at": "2026-10-25T04:14:10.029Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "minion-tracking-perf-2",
+    "role": "minion",
+    "session_id": "a21512f9-c0ce-45e1-aa75-044bc46f1c30",
+    "started_at": "2026-10-25T04:14:04.401Z",
+    "parent": "ai-system-mastermind",
+    "parent_session": "7c6c8d93-e066-4ee5-b4b1-35480048f0a0",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "minion-process-page",
+    "role": "minion",
+    "session_id": "39362e48-0409-4d29-9e6c-56af2f4a2adc",
+    "started_at": "2026-10-25T04:13:27.207Z",
+    "parent": "ai-system-mastermind",
+    "parent_session": "7c6c8d93-e066-4ee5-b4b1-35480048f0a0",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "task-mastermind-queue-triage",
+    "role": "task-mastermind",
+    "session_id": "ae400159-f6e9-4a39-905b-bf873337a34a",
+    "started_at": "2026-10-25T04:02:13.767Z",
+    "parent": "vscode-mastermind",
+    "parent_session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "mastermind-session-identity",
+    "role": "mastermind",
+    "session_id": "83b71020-b54f-4a4b-9429-0fa708145fef",
+    "started_at": "2026-10-25T03:50:34.527Z",
+    "parent": "vscode-mastermind",
+    "parent_session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "mastermind-sessions-page",
+    "role": "mastermind",
+    "session_id": "f6d07c38-ad88-4b0d-b8e1-8439cf344668",
+    "started_at": "2026-10-25T03:41:52.488Z",
+    "parent": "vscode-mastermind",
+    "parent_session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "minion-child-tasks",
+    "role": "minion",
+    "session_id": "65d347f6-695b-46e0-b420-a8adec6c42ac",
+    "started_at": "2026-10-25T03:40:42.985Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-dictation-debug-build",
+    "role": "minion",
+    "session_id": "b3995118-87de-4ee6-83bd-11422ba167f4",
+    "started_at": "2026-10-25T03:28:40.915Z",
+    "parent": "mastermind-dictation-debug",
+    "parent_session": "f0a2fbdb-98ba-41ef-b5ab-d9f033a3ad22",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-session-indexes",
+    "role": "minion",
+    "session_id": "7ee0632c-4f62-4571-9e75-7adecf9a8a75",
+    "started_at": "2026-10-25T03:14:07.586Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "minion-tracking-perf",
+    "role": "minion",
+    "session_id": "b82c81af-be79-4c80-85b1-14cc67c242c7",
+    "started_at": "2026-10-25T03:13:21.001Z",
+    "parent": "ai-system-mastermind",
+    "parent_session": "7c6c8d93-e066-4ee5-b4b1-35480048f0a0",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "minion-refine-map",
+    "role": "minion",
+    "session_id": "12771dff-fe64-4958-875d-40c10efbb44b",
+    "started_at": "2026-10-25T03:03:30.011Z",
+    "parent": "ai-system-mastermind",
+    "parent_session": "7c6c8d93-e066-4ee5-b4b1-35480048f0a0",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "minion-task-smoke-links",
+    "role": "minion",
+    "session_id": "5d4b5faf-1c4c-4be0-a303-35e4558b46c1",
+    "started_at": "2026-10-25T02:52:35.866Z",
+    "parent": "mastermind-deputy",
+    "parent_session": "d9c3caec-e496-4199-a0c1-a7bb7c97aa87",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
+   {
+    "agent": "ai-system-mastermind",
+    "role": "ai-system-mastermind",
+    "session_id": "7c6c8d93-e066-4ee5-b4b1-35480048f0a0",
+    "started_at": "2026-10-25T02:32:54.743Z",
+    "parent": null,
+    "parent_session": null,
+    "problems": [
+     "no parent"
+    ]
+   },
+   {
+    "agent": "task-mastermind-test-basics",
+    "role": "task-mastermind",
+    "session_id": "f6e3f9e1-34bc-40e7-beb3-09bfcca9820c",
+    "started_at": "2026-10-25T02:18:08.530Z",
+    "parent": "vscode-mastermind",
+    "parent_session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "task-mastermind-session-closeout",
+    "role": "task-mastermind",
+    "session_id": "cb53aa0e-c7c9-47a4-a8ae-44652f65d0e1",
+    "started_at": "2026-10-25T02:10:28.958Z",
+    "parent": "vscode-mastermind",
+    "parent_session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "mastermind-dictation-debug",
+    "role": "mastermind",
+    "session_id": "f0a2fbdb-98ba-41ef-b5ab-d9f033a3ad22",
+    "started_at": "2026-10-25T02:08:25.878Z",
+    "parent": "vscode-mastermind",
+    "parent_session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+    "problems": [
+     "parent is an agent name"
+    ]
+   },
+   {
+    "agent": "minion-ai-dashboard",
+    "role": "minion",
+    "session_id": "b3796d9c-269a-45bb-9054-ca6a35aa7e6e",
+    "started_at": "2026-10-25T02:05:53.961Z",
+    "parent": "mastermind-page",
+    "parent_session": "83e9996a-176b-4ef5-83e8-642545b3ddd9",
+    "problems": [
+     "parent is an agent name",
+     "parent's record does not list it"
+    ]
+   },
    {
     "agent": "minion-session-feed",
     "role": "minion",
@@ -2227,32 +2442,10 @@
     ]
    },
    {
-    "agent": "master-assistant",
-    "role": "master-assistant",
-    "session_id": "570e273a-7890-436c-a465-f4cf737a2ac5",
-    "started_at": "2026-10-25T00:16:31.178Z",
-    "parent": null,
-    "parent_session": null,
-    "problems": [
-     "no parent"
-    ]
-   },
-   {
     "agent": "fixer-1",
     "role": "fixer",
     "session_id": "b08b40d6-22b2-4e9c-94b1-8204bb42cb2d",
     "started_at": "2026-10-25T00:16:27.196Z",
-    "parent": null,
-    "parent_session": null,
-    "problems": [
-     "no parent"
-    ]
-   },
-   {
-    "agent": "assistant-fast",
-    "role": "assistant",
-    "session_id": "13c52d8d-ebe7-4188-abf4-6a41d898a705",
-    "started_at": "2026-10-25T00:16:26.485Z",
     "parent": null,
     "parent_session": null,
     "problems": [
@@ -2367,17 +2560,6 @@
     ]
    },
    {
-    "agent": "ai-system-mastermind",
-    "role": "ai-system-mastermind",
-    "session_id": "2da03974-92b2-4dbf-8bea-97c3ee479d45",
-    "started_at": "2026-10-24T05:48:48.718Z",
-    "parent": null,
-    "parent_session": null,
-    "problems": [
-     "no parent"
-    ]
-   },
-   {
     "agent": "minion-session-desktop",
     "role": "minion",
     "session_id": "9efe1cd4-05af-478d-9db2-a5ffc1032b3f",
@@ -2431,10 +2613,9 @@
     "session_id": "3b5a16b4-f0f7-4ea8-a743-aa00b6715d76",
     "started_at": "2026-10-24T03:48:03.306Z",
     "parent": "ai-system-mastermind",
-    "parent_session": "2da03974-92b2-4dbf-8bea-97c3ee479d45",
+    "parent_session": "7c6c8d93-e066-4ee5-b4b1-35480048f0a0",
     "problems": [
-     "parent is an agent name",
-     "parent's record does not list it"
+     "parent is an agent name"
     ]
    },
    {
@@ -3999,44 +4180,11 @@
     "problems": [
      "no parent"
     ]
-   },
-   {
-    "agent": "helper-heartbeat-landed",
-    "role": "helper",
-    "session_id": "2b711b08-cc56-48a2-9634-690d438678c7",
-    "started_at": "2026-10-18T04:17:20.062Z",
-    "parent": null,
-    "parent_session": null,
-    "problems": [
-     "no parent"
-    ]
-   },
-   {
-    "agent": "minion-task-rules",
-    "role": "minion",
-    "session_id": "460a80d9-ce00-45ca-a0f2-c374affc56ed",
-    "started_at": "2026-10-18T04:05:53.292Z",
-    "parent": null,
-    "parent_session": null,
-    "problems": [
-     "no parent"
-    ]
-   },
-   {
-    "agent": "mastermind-one-state",
-    "role": "mastermind",
-    "session_id": "8c3e1a83-77bf-44c6-a78f-4e509ce7cec7",
-    "started_at": "2026-10-18T03:48:19.890Z",
-    "parent": null,
-    "parent_session": null,
-    "problems": [
-     "no parent"
-    ]
    }
   ]
  },
  "numbers": {
-  "count": 5,
+  "count": 7,
   "rows": [
    {
     "id": "8d452ffd-618c-4c83-bf3d-bc5f0b43ddb1",
@@ -4055,11 +4203,27 @@
     "why": "index.json usd against the transcript read again now"
    },
    {
+    "id": "b82c81af-be79-4c80-85b1-14cc67c242c7",
+    "agent": "minion-tracking-perf",
+    "what": "usd",
+    "stored": 1.5189,
+    "computed": 1.7373,
+    "why": "index.json usd against the transcript read again now"
+   },
+   {
     "id": "c5dab844-059a-4284-8187-5fc5d6231bdd",
     "agent": "task-mastermind-docs",
     "what": "usd",
     "stored": 6.2917,
     "computed": 5.1745,
+    "why": "index.json usd against the transcript read again now"
+   },
+   {
+    "id": "bf6e7b74-74b5-46b6-9e65-4da8d0c86357",
+    "agent": "reviewer-build",
+    "what": "usd",
+    "stored": 0.8711,
+    "computed": 0.9504,
     "why": "index.json usd against the transcript read again now"
    },
    {
@@ -4079,5 +4243,439 @@
     "why": "index.json usd against the transcript read again now"
    }
   ]
+ },
+ "prompts": {
+  "sessions": 18,
+  "unique": 122,
+  "recorded": 97,
+  "pct": 0.7951,
+  "rows": [
+   {
+    "id": "e00f55c9",
+    "folder": "2026/10/20/session-e00f55c9",
+    "no_transcript": false,
+    "log_lines": 144,
+    "transcript_prompts": 246,
+    "unique": 122,
+    "recorded": 97,
+    "pct": 0.7951,
+    "unrecorded": [
+     {
+      "line": 11090,
+      "at": "2026-10-23T23:24:39.632Z",
+      "chars": 246
+     },
+     {
+      "line": 11411,
+      "at": "2026-10-24T00:24:47.124Z",
+      "chars": 435
+     },
+     {
+      "line": 11548,
+      "at": "2026-10-24T00:51:28.483Z",
+      "chars": 9327
+     },
+     {
+      "line": 11590,
+      "at": "2026-10-24T00:58:58.004Z",
+      "chars": 1749
+     },
+     {
+      "line": 11675,
+      "at": "2026-10-24T01:13:16.436Z",
+      "chars": 1725
+     },
+     {
+      "line": 17042,
+      "at": "2026-10-25T00:31:14.066Z",
+      "chars": 120
+     },
+     {
+      "line": 17761,
+      "at": "2026-10-25T02:14:56.007Z",
+      "chars": 2970
+     },
+     {
+      "line": 17961,
+      "at": "2026-10-25T02:38:59.133Z",
+      "chars": 12714
+     },
+     {
+      "line": 18005,
+      "at": "2026-10-25T02:40:45.416Z",
+      "chars": 555
+     },
+     {
+      "line": 18038,
+      "at": "2026-10-25T02:41:22.924Z",
+      "chars": 69
+     },
+     {
+      "line": 18051,
+      "at": "2026-10-25T02:42:43.843Z",
+      "chars": 990
+     },
+     {
+      "line": 18137,
+      "at": "2026-10-25T02:49:28.947Z",
+      "chars": 4985
+     },
+     {
+      "line": 18165,
+      "at": "2026-10-25T03:01:57.137Z",
+      "chars": 4921
+     },
+     {
+      "line": 18200,
+      "at": "2026-10-25T03:09:38.023Z",
+      "chars": 5645
+     },
+     {
+      "line": 18252,
+      "at": "2026-10-25T03:25:38.537Z",
+      "chars": 11162
+     },
+     {
+      "line": 18289,
+      "at": "2026-10-25T03:26:42.806Z",
+      "chars": 504
+     },
+     {
+      "line": 18344,
+      "at": "2026-10-25T03:29:56.368Z",
+      "chars": 1057
+     },
+     {
+      "line": 18364,
+      "at": "2026-10-25T03:32:18.866Z",
+      "chars": 1668
+     },
+     {
+      "line": 18395,
+      "at": "2026-10-25T03:37:45.661Z",
+      "chars": 4204
+     },
+     {
+      "line": 18428,
+      "at": "2026-10-25T03:44:46.838Z",
+      "chars": 5779
+     },
+     {
+      "line": 18529,
+      "at": "2026-10-25T03:57:42.869Z",
+      "chars": 7039
+     },
+     {
+      "line": 18558,
+      "at": "2026-10-25T03:59:10.845Z",
+      "chars": 239
+     },
+     {
+      "line": 18575,
+      "at": "2026-10-25T04:07:08.606Z",
+      "chars": 5275
+     },
+     {
+      "line": 18603,
+      "at": "2026-10-25T04:10:29.098Z",
+      "chars": 2838
+     },
+     {
+      "line": 18624,
+      "at": "2026-10-25T04:13:37.827Z",
+      "chars": 2833
+     }
+    ]
+   },
+   {
+    "id": "b06c284f",
+    "folder": "2026/10/20/session-b06c284f",
+    "no_transcript": true,
+    "log_lines": 10,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "f8192a95",
+    "folder": "2026/10/16/session-f8192a95",
+    "no_transcript": true,
+    "log_lines": 1,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "c9a11994",
+    "folder": "2026/10/16/session-c9a11994",
+    "no_transcript": true,
+    "log_lines": 3,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "c6476c80",
+    "folder": "2026/10/16/session-c6476c80",
+    "no_transcript": true,
+    "log_lines": 6,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "ba9a293b",
+    "folder": "2026/10/16/session-ba9a293b",
+    "no_transcript": true,
+    "log_lines": 6,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "98163c34",
+    "folder": "2026/10/16/session-98163c34",
+    "no_transcript": true,
+    "log_lines": 4,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "92ea620d",
+    "folder": "2026/10/16/session-92ea620d",
+    "no_transcript": true,
+    "log_lines": 3,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "80cdfa84",
+    "folder": "2026/10/16/session-80cdfa84",
+    "no_transcript": true,
+    "log_lines": 4,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "7cee3b7e",
+    "folder": "2026/10/16/session-7cee3b7e",
+    "no_transcript": true,
+    "log_lines": 6,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "7071968a",
+    "folder": "2026/10/16/session-7071968a",
+    "no_transcript": true,
+    "log_lines": 3,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "470b202f",
+    "folder": "2026/10/16/session-470b202f",
+    "no_transcript": true,
+    "log_lines": 4,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "361589dc",
+    "folder": "2026/10/16/session-361589dc",
+    "no_transcript": true,
+    "log_lines": 6,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "2bbca13b",
+    "folder": "2026/10/16/session-2bbca13b",
+    "no_transcript": true,
+    "log_lines": 3,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "2636c470",
+    "folder": "2026/10/16/session-2636c470",
+    "no_transcript": true,
+    "log_lines": 6,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "18947ac1",
+    "folder": "2026/10/16/session-18947ac1",
+    "no_transcript": true,
+    "log_lines": 1,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "127b4d82",
+    "folder": "2026/10/16/session-127b4d82",
+    "no_transcript": true,
+    "log_lines": 4,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   },
+   {
+    "id": "e5090ce3",
+    "folder": "2026/10/15/session-e5090ce3",
+    "no_transcript": true,
+    "log_lines": 7,
+    "unique": 0,
+    "recorded": 0,
+    "pct": null,
+    "unrecorded": []
+   }
+  ]
+ },
+ "perf": {
+  "limits": {
+   "read_ms": 200,
+   "write_ms": 2000
+  },
+  "files": [
+   {
+    "file": "2026/09/04/ux-screens/cache.jsonl",
+    "kb": 3001,
+    "lines": 3,
+    "bad": 0,
+    "read_ms": 22.37,
+    "parse_ms": 13.41,
+    "append_ms": 0.3,
+    "over": false
+   },
+   {
+    "file": "2026/10/20/session-e00f55c9/cache.jsonl",
+    "kb": 5198,
+    "lines": 30,
+    "bad": 0,
+    "read_ms": 13.71,
+    "parse_ms": 19.37,
+    "append_ms": 0.24,
+    "over": false
+   },
+   {
+    "file": "2026/10/23/session-83e9996a/cache.jsonl",
+    "kb": 4687,
+    "lines": 24,
+    "bad": 0,
+    "read_ms": 9.84,
+    "parse_ms": 21.07,
+    "append_ms": 0.2,
+    "over": false
+   },
+   {
+    "file": "2026/10/23/session-7e6b7107/cache.jsonl",
+    "kb": 2192,
+    "lines": 31,
+    "bad": 0,
+    "read_ms": 17.16,
+    "parse_ms": 11.23,
+    "append_ms": 0.34,
+    "over": false
+   },
+   {
+    "file": "2026/10/12/session-d4cd44ab/asks-by-module/owner-prompts.jsonl",
+    "kb": 7408,
+    "lines": 4497,
+    "bad": 0,
+    "read_ms": 15.11,
+    "parse_ms": 10,
+    "append_ms": 0.35,
+    "over": false
+   },
+   {
+    "file": "2026/10/23/session-d9c3caec/cache.jsonl",
+    "kb": 3400,
+    "lines": 13,
+    "bad": 0,
+    "read_ms": 6.5,
+    "parse_ms": 16.48,
+    "append_ms": 0.19,
+    "over": false
+   },
+   {
+    "file": "2026/10/22/session-8d452ffd/cache.jsonl",
+    "kb": 2481,
+    "lines": 26,
+    "bad": 0,
+    "read_ms": 4.44,
+    "parse_ms": 13.82,
+    "append_ms": 0.36,
+    "over": false
+   },
+   {
+    "file": "2026/10/20/session-e00f55c9/prompts.jsonl",
+    "kb": 2652,
+    "lines": 575,
+    "bad": 0,
+    "read_ms": 4.36,
+    "parse_ms": 8.12,
+    "append_ms": 0.3,
+    "over": false
+   }
+  ],
+  "item": {
+   "source": "2026/09/17/mastermind-layout-browser/session.jsonl",
+   "kb": 397,
+   "writes": [
+    {
+     "delta": "tasks",
+     "ms": 45.23,
+     "ok": true,
+     "why": null,
+     "answer_bytes": 391
+    },
+    {
+     "delta": "tasks",
+     "ms": 46.93,
+     "ok": true,
+     "why": null,
+     "answer_bytes": 391
+    },
+    {
+     "delta": "tasks",
+     "ms": 36.42,
+     "ok": true,
+     "why": null,
+     "answer_bytes": 391
+    }
+   ],
+   "over": false,
+   "measured_at": "2026-10-25T04:19:55.695Z"
+  },
+  "http": null,
+  "verdict": "slowest stage: item write (tasks), 46.93 ms, on 2026/09/17/mastermind-layout-browser/session.jsonl"
  }
 }

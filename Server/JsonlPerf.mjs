@@ -2,7 +2,7 @@
 // Server/JsonlPerf.mjs: where does a JSONL record spend its time? Read-only on the real files, writes only to COPIES.
 //   node Server/JsonlPerf.mjs [--top 8] [--json] [--item [--source <session.jsonl>]] [--http <page url>]
 // Per file: KB, lines, ms to read, ms to parse, ms to append one line to a copy in os.tmpdir() (raw fs append, the floor).
-// With --item, the largest session.jsonl / task.jsonl is also copied to a scratch folder under public/ and three writes go
+// With --item, the largest session.jsonl / task.jsonl is also copied to a scratch folder under public/ (gitignored sessions/transcripts/) and three writes go
 // through the item tool's own function (Servex/agents/page_tools.js run_item, in-process), timed; the folder is removed after.
 // Doc: public/framework/ai/tracking/readme.md ("JSONL perf"). Thresholds: read+parse over 200 ms, a write over 2 s.
 import fs from "node:fs";
@@ -47,7 +47,9 @@ export function measure_files(top = 8){
 export async function measure_item(source = null){
 	const src = source ? { file: path.resolve(source), size: fs.statSync(source).size } : jsonl_files(SESSIONS).filter(f => ["session.jsonl", "task.jsonl"].includes(path.basename(f.file))).sort((a, b) => b.size - a.size)[0];
 	if (!src) return null;
-	const dir = path.join(SESSIONS, "2026", "10", "24", "zz-jsonlperf-scratch-" + process.pid);
+	const dir = path.join(SESSIONS, "transcripts", "zz-jsonlperf-" + process.pid);   // run_item only writes under public/ (page_tools PUBLIC), so os.tmpdir() cannot hold it; transcripts/ is gitignored and no session watcher reads it
+	const clean = () => fs.rmSync(dir, { recursive: true, force: true });
+	process.once("exit", clean);
 	fs.mkdirSync(dir, { recursive: true });
 	try {
 		fs.copyFileSync(src.file, path.join(dir, "session.jsonl"));
@@ -59,7 +61,7 @@ export async function measure_item(source = null){
 			out.push({ delta: Object.keys(delta)[0], ms: ms(t), ok: !!r?.ok, why: err ?? r?.why ?? null, answer_bytes: JSON.stringify(r ?? {}).length });
 		}
 		return { source: path.relative(SESSIONS, src.file).replace(/\\/g, "/"), kb: Math.round(src.size / 1024), writes: out, over: out.some(w => w.ms > LIMITS.write_ms) };
-	} finally { fs.rmSync(dir, { recursive: true, force: true }); }
+	} finally { clean(); process.off("exit", clean); }
 }
 
 /** Three item writes through Servex's own HTTP door (POST /mcp, tools/call item) on `url`: the whole route, locks and fan-out included. Writes real lines: point it at a scratch record. */

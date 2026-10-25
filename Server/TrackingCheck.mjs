@@ -17,7 +17,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(process.env.TRACKING_ROOT || path.join(HERE, ".."));   // TRACKING_ROOT: read the main checkout's records from a worktree (index.json and cache.jsonl are gitignored)
 const AI = path.join(REPO, "public", "framework", "ai");
 const SESSIONS = path.join(AI, "sessions");
-const OUT = path.join(AI, "tracking", "report.json");
+const OUT = path.join(HERE, "..", "public", "framework", "ai", "tracking", "report.json");   // always the checkout the script lives in, never TRACKING_ROOT (that is read-only)
 const REGISTRY = path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), ".local", "share"), "lew42", "servex", "registry.json");
 const PROJECTS = path.join(os.homedir(), ".claude", "projects");
 
@@ -178,7 +178,7 @@ export async function prompt_coverage(){
 		const raw_lines = read_lines(file).filter(l => l.stage === "raw").length;
 		const folder = path.relative(SESSIONS, dir).split(path.sep).join("/");
 		let r; try { r = new PromptRecords(m[1]); } catch { rows.push({ id: m[1], folder, no_transcript: true, log_lines: raw_lines, unique: 0, recorded: 0, pct: null, unrecorded: [] }); return; }
-		const recorded = r.rows(), unique = r.prompts, missing = unique.filter(p => !recorded[r.rid(p)]?.parts?.length);
+		const recorded = r.rows(), unique = r.prompts, by_raw = new Map(Object.values(recorded).map(x => [x.raw, x.id])), rid = p => p.id ?? by_raw.get(p.text) ?? p.uuid, missing = unique.filter(p => !recorded[rid(p)]?.parts?.length);
 		rows.push({ id: m[1], folder, no_transcript: false, log_lines: raw_lines, transcript_prompts: PromptAudit.prompts(r.transcript).length, unique: unique.length, recorded: unique.length - missing.length, pct: unique.length ? r4((unique.length - missing.length) / unique.length) : null,
 			unrecorded: missing.map(p => ({ line: p.line, at: p.at, chars: p.text.length })) });
 	});

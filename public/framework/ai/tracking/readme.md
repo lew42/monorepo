@@ -21,3 +21,20 @@ A message is **tracked** when a task bucket was open at its timestamp: a `tasks.
 
 **Prompt counts, what they mean (session e00f55c9, 2026-10-24).** The transcript holds 235 owner-prompt lines, which are 111 unique prompts (a compaction replays old ones). `prompts.jsonl` holds 131 `raw` lines, one per prompt id and all with parts: the extra 20 are rows keyed by a replayed copy's own uuid, not by the unique prompt, so they inflate a count of log lines. The owner's "155 logged, 123 refined" could not be reproduced from the records: it fits none of 235, 131, 111 or the 115 rows the file had before the backfill. The page now shows log lines next to unique prompts so the two can be read side by side; coverage is always against the unique prompts.
 
+
+## JSONL read and write time: what was measured (2026-10-24)
+
+Which layer each number covers, so none is read as more than it is:
+
+| Layer | Number | What it measured |
+|---|---|---|
+| Raw append | under 1 ms (0.2 to 0.7) | `fs.appendFileSync` of one line to a copy of each of the eight largest records (`JsonlPerf.measure_files`) |
+| Read and parse | read 4 to 22 ms, parse 8 to 21 ms, about 25 ms for the largest record | `readFileSync` plus `JSON.parse` per line of the same eight records (the 1.3 MB `candidates.jsonl` read once at 167 ms cold) |
+| Item write, in-process | 4 to 13 ms in the first run; 23 to 62 ms in the runs for this page (397 KB `session.jsonl`) | `run_item` from `Servex/agents/page_tools.js` called directly, on a scratch copy, on the branch that already has the fast write. **No live Servex host was around it** (no HTTP, no socket fan-out, no lock contention), so it is a **lower bound**, and it varies by run |
+| Item write over Servex HTTP | first write 4,816 ms, then 48 and 42 ms | three `POST /mcp` `item` calls through the running Servex (`--http`). The first one pays for the host loading the record and its classes; later ones do not |
+| Page tail (`ext/JSONL` `live()`/`follow`): delay from an append to the callback | **not measured** | needs the dev server's socket; this checkout has no dev server, and the main tree was off limits |
+| Browser load of a large `page.jsonl` | partly measured | `fetch` and parse of a 7.4 MB, 4,497-line record inside headless Chromium from a plain static server: fetch 35 to 209 ms, parse 11 to 14 ms. This is the transfer and the parse only, not what a page does with the rows after |
+
+Script cost: `TRACKING_ROOT=<main checkout> node Server/TrackingCheck.mjs --print` took 39.6 s and 65.4 s before check 4 read each session's prompt rows once (`rid()` re-folded `prompts.jsonl` per prompt), and 35.5 s and 35.4 s after. The rest is the transcripts and the session index.
+
+`--item` copies the record to `public/framework/ai/sessions/transcripts/zz-jsonlperf-<pid>/` (gitignored, removed in a `finally` and on exit), not `os.tmpdir()`: `run_item` only writes under `public/`. `report.json` is always written next to the script that ran, never into `TRACKING_ROOT`.
