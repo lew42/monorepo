@@ -1,0 +1,10 @@
+import { browser } from "file:///C:/Code/lew42/worktrees/qf-3/Server/Browser.mjs";
+const [W, tag] = [+process.argv[2], process.argv[3]];
+const b = await browser();
+const p = await (await b.newContext({ viewport: { width: W, height: 900 } })).newPage();
+await p.goto("http://qf-3.localhost/framework/ext/Chat/v2/?src=/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl", { waitUntil: "networkidle" });
+await p.waitForTimeout(2500);
+await p.evaluate(() => document.querySelector(".chat-v2-toggle")?.click());
+await p.waitForTimeout(500);
+await p.screenshot({ path: `v2-${tag}-${W}.png`, fullPage: true });
+await b.close();
