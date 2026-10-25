@@ -8,3 +8,5 @@
 {"okay":{"complete":{"outcome":"The owner approved (relayed by session-smart-v-sq8y7db, 2026-10-25): land the safe fixes (sent marks, newest button, light mic, Questions under Prompt, scroll lock, gray-state labels). Shape changes still need a plan shown first.","evidence":["proposal.md"],"confidence":"high","caveats":["Items 6-9 (live raw text in v2, no flash, send moment, long pause) follow in a second round."]}},"by":"mastermind-dictation-2","ts":"2026-10-25T21:32:02.236Z"}
 {"build":{"start":{}},"by":"ProcessRunner","at":"2026-10-25T16:32:02-05:00"}
 {"spawn":{"step":"build","run":"owner","agent":"mastermind-dictation-2","session_id":null,"cost_before":118.31162499999996},"by":"ProcessRunner","at":"2026-10-25T16:32:02-05:00"}
+{"pulse":{"step":"build","n":1,"agent":"mastermind-dictation-2"},"by":"ProcessRunner","at":"2026-10-25T16:44:20-05:00"}
+{"build":{"wait":{"on":"minion-chat-sent","what":"round 1 (safe fixes 1-7) committed in worktree dictation-chat-sent, with screenshots read"}},"by":"mastermind-dictation-2","ts":"2026-10-25T21:44:23.811Z"}
