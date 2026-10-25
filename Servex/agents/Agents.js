@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry, { alive } from "./Registry.js";
-import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, singleton_id, renew_of } from "./roles.js";
+import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, role_readme_path, singleton_id, renew_of } from "./roles.js";
 import { OR_ONLY } from "./tiers.js";
 import { first_prompt } from "./readme-chain.js";
 import Task from "../../public/framework/core/Task/Task.js";
@@ -62,7 +62,7 @@ export class Agents {
 
 	/* `boot` names THIS host process — every registry row it writes carries it,
 	 * so the next boot can tell "alive a moment ago" from "long dead". */
-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); Task.turns_resolver = sid => this.session_turns(sid); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
+	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); Session.agents_at_resolver = task => this.agents_at(task); Task.turns_resolver = sid => this.session_turns(sid); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
 	assign(...args){ return Object.assign(this, ...args); }
 
 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
@@ -223,7 +223,7 @@ export class Agents {
 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
 		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
-		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, worktree: worktree_of(spec.cwd), parent_session: spec.parent ? spec.parent_session ?? this.session_of(spec.parent) : null, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, effort: spec.effort ?? role_defaults(spec.role).effort ?? null, role_readme: role_readme_path(spec.role), worktree: worktree_of(spec.cwd), parent_session: spec.parent ? spec.parent_session ?? this.session_of(spec.parent) : null, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
 		const fresh = !again && !spec.system;
@@ -719,10 +719,13 @@ export class Agents {
 	}
 
 	/* A task's cost: logged_cost summed over the agents whose task dir is this task's (`task` = its app path or dir). Task.cost reads it. */
-	task_cost(task){
-		if (!task) return 0;
+	task_cost(task){ return this.agents_at(task).reduce((s, a) => s + a.cost, 0); }
+	/* The agents whose task dir is exactly this task's folder (`task` = its app path or dir), each with its logged cost: [{id, cost}].
+	 * A Session entry's own cost is this sum, and its ids are what the session's cost does not count a second time (Session.agents_at_resolver). */
+	agents_at(task){
+		if (!task) return [];
 		const want = String(task).startsWith("/") && !fs.existsSync(task) ? path.resolve(MAIN_ROOT, "public", "." + task) : path.resolve(MAIN_ROOT, task);   // resolve, not join: a url path ends in "/", and the keys have no trailing separator
-		return (this.task_dirs().get(want.toLowerCase()) ?? []).reduce((s, id) => s + this.logged_cost(id), 0);
+		return (this.task_dirs().get(want.toLowerCase()) ?? []).map(id => ({ id, cost: this.logged_cost(id) }));
 	}
 
 	/* Registry rows by task dir (resolved, lower case), rebuilt at most once a minute: a session of 150 tasks asks task_cost 150 times,
@@ -1031,7 +1034,7 @@ function directory_of(spec){
  * a caller opened earlier (or a sibling agent shares), it just adds one more
  * assign line with the same facts, exactly like every other `assign` a task
  * log collects over its life — never touching what came before it. */
-export function open_task(task, { session_id, agent, role, by, model, worktree, parent_dir, parent_session }){
+export function open_task(task, { session_id, agent, role, by, model, effort = null, role_readme = null, worktree, parent_dir, parent_session }){
 	// An old-shaped dir (ai/YYYY-MM-DD/<slug>/) from a brief goes to the task store instead (Server/TaskDirs.mjs,
 	// ai/doc/task-folders.md); task.dir is rewritten so everything after this (directory_of, the inbox) sees the real place.
 	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
@@ -1047,24 +1050,48 @@ export function open_task(task, { session_id, agent, role, by, model, worktree, 
 	// `after` is task dirs in the same form as parent_task, so the tree matches them exactly.
 	const after = Array.isArray(task.after) && task.after.length ? task.after.map(rel) : undefined;
 	const line = JSON.stringify({ assign: strip({ session_id, agent, role, card: task.card, brief: task.brief, title: task.title,
-		model, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
+		model, effort: effort ?? undefined, role_readme: role_readme ?? undefined, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
 	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
 	// A handoff (`task: {from, id}`) is referenced by move_item's own `as` line; a second plain one would replay as a twin child, so link only without a handoff (or when it is refused, below).
-	const link = () => { try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id }); } catch (e){ console.warn("link_parent failed for", dir, e); }
-		// A folder outside the parent SESSION's own folder (core/Page/tasks/…, spawned/…) is still its child: one {"task","as"} line on the session's record (ChildLinks).
-		if (parent_session) try { ChildLinks.link(dir, parent_session, agent, { by: "Servex", parent_dir }); } catch (e){ console.warn("ChildLinks.link failed for", dir, e); } };
+	/* THE SESSION ENTRY (core/Session/readme.md, "Session entries"): the reference is {"task":url,"type":"Session","spawn":{…}}, nested under
+	 * the task that caused the spawn (cause_of, below). The configuration is what this spawn ran with; a role readme is named by its path, never retyped. */
+	const spawn = strip({ role, model, effort, role_readme, brief: task.brief, session_id, agent, at: stamp() });
+	const entry = { type: "Session", spawn, cause: log => cause_of(log, task.cause) };
+	const link = () => { try { SessionRecord.link_parent(dir, "Servex", { parent: parent_task && path.resolve(parent_task), session_id, entry }); } catch (e){ console.warn("link_parent failed for", dir, e); }
+		// A folder outside the parent SESSION's own folder (core/Page/tasks/…, spawned/…) is still its child: one entry on the session's record (ChildLinks).
+		if (parent_session) try { ChildLinks.link(dir, parent_session, agent, { by: "Servex", parent_dir, entry }); } catch (e){ console.warn("ChildLinks.link failed for", dir, e); } };
 	const handoff = !!(task.from && task.id);
 	if (!handoff) link();
-	// Handoff by task: `task: {from, id}` moves that subtask out of the spawner's log into this folder (page_tools.js move_item).
+	// Handoff by task: `task: {from, id}` moves that subtask out of the spawner's log into this folder (page_tools.js move_item). The subtask is
+	// upgraded in place: its reference keeps its id and becomes the Session entry (cause rule b, "handoff").
 	// Not awaited (open_task is synchronous): the history lands just after the first turn starts. A refusal is written into the new log, so it is seen.
 	if (handoff){
 		const log = SessionRecord.start_file(dir, JSON.parse(line)), refused = why => { fs.appendFileSync(log, JSON.stringify({ handoff: { from: task.from, id: task.id, refused: why }, by: "servex", ts: stamp() }) + "\n"); link(); };
-		move_item({ from: task.from, id: task.id, to: "/" + path.relative(path.join(process.cwd(), "public"), dir).split(path.sep).join("/") + "/", by: task.by ?? by ?? "spawn" })
+		move_item({ from: task.from, id: task.id, to: "/" + path.relative(path.join(process.cwd(), "public"), dir).split(path.sep).join("/") + "/", by: task.by ?? by ?? "spawn", entry: { type: "Session", spawn: { ...spawn, placed: "handoff" } } })
 			.then(r => { if (r.why) refused(r.why); }, e => refused(String(e.message || e)));
 	}
 	return dir;
+}
+
+/* WHICH TASK CAUSED A SPAWN, on the log its Session entry goes on (SessionRecord.add_ref calls this with that log). In order:
+ * (a) `explicit`, the spawn's `task.cause`, when that task is on the log; (c) the log's most recently started task that is still running
+ * (an inline task, never another child session); (d) none: the entry goes at the top. (b), a handoff, is open_task's own: the moved subtask
+ * itself. Returns {id, placed}. Replays with no resolver, so no child file is read: a reference stays a stub, which is never "running". */
+export function cause_of(log, explicit = null){
+	let lines; try { lines = fs.readFileSync(log, "utf8").split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch { return { id: null, placed: "top" }; }
+	if (!lines.length) return { id: null, placed: "top" };
+	const Class = lines[0]?.session && typeof lines[0].session === "object" ? Session : Task, saved = Task.resolver;
+	let root; Task.resolver = null;
+	try { root = Class.replay(lines); } catch { return { id: null, placed: "top" }; } finally { Task.resolver = saved; }
+	if (explicit && root._tasks && root.find(explicit) && root.find(explicit) !== root) return { id: explicit, placed: "explicit" };
+	let hit = null;
+	const walk = list => { for (const t of list ?? []){ if (t._own_file || t.is_session) continue;
+		if (t.state === "running" && (!hit || Date.parse(t.get_one("started_at") ?? "") >= Date.parse(hit.get_one("started_at") ?? ""))) hit = t;
+		walk(t._tasks); } };
+	walk(root._tasks);
+	return hit ? { id: hit.id, placed: "running" } : { id: null, placed: "top" };
 }
 
 /* Queued siblings a landed task unblocks: task dirs next to it whose `assign.after` names it, that no agent has

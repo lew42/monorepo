@@ -27,24 +27,24 @@ try {
 	// spawn: a child whose folder is OUTSIDE the parent session's folder
 	open_task({ dir: OUT }, { session_id: CID, agent: "kid-x", parent_session: PID });
 	t.eq(refs(CURL).length, 1, "the spawn put one reference to the outside folder on the parent's record");
-	t.eq(refs(CURL)[0]?.as, "kid-x", "the line says which agent it is (as)");
+	t.ok(refs(CURL)[0]?.type === "Session" && refs(CURL)[0]?.spawn?.agent === "kid-x" && refs(CURL)[0]?.as === undefined, "the line is a Session entry naming its agent (spawn.agent); its id is the folder name, since agent ids are reused");
 	open_task({ dir: OUT }, { session_id: CID, agent: "kid-x", parent_session: PID });
 	t.eq(refs(CURL).length, 1, "spawning again adds nothing (never twice)");
 	const P = () => Session.replay(read(PFILE));
-	t.ok(P().tasks.find("kid-x"), "the parent's replay has the child as a task");
+	t.ok(P().tasks.find("child") instanceof Session, "the parent's replay has the child as a task, a Session");
 	t.eq(P().progress().total, 1, "the parent's tasks count includes the child");
 	t.eq(P().completion, 0, "an unfinished child: completion 0");
 
 	// a child folder INSIDE the parent's folder keeps link_parent's plain line, and ChildLinks adds no second one
 	open_task({ dir: path.relative(ROOT, IN) }, { session_id: "0e0e0e0e-aaaa-4bbb-8ccc-000000000002", agent: "kid-in", parent_session: PID });
 	const inside = refs(PURL + "inside-kid/");
-	t.ok(inside.length === 1 && inside[0].as === undefined, "a folder inside the parent's: one plain line from link_parent, none from ChildLinks");
+	t.ok(inside.length === 1 && inside[0].as === undefined && inside[0].spawn?.agent === "kid-in", "a folder inside the parent's: one entry from link_parent, none from ChildLinks");
 	t.eq(P().progress().total, 2, "two children now");
 
 	// complete the outside child; the parent's completion moves
 	const r = await run_item({ path: CURL, delta: { complete: { outcome: "done", evidence: ["test"] } } }, { caller: "kid-x" });
 	t.ok(r.ok, "the child completes its own task: " + (r.why ?? ""));
-	t.ok(P().tasks.find("kid-x")?.state === "complete" && P().progress().done === 1, "the parent sees the child complete");
+	t.ok(P().tasks.find("child")?.state === "complete" && P().progress().done === 1, "the parent sees the child complete");
 	t.eq(P().completion, 0.5, "completion moved 0 -> 0.5 (one of two children done)");
 
 	// the backfill: a registry row for a third child, dry run writes nothing, apply writes once
