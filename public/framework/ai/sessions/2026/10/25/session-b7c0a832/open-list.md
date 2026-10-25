@@ -13,3 +13,5 @@ Next, in order:
 
 **Update (01:40):** Servex restarted (Pool, compaction and give_back fixes live). The qf-8 branch (context alerts + prompt grouping) was reviewed, tested and merged. qf-8 slot still held by minion-prompt-grouping (give_back guard refused it, correctly). Still open: minion-mastermind-path (qf-3) merge; one more restart for context alerts; items 15, 4, 5 above.
 6. Review gate quirk (from minion-prompt-grouping): `Server/review.mjs` reported "size none" and passed without reading code when the branch carried other agents commits. Check `sizeOf` base (merge-base vs michael/dev) so a mixed branch is still sized by its real diff.
+
+**Update (01:52):** qf-3 (path-mastermind: singleton and renewal removed, `ai-system-mastermind` is now `mastermind` at public/framework/ai) reviewed and merged. Servex restart requested to load it and the context alerts. After it: verify a path spawn loads (log line / path_loaded), then items 15, 4, 5, 6.
