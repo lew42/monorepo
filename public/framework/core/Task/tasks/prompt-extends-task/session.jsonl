@@ -1,0 +1,12 @@
+{"assign":{"session_id":"6e59fe0d-68e5-47ef-ab5e-82f96df8e0cd","agent":"mastermind-prompt-task","role":"mastermind","card":"core/Task: Prompt and Question extend Task","brief":"public/framework/core/Task/tasks/prompt-extends-task/requirements.md","model":"claude-sonnet-5-5","effort":"high","role_readme":"Servex/agents/roles/mastermind.md","home":"/framework/core/Task/","requested_at":"2026-10-25T02:14:51-05:00","now":"starting"}}
+{"commit":"c02d7e89730a"}
+{"commit":"16fbcd020c6a"}
+{"commit":"924973c71e8f"}
+{"commit":"a5381961f8f9"}
+{"log":{"text":"Built in worktree prompt-task (4 commits): core Prompt + Question + unread query + node-aware item tool; migration (Server/PromptsToSession.mjs) + trace (Server/PromptTrace.mjs); PromptRecords dual-writes Prompts into session.jsonl. Tests pass: Prompt 13, Question 6, PromptsToSession 11, PromptTrace 3, PromptGroup 7, prompt-tasks 23, Task/Session/Project/Process/Refine suites. Review (Sonnet, fresh) running, then smoke and merge.","decisions":[{"decision":"One Prompt class: core Prompt extends Task; the old ext/Refine Prompt is renamed PromptRun (it keeps scoring/view, borrows KINDS/OUTCOMES/SETTLED).","options":["make the Refine class extend Task (drags a demo view and scorer into core)"]},{"decision":"Dual-write: prompts.jsonl stays (Coverage, Dictate, Echo read it) and PromptRecords also mirrors each Prompt into session.jsonl.","options":["write only session.jsonl (breaks the Coverage card and Dictate)"]},{"decision":"Questions nest under the Prompt's tasks and also carry from; root Questions with a matching from are found too.","options":["root only"]},{"decision":"Sentence ids are computed from paragraphs; migrated paragraphs carry explicit sentences so old cites keep meaning.","options":["store sentences always"]},{"decision":"Already-filed asks stay at the session root, linked by source.prompt / from. Old folders with no session.jsonl are skipped by the migration."}]},"by":"mastermind-prompt-task","ts":"2026-10-25T07:35:32.387Z"}
+{"sessions":[{"id":"mastermind-prompt-task","task":"/framework/core/Task/tasks/prompt-extends-task/"}],"by":"mastermind-prompt-task","ts":"2026-10-25T07:35:32.420Z"}
+{"commit":"ee35dff9000c"}
+{"commit":"e172472d2ed0"}
+{"commit":"b10d40269c2f"}
+{"commit":"c52883c8aebd"}
+{"commit":"4dc16df305c3"}
