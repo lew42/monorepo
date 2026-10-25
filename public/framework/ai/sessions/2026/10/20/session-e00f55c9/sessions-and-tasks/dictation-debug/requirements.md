@@ -136,3 +136,7 @@ Run past-work on "fast assistant" and "smart assistant" first (Sessions.js fast/
 - **Errors log themselves to the voice session.** Any disconnect, mic failure or Whisper error is written by the UI into the voice session automatically, so the owner never has to report it and the smart assistant sees it.
 - **First, answer the owner in one plain paragraph in the Docs tab (or the Dictate readme):** how messages travel today (browser → Servex, by socket or HTTP?), who creates the voice session, and how fast and smart are fed.
 - **The VS Code tab's Haiku refinement hook is switched OFF tonight** (pace). This browser path is the one that matters now.
+
+## Part 9: agree the chat shape before building storage (2026-10-25)
+
+The owner asked for the options first. Read [chat-shape.md](chat-shape.md): three shapes, Option C recommended (one `tasks` list, `Prompt` and `Question` extend Task, a reply lives on what it answers, the raw Whisper text is kept on the Prompt). Keep fixing transport bugs, but hold the fast/smart storage layer until the owner picks. If you see a better shape or a flaw, add it to chat-shape.md as Option D.
