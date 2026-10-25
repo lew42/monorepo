@@ -101,7 +101,7 @@ export default class SessionOutlineView extends View {
 			});
 			div.c("soutline-meta", () => { small.c("muted", `${this.when(g.at)}${g.at ? " · " : ""}${this.progress_text(g)}`); $cost = small.c("muted soutline-cost", ""); });
 			paint();
-		}, () => this.items(g.items, key), n < 2);
+		}, () => this.items(g.items, key), n < 2 && g.items.length > 0);
 		d.el.addEventListener("soutline-open", ask);
 		if (d.el.open || this.outline.found.list.length <= SessionOutlineView.ASK_ALL) ask();
 	}

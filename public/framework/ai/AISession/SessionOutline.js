@@ -64,6 +64,7 @@ export default class SessionOutline {
 		const add = (key, from, extra = {}) => {
 			if (!key) return;
 			const snap = this.snap_of(key), id = snap?.id ?? (/^[0-9a-f]{8}-/.test(key) ? key : null), k = id ?? key;
+			if (this.self && id === this.self) return;   // a session is never its own child
 			const c = found.get(k) ?? { key: k, id, name: snap?.agent ?? (id ? null : key), snap, node: null, from: new Set() };
 			if (!c.from.has(from)) counts[from]++;
 			c.from.add(from);

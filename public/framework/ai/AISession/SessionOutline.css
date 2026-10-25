@@ -7,7 +7,7 @@
 	.soutline-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr)); gap: 1rem; align-items: start; min-width: 0; }
 	.soutline-group { min-width: 0; box-sizing: border-box; padding: .5rem .75rem; }
 	.soutline-group.is-dropped { opacity: .55; }
-	.soutline-sum { display: flex; flex-direction: column; gap: .15rem; cursor: pointer; list-style: none; position: relative; padding-inline-start: 1.25rem; }
+	.soutline-sum { display: flex; flex-direction: column; gap: .15rem; cursor: pointer; list-style: none; position: relative; padding-block: 0; padding-inline-end: 0; padding-inline-start: 1.25rem; width: auto; min-height: 0; font-size: inherit; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; }   /* a summary wears the control box (framework.css control grammar); a row is not a control */
 	.soutline-sum::-webkit-details-marker { display: none; }
 	.soutline-sum::before { content: "▸"; position: absolute; inset-inline-start: 0; top: 0; color: color-mix(in srgb, var(--ink) 50%, transparent); }
 	details[open] > .soutline-sum::before { content: "▾"; }
