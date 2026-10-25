@@ -7,9 +7,11 @@
 	.tr-body > h2 { margin: var(--gap) 0 0; }
 	.tr-cards { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 1fr); }
 	@container (min-width: 48em) { .tr-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+	@container (min-width: 90em) { .tr-cards { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 	.tr-card { display: flex; flex-direction: column; gap: var(--gap-50); padding: var(--pad); border: 1px solid currentColor; border-radius: 0.5em; }
 	.tr-big { font-size: 2.2em; font-weight: 700; line-height: 1.1; }
 	.tr-label { font-weight: 600; }
 	.tr-view .datagrid { --datagrid-height: 22em; max-block-size: 22em; }
-	.tr-view .datagrid-head-cell, .tr-view .datagrid-cell { white-space: nowrap; }
+	.tr-view .datagrid-head-cell, .tr-view .datagrid-cell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.tr-view .datagrid-cell { min-block-size: 2.6em; line-height: 2.6em; }
 }

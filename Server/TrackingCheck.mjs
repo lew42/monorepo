@@ -5,6 +5,8 @@
 //   1. untracked work   every assistant message in a session's transcript is "tracked" if a task was open at that moment (start..complete), else "untracked"; shares in dollars and tokens
 //   2. unlinked children   Servex agent sessions with no parent, a parent that is an agent name and not a session id, or a parent record that does not list them
 //   3. stored numbers   a stored dollar number (index.json tree_usd, children, usd) against what the children / the raw transcript give now
+//   4. prompt coverage   per session with a prompts.jsonl: the owner's unique prompts in the transcript (PromptRecords.prompts) against those with refinement parts, and the unrecorded lines
+//   5. jsonl perf   the slowest-reading records and the item-tool write timing (Server/JsonlPerf.mjs), each flagged past its limit. The write timing needs `--item` / `--http <url>`; otherwise the last run's is kept
 // Read-only on every record; the one write is report.json.
 import fs from "node:fs";
 import os from "node:os";
@@ -15,7 +17,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(process.env.TRACKING_ROOT || path.join(HERE, ".."));   // TRACKING_ROOT: read the main checkout's records from a worktree (index.json and cache.jsonl are gitignored)
 const AI = path.join(REPO, "public", "framework", "ai");
 const SESSIONS = path.join(AI, "sessions");
-const OUT = path.join(AI, "tracking", "report.json");
+const OUT = path.join(HERE, "..", "public", "framework", "ai", "tracking", "report.json");   // always the checkout the script lives in, never TRACKING_ROOT (that is read-only)
 const REGISTRY = path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), ".local", "share"), "lew42", "servex", "registry.json");
 const PROJECTS = path.join(os.homedir(), ".claude", "projects");
 
@@ -166,7 +168,36 @@ function record_events(dir, only_id = null){
 	return { events, end };
 }
 
-export async function run({ days = 7, id = null } = {}){
+/** Check 4: for each session folder holding a prompts.jsonl, the unique owner prompts (PromptRecords) with and without parts. Nothing is written. */
+export async function prompt_coverage(){
+	const { default: PromptRecords } = await import("./PromptRecords.mjs"), { default: PromptAudit } = await import("./PromptAudit.mjs");
+	const rows = [];
+	walk(SESSIONS, (file, name) => {
+		if (name !== "prompts.jsonl") return;
+		const dir = path.dirname(file), m = /^session-([0-9a-f]{8})$/.exec(path.basename(dir)); if (!m) return;
+		const raw_lines = read_lines(file).filter(l => l.stage === "raw").length;
+		const folder = path.relative(SESSIONS, dir).split(path.sep).join("/");
+		let r; try { r = new PromptRecords(m[1]); } catch { rows.push({ id: m[1], folder, no_transcript: true, log_lines: raw_lines, unique: 0, recorded: 0, pct: null, unrecorded: [] }); return; }
+		const recorded = r.rows(), unique = r.prompts, by_raw = new Map(); for (const x of Object.values(recorded)) if (!by_raw.has(x.raw)) by_raw.set(x.raw, x.id);
+		const rid = p => p.id ?? by_raw.get(p.text) ?? p.uuid, missing = unique.filter(p => !recorded[rid(p)]?.parts?.length);
+		rows.push({ id: m[1], folder, no_transcript: false, log_lines: raw_lines, transcript_prompts: PromptAudit.prompts(r.transcript).length, unique: unique.length, recorded: unique.length - missing.length, pct: unique.length ? r4((unique.length - missing.length) / unique.length) : null,
+			unrecorded: missing.map(p => ({ line: p.line, at: p.at, chars: p.text.length })) });
+	});
+	rows.sort((a, b) => (b.unique - b.recorded) - (a.unique - a.recorded) || b.folder.localeCompare(a.folder));
+	const sum = k => rows.reduce((n, x) => n + (x[k] || 0), 0);
+	return { sessions: rows.length, unique: sum("unique"), recorded: sum("recorded"), pct: sum("unique") ? r4(sum("recorded") / sum("unique")) : null, rows };
+}
+
+/** Check 5: read/parse of the largest records (always), plus the write timing when asked (JsonlPerf) or carried over from the last report. */
+export async function jsonl_perf({ item = false, http = null, source = null } = {}){
+	const { perf_report, LIMITS } = await import("./JsonlPerf.mjs");
+	const r = await perf_report({ top: 8, item, source, http });
+	let before = null; try { before = JSON.parse(fs.readFileSync(OUT, "utf8")).perf; } catch {}
+	const stamp = x => x && { ...x, measured_at: new Date().toISOString() };
+	return { limits: LIMITS, files: r.files, item: item ? stamp(r.item) : before?.item ?? null, http: http ? stamp(r.http) : before?.http ?? null, verdict: r.verdict };
+}
+
+export async function run({ days = 7, id = null, item = false, http = null, source = null } = {}){
 	const { default: AISession } = await import(pathToFileURL(path.join(AI, "AISession", "AISession.js")).href);
 	const price_for = AISession.price_for;
 	const now = Date.now(), since = now - days * 864e5;
@@ -236,15 +267,18 @@ export async function run({ days = 7, id = null } = {}){
 	}
 	for (const x of sessions) if (x.stored_usd != null && Math.abs(x.stored_usd - x.usd) > Math.max(0.05, x.usd * 0.03)) numbers.push({ id: x.id, agent: x.agent, what: "usd", stored: x.stored_usd, computed: x.usd, why: "index.json usd against the transcript read again now" });
 
-	return { generated_at: new Date().toISOString(), days, note: "Computed by Server/TrackingCheck.mjs; never edit by hand. Doc: public/framework/ai/tracking/readme.md", untracked: { totals, by_day, sessions: sessions.slice(0, 100) }, children, numbers: { count: numbers.length, rows: numbers.slice(0, 200) } };
+	return { generated_at: new Date().toISOString(), days, note: "Computed by Server/TrackingCheck.mjs; never edit by hand. Doc: public/framework/ai/tracking/readme.md", untracked: { totals, by_day, sessions: sessions.slice(0, 100) }, children, numbers: { count: numbers.length, rows: numbers.slice(0, 200) }, prompts: await prompt_coverage(), perf: await jsonl_perf({ item, http, source }) };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
 	const arg = n => { const i = process.argv.indexOf("--" + n); return i > 0 ? process.argv[i + 1] : null; };
-	const report = await run({ days: Number(arg("days")) || 7, id: arg("id") });
+	const report = await run({ days: Number(arg("days")) || 7, id: arg("id"), item: process.argv.includes("--item"), http: arg("http"), source: arg("source") });
 	if (!process.argv.includes("--print")){ fs.mkdirSync(path.dirname(OUT), { recursive: true }); fs.writeFileSync(OUT + ".tmp", JSON.stringify(report, null, 1)); fs.renameSync(OUT + ".tmp", OUT); }
 	const t = report.untracked.totals, c = report.children;
 	console.log(`untracked: ${(t.share_usd * 100).toFixed(0)}% of $${t.usd} (${t.sessions} sessions, ${(t.share_tokens * 100).toFixed(0)}% of tokens)`);
 	console.log(`children: ${c.problems} of ${c.checked} have a problem (no parent ${c.no_parent}, parent is a name ${c.parent_is_name}, not listed ${c.not_listed})`);
 	console.log(`stored numbers that disagree: ${report.numbers.count}`);
+	const pc = report.prompts, pf = report.perf;
+	console.log(`prompt coverage: ${pc.recorded} of ${pc.unique} unique prompts have parts (${pc.pct == null ? "n/a" : Math.round(pc.pct * 100) + "%"}) across ${pc.sessions} sessions; ${pc.rows.filter(x => x.unique > x.recorded).length} with unrecorded prompts`);
+	console.log(`jsonl perf: ${pf.verdict}${pf.files.some(f => f.over) ? " (a read is over " + pf.limits.read_ms + " ms)" : ""}`);
 }
