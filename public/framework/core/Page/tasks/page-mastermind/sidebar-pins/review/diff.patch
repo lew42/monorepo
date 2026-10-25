@@ -1,0 +1,101 @@
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index 45365f78c..50de99bed 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -33,6 +33,7 @@ export default new Page({
+ 
+ 	// One nav link, whatever the date children say: the rail below is the way in.
+ 	leaf: true,
++	pinned: "queue",   // ...except the task queue, shown under AI in the site sidebar (the owner, 2026-10-24: "there's no link to it")
+ 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
+ 	classes: v1() ? undefined : is_dash() ? "ad-page" : "full fill",
+ 	children: "now queue readmes tasks classes AISession quick-fix asks process review council audits tests local models usage",   // day folders moved into sessions/ (ai/doc/task-folders.md); old day urls redirect in route()
+diff --git a/public/framework/core/Sidebar/Sidebar.js b/public/framework/core/Sidebar/Sidebar.js
+index b93f357a8..ed0b0d4d4 100644
+--- a/public/framework/core/Sidebar/Sidebar.js
++++ b/public/framework/core/Sidebar/Sidebar.js
+@@ -135,13 +135,11 @@ export class Sidebar extends View {
+ 	// Visibility rules and filters: doc/sidebar-notes.md
+ 	// ⚠ ASYNC for cold-load race; ⚠ Tree nodes by index; ⚠ Deeper branches open lazily
+ 	async visible_nodes(page, nodes){
+-		const names = [...page.children.keys()];
+-		const visible = await Promise.all(names.map(name => page.nav_ready(name)));
++		const visible = await Promise.all(nodes.map(node => page.nav_ready(node.name)));   // by name: a leaf's `pinned` list is a subset of its children
+ 
+-		return names
+-			.map((name, i) => [nodes[i], visible[i]])
+-			.filter(([, ok]) => ok)
+-			.map(([node]) => !node.children ? node : {
++		return nodes
++			.filter((node, i) => visible[i])
++			.map(node => !node.children ? node : {
+ 				...node,
+ 				children: () => Promise.resolve(node.children()).then(kids => this.visible_nodes(node.page, kids)),
+ 			});
+@@ -182,7 +180,8 @@ export class Sidebar extends View {
+ 					if (node.href) out.push({ text: node.text, href: node.href, trail: trail.join(" › ") });
+ 					let kids = is.fn(node.children) ? await node.children() : node.children;
+ 					// A `leaf: true` page (ui/, ...) draws flat in the rail but its declared children are still pages; data-fed ones (ai/ days) stay out.
+-					if (!kids && node.page?.leaf && node.page.children.size && !node.page.child_source)
++					// ⚠ Every child, even when the leaf draws a few `pinned` ones: the filter still finds the rest.
++					if (node.page?.leaf && node.page.children.size && !node.page.child_source)
+ 						kids = await this.visible_nodes(node.page, await Tree.nodes_of(node.page));
+ 					if (is.arr(kids)) await walk(kids, [...trail, node.text]);
+ 				}));
+diff --git a/public/framework/core/Sidebar/readme.md b/public/framework/core/Sidebar/readme.md
+index a1f4dc70d..031eb712c 100644
+--- a/public/framework/core/Sidebar/readme.md
++++ b/public/framework/core/Sidebar/readme.md
+@@ -31,6 +31,7 @@ this file's.
+ - The width lives under one localStorage key, `lew42:sidebar` — every `Sidebar` on the site shares it, on purpose (it's persistent chrome, not a per-page setting). [`doc/decisions.md`](./doc/decisions.md)
+ - Below 52em the panel is a sticky top bar with a burger, and CSS turns the resize handle off — nothing to drag on a phone. [`doc/narrow.md`](./doc/narrow.md)
+ - A `root:` tree now respects `leaf: true` the same way `pages:` data always did — fixed in `ux/Tree` 2026-09-18, no longer a caveat here. [`../../ux/Tree/doc/decisions.md`](../../ux/Tree/doc/decisions.md)
++- A leaf page can still show a few children: `pinned: "queue"` beside `leaf: true` draws only those under it (the AI page shows its task queue this way). Search still indexes all of its children. `Tree.node_of()` reads it.
+ - Search finds every page, loaded or not: a query swaps the tree for a flat result list from `index()`, one walk of the whole page tree (about 2 s the first time, then cached). The query is routed (`?q=`), Arrow keys move through results, Enter opens the first. Results rank exact title first, then shallowest url; a `leaf: true` page's children are indexed too. [`doc/index.md`](./doc/index.md)
+ - A row's every length is the ROW's own `em`, never `--pad`/`--gap` — those are page ramps that cap at 2.6em and once stood one of these rows 48.7px tall at 3440. Same rule for the footer strip: a control never rides a ramp. [`doc/decisions.md`](./doc/decisions.md)
+ - `max-height` caps a box; it never fills one. The rail takes a real `height: 100dvh` so the footer pins to the bottom — and `height: auto` back below 52em, or the open menu is a full-screen sheet. [`doc/decisions.md`](./doc/decisions.md)
+diff --git a/public/framework/ux/Tree/Tree.js b/public/framework/ux/Tree/Tree.js
+index 8da63ea7f..cddaa8772 100644
+--- a/public/framework/ux/Tree/Tree.js
++++ b/public/framework/ux/Tree/Tree.js
+@@ -113,9 +113,10 @@ export default class Tree extends View {
+ 	 * that core calls on the first ask, and that call is inside this one
+ 	 * (core/Page/doc/data-children.md). Declared-but-unresolved children resolve here
+ 	 * too — that is what the await is for. */
+-	static async nodes_of(page){
+-		await page.load_all_children(1).loading;
+-		return [...page.children.keys()].map(name => this.node_of(page, name));
++	static async nodes_of(page, names){
++		if (names) await Promise.all(names.map(name => page.child(name, 0)));   // only the pinned ones (below), not every child
++		else await page.load_all_children(1).loading;
++		return (names ?? [...page.children.keys()]).filter(name => page.children.has(name)).map(name => this.node_of(page, name));
+ 	}
+ 
+ 	/* One child, as a node. Deeper levels are a FUNCTION, so the tree fetches a branch
+@@ -127,19 +128,23 @@ export default class Tree extends View {
+ 	 * `tree_nodes()` saw it). `count` rides along too — the real number of children a
+ 	 * live Page already knows about, synchronously, even before this branch is ever
+ 	 * opened; `Tree.Drag.commit()` reads it so a drop into a closed branch still lands
+-	 * after all of them (ux/Tree/doc/decisions.md, 2026-09-18). */
++	 * after all of them (ux/Tree/doc/decisions.md, 2026-09-18).
++	 * `pinned: "queue"` on a leaf page: the few children a tree still shows under it (the AI page
++	 * stays one link in the site sidebar, with only its task queue beneath, 2026-10-24). */
+ 	static node_of(page, name){
+ 		const child = page.children.get(name);
+ 		const nav = page.nav_for(name);
+-		const deeper = child && !child.leaf && (child.child_source || child.children?.size);
++		const pinned = child?.leaf && child.pinned?.split(/\s+/).filter(Boolean);
++		const deeper = child && (pinned ? pinned.length : !child.leaf && (child.child_source || child.children?.size));
+ 
+ 		return {
++			name,
+ 			text: nav.label,
+ 			href: nav.url,
+ 			icon: nav.icon && (() => icon(nav.icon)),
+ 			page: child,
+ 			count: child?.children.size,
+-			children: deeper ? () => this.nodes_of(child) : undefined,
++			children: deeper ? () => this.nodes_of(child, pinned || undefined) : undefined,
+ 		};
+ 	}
+ 

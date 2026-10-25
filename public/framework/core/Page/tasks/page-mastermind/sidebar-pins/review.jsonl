@@ -1,0 +1,5 @@
+{"phase":{"at":"2026-10-24T20:22:49-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-10-24T20:22:49-05:00","n":1,"kind":"note","text":"The one change is the sidebar, and at 400 it is a collapsed burger bar, so the pinned \"Task queue\" link is not visible there (shots/.../400.png) — only 1200, 1920 and 3440 show it. The author's \"Checked\" list does not say it was opened at 400."}}
+{"finding":{"at":"2026-10-24T20:22:49-05:00","n":2,"kind":"note","text":"layout.json `errors` holds one 404 \"Failed to load resource\" per width. The brief says \"no page errors\", so the 404's source is unnamed (likely unrelated to this diff, but unchecked)."}}
+{"finding":{"at":"2026-10-24T20:22:49-05:00","n":3,"kind":"note","text":"The `visible_nodes` header comment in Sidebar.js still says \"Tree nodes by index\", but the code now matches by name (diff, Sidebar.js hunk 1). Stale wording."}}
+{"phase":{"at":"2026-10-24T20:22:49-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0.45534220000000003,"model":"claude-sonnet-5-5"}}
