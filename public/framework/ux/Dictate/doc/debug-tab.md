@@ -47,12 +47,23 @@ Proof: `test/deltas.mjs` replays a sequence with a repeat, a late line, stream c
 
 A layer that turns red becomes one line in [ux/Dictate/failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: the file is git-ignored and appears on this machine at the first failure, so the link 404s before that and on the static site; `ErrorLog.report`, [ext/ErrorLog](/framework/ext/ErrorLog/)), the file whoever follows `ux/Dictate` hears. Every page's uncaught errors go the same way, to the module that threw (`app.js` calls `ErrorLog.watch()`). The proposal for re-running pages when their files change: [ext/ErrorLog/doc/page-watcher.md](/framework/ext/ErrorLog/doc/page-watcher.md).
 
+## Refresh then dictate
+
+The owner's failure: reload the page, press the mic, nothing works. `test/refresh.mjs` reproduces it headless (a phone, a fake mic, every Servex verb stubbed) in six scenarios (plain, pill, deferred, restart, again, twice). It found four causes:
+- **The "page is out of date" pill covered the mic**, so a tap meant for the mic hit the pill and reloaded. The pill now sits at the top centre (`dev/Socket/Socket.js`).
+- **A reload deferred while the mic was busy fired 1 s after the mic stopped**, landing on a stop-then-start. It now waits until the page has been quiet `QUIET_MS` (30 s); until then the pill shows. See [dev/Socket](/framework/dev/Socket/readme.md).
+- **Two starts at once.** The page starts the mic by itself, and during the up-to-5 s Whisper check `Dictate` still said `idle`, so a press ran a second `start()`. One start's AudioContext was closed while its audio module loaded ("Unable to load a worklet's module"). `Dictate.start` is now single-flight, the state is `connecting` from the press, and a cancelled start shows no false error. `Capture.chunks` also did not exist until the module loaded, so the 200 ms heartbeat threw; it is now a field.
+- **A dev reload dropped the sheet.** The sheet now comes back at its size (`Sheet.keep_on_reload`), and the mic bar says "the page reloaded because a file changed: tap the mic to keep talking".
+
+Proof: `node public/framework/ux/Dictate/test/refresh.mjs <base-url> [runs] [scenario]`; five runs in a row, all six scenarios, exit 0: `ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/proof/refresh-5-runs.txt`.
+
 ## Run the proofs
 
 ```
 node public/framework/ux/Dictate/test/stall.mjs <base-url> [hang|refuse|whisper|reload]
 node public/framework/ux/Dictate/test/debug-tab.mjs <base-url> <shots dir>
 node public/framework/ux/Dictate/test/deltas.mjs <base-url>
+node public/framework/ux/Dictate/test/refresh.mjs <base-url> [runs] [scenario]
 ```
 
 **Still open:** the AI row turns red 60 s after a send with no answer, but it cannot yet say *why* Servex's assistants did not answer (asleep, held by the floor until you are quiet, or crashed). The next step is a reason on Servex's side: `Servex/agents/Sessions.js` would write a `{status}` line to the session (held, waking, answering, failed) that `chat.js` already reads.

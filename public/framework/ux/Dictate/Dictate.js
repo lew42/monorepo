@@ -234,7 +234,12 @@ export default class Dictate extends View {
 	}
 
 
-	toggle(){ (this.state === "idle" || this.state === "error") ? this.start() : this.stop(); }
+	toggle(){
+		if (this.state === "idle" || this.state === "error") return this.start();
+		// Still finishing the last sentence after a stop: a press is "listen again" once it is done, never ignored (test/refresh.mjs, again).
+		if (this.state === "transcribing"){ this.again = true; this.$status?.text("finishing the last sentence, then listening again"); return; }
+		return this.stop();
+	}
 
 	/** Instant secure-context check; the Web Speech constructor exists but fails silently off https. see doc/notes.md#insecure-context */
 	insecure_context_message(){
@@ -243,7 +248,18 @@ export default class Dictate extends View {
 		return `The mic needs https or localhost: open http://localhost${port} on this machine, or see doc/https-lan.md for https on the LAN.`;
 	}
 
+	/** One start at a time. Two at once (✦ starts the mic, and a press during the Whisper check started it again) closed
+	 *  one start’s audio while it loaded: "AbortError: Unable to load a worklet’s module", the mic that would not start
+	 *  (test/refresh.mjs). A start pressed after a cancelled one waits for it, then runs. */
 	async start(){
+		if (this.start_promise && !this.cancel_connect) return this.start_promise;
+		if (this.start_promise) await this.start_promise.catch(() => {});
+		if (this.state === "listening" || this.state === "connecting") return;
+		return this.start_promise = this.start_now().finally(() => { this.start_promise = null; });
+	}
+
+	async start_now(){
+		this.again = false;
 		const insecure = this.insecure_context_message();
 		if (insecure){ this.log_step("mic", "refused: insecure context"); this.set_error(insecure); return; }
 
@@ -265,8 +281,10 @@ export default class Dictate extends View {
 		this.on_start?.();
 
 		this.log_step("mic", "checking the engine…");
+		this.set_state("connecting");   // the bar says "starting" while Whisper is checked (up to ~5 s), never "off" after a press
 		// Shared check, not detect_engine() raw. see doc/notes.md#one-health-check-per-tab
 		const { engine, steps } = await shared_detect_engine(this);
+		if (this.cancel_connect) return;   // stopped during the check: stop() already set idle
 		this.engine = engine;
 		this.steps.socket = steps.socket; this.steps.whisper = steps.whisper;
 		this.draw_diag();
@@ -301,6 +319,7 @@ export default class Dictate extends View {
 		try {
 			await this.open_engine();
 		} catch (e){
+			if (this.cancel_connect){ this.mic?.stop(); return; }   // stopped while it opened: stop() already said "off"; the abort is ours, not a fault
 			this.log_step("mic", "refused: " + (e?.name ?? e?.message ?? e));
 			this.set_error(this.explain(e));
 			return;
@@ -352,6 +371,7 @@ export default class Dictate extends View {
 				if (!this.settled && this.skipped_silent)
 					this.$status.text("nothing loud enough to transcribe was heard — check the level meter moves while you talk");
 			}
+			if (this.again){ this.again = false; this.on_stop?.(); return this.start(); }   // pressed while the last sentence finished
 		} else {
 			this.stop_browser();   // set_state("idle") happens in onend, once Chrome truly stops
 		}
@@ -362,6 +382,7 @@ export default class Dictate extends View {
 		if (e?.name === "NotAllowedError")
 			return "The browser is not allowed to use the microphone — allow it for this site and press 🎤 again.";
 		if (e?.name === "NotFoundError") return "No microphone was found on this machine.";
+		if (e?.name === "WorkletError") return `The mic could not start: ${e.message}. The microphone was released; press 🎤 again.`;
 		if (e?.name === "NotReadableError" || e?.name === "TrackStartError")
 			return "The microphone is being used by another app (or another browser tab) — close it and press 🎤 again.";
 		if (e?.name === "SecurityError") return this.insecure_context_message() ?? "The browser refused the microphone for security reasons.";

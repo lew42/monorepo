@@ -9,6 +9,7 @@ import drawer from "./drawer.js";
 import AIPage from "./AIPage.js";
 import AIFeed from "./AIFeed.js";
 import DictationBar from "/framework/ux/Dictate/DictationBar.js";
+import Socket from "/framework/dev/Socket/Socket.js";
 
 View.stylesheet(import.meta, "rail.css");
 
@@ -30,6 +31,19 @@ export default class Sheet extends View {
 		this.watch_history();
 		this.watch_nav();
 		this.restore();
+		this.keep_on_reload();
+	}
+
+	// A dev reload (a file changed) brings the sheet back at its size, its mic bar saying why the mic is off:
+	// ux/Dictate/doc/debug-tab.md#refresh-then-dictate. The mic is not restarted: a reload carries no tap, and the browser wants one.
+	keep_on_reload(){
+		const socket = Socket.singleton();
+		socket.on("stash", state => { if (this.mode && this.mode !== "closed") state.sheet = this.mode; });
+		const mode = socket.restored?.sheet;
+		if (!mode || !this.small()) return;
+		socket.restored.sheet = null;
+		DictationBar.note = "the page reloaded because a file changed: tap 🎤 to keep talking";
+		setTimeout(() => this.to(mode), 0);
 	}
 
 	watch_breakpoint(){

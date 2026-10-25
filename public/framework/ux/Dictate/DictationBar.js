@@ -19,6 +19,7 @@ export default class DictationBar extends View {
 	static HOLD_MS = 600;
 	static WATCHED = ["set_state", "set_error", "send_screen", "send_sentences", "enqueue"];   // the mic's methods that change what the word says
 	static HINTS = { starting: "connecting…", listening: "sends when you pause", sending: "one moment", paused: "tap to talk", off: "tap to talk" };
+	static note = null;   // a one-off reason the mic is off (the AI sheet after a dev reload), shown instead of "tap to talk" until the mic starts
 
 	/** Put the bar in the widget's composer (full size) and, if `live` is given, a compact one in that row (the strip size). */
 	static mount(widget, live){
@@ -108,14 +109,14 @@ export default class DictationBar extends View {
 	/** Redraw the word, the hint and the mic's look. `error` is the reason when the mic just failed. */
 	refresh(error){
 		const m = this.mic;
-		if (m.state === "listening" || m.state === "connecting") { m.$was_on = true; m.$off = false; }
+		if (m.state === "listening" || m.state === "connecting") { m.$was_on = true; m.$off = false; this.constructor.note = null; }
 		if (m.state === "error") this.error = String(error?.message ?? error ?? this.error ?? "the microphone stopped");
 		else if (m.state !== "idle") this.error = null;
 		const word = this.state();
 		this.attr("data-state", word);
 		this.$word.text(word[0].toUpperCase() + word.slice(1));
 		if (word !== "listening" && word !== "sending") this.$mic.style("--level", "0");   // no meter while the mic is off
-		const hint = m.state === "error" && this.error ? this.error : this.constructor.HINTS[word];
+		const hint = m.state === "error" && this.error ? this.error : (word === "off" && this.constructor.note) || this.constructor.HINTS[word];
 		this.$hint.text(this.compact ? "" : " · " + hint).attr("title", m.state === "error" ? this.error : "");
 		this.$mic.attr("aria-pressed", String(word === "listening" || word === "sending")).attr("aria-label", "Microphone, " + word);
 	}

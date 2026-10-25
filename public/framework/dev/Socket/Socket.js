@@ -16,6 +16,10 @@ export default class Socket {
 
 	static STATE = "dev-reload-state";
 
+	// A reload deferred while a mic was busy waits until the page has been quiet this long, so stopping the mic and
+	// starting it again never lands on a reloading page (ux/Dictate/test/refresh.mjs, scenario restart).
+	static QUIET_MS = 30000;
+
 	static singleton() {
 		if (!this._instance) {
 			this._instance = new this();
@@ -166,7 +170,7 @@ export default class Socket {
 
 	mark_stale(text = "This page is out of date — reload") {
 		if (this.pill || !document.body) return;
-		this.inject_style("dev-stale", "@layer util { .dev-stale-pill { position: fixed; inset-block-end: 1rem; inset-inline-start: 1rem; z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }");
+		this.inject_style("dev-stale", "@layer util { .dev-stale-pill { position: fixed; inset-block-start: 0.5rem; inset-inline-start: 50%; transform: translateX(-50%); max-inline-size: calc(100vw - 2rem); z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }");
 		const pill = this.pill = document.createElement("button");
 		pill.className = "dev-stale-pill";
 		pill.textContent = text;
@@ -178,7 +182,13 @@ export default class Socket {
 	busy() { for (const fn of this.busy_hooks ?? []) try { if (fn()) return true; } catch {} return false; }
 	defer() {
 		if (this.deferring) return;
-		this.deferring = setInterval(() => { if (!this.busy()) { clearInterval(this.deferring); this.deferring = null; this.reload(); } }, 1000);
+		let quiet_since = 0;
+		this.deferring = setInterval(() => {
+			if (this.busy()) { quiet_since = 0; return; }
+			quiet_since ||= Date.now();
+			if (Date.now() - quiet_since < this.constructor.QUIET_MS) return;
+			clearInterval(this.deferring); this.deferring = null; this.reload();
+		}, 1000);
 	}
 
 	skip() {
@@ -250,6 +260,7 @@ export default class Socket {
 		if ($f && "value" in $f && $f.value)
 			state.focus = { at: where($f), value: $f.value, caret: $f.selectionStart };
 
+		try { this.emit("stash", state); } catch {}   // a view adds what it needs back (the AI sheet: its size)
 		try { sessionStorage.setItem(this.constructor.STATE, JSON.stringify(state)); } catch {}
 	}
 
@@ -262,6 +273,7 @@ export default class Socket {
 		} catch {}
 
 		if (!state || state.url !== location.pathname + location.search || Date.now() - state.at > 20000) return;
+		this.restored = state;   // read once by whoever stashed something in it (the AI sheet)
 
 		let tries = 0;
 		const put = () => {

@@ -34,6 +34,8 @@ export default class Capture {
 	 *  the owner see which device moves the bars before committing to a take. */
 	keep = true;
 
+	chunks = [];   // empty from the start: the mic's heartbeat may ask for a snapshot while the audio module still loads
+
 	constructor(...args){ this.assign(...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
@@ -55,7 +57,11 @@ export default class Capture {
 		}
 
 		this.ctx = new AudioContext({ sampleRate: this.sample_rate });
-		await this.ctx.audioWorklet.addModule(new URL("./pcm-worklet.js", import.meta.url));
+		try { await this.load_worklet(); }
+		catch (e){   // never hold the mic after a failed start
+			this.stop();
+			throw Object.assign(new Error(`the mic’s audio module (pcm-worklet.js) did not load after 3 tries: ${e?.message ?? e}`), { name: "WorkletError" });
+		}
 
 		this.node = new AudioWorkletNode(this.ctx, "dictate-pcm");
 		this.chunks = [];
@@ -65,6 +71,16 @@ export default class Capture {
 		};
 
 		this.ctx.createMediaStreamSource(this.stream).connect(this.node);
+	}
+
+	/** The audio module, three tries: on a fresh page it sometimes fails once ("Unable to load a worklet’s module",
+	 *  ux/Dictate/test/refresh.mjs) and loads on the next try. */
+	async load_worklet(){
+		const url = new URL("./pcm-worklet.js", import.meta.url);
+		for (let i = 0; ; i++){
+			try { return await this.ctx.audioWorklet.addModule(url); }
+			catch (e){ if (i >= 2) throw e; await new Promise(res => setTimeout(res, 300 * (i + 1))); }
+		}
 	}
 
 	/** ⚠ `exact:`, not a bare `deviceId`. A plain `deviceId` is a *preference* the
