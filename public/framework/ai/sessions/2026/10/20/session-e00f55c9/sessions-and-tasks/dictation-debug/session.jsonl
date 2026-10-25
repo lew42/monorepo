@@ -39,3 +39,4 @@
 {"log":{"at":"2026-10-24T23:50:11-05:00","msg":"session resumed"}}
 {"action":{"at":"2026-10-24T23:59:38-05:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/requirements.md"]}}
 {"log":{"at":"2026-10-25T00:01:13-05:00","msg":"Debug tab, both stalls, bubbles, per-module failures.jsonl and the UI rule landed on michael/dev (146e37c73); the dictate-to-tab finding is in core/Page/ai/doc/dictation.md (92ba4d3c8). Next: the flicker (flicker/requirements.md), the same builder, the polish list after it."}}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/flicker/","by":"SessionRecord --links","ts":"2026-10-25T05:01:32.758Z"}
