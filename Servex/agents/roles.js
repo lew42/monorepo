@@ -88,6 +88,7 @@ export const ROLES = {
 	clarity:            { readme: "clarity",          prefix: "clarity",          tier: "manager", model: model("manager"),      effort: "medium", permission_mode: "bypassPermissions" },
 	/* ONE PAIR PER VOICE SESSION (Sessions.js, ai/sessions/2026/09/30/voice-sessions/voice-sessions): spawned by code with
 	 * their own briefs (session-fast.md, session-smart.md), which win over these rows. No skill.
+	 * Tiers: `session-fast` is `fast`, `session-smart` is `voice_smart` (tiers.js).
 	 * `session-smart` shares the "files for the next agent, cards for the owner" write discipline
 	 * with `task-mastermind` (both `every-prompt` and `sub-mastermind` carry it), but never its
 	 * judging-against-the-owner's-sentence or landing parts — it spawns a task mastermind to do

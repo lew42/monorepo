@@ -50,7 +50,7 @@ export default class Usage {
 		} catch { return SONNET; }
 	}
 
-	/* True while weekly use is above the share of the week gone (the repo's pacing rule, used% <= elapsed%). Unreadable usage counts as not over. */
+	/* True while weekly use is above the share of the week gone (the repo's pacing rule, used% <= elapsed%). The one reading of usage.json for the weekly figure. Unreadable usage counts as NOT over, so the voice seat stays on Opus when the file is missing. */
 	static over_pace(repo = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")){
 		try {
 			const j = JSON.parse(fs.readFileSync(path.join(repo, "public/framework/ai/usage.json"), "utf8"));

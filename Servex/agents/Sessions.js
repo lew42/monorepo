@@ -133,8 +133,8 @@ export const now_ms = () => {
  *
  * LIFE (memory first): /new and resume spawn NOTHING. The first say spawns the FAST
  * agent and sends it the line at once; the SMART one is spawned on the next tick and
- * loads its big context while the fast one answers. A pair that hears nothing for 5
- * minutes is stopped (`SERVEX_SESSION_IDLE_MS`); the next say resumes it by its backing
+ * loads its big context while the fast one answers. A pair that hears nothing for 30
+ * minutes is stopped (`SERVEX_SESSION_IDLE_MS`; was 5, raised 2026-10-25 so the owner's mastermind seat stays up through a working session); the next say resumes it by its backing
  * session id. At most 2 pairs are live machine-wide (`SERVEX_SESSION_MAX_PAIRS`): a
  * third stops the oldest idle one first. A /new on a page whose session spoke in the
  * last hour returns THAT session (`SERVEX_SESSION_RESUME_MS`).
@@ -238,7 +238,7 @@ export default class Sessions {
 			/* 1500, was 8000 (first-reply, 2026-10-13): the smart one never answered inside 8 s, so the wait only delayed
 			 * the first reply; ai/.../first-reply/ and ux/Dictate/doc/latency.md. Set the env to 8000 for the old pace. */
 			fast_wait_ms: env("SERVEX_SESSION_FAST_WAIT_MS", 1500), prewarm: env("SERVEX_SESSION_PREWARM", 1),
-			idle_ms: env("SERVEX_SESSION_IDLE_MS", 5 * 60000), resume_ms: env("SERVEX_SESSION_RESUME_MS", 60 * 60000),
+			idle_ms: env("SERVEX_SESSION_IDLE_MS", 30 * 60000), resume_ms: env("SERVEX_SESSION_RESUME_MS", 60 * 60000),
 			max_pairs: env("SERVEX_SESSION_MAX_PAIRS", 2), floor_wait_ms: env("SERVEX_SESSION_FLOOR_WAIT_MS", 8000),
 			/* THE THOUGHT (dictation-stream, 2026-09-30): a spoken line is held from BOTH assistants until the
 			 * owner has been quiet `answer_quiet_ms` (the browser's `quiet` event, ux/Dictate/floor.js's

@@ -36,7 +36,7 @@ Items, routing and JSONL streaming are part of the page system's mastermind unti
 ## Still skills (no role readme yet)
 
 - ⬜ `assistant`, `page-assistant` (skill `every-prompt`), `voice-assistant`, `master-assistant`, `log-assistant`
-- ⬜ `voter` (skill `research`), `fixer` (`../fixer.md`), `session-fast` / `session-smart` (`../session-fast.md`, `../session-smart.md`: their own briefs, no skill)
+- ⬜ `voter` (skill `research`), `fixer` (`../fixer.md`), `session-fast` / `session-smart` (`../session-fast.md`, `../session-smart.md`: their own briefs, no skill; smart runs on the `voice_smart` tier, Opus 5.5 medium, in `tiers.js`)
 
 ## Open
 
