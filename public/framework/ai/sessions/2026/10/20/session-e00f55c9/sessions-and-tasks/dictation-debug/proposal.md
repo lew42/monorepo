@@ -2,16 +2,70 @@
 
 **Planning mode.** The owner set this in voice session v-sq8y7db on 2026-10-25: nothing is built or merged until the owner okays this proposal. One build is paused at commit `c3069554b` on its own branch, and nothing from it is live. Each of the four steps below is a process task whose first step waits for that okay, so nothing starts on its own.
 
-## The shape: two assistants, one session, many looks
+## The shape
 
-- **The fast assistant does only a strict first pass.** As each sentence ends, it places the sentence: in the last paragraph, or in a new one. Nothing more.
-- **The smart assistant tails the session file and refines.** As sentences arrive it writes the heading and the breakdown. A new paragraph is its cue to act on a batch.
-- **One Prompt per thought.** A thought is not a loose run of transcription. It is one Prompt item holding the raw text as sentences, plus its refined form (heading and breakdown).
-- **You can see who did what.** Each item carries a small mark for the assistant that made it (fast or smart), like the brain icons beside tasks.
-- **The session lives on the server.** Servex holds each chat session and is the only thing that writes its file.
-- **Many looks over one file, through one reader.** A dropdown picks how to draw it: **Stream** (the first view), **Threads** (Chat v2) and **Structure** (the item tree).
-- **Your live paragraph stays at the bottom.** When a reply arrives while you are still talking, your paragraph moves below it. This happens on screen only; the file keeps its order.
-- **The smart assistant stays hands-free.** It passes work through to the mastermind, which decides and builds.
+```js
+// ✅ exists today · ⬜ to build · "by" = who writes it
+
+class Session extends Task {          // ⬜ one instance per chat, held by Servex (today: plain data in Sessions)
+  file          // session.jsonl: one log, Servex is its only writer
+  prompts       // Prompt[], in the order they were said
+  views         // ["stream", "threads", "structure"]: one reader, many looks
+  live          // the Prompt being spoken now; drawn last, on screen only
+}
+
+class Prompt extends Task {           // ✅ core/Task/Prompt.js: one per thought
+  raw           // string[]  by mic      the words as heard, never lost
+  paragraphs    // Paragraph[] by fast   placement only
+  title, text   // by smart              the refined heading and short summary
+  tasks         // Task | Question, by smart
+  replies       // Reply[], by smart
+}
+
+class Paragraph extends Item {        // ✅ core/Task/Prompt.js
+  sentences     // Sentence[]; a new Paragraph = send the last one to smart
+}
+
+class Sentence {                      // ✅ computed from Paragraph.text
+  id, text
+  flag          // ⬜ "?" when a word looks wrong (whisper "Mars" for "smart")
+}
+
+class Task extends Item {             // ✅ core/Task/Task.js
+  title, state  // idle → running → complete
+  by            // ⬜ shown: fast or smart mark
+}
+
+class Question extends Task {         // ✅ core/Task/Question.js
+  text, answer
+}
+
+class Reply extends Item {            // ✅ inside Prompt.replies
+  text
+  anchor        // { sentence }: drawn under it, never between your lines
+}
+
+class View {                          // ⬜ one reader of Session, many styles
+  draw(session) // Stream | Threads | Structure, chosen in a dropdown
+}
+
+// fast  (voice assistant): every sentence → place it: same Paragraph | new Paragraph. Nothing else.
+// smart (session-smart):   tails the file; on a new Paragraph → title, text, tasks, replies on that Prompt.
+//                          Hands-free: work goes to the mastermind.
+```
+
+## Fixed now (allowed in planning mode)
+
+- **A completed task now shows checked in Chat v2.** The test task "show the life cycle" was completed in the file, but Chat v2 still drew it unchecked. Chat v2 stored the change on the Prompt instead of passing it to the task inside it (`ext/Chat/v2/ChatV2Model.js`, `edit`). The fix is two lines; it is being reviewed, then merged.
+
+## How a card is made today
+
+1. **Your words arrive** and become one **Prompt** item in the session file, holding the raw text (written by "fast").
+2. **The fast assistant** (the voice assistant) places each sentence into a paragraph of that Prompt.
+3. **The smart assistant** writes a title and a short summary onto the same Prompt, and adds tasks or Questions under it.
+4. **Chat v2 draws** the title and summary as the card, with the raw text behind "show raw".
+
+All 31 cards in v-sq8y7db are written as `"type":"Prompt"`, and `core/Task/Prompt.js` is the class for them. **But Chat v2 does not use that class:** it reads the file with its own copy of the logic, and that copy is where the checkbox bug came from. Step 4 makes Chat v2 read real Prompt objects, so there is one reader.
 
 ## What happens today (from the code)
 
@@ -30,7 +84,7 @@
    - ⬜ Time from a spoken ask to its task on screen; tasks appear live, without a pause
 2. **See your words live and know when they are sent** (about $7; part built, paused) · [brief](chat-sent/requirements.md) · [process](chat-see-your-words-live-and-know-when-t/)
    - ✅ Sent marks, built but unproven · ✅ "↓" newest button · ✅ light mic background
-   - ⬜ Raw transcription on screen in real time in Chat v2 (priority)
+   - ⬜ Raw transcription on screen in real time in Chat v2 (priority), added seamlessly at the end of the current paragraph, in place. Where to draw it: the mic's live draft (`ext/Chat/Mic.js:206`), shown raw under the last line until the real line arrives.
    - ⬜ No flash on send: raw words show live, then settle into the cleaned sentences in place; the raw stays behind "show raw". Which component does the swap is being checked.
    - ⬜ A clearer send moment than the "Sends when you pause" flicker
    - ⬜ Find why a long pause once did not send · ⬜ stop losing lines on a refresh
@@ -42,6 +96,8 @@
    - ⬜ A plain task-state label · settings with a one-line hint each · wider bubbles and code blocks
 4. **One session, one view** (a plan the owner sees first, about $2, then about $12) · [brief](one-chat-view/requirements.md) · [process](chat-one-session-one-view/)
    - ⬜ The shape above: first pass on the server, smart refinement, one Prompt per thought, who-did-what marks
+   - ⬜ Chat v2 reads real Prompt objects (`core/Task/Prompt.js`), not its own copy
+   - ⬜ A standing "dictation tasks" group with subtasks: anything you say may add a task under it; blocks can be given a name
    - ⬜ One reader, the dropdown, the Structure view, the live paragraph last, no walls of text
    - ⬜ A small yellow "?" on a word that looks wrong (Whisper wrote "Mars" for "smart"), so the AI does not take it as meant. Suggested from the word's confidence.
    - ⬜ The clarity mark with its two readings beside the "?"
