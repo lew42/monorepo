@@ -1,5 +1,7 @@
 # Smart scroll
 
+Proof: `node ext/Chat/doc/proof/prove-scroll.mjs <site>` (fill, growth, shrink, wheel-up unlock, the newest button, a bar over the bottom edge, no horizontal scroll). The Dictate thread path is checked by `ux/Dictate/test/chat-sent.mjs` (the lock and the ↓ button).
+
 The log keeps one true-or-false fact, `locked` (`talk.locked()` reads it). It starts true, which means "stay at the bottom".
 
 - **Only the reader unlocks it** (2026-10-25). A `scroll` event unlocks only when the box moved UP within 1 s of a wheel, touch, key or pointer gesture; a redraw, a clamp or a `pin()` never counts. A reader who scrolled up is never moved again.
