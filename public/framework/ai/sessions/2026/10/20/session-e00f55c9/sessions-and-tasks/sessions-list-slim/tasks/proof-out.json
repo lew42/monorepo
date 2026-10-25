@@ -1,0 +1,67 @@
+{
+ "390": {
+  "errs": [],
+  "sw": 390,
+  "nestedNodes": 135,
+  "stg": {
+   "total": "135",
+   "rows": "135",
+   "days": 0
+  }
+ },
+ "1920": {
+  "errs": [],
+  "sw": 1920,
+  "nestedNodes": 135,
+  "stg": {
+   "total": "135",
+   "rows": "135",
+   "days": 0
+  },
+  "menu": [
+   "Prompts167Tasks added and changed794Tasks done124Child sessions started18Child sessions landed0Notes9Decisions0Reviews0Commits0Session start and stop3Log lines35Tag lines0Other lines0",
+   "Statecomplete68running48stopped18waiting1Day2026-10-25212026-10-24342026-10-23282026-10-22192026-10-2122026-10-2031Kindagent task97project18task20"
+  ],
+  "dayBoxes": [
+   [
+    4,
+    "2026-10-2521",
+    true
+   ],
+   [
+    5,
+    "2026-10-2434",
+    true
+   ],
+   [
+    6,
+    "2026-10-2328",
+    true
+   ],
+   [
+    7,
+    "2026-10-2219",
+    true
+   ],
+   [
+    8,
+    "2026-10-212",
+    true
+   ],
+   [
+    9,
+    "2026-10-2031",
+    true
+   ]
+  ],
+  "dayCounts": [
+   21,
+   34,
+   28,
+   19,
+   2,
+   31
+  ],
+  "sum": 135
+ }
+}
