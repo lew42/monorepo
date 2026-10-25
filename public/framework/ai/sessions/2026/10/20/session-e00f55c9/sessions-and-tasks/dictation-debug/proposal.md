@@ -85,7 +85,7 @@ All 31 cards in v-sq8y7db are written as `"type":"Prompt"`, and `core/Task/Promp
 2. **See your words live and know when they are sent** (about $7; part built, paused) · [brief](chat-sent/requirements.md) · [process](chat-see-your-words-live-and-know-when-t/)
    - ✅ Sent marks, built but unproven · ✅ "↓" newest button · ✅ light mic background
    - ⬜ Raw transcription on screen in real time in Chat v2 (priority), added seamlessly at the end of the current paragraph, in place. Where to draw it: the mic's live draft (`ext/Chat/Mic.js:206`), shown raw under the last line until the real line arrives.
-   - ⬜ No flash on send: raw words show live, then settle into the cleaned sentences in place; the raw stays behind "show raw". Which component does the swap is being checked.
+   - ⬜ No flash on send: raw words show live, then settle into the cleaned sentences in place; the raw stays behind "show raw". The swap is the first view's mic code under the "Clean transcription" setting: `ext/Chat/Mic.js:510` puts the cleaned text over the raw, and `ux/Dictate/Widget.js:800` draws it. Chat v2 has no swap; it draws only finished lines from the file.
    - ⬜ A clearer send moment than the "Sends when you pause" flicker
    - ⬜ Find why a long pause once did not send · ⬜ stop losing lines on a refresh
    - ⬜ Prove scroll lock in both views · ⬜ Questions under their Prompt · ⬜ the "chat" readme lines
