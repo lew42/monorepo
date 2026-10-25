@@ -8,7 +8,7 @@ View.stylesheet(import.meta, "Chat.css");
 // see doc/notes.md#one-bubble-per-run
 export const MERGE_GAP_MS = 10000;
 export const GUESS_TITLE = "Gray words: the transcriber's guess, still changing. They turn black once it settles.";
-export const LIVE_SENT_TITLE = "Faded: already sent, waiting for the cleaned-up line, which replaces this and turns black.";
+export const LIVE_SENT_TITLE = "Sent, waiting for the cleaned-up line, which replaces this — the text itself stays full strength; the left rule marks the wait.";
 
 export function mergeable($box, sender, at){
 	const last = $box.el.lastElementChild;

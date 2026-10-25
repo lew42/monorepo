@@ -26,7 +26,10 @@
 	   Prompt record (prompt-record.md confirms `{place}` is 100% "same" in the real session checked).
 	   Pull same-paragraph rows close; a NEW paragraph (B(iii)) restores the full gap as a real break. */
 	.chat-v2-sentence { margin-block-start: -.45em; }
-	.chat-v2-sentence:first-child { margin-block-start: 0; }
+	/* :first-child only matched when a prompt has no title — a title's `h3` is the actual first child of
+	   `.chat-v2-head`, so the first sentence tucked up into it (review round 4 finding 4). An adjacent-
+	   sibling selector reaches the right element regardless of what, if anything, sits before it. */
+	.chat-v2-title + .chat-v2-sentence, .chat-v2-head > .chat-v2-sentence:first-child { margin-block-start: 0; }
 	.chat-v2-new-paragraph { margin-block-start: .45em; }
 	.chat-v2-mark { background-image: linear-gradient(var(--mark, #ffe58a), var(--mark, #ffe58a)); color: inherit; border-radius: 2px; padding: .1em .25em; }
 	.chat-v2-beside { display: flex; flex-direction: column; gap: .5em; }

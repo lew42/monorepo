@@ -1,7 +1,8 @@
 // Proof: the sent marks and the scroll lock, in the bubble chat and in Chat v2.
 //   node public/framework/ux/Dictate/test/chat-sent.mjs <base-url> <shots-dir> [width=400]
 // Headless, every Servex verb stubbed (nothing is posted). The session stream is a script: each (re)connect gets the next batch of lines.
-//   1. an owner line, then `sent` lines (fast, then smart) -> the badge goes from nothing -> "✓" -> "✓✓" (messenger ticks, round 2)
+//   1. an owner line, then `sent` lines (fast, then smart) -> V1's badge goes nothing -> "✓" -> nothing again
+//      once both assistants have it (round 3); V2 draws the same fact as its moving ✓/🧠 cursors instead
 //   2. 40 lines, scroll up, 3 more arrive -> the view stays put and the ↓ button shows; press it -> follows the newest again
 // Run for the bubble chat, then again with Chat v2 on (the "v2" chip). Exit 1 on any failure.
 import fs from "fs";

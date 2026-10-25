@@ -27,6 +27,8 @@ export const SETTINGS = {
 	send_on_period: true,      // cut a send at . ! or … (one box: the three read as one "a sentence ended" mark)
 	send_on_question: true,   // cut a send at a question mark
 	send_on_comma: false,     // cut a send at a comma too; off by default — on, it fragments a sentence into pieces at every comma
+	pause_ms: null,         // null = Dictate.js's own prototype default (700 ms): silence this long closes a segment
+	max_segment_ms: null,   // null = Dictate.js's own prototype default (15000 ms): or this much talking, whichever comes first
 };
 const STORE = "chat.mic.settings.4";   // .4: the 2 s send delay must not be shadowed by the old 700 / 1500 ms defaults
 // Carry the owner's saved values over from the old key; drop stale defaults. see doc/mic-notes.md#settings-migration
@@ -171,15 +173,29 @@ export class ComposerMic extends Dictate {
 		// spoken into THIS segment — drop it, never show it, never send it. `had_speech` is this
 		// segment's own flag, captured at close_segment() before Dictate.js resets it.
 		if (text && is_hallucination(text) && !had_speech){ this.partial_text = ""; this.draw_caption(); return; }
-		if (item?.sent){   // a segment whose guess (or earlier text) was already sent by Send
-			text = strip_words(text, item.sent);
-			if (!text){ this.partial_text = ""; this.draw_caption(); return; }
-		} else if (this.dropped){   // a segment whose words were already sent (or edited in): only the rest is new
-			text = strip_words(text, this.dropped.text);
-			this.dropped = null;
-			if (!text){ this.partial_text = ""; this.draw_caption(); return; }
-		}
-		super.commit(text);
+		this._in_commit = true;
+		try {
+			if (item?.sent){   // a segment whose guess (or earlier text) was already sent by Send
+				text = strip_words(text, item.sent);
+				if (!text){ this.partial_text = ""; this.draw_caption(); return; }
+			} else if (this.dropped){   // a segment whose words were already sent (or edited in): only the rest is new
+				text = strip_words(text, this.dropped.text);
+				this.dropped = null;
+				if (!text){ this.partial_text = ""; this.draw_caption(); return; }
+			}
+			super.commit(text);
+		} finally { this._in_commit = false; }
+	}
+
+	// A segment that pushed to `had_speech_q` (close_segment, above) but then takes one of Dictate.js's
+	// own no-commit paths (not worth sending, a stale/failed transcribe) calls this instead of commit() —
+	// without this override that push is never shifted back off, so the NEXT real segment's commit() would
+	// read a stale, wrong flag (review round 4 finding 5). `_in_commit` guards against double-popping: an
+	// in-progress commit() already shifted its own entry, and Dictate.js's commit() calls clear_guess()
+	// too (an empty/annotation-only final) — that shift must not count again.
+	clear_guess(){
+		if (!this._in_commit) (this.had_speech_q ??= []).shift();
+		super.clear_guess();
 	}
 
 	render(){ super.render(); ComposerMic.mounted.add(this); }
@@ -372,8 +388,31 @@ export class ComposerMic extends Dictate {
 			into.append(name, input);
 		}
 		this.wake_rows(panel);
+		this.segment_rows(more.querySelector("div"));   // same "More" grid as guess_ms/box_lines/… (round 4, item 8c)
 		panel.append(more);
 		return panel;
+	}
+
+	// round 4, item 8(c): resend_ms is already exposed as "guess every (ms)" (it sets `this.resend_ms`
+	// in start(), below) — these two are the rest of Dictate.js's hard-coded segment timing that can be
+	// overridden without touching the prototype default: blank = Dictate.js's own default, unchanged.
+	segment_rows(grid){
+		if (!grid) return;
+		for (const [key, label, def] of [["pause_ms", "segment pause (ms)", 700], ["max_segment_ms", "segment cap (ms)", 15000]]){
+			const name = document.createElement("label"); name.textContent = label;
+			const input = document.createElement("input");
+			input.type = "number"; input.min = 100; input.placeholder = `default (${def})`; input.dataset.key = key;
+			input.value = SETTINGS[key] ?? "";
+			input.style.width = "10em";
+			input.addEventListener("change", () => {
+				const n = Number(input.value);
+				SETTINGS[key] = input.value === "" || !(n > 0) ? null : Math.round(n);
+				input.value = SETTINGS[key] ?? "";
+				save_settings();
+				if (key in this) this[key] = SETTINGS[key] ?? this.constructor.prototype[key];   // live while dictating; start() applies it on the next start too
+			});
+			grid.append(name, input);
+		}
 	}
 
 	// The smart assistant's batch knobs live in Servex, per session (ux/Dictate/doc/wake-policy.md); the browser keeps the owner's pick and re-sends it to each session.
@@ -453,6 +492,9 @@ export class ComposerMic extends Dictate {
 		try {
 			if (other && other !== this) try { await other.stop(); } catch {}
 			this.resend_ms = SETTINGS.guess_ms;
+			// round 4, item 8(c): blank in the gear panel = Dictate.js's own prototype default, untouched.
+			if (SETTINGS.pause_ms != null) this.pause_ms = SETTINGS.pause_ms;
+			if (SETTINGS.max_segment_ms != null) this.max_segment_ms = SETTINGS.max_segment_ms;
 			await super.start();
 		} finally { this.starting = false; }
 	}

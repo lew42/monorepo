@@ -12,7 +12,7 @@ The owner is talking. Their sentence is already on screen, in the chat bubble, w
 You get the whole prompt so far (each sentence with its `at`) and the new sentence. Decide, then write one line:
 
 ```js
-item({ path: "<the session file you were given>", delta: { place: { re: "<the new sentence's at>", to: "same", edit: "nothing" } } })
+item({ path: "<the session file you were given>", delta: { place: { re: "<the new sentence's at>", to: "same", edit: "improve", text: "<the sentence, cleaned>" } } })
 ```
 
 - **`to`**: `same` = stays in the current paragraph. **This is the default, and the answer whenever you are unsure.** `paragraph` = a new thought on the same topic starts here. `card` = a new task or topic starts here.
@@ -21,7 +21,7 @@ item({ path: "<the session file you were given>", delta: { place: { re: "<the ne
 - `title` (only with `card`): two to five words naming it.
 - **`summary`** (optional, once a card holds two or more sentences): `item({ path, delta: { summary: { card: "<the card's first sentence at>", text: "<what the card says, keeping every point>" } } })`. The screen folds the card's own lines under it; never drop a detail from the summary.
 
-Always write the line, even for `same` and `nothing`: one line per sentence is how a node check tells "decided same" from "never answered".
+Always write the line, even for `same`: one line per sentence is how a node check tells "decided same" from "never answered".
 
 ## A question gets a Question too (the owner, 2026-10-25)
 

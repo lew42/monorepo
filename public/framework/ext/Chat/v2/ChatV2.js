@@ -43,11 +43,12 @@ export default class ChatV2 extends JSONL {
 		this.place_cursors();
 	}
 
-	// ONE animated 🧠 at the bottom, round 3: a fallback ONLY — the fast/smart cursors below already show
-	// which seat has the newest chunk, so this never shows while a smart cursor already covers it. It is
-	// the chat's own "nothing said yet" row's working sign (no Prompt exists yet to carry a cursor), or a
-	// safety net if the cursor logic below somehow finds no last Prompt while smart is working. Checked on
-	// every patch and a slow timer, since `working.at` ages even with no new line (review finding, round 2).
+	// ONE animated 🧠 at the bottom, round 4 fix: shown whenever SOME Prompt's `working` is fresh (under
+	// ~10 min old), full stop — never hidden just because a Prompt exists to carry a cursor (round 3's
+	// mistake). The bottom dots and the smart cursor (place_cursors, below) answer different questions:
+	// this one says "smart is doing something, somewhere, right now"; the cursor says "here is the one
+	// newest chunk and whether smart has answered IT". Both can show at once. Checked on every patch and
+	// a slow timer, since `working.at` ages even with no new line (review finding, round 2).
 	watch_smart(){
 		clearInterval(this._smart_timer);
 		this._smart_timer = setInterval(() => this.update_smart_dots(), 15000);
@@ -57,7 +58,7 @@ export default class ChatV2 extends JSONL {
 		if (!this.smart_dots) return;
 		const STALE_MS = 10 * 60 * 1000;
 		const working = [...this.model.by_id.values()].some(n => n.working && Date.now() - (Date.parse(n.working.at ?? 0) || 0) < STALE_MS);
-		this.smart_dots.el.hidden = !working || !!this.last_prompt();   // the smart cursor already shows it once there is a Prompt to carry one
+		this.smart_dots.el.hidden = !working;
 	}
 
 	// One streamed line, already folded into the model (see read()): patch only what it touched.
@@ -152,13 +153,15 @@ export default class ChatV2 extends JSONL {
 		if (!refined) this.sentences(n, replies);
 	}
 
-	// TWO moving marks for the whole chat, round 3 (supersedes round 2's single ✓ cursor + a 🧠 stamp per
+	// TWO moving marks for the whole chat, round 3-4 (supersedes round 2's single ✓ cursor + a 🧠 stamp per
 	// Prompt): both sit after the NEWEST Prompt only, and both drop off the old Prompt the moment a newer
 	// one exists — there is never more than one of each on screen.
 	//   ✓ (fast): light gray once the Prompt exists, green once it has reached the fast seat (`sent.fast`).
-	//   🧠 (smart): light gray once it has reached the smart seat (`sent.smart`), the same pink the smart
-	//   seat's own reply bubble uses once smart is working or has answered (`working` set, or `sent.smart`
-	//   with a reply/refine written).
+	//   🧠 (smart): light gray while smart HAS the chunk but has not answered yet (`sent.smart` set, no
+	//   answer seen) — this covers both "still working" and "sent but not started"; it colours in (the
+	//   smart-reply colour) ONLY once an actual answer exists: `M.refined(n)` (title/text written) or a
+	//   reply/question/task added after `sent.smart`'s own timestamp. Round 3 had this backwards (coloured
+	//   while `!working`, which is also true before smart ever starts) — fixed here (review round 4).
 	// Caveat, both marks: `sent.fast`/`sent.smart` are PROMPT-level (Sessions.mark_sent fires once per
 	// Prompt reaching a seat), not per sentence/chunk — the owner's per-chunk ask needs a new Servex line;
 	// exact shape in proposal.md. Fixed-width slots (ChatV2.css), never shown/hidden by display, so moving
@@ -166,6 +169,13 @@ export default class ChatV2 extends JSONL {
 	cursor_el(){ return this._cursor ??= span.c("chat-v2-cursor").el; }
 	smart_cursor_el(){ return this._smart_cursor ??= span.c("chat-v2-smart-cursor", "🧠").el; }
 	last_prompt(){ const M = this.constructor.Model; const roots = this.model?.roots().filter(n => M.kind(n) === "Prompt") ?? []; return roots.at(-1) ?? null; }
+	// Has smart actually answered THIS Prompt: its own title/text, or any reply/question/task added since.
+	smart_answered(n){
+		const M = this.constructor.Model;
+		if (M.refined(n)) return true;
+		const sent_at = Date.parse(n.sent?.smart?.at ?? 0) || 0;
+		return M.replies(n).some(r => Date.parse(r.ts ?? 0) >= sent_at) || this.model.children(n).some(k => Date.parse(k.ts ?? 0) >= sent_at);
+	}
 	place_cursors(){
 		const fast = this.cursor_el(), smart = this.smart_cursor_el();
 		fast.remove(); smart.remove();
@@ -174,7 +184,7 @@ export default class ChatV2 extends JSONL {
 		fast.classList.toggle("done", !!n.sent?.fast);
 		owner.head.el.append(fast);
 		if (n.sent?.smart){
-			smart.classList.toggle("done", !n.working);   // answering/answered (pink) vs just reached (gray)
+			smart.classList.toggle("done", this.smart_answered(n));   // gray = has it, not answered yet; coloured = an answer exists
 			owner.head.el.append(smart);
 		}
 	}
