@@ -35,7 +35,7 @@ When the reviewing mastermind writes or changes a rule because of a line, it **s
 
 ## The feedback inbox (the owner, 2026-10-23)
 
-Module `ai` (`public/framework/ai/inbox.jsonl`) is also the AI system mastermind's feedback inbox. Any agent logs a problem with the system as `essence` plus its suggested `fix`. If the same problem was logged before, `repeat_of` names the first line's id. `ModuleInbox.repeats(id)` counts them. The tool wakes `ai-system-mastermind` on the third repeat (`FEEDBACK_WAKE`), or at once for `obvious: true`. It wakes through `spawn`, which reaches the one live session or starts it. A line with no `fix` is an ordinary ask and wakes nobody. Test: `node Servex/agents/singleton.test.mjs`.
+Module `ai` (`public/framework/ai/inbox.jsonl`) is also the feedback inbox of the AI system mastermind (a `mastermind` spawned at `public/framework/ai/`). Any agent logs a problem with the system as `essence` plus its suggested `fix`. If the same problem was logged before, `repeat_of` names the first line's id. `ModuleInbox.repeats(id)` counts them. The tool wakes it on the third repeat (`FEEDBACK_WAKE`), or at once for `obvious: true`: if a live `ai-system-mastermind` or `mastermind-ai` exists it is sent the line (`ModuleInbox.FEEDBACK_LIVE`); otherwise Servex spawns a `mastermind` at `public/framework/ai/` with no parent. A line with no `fix` is an ordinary ask and wakes nobody. Test: `node Servex/agents/path-mastermind.test.mjs`.
 
 ## Next
 

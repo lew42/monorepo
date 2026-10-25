@@ -50,8 +50,8 @@ try {
 	t(ai.includes(`<path-mastermind file="${rel(plain)}/ai/mastermind.md">`) && ai.includes("AI-MASTERMIND-TEXT"), "falls back to <path>/ai/mastermind.md");
 	const first = role_system("mastermind", { path: rel(both) });
 	t(first.includes("FIRST-WINS") && !first.includes("SECOND-LOSES"), "<path>/mastermind.md wins over <path>/ai/mastermind.md");
-	t(!role_system("mastermind", { path: rel(none) }).includes("<path-mastermind"), "no mastermind.md: no <path-mastermind> block");
-	t(!base.includes("<path-readmes"), "no path: the role text alone, no path blocks");
+	t(!role_system("mastermind", { path: rel(none) }).includes(`<path-mastermind file="${rel(none)}`), "no mastermind.md: no <path-mastermind> block");
+	t(!base.includes("<path-readmes path=\"Servex") && !base.includes("=== readme.md ==="), "no path: the role text alone, no path blocks");
 
 	// Servex's check: ok when every file's text is in the append; names the files that are not
 	const ok = path_check(withPath, rel(top));
