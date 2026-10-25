@@ -28,6 +28,10 @@ try {
 	fs.mkdirSync(quiet, { recursive: true });
 	ok(DatedFiles.sessions.session_dir("bbbbbbbb-0000-4000-8000-000000000000", "2026-09-25") === quiet, "a folder that names no id is still taken to be the caller's (old folders)");
 	ok(DatedFiles.owner(short) === A && DatedFiles.owner(quiet) === null, "owner() reads the id a folder holds");
+	// One session, one folder: a long-running session resumed weeks later still gets the folder of the day it began, even if a later one exists.
+	const later = path.join(DatedFiles.sessions.day_dir("2026-10-24"), "session-a1c1d1e1");
+	fs.mkdirSync(later, { recursive: true }); fs.writeFileSync(path.join(later, "session.jsonl"), JSON.stringify({ session: { id: A } }) + "\n");
+	ok(DatedFiles.sessions.session_dir(A, "2026-10-25") === short, "36 days later, with a second folder on 10/24, the oldest folder (the day it began) wins");
 
 	// Session.locate: the same rule from the class side (an AISessionIndex cache write).
 	class S extends Session { static days = new Map(); static slugs = new Map(); static scanned = true; static root_url(){ return pathToFileURL(path.join(TMP, "sessions") + path.sep); } }

@@ -182,13 +182,22 @@ export default class DatedFiles extends Dated {
 	static TIME_KEYS = ["at", "ts", "started_at", "first_at", "requested_at", "started", "time", "created_at"];
 	/** Absolute folder of a day ("YYYY-MM-DD", a Date or ms; today by default). */
 	day_dir(day){ return DatedFiles.abs(this.day_path(day)); }
-	/** A session's folder without a scan: `session-<id8>` or the uuid, on the given day or up to 30 days before; else where a new one goes. Absolute.
+	/** Every day folder of the collection, oldest first (absolute): YYYY/MM/DD under its root. */
+	days(){
+		const root = path.dirname(path.dirname(path.dirname(this.day_dir(new Date()))));
+		const ls = (d, re) => { try { return fs.readdirSync(d).filter(n => re.test(n)).sort(); } catch { return []; } };
+		const out = [];
+		for (const y of ls(root, /^\d{4}$/)) for (const m of ls(path.join(root, y), /^\d{2}$/)) for (const d of ls(path.join(root, y, m), /^\d{2}$/)) out.push(path.join(root, y, m, d));
+		return out;
+	}
+	/** A session's folder without a scan: `session-<id8>` or the uuid, the oldest that holds the id (the day it began); else where a new one goes, on `day`. Absolute.
 	 *  A `session-<id8>` folder that names ANOTHER full id is not ours: two ids can share their first 8 hex (the hand-picked a1c1d1e1-000N ids of
 	 *  2026-09-19 put three sessions' costs in one folder), so a clash gets a folder named by the full uuid. Doc: core/Session/doc/identity.md. */
 	session_dir(id, day = new Date()){
 		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day, short = "session-" + id.slice(0, 8);
-		for (let back = 0; back < 31; back++){   // 4 until 2026-10-24: a tab resumed on its fifth day got a second folder (session-e00f55c9 on 10/20 and 10/24)
-			const d = this.day_dir(new Date(t.getTime() - back * 864e5));
+		// One session, one folder (2026-10-25): the OLDEST folder that holds the id, the day the session began, however long ago.
+		// Until then it looked back a fixed number of days, newest first: a tab resumed on its fifth day got a second folder (session-e00f55c9 on 10/20 and 10/24).
+		for (const d of this.days()){
 			if (fs.existsSync(path.join(d, id))) return path.join(d, id);
 			if (fs.existsSync(path.join(d, short)) && [id, null].includes(DatedFiles.owner(path.join(d, short)))) return path.join(d, short);
 		}
