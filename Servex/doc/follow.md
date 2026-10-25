@@ -181,3 +181,14 @@ The whole mechanism is one class, [`Servex/Follow.js`](../Follow.js) — one
 chokidar watcher covering every followed path, re-scoped as subscriptions
 change. Wired in at boot in `Servex.js` (`this.follow`), and hooked into
 `Agents.js`'s `register()` so a stopped agent's subscriptions end with it.
+
+## One subscription system (the owner, 2026-10-24)
+
+**Servex `follow` is the only way an agent hears about anything that changes.** Masterminds follow their children's session logs; a builder follows the modules it changes; a test failure or a page error is just a line appended to a log in that module's own folder, so whoever follows the module gets it. A new kind of notice never gets its own mechanism: it appends a line where the data lives and `follow` delivers it. Only state and pointer lines wake a follower ([task-buckets.md](/framework/ai/doc/task-buckets.md), "Following children"); a failure is logged once it still fails after a quiet spell, and passes are one "clear" line.
+
+**Second mechanisms found (flagged, to be moved onto `follow`, nothing rebuilt yet):**
+
+| Where | What it does | Becomes |
+|---|---|---|
+| `Servex/WorktreeWatch.js` (`this.send(this.owner, line)`, in `test_job` and the layout-break report) | tells the holder of a worktree directly | the line is already written to the log with `this.note(line, true)`; drop the `send`, and have the holder follow its worktree's log (`Agents.spawn` or `take_worktree` creates that subscription) |
+| `public/framework/ai/errors/<date>` log (`ext/ErrorLog`, one global folder) | page errors, one file for the whole site | a line in the log of the module whose page broke (the page's module folder), so a builder following the module receives it. ErrorLog maps page path to module folder; the global folder stays as the index until every module has its own |

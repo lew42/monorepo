@@ -65,3 +65,7 @@ A parent does not poll or ask a child for status. **Servex follows the child's l
 ## Where notes and findings live (item 17)
 
 A note, a decision or a finding belongs to the task it came out of, not to chat. The proposal for how the item tool adds them, and for the session log as a replayable timeline, is [task-notes-proposal.md](task-notes-proposal.md).
+
+## One subscription system
+
+Everything an agent needs to hear arrives through Servex `follow`; no second mechanism. The rule, and the two second mechanisms still to move (WorktreeWatch's direct send, the global errors folder), are in Servex/doc/follow.md, "One subscription system".

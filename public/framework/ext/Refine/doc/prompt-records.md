@@ -14,7 +14,7 @@ A prompt's record lives in its session's own `prompts.jsonl` ([PromptLog](/frame
 | `handled` | `{to, note}`: whoever routed the prompt's proposals marked it handled. |
 
 - **A part** is a run of sentences with one meaning: one sentence, or a whole paragraph about one thing. `cites` are sentence numbers.
-- **`kind`:** `ask` (something should happen), `rule` (a standing direction for agents), `question`, `idea` (thinking aloud, a maybe), `conversation` (narration, filler). A long prompt usually has 1 to 3 main asks; their specific suggestions are nested under them as `parts`.
+- **`kind`:** `ask` (something should happen), `rule` (a standing direction for agents), `question`, `idea` (thinking aloud, a maybe), `conversation` (narration, filler). As many main asks as the prompt holds (never two merged into one); their specific suggestions are nested under them as `parts`, and the owner's own words are quoted where a degree or qualifier matters (loosened 2026-10-24).
 - **`outcome.is`:** `done` (ref: a file, commit or task that shows it), `documented` (ref: the doc), `answered` (ref: the reply's transcript line), `task` (ref: the open task that carries it), `no-action` (conversation, or an idea not taken), `open` (nothing yet).
 
 **Completion is computed, never stored** ([Prompt.js](../Prompt.js): `uncovered`, `progress()`, `completion()`, `complete()`):
