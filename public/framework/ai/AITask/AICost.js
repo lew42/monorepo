@@ -155,6 +155,37 @@ export default class AICost {
 	   computes nothing: core/Session/readme.md, "What item() answers for a session". */
 	static known = new Map();   // folder url -> { at, answer }; one ask per folder per STALE_MS, however often the tab redraws
 	static STALE_MS = 30000;
+	static asking = new Map();   // folder url -> the answer's promise while it is on its way, so two surfaces asking at once send one request
+
+	/** The summary answer for one folder (or `/framework/ai/sessions/<uuid>/`): the cached one while fresh, else one new ask. */
+	static summary(base){
+		const hit = AICost.known.get(base);
+		if (hit && Date.now() - hit.at <= AICost.STALE_MS) return Promise.resolve(hit.answer);
+		if (!AICost.asking.has(base)) AICost.asking.set(base, AICost.ask(base).then(answer => (AICost.known.set(base, { at: Date.now(), answer }), answer)).finally(() => AICost.asking.delete(base)));
+		return AICost.asking.get(base);
+	}
+
+	/** A session's summary url by its id: the list and the session page both ask by it, so they share one cached answer. */
+	static session_url = id => "/framework/ai/sessions/" + id + "/";
+
+	/** The answer already here for a session, or null: a list row shows it without asking. */
+	static known_cost = base => { const hit = AICost.known.get(base); return hit && Date.now() - hit.at <= AICost.STALE_MS ? hit.answer?.summary?.cost ?? null : null; };
+
+	static short = n => "$" + (n >= 100 ? n.toFixed(0) : n.toFixed(2));
+
+	/* THE ONE COST LINE (cost-line, 2026-10-24): "$280 this tab · $1032 with children". The Sessions list and the session page both
+	   draw a session's cost with this, so they can never again show two unlabelled numbers ($280 on the list, $989 on the page).
+	   `cost` is the summary's cost ({own: {usd}, total}); `own_usd` (the day snapshot's own figure) stands in before it arrives, and the
+	   line then ends "with children …". "this tab" for a VS Code tab, "this session" for anything else. */
+	static cost_line({ cost = null, own_usd = null, tab = false } = {}){
+		const own = cost?.own?.usd ?? own_usd ?? null, total = cost?.total ?? null;
+		const who = tab ? "this tab" : "this session", mine = (own == null ? "?" : AICost.short(own)) + " " + who;
+		const with_kids = total == null ? "with children …" : AICost.short(total) + " with children";
+		return { own, total, who, mine, with_kids, text: mine + " · " + with_kids };
+	}
+
+	/** Is this session a VS Code tab? Its record's line 1 says so (the summary's `data.kind`), or its sessions-list row: the source, or (a tab registered with Servex) its role or id. */
+	static is_tab = (row, summary) => summary?.data?.kind === "vscode-tab" || (!!row && (row.source === "vscode" || /^vscode/i.test(String(row.role ?? "")) || /^vscode-/.test(String(row.id ?? ""))));
 
 	/** `{ summary }` from the item tool, or `{ why }` in words when Servex cannot answer from here. */
 	static async ask(base){
@@ -177,10 +208,7 @@ export default class AICost {
 	static report(base){
 		const hit = AICost.known.get(base);
 		const $d = div.c("ai-cost flow", () => hit ? AICost.draw(hit.answer) : span.c("muted", "Asking Servex for this page's cost… (it can take a minute for a session with many tasks)"));
-		if (!hit || Date.now() - hit.at > AICost.STALE_MS) AICost.ask(base).then(answer => {
-			AICost.known.set(base, { at: Date.now(), answer });
-			$d.empty(() => AICost.draw(answer));
-		});
+		if (!hit || Date.now() - hit.at > AICost.STALE_MS) AICost.summary(base).then(answer => $d.empty(() => AICost.draw(answer)));
 		return $d;
 	}
 

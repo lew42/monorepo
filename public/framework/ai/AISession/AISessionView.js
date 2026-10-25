@@ -5,6 +5,7 @@ import AISessionRows from "./AISessionRows.js";
 import AISession from "./AISession.js";
 import AISessionFlags from "./AISessionFlags.js";
 import AISessionResume from "./AISessionResume.js";
+import AICost from "/framework/ai/AITask/AICost.js";
 
 // One session, drawn. `new AISessionView({ row, url, ... })` is one grid row (an <a> of cells, in the order of
 // AISessionRows.COLUMNS: the grid tracks are positional). The statics draw the pieces the Session class computed
@@ -64,7 +65,7 @@ export default class AISessionView extends View {
 		div.c("sessions-cell", () => {
 			// The session index is the truth for a Claude session's cost. A row it does not know keeps the older figures below.
 			const ix = row_of(this.session_index, r.session_id || r.id);
-			if (ix){ div.c("sessions-name-stack", () => AISessionView.cost_lines(ix)); return; }
+			if (ix){ div.c("sessions-name-stack", () => AISessionView.cost_lines(ix, r)); return; }
 			const has_split = typeof r.cost_claude_usd === "number" || typeof r.cost_openrouter_usd === "number";
 			if (has_split){
 				if (typeof r.cost_claude_usd === "number") small.c("muted", "$" + r.cost_claude_usd.toFixed(2));
@@ -110,7 +111,8 @@ export default class AISessionView extends View {
 		});
 		div.c("sessions-card-line muted", () => {
 			const ix = row_of(this.session_index, r.session_id || r.id);
-			const cost = ix ? usd(ix.tree_usd ?? ix.usd) : typeof r.cost_claude_usd === "number" ? usd(r.cost_claude_usd) : typeof r.cost === "number" ? usd(r.cost) : "—";
+			const line = ix && AICost.cost_line({ cost: AICost.known_cost(AICost.session_url(ix.id)), own_usd: ix.usd, tab: AICost.is_tab(r) });   // the session page's words
+			const cost = ix ? (line.total != null ? line.text : line.mine) : typeof r.cost_claude_usd === "number" ? usd(r.cost_claude_usd) : typeof r.cost === "number" ? usd(r.cost) : "—";
 			small(cost);
 			if (ix?.flags) small.c("sessions-flag").text("⚠ " + ix.flags).attr("title", "Open the session to read the flags");
 			small("· " + (working ? "updated now" : r.last_activity ? "updated " + age(r.last_activity) : "—")).attr("title", r.last_activity ?? "");
@@ -136,14 +138,24 @@ export default class AISessionView extends View {
 	/** "Claude $1.20" for a Claude session; just "$1.20" for OpenRouter (its model name already says who it is). */
 	static provider_label(provider){ return provider === "openrouter" ? "" : "Claude "; }
 
-	/** Inside the Cost cell: $ for the whole tree, what the session itself cost, and any flags. */
-	static cost_lines(row){
-		if (!row) return;
-		const { usd, provider_label } = AISessionView, kids = row.children || 0;
-		span.c("sessions-cost-main").text(provider_label(row.provider) + usd(row.tree_usd ?? row.usd))
-			.attr("title", kids ? `This session ${usd(row.usd)} + ${kids} descendant${kids > 1 ? "s" : ""} ${usd(row.tree_usd - row.usd)}` : "This session, counted from its own transcript");
-		if (kids) small.c("muted sessions-subtree-note", `own ${usd(row.usd)} + ${kids} child${kids > 1 ? "ren" : ""}`);
-		if (row.flags) small.c("sessions-flag").text("⚠ " + row.flags + " flag" + (row.flags > 1 ? "s" : "")).attr("title", "Open the session to read the flags");
+	/** Inside the Cost cell: the one cost line (AICost.cost_line), in the same words as the session page's Cost tile: what the session
+	 *  itself spent, labelled "this tab" or "this session", then what it and every agent it started spent. The list never asks Servex
+	 *  for every row: "with children" shows an answer already here (the session page was open), else a small button asks for this one row. */
+	static cost_lines(ix, r){
+		if (!ix) return;
+		const { provider_label } = AISessionView, tab = AICost.is_tab(r), base = AICost.session_url(ix.id);
+		const line = AICost.cost_line({ cost: AICost.known_cost(base), own_usd: ix.usd, tab });
+		span.c("sessions-cost-main").text(provider_label(ix.provider) + AICost.short(line.own ?? 0)).attr("title", "What this session itself spent, counted from its own transcript");
+		small.c("muted", line.who);
+		if (line.total != null) small.c("muted sessions-subtree-note", line.with_kids);
+		else if (tab || ix.children || AISessionFlags.is_mastermind(r ?? {})){
+			const $b = small.c("muted sessions-subtree-note sessions-cost-ask", line.with_kids).attr("title", "Ask Servex what this session and every agent it started spent");
+			$b.on("click", e => {
+				e.stopPropagation(); e.preventDefault(); $b.text("asking …");
+				AICost.summary(base).then(({ summary, why }) => summary?.cost ? $b.text(AICost.cost_line({ cost: summary.cost, tab }).with_kids) : $b.text("not known").attr("title", why ?? ""));
+			});
+		}
+		if (ix.flags) small.c("sessions-flag").text("⚠ " + ix.flags + " flag" + (ix.flags > 1 ? "s" : "")).attr("title", "Open the session to read the flags");
 	}
 
 	/** The banner above the grid: spawned agents with no recorded parent are a defect. */

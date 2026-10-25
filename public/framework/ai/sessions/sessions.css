@@ -299,6 +299,7 @@
 
 	/* The Session class (SessionView.js): the cost cell's lines, the defect flag, the tree, the purpose bars and the audit button. */
 	.sessions-cost-main { font-weight: 600; white-space: nowrap; }
+	.sessions-cost-ask { cursor: pointer; text-decoration: underline dotted; text-underline-offset: .2em; }   /* asks Servex for this one row's total (AISessionView.cost_lines) */
 	.sessions-chip { font: inherit; padding: .15em .7em; border: 1px solid var(--line); border-radius: 2em; background: transparent; color: inherit; cursor: pointer; }
 	.sessions-chip:hover { background: var(--tint); }
 	.sessions-chip-on { background: var(--tint); border-color: var(--prim-ink); font-weight: 600; }
