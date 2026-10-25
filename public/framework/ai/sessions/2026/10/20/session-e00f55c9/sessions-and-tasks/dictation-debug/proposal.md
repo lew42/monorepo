@@ -54,9 +54,9 @@ class View {                          // ⬜ one reader of Session, many styles
 //                          Hands-free: work goes to the mastermind.
 ```
 
-## Fixed now (allowed in planning mode)
+## Fixed and live
 
-- **A completed task now shows checked in Chat v2.** The test task "show the life cycle" was completed in the file, but Chat v2 still drew it unchecked. Chat v2 stored the change on the Prompt instead of passing it to the task inside it (`ext/Chat/v2/ChatV2Model.js`, `edit`). The fix is two lines; it is being reviewed, then merged.
+- **A completed task now shows checked in Chat v2.** The test task "show the life cycle" was completed in the file, but Chat v2 still drew it unchecked. Chat v2 stored the change on the Prompt instead of passing it to the task inside it (`ext/Chat/v2/ChatV2Model.js`, `edit`). Fixed, reviewed and live (task folder [fix-v2-checkbox](fix-v2-checkbox/)).
 
 ## How a card is made today
 
