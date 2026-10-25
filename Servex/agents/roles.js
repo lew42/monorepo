@@ -18,6 +18,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { model, provider } from "./tiers.js";
 import Role from "../../public/framework/core/Role/Role.js";
+import { capped_chain } from "./readme-chain.js";
 
 /* `tier` is the row's size (tiers.js: fast, manager, architect, scan); its `model` is
  * DERIVED from the tier, so moving a tier to another model is one line in tiers.js.
@@ -46,16 +47,12 @@ export const ROLES = {
 	 * a task mastermind spawned under the old default had both its spawn_agent
 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
 	"task-mastermind":  { readme: "task-mastermind", skills: ["page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
-	/* THE AI SYSTEM MASTERMIND (the owner, 2026-10-23; roles/ai-system-mastermind.md): a singleton. `singleton` makes its id the
-	 * prefix itself, never `-2` (Agents.spawn sends a second spawn's prompt to the live one). `renew`: a wake after a day or past
-	 * 100k tokens starts a fresh session under the same id (Agent.renew_due), so it is never kept alive when unused. It is never
-	 * nudged or compacted before sleep (Agent.nudge/sleep_compact skip a `renew` row); the 400k safety ceiling still applies mid-work. The generic
-	 * `mastermind` row below used to load this readme; it now loads roles/mastermind.md. */
-	"ai-system-mastermind": { readme: "ai-system-mastermind", prefix: "ai-system-mastermind", alias: "servex-mastermind", singleton: true, renew: { hours: 24, tokens: 100000 }, tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions" },
-	/* THE CORE PAGE MASTERMIND (the owner, 2026-10-24): a defined, repeatable subject mastermind for the page system (core/Page, Item, Router, ext/JSONL). Its role text reaches the system prompt, so it survives compaction. Not a singleton: ids mastermind-page, mastermind-page-2. */
+	/* THE CORE PAGE MASTERMIND (the owner, 2026-10-24): a defined, repeatable subject mastermind for the page system (core/Page, Item, Router, ext/JSONL). Its role text reaches the system prompt, so it survives compaction. Ids mastermind-page, mastermind-page-2. */
 	"core-page-mastermind": { readme: "core-page-mastermind", prefix: "mastermind-page", tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* mastermind: bypassPermissions too (2026-10-12, asks #6): it calls spawn_agent/page tools and edits, and nobody can approve a prompt overnight. */
-	mastermind:         { readme: "mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
+	/* ONE mastermind role, spawned at a PATH (the owner, 2026-10-25; roles/mastermind.md "Spawned at a path"). `ai-system-mastermind` and
+	 * `servex-mastermind` are only words for it: ALIAS_PATHS gives them a default path. The old singleton and its renewal are gone. */
+	mastermind:         { readme: "mastermind", prefix: "mastermind",       alias: ["ai-system-mastermind", "servex-mastermind"], tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* The fast assistant (every-prompt) is retired for voice as of 2026-10-17 (`voice-assistant` below); its skill files stay on disk and this row stays for the callers that still name it. */
 	assistant:          { retired: "voice-assistant", skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
 	/* ONE PAIR ON EVERY PAGE (recursive-pairs, 2026-09-25/28): a page-assistant, root page
@@ -126,10 +123,10 @@ export function canonical(word){
 
 const row = word => ROLES[canonical(word)];
 
-/* A singleton role's one id (its prefix), else null. */
-export function singleton_id(role){ const r = row(role); return r?.singleton ? r.prefix : null; }
-/* A role's renewal line {hours, tokens}, else null. */
-export function renew_of(role){ return row(role)?.renew ?? null; }
+/* Alias words that carry a default PATH (the owner, 2026-10-25): spawning `ai-system-mastermind` is spawning `mastermind` at
+ * public/framework/ai. A caller's own `path` wins. */
+export const ALIAS_PATHS = { "ai-system-mastermind": "public/framework/ai", "servex-mastermind": "public/framework/ai" };
+export function alias_path(word){ return ALIAS_PATHS[word] ?? null; }
 
 /* The posture fields only — `skill`, `prefix` and `alias` are not spawn options.
  * `provider` is DERIVED from the row's `tier` here (review.md finding 5: tiers.js's
@@ -181,10 +178,48 @@ export function opening(role, prompt, { in_system = false } = {}){
 /* The role text for the system prompt (the claude_code preset's `append`): the role readme and each skill the row
  * carries, the same blocks opening() used to put in the first message. Null when the role has none, or a file is
  * missing (then opening()'s "Load …" fallback still applies). */
-export function role_system(role){
+export function role_system(role, { path: dir } = {}){
 	const parts = parts_of(role);
-	if (!parts.length || parts.some(p => p.text === null)) return null;
-	return `# Your role (Servex)\n\nYou are a Servex agent in the role \`${canonical(role)}\`. Your role text follows. It is part of your system prompt, so it survives compaction.\n\n${parts.map(p => p.block).join("\n\n")}`;
+	if (parts.some(p => p.text === null)) return null;
+	const head = parts.length ? `# Your role (Servex)\n\nYou are a Servex agent in the role \`${canonical(role)}\`. Your role text follows. It is part of your system prompt, so it survives compaction.\n\n${parts.map(p => p.block).join("\n\n")}` : "";
+	return [head, dir ? path_parts(dir).block : ""].filter(Boolean).join("\n\n") || null;
+}
+
+/* SPAWNED AT A PATH (the owner, 2026-10-25; roles/mastermind.md "Spawned at a path"). `dir` is a repo path (Agents.spawn resolves a
+ * site path with directory.js dir_of first). The system prompt gets, after the role text: <path-readmes> (the readme chain from the
+ * repo root down to dir, each headed by its repo path, under first_prompt's size cap) and <path-mastermind> (dir/mastermind.md, else
+ * dir/ai/mastermind.md, when one exists). Returns {path, files: [{file, kind, text}], missing: [why], mastermind: file|null, block}. */
+export function path_parts(dir){
+	const rel = String(dir).replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+	const { kept, dropped } = capped_chain(rel);
+	const files = kept.map(r => ({ file: r.path, kind: "readme", text: r.text }));
+	const missing = dropped.map(r => `${r.path} (over the size cap)`);
+	if (!kept.length && !dropped.length) missing.push(`no readme from the repo root down to ${rel}`);
+	let mm = null;
+	for (const file of [`${rel}/mastermind.md`, `${rel}/ai/mastermind.md`]){
+		let text; try { text = fs.readFileSync(path.join(REPO, file), "utf8").replace(/^<!--[\s\S]*?-->\r?\n/, "").trim(); } catch { continue; }
+		mm = { file, kind: "mastermind", text }; files.push(mm); break;
+	}
+	const blocks = [];
+	if (kept.length) blocks.push(`<path-readmes path="${rel}">\n${kept.map(r => `=== ${r.path} ===\n${r.text}`).join("\n\n")}\n</path-readmes>`);
+	if (mm) blocks.push(`<path-mastermind file="${mm.file}">\n${mm.text}\n</path-mastermind>`);
+	return { path: rel, files, missing, mastermind: mm?.file ?? null, block: blocks.join("\n\n") };
+}
+
+/* Servex's check at spawn: every file path_parts lists must really be inside the final system-prompt text (`append`, null when the
+ * role text could not be built). Returns {path, files: [file], mastermind, missing: [name or why], ok}. */
+export function path_check(append, dir){
+	const pp = path_parts(dir);
+	const absent = append ? pp.files.filter(f => !append.includes(f.text)).map(f => f.file) : pp.files.map(f => f.file);
+	const missing = [...pp.missing, ...absent];
+	return { path: pp.path, files: pp.files.map(f => f.file), mastermind: pp.mastermind, missing, ok: !!append && !missing.length };
+}
+
+/* The first-message line that tells the agent what Servex loaded for its path (and, when something is missing, what to read itself). */
+export function path_note(check){
+	const where = check.mastermind ? `; mastermind file: ${check.mastermind}` : "; no mastermind.md there";
+	if (check.ok) return `[Servex put ${check.files.length} file${check.files.length === 1 ? "" : "s"} for your path \`${check.path}\` in your system prompt (${check.files.join(", ")}${where}); they survive compaction, so don't re-read them.]`;
+	return `[WARNING: Servex could NOT load everything for your path \`${check.path}\`. Not in your system prompt: ${check.missing.join("; ")}. Read those yourself before you start. Loaded: ${check.files.filter(f => !check.missing.includes(f)).join(", ") || "none"}${where}.]`;
 }
 
 /* THE ROLE REMINDER (context drift, the owner 2026-10-23): a few lines, never the whole readme. The readme's title, the
@@ -229,6 +264,7 @@ export function injected(role){
 	return parts.every(p => p.text !== null) ? parts.map(p => p.name) : [];
 }
 
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 export const SKILLS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.claude/skills");
 export const ROLES_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "roles");
 
