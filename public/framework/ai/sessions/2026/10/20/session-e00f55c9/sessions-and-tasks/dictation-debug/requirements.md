@@ -33,3 +33,14 @@ Opus, high effort. Work in a worktree and land ready to merge; the merge is the 
 - [ ] The Debug tab shows every layer live, with real errors, and a reload keeps you on it. Shot on a phone and at 1920.
 - [ ] The stall is reproduced and fixed, or exactly located with the next step written down.
 - [ ] The UI rule is written, the error log is extended, and the watcher is proposed. Log a `show:` line with links.
+
+
+## One subscription system (the owner, 2026-10-24, the next prompt)
+
+"We want to basically use the same system everywhere... the same way an agent subscribes to a sub-agent session log, an agent can subscribe to a certain module, and just by subscribing it automatically gets test errors or browser errors... lean into our one solid system rather than redesigning a subscription system for every new use case."
+
+- **The one system is Servex `follow`.** It watches a file or a folder (module level), and a `.jsonl` file's new lines arrive verbatim, batched every 2 seconds.
+- **So a test failure or a page error is just a line appended to a log in the module's own folder** (data lives with its module). Whoever follows that module gets it. No direct `send` from the watcher, and no second subscription mechanism.
+- **The builder follows the modules it is changing,** the mastermind follows its children's session logs, and both use the same tool.
+- **The noise rule still applies:** report a failure only if it still fails after a quiet spell. Passes are logged as one "clear" line.
+- **`ai/errors/` (one global folder) moves toward per-module logs.** Say how in your outcome.
