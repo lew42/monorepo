@@ -3,7 +3,7 @@ import { browser as get_browser, close as close_browser } from "../../../../../S
 import { copyFileSync, appendFileSync, rmSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const base = process.argv[2] ?? "http://monorepo.localhost"   // the main site; pass a worktree url to test a branch, shots = process.argv[3];
+const base = process.argv[2] ?? "http://monorepo.localhost", shots = process.argv[3];   // base: the main site; pass a worktree url to test a branch
 const dir = fileURLToPath(new URL("./fixture/", import.meta.url)), copy = dir + "live-copy.jsonl";
 let pass = 0, fail = 0;
 const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
