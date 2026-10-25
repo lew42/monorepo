@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import cp from "node:child_process";
 import { syncBuiltinESMExports } from "node:module";
-import { Worker } from "node:worker_threads";
+import { Worker, isMainThread } from "node:worker_threads";
 import { place } from "./home.js";
 
 /* BREADCRUMBS — the last thing Servex did before a native fast-fail kills it with no stack, no report, no event.
@@ -38,6 +38,7 @@ export default class Crumbs {
 	}
 
 	static install(){
+		if (!isMainThread) return;   // --import is inherited by every Worker: without this each watchdog spawns another watchdog, unbounded (OOM crash loop 2026-10-25)
 		if (globalThis.__crumbs) return; globalThis.__crumbs = Crumbs;   // the class itself, so a caller drops a crumb without importing (an import installs)
 		for (const name of ["spawn", "spawnSync", "exec", "execFile", "execSync", "execFileSync", "fork"]){
 			const real = cp[name];
