@@ -14,7 +14,6 @@ export default new Doc({
 	subject: Process,
 	properties: "process creator steps step",
 	methods: "next run_of prompt moves_home",
-	files: "page.js",
 
 	content(){
 		const box = div.c("flex v gap").style({ "max-width": "60em", width: "100%" });

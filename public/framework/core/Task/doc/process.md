@@ -4,7 +4,7 @@
 
 A **process** is a standard way of doing a kind of work: *build* is investigate → plan → improve → approve → execute → index → review → merge. You create a task with a process named on it, and from that moment node starts step 1, launches the session each step names, chases a step that stalls, and starts the next step when one completes. The task is complete only when every step is. A one-off fix needs no process.
 
-The owner's words: [the 2026-10-22 dictation](/framework/ai/sessions/2026/10/20/session-e00f55c9/) (tab transcript `e00f55c9`, 23:34 UTC) and [owner-2026-10-20 §5](owner-2026-10-20-projects-and-completion.md). Brief: [process-system](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/requirements.md).
+The owner's words: [the 2026-10-22 dictation](/framework/ai/sessions/2026/10/20/session-e00f55c9/) (tab transcript `e00f55c9`, 23:34 UTC) and [owner-2026-10-20 §5](owner-2026-10-20-projects-and-completion.md). Brief: `process-system/requirements.md` in that session folder.
 
 ## The classes
 
