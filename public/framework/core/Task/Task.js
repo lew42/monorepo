@@ -57,7 +57,12 @@ export class Task extends Item {
 	/* A task list takes anything (the owner, 2026-10-24, session-is-a-task): a plain string is a Task with that title; an object with no
 	   `type` is a Task; an object with a `type` is that class (Process, Project, Session), through Item.hydrate. */
 	static List = class TaskList extends List {
-		make(x){ return typeof x === "string" ? super.make({ id: Task.slug(x), title: x }) : super.make(x); }
+		make(x){
+			if (typeof x !== "string") return super.make(x);
+			let id = Task.slug(x);
+			for (let n = 2; this.find?.(id); n++) id = `${Task.slug(x)}-${n}`;   // the same title twice gets "-2", as the item tool suggests
+			return super.make({ id, title: x });
+		}
 	};
 	// The id a title makes: the item tool's slug_of (Servex/agents/page_tools.js) is the same rule.
 	static slug(text){ return String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task"; }

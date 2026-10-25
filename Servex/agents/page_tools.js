@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import Subpages from "./Subpages.js";
 import Promote from "./Promote.js";
 import TaskHomes from "../../Server/TaskHomes.mjs";
+import Task from "../../public/framework/core/Task/Task.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -434,7 +435,7 @@ const MODULE_NAME = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
 const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/") + "/";
 // The class a new subtask is written as: a known task class it names (session-is-a-task: a Project, a Process, a child Session), else Task.
 const task_type = a => ["Project", "Process", "Session"].includes(a?.type) ? a.type : "Task";
-export const slug_of = text => String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task";
+export const slug_of = text => Task.slug(text);   // one slug rule, Task's (a string added in the browser gets the same id)
 
 // The module an app path sits in: the nearest folder under public/framework/ with a readme.md. Never a dated ai/sessions/ folder.
 function module_of(url, root = FRAMEWORK){

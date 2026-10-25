@@ -24,6 +24,8 @@ t.eq(s.completion, 0.5, "completion is computed from the tasks");
 s.tasks.add("Name the module");
 t.eq(s.tasks.find("name-the-module")?.get_one("title"), "Name the module", "tasks.add(\"a string\") makes a Task titled by it");
 t.eq(s.completion, 1 / 3, "a new task changes the totals at once");
+s.tasks.add("Name the module");
+t.ok(s.tasks.find("name-the-module-2")?.get_one("title") === "Name the module", "the same title twice gets a second id, never two tasks with one id");
 
 // Tokens are bucketed by the task open at the time: the one started last wins; none open is untracked.
 const ms = (h, m) => Date.parse(at(h, m));

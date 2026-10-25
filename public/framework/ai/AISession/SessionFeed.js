@@ -22,19 +22,20 @@ export default class SessionFeed extends View {
 	// A folder node's start; a record task's `created_at` (the time of the line that added it, Task.created_at), so both sort together.
 	static time(x){ return Date.parse(x?.started ?? x?.created_at ?? x?._at ?? x?._rp?.at ?? x?._last_ts ?? "") || 0; }
 
-	// The counts, computed: own = the record's direct tasks; total = record tasks with their subtasks plus the folders under the session.
-	counts(own, folders){
+	// The counts, computed: own = the record's direct tasks (all of them); total = the drawn record tasks with their subtasks plus every folder
+	// node under the session. A record task that points at a listed folder is counted once, as the folder (the review of 2026-10-24 found it twice).
+	counts(all, drawn, folders){
 		const deep = t => 1 + [...(t._tasks ?? [])].reduce((n, k) => n + deep(k), 0);
-		return { own: own.length, total: own.reduce((n, t) => n + deep(t), 0) + folders.reduce((n, k) => n + k.all().length, 0) };
+		return { own: all.length, total: drawn.reduce((n, t) => n + deep(t), 0) + folders.reduce((n, k) => n + k.all().length, 0) };
 	}
 
 	draw(){
 		const folders = this.tree?.root.kids ?? [], urls = new Set(folders.flatMap(k => k.all().map(n => n.url)).filter(Boolean));
-		const own = [...(this.session?._tasks ?? [])].filter(t => !urls.has(t.get_one("path")));
-		const { own: n_own, total } = this.counts([...(this.session?._tasks ?? [])], folders);
+		const all = [...(this.session?._tasks ?? [])], own = all.filter(t => !urls.has(t.get_one("path")));
+		const { own: n_own, total } = this.counts(all, own, folders);
 		const items = [...folders.map(n => ({ at: SessionFeed.time(n), n })), ...own.map((t, i) => ({ at: SessionFeed.time(t) || i, t }))].sort((a, b) => b.at - a.at);
 		this.empty(() => {
-			p.c("sfeed-head", `Own tasks: ${n_own} · Total: ${total} · newest first`);
+			p.c("sfeed-head", `${n_own} tasks of its own · ${total} counting subtasks and child sessions · newest first`);
 			if (!items.length) return void p.c("mob-empty", "No tasks or child sessions recorded for this session yet.");
 			div.c("sfeed-list mob-card", () => items.forEach(i => i.n ? this.folder(i.n) : this.task(i.t)));
 		});

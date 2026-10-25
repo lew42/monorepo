@@ -44,11 +44,11 @@ export default class SessionStats extends View {
 		this.empty(() => {
 			div.c("sov-stat-row", () => {
 				div.c("sov-stat", () => { small.c("sov-k", "Cost"); SessionStats.cost(strong.c("sov-v", "…"), work.dir); });
-				for (const [label, value] of [["Model", tree.snap?.model ?? "—"], ["Running for", SessionStats.elapsed(root.ms())], ["Done", total ? `${done} of ${total}` : "no tasks"]])
+				for (const [label, value] of [["Model", tree.snap?.model ?? "—"], ["Running for", SessionStats.elapsed(root.ms())], ["Task folders done", total ? `${done} of ${total}` : "no task folders"]])
 					div.c("sov-stat", () => { small.c("sov-k", label); strong.c("sov-v", value); });
 			});
 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));
-			small.c("sov-caption", `${done} done · ${part.running} running · ${total - done - part.running} queued or waiting · ${part.dropped.length} dropped (not counted)`);   // one count each, so the parts add up to the total
+			small.c("sov-caption", `Task folders: ${done} done · ${part.running} running · ${total - done - part.running} queued or waiting · ${part.dropped.length} dropped (not counted)`);   // one count each, so the parts add up to the total
 			const folders = root.folders ?? [work.dir];   // the session's folders, one per day it filed work under (SessionTree.load)
 			small.c("sov-links", () => {
 				span("This session's record: ");

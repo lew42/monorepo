@@ -52,6 +52,10 @@ const OR_SETTLED = new Map();
 
 export class Agents {
 
+	/* After this moment every spawn carries parent_session (the session-is-a-task merge and its Servex restart, 2026-10-25), so a row without
+	 * one is no longer matched to a session by its parent's name (agents_under). */
+	static NAMES_UNTIL = "2026-10-25T06:00:00.000Z";
+
 	/* `boot` names THIS host process — every registry row it writes carries it,
 	 * so the next boot can tell "alive a moment ago" from "long dead". */
 	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); Task.turns_resolver = sid => this.session_turns(sid); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
@@ -739,8 +743,10 @@ export class Agents {
 		for (const [k, list] of this.task_dirs()) if (k === root || k.startsWith(root + path.sep)) list.forEach(id => ids.add(id));
 		if (session_id){
 			const names = new Set([session_id, ...Object.entries(rows).filter(([, r]) => r?.session_id === session_id).map(([id]) => id)]);
-			// parent_session (recorded at spawn since 2026-10-24) is exact; an older row is matched by the parent's name and the session's span.
-			for (const [id, r] of Object.entries(rows)) if (!names.has(id) && (r?.parent_session ? r.parent_session === session_id : names.has(r?.parent) && (!since || String(r.started_at ?? "") >= since))) ids.add(id);
+			// parent_session (recorded at spawn since 2026-10-24) is exact. An older row has none, so it is matched by the parent's name inside the
+			// session's span, and only if it started before every spawn carried parent_session (NAMES_UNTIL): a later tab reusing a name never adds children.
+			for (const [id, r] of Object.entries(rows)) if (!names.has(id) && (r?.parent_session ? r.parent_session === session_id
+				: names.has(r?.parent) && (!since || String(r.started_at ?? "") >= since) && String(r.started_at ?? "") < Agents.NAMES_UNTIL)) ids.add(id);
 			for (let grew = true; grew;){ grew = false; for (const [id, r] of Object.entries(rows)) if (!ids.has(id) && !names.has(id) && ids.has(r?.parent) && (!since || String(r.started_at ?? "") >= since)){ ids.add(id); grew = true; } }
 		}
 		for (const id of ids){
