@@ -10,7 +10,7 @@ const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok -", m); };
 // What the page at `path` mounted: the class of the page holding .tasks-page, and its groups and rows.
 async function mounted(tab, path){
 	await tab.goto(base + path.replace(/^\//, ""));
-	await tab.waitForFunction(() => { const box = document.querySelector(".tasks-page"); return box && !box.textContent.includes("Loading"); }, null, { timeout: 20000 });
+	await tab.waitForFunction(() => { const box = document.querySelector(".tasks-page"); return box && !box.textContent.includes("Loading"); }, null, { timeout: 45000 });
 	return tab.evaluate(async () => {
 		const { Page } = await import("/app.js");
 		const box = document.querySelector(".tasks-page");

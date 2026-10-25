@@ -12,14 +12,15 @@ const slug = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").rep
 /* A PAGE WATCHER FOR ONE POOL WORKTREE: when a page the holder is editing breaks, the holder hears within a minute.
  *
  * Pool starts one per taken slot (Pool.page_watch) and stops it when the slot is returned or removed. It listens to the
- * slot's own dev server (the `changed` frame the server sends its browser tabs, so no second fs.watch), debounces 2 s,
- * runs Server/layout-check.mjs at four widths on the pages the changed files render, and on a break sends the holder one
- * line and writes one line in its task log. Design and the rejected timer: the plan.md and Servex/doc/pool.md "Page watcher". */
+ * slot's own dev server (the `changed` frame the server sends its browser tabs, so no second fs.watch), waits for DEBOUNCE_MS
+ * with no further save, runs the near tests and Server/layout-check.mjs (console errors, overflow) on the pages the changed files
+ * render, and reports a break that still stands by appending one line to failures.jsonl in the module's own folder (report()).
+ * It sends nothing: the builder hears it by `follow`ing that module. Design and the rejected timer: the plan.md and Servex/doc/pool.md "Page watcher". */
 export default class WorktreeWatch {
     static WIDTHS = [400, 1200, 1920, 3440];
     static EMPTY_MAX = 0.6;                    // the same bound Server/on-landing.mjs flags
     static EMPTY_WIDTHS = [1920, 3440];        // phones are dense by nature; emptiness only means something wide
-    static DEBOUNCE_MS = 2000;
+    static DEBOUNCE_MS = 45 * 1000;            // quiet time after the LAST save before anything runs or is told: a half-done two-file edit breaks a page for a moment, and the end of an agent's turn is not visible here, so the gap stands in for it
     static QUIET_MS = 10 * 60 * 1000;          // one message per page per this long
     static RUN_MS = 60 * 1000;                 // a layout-check that takes longer is killed
     static MAX_PAGES = 3;
@@ -205,10 +206,10 @@ export default class WorktreeWatch {
                 if (res.timeout){ this.note(`worktree-watch: ${file} timed out (${this.id}); no result`); continue; }
                 this.test_state.set(file, res.ok);
                 if (!res.ok && was !== false){
-                    const line = `worktree-watch: test ${file} ${was === true ? "was passing and now fails" : "fails (no earlier result)"}: ${WorktreeWatch.first_failure(res.tail)} (${this.id})`;
-                    this.note(line, true);
-                    if (was === true && this.owner && this.send) try { this.send(this.owner, line); } catch (e) { this.note(`worktree-watch: could not reach ${this.owner}: ${e.message}`, true); }
-                } else if (res.ok && was === false) this.note(`worktree-watch: test ${file} passes again (${this.id})`, true);
+                    const msg = `test ${file} ${was === true ? "was passing and now fails" : "fails (no earlier result)"}: ${WorktreeWatch.first_failure(res.tail)}`;
+                    if (was === true) this.report(path.posix.dirname(file), { fail: { kind: "test", file, msg, worktree: this.id, quiet_ms: WorktreeWatch.DEBOUNCE_MS } });
+                    else this.note("worktree-watch: " + msg + " (" + this.id + ")");   // no earlier pass to compare with: a failure that may already be on dev stays out of the log
+                } else if (res.ok && was === false) this.report(path.posix.dirname(file), { clear: { kind: "test", file, msg: `test ${file} passes again`, worktree: this.id } });
             }
         } finally { this.testing = false; }
     }
@@ -238,7 +239,7 @@ export default class WorktreeWatch {
         const state = this.pages.get(url) ?? this.pages.set(url, { broken: false, messaged_at: 0 }).get(url);
         const breaks = WorktreeWatch.judge(res);
         if (!breaks.length){
-            if (state.broken) this.note(`worktree-watch: ${url} clear (${this.id})`, true);
+            if (state.broken) this.report(("public" + url).slice(0, -1), { clear: { kind: "page", page: url, msg: `${url} clear`, worktree: this.id } });
             state.broken = false;
             return;
         }
@@ -249,9 +250,8 @@ export default class WorktreeWatch {
         const shot = this.keep_shot(dir, url, width);
         const more = breaks.length > 1 ? ` (+${breaks.length - 1} more: ${breaks.slice(1).map(b => b.kind).join(", ")})` : "";
         const secs = since ? ` ${Math.round((Date.now() - since) / 1000)} s after your save.` : "";
-        const line = `worktree-watch: ${url} breaks at ${first.widths.join("/") || "?"} px: ${first.text}${more}. Shot: ${shot ?? "none"}.${secs} (${this.id})`;
-        this.note(line, true);
-        if (this.owner && this.send) try { this.send(this.owner, line); } catch (e) { this.note(`worktree-watch: could not reach ${this.owner}: ${e.message}`, true); }
+        const msg = `${url} breaks at ${first.widths.join("/") || "?"} px: ${first.text}${more}. Shot: ${shot ?? "none"}.${secs}`;
+        this.report(("public" + url).slice(0, -1), { fail: { kind: "page", page: url, msg, worktree: this.id, quiet_ms: WorktreeWatch.DEBOUNCE_MS } });
     }
 
     /* The failing width's png goes into <task dir>/shots/ (git-ignored by **\/shots/), else beside the worktree logs. */
@@ -263,6 +263,20 @@ export default class WorktreeWatch {
             fs.copyFileSync(path.join(dir, `${width}.png`), file);
             return slash(file);
         } catch { return null; }
+    }
+
+    /* The ONE way a result leaves the watcher: a line appended to failures.jsonl in the failing module's own folder (in the MAIN checkout, where Servex's `follow` can see it;
+     * git-ignored machine state). Whoever follows that module hears it, by the same `follow` that carries every other log: there is no direct send. `dir` is repo-relative. */
+    report(dir, event){
+        const line = JSON.stringify({ at: stamp(), ...event });
+        console.log("worktree-watch: " + (event.fail ?? event.clear).msg + " (" + this.id + ")");
+        try {
+            const folder = path.resolve(this.main ?? ".", dir);
+            fs.mkdirSync(folder, { recursive: true });
+            const file = path.join(folder, "failures.jsonl");
+            let lead = ""; try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
+            fs.appendFileSync(file, lead + line + "\n");
+        } catch (e) { console.log("worktree-watch: could not write " + dir + "/failures.jsonl: " + e.message); }
     }
 
     /* One line in the owner's task log (when `log` is true and it has one), and always on the console. */
