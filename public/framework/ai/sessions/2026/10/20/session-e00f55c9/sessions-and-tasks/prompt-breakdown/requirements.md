@@ -83,3 +83,5 @@ The pipeline already does most of what the owner described:
     - **A VS Code tab can't receive follow messages,** so for the tab use the hook route (item 12).
 
 14. **(the owner, 2026-10-25) Unify refinement.** The VS Code hook's refiner (`Server/PromptRecords.mjs`) and dictation's `ext/Refine` may be two systems doing one job. Using your refinement map, say whether they can become one (one brief of principles, one record shape), what's incompatible, and the smallest step toward one.
+
+15. **(the tab, 2026-10-25) What refinement costs.** For e00f55c9 alone: 231 Haiku calls cost **$36.76** (162 "parts" calls at about $0.17 each, plus 69 "outcomes" calls). About $0.17 per Haiku call is high. Is the brief huge, is it crossing the 100k tier, or is each call re-sending a lot? Measure the tokens per call, cut the waste, and report the cost per prompt before and after.

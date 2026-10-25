@@ -74,3 +74,7 @@ Fix:
 - The page lives at the folder's own path, `/framework/ai/sessions/2026/10/20/session-e00f55c9/`, and every link points there. The uuid URL only redirects to it.
 - `TaskDirs` never opens a second day folder for a running session.
 - Also find out what the stray `ai/sessions/a56900e3-…/` folder is.
+
+## Added (2026-10-25): refinement calls are cost, not sessions
+
+The hook's refiner (`PromptRecords.ask`) runs one Agent SDK `query()` per prompt, inside Servex, with a temp-folder cwd. It's not spawned as a Servex agent, so it gets no session folder and doesn't show on the sessions page. That's right: hundreds of one-shot mini sessions would bury the list. But **its cost ($36.76 so far for e00f55c9, recorded as `usd` on each prompts.jsonl line) must count toward the session it served,** as its own line ("refinement $X"), exactly once. Add it to the one cost function, and confirm its transcripts aren't also counted somewhere else.
