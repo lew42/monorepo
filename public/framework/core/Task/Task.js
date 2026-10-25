@@ -90,12 +90,12 @@ export class Task extends Item {
 		kid._watched_by = this;
 		kid.on("change", function(key){ if (key === "state" && this === kid) kid._watched_by?.child_changed(kid); });
 	}
-	// A child that is done or dropped (Task.settled) moves a series on; when every child is settled and at least one is complete, the parent completes.
+	// A child that is done or dropped (Task.settled) moves a series on. The parent completes itself only when every child is complete: a dropped
+	// one leaves that to a deliberate complete() (a session whose last open task is dropped stays running; Session.test, the 2026-10-23 snapshot).
 	child_changed(kid){
 		if (!Task.settled(kid) || this.state !== "running") return;
 		if (this.mode === "series") this.start_children();
-		const kids = [...this._tasks];
-		if (kids.every(Task.settled) && kids.some(t => t.state === "complete")) this.complete({ auto: true });
+		if ([...this._tasks].every(t => t.state === "complete")) this.complete({ auto: true });
 	}
 	start_children(){
 		const kids = [...(this._tasks ?? [])];
