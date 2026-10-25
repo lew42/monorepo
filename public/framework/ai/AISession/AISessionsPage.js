@@ -104,7 +104,8 @@ export default class AISessionsPage extends Page {
 		this.$empty.el.hidden = true;
 		panel.main.append(div.c("sessions-body").append(this.nav_view(), div.c("sessions-main").append(new PageNav({ links: AISessionsPage.NAV }), ...(this.classic ? [this.$scope, this.$controls] : [this.$header]), this.grid, this.$empty, this.$status)));
 		this.arrange_for(this.grid.view);
-		this.grid.watch(g => this.arrange_for(g.view));
+		let shown = this.grid.view;
+		this.grid.watch(g => { this.arrange_for(g.view); if (g.view !== shown){ shown = g.view; g.apply(false); } });   // the rail and the table list different rows
 		const grid = this.grid;
 		page_settings(this.url).then(s => { if (s.view) grid.default_view(s.view); });   // the default in settings.jsonl, unless the url or your last toggle chose
 		this.snapshot_rows = [];
@@ -270,11 +271,18 @@ export default class AISessionsPage extends Page {
 			href: r => this.data_url + r.id + "/",   // the session page lives under the real list url, also from v/classic/
 			row: r => this.row_view(r, this.nests.get(r)),
 			card: r => new AISessionView({ row: r, url: this.data_url, spend: this.spend, session_index: this.session_index, card: true }),
-			sort_rows: (rows, sort) => this.remote ? this.remote_sort(rows, sort) : this.arrange(rows, sort),
+			sort_rows: (rows, sort) => this.roots_for_cards(this.remote ? this.remote_sort(rows, sort) : this.arrange(rows, sort)),
 			has_more: () => !!this.remote && this.remote.rows.length < this.remote.total,   // the server holds the rest: the drawer's sentinel asks for it
 			load_more: () => this.remote_ask({ more: true }),
 			natural_dir: key => AISessionRows.natural_dir(key),
 		});
+	}
+
+	/** The rail shows one card per root session: a session whose parent is in the list appears only in that parent's count. A child whose parent is outside the range keeps its own card. The table keeps nesting. */
+	roots_for_cards(rows){
+		if (this.grid?.view !== "rail") return rows;
+		const tree = AISessionRows.tree, id = r => r.session_id || r.id, listed = new Set(rows.map(id));
+		return rows.filter(r => !listed.has(tree?.[id(r)]?.parent));
 	}
 
 	/** The page's width follows the grid's view: the table fills the row, the rail is a narrow list with the detail beside it. */
