@@ -47,3 +47,10 @@ For `ai-system-mastermind`. The owner's words are in the prompt log (2026-10-24,
     - Compact sooner rather than later.
     - **After any compaction, re-inject the role:** "you are X, here are your principles". The role readme is already the system prompt for SDK agents, so check the reminder fires after every compaction.
     - Say what exists (`nudge`, compact-before-sleep, the reminder every 100k) and fill only the gap.
+
+13. **(the owner, 2026-10-25, now a decision rather than a note) A mastermind for any folder, with no new role per module.**
+    - Spawning a mastermind *at a path* makes it read that path's readme chain, plus an optional `mastermind.md` (or `ai/mastermind.md`) in that folder if one exists, holding whatever a mastermind there needs to know.
+    - Today there's one role row per subject (ai-system, core-page and so on). Replace that with one generic mastermind role plus the path.
+    - "AI system mastermind" becomes a normal mastermind spawned at `framework/ai/` by whoever needs it, parented to that spawner, with its cost counted there. Retire the parentless singleton setup.
+    - The hand-off risk (the owner: "risky to assume it just works") is covered by a check at spawn: Servex confirms the path's readme and mastermind file were loaded into the system prompt, and logs which files.
+    - Do items 11 and 13 together, and say what changes in `Servex/agents/roles.js` and the singleton code.
