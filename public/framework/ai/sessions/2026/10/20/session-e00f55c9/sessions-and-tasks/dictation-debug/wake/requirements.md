@@ -13,7 +13,12 @@ While the owner dictates on the website, the voice session's smart agent (now Op
 ## Do
 
 1. **Before.** From the real voice session records of 2026-10-24 and 25 (folders with `kind: "voice"` under `public/framework/ai/sessions/2026/10/`, and the older `<home>ai/v-*.jsonl`), compute per session: minutes of dictation, owner lines, smart-seat wakes, smart-seat tokens and dollars, so tokens per minute of dictation. A node script in your task folder computes it (law 7); keep its output as `wake/before.json`.
-2. **The rule.** Wake the smart seat only on: a pause past the quiet gap (a knob, default from the numbers, likely 4–8 s), a question or being addressed (keep what exists), or every N owner sentences (a knob, default 6). Every other path that wakes it either joins the gather or is justified in one comment line. The two knobs live in one place, read by Servex; say where, so the dictation widget's settings panel (built later) can set them per session.
+2. **The rule.** Wake the smart seat only on:
+   - a pause past the quiet gap (knob, default from the numbers, likely 4–8 s);
+   - a question or being addressed (keep what exists);
+   - every N owner sentences (knob, default 6).
+
+   Any other wake path joins the gather, or is justified in one comment line. Both knobs live in one place that Servex reads; say where, so the dictation widget's settings panel (built later) can set them per session.
 3. **Prove it** with a unit test (no model calls: a fake clock and fake lines) that a 2-minute dictation of 20 sentences with three pauses gives 3–4 wakes, not 20. Then replay one real session's lines through the rule and report the wakes before vs after.
 4. **After.** The expected tokens per minute from the replay, beside the before number.
 

@@ -1,0 +1,181 @@
+{
+ "base": "http://monorepo.localhost",
+ "file": "/framework/ai/sessions/2026/10/05/v-yxnts4l/session.jsonl",
+ "throttle": 1,
+ "seconds": 60,
+ "bubbles_before": 208,
+ "bubbles_after": 208,
+ "words": 185,
+ "sends": 7,
+ "says": 7,
+ "hitl_calls": 184,
+ "whisper_calls": 117,
+ "mode": "hand",
+ "long_tasks": [],
+ "long_over_50": 0,
+ "longest_ms": 0,
+ "total_blocked_ms": 0,
+ "window_self_top": [
+  {
+   "at": "(idle) :0",
+   "ms": 108521
+  },
+  {
+   "at": "(program) :0",
+   "ms": 8033
+  },
+  {
+   "at": "getBoundingClientRect :0",
+   "ms": 2266
+  },
+  {
+   "at": "setProperty :0",
+   "ms": 179
+  },
+  {
+   "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+   "ms": 165
+  },
+  {
+   "at": "(garbage collector) :0",
+   "ms": 124
+  },
+  {
+   "at": "wav /framework/ux/Dictate/capture.js:150",
+   "ms": 117
+  },
+  {
+   "at": "style /framework/core/View/View.js:289",
+   "ms": 76
+  },
+  {
+   "at": "requestAnimationFrame :0",
+   "ms": 76
+  },
+  {
+   "at": "fetch :0",
+   "ms": 64
+  },
+  {
+   "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+   "ms": 47
+  },
+  {
+   "at": "Blob :0",
+   "ms": 44
+  },
+  {
+   "at": "on_level /framework/ext/Chat/Mic.js:113",
+   "ms": 44
+  },
+  {
+   "at": "lev /framework/ext/Chat/Mic.js:82",
+   "ms": 24
+  }
+ ],
+ "window_inclusive_top": [
+  {
+   "at": "anchor /framework/ux/Dictate/Widget.js:250",
+   "ms": 2267
+  },
+  {
+   "at": "draw_caption /framework/ext/Chat/Mic.js:198",
+   "ms": 2257
+  },
+  {
+   "at": "show_live /framework/ext/Chat/Mic.js:266",
+   "ms": 2225
+  },
+  {
+   "at": "composer.on_live /framework/ux/Dictate/Widget.js:713",
+   "ms": 2213
+  },
+  {
+   "at": "live /framework/ux/Dictate/Widget.js:438",
+   "ms": 2212
+  },
+  {
+   "at": "partial_tick /framework/ux/Dictate/Dictate.js:470",
+   "ms": 1061
+  },
+  {
+   "at": "node.port.onmessage /framework/ux/Dictate/capture.js:62",
+   "ms": 547
+  },
+  {
+   "at": "(anon) /framework/ux/Dictate/Dictate.js:418",
+   "ms": 360
+  },
+  {
+   "at": "on_level /framework/ext/Chat/Mic.js:113",
+   "ms": 356
+  },
+  {
+   "at": "on_level /framework/ux/Dictate/Dictate.js:422",
+   "ms": 308
+  },
+  {
+   "at": "heartbeat /framework/ux/Dictate/Dictate.js:433",
+   "ms": 258
+  },
+  {
+   "at": "(anon) /framework/ux/Dictate/Dictate.js:291",
+   "ms": 257
+  },
+  {
+   "at": "style /framework/core/View/View.js:289",
+   "ms": 257
+  },
+  {
+   "at": "transcribe /framework/ux/Dictate/Dictate.js:544",
+   "ms": 241
+  },
+  {
+   "at": "wav /framework/ux/Dictate/capture.js:150",
+   "ms": 161
+  },
+  {
+   "at": "close_segment /framework/ux/Dictate/Dictate.js:490",
+   "ms": 123
+  },
+  {
+   "at": "(anon) /framework/ux/Dictate/DictationBar.js:70",
+   "ms": 111
+  },
+  {
+   "at": "commit /framework/ext/Chat/Mic.js:142",
+   "ms": 95
+  },
+  {
+   "at": "commit /framework/ux/Dictate/Dictate.js:674",
+   "ms": 92
+  },
+  {
+   "at": "mic.on_meter /framework/ux/Dictate/DictationBar.js:61",
+   "ms": 84
+  },
+  {
+   "at": "send_screen /framework/ext/Chat/Mic.js:561",
+   "ms": 79
+  },
+  {
+   "at": "take_out /framework/ext/Chat/Mic.js:644",
+   "ms": 74
+  },
+  {
+   "at": "log_prompt /framework/ext/Chat/Mic.js:438",
+   "ms": 73
+  },
+  {
+   "at": "on_out /framework/ux/Dictate/Widget.js:709",
+   "ms": 70
+  },
+  {
+   "at": "show_out /framework/ux/Dictate/Widget.js:77",
+   "ms": 70
+  }
+ ],
+ "errors": [
+  "TypeError: Cannot read properties of undefined (reading 'reduce')\n    at Capture.snapshot (http://monorepo.localhost/framework/ux/Dictate/capture.js:94:27)\n    at ComposerMic.partial_tick (http://monorepo.localhost/framework/ux/Dictate/Dictate.js:476:28)\n    at ComposerMic.heartbeat (http://monorepo.localhost/framework/ux/Dictate/Dictate.js:452:64)\n    at http://monorepo.localhost/framework/ux/Dictate/Dictate.js:291:39"
+ ]
+}
