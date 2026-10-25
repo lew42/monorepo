@@ -308,6 +308,7 @@
 	   in /styles.css. The menu is absolute against the sticky bar, so opening it
 	   moves nothing else. */
 	@media (max-width: 52em) {
+		/* (A topic holding a `.tabs.stick` strip turns this header into normal scrolling content: styles.css, same breakpoint.) */
 		.sidebar {
 			position: sticky; top: 0; z-index: 10;
 			border-right: none;

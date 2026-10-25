@@ -48,7 +48,7 @@ export default new Page({
 				// The title is the way back to the inbox from any page under it (the owner, 2026-10-13: the header did not navigate back).
 				div.c("doc-well", () => h1.c("doc-title h2", () => a.c("inbox-head-home").href(this.url).attr("title", "Back to the AI inbox")
 					.append(() => { icon(this.icon); span(this.title ?? "AI"); })));
-				div.c("tabs block", () => {
+				div.c("tabs block stick", () => {
 					const $bar = div.c("tab-bar", () => { a.c("tab tab-default").href(this.url).text("Inbox"); });
 					// Tabs are detected by AIOverview.detectTabs() and render after mark(). Doc: doc/ai-page-notes.md.
 					AIOverview.detectTabs(this).then(tabs => {

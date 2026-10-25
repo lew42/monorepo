@@ -59,6 +59,38 @@ export default class Follow {
 	/* Lines a child-tail never forwards: the heartbeat's own log lines and the commit hook's bare {"commit":sha}. */
 	static NOISE = /^{"commit":"[0-9a-f]+"}$|"heartbeat":/;
 
+	/* What a parent is woken for (the AI system mastermind, 2026-10-24; ai/doc/task-buckets.md "What a session log holds"):
+	 * `state` = a task added, started, waiting, complete (also the item tool's {"<task id>":{"complete":{...}}} and {"set":{"state":...}});
+	 * `pointer` = a file the owner should know about (a log whose message names a file or starts show:/ready:/wrote:, a shot, a review's verdict line).
+	 * Everything else (steps, actions, decisions, node's worktree-watch lines) is `other` and costs the parent a paid turn for nothing. */
+	static STATE = /^(assign|start|resume|wait|complete|finish|stop|pause|task|tasks|landed)$/;
+	static POINTER = /^(show|ready|wrote):|^[\w./-]+\.(md|mjs|js|jsonl|css|html|png)\b/;
+	static LINE_MAX = 600;
+
+	/** The lines of a child's log a parent is woken for: not heartbeat or commit housekeeping, only state and pointer lines, each cut to LINE_MAX characters. */
+	static worth_waking(lines){
+		return lines.filter(l => !this.NOISE.test(l) && ["state", "pointer"].includes(this.kind(l)))
+			.map(l => l.length > this.LINE_MAX ? l.slice(0, this.LINE_MAX) + "…" : l);
+	}
+
+	/** The kind of one jsonl line: "state", "pointer", "watcher" or "other". */
+	static kind(line){
+		let j; try { j = JSON.parse(line); } catch { return "other"; }
+		if (!j || typeof j !== "object") return "other";
+		const key = Object.keys(j).find(k => !["at", "ts", "by"].includes(k)) ?? "";
+		if (this.STATE.test(key)) return "state";
+		if (key === "set") return j.set?.state ? "state" : "other";
+		if (key === "shot" || key === "shots" || (key === "review" && j.review?.verdict)) return "pointer";   // a review's verdict line, not each finding
+		if (key === "log"){
+			const msg = String(j.log?.msg ?? "");
+			if (/^worktree-watch:/.test(msg)) return "watcher";
+			return this.POINTER.test(msg) ? "pointer" : "other";
+		}
+		const v = j[key];
+		if (v && typeof v === "object" && Object.keys(v).some(k => this.STATE.test(k))) return "state";
+		return "other";
+	}
+
 	constructor(...args){ this.assign({
 		subs: [], file: place("follow.json"), watcher: null, watched: [],
 		sizes: new Map(), offsets: new Map(), pending: new Map(), timers: new Map()
@@ -246,9 +278,9 @@ export default class Follow {
 
 	queue(sub, item){
 		// a parent tailing its child (`of`) is told the work, not the housekeeping: heartbeat and bare commit lines wake nobody (2026-10-20)
-		if (sub.of && item.lines){ item = { ...item, lines: item.lines.filter(l => !this.constructor.NOISE.test(l)) }; if (!item.lines.length) return; }
+		if (sub.of && item.lines){ item = { ...item, lines: this.constructor.worth_waking(item.lines) }; if (!item.lines.length) return; }
 		const bucket = this.pending.get(sub.agent) ?? this.pending.set(sub.agent, []).get(sub.agent);
-		bucket.push({ ...item, under: sub.path });
+		bucket.push({ ...item, under: sub.path, ...(sub.of ? { of: sub.of } : {}) });
 		if (!this.timers.has(sub.agent))
 			this.timers.set(sub.agent, setTimeout(() => this.flush(sub.agent), sub.gather_ms ?? 2000));
 	}
@@ -279,7 +311,8 @@ export default class Follow {
 			if (!item.lines || done.has(item.file)) continue;
 			done.add(item.file);
 			const more = this.new_lines(abs(item.file));
-			if (more.length) item.lines.push(...more);
+			const wake = item.of ? this.constructor.worth_waking(more) : more;
+			if (wake.length) item.lines.push(...wake);
 		}
 		/* An id that is not a live Claude session and not a registered
 		 * external one (a VS Code tab, a terminal) is not somebody to send

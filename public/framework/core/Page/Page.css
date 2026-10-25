@@ -170,7 +170,8 @@
 	.page {
 		--measure: 40em;
 		--page-pad: initial;
-		--gutter-x: clamp(2em, 4%, 5em);
+		/* ⚠ The floor was `2em` until 2026-10-24 (top-tabs): 28px a side at 390, and the white cards pay `--pad-card` on top of it. `1em` halves the phone inset (about 15px at 390) and changes nothing from ~700px up, where 4% takes over. ext/Doc/Doc.css restates this clamp; keep the two equal. */
+		--gutter-x: clamp(1em, 4%, 5em);
 		/* ⚠ A clamp, was a flat `3em` (2026-08-17). 48px above every `h1` is a quarter
 		   of the fold at 390 — 10 findings on 9 pages. The same idiom `--gutter-x`
 		   already uses, so the page's two insets scale together: 24px at 390, 42px at

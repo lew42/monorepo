@@ -98,17 +98,24 @@
 
 	.inbox-head > .tabs { display: contents; }
 
+	/* A `.stick` strip is painted by ext/tabs (opaque, so it can stick). */
+	.inbox-head > .tabs:not(.stick) > .tab-bar { background: var(--well); }
+
+	/* One row that side-scrolls at every width (the owner, 2026-10-24, top-tabs): ext/tabs' own
+	   `nowrap` + `overflow: auto` applies. It wrapped here on a phone (2026-10-12) to keep SESSIONS/TESTS
+	   visible; the owner reversed that. */
 	.inbox-head > .tabs > .tab-bar {
-		background: var(--well);
 		flex: 1 1 16em;
 		min-width: 0;
-		flex-wrap: wrap;   /* a handful of tabs: wrap on a phone rather than hide SESSIONS/TESTS off the edge with no scroll cue (2026-10-12) */
 		align-items: flex-end;
 		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
 		padding-inline-end: 0.8em;
 	}
 
 	.inbox-head .doc-well { padding-block: 0.8em 0.3em; }
+	/* ⚠ Above a stuck strip: ext/tabs paints that strip's band LEFTWARD over its earlier siblings (z-index 3), and this title is one.
+	   Opaque, or the band underneath would show through the translucent `--well` as a darker patch. */
+	.inbox-head > .doc-well { position: relative; z-index: 4; background: linear-gradient(var(--well), var(--well)), var(--ground, var(--wash)); }
 	/* The title is a link home (ai/page.js): it keeps the heading look, icon gap included. */
 	.inbox-head-home { display: inline-flex; align-items: center; gap: 0.3em; color: inherit; text-decoration: none; border: 0; box-shadow: none; }
 

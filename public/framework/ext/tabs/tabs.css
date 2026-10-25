@@ -56,8 +56,27 @@
 	     Don't re-add it without asking. */
 	.tab-bar {
 		display: flex; flex-wrap: nowrap;
-		overflow: auto; scrollbar-width: none;
+		overflow: auto; scrollbar-width: none; overscroll-behavior-x: contain;
 		border-bottom: 1px solid var(--line);
+	}
+
+	/* `.stick` (2026-10-24, top-tabs): the page's own top strip stays at the top of its
+	   scroll while the content passes under it. ⚠ Opaque on purpose: the strip is a
+	   `--well` shadow over the ground (ext/Doc, the AI head set `--well`), so a
+	   translucent paint would show the text scrolling underneath. A page that sets no
+	   `--well` gets a plain ground. ⚠ A sticky box is held inside its PARENT, so the set
+	   must be a child of something as tall as the scroll (`.tabs` is `display: contents`
+	   in Doc and the AI head, so the page is its parent). On a phone the header above
+	   scrolls away because core/Sidebar makes the topic the scroller for any topic that
+	   holds a `.stick`. */
+	.tabs.stick > .tab-bar {
+		position: sticky; top: 0; z-index: 3;
+		background: linear-gradient(var(--well, #0000), var(--well, #0000)), var(--ground, var(--wash));
+		/* ⚠ The strip can sit BESIDE the title (ext/Doc at desktop widths), so once the title has scrolled
+		   away the content showed through the empty spot to its left. The same paint, as an outset shadow
+		   clipped to the box extended leftward: nothing moves in the layout, and the scroller clips it. */
+		box-shadow: 0 0 0 100vw var(--well, #0000), 0 0 0 100vw var(--ground, var(--wash));
+		clip-path: inset(0 0 0 -100vw);
 	}
 
 	/* Quiet by construction: a text label, a hairline under the set, a 2px mark under

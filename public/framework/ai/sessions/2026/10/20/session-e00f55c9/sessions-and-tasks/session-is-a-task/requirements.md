@@ -76,3 +76,48 @@
     - Tasks can hold notes and content cards.
     - A session's log references its tasks and notes in order, so one log renders as a timeline you can replay.
     - Propose how content cards get added to tasks and sessions with the item tool. Show the proposal; don't build it yet.
+
+## Part 3: the 60-second write, investigated properly (the owner, 2026-10-24, the next prompt)
+
+"I don't know what the heck 60 seconds is taking. Make sure we're looking into this properly, doing a thorough investigation of the problem and potential solutions, and solving it in a way that makes sense to our system." This replaces item 12's quick fix with a proper one.
+
+12b. **Measure first.** Time each step of one `item` write on this session's record: the replay, the append, `session_state`, `agents_resolver` (it reads Servex's registry of every agent ever started, 2,000+ rows and 3 MB, to find the child sessions), the per-task cost lookups, and `cache.jsonl`. Write the numbers in `slow-write.md` here.
+
+12c. **The owner's model, so build to it:**
+- **A session is built from its own `session.jsonl` alone,** and that file names its child sessions. No scan of a global registry to find them.
+- **Indexes are per scope.**
+  - `ai/sessions/index.jsonl` lists the years.
+  - Each year's index lists its months, each month's its days, and each day's its sessions.
+  - Some `index.json` and `index.jsonl` files already exist (in `2026/` and in each day). Find what writes them and extend those; don't add another set.
+- **Servex keeps a live instance cached.** It builds a session once, keeps it in memory, and tails its files. Later reads and writes use that instance, so a write is one append plus an in-memory update.
+
+12d. **Then fix it.** Write the plan in `slow-write.md` and get it reviewed, build it, and measure again. The target: a write in under a second, and a full read of this session in a few seconds at most.
+
+## Part 4: what a session log holds, and how masterminds follow it (the owner, 2026-10-24, the prompt about "show lines")
+
+The tab has been asking agents for `show:` log lines. That's a loose convention (mastermind.md:131, vscode-mastermind.md, the documentation skill), not a system, and the owner doesn't want a special system for it.
+
+18. **(ai-system-mastermind) Retire "show:".**
+    - A finished piece of work is the task's `complete`, with its `outcome` and `links` (the finish-task landing). That's what the tab relays.
+    - **The session log holds only the major states:** a task added, started, waiting or complete, and a pointer line when a file the owner should know about was written (its path and a one-line synopsis).
+    - **Decisions and design go into the module's own docs** (`architecture.md`, `doc/*.md`), where they'll be found. The session log only points to them.
+    - Update `task-buckets.md`, the mastermind and vscode-mastermind role readmes, and the documentation skill.
+    - Also make task-buckets.md say ONE WRITER for owner asks: the prompt splitter files them, and the tab takes the splitter's task and never adds its own (task-mastermind-session-closeout is changing the code).
+19. **(ai-system-mastermind) Masterminds follow their children through the files.**
+    - Use the existing `follow` tool (Servex) on each child's session log, reading only the state lines from item 18. No polling, and no relaying of chat between agents.
+    - Measure what following costs in tokens. If a child's log is noisy, fix what the child logs, rather than stop following.
+    - Check that `/framework/ai/tracking/` is linked from the AI page.
+20. **(deputy, adds to 12c) A long session reads fast, with no history lost.**
+    - The owner's gut is right that replaying a 4-day log shouldn't take 60s. Measure (12b) whether the time goes on the replay or on the extra work after the append.
+    - If the replay itself is slow, add checkpoint lines, so a replay starts from the latest checkpoint while every older line stays in the file. Nothing is deleted or rewritten.
+
+
+## One subscription system (the owner, 2026-10-24, the next prompt)
+
+"We want to basically use the same system everywhere... the same way an agent subscribes to a sub-agent session log, an agent can subscribe to a certain module, and just by subscribing it automatically gets test errors or browser errors... lean into our one solid system rather than redesigning a subscription system for every new use case."
+
+- **The one system is Servex `follow`.** It watches a file or a folder (module level), and a `.jsonl` file's new lines arrive verbatim, batched every 2 seconds.
+- **So a test failure or a page error is just a line appended to a log in the module's own folder** (data lives with its module). Whoever follows that module gets it. No direct `send` from the watcher, and no second subscription mechanism.
+- **The builder follows the modules it is changing,** the mastermind follows its children's session logs, and both use the same tool.
+- **The noise rule still applies:** report a failure only if it still fails after a quiet spell. Passes are logged as one "clear" line.
+- **`ai/errors/` (one global folder) moves toward per-module logs.** Say how in your outcome.

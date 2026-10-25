@@ -166,11 +166,15 @@
 	.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: none; white-space: nowrap; }
 
 	@media (width < 40em) {
-		.pages:has(> .page--ai:is(.active-page, .active-ancestor) > .inbox-shell) { overflow-y: auto; }
+		/* the scroll is the TOPIC's now (core/Sidebar: a topic with a `.tabs.stick` scrolls, header and all) */
 		.page--ai.page.full:has(> .inbox-shell) { height: auto; min-height: 100%; overflow: visible; }
 		.page--ai.page.full:has(> .inbox-shell) > .inbox-shell { flex: none; height: auto; }
 		.page--ai .inbox-rail, .page--ai .inbox-stream { display: block; }
 		.page--ai .inbox-rows { overflow: visible; }
+		/* The whole one-row head sticks, title and strip together (the owner, 2026-10-24: one row at every width). The topic scrolls
+		   (core/Sidebar, `.tabs.stick`) and the framework header scrolls away; a sticky box stays inside its parent, so the HEAD is
+		   the sticky element, not the strip. Opaque ground under it: the title well and the strip each paint their own `--well` once. */
+		.page--ai .inbox-head { position: sticky; top: 0; z-index: 3; background: var(--ground, var(--wash)); }
 		.page--ai .inbox-head .doc-well { padding-block: 0.4em 0.1em; }
 	}
 }

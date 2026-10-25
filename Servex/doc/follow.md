@@ -171,9 +171,24 @@ following a directory that doesn't exist yet still catches a file born
 inside it, from its first line; and a burst whose final write's "change"
 event never fires (the trap above) still delivers every line.
 
+## A parent following its child hears only states
+
+A subscription made by `Agents.follow_child` (it has `of:`) is filtered: `Follow.worth_waking` forwards only the lines `Follow.kind` calls `state` (a task added, started, waiting, complete) or `pointer` (a file the owner should know about, a shot, a review verdict), each cut to 600 characters. Steps, actions, decisions, commits, heartbeat and `worktree-watch:` lines are dropped, and a burst with nothing left sends no message, so it wakes nobody. A subscription you make yourself with the `follow` tool still gets every line. Test: `node Servex/Follow-kind.test.mjs`; cost: `node Server/FollowCost.mjs` (the rule and the measured numbers: `public/framework/ai/doc/task-buckets.md`).
+
 ## Where it lives
 
 The whole mechanism is one class, [`Servex/Follow.js`](../Follow.js) — one
 chokidar watcher covering every followed path, re-scoped as subscriptions
 change. Wired in at boot in `Servex.js` (`this.follow`), and hooked into
 `Agents.js`'s `register()` so a stopped agent's subscriptions end with it.
+
+## One subscription system (the owner, 2026-10-24)
+
+**Servex `follow` is the only way an agent hears about anything that changes.** Masterminds follow their children's session logs; a builder follows the modules it changes; a test failure or a page error is just a line appended to a log in that module's own folder, so whoever follows the module gets it. A new kind of notice never gets its own mechanism: it appends a line where the data lives and `follow` delivers it. Only state and pointer lines wake a follower ([task-buckets.md](/framework/ai/doc/task-buckets.md), "Following children"); a failure is logged once it still fails after a quiet spell, and passes are one "clear" line.
+
+**Second mechanisms found (flagged, to be moved onto `follow`, nothing rebuilt yet):**
+
+| Where | What it does | Becomes |
+|---|---|---|
+| `Servex/WorktreeWatch.js` (`this.send(this.owner, line)`, in `test_job` and the layout-break report) | tells the holder of a worktree directly | the line is already written to the log with `this.note(line, true)`; drop the `send`, and have the holder follow its worktree's log (`Agents.spawn` or `take_worktree` creates that subscription) |
+| `public/framework/ai/errors/<date>` log (`ext/ErrorLog`, one global folder) | page errors, one file for the whole site | a line in the log of the module whose page broke (the page's module folder), so a builder following the module receives it. ErrorLog maps page path to module folder; the global folder stays as the index until every module has its own |
