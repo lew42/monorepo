@@ -57,3 +57,5 @@ The owner wants to dictate on the website and have it reach this VS Code sidebar
 - Never resume the tab's session id from a second process: two writers on one transcript.
 
 Report what works, test it once end to end, and write the result in the dictation doc.
+
+**Stopped (the owner, 2026-10-24, later the same night):** website dictation goes straight to an SDK agent; the VS Code tab and the Claude app are no longer dictation targets. What was learned is in [core/Page/ai/doc/dictation.md](/framework/core/Page/ai/doc/dictation.md), "Why not dictate into a VS Code tab". The focus is the Debug tab, both stalls and the bubbles, made reliable.
