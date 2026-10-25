@@ -11,3 +11,10 @@ Sonnet, high effort. Work in a worktree and land ready to merge. **The owner app
    - **Backfill:** move the existing `v-…` records into the store by a script with a manifest, so nothing is lost.
 2. **The voice session's smart agent defaults to Opus 5.5, medium effort, with mastermind permissions,** so the owner can dictate to it directly and it can act: spawn, use the item tool, and so on. That's the `session-smart` row in `Servex/agents/roles.js`, plus its brief (`session-smart.md`). Check what "mastermind permissions" means there (allowed tools and the permission mode), and say it in one line.
 3. **Proof:** open the dictate widget, say one sentence, and see the session on `/framework/ai/sessions/` (today's list) with its cost and its child agents. Shot at 1920.
+
+## The owner again (2026-10-25), sharper, so do this FIRST
+
+"The voice agent via the website is still using Sonnet. Upgrade him to Opus. I want him to be my mastermind. He should be the default voice agent, should automatically go to mastermind mode too, so that it can persist."
+- The website's default voice agent (the smart half of a voice session) **is the owner's mastermind:** Opus 5.5 at medium effort, with mastermind abilities (spawn agents, the item tool, Servex tools). It **persists** across the session; it doesn't sleep or reset between turns.
+- **Today:** the `session-smart` row in `roles.js:102` says Sonnet ("the owner, 2026-10-05, saving credits", now overruled), and `Sessions.claude_model("smart")` picks by usage pace (`Usage.pick`). Make it Opus 5.5 regardless of pace, unless the week goes over pace.
+- **Ship this part first, on its own:** a small merge plus a Servex restart, before the folder work.
