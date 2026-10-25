@@ -140,9 +140,9 @@ export class Agents {
 	 * — `directory_of` returns null for it and nothing is added. */
 	spawn(spec){
 		const again = spec.resume;
-		/* SPAWNED AT A PATH (the owner, 2026-10-25; roles/mastermind.md "Spawned at a path"). \`path\` (a repo path or a site path) loads that
+		/* SPAWNED AT A PATH (the owner, 2026-10-25; roles/mastermind.md "Spawned at a path"). `path` (a repo path or a site path) loads that
 		 * path's readme chain and its mastermind.md into the SYSTEM PROMPT (roles.js role_system). An alias word with a default path
-		 * (\`ai-system-mastermind\`) is the \`mastermind\` role at that path; a caller's own \`path\` wins. The id's name is the path's last folder
+		 * (`ai-system-mastermind`) is the `mastermind` role at that path; a caller's own `path` wins. The id's name is the path's last folder
 		 * (mastermind-ai) unless the caller named it. */
 		if (!again){
 			const dflt = alias_path(spec.role);

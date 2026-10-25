@@ -81,7 +81,7 @@ export default class ModuleInbox {
 	/** The MCP tool, in `mcp.tool()`'s shape. */
 	static FEEDBACK = "ai";              // the module whose inbox is the AI system mastermind's feedback inbox
 	static FEEDBACK_AGENT = "ai-system-mastermind";   // the live old-style one, if it still runs; a new one is a `mastermind` at FEEDBACK_PATH
-	static FEEDBACK_LIVE = /^(ai-system-mastermind|mastermind-ai(-d+)?)$/;
+	static FEEDBACK_LIVE = /^(ai-system-mastermind|mastermind-ai(-\d+)?)$/;
 	static FEEDBACK_PATH = "public/framework/ai";
 	static FEEDBACK_WAKE = 3;            // the repeat that wakes it
 
