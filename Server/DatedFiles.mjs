@@ -182,14 +182,30 @@ export default class DatedFiles extends Dated {
 	static TIME_KEYS = ["at", "ts", "started_at", "first_at", "requested_at", "started", "time", "created_at"];
 	/** Absolute folder of a day ("YYYY-MM-DD", a Date or ms; today by default). */
 	day_dir(day){ return DatedFiles.abs(this.day_path(day)); }
-	/** A session's folder without a scan: `session-<id8>` or the uuid, on the given day or up to 3 days before; else where a new one goes. Absolute. */
+	/** A session's folder without a scan: `session-<id8>` or the uuid, on the given day or up to 30 days before; else where a new one goes. Absolute.
+	 *  A `session-<id8>` folder that names ANOTHER full id is not ours: two ids can share their first 8 hex (the hand-picked a1c1d1e1-000N ids of
+	 *  2026-09-19 put three sessions' costs in one folder), so a clash gets a folder named by the full uuid. Doc: core/Session/doc/identity.md. */
 	session_dir(id, day = new Date()){
-		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day;
+		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day, short = "session-" + id.slice(0, 8);
 		for (let back = 0; back < 31; back++){   // 4 until 2026-10-24: a tab resumed on its fifth day got a second folder (session-e00f55c9 on 10/20 and 10/24)
 			const d = this.day_dir(new Date(t.getTime() - back * 864e5));
-			for (const name of [id, "session-" + id.slice(0, 8)]) if (fs.existsSync(path.join(d, name))) return path.join(d, name);
+			if (fs.existsSync(path.join(d, id))) return path.join(d, id);
+			if (fs.existsSync(path.join(d, short)) && [id, null].includes(DatedFiles.owner(path.join(d, short)))) return path.join(d, short);
 		}
-		return path.join(this.day_dir(t), "session-" + id.slice(0, 8));
+		const home = path.join(this.day_dir(t), short);
+		return fs.existsSync(home) ? path.join(this.day_dir(t), id) : home;   // reached only when session-<id8> belongs to another id
+	}
+	/** The full session id a session folder says it holds, or null when it does not say (then it is taken to be the caller's).
+	 *  The same sources, in the same order, as Session.scan: index.json, the cache summary, then line 1 of the record or page. */
+	static owner(dir){
+		const read = f => { try { return fs.readFileSync(path.join(dir, f), "utf8"); } catch { return ""; } };
+		const first = f => { try { return JSON.parse(read(f).split("\n")[0] || "null"); } catch { return null; } };
+		let id = null;
+		try { id = JSON.parse(read("index.json") || "null")?.id ?? null; } catch {}
+		if (!id) try { id = JSON.parse(read("cache.jsonl").split("\n").find(l => l.startsWith('{"summary"')) ?? "null")?.summary?.id ?? null; } catch {}
+		if (!id){ const l = first("session.jsonl") ?? first("task.jsonl"); id = l?.session?.id ?? l?.assign?.session_id ?? null; }
+		if (!id){ const l = first("page.jsonl"); id = typeof l?.session === "string" ? l.session : null; }
+		return typeof id === "string" && DatedFiles.UUID.test(id) ? id : null;
 	}
 	/** Where a new task folder goes: inside its session when one is given, else straight under the day. Absolute, not created. `parent` is resolved by the caller. */
 	home({ slug, session_id, parent, day } = {}){

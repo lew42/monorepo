@@ -146,7 +146,9 @@ export default class Session extends Task {
 		day ??= this.day(new Date());
 		this.days.set(id, day);
 		if (await exists(flat)){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, new URL(`./${day}/${id}/`, root)); return this.dir_url(id); }
-		this.slugs.set(id, slug || "session-" + id.slice(0, 8));
+		// Two ids can share their first 8 hex (hand-picked test ids did, 2026-09-19): a default name another id already holds that day becomes the full uuid.
+		const short = "session-" + id.slice(0, 8), taken = !slug && [...this.slugs].some(([o, s]) => o !== id && s === short && this.days.get(o) === day);
+		if (!taken) this.slugs.set(id, slug || short);
 		return this.dir_url(id);
 	}
 }
