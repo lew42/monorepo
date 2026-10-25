@@ -89,3 +89,13 @@ The chat is drawn in **list order**, the order Node appended the entries, never 
 
 - Should one prompt be one Prompt, or should the fast assistant split a long dictation into several (one per idea)? The recommendation is one per idea: the fast assistant already decides where the ideas break.
 - Does the dictation sheet's current bubble log become this, or does it stay as the raw transport log underneath? The recommendation is to keep it as the raw log and draw the chat from `tasks`.
+
+## Decision (the owner, 2026-10-25): Option C, with these corrections
+
+- **C it is.** The conversation lives in the session's own `session.jsonl`, in its `tasks` list. No third store: `prompts.jsonl` folds into the session (a scripted migration, nothing lost). Responses are not dissected the way prompts are.
+- **The fast assistant does not make tasks or questions.** It gives live feedback only: the transcription, cleaning, and placing sentences into paragraphs and prompts. Turning a prompt into tasks, questions and cards is the **smart assistant's** job. (This corrects the Question example above: the smart assistant adds it, not the fast one.)
+- **The smart assistant is the voice mastermind.** It stays hands-free so it can always answer. It spawns its own masterminds for the work and never does the work itself. It may rewrite, or redo entirely, anything the fast assistant wrote.
+- **A plain chat reply is allowed.** It lives on the prompt it answers (`prompt.replies`). A reply can point at one sentence or a word range by id, so an answer can sit beside the exact words it answers.
+- **The trace is the point.** "Didn't I ask for this?" must be answerable by search: the raw prompt, when it was said, the tasks made from it, and whether each was done. The raw Whisper text stays on the Prompt.
+- **Layout, first pass (Figma mock later):** no left/right bubbles. Your transcription sits at the root of the chat area, not in a card. The smart assistant's replies and cards nest under the prompt they answer, marked with the brain icon.
+- **Build it as Chat v2, a new widget.** The current dictation chat stays as it is until v2 replaces it. Call it chat: dictation is one feature of the chat.

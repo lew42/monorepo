@@ -140,3 +140,7 @@ Run past-work on "fast assistant" and "smart assistant" first (Sessions.js fast/
 ## Part 9: agree the chat shape before building storage (2026-10-25)
 
 The owner asked for the options first. Read [chat-shape.md](chat-shape.md): three shapes, Option C recommended (one `tasks` list, `Prompt` and `Question` extend Task, a reply lives on what it answers, the raw Whisper text is kept on the Prompt). Keep fixing transport bugs, but hold the fast/smart storage layer until the owner picks. If you see a better shape or a flaw, add it to chat-shape.md as Option D.
+
+## Part 10: build Chat v2 on Option C (the owner, 2026-10-25)
+
+The owner picked Option C. Read the Decision section at the end of [chat-shape.md](chat-shape.md). Build Chat v2 as a new chat widget beside the current one, which stays as it is. It draws one session's `tasks` in list order: Prompt at the root, its replies and cards nested under it with the brain icon. The fast assistant only writes Prompts (raw Whisper text plus cleaned paragraphs). The smart assistant writes the tasks, questions and replies. The core classes (`Prompt extends Task`, `Question extends Task`, and the prompts.jsonl migration) are built by a separate agent under `core/Task/tasks/prompt-extends-task/`. Agree the field names with it and build on what it lands; don't build a second Prompt class.
