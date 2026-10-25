@@ -7,6 +7,8 @@ View.stylesheet(import.meta, "Chat.css");
 // A chat log: scrolling message bubbles, yours right, others left. See doc/notes.md#chat-log
 // see doc/notes.md#one-bubble-per-run
 export const MERGE_GAP_MS = 10000;
+export const GUESS_TITLE = "Gray words: the transcriber's guess, still changing. They turn black once it settles.";
+export const LIVE_SENT_TITLE = "Faded: already sent, waiting for the cleaned-up line, which replaces this and turns black.";
 
 export function mergeable($box, sender, at){
 	const last = $box.el.lastElementChild;
@@ -813,6 +815,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 				lives.delete("draft");
 				const key = "sent:" + (++sent_n);
 				hit.el.classList.add("chatbox-live-sent");
+				hit.el.title = LIVE_SENT_TITLE;
 				set_mark(hit, "cleaning…");
 				hit.timer = setTimeout(() => set_mark(hit, "sent, waiting"), 2000);
 				lives.set(key, hit);
@@ -821,7 +824,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 			follow(() => {
 				const hit = live_bubble("draft", "chatbox-you chatbox-draft", "owner");
 				hit.text.textContent = settled;
-				if (guess){ const g = el("chatbox-guess", "span"); g.textContent = (settled ? " " : "") + guess; hit.text.append(g); }
+				if (guess){ const g = el("chatbox-guess", "span"); g.textContent = (settled ? " " : "") + guess; g.title = GUESS_TITLE; hit.text.append(g); }
 			});
 		},
 		/** An assistant's reply while it is written; empty text removes it. */

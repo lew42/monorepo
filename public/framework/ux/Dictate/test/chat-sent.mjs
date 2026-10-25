@@ -25,7 +25,8 @@ async function round(v2){
 	fs.writeFileSync(scratch, "");
 	const queue = [];   // the lines the next stream (re)connect delivers; the proof pushes into it, and every one is also appended to the scratch file (Chat v2 reads the file)
 	queue.push = (...ls) => { fs.appendFileSync(scratch, ls.map(l => JSON.stringify(l) + String.fromCharCode(10)).join("")); return Array.prototype.push.apply(queue, ls); };
-	const owner = (n, ms) => ({ chat: { at: iso(ms), from: { kind: "owner" }, text: `line number ${n} of the proof`, via: "voice" } });
+	const owner = (n, ms) => v2 ? { tasks: { add: { id: `p-fill-${n}`, type: "Prompt", title: `Prompt number ${n}`, text: `line number ${n} of the proof, with enough words to take a little room in the box` } } } : { chat: { at: iso(ms), from: { kind: "owner" }, text: `line number ${n} of the proof`, via: "voice" } };
+	const v2_done = new Set();
 	const ev = lines => lines.map(line => `data: ${JSON.stringify({ kind: "line", line })}
 
 `).join("");
@@ -40,6 +41,7 @@ ${ev(queue.splice(0))}` });
 		if (verb === "say"){
 			const body = JSON.parse(req.postData() ?? "{}"), at = iso(Date.now());
 			out = { ok: true, at };
+			if (!v2_done.has(at)) setTimeout(() => { const r = { refined: { at: iso(Date.now()), re: at, sentences: [{ n: 1, text: "hello from the proof" }], sections: [], flags: [], cost_usd: 0.0123 } }; queue.push(r, r); }, 2200);
 			queue.push({ chat: { at, from: { kind: "owner" }, text: body.text, via: "text" } });
 			setTimeout(() => queue.push({ sent: { to: "fast", at: iso(Date.now()), re: [at], delay_ms: 420 } }), 1500);
 			setTimeout(() => queue.push({ sent: { to: "smart", at: iso(Date.now()), re: [at], delay_ms: 3100 } }), 5000);
@@ -50,8 +52,8 @@ ${ev(queue.splice(0))}` });
 	await page.route(/\/api\/hitl/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify({ ok: true, marks: [{ mark: "clear" }] }) }));
 	await page.route(/\/log\/prompts/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: "{}" }));
 	await page.goto(base + "/framework/ext/drawer/", { waitUntil: "domcontentloaded" });
-	await page.waitForSelector(".drawer-rail-ai", { timeout: 20000 });
-	await page.click(".drawer-rail-ai");
+	await page.waitForSelector(".drawer-rail-ai", { state: "attached", timeout: 20000 });
+	await page.evaluate(() => document.querySelector(".drawer-rail-ai").click());   // hidden at desktop widths, still wired
 	await page.waitForSelector(".drawer-rail-sheet.on", { timeout: 20000 });
 	await page.click(".drawer-rail-sheet.on .dictation-bar-type");
 	await page.fill(".drawer-rail-sheet.on .chatbox-field textarea, .drawer-rail-sheet.on .chatbox-field input", "hello from the proof");
@@ -64,17 +66,24 @@ ${ev(queue.splice(0))}` });
 	const sentText = await page.evaluate(() => [...document.querySelectorAll(".chatbox-sent")].map(n => n.textContent));
 	console.log(tag, "sent badges:", JSON.stringify(sentText));
 	if (!v2) check(sentText.some(t => /fast ✓.*smart ✓/.test(t)), `${tag}: the owner line shows both "fast ✓" and "smart ✓"`);
+	if (!v2) check(await page.locator(".ux-dictate-widget-refined").count() === 1, `${tag}: a refined line that arrives twice draws ONE block`);
+	queue.push({ tasks: { add: { id: "p-proof", type: "Prompt", title: "A prompt", text: "A prompt about sending." } } });
+	queue.push({ "p-proof": { tasks: { add: { id: "q-proof", type: "Question", text: "Do you want the proof to show this question?", from: "p-proof" } } } });
+	await page.waitForTimeout(1500);
+	if (!v2) check(await page.locator(".chatbox-task[data-id=q-proof]").count() === 1, `${tag}: an open Question from the prompt shows in the chat`);
+	await page.screenshot({ path: `${shots}/${tag}-5-question.png` });
 	queue.push(...Array.from({ length: 40 }, (_, i) => owner(i + 1, Date.now() + i)));
 
 	await page.waitForTimeout(5000);
 	const box = () => page.evaluate(isV2 => {
 		const b = (isV2 ? document.querySelector(".drawer-rail-sheet-v2 > .chatbox-jump") : [...document.querySelectorAll(".drawer-rail-sheet.on .chatbox-jump")].find(j => !j.closest(".drawer-rail-sheet-v2")))?.parentElement;
 		const j = b?.querySelector(".chatbox-jump");
-		return b ? { top: Math.round(b.scrollTop), max: Math.round(b.scrollHeight - b.clientHeight), jump: !!j && !j.hidden && getComputedStyle(j).display !== "none" } : null;
+		return b ? { top: Math.round(b.scrollTop), max: Math.round(b.scrollHeight - b.clientHeight), jump: !!j && !j.hidden && getComputedStyle(j).display !== "none", newest_in_view: (() => { const nb = [...b.querySelectorAll("[data-re]")].pop() ?? [...b.querySelectorAll(".chatbox")].pop(); if (!nb) return false; const r = nb.getBoundingClientRect(), br = b.getBoundingClientRect(); return r.bottom > br.top + 1 && r.top < br.bottom - 1; })() } : null;
 	}, v2);
+	if (v2) console.log("v2 box:", JSON.stringify(await page.evaluate(() => { const b = document.querySelector(".drawer-rail-sheet-v2"); return b ? { cls: b.className, h: b.clientHeight, text: b.innerText.slice(0, 200), ctl: localStorage.getItem("lew42-voice-session") } : null; })));
 	const s0 = await box();
 	console.log(tag, "after fill:", JSON.stringify(s0));
-	check(!!s0 && s0.max > 100 && Math.abs(s0.top - s0.max) < 4, `${tag}: pinned to the bottom by default`);
+	check(!!s0 && s0.max > 100 && (v2 ? Math.abs(s0.top - s0.max) < 4 : s0.newest_in_view), `${tag}: ${v2 ? "pinned to the bottom" : "the newest bubble is in view (V1 turns pages: newest top stays visible, blank below)"} by default`);
 	await page.screenshot({ path: `${shots}/${tag}-2-pinned.png` });
 	await page.evaluate(isV2 => { const b = (isV2 ? document.querySelector(".drawer-rail-sheet-v2 > .chatbox-jump") : [...document.querySelectorAll(".drawer-rail-sheet.on .chatbox-jump")].find(j => !j.closest(".drawer-rail-sheet-v2")))?.parentElement; b.scrollTop = 0; b.dispatchEvent(new Event("scroll")); }, v2);
 	await page.waitForTimeout(300);

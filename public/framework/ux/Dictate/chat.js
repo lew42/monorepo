@@ -2,6 +2,7 @@ import { View, button } from "../../core/View/View.js";
 import Widget from "./Widget.js";
 import floor from "./floor.js";
 import * as Session from "/framework/ext/Session/Session.js";
+import ChatV2Model from "/framework/ext/Chat/v2/ChatV2Model.js";
 import DictateHealth from "./DictateHealth.js";
 import * as report from "/framework/ext/Chat/v2/report.js";
 
@@ -152,6 +153,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	const on_link = new Set();
 	// Duplicate-draw fix: both watch() and stream() call draw(); dedupe by line: doc/chat-notes.md
 	let seen_chat = new Set();
+	let tasks = null;   // the ChatV2Model that folds this session's Task and Question lines
 	// In-flight echo: stream pushes owner's line before say() resolves
 	const sending = [];
 	const flat = t => String(t ?? "").replace(/\s+/g, " ").trim();
@@ -209,14 +211,25 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	function draw(line){
 		try { draw_line(line); } catch (e){ DictateHealth.fail("page", e, "drawing a session line"); }
 	}
+	// Tasks and Questions under a Prompt arrive as edits ({tasks:{add}}, {"<prompt>":{tasks:{add}}}, {"<prompt>":{"<task>":{complete}}}): ChatV2Model folds them, one row each.
+	function draw_task(line){
+		const M = ChatV2Model, touch = (tasks ??= new M()).apply(line), n = touch && tasks.by_id.get(touch.id);
+		if (!n || !n.type || M.kind(n) === "Prompt") return;
+		panel.say({ task: { id: n.id, question: M.kind(n) === "Question", phase: M.phase(n), label: M.label(n), answer: M.answer(n)?.text } });
+	}
 	function draw_line(line){
 		if (line?.react) return void panel.say({ react: line.react });
 		if (line?.para) return void panel.say({ para: line.para });
 		if (line?.place) return void panel.say({ place: line.place });   // the voice assistant's placement (doc/voice-assistant.md)
 		if (line?.sent) return void panel.say({ sent: line.sent });   // the line reached the fast or smart assistant (Servex mark_sent)
 		if (line?.summary) return void panel.say({ summary: line.summary });   // a card's summary swallows its raw lines (doc/voice-assistant.md#raw-and-refined)
-		if (line?.refined) return void panel.say(Session.entry(line));
-		if (!line?.chat) return;
+		if (line?.refined){   // the file replay and the live stream both deliver every line: one block per refined line
+			const key = "refined|" + line.refined.re + "|" + line.refined.at;
+			if (seen_chat.has(key)) return;
+			seen_chat.add(key);
+			return void panel.say(Session.entry(line));
+		}
+		if (!line?.chat) return void draw_task(line);
 		if (line.chat.from?.kind === "assistant" && Date.parse(line.chat.at) > (watching_since ?? 0)) health_answer(line);   // as times, never as text: Servex writes "…-05:00", the browser "…Z"
 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
 		if (echo){
@@ -260,6 +273,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		if (link.state !== "open") set_link({ state: "open" });   // a new session's wire starts fresh
 		own_ats = new Set();
 		seen_chat = new Set();
+		tasks = null;
 		// No session → the one this mount's first sentence just started: keep the screen. Only the owner's own lines are on it, and
 		// wiping them lost a sentence whose send then failed (stall.mjs "refuse"); the file replay that follows is deduped by `at`.
 		if (!(was === null && watching)) panel.reset();

@@ -535,7 +535,9 @@
 	   until its real line replaces it; a streaming reply ends in a caret. */
 	.chatbox-draft .chatbox-text { white-space: pre-wrap; }
 	.chatbox-guess { opacity: 0.55; }
-	.chatbox-live-sent { opacity: 0.6; }
+	.chatbox-live-sent { opacity: 1; }
+	.chatbox-live-sent > :not(.chatbox-live-mark) { opacity: 0.6; }   /* same fade as before, but the "cleaning…" label beside it stays full strength */
+	.chatbox-live-mark { display: block; font-size: 0.8em; }
 	.chatbox-streaming .chatbox-text > :last-child::after { content: "▍"; opacity: 0.5; }
 
 	/* DRILL IN (Drill.js, doc/drill.md) — the Open button a selected card grows,

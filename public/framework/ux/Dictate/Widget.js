@@ -1,12 +1,13 @@
-import { View, div, span, button, select, option, label, textarea, details, summary, strong } from "../../core/View/View.js";
+import { View, div, span, button, select, option, label, textarea, details, summary, strong, icon } from "../../core/View/View.js";
 import MicIndicator from "./MicIndicator.js";
 import Dictate, { remember_device, remembered_device } from "./Dictate.js";
 import { pg } from "./playground/Playground.js";
 import { marks as fetch_marks } from "../Understand/Understand.js";
 import { md_into } from "../../ext/Chat/md.js";
 import { who_label } from "../../ext/Chat/roles.js";
-import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll, mergeable } from "../../ext/Chat/Chat.js";
+import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll, mergeable, GUESS_TITLE } from "../../ext/Chat/Chat.js";
 import { composer } from "../../ext/Chat/Composer.js";
+import TaskView from "../../core/Task/TaskView.js";
 
 View.stylesheet(import.meta, "Widget.css");
 
@@ -281,6 +282,7 @@ Widget.Thread = class WidgetThread extends View {
 		if (this.hold_orphan(entry)) return;
 		if (entry?.type === "ask") return this.follow(() => this.draw_ask(entry));
 		if (entry?.type === "refined") return this.draw_refined(entry);
+		if (entry?.task) return this.show_task(entry.task);
 		if (entry?.place) return this.place(entry.place);
 		if (entry?.summary) return this.summarise(entry.summary);
 		if (entry?.sent) return this.sent(entry.sent);
@@ -461,6 +463,28 @@ Widget.Thread = class WidgetThread extends View {
 		this.anchor();
 	}
 
+	/** A Task or Question from a prompt (ChatV2Model's fold): one row at the end of the chat, patched in place when its stage or answer changes. */
+	show_task(t){
+		this.$empty.hide();
+		const rows = this.task_rows ??= new Map(), old = rows.get(t.id);
+		let node;
+		this.$bubbles.append(() => {
+			node = div.c("chatbox chatbox-reply chatbox-task", () => {
+				who_label("assistant");
+				div.c("chatbox-text", () => {
+					icon(t.question ? WidgetThread.QUESTION_ICON[t.phase] : TaskView.STAGE[t.phase] ?? "help").ac("chat-v2-state", "is-" + t.phase);
+					strong(` ${t.question ? "Question" : "Task"} · ${t.phase} `);
+					span(t.label);
+					if (t.answer) div.c("muted", t.answer);
+				});
+			}).attr("data-id", t.id).el;
+		});
+		if (old) old.replaceWith(node);
+		rows.set(t.id, node);
+		this.anchor();
+	}
+	static QUESTION_ICON = { open: "help_outline", answered: "mark_chat_unread", complete: "check_box" };
+
 	/** Collapsed <details> after the owner bubble `re` for a {refined} line; skipped if that bubble is not drawn. */
 	draw_refined(entry){
 		const line = this.lines.get(entry.re);
@@ -530,7 +554,7 @@ Widget.Thread = class WidgetThread extends View {
 		}
 		if (d.host && d.host.lastElementChild !== d.el) d.host.append(d.el);   // a redraw of the host (a mark) appended pieces after it
 		d.text.textContent = settled;
-		if (guess) d.text.append(span.c("chatbox-guess").text((settled ? " " : "") + guess).el);
+		if (guess) { const g = span.c("chatbox-guess").text((settled ? " " : "") + guess).el; g.title = GUESS_TITLE; d.text.append(g); }
 		this.anchor();
 	}
 
