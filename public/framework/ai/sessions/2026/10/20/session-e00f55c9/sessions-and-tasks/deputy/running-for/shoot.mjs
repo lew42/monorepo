@@ -1,0 +1,13 @@
+import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+const b = await chromium.launch(), p = await b.newPage({ viewport: { width: 1920, height: 1000 } });
+const D = process.argv[2];
+await p.goto("http://qf-4.localhost/framework/ai/sessions/e00f55c9-bad4-4ee2-899e-d629ea1eede6/"); await p.waitForTimeout(6000);
+console.log("page:", await p.evaluate(() => [...document.querySelectorAll(".sov-stat")].map(e => e.innerText.replace(/\n/g, ": ")).join(" | ")));
+await p.screenshot({ path: D + "/page-shot.png" });
+await p.goto("http://qf-4.localhost/framework/ai/sessions/"); await p.waitForTimeout(8000);
+const row = p.locator(".sessions-row", { hasText: "e00f55c9" }).first().or(p.locator(".sessions-row", { hasText: "VS Code tab" }).first());
+console.log("rows:", await p.locator(".sessions-row").count());
+const t = await p.evaluate(() => [...document.querySelectorAll(".sessions-row")].filter(r => /4 days|active/.test(r.innerText)).slice(0, 3).map(r => r.innerText.replace(/\n/g, " | ")));
+console.log(t);
+await p.screenshot({ path: D + "/list-shot.png" });
+await b.close();
