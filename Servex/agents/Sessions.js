@@ -3,9 +3,9 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { place, HOME } from "../home.js";
-import Usage from "../Usage.js";
 import LogLine from "../../Server/LogLine.mjs";
 import { model as tier_model } from "./tiers.js";
+import Usage from "../Usage.js";
 import { page_path } from "./Layers.js";
 import Cards from "../cards/Cards.js";
 import { session_facts } from "./Agents.js";
@@ -172,10 +172,7 @@ export const now_ms = () => {
  * Claude itself refuses it for usage limits, no setting change needed. That refusal is the
  * whole point of this switch: Dictate keeps answering even once Claude is cut off. */
 export const SESSION_BACKENDS = ["auto", "claude", "openrouter", "local"];
-/* VOICE MODEL POLICY (the owner, 2026-10-12, ai/2026-10-12/refine-haiku-live: "while we pay for Claude tokens anyway, keep
- * OpenRouter to a minimum"): "auto" now means CLAUDE. OpenRouter only when session-backend.txt says `openrouter`, or when
- * Claude refuses a session (usage limit, logged out: the automatic fallback in woken()). Was: luna first (2026-10-05..08). */
-export const VOICE_MODELS = { fast: "openai/gpt-6-luna", smart: "openai/gpt-6-luna" };
+/* VOICE MODEL POLICY (the owner, 2026-10-12, 2026-10-25): Claude is the default (see claude_model). OpenRouter runs a voice seat only when session-backend.txt says `openrouter`, or when Claude refuses that session (usage limit, logged out: the automatic fallback in woken()). */
 export const FALLBACK_MODEL = "openai/gpt-6-luna";
 /* Overridable (review finding 6) so a test can point this at a throwaway file instead of the
  * real one every live Servex reads — `prove-fallback.mjs` sets this before importing. */
@@ -404,10 +401,22 @@ export default class Sessions {
 
 	load(){
 		try { this.map = JSON.parse(fs.readFileSync(this.file, "utf8")); } catch { this.map = {}; }
+		let moved = 0;
 		for (const [id, s] of Object.entries(this.map)){
+			if (this.relocate(s)) moved++;
 			delete s.floor;   // a floor from before a restart is stale: nobody is still talking into it
 			for (const role of ["fast", "smart"]) if (s[role]) this.by_agent.set(s[role], { id, role });
 		}
+		if (moved){ console.log(`sessions: ${moved} session${moved === 1 ? "" : "s"} repointed to the dated store`); this.save(); }
+	}
+
+	/* A record that voice-backfill.mjs moved into the dated store (/framework/ai/sessions/YYYY/MM/DD/<id>/) is found there by its
+	 * id and day, and `s.file` is repointed to it, so sessions.json is never edited by hand. */
+	relocate(s){
+		if (!s.file || /^\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\//.test(s.file) || !Number.isFinite(+new Date(s.at))) return false;
+		const file = Sessions.session_path(s.home, s.id, new Date(s.at));
+		if (!fs.existsSync(this.disk(file))) return false;
+		s.file = file; return true;
 	}
 
 	/* Every folder a session belongs to: its home, then each page it passed through. */
@@ -683,7 +692,7 @@ export default class Sessions {
 
 	/* `card` (voice-sessions, card sessions, 2026-09-29): with a card id, the session's HOME is
 	 * that card's own folder, `/framework/ai/<card>/`, instead of the nearest folder to `path` —
-	 * so its file sits beside the card's `page.jsonl` and its folder-index lines land there too.
+	 * so its folder-index lines land there. Its own file is in the dated store like every voice session (`session_path()`), not beside the card.
 	 * `path` is still kept as where the owner actually stood (unchanged: it is `asked` below). */
 	create({ path: at, card, host = null, fresh = false } = {}){
 		const asked = page_path(at);
@@ -1098,6 +1107,7 @@ export default class Sessions {
 	/* Held open with no prompt: each one's first turn is the owner's first line. */
 	spawn(s, role, { resume = null, context = "" } = {}){
 		const where = `\n\nThis session is ${s.id}. Its home page is ${s.home}; the owner pressed ✦ on ${s.path}.`
+			+ (role === "smart" ? `\n\nYour session's page (the item tool's \`path\`): ${path.posix.dirname(s.file)}/` : "")
 			+ (!s.card ? "" : role === "fast" ? `\n\nThis session is about card ${s.card}.`
 				: `\n\nThis session is about card ${s.card}. Its record is public${s.home}page.jsonl; read that file first for the card's history.`)
 			+ (context ? `\n\nThis session ran before you; its last lines follow (the whole record is public${s.file}):\n${context}` : "");
@@ -1111,7 +1121,7 @@ export default class Sessions {
 			system: this.voice_brief() + where,
 			env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
 			sdk: { tools: [] },
-			parent: "sessions"
+			parent: "sessions", parent_session: s.id
 		} : role === "fast" ? {
 			/* LEAN like the Layers page assistant: no settings, no connectors, no memory,
 			 * no tools, and no Servex door (`mcp_url: ""`). Its brief is its whole system prompt. */
@@ -1123,7 +1133,7 @@ export default class Sessions {
 			 * caller silently replace the provider's own credentials instead of adding to them). */
 			env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
 			sdk: { tools: [] },
-			parent: "sessions"
+			parent: "sessions", parent_session: s.id
 		} : {
 			/* The whole Claude Code preset (tools, CLAUDE.md, skills, Servex's MCP door), its brief appended. */
 			role: "session-smart", name: s.id, model: this.session_model(s, "smart"), effort: "medium", urgent: true,
@@ -1131,7 +1141,7 @@ export default class Sessions {
 			/* LEAN (dictate-next-4): no user/project settings (CLAUDE.md, skills, memory), no claude.ai connectors; the brief is the prompt. */
 			setting_sources: [], env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
 			system: { type: "preset", preset: "claude_code", append: this.brief("smart") + where },
-			parent: "sessions"
+			parent: "sessions", parent_session: s.id
 		};
 		const go = (sp, r) => this.servex.agents.spawn({ ...sp, ...(s[role] ? { id: s[role] } : {}), ...(r ? { resume: r } : {}) });
 		try { return go(spec, resume); }
