@@ -133,7 +133,6 @@ function piece_body(pc){
 	if (pc.mark) append_mark(node, pc.mark);
 	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));
 	if (pc.failed) (node.lastElementChild ?? node).append(" ", failed_badge());
-	if (pc.track) (node.lastElementChild ?? node).append(" ", sent_badge(pc));
 	return node;
 }
 
@@ -325,7 +324,31 @@ export function card_of(b){
 /** One sticky-bottom scroll for every chat log; call `pin()` after drawing. See doc/notes.md#sticky-scroll */
 export function sticky_scroll(box, { observe = true, end } = {}){   // end(): scrollTop of the true bottom of the content when blank padding sits under it (Widget's Thread); default scrollHeight   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
 	let locked = true, last = 0;
-	const bottom = () => Math.max(0, Math.min(end ? end() : box.scrollHeight, box.scrollHeight) - box.clientHeight);   // the scrollTop that shows the last line at the box's bottom
+	// A fixed/sticky bar (the bottom toolbar) can sit over the box's bottom edge: the last line must land just above it, so the box grows tail room as tall as the overlap.
+	let tail = 0, tail_base = null;
+	const overlap = () => {
+		const r = box.getBoundingClientRect(), y = Math.min(r.bottom, innerHeight) - 2;
+		if (!r.height || y <= r.top) return 0;
+		let top = Infinity;
+		for (const el of document.elementsFromPoint(r.left + r.width / 2, y)){
+			if (el === box || box.contains(el)) break;   // reached the box itself: everything before this was drawn over it
+			const pos = getComputedStyle(el).position;
+			if (pos === "fixed" || pos === "sticky") top = Math.min(top, el.getBoundingClientRect().top);
+		}
+		return top === Infinity ? 0 : Math.max(0, Math.min(y + 2 - top, r.height / 2));
+	};
+	const make_room = () => {
+		const ov = Math.round(overlap());
+		if (ov === tail) return ov;
+		if (tail_base === null || !tail){ box.style.paddingBlockEnd = ""; tail_base = parseFloat(getComputedStyle(box).paddingBlockEnd) || 0; }
+		box.style.paddingBlockEnd = ov ? tail_base + ov + "px" : "";
+		tail = ov;
+		return ov;
+	};
+	const bottom = () => {   // the scrollTop that shows the last line at the box's bottom, or just above an overlay bar
+		const ov = make_room();
+		return Math.max(0, Math.min((end ? end() + ov : box.scrollHeight), box.scrollHeight) - box.clientHeight);
+	};
 	const at_bottom = () => bottom() - box.scrollTop < 40;   // within ~40px counts as pinned
 	const $btn = document.createElement("button");
 	$btn.type = "button";
