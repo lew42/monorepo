@@ -2,6 +2,13 @@
 
 **The ask** (the owner, 2026-10-24 22:26, priority 1, the third time; [prompt 12727434](/framework/ai/sessions/2026/10/20/session-e00f55c9/prompts.jsonl)): the robot icon, the "AI" title and the top tabs sit in ONE flex row on every AI page, and the tabs swipe sideways. Nothing below may break.
 
+## Asks
+
+- [x] Robot icon, "AI" title and tabs in ONE row on every AI page: [dashboard 1920](shots/dashboard-1920.png), [sessions 390](shots/sessions-390.png), [session 1920](shots/session-1920.png)
+- [x] Tasks tab opens Tasks, not the dashboard, and is the marked tab: [Tasks tab marked](shots/tasks-tab-marked-1600.png)
+- [x] Tabs swipe sideways: at 390 the strip is 627 px wide in a 283 px box, and a sideways swipe moves it 344 px: [before](shots/swipe-390-before.png), [after](shots/swipe-390-after.png)
+- [x] Nothing below breaks: head stays stuck after a 900 px scroll at 390; Home and the title open the dashboard from any AI page ([Home from Sessions](shots/home-from-sessions-1600.png)), and every tab clicked on the dashboard opens its page with the head
+
 ## What was found
 
 - On current `michael/dev`, every AI page under `/framework/ai/` already draws that row (the `.inbox-head` in `ai/page.js`, CSS in `ux/Inbox/Inbox.css` and `ai/rail/rail.css`). Checked headless at every width from 320 to 4000 px on the sessions list and the session page, and from the first paint.
@@ -13,6 +20,7 @@
 2. `ai/page.js` `is_dash()`: a url with a query is an Inbox filter, so it keeps the rail. The Tasks tab works again.
 3. `AIDashboard.css`: the page has no padding, so the head runs edge to edge as on the other AI pages; core's title and Folder link are hidden (the head names the page).
 4. `AIDashboard.js`: the pill row leaves the top. Its links that the tab row already has (Sessions, Tasks, Queue) and Merge (the "Needs you" count links it) are dropped; the rest sit in a **More pages** row at the bottom.
+5. Review round (second commit): the AI page is built once per load, as the dashboard or as the rail, so links that cross between the two are full loads (Home, the title, every tab while on the dashboard, and Tasks, whose page forwards). An Inbox filter marks its own tab (Tasks), not Home. The doubled gap under the dashboard head is gone.
 
 ## Proof
 
