@@ -1,0 +1,251 @@
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index ca8455886..81d044ffc 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -23,6 +23,7 @@ import SessionMenu from "/framework/core/Session/SessionMenu.js";
+ import SessionSettings from "/framework/core/Session/SessionSettings.js";
+ import SessionTasks from "/framework/core/Session/SessionTasks.js";
+ import SessionWork from "./SessionWork.js";
++import SessionTasksGrid from "./SessionTasksGrid.js";
+ import SessionStats from "./SessionStats.js";
+ import AICost from "/framework/ai/AITask/AICost.js";
+ import Day from "/framework/core/Session/Day.js";
+@@ -225,7 +226,7 @@ export default class AISessionDetail extends Page {
+ 		const { home, id } = this, url = home.url;
+ 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
+ 		this.parts = new AISessionDetail.Parts($parts);
+-		let $role, $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work, work;
++		let $role, $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work, $tgrid, work;
+ 		const ready = new Promise(resolve => this.work_ready = resolve);   // the loaded SessionWork, for the stats bar and the Overview
+ 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
+ 		const MAIN = [["overview", "Overview"], ["timeline", "Timeline"], ["chat", "Chat"], ["tasks", "Tasks"]], MORE = [["board", "Board"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]], TABS = [...MAIN, ...MORE];
+@@ -262,7 +263,7 @@ export default class AISessionDetail extends Page {
+ 			panels.overview = div.c("flow sessions-panel", () => { this.feed = new SessionOutlineView({ ready, sid: id, on_draw: o => this.timeline?.children(o.found.list) }); });   // child sessions as groups, then this session's own work by prompt (SessionOutline)
+ 			panels.timeline = div.c("flow sessions-panel", () => { this.timeline = new SessionTimeline({ sid: id }); });   // everything in the record and the prompt log, in time order (SessionTimeline)
+ 			panels.board = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
+-			panels.tasks = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
++			panels.tasks = div.c("flow sessions-panel", () => { $tgrid = div.c("flow"); $work = div.c("flow"); });   // the tasks as a grid with filters (SessionTasksGrid); its Nested chip shows $work, the nested view with Approve (SessionWork)
+ 			panels.chat = div.c("flow sessions-panel sov-chat", () => {
+ 				// Chat v1 (below) or Chat v2 (the session's Prompts from session.jsonl, ext/Chat/v2); ?chat_view=v2 keeps the choice on reload (?chat= belongs to the DevBar assistant). v1 stays the default until v2 replaces it.
+ 				const pick = {};
+@@ -337,7 +338,7 @@ export default class AISessionDetail extends Page {
+ 			if (this.filled === own_dir) return;   // the folder event folder_from_day raises runs fill() again: once per folder
+ 			this.filled = own_dir;
+ 			if (!this.prompt_tail) this.prompt_tail = new SessionTimeline.Tail({ url: own_dir + "prompts.jsonl", on_lines: lines => { this.timeline?.prompts(lines); coverage.read_records(PromptLog.fold(lines)); } }).live();   // the prompt log, followed live: the Timeline rows and the Coverage records both read this one tail (ext/Refine/doc/prompt-records.md)
+-			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
++			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); $tgrid.append(new SessionTasksGrid({ work, sid: session_id, nested: $work.el })); work.loaded.then(() => this.work_ready(work)); }
+ 			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
+ 			const [costs, trace] = await Promise.all([
+ 				AISessionDetail.load_cost_log(own).then(async c => c ?? AISessionDetail.load_cost_log(await old_dir())),
+diff --git a/public/framework/ai/AISession/SessionTasksGrid.css b/public/framework/ai/AISession/SessionTasksGrid.css
+new file mode 100644
+index 000000000..2c5808d73
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionTasksGrid.css
+@@ -0,0 +1,9 @@
++@layer base, theme, site, util;
++
++@layer site {
++	.stg { min-inline-size: 0; }
++	.stg-head { padding-block: .25em; }
++	.stg-title { color: inherit; text-decoration: none; }
++	.stg-title:hover { text-decoration: underline; }
++	.stg .datagrid-ext { max-inline-size: 100%; overflow-x: auto; }   /* a phone scrolls the grid in its own box, never the page */
++}
+diff --git a/public/framework/ai/AISession/SessionTasksGrid.js b/public/framework/ai/AISession/SessionTasksGrid.js
+new file mode 100644
+index 000000000..98ff855da
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionTasksGrid.js
+@@ -0,0 +1,98 @@
++import View, { div, span, small, a, button, label, input } from "/framework/core/View/View.js";
++import DataGrid from "/framework/ext/DataGrid/DataGrid.js";
++import SessionOutlineView from "./SessionOutlineView.js";
++import SessionPopover from "./SessionPopover.js";
++import AICost from "../AITask/AICost.js";
++
++View.stylesheet(import.meta, "SessionTasksGrid.css");
++
++/** SessionTasksGrid — the session page's Tasks tab: every task of the session on the one ext/DataGrid, newest first, with Filters ▾ for
++ *  state, day and kind (the Timeline's own popover) and a Nested chip that swaps to the SessionWork view (Approve and the nesting).
++ *  It draws the tasks SessionWork already loaded (`work.tree`), never fetching; `work.on_paint` calls `refresh()` when they change.
++ *  Options: `work` (the loaded SessionWork), `sid` (this session's id), `nested` (the SessionWork's element, hidden while the grid shows).
++ *  Readme: ai/AISession/readme.md. */
++export default class SessionTasksGrid extends View {
++	static GROUPS = [["state", "State"], ["day", "Day"], ["kind", "Kind"]];
++
++	get classes(){ return "stg flow"; }
++
++	/** Task records carry no kind field (ai/index.json: id, home, dir, url, title, state, bucket, started, landed_at, last, day, agent, session, module, line, waiting_on), so it is derived: a task with tasks under it is a project, one an agent session ran is an agent task, the rest are plain tasks. */
++	static kind_of(n){ return n.kids.length ? "project" : n.session ? "agent task" : "task"; }
++
++	/** The nodes SessionWork draws (everything under a lone wrapping folder), as flat rows. */
++	static rows_of(work, sid){
++		const root = work.tree?.root; if (!root) return [];
++		let top = root; while (top.kids.length === 1 && top.kids[0].kids.length) top = top.kids[0];   // the same skip as SessionWork.paint
++		return top.kids.flatMap(k => k.all()).map(n => {
++			const t = Date.parse(n.started ?? "") || Date.parse(n.ended ?? "") || 0, d = t ? new Date(t) : null;
++			return { id: n.url ?? n.rel, node: n, title: n.title || n.rel, state: n.state ?? "unknown", started: t ? new Date(t).toISOString() : null,
++				day: d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` : "no date",
++				kind: SessionTasksGrid.kind_of(n), owner: n.session && n.session !== sid ? n.session : null, cost: n.usd ?? null, url: n.url };
++		}).sort((x, y) => (Date.parse(y.started) || 0) - (Date.parse(x.started) || 0));
++	}
++
++	render(){
++		this.off = {};   // group -> Set of switched-off values; empty = nothing filtered
++		this.all = [];
++		this.head = div.c("stg-head flex wrap gap-50 v-center", () => {
++			this.$filters = button.c("sessions-hbtn", "Filters ▾").attr("type", "button").attr("title", "Show only some states, days or kinds");
++			SessionPopover.open(this.$filters, () => this.menu(), "stl-pop");
++			this.$nested = button.c("sessions-chip", "Nested").attr("type", "button").attr("title", "The nested view, with Approve").on("click", () => this.nest(!this.is_nested));
++			this.$count = small.c("muted stg-count", "Reading the tasks…");
++		});
++		this.grid = new DataGrid({
++			columns: [
++				{ key: "state", label: "State", width: "4rem", format: (v, r) => () => SessionOutlineView.state_icon(r.state) },
++				{ key: "title", label: "Task", width: "1fr", min: "12rem", format: (v, r) => () => a.c("stg-title", v).href(r.url ?? "#") },
++				{ key: "day", label: "Day", width: "7rem" },
++				{ key: "kind", label: "Kind", width: "7rem" },
++				{ key: "owner", label: "Session", width: "11rem", format: (v, r) => () => r.owner ? a.c("stg-owner", r.node.snap?.title ?? r.node.agent ?? r.owner.slice(0, 8)).href(AICost.session_url(r.owner)) : span.c("muted", "this session") },
++				{ key: "cost", label: "Cost", type: "number", width: "6rem", format: v => v == null ? "" : "$" + v.toFixed(2) },
++			],
++			rows: [], filters: false, row_height: null, page_size: 100, prefs_id: "session-tasks",
++			sort_rows: rows => rows,   // set_rows gets them newest first already; a header click still re-sorts
++			natural_dir: key => ["cost"].includes(key) ? "desc" : "asc",
++		});
++		this.work.on_paint(() => this.refresh());
++		this.work.loaded.then(() => this.refresh());
++		this.nest(false);
++	}
++
++	/** The checkbox menu: one block per group, only the values that exist, each with its count. */
++	menu(){ this.$menu = div.c("stl-menu"); this.fill_menu(); }   // the popover draws its content once, before any rows exist: refresh() refills it
++
++	fill_menu(){
++		this.$menu?.empty(() => {
++			for (const [g, text] of SessionTasksGrid.GROUPS){
++				small.c("muted", text);
++				const values = [...new Set(this.all.map(r => r[g]))].sort(g === "day" ? (x, y) => y.localeCompare(x) : undefined);
++				if (!values.length) small.c("muted", "none yet");
++				for (const v of values) label.c("stl-filter", () => {
++					const box = input().attr("type", "checkbox");
++					box.el.checked = !this.off[g]?.has(v);
++					box.on("change", () => { const s = (this.off[g] ??= new Set()); box.el.checked ? s.delete(v) : s.add(v); this.draw(); });
++					span(v);
++					small.c("muted stl-n", String(this.all.filter(r => r[g] === v).length));
++				});
++			}
++		});
++	}
++
++	nest(on){
++		this.is_nested = on;
++		this.$nested.el.classList.toggle("sessions-chip-on", on);
++		this.grid.el.hidden = on; this.$filters.el.hidden = on; this.$count.el.hidden = on;
++		if (this.nested) this.nested.hidden = !on;
++	}
++
++	refresh(){ this.all = SessionTasksGrid.rows_of(this.work, this.sid); this.fill_menu(); this.draw(); }
++
++	shown(){ return this.all.filter(r => SessionTasksGrid.GROUPS.every(([g]) => !this.off[g]?.has(r[g]))); }
++
++	draw(){
++		const rows = this.shown();
++		this.grid.set_rows(rows);
++		this.el.dataset.total = this.all.length; this.el.dataset.rows = rows.length;
++		this.$count.el.textContent = !this.work.tree ? "No task records for this session." : rows.length === this.all.length ? `${rows.length} task${rows.length === 1 ? "" : "s"}` : `${rows.length} of ${this.all.length} tasks`;
++	}
++}
+diff --git a/public/framework/ai/AISession/SessionWork.js b/public/framework/ai/AISession/SessionWork.js
+index c585de139..2447b1af7 100644
+--- a/public/framework/ai/AISession/SessionWork.js
++++ b/public/framework/ai/AISession/SessionWork.js
+@@ -96,6 +96,9 @@ export default class SessionWork extends View {
+ 		n.kids.forEach(k => this.judge(k, n.approved, now));
+ 	}
+ 
++	/** `fn` runs after every paint (the tree loaded, or an approval changed): the Tasks grid redraws from it. */
++	on_paint(fn){ (this.painters ??= []).push(fn); }
++
+ 	paint(){
+ 		const root = this.tree.root;
+ 		this.judge(root, null);
+@@ -116,6 +119,7 @@ export default class SessionWork extends View {
+ 			if (!kids.length) small.c("muted", "No tasks recorded in this session.");
+ 			kids.forEach(k => this.node(k));
+ 		});
++		this.painters?.forEach(fn => fn());
+ 	}
+ 
+ 	/** One row; its children fold under it. `data-at` (its subtree's last moment) is what the Today pill reads. */
+diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
+index 6e20f01ec..8ad07c567 100644
+--- a/public/framework/ai/AISession/readme.md
++++ b/public/framework/ai/AISession/readme.md
+@@ -7,7 +7,7 @@
+ - `new AISessionsPage({ meta, classic: true })` draws the old all-controls-in-rows layout (`sessions/v/classic/`); its `data_url` getter strips a trailing `v/classic/` so every data file and row link still points at the real list.
+ - A rail card (`AISessionView` with `card: true`) shows four things: title, the one cost line, "N child sessions · M in all" and state. The rail lists root sessions only: `AISessionsPage.roots_for_cards` hides a row whose parent is in the list, and switching Table/Rail re-applies the grid.
+ - `AISessionDetail.js` · `AISessionConversation.js` · `AISessionCoverage.js` · `AISessionTrace.js` — a session's own page and its tabs. A clicked row opens that session's full page in place of the list (previews plus full detail views: [design/navigation](/framework/design/navigation/readme.md)); the sessions page no longer calls `columns()`. A named agent's url (`/framework/ai/sessions/<name>/`, a `reviewer-*` or `minion-*` row) resolves the name to its session through Servex's live agent list (`AISessionDetail.agent_row`), and every load asks the folder listing first, so the page never asks for a file that is not there.
+-- The session page's tab row is **Overview · Timeline · Chat · Tasks · More ▾**; More ▾ (a `SessionPopover`, drawn once at build) holds Board, Coverage, Cost, Models and tokens, Related, Task queue → and Full screen, and shows as on when one of them is open. Under 600 px the stats bar is one line (cost · state · running) that a tap opens. Coverage reads the same prompt tail as the Timeline (`SessionTimeline.Tail`), not a second fetch. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. The Chat tab has two chips at its top, **Chat** (the transcript, stages and tasks, the default) and **Chat v2** (the session's Prompts drawn from `session.jsonl` by [`ext/Chat/v2`](/framework/ext/Chat/v2/), mounted lazily on first pick); `?chat_view=v2` keeps the pick on reload (`?chat=` is the DevBar assistant's). Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, done X of Y, the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's cost is one line from one function, `AICost.cost_line`: "$282 this tab · $1035 with children"** ("this session" when it is not a VS Code tab). The Cost tile, the Sessions list's Cost cell and its rail card all draw it. The own figure is the summary's `cost.own.usd` (before it arrives, the day snapshot's `usd`); "with children" is `summary.cost.total`, which the item tool computes (`AICost.summary(AICost.session_url(id))`, one cached answer per session for every surface), never `SessionWork`'s own sum. The list never asks for every row: it shows an answer already here, else a small "with children …" button that asks for that one row. Clicking the Cost tile opens the Cost tab, whose first block lists every child session behind the total (`AICost.draw_session`). **The Overview tab is `SessionOutlineView.js` (+ `SessionOutline.css`, prefix `soutline-`), drawn from `SessionOutline.js`, which has no DOM and is tested by `node SessionOutline.test.mjs`.** It groups the session's work by child session: one box per child (name linking to that child's own page, state, model, an `AICost` cost line, "N of M done") holding the tasks whose folder is the child's or below it, then "This session's own work", sub-grouped by the prompt that asked for it (`SessionOutline.source(session)` is the one place that join lives) with "Other work" for the rest. The children are the union, de-duplicated by session id, of the `sessions` lines of `session.jsonl`, the tree nodes that carry `session`, the day snapshot's `links.children`, and the snapshots whose `parent` is this session's agent; groups are ranked by cost × 0.5^(age days ÷ 2) plus recency, with a "newest first" toggle. A task is one full-width row (open, running, done and dropped icons; the child session's model, cost and state; subtasks folded in), and a done task opens its proof in place. The rows are the Overview's own markup (`SessionOutlineView.item`), not `TaskView`: they carry no start/pause/stop buttons (those live on `TaskView` rows in the Tasks tab), and a folder-only task has no `Task` object for `TaskView` to draw. `SessionTasks` hands it each replay through `on_session`, and the view redraws live. `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the older flat list and is no longer wired in. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
++- The session page's tab row is **Overview · Timeline · Chat · Tasks · More ▾**; Tasks is a grid of the session's tasks (`SessionTasksGrid` on ext/DataGrid, newest first) with Filters ▾ (state · day · kind; kind is derived, the records have none) and a Nested chip that shows the old nested `SessionWork` view with Approve; More ▾ (a `SessionPopover`, drawn once at build) holds Board, Coverage, Cost, Models and tokens, Related, Task queue → and Full screen, and shows as on when one of them is open. Under 600 px the stats bar is one line (cost · state · running) that a tap opens. Coverage reads the same prompt tail as the Timeline (`SessionTimeline.Tail`), not a second fetch. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. The Chat tab has two chips at its top, **Chat** (the transcript, stages and tasks, the default) and **Chat v2** (the session's Prompts drawn from `session.jsonl` by [`ext/Chat/v2`](/framework/ext/Chat/v2/), mounted lazily on first pick); `?chat_view=v2` keeps the pick on reload (`?chat=` is the DevBar assistant's). Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, done X of Y, the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's cost is one line from one function, `AICost.cost_line`: "$282 this tab · $1035 with children"** ("this session" when it is not a VS Code tab). The Cost tile, the Sessions list's Cost cell and its rail card all draw it. The own figure is the summary's `cost.own.usd` (before it arrives, the day snapshot's `usd`); "with children" is `summary.cost.total`, which the item tool computes (`AICost.summary(AICost.session_url(id))`, one cached answer per session for every surface), never `SessionWork`'s own sum. The list never asks for every row: it shows an answer already here, else a small "with children …" button that asks for that one row. Clicking the Cost tile opens the Cost tab, whose first block lists every child session behind the total (`AICost.draw_session`). **The Overview tab is `SessionOutlineView.js` (+ `SessionOutline.css`, prefix `soutline-`), drawn from `SessionOutline.js`, which has no DOM and is tested by `node SessionOutline.test.mjs`.** It groups the session's work by child session: one box per child (name linking to that child's own page, state, model, an `AICost` cost line, "N of M done") holding the tasks whose folder is the child's or below it, then "This session's own work", sub-grouped by the prompt that asked for it (`SessionOutline.source(session)` is the one place that join lives) with "Other work" for the rest. The children are the union, de-duplicated by session id, of the `sessions` lines of `session.jsonl`, the tree nodes that carry `session`, the day snapshot's `links.children`, and the snapshots whose `parent` is this session's agent; groups are ranked by cost × 0.5^(age days ÷ 2) plus recency, with a "newest first" toggle. A task is one full-width row (open, running, done and dropped icons; the child session's model, cost and state; subtasks folded in), and a done task opens its proof in place. The rows are the Overview's own markup (`SessionOutlineView.item`), not `TaskView`: they carry no start/pause/stop buttons (those live on `TaskView` rows in the Tasks tab), and a folder-only task has no `Task` object for `TaskView` to draw. `SessionTasks` hands it each replay through `on_session`, and the view redraws live. `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the older flat list and is no longer wired in. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
+ - **The Timeline tab** (`?tab=timeline`) is `SessionTimeline.js` (+ `SessionTimeline.css`, prefix `stl-`): everything the session recorded in time order, newest at the bottom, the list opening scrolled to the bottom. One compact row per event (time, icon, one or two lines): each line of `session.jsonl` is one row (task added and done, child session started, note, decision, review, commit, session start and stop, log and tag lines), each prompt of `prompts.jsonl` is one row (its subject, the raw words one click down), and each child session that has landed adds one (name linked with `AICost.session_url`, its state, model and `AICost.cost_line`, never summed here). The rows are built with no DOM by `SessionTimelineRows.js`, tested by `node SessionTimeline.test.mjs` (rows drawn = record lines + distinct prompts + landed children, counted by hand on a fixture; the page shows the same number as `data-total`). It fetches nothing of its own for the record: `AISessionDetail` feeds it `SessionTasks`' replay (`on_session(session, lines)`), the Overview's child list (`SessionOutlineView`'s `on_draw`) and its own prompt tail (`SessionTimeline.Tail`, a `JSONL` that follows `prompts.jsonl`), so new lines appear without a reload. **Filters ▾** is a checkbox per kind in the same popover the Sessions list header uses (`SessionPopover.open(anchor, content, cls)`, which wraps `ux/Popover` and the `sessions-pop` skin); log and tag lines are off until ticked. With no record the tab shows the prompts alone, or one plain sentence.
+ - `SessionWork.js` (+ `.css`) — the **Tasks** tab (the old Work view; its `SessionWork.split(root)` also feeds the stats bar and the Overview): its work nested by task folder (`sessions/doc/variants/SessionTree.js` over `ai/index.json`), own and rolled cost, tasks complete of created, open tasks, the Today ▾ pill (`ux/Filter/TimeFilter`), Approve. `Approvals.js` writes `{"approve":{"at","by":"owner"}}` to the session's own `session.jsonl` plus a pointer in that day's `day.jsonl` (the line the tab streams); `Review.js` is the leak rule and its numbers (finished 1 h, over $0.50, over a day old).
+ - `AISessionLive.js` · `AISessionFollow.js` · `AISessionResume.js` · `AISessionFlags.js` — live tail, follow, resume, flags.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim/tasks/proof.mjs b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim/tasks/proof.mjs
+new file mode 100644
+index 000000000..4da21f9c3
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim/tasks/proof.mjs
+@@ -0,0 +1,39 @@
++import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
++import fs from "fs";
++const WT="C:/Code/lew42/worktrees/session-tasks-grid", D=import.meta.dirname;
++const files=["SessionTasksGrid.js","SessionTasksGrid.css","SessionWork.js","AISessionDetail.js"];
++const mode=process.argv[2]; // before|after
++const b=await chromium.launch(); const out={};
++for(const w of mode==="before"?[390]:[390,1920]){
++ const ctx=await b.newContext({viewport:{width:w,height:900}}); const pg=await ctx.newPage(); const errs=[];
++ pg.on("pageerror",e=>errs.push(String(e)));
++ if(mode==="after") for(const f of files) await pg.route(`**/framework/ai/AISession/${f}*`,r=>r.fulfill({body:fs.readFileSync(`${WT}/public/framework/ai/AISession/${f}`),contentType:f.endsWith("css")?"text/css":"text/javascript"}));
++ await pg.goto("http://monorepo.localhost/framework/ai/sessions/e00f55c9-bad4-4ee2-899e-d629ea1eede6/?tab=work",{waitUntil:"networkidle"}).catch(()=>{});
++ await pg.waitForTimeout(6000); if(mode==="after") await pg.waitForSelector(".stg .datagrid-row",{timeout:60000}).catch(()=>{});
++ await pg.screenshot({path:`${D}/${mode}-${w}.png`,timeout:90000});
++ const m={errs,sw:await pg.evaluate(()=>document.documentElement.scrollWidth)};
++ if(mode==="after"){
++  m.nestedNodes=await pg.evaluate(()=>{const e=document.querySelector(".sw-list");return e?e.querySelectorAll(".sw-node").length:-1});
++  m.stg=await pg.evaluate(()=>{const e=document.querySelector(".stg");return e?{total:e.dataset.total,rows:e.dataset.rows,days:0}:null});
++  if(w===1920){
++   // per-day counts by toggling
++   const days=await pg.evaluate(()=>{const x=document.querySelector(".stg");return null});
++   await pg.click(".stg-head .sessions-hbtn"); await pg.waitForTimeout(500);
++   const info=await pg.evaluate(()=>[...document.querySelectorAll(".stl-menu")].map(l=>l.textContent));
++   m.menu=info;
++   // switch all but the first day off
++   const dayBoxes=await pg.evaluate(()=>{const ls=[...[...document.querySelectorAll(".stl-menu")].find(m=>/State/.test(m.textContent)).querySelectorAll(".stl-filter")];return ls.map((l,i)=>[i,l.textContent,/^\d{4}-\d\d-\d\d|^no date/.test(l.textContent)])});
++   m.dayBoxes=dayBoxes.filter(x=>x[2]);
++   const counts=[];
++   for(const [i] of m.dayBoxes){ // show only day i
++     await pg.evaluate(([keep,all])=>{all.forEach(j=>{const b=[...document.querySelectorAll(".stl-menu")].find(m=>/State/.test(m.textContent)).querySelectorAll(".stl-filter input")[j]; if(b.checked!==(j===keep)) b.click();});},[i,m.dayBoxes.map(x=>x[0])]);
++     await pg.waitForTimeout(300); counts.push(await pg.evaluate(()=>+document.querySelector(".stg").dataset.rows));
++     if(i===m.dayBoxes[0][0]) await pg.screenshot({path:`${D}/after-day.png`,timeout:90000});
++   }
++   m.dayCounts=counts; m.sum=counts.reduce((a,c)=>a+c,0);
++  }
++  await pg.keyboard.press("Escape");
++ }
++ out[w]=m; await ctx.close();
++}
++console.log(JSON.stringify(out,null,1)); await b.close();
+diff --git a/public/framework/ai/sessions/doc/ui/classes.md b/public/framework/ai/sessions/doc/ui/classes.md
+index c4425b4e4..16b541ccf 100644
+--- a/public/framework/ai/sessions/doc/ui/classes.md
++++ b/public/framework/ai/sessions/doc/ui/classes.md
+@@ -9,7 +9,7 @@ All of them live in [`ai/AISession/`](../../AISession/) (renamed from `Session*`
+ | [`AISessionDetail.js`](../../AISession/AISessionDetail.js) | `AISessionDetail extends Page` | One session's page (`new AISessionDetail({ home, id })`). Statics load its files. |
+ | [`SessionStats.js`](../../AISession/SessionStats.js) | `SessionStats extends View` | The sticky stats bar: cost, model, running for, done X of Y; one line on a phone. |
+ | [`SessionTimeline.js`](../../AISession/SessionTimeline.js), [`SessionTimelineRows.js`](../../AISession/SessionTimelineRows.js) | `SessionTimeline`, `SessionTimelineRows (statics)` | The Timeline tab (rows built with no DOM by `SessionTimelineRows`); its `Tail` also feeds Coverage. |
+-| [`SessionOutlineView.js`](../../AISession/SessionOutlineView.js), [`SessionOverview.js`](../../AISession/SessionOverview.js), [`SessionWork.js`](../../AISession/SessionWork.js), [`SessionPopover.js`](../../AISession/SessionPopover.js) | the Overview, Board and Tasks tabs, and the one popover | Overview groups by child session; Board is four cards; Tasks is the nested work; every menu uses `SessionPopover.open`. |
++| [`SessionOutlineView.js`](../../AISession/SessionOutlineView.js), [`SessionOverview.js`](../../AISession/SessionOverview.js), [`SessionWork.js`](../../AISession/SessionWork.js), [`SessionPopover.js`](../../AISession/SessionPopover.js) | the Overview, Board and Tasks tabs, and the one popover | Overview groups by child session; Board is four cards; Tasks is a grid ([`SessionTasksGrid.js`](../../AISession/SessionTasksGrid.js): DataGrid + Filters ▾ + a Nested chip for `SessionWork`); every menu uses `SessionPopover.open`. |
+ | [`AISessionView.js`](../../AISession/AISessionView.js) | `AISessionView extends View` | One grid row. Statics draw the cost cell and the detail section. |
+ | [`AISessionRows.js`](../../AISession/AISessionRows.js) | `AISessionRows (statics only)` | The data: fetch, merge, sort, nest, totals. Draws nothing. |
+ | [`AISessionTrace.js`](../../AISession/AISessionTrace.js) | `AISessionTrace (statics only)` | The cost chart, the per-tool table, the waste checks, the spawn section. |
