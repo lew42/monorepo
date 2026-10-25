@@ -327,12 +327,9 @@
 	.drawer-rail-sheet-new:hover { filter: brightness(1.1); }
 
 	/* CHAT V2 IN THE SHEET — the "v2" chip in the head swaps the old bubbles for
-	   ext/Chat/v2's drawing of the same session (Sheet.js sync_v2); the composer
+	   ext/Chat/v2's drawing of the same session (Sheet.js, ChatView.js); the composer
 	   and the mic footer stay. aria-pressed marks the chip on. */
 	.drawer-rail-sheet-heading .drawer-rail-sheet-v2-chip { flex: none; font-size: 0.8em; padding: 0.3em 0.7em; min-block-size: 2rem; }
-	.drawer-rail-sheet-v2-chip[aria-pressed="true"] { background: var(--fill-a16); border-color: var(--ink); font-weight: 600; }
-	.drawer-rail-sheet-v2-on .ux-dictate-widget-thread { display: none; }
-	.drawer-rail-sheet-v2 { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; padding-inline: 0.6em; }   /* the same inset as the thread it replaces (below, .ux-dictate-widget-thread) */
 
 	/* LINKS BEHIND "MORE" (sheet-regression, 2026-09-30): the links row is folded
 	   until "More" in the head is tapped, so the conversation and the mic are
