@@ -14,6 +14,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import SessionIdentity from "./SessionIdentity.mjs";
+// Always checked, so the runs core/Session/doc/identity.md quotes stay on the tracking page: a VS Code tab and a renewed Servex agent.
+const IDENTITY_PINNED = ["e00f55c9-bad4-4ee2-899e-d629ea1eede6", "7c6c8d93-e066-4ee5-b4b1-35480048f0a0"];
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(process.env.TRACKING_ROOT || path.join(HERE, ".."));   // TRACKING_ROOT: read the main checkout's records from a worktree (index.json and cache.jsonl are gitignored)
@@ -269,10 +271,10 @@ export async function run({ days = 7, id = null, item = false, http = null, sour
 	}
 	for (const x of sessions) if (x.stored_usd != null && Math.abs(x.stored_usd - x.usd) > Math.max(0.05, x.usd * 0.03)) numbers.push({ id: x.id, agent: x.agent, what: "usd", stored: x.stored_usd, computed: x.usd, why: "index.json usd against the transcript read again now" });
 
-	// 6. session identity: the 10 most recent sessions that have a transcript, plus the one asked for
+	// 6. session identity: the 10 most recent sessions that have a transcript, plus the one asked for and the two core/Session/doc/identity.md quotes
 	const checker = new SessionIdentity({ repo: REPO }), identity_rows = [];
 	const recent = scope.filter(s => files.has(s.id)).sort((a, b) => b.last - a.last).slice(0, 10);
-	if (id && !recent.some(s => s.id === id) && files.has(id)) recent.push(by_id.get(id) ?? { id, snap: {} });
+	for (const want of [id, ...IDENTITY_PINNED]) if (want && !recent.some(s => s.id === want) && files.has(want)) recent.push(by_id.get(want) ?? { id: want, snap: {} });
 	for (const s of recent){
 		try {
 			const r = await checker.check(s.id);
