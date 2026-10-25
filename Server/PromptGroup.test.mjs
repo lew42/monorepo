@@ -5,6 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import PromptRecords from "./PromptRecords.mjs";
 import TaskHomes from "./TaskHomes.mjs";
+import Session from "../public/framework/core/Session/Session.js";
+import Prompt from "../public/framework/core/Task/Prompt.js";
 import { ledgers } from "../Servex/agents/page_tools.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -19,7 +21,7 @@ try {
 	const parts = (...t) => t.map((x, i) => ({ id: `a${i + 1}`, cites: [i], kind: "ask", text: x, outcome: { is: "open" } }));
 	const put = async (id, subject, ps) => { await pr.add({ prompt: id, stage: "raw", text: id }); await pr.add({ prompt: id, stage: "parts", subject, parts: ps }); return { id, uuid: id, line: 1, at: "2026-10-25T01:00:00Z", text: id }; };
 	pr.attach_to = async () => null;
-	const roots = () => read(REC).filter(l => l.tasks?.add);
+	const roots = () => read(REC).filter(l => l.tasks?.add && l.tasks.add.type !== "Prompt");
 	const refs = id => Object.values(pr.rows()).find(r => r.id === id).parts.map(x => x.outcome.ref);
 
 	const three = await put("p3", "Fix the menu.", parts("add a menu", "fix the footer", "rename the tab"));
@@ -42,5 +44,7 @@ try {
 	const more = await put("p2", "More menu.", parts("menu icons", "menu colors"));
 	await pr.file([more]);
 	ok(roots().length === 2 && read(REC).filter(l => l[root0]?.tasks?.add).length === 5, "attach_to files the asks under the existing open task, no new parent");
+	const ps = [...Session.replay(read(REC)).tasks].filter(x => x instanceof Prompt);
+	ok(ps.length === 3 && ps.every(p => p.raw_text && p.parts.length), "every prompt is also written to session.jsonl as a Prompt (raw, parts), once, then updated in place");
 	console.log(`${n} passed`);
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }

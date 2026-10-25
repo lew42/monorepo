@@ -21,6 +21,14 @@ export class Paragraphs extends List {
 		p.set({ text: (p.get_one("text") ?? "") + text });
 		return this;
 	}
+	// Makes paragraph `id`, or sets its fields when it is there (the migration and PromptRecords rewrite the cleaned text this way).
+	replace({ id, ...fields } = {}){
+		if (id === undefined) return this;
+		const p = this.find(id);
+		if (!p) return void this.add({ id, ...fields });
+		p.set(fields);
+		return this;
+	}
 }
 Paragraphs.prototype.of = Paragraph;
 

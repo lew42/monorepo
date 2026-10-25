@@ -39,6 +39,19 @@ export function prompt_line(row){
 	return { tasks: { add }, ts: row.ref?.at ?? row.at, by: BY };   // the line is stamped when it was SAID (Task#created_at reads the line ts)
 }
 
+/** True when session.jsonl already holds the add of Prompt `id`. */
+export function has_prompt(file, id){ try { return fs.readFileSync(file, "utf8").includes(`"type":"Prompt","id":${JSON.stringify(id)}`); } catch { return false; } }
+
+/** The line that brings a Prompt in session.jsonl up to a folded row: its add when `first`, else one update delta (PromptRecords.mirror writes it per stage). */
+export function prompt_delta(row, first, at = row.at){
+	const add = prompt_line(row);
+	if (first) return add;
+	const a = add.tasks.add, set = {};
+	for (const k of ["subject", "process", "handled", "parts", "refined", "notes"]) if (a[k] !== undefined) set[k] = a[k];
+	if (a.paragraphs.length) set.paragraphs = { replace: a.paragraphs[0] };
+	return { [row.id]: set, ts: at, by: BY };
+}
+
 const jsonl = file => { try { return fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } }); } catch { return []; } };
 const walk = dir => { let out = []; for (const e of fs.readdirSync(dir, { withFileTypes: true })){ const f = path.join(dir, e.name); if (e.isDirectory()) out = out.concat(walk(f)); else if (e.name === PromptLog.FILE) out.push(f); } return out; };
 

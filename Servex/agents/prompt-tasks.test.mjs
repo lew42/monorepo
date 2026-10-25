@@ -46,12 +46,12 @@ try {
 	const out = await pt.prompted(heard[0]);
 	const plog = read(path.join(REC_DIR, "prompts.jsonl"));
 	ok(["raw", "clean", "parts"].every(st => plog.some(l => l.stage === st)) && plog.find(l => l.stage === "parts").parts[0].parts[0].text === "settings first", "the prompt's record (raw, sentences, parts with nested details) is in the session's prompts.jsonl");
-	const adds = read(REC).filter(l => l.tasks?.add); 
+	const adds = read(REC).filter(l => l.tasks?.add && l.tasks.add.type !== "Prompt"); 
 	ok(adds.length === 1 && adds[0].tasks.add.state === "idle" && !("waiting_on" in adds[0].tasks.add) && adds[0].tasks.add.from === "owner", "one open (idle) task per task-kind ask, not waiting on the owner; the question stays on the card");
 	fs.mkdirSync(MOD_DIR, { recursive: true });
 	ok(!fs.existsSync(path.join(MOD_DIR, "tasks")), "a proposed task drafts in the session: no module folder is made before approval");
 	await pt.prompted(heard[0]);
-	ok(read(REC).filter(l => l.tasks?.add).length === 1, "the same prompt is never filed twice");
+	ok(read(REC).filter(l => l.tasks?.add && l.tasks.add.type !== "Prompt").length === 1, "the same prompt is never filed twice");
 	ok(adds[0].tasks.add.description.includes("settings first") && adds[0].tasks.add.module_hint === MOD, "a main ask carries its nested details and its module hint");
 	ok(adds[0].tasks.add.source.session === rec.uuid && adds[0].tasks.add.source.line === 1 && adds[0].tasks.add.source.part === "a1", "source names the session, the prompt's line and the part, so the receiver can read the raw words");
 	ok(adds[0].by === "prompt-tasks" && adds[0].tasks.add.from === "owner", "written by caller prompt-tasks, from the owner");
@@ -91,10 +91,11 @@ try {
 
 	// 4. The session replays it as idle open work; a decide line from the page approves it.
 	let s = Session.replay(read(REC));
-	const t = [...s.tasks][0];
+	const asks = s => [...s.tasks].filter(x => x.constructor.name !== "Prompt");   // the mirrored Prompt sits beside the asks
+	const t = asks(s)[0];
 	ok(s.id === rec.uuid && t.state === "idle" && t.get_one("waiting_on") == null && !PromptTasks.accepted(t) && t.get_one("title") === "Build the session menu", "the session reads it as open work: idle, not waiting on the owner, not yet started");
 	s = Session.replay([...read(REC), { tasks: { [t.id]: { start: {} } } }]);
-	ok([...s.tasks][0].state === "running" && PromptTasks.accepted([...s.tasks][0]), "a tab or agent that starts it (item tool start) accepts it");
+	ok(asks(s)[0].state === "running" && PromptTasks.accepted(asks(s)[0]), "a tab or agent that starts it (item tool start) accepts it");
 
 	// 5. Started and naming a module: the TaskLoop sweep moves it to <module>/tasks/<slug>/, and the session references it there.
 	ok((await pt.sweep()).length === 0, "an idle task nobody started is not moved");
@@ -103,7 +104,7 @@ try {
 	const home = path.join(MOD_DIR, "tasks", t.id, "task.jsonl");
 	ok(moved.length === 1 && fs.existsSync(home) && (h => h.get_one("title") === "Build the session menu" && h.state === "running")(Task.replay(read(home))), "started: it moves to <module>/tasks/<slug>/ with its data and state");
 	s = Session.replay(read(REC));
-	ok(s.tasks.length === 1 && [...s.tasks][0].data.path === `/framework/${MOD}/tasks/${t.id}/`, "the session now references the moved task (same id replaces the nested one)");
+	ok(asks(s).length === 1 && asks(s)[0].data.path === `/framework/${MOD}/tasks/${t.id}/`, "the session now references the moved task (same id replaces the nested one)");
 	ok((await pt.sweep()).length === 0 && fs.readFileSync(ledgers.task_moves, "utf8").includes(t.id), "moved once, and the move is in the ledger");
 } finally {
 	fs.rmSync(PAGE_DIR, { recursive: true, force: true });
