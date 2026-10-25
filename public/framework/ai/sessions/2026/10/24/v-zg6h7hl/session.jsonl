@@ -1,0 +1,16 @@
+{"session":{"id":"v-zg6h7hl","home":"/framework/ai/queue/","kind":"voice","at":"2026-10-24T19:19:57.737-05:00","project":"monorepo","host":"10.0.0.135:3104","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-10-24T19:19:57.876-05:00","fast":"354c7583-29ae-4498-bb9b-27870b7e26b2","smart":null,"how":{"fast":"new"}}}
+{"chat":{"at":"2026-10-24T19:19:57.883-05:00","session":"v-zg6h7hl","path":"/framework/ai/queue/","from":{"kind":"owner"},"via":"voice","text":"Can you hear me?","floor":"done","cues":{"mic_on_at":"2026-10-25T00:19:51.199Z","pauses":[{"start":3293,"end":3631,"ms":338},{"start":4536,"end":null,"ms":1575}],"speaking_ms":806}}}
+{"backing":{"at":"2026-10-24T19:19:58.005-05:00","fast":"354c7583-29ae-4498-bb9b-27870b7e26b2","smart":"56cfbd81-1381-449b-b100-c283917cf1bf","how":{"smart":"new"}}}
+{"quiet":{"at":"2026-10-24T19:19:58.714-05:00","ms":2500,"path":"/framework/ai/queue/"}}
+{"bubbles":{"place":{"re":"2026-10-24T19:19:57.883-05:00","to":"same","edit":"nothing"}},"by":"voice-assistant-v-zg6h7hl","ts":"2026-10-25T00:20:05.543Z"}
+{"chat":{"at":"2026-10-24T19:21:39.332-05:00","session":"v-zg6h7hl","path":"/framework/ai/queue/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-zg6h7hl"},"via":"text","text":"Yes, I can hear you. This is session v-zg6h7hl, and you're on `/framework/ai/queue/`. I tried to name the session, but that call failed with `no session \"undefined\"`, so the session has no title yet.","re":"2026-10-24T19:19:57.883-05:00"}}
+{"quiet":{"at":"2026-10-24T19:21:39.513-05:00","ms":2500,"path":"/framework/ai/queue/"}}
+{"chat":{"at":"2026-10-24T19:21:39.515-05:00","session":"v-zg6h7hl","path":"/framework/ai/queue/","from":{"kind":"owner"},"via":"voice","text":"Hello, is anyone there?","floor":"speaking","cues":{"mic_on_at":"2026-10-25T00:19:51.199Z","pauses":[{"start":6111,"end":21514,"ms":15403},{"start":22712,"end":null,"ms":844}],"speaking_ms":1140}}}
+{"nav":{"at":"2026-10-24T19:21:39.517-05:00","from":"/framework/ai/queue/","to":"/framework/ai/queue/"}}
+{"nav":{"at":"2026-10-24T19:21:39.521-05:00","from":"/framework/ai/queue/","to":"/framework/ai/queue/"}}
+{"chat":{"at":"2026-10-24T19:21:48.974-05:00","session":"v-zg6h7hl","path":"/framework/ai/queue/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-zg6h7hl"},"via":"text","text":"Yes, I'm here and I can hear you on `/framework/ai/queue/`. Nothing is running right now. Tell me what you'd like done.","re":"2026-10-24T19:21:39.515-05:00"}}
+{"bubbles":{"place":{"re":"2026-10-24T19:21:39.515-05:00","to":"same","edit":"nothing"}},"by":"voice-assistant-v-zg6h7hl","ts":"2026-10-25T00:21:49.114Z"}
+{"log":{"at":"2026-10-24T19:31:39-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-24T19:36:39-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-24T19:41:39-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
