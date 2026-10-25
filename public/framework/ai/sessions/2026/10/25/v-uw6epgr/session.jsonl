@@ -1,0 +1,16 @@
+{"session":{"id":"v-uw6epgr","home":"/framework/ux/Dictate/","kind":"voice","at":"2026-10-25T13:28:10.214-05:00","project":"servex","host":"127.0.0.1:8090","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-10-25T13:28:10.382-05:00","fast":"80d22ee5-85b8-4051-9473-1c349867b78a","smart":null,"how":{"fast":"new"}}}
+{"tasks":{"add":{"type":"Prompt","id":"p-1792952893484","raw":["Fast assistant, this is a test of the dictation proof, please ignore it."],"paragraphs":[{"id":"a","text":"Fast assistant, this is a test of the dictation proof, please ignore it."}]}},"ts":"2026-10-25T18:28:13.484Z","by":"fast"}
+{"chat":{"at":"2026-10-25T13:28:13.486-05:00","session":"v-uw6epgr","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"Fast assistant, this is a test of the dictation proof, please ignore it.","prompt":"p-1792952893484","floor":"done"}}
+{"backing":{"at":"2026-10-25T13:28:13.654-05:00","fast":"80d22ee5-85b8-4051-9473-1c349867b78a","smart":"2db4f930-fa9e-43ea-963c-0872a409d990","how":{"smart":"new"}}}
+{"tasks":{"add":{"type":"Prompt","id":"p-1792952893825","raw":["The second sentence is just to make a second prompt for the screenshot."],"paragraphs":[{"id":"a","text":"The second sentence is just to make a second prompt for the screenshot."}]}},"ts":"2026-10-25T18:28:13.825Z","by":"fast"}
+{"chat":{"at":"2026-10-25T13:28:13.827-05:00","session":"v-uw6epgr","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"The second sentence is just to make a second prompt for the screenshot.","prompt":"p-1792952893825","floor":"done"}}
+{"place":{"re":"2026-10-25T13:28:13.486-05:00","to":"same","edit":"nothing"},"by":"voice-assistant-v-uw6epgr","ts":"2026-10-25T18:28:14.848Z"}
+{"sessions":[{"id":"voice-assistant-v-uw6epgr","task":"/framework/ai/sessions/2026/10/25/v-uw6epgr/"}],"by":"voice-assistant-v-uw6epgr","ts":"2026-10-25T18:28:14.849Z"}
+{"place":{"re":"2026-10-25T13:28:13.827-05:00","to":"same","edit":"nothing"},"by":"voice-assistant-v-uw6epgr","ts":"2026-10-25T18:28:15.807Z"}
+{"react":{"at":"2026-10-25T13:28:22.085-05:00","session":"v-uw6epgr","re":"2026-10-25T13:28:13.827-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-uw6epgr"}}}
+{"nav":{"at":"2026-10-25T13:29:06.172-05:00","from":"/framework/ux/Dictate/","to":"/framework/ux/Dictate/"}}
+{"nav":{"at":"2026-10-25T13:29:06.177-05:00","from":"/framework/ux/Dictate/","to":"/framework/ux/Dictate/"}}
+{"nav":{"at":"2026-10-25T13:29:08.602-05:00","from":"/framework/ux/Dictate/","to":"/framework/ux/Dictate/"}}
+{"nav":{"at":"2026-10-25T13:29:54.248-05:00","from":"/framework/ux/Dictate/","to":"/framework/ux/Dictate/"}}
+{"nav":{"at":"2026-10-25T13:30:04.130-05:00","from":"/framework/ux/Dictate/","to":"/framework/ux/Dictate/"}}
