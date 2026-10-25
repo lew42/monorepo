@@ -243,3 +243,11 @@
 {"log":{"at":"2026-10-24T21:04:40-05:00","msg":"worktree-watch: test public/framework/core/Session/session-task.test.mjs passes again (qf-4)"}}
 {"log":{"at":"2026-10-24T21:11:04-05:00","msg":"worktree-watch: test Servex/agents/handover.test.mjs passes again (qf-4)"}}
 {"log":{"at":"2026-10-24T21:11:15-05:00","msg":"worktree-watch: /framework/core/Task/ breaks at 1920/3440 px: empty share 0.65/0.757 (over 0.6). Shot: C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/shots/framework-core-Task-1920.png. 22 s after your save. (qf-4)"}}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/fast-write/","by":"TaskDirs","ts":"2026-10-25T02:35:59.243Z"}
+{"log":{"at":"2026-10-24T21:37:23-05:00","msg":"worktree-watch: /framework/ai/AISession/ breaks at 3440 px: empty share 0.716 (over 0.6). Shot: C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/shots/framework-ai-AISession-3440.png. 13 s after your save. (qf-4)"}}
+{"log":{"at":"2026-10-24T21:38:46-05:00","msg":"session resumed"}}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/fast-write/smoke-links/","by":"Servex","ts":"2026-10-25T02:52:33.521Z"}
+{"log":{"at":"2026-10-24T21:58:12-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-24T22:05:18-05:00","msg":"session resumed"}}
+{"tasks":{"add":{"type":"Task","title":"Prompt extends Task: prompts in session.tasks with their asks nested under them; completion and cost roll up on read","why":"session-is-a-task brief part 5, item 21 (vscode-mastermind, 2026-10-24): nest, not flat; a task whose work moves keeps one path pointer. After the fast write and Session extends Task land.","from":"mastermind-deputy","id":"prompt-extends-task-prompts-in-session-t"}},"by":"mastermind-deputy","ts":"2026-10-25T03:12:25.078Z"}
+{"note":{"id":"caveats-fast-write","msg":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/fast-write/ completed with caveats: `now` is the top record's state; a child's new state is a read."},"by":"mastermind-deputy","ts":"2026-10-25T03:12:38.168Z"}

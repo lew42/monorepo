@@ -60,3 +60,9 @@ The branch (`worktree/qf-4`) goes to a fresh reviewer with this file as the plan
 ## The first small merge
 
 The write answer and the log-cost memo shipped on their own, ahead of the rest. Task folder: [deputy/fast-write](../deputy/fast-write/requirements.md), branch `worktree/qf-3`, commit f795532e9. A write on a copy of this record: 254 ms on a caller's first write, then 10–14 ms.
+
+**Live, after the merge (69b5f0dc6) and the Servex restart (22:05, 2026-10-24):**
+- Two item writes were sent at once: one to the deputy's record (`deputy/session.jsonl`, 252 lines), one to its session page.
+- Both answered with the new shape (`{ok, ids, line, size, now}`).
+- They were stamped 0.43 s apart (03:12:25.078Z and 03:12:25.505Z).
+- Before the fix, one write on this record took 20 to 60 s and stalled Servex.
