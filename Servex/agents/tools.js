@@ -508,7 +508,10 @@ return [
 			const since = new Date(Date.now() - 48 * 3600e3).toISOString();
 			const rows = agents.registry_list().filter(r => all || ["working", "idle"].includes(r.state)
 				|| (r.state === "dormant" && (r.last_at ?? r.started_at ?? "") > since));
-			return JSON.stringify(rows.map(r => Object.fromEntries(Object.entries(r).filter(([k, v]) => v != null && k !== "spec"))));  // spec holds the whole first prompt
+			const procs = agents.servex?.procmon?.procs;
+				// `mb`: the agent's own claude.exe right now; a dormant or stopped row keeps a stale `claude_pid`, dropped here so the list never implies a process
+				const live_row = r => { const p = r.claude_pid && procs?.get(r.claude_pid); return p ? { ...r, mb: Math.round(p.mb) } : { ...r, claude_pid: null }; };
+				return JSON.stringify(rows.map(live_row).map(r => Object.fromEntries(Object.entries(r).filter(([k, v]) => v != null && k !== "spec"))));  // spec holds the whole first prompt
 		}),
 
 	tool("stop_agent",

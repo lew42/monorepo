@@ -4,6 +4,8 @@ Budget: $15. Load the `minion` skill first. A new worktree off current `michael/
 
 The owner's words are in the parent brief, [section "The owner, on the whole chain from Whisper to the bubble"](../requirements.md#the-owner-on-the-whole-chain-from-whisper-to-the-bubble-2026-10-24). The Debug tab, both stall fixes and the bubble deltas already landed from [the parent task](../requirements.md). The owner wants website dictation to an SDK agent that always works and never jumps.
 
+**Start from** [ux/Dictate/doc/debug-tab.md](/framework/ux/Dictate/doc/debug-tab.md) and the headless harnesses in `ux/Dictate/test/` (`stall.mjs`, `deltas.mjs`, `debug-tab.mjs`: a fake mic, Servex stubbed). Copy one to make the flicker test.
+
 ## Do, in this order
 
 1. **Reproduce the flicker first.** Press dictate and talk: raw text flashes in, vanishes, and comes back later (perhaps when the cleaned text replaces it). Find which step removes text the owner was reading. Record each step's timing on the Debug tab rows, not in a new place.

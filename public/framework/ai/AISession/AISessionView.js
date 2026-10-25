@@ -1,6 +1,6 @@
 import { View, div, span, small, p, a } from "/app.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
-import { dur, elapsed } from "/framework/ai/AITask/stats.js";
+import { dur, elapsed, span_active } from "/framework/ai/AITask/stats.js";
 import AISessionRows from "./AISessionRows.js";
 import AISession from "./AISession.js";
 import AISessionFlags from "./AISessionFlags.js";
@@ -86,7 +86,7 @@ export default class AISessionView extends View {
 		});
 
 		div.c("sessions-cell", () => small.c("muted").text(working ? "now" : (r.last_activity ? age(r.last_activity) : "—")).attr("title", r.last_activity ?? ""));
-		div.c("sessions-cell", () => small.c("muted", dur(AISessionRows.span_ms(r))));
+		div.c("sessions-cell", () => { const ix = row_of(this.session_index, r.session_id || r.id); small.c("muted", ix?.wall_ms > 0 ? span_active(ix.wall_ms, ix.active_ms) : dur(AISessionRows.span_ms(r))).attr("title", "From the session's first line to its last (a stop and restart does not reset it), and the hours it was actually working"); });
 		div.c("sessions-cell", () => { if (r.role) { const { label: text, title } = role_label(r.role); small.c("muted").attr("title", title).text(text); } { const f = AISessionFlags.of(r); if (f?.last){ const { tier, why } = AISessionResume.tier(f), t = AISessionResume.TIERS[tier]; span.c("sessions-tag sessions-tier sessions-tier-" + tier, t.label).attr("title", t.title + " (" + why + ")"); } } if (AISessionFlags.is_mastermind(r)) span.c("sessions-tag sessions-tag-mm", "mastermind").attr("title", "A mastermind: it registered as one in Servex, or its first prompt loads the mastermind skill."); });
 		div.c("sessions-cell", () => span.c("sessions-tag sessions-tag-" + r.source, src.label));
 		// Plain `if`s, not `&&`: a cell callback's return value can end up rendered as a stray text node (a `false` once printed "false").

@@ -9,3 +9,7 @@
 {"file":"SessionMenu.css"}
 {"file":"SessionTasks.js"}
 {"file":"improvements.jsonl"}
+{"file":"failures.jsonl"}
+{"file":"session-task.test.mjs"}
+{"file":"tasks/"}
+{"file":"session-task.test.mjs"}

@@ -46,6 +46,10 @@ The Coverage tab (`AISessionCoverage.records_view`) already is the chat view: a 
 
 The task list on `ext/DataGrid` (the sessions list's grid, one component for both): one full-width row, filters state · day · kind, so a four-day session is browsed by day.
 
+## The eighth pass (2026-10-25): drill down
+
+The Overview groups by **child session** (past ones included), each holding its tasks, and ends with one group for this session's own unassigned work, sub-grouped by prompt. Every child's heading opens its own `AISessionDetail`, the same component, recursively. A child has no Chat/Coverage tab, because only a VS Code tab processes prompts. This is folded into 2a: [overview/requirements.md](overview/requirements.md). The test path is AI → Sessions → e00f55c9 → deputy → a deputy child.
+
 ## Later (the sixth pass, not now)
 
 When a task moves into a session made for it, its old spot stays, dimmed, with a small "moved" arrow that scrolls to the new home; the item there carries a "moved in" arrow top-left. Built once moves exist (item 32 of session-is-a-task).

@@ -1,8 +1,8 @@
 # How the Sessions grid loads (2026-10-12)
 
-**Rule:** open on the newest month; older days load only when asked.
+**Rule:** open on today; older days load only when asked.
 
-The window starts at the 1st of this month (at least 7 days back). Every day has one small real file (`YYYY/MM/DD/index.json`, listed by the month and year roll-ups). Moving the **From** box, or pressing **show 30 more days** under the grid, fetches just the older day files. A day already read is never fetched twice (`AISessionLive.load`, `AISessionsPage.set_from`).
+The list opens on **Today**; the range menu in the header (Today · Yesterday · Last 7 days · This month · Custom…) widens it, and v/classic still opens on this month. Every day has one small real file (`YYYY/MM/DD/index.json`, listed by the month and year roll-ups). Picking a wider range (or moving the **From** box under Custom…), or pressing **show 30 more days** under the grid, fetches just the older day files. A day already read is never fetched twice (`AISessionLive.load`, `AISessionsPage.set_from`).
 
 | Measured (headless, same worktree, 1200 and 400 wide) | Before | After |
 |---|---|---|

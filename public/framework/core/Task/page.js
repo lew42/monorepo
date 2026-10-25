@@ -11,7 +11,8 @@ export default new Doc({
 	subject: Task,
 	properties: "state tasks",
 	methods: "start pause resume stop complete approve improve reject settled duration progress",
-	files: "Task.js Task.test.mjs readme.md page.js live/page.js",
+	children: "process",
+	files: "Task.js Task.test.mjs readme.md page.js live/page.js process/page.js",
 
 	initialize(){
 		Doc.prototype.initialize.call(this);
