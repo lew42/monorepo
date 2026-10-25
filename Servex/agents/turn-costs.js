@@ -7,19 +7,31 @@
  * Lines since then carry `sdk_total` and are exact; older lines are rebuilt: the total is turn_cost summed since the process
  * started, and a turn costs what the total grew by. A total lower than the last is a fresh session (renew, fork) and counts in
  * full. ⚠ A fresh session whose first turn already exceeds the old total is under-counted (only old lines; rare).
- * An openrouter agent's turn_cost is already real (refresh_or_cost), so it is returned as written. */
+ * An openrouter agent's turn_cost is already real (refresh_or_cost), so it is returned as written.
+ *
+ * SESSION (2026-10-24, core/Session/doc/identity.md): one agent id runs as several Claude sessions (a renewal, a reused id), so each
+ * turn also says which session it belongs to: the line's own `session_id` (result lines since 2026-10-24), else the last marker before
+ * it: a `renew` line's `session`, the host's whoami message ("Your own page is /framework/ai/sessions/<uuid>/") or the `transcript` line
+ * Agent.began() writes when the CLI announces a new session ("session <uuid> · <model> · …"; the only marker a spawn with its own system
+ * brief, like assistant-fast, gets). null before any marker. */
+const BEGAN = /^session ([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}) · /;
+const WHOAMI = "Your own page is /framework/ai/sessions/", WHOAMI_ID = /Your own page is \/framework\/ai\/sessions\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\//;
 export function turn_costs(text, { openrouter = false } = {}){
 	const turns = [];
-	let proc = 0, last = 0;
+	let proc = 0, last = 0, session = null;
 	for (const line of String(text).split("\n")){
-		if (!line.includes('"turn_cost"') && !line.includes('"state":"started"') && !line.includes('"type":"renew"')) continue;
+		const whoami = line.includes(WHOAMI), began = line.includes('"type":"transcript","text":"session ');
+		if (!line.includes('"turn_cost"') && !line.includes('"state":"started"') && !line.includes('"type":"renew"') && !whoami && !began) continue;
 		let j; try { j = JSON.parse(line); } catch { continue; }
+		if (whoami && j.type === "agent_msg" && j.from === "host"){ session = String(j.text ?? "").match(WHOAMI_ID)?.[1] ?? session; continue; }
+		if (began && j.type === "transcript"){ session = BEGAN.exec(String(j.text ?? ""))?.[1] ?? session; continue; }
 		if (j.type === "process" && j.state === "started"){ proc = 0; continue; }
-		if (j.type === "renew"){ proc = last = 0; continue; }   // a fresh session under the same id
+		if (j.type === "renew"){ proc = last = 0; session = j.session ?? session; continue; }   // a fresh session under the same id
 		if (!("turn_cost" in j)) continue;
-		if (openrouter){ turns.push({ line: j, cost: Number(j.turn_cost) || 0 }); continue; }
+		if (j.session_id) session = j.session_id;
+		if (openrouter){ turns.push({ line: j, cost: Number(j.turn_cost) || 0, session }); continue; }
 		const total = Number.isFinite(j.sdk_total) ? j.sdk_total : proc + (Number(j.turn_cost) || 0);
-		turns.push({ line: j, cost: total >= last ? total - last : total });
+		turns.push({ line: j, cost: total >= last ? total - last : total, session });
 		proc = last = total;
 	}
 	return { turns, sdk_total: last };

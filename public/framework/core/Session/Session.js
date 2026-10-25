@@ -145,6 +145,7 @@ export default class Session extends Task {
 			if (!id) try { id = JSON.parse(await fs.readFile(new URL("index.json", dir), "utf8")).id; } catch {}
 			if (!id) try { id = JSON.parse((await fs.readFile(new URL("cache.jsonl", dir), "utf8")).split("\n").find(l => l.startsWith('{"summary"'))).summary.id; } catch {}
 			if (!id) try { id = JSON.parse((await fs.readFile(new URL("page.jsonl", dir), "utf8")).split("\n")[0]).session; } catch {}   // a folder the page tool made first (Servex/agents/page_tools.js)
+			for (const log of ["session.jsonl", "task.jsonl"]) if (!id) try { id = JSON.parse((await fs.readFile(new URL(log, dir), "utf8")).split("\n")[0]).session?.id; } catch {}   // a tab's folder: the SessionStart hook writes only line 1, {"session":{"id"}}
 			if (!id || !UUID.test(id)) continue;
 			this.days.set(id, `${y}/${m}/${d}`);
 			if (name !== id) this.slugs.set(id, name);
@@ -161,12 +162,16 @@ export default class Session extends Task {
 		let day = this.day(first_at);
 		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
 			try { for (const l of (await fs.readFile(new URL("cache.jsonl", flat), "utf8")).split("\n")) if (l.startsWith('{"summary"')) day = this.day(JSON.parse(l).summary?.first_at) ?? day; } catch {}
-			if (!day) return flat;             // known only by an old flat folder: leave it until its first_at is known
+			// No first_at: a session whose transcript has no message never gets one (a56900e3, 2026-10-25, stayed flat forever), so the folder's own date files it.
+			if (!day) try { day = this.day((await fs.stat(flat)).birthtime); } catch {}
+			if (!day) return flat;
 		}
 		day ??= this.day(new Date());
 		this.days.set(id, day);
 		if (await exists(flat)){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, new URL(`./${day}/${id}/`, root)); return this.dir_url(id); }
-		this.slugs.set(id, slug || "session-" + id.slice(0, 8));
+		// Two ids can share their first 8 hex (hand-picked test ids did, 2026-09-19): a default name another id already holds that day becomes the full uuid.
+		const short = "session-" + id.slice(0, 8), taken = !slug && [...this.slugs].some(([o, s]) => o !== id && s === short && this.days.get(o) === day);
+		if (!taken) this.slugs.set(id, slug || short);
 		return this.dir_url(id);
 	}
 }

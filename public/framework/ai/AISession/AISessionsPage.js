@@ -268,7 +268,7 @@ export default class AISessionsPage extends Page {
 			columns: AISessionRows.COLUMNS.map(c => ({ ...c, width: AISessionsPage.WIDTHS[c.key], ...(c.key === "name" && { min: "12rem" }) })),
 			rows: [], filters: false, row_height: null, page_size: AISessionsPage.PAGE_SIZE,
 			prefs_id: "sessions", settings: this.settings,
-			href: r => this.data_url + r.id + "/",   // the session page lives under the real list url, also from v/classic/
+			href: r => AISession.page_url(r.session_id || r.id, this.data_url + r.id + "/"),   // its dated folder; else the id url under the real list url (also from v/classic/), which redirects
 			row: r => this.row_view(r, this.nests.get(r)),
 			card: r => new AISessionView({ row: r, url: this.data_url, spend: this.spend, session_index: this.session_index, card: true }),
 			sort_rows: (rows, sort) => this.roots_for_cards(this.remote ? this.remote_sort(rows, sort) : this.arrange(rows, sort)),
@@ -730,7 +730,10 @@ export default class AISessionsPage extends Page {
 
 	/** Waits for the session rows before a detail page is built, so its title is the name on the first paint (route() cannot wait). */
 	async child(name, levels){
-		if (name && !name.includes(".") && !/^\d{4}$/.test(name) && name !== "doc" && name !== "readme") await AISessionDetail.preload(this.url, name);
+		if (name && !name.includes(".") && !/^\d{4}$/.test(name) && name !== "doc" && name !== "readme"){
+			await AISessionDetail.preload(this.url, name);
+			(this.folders ??= new Map()).set(name, await AISessionDetail.folder_for(this.url, name));   // route() cannot wait: the session's dated folder is looked up here
+		}
 		return super.child(name, levels);
 	}
 
@@ -740,6 +743,8 @@ export default class AISessionsPage extends Page {
 		if (id === "doc" || id === "readme") return this.docs_page(id);
 		if (id === "v") return;   // variants: sessions/v/page.js (e.g. v/mobile/), a folder and not a session id
 		if (/^\d{4}$/.test(id)) return new StoreFolder({ home: this, segs: [id] });   // the store by path: YYYY/MM/DD/<session>/<task>/ (ai/doc/task-folders.md)
+		const folder = this.folders?.get(id);
+		if (folder) return StoreFolder.redirect(this.url + id + "/", folder);   // one session, one url: the dated folder (a session with no folder yet keeps this page)
 		return new AISessionDetail({ home: this, id });
 	}
 

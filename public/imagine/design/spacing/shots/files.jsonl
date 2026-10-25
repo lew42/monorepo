@@ -13,3 +13,6 @@
 {"file":"blogx.jpg"}
 {"file":"platform.jpg"}
 {"file":"stream.jpg"}
+{"file":"blogx.jpg","gone":true}
+{"file":"platform.jpg","gone":true}
+{"file":"stream.jpg","gone":true}

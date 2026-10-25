@@ -439,6 +439,12 @@ export default class AISession extends Session {
 		const root = typeof process !== "undefined" && process.env?.SESSIONS_ROOT;
 		return root ? new URL("file:///" + root.replace(/\\/g, "/").replace(/\/?$/, "/").replace(/^\/+/, "")) : new URL("../sessions/", import.meta.url);
 	}
+	/** The url a session's page lives at: its dated folder (/framework/ai/sessions/2026/10/20/session-e00f55c9/) once the index has named the folder, else `fallback` (the id url, which redirects to the folder when it can). A folder deeper than one name is a task's, not a session page. */
+	static page_url(id, fallback = new URL(id + "/", AISession.root_url()).pathname){
+		const slug = AISession.slugs.get(id), day = AISession.days.get(id)?.replaceAll("-", "/");   // some snapshots (record-only voice sessions) write the day as 2026-10-24
+		return slug && /^\d{4}\/\d\d\/\d\d$/.test(day) && !slug.includes("/") ? new URL(`./${day}/${slug}/`, AISession.root_url()).pathname : fallback;
+	}
+
 	// day(), dir_url(), scan() and locate() are inherited from core/Session; the maps below are this class's own (statics inherit by reference).
 	static slugs = new Map();
 	static scanned = false;

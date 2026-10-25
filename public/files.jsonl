@@ -82,3 +82,7 @@
 {"file":"data/"}
 {"file":"failures.jsonl"}
 {"file":"public/"}
+{"file":"data/","gone":true}
+{"file":"public/","gone":true}
+{"file":"failures.jsonl","gone":true}
+{"file":"public/"}

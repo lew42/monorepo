@@ -133,14 +133,33 @@ try {
 		const uuid = crypto.randomUUID(), sess = `/framework/ai/sessions/${uuid}/`;
 		let folder;
 		try {
+			// A session folder is made by the hook, never by a typed path: the uuid is refused until its folder exists.
+			const no = await call("page_set", { path: sess, delta: { title: "x" } }, "t");
+			ok(!no.ok && /no folder, no transcript and no Servex agent/.test(no.why), "a uuid with no folder, transcript or agent is refused");
+			const day = new Date().toISOString().slice(0, 10).replace(/-/g, "/");
+			folder = path.join(ROOT, "public/framework/ai/sessions", day, "session-" + uuid.slice(0, 8));
+			fs.mkdirSync(folder, { recursive: true });
+			fs.writeFileSync(path.join(folder, "session.jsonl"), JSON.stringify({ session: { id: uuid, kind: "vscode-tab" } }) + "\n");   // what the SessionStart hook writes
+			const { default: AISession } = await import("../../public/framework/ai/AISession/AISession.js"); AISession.scanned = false;
 			const out = await call("page_set", { path: sess, delta: { pages: { add: { name: "notes", title: "Notes", icon: "N", description: "d" } } } }, "t");
 			ok(out.ok, "pages.add on a session page");
-			folder = path.join(ROOT, path.dirname(out.size.file));
+			ok(path.join(ROOT, path.dirname(out.size.file)) === folder, "the hook's folder (session.jsonl only) is found, never a second one");
 			ok(fs.existsSync(path.join(folder, "notes", "page.jsonl")), "the subpage sits in the session's own folder");
 			const w = await call("page_set", { path: sess + "notes/", delta: { title: "Renamed" } }, "t");
 			ok(w.size.file.endsWith("/notes/page.jsonl"), "a session route deeper than the page resolves to the subpage folder");
 			const t = await call("page_set", { path: sess + "other/", delta: { title: "tab" } }, "t");
 			ok(t.line.other?.title === "tab", "with no folder, the segment stays a tab target");
+			// One character off: refused, and the answer names the real one.
+			const typo = uuid.slice(0, -1) + (uuid.at(-1) === "0" ? "1" : "0");
+			const t1 = await call("page_set", { path: `/framework/ai/sessions/${typo}/`, delta: { title: "x" } }, "t");
+			ok(!t1.ok && t1.why.includes(uuid), "a uuid one character off is refused and the real id suggested");
+			const rel = path.relative(path.join(ROOT, "public"), folder).split(path.sep).join("/");
+			const t2 = await call("page_set", { path: "/" + rel.slice(0, -1) + "z/", delta: { title: "x" } }, "t");
+			ok(!t2.ok && t2.why.includes(path.basename(folder)) && !fs.existsSync(path.join(ROOT, "public", rel.slice(0, -1) + "z")), "a dated folder one character off is refused, not created, and the real folder suggested");
+			const t3 = await call("page_set", { path: "/" + rel + "/no-such-task/", delta: { title: "x" } }, "t");
+			ok(!t3.ok && !fs.existsSync(path.join(folder, "no-such-task")), "a missing folder inside a session is refused, not created");
+			const t4 = await call("page_set", { path: "/framework/ai/sessions/no-such-agent-x/", delta: { title: "x" } }, "t");
+			ok(!t4.ok && /no session or Servex agent is called/.test(t4.why) && !fs.existsSync(path.join(ROOT, "public/framework/ai/sessions/no-such-agent-x")), "an unknown agent name is refused, not made a folder");
 		} finally { if (folder) fs.rmSync(folder, { recursive: true, force: true }); }
 	}
 

@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 // Server/TrackingCheck.mjs: does the work get tracked? Reads the real records and writes public/framework/ai/tracking/report.json (the page /framework/ai/tracking/ draws it).
 //   node Server/TrackingCheck.mjs [--days 7] [--id <session id>] [--print]
-// Three checks (doc: public/framework/ai/tracking/readme.md):
+// Four checks (doc: public/framework/ai/tracking/readme.md):
 //   1. untracked work   every assistant message in a session's transcript is "tracked" if a task was open at that moment (start..complete), else "untracked"; shares in dollars and tokens
 //   2. unlinked children   Servex agent sessions with no parent, a parent that is an agent name and not a session id, or a parent record that does not list them
 //   3. stored numbers   a stored dollar number (index.json tree_usd, children, usd) against what the children / the raw transcript give now
 //   4. prompt coverage   per session with a prompts.jsonl: the owner's unique prompts in the transcript (PromptRecords.prompts) against those with refinement parts, and the unrecorded lines
 //   5. jsonl perf   the slowest-reading records and the item-tool write timing (Server/JsonlPerf.mjs), each flagged past its limit. The write timing needs `--item` / `--http <url>`; otherwise the last run's is kept
+//   6. session identity   Server/SessionIdentity.mjs for the 10 most recent sessions in the window (plus --id): one id per transcript, one folder, cost agrees with a recount, no shared messages, children linked
 // Read-only on every record; the one write is report.json.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import SessionIdentity from "./SessionIdentity.mjs";
+// Always checked, so the runs core/Session/doc/identity.md quotes stay on the tracking page: a VS Code tab and a renewed Servex agent.
+const IDENTITY_PINNED = ["e00f55c9-bad4-4ee2-899e-d629ea1eede6", "7c6c8d93-e066-4ee5-b4b1-35480048f0a0"];
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(process.env.TRACKING_ROOT || path.join(HERE, ".."));   // TRACKING_ROOT: read the main checkout's records from a worktree (index.json and cache.jsonl are gitignored)
@@ -267,7 +271,19 @@ export async function run({ days = 7, id = null, item = false, http = null, sour
 	}
 	for (const x of sessions) if (x.stored_usd != null && Math.abs(x.stored_usd - x.usd) > Math.max(0.05, x.usd * 0.03)) numbers.push({ id: x.id, agent: x.agent, what: "usd", stored: x.stored_usd, computed: x.usd, why: "index.json usd against the transcript read again now" });
 
-	return { generated_at: new Date().toISOString(), days, note: "Computed by Server/TrackingCheck.mjs; never edit by hand. Doc: public/framework/ai/tracking/readme.md", untracked: { totals, by_day, sessions: sessions.slice(0, 100) }, children, numbers: { count: numbers.length, rows: numbers.slice(0, 200) }, prompts: await prompt_coverage(), perf: await jsonl_perf({ item, http, source }) };
+	// 6. session identity: the 10 most recent sessions that have a transcript, plus the one asked for and the two core/Session/doc/identity.md quotes
+	const checker = new SessionIdentity({ repo: REPO }), identity_rows = [];
+	const recent = scope.filter(s => files.has(s.id)).sort((a, b) => b.last - a.last).slice(0, 10);
+	for (const want of [id, ...IDENTITY_PINNED]) if (want && !recent.some(s => s.id === want) && files.has(want)) recent.push(by_id.get(want) ?? { id: want, snap: {} });
+	for (const s of recent){
+		try {
+			const r = await checker.check(s.id);
+			identity_rows.push({ id: s.id, title: s.snap.title ?? s.snap.agent ?? null, ok: r.ok, problems: r.problems.length, first_problem: r.problems[0] ?? null, cache_usd: r.cost.cache_usd, recount_usd: r.cost.recount_usd, shared_messages: r.cost.shared_messages.count, folders: r.folders.list.length, unlinked: r.children.unlinked });
+		} catch (e){ identity_rows.push({ id: s.id, title: s.snap.title ?? null, ok: false, problems: 1, first_problem: "The identity check failed: " + e.message, cache_usd: null, recount_usd: null, shared_messages: 0, folders: 0, unlinked: 0 }); }
+	}
+	const identity = { checked: identity_rows.length, failing: identity_rows.filter(x => !x.ok).length, rows: identity_rows };
+
+	return { generated_at: new Date().toISOString(), days, note: "Computed by Server/TrackingCheck.mjs; never edit by hand. Doc: public/framework/ai/tracking/readme.md", untracked: { totals, by_day, sessions: sessions.slice(0, 100) }, children, numbers: { count: numbers.length, rows: numbers.slice(0, 200) }, prompts: await prompt_coverage(), perf: await jsonl_perf({ item, http, source }), identity };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
@@ -281,4 +297,5 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 	const pc = report.prompts, pf = report.perf;
 	console.log(`prompt coverage: ${pc.recorded} of ${pc.unique} unique prompts have parts (${pc.pct == null ? "n/a" : Math.round(pc.pct * 100) + "%"}) across ${pc.sessions} sessions; ${pc.rows.filter(x => x.unique > x.recorded).length} with unrecorded prompts`);
 	console.log(`jsonl perf: ${pf.verdict}${pf.files.some(f => f.over) ? " (a read is over " + pf.limits.read_ms + " ms)" : ""}`);
+	console.log(`session identity: ${report.identity.failing} of ${report.identity.checked} have a problem`);
 }

@@ -72,33 +72,80 @@ const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
 const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion"];   // Task.queries: answered from the record, never written
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+/* TYPO-PROOF SESSION PATHS (2026-10-24, core/Session/doc/identity.md "A typed id that drifts"): a session folder is made only by the
+ * SessionStart hook, TaskDirs or a spawn, never because a path was typed. A session id or agent name this tool cannot find, and a
+ * dated session folder that is not on disk, come back as { why } and nothing is written: an id that drifted by one character in an
+ * agent's context would otherwise start a new folder. The answer names the nearest real id. Omitting `path` (your own page) types no id. */
+const DATED_SESSION = /^\/?framework\/ai\/sessions\/(\d{4}\/\d{2}\/\d{2}\/[^/]+)(\/.*)?$/;
+const OMIT = "Omit `path` to mean your own page.";
+
 async function resolve(url, target = [], item = false){
 	const hit = SESSION_ROUTE.exec(String(url ?? ""));
+	// A real folder under sessions/ that is not a session (sessions/tasks/<task>/, a task's own home) is a plain path: only a typed name with nothing on disk is refused.
+	const plain = hit && fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]));
 	if (hit && !/^\d{4}$/.test(hit[1])){
 		const file = await session_file(hit[1]);
-		if (file){
+		if (file?.why && !plain) return file;
+		if (!file && !plain) return { why: `no session or Servex agent is called "${hit[1]}", so nothing was created. ${OMIT}` };
+		if (file && !file.why){
 			// A real subpage folder (made by pages.add) wins; a segment with no folder is still a tab target.
 			let dir = path.dirname(file), rest = hit[2].split("/").filter(Boolean), at = file;
 			while (rest.length && fs.existsSync(path.join(dir, rest[0], "page.jsonl"))){ dir = path.join(dir, rest[0]); at = path.join(dir, "page.jsonl"); rest = rest.slice(1); }
 			return { file: at, target: [...rest, ...(target ?? [])] };
 		}
 	}
+	const dated = DATED_SESSION.exec(String(url ?? "").replace(/\/[^/]+\.jsonl$/, "/"));
+	if (dated){
+		// The session folder must exist, and so must any folder inside it that is named (a subpage is made by pages.add, a task by tasks.add).
+		const dir = path.resolve(PUBLIC, "framework/ai/sessions", dated[1], (dated[2] ?? "").replace(/^\/+/, ""));
+		if (!fs.existsSync(dir)){
+			const own = fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", dated[1]));
+			return { why: `"${url}" is not on disk, so nothing was created: a session folder is made only by the SessionStart hook, TaskDirs or a spawn, and a folder inside it by pages.add or tasks.add. Check the path for a typo${own ? "." : near_folder(dated[1])}` };
+		}
+	}
 	const file = resolve_file(url, item);
 	return file ? { file, target: target ?? [] } : null;
 }
 
+// The nearest real name to a typed one, as "; did you mean …?" or ".". A one-character drift is distance 1.
+function distance(a, b){
+	const d = Array.from({ length: b.length + 1 }, (_, j) => j);
+	for (let i = 1; i <= a.length; i++){ let prev = d[0]; d[0] = i; for (let j = 1; j <= b.length; j++){ const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = t; } }
+	return d[b.length];
+}
+function nearest(typed, names){
+	let best = null, bd = Infinity;
+	for (const n of names){ const d = distance(typed, n); if (d < bd){ bd = d; best = n; } }
+	return best && bd <= Math.max(2, Math.floor(typed.length / 6)) ? `; did you mean "${best}"?` : ".";
+}
+function near_folder(rel){
+	const [y, m, d, name] = rel.split("/");
+	let names = []; try { names = fs.readdirSync(path.join(PUBLIC, "framework/ai/sessions", y, m, d), { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch {}
+	return nearest(name, names);
+}
+
+// A transcript on this machine (~/.claude/projects/<dir>/<uuid> plus .jsonl): a session that has one is real even before its folder exists.
+function has_transcript(uuid){
+	const root = path.join(process.env.USERPROFILE || process.env.HOME || "", ".claude", "projects");
+	try { return fs.readdirSync(root).some(d => fs.existsSync(path.join(root, d, uuid + ".jsonl"))); } catch { return false; }
+}
+
 async function session_file(id){
 	// A folder made here is named for the agent (its Servex id), not left as session-<id8> (brief: "sessions get a name").
-	let uuid = UUID.test(id) ? id : null, name = uuid ? null : id;
+	let uuid = UUID.test(id) ? id : null, name = uuid ? null : id, agents = {};
 	try {
-		const { default: Registry } = await import("./Registry.js"), agents = new Registry().read();
+		const { default: Registry } = await import("./Registry.js"); agents = new Registry().read();
 		if (!uuid) uuid = agents[id]?.session_id ?? null;
 		else name = Object.entries(agents).find(([, a]) => a?.session_id === uuid)?.[0] ?? null;
 	} catch {}
-	if (!uuid) return null;
+	if (!uuid) return { why: `no session or Servex agent is called "${id}", so nothing was created${nearest(id, Object.keys(agents))} ${OMIT}` };
 	const slug = /^[a-z0-9][a-z0-9-]{2,60}$/.test(name ?? "") ? `${name}-${uuid.slice(0, 8)}` : undefined;
 	const { default: AISession } = await import("../../public/framework/ai/AISession/AISession.js");
 	if (!AISession.days.has(uuid)) AISession.scanned = false;   // a long-lived Servex: a folder made since the last scan must be found, never doubled
+	await AISession.scan();
+	// A uuid with no folder, no Servex agent and no transcript is not a session: refuse rather than make a folder for it.
+	if (!AISession.days.has(uuid) && !name && !has_transcript(uuid))
+		return { why: `no session ${uuid}: it has no folder, no transcript and no Servex agent, so nothing was created. Was the id typed${nearest(uuid, [...AISession.days.keys()]).replace(/^; d/, "? D").replace(/^\.$/, "?")} ${OMIT}` };
 	const file = fileURLToPath(new URL("page.jsonl", await AISession.locate(uuid, undefined, slug)));
 	// A brand-new folder says whose it is on its first line, so AISession.scan() finds it again (never a second folder).
 	if (!fs.existsSync(file)){ fs.mkdirSync(path.dirname(file), { recursive: true }); fs.appendFileSync(file, JSON.stringify({ session: uuid, ts: new Date().toISOString() }) + "\n"); }
@@ -970,7 +1017,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	let caller_log = ctx.caller_log ?? null;
 	try { caller_log ??= ctx.resolve_log?.(ctx.caller) ?? null; } catch { caller_log = null; }   // a broken resolver never breaks the call
 	let at = await resolve(url, target, true);
-	if (!at) return { ok: false, why: `"${url}" is not a page under public/` };
+	if (!at || at.why) return { ok: false, why: at?.why ?? `"${url}" is not a page under public/` };
 	// A session route's file is its page.jsonl (cards, tabs). A READ or a query there asks about the session itself, so it reads the record
 	// beside it, session.jsonl: cost, span, children, counts (core/Session/readme.md, "What item() answers"). Writes still go to the page.
 	const routed = SESSION_ROUTE.exec(String(url ?? ""));
@@ -1123,7 +1170,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 
 /* resolve_log(agent id) -> that agent's task.jsonl path or null; the host supplies it (Agents.task_dir_for). */
 export function page_tools(resolve_log = null){
-	const not_a_page = url => JSON.stringify({ ok: false, why: `"${url}" is not a page under public/` });
+	const not_a_page = (url, at) => JSON.stringify({ ok: false, why: at?.why ?? `"${url}" is not a page under public/` });
 
 	return [
 
@@ -1136,7 +1183,7 @@ export function page_tools(resolve_log = null){
 			async ({ path: url, target, method, args }, ctx = {}) => {
 				url ??= own_page(ctx);
 				const at = await resolve(url, target, true);
-				if (!at) return not_a_page(url);
+				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, target, delta: { [method]: is_plain(args) ? args : {} } }, { resolve_log, ...ctx }, true));   // a task / session: the item path
 
 				const stamped = is_plain(args) ? { ...(method === "add" ? { id: crypto.randomUUID() } : {}), ...stamp_ids(args), by: ctx.caller ?? "agent", ts: now() } : args;
@@ -1157,7 +1204,7 @@ export function page_tools(resolve_log = null){
 			async ({ path: url, item, after }, ctx = {}) => {
 				url ??= own_page(ctx);
 				const at = await resolve(url, ["content"], true);
-				if (!at) return not_a_page(url);
+				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, delta: { content: { add: { ...item, ...(after !== undefined ? { after } : {}) } } } }, { resolve_log, ...ctx }, true));
 
 				const id = item?.id ?? crypto.randomUUID();
@@ -1204,7 +1251,7 @@ export function page_tools(resolve_log = null){
 			async ({ path: url, text }, ctx = {}) => {
 				url ??= own_page(ctx);
 				const at = await resolve(url, undefined, true);
-				if (!at) return not_a_page(url);
+				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, delta: { now: { preview: text } } }, { resolve_log, ...ctx }, true));   // a task has no page log: its "now"
 
 				const line = nest(at.target, { log: { text, by: ctx.caller ?? "agent", ts: now() } });
@@ -1220,7 +1267,7 @@ export function page_tools(resolve_log = null){
 			async ({ path: url, format }, ctx = {}) => {
 				url ??= own_page(ctx);
 				const at = await resolve(url);
-				if (!at) return not_a_page(url);
+				if (!at || at.why) return not_a_page(url, at);
 				const file = at.file;
 				if (!fs.existsSync(file)) return JSON.stringify({ ok: false, why: `no page.jsonl at "${url}" yet` });
 

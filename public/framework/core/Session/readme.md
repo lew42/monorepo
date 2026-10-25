@@ -126,6 +126,7 @@ Test: `node Servex/agents/session-state.test.mjs`.
 2. **Its completion is computed from its tasks**, never typed in: `completion` is the share of tasks in state `complete`. *Built.* One gap: with no tasks it reads 0, and nothing marks the session itself finished.
 3. **A session is never marked complete while a loose end exists.** If something is left over, add a task for it instead of closing. *Not built yet:* no code refuses a close. Queued as step 5, "Task as a line", in [sessions-and-tasks.md](/framework/ai/doc/sessions-and-tasks.md).
 4. **The session system should be portable** (the owner, 2026-10-20, session-e00f55c9 prompt line 1931): "a reusable, portable system, closer to a dev server than a Servex thing". *Not built yet:* `Session` and `Day` need only `Item` and a dated folder, but the writers (the SessionStart hook, `prompt-relay.mjs`, the item tool) live in this repo's `.claude/hooks` and `Servex/`, so another project cannot use it on its own.
+5. **Nothing is misattributed, lost or counted twice** (the owner, 2026-10-24). *Checked by* `Server/SessionIdentity.mjs`; the open items are in [doc/identity.md](doc/identity.md#open--each-small).
 
 ## Open items
 
@@ -133,6 +134,7 @@ Test: `node Servex/agents/session-state.test.mjs`.
 
 ## More
 
+- [doc/identity.md](doc/identity.md): which session owns each line, dollar and task; every way an id changes (compaction, resume, fork, renewal); the check `node Server/SessionIdentity.mjs <id>`
 - [doc/prompt-tasks.md](doc/prompt-tasks.md): each owner prompt's work arrives as proposed tasks on the session page, live, with Approve and Reject (`SessionTasks.js`, Servex's `PromptTasks`)
 - [doc/prompt-breakdown.md](doc/prompt-breakdown.md): a prompt files as one outcome task with its asks as subtasks (`PromptRecords.file()`), the measure, and the gap in what the tab sees
 - [doc/menu.md](doc/menu.md): the session menu, a template (`Session.MENU`, settings first) drawn at the right end of the session's name line; settings saved as lines in `session.jsonl`

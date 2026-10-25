@@ -2,6 +2,7 @@ import View, { div, span, small, strong, a, p, details, summary } from "/framewo
 import TaskView from "/framework/core/Task/TaskView.js";
 import MobileData from "../sessions/v/mobile/MobileData.js";
 import SessionTaskRow from "./SessionTaskRow.js";
+import AISession from "./AISession.js";
 
 View.stylesheet(import.meta, "SessionFeed.css");
 
@@ -49,7 +50,7 @@ export default class SessionFeed extends View {
 			new SessionTaskRow({ node: n, sid: this.sid });
 			if (typeof n.session === "string") div.c("sfeed-agent", () => {
 				small.c("muted", [n.model && n.model.replace(/^claude-/, ""), n.usd != null && MobileData.usd(n.usd)].filter(Boolean).join(" · "));
-				a.c("sfeed-link", "session →").href(`/framework/ai/sessions/${n.session}/`);
+				a.c("sfeed-link", "session →").href(AISession.page_url(n.session));
 			});
 		});
 		const cls = "sfeed-item" + (n.state === "stopped" ? " is-dropped" : "");

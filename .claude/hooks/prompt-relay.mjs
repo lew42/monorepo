@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import TaskDirs from "../../Server/TaskDirs.mjs";
+import DatedFiles from "../../Server/DatedFiles.mjs";
 import SessionRecord from "../../Server/SessionRecord.mjs";
 
 /* prompt-relay.mjs — the UserPromptSubmit hook (2026-09-19).
@@ -107,20 +108,19 @@ const SERVEX = () => `http://127.0.0.1:${process.env.SERVEX_PORT || 8090}`;
  * cached in a per-session marker so every later prompt in the SAME session (even across
  * midnight) keeps landing in the SAME folder — the day is "when this session started", not
  * "today". */
-const session_marker_file = sid => path.join(os.tmpdir(), `claude-session-page-${String(sid).replace(/[^\w-]/g, "_")}`);
-function session_page_url(session_id, { day } = {}){
-	const marker = session_marker_file(session_id);
-	let use_day, slug;
-	try {
-		const cached = JSON.parse(fs.readFileSync(marker, "utf8"));
-		if (cached?.day && cached?.slug){ use_day = cached.day; slug = cached.slug; }
+/* ONE SESSION, ONE FOLDER (2026-10-25, core/Session/doc/identity.md "One session, one folder, one URL"): the prompt
+ * goes into the session's own record folder, `ai/sessions/YYYY/MM/DD/session-<id8>/`, the one the SessionStart hook
+ * (session-page.mjs) made with DatedFiles.sessions.session_dir(). Until then it went to a second folder in the old
+ * `ai/<day>/session-<id8>/` card tree, pinned by a tmp marker; that marker is no longer read. A folder that is
+ * somehow missing is made here with the hook's own line 1, so the write is never refused as a typo. */
+function session_page_url(session_id){
+	const dir = DatedFiles.sessions.session_dir(session_id);
+	if (!SessionRecord.file(dir)) try {
+		const first = { session: { id: session_id, kind: "vscode-tab", at: new Date().toISOString() } };
+		fs.mkdirSync(dir, { recursive: true });
+		fs.appendFileSync(SessionRecord.start_file(dir, first), JSON.stringify(first) + "\n");
 	} catch {}
-	if (!use_day){
-		use_day = day || now().slice(0, 10);
-		slug = "session";
-		try { fs.writeFileSync(marker, JSON.stringify({ day: use_day, slug })); } catch {}
-	}
-	return `/framework/ai/${use_day.replaceAll("-", "/")}/${slug}-${session_id.slice(0, 8)}/`;
+	return "/" + path.relative(path.join(DatedFiles.ROOT, "public"), dir).split(path.sep).join("/") + "/";
 }
 
 async function mcp_call(name, args, as){
@@ -157,7 +157,7 @@ const notify_echo = async (type, session_id, page, item_id) => {
 // call, no polling. A tiny marker file (one per session) remembers the last item id shown.
 const echo_marker = sid => path.join(os.tmpdir(), `claude-echo-seen-${String(sid).replace(/[^\w-]/g, "_")}`);
 function echo_context_line(session_id){
-	const page_url = session_page_url(session_id);   // reads the cached {day, slug} marker, writes nothing new
+	const page_url = session_page_url(session_id);   // the session's own record folder
 	const file = path.join(root, "public", page_url.replace(/^\/+/, ""), "page.jsonl");
 	let lines;
 	try { lines = read(file); } catch { return null; }

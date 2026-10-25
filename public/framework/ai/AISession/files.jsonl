@@ -42,3 +42,10 @@
 {"file":"inbox.jsonl"}
 {"file":"SessionFeed.css"}
 {"file":"SessionFeed.js"}
+{"file":"improvements.jsonl"}
+{"file":"failures.jsonl","gone":true}
+{"file":"SessionOutline.css"}
+{"file":"SessionOutline.js"}
+{"file":"SessionOutline.test.mjs"}
+{"file":"SessionOutlineView.js"}
+{"file":"failures.jsonl"}

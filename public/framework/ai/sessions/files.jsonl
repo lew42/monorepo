@@ -30416,3 +30416,16 @@
 {"file":"week.json"}
 {"file":"session-entries.jsonl"}
 {"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}
+{"file":"transcripts/","gone":true}
+{"file":"week.json","gone":true}
+{"file":"openrouter-reconcile.json","gone":true}
+{"file":"openrouter-costs.json","gone":true}
+{"file":"screenshots/","gone":true}
+{"file":"index.jsonl","gone":true}
+{"file":"index.jsonl"}
+{"file":"openrouter-costs.json"}
+{"file":"openrouter-reconcile.json"}
+{"file":"screenshots/"}
+{"file":"transcripts/"}
+{"file":"week.json"}
