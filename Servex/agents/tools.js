@@ -248,7 +248,7 @@ function session_tools(agents){
 			+ " big\", a word, a colour, a size) goes straight to the standing fixer, fixer-1 — no spawn, nothing new made,"
 			+ " landing in roughly 10-30 seconds. Writes the request to public/framework/ai/quick-fix/page.jsonl and hands it"
 			+ " to the fixer at once. If the fixer is mid-fix, this one queues behind it and the answer says how many are ahead."
-			+ " The fixer itself decides if the change turns out to be bigger than a quick fix and hands it to a task-mastermind"
+			+ " The fixer itself decides if the change turns out to be bigger than a quick fix and hands it to a mastermind"
 			+ " instead — you do not have to guess right before calling this.",
 			{ page: { type: "string", description: "The site path being looked at, e.g. `/framework/ext/Chat/`." },
 				selection: { type: "object", description: "The one element picked out, if any: `{kind, label, text, selector}` — the same shape `ext/drawer/select.js` reports." },

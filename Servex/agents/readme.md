@@ -58,7 +58,7 @@ The clarity hook (`Server/clarity.mjs`, `ClarityGate.skip`, test `Server/clarity
 When the assistant decides a sentence asked for something built, fixed, changed or looked
 into, its card carries `route: "task"` and a `task` line follows it, `state: "queued"`.
 [`Dispatcher.js`](./Dispatcher.js) watches the same `prompts` log for exactly that (the same
-`append` event `Assistant.listen()` hangs off) and spawns a `mastermind` agent — Sonnet,
+`append` event `Assistant.listen()` hangs off) and spawns a `page-mastermind` agent (the one-task row) — Sonnet,
 effort medium, a deliberate override of this role's own Opus default while this whole feature
 runs in budget mode. At most two run at once; the rest wait queued. It is registered itself as
 a fake "parent" agent (`id: "dispatcher"`, just a `.send()`) sitting in the same `live` map real

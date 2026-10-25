@@ -86,8 +86,8 @@ export const ROLES = {
 	 * their own briefs (session-fast.md, session-smart.md), which win over these rows. No skill.
 	 * Tiers: `session-fast` is `fast`, `session-smart` is `voice_smart` (tiers.js).
 	 * `session-smart` shares the "files for the next agent, cards for the owner" write discipline
-	 * with `task-mastermind` (both `every-prompt` and `sub-mastermind` carry it), but never its
-	 * judging-against-the-owner's-sentence or landing parts — it spawns a task mastermind to do
+	 * with a `mastermind` owning one task (both `every-prompt` and `sub-mastermind` carry it), but never its
+	 * judging-against-the-owner's-sentence or landing parts — it spawns a `mastermind` (at the path of the work) to do
 	 * those instead of doing them itself. Detail: tiers-design/doc/roles.md. */
 	/* RETIRED 2026-10-17 (the owner: "drop the fast assistant for now"; plan: public/framework/ux/Dictate/doc/voice-assistant.md):
 	 * `voice-assistant` below takes this seat. The row stays, unchanged, because Sessions.js still spawns it by name until

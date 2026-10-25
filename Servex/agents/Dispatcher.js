@@ -1,11 +1,11 @@
-/* THE DISPATCHER — a spoken card becomes a task mastermind, nobody polling.
+/* THE DISPATCHER — a spoken card becomes a one-task mastermind, nobody polling.
  *
  * The fast assistant hears "build me X", decides it is a `task` (not a note
  * or a question) and appends a `task` line, `state: "queued"`, to the same
  * `prompts` log everything else goes through (`Assistant.js`). This class
  * watches that log the way `Assistant.listen()` does — the single writer
  * announces every line it accepts (`Servex.Log`'s `append`) — and for each
- * queued task spawns a `task-mastermind` agent to build it.
+ * queued task spawns a `page-mastermind` agent (a one-task mastermind) to build it.
  *
  * Not a Claude session itself: plain code, one `Map` of who is running, one
  * array of who is waiting. `max` caps how many run at once — no cap by default
