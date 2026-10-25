@@ -9,6 +9,8 @@
 - Proofs `test/errors.mjs` (every error is caught and shown), `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`, `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)).
 - Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: git-ignored, written on this machine at the first failure).
 
+**Whisper said the end twice?** A tail of 5+ words repeating the span before it is dropped, a short real repeat stays: `ux/Dictate/repeat.js`, proof `test/repeat.mjs`, [`mic-notes`](/framework/ext/Chat/doc/mic-notes.md#whisper-repeats-collapse_repeat).
+
 **Words vanished and came back?** The flicker, its cause and the fix: your words become the sent piece in the draft's spot the moment they leave it (`ComposerMic.take_out` → `Widget.show_out`), proof `test/flicker.mjs`: [`doc/flicker.md`](doc/flicker.md).
 
 **Map of every dictation piece** (mic, Whisper, cleaners, chat, voice session, assistants; the duplicates and the plan): [doc/map.md](doc/map.md).

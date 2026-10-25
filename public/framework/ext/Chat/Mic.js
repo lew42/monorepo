@@ -5,6 +5,7 @@ import FsFile from "/framework/ext/filesystem/FsFile.js";
 import RefineSystem from "/framework/ext/Refine/RefineSystem.js";
 import { clock } from "/framework/ext/Session/Session.js";
 import DictateHealth from "/framework/ux/Dictate/DictateHealth.js";
+import { collapse_tail } from "/framework/ux/Dictate/repeat.js";
 
 /** The microphone of a composer: `ux/Dictate` with a few methods redirected; speech goes into the composer's box and goes out as one message. see doc/mic-notes.md#overrides */
 // Every knob of the whisper-to-box flow, read live everywhere. see doc/mic-notes.md#settings
@@ -631,12 +632,15 @@ export class ComposerMic extends Dictate {
 		return dup;
 	}
 
-	// Whisper's doubling of a whole-text repeat of 2+ words: keep the first half.
+	// Whisper's doubling: a whole-text repeat of 2+ words keeps the first half; a tail of 5+ words repeating the span before it is dropped (ux/Dictate/repeat.js). Shorter repeats ("no, no, no") stay.
 	static collapse_repeat(text){
 		const w = String(text ?? "").trim().split(/\s+/).filter(Boolean);
-		if (w.length < 4 || w.length % 2) return text;
-		const h1 = w.slice(0, w.length / 2).join(" "), h2 = w.slice(w.length / 2).join(" ");
-		return strip_words(h2, h1) === "" ? h1 : text;
+		if (w.length >= 4 && !(w.length % 2)){
+			const h1 = w.slice(0, w.length / 2).join(" "), h2 = w.slice(w.length / 2).join(" ");
+			if (strip_words(h2, h1) === "") return h1;
+		}
+		const t = collapse_tail(text);
+		return t === w.join(" ") ? text : t;
 	}
 
 	/** The words leave the caption: one item `{text, raw, at}`, handed to `on_out` in this same step so the chat draws it where the

@@ -363,3 +363,6 @@ the box grows to this many lines, then scrolls (one-input, 2026-10-12 — the
 
 KILL SWITCH (ai/sessions/2026/09/29/audio/audio/next-clean-transcription/a-clean-mode, deliverable 4):
 
+
+## Whisper repeats (collapse_repeat)
+`ComposerMic.collapse_repeat` runs on `text` and `raw` as words leave the draft. It collapses (1) a whole-text doubling of 2+ words to its first half and (2) a tail of 5 or more words that repeats the span just before it (Whisper looping inside one long reply; `ux/Dictate/repeat.js`, proof `ux/Dictate/test/repeat.mjs`). A repeat of fewer than 5 words inside the text ("no, no, no") is never touched. Dictate does not stitch overlapping windows: each segment is cut and sent once, so the loop is Whisper's own.
