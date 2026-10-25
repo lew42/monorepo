@@ -17,3 +17,9 @@
 {"commit":"bab7f62cc358"}
 {"commit":"c51e6fe9dc93"}
 {"commit":"72d93bf97f74"}
+{"commit":"4ec0c70b3a92"}
+{"log":{"at":"2026-10-25T17:10:02-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T17:17:38-05:00","msg":"session resumed"}}
+{"commit":"4815cea5e71d"}
+{"commit":"837bff550b1e"}
+{"commit":"d22220f67e89"}

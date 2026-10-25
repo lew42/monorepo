@@ -32,3 +32,4 @@
 {"inbox":{"id":"n-7g1mcpow","from":"servex-heartbeat","text":"minion-mastermind-path its agent is not running: its working directory C:/Code/lew42/worktrees/qf-8 no longer exists; not revived.","at":"2026-10-25T14:12:36.660-05:00"}}
 {"inbox":{"id":"n-8awwm19k","from":"servex-task-loop","text":"minion-mastermind-path is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T14:36:36.886-05:00"}}
 {"inbox":{"id":"n-ag4qcf24","from":"servex-task-loop","text":"minion-mastermind-path is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-10-25T15:36:39.540-05:00"}}
+{"inbox":{"id":"n-dzvbfsxf","from":"servex-heartbeat","text":"minion-mastermind-path its agent is not running: it was stopped on purpose by ai-system-mastermind at 2026-10-25T01:48:20-05:00; not revived.","at":"2026-10-25T17:15:59.307-05:00"}}

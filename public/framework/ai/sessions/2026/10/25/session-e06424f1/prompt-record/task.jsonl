@@ -10,3 +10,5 @@
 {"review":{"at":"2026-10-25T17:05:02-05:00","answer":{"n":5,"reply":"noted: wrapper kept, harmless; set text unused by replay"}}}
 {"review":{"at":"2026-10-25T17:05:02-05:00","answer":{"n":6,"reply":"noted: tests 15/15 and 6/6"}}}
 {"log":{"text":"landed: merged to michael/dev (115 tests pass). Doc core/Task/doc/prompt-record.md, shared sentences.js, refined text survives replay, revive rule in ai/doc/agent-rules.md. Open: ChatV2Model still has its own splitter (defect 3, mastermind-dictation-2); placement by topic is the fast assistant's job."},"by":"mastermind-tasks-completion","ts":"2026-10-25T22:09:45.009Z"}
+{"log":{"at":"2026-10-25T17:16:41-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-25T17:21:42-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}

@@ -28,3 +28,5 @@
 {"file":"earlier-fixture.jsonl"}
 {"file":"settings.mjs"}
 {"file":"docs-tab.mjs"}
+{"file":"chat-gray.mjs"}
+{"file":"chat-sent.mjs"}
