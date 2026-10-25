@@ -56,7 +56,7 @@
 | [session-d88339a2](/framework/ai/sessions/2026/10/23/session-d88339a2/) | - | - | - | 10-23 06:49 | 10-25 04:47 | 0/0 | stale | no | - | unknown | ok |
 | [header](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim/header/) | - | 9277116c | sonnet-5-5 | 10-25 04:42 | 10-25 04:44 | 0/0 | in_flight | yes | - | working | ok |
 | [minion-tracking-perf](/framework/ai/sessions/2026/10/24/session-7c6c8d93/minion-tracking-perf/) | - | b82c81af | sonnet-5-5 | 10-25 03:13 | 10-25 04:39 | 0/0 | landed | yes | - | dormant | ok |
-| [session-e00f55c9](/framework/ai/sessions/2026/10/24/session-e00f55c9/) | - | - | - | 10-25 00:21 | 10-25 04:32 | 0/0 | stale | no | - | unknown | ok |
+| [session-e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/) | - | - | - | 10-25 00:21 | 10-25 04:32 | 0/0 | stale | no | - | unknown | ok |
 | [session-closeout](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-closeout/) | - | cb53aa0e | sonnet-5-5 | 10-25 02:10 | 10-25 04:30 | 0/0 | stale | yes | - | dormant | ok |
 | [dictate-to-tab](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/dictate-to-tab/) | - | 292ca58a | opus-5-5 | 10-25 04:20 | 10-25 04:27 | 0/0 | stopped | yes | - | dormant | ok |
 | [cloud-voice-app-20261023](/framework/ai/sessions/2026/10/23/cloud-voice-app-20261023/) | - | - | - | 10-24 02:25 | 10-25 04:23 | 0/0 | stale | no | - | unknown | ok |
@@ -93,7 +93,7 @@
 | [do-not-move-the-ai-session-class-now-wri](/framework/core/Session/tasks/do-not-move-the-ai-session-class-now-wri/) | - | - | - | 10-24 01:11 | 10-25 04:09 | 0/0 | landed | yes | - | unknown | ok |
 | [record-ai-probe-results-e-g-sdk-web-sear](/framework/servex/tasks/record-ai-probe-results-e-g-sdk-web-sear/) | - | - | - | 10-25 04:09 | 10-25 04:09 | 0/0 | stale | yes | - | unknown | ok |
 | [child-tasks](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/child-tasks/) | - | 079367b0 | sonnet-5-5 | 10-25 03:40 | 10-25 04:09 | 0/0 | landed | yes | - | dormant | ok |
-| [context-haiku-audits](/framework/ai/sessions/2026/10/24/session-e00f55c9/context-haiku-audits/) | - | ai-syste | - | 10-25 01:12 | 10-25 04:04 | 0/0 | stale | no | - | unknown | ok |
+| [context-haiku-audits](/framework/ai/sessions/2026/10/20/session-e00f55c9/context-haiku-audits/) | - | ai-syste | - | 10-25 01:12 | 10-25 04:04 | 0/0 | stale | no | - | unknown | ok |
 | [review-the-ext-ai-task-system](/framework/ai/AITask/tasks/review-the-ext-ai-task-system/) | - | helper-u | - | 10-23 06:00 | 10-25 04:04 | 0/0 | stopped | no | - | unknown | ok |
 | [make-the-dashboard-more-compact](/framework/ai/tasks/make-the-dashboard-more-compact/) | - | helper-u | - | 10-23 06:00 | 10-25 04:04 | 0/0 | stopped | no | - | unknown | ok |
 | [ai-head-row](/framework/core/Page/tasks/page-mastermind/ai-head-row/) | - | - | - | 10-25 04:00 | 10-25 04:00 | 0/0 | stale | no | - | unknown | ok |
@@ -104,7 +104,7 @@
 | [session-is-a-task](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-is-a-task/) | - | - | - | 10-25 02:04 | 10-25 03:14 | 0/0 | stale | no | - | unknown | ok |
 | [fast-write](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/fast-write/) | - | mastermi | - | 10-25 02:39 | 10-25 03:12 | 0/0 | landed | yes | - | unknown | ok |
 | [v-zg6h7hl](/framework/ai/sessions/2026/10/24/v-zg6h7hl/) | - | - | - | 10-25 00:20 | 10-25 01:42 | 0/0 | idle | no | - | unknown | ok |
-| [past-work-per-file-docs](/framework/ai/sessions/2026/10/24/session-e00f55c9/past-work-per-file-docs/) | - | 811780ce | haiku-5-5 | 10-25 01:00 | 10-25 01:18 | 0/0 | landed | yes | - | dormant | ok |
+| [past-work-per-file-docs](/framework/ai/sessions/2026/10/20/session-e00f55c9/past-work-per-file-docs/) | - | 811780ce | haiku-5-5 | 10-25 01:00 | 10-25 01:18 | 0/0 | landed | yes | - | dormant | ok |
 | [surface-stored-session-information-that](/framework/ai/AISession/tasks/surface-stored-session-information-that/) | - | helper-u | - | 10-23 06:00 | 10-24 14:21 | 0/0 | idle | no | - | unknown | ok |
 | [make-the-chat-window-a-live-preview-of-t](/framework/ai/tasks/make-the-chat-window-a-live-preview-of-t/) | - | helper-u | - | 10-17 16:10 | 10-24 14:21 | 0/0 | stopped | no | - | unknown | ok |
 | [log-the-backup-location-as-a-checkable-a](/framework/ai/tasks/log-the-backup-location-as-a-checkable-a/) | - | helper-u | - | 10-23 06:00 | 10-24 14:21 | 0/0 | landed | yes | - | unknown | ok |

@@ -1,0 +1,103 @@
+{
+ "session": "e00f55c9-bad4-4ee2-899e-d629ea1eede6",
+ "home": "public/framework/ai/sessions/2026/10/20/session-e00f55c9",
+ "duplicates": [
+  "public/framework/ai/sessions/2026/10/24/session-e00f55c9",
+  "public/framework/ai/2026/10/20/session-e00f55c9"
+ ],
+ "steps": [
+  {
+   "do": "move",
+   "kind": "task",
+   "from": "public/framework/ai/sessions/2026/10/24/session-e00f55c9/context-haiku-audits",
+   "to": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/context-haiku-audits"
+  },
+  {
+   "do": "append",
+   "from": "public/framework/ai/sessions/2026/10/24/session-e00f55c9/inbox.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/inbox.jsonl",
+   "lines": 10,
+   "appended": 10,
+   "skipped": {
+    "marker": 0,
+    "file": 0,
+    "duplicate": 0
+   },
+   "sha1": "3b8051b47c171bcd8b5ba9069faaa7cf493811b0"
+  },
+  {
+   "do": "append",
+   "from": "public/framework/ai/sessions/2026/10/24/session-e00f55c9/page.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/page.jsonl",
+   "lines": 16,
+   "appended": 15,
+   "skipped": {
+    "marker": 0,
+    "file": 1,
+    "duplicate": 0
+   },
+   "sha1": "607fd61754c31b98d6b360474c7d966c67c4119f"
+  },
+  {
+   "do": "move",
+   "kind": "task",
+   "from": "public/framework/ai/sessions/2026/10/24/session-e00f55c9/past-work-per-file-docs",
+   "to": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/past-work-per-file-docs"
+  },
+  {
+   "do": "append",
+   "from": "public/framework/ai/sessions/2026/10/24/session-e00f55c9/session.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl",
+   "lines": 23,
+   "appended": 22,
+   "skipped": {
+    "marker": 1,
+    "file": 0,
+    "duplicate": 0
+   },
+   "sha1": "758983d6917469d912ef952c3c8eba185c9adc76"
+  },
+  {
+   "do": "redirect",
+   "from": "public/framework/ai/sessions/2026/10/24/session-e00f55c9",
+   "to": "public/framework/ai/sessions/2026/10/20/session-e00f55c9"
+  },
+  {
+   "do": "relink",
+   "from": "/framework/ai/sessions/2026/10/24/session-e00f55c9/",
+   "to": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+   "files": [
+    "public/framework/ai/doc/follow-up-full.md",
+    "public/framework/ai/sessions/2026/10/20/session-e00f55c9/past-work-per-file-docs/past-work.md",
+    "public/framework/ai/skills/past-work/readme.md",
+    "public/framework/ai/skills/past-work/worker.md"
+   ]
+  },
+  {
+   "do": "append",
+   "from": "public/framework/ai/2026/10/20/session-e00f55c9/page.jsonl",
+   "to": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/page.jsonl",
+   "lines": 533,
+   "appended": 533,
+   "skipped": {
+    "marker": 0,
+    "file": 0,
+    "duplicate": 0
+   },
+   "sha1": "f822c54dab48adb880fab04b295ef88920742c09"
+  },
+  {
+   "do": "redirect",
+   "from": "public/framework/ai/2026/10/20/session-e00f55c9",
+   "to": "public/framework/ai/sessions/2026/10/20/session-e00f55c9"
+  },
+  {
+   "do": "relink",
+   "from": "/framework/ai/2026/10/20/session-e00f55c9/",
+   "to": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+   "files": []
+  }
+ ],
+ "run": "2026-10-25T07:01:52.034Z",
+ "moved_aside": "C:\\Users\\mike\\AppData\\Local\\lew42\\servex\\moved-aside\\2026-10-25T07-01-52-034Z"
+}

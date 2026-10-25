@@ -29,7 +29,7 @@ Joins the task logs, `git log -- <path>` and the task folders for one path, grad
 
 ## 2. Not sure what it is called? Send a Haiku searcher
 
-A folder of 50 to 100 things with a paragraph each is too much for a mastermind to load (the owner, 2026-10-17). A Haiku minion can read it: a few cents, thrown away after it answers. Do this before a build whenever the thing might exist under a name you don't know. The trial that proved it, and its method notes: [past-work-per-file-docs/findings.md](/framework/ai/sessions/2026/10/24/session-e00f55c9/past-work-per-file-docs/findings.md) (found `doc/file/<path>.md`, 349 notes, in about 116k tokens).
+A folder of 50 to 100 things with a paragraph each is too much for a mastermind to load (the owner, 2026-10-17). A Haiku minion can read it: a few cents, thrown away after it answers. Do this before a build whenever the thing might exist under a name you don't know. The trial that proved it, and its method notes: [past-work-per-file-docs/findings.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/past-work-per-file-docs/findings.md) (found `doc/file/<path>.md`, 349 notes, in about 116k tokens).
 
 ```
 node Server/PastWork.mjs --brief "<the question>" --dir public/framework/ext     # prints the brief: question, readme chain, size in tokens, answer shape

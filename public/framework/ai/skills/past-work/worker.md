@@ -33,4 +33,4 @@ Log a last line `{ answer: { search: "s1", is: "EXISTS" | "PARTLY" | "NEW", wher
 - Quote a line number only for a line you opened.
 - The asker may send you a follow-up. Answer it from what you already read first; open new files only when you must.
 
-Method notes and a worked example: [the trial's findings](/framework/ai/sessions/2026/10/24/session-e00f55c9/past-work-per-file-docs/findings.md).
+Method notes and a worked example: [the trial's findings](/framework/ai/sessions/2026/10/20/session-e00f55c9/past-work-per-file-docs/findings.md).
