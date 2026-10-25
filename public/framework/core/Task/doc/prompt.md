@@ -1,6 +1,6 @@
 # Prompt and Question: what the owner said, as tasks
 
-A **Prompt** is one thing the owner said or typed, kept as a Task. A **Question** is a question asked of the owner or by the owner, kept as a Task. Both live in a session's `session.jsonl`, so the chat can show a dictation as a card holding its asks (Option C in [chat-shape.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md)). Code: [`Prompt.js`](../Prompt.js), [`Question.js`](../Question.js). Tests: `node Prompt.test.mjs`, `node Question.test.mjs` (in `core/Task/`).
+A **Prompt** is one thing the owner said or typed, kept as a Task. A **Question** is a question asked of the owner or by the owner, kept as a Task. Both live in a session's `session.jsonl`, so the chat can show a dictation as a card holding its asks (Option C in [chat-shape.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md)). Code: [`Prompt.js`](../Prompt.js), [`Question.js`](../Question.js). Tests: `node Prompt.test.mjs`, `node Question.test.mjs` (in `core/Task/`). The record shape with example lines, who groups sentences into Prompts, and the open defects: [prompt-record.md](prompt-record.md).
 
 ```
 Session
