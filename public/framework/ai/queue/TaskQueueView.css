@@ -1,38 +1,47 @@
 @layer base, theme, site, util;
 @layer site {
 	.page.tq-page { --gutter-x: clamp(0.6em, 2cqi, 1.5em); --pad-y: 0.8em; }
-	.tq-view { width: 100%; max-width: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em; padding: 0 clamp(0.5em, 2cqi, 1.2em) 2em; align-items: start; }
-	.tq-side { display: flex; flex-direction: column; gap: 0.6em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
+	.tq-view { width: 100%; max-width: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.2em; padding: 0 clamp(0.5em, 2cqi, 1.2em) 2em; align-items: start; line-height: 1.35; }
+	.tq-side { order: 2; display: flex; flex-direction: column; gap: 0.6em; min-width: 0; padding: 0.8em 1em; border: 1px solid var(--line); border-radius: 0.5em; }
 	.tq-h { margin: 0.4em 0 0; font-size: 1em; }
-	.tq-count { font-size: 2.2em; font-weight: 700; }
+	.tq-big { display: flex; flex-direction: column; }
+	.tq-count { font-size: 4.5em; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+	.tq-big .tq-what { font-size: 1.2em; font-weight: 600; }
 	.tq-bigs { display: flex; flex-direction: column; gap: 0.3em; }
 	.tq-bigrow { display: flex; gap: 0.6em; align-items: baseline; }
 	.tq-n { flex: none; min-width: 2em; font-weight: 700; font-variant-numeric: tabular-nums; }
 	.tq-bname { min-width: 0; }
 	.tq-note { margin: 0; font-size: 0.85em; }
+	.tq-go { font-weight: 600; }
 	.tq-formula { margin: 0; font-weight: 600; }
-	.tq-rules { display: flex; flex-direction: column; gap: 0.3em; font-size: 0.85em; }
-	.tq-side { order: 2; }
-	.tq-main { container-type: inline-size; display: flex; flex-direction: column; gap: 0.5em; min-width: 0; }
+	.tq-rules { display: flex; flex-direction: column; gap: 0.3em; max-width: 50em; }
+	.tq-main { container-type: inline-size; display: flex; flex-direction: column; gap: 0.7em; min-width: 0; }
 	.tq-head { font-size: 1.1em; font-weight: 600; }
+	.tq-empty { padding: 1.5em 0; }
+
+	.tq-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22em), 1fr)); gap: 0.8em; }
+	.tq-card { display: flex; flex-direction: column; gap: 0.35em; min-width: 0; color: inherit; text-decoration: none; border: 1px solid var(--line); }
+	.tq-card:hover { border-color: currentColor; }
+	.tq-cardtop { display: flex; justify-content: space-between; gap: 0.6em; font-size: 0.8em; }
+	.tq-card .tq-rank { font-weight: 700; font-variant-numeric: tabular-nums; }
+	.tq-card .tq-title { font-size: 1.05em; font-weight: 700; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+	.tq-card .tq-why { font-size: 0.88em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+	.tq-chips { display: flex; flex-wrap: wrap; gap: 0.2em 0.9em; margin-top: auto; padding-top: 0.2em; font-size: 0.78em; }
+	.tq-state { font-weight: 600; }
+	.tq-running .tq-state { color: var(--ok); }
+
 	.tq-cols { display: none; }
 	.tq-list { display: flex; flex-direction: column; gap: 0.5em; }
 	.tq-row { display: grid; grid-template-columns: 2em minmax(0, 1fr) auto; gap: 0.25em 0.6em; padding: 0.6em 0.8em; border: 1px solid var(--line); border-radius: 0.5em; min-width: 0; }
-	.tq-rank { font-weight: 700; font-variant-numeric: tabular-nums; }
+	.tq-row .tq-rank { font-weight: 700; font-variant-numeric: tabular-nums; }
 	.tq-task { min-width: 0; }
-	.tq-view { line-height: 1.35; }
-	.tq-title { font-weight: 600; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
-	.tq-title:hover { text-decoration: underline; }
+	.tq-row .tq-title { font-weight: 600; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+	.tq-row .tq-title:hover { text-decoration: underline; }
 	.tq-score { grid-column: 3; grid-row: 1; font-variant-numeric: tabular-nums; font-weight: 700; }
 	.tq-crumb { font-size: 0.78em; }
 	.tq-meta { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 0.1em 1em; font-size: 0.85em; min-width: 0; }
-	.tq-why, .tq-cell, .tq-state { overflow-wrap: anywhere; min-width: 0; }
+	.tq-row .tq-why, .tq-cell, .tq-row .tq-state { overflow-wrap: anywhere; min-width: 0; }
 	.tq-link { color: inherit; }
-	.tq-label { }
-	.tq-state { font-weight: 600; }
-	.tq-running .tq-state { color: var(--ok); }
-	.tq-waiting { }
-	.tq-empty { padding: 1.5em 0; }
 
 	@media (min-width: 1000px) {
 		.tq-view { grid-template-columns: minmax(16em, 22em) minmax(0, 1fr); }
