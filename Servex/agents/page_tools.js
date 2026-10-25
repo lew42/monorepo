@@ -81,11 +81,13 @@ const OMIT = "Omit `path` to mean your own page.";
 
 async function resolve(url, target = [], item = false){
 	const hit = SESSION_ROUTE.exec(String(url ?? ""));
+	// A real folder under sessions/ that is not a session (sessions/tasks/<task>/, a task's own home) is a plain path: only a typed name with nothing on disk is refused.
+	const plain = hit && fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]));
 	if (hit && !/^\d{4}$/.test(hit[1])){
 		const file = await session_file(hit[1]);
-		if (file?.why) return file;
-		if (!file) return { why: `no session or Servex agent is called "${hit[1]}", so nothing was created. ${OMIT}` };
-		if (file){
+		if (file?.why && !plain) return file;
+		if (!file && !plain) return { why: `no session or Servex agent is called "${hit[1]}", so nothing was created. ${OMIT}` };
+		if (file && !file.why){
 			// A real subpage folder (made by pages.add) wins; a segment with no folder is still a tab target.
 			let dir = path.dirname(file), rest = hit[2].split("/").filter(Boolean), at = file;
 			while (rest.length && fs.existsSync(path.join(dir, rest[0], "page.jsonl"))){ dir = path.join(dir, rest[0]); at = path.join(dir, "page.jsonl"); rest = rest.slice(1); }
