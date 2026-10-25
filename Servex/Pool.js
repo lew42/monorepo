@@ -386,7 +386,9 @@ export default class Pool extends Events {
         if (logs.length){
             aside = path.join(this.main, ".worktree-logs", `${slot.id}-${stamp().slice(0, 10)}-logs-${Date.now()}.patch`);
             fs.mkdirSync(path.dirname(aside), { recursive: true });
-            fs.writeFileSync(aside, execFileSync("git", ["-C", slot.path, "diff", "HEAD", "--pathspec-from-file=-"], { input: logs.join("\n"), windowsHide: true, maxBuffer: 256 << 20 }));   // by stdin: thousands of paths overflowed the Windows command line (ENAMETOOLONG, qf-7)
+            const chunks = [];   // `git diff` has no --pathspec-from-file (git printed its usage and recycle failed, 2026-10-25); 100 paths a call stays under the Windows command line limit (ENAMETOOLONG, qf-7)
+            for (let i = 0; i < logs.length; i += 100) chunks.push(execFileSync("git", ["-C", slot.path, "diff", "HEAD", "--", ...logs.slice(i, i + 100)], { windowsHide: true, maxBuffer: 256 << 20 }));
+            fs.writeFileSync(aside, Buffer.concat(chunks));
             for (const file of logs) this.restore(slot, file);
         }
         const status = (await this.git(slot.path, ["status", "--porcelain", "--untracked-files=all"])).out;
