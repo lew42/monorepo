@@ -35,3 +35,12 @@
 {"file":"stream-1.5x.jpg"}
 {"file":"stream-2x.jpg"}
 {"file":"stream-current.jpg"}
+{"file":"cms-1.5x.jpg","gone":true}
+{"file":"cms-2x.jpg","gone":true}
+{"file":"cms-current.jpg","gone":true}
+{"file":"paging-1.5x.jpg","gone":true}
+{"file":"paging-2x.jpg","gone":true}
+{"file":"paging-current.jpg","gone":true}
+{"file":"stream-1.5x.jpg","gone":true}
+{"file":"stream-2x.jpg","gone":true}
+{"file":"stream-current.jpg","gone":true}

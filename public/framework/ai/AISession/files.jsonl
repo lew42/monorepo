@@ -36,3 +36,5 @@
 {"file":"SessionOverview.js"}
 {"file":"SessionStats.js"}
 {"file":"SessionTaskRow.js"}
+{"file":"SessionFeed.css"}
+{"file":"SessionFeed.js"}
