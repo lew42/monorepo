@@ -325,7 +325,8 @@ export function card_of(b){
 export function sticky_scroll(box, { observe = true } = {}){   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
 	let locked = true, last = 0;
 	// A fixed/sticky bar (the bottom toolbar) can sit over the box's bottom edge: the last line must land just above it, so the box grows tail room as tall as the overlap.
-	let tail = 0, tail_base = null;
+	let tail = -1, tail_base = null;   // -1: the first make_room() always writes
+	const BREATH = 14;   // px of air between the last line and the bar / the box edge (the owner, 2026-10-25: not flush)
 	const overlap = () => {
 		const r = box.getBoundingClientRect(), y = Math.min(r.bottom, innerHeight) - 2;
 		if (!r.height || y <= r.top) return 0;
@@ -340,8 +341,8 @@ export function sticky_scroll(box, { observe = true } = {}){   // observe:false 
 	const make_room = () => {
 		const ov = Math.round(overlap());
 		if (ov === tail) return ov;
-		if (tail_base === null || !tail){ box.style.paddingBlockEnd = ""; tail_base = parseFloat(getComputedStyle(box).paddingBlockEnd) || 0; }
-		box.style.paddingBlockEnd = ov ? tail_base + ov + "px" : "";
+		if (tail_base === null || tail <= 0){ box.style.paddingBlockEnd = ""; tail_base = parseFloat(getComputedStyle(box).paddingBlockEnd) || 0; }
+		box.style.paddingBlockEnd = tail_base + ov + BREATH + "px";
 		tail = ov;
 		return ov;
 	};
