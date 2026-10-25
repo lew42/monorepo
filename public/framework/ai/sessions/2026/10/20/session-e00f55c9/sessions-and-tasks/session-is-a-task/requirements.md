@@ -92,3 +92,21 @@
 - **Servex keeps a live instance cached.** It builds a session once, keeps it in memory, and tails its files. Later reads and writes use that instance, so a write is one append plus an in-memory update.
 
 12d. **Then fix it.** Write the plan in `slow-write.md` and get it reviewed, build it, and measure again. The target: a write in under a second, and a full read of this session in a few seconds at most.
+
+## Part 4: what a session log holds, and how masterminds follow it (the owner, 2026-10-24, the prompt about "show lines")
+
+The tab has been asking agents for `show:` log lines. That's a loose convention (mastermind.md:131, vscode-mastermind.md, the documentation skill), not a system, and the owner doesn't want a special system for it.
+
+18. **(ai-system-mastermind) Retire "show:".**
+    - A finished piece of work is the task's `complete`, with its `outcome` and `links` (the finish-task landing). That's what the tab relays.
+    - **The session log holds only the major states:** a task added, started, waiting or complete, and a pointer line when a file the owner should know about was written (its path and a one-line synopsis).
+    - **Decisions and design go into the module's own docs** (`architecture.md`, `doc/*.md`), where they'll be found. The session log only points to them.
+    - Update `task-buckets.md`, the mastermind and vscode-mastermind role readmes, and the documentation skill.
+    - Also make task-buckets.md say ONE WRITER for owner asks: the prompt splitter files them, and the tab takes the splitter's task and never adds its own (task-mastermind-session-closeout is changing the code).
+19. **(ai-system-mastermind) Masterminds follow their children through the files.**
+    - Use the existing `follow` tool (Servex) on each child's session log, reading only the state lines from item 18. No polling, and no relaying of chat between agents.
+    - Measure what following costs in tokens. If a child's log is noisy, fix what the child logs, rather than stop following.
+    - Check that `/framework/ai/tracking/` is linked from the AI page.
+20. **(deputy, adds to 12c) A long session reads fast, with no history lost.**
+    - The owner's gut is right that replaying a 4-day log shouldn't take 60s. Measure (12b) whether the time goes on the replay or on the extra work after the append.
+    - If the replay itself is slow, add checkpoint lines, so a replay starts from the latest checkpoint while every older line stays in the file. Nothing is deleted or rewritten.
