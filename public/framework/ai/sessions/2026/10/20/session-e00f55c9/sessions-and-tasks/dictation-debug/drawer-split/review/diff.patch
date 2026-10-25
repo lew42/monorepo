@@ -1,0 +1,97 @@
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/probe.mjs b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/probe.mjs
+new file mode 100644
+index 000000000..a8df2d4e8
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/probe.mjs
+@@ -0,0 +1,30 @@
++import { browser } from "file:///C:/Code/lew42/worktrees/qf-3/Server/Browser.mjs";
++const BASE = process.env.BASE || "http://qf-3.localhost";
++const W = +(process.argv[2] || 400), H = +(process.argv[3] || 844);
++const tag = process.argv[4] || "x";
++const b = await browser();
++const p = await (await b.newContext({ viewport: { width: W, height: H } })).newPage();
++const stub = async r => r.fulfill({ status: 200, contentType: "application/json", body: "{}" });
++await p.route(/\/(servex|api)\/.*(post|prompt)/, stub);
++p.on("pageerror", e => console.log("pageerror", e.message));
++await p.goto(BASE + "/framework/ext/drawer/ai/", { waitUntil: "networkidle" });
++await p.waitForTimeout(2500);
++const dir = new URL(".", import.meta.url).pathname.slice(1);
++const measure = async label => {
++  const m = await p.evaluate(() => {
++    const r = s => { const e = document.querySelector(s); if (!e || !e.getClientRects().length) return null; const b = e.getBoundingClientRect(); return [Math.round(b.top), Math.round(b.height)]; };
++    const sheet = document.querySelector(".drawer-rail-sheet");
++    return {
++      sheetCls: sheet?.className, sheet: r(".drawer-rail-sheet"), panel: r(".drawer-rail-sheet-panel"), tabs: r(".drawer-rail-sheet-tabs"),
++      tabbody: r(".drawer-rail-sheet-tabbody"), grip: [...document.querySelectorAll("[class*=grip]")].map(e => e.className + ":" + JSON.stringify(e.getBoundingClientRect().toJSON())),
++      url: location.pathname,
++    };
++  });
++  console.log(label, JSON.stringify(m));
++  await p.screenshot({ path: dir + `${tag}-${label}-${W}.png` });
++};
++await measure("0-start");
++const pick = async name => { await p.click(".drawer-rail-sheet-title"); await p.waitForTimeout(300); await p.locator(".drawer-rail-sheet-menu-item", { hasText: name }).first().click(); await p.waitForTimeout(1500); };
++await pick("Docs"); await measure("1-docs");
++await pick("AI"); await measure("2-back-on-ai");
++await b.close();
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/v2shot.mjs b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/v2shot.mjs
+new file mode 100644
+index 000000000..5ea43b8db
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/v2shot.mjs
+@@ -0,0 +1,10 @@
++import { browser } from "file:///C:/Code/lew42/worktrees/qf-3/Server/Browser.mjs";
++const [W, tag] = [+process.argv[2], process.argv[3]];
++const b = await browser();
++const p = await (await b.newContext({ viewport: { width: W, height: 900 } })).newPage();
++await p.goto("http://qf-3.localhost/framework/ext/Chat/v2/?src=/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl", { waitUntil: "networkidle" });
++await p.waitForTimeout(2500);
++await p.evaluate(() => document.querySelector(".chat-v2-toggle")?.click());
++await p.waitForTimeout(500);
++await p.screenshot({ path: `v2-${tag}-${W}.png`, fullPage: true });
++await b.close();
+diff --git a/public/framework/ext/Chat/v2/ChatV2.css b/public/framework/ext/Chat/v2/ChatV2.css
+index a47989c40..63f53b724 100644
+--- a/public/framework/ext/Chat/v2/ChatV2.css
++++ b/public/framework/ext/Chat/v2/ChatV2.css
+@@ -2,16 +2,16 @@
+ 
+ @layer site {
+ 	/* The chat column: one readable measure, centred; prompts sit at its root with no bubble or card. */
+-	.chat-v2 { display: flex; flex-direction: column; gap: calc(var(--gap, 1rem) * 2); max-width: 46rem; margin-inline: auto; padding: var(--pad, 1rem); }
++	.chat-v2 { display: flex; flex-direction: column; gap: calc(var(--gap, 1rem) * 2); max-width: 46rem; margin-inline: auto; padding: var(--pad, 1rem); padding-block-end: calc(var(--pad, 1rem) * 4); }
+ 	.chat-v2-empty { color: var(--subtle); }
+-	.chat-v2-prompt { display: flex; flex-direction: column; gap: .6em; }
++	.chat-v2-prompt { display: flex; flex-direction: column; gap: .6em; background: var(--card-bg, #fff); border: 1px solid var(--line); border-radius: .6em; padding: var(--pad, 1rem); }
+ 	/* head/raw-wrap/nest are the three parts a live patch can re-render on their own (ChatV2.patch): empty ones take no space. */
+ 	.chat-v2-head, .chat-v2-raw-wrap { display: flex; flex-direction: column; gap: .6em; }
+ 	.chat-v2-head:empty, .chat-v2-raw-wrap:empty, .chat-v2-nest:empty { display: none; }
+ 	.chat-v2-title { margin: 0; font-size: 1.15em; }
+ 	.chat-v2-text, .chat-v2-reply-text, .chat-v2-answer { white-space: pre-wrap; overflow-wrap: anywhere; }
+ 	.chat-v2-label { color: var(--subtle); display: block; margin-top: .4em; }
+-	.chat-v2-toggle { align-self: flex-start; background: none; border: 0; padding: .4em 0; min-height: 44px; color: var(--subtle); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85em; }
++	.chat-v2-toggle { align-self: flex-start; background: none; border: 0; padding: .5em 0; margin-block: -.5em; min-height: 0; color: var(--subtle); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85em; }
+ 	.chat-v2-toggle:hover { color: inherit; }
+ 	.chat-v2-raw { display: flex; flex-direction: column; gap: .4em; padding-left: 1em; border-left: 2px dotted var(--line); }
+ 	.chat-v2-raw-line { margin: 0; color: var(--subtle); font-style: italic; overflow-wrap: anywhere; }
+diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+index 3e91c4ea4..783b05e24 100644
+--- a/public/framework/ext/drawer/rail.css
++++ b/public/framework/ext/drawer/rail.css
+@@ -375,7 +375,6 @@
+ 	/* FULL STATE TABS: the drawer's own tab row + body under the chat (rail.js mount_tabs). */
+ 	.drawer-rail-sheet-tabs { flex: 0 1 45%; min-block-size: 0; border-top: 1px solid var(--line); }
+ 	.drawer-rail-sheet-tabbody { flex: 1 1 auto; min-block-size: 0; overflow: auto; }
+-	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { display: none; }
+ 	/* A PICKED TAB GETS THE ROOM (2026-10-25): the chat above keeps only its last lines, so all five Debug rows fit one
+ 	   phone screen (390×844, test/debug-tab.mjs). Follows the DOM (:has), so it ends the moment the tab body is unmounted. */
+ 	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs):not(.drawer-rail-sheet-chat-only) .drawer-rail-sheet-panel { flex: 0 0 10em; }
+@@ -397,6 +396,8 @@
+    chat area; no top padding, the bubbles scroll under it"): inside the sheet the feed card drops its own `pad`, and only
+    the scrolling thread keeps a side inset, so bubbles run edge to edge of the card and scroll under nothing. */
+ @layer util {   /* util: the card's own `pad` utility lives in util and beats any site rule */
++	/* Back on the AI tab the tab area (and its handle) is gone and the chat takes the full height. In util because the area carries `.flex`, which lives in util and beat the same rule in theme (2026-10-25). */
++	.drawer-rail-sheet-chat-only .drawer-rail-sheet-tabs { display: none; }
+ 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-card { padding: 0; gap: 0; }
+ 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread { padding-inline: 0.6em; padding-block: 0; }
+ }

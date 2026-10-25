@@ -4,7 +4,7 @@ Budget $3, Sonnet. Load the `minion` skill first. Card: [chat-show-when-your-wor
 
 ## The asks
 
-1. **The split goes away on the AI tab.** In the dictate drawer, opening the Docs tab shows a resize handle and a sheet rising from the bottom, with the chat still on top. Back on the AI (chat) tab, the handle stays, dragging it does nothing, and the chat is stuck at half height above a big blank area. On the AI tab the split must go away and the chat must take 100% of the height again. Reproduce it headless first (open Docs, go back to AI, measure the chat's height), fix it, measure again.
+1. **On the AI tab the split goes away.** Today: open Docs in the dictate drawer and a handle and bottom sheet appear. Go back to AI and the handle stays, drags do nothing, and the chat sits at half height over a blank area. Fix: on AI the chat takes 100% height. Reproduce headless first (open Docs, back to AI, measure chat height), fix, measure again.
 2. **Chat v2 spacing** (from `../v2-speed/requirements.md` item 7): padding below the last task at the bottom; cards get a background (white is fine); "show raw" sits tight to its own card (today it has a big gap above and little below).
 
 ## Where to start

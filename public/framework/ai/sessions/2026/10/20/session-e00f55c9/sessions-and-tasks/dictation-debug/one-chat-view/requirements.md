@@ -24,6 +24,16 @@ Chat has two views today: the first one, which has no name, and Chat v2, behind 
 
 **Flag words that look wrong.** Whisper wrote "Mars" where the owner said "smart". A word that is out of place gets a small yellow "?", so the owner sees it and the AI does not take it as meant. Check whether whisper's per-word confidence is available and use it if so.
 
+**One refinement for both views** (the owner, later the same day). V1 and V2 are driven by the SAME refinement: an accurate, condensed summary that misses no sentence. Sentence ids (S1, S2…) are never shown.
+
+**Topic cards ("context blocks").** At any moment the chat can open a topic card: a bubble that holds items, titled by the refinement. A new topic makes a new card. Questions, tasks and statements go inside the card they belong to, or at the root when there is no topic. Cards follow the owner's words in real time: clean sentences merge into the card, and a question sentence becomes the card's Question.
+
+**A Question is its own small widget.** The answer is added to it when it comes. `Question extends Task` (`core/Task/Question.js`): it is not complete until it is answered AND the owner accepts the answer; until then it stays open and reminds the owner. Make the card generic, so a question, a statement and a task are each one kind of card. A past-work check on the Question class is being run by the voice session; read its result first if it is linked on the card.
+
+**Sentences feed as they arrive.** Each raw whisper sentence is sent as it arrives and placed by topic: into the last Prompt or a new one, then the last paragraph or a new one. Paragraph headings don't matter yet. What matters: the refined Prompt looks right, and the raw text is on screen live.
+
+Start from `../pipeline-doc/` (the pipeline doc, once it lands): it says how each item is logged today and where V1 and V2 differ.
+
 ## Steps
 
 1. **Plan first, and stop after the plan.** Write `plan.md` in this folder: what each view has that the other lacks (a table, from the code with file:line), which one to keep as the base, how the other's features move into it, how the version dropdown lists and switches versions (and where the choice is saved), and which callers change (`ext/drawer/ChatView.js`, `Sheet.js`, `tabs/ai.js`, any others). Report it to mastermind-dictation-2 and wait for its answer before building. The mastermind decides; this is a structural change (CLAUDE.md, "Ask before": moving a responsibility).
