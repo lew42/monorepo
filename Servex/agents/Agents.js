@@ -1186,7 +1186,7 @@ Agents.Registry = Registry;
  * alive and steerable between turns instead of ending after the first answer. */
 Agents.Agent = class Agent {
 
-	constructor(...args){ this.assign(this.defaults(), ...args); if (this.prompt) this.other_n = 1; }   // the first prompt is a real message for the follow-ack rule (emit)
+	constructor(...args){ this.assign(this.defaults(), ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
 	defaults(){
@@ -1477,9 +1477,9 @@ Agents.Agent = class Agent {
 		const skip = this.watchdog_refusal(from);
 		if (skip) return this.watchdog_skipped(from, skip);
 		if (this.state === "dormant") this.awaken(from);
-		if (from === "servex-follow") this.follow_n = (this.follow_n ?? 0) + 1; else this.other_n = (this.other_n ?? 0) + 1;   // messages since the last result
 		this.emit({ type: "agent_msg", from: from ?? null, reply_to: reply_to ?? null, priority: priority ?? null, text });
 		const turn = this.turn(this.envelope(text, { from, reply_to }), priority);
+		if (from === "servex-follow") Object.defineProperty(turn, "followed", { value: true });   // read by the queue's kinds list; not part of the message the SDK sees
 		if (!this.queue.push(turn)){
 			(this.held_messages ??= []).push(turn);
 			this.emit({ type: "held", why: "the queue closed before this message could be pushed; it will be replayed on the next awaken" });
@@ -1777,8 +1777,7 @@ Agents.Agent = class Agent {
 		const nudge_turn = event.type === "result" && !event.stopped && this.nudge_pending;
 		if (nudge_turn) this.nudge_pending = false;
 		/* A turn started only by followed lines whose answer is a short ack ("nothing for me") is housekeeping, not news: its "done" wakes nobody (2026-10-25: followers woke the smart seat on every followed line). A long answer, BLOCKED, an error or a stop still wake the parent. */
-		const followed = event.type === "result" && this.follow_n > 0 && !this.other_n;   // only followed lines arrived since the last result (the first prompt counts as a real message)
-		if (event.type === "result") this.follow_n = this.other_n = 0;
+		const followed = event.type === "result" && !(event.stopped && !event.mid_turn) && this.queue?.kinds?.shift() === true;   // the kind of the turn this result ends, in queue order; an idle stop ran no turn
 		const quiet_follow = followed && !event.stopped && (this.last_text ?? "").trim().length < 200 && !this.last_text?.startsWith("BLOCKED");
 		if (event.type === "result" && !nudge_turn && !(event.stopped && !event.mid_turn)) this.host?.wake_parent?.(this,
 			event.stopped ? "stopped"
@@ -2375,6 +2374,7 @@ Agents.Agent.Queue = class AgentQueue {
 	 * apart from a real success. `Agent.send()` is the one caller that acts on it. */
 	push(item){
 		if (this.done) return false;
+		(this.kinds ??= []).push(!!item?.followed);   // one entry per turn, in order: true = started by a followed line (Agent.emit judges each result by it)
 		const wake = this.waiting.shift();
 		if (wake) wake({ value: item, done: false });
 		else this.items.push(item);

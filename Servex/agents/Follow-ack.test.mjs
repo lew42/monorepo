@@ -10,7 +10,7 @@ process.env.SERVEX_HOME = dir;
 const { Agents } = await import("./Agents.js");
 
 class FakeAgent extends Agents.Agent {
-	start(){ this.queue = new this.constructor.Queue(); this.aborter = { abort(){} }; this.query = { close(){} }; this.claude_pid = process.pid; this.session_id ??= "fake-" + Math.random().toString(36).slice(2); this.state = "idle"; return this; }
+	start(){ this.queue = new this.constructor.Queue(); this.aborter = { abort(){} }; this.query = { close(){} }; this.claude_pid = process.pid; this.session_id ??= "fake-" + Math.random().toString(36).slice(2); this.state = "idle"; if (this.prompt) this.queue.push(this.turn(this.prompt)); return this; }
 }
 class Host extends Agents { wake_parent(child, kind, opts){ (this.calls ??= []).push({ kind, quiet: !!opts?.quiet }); } }
 Host.Agent = FakeAgent;
@@ -31,14 +31,14 @@ assert.ok(isquiet(turn(["servex-follow"], "nothing for me")), "short ack after a
 assert.ok(!isquiet(turn(["servex-follow"], "x".repeat(300))), "a long answer wakes the parent");
 assert.ok(!isquiet(turn(["servex-follow"], "BLOCKED: need a key")), "BLOCKED wakes the parent");
 assert.ok(!isquiet(turn(["session-p"], "yes")), "an answer to a real message wakes the parent");
+const done = text => { agent.emit({ type: "transcript", text }); host.calls = []; Agents.Agent.prototype.emit.call(agent, { type: "result", ok: true }); return host.calls; };
 agent.send("f", { from: "servex-follow" }); agent.send("q", { from: "session-p" });   // a followed turn runs, a real question waits behind it
-agent.emit({ type: "transcript", text: "ok" }); host.calls = [];
-Agents.Agent.prototype.emit.call(agent, { type: "result", ok: true });
-assert.ok(!isquiet(host.calls), "a mix of followed and real messages is loud, never swallowed");
-agent.emit({ type: "transcript", text: "yes" }); host.calls = [];
-Agents.Agent.prototype.emit.call(agent, { type: "result", ok: true });
-assert.ok(!isquiet(host.calls), "the turn answering the real question is not swallowed");
-assert.ok(isquiet(turn(["servex-follow"], "ok")), "then followed lines are quiet again");
+assert.ok(isquiet(done("ok")), "turn 1 (followed) is quiet");
+agent.send("g", { from: "servex-follow" });   // another followed line arrives while the question's turn runs
+assert.ok(!isquiet(done("yes")), "turn 2 (the real question) still wakes the parent");
+assert.ok(isquiet(done("ok")), "then the followed line's turn is quiet");
+agent.queue.push(agent.turn("/compact"));   // /compact is direct
+assert.ok(!isquiet(done("compacted")), "a /compact turn is never quiet");
 // the first prompt is a real message: a followed line arriving while the brief's turn runs does not make its short reply quiet
 const briefed = host.spawn({ task: false, id: "mastermind-b", role: "mastermind", name: "b", parent: "session-p", prompt: "go" });
 briefed.send("f", { from: "servex-follow" });
