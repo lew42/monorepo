@@ -36,6 +36,8 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 - `Server/Crawl.mjs` — nightly full-site crawl at 1920; failures go to `ai/todo.md`.
 - `Server/Council.mjs` — Feedback Council collector and runner; off switch `COUNCIL=off`.
 - `node Server/ReadmeOrphans.mjs` — lists every directory with a readme that the readme above it never names (the readme chain cannot reach it); the page-nav twin is `OrphanCheck.mjs`.
+- `node Server/SessionIdentity.mjs <session uuid>` — read-only: which transcripts, folders, cost lines and child agents belong to one session; TrackingCheck's check 6 runs it; test `SessionIdentity.test.mjs` ([core/Session/doc/identity.md](../public/framework/core/Session/doc/identity.md)).
+- `node Server/SessionConsolidate.mjs <session uuid> [--apply --manifest <file>]` — one session, one folder: folds a session's second folders into the oldest, with a dry run, a manifest and a moved-aside copy; `session-dir-clash.test.mjs` tests the folder lookup (`DatedFiles.session_dir`). `Servex/agents/turn-costs.test.mjs` tests a session's own turns.
 - `node Server/NavCheck.mjs <worktree>` — the click test: every page a branch adds must have an `a[href]` on its parent page, loaded headless; `merge.mjs` runs it and refuses an unlinked page, `--no-nav "why"` overrides ([`doc/nav-check.md`](./doc/nav-check.md)).
 - [`git-hooks/`](./git-hooks/) — the git hooks every worktree shares, versioned here with a small installer.
 
