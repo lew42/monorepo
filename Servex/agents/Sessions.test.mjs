@@ -13,6 +13,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import Usage from "../Usage.js";
+import { TIERS } from "./tiers.js";
 import Sessions, { PAUSE_PHASES, FALLBACK_MODEL, ASSISTANTS, session_assistant } from "./Sessions.js";
 
 let checks = 0;
@@ -321,7 +322,7 @@ check("fast mode is untouched: it still sends `[on <path>] <text>` to session-fa
 	assert.equal(last_sent("fast"), "[on /a/] plain again");
 });
 
-check("the smart seat: Opus 5.5, medium effort, bypassPermissions; every voice agent is tied to its session by parent_session, and kept on parent \"sessions\" for events", () => {
+check("the smart seat: the voice_smart tier (tiers.js), medium effort, bypassPermissions; every voice agent is tied to its session by parent_session, and kept on parent \"sessions\" for events", () => {
 	const spawned = [];
 	const real = agents.spawn;
 	agents.spawn = spec => { spawned.push(spec); return real(spec); };
@@ -332,7 +333,7 @@ check("the smart seat: Opus 5.5, medium effort, bypassPermissions; every voice a
 	agents.spawn = real;
 	const smart = spawned.find(x => x.role === "session-smart");
 	assert.ok(smart, "a session-smart agent was spawned");
-	assert.equal(smart.model, "claude-opus-5-5"); assert.equal(smart.effort, "medium"); assert.equal(smart.permission_mode, "bypassPermissions");
+	assert.equal(smart.model, TIERS.voice_smart.model);   // the tier moves with pace (8f268911b); the test follows it assert.equal(smart.effort, "medium"); assert.equal(smart.permission_mode, "bypassPermissions");
 	assert.equal(smart.system.preset, "claude_code", "the full Claude Code tool set, not the lean no-tools seat");
 	assert.ok(smart.system.append.includes("Your session's page") && smart.system.append.includes(path.posix.dirname(s.map[made.session].file) + "/"), "the smart seat is told its own session folder, for the item tool");
 	assert.match(s.map[made.session].file, /^\/framework\/ai\/sessions\/\d{4}\/\d{2}\/\d{2}\/[^/]+\/session\.jsonl$/);
