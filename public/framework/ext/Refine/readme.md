@@ -4,7 +4,7 @@
 
 **Also here: the refine queue** — every past owner prompt becomes a refined card on its session page's Coverage tab ([doc/refine-queue.md](doc/refine-queue.md), `Server/RefineQueue.mjs`).
 
-The page opens on a **live demo**: a mic/text box, the result, and beside it the live `Prompt` instance and its class card. Class doc: `doc/prompt.md`. Files: `RefineSystem.js` (the boss), `PromptRun.js` (data and completion, DOM-free; was `Prompt.js`), `PromptView.js` (its view), `Scorer.js`, `RefineDemo.js` (the demo view), `Prompt.css`; the server half is `Servex/ext/refine/run.js` (`POST /api/refine`).
+The page opens on a **live demo**: a mic/text box, the result, and beside it the live `PromptRun` instance and its class card. Class doc: `doc/prompt.md`. Files: `RefineSystem.js` (the boss), `PromptRun.js` (data and completion, DOM-free; was `Prompt.js`), `PromptView.js` (its view), `Scorer.js`, `RefineDemo.js` (the demo view), `Prompt.css`; the server half is `Servex/ext/refine/run.js` (`POST /api/refine`).
 
 `refine()` fetches one run of `Server/refine.mjs` (dev-only — see `Server/doc/refine.md`) and lays it out as four columns side by side: what was said, then each refinement step. Click an ask, or a bullet in Structured, and its source sentences light up in Clean and Raw — "wait, what did I actually say?" answered without reading anything twice.
 

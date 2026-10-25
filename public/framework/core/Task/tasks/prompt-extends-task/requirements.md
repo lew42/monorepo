@@ -39,4 +39,5 @@ Session
 - **Not yours:** the chat widget. mastermind-dictation-2 builds Chat v2 on your classes; agree field names with it by message.
 - [x] `ext/Refine/Prompt.js` is the old plain class. Extend or replace it; don't leave two Prompt classes. Say which you chose and why.
   - Proof: replaced. The old class is now `PromptRun` (`ext/Refine/PromptRun.js`); core `Prompt extends Task` is the only Prompt. Why: [doc/prompt.md](../../doc/prompt.md#one-prompt-class-the-decision).
+- Also touched, because the item tool had to know the new types: `Servex/agents/page_tools.js` (node-aware validation, `unread`, `task_type`), `core/Item/Item.js` (a list builds its own member class; `plain_lists`). Proof: `Servex/agents/item_tool.test.mjs`.
 - Work in a worktree, then review, then merge via `node Server/merge.mjs <worktree folder>`.

@@ -14,7 +14,7 @@ class Session extends Task                       // ../Task/Task.js (Task extend
   static MENU, SETTINGS     // the session menu template and its settings form (doc/menu.md)
   menu(url), settings       // MENU with urls; {"settings":{…}} lines merged, a later line wins
   id                        // from the constructor, or line 1 of the log
-  tasks: Task.List          // Task's list: add("a title"), add({title,…}), add({type: "Project"|"Process"|"Session", …}); each child knows created_at (its line's time)
+  tasks: Task.List          // Task's list: add("a title"), add({title,…}), add({type: "Project"|"Process"|"Session"|"Prompt"|"Question", …}) (Prompt and Question: [core/Task/doc/prompt.md](/framework/core/Task/md/doc/prompt/)); each child knows created_at (its line's time)
   state, completion         // Task's getters; state comes from the record's own {"start"}/{"stop"} lines, completion = done / total of its tasks. Never stored
   progress(): {done,total,stopped}  // Task.progress_of(this._tasks), the one counting code; a stopped task counts in neither done nor total
   first_at, last_at, span_ms  // from the lines' own times, never stored
