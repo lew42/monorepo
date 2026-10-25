@@ -37,6 +37,10 @@
 		display: flex; align-items: center;
 		padding: 1.5em 0.8em 0.5em var(--gutter-x);
 	}
+	/* ⚠ Above the stuck strip beside it: ext/tabs paints that strip's band LEFTWARD over its earlier siblings (z-index 3), and this title is one.
+	   Once the title scrolls away it slides over a band of its own colour. One rule per module, never a generic sibling rule.
+	   ⚠ Opaque for the same reason: the band underneath it is a second `--well`, and a translucent title would show it as a darker patch. */
+	.page.doc-page > .doc-well { position: relative; z-index: 4; background: linear-gradient(var(--well), var(--well)), var(--ground, var(--wash)); }
 	.doc-title { margin: 0; display: flex; align-items: center; gap: 0.3em; }
 	.doc-title > .icon { font-size: 0.9em; }
 

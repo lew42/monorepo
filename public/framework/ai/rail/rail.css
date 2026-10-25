@@ -158,16 +158,23 @@
 	.page--ai .dash-chips :is(.sessions-chip, .dash-chip-head, .dash-total) { flex: none; white-space: nowrap; }
 	.page--ai .dash-chip-sub { padding-inline-start: 0; }
 
+	/* ONE row at every width (owner 2026-10-24): icon + title fixed, only the tab strip swipes sideways. Keep it a plain flex row. */
+	.page--ai .inbox-head { flex-wrap: nowrap; }
+	.page--ai .inbox-head > .doc-well { flex: none; }
+	.page--ai .inbox-head > .tabs > .tab-bar { flex: 1 1 0; min-width: 0; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; }
+	.page--ai .inbox-head > .tabs > .tab-bar::-webkit-scrollbar { display: none; }
+	.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: none; white-space: nowrap; }
+
 	@media (width < 40em) {
 		/* the scroll is the TOPIC's now (core/Sidebar: a topic with a `.tabs.stick` scrolls, header and all) */
 		.page--ai.page.full:has(> .inbox-shell) { height: auto; min-height: 100%; overflow: visible; }
 		.page--ai.page.full:has(> .inbox-shell) > .inbox-shell { flex: none; height: auto; }
 		.page--ai .inbox-rail, .page--ai .inbox-stream { display: block; }
 		.page--ai .inbox-rows { overflow: visible; }
-		/* title above, tabs below as one row that side-scrolls (owner 2026-10-24; the shared `.tab-bar` already does the scrolling). `display: contents` frees the strip from the 73px head so `.stick` can hold it for the whole page: a sticky box stays inside its parent. */
-		.page--ai .inbox-head { display: contents; }
-		.page--ai .inbox-head > .tabs > .tab-bar { flex: none; padding-inline: 0.5rem; }
-		.page--ai .inbox-head > .tabs > .tab-bar > .tab { flex: none; }
+		/* The whole one-row head sticks, title and strip together (the owner, 2026-10-24: one row at every width). The topic scrolls
+		   (core/Sidebar, `.tabs.stick`) and the framework header scrolls away; a sticky box stays inside its parent, so the HEAD is
+		   the sticky element, not the strip. Opaque ground under it: the title well and the strip each paint their own `--well` once. */
+		.page--ai .inbox-head { position: sticky; top: 0; z-index: 3; background: var(--ground, var(--wash)); }
 		.page--ai .inbox-head .doc-well { padding-block: 0.4em 0.1em; }
 	}
 }

@@ -12,7 +12,9 @@ Load the `minion` skill first, then `past-work`, then `page` (it sends you to th
 
 - `/framework/ai/` draws `AIDashboard` (since 2026-10-19): usage bars, a row of pills, then a long sessions list. `/framework/ai/inbox/` is the old Inbox. Shoot both, at 1920 and 390, headless, into `shots/before-<place>-<width>.png`.
 - Find what is "horribly broken": page errors, console errors, empty or wrong numbers, the layout. One check worth making: the "Ready to merge" pill read 0 on 2026-10-24 at 20:15; compare it with what the ready-to-merge source actually holds.
+- Another, from the top-tabs review (2026-10-24, `../top-tabs/review.jsonl` n 5): at 400 the filter chips (Ready to merge … Processes) wrap onto 3 rows, so the chrome above the content is 3 lines tall.
 - Log each finding as one line, with the measurement.
+- ⚠ `worktree/top-tabs` changes `ai/page.js` (line 51, `tabs block stick`) and `ai/rail/rail.css` (below 40em). If it has landed on `michael/dev` when you start, merge it in first; if not, leave those two lines alone.
 
 ## 2. One dashboard shape, built small enough to be the picture
 

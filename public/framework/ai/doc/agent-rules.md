@@ -18,6 +18,14 @@
 
 **Stream, don't poll** (the owner, 2026-10-08): anything that happens in real time (a transcription, a session doing work, cost, logs) is architected as a stream (JSONL append + the `live()` tail) with updates in about 100 ms, never a timed refresh that shows stale data. When you find yourself writing `setInterval` + `fetch`, look for the stream first.
 
+## Open a task for each piece of work (the owner, 2026-10-24)
+
+A task is a bucket: every token a session spends between its `start` and `complete` is counted against it, and tokens with no task open show as untracked. **Every agent opens a task for each piece of real work and closes it; a tab files each owner ask as a task on its own session.** Work that fits the task you are on needs no new one; unrelated work opens a sibling or child first. A spawned agent is handed its task; an agent given a prompt with no task opens one as its first act. After a hand-off only the agent that holds a task writes to it until it hands it back, and the hand-back starts the review. The full rule, the table of who may write what and the proposed enforcement hook: [task-buckets.md](task-buckets.md). How a task is added and where it shows: [core/Task/readme.md](/framework/core/Task/readme.md) and [core/Session/readme.md](/framework/core/Session/readme.md). The monitor: [/framework/ai/tracking/](/framework/ai/tracking/).
+
+## Structured output first (the owner, 2026-10-24)
+
+Law 5 already says that chat is never read again and the committed repo is the record. This rule is about the **form**: an agent's result is written to a file first, in a structured form, and chat gets a pointer second. "Structured" means a shape a program can read and the owner can filter: a JSONL line (`find`, `outcome`, `result`, an item through the item tool), a table, or a doc with a fixed header, never a long paragraph of findings. Write each result **as soon as you have it**, not in a final report, so a stopped or compacted agent has still left its work. The chat line that follows is one sentence and a link. **The one exception is the sidebar chat**, where the owner is talking with the agent live: there the answer is the reply, and anything that should outlive the talk is also written to its page. Example of the form: the past-work worker logs `find` lines ([skills/past-work/worker.md](../skills/past-work/worker.md)).
+
 ## Cost and roles
 
 - **Usage pace (the owner, 2026-10-02):** every mastermind reads the usage snapshot when it starts and before each spawn (`ai/usage.json`; Servex injects it). Pace = the share of the week used ÷ the share of the week gone. Over pace: Sonnet by default, no Opus without a stated reason, fewer agents, no redundant checks, and review the work yourself when the files are already in your context instead of spawning a reviewer. Minions just do their task.

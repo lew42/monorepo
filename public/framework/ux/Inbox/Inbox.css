@@ -113,6 +113,9 @@
 	}
 
 	.inbox-head .doc-well { padding-block: 0.8em 0.3em; }
+	/* ⚠ Above a stuck strip: ext/tabs paints that strip's band LEFTWARD over its earlier siblings (z-index 3), and this title is one.
+	   Opaque, or the band underneath would show through the translucent `--well` as a darker patch. */
+	.inbox-head > .doc-well { position: relative; z-index: 4; background: linear-gradient(var(--well), var(--well)), var(--ground, var(--wash)); }
 	/* The title is a link home (ai/page.js): it keeps the heading look, icon gap included. */
 	.inbox-head-home { display: inline-flex; align-items: center; gap: 0.3em; color: inherit; text-decoration: none; border: 0; box-shadow: none; }
 

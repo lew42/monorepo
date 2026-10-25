@@ -29,6 +29,20 @@ TaskLoop starts the next audit step when fewer agents are working than the cap, 
 
 A Haiku read of one module is 100 to 150k tokens (the trial: about 116k). The catalog's typical Haiku minion costs about $1.45 ([models](/framework/ai/system/models/)), so a module is **roughly $0.5 to $1.5**, and the 60-odd modules are $30 to $90 for a first pass, spread over days. Measure the pilot before trusting this number.
 
+## Queued, not built now (the owner, 2026-10-24, item 15)
+
+The audit needs a mastermind to run it and it is heavy, so it sits in the queue and is **not built now**. Two things were asked to be recorded.
+
+**The open question: when a task enters the queue, is it built automatically, at what priority, and as a quick first version or a full plan?** Proposed answer, to be confirmed against how the queue actually behaves:
+
+- **Automatically only when it is cheap or asked for.** A task enters the queue as a proposal. Node starts it by itself when its cost estimate is under about $3, or the owner has asked for it more than once (`node Server/RefineQueue.mjs --repeats`). Anything larger waits as a ranked proposal; it is built when the owner approves it or it reaches the top of the queue with budget to spare. This is the "masterminds propose; the top mastermind green-lights" rule in [the mastermind readme](/Servex/agents/roles/mastermind.md), applied to the queue.
+- **Priority:** the queue's score (importance, re-asks, estimated cost). Work the owner can see this week outranks maintenance. A module-audit task is always **idle priority**: it runs only when nothing ranked is ready.
+- **Quick first version, then plan if it earns it.** CLAUDE.md law 1: fastest working version first. A small or clear task is built straight away as the smallest working version. A plan is written first only for an architecture decision or a big project ([mastermind readme, "Plan or just do, by size"](/Servex/agents/roles/mastermind.md)). The audit itself is a project, so it is planned (this doc) and its pilot is the quick version.
+
+Today the queue ranks tasks and starts the top ones ([task-queue.md](task-queue.md)); the "cheap proposals start by themselves" rule is the part not built, and the audit does not need it to run (it is started by the idle trigger, not by queue rank).
+
+**The RAM limit:** each Haiku `claude.exe` takes **200 to 500 MB** of memory, so a wide audit is **overnight or downtime work**. One module's auditor at a time (not a fan-out), and only while `system_health` shows more than 4 GB free and fewer than the usual number of agents working. **Core modules first** (`core/Task`, `core/Item`, `core/Page`, then `ext/`), because everything else depends on them and an audit that finds a problem there pays back most.
+
 ## Build order
 
 1. `AuditProcess` template plus a node script for the candidate ranking and the importance order (step 1's input and step 2's order).

@@ -19,3 +19,4 @@
 {"log":{"at":"2026-10-24T20:12:42-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
 {"log":{"at":"2026-10-24T20:12:44-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
 {"assign":{"at":"2026-10-24T20:13:21-05:00","outcome":"Asked: find the per-file README system.\n- [x] Found it: `doc/file/<path>.md` beside any file, shown in the Files tab of [ext/Doc](public/framework/ext/Doc/readme.md) via ext/files `about()` (Doc.js:200). 349 notes on disk.\n- [x] Searched only, no code changed.\n- [ ] Open asks (every md as a page, files widget): not built; listed in findings.md."}}
+{"log":{"at":"2026-10-24T20:18:19-05:00","msg":"session resumed"}}

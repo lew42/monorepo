@@ -1,0 +1,15 @@
+@layer base, theme, site, util;
+@layer site {
+	.tr-view { grid-column: wide-start / wide-end; display: flex; flex-direction: column; gap: var(--gap); padding: var(--pad); container-type: inline-size; }
+	.page--tracking > .page-title { display: block; grid-column: wide-start / wide-end; margin: 0; padding: var(--pad) var(--pad) 0; }
+	.tr-body { display: flex; flex-direction: column; gap: var(--gap); }
+	.tr-body > p { max-inline-size: 40em; margin: 0; }
+	.tr-body > h2 { margin: var(--gap) 0 0; }
+	.tr-cards { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 1fr); }
+	@container (min-width: 48em) { .tr-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+	.tr-card { display: flex; flex-direction: column; gap: var(--gap-50); padding: var(--pad); border: 1px solid currentColor; border-radius: 0.5em; }
+	.tr-big { font-size: 2.2em; font-weight: 700; line-height: 1.1; }
+	.tr-label { font-weight: 600; }
+	.tr-view .datagrid { --datagrid-height: 22em; max-block-size: 22em; }
+	.tr-view .datagrid-head-cell, .tr-view .datagrid-cell { white-space: nowrap; }
+}
