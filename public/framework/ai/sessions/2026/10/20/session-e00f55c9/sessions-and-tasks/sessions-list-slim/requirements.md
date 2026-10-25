@@ -45,3 +45,24 @@ For `mastermind-page`, after (or alongside) the top-tabs task, since the two sti
   - every row has play and stop buttons nobody explained. Find out what they do and whether they work; hide them if not.
   
   Make each task one full-width row. Then give the tasks the same filterable grid as the sessions list (state, day, kind), so a 4-day session can be browsed by day. One component for both.
+
+## The owner, fourth pass (2026-10-24): the session detail page is the focus
+
+**New order:** (1) the slim sticky header on the list (small); then **(2) the session detail page, the main job;** then (3) the list's cards.
+
+What the detail page shows:
+- **A chronological view: everything in the session's `session.jsonl`, in order.**
+  - Its prompts, tasks, child sessions and notes, as they happened. "Just show me everything in there."
+  - Configurable, so the owner sees what's needed and not much more.
+- **A chat view, live:**
+  - each owner prompt appears as its refined form: a heading, then its asks, questions and notes as cards, each citing its sentences (S4, S7–18). The raw transcript is one click down, never repeated in full;
+  - the flow plays out in place as it happens: prompt → refined prompt → task → "agent launched" (the child session, with its state and cost) → checked off when done;
+  - when the owner dictates in the VS Code tab and switches to the site, the new prompt's refinement is already appearing.
+- **Child sessions are shown** where their task is, not in a separate dump.
+- **Today's flat list of 100+ one-line tasks is replaced,** because it gave the owner no confidence about what they were looking at.
+
+**Build on what exists:**
+- the AI system mastermind's chat-view plan (merged tonight; see `ai/doc/` and `../prompt-breakdown/`);
+- `prompts.jsonl` (raw, clean sentences, parts with cites);
+- the deputy's work: Prompt extends Task, child sessions as tasks, and live cached sessions.
+Agree one component for the chat view with the deputy. Land it in small, visible steps.
