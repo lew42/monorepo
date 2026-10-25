@@ -76,3 +76,19 @@
     - Tasks can hold notes and content cards.
     - A session's log references its tasks and notes in order, so one log renders as a timeline you can replay.
     - Propose how content cards get added to tasks and sessions with the item tool. Show the proposal; don't build it yet.
+
+## Part 3: the 60-second write, investigated properly (the owner, 2026-10-24, the next prompt)
+
+"I don't know what the heck 60 seconds is taking. Make sure we're looking into this properly, doing a thorough investigation of the problem and potential solutions, and solving it in a way that makes sense to our system." This replaces item 12's quick fix with a proper one.
+
+12b. **Measure first.** Time each step of one `item` write on this session's record: the replay, the append, `session_state`, `agents_resolver` (it reads Servex's registry of every agent ever started, 2,000+ rows and 3 MB, to find the child sessions), the per-task cost lookups, and `cache.jsonl`. Write the numbers in `slow-write.md` here.
+
+12c. **The owner's model, so build to it:**
+- **A session is built from its own `session.jsonl` alone,** and that file names its child sessions. No scan of a global registry to find them.
+- **Indexes are per scope.**
+  - `ai/sessions/index.jsonl` lists the years.
+  - Each year's index lists its months, each month's its days, and each day's its sessions.
+  - Some `index.json` and `index.jsonl` files already exist (in `2026/` and in each day). Find what writes them and extend those; don't add another set.
+- **Servex keeps a live instance cached.** It builds a session once, keeps it in memory, and tails its files. Later reads and writes use that instance, so a write is one append plus an in-memory update.
+
+12d. **Then fix it.** Write the plan in `slow-write.md` and get it reviewed, build it, and measure again. The target: a write in under a second, and a full read of this session in a few seconds at most.
