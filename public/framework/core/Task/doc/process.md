@@ -102,12 +102,12 @@ Every step change, spawn, pulse and cost is a line node writes. `measure` lines 
 
 - **Task.mode "series"** already starts the next child in memory; Process turns that off and has node write the line instead, so state is always from the file.
 - **Task templates** ([templates.md](templates.md)) are the per-task version (one agent, approve → spawn); a step's `session` uses the same launch path (`TaskLoop.launch` shape).
-- **Steps** ([Servex/doc/steps.md](/Servex/doc/steps.md)) are steps inside one agent's session; a Process whose steps all run `same` does the same job with real state. Steps stays until it is migrated.
+- **Steps** (`Servex/doc/steps.md`) are steps inside one agent's session; a Process whose steps all run `same` does the same job with real state. Steps stays until it is migrated.
 - **Project.STAGES** (six stage names in one field) is the same idea without children; a Project should hold a build Process instead. Not changed in this slice.
 
 ## Run 1 (2026-10-22): the readmes page, through build
 
-The brief: [run-1/readmes-page/requirements.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/run-1/readmes-page/requirements.md); its log is the `task.jsonl` beside it. It ran on a private Servex started from the worktree (`Servex/proof/process-run.mjs`). One `item` call created it. Node then ran every step with no agent remembering anything, from 18:49 to 18:56 (7.5 minutes). It ended with `task/readmes-page` built and reviewed, and the merge step waiting on the owner.
+The brief: `run-1/readmes-page/requirements.md` in the process-system folder; its log is the `task.jsonl` beside it. It ran on a private Servex started from the worktree (`Servex/proof/process-run.mjs`). One `item` call created it. Node then ran every step with no agent remembering anything, from 18:49 to 18:56 (7.5 minutes). It ended with `task/readmes-page` built and reviewed, and the merge step waiting on the owner.
 
 | Step | Session | Measured cost |
 |---|---|---|
