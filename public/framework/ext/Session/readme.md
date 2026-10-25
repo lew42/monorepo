@@ -12,7 +12,7 @@ A session starts on the page you are on (its home), follows you from page to pag
 import { start, resume, recent, say, floor, nav, pause, report_pause, select, react, watch, entry } from "/framework/ext/Session/Session.js";
 
 const { session, file, resumed, previous } = await start({ path: location.pathname });
-const stop = watch(file, line => draw(entry(line)), { on_status });   // every line, old and new; on_status(kind, detail) hears what would be silent
+const stop = watch(file, line => draw(entry(line)), { on_status, on_history });   // every line, old and new, polled by byte range; on_status(kind, detail) hears what would be silent; on_history(lines) may hold the oldest back (doc/watch.md)
 await say({ session, text: "can you hear me?", via: "voice", floor: "speaking" });
 await floor({ session, floor: "done" });               // the owner stopped talking: the held fast reply lands
 await nav({ session, from: "/a/", to: "/b/", card });   // card: optional, the card showing now
@@ -48,5 +48,6 @@ whole thought. The fast one mostly stays silent. Replies stream in token by toke
 
 - Page: [/framework/ext/Session/](/framework/ext/Session/) · the file format, routes, levels and sleep/wake: [doc/sessions.md](./doc/sessions.md)
 - The design: [ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md](/framework/ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md)
+- How `watch()` polls (byte-range tail, `on_history`): [doc/watch.md](./doc/watch.md)
 - Open items: [doc/decisions.md](./doc/decisions.md)
 - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)

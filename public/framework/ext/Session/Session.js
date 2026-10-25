@@ -205,26 +205,45 @@ export async function recent_project({ limit = 10, host = location.host } = {}){
 	return out.sessions;
 }
 
-/** Poll `file` every 1.5 s (never cached) and hand each new line, parsed, to `on_line`.
+/** Poll `file` every 1.5 s (never cached) and hand each new line, parsed, to `on_line`. After the first read a poll asks only for
+ *  the bytes past the last line it handled (a `Range` request, one byte early so an idle poll is a 1-byte 206, never a 416; a server
+ *  that ignores `Range` sends the whole file and the new part is cut from it): see doc/watch.md.
  *  Returns `stop()`. A missing file (404) is just "nothing yet". `on_status(kind, detail)` hears what would otherwise be silent:
  *  "poll_failed" (a non-404 status or a network error; heard again each failed poll), "poll_ok" (the first good poll after
- *  failures), "bad_line" (a line that is not JSON) and "line_failed" (`on_line` threw: that line is skipped, the next ones still arrive). */
-export function watch(file, on_line, { every = 1500, on_status } = {}){
-	let seen = 0, timer = null, stopped = false, failing = false;
+ *  failures), "bad_line" (a line that is not JSON) and "line_failed" (`on_line` threw: that line is skipped, the next ones still arrive).
+ *  `on_history(lines)` gets the whole first read as parsed lines and returns the ones to draw now (it may keep older ones back). */
+export function watch(file, on_line, { every = 1500, on_status, on_history } = {}){
+	let seen = 0, offset = 0, timer = null, stopped = false, failing = false, first = !!on_history;
 	const status = (kind, detail) => { try { on_status?.(kind, detail); } catch (e){ console.error("Session.watch on_status:", e); } };
+	const encoder = new TextEncoder(), decoder = new TextDecoder();
 	async function tick(){
 		try {
-			const res = await fetch(file, { cache: "no-store" });
-			if (res.ok || res.status === 404){
+			const res = await fetch(file, { cache: "no-store", headers: offset > 0 ? { Range: `bytes=${offset - 1}-` } : {} });
+			if (res.ok || res.status === 404 || res.status === 416){
 				if (failing){ failing = false; status("poll_ok", { status: res.status }); }
 				if (res.ok){
-					const body = await res.text(), lines = body.split("\n").filter(l => l.trim());
-					for (; seen < lines.length; seen++){
+					const bytes = new Uint8Array(await res.arrayBuffer());
+					const tail = decoder.decode(res.status === 206 ? bytes.subarray(1) : bytes.subarray(offset));   // 206 starts one byte early (the newline before the new part)
+					const history = first ? [] : null;   // the first read of a file is handed to on_history, which may keep some of it back
+					first = false;
+					const parts = tail.split("\n");
+					for (let i = 0; i < parts.length; i++){
+						const text = parts[i], last = i === parts.length - 1;
+						if (last && !text) break;   // the tail ended with a newline: nothing half-written
+						if (!text.trim()){ offset += encoder.encode(text).length + 1; continue; }
 						let line;
-						try { line = JSON.parse(lines[seen]); } catch (e){
-							if (seen === lines.length - 1 && !body.endsWith("\n")) break;   // a half-written last line: read it again on the next poll
-							status("bad_line", { n: seen + 1, text: lines[seen].slice(0, 200), error: e }); continue; }
-						try { on_line(line); } catch (e){ status("line_failed", { n: seen + 1, line, error: e }); }
+						try { line = JSON.parse(text); } catch (e){
+							if (last) break;   // a half-written last line: read it again on the next poll
+							offset += encoder.encode(text).length + 1; seen++;
+							status("bad_line", { n: seen, text: text.slice(0, 200), error: e }); continue; }
+						offset += encoder.encode(text).length + (last ? 0 : 1); seen++;
+						if (history) history.push(line);
+						else try { on_line(line); } catch (e){ status("line_failed", { n: seen, line, error: e }); }
+					}
+					if (history){
+						let draw = history;
+						try { draw = on_history(history) ?? history; } catch (e){ status("line_failed", { n: seen, line: null, error: e }); }
+						for (const line of draw) try { on_line(line); } catch (e){ status("line_failed", { n: seen, line, error: e }); }
 					}
 				}
 			} else { failing = true; status("poll_failed", { status: res.status, error: new Error(`HTTP ${res.status}`) }); }

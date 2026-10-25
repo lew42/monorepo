@@ -131,6 +131,7 @@ Widget.prototype.marks = false;
 Widget.prototype.v1 = false;         // true = the OLD thread (one bubble per sentence) + composer (Dictate's own open mic)
 Widget.prototype.mode = "dictate";
 Widget.MODES = MODES;
+Widget.HISTORY = 50;   // the sheet draws only this many newest chat lines of a long session; the rest wait behind "show earlier (N)" (doc/voice-assistant.md#nothing-jumps)
 Widget.HEADROOM = 0.75;   // a new bubble keeps this share of the box under it before the page turns (doc/voice-assistant.md#nothing-jumps)
 Widget.STREAM_END_MS = 15000;   // an ended stream bubble with no settled line after this long goes (the reply was dropped or became a reaction)
 
@@ -248,6 +249,11 @@ Widget.Thread = class WidgetThread extends View {
 	 * when under HEADROOM of a box is left below it, and again, half a box at a time, for a bubble taller than the box. A reader who
 	 * scrolled up is never moved. Rule and the alternative: doc/voice-assistant.md#nothing-jumps */
 	anchor(){
+		if (this.anchor_frame) return;   // once per animation frame: a replay of 200 lines or 3 caption redraws a second reads layout once (ux/Dictate/doc/voice-assistant.md#nothing-jumps)
+		this.anchor_frame = requestAnimationFrame(() => { this.anchor_frame = 0; this.place_anchor(); });
+	}
+
+	place_anchor(){
 		const box = this.el, host = this.$bubbles.el, b = host.lastElementChild;
 		if (!b || !this.scroll.locked()) return;
 		const r = b.getBoundingClientRect(), top = r.top - box.getBoundingClientRect().top + box.scrollTop, view = box.clientHeight;
@@ -309,10 +315,58 @@ Widget.Thread = class WidgetThread extends View {
 		const text_node = bubble.querySelector(`:scope > [data-re="${CSS.escape(String(at))}"]`) ?? bubble.lastElementChild;
 		const ref = { id: at };
 		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text, spoken: !assistant && (chat.via === "voice" || chat.via === "whisper") });   // `said`: the raw words, kept when a placement improves the text
-		this.refresh();
+		entry.history ? this.refresh_after_batch() : this.refresh();   // a replay of 200 lines walks the lines once, not 200 times
 		this.anchor();
 		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks); new lines only: each mark is a paid model call
 		if (!assistant && this.widget.marks && !entry.history) this.mark(chat.text, bubble, ref);
+	}
+
+	/** Session lines are older than the newest `Widget.HISTORY` chat lines wait here, behind a "show earlier (N)" button; returns
+	 * the lines to draw now. `draw(line)` is how a waiting line is drawn later. */
+	hold_history(lines, draw){
+		let n = 0, cut = 0;
+		for (let i = lines.length - 1; i >= 0; i--) if (lines[i]?.chat && ++n > Widget.HISTORY){ cut = i + 1; break; }
+		if (!cut) return lines;
+		this.waiting = lines.slice(0, cut);
+		this.waiting_draw = draw;
+		this.show_earlier_button();
+		return lines.slice(cut);
+	}
+
+	show_earlier_button(){
+		const n = this.waiting?.reduce((sum, l) => sum + (l?.chat ? 1 : 0), 0) ?? 0;
+		if (!n){ this.$earlier?.remove(); this.$earlier = null; return; }
+		if (!this.$earlier){
+			this.$earlier = document.createElement("button");
+			this.$earlier.type = "button"; this.$earlier.className = "chatbox-earlier";
+			this.$earlier.addEventListener("click", () => this.load_earlier());
+			this.el.insertBefore(this.$earlier, this.$bubbles.el);
+		}
+		this.$earlier.textContent = "show earlier (" + n + ")";
+	}
+
+	/** Draw the previous chunk ABOVE what is shown, keeping the reader where they were. speak() only merges onto the last bubble, so the
+	 * chunk is drawn into an emptied box and the shown bubbles put back after it (the same trick as ext/Chat's load_earlier). */
+	load_earlier(){
+		const rest = this.waiting ?? [];
+		let n = 0, from = 0;
+		for (let i = rest.length - 1; i >= 0; i--) if (rest[i]?.chat && ++n >= Widget.HISTORY){ from = i; break; }
+		const chunk = rest.slice(from);
+		this.waiting = rest.slice(0, from);
+		const box = this.el, host = this.$bubbles.el, before = box.scrollHeight - box.scrollTop;
+		const shown = [...host.children];
+		shown.forEach(c => c.remove());
+		for (const line of chunk) this.waiting_draw(line);
+		host.append(...shown);   // moves a draft or live bubble that follow() re-added back to its place
+		this.show_earlier_button();
+		box.scrollTop = box.scrollHeight - before;
+	}
+
+	/** refresh() once, when the synchronous batch that is drawing history lines has ended. */
+	refresh_after_batch(){
+		if (this.refresh_queued) return;
+		this.refresh_queued = true;
+		queueMicrotask(() => { this.refresh_queued = false; this.refresh(); });
 	}
 
 	/** Re-apply the two views over the lines (a redraw of a bubble rebuilds its nodes): raw look, and folded cards. Idempotent. */
@@ -583,6 +637,7 @@ Widget.Thread = class WidgetThread extends View {
 		this.settled = new Set();
 		this.summaries = new Map();
 		this.draft = null;
+		this.waiting = null; this.show_earlier_button();
 		this.$bubbles.empty();
 		this.$bubbles.el.style.paddingBlockEnd = ""; this.pad = 0; this.newest = null;
 		this.$empty.show();

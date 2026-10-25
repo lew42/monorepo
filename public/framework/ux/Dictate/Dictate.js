@@ -444,11 +444,21 @@ export default class Dictate extends View {
 		if (this.state === "idle" || this.state === "error") return;   // a late tick after stop
 		if (!this.heard_first_sample){ this.heard_first_sample = true; this.log_step("mic", "on, level ok"); }
 		this.level = this.level * 0.6 + level * 0.4;
-		this.$button.style("--ux-dictate-level", Math.min(1, this.level * 6).toFixed(3));
-		MicIndicator.set_level(Math.min(1, this.level * 6));
-		this.on_meter?.(Math.min(1, this.level * 6));   // same smoothed number, for a caller's own bigger bar
+		this.paint_level();
 		if (this.level > this.silence_at){ this.has_speech = true; this.last_loud_at = performance.now(); }
 		floor.level(this, this.level > this.silence_at);   // pauses and speaking time for `entry.cues`
+	}
+
+	/** The meter writes (button fill, mic indicator, `on_meter`) happen once per animation frame, with the newest smoothed level. */
+	paint_level(){
+		if (this.level_frame) return;
+		this.level_frame = requestAnimationFrame(() => {
+			this.level_frame = 0;
+			const v = Math.min(1, this.level * 6);
+			this.$button.style("--ux-dictate-level", v.toFixed(3));
+			MicIndicator.set_level(v);
+			this.on_meter?.(v);   // same smoothed number, for a caller's own bigger bar
+		});
 	}
 
 	heartbeat(){

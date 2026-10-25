@@ -263,7 +263,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		if (!owner.ctl.session){ maybe_offer(); return; }
 		watching_since = Date.now();   // lines older than this are history, not an answer just now
 		report.init(owner.ctl.session);   // the page's own errors reach the assistants too (ext/Chat/v2/report.js): a log line, never a wake-up
-		stop_watch = Session.watch(owner.ctl.file, draw, { on_status: (kind, d) => {
+		stop_watch = Session.watch(owner.ctl.file, draw, { on_history: lines => panel.$thread?.hold_history?.(lines, draw), on_status: (kind, d) => {
 			// The poll reads the session file every 1.5 s; its trouble is the Wire light's, so a dead file cannot pass for "no answer yet".
 			if (kind === "poll_failed") DictateHealth.set("wire", "bad", `poll of the session log failed: ${d.error?.message ?? d.error}`, { always: true, raw: { error: String(d.error?.message ?? d.error), status: d.status ?? null, file: owner.ctl.file } });
 			else if (kind === "poll_ok") DictateHealth.set("wire", "ok", "polling the session log works again", { always: true, raw: { status: d.status } });
