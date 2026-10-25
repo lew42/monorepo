@@ -2,7 +2,6 @@ import { View, div, span, button, select, option, label, textarea, details, summ
 import MicIndicator from "./MicIndicator.js";
 import Dictate, { remember_device, remembered_device } from "./Dictate.js";
 import { pg } from "./playground/Playground.js";
-import { marks as fetch_marks } from "../Understand/Understand.js";
 import { md_into } from "../../ext/Chat/md.js";
 import { who_label } from "../../ext/Chat/roles.js";
 import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll, mergeable, GUESS_TITLE } from "../../ext/Chat/Chat.js";
@@ -170,7 +169,6 @@ Widget.ThreadV1 = class WidgetThreadV1 extends View {
 		this.lines.set(at, { $bubble, $text });
 		this.scroll.pin();
 		// owner lines only, new ones only (a replayed line was marked when it was new: each mark is a paid model call); never blocks the bubble
-		if (!assistant && this.widget.marks && !entry.history) this.mark(chat.text, $bubble);
 	}
 
 	/** A choice-button question; a click calls widget.answer(choice). */
@@ -196,15 +194,6 @@ Widget.ThreadV1 = class WidgetThreadV1 extends View {
 			});
 		});
 		this.scroll.pin();
-	}
-
-	/** Adds a check or ? after the bubble text from ux/Understand; no clarify-card loop-back. */
-	mark(text, $bubble){
-		fetch_marks([text]).then(out => {
-			const m = out?.marks?.[0];
-			if (!m) return;
-			$bubble.append(() => span.c("ux-dictate-widget-mark muted", m.mark === "unclear" ? " ?" : " ✓").attr("title", m.purpose ?? ""));
-		}).catch(() => {});   // ignored on purpose: the check/? mark is a bonus on a bubble; no mark just means nothing was judged
 	}
 
 	mark_failed(at){
@@ -310,7 +299,6 @@ Widget.Thread = class WidgetThread extends View {
 		entry.history ? this.refresh_after_batch() : this.refresh();   // a replay of 200 lines walks the lines once, not 200 times
 		this.anchor();
 		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks); new lines only: each mark is a paid model call
-		if (!assistant && this.widget.marks && !entry.history) this.mark(chat.text, bubble, ref);
 	}
 
 	/** Session lines are older than the newest `Widget.HISTORY` chat lines wait here, behind a "show earlier (N)" button; returns
@@ -608,16 +596,6 @@ Widget.Thread = class WidgetThread extends View {
 		clearTimeout(hit.timer);
 		hit.el.remove();
 		this.lives.delete(key);
-	}
-
-	/** ux/Understand mark stored on the piece so it survives redraws; ref follows retag() (see doc/widget-notes.md#thread-marks). */
-	mark(text, bubble, ref){
-		fetch_marks([text]).then(out => {
-			const m = out?.marks?.[0];
-			if (!m) return;
-			patch_piece(bubble, ref.id, { mark: m });
-			this.refresh();
-		}).catch(() => {});   // ignored on purpose: the check/? mark is a bonus on a bubble; no mark just means nothing was judged
 	}
 
 	/** A {sent:{to, at, re:[line at…], delay_ms}} session line: those owner lines reached the `to` seat ("fast" | "smart"). A line this
