@@ -970,7 +970,7 @@ export class Agents {
 	 * (`Agent.send()`'s own default), never dropped. Off with
 	 * `SERVEX_DISABLE_WAKE=1` or `{ no_wake: true }` on the host — the proof
 	 * for this reproduces the old parking by disabling it first. */
-	wake_parent(child, kind){
+	wake_parent(child, kind, { quiet = false } = {}){
 		if (this.no_wake || process.env.SERVEX_DISABLE_WAKE) return;
 		if (!child.parent || child.parent === child.id) return;
 		if (child.one_shot && child.woke) return;
@@ -989,6 +989,7 @@ export class Agents {
 		const next = kind === "done" && child.task?.dir && task_landed(child.task.dir) ? next_briefs(child.task.dir) : [];
 		const note = next.length ? `\n\nNext: ${next.map(n => `${n.dir}${n.brief ? ` (brief ${n.brief})` : ""}`).join("; ")}. Its \`after\` edge is met; start it.` : "";
 		this.inbox(child, kind, text);
+		if (quiet && !note) return;   // a short ack after only followed lines: recorded in the inbox, but the parent is not woken; a landed task still tells it what it unblocks
 		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
 		child.parent = this.holder(child.parent);   // a child of a retired mastermind-servex-N reports to the live one
 		const parent = this.live.get(child.parent), by = this.stopped_on_purpose?.(child.parent)
@@ -1476,7 +1477,7 @@ Agents.Agent = class Agent {
 		const skip = this.watchdog_refusal(from);
 		if (skip) return this.watchdog_skipped(from, skip);
 		if (this.state === "dormant") this.awaken(from);
-		this.follow_only = from === "servex-follow" ? this.follow_only !== false : false;   // true only while every message since the last result was a followed line
+		(this.turn_kinds ??= []).push(from === "servex-follow");   // one entry per queued message, in order: true = a followed line (the turn that answers it may be quiet)
 		this.emit({ type: "agent_msg", from: from ?? null, reply_to: reply_to ?? null, priority: priority ?? null, text });
 		const turn = this.turn(this.envelope(text, { from, reply_to }), priority);
 		if (!this.queue.push(turn)){
@@ -1776,12 +1777,12 @@ Agents.Agent = class Agent {
 		const nudge_turn = event.type === "result" && !event.stopped && this.nudge_pending;
 		if (nudge_turn) this.nudge_pending = false;
 		/* A turn started only by followed lines whose answer is a short ack ("nothing for me") is housekeeping, not news: its "done" wakes nobody (2026-10-25: followers woke the smart seat on every followed line). A long answer, BLOCKED, an error or a stop still wake the parent. */
-		const quiet_follow = event.type === "result" && !event.stopped && this.follow_only && (this.last_text ?? "").trim().length < 200 && !this.last_text?.startsWith("BLOCKED");
-		if (event.type === "result") this.follow_only = undefined;
-		if (event.type === "result" && !nudge_turn && !quiet_follow && !(event.stopped && !event.mid_turn)) this.host?.wake_parent?.(this,
+		const followed = event.type === "result" ? this.turn_kinds?.shift() === true : false;
+		const quiet_follow = followed && !event.stopped && (this.last_text ?? "").trim().length < 200 && !this.last_text?.startsWith("BLOCKED");
+		if (event.type === "result" && !nudge_turn && !(event.stopped && !event.mid_turn)) this.host?.wake_parent?.(this,
 			event.stopped ? "stopped"
 			: this.one_shot && event.ok === false ? "error"
-			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done");
+			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done", { quiet: quiet_follow });
 		if (event.type === "error") this.host?.wake_parent?.(this, "error");
 		if (event.type === "result") try { this.host?.servex?.process_runner?.turn_ended(this); } catch {}   // a process step this agent holds is measured, or pulsed if left open
 		return event;
