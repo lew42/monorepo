@@ -2,7 +2,7 @@
 // Server/JsonlPerf.mjs: where does a JSONL record spend its time? Read-only on the real files, writes only to COPIES.
 //   node Server/JsonlPerf.mjs [--top 8] [--json] [--item [--source <session.jsonl>]] [--http <page url>]
 // Per file: KB, lines, ms to read, ms to parse, ms to append one line to a copy in os.tmpdir() (raw fs append, the floor).
-// With --item, the largest session.jsonl / task.jsonl is also copied to a scratch folder under public/ (gitignored sessions/transcripts/) and three writes go
+// With --item, the largest session.jsonl / task.jsonl is also copied to a scratch public/ tree in os.tmpdir() (SERVEX_PUBLIC) and three writes go
 // through the item tool's own function (Servex/agents/page_tools.js run_item, in-process), timed; the folder is removed after.
 // Doc: public/framework/ai/tracking/readme.md ("JSONL perf"). Thresholds: read+parse over 200 ms, a write over 2 s.
 import fs from "node:fs";
@@ -47,14 +47,15 @@ export function measure_files(top = 8){
 export async function measure_item(source = null){
 	const src = source ? { file: path.resolve(source), size: fs.statSync(source).size } : jsonl_files(SESSIONS).filter(f => ["session.jsonl", "task.jsonl"].includes(path.basename(f.file))).sort((a, b) => b.size - a.size)[0];
 	if (!src) return null;
-	const dir = path.join(SESSIONS, "transcripts", "zz-jsonlperf-" + process.pid);   // run_item only writes under public/ (page_tools PUBLIC), so os.tmpdir() cannot hold it; transcripts/ is gitignored and no session watcher reads it
-	const clean = () => fs.rmSync(dir, { recursive: true, force: true });
+	const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "jsonlperf-pub-")), dir = path.join(scratch, "framework", "ai", "sessions", "zz-jsonlperf");   // SERVEX_PUBLIC (page_tools.js) points the item tool at a scratch public/ tree
+	process.env.SERVEX_PUBLIC = scratch;
+	const clean = () => fs.rmSync(scratch, { recursive: true, force: true });
 	process.once("exit", clean);
 	fs.mkdirSync(dir, { recursive: true });
 	try {
 		fs.copyFileSync(src.file, path.join(dir, "session.jsonl"));
 		const { run_item } = await import(pathToFileURL(path.join(REPO, "Servex", "agents", "page_tools.js")).href);
-		const url = "/" + path.relative(path.join(REPO, "public"), dir).replace(/\\/g, "/") + "/session.jsonl", out = [];
+		const url = "/" + path.relative(scratch, dir).replace(/\\/g, "/") + "/session.jsonl", out = [];
 		for (const n of [1, 2, 3]) { const delta = { tasks: { add: { title: "JsonlPerf probe task " + n, state: "idle" } } };
 			const t = process.hrtime.bigint(); let r, err = null;
 			try { r = await run_item({ path: url, delta }, { caller: "JsonlPerf" }, true); } catch (e){ err = e.message; }
