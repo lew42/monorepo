@@ -5,6 +5,7 @@
 //   refuse    Servex answers every `say` with an error (a lost session). Does the reader see why?
 //   whisper   whisper-server stops answering mid-dictation. Does the reader see why?
 //   reload    the page reloads while the mic is on. Was every mic track stopped first?
+//   late      Servex answers the first `say` after 12 s (past the 10 s limit) and its line then arrives. One bubble, not "not sent" plus a copy?
 // Opens the phone sheet at 400 (split), starts the fake mic (jfk.wav looping) and reads the mic, the bar and the Debug layers.
 // Exit 1 on any failure.
 import { pathToFileURL } from "url";
@@ -23,7 +24,7 @@ const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) fa
 async function open({ say = "ok", whisper_dies_after = Infinity } = {}){
 	const ctx = await browser.newContext({ viewport: { width: 400, height: 800 }, permissions: ["microphone"], hasTouch: true, isMobile: true });
 	const page = await ctx.newPage();
-	const run = { said: [], hung: 0, inference: 0, errors: [] };
+	const run = { said: [], hung: 0, inference: 0, errors: [], lines: [] };
 	page.on("pageerror", e => run.errors.push(String(e).slice(0, 200)));
 	await page.route(/\/api\/session\//, async route => {
 		const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
@@ -33,12 +34,17 @@ async function open({ say = "ok", whisper_dies_after = Infinity } = {}){
 		if (verb === "say"){
 			run.said.push(body.text);
 			if (say === "hang" && run.said.length === 1){ run.hung++; return; }   // never answered: the request stays open
+			if (say === "late" && run.said.length === 1){   // a slow success: written at once, answered after the client gave up
+				const at = new Date().toISOString(); run.lines.push({ chat: { at, from: { kind: "owner" }, via: "voice", text: body.text } });
+				await new Promise(r => setTimeout(r, 12000));
+				return route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ ok: true, at }) }).catch(() => {});
+			}
 			if (say === "refuse") return route.fulfill({ status: 404, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ ok: false, error: 'no session "stub-session"' }) });
 		}
 		const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : verb === "say" ? { ok: true, at: new Date().toISOString() } : { ok: true };
 		await route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(out) });
 	});
-	await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: "" }));
+	await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: run.lines.map(l => JSON.stringify(l)).join("\n") }));
 	await page.route(/\/api\/sessions\?/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ ok: true, sessions: [] }) }));
 	await page.route(/\/log\/prompts/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: "{}" }));
 	await page.route(/:8178\/inference/, route => {
@@ -101,6 +107,19 @@ const scenarios = {
 		console.log("  whisper:", JSON.stringify({ inference: run.inference, ...v, health: v.health?.whisper }));
 		check(v.state === "error", "the mic stops with an error when Whisper stops answering");
 		check(/whisper/i.test(v.bar ?? ""), "the bar says it was Whisper: " + v.bar);
+		await ctx.close();
+	},
+	async late(){
+		const { ctx, page, run } = await open({ say: "late" });
+		await page.evaluate(() => globalThis.$dictate_widget.stop_mic());   // one sentence is enough: the first say is the slow one
+		await wait_for(page, () => run.said.length >= 1, 40000);
+		await page.evaluate(() => globalThis.$dictate_widget.stop_mic());
+		await page.waitForTimeout(16000);   // past the 10 s limit, the 12 s answer, and a 1.5 s poll
+		const v = await page.evaluate(t => ({ copies: [...document.querySelectorAll(".drawer-rail-sheet .chatbox-you .chatbox-text")].filter(n => n.textContent.includes(t.slice(0, 20))).length,
+			failed: document.querySelectorAll(".drawer-rail-sheet .chatbox-failed").length, sent: globalThis.DictateHealth.layers.sent.why }), run.said[0]);
+		console.log("  late:", JSON.stringify(v));
+		check(v.copies === 1, `a send that timed out but succeeded is drawn once (${v.copies})`);
+		check(v.failed === 0, "and its \"not sent\" mark is taken off");
 		await ctx.close();
 	},
 	async reload(){

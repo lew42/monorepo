@@ -528,6 +528,14 @@ Widget.Thread = class WidgetThread extends View {
 		this.refresh();
 	}
 
+	/** A send that timed out arrived after all (chat.js, the late echo): take the "not sent" off. */
+	mark_sent(at){
+		const line = this.lines.get(at);
+		if (!line) return;
+		patch_piece(line.bubble, line.ref.id, { failed: false });
+		this.refresh();
+	}
+
 	retag(old_at, new_at){
 		const line = this.lines.get(old_at);
 		if (!line || old_at === new_at) return;

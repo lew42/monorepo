@@ -1,6 +1,6 @@
 # Dictate — a mic button that always shows what is happening
 
-**Dictation stopped, or the AI never answered? Open the Debug tab** (each step from the mic to the AI's answer, live, with the real error; what the stall was and how it was fixed): [`doc/debug-tab.md`](doc/debug-tab.md). `class DictateHealth` (the five layers, [DictateHealth.js](DictateHealth.js)) · `class DictateDebug` (the view, [DictateDebug.js](DictateDebug.js)) · proofs `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`. Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl).
+**Dictation stopped, or the AI never answered? Open the Debug tab** (each step from the mic to the AI's answer, live, with the real error; what the stall was and how it was fixed): [`doc/debug-tab.md`](doc/debug-tab.md). `class DictateHealth` (the five layers, [DictateHealth.js](DictateHealth.js)) · `class DictateDebug` (the view, [DictateDebug.js](DictateDebug.js)) · proofs `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`. Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: git-ignored, written on this machine at the first failure).
 
 **Map of every dictation piece** (mic, Whisper, cleaners, chat, voice session, assistants; the duplicates and the plan): [doc/map.md](doc/map.md).
 

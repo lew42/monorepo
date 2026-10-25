@@ -110,6 +110,7 @@ function create_controller({ persist }){
 // The Debug tab's two last layers (DictateHealth.js): the send to Servex, and the AI's answer.
 const quote = t => "“" + (String(t ?? "").replace(/\s+/g, " ").trim().slice(0, 60) || "…") + "”";
 export const ANSWER_MS = 60000;   // no answer this long after a sentence went out turns the AI layer red
+export const LATE_ECHO_MS = 120000;   // after a timed-out send, how long its late echo still heals the bubble instead of drawing a copy
 export const WIRE_GRACE_MS = 8000;   // a live-wire drop shorter than this is only an event, not a red row
 function health_sent(text){
 	DictateHealth.set("sent", "ok", `sent ${quote(text)} at ${new Date().toLocaleTimeString()}`);
@@ -164,7 +165,12 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 					try {
 						r = await Session.say({ session: owner.ctl.session, path: target.path, text: entry.text,
 							via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: owner.ctl.selection, ...thread });
-					} finally { const i = sending.indexOf(mine); if (i >= 0) sending.splice(i, 1); }
+					} catch (e){
+						// Timed out is not refused: Servex may still write the line. Keep watching for its echo, which heals the bubble
+						// ("not sent" off, no second copy) instead of drawing the sentence twice (Session.POST_MS, doc/debug-tab.md).
+						if (/did not answer/.test(e?.message ?? "")){ mine.late = true; setTimeout(() => { const i = sending.indexOf(mine); if (i >= 0) sending.splice(i, 1); }, LATE_ECHO_MS); }
+						throw e;
+					} finally { if (!mine.late){ const i = sending.indexOf(mine); if (i >= 0) sending.splice(i, 1); } }
 					own_ats.add(r.at);
 					panel.retag(entry.at, r.at);
 					if (entry.floor === "speaking") owner.watch_floor();
@@ -192,9 +198,17 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		if (line?.summary) return void panel.say({ summary: line.summary });   // a card's summary swallows its raw lines (doc/voice-assistant.md#raw-and-refined)
 		if (line?.refined) return void panel.say(Session.entry(line));
 		if (!line?.chat) return;
-		if (line.chat.from?.kind === "assistant" && line.chat.at > (watching_since ?? "")) health_answer(line);
+		if (line.chat.from?.kind === "assistant" && Date.parse(line.chat.at) > (watching_since ?? 0)) health_answer(line);   // as times, never as text: Servex writes "…-05:00", the browser "…Z"
 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
-		if (echo){ own_ats.add(line.chat.at); panel.retag(echo.at, line.chat.at); return; }
+		if (echo){
+			own_ats.add(line.chat.at); panel.retag(echo.at, line.chat.at);
+			if (echo.late){   // the send timed out but Servex took it after all: one bubble, marked sent
+				sending.splice(sending.indexOf(echo), 1);
+				panel.$thread?.mark_sent?.(line.chat.at);
+				DictateHealth.set("sent", "ok", `sent late: Servex took ${quote(line.chat.text)} after the ${Session.POST_MS / 1000} s limit (its words are also in the fallback log)`);
+			}
+			return;
+		}
 		if (own_ats.has(line.chat.at) && panel.$thread?.lines?.has(line.chat.at)) return;   // own line still drawn; a session start's reset() may have wiped it
 		const key = line.chat.at + (line.chat.fix ? "|fix|" + line.chat.text : "");
 		if (seen_chat.has(key)) return;
@@ -229,7 +243,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		if (!(was === null && watching)) panel.reset();
 		if (!owner.ctl.session){ maybe_offer(); return; }
 		stop_watch = Session.watch(owner.ctl.file, draw);
-		watching_since = new Date().toISOString();   // lines older than this are history, not an answer just now
+		watching_since = Date.now();   // lines older than this are history, not an answer just now
 		stop_stream = Session.stream(owner.ctl.session, ev => {
 			if (ev.kind === "stream"){ panel.stream(ev.role, ev.text); if (ev.text) DictateHealth.set("llm", "ok", `${ev.role} is writing an answer…`, { quiet: true }); }
 			else if (ev.kind === "line") draw(ev.line);

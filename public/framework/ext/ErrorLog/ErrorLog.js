@@ -18,7 +18,7 @@ export default class ErrorLog {
 	static dir = "/framework/ai/errors/";
 	static state = null;      // () => object: a small snapshot of the page's live state
 	static seen = new Set();  // one line per distinct message per page load, so a loop cannot flood
-	static FAILURES = "failures" + ".jsonl";   // the module's own log; WorktreeWatch.report() writes the same file
+	static FAILURES = "failures.jsonl";   // the module's own log; WorktreeWatch.report() writes the same file
 
 	static path(){ return `${ErrorLog.dir}${new Date().toISOString().slice(0, 10)}.jsonl`; }
 

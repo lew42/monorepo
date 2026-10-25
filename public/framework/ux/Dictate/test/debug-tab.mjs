@@ -15,12 +15,17 @@ const browser = await chromium.launch({ args: ["--use-fake-ui-for-media-stream",
 const kill = setTimeout(() => { console.log("FAIL killed after 240 s"); process.exit(2); }, 240000);
 let failed = 0;
 const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
+// An ISO time in this machine's zone with its offset, the shape Servex writes ("2026-10-24T23:15:23.123-05:00")
+const local = ms => { const off = -new Date(ms).getTimezoneOffset(), p = n => String(Math.abs(n)).padStart(2, "0");
+	return new Date(ms + off * 60000).toISOString().slice(0, -1) + (off >= 0 ? "+" : "-") + p(Math.trunc(off / 60)) + ":" + p(off % 60); };
 
 async function context(viewport, mobile){
 	const ctx = await browser.newContext({ viewport, permissions: ["microphone"], ...(mobile ? { hasTouch: true, isMobile: true } : {}) });
 	const page = await ctx.newPage();
 	const run = { said: [], errors: [] };
 	page.on("pageerror", e => run.errors.push(String(e).slice(0, 200)));
+	// CHAT_JS=<file>: serve that chat.js instead (to show this test fails on an older one), the way new-session.mjs swaps in a worktree's
+	if (process.env.CHAT_JS) await page.route(/\/framework\/ux\/Dictate\/chat\.js(\?.*)?$/, r => r.fulfill({ path: process.env.CHAT_JS, contentType: "application/javascript" }));
 	const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
 	await page.route(/\/api\/session\//, async route => {
 		const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
@@ -31,10 +36,11 @@ async function context(viewport, mobile){
 		const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : verb === "say" ? { ok: true, at: run.said.at(-1).at } : { ok: true };
 		await route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) });
 	});
-	// the session file: the owner's lines, each answered by the "smart" assistant 1 s later
+	// the session file: the owner's lines, each answered by the "smart" assistant 1 s later, stamped the way Servex stamps them
+	// (local time with its offset, "…-05:00", Sessions.js now_ms): a browser-side text compare against "…Z" got this wrong
 	await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: run.said.flatMap(s => [
-		{ chat: { at: s.at, from: { kind: "owner" }, via: "voice", text: s.text } },
-		...(Date.now() - Date.parse(s.at) > 1000 ? [{ chat: { at: new Date(Date.parse(s.at) + 1000).toISOString(), from: { kind: "assistant", id: "smart" }, text: "Heard you: " + s.text.slice(0, 40) } }] : []),
+		{ chat: { at: local(Date.parse(s.at)), from: { kind: "owner" }, via: "voice", text: s.text } },
+		...(Date.now() - Date.parse(s.at) > 1000 ? [{ chat: { at: local(Date.parse(s.at) + 1000), from: { kind: "assistant", id: "smart" }, text: "Heard you: " + s.text.slice(0, 40) } }] : []),
 	]).map(l => JSON.stringify(l)).join("\n") }));
 	await page.route(/\/api\/sessions\?/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify({ ok: true, sessions: [] }) }));
 	await page.route(/\/log\/prompts/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: "{}" }));
@@ -85,7 +91,7 @@ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now
 	await page.waitForTimeout(1200);
 	const live = await layers(page);
 	console.log("  1920:", new URL(page.url()).pathname, live.join(" "));
-	check(live.length === 5, "the Debug view shows the five layers at 1920");
+	check(live.length === 5 && live.every(l => l.endsWith("=ok")), "the Debug view shows the five layers at 1920, all green: " + live.join(" "));
 	await page.screenshot({ path: shots + "/debug-1920.png" });
 	await page.reload({ waitUntil: "domcontentloaded" });
 	await page.waitForSelector(".drawer-ai-page-body .dictate-debug", { timeout: 20000 }).catch(() => {});

@@ -40,7 +40,10 @@ export default class DictateDebug extends View {
 			div.c("dictate-debug-links flex v", () => {
 				this.$session = a("this conversation's session log").attr("target", "_blank");
 				a("every Whisper answer and connection drop").href("/framework/audio/Whisper/log/");
-				a("dictation errors (ux/Dictate/failures.jsonl)").href(DictateHealth.MODULE + "failures.jsonl").attr("target", "_blank");
+				// the file is git-ignored and written on this machine at the first failure: until then (and on the static site) it would 404
+				this.$failures = a("dictation errors (ux/Dictate/failures.jsonl)").href(DictateHealth.MODULE + "failures.jsonl").attr("target", "_blank");
+				this.$no_failures = span.c("muted", "dictation errors: no failures yet (ux/Dictate/failures.jsonl, written on this machine at the first one)");
+				fetch(DictateHealth.MODULE + "failures.jsonl", { method: "HEAD", cache: "no-store" }).then(r => { this.failures_file = r.ok; this.draw(); }).catch(() => {});
 				a("the dictation playground").href("/framework/ux/Dictate/playground/");
 			});
 		});
@@ -67,6 +70,8 @@ export default class DictateDebug extends View {
 		const file = chat.file?.();
 		this.$session.href(file);
 		this.$session.el.hidden = !file;
+		const failures = this.failures_file || DictateHealth.LAYERS.some(({ id }) => L[id].state === "bad");   // a red layer has just written it
+		this.$failures.el.hidden = !failures; this.$no_failures.el.hidden = failures;
 		const rows = DictateHealth.events.slice().reverse();
 		if (rows.length === this.drawn && rows[0]?.at === this.newest) return;   // nothing new: only the ages above changed
 		this.drawn = rows.length; this.newest = rows[0]?.at;

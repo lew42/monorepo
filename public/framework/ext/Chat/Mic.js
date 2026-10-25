@@ -642,10 +642,22 @@ export class ComposerMic extends Dictate {
 		this.posting = (this.posting ?? 0) + 1;
 		let ok;
 		// A send that never settles must not hold the queue: every later sentence waits behind it (the stall, test/stall.mjs).
-		const late = new Promise(r => setTimeout(() => r("late"), ComposerMic.DELIVER_MS));
-		try { ok = await Promise.race([this.deliver?.(entry), late]); } catch (e){ ok = false; DictateHealth.set("sent", "bad", "not sent: " + (e?.message ?? e)); } finally { this.posting--; }
-		if (ok === "late"){ ok = false; DictateHealth.set("sent", "bad", `not sent: the send was still open after ${ComposerMic.DELIVER_MS / 1000} s, so the next sentences go on without it (its words are kept in the fallback log)`); }
-		if (ok) return;
+		let timer;
+		const late = new Promise(r => { timer = setTimeout(() => r("late"), ComposerMic.DELIVER_MS); });
+		const sending = Promise.resolve().then(() => this.deliver?.(entry)).catch(e => { DictateHealth.set("sent", "bad", "not sent: " + (e?.message ?? e)); return false; });
+		try { ok = await Promise.race([sending, late]); } finally { clearTimeout(timer); this.posting--; }
+		if (ok === "late"){
+			// The queue moves on now; the open send keeps its chance to land. Only a send that then fails counts as not sent
+			// (and goes to the fallback log), so a slow success is neither a false "not sent" nor a second copy.
+			DictateHealth.set("sent", "wait", `a send is still open after ${ComposerMic.DELIVER_MS / 1000} s; the next sentences go on without waiting for it`);
+			sending.then(sent => sent ? DictateHealth.set("sent", "ok", "the slow send landed after all") : this.log_fallback(entry));
+			return;
+		}
+		if (!ok) await this.log_fallback(entry);
+	}
+
+	// Words that did not reach the deliver go to Dictate's fallback log, so nothing said is lost.
+	async log_fallback(entry){
 		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
 		catch (e){ console.warn("chat: could not log this utterance", e); }
 	}
