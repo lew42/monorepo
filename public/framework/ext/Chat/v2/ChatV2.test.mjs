@@ -112,6 +112,11 @@ try {
 	check("child task state change: the touched element shows the new phase", await page.getAttribute("[data-id='t-1761382838000']", "data-phase") === "complete");
 	check("child task state change: scroll position holds", await scroll_held());
 
+	// The same change addressed through the task's prompt, the way the item tool writes it ({"<prompt>":{"<task>":{…}}}).
+	live_append({ "p-1761382800000": { "t-1761382837000": { start: {} } } });
+	await page.waitForFunction(() => document.querySelector("[data-id='t-1761382837000']")?.getAttribute("data-phase") === "running", { timeout: 15000 });
+	check("task changed through its prompt: the task shows the new phase", await page.getAttribute("[data-id='t-1761382837000']", "data-phase") === "running");
+
 	live_append({ "q-1761382910000": { answer: { text: "Yes, every time.", by: "smart", at: "2026-10-25T09:03:00Z" } } });
 	await page.waitForFunction(() => document.querySelector("[data-id='q-1761382910000']")?.getAttribute("data-phase") === "answered", { timeout: 15000 });
 	check("question answer: other elements keep their DOM object", await untouched("q-1761382910000") === null, await untouched("q-1761382910000"));
