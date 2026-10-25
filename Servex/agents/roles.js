@@ -52,6 +52,8 @@ export const ROLES = {
 	 * nudged or compacted before sleep (Agent.nudge/sleep_compact skip a `renew` row); the 400k safety ceiling still applies mid-work. The generic
 	 * `mastermind` row below used to load this readme; it now loads roles/mastermind.md. */
 	"ai-system-mastermind": { readme: "ai-system-mastermind", prefix: "ai-system-mastermind", alias: "servex-mastermind", singleton: true, renew: { hours: 24, tokens: 100000 }, tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions" },
+	/* THE CORE PAGE MASTERMIND (the owner, 2026-10-24): a defined, repeatable subject mastermind for the page system (core/Page, Item, Router, ext/JSONL). Its role text reaches the system prompt, so it survives compaction. Not a singleton: ids mastermind-page, mastermind-page-2. */
+	"core-page-mastermind": { readme: "core-page-mastermind", prefix: "mastermind-page", tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* mastermind: bypassPermissions too (2026-10-12, asks #6): it calls spawn_agent/page tools and edits, and nobody can approve a prompt overnight. */
 	mastermind:         { readme: "mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "bypassPermissions", compact_after: MASTERMIND_COMPACT },
 	/* The fast assistant (every-prompt) is retired for voice as of 2026-10-17 (`voice-assistant` below); its skill files stay on disk and this row stays for the callers that still name it. */

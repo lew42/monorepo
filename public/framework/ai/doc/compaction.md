@@ -1,5 +1,7 @@
 # Compaction: when a Servex agent's context is summarized, and what makes it hard
 
+See also [context.md](context.md): what a context window is and how its size is read live.
+
 **Compaction** means `/compact`. The CLI replaces the conversation so far with a summary of about 10-20k tokens and keeps a short tail of recent messages. The agent goes on from there. It makes every later turn cheaper and frees memory. The cost is that detail is lost: what the agent read and why it decided things.
 
 This page is the one home for Servex's compaction rules and the factors that make them hard. Its companion, [context-drift.md](context-drift.md), covers what an agent forgets *without* compaction, and what has to survive it.

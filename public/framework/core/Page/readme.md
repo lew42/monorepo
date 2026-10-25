@@ -1,5 +1,7 @@
 # Page — a folder with a `page.js` or a `page.jsonl` is a page: a url, content, and children
 
+**Read [`core/Item/readme.md`](/framework/core/Item/readme.md) first.** This readme assumes you know it.
+
 **One system with Item:** `Page extends Item`, so saving, replaying a log, `set(delta)` and `live()` tailing are the [Item readme](/framework/core/Item/readme.md)'s job; this readme covers what Page adds: a url, routing, parts, layout and the inbox.
 
 `class Page extends Item` (`Page.class.js`, the small files beside it are its parts, listed in [doc/classes.md](doc/classes.md)). A page is built either from code (`page.js`) or from a log (`page.jsonl`); the Router finds it by walking the url one folder name at a time. Its demo and Docs: [/framework/core/Page/](/framework/core/Page/).

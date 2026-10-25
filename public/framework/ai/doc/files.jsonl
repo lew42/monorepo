@@ -126,3 +126,8 @@
 {"file":"compaction.md"}
 {"file":"context-drift.md"}
 {"file":"task-queue.md"}
+{"file":"context.md"}
+{"file":"parallel-haiku.md"}
+{"file":"module-audit.md"}
+{"file":"past-work-haiku.md"}
+{"file":"module-log-view.md"}
