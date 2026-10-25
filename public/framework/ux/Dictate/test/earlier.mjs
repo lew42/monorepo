@@ -2,7 +2,7 @@
 // node earlier.mjs <base> <page> <session-file>   (Servex and hitl are stubbed; pass the worktree URL, never monorepo.localhost)
 import path from "path";
 import { pathToFileURL } from "url";
-const [base = "http://monorepo.localhost", page_path = "/framework/ext/drawer/", file = "/framework/ai/sessions/2026/10/05/v-yxnts4l/session.jsonl"] = process.argv.slice(2);
+const [base = "http://monorepo.localhost", page_path = "/framework/ext/drawer/", file = "/framework/ux/Dictate/test/earlier-fixture.jsonl"] = process.argv.slice(2);
 const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const { default: Browser } = await import(pathToFileURL(path.join(here, "../../../../../Server/Browser.mjs")).href);
 const browser = await Browser.browser({});
@@ -50,6 +50,14 @@ while (last.button && clicks < 10){
 	last = next; clicks++;
 }
 if (last.button) fail.push("the button never ran out");
-console.log(JSON.stringify({ first, last, clicks, fail }));
+// a {place} line in the shown part whose sentence was behind "show earlier" is applied once that sentence is drawn (Widget.Thread.hold_orphan)
+const cards = await page.evaluate(async file => {
+	const lines = (await (await fetch(file)).text()).split("\n").filter(Boolean).map(l => JSON.parse(l));
+	const want = lines.filter(l => l.place?.to === "card").map(l => l.place.re);
+	const t = document.querySelector(".drawer-rail-sheet.on .ux-dictate-widget-thread");
+	return { want: want.length, placed: want.filter(re => [...t.querySelectorAll("[data-re]")].find(n => n.dataset.re === re)?.closest(".ux-dictate-placed-card")).length };
+}, file);
+if (cards.placed < cards.want) fail.push(`${cards.want - cards.placed} of ${cards.want} card placements for earlier sentences were lost`);
+console.log(JSON.stringify({ first, last, clicks, cards, fail }));
 await Browser.close();
 process.exit(fail.length ? 1 : 0);
