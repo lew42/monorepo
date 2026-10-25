@@ -54,3 +54,5 @@ For `ai-system-mastermind`. The owner's words are in the prompt log (2026-10-24,
     - "AI system mastermind" becomes a normal mastermind spawned at `framework/ai/` by whoever needs it, parented to that spawner, with its cost counted there. Retire the parentless singleton setup.
     - The hand-off risk (the owner: "risky to assume it just works") is covered by a check at spawn: Servex confirms the path's readme and mastermind file were loaded into the system prompt, and logs which files.
     - Do items 11 and 13 together, and say what changes in `Servex/agents/roles.js` and the singleton code.
+
+14. **(the owner, 2026-10-25) RAM is the real limit, so act on it.** 20 `claude.exe` processes were running while only 7 agents worked. Idle and finished agents must release their process (a dormant agent is a record, not a process), and Servex should show RAM per agent on the dashboard. The mastermind winds agents down when a phase ends: when it's idle with context over 100k, the next phase goes to a fresh agent. Do this first among your agent-base items.
