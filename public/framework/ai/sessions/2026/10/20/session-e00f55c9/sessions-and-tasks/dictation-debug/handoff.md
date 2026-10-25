@@ -50,6 +50,7 @@ Answered: [wake-policy.md, "Next: the smart seat tails its own session log"](/fr
 4. **Refined cards converge.** They show ranked, conclusive outcomes and open decisions, and merge or shrink rather than grow; the raw sentences tuck inside the card. Mostly the smart seat's role text, plus the card layout in `ext/Chat/v2/`.
 5. **V2 renders markdown:** numbered items are drawn as plain text today; draw real lists. Small; fits round 2.
 6. **One data source:** both views read the same Prompt data (V1 compact, V2 rich is fine). This is the [one-chat-view](one-chat-view/requirements.md) plan.
+7. **A "working" sign from the smart seat.** When the smart seat has seen a question or card and is writing its answer, that card shows a small brain icon with animated dots under it (seen, working). The smart seat sets a flag on the item with the item tool and clears it when it writes the answer onto the Question. The delta key (for example `working: {by, at}`, cleared with `working: null`) is defined once in the Prompt and Question classes (`core/Task/`), so the shared reader handles it and Chat V1 and V2 both draw it. It belongs with item 6 (one reader), plus one line in the smart seat's role text.
 
 ## Known defects
 
