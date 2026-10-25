@@ -9,3 +9,7 @@ The owner's words (voice, polished by session-smart-v-sq8y7db, 2026-10-25):
 
 - Queue: no RAM timeout exists. The drop reason was "its task ai-system-mastermind has landed": `Servex.stale` let `Agents.blocked` match an OLD landed task by id. Now "landed" counts only against `spec.task.dir`; a drop messages the parent. Docs: [Servex/doc/dormant.md](/Servex/doc/dormant.md). Test: `node Servex/Gate-stale.test.mjs`.
 - Follow: delivery is `agents.send` (the message queue). Nothing tells followers to reply; `Agents.wake_parent` sends every child turn's last words to its parent. A turn that answers a followed line and ends under 200 characters (not BLOCKED, not stopped) now skips the message to the parent only. Docs: [Servex/doc/follow.md](/Servex/doc/follow.md). Test: `node Servex/agents/Follow-ack.test.mjs`.
+
+## Not built
+
+- Auto re-queue after a drop: the only drop was the wrong "landed" match, now removed; a real drop (cwd gone, stopped on purpose, a named task already landed) means the spec cannot run, so re-queueing would loop. The parent is told and spawns again if it still wants it.
