@@ -50,5 +50,5 @@ session
 - [x] Step 1: renderer merged, with 390 and 1920 shots
 - [x] Step 2: "Chat v2" toggle mounted in the session's Chat tab and the ✦ sheet ([sheet proof](sheet/))
 - [x] Step 3 (fd32ba0f4): fast seat writes Prompts, smart seat writes replies, tasks and questions onto them
-- [ ] The owner can open a voice session and see its prompts with the assistant's cards nested under them (waits for the first voice session after fd32ba0f4)
+- [x] The owner can open a voice session and see its prompts with the assistant's cards nested under them: seen on v-uw6epgr, 2 Prompts at 400 px ([fast-child proof](../fast-child/proof/proof.mjs)); the 1920 desktop drawer has no v2 chip yet
 - [x] `ext/Chat/readme.md` and `ext/Chat/v2/readme.md` say so
