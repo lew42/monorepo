@@ -237,11 +237,12 @@ Answer at the end with ONE JSON object and nothing else after it:
 	async handled(uuid, to, note = ""){
 		const { run_item } = await import(pathToFileURL(path.join(ROOT, "Servex/agents/page_tools.js")).href);
 		const record = "/" + path.relative(path.join(ROOT, "public"), path.join(this.folder, "session.jsonl")).replace(/\\/g, "/");
-		const session = PromptAudit.read(path.join(this.folder, "session.jsonl")), done = [];
-		for (const l of session){ const a = l.tasks?.add; if (a?.id && PromptRecords.from_prompt(a.source) && (a.source?.prompt === uuid || String(a.source).includes(uuid)) && ["waiting", "idle"].includes(a.state ?? "")){
-			const r = await run_item({ path: record, delta: { [a.id]: { complete: { outcome: `routed to ${to}${note ? ": " + note : ""}` } } } }, { caller: this.by }, true);
-			if (r?.ok) done.push(a.id);
-		} }
+		const done = [];
+		for (const t of this.tasks(uuid)){   // current state, so a task a tab already started is never closed as "routed"
+			if (!["waiting", "idle"].includes(t.state)) continue;
+			const r = await run_item({ path: record, delta: { [t.id]: { complete: { outcome: `routed to ${to}${note ? ": " + note : ""}` } } } }, { caller: this.by }, true);
+			if (r?.ok) done.push(t.id);
+		}
 		try { await this.add({ prompt: uuid, stage: "handled", to, note }); } catch (e){ console.log(`no record for ${uuid} (${e.message}); the proposals are closed anyway`); }
 		return done;
 	}
@@ -254,7 +255,8 @@ Answer at the end with ONE JSON object and nothing else after it:
 		const rid = this.rid(p), by = new Map();
 		for (const l of PromptAudit.read(path.join(this.folder, "session.jsonl"))){
 			const a = l.tasks?.add; if (a?.id && (a.source?.prompt === rid || String(a.source ?? "").includes(rid))) by.set(a.id, { id: a.id, title: a.title, state: a.state ?? "idle", line: p.line, prompt: rid });
-			for (const [k, v] of Object.entries(l.tasks ?? {})) if (by.has(k) && v && typeof v === "object"){ const verb = Object.keys(v)[0]; by.get(k).state = ["complete", "finish"].includes(verb) ? "complete" : ["stop", "reject"].includes(verb) ? "stopped" : ["start", "resume"].includes(verb) ? "running" : by.get(k).state; }
+			if (l.decide?.task && by.has(l.decide.task)) by.get(l.decide.task).state = l.decide.is === "reject" ? "stopped" : l.decide.is === "approve" ? "idle" : by.get(l.decide.task).state;
+			for (const [k, v] of Object.entries(l.tasks ?? {})) if (by.has(k) && v && typeof v === "object"){ const verb = Object.keys(v)[0]; by.get(k).state = ["complete", "finish"].includes(verb) ? "complete" : ["stop", "reject"].includes(verb) ? "stopped" : ["start", "resume"].includes(verb) ? "running" : verb === "approve" ? "idle" : by.get(k).state; }
 		}
 		return [...by.values()];
 	}
