@@ -385,7 +385,9 @@
 
 
 	/* THE SLIM HEADER (2026-10-24): one opaque sticky row (range menu, search, Filters menu) above the list; everything else is in the Filters popover (ux/Popover, top layer). */
-	.sessions-header { position: sticky; inset-block-start: var(--sessions-header-top, 0); z-index: 5; display: flex; align-items: center; gap: .5rem; padding: .4rem .5rem; background: var(--surface); border-block-end: 1px solid var(--line); }
+	.sessions-header { --sessions-header-h: 3.25rem; box-sizing: border-box; block-size: var(--sessions-header-h); position: sticky; inset-block-start: var(--sessions-header-top, 0); z-index: 5; display: flex; align-items: center; gap: .5rem; padding: .4rem .5rem; background: var(--surface); border-block-end: 1px solid var(--line); }
+	.sessions-main:has(> .sessions-header) > .pn { display: none; }   /* one row of buttons at every width: the page links (Ready to merge, Variants…) are in the Filters menu */
+	.sessions-page:has(.sessions-header) .datagrid-head { inset-block-start: calc(var(--sessions-header-top, 0px) + 3.25rem); }   /* the table's column heads stick under the slim header, not behind it (both share one scroller; 3.25rem = the header's fixed block-size) */
 	.sessions-header .sessions-search { flex: 1 1 5em; min-inline-size: 0; inline-size: auto; padding-block: .15em; }
 	.sessions-hbtn { flex: none; font: inherit; padding: .2em .7em; border: 1px solid var(--line); border-radius: var(--radius); background: transparent; color: inherit; cursor: pointer; white-space: nowrap; }
 	.sessions-hbtn:hover { background: var(--tint); }
@@ -400,7 +402,7 @@
 	.sessions-pop-filters .ai-meter { min-inline-size: 0; }
 	@media (max-width: 40rem) {
 		.sessions-page, .browse-detail:has(> .sessions-page) { overflow: visible; }   /* on a phone the outer page scrolls; a clipping ancestor would be the header's scroller and it would never stick */
-		.sessions-page .sessions-nav,.sessions-page .sessions-main > .pn { display: none; }   /* the phone's first screen is the list; these links are in the Filters menu */
+		.sessions-page .sessions-nav { display: none; }   /* the phone's first screen is the list; these links are in the Filters menu */
 		.ux-popover.sessions-pop { position-area: none; inset-inline: .5rem; inset-block-start: calc(anchor(bottom) + 6px); inline-size: auto; max-inline-size: none; }
 	}
 }
