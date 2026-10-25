@@ -48,3 +48,15 @@ The pipeline already does most of what the owner described:
 - [ ] The outcome rules and the tab's routine are written.
 - [ ] The chat-view plan has a picture, and the owner has seen it.
 - [ ] The task is completed with its outcome and links.
+
+## Part 2 (the owner, 2026-10-24, the prompt after "Prompt extends Task")
+
+6. **A map of every prompt-refinement mechanism** (`ai/doc/prompt-refinement-map.md`, linked from the ai readme). There are several. List each one:
+   - what it is and when it runs (the VS Code hook, live; Whisper dictation; the voice agent; the retroactive backfill; `refine.mjs` briefs);
+   - its model, and where it writes.
+   Make each one's role and how it differs from the others unmistakable, and flag any overlap to merge.
+7. **Pick the model by the job.**
+   - Live refinement of the owner's prompts in this tab could use Sonnet, for a better breakdown.
+   - Retroactive passes over days of logs stay on Haiku.
+   - Compare Sonnet and Haiku on the same 5–10 real prompts (coverage, missed asks, merged asks) and recommend one with the numbers.
+8. **Keep the hook.** It's the one writer (decided with the owner). Its output becomes Prompt instances in `session.tasks` (session-is-a-task, item 21, the deputy's). Write that flow into the map.

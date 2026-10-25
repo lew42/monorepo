@@ -139,3 +139,5 @@ The tab has been asking agents for `show:` log lines. That's a loose convention 
     - Nothing is deleted, ever.
     - Add each session's completion to the tracking page (`/framework/ai/tracking/`), and put this rule in task-buckets.md.
     - This session (e00f55c9) is goal number one. The closeout is in `../session-closeout/`, and its write waits for the fast write.
+
+21b. **(deputy) Name it so it reads plainly.** "Session extends Task, and its tasks are prompts" is a mouthful (the owner). Write the shape in the readme in plain words, and consider a clearer list name, e.g. a session's `prompts`, while it is still a Task list underneath. Pick one and say why. **Moving tasks out of a session into a module is NOT in scope.** It's a note in core/Task's inbox, for a later shape discussion that the owner signs off.
