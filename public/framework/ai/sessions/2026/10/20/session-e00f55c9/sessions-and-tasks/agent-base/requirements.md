@@ -61,3 +61,5 @@ For `ai-system-mastermind`. The owner's words are in the prompt log (2026-10-24,
     - The voice agent told the owner it has a directive to use only OpenRouter, a leftover from a night the tokens ran out. Find every such directive (role readmes, `session-smart.md`, `Servex/agents/roles.js` `VOICE_MODELS`, `session-backend.txt`) and remove it. Claude is the default and OpenRouter is used only when asked.
     - **"Task mastermind" goes away as a separate idea.** A mastermind is a mastermind: it works on its own and spawns agents, whether it has a narrow scope or a broad one. Fold `task-mastermind` and `sub-mastermind` into the one mastermind role (with item 13, a mastermind per path), keeping the useful rules (own one task end to end, land it).
     - List any other legacy roles or switches you find, with a keep or retire verdict for each.
+
+16. **(the tab, 2026-10-25) Queued spawns are lost on a Servex restart.** It happened twice tonight: mastermind-sessions-page at 22:49, and mastermind-dictation-2 around 01:15–02:00. A queued spawn must survive a restart (`spawn-queue.json` exists, so check it is reloaded), with a test.
