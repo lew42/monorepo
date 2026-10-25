@@ -1,19 +1,35 @@
 @layer base, theme, site, util;
 
-/* The Debug tab (class DictateDebug): the layers beside what happened. One column in the drawer and on a phone,
-   two side by side once there is room for both (each column at least 24rem; the pair at most 100rem, so a line stays readable at 3440).
-   ⚠ the column's max must be 1fr: auto-fit counts columns from a definite max, so `48rem` gave one column at 1920. */
+/* The Debug tab (class DictateDebug): a row of lights, the picked light's last word, a small action bar, then a compact live log
+   that fills the rest and scrolls. One column at every width; at 3440 the lines stop at 100rem so a log line stays readable.
+   Doc: doc/debug-tab.md#the-lights */
 @layer site {
-	.dictate-debug { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); max-inline-size: 100rem; gap: 1.5em 2.5em; align-items: start; }
-	.dictate-debug-col { display: grid; gap: 0.6em; min-inline-size: 0; }
-	.dictate-debug-col > h3 { margin: 0; }
-	.dictate-debug-col > p { margin: 0; }
-	.dictate-debug-list { gap: 0.15em; max-block-size: 28em; overflow-y: auto; font-size: 0.9em; }
-	.dictate-debug-event { display: grid; grid-template-columns: auto auto 1fr; gap: 0.6em; padding-block: 0.2em; border-block-end: 1px solid var(--wash, #ddd); }
-	.dictate-debug-layer { font-weight: 600; white-space: nowrap; }
-	.dictate-debug-why { min-inline-size: 0; overflow-wrap: anywhere; }
-	.dictate-debug-event[data-state="bad"] .dictate-debug-why { color: var(--error, #d33); }
-	.dictate-debug-event[data-state="ok"] .dictate-debug-layer { color: #2a9d4b; }
-	.dictate-debug-event[data-state="wait"] .dictate-debug-layer { color: #b07d00; }
-	.dictate-debug-links { gap: 0.3em; }
+	/* The tab hands the view the height it has, so the lights stay put and only the log scrolls (the sheet's tab body, or the page's own scroll at 1920 where the log stops at 75vh). */
+	.drawer-debug { display: flex; flex-direction: column; block-size: 100%; min-block-size: 0; }
+	.drawer-debug > .dictate-debug { flex: 1 1 auto; }
+	.dictate-debug { gap: 0.5em; max-inline-size: 100rem; min-block-size: 0; block-size: 100%; }
+	.dictate-debug > * { flex: none; }
+	.dictate-debug-detail { font-size: 0.85em; min-block-size: 1.4em; overflow-wrap: anywhere; }
+	.dictate-debug-detail[data-state="bad"] .dictate-debug-detail-why { color: var(--error, #d33); }
+	.dictate-debug-bar { gap: 0.4em 0.75em; font-size: 0.85em; }
+	.app .dictate-debug-bar button { font: inherit; padding: 0.2em 0.6em; min-block-size: 2rem; }
+	.dictate-debug-links { gap: 0.25em 0.75em; }
+
+	/* The log: one line per record, newest on top; a click opens its raw data underneath. */
+	.dictate-debug .dictate-debug-log { flex: 1 1 auto; min-block-size: 6em; max-block-size: 75vh; overflow-y: auto; font: 0.8em/1.35 ui-monospace, SFMono-Regular, Consolas, monospace;
+		border-block-start: 1px solid var(--line, #ddd); }
+	.dictate-debug .dictate-debug-line { border: 0; border-block-end: 1px solid var(--wash, #eee); border-radius: 0; background: none; padding: 0; margin: 0; }
+	.dictate-debug .dictate-debug-line-sum { border: 0; border-radius: 0; background: none; box-shadow: none; gap: 0.6em; padding-block: 0.1em; line-height: 1.3; cursor: pointer; list-style: none; white-space: nowrap; }
+	.dictate-debug-line-sum::-webkit-details-marker { display: none; }
+	.dictate-debug-when { flex: none; }
+	.dictate-debug-tag { flex: none; inline-size: 5.5em; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+	.dictate-debug-why { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
+	.dictate-debug-line[open] .dictate-debug-why { white-space: normal; overflow-wrap: anywhere; }
+	.dictate-debug-raw { margin: 0 0 0.4em 0; padding: 0.4em 0.6em; max-block-size: 20em; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere;
+		background: var(--wash, #f4f4f4); color: inherit; opacity: 1; border-radius: 0.3em; }
+	.dictate-debug-line[data-state="ok"] .dictate-debug-tag { color: #2a7d3f; }
+	.dictate-debug-line[data-state="wait"] .dictate-debug-tag { color: #946800; }
+	.dictate-debug-line[data-state="bad"] .dictate-debug-tag,
+	.dictate-debug-line[data-state="bad"] .dictate-debug-why { color: var(--error, #d33); }
+	.dictate-debug-empty { font-size: 0.85em; }
 }

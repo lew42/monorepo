@@ -27,6 +27,10 @@ Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
 
 Proof: `ux/Dictate/test/reconnect.mjs` (stream cuts every second: never shown; 502: hidden for 8 s, then shown with its reason; one press asks at once; ten fast presses open one wire; Servex back: hides; 8/8 pass).
 
+### The Debug panel handle (2026-10-25)
+
+When the sheet shows a tab body (Debug) under the chat, a handle on the tab body's top edge resizes it: drag it for more log or more chat, double-click for the default. `SheetPanel.tabs_grip` makes it (an `ext/grip` on the y axis), `saved_tabs_h()` and `tabs_to(px)` read and apply the height, and the height is saved on this device under `localStorage` key `lew42.sheet.tabs_h` (`SheetPanel.TABS_KEY`), so it survives a reload. In `rail.css` the sized tab body carries `drawer-rail-sheet-tabs-sized` and a `--tabs-h` custom property; it always leaves 10.5rem for the chat. Proof: `ux/Dictate/test/debug-tab.mjs`. What the panel shows: [Debug tab](/framework/ux/Dictate/doc/debug-tab.md).
+
 ### The log
 
 Every failure is one line in the **Whisper bucket**, `ai/whisper/bucket.jsonl`, with `src: "connection"`: `lost`, `retry failed`, `reconnect pressed`, `reconnected` (with how long it was down), and `say failed` when a sentence could not be sent. Open it at [the Whisper log](/framework/audio/Whisper/log/). Decision: this bucket, because it is written through the dev server, which is up exactly when Servex is down. The alternative was the voice session's own record, but Servex is its only writer, and Servex is the thing that is down.

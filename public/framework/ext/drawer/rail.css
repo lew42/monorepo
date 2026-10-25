@@ -375,6 +375,10 @@
 	   phone screen (390×844, test/debug-tab.mjs). Follows the DOM (:has), so it ends the moment the tab body is unmounted. */
 	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs):not(.drawer-rail-sheet-chat-only) .drawer-rail-sheet-panel { flex: 0 0 10em; }
 	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs):not(.drawer-rail-sheet-chat-only) > .drawer-rail-sheet-tabs { flex: 1 1 auto; }
+	/* The handle between them (Sheet.tabs_grip): once dragged, the tab keeps --tabs-h and the chat takes what is left. */
+	.drawer-rail-sheet-tabs { position: relative; }
+	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs-sized):not(.drawer-rail-sheet-chat-only) > .drawer-rail-sheet-tabs { flex: 0 0 min(var(--tabs-h), calc(100% - 10.5rem)); }
+	.drawer-rail-sheet:has(> .drawer-rail-sheet-tabs-sized):not(.drawer-rail-sheet-chat-only) .drawer-rail-sheet-panel { flex: 1 1 0; min-block-size: 4em; }
 }
 
 /* AIPage (<path>/ai/): a page above 52em; below it the Sheet shows it, so the page behind stays the one it is about. */

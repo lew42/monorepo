@@ -3,6 +3,7 @@ import Widget from "./Widget.js";
 import floor from "./floor.js";
 import * as Session from "/framework/ext/Session/Session.js";
 import DictateHealth from "./DictateHealth.js";
+import * as report from "/framework/ext/Chat/v2/report.js";
 
 // One chat box, every surface: doc/chat-notes.md
 const SESSION_KEY = "lew42-voice-session";
@@ -26,7 +27,7 @@ function read_saved(){
 }
 function write_saved(v){
 	try { v ? sessionStorage.setItem(SESSION_KEY, JSON.stringify(v)) : sessionStorage.removeItem(SESSION_KEY); }
-	catch {}
+	catch {}   // ignored on purpose: sessionStorage is off (private mode), so the session is just not remembered across a reload
 }
 
 // Controller factory: doc/chat-notes.md. Built GLOBAL (per-tab) or per-mount
@@ -59,7 +60,7 @@ function create_controller({ persist }){
 		if (path === ctl.nav_path && card === ctl.nav_card) return;
 		const from = ctl.nav_path;
 		ctl.nav_path = path; ctl.nav_card = card;
-		Session.nav({ session: ctl.session, from, to: path, card }).catch(() => {});
+		Session.nav({ session: ctl.session, from, to: path, card }).catch(e => quiet_note("the page change was not reported to the session", e));
 	}
 
 	// First sentence starts (or resumes) the one session until reset
@@ -85,7 +86,7 @@ function create_controller({ persist }){
 			if (session !== ctl.session || Date.now() - started > 30000) return clearInterval(floor_watch);
 			if (floor.state() !== "done") return;
 			clearInterval(floor_watch);
-			Session.floor({ session, floor: "done" }).catch(() => {});
+			Session.floor({ session, floor: "done" }).catch(e => quiet_note("the floor change was not reported", e));
 		}, 250);
 	}
 
@@ -112,19 +113,21 @@ const quote = t => "“" + (String(t ?? "").replace(/\s+/g, " ").trim().slice(0,
 export const ANSWER_MS = 60000;   // no answer this long after a sentence went out turns the AI layer red
 export const LATE_ECHO_MS = 120000;   // after a timed-out send, how long its late echo still heals the bubble instead of drawing a copy
 export const WIRE_GRACE_MS = 8000;   // a live-wire drop shorter than this is only an event, not a red row
+// A failure that loses nothing you said (a page change, a selection, the resume offer): a log line, no red light, so it cannot hide a real fault.
+const quiet_note = (what, e) => DictateHealth.event("page", "wait", `${what}: ${e?.message ?? e}`, { error: String(e?.message ?? e), stack: e?.stack ?? null });
 const secs = ms => (ms / 1000).toFixed(1) + " s";
 let sent_at = 0;   // when the last sentence went out: the AI row times its answer from here
 // The timing of each step (doc/flicker.md): the words were on screen at `t.out`, left for Servex after the clean-up and queue wait, Servex took them.
 function health_sent(text, t){
 	sent_at = Date.now();
 	const timing = t ? `; on screen at once, sent ${secs(t.wait)} later (clean-up and queue), Servex took it in ${secs(t.say)}` : "";
-	DictateHealth.set("sent", "ok", `sent ${quote(text)} at ${new Date().toLocaleTimeString()}${timing}`);
+	DictateHealth.set("sent", "ok", `sent ${quote(text)} at ${new Date().toLocaleTimeString()}${timing}`, { raw: { text, timing: t ?? null } });
 	DictateHealth.set("llm", "wait", `waiting for an answer to ${quote(text)}`, { late_ms: ANSWER_MS,
 		late: `no answer ${ANSWER_MS / 1000} s after ${quote(text)}: Servex took the sentence, but no assistant has written back. They may be asleep, busy or crashed: open the session log from the Debug tab.` });
 }
 function health_answer(line){
 	const after = sent_at ? `, ${secs(Date.now() - sent_at)} after the send` : "";
-	DictateHealth.set("llm", "ok", `${line.chat?.from?.id ?? "the assistant"} answered ${quote(line.chat?.text)}${after}`);
+	DictateHealth.set("llm", "ok", `${line.chat?.from?.id ?? "the assistant"} answered ${quote(line.chat?.text)}${after}`, { raw: line, always: true });
 }
 
 // Module-level GLOBAL: one per browser tab (ES module singleton)
@@ -133,7 +136,7 @@ const GLOBAL = create_controller({ persist: true });
 // ONE on-screen selection per tab, on GLOBAL controller only
 window.addEventListener("selection-change", e => {
 	GLOBAL.ctl.selection = e.detail ?? null;
-	if (GLOBAL.ctl.session) Session.select({ session: GLOBAL.ctl.session, selection: GLOBAL.ctl.selection }).catch(() => {});
+	if (GLOBAL.ctl.session) Session.select({ session: GLOBAL.ctl.session, selection: GLOBAL.ctl.selection }).catch(e => quiet_note("the selection was not reported", e));
 });
 
 Session.report_quiet(() => GLOBAL.ctl.session);
@@ -162,7 +165,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 					DictateHealth.set("sent", "wait", `sending ${quote(entry.text)}…`);
 					owner.sync_from_storage();
 					await owner.ensure(target);
-					if (!owner.ctl.session){ DictateHealth.set("sent", "bad", `not sent: Servex did not start a voice session for ${target.path}`); return false; }
+					if (!owner.ctl.session){ DictateHealth.fail("sent", new Error(`Servex did not start a voice session for ${target.path}`), "not sent"); return false; }
 					const via = entry.via === "typed" ? "text" : "voice";
 					floor.stamp(entry);
 					const thread = entry.thread ? { re: entry.thread, thread: true } : {};
@@ -187,12 +190,12 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 					return true;
 				} catch (e) {
 					Session.stream.log("say failed", { session: owner.ctl.session, error: String(e?.message ?? e) });
-					DictateHealth.set("sent", "bad", `not sent ${quote(entry.text)}: ${e?.message ?? e}`);
+					DictateHealth.fail("sent", e, `not sent ${quote(entry.text)}`);
 					return false;
 				}
 			},
 			answer: choice => {
-				if (choice === resume_label) owner.resume_to(resume_session).catch(() => {});
+				if (choice === resume_label) owner.resume_to(resume_session).catch(e => DictateHealth.fail("page", e, "resuming the last conversation"));
 			},
 			react: r => owner.ctl.session
 				? Session.react({ session: owner.ctl.session, ...r })
@@ -200,7 +203,11 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		});
 	});
 
+	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
 	function draw(line){
+		try { draw_line(line); } catch (e){ DictateHealth.fail("page", e, "drawing a session line"); }
+	}
+	function draw_line(line){
 		if (line?.react) return void panel.say({ react: line.react });
 		if (line?.para) return void panel.say({ para: line.para });
 		if (line?.place) return void panel.say({ place: line.place });   // the voice assistant's placement (doc/voice-assistant.md)
@@ -215,7 +222,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 			if (echo.late){   // the send timed out but Servex took it after all: one bubble, marked sent
 				sending.splice(sending.indexOf(echo), 1);
 				panel.$thread?.mark_sent?.(line.chat.at);
-				DictateHealth.set("sent", "ok", `sent late: Servex took ${quote(line.chat.text)} after the ${Session.POST_MS / 1000} s limit (its words are also in the fallback log)`);
+				DictateHealth.set("sent", "ok", `sent late: Servex took ${quote(line.chat.text)} after the ${Session.POST_MS / 1000} s limit (its words are also in the fallback log)`, { raw: line, always: true });
 			}
 			return;
 		}
@@ -235,7 +242,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 			resume_label = `${row.title ?? "The last conversation"} · ${ago(at)}`;
 			resume_session = row.session;
 			panel.say({ type: "ask", heading: "Pick up where you left off?", choices: [resume_label], at: new Date().toISOString() });
-		}).catch(() => {});
+		}).catch(e => quiet_note("could not look up the last conversation to offer", e));
 	}
 
 	// Cold reload fix: every session appearance redraws from line 0: doc/chat-notes.md
@@ -255,7 +262,14 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		if (!(was === null && watching)) panel.reset();
 		if (!owner.ctl.session){ maybe_offer(); return; }
 		watching_since = Date.now();   // lines older than this are history, not an answer just now
-		stop_watch = Session.watch(owner.ctl.file, draw);
+		report.init(owner.ctl.session);   // the page's own errors reach the assistants too (ext/Chat/v2/report.js): a log line, never a wake-up
+		stop_watch = Session.watch(owner.ctl.file, draw, { on_status: (kind, d) => {
+			// The poll reads the session file every 1.5 s; its trouble is the Wire light's, so a dead file cannot pass for "no answer yet".
+			if (kind === "poll_failed") DictateHealth.set("wire", "bad", `poll of the session log failed: ${d.error?.message ?? d.error}`, { always: true, raw: { error: String(d.error?.message ?? d.error), status: d.status ?? null, file: owner.ctl.file } });
+			else if (kind === "poll_ok") DictateHealth.set("wire", "ok", "polling the session log works again", { always: true, raw: { status: d.status } });
+			else if (kind === "bad_line") DictateHealth.fail("wire", d.error, `line ${d.n} of the session log is not JSON`);
+			else if (kind === "line_failed") DictateHealth.fail("page", d.error, `drawing line ${d.n} of the session log`);
+		} });
 		stop_stream = Session.stream(owner.ctl.session, ev => {
 			if (ev.kind === "stream"){ panel.stream(ev.role, ev.text); if (ev.text) DictateHealth.set("llm", "ok", `${ev.role} is writing an answer…`, { quiet: true }); }
 			else if (ev.kind === "line") draw(ev.line);
@@ -266,17 +280,17 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 				if (link.state === "down"){ set_link({ ...link, why }); return; }   // still down: a retry failed, keep the first `since`
 				link_why = why;
 				if (wire_timer) return;   // already counting this drop
-				DictateHealth.event("llm", "wait", `the live wire to Servex dropped (${why}). It reconnects by itself.`);
+				DictateHealth.event("wire", "wait", `the live wire to Servex dropped (${why}). It reconnects by itself.`);
 				wire_timer = setTimeout(() => {
 					wire_timer = null;
 					set_link({ state: "down", why: link_why ?? why, since: since || Date.now() });
-					DictateHealth.set("llm", "bad", `the live wire to Servex is down: ${link_why ?? why}. It retries by itself (1 s, doubling to 15 s); Reconnect tries now.`);
+					DictateHealth.set("wire", "bad", `the live wire to Servex is down: ${link_why ?? why}. It retries by itself (1 s, doubling to 15 s); Reconnect tries now.`);
 				}, WIRE_GRACE_MS);
 				return;
 			}
 			clearTimeout(wire_timer); wire_timer = null; link_why = null;
 			if (link.state !== "open") set_link({ state: "open" });
-			if (DictateHealth.layers.llm.state === "idle" || DictateHealth.layers.llm.why.startsWith("the live wire")) DictateHealth.set("llm", "ok", "connected to Servex; nothing asked yet");
+			if (DictateHealth.layers.wire.state === "idle" || DictateHealth.layers.wire.why.startsWith("the live wire")) DictateHealth.set("wire", "ok", "the live wire to Servex is open");
 		} });
 	}
 	function set_link(next){ link = next; for (const fn of on_link) try { fn(link); } catch (e){ console.error("chat on_link:", e); } }

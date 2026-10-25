@@ -1,4 +1,5 @@
-// The Debug tab, proven: it fills live while you talk, it is routed (a reload keeps you on it), shot on a phone and at 1920.
+// The Debug tab, proven: a row of lights, all green while you talk; a compact live log, the raw data one click down; a tap on
+// a light narrows the log; the handle between the chat and the tab keeps its height over a reload; routed; shot at 390 and 1920.
 //   node public/framework/ux/Dictate/test/debug-tab.mjs <base-url> <shots dir>
 // Headless; every Servex session verb is stubbed (the "AI" answers from a stub session file), the mic is jfk.wav.
 // Exit 1 on any failure.
@@ -25,10 +26,12 @@ async function context(viewport, mobile){
 	// CHAT_JS=<file>: serve that chat.js instead (to show this test fails on an older one), the way new-session.mjs swaps in a worktree's
 	if (process.env.CHAT_JS) await page.route(/\/framework\/ux\/Dictate\/chat\.js(\?.*)?$/, r => r.fulfill({ path: process.env.CHAT_JS, contentType: "application/javascript" }));
 	const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
+	// A wire that opens and stays quiet, so the proof never reaches the real Servex (a stubbed response would end and read as a dropped wire).
+	await page.addInitScript(() => { window.EventSource = class { constructor(url){ this.url = url; this.readyState = 1; setTimeout(() => this.onopen?.({}), 0); } close(){ this.readyState = 2; } }; });
 	await page.route(/\/api\/session\//, async route => {
 		const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
 		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
-		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
+		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });   // a wire that stays quiet: the proof never reaches the real Servex
 		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
 		if (verb === "say") run.said.push({ text: body.text, at: new Date().toISOString() });
 		const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : verb === "say" ? { ok: true, at: run.said.at(-1).at } : { ok: true };
@@ -44,6 +47,7 @@ async function context(viewport, mobile){
 	await page.route(/\/log\/prompts/, r => r.fulfill({ status: 200, contentType: "application/json", headers: cors, body: "{}" }));
 	return { ctx, page, run };
 }
+const LIGHTS = ["mic", "whisper", "transcripts", "sentence", "sent", "llm", "wire", "page"];
 const layers = page => page.evaluate(() => [...document.querySelectorAll(".dictate-debug .voice-conn-step")].filter(s => s.offsetParent).map(s => s.dataset.step + "=" + s.dataset.state));
 const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now() - t < ms){ if (await fn()) return true; await page.waitForTimeout(500); } return false; };
 
@@ -62,14 +66,54 @@ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now
 	const url = new URL(page.url()).pathname, live = await layers(page);
 	console.log("  phone:", url, live.join(" "));
 	check(url === "/framework/ext/drawer/ai/debug/", "picking Debug routes the sheet to <path>/ai/debug/ (" + url + ")");
-	check(["mic", "whisper", "transcripts", "sent", "llm"].every(id => live.includes(id + "=ok")), "every layer is green while dictating: " + live.join(" "));
-	const fit = await page.evaluate(() => {   // all five rows on one phone screen, with the chat's last lines still above them
+	check(LIGHTS.every(id => live.includes(id + "=ok")), "all eight lights are green while dictating: " + live.join(" "));
+	const fit = await page.evaluate(() => {   // the lights on top in at most two rows, the log under them with room, the chat still above
 		const steps = [...document.querySelectorAll(".drawer-rail-sheet .dictate-debug .voice-conn-step")].filter(s => s.offsetParent);
+		const rows = new Set(steps.map(s => Math.round(s.getBoundingClientRect().top))).size;
+		const log = document.querySelector(".drawer-rail-sheet .dictate-debug-log")?.getBoundingClientRect();
 		const chat = document.querySelector(".drawer-rail-sheet .ux-dictate-widget-thread")?.getBoundingClientRect().height ?? 0;
-		return { rows: steps.length, below: steps.filter(s => s.getBoundingClientRect().bottom > innerHeight).map(s => s.dataset.step), chat: Math.round(chat) };
+		const lines = [...document.querySelectorAll(".drawer-rail-sheet .dictate-debug-line")];
+		const one_line = lines.slice(0, 20).every(l => l.querySelector("summary").getBoundingClientRect().height < 30);
+		return { lights: steps.length, rows, log_h: Math.round(log?.height ?? 0), log_bottom: Math.round(log?.bottom ?? 0), chat: Math.round(chat), lines: lines.length,
+			heard: lines.filter(l => l.dataset.layer === "transcripts").length, one_line };
 	});
-	check(fit.rows === 5 && !fit.below.length && fit.chat > 30, `all five Debug rows fit one 390×844 screen, chat ${fit.chat}px above them` + (fit.below.length ? "; below the fold: " + fit.below.join(", ") : ""));
+	console.log("  fit:", JSON.stringify(fit));
+	check(fit.lights === 8 && fit.rows <= 2, `eight lights in ${fit.rows} row(s) at 390`);
+	check(fit.log_h >= 120 && fit.log_bottom <= 844 && fit.chat > 30, `the log has ${fit.log_h}px under the lights, the chat ${fit.chat}px above`);
+	check(fit.lines >= 5 && fit.heard >= 2 && fit.one_line, `a compact log: ${fit.lines} lines, ${fit.heard} of them Whisper answers, each one line`);
+	// the raw data, one click down
+	await page.click('.drawer-rail-sheet .dictate-debug-line[data-layer="transcripts"] summary');
+	const raw = await page.evaluate(() => document.querySelector(".drawer-rail-sheet .dictate-debug-line[open] .dictate-debug-raw")?.textContent ?? "");
+	check(/"text":/.test(raw) && /"kind":/.test(raw), "a click on a Whisper line shows its raw answer: " + raw.replace(/\s+/g, " ").slice(0, 90));
 	await page.screenshot({ path: shots + "/debug-390.png" });
+	const raws = await page.evaluate(async () => {
+		const out = {};
+		for (const layer of ["sent", "llm", "sentence"]){
+			const line = document.querySelector(`.drawer-rail-sheet .dictate-debug-line[data-layer="${layer}"]`);
+			if (!line) { out[layer] = null; continue; }
+			line.querySelector("summary").click();
+			out[layer] = { why: line.querySelector(".dictate-debug-why")?.textContent ?? "", raw: line.querySelector(".dictate-debug-raw")?.textContent ?? "" };
+		}
+		return out;
+	});
+	check(raws.sent && /"text"/.test(raws.sent.raw), "a Send line has raw data one click down: " + (raws.sent?.raw ?? "none").replace(/\s+/g, " ").slice(0, 70));
+	check(raws.llm && /"chat"/.test(raws.llm.raw), "a Reply line has the raw session line one click down: " + (raws.llm?.raw ?? "none").replace(/\s+/g, " ").slice(0, 70));
+	check(raws.sentence && /\bso\b/.test(raws.sentence.why), "the Sentence line keeps its letters: " + (raws.sentence?.why ?? "none"));
+	// a tap on a light: its last word in full, the log narrowed to it; a second tap for everything
+	await page.click('.drawer-rail-sheet .voice-conn-step[data-step="sent"]');
+	const only = await page.evaluate(() => ({ detail: document.querySelector(".drawer-rail-sheet .dictate-debug-detail")?.textContent ?? "",
+		shown: [...document.querySelectorAll(".drawer-rail-sheet .dictate-debug-line")].filter(l => !l.hidden).map(l => l.dataset.layer) }));
+	check(/sent/.test(only.detail) && only.shown.length > 0 && only.shown.every(l => l === "sent"), `a tap on Send: “${only.detail.slice(0, 70)}”, ${only.shown.length} Send lines only`);
+	await page.screenshot({ path: shots + "/debug-390-send.png" });
+	await page.click('.drawer-rail-sheet .voice-conn-step[data-step="sent"]');
+	// the handle: drag it 150 px down (the Debug panel shorter, the chat taller: the panel already fills the sheet); the height survives the reload below
+	const tabs_h = () => page.evaluate(() => Math.round(document.querySelector(".drawer-rail-sheet-tabs")?.getBoundingClientRect().height ?? 0));
+	const before_h = await tabs_h();
+	const g = await page.evaluate(() => { const r = document.querySelector(".drawer-rail-sheet-tabs > .grip")?.getBoundingClientRect(); return r && { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+	if (g){ await page.mouse.move(g.x, g.y); await page.mouse.down(); await page.mouse.move(g.x, g.y + 75, { steps: 5 }); await page.mouse.move(g.x, g.y + 150, { steps: 5 }); await page.mouse.up(); }
+	await page.waitForTimeout(300);
+	const dragged_h = await tabs_h();
+	check(!!g && before_h - dragged_h > 100, `the handle between the chat and Debug drags: ${before_h}px → ${dragged_h}px`);
 	page.on("dialog", d => d.accept());
 	await page.reload({ waitUntil: "domcontentloaded" });
 	await page.waitForSelector(".drawer-rail-sheet.on .dictate-debug", { timeout: 20000 }).catch(() => {});
@@ -77,6 +121,8 @@ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now
 	console.log("  after reload:", JSON.stringify(after));
 	check(after.debug && after.full && after.path === url, "a reload opens the full sheet on the Debug tab again");
 	await page.waitForTimeout(800);
+	const reload_h = await tabs_h();
+	check(Math.abs(reload_h - dragged_h) <= 4, `the dragged height survives the reload: ${dragged_h}px → ${reload_h}px`);
 	await page.screenshot({ path: shots + "/debug-390-reloaded.png" });
 	check(!run.errors.length, "no page errors on the phone: " + run.errors.join(" | "));
 	await ctx.close();
@@ -95,7 +141,7 @@ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now
 	await page.waitForTimeout(1200);
 	const live = await layers(page);
 	console.log("  1920:", new URL(page.url()).pathname, live.join(" "));
-	check(live.length === 5 && live.every(l => l.endsWith("=ok")), "the Debug view shows the five layers at 1920, all green: " + live.join(" "));
+	check(live.length === 8 && live.every(l => l.endsWith("=ok")), "the Debug view shows the eight lights at 1920, all green: " + live.join(" "));
 	await page.screenshot({ path: shots + "/debug-1920.png" });
 	await page.reload({ waitUntil: "domcontentloaded" });
 	await page.waitForSelector(".drawer-ai-page-body .dictate-debug", { timeout: 20000 }).catch(() => {});

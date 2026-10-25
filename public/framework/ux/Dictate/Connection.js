@@ -21,6 +21,7 @@ View.stylesheet(import.meta, "Connection.css");
  *
  * `layout: "rows"` stacks the steps, one per line, with the reason in full (the Debug tab, `DictateDebug.js`);
  * a step with an `ask` shows that question under its name. `on_check(up, why)` hears every Whisper check.
+ * `layout: "lights"` is one row of small lights, a dot and a name each, the reason on hover; a tap calls `on_pick(id)` (the Debug tab).
  */
 export default class Connection extends View {
 
@@ -41,19 +42,21 @@ export default class Connection extends View {
 		this.steps = this.steps ?? Connection.steps;   // a caller may show fewer: new Connection({ steps })
 		this.style("--steps", this.steps.length);
 		if (this.layout) this.attr("data-layout", this.layout);
+		const lights = this.layout === "lights";
 		this.steps.forEach((s, i) => {
 			this.state[s.id] = { state: "idle", why: "not yet" };
-			div.c("voice-conn-step", () => {
+			const step = (lights ? button : div).c("voice-conn-step", () => {
 				div.c("voice-conn-head", () => {
 					span.c("voice-conn-dot");
 					span.c("voice-conn-label", s.label);
-					if (s.ask) span.c("voice-conn-ask muted", s.ask);
-					if (s.id === "whisper") this.$retry = button("↻").ac("voice-conn-retry").attr("type", "button")
+					if (s.ask && !lights) span.c("voice-conn-ask muted", s.ask);   // a light is a dot and a name; the question is its title (hover)
+					if (s.id === "whisper" && !lights) this.$retry = button("↻").ac("voice-conn-retry").attr("type", "button")
 						.attr("title", "Check Whisper again").click(() => this.check_whisper());
 				});
 				if (s.id === "level") new LevelMeter.View({ subject: this.meter });
-				else span.c("voice-conn-why");
+				else if (!lights) span.c("voice-conn-why");
 			}).attr("data-step", s.id);
+			if (lights) step.attr("type", "button").attr("aria-pressed", "false").click(() => this.on_pick?.(s.id));
 		});
 		this.draw();
 	}
@@ -82,6 +85,7 @@ export default class Connection extends View {
 			el.dataset.state = state;
 			const w = el.querySelector(".voice-conn-why");
 			if (w){ w.textContent = why; w.title = why; }
+			if (this.layout === "lights") el.title = why;   // hover shows the last word; a tap shows it in full (on_pick)
 		}
 	}
 

@@ -206,20 +206,29 @@ export async function recent_project({ limit = 10, host = location.host } = {}){
 }
 
 /** Poll `file` every 1.5 s (never cached) and hand each new line, parsed, to `on_line`.
- *  Returns `stop()`. A missing file (404) is just "nothing yet". */
-export function watch(file, on_line, { every = 1500 } = {}){
-	let seen = 0, timer = null, stopped = false;
+ *  Returns `stop()`. A missing file (404) is just "nothing yet". `on_status(kind, detail)` hears what would otherwise be silent:
+ *  "poll_failed" (a non-404 status or a network error; heard again each failed poll), "poll_ok" (the first good poll after
+ *  failures), "bad_line" (a line that is not JSON) and "line_failed" (`on_line` threw: that line is skipped, the next ones still arrive). */
+export function watch(file, on_line, { every = 1500, on_status } = {}){
+	let seen = 0, timer = null, stopped = false, failing = false;
+	const status = (kind, detail) => { try { on_status?.(kind, detail); } catch (e){ console.error("Session.watch on_status:", e); } };
 	async function tick(){
 		try {
 			const res = await fetch(file, { cache: "no-store" });
-			if (res.ok){
-				const lines = (await res.text()).split("\n").filter(l => l.trim());
-				for (; seen < lines.length; seen++){
-					let line; try { line = JSON.parse(lines[seen]); } catch { continue; }
-					on_line(line);
+			if (res.ok || res.status === 404){
+				if (failing){ failing = false; status("poll_ok", { status: res.status }); }
+				if (res.ok){
+					const body = await res.text(), lines = body.split("\n").filter(l => l.trim());
+					for (; seen < lines.length; seen++){
+						let line;
+						try { line = JSON.parse(lines[seen]); } catch (e){
+							if (seen === lines.length - 1 && !body.endsWith("\n")) break;   // a half-written last line: read it again on the next poll
+							status("bad_line", { n: seen + 1, text: lines[seen].slice(0, 200), error: e }); continue; }
+						try { on_line(line); } catch (e){ status("line_failed", { n: seen + 1, line, error: e }); }
+					}
 				}
-			}
-		} catch {}
+			} else { failing = true; status("poll_failed", { status: res.status, error: new Error(`HTTP ${res.status}`) }); }
+		} catch (e){ failing = true; status("poll_failed", { error: e }); }
 		if (!stopped) timer = setTimeout(tick, every);
 	}
 	tick();

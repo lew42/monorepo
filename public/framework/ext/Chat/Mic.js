@@ -389,7 +389,7 @@ export class ComposerMic extends Dictate {
 	watch_capture(){
 		const cap = this.mic, track = cap?.stream?.getAudioTracks()[0];
 		if (cap?.ctx) cap.ctx.onstatechange = () => {
-			if (cap.ctx.state === "suspended" && this.state === "listening") cap.ctx.resume().catch(() => {});
+			if (cap.ctx.state === "suspended" && this.state === "listening") cap.ctx.resume().catch(() => {});   // ignored on purpose: a suspended audio context that cannot resume shows up as no sound (the Mic light's own level check)
 		};
 		track?.addEventListener("ended", async () => {
 			if (this.mic !== cap || this.state !== "listening" || this.reviving) return;
@@ -529,7 +529,7 @@ export class ComposerMic extends Dictate {
 			const items = texts.map(t => this.take_out(t)).filter(Boolean);   // drawn in the chat now, before the caption loses them
 			this.draw_caption();
 			this.enqueue(items);
-		} catch (e){ console.error("chat: sending finished sentences failed", e); }
+		} catch (e){ DictateHealth.fail("sentence", e, "sending the finished sentences"); }
 		finally { this.sending_sentences = false; }
 	}
 
@@ -540,7 +540,7 @@ export class ComposerMic extends Dictate {
 		// returned, so a watcher (ux/Dictate/DictationBar.js WATCHED) hears the END of a send too, not only its start: the "sending" word went stale
 		return this.post_tail = (this.post_tail ?? Promise.resolve())
 			.then(async () => { for (const it of items) await this.post_held(it); })
-			.catch(e => console.error("chat: sending failed", e))
+			.catch(e => DictateHealth.fail("sent", e, "the send queue"))
 			.finally(() => { this.posting--; });
 	}
 
@@ -554,7 +554,7 @@ export class ComposerMic extends Dictate {
 			if (SETTINGS.paragraph_pause_ms > 0 && quiet >= SETTINGS.paragraph_pause_ms && this.ends_sentence(text)) return this.send_screen();   // a natural pause
 			if (this.mode_now() === "pause" && quiet >= SETTINGS.pause_send_ms) this.send_screen();   // the tail
 			else this.check_chunk();
-		} catch (e){ console.error("chat: automatic send failed", e); }
+		} catch (e){ DictateHealth.fail("sentence", e, "the automatic send"); }
 	}
 
 	// Everything visible goes out as one message after waiting for clean-ups. see doc/mic-notes.md#send_screen
@@ -644,9 +644,10 @@ export class ComposerMic extends Dictate {
 	take_out(item){
 		const got = typeof item === "string" ? { text: item, raw: null } : item;
 		const text = ComposerMic.collapse_repeat(got.text), raw = got.raw && ComposerMic.collapse_repeat(got.raw);
-		if (this.same_as_last_send(text)){ console.warn("chat: dropped a duplicate send (same words, " + ComposerMic.DUP_WINDOW_MS + "ms window):", text); return null; }
+		if (this.same_as_last_send(text)){ DictateHealth.event("sentence", "wait", `dropped a duplicate (same words within ${ComposerMic.DUP_WINDOW_MS} ms): “${text.slice(0, 60)}”`, { text }); return null; }
 		const out = { text, raw, at: ComposerMic.stamp() };
-		try { this.on_out?.(out); } catch (e){ console.error("chat: drawing the sent words failed", e); }
+		try { this.on_out?.(out); } catch (e){ DictateHealth.fail("page", e, "drawing the sent words"); }
+		DictateHealth.set("sentence", "ok", `left the draft: “${text.replace(/\s+/g, " ").slice(0, 60)}”`, { always: true, raw: out });
 		return out;
 	}
 
@@ -672,7 +673,7 @@ export class ComposerMic extends Dictate {
 		const late = new Promise(r => { timer = setTimeout(() => r("late"), ComposerMic.DELIVER_MS); });
 		// A deliver that throws (ext/Chat/ChatPanel.js's own can) is a failed send: its words still go to the fallback log below.
 		// No Sent-row write here: ux/Dictate/chat.js, the deliver behind the Debug tab, writes it and never throws (review note 3).
-		const sending = Promise.resolve().then(() => this.deliver?.(entry)).catch(e => { console.error("chat: deliver threw", e); return false; });
+		const sending = Promise.resolve().then(() => this.deliver?.(entry)).catch(e => { DictateHealth.fail("sent", e, "the send threw"); return false; });
 		try { ok = await Promise.race([sending, late]); } finally { clearTimeout(timer); this.posting--; }
 		if (ok === "late"){
 			// The queue moves on now; the open send keeps its chance to land. Only a send that then fails counts as not sent
@@ -687,7 +688,7 @@ export class ComposerMic extends Dictate {
 	// Words that did not reach the deliver go to Dictate's fallback log, so nothing said is lost.
 	async log_fallback(entry){
 		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
-		catch (e){ console.warn("chat: could not log this utterance", e); }
+		catch (e){ DictateHealth.fail("sentence", e, "could not save this utterance (Servex down, dev-server fallback also failed)"); }
 	}
 }
 ComposerMic.prototype.mode = "open";   // the mic stays on; draw_caption() types into the box

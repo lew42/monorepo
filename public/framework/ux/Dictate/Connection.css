@@ -22,4 +22,13 @@
 	.voice-conn[data-layout="rows"] .voice-conn-head { block-size: auto; flex-wrap: wrap; }
 	.voice-conn[data-layout="rows"] .voice-conn-why { block-size: auto; display: block; overflow: visible; overflow-wrap: anywhere; }
 	.voice-conn-ask { font-weight: 400; font-size: 0.9em; }
+
+	/* layout: "lights" (the Debug tab's top row): a dot and a name per stage, all on one row when they fit; the reason is on
+	   hover (title) and, on a tap, in the line under the row (DictateDebug.pick). A picked light keeps a ring. */
+	.voice-conn[data-layout="lights"] { display: flex; flex-wrap: wrap; gap: 0.35em; margin: 0; font-size: 0.85em; }
+	.app .voice-conn[data-layout="lights"] .voice-conn-step { display: inline-flex; padding: 0.2em 0.65em 0.2em 0.5em; min-block-size: 2rem; border: 1px solid var(--line, #ccc);
+		border-radius: 999px; background: none; color: inherit; font: inherit; cursor: pointer; }
+	.voice-conn[data-layout="lights"] .voice-conn-head { block-size: auto; gap: 0.35em; }
+	.voice-conn[data-layout="lights"] .voice-conn-step[aria-pressed="true"] { border-color: currentColor; box-shadow: 0 0 0 1px currentColor; }
+	.voice-conn[data-layout="lights"] .voice-conn-step[data-state="bad"] { border-color: var(--error, #d33); }
 }

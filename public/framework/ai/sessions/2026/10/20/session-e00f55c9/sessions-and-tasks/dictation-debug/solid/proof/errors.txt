@@ -1,0 +1,9 @@
+ok   draw: the line that throws is skipped, the line after it still drawn
+ok   draw: the Page light is red: “drawing a session line: test fault: this line cannot be drawn”
+ok   draw: the Debug log holds the raw error
+ok   poll: a failed poll is logged (true) and so is its recovery (true)
+ok   uncaught: the Page light says “uncaught: test uncaught error”
+ok   rejection: the Page light says “unhandled promise rejection: test rejection”
+ok   send: the Send light says “not sent “a typed sentence.”: Servex refused session/say: no session "stub-session"”
+ok   send: the Debug log holds the raw error
+all passed

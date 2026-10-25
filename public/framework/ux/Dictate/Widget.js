@@ -203,7 +203,7 @@ Widget.ThreadV1 = class WidgetThreadV1 extends View {
 			const m = out?.marks?.[0];
 			if (!m) return;
 			$bubble.append(() => span.c("ux-dictate-widget-mark muted", m.mark === "unclear" ? " ?" : " ✓").attr("title", m.purpose ?? ""));
-		}).catch(() => {});
+		}).catch(() => {});   // ignored on purpose: the check/? mark is a bonus on a bubble; no mark just means nothing was judged
 	}
 
 	mark_failed(at){
@@ -528,7 +528,7 @@ Widget.Thread = class WidgetThread extends View {
 			if (!m) return;
 			patch_piece(bubble, ref.id, { mark: m });
 			this.refresh();
-		}).catch(() => {});
+		}).catch(() => {});   // ignored on purpose: the check/? mark is a bonus on a bubble; no mark just means nothing was judged
 	}
 
 	mark_failed(at){

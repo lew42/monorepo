@@ -505,7 +505,34 @@ export class SheetPanel extends View {
 		this.$tabbody = div.c("drawer-rail-sheet-tabbody");
 		this.$tabs.el.append(this.$tabbody.el);
 		this.el.append(this.$tabs.el);
+		this.$tabs.append(() => this.tabs_grip());
+		this.tabs_to(this.saved_tabs_h());
 		this.pick(name ?? this.tab_name ?? tabs.current?.name ?? "ai");
+	}
+
+	// The handle between the chat and the picked tab (a sheet within a sheet): drag its top edge up for more tab, down for more chat.
+	// The height is kept on this device and comes back after a reload; a double-click puts the default back (doc/debug-tab.md#the-handle).
+	static TABS_KEY = "lew42.sheet.tabs_h";
+	saved_tabs_h(){
+		try { const h = parseFloat(localStorage.getItem(this.constructor.TABS_KEY)); return h > 0 ? h : null; }
+		catch { return null; }   // private mode: the default height, nothing to report
+	}
+	tabs_to(px){
+		const el = this.$tabs?.el;
+		if (!el) return null;
+		if (!px){ el.classList.remove("drawer-rail-sheet-tabs-sized"); el.style.removeProperty("--tabs-h"); return null; }
+		const h = Math.round(Math.max(px, 96));   // the top limit is rail.css's: the chat keeps its head, a few lines and the mic footer, however tall the screen is when this comes back
+		el.classList.add("drawer-rail-sheet-tabs-sized");
+		el.style.setProperty("--tabs-h", h + "px");
+		return h;
+	}
+	tabs_grip(){
+		return grip({
+			axis: "y",
+			write: px => this.tabs_to(px),
+			done: h => { try { localStorage.setItem(this.constructor.TABS_KEY, String(h)); } catch {} },   // private mode: the height lasts until the reload
+			reset: () => { this.tabs_to(null); try { localStorage.removeItem(this.constructor.TABS_KEY); } catch {} },   // same: nothing to remove
+		});
 	}
 
 	unmount_tabs(){

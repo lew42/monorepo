@@ -253,7 +253,7 @@ export default class Dictate extends View {
 	 *  (test/refresh.mjs). A start pressed after a cancelled one waits for it, then runs. */
 	async start(){
 		if (this.start_promise && !this.cancel_connect) return this.start_promise;
-		if (this.start_promise) await this.start_promise.catch(() => {});
+		if (this.start_promise) await this.start_promise.catch(() => {});   // ignored on purpose: the start's own failure was already shown by start() (set_error)
 		if (this.state === "listening" || this.state === "connecting") return;
 		return this.start_promise = this.start_now().finally(() => { this.start_promise = null; });
 	}
@@ -500,7 +500,7 @@ export default class Dictate extends View {
 		const seq = ++this.req_seq;
 		this.inflight = this.transcribe(samples, "interim");
 		let text;
-		try { text = await this.inflight; } catch { return; } finally { this.inflight = null; }
+		try { text = await this.inflight; } catch (e){ DictateHealth.fail("whisper", e, "a guess request"); return; } finally { this.inflight = null; }
 		// Stale answers are dropped (epoch + ticket). see doc/notes.md#duplicate-bubble-race
 		if (epoch !== this.segment_epoch || seq <= this.applied_seq){ this.on_trace?.("stale", { kind: "interim", req: seq, msg: text }); return; }
 		this.applied_seq = seq;
@@ -584,7 +584,7 @@ export default class Dictate extends View {
 		else { this.steps.whisper = reply; this.draw_diag(); this.on_step?.("whisper", reply); }   // every answer updates the line; only the first is console-logged
 		// Whisper puts "\n" between its own segments; collapse them (real breaks come from real pauses).
 		const text = (body.text ?? "").replace(/\s+/g, " ").trim();
-		DictateHealth.heard({ kind, text, ms: Math.round(this.whisper_ms) });
+		DictateHealth.heard({ kind, text, ms: Math.round(this.whisper_ms), raw: body });
 		this.on_whisper?.({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000), req, segment, body });
 		if (this.log_raw) this.log_whisper({ kind, ms: Math.round(this.whisper_ms), text, raw: body.text ?? "", bytes: wav.size ?? 0, seconds: samples.length / (this.mic.rate?.() || 16000), req, segment, body });
 		return text;
@@ -593,7 +593,7 @@ export default class Dictate extends View {
 	/** Save the raw Whisper reply: one line in the day file through `WhisperLog.record()`, fire and forget, never throws. see audio/Whisper/doc/demo.md */
 	log_whisper({ body, ...line }){
 		const session = typeof this.session === "function" ? this.session() : this.session;
-		try { WhisperLog.record({ ...line, body, session: session || undefined }); } catch {}
+		try { WhisperLog.record({ ...line, body, session: session || undefined }); } catch {}   // ignored on purpose: the raw Whisper log is a bonus copy; the Debug log already holds this answer
 	}
 
 	/** Debug seam: `window.$DICTATE_DUMP = true` also writes each WAV to dump_file. see doc/notes.md#debug-dump */
@@ -712,14 +712,14 @@ export default class Dictate extends View {
 		const entry = { type: "prompt", by: "owner", text, via: "whisper", id };
 		if (await post_prompt(entry, this.log_url)) return;
 		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
-		catch (e) { console.warn("ux/Dictate: could not log this utterance (Servex down, dev-server fallback also failed):", e); }
+		catch (e) { DictateHealth.fail("sentence", e, "could not save this utterance (Servex down, dev-server fallback also failed)"); }
 	}
 
 	async log_revision(text, level, re){
 		const entry = { chat: { at: new Date().toISOString(), from: { kind: "assistant", id: "revise" }, via: "voice", text, re, level } };
 		if (await post_prompt(entry, this.log_url)) return;
 		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
-		catch (e) { console.warn("ux/Dictate: could not log this revision (Servex down, dev-server fallback also failed):", e); }
+		catch (e) { DictateHealth.fail("sentence", e, "could not save this revision (Servex down, dev-server fallback also failed)"); }
 	}
 
 	/** Annotations like *shriek* or [BLANK_AUDIO] are never speech: a rule about shape, not a phrase list. see doc/notes.md#annotations */

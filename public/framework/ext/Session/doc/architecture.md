@@ -25,7 +25,7 @@
 
 ## Live replies stream; the file is read by polling
 
-**Decided:** replies arrive over Server-Sent Events (`stream()`, each event carrying the whole text so a reconnect loses nothing). Lines in the file are read by `watch()`, which fetches the file every 1.5 s.
+**Decided:** replies arrive over Server-Sent Events (`stream()`, each event carrying the whole text so a reconnect loses nothing). Lines in the file are read by `watch(file, on_line, { every, on_status })`, which fetches the file every 1.5 s. Each line is drawn on its own: a line that makes `on_line` throw is skipped and the next ones still arrive. `on_status(kind, detail)` hears what would otherwise be silent: `poll_failed` (a non-404 status or a network error, again at each failed poll), `poll_ok` (the first good poll after failures), `bad_line` (a complete line that is not JSON, skipped for good) and `line_failed` (`on_line` threw). A half-written last line (no newline yet) is read again on the next poll, never skipped. A 404 is just "nothing yet".
 **Why:** the stream gives token-by-token replies; the file read needs no server push for the rest.
 **Instead:** a `watch` built on `stream` for every line. Not done yet.
 ⚠ **Code mismatch with the stream rule:** `watch()` is a timed `fetch` loop, not a stream. Replace it with the `live()` tail when the server offers one.

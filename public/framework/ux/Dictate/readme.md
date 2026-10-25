@@ -1,6 +1,13 @@
 # Dictate — a mic button that always shows what is happening
 
-**Dictation stopped, or the AI never answered? Open the Debug tab** (each step from the mic to the AI's answer, live, with the real error; what the stall was and how it was fixed): [`doc/debug-tab.md`](doc/debug-tab.md). `class DictateHealth` (the five layers, [DictateHealth.js](DictateHealth.js)) · `class DictateDebug` (the view, [DictateDebug.js](DictateDebug.js)) · proofs `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`, `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)). Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: git-ignored, written on this machine at the first failure).
+**Dictation stopped, or the AI never answered? Open the Debug tab** (each step from the mic to the AI's answer, live, with the real error; what the stall was and how it was fixed): [`doc/debug-tab.md`](doc/debug-tab.md).
+
+- `class DictateHealth` (the eight lights, [DictateHealth.js](DictateHealth.js); every error from every stage lands here, and `window` errors and rejections too)
+- `class DictateDebug` (the view, [DictateDebug.js](DictateDebug.js))
+- `chat.js` calls `report.init(session)` ([ext/Chat/v2/report.js](/framework/ext/Chat/v2/report.js)) once the voice session id is known.
+- The Debug panel in the phone sheet has a resize handle whose height survives a reload ([`SheetPanel.tabs_grip`](/framework/ext/drawer/doc/sheet.md#the-debug-panel-handle-2026-10-25)).
+- Proofs `test/errors.mjs` (every error is caught and shown), `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs`, `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)).
+- Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: git-ignored, written on this machine at the first failure).
 
 **Words vanished and came back?** The flicker, its cause and the fix: your words become the sent piece in the draft's spot the moment they leave it (`ComposerMic.take_out` → `Widget.show_out`), proof `test/flicker.mjs`: [`doc/flicker.md`](doc/flicker.md).
 

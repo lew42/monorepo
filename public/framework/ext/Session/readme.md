@@ -12,7 +12,7 @@ A session starts on the page you are on (its home), follows you from page to pag
 import { start, resume, recent, say, floor, nav, pause, report_pause, select, react, watch, entry } from "/framework/ext/Session/Session.js";
 
 const { session, file, resumed, previous } = await start({ path: location.pathname });
-const stop = watch(file, line => draw(entry(line)));   // every line, old and new
+const stop = watch(file, line => draw(entry(line)), { on_status });   // every line, old and new; on_status(kind, detail) hears what would be silent
 await say({ session, text: "can you hear me?", via: "voice", floor: "speaking" });
 await floor({ session, floor: "done" });               // the owner stopped talking: the held fast reply lands
 await nav({ session, from: "/a/", to: "/b/", card });   // card: optional, the card showing now
