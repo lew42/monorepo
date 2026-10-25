@@ -1,0 +1,590 @@
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 1b6818a1f..7d6c142d2 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -28,6 +28,7 @@ import AICost from "/framework/ai/AITask/AICost.js";
+ import Day from "/framework/core/Session/Day.js";
+ import SessionOverview from "./SessionOverview.js";
+ import SessionOutlineView from "./SessionOutlineView.js";
++import SessionTimeline from "./SessionTimeline.js";
+ import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
+ 
+ // One session's own page, opened at its dated folder /framework/ai/sessions/YYYY/MM/DD/<folder>/ (StoreFolder.child builds it with `segs`);
+@@ -60,6 +61,12 @@ export default class AISessionDetail extends Page {
+ 		return hit ? { id: hit, session_id: hit } : null;
+ 	}
+ 
++	/** The full uuid an 8-character hex short id stands for (the first index row that starts with it), else the name unchanged. */
++	static async expand(root_url, name){
++		if (!/^[0-9a-f]{8}$/.test(name)) return name;
++		return Object.keys((await AISessionRows.load_index(root_url))?.rows ?? {}).find(k => k.startsWith(name + "-")) ?? name;
++	}
++
+ 	/** Where `/sessions/<id>/` should send the browser: the session's dated folder url, or null (no folder known, it is a task's deeper folder, or it holds no session record) and the id url stays the page. */
+ 	static async folder_for(root_url, name){
+ 		const row = await AISessionDetail.load_row(root_url, name), sid = row?.session_id ?? name;
+@@ -219,11 +226,12 @@ export default class AISessionDetail extends Page {
+ 		let $role, $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks, $work, work;
+ 		const ready = new Promise(resolve => this.work_ready = resolve);   // the loaded SessionWork, for the stats bar and the Overview
+ 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
+-		const TABS = [["overview", "Overview"], ["board", "Board"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
++		const TABS = [["overview", "Overview"], ["timeline", "Timeline"], ["board", "Board"], ["tasks", "Tasks"], ["chat", "Chat"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
+ 		const old_keys = { work: "tasks", conversation: "chat" }, asked = new URLSearchParams(location.search).get("tab"), want = old_keys[asked] ?? asked, panels = {}, buttons = {};
+ 		const show = key => {
+ 			if (!this.chat_ok && (key === "chat" || key === "coverage")) key = "overview";   // a child session has no chat or coverage: only a VS Code tab (or a session with prompts.jsonl) does
+ 			for (const [k] of TABS){ panels[k].el.hidden = k !== key; buttons[k].el.classList.toggle("sessions-chip-on", k === key); }
++				if (key === "timeline") this.timeline?.shown();
+ 			const q = new URLSearchParams(location.search); key === "overview" ? q.delete("tab") : q.set("tab", key);
+ 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
+ 		};
+@@ -240,7 +248,8 @@ export default class AISessionDetail extends Page {
+ 		});
+ 		if (new URLSearchParams(location.search).has("full")) setTimeout(() => this.full_screen(true));
+ 		div.c("sessions-detail-body", () => {
+-			panels.overview = div.c("flow sessions-panel", () => { this.feed = new SessionOutlineView({ ready, sid: id }); });   // child sessions as groups, then this session's own work by prompt (SessionOutline)
++			panels.overview = div.c("flow sessions-panel", () => { this.feed = new SessionOutlineView({ ready, sid: id, on_draw: o => this.timeline?.children(o.found.list) }); });   // child sessions as groups, then this session's own work by prompt (SessionOutline)
++			panels.timeline = div.c("flow sessions-panel", () => { this.timeline = new SessionTimeline({ sid: id }); });   // everything in the record and the prompt log, in time order (SessionTimeline)
+ 			panels.board = div.c("flow sessions-panel", () => new SessionOverview({ ready, sid: id, go: show }));   // four cards: open, project, done, dropped (Figma band E)
+ 			panels.tasks = div.c("flow sessions-panel", () => { $work = div.c("flow"); });   // what the session set going, nested, with Approve (SessionWork)
+ 			panels.chat = div.c("flow sessions-panel sov-chat", () => {
+@@ -280,7 +289,7 @@ export default class AISessionDetail extends Page {
+ 			this.log_urls().then(() => PromptLog.read(session_id)).then(lines => coverage.read_records(PromptLog.fold(lines))).catch(() => {});   // the prompt records, when the session has them (ext/Refine/doc/prompt-records.md)
+ 			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
+ 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
+-			this.record_if_there().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks, on_session: s => this.feed?.record(s) }).live(); });
++			this.record_if_there().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks, on_session: (s, lines) => { this.feed?.record(s); this.timeline?.record(lines); } }).live(); else if (!file) this.timeline?.settle("record"); });
+ 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
+ 			this.log_urls().then(urls => {
+ 				if (this.logs) return;
+@@ -303,6 +312,7 @@ export default class AISessionDetail extends Page {
+ 			const own_dir = AISession.dir_url(session_id).pathname, own = own_dir;   // the slug's folder, or <day>/<uuid>/ when the day index has none
+ 			if (this.filled === own_dir) return;   // the folder event folder_from_day raises runs fill() again: once per folder
+ 			this.filled = own_dir;
++			if (!this.prompt_tail) this.prompt_tail = new SessionTimeline.Tail({ url: own_dir + "prompts.jsonl", on_lines: lines => this.timeline?.prompts(lines) }).live();   // the prompt log, followed live for the Timeline
+ 			if (!this.work){ this.work = true; work = new SessionWork({ dir: own_dir, id: session_id, snap: AISession.all.get(session_id)?.ix ? { id: session_id, ...AISession.all.get(session_id).ix } : null }); $work.append(work); work.loaded.then(() => this.work_ready(work)); }
+ 			const old_dir = () => AISessionDetail.dir_index().then(index => AISessionDetail.dir_of(index, session_id));   // the slow directory.json walk is only the fallback, never in front of the own folder
+ 			const [costs, trace] = await Promise.all([
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index 3406575c5..34f7c787f 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -18,7 +18,7 @@ AISessionFlags.usd_of = r => AISessionRows.claude_usd_of(r);   // flags_of reads
+ import QueryClient from "/framework/ext/Query/QueryClient.js";
+ import Day from "/framework/core/Session/Day.js";
+ import PageWork from "/framework/core/Page/ai/PageWork.js";
+-import Popover from "/framework/ux/Popover/Popover.js";
++import SessionPopover from "./SessionPopover.js";
+ 
+ const sessions_dir = { url: new URL("../sessions/", import.meta.url).href };   // the page's folder: its stylesheet and docs stay beside page.js
+ View.stylesheet(sessions_dir, "sessions.css");
+@@ -215,7 +215,7 @@ export default class AISessionsPage extends Page {
+ 
+ 	/** One full-width sticky row: the range menu, the search box, the Filters menu (everything else the old controls drew). */
+ 	build_header(){
+-		const page = this, pop = (anchor, content, cls) => new Popover({ anchor: anchor.el, role: "dialog", content }).draw().ac("sessions-pop " + cls);
++		const page = this, pop = SessionPopover.open;
+ 		return div.c("sessions-header", () => {
+ 			this.$range_btn = button.c("sessions-hbtn", this.range_label() + " ▾").attr("type", "button").attr("title", "Which days are listed");
+ 			pop(this.$range_btn, function(){
+@@ -731,6 +731,8 @@ export default class AISessionsPage extends Page {
+ 	/** Waits for the session rows before a detail page is built, so its title is the name on the first paint (route() cannot wait). */
+ 	async child(name, levels){
+ 		if (name && !name.includes(".") && !/^\d{4}$/.test(name) && name !== "doc" && name !== "readme"){
++			const full = await AISessionDetail.expand(this.url, name);   // an 8-character short id names the full session: both urls are one page
++			if (full !== name){ (this.folders ??= new Map()).set(name, this.url + full + "/"); return super.child(name, levels); }
+ 			await AISessionDetail.preload(this.url, name);
+ 			(this.folders ??= new Map()).set(name, await AISessionDetail.folder_for(this.url, name));   // route() cannot wait: the session's dated folder is looked up here
+ 		}
+diff --git a/public/framework/ai/AISession/SessionOutlineView.js b/public/framework/ai/AISession/SessionOutlineView.js
+index d284267c4..09b3bf2c2 100644
+--- a/public/framework/ai/AISession/SessionOutlineView.js
++++ b/public/framework/ai/AISession/SessionOutlineView.js
+@@ -43,6 +43,7 @@ export default class SessionOutlineView extends View {
+ 
+ 	draw(){
+ 		const outline = this.outline = this.build();
++		this.on_draw?.(outline);   // the Timeline tab names the same child sessions
+ 		this.empty(() => {
+ 			this.head(outline);
+ 			const kids = outline.groups.filter(g => g.kind === "child");
+diff --git a/public/framework/ai/AISession/SessionPopover.js b/public/framework/ai/AISession/SessionPopover.js
+new file mode 100644
+index 000000000..fa5628f63
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionPopover.js
+@@ -0,0 +1,8 @@
++import Popover from "/framework/ux/Popover/Popover.js";
++
++/** The one way the Sessions pages open a menu from a button: a ux Popover that wears `sessions-pop` (framework/ai/sessions/sessions.css).
++ *  The list header's range and Filters menus and the session page's Timeline filters all call it. `content` runs with the Popover as `this`
++ *  (so it can `this.close()`); `cls` adds a size class such as `sessions-pop-filters`. */
++export default class SessionPopover {
++	static open(anchor, content, cls = ""){ return new Popover({ anchor: anchor.el, role: "dialog", content }).draw().ac("sessions-pop " + cls); }
++}
+diff --git a/public/framework/ai/AISession/SessionTimeline.css b/public/framework/ai/AISession/SessionTimeline.css
+new file mode 100644
+index 000000000..261ebe29b
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionTimeline.css
+@@ -0,0 +1,38 @@
++/* The session page's Timeline tab (SessionTimeline). Prefix stl-. One row per event: time, icon, one line; the list scrolls inside the panel and opens at the bottom. */
++@layer site {
++	.stl { --stl-cols: 3.9rem 1.25rem minmax(0, 1fr); width: 100%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: .5rem; }
++	.stl-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
++	.stl-count { font-size: .85rem; }
++	.stl-list { min-width: 0; max-height: min(72dvh, 70rem); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; border-block: 1px solid var(--mob-line, color-mix(in srgb, var(--ink) 15%, transparent)); }
++	.stl-none { padding: 1rem .25rem; margin: 0; }
++	.stl-day { position: sticky; top: 0; z-index: 1; padding: .2rem .25rem; font-size: .75rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; background: var(--paper, Canvas); color: color-mix(in srgb, var(--ink) 60%, transparent); border-bottom: 1px solid var(--mob-line, color-mix(in srgb, var(--ink) 15%, transparent)); }
++	.stl-row { display: grid; grid-template-columns: var(--stl-cols); align-items: start; column-gap: .5rem; padding: .35rem .25rem; min-width: 0; border-top: 1px solid color-mix(in srgb, var(--ink) 8%, transparent); }
++	.stl-day + .stl-row { border-top: 0; }
++	.stl-sum { display: grid; grid-template-columns: var(--stl-cols); column-gap: .5rem; align-items: start; cursor: pointer; list-style: none; padding: 0; width: auto; min-height: 0; font-size: inherit; color: inherit; background: none; border: 0; border-radius: 0; box-shadow: none; }   /* a summary wears the control box (framework.css control grammar); a row is not a control */
++	.stl-sum::-webkit-details-marker { display: none; }
++	details.stl-row { display: block; }
++	.stl-raw { margin: .35rem 0 .25rem 4.4rem; padding: .4rem .6rem; border-inline-start: 2px solid color-mix(in srgb, var(--ink) 20%, transparent); white-space: pre-wrap; overflow-wrap: anywhere; font-size: .9rem; max-height: 22rem; overflow-y: auto; }
++	.stl-time { white-space: nowrap; font-size: .75rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
++	.stl-icon { font-size: 1.25rem; line-height: 1; width: 1.25rem; text-align: center; color: color-mix(in srgb, var(--ink) 55%, transparent); }
++	.stl-row .soutline-state { font-size: 1.25rem; }
++	.stl-main { min-width: 0; display: flex; flex-direction: column; gap: .05rem; }
++	.stl-line { min-width: 0; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35; }
++	.stl-main:has(.stl-more) .stl-line { -webkit-line-clamp: 1; }   /* a row is at most two lines: a second line (outcome, source) shortens the first */
++	.stl-link { margin-inline-start: .35em; font-weight: 600; }
++	.stl-meta { margin-inline-start: .5em; font-size: .75rem; }
++	.stl-more { font-size: .78rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
++	.stl-prompt .stl-text { font-weight: 600; }
++	.stl-done .stl-icon, .stl-landed .stl-icon { color: var(--ok, #2e9d5b); }
++	.stl-log, .stl-tag, .stl-other { opacity: .75; }
++	.stl-menu { display: flex; flex-direction: column; gap: .15rem; min-inline-size: 14rem; }
++	.stl-filter { display: flex; align-items: center; gap: .5rem; padding: .25rem .25rem; cursor: pointer; font-size: .9rem; }
++	.stl-filter input { flex: none; margin: 0; }
++	.stl-n { margin-inline-start: auto; font-variant-numeric: tabular-nums; }
++	.ux-popover.stl-pop { max-inline-size: min(22rem, calc(100vw - 1rem)); }
++
++	@media (min-width: 900px) {
++		.stl { --stl-cols: 5rem 1.25rem minmax(0, 1fr); }
++		.stl-row, .stl-sum { column-gap: .75rem; }
++		.stl-raw { margin-inline-start: 6.1rem; }
++	}
++}
+diff --git a/public/framework/ai/AISession/SessionTimeline.js b/public/framework/ai/AISession/SessionTimeline.js
+new file mode 100644
+index 000000000..d28ee1f30
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionTimeline.js
+@@ -0,0 +1,132 @@
++import View, { div, span, small, a, p, button, details, summary, label, input, icon } from "/framework/core/View/View.js";
++import JSONL from "/framework/ext/JSONL/JSONL.js";
++import AICost from "../AITask/AICost.js";
++import SessionOutlineView from "./SessionOutlineView.js";
++import SessionPopover from "./SessionPopover.js";
++import SessionTimelineRows from "./SessionTimelineRows.js";
++
++View.stylesheet(import.meta, "SessionTimeline.css");
++
++/** The session page's Timeline tab: everything the session recorded, in time order, newest at the bottom. One compact row per event:
++ *  each line of session.jsonl is one row, each prompt of prompts.jsonl is one row (its raw words one click down), and each child session
++ *  that has landed adds one. `SessionTimelineRows.rows()` builds them with no DOM, so a node test can count them (SessionTimeline.test.mjs).
++ *  Fed by the page, never fetching the record itself: `record(lines)` is the tail SessionTasks already reads, `prompts(lines)` is the
++ *  prompt log's live tail (`SessionTimeline.Tail`), `children(list)` is the Overview's child sessions. Filters ▾ is the Sessions pages' own
++ *  popover (SessionPopover). Readme: ai/AISession/readme.md. */
++export default class SessionTimeline extends View {
++
++	/** The kinds, the hidden ones and the landed states live in SessionTimelineRows; the view uses them by these names. */
++	static KINDS = SessionTimelineRows.KINDS;
++	static HIDDEN = SessionTimelineRows.HIDDEN;
++	static rows = (...a) => SessionTimelineRows.rows(...a);
++	static landed_of = k => SessionTimelineRows.landed_of(k);
++
++	// ---- the view ------------------------------------------------------------------------------------------------------------
++
++	initialize(){
++		this.ac("stl");
++		this.lines = []; this.prompt_lines = []; this.kids = []; this.costs = new Map(); this.seen = new Set(); this.stick = true;
++		setTimeout(() => { this.seen.add("record").add("prompts"); this.later(); }, 4000);   // a missing file may never answer: after this, an empty list says so (a line arriving later still redraws)
++		this.on = new Set(SessionTimeline.KINDS.map(k => k[0]).filter(k => !SessionTimeline.HIDDEN.includes(k)));
++		this.counts = {};
++		this.empty(() => {
++			div.c("stl-head", () => {
++				this.$count = small.c("stl-count muted", "Reading this session's record…");
++				this.$filters = button.c("sessions-hbtn", "Filters ▾").attr("type", "button").attr("title", "Which kinds of event are listed");
++				SessionPopover.open(this.$filters, () => this.filter_menu(), "stl-pop");
++			});
++			this.$list = div.c("stl-list").on("scroll", () => { this.stick = this.at_bottom(); });
++		});
++	}
++
++	filter_menu(){
++		div.c("stl-menu", () => {
++			for (const [kind, text] of SessionTimeline.KINDS) label.c("stl-filter", () => {
++				const box = input().attr("type", "checkbox");
++				box.el.checked = this.on.has(kind);
++				box.on("change", () => { box.el.checked ? this.on.add(kind) : this.on.delete(kind); this.draw(); });
++				span(text);
++				this.counts[kind] = small.c("muted stl-n", "");
++			});
++		});
++	}
++
++	/** The record's lines so far (the page passes SessionTasks' own list, never a second fetch). */
++	record(lines){ this.lines = lines; this.settle("record"); this.later(); }
++	/** The prompt log's lines so far. */
++	prompts(lines){ this.prompt_lines = lines; this.settle("prompts"); this.later(); }
++	/** The Overview's child sessions: their names, state, model and cost for the rows, and which have landed. */
++	children(list){ this.kids = list; this.later(); }
++	/** A source has been looked at, even if it holds nothing: with all of them in and no rows, the empty sentence may show. */
++	settle(source){ this.seen.add(source); }
++
++	later(){ if (this.queued) return; this.queued = setTimeout(() => { this.queued = null; this.draw(); }, 30); }
++	at_bottom(){ const e = this.$list.el; return e.scrollHeight - e.scrollTop - e.clientHeight < 48; }
++	/** The tab was opened: its list is laid out now, so land on the newest row. */
++	shown(){ this.stick = true; this.$list.el.scrollTop = this.$list.el.scrollHeight; }
++
++	draw(){
++		const all = SessionTimeline.rows(this.lines, this.prompt_lines, SessionTimeline.landed_of(this.kids)), per = {};
++		all.forEach(r => per[r.kind] = (per[r.kind] ?? 0) + 1);
++		const rows = all.filter(r => this.on.has(r.kind)), stick = this.stick || this.at_bottom();
++		for (const [kind] of SessionTimeline.KINDS) if (this.counts[kind]) this.counts[kind].el.textContent = per[kind] ?? 0;
++		this.$count.el.textContent = !all.length ? (this.seen.size >= 2 ? "No events" : "Reading this session's record…") : rows.length === all.length ? `${all.length} event${all.length === 1 ? "" : "s"}` : `${rows.length} of ${all.length} events`;
++		this.el.dataset.total = all.length;
++		this.$list.empty(() => {
++			if (!all.length) return void (this.seen.size >= 2 && p.c("muted stl-none", "Nothing is recorded for this session yet: it has no prompts and no record lines."));
++			if (!rows.length) return void p.c("muted stl-none", "Every kind of event is switched off. Turn some on with Filters.");
++			let day = "";
++			for (const r of rows){
++				const d = new Date(r.at), key = d.toDateString();
++				if (key !== day){ day = key; div.c("stl-day", d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })); }
++				this.row(r, d);
++			}
++		});
++		this.el.dataset.rows = rows.length;
++		if (stick) this.$list.el.scrollTop = this.$list.el.scrollHeight;
++	}
++
++	kid(id){ return this.kids.find(c => c.id === id || c.name === id || c.key === id) ?? null; }
++
++	/** The meta of a child row: state, model and the cost line (AICost's, never summed here). */
++	kid_meta(c, id, $el){
++		const url = AICost.session_url(c?.id ?? id), snap = c?.snap, tab = SessionOutlineView.tab_of(snap);
++		const paint = () => { $el.el.textContent = [snap?.state, snap?.model && AICost.model_name(snap.model), AICost.cost_line({ cost: this.costs.get(url) ?? AICost.known_cost(url), own_usd: snap?.usd ?? null, tab }).text].filter(Boolean).join(" · "); };
++		paint();
++		if (c && !this.costs.has(url) && this.kids.length <= SessionOutlineView.ASK_ALL) AICost.summary(url).then(ans => { if (ans?.summary?.cost){ this.costs.set(url, ans.summary.cost); paint(); } });
++	}
++
++	icon_of(kind){
++		if (kind === "done") return SessionOutlineView.state_icon("complete");
++		return icon(SessionTimeline.KINDS.find(k => k[0] === kind)?.[2] ?? "more_horiz").ac("stl-icon");
++	}
++
++	row(r, d){
++		const body = () => {
++			small.c("stl-time muted", d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }));
++			this.icon_of(r.kind);
++			div.c("stl-main", () => {
++				div.c("stl-line", () => {
++					span.c("stl-text", r.children?.length ? r.text + ":" : r.text);
++					(r.children ?? []).forEach((id, i) => {
++						const c = this.kid(id);
++						a.c("stl-link", c?.snap?.title ?? c?.snap?.agent ?? c?.name ?? String(id).slice(0, 36)).href(AICost.session_url(c?.id ?? id));
++						if (i < r.children.length - 1) span(",");
++						if (r.children.length === 1 && c?.snap) this.kid_meta(c, id, small.c("stl-meta muted", ""));
++					});
++				});
++				if (r.more) small.c("stl-more muted", r.more);
++			});
++		};
++		if (r.raw) return details.c("stl-row stl-" + r.kind, () => { summary.c("stl-sum", body); p.c("stl-raw", r.raw); });
++		return div.c("stl-row stl-" + r.kind, body);
++	}
++}
++
++/** The prompt log's live tail: JSONL streams the file, and each batch of lines goes to `on_lines` (the whole history first, then appends). */
++SessionTimeline.Tail = class SessionTimelineTail extends JSONL {
++	lines = [];
++	read(entries){ this.lines.push(...entries); this.on_lines?.(this.lines); return this; }
++	reset(){ this.lines = []; this.on_lines?.(this.lines); return super.reset(); }   // a missing file answers with a reset: that is "looked, nothing there"
++	live(){ super.live(() => {}); return this; }
++};
+diff --git a/public/framework/ai/AISession/SessionTimeline.test.mjs b/public/framework/ai/AISession/SessionTimeline.test.mjs
+new file mode 100644
+index 000000000..5a61b7f47
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionTimeline.test.mjs
+@@ -0,0 +1,77 @@
++// node public/framework/ai/AISession/SessionTimeline.test.mjs — the Timeline's rows: one per record line, one per prompt, one per landed child,
++// counted here by hand, in time order, newest last. The page draws these same rows (data-total), so the two counts must agree.
++import assert from "node:assert/strict";
++import Rows from "./SessionTimelineRows.js";
++
++const at = m => `2026-10-20T20:${String(m).padStart(2, "0")}:00.000Z`;
++
++// session.jsonl: one of each line shape the real records hold (13 lines)
++const record = [
++	{ session: { kind: "voice" }, at: at(0) },
++	{ tasks: { add: [{ id: "t1", title: "Build the tab" }, { id: "t2", title: "Write the test" }] }, at: at(1) },
++	{ task: "/framework/ai/x/child-a/", as: "child-a", type: "Session", spawn: { role: "minion", model: "sonnet" }, at: at(2) },
++	{ sessions: ["child-b", "child-c"], at: at(3) },
++	{ log: "step one done", at: at(4) },
++	{ tag: "timeline", at: at(5) },
++	{ note: "a note", at: at(6) },
++	{ decision: { decision: "use a Tail", why: "no second fetch" }, at: at(7) },
++	{ review: { size: "full", verdict: "ok", findings: [{ n: 1 }, { n: 2 }] }, at: at(8) },
++	{ tasks: { t1: { complete: "built" }, t2: { complete: "tested" } }, at: at(9) },   // two tasks done in ONE line: one row
++	{ commit: { hash: "0123456789abcdef", what: "the tab" }, at: at(10) },
++	{ stop: { why: "waiting" }, at: at(11) },
++	{ log: "a line with no time of its own" },
++];
++// prompts.jsonl: 3 prompts (several stages each), one of them out of order in time
++const prompts = [
++	{ prompt: "p1", stage: "raw", text: "first words", at: at(1) },
++	{ prompt: "p1", stage: "refined", cards: [], subject: "First subject", at: at(1) },
++	{ prompt: "p2", stage: "raw", text: "second words", at: at(5) },
++	{ prompt: "p3", stage: "raw", text: "third words", at: at(0) },
++];
++const landed = [{ id: "child-a", name: "child-a", at: at(10) }];
++
++const rows = Rows.rows(record, prompts, landed);
++
++// the independent count: record lines + distinct prompt ids + landed children
++const expected = record.length + new Set(prompts.map(p => p.prompt)).size + landed.length;
++assert.equal(expected, 17);
++assert.equal(rows.length, expected, "rows drawn with every filter on = lines + prompts + landed");
++
++// time order, oldest first, ties by their original order; the untimed line takes the time of the line before it
++for (let i = 1; i < rows.length; i++) assert.ok(rows[i].at >= rows[i - 1].at, "row " + i + " is not before row " + (i - 1));
++const untimed = rows.find(r => r.text === "a line with no time of its own");
++assert.equal(untimed.at, Date.parse(at(11)));
++
++// the shapes
++const kinds = k => rows.filter(r => r.kind === k);
++assert.equal(kinds("prompt").length, 3);
++assert.equal(kinds("prompt").find(r => r.raw === "first words").text, "First subject");
++assert.equal(kinds("done").length, 1, "two tasks completed in one line are one row");
++assert.match(kinds("done")[0].text, /2 tasks done/);
++assert.equal(kinds("task").length, 1);
++assert.match(kinds("task")[0].text, /2 tasks added/);
++assert.equal(kinds("child").length, 2);
++assert.deepEqual(kinds("child").find(r => r.children.length === 2).children, ["child-b", "child-c"]);
++assert.equal(kinds("landed").length, 1);
++assert.equal(kinds("note").length, 1);
++assert.equal(kinds("decision").length, 1);
++assert.equal(kinds("review").length, 1);
++assert.match(kinds("review")[0].text, /2 findings/);
++assert.equal(kinds("commit").length, 1);
++assert.equal(kinds("session").length, 2, "session started + stopped");
++assert.equal(kinds("log").length, 2);
++assert.equal(kinds("tag").length, 1);
++
++// nothing recorded: no rows, no crash; prompts alone still make rows
++assert.equal(Rows.rows([], [], []).length, 0);
++assert.equal(Rows.rows([], prompts, []).length, 3);
++
++// the default filter hides log and tag lines
++assert.deepEqual(Rows.HIDDEN, ["log", "tag"]);
++assert.equal(rows.filter(r => !Rows.HIDDEN.includes(r.kind)).length, expected - 3);
++
++// landed_of: only children whose snapshot says landed
++const kids = [{ id: "a", name: "a", snap: { state: "complete", last_activity: at(3) } }, { id: "b", name: "b", snap: { state: "running" } }, { id: "c", name: "c", snap: null }, { id: "d", name: "d", snap: { closed: true, first_at: at(4) } }];
++assert.deepEqual(Rows.landed_of(kids).map(k => k.id), ["a", "d"]);
++
++console.log("SessionTimeline.test.mjs ok: " + rows.length + " rows = " + record.length + " lines + 3 prompts + " + landed.length + " landed");
+diff --git a/public/framework/ai/AISession/SessionTimelineRows.js b/public/framework/ai/AISession/SessionTimelineRows.js
+new file mode 100644
+index 000000000..4c33a57c2
+--- /dev/null
++++ b/public/framework/ai/AISession/SessionTimelineRows.js
+@@ -0,0 +1,119 @@
++import PromptLog from "./PromptLog.js";
++
++/** The Timeline's rows, built with no DOM so a node test can count them (SessionTimeline.test.mjs). A record line is one row, a prompt of
++ *  prompts.jsonl is one row, a landed child session is one row; SessionTimeline draws them. Readme: ai/AISession/readme.md. */
++export default class SessionTimelineRows {
++
++	/** [kind, menu label, material icon]; `done` wears SessionOutlineView.state_icon, the Overview's green check. */
++	static KINDS = [
++		["prompt", "Prompts", "record_voice_over"], ["task", "Tasks added and changed", "add_task"], ["done", "Tasks done", "check_circle"],
++		["child", "Child sessions started", "play_circle"], ["landed", "Child sessions landed", "flag"], ["note", "Notes", "sticky_note_2"],
++		["decision", "Decisions", "gavel"], ["review", "Reviews", "rate_review"], ["commit", "Commits", "commit"],
++		["session", "Session start and stop", "power_settings_new"], ["log", "Log lines", "notes"], ["tag", "Tag lines", "sell"], ["other", "Other lines", "more_horiz"],
++	];
++	static HIDDEN = ["log", "tag"];   // off until the reader turns them on
++	static LANDED = ["landed", "complete", "done", "closed"];
++
++	// ---- rows: no DOM, so the test can call them ---------------------------------------------------------------------------------
++
++	static time_of(l){
++		const own = l.at ?? l.ts;
++		if (own) return Date.parse(own) || null;
++		for (const v of Object.values(l)) if (v && typeof v === "object" && !Array.isArray(v) && v.at) return Date.parse(v.at) || null;
++		return null;
++	}
++
++	static clip(s, n = 220){ s = String(s ?? "").replace(/\s+/g, " ").trim(); return s.length > n ? s.slice(0, n - 1) + "…" : s; }
++	static slug_of(path){ return String(path ?? "").split("/").filter(Boolean).pop() ?? ""; }
++
++	/** Every task title the record names (`tasks.add`), id to title: a later line says "done" with only the id. */
++	static titles(lines){
++		const out = new Map();
++		const walk = l => { if (!l || typeof l !== "object") return; for (const x of [].concat(l.tasks?.add ?? [])) if (x?.id && x.title) out.set(x.id, x.title); for (const v of Object.values(l)) if (v && typeof v === "object" && !Array.isArray(v) && v.tasks) walk(v); };
++		lines.forEach(walk);
++		return out;
++	}
++
++	/** One `tasks` line, which may add tasks, finish some and drop others at once, as one row. */
++	static task_row(t, titles){
++		const name = id => SessionTimelineRows.clip(titles.get(id) ?? id, 120), adds = [], done = [], dropped = [], other = [];
++		for (const [id, v] of Object.entries(t)){
++			if (id === "add"){ adds.push(...[].concat(v)); continue; }
++			if (v && typeof v === "object" && "complete" in v) done.push([id, v.complete]);
++			else if (v && typeof v === "object" && "stop" in v) dropped.push([id, v.stop]);
++			else other.push([id, v]);
++		}
++		const list = (names, noun) => names.length === 1 ? names[0] : `${names.length} ${noun}: ${names.slice(0, 2).join("; ")}${names.length > 2 ? ` and ${names.length - 2} more` : ""}`;
++		const also = [done.length && adds.length && `${adds.length} added`, dropped.length && (done.length || adds.length) && `${dropped.length} dropped`, other.length && (done.length || adds.length || dropped.length) && `${other.length} changed`].filter(Boolean).join(", ");
++		const tail = also ? ` (also ${also})` : "";
++		if (done.length){
++			const one = done.length === 1 ? done[0][1] : null, outcome = typeof one === "string" ? one : one?.outcome;
++			return { kind: "done", text: (done.length === 1 ? "Done: " : "") + list(done.map(d => name(d[0])), "tasks done") + tail, more: outcome ? SessionTimelineRows.clip(outcome, 300) : "" };
++		}
++		if (adds.length) return { kind: "task", text: (adds.length === 1 ? "Task added: " : "") + list(adds.map(x => SessionTimelineRows.clip(x.title ?? x.id ?? "untitled", 120)), "tasks added") + tail };
++		if (dropped.length) return { kind: "task", text: (dropped.length === 1 ? "Dropped: " : "") + list(dropped.map(d => name(d[0])), "tasks dropped") + tail, more: dropped.length === 1 && typeof dropped[0][1] === "string" ? SessionTimelineRows.clip(dropped[0][1], 300) : "" };
++		const first = other[0]?.[1], note = first && typeof first === "object" ? first.note ?? first.now ?? first.waiting_on : null;
++		return { kind: "task", text: "Task update: " + list(other.map(d => name(d[0])), "tasks"), more: other.length === 1 && note ? SessionTimelineRows.clip(typeof note === "string" ? note : JSON.stringify(note), 300) : "" };
++	}
++
++	/** One record line to one row `{ kind, at, text, more?, children? }`. `children` are the child sessions the row names (linked when drawn). */
++	static row(l, titles){
++		const at = SessionTimelineRows.time_of(l), clip = SessionTimelineRows.clip, str = v => typeof v === "string" ? v : v?.msg ?? v?.text ?? v?.title ?? v?.about ?? v?.id ?? "";
++		if (l.tasks && typeof l.tasks === "object") return { ...SessionTimelineRows.task_row(l.tasks, titles), at };
++		if (typeof l.task === "string"){
++			const id = l.as ?? SessionTimelineRows.slug_of(l.task);
++			if (l.type === "Session" || l.spawn) return { kind: "child", at, text: "Child session started", children: [id], more: [l.spawn?.role, l.spawn?.model].filter(Boolean).join(" · ") };
++			return { kind: "task", at, text: "Task linked: " + id, more: l.moved_from ? "moved here" : "" };
++		}
++		if (Array.isArray(l.sessions)){
++			const ids = l.sessions.map(s => typeof s === "string" ? s : s?.id).filter(Boolean);
++			return { kind: "child", at, text: ids.length > 1 ? `${ids.length} child sessions started` : "Child session started", children: ids };
++		}
++		if (l.decide) return { kind: "task", at, text: `Owner ${l.decide.is}: ${clip(titles.get(l.decide.task) ?? l.decide.task, 120)}`, more: l.decide.note ? clip(l.decide.note) : "" };
++		if (l.tag !== undefined) return { kind: "tag", at, text: "Tag: " + str(l.tag) };
++		if (l.log !== undefined) return { kind: "log", at, text: clip(str(l.log)) };
++		if (l.note !== undefined) return { kind: "note", at, text: clip(str(l.note)) };
++		if (l.decision !== undefined) return { kind: "decision", at, text: "Decision: " + clip(str(l.decision)), more: typeof l.decision === "object" ? clip(l.decision.decision ?? l.decision.chose ?? l.decision.why ?? "", 300) : "" };
++		if (l.review !== undefined){
++			const r = l.review, n = Array.isArray(r?.findings) ? r.findings.length : 0;
++			return { kind: "review", at, text: `Review${r?.size ? " (" + r.size + ")" : ""}: ${r?.verdict ?? "recorded"} · ${n} finding${n === 1 ? "" : "s"}` };
++		}
++		if (l.commit !== undefined) return { kind: "commit", at, text: `Commit ${String(l.commit?.hash ?? "").slice(0, 8)}: ${clip(l.commit?.what ?? "", 200)}` };
++		if (l.content !== undefined){ const x = l.content.add ?? l.content; return { kind: "note", at, text: `${x?.type ?? "Content"}: ${clip(x?.text ?? x?.title ?? "")}` }; }
++		if (l.stop !== undefined) return { kind: "session", at, text: "Session stopped" + (l.stop?.why ? ": " + clip(l.stop.why, 160) : "") };
++		if (l.start !== undefined) return { kind: "session", at, text: "Session resumed" };
++		if (l.landed_at !== undefined) return { kind: "session", at, text: "Landed" + (l.outcome ? ": " + clip(l.outcome, 200) : "") };
++		if (l.session && typeof l.session === "object") return { kind: "session", at, text: "Session started" + (l.session.kind ? " (" + l.session.kind + ")" : "") };
++		if (l.assign !== undefined || l.agent !== undefined) return { kind: "session", at, text: "Agent assigned" + (l.assign?.role ? ": " + l.assign.role : "") };
++		if (typeof l.msg === "string") return { kind: SessionTimelineRows.KINDS.some(k => k[0] === l.type) ? l.type : "log", at, text: clip(l.msg) };
++		const inner = Object.values(l).find(v => v && typeof v === "object" && !Array.isArray(v) && (v.tasks || typeof v.task === "string"));
++		if (inner) return { ...SessionTimelineRows.row(inner, titles), at: at ?? SessionTimelineRows.time_of(inner) };
++		const key = Object.keys(l).find(k => !["by", "ts", "at"].includes(k)) ?? "line";
++		return { kind: "other", at, text: key + ": " + clip(typeof l[key] === "string" ? l[key] : JSON.stringify(l[key]), 160) };
++	}
++
++	/** Every row, oldest first: one per record line, one per prompt in the log (`PromptLog.fold` of its lines), one per landed child
++	 *  (`landed`: `[{ id, name, at }]`). A line with no time of its own takes the time of the line before it; the sort is stable. */
++	static rows(lines = [], prompt_lines = [], landed = []){
++		const titles = SessionTimelineRows.titles(lines), out = [];
++		let last = null;
++		lines.forEach((l, n) => {
++			const r = SessionTimelineRows.row(l, titles);
++			if (r.at == null) r.at = last; else last = r.at;
++			out.push({ ...r, n });
++		});
++		const first = out.find(r => r.at != null)?.at ?? 0;
++		out.forEach(r => { r.at ??= first; });
++		for (const pr of Object.values(PromptLog.fold(prompt_lines))){
++			const raw = pr.raw ?? pr.clean.join(" ");
++			out.push({ kind: "prompt", at: Date.parse(pr.at) || first, text: SessionTimelineRows.clip(pr.subject || raw || "(empty prompt)", 160), raw: raw ?? "", n: out.length });
++		}
++		for (const c of landed) out.push({ kind: "landed", at: Date.parse(c.at) || first, text: "Child session landed", children: [c.id ?? c.name], n: out.length });
++		return out.sort((x, y) => x.at - y.at || x.n - y.n);
++	}
++
++	/** The child sessions that have landed, from the Overview's child list (SessionOutline.children().list). */
++	static landed_of(kids){
++		return kids.filter(c => c.snap && (c.snap.closed || SessionTimelineRows.LANDED.includes(c.snap.state))).map(c => ({ id: c.id ?? c.key, name: c.name, at: c.snap.last_activity ?? c.snap.first_at }));
++	}
++}
+diff --git a/public/framework/ai/AISession/StoreFolder.js b/public/framework/ai/AISession/StoreFolder.js
+index 90243a566..86893689e 100644
+--- a/public/framework/ai/AISession/StoreFolder.js
++++ b/public/framework/ai/AISession/StoreFolder.js
+@@ -29,12 +29,12 @@ export default class StoreFolder extends Page {
+ 	    log (Server/TaskMove.mjs writes it; Server/TaskDirs.mjs redirect() is the node twin), because route() must answer now. */
+ 	static moved(url){
+ 		if (!this._moves){
+-			this._moves = new Map();
++			this._moves = new Map(); this._task_dirs = new Set();   // _task_dirs: where a moved TASK now lives (a redirect's target is a session folder, never a task)
+ 			const x = new XMLHttpRequest();
+ 			x.open("GET", "/framework/ai/sessions/task-moves.jsonl", false);
+ 			try { x.send(); } catch {}
+ 			if (x.status === 200 && !(x.getResponseHeader("content-type") ?? "").includes("html"))
+-				for (const l of x.responseText.split("\n")) try { const e = JSON.parse(l); if (e.from && e.to && !e.undone && e.kind !== "stub") this._moves.set("/" + e.from.replace(/^public\//, ""), "/" + e.to.replace(/^public\//, "")); } catch {}
++				for (const l of x.responseText.split("\n")) try { const e = JSON.parse(l); if (e.from && e.to && !e.undone && e.kind !== "stub"){ this._moves.set("/" + e.from.replace(/^public\//, ""), "/" + e.to.replace(/^public\//, "")); if (e.kind !== "redirect") this._task_dirs.add("/" + e.to.replace(/^public\//, "")); } } catch {}
+ 		}
+ 		const m = /^(\/framework\/ai\/\d{4}-\d{2}-\d{2})(\/[^/]+)?/.exec(url);
+ 		if (!m) return null;
+@@ -91,7 +91,7 @@ export default class StoreFolder extends Page {
+ 			try { x.send(); } catch {}
+ 			let pages = [];
+ 			if (x.status === 200 && !(x.getResponseHeader("content-type") ?? "").includes("html")) try { pages = JSON.parse(x.responseText).pages ?? []; } catch {}
+-			this._known = { tasks: new Set(this._moves.values()), pages: new Set(pages.map(u => u.replace(/\/$/, ""))) };
++			this._known = { tasks: new Set(this._task_dirs), pages: new Set(pages.map(u => u.replace(/\/$/, ""))) };
+ 		}
+ 		return this._known;
+ 	}
+diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
+index a31946d95..0877d3b03 100644
+--- a/public/framework/ai/AISession/readme.md
++++ b/public/framework/ai/AISession/readme.md
+@@ -7,7 +7,8 @@
+ - `new AISessionsPage({ meta, classic: true })` draws the old all-controls-in-rows layout (`sessions/v/classic/`); its `data_url` getter strips a trailing `v/classic/` so every data file and row link still points at the real list.
+ - A rail card (`AISessionView` with `card: true`) shows four things: title, the one cost line, "N child sessions · M in all" and state. The rail lists root sessions only: `AISessionsPage.roots_for_cards` hides a row whose parent is in the list, and switching Table/Rail re-applies the grid.
+ - `AISessionDetail.js` · `AISessionConversation.js` · `AISessionCoverage.js` · `AISessionTrace.js` — a session's own page and its tabs. A clicked row opens that session's full page in place of the list (previews plus full detail views: [design/navigation](/framework/design/navigation/readme.md)); the sessions page no longer calls `columns()`. A named agent's url (`/framework/ai/sessions/<name>/`, a `reviewer-*` or `minion-*` row) resolves the name to its session through Servex's live agent list (`AISessionDetail.agent_row`), and every load asks the folder listing first, so the page never asks for a file that is not there.
+-- The session page's tabs are **Overview · Board · Tasks · Chat**, then Coverage, Cost, Models and tokens, Related. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, done X of Y, the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's cost is one line from one function, `AICost.cost_line`: "$282 this tab · $1035 with children"** ("this session" when it is not a VS Code tab). The Cost tile, the Sessions list's Cost cell and its rail card all draw it. The own figure is the summary's `cost.own.usd` (before it arrives, the day snapshot's `usd`); "with children" is `summary.cost.total`, which the item tool computes (`AICost.summary(AICost.session_url(id))`, one cached answer per session for every surface), never `SessionWork`'s own sum. The list never asks for every row: it shows an answer already here, else a small "with children …" button that asks for that one row. Clicking the Cost tile opens the Cost tab, whose first block lists every child session behind the total (`AICost.draw_session`). **The Overview tab is `SessionOutlineView.js` (+ `SessionOutline.css`, prefix `soutline-`), drawn from `SessionOutline.js`, which has no DOM and is tested by `node SessionOutline.test.mjs`.** It groups the session's work by child session: one box per child (name linking to that child's own page, state, model, an `AICost` cost line, "N of M done") holding the tasks whose folder is the child's or below it, then "This session's own work", sub-grouped by the prompt that asked for it (`SessionOutline.source(session)` is the one place that join lives) with "Other work" for the rest. The children are the union, de-duplicated by session id, of the `sessions` lines of `session.jsonl`, the tree nodes that carry `session`, the day snapshot's `links.children`, and the snapshots whose `parent` is this session's agent; groups are ranked by cost × 0.5^(age days ÷ 2) plus recency, with a "newest first" toggle. A task is one full-width row (open, running, done and dropped icons; the child session's model, cost and state; subtasks folded in), and a done task opens its proof in place. The rows are the Overview's own markup (`SessionOutlineView.item`), not `TaskView`: they carry no start/pause/stop buttons (those live on `TaskView` rows in the Tasks tab), and a folder-only task has no `Task` object for `TaskView` to draw. `SessionTasks` hands it each replay through `on_session`, and the view redraws live. `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the older flat list and is no longer wired in. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
++- The session page's tabs are **Overview · Timeline · Board · Tasks · Chat**, then Coverage, Cost, Models and tokens, Related. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, done X of Y, the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's cost is one line from one function, `AICost.cost_line`: "$282 this tab · $1035 with children"** ("this session" when it is not a VS Code tab). The Cost tile, the Sessions list's Cost cell and its rail card all draw it. The own figure is the summary's `cost.own.usd` (before it arrives, the day snapshot's `usd`); "with children" is `summary.cost.total`, which the item tool computes (`AICost.summary(AICost.session_url(id))`, one cached answer per session for every surface), never `SessionWork`'s own sum. The list never asks for every row: it shows an answer already here, else a small "with children …" button that asks for that one row. Clicking the Cost tile opens the Cost tab, whose first block lists every child session behind the total (`AICost.draw_session`). **The Overview tab is `SessionOutlineView.js` (+ `SessionOutline.css`, prefix `soutline-`), drawn from `SessionOutline.js`, which has no DOM and is tested by `node SessionOutline.test.mjs`.** It groups the session's work by child session: one box per child (name linking to that child's own page, state, model, an `AICost` cost line, "N of M done") holding the tasks whose folder is the child's or below it, then "This session's own work", sub-grouped by the prompt that asked for it (`SessionOutline.source(session)` is the one place that join lives) with "Other work" for the rest. The children are the union, de-duplicated by session id, of the `sessions` lines of `session.jsonl`, the tree nodes that carry `session`, the day snapshot's `links.children`, and the snapshots whose `parent` is this session's agent; groups are ranked by cost × 0.5^(age days ÷ 2) plus recency, with a "newest first" toggle. A task is one full-width row (open, running, done and dropped icons; the child session's model, cost and state; subtasks folded in), and a done task opens its proof in place. The rows are the Overview's own markup (`SessionOutlineView.item`), not `TaskView`: they carry no start/pause/stop buttons (those live on `TaskView` rows in the Tasks tab), and a folder-only task has no `Task` object for `TaskView` to draw. `SessionTasks` hands it each replay through `on_session`, and the view redraws live. `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the older flat list and is no longer wired in. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
++- **The Timeline tab** (`?tab=timeline`) is `SessionTimeline.js` (+ `SessionTimeline.css`, prefix `stl-`): everything the session recorded in time order, newest at the bottom, the list opening scrolled to the bottom. One compact row per event (time, icon, one or two lines): each line of `session.jsonl` is one row (task added and done, child session started, note, decision, review, commit, session start and stop, log and tag lines), each prompt of `prompts.jsonl` is one row (its subject, the raw words one click down), and each child session that has landed adds one (name linked with `AICost.session_url`, its state, model and `AICost.cost_line`, never summed here). The rows are built with no DOM by `SessionTimelineRows.js`, tested by `node SessionTimeline.test.mjs` (rows drawn = record lines + distinct prompts + landed children, counted by hand on a fixture; the page shows the same number as `data-total`). It fetches nothing of its own for the record: `AISessionDetail` feeds it `SessionTasks`' replay (`on_session(session, lines)`), the Overview's child list (`SessionOutlineView`'s `on_draw`) and its own prompt tail (`SessionTimeline.Tail`, a `JSONL` that follows `prompts.jsonl`), so new lines appear without a reload. **Filters ▾** is a checkbox per kind in the same popover the Sessions list header uses (`SessionPopover.open(anchor, content, cls)`, which wraps `ux/Popover` and the `sessions-pop` skin); log and tag lines are off until ticked. With no record the tab shows the prompts alone, or one plain sentence.
+ - `SessionWork.js` (+ `.css`) — the **Tasks** tab (the old Work view; its `SessionWork.split(root)` also feeds the stats bar and the Overview): its work nested by task folder (`sessions/doc/variants/SessionTree.js` over `ai/index.json`), own and rolled cost, tasks complete of created, open tasks, the Today ▾ pill (`ux/Filter/TimeFilter`), Approve. `Approvals.js` writes `{"approve":{"at","by":"owner"}}` to the session's own `session.jsonl` plus a pointer in that day's `day.jsonl` (the line the tab streams); `Review.js` is the leak rule and its numbers (finished 1 h, over $0.50, over a day old).
+ - `AISessionLive.js` · `AISessionFollow.js` · `AISessionResume.js` · `AISessionFlags.js` — live tail, follow, resume, flags.
+ - `AISessionDigest.mjs` — one transcript boiled down by plain Node: sizes, exact cost, owner prompts, result, `digest.json` and procedural `tags()` ([round 4](sessions/2026/10/16/voice-20261016/past-work/round4-result.md)).
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 7eeb0f9f9..b7665f8e4 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -55,7 +55,7 @@ A session folder is one of three kinds:
+ 
+ - **The page**: `page.js` builds `AISessionsPage` (`ai/AISession/`), a table or rail of cards over [ext/DataGrid](/framework/ext/DataGrid/). Rows are `AISessionView`, order and nesting `AISessionsPage.arrange()`, built from `session-tree.json` plus the live `index.json` snapshots pushed over the page's socket.
+ - **A year, month or day folder** (`/framework/ai/sessions/2026/10/`): `StoreFolder.sessions` (`ai/AISession/StoreFolder.js`). A year lists its months and a month its days, each with its session count and cost from the rolled-up `index.json`; a day lists its sessions. A folder with no rolled-up `index.json` says so in words (it is asked for only when the folder listing shows one).
+-- **One session**: its dated folder, `/framework/ai/sessions/YYYY/MM/DD/<folder>/` → `AISessionDetail` (drawn there by `StoreFolder.child()`; `/framework/ai/sessions/<id>/` only redirects to it, and stays the page for a session with no folder yet; links use `AISession.page_url()`; [core/Session/doc/identity.md](/framework/core/Session/doc/identity.md), "One session, one folder, one URL"): a sticky stats bar, then the tabs Overview (the session's work grouped by child session, each child's name linking to its own page, then the session's own work grouped by prompt: `SessionOutlineView`) · Board (the four cards: open, project, done, dropped) · Tasks · Chat (the Work view is the Tasks tab; `?tab=work` and `?tab=conversation` still map), then Coverage, Cost and the rest. The stats bar reads `SessionWork`'s task tree; files `SessionOverview`, `SessionStats`, `SessionTaskRow` are in [AISession](/framework/ai/AISession/readme.md). Coverage tab: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md).
++- **One session**: its dated folder, `/framework/ai/sessions/YYYY/MM/DD/<folder>/` → `AISessionDetail` (drawn there by `StoreFolder.child()`; `/framework/ai/sessions/<id>/` only redirects to it, and stays the page for a session with no folder yet; links use `AISession.page_url()`; [core/Session/doc/identity.md](/framework/core/Session/doc/identity.md), "One session, one folder, one URL"): a sticky stats bar, then the tabs Overview (the session's work grouped by child session, each child's name linking to its own page, then the session's own work grouped by prompt: `SessionOutlineView`) · Timeline (every prompt and record line in time order, newest last, Filters ▾: `SessionTimeline`) · Board (the four cards: open, project, done, dropped) · Tasks · Chat (the Work view is the Tasks tab; `?tab=work` and `?tab=conversation` still map), then Coverage, Cost and the rest. The stats bar reads `SessionWork`'s task tree; files `SessionOverview`, `SessionStats`, `SessionTaskRow` are in [AISession](/framework/ai/AISession/readme.md). Coverage tab: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md).
+ - **The header**: the list has one sticky header (a Today/Yesterday/7-day/month/custom range menu, the search box, and a Filters menu holding the Table/Rail toggle, chips, page links and counts); [v/classic/](/framework/ai/sessions/v/classic/) is the old all-controls-in-rows layout.
+ - **The cards**: the Rail view draws one short card per root session (`AISessionView` with `card: true`): the title on one line, the cost line from `AICost.cost_line`, then its state with "N child sessions · M in all". A session whose parent is in the list shows only in that parent's count (`AISessionsPage.roots_for_cards`); the Table view keeps the nesting.
+ - **The class**: `class AISession extends Session` (`AISession.js`): totals, `apply_line()` per transcript line, `AISession.of(id)`, `AISession.log()`, `AISession.record(id)`. Classes of the detail page: [doc/ui/classes.md](doc/ui/classes.md).
+diff --git a/public/framework/core/Session/SessionTasks.js b/public/framework/core/Session/SessionTasks.js
+index 1491b7db3..b7e170189 100644
+--- a/public/framework/core/Session/SessionTasks.js
++++ b/public/framework/core/Session/SessionTasks.js
+@@ -20,7 +20,7 @@ export default class SessionTasks extends JSONL {
+ 
+ 	draw(){
+ 		const Class = this.session_class ?? Session, s = Class.replay(this.lines), all = [...(s._tasks ?? [])];
+-		this.on_session?.(s);   // the session page's Overview list reads the same replay
++		this.on_session?.(s, this.lines);   // the session page's Overview list and Timeline read the same replay and lines
+ 		// A stopped task was dropped on purpose (noise, superseded, rejected): folded at the end and left out of the count (Task.progress_of).
+ 		const tasks = all.filter(t => t.state !== "stopped"), stopped = all.filter(t => t.state === "stopped");
+ 		this.$box?.empty(() => {
+diff --git a/public/framework/styles/css-scopes.txt b/public/framework/styles/css-scopes.txt
+index 606fcb8a7..02775f713 100644
+--- a/public/framework/styles/css-scopes.txt
++++ b/public/framework/styles/css-scopes.txt
+@@ -269,3 +269,4 @@ mob-
+ sov-
+ sw-
+ soutline-
++stl-
