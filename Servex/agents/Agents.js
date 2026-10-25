@@ -743,10 +743,18 @@ export class Agents {
 	logged_cost(id){ return this.log_cost(id).cost; }
 
 	/* { cost, sdk_total } from the agent's log: its turns rebuilt by turn_costs() (turn-costs.js says why a log needs rebuilding). */
+	// Kept per log until its size or mtime changes: a session's item() read asks this once per task and once per child agent,
+	// and re-reading 11 MB of logs each time took 21 s for session-e00f55c9 (312 tasks, 71 agents; 2026-10-24).
 	log_cost(id){
-		let text; try { text = fs.readFileSync(this.store().file(`agent-${id}`).path, "utf8"); } catch { return { cost: 0, sdk_total: 0 }; }
+		const file = this.store().file(`agent-${id}`).path;
+		let st; try { st = fs.statSync(file); } catch { return { cost: 0, sdk_total: 0 }; }
+		const hit = (this._log_costs ??= new Map()).get(file);
+		if (hit && hit.size === st.size && hit.mtime === st.mtimeMs) return hit.out;
+		let text; try { text = fs.readFileSync(file, "utf8"); } catch { return { cost: 0, sdk_total: 0 }; }
 		const { turns, sdk_total } = turn_costs(text, { openrouter: this.reg().read()[id]?.provider === "openrouter" });
-		return { cost: turns.reduce((n, t) => n + t.cost, 0), sdk_total };
+		const out = { cost: turns.reduce((n, t) => n + t.cost, 0), sdk_total };
+		this._log_costs.set(file, { size: st.size, mtime: st.mtimeMs, out });
+		return out;
 	}
 	interrupt(id){ return this.get(id).interrupt(); }
 	/* Continue (+$5) on a spend-gate card: raise the allowance and send the agent on its

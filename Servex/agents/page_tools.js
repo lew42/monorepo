@@ -68,6 +68,7 @@ function resolve_file(url, item = false){
  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
  * resolves the plain way above. Returns { file, target } or null. */
 const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
+const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary"];   // Task.queries: answered from the record, never written
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 async function resolve(url, target = [], item = false){
@@ -916,8 +917,15 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	url ??= own_page(ctx);
 	let caller_log = ctx.caller_log ?? null;
 	try { caller_log ??= ctx.resolve_log?.(ctx.caller) ?? null; } catch { caller_log = null; }   // a broken resolver never breaks the call
-	const at = await resolve(url, target, true);
+	let at = await resolve(url, target, true);
 	if (!at) return { ok: false, why: `"${url}" is not a page under public/` };
+	// A session route's file is its page.jsonl (cards, tabs). A READ or a query there asks about the session itself, so it reads the record
+	// beside it, session.jsonl: cost, span, children, counts (core/Session/readme.md, "What item() answers"). Writes still go to the page.
+	const routed = SESSION_ROUTE.exec(String(url ?? ""));
+	if (routed && !/^\d{4}$/.test(routed[1]) && !at.target.length && path.basename(at.file) === "page.jsonl" && (delta === undefined || (is_plain(delta) && Object.keys(delta).length && Object.keys(delta).every(k => SESSION_QUERIES.includes(k))))){
+		const record = path.join(path.dirname(at.file), "session.jsonl");
+		if (fs.existsSync(record)) at = { file: record, target: [] };
+	}
 
 	const kind = class_of(at.file);
 	const Class = LOADERS[kind] ? await LOADERS[kind]().catch(() => null) : null;

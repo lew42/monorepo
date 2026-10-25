@@ -16,17 +16,25 @@ export default class SessionTree {
 		return Promise.all([this.cache.index, this.cache[day]]);
 	}
 
+	// A folder named for its session (session-e00f55c9, mastermind-x-1a2b3c4d, or the uuid) is that session on any day; a plain name (feedback-council) is reused by unrelated work.
+	static SAME = /(^|-)[0-9a-f]{8}(-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?$/;
+
 	// `day` is "2026/10/20", `folder` the session folder name.
 	static async load(day, folder){
 		const [index, dayix] = await this.files(day);
 		const base = `public/framework/ai/sessions/${day}/${folder}`;
-		const rows = index.tasks.filter(t => t.dir === base || t.dir.startsWith(base + "/"));
+		// A session resumed days later could get a second folder of the same name under the later day (DatedFiles.session_dir looked back
+		// only 4 days until 2026-10-24): its tasks are this session's too, filed under "<day>/" so two days' folders never share a rel.
+		const bases = [base, ...(this.SAME.test(folder) ? [...new Set(index.tasks.map(t => /^public\/framework\/ai\/sessions\/\d{4}\/\d\d\/\d\d\/[^/]+/.exec(t.dir)?.[0]))].filter(b => b && b !== base && b.endsWith("/" + folder)).sort() : [])];
+		const home = dir => bases.find(b => dir === b || dir.startsWith(b + "/"));
+		const rows = index.tasks.filter(t => home(t.dir));
 		const snap = dayix.snapshots.find(s => s.folder === folder) ?? null;
-		const own = rows.find(r => r.dir === base);
-		const root = new SessionTree.Node({ rel: "", title: snap?.title ?? own?.title ?? folder, state: own?.state ?? snap?.state ?? "unknown", url: `/framework/ai/sessions/${day}/${folder}/`, started: snap?.first_at ?? own?.started, ended: snap?.last_activity ?? own?.last, session: true });
+		const own = rows.find(r => r.dir === base), owns = rows.filter(r => bases.includes(r.dir));
+		const latest = [snap?.last_activity ?? own?.last, ...owns.map(r => r.last)].filter(Boolean).sort((a, b) => Date.parse(a) - Date.parse(b)).at(-1);
+		const root = new SessionTree.Node({ rel: "", title: snap?.title ?? own?.title ?? folder, state: own?.state ?? snap?.state ?? "unknown", url: `/framework/ai/sessions/${day}/${folder}/`, started: snap?.first_at ?? own?.started, ended: latest, session: true, folders: bases.map(b => "/" + b.slice("public/".length) + "/") });
 		const nodes = new Map([["", root]]);
-		rows.filter(r => r !== own).sort((a, b) => a.dir.length - b.dir.length || String(a.started).localeCompare(String(b.started))).forEach(r => {
-			const rel = r.dir.slice(base.length + 1);
+		rows.filter(r => !owns.includes(r)).sort((a, b) => a.dir.length - b.dir.length || String(a.started).localeCompare(String(b.started))).forEach(r => {
+			const b = home(r.dir), rel = (b === base ? "" : b.slice("public/framework/ai/sessions/".length, -folder.length)) + r.dir.slice(b.length + 1);
 			const kid = r.session && r.session !== snap?.id ? dayix.snapshots.find(x => x.id === r.session) : null;   // the agent session that did this task
 			const node = new SessionTree.Node({ rel, title: r.title, state: r.state, url: r.url, started: r.started, ended: r.landed_at ?? r.last, landed: !!r.landed_at, line: r.line, agent: r.agent, session: r.session ?? null, snap: kid, usd: kid?.usd ?? null, model: kid?.model ?? null });
 			let up = rel; do { up = up.includes("/") ? up.slice(0, up.lastIndexOf("/")) : ""; } while (!nodes.has(up));   // the nearest folder above that is itself a task
