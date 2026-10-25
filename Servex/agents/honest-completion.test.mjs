@@ -10,7 +10,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".
 const REL = "public/framework/ai/sessions/2026/10/16/.honest-test-" + process.pid;
 const SESSION = path.join(ROOT, REL), TASK = path.join(SESSION, "child"), PARENT_LOG = path.join(SESSION, "session.jsonl"), FILE = path.join(TASK, "task.jsonl");
 const URL = "/" + REL.slice("public/".length) + "/child/";
-const call = delta => run_item({ path: URL, delta }, { caller: "t1" });
+// A write answers {ok, ids, line, now}; the picture after it is a separate read (session-is-a-task item 12).
+const call = async delta => { const r = await run_item({ path: URL, delta }, { caller: "t1" }); return r.ok && r.line ? { ...r, state: (await run_item({ path: URL }, { caller: "t1" })).state } : r; };
 const lines = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
 
 fs.mkdirSync(TASK, { recursive: true });

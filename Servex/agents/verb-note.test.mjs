@@ -8,7 +8,8 @@ import { run_item } from "./page_tools.js";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const REL = "public/framework/ai/sessions/2026/10/16/.verb-note-test-" + process.pid;
 const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "task.jsonl"), URL = "/" + REL.slice("public/".length) + "/";
-const call = delta => run_item({ path: URL, delta }, { caller: "t1" });
+// A write answers {ok, ids, line, now}; the picture after it is a separate read (session-is-a-task item 12).
+const call = async delta => { const r = await run_item({ path: URL, delta }, { caller: "t1" }); return r.ok && r.line ? { ...r, state: (await run_item({ path: URL }, { caller: "t1" })).state } : r; };
 
 fs.mkdirSync(DIR, { recursive: true });
 fs.writeFileSync(FILE, JSON.stringify({ assign: { slug: "fixture", title: "Fixture" } }) + "\n");
