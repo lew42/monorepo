@@ -1,0 +1,873 @@
+diff --git a/.gitignore b/.gitignore
+index 248196a14..142bfad5c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -119,6 +119,10 @@ scratch*.json
+ # Servex machine state, regenerated continuously — not a record (2026-10-07, clean-tree pass)
+ public/framework/ai/openrouter-usage.json
+ public/framework/ai/servex-queue.json
++# the dropped-work snapshot Servex/Dropped.js rewrites every task-loop tick (2026-10-25); the "Dropped" lines it writes into task logs are the record
++public/framework/ai/queue/dropped.json
++# the Haiku "marked done, not done" verdicts Server/DoneCheck.mjs writes (2026-10-25); flagged asks also get a line in the log that holds the task
++public/framework/ai/queue/done-check.json
+ 
+ # Session class machine state (Server/session-summary.mjs writes these)
+ public/framework/ai/sessions/session-index.json
+diff --git a/Server/DoneCheck.mjs b/Server/DoneCheck.mjs
+new file mode 100644
+index 000000000..1241137cd
+--- /dev/null
++++ b/Server/DoneCheck.mjs
+@@ -0,0 +1,104 @@
++#!/usr/bin/env node
++/**
++ * class DoneCheck — "marked done, not done" (completion item 4, doc: public/framework/core/Task/doc/completion.md).
++ * Every COMPLETED owner ask that claims proof (an outcome and evidence) is checked twice:
++ *   1. code: each piece of evidence that names a repo path or a commit must exist (`evidence_missing`);
++ *   2. one Haiku call per batch of 25: does the outcome answer what the owner asked (the task title, and its `expected` lines)? ok | not-done | unclear.
++ * A `not-done` or missing-evidence ask gets ONE log line in the log that holds the task (`{log:{msg, done_check, url, id}}`); the list goes to
++ * queue/done-check.json (gitignored; the queue page reads it). Nothing is reopened or edited: the owner reopens from the page (Task `start` from complete).
++ *
++ *   node Server/DoneCheck.mjs --dry            how many asks would be sent, and the cost estimate
++ *   node Server/DoneCheck.mjs [--limit 100]    check the asks not yet checked (a verdict is kept per ask+outcome), at most --limit of them
++ *   node Server/DoneCheck.mjs --list           print the flagged asks from the last run
++ */
++import fs from "node:fs";
++import path from "node:path";
++import { spawnSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++import Dropped from "../Servex/Dropped.js";
++import PromptRecords from "./PromptRecords.mjs";
++import PromptAudit from "./PromptAudit.mjs";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++
++export default class DoneCheck {
++
++	static MODEL = "claude-haiku-5-5";
++	static BATCH = 25;   // asks per call: well under 60k tokens
++	static OUT = "public/framework/ai/queue/done-check.json";
++	static SYSTEM = `You check whether finished work answers what the owner asked. For each item you get "ask" (the owner's request as a task title, with the "expected" lines when there are some), "outcome" (what the agent says is now true) and "evidence" (what it points to).
++Answer ok when the outcome plausibly delivers what the ask wants, even if worded differently. Answer not-done when the outcome is about something else, is only a plan, a note or a partial step, or leaves out the main thing asked. Answer unclear only when the ask is too vague to judge.
++Reply with ONE JSON object and nothing else: {"verdicts":[{"n":<item number>,"verdict":"ok"|"not-done"|"unclear","why":"<one short sentence>"}]} with one entry per item.`;
++
++	constructor(opts = {}){
++		Object.assign(this, { root: ROOT, limit: Infinity, dry: false, ask: (p, o) => PromptRecords.ask(p, o), clock: () => Date.now() }, opts);
++		this.out = path.join(this.root, DoneCheck.OUT);
++		this.dropped = new Dropped({ root: this.root, clock: this.clock });
++	}
++
++	key(a){ return `${a.url}#${a.id}:${a.outcome.slice(0, 80)}`; }
++
++	read_out(){ try { return JSON.parse(fs.readFileSync(this.out, "utf8")); } catch { return { checked: {}, flagged: [] }; } }
++
++	/** Code check: does every path or commit in the evidence exist? Returns the evidence items that name something missing. */
++	missing_evidence(a){
++		return a.evidence.map(String).filter(e => {
++			if (/^[0-9a-f]{7,40}$/.test(e)) return spawnSync("git", ["cat-file", "-e", e + "^{commit}"], { cwd: this.root, windowsHide: true }).status !== 0;
++			const m = e.match(/^(\/[\w.\-\/]+|(?:public|Server|Servex|\.claude)\/[\w.\-\/]+)(?:[:#].*)?$/);
++			if (!m) return false;   // prose, a test name, a URL or a module-relative path: not checkable by code
++			const rel = m[1].replace(/^\/+/, "");
++			return !["", "public"].some(base => fs.existsSync(path.join(this.root, base, rel)));
++		});
++	}
++
++	todo(){
++		const prior = this.read_out().checked;
++		return this.dropped.completed_asks().filter(a => !prior[this.key(a)]).slice(0, this.limit);
++	}
++
++	async run(){
++		const state = this.read_out(), todo = this.todo(), batches = [];
++		for (let i = 0; i < todo.length; i += DoneCheck.BATCH) batches.push(todo.slice(i, i + DoneCheck.BATCH));
++		if (this.dry) return { asks: todo.length, calls: batches.length, est_usd: +(batches.length * 0.04).toFixed(2) };
++		let spent = 0;
++		for (const batch of batches){
++			const items = batch.map((a, i) => ({ n: i + 1, ask: a.title, ...(a.expected ? { expected: [].concat(a.expected) } : {}), outcome: a.outcome, evidence: a.evidence }));
++			let verdicts = [];
++			try {
++				const r = await this.ask(JSON.stringify(items, null, 1), { model: DoneCheck.MODEL, system: DoneCheck.SYSTEM });
++				spent += r.usd; verdicts = PromptAudit.json(r.text).verdicts ?? [];
++			} catch (e){ console.log(`✗ batch of ${batch.length}: ${e.message}`); continue; }
++			for (const [i, a] of batch.entries()){
++				const v = verdicts.find(x => Number(x.n) === i + 1);
++				if (!v || !["ok", "not-done", "unclear"].includes(v.verdict)) continue;
++				const missing = this.missing_evidence(a), bad = v.verdict === "not-done" || missing.length > 0;
++				const why = [v.verdict === "not-done" ? v.why : null, missing.length ? `evidence not found: ${missing.join(", ")}` : null].filter(Boolean).join("; ");
++				state.checked[this.key(a)] = { verdict: v.verdict, ...(missing.length ? { missing } : {}), at: this.stamp() };
++				if (!bad) continue;
++				state.flagged = state.flagged.filter(f => !(f.url === a.url && f.id === a.id));
++				state.flagged.push({ url: a.url, id: a.id, title: a.title, outcome: a.outcome, why });
++				await this.log_flag(a, why);
++			}
++		}
++		state.at = this.stamp(); state.spent_usd = +((state.spent_usd ?? 0) + spent).toFixed(4);
++		fs.mkdirSync(path.dirname(this.out), { recursive: true }); fs.writeFileSync(this.out, JSON.stringify(state));
++		return { asks: todo.length, calls: batches.length, flagged: state.flagged.length, usd: +spent.toFixed(4) };
++	}
++
++	/** One line per flagged ask, in the log that holds the task; never twice for the same ask. */
++	async log_flag(a, why){
++		let text = ""; try { text = fs.readFileSync(a.file, "utf8"); } catch { return; }
++		const mark = `"done_check":"not-done","url":${JSON.stringify(a.url)},"id":${JSON.stringify(a.id)}`;
++		if (text.includes(mark)) return;
++		fs.appendFileSync(a.file, JSON.stringify({ log: { at: this.stamp(), msg: `marked done, not done: ${String(a.title).slice(0, 100)}: ${why}`, done_check: "not-done", url: a.url, id: a.id } }) + "\n");
++	}
++
++	stamp(){ return this.dropped.stamp(this.clock()); }
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const arg = n => { const i = process.argv.indexOf(n); return i < 0 ? null : process.argv[i + 1]; };
++	const dc = new DoneCheck({ dry: process.argv.includes("--dry"), limit: arg("--limit") ? Number(arg("--limit")) : Infinity });
++	if (process.argv.includes("--list")) for (const f of dc.read_out().flagged) console.log(`${f.url} #${f.id}  ${f.title}\n   ${f.why}`);
++	else console.log(JSON.stringify(await dc.run()));
++}
+diff --git a/Server/DoneCheck.test.mjs b/Server/DoneCheck.test.mjs
+new file mode 100644
+index 000000000..613245677
+--- /dev/null
++++ b/Server/DoneCheck.test.mjs
+@@ -0,0 +1,33 @@
++/* node Server/DoneCheck.test.mjs — DoneCheck with a fake Haiku: a completed owner ask is sent, a not-done verdict or a missing evidence path is
++ * flagged once in the log that holds the task, a second run sends nothing. */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import DoneCheck from "./DoneCheck.mjs";
++
++const root = fs.mkdtempSync(path.join(os.tmpdir(), "donecheck-test-"));
++const [y, m, d] = new Date().toISOString().slice(0, 10).split("-");
++const dir = path.join(root, "public/framework/ai/sessions", y, m, d, "session-dddd4444");
++fs.mkdirSync(dir, { recursive: true }); fs.mkdirSync(path.join(root, "public/framework/core/Task"), { recursive: true });
++fs.writeFileSync(path.join(root, "public/framework/core/Task/real.md"), "x");
++const src = (n) => ({ session: "s", line: n, part: "a" });
++const add = (id, title, o, e) => ({ tasks: { add: { type: "Task", id, title, source: src(id), state: "idle" } } });
++const done = (id, outcome, evidence) => ({ tasks: { [id]: { complete: { outcome, evidence, confidence: "high" } } } });
++const L = [{ assign: { agent: "x", title: "S" } }, { start: {} }, add("a", "Add a reopen button"), add("b", "Show the stop rate"), add("c", "Name the module"),
++	done("a", "reopen button added", ["/framework/core/Task/real.md"]), done("b", "wrote a note about rates", ["/framework/core/Task/real.md"]), done("c", "named it", ["/framework/core/Task/missing.md"])];
++const file = path.join(dir, "session.jsonl"); fs.writeFileSync(file, L.map(l => JSON.stringify(l)).join("\n") + "\n");
++let calls = 0;
++const ask = async prompt => { calls++; const items = JSON.parse(prompt); return { usd: 0.01, text: JSON.stringify({ verdicts: items.map(i => ({ n: i.n, verdict: i.ask.startsWith("Show") ? "not-done" : "ok", why: "only a note" })) }) }; };
++const dc = new DoneCheck({ root, ask });
++assert.equal(dc.todo().length, 3);
++const r = await dc.run();
++assert.equal(calls, 1); assert.equal(r.flagged, 2, "b (not-done) and c (missing evidence)");
++const flagged = JSON.parse(fs.readFileSync(dc.out, "utf8")).flagged.map(f => f.id).sort();
++assert.deepEqual(flagged, ["b", "c"]);
++const marks = () => fs.readFileSync(file, "utf8").split("\n").filter(l => l.includes('"done_check"')).length;
++assert.equal(marks(), 2);
++assert.equal((await new DoneCheck({ root, ask }).run()).asks, 0, "a second run sends nothing");
++assert.equal(calls, 1); assert.equal(marks(), 2);
++console.log("PASS DoneCheck: 3 sent in one call, not-done and missing evidence flagged once each, rerun is free");
++fs.rmSync(root, { recursive: true, force: true });
+diff --git a/Servex/Dropped.js b/Servex/Dropped.js
+new file mode 100644
+index 000000000..4836829e5
+--- /dev/null
++++ b/Servex/Dropped.js
+@@ -0,0 +1,179 @@
++import fs from "node:fs";
++import path from "node:path";
++import SessionRecord from "../Server/SessionRecord.mjs";
++import Task from "../public/framework/core/Task/Task.js";
++
++/* THE RED FLAG FOR DROPPED WORK (the owner, 2026-10-25, "100% completion"). Doc: core/Task/doc/completion.md.
++ * Plain node over the task logs and the agent registry, no AI. Every `tick` it finds each OPEN task whose owner agent is not working and
++ * nobody is about to pick up, writes ONE line into the task's parent log, and writes the whole list to queue/dropped.json for the queue page.
++ *
++ * A task is dropped when it is open (idle or running) and its owner is: missing from the registry (gone), stopped, dormant, or never assigned,
++ * and its log has been quiet for `grace_min`. An `idle` task with a `priority` is QUEUED (the queue starts it), not dropped.
++ * A DEFERRED task (`wait` with `deferred`/`decide_by`, Task.js) is dropped when it has no home (`on` empty or "owner") or is past `decide_by`.
++ * Other waiting tasks are left to TaskLoop (owner waits and reminders); paused, stopped and complete ones are settled.
++ * A SESSION log (no `assign`, at least Task.RATES.min filed tasks) is read too, for its rates (Task.rates): when more than 20% of the owner's asks are deferred
++ * or stopped it is red-flagged: one `{log:{red:"rate"}}` line in its own log, and a row in `red` of the snapshot. */
++export const WORKING = new Set(["starting", "started", "working", "idle", "queued"]);
++
++export default class Dropped {
++
++	constructor(...args){ Object.assign(this, ...args); this.initialize(); }
++
++	initialize(){
++		this.root ??= process.cwd();
++		this.days ??= Number(process.env.SERVEX_DROPPED_DAYS) || 30;        // session day folders this recent are walked
++		this.grace_min ??= Number(process.env.SERVEX_DROPPED_GRACE_MIN) || 60;   // a log quiet this long, with no working owner, is dropped
++		this.clock ??= () => Date.now();
++		this.write ??= (file, obj) => fs.promises.appendFile(file, JSON.stringify(obj) + "\n");
++		this.out ??= path.join(this.root, "public", "framework", "ai", "queue", "dropped.json");
++		this.cache = new Map();   // log file -> { key: "mtime:size", rec }
++	}
++
++	get sessions_dir(){ return path.join(this.root, "public", "framework", "ai", "sessions"); }
++	url_of(dir){ return "/" + path.relative(path.join(this.root, "public"), dir).split(path.sep).join("/") + "/"; }
++	dir_of(url){ return path.join(this.root, "public", String(url).replace(/^\/+/, "")); }
++
++	/* Every session day folder from the last `days` days. */
++	day_dirs(now){
++		const out = [], cut = new Date(now - this.days * 864e5).toISOString().slice(0, 10), ls = d => { try { return fs.readdirSync(d); } catch { return []; } };
++		for (const y of ls(this.sessions_dir).filter(n => /^\d{4}$/.test(n)))
++			for (const m of ls(path.join(this.sessions_dir, y)).filter(n => /^\d\d$/.test(n)))
++				for (const d of ls(path.join(this.sessions_dir, y, m)).filter(n => /^\d\d$/.test(n)))
++					if (`${y}-${m}-${d}` >= cut) out.push(path.join(this.sessions_dir, y, m, d));
++		return out;
++	}
++
++	/* A log parsed and replayed once per mtime: { lines, task, refs, assigned } or null when it holds no assign and too few filed tasks to rate (a voice call). */
++	read(file){
++		let st; try { st = fs.statSync(file); } catch { return null; }
++		const key = `${st.mtimeMs}:${st.size}`, hit = this.cache.get(file);
++		if (hit?.key === key) return hit.rec;
++		const lines = [];
++		try { for (const raw of fs.readFileSync(file, "utf8").split("\n")){ if (!raw.trim()) continue; try { lines.push(JSON.parse(raw)); } catch {} } } catch { return null; }
++		let rec = null;
++		const assigned = lines.some(l => l.assign);
++		if (assigned || lines.filter(l => l.tasks?.add).length >= Task.RATES.min){
++			let task; try { task = Task.replay(lines); } catch { task = null; }
++			const refs = lines.flatMap(l => [l.tasks?.add?.path, typeof l.task === "string" ? l.task : null, l.task?.path].filter(p => typeof p === "string" && p.startsWith("/")));
++			if (task) rec = { lines, task, refs, assigned, mtime: st.mtimeMs };
++		}
++		this.cache.set(file, { key, rec });
++		return rec;
++	}
++
++	/* Walk the day folders (every nested folder with a log) and follow `path` references to module-homed tasks. Returns [{dir, file, rec, parent}]. */
++	collect(now){
++		const seen = new Map(), out = [], ls = d => { try { return fs.readdirSync(d, { withFileTypes: true }); } catch { return []; } };
++		const visit = (dir, parent, depth) => {
++			dir = path.resolve(dir);
++			if (seen.has(dir) || depth > 12) return;
++			seen.set(dir, true);
++			const file = SessionRecord.log_file(dir);
++			let here = parent;
++			if (file){
++				const rec = this.read(file);
++				if (rec){
++					out.push({ dir, file, rec, parent });
++					here = file;
++					for (const ref of rec.refs){ const d = this.dir_of(ref); if (fs.existsSync(d)) visit(d, file, depth + 1); }
++				} else here = parent;
++			}
++			for (const e of ls(dir)) if (e.isDirectory() && !e.name.startsWith(".") && e.name !== "node_modules") visit(path.join(dir, e.name), here, depth + 1);
++		};
++		for (const d of this.day_dirs(now)) visit(d, null, 0);
++		return out;
++	}
++
++	/* The owning agent's registry row, or null. `agent` is an id on most tasks and a spawn config (an object) on a templated one. */
++	owner_of(data, registry){
++		const id = (typeof data.agent === "string" && data.agent) || registry.find(r => data.session_id && r.session_id === data.session_id)?.id
++			|| registry.find(r => data.session && r.session_id === data.session)?.id || null;
++		return { id, row: id ? registry.find(r => r.id === id) ?? null : null };
++	}
++
++	/* The verdict for one task: { code, why } when it is dropped, null when not. `queued` is counted by the caller. */
++	judge(e, registry, now){
++		const t = e.rec.task, d = t.data, state = t.state;
++		if (state === "waiting"){
++			if (!d.deferred) return null;
++			const home = d.waiting_on;
++			if (!home || home === "owner") return { code: "deferral-no-home", why: "deferred with no home (the module or task that will decide it)" };
++			const by = Date.parse(d.decide_by);
++			if (by && now > by) return { code: "deferral-overdue", why: `deferral to ${home} is past its decide-by time (${d.decide_by})` };
++			return null;
++		}
++		if (state !== "idle" && state !== "running") return null;
++		if (state === "idle" && d.priority !== undefined && d.priority !== null) return { queued: true };
++		if (now - e.rec.mtime < this.grace_min * 60000) return null;
++		const { id, row } = this.owner_of(d, registry);
++		if (!id) return { code: "never-assigned", why: "no owner agent was ever assigned" };
++		if (!row) return { code: "owner-gone", why: `owner ${id} is gone from the registry` };
++		if (WORKING.has(row.state)) return null;
++		if (row.state === "dormant") return { code: "owner-dormant", why: `owner ${id} is dormant and the task is untouched` };
++		return { code: "owner-stopped", why: `owner ${id} is ${row.state}` };
++	}
++
++	scan(registry, now = this.clock()){
++		const rows = [], red = [], unproven = [];
++		let checked = 0, queued = 0;
++		for (const e of this.collect(now)){
++			for (const { task, problem } of e.rec.task.unproven()) unproven.push({ url: this.url_of(e.dir), id: task.id, title: task.get_one("title") ?? task.id, code: "no-proof", why: `completed owner ask with ${problem}` });
++			const rates = e.rec.task.rates();
++			if (rates.red) red.push({ url: this.url_of(e.dir), title: e.rec.task.data.title ?? path.basename(e.dir), rates, file: e.file });
++			if (!e.rec.assigned) continue;
++			const state = e.rec.task.state;
++			if (state === "complete" || state === "stopped") continue;
++			checked++;
++			const v = this.judge(e, registry, now);
++			if (!v) continue;
++			if (v.queued){ queued++; continue; }
++			const d = e.rec.task.data;
++			rows.push({ url: this.url_of(e.dir), title: d.title ?? path.basename(e.dir), state, code: v.code, why: v.why, owner: this.owner_of(d, registry).id,
++				quiet_min: Math.round((now - e.rec.mtime) / 60000), parent: e.parent, file: e.file });
++		}
++		return { rows, red, checked, queued, unproven };
++	}
++
++	/* Every completed owner ask that claims proof: [{url, id, title, expected, outcome, evidence, file}] (Server/DoneCheck.mjs compares each with the owner's words). */
++	completed_asks(now = this.clock()){
++		const out = [], walk = (list, e) => { for (const t of list ?? []){
++			if (Task.is_child_session(t)) continue;
++			if (t.state === "complete" && Task.is_owner_ask(t) && !Task.proof_problem(t))
++				out.push({ url: this.url_of(e.dir), id: t.id, title: t.get_one("title") ?? t.id, expected: t.get_one("expected") ?? null, outcome: String(t.get_one("outcome")), evidence: [].concat(t.get_one("evidence")), file: e.file });
++			walk(t._tasks, e);
++		} };
++		for (const e of this.collect(now)) walk(e.rec.task._tasks, e);
++		return out;
++	}
++
++	/* Scan, write ONE line per newly dropped task into its parent's log (never twice for the same task and reason), and refresh queue/dropped.json. */
++	async tick(registry, now = this.clock()){
++		const { rows, red, checked, queued, unproven } = this.scan(registry, now);
++		const by_parent = new Map();
++		for (const r of rows) if (r.parent) (by_parent.get(r.parent) ?? by_parent.set(r.parent, []).get(r.parent)).push(r);
++		let flagged = 0;
++		for (const [parent, list] of by_parent){
++			let text = ""; try { text = fs.readFileSync(parent, "utf8"); } catch {}
++			for (const r of list){
++				if (text.includes(`"dropped":${JSON.stringify(r.url)},"reason":${JSON.stringify(r.code)}`)) continue;
++				await this.write(parent, { log: { at: this.stamp(now), msg: `dropped: ${String(r.title).slice(0, 120)}: ${r.why}`, dropped: r.url, reason: r.code } });
++				flagged++;
++			}
++		}
++		for (const r of red){
++			let text = ""; try { text = fs.readFileSync(r.file, "utf8"); } catch {}
++			if (text.includes('"red":"rate"')) continue;
++			const o = r.rates.owner;
++			await this.write(r.file, { log: { at: this.stamp(now), msg: `red flag: ${o.deferred + o.stopped} of ${o.total} owner asks are deferred or stopped (${Math.round(o.rate * 100)}%, over 20%)`, red: "rate", rate: o.rate } });
++			flagged++;
++		}
++		const snapshot = { at: this.stamp(now), checked, queued, dropped: rows.length, unproven, red: red.map(({ file, ...r }) => r), rows: rows.map(({ file, parent, ...r }) => ({ ...r, parent: parent && this.url_of(path.dirname(parent)) })) };
++		try { fs.mkdirSync(path.dirname(this.out), { recursive: true }); fs.writeFileSync(this.out, JSON.stringify(snapshot)); } catch {}
++		return { ...snapshot, flagged };
++	}
++
++	stamp(ms){
++		const d = new Date(ms), off = -d.getTimezoneOffset(), pad = n => String(Math.abs(n)).padStart(2, "0");
++		return new Date(d.getTime() + off * 60000).toISOString().slice(0, 19) + (off < 0 ? "-" : "+") + pad(Math.trunc(off / 60)) + ":" + pad(off % 60);
++	}
++}
+diff --git a/Servex/Dropped.test.mjs b/Servex/Dropped.test.mjs
+new file mode 100644
+index 000000000..74b4ad377
+--- /dev/null
++++ b/Servex/Dropped.test.mjs
+@@ -0,0 +1,70 @@
++/* node Servex/Dropped.test.mjs — the red flag for dropped work (Servex/Dropped.js): temp store, fake clock, fake registry.
++ * An open task is flagged once (one line in its parent's log) when its owner is stopped, gone, dormant or never assigned; a working owner,
++ * a queued task, a recent log, a settled task and an owner wait are not; a deferral with no home or past decide_by is. */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import Dropped from "./Dropped.js";
++
++const root = fs.mkdtempSync(path.join(os.tmpdir(), "dropped-test-"));
++const day = new Date().toISOString().slice(0, 10), [y, m, d] = day.split("-");
++const session = path.join(root, "public", "framework", "ai", "sessions", y, m, d, "session-aaaa1111");
++let T = Date.now();
++const iso = ms => new Date(ms).toISOString(), line = o => JSON.stringify(o) + "\n";
++const head = (agent, extra = {}) => ({ assign: { agent, session_id: agent && "s-" + agent, title: "T " + (agent ?? "nobody"), requested_at: iso(T), ...extra } });
++function make(name, lines, age_min = 120){
++	const dir = path.join(session, name); fs.mkdirSync(dir, { recursive: true });
++	const file = path.join(dir, "session.jsonl"); fs.writeFileSync(file, lines.map(line).join(""));
++	const t = new Date(T - age_min * 60000); fs.utimesSync(file, t, t);
++	return dir;
++}
++fs.mkdirSync(session, { recursive: true });
++fs.writeFileSync(path.join(session, "session.jsonl"), line({ assign: { agent: "parent-p", title: "parent" } }) + line({ start: {} }));
++
++const rows = ["working", "dormant", "stopped"].map(s => ({ id: "a-" + s, state: s, session_id: "s-a-" + s }));
++make("works", [head("a-working"), { start: {} }]);
++make("sleeps", [head("a-dormant"), { start: {} }]);
++make("dead", [head("a-stopped"), { start: {} }]);
++make("gone", [head("a-vanished"), { start: {} }]);
++make("nobody", [head(null), { start: {} }]);
++make("fresh", [head("a-stopped"), { start: {} }], 5);
++make("queued", [head(null), { wait: { on: "owner" } }, { approve: {} }, { priority: 3 }]);
++make("done", [head("a-stopped"), { start: {} }, { complete: { evidence: ["x"], outcome: "y" } }]);
++make("owner-wait", [head("a-stopped"), { start: {} }, { wait: { on: "owner", what: "a key" } }]);
++make("defer-ok", [head("a-working"), { start: {} }, { wait: { on: "core/Task", what: "after the merge", decide_by: iso(T + 864e5), deferred: true } }]);
++make("defer-homeless", [head("a-working"), { start: {} }, { wait: { what: "later", deferred: true } }]);
++make("defer-late", [head("a-working"), { start: {} }, { wait: { on: "core/Task", what: "after the merge", decide_by: iso(T - 3600e3), deferred: true } }]);
++
++const written = [];
++const dropped = new Dropped({ root, clock: () => T, write: async (f, o) => { written.push({ f, o }); fs.appendFileSync(f, line(o)); } });
++const r1 = await dropped.tick(rows, T);
++const by = Object.fromEntries(r1.rows.map(r => [path.basename(r.url.replace(/\/$/, "")), r.code]));
++assert.deepEqual(by, { sleeps: "owner-dormant", dead: "owner-stopped", gone: "owner-gone", nobody: "never-assigned", "defer-homeless": "deferral-no-home", "defer-late": "deferral-overdue" });
++assert.equal(r1.queued, 1, "the prioritised idle task is queued, not dropped");
++assert.equal(r1.flagged, 6, "one parent line per dropped task");
++assert.ok(written.every(w => w.f === path.join(session, "session.jsonl") && w.o.log.dropped && w.o.log.reason));
++const snap = JSON.parse(fs.readFileSync(path.join(root, "public/framework/ai/queue/dropped.json"), "utf8"));
++assert.equal(snap.dropped, 6);
++
++const r2 = await dropped.tick(rows, T + 60000);
++assert.equal(r2.flagged, 0, "a second tick writes nothing new");
++
++rows.find(r => r.id === "a-stopped").state = "working";
++const r3 = await dropped.tick(rows, T + 120000);
++assert.equal(r3.rows.find(r => r.code === "owner-stopped"), undefined, "a revived owner clears the flag");
++// a tab session (no assign): 6 filed owner asks, 2 stopped = 33% > 20% -> red-flagged once in its own log; 1 of 6 stopped (17%) is not
++const tab = (name, stopped) => { const dir = path.join(root, "public", "framework", "ai", "sessions", y, m, d, name); fs.mkdirSync(dir, { recursive: true });
++	const ids = "abcdef".split(""); fs.writeFileSync(path.join(dir, "session.jsonl"), line({ session: name }) + ids.map(id => line({ tasks: { add: { type: "Task", id, title: id, source: { session: name, line: 1, part: id } } } })).join("") + ids.slice(0, stopped).map(id => line({ tasks: { [id]: { stop: { note: "noise" } } } })).join(""));
++	return path.join(dir, "session.jsonl"); };
++const red_file = tab("session-bbbb2222", 2), calm_file = tab("session-cccc3333", 1);
++const r4 = await dropped.tick(rows, T + 180000);
++const red_lines = f => fs.readFileSync(f, "utf8").split("\n").filter(l => l.includes('"red":"rate"')).length;
++assert.deepEqual(r4.red.map(r => path.basename(r.url.replace(/\/$/, ""))), ["session-bbbb2222"]);
++assert.equal(r4.red[0].rates.owner.rate, 0.333);
++assert.equal(red_lines(red_file), 1);
++assert.equal(red_lines(calm_file), 0);
++await dropped.tick(rows, T + 240000);
++assert.equal(red_lines(red_file), 1, "flagged once, not every tick");
++console.log("PASS Dropped: 6 flagged once, queued/working/fresh/settled/owner-wait left alone, revived owner clears, a session over 20% stopped is red-flagged once");
++fs.rmSync(root, { recursive: true, force: true });
+diff --git a/Servex/TaskLoop.js b/Servex/TaskLoop.js
+index 00f4b14fe..8931ca9cb 100644
+--- a/Servex/TaskLoop.js
++++ b/Servex/TaskLoop.js
+@@ -7,6 +7,7 @@ import { CHECK, read_inbox } from "./Heartbeat.js";
+ import Steps from "../Server/Steps.mjs";
+ import TaskDirs from "../Server/TaskDirs.mjs";
+ import Task from "../public/framework/core/Task/Task.js";
++import Dropped from "./Dropped.js";
+ 
+ /* THE TASK LOOP — nobody should have to remember to land a task.
+  *
+@@ -77,7 +78,7 @@ export default class TaskLoop {
+     }
+ 
+     stop(){ this.stopping = true; clearInterval(this.timer); clearTimeout(this.state_timer); try { this.state_watch?.kill(); } catch {} }
+-    status(){ return this.status_now; }
++    status(){ return { ...this.status_now, dropped: this.dropped_now?.dropped ?? null }; }
+ 
+     /* ── one tick ─────────────────────────────────────────────────────── */
+ 
+@@ -95,6 +96,9 @@ export default class TaskLoop {
+             await this.servex.respawn?.tick().catch(() => {});   // a standing agent a day old and not busy gets a fresh session (agents/Respawn.js)
+             await this.servex.prompt_tasks?.sweep().catch(() => {});   // an approved prompt task that names a module moves home (agents/PromptTasks.js)
+             const now = this.clock(), registry = this.servex.agents.registry_list();
++            // completion, 2026-10-25: every open task whose owner is not working gets ONE line in its parent's log and a row on the queue page's "Dropped" list (Dropped.js, no AI)
++            this.dropped ??= new Dropped({ root: this.root, clock: this.clock, write: (f, o) => this.write_line(f, o) });
++            this.dropped_now = await this.dropped.tick(registry, now).catch(e => { this.servex.say?.(`task-loop: dropped scan failed: ${e.message || e}`); return this.dropped_now; });
+             let open = 0, quiet = 0, escalations = 0;
+ 
+             for (const file of this.find_task_files()){
+@@ -219,7 +223,7 @@ export default class TaskLoop {
+             if (obj.follow_up) follow_ups.push(obj.follow_up);
+             if (obj.spawn) spawned = true;
+             if (obj.queue) queued = true;
+-            if (obj.follow_up || obj.log?.nudge !== undefined || obj.log?.heartbeat !== undefined) continue;   // our own and Heartbeat's reminder lines are neither activity nor an ask
++            if (obj.follow_up || obj.log?.nudge !== undefined || obj.log?.heartbeat !== undefined || obj.log?.dropped !== undefined) continue;   // our own, Heartbeat's and Dropped's lines are neither activity nor an ask
+             const ours = obj.log && (obj.log.ask !== undefined || obj.log.flag !== undefined);
+             last_line_ours = !!ours;
+             if (ours){
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 0453ae61f..5c6fe1126 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -69,7 +69,7 @@ function resolve_file(url, item = false){
+  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
+  * resolves the plain way above. Returns { file, target } or null. */
+ const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
+-const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "unread"];   // Task.queries: answered from the record, never written
++const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "rates", "unread"];   // Task.queries: answered from the record, never written
+ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+ 
+ /* TYPO-PROOF SESSION PATHS (2026-10-24, core/Session/doc/identity.md "A typed id that drifts"): a session folder is made only by the
+@@ -815,7 +815,7 @@ export function session_state(task, tasks = []){
+ 	const unlinked = nest_agents(agents.filter(a => !counted.has(a.id))).map(a => ({ ...a, agent: a.id, linked: false }));
+ 	const child_cost = entries.reduce((s, c) => s + c.total, 0) + unlinked.reduce((s, a) => s + (a.total || 0), 0);
+ 	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
+-	return { class: "Session", id: task.id, completion: task.completion, progress: task.progress(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
++	return { class: "Session", id: task.id, completion: task.completion, progress: task.progress(), rates: task.rates(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
+ 		cost: { total: r2((own?.usd ?? 0) + child_cost), own, children: r2(child_cost), tasks: r2(task_cost) },
+ 		counts: { direct: counts(task._tasks ?? []), all: counts(all), children: { entries: count_entries(entries), unlinked: agents.filter(a => !counted.has(a.id)).length } },
+ 		biggest, children: [...entries, ...unlinked], agents: agents.length,
+diff --git a/Servex/doc/task-loop.md b/Servex/doc/task-loop.md
+index 622f7add5..ebcea6f4b 100644
+--- a/Servex/doc/task-loop.md
++++ b/Servex/doc/task-loop.md
+@@ -37,6 +37,10 @@ After **three asks in a row with no new line** (the third sat unanswered), or wh
+ - **Waiting on an agent or a task path.** `TaskLoop.remind_other()`: after `SERVEX_TASKLOOP_FOLLOWUP_MIN`, and again each interval, the agent waited on (an agent id, or the owning agent of a task path) is told "Task x is waiting on you for <what>" (a `follow_up` line). After 3 reminders with no change, ONE flag card (`follow_up` with `flag:true`).
+ - Test: `node Servex/TaskLoop-cracks.test.mjs` (temp store, fake clock).
+ 
++## Dropped work (completion, 2026-10-25)
++
++Each tick, before the chase, `Dropped.tick()` ([Servex/Dropped.js](/Servex/Dropped.js)) finds every open task whose owner is not working (stopped, dormant, gone, never assigned; or a deferral with no home or past its time), writes ONE `{log:{dropped,reason}}` line into the parent's log, and rewrites `queue/dropped.json` for the queue page. Those lines are not activity: `read_task` skips them. `status()` carries the `dropped` count. Rules and codes: [core/Task completion.md](../../public/framework/core/Task/doc/completion.md). Test: `node Servex/Dropped.test.mjs`.
++
+ ## Close
+ 
+ A task can leave the loop two ways: it completes or stops, or the owner
+diff --git a/Servex/readme.md b/Servex/readme.md
+index ffb41cb37..40128feaf 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -24,6 +24,7 @@ class Servex {
+   dashboard: Dashboard            // the :8090 HTTP router; mcp: MCP (/mcp); remote: RemoteMCP (/mcp/remote)
+   dispatcher: Dispatcher          // agents/Dispatcher.js — routes a prompt to the right agent
+   task_loop: TaskLoop             // TaskLoop.js — runs Server/AIIndex.mjs --watch, re-prompts stalled task steps (doc/steps.md)
++  dropped:   Dropped              // Dropped.js — run by TaskLoop each tick: open tasks nobody is working, red-flagged sessions, completed asks with no proof (doc/task-loop.md, core/Task/doc/completion.md)
+   process_runner: ProcessRunner   // ProcessRunner.js — runs a work process's phases in order (public/framework/core/Task/doc/process.md)
+   respawn: Respawn                // agents/Respawn.js — the standing system architect gets a fresh session once a day, never mid-task (agents/doc/lifecycle.md)
+   heartbeat: Heartbeat            // Heartbeat.js — status check → triage → escalate
+diff --git a/public/framework/ai/queue/TaskQueueView.css b/public/framework/ai/queue/TaskQueueView.css
+index 0983f16bd..c5953f546 100644
+--- a/public/framework/ai/queue/TaskQueueView.css
++++ b/public/framework/ai/queue/TaskQueueView.css
+@@ -42,6 +42,9 @@
+ 	.tq-meta { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 0.1em 1em; font-size: 0.85em; min-width: 0; }
+ 	.tq-row .tq-why, .tq-cell, .tq-row .tq-state { overflow-wrap: anywhere; min-width: 0; }
+ 	.tq-link { color: inherit; }
++	.tq-head.tq-dropped { margin-top: 1.5em; }
++	.tq-dropped-row { grid-template-columns: minmax(0, 1fr); }
++	.tq-dropped-row .tq-meta { grid-column: 1; }
+ 
+ 	@media (min-width: 1000px) {
+ 		.tq-view { grid-template-columns: minmax(16em, 22em) minmax(0, 1fr); }
+@@ -52,6 +55,8 @@
+ 		.tq-cols { white-space: nowrap; padding: 0 0.8em; font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; }
+ 		.tq-meta { display: contents; font-size: 0.85em; }
+ 		.tq-row .tq-label { display: none; }
++		.tq-dropped-row { grid-template-columns: minmax(12em, 2fr) minmax(0, 3fr); }
++		.tq-dropped-row .tq-meta { display: flex; gap: 0.8em; }
+ 		.tq-score { grid-column: auto; grid-row: auto; text-align: right; }
+ 	}
+ }
+diff --git a/public/framework/ai/queue/TaskQueueView.js b/public/framework/ai/queue/TaskQueueView.js
+index aa9ca3dcf..f34fef8ae 100644
+--- a/public/framework/ai/queue/TaskQueueView.js
++++ b/public/framework/ai/queue/TaskQueueView.js
+@@ -8,6 +8,7 @@ View.stylesheet(import.meta, "TaskQueueView.css");
+  *    "top"     the page itself: the count, the per-big-thing split and the first few tasks as preview cards; a click opens that task
+  *    "all"     ?view=all: every queued task, one row each (rank, task, why, cost, big thing, re-asks, state, score)
+  *    "ranking" ?view=ranking: how the score is worked out (needs no rows)
++ *    "dropped" ?view=dropped: every open task whose owner is not working (Servex/Dropped.js, read once from queue/dropped.json; also a short list on the page itself)
+  *  Rows come from the dev server's "taskqueue" query source (Server/TaskQueue.mjs, ranked by core/Task/TaskQueue.js); a changed row is pushed, never polled. Readme: readme.md. */
+ export default class TaskQueueView extends View {
+ 	static PREVIEWS = 8;
+@@ -16,7 +17,7 @@ export default class TaskQueueView extends View {
+ 	static usd(n){ return "$" + (n || 0).toFixed(2); }
+ 
+ 	/** The view is in the address (?view=all, ?view=ranking), so a reload or Back lands in the same place. */
+-	get mode(){ const v = new URLSearchParams(location.search).get("view"); return v === "all" || v === "ranking" ? v : "top"; }
++	get mode(){ const v = new URLSearchParams(location.search).get("view"); return v === "all" || v === "ranking" || v === "dropped" ? v : "top"; }
+ 
+ 	get classes(){ return "tq-view block wide tq-" + this.mode; }
+ 
+@@ -25,6 +26,7 @@ export default class TaskQueueView extends View {
+ 		this.rows = new Map();
+ 		this.error = "";
+ 		this.loaded = this.mode === "ranking";
++		this.dropped = null;   // { at, dropped, rows } once queue/dropped.json has been read; null when there is no such file (a static copy)
+ 		this.failed = false;
+ 		this.client = new QueryClient("taskqueue", { row: r => this.change(r), stale: () => this.ask() });
+ 		super.initialize();
+@@ -35,6 +37,14 @@ export default class TaskQueueView extends View {
+ 		this.$main = div.c("tq-main");
+ 		this.paint();
+ 		if (this.mode !== "ranking") this.ask();
++		this.read_dropped();
++	}
++
++	/** One read, not a poll: the snapshot Servex/Dropped.js rewrites every task-loop tick. Reload to refresh. No file = no section. */
++	async read_dropped(){
++		try { const res = await fetch("/framework/ai/queue/dropped.json", { cache: "no-store" }); if (res.ok) this.dropped = await res.json(); } catch {}
++		try { const res = await fetch("/framework/ai/queue/done-check.json", { cache: "no-store" }); if (res.ok) this.done_check = await res.json(); } catch {}
++		this.paint();
+ 	}
+ 
+ 	/** A count is drawn only from a successful answer. Until one arrives the page says "Reading…" and asks again, a few times with a growing delay; only then does it say what is wrong, with no number. */
+@@ -79,13 +89,14 @@ export default class TaskQueueView extends View {
+ 	paint(){
+ 		if (this.el) this.el.dataset.ready = String(this.loaded);
+ 		const all = this.sorted();
+-		this.$side.empty(() => this.mode === "ranking" ? this.drawBack() : this.drawSide(all));
++		this.$side.empty(() => this.mode === "ranking" || this.mode === "dropped" ? this.drawBack() : this.drawSide(all));
+ 		this.$main.empty(() => {
++			if (this.mode === "dropped") return void this.drawDropped(this.dropped?.rows ?? [], true);
+ 			if (!this.loaded) return void p.c("tq-empty muted", this.failed ? this.problem() : "Reading the task records…");
+ 			if (this.mode === "ranking") return void this.drawRanking();
+-			if (!all.length) return void p.c("tq-empty muted", "Nothing is queued.");
+-			if (this.mode === "all") return void this.drawAll(all);
+-			this.drawPreviews(all);
++			if (this.mode === "all") return void (all.length ? this.drawAll(all) : p.c("tq-empty muted", "Nothing is queued."));
++			if (all.length) this.drawPreviews(all); else p.c("tq-empty muted", "Nothing is queued.");
++			this.drawDropped((this.dropped?.rows ?? []).slice(0, TaskQueueView.PREVIEWS), false);
+ 		});
+ 	}
+ 
+@@ -105,6 +116,7 @@ export default class TaskQueueView extends View {
+ 		});
+ 		p.c("tq-note muted", `${n(r => r.state === "running")} running, ${n(r => r.state === "waiting")} waiting on someone. Estimated cost of all: ${TaskQueueView.usd(all.reduce((s, r) => s + r.est_usd, 0))}.`);
+ 		a.c("tq-go").href("/framework/ai/queue/?view=all").attr("target", "_self").text(`All ${total} ranked →`);
++		if (this.dropped) a.c("tq-go tq-dropped-go").href("/framework/ai/queue/?view=dropped").attr("target", "_self").text(`${this.dropped.dropped} dropped →`);
+ 		a.c("tq-go").href("/framework/ai/queue/?view=ranking").attr("target", "_self").text("How the ranking works →");
+ 	}
+ 
+@@ -147,6 +159,43 @@ export default class TaskQueueView extends View {
+ 		})));
+ 	}
+ 
++	/** Dropped: an open task nobody is working (owner stopped, dormant, gone or never assigned, or a deferral with no home or past its time). Computed by code, doc: core/Task/doc/completion.md. */
++	drawDropped(rows, full){
++		if (!this.dropped) return void (full && p.c("tq-empty muted", "Reading the dropped list… (needs the dev server and a task-loop tick; it appears within 5 minutes of a Servex start)"));
++		this.drawRed();
++		this.drawProof(full);
++		div.c("tq-head tq-dropped", () => span.c("tq-what", full ? `${this.dropped.dropped} dropped, as of ${this.dropped.at}` : `Dropped: ${this.dropped.dropped} open tasks nobody is working`));
++		if (!rows.length) return void p.c("tq-empty muted", "Nothing is dropped.");
++		div.c("tq-list", () => rows.forEach(r => div.c("tq-row tq-dropped-row", () => {
++			div.c("tq-task", () => { a.c("tq-title").href(r.url).text(r.title); div.c("tq-crumb muted", r.owner ? `owner ${r.owner}` : "no owner"); });
++			div.c("tq-meta", () => { div.c("tq-why", r.why); div.c("tq-state", r.code); div.c("tq-cell muted", `quiet ${r.quiet_min} min`); });
++		})));
++		if (!full && this.dropped.dropped > rows.length) a.c("tq-go").href("/framework/ai/queue/?view=dropped").attr("target", "_self").text(`All ${this.dropped.dropped} dropped →`);
++	}
++
++	/** Completed owner asks with no outcome or evidence (code, Dropped.js) and asks Haiku judged "marked done, not done" (Server/DoneCheck.mjs). Reopen from the task's page. */
++	drawProof(full){
++		const none = this.dropped?.unproven ?? [], bad = this.done_check?.flagged ?? [], cap = full ? 500 : 5;
++		const list = (head, rows, why) => { if (!rows.length) return;
++			div.c("tq-head tq-dropped", () => span.c("tq-what", head));
++			div.c("tq-list", () => rows.slice(0, cap).forEach(r => div.c("tq-row tq-dropped-row", () => {
++				div.c("tq-task", () => { a.c("tq-title").href(r.url).text(r.title); div.c("tq-crumb muted", "completed owner ask"); });
++				div.c("tq-meta", () => div.c("tq-why", why(r)));
++			}))); };
++		list(`${none.length} completed owner asks with no proof`, none, r => r.why);
++		list(`${bad.length} marked done, not done`, bad, r => r.why);
++	}
++
++	/** A session whose owner asks are more than 20% deferred or stopped (Task.rates(), flagged by Servex/Dropped.js). */
++	drawRed(){
++		const red = this.dropped?.red ?? [];
++		if (!red.length) return;
++		div.c("tq-list tq-red", () => red.forEach(r => div.c("tq-row tq-dropped-row", () => {
++			div.c("tq-task", () => { a.c("tq-title").href(r.url).text(r.title); div.c("tq-crumb muted", "red-flagged session"); });
++			div.c("tq-meta", () => div.c("tq-why", `${Math.round(r.rates.owner.rate * 100)}% of ${r.rates.owner.total} owner asks are deferred or stopped (${r.rates.owner.deferred} deferred, ${r.rates.owner.stopped} stopped); the limit is 20%`));
++		})));
++	}
++
+ 	drawRanking(){
+ 		const I = TaskQueue.IMPORTANCE;
+ 		div.c("tq-head", () => span.c("tq-what", "How the ranking works"));
+diff --git a/public/framework/ai/queue/readme.md b/public/framework/ai/queue/readme.md
+index bdd474b23..1488b1039 100644
+--- a/public/framework/ai/queue/readme.md
++++ b/public/framework/ai/queue/readme.md
+@@ -11,6 +11,8 @@ Linked from the AI tab bar and page, the rail's footer words (`queue`, on the da
+ | `core/Task/TaskQueue.js` (`class TaskQueue`) | the one ranking: estimate, re-asks, score, `build(open, ctx)`. No DOM, no node imports |
+ | `Server/TaskQueue.mjs` | the adapter: reads each open task's `task.jsonl`, the landed tasks' `usd` (from `SessionIndex`) and `ext/Refine/queue/asks.jsonl`; registers the `taskqueue` query source. `node Server/TaskQueue.mjs --check` prints the top 20 |
+ | `TaskQueueView.js` (`extends View`) | the page's view: the three views by `mode` (`top`, `all`, `ranking`, from `?view=`); asks the source, retries while it is cold, repaints on pushed rows; rows are keyed by `url` (two tasks can share a slug) |
++| `dropped.json` | gitignored snapshot written by `Servex/Dropped.js` every task-loop tick: the open tasks nobody is working. The view reads it once (reload to refresh) and shows a short "Dropped" list under the cards and all of it at `?view=dropped`. Rules: [Task completion.md](/framework/core/Task/doc/completion.md) |
++| `done-check.json` | gitignored verdicts from `Server/DoneCheck.mjs` (run by hand; Haiku, about $0.16 for every completed owner ask): the asks marked done that the outcome or evidence does not support. Shown on the dropped view. Rules: [completion.md](/framework/core/Task/doc/completion.md) |
+ | `TaskQueueView.css` | `tq-` rules: preview cards, the side column, table columns when the list is 60em wide |
+ 
+ **The score:** `importance × (1 + 0.5 × re-asks) ÷ (1 + estimated cost ÷ $2)`. Importance is the big thing in [priority.md](../priority.md) (1 → 3, 2 → 2, 3 → 1, none → 1). The estimate is the median real cost of the 5 landed tasks whose titles share the most words with this one (filler words like "with" or "make" don't count; at least 2 shared, at least 3 such tasks); with fewer it falls back to the module median, then all landed, then $1.50. Hover the Cost cell for the basis. Re-asks are the other sessions that asked for it again. The numbers are statics on `TaskQueue`.
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index 96deeffb8..3cd0bc823 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -12,7 +12,7 @@ const OPEN = new Set(["idle", "running", "paused", "waiting"]);   // a child in
+ // Which states each verb may start FROM — named by the verb, so the rule next to
+ // the verb is the rule that uses it.
+ const CAN = {
+-	start: new Set(["idle", "stopped"]),
++	start: new Set(["idle", "stopped", "complete"]),   // from "complete" it REOPENS: the owner can reopen any task (completion.md)
+ 	pause: new Set(["running"]),
+ 	resume: new Set(["paused"]),
+ 	stop: new Set(["idle", "running", "paused", "waiting"]),
+@@ -202,7 +202,7 @@ export class Task extends Item {
+ 
+ 	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
+ 	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
+-	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "unread"];
++	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "rates", "unread"];
+ 	/* A child is a SESSION when it replayed as one (a Session entry, or a folder whose record is a session's), or, for an old plain
+ 	   reference node has not replayed, when its folder holds session.jsonl (`session_resolver`). */
+ 	static session_resolver = null;
+@@ -219,13 +219,37 @@ export class Task extends Item {
+ 		return this.sessions_below().map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state, path: t.get_one("path"),
+ 			...(t.get_one("spawn") ? { spawn: t.get_one("spawn") } : {}), children: t.children }));
+ 	}
++	/* DEFERRAL AND STOP RATES (completion item 3, core/Task/doc/completion.md): over every task below me (a session entry's own tasks are its own), how many ended
++	   deferred (waiting with `deferred`) or stopped, and the same for the OWNER'S asks only (filed from a prompt: `source` is {session,line,part}, "prompt:<id>", voice-app, vscode or dictate; never "servex:<agent>").
++	   `red` = the owner's asks are at least RATES.min and more than RATES.red of them are deferred or stopped. Computed on read, never stored. */
++	static RATES = { red: 0.2, min: 5 };
++	static is_owner_ask(t){ const s = t.get_one("source"); return !!s && (typeof s === "object" ? !!(s.line ?? s.part ?? s.session) : !/^servex:/.test(s) && !s.startsWith("/")); }
++	// Proof for a completed task (completion.md): an outcome (what is now true) and evidence (a file, commit, shot or test). Null when it has both.
++	static proof_problem(t){
++		const outcome = String(t.get_one("outcome") ?? "").trim(), ev = [].concat(t.get_one("evidence") ?? []).filter(e => String(e ?? "").trim());
++		return !outcome && !ev.length ? "no outcome and no evidence" : !outcome ? "no outcome" : !ev.length ? "no evidence" : null;
++	}
++	/** Every completed owner ask under this task with no proof, as [{task, problem}]; child sessions are their own record. */
++	unproven(){
++		const out = [], walk = list => { for (const t of list ?? []){ if (Task.is_child_session(t)) continue; if (t.state === "complete" && Task.is_owner_ask(t)){ const problem = Task.proof_problem(t); if (problem) out.push({ task: t, problem }); } walk(t._tasks); } };
++		walk(this._tasks);
++		return out;
++	}
++	rates(){
++		const all = [], walk = list => { for (const t of list ?? []){ if (Task.is_child_session(t)) continue; all.push(t); walk(t._tasks); } };
++		walk(this._tasks);
++		const tally = list => { const deferred = list.filter(t => t.state === "waiting" && t.get_one("deferred")).length, stopped = list.filter(t => t.state === "stopped").length;
++			return { total: list.length, deferred, stopped, rate: list.length ? Math.round((deferred + stopped) / list.length * 1000) / 1000 : 0 }; };
++		const owner = tally(all.filter(Task.is_owner_ask));
++		return { ...tally(all), owner, red: owner.total >= Task.RATES.min && owner.rate > Task.RATES.red };
++	}
+ 	// One screen for a task or a session: counts by state, the open tasks only, completion, cost, time and child sessions.
+ 	summary(){
+ 		const tasks = [...(this._tasks ?? [])], states = {};
+ 		for (const t of tasks) states[t.state] = (states[t.state] ?? 0) + 1;
+ 		return {
+ 			id: this.get_one("record")?.id ?? this.id, title: this.get_one("title") ?? null, kind: this.get_one("record")?.kind ?? "task", state: this.state, completion: this.completion,
+-			progress: Task.progress_of(this._tasks), states,
++			progress: Task.progress_of(this._tasks), states, rates: this.rates(),
+ 			open: tasks.filter(t => OPEN.has(t.state)).map(t => ({ id: t.id, title: t.get_one("title") ?? t.id, state: t.state })),
+ 			cost: this.total_cost, duration: this.duration(), children: this.children,
+ 		};
+@@ -302,8 +326,9 @@ export class Task extends Item {
+ 
+ 	start(){
+ 		if (!CAN.start.has(this.state)) return this.warn(`start(): can't start from "${this.state}"`);
++		const reopen = this.state === "complete";
+ 		this._ran_since = this.ms();
+-		this.set({ state: "running", started_at: this.data.started_at ?? this.stamp() });
++		this.set({ state: "running", started_at: this.data.started_at ?? this.stamp(), ...(reopen ? { reopened_at: this.stamp(), reopen_count: (this.data.reopen_count ?? 0) + 1 } : {}) });
+ 		this.start_children();
+ 		return this;
+ 	}
+@@ -334,12 +359,15 @@ export class Task extends Item {
+ 	}
+ 
+ 	// Waiting on someone (`on`: "owner" or an agent id) for `what`. Banks running time like pause().
+-	wait({ on, what } = {}){
++	// A DEFERRAL is a wait that postpones the task on purpose (core/Task/doc/completion.md): `{wait:{on: <home>, what: <reason>, decide_by: <ISO time>, deferred: true}}`.
++	// `on` is its home (the module path, task path or agent id that will decide it), never "owner". A deferral with no home, or one past `decide_by`, counts as dropped (Servex/Dropped.js).
++	wait({ on, what, decide_by, deferred } = {}){
+ 		if (!CAN.wait.has(this.state)) return this.warn(`wait(): can't wait from "${this.state}"`);
+ 		const ran_ms = this.duration();
+ 		this._ran_ms = ran_ms;
+ 		this._ran_since = null;
+-		this.set({ state: "waiting", waiting_on: on ?? null, waiting_what: what ?? null, waiting_since: this.stamp(), ran_ms });
++		const defer = deferred || decide_by ? { deferred: true, decide_by: decide_by ?? null } : { deferred: null, decide_by: null };
++		this.set({ state: "waiting", waiting_on: on ?? null, waiting_what: what ?? null, waiting_since: this.stamp(), ran_ms, ...defer });
+ 		return this;
+ 	}
+ 
+diff --git a/public/framework/core/Task/Task.test.mjs b/public/framework/core/Task/Task.test.mjs
+index 7b345da33..8d2b8a38f 100644
+--- a/public/framework/core/Task/Task.test.mjs
++++ b/public/framework/core/Task/Task.test.mjs
+@@ -354,6 +354,32 @@ check("replay of an old complete line with no evidence still completes; the last
+ 	return old.state === "complete" && p.state === "complete";
+ });
+ 
++check("rates(): deferral and stop share of every task and of the owner's asks; red over 20% of at least 5", () => {
++	const ask = (id, source = { session: "s", line: 1, part: id }) => ({ tasks: { add: { type: "Task", id, title: id, source } } });
++	const lines = [A, ask("a"), ask("b"), ask("c"), ask("d"), ask("e"), ask("f"), ask("g", "servex:minion"), { tasks: { b: { start: {} } } }, { tasks: { b: { wait: { on: "/framework/core/Task/", what: "later", decide_by: "2026-11-01T00:00:00Z" } } } }, { tasks: { c: { stop: { note: "noise" } } } }];
++	const r = Task.replay(lines).rates();
++	const calm = Task.replay([A, ask("a"), ask("b"), ask("c"), ask("d"), ask("e"), ask("f"), { tasks: { c: { stop: { note: "x" } } } }]).rates();
++	return r.total === 7 && r.owner.total === 6 && r.deferred === 1 && r.stopped === 1 && r.owner.rate === 0.333 && r.red === true && calm.owner.rate === 0.167 && calm.red === false;
++});
++check("a plain wait is not a deferral; one with decide_by or deferred:true is", () => {
++	const w = a => { const t = Task.replay([A, { start: {} }, { wait: a }]); return t.data.deferred === true; };
++	return !w({ on: "owner", what: "x" }) && w({ on: "m", decide_by: "2026-11-01T00:00:00Z" }) && w({ on: "m", deferred: true });
++});
++
++check("reopen: start from complete runs the task again and counts the reopening", () => {
++	const t = Task.replay([A, { start: {} }, { complete: EV }]);
++	const done = t.state === "complete" && Task.can("complete", "start");
++	t.start();
++	return done && t.state === "running" && t.data.reopen_count === 1 && !!t.data.reopened_at;
++});
++check("unproven(): a completed owner ask with no outcome or evidence is listed; a proven one and an agent-filed one are not", () => {
++	const add = (id, source) => ({ tasks: { add: { type: "Task", id, title: id, source, state: "idle" } } });
++	const t = Task.replay([A, { start: {} }, add("a", { session: "s", line: 1, part: "a" }), add("b", { session: "s", line: 2, part: "a" }), add("c", "servex:x"),
++		{ tasks: { a: { state: "complete" } } }, { tasks: { b: { complete: EV } } }, { tasks: { c: { state: "complete" } } }]);
++	const u = t.unproven();
++	return u.length === 1 && u[0].task.id === "a" && u[0].problem === "no outcome and no evidence";
++});
++
+ const passed = results.filter(Boolean).length;
+ console.log(`\n${passed} / ${results.length} passing`);
+ if (passed !== results.length) process.exit(1);
+diff --git a/public/framework/core/Task/TaskView.js b/public/framework/core/Task/TaskView.js
+index ea98a3b8b..95588c3a6 100644
+--- a/public/framework/core/Task/TaskView.js
++++ b/public/framework/core/Task/TaskView.js
+@@ -69,6 +69,7 @@ export default class TaskView extends View {
+ 		const verbs = this.constructor.VERBS.filter(([verb]) => this.task.can(verb));
+ 		if (!verbs.length) return;
+ 		span.c("task-actions", () => verbs.forEach(([verb, glyph, label]) => {
++			if (verb === "start" && this.task.state === "complete") [glyph, label] = ["undo", "Reopen"];   // start from complete reopens it
+ 			const b = span.c("task-action", () => icon(glyph)).attr("role", "button").attr("title", label).attr("aria-label", label).attr("data-verb", verb);
+ 			b.click(e => { e.stopPropagation(); this.task.act(verb); });
+ 		}));
+diff --git a/public/framework/core/Task/doc/completion.md b/public/framework/core/Task/doc/completion.md
+new file mode 100644
+index 000000000..7328490fe
+--- /dev/null
++++ b/public/framework/core/Task/doc/completion.md
+@@ -0,0 +1,53 @@
++# Completion: no ask goes unaccounted for
++
++The owner's rule (2026-10-25): **100% completion for all sessions, tasks and prompts, and "complete" must be true, not just a mark.** The brief and the measurement that started it: [completion/requirements.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/completion/requirements.md). Rules for what counts as done: [resolution.md](resolution.md). This page is the part that is built.
++
++## An open task has an owner who is working, or it is dropped
++
++`Servex/Dropped.js` runs inside `TaskLoop.tick()` (every few minutes; plain node, no AI). It walks the session logs of the last 30 days (`SERVEX_DROPPED_DAYS`), follows each `path` reference to a module-homed task, and replays every log that has an `assign` line. A task is **dropped** when it is open and one of these holds:
++
++| Code | Meaning |
++|---|---|
++| `never-assigned` | open (idle or running), no owner agent, log quiet for 60 min (`SERVEX_DROPPED_GRACE_MIN`) |
++| `owner-gone` | its owner is not in the agent registry |
++| `owner-stopped` | its owner is stopped |
++| `owner-dormant` | its owner is dormant and the task is untouched for the grace time |
++| `deferral-no-home` | a deferral (below) with no home |
++| `deferral-overdue` | a deferral past its `decide_by` time |
++
++Left alone: complete and stopped tasks, paused tasks, tasks waiting on the owner (TaskLoop already reminds), an `idle` task with a `priority` (it is **queued**, and the queue page lists it; alternative: flag it as "never started" after N days), and any task whose owner is working, starting, idle or queued.
++
++For each newly dropped task, ONE line goes into its **parent's** log (`{"log":{"at","msg":"dropped: <title>: <why>","dropped":"<task url>","reason":"<code>"}}`, never written twice for the same task and reason). The whole list is rewritten to `queue/dropped.json` (gitignored machine state) and shown on the [queue page](/framework/ai/queue/) under "Dropped" (`?view=dropped` for all). A revived owner clears the row at the next tick. Test: `node Servex/Dropped.test.mjs` (temp store, fake clock and registry).
++
++## Deferral is a state, never a quiet stop
++
++A deferral is a `wait` that postpones on purpose:
++
++```json
++{"wait": {"on": "/framework/core/Task/", "what": "starts after the session-is-a-task merge", "decide_by": "2026-10-28T12:00:00-07:00", "deferred": true}}
++```
++
++- `on` is its **home**: the module path, task path or agent id that will decide it. Never `"owner"`; the owner is not a home.
++- `what` is the reason; `decide_by` is when the home must have decided.
++- No home, or past `decide_by`, and it is dropped. `decide_by` alone also makes the wait a deferral.
++- A deferral ends like any wait: the task is started again, completed, or stopped with a reason.
++
++Code: `Task.wait({on, what, decide_by, deferred})` in `Task.js` (`data.deferred`, `data.decide_by`); replay reads the same line.
++
++## Each session shows its deferral and stop rate
++
++`Task.rates()` (a query: `item({path, delta: {rates: {}}})`, also inside `summary`) counts every task below a session (a child session's own tasks are its own): `{total, deferred, stopped, rate, owner: {total, deferred, stopped, rate}, red}`. **Owner asks** are the tasks filed from a prompt: `source` is `{session, line, part}`, `"prompt:<id>"`, voice-app, vscode or dictate; never `servex:<agent>`. **`red`** = at least 5 owner asks (`Task.RATES.min`) and more than 20% of them deferred or stopped (`Task.RATES.red`). A stopped task is a legitimate end (noise, superseded), so the limit is a smell test: the owner reads the numbers, and a red session is one to walk.
++
++`Dropped.tick()` reads every session log of the last 30 days (a log with no `assign` and at least 5 filed tasks is a session), writes ONE `{log:{red:"rate"}}` line into a red session's own log, and lists it in `dropped.json` `red`; the queue page shows it above the dropped tasks. On 2026-10-25 the session this brief came from read 77 of 379 owner asks stopped (20.3%): red, just.
++
++## A completed owner ask has proof, and can be reopened
++
++`complete()` already refuses without evidence (`Task.completion_problem`). Two checks catch what slips through:
++
++- **By code, every tick:** `Task.proof_problem(task)` and `session.unproven()` list every completed owner ask with no outcome or no evidence; `Dropped` writes them to `dropped.json` `unproven` and the queue page shows "completed owner asks with no proof". On 2026-10-25 the session had 2 completed tasks without evidence, none of them owner asks.
++- **By Haiku, on demand:** `node Server/DoneCheck.mjs` (`--dry` first: about 80 asks, 4 calls, $0.16). Per ask: code checks that each repo path or commit in the evidence exists (module-relative paths are not checkable and are skipped), then one call per 25 asks asks whether the outcome answers the ask (the task title and its `expected` lines). `not-done` or missing evidence gets ONE `{log:{done_check:"not-done"}}` line in the log holding the task and a row in `queue/done-check.json` ("marked done, not done" on the queue page). A verdict is kept per ask and outcome, so a rerun checks only new ones. It never reopens anything: Haiku can be wrong. Test: `node Server/DoneCheck.test.mjs`.
++- **Reopen:** `start` is allowed from `complete` (`CAN.start`). It sets the task running, stamps `reopened_at` and counts `reopen_count`. `TaskView` shows the Start button on a complete task as **Reopen**; any item-tool caller does `{start: {}}`.
++
++## Still to build (the requirements, in order)
++
++5. A `completion` value for Prompt and Question (with the prompt-task work). 6. Walk this session's open tasks (`session-closeout/verdicts.jsonl`).
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index dd7e4a24d..1a68dcb1a 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -134,4 +134,5 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+ 
+ - **References in the browser (step 14b):** `Task.from_ref` returns a "loading" stub that opens the child's own `task.jsonl` through the Store and tails it live ("missing" only after a 404); `Task.rank(list)` sorts by recency x weight.
+ 
++- **Completion, 2026-10-25:** an open task whose owner is not working is flagged as dropped by code, and a deferral is a `wait` with a home and a `decide_by`: [doc/completion.md](doc/completion.md).
+ - **Owner notes, 2026-10-20:** `complete()` the verb, `completion` the number; a module keeps projects (`projects/YYYY/MM/DD/`), a session keeps tasks; the dated breakout as one shared system: [doc/owner-2026-10-20-projects-and-completion.md](doc/owner-2026-10-20-projects-and-completion.md).

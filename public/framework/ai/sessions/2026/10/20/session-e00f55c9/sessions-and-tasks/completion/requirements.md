@@ -17,7 +17,7 @@
 3. **Each session shows its deferral and stop rate,** split out for the owner's own asks. If more than about 20% of the owner's asks end up deferred or stopped, the session is red-flagged.
 4. **A completed owner ask needs proof:** an outcome, plus a link to the thing. A cheap Haiku check compares the claim against the owner's words and flags "marked done, not done". The owner can reopen any task from the page.
 5. **A completion value for every item,** read in one item-tool call: session, task, prompt, question, process and project. The percentage is computed from the states, never typed. Partly built (item 26); finish it for the new types (Prompt and Question from `prompt-extends-task`).
-6. **Close this session properly.** Walk all 302 open tasks. Each one is done; handed to a working agent; deferred with a home; or stopped with a reason the owner would accept. `session-closeout/verdicts.jsonl` already has 102 verdicts as a start. Target: 100% accounted for, with the stop rate shown.
+6. **Close this session properly.** Walk all 302 open tasks (the 402 above minus the 100 complete). Each one is done; handed to a working agent; deferred with a home; or stopped with a reason the owner would accept. `session-closeout/verdicts.jsonl` already has 102 verdicts as a start. Target: 100% accounted for, with the stop rate shown.
 7. **This prompt is a task of its own,** under the Prompt it came from once Prompts are tasks, and it is complete only when items 1–6 land.
 
 ## Order and budget
