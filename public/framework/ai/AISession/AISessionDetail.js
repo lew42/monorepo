@@ -79,11 +79,19 @@ export default class AISessionDetail extends Page {
 		return url && await AISessionDetail.id_of_folder(root_url, url) ? url : null;
 	}
 
-	/** Whether `/sessions/<name>/` names anything: a row (sessions.json, the live agent list or the index), an agent folder, a uuid or short id (a new session the index has not met yet), or a voice record (`v-…`, `cloud-voice-…`, found by its dated folder). Only a bare name that is none of these is "not found". */
+	/** The dated folder url of a session folder named `folder` (`session-<id8>`, or a voice record's own `v-…`, `cloud-voice-…`), found by asking each of the last 21 days for its session.jsonl; null when none has it. The fallback for a session the index has not met yet. */
+	static async dated_folder(root_url, folder){
+		const days = Array.from({ length: 21 }, (_, i) => AISession.day(new Date(Date.now() - i * 864e5)));
+		const hits = await Promise.all(days.map(day => fetch(`${root_url}${day}/${folder}/session.jsonl`, { headers: { Range: "bytes=0-0" } })
+			.then(res => res.ok && !(res.headers.get("content-type") ?? "").includes("html") ? `${root_url}${day}/${folder}/` : null).catch(() => null)));
+		return hits.find(Boolean) ?? null;
+	}
+
+	/** Whether `/sessions/<name>/` names a session: a row (sessions.json, the live agent list, the index or the tree) or a session folder `folder_for` finds. A bare name that is none of these has no record to read, so it is "not found". */
 	static async known(root_url, name){
-		if (/^[0-9a-f]{8}(-|$)/.test(name) || /^(v|cloud-voice)-/.test(name)) return true;
 		if (await AISessionDetail.load_row(root_url, name)) return true;
-		return name in ((await AISessionRows.load_index(root_url))?.rows ?? {});
+		if (name in ((await AISessionRows.load_index(root_url))?.rows ?? {})) return true;
+		return !!await AISessionDetail.folder_for(root_url, name);
 	}
 
 	/** The name from rows AISessionsPage.child() preloaded, so the first paint already shows it; the id only when there is no row. */

@@ -20,6 +20,7 @@ export default class AgentUrl {
 		const urls = new Map(), depth = u => u.split("/").length, last = u => u.replace(/\/$/, "").split("/").pop();
 		const agents = new Map((index?.agents ?? []).map(a => [a.id, a]));
 		const ran = new Map();   // agent -> its shallowest task url
+		const task_urls = (index?.tasks ?? []).map(t => t.url).filter(Boolean);
 		for (const t of index?.tasks ?? []){
 			if (!t.url) continue;
 			const own = agents.has(last(t.url)) ? last(t.url) : null;
@@ -29,7 +30,8 @@ export default class AgentUrl {
 		for (const [name, a] of agents){
 			if (urls.has(name)) continue;
 			const dir = a.task_dir && AgentUrl.site_path(a.task_dir);
-			if (dir) urls.set(name, dir);
+			// task_dir is recorded when the agent starts and goes stale when the folder moves; the index's tasks are read off the disk, so a task wins unless task_dir still holds one
+			if (dir && (task_urls.some(u => u.startsWith(dir)) || !ran.has(name))) urls.set(name, dir);
 			else if (ran.has(name)) urls.set(name, ran.get(name));
 		}
 		return urls;
@@ -42,8 +44,17 @@ export default class AgentUrl {
 	}
 
 	/** The url if the lookup has loaded and knows the name, else null (it does not fetch). */
-	static of(name){ return AgentUrl.urls?.get(name) ?? null; }
+	static of(name){ return AgentUrl.urls?.get(name) ?? AgentUrl.doubled(name); }
+
+	/** Servex mints `minion-minion-x` for a task named `minion-x`, and chat says `minion-x`: the same agent, found by repeating the role. */
+	static doubled(name){
+		for (const role of [/^([a-z]+)-/.exec(name)?.[1], /^([a-z]+-[a-z]+)-/.exec(name)?.[1]]){
+			const url = role && AgentUrl.urls?.get(role + "-" + name);
+			if (url) return url;
+		}
+		return null;
+	}
 
 	/** The url once the lookup has loaded, else null. */
-	static async find(name){ return (await AgentUrl.load()).get(name) ?? null; }
+	static async find(name){ await AgentUrl.load(); return AgentUrl.of(name); }
 }
