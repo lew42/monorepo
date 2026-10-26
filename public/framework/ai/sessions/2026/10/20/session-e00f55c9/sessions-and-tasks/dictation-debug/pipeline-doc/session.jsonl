@@ -13,3 +13,4 @@
 {"log":{"at":"2026-10-25T16:56:58-05:00","heartbeat":"check","msg":"status check sent to minion-pipeline-doc"}}
 {"log":{"at":"2026-10-25T16:57:36-05:00","heartbeat":"answered","msg":"I'm finished. Nothing is running and I'm not waiting on anything.\n\n- **Built:** `ux/Dictate/doc/pipeline.md`, the Docs tab reordered with `pipeline.md` first, the readme and Chat v2 goal lines, and th"}}
 {"log":{"at":"2026-10-25T17:19:13-05:00","heartbeat":"deliberate","msg":"minion-pipeline-doc its agent is not running: it was stopped on purpose by mastermind-dictation-2 at 2026-10-25T17:15:37-05:00; not revived."}}
+{"stop":{"at":"2026-10-25T19:00:46-05:00","why":"dropped: owner minion-pipeline-doc is stopped"}}

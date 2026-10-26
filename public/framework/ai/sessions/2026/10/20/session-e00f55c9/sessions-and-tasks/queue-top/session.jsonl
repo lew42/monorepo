@@ -38,3 +38,4 @@
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/queue-top/batch2/","by":"SessionRecord --links","ts":"2026-10-25T04:41:24.870Z"}
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/queue-top/batch2/","by":"SessionRecord --links","ts":"2026-10-25T05:01:32.761Z"}
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/queue-top/batch2/","by":"SessionRecord --links","ts":"2026-10-25T06:35:48.189Z"}
+{"stop":{"at":"2026-10-25T19:00:46-05:00","why":"dropped: owner task-mastermind-queue-top is stopped"}}

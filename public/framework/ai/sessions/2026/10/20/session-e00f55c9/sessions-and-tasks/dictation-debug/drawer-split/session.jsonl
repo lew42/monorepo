@@ -14,3 +14,4 @@
 {"log":{"at":"2026-10-25T16:56:57-05:00","heartbeat":"check","msg":"status check sent to minion-drawer-split"}}
 {"log":{"at":"2026-10-25T16:57:34-05:00","heartbeat":"answered","msg":"I'm finished and idle. Both asks are fixed in commit `f568af8ca` on `worktree/qf-3`, and the second review passed. It is waiting for mastermind-dictation-2 to merge."}}
 {"log":{"at":"2026-10-25T17:19:11-05:00","heartbeat":"deliberate","msg":"minion-drawer-split its agent is not running: it was stopped on purpose by mastermind-dictation-2 at 2026-10-25T17:15:37-05:00; not revived."}}
+{"stop":{"at":"2026-10-25T19:00:46-05:00","why":"dropped: owner minion-drawer-split is stopped"}}

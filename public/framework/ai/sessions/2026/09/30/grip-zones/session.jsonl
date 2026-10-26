@@ -6,3 +6,4 @@
 {"home":"/framework/ext/grip/tasks/grip-zones/"}
 {"wait":{"on":"/framework/ext/grip/","what":"Clear brief, not started; resize handle zones belong to grip module.","decide_by":"2026-10-26T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:33:20.633Z"}
 {"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/09/30/grip-zones/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:20.640Z"}
+{"stop":{"at":"2026-10-25T19:00:46-05:00","why":"dropped: deferral to /framework/ext/grip/ is past its decide-by time (2026-10-26T00:00:00Z)"}}

@@ -18,3 +18,4 @@
 {"review":{"at":"2026-10-24T22:53:57-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/ai-rules-doc","head":"c7d5ba6ac6f2ef742b576bb8505ddfd5923bb485","model":null,"cost":0,"file":"review.md"}}
 {"complete":{"outcome":"Code review passed on 2026-10-24; branch worktree/chat-view merged into michael/dev.","evidence":["eaa704ff2"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:33.892Z"}
 {"sessions":[{"id":"ai-system-mastermind","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/"},{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:33.896Z"}
+{"stop":{"at":"2026-10-25T19:00:46-05:00","why":"dropped: no owner agent was ever assigned"}}

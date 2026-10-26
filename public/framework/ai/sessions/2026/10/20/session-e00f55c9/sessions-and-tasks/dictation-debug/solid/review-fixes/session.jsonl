@@ -6,3 +6,4 @@
 {"log":{"at":"2026-10-25T09:29:16-05:00","heartbeat":"check","msg":"status check sent to minion-solid-fixes"}}
 {"log":{"at":"2026-10-25T09:29:50-05:00","heartbeat":"answered","msg":"I'm finished and idle. Review fixes 1, 2, 3, 5 and 6 are committed in the dictation-solid worktree as `11715434e`, and nothing is merged. The one loose end is a duplicate `refresh.mjs` row in `ux/Dict"}}
 {"log":{"at":"2026-10-25T09:50:16-05:00","heartbeat":"deliberate","msg":"minion-solid-fixes its agent is not running: it was stopped on purpose by mastermind-dictation-2 at 2026-10-25T09:29:55-05:00; not revived."}}
+{"stop":{"at":"2026-10-25T19:00:46-05:00","why":"dropped: owner minion-solid-fixes is stopped"}}

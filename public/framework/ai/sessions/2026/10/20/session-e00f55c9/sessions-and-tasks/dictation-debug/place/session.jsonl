@@ -12,3 +12,4 @@
 {"commit":"f52c41892","by":"mastermind-dictation-2"}
 {"review":{"at":"2026-10-25T11:27:42-05:00","answer":{"n":5,"reply":"fixed: commit line added for f52c41892; landing line follows the merge."}}}
 {"review":{"at":"2026-10-25T11:27:42-05:00","answer":{"n":6,"reply":"noted: Servex restart via sustain after the merge; old sentences stay unplaced on purpose (no replay asked)."}}}
+{"stop":{"at":"2026-10-25T19:00:46-05:00","why":"dropped: owner minion-dictation-place is stopped"}}

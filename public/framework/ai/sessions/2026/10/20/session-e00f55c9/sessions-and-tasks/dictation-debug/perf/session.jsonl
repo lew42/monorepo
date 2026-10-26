@@ -19,3 +19,4 @@
 {"review":{"at":"2026-10-25T10:28:07-05:00","answer":{"n":5,"reply":"noted: acceptable for now, documented in voice-assistant.md#nothing-jumps; the fix (replay held targets in Widget.Thread.load_earlier) is queued in dictation-debug/session.jsonl."}}}
 {"commit":"d940e2d22387"}
 {"log":{"at":"2026-10-25T10:44:17-05:00","heartbeat":"deliberate","msg":"minion-dictation-perf its agent is not running: it was stopped on purpose by mastermind-dictation-2 at 2026-10-25T10:38:23-05:00; not revived."}}
+{"stop":{"at":"2026-10-25T19:00:46-05:00","why":"dropped: owner minion-dictation-perf is stopped"}}

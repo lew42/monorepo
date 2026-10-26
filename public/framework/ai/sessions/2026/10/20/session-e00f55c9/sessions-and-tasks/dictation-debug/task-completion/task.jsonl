@@ -24,3 +24,4 @@
 {"review":{"at":"2026-10-25T17:32:43-05:00","answer":{"n":5,"reply":"noted: the branch changes them, merging now; the rest is history or alias text, left for the architect"}}}
 {"review":{"at":"2026-10-25T17:32:43-05:00","answer":{"n":6,"reply":"noted: same link style roles.md uses for repo-only files"}}}
 {"log":{"at":"2026-10-25T18:04:58-05:00","msg":"Status: the task-completion steps moved to the Tasks tab (Done 7 of 39). Open: the rest of the 39. The okay checkbox waits on the owner's PLANNING MODE (not yet done). Wording changes get their own task folder; leftovers (notes only): roles.js comments, about 40 doc lines still saying task mastermind, and the agent-rules.md link to /Servex/agents/doc/names.md outside public/."}}
+{"stop":{"at":"2026-10-25T19:06:24-05:00","why":"dropped: no owner agent was ever assigned"}}

@@ -15,3 +15,4 @@
 {"review":{"at":"2026-10-25T12:59:28-05:00","answer":{"n":8,"reply":"fixed: open() keeps a latest-path guard and drops a stale md.file result"}}}
 {"review":{"at":"2026-10-25T12:59:28-05:00","answer":{"n":9,"reply":"fixed: covered by items 1, 2, 6 and 7"}}}
 {"log":{"at":"2026-10-25T13:10:18-05:00","heartbeat":"deliberate","msg":"minion-dictation-docs its agent is not running: it was stopped on purpose by mastermind-dictation-2 at 2026-10-25T13:05:02-05:00; not revived."}}
+{"stop":{"at":"2026-10-25T19:00:46-05:00","why":"dropped: owner minion-dictation-docs is stopped"}}

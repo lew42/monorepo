@@ -44,3 +44,4 @@
 {"review":{"at":"2026-10-25T17:12:06-05:00","answer":{"n":9,"reply":"noted: mic colours to tokens, round 2"}}}
 {"review":{"at":"2026-10-25T17:12:06-05:00","answer":{"n":10,"reply":"noted: a line sent straight to smart should not show 'fast …' forever, round 2"}}}
 {"log":{"at":"2026-10-25T17:21:11-05:00","heartbeat":"deliberate","msg":"minion-chat-sent its agent is not running: it was stopped on purpose by mastermind-dictation-2 at 2026-10-25T17:15:36-05:00; not revived."}}
+{"stop":{"at":"2026-10-25T19:00:46-05:00","why":"dropped: owner minion-chat-sent is stopped"}}
