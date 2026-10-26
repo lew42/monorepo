@@ -25,6 +25,11 @@ export const SETTINGS = {
 	into: "chat",   // "chat" = growing bubble in the chat log, "box" = the text box; see doc/mic-notes.md#settings
 	wake_gap_s: null,   // smart assistant: quiet seconds before it hears a batch (null = Servex's own default); pushed to the session
 	wake_every: null,   // smart assistant: or this many sentences, whichever comes first (null = Servex's default)
+	send_on_period: true,      // cut a send at . ! or … (one box: the three read as one "a sentence ended" mark)
+	send_on_question: true,   // cut a send at a question mark
+	send_on_comma: false,     // cut a send at a comma too; off by default — on, it fragments a sentence into pieces at every comma
+	pause_ms: null,         // null = Dictate.js's own prototype default (700 ms): silence this long closes a segment
+	max_segment_ms: null,   // null = Dictate.js's own prototype default (15000 ms): or this much talking, whichever comes first
 };
 const STORE = "chat.mic.settings.4";   // .4: the 2 s send delay must not be shadowed by the old 700 / 1500 ms defaults
 // Carry the owner's saved values over from the old key; drop stale defaults. see doc/mic-notes.md#settings-migration
@@ -70,6 +75,13 @@ Socket.singleton().add_busy(() => [...all_mics].some(m => m.active()));
 // The last net: any reload or navigation while a mic is live asks first.
 addEventListener("beforeunload", e => { if ([...all_mics].some(m => m.active())){ e.preventDefault(); e.returnValue = ""; } });
 
+// Known silence hallucinations (the owner, 2026-10-25 17:30): Whisper emits these when it is fed
+// silent audio with nothing actually said. Dropped only when this segment had no real speech
+// (`has_speech` stayed false the whole time — see `on_level`), so a genuine "Thank you." said out
+// loud is never touched.
+const HALLUCINATIONS = new Set(["thank you", "thanks for watching", "thank you for watching", "you", "bye"]);
+function is_hallucination(text){ return HALLUCINATIONS.has(String(text ?? "").trim().toLowerCase().replace(/[.!?…]+$/, "")); }
+
 // Filler words never reach the box or the log (whole words, any case, with their comma).
 const filler_re = (flags, edge = "") => new RegExp(edge + String.raw`\b(?:` +SETTINGS.fillers.split(/[\s,]+/).filter(Boolean).map(w => w.slice(0, -1).replace(/[^\p{L}]/gu, "") + w.slice(-1) + "+").join("|") + String.raw`)\b` +(edge ? "" : ",?"), flags);
 export function unfill(text){
@@ -101,6 +113,10 @@ export class ComposerMic extends Dictate {
 
 	// The guess stays on screen until its final arrives. see doc/mic-notes.md#the-guess-stays-on-screen-until-its-final-arrives
 	async close_segment(){
+		// Captured BEFORE super.close_segment(): Dictate.js's own close_segment resets has_speech to
+		// false synchronously, before the async whisper final even goes out, so reading it in commit()
+		// later always sees false (review finding 1 — it dropped real speech, not just silence).
+		(this.had_speech_q ??= []).push(this.has_speech);
 		let mine;
 		try {
 			const gap = this.gap_before ?? 0;
@@ -118,18 +134,37 @@ export class ComposerMic extends Dictate {
 
 	commit(text){
 		const gap = (this.gaps ??= []).shift() ?? 0;
+		const had_speech = (this.had_speech_q ??= []).shift() ?? this.has_speech;
 		this.next_break = this.can_break(this.held?.at(-1)?.text, gap);
 		const item = this.pending?.shift();
 		text = unfill(text).replace(/\s+/g, " ").trim();   // a segment's own newlines never become paragraphs
-		if (item?.sent){   // a segment whose guess (or earlier text) was already sent by Send
-			text = strip_sent(text, item.sent);
-			if (!text){ this.partial_text = ""; this.draw_caption(); return; }
-		} else if (this.dropped){   // a segment whose words were already sent (or edited in): only the rest is new
-			text = strip_sent(text, this.dropped.text);   // never "" on a failed alignment — only on a confident, fully-matched one
-			this.dropped = null;
-			if (!text){ this.partial_text = ""; this.draw_caption(); return; }
-		}
-		super.commit(text);
+		// Silence hallucination (the owner, 2026-10-25 17:30): Whisper said this with nothing actually
+		// spoken into THIS segment — drop it, never show it, never send it. `had_speech` is this
+		// segment's own flag, captured at close_segment() before Dictate.js resets it.
+		if (text && is_hallucination(text) && !had_speech){ this.partial_text = ""; this.draw_caption(); return; }
+		this._in_commit = true;
+		try {
+			if (item?.sent){   // a segment whose guess (or earlier text) was already sent by Send
+				text = strip_sent(text, item.sent);
+				if (!text){ this.partial_text = ""; this.draw_caption(); return; }
+			} else if (this.dropped){   // a segment whose words were already sent (or edited in): only the rest is new
+				text = strip_sent(text, this.dropped.text);   // never "" on a failed alignment, only on a confident, fully-matched one
+				this.dropped = null;
+				if (!text){ this.partial_text = ""; this.draw_caption(); return; }
+			}
+			super.commit(text);
+		} finally { this._in_commit = false; }
+	}
+
+	// A segment that pushed to `had_speech_q` (close_segment, above) but then takes one of Dictate.js's
+	// own no-commit paths (not worth sending, a stale/failed transcribe) calls this instead of commit() —
+	// without this override that push is never shifted back off, so the NEXT real segment's commit() would
+	// read a stale, wrong flag (review round 4 finding 5). `_in_commit` guards against double-popping: an
+	// in-progress commit() already shifted its own entry, and Dictate.js's commit() calls clear_guess()
+	// too (an empty/annotation-only final) — that shift must not count again.
+	clear_guess(){
+		if (!this._in_commit) (this.had_speech_q ??= []).shift();
+		super.clear_guess();
 	}
 
 	render(){ super.render(); ComposerMic.mounted.add(this); }
@@ -284,6 +319,7 @@ export class ComposerMic extends Dictate {
 			["clean", "clean transcription (fast assistant clean-up)", "boolean"],
 			["into", "dictation goes into", ["chat", "box"]],
 			["send_mode", "send mode", ["pause", "sentences"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], ["break_pause_ms", "paragraph pause (ms)", "number"],
+			["send_on_period", "send on a sentence end (. ! …)", "boolean"], ["send_on_question", "send on question mark (?)", "boolean"], ["send_on_comma", "send on comma (,) too — fragments sentences", "boolean"],
 		];
 		const expert = [   // under the closed "More" below the smart assistant rows
 			["guess_ms", "guess every (ms)", "number"], ["box_lines", "box lines before scroll", "number"], ["chunk_chars", "safety chunk (chars)", "number"], ["chunk_ms", "safety chunk (ms)", "number"], ["fillers", "filler words", "text"],
@@ -321,8 +357,31 @@ export class ComposerMic extends Dictate {
 			into.append(name, input);
 		}
 		this.wake_rows(panel);
+		this.segment_rows(more.querySelector("div"));   // same "More" grid as guess_ms/box_lines/… (round 4, item 8c)
 		panel.append(more);
 		return panel;
+	}
+
+	// round 4, item 8(c): resend_ms is already exposed as "guess every (ms)" (it sets `this.resend_ms`
+	// in start(), below) — these two are the rest of Dictate.js's hard-coded segment timing that can be
+	// overridden without touching the prototype default: blank = Dictate.js's own default, unchanged.
+	segment_rows(grid){
+		if (!grid) return;
+		for (const [key, label, def] of [["pause_ms", "segment pause (ms)", 700], ["max_segment_ms", "segment cap (ms)", 15000]]){
+			const name = document.createElement("label"); name.textContent = label;
+			const input = document.createElement("input");
+			input.type = "number"; input.min = 100; input.placeholder = `default (${def})`; input.dataset.key = key;
+			input.value = SETTINGS[key] ?? "";
+			input.style.width = "10em";
+			input.addEventListener("change", () => {
+				const n = Number(input.value);
+				SETTINGS[key] = input.value === "" || !(n > 0) ? null : Math.round(n);
+				input.value = SETTINGS[key] ?? "";
+				save_settings();
+				if (key in this) this[key] = SETTINGS[key] ?? this.constructor.prototype[key];   // live while dictating; start() applies it on the next start too
+			});
+			grid.append(name, input);
+		}
 	}
 
 	// The smart assistant's batch knobs live in Servex, per session (ux/Dictate/doc/wake-policy.md); the browser keeps the owner's pick and re-sends it to each session.
@@ -402,6 +461,9 @@ export class ComposerMic extends Dictate {
 		try {
 			if (other && other !== this) try { await other.stop(); } catch {}
 			this.resend_ms = SETTINGS.guess_ms;
+			// round 4, item 8(c): blank in the gear panel = Dictate.js's own prototype default, untouched.
+			if (SETTINGS.pause_ms != null) this.pause_ms = SETTINGS.pause_ms;
+			if (SETTINGS.max_segment_ms != null) this.max_segment_ms = SETTINGS.max_segment_ms;
 			await super.start();
 		} finally { this.starting = false; }
 	}
@@ -546,7 +608,7 @@ export class ComposerMic extends Dictate {
 			this.notify_if_failed(held);
 			const joined = held.map(h => h.text).join(" ");
 			const joined_raw = held.map(h => h.raw ?? h.text).join(" ");
-			const sents = joined.match(/[^.!?…]*[.!?…]+["')\]]*(?=\s|$)/g) ?? [];
+			const sents = joined.match(this.cut_re()) ?? [];
 			if (!sents.length || sents.length < n) return;
 			const per = Math.min(n, sents.length), cut = sents.length - sents.length % per, texts = [];
 			// `raw` goes on the first outgoing message only.
@@ -607,6 +669,15 @@ export class ComposerMic extends Dictate {
 			if (live?.slots?.length) item.text = ComposerMic.paragraph_from_slots(live.slots, live.outline);
 			this.enqueue([item]);
 		} finally { this.sending_screen = false; }
+	}
+
+	// Which marks may end a send. "send on period" covers . ! … together (one "a sentence ended" mark,
+	// matching `ends_sentence()` below); "send on question mark" is just ?; comma is its own, separate
+	// and off by default (every comma cutting a send fragments a sentence into pieces). A run-on with
+	// none of the checked marks at its end stays chunked together with what follows.
+	cut_re(){
+		const stops = (SETTINGS.send_on_period ? ".!…" : "") + (SETTINGS.send_on_question ? "?" : "") + (SETTINGS.send_on_comma ? "," : "");
+		return new RegExp(`[^${stops || ".!?…"}]*[${stops || ".!?…"}]+["')\\]]*(?=\\s|$)`, "g");   // nothing checked: fall back to the full set, never silently stop sending
 	}
 
 	held_text(){ return (this.held ?? []).filter(h => !h.gone).map(h => h.text).join(" ").trim(); }

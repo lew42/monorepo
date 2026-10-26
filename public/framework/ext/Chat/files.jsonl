@@ -29,3 +29,5 @@
 {"file":"failures.jsonl","gone":true}
 {"file":"strip.js"}
 {"file":"strip.test.mjs"}
+{"file":"failures.jsonl"}
+{"file":"failures.jsonl","gone":true}

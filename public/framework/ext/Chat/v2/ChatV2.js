@@ -3,7 +3,6 @@
 import View, { div, span, button, h3, mark, blockquote, small, icon } from "/framework/core/View/View.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import TaskView from "/framework/core/Task/TaskView.js";
-import { sent_badge } from "/framework/ext/Chat/Chat.js";
 import ChatV2Model from "./ChatV2Model.js";
 View.stylesheet(import.meta, "ChatV2.css");
 
@@ -33,10 +32,33 @@ export default class ChatV2 extends JSONL {
 		this.model = this.constructor.Model.fold(this.lines);
 		this.els.clear(); this.parts.clear();
 		const roots = this.model.roots();
+		// review round 3 finding 1: smart_dots is created OUTSIDE the empty-chat branch, so a session that
+		// starts with nothing said still has it ready for the first Prompt that arrives later.
 		this.$box?.empty(() => {
-			if (!roots.length) return div.c("chat-v2-empty", "Nothing said in this session yet.");
+			if (!roots.length){ div.c("chat-v2-empty", "Nothing said in this session yet."); this.smart_dots = div.c("chat-v2-smart-dots", "🧠").attr("hidden", ""); return; }
 			for (const n of roots) this.constructor.Model.kind(n) === "Prompt" ? this.prompt(n) : this.child(n);
+			this.smart_dots = div.c("chat-v2-smart-dots", "🧠").attr("hidden", "");
 		});
+		this.watch_smart();
+		this.place_cursors();
+	}
+
+	// ONE animated 🧠 at the bottom, round 4 fix: shown whenever SOME Prompt's `working` is fresh (under
+	// ~10 min old), full stop — never hidden just because a Prompt exists to carry a cursor (round 3's
+	// mistake). The bottom dots and the smart cursor (place_cursors, below) answer different questions:
+	// this one says "smart is doing something, somewhere, right now"; the cursor says "here is the one
+	// newest chunk and whether smart has answered IT". Both can show at once. Checked on every patch and
+	// a slow timer, since `working.at` ages even with no new line (review finding, round 2).
+	watch_smart(){
+		clearInterval(this._smart_timer);
+		this._smart_timer = setInterval(() => this.update_smart_dots(), 15000);
+		this.update_smart_dots();
+	}
+	update_smart_dots(){
+		if (!this.smart_dots) return;
+		const STALE_MS = 10 * 60 * 1000;
+		const working = [...this.model.by_id.values()].some(n => n.working && Date.now() - (Date.parse(n.working.at ?? 0) || 0) < STALE_MS);
+		this.smart_dots.el.hidden = !working;
 	}
 
 	// One streamed line, already folded into the model (see read()): patch only what it touched.
@@ -46,12 +68,18 @@ export default class ChatV2 extends JSONL {
 	apply_one(line){
 		const touch = this.model.apply(line);
 		if (!touch) return;
-		if (!touch.added) { this.patch(touch.id); return; }
+		this.update_smart_dots();
+		if (!touch.added) { this.patch(touch.id); this.place_cursors(); return; }
 		const M = this.constructor.Model, node = this.model.by_id.get(touch.id);
 		if (!node) return;
 		if (touch.parent === null) {
 			this.$box?.el.querySelector(":scope > .chat-v2-empty")?.remove();
-			if (M.kind(node) === "Prompt") { this.$box?.append(() => this.prompt(node)); return; }
+			if (M.kind(node) === "Prompt") {
+				this.$box?.append(() => this.prompt(node));
+				if (this.smart_dots) this.$box.el.append(this.smart_dots.el);   // keep the one bottom indicator last
+				this.place_cursors();
+				return;
+			}
 			const home = node.from && this.parts.get(node.from);   // a root Task or Question whose `from` names a drawn prompt sits in its nest (ChatV2Model.children)
 			home ? home.nest.append(() => this.child(node)) : this.$box?.append(() => this.child(node));
 			return;
@@ -123,7 +151,42 @@ export default class ChatV2 extends JSONL {
 		if (M.title(n)) h3.c("chat-v2-title", M.title(n));
 		if (refined && M.text(n)) div.c("chat-v2-text", M.text(n));
 		if (!refined) this.sentences(n, replies);
-		if (n.sent) div.c("chat-v2-sent").el.append(sent_badge({ sent: n.sent }));   // the same "fast ✓ 0.4 s · smart ✓" mark as the bubble chat
+	}
+
+	// TWO moving marks for the whole chat, round 3-4 (supersedes round 2's single ✓ cursor + a 🧠 stamp per
+	// Prompt): both sit after the NEWEST Prompt only, and both drop off the old Prompt the moment a newer
+	// one exists — there is never more than one of each on screen.
+	//   ✓ (fast): light gray once the Prompt exists, green once it has reached the fast seat (`sent.fast`).
+	//   🧠 (smart): light gray while smart HAS the chunk but has not answered yet (`sent.smart` set, no
+	//   answer seen) — this covers both "still working" and "sent but not started"; it colours in (the
+	//   smart-reply colour) ONLY once an actual answer exists: `M.refined(n)` (title/text written) or a
+	//   reply/question/task added after `sent.smart`'s own timestamp. Round 3 had this backwards (coloured
+	//   while `!working`, which is also true before smart ever starts) — fixed here (review round 4).
+	// Caveat, both marks: `sent.fast`/`sent.smart` are PROMPT-level (Sessions.mark_sent fires once per
+	// Prompt reaching a seat), not per sentence/chunk — the owner's per-chunk ask needs a new Servex line;
+	// exact shape in proposal.md. Fixed-width slots (ChatV2.css), never shown/hidden by display, so moving
+	// either mark never reflows the text around it.
+	cursor_el(){ return this._cursor ??= span.c("chat-v2-cursor").el; }
+	smart_cursor_el(){ return this._smart_cursor ??= span.c("chat-v2-smart-cursor", "🧠").el; }
+	last_prompt(){ const M = this.constructor.Model; const roots = this.model?.roots().filter(n => M.kind(n) === "Prompt") ?? []; return roots.at(-1) ?? null; }
+	// Has smart actually answered THIS Prompt: its own title/text, or any reply/question/task added since.
+	smart_answered(n){
+		const M = this.constructor.Model;
+		if (M.refined(n)) return true;
+		const sent_at = Date.parse(n.sent?.smart?.at ?? 0) || 0;
+		return M.replies(n).some(r => Date.parse(r.ts ?? 0) >= sent_at) || this.model.children(n).some(k => Date.parse(k.ts ?? 0) >= sent_at);
+	}
+	place_cursors(){
+		const fast = this.cursor_el(), smart = this.smart_cursor_el();
+		fast.remove(); smart.remove();
+		const n = this.last_prompt(), owner = n && this.parts.get(n.id);
+		if (!owner) return;
+		fast.classList.toggle("done", !!n.sent?.fast);
+		owner.head.el.append(fast);
+		if (n.sent?.smart){
+			smart.classList.toggle("done", this.smart_answered(n));   // gray = has it, not answered yet; coloured = an answer exists
+			owner.head.el.append(smart);
+		}
 	}
 
 	prompt_raw_wrap(n, replies){
@@ -149,14 +212,21 @@ export default class ChatV2 extends JSONL {
 	}
 
 	// The paragraphs as sentence rows; a reply anchored to a sentence sits beside it (below it on a phone).
+	// Round 3, ask B(iii): which paragraph a sentence landed in is now VISIBLE — a real gap (margin, CSS)
+	// opens before the first sentence of a paragraph after the first, and every sentence's title names its
+	// paragraph letter and index (e.g. "paragraph b, sentence 2") — a hover away, never reflowing the row.
 	sentences(n, replies){
 		const M = this.constructor.Model;
+		let last_para = null;
 		for (const s of M.sentences(n)) {
 			const here = replies.filter(r => M.anchor(r)?.sentence === s.id);
-			div.c("chat-v2-sentence", () => {
-				div.c("chat-v2-sentence-text", () => this.words(s.text, here.map(r => M.words_range(M.anchor(r))).find(Boolean)));
+			const new_para = s.para !== last_para && last_para !== null;
+			last_para = s.para;
+			div.c("chat-v2-sentence" + (new_para ? " chat-v2-new-paragraph" : ""), () => {
+				div.c("chat-v2-sentence-text", () => this.words(s.text, here.map(r => M.words_range(M.anchor(r))).find(Boolean)))
+					.attr("title", `paragraph ${s.para}, sentence ${s.n}`);
 				if (here.length) div.c("chat-v2-beside", () => here.forEach(r => this.reply(r, n, false)));
-			}).attr("data-sentence", s.id);
+			}).attr("data-sentence", s.id).attr("data-paragraph", s.para);
 		}
 	}
 

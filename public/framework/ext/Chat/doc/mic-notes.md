@@ -309,8 +309,17 @@ that will never be theirs to send.
 
 `composer({ per_sentence: true })` sets this mic's `sentences_per_send` to 1, apart from the gear panel: every finished sentence goes out at once while the next is still being heard (the Refine page; `ext/Refine/test/composer-flow.mjs`).
 
-The finished sentences among the held words go out now, `sentences_per_send` to a message; the
+The finished sentences among the held words go out now, `sentences_per_send` to a message; the rest stays held for the next call.
 
+## Settings: send_on_period, send_on_question, send_on_comma
+
+Three checkboxes in the gear panel (the owner, 2026-10-25): which marks `cut_re()` treats as a
+sentence end when cutting `send_sentences()`'s held text into messages. `send_on_period` covers
+`.`, `!` and `…` together — one "a sentence ended" mark, the same set `ends_sentence()` already
+checks — `send_on_question` is `?` alone, and `send_on_comma` is its own switch, off by default
+(a comma cuts far more often than a sentence end, and turning it on fragments one sentence into
+several short sends). With nothing checked, `cut_re()` falls back to the full `.!?…` set rather
+than silently stop sending at all.
 
 ## send_screen
 

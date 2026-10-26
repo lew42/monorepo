@@ -1,7 +1,8 @@
 // Proof: the sent marks and the scroll lock, in the bubble chat and in Chat v2.
 //   node public/framework/ux/Dictate/test/chat-sent.mjs <base-url> <shots-dir> [width=400]
 // Headless, every Servex verb stubbed (nothing is posted). The session stream is a script: each (re)connect gets the next batch of lines.
-//   1. an owner line, then `sent` lines (fast, then smart) -> the line's badge goes "fast … · smart …" -> "fast ✓ · smart ✓"
+//   1. an owner line, then `sent` lines (fast, then smart) -> V1's badge goes nothing -> "✓" -> nothing again
+//      once both assistants have it (round 3); V2 draws the same fact as its moving ✓/🧠 cursors instead
 //   2. 40 lines, scroll up, 3 more arrive -> the view stays put and the ↓ button shows; press it -> follows the newest again
 // Run for the bubble chat, then again with Chat v2 on (the "v2" chip). Exit 1 on any failure.
 import fs from "fs";
@@ -61,14 +62,16 @@ ${ev(queue.splice(0))}` });
 	await page.keyboard.press("Enter");
 	await page.waitForTimeout(2800);
 	await page.screenshot({ path: `${shots}/${tag}-1-sent-fast.png` });
-	console.log(tag, "badges at 2.8 s:", JSON.stringify(await page.evaluate(() => [...document.querySelectorAll(".chatbox-sent")].map(n => n.textContent))));
+	const mark_sel = v2 ? ".chat-v2-cursor, .chat-v2-smart-cursor" : ".chatbox-sent";
+	console.log(tag, "badges at 2.8 s:", JSON.stringify(await page.evaluate(sel => [...document.querySelectorAll(sel)].map(n => n.textContent || n.className), mark_sel)));
 	await page.waitForTimeout(4000);
 	await page.screenshot({ path: `${shots}/${tag}-1-sent-smart.png` });
-	const sentText = await page.evaluate(() => [...document.querySelectorAll(".chatbox-sent")].map(n => n.textContent));
+	const sentText = await page.evaluate(sel => [...document.querySelectorAll(sel)].map(n => n.textContent || n.className), mark_sel);
 	console.log(tag, "sent badges:", JSON.stringify(sentText));
-	if (tag.startsWith("v2")) check(sentText.some(t => /fast ✓.*smart ✓/.test(t)), `${tag}: the owner line still builds both "fast ✓" and "smart ✓" (the tooltip text)`);
-	const hidden = await page.evaluate(() => [...document.querySelectorAll(".chatbox-sent, .chat-v2-sent")].every(n => getComputedStyle(n).display === "none"));
-	check(hidden, `${tag}: the sent marks are hidden (the owner, 2026-10-25)`);
+	if (v2) check(sentText.some(t => /done/.test(t)), `${tag}: the moving ✓ cursor reached "done" (reached the fast seat)`);
+	// Round 3 review fix 2: once both assistants have it, the V1 tick disappears — "a mark only when
+	// pending", never a standing ✓✓ left on a handled message forever.
+	else check(sentText.length === 0, `${tag}: the owner line's tick is gone once both assistants have it (no standing ✓✓)`);
 	if (!v2) check(await page.locator(".ux-dictate-widget-refined").count() === 1, `${tag}: a refined line that arrives twice draws ONE block`);
 	queue.push({ tasks: { add: { id: "p-proof", type: "Prompt", title: "A prompt", text: "A prompt about sending." } } });
 	queue.push({ "p-proof": { tasks: { add: { id: "q-proof", type: "Question", text: "Do you want the proof to show this question?", from: "p-proof" } } } });
@@ -96,7 +99,7 @@ ${ev(queue.splice(0))}` });
 	console.log(tag, "after fill:", JSON.stringify(s0));
 	check(!!s0 && s0.max > 100 && (v2 ? Math.abs(s0.top - s0.max) < 4 : s0.newest_in_view), `${tag}: ${v2 ? "pinned to the bottom" : "the newest bubble is in view (V1 turns pages: newest top stays visible, blank below)"} by default`);
 	await page.screenshot({ path: `${shots}/${tag}-2-pinned.png` });
-	await page.evaluate(isV2 => { const b = (isV2 ? document.querySelector(".drawer-rail-sheet-v2 > .chatbox-jump") : [...document.querySelectorAll(".drawer-rail-sheet.on .chatbox-jump")].find(j => !j.closest(".drawer-rail-sheet-v2")))?.parentElement; b.dispatchEvent(new WheelEvent("wheel", { deltaY: -100 })); b.scrollTop = 0; b.dispatchEvent(new Event("scroll")); }, v2);
+	await page.evaluate(isV2 => { const b = (isV2 ? document.querySelector(".drawer-rail-sheet-v2 > .chatbox-jump") : [...document.querySelectorAll(".drawer-rail-sheet.on .chatbox-jump")].find(j => !j.closest(".drawer-rail-sheet-v2")))?.parentElement; b.scrollTop = 0; b.dispatchEvent(new Event("scroll")); }, v2);
 	await page.waitForTimeout(300);
 	const s1 = await box();
 	queue.push(...Array.from({ length: 3 }, (_, i) => owner(i + 50, Date.now() + i)));

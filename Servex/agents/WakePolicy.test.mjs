@@ -71,12 +71,27 @@ check("20 sentences with no pause at all wake it every N sentences, then once at
 	assert.deepEqual(wakes.map(w => w.sentences), [6, 6, 6, 2]);
 });
 
-check("a line with several sentences counts them", () => {
-	assert.equal(sentence_count("One. Two! Three? Four"), 4);
-	assert.equal(sentence_count("just words"), 1);
+check("a line with several sentences counts only the finished ones", () => {
+	assert.equal(sentence_count("One. Two! Three? Four"), 3);
+	assert.equal(sentence_count("just words"), 0);
 	const { wakes, say } = rig();
 	say("One. Two. Three."); say("Four. Five. Six.");
 	assert.deepEqual(wakes.map(w => [w.why, w.n]), [["6 sentences", 2]]);
+});
+
+check("a comma chunk with every=1 does not flush on add(); its period finishes it, once", () => {
+	const { wakes, say } = rig({ defaults: { ...GAP6, every: 1 } });
+	assert.equal(say("Yeah, so it seems"), null, "no finished sentence yet");
+	assert.equal(wakes.length, 0);
+	assert.equal(say("that it works."), "1 sentences");
+	assert.equal(wakes.length, 1, "flushed once, not twice, on the period chunk");
+	assert.deepEqual([wakes[0].why, wakes[0].n, wakes[0].sentences], ["1 sentences", 2, 1]);
+});
+
+check("a period chunk with every=1 flushes immediately", () => {
+	const { wakes, say } = rig({ defaults: { ...GAP6, every: 1 } });
+	assert.equal(say("That is finished."), "1 sentences");
+	assert.equal(wakes.length, 1);
 });
 
 check("a question wakes it at once, with what came before", () => {
