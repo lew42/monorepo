@@ -21,11 +21,13 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 - **Drill-in**: Clicking a card or topic drills into its sub-conversation shell · [`doc/drill.md`](./doc/drill.md).
 - **Smart scrolling**: Tracks bottom stickiness without jumping while inspecting history · [`doc/scroll.md`](./doc/scroll.md).
 - **The open bubble stays last**: while the owner keeps dictating into the same still-growing bubble, anything else that arrives (a reply, a task) never splits it — the bubble re-anchors below the new item and stays one, in both V1 (`Chat.js` `mergeable()`/`speak()`) and v2 (`v2/ChatV2.js` `patch()`) · [`doc/notes.md#bubble-order`](./doc/notes.md#bubble-order).
+- **Two moving cursors on a live owner line** (round 4, 2026-10-25): ✓ after the newest FAST chunk (comma / period / question mark / !), 🧠 after the newest finished SENTENCE (period / question / ! only) — gray until that seat has the line, colored once it does, V1's own copy of v2's two cursors. `chunks.js` is the shared splitter (`fast_chunks()`, `last_finished_sentence_end()`); `Chat.js`'s `tracked_text_node()` draws them inline, never reflowing the text. Replaces the old single ✓/✓✓ tick. The green Understand check is removed from V1 for now (the yellow `?` stays) — [`ux/Understand/readme.md`](/framework/ux/Understand/readme.md). Mock test: `chunks.test.mjs`; live proof: `ux/Dictate/test/chat-sent.mjs`.
 - **Reactions & threads**: Emoji tap-backs and nested inline thread replies · [`doc/reactions.md`](./doc/reactions.md).
 
 ## Files that matter
 
 - `Chat.js` / `Chat.css`: The message log, bubbles, and auto-scroll engine.
+- `chunks.js`: pure text splitters for the two moving cursors — `fast_chunks()` (comma/period/question/!), `last_finished_sentence_end()` (sentence boundary only); `chunks.test.mjs` is the mock test.
 - `Mic.js`: the composer's microphone (speech → sentences → sends). Gear settings `send_on_period`, `send_on_question`, `send_on_comma` (default: the first two on, comma off) pick which marks `cut_re()` cuts a send at — detail in [`doc/mic-notes.md`](./doc/mic-notes.md).
 - `ChatPanel.js`: Combined view wrapping log, composer, and drill-in shell.
 - `Composer.js`: Text buffer, input autosizing, and audio controls.

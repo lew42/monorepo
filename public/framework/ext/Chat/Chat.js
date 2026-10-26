@@ -1,6 +1,7 @@
 import { View, div, p, span, button } from "/app.js";
 import { md_into } from "./md.js";
 import { who_label, WHO } from "./roles.js";
+import { last_finished_sentence_end } from "./chunks.js";
 
 View.stylesheet(import.meta, "Chat.css");
 
@@ -74,23 +75,44 @@ function failed_badge(){
 	return b;
 }
 
-/** Messenger-style tick, one per BUBBLE not per sentence (the owner, 2026-10-25): ✓ reached the fast
- * seat, nothing shown once both have it. Ask 2 is "a mark only when pending or wrong, nothing once
- * handled" — a standing ✓✓ left on every handled message forever (round 1's shape) is exactly the
- * standing mark the owner asked to remove (17:31: "mean nothing to me, I asked for sent-visibility,
- * not this"), so round 3 drops the ✓✓ state entirely: this returns null once `smart` is set, same as
- * before anything is sent. The timing moves into the ✓'s title while it is showing. Alternative tried:
- * leaving ✓✓ as a quiet "done" marker — rejected per review round 3 finding 2. */
-export function sent_badge(pc){
-	const fast = pc.sent?.fast, smart = pc.sent?.smart;
-	if (!fast || smart) return null;
-	const secs = ms => (ms < 100 ? "0" : (ms / 1000).toFixed(1)) + " s";
-	const b = el("chatbox-sent muted", "span");
-	b.textContent = "✓";
-	b.title = [["fast", fast], ["smart", smart]].map(([seat, got]) =>
-		seat + (got ? ": reached" + (got.delay_ms != null ? ", " + secs(got.delay_ms) + " after the words left the draft" : "") : ": not yet"))
-		.join(" · ");
+const secs = ms => (ms < 100 ? "0" : (ms / 1000).toFixed(1)) + " s";
+
+/** One moving cursor mark, V1's own copy of v2's `cursor_el()`/`smart_cursor_el()` (ChatV2.js), same two
+ * glyphs and the same gray-until-`done` rule, sized so it never reflows the text around it (Chat.css). */
+function cursor_mark(cls, glyph, done, title){
+	const b = el(cls, "span");
+	if (glyph) b.textContent = glyph;
+	b.classList.toggle("done", done);
+	b.title = title;
 	return b;
+}
+
+/** Two moving cursors glued into a TRACKED piece's text (the owner's own live line, round 4, 2026-10-25),
+ * replacing the old single ✓/✓✓ `sent_badge` tick. V2 places both after the newest PROMPT; V1 draws one
+ * committed line at a time, so both sit inside that line's own text instead:
+ *   ✓ (fast): after the newest FAST chunk (comma / period / question mark / !) — always the very end of
+ *   this piece's text, since the newest chunk is by definition whatever is left after the last cut.
+ *   🧠 (smart): after the newest FINISHED SENTENCE (period / question / ! only, never a comma —
+ *   `chunks.js`'s `last_finished_sentence_end`), which can sit mid-text when the piece's own trailing
+ *   words have no sentence-ending mark yet (e.g. `stop()` sends "what is on screen").
+ * Gray until `sent.fast`/`sent.smart` is set, same signal `sent_badge` used — there is no "placed" or
+ * "answered" signal per piece yet (only per whole Prompt, v2 side), so "sent" is also "done" for now; a
+ * real placed/answered signal needs its own Servex line (see `v1-cursors` task report).
+ * Plain text, not markdown: a tracked line is the owner's own spoken words, never Markdown syntax, so the
+ * cut is always between two words, never inside a formatting mark. */
+function tracked_text_node(pc){
+	const node = el("chatbox-text chatbox-tracked");
+	const text = pc.text ?? "", end = last_finished_sentence_end(text);
+	const fast = pc.sent?.fast, smart = pc.sent?.smart;
+	node.append(document.createTextNode(text.slice(0, end)));
+	node.append(cursor_mark("chatbox-smart-cursor", "🧠", !!smart, smart ? "smart: reached" + (smart.delay_ms != null ? ", " + secs(smart.delay_ms) + " after the words left the draft" : "") : "smart: not yet"));
+	if (end < text.length) node.append(document.createTextNode(text.slice(end)));
+	node.append(cursor_mark("chatbox-cursor", "", !!fast, fast ? "fast: reached" + (fast.delay_ms != null ? ", " + secs(fast.delay_ms) + " after the words left the draft" : "") : "fast: not yet"));
+	// appended straight to the flat node, never into the cursor span (append_mark's "last block" rule is for a real paragraph)
+	if (pc.mark && pc.mark.mark !== "ok") node.append(" ", mark_badge(pc.mark));   // the green ✓ is removed (the owner, 2026-10-25); the yellow ? stays
+	if (pc.via) node.append(" ", via_badge(pc.via));
+	if (pc.failed) node.append(" ", failed_badge());
+	return node;
 }
 
 // see doc/notes.md#place-card
@@ -150,11 +172,11 @@ function piece_node(pc){
 function piece_body(pc){
 	if (pc.place) return place_card(pc.place);
 	if (pc.revision) return revision_pair_node(pc);
+	if (pc.track) return tracked_text_node(pc);
 	const node = para("chatbox-text", pc.text);
-	if (pc.mark) append_mark(node, pc.mark);
-	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));
-	if (pc.failed) (node.lastElementChild ?? node).append(" ", failed_badge());
-	if (pc.track){ const badge = sent_badge(pc); if (badge) (node.lastElementChild ?? node).append(" ", badge); }
+	if (pc.mark && pc.mark.mark !== "ok") append_mark(node, pc.mark);   // the green check is removed (the owner, 2026-10-25); the yellow ? stays
+	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));
+	if (pc.failed) (node.lastElementChild ?? node).append(" ", failed_badge());
 	return node;
 }
 

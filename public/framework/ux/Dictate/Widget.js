@@ -198,13 +198,14 @@ Widget.ThreadV1 = class WidgetThreadV1 extends View {
 		this.scroll.pin();
 	}
 
-	/** Adds a check or ? after the bubble text from ux/Understand; no clarify-card loop-back. */
+	// HITL green checks temporarily removed from V1 (owner, 2026-10-25); may come back later. The yellow ? stays.
+	/** Adds a ? after the bubble text from ux/Understand when a line reads unclear; no clarify-card loop-back. */
 	mark(text, $bubble){
 		fetch_marks([text]).then(out => {
 			const m = out?.marks?.[0];
-			if (!m) return;
-			$bubble.append(() => span.c("ux-dictate-widget-mark muted", m.mark === "unclear" ? " ?" : " ✓").attr("title", m.purpose ?? ""));
-		}).catch(() => {});   // ignored on purpose: the check/? mark is a bonus on a bubble; no mark just means nothing was judged
+			if (!m || m.mark !== "unclear") return;
+			$bubble.append(() => span.c("ux-dictate-widget-mark muted", " ?").attr("title", m.purpose ?? ""));
+		}).catch(() => {});   // ignored on purpose: the ? mark is a bonus on a bubble; no mark just means nothing was judged
 	}
 
 	mark_failed(at){
