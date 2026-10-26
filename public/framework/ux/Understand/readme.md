@@ -5,6 +5,12 @@ green ✓ when it's clear, and a yellow ? when it isn't — then let the assista
 ask the clarifying question, in the chat, instead of guessing. See it happen, live:
 [the demo](/framework/ux/Understand/).
 
+**HITL green checks temporarily removed from V1 (owner, 2026-10-25); may come back later.**
+The V1 bubble chat (`ux/Dictate/Widget.js`, `ext/Chat/Chat.js`) stopped drawing the green ✓
+once V1 got its own two moving cursors (✓ fast-seat, 🧠 smart-seat, `v1-cursors` task) — a
+third green mark on the same line was one too many. The yellow `?` (an unclear sentence)
+still shows; `marks()` and this page's own demo are unchanged.
+
 ## Use
 ```js
 import Understand, { marks } from "/framework/ux/Understand/Understand.js";

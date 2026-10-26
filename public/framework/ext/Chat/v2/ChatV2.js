@@ -4,7 +4,9 @@ import View, { div, span, button, h3, mark, blockquote, small, icon } from "/fra
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import TaskView from "/framework/core/Task/TaskView.js";
 import ChatV2Model from "./ChatV2Model.js";
+import { cursor_el, smart_cursor_el } from "../cursors.js";
 View.stylesheet(import.meta, "ChatV2.css");
+View.stylesheet(import.meta, "../cursors.css");
 
 export default class ChatV2 extends JSONL {
 	static Model = ChatV2Model;
@@ -122,6 +124,15 @@ export default class ChatV2 extends JSONL {
 			owner.raw.empty(() => this.prompt_raw_wrap(n, replies));
 			const shown = this.sentences_shown(n);   // where anchored replies sit flipped (show raw, or a first title): the nest's list changes too
 			if (shown !== owner.shown) { owner.shown = shown; this.move_anchored(n, owner, shown); }
+			// the open Prompt (the last one; nothing newer has started) always stays last, even if a reply or a
+			// root task landed, as its own item, after it while it kept growing (the owner, 2026-10-25)
+			if (this.last_prompt()?.id === id) {
+				const view = this.els.get(id);
+				if (view && this.$box?.el.lastElementChild !== view.el) {
+					this.$box.el.append(view.el);
+					if (this.smart_dots) this.$box.el.append(this.smart_dots.el);
+				}
+			}
 			return;
 		}
 		if (!n.type) return;   // a reply: nothing here edits one once it is added
@@ -167,8 +178,8 @@ export default class ChatV2 extends JSONL {
 	// Prompt reaching a seat), not per sentence/chunk — the owner's per-chunk ask needs a new Servex line;
 	// exact shape in proposal.md. Fixed-width slots (ChatV2.css), never shown/hidden by display, so moving
 	// either mark never reflows the text around it.
-	cursor_el(){ return this._cursor ??= span.c("chat-v2-cursor").el; }
-	smart_cursor_el(){ return this._smart_cursor ??= span.c("chat-v2-smart-cursor", "🧠").el; }
+	cursor_el(){ return this._cursor ??= cursor_el(); }
+	smart_cursor_el(){ return this._smart_cursor ??= smart_cursor_el(); }
 	last_prompt(){ const M = this.constructor.Model; const roots = this.model?.roots().filter(n => M.kind(n) === "Prompt") ?? []; return roots.at(-1) ?? null; }
 	// Has smart actually answered THIS Prompt: its own title/text, or any reply/question/task added since.
 	smart_answered(n){

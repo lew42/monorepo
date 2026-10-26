@@ -604,7 +604,4 @@
 	.chatbox-earlier { align-self: center; margin-block: var(--gap-35); cursor: pointer; }
 }
 
-@layer site {
-	/* ✓ sent to the assistants, ✓✓ handled (cleaned/refined) — green, the owner's chosen colour for "done" (2026-10-25). */
-	.chatbox-sent { font-size: .85em; white-space: nowrap; color: var(--ok); font-weight: 600; }
-}
+/* The two moving cursors (✓/🧠) are one shared class set now: ext/Chat/cursors.css, loaded by Chat.js. */

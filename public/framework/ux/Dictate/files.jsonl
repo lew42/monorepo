@@ -61,3 +61,6 @@
 {"file":"improvements.jsonl"}
 {"file":"failures.jsonl","gone":true}
 {"file":"improvements.jsonl","gone":true}
+{"file":"failures.jsonl"}
+{"file":"improvements.jsonl"}
+{"file":"shots/"}

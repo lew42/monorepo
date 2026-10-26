@@ -198,13 +198,14 @@ Widget.ThreadV1 = class WidgetThreadV1 extends View {
 		this.scroll.pin();
 	}
 
-	/** Adds a check or ? after the bubble text from ux/Understand; no clarify-card loop-back. */
+	// HITL green checks temporarily removed from V1 (owner, 2026-10-25); may come back later. The yellow ? stays.
+	/** Adds a ? after the bubble text from ux/Understand when a line reads unclear; no clarify-card loop-back. */
 	mark(text, $bubble){
 		fetch_marks([text]).then(out => {
 			const m = out?.marks?.[0];
-			if (!m) return;
-			$bubble.append(() => span.c("ux-dictate-widget-mark muted", m.mark === "unclear" ? " ?" : " ✓").attr("title", m.purpose ?? ""));
-		}).catch(() => {});   // ignored on purpose: the check/? mark is a bonus on a bubble; no mark just means nothing was judged
+			if (!m || m.mark !== "unclear") return;
+			$bubble.append(() => span.c("ux-dictate-widget-mark muted", " ?").attr("title", m.purpose ?? ""));
+		}).catch(() => {});   // ignored on purpose: the ? mark is a bonus on a bubble; no mark just means nothing was judged
 	}
 
 	mark_failed(at){
@@ -301,6 +302,7 @@ Widget.Thread = class WidgetThread extends View {
 			cls: assistant ? "chatbox-reply" : "chatbox-you",
 			who, text: chat.text, sender, at: chat.said_at ?? at, id: at, via: chat.via,   // ordered by when it was said (doc/notes.md#bubble-order), keyed by its own `at`
 			join: this.widget.join, track: !assistant && !entry.history,   // a live owner line shows its fast and smart marks; a replayed one only once a {sent} line names it
+			prompt: chat.prompt,   // once a different Prompt starts, the old bubble is closed and never merged into again (review finding 3, 2026-10-25)
 		}));
 		// the new piece is found by its id: a late line is put in time order, so it is not always the last child
 		const text_node = bubble.querySelector(`:scope > [data-re="${CSS.escape(String(at))}"]`) ?? bubble.lastElementChild;

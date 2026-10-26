@@ -49,18 +49,10 @@
 	.chat-v2-state.is-answered, .chat-v2-state.is-waiting { color: var(--task-amber, #e0a100); }
 	.chat-v2-state.is-open { color: var(--bad, #d33); }
 	.chat-v2-answer { padding-left: 1.6em; color: var(--subtle); }
-	/* ONE moving mark for the whole chat (round 2): sits after the newest Prompt only, gray until it
-	   reaches the fast seat, green once it has. */
-	/* TWO moving marks, round 3 — both fixed-width, always present (shown/hidden by colour, never by
-	   display) so moving either from the old newest chunk to the new one never reflows or rewraps the
-	   text around it (the owner's stated worry). No "pink" token exists anywhere in the framework's CSS
-	   (checked styles/*.css) — `--warn` is the closest EXISTING distinct colour, used here as the stand-in
-	   the owner asked to confirm rather than one invented for this (result.md). */
-	.chat-v2-cursor { display: inline-block; inline-size: 1.2em; text-align: center; margin-inline-start: .2em; color: var(--subtle); vertical-align: middle; }
-	.chat-v2-cursor::after { content: "✓"; }
-	.chat-v2-cursor.done { color: var(--ok); }
-	.chat-v2-smart-cursor { display: inline-block; inline-size: 1.2em; text-align: center; margin-inline-start: .2em; color: var(--subtle); vertical-align: middle; opacity: .55; }
-	.chat-v2-smart-cursor.done { color: var(--warn); opacity: 1; }
+	/* The two moving cursors (✓/🧠) are one shared class set now: ext/Chat/cursors.css, loaded by
+	   ChatV2.js (`.chat-cursor`/`.chat-smart-cursor`, law 6, review finding 4, 2026-10-25). No "pink"
+	   token exists anywhere in the framework's CSS (checked styles/*.css) — `--warn` is the closest
+	   EXISTING distinct colour, used as the stand-in the owner asked to confirm (result.md). */
 	/* ONE pulsing 🧠 at the bottom of the whole chat — a fallback only, hidden once a Prompt exists to carry the smart cursor above. */
 	.chat-v2-smart-dots { align-self: flex-start; font-size: 1.1em; animation: chat-v2-pulse 1.1s ease-in-out infinite; }
 	.chat-v2-smart-dots[hidden] { display: none; }

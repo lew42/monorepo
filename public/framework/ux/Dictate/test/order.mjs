@@ -6,7 +6,8 @@
 // with that `at`; chat.js retags the bubble piece to it, and Chat.js retag_piece moves the piece's `at` too. The next sentence,
 // drawn with the phone's stamp, is then "earlier" than the one before it, and speak() splices it in front.
 // Four runs: skew 0 (the control, both clocks agree), skew SKEW_MS (the PC ahead of the phone), skew SKEW_MS with the assistant's
-// reply between the two sentences (the cross-bubble case: a new owner bubble and a reply compared on one clock, Session.clock.offset),
+// reply between the two sentences (the still-open bubble: the reply lands mid-dictation, so the owner's bubble re-anchors below
+// it and stays ONE bubble holding both sentences — the owner, 2026-10-25; it never splits into two owner bubbles around the reply),
 // and a reload from a session file whose lines are out of order but carry `said_at` (Chat.js orders by said_at ?? at). Any run out of
 // order fails the script (exit 1).
 import path from "path";
@@ -97,9 +98,11 @@ async function run(skew, { reply = false, reload = false } = {}){
 
 	const got = trace.at(-1).pieces.map(p => p.text);
 	const norm = t => String(t).toLowerCase().replace(/[^a-z ]+/g, "").trim();
-	const want = reply ? [SAID[0], REPLY, SAID[1]] : SAID;
+	// reply: true re-plays the still-open-bubble case — the reply lands between the two owner sentences, so the owner's
+	// bubble re-anchors below it once the second sentence arrives, and the pieces read reply, then both sentences in order.
+	const want = reply ? [REPLY, SAID[0], SAID[1]] : SAID;
 	const ok = got.length === want.length && got.every((t, i) => norm(t).endsWith(norm(want[i])));
-	const label = (ok ? "ok  " : "FAIL") + ` skew ${skew} ms (${reload ? "lines carry said_at" : skew ? "PC clock ahead of the phone" : "clocks agree"}${reply ? ", a reply between; the cross-bubble case" : ""})`;
+	const label = (ok ? "ok  " : "FAIL") + ` skew ${skew} ms (${reload ? "lines carry said_at" : skew ? "PC clock ahead of the phone" : "clocks agree"}${reply ? ", a reply between; the open bubble re-anchors below it" : ""})`;
 	console.log(`${label}: ${reload ? "reload from a file out of order: " : ""}the chat reads ${got.map(t => JSON.stringify(t)).join(" then ")}; want ${want.map(t => JSON.stringify(t)).join(" then ")}`);
 	for (const s of trace) console.log(`       ${s.step}: ${s.pieces.map(p => `${JSON.stringify(p.text)} @${p.re}`).join(" | ")}`);
 	console.log(`       Servex wrote: ${lines.map(l => `${JSON.stringify(l.chat.text)} @${l.chat.at}`).join(" | ")}`);
