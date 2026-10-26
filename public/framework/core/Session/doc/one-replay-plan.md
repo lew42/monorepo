@@ -17,7 +17,7 @@ The owner's rule (2026-10-26): **every line of `session.jsonl` is applied throug
 2. **One Question card per question**: the smart seat alone files Questions (the owner's 2026-10-25 decision, `chat-shape.md`); the fast seat stops; a duplicate `q` with the same `from` and text is a no-op.
 3. **Cleaned text lands where the raw text is**: see "Placement" below.
 4. **V3 over the real classes**: replace `ChatV2Model` with `Session` replay (`Session.fold(lines)`), drawn with `TaskView`.
-5. **V3 gets the pure deltas; V1 is not touched** (the owner, 2026-10-26: V1 must keep working as is). Servex keeps writing the old `{chat}`, `{place}`, `{sent}` lines for V1, and writes the delta form beside them for V3 (the Prompt lines it already writes for V2). No old family is removed or rewritten while V1 reads it. If dual-writing ever becomes a cost, the alternative is a V1 adapter that derives the old lines from the deltas; it is built only when V1 is retired. Item-list references in deltas (how a delta names a list item) are being planned by @mastermind-list; this plan uses the shapes `Prompt` and `Paragraphs` replay today and adopts theirs when ready.
+5. **V3 gets the pure deltas; V1 is not touched** (the owner, 2026-10-26: V1 must keep working as is). Servex keeps writing the old `{chat}`, `{place}`, `{sent}` lines for V1, and writes the delta form beside them for V3 (the Prompt lines it already writes for V2). No old family is removed or rewritten while V1 reads it. If dual-writing ever becomes a cost, the alternative is a V1 adapter that derives the old lines from the deltas; it is built only when V1 is retired. List-item references follow @mastermind-list's settled shape ([plan](/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-list/plan.md)): append or insert after an id is `List.add(x, {after})`; amend any field in place is `{"<id>":{"<member id>":{"text":"new"}}}`; both already work. Their one addition, `List.move` finding an item wherever it lives when `from` is omitted, is not needed here (groups are overlays; Prompts never move), so this plan builds nothing new on `List`.
 
 **Firm rule (the owner, 2026-10-26): do not break anything.** No step lands unless V1 and every current reader are verified unchanged: before and after each step, run the V1 proof (`node ux/Dictate/test/in-place.mjs <site>`), the session-record readers (`Server/SessionRecord.mjs`, `AISession*`, `PromptAudit`) and the Servex session tests on a copy of a real log, and compare. A step that cannot show "unchanged" is not merged.
 
@@ -49,7 +49,7 @@ The fast seat writes the delta on the Prompt itself, under the same replay:
 ```
 {"p-<ms>": {"paragraphs": {"add": {"id": "b", "text": "…"}}}}          new paragraph
 {"p-<ms>": {"paragraphs": {"append": {"id": "a", "text": " …"}}}}      same paragraph
-{"p-<ms>": {"paragraphs": {"replace": {"id": "a", "text": "Cleaned."}}}} improve (raw stays in `raw`)
+{"p-<ms>": {"paragraphs": {"replace": {"id": "a", "text": "Cleaned."}}}} improve (raw stays in `raw`); `Paragraphs.replace({id,...fields})` is the one-argument form, not the two-argument `List.replace(old, x)`
 {"tasks": {"add": {"type": "Prompt", "id": "p-<ms>", …}}}               a new topic card
 ```
 
@@ -59,7 +59,7 @@ The fast seat writes the delta on the Prompt itself, under the same replay:
 
 V1 keeps live words in `lives`, a `Map` of key to `{el, text, timer}` in `ext/Chat/Chat.js` (key `"draft"`, `"sent:n"`, `"stream:who"`). The words are a DOM string rewritten by `live({text, settled, guess})`; the 1.5 s Whisper guesses go to the Servex whisper log, not to the session. When a sentence is sent the bubble is renamed, then replaced by the server's line. So a draft is a temporary place that moves.
 
-**Recommendation: yes, a List, and it is the Prompt's existing `raw`, with its shape unchanged** (an array of text chunks, appended only). The growing words are written straight to the Prompt, so the live words land in their final place and nothing is moved later. The only addition is one extra *verb* beside `push`: `{raw:{amend:"…"}}` replaces the last chunk while Whisper's guess is still moving; `push` still starts a new chunk. It adds no field and changes no stored shape: a log written without it replays exactly as before, and a chunk, once settled, is never edited. The view renders chunks, the unfinished last one gray. Placement uses only the verbs `Paragraphs` already replays (`add`, `append`, `replace`).
+**Recommendation: yes, a List, and it needs no new verb.** The Prompt's `raw` stays append-only and never edited ("nothing replaces what was heard", `Prompt.js`); settled sentences `push` onto it as today. A moving Whisper guess, if V3 wants it persisted at all, is a draft paragraph written with the verbs `Paragraphs` already replays: `{"p-<ms>":{"paragraphs":{"replace":{"id":"live","text":"…guess"}}}}` while it moves (one-argument form), then the sentence settles into `raw` and the cleaned paragraph. By default the guess stays out of the session, as today (it goes to the Servex whisper log), so no extra lines are written. This replaces the earlier `{raw:{amend}}` idea (dropped 2026-10-26: `@mastermind-list` pointed out `raw` is append-only and the paragraph verbs already cover it).
 
 ## Decisions the plan makes (the owner can overturn)
 
