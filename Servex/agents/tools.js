@@ -197,17 +197,31 @@ function session_tools(agents){
 		if (!s) throw new Error("Voice sessions are not running in this Servex (SERVEX_NO_LAYERS?).");
 		return s;
 	};
+	/* ROOT CAUSE of "no session undefined" (owner, 2026-10-25): the model was trusted to copy its
+	 * own session id correctly into every call, and sometimes didn't. Servex already knows it —
+	 * the session-smart agent's own id IS `session-smart-<session id>` (`name: s.id` at spawn,
+	 * Sessions.js's `spawn()`) — so the caller's id is the one source of truth; whatever `session`
+	 * the model passes is now only a fallback, for a test or a direct call with no live caller. */
+	const caller_session = caller => /^session-smart-(.+)$/.exec(caller ?? "")?.[1] ?? null;
 	const SESSION = { type: "string", description: "The session id, `v-…`, as your brief names it." };
 	return [
 		tool("session_summary",
 			"Give a voice session its title and one-line summary: the index a new session reads to know what this one was about."
-			+ " Call it BEFORE your first reply, and again whenever the topic shifts. Writes `session.summary.json` beside the session file and a fresh"
-			+ " `started` line, with the title, in the home folder's `ai/log.jsonl`.",
+			+ " Call it once the topic is clear, and again whenever it shifts. Writes `session.summary.json` beside the session file, a fresh"
+			+ " `started` line (with the title) in the home folder's `ai/log.jsonl`, and renames the session's own folder to match (`rename_session`,"
+			+ " below) — the session id never changes, only where its files sit on disk.",
 			{ session: SESSION,
 				title: { type: "string", description: "At most 6 words, e.g. `Voice session plumbing`." },
 				summary: { type: "string", description: "One plain line: what was asked, and what is in flight." } },
 			["session", "title", "summary"],
-			args => JSON.stringify(sessions().summarize(args))),
+			(args, ctx) => JSON.stringify(sessions().summarize({ ...args, session: caller_session(ctx.caller) ?? args.session }))),
+		tool("rename_session",
+			"Rename a voice session: moves its folder (`ai/sessions/YYYY/MM/DD/<name>/`) to match a new title, so the same name reads in"
+			+ " the Switch-session dropdown and on disk. The session id is the key and never changes; `session_summary` already calls this"
+			+ " whenever the title changes, so you rarely need it directly — it exists on its own for a later rename-proposal flow.",
+			{ session: SESSION, title: { type: "string", description: "The new title to rename to." } },
+			["session", "title"],
+			(args, ctx) => JSON.stringify(sessions().rename_session({ ...args, session: caller_session(ctx.caller) ?? args.session }))),
 		tool("audit_session",
 			"Prove a Claude session's cost: recompute EVERY total from the raw transcript by an independent code path, compare to the"
 			+ " rolling totals the Session class keeps, and record the result (time, old, new, match) in the session's session.jsonl."
@@ -242,7 +256,7 @@ function session_tools(agents){
 				re: { type: "string", description: "The `at` of the owner line this answers or refines." },
 				level: { type: "string", enum: ["clean", "edit", "summary"], description: "Only on a refinement: `clean`, `edit` or `summary`." } },
 			["session", "text"],
-			args => JSON.stringify(sessions().line(args))),
+			(args, ctx) => JSON.stringify(sessions().line({ ...args, session: caller_session(ctx.caller) ?? args.session }))),
 		tool("quick_fix",
 			"The fast path: a small, concrete change to the page the owner is looking at (\"make this bold\", \"this gap is too"
 			+ " big\", a word, a colour, a size) goes straight to the standing fixer, fixer-1 — no spawn, nothing new made,"

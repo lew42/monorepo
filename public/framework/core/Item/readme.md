@@ -75,6 +75,7 @@ An item added to a parent logs its deltas to the parent's store. Not every item 
 - ✅ An item moves home: `{"<id>":{"move":{"to":"<folder url>"}}}` through the item tool (or `spawn_agent` with `task: {from, id}`) moves a subtask out of its parent's log into its own folder, with its id, every line of its history, and one `{"task", "as"}` reference left behind. Why: [doc/architecture.md](./doc/architecture.md#an-item-moves-home-with-its-id-its-history-and-one-reference). (`item_tool.test.mjs`)
 - ⬜ `item.set("prop", anotherItem)` is only a snapshot: the child is not adopted and its later deltas are not logged. Plan: [doc/next.md](./doc/next.md).
 - ⬜ Dynamic upgrade (an item moving itself from the parent's store to its own file when it needs one) is a noted idea, not built.
+- ⬜ A general RENAME (a `Dated`-store item's own folder tracking its title, with every reference — follows, links, index rows — updated in one step) is still local to each caller: `Servex/agents/Sessions.js`'s `rename()`/`rename_session()` (voice sessions, 2026-10-25) moves the folder, updates its own pointer and best-effort patches `Follow` subs, but there is no shared `Item`/`Dated` primitive yet. A later task could lift this onto `Dated` so every dated-store item (sessions, cards, tasks) renames the same way, instead of each caller reinventing it.
 
 Code pointers and findings: [doc/architecture.md](./doc/architecture.md#items-save-through-their-parent).
 

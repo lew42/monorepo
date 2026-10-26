@@ -383,6 +383,8 @@ export function session_switcher(mount, { label = "New session", title = "Clear 
 		// 2026-10-25): `chat.on_change` can fire while it's open; skip this repaint and let
 		// the next real change (after it closes) catch up instead.
 		if (open_menu?.showing()) return;
+		// The dropdown only ever lists sessions to SWITCH TO, so the tab's own current session
+		// is excluded here, not just disabled once listed.
 		const elsewhere = rows.filter(row => row.session !== session);
 		$wrap.empty(() => {
 			// Dropdown first (the switch you reach for), the bare "+" last (owner, 2026-10-25):
@@ -393,6 +395,12 @@ export function session_switcher(mount, { label = "New session", title = "Clear 
 					text: (row.title ?? "Session " + row.session) + " (" + ago(row.last_at ?? row.at) + ")",
 					pick: () => chat.resume(row.session).catch(e => quiet_note("could not switch to that session", e)),
 				})));
+				// Refetch on open (owner, 2026-10-25): a session started elsewhere (another tab,
+				// the phone) never fires `chat.on_change` HERE, so the list can go stale between
+				// real changes. Every click re-runs `paint()`, which re-fetches `recent_project`;
+				// the `open_menu?.showing()` guard above means a menu already open is never torn
+				// down mid-read, so what's showing now stays put and the NEXT open is fresh.
+				$switch.el.addEventListener("click", () => { paint(); });
 			}
 			button.c("ux-dictate-chat-new-session drawer-ai-switch-btn", "+").attr("type", "button")
 				.attr("title", title).attr("aria-label", label).click(() => get_mount()?.reset());

@@ -213,6 +213,33 @@ check("recent_project() lists every session of one project, newest first, across
 	assert.deepEqual(rows.map(r => r.session), [b.session, a.session]);
 });
 
+// ── rename (owner, 2026-10-25): the folder tracks the title; the id never moves ────────
+check("summarize() renames the session's own folder to match a new title; the id stays the key", () => {
+	const s = make();
+	const made = s.create({ path: "/a/", host: "siteA.localhost" });
+	const old_file = s.map[made.session].file;
+	const r = s.summarize({ session: made.session, title: "Voice session plumbing", summary: "Testing the rename." });
+	assert.equal(r.title, "Voice session plumbing");
+	const row = s.map[made.session];
+	assert.equal(row.id, made.session, "the id never changes");
+	assert.notEqual(row.file, old_file, "the folder moved to match the title");
+	assert.ok(row.file.endsWith("/voice-session-plumbing/session.jsonl"), row.file);
+	assert.ok(fs.existsSync(path.join(repo, "public", row.file.replace(/^\//, ""))), "the session file exists at its new path");
+	assert.ok(!fs.existsSync(path.join(repo, "public", old_file.replace(/^\//, ""))), "nothing left at the old path");
+	// the same title again is a no-op, not a second move
+	const file_after = row.file;
+	s.summarize({ session: made.session, title: "Voice session plumbing", summary: "Still testing." });
+	assert.equal(row.file, file_after);
+});
+
+check("rename_session resolves by id (never a path) and renames the same way session_summary does", () => {
+	const s = make();
+	const made = s.create({ path: "/a/", host: "siteA.localhost" });
+	const r = s.rename_session({ session: made.session, title: "A fresh title here" });
+	assert.equal(r.session, made.session);
+	assert.ok(r.file.endsWith("/a-fresh-title-here/session.jsonl"), r.file);
+});
+
 // ── voice model policy (refine-haiku-live, 2026-10-12): Claude by default, OpenRouter only by the switch or a refusal ──
 check("voice roles run on Claude by default, even with OpenRouter ready; a Claude refusal moves that role to OpenRouter", () => {
 	const s = make(), sess = s.create({ path: "/a/", host: "siteA.localhost" }), row = s.map[sess.session];
