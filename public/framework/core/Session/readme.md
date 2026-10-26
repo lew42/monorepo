@@ -135,6 +135,7 @@ Test: `node Servex/agents/session-state.test.mjs`.
 ## More
 
 - [doc/identity.md](doc/identity.md): which session owns each line, dollar and task; every way an id changes (compaction, resume, fork, renewal); the check `node Server/SessionIdentity.mjs <id>`
+- [doc/one-replay-plan.md](doc/one-replay-plan.md): plan (not built): every line of `session.jsonl` applied through `set()`, why Chat V2 is broken, the pseudo-property table and the migration
 - [doc/prompt-tasks.md](doc/prompt-tasks.md): each owner prompt's work arrives as proposed tasks on the session page, live, with Approve and Reject (`SessionTasks.js`, Servex's `PromptTasks`)
 - [doc/prompt-breakdown.md](doc/prompt-breakdown.md): a prompt files as one outcome task with its asks as subtasks (`PromptRecords.file()`), the measure, and the gap in what the tab sees
 - [doc/menu.md](doc/menu.md): the session menu, a template (`Session.MENU`, settings first) drawn at the right end of the session's name line; settings saved as lines in `session.jsonl`
