@@ -226,3 +226,6 @@
 {"log":{"at":"2026-10-25T22:45:16-05:00","msg":"session resumed"}}
 {"wait":{"on":"owner","what":"Idle under token conservation. Doc branch worktree/dataflow-doc (1e5ca2866) needs review then merge when the seat says; chunk-ack held until data-flow.md structure is agreed."},"by":"task-mastermind-2","ts":"2026-10-26T03:45:46.796Z"}
 {"log":{"at":"2026-10-25T22:46:28-05:00","msg":"session ended (other) without landing"}}
+{"follow_up":{"n":1,"to":"task-mastermind-2","at":"2026-10-26T00:50:33-05:00"}}
+{"log":{"at":"2026-10-26T00:50:36-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-26T00:51:50-05:00","msg":"session ended (other) without landing"}}
