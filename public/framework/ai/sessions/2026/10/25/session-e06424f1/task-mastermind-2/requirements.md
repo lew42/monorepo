@@ -14,3 +14,4 @@ The owner's asks, numbered as in [plan.md](plan.md); the step table there says w
 | 8 | Windowed chat list (last ~20 rendered, older on scroll up). | **Open** — not in this diff. |
 | 9 | Agent and session ids clickable: done. | Done. |
 | 10 | Close out the predecessor's records: done. | Done. |
+| 11 | Grouping (the owner, 2026-10-25, "we are not grouping, my chat logs are coming in very quickly"): a spoken Prompt closes after 8 s of quiet or on an assistant reply (not while the owner is mid-thought), V1 merge gap 8 s, sentences become paragraphs in one bubble; plus the smart seat woken per finished sentence (`every: 1`). Worktree `grouping`, [the review](review.md). | **Built, in merge** — closes `prompt_close_ms` / `prompt_close_on_reply` in `Sessions.js`, doc in `ext/Session/doc/sessions.md` and `ux/Dictate/doc/wake-policy.md`. |
