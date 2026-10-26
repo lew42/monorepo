@@ -4,6 +4,8 @@ The owner's rule (2026-10-25): no more work under revived old agents. mastermind
 
 ## The mode the owner set
 
+- **Do not break anything (the owner, 2026-10-26, firm, for everyone).** V1 chat and its `{chat}`/`{place}`/`{summary}`/`{refined}` lines keep working exactly as today. New work targets V3 only. Any change to shared data (`session.jsonl`) must leave V1 reading it unchanged. Plan first; nothing is built or landed until the owner approves the plan. This overrides the queue below: rounds 2+ and the session switcher are plans for V3 until approved.
+
 - **Safe fixes land without asking:** review (`Server/review.mjs`), answer findings, merge (`Server/merge.mjs`), tell the voice session when each lands.
 - **Shape changes get a plan shown to the owner first:** one reader for V1 and V2, a server Session object, any Servex restart.
 - **Priority:** the prompt pipeline (raw text live, the refined prompt looks right, three clear states). The Tasks tab is on hold.
