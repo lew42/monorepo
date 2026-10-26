@@ -57,6 +57,22 @@ The detail page ([`ai/AISession/AISessionDetail.js`](/framework/ai/AISession/AIS
 - **The UI shows raw first, then fades.** Raw sentences appear gray the moment they are said (V3's gray-while-moving, per sentence). When the RefinedPrompt that references them lands, they collapse into it and "show raw" keeps them one click away. V3's idea with a real "settled" signal instead of 8 s of quiet.
 - **Replaces** the `{place}`, `{refined}`, `{summary}` lines and the double refining: `Sessions.refine()` becomes the thing that writes a `RefinedPrompt`.
 
+## Lists and the chat
+
+**The question:** what drives the on-screen conversation? **Answer: the chat is a derived view, not a stored list.** It is drawn from lists that already exist, in list order, and only the messages that belong to no task get a list of their own.
+
+- **Why not "the tasks list is the chat" (A).** It is nearly right: the owner decided on 2026-10-25 (`ext/Chat/doc/chat-shape.md`, Option C) that `tasks` holds only things with a done (Prompt, Question, Task, Session) and replies live on what they answer. The one gap is a message that answers nothing (an assistant remark, a note). Making it a fake task pollutes the tally; so those, and only those, need a home.
+- **Why not "separate buckets woven together" (B), as stated.** With no reference system, every second appearance becomes a copy, copies drift, and the weave has to be rebuilt on every draw. B is only safe if the second appearance is a Ref.
+- **Recommendation: one home list per item, a Ref anywhere else.**
+  - Completion-bearing items stay in `tasks`. Raw prompts stay flat at the root of `tasks` (nested Tasks and replies hang under them as today); no Tree class, because `Item.walk` and `Item.find` already search deep.
+  - A new, small, non-completing `messages` List holds chat-only items. `Task.progress_of` never sees it, so completion needs no filter.
+  - A `Ref` is a tiny Item `{type:"Ref", id, to:"<target id>"}` that renders the target's own view, live, resolved with `session.find(to)`. It carries no completion and is skipped by the tally exactly like a stopped task. Precedent: `Task.from_ref` already resolves a path-based reference to a whole task file.
+  - The chat is **derived**: walk `tasks` and `messages`, draw in list order. Store a Ref in `messages` only where something must appear somewhere other than its home (a task surfaced into the conversation when it is answered). The alternative, a fully stored chat list of Refs, wins only if the owner wants to reorder the conversation by hand; it costs a write per event and a second list that can disagree with the first.
+- **Order, the hard rule.** Draw in list order (Servex's append order, or its `ts`), never sort by client `created_at`. The 2026-10-25 misorder bug came from mixing the phone's clock with the PC's.
+- **Ids that make a Ref reliable.** Keep Servex's monotonic `<prefix>-<ms>` ids, with two changes: unique across the whole session, not only among siblings (one counter, the prefix is only a label), and never reused after a remove (a removed id is a tombstone; the next mint is larger). A Ref to a missing id draws a visible "gone" row, not nothing (rule: anything that can fail says so).
+- **The item tool.** Add a Ref: `item({path: SESSION, delta: {messages: {add: {type: "Ref", id: "f-<ms>", to: "p-<ms>"}}}})`. Move one: `{messages: {move: {id, after, from}}}`. Neither ever moves or copies the target; to re-home the target itself, use a `move` on its own list, and every Ref still resolves because the id is session-wide.
+- **Retiring V1's `chat` pseudo-property.** `Session.apply_line`'s `put` fall-through is the only reason `{chat}` lines exist. Step 1: Servex writes real `messages` list lines in addition. Step 2: V1 and V2 read through a compatibility fold that turns old `{chat}` lines into `messages` entries on replay. Step 3: stop writing `{chat}`. Each step keeps V1 and V2 working.
+
 ## One tool for the AIs
 
 AIs write all of this through `item({path, delta})`. Servex writes raw Prompts itself (Whisper is code); the smart seat writes RefinedPrompts, Questions and Tasks. The map's section 6 lists about 60 Servex tools that are one `item` call in different clothes (page, card, log, file writes; task state changes; reads). Fold them behind `item` with one-line aliases while old agents still call the old names, then retire the aliases.
