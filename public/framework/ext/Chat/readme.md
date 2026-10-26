@@ -20,6 +20,7 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 - **Unified composer**: Full-width buffer on top with single control row below (mic, Send, gear menu) · [`doc/decisions.md`](./doc/decisions.md).
 - **Drill-in**: Clicking a card or topic drills into its sub-conversation shell · [`doc/drill.md`](./doc/drill.md).
 - **Smart scrolling**: Tracks bottom stickiness without jumping while inspecting history · [`doc/scroll.md`](./doc/scroll.md).
+- **The open bubble stays last**: while the owner keeps dictating into the same still-growing bubble, anything else that arrives (a reply, a task) never splits it — the bubble re-anchors below the new item and stays one, in both V1 (`Chat.js` `mergeable()`/`speak()`) and v2 (`v2/ChatV2.js` `patch()`) · [`doc/notes.md#bubble-order`](./doc/notes.md#bubble-order).
 - **Reactions & threads**: Emoji tap-backs and nested inline thread replies · [`doc/reactions.md`](./doc/reactions.md).
 
 ## Files that matter

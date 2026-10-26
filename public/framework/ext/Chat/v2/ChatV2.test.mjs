@@ -163,6 +163,21 @@ try {
 	await page.waitForFunction(({ sel, n }) => document.querySelectorAll(sel).length === n, { sel: second + " .chat-v2-raw-line", n: raw_lines_before + 2 }, { timeout: 15000 });
 	check("raw.push with an array appends every string", true);
 
+	// 4. The open bubble stays last (the owner, 2026-10-25): a root item that lands between two chunks of the same
+	// still-growing (last) Prompt must not leave the Prompt stranded above it — the Prompt re-anchors below the
+	// new item, as the SAME DOM node (never split, never recreated).
+	const last_prompt_id = "p-1761383300000";
+	check("setup: the appended prompt is the last root item", (await ids(".chat-v2 > .chat-v2-prompt")).at(-1) === last_prompt_id);
+	await page.evaluate(id => { window.__prompt_ref = document.querySelector(`[data-id="${id}"]`); }, last_prompt_id);
+	live_append({ tasks: { add: { type: "Task", id: "t-open-bubble-1", title: "An update that lands mid-dictation", state: "idle" } } });
+	await page.waitForSelector(".chat-v2 > [data-id='t-open-bubble-1']", { timeout: 15000 });
+	check("the new root task lands after the open prompt", (await page.evaluate(() => [...document.querySelectorAll(".chat-v2 > [data-id]")].at(-1).dataset.id)) === "t-open-bubble-1");
+	live_append({ [last_prompt_id]: { paragraphs: { append: { id: "x", text: " More, after the update landed." } } } });
+	await page.waitForFunction(id => [...document.querySelectorAll(".chat-v2 > [data-id]")].at(-1)?.dataset.id === id, last_prompt_id, { timeout: 15000 });
+	check("the still-open prompt re-anchors below the new item, as the same node (never split)",
+		await page.evaluate(id => document.querySelector(`[data-id="${id}"]`) === window.__prompt_ref, last_prompt_id));
+	check("exactly one element for the prompt", (await page.$$(`[data-id="${last_prompt_id}"]`)).length === 1);
+
 	check("no page errors", errors.length === 0, errors);
 } finally {
 	await close_browser();

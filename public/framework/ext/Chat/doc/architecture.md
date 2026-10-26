@@ -18,7 +18,7 @@ Chat is the widget for a conversation: a log of messages, a box to type or dicta
 
 ## Bubbles merge by sender and time
 
-**Decided:** a message from the same sender within `MERGE_GAP_MS` (10 s) joins the last bubble, as a new paragraph; otherwise it starts a new bubble.
+**Decided:** a message from the same sender within `MERGE_GAP_MS` (8 s) joins the last bubble, as a new paragraph; otherwise it starts a new bubble.
 **Why:** a dictated thought arrives as several sentences; one bubble per sentence reads as spam.
 **Instead:** one bubble per message. Rejected for the reason above.
 **Detail:** [`Chat.js`](../Chat.js) `mergeable()`

@@ -6,18 +6,28 @@ View.stylesheet(import.meta, "Chat.css");
 
 // A chat log: scrolling message bubbles, yours right, others left. See doc/notes.md#chat-log
 // see doc/notes.md#one-bubble-per-run
-export const MERGE_GAP_MS = 10000;
+export const MERGE_GAP_MS = 8000;
 export const GUESS_TITLE = "Gray words: the transcriber's guess, still changing. They turn black once it settles.";
 export const LIVE_SENT_TITLE = "Sent, waiting for the cleaned-up line, which replaces this — the text itself stays full strength; the left rule marks the wait.";
 
+// sender -> its one still-open bubble, per box (doc/notes.md#bubble-order, "the open bubble stays last"):
+// tracked by reference, not by DOM position, so a reply landing in between never breaks the merge.
+const open_bubbles = new WeakMap();
+function set_open(box_el, sender, bubble){
+	if (!sender) return;
+	let map = open_bubbles.get(box_el);
+	if (!map) open_bubbles.set(box_el, map = new Map());
+	map.set(sender, bubble);
+}
+
 export function mergeable($box, sender, at){
-	const last = $box.el.lastElementChild;
+	const last = sender && open_bubbles.get($box.el)?.get(sender);
 	// A live bubble (the mic's growing draft, or a fading "sent, waiting" one) is never a merge target:
 	// it carries the same dataset.sender/at a real line does (so it sorts into place) but is never
-	// registered in `bubbles` — merging a real piece onto it threw (bubbles.get(last) was undefined)
+	// registered here — merging a real piece onto it threw (bubbles.get(last) was undefined)
 	// and, found while chasing a reported black-then-gray-then-black flicker, is the one path that can
 	// make a just-committed, already-black line sit inside an element still carrying the live gray guess.
-	if (!sender || last?.classList.contains("chatbox-live") || last?.dataset.sender !== sender) return null;
+	if (!last || last.classList.contains("chatbox-live") || last.dataset.sender !== sender) return null;
 	return at - Number(last.dataset.at) < MERGE_GAP_MS ? last : null;
 }
 
@@ -223,11 +233,13 @@ export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark
 	// join: false never merges onto the last bubble (doc/notes.md#speak)
 	const last = join ? mergeable($box, sender, at) : null, piece = { id, text, at, via, mark, failed, track };
 	if (last){
-		// in time order: a line that arrives late (the poll after the live wire) goes before the later ones, never at the end
+		// in time order within the bubble: a piece that arrives late (the poll after the live wire) goes before the later ones
 		const pieces = bubbles.get(last).pieces, i = pieces.findIndex(pc => pc.at > at);
 		i < 0 ? pieces.push(piece) : pieces.splice(i, 0, piece);
 		last.dataset.at = Math.max(Number(last.dataset.at) || 0, at);
 		fill(last);
+		// the open bubble always stays last, even if a reply landed after it while it was still growing (the owner, 2026-10-25)
+		if ($box.el.lastElementChild !== last) $box.el.append(last);
 		return last;
 	}
 	let made = null;
@@ -241,6 +253,7 @@ export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark
 			onmount?.($b.el);
 		});
 	});
+	if (made && sender) set_open($box.el, sender, made);
 	return made && place(made);
 }
 
@@ -286,6 +299,7 @@ export function split_bubble($box, bubble, at_id){
 		});
 	});
 	bubble.after(made);   // `$box.append()` only ever adds at the end — move it right after the original
+	if (who) set_open($box.el, who, made);   // the tail continues in the new bubble now — it is the one that stays open
 	return made;
 }
 
@@ -723,6 +737,8 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 				i < 0 ? pieces.push(piece) : pieces.splice(i, 0, piece);
 				last.dataset.at = Math.max(Number(last.dataset.at) || 0, at);
 				fill(last);
+				// the open bubble always stays last, even if a reply landed after it while it was still growing (the owner, 2026-10-25)
+				if ($box.el.lastElementChild !== last) $box.el.append(last);
 				fix_index.set(c.at, { bubble: last, piece });
 				target(c.at, last);
 				if (cls === "chatbox-you") mark_owner_piece(last, piece, c);
@@ -742,7 +758,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 					made = $b.el;
 				});
 			});
-			if (made) place(made);
+			if (made){ if (who) set_open($box.el, who, made); place(made); }
 	}
 
 	function live_bubble(key, cls, who){

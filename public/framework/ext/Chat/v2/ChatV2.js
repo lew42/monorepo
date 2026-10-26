@@ -121,6 +121,15 @@ export default class ChatV2 extends JSONL {
 			owner.raw.empty(() => this.prompt_raw_wrap(n, replies));
 			const shown = this.sentences_shown(n);   // where anchored replies sit flipped (show raw, or a first title): the nest's list changes too
 			if (shown !== owner.shown) { owner.shown = shown; this.move_anchored(n, owner, shown); }
+			// the open Prompt (the last one; nothing newer has started) always stays last, even if a reply or a
+			// root task landed, as its own item, after it while it kept growing (the owner, 2026-10-25)
+			if (this.last_prompt()?.id === id) {
+				const view = this.els.get(id);
+				if (view && this.$box?.el.lastElementChild !== view.el) {
+					this.$box.el.append(view.el);
+					if (this.smart_dots) this.$box.el.append(this.smart_dots.el);
+				}
+			}
 			return;
 		}
 		if (!n.type) return;   // a reply: nothing here edits one once it is added

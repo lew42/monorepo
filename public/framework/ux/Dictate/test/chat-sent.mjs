@@ -81,9 +81,17 @@ ${ev(queue.splice(0))}` });
 		const real = fs.readFileSync("C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl", "utf8").split(String.fromCharCode(10)).filter(Boolean);
 		queue.push(...[28, 29, 32, 36, 37].map(i => JSON.parse(real[i])).map((l, k) => (l.chat ? { chat: { ...l.chat, at: iso(Date.now() + k) } } : l)));
 		await page.waitForTimeout(1500);
-		const where = await page.evaluate(() => { const q = document.querySelector(".drawer-rail-sheet.on .chatbox-task[data-id=q-1792961349]"); return q && { before: q.previousElementSibling?.textContent.slice(0, 40), after: q.nextElementSibling?.textContent.slice(0, 40) }; });
+		// The owner's next line (a different, later Prompt) arrives inside the same merge window as the first: the owner, 2026-10-25's
+		// rule says the open bubble stays last, so it re-anchors below this Question and both owner lines end up ONE merged bubble
+		// after it — not a second owner bubble split off before the Question, which is the old (wrong) layout this replaced.
+		const where = await page.evaluate(() => {
+			const q = document.querySelector(".drawer-rail-sheet.on .chatbox-task[data-id=q-1792961349]");
+			const next = q?.nextElementSibling;
+			return q && { before: q.previousElementSibling?.textContent.slice(0, 40), after: next?.textContent, pieces: next?.querySelectorAll("[data-re]").length };
+		});
 		console.log(tag, "real Question sits:", JSON.stringify(where));
-		check(!!where && /So, The words/.test(where.before) && /And then if I start/.test(where.after ?? ""), tag + ": the real Question q-1792961349 sits right under its own Prompt, before the next one");
+		check(!!where && /Do you wa/.test(where.before) && /So, The words/.test(where.after ?? "") && /And then if I start/.test(where.after ?? "") && where.pieces >= 2,
+			tag + ": the real Question sits right under its Prompt, and the owner's next line re-anchors below it as ONE merged bubble (never split)");
 	}
 	await page.screenshot({ path: `${shots}/${tag}-5-question.png` });
 	queue.push(...Array.from({ length: 40 }, (_, i) => owner(i + 1, Date.now() + i)));
