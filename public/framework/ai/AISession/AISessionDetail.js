@@ -340,7 +340,7 @@ export default class AISessionDetail extends Page {
 				const f = new AISessionFollow(session_id); f.on_lines = lines => { conv.add(lines); coverage.add_raw(lines); };   // the first pull draws the history, later pulls append live
 				this.follow = f.start();   // tails the log and corrects the grid row (doc/realtime.md)
 				this.follow.then(() => { if (!conv.count) $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
-			} else if (!this.follow) AISessionDetail.load_lines(session_id).then(lines => { if (lines){ conv.add(lines); coverage.add_raw(lines); } else $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
+			} else if (!this.follow && is_uuid) AISessionDetail.load_lines(session_id).then(lines => { if (lines){ conv.add(lines); coverage.add_raw(lines); } else $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });   // a voice session's id never has a transcript (the "no session id yet" message above already says so); asking /ai-logs/ for it only earns a 400
 			Promise.all([AISessionRows.load_index(url), AISessionRows.load_tree(url)]).then(([index, tree]) => AISessionView.detail_section($session, session_id, index, tree));
 			AISessionRows.load_index(url).then(async () => { const snap = await AISessionDetail.load_snapshot(session_id); $related.empty(() => AISessionDetail.render_related(snap, url)); });
 			// the card's page.jsonl and trace.json live in the session's own folder now; the old card folder is the fallback until a checkout is migrated
