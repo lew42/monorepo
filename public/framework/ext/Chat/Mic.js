@@ -45,7 +45,7 @@ try {
 	Object.assign(SETTINGS, saved);
 } catch {}
 export const save_settings = () => { try { localStorage.setItem(STORE, JSON.stringify(SETTINGS)); } catch {} };
-const WAKE_PLACEHOLDERS = { wake_gap_s: 12, wake_every: 6 };   // = WAKE_DEFAULTS in Servex/agents/WakePolicy.js (gap_ms / 1000, every)
+const WAKE_PLACEHOLDERS = { wake_gap_s: 12, wake_every: 1 };   // = WAKE_DEFAULTS in Servex/agents/WakePolicy.js (gap_ms / 1000, every)
 export const CHECK_MS = 250;
 // Fired on `document` when the gear's "clean" checkbox changes (`detail` is the new value), for nodes outside this mic.
 export const CLEAN_CHANGED_EVENT = "chat-mic-clean-changed";
