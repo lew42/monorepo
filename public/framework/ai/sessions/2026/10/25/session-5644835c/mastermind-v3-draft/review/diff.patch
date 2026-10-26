@@ -1,0 +1,536 @@
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index a32c1671a..d89cca923 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -31,6 +31,7 @@ import SessionOverview from "./SessionOverview.js";
+ import SessionOutlineView from "./SessionOutlineView.js";
+ import SessionTimeline from "./SessionTimeline.js";
+ import ChatV2 from "/framework/ext/Chat/v2/ChatV2.js";
++import ChatV3 from "/framework/ext/Chat/v3/ChatV3.js";
+ import SessionPopover from "./SessionPopover.js";
+ import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
+ 
+@@ -133,7 +134,7 @@ export default class AISessionDetail extends Page {
+ 	// With tabs on (a `tab` line in the session's page.jsonl), the template itself is the first tab.
+ 	home_tab = "Conversation";
+ 
+-	deactivated(){ this.tasks_log?.unsubscribe(); this.tasks_log = null; this.chat_v2?.then(c => c?.unsubscribe?.()); this.chat_v2 = null; this.follow?.then(f => f.stop()); this.follow = null; this.live_off?.(); this.live_off = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
++	deactivated(){ this.tasks_log?.unsubscribe(); this.tasks_log = null; this.chat_v2?.then(c => c?.unsubscribe?.()); this.chat_v2 = null; this.chat_v3?.then(c => c?.unsubscribe?.()); this.chat_v3 = null; this.follow?.then(f => f.stop()); this.follow = null; this.live_off?.(); this.live_off = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
+ 
+ 	/* THE SESSION'S OWN PAGE LOG (2026-10-09, the page tool): `page.jsonl` in the session's folder can
+ 	   reshape this page on top of the template — tabs, the six layout words — and carries the cards the
+@@ -283,22 +284,24 @@ export default class AISessionDetail extends Page {
+ 			panels.chat = div.c("flow sessions-panel sov-chat", () => {
+ 				// Chat v1 (below) or Chat v2 (the session's Prompts from session.jsonl, ext/Chat/v2); ?chat_view=v2 keeps the choice on reload (?chat= belongs to the DevBar assistant). v1 stays the default until v2 replaces it.
+ 				const pick = {};
+-				div.c("flex gap-50 wrap", () => { pick.v1 = button.c("sessions-chip", "Chat").on("click", () => choose(false)); pick.v2 = button.c("sessions-chip", "Chat v2").on("click", () => choose(true)); });
++				div.c("flex gap-50 wrap", () => { pick.v1 = button.c("sessions-chip", "Chat").on("click", () => choose(false)); pick.v2 = button.c("sessions-chip", "Chat v2").on("click", () => choose("v2")); pick.v3 = button.c("sessions-chip", "Chat v3").attr("title", "Rough draft: the conversation as a plain view over the session's tasks list").on("click", () => choose("v3")); });
+ 				const $v1 = div.c("flow", () => {
+ 					$tasks = div.c("flow session-tasks");   // the session's tasks, live; an owner prompt's asks arrive here as proposals (core/Session/SessionTasks.js)
+ 					$box = div.c("flow");     // which session this is (source tag, tab title, model)
+ 					$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
+ 					$conv = div.c("flow sessions-conv");   // the live conversation
+ 				});
+-				const $v2 = div.c("flow chat-v2");
+-				const choose = v2 => {
+-					$v1.el.hidden = v2; $v2.el.hidden = !v2;
+-					pick.v1.el.classList.toggle("sessions-chip-on", !v2); pick.v2.el.classList.toggle("sessions-chip-on", v2);
+-					const q = new URLSearchParams(location.search); v2 ? q.set("chat_view", "v2") : q.delete("chat_view");
++				const $v2 = div.c("flow chat-v2"), $v3 = div.c("flow chat-v3");
++				const choose = view => {   // false | "v2" | "v3"
++					const v2 = view === true || view === "v2", v3 = view === "v3";
++					$v1.el.hidden = v2 || v3; $v2.el.hidden = !v2; $v3.el.hidden = !v3;
++					pick.v1.el.classList.toggle("sessions-chip-on", !v2 && !v3); pick.v2.el.classList.toggle("sessions-chip-on", v2); pick.v3.el.classList.toggle("sessions-chip-on", v3);
++					const q = new URLSearchParams(location.search); v2 || v3 ? q.set("chat_view", v3 ? "v3" : "v2") : q.delete("chat_view");
+ 					history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
+ 					if (v2) this.chat_v2 ??= this.record_if_there().then(file => file ? new ChatV2({ url: file, $box: $v2 }).live() : $v2.append(() => p.c("muted", "This session has no session.jsonl yet, so Chat v2 has nothing to draw.")));
++					if (v3) this.chat_v3 ??= this.record_if_there().then(file => file ? new ChatV3({ url: file, $box: $v3 }).live() : $v3.append(() => p.c("muted", "This session has no session.jsonl yet, so Chat v3 has nothing to draw.")));
+ 				};
+-				choose(new URLSearchParams(location.search).get("chat_view") === "v2");
++				choose(new URLSearchParams(location.search).get("chat_view"));
+ 			});
+ 			panels.coverage = div.c("flow sessions-panel", () => { $coverage = div.c("flow"); });   // every ask in the owner's prompts, its status, the raw words one click down (AISessionCoverage)
+ 			panels.cost = div.c("flow sessions-panel", () => { const $sum = div.c("flow"); ready.then(w => $sum.empty(() => AICost.report(w.id ? AICost.session_url(w.id) : w.dir))); $costs = div.c("flow"); $trace = div.c("flow"); });   // the summary first (the cost line's total and every child session behind it), then the logged cost, the cost-over-time chart and the per-tool table
+diff --git a/public/framework/ext/Chat/readme.md b/public/framework/ext/Chat/readme.md
+index 82ac830c9..d776cbdae 100644
+--- a/public/framework/ext/Chat/readme.md
++++ b/public/framework/ext/Chat/readme.md
+@@ -36,6 +36,7 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
+ - `Mic.js` / `strip.js`: the composer's mic (`ComposerMic`) and its pure already-sent word-dedup (`strip_words`, `strip_sent`), node-testable in `strip.test.mjs` with no browser.
+ - `Drill.js`: Deep-dive modal shell for inspecting sub-cards.
+ - [`v2/`](./v2/readme.md): Chat v2, a session's chat drawn from its `tasks` list (prompts at the root, replies and cards nested under them), written by Servex as the owner speaks; shown under a v2 chip in the session page's Chat tab and the ✦ sheet, live demo at `/framework/ext/Chat/v2/`.
++- [`v3/`](./v3/readme.md): Chat v3, a rough draft: a plain view over the session's existing `tasks` list (raw gray while moving, solid once finished, replies and questions inside the Prompt), behind its own v3 chip beside v2; demo at `/framework/ext/Chat/v3/`.
+ - `roles.js`: Sender avatars and badges.
+ 
+ ## Doc topics
+diff --git a/public/framework/ext/Chat/v3/ChatV3.css b/public/framework/ext/Chat/v3/ChatV3.css
+new file mode 100644
+index 000000000..52c0e1717
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/ChatV3.css
+@@ -0,0 +1,49 @@
++@layer base, theme, site, util;
++
++@layer site {
++	.chat-v3 { max-width: 46rem; margin-inline: auto; display: flex; flex-direction: column; gap: .75rem; padding: .5rem; box-sizing: border-box; }
++	.chat-v3-empty { color: color-mix(in srgb, currentColor 45%, transparent); padding: 1rem; text-align: center; }
++	.chat-v3-earlier { align-self: center; font: inherit; font-size: .85em; padding: .25rem .75rem; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 1rem; background: none; color: inherit; cursor: pointer; }
++	.chat-v3-earlier[hidden] { display: none; }
++
++	.chat-v3-card { border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: .6rem; padding: .6rem .8rem; display: flex; flex-direction: column; gap: .4rem; scroll-margin-top: 1rem; min-width: 0; }
++	.chat-v3-card:target { border-color: color-mix(in srgb, currentColor 50%, transparent); }
++	.chat-v3-draft { border-style: dashed; }
++
++	.chat-v3-head { display: flex; align-items: baseline; gap: .5rem; }
++	.chat-v3-title { margin: 0; font-size: 1rem; flex: 1; min-width: 0; }
++	.chat-v3-head:not(:has(.chat-v3-title)) { justify-content: flex-end; }
++	.chat-v3-link { color: color-mix(in srgb, currentColor 35%, transparent); text-decoration: none; margin-left: auto; line-height: 1; }
++	.chat-v3-link:hover { color: inherit; }
++	.chat-v3-link .icon, .chat-v3-link .material-icons { font-size: 1rem; }
++
++	/* The raw words as they were heard: light gray while moving, solid once the thought is finished. */
++	.chat-v3-text { overflow-wrap: anywhere; line-height: 1.45; transition: color .4s; }
++	.chat-v3-text.is-moving { color: color-mix(in srgb, currentColor 40%, transparent); }
++	.chat-v3-text > :first-child { margin-top: 0; }
++	.chat-v3-text > :last-child { margin-bottom: 0; }
++	.chat-v3-guess { color: color-mix(in srgb, currentColor 28%, transparent); }
++
++	.chat-v3-toggle { align-self: flex-start; font: inherit; font-size: .78em; background: none; border: 0; padding: 0; cursor: pointer; color: color-mix(in srgb, currentColor 50%, transparent); }
++	.chat-v3-toggle:hover { color: inherit; }
++	.chat-v3-raw { display: flex; flex-direction: column; gap: .25rem; }
++	.chat-v3-raw-line { margin: 0; padding-left: .6rem; border-left: 2px solid color-mix(in srgb, currentColor 18%, transparent); font-size: .85em; color: color-mix(in srgb, currentColor 65%, transparent); }
++
++	.chat-v3-reply { display: flex; gap: .5rem; align-items: baseline; padding-top: .35rem; border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent); }
++	.chat-v3-brain { flex: none; }
++	.chat-v3-reply-text { min-width: 0; overflow-wrap: anywhere; }
++	.chat-v3-reply-text > * { margin-block: 0; }
++
++	.chat-v3-nest { display: flex; flex-direction: column; gap: .4rem; padding-left: .7rem; border-left: 2px solid color-mix(in srgb, currentColor 14%, transparent); }
++	.chat-v3-ask { display: flex; gap: .5rem; align-items: flex-start; }
++	.chat-v3-state { flex: none; font-size: 1.1rem; color: color-mix(in srgb, currentColor 55%, transparent); }
++	.chat-v3-state.is-answered { color: #b8860b; }
++	.chat-v3-state.is-complete { color: #2e8b57; }
++	.chat-v3-ask-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .15rem; }
++	.chat-v3-ask-head { display: flex; align-items: baseline; gap: .5rem; }
++	.chat-v3-ask-text { margin: 0; font-size: .95rem; font-weight: 600; text-transform: none; letter-spacing: normal; flex: 1; min-width: 0; }
++	.chat-v3-answer { font-size: .92em; overflow-wrap: anywhere; }
++	.chat-v3-answer > * { margin-block: 0; }
++
++	@media (max-width: 500px) { .chat-v3 { padding: .25rem; gap: .5rem; } .chat-v3-card { padding: .5rem .6rem; } }
++}
+diff --git a/public/framework/ext/Chat/v3/ChatV3.js b/public/framework/ext/Chat/v3/ChatV3.js
+new file mode 100644
+index 000000000..3d063bcb6
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/ChatV3.js
+@@ -0,0 +1,167 @@
++// ChatV3.js — a session's chat as a plain VIEW over its `tasks` list (rough draft). The session.jsonl is streamed and every task line
++// is replayed into a real Session (core/Session), the same replay the item tool uses; Prompts are drawn as they are (raw chunks,
++// paragraphs, replies) and are never reshaped. Doc: readme.md
++import View, { div, span, a, button, h3, h4, small, blockquote, icon } from "/framework/core/View/View.js";
++import JSONL from "/framework/ext/JSONL/JSONL.js";
++import Session from "/framework/core/Session/Session.js";
++import Prompt from "/framework/core/Task/Prompt.js";
++import Question from "/framework/core/Task/Question.js";
++import TaskView from "/framework/core/Task/TaskView.js";
++import { md_into } from "../md.js";
++View.stylesheet(import.meta, "ChatV3.css");
++
++export default class ChatV3 extends JSONL {
++	static SHOW = 40;          // roots drawn at first; "show earlier" adds this many more
++	static MOVING_MS = 8000;   // a Prompt touched this recently is still moving (Servex closes a thought after about 8 s of quiet)
++	static META = new Set(["by", "ts", "at", "origin", "as", "moved_from"]);
++	static ASK_ICON = { open: "help_outline", answered: "mark_chat_unread", complete: "check_box" };
++
++	session = new Session();
++	els = new Map();           // root id -> the View that draws it
++	touched = new Map();       // prompt id -> Date.now() of its latest live line
++	timers = new Map();        // prompt id -> the timeout that settles it
++	raw_open = new Set();      // prompt ids whose raw words are open
++	limit = this.constructor.SHOW;
++
++	// { url: the session.jsonl url, $box: the View to draw into }
++	read(entries){
++		const first = !this.drawn, hit = new Set();
++		for (const line of entries){
++			if (!this.wanted(line)) continue;
++			this.session.replay_line(line);
++			if (!first) { const id = this.card_of(line); if (id) hit.add(id); }
++		}
++		if (first) this.draw(); else this.update(hit);
++		return this;
++	}
++	reset(){ this.session = new Session(); this.els.clear(); this.touched.clear(); this.drawn = false; return super.reset(); }
++	live(){ super.live(() => {}).then(() => { if (this.stopped) super.unsubscribe(); }); this.listen(true); return this; }
++	unsubscribe(){ this.stopped = true; this.listen(false); this.timers.forEach(clearTimeout); return super.unsubscribe(); }
++
++	// Only the lines that are task deltas: V3 reads the tasks list and nothing else (no {chat}, {place}, {sent}… lines).
++	wanted(line){
++		if (!line || typeof line !== "object") return false;
++		if (line.tasks || line.session || line.start || line.stop || line.decide || typeof line.task === "string") return true;
++		const key = Object.keys(line).find(k => !this.constructor.META.has(k));
++		return !!key && !!this.session.find(key);
++	}
++	roots(){ return [...(this.session._tasks ?? [])]; }
++	// The root a live line touched (a new root: the last one).
++	root_of(line){
++		if (line.tasks) return this.roots().at(-1);
++		const key = Object.keys(line).find(k => !this.constructor.META.has(k)), node = key && this.session.find(key);
++		return node ? this.roots().find(r => r === node || r.find?.(key)) : null;
++	}
++	// The card that redraws for a line: a root Question or Task that names its Prompt (`from`) lives inside that Prompt's card.
++	card_of(line){
++		const r = this.root_of(line);
++		if (!r) return null;
++		const from = r.get_one?.("from");
++		return from && this.session.find(from) ? from : r.id;
++	}
++	nested(p){ return this.roots().filter(r => r.get_one?.("from") === p.id); }
++	standalone(r){ const from = r.get_one?.("from"); return !(from && this.session.find(from) instanceof Prompt); }
++
++	draw(){
++		this.drawn = true; this.els.clear();
++		this.$box?.empty(() => {
++			const list = this.roots().filter(r => this.standalone(r));
++			if (!list.length) { div.c("chat-v3-empty", "Nothing said in this session yet."); return; }
++			this.$earlier = button.c("chat-v3-earlier", "").attr("type", "button").click(() => { this.limit += this.constructor.SHOW; this.draw(); });
++			list.slice(-this.limit).forEach(r => this.card(r));
++			this.$earlier.el.textContent = `show earlier (${Math.max(0, list.length - this.limit)})`;
++			this.$earlier.el.hidden = list.length <= this.limit;
++		});
++		this.draft_at_end();
++		const want = location.hash.slice(1), el = want ? this.$box?.el.querySelector(`[id="${CSS.escape(want)}"]`) : null;
++		el?.scrollIntoView({ block: "center" });
++	}
++
++	update(ids){
++		for (const id of ids) {
++			const node = this.session.find(id), view = this.els.get(id);
++			if (node instanceof Prompt) this.settle_later(node);   // before drawing: a Prompt that just moved draws gray
++			if (view) { view.empty(() => this.fill(node)); }
++			else if (node && this.standalone(node)) {
++				this.$box?.el.querySelector(":scope > .chat-v3-empty")?.remove();
++				this.$box?.append(() => this.card(node));
++				this.draft_at_end();
++			}
++		}
++	}
++
++	card(node){
++		const view = div.c("chat-v3-card " + (node instanceof Prompt ? "chat-v3-prompt" : "chat-v3-loose"), () => this.fill(node)).attr("id", node.id).attr("data-id", node.id);
++		this.els.set(node.id, view);
++		return view;
++	}
++
++	// A Prompt is moving while it is the newest and was touched a moment ago by a live line.
++	moving(p){ return Date.now() - (this.touched.get(p.id) ?? 0) < this.constructor.MOVING_MS; }
++	settle_later(p){
++		this.touched.set(p.id, Date.now());
++		clearTimeout(this.timers.get(p.id));
++		this.timers.set(p.id, setTimeout(() => { this.touched.delete(p.id); this.els.get(p.id)?.empty(() => this.fill(p)); }, this.constructor.MOVING_MS + 100));
++	}
++
++	fill(node){
++		if (node instanceof Prompt) return this.prompt(node);
++		if (node instanceof Question) return this.question(node);
++		TaskView.row(node);
++	}
++
++	prompt(p){
++		const moving = this.moving(p), title = p.get_one("title"), open = this.raw_open.has(p.id);
++		div.c("chat-v3-head", () => {
++			if (title && !moving) h3.c("chat-v3-title", title);
++			this.link(p);
++		});
++		// moving: the words as they were heard, light gray; settled: the cleaned text (the smart seat's, else the fast seat's), solid
++		const body = div.c("chat-v3-text md" + (moving ? " is-moving" : ""));
++		md_into(body.el, moving ? p.raw_text : p.text || p.raw_text);
++		if (p.raw.length && !moving) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
++			.click(() => { open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id); this.els.get(p.id)?.empty(() => this.prompt(p)); });
++		if (open) div.c("chat-v3-raw", () => p.raw.forEach(line => blockquote.c("chat-v3-raw-line", line)));
++		for (const r of p.replies) div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.get_one("text") ?? ""); });
++		const kids = [...(p._tasks ?? []), ...this.nested(p)];
++		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
++	}
++
++	// A Question is a few words; its answer is one or two short sentences.
++	question(q){
++		const phase = q.phase, wrap = div.c("chat-v3-ask").attr("data-phase", phase).attr("id", q.id).attr("data-id", q.id);
++		wrap.append(() => {
++			icon(this.constructor.ASK_ICON[phase] ?? "help_outline").ac("chat-v3-state", "is-" + phase);
++			div.c("chat-v3-ask-body", () => {
++				div.c("chat-v3-ask-head", () => { h4.c("chat-v3-ask-text", q.text ?? q.id); this.link(q); });
++				if (q.answer) md_into(div.c("chat-v3-answer md").el, q.answer.text ?? "");
++			});
++		});
++	}
++
++	// A task has no page of its own yet: its link is a permalink to its card in this chat.
++	link(node){
++		const href = location.pathname + location.search + "#" + node.id;
++		a.c("chat-v3-link", icon("link")).href(href).attr("title", "Link to this card").click(e => {
++			e.preventDefault(); history.replaceState(history.state, "", href);
++			document.getElementById(node.id)?.scrollIntoView({ block: "center" });
++		});
++	}
++
++	// The words being spoken right now, before they are sent: faint, last in the chat (the composer's mic reports them as "chat-live").
++	listen(on){
++		this._live ??= e => this.draft(e.detail ?? {});
++		window[on ? "addEventListener" : "removeEventListener"]("chat-live", this._live);
++	}
++	draft({ text = "", settled = text, guess = "" } = {}){
++		if (!this.$box) return;
++		if (!text) { this.$draft?.el.remove(); this.$draft = null; return; }
++		if (!this.$draft?.el.isConnected) this.$draft = div.c("chat-v3-card chat-v3-draft");
++		this.$draft.el.replaceChildren();
++		const t = document.createElement("div"); t.className = "chat-v3-text is-moving";
++		t.textContent = settled; if (guess) { const g = document.createElement("span"); g.className = "chat-v3-guess"; g.textContent = (settled ? " " : "") + guess; t.append(g); }
++		this.$draft.el.append(t);
++		this.draft_at_end();
++	}
++	draft_at_end(){ if (this.$draft?.el.isConnected || this.$draft) this.$box?.el.append(this.$draft.el); }
++}
+diff --git a/public/framework/ext/Chat/v3/ChatV3.test.mjs b/public/framework/ext/Chat/v3/ChatV3.test.mjs
+new file mode 100644
+index 000000000..577f3f774
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/ChatV3.test.mjs
+@@ -0,0 +1,83 @@
++// node ChatV3.test.mjs [base-url] [shots-dir] — headless: Chat v3 draws a session's tasks list (the v2 fixture, then a copy of a real voice log),
++// raw gray while moving and solid once settled, live append, and that the log is never changed. Needs the global playwright and the dev server.
++import { browser as get_browser } from "../../../../../Server/Browser.mjs";
++import { copyFileSync, appendFileSync, rmSync, mkdirSync, readFileSync, existsSync } from "node:fs";
++import { execFileSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++
++const base = process.argv[2] ?? "http://monorepo.localhost", shots = process.argv[3];
++const here = fileURLToPath(new URL(".", import.meta.url)), rel = "public/framework/ext/Chat/v2/fixture/";
++const main_tree = (() => { try { return execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: here, windowsHide: true, encoding: "utf8" }).split("\n")[0].replace(/^worktree /, "").trim(); } catch { return null; } })();
++const served = process.argv[2] || !main_tree ? here + "../v2/fixture/" : `${main_tree}/${rel}`;   // the tree the site at `base` serves (live-*.jsonl there is gitignored)
++const fixture = here + "../v2/fixture/session.jsonl", live = `live-v3-${process.pid}.jsonl`, real = `live-v3-real-${process.pid}.jsonl`;
++const real_log = [process.env.REAL_LOG, `${main_tree}/public/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl`].find(f => f && existsSync(f));
++let pass = 0, fail = 0;
++const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
++
++copyFileSync(fixture, served + live);
++if (real_log) copyFileSync(real_log, served + real);
++const before = readFileSync(served + live, "utf8");
++const browser = await get_browser(), page = await browser.newPage({ viewport: { width: 1920, height: 1000 } });
++const errors = []; page.on("pageerror", e => errors.push(String(e)));
++const tap = sel => page.$eval(sel, e => e.click());
++const ready = () => page.waitForSelector(".chat-v3-prompt", { timeout: 15000 });
++const src = f => `/framework/ext/Chat/v2/fixture/${f}`;
++const first = ".chat-v3-prompt[data-id='p-1761382800000']";
++
++try {
++	// 1. the fixture: prompts in file order, cleaned text solid, replies and questions inside the prompt
++	await page.goto(`${base}/framework/ext/Chat/v3/`); await ready();
++	const ids = await page.$$eval(".chat-v3 > .chat-v3-card", els => els.map(e => e.dataset.id));
++	check("three prompts, in file order", JSON.stringify(ids) === JSON.stringify(["p-1761382800000", "p-1761382900000", "p-1761382950000"]), ids);
++	check("title shown", (await page.textContent(first + " .chat-v3-title")).includes("refined prompt first"));
++	check("settled text is solid (not gray)", await page.$(first + " .chat-v3-text.is-moving") === null);
++	check("cleaned text shown, not the raw whisper", (await page.textContent(first + " .chat-v3-text")).includes("The chat should show the cleaned-up version"));
++	check("a reply sits inside its prompt", (await page.textContent(first)).includes("I made two cards from this"));
++	check("a question with an answer is inside its prompt, answered", await page.getAttribute(first + " [data-id='q-1761382835000']", "data-phase") === "answered");
++	check("raw hidden by default", await page.$(first + " .chat-v3-raw") === null);
++	await tap(first + " .chat-v3-toggle");
++	check("show raw reveals every raw chunk", (await page.$$(first + " .chat-v3-raw-line")).length === 2);
++	check("card has a link to itself", (await page.getAttribute(first + " .chat-v3-link", "href")).endsWith("#p-1761382800000"));
++	if (shots) {
++		mkdirSync(shots, { recursive: true });
++		await page.addStyleTag({ content: ".drawer, .sheet { display: none !important; }" });
++		await page.setViewportSize({ width: 1920, height: 1500 }); await page.screenshot({ path: shots + "/chat-v3-1920.png" });
++		await page.setViewportSize({ width: 400, height: 2400 }); await page.screenshot({ path: shots + "/chat-v3-400.png" });
++		await page.setViewportSize({ width: 1920, height: 1000 });
++	}
++
++	// 2. live: a Prompt appended after load shows in light gray while it moves, then settles solid; a new word is appended to the same card
++	await page.goto(`${base}/framework/ext/Chat/v3/?src=${src(live)}`); await ready();
++	await page.evaluate(() => { window.__no_reload = true; });
++	const id = "p-1761383000000", card = `.chat-v3-prompt[data-id='${id}']`;
++	appendFileSync(served + live, JSON.stringify({ tasks: { add: { type: "Prompt", id, raw: ["this one arrived"], paragraphs: [{ id: "a", text: "This one arrived." }] } } }) + "\n");
++	await page.waitForSelector(card, { timeout: 8000 });
++	check("a live prompt appears without a reload", await page.evaluate(() => window.__no_reload === true));
++	check("while moving it is light gray", await page.$(card + " .chat-v3-text.is-moving") !== null);
++	appendFileSync(served + live, JSON.stringify({ [id]: { raw: "and more words" } }) + "\n");
++	await page.waitForFunction(c => document.querySelector(c + " .chat-v3-text")?.textContent.includes("and more words"), card, { timeout: 8000 }).catch(() => {});
++	check("new words append to the same newest card (raw is append-only)", (await page.$$(".chat-v3 > .chat-v3-card")).length === 4 && (await page.textContent(card + " .chat-v3-text")).includes("and more words"), await page.textContent(card));
++	appendFileSync(served + live, JSON.stringify({ [id]: { title: "Arrived live", replies: { add: { id: "r-1761383010000", text: "Seen, live.", by: "smart" } } } }) + "\n");
++	await page.waitForFunction(c => document.querySelector(c)?.textContent.includes("Seen, live."), card, { timeout: 8000 });
++	check("its reply lands inside it", true);
++	await page.waitForSelector(card + " .chat-v3-text:not(.is-moving)", { timeout: 15000 });
++	check("after the quiet moment it is solid black and shows its title", (await page.textContent(card + " .chat-v3-title")) === "Arrived live");
++
++	// 3. a copy of a real voice log: the other families of lines are ignored, the tasks are drawn
++	if (real_log) {
++		await page.goto(`${base}/framework/ext/Chat/v3/?src=${src(real)}`); await ready();
++		const prompts = (await page.$$(".chat-v3-prompt")).length;
++		check("real log: prompts drawn (windowed)", prompts > 0 && prompts <= 40, prompts);
++		check("real log: no card text is a raw {chat}/{place} line", !(await page.textContent(".chat-v3")).includes('"place"'));
++		const earlier = await page.$eval(".chat-v3-earlier", e => ({ hidden: e.hidden, text: e.textContent }));
++		check("real log: older cards sit behind 'show earlier'", earlier.hidden === false || prompts < 40, earlier);
++		if (shots) { await page.addStyleTag({ content: ".drawer, .sheet { display: none !important; }" }); await page.setViewportSize({ width: 400, height: 1600 }); await page.screenshot({ path: shots + "/chat-v3-real-400.png" }); }
++	}
++	check("the log file was only ever appended to", readFileSync(served + live, "utf8").startsWith(before));
++	check("no page errors", errors.length === 0, errors);
++} finally {
++	rmSync(served + live, { force: true }); rmSync(served + real, { force: true });
++	await page.close();
++}
++console.log(`${pass} passed, ${fail} failed`);
++process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ext/Chat/v3/files.jsonl b/public/framework/ext/Chat/v3/files.jsonl
+new file mode 100644
+index 000000000..97a98842e
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/files.jsonl
+@@ -0,0 +1,6 @@
++{"file":"ChatV3.js"}
++{"file":"ChatV3.css"}
++{"file":"page.js"}
++{"file":"ChatV3.test.mjs"}
++{"file":"failures.jsonl"}
++{"file":"readme.md"}
+diff --git a/public/framework/ext/Chat/v3/page.js b/public/framework/ext/Chat/v3/page.js
+new file mode 100644
+index 000000000..5aac781d3
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/page.js
+@@ -0,0 +1,16 @@
++import { Page, p, div } from "/app.js";
++import ChatV3 from "./ChatV3.js";
++
++export default new Page({
++	meta: import.meta,
++	title: "Chat v3",
++	description: "A rough draft of a session's chat as a plain view over its tasks list: prompts in time order, the assistant's replies and questions inside them.",
++	icon: "forum",
++
++	content(){
++		const src = new URLSearchParams(location.search).get("src"), url = src ?? new URL("../v2/fixture/session.jsonl", import.meta.url).href;
++		p(src ? `This is the chat of the session file you passed in ?src= (${src}), drawn live.` : "This is a demo of Chat v3, drawn from Chat v2's fixture file. Pass ?src=<url of any session.jsonl> to draw a real one.");
++		const $box = div.c("chat-v3");
++		new ChatV3({ url, $box }).live();
++	},
++});
+diff --git a/public/framework/ext/Chat/v3/readme.md b/public/framework/ext/Chat/v3/readme.md
+new file mode 100644
+index 000000000..8f8080f87
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/readme.md
+@@ -0,0 +1,30 @@
++# Chat v3 (rough draft): a session's chat as a plain view over its `tasks` list
++
++Chat v3 draws a session's `tasks` list and nothing else. It never writes, never reshapes a Prompt, and never reads the `{chat}`, `{place}`, `{summary}` or `{refined}` lines Chat v1 uses. It is additive: v1 and the v2 chip are untouched, and v3 sits behind its own **v3** chip, never the default.
++
++Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws Chat v2's [fixture](../v2/fixture/session.jsonl); `?src=<url of any session.jsonl>` draws that session, live.
++
++## How it works
++
++- `ChatV3.js`: `class ChatV3 extends JSONL`. Every line of the session file that is a task delta (`tasks`, `session`, `start`, `stop`, `decide`, `task`, or a line keyed by an id already in the list) is replayed into a real `Session` (`core/Session`) with `replay_line`, the same replay the item tool uses. Everything else is skipped. The Prompts are drawn as they are: the `raw` chunks, the `paragraphs`, the `replies`.
++- **A card per Prompt**, in time order, newest last. Settled: title, then the cleaned text (the smart seat's `text`, else the fast seat's paragraphs, else the raw words), solid. Its replies (🧠) and the Questions and Tasks that name it (`from`, or nested under it) sit inside the card. "show raw" opens the raw chunks, which are append-only and never edited.
++- **Moving vs finished:** a Prompt touched by a live line in the last 8 s (`MOVING_MS`, mirrors Servex's `prompt_close_ms`) shows its raw words in light gray and no title; after the quiet moment it re-draws solid. The words still being spoken, before they are sent, show as a faint dashed draft at the end (the composer's mic fires a `chat-live` window event, one line in `ux/Dictate/Widget.js`).
++- **Windowed:** the newest 40 cards, with "show earlier (N)" (a 392-card real log stays quick).
++- **In place:** a live line redraws only the card it touched. The scroll lock is the drawer's own (`ext/drawer/ChatView.js`).
++- **Per-task link:** there is no route per task yet, so each card has a `#<id>` permalink to itself in the chat.
++
++## Where it shows
++
++The **v3** chip beside the **v2** chip in the ✦ sheet and the drawer's AI tab (`ext/drawer/ChatView.js`, one `lew42.sheet.chat_view` choice, "v2" or "v3"), and the session page's Chat tab (**Chat v3** chip, `?tab=chat&chat_view=v3`, `ai/AISession/AISessionDetail.js`).
++
++## Open decisions
++
++- **Per-sentence Prompts vs append:** v3 renders today's shape (new words are appended to the newest Prompt). A Prompt per sentence is not built.
++- **Completion rule:** "finished" is a client guess (8 s of quiet). A real rule would be a line written by Servex.
++- **Grouping/summary cards** as an overlay that references Prompts by id: not built.
++- **Per-task route:** the `#id` permalink stands in for one.
++- **Id scheme** for Prompts is whatever `p-<ms>` already is.
++
++## Test
++
++`ChatV3.test.mjs` (headless Playwright, 19 checks: fixture order, titles, solid vs gray, nesting, show raw, live append, raw append-only, windowing on a copy of a real log, the log only appended to): `node ChatV3.test.mjs [base-url] [shots-dir]`. It writes `live-v3-*.jsonl` copies beside the v2 fixture (gitignored) and deletes them.
+diff --git a/public/framework/ext/drawer/ChatView.js b/public/framework/ext/drawer/ChatView.js
+index 00a3e56b8..f0ba6be3b 100644
+--- a/public/framework/ext/drawer/ChatView.js
++++ b/public/framework/ext/drawer/ChatView.js
+@@ -1,5 +1,6 @@
+ import { View, div, button } from "/framework/core/View/View.js";
+ import ChatV2 from "/framework/ext/Chat/v2/ChatV2.js";
++import ChatV3 from "/framework/ext/Chat/v3/ChatV3.js";
+ import { sticky_scroll } from "/framework/ext/Chat/Chat.js";
+ 
+ View.stylesheet(import.meta, "ChatView.css");
+@@ -16,19 +17,25 @@ export default class ChatView {
+ 
+ 	constructor({ slot, mount }){
+ 		this.slot = slot; this.mount = mount;
+-		this.on = (() => { try { return localStorage.getItem(this.constructor.KEY) === "v2"; } catch { return false; } })();
++		this.mode = (() => { try { const m = localStorage.getItem(this.constructor.KEY); return m === "v2" || m === "v3" ? m : null; } catch { return null; } })();
+ 	}
+ 
++	get on(){ return !!this.mode; }
++
++	// The v2 chip, then the v3 chip beside it (a rough draft, never the default); returns the v2 chip. Each is a toggle; v2 and v3 are exclusive.
+ 	chip(classes = "drawer-rail-sheet-link"){
++		this.$chip3 = button.c(`${classes} drawer-rail-sheet-v2-chip`, "v3").attr("type", "button")
++			.attr("aria-pressed", String(this.mode === "v3")).attr("title", "Chat v3 (rough draft): this conversation as a plain view over its tasks list")
++			.click(() => this.set(this.mode === "v3" ? null : "v3"));
+ 		return this.$chip = button.c(`${classes} drawer-rail-sheet-v2-chip`, "v2").attr("type", "button")
+-			.attr("aria-pressed", String(this.on)).attr("title", "Chat v2: this conversation as Prompts, the raw words one click down")
+-			.click(() => this.set(!this.on));
++			.attr("aria-pressed", String(this.mode === "v2")).attr("title", "Chat v2: this conversation as Prompts, the raw words one click down")
++			.click(() => this.set(this.mode === "v2" ? null : "v2"));
+ 	}
+ 
+-	set(on){
+-		this.on = on;
+-		this.$chip?.attr("aria-pressed", String(on));
+-		try { on ? localStorage.setItem(this.constructor.KEY, "v2") : localStorage.removeItem(this.constructor.KEY); } catch {}   // storage off: the choice lasts until reload
++	set(mode){
++		this.mode = mode === true ? "v2" : mode || null;
++		this.$chip?.attr("aria-pressed", String(this.mode === "v2")); this.$chip3?.attr("aria-pressed", String(this.mode === "v3"));
++		try { this.mode ? localStorage.setItem(this.constructor.KEY, this.mode) : localStorage.removeItem(this.constructor.KEY); } catch {}   // storage off: the choice lasts until reload
+ 		this.sync();
+ 	}
+ 
+@@ -37,11 +44,13 @@ export default class ChatView {
+ 		const slot = this.slot(), mount = this.mount();
+ 		slot?.classList.toggle("drawer-rail-sheet-v2-on", !!(this.on && mount));
+ 		const file = this.on ? mount?.file?.() ?? null : null;
+-		if (this.file === file && (file || !this.on)) return;
++		if (this.file === file && this.shown === this.mode && (file || !this.on)) return;
+ 		this.chat_v2?.unsubscribe(); this.chat_v2 = null; this.file = file;
++		if (this.shown !== this.mode) { this.$box?.el.remove(); this.$box = null; }
++		this.shown = this.mode;
+ 		if (!this.on || !mount){ this.pin_watch?.disconnect(); this.$box?.el.remove(); this.$box = null; return; }
+ 		if (!this.$box?.el.isConnected){
+-			this.$box = div.c("drawer-rail-sheet-v2 flow");
++			this.$box = div.c(`drawer-rail-sheet-v2 flow ${this.mode === "v3" ? "chat-v3" : ""}`);
+ 			(slot.querySelector(".ux-dictate-widget-card") ?? slot).prepend(this.$box.el);
+ 			// the same scroll lock and jump button as the bubbles chat (Chat.js sticky_scroll); Chat v2 grows by patching, so pin on every change
+ 			const scroll = sticky_scroll(this.$box.el);
+@@ -49,8 +58,8 @@ export default class ChatView {
+ 			this.pin_watch = new MutationObserver(() => scroll.pin());
+ 			this.pin_watch.observe(this.$box.el, { childList: true, subtree: true, characterData: true });
+ 		}
+-		if (file) this.chat_v2 = new ChatV2({ url: file, $box: this.$box }).live();
+-		else this.$box.empty(() => div.c("chat-v2-empty", "Say something: Chat v2 draws this conversation once it has started."));
++		if (file) this.chat_v2 = new (this.mode === "v3" ? ChatV3 : ChatV2)({ url: file, $box: this.$box }).live();
++		else this.$box.empty(() => div.c("chat-v2-empty", `Say something: Chat ${this.mode} draws this conversation once it has started.`));
+ 	}
+ 
+ 	// The chat gave its box back: stop the stream and forget the box (the slot is emptied by the caller).
+diff --git a/public/framework/ux/Dictate/Widget.js b/public/framework/ux/Dictate/Widget.js
+index 81ab9ce1e..aa6a0a53d 100644
+--- a/public/framework/ux/Dictate/Widget.js
++++ b/public/framework/ux/Dictate/Widget.js
+@@ -825,7 +825,7 @@ Widget.Composer = class WidgetComposer extends View {
+ 			// pulse and level read the same 0..1 meter
+ 			on_meter: (w.level || w.pulse) ? level => { this.set_level(level); w.$pulse?.set_level(level); } : undefined,
+ 			// mode "live" only: leaving on_live undefined keeps dictation in the box
+-			on_live: w.mic_preset.bubble ? state => this.widget.$thread?.live?.(state) : undefined,
++			on_live: w.mic_preset.bubble ? state => { this.widget.$thread?.live?.(state); window.dispatchEvent(new CustomEvent("chat-live", { detail: state })); } : undefined,   // "chat-live": Chat v3 draws the same unsent words (ext/Chat/v3)
+ 		});
+ 		w.dictate = view.mic;
+ 		if (view.mic) view.mic.wake_session = () => w.session?.();   // chat.js says which voice session this is

@@ -36,6 +36,7 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 - `Mic.js` / `strip.js`: the composer's mic (`ComposerMic`) and its pure already-sent word-dedup (`strip_words`, `strip_sent`), node-testable in `strip.test.mjs` with no browser.
 - `Drill.js`: Deep-dive modal shell for inspecting sub-cards.
 - [`v2/`](./v2/readme.md): Chat v2, a session's chat drawn from its `tasks` list (prompts at the root, replies and cards nested under them), written by Servex as the owner speaks; shown under a v2 chip in the session page's Chat tab and the ✦ sheet, live demo at `/framework/ext/Chat/v2/`.
+- [`v3/`](./v3/readme.md): Chat v3, a rough draft: a plain view over the session's existing `tasks` list (raw gray while moving, solid once finished, replies and questions inside the Prompt), behind its own v3 chip beside v2; demo at `/framework/ext/Chat/v3/`.
 - `roles.js`: Sender avatars and badges.
 
 ## Doc topics

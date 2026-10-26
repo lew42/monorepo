@@ -1,0 +1,49 @@
+@layer base, theme, site, util;
+
+@layer site {
+	.chat-v3 { max-width: 46rem; margin-inline: auto; display: flex; flex-direction: column; gap: .75rem; padding: .5rem; box-sizing: border-box; }
+	.chat-v3-empty { color: color-mix(in srgb, currentColor 45%, transparent); padding: 1rem; text-align: center; }
+	.chat-v3-earlier { align-self: center; font: inherit; font-size: .85em; padding: .25rem .75rem; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 1rem; background: none; color: inherit; cursor: pointer; }
+	.chat-v3-earlier[hidden] { display: none; }
+
+	.chat-v3-card { border: 1px solid color-mix(in srgb, currentColor 14%, transparent); border-radius: .6rem; padding: .6rem .8rem; display: flex; flex-direction: column; gap: .4rem; scroll-margin-top: 1rem; min-width: 0; }
+	.chat-v3-card:target { border-color: color-mix(in srgb, currentColor 50%, transparent); }
+	.chat-v3-draft { border-style: dashed; }
+
+	.chat-v3-head { display: flex; align-items: baseline; gap: .5rem; }
+	.chat-v3-title { margin: 0; font-size: 1rem; flex: 1; min-width: 0; }
+	.chat-v3-head:not(:has(.chat-v3-title)) { justify-content: flex-end; }
+	.chat-v3-link { color: color-mix(in srgb, currentColor 35%, transparent); text-decoration: none; margin-left: auto; line-height: 1; }
+	.chat-v3-link:hover { color: inherit; }
+	.chat-v3-link .icon, .chat-v3-link .material-icons { font-size: 1rem; }
+
+	/* The raw words as they were heard: light gray while moving, solid once the thought is finished. */
+	.chat-v3-text { overflow-wrap: anywhere; line-height: 1.45; transition: color .4s; }
+	.chat-v3-text.is-moving { color: color-mix(in srgb, currentColor 40%, transparent); }
+	.chat-v3-text > :first-child { margin-top: 0; }
+	.chat-v3-text > :last-child { margin-bottom: 0; }
+	.chat-v3-guess { color: color-mix(in srgb, currentColor 28%, transparent); }
+
+	.chat-v3-toggle { align-self: flex-start; font: inherit; font-size: .78em; background: none; border: 0; padding: 0; cursor: pointer; color: color-mix(in srgb, currentColor 50%, transparent); }
+	.chat-v3-toggle:hover { color: inherit; }
+	.chat-v3-raw { display: flex; flex-direction: column; gap: .25rem; }
+	.chat-v3-raw-line { margin: 0; padding-left: .6rem; border-left: 2px solid color-mix(in srgb, currentColor 18%, transparent); font-size: .85em; color: color-mix(in srgb, currentColor 65%, transparent); }
+
+	.chat-v3-reply { display: flex; gap: .5rem; align-items: baseline; padding-top: .35rem; border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent); }
+	.chat-v3-brain { flex: none; }
+	.chat-v3-reply-text { min-width: 0; overflow-wrap: anywhere; }
+	.chat-v3-reply-text > * { margin-block: 0; }
+
+	.chat-v3-nest { display: flex; flex-direction: column; gap: .4rem; padding-left: .7rem; border-left: 2px solid color-mix(in srgb, currentColor 14%, transparent); }
+	.chat-v3-ask { display: flex; gap: .5rem; align-items: flex-start; }
+	.chat-v3-state { flex: none; font-size: 1.1rem; color: color-mix(in srgb, currentColor 55%, transparent); }
+	.chat-v3-state.is-answered { color: #b8860b; }
+	.chat-v3-state.is-complete { color: #2e8b57; }
+	.chat-v3-ask-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .15rem; }
+	.chat-v3-ask-head { display: flex; align-items: baseline; gap: .5rem; }
+	.chat-v3-ask-text { margin: 0; font-size: .95rem; font-weight: 600; text-transform: none; letter-spacing: normal; flex: 1; min-width: 0; }
+	.chat-v3-answer { font-size: .92em; overflow-wrap: anywhere; }
+	.chat-v3-answer > * { margin-block: 0; }
+
+	@media (max-width: 500px) { .chat-v3 { padding: .25rem; gap: .5rem; } .chat-v3-card { padding: .5rem .6rem; } }
+}
