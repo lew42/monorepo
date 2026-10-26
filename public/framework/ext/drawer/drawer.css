@@ -183,7 +183,10 @@
 
 	.drawer-ai-switcher { gap: 0.4em; position: relative; }
 	.drawer-ai-switcher .drawer-rail-sheet-v2-chip { align-self: stretch; }   /* as tall as the New session button beside it */
-	.drawer .drawer-ai-switch-btn {
+	/* Shared with the phone sheet's head (`chat.js`'s `session_switcher()`, one-dictation item 4)
+	   — the same markup and classes as the drawer's own "Switch session" row, so one rule styles
+	   both instead of a second copy for mobile. */
+	.drawer .drawer-ai-switch-btn, .drawer-rail-sheet .drawer-ai-switch-btn {
 		min-block-size: 0;
 		padding: 0.25em 0.5em;
 		font: inherit; font-size: 0.85em;
@@ -193,7 +196,7 @@
 		border-radius: calc(var(--radius) / 2);
 		cursor: pointer;
 	}
-	.drawer .drawer-ai-switch-btn:hover { color: var(--ink); background: var(--fill-a08); }
+	.drawer .drawer-ai-switch-btn:hover, .drawer-rail-sheet .drawer-ai-switch-btn:hover { color: var(--ink); background: var(--fill-a08); }
 	/* Drops below the strip as its own small list — not a true popover (no z-index fight to
 	   win: the drawer already owns the whole edge), just a block that pushes the chat down
 	   while it is open, same as the inbox's own notes do above it. */
@@ -321,7 +324,7 @@
 	.drawer-turn-who { font-size: 0.85em; }
 	.drawer-turn-you .drawer-turn-text { padding: 0.4em 0.6em; background: var(--fill-a08); border-radius: calc(var(--radius) / 2); }
 	.drawer-rows { gap: 0.35em; }
-	.drawer .drawer-row {
+	.drawer .drawer-row, .drawer-rail-sheet .drawer-row {
 		display: flex; flex-direction: column; align-items: flex-start; gap: 0.1em;
 		padding: 0.5em 0.6em;
 		font: inherit; text-align: start;
@@ -331,7 +334,8 @@
 		border-radius: calc(var(--radius) / 2);
 		cursor: pointer;
 	}
-	.drawer .drawer-row:hover, .drawer .drawer-row.on { background: var(--fill-a08); }
+	.drawer .drawer-row:hover, .drawer .drawer-row.on,
+	.drawer-rail-sheet .drawer-row:hover, .drawer-rail-sheet .drawer-row.on { background: var(--fill-a08); }
 	.drawer-row-title { font-weight: 600; }
 	.drawer-acts { gap: 0.5em; }
 

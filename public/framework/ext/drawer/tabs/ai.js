@@ -2,7 +2,7 @@ import { div, span, label, select, option, small, button, a } from "/framework/c
 import AIFeed from "../AIFeed.js";
 import md from "/framework/ext/markdown/md.js";
 import Widget, { model, MODELS } from "/framework/ux/Dictate/Widget.js";
-import chat, { ago } from "/framework/ux/Dictate/chat.js";
+import chat from "/framework/ux/Dictate/chat.js";
 import { composer } from "/framework/ext/Chat/Composer.js";
 import { post_prompt } from "/framework/ux/Dictate/Dictate.js";
 import { servex_base, is_folder_id, card_prompt, cards_ready } from "/framework/ai/rail/inbox.js";
@@ -175,33 +175,10 @@ function session_header({ card, view }){
 			$chips = div.c("drawer-ai-chips flex wrap");
 			draw_chips(session);
 
-			// Only worth a switcher when there is somewhere else to switch TO.
-			const elsewhere = rows.some(row => row.session !== session);
-			let $list;
-			div.c("drawer-ai-switcher flex v-center wrap", () => {
-				chat.new_session_button(() => live_chat, { label: "+ New session" });
-				view.chip("drawer-ai-switch-btn");
-				if (elsewhere) button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button")
-					.click(() => { $list.el.hidden = !$list.el.hidden; });
-			});
-			// A SIBLING of the button row, not a child of it (round 2, 2026-10-02 — found in
-			// the proof shots: nested inside `.drawer-ai-switcher`'s own ROW, the list sat
-			// wedged between the two buttons instead of dropping below them). A plain block
-			// in this column, so it stacks under the row at any width.
-			if (elsewhere){
-				$list = div.c("drawer-ai-switch-list flex v");
-				$list.el.hidden = true;
-				$list.append(() => {
-					rows.forEach(row => {
-						const is_live = row.session === session;
-						button.c("drawer-row").attr("type", "button").ac(is_live && "on")
-							.click(() => chat.resume(row.session)).append(() => {
-								span.c("drawer-row-title", (is_live ? "● " : "") + (row.title ?? "Voice session"));
-								small.c("drawer-row-meta muted", is_live ? "the current conversation" : ago(row.last_at ?? row.at));
-							});
-					});
-				});
-			}
+			// The one shared switcher (one-dictation item 4): `chat.js`’s `session_switcher()`,
+			// also used by the phone sheet’s head now — one control, not a second hand-rolled
+			// copy per surface (CLAUDE.md law 6, “one of everything”).
+			chat.session_switcher(() => live_chat, { label: "+ New session" });
 		});
 	}
 
