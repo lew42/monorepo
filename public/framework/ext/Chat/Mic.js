@@ -125,7 +125,7 @@ export class ComposerMic extends Dictate {
 			text = strip_sent(text, item.sent);
 			if (!text){ this.partial_text = ""; this.draw_caption(); return; }
 		} else if (this.dropped){   // a segment whose words were already sent (or edited in): only the rest is new
-			text = strip_sent(text, this.dropped.text);
+			text = strip_sent(text, this.dropped.text);   // never "" on a failed alignment — only on a confident, fully-matched one
 			this.dropped = null;
 			if (!text){ this.partial_text = ""; this.draw_caption(); return; }
 		}

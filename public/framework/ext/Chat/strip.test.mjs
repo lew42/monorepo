@@ -3,7 +3,7 @@
 // verbatim from the file — `sent` is what the first line already carried, `final` is what the next one carried
 // with the old `strip_words` unable to find a confident match (score > 0.35), so the whole already-sent text went
 // out again. node public/framework/ext/Chat/strip.test.mjs   (pure; no server needed)
-import { strip_sent } from "./strip.js";
+import { strip_sent, strip_words } from "./strip.js";
 
 const CASES = [
 	["23:28:43 -> 23:28:49 (session.jsonl ~2878-2882): Whisper reworded the opening and chopped 'se' off 'session.jsonl'",
@@ -35,4 +35,24 @@ for (const [name, sent, final, want] of CASES){
 	if (CHOPPED_FRAGMENTS.has(gw[0])){ bad++; console.log("FAIL", name, "- starts on a mid-word fragment:", got); continue; }
 	console.log("ok  ", name);
 }
+
+// Review finding 2026-10-25: a failed alignment must return `text` UNCHANGED, never guess it away. Two sentences
+// that share no words at all must come back exactly as given, even though `sent` is the longer of the two.
+{
+	const sent = "The quick brown fox jumps over the lazy dog every single morning without fail.";
+	const final = "Coffee machine broke again.";
+	const got = strip_sent(final, sent);
+	if (got !== final){ bad++; console.log("FAIL no-overlap must return text unchanged\n  got:  ", JSON.stringify(got), "\n  want: ", JSON.stringify(final)); }
+	else console.log("ok   no-overlap pair: strip_sent returns text unchanged, nothing dropped");
+}
+
+// Review finding 2026-10-25: `same_as_last_send`'s own matcher (`strip_words`, untouched by this fix) must stay
+// strict — two unrelated, same-length sentences must not collapse into "the same words".
+{
+	const a = "Turn on the lights please.", b = "Send the report today.";
+	const ok = strip_words(a, b) === a && strip_words(b, a) === b;   // neither strips the other: not a match either way
+	if (!ok){ bad++; console.log("FAIL strip_words must stay strict for unrelated sentences"); }
+	else console.log("ok   strip_words stays strict: unrelated sentences never match (same_as_last_send is unaffected)");
+}
+
 process.exit(bad ? 1 : 0);

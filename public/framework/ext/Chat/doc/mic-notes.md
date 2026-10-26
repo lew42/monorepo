@@ -116,16 +116,19 @@ while a dead device is reopened, and the sentence still being posted.
 
 ## strip_words (duplicate bubble)
 
-`text` without the words `sent` already covers at its start. A guess that went out with Send is
+`text` without the words `sent` already covers at its start. A guess that went out with Send is stripped from the
+front of the segment's own final before it is shown again, so the same words never appear in the box twice.
 
 ⚠ `strip_words` is a fuzzy PREFIX match over the whole span (score must beat 0.35) — when Whisper's final reworks a
 segment enough, or chops the leading characters off a word on a fresh segment ("ssion.jsonl" for "session.jsonl"),
 it can score too low and return `text` unstripped, so the already-sent words go out a second time (the
 2026-10-25 regression, doc/duplicate-bubbles.md cause 1 recurring with a bigger reword than the first fix covered).
 `strip_sent` (`strip.js`, used by `close_segment`/`commit`/`build_tail`/`live_guess` — never `same_as_last_send`,
-which needs the stricter match) tries `strip_words` first, then lines up the LAST words of `sent` against the
-FIRST words of `text` (tolerant of that chopped leading character), largest overlap first; if nothing lines up
-at all it drops the duplicate-looking prefix rather than resend it. Pure, tested without a browser: `strip.test.mjs`.
+which needs the stricter match `strip_words` alone gives it) tries `strip_words` first, then lines up the LAST
+words of `sent` against the FIRST words of `text` (tolerant of that chopped leading character), largest overlap
+first. If NOTHING lines up either, `text` comes back unchanged — a review on 2026-10-25 found the first version of
+this guessed the overlap away instead, which can drop real speech, not just a repeat. Pure, tested without a
+browser: `strip.test.mjs`.
 
 Every Whisper final is already logged raw, voice sessions included: `Dictate.prototype.log_raw` defaults to
 `true` and `ComposerMic` never overrides it, so `log_whisper()` → `WhisperLog.record()` runs for every mic. The

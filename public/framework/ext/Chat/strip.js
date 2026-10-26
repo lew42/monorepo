@@ -13,15 +13,11 @@ function lev(a, b){
 	return prev[b.length];
 }
 
-// Whisper chopping the start of a word on a fresh segment ("ssion.jsonl" for "session.jsonl"): one word counts as
-// the other, missing up to two leading or trailing characters, never for a word under 3 characters (too easy to
-// coincide: "it"/"bit" never counts).
-function chopped(a, b){
-	if (!a || !b) return false;
-	const [short, long] = a.length <= b.length ? [a, b] : [b, a];
-	return short.length >= 3 && long.length - short.length <= 2 && long.endsWith(short);
-}
-const word = (a, b) => a === b ? 0 : chopped(a, b) ? 0 : Math.min(1, lev(a, b) / Math.max(a.length, b.length, 1));
+// strip_words's own word match: byte-for-byte what it was before this task (plain edit distance, no extra
+// tolerance). `same_as_last_send` calls `strip_words` for its duplicate-send check and must stay exactly this
+// strict (review, 2026-10-25) — a false "same words" there silently drops a real, distinct message, so the looser
+// match below is never shared with it.
+const word = (a, b) => a === b ? 0 : Math.min(1, lev(a, b) / Math.max(a.length, b.length, 1));
 
 /** `text` minus the words `sent` already covers at its start, fuzzy-matched. see doc/mic-notes.md#strip_words-duplicate-bubble */
 export function strip_words(text, sent){
@@ -44,6 +40,17 @@ export function strip_words(text, sent){
 	return best ? tw.slice(best.j).join(" ") : text;
 }
 
+// Whisper chopping the start of a word on a fresh segment ("ssion.jsonl" for "session.jsonl"): one word counts as
+// the other, missing up to two leading or trailing characters, never for a word under 3 characters (too easy to
+// coincide: "it"/"bit" never counts). Scoped to `strip_sent`'s own fallback below, never `strip_words` — that
+// keeps `same_as_last_send` exactly as strict as it was before this task.
+function chopped(a, b){
+	if (!a || !b) return false;
+	const [short, long] = a.length <= b.length ? [a, b] : [b, a];
+	return short.length >= 3 && long.length - short.length <= 2 && long.endsWith(short);
+}
+const word_tolerant = (a, b) => a === b ? 0 : chopped(a, b) ? 0 : word(a, b);
+
 /** `strip_words`, but for a `text`/`sent` pair KNOWN to describe the SAME spoken segment: the mic's own
  * guess-already-sent dedup (`close_segment`/`commit`/`build_tail`'s `dropped`/`item.sent`), never the generic
  * "are these two sends the same" check — that stays on plain `strip_words` via `same_as_last_send`, where guessing
@@ -53,9 +60,13 @@ export function strip_words(text, sent){
  * word) that the edit distance over the WHOLE matched span misses the 0.35 threshold, and the whole already-sent
  * text goes out again (doc/duplicate-bubbles.md, cause 1 — the 2026-10-25 regression this reproduces). This tries
  * one more thing first: line up just the LAST words of `sent` against an early span of `text` (they should recur
- * even when everything before them was reworded too much to score) and cut through there. If nothing lines up
- * either, the owner's own rule (CLAUDE.md law 5, "best decision") is to drop the duplicate-looking prefix rather
- * than resend it — a repeated phrase lost once is cheaper than a repeated phrase sent twice. */
+ * even when everything before them was reworded too much to score) and cut through there.
+ *
+ * If NOTHING lines up either, `text` comes back UNCHANGED — never guessed away. An earlier version of this
+ * dropped a duplicate-looking prefix on the theory that a lost phrase is cheaper than a resent one; review
+ * (2026-10-25) found it could just as easily eat words that were never sent at all, which is real speech lost for
+ * good, not a cosmetic repeat. Missing one dedup (one duplicate bubble, the original failure this file fixes
+ * everywhere it CAN confidently tell) is the safe side to fail on; losing a sentence is not. */
 export function strip_sent(text, sent){
 	const stripped = strip_words(text, sent);
 	if (stripped !== text) return stripped;   // a confident match: trust it as before
@@ -67,9 +78,7 @@ export function strip_sent(text, sent){
 	// finds the longest genuine overlap before any shorter, coincidental one (a stray "if it's" deeper in) can win.
 	for (let k = Math.min(S.length, T.length); k >= 2; k--){
 		const tail = S.slice(-k), head = T.slice(0, k);
-		if (tail.every((w, i) => word(w, head[i]) === 0)) return tw.slice(k).join(" ");
+		if (tail.every((w, i) => word_tolerant(w, head[i]) === 0)) return tw.slice(k).join(" ");
 	}
-	// Nothing lines up even at the front: assume `text` restates what `sent` already covered rather than risk
-	// sending it twice, but never past `sent`'s own length — a longer `text` has new words after the overlap.
-	return T.length > S.length ? tw.slice(S.length).join(" ") : "";
+	return text;
 }
