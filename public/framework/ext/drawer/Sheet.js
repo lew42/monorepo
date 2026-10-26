@@ -328,9 +328,9 @@ export class SheetPanel extends View {
 	}
 
 	// The shared session switcher: ux/Dictate/chat.js's `session_switcher()` (doc/chat.md),
-	// also used by the desktop drawer's AI tab — a "+ New session" button beside a list of
-	// recent sessions to switch back to, so the sheet's head keeps a way back (one-dictation
-	// item 4; the bare New session button used to drop the old conversation for good).
+	// also used by the desktop drawer's AI tab — a "Switch session ▾" dropdown beside a bare
+	// "+", so the sheet's head keeps a way back (one-dictation item 4; the bare New session
+	// button used to drop the old conversation for good).
 	session_switcher(){
 		return chat_session_switcher(() => this.mount ?? chat);
 	}

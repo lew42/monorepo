@@ -374,7 +374,10 @@ export function session_switcher(mount, { label = "New session", title = "Clear 
 		let rows = [];
 		try { rows = await Session.recent_project({ limit: 12 }); } catch {}
 		if (!$wrap.el.isConnected) return;
-		open_menu?.close();
+		// Don't yank the dropdown shut while the owner is mid-read of it (review note,
+		// 2026-10-25): `chat.on_change` can fire while it's open; skip this repaint and let
+		// the next real change (after it closes) catch up instead.
+		if (open_menu?.showing()) return;
 		const elsewhere = rows.filter(row => row.session !== session);
 		$wrap.empty(() => {
 			// Dropdown first (the switch you reach for), the bare "+" last (owner, 2026-10-25):

@@ -182,7 +182,7 @@
 	.drawer-ai-chip-asleep { opacity: 0.6; }
 
 	.drawer-ai-switcher { gap: 0.4em; position: relative; }
-	.drawer-ai-switcher .drawer-rail-sheet-v2-chip { align-self: stretch; }   /* as tall as the New session button beside it */
+	.drawer-ai-switcher .drawer-rail-sheet-v2-chip { align-self: stretch; }   /* as tall as the switcher row beside it */
 	/* Shared with the phone sheet's head (`chat.js`'s `session_switcher()`, one-dictation item 4)
 	   — the same markup and classes as the drawer's own "Switch session" row, so one rule styles
 	   both instead of a second copy for mobile. */
@@ -197,12 +197,10 @@
 		cursor: pointer;
 	}
 	.drawer .drawer-ai-switch-btn:hover, .drawer-rail-sheet .drawer-ai-switch-btn:hover { color: var(--ink); background: var(--fill-a08); }
-	/* RETIRED 2026-10-25: the dropdown used to be a plain `<div>` sibling in normal flow,
-	   pushing the whole header down while open (measured ~940px tall with 12 rows, the
-	   exact "my drawer is broken... weird overlap" the owner first hit 2026-10-03 with the
-	   same shape of bug, `.drawer-inbox[hidden]`'s own comment below). `session_switcher()`
-	   now opens `ux/Popover`'s `menu()` — a real `[popover]` in the browser's top layer, so
-	   it floats over the header instead of reflowing it; there is no in-flow list to style. */
+	/* RETIRED 2026-10-25: was an in-flow `<div>` list that reflowed the header while open
+	   (the same shape of bug `.drawer-inbox[hidden]`'s own comment below hit 2026-10-03).
+	   `session_switcher()` now opens `ux/Popover`'s `menu()`, a top-layer `[popover]` —
+	   nothing in-flow to style here any more. */
 
 	/* THE PANEL'S CEILING (`Widget`, `ux/Dictate/Widget.js` — was `ChatPanel`,
 	   `ai/2026-09-29/audio/c-chat/`): "the drawer's own full height" (its brief),
