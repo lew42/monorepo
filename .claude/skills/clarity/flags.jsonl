@@ -1868,3 +1868,6 @@
 {"at":"2026-10-26T22:34:44.702Z","target":"public/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-v3-draft","verdict":"queued","kind":"landing"}
 {"at":"2026-10-26T22:34:44.916Z","target":"public/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-v3-draft","verdict":"spawned","to":"clarity-mastermind-v3-draft"}
 {"at":"2026-10-26T22:35:58.032Z","target":"public/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-v3-draft","verdict":"rewrote","what":"outcome rewritten: asks ticked with proof, links added, V1 caveat shown","to":"public/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-v3-draft/session.jsonl"}
+{"at":"2026-10-26T22:55:51.952Z","target":"public/framework/ai/sessions/2026/10/26/spawned/mastermind-system-map","verdict":"queued","kind":"landing"}
+{"at":"2026-10-26T22:55:52.494Z","target":"public/framework/ai/sessions/2026/10/26/spawned/mastermind-system-map","verdict":"spawned","to":"clarity-mastermind-system-map"}
+{"at":"2026-10-26T23:10:00.000Z","target":"public/framework/ai/sessions/2026/10/26/spawned/mastermind-system-map","verdict":"rewrote","what":"outcome rewritten as ticked checklist with links; system-map.md (1205 prose words, 140-word paragraph) and system-proposal.md (762) still fail text-check, need trimming/trees by an owner","to":"task.jsonl"}

@@ -33,3 +33,10 @@
 {"tool_call":{"at":"2026-10-26T22:48:32.116Z","tool":"spawn_agent","args_hash":"83a211d191de","caller":"voice-app"}}
 {"spawned":{"at":"2026-10-26T22:48:39.293Z","agent":"mastermind-system-map","task_dir":null,"caller":"voice-app"}}
 {"tool_call":{"at":"2026-10-26T22:52:32.325Z","tool":"send_to_agent","args_hash":"eb25fd38d5a7","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-26T22:53:50.327Z","tool":"wait_for_agent","args_hash":"45d8bc64379f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-26T23:01:48.386Z","tool":"send_to_agent","args_hash":"b2908b7ddc11","caller":"voice-app"}}
+{"log":{"at":"2026-10-26T18:07:59-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-26T18:12:59-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-26T18:17:59-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"tool_call":{"at":"2026-10-26T23:20:06.749Z","tool":"send_to_agent","args_hash":"f3ee185dbbfb","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-26T23:22:19.649Z","tool":"send_to_agent","args_hash":"88491710d576","caller":"voice-app"}}

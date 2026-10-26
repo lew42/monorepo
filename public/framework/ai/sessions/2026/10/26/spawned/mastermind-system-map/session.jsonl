@@ -4,3 +4,26 @@
 {"log":{"text":"Wrote ai/system-map.md (map, V1/V2/V3, boundaries, proposed shape, item-tool fold list) and a pointer in ai/readme.md. No code changed."},"by":"mastermind-system-map","ts":"2026-10-26T22:52:24.079Z"}
 {"sessions":[{"id":"mastermind-system-map","task":"/framework/ai/sessions/2026/10/26/spawned/mastermind-system-map/"}],"by":"mastermind-system-map","ts":"2026-10-26T22:52:24.080Z"}
 {"commit":"b770667967a0"}
+{"action":{"at":"2026-10-26T17:54:46-05:00","did":"edit","files":["public/framework/ai/system-proposal.md"]}}
+{"action":{"at":"2026-10-26T17:55:13-05:00","did":"edit","files":["public/framework/core/Session/readme.md"]}}
+{"action":{"at":"2026-10-26T17:55:16-05:00","did":"edit","files":["public/framework/ext/Session/readme.md"]}}
+{"action":{"at":"2026-10-26T17:55:18-05:00","did":"edit","files":["public/framework/ux/Dictate/readme.md"]}}
+{"action":{"at":"2026-10-26T17:55:20-05:00","did":"edit","files":["public/framework/ext/Chat/readme.md"]}}
+{"action":{"at":"2026-10-26T17:55:22-05:00","did":"edit","files":["public/framework/ext/drawer/readme.md"]}}
+{"action":{"at":"2026-10-26T17:55:24-05:00","did":"edit","files":["public/framework/ai/AISession/readme.md"]}}
+{"commit":"9ca35fb1144a"}
+{"assign":{"landed_at":"2026-10-26T17:55:41-05:00","title":"System map and proposal: dictation, sheet, chat, session, task, prompt","outcome":"Wrote ai/system-map.md (what is, incl. session detail page 3b and docs gaps) and ai/system-proposal.md (what should be, folder by folder, top five moves); updated the readmes of ai, AISession, core/Session, ext/Session, ux/Dictate, ext/Chat, ext/drawer. No code changed. Commit 9ca35fb11.","links":["/framework/ai/system-map.md","/framework/ai/system-proposal.md"]}}
+{"log":{"at":"2026-10-26T17:55:51-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-26T17:55:51-05:00","msg":"doc-check: public/framework/core/Session: 1 dead link (/framework/core/Task/md/doc/prompt/)"}}
+{"log":{"at":"2026-10-26T22:55:51.952Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-26T17:55:52-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-26T17:55:55-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-26T17:55:55-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-26T17:56:21-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"assign":{"at":"2026-10-26T17:56:42-05:00","outcome":"Investigation and docs only, no code changed (commit 9ca35fb11).\n- [x] Map what exists: dictation, sheet, chat, session, task, prompt: [system-map.md](/framework/ai/system-map.md), a table of every part with its folder, class and writer\n- [x] Say what it should be: [system-proposal.md](/framework/ai/system-proposal.md), folder by folder, top five moves\n- [x] Readmes updated: ai, AISession, core/Session, ext/Session, ux/Dictate, ext/Chat, ext/drawer\n- [ ] Not shipped: any code move; the proposal waits for the owner"}}
+{"log":{"at":"2026-10-26T17:56:49-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-26T17:57:29-05:00","msg":"Reply to clarity-mastermind-system-map: the ticked outcome stands. Not trimming system-map.md or system-proposal.md: they are deep reference docs (CLAUDE.md law 2, clear beats brief; deep docs may breathe), and a 500-word cap suits a level-1 page, not a map. Their short entry point is the one-line pointer in ai/readme.md. If the owner wants it, the long parts-table rows in the map are the first to split."}}
+{"log":{"at":"2026-10-26T18:01:51-05:00","msg":"session resumed"}}
+{"commit":"c9a95450346f"}
+{"log":{"at":"2026-10-26T18:05:00-05:00","msg":"Added system-map 3c (List, ids, JSONL replay, tasks list, V1 chat pseudo-property) and system-proposal Lists and the chat (derived chat, one home list, Refs, session-wide never-reused ids). No code."}}
+{"log":{"at":"2026-10-26T18:20:09-05:00","msg":"session resumed"}}
