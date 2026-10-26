@@ -34,3 +34,13 @@
 {"outcome":"Round 2 landed: owner live-testing found the dropdown reflowed the header (huge in-flow list pushed the title/chips/v2-chip down, \"vertically centered\" on desktop). Rebuilt session_switcher() on ux/Popover.menu() (top-layer popover, built-in height cap + scroll, native outside-click/Escape close); reordered to dropdown-first + bare \"+\" per the owner's ask; rows are one line, \"title (ago)\". Reviewed (fix, 6 findings answered), merged aaa4ecf85. Verified at 400px/1200px with 15 fake rows and against the live site with real data: header position unchanged before/after open, zero console errors.","at":"2026-10-26T01:41:45.563Z"}
 {"log":{"at":"2026-10-25T20:46:35-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-25T20:52:27-05:00","heartbeat":"check","msg":"status check sent to mastermind-session-switcher"}}
+{"log":{"at":"2026-10-25T20:54:01-05:00","heartbeat":"answered","msg":"Status for the heartbeat: session switcher (item 4 of the dictation-debug handoff) is landed and verified — nothing in flight. Round 2 (the Popover-based overlay fix for the reflow bug) merged as `aaa"}}
+{"log":{"at":"2026-10-25T20:56:29-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T21:05:06-05:00","msg":"task-loop status ask 1: asked mastermind-session-switcher","ask":1}}
+{"log":{"at":"2026-10-25T21:05:16-05:00","msg":"session resumed"}}
+{"kill":{"at":"2026-10-25T21:06:05-05:00","why":"Already landed: round 1 (28c6d4a4b) + round 2 (aaa4ecf85), outcome line recorded, verified live at 400/1200/2200px. Stopping so the loop stops chasing an idle-but-done task.","by":"mastermind-session-switcher"}}
+{"log":{"at":"2026-10-25T21:06:09-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T21:15:14-05:00","msg":"task-loop status ask 1: mastermind-session-switcher was stopped on purpose; not woken","ask":1}}
+{"log":{"at":"2026-10-25T21:16:44-05:00","heartbeat":"deliberate","msg":"mastermind-session-switcher its agent is not running: it was stopped on purpose by mastermind-session-switcher at 2026-10-25T21:06:05-05:00; not revived."}}
+{"log":{"at":"2026-10-25T21:25:11-05:00","msg":"task-loop status ask 2: mastermind-session-switcher was stopped on purpose; not woken","ask":2}}
+{"log":{"at":"2026-10-25T21:30:12-05:00","msg":"task-loop status ask 3: mastermind-session-switcher was stopped on purpose; not woken","ask":3}}
