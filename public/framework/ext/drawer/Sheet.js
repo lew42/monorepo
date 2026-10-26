@@ -2,7 +2,7 @@
 import { View, div, span, button, a, img } from "/framework/core/View/View.js";
 import grip from "/framework/ext/grip/grip.js";
 import MicIndicator from "/framework/ux/Dictate/MicIndicator.js";
-import chat, { new_session_button as chat_new_session_button } from "/framework/ux/Dictate/chat.js";
+import chat, { session_switcher as chat_session_switcher } from "/framework/ux/Dictate/chat.js";
 import Inbox from "./inbox.js";
 import tabs from "./tabs.js";
 import drawer from "./drawer.js";
@@ -272,7 +272,7 @@ export class SheetPanel extends View {
 			div.c("drawer-rail-sheet-heading flex v-center", () => {
 				this.$title = button.c("drawer-rail-sheet-title", this.title + " ▾").attr("type", "button").attr("aria-haspopup", "menu").attr("aria-expanded", "false")
 					.click(e => { e.stopPropagation(); this.toggle_menu(); });
-				this.new_session_button();   // one tap, as in the desktop AI tab (voice-e2e-review 2026-10-13)
+				this.switcher = this.session_switcher();   // a way back to an older session, not just a New session tap (one-dictation item 4, 2026-10-25)
 				this.v2 = new ChatView({ slot: () => this.$slot?.el, mount: () => this.mount });
 				this.v2.chip();
 				this.$path = span.c("drawer-rail-sheet-path muted");
@@ -327,11 +327,12 @@ export class SheetPanel extends View {
 			.click(() => this.close().then(() => tabs.open(tab)));
 	}
 
-	// The one New session button: ux/Dictate/chat.js's (doc/chat.md).
-	new_session_button(){
-		return chat_new_session_button(() => this.mount ?? chat)
-			.ac("drawer-rail-sheet-link drawer-rail-sheet-new")
-			.attr("title", "Clear this sheet and start a fresh conversation");
+	// The shared session switcher: ux/Dictate/chat.js's `session_switcher()` (doc/chat.md),
+	// also used by the desktop drawer's AI tab — a "+ New session" button beside a list of
+	// recent sessions to switch back to, so the sheet's head keeps a way back (one-dictation
+	// item 4; the bare New session button used to drop the old conversation for good).
+	session_switcher(){
+		return chat_session_switcher(() => this.mount ?? chat);
 	}
 
 	update_path(){
@@ -485,8 +486,9 @@ export class SheetPanel extends View {
 		this.mount?.remove();
 		this.feed?.stop();
 		this.v2_off_change?.(); this.v2?.release();
+		this.switcher?.stop?.();
 		this.$slot?.empty();
-		this.mount = this.panel = this.feed = this.v2_off_change = null;
+		this.mount = this.panel = this.feed = this.v2_off_change = this.switcher = null;
 		return this;
 	}
 

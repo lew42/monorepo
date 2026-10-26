@@ -100,8 +100,26 @@ a conversation and start over. It calls `mount.reset()` — for a `keep: true` m
 `() => mount`, for a caller (like the ✦ sheet) that builds this button before it has built its
 own mount yet — the function is read fresh at click time, never captured early.
 
-The ✦ sheet (`ext/drawer/rail.js`) and the Dictate page's own demo both call this now, instead
-of each hand-rolling their own button — CLAUDE.md law 6, "one of everything."
+The Dictate page's own demo (`keep: false`) calls this directly — it has no project-wide
+session to switch to, so the plain button is the whole control there.
+
+## The shared session switcher (item 4, one-dictation, 2026-10-25)
+
+`session_switcher(mount, { label, title })` is the one control for every `keep: true` surface:
+the same "+ New session" button as above, beside a toggled list of the project's other recent
+sessions (`Session.recent_project()`) to switch back to. Picking one calls `chat.resume(session)`
+— the one global conversation, so this is for `keep: true` mounts only. Each row's label is
+`row.title` (set by the title-writer, `doc/sessions.md`), falling back to `"Session " + id` for
+one that never got a title.
+
+**The bug this replaces:** pressing "New session" dropped the old conversation for good — no
+button, link or list pointed back at it. The desktop drawer's AI tab (`ext/drawer/tabs/ai.js`)
+had already grown its own "Switch session ▾" list for this (2026-10-02), but only there; the
+phone sheet's head (`ext/drawer/Sheet.js`) still had just the bare button. `session_switcher()`
+is that same control, extracted once into `chat.js` and called from both — CLAUDE.md law 6, "one
+of everything." A caller tears its own switcher down with the `.stop()` on the view it returns
+(it unsubscribes from `chat.on_change`); `ext/drawer/tabs/ai.js`'s own header rebuilds one on
+every session change, so it stops the old one first, and `Sheet.js`'s `release()` stops it too.
 
 ## The global session: one conversation per browser tab
 

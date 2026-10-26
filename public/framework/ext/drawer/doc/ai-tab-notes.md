@@ -63,7 +63,7 @@ THE HEADER STRIP (one-dictation drawer-chat, 2026-10-02 — the owner: "The UI n
 The strip shows:
 1. **Session name**: the session's name (its `session_summary` title, once the smart assistant has given it one) and a link to its raw log file;
 2. **Agent states**: the fast and smart assistants, as chips reading their LIVE state — working, idle, or asleep (Servex stops an idle pair after 5 minutes; "asleep" covers "stopped" and "never started yet" the same way, since a reader cannot tell those apart by looking and does not need to) — read from `GET /api/agents`, the one route every agent-state reader on the site already polls (`ai2/agents.js`, `core/Page/ai/live.js`); no new endpoint;
-3. **Session list**: a short list of the project's other recent voice sessions (one click resumes one, `chat.resume()`) and the shared "+ New session" button (`chat.new_session_button`, `ux/Dictate/chat.js` — CLAUDE.md law 6: one button, not a second one built here).
+3. **The session switcher**: the shared `chat.session_switcher()` (`ux/Dictate/chat.js`, one-dictation item 4, 2026-10-25) — a "+ New session" button beside a toggled list of the project's other recent voice sessions, one click resumes one. Built here first (2026-10-02, as a hand-rolled "Switch session ▾" list); extracted into `chat.js` so the phone sheet's head (`ext/drawer/Sheet.js`) gets the exact same control instead of its own bare button with no way back — CLAUDE.md law 6, one control, not a second one per surface.
 
 ### Not folded in
 
