@@ -2,6 +2,8 @@
 
 Pushes the document instead of covering it; opened by any caller, resized by dragging its edge, and shut only by its own ✕.
 
+This folder holds four things: the desktop drawer, the phone **sheet** (`Sheet.js`), the tabs, and the chat-version chips (`ChatView.js`). The sheet borrows the drawer's `tabs.js` and mounts the chat. How it fits with dictation and chat: [ai/system-map.md](/framework/ai/system-map.md); the proposal to move the Sheet to a generic `ux/Sheet` and the chat chips to `ext/Chat`: [ai/system-proposal.md](/framework/ai/system-proposal.md).
+
 ## Use
 
 ```js

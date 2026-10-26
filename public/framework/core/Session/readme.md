@@ -2,7 +2,9 @@
 
 A `Session` is one run of an agent or a tab. **It is a Task** (`Session extends Task`, since 2026-10-24): it has Task's states, completion and `tasks` list, and adds a dated folder of its own, `<root>/YYYY/MM/DD/<slug>/`. Its tasks can be plain tasks, projects, processes and child sessions. Decisions: [doc/architecture.md](doc/architecture.md); the move to a Task: [doc/session-is-a-task.md](doc/session-is-a-task.md).
 
-Session is mainly an AI session class (not a web login session), so it probably belongs in the framework/ai module; not moved yet. (The owner, 2026-10-23.)
+Session is mainly an AI session class (not a web login session), so it probably belongs in the framework/ai module; not moved yet. (The owner, 2026-10-23.) The proposed move and the rest of the dictation/chat/session shape: [ai/system-proposal.md](/framework/ai/system-proposal.md); how the parts fit today: [ai/system-map.md](/framework/ai/system-map.md).
+
+**Where the session page lives.** [`ai/AISession/AISessionDetail.js`](/framework/ai/AISession/AISessionDetail.js) (`class AISessionDetail extends Page`) draws one session at its dated folder, `/framework/ai/sessions/YYYY/MM/DD/<folder>/`. Tabs: overview, timeline, chat, tasks, and More (board, coverage, cost, models, related). Its data is this class's `SessionTasks` replaying `session.jsonl`; its Chat tab shows the Claude transcript or the file's `Prompt`s (chat v2/v3). Tabs and renderers: [ai/AISession/readme.md](/framework/ai/AISession/readme.md); how it relates to the chat: [system-map.md, section 3b](/framework/ai/system-map.md#3b-the-session-detail-page).
 
 ## Snapshot
 
@@ -44,7 +46,7 @@ class Session extends Task                       // ../Task/Task.js (Task extend
 
 **An AI adds a task.** `item({path: "<session url>", delta: {"tasks": {"add": "Fix the tab bar"}}})` (a string, or an object with fields).
 - The item tool (`Servex/agents/page_tools.js`) appends one line, `{"tasks":{"add":{"type":"Task","title":…,"id":…}}}`, to the session's `session.jsonl`, and answers `{ok, ids, line, now}` in milliseconds. It never returns the whole picture; a read (no delta) does that.
-- `Session.replay` reads it. The session page's Overview (`ai/AISession/SessionFeed.js`) streams the same file, so the task shows at once.
+- `Session.replay` reads it. The session page's Overview (`SessionOutlineView` in `ai/AISession/`) streams the same file, so the task shows at once.
 - Test: `node Servex/agents/session_tasks.test.mjs`.
 
 **An AI spawns a child session.** `spawn_agent` (Servex) makes one **Session entry** on the parent's record (next section):

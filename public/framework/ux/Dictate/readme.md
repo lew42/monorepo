@@ -2,6 +2,8 @@
 
 **How a chat is made, mic to screen** (the pipeline, the two views, the class sketch, the colours, the item tool; one file:line per stage): [`doc/pipeline.md`](doc/pipeline.md).
 
+**The whole stack on one page** (dictation, sheet, chat v1/v2/v3, session, task, prompt, the session page): [ai/system-map.md](/framework/ai/system-map.md); the proposed shape (Sheet and Chat as classes, the global voice session as a class, raw then refined prompts): [ai/system-proposal.md](/framework/ai/system-proposal.md). Note: the global voice session is not a class today; it is a controller (`create_controller` in `chat.js`) kept in sessionStorage `lew42-voice-session`.
+
 - ⬜ **Goal:** the owner calls the whole experience "chat", so it is one thing under that name (no renames yet): the first view and [Chat v2](/framework/ext/Chat/v2/readme.md) become one chat. Matching line in [Chat v2's readme](/framework/ext/Chat/v2/readme.md).
 
 ## How messages travel

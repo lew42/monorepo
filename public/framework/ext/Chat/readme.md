@@ -2,6 +2,8 @@
 
 Follows new messages while scrolled to bottom, formats Markdown bubbles with avatar icons, and supports threading and reactions.
 
+`Chat.js` is a function bag used by the voice chat (`ux/Dictate/Widget.js`), the sheet's `ChatView`, a card's chat (`ai/cards/CardChat.js`) and the session page's Claude-transcript chat (`ai/AISession/AISessionConversation.js`). The three versions (v1 default, [v2](./v2/readme.md), [v3](./v3/readme.md)), who reads which line shape, and the proposal to make Chat one class: [ai/system-map.md](/framework/ai/system-map.md) · [ai/system-proposal.md](/framework/ai/system-proposal.md).
+
 ## Use
 
 ```js

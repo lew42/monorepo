@@ -41,12 +41,22 @@ mic → Whisper (`ux/Dictate`) → live bubble in the composer → `POST /api/se
 | **V1** (`Widget.js` + `Chat.js`) | `{chat}` `{place}` `{summary}` `{refined}` `{react}` | Yes | No | **Yes** (`place` and `refined`) |
 | **V2** (`ChatV2`) | `tasks` lines, folded by hand | No (v2 chip) | No (its own model) | No |
 | **V3** (`ChatV3`) | `tasks` lines, replayed into a real `Session` | No (v3 chip) | Yes, via `Session` replay | No |
+| **Session page "Chat" chip** (`AISessionConversation`) | the **Claude transcript** of an SDK agent, not `session.jsonl` | First chip on a session page | No | No |
 
 Several parts of V1 are shared with V2: the ✓/🧠 cursor maker (`ext/Chat/cursors.js`), the "open bubble stays last" rule, and the session file.
 
 ### What V3 actually implements
 
 Read-only, additive, 19 headless checks (`ChatV3.test.mjs`). One card per Prompt in time order. A Prompt touched in the last 8 s (`MOVING_MS`, mirrors Servex's `prompt_close_ms`) shows its raw words gray with no title; after quiet it redraws solid with title and cleaned text (smart seat's `text`, else the fast seat's paragraphs, else raw). Replies, Questions and Tasks sit inside the card. "show raw" opens the append-only chunks. The words still being spoken show as a faint dashed draft (the composer fires a `chat-live` window event, one line in `Widget.js`). It shows the newest 40 cards with "show earlier", and each card has a `#id` permalink. **Not built:** a Prompt per sentence (today new words append to the newest Prompt), a completion rule written by Servex (8 s of quiet is a client guess), grouping or summary cards, a per-task route.
+
+## 3b. The session detail page
+
+The page that shows one session. Code and tab detail: [ai/AISession](/framework/ai/AISession/readme.md).
+
+- **Where it lives:** `ai/AISession/AISessionDetail.js` (`class AISessionDetail extends Page`). Routed by `AISessionsPage.child()` and `StoreFolder.child()` at the session's dated folder, `/framework/ai/sessions/YYYY/MM/DD/<folder>/`; the id url redirects there. Links come from `AISession.page_url(id, fallback)`; `AgentUrl.js` maps an agent name to its task folder.
+- **Tabs** (`?tab=`): main = overview, timeline, chat, tasks; the More popover = board, coverage, cost, models, related. The old keys `work` and `conversation` map to tasks and chat. Chat and coverage show only when the session has prompts or is a VS Code tab.
+- **Renderers:** overview = `SessionOutlineView` (`SessionOutline.js` holds the data, no DOM); timeline = `SessionTimeline`; tasks = `SessionTasksGrid` on `ext/DataGrid` with the nested `SessionWork`; board = `SessionOverview`; stats bar = `SessionStats`; cost = `AICost.cost_line`. The data is `SessionTasks` (`core/Session`) replaying `session.jsonl`. `SessionFeed.js` is the older flat list and is no longer wired in.
+- **How it relates to the chat:** the Chat tab has three chips, kept in `?chat_view`. "Chat" is `AISessionConversation`, which wraps `ext/Chat/Chat.js` `chat()` and draws the **Claude transcript** (a fourth chat flavour). "Chat v2" and "Chat v3" mount `ChatV2` / `ChatV3` on `session.jsonl`, the file the sheet's chat reads. The sheet's chat follows the live voice session; the session page's chat is fixed to the session it shows.
 
 ## 4. Where the boundaries are wrong today
 
@@ -60,51 +70,9 @@ Read-only, additive, 19 headless checks (`ChatV3.test.mjs`). One card per Prompt
 8. **Refining runs twice per chunk** in the live box (`Revise` and `RefineSystem`), and a third time on the server (`Sessions.refine()` and `Echo`), with no chat version that uses all of them.
 9. **Too many tools** (section 6).
 
-## 5. Proposed shape (no code; the owner's direction, 2026-10-26)
+## 5. Proposed shape
 
-### 5.1 Everything is a class, with an instance hierarchy
-
-```
-App
- └─ Sheet            (generic: panels + tabs, knows nothing about chat)
-     └─ Panel/Tab ── Chat   (a self-contained element)
- └─ Dictation        (one global instance per tab; owns the mic and the live draft)
- └─ Session          (core/Session; the record; one instance per session file)
-     └─ Prompt (raw, one per Whisper sentence)
-     └─ RefinedPrompt (groups raw prompts)
-         └─ Question | Task
-```
-
-### 5.2 Sheet: reusable and generic
-
-Move the sheet out of `ext/drawer/` into its own capitalised module (suggested `ux/Sheet/`; alternative `ui/Sheet` if the logic stays thin; it has gestures and size state, so `ux`). It owns: sizes (closed / strip / split / full), drag, header, a list of panels, the tab menu. It takes panels from the caller (`sheet.panel("AI", () => chat)`), so the **AI ▾ menu lists what the host registered**, and Debug/Docs/Settings are registered by the host or removed until they work. It never imports a chat. `drawer.js`/`tabs.js` stay as the desktop container until the same Sheet can dock there too (`SheetDock` already points that way). Keep `ext/drawer/rail.js` as a shim for old imports.
-
-### 5.3 Chat: self-contained, usable anywhere
-
-One `Chat` class (in `ext/Chat/`, absorbing `ux/Dictate/chat.js` and `Widget.js`) owns: the bubble/card view, the composer, the mic (built in, optional), the session switcher and the New session button, the current session. A caller passes `{session?, dictation: true|false}`. It mounts in the sheet, on a session page for an SDK session (no dictation, fixed session, no switcher), or alone. The global voice session becomes a `VoiceSession` instance the Chat can hold; a chat created without one just shows the session it is given. `Chat.js`'s function bag becomes methods on this class. The chat versions become three renderers behind the same class (`view: "bubbles" | "tree" | "cards"`), chosen by one setting instead of three chips in the head.
-
-### 5.4 Prompts: raw first, refined by reference
-
-- **Raw `Prompt`: one per Whisper sentence.** Fields `at` (timestamp), `text` (the Whisper sentence verbatim), optional `selection`. Appended to `session.jsonl` in order. **Never edited, never merged, never mangled.** Anyone can regenerate the transcript by reading the raw Prompt lines in order.
-- **`RefinedPrompt`: a distinct line type** that groups raw prompts, with `title` and cleaned `text`.
-- **Recommendation: put the link on the RefinedPrompt** (`of: ["p-1","p-2","p-3"]`), not an `assign` on the raw one.
-  - *Why:* a raw line stays one immutable fact. Regrouping (two groups turn out to be one, a sentence belongs elsewhere) is a new RefinedPrompt line with a corrected `of`, not an edit to raw lines; nothing about the raw transcript is ever touched. The reverse index (which refined group does `p-2` belong to) is cheap and computed on replay by the class, which is what "compute, don't recall" asks for.
-  - *The alternative* (an `assign` line on each raw prompt) would let a raw prompt "move" after the fact, so the transcript is no longer the file as written, and one regrouping writes N lines.
-  - *When the alternative wins:* if a view needs the owner of one sentence without replaying the whole file (a per-sentence lookup on a huge log). A computed index covers it.
-- **Each RefinedPrompt resolves to one of two outcomes:** a `Question` card (complete when answered) or a `Task` (complete when done). Completion stays computed on read; Servex writes the closing line.
-- **The UI shows raw text first, then fades to the refined view.** Raw sentences appear gray the moment they are said (V3's gray-while-moving, but per sentence); when the RefinedPrompt that references them lands, the raw sentences collapse into it and "show raw" keeps them one click away. Exactly V3's idea, with a real "settled" signal (the RefinedPrompt line) instead of 8 s of quiet.
-- **What this replaces:** the `{place}`, `{refined}` and `{summary}` lines and the double refining. The old `refine()` call becomes the thing that writes a `RefinedPrompt`.
-
-### 5.5 One tool for the AIs
-
-AIs write all of this through the single `item({path, delta})` tool: raw Prompt add, RefinedPrompt add, Question answer, Task complete. Servex writes raw Prompts itself (Whisper is code); the smart seat writes RefinedPrompts, Questions and Tasks.
-
-### 5.6 Build order (smallest first)
-
-1. Sheet extraction behind a shim (no behaviour change).
-2. Chat class absorbing `chat.js`/`Widget.js` (V1 stays the default).
-3. Per-sentence raw Prompt and the `RefinedPrompt` line type (write both old and new shapes until V3 is the default).
-4. Switch the default view, then retire `{place}`/`{refined}` and the second cleaner.
+Moved: what the shape SHOULD be (folder by folder, classes, the raw/refined prompt design, build order, top five moves) is in [system-proposal.md](system-proposal.md). This file is what IS.
 
 ## 6. Tools that could fold into `item`
 
@@ -135,6 +103,14 @@ Today the sheet and the chat sit in `ext/drawer` and `ux/Dictate` and cross-impo
 - `session-fast` agent: replaced by the `voice-assistant` seat (kept behind `session-assistant.txt`).
 - `ext/Refine/Prompt.js` → renamed `PromptRun`.
 - `core/Session/doc/one-replay-plan.md`: the plan for why V2's hand fold should go (plan only).
+
+## 9. Major pieces with no proper docs
+
+- `Servex/agents/Sessions.js` (creates voice sessions, `say()`, `refine()`): no Servex-side doc of its own.
+- The global voice session (`create_controller` in `ux/Dictate/chat.js`): only comments, no doc page.
+- A generic Sheet: `ext/drawer/doc/sheet.md` documents the AI sheet, not a reusable one.
+- Which chat version reads `place` / `refined` / `refine`: no single doc (this map's section 3 is the first).
+- `ext/Session/readme.md` still names `session-fast`; the default fast seat is `voice-assistant`.
 
 ## Sources
 
