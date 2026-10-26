@@ -825,7 +825,7 @@ Widget.Composer = class WidgetComposer extends View {
 			// pulse and level read the same 0..1 meter
 			on_meter: (w.level || w.pulse) ? level => { this.set_level(level); w.$pulse?.set_level(level); } : undefined,
 			// mode "live" only: leaving on_live undefined keeps dictation in the box
-			on_live: w.mic_preset.bubble ? state => this.widget.$thread?.live?.(state) : undefined,
+			on_live: w.mic_preset.bubble ? state => { this.widget.$thread?.live?.(state); window.dispatchEvent(new CustomEvent("chat-live", { detail: state })); } : undefined,   // "chat-live": Chat v3 draws the same unsent words (ext/Chat/v3)
 		});
 		w.dictate = view.mic;
 		if (view.mic) view.mic.wake_session = () => w.session?.();   // chat.js says which voice session this is
