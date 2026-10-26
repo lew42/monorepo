@@ -17,7 +17,9 @@ The owner's rule (2026-10-26): **every line of `session.jsonl` is applied throug
 2. **One Question card per question**: the smart seat alone files Questions (the owner's 2026-10-25 decision, `chat-shape.md`); the fast seat stops; a duplicate `q` with the same `from` and text is a no-op.
 3. **Cleaned text lands where the raw text is**: see "Placement" below.
 4. **V3 over the real classes**: replace `ChatV2Model` with `Session` replay (`Session.fold(lines)`), drawn with `TaskView`.
-5. **Retire the pseudo-properties** in the order of the table.
+5. **V3 gets the pure deltas; V1 is not touched** (the owner, 2026-10-26: V1 must keep working as is). Servex keeps writing the old `{chat}`, `{place}`, `{sent}` lines for V1, and writes the delta form beside them for V3 (the Prompt lines it already writes for V2). No old family is removed or rewritten while V1 reads it. If dual-writing ever becomes a cost, the alternative is a V1 adapter that derives the old lines from the deltas; it is built only when V1 is retired. Item-list references in deltas (how a delta names a list item) are being planned by @mastermind-list; this plan uses the shapes `Prompt` and `Paragraphs` replay today and adopts theirs when ready.
+
+**Firm rule (the owner, 2026-10-26): do not break anything.** No step lands unless V1 and every current reader are verified unchanged: before and after each step, run the V1 proof (`node ux/Dictate/test/in-place.mjs <site>`), the session-record readers (`Server/SessionRecord.mjs`, `AISession*`, `PromptAudit`) and the Servex session tests on a copy of a real log, and compare. A step that cannot show "unchanged" is not merged.
 
 ## The principle, and what it means for each pseudo-property
 
@@ -32,7 +34,7 @@ The owner's rule (2026-10-26): **every line of `session.jsonl` is applied throug
 | `refined` | `Sessions.refine` | `PromptLog`, V1 | `{<prompt>:{refined:…}}` or `title`/`text` on the Prompt (the smart seat's version) |
 | `summary` | voice assistant | V1 | a Prompt that holds Prompts (see V3) |
 
-Migration is by script (dry run, manifest, never retyped): `Server/` script rewrites old families into deltas beside the old lines; readers move one at a time; an old family is deleted from the writer only after its last reader moved.
+Migration is additive (V1 must keep working): the delta form is written beside the old line, V3 reads only deltas, and the old lines stay until V1 is retired. Existing logs are not rewritten.
 
 ## V3: the chat is a view over `tasks`
 
