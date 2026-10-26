@@ -8,7 +8,7 @@
 | --- | --- |
 | You **paused**: silence for `gap_ms` (default 6 s). The time you spend speaking again does not count: the timer stops while the floor is `speaking` and starts a whole gap when it turns `done` | `(paused 6 s)` |
 | You **asked**: the last words end in `?`, or a sentence starts with "smart" / "mastermind" (after an optional "hey", "okay") | `(asked)` |
-| **`every` sentences** (default 6) piled up since the last batch | `(6 sentences)` |
+| **`every` finished sentences** (default 6; only text ending in `.` `!` `?` counts, a comma chunk is not a sentence, and text with no punctuation only goes out on the gap, a question, the name or mic-off) piled up since the last batch | `(6 sentences)` |
 | The mic went off (the dictation ended) | `(the mic went off)` |
 | A ❓ reaction on an assistant line: the lines waiting go first, then "explain it" | `(asked: a reaction)` |
 
