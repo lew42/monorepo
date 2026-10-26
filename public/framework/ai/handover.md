@@ -32,6 +32,28 @@ ac4acf322 servex: log sweep (4 files)
 The dated sections below are written by hand and go stale; this block does not.
 <!-- NOW:end -->
 
+## LATEST, 2026-10-25 evening: VS Code tab e00f55c9 wound down after five days (2026-10-20 → 10-25)
+
+The owner moved to dictating in the browser; this tab stopped its half-hourly check. Everything below is a pointer. The record is the truth.
+
+- **Where it all is:**
+  - the session page: [/framework/ai/sessions/e00f55c9-bad4-4ee2-899e-d629ea1eede6/](sessions/e00f55c9-bad4-4ee2-899e-d629ea1eede6/);
+  - its briefs: [sessions-and-tasks/](sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/), one folder per effort, each with `requirements.md`.
+- **Completion (item tool, `{summary:{}}` on the session page):**
+  - 56%: 286 of 509 tasks done, 60 stopped, 163 open;
+  - owner-ask undone rate 14.9% (47 deferred with a home), so not red;
+  - cost $1,700 ($322 this tab, $1,378 children).
+- **Open work is found by code, not by memory.** The queue page's Dropped view lists tasks whose agent stopped ([/framework/ai/queue/](queue/)); the biggest open records are `mastermind-page` (core/Page, waiting), `deputy` (waiting) and `dictation-debug` (one open task: the four dictation leftovers).
+- **Known gaps, not yet fixed:**
+  - 170 of 186 child-session entries are "unlinked", so children's open tasks may not count toward the session number;
+  - ~166 files are left staged in the main tree's index by a failed merge, mostly log noise (commit by path);
+  - reviews default to Opus.
+- **Settings in force:**
+  - the VS Code Haiku prompt-refinement hook is OFF (`node Servex/agents/PromptTasks.js on` turns it back on);
+  - the voice smart seat is Sonnet (`Servex/agents/tiers.js`);
+  - the week went over pace on 10-25, so spawn only what is necessary.
+- **Dictation and chat continue in the browser voice session:** Chat v2 (`ext/Chat/v2/`), the shape in [chat-shape.md](sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md) (Option C), and the pipeline doc in the Dictate Docs tab.
+
 ## LATEST, 2026-10-17 00:20: the Fable tab checked up on everything the voice sessions started (run task [mastermind-repo-slim](sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/), its [readme](sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/readme.md) indexes the owner's words)
 
 
