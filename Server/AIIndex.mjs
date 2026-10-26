@@ -131,7 +131,18 @@ export default class AIIndex {
 		return { state, landed_at, started: d.started_at ?? d.requested_at ?? times[0] ?? null, last: times.length ? times.reduce((a, b) => Date.parse(b) > Date.parse(a) ? b : a) : null,
 			title: d.title ?? null, agent, session: t.session ?? d.sessions?.[0]?.id ?? null, module: d.module ?? null,
 			outcome: AIIndex.landing_text(d, f, lines), now: typeof d.now === "string" ? d.now : null,
-			waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, alias: lines.find(l => typeof l.home === "string")?.home ?? null };
+			waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, alias: lines.find(l => typeof l.home === "string")?.home ?? null,
+			nested: this.nested(t) };
+	}
+
+	/** The open tasks written as lines inside a session.jsonl (a task with its own folder has its own row): a task filed in its session has no file of its own, so this is how the index and the module pages find it. */
+	static nested(t, out = []){
+		for (const k of t._tasks ?? []){
+			if (!k.data.path && !["complete", "stopped"].includes(k.state))
+				out.push({ id: k.id, title: k.data.title ?? k.id, state: k.state, module: k.data.module ?? null, waiting_on: k.data.waiting_on ?? null, waiting_since: k.data.waiting_since ?? null });
+			this.nested(k, out);
+		}
+		return out;
 	}
 
 	/** The first heading of the task dir's requirements.md, or null. */
@@ -148,7 +159,8 @@ export default class AIIndex {
 		const row = { id: AIIndex.id(rel), home, dir: rel, url: AIIndex.url(rel), title: f.title ?? path.basename(rel).replaceAll("-", " "), state: f.state, bucket: null,
 			started, landed_at: f.landed_at, last: f.last ?? new Date(st.mtimeMs).toISOString(), day: AIIndex.day(f.landed_at ?? started),
 			agent: f.agent, session: f.session, module: f.module ?? (home === "module" ? rel.replace(/^public\/framework\//, "").split("/tasks/")[0] : null),
-			line: AIIndex.first_sentence(f.state === "complete" ? (f.outcome ?? AIIndex.brief_heading(file) ?? AIIndex.NO_SUMMARY) : f.now), waiting_on: f.waiting_on, waiting_since: f.waiting_since, alias: home === "session" ? f.alias : null };
+			line: AIIndex.first_sentence(f.state === "complete" ? (f.outcome ?? AIIndex.brief_heading(file) ?? AIIndex.NO_SUMMARY) : f.now), waiting_on: f.waiting_on, waiting_since: f.waiting_since, alias: home === "session" ? f.alias : null,
+			nested: home === "session" ? f.nested : [] };
 		this.cache.set(file, { size: st.size, mtime: st.mtimeMs, row });
 		return row;
 	}
@@ -271,12 +283,14 @@ export default class AIIndex {
 		const t0 = performance.now(), walked = this.refresh(full), now = this.now, today = AIIndex.day(now);
 		const reg = this.registry ?? [], held = new Map();
 		for (const a of reg) if (a.task_dir) held.set(slash(path.relative(this.root, path.resolve(a.task_dir))), a);
-		const all = [...this.rows.values()].filter(Boolean), tasks = [], aliases = [];
+		const all = [...this.rows.values()].filter(Boolean), tasks = [], aliases = [], open_nested = [];
 		for (const r0 of all){
 			if (r0.alias){ aliases.push(r0.id); continue; }
 			const a = held.get(r0.dir), working = a?.state === "working", queued = a?.state === "queued";
 			const bucket = { complete: "landed", stopped: "stopped", waiting: "waiting", running: working ? "in_flight" : "stale", paused: working ? "in_flight" : "stale", idle: queued ? "queued" : "idle" }[r0.state] ?? null;
-			tasks.push({ ...r0, bucket });
+			const { nested = [], ...r1 } = r0;
+			tasks.push({ ...r1, bucket });
+			for (const n of nested) open_nested.push({ ...n, id: r0.id + "~" + n.id, session: r0.session ?? r0.id, url: r0.url, home: "session" });
 		}
 		const counts = { tasks: Object.fromEntries(AIIndex.BUCKETS.map(b => [b, 0])), landed_by_day: {} };
 		for (const r of tasks) if (r.bucket) counts.tasks[r.bucket]++;
@@ -294,8 +308,9 @@ export default class AIIndex {
 		const in_flight = live.filter(a => a.state === "working").map(a => { const r = agent_row(a); return { ...r, quiet: r.quiet_min >= AIIndex.QUIET_MIN }; })
 			.sort((a, b) => (b.quiet - a.quiet) || (b.quiet_min - a.quiet_min));
 		const queued = live.filter(a => a.state === "queued").map(agent_row);
-		const waiting = tasks.filter(r => r.bucket === "waiting" && r.waiting_on === "owner")
-			.map(r => ({ id: r.id, title: r.title, waiting_on: "owner", since: r.waiting_since, url: r.url, home: r.home })).sort((a, b) => Date.parse(a.since) - Date.parse(b.since));
+		const waiting = [...tasks.filter(r => r.bucket === "waiting" && r.waiting_on === "owner")
+			.map(r => ({ id: r.id, title: r.title, waiting_on: "owner", since: r.waiting_since, url: r.url, home: r.home })),
+			...open_nested.filter(n => n.state === "waiting" && n.waiting_on === "owner").map(n => ({ id: n.id, title: n.title, waiting_on: "owner", since: n.waiting_since, url: n.url, home: "session" }))].sort((a, b) => Date.parse(a.since) - Date.parse(b.since));
 		const since = AIIndex.day(now - (AIIndex.DAYS - 1) * 864e5);
 		const landed = tasks.filter(r => r.bucket === "landed" && r.day >= since && r.day <= today).sort((a, b) => Date.parse(b.landed_at) - Date.parse(a.landed_at))
 			.map(r => ({ id: r.id, title: r.title, line: r.line, landed_at: r.landed_at, day: r.day, url: r.url, home: r.home }));
@@ -332,7 +347,7 @@ export default class AIIndex {
 		check.sessions = { in_sessions, with_session, ok: in_sessions === with_session };
 		check.ok = check.ok && check.cards.ok && check.asks.ok && check.sessions.ok;
 		const off = -new Date(now).getTimezoneOffset(), tz = (off < 0 ? "-" : "+") + p2(Math.floor(Math.abs(off) / 60)) + ":" + p2(Math.abs(off) % 60);
-		return { at: new Date(now).toISOString(), today, tz, in_flight, queued, waiting, landed, counts, check,
+		return { at: new Date(now).toISOString(), today, tz, in_flight, queued, waiting, open_nested, landed, counts, check,
 			tasks: tasks.map(({ alias, ...r }) => r), sessions: [...sessions.values()], cards: cards.rows, asks: asks.rows,
 			agents: reg.map(a => ({ id: a.id, state: a.state, task_dir: a.task_dir ?? null, model: a.model ?? null, cost: a.cost ?? 0 })),
 			timing: { ms: +(performance.now() - t0).toFixed(1), full: walked, files: all.length } };

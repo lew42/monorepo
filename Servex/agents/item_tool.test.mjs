@@ -94,7 +94,7 @@ try {
 	try {
 		const add = async (delta, ctx = {}) => read_back(JSON.parse(JSON.stringify(await run_item({ path: URL, delta }, { caller: "t1", module_root: MODS, ...ctx }))), URL, "t1");
 		const before = lines().length;
-		r = await add({ tasks: { add: { type: "Task", title: "Module job", module: "fakemod", expected: "it works" } } });
+		r = await add({ tasks: { add: { type: "Task", title: "Module job", module: "fakemod", home: "fakemod", expected: "it works" } } });
 		const home = path.join(MOD, "tasks", "module-job");
 		ok(r.ok && fs.existsSync(path.join(home, "task.jsonl")), "module task: <module>/tasks/<slug>/task.jsonl");
 		ok(TaskHomes.listed().has(app(path.join(MOD, "tasks"))), "a new module list joins the /tasks/ index");
@@ -109,7 +109,7 @@ try {
 		ok(list_lines()[0].id === "tasks" && list_lines()[0].path === app(path.join(MOD, "tasks")) && list_lines()[0].title === "fakemod tasks" && list_lines()[0].mode === "parallel", "module list: line 1 once");
 		ok(list_lines().length === 2 && list_lines()[1].task === app(home), "module list: one reference per child");
 		ok(/TaskPage/.test(fs.readFileSync(path.join(home, "page.js"), "utf8")), "child folder gets a TaskPage page.js");
-		await add({ tasks: { add: { title: "Second job", module: "fakemod" } } });
+		await add({ tasks: { add: { title: "Second job", module: "fakemod", home: "fakemod" } } });
 		ok(list_lines().filter(l => l.id === "tasks").length === 1 && list_lines().length === 3, "second child: no second line 1, one more reference");
 
 		r = await add({ tasks: { add: { title: "Plain job", module: "nomod" } } });
@@ -117,7 +117,7 @@ try {
 		const n_before = lines().length;
 		r = await add({ tasks: { add: { title: "Plain job" } } });
 		ok(r.ok === false && r.suggest === "plain-job-2" && /plain-job-2/.test(r.why) && lines().length === n_before, "a repeated subtask id is refused, offers -2, writes nothing");
-		r = await add({ tasks: { add: { title: "Module job", module: "fakemod" } } });
+		r = await add({ tasks: { add: { title: "Module job", module: "fakemod", home: "fakemod" } } });
 		ok(r.ok === false && r.suggest === "module-job-2", "an existing module slug is refused with a -2 offer");
 		ok(fs.existsSync(path.join(MOD, "tasks", "module-job", "task.jsonl")) && !fs.existsSync(path.join(MOD, "tasks", "module-job-2")), "refusal overwrote nothing and made nothing");
 
@@ -145,20 +145,25 @@ try {
 		try {
 			const run = (url, delta, ctx = {}) => run_item({ path: url, delta }, { caller: "t1", ...ctx }).then(x => read_back(JSON.parse(JSON.stringify(x)), url, "t1"));
 			const clines = () => fs.readFileSync(CLOG, "utf8").trim().split("\n").map(l => JSON.parse(l));
-			r = await run(URL, { tasks: { add: { title: "Ref job", module: MODN } } }, { caller_log: CLOG });
+			r = await run(URL, { tasks: { add: { title: "Ref job", module: MODN, home: MODN } } }, { caller_log: CLOG });
 			ok(clines().length === 2 && clines()[1].task === r.homes[0].path && clines()[1].by === "t1" && clines()[1].ts, "caller log: exactly one reference line");
-			r = await run(URL, { tasks: { add: { title: "Resolver job", module: MODN } } }, { resolve_log: id => id === "t1" ? CLOG : null });
+			r = await run(URL, { tasks: { add: { title: "Resolver job", module: MODN, home: MODN } } }, { resolve_log: id => id === "t1" ? CLOG : null });
 			ok(clines().length === 3 && clines()[2].task === r.homes[0].path, "resolve_log(caller) finds the log");
 			const n0 = clines().length, f0 = lines().length;
-			r = await run(URL, { tasks: { add: { title: "No log job", module: MODN } } });
+			r = await run(URL, { tasks: { add: { title: "No log job", module: MODN, home: MODN } } });
 			ok(r.ok && clines().length === n0 && lines().length === f0 + 1, "no caller log: nothing extra written");
-			r = await run(URL, { tasks: { add: { title: "Self job", module: MODN } } }, { caller_log: FILE });
+			r = await run(URL, { tasks: { add: { title: "Self job", module: MODN, home: MODN } } }, { caller_log: FILE });
 			ok(r.ok && lines().length === f0 + 2, "caller log is the parent: no duplicate line");
-			r = await run(URL, { tasks: { add: { title: "Broken log job", module: MODN } } }, { caller_log: path.join(CLOG_DIR, "no", "such", "x.jsonl") });
+			r = await run(URL, { tasks: { add: { title: "Broken log job", module: MODN, home: MODN } } }, { caller_log: path.join(CLOG_DIR, "no", "such", "x.jsonl") });
 			ok(r.ok, "an unwritable caller log never errors");
 
 			r = await run(`/framework/${MODN}/sub/`, { tasks: { add: { title: "Module from path" } } });
-			ok(r.ok && fs.existsSync(path.join(MDIR, "tasks", "module-from-path", "task.jsonl")), "path inside a module, no module field: homes under <module>/tasks/");
+			ok(r.ok && !fs.existsSync(path.join(MDIR, "tasks", "module-from-path")), "path inside a module, no home field: the task does NOT go to <module>/tasks/ (it stays where it is filed)");
+			r = await run(`/framework/${MODN}/sub/`, { tasks: { add: { title: "Module tag only", module: MODN } } });
+			ok(r.ok && !fs.existsSync(path.join(MDIR, "tasks", "module-tag-only")), "module is a tag, not a home");
+			r = await run(`/framework/${MODN}/sub/`, { tasks: { add: { title: "Module from path", home: MODN, module: MODN } } });
+			ok(r.ok && fs.existsSync(path.join(MDIR, "tasks", "module-from-path", "task.jsonl")), "an explicit home field homes under <module>/tasks/");
+			ok(JSON.parse(fs.readFileSync(path.join(MDIR, "tasks", "module-from-path", "task.jsonl"), "utf8").split(String.fromCharCode(10))[0]).home === undefined, "the home key is not stored as data");
 			// Step 17: a call on a path inside a tasks/ folder keeps the child in the parent's folder, and the module list gets no second reference.
 			const GOAL = path.join(MDIR, "tasks", "module-from-path");
 			const list_refs = () => fs.readFileSync(path.join(MDIR, "tasks", "task.jsonl"), "utf8").trim().split(String.fromCharCode(10)).filter(l => JSON.parse(l).task).length;
@@ -167,6 +172,24 @@ try {
 			ok(r.ok && !fs.existsSync(path.join(GOAL, "goal-child")) && !fs.existsSync(path.join(MDIR, "tasks", "goal-child")) && list_refs() === refs0 && r.state.tasks.some(t => t.id === "goal-child"), "a call inside tasks/: the subtask nests in the goal's own file, no folder, no module-list reference");
 			r = await run(URL, { tasks: { add: { title: "Dated outside" } } });
 			ok(!fs.existsSync(path.join(DIR, "dated-outside")) && r.state.tasks.some(t => t.id === "dated-outside"), "a dated ai/sessions path: the subtask nests, no folder");
+
+			{	// move_to_session: a module task goes back into its filing session, with the three lines and the ledger
+				const { move_to_session } = await import("./page_tools.js");
+				const SDIR = DIR + "-tosession", SURL = URL.replace(/\/$/, "") + "-tosession/";
+				fs.mkdirSync(SDIR, { recursive: true });
+				fs.writeFileSync(path.join(SDIR, "session.jsonl"), JSON.stringify({ session: { id: "tosession-test", kind: "agent" } }) + String.fromCharCode(10));
+				try {
+					const from = path.join(MDIR, "tasks", "module-from-path");
+					const dry = await move_to_session(path.join(from, "task.jsonl"), SURL, "test", true);
+					ok(dry.dry && fs.existsSync(from), "move_to_session dry run reports and moves nothing");
+					const moved = await move_to_session(path.join(from, "task.jsonl"), SURL, "test");
+					ok(moved.file && !fs.existsSync(from) && fs.existsSync(path.join(SDIR, "module-from-path", "task.jsonl")), "the task folder is now inside the session folder");
+					const tl = fs.readFileSync(path.join(SDIR, "module-from-path", "task.jsonl"), "utf8").trim().split(String.fromCharCode(10)).map(l => JSON.parse(l));
+					ok(tl.some(l => l.set?.parent === SURL && l.set?.module === MODN && l.set?.moved_from), "the task records its new parent, module tag and where it came from");
+					ok(fs.readFileSync(path.join(SDIR, "session.jsonl"), "utf8").includes(moved.to), "the session log references the moved task");
+					ok(fs.readFileSync(path.join(MDIR, "tasks", "task.jsonl"), "utf8").includes('"moved_from"'), "the old module list references the new path");
+				} finally { fs.rmSync(SDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+			}
 
 			r = await call("item", { path: URL, delta: { help: {} } }, "rules-caller");
 			ok(Array.isArray(r.instructions.rules) && r.instructions.rules.length === 5, "first-call instructions include rules");

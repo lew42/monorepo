@@ -6,7 +6,8 @@ A **task** is a folder whose `task.jsonl` is a log, one fact per line; its state
 
 ```
 ai/sessions/YYYY/MM/DD/<session>/<task>/      a task made from a session  (≈1,100)  task.jsonl, requirements.md, past-work.md, report.md
-public/framework/<module>/tasks/<slug>/       a task that belongs to a module (≈500)  task.jsonl, …
+public/framework/<module>/tasks/<slug>/       a task the owner explicitly homed in a module (≈500, older ones; new tasks are not made here)  task.jsonl, …
+ai/sessions/…/<session>/session.jsonl         a task filed in its session is a `{"tasks":{"add":…}}` line here, no folder; index.json lists the open ones as `open_nested`, with their `module` tag
 ai/index.json                                 the whole picture: every task in a bucket (generated)
 ai/index.jsonl                          one line per change of the picture (generated, gitignored; the pulse)
 ai/tasks/                                     this module: the 87 old task folders kept here, plus the files below
@@ -18,7 +19,7 @@ Buckets in `index.json`: `landed`, `in_flight`, `queued`, `waiting`, `idle`, `st
 
 | What | Writer, called from |
 |---|---|
-| a task folder and its line 1 `{"assign":{session_id,agent,title,model,requested_at,…}}` | `Agents.open_task()` (`Servex/agents/Agents.js`) when `spawn_agent` runs; or `node Server/TaskDirs.mjs --new <slug>` then `append.mjs` for a VS Code tab; or the item tool `tasks.add` for a module task |
+| a task folder and its line 1 `{"assign":{session_id,agent,title,model,requested_at,…}}` | `Agents.open_task()` (`Servex/agents/Agents.js`) when `spawn_agent` runs; or `node Server/TaskDirs.mjs --new <slug>` then `append.mjs` for a VS Code tab; or the item tool `tasks.add` (nests in the filing session's log; a module folder only with an explicit `home`). `node Server/TaskToSession.mjs <session url> <task folder url>… [--go]` moves an old module task back into its session |
 | every later line (`log`, `decision`, `finish`, a landing `assign.landed_at`) | `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` (validated by `.claude/hooks/jsonl-schema.mjs`) |
 | `index.json` and `index.jsonl` | `Server/AIIndex.mjs`: replays every `task.jsonl` through `core/Task/Task.js`. `Server/AIIndex.mjs --watch` is the thin caller that Servex's `TaskLoop.js` runs; it re-checks the agent registry every 5 s and writes only on a change. `--print` shows one snapshot. |
 
