@@ -302,6 +302,7 @@ Widget.Thread = class WidgetThread extends View {
 			cls: assistant ? "chatbox-reply" : "chatbox-you",
 			who, text: chat.text, sender, at: chat.said_at ?? at, id: at, via: chat.via,   // ordered by when it was said (doc/notes.md#bubble-order), keyed by its own `at`
 			join: this.widget.join, track: !assistant && !entry.history,   // a live owner line shows its fast and smart marks; a replayed one only once a {sent} line names it
+			prompt: chat.prompt,   // once a different Prompt starts, the old bubble is closed and never merged into again (review finding 3, 2026-10-25)
 		}));
 		// the new piece is found by its id: a late line is put in time order, so it is not always the last child
 		const text_node = bubble.querySelector(`:scope > [data-re="${CSS.escape(String(at))}"]`) ?? bubble.lastElementChild;

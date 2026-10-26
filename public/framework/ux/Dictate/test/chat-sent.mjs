@@ -58,20 +58,23 @@ ${ev(queue.splice(0))}` });
 	await page.evaluate(() => document.querySelector(".drawer-rail-ai").click());   // hidden at desktop widths, still wired
 	await page.waitForSelector(".drawer-rail-sheet.on", { timeout: 20000 });
 	await page.click(".drawer-rail-sheet.on .dictation-bar-type");
-	await page.fill(".drawer-rail-sheet.on .chatbox-field textarea, .drawer-rail-sheet.on .chatbox-field input", "hello from the proof");
+	await page.fill(".drawer-rail-sheet.on .chatbox-field textarea, .drawer-rail-sheet.on .chatbox-field input", "hello from the proof.");
 	await page.keyboard.press("Enter");
 	await page.waitForTimeout(2800);
 	await page.screenshot({ path: `${shots}/${tag}-1-sent-fast.png` });
 	// Round 4 (2026-10-25): V1 got its own two moving cursors, the same shape as v2's — gray until the seat
 	// has it, then colored, and they never disappear (a cursor marks a place, not a pending/done toggle).
-	const mark_sel = v2 ? ".chat-v2-cursor, .chat-v2-smart-cursor" : ".chatbox-cursor, .chatbox-smart-cursor";
-	console.log(tag, "badges at 2.8 s:", JSON.stringify(await page.evaluate(sel => [...document.querySelectorAll(sel)].map(n => n.textContent || n.className), mark_sel)));
+	// One shared class set now, V1 and v2 both (review finding 4) — so the query must stay INSIDE the
+	// active view's own container, or the other (hidden) view's cursors would double up in the count.
+	const container_sel = v2 ? ".drawer-rail-sheet-v2" : ".drawer-rail-sheet.on", mark_sel = ".chat-cursor, .chat-smart-cursor";
+	const marks = () => page.evaluate(({ csel, sel }) => [...document.querySelectorAll(csel)].flatMap(c => [...c.querySelectorAll(sel)]).map(n => n.textContent || n.className), { csel: container_sel, sel: mark_sel });
+	console.log(tag, "badges at 2.8 s:", JSON.stringify(await marks()));
 	await page.waitForTimeout(4000);
 	await page.screenshot({ path: `${shots}/${tag}-1-sent-smart.png` });
-	const sentText = await page.evaluate(sel => [...document.querySelectorAll(sel)].map(n => n.textContent || n.className), mark_sel);
+	const sentText = await marks();
 	console.log(tag, "sent badges:", JSON.stringify(sentText));
-	check(sentText.length === 2 && sentText.some(t => /chatbox-cursor done|chat-v2-cursor done/.test(t)),
-		`${tag}: the moving ✓ cursor reached "done" (reached the fast seat)`);
+	check(sentText.length === 2 && sentText.some(t => /chat-cursor done/.test(t)) && sentText.some(t => /🧠/.test(t)),
+		`${tag}: the moving ✓ cursor reached "done" (reached the fast seat) and the 🧠 cursor is drawn (a sentence finished)`);
 	if (!v2) check(await page.locator(".ux-dictate-widget-refined").count() === 1, `${tag}: a refined line that arrives twice draws ONE block`);
 	queue.push({ tasks: { add: { id: "p-proof", type: "Prompt", title: "A prompt", text: "A prompt about sending." } } });
 	queue.push({ "p-proof": { tasks: { add: { id: "q-proof", type: "Question", text: "Do you want the proof to show this question?", from: "p-proof" } } } });
@@ -79,19 +82,24 @@ ${ev(queue.splice(0))}` });
 	if (!v2) check(await page.locator(".chatbox-task[data-id=q-proof]").count() === 1, `${tag}: an open Question from the prompt shows in the chat`);
 	if (!v2){   // the real Question, read-only from the owner's own session: it must sit under ITS prompt, not at the end
 		const real = fs.readFileSync("C:/Code/lew42/monorepo/public/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl", "utf8").split(String.fromCharCode(10)).filter(Boolean);
-		queue.push(...[28, 29, 32, 36, 37].map(i => JSON.parse(real[i])).map((l, k) => (l.chat ? { chat: { ...l.chat, at: iso(Date.now() + k) } } : l)));
+		// `at`/`said_at` on one clock (near "now", a few ms apart): the real session's own said_at is hours
+		// earlier than this run's wall clock, and `mergeable()`'s gap check (`at - last.at < MERGE_GAP_MS`) goes
+		// hugely negative across clocks, which trivially passes — not what this proof means to exercise.
+		queue.push(...[28, 29, 32, 36, 37].map(i => JSON.parse(real[i])).map((l, k) => (l.chat ? { chat: { ...l.chat, at: iso(Date.now() + k), said_at: iso(Date.now() + k) } } : l)));
 		await page.waitForTimeout(1500);
-		// The owner's next line (a different, later Prompt) arrives inside the same merge window as the first: the owner, 2026-10-25's
-		// rule says the open bubble stays last, so it re-anchors below this Question and both owner lines end up ONE merged bubble
-		// after it — not a second owner bubble split off before the Question, which is the old (wrong) layout this replaced.
+		// Line 29 (chat.prompt "p-1792961349385") and line 37 (chat.prompt "p-1792961433084") are two DIFFERENT,
+		// later Prompts, in the same merge window and from the same sender. The owner's rule (open-bubble-last-
+		// brief) is "once the Prompt is closed ... it stays where it is": line 29's bubble sits right BEFORE its
+		// own Question, untouched, and line 37's later Prompt gets its OWN bubble right AFTER the Question —
+		// never merged into line 29's (review finding 3, 2026-10-25).
 		const where = await page.evaluate(() => {
 			const q = document.querySelector(".drawer-rail-sheet.on .chatbox-task[data-id=q-1792961349]");
 			const next = q?.nextElementSibling;
 			return q && { before: q.previousElementSibling?.textContent.slice(0, 40), after: next?.textContent, pieces: next?.querySelectorAll("[data-re]").length };
 		});
 		console.log(tag, "real Question sits:", JSON.stringify(where));
-		check(!!where && /Do you wa/.test(where.before) && /So, The words/.test(where.after ?? "") && /And then if I start/.test(where.after ?? "") && where.pieces >= 2,
-			tag + ": the real Question sits right under its Prompt, and the owner's next line re-anchors below it as ONE merged bubble (never split)");
+		check(!!where && /So, The words/.test(where.before ?? "") && /And then if I start/.test(where.after ?? "") && where.pieces === 1,
+			tag + ": the real Question sits right under its own Prompt's bubble; a later, different Prompt gets its OWN, separate bubble (never merged across the boundary)");
 	}
 	await page.screenshot({ path: `${shots}/${tag}-5-question.png` });
 	queue.push(...Array.from({ length: 40 }, (_, i) => owner(i + 1, Date.now() + i)));

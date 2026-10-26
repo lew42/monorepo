@@ -604,13 +604,4 @@
 	.chatbox-earlier { align-self: center; margin-block: var(--gap-35); cursor: pointer; }
 }
 
-@layer site {
-	/* Two moving cursors (round 4, 2026-10-25), V1's own copy of v2's `.chat-v2-cursor`/`.chat-v2-smart-cursor`
-	   (ChatV2.css): fixed inline-size so placing one never reflows the text around it.
-	   ✓ fast: gray, green once `sent.fast`. 🧠 smart: gray, warn-coloured once `sent.smart`. */
-	.chatbox-cursor { display: inline-block; inline-size: 1.2em; text-align: center; margin-inline-start: .2em; color: var(--subtle); vertical-align: middle; }
-	.chatbox-cursor::after { content: "✓"; }
-	.chatbox-cursor.done { color: var(--ok); }
-	.chatbox-smart-cursor { display: inline-block; inline-size: 1.2em; text-align: center; margin-inline-start: .2em; color: var(--subtle); vertical-align: middle; opacity: .55; }
-	.chatbox-smart-cursor.done { color: var(--warn); opacity: 1; }
-}
+/* The two moving cursors (✓/🧠) are one shared class set now: ext/Chat/cursors.css, loaded by Chat.js. */

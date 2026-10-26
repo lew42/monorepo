@@ -1,9 +1,11 @@
 import { View, div, p, span, button } from "/app.js";
 import { md_into } from "./md.js";
 import { who_label, WHO } from "./roles.js";
-import { last_finished_sentence_end } from "./chunks.js";
+import { last_finished_sentence_end, last_fast_chunk_end } from "./chunks.js";
+import { cursor_el, smart_cursor_el } from "./cursors.js";
 
 View.stylesheet(import.meta, "Chat.css");
+View.stylesheet(import.meta, "cursors.css");
 
 // A chat log: scrolling message bubbles, yours right, others left. See doc/notes.md#chat-log
 // see doc/notes.md#one-bubble-per-run
@@ -21,14 +23,21 @@ function set_open(box_el, sender, bubble){
 	map.set(sender, bubble);
 }
 
-export function mergeable($box, sender, at){
+export function mergeable($box, sender, at, prompt){
 	const last = sender && open_bubbles.get($box.el)?.get(sender);
 	// A live bubble (the mic's growing draft, or a fading "sent, waiting" one) is never a merge target:
 	// it carries the same dataset.sender/at a real line does (so it sorts into place) but is never
 	// registered here — merging a real piece onto it threw (bubbles.get(last) was undefined)
 	// and, found while chasing a reported black-then-gray-then-black flicker, is the one path that can
 	// make a just-committed, already-black line sit inside an element still carrying the live gray guess.
-	if (!last || last.classList.contains("chatbox-live") || last.dataset.sender !== sender) return null;
+	// `last.isConnected`: a bubble can leave the DOM (the box cleared) without this map dropping its entry;
+	// merging into a detached one would silently re-attach it (review finding 10, 2026-10-25).
+	if (!last || !last.isConnected || last.classList.contains("chatbox-live") || last.dataset.sender !== sender) return null;
+	// a closed Prompt is never merged into: once a different Prompt has started, the earlier bubble stays
+	// as it is (open-bubble-last-brief's rule, "once the Prompt is closed ... it stays where it is";
+	// review finding 3, 2026-10-25). A piece with no Prompt id at all (older callers) keeps the old
+	// sender+gap rule.
+	if (prompt && last.dataset.prompt && last.dataset.prompt !== prompt) return null;
 	return at - Number(last.dataset.at) < MERGE_GAP_MS ? last : null;
 }
 
@@ -77,42 +86,60 @@ function failed_badge(){
 
 const secs = ms => (ms < 100 ? "0" : (ms / 1000).toFixed(1)) + " s";
 
-/** One moving cursor mark, V1's own copy of v2's `cursor_el()`/`smart_cursor_el()` (ChatV2.js), same two
- * glyphs and the same gray-until-`done` rule, sized so it never reflows the text around it (Chat.css). */
-function cursor_mark(cls, glyph, done, title){
-	const b = el(cls, "span");
-	if (glyph) b.textContent = glyph;
-	b.classList.toggle("done", done);
-	b.title = title;
-	return b;
+/** The one ✓/🧠 pair for a whole bubble — made once, moved onto the bubble's NEWEST tracked piece by
+ * `place_live_cursors()` below, never one pair per piece (review finding 1, 2026-10-25). `cursor_el()`/
+ * `smart_cursor_el()` (`./cursors.js`) are the SAME maker v2 uses (law 6, finding 4): one shared class
+ * set, `.chat-cursor`/`.chat-smart-cursor` (`cursors.css`). */
+const live_cursors = new WeakMap();
+function cursors_of(b){
+	let c = live_cursors.get(b);
+	if (!c) live_cursors.set(b, c = { fast: cursor_el(), smart: smart_cursor_el() });
+	return c;
 }
 
-/** Two moving cursors glued into a TRACKED piece's text (the owner's own live line, round 4, 2026-10-25),
- * replacing the old single ✓/✓✓ `sent_badge` tick. V2 places both after the newest PROMPT; V1 draws one
- * committed line at a time, so both sit inside that line's own text instead:
- *   ✓ (fast): after the newest FAST chunk (comma / period / question mark / !) — always the very end of
- *   this piece's text, since the newest chunk is by definition whatever is left after the last cut.
- *   🧠 (smart): after the newest FINISHED SENTENCE (period / question / ! only, never a comma —
- *   `chunks.js`'s `last_finished_sentence_end`), which can sit mid-text when the piece's own trailing
- *   words have no sentence-ending mark yet (e.g. `stop()` sends "what is on screen").
- * Gray until `sent.fast`/`sent.smart` is set, same signal `sent_badge` used — there is no "placed" or
- * "answered" signal per piece yet (only per whole Prompt, v2 side), so "sent" is also "done" for now; a
- * real placed/answered signal needs its own Servex line (see `v1-cursors` task report).
- * Plain text, not markdown: a tracked line is the owner's own spoken words, never Markdown syntax, so the
- * cut is always between two words, never inside a formatting mark. */
+/** Plain text (never Markdown — these are the owner's own spoken words, so a cut is always between two
+ * words, never inside a formatting mark) for a TRACKED piece, the owner's own live line. The ✓/🧠 pair
+ * itself is NOT drawn here: `place_live_cursors()` moves the bubble's one shared pair onto whichever
+ * piece is newest, after every piece's own node exists. */
 function tracked_text_node(pc){
 	const node = el("chatbox-text chatbox-tracked");
-	const text = pc.text ?? "", end = last_finished_sentence_end(text);
-	const fast = pc.sent?.fast, smart = pc.sent?.smart;
-	node.append(document.createTextNode(text.slice(0, end)));
-	node.append(cursor_mark("chatbox-smart-cursor", "🧠", !!smart, smart ? "smart: reached" + (smart.delay_ms != null ? ", " + secs(smart.delay_ms) + " after the words left the draft" : "") : "smart: not yet"));
-	if (end < text.length) node.append(document.createTextNode(text.slice(end)));
-	node.append(cursor_mark("chatbox-cursor", "", !!fast, fast ? "fast: reached" + (fast.delay_ms != null ? ", " + secs(fast.delay_ms) + " after the words left the draft" : "") : "fast: not yet"));
-	// appended straight to the flat node, never into the cursor span (append_mark's "last block" rule is for a real paragraph)
+	node.append(document.createTextNode(pc.text ?? ""));
 	if (pc.mark && pc.mark.mark !== "ok") node.append(" ", mark_badge(pc.mark));   // the green ✓ is removed (the owner, 2026-10-25); the yellow ? stays
 	if (pc.via) node.append(" ", via_badge(pc.via));
 	if (pc.failed) node.append(" ", failed_badge());
 	return node;
+}
+
+/** Moves the bubble's one ✓/🧠 pair onto its NEWEST tracked piece — the same "there is never more than
+ * one of each on screen" rule v2's `place_cursors()` follows for the newest Prompt (review finding 1).
+ *   ✓ (fast): always right after this piece's own text (the newest fast chunk is whatever is left after
+ *   the last cut, which is the end of the text), before any via/mark/failed badge.
+ *   🧠 (smart): after the newest FINISHED SENTENCE only (`chunks.js`'s `last_finished_sentence_end`); left
+ *   out entirely while no sentence in the piece has finished yet, rather than drawn at offset 0 in front
+ *   of the words (review finding 2) — `end > 0` is the check on what gets DRAWN, not just the raw offset.
+ * Gray until `sent.fast`/`sent.smart` is set — there is no per-piece "placed"/"answered" signal yet (only
+ * per whole Prompt, v2 side), so "sent" is also "done" for now (see `v1-cursors` task report). */
+function place_live_cursors(b, st){
+	const { fast, smart } = cursors_of(b);
+	fast.remove(); smart.remove();
+	const last = st.pieces.filter(pc => pc.track).at(-1);
+	if (!last) return;
+	const node = b.querySelector(`:scope > [data-re="${CSS.escape(String(last.id))}"]`);
+	if (!node) return;
+	const text = last.text ?? "", end = last_finished_sentence_end(text), fast_end = last_fast_chunk_end(text);
+	const fast_at = last.sent?.fast, smart_at = last.sent?.smart;
+	const text_node = node.firstChild;
+	const after_text = [...node.childNodes].find(n => n !== text_node && n.nodeType === 1) ?? null;   // the first badge, if any — cursors land before it
+	if (end > 0 && text_node?.nodeType === 3){
+		smart.classList.toggle("done", !!smart_at);
+		smart.title = smart_at ? "smart: reached" + (smart_at.delay_ms != null ? ", " + secs(smart_at.delay_ms) + " after the words left the draft" : "") : "smart: not yet";
+		if (end < text_node.length) text_node.splitText(end);
+		node.insertBefore(smart, text_node.nextSibling);
+	}
+	if (fast_end === 0) return;   // nothing to mark on an empty piece (review finding 8/2: a mark only when there's something pending)
+	fast.classList.toggle("done", !!fast_at);
+	fast.title = fast_at ? "fast: reached" + (fast_at.delay_ms != null ? ", " + secs(fast_at.delay_ms) + " after the words left the draft" : "") : "fast: not yet";
+	node.insertBefore(fast, after_text);
 }
 
 // see doc/notes.md#place-card
@@ -183,7 +210,7 @@ function piece_body(pc){
 function fill(b){
 	const st = bubbles.get(b), r = st.refined;
 	b.querySelectorAll(":scope > .chatbox-text, :scope > .chatbox-sec, :scope > .chatbox-pieces").forEach(n => n.remove());
-	if (!r){ st.pieces.forEach(pc => b.append(piece_node(pc))); return; }
+	if (!r){ st.pieces.forEach(pc => b.append(piece_node(pc))); place_live_cursors(b, st); return; }
 	const byid = new Map(st.pieces.map(pc => [pc.id, pc]));
 	r.sections.forEach(sec => {
 		const s = el("chatbox-sec"), cited = (sec.from ?? []).map(id => byid.get(id)).filter(Boolean);
@@ -250,11 +277,12 @@ function draw_reacts(b){
 }
 
 /** Draw one message: a new bubble, or a paragraph on the bubble it merges into. See doc/notes.md#speak */
-export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark, failed, track, join = true }){
+export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark, failed, track, prompt, join = true }){
 	at = Date.parse(at ?? 0) || Date.now();
 	// join: false never merges onto the last bubble (doc/notes.md#speak)
-	const last = join ? mergeable($box, sender, at) : null, piece = { id, text, at, via, mark, failed, track };
+	const last = join ? mergeable($box, sender, at, prompt) : null, piece = { id, text, at, via, mark, failed, track };
 	if (last){
+		if (prompt && !last.dataset.prompt) last.dataset.prompt = prompt;   // the first piece to name a Prompt sets it for the whole bubble
 		// in time order within the bubble: a piece that arrives late (the poll after the live wire) goes before the later ones
 		const pieces = bubbles.get(last).pieces, i = pieces.findIndex(pc => pc.at > at);
 		i < 0 ? pieces.push(piece) : pieces.splice(i, 0, piece);
@@ -269,6 +297,7 @@ export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark
 		p.c("chatbox " + cls, $b => {
 			made = $b.el;
 			if (sender){ $b.el.dataset.sender = sender; $b.el.dataset.at = at; }
+			if (prompt) $b.el.dataset.prompt = prompt;
 			if (who && who !== "task") who_label(who);
 			bubbles.set($b.el, { pieces: [piece], refined: null });
 			fill($b.el);
@@ -288,6 +317,7 @@ export function patch_piece(bubble, id, patch){
 	// in place: only this piece's node is swapped, so nothing else in the bubble is redrawn (ux/Dictate/doc/flicker.md)
 	const node = !st.refined && bubble.querySelector(`:scope > [data-re="${CSS.escape(String(id))}"]`);
 	if (node) node.replaceWith(piece_node(pc)); else fill(bubble);
+	if (pc.track) place_live_cursors(bubble, st);   // the swapped-in node lost whatever cursor pair sat on the old one
 	return true;
 }
 

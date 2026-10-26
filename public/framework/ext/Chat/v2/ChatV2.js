@@ -4,7 +4,9 @@ import View, { div, span, button, h3, mark, blockquote, small, icon } from "/fra
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import TaskView from "/framework/core/Task/TaskView.js";
 import ChatV2Model from "./ChatV2Model.js";
+import { cursor_el, smart_cursor_el } from "../cursors.js";
 View.stylesheet(import.meta, "ChatV2.css");
+View.stylesheet(import.meta, "../cursors.css");
 
 export default class ChatV2 extends JSONL {
 	static Model = ChatV2Model;
@@ -175,8 +177,8 @@ export default class ChatV2 extends JSONL {
 	// Prompt reaching a seat), not per sentence/chunk — the owner's per-chunk ask needs a new Servex line;
 	// exact shape in proposal.md. Fixed-width slots (ChatV2.css), never shown/hidden by display, so moving
 	// either mark never reflows the text around it.
-	cursor_el(){ return this._cursor ??= span.c("chat-v2-cursor").el; }
-	smart_cursor_el(){ return this._smart_cursor ??= span.c("chat-v2-smart-cursor", "🧠").el; }
+	cursor_el(){ return this._cursor ??= cursor_el(); }
+	smart_cursor_el(){ return this._smart_cursor ??= smart_cursor_el(); }
 	last_prompt(){ const M = this.constructor.Model; const roots = this.model?.roots().filter(n => M.kind(n) === "Prompt") ?? []; return roots.at(-1) ?? null; }
 	// Has smart actually answered THIS Prompt: its own title/text, or any reply/question/task added since.
 	smart_answered(n){

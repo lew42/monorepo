@@ -12,11 +12,28 @@ export function fast_chunks(text){
 /** True when `text` ends with a sentence-ending mark (Mic.js's ends_sentence(), the same rule). */
 export function ends_sentence(text){ return /[.!?…]["')\]]*\s*$/.test(String(text ?? "")); }
 
-/** The offset right after the last FINISHED sentence in `text` (0 if none has ended yet). */
+/** The offset right after the newest fast chunk — the ✓ cursor's spot. For a settled piece of text this
+ * is always the end of the whole string (the newest chunk is whatever is left after the last cut, by
+ * definition), but it goes THROUGH `fast_chunks()` rather than assuming `text.length` (review finding 8,
+ * 2026-10-25: nothing in production called `fast_chunks()` before this). 0 for empty text. */
+export function last_fast_chunk_end(text){
+	text = String(text ?? "");
+	const chunks = fast_chunks(text);
+	return chunks.length ? text.length : 0;
+}
+
+/** The offset right after the last FINISHED sentence in `text` (0 if none has ended yet). Walks forward
+ * through the split sentences and sums their lengths, so a repeated final sentence ("Yes. And yes.
+ * And yes.") lands on the real last one instead of `lastIndexOf` matching an earlier occurrence (review
+ * finding 9, 2026-10-25). */
 export function last_finished_sentence_end(text){
 	text = String(text ?? "");
-	const last = split(text).filter(ends_sentence).at(-1);
-	if (!last) return 0;
-	const idx = text.lastIndexOf(last);
-	return idx < 0 ? text.length : idx + last.length;
+	let pos = 0, end = 0;
+	for (const s of split(text).filter(ends_sentence)){
+		const idx = text.indexOf(s, pos);
+		if (idx < 0) continue;
+		end = idx + s.length;
+		pos = end;
+	}
+	return end;
 }
