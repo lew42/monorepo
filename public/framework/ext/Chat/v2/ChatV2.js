@@ -269,20 +269,15 @@ export default class ChatV2 extends JSONL {
 
 	child_body(n){
 		const M = this.constructor.Model, phase = M.phase(n), question = M.kind(n) === "Question", answer = question && M.answer(n);
-		// A Question's avatar IS its state icon (amber ? while open, green once answered); a Task keeps the brain + its own icon and labels.
+		// A Question's avatar IS its state icon (amber ? while open, green once answered); a Task's avatar is its checkbox.
 		if (question) {
 			// red = asked, yellow = answered, green = answered and tapped (read; kept in this tab only, tap again to undo)
 			const read = phase !== "open" && (phase === "complete" || this.read_ids.has(n.id));
 			icon("help_outline").ac("chat-v2-state", "is-" + (read ? "complete" : phase));		}
-		else span.c("chat-v2-brain", "🧠");
+		else icon(TaskView.STAGE[phase] ?? "help").ac("chat-v2-state", "is-" + phase);   // a Task's avatar IS its state checkbox
 		div.c("chat-v2-body", () => {
 			div.c("chat-v2-child-head", () => {
-				if (!question) {
-					icon(TaskView.STAGE[phase] ?? "help").ac("chat-v2-state", "is-" + phase);
-					span.c("chat-v2-kind", "Task");
-				}
 				span.c("chat-v2-child-text", M.label(n));
-				if (!question) span.c("chat-v2-phase", phase);
 			});
 			if (answer) div.c("chat-v2-answer", answer.text);
 		});
