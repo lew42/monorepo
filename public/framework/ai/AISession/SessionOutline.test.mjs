@@ -79,4 +79,19 @@ const deep = list => list.reduce((n, t) => n + 1 + deep(t._tasks), 0), refs = ne
 const unreferenced = T.root.all().slice(1).filter(n => !refs.has(n.url) && typeof n.session !== "string").length;
 const independent = deep(tasks) + unreferenced;
 assert.equal(out.drawn, independent);
+
+// 8. a Prompt/Question record's title is its own words, not its id — read by constructor.name, the same way core/Task's own code does
+// (SessionOutline stays import-free so node and the browser build it the same way, so this fakes the shape rather than importing the real classes)
+class Prompt { constructor(id, d){ Object.assign(this, { id, state: "idle", _tasks: [], created_at: iso(HOUR) }); this.d = d; } get_one(k){ return this.d[k]; } get label(){ return this.d.paragraphs?.[0]?.text ?? this.id; } }
+class Question { constructor(id, d){ Object.assign(this, { id, state: "idle", _tasks: [], created_at: iso(HOUR) }); this.d = d; } get_one(k){ return this.d[k]; } get text(){ return this.d.text ?? null; } }
+const chat = new SessionOutline({ session: { id: ME, _tasks: [
+	new Prompt("p-1", { paragraphs: [{ id: "a", text: "Hello there, a real sentence." }] }),
+	new Question("q-1", { text: "What exactly are those?" }),
+], get_one: () => undefined }, tree: tree([]), prompts: {}, snaps: [], self: ME, now: NOW });
+const chat_items = chat.groups.at(-1).groups.flatMap(g => g.items);
+assert.equal(chat_items.find(i => i.id === "p-1").title, "Hello there, a real sentence.");
+assert.equal(chat_items.find(i => i.id === "p-1").record_type, "Prompt");
+assert.equal(chat_items.find(i => i.id === "q-1").title, "What exactly are those?");
+assert.equal(chat_items.find(i => i.id === "q-1").record_type, "Question");
+
 console.log(`SessionOutline: ok. tasks drawn ${out.drawn} = ${independent} (record ${deep(tasks)} + unreferenced folders ${unreferenced}); children ${JSON.stringify(out.found.counts)}`);

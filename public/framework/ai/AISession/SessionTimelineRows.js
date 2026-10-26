@@ -87,10 +87,8 @@ export default class SessionTimelineRows {
 		if (l.session && typeof l.session === "object") return { kind: "session", at, text: "Session started" + (l.session.kind ? " (" + l.session.kind + ")" : "") };
 		if (l.assign !== undefined || l.agent !== undefined) return { kind: "session", at, text: "Agent assigned" + (l.assign?.role ? ": " + l.assign.role : "") };
 		if (typeof l.msg === "string") return { kind: SessionTimelineRows.KINDS.some(k => k[0] === l.type) ? l.type : "log", at, text: clip(l.msg) };
-		// A voice session's own plumbing: `chat` is the real conversation (owner and assistant, by text — a different record of what prompts.jsonl
-		// also holds, but this one has the assistant's replies too); `place`, `sent` and `quiet` are internal relay/pause bookkeeping, worth
-		// keeping but not worth reading by default. Without these three branches almost every line of a voice session fell through to the
-		// catch-all "other" below (2026-10-26: "other lines: 1691" of 1818 in one session — this is what they were).
+		// `chat` is the real conversation (owner and assistant; unlike the "prompt" rows below it also has the assistant's replies).
+		// `place`, `sent` and `quiet` are internal relay/pause bookkeeping: real, but not worth reading by default.
 		if (l.chat !== undefined) return { kind: "chat", at, text: (l.chat?.from?.kind === "owner" ? "You: " : "Reply: ") + clip(l.chat?.text ?? "") };
 		if (l.place !== undefined) return { kind: "plumbing", at, text: "Placed: " + clip(l.place?.text ?? "") };
 		if (l.sent !== undefined) return { kind: "plumbing", at, text: "Relayed to " + (l.sent?.to ?? "?") + (Array.isArray(l.sent?.re) ? ` (${l.sent.re.length} lines)` : "") };
@@ -98,8 +96,7 @@ export default class SessionTimelineRows {
 		const inner = Object.values(l).find(v => v && typeof v === "object" && !Array.isArray(v) && (v.tasks || typeof v.task === "string"));
 		if (inner) return { ...SessionTimelineRows.row(inner, titles), at: at ?? SessionTimelineRows.time_of(inner) };
 		// A prompt's own text arriving word by word (`{"raw":{"push":"…"}}`, `{"paragraphs":{"append":…}}`), nested under its p-<id> key:
-		// the biggest single source of "other" noise, one line per spoken fragment. The finished prompt already gets its own "prompt" row
-		// (from prompts.jsonl, below), so this is plumbing, not a second copy of it.
+		// the finished prompt already gets its own "prompt" row below (from prompts.jsonl), so this is plumbing, not a second copy of it.
 		const only = Object.keys(l).find(k => !["by", "ts", "at"].includes(k)), ov = only ? l[only] : null;
 		if (ov && typeof ov === "object" && (ov.raw?.push !== undefined || ov.paragraphs !== undefined)) return { kind: "plumbing", at, text: "Prompt text updated" };
 		const key = only ?? "line";

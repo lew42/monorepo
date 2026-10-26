@@ -53,10 +53,7 @@ export default class SessionOutlineView extends View {
 		this.el.dataset.children = JSON.stringify(outline.found.counts); this.el.dataset.drawn = outline.drawn;   // how many children each source found, and tasks drawn: read by the proofs
 	}
 
-	/** The "N tasks drawn" count that used to sit here counted every record task INCLUDING Prompt and Question chat records, so it read
-	 *  "201 tasks drawn" while every child card said "no tasks yet" — meaningless. Dropped rather than fixed here: "This session's own
-	 *  work" below already gives the session's own real count (`progress_text`), and the bigger fix (not counting chat as work at all)
-	 *  is the held "regroup Other work by Prompt" item. */
+	/** The real own-work count already shows under "This session's own work" (`progress_text`); a second, wrong count up here is dropped. */
 	head(outline){
 		const n = outline.groups.filter(g => g.kind === "child").length;
 		div.c("soutline-head", () => {
