@@ -69,13 +69,13 @@ export default class ChatV2 extends JSONL {
 	// element. Everything else — siblings, the parent's other children, every other prompt — is never
 	// touched, so it keeps its DOM object (and the page keeps its scroll position).
 	apply_one(line){
-		const M = this.constructor.Model, answered_id = M.answer_edit(line);
+		const M = this.constructor.Model, newly_answered = M.newly_answered(this.model, line);
 		const touch = this.model.apply(line);
 		if (!touch) return;
 		this.update_smart_dots();
 		if (!touch.added) {
 			this.patch(touch.id);
-			if (answered_id === touch.id) this.move_to_end(touch.id);   // a Question just gained its answer: to the newest end, no transition (the owner, 2026-10-25)
+			if (newly_answered === touch.id) this.surface_answered(touch.id);   // a Question just gained its answer: to the root, no transition (the owner, 2026-10-25)
 			this.place_cursors();
 			return;
 		}
@@ -98,12 +98,14 @@ export default class ChatV2 extends JSONL {
 		touch.reply ? this.insert_reply(touch.parent, node) : owner.nest.append(() => this.child(node));
 	}
 
-	// A plain move, no transition (the owner, 2026-10-25): the card's own element, to the last spot in whichever
-	// container already draws it — its prompt's nest, or the root box, where the bottom 🧠 dots must stay last.
-	move_to_end(id){
-		const el = this.els.get(id)?.el, parent = el?.parentElement;
-		if (!parent) return;
-		parent === this.$box?.el && this.smart_dots ? parent.insertBefore(el, this.smart_dots.el) : parent.appendChild(el);
+	// A Question that just gained its answer surfaces at the ROOT of the chat (not just the end of its own
+	// prompt's nest — review round 2, 2026-10-25), the same spot a reload already draws it (ChatV2Model's
+	// roots()/children()): its own element, pulled out of wherever it sits and appended to the root box,
+	// right before the bottom 🧠 dots (which must stay last). A plain move, no transition.
+	surface_answered(id){
+		const el = this.els.get(id)?.el, box = this.$box?.el;
+		if (!el || !box) return;
+		this.smart_dots ? box.insertBefore(el, this.smart_dots.el) : box.appendChild(el);
 	}
 
 	// A reply beside its sentence when sentences are shown for its prompt right now, else listed in the nest.
@@ -200,7 +202,7 @@ export default class ChatV2 extends JSONL {
 		const M = this.constructor.Model;
 		if (M.refined(n)) return true;
 		const sent_at = Date.parse(n.sent?.smart?.at ?? 0) || 0;
-		return M.replies(n).some(r => Date.parse(r.ts ?? 0) >= sent_at) || this.model.children(n).some(k => Date.parse(k.ts ?? 0) >= sent_at);
+		return M.replies(n).some(r => Date.parse(r.ts ?? 0) >= sent_at) || this.model.own_and_from(n).some(k => Date.parse(k.ts ?? 0) >= sent_at);
 	}
 	place_cursors(){
 		const fast = this.cursor_el(), smart = this.smart_cursor_el();
@@ -244,8 +246,9 @@ export default class ChatV2 extends JSONL {
 	sentences(n, replies){
 		const M = this.constructor.Model;
 		let last_para = null;
-		// A sentence that became a Question card shows only as the card (view only; the log keeps it).
-		const asked = new Set(this.model.children(n).filter(k => M.kind(k) === "Question")
+		// A sentence that became a Question card shows only as the card (view only; the log keeps it) — own_and_from(),
+		// not children(), so the sentence stays hidden even once an answered Question has surfaced at the root.
+		const asked = new Set(this.model.own_and_from(n).filter(k => M.kind(k) === "Question")
 			.flatMap(k => [k.anchor?.sentence, k.sentence, ...(k.cites ?? [])]).filter(Boolean));
 		for (const s of M.sentences(n)) {
 			if (asked.has(s.id)) continue;
@@ -284,9 +287,12 @@ export default class ChatV2 extends JSONL {
 		});
 	}
 
-	// A Question or a Task under a prompt: its state as one icon, its text, and a Question's answer under it.
+	// A Question or a Task under a prompt, or (once answered) surfaced at the root: its state as one icon,
+	// its text, and a Question's answer under it. `data-from` is the one hint back to its prompt — reusing
+	// the field the model already carries, not a new label system (review round 2, 2026-10-25).
 	child(n){
 		const view = div.c("chat-v2-child", () => this.child_body(n)).attr("data-id", n.id).attr("data-phase", this.constructor.Model.phase(n));
+		if (n.from) view.attr("data-from", n.from);
 		this.els.set(n.id, view);
 		if (this.constructor.Model.kind(n) === "Question") view.click(() => {
 			if (this.constructor.Model.phase(n) === "open") return;

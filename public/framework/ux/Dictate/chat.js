@@ -214,12 +214,16 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	// Tasks and Questions under a Prompt arrive as edits ({tasks:{add}}, {"<prompt>":{tasks:{add}}}, {"<prompt>":{"<task>":{complete}}}): ChatV2Model folds them, one row each.
 	const parent_of = new Map(), prompt_at = new Map();   // task id -> its Prompt id; Prompt id -> its owner chat line
 	function draw_task(line){
-		const M = ChatV2Model, answered_id = M.answer_edit(line), touch = (tasks ??= new M()).apply(line), n = touch && tasks.by_id.get(touch.id);
+		const M = ChatV2Model;
+		tasks ??= new M();
+		const newly_answered = M.newly_answered(tasks, line);   // read BEFORE apply() mutates it: a Question with no answer before this line, never a Task or a repeat edit (review round 2)
+		const touch = tasks.apply(line), n = touch && tasks.by_id.get(touch.id);
 		if (!n || !n.type || M.kind(n) === "Prompt") return;
 		if (touch.parent) parent_of.set(n.id, touch.parent);
 		const at = prompt_at.get(parent_of.get(n.id));   // the owner line that opened this Prompt: the row sits under it
-		// moved: this line just answered it — the row goes to the end of the chat, not back where it was (the owner, 2026-10-25)
-		panel.say({ task: { at, id: n.id, question: M.kind(n) === "Question", phase: M.phase(n), label: M.label(n), answer: M.answer(n)?.text, moved: answered_id === n.id } });
+		// moved: this line just answered it — the row goes to the end of the chat (V1 is already flat, so "root"
+		// and "end" are the same place), not back where it was (the owner, 2026-10-25)
+		panel.say({ task: { at, id: n.id, question: M.kind(n) === "Question", phase: M.phase(n), label: M.label(n), answer: M.answer(n)?.text, moved: newly_answered === n.id } });
 	}
 	function draw_line(line){
 		if (line?.react) return void panel.say({ react: line.react });
