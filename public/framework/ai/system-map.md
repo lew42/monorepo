@@ -66,6 +66,72 @@ The page that shows one session. Code and tab detail: [ai/AISession](/framework/
 - **The tasks list and prompts:** `session.tasks` is a List of Prompts, Questions, Tasks and child Sessions, all `Task` subclasses with a state and a completion. `Task.progress_of(list)` counts `{done, total, stopped}`; a stopped task counts in neither. A Prompt carries `plain_lists` (`raw`, `parts`, `refined`, `notes`), `paragraphs` and `replies`, and reads complete when everything it asks is settled. Servex is the only writer: it appends `{tasks:{add:{type:"Prompt",id:"p-<ms>",…}}}` as the owner speaks, then `{"p-<ms>":{…}}` deltas into the nested Prompt.
 - **The V1 `chat` pseudo-property:** V1's lines (`{chat:{…}}`, `{place}`, `{refined}`) are not list operations. `Session.apply_line` falls through to `this.put(k, v)` for any unknown key, so replay just overwrites `session.chat`, and V1's view re-fetches `session.jsonl` and filters the raw lines itself. That is the part to retire; the proposal's "Lists and the chat" section says with what.
 
+## 3d. The voice session, question by question (audited 2026-10-26 against the code)
+
+Line numbers are in `Servex/agents/Sessions.js` unless a file is named. The answers come from the code, not from older docs. What could not be found is listed under "Doc holes".
+
+**Who creates the fast and the smart agent, and when?**
+- Servex, one pair per voice session, never shared. `create()` (804) mints the session and `prewarm_fast()` (837) wakes the fast seat at once. The smart seat is woken by the first `say()` (996). Both go through `wake()` (1348) then `spawn()` (1282).
+- **Fast seat:** role `voice-assistant`, id `voice-assistant-<session id>`, effort low, no built-in tools, system prompt `.claude/skills/voice-assistant/SKILL.md`, keeps Servex's `item` door. The seat is chosen by `session_assistant()` (70): file `session-assistant.txt`, else env `SERVEX_SESSION_ASSISTANT`, else `voice`. The older `fast` seat (`session-fast.md`) is still selectable.
+- **Smart seat:** role `session-smart`, effort medium, full tools. The model drops a tier when usage is over pace, and `openai/gpt-6-luna` is the fallback after a usage-limit refusal (`claude_model()` 1276).
+- At most `max_pairs` = 2 pairs run at once; an idle pair sleeps after 30 minutes.
+
+**What happens on "New session"?**
+- Browser: `reset` in `ux/Dictate/chat.js` (102) clears the tab's id in `sessionStorage["lew42-voice-session"]`; the next `ensure()` (69) POSTs `/api/session/start`.
+- Servex `create()`: unless `fresh` is set, a session under 60 minutes old (`resume_ms`) is **resumed instead** (819). Otherwise it mints `v-<time36><rand>`, writes `ai/sessions/YYYY/MM/DD/<id>/session.jsonl` with line 1 `{session:{id,home,kind,at,project,host,fast:null,smart:null,backing}}`, a presence line in `<home>/ai/log.jsonl`, and a row in `sessions.json`. No agent exists until the fast one is prewarmed straight after.
+
+**What happens when I switch to an old session, or Servex restarts?**
+- Switch: the switcher (`chat.js` 379) lists `GET /api/sessions`; `resume_to` (95) sets the id; `resume()` (843) writes no line, spawns no smart agent, only prewarms the fast seat.
+- Restart: `load()` (497) rebuilds from `sessions.json` and drops any open floor or prompt. If the last chat line was the owner's, `unanswered()` (545) appends a system line "Servex restarted; say it again". No agent is respawned at boot; the next `say` calls `wake()`, which resumes the SDK session from `s.backing[role]` when model and cwd still match, else starts fresh with the last 40 lines as context, and writes a `{backing}` line (1384).
+
+**Where does a raw sentence go first?**
+- The mic (`ext/Chat/Mic.js`) hands it to `deliver` (`chat.js` 167), which calls `Session.say` (`ext/Session/Session.js` 79), a POST to `/api/session/say` (route 1560). The only client identity is `said_at`, the phone clock corrected by an offset learned from earlier replies. There is no client-made id.
+- `say()` (996) then writes, in order: a `nav` line if the page changed; `assign_prompt` (482), which appends to the **open** Prompt (`push_raw` + `append_paragraph`) or mints `p-<ms>`; the `chat` line `{at, session, path, from, via, text, prompt, raw, said_at, floor, cues}`; a fire-and-forget `refine()` (666; only for 2+ sentences or 15+ words, and not while still speaking) that later writes `{refined}`; a wake of the fast agent (at once, or when a held thought is released, `release_thought` 1191); and a `sent` line (630).
+- Servex does not dedupe `say`; the only guard is the browser's `same_as_last_send` (4 s).
+
+**What does each seat do per sentence?**
+- **Fast, every sentence:** one `{place:{re, to:"same"|"paragraph"|"card", edit:"improve"|"move"|"both", text, where?, title?}}` through `item`, optionally a `{summary}` once a card holds 2+ sentences, and for a question a `Question` (`tasks.add`, `q-<ms>`). It files no Tasks and writes no chat reply.
+- **Smart, batched:** woken by timing knobs (`gap_ms`, `every`), typed lines, the mic going off, and cues such as `(paused 6 s)`, `(asked)`, `(6 sentences)`. It files Tasks, answers Questions, refines Prompts (`{"p-…":{title,text}}`), adds replies, names the session, writes `chat` lines through `session_line`, and can spawn agents and send owner notes.
+
+**Is it one Prompt per sentence?**
+- No: **one Prompt per utterance, and it grows**. A Prompt closes after 8 s of quiet (`close_prompt_later` 1162), when a reply lands (`reply_closes_prompt` 1173), when a held thought is released, when a line is typed, or on restart. Each sentence is one `raw` entry, so the `raw.push` lines are the per-sentence record.
+
+**What is in a voice session's files?**
+- Only `session.jsonl` (plus `index.json`); voice sessions write no `prompts.jsonl` (that is for VS Code tabs, `PromptTasks.js` 83). Content lines: `session`, `chat`, `tasks.add` (Prompt, Question, Task), keyed Prompt edits, `place`, `summary`, `refined`, `backing`, `log`. Plumbing lines: `sent`, `quiet`, `pause`, `select`, `nav`, `skip`, `para`, `react`.
+- Biggest recent one, `v-sq8y7db` (8359 lines, 2.7 MB): about 1650 `place`, about 1640 owner `chat`, 1581 `raw.push`, 622 Prompts and 42 Tasks, 553 assistant chat lines, 400 `ms` and 684 `delay_ms` timing lines. `v-9dvbbrn`: 5625 lines, 285 Prompts.
+
+**Why does the session page show "thousands of prompts"?**
+- 622 is the real Prompt count; **8359 is the Timeline row count**, because `SessionTimelineRows` draws one row per `session.jsonl` line (61-104) and `place`, `sent`, `quiet`, `raw.push` and paragraph lines are "plumbing" rows. Plumbing is hidden by default (`HIDDEN`, `SessionTimeline.js` 15) but still counted in the totals (65-84). The 622 is inflated because the 8 s and reply closes split one thought into several Prompts. Nothing collapses consecutive pushes. Not proven: whether the owner saw the 8359 or the 622.
+
+**How do the chats and the page relate?** All read the same `session.jsonl`. V1 (`chat.js` + `Widget.js`) polls Range requests every 1.5 s plus an SSE stream, replays from line 0 on every attach and dedupes by `at`; it draws `chat`, `place`, `refined` and task lines, merging lines into one bubble when the gap is under 8 s (`MERGE_GAP_MS`). V2 (`ChatV2Model`) folds `tasks.add`, keyed edits, `raw.push`, `paragraphs` and `replies` by hand. V3 filters task lines and replays them into a real Session.
+
+**The fast seat, precisely (verified 2026-10-26).**
+- **Default role:** `voice-assistant` (a `roles.js` row, prefix `voice-assistant`, tier fast, effort low) with the skill `.claude/skills/voice-assistant/SKILL.md`. `session-fast` was retired 2026-10-17 ("drop the fast assistant for now") and its row and brief stay on disk only as the escape hatch: write `fast` into `%LOCALAPPDATA%\lew42\servex\session-assistant.txt` and restart Servex (the file survives restarts; an env var does not reach a relaunched Servex). `ASSISTANTS = ["fast","voice"]`, read once at boot.
+- **Lifetime:** one long-lived SDK agent per voice session, prewarmed at create or resume, never one per sentence. It sleeps with the pair after `idle_ms` (30 min) and is resumed from `backing`.
+- **Woken with:** each time a sentence is finished, the **whole prompt so far plus the new sentence** (SKILL.md), and the session file path to write to. It runs urgent, ahead of the smart seat.
+- **Writes:** exactly one `{place:{re, to, edit, text, where?, title?}}` per sentence through `item`. `re` is the sentence's `at`; `to` is `same` (stay in the bubble), `paragraph` (start a new one) or `card` (own titled card); `edit:"improve"` carries `text`, the cleaned sentence (punctuation, filler, capitals, never a paraphrase); `move` relocates without text; `both` does both. For a question it also files a `Question` task.
+- **Revision today:** the browser applies a `place` as a patch keyed by `re` (`Widget.place`, `Widget.js` 577): the cleaned text replaces the piece and `settled` marks the sentence "no longer raw". Nothing stops a second `place` for the same `re`; the second patch overwrites the text, so **the latest place line wins and the fast seat can revise**. A `card` class cannot be taken back, and a `place` for an unknown `re` is silently dropped (`return false`); a place whose sentence is not last in its bubble is forced to `same` ("late split").
+
+**Transport.**
+- **Browser to Servex:** `POST /api/session/<verb>` (`start`, `say`, `settings`, others). `say` carries `{session, path, text, via, raw, floor, cues, quiet_ms, said_at, re?, thread?, selection?, kind}`. The browser calls it through `ext/Session/Session.js`.
+- **The `{chat}` line:** every `say` appends one `{chat:{at, from, via, text, prompt, raw, said_at, floor, cues}}` to `session.jsonl`, and the same message goes out on the live wire.
+- **Delays:** `quiet_ms` = 1500 ms is the hold for a typed/sent line; `answer_quiet_ms` = 2500 ms is how long the owner must be quiet (or the mic off) before a held thought is released to the smart seat; `hold_max_ms` = 8000 ms is the cap; `gap_ms` and `every` (`WakePolicy.js`, per session in `sessions.json`, settable by `POST /api/session/settings`) batch the smart wake. The Prompt itself closes after 8 s (`close_prompt_later`).
+- **Live stream:** Server-sent events per session. `open_stream` (1538) serves `text/event-stream`, `push(id, msg)` (1531) writes every line and every partial reply (`{kind:"stream", role, text}`) to all connected clients, and replays in-flight replies on reconnect. The browser uses `Session.stream(id, fn)` (`chat.js` 300), an `EventSource`, which reconnects itself (the dev server's `/servex` proxy cuts a stream at 30 s). Besides the stream, V1 re-reads `session.jsonl` by Range request every 1.5 s. The Whisper stream (raw words as they are heard, before `say`) is a separate path in `audio/Whisper`; **not traced in this pass** (doc hole 9).
+- **Does the old `ext/Refine` path still run?** Yes. `Sessions.js` imports `clean` (`engine.js`) and `structure` (`structure.js`) at lines 13-14, and `say()` calls `refine()` fire-and-forget for any owner line that passes `worth_refining` (2+ sentences or 15+ words, and `floor` not `"speaking"`). It writes the `{refined}` line the V1 and V3 views draw. So a long sentence is cleaned **twice** today, once by the fast seat's `place`/`improve` and once by `refine()`.
+- **Owner's intent for the proposal** (2026-10-26): the fast seat does ONE first pass per sentence and never revises it; the smart seat does the intelligent work (refined prompts, tasks, questions). Today's patch-by-`re` allows revision, so the proposal makes it a rule (see the proposal's change 21).
+
+**Doc holes (not answered, or no doc):**
+1. No doc for `Sessions.js` as a whole (create, wake, sleep, `max_pairs`, the `say` order above); only code comments.
+2. The wake knobs (`gap_ms`, `every`) and exactly what wakes the smart seat were not verified.
+3. Why Agents.js `revive()` skips session agents (what sets `revivable`) was inferred, not read.
+4. The handlers for `place`, `session_line`, `session_summary` in `tools.js` were not read; the write path is known only from the key list in `page_tools.js` 417.
+5. The `/api/sessions` row shape and the Servex-side SSE emitter.
+6. Whether the stored `chat` line keeps the client `at` or Servex's own after `retag`; this decides ordering rules.
+7. No doc says a Prompt is a growing utterance rather than a sentence; every older doc says "prompt" without saying which.
+8. `Assistant.js`, `Global.js`, `Registry.js` and `roles/*` were not read for this pass.
+9. The Whisper stream path (raw words before `say`), the exact route names of `/api/session/<verb>` beyond `start`, `say` and `settings`, and whether List `announce` bubbles from a nested list up to the session.
+10. `ux/Dictate/doc/voice-assistant.md` is the fast seat's plan; whether it still matches the SKILL.md after the 2026-10-17 landing was not compared.
+
 ## 4. Where the boundaries are wrong today
 
 1. **Chat is split across `ux/Dictate` and `ext/Chat`.** The mount (`chat.js`), bubble list (`Widget.js`) and session switcher are in `ux/Dictate`; the engine (`Chat.js`), composer and mic are in `ext/Chat`. Already found in `ux/Dictate/doc/map.md` (D6, proposal 4).
@@ -114,7 +180,7 @@ Today the sheet and the chat sit in `ext/drawer` and `ux/Dictate` and cross-impo
 
 ## 9. Major pieces with no proper docs
 
-- `Servex/agents/Sessions.js` (creates voice sessions, `say()`, `refine()`): no Servex-side doc of its own.
+- `Servex/agents/Sessions.js` (creates voice sessions, `say()`, `refine()`): no Servex-side doc of its own; section 3d is the first, with its eight doc holes.
 - The global voice session (`create_controller` in `ux/Dictate/chat.js`): only comments, no doc page.
 - A generic Sheet: `ext/drawer/doc/sheet.md` documents the AI sheet, not a reusable one.
 - Which chat version reads `place` / `refined` / `refine`: no single doc (this map's section 3 is the first).
