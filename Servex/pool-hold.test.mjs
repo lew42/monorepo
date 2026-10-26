@@ -96,4 +96,26 @@ await check("unhold() clears it — the sweep can reclaim normally again", async
 	assert.deepEqual(reclaimed, ["qf-1"], "reclaim works again once unheld");
 });
 
+/* A restart used to make fixer-1 take and hold a NEW slot each time (pool full of its holds, 2026-10-25). */
+await check("reuse_hold gives back the newest slot the holder already holds; release_extra_holds hands the other back", async () => {
+	const { execFileSync } = await import("node:child_process");
+	const pool = fake_pool([{ id: "fixer-1", name: "fixer-1", state: "idle" }]);
+	const git = (cwd, ...a) => execFileSync("git", ["-C", cwd, "-c", "user.name=t", "-c", "user.email=t@t", ...a], { stdio: "ignore" });
+	const repo = path.join(dir, "reuse-repo"); fs.mkdirSync(repo, { recursive: true });
+	git(repo, "init", "-q"); git(repo, "commit", "-q", "--allow-empty", "-m", "x");
+	pool.base = "HEAD";
+	pool.slots = [
+		{ id: "qf-1", path: repo, branch: "worktree/qf-1", url: "http://127.0.0.1:9/", state: "taken", taken_by: "fixer-1", taken_at: "2026-10-25T10:00:00-05:00", held_by: "fixer-1" },
+		{ id: "qf-2", path: repo, branch: "worktree/qf-2", url: "http://127.0.0.1:9/", state: "taken", taken_by: "fixer-1", taken_at: "2026-10-25T12:00:00-05:00", held_by: "fixer-1" },
+		{ id: "qf-3", path: repo, branch: "worktree/qf-3", url: "http://127.0.0.1:9/", state: "taken", taken_by: "someone-else", taken_at: "2026-10-25T13:00:00-05:00" } ];
+	assert.equal(pool.reuse_hold("nobody"), null, "a holder with no slot gets null, so take_sync runs");
+	assert.equal(pool.reuse_hold("fixer-1").id, "qf-2", "the newest hold is the one reused");
+	pool.give_back_calls = 0;
+	assert.deepEqual(await pool.release_extra_holds("fixer-1", "qf-2"), ["qf-1"]);
+	assert.equal(pool.give_back_calls, 1, "only the extra one was handed back");
+	assert.equal(pool.slots.find(s => s.id === "qf-1").held_by, undefined, "its hold is cleared");
+	assert.equal(pool.slots.find(s => s.id === "qf-2").held_by, "fixer-1", "the kept one stays held");
+	assert.equal(pool.slots.find(s => s.id === "qf-3").taken_by, "someone-else", "another holder's slot is untouched");
+});
+
 console.log(`pool-hold.test.mjs: ${checks} checks passed`);

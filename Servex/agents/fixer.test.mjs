@@ -42,7 +42,8 @@ const SLOT = { id: "qf-1", path: path.join(dir, "worktrees", "qf-1"), branch: "w
 
 function fake_pool(){
 	const held = [];
-	return { take_sync_calls: 0, held, take_sync(by){ this.take_sync_calls++; return { ...SLOT }; },
+	return { take_sync_calls: 0, held, reuse_hold(){ return null; }, async release_extra_holds(){ return []; },
+		take_sync(by){ this.take_sync_calls++; return { ...SLOT }; },
 		hold(id, by){ held.push({ id, by }); return { id, held_by: by }; } };
 }
 
