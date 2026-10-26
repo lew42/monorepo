@@ -11,12 +11,76 @@ App
  ├─ Dictation        one instance per tab: owns the mic and the live draft
  │   └─ VoiceSession  the current voice session (today: a controller object inside chat.js)
  └─ Session          the record: one instance per session.jsonl (core/Session)
-     ├─ Prompt          raw, one per Whisper sentence, never edited
-     └─ RefinedPrompt   groups raw prompts (of: [ids])
+     ├─ Prompt          one TURN (t14): its sentences (t14.s1, ...) are stored once, never re-derived
+     └─ RefinedPrompt   cites sentences (of: ["t14.s3", "t14.s4"])
          └─ Question | Task
 ```
 
 The arrow runs one way: Chat does not know about the Sheet, the Sheet does not know about Chat. The host (the page, or the session detail page) wires them together.
+
+## At a glance: before and after (pseudocode; the numbered changes below are the approvable units)
+
+```
+BEFORE                                                  AFTER
+core/                                                   core/                       (no AI code)
+  Session/Session.js   class Session extends Task        Item, List, Page, ...      (Dated.js takes Day from util/)
+  Task/Task.js         class Task extends Item         ai/
+  Task/Prompt.js       class Prompt extends Task         AISession/AISession.js  class AISession extends Item
+  Task/Question.js, Paragraph.js, Process.js,            AITask/AITask.js        class AITask extends Item
+    Project.js, TaskQueue.js, TaskPage.js, ...           AITask/Prompt.js, Question.js, Process.js, Project.js,
+ai/AISession/AISession.js  extends Session                 TaskQueue.js          extend AITask
+ai/AITask/AITask.js        extends Page (viewer)         AITask/RefinedPrompt.js class RefinedPrompt extends AITask
+ext/Chat/Chat.js    function bag                         AITask/AITaskPage.js    (was AITask.js, the viewer)
+ext/Chat/v2/, v3/   ChatV2, ChatV3                       Assistant/Assistant.js  class Assistant (voice session owner)
+ux/Dictate/chat.js, Widget.js   (no class)             ext/Chat/
+ext/drawer/Sheet.js, SheetPanel, SheetSize,                Chat.js        class Chat  { messages: List, view, send() }
+  SheetDock, ChatView.js, rail.css                         ChatView.js    class ChatView  (bubbles | cards | tree | transcript)
+ext/Session/Session.js   functions                         Message.js     class Message extends Item
+Servex/agents/Sessions.js   voice + wake + refine         (v2/, v3/ become ChatView renderers)
+                                                       ux/Sheet/  Sheet, SheetPanel, SheetSize, SheetDock, rail.css
+                                                       Servex/agents/  Sessions.js (record + wake), Refiner.js (one refiner)
+```
+
+**Every move, one line each** (the numbers are the changes below):
+
+- `ext/drawer/{Sheet,SheetPanel,SheetSize,SheetDock}.js, rail.css → ux/Sheet/` (1); `ext/drawer/rail.js` stays as a shim
+- `ext/drawer/ChatView.js → ext/Chat/ChatView.js`, now `class ChatView` (3)
+- `ux/Dictate/chat.js, Widget.js` and `ext/Chat/Chat.js` function bag `→ ext/Chat/Chat.js`, `class Chat` (4); rename: `create_controller → Assistant` (6)
+- `ext/Chat/v2/ChatV2.js, v3/ChatV3.js → ext/Chat/ChatView.js` renderers (5), merge
+- `core/Session/Session.js → ai/AISession/AISession.js`, **merge** with the class already there (12)
+- `core/Task/Task.js → ai/AITask/AITask.js` (13); **rename** `ai/AITask/AITask.js → ai/AITask/AITaskPage.js` (13)
+- `core/Task/{Prompt,Question,Paragraph,Process,Project,TaskQueue,TaskPage,TaskView,TasksPage}.js → ai/AITask/` (14)
+- `core/Task/sentences.js → util/sentences.js`; `core/Item/Dated.js` takes `Day` from a neutral home (15)
+- **new:** `ai/AITask/RefinedPrompt.js` (10), `ai/Assistant/Assistant.js` (6), `ext/Chat/Message.js` (29), `Servex/agents/Refiner.js` (25)
+- **delete:** `session-assistant.txt`, roles `assistant` and `session-fast`, `Echo.js`, `Chain.js`, `Placement.js`, `RefineQueue.mjs`, `PromptAudit.mjs`, day batch tools, `/api/tidy` (25, 27)
+
+**Class sketches** (fields and key methods only):
+
+```js
+class Chat      { messages /* List<Message> */; view = "bubbles"; send(text); mount(el) }
+class Message   extends Item { by; text; said_at; turn; reactions /* List */ }
+class ChatView  { constructor(chat, {view}); render(); lock_scroll(); }   // never edits a message, only draws
+class Assistant { session /* AISession */; seats /* {fast, smart} */; ensure(); reset(); say(text); switcher() }
+class AISession extends Item { tasks; log /* derived */; seats; cost() }
+class Prompt    extends AITask { turn /* "t14" */; sentences /* List<Sentence> */; replies; refined /* RefinedPrompt? */ }
+class RefinedPrompt extends AITask { of /* ["t14.s3", "t14.s4"] */; title; text; sections }
+```
+
+**Changes with risk and the test that proves each** (rows are the numbered changes; details below):
+
+| # | Change | Risk | Test (a lean core test unless noted) |
+|---|---|---|---|
+| 1-3 | Sheet to `ux/`, generic, chips to Chat | low | `Sheet.test.mjs`: open, size, register a panel |
+| 4-5, 8 | One `Chat`, views as renderers | high (V1 is live) | `Chat.test.mjs`: 3 messages in, 3 bubbles out, order kept; V1 and V2 screenshot diff at 400 and 1920 |
+| 6-7 | `Assistant` class | medium | `Assistant.test.mjs`: `ensure()` twice makes one session |
+| 9-10, 28 | Sentences as Items, `RefinedPrompt`, turn ids | high | `Prompt.test.mjs`: ids stay put when a paragraph is edited |
+| 11 | Session-wide ids, derived log | medium | `List.test.mjs`: nested `add` announces at the session |
+| 12-16 | Session and Task out of core | high | the move-first tests, then every importer loads (`node Server/smoke.mjs`) |
+| 17, 24 | Real `messages` ops, retire pseudo-lines | medium | `AISession.test.mjs`: replay of an old file equals replay of the migrated file |
+| 18, 21, 25 | One fast pass, one refiner | medium | `Refiner.test.mjs`: a second `place` for a settled sentence is ignored |
+| 19-20 | Client id, Timeline from log | low | retried POST adds one message |
+| 22-23, 26-27, 31 | Tests, tool fold, honest seats, leftovers | low to medium | `Sessions.test.mjs`: cost equals the sum of the seats |
+| 29-30 | Chat as panel object, raw fades | low | `ChatView.test.mjs`: a refined prompt collapses its `of` sentences |
 
 ## Folder by folder: what moves where
 
@@ -47,9 +111,9 @@ The detail page ([`ai/AISession/AISessionDetail.js`](/framework/ai/AISession/AIS
 
 ## Prompts: raw first, refined by reference
 
-- **Raw `Prompt`: one per Whisper sentence.** Fields `at`, `text` (the sentence verbatim), optional `selection`. Appended to `session.jsonl` in order. Never edited, never merged. Reading the raw lines in order regenerates the transcript.
+- **Raw `Prompt` is one turn (superseded by change 28: a turn holds many sentences, each stored once as `t14.s3`).** Fields `at`, `text` (the sentence verbatim), optional `selection`. Appended to `session.jsonl` in order. Never edited, never merged. Reading the raw lines in order regenerates the transcript.
 - **`RefinedPrompt`: its own line type** that groups raw prompts, with `title` and cleaned `text`.
-- **Put the link on the RefinedPrompt** (`of: ["p-1","p-2","p-3"]`), not an `assign` on each raw prompt.
+- **Put the link on the RefinedPrompt** (`of: ["t14.s1","t14.s2","t14.s3"]`), not an `assign` on each raw prompt.
   - *Why:* a raw line stays one immutable fact. Regrouping is one new RefinedPrompt line with a corrected `of`, not N edits. Which group a sentence belongs to is a reverse index the class computes on replay ("compute, don't recall").
   - *The alternative* (an `assign` on each raw prompt) lets a raw prompt "move" after the fact, so the file stops being the transcript as written.
   - *When the alternative wins:* a view that needs one sentence's owner without replaying a huge log. A computed index covers that.
@@ -163,7 +227,7 @@ Chat and Assistant:
 
 Data:
 
-9. Each Whisper sentence becomes an Item in a flat `session.prompts` List (replacing the `raw` string array on the open Prompt). Changes Servex, `Prompt.js` and V2's fold. Risk high.
+9. Each Whisper sentence becomes a stored Item inside its turn (`t14.s3`, change 28), replacing the `raw` string array and the re-derived `a1`/`r1` ids on the open Prompt. Changes Servex, `Prompt.js` and V2's fold. Risk high.
 10. `RefinedPrompt` (new, in `ai/AITask/`) references its source ids with `of: [...]`; tasks, questions and replies nest under their owner. Risk medium.
 11. Session-wide unique ids (one counter, never reused, tombstones), a `Ref` item, and a derived `session.log` List of Refs built from creation events in file order (never its own stored line). Risk medium; first answer the open List question (does `add` announce at the session?).
 12. **`Session` moves to `ai/AISession/` and merges with the existing `AISession` class there** (one name, one class). Alternative: two classes, a record class and a transcript reader. Risk high (base class; 20 importers plus the shims).
@@ -196,9 +260,17 @@ Added 2026-10-26 (refinement census, voice structure, pseudo-properties, generic
 25. **Prompt refinement: two systems, not fourteen** (map 3g). Keep (a) the fast seat's one pass per sentence, and (b) one smart-seat refiner that turns the open Prompt into a `RefinedPrompt` (it absorbs `Sessions.refine`'s second clean, `LiveRefine`'s outline, and the PromptRecords parts step, with the parts brief moved to `ext/Refine/`). Retire: Echo and `refine_step`, `Placement`, the Assistant chain, `RefineQueue`, `PromptAudit`, the day batch tools, `/api/tidy`, and the `amend_bubble` refined cards. Keep `PromptRecords --process review` for past days. Delete order: dormant first (Echo, chain), then by-hand tools after one grep shows no caller. Risk low for the dormant ones, medium for `Sessions.refine`.
 26. **The honest voice-session shape** (map 3f). `v-<id>` is a conversation record, not an SDK session, and it should say so: drop the always-null `fast` and `smart` fields in line 1; replace the `backing` pseudo-line with a real `seats` property (`{fast: {agent, uuid}, smart: {agent, uuid}}`, updated on resume); keep cost computed only as the sum of the seats' own transcripts (it already is; stop anyone reading registry cost for it); name `cloud-voice-*` rows as records whose cost is the sum of their `voice-<short>` masterminds, and make that sum automatic instead of stated by hand (fixes the null-cost risk). The record stays one Session per conversation, so there is no fake session: every dollar belongs to a real SDK session beneath it. Alternative: make the smart seat the session itself; costs a rebuild and the smart seat does not see every sentence today. Risk low.
 27. **Retire the leftovers** (map 3f): `session-assistant.txt` and `ASSISTANTS = ["fast","voice"]`/`FAST_NAMED`; the `assistant` and `session-fast` role rows and `session-fast.md`; the stale header comments in `Sessions.js` and `ext/Session/readme.md`; the always-on old `Assistant` boot (`Servex.js` 222-229) after checking nothing calls it. A switch nobody flips is a trap: with `session-fast` gone, the file can only break voice. If the owner wants a fallback, make it an env var read in `roles.js`, not a file.
-28. **Sentence ids: use per-session ordinals, `s1`, `s2`, ... ** and keep `at` as a plain field. Reasons: nothing in the code parses the timestamp inside `p-<ms>`; the real references are the exact `at` strings, which break when Servex writes `-05:00` and the browser `Z` (map 3c); `p-<ms>` uniqueness after a restart is not guaranteed because the per-prefix counter lives in memory; ordinals are short and citable as ranges (`s3-s7`), which the owner wants for refined prompts. Safe because Servex is the only appender: the counter is rebuilt as max+1 from the file at load, so a restart cannot reuse one. A client-made UUID stays beside it (change 19) for retry dedupe. Alternative: keep `p-<ms>` if a second appender ever writes the session (the browser offline queue, the cloud app); then ordinals need a lock. Risk medium: the migration rewrites cited ids (a one-time script with a manifest; old ids stay valid as aliases).
-29. **Chat is portable and not AI-specific.** `Chat` = a `List` of `Message` Items (data, in `ext/Chat/`) plus `ChatView` (ux: bubbles, scroll lock, reactions, input, mic). A page gets a chat by having `page.chat` in its `page.jsonl`: the same two classes, different list. A session's chat is the same shape. Can the chat be a filtered view of `session.log`? Yes for reading (messages are the log's `message` rows) and that is what the derived log (change 11) gives for free; but the input must still append real `messages` ops, so the list stays the home and the log stays the index. Alternative: only the log and no `messages` list; wins if the owner wants one file shape, costs the per-page chat a log it does not need.
-30. **Raw sentences fade into the refined prompt in the view.** Each sentence is an Item with `settled` (change 24); `ChatView` draws every unsettled and fresh sentence grey and small, and, once a `RefinedPrompt` exists with `of: [s3..s7]`, collapses those sentences into the refined card with a "show raw" chevron. Nothing is deleted from the data; "fade" is a view rule keyed off `of`. Risk low once changes 9, 10 and 28 exist.
+28. **Ids are per turn: a turn is `t14`, a sentence in it is `t14.s3`, a range is `t14.s3-s7`** (the owner's worry: one session-wide `s1..s3000` is unwieldy; this supersedes the earlier "per-session ordinals" text). Tested against the code, it fits what already exists and fixes a real bug:
+    - **A turn already exists: it is the open Prompt.** `Sessions.assign_prompt` (`Sessions.js` 482-493) opens a Prompt on the owner's first line, grows it in place (`push_raw`, `append_paragraph`), and closes it `prompt_close_ms` (8 s) after the thought is handed to the seats, or when an assistant replies and the owner is not mid-thought; typed lines close it at once. So "mic-on to a pause or send" is the closing rule in place today. Change: its id `p-<ms>` becomes `t<n>`.
+    - **The bug it fixes:** today a sentence id is *derived* by re-splitting the cleaned paragraph (`Prompt.sentences`, `Prompt.js` 83-92: `a1`, `a2`, or `r1` before any paragraph). Every `append_paragraph` or fast-seat `improve` edit re-splits the text, so `a3` can start naming a different sentence, and anything citing it (parts, replies' `anchor.sentence`, `[S#]` cites) silently points at the wrong words. Sentence ids must be **stored once and never re-derived**: each sentence is an Item (change 9) given `s<k>` at birth, `k` = the turn's count + 1.
+    - **Turn numbers** `t<n>` are session ordinals; Servex is the only appender, so the counter is rebuilt as max+1 from the file at load (the old in-memory `last_at` Map resets on restart, `PromptLines.js` 20-28). Uniqueness is only needed inside one session. The two-part citation `t14.s3` is what a refined prompt carries in `of`, and `t14.s3-s7` is the range form the owner wants; `at` stays a plain field, and a client UUID (change 19) handles retry dedupe.
+    - **Never inside a turn:** replies, Questions and Tasks attach *after* a turn (`replies.add` with `anchor: {sentence: "t14.s3"}`), and the view draws them below the owner's bubble. Alternative: session-wide ordinals (`s1..s3000`); simpler to mint, but long, and the thing the owner objected to. Alternative 2: keep `p-<ms>`; wins only if a second appender ever writes sessions. Risk medium: a one-time migration script rewrites old cites and keeps old ids as aliases.
+29. **Chat is a panel object that holds a list, not a List** (the owner's preference, 2026-10-26): `chat.messages` is a `List<Message>`; the same shape serves `page.chat` (in that page's `page.jsonl`) and `session.chat`. `Chat` owns the view, send and mic; `Message` is the data. Reading: a chat can be drawn as a filtered view of `session.log` (the derived log, change 11, already has a row per created item), but the input must append real `messages` ops, so the list stays the home and the log stays the index. Alternative: Chat-is-a-List (my first draft); it gives list methods for free but fuses data and view. Risk low.
+30. **One data shape, two looks, and a real-time rule.**
+    - **Data:** a `Prompt` (a turn) holds its sentences; an optional `RefinedPrompt` references them with `of`. Nothing is deleted.
+    - **V1 bubbles** (owner right-aligned at about 85% width, AI left) draw each turn's *raw or cleaned* sentences as one owner bubble, then the replies below it. **V2 cards** (a refined prompt is a heading plus a summary) draw the same turn once a `RefinedPrompt` exists. They are two renderers of one shape, switched by `view` (change 5), not two datastores.
+    - **Fade:** sentences show grey and small as said; when a `RefinedPrompt` with `of: ["t14.s3", ...]` lands they collapse into its card with a "show raw" chevron. "Fade" is a view rule keyed off `of`.
+    - **The rule: never chop or reorder a bubble, and never overwrite text the owner is reading.** The V1 bug (an AI reply splitting or pushing down the owner's bubble) came from V1 drawing one line per sentence in arrival order (`{chat}` lines, `Widget.js`), so an AI line landing mid-thought landed *between* the owner's sentences. The fix is structural, not a patch: the view groups by turn, an owner turn's bubble only ever grows at its end, and replies are children of the turn drawn after it. Likewise the fast seat writes `settled` once (change 21) and a later pass never rewrites a displayed sentence; a refinement is a new `RefinedPrompt` beside it. Test: `ChatView.test.mjs`, feed an owner turn, an AI reply, and two more owner sentences; assert the owner bubble holds all sentences in order and the reply sits after it. Risk low.
 31. **Voice kinds stay separate in the data** (map 3f table): `kind` on the record is `voice` (a), `cloud-voice-agent` (b) or `external` (c); the Assistant class (change 6) owns only (a). (b) and (c) keep their own code and get the same honest `seats`/cost rule.
 
 **Build order** (each step keeps V1 and V2 working): 22 (tests), 1-3, 4-8 with 19, 9-11 with 17, 28, 24, 18 and 21 and 20, 25-27 and 31 (cleanups), 26, 29-30, then 15, 12-14, 16 on a private Servex, then 23.
