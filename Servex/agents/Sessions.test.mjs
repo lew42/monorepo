@@ -213,6 +213,38 @@ check("recent_project() lists every session of one project, newest first, across
 	assert.deepEqual(rows.map(r => r.session), [b.session, a.session]);
 });
 
+// ── retitle (owner, 2026-10-25, revised after review): the folder never moves, only the title ──
+// A physical folder move was tried and dropped: the session's own folder is handed to the smart
+// assistant as a literal path ONCE, at spawn, as the item tool's `path` for its whole life
+// (`spawn()`'s `where` string) — moving it would break that very agent's own record-keeping the
+// instant it called this. Only the title changes; the folder stays `v-<id>` forever.
+check("summarize() updates the title in place and pushes a renamed event; the folder never moves", () => {
+	const s = make();
+	const made = s.create({ path: "/a/", host: "siteA.localhost" });
+	const file_before = s.map[made.session].file;
+	const pushed = [];
+	s.push = (id, msg) => pushed.push({ id, msg });
+	const r = s.summarize({ session: made.session, title: "Voice session plumbing", summary: "Testing the retitle." });
+	assert.equal(r.title, "Voice session plumbing");
+	const row = s.map[made.session];
+	assert.equal(row.id, made.session, "the id never changes");
+	assert.equal(row.file, file_before, "the folder never moves");
+	assert.deepEqual(pushed, [{ id: made.session, msg: { kind: "renamed", title: "Voice session plumbing" } }]);
+	// the same title again is a no-op: no second push
+	s.summarize({ session: made.session, title: "Voice session plumbing", summary: "Still testing." });
+	assert.equal(pushed.length, 1);
+});
+
+check("rename_session resolves by id and keeps the current summary, only replacing the title", () => {
+	const s = make();
+	const made = s.create({ path: "/a/", host: "siteA.localhost" });
+	s.summarize({ session: made.session, title: "Old title", summary: "The real summary." });
+	const r = s.rename_session({ session: made.session, title: "A fresh title here" });
+	assert.equal(r.session, made.session);
+	assert.equal(r.title, "A fresh title here");
+	assert.equal(r.summary, "The real summary.", "the existing summary is kept, not replaced");
+});
+
 // ── voice model policy (refine-haiku-live, 2026-10-12): Claude by default, OpenRouter only by the switch or a refusal ──
 check("voice roles run on Claude by default, even with OpenRouter ready; a Claude refusal moves that role to OpenRouter", () => {
 	const s = make(), sess = s.create({ path: "/a/", host: "siteA.localhost" }), row = s.map[sess.session];

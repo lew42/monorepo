@@ -300,6 +300,12 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		stop_stream = Session.stream(owner.ctl.session, ev => {
 			if (ev.kind === "stream"){ panel.stream(ev.role, ev.text); if (ev.text) DictateHealth.set("llm", "ok", `${ev.role} is writing an answer…`, { quiet: true }); }
 			else if (ev.kind === "line") draw(ev.line);
+			// The session's own title just changed (session_summary/rename_session, Sessions.js). No title
+			// is drawn in THIS mount, but the switcher is: `owner.broadcast()` re-runs every `chat.on_change`
+			// listener, which is how `session_switcher`'s `paint()` re-fetches `recent_project()` and shows
+			// the fresh title — the "a live client redraws it, keyed by id" the docs describe (review finding
+			// 3, 2026-10-25: nothing read this event before).
+			else if (ev.kind === "renamed") owner.broadcast();
 		}, { on_state: (s, why, { since } = {}) => {
 			// The noise rule: the LAN proxy cuts the wire every 30 s and it is back in a second, so a drop counts
 			// (a red row, the Reconnect button) only once it has lasted WIRE_GRACE_MS. Shorter: one event line.
@@ -396,6 +402,17 @@ export function session_switcher(mount, { label = "New session", title = "Clear 
 					text: (row.title ?? "Session " + row.session) + " (" + ago(row.last_at ?? row.at) + ")",
 					pick: () => row.session === session ? null : chat.resume(row.session).catch(e => quiet_note("could not switch to that session", e)),
 				})));
+				// Refetch on open (owner, 2026-10-25): a session started elsewhere (another tab,
+				// the phone) never fires `chat.on_change` HERE, so the list can go stale between
+				// real changes. Every click re-runs `paint()`, which re-fetches `recent_project`;
+				// the `open_menu?.showing()` guard above means a menu already open is never torn
+				// down mid-read. Known gap: the click that is OPENING the menu fires the native
+				// open synchronously, before the fetch resolves, so THIS open still shows the rows
+				// from the last paint — the fetch lands a moment later and the NEXT open is fresh.
+				// `ux/Popover.menu()` bakes its row list in at build time with no update method, so
+				// making the just-opened list itself live would mean reworking that shared component;
+				// not done here.
+				$switch.el.addEventListener("click", () => { paint(); });
 			}
 			button.c("ux-dictate-chat-new-session drawer-ai-switch-btn", "+").attr("type", "button")
 				.attr("title", title).attr("aria-label", label).click(() => get_mount()?.reset());

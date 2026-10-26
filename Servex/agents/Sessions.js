@@ -898,9 +898,36 @@ export default class Sessions {
 		Object.assign(s, { title, summary });
 		fs.mkdirSync(path.dirname(this.summary_file(s)), { recursive: true });
 		fs.writeFileSync(this.summary_file(s), JSON.stringify({ id: s.id, home: s.home, title, summary, at, visited: s.visited ?? [] }, null, 2));
-		if (changed) this.presence(s, s.home, "started");
+		if (changed){
+			this.presence(s, s.home, "started");
+			/* A live client (the Switch-session dropdown, an open Chat) redraws the title from this
+			 * one event, keyed by the session's id — never by a path, so there is nothing for it to
+			 * track (owner, 2026-10-25, "no client-side path bookkeeping"). */
+			this.push(s.id, { kind: "renamed", title });
+		}
 		this.save();
 		return { ok: true, session: s.id, title, summary, at };
+	}
+
+	/* RETITLE WITHOUT A FULL RE-SUMMARY (tools.js's `rename_session`): for a future rename-PROPOSAL
+	 * (owner, 2026-10-25) that only has a new title to offer, not a fresh one-line summary. Keeps
+	 * the session's current summary (or, for a session with none yet, the title itself) and goes
+	 * through `summarize()`, so the title write, the `started` line and the `renamed` push event
+	 * all happen exactly once, the same way either caller reaches them.
+	 *
+	 * NOT a folder move (dropped after review, 2026-10-25): the owner's ask was "the folder name
+	 * tracks the title too", but the session's own folder is handed out as a literal path ONCE, at
+	 * spawn, as the item tool's `path` for the rest of that session's life (`spawn()`'s `where`
+	 * string, below) — moving it would break the very agent calling this tool's own record-keeping
+	 * the instant it ran, with no way to tell it the path changed mid-conversation. A bookmarked
+	 * dated-folder url (`page_tools.js`'s `DATED_SESSION`) would 404 the same way. A real fix needs
+	 * a resolve-by-id indirection the Item system does not have yet: public/framework/core/Item's
+	 * own readme now carries this gap. Only the title moves; the folder stays `v-<id>` forever. */
+	rename_session({ session, title } = {}){
+		const s = this.get(session);
+		title = String(title ?? "").trim();
+		if (!title) throw Object.assign(new Error("rename_session needs `title`, the name to rename to"), { status: 400 });
+		return this.summarize({ session, title, summary: this.summary_of(s).summary || title });
 	}
 
 	/* A line from the smart assistant. `re` alone: a reply to that owner line. `re` +
