@@ -6,3 +6,7 @@
 {"task":"/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-session-page-blank/","by":"SessionRecord --links","ts":"2026-10-26T05:00:30.947Z"}
 {"task":"/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-session-switcher/","by":"SessionRecord --links","ts":"2026-10-26T05:00:30.960Z"}
 {"note":{"id":"caveats-mastermind-session-names","msg":"/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-session-names/ completed with caveats: the dropdown title and the session's own folder name (always v-<id>) deliberately no longer match -- posted as an owner_note, not fixed; a general item-level rename-with-reference-update does not exist yet (core/Item/readme.md); the rename-proposal card is not built (ai/todo.md); the opening click of the dropdown still shows the pre-fetch list, not the just-refreshed one"},"by":"mastermind-session-names","ts":"2026-10-26T05:02:10.496Z"}
+{"log":{"at":"2026-10-26T00:10:31-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-26T00:15:31-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-26T00:20:31-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-10-26T00:25:31-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
