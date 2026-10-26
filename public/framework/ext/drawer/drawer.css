@@ -182,7 +182,7 @@
 	.drawer-ai-chip-asleep { opacity: 0.6; }
 
 	.drawer-ai-switcher { gap: 0.4em; position: relative; }
-	.drawer-ai-switcher .drawer-rail-sheet-v2-chip { align-self: stretch; }   /* as tall as the New session button beside it */
+	.drawer-ai-switcher .drawer-rail-sheet-v2-chip { align-self: stretch; }   /* as tall as the switcher row beside it */
 	/* Shared with the phone sheet's head (`chat.js`'s `session_switcher()`, one-dictation item 4)
 	   — the same markup and classes as the drawer's own "Switch session" row, so one rule styles
 	   both instead of a second copy for mobile. */
@@ -197,27 +197,10 @@
 		cursor: pointer;
 	}
 	.drawer .drawer-ai-switch-btn:hover, .drawer-rail-sheet .drawer-ai-switch-btn:hover { color: var(--ink); background: var(--fill-a08); }
-	/* Drops below the strip as its own small list — not a true popover (no z-index fight to
-	   win: the drawer already owns the whole edge), just a block that pushes the chat down
-	   while it is open, same as the inbox's own notes do above it. */
-	/* ⚠ `[hidden]` AND `!important` (drawer-cleanup, 2026-10-03 — the owner: "my drawer is
-	   broken... there's too much space... weird overlap"): this element carries the plain
-	   `.flex` utility class too (`tabs/ai.js`'s own `"drawer-ai-switch-list flex v"`), and
-	   `.flex { display: flex }` lives in `@layer util`, which always beats `@layer theme`
-	   regardless of selector specificity (`css` skill, rule 3) — a `[hidden]` selector
-	   alone is still `@layer theme` and still loses. `!important` is the one thing that
-	   jumps the layer order (`.drawer-inbox[hidden]`, below, carries the identical
-	   `.drawer-inbox flex v` combination and names this exact fight in its own comment,
-	   but was never actually measured with `!important` on — PROBED LIVE here and found
-	   still broken the same way, so its own `!important` is added alongside this one).
-	   Measured before either fix: the closed switcher list still rendered at ~940px tall
-	   (all 12 past sessions, every one of their rows, `display: flex` despite `hidden`
-	   true) — the whole bug in one object. It pushed the composer hundreds of pixels down,
-	   past the bottom of `.drawer-body`, which is why the composer read as "cut off...
-	   overlaps the list above it" and the body had to scroll everything, including the "a
-	   new conversation" heading, instead of just the thread. */
-	.drawer-ai-switch-list[hidden] { display: none !important; }
-	.drawer-ai-switch-list { flex: none; gap: 0.3em; padding-block-start: 0.3em; }
+	/* RETIRED 2026-10-25: was an in-flow `<div>` list that reflowed the header while open
+	   (the same shape of bug `.drawer-inbox[hidden]`'s own comment below hit 2026-10-03).
+	   `session_switcher()` now opens `ux/Popover`'s `menu()`, a top-layer `[popover]` —
+	   nothing in-flow to style here any more. */
 
 	/* THE PANEL'S CEILING (`Widget`, `ux/Dictate/Widget.js` — was `ChatPanel`,
 	   `ai/2026-09-29/audio/c-chat/`): "the drawer's own full height" (its brief),

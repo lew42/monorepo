@@ -106,11 +106,20 @@ session to switch to, so the plain button is the whole control there.
 ## The shared session switcher (item 4, one-dictation, 2026-10-25)
 
 `session_switcher(mount, { label, title })` is the one control for every `keep: true` surface:
-the same "+ New session" button as above, beside a toggled list of the project's other recent
-sessions (`Session.recent_project()`) to switch back to. Picking one calls `chat.resume(session)`
-— the one global conversation, so this is for `keep: true` mounts only. Each row's label is
-`row.title` (set by the title-writer, `doc/sessions.md`), falling back to `"Session " + id` for
-one that never got a title.
+a compact "Switch session ▾" dropdown, a bare "+" button beside it (no words — its accessible
+name is `label`/`title`, both "New session"). The dropdown lists the project's other recent
+sessions (`Session.recent_project()`) to switch back to, one line each: `row.title` (or
+`"Session " + id` for one that never got a title) with the time ago in parentheses. Picking a
+row calls `chat.resume(session)` — the one global conversation, so this is for `keep: true`
+mounts only.
+
+The dropdown is `ux/Popover`'s `menu()`: a real `[popover]` in the browser's top layer, not a
+plain `position: absolute` box in normal flow. The FIRST version was an in-flow `<div>` list
+that pushed the whole header down while open (the owner, 2026-10-25, live-testing: "the big
+session list... breaks the UI", title ending up pushed off-screen) — the same shape of bug
+`.drawer-inbox` hit in drawer-cleanup, 2026-10-03. Popover fixes it two ways at once: it floats
+over the header instead of reflowing it, and `.ux-popover`'s own stylesheet already caps the
+box at `min(60vh, 22em)` with its own scroll, so a long list scrolls in place.
 
 **The bug this replaces:** pressing "New session" dropped the old conversation for good — no
 button, link or list pointed back at it. The desktop drawer's AI tab (`ext/drawer/tabs/ai.js`)
@@ -118,8 +127,9 @@ had already grown its own "Switch session ▾" list for this (2026-10-02), but o
 phone sheet's head (`ext/drawer/Sheet.js`) still had just the bare button. `session_switcher()`
 is that same control, extracted once into `chat.js` and called from both — CLAUDE.md law 6, "one
 of everything." A caller tears its own switcher down with the `.stop()` on the view it returns
-(it unsubscribes from `chat.on_change`); `ext/drawer/tabs/ai.js`'s own header rebuilds one on
-every session change, so it stops the old one first, and `Sheet.js`'s `release()` stops it too.
+(it unsubscribes from `chat.on_change` and closes the popover if open); `ext/drawer/tabs/ai.js`'s
+own header rebuilds one on every session change, so it stops the old one first, and `Sheet.js`'s
+`release()` stops it too.
 
 ## The global session: one conversation per browser tab
 

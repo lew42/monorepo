@@ -170,7 +170,7 @@ function session_header({ card, view }){
 			// scoped one — only a hint for its first line — so this never says "scoped".
 			small.c("drawer-ai-session-scope muted", card
 				? "global conversation — this card is only a hint for its first line; it follows you everywhere"
-				: "global conversation — the same one on every page, until “+ New session”");
+				: "global conversation — the same one on every page, until you start a new one");
 
 			$chips = div.c("drawer-ai-chips flex wrap");
 			draw_chips(session);
@@ -181,7 +181,7 @@ function session_header({ card, view }){
 			// session change, so the OLD switcher's own subscription is stopped first — the same
 			// leak this file's own mount-rebuild comment (below) already guards against.
 			switcher?.stop();
-			switcher = chat.session_switcher(() => live_chat, { label: "+ New session" });
+			switcher = chat.session_switcher(() => live_chat);
 			div.c("drawer-ai-switcher flex v-center wrap", () => view.chip("drawer-ai-switch-btn"));
 		});
 	}
