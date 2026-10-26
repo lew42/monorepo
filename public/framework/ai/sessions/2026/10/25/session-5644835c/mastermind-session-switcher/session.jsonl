@@ -28,3 +28,4 @@
 {"review":{"answer":{"n":4,"reply":"fixed: paint() now returns early with no rebuild while open_menu?.showing() is true, so a chat.on_change during a read no longer closes it; the next real change (after it closes) repaints."}}}
 {"review":{"answer":{"n":5,"reply":"fixed: shortened the drawer.css RETIRED comment to a few lines."}}}
 {"review":{"answer":{"n":6,"reply":"no_change_needed: the owner explicitly asked for a bare \"+\" with no words; a confirm/undo was not asked for and would add a step to the fast path (reset is reversible by switching back via the dropdown). Left as a known, accepted tradeoff."}}}
+{"review":{"answer":{"n":6,"reply":"noted: the owner explicitly asked for a bare \"+\" with no words; a confirm/undo was not asked for and would add a step to the fast path (reset is reversible by switching back via the dropdown). Left as a known, accepted tradeoff."}}}
