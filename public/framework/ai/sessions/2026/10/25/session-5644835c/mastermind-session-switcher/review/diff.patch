@@ -1,211 +1,205 @@
-diff --git a/public/framework/ext/drawer/Sheet.js b/public/framework/ext/drawer/Sheet.js
-index 0e7a149cb..026760159 100644
---- a/public/framework/ext/drawer/Sheet.js
-+++ b/public/framework/ext/drawer/Sheet.js
-@@ -2,7 +2,7 @@
- import { View, div, span, button, a, img } from "/framework/core/View/View.js";
- import grip from "/framework/ext/grip/grip.js";
- import MicIndicator from "/framework/ux/Dictate/MicIndicator.js";
--import chat, { new_session_button as chat_new_session_button } from "/framework/ux/Dictate/chat.js";
-+import chat, { session_switcher as chat_session_switcher } from "/framework/ux/Dictate/chat.js";
- import Inbox from "./inbox.js";
- import tabs from "./tabs.js";
- import drawer from "./drawer.js";
-@@ -272,7 +272,7 @@ export class SheetPanel extends View {
- 			div.c("drawer-rail-sheet-heading flex v-center", () => {
- 				this.$title = button.c("drawer-rail-sheet-title", this.title + " ▾").attr("type", "button").attr("aria-haspopup", "menu").attr("aria-expanded", "false")
- 					.click(e => { e.stopPropagation(); this.toggle_menu(); });
--				this.new_session_button();   // one tap, as in the desktop AI tab (voice-e2e-review 2026-10-13)
-+				this.session_switcher();   // a way back to an older session, not just a New session tap (one-dictation item 4, 2026-10-25)
- 				this.v2 = new ChatView({ slot: () => this.$slot?.el, mount: () => this.mount });
- 				this.v2.chip();
- 				this.$path = span.c("drawer-rail-sheet-path muted");
-@@ -327,11 +327,12 @@ export class SheetPanel extends View {
- 			.click(() => this.close().then(() => tabs.open(tab)));
- 	}
+diff --git a/public/framework/ext/drawer/doc/ai-tab-notes.md b/public/framework/ext/drawer/doc/ai-tab-notes.md
+index aef6851ce..8b0f8f93d 100644
+--- a/public/framework/ext/drawer/doc/ai-tab-notes.md
++++ b/public/framework/ext/drawer/doc/ai-tab-notes.md
+@@ -63,7 +63,7 @@ THE HEADER STRIP (one-dictation drawer-chat, 2026-10-02 — the owner: "The UI n
+ The strip shows:
+ 1. **Session name**: the session's name (its `session_summary` title, once the smart assistant has given it one) and a link to its raw log file;
+ 2. **Agent states**: the fast and smart assistants, as chips reading their LIVE state — working, idle, or asleep (Servex stops an idle pair after 5 minutes; "asleep" covers "stopped" and "never started yet" the same way, since a reader cannot tell those apart by looking and does not need to) — read from `GET /api/agents`, the one route every agent-state reader on the site already polls (`ai2/agents.js`, `core/Page/ai/live.js`); no new endpoint;
+-3. **The session switcher**: the shared `chat.session_switcher()` (`ux/Dictate/chat.js`, one-dictation item 4, 2026-10-25) — a "+ New session" button beside a toggled list of the project's other recent voice sessions, one click resumes one. Built here first (2026-10-02, as a hand-rolled "Switch session ▾" list); extracted into `chat.js` so the phone sheet's head (`ext/drawer/Sheet.js`) gets the exact same control instead of its own bare button with no way back — CLAUDE.md law 6, one control, not a second one per surface.
++3. **The session switcher**: the shared `chat.session_switcher()` (`ux/Dictate/chat.js`, one-dictation item 4, 2026-10-25) — a "Switch session ▾" dropdown beside a bare "+", one click resumes a row. Built here first (2026-10-02, as a hand-rolled, in-flow "Switch session ▾" list); extracted into `chat.js` so the phone sheet's head (`ext/drawer/Sheet.js`) gets the exact same control instead of its own bare button with no way back — CLAUDE.md law 6, one control, not a second one per surface. The in-flow list reflowed this header when it opened (the owner, 2026-10-25); the dropdown now opens as a `ux/Popover` top-layer overlay instead, so it floats over the title/chips/v2-chip row rather than pushing it.
  
--	// The one New session button: ux/Dictate/chat.js's (doc/chat.md).
--	new_session_button(){
--		return chat_new_session_button(() => this.mount ?? chat)
--			.ac("drawer-rail-sheet-link drawer-rail-sheet-new")
--			.attr("title", "Clear this sheet and start a fresh conversation");
-+	// The shared session switcher: ux/Dictate/chat.js's `session_switcher()` (doc/chat.md),
-+	// also used by the desktop drawer's AI tab — a "+ New session" button beside a list of
-+	// recent sessions to switch back to, so the sheet's head keeps a way back (one-dictation
-+	// item 4; the bare New session button used to drop the old conversation for good).
-+	session_switcher(){
-+		return chat_session_switcher(() => this.mount ?? chat);
- 	}
+ ### Not folded in
  
- 	update_path(){
 diff --git a/public/framework/ext/drawer/drawer.css b/public/framework/ext/drawer/drawer.css
-index 903b20e02..008dc317d 100644
+index 008dc317d..f0eb04993 100644
 --- a/public/framework/ext/drawer/drawer.css
 +++ b/public/framework/ext/drawer/drawer.css
-@@ -183,7 +183,10 @@
- 
- 	.drawer-ai-switcher { gap: 0.4em; position: relative; }
- 	.drawer-ai-switcher .drawer-rail-sheet-v2-chip { align-self: stretch; }   /* as tall as the New session button beside it */
--	.drawer .drawer-ai-switch-btn {
-+	/* Shared with the phone sheet's head (`chat.js`'s `session_switcher()`, one-dictation item 4)
-+	   — the same markup and classes as the drawer's own "Switch session" row, so one rule styles
-+	   both instead of a second copy for mobile. */
-+	.drawer .drawer-ai-switch-btn, .drawer-rail-sheet .drawer-ai-switch-btn {
- 		min-block-size: 0;
- 		padding: 0.25em 0.5em;
- 		font: inherit; font-size: 0.85em;
-@@ -193,7 +196,7 @@
- 		border-radius: calc(var(--radius) / 2);
+@@ -197,27 +197,12 @@
  		cursor: pointer;
  	}
--	.drawer .drawer-ai-switch-btn:hover { color: var(--ink); background: var(--fill-a08); }
-+	.drawer .drawer-ai-switch-btn:hover, .drawer-rail-sheet .drawer-ai-switch-btn:hover { color: var(--ink); background: var(--fill-a08); }
- 	/* Drops below the strip as its own small list — not a true popover (no z-index fight to
- 	   win: the drawer already owns the whole edge), just a block that pushes the chat down
- 	   while it is open, same as the inbox's own notes do above it. */
-@@ -321,7 +324,7 @@
- 	.drawer-turn-who { font-size: 0.85em; }
- 	.drawer-turn-you .drawer-turn-text { padding: 0.4em 0.6em; background: var(--fill-a08); border-radius: calc(var(--radius) / 2); }
- 	.drawer-rows { gap: 0.35em; }
--	.drawer .drawer-row {
-+	.drawer .drawer-row, .drawer-rail-sheet .drawer-row {
- 		display: flex; flex-direction: column; align-items: flex-start; gap: 0.1em;
- 		padding: 0.5em 0.6em;
- 		font: inherit; text-align: start;
-@@ -331,7 +334,8 @@
- 		border-radius: calc(var(--radius) / 2);
- 		cursor: pointer;
- 	}
--	.drawer .drawer-row:hover, .drawer .drawer-row.on { background: var(--fill-a08); }
-+	.drawer .drawer-row:hover, .drawer .drawer-row.on,
-+	.drawer-rail-sheet .drawer-row:hover, .drawer-rail-sheet .drawer-row.on { background: var(--fill-a08); }
- 	.drawer-row-title { font-weight: 600; }
- 	.drawer-acts { gap: 0.5em; }
+ 	.drawer .drawer-ai-switch-btn:hover, .drawer-rail-sheet .drawer-ai-switch-btn:hover { color: var(--ink); background: var(--fill-a08); }
+-	/* Drops below the strip as its own small list — not a true popover (no z-index fight to
+-	   win: the drawer already owns the whole edge), just a block that pushes the chat down
+-	   while it is open, same as the inbox's own notes do above it. */
+-	/* ⚠ `[hidden]` AND `!important` (drawer-cleanup, 2026-10-03 — the owner: "my drawer is
+-	   broken... there's too much space... weird overlap"): this element carries the plain
+-	   `.flex` utility class too (`tabs/ai.js`'s own `"drawer-ai-switch-list flex v"`), and
+-	   `.flex { display: flex }` lives in `@layer util`, which always beats `@layer theme`
+-	   regardless of selector specificity (`css` skill, rule 3) — a `[hidden]` selector
+-	   alone is still `@layer theme` and still loses. `!important` is the one thing that
+-	   jumps the layer order (`.drawer-inbox[hidden]`, below, carries the identical
+-	   `.drawer-inbox flex v` combination and names this exact fight in its own comment,
+-	   but was never actually measured with `!important` on — PROBED LIVE here and found
+-	   still broken the same way, so its own `!important` is added alongside this one).
+-	   Measured before either fix: the closed switcher list still rendered at ~940px tall
+-	   (all 12 past sessions, every one of their rows, `display: flex` despite `hidden`
+-	   true) — the whole bug in one object. It pushed the composer hundreds of pixels down,
+-	   past the bottom of `.drawer-body`, which is why the composer read as "cut off...
+-	   overlaps the list above it" and the body had to scroll everything, including the "a
+-	   new conversation" heading, instead of just the thread. */
+-	.drawer-ai-switch-list[hidden] { display: none !important; }
+-	.drawer-ai-switch-list { flex: none; gap: 0.3em; padding-block-start: 0.3em; }
++	/* RETIRED 2026-10-25: the dropdown used to be a plain `<div>` sibling in normal flow,
++	   pushing the whole header down while open (measured ~940px tall with 12 rows, the
++	   exact "my drawer is broken... weird overlap" the owner first hit 2026-10-03 with the
++	   same shape of bug, `.drawer-inbox[hidden]`'s own comment below). `session_switcher()`
++	   now opens `ux/Popover`'s `menu()` — a real `[popover]` in the browser's top layer, so
++	   it floats over the header instead of reflowing it; there is no in-flow list to style. */
  
+ 	/* THE PANEL'S CEILING (`Widget`, `ux/Dictate/Widget.js` — was `ChatPanel`,
+ 	   `ai/2026-09-29/audio/c-chat/`): "the drawer's own full height" (its brief),
 diff --git a/public/framework/ext/drawer/tabs/ai.js b/public/framework/ext/drawer/tabs/ai.js
-index 1a1da51b3..be96b0c13 100644
+index 516d7b6f2..a6c9369fd 100644
 --- a/public/framework/ext/drawer/tabs/ai.js
 +++ b/public/framework/ext/drawer/tabs/ai.js
-@@ -2,7 +2,7 @@ import { div, span, label, select, option, small, button, a } from "/framework/c
- import AIFeed from "../AIFeed.js";
- import md from "/framework/ext/markdown/md.js";
- import Widget, { model, MODELS } from "/framework/ux/Dictate/Widget.js";
--import chat, { ago } from "/framework/ux/Dictate/chat.js";
-+import chat from "/framework/ux/Dictate/chat.js";
- import { composer } from "/framework/ext/Chat/Composer.js";
- import { post_prompt } from "/framework/ux/Dictate/Dictate.js";
- import { servex_base, is_folder_id, card_prompt, cards_ready } from "/framework/ai/rail/inbox.js";
-@@ -175,33 +175,10 @@ function session_header({ card, view }){
- 			$chips = div.c("drawer-ai-chips flex wrap");
- 			draw_chips(session);
- 
--			// Only worth a switcher when there is somewhere else to switch TO.
--			const elsewhere = rows.some(row => row.session !== session);
--			let $list;
--			div.c("drawer-ai-switcher flex v-center wrap", () => {
--				chat.new_session_button(() => live_chat, { label: "+ New session" });
--				view.chip("drawer-ai-switch-btn");
--				if (elsewhere) button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button")
--					.click(() => { $list.el.hidden = !$list.el.hidden; });
--			});
--			// A SIBLING of the button row, not a child of it (round 2, 2026-10-02 — found in
--			// the proof shots: nested inside `.drawer-ai-switcher`'s own ROW, the list sat
--			// wedged between the two buttons instead of dropping below them). A plain block
--			// in this column, so it stacks under the row at any width.
--			if (elsewhere){
--				$list = div.c("drawer-ai-switch-list flex v");
--				$list.el.hidden = true;
--				$list.append(() => {
--					rows.forEach(row => {
--						const is_live = row.session === session;
--						button.c("drawer-row").attr("type", "button").ac(is_live && "on")
--							.click(() => chat.resume(row.session)).append(() => {
--								span.c("drawer-row-title", (is_live ? "● " : "") + (row.title ?? "Voice session"));
--								small.c("drawer-row-meta muted", is_live ? "the current conversation" : ago(row.last_at ?? row.at));
--							});
--					});
--				});
--			}
-+			// The one shared switcher (one-dictation item 4): `chat.js`’s `session_switcher()`,
-+			// also used by the phone sheet’s head now — one control, not a second hand-rolled
-+			// copy per surface (CLAUDE.md law 6, “one of everything”).
-+			chat.session_switcher(() => live_chat, { label: "+ New session" });
+@@ -181,7 +181,7 @@ function session_header({ card, view }){
+ 			// session change, so the OLD switcher's own subscription is stopped first — the same
+ 			// leak this file's own mount-rebuild comment (below) already guards against.
+ 			switcher?.stop();
+-			switcher = chat.session_switcher(() => live_chat, { label: "+ New session" });
++			switcher = chat.session_switcher(() => live_chat);
+ 			div.c("drawer-ai-switcher flex v-center wrap", () => view.chip("drawer-ai-switch-btn"));
  		});
  	}
- 
 diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
-index d930441eb..bac4f0cd7 100644
+index c9f2654b7..cf3db772c 100644
 --- a/public/framework/ux/Dictate/chat.js
 +++ b/public/framework/ux/Dictate/chat.js
-@@ -1,4 +1,4 @@
--import { View, button } from "../../core/View/View.js";
-+import { View, button, div, span, small } from "../../core/View/View.js";
+@@ -1,4 +1,5 @@
+-import { View, button, div, span, small } from "../../core/View/View.js";
++import { View, button, div } from "../../core/View/View.js";
++import { menu as popover_menu } from "../Popover/Popover.js";
  import Widget from "./Widget.js";
  import floor from "./floor.js";
  import * as Session from "/framework/ext/Session/Session.js";
-@@ -345,12 +345,65 @@ export function new_session_button(mount, { label = "New session", title = "Clea
+@@ -345,56 +346,53 @@ export function new_session_button(mount, { label = "New session", title = "Clea
  		.click(() => (typeof mount === "function" ? mount() : mount)?.reset());
  }
  
-+/** ONE control, replacing a bare `new_session_button()`: a "+ New session" button beside a
-+ *  toggled list of this project's other recent sessions to switch back to (one-dictation item
-+ *  4, "a way back" — the owner pressed New session, lost the old conversation, and had to ask
-+ *  the assistant to find it by hand). `mount` is read only for `.session()`, to mark which row
-+ *  is "the current one"; a pick always resumes the ONE global session (`chat.resume`), so this
-+ *  is for `keep: true` mounts — same scope `new_session_button` already has for the global
-+ *  conversation. The Dictate page's own `keep: false` demo (`page.js`'s `demo_mount()`) keeps
-+ *  the plain button instead: its session is private and never remembered, so there is nothing
-+ *  project-wide to switch back to (`doc/chat.md#keep`).
+-/** ONE control, replacing a bare `new_session_button()`: a "+ New session" button beside a
+- *  toggled list of this project's other recent sessions to switch back to (one-dictation item
+- *  4, "a way back" — the owner pressed New session, lost the old conversation, and had to ask
+- *  the assistant to find it by hand). `mount` is read only for `.session()`, to mark which row
+- *  is "the current one"; a pick always resumes the ONE global session (`chat.resume`), so this
+- *  is for `keep: true` mounts — same scope `new_session_button` already has for the global
+- *  conversation. The Dictate page's own `keep: false` demo (`page.js`'s `demo_mount()`) keeps
+- *  the plain button instead: its session is private and never remembered, so there is nothing
+- *  project-wide to switch back to (`doc/chat.md#keep`).
++/** ONE control, replacing a bare `new_session_button()`: a "Switch session ▾" dropdown beside
++ *  a bare "+" (one-dictation item 4, "a way back" — the owner pressed New session, lost the old
++ *  conversation, and had to ask the assistant to find it by hand). `mount` is read only for
++ *  `.session()`, to mark which row is "the current one"; a pick always resumes the ONE global
++ *  session (`chat.resume`), so this is for `keep: true` mounts — same scope `new_session_button`
++ *  already has for the global conversation. The Dictate page's own `keep: false` demo (`page.js`'s
++ *  `demo_mount()`) keeps the plain button instead: its session is private and never remembered,
++ *  so there is nothing project-wide to switch back to (`doc/chat.md#keep`).
 + *
-+ *  Extracted from `ext/drawer/tabs/ai.js`'s own "Switch session ▾" list (built 2026-10-02),
-+ *  which only ever ran on the desktop drawer — the phone sheet's head had just the bare button,
-+ *  which is the bug: CLAUDE.md law 6, one control, not a second hand-rolled copy per surface. */
-+export function session_switcher(mount, { label = "+ New session", title = "Clear this chat and start a fresh conversation" } = {}){
-+	const get_mount = () => typeof mount === "function" ? mount() : mount;
-+	const $wrap = div.c("ux-dictate-chat-switcher flex v");
-+	let $list;
-+	async function paint(){
-+		const session = get_mount()?.session?.() ?? chat.current();
-+		let rows = [];
-+		try { rows = await Session.recent_project({ limit: 12 }); } catch {}
-+		if (!$wrap.el.isConnected) return;
-+		const elsewhere = rows.some(row => row.session !== session);
-+		$wrap.empty(() => {
-+			div.c("drawer-ai-switcher flex v-center wrap", () => {
-+				button.c("ux-dictate-chat-new-session drawer-ai-switch-btn", label).attr("type", "button")
-+					.attr("title", title).click(() => get_mount()?.reset());
-+				if (elsewhere) button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button")
-+					.click(() => { $list.el.hidden = !$list.el.hidden; });
-+			});
-+			// A SIBLING of the button row, not nested in its flex row (the same bug ai.js's own
-+			// switcher found 2026-10-02: wedged between the buttons instead of dropping below them).
-+			if (elsewhere){
-+				$list = div.c("drawer-ai-switch-list flex v");
-+				$list.el.hidden = true;
-+				$list.append(() => rows.forEach(row => {
-+					const is_live = row.session === session;
-+					button.c("drawer-row").attr("type", "button").ac(is_live && "on")
-+						.click(() => { $list.el.hidden = true; if (!is_live) chat.resume(row.session).catch(e => quiet_note("could not switch to that session", e)); })
-+						.append(() => {
-+							span.c("drawer-row-title", (is_live ? "● " : "") + (row.title ?? row.session));
-+							small.c("muted", is_live ? "the current conversation" : ago(row.last_at ?? row.at));
-+						});
-+				}));
-+			}
-+		});
-+	}
-+	paint();
-+	const unsubscribe = chat.on_change(paint);
-+	return Object.assign($wrap, { stop(){ unsubscribe(); } });
-+}
-+
++ *  The dropdown is `ux/Popover`'s `menu()` — the browser's own top-layer `[popover]`, not a
++ *  plain `position: absolute` box — so it floats OVER the drawer/sheet's own scroll clipping
++ *  and never reflows the header around it (the first version was a sibling `<div>` in normal
++ *  flow: opening it with 12 rows pushed the title, chips and v2 strip around the page, the owner
++ *  2026-10-25). `.ux-popover`'s own stylesheet already caps the box at `min(60vh, 22em)` with
++ *  its own scrollbar, so a long list scrolls in place instead of growing the page.
+  *
+  *  Extracted from `ext/drawer/tabs/ai.js`'s own "Switch session ▾" list (built 2026-10-02),
+  *  which only ever ran on the desktop drawer — the phone sheet's head had just the bare button,
+  *  which is the bug: CLAUDE.md law 6, one control, not a second hand-rolled copy per surface. */
+-export function session_switcher(mount, { label = "+ New session", title = "Clear this chat and start a fresh conversation" } = {}){
++export function session_switcher(mount, { label = "New session", title = "Clear this chat and start a fresh conversation" } = {}){
+ 	const get_mount = () => typeof mount === "function" ? mount() : mount;
+-	const $wrap = div.c("ux-dictate-chat-switcher flex v");
+-	let $list;
++	const $wrap = div.c("ux-dictate-chat-switcher flex v-center wrap");
++	let open_menu = null;
+ 	async function paint(){
+ 		const session = get_mount()?.session?.() ?? chat.current();
+ 		let rows = [];
+ 		try { rows = await Session.recent_project({ limit: 12 }); } catch {}
+ 		if (!$wrap.el.isConnected) return;
+-		const elsewhere = rows.some(row => row.session !== session);
++		open_menu?.close();
++		const elsewhere = rows.filter(row => row.session !== session);
+ 		$wrap.empty(() => {
+-			div.c("drawer-ai-switcher flex v-center wrap", () => {
+-				button.c("ux-dictate-chat-new-session drawer-ai-switch-btn", label).attr("type", "button")
+-					.attr("title", title).click(() => get_mount()?.reset());
+-				if (elsewhere) button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button")
+-					.click(() => { $list.el.hidden = !$list.el.hidden; });
+-			});
+-			// A SIBLING of the button row, not nested in its flex row (the same bug ai.js's own
+-			// switcher found 2026-10-02: wedged between the buttons instead of dropping below them).
+-			if (elsewhere){
+-				$list = div.c("drawer-ai-switch-list flex v");
+-				$list.el.hidden = true;
+-				$list.append(() => rows.forEach(row => {
+-					const is_live = row.session === session;
+-					button.c("drawer-row").attr("type", "button").ac(is_live && "on")
+-						.click(() => { $list.el.hidden = true; if (!is_live) chat.resume(row.session).catch(e => quiet_note("could not switch to that session", e)); })
+-						.append(() => {
+-							span.c("drawer-row-title", (is_live ? "● " : "") + (row.title ?? "Session " + row.session));
+-							small.c("muted", is_live ? "the current conversation" : ago(row.last_at ?? row.at));
+-						});
+-				}));
++			// Dropdown first (the switch you reach for), the bare "+" last (owner, 2026-10-25):
++			// it shows no words, so its accessible name comes from `title`/`aria-label`.
++			if (elsewhere.length){
++				const $switch = button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button");
++				open_menu = popover_menu($switch.el, elsewhere.map(row => ({
++					text: (row.title ?? "Session " + row.session) + " (" + ago(row.last_at ?? row.at) + ")",
++					pick: () => chat.resume(row.session).catch(e => quiet_note("could not switch to that session", e)),
++				})));
+ 			}
++			button.c("ux-dictate-chat-new-session drawer-ai-switch-btn", "+").attr("type", "button")
++				.attr("title", title).attr("aria-label", label).click(() => get_mount()?.reset());
+ 		});
+ 	}
+ 	paint();
+ 	const unsubscribe = chat.on_change(paint);
+-	return Object.assign($wrap, { stop(){ unsubscribe(); } });
++	return Object.assign($wrap, { stop(){ unsubscribe(); open_menu?.close(); } });
+ }
+ 
  chat.current = () => GLOBAL.current();
- chat.file = () => GLOBAL.ctl.file;
- chat.resume = session => GLOBAL.resume_to(session);
- chat.reset = () => GLOBAL.reset();
- chat.ago = ago;
- chat.new_session_button = new_session_button;
-+chat.session_switcher = session_switcher;
- // Notified when GLOBAL session changes (start/resume/reset)
- chat.on_change = fn => GLOBAL.subscribe(fn);
+diff --git a/public/framework/ux/Dictate/doc/chat.md b/public/framework/ux/Dictate/doc/chat.md
+index 211846b98..039dd712e 100644
+--- a/public/framework/ux/Dictate/doc/chat.md
++++ b/public/framework/ux/Dictate/doc/chat.md
+@@ -106,11 +106,20 @@ session to switch to, so the plain button is the whole control there.
+ ## The shared session switcher (item 4, one-dictation, 2026-10-25)
+ 
+ `session_switcher(mount, { label, title })` is the one control for every `keep: true` surface:
+-the same "+ New session" button as above, beside a toggled list of the project's other recent
+-sessions (`Session.recent_project()`) to switch back to. Picking one calls `chat.resume(session)`
+-— the one global conversation, so this is for `keep: true` mounts only. Each row's label is
+-`row.title` (set by the title-writer, `doc/sessions.md`), falling back to `"Session " + id` for
+-one that never got a title.
++a compact "Switch session ▾" dropdown, a bare "+" button beside it (no words — its accessible
++name is `label`/`title`, both "New session"). The dropdown lists the project's other recent
++sessions (`Session.recent_project()`) to switch back to, one line each: `row.title` (or
++`"Session " + id` for one that never got a title) with the time ago in parentheses. Picking a
++row calls `chat.resume(session)` — the one global conversation, so this is for `keep: true`
++mounts only.
++
++The dropdown is `ux/Popover`'s `menu()`: a real `[popover]` in the browser's top layer, not a
++plain `position: absolute` box in normal flow. The FIRST version was an in-flow `<div>` list
++that pushed the whole header down while open (the owner, 2026-10-25, live-testing: "the big
++session list... breaks the UI", title ending up pushed off-screen) — the same shape of bug
++`.drawer-inbox` hit in drawer-cleanup, 2026-10-03. Popover fixes it two ways at once: it floats
++over the header instead of reflowing it, and `.ux-popover`'s own stylesheet already caps the
++box at `min(60vh, 22em)` with its own scroll, so a long list scrolls in place.
+ 
+ **The bug this replaces:** pressing "New session" dropped the old conversation for good — no
+ button, link or list pointed back at it. The desktop drawer's AI tab (`ext/drawer/tabs/ai.js`)
+@@ -118,8 +127,9 @@ had already grown its own "Switch session ▾" list for this (2026-10-02), but o
+ phone sheet's head (`ext/drawer/Sheet.js`) still had just the bare button. `session_switcher()`
+ is that same control, extracted once into `chat.js` and called from both — CLAUDE.md law 6, "one
+ of everything." A caller tears its own switcher down with the `.stop()` on the view it returns
+-(it unsubscribes from `chat.on_change`); `ext/drawer/tabs/ai.js`'s own header rebuilds one on
+-every session change, so it stops the old one first, and `Sheet.js`'s `release()` stops it too.
++(it unsubscribes from `chat.on_change` and closes the popover if open); `ext/drawer/tabs/ai.js`'s
++own header rebuilds one on every session change, so it stops the old one first, and `Sheet.js`'s
++`release()` stops it too.
+ 
+ ## The global session: one conversation per browser tab
  
