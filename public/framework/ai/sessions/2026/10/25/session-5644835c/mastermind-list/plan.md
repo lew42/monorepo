@@ -31,8 +31,8 @@ No new delta "namespace" anywhere — every shape below is Item's existing neste
 - **`List.replace(old, x)`'s two-argument signature** can't be driven by a one-value delta line at all; only `Paragraphs.replace({id,...})`'s one-argument override can. Any plan that writes a bare `{"<list>":{"replace":{id,...}}}` line against a list OTHER than Paragraphs will silently fail (`old` becomes the whole object, `x` is undefined) — worth a `warn()` the day a second list needs it, not urgent today since nothing else calls it that way.
 - **V1 is untouched by any of this.** V1 reads `{chat}`/`{place}`/`{summary}`/`{refined}` lines, none of which this plan removes — per the owner's and the architect's instruction, Servex keeps writing those until V1 itself moves to the new shapes.
 
-## 4. Recommendation + decisions for the owner
+## 4. Recommendation — settled
 
-- **Recommend:** ship the "amend by id" and "append-after-id" cases as-is (zero code change — they already work); add `append`/`replace`-by-id to `List` itself only when a second list (not just Paragraphs) needs them — don't generalize before there's a second caller.
-- **Decision needed:** approve the one `List.move` addition (fallback source lookup when `from` is omitted) — this is the only actual code change this plan calls for, and it's additive/non-breaking.
-- **Decision needed:** confirm "nest" should mean "move the existing item wherever it is now into my tasks list" (one line, id-only) rather than requiring the writer (fast/smart seat or item tool) to know and name the source list — simpler for a seat that only knows the id it heard, matches "reference list items by id, not path."
+- **Shipped as-is (zero code change — they already work):** "amend by id" and "append-after-id".
+- **The `List.move` question is moot.** The architect's [one-replay-plan.md](/framework/core/Session/doc/one-replay-plan.md) keeps groups as overlays referencing Prompts by id; Prompts never move and stay in time order. So nothing nests across lists, and `List` needs no new code. `append`/`replace`-by-id stay Paragraphs-only until a second list (not just Paragraphs) needs them — don't generalize before there's a second caller.
+- **Nothing left to build.** This task is closed.

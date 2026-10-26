@@ -6,3 +6,6 @@
 {"now":"plan delivered (plan.md) to session-smart-v-9dvbbrn and mastermind-ai-system-architect; architect adopted the list-item reference shapes into one-replay-plan.md (commit 7ba71e964). Waiting on the owner's two decisions before building anything.","by":"mastermind-list","ts":"2026-10-26T21:23:49.126Z"}
 {"sessions":[{"id":"mastermind-list","task":"/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-list/"}],"by":"mastermind-list","ts":"2026-10-26T21:23:49.127Z"}
 {"wait":{"on":"owner","what":"approve the one additive List.move fallback (resolve source by id when `from` is omitted) and confirm \"nest\" means move-by-id-wherever-it-is-now","links":["/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-list/plan.md"]},"by":"mastermind-list","ts":"2026-10-26T21:23:54.309Z"}
+{"commit":"1b3143f04e77"}
+{"complete":{"outcome":"List.move decision is moot; List needs no code change. Plan delivered, settled and committed.","evidence":["/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-list/plan.md","1b3143f04"],"confidence":"high","caveats":["no code shipped — the whole finding was that nothing needed building"]},"by":"mastermind-list","ts":"2026-10-26T21:25:16.916Z"}
+{"log":{"at":"2026-10-26T16:25:19-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
