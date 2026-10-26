@@ -458,10 +458,9 @@ Widget.Thread = class WidgetThread extends View {
 		const parent = t.at && this.lines.get(t.at)?.bubble;
 		this.$bubbles.append(() => {
 			node = div.c("chatbox chatbox-reply chatbox-task", () => {
-				who_label("assistant");
+				// the state icon IS the avatar: it sits inside the same round frame who_label draws (red ? asked, yellow answered, green complete; a Task shows its checkbox)
+				span.c("chatbox-who chatbox-avatar chatbox-who-assistant", () => icon(t.question ? "help_outline" : TaskView.STAGE[t.phase] ?? "help").ac("chat-v2-state", "is-" + t.phase)).attr("title", t.phase);
 				div.c("chatbox-text", () => {
-					icon(t.question ? WidgetThread.QUESTION_ICON[t.phase] : TaskView.STAGE[t.phase] ?? "help").ac("chat-v2-state", "is-" + t.phase);
-					strong(` ${t.question ? "Question" : "Task"} · ${t.phase} `);
 					span(t.label);
 					if (t.answer) div.c("muted", t.answer);
 				});
