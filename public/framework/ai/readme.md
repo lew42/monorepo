@@ -6,6 +6,8 @@
 
 ## Every system, one line each
 
+- **Dictation, sheet, chat, session, task, prompt** (the full map, who creates what and where, the three chat versions, proposed shape): [system-map.md](system-map.md) · dictation [ux/Dictate](/framework/ux/Dictate/readme.md) · the sheet [ext/drawer](/framework/ext/drawer/readme.md) · chat [ext/Chat](/framework/ext/Chat/readme.md) (v1 default, [v2](/framework/ext/Chat/v2/readme.md), [v3](/framework/ext/Chat/v3/readme.md)) · [core/Session](/framework/core/Session/readme.md) · [core/Task](/framework/core/Task/readme.md) · [Prompt](/framework/core/Task/doc/prompt.md) · [sessions folder](sessions/readme.md)
+
 - **The base every agent reads** (short, vendor-neutral; CLAUDE.md points to it): [agents.md](agents.md) · why and how it reaches each agent, system prompt vs message vs compaction: [doc/agent-base-proposal.md](doc/agent-base-proposal.md)
 - **Maps** (what each role reads, every tool, every item writer, processes; read one before you dig): [doc/readme.md#maps-read-one-before-you-dig](doc/readme.md#maps-read-one-before-you-dig)
 - **Records** (every file in `ai/`, its writer and its reader; who makes sessions and tasks, and where): [doc/records.md](doc/records.md)
