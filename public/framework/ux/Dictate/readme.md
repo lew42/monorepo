@@ -62,6 +62,8 @@ ever appeared — no error, no clue why.
 
 **When is the smart assistant woken?** Not per sentence: on a pause, a question or name, or every N sentences; the two knobs are per session: [`doc/wake-policy.md`](doc/wake-policy.md).
 
+**What do the fast and smart seats each do, and which model, prompt and effort do they run?** A job-by-seat table, the gaps, a recommended split and how to experiment: [`doc/fast-and-smart.md`](doc/fast-and-smart.md).
+
 **Settings panel:** the ⚙ beside ⌨ on the sheet's bar (and the gear on a plain composer) opens "Dictation settings": the send delay (2 s) and the smart assistant's batch seconds and sentences; values live in `localStorage` key `chat.mic.settings.4` (`ext/Chat/Mic.js` `SETTINGS`): [`doc/settings.md`](doc/settings.md).
 
 **How fast is the first reply?** Measured hop by hop, before and after: [`doc/latency.md`](doc/latency.md).
