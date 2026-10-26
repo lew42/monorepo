@@ -389,17 +389,18 @@ export function session_switcher(mount, { label = "New session", title = "Clear 
 		// 2026-10-25): `chat.on_change` can fire while it's open; skip this repaint and let
 		// the next real change (after it closes) catch up instead.
 		if (open_menu?.showing()) return;
-		// The dropdown only ever lists sessions to SWITCH TO, so the tab's own current session
-		// is excluded here, not just disabled once listed.
-		const elsewhere = rows.filter(row => row.session !== session);
+		const here = session ? rows.find(row => row.session === session) : null;
 		$wrap.empty(() => {
 			// Dropdown first (the switch you reach for), the bare "+" last (owner, 2026-10-25):
 			// it shows no words, so its accessible name comes from `title`/`aria-label`.
-			if (elsewhere.length){
-				const $switch = button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button");
-				open_menu = popover_menu($switch.el, elsewhere.map(row => ({
+			// The button names the session the page is on (title, else id); "Switch session" only when none is active.
+				if (rows.length){
+					const name = session ? (here?.title ?? String(session)) : "Switch session";
+				const $switch = button.c("drawer-ai-switch-btn", name + " ▾").attr("type", "button");
+				open_menu = popover_menu($switch.el, rows.map(row => ({
+						current: row.session === session,
 					text: (row.title ?? "Session " + row.session) + " (" + ago(row.last_at ?? row.at) + ")",
-					pick: () => chat.resume(row.session).catch(e => quiet_note("could not switch to that session", e)),
+					pick: () => row.session === session ? null : chat.resume(row.session).catch(e => quiet_note("could not switch to that session", e)),
 				})));
 				// Refetch on open (owner, 2026-10-25): a session started elsewhere (another tab,
 				// the phone) never fires `chat.on_change` HERE, so the list can go stale between
