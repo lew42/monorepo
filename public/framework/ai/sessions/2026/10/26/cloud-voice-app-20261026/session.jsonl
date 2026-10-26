@@ -12,3 +12,6 @@
 {"tool_call":{"at":"2026-10-26T21:12:14.537Z","tool":"updates","args_hash":"44136fa355b3","caller":"voice-app"}}
 {"tool_call":{"at":"2026-10-26T21:12:24.826Z","tool":"unfollow","args_hash":"152e3ce70c14","caller":"voice-app"}}
 {"log":{"at":"2026-10-26T16:18:00-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-26T16:28:00-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-26T16:37:59-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-10-26T16:42:59-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
