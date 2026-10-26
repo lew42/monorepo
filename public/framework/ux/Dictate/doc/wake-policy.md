@@ -6,11 +6,13 @@
 
 | Wakes the smart assistant | Cue it is told (last line of the prompt) |
 | --- | --- |
-| You **paused**: silence for `gap_ms` (default 6 s). The time you spend speaking again does not count: the timer stops while the floor is `speaking` and starts a whole gap when it turns `done` | `(paused 6 s)` |
+| You **paused**: silence for `gap_ms` (default 12 s). The time you spend speaking again does not count: the timer stops while the floor is `speaking` and starts a whole gap when it turns `done` | `(paused 12 s)` |
 | You **asked**: the last words end in `?`, or a sentence starts with "smart" / "mastermind" (after an optional "hey", "okay") | `(asked)` |
-| **`every` finished sentences** (default 1, so every finished sentence goes out at once; only text ending in `.` `!` `?` counts, a comma chunk is not a sentence, and text with no punctuation only goes out on the gap, a question, the name or mic-off) piled up since the last batch | `(1 sentences)` |
+| **`every` finished sentences** (default 1, so every finished sentence goes out at once; only text ending in `.` `!` `?` counts, a comma chunk is not a sentence, and text with no punctuation only goes out on the gap, a question, the name or mic-off) piled up since the last batch | `(N sentences)` |
 | The mic went off (the dictation ended) | `(the mic went off)` |
 | A ❓ reaction on an assistant line: the lines waiting go first, then "explain it" | `(asked: a reaction)` |
+
+Each finished sentence is a paid Opus turn at `every: 1`; the owner accepted that cost for a real-time assistant (2026-10-25), and `every` is the knob to raise it. A session that already has a saved `wake` in `sessions.json`, or a browser with `wake_every` saved in `localStorage`, keeps its old value until it is reset (`null` drops a knob back to the default).
 
 A typed line is a deliberate send, so it waits only the short `quiet_ms` (1.5 s), not the pause gap. A line that merely mentions a mastermind ("spawn that mastermind") or ends a rhetorical question mid-thought does not wake it. The one send that is NOT gated is the respawn recovery in `Sessions.woken()`: a restarted seat re-hears the one line it never answered, which is a recovery and not a new thought.
 
@@ -38,7 +40,7 @@ See `wake/report.md`. Short version: the recorded sessions are mostly short spok
 
 The owner wants one mechanism instead of this policy: the smart assistant follows its own `session.jsonl` with the existing follow tool ([`Servex/Follow.js`](../../../../../Servex/Follow.js)), with a gather window that can be set, and no separate message path.
 
-**How it works today.** The fast seat is woken once per finished thought and writes one `{place}` line per sentence. The smart seat is NOT woken by those lines. It hears only the owner's raw lines, batched by this policy: 12 s of quiet, a line ending in "?", its name, or every finished sentence ([`WakePolicy.js`]((../../../../../Servex/agents/WakePolicy.js)), defaults `gap_ms: 12000, every: 1`). [`Sessions.js`](../../../../../Servex/agents/Sessions.js) `feed_smart()` sends the batch as a message, with the page, the `at` time and the Prompt id. A question wakes it at once, but no Question item is made: the fast seat writes only `{place}`.
+**How it works today.** The fast seat is woken once per finished thought and writes one `{place}` line per sentence. The smart seat is NOT woken by those lines. It hears only the owner's raw lines, batched by this policy: 12 s of quiet, a line ending in "?", its name, or every finished sentence ([`WakePolicy.js`](../../../../../Servex/agents/WakePolicy.js)), defaults `gap_ms: 12000, every: 1`). [`Sessions.js`](../../../../../Servex/agents/Sessions.js) `feed_smart()` sends the batch as a message, with the page, the `at` time and the Prompt id. A question wakes it at once, but no Question item is made: the fast seat writes only `{place}`.
 
 **How following the log differs:**
 

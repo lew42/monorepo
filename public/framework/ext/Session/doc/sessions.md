@@ -105,7 +105,11 @@ lines and assistants at once, when the owner has been quiet `SERVEX_SESSION_ANSW
 (2.5 s): either the line itself arrives that quiet (`quiet_ms`), or a later `quiet` event says so
 (`ux/Dictate/floor.js` fires it; `report_quiet()` posts it), or the mic went off. With no such
 event it goes after `SERVEX_SESSION_HOLD_MAX_MS` (8 s). The released message to the FAST seat ends with
-`(the owner has stopped: quiet for 2.6 s)`; the SMART seat is not woken by every release, see below. A typed line, or one from a page too old to send
+`(the owner has stopped: quiet for 2.6 s)`; the SMART seat is not woken by every release, see below.
+
+**When a bubble (Prompt) closes.** The Prompt a spoken line belongs to stays open for `prompt_close_ms` (`SERVEX_SESSION_PROMPT_CLOSE_MS`, default 8000) of quiet after its thought is released, so the next sentences join it as paragraphs of one bubble. An assistant reply closes it earlier (`prompt_close_on_reply`, `SERVEX_SESSION_PROMPT_CLOSE_ON_REPLY=0` turns that off), but only when the owner is not mid-thought, so the smart seat answering mid-dictation never splits it. A typed line closes the Prompt it belongs to at once, and joins a spoken Prompt that is still open. Both are named constants in `Sessions.js`.
+
+ A typed line, or one from a page too old to send
 `floor`, goes out at once as before. Proof: [sessions-test.txt](/framework/ai/sessions/2026/09/30/dictation-stream/dictation-stream/proof/sessions-test.txt).
 
 ## The two assistants

@@ -390,6 +390,13 @@ check("over the weekly pace the smart seat drops to Sonnet; the fast seat is its
 	s.assign_prompt(sess, { text: "again" });
 	s.reply_closes_prompt(sess);
 	assert.ok(sess.prompt, "the reply toggle off leaves it open");
+	s.prompt_close_on_reply = true;
+	s.thoughts.set(sess.id, { lines: [{ text: "mid" }] });
+	s.reply_closes_prompt(sess);
+	assert.ok(sess.prompt, "a reply mid-thought does not close the Prompt");
+	s.thoughts.delete(sess.id);
+	s.reply_closes_prompt(sess);
+	assert.equal(sess.prompt, null, "once the thought is released, the reply closes it");
 	s.close_prompt(sess);
 	assert.equal(sess.prompt, null);
 	checks++;
