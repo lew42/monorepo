@@ -68,14 +68,7 @@ function raw_list(cls, pieces){
 	return box;
 }
 
-// see doc/notes.md#via-mark
-function via_text(via){ return via === "voice" || via === "whisper" ? "🎤" : "⌨"; }
-function via_badge(via){
-	const b = el("chatbox-via", "span");
-	b.textContent = via_text(via);
-	b.title = via_text(via) === "🎤" ? "said" : "typed";
-	return b;
-}
+// The per-line 🎤/⌨ "via" badge is removed (the owner, 2026-10-25); `pc.via` is still kept in the data.
 
 // see doc/notes.md#failed-send
 function failed_badge(){
@@ -105,7 +98,6 @@ function tracked_text_node(pc){
 	const node = el("chatbox-text chatbox-tracked");
 	node.append(document.createTextNode(pc.text ?? ""));
 	if (pc.mark && pc.mark.mark !== "ok") node.append(" ", mark_badge(pc.mark));   // the green ✓ is removed (the owner, 2026-10-25); the yellow ? stays
-	if (pc.via) node.append(" ", via_badge(pc.via));
 	if (pc.failed) node.append(" ", failed_badge());
 	return node;
 }
@@ -202,7 +194,6 @@ function piece_body(pc){
 	if (pc.track) return tracked_text_node(pc);
 	const node = para("chatbox-text", pc.text);
 	if (pc.mark && pc.mark.mark !== "ok") append_mark(node, pc.mark);   // the green check is removed (the owner, 2026-10-25); the yellow ? stays
-	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));
 	if (pc.failed) (node.lastElementChild ?? node).append(" ", failed_badge());
 	return node;
 }
