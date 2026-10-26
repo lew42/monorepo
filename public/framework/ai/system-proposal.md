@@ -145,7 +145,7 @@ The rule is now in [agents.md](agents.md) and [framework/readme.md](../readme.md
 | **`Sheet`** | none | New: sizes, drag clamp, panel register/unregister. |
 | `List`, `Item` | `List.test.mjs`, `Item.test.mjs`, `Item.basic.test.mjs` | Add the bubbling question (does a nested `add` announce at the session) as one test, since the log depends on it. |
 
-## All proposed changes, one list (approve or reject each; nothing is built yet)
+## All proposed changes, one list (approve or reject each; nothing is built yet; 31 changes)
 
 Folder moves and shims:
 
@@ -182,7 +182,26 @@ Retirements and rules:
 22. Tests: the lean-core-test rule (done today in the base docs), then the new tests in the table above, the move-first ones before changes 12-16. Risk low.
 23. Fold the ~60 look-alike Servex tools behind `item` with one-line aliases, then retire the aliases. Risk medium; do last.
 
-**Build order** (each step keeps V1 and V2 working): 22 (tests), 1-3, 4-8 with 19, 9-11 with 17, 18 and 21 and 20, then 15, 12-14, 16 on a private Servex, then 23.
+Added 2026-10-26 (refinement census, voice structure, pseudo-properties, generic chat, sentence ids; evidence in [system-map.md](system-map.md) 3e, 3f, 3g):
+
+24. **Every pseudo-property line gets a replacement; replay becomes "apply every delta, get the instance state".** Rule: a line is either a real property set or a real list op (`add`, `remove`, `move`, `order`) on a named list, or it is not a line at all. The map (3e) counts what exists; the replacements:
+    - `chat` becomes `messages: {add: {id, by, text, said_at}}` (change 17).
+    - `place` becomes a once-only `settled: {...}` set on the sentence Item (the fast seat's one pass, change 21), so "latest wins" is gone by construction.
+    - `refined` and `summary` become a `RefinedPrompt` Item (`of`, `text`, `sections`) and a Prompt `summary` property (change 18).
+    - `react` becomes a `reactions` list on the message it points at; `para` becomes a `paragraphs` list op on the Prompt.
+    - `sent` and `quiet` (timing) become properties on the sentence, `sent_at` and `settled_at`, or are dropped (derivable from `at`). `pause`, `nav`, `select`, `find`, `skip` are UI state: they stop being session lines and live in the browser's own record (or a `ui.jsonl` beside the session) so replay never meets them.
+    - `backing` becomes the real `seats` property (change 26); `log` becomes the derived log list (change 11); `sessions` becomes a child-session list op.
+    - The lost-Question bug (`{"content": {"p-…": {"tasks": {"add": …}}}}` stored as a property named `content`) is fixed by making `Session.apply_line` throw on an unknown key in a dev server and log it to `failures.jsonl` in production, so a wrong shape stops being silent.
+    Migration: a script reads old files and replays them with the old rules, so old sessions keep drawing; new lines use only real shapes. Risk high for the replay step; do after tests (22).
+25. **Prompt refinement: two systems, not fourteen** (map 3g). Keep (a) the fast seat's one pass per sentence, and (b) one smart-seat refiner that turns the open Prompt into a `RefinedPrompt` (it absorbs `Sessions.refine`'s second clean, `LiveRefine`'s outline, and the PromptRecords parts step, with the parts brief moved to `ext/Refine/`). Retire: Echo and `refine_step`, `Placement`, the Assistant chain, `RefineQueue`, `PromptAudit`, the day batch tools, `/api/tidy`, and the `amend_bubble` refined cards. Keep `PromptRecords --process review` for past days. Delete order: dormant first (Echo, chain), then by-hand tools after one grep shows no caller. Risk low for the dormant ones, medium for `Sessions.refine`.
+26. **The honest voice-session shape** (map 3f). `v-<id>` is a conversation record, not an SDK session, and it should say so: drop the always-null `fast` and `smart` fields in line 1; replace the `backing` pseudo-line with a real `seats` property (`{fast: {agent, uuid}, smart: {agent, uuid}}`, updated on resume); keep cost computed only as the sum of the seats' own transcripts (it already is; stop anyone reading registry cost for it); name `cloud-voice-*` rows as records whose cost is the sum of their `voice-<short>` masterminds, and make that sum automatic instead of stated by hand (fixes the null-cost risk). The record stays one Session per conversation, so there is no fake session: every dollar belongs to a real SDK session beneath it. Alternative: make the smart seat the session itself; costs a rebuild and the smart seat does not see every sentence today. Risk low.
+27. **Retire the leftovers** (map 3f): `session-assistant.txt` and `ASSISTANTS = ["fast","voice"]`/`FAST_NAMED`; the `assistant` and `session-fast` role rows and `session-fast.md`; the stale header comments in `Sessions.js` and `ext/Session/readme.md`; the always-on old `Assistant` boot (`Servex.js` 222-229) after checking nothing calls it. A switch nobody flips is a trap: with `session-fast` gone, the file can only break voice. If the owner wants a fallback, make it an env var read in `roles.js`, not a file.
+28. **Sentence ids: use per-session ordinals, `s1`, `s2`, ... ** and keep `at` as a plain field. Reasons: nothing in the code parses the timestamp inside `p-<ms>`; the real references are the exact `at` strings, which break when Servex writes `-05:00` and the browser `Z` (map 3c); `p-<ms>` uniqueness after a restart is not guaranteed because the per-prefix counter lives in memory; ordinals are short and citable as ranges (`s3-s7`), which the owner wants for refined prompts. Safe because Servex is the only appender: the counter is rebuilt as max+1 from the file at load, so a restart cannot reuse one. A client-made UUID stays beside it (change 19) for retry dedupe. Alternative: keep `p-<ms>` if a second appender ever writes the session (the browser offline queue, the cloud app); then ordinals need a lock. Risk medium: the migration rewrites cited ids (a one-time script with a manifest; old ids stay valid as aliases).
+29. **Chat is portable and not AI-specific.** `Chat` = a `List` of `Message` Items (data, in `ext/Chat/`) plus `ChatView` (ux: bubbles, scroll lock, reactions, input, mic). A page gets a chat by having `page.chat` in its `page.jsonl`: the same two classes, different list. A session's chat is the same shape. Can the chat be a filtered view of `session.log`? Yes for reading (messages are the log's `message` rows) and that is what the derived log (change 11) gives for free; but the input must still append real `messages` ops, so the list stays the home and the log stays the index. Alternative: only the log and no `messages` list; wins if the owner wants one file shape, costs the per-page chat a log it does not need.
+30. **Raw sentences fade into the refined prompt in the view.** Each sentence is an Item with `settled` (change 24); `ChatView` draws every unsettled and fresh sentence grey and small, and, once a `RefinedPrompt` exists with `of: [s3..s7]`, collapses those sentences into the refined card with a "show raw" chevron. Nothing is deleted from the data; "fade" is a view rule keyed off `of`. Risk low once changes 9, 10 and 28 exist.
+31. **Voice kinds stay separate in the data** (map 3f table): `kind` on the record is `voice` (a), `cloud-voice-agent` (b) or `external` (c); the Assistant class (change 6) owns only (a). (b) and (c) keep their own code and get the same honest `seats`/cost rule.
+
+**Build order** (each step keeps V1 and V2 working): 22 (tests), 1-3, 4-8 with 19, 9-11 with 17, 28, 24, 18 and 21 and 20, 25-27 and 31 (cleanups), 26, 29-30, then 15, 12-14, 16 on a private Servex, then 23.
 
 ## The top five moves
 
@@ -190,4 +209,4 @@ Retirements and rules:
 2. Make Chat one generic view and the Assistant the class that owns the voice session (4, 6, 8).
 3. Pull the Sheet into `ux/Sheet`, generic (1-2).
 4. Move Session and Task out of core as `AISession` and `AITask`, after cutting core's two dependencies (12-16).
-5. Make the fast seat one pass and the smart seat the only reviser (18, 21), then fold the tools into `item` (23).
+5. Make the fast seat one pass and the smart seat the only reviser (18, 21, 25), retire the leftover refiners and pseudo-properties (24, 27), then fold the tools into `item` (23). Decide ids (28) and the honest voice-session shape (26) early: both are cheap and everything after cites them.

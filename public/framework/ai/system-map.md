@@ -77,7 +77,7 @@ Line numbers are in `Servex/agents/Sessions.js` unless a file is named. The answ
 - At most `max_pairs` = 2 pairs run at once; an idle pair sleeps after 30 minutes.
 
 **What happens on "New session"?**
-- Browser: `reset` in `ux/Dictate/chat.js` (102) clears the tab's id in `sessionStorage["lew42-voice-session"]`; the next `ensure()` (69) POSTs `/api/session/start`.
+- Browser: `reset` in `ux/Dictate/chat.js` (102) clears the tab's id in `sessionStorage["lew42-voice-session"]`; the next `ensure()` (69) POSTs `/api/session/new`.
 - Servex `create()`: unless `fresh` is set, a session under 60 minutes old (`resume_ms`) is **resumed instead** (819). Otherwise it mints `v-<time36><rand>`, writes `ai/sessions/YYYY/MM/DD/<id>/session.jsonl` with line 1 `{session:{id,home,kind,at,project,host,fast:null,smart:null,backing}}`, a presence line in `<home>/ai/log.jsonl`, and a row in `sessions.json`. No agent exists until the fast one is prewarmed straight after.
 
 **What happens when I switch to an old session, or Servex restarts?**
@@ -131,6 +131,85 @@ Line numbers are in `Servex/agents/Sessions.js` unless a file is named. The answ
 8. `Assistant.js`, `Global.js`, `Registry.js` and `roles/*` were not read for this pass.
 9. The Whisper stream path (raw words before `say`), the exact route names of `/api/session/<verb>` beyond `start`, `say` and `settings`, and whether List `announce` bubbles from a nested list up to the session.
 10. `ux/Dictate/doc/voice-assistant.md` is the fast seat's plan; whether it still matches the SKILL.md after the 2026-10-17 landing was not compared.
+
+## 3e. Pseudo-properties: every line type that is not a real property or list operation (audited 2026-10-26)
+
+**The rule today.** `Session.replay_line` (`core/Session/Session.js` 78) strips `by`, `ts`, `at`, `session`, then `apply_line` handles only `stop`, `start`, `task`, `tasks`, `settings`, `decide` and nested ids as real operations. **Everything else falls to `put(key, value)` (line 125): the last value wins and no history is kept.** So replaying the file gives no chat, no places, no reactions; each view re-reads the raw file and filters the lines itself. Only the spawned-agent "task" shape goes through `Task.replay_line` (`Task.js` 533).
+
+**The owner's decision (2026-10-26): move away from them.** Replay must be plain "apply every delta to get the instance state", and every line maps to a real property or a list operation. The replacement for each is in the proposal (change 24).
+
+Counts are from `v-sq8y7db` (8359 lines). Writers are in `Sessions.js` unless named.
+
+| Line | Count | Written by | Replay today | Read by (re-filtered from the raw file) |
+|---|---|---|---|---|
+| `chat` | 2217 | 1020 (owner), 954 (smart), 1476/1497 (assistant), 389/555/1252/1327 (system) | `put`, last one survives | `chat.js` 259, `ext/Session/Session.js` 267, `ChatV2Model` 15, `SessionTimelineRows` 92, `find_line` 1139 |
+| `place` | 1654 | the fast seat via `item` (`page_tools.js` 417) | `put` | `chat.js` 232, `Widget.place` 577 |
+| `sent` | 684 | `mark_sent` 635 | `put` | `chat.js` 233, `Widget.sent`, `ChatV2Model` 20 |
+| `quiet` | 417 | 1219 | `put` | `SessionTimelineRows` 95 only |
+| `react` | 268 | 1118 (owner), 1475 (assistant) | `put` | `chat.js` 230, `Chat.js` 364/885 |
+| `refined` | 62 | `refine()` 680 | `put` | `chat.js` 235, `Session.js` 286, `Widget.js` 346 |
+| `nav` | 55 | 1067 | `put` | dropped by `entry()` |
+| `pause` | 38 | 1234 | `put` | nothing found |
+| `backing` | 11 | 1384 | `put` | `ext/Session/Session.js` 288 |
+| `log` | 5 | 1002 | `put` | `SessionTimelineRows` 75 |
+| `para`, `select`, `skip`, `summary` | 0 here | 1462, 1244, 1469/1470, item tool | `put` | `chat.js` 231, 234; `Widget.js` 277 |
+| `sessions`, `find`, `content`, bare `{by,ts}` | few | item tool or a mastermind | `put` | `sessions` in the timeline; the rest nothing |
+| `session` (line 1) | 1 | 827 | stripped; only `kind` kept | `replay_new` |
+| **Real operations:** `tasks.add` (664), keyed Prompt edits (2052: `raw`, `paragraphs`, `replies`, `title`/`text`, `complete`, `stop`) | | `PromptLines` via 485-490; smart seat via `item` | list ops and `Prompt.replay_line` | `ChatV2Model`, `ChatV3`, outline |
+
+**A line that is lost.** `v-9dvbbrn` has `{"content":{"p-…":{"tasks":{"add":{"id":"q-1793048185470",…}}}}}`: `apply_line` `put`s it as a property named `content`, so the Question it adds never exists in any view (only 16 such `content` lines; one Question there). Plain proof that unknown keys drop data.
+
+**Doc holes:** the plan for this is `core/Session/doc/one-replay-plan.md` (not built); `pause` and `find` have no reader.
+
+## 3f. What a `v-<id>` voice session is, and the three voice things (audited 2026-10-26)
+
+**Is `v-<id>` a real SDK session? No: it is a wrapper record.**
+- `create()` mints `v-<time36><rand>` (`Sessions.js` 821) and writes line 1 `{session:{…, fast:null, smart:null, backing:{…null}}}` plus a row in `sessions.json`. It has no Claude transcript of its own. Those line-1 `fast`/`smart` fields are always null.
+- The two SDK sessions behind it are spawned by `wake()` (1377-1384), which records the agent id in `sessions.json` (`voice-assistant-v-9dvbbrn`, `session-smart-v-9dvbbrn`) and the SDK uuid in `backing`, then appends a `{backing:{at, fast, smart, how}}` line (latest wins). Example `v-9dvbbrn`: line 2 (+0.2 s) holds the fast uuid `e006ac9c…`, line 5 the smart uuid `5644835c…`; later `how:"resume"` lines reuse both. The transcripts live under `~/.claude/projects/c--Code-lew42-monorepo/` (fast 73 MB, smart 7 MB).
+- **`voice-assistant-v-<id>` is the fast seat** (`fast_seat:"voice"`, `Sessions.js` 1288). Older sessions had `session-fast-v-<id>`: `sessions.json` holds 67 of those (registry start 2026-09-30 to 2026-10-17, e.g. `v-d2pkfij`, `v-4eumhe6`, `v-qdb0cdv`) and 21 `voice-assistant-v-*` from 2026-10-17 (e.g. `v-qyb352y`, `v-8olmat5`, `v-9dvbbrn`). 8 voice-like rows have no fast agent (`v-qj7yrho`, `v-rzd5ehk`, and the `cloud-voice-*` rows).
+- **Cost is counted once, correctly.** The indexer treats `v-` as record-only (`AISessionIndex.mjs` 121-132): its own `usd` is 0 and `tree_usd` is the sum of its children (318-329). `v-9dvbbrn`: fast $28.95 + smart $22.48 = `tree_usd` 51.43, `children: 2`. The *registry* row cost is unreliable (193.57 and 24.81 for the same two; `cost-accounting.md` 22 calls it inflated, resumes double-count, `turn-costs.js` 4-10); do not read cost from there. The honest-shape fix is below.
+- **`session-assistant.txt` is a boot-time switch** between `fast` and `voice` (`Sessions.js` 70-85). The file does not exist on this machine, so the value is the default `voice`. Only `session_assistant()` reads it. It is a leftover escape hatch from the 2026-10-17 swap, not a feature: the proposal retires it (change 27).
+- **Who creates a v- session:** `POST /api/session/new` (`Sessions.js` 1560; earlier text in 3d said `/start`, which is the older name). By hand: the first sentence or typed line after "New session" (`chat.js` 74 `ensure()`), and the drawer's AI tab for a card (`ext/drawer/tabs/ai.js` 344). **Automatically, no click:** `Layers.session_for` (`Layers.js` 584-591), reached from `card_prompt_session` (the owner's words on a card) and `page_ai` (`POST /api/page-ai`); it resumes the newest session under an hour old, else creates one. Creation prewarms the fast agent at once.
+
+**The honest shape (proposal change 26).** A voice session is a *conversation record*; the SDK sessions are *workers attached to it*. Say so in the data, not in a null field:
+- Drop the always-null `fast`/`smart` fields in line 1; the `backing` line is the single record of which SDK sessions serve the record (rename it `seats`: `{seats:{fast:{agent, uuid}, smart:{agent, uuid}}}` as a list-op or a real property).
+- A voice session reports cost only as the sum of its seats, computed by the indexer from the seats' own transcripts (already how it works); nothing reads the registry cost for it. A seat's SDK session names its record as parent (already `parent:"v-…"`). This is a rename plus one rule, not a rebuild.
+- *Alternative:* make the smart seat the session (its transcript IS the conversation) and the fast seat a child. Wins if the owner wants "a voice session is a real SDK session"; costs a big change, since today the smart seat does not see every sentence.
+
+**Three different voice things, kept apart**
+
+| | What | Code | Record | Agents |
+|---|---|---|---|---|
+| (a) | The website's global voice assistant (the sheet) | `Sessions.js`, `ux/Dictate/chat.js`, `ext/Session/Session.js` | `v-<id>` folder under `ai/sessions/YYYY/MM/DD/` | `voice-assistant-v-<id>` (fast), `session-smart-v-<id>` (smart) |
+| (b) | The cloud voice agent (Claude app through the remote MCP) | `Servex/ext/remote/RemoteMCP.js`, [cloud-voice-agent.md](/Servex/ext/remote/doc/cloud-voice-agent.md), `/live/` | a `cloud-voice-<name>` row (`kind:"cloud-voice-agent"`, `fast`/`smart` null, `cost` null unless it states one) | the voice model itself is the Claude app, not an SDK agent; `ask_mastermind` spawns a real `mastermind` named `voice-<short>` (Opus) |
+| (c) | A VS Code mastermind tab acting as a voice assistant | skills `voice-mastermind`, `every-prompt`; `register_session` (`External.js`) | a `kind:"external"` registry row plus an inbox file | none; Servex has no process or accounting for it |
+
+**Leftover fragments:** the `assistant` role row (`roles.js` 55) and `session-fast` row (95), both retired, and `session-fast.md` still on disk; `ASSISTANTS = ["fast","voice"]` and the `FAST_NAMED` regex (`Sessions.js` 79, 65); header comments in `Sessions.js` (118, 136-139) that still describe the old pair and "first say spawns"; Servex still boots an always-on `Assistant` (`Servex.js` 222-229, `SERVEX_NO_ASSISTANT`), unchecked whether anything uses it; `cloud-voice-*` rows whose cost nothing sums (whether `voice-<short>` rolls into that row was not traced).
+
+## 3g. Every prompt-refinement system, and whether it runs (census 2026-10-26)
+
+The older list of eight, with how they differ: [doc/prompt-refinement-map.md](doc/prompt-refinement-map.md). That page misses the voice fast seat's own `{place}` path (row 1), which is the only one running every sentence today, and calls PromptTasks live when it is switched off. "Runs" was checked in the real session files and `%LOCALAPPDATA%/lew42/servex`; "works" means it produced well-formed output, not that quality was judged (nothing was run).
+
+| # | System | Files | Called by | Runs today? | Keep / merge / retire |
+|---|---|---|---|---|---|
+| 1 | Voice fast seat `{place}` (`edit: improve` or `clean`) | skill `voice-assistant/SKILL.md`; written by the seat through the item tool | the always-up `voice-assistant-<id>` agent, woken per sentence | **Yes, every sentence.** `v-9dvbbrn`: 975 `place`, all `improve`, latest 10-26. `v-sq8y7db`: 1654 (669 clean, 164 improve, 821 nothing) | **Keep, as the one first pass** (change 21) |
+| 2 | `{refined}` line from `Sessions.refine()` gated by `worth_refining` | `Servex/agents/Sessions.js` 97, 666, called at 1021 | `Sessions.say()` on a finished line of 2+ sentences or 15+ words | **Yes, sparse.** `v-9dvbbrn` 5 lines, `v-sq8y7db` 62 (last 10-25); one `clean` plus one `structure` call each | **Merge into the smart seat's refiner** (it cleans twice what row 1 already cleaned) |
+| 3 | `clean()` / `structure()` engine | `ext/Refine/engine.js`, `structure.js` | rows 2, 6, 13 and `/api/refine` | indirect | **Keep as the one engine** behind a single caller |
+| 4 | Live dictation refine | `Servex/ext/refine/LiveRefine.js`, `LiveClean`, `Annotator`, `ClarityScorer`, `TagRouter`; client `ext/Chat/Mic.js` (`refine_tick`, `refine_final`) and `ext/Refine/RefineSystem.js` | Mic to `POST /api/refine/live` | Code path live, **no fresh output** (newest `prompts.jsonl` stages from 10-25) | **Retire as a second chat refiner**; its card/outline output is the RefinedPrompt idea (merge into change 10) |
+| 5 | `Placement` (rules, `use_model` false) | `ext/Refine/Placement.js`, `doc/placement.md` | `RefineSystem.js` | unverified, no caller turns the model on | **Retire** (row 1 does the placing) |
+| 6 | Echo + `refine_step` tool | `Servex/agents/Echo.js`, `echo.md` | only when `SERVEX_ECHO=on` | **Dormant**: 0 `refine_step` lines; newest per-session echo log 10-08 | **Retire** with the `refine_step` tool |
+| 7 | PromptTasks + PromptRecords `live` (a prompt into tasks) | `Servex/agents/PromptTasks.js`, `Server/PromptRecords.mjs` | `hooks.prompted` | **Off**: `prompt-tasks.off` (10-25); no source-linked tasks on 10-26 | **Keep the parts step, merge it as the smart seat's job on the Prompt**; drop the separate hook |
+| 8 | `PromptRecords --process review`, prompt-breakdown plan, `PromptTrace`, `PromptsToSession` | `Server/*` | by hand | not run on 10-25/26 | keep `review` (replaces rows 9, 10, 11) |
+| 9 | `RefineQueue` (`refined` cards on the Coverage tab) | `Server/RefineQueue.mjs`, `RefinedCard.js` | by hand | last run 10-23 (91 runs, 1357 asks) | **Retire** for new prompts; keep old cards as history |
+| 10 | `PromptAudit` | `Server/PromptAudit.mjs` | by hand | last outputs 10-21/22 | **Retire** (review replaces both passes) |
+| 11 | Day batch tools | `Server/refine.mjs`, `refine-days`, `DayPromptsRefine`, `refine-litmus` | by hand | last output 10-13 | **Retire**; keep `refine.mjs` prompts (`structuredPromptDefault`) |
+| 12 | `/api/refine` (`run_refine`) and `/api/tidy` (the numbered `S1.` cleaner) | `Servex/ext/refine/run.js`, `agents/tidy.js`, `ux/Revise`, `AISessionConversation.js` | the session page and `/api/tidy` | endpoints exist, fresh calls not verified | **Merge** into one `clean` caller (row 3) |
+| 13 | Assistant chain | `Servex/agents/Chain.js` 104, `Assistant.js` 65 | only with `SERVEX_CHAIN=on` | off by default | **Retire** |
+| 14 | `amend_bubble` `refined` cards | `Servex/agents/Layers.js` 1086 | a smart agent | 162 lobby lines, last 2026-09-24 | **Retire** (superseded by RefinedPrompt) |
+
+**The "sentences 3-7" refiner.** No code produces ranges like "sentences 3-7" today. The pieces are: the numbered `S1.` output of `tidy.js` and `refine.mjs`; the `[3]` cite in `RefinedCard.js`; and the `[S#, S#]` cite in the PromptRecords parts brief (each number individually, never a range). The range citing the owner remembers is therefore a *proposal*, not a lost feature: it needs per-session ordinal sentence ids (change 28).
+
+**Result: two systems earn their keep** (the fast seat's one pass, row 1, and the smart seat's refine-the-whole-Prompt, rows 2/7/4 merged). The other twelve are duplicates, dormant, or by-hand history. Counting `Sessions.refine` plus Echo's cleaner plus `LiveRefine` plus `tidy`, the same sentence can be cleaned by up to four code paths; today two actually fire (rows 1 and 2).
 
 ## 4. Where the boundaries are wrong today
 
