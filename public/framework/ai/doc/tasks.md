@@ -2,6 +2,8 @@
 
 Read this once instead of researching. Short index: [../tasks/readme.md](../tasks/readme.md). Plan and history: [one-state.md](one-state.md), [one-dashboard.md](one-dashboard.md), [task-folders.md](task-folders.md).
 
+> **The rule (the owner, 2026-10-26): a task stays in the session that files it** (a nested line in that session's `session.jsonl`, or `<session>/<slug>/` when it needs files). A module folder `<module>/tasks/<slug>/` only when the owner explicitly asks, with `home: "<module>"` on the add. `module: "<module>"` is just a tag: a module's page finds its tasks through the index (`AIIndex` rows carry `module`), never a copy. The old module-primary tasks (about 539) stay where they are until the owner asks to move them.
+
 ## 1. What a task is
 
 A **task** is a folder with one file, `task.jsonl`: a log where each line is one fact ("started", "log this", "finished"). Its state is never stored; it is worked out by replaying the lines ([`core/Task/Task.js`](/framework/core/Task/), `class Task extends Item`). States: idle, running, paused, waiting, stopped, complete.
@@ -21,7 +23,7 @@ A **task** is a folder with one file, `task.jsonl`: a log where each line is one
 |---|---|---|
 | A Servex agent (SDK) | nothing to run: `spawn_agent` with `task: {dir, brief}` (or none: `Agents.default_task` picks `ai/sessions/<day>/<caller's session>/<agent id>/`) | `open_task` in `Servex/agents/Agents.js` writes line 1 (`assign`) before the first turn. The agent's prompt says "your task is already open". |
 | A Claude Code tab (VS Code) | `node Server/TaskDirs.mjs --new <slug> [--session <uuid>] [--parent <dir>]` (the `new-task` skill; there is no MCP tool called `new-task`) | makes the folder and prints it; you then append line 1 with `node .claude/hooks/append.mjs` |
-| Any agent, a sub-task or a task for a module | the **item tool**, `item({path, delta:{"tasks":{"add":{title, module?}}}})` (`mcp__local__item` in-process, `mcp__servex__item` over MCP) | makes the child in `<module>/tasks/<slug>/` and files the pointers. Detail: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md) |
+| Any agent, a sub-task or a task for a module | the **item tool**, `item({path, delta:{"tasks":{"add":{title, module?, home?}}}})` (`mcp__local__item` in-process, `mcp__servex__item` over MCP) | nests the child in the session's log (`module` is a tag; `home` makes `<module>/tasks/<slug>/`, only when asked) and files the pointers. Detail: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md) |
 | Any script | `TaskDirs.dir({slug, session_id, parent})` | the one class that builds a path; never join a date by hand |
 
 **A cloud voice agent** (`ai/sessions/YYYY/MM/DD/cloud-voice-<name>/`): the same tool works today, as `node Server/TaskDirs.mjs --new <slug> --parent public/framework/ai/sessions/YYYY/MM/DD/cloud-voice-<name>` (`--parent` takes any folder, so the session dir need not be a UUID), then line 1 by `append.mjs`; the `--session` flag alone cannot, because it accepts only a UUID and would name the folder `session-<id8>`. The cloud agent has the Servex `shell` and `write_file` tools, so it can run exactly that. What would make it one call: let `TaskDirs.dir` accept a session folder name (a `session_dir` argument) and expose it as a Servex tool; not built.
@@ -107,6 +109,6 @@ Each row is a guess about where prompt, session, task, agent and landed change c
 | `phase`, `Project extends Task` | concept | [task-lifecycle.md](task-lifecycle.md) |
 
 **The three gaps, confirmed by reading the code.**
-- **(a) Module placement is never automatic.** `TaskDirs.dir({slug, session_id, parent, day})` and `Agents.open_task` have no `module` argument. A task reaches `<module>/tasks/<slug>/` only when an agent calls the item tool's `tasks.add` (its choice), when `TaskMigrate` is run once, or when `UndoneToTasks` files an idle task for an undone ask.
+- **(a) Module placement is never automatic, and since 2026-10-26 never the item tool's default either:** only an explicit `home` puts a task in a module. `TaskDirs.dir({slug, session_id, parent, day})` and `Agents.open_task` have no `module` argument. A task reaches `<module>/tasks/<slug>/` only when an agent calls the item tool's `tasks.add` with `home` (the owner asked for it), when `TaskMigrate` is run once, or when `UndoneToTasks` files an idle task for an undone ask.
 - **(b) Sessions do not list their tasks.** Corrected: the task is a folder inside the session folder, and 37 of the 42 session logs that exist also name it, but no session field lists tasks and the day `index.json` has `links.task: null`; "this session's tasks" is a query on `index.json` (`session`).
 - **(c) No single page said how a prompt becomes a task:** section 7 above does, and [task-lifecycle.md](task-lifecycle.md) proposes the missing phases.

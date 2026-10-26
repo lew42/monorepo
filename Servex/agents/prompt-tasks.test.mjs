@@ -97,6 +97,7 @@ try {
 	s = Session.replay([...read(REC), { tasks: { [t.id]: { start: {} } } }]);
 	ok(asks(s)[0].state === "running" && PromptTasks.accepted(asks(s)[0]), "a tab or agent that starts it (item tool start) accepts it");
 
+	PromptTasks.MODULE_HOMES = true;   // the sweep is off by default; this checks it still works when switched on
 	// 5. Started and naming a module: the TaskLoop sweep moves it to <module>/tasks/<slug>/, and the session references it there.
 	ok((await pt.sweep()).length === 0, "an idle task nobody started is not moved");
 	fs.appendFileSync(REC, JSON.stringify({ tasks: { [t.id]: { start: {} } } }) + String.fromCharCode(10));

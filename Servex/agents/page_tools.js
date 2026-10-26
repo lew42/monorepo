@@ -468,9 +468,9 @@ async function instructions_for(kind, Class){
 export const RULES = [
 	"A refinement of an existing task goes into that task: add to its `tasks`, or set its fields. It does not become a new task.",
 	"New tasks are only for new asks.",
-	"One goal task per module holds the long-lived work; new related work goes under it.",
+	"A task stays in the session that files it (nested in that session's log). Tag the module with `module` so the module page can find it; give `home: \"<module>\"` only when the owner asked for a module home.",
 	"An idea to keep beside a module while designing is a note, not a task.",
-	"The tool files the session reference and picks the home folder; never write either by hand.",
+	"The tool files the session reference; never write it by hand.",
 ];
 
 
@@ -485,24 +485,11 @@ const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/
 const task_type = a => ["Project", "Process", "Session", "Prompt", "Question"].includes(a?.type) ? a.type : "Task";
 export const slug_of = text => Task.slug(text);   // one slug rule, Task's (a string added in the browser gets the same id)
 
-// The module an app path sits in: the nearest folder under public/framework/ with a readme.md. Never a dated ai/sessions/ folder.
-function module_of(url, root = FRAMEWORK){
-	const m = /^\/?framework\/(.+?)\/?$/.exec(String(url ?? ""));
-	if (!m || /(^|\/)ai\/sessions(\/|$)/.test(m[1])) return "";
-	const parts = m[1].split("/");
-	for (; parts.length; parts.pop()){
-		const rel = parts.join("/");
-		if (MODULE_NAME.test(rel) && fs.existsSync(path.join(root, rel, "readme.md"))) return rel;
-	}
-	return "";
-}
-
 // Which folder a new module task lives in, and its slug. Never suffixes: `taken` is true when the folder exists, and the caller refuses (offering `free`).
-// A child gets a folder only under a real module (explicit `module`, or the module the call's path sits in); everything else nests in the parent's task.jsonl.
+// A task stays where it is filed: nested in the filing session's (or parent's) task.jsonl. It gets a module folder ONLY when the add carries an explicit
+// `home: "<module>"` (the owner asked for a module home, 2026-10-26). The call's path never picks one; `module` is just a tag a module page finds it by.
 function task_home(parent_dir, add, root = FRAMEWORK, from_path = ""){
-	// A call made on a path already inside a `tasks/` folder (a goal's own folder, a module list) is a subtask: it nests.
-	const inside_tasks = /(^|\/)tasks(\/|$)/.test(String(from_path ?? ""));
-	const mod = typeof add.module === "string" ? add.module.replace(/^\/+|\/+$/g, "") : inside_tasks ? "" : module_of(from_path, root);
+	const mod = typeof add.home === "string" ? add.home.replace(/^\/+|\/+$/g, "") : "";
 	const mod_dir = MODULE_NAME.test(mod) ? path.join(root, mod) : null;
 	if (!(mod_dir && fs.existsSync(mod_dir) && fs.statSync(mod_dir).isDirectory())) return null;
 	const base = path.join(mod_dir, "tasks"), slug = slug_of(add.id ?? add.title);
@@ -519,7 +506,7 @@ const source_of = ctx => { const who = ctx?.caller && ctx.caller !== "owner" ? c
 
 // One add -> child folder with line 1, returns { id, path }. Fields come from the add (a legacy `data` object is flattened).
 function make_child(parent_dir, add, ctx, home){
-	const { type: _t, id: _i, after: _a, data, ...fields } = add;
+	const { type: _t, id: _i, after: _a, home: _h, data, ...fields } = add;
 	const { slug, dir, list } = home;
 	const child = path.join(dir, "task.jsonl"), url = app_path(dir);
 	if (fs.existsSync(child)) throw new Error(`refused: ${app_path(dir)} already holds a task`);   // never overwrite
@@ -567,7 +554,7 @@ function make_process(parent_dir, add, ctx, home){
 export const ledgers = { task_moves: path.join(PUBLIC, "framework", "ai", "sessions", "task-moves.jsonl") };   // a test points it at a scratch file
 export async function move_home(file, module, by = "ProcessRunner"){
 	const dir = path.dirname(path.resolve(file)), slug = path.basename(dir);
-	const home = task_home(path.dirname(dir), { id: slug, module }, FRAMEWORK, "");
+	const home = task_home(path.dirname(dir), { id: slug, home: module }, FRAMEWORK, "");
 	if (!home) return { why: `no module folder public/framework/${module}` };
 	if (path.resolve(home.dir) === dir) return { why: "already home" };
 	if (fs.existsSync(home.dir)) return { why: `${app_path(home.dir)} already exists; the task stays in its session` };
@@ -605,7 +592,7 @@ export async function move_nested_home(record, id, module, by = "PromptTasks"){
 	const kid = Session.replay(parse_lines(file))._tasks?.find(id);
 	if (!kid) return { why: `"${id}" is not a task in ${app_path(path.dirname(file))}` };
 	if (kid.data.path) return { why: "already has its own folder" };
-	const home = task_home(path.dirname(file), { id, module }, FRAMEWORK, "");
+	const home = task_home(path.dirname(file), { id, home: module }, FRAMEWORK, "");
 	if (!home) return { why: `no module folder public/framework/${module}` };
 	if (fs.existsSync(home.dir)) return { why: `${app_path(home.dir)} already exists; the task stays in its session` };
 	const moved = await move_item({ from: app_path(path.dirname(file)), id, to: app_path(home.dir), by, module });   // the one mover: history, reference, ledger

@@ -98,12 +98,15 @@ export default class PromptTasks {
 		return this.lives.get(rec.uuid);
 	}
 
-	/* ON APPROVAL, HOME (the TaskLoop tick, every 5 minutes): an accepted prompt task moves to <module>/tasks/<slug>/ (move_nested_home,
+	/* ON APPROVAL, HOME (OFF by default, MODULE_HOMES; the TaskLoop tick, every 5 minutes): an accepted prompt task moves to <module>/tasks/<slug>/ (move_nested_home,
 	 * page_tools.js). Accepted = approved (idle with an approve verdict) or already started. Its module is `module_hint` (the parts model's
 	 * guess), else the module that holds its `file_hint` (PromptTasks.module_of). THE DEFAULT HOME (crack 2, core/Task/doc/cracks.md): a task
 	 * with neither, or a module that is not a folder, stays a task in its own session's record, where the session page lists it and the
 	 * session's completion counts it; it is not tried again until Servex restarts. */
+	// Off since 2026-10-26 (the owner): a task stays in the session that filed it; a module home only when asked. Set true to bring the sweep back.
+	static MODULE_HOMES = false;
 	async sweep({ days = 14, now = Date.now() } = {}){
+		if (!PromptTasks.MODULE_HOMES) return [];
 		const { move_nested_home } = await import("./page_tools.js");
 		const { default: Session } = await import("../../public/framework/core/Session/Session.js");
 		this.refused ??= new Set();

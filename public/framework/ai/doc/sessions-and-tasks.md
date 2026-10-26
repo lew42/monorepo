@@ -1,5 +1,7 @@
 # Sessions and tasks: a spawned agent is a session, a task is something to finish
 
+> **Superseded 2026-10-26 (the owner):** a task now stays in the session that files it; a module folder only with an explicit `home`. Read [the rule](/framework/ai/doc/tasks.md) first; what follows is the earlier module-primary decision.
+
 **Decision (the owner, 2026-10-19).** The naming was the bug. An agent the SDK spawns is a **session**: it has a session id. It is not a task. We used to call it one, and that is where the system got confused. A **task** is something that needs to happen and can be finished. They are different things; tasks live inside sessions.
 
 > "Every SDK session should be a session. It should be clear that this represents the session. Then you can have tasks within them. But we shouldn't be calling a session a task."

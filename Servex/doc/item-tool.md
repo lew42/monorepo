@@ -13,14 +13,14 @@
 - Test: `node Servex/agents/item_tool.test.mjs`. Servex must restart to load the tool.
 - **In-process (step 12):** Servex-spawned agents also get this tool as `mcp__local__item` (same function, no HTTP; the `mcp__servex__` twin is disallowed). Off with `SERVEX_LOCAL_TOOLS=0`; test `Servex/agents/item-local.test.mjs`.
 - **Step 3c supersedes the folder-by-default below:** `tasks.add` NESTS in the parent's file (`{"tasks":{"add":{…,"id"}}}`, later `{"<child id>":{…}}`); a folder is made only with a real module home, then listed in the module's `files.jsonl`. `{"folder":"<child id>"}` moves a nested child out. An existing slug or nested id is refused with `suggest: "<slug>-2"`. One cached root per file (`Item.Store.for`), re-read when the file changes on disk; `page_set/call/add/log` on a task folder take the same path.
-- **Task homes (step 14a):** on a Task or Session, `{"tasks":{"add":{title, module?, …}}}` makes a child folder (`<module>/tasks/<slug>/` if the module folder exists, else `<parent>/<slug>/`, `-2`, `-3` on a repeat) with its app path on line 1, and writes only `{"task": path}` on the parent. The answer lists `homes`. Replay resolves references (`Task.from_ref`, `link_refs`). Tests: `item_tool.test.mjs`.
-- **Filing (step 16):** every `tasks.add` also appends the same `{"task": path}` line to the caller's own task log (`ctx.caller_log`, or `resolve_log(caller)` from `page_tools(resolve_log)`; skipped with no caller, no task dir, or when that log is the parent). With no `module`, the module is the nearest folder under `public/framework/` that has a `readme.md`, taken from the path the call was made on (never a dated `ai/sessions/` folder).
+- **Task homes (step 14a; changed 2026-10-26):** a task stays in the session that files it: `{"tasks":{"add":{title, module?, home?, …}}}` nests in the parent's log. `module` is a tag for the module page; only an explicit `home: "<module>"` makes a child folder (`<module>/tasks/<slug>/` if the module folder exists, `-2`, `-3` on a repeat; the call's path never picks one) with its app path on line 1, and writes only `{"task": path}` on the parent. The answer lists `homes`. Replay resolves references (`Task.from_ref`, `link_refs`). Tests: `item_tool.test.mjs`.
+- **Filing (step 16):** every `tasks.add` also appends the same `{"task": path}` line to the caller's own task log (`ctx.caller_log`, or `resolve_log(caller)` from `page_tools(resolve_log)`; skipped with no caller, no task dir, or when that log is the parent). There is no default module home any more (it used to be the nearest folder with a readme).
 - **Grouping rules** (returned as `rules` beside `describe()` on the first call; `RULES` in `page_tools.js`):
   - A refinement of an existing task goes into that task (add to its `tasks`, or set its fields). It does not become a new task.
   - New tasks are only for new asks.
-  - One goal task per module holds the long-lived work; new related work goes under it.
+  - A task stays in the session that files it; `module` tags it, `home` (only when the owner asked) moves it into the module's folder.
   - An idea to keep beside a module while designing is a note, not a task.
-  - The tool files the session reference and picks the home folder; never write either by hand.
+  - The tool files the session reference; never write it by hand.
 
 ## Queries: ask without writing (2026-10-23)
 

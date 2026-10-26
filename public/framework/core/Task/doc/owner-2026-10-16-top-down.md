@@ -1,5 +1,7 @@
 # Owner notes, 2026-10-16 (night): the task system read top-down (dictated; decisions by voice-app where the owner left them open)
 
+> **Superseded 2026-10-26 (the owner):** a task now stays in the session that files it; a module folder only with an explicit `home`. Read [the rule](/framework/ai/doc/tasks.md) first; what follows is the earlier module-primary decision.
+
 Third note of the day; read `owner-2026-10-16-task-system.md` and `owner-2026-10-16-composition.md` first. Where the owner said "I'm not sure", voice-app decided (marked **decided**) so the build never waits.
 
 ## Classes
