@@ -32,3 +32,5 @@
 {"log":{"at":"2026-10-25T20:40:05-05:00","msg":"session resumed"}}
 {"action":{"at":"2026-10-25T20:41:43-05:00","did":"edit","files":[".claude/scratch/log-outcome.mjs"]}}
 {"outcome":"Round 2 landed: owner live-testing found the dropdown reflowed the header (huge in-flow list pushed the title/chips/v2-chip down, \"vertically centered\" on desktop). Rebuilt session_switcher() on ux/Popover.menu() (top-layer popover, built-in height cap + scroll, native outside-click/Escape close); reordered to dropdown-first + bare \"+\" per the owner's ask; rows are one line, \"title (ago)\". Reviewed (fix, 6 findings answered), merged aaa4ecf85. Verified at 400px/1200px with 15 fake rows and against the live site with real data: header position unchanged before/after open, zero console errors.","at":"2026-10-26T01:41:45.563Z"}
+{"log":{"at":"2026-10-25T20:46:35-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T20:52:27-05:00","heartbeat":"check","msg":"status check sent to mastermind-session-switcher"}}
