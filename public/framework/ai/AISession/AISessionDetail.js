@@ -79,6 +79,13 @@ export default class AISessionDetail extends Page {
 		return url && await AISessionDetail.id_of_folder(root_url, url) ? url : null;
 	}
 
+	/** Whether `/sessions/<name>/` names anything: a row (sessions.json, the live agent list or the index), an agent folder, a uuid or short id (a new session the index has not met yet), or a voice record (`v-…`, `cloud-voice-…`, found by its dated folder). Only a bare name that is none of these is "not found". */
+	static async known(root_url, name){
+		if (/^[0-9a-f]{8}(-|$)/.test(name) || /^(v|cloud-voice)-/.test(name)) return true;
+		if (await AISessionDetail.load_row(root_url, name)) return true;
+		return name in ((await AISessionRows.load_index(root_url))?.rows ?? {});
+	}
+
 	/** The name from rows AISessionsPage.child() preloaded, so the first paint already shows it; the id only when there is no row. */
 	static first_title(home, id){
 		const row = AISessionRows.snapshot?.rows?.find(r => r.id === id || r.session_id === id);
@@ -471,7 +478,14 @@ export default class AISessionDetail extends Page {
 	/** This session's row (tab_title, model, source...) from sessions.json, which is a computed cache and never the record. */
 	static async load_row(root_url, id){
 		const snap = await AISessionRows.get_json(root_url + "sessions.json");
-		return snap?.rows?.find(r => r.id === id || r.session_id === id) ?? await AISessionDetail.agent_row(id);
+		return snap?.rows?.find(r => r.id === id || r.session_id === id) ?? await AISessionDetail.agent_row(id) ?? await AISessionDetail.tree_row(root_url, id);
+	}
+
+	/** A stopped agent the live list no longer holds but session-tree.json (uuid -> { agent, role }) still names: its uuid finds the dated folder. */
+	static async tree_row(root_url, id){
+		if (/^[0-9a-f]{8}-/.test(id)) return null;
+		const tree = await AISessionRows.load_tree(root_url), hit = Object.entries(tree ?? {}).find(([, n]) => n?.agent === id);
+		return hit ? { id, session_id: hit[0], source: "servex", role: hit[1].role, tab_title: id } : null;
 	}
 
 	/** A named Servex agent (`reviewer-x`, `minion-y`) is a grid row before sessions.json knows it: its uuid comes from the live agent list, else null (a name is never a transcript id). */

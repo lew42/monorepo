@@ -12,6 +12,7 @@ import AISessionBuckets from "./AISessionBuckets.js";
 import AISessionLive from "./AISessionLive.js";
 import AISession from "./AISession.js";
 import AISessionDetail from "./AISessionDetail.js";
+import AgentUrl from "./AgentUrl.js";
 import AISessionFlags from "./AISessionFlags.js";
 import StoreFolder from "./StoreFolder.js";
 AISessionFlags.usd_of = r => AISessionRows.claude_usd_of(r);   // flags_of reads the row's Claude $ from the session index here
@@ -733,7 +734,10 @@ export default class AISessionsPage extends Page {
 		if (name && !name.includes(".") && !/^\d{4}$/.test(name) && name !== "doc" && name !== "readme"){
 			const full = await AISessionDetail.expand(this.url, name);   // an 8-character short id names the full session: both urls are one page
 			if (full !== name){ (this.folders ??= new Map()).set(name, this.url + full + "/"); return super.child(name, levels); }
+			const agent = !/^[0-9a-f]{8}(-|$)/.test(name) && await AgentUrl.find(name);   // an agent's name: its task folder in the dated store (ai/index.json)
+			if (agent){ (this.folders ??= new Map()).set(name, agent); return super.child(name, levels); }
 			await AISessionDetail.preload(this.url, name);
+			if (!await AISessionDetail.known(this.url, name)){ (this.missing ??= new Set()).add(name); return super.child(name, levels); }
 			(this.folders ??= new Map()).set(name, await AISessionDetail.folder_for(this.url, name));   // route() cannot wait: the session's dated folder is looked up here
 		}
 		return super.child(name, levels);
@@ -746,8 +750,18 @@ export default class AISessionsPage extends Page {
 		if (id === "v") return;   // variants: sessions/v/page.js (e.g. v/mobile/), a folder and not a session id
 		if (/^\d{4}$/.test(id)) return new StoreFolder({ home: this, segs: [id] });   // the store by path: YYYY/MM/DD/<session>/<task>/ (ai/doc/task-folders.md)
 		const folder = this.folders?.get(id);
-		if (folder) return StoreFolder.redirect(this.url + id + "/", folder);   // one session, one url: the dated folder (a session with no folder yet keeps this page)
+		if (folder) return StoreFolder.redirect(this.url + id + "/", folder);
+		if (this.missing?.has(id)) return this.not_found(id);   // one session, one url: the dated folder (a session with no folder yet keeps this page)
 		return new AISessionDetail({ home: this, id });
+	}
+
+	/** A name that is no session, no agent and no folder: say so, instead of a page that reads a record that is not there. */
+	not_found(id){
+		const home = this;
+		return new Page({ title: "Session not found", icon: "search_off", url: home.url + id + "/", content(){
+			p("No session or agent is named “" + id + "”: no folder in the session store and no row in the index.");
+			a().href(home.url).text("← All sessions");
+		} });
 	}
 
 	/** "readme" is the readme, "doc" is the docs index (doc/readme.md). */

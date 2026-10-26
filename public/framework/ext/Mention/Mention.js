@@ -4,6 +4,7 @@ import item from "../../ui/item/item.js";
 import { css } from "../../ui/parts.js";
 import refs from "./maps/refs.js";
 import people from "./maps/people.js";
+import AgentUrl from "../../ai/AISession/AgentUrl.js";
 
 // CSS specificity dance and dark mention styling: doc/Mention-notes.md
 css(`@layer theme {
@@ -103,9 +104,19 @@ function find(map, name){
 // Live agent ids: doc/Mention-notes.md
 const AGENT_KIND = [[/^task-mastermind-/, "psychology"], [/^mastermind-/, "psychology"],
 	[/^minion-/, "smart_toy"], [/^manager-/, "support_agent"], [/^assistant/, "bolt"]];
+// The agent's real page is its task folder in the dated store (ai/AISession/AgentUrl.js reads it from ai/index.json). Until that has
+// loaded a link points at /framework/ai/sessions/<name>/, which redirects there; `data-agent` lets retarget() swap the href in place.
 function agent_entry(name){
 	const icon = AGENT_KIND.find(([re]) => re.test(name))?.[1];
-	return icon ? { key: name, icon, url: `/framework/ai/sessions/${name}/` } : null;   // that page opens a Servex agent by its id
+	if (!icon) return null;
+	if (!AgentUrl.pending) AgentUrl.load().then(retarget);
+	return { key: name, icon, agent: name, url: AgentUrl.of(name) ?? `/framework/ai/sessions/${name}/` };
+}
+function retarget(){
+	for (const el of document.querySelectorAll("a[data-agent]")){
+		const url = AgentUrl.of(el.dataset.agent);
+		if (url) el.setAttribute("href", url);
+	}
 }
 
 // Path lookup: doc/Mention-notes.md
@@ -119,7 +130,7 @@ function lookup_cached(m, sigil, raw){
 	if (!hit) return null;
 	if (!rest.length) return { name: hit.key, ...hit };
 	const url = hit.url ? hit.url.replace(/\/?$/, "/") + rest.join("/") + "/" : undefined;
-	return { ...hit, name: [hit.key, ...rest].join("/"), url };
+	return { ...hit, agent: undefined, name: [hit.key, ...rest].join("/"), url };
 }
 
 // Live instances vs. cache: doc/Mention-notes.md
@@ -160,8 +171,10 @@ export function build_row(name, entry, extra = "inline mention"){
 	const saved = View.captor;
 	View.captor = null;
 	try {
-		return item(entry.url ? { icon: entry.icon, name, href: entry.url } : { icon: entry.icon, name })
+		const row = item(entry.url ? { icon: entry.icon, name, href: entry.url } : { icon: entry.icon, name })
 			.ac(extra).ac(kind_class(entry)).ac(entry.class_card && "page-surface-dark").el;
+		if (entry.agent) row.dataset.agent = entry.agent;
+		return row;
 	} finally {
 		View.captor = saved;
 	}
@@ -249,7 +262,7 @@ export function mention_html(str, m = maps){
 
 		const entry = as_kind(sigil, found), name = shown(sigil, raw, found);
 		const tag = entry.url ? "a" : "span";
-		const href = entry.url ? ` href="${entry.url.replaceAll('"', "&quot;")}"` : "";
+		const href = entry.url ? ` href="${entry.url.replaceAll('"', "&quot;")}"` + (entry.agent ? ` data-agent="${entry.agent}"` : "") : "";
 		const dark = entry.class_card ? " page-surface-dark" : "";
 		return `<${tag} class="item inline mention ${kind_class(entry)}${dark}"${href}>`
 			+ `<span class="material-icons icon item-icon">${entry.icon}</span>`
