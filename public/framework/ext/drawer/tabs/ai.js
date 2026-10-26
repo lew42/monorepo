@@ -181,7 +181,7 @@ function session_header({ card, view }){
 			// session change, so the OLD switcher's own subscription is stopped first — the same
 			// leak this file's own mount-rebuild comment (below) already guards against.
 			switcher?.stop();
-			switcher = chat.session_switcher(() => live_chat, { label: "+ New session" });
+			switcher = chat.session_switcher(() => live_chat);
 			div.c("drawer-ai-switcher flex v-center wrap", () => view.chip("drawer-ai-switch-btn"));
 		});
 	}

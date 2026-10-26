@@ -1,4 +1,5 @@
-import { View, button, div, span, small } from "../../core/View/View.js";
+import { View, button, div } from "../../core/View/View.js";
+import { menu as popover_menu } from "../Popover/Popover.js";
 import Widget from "./Widget.js";
 import floor from "./floor.js";
 import * as Session from "/framework/ext/Session/Session.js";
@@ -345,56 +346,53 @@ export function new_session_button(mount, { label = "New session", title = "Clea
 		.click(() => (typeof mount === "function" ? mount() : mount)?.reset());
 }
 
-/** ONE control, replacing a bare `new_session_button()`: a "+ New session" button beside a
- *  toggled list of this project's other recent sessions to switch back to (one-dictation item
- *  4, "a way back" — the owner pressed New session, lost the old conversation, and had to ask
- *  the assistant to find it by hand). `mount` is read only for `.session()`, to mark which row
- *  is "the current one"; a pick always resumes the ONE global session (`chat.resume`), so this
- *  is for `keep: true` mounts — same scope `new_session_button` already has for the global
- *  conversation. The Dictate page's own `keep: false` demo (`page.js`'s `demo_mount()`) keeps
- *  the plain button instead: its session is private and never remembered, so there is nothing
- *  project-wide to switch back to (`doc/chat.md#keep`).
+/** ONE control, replacing a bare `new_session_button()`: a "Switch session ▾" dropdown beside
+ *  a bare "+" (one-dictation item 4, "a way back" — the owner pressed New session, lost the old
+ *  conversation, and had to ask the assistant to find it by hand). `mount` is read only for
+ *  `.session()`, to mark which row is "the current one"; a pick always resumes the ONE global
+ *  session (`chat.resume`), so this is for `keep: true` mounts — same scope `new_session_button`
+ *  already has for the global conversation. The Dictate page's own `keep: false` demo (`page.js`'s
+ *  `demo_mount()`) keeps the plain button instead: its session is private and never remembered,
+ *  so there is nothing project-wide to switch back to (`doc/chat.md#keep`).
+ *
+ *  The dropdown is `ux/Popover`'s `menu()` — the browser's own top-layer `[popover]`, not a
+ *  plain `position: absolute` box — so it floats OVER the drawer/sheet's own scroll clipping
+ *  and never reflows the header around it (the first version was a sibling `<div>` in normal
+ *  flow: opening it with 12 rows pushed the title, chips and v2 strip around the page, the owner
+ *  2026-10-25). `.ux-popover`'s own stylesheet already caps the box at `min(60vh, 22em)` with
+ *  its own scrollbar, so a long list scrolls in place instead of growing the page.
  *
  *  Extracted from `ext/drawer/tabs/ai.js`'s own "Switch session ▾" list (built 2026-10-02),
  *  which only ever ran on the desktop drawer — the phone sheet's head had just the bare button,
  *  which is the bug: CLAUDE.md law 6, one control, not a second hand-rolled copy per surface. */
-export function session_switcher(mount, { label = "+ New session", title = "Clear this chat and start a fresh conversation" } = {}){
+export function session_switcher(mount, { label = "New session", title = "Clear this chat and start a fresh conversation" } = {}){
 	const get_mount = () => typeof mount === "function" ? mount() : mount;
-	const $wrap = div.c("ux-dictate-chat-switcher flex v");
-	let $list;
+	const $wrap = div.c("ux-dictate-chat-switcher flex v-center wrap");
+	let open_menu = null;
 	async function paint(){
 		const session = get_mount()?.session?.() ?? chat.current();
 		let rows = [];
 		try { rows = await Session.recent_project({ limit: 12 }); } catch {}
 		if (!$wrap.el.isConnected) return;
-		const elsewhere = rows.some(row => row.session !== session);
+		open_menu?.close();
+		const elsewhere = rows.filter(row => row.session !== session);
 		$wrap.empty(() => {
-			div.c("drawer-ai-switcher flex v-center wrap", () => {
-				button.c("ux-dictate-chat-new-session drawer-ai-switch-btn", label).attr("type", "button")
-					.attr("title", title).click(() => get_mount()?.reset());
-				if (elsewhere) button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button")
-					.click(() => { $list.el.hidden = !$list.el.hidden; });
-			});
-			// A SIBLING of the button row, not nested in its flex row (the same bug ai.js's own
-			// switcher found 2026-10-02: wedged between the buttons instead of dropping below them).
-			if (elsewhere){
-				$list = div.c("drawer-ai-switch-list flex v");
-				$list.el.hidden = true;
-				$list.append(() => rows.forEach(row => {
-					const is_live = row.session === session;
-					button.c("drawer-row").attr("type", "button").ac(is_live && "on")
-						.click(() => { $list.el.hidden = true; if (!is_live) chat.resume(row.session).catch(e => quiet_note("could not switch to that session", e)); })
-						.append(() => {
-							span.c("drawer-row-title", (is_live ? "● " : "") + (row.title ?? "Session " + row.session));
-							small.c("muted", is_live ? "the current conversation" : ago(row.last_at ?? row.at));
-						});
-				}));
+			// Dropdown first (the switch you reach for), the bare "+" last (owner, 2026-10-25):
+			// it shows no words, so its accessible name comes from `title`/`aria-label`.
+			if (elsewhere.length){
+				const $switch = button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button");
+				open_menu = popover_menu($switch.el, elsewhere.map(row => ({
+					text: (row.title ?? "Session " + row.session) + " (" + ago(row.last_at ?? row.at) + ")",
+					pick: () => chat.resume(row.session).catch(e => quiet_note("could not switch to that session", e)),
+				})));
 			}
+			button.c("ux-dictate-chat-new-session drawer-ai-switch-btn", "+").attr("type", "button")
+				.attr("title", title).attr("aria-label", label).click(() => get_mount()?.reset());
 		});
 	}
 	paint();
 	const unsubscribe = chat.on_change(paint);
-	return Object.assign($wrap, { stop(){ unsubscribe(); } });
+	return Object.assign($wrap, { stop(){ unsubscribe(); open_menu?.close(); } });
 }
 
 chat.current = () => GLOBAL.current();
