@@ -300,6 +300,12 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		stop_stream = Session.stream(owner.ctl.session, ev => {
 			if (ev.kind === "stream"){ panel.stream(ev.role, ev.text); if (ev.text) DictateHealth.set("llm", "ok", `${ev.role} is writing an answer…`, { quiet: true }); }
 			else if (ev.kind === "line") draw(ev.line);
+			// The session's own title just changed (session_summary/rename_session, Sessions.js). No title
+			// is drawn in THIS mount, but the switcher is: `owner.broadcast()` re-runs every `chat.on_change`
+			// listener, which is how `session_switcher`'s `paint()` re-fetches `recent_project()` and shows
+			// the fresh title — the "a live client redraws it, keyed by id" the docs describe (review finding
+			// 3, 2026-10-25: nothing read this event before).
+			else if (ev.kind === "renamed") owner.broadcast();
 		}, { on_state: (s, why, { since } = {}) => {
 			// The noise rule: the LAN proxy cuts the wire every 30 s and it is back in a second, so a drop counts
 			// (a red row, the Reconnect button) only once it has lasted WIRE_GRACE_MS. Shorter: one event line.
