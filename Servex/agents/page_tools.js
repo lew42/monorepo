@@ -581,6 +581,32 @@ export async function move_home(file, module, by = "ProcessRunner"){
 	return { from, to, file: nf };
 }
 
+/* MOVE A TASK FOLDER INTO A SESSION (the owner, 2026-10-26: a task stays in the session that files it). The reverse of move_home: the folder
+ * <module>/tasks/<slug>/ moves to <session folder>/<slug>/ (git mv when tracked), keeping id and history. Then one line on each side:
+ * the task records its new path, parent and module tag; the session log and the old module list reference the new path (same id replaces
+ * the old reference, Task.js), and the move is one line in task-moves.jsonl. dry = report only. Returns {from, to, file} or {why}. */
+export async function move_to_session(file, session_url, by = "move_to_session", dry = false){
+	const dir = path.dirname(path.resolve(file)), slug = path.basename(dir);
+	const sfile = resolve_file(session_url, true), sdir = sfile && path.dirname(sfile);
+	if (!sdir || !fs.existsSync(sfile)) return { why: `no session record at ${session_url}` };
+	const to_dir = path.join(sdir, slug), mod = path.relative(FRAMEWORK, path.dirname(path.dirname(dir))).split(path.sep).join("/");
+	if (path.basename(path.dirname(dir)) !== "tasks") return { why: "not in a <module>/tasks/ folder" };
+	if (fs.existsSync(to_dir)) return { why: `${app_path(to_dir)} already exists` };
+	const from = app_path(dir), to = app_path(to_dir), rel = p => path.relative(ROOT, p).split(path.sep).join("/");
+	if (dry) return { from, to, dry: true };
+	const { execFileSync } = await import("node:child_process");
+	const git = (...a) => execFileSync("git", a, { cwd: ROOT, encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }).trim();
+	let tracked = false; try { tracked = !!git("ls-files", "--", rel(dir)); } catch {}
+	if (tracked) git("mv", rel(dir), rel(to_dir)); else fs.renameSync(dir, to_dir);
+	const nf = path.join(to_dir, "task.jsonl"), at = now();
+	write_line(nf, { set: { path: to, parent: session_url, module: mod, moved_from: from }, by, ts: at }, true);
+	write_line(sfile, { task: to, by, ts: at }, true);
+	const list = path.join(path.dirname(dir), "task.jsonl");
+	if (fs.existsSync(list)) write_line(list, { task: to, moved_from: from, by, ts: at }, true);
+	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: rel(dir), to: rel(to_dir), session: session_url, module: mod, by, git: tracked }) + String.fromCharCode(10));
+	return { from, to, file: nf };
+}
+
 /* MOVE A NESTED TASK HOME (owner prompts become tasks, 2026-10-22): a proposal drafted as lines in a session's record
  * (`{"tasks":{"add":…}}` in session.jsonl), once approved, gets its own folder <module>/tasks/<slug>/: line 1 carries its data,
  * the session gets a same-id `{task}` reference (which replaces the nested child, core/Session/Session.js), the module list
