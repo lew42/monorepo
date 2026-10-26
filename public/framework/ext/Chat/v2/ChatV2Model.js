@@ -89,6 +89,27 @@ export default class ChatV2Model {
 	static words_range(anchor){ return anchor ? (anchor.words ?? (anchor.from !== undefined ? [anchor.from, anchor.to] : null)) : null; }
 	static answer(n){ return n.answer ?? null; }
 	static kind(n){ return n.type ?? "Task"; }
+	static answered_question(n){ return this.kind(n) === "Question" && !!this.answer(n); }
+
+	// The id a line just answered, direct ({"<id>":{answer:…}}) or through its parent ({"<prompt>":{"<id>":{answer:…}}});
+	// null for every other line. Used to move that one card, the same signal V1 (Widget.show_task) and V2 (ChatV2.apply_one) read.
+	static answer_edit(line){
+		if (!line || typeof line !== "object") return null;
+		for (const [k, v] of Object.entries(line)) {
+			if (!v || typeof v !== "object") continue;
+			if ("answer" in v) return k;
+			for (const [k2, v2] of Object.entries(v)) if (v2 && typeof v2 === "object" && "answer" in v2) return k2;
+		}
+		return null;
+	}
+
+	// Answered questions sort after everything else in the list, keeping the rest in their original order:
+	// a slow answer must never stay buried above cards that arrived after it (the owner, 2026-10-25).
+	static ordered(list){
+		const head = [], tail = [];
+		for (const n of list) (this.answered_question(n) ? tail : head).push(n);
+		return [...head, ...tail];
+	}
 
 	// A Question: open (no answer) → answered (answer, not complete) → complete, the same rule as core's Question.phase.
 	// A Task: its own state.
@@ -106,12 +127,13 @@ export default class ChatV2Model {
 		return out;
 	}
 
-	// A prompt's children: its own tasks plus any root-level Question/Task whose `from` is its id, in list order.
-	children(prompt){ return [...prompt.kids, ...this.root.filter(n => n !== prompt && n.from === prompt.id && this.constructor.kind(n) !== "Prompt")]; }
+	// A prompt's children: its own tasks plus any root-level Question/Task whose `from` is its id, in list order —
+	// then an answered Question moves to the end (ordered(), above).
+	children(prompt){ return this.constructor.ordered([...prompt.kids, ...this.root.filter(n => n !== prompt && n.from === prompt.id && this.constructor.kind(n) !== "Prompt")]); }
 
-	// What the chat draws at the root: prompts, and anything whose `from` names no prompt here.
+	// What the chat draws at the root: prompts, and anything whose `from` names no prompt here; an answered root Question moves to the end.
 	roots(){
 		const prompts = new Set(this.root.filter(n => this.constructor.kind(n) === "Prompt").map(n => n.id));
-		return this.root.filter(n => this.constructor.kind(n) === "Prompt" || !prompts.has(n.from));
+		return this.constructor.ordered(this.root.filter(n => this.constructor.kind(n) === "Prompt" || !prompts.has(n.from)));
 	}
 }

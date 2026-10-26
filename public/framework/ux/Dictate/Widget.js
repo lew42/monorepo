@@ -468,7 +468,10 @@ Widget.Thread = class WidgetThread extends View {
 				});
 			}).attr("data-id", t.id).el;
 		});
-		if (old) old.replaceWith(node);
+		// moved (the owner, 2026-10-25): a Question just gained its answer — its row is already built at the END of
+		// $bubbles (the append() above), so dropping the old row in place, rather than replacing it, IS the move.
+		// No transition, no animation: a plain removal and the new row sitting where it already landed.
+		if (old) t.moved ? old.remove() : old.replaceWith(node);
 		else if (parent){   // under its Prompt: after the bubble, its refined block and the rows already put there
 			let after = parent;
 			while (after.nextElementSibling?.matches(".ux-dictate-widget-refined, .chatbox-task[data-under]")) after = after.nextElementSibling;

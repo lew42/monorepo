@@ -1,0 +1,2 @@
+{"assign":{"session_id":"minion-minion-resurface","agent":"minion","title":"resurface: Question card moves on answer","model":"sonnet","requested_at":"2026-10-25T20:22:32-05:00","now":"2026-10-25T20:22:32-05:00"}}
+{"log":{"at":"2026-10-25T20:27:20-05:00","msg":"implemented move-on-answer: ChatV2Model.ordered()/answer_edit, ChatV2.js move_to_end, Widget.js+chat.js moved flag. Writing node test next."}}
