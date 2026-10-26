@@ -578,6 +578,7 @@ export async function move_home(file, module, by = "ProcessRunner"){
 	write_line(list, { task: to, by, ts: at }, true);
 	record_new_folder(home.list.dir, slug);
 	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: rel(dir), to: rel(home.dir), session: parent ?? null, module, by, git: tracked }) + "\n");
+	await record_new_folder(sdir, slug);
 	return { from, to, file: nf };
 }
 

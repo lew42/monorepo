@@ -2,7 +2,7 @@
 
 Read this once instead of researching. Short index: [../tasks/readme.md](../tasks/readme.md). Plan and history: [one-state.md](one-state.md), [one-dashboard.md](one-dashboard.md), [task-folders.md](task-folders.md).
 
-> **The rule (the owner, 2026-10-26): a task stays in the session that files it** (a nested line in that session's `session.jsonl`, or `<session>/<slug>/` when it needs files). A module folder `<module>/tasks/<slug>/` only when the owner explicitly asks, with `home: "<module>"` on the add. `module: "<module>"` is just a tag: a module's page finds its tasks through the index (`AIIndex` rows carry `module`), never a copy. The old module-primary tasks (about 539) stay where they are until the owner asks to move them.
+> **The rule (the owner, 2026-10-26): a task stays in the session that files it** (a nested line in that session's `session.jsonl`, or `<session>/<slug>/` when it needs files). A module folder `<module>/tasks/<slug>/` only when the owner explicitly asks, with `home: "<module>"` on the add. `module: "<module>"` is just a tag: a module's page finds its tasks through the index (`index.json` carries `open_nested`: the open tasks written inside a session log, each with its `module` tag; `Server/AIIndex.mjs`, `nested`), never a copy. The old module-primary tasks (about 539) stay where they are until the owner asks to move them.
 
 ## 1. What a task is
 

@@ -160,7 +160,7 @@ try {
 			r = await run(`/framework/${MODN}/sub/`, { tasks: { add: { title: "Module from path" } } });
 			ok(r.ok && !fs.existsSync(path.join(MDIR, "tasks", "module-from-path")), "path inside a module, no home field: the task does NOT go to <module>/tasks/ (it stays where it is filed)");
 			r = await run(`/framework/${MODN}/sub/`, { tasks: { add: { title: "Module tag only", module: MODN } } });
-			ok(r.ok && !fs.existsSync(path.join(MDIR, "tasks", "module-from-path")), "module is a tag, not a home");
+			ok(r.ok && !fs.existsSync(path.join(MDIR, "tasks", "module-tag-only")), "module is a tag, not a home");
 			r = await run(`/framework/${MODN}/sub/`, { tasks: { add: { title: "Module from path", home: MODN, module: MODN } } });
 			ok(r.ok && fs.existsSync(path.join(MDIR, "tasks", "module-from-path", "task.jsonl")), "an explicit home field homes under <module>/tasks/");
 			ok(JSON.parse(fs.readFileSync(path.join(MDIR, "tasks", "module-from-path", "task.jsonl"), "utf8").split(String.fromCharCode(10))[0]).home === undefined, "the home key is not stored as data");
@@ -172,6 +172,24 @@ try {
 			ok(r.ok && !fs.existsSync(path.join(GOAL, "goal-child")) && !fs.existsSync(path.join(MDIR, "tasks", "goal-child")) && list_refs() === refs0 && r.state.tasks.some(t => t.id === "goal-child"), "a call inside tasks/: the subtask nests in the goal's own file, no folder, no module-list reference");
 			r = await run(URL, { tasks: { add: { title: "Dated outside" } } });
 			ok(!fs.existsSync(path.join(DIR, "dated-outside")) && r.state.tasks.some(t => t.id === "dated-outside"), "a dated ai/sessions path: the subtask nests, no folder");
+
+			{	// move_to_session: a module task goes back into its filing session, with the three lines and the ledger
+				const { move_to_session } = await import("./page_tools.js");
+				const SDIR = DIR + "-tosession", SURL = URL.replace(/\/$/, "") + "-tosession/";
+				fs.mkdirSync(SDIR, { recursive: true });
+				fs.writeFileSync(path.join(SDIR, "session.jsonl"), JSON.stringify({ session: { id: "tosession-test", kind: "agent" } }) + String.fromCharCode(10));
+				try {
+					const from = path.join(MDIR, "tasks", "module-from-path");
+					const dry = await move_to_session(path.join(from, "task.jsonl"), SURL, "test", true);
+					ok(dry.dry && fs.existsSync(from), "move_to_session dry run reports and moves nothing");
+					const moved = await move_to_session(path.join(from, "task.jsonl"), SURL, "test");
+					ok(moved.file && !fs.existsSync(from) && fs.existsSync(path.join(SDIR, "module-from-path", "task.jsonl")), "the task folder is now inside the session folder");
+					const tl = fs.readFileSync(path.join(SDIR, "module-from-path", "task.jsonl"), "utf8").trim().split(String.fromCharCode(10)).map(l => JSON.parse(l));
+					ok(tl.some(l => l.set?.parent === SURL && l.set?.module === MODN && l.set?.moved_from), "the task records its new parent, module tag and where it came from");
+					ok(fs.readFileSync(path.join(SDIR, "session.jsonl"), "utf8").includes(moved.to), "the session log references the moved task");
+					ok(fs.readFileSync(path.join(MDIR, "tasks", "task.jsonl"), "utf8").includes('"moved_from"'), "the old module list references the new path");
+				} finally { fs.rmSync(SDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+			}
 
 			r = await call("item", { path: URL, delta: { help: {} } }, "rules-caller");
 			ok(Array.isArray(r.instructions.rules) && r.instructions.rules.length === 5, "first-call instructions include rules");
