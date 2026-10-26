@@ -578,7 +578,6 @@ export async function move_home(file, module, by = "ProcessRunner"){
 	write_line(list, { task: to, by, ts: at }, true);
 	record_new_folder(home.list.dir, slug);
 	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: rel(dir), to: rel(home.dir), session: parent ?? null, module, by, git: tracked }) + "\n");
-	await record_new_folder(sdir, slug);
 	return { from, to, file: nf };
 }
 
@@ -605,6 +604,7 @@ export async function move_to_session(file, session_url, by = "move_to_session",
 	const list = path.join(path.dirname(dir), "task.jsonl");
 	if (fs.existsSync(list)) write_line(list, { task: to, moved_from: from, by, ts: at }, true);
 	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: rel(dir), to: rel(to_dir), session: session_url, module: mod, by, git: tracked }) + String.fromCharCode(10));
+	await record_new_folder(sdir, slug);
 	return { from, to, file: nf };
 }
 
