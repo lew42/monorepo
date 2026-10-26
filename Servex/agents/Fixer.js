@@ -48,9 +48,10 @@ export default class Fixer {
 		if (this.slot) return this.slot;
 		const pool = this.servex?.pool;
 		if (!pool) throw new Error("no worktree pool is running in this Servex (SERVEX_NO_POOL?) — the fixer needs one to hold");
-		const slot = pool.take_sync(this.id);
+		const slot = pool.reuse_hold(this.id) ?? pool.take_sync(this.id);   // reuse: a restart must not take a second slot (pool full, 2026-10-25)
 		if (!slot) throw new Error("no quick-fix worktree is ready for the fixer to hold (take_worktree would also fail right now) — it will try again on the next request");
 		pool.hold(slot.id, this.id);
+		pool.release_extra_holds(this.id, slot.id).catch(e => this.servex.say?.(`fixer: releasing extra holds failed: ${e.message}`));
 		this.servex.say?.(`fixer: holding ${slot.id} at ${slot.path}`, { event: "fixer", id: slot.id });
 		return this.slot = slot;
 	}

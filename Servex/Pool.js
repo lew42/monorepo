@@ -194,6 +194,47 @@ export default class Pool extends Events {
         return { id, held_by: null };
     }
 
+    /* A standing holder's slot survives a Servex restart (it is in .worktree-pool.json) but the holder's in-memory `this.slot` does not, so
+     * the fixer used to take a NEW slot every boot and hold it too: three restarts, three slots held by fixer-1 (qf-4, qf-7, qf-8), the pool
+     * full, take_worktree and quick_fix failing (2026-10-25). The holder now asks for the slot it already holds first. It is brought current
+     * like any take; one that will not fast-forward is left to release_extra_holds() and the next one is tried. Null when it holds none. */
+    reuse_hold(by){
+        const mine = this.slots.filter(s => s.state === "taken" && s.held_by === by).sort((a, b) => String(b.taken_at).localeCompare(String(a.taken_at)));
+        for (const slot of mine){
+            try { execFileSync("git", ["-C", slot.path, "merge", "--ff-only", this.base], { windowsHide: true, stdio: "ignore", timeout: 15000 }); }
+            catch { continue; }
+            Object.assign(slot, { taken_by: by, taken_at: stamp() });
+            this.save();
+            this.page_watch(slot);
+            this.say(`pool: ${slot.id} reused by ${by}, which already held it`, { id: slot.id, taken_by: by });
+            return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
+        }
+        return null;
+    }
+
+    /* Every other slot `by` holds is handed back (give_back refuses one with unmerged commits or a live worker, so work is never lost;
+     * a dirty one is salvaged first, non-destructively, as reclaim() does for a stopped holder). Runs in the background. */
+    async release_extra_holds(by, keep){
+        const released = [];
+        for (const slot of this.slots.filter(s => s.state === "taken" && s.held_by === by && s.id !== keep)){
+            try {
+                delete slot.held_by; this.save();
+                try { await this.give_back(slot.id, by); }
+                catch (e){
+                    if (!/uncommitted changes/.test(e.message)) throw e;
+                    await this.salvage(slot, by);
+                    await this.give_back(slot.id, by);
+                }
+                released.push(slot.id);
+            } catch (e){
+                slot.held_by = by; this.save();
+                this.say(`pool: ${slot.id} is an extra hold of ${by} but was kept — ${String(e.message).split("\n")[0]}`, { id: slot.id });
+            }
+        }
+        if (released.length) this.say(`pool: ${by} kept ${keep} and released its extra holds: ${released.join(", ")}`, { held_by: by });
+        return released;
+    }
+
     async give_back(id, by){
         const slot = this.slots.find(s => s.id === id);
         if (!slot) throw new Error(`No worktree "${id}" in the pool. It has: ${this.slots.map(s => s.id).join(", ") || "none"}.`);
@@ -241,6 +282,7 @@ export default class Pool extends Events {
         }
         if (!ff.ok) throw new Error(`Refused: ${id} would not fast-forward to ${this.base}: ${ff.out}`);
         Object.assign(slot, { state: "ready", taken_by: null, taken_at: null, idle_since: stamp() });
+        delete slot.held_by;   // a returned slot is nobody's; a stale hold would shield it from the next holder's reclaim
         this.save();
         this.page_unwatch(slot);
         this.say(`pool: ${id} returned and ready`, { id });
