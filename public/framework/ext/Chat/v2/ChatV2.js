@@ -11,7 +11,8 @@ export default class ChatV2 extends JSONL {
 	static QUESTION_ICON = { open: "help_outline", answered: "mark_chat_unread", complete: "check_box" };
 
 	lines = [];
-	raw_open = new Set();   // prompt ids whose raw text is showing; kept here so a live redraw does not close it
+	read_ids = new Set();   // answered Questions the owner tapped (green ?)
+	raw_open = new Set();  // prompt ids whose raw text is showing; kept here so a live redraw does not close it
 	els = new Map();        // id → the View that draws it (a prompt, a child, or a reply)
 	parts = new Map();      // prompt id → { head, raw, nest }: the three containers a prompt patches separately
 
@@ -258,18 +259,30 @@ export default class ChatV2 extends JSONL {
 	child(n){
 		const view = div.c("chat-v2-child", () => this.child_body(n)).attr("data-id", n.id).attr("data-phase", this.constructor.Model.phase(n));
 		this.els.set(n.id, view);
+		if (this.constructor.Model.kind(n) === "Question") view.click(() => {
+			if (this.constructor.Model.phase(n) === "open") return;
+			this.read_ids.has(n.id) ? this.read_ids.delete(n.id) : this.read_ids.add(n.id);
+			this.patch(n.id);
+		});
 		return view;
 	}
 
 	child_body(n){
 		const M = this.constructor.Model, phase = M.phase(n), question = M.kind(n) === "Question", answer = question && M.answer(n);
-		span.c("chat-v2-brain", "🧠");
+		// A Question's avatar IS its state icon (amber ? while open, green once answered); a Task keeps the brain + its own icon and labels.
+		if (question) {
+			// red = asked, yellow = answered, green = answered and tapped (read; kept in this tab only, tap again to undo)
+			const read = phase !== "open" && (phase === "complete" || this.read_ids.has(n.id));
+			icon("help_outline").ac("chat-v2-state", "is-" + (read ? "complete" : phase));		}
+		else span.c("chat-v2-brain", "🧠");
 		div.c("chat-v2-body", () => {
 			div.c("chat-v2-child-head", () => {
-				icon(question ? this.constructor.QUESTION_ICON[phase] : TaskView.STAGE[phase] ?? "help").ac("chat-v2-state", "is-" + phase);
-				span.c("chat-v2-kind", question ? "Question" : "Task");
+				if (!question) {
+					icon(TaskView.STAGE[phase] ?? "help").ac("chat-v2-state", "is-" + phase);
+					span.c("chat-v2-kind", "Task");
+				}
 				span.c("chat-v2-child-text", M.label(n));
-				span.c("chat-v2-phase", phase);
+				if (!question) span.c("chat-v2-phase", phase);
 			});
 			if (answer) div.c("chat-v2-answer", answer.text);
 		});
