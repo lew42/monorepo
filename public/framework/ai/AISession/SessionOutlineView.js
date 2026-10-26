@@ -53,13 +53,19 @@ export default class SessionOutlineView extends View {
 		this.el.dataset.children = JSON.stringify(outline.found.counts); this.el.dataset.drawn = outline.drawn;   // how many children each source found, and tasks drawn: read by the proofs
 	}
 
+	/** The "N tasks drawn" count that used to sit here counted every record task INCLUDING Prompt and Question chat records, so it read
+	 *  "201 tasks drawn" while every child card said "no tasks yet" — meaningless. Dropped rather than fixed here: "This session's own
+	 *  work" below already gives the session's own real count (`progress_text`), and the bigger fix (not counting chat as work at all)
+	 *  is the held "regroup Other work by Prompt" item. */
 	head(outline){
 		const n = outline.groups.filter(g => g.kind === "child").length;
 		div.c("soutline-head", () => {
-			p.c("soutline-count", `${n} child session${n === 1 ? "" : "s"} · ${outline.drawn} task${outline.drawn === 1 ? "" : "s"} drawn`);
-			button.c("soutline-toggle", this.mode === "ranked" ? "Ranked by cost · newest first" : "Newest first · ranked by cost")
-				.attr("title", this.mode === "ranked" ? "Showing: ranked by cost, then recency. Click to sort by time only." : "Showing: newest first. Click to rank by cost again.")
-				.on("click", () => { this.mode = this.mode === "ranked" ? "newest" : "ranked"; this.draw(); });
+			strong.c("soutline-count", `Child sessions (${n})`);
+			div.c("soutline-sort", () => {
+				const set = mode => { if (this.mode !== mode){ this.mode = mode; this.draw(); } };
+				button.c("soutline-toggle" + (this.mode === "ranked" ? " is-on" : ""), "Cost").attr("type", "button").attr("title", "Rank by cost, then recency").on("click", () => set("ranked"));
+				button.c("soutline-toggle" + (this.mode === "newest" ? " is-on" : ""), "Newest").attr("type", "button").attr("title", "Sort by time only").on("click", () => set("newest"));
+			});
 		});
 	}
 
@@ -141,12 +147,20 @@ export default class SessionOutlineView extends View {
 		return icon("radio_button_unchecked").ac("soutline-state", "is-open").attr("title", state ?? "open");
 	}
 
-	/** One task: ONE full-width row. A done task, or one with subtasks, is a fold: the row is its summary, the proof and the subtasks sit under it. */
+	/** One task: ONE full-width row. A done task, or one with subtasks, is a fold: the row is its summary, the proof and the subtasks sit under it.
+	 *  A Prompt or Question record (chat, not work) shows its own words as a link to the Timeline instead of a plain title — it has no page of
+	 *  its own yet (that's the Tasks-view redesign, still open), but the Timeline already lists every prompt in time order. */
 	item(i, scope){
 		const key = scope + "/" + i.kind + ":" + i.id, done = i.state === "complete", kids = i.kids.length, cls = "soutline-item" + (i.state === "stopped" ? " is-dropped" : "");
+		const chat = i.record_type === "Prompt" || i.record_type === "Question";
 		const row = () => div.c("soutline-row", () => {
 			SessionOutlineView.state_icon(i.state);
-			div.c("soutline-main", () => { span.c("soutline-ttl", i.title); this.agent_line(i); });
+			div.c("soutline-main", () => {
+				if (chat) a.c("soutline-ttl soutline-chat-link", i.title).href(AICost.session_url(this.sid) + "?tab=timeline").on("click", e => e.stopPropagation());
+				else span.c("soutline-ttl", i.title);
+				if (chat) small.c("muted soutline-chat-meta", `${i.record_type} · ${this.when(i.at)}`);
+				this.agent_line(i);
+			});
 			if (kids){ const { done: d, total } = SessionOutline.progress(i.kids); small.c("muted soutline-prog", `${d}/${total}`); }
 		});
 		if (!done && !kids) return void div.c(cls, row);

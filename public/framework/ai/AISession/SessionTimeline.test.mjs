@@ -66,9 +66,23 @@ assert.equal(kinds("tag").length, 1);
 assert.equal(Rows.rows([], [], []).length, 0);
 assert.equal(Rows.rows([], prompts, []).length, 3);
 
-// the default filter hides log and tag lines
-assert.deepEqual(Rows.HIDDEN, ["log", "tag"]);
+// the default filter hides log, tag and voice-plumbing lines (none of this fixture's lines are "plumbing", so the count is unaffected)
+assert.deepEqual(Rows.HIDDEN, ["log", "tag", "plumbing"]);
 assert.equal(rows.filter(r => !Rows.HIDDEN.includes(r.kind)).length, expected - 3);
+
+// the voice-session shapes that used to fall into the catch-all "other": chat, place, sent, quiet, and a prompt's word-by-word text
+const voice = Rows.rows([
+	{ chat: { from: { kind: "owner" }, text: "hello" }, at: at(0) },
+	{ chat: { from: { kind: "assistant" }, text: "hi" }, at: at(1) },
+	{ place: { text: "hello" }, at: at(2) },
+	{ sent: { to: "smart", re: [at(0)] }, at: at(3) },
+	{ quiet: { ms: 2500 }, at: at(4) },
+	{ "p-1": { raw: { push: "more words" } }, at: at(5) },
+	{ "p-1": { paragraphs: { append: { id: "a", text: "more words" } } }, at: at(6) },
+], [], []);
+assert.equal(voice.filter(r => r.kind === "chat").length, 2);
+assert.equal(voice.filter(r => r.kind === "plumbing").length, 5);
+assert.equal(voice.filter(r => r.kind === "other").length, 0, "no voice-session line shape should fall through to the unrecognized bucket");
 
 // landed_of: only children whose snapshot says landed
 const kids = [{ id: "a", name: "a", snap: { state: "complete", last_activity: at(3) } }, { id: "b", name: "b", snap: { state: "running" } }, { id: "c", name: "c", snap: null }, { id: "d", name: "d", snap: { closed: true, first_at: at(4) } }];

@@ -341,7 +341,8 @@ export default class AISessionDetail extends Page {
 				this.follow = f.start();   // tails the log and corrects the grid row (doc/realtime.md)
 				this.follow.then(() => { if (!conv.count) $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
 			} else if (!this.follow && is_uuid) AISessionDetail.load_lines(session_id).then(lines => { if (lines){ conv.add(lines); coverage.add_raw(lines); } else $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });   // a voice session's id never has a transcript (the "no session id yet" message above already says so); asking /ai-logs/ for it only earns a 400
-			Promise.all([AISessionRows.load_index(url), AISessionRows.load_tree(url)]).then(([index, tree]) => AISessionView.detail_section($session, session_id, index, tree));
+			if (is_uuid) Promise.all([AISessionRows.load_index(url), AISessionRows.load_tree(url)]).then(([index, tree]) => AISessionView.detail_section($session, session_id, index, tree));
+			else $session.empty(() => p.c("muted", "No Session class numbers: this id has no Claude Code transcript (it's a voice session), so GET /ai-logs/<id>/session needs a uuid it doesn't have."));   // was fetched unconditionally, which only ever earned a 400 for a voice session — the same is_uuid guard the transcript load above already uses
 			AISessionRows.load_index(url).then(async () => { const snap = await AISessionDetail.load_snapshot(session_id); $related.empty(() => AISessionDetail.render_related(snap, url)); });
 			// the card's page.jsonl and trace.json live in the session's own folder now; the old card folder is the fallback until a checkout is migrated
 			await AISessionRows.load_index(url);   // fills AISession.days; without this wait own_dir was computed before the index arrived, so the cost log and trace silently never showed
