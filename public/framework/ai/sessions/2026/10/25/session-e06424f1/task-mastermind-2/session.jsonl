@@ -130,3 +130,22 @@
 {"log":{"at":"2026-10-25T19:42:31-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-25T19:47:47-05:00","msg":"task-loop status ask 1: asked task-mastermind-2","ask":1}}
 {"log":{"text":"chat-split: reviewer verdict fix (6 must-fix, 4 notes). Fresh minion minion-chat-split-fixes editing worktree (shared cursors.js/css, closed-Prompt rule, docs, shots). Next: review diff, answer 10 findings, merge, then resurface minion (brief committed)."},"by":"task-mastermind-2","ts":"2026-10-26T00:47:53.741Z"}
+{"log":{"at":"2026-10-25T19:57:49-05:00","msg":"task-loop status ask 1: asked task-mastermind-2","ask":1}}
+{"log":{"text":"19:55 waiting on minion-chat-split-fixes (edits + tests ran, no commit yet); wake set 20:03. Then review diff, answer 10 findings, merge chat-split, spawn resurface."},"by":"task-mastermind-2","ts":"2026-10-26T00:57:56.153Z"}
+{"log":{"at":"2026-10-25T20:05:01-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T20:05:01-05:00","msg":"session resumed"}}
+{"log":{"text":"20:10 chat-split fix minion: cursor/merge fixes done, chat-sent 6 checks pass; one scroll-lock FAIL claimed pre-existing (I will verify against michael/dev before merge). Left: final tests, docs, screenshots, commit. Wake +8 min."},"by":"task-mastermind-2","ts":"2026-10-26T01:09:35.808Z"}
+{"log":{"at":"2026-10-25T20:16:55-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T20:16:55-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T20:16:59-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T20:17:35-05:00","msg":"session resumed"}}
+{"review":{"answer":{"n":1,"reply":"fixed: one shared pair per bubble moves to the newest tracked piece (Chat.js place_live_cursors); chat-sent passes at 400px"}},"by":"task-mastermind-2","ts":"2026-10-26T01:19:31.059Z"}
+{"review":{"answer":{"n":2,"reply":"fixed: no brain before the text; drawn only after a finished sentence"}},"by":"task-mastermind-2","ts":"2026-10-26T01:19:31.872Z"}
+{"review":{"answer":{"n":3,"reply":"fixed: mergeable() refuses a closed Prompt (Widget passes chat.prompt); test fixture clock corrected"}},"by":"task-mastermind-2","ts":"2026-10-26T01:19:32.704Z"}
+{"review":{"answer":{"n":4,"reply":"fixed: ext/Chat/cursors.js + cursors.css are the one maker and class set for V1 and V2; V1 copy deleted"}},"by":"task-mastermind-2","ts":"2026-10-26T01:19:33.605Z"}
+{"review":{"answer":{"n":5,"reply":"fixed: stale sent_badge note and 'round 4' wording corrected in the three readmes/notes"}},"by":"task-mastermind-2","ts":"2026-10-26T01:19:34.305Z"}
+{"review":{"answer":{"n":6,"reply":"fixed: requirements.md rows 13 and 14 added; shots read at 400 and 1200px; tests 51/51 (against the worktree server), chunks 9/9"}},"by":"task-mastermind-2","ts":"2026-10-26T01:19:35.246Z"}
+{"review":{"answer":{"n":7,"reply":"noted: colours follow sent until a per-chunk placed/handled signal exists; recorded as open in requirements row 14 and in the chunk-id ack work"}},"by":"task-mastermind-2","ts":"2026-10-26T01:19:36.112Z"}
+{"review":{"answer":{"n":8,"reply":"fixed: fast_chunks now used via last_fast_chunk_end()"}},"by":"task-mastermind-2","ts":"2026-10-26T01:19:36.814Z"}
+{"review":{"answer":{"n":9,"reply":"fixed: last_finished_sentence_end walks forward, no lastIndexOf edge case"}},"by":"task-mastermind-2","ts":"2026-10-26T01:19:37.554Z"}
+{"review":{"answer":{"n":10,"reply":"fixed: mergeable() checks isConnected"}},"by":"task-mastermind-2","ts":"2026-10-26T01:19:38.087Z"}
