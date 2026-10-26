@@ -1,0 +1,1 @@
+1. [accept] The ask was a visible link to the tasks view, and the shot shows the new Tasks tab; the empty inbox body comes from the worktree having no task data, which is an environment limit rather than a layout fault. The /tasks/ redirect to the Tasks chips on main is a fair second proof.

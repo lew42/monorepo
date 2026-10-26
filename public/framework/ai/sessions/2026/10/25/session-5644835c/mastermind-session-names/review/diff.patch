@@ -1,0 +1,216 @@
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index ed7c18f81..0b1d9df98 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -1,9 +1,11 @@
+ import fs from "node:fs";
+ import os from "node:os";
+ import path from "node:path";
++import { execFileSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ import { place, HOME } from "../home.js";
+ import LogLine from "../../Server/LogLine.mjs";
++import { slugify } from "../../Server/session-migrate.mjs";
+ import { model as tier_model } from "./tiers.js";
+ import Usage from "../Usage.js";
+ import { page_path } from "./Layers.js";
+@@ -899,10 +901,62 @@ export default class Sessions {
+ 		fs.mkdirSync(path.dirname(this.summary_file(s)), { recursive: true });
+ 		fs.writeFileSync(this.summary_file(s), JSON.stringify({ id: s.id, home: s.home, title, summary, at, visited: s.visited ?? [] }, null, 2));
+ 		if (changed) this.presence(s, s.home, "started");
++		/* RENAME ON TITLE CHANGE (owner, 2026-10-25): a title set the usual way renames the
++		 * session's own folder too, with no second call — never fatal to the title write itself. */
++		if (changed) try { this.rename(s, title); } catch (e){ console.error(`sessions: rename on title change: ${e.message}`); }
+ 		this.save();
+ 		return { ok: true, session: s.id, title, summary, at };
+ 	}
+ 
++	/* RENAME (owner, 2026-10-25): the session's own folder name tracks its title, so the same
++	 * name reads in the Switch-session dropdown and on disk (`ai/sessions/YYYY/MM/DD/<name>/`).
++	 * The session's id NEVER moves — it stays the key of `this.map` and the only thing any
++	 * reader resolves by; only the directory and `s.file` change, in this one Servex-owned step
++	 * (never a find-and-replace across JSONL: an old line keeps whatever path it was written
++	 * with, and every reader goes by id). Servex is the single writer for both the in-memory
++	 * state and the files, so this is the one place a rename happens, and it emits one `renamed`
++	 * event on the session's own live stream so an open client redraws the title from it instead
++	 * of tracking the path itself. A no-op when the title doesn't change the slug (same name, or
++	 * no good slug to make). Best-effort: a `follow()` on the session's OLD file path is pointed
++	 * at the new one if Servex's `Follow` instance is reachable; nothing else is chased down —
++	 * CLAUDE.md law 6 leaves a general move-with-reference-update to the Item system later, not
++	 * built here (see public/framework/core/Item's own note). */
++	rename(s, title){
++		const slug = slugify(title);
++		const old_rel = path.posix.dirname(s.file), day_rel = path.posix.dirname(old_rel), base = path.posix.basename(old_rel);
++		if (!slug || slug === base) return { renamed: false };
++		const day_disk = this.disk(day_rel);
++		let name = slug, n = 2;
++		while (name !== base && fs.existsSync(path.join(day_disk, name))) name = `${slug}-${n++}`;
++		if (name === base) return { renamed: false };
++		const old_disk = this.disk(old_rel), new_disk = path.join(day_disk, name);
++		fs.mkdirSync(day_disk, { recursive: true });
++		let tracked = "";
++		try { tracked = execFileSync("git", ["-C", this.repo, "ls-files", old_disk], { windowsHide: true }).toString().trim(); } catch {}
++		if (tracked) execFileSync("git", ["-C", this.repo, "mv", old_disk, new_disk], { windowsHide: true });
++		else fs.renameSync(old_disk, new_disk);
++		const old_file = s.file, new_rel = `${day_rel}/${name}`;
++		s.file = old_file.replace(old_rel, new_rel);
++		this.save();
++		try {
++			const subs = this.servex?.follow?.subs ?? [];
++			const old_path = old_file.replace(/^\/+/, ""), new_path = s.file.replace(/^\/+/, "");
++			for (const sub of subs) if (sub.path === old_path) sub.path = new_path;
++		} catch {}
++		this.push(s.id, { kind: "renamed", title, file: s.file });
++		return { renamed: true, from: old_rel, to: new_rel };
++	}
++
++	/* The tool-facing wrapper (tools.js's `rename_session`): looks the session up by id, which
++	 * never changes, then renames it as above. */
++	rename_session({ session, title } = {}){
++		const s = this.get(session);
++		title = String(title ?? "").trim();
++		if (!title) throw Object.assign(new Error("rename_session needs `title`, the name to rename to"), { status: 400 });
++		const r = this.rename(s, title);   // mutates s.file; read it back AFTER, or this returns the stale pre-rename path
++		return { ok: true, session: s.id, file: s.file, ...r };
++	}
++
+ 	/* A line from the smart assistant. `re` alone: a reply to that owner line. `re` +
+ 	 * `level`: a REFINED version of it, drawn under the raw words.
+ 	 *
+diff --git a/Servex/agents/Sessions.test.mjs b/Servex/agents/Sessions.test.mjs
+index 1dd9b61e2..7a177c01c 100644
+--- a/Servex/agents/Sessions.test.mjs
++++ b/Servex/agents/Sessions.test.mjs
+@@ -213,6 +213,33 @@ check("recent_project() lists every session of one project, newest first, across
+ 	assert.deepEqual(rows.map(r => r.session), [b.session, a.session]);
+ });
+ 
++// ── rename (owner, 2026-10-25): the folder tracks the title; the id never moves ────────
++check("summarize() renames the session's own folder to match a new title; the id stays the key", () => {
++	const s = make();
++	const made = s.create({ path: "/a/", host: "siteA.localhost" });
++	const old_file = s.map[made.session].file;
++	const r = s.summarize({ session: made.session, title: "Voice session plumbing", summary: "Testing the rename." });
++	assert.equal(r.title, "Voice session plumbing");
++	const row = s.map[made.session];
++	assert.equal(row.id, made.session, "the id never changes");
++	assert.notEqual(row.file, old_file, "the folder moved to match the title");
++	assert.ok(row.file.endsWith("/voice-session-plumbing/session.jsonl"), row.file);
++	assert.ok(fs.existsSync(path.join(repo, "public", row.file.replace(/^\//, ""))), "the session file exists at its new path");
++	assert.ok(!fs.existsSync(path.join(repo, "public", old_file.replace(/^\//, ""))), "nothing left at the old path");
++	// the same title again is a no-op, not a second move
++	const file_after = row.file;
++	s.summarize({ session: made.session, title: "Voice session plumbing", summary: "Still testing." });
++	assert.equal(row.file, file_after);
++});
++
++check("rename_session resolves by id (never a path) and renames the same way session_summary does", () => {
++	const s = make();
++	const made = s.create({ path: "/a/", host: "siteA.localhost" });
++	const r = s.rename_session({ session: made.session, title: "A fresh title here" });
++	assert.equal(r.session, made.session);
++	assert.ok(r.file.endsWith("/a-fresh-title-here/session.jsonl"), r.file);
++});
++
+ // ── voice model policy (refine-haiku-live, 2026-10-12): Claude by default, OpenRouter only by the switch or a refusal ──
+ check("voice roles run on Claude by default, even with OpenRouter ready; a Claude refusal moves that role to OpenRouter", () => {
+ 	const s = make(), sess = s.create({ path: "/a/", host: "siteA.localhost" }), row = s.map[sess.session];
+diff --git a/Servex/agents/session-smart.md b/Servex/agents/session-smart.md
+index 4b27fc43c..4dc49cde6 100644
+--- a/Servex/agents/session-smart.md
++++ b/Servex/agents/session-smart.md
+@@ -30,7 +30,7 @@ If this session is about a card (you were told its id and its `page.jsonl` path)
+ 
+ **2. Only you and the fast assistant see the owner's raw words.** A mastermind never gets them. It gets a POLISHED message: the owner's asks, numbered, in the owner's own words, with nothing dropped and a "maybe" kept as a suggestion, never turned into a rule. For a long dictation (more than a few sentences), make it with `node Server/refine.mjs <raw.txt> --out <task dir>/refine` (see `Server/doc/refine.md`); its `coverage.md` lets anyone check that every sentence reached the brief. Show the owner what you understood: post the refined text with the Servex tool `session_line`, giving `re` (the `at` of the owner's line: each line you hear is prefixed `[on /page/ at <at>]`) and a `level`: `clean` (the words with the fillers gone), `edit` (rewritten clearly) or `summary` (the gist). Then the owner sees raw → revised.
+ 
+-**3. Name the session — in your FIRST turn, every time.** Before you write your first reply, call the Servex tool `session_summary` with a title of at most 6 words and one plain line saying what was asked and what is in flight; then write the reply. Even for "can you hear me?", name it (`Voice check on Session page`). Call it again, in the same way, whenever the topic shifts.
++**3. Name the session once the topic is clear — usually within your first couple of turns, not necessarily the very first.** Until then it shows its own voice id (`v-xxxxxxx`), which is a fine default; don't force a name before you actually know what this conversation is about. Call the Servex tool `session_summary` with a title of at most 6 words and one plain line saying what was asked and what is in flight; it renames the session's own folder to match, so the same short name reads in the Switch-session dropdown and on disk — the session id itself never changes. Call it again, in the same way, whenever the topic shifts or the session drifts from its current title.
+ 
+ **4. Leave the record so a new session knows what you know, AS YOU GO.** The session file (`public<home>ai/<session>.jsonl`) is the full record, and Servex writes it for you. The index is each folder's `ai/log.jsonl`: write to it with the Servex tool `dir_log` the moment something matters, never as a cleanup step at the end. This pair is stopped after 5 quiet minutes, and whatever you had not written down is gone. Write it in the folder the work is ABOUT, which may not be the page the owner is on. `dir_log` takes TWO arguments, `dir` and `line` — `line` is exactly one of these three objects, never the bare object on its own (a call missing the `line` wrapper is refused):
+ - `dir_log({ dir: "<folder>", line: { decision: { text: "<the decision, one line>", file: "<this session's file>" } } })`;
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index 4a428e716..102d4b960 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -197,17 +197,31 @@ function session_tools(agents){
+ 		if (!s) throw new Error("Voice sessions are not running in this Servex (SERVEX_NO_LAYERS?).");
+ 		return s;
+ 	};
++	/* ROOT CAUSE of "no session undefined" (owner, 2026-10-25): the model was trusted to copy its
++	 * own session id correctly into every call, and sometimes didn't. Servex already knows it —
++	 * the session-smart agent's own id IS `session-smart-<session id>` (`name: s.id` at spawn,
++	 * Sessions.js's `spawn()`) — so the caller's id is the one source of truth; whatever `session`
++	 * the model passes is now only a fallback, for a test or a direct call with no live caller. */
++	const caller_session = caller => /^session-smart-(.+)$/.exec(caller ?? "")?.[1] ?? null;
+ 	const SESSION = { type: "string", description: "The session id, `v-…`, as your brief names it." };
+ 	return [
+ 		tool("session_summary",
+ 			"Give a voice session its title and one-line summary: the index a new session reads to know what this one was about."
+-			+ " Call it BEFORE your first reply, and again whenever the topic shifts. Writes `session.summary.json` beside the session file and a fresh"
+-			+ " `started` line, with the title, in the home folder's `ai/log.jsonl`.",
++			+ " Call it once the topic is clear, and again whenever it shifts. Writes `session.summary.json` beside the session file, a fresh"
++			+ " `started` line (with the title) in the home folder's `ai/log.jsonl`, and renames the session's own folder to match (`rename_session`,"
++			+ " below) — the session id never changes, only where its files sit on disk.",
+ 			{ session: SESSION,
+ 				title: { type: "string", description: "At most 6 words, e.g. `Voice session plumbing`." },
+ 				summary: { type: "string", description: "One plain line: what was asked, and what is in flight." } },
+ 			["session", "title", "summary"],
+-			args => JSON.stringify(sessions().summarize(args))),
++			(args, ctx) => JSON.stringify(sessions().summarize({ ...args, session: caller_session(ctx.caller) ?? args.session }))),
++		tool("rename_session",
++			"Rename a voice session: moves its folder (`ai/sessions/YYYY/MM/DD/<name>/`) to match a new title, so the same name reads in"
++			+ " the Switch-session dropdown and on disk. The session id is the key and never changes; `session_summary` already calls this"
++			+ " whenever the title changes, so you rarely need it directly — it exists on its own for a later rename-proposal flow.",
++			{ session: SESSION, title: { type: "string", description: "The new title to rename to." } },
++			["session", "title"],
++			(args, ctx) => JSON.stringify(sessions().rename_session({ ...args, session: caller_session(ctx.caller) ?? args.session }))),
+ 		tool("audit_session",
+ 			"Prove a Claude session's cost: recompute EVERY total from the raw transcript by an independent code path, compare to the"
+ 			+ " rolling totals the Session class keeps, and record the result (time, old, new, match) in the session's session.jsonl."
+@@ -242,7 +256,7 @@ function session_tools(agents){
+ 				re: { type: "string", description: "The `at` of the owner line this answers or refines." },
+ 				level: { type: "string", enum: ["clean", "edit", "summary"], description: "Only on a refinement: `clean`, `edit` or `summary`." } },
+ 			["session", "text"],
+-			args => JSON.stringify(sessions().line(args))),
++			(args, ctx) => JSON.stringify(sessions().line({ ...args, session: caller_session(ctx.caller) ?? args.session }))),
+ 		tool("quick_fix",
+ 			"The fast path: a small, concrete change to the page the owner is looking at (\"make this bold\", \"this gap is too"
+ 			+ " big\", a word, a colour, a size) goes straight to the standing fixer, fixer-1 — no spawn, nothing new made,"
+diff --git a/public/framework/core/Item/readme.md b/public/framework/core/Item/readme.md
+index cde3dd98c..a2753e8e8 100644
+--- a/public/framework/core/Item/readme.md
++++ b/public/framework/core/Item/readme.md
+@@ -75,6 +75,7 @@ An item added to a parent logs its deltas to the parent's store. Not every item
+ - ✅ An item moves home: `{"<id>":{"move":{"to":"<folder url>"}}}` through the item tool (or `spawn_agent` with `task: {from, id}`) moves a subtask out of its parent's log into its own folder, with its id, every line of its history, and one `{"task", "as"}` reference left behind. Why: [doc/architecture.md](./doc/architecture.md#an-item-moves-home-with-its-id-its-history-and-one-reference). (`item_tool.test.mjs`)
+ - ⬜ `item.set("prop", anotherItem)` is only a snapshot: the child is not adopted and its later deltas are not logged. Plan: [doc/next.md](./doc/next.md).
+ - ⬜ Dynamic upgrade (an item moving itself from the parent's store to its own file when it needs one) is a noted idea, not built.
++- ⬜ A general RENAME (a `Dated`-store item's own folder tracking its title, with every reference — follows, links, index rows — updated in one step) is still local to each caller: `Servex/agents/Sessions.js`'s `rename()`/`rename_session()` (voice sessions, 2026-10-25) moves the folder, updates its own pointer and best-effort patches `Follow` subs, but there is no shared `Item`/`Dated` primitive yet. A later task could lift this onto `Dated` so every dated-store item (sessions, cards, tasks) renames the same way, instead of each caller reinventing it.
+ 
+ Code pointers and findings: [doc/architecture.md](./doc/architecture.md#items-save-through-their-parent).
+ 
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index d3ac412af..5b8e6af23 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -383,6 +383,8 @@ export function session_switcher(mount, { label = "New session", title = "Clear
+ 		// 2026-10-25): `chat.on_change` can fire while it's open; skip this repaint and let
+ 		// the next real change (after it closes) catch up instead.
+ 		if (open_menu?.showing()) return;
++		// The dropdown only ever lists sessions to SWITCH TO, so the tab's own current session
++		// is excluded here, not just disabled once listed.
+ 		const elsewhere = rows.filter(row => row.session !== session);
+ 		$wrap.empty(() => {
+ 			// Dropdown first (the switch you reach for), the bare "+" last (owner, 2026-10-25):
+@@ -393,6 +395,12 @@ export function session_switcher(mount, { label = "New session", title = "Clear
+ 					text: (row.title ?? "Session " + row.session) + " (" + ago(row.last_at ?? row.at) + ")",
+ 					pick: () => chat.resume(row.session).catch(e => quiet_note("could not switch to that session", e)),
+ 				})));
++				// Refetch on open (owner, 2026-10-25): a session started elsewhere (another tab,
++				// the phone) never fires `chat.on_change` HERE, so the list can go stale between
++				// real changes. Every click re-runs `paint()`, which re-fetches `recent_project`;
++				// the `open_menu?.showing()` guard above means a menu already open is never torn
++				// down mid-read, so what's showing now stays put and the NEXT open is fresh.
++				$switch.el.addEventListener("click", () => { paint(); });
+ 			}
+ 			button.c("ux-dictate-chat-new-session drawer-ai-switch-btn", "+").attr("type", "button")
+ 				.attr("title", title).attr("aria-label", label).click(() => get_mount()?.reset());

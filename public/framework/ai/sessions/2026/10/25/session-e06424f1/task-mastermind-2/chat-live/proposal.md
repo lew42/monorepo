@@ -9,6 +9,23 @@
 7. **Round 3 — the smart cursor's exact signal, and `{place}` per sentence.** Same shape of gap as (5), now on the smart side: `ChatV2.js`'s `.chat-v2-smart-cursor` turns on at `{sent:{to:"smart"}}` and colours in once `working` clears for that PROMPT, not per sentence/chunk. If the owner wants the smart cursor to track a specific chunk rather than the whole Prompt, `mark_sent`/`feed_smart` need to say which chunk(s) a batch covered, e.g. `{sent:{to:"smart", sentences:["a1","a2"], at, delay_ms}}`.
    Separately, **confirmed by querying the real session `v-sq8y7db`'s `session.jsonl`**: all 591 `{place}` lines recorded there are `{to:"same", edit:"nothing"}` — 100%, no exceptions — which is pre-round-2 data (before the SKILL.md fix) and explains why the owner never saw a `paragraph`/`card` choice. There is currently no stamp distinguishing WHICH sentence a `{place}` answer was for in the Prompt record at all (only the whole-Prompt `sent` line) — the fast seat's `{place}` tool call and the resulting session line both need a per-sentence id if any future feature (the moving cursors, a true answered-per-sentence tick) is to track it precisely. This is the same underlying gap as (5) and (2) above; one Servex-side change (stamp the sentence id on both the `{place}` write-through and the `sent` line) would close all three at once.
 
+## REVISED 2026-10-25 (owner constraint: no new system, no new id kind) — this section wins over the one below
+
+**The chunk id already exists: it is the chat line's `at`.** `Sessions.say()` writes `{chat:{at, prompt:"p-<ms>", text, ...}}` and already returns `{ok, at}` (Sessions.js ~L1025). `sent.re`, the fast seat's `{place}` `re` (L469) and `thread` `re` all use that same `at`. The Prompt id is `p-<ms>`. A sentence inside a Prompt is `<paragraph><n>` computed by `PromptLines`. So nothing new is minted; the earlier "per-chunk id on the POST ack" idea is dropped (the ack is the existing `at` in the existing response).
+
+What each signal is, as ordinary appended lines in the already-tailed `session.jsonl` (the page updates on the stream, as it does for every other line):
+- **received**: the `chat` line itself (exists).
+- **sent to a seat**: `{sent:{to, at, re:[chat at…]}}` (exists). `re` is per chunk, so "which chunks went with this batch" is already answered; round-3's `sentences:[…]` idea is not needed.
+- **placed (fast)**: the fast seat's `{place:{re:<chat at>, …}}` line (exists; the client turns the ✓ cursor on it per chunk). Nothing to add server-side.
+- **handled (smart)**: smart's own reply/refine line carrying `re`, as now, plus the one new line below.
+- **new, the only addition**: `{done:{to, re:[chat at…], at, ms, ok?}}`, appended by `Sessions` at the seat's turn end through `this.write` (same writer as `sent`). `re` is the list `mark_sent` already held for that turn, so it is `sent.re` echoed back at turn end. This is not a new id and not a new store: it is a sibling of the `sent` line the page already reads.
+
+Also unchanged-and-sufficient: the explicit "handled" by the seat is just the seat's own existing line (`place` for fast; its reply or the item-tool `log` for smart). The Servex `done` line is the fallback for a turn that wrote nothing. If the owner prefers the seat to be the only source, drop `done` and keep first-write; the client already has that fallback.
+
+The only unavoidable new thing is the `done` line KIND (a new `{done}` key beside `{sent}`), because "the seat's turn ended" is a Servex fact no existing line records. It reuses `re` ids and the writer.
+
+Build size: ~60 lines in `Sessions.js` + the `Agents.js` result callback (~L1780) + client (`ChatV2.js` `place_cursor`, `Widget.js` `Thread.sent`) + mic.js (`raw` per sentence, gate `auto_check` by send mode, comma fast-chunks). Servex part needs a restart. Held: week usage over pace, so it starts when pace allows.
+
 ## Per-chunk "done" line from Servex at seat turn end (owner, 2026-10-25)
 
 Ask: the ✓ cursor (fast) and 🧠 cursor (smart) turn green/pink when the seat FINISHES its turn for that chunk, not on its first write. First write keeps showing the working dots; until the line exists the UI keeps first-write as fallback.

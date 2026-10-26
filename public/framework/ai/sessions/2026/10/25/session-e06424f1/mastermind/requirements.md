@@ -1,0 +1,7 @@
+# Ask: what do the fast and smart seats do in the dictation chat?
+
+The owner (by voice, via session-smart-v-sq8y7db, 2026-10-25, "very important"): what the fast and smart assistants do is unclear; iron it out. The owner's picture (not a rule): fast is quick, fixes capitals, punctuation and known names, turns a sentence into a question, groups chunks into the open prompt or a new one, may write a first title. Smart is a second pass: tasks, questions, titles, a refined prompt from the raw wall of text, and decides how each prompt is handled. Whisper is cut at comma/period/question; every chunk goes to fast, periods and questions go to smart in real time (every: 1).
+
+Deliverables: (1) audit what each seat does now; (2) one-page doc `public/framework/ux/Dictate/doc/fast-and-smart.md` with the job-by-seat table, gaps, recommended split, model/prompt/effort per seat (start high, measure, trim; keep fast fast), and how to experiment safely; (3) report to the owner in under 150 words listing the decisions. Design only; the wake default is another task's.
+
+Outcome: [fast-and-smart.md](/framework/ux/Dictate/doc/fast-and-smart.md). Open for the owner: its section 6 (comma chunks, who opens a Prompt, what "handled" means, smart sees fast's work, first trial, the code-side refine). Also open: `chat-shape.md` row 17 wrongly says the fast seat makes the Prompt (logged as an improvement on the Dictate folder).

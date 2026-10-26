@@ -1,0 +1,506 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/readmes/",
+ "widths": {
+  "400": {
+   "empty": 0.259,
+   "widest_text": 341,
+   "widest_text_sample": "Every folder's readme.md tells an agent ",
+   "overflow_x": false,
+   "items": 21,
+   "narrow_share": 0.048,
+   "layout": "ai2",
+   "tabs_gap": null,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 14,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 14
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 145,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.475,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 227,
+     "h": 101,
+     "share": 0.101,
+     "ink": 0.856,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 356,
+     "h": 730,
+     "share": 0.73,
+     "ink": 0.806,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1114,
+     "h": 50,
+     "share": 0.05,
+     "ink": 0.742,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1192,
+     "h": 25,
+     "share": 0.025,
+     "ink": 0.775,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 1281,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.6,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1348,
+     "h": 50,
+     "share": 0.05,
+     "ink": 0.825,
+     "big_empty": false
+    },
+    {
+     "cls": "wide",
+     "y": 1426,
+     "h": 521,
+     "share": 0.521,
+     "ink": 0.327,
+     "big_empty": false
+    },
+    {
+     "cls": "page-inbox-chip",
+     "y": 1976,
+     "h": 0,
+     "share": 0,
+     "ink": 0,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "☰Menu",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.482,
+   "widest_text": 587,
+   "widest_text_sample": "Every folder's readme.md tells an agent ",
+   "overflow_x": false,
+   "items": 43,
+   "narrow_share": 0.209,
+   "layout": "ai2",
+   "tabs_gap": 13,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 19,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 19
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 97,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 191,
+     "h": 54,
+     "share": 0.054,
+     "ink": 0.583,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 274,
+     "h": 510,
+     "share": 0.51,
+     "ink": 0.602,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 814,
+     "h": 27,
+     "share": 0.027,
+     "ink": 0.338,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 871,
+     "h": 27,
+     "share": 0.027,
+     "ink": 0.275,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 965,
+     "h": 42,
+     "share": 0.042,
+     "ink": 0.25,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1037,
+     "h": 27,
+     "share": 0.027,
+     "ink": 0.325,
+     "big_empty": false
+    },
+    {
+     "cls": "wide",
+     "y": 1094,
+     "h": 276,
+     "share": 0.276,
+     "ink": 0.3,
+     "big_empty": false
+    },
+    {
+     "cls": "page-inbox-chip",
+     "y": 1400,
+     "h": 0,
+     "share": 0,
+     "ink": 0,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.562,
+   "widest_text": 630,
+   "widest_text_sample": "Every folder's readme.md tells an agent ",
+   "overflow_x": false,
+   "items": 43,
+   "narrow_share": 0.721,
+   "layout": "ai2",
+   "tabs_gap": 21,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 27,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 27
+      }
+     ]
+    },
+    "p": {
+     "total": 54,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 54
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 111,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.392,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 223,
+     "h": 58,
+     "share": 0.058,
+     "ink": 0.375,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 320,
+     "h": 547,
+     "share": 0.547,
+     "ink": 0.457,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 907,
+     "h": 29,
+     "share": 0.029,
+     "ink": 0.45,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 975,
+     "h": 29,
+     "share": 0.029,
+     "ink": 0.188,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 1076,
+     "h": 45,
+     "share": 0.045,
+     "ink": 0.15,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1161,
+     "h": 29,
+     "share": 0.029,
+     "ink": 0.3,
+     "big_empty": false
+    },
+    {
+     "cls": "wide",
+     "y": 1229,
+     "h": 300,
+     "share": 0.3,
+     "ink": 0.256,
+     "big_empty": false
+    },
+    {
+     "cls": "page-inbox-chip",
+     "y": 1569,
+     "h": 0,
+     "share": 0,
+     "ink": 0,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "ux-dictate-widget-choice",
+     "text": "The last conversation · 2 days",
+     "lines": 3
+    },
+    {
+     "tag": "button",
+     "cls": "chatbox-compose-more",
+     "text": "",
+     "lines": 2.4
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.715,
+   "widest_text": 708,
+   "widest_text_sample": "Every folder's readme.md tells an agent ",
+   "overflow_x": false,
+   "items": 43,
+   "narrow_share": 0.721,
+   "layout": "ai2",
+   "tabs_gap": 47,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 54,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 54
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 124,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.237,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 251,
+     "h": 65,
+     "share": 0.065,
+     "ink": 0.275,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 361,
+     "h": 615,
+     "share": 0.615,
+     "ink": 0.306,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1022,
+     "h": 32,
+     "share": 0.032,
+     "ink": 0.175,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1099,
+     "h": 32,
+     "share": 0.032,
+     "ink": 0.125,
+     "big_empty": false
+    },
+    {
+     "cls": "h2",
+     "y": 1212,
+     "h": 51,
+     "share": 0.051,
+     "ink": 0.1,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1308,
+     "h": 32,
+     "share": 0.032,
+     "ink": 0.2,
+     "big_empty": false
+    },
+    {
+     "cls": "wide",
+     "y": 1385,
+     "h": 335,
+     "share": 0.335,
+     "ink": 0.175,
+     "big_empty": false
+    },
+    {
+     "cls": "page-inbox-chip",
+     "y": 1765,
+     "h": 0,
+     "share": 0,
+     "ink": 0,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "ux-dictate-widget-choice",
+     "text": "The last conversation · 2 days",
+     "lines": 3
+    },
+    {
+     "tag": "button",
+     "cls": "chatbox-compose-more",
+     "text": "",
+     "lines": 2.4
+    }
+   ]
+  }
+ },
+ "errors": []
+}

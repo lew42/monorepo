@@ -1,0 +1,56 @@
+[
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/",
+  "w": 1920,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks-1920.png",
+  "nav": "ok",
+  "errs": 82,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "f404": 212,
+  "f1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/files.jsonl",
+  "sw": 1920,
+  "cw": 1920,
+  "sh": 1000,
+  "textLen": 56046,
+  "title": "AI",
+  "first": "Framework flag Start here smart_toy AI travel_explore Research help FAQ balance Versus ▸ d",
+  "cut": [
+   "A:",
+   "SPAN:",
+   "SPAN:",
+   "A:",
+   "SPAN:"
+  ],
+  "sb": [
+   0,
+   0
+  ]
+ },
+ {
+  "p": "/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/",
+  "w": 3440,
+  "file": "shots/2026_10_20_session-e00f55c9_sessions-and-tasks-3440.png",
+  "nav": "ok",
+  "errs": 82,
+  "err1": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "f404": 264,
+  "f1": "404 /framework/ai/sessions/2026/10/20/session-e00f55c9/files.jsonl",
+  "sw": 3440,
+  "cw": 3440,
+  "sh": 1000,
+  "textLen": 56044,
+  "title": "(150) AI",
+  "first": "Framework flag Start here smart_toy AI travel_explore Research help FAQ balance Versus ▸ d",
+  "cut": [
+   "A:",
+   "SPAN:",
+   "SPAN:",
+   "A:",
+   "SPAN:"
+  ],
+  "sb": [
+   0,
+   0
+  ]
+ }
+]

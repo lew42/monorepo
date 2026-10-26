@@ -4,11 +4,22 @@ Budget: $6 total (your own turns plus every model call). Sonnet, medium effort. 
 
 ## The owner (2026-10-21; words in the tab prompt log `ai/2026/10/20/session-e00f55c9/page.jsonl`, the long one about tokens)
 
-Asks get lost: "I'm asking for 100 things and only 2 get built." Wanted: a cheap, reliable, programmatic pass (Haiku, each call well under 100k tokens) that breaks each raw prompt into **questions, statements and tasks** (a task is anything clearly asked to happen; its details or suggestions belong to that task; architectural decisions belong in a module doc; questions belong in that module's FAQ with a short answer or a link to it), in the prompt's own order, as close to one-to-one with its sentences as possible, with precise references (mentions: `/path`, `#Class`; see `ext/Mention`). First prove it on a few prompts against a thorough benchmark (Opus, maybe Sonnet); if Haiku catches 90–100% of the real asks, it can later run on every prompt. Do not nitpick wording: the test is whether the **main tasks, questions and decisions** are all there.
+Asks get lost: "I'm asking for 100 things and only 2 get built." Wanted: a cheap, reliable pass (Haiku, each call well under 100k tokens) that splits each raw prompt into three kinds, in the prompt's own order, close to one-to-one with its sentences:
+
+- **Task:** anything clearly asked to happen. Its details and suggestions nest under it.
+- **Question:** belongs in that module's FAQ, with a short answer or a link.
+- **Statement:** architectural decisions go in a module doc.
+- Every item carries precise references (mentions: `/path`, `#Class`; see `ext/Mention`).
+
+First prove it on a few prompts against a thorough benchmark (Opus, maybe Sonnet). If Haiku catches 90–100% of the real asks, it can later run on every prompt. Don't nitpick wording: the test is whether the **main tasks, questions and decisions** are all there.
 
 ## It already exists: start from it (law 6)
 
-`Server/RefineQueue.mjs` (doc [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md)) already runs one Haiku call per owner prompt from the VS Code transcripts, node-driven (no agent copies prompts), writes a refined card to the session's Coverage tab, logs cost, and finds repeats; `Server/AskIndex.mjs` turns refined asks into records. Brief v2 lives in `ext/Refine/RefinedCard.js`; the call is `Servex/ext/refine/RefineCall.js`. Today: 84 prompts refined at $0.11 each (max 30.8k tokens per call); 90 of this week's 104 prompts are not refined; the `--dry` estimate says ~$0.51 for all 90, which disagrees with the real $0.11 per prompt (fix the estimate).
+`Server/RefineQueue.mjs` ([doc](/framework/ext/Refine/doc/refine-queue.md)) already does the job per prompt: one Haiku call from the VS Code transcripts, node-driven, a refined card on the session's Coverage tab, cost logged, repeats found. `Server/AskIndex.mjs` turns refined asks into records. Brief v2 is in `ext/Refine/RefinedCard.js`; the call is `Servex/ext/refine/RefineCall.js`.
+
+- 84 prompts refined, $0.11 each (max 30.8k tokens per call).
+- 90 of this week's 104 prompts are not refined.
+- The `--dry` estimate says ~$0.51 for all 90, but real cost is $0.11 per prompt: fix the estimate.
 
 ## Do
 

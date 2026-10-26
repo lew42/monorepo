@@ -1,0 +1,452 @@
+diff --git a/.claude/hooks/jsonl-schema.mjs b/.claude/hooks/jsonl-schema.mjs
+index 5bdc26b40..737ed7d43 100644
+--- a/.claude/hooks/jsonl-schema.mjs
++++ b/.claude/hooks/jsonl-schema.mjs
+@@ -148,7 +148,9 @@ schemas["session.jsonl"] = { ...schemas["task.jsonl"], what: "a session folder's
+ 		// a task is a line in its session's log (sessions-and-tasks.md, "The decided shape")
+ 		task: { fields: ["title"], eg: { at: "NOW", title: "what the task is", state: "open" } },
+ 		// the session's own settings, one changed key per line, later lines win (core/Session/Session.js SETTINGS; the settings page writes it)
+-		settings: { fields: [], eg: { model: "claude-sonnet-5-5" } } }, pending: [...(schemas["task.jsonl"].pending ?? []), "tag", "task"] };   // tag lines: read by AISession.record(), not by the task reader
++		settings: { fields: [], eg: { model: "claude-sonnet-5-5" } },
++		// the owner's answer to a proposed task, pressed on the session page (core/Session/SessionTasks.js; Session.replay_line applies it)
++		decide: { fields: ["task", "is"], eg: { task: "<task id>", is: "approve", note: "optional" } } }, pending: [...(schemas["task.jsonl"].pending ?? []), "tag", "task"] };   // tag lines: read by AISession.record(), not by the task reader
+ 
+ /* Servex's `append_log` writes its OWN named logs (under SERVEX_HOME, never a repo file), and
+  * every one of those is an event: one flat object with a string `type`. */
+diff --git a/Server/RefineQueue.mjs b/Server/RefineQueue.mjs
+index 49d82e32d..10a176194 100644
+--- a/Server/RefineQueue.mjs
++++ b/Server/RefineQueue.mjs
+@@ -168,10 +168,12 @@ export default class RefineQueue {
+ 		if (!parsed){ this.failed++; return run; }
+ 		const ref = { session: p.session ?? p.task, line: p.line, at: p.at, uuid: p.uuid };
+ 		const item = { ...RefinedCard.item({ ref, parsed, count, brief: this.brief, model: r.model, usd: run.usd, tokens }), uuid: p.uuid, minion: r.session_id };
+-		if (p.session) await page_add({ path: `/framework/ai/sessions/${p.session}/`, item }, { caller: RefineQueue.CALLER });
++		const page = p.page ?? (p.session ? `/framework/ai/sessions/${p.session}/` : null);   // p.page: the prompt's own page (Servex/agents/PromptTasks.js)
++		if (page) await page_add({ path: page, item }, { caller: RefineQueue.CALLER });
+ 		for (const a of parsed.asks) RefineQueue.append(RefineQueue.ASKS, { session: ref.session, line: ref.line, at: ref.at, id: a.id, ask: a.text.slice(0, 200), key: a.key, module: a.module, kind: a.kind, brief: this.brief });
+ 		if (p.session) try { run.filed = new AskIndex({ root: RefineQueue.main_root() }).after_refine(ref, parsed); } catch (e){ run.filed_error = String(e.message ?? e).slice(0, 200); }   // record + cross off / module inbox (ext/Refine/doc/asks.md)
+ 		this.done++;
++		run.items = parsed.asks;   // for a caller that files them (PromptTasks); not written to runs.jsonl
+ 		return run;
+ 	}
+ 
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 4f8bdb255..4cc576554 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -18,6 +18,7 @@ import { hooks as page_tool_hooks } from "./agents/page_tools.js";
+ import ProcessRunner from "./ProcessRunner.js";
+ import Respawn from "./agents/Respawn.js";
+ import Wakeups from "./agents/Wakeups.js";
++import PromptTasks from "./agents/PromptTasks.js";
+ import { check_page, cap } from "../Server/BrowserCheck.mjs";
+ import { pid as browser_pid } from "../Server/Browser.mjs";
+ import Heartbeat from "./Heartbeat.js";
+@@ -296,6 +297,8 @@ export default class Servex extends Events {
+         const notice = (to, text, from) => { if (!to || to === "owner") return; try { this.agents.send(to, text, { from: from ?? "servex" }); } catch {} };
+         page_tool_hooks.requested = r => notice(r.to, `Request from ${r.from}: "${r.title}", logged at ${r.path}. Answer on the item when it is done: item({path: "${r.path}", delta: ${r.own_folder ? `{"complete": {"outcome": "…"}}` : `{"${r.id}": {"complete": {"outcome": "…"}}}`}}). ${r.from} hears the outcome then.`, r.from);
+         page_tool_hooks.answered = r => notice(r.to, `${r.by} answered your request "${r.title}" (${r.path}): ${r.outcome ?? "done, no outcome given"}`, r.by);
++        // Owner prompts become proposed tasks on their session (Servex/agents/PromptTasks.js; one Haiku call per prompt).
++        if (!process.env.SERVEX_NO_PROMPT_TASKS){ this.prompt_tasks = new PromptTasks({ say: t => this.say?.(t) }); page_tool_hooks.prompted = p => this.prompt_tasks.prompted(p); }
+ 
+         /* THE ASKS LEDGER (asks-ledger, 2026-09-30): notices when a routed ask's owner agent
+          * stops, goes quiet, or lands its task, and marks public/framework/ai/asks.jsonl so
+diff --git a/Servex/agents/PromptTasks.js b/Servex/agents/PromptTasks.js
+new file mode 100644
+index 000000000..4aa2d7b14
+--- /dev/null
++++ b/Servex/agents/PromptTasks.js
+@@ -0,0 +1,64 @@
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { run_item } from "./page_tools.js";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const AI = path.resolve(HERE, "..", "..", "public", "framework", "ai");
++
++/* OWNER PROMPTS BECOME TASKS (the owner, 2026-10-22: "owner prompts become tasks on the session page in real time").
++ * prompt-relay.mjs writes each owner prompt as a `Prompt` item on the session's page.jsonl (the old card folder,
++ * ai/YYYY/MM/DD/<slug>/); page_add calls `hooks.prompted` (page_tools.js). Here, one at a time:
++ *   1. one Haiku call splits the prompt into asks (RefineQueue.one, brief v3; the refined card lands beside the prompt,
++ *      which is what the session page's Coverage tab already reads);
++ *   2. each ask of kind `task` is filed as a PROPOSED task (state waiting, on the owner) in the session's own record,
++ *      ai/sessions/YYYY/MM/DD/<slug>/session.jsonl, through the item tool, so the session page shows it live and the
++ *      owner approves or rejects it there (a `decide` line, core/Session/Session.js).
++ * Off: SERVEX_NO_PROMPT_TASKS=1. Doc: core/Session/doc/prompt-tasks.md. */
++export default class PromptTasks {
++
++	static KINDS = ["task"];
++	static MIN_CHARS = 30;   // the same floor RefineQueue uses   // questions and statements stay on the refined card; only work becomes a task
++
++	constructor(...args){ Object.assign(this, ...args); this.chain = Promise.resolve(); this.seen = new Set(); this.ai ??= AI; }
++
++	// hooks.prompted: queue it; prompts are refined one at a time, in the order they were written.
++	prompted(p){
++		const key = `${p?.file}:${p?.line}`;
++		if (!p?.text || this.seen.has(key) || p.text.trim().length < PromptTasks.MIN_CHARS || /^\s*\//.test(p.text)) return this.chain;   // "try again?" and /commands hold no task
++		this.seen.add(key);
++		return this.chain = this.chain.then(() => this.run(p)).catch(e => this.say?.(`prompt-tasks: ${e.message || e}`));
++	}
++
++	// The session's record for a prompt page: ai/YYYY/MM/DD/<slug>/page.jsonl -> ai/sessions/YYYY/MM/DD/<slug>/session.jsonl.
++	record_for(page_file){
++		const rel = path.relative(this.ai, path.dirname(page_file)).split(path.sep).join("/");
++		if (!/^\d{4}\/\d{2}\/\d{2}\/[^/]+$/.test(rel)) return null;   // only a dated card folder
++		const file = path.join(this.ai, "sessions", ...rel.split("/"), "session.jsonl");
++		if (!fs.existsSync(file)) return null;   // made by the SessionStart hook; never made here
++		let uuid = null;
++		try { const first = JSON.parse(fs.readFileSync(file, "utf8").split("\n")[0]); uuid = typeof first.session === "string" ? first.session : first.session?.id ?? null; } catch {}
++		return { file, rel, uuid, page_url: `/framework/ai/${rel}/`, record_url: `/framework/ai/sessions/${rel}/session.jsonl` };
++	}
++
++	// The splitter: RefineQueue's one call (Server/RefineQueue.mjs), loaded on first use. A test passes its own.
++	async refine(p){
++		this.queue ??= new (await import("../../Server/RefineQueue.mjs")).default({ brief: "v3", parallel: 1 });
++		return this.queue.one(p);
++	}
++
++	async run(p){
++		const rec = this.record_for(p.file);
++		if (!rec) return { ok: false, why: "no session record for this prompt page" };
++		const run = await this.refine({ session: rec.uuid ?? rec.rel, page: rec.page_url, line: p.line, at: p.at, uuid: p.id, text: p.text });
++		if (!run?.ok) return run;
++		const filed = [];
++		for (const ask of (run.items ?? []).filter(a => PromptTasks.KINDS.includes(a.kind))){
++			const add = { title: String(ask.text).slice(0, 200), state: "waiting", waiting_on: "owner", from: "owner", source: `prompt:${p.id ?? p.line}`,
++				...(ask.details ? { description: String(ask.details).slice(0, 600) } : {}), ...(ask.module ? { module_hint: ask.module } : {}) };
++			const r = await run_item({ path: rec.record_url, delta: { tasks: { add } } }, { caller: "owner", source: "prompt-tasks" });
++			filed.push(r?.ok ? (r.ids?.[0] ?? add.title) : { refused: r?.why });
++		}
++		return { ...run, filed };
++	}
++}
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 0ae6cbf0c..1ea0e6abf 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -533,7 +533,7 @@ export async function move_home(file, module, by = "ProcessRunner"){
+  * request this write completed goes back to whoever asked (`from`), with its outcome. A completion is a `complete` line on a nested
+  * child ({"<id>": {"complete": …}}, or a target of [<id>]), or on a request that has its own folder (the file's own root). */
+ function notify_requests(live, at, body, requests, by){
+-	for (const r of requests) if (hooks.requested) Promise.resolve(hooks.requested(r)).catch(() => {});
++	for (const r of requests) if (hooks.requested && r.to) Promise.resolve(hooks.requested(r)).catch(() => {});   // a log with no agent (a VS Code tab's session) has nobody to tell
+ 	if (!hooks.answered) return;
+ 	const done = [];
+ 	if (at.target.length === 1 && body.complete !== undefined) done.push(live._tasks?.find(at.target[0]));
+@@ -543,7 +543,7 @@ function notify_requests(live, at, body, requests, by){
+ 	}
+ 	for (const t of done){
+ 		const from = t?.get_one("from");
+-		if (!from || from === by || t.state !== "complete") continue;
++		if (!from || from === by || from === "owner" || t.state !== "complete") continue;   // the owner sees it on the page
+ 		Promise.resolve(hooks.answered({ to: from, by, id: t.id, title: t.get_one("title") ?? t.id, outcome: t.get_one("outcome") ?? null, path: t === live ? (live.get_one("path") ?? app_path(path.dirname(at.file))) : app_path(path.dirname(at.file)) })).catch(() => {});
+ 	}
+ }
+@@ -644,6 +644,7 @@ export const hooks = {
+ 	changed: null,     // Servex sets it to `file => process_runner.step(file)` (a process moves on after any write)
+ 	requested: null,   // requested/answered: Servex sends the one-line notices (Servex/agents/doc/messaging.md, "Requests are logged items")
+ 	answered: null,
++	prompted: null,   // Servex: an owner Prompt landed on a session page -> PromptTasks files its asks (Servex/agents/PromptTasks.js)
+ };
+ 
+ export async function run_item({ path: url, target, delta } = {}, ctx = {}, alias = false){
+@@ -792,6 +793,9 @@ export function page_tools(resolve_log = null){
+ 				const line = nest(at.target, { add });
+ 
+ 				const size = write_line(at.file, line);
++				// An owner prompt (prompt-relay.mjs writes it): Servex files its asks as proposed tasks (Servex/agents/PromptTasks.js).
++				if (item?.type === "Prompt" && typeof item.text === "string" && hooks.prompted)
++					try { Promise.resolve(hooks.prompted({ file: at.file, line: size?.lines ?? null, id, text: item.text, at: add.ts, by: ctx.caller ?? null })).catch(() => {}); } catch {}
+ 				return JSON.stringify({ ok: true, id, line, size });
+ 			}),
+ 
+diff --git a/Servex/agents/prompt-tasks.test.mjs b/Servex/agents/prompt-tasks.test.mjs
+new file mode 100644
+index 000000000..d4125cb0f
+--- /dev/null
++++ b/Servex/agents/prompt-tasks.test.mjs
+@@ -0,0 +1,60 @@
++// Owner prompts become proposed tasks on their session. `node Servex/agents/prompt-tasks.test.mjs`. Doc: core/Session/doc/prompt-tasks.md.
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { page_tools, hooks } from "./page_tools.js";
++import PromptTasks from "./PromptTasks.js";
++import Session from "../../public/framework/core/Session/Session.js";
++import "../../public/framework/core/Task/Task.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++const SLUG = ".prompt-tasks-test-" + process.pid;
++const PAGE_DIR = path.join(ROOT, "public/framework/ai/2026/10/22", SLUG), REC_DIR = path.join(ROOT, "public/framework/ai/sessions/2026/10/22", SLUG);
++const REC = path.join(REC_DIR, "session.jsonl");
++const read = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
++let n = 0;
++const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
++
++fs.mkdirSync(PAGE_DIR, { recursive: true }); fs.mkdirSync(REC_DIR, { recursive: true });
++fs.writeFileSync(REC, JSON.stringify({ session: { id: "00000000-0000-4000-8000-000000000001", kind: "vscode-tab", at: "2026-10-22T20:00:00Z" } }) + "\n");
++try {
++	// 1. page_add of an owner Prompt calls hooks.prompted with where it landed.
++	const heard = [];
++	hooks.prompted = p => heard.push(p);
++	const page_add = page_tools().find(t => t.name === "page_add").handler;
++	await page_add({ path: `/framework/ai/2026/10/22/${SLUG}/`, item: { type: "Prompt", text: "Build the session menu, and why is the readme page a 404?" } }, { caller: "owner" });
++	await page_add({ path: `/framework/ai/2026/10/22/${SLUG}/`, item: { type: "part-text", text: "not a prompt" } }, { caller: "owner" });
++	hooks.prompted = null;
++	ok(heard.length === 1 && heard[0].file === path.join(PAGE_DIR, "page.jsonl") && heard[0].line === 1 && heard[0].text.startsWith("Build"), "an owner Prompt on a page tells Servex where it landed; other items do not");
++
++	// 2. The prompt page maps to the session's own record, and line 1's id is read from a VS Code tab's object.
++	const pt = new PromptTasks({ refine: async p => (pt.asked = p, { ok: true, items: [
++		{ kind: "task", text: "Build the session menu", details: "settings first", module: "core/Session" },
++		{ kind: "question", text: "Why is the readme page a 404?" },
++	] }) });
++	const rec = pt.record_for(heard[0].file);
++	ok(rec?.file === REC && rec.uuid === "00000000-0000-4000-8000-000000000001", "the prompt page maps to ai/sessions/<same day>/<same folder>/session.jsonl, uuid from line 1");
++
++	// 3. Each task-kind ask is filed as a proposed task, on the owner, in the session's record; a question is not.
++	const out = await pt.prompted(heard[0]);
++	ok(pt.asked.page === `/framework/ai/2026/10/22/${SLUG}/` && pt.asked.session === rec.uuid, "the refined card goes beside the prompt (the Coverage tab reads it there)");
++	const adds = read(REC).filter(l => l.tasks?.add); 
++	ok(adds.length === 1 && adds[0].tasks.add.state === "waiting" && adds[0].tasks.add.waiting_on === "owner" && adds[0].tasks.add.from === "owner", "one proposed task per task-kind ask, waiting on the owner; the question stays on the card");
++	ok(!fs.existsSync(path.join(ROOT, "public/framework/core/Session/tasks")), "a proposed task drafts in the session: no module folder is made before approval");
++	await pt.prompted(heard[0]);
++	ok(read(REC).filter(l => l.tasks?.add).length === 1, "the same prompt is never filed twice");
++
++	// 4. The session replays it as waiting; a decide line from the page approves it.
++	let s = Session.replay(read(REC));
++	const t = [...s.tasks][0];
++	ok(s.id === rec.uuid && t.state === "waiting" && t.get_one("title") === "Build the session menu", "the session reads the proposal as a waiting task");
++	s = Session.replay([...read(REC), { decide: { task: t.id, is: "approve", by: "owner" } }]);
++	ok([...s.tasks][0].state === "running", "a decide line (Approve on the session page) starts it");
++	s = Session.replay([...read(REC), { decide: { task: t.id, is: "reject", note: "not now" } }]);
++	ok([...s.tasks][0].state === "stopped", "Reject stops it, with the note as the reason");
++} finally {
++	fs.rmSync(PAGE_DIR, { recursive: true, force: true });
++	fs.rmSync(REC_DIR, { recursive: true, force: true });
++}
++console.log(`${n} passing`);
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 2b6231f87..a76f08b3f 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -15,6 +15,7 @@ import Item from "/framework/core/Item/Item.js";
+ import Property from "/framework/core/Property/Property.js";
+ import SessionMenu from "/framework/core/Session/SessionMenu.js";
+ import SessionSettings from "/framework/core/Session/SessionSettings.js";
++import SessionTasks from "/framework/core/Session/SessionTasks.js";
+ import "/framework/core/Page/parts/PageHeading.js";   // the kinds the page tool adds register themselves by import
+ import "/framework/core/Page/parts/PageText.js";
+ import "/framework/core/Page/parts/PageCard.js";
+@@ -69,7 +70,7 @@ export default class AISessionDetail extends Page {
+ 	// With tabs on (a `tab` line in the session's page.jsonl), the template itself is the first tab.
+ 	home_tab = "Conversation";
+ 
+-	deactivated(){ this.follow?.then(f => f.stop()); this.follow = null; this.live_off?.(); this.live_off = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
++	deactivated(){ this.tasks_log?.unsubscribe(); this.tasks_log = null; this.follow?.then(f => f.stop()); this.follow = null; this.live_off?.(); this.live_off = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
+ 
+ 	/* THE SESSION'S OWN PAGE LOG (2026-10-09, the page tool): `page.jsonl` in the session's folder can
+ 	   reshape this page on top of the template — tabs, the six layout words — and carries the cards the
+@@ -142,7 +143,7 @@ export default class AISessionDetail extends Page {
+ 		const { home, id } = this, url = home.url;
+ 		const $parts = div.c("flow session-parts");   // the heading, text and card parts the page tool adds (SessionParts)
+ 		this.parts = new AISessionDetail.Parts($parts);
+-		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage;
++		let $box, $voice, $conv, $related, $costs, $spawn, $session, $trace, $coverage, $tasks;
+ 		// Tabs, not columns: one full-width panel at a time, so no table is ever squeezed (doc/detail-layout.md). The tab is in ?tab= so a reload lands on it.
+ 		const TABS = [["conversation", "Conversation"], ["coverage", "Coverage"], ["cost", "Cost"], ["models", "Models and tokens"], ["related", "Related"]];
+ 		const want = new URLSearchParams(location.search).get("tab"), panels = {}, buttons = {};
+@@ -154,6 +155,7 @@ export default class AISessionDetail extends Page {
+ 		div.c("sessions-tabs flex gap-50 wrap", () => TABS.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k))));
+ 		div.c("sessions-detail-body", () => {
+ 			panels.conversation = div.c("flow sessions-panel", () => {
++				$tasks = div.c("flow session-tasks");   // the session's tasks, live; an owner prompt's asks arrive here as proposals (core/Session/SessionTasks.js)
+ 				$box = div.c("flow");     // which session this is (source tag, tab title, model)
+ 				$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
+ 				$conv = div.c("flow sessions-conv");   // the live conversation
+@@ -178,6 +180,7 @@ export default class AISessionDetail extends Page {
+ 			const coverage = new AISessionCoverage(session_id);
+ 			$coverage.append(coverage.view);
+ 			voice.follow(session_id);   // a phone has no dev socket: it follows Servex's voice stream
++			this.record_url().then(file => { if (file && !this.tasks_log) this.tasks_log = new SessionTasks({ url: file, $box: $tasks }).live(); });
+ 			// FIRST, before the slow loads below: the session's own page log (tabs, layout words, AI cards), live.
+ 			this.log_urls().then(urls => {
+ 				if (this.logs) return;
+diff --git a/public/framework/ai/doc/prompt-audit.md b/public/framework/ai/doc/prompt-audit.md
+index 0af3c07ce..d2073d790 100644
+--- a/public/framework/ai/doc/prompt-audit.md
++++ b/public/framework/ai/doc/prompt-audit.md
+@@ -85,6 +85,6 @@ The reviewer works the same way, and each run's own feedback is in its `review_r
+ 
+ ## Not built yet
+ 
+-- ⬜ Running pass 1 live on every new prompt (the brief needs no code context, so it can).
++- ✅ A live split on every new prompt now exists, through RefineQueue rather than this pass 1: Servex refines each VS Code prompt as it arrives and files its task asks as proposed tasks on the session page ([core/Session/doc/prompt-tasks.md](/framework/core/Session/doc/prompt-tasks.md)). This audit stays the deeper weekly check.
+ - ⬜ Showing the items and their tags as cards on the session page.
+ - ⬜ Chunked review for very large sessions (above).
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index 56c1a6eb0..b0fd8a8a3 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -46,13 +46,23 @@ export default class Session extends Item {
+ 	get completion(){ const { done, total } = this.progress(); return total ? done / total : 0; }
+ 
+ 	// Item.replay does the loop; a session only needs its id from line 1 and its own line shape.
+-	static replay_new(lines){ return new this(lines.find(l => l?.session)?.session ?? lines.find(l => l?.id)?.id); }
++	static replay_new(lines){
++		const s = lines.find(l => l?.session)?.session;   // a VS Code tab's line 1 is {session:{id,kind,cwd,at}} (the SessionStart hook)
++		return new this((s && typeof s === "object" ? s.id : s) ?? lines.find(l => l?.id)?.id);
++	}
+ 	replay_line(line){
+ 		const { by, ts, at, session: _s, ...delta } = line;
+ 		if (typeof delta.task === "string"){ this.tasks.insert(Task.from_ref(delta.task)); delete delta.task; }   // a reference line: the live child
+ 		if (delta.tasks && typeof delta.tasks === "object") this.tasks.set(delta.tasks);
+ 		delete delta.tasks;
+ 		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
++		// The owner's answer to a proposed task, from the session page: {"decide":{"task":id,"is":"approve"|"improve"|"reject","note"}}.
++		// One known verb that names its task, so the browser's append passes the schema (a bare {"<id>":{…}} line would not).
++		if (delta.decide && typeof delta.decide === "object"){
++			const { task, is, note } = delta.decide, kid = this._tasks?.find(task);
++			if (kid && ["approve", "improve", "reject"].includes(is) && kid.state === "waiting") kid[is]({ by: delta.decide.by ?? by ?? "owner", note });
++			delete delta.decide;
++		}
+ 		for (const k of Object.keys(delta)){   // a nested task changed: {"<task id>":{…}} goes to that task
+ 			const kid = delta[k] && typeof delta[k] === "object" ? this._tasks?.find(k) : undefined;
+ 			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }
+diff --git a/public/framework/core/Session/SessionMenu.css b/public/framework/core/Session/SessionMenu.css
+index 5d039d550..1b2d74c28 100644
+--- a/public/framework/core/Session/SessionMenu.css
++++ b/public/framework/core/Session/SessionMenu.css
+@@ -13,3 +13,10 @@
+ 
+ .session-settings-field { align-items: center; }
+ .session-settings-label { min-width: 12em; }
++
++/* The session's tasks (SessionTasks.js): a row per task, Approve / Not now beside a proposal. */
++.session-tasks:empty { display: none; }
++.session-tasks-title { margin: 0; font-size: 1em; }
++.session-task { align-items: center; justify-content: space-between; }
++.session-task > .task-view { flex: 1 1 auto; min-width: 0; }
++.session-task-actions { flex: none; }
+diff --git a/public/framework/core/Session/SessionTasks.js b/public/framework/core/Session/SessionTasks.js
+new file mode 100644
+index 000000000..e16549fd1
+--- /dev/null
++++ b/public/framework/core/Session/SessionTasks.js
+@@ -0,0 +1,38 @@
++// SessionTasks.js — a session's tasks, live on its page: the session's session.jsonl streamed, replayed into a Session, each task
++// drawn as a row; a proposed one (waiting on the owner) gets Approve and Not now, which append one {"decide":{task,is}} line.
++// Servex files an owner prompt's asks there as proposals (Servex/agents/PromptTasks.js). Doc: doc/prompt-tasks.md.
++import View, { div, span, button, h3 } from "../View/View.js";
++import JSONL from "/framework/ext/JSONL/JSONL.js";
++import FsFile from "/framework/ext/filesystem/FsFile.js";
++import TaskView from "../Task/TaskView.js";
++import Session from "./Session.js";
++View.stylesheet(import.meta, "SessionMenu.css");
++
++export default class SessionTasks extends JSONL {
++
++	lines = [];
++
++	// { url: the session.jsonl url, $box: the View to draw into, session_class }
++	read(entries){ this.lines.push(...entries); this.draw(); return this; }
++	reset(){ this.lines = []; return super.reset(); }
++	live(){ super.live(() => {}); return this; }
++
++	draw(){
++		const Class = this.session_class ?? Session, s = Class.replay(this.lines), tasks = [...(s._tasks ?? [])];
++		this.$box?.empty(() => {
++			if (!tasks.length) return;
++			const waiting = tasks.filter(t => t.state === "waiting").length;
++			h3.c("session-tasks-title", waiting ? `Tasks · ${waiting} waiting on you` : "Tasks");
++			for (const t of tasks) div.c("session-task flex gap-50", () => {
++				TaskView.row(t);
++				if (t.state === "waiting") span.c("session-task-actions flex gap-50", () => {
++					button.c("session-task-approve", "Approve").attr("type", "button").click(() => this.decide(t, "approve"));
++					button.c("session-task-reject", "Not now").attr("type", "button").click(() => this.decide(t, "reject"));
++				});
++			});
++		});
++	}
++
++	// The answer is a line in the log; the stream brings it back and redraws, so nothing changes here until it is written.
++	decide(task, is){ return FsFile.append(this.url, { decide: { task: task.id, is, by: "owner" } }); }
++}
+diff --git a/public/framework/core/Session/doc/files.jsonl b/public/framework/core/Session/doc/files.jsonl
+index 05c9c861f..fb34c36a4 100644
+--- a/public/framework/core/Session/doc/files.jsonl
++++ b/public/framework/core/Session/doc/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"method/"}
+ {"file":"architecture.md"}
+ {"file":"menu.md"}
++{"file":"prompt-tasks.md"}
+diff --git a/public/framework/core/Session/doc/prompt-tasks.md b/public/framework/core/Session/doc/prompt-tasks.md
+new file mode 100644
+index 000000000..3cc614f5e
+--- /dev/null
++++ b/public/framework/core/Session/doc/prompt-tasks.md
+@@ -0,0 +1,27 @@
++# Owner prompts become tasks on the session page
++
++**What it does.** When you type a prompt in a VS Code tab, each piece of work in it shows up a few seconds later as a **proposed task** at the top of that session's page (`/framework/ai/sessions/<id>/`, Conversation tab), with **Approve** and **Not now** beside it. Questions and plain statements are not tasks: they stay on the prompt's refined card (the Coverage tab). The owner asked for it on 2026-10-22: "owner prompts become tasks on the session page in real time".
++
++![Two proposed tasks on a session page at 1200 px](shots/session-tasks-1200.png) · [at 400 px](shots/session-tasks-400.png)
++
++## How a prompt becomes a task
++
++1. **The prompt is logged.** `.claude/hooks/prompt-relay.mjs` (the UserPromptSubmit hook) adds it as a `Prompt` item to the session's card page, `public/framework/ai/YYYY/MM/DD/session-<id8>/page.jsonl`, through Servex's `page_add` tool.
++2. **Servex hears it.** `page_add` calls `hooks.prompted` (`Servex/agents/page_tools.js`) for a `Prompt` item. Servex hands it to `PromptTasks` (`Servex/agents/PromptTasks.js`), which works through prompts one at a time. Prompts under 30 characters and `/commands` are skipped.
++3. **One cheap call splits it.** `RefineQueue.one()` (`Server/RefineQueue.mjs`, brief v3, Haiku, about a cent) turns the prompt into asks, each a task, question or statement. The refined card is written beside the prompt, where the Coverage tab already reads it.
++4. **Each task ask is filed as a proposal** in the session's own record, `public/framework/ai/sessions/YYYY/MM/DD/session-<id8>/session.jsonl` (same day and folder name as the card page), through the item tool:
++   `{"tasks":{"add":{"title","state":"waiting","waiting_on":"owner","from":"owner","source":"prompt:<prompt id>","description","module_hint"}}}`.
++   It drafts in the session. No module folder is made until it is approved and moved.
++5. **The page shows it live.** `SessionTasks` (`core/Session/SessionTasks.js`) streams `session.jsonl`, replays it into a `Session`, and draws each task with `TaskView.row`. A waiting one gets **Approve** and **Not now**.
++6. **Your press is one line.** `{"decide":{"task":"<id>","is":"approve"|"reject","by":"owner"}}` is appended through the dev socket. `Session.replay_line` applies it: Approve starts the task (waiting → running); Not now stops it.
++
++## Watch out
++
++- **The `decide` verb is new in `.claude/hooks/jsonl-schema.mjs`.** The dev server loads that file when it starts, so a server started before this merge refuses the press until it restarts.
++- **Only VS Code tab prompts are covered.** A session needs a `session.jsonl`, which the SessionStart hook writes. Prompts typed to a Servex agent from the dashboard do not go through `prompt-relay.mjs`.
++- Off: `SERVEX_NO_PROMPT_TASKS=1`. Test: `node Servex/agents/prompt-tasks.test.mjs` (9 checks).
++
++## Not built yet
++
++- **Upgrade to a project** and **move to `<module>/tasks/<slug>/` on approval.** Today `module_hint` records the module the splitter guessed; the item tool's `move_home` does the move for a process. A plain approved task should get the same step.
++- **Approved tasks need an owner.** Nothing assigns an agent to an approved task yet. A mastermind picks them up from the session page or from its list.
+diff --git a/public/framework/core/Session/files.jsonl b/public/framework/core/Session/files.jsonl
+index 466eecdf8..d853a18b6 100644
+--- a/public/framework/core/Session/files.jsonl
++++ b/public/framework/core/Session/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"SessionMenu.js"}
+ {"file":"SessionSettings.js"}
+ {"file":"SessionMenu.css"}
++{"file":"SessionTasks.js"}
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index 51a3b8ba6..fbb2fd961 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -39,6 +39,7 @@ class Session extends Item                       // ../Item/Item.js; registered
+ 
+ ## More
+ 
++- [doc/prompt-tasks.md](doc/prompt-tasks.md): each owner prompt's work arrives as proposed tasks on the session page, live, with Approve and Not now (`SessionTasks.js`, Servex's `PromptTasks`)
+ - [doc/menu.md](doc/menu.md): the session menu, a template (`Session.MENU`, settings first) drawn at the right end of the session's name line; settings saved as lines in `session.jsonl`
+ - [doc/architecture.md](doc/architecture.md): decisions and why
+ - [Dated folders shared by sessions and projects](/framework/core/Task/doc/owner-2026-10-20-projects-and-completion.md)
+diff --git a/public/framework/ext/Refine/doc/refine-queue.md b/public/framework/ext/Refine/doc/refine-queue.md
+index 3eb28ef26..b64376461 100644
+--- a/public/framework/ext/Refine/doc/refine-queue.md
++++ b/public/framework/ext/Refine/doc/refine-queue.md
+@@ -15,6 +15,8 @@ node Server/RefineQueue.mjs --repeats [--all]       # asks said in 3+ sessions (
+ ```
+ Flags: `--parallel N` (default 2 calls at once), `--brief v1|v2` (default v2), `--limit N`, `--force` (redo refined ones), `--task <dir>` (a task.jsonl's owner `chat` lines instead of transcripts).
+ 
++**Live, one prompt at a time:** Servex also runs `RefineQueue.one()` on each new VS Code prompt as it arrives (`Servex/agents/PromptTasks.js`), and files the task asks as proposed tasks on the session page ([core/Session/doc/prompt-tasks.md](/framework/core/Session/doc/prompt-tasks.md)). The commands above remain for backfilling older prompts.
++
+ ## The classes
+ 
+ | Class | File | Job |

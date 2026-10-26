@@ -1,0 +1,180 @@
+diff --git a/public/framework/ai/doc/readme.md b/public/framework/ai/doc/readme.md
+index 2fc337efc..07cc0f2ce 100644
+--- a/public/framework/ai/doc/readme.md
++++ b/public/framework/ai/doc/readme.md
+@@ -9,6 +9,7 @@ One folder per subsystem, one current doc per topic. Load the folder you need; t
+ | [`agents/`](agents/mcp.md) | How agents behave: [MCP tools](agents/mcp.md), [autonomy](agents/autonomy.md), [concurrency](agents/concurrency.md), [interrupts](agents/interrupts.md), [pass by reference](agents/pass-by-reference.md), [ground truth](agents/eval-truth.md) | you touch Servex agents or their tools |
+ | [`tokens/`](tokens/tokens.md) | [How cost is counted and cut](tokens/tokens.md), [context windows](tokens/context-window.md) | you spend or measure tokens |
+ | [`logs/`](logs/log-sources.md) | [Where the owner's asks live](logs/log-sources.md), [the universal log tool](logs/log-tool.md), [inbox + streaming](logs/inbox-log-streaming.md), [conversation logs](logs/conversations.md) | you read or write a log |
++| [`sessions-and-tasks.md`](sessions-and-tasks.md) | [Sessions and tasks: a spawned agent is a session, a task is something to finish (the plan)](sessions-and-tasks.md) | you rename, spawn or count sessions and tasks |
+ | [`task-lifecycle.md`](task-lifecycle.md) | [Task lifecycle: session is the log, module is a query, six phases (proposal)](task-lifecycle.md) | you design how prompts become tasks |
+ | [`tasks.md`](tasks.md) | [Tasks: what, where, who makes one, what to open](tasks.md) | you open or read a task |
+ | [`tasks/`](tasks/tasks.md) | [Tasks and the one queue](tasks/tasks.md), [priorities](tasks/priorities.md) | you change tasks or the queue |
+diff --git a/public/framework/ai/doc/sessions-and-tasks.md b/public/framework/ai/doc/sessions-and-tasks.md
+new file mode 100644
+index 000000000..2c1f27761
+--- /dev/null
++++ b/public/framework/ai/doc/sessions-and-tasks.md
+@@ -0,0 +1,63 @@
++# Sessions and tasks: a spawned agent is a session, a task is something to finish
++
++**Decision (the owner, 2026-10-19).** The naming was the bug. An agent the SDK spawns is a **session**: it has a session id. It is not a task. We used to call it one, and that is where the system got confused. A **task** is something that needs to happen and can be finished. They are different things; tasks live inside sessions.
++
++> "Every SDK session should be a session. It should be clear that this represents the session. Then you can have tasks within them. But we shouldn't be calling a session a task."
++> "We don't want to create a task for a session."
++
++This page is the plan and the record of what landed. It folds in [task-lifecycle.md](task-lifecycle.md) (its phases and the module-placement choice) and builds on [tasks.md](tasks.md) (how it works today).
++
++---
++
++## The new shape
++
++```
++ai/sessions/YYYY/MM/DD/<session>/            a session: session.jsonl
++ai/sessions/YYYY/MM/DD/<session>/<sub>/      a sub-session (a spawned helper): session.jsonl, no second YYYY/MM/DD
++```
++
++- **Session** = one spawned agent. Folder + `session.jsonl`, nested for helpers. What we call a "task dir" today is a sub-session.
++- **Task** = a thing to finish. It lives **inside** a session, and may start as one line in the parent's `session.jsonl` (data embedded, `class Task` replays it), so it needs no folder. A big task (planning, building, investigating) may get a folder or a `<name>.md` beside the log to write into; the task points at what it made and at the prompt (raw or refined) that caused it. A task may or may not spawn an agent.
++- **Completion.** A task has `completed` from 0 to 1, with its start and complete times shown. A session may use the same pattern.
++- **Project** = a task with subtasks and a requirements stage. `class Project extends Task` is a play class on branch `task/project-class` (a class and a test, nothing wired in).
++
++## What is true already (verified against code, 2026-10-19)
++
++The top half of this is done. `Server/SessionRecord.mjs` (2026-10-17) renamed `task.jsonl` to `session.jsonl` in **top-level session folders** (1,287 folders hold `session.jsonl`). Every reader goes through `SessionRecord.file/log_file`, which accepts both names. What is left is the **sub-session folders**: 1,100 still hold `task.jsonl`. `SessionRecord.start_file(dir, first)` decides the name for a new folder, and only a folder directly under a day gets `session.jsonl`.
++
++## The two questions
++
++**What is `TaskDirs`, and why a class?** `Server/TaskDirs.mjs` is the one path builder: `dir({slug, session_id, parent, day})` makes a folder's path, and `find`, `follow`, `redirect`, `alias`, `refuse`, `census`, `plan/apply/verify/undo` keep old addresses working. It is a class because it holds the rules of the store in one place. The owner's read is right: it is a path resolver that absorbed three folder-shape changes (`ai/<date>/` into the sessions tree, UTC day into local day via `SessionDayMove`, and card moves), each one recorded in a moves manifest. It survives the rename as `SessionDirs`; the old name stays as an alias like every other old address.
++
++**What writes `<module>/tasks/` today?** Three things, not two:
++1. the item tool's `tasks.add` / `make_child` (`Servex/agents/page_tools.js`), indexed by `Server/TaskHomes.mjs`;
++2. `Server/TaskMigrate.mjs`, a one-off that moved 211 tasks;
++3. `Server/UndoneToTasks.mjs`, which makes idle tasks for asks verified undone (manifest `ai/asks/undone-to-tasks.jsonl`).
++
++`AskIndex` is not a writer here: it writes `asks.jsonl` and the module inbox only.
++
++## What renames, what stays
++
++| Renames | Stays |
++|---|---|
++| spawned-agent folder log: `task.jsonl` to `session.jsonl` (new spawns first, then old folders by script) | `class Task` and the verbs (`assign`, `log`, `wait`, `approve`…) |
++| `open_task` / `default_task` language to session | the append-only, one-verb-per-line log |
++| `TaskDirs` to `SessionDirs` (old name kept as alias) | `State`, `ai/state.json` (it folds sessions and tasks) |
++| a task that is only a line: no folder at all | module homes `<module>/tasks/` until the placement decision is made |
++
++## What breaks if done carelessly
++
++189 code files outside the store mention `task.jsonl`. Heaviest: `Servex/agents/page_tools.js` (16), `Agents.js` (16), `Server/review.mjs` (15), `TaskMigrate.mjs` (15), `Servex/asks/tasks.js` (12), `SessionRecord.mjs` (10). Also hooks (`append.mjs`, `jsonl-schema`, `ledger`, `naming-guard`, `prompt-relay`, `reply-relay`, `step-prompt`, `hold-guard`), four skills, and 221 `.md` files. A reader that types `"task.jsonl"` instead of asking `SessionRecord` will not see a new sub-session. So the order matters: readers first, writers last.
++
++## Slices (each merged the moment it works; old paths keep resolving)
++
++1. ✅ This plan, merged.
++2. ⬜ **Readers.** Replace every hard-coded `"task.jsonl"` on a runtime path (`State`, `TaskState`, `TaskLoop`, `review`, `Steps`, `Landed`, `Cards`, hooks) with `SessionRecord`. No behaviour change; tests prove it.
++3. ⬜ **New sub-sessions write `session.jsonl`.** One change in `SessionRecord.start_file`: any folder whose line 1 carries a `session_id` gets `session.jsonl`, at any depth.
++4. ⬜ **Old folders by script.** Extend `SessionRecord` plan/apply/undo to the 1,100 sub-session folders (dry run, manifest, reversible).
++5. ⬜ **Task as a line.** `completed` 0–1 plus start/complete times in `Task.replay`; a task with no folder; a session lists its tasks (closes gap b).
++6. ⬜ **`SessionDirs`** rename with alias; module placement per task-lifecycle (option A or B).
++
++## Guiding principle for the whole AI system
++
++**Effective parallel work between sessions.** A parent decides whether to answer itself or hand off; helpers are reused; tasks get created, tracked, logged and finished. Everything above serves that: a session is who is working, a task is what must be done.
+diff --git a/public/framework/ai/doc/task-lifecycle.md b/public/framework/ai/doc/task-lifecycle.md
+index 8a63e1333..cb945dff5 100644
+--- a/public/framework/ai/doc/task-lifecycle.md
++++ b/public/framework/ai/doc/task-lifecycle.md
+@@ -38,6 +38,14 @@ The handoffs that break today were each checked against real data (13 theories,
+ 3. `load_module` lists a module's open tasks from `state.json`.
+ 4. The Inbox groups by phase.
+ 
++## Decision to make: should a module's tasks live in the module? (the owner's lean, 2026-10-19)
++
++> "Maybe all module-specific tasks should actually be in the module, so if you pull up the git history of the tasks for that module you see exactly what's been done over the past few days." He is fine with `<module>/tasks/YYYY/MM/DD/<slug>/`.
++
++- **Option A (the design above):** the task stays in its session folder and carries `module`; the module's history is a query on `state.json`, not `git log`. Smallest fix: `open_task` and `TaskDirs --new` write `module` on line 1. Cost: `git log -- <module>/tasks/` shows nothing for session tasks.
++- **Option B (his lean):** a task whose module is known is born at `<module>/tasks/YYYY/MM/DD/<slug>/`, with `session_id` on line 1 so the session finds it by query; `git log -- <module>/tasks/` is then the module's history. Smallest fix: let `TaskDirs.dir()` accept `module` and make `open_task` pass it (new tasks only; the 1,100 old ones stay, or move later by `TaskMove`, which already has a dry run, ledger and undo from 10-12). Cost: a task with no clear module still needs the session home, so two places stay; the item tool's `tasks.add` makes `<module>/tasks/<slug>/` without the date folders today, so its path shape would change too.
++- **Not built.** Both options keep one copy of each task; he decides.
++
+ ## Alternative, named
+ 
+ **A pointer line in the module for each task** (`{"task": path}` in `<module>/tasks/`, as the item tool's `tasks.add` does today). It keeps the module readable without node, but it is a second list that must be written by every creator and goes stale when one forgets (the reason 0 session tasks are linked today). Rejected for session-born tasks; it stays for tasks born in a module. Also rejected: moving every task into its module folder (breaks 1,100 session paths, and a task with no module has no home).
+diff --git a/public/framework/ai/doc/tasks.md b/public/framework/ai/doc/tasks.md
+index 6f817223c..119a2bbf9 100644
+--- a/public/framework/ai/doc/tasks.md
++++ b/public/framework/ai/doc/tasks.md
+@@ -92,3 +92,21 @@ Each row is a guess about where prompt, session, task, agent and landed change c
+ **What it says.** The one thing that works is the end of the chain: a task that lands has an outcome (T8). The breaks are at the joins: a task has no module (T5), an ask has no card or owner task (T1, T2), a finished agent leaves its task open (T9, T10, T7), and a landed task leaves its card open (T12). These are the same joins [task-lifecycle.md](task-lifecycle.md) closes; it is proposal only, so none is fixed.
+ 
+ **Instrument notes.** T1 and T2 use the latest line per ask title (the file is append-only); T9 counts "last line older than 3 days", so a quiet but meant-to-wait task also fails; T3 skips review tasks.
++
++## 10. Built, working, wired, or only a concept (verified against the code, 2026-10-19)
++
++| Piece | Status | Evidence |
++|---|---|---|
++| `core/Task/Task.js` state machine and replay | built, works | `Task.test.mjs` 53 of 53 |
++| `Server/TaskDirs.mjs` (`dir`, `--new`, `find`, `follow`) | built, works, wired (Servex `open_task`, `append.mjs`) | `TaskDirs.test.mjs` ok |
++| `Server/TaskState.mjs` and `State.mjs` to `state.json` | built, works, wired (`TaskLoop`, the Inbox) | `TaskState.test.mjs` ok; self-check true |
++| `Server/TaskHomes.mjs` (index of module homes) | built, works; dry run says the index lists every home | `node Server/TaskHomes.mjs` |
++| `Server/TaskMigrate.mjs` | built, one-off; dry run only unless `--apply` | `TaskMigrate.test.mjs` |
++| `Server/UndoneToTasks.mjs` | built; makes idle tasks in module homes from undone asks | `--plan` |
++| `module` on a session task | concept: written by nobody | T5, 989 of 989 lack it |
++| `phase`, `Project extends Task` | concept | [task-lifecycle.md](task-lifecycle.md) |
++
++**The three gaps, confirmed by reading the code.**
++- **(a) Module placement is never automatic.** `TaskDirs.dir({slug, session_id, parent, day})` and `Agents.open_task` have no `module` argument. A task reaches `<module>/tasks/<slug>/` only when an agent calls the item tool's `tasks.add` (its choice), when `TaskMigrate` is run once, or when `UndoneToTasks` files an idle task for an undone ask.
++- **(b) Sessions do not list their tasks.** Corrected: the task is a folder inside the session folder, and 37 of the 42 session logs that exist also name it, but no session field lists tasks and the day `index.json` has `links.task: null`; "this session's tasks" is a query on `state.json` (`session`).
++- **(c) No single page said how a prompt becomes a task:** section 7 above does, and [task-lifecycle.md](task-lifecycle.md) proposes the missing phases.
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index 42497c51f..f4a32cdea 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -31,6 +31,7 @@
+ 
+ ## Every system, one line each
+ 
++- **Principle:** effective parallel work between sessions. A parent answers or hands off, helpers are reused, tasks are created, tracked, logged and finished. A spawned agent is a **session**, a task is something to finish inside it: [doc/sessions-and-tasks.md](doc/sessions-and-tasks.md).
+ - **Tasks:** [tasks/readme.md](tasks/readme.md) · [doc/tasks.md](doc/tasks.md) (what a task is, two homes, who makes one) · [core/Task](/framework/core/Task/)
+ - **Sessions:** [sessions/readme.md](sessions/readme.md) · cloud voice calls: [/Servex/ext/remote/doc/cloud-voice-agent.md](/Servex/ext/remote/doc/cloud-voice-agent.md)
+ - **Page system:** [core/Page](/framework/core/Page/) · [ext/JSONL](/framework/ext/JSONL/) · parts: [core/Page/parts](../core/Page/parts/readme.md)
+diff --git a/public/framework/ai/tasks/readme.md b/public/framework/ai/tasks/readme.md
+index fa6a4f06b..fc03ebfc3 100644
+--- a/public/framework/ai/tasks/readme.md
++++ b/public/framework/ai/tasks/readme.md
+@@ -33,6 +33,12 @@ class SavedFilter extends Page            // ai/tasks/SavedFilter.js: forwards /
+ 
+ `page.js` is a `SavedFilter` with `preset: "tasks"` (`DashChips.SAVED`); `lanes/` and `architecture/` are routed children; `/framework/ai/tasks/2026~10~19~…` opens an `AITask` page ([ai/AITask](/framework/ai/AITask/)). The list itself is the [Inbox](/framework/core/Page/ext/Inbox/) over `state.json`. A single task's page: `core/Task` `TaskPage` for module tasks, `AITask` for session tasks (two viewers, not merged).
+ 
++## Built, working, and not yet (checked 2026-10-19)
++
++- **Working:** `state.json` is fresh and its self-check passes; the Inbox shows the same counts; `TaskDirs`, `TaskMigrate`, `TaskHomes`, `TaskState` and `Task` tests pass. Proof and numbers: [../doc/tasks.md](../doc/tasks.md) sections 6 and 9.
++- **Not automatic:** a task never lands in `<module>/tasks/` by itself (`TaskDirs.dir()` has no module). **Not linked:** a session does not list its tasks (the session log names them in 37 of 42 cases; the day `index.json` has `links.task: null`). **Proposal only:** [../doc/task-lifecycle.md](../doc/task-lifecycle.md).
++- **Known problems (page, at 1200 wide):** `/framework/ai/tasks/` is a flat list with unlabeled chips and the prompt as each row's title. The one fix is to group rows by state, show the module on each row and use the task title; not built. The full list: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
++
+ ## Overlaps
+ 
+ Two homes, one reader: `State.mjs` counts both. `task.jsonl` vs `session.jsonl` (the name in a session folder): [ai/sessions](/framework/ai/sessions/). `ai/handover.md` is computed from the same state; `board.jsonl` is retired.
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index ad04aba71..701015bf7 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -1,5 +1,11 @@
+ # Task — a DOM-free unit of work: id, title, a state machine, a computed duration and progress, a List of subtasks
+ 
++## Status (verified 2026-10-19 against the code)
++
++- **Built and tested:** the state machine, subtasks, replay of `task.jsonl` (`node Task.test.mjs`, 53 of 53 pass), `TaskView`, `TaskPage`, `TasksPage`, references between tasks (`Task.from_ref`), module homes made by the item tool's `tasks.add`.
++- **Wired in:** `Server/State.mjs` replays every task through `Task.replay` into `ai/state.json`; Servex `open_task` and `TaskDirs --new` make the session-store folders that `Task` reads; the Inbox shows the result.
++- **Concept only:** `AITask extends Task` (below), `Project extends Task`, a `phase` field ([ai/doc/task-lifecycle.md](/framework/ai/doc/task-lifecycle.md)). **Not automatic:** a module home. `TaskDirs.dir()` does not know modules; only the item tool (an agent's choice), `TaskMigrate` (one-off) and `UndoneToTasks` (idle tasks from undone asks) put a task in `<module>/tasks/`.
++
+ ## What it is
+ 
+ A `Task` is anything with a start, a middle and an end — a build step, a chore, a
+@@ -84,7 +90,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+ - [Overview](/framework/core/Task/) · [Live](/framework/core/Task/live/) — start, pause,
+   stop and complete a task with subtasks, live, no reload
+ - [`Task.js`](./Task.js) · [`Task.test.mjs`](./Task.test.mjs) — the state machine, the
+-  subtask-blocks-complete rule, duration math; `node Task.test.mjs`, 28/28 passing
++  subtask-blocks-complete rule, duration math; `node Task.test.mjs`, 53/53 passing
+ - [Item](/framework/core/Item/) — the base class · [List](/framework/core/List/) — what `tasks` is
+ 
+ ## Composition (step 3b)

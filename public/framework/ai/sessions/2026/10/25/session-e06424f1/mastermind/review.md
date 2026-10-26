@@ -1,0 +1,7 @@
+verdict: pass
+1. [note] Deliverables 1 and 2 are met: `ux/Dictate/doc/fast-and-smart.md` has the job-by-seat table, gaps, split, model/effort per seat and the safe-experiment section, and is linked from `Dictate/readme.md`, `doc/pipeline.md` and `doc/files.jsonl`. I did not re-check the code line numbers it cites (`Sessions.js`, `tiers.js`), and they will go stale fast, so a reader should treat them as hints.
+2. [note] Deliverable 3, the under-150-word report to the owner, is not in the task folder. The folder holds only requirements.md, past-work.md and the jsonl logs, so I could not check the word count or the decisions list. The requirements "Outcome" line does point to section 6 of the doc, which is enough to continue from.
+3. [note] The doc is 87 lines with seven tables and lists. That is long for "one page", but each section is needed; the table in section 2 carries the answer.
+4. [note] The `chat-shape.md` row 17 error is logged in `ux/Dictate/improvements.jsonl` rather than fixed. That fits "design only", and the file is indexed in `Dictate/files.jsonl`. The file itself is under `ai/sessions/2026/10/20/.../dictation-debug/`, outside the Dictate module, so the improvement entry is the right place to leave it.
+5. [note] `Dictate/files.jsonl` gained a redundant `failures.jsonl` gone/present flip. That is tool churn, not a defect.
+6. [note] The Opus-versus-Sonnet conflict (`session-smart.md:1` against `tiers.js`) is surfaced for the owner instead of being silently resolved. That is correct, because the line is the owner's own.

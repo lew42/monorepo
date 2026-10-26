@@ -1,0 +1,650 @@
+diff --git a/Servex/ext/remote/RemoteMCP.js b/Servex/ext/remote/RemoteMCP.js
+index 2001032fd..2e7141e5b 100644
+--- a/Servex/ext/remote/RemoteMCP.js
++++ b/Servex/ext/remote/RemoteMCP.js
+@@ -16,7 +16,7 @@ export default class RemoteMCP {
+     static VERSION = "2025-03-26";
+     // The one source of the voice-agent directives (the voice-mastermind skill must not copy them).
+     static INSTRUCTIONS = [
+-        "FIRST, which kind of client are you? A Servex-spawned agent has a logged session and reads CLAUDE.md. You are a remote/cloud client (the Claude app): you have no local session, so nothing records your conversation unless you do it through this server. Every tool takes owner_words: put the owner's exact words that led to the call there, verbatim, every time; the server files them in today's voice session. Call register_session once at the start (no arguments needed) to get your session id for session_summary and session_line.",
++        "If you are a cloud voice agent (no CLAUDE.md on your machine, not running in the monorepo), read `Servex/ext/remote/doc/cloud-voice-agent.md` with read_file before anything else.",
+         "You are the voice agent: the Claude app model talking with the owner by voice. The mastermind behind ask_mastermind is an SDK agent on the owner's PC.",
+         "Fire ask_mastermind immediately, before saying anything; then speak.",
+         "Summarize its answer for the ear, do not read it back. The mastermind is verbose on purpose, to give you context; you keep replies short.",
+@@ -33,7 +33,13 @@ export default class RemoteMCP {
+         description: "Call any Servex tool by name, including ones added after this connector was approved: call({tool: \"shell\", args: {command: \"git status\"}}). tool \"list\" returns every tool name with its description and input schema.",
+         inputSchema: { type: "object", properties: { tool: { type: "string" }, args: { type: "object" } }, required: ["tool"] },
+     };
+-    static OWNER_WORDS = { type: "string", description: "The owner's exact words that led to this call, verbatim, every time (the server logs them; never paraphrase)." };
++    // The ONE cloud-only voice tool (owner, 2026-10-19): the owner's verbatim prompt goes to the session log. Only this remote route lists it; local SDK agents never see it.
++    static LOG = {
++        name: "cloud_voice_log",
++        description: "Cloud voice agents only: file the owner's exact words, verbatim, in your session log. Call it first when the owner speaks, before answering. Guide: Servex/ext/remote/doc/cloud-voice-agent.md",
++        inputSchema: { type: "object", properties: { words: { type: "string", description: "The owner's exact words, verbatim; never paraphrase." } }, required: ["words"] },
++    };
++    static REGISTER_DESCRIPTION = "Cloud voice agents: call once at the start, with a short title, to get your session id (for session_summary and session_line). Guide: Servex/ext/remote/doc/cloud-voice-agent.md";
+     static SESSIONS_FILE = "remote.sessions.json";
+     static CALLER = "voice-app";
+     static TOOL = {
+@@ -107,12 +113,12 @@ export default class RemoteMCP {
+                 const { tool, args } = params.arguments ?? {};
+                 if (tool === "list") return ok({ content: [{ type: "text", text: JSON.stringify(this.tools().map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))) }] });
+                 if (tool === RemoteMCP.TOOL.name) params = { name: tool, arguments: args };
+-                else try { return ok(this.after(tool, await this.servex.mcp.call(tool, args ?? {}, { caller: RemoteMCP.CALLER }), args)); }
++                else try { return ok(this.after(tool, header_sid, await this.servex.mcp.call(tool, args ?? {}, { caller: RemoteMCP.CALLER }), args)); }
+                 catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
+             }
+             if (params?.name !== RemoteMCP.TOOL.name){
+                 // every other tool is the servex registry's own handler; the caller is this app, so writes say who made them
+-                try { return ok(this.after(params?.name, await this.servex.mcp.call(params?.name, params?.arguments ?? {}, { caller: RemoteMCP.CALLER }), params?.arguments)); }
++                try { return ok(this.after(params?.name, header_sid, await this.servex.mcp.call(params?.name, params?.arguments ?? {}, { caller: RemoteMCP.CALLER }), params?.arguments)); }
+                 catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
+             }
+             const question = String(params.arguments?.question ?? "").trim().slice(0, 4000);
+@@ -130,40 +136,45 @@ export default class RemoteMCP {
+ 
+     // the one registry (servex.mcp, read at call time so late registrations show up) with ask_mastermind on top
+     tools(){
+-        const all = [RemoteMCP.TOOL, RemoteMCP.CALL, ...(this.servex.mcp?.tools ?? []).filter(t => t.name !== RemoteMCP.TOOL.name && t.name !== RemoteMCP.CALL.name)];
+-        return all.map(t => ({ ...t, inputSchema: { ...(t.inputSchema ?? { type: "object" }), properties: { ...(t.inputSchema?.properties ?? {}), owner_words: RemoteMCP.OWNER_WORDS } } }));
++        const own = [RemoteMCP.TOOL.name, RemoteMCP.CALL.name, RemoteMCP.LOG.name], all = [RemoteMCP.TOOL, RemoteMCP.CALL, RemoteMCP.LOG, ...(this.servex.mcp?.tools ?? []).filter(t => !own.includes(t.name))];
++        return all.map(t => t.name === "register_session" ? { ...t, description: RemoteMCP.REGISTER_DESCRIPTION, inputSchema: { type: "object", properties: { title: { type: "string", description: "A short name for this conversation, e.g. live page; the session is filed as cloud-voice-<name>." }, cost: { type: "number", description: "Your own cost so far in USD, if you know it (optional)." } } } } : t);
+     }
+ 
+-    /* Voice logging (doc/voice-logging.md): strip owner_words from the arguments, file it, log every call, and give a cloud
++    /* Voice logging (doc/voice-logging.md): file cloud_voice_log words, log every call, and give a cloud
+      * caller a session to write summaries to. Returns the params to dispatch, or { done } when the call is answered here. */
+     intercept(params, sid){
+         const name = params?.name;
+         let args = { ...(params?.arguments ?? {}) };
+-        const words = [args.owner_words]; delete args.owner_words;
+-        if (name === RemoteMCP.CALL.name && args.args && typeof args.args === "object"){ words.push(args.args.owner_words); args.args = { ...args.args }; delete args.args.owner_words; }
+         const inner = name === RemoteMCP.CALL.name ? args.tool : name;
+         const target = name === RemoteMCP.CALL.name ? (args.args ??= {}) : args;
+         let v = null;
+-        try { v = this.voice_session(); } catch (e) { console.error("remote-mcp: voice session:", e.message); }
+-        this.record(v, inner, words.find(w => typeof w === "string" && w.trim()), { tool: inner, args: target }, sid);
++        const registering = inner === "register_session" && !target.id;   // a cloud caller names its session here; a local agent passes an id
++        if (registering && typeof target.title === "string" && target.title.trim()) (this.sessions[sid] ??= { agent: null, dir: null, started: new Date().toISOString(), last: null }).voice_name = target.title, this.save_sessions();
++        try { v = this.voice_session(sid); } catch (e) { console.error("remote-mcp: voice session:", e.message); }
++        if (v && registering && target.cost != null) this.set_cost(v, target.cost);
++        this.record(v, inner, inner === RemoteMCP.LOG.name ? target.words : null, { tool: inner, args: target }, sid);
++        if (inner === RemoteMCP.LOG.name) return { done: { content: [{ type: "text", text: JSON.stringify({ ok: !!v && !!String(target.words ?? "").trim(), session: v?.id ?? null }) }] } };
+         if (v && /^(session_summary|session_line|quick_fix)$/.test(inner) && !this.servex.sessions?.map?.[target.session]) target.session = v.id;
+-        if (v && inner === "register_session" && !target.id){
+-            return { done: { content: [{ type: "text", text: JSON.stringify({ ok: true, session: v.id, file: v.file, note: "You are a cloud caller: use this session id for session_summary and session_line. Pass owner_words on every tool call." }) }] } };
++        if (v && registering){
++            return { done: { content: [{ type: "text", text: JSON.stringify({ ok: true, session: v.id, file: v.file, note: "You are a cloud voice agent: use this session id for session_summary and session_line. Call cloud_voice_log with the owner's exact words first on every turn. Guide: Servex/ext/remote/doc/cloud-voice-agent.md" }) }] } };
+         }
+         return { ...params, arguments: args };
+     }
+ 
+-    /* ONE folder per day per caller (owner, 2026-10-19): sessions/YYYY/MM/DD/cloud-voice-agent/session.jsonl, kind
+-     * "cloud-voice-agent". It is a row in the Sessions store (so session_summary and session_line work), not a v-… folder. */
+-    voice_session(){
++    /* One folder per cloud voice agent per day (owner, 2026-10-19): sessions/YYYY/MM/DD/cloud-voice-<name>/session.jsonl, kind
++     * "cloud-voice-agent". <name> is the register_session title, else the caller + date. It is a row in the Sessions store
++     * (so session_summary and session_line work) with a hand-set `cost`, not a v-… folder. Guide: doc/cloud-voice-agent.md */
++    voice_session(sid){
+         const store = this.servex.sessions;
+         if (!store?.map) return null;   // Servex without its session layer: nowhere to file it, and no third store
+         const p = n => String(n).padStart(2, "0"), d = new Date();
+-        const day = `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())}`, id = `cloud-voice-agent-${day.replaceAll("/", "")}`;
+-        const file = `/framework/ai/sessions/${day}/cloud-voice-agent/session.jsonl`, abs = path.join(this.root, "public", file);
++        const day = `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())}`, ymd = day.replaceAll("/", "");
++        const slug = s => String(s).toLowerCase().replace(/^cloud-voice-?/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
++        const name = slug(this.sessions[sid]?.voice_name ?? "") || `${slug(RemoteMCP.CALLER.replace(/^voice-/, "")) || "app"}-${ymd}`;
++        const id = `cloud-voice-${name}`, home = `/framework/ai/sessions/${day}/${id}/`, file = `${home}session.jsonl`, abs = path.join(this.root, "public", file);
+         if (!store.map[id]){
+             const at = Date.now();
+-            store.map[id] = { id, home: `/framework/ai/sessions/${day}/cloud-voice-agent/`, file, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
++            store.map[id] = { id, home, file, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at, cost: null, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
+             store.save?.();
+         }
+         if (!fs.existsSync(abs)){
+@@ -173,27 +184,35 @@ export default class RemoteMCP {
+         return { id, file };
+     }
+ 
++    // the voice agent has no SDK accounting: it may state its own cost by hand, on the row and as a line
++    set_cost(v, usd){
++        const n = Number(usd);
++        if (!Number.isFinite(n)) return;
++        const row = this.servex.sessions?.map?.[v.id];
++        if (row){ row.cost = n; this.servex.sessions.save?.(); }
++        fs.appendFileSync(path.join(this.root, "public", v.file), JSON.stringify({ cost: { usd: n, at: new Date().toISOString() } }) + "\n");
++    }
++
+     // a spawned agent is logged by code with its id and task dir (owner, 2026-10-19), read from the tool's own result
+-    after(tool, result, args){
++    after(tool, sid, result, args){
+         if (tool !== "spawn_agent") return result;
+         try {
+-            const v = this.voice_session(), text = result?.content?.[0]?.text ?? "", j = JSON.parse(text);
++            const v = this.voice_session(sid), text = result?.content?.[0]?.text ?? "", j = JSON.parse(text);
+             const id = j.id ?? j.agent?.id, dir = args?.task?.dir ?? j.task_dir ?? j.task?.dir ?? j.dir;
+             if (v && id) fs.appendFileSync(path.join(this.root, "public", v.file), JSON.stringify({ spawned: { at: new Date().toISOString(), agent: id, task_dir: dir ?? null, caller: RemoteMCP.CALLER } }) + "\n");
+         } catch {}
+         return result;
+     }
+ 
+-    // one line for the words (once per distinct text), one for the call (name + args hash): a call without words is a visible gap
++    // one line for the words (only cloud_voice_log passes any), one for every call (name + args hash): a call with no owner_words line before it is a visible gap
+     record(v, tool, words, call, sid){
+         if (!v) return;
+         const abs = path.join(this.root, "public", v.file), at = new Date().toISOString();
+         const text = words?.trim();
+-        const s = this.sessions[sid] ??= { agent: null, dir: null, started: new Date().toISOString(), last: null }, fresh = text && text !== s.last_words;
+         try {
+-            if (fresh){ s.last_words = text; fs.appendFileSync(abs, JSON.stringify({ owner_words: { at, words: text, tool, caller: RemoteMCP.CALLER } }) + "\n"); }
++            if (text) fs.appendFileSync(abs, JSON.stringify({ owner_words: { at, words: text, caller: RemoteMCP.CALLER } }) + "\n");
+             const hash = crypto.createHash("sha256").update(JSON.stringify(call.args ?? {})).digest("hex").slice(0, 12);
+-            fs.appendFileSync(abs, JSON.stringify({ tool_call: { at, tool, args_hash: hash, owner_words: !!text, caller: RemoteMCP.CALLER } }) + "\n");
++            fs.appendFileSync(abs, JSON.stringify({ tool_call: { at, tool, args_hash: hash, caller: RemoteMCP.CALLER } }) + "\n");
+         } catch (e) { console.error("remote-mcp: voice log write failed:", e.message); }
+     }
+ 
+diff --git a/Servex/ext/remote/RemoteMCP.test.mjs b/Servex/ext/remote/RemoteMCP.test.mjs
+index 63158c6a4..76e029467 100644
+--- a/Servex/ext/remote/RemoteMCP.test.mjs
++++ b/Servex/ext/remote/RemoteMCP.test.mjs
+@@ -91,7 +91,7 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
+     const list = (await rpc({ id: 5, method: "tools/list" })).json.result.tools.map(t => t.name);
+     assert.equal(list[0], "ask_mastermind");
+     assert.ok(list.includes("page_add") && list.includes("whoami_test"), "page_add and the registry's own tools are listed");
+-    assert.equal(list.length, mcp.tools.length + 2, "tool count = registry + ask_mastermind + call");
++    assert.equal(list.length, mcp.tools.length + 3, "tool count = registry + ask_mastermind + call + cloud_voice_log");
+     assert.equal(new Set(list).size, list.length, "no duplicates");
+     const call = (name, args) => rpc({ id: 6, method: "tools/call", params: { name, arguments: args } });
+     assert.equal((await call("whoami_test", {})).json.result.content[0].text, "caller=voice-app");
+@@ -121,26 +121,34 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
+ // voice logging: owner_words is in every schema, stripped before dispatch, filed by code; every call leaves a line
+ {
+     const tools = (await rpc({ id: 7, method: "tools/list" })).json.result.tools;
+-    assert.ok(tools.every(t => t.inputSchema.properties.owner_words), "owner_words on every tool schema");
+-    assert.ok(RemoteMCP.INSTRUCTIONS.includes("remote/cloud client"), "cloud-vs-local fork in the instructions");
++    assert.ok(tools.some(t => t.name === "cloud_voice_log") && tools.every(t => !t.inputSchema.properties?.owner_words), "one cloud_voice_log tool; no owner_words on any other schema");
++    const first = RemoteMCP.INSTRUCTIONS.split(/\r?\n/)[0];
++    assert.ok(first.includes("doc/cloud-voice-agent.md") && first.length < 220, "one short pointer line to the guide at the top");
+     const sid = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
+     const call = (name, args) => rpc({ id: 8, method: "tools/call", params: { name, arguments: args } }, sid);
++    const reg = JSON.parse((await call("register_session", { title: "Live Page!", cost: 1.5 })).json.result.content[0].text);
++    assert.ok(reg.ok && reg.session === "cloud-voice-live-page", "named from the title");
++    assert.equal(servex.sessions.map[reg.session].cost, 1.5, "cost on the store row");
+     seen.length = 0;
+-    await call("whoami_test", { owner_words: "make it blue, please", x: 1 });
+-    await call("whoami_test", { owner_words: "make it blue, please" });
++    await call("whoami_test", { x: 1 });
++    const logged = JSON.parse((await call("cloud_voice_log", { words: "make it blue, please" })).json.result.content[0].text);
++    assert.ok(logged.ok && logged.session === "cloud-voice-live-page", "cloud_voice_log files the words");
++    await call("cloud_voice_log", { words: "via the tool, twice" });
+     await call("whoami_test", {});
+-    await call("call", { tool: "whoami_test", args: { owner_words: "via the door" } });
+-    assert.ok(seen.length === 4 && seen.every(a => !("owner_words" in a)), "owner_words stripped before dispatch");
+-    await call("spawn_agent", { owner_words: "spawn one", task: { dir: "public/framework/ai/x" } });
+-    const reg = JSON.parse((await call("register_session", {})).json.result.content[0].text);
+-    assert.ok(reg.ok && reg.session, "register_session with no arguments mints a session for a cloud caller");
++    await call("call", { tool: "whoami_test", args: {} });
++    assert.equal(seen.length, 3, "cloud_voice_log is answered here, never dispatched to the registry");
++    await call("spawn_agent", { task: { dir: "public/framework/ai/x" } });
+     const lines = fs.readFileSync(path.join(root, "public", reg.file), "utf8").trim().split(/\r?\n/).map(l => JSON.parse(l));
+-    assert.ok(reg.file.endsWith("/cloud-voice-agent/session.jsonl"), "one folder per day per caller"); assert.equal(lines[0].session.kind, "cloud-voice-agent");
++    assert.ok(reg.file.endsWith("/cloud-voice-live-page/session.jsonl"), "folder named cloud-voice-<name>"); assert.equal(lines[0].session.kind, "cloud-voice-agent");
+     assert.ok(lines.some(l => l.spawned?.agent === "mastermind-x" && l.spawned.task_dir), "a spawn is logged with agent id and task dir"); assert.equal(lines[0].session.caller, "voice-app");
+     const words = lines.filter(l => l.owner_words).map(l => l.owner_words.words);
+-    assert.deepEqual(words, ["make it blue, please", "via the door", "spawn one"], "words filed verbatim, once per distinct text");
++    assert.deepEqual(words, ["make it blue, please", "via the tool, twice"], "words filed verbatim, one line per call");
++    assert.equal(lines.find(l => l.cost).cost.usd, 1.5, "cost line");
++    const other = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
++    const dflt = JSON.parse((await rpc({ id: 9, method: "tools/call", params: { name: "register_session", arguments: {} } }, other)).json.result.content[0].text);
++    assert.match(dflt.session, /^cloud-voice-app-[0-9]{8}$/, "default name = caller + date");
+     const calls = lines.filter(l => l.tool_call).map(l => l.tool_call);
+-    assert.ok(calls.length >= 6 && calls.some(c => !c.owner_words) && calls.every(c => c.args_hash.length === 12), "every call logged with a hash; a gap shows");
++    assert.ok(calls.length >= 6 && calls.every(c => c.args_hash.length === 12), "every call logged with a hash (a call with no words line before it is the gap)");
+ }
+ srv.close();
+ fs.rmSync(root, { recursive: true, force: true });
+diff --git a/Servex/ext/remote/doc/cloud-voice-agent.md b/Servex/ext/remote/doc/cloud-voice-agent.md
+new file mode 100644
+index 000000000..7b04bfeb2
+--- /dev/null
++++ b/Servex/ext/remote/doc/cloud-voice-agent.md
+@@ -0,0 +1,51 @@
++# Cloud voice agent — the guide
++
++If you are reading this through `read_file`, you are probably a **cloud voice agent**. This is your whole guide.
++
++## What you are
++
++- The owner talks to you by voice in the **Claude app**. You run in Anthropic's cloud, not on the owner's computer.
++- You reach the computer **only through the Servex MCP** (`/mcp/remote`). You have no local Claude Code session, no `CLAUDE.md` injected for you, and no SDK cost accounting. That is why nothing records your conversation unless you do it through this server.
++- The Servex MCP also serves local agents. A cloud voice agent is one kind of caller (`voice-app`), not the only kind.
++- You are **mostly a relay**: you pass the owner's asks to the right agent (`ask_mastermind`, `spawn_agent`, `send_to_agent`) and report back briefly. You are not a mastermind doing the work yourself.
++
++## Start of every conversation
++
++1. Call `register_session` once with a short `title` (for example `live page`) and keep using the same title. You get back your session id and log file. A different title later starts a second session folder.
++2. Every time the owner speaks, call `cloud_voice_log` first with `words` = the owner's exact words. Never paraphrase. This is the one tool that exists only for you: local SDK agents use the local Servex MCP (`mcp__servex__*`), which has no voice fields at all, and only this remote route (`mcp__Servex__*` in the Claude app) lists `cloud_voice_log`.
++
++## Your session
++
++- Name: `cloud-voice-<title>`, for example `cloud-voice-live-page`. With no title it is `cloud-voice-app-YYYYMMDD` (caller plus date).
++- Folder: `public/framework/ai/sessions/YYYY/MM/DD/cloud-voice-<name>/`, with `session.jsonl` inside. Line 1 is `{"session":{"kind":"cloud-voice-agent","caller":"voice-app"}}`.
++- It is a normal row in the Sessions store, so the dashboards, the day index and [/live/sessions/](/live/sessions/) list it. It has a `cost` field, `null` until you set it: you have no accounting, so call `register_session` again with `cost` (USD) if you know it. The row and a `{cost}` line both update.
++
++## What gets logged, and by whom
++
++Code writes these; you never type them.
++
++- `owner_words`: the owner's verbatim words, one line per `cloud_voice_log` call.
++- `tool_call`: every call you make, with the tool name and a hash of its arguments. A `tool_call` with no `owner_words` line before it is a visible gap: you forgot to log.
++- `spawned`: every `spawn_agent` result, as the agent id and its task dir.
++- `cost`: when you set it.
++
++## A prompt with no tool call
++
++Call `cloud_voice_log` even when you will call no other tool, so the words are not lost. Use `session_summary` for a short overview of the conversation (asks, tasks requested and landed, agents spawned by path).
++
++## Handing an ask to a task
++
++Open a task for each ask you hand off, and mention its dir in the session log (`session_line`):
++
++1. `spawn_agent` with `task: {dir, card, brief}` and a one-line prompt. `dir` is a path under `public/framework/ai/sessions/YYYY/MM/DD/`, `brief` is a path to the written ask. Code logs the spawn.
++2. `create_card` / `add_item` put the ask on the AI board for the owner.
++3. There is no separate `task_create` tool yet.
++
++## Caveats
++
++- Never call `restart_servex` or stop Servex during a call: it drops your own connection.
++- Anything you wrote that depends on Servex code needs a Servex restart before it is live. Leave the owner a note, never restart it yourself.
++- Detection of "I am a cloud voice agent" is best effort: the server instructions carry one line pointing here, and it is up to you to follow it.
++- A decision worth keeping goes in the module's `doc/` as a decision and a link to your session folder. Never put a dictation transcript in a module doc.
++
++More: [voice-logging.md](voice-logging.md) (how the logging works), [remote-tools.md](remote-tools.md) (the tools you have).
+diff --git a/Servex/ext/remote/doc/voice-logging.md b/Servex/ext/remote/doc/voice-logging.md
+index 42568241d..6f3c1ad1c 100644
+--- a/Servex/ext/remote/doc/voice-logging.md
++++ b/Servex/ext/remote/doc/voice-logging.md
+@@ -1,6 +1,6 @@
+ # Voice prompts: log every one, verbatim, by code (open task, 2026-10-19)
+ 
+-**Status: built 2026-10-19; live after a Servex restart.** Owner decisions of the same day: these are *cloud voice agent* sessions, **one folder per day per caller**, `sessions/YYYY/MM/DD/cloud-voice-agent/session.jsonl`, line 1 `{session:{kind:"cloud-voice-agent",caller:"voice-app"}}`, registered as a row in the `Sessions` store (id `cloud-voice-agent-YYYYMMDD`) so `session_summary` and `session_line` work. `RemoteMCP.tools()` adds `owner_words` to every schema; `intercept()` strips it and files `{owner_words:{at,words,tool,caller}}` (once per distinct text); every call gets `{tool_call:{at,tool,args_hash,owner_words:bool}}` (`false` is a visible gap); a `spawn_agent` result gets `{spawned:{agent,task_dir}}`, written by code. `register_session` with no arguments returns the session id to a cloud caller. Separation rule: the session folder holds the discussion and log detail (asks, decisions, anecdotes, spawned agents by task-dir path); a module `doc/*.md` holds only the persistent decision and a link to the session, never a dictation transcript. Without Servex's session layer nothing is filed. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
++**Status: built 2026-10-19; live after a Servex restart.** Owner decisions of the same day: these are *cloud voice agent* sessions, **one folder per cloud voice agent per day**, `sessions/YYYY/MM/DD/cloud-voice-<name>/session.jsonl` (name = the `register_session` title, else caller + date; full guide: [cloud-voice-agent.md](cloud-voice-agent.md)), line 1 `{session:{kind:"cloud-voice-agent",caller:"voice-app"}}`, registered as a row in the `Sessions` store (id `cloud-voice-<name>`, with a hand-set `cost`, null by default) so `session_summary` and `session_line` work. **Corrected 2026-10-19: no per-tool field.** `RemoteMCP.tools()` lists ONE extra tool, `cloud_voice_log({words})`, only on the remote route (the Claude app's `mcp__Servex__*`); local SDK agents' `mcp__servex__*` (`Servex/MCP.js`) is untouched. `intercept()` files `{owner_words:{at,words,caller}}` from it and answers it without dispatching; every call gets `{tool_call:{at,tool,args_hash}}` (a call with no `owner_words` line before it is a visible gap); a `spawn_agent` result gets `{spawned:{agent,task_dir}}`, written by code. `register_session` with no arguments returns the session id to a cloud caller. Separation rule: the session folder holds the discussion and log detail (asks, decisions, anecdotes, spawned agents by task-dir path); a module `doc/*.md` holds only the persistent decision and a link to the session, never a dictation transcript. Without Servex's session layer nothing is filed. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
+ 
+ The owner's ask (relayed by the voice agent, repeated from before): the Claude-app voice session (Servex MCP, caller `voice-app`) must land every prompt word for word in a session folder under `public/framework/ai/sessions/YYYY/MM/DD/`, done by code, never by the model's memory. Today 2026-10-19 has no voice folder; 2026-10-16 has `voice-20261016/`.
+ 
+@@ -12,7 +12,7 @@ The owner's ask (relayed by the voice agent, repeated from before): the Claude-a
+ 
+ ## Plan
+ 
+-1. In `RemoteMCP.tools()` add an `owner_words` property to every tool schema: "the owner's exact words that led to this call, verbatim, every time".
++1. (Superseded by `cloud_voice_log`, see the status line.) In `RemoteMCP.tools()` add an `owner_words` property to every tool schema: "the owner's exact words that led to this call, verbatim, every time".
+ 2. `RemoteMCP.post()` strips it before dispatch and appends `{at, words, tool, caller}` (once per distinct text, no length cut) to the day's voice session `session.jsonl`, creating the folder with its `{"session":{"kind":"voice","caller":"voice-app"}}` line when absent.
+ 3. Log every tool call's name and an args hash too, so a call with no `owner_words` shows up as a visible gap instead of silence.
+ 4. Check Servex's day `index.json` picks the folder up, so `/live/sessions/` lists it.
+diff --git a/Servex/ext/remote/readme.md b/Servex/ext/remote/readme.md
+index 47fafdf66..286211497 100644
+--- a/Servex/ext/remote/readme.md
++++ b/Servex/ext/remote/readme.md
+@@ -5,5 +5,6 @@
+ - Why one registry, fully exposed (and the shelved `local`/`remote` split): [doc/mcp-unify.md](doc/mcp-unify.md)
+ - The voice path end to end: [voice-bridge.md](../../../public/framework/ux/Dictate/doc/voice-bridge.md)
+ - Catch-up: what changed since the voice agent's last call, piggybacked on every tool result (design only): [doc/catch-up.md](doc/catch-up.md)
+-- Every voice prompt logged verbatim by code (built: `owner_words`, cloud `register_session`): [doc/voice-logging.md](doc/voice-logging.md)
++- **Cloud voice agent guide** (what it is, session naming, logging, tasks, caveats; the one line the server instructions point to): [doc/cloud-voice-agent.md](doc/cloud-voice-agent.md)
++- Every voice prompt logged verbatim by code (built: the cloud-only `cloud_voice_log` tool, cloud `register_session`): [doc/voice-logging.md](doc/voice-logging.md)
+ - File and shell tools (`read_file`, `write_file`, `edit_file`, `list_dir`, `glob`, `shell`) and the generic `call` door: [doc/remote-tools.md](doc/remote-tools.md)
+diff --git a/public/framework/ai/doc/agents/mcp.md b/public/framework/ai/doc/agents/mcp.md
+index 3f7f7a44c..23dcdef49 100644
+--- a/public/framework/ai/doc/agents/mcp.md
++++ b/public/framework/ai/doc/agents/mcp.md
+@@ -14,6 +14,8 @@ How tools from the dev server and Servex are served to AI sessions, and where co
+    - **Source:** [`Servex/MCP.js`](/Servex/MCP.js)
+    - **Scope:** 68 system tools covering agent lifecycle (`spawn_agent`, `fork_self`, `wait_for_agent`), the quick-fix worktree pool (`take_worktree`, `return_worktree`), module documentation bundles (`load_module`, `readme_modules`), live page manipulation (`create_page`, `page_call`), cards, and dev server lifecycle.
+ 
++3. **Remote MCP (`/mcp/remote`)** serves the Servex registry to the Claude app (callers such as `voice-app`; a cloud voice agent is one kind of caller, and local agents use the Servex MCP too). Guide for a cloud voice agent: [Servex/ext/remote/doc/cloud-voice-agent.md](/framework/servex/remote/doc/cloud-voice-agent.md).
++
+ Both endpoints answer standard JSON-RPC 2.0 over HTTP POST on loopback (`127.0.0.1`). LAN or external requests are strictly refused.
+ 
+ ---
+diff --git a/public/framework/ai/doc/sessions-vs-docs.md b/public/framework/ai/doc/sessions-vs-docs.md
+index d647f21b5..b8f7eb5ff 100644
+--- a/public/framework/ai/doc/sessions-vs-docs.md
++++ b/public/framework/ai/doc/sessions-vs-docs.md
+@@ -6,7 +6,7 @@ Two places, two jobs. Putting a thing in the wrong one is how work gets lost.
+ 
+ `public/framework/ai/sessions/YYYY/MM/DD/<name>/`. Discussion-level detail: the owner's asks in order, decisions and why, anecdotes ("fixed X, nobody cares"), and **every agent this session spawned, referenced by its task-dir path** (its own log is the detail; the parent only records that it was created and where). Short-term. Sessions may be purged by date, so nothing that must survive lives only here.
+ 
+-A **cloud voice agent** session (the owner in the Claude app, the agent on the Servex MCP) has no local Claude Code file, so its folder is the only record: one per day per caller, e.g. `2026/10/19/cloud-voice-agent/`. Code writes it (`Servex/ext/remote/doc/voice-logging.md`); the agent never logs prompts from memory.
++A **cloud voice agent** session (the owner in the Claude app, the agent on the Servex MCP) has no local Claude Code file, so its folder is the only record: one per agent per day, `cloud-voice-<name>`, e.g. `2026/10/19/cloud-voice-live-page/` (guide: `Servex/ext/remote/doc/cloud-voice-agent.md`). Code writes it (`Servex/ext/remote/doc/voice-logging.md`); the agent never logs prompts from memory.
+ 
+ ## The module docs — persistent, official
+ 
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index 109f6a8c0..9b8a3898f 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -32,7 +32,7 @@ Accounting first. Each link is that system's own short readme; follow it to go o
+ - **What happened 10-17 to 10-19** (your asks in order, what landed each day, what waits on you, the usage numbers explained): [doc/overview-2026-10-17-to-19.md](doc/overview-2026-10-17-to-19.md)
+ - **Asks tally** (every ask you typed since 09-15, counted by feature, with what landed and what never did): [doc/asks-outcomes.md](doc/asks-outcomes.md) · `node Server/AskTally.mjs page`
+ - **Follow-up** (what fell through the cracks, computed; plus unused-file census): [doc/follow-up.md](doc/follow-up.md) · [doc/unreferenced.md](doc/unreferenced.md) · `node Server/FollowUp.mjs --write`
+-- **Sessions** (VS Code tabs, browser voice agents, cloud voice agents): [sessions/](sessions/readme.md) · [conversations](doc/logs/conversations.md) · **what goes in a session vs a module doc** (log level, may be purged, links the doc; vs persistent, links the session): [doc/sessions-vs-docs.md](doc/sessions-vs-docs.md) · cloud voice agent logging (being built): [Servex/ext/remote/doc/voice-logging.md](/framework/servex/remote/doc/voice-logging.md)
++- **Sessions** (VS Code tabs, browser voice agents, cloud voice agents): [sessions/](sessions/readme.md) · [conversations](doc/logs/conversations.md) · **what goes in a session vs a module doc** (log level, may be purged, links the doc; vs persistent, links the session): [doc/sessions-vs-docs.md](doc/sessions-vs-docs.md) · cloud voice agents: [guide](/framework/servex/remote/doc/cloud-voice-agent.md) · [logging](/framework/servex/remote/doc/voice-logging.md)
+ - **Audits** (every audit we ran, with a verdict and whether it was followed up): [audits/readme.md](audits/readme.md)
+ - **Transcription**: [ux/Dictate](/framework/ux/Dictate/)
+ - **Class cards, live** ([classes](/framework/ai/classes/)): a class, its API, and a debug tree of a live instance beside its rendered view. First: Session.
+diff --git a/public/framework/ai/sessions/2026/10/19/cloud-voice-agent/doc/owner-evolving-compaction.md b/public/framework/ai/sessions/2026/10/19/cloud-voice-agent/doc/owner-evolving-compaction.md
+deleted file mode 100644
+index c2aa25c1e..000000000
+--- a/public/framework/ai/sessions/2026/10/19/cloud-voice-agent/doc/owner-evolving-compaction.md
++++ /dev/null
+@@ -1,66 +0,0 @@
+-# Owner dictation, 2026-10-19 (second part): evolving compaction, and how the voice agent drives /live
+-
+-Relayed by the voice agent, so these are its words, not the raw ones. Part one (sessions, verbatim logging, Item persistence, Inbox, context cards) is [owner-2026-10-19-sessions.md](owner-2026-10-19-sessions.md); the first build is [sessions.md](sessions.md).
+-
+-## What was asked
+-
+-- A fresh JSONL for a new live page is fine. The existing live content is a log and must not be clobbered.
+-- Rewriting a whole card to update it lost things last round. Pure append-only is not right either. The wish is **evolving compaction**: old things collapse, and what is being discussed now is on screen as fast as possible.
+-- The voice agent is the middleman. The owner dictates in the Claude app and watches `/live/`; the voice agent applies changes through Servex tools, leaning on `item`. Document how that coordination works.
+-- Assess two designs: (1) a server-side live instance behind a tool that takes a path and a value and calls `set()`; (2) a raw append-only JSONL tool with no server instance and a well-documented API. The owner leans to (1), because a live instance can filter, clean up and compact.
+-- Deltas the voice agent expects to need: clear page, new layout, full screen, vertically centred, lists of things, nested content cards, interactive state.
+-- Phase two (noted, not built): cards with buttons that write to the file system through the dev socket, so the owner's clicks reach agents.
+-
+-## Design (1) vs design (2): what exists today (read from the code, not run)
+-
+-- **Today the tool for a page is design (2).** `page_set`, `page_add`, `page_call`, `page_log` and `item` all end in `run_item()` ([Servex/agents/page_tools.js](../../../Servex/agents/page_tools.js)). For a `page.jsonl` the class has no `replay`, so there is no live instance: the tool stamps `id`, `by`, `ts`, works out the nesting, appends one line and returns. Nothing filters, dedupes or compacts. That is why a whole-card rewrite can lose things: nothing checks what it replaces.
+-- **Design (1) already exists, for Tasks.** A `task.jsonl` path gets `live_root()`: one live `Task` instance per file, advanced with every appended line, re-read if something else wrote the file, and a `validate()` step that can refuse a bad line before it is written. That is the same shape the owner leans to, working today ([Servex/doc/item-tool.md](../../../Servex/doc/item-tool.md)).
+-- **For Pages it is designed, not built:** `PageHost` / `LivePage` / `PageDoc extends Item` in [core/Page/doc/server-instance.md](../../framework/core/Page/doc/server-instance.md) (the real `Page` cannot run in node: it needs the DOM). `Item`, `List` and the `Store` do run in node, so a small `PageDoc` is the slice.
+-
+-**Recommendation: design (1), but keep the log append-only underneath.** The instance does the thinking, the file stays the history:
+-1. The tool keeps one live `LivePage` for `/live/page.jsonl` (the Task mechanism, reused, not a second system).
+-2. A delta first goes through the instance: `set({"<id>":{"text":"new"}})` patches a field and appends one small line, never the whole card. The instance can refuse a line that names a missing id or that would blank a field by accident.
+-3. **Compaction is a view, not a rewrite.** The instance knows which cards are old (past a clear, or untouched for a while) and the page draws them collapsed (title only, one line, the session list). The full cards stay in the log, one click down. Nothing is deleted, and what was just said is the newest, fully open card.
+-4. Writing to a new file is fine for a new live page; the old `page.jsonl` is never edited, only followed (the archive does that today).
+-
+-Design (2) alone keeps working for every page that nobody has built an instance for, so the instance is added behind the same `item` door, nothing the voice agent calls changes.
+-
+-## How the voice agent coordinates /live (today)
+-
+-- **Path:** the voice app calls Servex over `POST /mcp/remote` (caller `voice-app`, [RemoteMCP.js](../../../Servex/ext/remote/RemoteMCP.js), [remote-tools.md](../../../Servex/ext/remote/doc/remote-tools.md)). It gets the same registry as a local agent, plus `ask_mastermind` and the generic `call`. The one source of its standing rules is `RemoteMCP.INSTRUCTIONS`.
+-- **Tools for the page:** `page_set` (one delta), `page_add` (one card), `page_call` (one method at one target), `page_read` (current state), and `item` (the general door, the same line, class picked by the folder). All with `path: "/live/"`.
+-- **Latency:** the tool appends a line, the open tab's `JSONL.live` stream draws it. Measured 21 to 111 ms from write to screen ([core/Page/doc/ai-api.md](../../framework/core/Page/doc/ai-api.md)). The fallback is a short poll where the socket is refused (phones).
+-- **Rule order:** clear first when the topic changes (`{"content":{"clear":true}}`), then add. Never post "Heard" or summary cards. Update a card by its id, never by clearing and re-adding.
+-
+-## The deltas the voice agent needs, mapped
+-
+-| Need | Today |
+-|---|---|
+-| Clear the page | `{"content":{"clear":true}}` (exists) |
+-| New layout | page properties `navigation`, `width`, `arrangement`, `surface`, `background`, `type_size` (exist) |
+-| Lists of things | `content.add` several cards; `order [ids]`, `move {id,after}` (exist) |
+-| Nested content cards | a key naming a card id walks into it: `{"k2":{"answers":{"add":{...}}}}` (exists) |
+-| Edit without rewriting | `{"<id>":{"text":"..."}}` patches one field (exists) |
+-| Full screen, vertically centred | **not confirmed**; probably a layout word, to add beside the six above (the instance can map it) |
+-| Interactive state | **missing**: a card holds only what was written; no value the owner's tap can change and an agent can read (see phase two) |
+-
+-## A short schematic of /live's page.jsonl
+-
+-```
+-{"content":{"add":{"id":"k2","type":"part-card","title":"…","preview":"…","text":"…","after":"k1","by":"voice-app","ts":"…"}}}   a card, newest on top
+-{"k2":{"text":"new text"}}                                       patch one field of card k2
+-{"k2":{"answers":{"add":{"id":"a1","text":"…"}}}}                a child list inside k2 (nesting = nested keys)
+-{"content":{"remove":"k2"}}   {"content":{"order":["k3","k1"]}}   remove / reorder
+-{"content":{"clear":true}}                                       blank the screen = one session ends
+-{"background":"gray"}                                            a page property
+-```
+-
+-Replayed in order by `LiveLog` ([Live.js](../Live.js)) into a Map of cards. **A session is the run of cards between two clears.** The old cards live in the archive's own log ([../archive/readme.md](../archive/readme.md)).
+-
+-## Phase two (noted, not built)
+-
+-Cards with buttons. A tap writes one line to a file through the dev socket (the same socket the page already streams over, in the other direction), an agent's inbox or a task log picks it up, and the answer comes back as a patch on the same card. The card then holds interactive state (the "missing" row above). It needs the dev backend only (production is static and read-only), and it is the natural first thing for a `LivePage` instance to own, since the instance can validate the tap before it is written.
+-
+-## Not done
+-
+-Nothing here is built: no `LivePage`, no collapse view, no layout words for full screen or centred, no buttons. Part one's first slice (sessions) is also not browser-checked.
+diff --git a/public/framework/ai/sessions/2026/10/19/cloud-voice-agent/doc/owner-sessions.md b/public/framework/ai/sessions/2026/10/19/cloud-voice-agent/doc/owner-sessions.md
+deleted file mode 100644
+index 327a61073..000000000
+--- a/public/framework/ai/sessions/2026/10/19/cloud-voice-agent/doc/owner-sessions.md
++++ /dev/null
+@@ -1,24 +0,0 @@
+-# Owner dictation, 2026-10-19 (relayed by the voice agent): /live becomes a session feed
+-
+-Not a plan, not approved. The ask as relayed (the voice agent's wording, not the raw words, which is the first finding below), what was found in the repo, and what is proposed. The first build is [sessions.md](sessions.md).
+-
+-## The five asks, and what exists
+-
+-**1. Are the voice-session prompts written verbatim to a JSONL on every prompt? Partly, and not reliably.**
+-- The one door is `ask_mastermind` ([`RemoteMCP.ask()`](../../../Servex/ext/remote/RemoteMCP.js)): it appends the question and the reply as `chat` lines to the voice mastermind's `task.jsonl`, and one index line (first 200 characters) to `ai/log.jsonl`. Written by code, not by AI memory, as asked.
+-- Four gaps. (a) Only the **question the voice model chooses to pass** is logged, a paraphrase, never the owner's raw words; the Claude app has no session file and no hook. (b) The question is cut at 4000 characters, so a long dictation is truncated. (c) Nothing makes the voice model call it: the directives only say "fire ask_mastermind immediately", and a voice agent that spawns or messages agents directly (as this task's own brief did) bypasses the log. (d) I found no `chat` line from `owner (voice)` dated after 2026-10-16, and no `remote_mcp` line in `log.jsonl` (it may have been swept), so it has probably not fired on the recent days; I could not run anything to confirm.
+-- Already answered once, 2026-10-17: [Servex/ext/remote/doc/remote-tools.md](../../../Servex/ext/remote/doc/remote-tools.md) ("Where an owner prompt from the Claude app lands"). The 2026-10-16 voice session's [owner-words.md](../../framework/ai/sessions/2026/10/16/voice-20261016/owner-words.md) is the voice agent writing the record from memory, which is what this ask wants to replace (its item 12).
+-- **Proposal:** make it tool-side. In `RemoteMCP.tools()` add an `owner_words` property to every tool's schema, described as "the owner's exact words that led to this call, verbatim, every time"; `RemoteMCP.post()` strips it before dispatch and appends it (once per distinct text) to one `voice-prompts.jsonl` as `{at, words, tool, session}`, with no length cut. Compliance still depends on the model, but the logging, dedupe and storage are code, and the tool descriptions are where the model reads the rule. Takes effect after a Servex restart.
+-
+-**2. The live page as a session-based idea feed: built, first slice.** [sessions.md](sessions.md): a session is what was on screen between two `clear` lines, computed from `page.jsonl`; `/live/sessions/` lists them, each opens as a page. It uses the existing `JSONL.live` tail, so a line any agent appends reaches the screen with no AI refreshing anything. Not yet seen in a browser. The log carries `by: "voice-app"` on each line, so the feed can later be filtered by author.
+-
+-**3. Do items attached to a saved parent persist by themselves? Yes, read from the code, not run.** `List.add()` announces a `delta` that bubbles up the `parent` chain; the nearest ancestor with a `store` (`Item.Store.attach`, [core/Item/Store.js](../../framework/core/Item/Store.js)) appends ONE line with the nesting worked out, and replaying it rebuilds the tree. `Item.set()` does the same for a changed field. So a card class that `extends Item` and is added to a saved page's `content` list saves itself, and later `card.set({...})` edits are appended too; no separate save step. Limits: it only writes on the dev backend (`DevBackend`; the static production site is read-only), and the card class must be registered with `Item.register` or it comes back as a plain `Item` ([core/Item/readme.md](../../framework/core/Item/readme.md), [core/Page/doc/storage.md](../../framework/core/Page/doc/storage.md)). `Page` also extends `Item`.
+-
+-**4. Is the Inbox the right view for this feed? For the list of past sessions yes, for the live feed no.** The Inbox rail (`Inbox.Rail extends Browse`, [core/Page/ext/Inbox](../../framework/core/Page/ext/Inbox/readme.md)) is a list of rows with the picked page beside it, rows from any `source()`, a row opening `<url>/<id>/`. That is exactly "browse past sessions": the sessions list should become a `Browse`/`Inbox.Rail` subclass (rows `{id, title, at, sub}`) instead of the plain list in `sessions/LiveSessions.js`, which is a stand-in. The current-session feed stays `Live`: one narrow column of white cards, newest first, phone first. Nothing in the Inbox needs to change.
+-
+-**5. Context cards (noted, not built).** Nested, dynamic cards with an AI-written icon, title and content, framing a task, question, project, session or chat on the owner's screen while they dictate. Already designed: [ext/Refine/doc/card-types.md](../../framework/ext/Refine/doc/card-types.md) ("Context cards: the pattern, and what already exists"): a context card wraps any class or page that already has an icon and title, via a mention, and holds the content unique to this instance; each card is an `Item`, so it persists as in item 3. Past work: [ux/Dictate/doc/streaming-ui.md](../../framework/ux/Dictate/doc/streaming-ui.md).
+-
+-## Open
+-
+-- **Owner direction vs my edit.** In a 2026-10-16 relayed directive the owner said agents must never edit `page.js` and that the `children:` string is the old index approach; I added `sessions` to `/live`'s `children:` before seeing it. If a route-only way exists for a child page, use it and drop the edit.
+-- Not done: the tile on `/live/` linking to Sessions, the `owner_words` change, the `Browse` rewrite of the list.
+diff --git a/public/framework/ai/sessions/2026/10/19/cloud-voice-agent/session.md b/public/framework/ai/sessions/2026/10/19/cloud-voice-agent/session.md
+deleted file mode 100644
+index 8d635cd7d..000000000
+--- a/public/framework/ai/sessions/2026/10/19/cloud-voice-agent/session.md
++++ /dev/null
+@@ -1,42 +0,0 @@
+-# Cloud voice agent — 2026-10-19 — live page sessions, voice logging
+-
+-A **cloud voice agent** session: the owner dictating in the Claude app, the agent (`voice-app`) working through the Servex MCP. No local Claude Code session file exists for it, so this folder is its record. Hand-written by voice-app this once; `task-mastermind-voice-logging` is building the code that writes `session.jsonl` here from now on.
+-
+-Log level — asks in order, decisions, agents spawned (by path), anecdotes. May be purged. The persistent record is in module docs, linked below.
+-
+-## Asks, in order
+-
+-1. Make `public/live/` a session-based idea feed; past sessions findable. Changes land live (no worktree).
+-2. Research before building: JSONL `live()` tail, `Page extends Item` persistence, Inbox fit. Don't rewrite what works.
+-3. Context cards (asked before): nested dynamic cards on screen while dictating — the prompt refinement system. Noted, not built.
+-4. `item` tool design: live server-side instance + `set(path, value)` deltas (owner leans this way) vs raw append-only JSONL tool. Undecided. Detail: [doc/owner-evolving-compaction.md](doc/owner-evolving-compaction.md).
+-5. Evolving compaction, not whole-card rewrites (last round lost content).
+-6. Phase two: card buttons that write to disk via the dev socket.
+-7. `public/live/` new files gitignored for now (toggleable line). Done, committed `ed89b264e`.
+-8. `/live/sessions/` showed only Oct 15 → mastermind made it read 14 days of `index.json`. Unverified in a browser.
+-9. **Voice sessions are not logged** (asked before). Top priority. Finding: `session_summary` refuses because Servex mints no session for a cloud client on connect. Detail: [doc/owner-sessions.md](doc/owner-sessions.md).
+-10. Cloud-vs-local fork belongs at the top of the Servex MCP server instructions; CLAUDE.md gets one line pointing there.
+-11. Naming: these are **cloud voice agent** sessions, one folder per day here. Separation rule: session = log level, may be purged; module `doc/` = persistent decisions + link to the session. Rule written: `/framework/ai/doc/sessions-vs-docs.md`.
+-12. A "session" is one cloud voice agent conversation, not "cards between two clears" (the mastermind's page-centric definition in `public/live/doc/sessions.md` — to be corrected).
+-
+-13. Session log vs docs: both link, neither copies; the session line is "updated `<doc>`: one sentence" + link. Updated `/framework/ai/doc/sessions-vs-docs.md` with this.
+-14. **The primary goal is the cloud voice agent system itself**, not the live page. Decisions: a guide named `cloud-voice-agent.md` under `Servex/ext/remote/doc/`; the MCP server instructions carry one line only ("if you are a cloud voice agent, read it") so local agents' context is not polluted; detection is best-effort (no CLAUDE.md, caller voice-app) and the owner can just say so; sessions are named `cloud-voice-<name>`; at least an overview log per session, verbatim prompts where possible; rows compatible with the Sessions store, with a hand-set `cost`; each hand-off opens a task. The voice agent is a relay, not a mastermind. Owner's worry: it paraphrases him; prompt refinement needs an every-prompt hook that does not exist here. Handed to `task-mastermind-voice-logging` as its next slice.
+-
+-15. **Task system — owner does not understand it** ("one dashboard", "steps 1-3", "state.json", "Server/State.mjs", `/framework/ai/tasks/` mean nothing to him; voice-app's reply was a jargon dump from the AI readme). Asked for a task-mastermind to research: what a task is and where it lives, what was done recently, the classes and views, how task data is pulled from the sessions tree, whether there is a per-module tasks folder and whether the two are linked. His ideal: tasks live beside the module they concern and persist beyond sessions; each session references its tasks and each task its sessions; a fresh session in a directory finds every previous task there and its state; no disjointed data that was meant to link. Spawned `task-mastermind-task-system`.
+-
+-## Agents spawned
+-
+-- `mastermind-live-page` — Sonnet, acceptEdits (mistake: could not spawn, commit or load a page; resume did not apply bypassPermissions). Task dir: `spawned/mastermind-live-page/`. Wrote the three docs and the sessions view; voice-app did its commit.
+-- `minion-voice-logging` — Haiku by default, stopped at 0 turns (CLAUDE.md: Sonnet for OO code).
+-- `task-mastermind-voice-logging` — Sonnet, bypassPermissions, worktree. Task dir: `spawned/mastermind-live-page/voice-logging/`. Brief: `Servex/ext/remote/doc/voice-logging.md`.
+-
+-- `task-mastermind-task-system` — Sonnet, bypassPermissions. Task dir: `task-system/` (here). Research the task system, report in plain language, propose the smallest change toward tasks-beside-modules linked both ways to sessions.
+-
+-## Problems seen
+-
+-- The MCP does not inject CLAUDE.md; voice-app had to fetch it.
+-- voice-app relayed through chat for ten prompts before writing a file, and never put a card on `/live/` though `public/live/readme.md` says that is the rule.
+-- `wait_for_agent` blocks; in voice mode the owner's next utterance interrupts it, so follow-ups silently never happen. Text mode is better.
+-- Servex `shell` returns `timed_out` on git commands that do complete (slow repo, ~60s+).
+-- Minion role cannot take a worktree when the pool is empty; spawn a task-mastermind.
+-- `/live/` index: Tasks card redirects to `/framework/ai/`; Now card click does nothing.
+diff --git a/public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/doc/owner-evolving-compaction.md b/public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/doc/owner-evolving-compaction.md
+new file mode 100644
+index 000000000..c2aa25c1e
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/doc/owner-evolving-compaction.md
+@@ -0,0 +1,66 @@
++# Owner dictation, 2026-10-19 (second part): evolving compaction, and how the voice agent drives /live
++
++Relayed by the voice agent, so these are its words, not the raw ones. Part one (sessions, verbatim logging, Item persistence, Inbox, context cards) is [owner-2026-10-19-sessions.md](owner-2026-10-19-sessions.md); the first build is [sessions.md](sessions.md).
++
++## What was asked
++
++- A fresh JSONL for a new live page is fine. The existing live content is a log and must not be clobbered.
++- Rewriting a whole card to update it lost things last round. Pure append-only is not right either. The wish is **evolving compaction**: old things collapse, and what is being discussed now is on screen as fast as possible.
++- The voice agent is the middleman. The owner dictates in the Claude app and watches `/live/`; the voice agent applies changes through Servex tools, leaning on `item`. Document how that coordination works.
++- Assess two designs: (1) a server-side live instance behind a tool that takes a path and a value and calls `set()`; (2) a raw append-only JSONL tool with no server instance and a well-documented API. The owner leans to (1), because a live instance can filter, clean up and compact.
++- Deltas the voice agent expects to need: clear page, new layout, full screen, vertically centred, lists of things, nested content cards, interactive state.
++- Phase two (noted, not built): cards with buttons that write to the file system through the dev socket, so the owner's clicks reach agents.
++
++## Design (1) vs design (2): what exists today (read from the code, not run)
++
++- **Today the tool for a page is design (2).** `page_set`, `page_add`, `page_call`, `page_log` and `item` all end in `run_item()` ([Servex/agents/page_tools.js](../../../Servex/agents/page_tools.js)). For a `page.jsonl` the class has no `replay`, so there is no live instance: the tool stamps `id`, `by`, `ts`, works out the nesting, appends one line and returns. Nothing filters, dedupes or compacts. That is why a whole-card rewrite can lose things: nothing checks what it replaces.
++- **Design (1) already exists, for Tasks.** A `task.jsonl` path gets `live_root()`: one live `Task` instance per file, advanced with every appended line, re-read if something else wrote the file, and a `validate()` step that can refuse a bad line before it is written. That is the same shape the owner leans to, working today ([Servex/doc/item-tool.md](../../../Servex/doc/item-tool.md)).
++- **For Pages it is designed, not built:** `PageHost` / `LivePage` / `PageDoc extends Item` in [core/Page/doc/server-instance.md](../../framework/core/Page/doc/server-instance.md) (the real `Page` cannot run in node: it needs the DOM). `Item`, `List` and the `Store` do run in node, so a small `PageDoc` is the slice.
++
++**Recommendation: design (1), but keep the log append-only underneath.** The instance does the thinking, the file stays the history:
++1. The tool keeps one live `LivePage` for `/live/page.jsonl` (the Task mechanism, reused, not a second system).
++2. A delta first goes through the instance: `set({"<id>":{"text":"new"}})` patches a field and appends one small line, never the whole card. The instance can refuse a line that names a missing id or that would blank a field by accident.
++3. **Compaction is a view, not a rewrite.** The instance knows which cards are old (past a clear, or untouched for a while) and the page draws them collapsed (title only, one line, the session list). The full cards stay in the log, one click down. Nothing is deleted, and what was just said is the newest, fully open card.
++4. Writing to a new file is fine for a new live page; the old `page.jsonl` is never edited, only followed (the archive does that today).
++
++Design (2) alone keeps working for every page that nobody has built an instance for, so the instance is added behind the same `item` door, nothing the voice agent calls changes.
++
++## How the voice agent coordinates /live (today)
++
++- **Path:** the voice app calls Servex over `POST /mcp/remote` (caller `voice-app`, [RemoteMCP.js](../../../Servex/ext/remote/RemoteMCP.js), [remote-tools.md](../../../Servex/ext/remote/doc/remote-tools.md)). It gets the same registry as a local agent, plus `ask_mastermind` and the generic `call`. The one source of its standing rules is `RemoteMCP.INSTRUCTIONS`.
++- **Tools for the page:** `page_set` (one delta), `page_add` (one card), `page_call` (one method at one target), `page_read` (current state), and `item` (the general door, the same line, class picked by the folder). All with `path: "/live/"`.
++- **Latency:** the tool appends a line, the open tab's `JSONL.live` stream draws it. Measured 21 to 111 ms from write to screen ([core/Page/doc/ai-api.md](../../framework/core/Page/doc/ai-api.md)). The fallback is a short poll where the socket is refused (phones).
++- **Rule order:** clear first when the topic changes (`{"content":{"clear":true}}`), then add. Never post "Heard" or summary cards. Update a card by its id, never by clearing and re-adding.
++
++## The deltas the voice agent needs, mapped
++
++| Need | Today |
++|---|---|
++| Clear the page | `{"content":{"clear":true}}` (exists) |
++| New layout | page properties `navigation`, `width`, `arrangement`, `surface`, `background`, `type_size` (exist) |
++| Lists of things | `content.add` several cards; `order [ids]`, `move {id,after}` (exist) |
++| Nested content cards | a key naming a card id walks into it: `{"k2":{"answers":{"add":{...}}}}` (exists) |
++| Edit without rewriting | `{"<id>":{"text":"..."}}` patches one field (exists) |
++| Full screen, vertically centred | **not confirmed**; probably a layout word, to add beside the six above (the instance can map it) |
++| Interactive state | **missing**: a card holds only what was written; no value the owner's tap can change and an agent can read (see phase two) |
++
++## A short schematic of /live's page.jsonl
++
++```
++{"content":{"add":{"id":"k2","type":"part-card","title":"…","preview":"…","text":"…","after":"k1","by":"voice-app","ts":"…"}}}   a card, newest on top
++{"k2":{"text":"new text"}}                                       patch one field of card k2
++{"k2":{"answers":{"add":{"id":"a1","text":"…"}}}}                a child list inside k2 (nesting = nested keys)
++{"content":{"remove":"k2"}}   {"content":{"order":["k3","k1"]}}   remove / reorder
++{"content":{"clear":true}}                                       blank the screen = one session ends
++{"background":"gray"}                                            a page property
++```
++
++Replayed in order by `LiveLog` ([Live.js](../Live.js)) into a Map of cards. **A session is the run of cards between two clears.** The old cards live in the archive's own log ([../archive/readme.md](../archive/readme.md)).
++
++## Phase two (noted, not built)
++
++Cards with buttons. A tap writes one line to a file through the dev socket (the same socket the page already streams over, in the other direction), an agent's inbox or a task log picks it up, and the answer comes back as a patch on the same card. The card then holds interactive state (the "missing" row above). It needs the dev backend only (production is static and read-only), and it is the natural first thing for a `LivePage` instance to own, since the instance can validate the tap before it is written.
++
++## Not done
++
++Nothing here is built: no `LivePage`, no collapse view, no layout words for full screen or centred, no buttons. Part one's first slice (sessions) is also not browser-checked.
+diff --git a/public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/doc/owner-sessions.md b/public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/doc/owner-sessions.md
+new file mode 100644
+index 000000000..327a61073
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/doc/owner-sessions.md
+@@ -0,0 +1,24 @@
++# Owner dictation, 2026-10-19 (relayed by the voice agent): /live becomes a session feed
++
++Not a plan, not approved. The ask as relayed (the voice agent's wording, not the raw words, which is the first finding below), what was found in the repo, and what is proposed. The first build is [sessions.md](sessions.md).
++
++## The five asks, and what exists
++
++**1. Are the voice-session prompts written verbatim to a JSONL on every prompt? Partly, and not reliably.**
++- The one door is `ask_mastermind` ([`RemoteMCP.ask()`](../../../Servex/ext/remote/RemoteMCP.js)): it appends the question and the reply as `chat` lines to the voice mastermind's `task.jsonl`, and one index line (first 200 characters) to `ai/log.jsonl`. Written by code, not by AI memory, as asked.
++- Four gaps. (a) Only the **question the voice model chooses to pass** is logged, a paraphrase, never the owner's raw words; the Claude app has no session file and no hook. (b) The question is cut at 4000 characters, so a long dictation is truncated. (c) Nothing makes the voice model call it: the directives only say "fire ask_mastermind immediately", and a voice agent that spawns or messages agents directly (as this task's own brief did) bypasses the log. (d) I found no `chat` line from `owner (voice)` dated after 2026-10-16, and no `remote_mcp` line in `log.jsonl` (it may have been swept), so it has probably not fired on the recent days; I could not run anything to confirm.
++- Already answered once, 2026-10-17: [Servex/ext/remote/doc/remote-tools.md](../../../Servex/ext/remote/doc/remote-tools.md) ("Where an owner prompt from the Claude app lands"). The 2026-10-16 voice session's [owner-words.md](../../framework/ai/sessions/2026/10/16/voice-20261016/owner-words.md) is the voice agent writing the record from memory, which is what this ask wants to replace (its item 12).
++- **Proposal:** make it tool-side. In `RemoteMCP.tools()` add an `owner_words` property to every tool's schema, described as "the owner's exact words that led to this call, verbatim, every time"; `RemoteMCP.post()` strips it before dispatch and appends it (once per distinct text) to one `voice-prompts.jsonl` as `{at, words, tool, session}`, with no length cut. Compliance still depends on the model, but the logging, dedupe and storage are code, and the tool descriptions are where the model reads the rule. Takes effect after a Servex restart.
++
++**2. The live page as a session-based idea feed: built, first slice.** [sessions.md](sessions.md): a session is what was on screen between two `clear` lines, computed from `page.jsonl`; `/live/sessions/` lists them, each opens as a page. It uses the existing `JSONL.live` tail, so a line any agent appends reaches the screen with no AI refreshing anything. Not yet seen in a browser. The log carries `by: "voice-app"` on each line, so the feed can later be filtered by author.
++
++**3. Do items attached to a saved parent persist by themselves? Yes, read from the code, not run.** `List.add()` announces a `delta` that bubbles up the `parent` chain; the nearest ancestor with a `store` (`Item.Store.attach`, [core/Item/Store.js](../../framework/core/Item/Store.js)) appends ONE line with the nesting worked out, and replaying it rebuilds the tree. `Item.set()` does the same for a changed field. So a card class that `extends Item` and is added to a saved page's `content` list saves itself, and later `card.set({...})` edits are appended too; no separate save step. Limits: it only writes on the dev backend (`DevBackend`; the static production site is read-only), and the card class must be registered with `Item.register` or it comes back as a plain `Item` ([core/Item/readme.md](../../framework/core/Item/readme.md), [core/Page/doc/storage.md](../../framework/core/Page/doc/storage.md)). `Page` also extends `Item`.
++
++**4. Is the Inbox the right view for this feed? For the list of past sessions yes, for the live feed no.** The Inbox rail (`Inbox.Rail extends Browse`, [core/Page/ext/Inbox](../../framework/core/Page/ext/Inbox/readme.md)) is a list of rows with the picked page beside it, rows from any `source()`, a row opening `<url>/<id>/`. That is exactly "browse past sessions": the sessions list should become a `Browse`/`Inbox.Rail` subclass (rows `{id, title, at, sub}`) instead of the plain list in `sessions/LiveSessions.js`, which is a stand-in. The current-session feed stays `Live`: one narrow column of white cards, newest first, phone first. Nothing in the Inbox needs to change.
++
++**5. Context cards (noted, not built).** Nested, dynamic cards with an AI-written icon, title and content, framing a task, question, project, session or chat on the owner's screen while they dictate. Already designed: [ext/Refine/doc/card-types.md](../../framework/ext/Refine/doc/card-types.md) ("Context cards: the pattern, and what already exists"): a context card wraps any class or page that already has an icon and title, via a mention, and holds the content unique to this instance; each card is an `Item`, so it persists as in item 3. Past work: [ux/Dictate/doc/streaming-ui.md](../../framework/ux/Dictate/doc/streaming-ui.md).
++
++## Open
++
++- **Owner direction vs my edit.** In a 2026-10-16 relayed directive the owner said agents must never edit `page.js` and that the `children:` string is the old index approach; I added `sessions` to `/live`'s `children:` before seeing it. If a route-only way exists for a child page, use it and drop the edit.
++- Not done: the tile on `/live/` linking to Sessions, the `owner_words` change, the `Browse` rewrite of the list.
+diff --git a/public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/session.md b/public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/session.md
+new file mode 100644
+index 000000000..4952adb4c
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/19/cloud-voice-live-page/session.md
+@@ -0,0 +1,44 @@
++# Cloud voice agent — 2026-10-19 — live page sessions, voice logging
++
++A **cloud voice agent** session: the owner dictating in the Claude app, the agent (`voice-app`) working through the Servex MCP. No local Claude Code session file exists for it, so this folder is its record. Hand-written by voice-app this once; `task-mastermind-voice-logging` is building the code that writes `session.jsonl` here from now on.
++
++Log level — asks in order, decisions, agents spawned (by path), anecdotes. May be purged. The persistent record is in module docs, linked below.
++
++## Asks, in order
++
++1. Make `public/live/` a session-based idea feed; past sessions findable. Changes land live (no worktree).
++2. Research before building: JSONL `live()` tail, `Page extends Item` persistence, Inbox fit. Don't rewrite what works.
++3. Context cards (asked before): nested dynamic cards on screen while dictating — the prompt refinement system. Noted, not built.
++4. `item` tool design: live server-side instance + `set(path, value)` deltas (owner leans this way) vs raw append-only JSONL tool. Undecided. Detail: [doc/owner-evolving-compaction.md](doc/owner-evolving-compaction.md).
++5. Evolving compaction, not whole-card rewrites (last round lost content).
++6. Phase two: card buttons that write to disk via the dev socket.
++7. `public/live/` new files gitignored for now (toggleable line). Done, committed `ed89b264e`.
++8. `/live/sessions/` showed only Oct 15 → mastermind made it read 14 days of `index.json`. Unverified in a browser.
++9. **Voice sessions are not logged** (asked before). Top priority. Finding: `session_summary` refuses because Servex mints no session for a cloud client on connect. Detail: [doc/owner-sessions.md](doc/owner-sessions.md).
++10. Cloud-vs-local fork belongs at the top of the Servex MCP server instructions; CLAUDE.md gets one line pointing there.
++11. Naming: these are **cloud voice agent** sessions, one folder per day here. Separation rule: session = log level, may be purged; module `doc/` = persistent decisions + link to the session. Rule written: `/framework/ai/doc/sessions-vs-docs.md`.
++12. A "session" is one cloud voice agent conversation, not "cards between two clears" (the mastermind's page-centric definition in `public/live/doc/sessions.md` — to be corrected).
++
++13. Session log vs docs: both link, neither copies; the session line is "updated `<doc>`: one sentence" + link. Updated `/framework/ai/doc/sessions-vs-docs.md` with this.
++14. **The primary goal is the cloud voice agent system itself**, not the live page. Decisions: a guide named `cloud-voice-agent.md` under `Servex/ext/remote/doc/`; the MCP server instructions carry one line only ("if you are a cloud voice agent, read it") so local agents' context is not polluted; detection is best-effort (no CLAUDE.md, caller voice-app) and the owner can just say so; sessions are named `cloud-voice-<name>`; at least an overview log per session, verbatim prompts where possible; rows compatible with the Sessions store, with a hand-set `cost`; each hand-off opens a task. The voice agent is a relay, not a mastermind. Owner's worry: it paraphrases him; prompt refinement needs an every-prompt hook that does not exist here. Handed to `task-mastermind-voice-logging` as its next slice.
++
++15. **Task system — owner does not understand it** ("one dashboard", "steps 1-3", "state.json", "Server/State.mjs", `/framework/ai/tasks/` mean nothing to him; voice-app's reply was a jargon dump from the AI readme). Asked for a task-mastermind to research: what a task is and where it lives, what was done recently, the classes and views, how task data is pulled from the sessions tree, whether there is a per-module tasks folder and whether the two are linked. His ideal: tasks live beside the module they concern and persist beyond sessions; each session references its tasks and each task its sessions; a fresh session in a directory finds every previous task there and its state; no disjointed data that was meant to link. Spawned `task-mastermind-task-system`.
++
++## Agents spawned
++
++- `mastermind-live-page` — Sonnet, acceptEdits (mistake: could not spawn, commit or load a page; resume did not apply bypassPermissions). Task dir: `spawned/mastermind-live-page/`. Wrote the three docs and the sessions view; voice-app did its commit.
++- `minion-voice-logging` — Haiku by default, stopped at 0 turns (CLAUDE.md: Sonnet for OO code).
++- `task-mastermind-voice-logging` — Sonnet, bypassPermissions, worktree. Task dir: `spawned/mastermind-live-page/voice-logging/`. Brief: `Servex/ext/remote/doc/voice-logging.md`.
++
++- `task-mastermind-task-system` — Sonnet, bypassPermissions. Task dir: `task-system/` (here). Research the task system, report in plain language, propose the smallest change toward tasks-beside-modules linked both ways to sessions.
++
++## Problems seen
++
++- The MCP does not inject CLAUDE.md; voice-app had to fetch it.
++- voice-app relayed through chat for ten prompts before writing a file, and never put a card on `/live/` though `public/live/readme.md` says that is the rule.
++- `wait_for_agent` blocks; in voice mode the owner's next utterance interrupts it, so follow-ups silently never happen. Text mode is better.
++- Servex `shell` returns `timed_out` on git commands that do complete (slow repo, ~60s+).
++- Minion role cannot take a worktree when the pool is empty; spawn a task-mastermind.
++- `/live/` index: Tasks card redirects to `/framework/ai/`; Now card click does nothing.
++
++16. **Folder renamed** from `cloud-voice-agent/` to `cloud-voice-live-page/` (slice 3, `git mv`). The live `task-system/` task of ask 15 still sits at `sessions/2026/10/19/cloud-voice-agent/task-system/` because an agent is writing there; move it into this folder with a script once it lands, and fix its links then. Report so far: [task-system report](/framework/ai/sessions/2026/10/19/cloud-voice-agent/task-system/report.md).
+diff --git a/public/live/readme.md b/public/live/readme.md
+index a8a9e6b35..4d4c12714 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -17,7 +17,7 @@ Open [/live/](/live/). It shows only the current topic, your latest ask refined
+ 
+ ## Sessions (2026-10-19)
+ 
+-**A session is one cloud voice agent conversation** (the owner, 2026-10-19), with `/live/` as its screen; its log is `ai/sessions/YYYY/MM/DD/cloud-voice-agent/`. [/live/sessions/](/live/sessions/) lists sessions newest first, each opening as a page of its cards. ⚠️ The current view ([doc/sessions.md](doc/sessions.md)) still uses the older page-centric definition, "the cards between two `clear` lines of `page.jsonl`" — to be replaced once the session store lands ([Servex/ext/remote/doc/voice-logging.md](/framework/servex/remote/doc/voice-logging.md)). Decisions from the 2026-10-19 session: research first, don't rewrite; `item` tool = a live server-side instance taking `set(path, value)` deltas (leaning, not decided); evolving compaction, never whole-card rewrites; card buttons that write to disk are phase two. The discussion behind each: [the session log](/framework/ai/sessions/2026/10/19/cloud-voice-agent/session.md).
++**A session is one cloud voice agent conversation** (the owner, 2026-10-19), with `/live/` as its screen; its log is `ai/sessions/YYYY/MM/DD/cloud-voice-<name>/`. [/live/sessions/](/live/sessions/) lists sessions newest first, each opening as a page of its cards. ⚠️ The current view ([doc/sessions.md](doc/sessions.md)) still uses the older page-centric definition, "the cards between two `clear` lines of `page.jsonl`" — to be replaced once the session store lands ([Servex/ext/remote/doc/voice-logging.md](/framework/servex/remote/doc/voice-logging.md)). Decisions from the 2026-10-19 session: research first, don't rewrite; `item` tool = a live server-side instance taking `set(path, value)` deltas (leaning, not decided); evolving compaction, never whole-card rewrites; card buttons that write to disk are phase two. The discussion behind each: [the session log](/framework/ai/sessions/2026/10/19/cloud-voice-live-page/session.md).
+ 
+ ## The answer goes on a card (the owner, 2026-10-16)
+ 

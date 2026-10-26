@@ -1,0 +1,995 @@
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index 5eb681579..0f472f10a 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -628,6 +628,7 @@ export default class AISessionsPage extends Page {
+ 	route(id){
+ 		if (id.includes(".")) return;   // a stray asset request, not a session id
+ 		if (id === "doc" || id === "readme") return this.docs_page(id);
++		if (id === "v") return;   // variants: sessions/v/page.js (e.g. v/mobile/), a folder and not a session id
+ 		if (/^\d{4}$/.test(id)) return new StoreFolder({ home: this, segs: [id] });   // the store by path: YYYY/MM/DD/<session>/<task>/ (ai/doc/task-folders.md)
+ 		return new AISessionDetail({ home: this, id });
+ 	}
+diff --git a/public/framework/ai/sessions/doc/mobile-cards.md b/public/framework/ai/sessions/doc/mobile-cards.md
+index 05e051130..f8aa413dc 100644
+--- a/public/framework/ai/sessions/doc/mobile-cards.md
++++ b/public/framework/ai/sessions/doc/mobile-cards.md
+@@ -38,6 +38,8 @@ All the numbers come from the session store (`sessions/2026/10/*/index.json`, th
+ 
+ Code the picks as variant pages you can click through on the phone. This is the design process, `Process.DEFINITIONS.design` (branch `task/architect-requests`, written by the system architect): design → review shots → pick → code as `<page>/v/<name>/` → review at 400 and 1200 px → merge.
+ 
++Built: [the mobile variant](/framework/ai/sessions/v/mobile/), four pages (day list, nested sessions, a session, a task) on real data. How it is built: [v/mobile/readme.md](/framework/ai/sessions/v/mobile/readme.md).
++
+ ## Keeping the designs true (the owner, 2026-10-22)
+ 
+ When the task, session or process data changes (a new field, a renamed state, a new kind of session), update these Figma bands to match, in the same task that changed the data. The fields to draw from are in [core/Task/doc/process.md](/framework/core/Task/doc/process.md), [core/Session/readme.md](/framework/core/Session/readme.md) and [core/Task/readme.md](/framework/core/Task/readme.md). A band drawn from fields that no longer exist is a bug, the same as a stale readme.
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 4921649f3..c377ba791 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -44,6 +44,7 @@ A session folder is one of three kinds:
+ - **The page**: `page.js` builds `AISessionsPage` (`ai/AISession/`), a table or rail of cards over [ext/DataGrid](/framework/ext/DataGrid/). Rows are `AISessionView`, order and nesting `AISessionsPage.arrange()`, built from `session-tree.json` plus the live `index.json` snapshots pushed over the page's socket.
+ - **One session**: `/framework/ai/sessions/<id>/` → `AISessionDetail` (prompts, cost, Coverage tab: [ext/Refine/doc/refine-queue.md](/framework/ext/Refine/doc/refine-queue.md)).
+ - **The class**: `class AISession extends Session` (`AISession.js`): totals, `apply_line()` per transcript line, `AISession.of(id)`, `AISession.log()`, `AISession.record(id)`. Classes of the detail page: [doc/ui/classes.md](doc/ui/classes.md).
++- **Variants**: `/framework/ai/sessions/v/<name>/` is another look at the same data, for example [v/mobile/](/framework/ai/sessions/v/mobile/) (the phone pages: day list, nested sessions, a session, a task). `AISessionsPage.route()` passes the name `v` through to that folder instead of reading it as a session id.
+ - **Routine sessions are hidden** behind one chip per kind (prompt cleaning, short headless runs, reviews): [doc/buckets.md](doc/buckets.md).
+ - **Tasks**: `Server/State.mjs` folds every task log into `ai/state.json`.
+ 
+diff --git a/public/framework/ai/sessions/v/files.jsonl b/public/framework/ai/sessions/v/files.jsonl
+new file mode 100644
+index 000000000..cf2243e4c
+--- /dev/null
++++ b/public/framework/ai/sessions/v/files.jsonl
+@@ -0,0 +1,3 @@
++{"file":"mobile/"}
++{"file":"mobile/page.js"}
++{"file":"page.js"}
+diff --git a/public/framework/ai/sessions/v/mobile/MobileAll.js b/public/framework/ai/sessions/v/mobile/MobileAll.js
+new file mode 100644
+index 000000000..f4800c1bc
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/MobileAll.js
+@@ -0,0 +1,76 @@
++import { div, button, small, strong, details, summary, icon } from "/framework/core/View/View.js";
++import MobileHome from "./MobileHome.js";
++import MobileData from "./MobileData.js";
++import MobileRow from "./MobileRow.js";
++
++/* Page 2, every recent session nested by parent: a spawned session sits inside the session that spawned it, collapsed under
++   a count ("+6 minions"). The parent of each session is session-tree.json's (MobileData.parent); a child whose parent is
++   not in the list stays at the top, so nothing disappears. */
++export default class MobileAll extends MobileHome {
++
++	static DAYS = 1;   // today, as the Day tab
++	static PAGE = 40;   // top-level rows drawn at once; "show more" adds the next page
++	mode = "all";
++
++	constructor(...args){ super({ title: "Nested" }, ...args); }
++
++	/** How many days back: `?days=30` in the url, else DAYS. */
++	get days(){ return Math.min(60, +new URLSearchParams(location.search).get("days") || this.constructor.DAYS); }
++	/** `?end=2026-10-08` looks back from that day instead of today (the parent data of the last two weeks is stale: see the readme). */
++	get end(){ const e = new URLSearchParams(location.search).get("end"); return e ? new Date(e + "T12:00:00") : new Date(); }
++	head_info(){
++		if (!location.search) return super.head_info();   // the same date header as the Day tab
++		return { title: this.end.toDateString() === new Date().toDateString() ? this.days === 1 ? "Today" : `Last ${this.days} days` : `${this.days} d to ${new URLSearchParams(location.search).get("end")}` }; }
++
++	async rows(){
++		const snaps = await MobileData.days(this.days, this.end);
++		return Promise.all(snaps.map(async snap => { const tasks = await MobileData.tasks(snap).catch(() => null), line = await MobileData.outcome(snap, tasks); return { snap, tasks, line, group: MobileData.group(snap, tasks, line) }; }));
++	}
++
++	async load(out){
++		const [rows, tree] = [await this.rows(), await MobileData.tree()];
++		const by_id = new Map(rows.map(r => [r.snap.id, r]));
++		const kids = new Map();
++		for (const r of rows){
++			const up = MobileData.parent(r.snap, tree);
++			if (up && up !== r.snap.id && by_id.has(up)) (kids.get(up) ?? kids.set(up, []).get(up)).push(r);
++		}
++		const newest = (a, b) => String(b.snap.last_activity).localeCompare(String(a.snap.last_activity));
++		const top = rows.filter(r => { const up = MobileData.parent(r.snap, tree); return !(up && up !== r.snap.id && by_id.has(up)); }).sort(newest);
++		out.empty(() => {
++			this.header(rows);
++			div.c("mob-card", () => {
++				div.c("mob-card-head", () => { icon("account_tree").ac("mob-group-icon"); strong("Sessions"); small.c("mob-count", String(top.length)); });
++				if (!kids.size) div.c("mob-empty", "No parent links recorded for this day");
++				this.page_of(top, kids, tree, this.constructor.PAGE);
++			});
++		});
++	}
++
++	/** The first `n` of `top`, then a button for the next page (a month is thousands of rows). */
++	page_of(top, kids, tree, n){
++		top.slice(n - this.constructor.PAGE, n).forEach(r => this.nest(r, kids, tree));
++		if (top.length <= n) return;
++		const more = button.c("mob-more", `Show ${Math.min(this.constructor.PAGE, top.length - n)} more of ${top.length - n}`).click(() => { more.el.remove(); this.page_of(top, kids, tree, n + this.constructor.PAGE); });
++	}
++
++	/** A session row; its children, if any, are folded under "+N minions" (one indent, a 2 px rail) and drawn when first opened: a parent can hold hundreds. */
++	nest(r, kids, tree){
++		new MobileRow({ ...r, tree });
++		const mine = (kids.get(r.snap.id) ?? []).sort((a, b) => String(b.snap.last_activity).localeCompare(String(a.snap.last_activity)));
++		if (!mine.length) return;
++		let $kids, built = false;
++		const box = details.c("mob-nest", () => {
++			summary.c("mob-nest-sum", this.count_words(mine, tree));
++			$kids = div.c("mob-nest-kids");
++		});
++		box.on("toggle", () => { if (box.el.open && !built){ built = true; $kids.append(() => mine.forEach(k => this.nest(k, kids, tree))); } });
++	}
++
++	/** "+6 minions", "+1 mastermind, 3 minions": the direct children counted by kind. */
++	count_words(mine, tree){
++		const n = {};
++		mine.forEach(k => { const kind = MobileData.kind(k.snap, tree); n[kind] = (n[kind] ?? 0) + 1; });
++		return "+" + Object.entries(n).map(([k, c]) => `${c} ${k}${c > 1 && !k.endsWith("s") ? "s" : ""}`).join(", ");
++	}
++}
+diff --git a/public/framework/ai/sessions/v/mobile/MobileData.js b/public/framework/ai/sessions/v/mobile/MobileData.js
+new file mode 100644
+index 000000000..52a3d5157
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/MobileData.js
+@@ -0,0 +1,103 @@
++import Day from "/framework/core/Session/Day.js";
++import SessionTree from "../../doc/variants/SessionTree.js";
++
++/* Everything the mobile variant reads, in one place (doc: readme.md here). Three files, all computed by node, nothing typed:
++   the day's sessions/YYYY/MM/DD/index.json (one snapshot per session), sessions/session-tree.json (parent and role per
++   session id) and ai/index.json (every task, read through SessionTree). */
++export default class MobileData {
++
++	static SESSIONS = "/framework/ai/sessions/";
++	static HOME = MobileData.SESSIONS + "v/mobile/";
++	static cache = new Map();
++
++	static json(url){
++		if (!this.cache.has(url)) this.cache.set(url, fetch(url).then(r => r.ok ? r.json() : null).catch(() => null));
++		return this.cache.get(url);
++	}
++
++	static async day(day){ return (await this.json(`${this.SESSIONS}${day}/index.json`))?.snapshots ?? []; }
++	static async tree(){ return (await this.json(this.SESSIONS + "session-tree.json")) ?? {}; }
++
++	/** The sessions of the last `days` days, newest day first, each once. A snapshot is stamped with the day file it came from (`_day`). */
++	static async days(days, from = new Date()){
++		const seen = new Map();
++		for (let i = 0; i < days; i++){
++			const day = Day.path(new Date(from.getFullYear(), from.getMonth(), from.getDate() - i));
++			for (const s of await this.day(day)) if (!seen.has(s.id)) seen.set(s.id, { ...s, _day: day });
++		}
++		return [...seen.values()];
++	}
++
++	/** One session by id: scans the last 14 day files once. */
++	static async find(id){
++		this.all ??= this.days(14);
++		return (await this.all).find(s => s.id === id) ?? null;
++	}
++
++	/** The session's folder day ("2026/10/20"): its `day` field, else the day file it was found in. */
++	static dir_day(snap){ return snap.day ? snap.day.replaceAll("-", "/") : snap._day; }
++	static dir_url(snap){ return `${this.SESSIONS}${this.dir_day(snap)}/${snap.folder}/`; }
++	static session_url(id){ return this.HOME + id + "/"; }
++	static task_url(id, rel){ return this.HOME + id + "/" + rel + "/"; }
++
++	/** The session's tasks as a tree (SessionTree.Node); null for a session with no folder or no task. */
++	static async tasks(snap){
++		if (!snap.folder) return null;
++		const t = await SessionTree.load(this.dir_day(snap), snap.folder);
++		return t.root.kids.length ? t : null;
++	}
++
++	// ---- what a session is -----------------------------------------------------------------------------
++
++	/** One of "VS Code tab", "voice", "mastermind", "minion"; any other agent keeps its role word (reviewer, assistant...). */
++	static kind(snap, tree){
++		const role = tree[snap.id]?.role, agent = snap.agent ?? tree[snap.id]?.agent ?? "";
++		if (snap.kind || /^v-/.test(snap.id) || role === "voice") return "voice";
++		if (role === "minion" || agent.startsWith("minion")) return "minion";
++		if (agent === "vscode-mastermind" || (!agent && !role && !snap.parent && !tree[snap.id])) return "VS Code tab";
++		if (/mastermind/.test(role ?? "") || agent.includes("mastermind")) return "mastermind";
++		return role ?? (agent.replace(/-.*/, "") || "session");
++	}
++
++	static parent(snap, tree){ return tree[snap.id]?.parent ?? snap.links?.parent ?? null; }
++
++	/** Sessions with no parent anywhere in the tree: the missing-link list for the report. */
++	static orphans(snaps, tree){
++		return snaps.filter(s => ["minion", "mastermind"].includes(this.kind(s, tree)) && !this.parent(s, tree));
++	}
++
++	/** The tasks the session itself did, from ai/index.json (`session` = its id): where a session without a task folder keeps its outcome. */
++	static async owned(snap){
++		const [index] = await SessionTree.files(this.dir_day(snap));
++		return index.tasks.filter(t => t.session === snap.id);
++	}
++
++	// ---- groups of the day --------------------------------------------------------------------------
++
++	/** Needs you / Running / Done / the rest. Needs you = an alert or a red flag on the session, or a task waiting on someone.
++	    Done = it has an outcome line (a landed task). The rest = idle with nothing landed. */
++	static group(snap, tasks, line){
++		if (snap.alerts > 0 || snap.flags > 0 || tasks?.root.all().some(n => n.state === "waiting")) return "needs";
++		if (snap.state === "active") return "running";
++		return line ? "done" : "rest";
++	}
++
++	/** The one line a finished session ends on: its latest landed task's, in its folder or owned by it. */
++	static async outcome(snap, tasks){
++		const own = (await this.owned(snap).catch(() => [])).filter(t => t.landed_at && t.line).map(t => ({ line: t.line, at: t.landed_at }));
++		const here = (tasks?.root.all() ?? []).filter(n => n.landed && n.line).map(n => ({ line: n.line, at: n.ended }));
++		return [...own, ...here].sort((a, b) => Date.parse(b.at) - Date.parse(a.at))[0]?.line ?? null;
++	}
++
++	static usd(n){ return "$" + (n ?? 0).toFixed(n >= 100 ? 0 : 2); }
++
++	static ago(iso){
++		const m = Math.round((Date.now() - Date.parse(iso ?? "")) / 6e4);
++		return isNaN(m) ? "" : m < 1 ? "just now" : m < 90 ? m + " min ago" : m < 2880 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago";
++	}
++
++	// ---- task status: the owner's rules (mobile-cards.md) -----------------------------------------------------
++	// green done, amber running, red waiting or paused (blocked), grey open; a stopped task is dropped and not counted.
++
++	static states(nodes){ return nodes.map(n => n.state).filter(s => s !== "stopped"); }
++}
+diff --git a/public/framework/ai/sessions/v/mobile/MobileHome.js b/public/framework/ai/sessions/v/mobile/MobileHome.js
+new file mode 100644
+index 000000000..de7e495f4
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/MobileHome.js
+@@ -0,0 +1,102 @@
++import { Page } from "/app.js";
++import { div, span, a, small, strong, details, summary, icon } from "/framework/core/View/View.js";
++import AISessionsPage from "../../../AISession/AISessionsPage.js";
++import Day from "/framework/core/Session/Day.js";
++import AISessionDetail from "../../../AISession/AISessionDetail.js";
++import MobileData from "./MobileData.js";
++import MobileRow from "./MobileRow.js";
++import MobilePath from "./MobilePath.js";
++
++/* Page 1, the day list: that day's sessions, grouped by what needs you. Extends the real sessions page (its route() and
++   child() are overridden to hand out the mobile pages); the ground, cards and rows are mobile.css. Doc: readme.md here. */
++export default class MobileHome extends AISessionsPage {
++
++	static GROUPS = [["needs", "Needs you", "error"], ["running", "Running", "play_circle"], ["done", "Done", "check_circle"], ["rest", "Everything else", "unfold_more"]];
++
++	constructor(...args){
++		super({ title: "Mobile sessions", icon: "smartphone", classes: "mob-page", description: "The sessions of one day, for a phone." }, ...args);
++	}
++
++	initialize(){}     // not the wide Panel2 columns of the real page
++	activated(){}      // the real page's live poll; this one reads the day file once
++	deactivated(){}
++
++	/** The day shown: the url's, else today. */
++	get shown_day(){ return this.day ?? Day.path(new Date()); }
++
++	/** `2026/10/22/` opens a day by path; `all/` (page 2) and a session id (page 3) are added as those pages land. */
++	route(name){
++		if (/^\d{4}$/.test(name)) return new MobilePath({ segs: [name], home: this });
++		if (name === "all") return new this.constructor.All();   // set in page.js: All extends this class, so it cannot be imported here
++		if (name.includes(".") || name === "doc" || name === "readme") return;
++		return new this.constructor.Session({ id: name });   // set in page.js, as All is
++	}
++
++	/** The real page preloads a session's rows in child(); the mobile pages read their own files, so go straight to Page. */
++	async child(name, levels){
++		if (name && !name.includes(".") && name !== "all" && !/^\d{4}$/.test(name)) await AISessionDetail.preload(MobileData.SESSIONS, name);   // the session page's loaders, before it is built
++		return Page.prototype.child.call(this, name, levels);
++	}
++
++	content(){
++		const out = div.c("mob-day");
++		this.load(out);
++	}
++
++	/** The sessions this page lists, each with its tasks and group. Page 2 lists the last week instead of one day. */
++	async rows(){
++		const snaps = await MobileData.day(this.shown_day);
++		return Promise.all(snaps.map(async s => { const snap = { ...s, _day: s._day ?? this.shown_day }, tasks = await MobileData.tasks(snap).catch(() => null), line = await MobileData.outcome(snap, tasks); return { snap, tasks, line, group: MobileData.group(snap, tasks, line) }; }));
++	}
++
++	async load(out){
++		const [rows, tree] = [await this.rows(), await MobileData.tree()];
++		rows.sort((a, b) => String(b.snap.last_activity).localeCompare(String(a.snap.last_activity)));
++		out.empty(() => {
++			this.header(rows);
++			for (const [key, label, glyph] of this.constructor.GROUPS){
++				const mine = rows.filter(r => r.group === key);
++				if (key === "rest") this.folded(label, mine, tree);
++				else if (mine.length) this.card(label, glyph, key, mine, tree);
++			}
++			if (!rows.length) div.c("mob-card", () => div.c("mob-empty", "No sessions were recorded on this day."));
++		});
++	}
++
++	/** The bar at the top: title, count and cost, the day arrows (day mode only) and the Day | Nested switch. */
++	header(rows){
++		const { title, step } = this.head_info();
++		const cost = MobileData.usd(rows.reduce((t, r) => t + (r.snap.usd ?? 0), 0));
++		div.c("mob-card mob-daybar", () => {
++			div.c("mob-card-head", () => {
++				step ? a.c("mob-step", icon("chevron_left")).href(step(-1)).attr("title", "the day before") : span.c("mob-step");
++				div.c("mob-head-main", () => { strong(title); small.c("mob-head-sub", `${rows.length} sessions · ${cost}`); });
++				step ? a.c("mob-step", icon("chevron_right")).href(step(1)).attr("title", "the day after") : span.c("mob-step");
++			});
++			div.c("mob-switch", () => {
++				this.mode === "all" ? a("Day").href(MobileData.HOME) : span.c("mob-switch-on", "Day");
++				this.mode === "all" ? span.c("mob-switch-on", "Nested") : a("Nested").href(MobileData.HOME + "all/");
++			});
++		});
++	}
++
++	head_info(){
++		const [y, m, d] = this.shown_day.split("/").map(Number);
++		return { title: new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }), step: n => MobileData.HOME + Day.path(new Date(y, m - 1, d + n)) + "/" };
++	}
++
++	card(label, glyph, key, rows, tree){
++		div.c("mob-card mob-group-" + key, () => {
++			div.c("mob-card-head", () => { icon(glyph).ac("mob-group-icon"); strong(label); small.c("mob-count", String(rows.length)); });
++			rows.forEach(r => new MobileRow({ ...r, tree }));
++		});
++	}
++
++	folded(label, rows, tree){
++		if (!rows.length) return;
++		details.c("mob-card mob-fold", () => {
++			summary.c("mob-card-head", () => { icon("unfold_more").ac("mob-group-icon"); strong(label); small.c("mob-count", String(rows.length)); });
++			rows.forEach(r => new MobileRow({ ...r, tree }));
++		});
++	}
++}
+diff --git a/public/framework/ai/sessions/v/mobile/MobilePath.js b/public/framework/ai/sessions/v/mobile/MobilePath.js
+new file mode 100644
+index 000000000..bdc69406e
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/MobilePath.js
+@@ -0,0 +1,14 @@
++import { Page } from "/app.js";
++import MobileHome from "./MobileHome.js";
++
++/* `2026/` and `2026/10/` are not pages, only the way to `2026/10/22/`: each step hands on to the next, the third is the day list. */
++export default class MobilePath extends Page {
++
++	constructor(...args){ super({ title: "", width: "fill" }, ...args); }
++
++	route(name){
++		if (!/^\d{1,2}$/.test(name)) return;
++		const segs = [...this.segs, name];
++		return segs.length === 3 ? new MobileHome({ day: segs.join("/") }) : new MobilePath({ segs, home: this.home });
++	}
++}
+diff --git a/public/framework/ai/sessions/v/mobile/MobileRow.js b/public/framework/ai/sessions/v/mobile/MobileRow.js
+new file mode 100644
+index 000000000..3e1991bf9
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/MobileRow.js
+@@ -0,0 +1,31 @@
++import View, { div, span, a, small, strong, icon } from "/framework/core/View/View.js";
++import TaskView from "/framework/core/Task/TaskView.js";
++import MobileData from "./MobileData.js";
++
++View.stylesheet(import.meta, "mobile.css");
++
++/* One tappable session row: a status dot, the title, a line of facts, and (when the session has tasks) the one task bar.
++   `snap` is a day-index snapshot, `tasks` its SessionTree or null, `group` needs | running | done | rest.
++   `kids` (page 2) are the child rows drawn under it. */
++export default class MobileRow extends View {
++
++	static DOT = { needs: "is-blocked", running: "is-running", done: "is-done", rest: "is-open" };
++
++	initialize(){
++		const { snap, tasks, group, tree, line } = this;
++		this.ac("mob-row", "mob-" + group);
++		a.c("mob-row-link", () => {
++			span.c("mob-dot").ac(this.constructor.DOT[group]);
++			div.c("mob-row-body", () => {
++				strong.c("mob-row-title", snap.title || snap.id);
++				small.c("mob-row-sub", () => {
++					span.c("mob-kind", MobileData.kind(snap, tree));
++					span(" · " + MobileData.ago(snap.last_activity) + (snap.usd ? " · " + MobileData.usd(snap.tree_usd || snap.usd) : ""));
++				});
++				if (line && group === "done") small.c("mob-row-line", line);
++				if (tasks?.root.kids.length > 1) div.c("mob-row-bar", () => TaskView.draw_bar(MobileData.states(tasks.root.kids), 12));
++			});
++			icon("chevron_right").ac("mob-go");
++		}).href(MobileData.session_url(snap.id));
++	}
++}
+diff --git a/public/framework/ai/sessions/v/mobile/MobileRun.js b/public/framework/ai/sessions/v/mobile/MobileRun.js
+new file mode 100644
+index 000000000..aac28c6f3
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/MobileRun.js
+@@ -0,0 +1,44 @@
++import View, { span, button, icon } from "/framework/core/View/View.js";
++import TaskPage from "/framework/core/Task/TaskPage.js";
++import { Task } from "/framework/core/Task/Task.js";
++import TaskView from "/framework/core/Task/TaskView.js";
++
++View.stylesheet(import.meta, "mobile.css");
++
++/* Is it running? One small indicator on a task row (a dot while it runs, a play triangle when it could start), the buttons
++   that fit its state, and a "next" mark when it will start by itself. The buttons are TaskView.VERBS where Task.can(state) allows; a press
++   appends the task's own verb line ({"pause":{}}) through task.act, so an agent following that log gets it; there is no second state machine.
++   `node` is a SessionTree.Node (rel, url, state); `next` says it is first in line under a running series parent. */
++export default class MobileRun extends View {
++
++	/** Computed, never stored: the first child of a running series parent that is not complete, when that child is idle (Task.js start_children). */
++	static is_next(node){
++		const up = node.parent;
++		if (!up || up.state !== "running" || node.state !== "idle") return false;
++		return up.kids.find(k => k.state !== "complete") === node;
++	}
++
++	initialize(){
++		this.ac("mob-run");
++		this.next ??= this.constructor.is_next(this.node);
++		this.draw();
++	}
++
++	draw(){
++		const { node } = this, state = node.state;
++		this.empty(() => {
++			icon(state === "running" ? "fiber_manual_record" : state === "complete" ? "check" : "play_arrow").ac("mob-run-dot", "is-" + state).attr("title", state);
++			if (this.next) span.c("mob-run-next", "next").attr("title", "starts by itself when the one before it is done");
++			for (const [verb, glyph, title] of TaskView.VERBS.filter(([verb]) => Task.can(state, verb)))
++				button.c("mob-run-btn").attr("title", title).attr("aria-label", title).append(icon(glyph)).click(e => { e.preventDefault(); e.stopPropagation(); this.press(verb); });
++		});
++	}
++
++	async press(verb){
++		const task = await new TaskPage({ url: this.node.url }).load_task();
++		task.act(verb, verb === "stop" ? "owner pressed stop" : undefined);   // saves the verb line, {"pause":{}} etc. (Item.act)
++		this.node.state = task.state;
++		this.draw();
++		this.on_change?.(this.node);
++	}
++}
+diff --git a/public/framework/ai/sessions/v/mobile/MobileSession.js b/public/framework/ai/sessions/v/mobile/MobileSession.js
+new file mode 100644
+index 000000000..f22c00dec
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/MobileSession.js
+@@ -0,0 +1,91 @@
++import { Page } from "/app.js";
++import { div, span, a, small, strong, p, h1, icon } from "/framework/core/View/View.js";
++import AISessionDetail from "../../../AISession/AISessionDetail.js";
++import AISessionConversation from "../../../AISession/AISessionConversation.js";
++import AISessionFollow from "../../../AISession/AISessionFollow.js";
++import SessionTree from "../../doc/variants/SessionTree.js";
++import MobileData from "./MobileData.js";
++import MobileTaskRow from "./MobileTaskRow.js";
++import SwipeTabs from "./SwipeTabs.js";
++
++/* Page 3, one session, design B: open work first; the big title scrolls away and a compact bar slides in; tabs Overview,
++   Tasks and Chat swipe. Extends the real session page for its data loaders and its session menu (head_tools). */
++export default class MobileSession extends AISessionDetail {
++
++	static OPEN = 6;   // open tasks listed on Overview before "all in Tasks"
++
++	constructor({ id }){
++		super({ home: { url: MobileData.SESSIONS }, id });   // the loaders read home.url; the page's own url is set when it is added under v/mobile/
++	}
++
++	/** A task path under this session opens the task page (page 4). */
++	route(name){
++		if (name.includes(".")) return;
++		return new this.constructor.Task({ sid: this.id, segs: [name] });
++	}
++	child(name, levels){ return Page.prototype.child.call(this, name, levels); }
++
++	content(){
++		const root = div.c("mob-session");
++		const top = div.c("mob-title");
++		const bar = div.c("mob-bar-wrap", () => div.c("mob-bar", () => { a.c("mob-back", icon("arrow_back")).href(MobileData.HOME).attr("title", "all sessions"); this.$bar_title = strong.c("mob-bar-title", this.title); this.head_tools(); }));
++		this.tabs = new SwipeTabs({ tabs: [["overview", "Overview"], ["tasks", "Tasks"], ["chat", "Chat"]] });
++		new IntersectionObserver(([e]) => bar.el.classList.toggle("is-on", !e.isIntersecting)).observe(top.el);
++		this.fill(top);
++		this.chat(this.tabs.panes.chat);
++	}
++
++	async fill(top){
++		const snap = await MobileData.find(this.id), tree_ids = await MobileData.tree();
++		const { overview, tasks } = this.tabs.panes;
++		if (!snap){ top.empty(() => p.c("mob-empty", "This session is not in the last 14 days of day indexes.")); return; }
++		const tree = await MobileData.tasks(snap).catch(() => null), kind = MobileData.kind(snap, tree_ids), up = MobileData.parent(snap, tree_ids);
++		this.$bar_title?.el.replaceChildren(snap.title || snap.id);
++		top.empty(() => {
++			small.c("mob-kind", kind + (up ? " · spawned by " : ""));
++			if (up) a.c("mob-parent", up.slice(0, 8)).href(MobileData.session_url(up));
++			h1.c("mob-h1", snap.title || snap.id);
++			small.c("mob-head-sub", `${MobileData.ago(snap.last_activity)} · ${MobileData.usd(snap.tree_usd || snap.usd)} · ${snap.model ?? "no model"}`);
++		});
++		const nodes = tree?.root.all().slice(1) ?? [];
++		const open = nodes.filter(n => !["complete", "stopped"].includes(n.state) && !n.kids.some(k => !["complete", "stopped"].includes(k.state)));
++		overview.empty(() => {
++			div.c("mob-card", () => {
++				div.c("mob-card-head", () => { icon("pending_actions").ac("mob-group-icon"); strong("Open work"); small.c("mob-count", String(open.length)); });
++				open.slice(0, this.constructor.OPEN).forEach(n => new MobileTaskRow({ node: n, sid: this.id }));
++				if (!open.length) div.c("mob-empty", nodes.length ? "Nothing open: every task is done." : "No tasks recorded in this session.");
++				if (open.length > this.constructor.OPEN) a.c("mob-more", `${open.length - this.constructor.OPEN} more in Tasks`).on("click", () => this.tabs.go("tasks"));
++			});
++			div.c("mob-card", () => {
++				div.c("mob-card-head", () => { icon("info").ac("mob-group-icon"); strong("About"); });
++				div.c("mob-facts", () => (tree?.facts() ?? [["cost", MobileData.usd(snap.usd)]]).forEach(([k, v]) => div.c("mob-fact", () => { small.c("mob-fact-k", k); span(v); })));
++				if (tree) tree.bullets().slice(0, 6).forEach(t => div.c("mob-bullet", t));
++			});
++		});
++		tasks.empty(() => div.c("mob-card", () => {
++			div.c("mob-card-head", () => { icon("checklist").ac("mob-group-icon"); strong("Tasks"); small.c("mob-count", String(nodes.length)); });
++			if (!tree) div.c("mob-empty", "No tasks recorded in this session.");
++			else this.rows(tree.root.kids);
++		}));
++	}
++
++	/** Top-level tasks, each with its children one indent in and a 2 px rail; deeper levels open their own page. */
++	rows(list){
++		list.forEach(n => {
++			new MobileTaskRow({ node: n, sid: this.id });
++			if (n.kids.length) div.c("mob-nest-kids", () => n.kids.forEach(k => new MobileTaskRow({ node: k, sid: this.id })));
++		});
++	}
++
++	/** The conversation, as the real page shows it (AISessionConversation fed by AISessionFollow). */
++	chat(pane){
++		const conv = new AISessionConversation();
++		conv.session = this.id;
++		pane.append(conv.view);
++		if (!/^[0-9a-f]{8}-/.test(this.id)) return void pane.append(() => p.c("mob-empty", "No transcript for this kind of session."));
++		const f = new AISessionFollow(this.id);
++		f.on_lines = lines => conv.add(lines);
++		this.follow = f.start();
++		this.follow.then(() => { if (!conv.count) pane.append(() => p.c("mob-empty", AISessionDetail.NO_TRANSCRIPT)); });
++	}
++}
+diff --git a/public/framework/ai/sessions/v/mobile/MobileTask.js b/public/framework/ai/sessions/v/mobile/MobileTask.js
+new file mode 100644
+index 000000000..c86297232
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/MobileTask.js
+@@ -0,0 +1,85 @@
++import { Page, md } from "/app.js";
++import { div, span, a, small, strong, p, h1, button, icon } from "/framework/core/View/View.js";
++import TaskView from "/framework/core/Task/TaskView.js";
++import TaskPage from "/framework/core/Task/TaskPage.js";
++import MobileData from "./MobileData.js";
++import MobileRun from "./MobileRun.js";
++import MobileTaskRow from "./MobileTaskRow.js";
++
++/* Page 4, one task: status and the bar on top, its content first, its subtasks as flat rows, then its open questions.
++   `sid` is the session id, `segs` the task's path under the session folder (deeper folders extend it through route()). */
++export default class MobileTask extends Page {
++
++	constructor({ sid, segs }){
++		super({ sid, segs, title: segs.at(-1), width: "fill", classes: "mob-page", url: MobileData.task_url(sid, segs.join("/")) });
++	}
++
++	route(name){
++		if (name.includes(".")) return;
++		return new this.constructor({ sid: this.sid, segs: [...this.segs, name] });
++	}
++	child(name, levels){ return Page.prototype.child.call(this, name, levels); }
++
++	content(){
++		const root = div.c("mob-session mob-task");
++		this.load(root);
++		return root;
++	}
++
++	async load(root){
++		const snap = await MobileData.find(this.sid), tree = snap && await MobileData.tasks(snap).catch(() => null);
++		const node = tree?.root.all().find(n => n.rel === this.segs.join("/"));
++		if (!node) return void root.empty(() => p.c("mob-empty", "This task is not in the session's task tree."));
++		this.retitle?.(node.title);
++		const task = await new TaskPage({ url: node.url }).load_task().catch(() => null);
++		const kids = MobileData.states(node.kids);
++		root.empty(() => {
++			div.c("mob-card", () => {
++				div.c("mob-card-head", () => {
++					a.c("mob-back", icon("arrow_back")).href(MobileData.session_url(this.sid)).attr("title", "back to the session");
++					strong.c("mob-bar-title", node.title);
++				});
++				div.c("mob-status", () => {
++					new MobileRun({ node });
++					strong.c("mob-state is-" + node.state, node.state);
++					small.c("mob-head-sub", node.kids.length ? `${kids.filter(s => s === "complete").length} of ${kids.length} done` : (node.landed ? "landed" : ""));
++				});
++				if (node.kids.length > 1) div.c("mob-row-bar", () => TaskView.draw_bar(kids, 12));
++			});
++			div.c("mob-card", () => {
++				div.c("mob-card-head", () => { icon("notes").ac("mob-group-icon"); strong("Content"); });
++				const body = div.c("mob-body", () => this.body(node, task));
++				const more = button.c("mob-more", "More").click(() => { const open = body.el.classList.toggle("is-open"); more.el.textContent = open ? "Less" : "More"; });
++				requestAnimationFrame(() => { if (![...body.el.children].some(l => l.scrollHeight > l.clientHeight + 1)) more.el.remove(); });
++			});
++			if (node.kids.length) div.c("mob-card", () => {
++				div.c("mob-card-head", () => { icon("checklist").ac("mob-group-icon"); strong("Subtasks"); small.c("mob-count", String(node.kids.length)); });
++				node.kids.forEach(k => new MobileTaskRow({ node: k, sid: this.sid }));
++			});
++			const open = this.questions(task);
++			div.c("mob-card", () => {
++				div.c("mob-card-head", () => { icon("help").ac("mob-group-icon"); strong("Open questions"); small.c("mob-count", String(open.length)); });
++				if (!open.length) div.c("mob-empty", "No open questions.");
++				open.forEach(q => div.c("mob-question", q));
++			});
++		});
++	}
++
++	/** The one-line outcome, what was expected, then the task's content items. */
++	body(node, task){
++		const done = task?.get?.("outcome") ?? node.line;   // the whole outcome; the index line is cut
++		if (done) md(String(done)).ac("mob-line mob-md");   // an outcome is markdown (ai/AITask/AITask.js draws it the same way)
++		for (const line of [task?.expected].flat()) if (line) p.c("mob-line", () => { small.c("mob-fact-k", "expected "); span(String(line)); });
++		for (const item of task?._content ?? []){
++			const text = item.get?.("text") ?? item.get?.("title") ?? item.data?.text ?? item.data?.title;
++			if (text) p.c("mob-line", String(text));
++		}
++		if (!done && !task?.expected && !(task?._content?.length)) p.c("mob-empty", "No content recorded on this task.");
++	}
++
++	/** A task's waiting_on, plus any unanswered Question in its content. */
++	questions(task){
++		const items = [...(task?._content ?? [])].filter(i => (i.data?.type ?? i.get?.("type")) === "Question" && !(i.data?.answer ?? i.get?.("answer")));
++		return [task?.get?.("waiting_on"), ...items.map(i => i.data?.text ?? i.get?.("text"))].filter(Boolean).map(String);
++	}
++}
+diff --git a/public/framework/ai/sessions/v/mobile/MobileTaskRow.js b/public/framework/ai/sessions/v/mobile/MobileTaskRow.js
+new file mode 100644
+index 000000000..83d05ad04
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/MobileTaskRow.js
+@@ -0,0 +1,27 @@
++import View, { div, span, a, small, strong, icon } from "/framework/core/View/View.js";
++import TaskView from "/framework/core/Task/TaskView.js";
++import MobileData from "./MobileData.js";
++import MobileRun from "./MobileRun.js";
++
++View.stylesheet(import.meta, "mobile.css");
++
++/* One task as a flat row: the run indicator and its buttons, the title (a link to the task page), its one-line outcome or state,
++   and the one bar when it has 2 or more children. `node` is a SessionTree.Node, `sid` the session id it belongs to. */
++export default class MobileTaskRow extends View {
++
++	initialize(){
++		const { node, sid } = this, kids = MobileData.states(node.kids);
++		this.ac("mob-task-row", "is-" + node.state);
++		this.empty(() => {
++		new MobileRun({ node });
++		a.c("mob-task-link", () => {
++			div.c("mob-row-body", () => {
++				strong.c("mob-row-title", node.title);
++				small.c("mob-row-sub", node.line && node.done ? node.line : node.state + (node.kids.length ? ` · ${kids.filter(s => s === "complete").length} of ${kids.length} done` : ""));
++				if (node.kids.length > 1) div.c("mob-row-bar", () => TaskView.draw_bar(kids, 12));
++			});
++			icon("chevron_right").ac("mob-go");
++		}).href(MobileData.task_url(sid, node.rel));
++		});
++	}
++}
+diff --git a/public/framework/ai/sessions/v/mobile/SwipeTabs.js b/public/framework/ai/sessions/v/mobile/SwipeTabs.js
+new file mode 100644
+index 000000000..0170bdfc2
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/SwipeTabs.js
+@@ -0,0 +1,27 @@
++import View, { div, button } from "/framework/core/View/View.js";
++
++View.stylesheet(import.meta, "mobile.css");
++
++/* A tab row over a horizontal strip of panes: swipe the strip (CSS scroll-snap) or tap a tab; the row follows the scroll.
++   `tabs` = [[key, label], ...]; the pane for a key is `this.panes[key]`, an empty View the caller fills. No gesture library. */
++export default class SwipeTabs extends View {
++
++	initialize(){
++		this.ac("mob-tabs");
++		this.panes = {}; this.buttons = {};
++		div.c("mob-tabs-row", () => this.tabs.forEach(([key, label]) => this.buttons[key] = button.c("mob-tab", label).click(() => this.go(key))));
++		this.$strip = div.c("mob-tabs-strip", () => this.tabs.forEach(([key]) => this.panes[key] = div.c("mob-pane")));
++		this.$strip.on("scroll", () => this.sync());
++		this.sync();
++	}
++
++	index(){ const el = this.$strip.el; return el.clientWidth ? Math.round(el.scrollLeft / el.clientWidth) : 0; }
++
++	go(key){ const el = this.$strip.el; el.scrollTo({ left: this.tabs.findIndex(([k]) => k === key) * el.clientWidth, behavior: "smooth" }); }
++
++	/** Light the tab whose pane is showing. */
++	sync(){
++		const on = this.tabs[this.index()]?.[0];
++		for (const [key] of this.tabs) this.buttons[key].el.classList.toggle("is-on", key === on);
++	}
++}
+diff --git a/public/framework/ai/sessions/v/mobile/files.jsonl b/public/framework/ai/sessions/v/mobile/files.jsonl
+new file mode 100644
+index 000000000..6712d9f4a
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/files.jsonl
+@@ -0,0 +1,7 @@
++{"file":"MobileData.js"}
++{"file":"MobileRow.js"}
++{"file":"page.js"}
++{"file":"MobileHome.js"}
++{"file":"MobilePath.js"}
++{"file":"mobile.css"}
++{"file":"MobileAll.js"}
+diff --git a/public/framework/ai/sessions/v/mobile/mobile.css b/public/framework/ai/sessions/v/mobile/mobile.css
+new file mode 100644
+index 000000000..0143709a1
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/mobile.css
+@@ -0,0 +1,105 @@
++@layer site {
++	/* the ground: light grey, white cards (sessions/doc/mobile-cards.md). Cards have no padding of their own; head and rows pad themselves. */
++	.mob-page { background: #eef0f2; --mob-green: #2e9e5b; --mob-amber: #e0a100; --mob-red: #d6453d; --mob-grey: #b5bac0; --mob-line: #eceef0; }
++	.mob-day, .mob-all, .mob-session, .mob-task { display: flex; flex-direction: column; max-width: 40rem; margin-inline: auto; padding-block: 1px; }
++	.mob-page .page-column-prose { padding-inline: 0; }   /* the page column pads; the cards carry their own 8 px margin */
++	.mob-card { background: #fff; margin: 8px; border-radius: 4px; overflow: hidden; }
++	.mob-card-head { display: flex; align-items: center; gap: .5em; padding: .6em .75em; border-bottom: 1px solid var(--mob-line); }
++	.mob-card-head > strong { flex: 1 1 auto; min-width: 0; }
++	summary.mob-card-head { cursor: pointer; list-style: none; background: none; border: 0; border-bottom: 1px solid var(--mob-line); border-radius: 0; width: auto; }
++	summary.mob-card-head::-webkit-details-marker { display: none; }
++	.mob-fold:not([open]) > summary { border-bottom: 0; }
++	.mob-count { color: #6b7178; background: #f1f2f4; border-radius: 99px; padding: 0 .55em; font-size: .8em; }
++	.mob-group-icon { font-size: 1.2em; color: var(--mob-grey); }
++	.mob-group-needs .mob-group-icon { color: var(--mob-red); }
++	.mob-group-running .mob-group-icon { color: var(--mob-amber); }
++	.mob-group-done .mob-group-icon { color: var(--mob-green); }
++	.mob-empty { padding: 1em .75em; color: #6b7178; }
++
++	/* the day bar */
++	.mob-daybar .mob-card-head { border-bottom: 0; }
++	.mob-head-main { flex: 1 1 auto; display: flex; flex-direction: column; text-align: center; }
++	.mob-head-sub { color: #6b7178; }
++	.mob-step { text-decoration: none; border: 0; background: none; display: grid; place-items: center; min-width: 2.5rem; min-height: 2.5rem; color: inherit; }
++	.mob-switch { display: flex; border-top: 1px solid var(--mob-line); }
++	.mob-switch > * { flex: 1 1 0; text-align: center; padding: .6em; color: #6b7178; text-decoration: none; }
++	.mob-switch-on { color: inherit !important; font-weight: 600; box-shadow: inset 0 -2px 0 currentColor; }
++
++	/* a row: dot, body, chevron. 2 px rail + one indent for a nested row */
++	.mob-row { display: block; border-top: 1px solid var(--mob-line); }
++	.mob-card-head + .mob-row { border-top: 0; }
++	.mob-row-link { display: flex; align-items: flex-start; gap: .65em; padding: .7em .75em; color: inherit; text-decoration: none; min-height: 3rem; }
++	.mob-row-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .15em; }
++	.mob-row-title { overflow-wrap: anywhere; }
++	.mob-row-sub, .mob-row-line { color: #6b7178; }
++	.mob-kind { font-weight: 600; }
++	.mob-row-bar { margin-top: .25em; }
++	.mob-row-bar { align-self: stretch; }
++	.mob-row-bar .task-bar { margin: 0; width: 100%; max-width: none; display: flex; }
++	.mob-row-bar .task-seg { flex: 1 1 0; }
++	.mob-row-line { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
++	.mob-go { color: var(--mob-grey); align-self: center; }
++
++	/* the status dot: green done, amber pulsing running, red blocked, grey open */
++	.mob-dot { flex: 0 0 auto; width: .7rem; height: .7rem; border-radius: 50%; margin-top: .4em; background: var(--mob-grey); }
++	.mob-dot.is-done { background: var(--mob-green); }
++	.mob-dot.is-running { background: var(--mob-amber); animation: mob-pulse 1.4s ease-in-out infinite; }
++	.mob-dot.is-blocked { background: var(--mob-red); }
++	@keyframes mob-pulse { 50% { opacity: .4; } }
++
++	/* a parent's children: folded under a count, one indent, a 2 px rail */
++	.mob-nest > summary { background: none; border: 0; border-radius: 0; width: auto; cursor: pointer; padding: .4em .75em .4em 2.1rem; color: #6b7178; font-size: .85em; list-style: none; }
++	.mob-nest > summary::-webkit-details-marker { display: none; }
++	.mob-nest > summary::before { content: "▸  "; }
++	.mob-nest[open] > summary::before { content: "▾  "; }
++	.mob-nest-kids { margin-left: 1.05rem; border-left: 2px solid var(--mob-line); }
++	.mob-more { display: block; width: 100%; padding: .8em; border: 0; border-top: 1px solid var(--mob-line); background: none; color: #6b7178; font: inherit; cursor: pointer; }
++
++	/* session (page 3) and task (page 4) */
++	.mob-title { padding: .75rem; display: flex; flex-direction: column; gap: .25em; }
++	.mob-h1 { margin: 0; font-size: 1.35rem; line-height: 1.2; overflow-wrap: anywhere; }
++	.mob-head-sub { color: #6b7178; }
++	.mob-parent { color: inherit; font-weight: 600; }
++	.mob-bar-wrap { position: sticky; top: 0; z-index: 5; height: 0; overflow: visible; }
++	.mob-bar { display: flex; align-items: center; gap: .5em; padding: .5em .75em; background: #fff; border-bottom: 1px solid var(--mob-line); transform: translateY(-.6rem); opacity: 0; pointer-events: none; transition: transform .2s, opacity .2s; }
++	.mob-bar-wrap.is-on .mob-bar { transform: none; opacity: 1; pointer-events: auto; }
++	.mob-bar-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
++	.mob-back { color: inherit; display: inline-flex; }
++	.mob-tabs-row { display: flex; position: sticky; top: 0; background: var(--mob-ground, #f1f2f4); z-index: 4; }
++	.mob-tab { flex: 1 1 0; padding: .7em 0; border: 0; border-bottom: 2px solid transparent; background: none; font: inherit; color: #6b7178; cursor: pointer; }
++	.mob-tab.is-on { color: inherit; border-bottom-color: var(--mob-amber); font-weight: 600; }
++	.mob-tabs-strip { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
++	.mob-pane { flex: 0 0 100%; scroll-snap-align: start; min-width: 0; align-self: flex-start; }
++	.mob-card-head .mob-count { margin-left: auto; color: #6b7178; }
++	.mob-facts { display: grid; gap: .3em; padding: .6em .75em; }
++	.mob-fact { display: flex; gap: .6em; }
++	.mob-fact-k { color: #6b7178; min-width: 4.5em; }
++	.mob-bullet { padding: .35em .75em; border-top: 1px solid var(--mob-line); }
++	.mob-empty { padding: .8em .75em; color: #6b7178; }
++	.mob-body { padding: .4em .75em; }
++	.mob-line { margin: .4em 0; overflow-wrap: anywhere; }
++	.mob-question { padding: .7em .75em; border-top: 1px solid var(--mob-line); border-left: 3px solid var(--mob-red); }
++	.mob-status { display: flex; align-items: center; gap: .6em; padding: .6em .75em; }
++	.mob-state { text-transform: capitalize; }
++	.mob-state.is-running { color: #b26a00; } .mob-state.is-complete { color: var(--mob-green); } .mob-state.is-waiting, .mob-state.is-paused { color: var(--mob-red); }
++	.mob-task-row { display: flex; align-items: flex-start; gap: .4em; padding: 0 .75em 0 .5em; border-top: 1px solid var(--mob-line); }
++	.mob-card-head + .mob-task-row { border-top: 0; }
++	.mob-task-link { flex: 1 1 auto; min-width: 0; display: flex; align-items: flex-start; gap: .5em; padding: .7em 0; color: inherit; text-decoration: none; min-height: 3rem; }
++	.mob-nest-kids .mob-task-row { padding-left: .25em; }
++
++	/* the run indicator and its buttons */
++	.mob-run { display: inline-flex; align-items: center; gap: .15em; padding-top: .55em; flex: 0 0 auto; }
++	.mob-run-dot { font-size: 1rem; color: var(--mob-grey); }
++	.mob-run-dot.is-running { color: var(--mob-amber); animation: mob-pulse 1.4s ease-in-out infinite; }
++	.mob-run-dot.is-complete { color: var(--mob-green); }
++	.mob-run-next { font-size: .7em; color: #6b7178; border: 1px solid var(--mob-line); border-radius: 1em; padding: 0 .5em; }
++	.mob-run-btn { display: inline-grid; place-items: center; width: 2rem; height: 2rem; padding: 0; border: 0; border-radius: 50%; background: none; color: #6b7178; cursor: pointer; }
++	.mob-run-btn:active { background: var(--mob-line); }
++	.mob-run-btn .icon, .mob-run-btn .material-icons { font-size: 1.1rem; }
++	.mob-task-link .mob-row-sub { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
++	.mob-body:not(.is-open) .mob-line { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
++	.mob-body:not(.is-open) .mob-md { display: block; max-height: 10em; }   /* markdown has block children: clamp by height, not lines */
++	.mob-md > :first-child { margin-top: 0; } .mob-md p, .mob-md ul { margin: .4em 0; } .mob-md ul { padding-left: 1.2em; }
++	.mob-page .page-column-prose.flow > * { margin-block: 0; }
++	.mob-session:empty { display: none; }
++}
+diff --git a/public/framework/ai/sessions/v/mobile/page.js b/public/framework/ai/sessions/v/mobile/page.js
+new file mode 100644
+index 000000000..96071ac4c
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/page.js
+@@ -0,0 +1,10 @@
++import MobileHome from "./MobileHome.js";
++import MobileAll from "./MobileAll.js";
++import MobileSession from "./MobileSession.js";
++import MobileTask from "./MobileTask.js";
++
++MobileHome.All = MobileAll;
++MobileHome.Session = MobileSession;
++MobileSession.Task = MobileTask;
++
++export default new MobileHome({ meta: import.meta });
+diff --git a/public/framework/ai/sessions/v/mobile/readme.md b/public/framework/ai/sessions/v/mobile/readme.md
+new file mode 100644
+index 000000000..3f8634cb0
+--- /dev/null
++++ b/public/framework/ai/sessions/v/mobile/readme.md
+@@ -0,0 +1,30 @@
++# Mobile sessions: the phone variant
++
++Four pages sized for a 400 px phone, on real session data, that you tap through: day list, then session, then task, and back. Open it at [/framework/ai/sessions/v/mobile/](/framework/ai/sessions/v/mobile/). The design is [mobile-cards.md](../../doc/mobile-cards.md).
++
++## The pages
++
++| Page | URL under `v/mobile/` | Class |
++|---|---|---|
++| Day list | `/` today, `<yyyy>/<mm>/<dd>/` | `MobileHome` (extends `AISessionsPage`); `MobilePath` collects the date segments |
++| Nested sessions | `all/` | `MobileAll` (extends `MobileHome`) |
++| One session | `<session id>/` | `MobileSession` (extends `AISessionDetail`; its menu is the real `head_tools()`) |
++| One task | `<session id>/<task path>/` | `MobileTask` (extends `Page`; deeper folders extend the path) |
++
++`page.js` builds `MobileHome` and hangs `All`, `Session` and `Task` on their parents as statics, so no file imports its own subclass.
++
++## Parts
++
++- `MobileData` reads: the day's `sessions/YYYY/MM/DD/index.json` (one snapshot per session), `sessions/session-tree.json` (parent, role) and `ai/index.json` (every task, through `SessionTree`). It computes groups, kinds and outcome lines; nothing is typed.
++- `MobileRow` is a session row, `MobileTaskRow` a task row. `SwipeTabs` is the scroll-snap tab strip. `MobileRun` is the run indicator: a dot, a "next" mark computed from a running series parent, and the buttons that fit the state. A press appends the task's own verb (`start`, `pause`, `resume`, `stop`) through `core/Task`.
++- The one segmented bar is `TaskView.draw_bar` (`core/Task/TaskView.js`); nothing here draws its own.
++- `mobile.css`, class prefix `mob-`.
++
++## Outside this folder
++
++`AISessionsPage.route()` hands the name `v` to this folder's page; `TaskView.draw_bar` and `TaskView.css` carry the amber and red states; `styles/css-scopes.txt` lists `mob-`.
++
++## Watch out
++
++- The generated files (`ai/index.json`, `session-tree.json`, the day indexes) are gitignored; a fresh worktree needs them copied or built.
++- `session-tree.json` is built by a script and can be days old, so a newer minion shows no parent. The page does not guess one.
+diff --git a/public/framework/ai/sessions/v/page.js b/public/framework/ai/sessions/v/page.js
+new file mode 100644
+index 000000000..c6214551f
+--- /dev/null
++++ b/public/framework/ai/sessions/v/page.js
+@@ -0,0 +1,12 @@
++import { Page } from "/app.js";
++import { div, a, p, small } from "/framework/core/View/View.js";
++
++/* The variants of the real sessions pages, one folder each. A variant is a page class that extends the class rendering the real page. */
++export default new Page({
++	meta: import.meta, title: "Session variants", icon: "science", width: "fill",
++	description: "Variant takes on the sessions pages. Each is a folder here.",
++	content(){
++		p("Each variant extends the class that draws the real page, and reads the same files.");
++		div.c("flow", () => a("mobile — the sessions pages for a 400 px phone: day list, nested sessions, a session, a task").href("/framework/ai/sessions/v/mobile/"));
++	},
++});
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index ef609e2f7..5af95b789 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -210,7 +210,9 @@ export class Task extends Item {
+ 	}
+ 
+ 	// May this verb run from the task's state now? The same CAN map the verbs check; a button uses it to show only what works.
+-	can(verb){ return !!CAN[verb]?.has(this.state); }
++	can(verb){ return Task.can(this.state, verb); }
++	// The same check from a state alone, for a row that has the state but not the loaded task (ai/sessions/v/mobile/MobileRun.js).
++	static can(state, verb){ return !!CAN[verb]?.has(state); }
+ 
+ 	start(){
+ 		if (!CAN.start.has(this.state)) return this.warn(`start(): can't start from "${this.state}"`);
+diff --git a/public/framework/core/Task/TaskView.css b/public/framework/core/Task/TaskView.css
+index f5e53e455..7c8bdd953 100644
+--- a/public/framework/core/Task/TaskView.css
++++ b/public/framework/core/Task/TaskView.css
+@@ -12,10 +12,16 @@
+ 	.task-action:hover { color: inherit; background-image: linear-gradient(var(--line), var(--line)); }
+ 	.task-bar { display: flex; align-items: center; gap: 2px; margin-left: auto; flex: 0 0 auto; max-width: 7em; padding-inline: .5em; }
+ 	.task-meter { width: 4em; height: .4em; border-radius: 1px; background: var(--line); overflow: hidden; }
++	.task-meter { display: flex; }
+ 	.task-meter-fill { display: block; height: 100%; background-image: linear-gradient(var(--ok, currentColor), var(--ok, currentColor)); }   /* a gradient, not background-color: the fill sits flush in its own track by design, and padding-check reads only colour fills as boxes */
+ 	.task-count { margin-left: .4em; color: var(--subtle); font-size: .8em; white-space: nowrap; }
+ 	.task-seg { width: .7em; height: .4em; border-radius: 1px; background: var(--line); }
+ 	.task-seg.is-lit { background: var(--ok, currentColor); }
++	.task-seg.is-running { background: var(--task-amber, #e0a100); animation: task-pulse 1.4s ease-in-out infinite; }
++	.task-seg.is-blocked { background: var(--task-red, #d33); }
++	.task-meter-fill.is-running { background-image: linear-gradient(var(--task-amber, #e0a100), var(--task-amber, #e0a100)); }
++	.task-meter-fill.is-blocked { background-image: linear-gradient(var(--task-red, #d33), var(--task-red, #d33)); }
++	@keyframes task-pulse { 50% { opacity: .45; } }
+ 	.task-row-kids { display: flex; flex-direction: column; gap: .35em; padding-left: 1.5em; border-left: 2px solid var(--line); margin-left: .6em; }
+ 	.task-row-more { color: var(--subtle); font-size: .85em; cursor: pointer; }
+ 	.task-row-more:hover { text-decoration: underline; }
+diff --git a/public/framework/core/Task/TaskView.js b/public/framework/core/Task/TaskView.js
+index ebfa212ef..ea98a3b8b 100644
+--- a/public/framework/core/Task/TaskView.js
++++ b/public/framework/core/Task/TaskView.js
+@@ -74,15 +74,22 @@ export default class TaskView extends View {
+ 		}));
+ 	}
+ 
+-	bar(kids){
+-		if (!kids.length) return;
+-		const done = kids.filter(k => k.state === "complete").length;
+-		const tip = `${done} of ${kids.length} complete`;
+-		if (kids.length > this.constructor.SEGMENTS) return void div.c("task-bar is-meter", () => {
+-			span.c("task-meter", () => span.c("task-meter-fill").style({ width: Math.round(done / kids.length * 100) + "%" }));
+-			small.c("task-count", `${done}/${kids.length}`);
++	bar(kids){ this.constructor.draw_bar(kids.map(k => k.state)); }
++
++	/** The one segmented bar, from child states: a segment each up to `max`, then a stacked meter. green done, amber running, red waiting or paused. */
++	static draw_bar(states, max = this.SEGMENTS){
++		if (!states.length) return;
++		const done = states.filter(s => s === "complete").length;
++		const tip = `${done} of ${states.length} complete`;
++		const status = s => s === "complete" ? "is-lit" : s === "running" ? "is-running" : s === "waiting" || s === "paused" ? "is-blocked" : "task-seg-off";
++		if (states.length > max) return void div.c("task-bar is-meter", () => {
++			span.c("task-meter", () => ["is-lit", "is-running", "is-blocked"].forEach(c => {
++				const n = states.filter(s => status(s) === c).length;
++				if (n) span.c("task-meter-fill").ac(c).style({ width: Math.round(n / states.length * 100) + "%" });
++			}));
++			small.c("task-count", `${done}/${states.length}`);
+ 		}).attr("title", tip);
+-		div.c("task-bar", () => kids.forEach(k => span.c("task-seg").ac(k.state === "complete" ? "is-lit" : "task-seg-off"))).attr("title", tip);
++		div.c("task-bar", () => states.forEach(s => span.c("task-seg").ac(status(s)))).attr("title", tip);
+ 	}
+ 
+ 	card(){
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index 57da76319..9c8ae958f 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -61,7 +61,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+ 
+ `task.render()` returns `new Task.View({task})`. `Task.js` stays DOM-free: [`TaskView.js`](./TaskView.js) (`class TaskView extends View`) sets `Task.View` when a browser loads it; in node `render()` warns once and returns `undefined`. `TaskView.chip(task)`, `.row(task)`, `.card(task)` draw the three sizes (icon + title; + state and complete %; + expected, priority, commits, session, module, link). A view reads the live task and redraws on its `change` events; a card also redraws on `tasks` add/remove/reorder. A subclass overrides `render()` to draw itself. This retires the display `Task` that was in `ai/objects.js`.
+ 
+-**The row** (`TaskView.row`, `TaskView.css`) is the one look everywhere: one stage checkbox (`TaskView.STAGE`: unchecked, hourglass, play, check, …), title link, one bar segment per child (past `TaskView.SEGMENTS` = 8, one meter and a "19/24" count, so the title keeps the room); a parent is bigger, previews 3 open children, and a click expands them all. The card shows its children as rows. **Buttons:** a row and a card show Start, Pause, Resume, Stop and Approve, but only the verbs the task's state allows (`task.can(verb)`, read from the same `CAN` map the verbs check). Each is a 44px icon button. A click calls `task.act(verb)`, which saves the verb through the item tool, stamped `owner` ([core/Item readme](../Item/readme.md)), and does not expand the row. Used by TasksPage (and so every Doc's Tasks tab). The `/live/` Tasks card (`live/LiveTasks.js`) draws no rows: it is one line, "Tasks · N open · M running" (`TasksPage.counts`), linking to [/tasks/](/tasks/). "+ N more open" expands the row, like a click on its head.
++**The row** (`TaskView.row`, `TaskView.css`) is the one look everywhere: one stage checkbox (`TaskView.STAGE`: unchecked, hourglass, play, check, …), title link, one bar segment per child, coloured by state: green done, amber running (it pulses), red waiting or paused, grey not started (past `TaskView.SEGMENTS` = 8, one stacked meter and a "19/24" count, so the title keeps the room). The bar is `TaskView.draw_bar(states, max)`, a static, so any view with child states draws the same one ([ai/sessions/v/mobile/](/framework/ai/sessions/v/mobile/) does); a parent is bigger, previews 3 open children, and a click expands them all. The card shows its children as rows. **Buttons:** a row and a card show Start, Pause, Resume, Stop and Approve, but only the verbs the task's state allows (`task.can(verb)`, read from the same `CAN` map the verbs check; `Task.can(state, verb)` is the same check for a row that has only a state). Each is a 44px icon button. A click calls `task.act(verb)`, which saves the verb through the item tool, stamped `owner` ([core/Item readme](../Item/readme.md)), and does not expand the row. Used by TasksPage (and so every Doc's Tasks tab). The `/live/` Tasks card (`live/LiveTasks.js`) draws no rows: it is one line, "Tasks · N open · M running" (`TasksPage.counts`), linking to [/tasks/](/tasks/). "+ N more open" expands the row, like a click on its head.
+ 
+ ## TaskPage
+ 
+diff --git a/public/framework/styles/css-scopes.txt b/public/framework/styles/css-scopes.txt
+index 2c32a7dea..fcca2faf2 100644
+--- a/public/framework/styles/css-scopes.txt
++++ b/public/framework/styles/css-scopes.txt
+@@ -260,3 +260,6 @@ fgd-
+ 
+ # public/framework/ext/Figma/tokens — opt-in CSS generated from the Figma variables (2026-10-12)
+ fig-
++
++# public/framework/ai/sessions/v/mobile — the 400 px mobile variant of the sessions pages (2026-10-22)
++mob-

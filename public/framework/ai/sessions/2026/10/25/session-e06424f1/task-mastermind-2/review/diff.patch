@@ -1,0 +1,280 @@
+diff --git a/Server/lines-per-thought.mjs b/Server/lines-per-thought.mjs
+new file mode 100644
+index 000000000..6b1c40a60
+--- /dev/null
++++ b/Server/lines-per-thought.mjs
+@@ -0,0 +1,80 @@
++#!/usr/bin/env node
++// Server/lines-per-thought.mjs <session.jsonl> — how many session.jsonl lines, and bytes, one
++// spoken thought (one Prompt) costs. Written for chat-live (build-brief.md, 2026-10-25): the
++// baseline was 511 thoughts / 1214 chunks / ~10.5 lines each in a real voice session's file.
++// Run it before and after a write-path change to see the real effect, in lines AND bytes — a
++// line can shrink a lot (dropping `cues`) without its count changing at all.
++//
++//   node Server/lines-per-thought.mjs public/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl
++import fs from "node:fs";
++
++const file = process.argv[2];
++if (!file) { console.error("usage: node Server/lines-per-thought.mjs <session.jsonl>"); process.exit(1); }
++
++const bytes = s => Buffer.byteLength(s, "utf8");
++
++/* Every line's KIND, by its one top-level verb; a `{"<id>": {...}, ts, by}` prompt-record delta
++ * (PromptLines.js's own shape) is told apart by having exactly `ts` and `by` alongside the id key. */
++function kind_of(j){
++	if (j.chat) return "chat";
++	if (j.sent) return "sent";
++	if (j.place) return "place";
++	if (j.done) return "done";
++	if (j.quiet) return "quiet";
++	if (j.nav) return "nav";
++	if (j.react) return "react";
++	if (j.log) return "log";
++	if (j.refined) return "refined";
++	if (j.backing) return "backing";
++	if (j.session) return "session-head";
++	const keys = Object.keys(j);
++	if (keys.length === 3 && keys.includes("ts") && keys.includes("by")) return "prompt-record";
++	return "other";
++}
++
++const lines = fs.readFileSync(file, "utf8").split("\n").filter(Boolean);
++const chunks = new Set();      // owner chat lines' own `at` (one per spoken/typed chunk)
++const prompts = new Set();     // Prompt ids seen (tasks.add type:"Prompt")
++const kind_n = {}, kind_bytes = {};
++let raw_bytes = 0, cues_bytes = 0, chat_text_bytes = 0, total_bytes = 0;
++
++for (const l of lines){
++	let j; try { j = JSON.parse(l); } catch { continue; }
++	const k = kind_of(j), b = bytes(l);
++	kind_n[k] = (kind_n[k] ?? 0) + 1;
++	kind_bytes[k] = (kind_bytes[k] ?? 0) + b;
++	total_bytes += b;
++	if (j.chat){
++		chunks.add(j.chat.at);
++		chat_text_bytes += bytes(j.chat.text ?? "");
++		if (j.chat.raw) raw_bytes += bytes(JSON.stringify(j.chat.raw));
++		if (j.chat.cues) cues_bytes += bytes(JSON.stringify(j.chat.cues));
++	}
++	if (k === "prompt-record"){
++		const key = Object.keys(j).find(x => x !== "ts" && x !== "by"), body = j[key];
++		if (key === "tasks" && body?.add?.type === "Prompt"){
++			prompts.add(body.add.id);
++			if (body.add.raw) raw_bytes += bytes(JSON.stringify(body.add.raw));
++		} else if (body?.raw?.push !== undefined) raw_bytes += bytes(JSON.stringify(body.raw.push));   // push_raw / set_raw
++	}
++}
++
++const n_prompts = prompts.size || 1, n_chunks = chunks.size || 1, n_lines = lines.length;
++
++console.log(`file: ${file}`);
++console.log(`total lines: ${n_lines}   total bytes: ${total_bytes.toLocaleString()}`);
++console.log(`thoughts (Prompts): ${prompts.size}   chunks (owner chat lines): ${chunks.size}`);
++console.log("");
++console.log("by kind:  count   lines/thought   bytes   bytes/thought");
++for (const k of Object.keys(kind_n).sort((a, b) => kind_bytes[b] - kind_bytes[a])){
++	console.log(`  ${k.padEnd(14)} ${String(kind_n[k]).padStart(5)}   ${(kind_n[k] / n_prompts).toFixed(2).padStart(6)}        `
++		+ `${kind_bytes[k].toLocaleString().padStart(9)}   ${Math.round(kind_bytes[k] / n_prompts).toLocaleString().padStart(7)}`);
++}
++console.log("");
++console.log(`lines per thought (all kinds): ${(n_lines / n_prompts).toFixed(2)}`);
++console.log(`lines per chunk:               ${(n_lines / n_chunks).toFixed(2)}`);
++console.log(`bytes per thought (all kinds): ${Math.round(total_bytes / n_prompts).toLocaleString()}`);
++console.log("");
++console.log(`chat.text bytes:  ${chat_text_bytes.toLocaleString()} (${(100 * chat_text_bytes / total_bytes).toFixed(1)}% of file)`);
++console.log(`chat/record .raw bytes: ${raw_bytes.toLocaleString()} (${(100 * raw_bytes / total_bytes).toFixed(1)}% of file)`);
++console.log(`chat.cues bytes:  ${cues_bytes.toLocaleString()} (${(100 * cues_bytes / total_bytes).toFixed(1)}% of file)`);
+diff --git a/Servex/agents/PromptLines.js b/Servex/agents/PromptLines.js
+index ffe6fa054..96e9f09a3 100644
+--- a/Servex/agents/PromptLines.js
++++ b/Servex/agents/PromptLines.js
+@@ -35,6 +35,11 @@ export function add_prompt({ id, raw = [], text = "", by = "fast" } = {}){
+ /** The fast seat: more raw words heard, same Prompt (mid-sentence or a correction after the Prompt already exists). */
+ export function push_raw(id, text, by = "fast"){ return { [id]: { raw: { push: text } }, ts: now_iso(), by }; }
+ 
++/** The fast seat, ONCE, when the Prompt closes: every raw chunk said while it was open, in one line
++ * (chat-live, 2026-10-25 — the owner: raw was duplicated per chunk on both the chat line and a `raw.push`
++ * per chunk; it is held in memory while the Prompt is open and flushed here instead). */
++export function set_raw(id, raw, by = "fast"){ return { [id]: { raw: { push: [].concat(raw).filter(Boolean) } }, ts: now_iso(), by }; }
++
+ /** The fast seat: a new paragraph (a new idea within the same Prompt), or more text onto an existing one. */
+ export function add_paragraph(id, { para_id, text }, by = "fast"){ return { [id]: { paragraphs: { add: { id: para_id, text } } }, ts: now_iso(), by }; }
+ export function append_paragraph(id, { para_id, text }, by = "fast"){ return { [id]: { paragraphs: { append: { id: para_id, text } } }, ts: now_iso(), by }; }
+diff --git a/Servex/agents/PromptLines.say.test.mjs b/Servex/agents/PromptLines.say.test.mjs
+index 51d5b8a87..362fc1901 100644
+--- a/Servex/agents/PromptLines.say.test.mjs
++++ b/Servex/agents/PromptLines.say.test.mjs
+@@ -21,18 +21,27 @@ class StubSessions {
+ 	write(s, line){ this.written.push(line); }
+ 	send(s, role, text){ this.sent.push({ role, text }); }
+ 
++	// chat-live (2026-10-25): raw is held in memory while the Prompt is open, flushed once by close_prompt().
+ 	assign_prompt(s, { text, raw }){
+ 		if (s.prompt){
+-			this.write(s, PromptLines.push_raw(s.prompt, raw ?? text));
++			(s.prompt_raw ??= []).push(raw ?? text);
+ 			this.write(s, PromptLines.append_paragraph(s.prompt, { para_id: "a", text: " " + text }));
+ 			return s.prompt;
+ 		}
+ 		const id = PromptLines.prompt_id();
+-		this.write(s, PromptLines.add_prompt({ id, raw: raw ?? text, text }));
++		this.write(s, PromptLines.add_prompt({ id, text }));
+ 		s.prompt = id;
++		s.prompt_raw = [raw ?? text];
+ 		return id;
+ 	}
+ 
++	close_prompt(s){
++		const id = s.prompt, raw = s.prompt_raw;
++		s.prompt = null;
++		s.prompt_raw = null;
++		if (id && raw?.length) this.write(s, PromptLines.set_raw(id, raw));
++	}
++
+ 	hold_thought(s, line){
+ 		const h = this.thoughts.get(s.id) ?? { lines: [] };
+ 		h.lines.push(line);
+@@ -48,12 +57,13 @@ class StubSessions {
+ 		const h = this.thoughts.get(s.id);
+ 		if (!h?.lines.length) return false;
+ 		this.thoughts.delete(s.id);
+-		s.prompt = null;
++		this.close_prompt(s);
+ 		this.voice_say(s, h.lines);
+ 		return true;
+ 	}
+ 
+ 	// Trimmed `say()`: the kind branch, then the voice-floor thought-holding path only (what this test exercises).
++	// chat-live: the chat line itself carries neither `raw` nor `cues` any more.
+ 	say(s, { text, raw, floor, kind = "speech" } = {}){
+ 		if (kind !== "speech"){
+ 			if (kind === "error") this.write(s, { log: { at: "2026-10-25T00:00:00.000-05:00", msg: text } });
+@@ -61,7 +71,7 @@ class StubSessions {
+ 			return { ok: true };
+ 		}
+ 		const prompt = this.assign_prompt(s, { text, raw });
+-		const line = { at: new Date().toISOString(), text, prompt, ...(raw ? { raw } : {}), ...(floor ? { floor } : {}) };
++		const line = { at: new Date().toISOString(), text, prompt, ...(floor ? { floor } : {}) };
+ 		this.write(s, { chat: line });
+ 		this.hold_thought(s, line);
+ 		if (floor !== "speaking") this.release_thought(s);
+@@ -85,6 +95,12 @@ check("exactly one Prompt was written, holding both raw lines and one grown para
+ 		&& ChatV2Model.paragraphs(p)[0].text === "so the page should show every bubble in order";
+ });
+ 
++check("raw is written ONCE (at close), not once per chunk, and never on a chat line (chat-live, 2026-10-25)", () => {
++	const raw_writes = stub.written.filter(l => { const k = Object.keys(l)[0]; return k !== "chat" && l[k]?.raw !== undefined; });
++	const chat_lines = stub.written.filter(l => l.chat);
++	return raw_writes.length === 1 && chat_lines.every(l => !("raw" in l.chat) && !("cues" in l.chat));
++});
++
+ check("the fast seat's message carries the Prompt id", () => {
+ 	const m = fold_written(stub.written), pid = m.root[0].id;
+ 	return stub.sent.at(-1).text.includes(`(prompt ${pid})`);
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index ed7c18f81..0a86f212b 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -119,11 +119,18 @@ export const now_ms = () => {
+  * `public<home>ai/sessions/YYYY/MM/DD/<session>/session.jsonl` (older: flat `ai/<session>.jsonl`), that the browser polls:
+  *
+  *   line 1   {"session": {id, home, at, project, host, fast, smart, backing: {fast, smart}}}
+- *   then     {"chat": {at, session, path, from: {kind, id, agent?}, via, text, re?, floor?, cues?}}
++ *   then     {"chat": {at, session, path, from: {kind, id, agent?}, via, text, re?, floor?}}
+  *            {"nav":  {at, from, to}}
+  *            {"backing": {at, fast, smart, how}}   (a respawn; the latest one wins)
+  *            {"react": {at, session, re, emoji, from}}   (a tap-back on line `re`; see LONE_EMOJI)
+  *
++ * NOT on the chat line any more (chat-live, 2026-10-25): `raw` (what was said before cleanup)
++ * and `cues` (the mic's pause/speaking timing). `raw` lives once on its Prompt's own `{<id>:
++ * {raw:...}}` line, written when the Prompt closes (`assign_prompt`/`close_prompt`), not per
++ * chunk and not on the chat line. `cues` is dropped on write: nothing reads it back off a
++ * session's chat line (only the unrelated page-assistant's `prompts.jsonl`, a different log,
++ * reads its OWN `cues`).
++ *
+  * THE FOLDER INDEX: every folder the session reaches gets a presence line in its own
+  * `ai/log.jsonl`, `{"session": {id, event: "started", title, file, at}}`; every one of
+  * those folders gets `event: "ended"` (with the latest title) whenever the pair stops,
+@@ -479,16 +486,20 @@ export default class Sessions {
+ 	 * never wrongly merged into a Prompt that is already done. Returns the Prompt's
+ 	 * id, written onto the chat line itself (`line.prompt`) so either seat can be told which Prompt it is answering
+ 	 * (`feed_smart`/`voice_say`, which have no other way to learn an id `say()` just minted). */
++	/* RAW, ONCE (chat-live, 2026-10-25 — the owner, measured on a real session: raw was 3.6% of the file on the
++	 * chat line and duplicated again, bigger, in a `raw.push` per chunk). Held in memory only while the Prompt is
++	 * open (`s.prompt_raw`), flushed as one line by `close_prompt()` below — never per chunk, never on the chat line. */
+ 	assign_prompt(s, { text, raw }){
+ 		clearTimeout(this.prompt_timers.get(s.id));
+ 		if (s.prompt){
+-			this.write(s, PromptLines.push_raw(s.prompt, raw ?? text));
++			(s.prompt_raw ??= []).push(raw ?? text);
+ 			this.write(s, PromptLines.append_paragraph(s.prompt, { para_id: "a", text: " " + text }));
+ 			return s.prompt;
+ 		}
+ 		const id = PromptLines.prompt_id();
+-		this.write(s, PromptLines.add_prompt({ id, raw: raw ?? text, text }));
++		this.write(s, PromptLines.add_prompt({ id, text }));
+ 		s.prompt = id;
++		s.prompt_raw = [raw ?? text];
+ 		return id;
+ 	}
+ 
+@@ -501,6 +512,7 @@ export default class Sessions {
+ 			if (this.relocate(s)) moved++;
+ 			delete s.floor;   // a floor from before a restart is stale: nobody is still talking into it
+ 			delete s.prompt;  // the held thought (this.thoughts) is in memory only, so an open Prompt from before a restart is closed: the next line starts a fresh one
++			delete s.prompt_raw;  // that Prompt's raw, held only in memory (chat-live): lost with it, same as the thought itself
+ 			for (const role of ["fast", "smart"]) if (s[role]) this.by_agent.set(s[role], { id, role });
+ 		}
+ 		if (moved){ console.log(`sessions: ${moved} session${moved === 1 ? "" : "s"} repointed to the dated store`); this.save(); }
+@@ -984,10 +996,14 @@ export default class Sessions {
+ 		 * a fresh one otherwise. The Prompt is closed by `release_thought` (after `prompt_close_ms` of quiet; at once for typed) or by an
+ 		 * assistant reply, so a LATER line (continuing or not) is never wrongly merged into a Prompt that is already done. */
+ 		const prompt = this.assign_prompt(s, { text, raw });
++		/* `raw` and `cues` are NOT stamped onto the chat line any more (chat-live, 2026-10-25): `raw` lives
++		 * once on the Prompt's close line (`assign_prompt`/`close_prompt` above), and `cues` (the mic's pause/speaking
++		 * timing, ext/Chat/doc/floor.md) was write-only — nothing reads it back off a session's chat line, ever
++		 * (only the OLD page-assistant's own `prompts.jsonl`, a different log entirely, reads its own `cues`). Dropping
++		 * it here cut the largest non-text field in a measured session file (13%) with nothing downstream to update. */
+ 		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text, prompt,
+ 			...(said_at && !Number.isNaN(Date.parse(said_at)) ? { said_at: String(said_at) } : {}),
+-			...(raw && String(raw).trim() && raw !== text ? { raw: String(raw) } : {}),
+-			...(floor ? { floor } : {}), ...(cues && typeof cues === "object" ? { cues } : {}),
++			...(floor ? { floor } : {}),
+ 			...(thread && re ? { re: String(re), thread: true } : {}),
+ 			...(selection && typeof selection === "object" ? { selection: trim_sel(selection) } : {}) };
+ 		this.write(s, { chat: line });
+@@ -1020,7 +1036,7 @@ export default class Sessions {
+ 			else this.send(s, "fast", `${selected_prefix(selection)}[on ${site}] ${text}\n(prompt ${prompt})`);
+ 			this.mark_sent(s, "fast", [line]);
+ 			this.gather(s, line);
+-			s.prompt = null;   // CHAT V2 (round 2, §1): handed to a seat already, with nothing more coming -- done
++			this.close_prompt(s);   // CHAT V2 (round 2, §1): handed to a seat already, with nothing more coming -- done; also flushes this Prompt's raw (chat-live)
+ 		}
+ 		return { ok: true, at: line.at, answered_by: [
+ 			{ kind: "assistant", id: "fast", agent: s.fast }, { kind: "assistant", id: "smart", agent: s.smart }] };
+@@ -1129,7 +1145,10 @@ export default class Sessions {
+ 	close_prompt(s){
+ 		clearTimeout(this.prompt_timers.get(s.id));
+ 		this.prompt_timers.delete(s.id);
++		const id = s.prompt, raw = s.prompt_raw;
+ 		s.prompt = null;
++		s.prompt_raw = null;
++		if (id && raw?.length) this.write(s, PromptLines.set_raw(id, raw));
+ 	}
+ 
+ 	close_prompt_later(s){
+diff --git a/public/framework/ext/Session/doc/sessions.md b/public/framework/ext/Session/doc/sessions.md
+index 1dbc499ff..de6d67f59 100644
+--- a/public/framework/ext/Session/doc/sessions.md
++++ b/public/framework/ext/Session/doc/sessions.md
+@@ -21,7 +21,9 @@ One session is one append-only file in the dated store: `public/framework/ai/ses
+ {"refined": {"at": "…", "re": "<the owner line's at>", "sentences": [{"n": 1, "text": "…"}], "sections": [{"id": "sec1", "heading": "…", "items": [{"id": "sec1-i1", "text": "…", "cites": [1]}]}], "flags": [], "cost_usd": 0.0033}}
+ ```
+ 
+-A spoken owner line also carries `floor` (`speaking`/`done`) and, when the clean-up changed it, `raw` (what Whisper heard). `quiet` (the owner went quiet for `ms`) and `skip` (a fast reply that said nothing) are never drawn.
++A spoken owner line also carries `floor` (`speaking`/`done`). `quiet` (the owner went quiet for `ms`) and `skip` (a fast reply that said nothing) are never drawn.
++
++**Not on the chat line (chat-live, 2026-10-25):** `raw` (what Whisper heard, when clean-up changed it) and `cues` (the mic's pause/speaking timing) are still accepted params of `POST /api/session/say` (below), but neither is stored on the chat line any more. `raw` is held in memory for the whole Prompt it belongs to and written ONCE, on a `{<prompt id>: {raw: {push: [...]}}}` line, when that Prompt closes — never once per chunk. `cues` is simply dropped: nothing reads it back off a session's chat line (only the unrelated page-assistant's own `prompts.jsonl` reads its own `cues`, a different log entirely). Measured on a real session: this cut raw+cues bytes from 25% of the file to 11%.
+ 
+ `at` carries milliseconds, so two lines said in the same second never share one, and `re` always names exactly one owner line. `backing` maps the session to the Claude sessions behind it: `claude --resume <uuid>` reopens either one. When the assistants are respawned, a new `backing` line is written, and the latest one wins.
+ 

@@ -1,0 +1,58 @@
+diff --git a/Servex/agents/Echo.js b/Servex/agents/Echo.js
+index b7aaa2105..0bd8a19f4 100644
+--- a/Servex/agents/Echo.js
++++ b/Servex/agents/Echo.js
+@@ -120,9 +120,9 @@ export default class Echo {
+ 	 * waits for the calls in flight, then drops any prompt that came from one of them. This
+ 	 * holds even before the hooks learn the same rule (LEW42_NO_RELAY, CLAUDE_CODE_ENTRYPOINT). */
+ 	async call(prompt, opts){
+-		// The same 4 GB floor every spawn waits for (Global.admit, SERVEX_MIN_FREE_MB): this call starts
++		// The same 2.5 GB floor every spawn waits for (Global.admit, SERVEX_MIN_FREE_MB): this call starts
+ 		// a claude process too, but never passes through agents.spawn, so it checks the floor itself.
+-		const floor = Number(process.env.SERVEX_MIN_FREE_MB) || 4096, free = os.freemem() / 1048576;
++		const floor = Number(process.env.SERVEX_MIN_FREE_MB) || 2560, free = os.freemem() / 1048576;
+ 		if (free < floor) throw new Error(`only ${Math.round(free)} MB free, under the ${floor} MB floor: this prompt is not refined`);
+ 		this.ask ??= (await import("../../Server/AskEach.mjs")).askOnce;
+ 		const run = this.ask(prompt, opts).then(r => { if (r?.sessionId) this.machine.add(r.sessionId); return r; });
+diff --git a/Servex/agents/Global.js b/Servex/agents/Global.js
+index f6655e441..5e504d6be 100644
+--- a/Servex/agents/Global.js
++++ b/Servex/agents/Global.js
+@@ -85,7 +85,7 @@ export default class Global {
+ 			// more direct measurement of resume overhead alone ever crosses 3 s, raise this.
+ 			// Detail and the raw numbers: doc/dormant.md.
+ 			grace_ms: env("SERVEX_DORMANT_GRACE_MS", 0), dormant_freed_mb: 0,
+-			measure_every_ms: env("SERVEX_MEASURE_EVERY_MS", 5 * 60000), last_measure: 0, cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 4096),
++			measure_every_ms: env("SERVEX_MEASURE_EVERY_MS", 5 * 60000), last_measure: 0, cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 2560),
+ 			pending: [], timer: null, last_sent: 0, touched: new Map(), idle_seen: new Map(), ready: null };
+ 	}
+ 
+diff --git a/Servex/agents/roles/mastermind.md b/Servex/agents/roles/mastermind.md
+index b05d3eb96..298e3f5e7 100644
+--- a/Servex/agents/roles/mastermind.md
++++ b/Servex/agents/roles/mastermind.md
+@@ -219,7 +219,7 @@ When your work touches another mastermind's directory, you should propose the ch
+ 
+ A running session is a `claude.exe` in RAM (about 0.7 GB with its tools), and the work in flight is a queue of sessions. A session is a task, so it has a priority: the `priority` line of its task (`reprioritise_task`), ranked on [the queue](/framework/ai/queue/).
+ 
+-- **Cap:** at most 8 agents work at once (`SERVEX_WORKING_CAP`), and a spawn waits below 4 GB free memory. A message that wakes an agent is never held, so `working 6/5`-style overshoots are normal; only new spawns queue. The numbers: [dormant.md](/Servex/doc/dormant.md), "Measured".
++- **Cap:** at most 8 agents work at once (`SERVEX_WORKING_CAP`), and a spawn waits below 2.5 GB free memory. A message that wakes an agent is never held, so `working 6/5`-style overshoots are normal; only new spawns queue. The numbers: [dormant.md](/Servex/doc/dormant.md), "Measured".
+ - **When a higher-priority spawn is waiting at the gate and a low-priority background session is working** (a long audit, a census, a research fan-out, a build nobody is waiting on): wind the low one down. Message it to stop at its next safe point and write its state and next step into its task log, then `stop_agent` it. The log and the folder are the truth, so a fresh session can pick it up later; add one line on the task, "wound down for <task>, resume from <step>".
+ - **Never wind down:** a mastermind with children working, the owner's tab, the front desk, or a session that is about to merge. Prefer the lowest priority, then the largest and idlest.
+ - **The mastermind decides;** no code picks the victim. Look at `list_agents`, the queue and `node Server/usage-now.mjs`, say the choice in one log line, and move on.
+diff --git a/Servex/doc/dormant.md b/Servex/doc/dormant.md
+index 4b78ea8b9..dbd5d092a 100644
+--- a/Servex/doc/dormant.md
++++ b/Servex/doc/dormant.md
+@@ -123,9 +123,9 @@ of RAM given back this way.
+ 
+ - **Why 6/5:** nothing slipped. A resume (a wake that delivers a message, such as a child's report) and the front desk are never held by the cap, so a woken mastermind pushes the working count past it while the spawn gate keeps queueing NEW spawns ("working 6/5: waits for a working agent to end its turn"). Seen live at 23:03: 6 working agents (page, deputy, architect, session-identity, queue-triage, one build minion) against a cap of 5, with three minion spawns waiting.
+ - **RAM per agent:** a working `claude.exe` is about 0.5 to 0.65 GB; with its tool children one working agent's process group is 0.5 to 1.0 GB (about 0.7 GB on average); an idle one about 0.18 GB. Six working agents were about 4.2 GB of the 8.5 GB that is Servex's own (98 dev servers are 2 GB, about 20 MB each).
+-- **The real limit is the rest of the PC:** of 32.5 GB, 20.6 GB belonged to other programs (Figma 3.8, VS Code 3.7, Chrome 3.1 GB), 5.2 GB was free, and the spawn gate holds spawns below 4 GB free (`SERVEX_MIN_FREE_MB`). Each extra working agent costs about 0.7 GB, so eight working agents leave about 3.8 GB free: the memory floor, not the count, is what stops the ninth.
++- **The real limit is the rest of the PC:** of 32.5 GB, 20.6 GB belonged to other programs (Figma 3.8, VS Code 3.7, Chrome 3.1 GB), 5.2 GB was free, and the spawn gate holds spawns below 2.5 GB free (lowered from 4 GB on 2026-10-24 at the owner's word) (`SERVEX_MIN_FREE_MB`). Each extra working agent costs about 0.7 GB, so eight working agents leave about 3.8 GB free, above the 2.5 GB floor: the cap stops the ninth, and the floor is the backstop if the other programs grow.
+ - **CPU and heat:** the agents are waiting on the API most of the time (0.0 to 0.2 % CPU each; all of Servex's 154 processes were 1.4 %), so more agents add RAM pressure, not heat. The CPU that was busy (93.7 %) belonged to other programs.
+-- **Decision:** default cap 8, the 4 GB floor stays as the second gate. Try 10 only after a week in which free memory stayed above the floor with 8 working; `GET /api/processes` gives the numbers. Set `SERVEX_WORKING_CAP` to change it without code.
++- **Decision:** default cap 8, the free-memory floor (2.5 GB) stays as the second gate. Try 10 only after a week in which free memory stayed above the floor with 8 working; `GET /api/processes` gives the numbers. Set `SERVEX_WORKING_CAP` to change it without code.
+ - **Priority:** when a higher-priority task needs a slot, the mastermind winds a low-priority session down: [mastermind.md](/Servex/agents/roles/mastermind.md), "Slots go to the highest priority".
+ 
+ ## Compaction
