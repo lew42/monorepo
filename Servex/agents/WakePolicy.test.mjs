@@ -7,11 +7,13 @@ import path from "node:path";
 import WakePolicy, { WAKE_DEFAULTS, WAKE_LIMITS, sentence_count, is_question, is_addressed } from "./WakePolicy.js";
 import Sessions from "./Sessions.js";
 
-// These checks were written against a 6 s gap; the shipped default is now WAKE_DEFAULTS.gap_ms (12 s), so they pin 6 s here.
-const GAP6 = { gap_ms: 6000, every: WAKE_DEFAULTS.every };
+// These checks were written against a 6 s gap and six sentences per batch; the shipped defaults are WAKE_DEFAULTS (12 s, every 1), so they pin the old values here.
+const GAP6 = { gap_ms: 6000, every: 6 };
 process.env.SERVEX_SESSION_WAKE_GAP_MS = "6000";
+process.env.SERVEX_SESSION_WAKE_EVERY = "6";
 
 let checks = 0;
+assert.equal(WAKE_DEFAULTS.every, 1, "the shipped default wakes the smart seat on every finished sentence");
 const check = (name, fn) => { fn(); checks++; };
 
 /** A clock you move by hand: set() queues a callback at now+ms, advance(ms) runs everything that comes due, in order. */
