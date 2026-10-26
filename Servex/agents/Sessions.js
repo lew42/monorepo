@@ -244,6 +244,12 @@ export default class Sessions {
 			 * mark), or `hold_max_ms` passed with no such event (the browser engine has no level meter).
 			 * `thoughts` holds those lines; `held` (below, the floor) holds a fast REPLY. */
 			answer_quiet_ms: env("SERVEX_SESSION_ANSWER_QUIET_MS", 2500), hold_max_ms: env("SERVEX_SESSION_HOLD_MAX_MS", 8000),
+			/* GROUPING (the owner, 2026-10-25: "my chat logs are coming in very quickly"): a spoken Prompt (one bubble)
+			 * stays open for `prompt_close_ms` of quiet after the thought is handed to the seats, so the next sentences
+			 * join it as one paragraph instead of a new bubble every 2.5 s; it also closes the moment an assistant
+			 * replies (`prompt_close_on_reply`, env 0 turns that off). Typed lines close at once. */
+			prompt_close_ms: env("SERVEX_SESSION_PROMPT_CLOSE_MS", 8000), prompt_close_on_reply: env("SERVEX_SESSION_PROMPT_CLOSE_ON_REPLY", 1) !== 0,
+			prompt_timers: new Map(),
 			map: {}, by_agent: new Map(), held: new Map(), floor_timers: new Map(),
 			thoughts: new Map(), clients: new Map(), buffers: new Map() };
 	}
@@ -255,7 +261,7 @@ export default class Sessions {
 		return this._waker ??= new WakePolicy({ flush: (id, lines, why, info) => this.feed_smart(id, lines, why, info),
 			stored: id => this.map[id]?.wake,
 			defaults: { ...(process.env.SERVEX_SESSION_WAKE_GAP_MS ? { gap_ms: env("SERVEX_SESSION_WAKE_GAP_MS", 6000) } : {}),
-				...(process.env.SERVEX_SESSION_WAKE_EVERY ? { every: env("SERVEX_SESSION_WAKE_EVERY", 6) } : {}) } });
+				...(process.env.SERVEX_SESSION_WAKE_EVERY ? { every: env("SERVEX_SESSION_WAKE_EVERY", 1) } : {}) } });
 	}
 
 	/* The ONE place the owner's words reach the smart seat (a model turn). `why` is the cue it is told.
@@ -468,11 +474,13 @@ export default class Sessions {
 	/* CHAT V2 (Option C, chat-shape.md; round 2 §1): the Prompt THIS owner line belongs to -- every owner line, any
 	 * seat, never gated on `voice_seat()` (finding 4). `s.prompt` is the thought still open: a line that continues
 	 * one pushes its raw words and grows the one paragraph "a" in place, live, as it is said -- never waiting for
-	 * the pause (findings 2, 3). The CALLER (`say()`) clears `s.prompt` the moment this thought is handed to a seat,
-	 * so a later, unrelated line is never wrongly merged into a Prompt that is already done. Returns the Prompt's
+	 * the pause (findings 2, 3). The Prompt closes (`s.prompt` cleared) `prompt_close_ms` after the thought is handed to the seats, or when an
+	 * assistant replies and the owner is not mid-thought (typed lines close it at once), so a later, unrelated line is
+	 * never wrongly merged into a Prompt that is already done. Returns the Prompt's
 	 * id, written onto the chat line itself (`line.prompt`) so either seat can be told which Prompt it is answering
 	 * (`feed_smart`/`voice_say`, which have no other way to learn an id `say()` just minted). */
 	assign_prompt(s, { text, raw }){
+		clearTimeout(this.prompt_timers.get(s.id));
 		if (s.prompt){
 			this.write(s, PromptLines.push_raw(s.prompt, raw ?? text));
 			this.write(s, PromptLines.append_paragraph(s.prompt, { para_id: "a", text: " " + text }));
@@ -920,6 +928,7 @@ export default class Sessions {
 		/* One content model (inbox-ext item 9): a refined line also goes into its card's page.jsonl,
 		 * the very same object, so the card draws it in page mode. Cards.append never throws. */
 		if (card && level) this.servex?.cards?.append?.(card, { chat: line });
+		if (!level) this.reply_closes_prompt(s);
 		return { ok: true, at: line.at };
 	}
 
@@ -972,8 +981,8 @@ export default class Sessions {
 		const site = page_path(at) ?? s.path;
 		if (site !== s.path) this.nav({ session, from: s.path, to: site });
 		/* CHAT V2 (round 2, §1): the Prompt this line belongs to -- the one already open (`s.prompt`), grown live, or
-		 * a fresh one otherwise. Whoever hands this line's thought to a seat below clears `s.prompt` once that
-		 * happens, so the NEXT line (continuing or not) is never wrongly merged into a Prompt that is already done. */
+		 * a fresh one otherwise. The Prompt is closed by `release_thought` (after `prompt_close_ms` of quiet; at once for typed) or by an
+		 * assistant reply, so a LATER line (continuing or not) is never wrongly merged into a Prompt that is already done. */
 		const prompt = this.assign_prompt(s, { text, raw });
 		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text, prompt,
 			...(said_at && !Number.isNaN(Date.parse(said_at)) ? { said_at: String(said_at) } : {}),
@@ -1117,6 +1126,27 @@ export default class Sessions {
 		this.waker.add(s.id, line, { hold_ms: this.quiet_ms });
 	}
 
+	close_prompt(s){
+		clearTimeout(this.prompt_timers.get(s.id));
+		this.prompt_timers.delete(s.id);
+		s.prompt = null;
+	}
+
+	close_prompt_later(s){
+		clearTimeout(this.prompt_timers.get(s.id));
+		if (!s.prompt) return;
+		const t = setTimeout(() => this.close_prompt(s), this.prompt_close_ms);
+		t.unref?.();
+		this.prompt_timers.set(s.id, t);
+	}
+
+	/* An assistant answered: the Prompt it answered is done (when `prompt_close_on_reply`), unless the owner is still
+	 * mid-thought (a held thought): with the smart seat woken per sentence, replies land mid-dictation and closing then
+	 * would split one dictation into many bubbles. The thought's release then starts the normal quiet close. */
+	reply_closes_prompt(s){
+		if (this.prompt_close_on_reply && s.prompt && !this.thoughts.get(s.id)?.lines.length) this.close_prompt(s);
+	}
+
 	/* HELD until the owner stops (the floor): every spoken line waits here; both assistants hear
 	 * the whole thought at once on release, with how it ended as the last line. */
 	hold_thought(s, line){
@@ -1136,7 +1166,7 @@ export default class Sessions {
 		if (!h?.lines.length) return false;
 		clearTimeout(h.timer);
 		this.thoughts.delete(s.id);
-		s.prompt = null;   // CHAT V2 (round 2 §1): the thought is done; the next line (typed or spoken) starts a fresh Prompt
+		typed ? this.close_prompt(s) : this.close_prompt_later(s);   // CHAT V2 (round 2 §1): the thought is done; the Prompt closes after `prompt_close_ms` of quiet (typed: now), the next line then starts a fresh one
 		const said = h.lines.map(l => `${selected_prefix(l.selection)}[on ${l.path}] ${l.text}`).join("\n");
 		const prompt = h.lines[h.lines.length - 1]?.prompt;
 		const tail = `\n(the owner has stopped: ${why})` + (prompt ? `\n(prompt ${prompt})` : "");
@@ -1419,7 +1449,9 @@ export default class Sessions {
 			: { chat: { at: now_ms(), session: s.id, path: s.path, from, via: "text", text, ...(re ? { re } : {}), ...threaded } };
 		if (who.role === "smart"){
 			s.smart_said_re = re ?? now_ms();
-			return this.write(s, line());
+			const written = this.write(s, line());
+			this.reply_closes_prompt(s);
+			return written;
 		}
 		// The owner is still talking: hold the newest fast reply until the floor is "done" (release()).
 		if (this.speaking(s)) return void this.held.set(s.id, { re, line });
@@ -1435,7 +1467,7 @@ export default class Sessions {
 		const said = Date.parse(re ?? 0) || Date.now();
 		const release = () => {
 			if (s.smart_said_re && Date.parse(s.smart_said_re) >= said) return;   // the smart one already answered
-			try { this.write(s, line()); } catch (e){ console.error(`sessions: ${e.message}`); }
+			try { this.write(s, line()); this.reply_closes_prompt(s); } catch (e){ console.error(`sessions: ${e.message}`); }
 		};
 		const wait = said + this.fast_wait_ms - Date.now();
 		if (wait <= 0) return release();

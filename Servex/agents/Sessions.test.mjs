@@ -369,4 +369,37 @@ check("over the weekly pace the smart seat drops to Sonnet; the fast seat is its
 	} finally { Usage.over_pace = real; }
 });
 
+// ── grouping (2026-10-25): a spoken Prompt stays open after the hand-off, so sentences join one bubble ──
+{
+	const s = make();
+	const made = s.create({ path: "/a/" });
+	const sess = s.map[made.session];
+	assert.equal(s.prompt_close_ms, 8000);
+	assert.equal(s.prompt_close_on_reply, true);
+	s.prompt_close_ms = 40;
+	const id = s.assign_prompt(sess, { text: "so it works" });
+	s.close_prompt_later(sess);
+	assert.equal(s.assign_prompt(sess, { text: "mostly" }), id, "a new line inside the window joins the same Prompt");
+	s.close_prompt_later(sess);
+	await new Promise(r => setTimeout(r, 90));
+	assert.equal(sess.prompt, null, "closed after the quiet");
+	assert.notEqual(s.assign_prompt(sess, { text: "next thought" }), id, "after the close, a fresh Prompt");
+	s.reply_closes_prompt(sess);
+	assert.equal(sess.prompt, null, "an assistant reply closes it");
+	s.prompt_close_on_reply = false;
+	s.assign_prompt(sess, { text: "again" });
+	s.reply_closes_prompt(sess);
+	assert.ok(sess.prompt, "the reply toggle off leaves it open");
+	s.prompt_close_on_reply = true;
+	s.thoughts.set(sess.id, { lines: [{ text: "mid" }] });
+	s.reply_closes_prompt(sess);
+	assert.ok(sess.prompt, "a reply mid-thought does not close the Prompt");
+	s.thoughts.delete(sess.id);
+	s.reply_closes_prompt(sess);
+	assert.equal(sess.prompt, null, "once the thought is released, the reply closes it");
+	s.close_prompt(sess);
+	assert.equal(sess.prompt, null);
+	checks++;
+}
+
 console.log(`Sessions.test.mjs: ${checks} checks passed`);

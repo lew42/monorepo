@@ -30,7 +30,7 @@ The whole path of one spoken sentence, with the file that does each step. Line n
  ASSISTANT  Sessions.js:438       voice_say(): one message to the fast seat → {place} lines
               │
               ▼
- SMART      Sessions.js:255       WakePolicy flush → feed_smart (:265): pause 12 s, a question, its name, or 6 sentences
+ SMART      Sessions.js:255       WakePolicy flush → feed_smart (:265): pause 12 s, a question, its name, or each finished sentence (every: 1)
  ASSISTANT  session-smart.md      writes title, text, replies, tasks, questions with the item tool
 
  STREAM     Sessions.js:1468      GET /api/session/<id>/stream (EventSource)  ← new lines + a reply while it is written
