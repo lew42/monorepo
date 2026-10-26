@@ -44,8 +44,9 @@
 	.chat-v2-child-text { order: 1; flex: 1 1 18em; min-width: 0; overflow-wrap: anywhere; }
 	.chat-v2-kind, .chat-v2-phase { color: var(--subtle); font-size: .8em; text-transform: uppercase; letter-spacing: .04em; }
 	.chat-v2-state { color: var(--subtle); flex: 0 0 auto; }
-	.chat-v2-state.is-complete, .chat-v2-state.is-answered { color: var(--ok, currentColor); }
-	.chat-v2-state.is-open, .chat-v2-state.is-waiting { color: var(--task-amber, #e0a100); }
+	.chat-v2-state.is-complete { color: var(--ok, #2a9d4a); }
+	.chat-v2-state.is-answered, .chat-v2-state.is-waiting { color: var(--task-amber, #e0a100); }
+	.chat-v2-state.is-open { color: var(--bad, #d33); }
 	.chat-v2-answer { padding-left: 1.6em; color: var(--subtle); }
 	/* ONE moving mark for the whole chat (round 2): sits after the newest Prompt only, gray until it
 	   reaches the fast seat, green once it has. */
