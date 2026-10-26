@@ -29,9 +29,13 @@ try {
 	check("refined title shown", (await page.textContent(first + " .chat-v2-title")).includes("refined prompt first"));
 	check("plain reply sits under its prompt", await page.$(first + " .chat-v2-nest [data-id='r-1761382840000']") !== null);
 	check("anchored reply is in the prompt, with its quote and marked words", (await page.textContent(first + " .chat-v2-nest [data-id='r-1761382830000'] .chat-v2-mark")) === "The raw words");
-	check("children: 2 questions + 2 tasks under the first prompt", (await page.$$(first + " .chat-v2-nest > .chat-v2-child")).length === 4);
-	check("answered question phase", await page.getAttribute(first + " [data-id='q-1761382835000']", "data-phase") === "answered");
-	check("question answered by a later line", await page.getAttribute(first + " [data-id='q-1761382836000']", "data-phase") === "answered");
+	// Both questions under the first prompt are already answered in the fixture (one inline, one by a later root
+	// line) — resurface (review round 2) surfaces an answered Question to the ROOT, so only the 2 tasks nest here.
+	check("children: 2 tasks under the first prompt (both questions already answered, surfaced at the root)", (await page.$$(first + " .chat-v2-nest > .chat-v2-child")).length === 2);
+	check("answered question phase", await page.getAttribute("[data-id='q-1761382835000']", "data-phase") === "answered");
+	check("question answered by a later line", await page.getAttribute("[data-id='q-1761382836000']", "data-phase") === "answered");
+	check("both surfaced at the root, in the order they were answered", JSON.stringify(await page.$$eval(".chat-v2 > [data-phase='answered']", els => els.map(e => e.dataset.id))) === JSON.stringify(["q-1761382835000", "q-1761382836000"]));
+	check("a surfaced question keeps the hint back to its prompt (data-from)", await page.getAttribute("[data-id='q-1761382835000']", "data-from") === "p-1761382800000");
 	check("done task", await page.getAttribute(first + " [data-id='t-1761382837000']", "data-phase") === "complete");
 	check("open task (running)", await page.getAttribute(first + " [data-id='t-1761382838000']", "data-phase") === "running");
 	const second = ".chat-v2-prompt[data-id='p-1761382900000']";

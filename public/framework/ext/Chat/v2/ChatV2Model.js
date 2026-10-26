@@ -41,7 +41,9 @@ export default class ChatV2Model {
 		const { tasks = [], ...own } = entry, node = { ...own, kids: [] };
 		if (node.id) this.by_id.set(node.id, node);
 		list.push(node);
-		for (const kid of [].concat(tasks)) this.add(node.kids, kid);
+		// Every kid remembers its parent, even one the writer left off `from` — the one hint an answered
+		// Question keeps once it surfaces at the root (ChatV2.js child(), data-from).
+		for (const kid of [].concat(tasks)) { const k = this.add(node.kids, kid); if (k && node.id && k.from === undefined) k.from = node.id; }
 		return node;
 	}
 
@@ -89,6 +91,47 @@ export default class ChatV2Model {
 	static words_range(anchor){ return anchor ? (anchor.words ?? (anchor.from !== undefined ? [anchor.from, anchor.to] : null)) : null; }
 	static answer(n){ return n.answer ?? null; }
 	static kind(n){ return n.type ?? "Task"; }
+	static answered_question(n){ return this.kind(n) === "Question" && !!this.answer(n); }
+	// The answer's own time — written as `at` (Question.js's documented shape) or `ts` (the fixture's older lines): either reads.
+	static answered_at(n){ const a = this.answer(n); return a ? Date.parse(a.at ?? a.ts ?? "") || 0 : 0; }
+
+	// One static switch (round 2 of the review, 2026-10-25): off is the old behaviour — never sorted, never
+	// moved, a Question always stays in its prompt's nest. Read by ordered()/children()/roots() here, and by
+	// ChatV2.apply_one/move_to_end (V2) and chat.js draw_task (V1).
+	static RESURFACE = true;
+
+	// The id a line just answered, direct ({"<id>":{answer:…}}) or through its parent ({"<prompt>":{"<id>":{answer:…}}});
+	// null for every other line. Used to move that one card, the same signal V1 (Widget.show_task) and V2 (ChatV2.apply_one) read.
+	static answer_edit(line){
+		if (!line || typeof line !== "object") return null;
+		for (const [k, v] of Object.entries(line)) {
+			if (!v || typeof v !== "object") continue;
+			if ("answer" in v) return k;
+			for (const [k2, v2] of Object.entries(v)) if (v2 && typeof v2 === "object" && "answer" in v2) return k2;
+		}
+		return null;
+	}
+
+	// answer_edit(line), but only when it is genuinely NEW: a Question that had no answer before this line
+	// (never a Task, never a second edit replacing one it already had). Call BEFORE model.apply(line) mutates
+	// the node — the whole reason for the guard is reading its state as it was just before this line.
+	static newly_answered(model, line){
+		if (!this.RESURFACE) return null;
+		const id = this.answer_edit(line), n = id && model.by_id.get(id);
+		return n && this.kind(n) === "Question" && !this.answer(n) ? id : null;
+	}
+
+	// Answered questions sort after everything else in the list, by WHEN they were answered (answered_at) —
+	// not where they were asked; everything else (prompts, tasks, an open question) keeps its own arrival
+	// order, exactly as the list already holds it. A slow answer must never stay buried above cards that
+	// arrived after it (the owner, 2026-10-25), and two answers land in the order they actually happened.
+	static ordered(list){
+		if (!this.RESURFACE) return list;
+		const head = [], tail = [];
+		for (const n of list) (this.answered_question(n) ? tail : head).push(n);
+		tail.sort((a, b) => this.answered_at(a) - this.answered_at(b));
+		return [...head, ...tail];
+	}
 
 	// A Question: open (no answer) → answered (answer, not complete) → complete, the same rule as core's Question.phase.
 	// A Task: its own state.
@@ -106,12 +149,27 @@ export default class ChatV2Model {
 		return out;
 	}
 
-	// A prompt's children: its own tasks plus any root-level Question/Task whose `from` is its id, in list order.
-	children(prompt){ return [...prompt.kids, ...this.root.filter(n => n !== prompt && n.from === prompt.id && this.constructor.kind(n) !== "Prompt")]; }
+	// A prompt's own tasks plus any root-level Question/Task whose `from` is its id, in list order — the raw
+	// union children()/sentences() both start from, answered or not (sentences() needs the unanswered-only
+	// filter NOT applied here, so a sentence that became a Question stays hidden even once the Question
+	// itself has surfaced at the root).
+	own_and_from(prompt){ return [...prompt.kids, ...this.root.filter(n => n !== prompt && n.from === prompt.id && this.constructor.kind(n) !== "Prompt")]; }
 
-	// What the chat draws at the root: prompts, and anything whose `from` names no prompt here.
+	// A prompt's children for drawing: own_and_from(), minus an answered Question — RESURFACE moves that one
+	// to the root (roots(), below), by answer time, not asked time.
+	children(prompt){
+		const list = this.own_and_from(prompt);
+		return this.constructor.RESURFACE ? list.filter(n => !this.constructor.answered_question(n)) : list;
+	}
+
+	// What the chat draws at the root: prompts, anything whose `from` names no prompt here, PLUS — once
+	// RESURFACE is on — every answered Question that would otherwise be nested inside a prompt, surfaced to
+	// the newest end of this same list, in the order it was actually answered (ordered(), above).
 	roots(){
 		const prompts = new Set(this.root.filter(n => this.constructor.kind(n) === "Prompt").map(n => n.id));
-		return this.root.filter(n => this.constructor.kind(n) === "Prompt" || !prompts.has(n.from));
+		const base = this.root.filter(n => this.constructor.kind(n) === "Prompt" || !prompts.has(n.from));
+		if (!this.constructor.RESURFACE) return base;
+		const surfaced = [...this.by_id.values()].filter(n => this.constructor.answered_question(n) && prompts.has(n.from) && !base.includes(n));
+		return this.constructor.ordered([...base, ...surfaced]);
 	}
 }
