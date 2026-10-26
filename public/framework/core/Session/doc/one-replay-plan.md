@@ -32,13 +32,15 @@ The owner's rule (2026-10-26): **every line of `session.jsonl` is applied throug
 | `place` | voice assistant via the item tool | V1 `Widget.Thread.place`, `SessionRecord` | deltas on the Prompt's paragraphs (below) |
 | `sent`, `quiet`, `pause`, `nav`, `react`, `backing` | `Sessions` | `Sessions`, V1 `chat.js`, `ext/Session` | `{<prompt>:{sent:{…}}}` for `sent`; `quiet`, `pause`, `nav` are session events: `{<session>:{events:{push}}}` or a per-session `events.jsonl` that is not replayed; `react` is a reaction on the reply it names |
 | `refined` | `Sessions.refine` | `PromptLog`, V1 | `{<prompt>:{refined:…}}` or `title`/`text` on the Prompt (the smart seat's version) |
-| `summary` | voice assistant | V1 | a Prompt that holds Prompts (see V3) |
+| `summary` | voice assistant | V1 | a Group card that references Prompts by id (see V3); Prompts untouched |
 
 Migration is additive (V1 must keep working): the delta form is written beside the old line, V3 reads only deltas, and the old lines stay until V1 is retired. Existing logs are not rewritten.
 
 ## V3: the chat is a view over `tasks`
 
-A Prompt is a Task; a Prompt may hold other Prompts, Questions and Tasks. The summary card is a Prompt whose children are Prompts, so there is no separate summary record. V3 draws `session.tasks` with the existing task view, a Prompt as a group.
+**Prompts are the record and are never reshaped** (the owner, 2026-10-26): the Prompt's shape (`raw` chunks, `paragraphs`, `replies`, every existing field) does not change, and Prompts stay in the session's `tasks` list in time order, which is never reordered, nested away or merged. V3 draws that list with the existing task view; the raw transcript lives inside each Prompt.
+
+**Group and summary cards are an overlay.** A group is its own task (a card) that *references* Prompts by id (`{"tasks":{"add":{"type":"Group","id":"g-<ms>","title":"…","prompts":["p-…","p-…"]}}}`, the field name settles with @mastermind-list's reference shape). It is arbitrary, so it can be added, edited or removed with no effect on the Prompts it names; deleting a group loses nothing. The contextual cards (groups, summaries, Questions, Tasks) are what gets upgraded, not the Prompt. Nothing in V3 may lose state or chronological order.
 
 ## Placement (no `{place}` namespace)
 
@@ -57,7 +59,7 @@ The fast seat writes the delta on the Prompt itself, under the same replay:
 
 V1 keeps live words in `lives`, a `Map` of key to `{el, text, timer}` in `ext/Chat/Chat.js` (key `"draft"`, `"sent:n"`, `"stream:who"`). The words are a DOM string rewritten by `live({text, settled, guess})`; the 1.5 s Whisper guesses go to the Servex whisper log, not to the session. When a sentence is sent the bubble is renamed, then replaced by the server's line. So a draft is a temporary place that moves.
 
-**Recommendation: yes, a List, and it is the Prompt's `raw`.** The growing words are a `Prompt.raw` list of chunks (`raw.push` appends, the last chunk is amended in place, a chunk is final once Whisper settles it), written straight to the Prompt in the session log, so the live words land in their final place and nothing is moved later. The existing `Prompt.push_raw` appends only; add one operation, `amend` of the last chunk (the guess), in `Prompt`/`List` rather than a new class. The view then renders chunks, the unfinished one gray.
+**Recommendation: yes, a List, and it is the Prompt's existing `raw`, with its shape unchanged** (an array of text chunks, appended only). The growing words are written straight to the Prompt, so the live words land in their final place and nothing is moved later. The only addition is one extra *verb* beside `push`: `{raw:{amend:"…"}}` replaces the last chunk while Whisper's guess is still moving; `push` still starts a new chunk. It adds no field and changes no stored shape: a log written without it replays exactly as before, and a chunk, once settled, is never edited. The view renders chunks, the unfinished last one gray. Placement uses only the verbs `Paragraphs` already replays (`add`, `append`, `replace`).
 
 ## Decisions the plan makes (the owner can overturn)
 
