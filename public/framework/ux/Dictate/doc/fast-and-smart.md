@@ -9,7 +9,7 @@ Status: design, 2026-10-25, by the AI system architect. Nothing here is built; i
 | | Fast seat | Smart seat |
 |---|---|---|
 | Role / prompt | `voice-assistant`, prompt [`.claude/skills/voice-assistant/SKILL.md`](/.claude/skills/voice-assistant/SKILL.md), loaded by `voice_brief()` (`Sessions.js:1203`). The default since 2026-10-17 (`Sessions.js:70-85`). The older chatty `session-fast.md` is only the escape hatch (`fast` in `session-assistant.txt`) | `session-smart`, prompt [`Servex/agents/session-smart.md`](/Servex/agents/session-smart.md) appended to the full Claude Code preset (`Sessions.js:1256-1260`) |
-| Model | `claude-haiku-5-5`, tier `fast` (`tiers.js:6`) | `claude-sonnet-5-5`, tier `voice_smart` (`tiers.js:12`); the same Sonnet when over pace (`manager`, `Sessions.js:1219`). `session-smart.md:1` still says "Opus 5.5": stale |
+| Model | `claude-haiku-5-5`, tier `fast` (`tiers.js:6`) | `claude-sonnet-5-5`, tier `voice_smart` (`tiers.js:12`); the same Sonnet when over pace (`manager`, `Sessions.js:1219`). `session-smart.md:1` says "You run on Opus 5.5" (an owner line, 2026-10-25), which conflicts with `tiers.js`: the owner settles which is true |
 | Effort | `low`, written in the spawn spec (`Sessions.js:1236`) and `roles.js:98` | `medium` (`Sessions.js:1256`, `roles.js:99`) |
 | Tools | none except Servex's door for the item tool; no settings, no memory (`Sessions.js:1237-1240`) | everything: files, `spawn_agent`, `item`, `quick_fix`, `owner_note`, `session_summary` (`session-smart.md:1-15`) |
 | Woken | once per released thought, with the whole prompt so far plus the new sentence(s) (`voice_say`, `Sessions.js:457`) | in a batch from the wake gate (`feed_smart`, `Sessions.js:265`) |
@@ -48,7 +48,7 @@ Rule: **fast = per chunk, mechanical, reversible; smart = per thought, meaning, 
 | Question item for a "?" sentence | **Fast**; smart files only questions the fast seat missed | none (already the rule since 2026-10-25) |
 | Second pass, better title, refined text, replies, answers, tasks, sub-sessions | **Smart** | `session-smart.md`: add "you may correct a `{place}` the fast seat wrote: the latest `place` line for a sentence wins (`voice-assistant.md:24`)" |
 | Seeing the fast seat's lines | code | **Turn tail mode on** for dictation sessions (`settings {tail: true}`, built, `Sessions.js:299`) or have `feed_smart` append `(fast placed a1: same; a2: card "…")`. Tail mode is the smaller step |
-| Stale heading | docs | `session-smart.md:1` "Opus 5.5" to what `tiers.js` says |
+| Heading says Opus, tiers say Sonnet | owner | Either set `voice_smart` to Opus in `tiers.js`, or reword `session-smart.md:1`. Do not overwrite the owner line unasked |
 
 ## 4. Model, prompt and effort: what to try
 
@@ -63,12 +63,11 @@ Today model and effort cannot be changed per session: effort is written into the
 
 ## 5. How to experiment safely
 
-Rule: never edit `tiers.js` or a live prompt to test; that changes every session and a live call. Four safe moves, in order of effort:
+Rule: never edit `tiers.js` or a live prompt to test; that changes every session and a live call. Three safe moves, in order of effort:
 
 1. **A private Servex from a worktree** (works today, no code). Edit `SKILL.md` or `session-smart.md` in a worktree, boot a private Servex on another port from it ([Servex/readme.md](/Servex/readme.md), "tested before they touch the live system"), open a new ✦ session there. Only that session's seats change.
-2. **Per-session model and effort** (small change, proposed): `settings {session, fast: {model, effort}, smart: {model, effort}}` stored on the session and read by `session_model()`/the spawn spec; applies when the seat next starts (`stop` then wake, `Sessions.js:1333`). Use one test session per arm.
-3. **Swap a prompt file** (small change, proposed): `voice_brief()` and `brief()` read a fixed path (`Sessions.js:1200,1204`); allow a per-session override path so two prompts run side by side.
-4. **Replay a recorded session** (proposed script, e.g. `Servex/agents/seat-replay.mjs`): take the owner `chat` lines of a real `session.jsonl` (`owner_lines`, `Sessions.js:~435`), post them into a test session through `say()` with their original `said_at` gaps, and diff the new `place`, `Question`, `refined` and task lines against the recorded ones. The precedent is `wake/replay.mjs` ([report](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/wake/report.md)), which replays real sessions through the wake gate with a fake clock and no model; a seat replay needs the real model, so it costs sentences times the per-call price.
+2. **Per-session model, effort and prompt file** (one small change, proposed): `settings {session, fast: {model, effort, prompt}, smart: {model, effort, prompt}}` stored on the session and read by `session_model()`, `brief()`/`voice_brief()` (fixed paths today, `Sessions.js:1200,1204`) and the spawn spec; applies when the seat next starts (`stop`, then wake, `Sessions.js:1333`). Use one test session per arm, so two prompts or models run side by side.
+3. **Replay a recorded session** (proposed script, e.g. `Servex/agents/seat-replay.mjs`): take the owner `chat` lines of a real `session.jsonl` (`owner_lines`, `Sessions.js:~435`), post them into a test session through `say()` with their original `said_at` gaps, and diff the new `place`, `Question`, `refined` and task lines against the recorded ones. The precedent is `wake/replay.mjs` ([report](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/wake/report.md)), which replays real sessions through the wake gate with a fake clock and no model; a seat replay needs the real model, so it costs sentences times the per-call price.
 
 **Measure, per arm, on the same 30+ sentences:**
 
