@@ -1,6 +1,6 @@
 # One replay: every line in a session's log is applied through `set()` (plan, 2026-10-26, not built)
 
-The owner's rule (2026-10-26): **every line of `session.jsonl` is applied through the replay system, by the item's `set()`, with no special processor per namespace.** Chat V3 is then only a view over the session's `tasks`: a Prompt is a task, and a Prompt can hold other Prompts (that is the summary card). Nothing is built until the owner approves this plan.
+The owner's rule (2026-10-26): **every line of `session.jsonl` is applied through the replay system, by the item's `set()`, with no special processor per namespace.** Chat V3 is then only a view over the session's `tasks`: a Prompt is a task, and a group or summary card is an overlay that references Prompts by id. Nothing is built until the owner approves this plan.
 
 ## Why V2 is broken (read from the code and a real log, `v-9dvbbrn`)
 
@@ -27,7 +27,7 @@ The owner's rule (2026-10-26): **every line of `session.jsonl` is applied throug
 
 | Pseudo-property | Written by | Read by (today) | Becomes |
 |---|---|---|---|
-| `chat` (owner line) | `Sessions.say` | `ux/Dictate/chat.js`, `ext/Session/Session.js`, `Server/SessionRecord.mjs`, `ext/Chat/Chat.js`, `AISession*` | `raw.push` on the open Prompt (already written beside it); the `chat` copy stops |
+| `chat` (owner line) | `Sessions.say` | `ux/Dictate/chat.js`, `ext/Session/Session.js`, `Server/SessionRecord.mjs`, `ext/Chat/Chat.js`, `AISession*` | `raw.push` on the open Prompt (already written beside it); the `chat` line keeps being written for V1 |
 | `chat` (assistant reply) | `Sessions` result handler | same readers | `{<prompt>:{replies:{add:{id,text,by,anchor?}}}}` |
 | `place` | voice assistant via the item tool | V1 `Widget.Thread.place`, `SessionRecord` | deltas on the Prompt's paragraphs (below) |
 | `sent`, `quiet`, `pause`, `nav`, `react`, `backing` | `Sessions` | `Sessions`, V1 `chat.js`, `ext/Session` | `{<prompt>:{sent:{…}}}` for `sent`; `quiet`, `pause`, `nav` are session events: `{<session>:{events:{push}}}` or a per-session `events.jsonl` that is not replayed; `react` is a reaction on the reply it names |
@@ -53,7 +53,7 @@ The fast seat writes the delta on the Prompt itself, under the same replay:
 {"tasks": {"add": {"type": "Prompt", "id": "p-<ms>", …}}}               a new topic card
 ```
 
-`Prompt` and `Paragraphs` already replay these. A sentence picks its Prompt by `Sessions.assign_prompt`: the open Prompt (`s.prompt`, closed after `prompt_close_ms` of quiet) unless the fast seat says new topic. Nesting (`where: inside / beside / up`) becomes which task the new Prompt is added under. V1 gains: one writer shape, no `place()` special case, the cleaned text beside the raw words in one place. V1 loses: the `{place}` lines it draws today (`Widget.Thread.place`) until V1 reads Prompts, and the `move` edit it records but never draws.
+`Prompt` and `Paragraphs` already replay these. A sentence picks its Prompt by `Sessions.assign_prompt`: the open Prompt (`s.prompt`, closed after `prompt_close_ms` of quiet) unless the fast seat says new topic. Nesting (`where: inside / beside / up`) is expressed by a Group card referencing Prompts, never by moving Prompts: they stay in time order. V1 gains: one writer shape, no `place()` special case, the cleaned text beside the raw words in one place. V1 loses: the `{place}` lines it draws today (`Widget.Thread.place`) until V1 reads Prompts, and the `move` edit it records but never draws.
 
 ## V1's whisper feed and a List
 
